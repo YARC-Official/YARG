@@ -13,222 +13,10 @@ MonoBehaviour:
   m_Name: Default Local Group
   m_EditorClassIdentifier: 
   m_GroupName: Default Local Group
-  m_Data:
-    m_SerializedData: []
   m_GUID: 1fc303ae4b596034592a9c3d3864493f
   m_SerializeEntries:
-  - m_GUID: 0a16c58d433eacb44a1354456c1c8abd
-    m_Address: TabIcons
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 66fae0a679753ea4a9110a183b8d2af9
-    m_Address: InstrumentIcons
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 2741494e5a3b68c43986f18396a91a9c
-    m_Address: SettingPreviews/TrackPreview
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 6947e69a25ccfa049a22215a785e9f8a
-    m_Address: MusicLibraryIcons
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 87dae5d50dddcb543920ce79cdc31e7a
-    m_Address: Setting/Dropdown
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: a81218ebbb170f44cb64e324edbb604e
-    m_Address: Setting/Int
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: e6294c1f11109454c8de55ca2da3b0b3
-    m_Address: Setting/Slider
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: cfbe0f197d333b640bdae8e1c3bc1420
-    m_Address: Setting/Toggle
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 745d7b0a47e64a5498e4f35f00fe8a82
-    m_Address: Setting/Volume
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: eda8fcec479d4324eb4bd1d7624e1edc
-    m_Address: SettingTab/Header
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: f9aab3ec5e7b95c4ea962a25da13a2f5
-    m_Address: SettingTab/Button
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: ea75ee401f6919541ada372e1094bf19
-    m_Address: SettingTab/SongManagerHeader
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 37057a242aeaf274982e4ac288d2c898
-    m_Address: SettingTab/SongManagerDirectory
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 8e15c2bf1d9201a4091b3e5a15b27ef0
-    m_Address: SettingTab/PresetTypeDropdown
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: fb3d9a9c08e15ed468a4df6f649ae408
-    m_Address: SettingTab/PresetDropdown
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: f23563e8cc229334d89632b2afc117d9
-    m_Address: SettingTab/PresetDefaultText
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 5727b73630affea44b7d1b897fa3e7c0
-    m_Address: SettingPreviews/TrackPreviewUI
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 40476ae4a634e2c4582e3402d7fc48aa
-    m_Address: SettingTab/Text
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: cc322dac15924ae43bdfed7678b47001
-    m_Address: SettingTab/PresetActions
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 1a6b4094491b39e469cd20e9269e1ef1
-    m_Address: Themes/Rectangular
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: ed60a07e99c4c92429776c877d101c6c
-    m_Address: Themes/Circular
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 16fbd5db4fef5e94dba79d7c7cbacd1e
-    m_Address: Setting/Color
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 669a0ce6995500140adc6dd538718b5d
-    m_Address: Setting/Duration
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 62da6cf9663532040b8d2089bf5715ec
-    m_Address: Setting/HitWindow
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: f1d5ea5074a016f47ba8046a3bfc86cb
-    m_Address: ModifierIcons
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 8644ff72d188351429aeb73a1d49386e
-    m_Address: Setting/DMXChannels
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 9d036fb0b1366674c947c508eacbef3b
-    m_Address: SettingTab/SettingCategoryView
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 38b7af833df3b304aae452f8475324f7
-    m_Address: SettingTab/SearchResultPopulator
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: fbe7667745907d3458091809adbc80a8
-    m_Address: SettingPreviews/DMXInformationPanelUI
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 414b2bebc5293a340be910c46debec04
-    m_Address: Themes/AprilFools
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: b43608d062631c54e8df37adcf0f8e5f
-    m_Address: Setting/IPv4
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 2b33e6e7de204a9439ec85cdb1b7b298
-    m_Address: SettingPreviews/ExperimentalPreviewUI
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: e0e605abd541a884fa54a20c69463dae
-    m_Address: VocalNeedle/1
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 55e41705c37b9714290555abec1a7c20
-    m_Address: VocalNeedle/7
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: a525db7d8caeaf043bc242aafb1f8ce2
-    m_Address: VocalNeedle/6
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: c0533cc84aeadc84b853c51e509ea5da
-    m_Address: VocalNeedle/5
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 6a2ad74716468f2469bcb68fb2791dc7
-    m_Address: VocalNeedle/3
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 4b42c3eb19b10a14d8b5ff4f6afd4b62
-    m_Address: VocalNeedle/2
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: a9026989456792b44a04bc025209b979
-    m_Address: VocalNeedle/4
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: f3ceabe704bcf1745866d8e7135c98ab
-    m_Address: DifficultyIcons
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 6c4584afbb696494d9a34d0961e6381a
-    m_Address: HarmonyVocalsIcons
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 8b68a573841c0df43b615b07a9fa8a80
-    m_Address: VocalNeedleTexture/3
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 6c4556492c4d6da49ac6ae4204f6d10a
-    m_Address: VocalNeedleTexture/4
+  - m_GUID: 00be5b45e060bcc4ea7a4233ed157d47
+    m_Address: VocalNeedleTexture/1
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -237,8 +25,73 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 00be5b45e060bcc4ea7a4233ed157d47
-    m_Address: VocalNeedleTexture/1
+  - m_GUID: 0a16c58d433eacb44a1354456c1c8abd
+    m_Address: TabIcons
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 12e5f769dd812a2418ee2365934e5343
+    m_Address: NoInstrumentIcons
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 16fbd5db4fef5e94dba79d7c7cbacd1e
+    m_Address: Setting/Color
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 1a6b4094491b39e469cd20e9269e1ef1
+    m_Address: Themes/Rectangular
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 2741494e5a3b68c43986f18396a91a9c
+    m_Address: SettingPreviews/TrackPreview
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 274c3f10426fd914fae0818bfe56db5d
+    m_Address: Setting/FileInfo
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 2b33e6e7de204a9439ec85cdb1b7b298
+    m_Address: SettingPreviews/ExperimentalPreviewUI
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 37057a242aeaf274982e4ac288d2c898
+    m_Address: SettingTab/SongManagerDirectory
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 38b7af833df3b304aae452f8475324f7
+    m_Address: SettingTab/SearchResultPopulator
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 40476ae4a634e2c4582e3402d7fc48aa
+    m_Address: SettingTab/Text
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 414b2bebc5293a340be910c46debec04
+    m_Address: Themes/AprilFools
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 4b42c3eb19b10a14d8b5ff4f6afd4b62
+    m_Address: VocalNeedle/2
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 55e41705c37b9714290555abec1a7c20
+    m_Address: VocalNeedle/7
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 5727b73630affea44b7d1b897fa3e7c0
+    m_Address: SettingPreviews/TrackPreviewUI
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -252,13 +105,163 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 62da6cf9663532040b8d2089bf5715ec
+    m_Address: Setting/HitWindow
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 669a0ce6995500140adc6dd538718b5d
+    m_Address: Setting/Duration
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 66fae0a679753ea4a9110a183b8d2af9
+    m_Address: InstrumentIcons
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 6947e69a25ccfa049a22215a785e9f8a
+    m_Address: MusicLibraryIcons
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 6a2ad74716468f2469bcb68fb2791dc7
+    m_Address: VocalNeedle/3
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 6c4556492c4d6da49ac6ae4204f6d10a
+    m_Address: VocalNeedleTexture/4
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 6c4584afbb696494d9a34d0961e6381a
+    m_Address: HarmonyVocalsIcons
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 745d7b0a47e64a5498e4f35f00fe8a82
+    m_Address: Setting/Volume
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 8644ff72d188351429aeb73a1d49386e
+    m_Address: Setting/DMXChannels
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 87dae5d50dddcb543920ce79cdc31e7a
+    m_Address: Setting/Dropdown
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 8b68a573841c0df43b615b07a9fa8a80
+    m_Address: VocalNeedleTexture/3
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 8e15c2bf1d9201a4091b3e5a15b27ef0
+    m_Address: SettingTab/PresetTypeDropdown
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 9d036fb0b1366674c947c508eacbef3b
+    m_Address: SettingTab/SettingCategoryView
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: a525db7d8caeaf043bc242aafb1f8ce2
+    m_Address: VocalNeedle/6
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: a81218ebbb170f44cb64e324edbb604e
+    m_Address: Setting/Int
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: a9026989456792b44a04bc025209b979
+    m_Address: VocalNeedle/4
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: b43608d062631c54e8df37adcf0f8e5f
+    m_Address: Setting/IPv4
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: c0533cc84aeadc84b853c51e509ea5da
+    m_Address: VocalNeedle/5
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: c75f7ae331c92ba4a96938e48ae7391c
     m_Address: VocalNeedleTexture/7
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 12e5f769dd812a2418ee2365934e5343
-    m_Address: NoInstrumentIcons
+  - m_GUID: cc322dac15924ae43bdfed7678b47001
+    m_Address: SettingTab/PresetActions
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: cfbe0f197d333b640bdae8e1c3bc1420
+    m_Address: Setting/Toggle
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: e0e605abd541a884fa54a20c69463dae
+    m_Address: VocalNeedle/1
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: e6294c1f11109454c8de55ca2da3b0b3
+    m_Address: Setting/Slider
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: ea75ee401f6919541ada372e1094bf19
+    m_Address: SettingTab/SongManagerHeader
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: ed60a07e99c4c92429776c877d101c6c
+    m_Address: Themes/Circular
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: eda8fcec479d4324eb4bd1d7624e1edc
+    m_Address: SettingTab/Header
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: f1d5ea5074a016f47ba8046a3bfc86cb
+    m_Address: ModifierIcons
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: f23563e8cc229334d89632b2afc117d9
+    m_Address: SettingTab/PresetDefaultText
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: f3ceabe704bcf1745866d8e7135c98ab
+    m_Address: DifficultyIcons
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: f9aab3ec5e7b95c4ea962a25da13a2f5
+    m_Address: SettingTab/Button
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: fb3d9a9c08e15ed468a4df6f649ae408
+    m_Address: SettingTab/PresetDropdown
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: fbe7667745907d3458091809adbc80a8
+    m_Address: SettingPreviews/DMXInformationPanelUI
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -266,5 +269,5 @@ MonoBehaviour:
   m_Settings: {fileID: 11400000, guid: e05274e5aee7ff54bb550557e8a635f2, type: 2}
   m_SchemaSet:
     m_Schemas:
-    - {fileID: 11400000, guid: 3530220b6fc302842bcdcd0a67e8437a, type: 2}
     - {fileID: 11400000, guid: b3297043ceaab1c49a15ffd2b5f0b24a, type: 2}
+    - {fileID: 11400000, guid: 3530220b6fc302842bcdcd0a67e8437a, type: 2}

@@ -321,6 +321,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   <TrackCamera>k__BackingField: {fileID: 5042276788195936079}
   CameraPositioner: {fileID: 2787801384921991726}
+  HighwayCameraRendering: {fileID: 0}
   TrackMaterial: {fileID: 5579522060939319819}
   ComboMeter: {fileID: 5459863034583426082}
   StarpowerBar: {fileID: 4397569968834985693}
@@ -331,6 +332,7 @@ MonoBehaviour:
   NotePool: {fileID: 4797150999688012940}
   BeatlinePool: {fileID: 897369785276829973}
   EffectPool: {fileID: 1944739971720957538}
+  StarPowerEffect: {fileID: 8371552944514785766}
   _fiveLaneMode: 0
   _fretArray: {fileID: 7353099902729507025}
   _kickFretFlash: {fileID: 5135833070940009271}
@@ -344,5 +346,17 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 607b14b5c54636e40a8ff8db36f0d4f4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &8371552944514785766 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 2116512453078688650, guid: 5800c42510b55c549be95ec3ecd75e1c,
+    type: 3}
+  m_PrefabInstance: {fileID: 7598390404892836460}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: eee94c690d422439aa719adb6383e957, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 

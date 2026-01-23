@@ -35,12 +35,23 @@ namespace YARG.Helpers.Authoring
         private Light _light;
 
         private float _initialIntensity;
+
+        private float BrightIntensity => _initialIntensity * 5;
+
+        public bool IsBrightened { get; set; }
+
         private bool _playing;
+
+        private float _totalDuration;
+        private float _timeRemaining;
 
         private void Awake()
         {
             _light = GetComponent<Light>();
             _initialIntensity = _light.intensity;
+
+            // Keep sustained for duration (rate is a misnomer; rate = millisecond duration)
+            _totalDuration = _fadeOutRate * 0.001f;
         }
 
         private void Start()
@@ -52,6 +63,13 @@ namespace YARG.Helpers.Authoring
 
         private void Update()
         {
+            // Normal mode
+            if (_mode == Mode.Normal && _light.intensity > 0f)
+            {
+                _light.intensity = GetIntensity() * (_timeRemaining > 0f ? 1f : 0f);
+                _timeRemaining -= Time.deltaTime;
+            }
+
             // FadeOut mode
             if (_mode == Mode.FadeOut && _light.intensity > 0f)
             {
@@ -62,13 +80,13 @@ namespace YARG.Helpers.Authoring
             if (_mode == Mode.Wavy && _playing)
             {
                 // TODO: Maybe allow customizing this?
-                _light.intensity = _initialIntensity +
+                _light.intensity = GetIntensity() +
                     Mathf.Sin(Time.time * 30f) * 0.075f +
                     Mathf.Sin(Time.time * 40f) * 0.075f;
             }
         }
 
-        public void SetColor(Color c)
+        public void InitializeColor(Color c)
         {
             if (!_allowColoring) return;
 
@@ -77,18 +95,24 @@ namespace YARG.Helpers.Authoring
 
         public void Play()
         {
-            _light.intensity = _initialIntensity;
+            _light.intensity = GetIntensity();
+            _timeRemaining = _totalDuration;
             _playing = true;
         }
 
         public void Stop()
         {
-            if (_mode != Mode.FadeOut)
+            if (_mode == Mode.Wavy)
             {
                 _light.intensity = 0f;
             }
 
             _playing = false;
+        }
+
+        private float GetIntensity()
+        {
+            return IsBrightened ? BrightIntensity : _initialIntensity;
         }
     }
 }

@@ -13,15 +13,9 @@ namespace YARG.Settings.Metadata
     public class MetadataTab : Tab, IEnumerable<AbstractMetadata>
     {
         // Prefabs needed for this tab type
-        private static readonly GameObject _headerPrefab = Addressables
-            .LoadAssetAsync<GameObject>("SettingTab/Header")
-            .WaitForCompletion();
-        private static readonly GameObject _buttonPrefab = Addressables
-            .LoadAssetAsync<GameObject>("SettingTab/Button")
-            .WaitForCompletion();
-        private static readonly GameObject _textPrefab = Addressables
-            .LoadAssetAsync<GameObject>("SettingTab/Text")
-            .WaitForCompletion();
+        private static GameObject _headerPrefab;
+        private static GameObject _buttonPrefab;
+        private static GameObject _textPrefab;
 
         private Dictionary<string, BaseSettingVisual> _settingVisuals = new();
         private readonly List<AbstractMetadata> _settings = new();
@@ -36,6 +30,7 @@ namespace YARG.Settings.Metadata
         public override void BuildSettingTab(Transform container, NavigationGroup navGroup)
         {
             _settingVisuals.Clear();
+            var settingIndex = 0;
 
             // Once we've found the tab, add the settings
             foreach (var settingMetadata in _settings)
@@ -44,6 +39,12 @@ namespace YARG.Settings.Metadata
                 {
                     case HeaderMetadata header:
                     {
+                        if (_headerPrefab == null)
+                        {
+                            _headerPrefab = Addressables
+                                .LoadAssetAsync<GameObject>("SettingTab/Header")
+                                .WaitForCompletion();
+                        }
                         // Spawn in the header
                         var go = Object.Instantiate(_headerPrefab, container);
 
@@ -51,10 +52,17 @@ namespace YARG.Settings.Metadata
                         go.GetComponentInChildren<TextMeshProUGUI>().text =
                             Localize.Key("Settings.Header", header.HeaderName);
 
+                        settingIndex = 0;
                         break;
                     }
                     case ButtonRowMetadata buttonRow:
                     {
+                        if (_buttonPrefab == null)
+                        {
+                            _buttonPrefab = Addressables
+                                .LoadAssetAsync<GameObject>("SettingTab/Button")
+                                .WaitForCompletion();
+                        }
                         // Spawn the button
                         var go = Object.Instantiate(_buttonPrefab, container);
 
@@ -66,6 +74,12 @@ namespace YARG.Settings.Metadata
                     }
                     case TextMetadata text:
                     {
+                        if (_textPrefab == null)
+                        {
+                            _textPrefab = Addressables
+                                .LoadAssetAsync<GameObject>("SettingTab/Text")
+                                .WaitForCompletion();
+                        }
                         // Spawn in the header
                         var go = Object.Instantiate(_textPrefab, container);
 
@@ -81,10 +95,12 @@ namespace YARG.Settings.Metadata
 
                         var visual = SpawnSettingVisual(setting, container);
                         visual.AssignSetting(field.FieldName, field.HasDescription);
+                        visual.AssignIndex(settingIndex);
 
                         _settingVisuals.Add(field.FieldName, visual);
                         navGroup.AddNavigatable(visual.gameObject);
 
+                        settingIndex++;
                         break;
                     }
                 }

@@ -8,14 +8,15 @@ namespace YARG.Gameplay.Visuals
 {
     public class Fret : MonoBehaviour, IThemeBindable<ThemeFret>
     {
-        private static readonly int _fade = Shader.PropertyToID("Fade");
+        private static readonly int _fade          = Shader.PropertyToID("Fade");
         private static readonly int _emissionColor = Shader.PropertyToID("_EmissionColor");
 
-        private static readonly int _hit = Animator.StringToHash("Hit");
-        private static readonly int _miss = Animator.StringToHash("Miss");
-        private static readonly int _openMiss = Animator.StringToHash("OpenMiss");
-        private static readonly int _pressed = Animator.StringToHash("Pressed");
-        private static readonly int _sustain = Animator.StringToHash("Sustain");
+        private static readonly int _hit       = Animator.StringToHash("Hit");
+        private static readonly int _cymbalHit = Animator.StringToHash("CymbalHit");
+        private static readonly int _miss      = Animator.StringToHash("Miss");
+        private static readonly int _openMiss  = Animator.StringToHash("OpenMiss");
+        private static readonly int _pressed   = Animator.StringToHash("Pressed");
+        private static readonly int _sustain   = Animator.StringToHash("Sustain");
 
         // If we want info to be copied over when we copy the prefab,
         // we must make them SerializeFields.
@@ -35,6 +36,7 @@ namespace YARG.Gameplay.Visuals
         // when transitioning between active and inactive states
         private UnityEngine.Color _originalUnityTopColor;
         private UnityEngine.Color _originalUnityInnerColor;
+        private UnityEngine.Color _originalEmissionColor;
 
         // TODO: Consider making this customizable or perhaps just a desaturated and dimmed version of the base color
         private UnityEngine.Color _inactiveColor = new(0.321f, 0.321f, 0.321f, 1.0f);
@@ -48,23 +50,33 @@ namespace YARG.Gameplay.Visuals
         private float _fadeStartTime;
         private float _fadeAmount = 0.0f;
 
+        public enum AnimType
+        {
+            CorrectNormal,
+            CorrectHard,
+            CorrectSoft,
+            TooHard,
+            TooSoft,
+        }
+
         public void Initialize(Color top, Color inner, Color particles, Color openParticles)
         {
             _originalUnityTopColor = top.ToUnityColor();
             _originalUnityInnerColor = inner.ToUnityColor();
+            _originalEmissionColor = top.ToUnityColor() * 11.5f;
 
             // Set the top material color
             foreach (var material in ThemeBind.GetColoredMaterials())
             {
-                material.color = top.ToUnityColor();
-                material.SetColor(_emissionColor, top.ToUnityColor() * 11.5f);
+                material.color = _originalUnityTopColor;
+                material.SetColor(_emissionColor, _originalEmissionColor);
                 _topMaterials.Add(material);
             }
 
             // Set the inner material color
             foreach (var material in ThemeBind.GetInnerColoredMaterials())
             {
-                material.color = inner.ToUnityColor();
+                material.color = _originalUnityInnerColor;
                 _innerMaterials.Add(material);
             }
 
@@ -87,7 +99,73 @@ namespace YARG.Gameplay.Visuals
 
         public void SetPressed(bool pressed)
         {
-            float value = pressed ? 1f : 0f;
+            SetPressed(pressed, pressed ? 1f : 0f);
+        }
+
+        public void SetPressedDrum(bool pressed, AnimType animType)
+        {
+            // Set the inner portion of the fret
+            SetPressed(pressed, pressed ? GetFretInnerBrightnessMultiplier(animType) : 0f);
+        }
+
+        public void WhitenFretColor()
+        {
+            foreach (var material in ThemeBind.GetColoredMaterials())
+            {
+                material.color = UnityEngine.Color.white;
+                material.SetColor(_emissionColor, UnityEngine.Color.white);
+            }
+
+            foreach (var material in ThemeBind.GetInnerColoredMaterials())
+            {
+                material.color = UnityEngine.Color.white;
+                material.SetColor(_emissionColor, UnityEngine.Color.white);
+            }
+
+            foreach (var light in ThemeBind.HitEffect.EffectLights)
+            {
+                light.IsBrightened = true;
+            }
+
+            foreach (var particle in ThemeBind.HitEffect.EffectParticles)
+            {
+                particle.BrightenColor();
+            }
+        }
+
+        public void RestoreFretColor()
+        {
+            foreach (var material in ThemeBind.GetColoredMaterials())
+            {
+                material.color = _originalUnityTopColor;
+                material.SetColor(_emissionColor, _originalEmissionColor);
+            }
+
+            foreach (var material in ThemeBind.GetInnerColoredMaterials())
+            {
+                material.color = _originalUnityInnerColor;
+                material.SetColor(_emissionColor, _originalEmissionColor);
+            }
+
+            foreach (var light in ThemeBind.HitEffect.EffectLights)
+            {
+                light.IsBrightened = false;
+            }
+
+            foreach (var particle in ThemeBind.HitEffect.EffectParticles)
+            {
+                particle.RestoreColor();
+            }
+        }
+
+        private float GetFretInnerBrightnessMultiplier(AnimType animType)
+        {
+            // Normal and hard should both be 1f
+            return AnimType.CorrectSoft == animType ? 0f : 1f;
+        }
+
+        public void SetPressed(bool pressed, float value)
+        {
             foreach (var material in _innerMaterials)
             {
                 material.SetFloat(_fade, value);
@@ -111,6 +189,11 @@ namespace YARG.Gameplay.Visuals
         public void PlayHitAnimation()
         {
             ThemeBind.Animator.SetTrigger(_hit);
+        }
+
+        public void PlayCymbalHitAnimation()
+        {
+            ThemeBind.Animator.SetTrigger(_cymbalHit);
         }
 
         public void PlayHitParticles()

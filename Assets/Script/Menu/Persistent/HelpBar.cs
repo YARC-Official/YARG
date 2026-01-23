@@ -72,8 +72,17 @@ namespace YARG.Menu.Persistent
                 MusicPlayer.gameObject.SetActive(false);
             }
 
+            if (scheme.SuppressHelpBar)
+            {
+                // We want the black bar, but no buttons
+                gameObject.SetActive(true);
+                return;
+            }
+
             // Update buttons
             int buttonIndex = 0;
+            // So we can coalesce left/right into one button
+            bool hasLeft = false, hasRight = false;
             foreach (var entry in scheme.Entries)
             {
                 if (buttonIndex >= _buttons.Count)
@@ -88,11 +97,40 @@ namespace YARG.Menu.Persistent
                     continue;
                 }
 
+                // Coalesce left/right into one button
+                if (entry.Action == MenuAction.Left)
+                {
+                    hasLeft = true;
+                    continue;
+                }
+
+                if (entry.Action == MenuAction.Right)
+                {
+                    hasRight = true;
+                    continue;
+                }
+
                 var button = _buttons[buttonIndex];
                 button.gameObject.SetActive(true);
                 button.SetInfoFromSchemeEntry(entry);
 
                 buttonIndex++;
+            }
+
+            // If left or right exists, display the left/right button with the text of the first to appear
+            // nb: this is done separately so that left/right is always the last button
+            if (hasLeft || hasRight)
+            {
+                foreach (var entry in scheme.Entries)
+                {
+                    if (entry.Action == MenuAction.Left || entry.Action == MenuAction.Right)
+                    {
+                        var button = _buttons[buttonIndex];
+                        button.gameObject.SetActive(true);
+                        button.SetInfoFromSchemeEntry(entry, false);
+                        break;
+                    }
+                }
             }
 
             gameObject.SetActive(true);

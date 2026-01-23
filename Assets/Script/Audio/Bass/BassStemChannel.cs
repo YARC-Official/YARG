@@ -1,4 +1,4 @@
-﻿using ManagedBass;
+using ManagedBass;
 using ManagedBass.Mix;
 using UnityEngine;
 using YARG.Core.Audio;
@@ -8,14 +8,14 @@ namespace YARG.Audio.BASS
 {
     public sealed class BassStemChannel : StemChannel
     {
-        private readonly int _sourceHandle;
+        private readonly int                        _sourceHandle;
+        private          StreamHandle               _streamHandles;
+        private          StreamHandle               _reverbHandles;
+        private          PitchShiftParametersStruct _pitchParams;
 
-        private StreamHandle _streamHandles;
-        private StreamHandle _reverbHandles;
-        private PitchShiftParametersStruct _pitchParams;
-
-        private double _volume;
-        private bool _isReverbing;
+        private          double _volume;
+        private          bool   _isReverbing;
+        private readonly long   _length;
 
         internal BassStemChannel(AudioManager manager, SongStem stem, bool clampStemVolume, int sourceStream, in PitchShiftParametersStruct pitchParams, in StreamHandle streamHandles, in StreamHandle reverbHandles)
             : base(manager, stem, clampStemVolume)
@@ -24,6 +24,12 @@ namespace YARG.Audio.BASS
             _streamHandles = streamHandles;
             _reverbHandles = reverbHandles;
             _pitchParams = pitchParams;
+
+            _length = Bass.ChannelGetLength(_streamHandles.Stream);
+            if (_length < 0)
+            {
+                YargLogger.LogFormatError("Failed to get channel length in bytes: {0}!", Bass.LastError);
+            }
 
             double volume = GlobalAudioHandler.GetTrueVolume(stem);
             if (clampStemVolume && volume < MINIMUM_STEM_VOLUME)
@@ -35,16 +41,6 @@ namespace YARG.Audio.BASS
 
         protected override void SetWhammyPitch_Internal(float percent)
         {
-            // If pitch effect hasn't been added yet, add it.
-            if (_streamHandles.PitchFX == 0)
-            {
-                _streamHandles.PitchFX = BassHelpers.AddPitchShiftToChannel(_streamHandles.Stream, _pitchParams);
-            }
-            if (_reverbHandles.PitchFX == 0)
-            {
-                _reverbHandles.PitchFX = BassHelpers.AddPitchShiftToChannel(_reverbHandles.Stream, _pitchParams);
-            }
-
             // Calculate shift
             float shift = Mathf.Pow(2, -(GlobalAudioHandler.WhammyPitchShiftAmount * percent) / 12);
             _pitchParams.fPitchShift = shift;
@@ -64,28 +60,15 @@ namespace YARG.Audio.BASS
                     YargLogger.LogFormatError("Failed to set pitch on reverb: {0}", Bass.LastError);
                 }
             }
-            /*
-            else
-            {
-                // If pitch is effect running we could remove it.
-                // This would help with delay but there's a skip when adding or removing.
-                // Probably better to do this after at zero whammy rest for a period of time.
+        }
 
-                if (_streamHandles.PitchFX != 0)
-                {
-                    if (!Bass.ChannelRemoveFX(_streamHandles.Stream, _streamHandles.PitchFX))
-                    {
-                        YargLogger.LogFormatError("Failed to remove pitch effect: {0}!", Bass.LastError);
-                    }
-                    if (!Bass.ChannelRemoveFX(_reverbHandles.Stream, _streamHandles.PitchFX))
-                    {
-                        YargLogger.LogFormatError("Failed to remove pitch effect: {0}!", Bass.LastError);
-                    }
-                    _streamHandles.PitchFX = 0;
-                    _reverbHandles.PitchFX = 0;
-                }
+        protected override float GetWhammyPitch_Internal()
+        {
+            if (_streamHandles.PitchFX == 0)
+            {
+                return 0f;
             }
-            */
+            return _pitchParams.fPitchShift;
         }
 
         protected override void SetPosition_Internal(double position)
@@ -102,16 +85,18 @@ namespace YARG.Audio.BASS
                 return;
             }
 
+            // Don't attempt to seek past the end of the stream
+            if (_length > 0 && bytes > _length)
+            {
+                bytes = _length - 1;
+            }
+
+
             bool success = BassMix.ChannelSetPosition(_streamHandles.Stream, bytes, PositionFlags.Bytes | PositionFlags.MixerReset);
             if (!success)
             {
-                YargLogger.LogFormatError("Failed to seek to position {0}!", position);
+                YargLogger.LogFormatError("Failed to seek to position {0} (bytes {1}, length {2}!", position, bytes, _length);
             }
-        }
-
-        protected override void SetSpeed_Internal(float speed, bool shiftPitch)
-        {
-            BassAudioManager.SetSpeed(speed, _streamHandles.Stream, _reverbHandles.Stream, shiftPitch);
         }
 
         protected override void SetVolume_Internal(double volume)
@@ -126,7 +111,7 @@ namespace YARG.Audio.BASS
             }
 
             float reverbVolume = _isReverbing ? (float) volume * BassHelpers.REVERB_VOLUME_MULTIPLIER : 0;
-            
+
             if (!Bass.ChannelSlideAttribute(_reverbHandles.Stream, ChannelAttribute.Volume, reverbVolume, 0))
             {
                 YargLogger.LogFormatError("Failed to set reverb volume: {0}!", Bass.LastError);
@@ -193,12 +178,6 @@ namespace YARG.Audio.BASS
         {
             _streamHandles.Dispose();
             _reverbHandles.Dispose();
-
-            if (_sourceHandle != 0)
-            {
-                if (!Bass.StreamFree(_sourceHandle) && Bass.LastError != Errors.Handle)
-                    YargLogger.LogFormatError("Failed to free file stream (THIS WILL LEAK MEMORY): {0}!", Bass.LastError);
-            }
         }
     }
 }

@@ -10,7 +10,9 @@ using YARG.Core.Logging;
 using YARG.Core.Replays;
 using YARG.Gameplay.HUD;
 using YARG.Helpers.Extensions;
+using YARG.Helpers.UI;
 using YARG.Input;
+using YARG.Playback;
 using YARG.Player;
 using YARG.Settings;
 
@@ -18,7 +20,7 @@ namespace YARG.Gameplay.Player
 {
     public abstract class BasePlayer : GameplayBehaviour
     {
-        public int PlayerIndex { get; private set; }
+        public int HighwayIndex { get; private set; }
 
         public YargPlayer Player { get; private set; }
 
@@ -69,6 +71,7 @@ namespace YARG.Gameplay.Player
         public float Stars => BaseStats.Stars;
 
         public int Score => BaseStats.TotalScore;
+        public int BandBonusScore => BaseStats.BandBonusScore;
         public int Combo => BaseStats.Combo;
         public int NotesHit => BaseStats.NotesHit;
 
@@ -106,9 +109,20 @@ namespace YARG.Gameplay.Player
         {
             _replayInputs = new List<GameInput>();
 
-            InputViewer = FindObjectOfType<BaseInputViewer>();
+            // TODO: Couldn't there be more than one input viewer?
+            //  We were using FindObjectOfType<BaseInputViewer> before anyway, so we're no worse off in that respect
+            InputViewer = FindFirstObjectByType<BaseInputViewer>();
 
             IsFc = true;
+        }
+
+        private void Update()
+        {
+            //Ensure hud elements get repositioned on screen size change
+            if (ScreenSizeDetector.HasScreenSizeChanged)
+            {
+                UpdateVisuals(GameManager.VisualTime);
+            }
         }
 
         protected void Start()
@@ -131,7 +145,7 @@ namespace YARG.Gameplay.Player
                 return;
             }
 
-            PlayerIndex = index;
+            HighwayIndex = index;
             Player = player;
 
             SyncTrack = chart.SyncTrack;
@@ -155,22 +169,18 @@ namespace YARG.Gameplay.Player
             IsInitialized = true;
         }
 
-        public virtual void UpdateWithTimes(double inputTime)
+        public virtual void GameplayUpdate()
         {
             if (!GameManager.Started || GameManager.Paused)
             {
                 return;
             }
 
-            UpdateInputs(inputTime);
-            UpdateVisualsWithTimes(inputTime);
+            UpdateInputs(GameManager.InputTime);
+            UpdateVisuals(GameManager.VisualTime);
         }
 
-        protected virtual void UpdateVisualsWithTimes(double inputTime)
-        {
-            UpdateVisuals(inputTime);
-        }
-
+        protected abstract void UpdateVisuals(double visualTime);
         protected abstract void ResetVisuals();
 
         public virtual void ResetPracticeSection()
@@ -181,8 +191,6 @@ namespace YARG.Gameplay.Player
 
             ResetVisuals();
         }
-
-        protected abstract void UpdateVisuals(double time);
 
         public abstract void SetPracticeSection(uint start, uint end);
 
@@ -203,7 +211,7 @@ namespace YARG.Gameplay.Player
             SetStemMuteState(false);
 
             ResetVisuals();
-            UpdateVisualsWithTimes(time);
+            UpdateVisuals(time);
         }
 
         protected override void GameplayDestroy()
@@ -298,8 +306,8 @@ namespace YARG.Gameplay.Player
 
         protected void OnGameInput(ref GameInput input)
         {
-            // Ignore completely if the song hasn't started yet
-            if (!GameManager.Started)
+            // Ignore completely if the song hasn't started yet or player failed
+            if (!GameManager.Started || GameManager.PlayerHasFailed)
                 return;
 
             // Ignore while paused
@@ -327,7 +335,7 @@ namespace YARG.Gameplay.Player
 
             LastInputs[input.Action] = input;
 
-            double adjustedTime = GameManager.GetCalibratedRelativeInputTime(input.Time);
+            double adjustedTime = GameManager.GetRelativeInputTime(input.Time);
             // Apply input offset
             adjustedTime += InputCalibration;
             input = new(adjustedTime, input.Action, input.Integer);
@@ -348,12 +356,23 @@ namespace YARG.Gameplay.Player
             }
         }
 
+        protected virtual void OnStarPowerPhraseMissed()
+        {
+
+        }
+
         protected virtual void OnStarPowerStatus(bool active)
         {
+            var deploySample = SfxSample.StarPowerDeploy;
+            if (SettingsManager.Settings.UseCrowdFx.Value == CrowdFxMode.Enabled)
+            {
+                deploySample = SfxSample.StarPowerDeployCrowd;
+            }
+
             if (!GameManager.Paused)
             {
                 GlobalAudioHandler.PlaySoundEffect(active
-                    ? SfxSample.StarPowerDeploy
+                    ? deploySample
                     : SfxSample.StarPowerRelease);
 
                 SetStarPowerFX(active);

@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using YARG.Core.Chart;
 
 namespace YARG.Gameplay.Visuals
 {
@@ -22,24 +21,17 @@ namespace YARG.Gameplay.Visuals
             _starpowerBar.material.SetFloat(_fill, (float) starpowerAmount);
         }
 
-        public void PulseBar(Beatline beat)
+        public void UpdateFlash(double beatPercentage)
         {
-            if (beat.Type == BeatlineType.Weak)
-                return;
-
             if (_starpowerAmount >= 0.5 || _starpowerActive)
             {
-                _starpowerBar.material.SetFloat(_pulse, 1f);
+                float pulse = Mathf.Pow(1 - (float) beatPercentage, 2);
+                _starpowerBar.material.SetFloat(_pulse, pulse);
             }
-        }
-
-        private void Update()
-        {
-            var mat = _starpowerBar.material;
-
-            // Fade out the pulse
-            float currentPulse = mat.GetFloat(_pulse);
-            mat.SetFloat(_pulse, Mathf.Clamp01(currentPulse - Time.deltaTime * 6f));
+            else
+            {
+                _starpowerBar.material.SetFloat(_pulse, 0f);
+            }
         }
     }
 }

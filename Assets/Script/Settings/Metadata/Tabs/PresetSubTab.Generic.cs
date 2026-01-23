@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Reflection;
 using UnityEngine;
 using YARG.Core;
@@ -19,6 +20,8 @@ namespace YARG.Settings.Metadata
 {
     public class PresetSubTab<T> : PresetSubTab where T : BasePreset
     {
+        private int _fieldIndex;
+
         private struct FieldSettingInfo
         {
             public FieldInfo Field;
@@ -121,6 +124,17 @@ namespace YARG.Settings.Metadata
         {
             // Since we don't wanna put attributes on each color within the color profile,
             // add a special case for that.
+            var settingType = field.GetCustomAttribute<SettingTypeAttribute>();
+
+            // But if the setting type attribute is set to ignore, respect that
+            //
+            // This exists because it can happen that a preset/other settings object
+            // needs to have public fields that we don't want shown in the UI
+            if (settingType is not null && settingType.Type == SettingType.Ignore)
+            {
+                return;
+            }
+
             if (field.FieldType == typeof(SystemColor) && typeof(T) == typeof(ColorProfile))
             {
                 list.Add(new FieldSettingInfo
@@ -133,7 +147,6 @@ namespace YARG.Settings.Metadata
                 return;
             }
 
-            var settingType = field.GetCustomAttribute<SettingTypeAttribute>();
             if (settingType is null)
             {
                 return;
@@ -187,6 +200,7 @@ namespace YARG.Settings.Metadata
             }
 
             SpawnHeader(settingContainer, "PresetSettings");
+            _fieldIndex = 0;
 
             switch (_presetRef)
             {
@@ -269,6 +283,15 @@ namespace YARG.Settings.Metadata
 
                     break;
                 }
+                case SettingType.FileInfo:
+                {
+                    var settingName = field.Field.Name;
+                    setting = new FileInfoSetting(field.GetValue<FileInfo>(preset), preset, settingName, (value) =>
+                    {
+                        field.SetValue(preset, value);
+                    });
+                    break;
+                }
             }
 
             if (setting is not null)
@@ -347,7 +370,9 @@ namespace YARG.Settings.Metadata
         {
             var visual = SpawnSettingVisual(settingType, container);
             visual.AssignPresetSetting($"{presetName}.{name}", hasDescription, settingType);
+            visual.AssignIndex(_fieldIndex);
             navGroup.AddNavigatable(visual.gameObject);
+            _fieldIndex++;
         }
 
         private void CreateField(Transform container, NavigationGroup navGroup, string presetName, string name,

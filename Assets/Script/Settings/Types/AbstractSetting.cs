@@ -16,7 +16,7 @@ namespace YARG.Settings.Types
             {
                 SetValue(value);
 
-                _onChange?.Invoke(_value);
+                OnChange?.Invoke(_value);
 
                 SettingsMenu.Instance.OnSettingChanged();
             }
@@ -32,11 +32,11 @@ namespace YARG.Settings.Types
 
         public abstract string AddressableName { get; }
 
-        private readonly Action<T> _onChange;
+        public Action<T> OnChange;
 
         protected AbstractSetting(Action<T> onChange)
         {
-            _onChange = onChange;
+            OnChange = onChange;
         }
 
         protected virtual void SetValue(T value)
@@ -48,7 +48,7 @@ namespace YARG.Settings.Types
 
         public void ForceInvokeCallback()
         {
-            _onChange?.Invoke(Value);
+            OnChange?.Invoke(Value);
         }
 
         public abstract bool ValueEquals(T value);

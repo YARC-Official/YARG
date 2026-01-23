@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using UnityEngine;
 using YARG.Core.Game;
 using YARG.Helpers.Extensions;
 using YARG.Settings;
+using YARG.Settings.Customization;
 
 namespace YARG.Gameplay.Visuals
 {
@@ -11,9 +13,10 @@ namespace YARG.Gameplay.Visuals
     {
         // TODO: MOST OF THIS CLASS IS TEMPORARY UNTIL THE TRACK TEXTURE SETTINGS ARE IN
 
-        private static readonly int _scrollProperty = Shader.PropertyToID("_Scroll");
+        private static readonly int _scrollProperty         = Shader.PropertyToID("_Scroll");
         private static readonly int _starpowerStateProperty = Shader.PropertyToID("_Starpower_State");
-        private static readonly int _wavinessProperty = Shader.PropertyToID("_Waviness");
+        private static readonly int _starpowerTimeProperty  = Shader.PropertyToID("_Starpower_Start_Time");
+        private static readonly int _wavinessProperty       = Shader.PropertyToID("_Waviness");
 
         private static readonly int _layer1ColorProperty = Shader.PropertyToID("_Layer_1_Color");
         private static readonly int _layer2ColorProperty = Shader.PropertyToID("_Layer_2_Color");
@@ -22,12 +25,30 @@ namespace YARG.Gameplay.Visuals
 
         private static readonly int _starPowerColorProperty = Shader.PropertyToID("_Starpower_Color");
 
+        private static readonly int _baseTextureProperty = Shader.PropertyToID("_Layer_2_Texture");
+        private static readonly int _baseParallaxProperty = Shader.PropertyToID("_Layer_2_Parallax");
+        private static readonly int _baseWavinessProperty = Shader.PropertyToID("_Layer_2_Wavy_Amount");
+        private static readonly int _sidePatternProperty = Shader.PropertyToID("_Layer_4_Texture");
+        private static readonly int _sideParallaxProperty = Shader.PropertyToID("_Layer_4_Parallax");
+        private static readonly int _sideWavinessProperty = Shader.PropertyToID("_Layer_4_Wavy_Amount");
+
+        private Texture _originalBaseTexture;
+        private Texture _originalSidePattern;
+        private float   _originalBaseParallax;
+        private float   _originalSideParallax;
+        private float   _originalBaseWaviness;
+        private float   _originalSideWaviness;
+
         public struct Preset
         {
-            public Color Layer1;
-            public Color Layer2;
-            public Color Layer3;
-            public Color Layer4;
+            public Color    Layer1;
+            public Color    Layer2;
+            public Color    Layer3;
+            public Color    Layer4;
+            public FileInfo BaseTexture;
+            public FileInfo SidePattern;
+            public float    BaseWaviness;
+            public float    SideWaviness;
 
             public static Preset FromHighwayPreset(HighwayPreset preset, bool groove)
             {
@@ -38,7 +59,11 @@ namespace YARG.Gameplay.Visuals
                         Layer1 = preset.BackgroundGrooveBaseColor1.ToUnityColor(),
                         Layer2 = preset.BackgroundGrooveBaseColor2.ToUnityColor(),
                         Layer3 = preset.BackgroundGrooveBaseColor3.ToUnityColor(),
-                        Layer4 = preset.BackgroundGroovePatternColor.ToUnityColor()
+                        Layer4 = preset.BackgroundGroovePatternColor.ToUnityColor(),
+                        BaseTexture = preset.BackgroundImage,
+                        SidePattern = preset.SideImage,
+                        BaseWaviness = preset.BaseWaviness,
+                        SideWaviness = preset.SideWaviness
                     };
                 }
 
@@ -47,7 +72,11 @@ namespace YARG.Gameplay.Visuals
                     Layer1 = preset.BackgroundBaseColor1.ToUnityColor(),
                     Layer2 = preset.BackgroundBaseColor2.ToUnityColor(),
                     Layer3 = preset.BackgroundBaseColor3.ToUnityColor(),
-                    Layer4 = preset.BackgroundPatternColor.ToUnityColor()
+                    Layer4 = preset.BackgroundPatternColor.ToUnityColor(),
+                    BaseTexture = preset.BackgroundImage,
+                    SidePattern = preset.SideImage,
+                    BaseWaviness = preset.BaseWaviness,
+                    SideWaviness = preset.SideWaviness
                 };
             }
         }
@@ -78,8 +107,22 @@ namespace YARG.Gameplay.Visuals
 
         [HideInInspector]
         public bool GrooveMode;
+
+        private bool _starpowerMode;
         [HideInInspector]
-        public bool StarpowerMode;
+        public bool StarpowerMode
+        {
+            get => _starpowerMode;
+            // When going from false to true, also set the starpower time
+            set
+            {
+                if (value && !_starpowerMode)
+                {
+                    _material.SetFloat(_starpowerTimeProperty, Time.time);
+                }
+                _starpowerMode = value;
+            }
+        }
         private GameManager _gameManager;
 
         public float StarpowerState
@@ -96,6 +139,12 @@ namespace YARG.Gameplay.Visuals
 
         private Material _material;
         private readonly List<Material> _trimMaterials = new();
+
+        private Texture2D _baseTexture;
+        private Texture2D _sidePattern;
+
+        private const string BASE_TEXTURE_NAME = "baseTexture.png";
+        private const string SIDE_PATTERN_NAME = "sidePattern.png";
 
         private void Awake()
         {
@@ -121,20 +170,30 @@ namespace YARG.Gameplay.Visuals
                 Layer3 = FromHex("FFFFFF", 0f),
                 Layer4 = FromHex("2C499E", 1f)
             };
+
+            // If the original textures haven't been saved yet, save them now
+            if (_originalBaseTexture == null)
+            {
+                _originalBaseTexture = _material.GetTexture(_baseTextureProperty);
+                _originalBaseParallax = _material.GetFloat(_baseParallaxProperty);
+                _originalBaseWaviness = _material.GetFloat(_baseWavinessProperty);
+                _originalSidePattern = _material.GetTexture(_sidePatternProperty);
+                _originalSideParallax = _material.GetFloat(_sideParallaxProperty);
+                _originalSideWaviness = _material.GetFloat(_sideWavinessProperty);
+            }
         }
 
-        public void Initialize(float fadePos, float fadeSize, HighwayPreset highwayPreset)
+        public void Initialize(HighwayPreset highwayPreset)
         {
-            // Set all fade values
-            _material.SetFade(fadePos, fadeSize);
-            foreach (var trimMat in _trimMaterials)
-            {
-                trimMat.SetFade(fadePos, fadeSize);
-            }
-
             _material.SetColor(_starPowerColorProperty, highwayPreset.StarPowerColor.ToUnityColor() );
             _normalPreset = Preset.FromHighwayPreset(highwayPreset, false);
             _groovePreset = Preset.FromHighwayPreset(highwayPreset, true);
+
+            // Waviness applies whether or not custom textures are used
+            _material.SetFloat(_baseWavinessProperty, _normalPreset.BaseWaviness);
+            _material.SetFloat(_sideWavinessProperty, _normalPreset.SideWaviness);
+
+            SetTextures();
         }
 
         private void Update()
@@ -150,7 +209,7 @@ namespace YARG.Gameplay.Visuals
 
             if (StarpowerMode && SettingsManager.Settings.StarPowerHighwayFx.Value is StarPowerHighwayFxMode.On)
             {
-                StarpowerState = Mathf.Lerp(StarpowerState, 1f, Time.deltaTime * 2f);
+                StarpowerState = 1.0f;
             }
             else
             {
@@ -173,6 +232,54 @@ namespace YARG.Gameplay.Visuals
         {
             float position = (float) time * noteSpeed / 4f;
             _material.SetFloat(_scrollProperty, position);
+        }
+
+        // TODO: Integrate this with CustomContentManager so it can be managed in settings
+        private void SetTextures()
+        {
+            if (_normalPreset.BaseTexture == null || _normalPreset.SidePattern == null)
+            {
+                SetDefaultTextures();
+                return;
+            }
+
+            var baseTexturePath = _normalPreset.BaseTexture.FullName;
+            var sidePatternPath = _normalPreset.SidePattern.FullName;
+
+            if (!File.Exists(baseTexturePath) || !File.Exists(sidePatternPath))
+            {
+                // Use default textures
+                SetDefaultTextures();
+                return;
+            }
+
+            var bytes = File.ReadAllBytes(baseTexturePath);
+            _baseTexture = new Texture2D(2, 2);
+            var success = _baseTexture.LoadImage(bytes);
+
+            bytes = File.ReadAllBytes(sidePatternPath);
+            _sidePattern = new Texture2D(2, 2);
+            success = success && _sidePattern.LoadImage(bytes);
+
+            // If either didn't load, use defaults
+            if (!success)
+            {
+                SetDefaultTextures();
+                return;
+            }
+
+            _material.SetTexture(_baseTextureProperty, _baseTexture);
+            _material.SetFloat(_baseParallaxProperty, 1f);
+            _material.SetTexture(_sidePatternProperty, _sidePattern);
+            _material.SetFloat(_sideParallaxProperty, 1f);
+        }
+
+        private void SetDefaultTextures()
+        {
+            _material.SetTexture(_baseTextureProperty, _originalBaseTexture);
+            _material.SetFloat(_baseParallaxProperty, _originalBaseParallax);
+            _material.SetTexture(_sidePatternProperty, _originalSidePattern);
+            _material.SetFloat(_sideParallaxProperty, _originalSideParallax);
         }
     }
 }

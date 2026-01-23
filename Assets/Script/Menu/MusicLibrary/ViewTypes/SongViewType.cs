@@ -90,7 +90,7 @@ namespace YARG.Menu.MusicLibrary
             var percent = Mathf.Floor(_playerPercentRecord.GetPercent() * 100f);
             var percentColor = _playerPercentRecord.IsFc ? "#fcd13c" : "#ffffff";
 
-            builder.AppendFormat("<sprite name=\"{0}\"> <color={1}>{2:N0}%</color><space=0.5em>",
+            builder.AppendFormat("<sprite name=\"{0}\"> <mspace=.5em><color={1}>{2,3:N0}</mspace>%</color><space=0.5em>",
                 percentDifficulty, percentColor, percent);
 
             var scoreInfoMode = SettingsManager.Settings.HighScoreInfo.Value;
@@ -151,6 +151,9 @@ namespace YARG.Menu.MusicLibrary
             {
                 return;
             }
+
+            // Reset library's main index so we don't return to the index set by play a show
+            MusicLibraryMenu.ResetMainLibraryIndex();
 
             GlobalVariables.State.CurrentSong = SongEntry;
             // This just makes stuff in DifficultySelectMenu easier

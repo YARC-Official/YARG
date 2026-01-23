@@ -37,12 +37,14 @@ namespace YARG.Gameplay.Visuals
         private MaterialInfo[] _coloredMaterialCache;
         private MaterialInfo[] _coloredMaterialNoStarPowerCache;
         private MaterialInfo[] _allColoredCache;
+        private MaterialInfo[] _coloredMetalMaterialCache;
 
         public void Initialize()
         {
             _coloredMaterialCache ??= _themeNote.ColoredMaterials.Select(MaterialInfo.From).ToArray();
             _coloredMaterialNoStarPowerCache ??= _themeNote.ColoredMaterialsNoStarPower.Select(MaterialInfo.From).ToArray();
             _allColoredCache ??= _coloredMaterialCache.Concat(_coloredMaterialNoStarPowerCache).ToArray();
+            _coloredMetalMaterialCache ??= _themeNote.ColoredMetalMaterials.Select(MaterialInfo.From).ToArray();
 
             // Set random values
             var randomFloat = Random.Range(-1f, 1f);
@@ -86,6 +88,17 @@ namespace YARG.Gameplay.Visuals
 
                 info.MaterialCache.color = realColor;
                 info.MaterialCache.SetColor(_emissionColor, realColor * info.EmissionMultiplier);
+            }
+        }
+
+        public void SetMetalColor(Color metalColor)
+        {
+            if (_coloredMetalMaterialCache.Length == 0) return;
+
+            foreach (var info in _coloredMetalMaterialCache)
+            {
+                info.MaterialCache.color = metalColor;
+                info.MaterialCache.SetColor(_emissionColor, metalColor);
             }
         }
 

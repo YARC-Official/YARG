@@ -53,7 +53,16 @@ namespace YARG.Localization
             sb.AppendJoin(Key("Language.ListDelimiter.Default"), elements[..^1]);
 
             // Append last element (special case)
-            sb.Append(Key("Language.ListDelimiter.Last"));
+            if (elements.Length == 2)
+            {
+                sb.Append(Key("Language.ListDelimiter.TwoItem"));
+            }
+            else
+            {
+
+                sb.Append(Key("Language.ListDelimiter.Last"));
+            }
+
             sb.Append(elements[^1]);
 
             return sb.ToString();
@@ -87,6 +96,11 @@ namespace YARG.Localization
         public static string ToLocalizedName(this GameMode gameMode)
         {
             return Key("Enum.GameMode", gameMode);
+        }
+
+        public static string ToLocalizedName(this StarPowerActivationType starPowerActivationType)
+        {
+            return Key("Enum.StarPowerActivationType", starPowerActivationType);
         }
 
         public static string ToLocalizedName(this Instrument instrument)

@@ -85,6 +85,14 @@ There are some dependencies that will be needed in order for HID devices (such a
   - The file name may differ if desired, but it must come before `73-seat-late.rules`!
 3. Reboot your system to apply the new udev rule, then you should be all good to go!
 
+For improved compatibility when using the XBOX 360 Wireless Adapter with Linux, create a new udev rules file called `99-yarg-libusb.rules` inside of `/etc/udev/rules.d/` or `/usr/lib/udev/rules.d/`, with the following contents:
+
+```
+SUBSYSTEM=="usb", ATTR{idVendor}=="045e", ATTR{idProduct}=="0291", MODE="0666"
+SUBSYSTEM=="usb", ATTR{idVendor}=="045e", ATTR{idProduct}=="02a9", MODE="0666"
+SUBSYSTEM=="usb", ATTR{idVendor}=="045e", ATTR{idProduct}=="0719", MODE="0666"
+```
+
 ## 🔨 Building/Contributing
 
 > [!IMPORTANT]
@@ -113,14 +121,15 @@ There are some dependencies that will be needed in order for HID devices (such a
       - your fork's URL if you made one, or
       - the main repository's URL (`https://github.com/YARC-Official/YARG`) if you just want to build the game.
       - A complete example using the main repository's URL is `git clone -b dev --recursive https://github.com/YARC-Official/YARG.git`.
-   6. Because YARG contains submodules, you may need to do `git submodule update` when things get updated.
-4. Install Unity 2021.3.36f1. Easiest method will be using Unity Hub:
+   6. Assets are stored in LFS, if you receive an error that assets can not be loaded or assets are missing, you may need to change into the YARG directory and retrieve assets from LFS by typing in `git lfs fetch` followed by `git lfs checkout` to use them when things get updated.
+   7. Because YARG contains submodules, you may need to do `git submodule update` when things get updated.
+4. Install Unity 6000.2.12f1. Easiest method will be using Unity Hub:
    1. Download and install [Unity Hub](https://unity.com/download).
    2. Sign-in/create an account with a personal license (free).
    3. In Unity Hub, hit the arrow next to Add and select `Add project from disk`, then select the folder you cloned YARG to.
-   4. Click on the added entry for YARG. It will warn you about a missing editor version, select 2021.3.36f1 and install it.
+   4. Click on the added entry for YARG. It will warn you about a missing editor version, select 6000.2.12f1 and install it.
       - Unselect Visual Studio in the list of modules if you wish to use another editor or already have it installed.
-5. Install the [.NET SDK](https://dotnet.microsoft.com/en-us/download/visual-studio-sdks). This is required to develop and build the submodules.
+5. Install the [.NET SDK](https://dotnet.microsoft.com/en-us/download/visual-studio-sdks). This is required to develop the submodules and their supporting projects.
    - You will need the SDK specifically, not the runtime!
 6. Open the project in Unity. When prompted about Safe Mode, click "Ignore".
    - Do *not* enter Safe Mode, otherwise scripts necessary to build/install dependencies will not run, and the errors will not resolve.
@@ -130,35 +139,6 @@ There are some dependencies that will be needed in order for HID devices (such a
 7. Click on `NuGet` on the top menu bar, then click on `Restore Packages`.
    - This should be performed automatically when Unity starts up, but it can be performend manually if needed.
 8. You're ready to go!
-
-### Linux
-
-On certain distributions of Linux, Unity 2021.3.36f1 editor is broken and the YARG project (or any other project for that matter) cannot be imported. When trying to open the project, Unity will freeze during the import process.
-
-   ![](Images/Contributing/Unity_Project_Import_Hang.png)
-
-To fix this issue, follow the steps below:
-
-1. Locate the Editor installation directory. By default, it is `${HOME}/Unity/Hub/Editor`, but it can be reconfigured in Unity Hub.
-2. Enter the `2021.3.36f1/Editor/Data` directory.
-3. Rename the `bee_backend` executable file to `bee_backend_real`.
-4. Create a new text file named `bee_backend`.
-5. Paste the following script into the `bee_backend` file:
-  ```bash
-  #!/bin/bash
-
-  args=("$@")
-  for ((i=0; i<"${#args[@]}"; ++i))
-  do
-      case ${args[i]} in
-          --stdin-canary)
-              unset args[i];
-              break;;
-      esac
-  done
-  ${0}_real "${args[@]}"
-  ```
-6. Launching the project should now work properly.
 
 ### Unity YAML Merge Tool
 
@@ -173,7 +153,7 @@ Setup:
       tool = unityyamlmerge
   [mergetool "unityyamlmerge"]
       trustExitCode = false
-      cmd = 'C:\\Program Files\\Unity\\Hub\\Editor\\2021.3.21f1\\Editor\\Data\\Tools\\UnityYAMLMerge.exe' merge -p "$BASE" "$REMOTE" "$LOCAL" "$MERGED"
+      cmd = 'C:\\Program Files\\Unity\\Hub\\Editor\\6000.2.12f1\\Editor\\Data\\Tools\\UnityYAMLMerge.exe' merge -p "$BASE" "$REMOTE" "$LOCAL" "$MERGED"
   ```
   - You may need to change the file path depending on where you installed Unity to.
 4. Save and close the file.
@@ -214,6 +194,8 @@ Some libraries/assets are **packaged** with the source code have licenses that m
 | [PolyHaven](https://polyhaven.com/) | [CC0](https://creativecommons.org/publicdomain/zero/1.0/)
 | [BASS](https://www.un4seen.com/) | [Proprietary](https://www.un4seen.com/) (free for non-commercial use)
 | [Haukcode.sACN](https://github.com/HakanL/Haukcode.sACN) | [MIT](https://github.com/HakanL/Haukcode.sACN/blob/master/LICENSE) |
+| [aperitif chatter.wav by soundslikewillem](https://freesound.org/s/449550/)|[Attribution NonCommercial 4.0](https://creativecommons.org/licenses/by-nc/4.0/)
+| [Crowd after Encore.wav by soundslikewillem](https://freesound.org/s/193064/)|[Attribution NonCommercial 4.0](https://creativecommons.org/licenses/by-nc/4.0/)
 
 Please note that other libraries are **not** directly packaged within the source code, and are to be installed by NuGet, Unity's packaged manager, or via a Git submodule.
 
@@ -237,6 +219,7 @@ These are assets that are installed by NuGet, Unity's packaged manager, or via a
 | [SoftMaskForUGUI](https://github.com/mob-sakai/SoftMaskForUGUI) | Library | UI Utility
 | [Unity-Dependencies-Hunter](https://github.com/AlexeyPerov/Unity-Dependencies-Hunter) | Library | Unity Editor Utility
 | [tmpro-dynamic-data-cleaner](https://github.com/STARasGAMES/tmpro-dynamic-data-cleaner) | Library | Prevent Git Change Spam
+| [openvat-unity](https://github.com/sharpen3d/openvat-unity.git) | Library | OpenVAT (Vertex Animated Textures) Support
 
 ## 💸 Donate
 

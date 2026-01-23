@@ -1,26 +1,19 @@
-﻿using UnityEngine;
-using UnityEngine.UI;
+﻿using System;
+using UnityEngine;
 using YARG.Core.Engine;
-using YARG.Core.Game;
-using YARG.Gameplay.Player;
+using YARG.Gameplay.Visuals;
 using YARG.Player;
-using YARG.Helpers.UI;
 
 namespace YARG.Gameplay.HUD
 {
     public class TrackView : MonoBehaviour
     {
-        private static readonly int _curveFactor = Shader.PropertyToID("_CurveFactor");
-
-        [field: SerializeField]
-        public RawImage TrackImage { get; private set; }
-
-        [SerializeField]
-        private AspectRatioFitter _aspectRatioFitter;
-        [SerializeField]
-        private ScaleByParentSize _UIScaler;
         [SerializeField]
         private RectTransform _topElementContainer;
+        [SerializeField]
+        private RectTransform _centerElementContainer;
+        [SerializeField]
+        private RectTransform _scaleContainer;
 
         [Space]
         [SerializeField]
@@ -32,56 +25,38 @@ namespace YARG.Gameplay.HUD
         [SerializeField]
         private PlayerNameDisplay _playerNameDisplay;
 
-        private TrackPlayer _trackPlayer;
+        private HighwayCameraRendering      _highwayRenderer;
+        private Vector3 _lastTrackPlayerPosition;
 
-        private void Start()
+        private const float CENTER_ELEMENT_DEPTH = 0.35f;
+        private const float TOP_ELEMENT_EXTRA_OFFSET = 8f;
+
+        private DraggableHudElement _topDraggable;
+
+        public void Initialize(HighwayCameraRendering highwayRenderer)
         {
-            _aspectRatioFitter.aspectRatio = (float) Screen.width / Screen.height;
-            _UIScaler.Initialize();
+            _highwayRenderer = highwayRenderer;
+            _topDraggable = _topElementContainer.GetComponent<DraggableHudElement>();
         }
 
-        public void Initialize(RenderTexture rt, CameraPreset cameraPreset, TrackPlayer trackPlayer)
+        public void UpdateHUDPosition(int highwayIndex, int highwayCount)
         {
-            TrackImage.texture = rt;
+            //Scale ui according to number of highways,
+            //1 highway = 1.0 scale, 2 highways = 0.9 scale, 3 highways = 0.8 scale, etc, minimum of 0.5
+            var newScale = Math.Max(0.5f, 1.1f - (0.1f * highwayCount));
+            _scaleContainer.localScale = _scaleContainer.localScale.WithX(newScale).WithY(newScale);
 
-            // Clone the material since RawImages don't use instanced materials
-            var newMaterial = new Material(TrackImage.material);
-            newMaterial.SetFloat(_curveFactor, cameraPreset.CurveFactor);
-            TrackImage.material = newMaterial;
+            //Set center element position
+            Vector2 position = _highwayRenderer.GetTrackPositionScreenSpace(highwayIndex, 0.5f, CENTER_ELEMENT_DEPTH);
+            _centerElementContainer.transform.position = position;
 
-            _trackPlayer = trackPlayer;
-        }
-
-        public void UpdateSizing(int trackCount)
-        {
-            // This equation calculates a good scale for all of the tracks.
-            // It was made with experimentation; there's probably a "real" formula for this.
-            float scale = Mathf.Max(0.7f * Mathf.Log10(trackCount - 1), 0f);
-            scale = 1f - scale;
-
-            TrackImage.transform.localScale = new Vector3(scale, scale, scale);
-        }
-
-        public void UpdateHUDPosition()
-        {
-            var rect = TrackImage.GetComponent<RectTransform>();
-            var viewportPos = _trackPlayer.HUDViewportPosition;
-
-            // Caching this is faster
-            var rectRect = rect.rect;
-
-            // Adjust the screen's viewport position to the rect's viewport position
-            // TODO: I have no idea where this "- 0.5f" comes from. Are these calculations correct?
-            var local = new Vector2(
-                (viewportPos.x - 0.5f) * rectRect.width,
-                viewportPos.y * rectRect.height);
-            var screenPos = rect.TransformPoint(local);
-
-            // Now, move the MoveContainer based on this
-            RectTransformUtility.ScreenPointToLocalPointInRectangle(
-                (RectTransform) _topElementContainer.parent,
-                screenPos, null, out var localPoint);
-            _topElementContainer.localPosition = localPoint;
+            if (_topDraggable != null && _topDraggable.HasCustomPosition == false)
+            {
+                // Place top elements at 100% depth plus n screen independent units up to avoid highway overlap
+                var extraOffset = TOP_ELEMENT_EXTRA_OFFSET * Screen.height / 1000f;
+                Vector2 position2 = _highwayRenderer.GetTrackPositionScreenSpace(highwayIndex, 0.5f, 1.0f).AddY(extraOffset);
+                _topElementContainer.position = position2;
+            }
         }
 
         public void UpdateCountdown(double countdownLength, double endTime)

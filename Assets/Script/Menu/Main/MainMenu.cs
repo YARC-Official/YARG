@@ -52,7 +52,7 @@ namespace YARG.Menu.Main
 
         private void OnDisable()
         {
-            Navigator.Instance.PopScheme();
+            Navigator.Instance?.PopScheme();
         }
 
         public void CurrentlyPlaying()

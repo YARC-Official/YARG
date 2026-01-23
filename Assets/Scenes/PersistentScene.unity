@@ -38,7 +38,6 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.12732333, g: 0.13415194, b: 0.12107967, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -169,6 +168,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   postProcessingProfile: {fileID: 11400000, guid: a6560a915ef98420e9faacc1c7438823,
     type: 2}
+  VenueRenderScale: 1
+  VenueAntiAliasing: 0
 --- !u!1 &168781093
 GameObject:
   m_ObjectHideFlags: 0
@@ -232,6 +233,18 @@ MonoBehaviour:
   _confirmDeleteDialog: {fileID: 2644037509781810562, guid: ebcec8920f1142d438ac08c589bd13e8,
     type: 3}
   _colorPickerDialog: {fileID: 6710161102796530923, guid: 5b1c5ee7b42f2b04bad86eaac460548a,
+    type: 3}
+  _fiveFretBindingDialog: {fileID: 8818966947784792005, guid: e8570a7fcb0d6564091be07f5d4e6123,
+    type: 3}
+  _friendlyKeysBindingDialog: {fileID: 2758766270758023739, guid: 829fa92f93519cf4ea75a8b2bdbd372a,
+    type: 3}
+  _friendlyDrumsBindingDialog: {fileID: 2758766270758023739, guid: 1cb9dc49b3acfa24289e270a6fe4328d,
+    type: 3}
+  _friendly5LaneDrumsBindingDialog: {fileID: 2758766270758023739, guid: 30b71ca7d004b6844823bc5cb8f5865b,
+    type: 3}
+  _friendlyMidiDrumsBindingDialog: {fileID: 5304055860439716800, guid: 99959ef0a2f04974c84eb885f7d6a48e,
+    type: 3}
+  _playAShowDialog: {fileID: 6162491671344219383, guid: 0a237e5e84df70342aba8aab3b3e5d6b,
     type: 3}
 --- !u!1 &227771748
 GameObject:
@@ -1512,6 +1525,7 @@ GameObject:
   - component: {fileID: 728815264}
   - component: {fileID: 728815265}
   - component: {fileID: 728815267}
+  - component: {fileID: 728815268}
   m_Layer: 0
   m_Name: Integrations
   m_TagString: Untagged
@@ -1556,6 +1570,18 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: cb438f304d0d4064fb1de229c53becde, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &728815268
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 728815263}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 83abab83c2e5dc84fabd6399b87365bf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!1 &782876828
@@ -3724,6 +3750,7 @@ GameObject:
   - component: {fileID: 1694016462}
   - component: {fileID: 1694016461}
   - component: {fileID: 1694016460}
+  - component: {fileID: 1694016464}
   m_Layer: 5
   m_Name: Persistent Canvas
   m_TagString: Untagged
@@ -3818,6 +3845,18 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 0}
+--- !u!114 &1694016464
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1694016459}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe60bde778204d1ab2aad2f2f2c4c49d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1710005230
 GameObject:
   m_ObjectHideFlags: 0

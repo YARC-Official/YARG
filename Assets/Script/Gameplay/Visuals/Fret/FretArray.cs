@@ -6,6 +6,7 @@ using YARG.Core.Chart;
 using YARG.Core.Game;
 using YARG.Core.Logging;
 using YARG.Themes;
+using static YARG.Themes.ThemeManager;
 
 namespace YARG.Gameplay.Visuals
 {
@@ -34,11 +35,11 @@ namespace YARG.Gameplay.Visuals
         private bool[] _pulsingFrets;
         private float  _pulseDuration;
 
-        public void Initialize(ThemePreset themePreset, GameMode gameMode,
+        public void Initialize(ThemePreset themePreset, VisualStyle style,
             ColorProfile.IFretColorProvider fretColorProvider, bool leftyFlip, bool splitProTomsAndCymbals, bool swapSnareAndHiHat, bool swapCrashAndRide)
         {
             var fretPrefab = ThemeManager.Instance.CreateFretPrefabFromTheme(
-                themePreset, gameMode);
+                themePreset, style);
 
             // Spawn in normal frets
             _frets.Clear();
@@ -74,7 +75,7 @@ namespace YARG.Gameplay.Visuals
             if (UseKickFrets)
             {
                 var kickFretPrefab = ThemeManager.Instance.CreateKickFretPrefabFromTheme(
-                    themePreset, gameMode);
+                    themePreset, style);
 
                 // Spawn in kick frets
                 var leftKick = Instantiate(kickFretPrefab, transform);
@@ -153,6 +154,11 @@ namespace YARG.Gameplay.Visuals
             _frets[index].SetPressed(pressed);
         }
 
+        public void SetPressedDrum(int index, bool pressed, Fret.AnimType animType)
+        {
+            _frets[index].SetPressedDrum(pressed, animType);
+        }
+
         public void SetSustained(int index, bool sustained)
         {
             _frets[index].SetSustained(sustained);
@@ -161,6 +167,12 @@ namespace YARG.Gameplay.Visuals
         public void PlayHitAnimation(int index)
         {
             _frets[index].PlayHitAnimation();
+            _frets[index].PlayHitParticles();
+        }
+
+        public void PlayCymbalHitAnimation(int index)
+        {
+            _frets[index].PlayCymbalHitAnimation();
             _frets[index].PlayHitParticles();
         }
 
@@ -175,8 +187,11 @@ namespace YARG.Gameplay.Visuals
 
         public void PlayMissAnimation(int index)
         {
-            _frets[index].PlayMissAnimation();
-            _frets[index].PlayMissParticles();
+            if (0 <= index && index <= _frets.Count)
+            {
+                _frets[index].PlayMissAnimation();
+                _frets[index].PlayMissParticles();
+            }
         }
 
         public void PlayOpenMissAnimation()
@@ -204,13 +219,25 @@ namespace YARG.Gameplay.Visuals
             }
         }
 
+        public void UpdateAccentColorState(int fretIndex, bool shouldWhiten)
+        {
+            if (shouldWhiten)
+            {
+                _frets[fretIndex].WhitenFretColor();
+            }
+            else
+            {
+                _frets[fretIndex].RestoreFretColor();
+            }
+        }
+
         public void SetFretColorPulse(int fretIndex, bool pulse, float duration)
         {
             _pulseDuration = duration;
             _pulsingFrets[fretIndex] = pulse;
         }
 
-        public void PulseFretColors(Beatline beat)
+        public void PulseFretColors()
         {
             for (int i = 0; i < _pulsingFrets.Length; i++)
             {

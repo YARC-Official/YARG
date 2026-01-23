@@ -1,4 +1,5 @@
 using UnityEngine;
+using YARG.Core.Logging;
 
 namespace YARG.Venue
 {
@@ -20,6 +21,15 @@ namespace YARG.Venue
         Crowd   = 6
     }
 
+    public enum VenueSpotLightLocation
+    {
+        None,
+        Bass,
+        Drums,
+        Guitar,
+        Vocals,
+    }
+
     [RequireComponent(typeof(Light))]
     public class VenueLight : MonoBehaviour
     {
@@ -28,6 +38,18 @@ namespace YARG.Venue
         [field: SerializeField]
         public VenueLightLocation Location { get; private set; }
 
+        [field: SerializeField]
+        public bool IsSpotlight { get; private set; }
+        [field: SerializeField]
+        public VenueSpotLightLocation SpotlightLocation { get; private set; }
+
+        [field: Header("Spotlight only")]
+        [SerializeField]
+        private bool _followCharacter;
+
+        [SerializeField]
+        private Transform _characterToFollow;
+
         private LightManager _lightManager;
         private Light _light;
 
@@ -35,9 +57,11 @@ namespace YARG.Venue
         private Color _defaultColor;
         private float _defaultIntensity;
 
+        private bool _previousSpotlightState = false;
+
         private void Start()
         {
-            _lightManager = FindObjectOfType<LightManager>();
+            _lightManager = FindFirstObjectByType<LightManager>();
             _light = GetComponent<Light>();
 
             _defaultRotation = transform.rotation;
@@ -47,6 +71,12 @@ namespace YARG.Venue
 
         private void Update()
         {
+            if (IsSpotlight)
+            {
+                UpdateSpotlight();
+                return;
+            }
+
             var lightState = _lightManager.GetLightStateFor(Location);
 
             _light.intensity = _defaultIntensity * lightState.Intensity;
@@ -58,6 +88,22 @@ namespace YARG.Venue
             else
             {
                 _light.color = lightState.Color.Value;
+            }
+        }
+
+        private void UpdateSpotlight()
+        {
+            var lightState = _lightManager.GetSpotlightStateFor(SpotlightLocation);
+            _light.intensity = lightState ? _defaultIntensity : 0f;
+            if (lightState != _previousSpotlightState)
+            {
+                YargLogger.LogDebug($"Spotlight {SpotlightLocation} is {lightState}");
+                _previousSpotlightState = lightState;
+            }
+
+            if (lightState && _followCharacter && _characterToFollow != null)
+            {
+                transform.LookAt(_characterToFollow);
             }
         }
     }

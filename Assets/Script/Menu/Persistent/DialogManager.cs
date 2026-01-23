@@ -1,9 +1,14 @@
 using System;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.InputSystem;
+using YARG.Core;
+using YARG.Core.Game;
 using YARG.Localization;
 using YARG.Menu.Data;
 using YARG.Menu.Dialogs;
+using YARG.Player;
+using YARG.Menu.MusicLibrary;
 
 namespace YARG.Menu.Persistent
 {
@@ -27,6 +32,18 @@ namespace YARG.Menu.Persistent
         private ConfirmDeleteDialog _confirmDeleteDialog;
         [SerializeField]
         private ColorPickerDialog _colorPickerDialog;
+        [SerializeField]
+        private FiveFretBindingDialog _fiveFretBindingDialog;
+        [SerializeField]
+        private FriendlyBindingDialog _friendlyKeysBindingDialog;
+        [SerializeField]
+        private FriendlyBindingDialog _friendlyDrumsBindingDialog;
+        [SerializeField]
+        private FriendlyBindingDialog _friendly5LaneDrumsBindingDialog;
+        [SerializeField]
+        private FriendlyBindingDialog _friendlyMidiDrumsBindingDialog;
+        [SerializeField]
+        private SongPickerListDialog _playAShowDialog;
 
         private Dialog _currentDialog;
 
@@ -72,6 +89,55 @@ namespace YARG.Menu.Persistent
                 ClearDialog
             );
 
+            return dialog;
+        }
+
+        public FriendlyBindingDialog ShowFriendlyBindingDialog(YargProfile profile, GameMode gameMode)
+        {
+            YargPlayer player = null;
+            var players = PlayerContainer.Players;
+            foreach (var p in players)
+            {
+                if (p.Profile.Id == profile.Id)
+                {
+                    player = p;
+                    break;
+                }
+            }
+
+            if (player == null)
+            {
+                ShowMessage("Error", "Player not found for this profile. Please report on Discord.");
+                return null;
+            }
+
+            if (player.Bindings.InputDevices.Count != 1)
+            {
+                ShowMessage("Not Supported",
+                    "Quick binding is currently only supported for profiles with exactly one input device.");
+                return null;
+            }
+
+            var device = player.Bindings.InputDevices[0];
+
+            var prefab = gameMode switch
+            {
+                GameMode.ProKeys        => _friendlyKeysBindingDialog,
+                GameMode.FourLaneDrums  => _friendlyDrumsBindingDialog,
+                GameMode.FiveLaneDrums  => _friendly5LaneDrumsBindingDialog,
+                GameMode.EliteDrums     => _friendlyMidiDrumsBindingDialog,
+                _                       => null
+            };
+
+            if (prefab == null)
+            {
+                ShowMessage("Instrument Not Supported", "Quick binding is not yet supported for this instrument.\nYou'll have to do it the old way, sorry.");
+                return null;
+            }
+
+            var dialog = ShowDialog(prefab);
+            dialog.SetParameters((device, player, gameMode));
+            dialog.Initialize();
             return dialog;
         }
 
@@ -157,6 +223,14 @@ namespace YARG.Menu.Persistent
             dialog.ClearButtons();
             dialog.AddDialogButton("Menu.Common.Cancel", MenuData.Colors.CancelButton, ClearDialog);
             dialog.AddDialogButton("Menu.Common.Apply", MenuData.Colors.ConfirmButton, () => _currentDialog.Submit());
+
+            return dialog;
+        }
+
+        public SongPickerListDialog ShowSongPickerDialog(string title, MusicLibraryMenu menu)
+        {
+            var dialog = ShowDialog(_playAShowDialog);
+            dialog.Initialize(menu);
 
             return dialog;
         }

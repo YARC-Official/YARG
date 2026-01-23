@@ -45,7 +45,7 @@ namespace YARG.Gameplay.HUD
 
         private void Awake()
         {
-            _gameManager = FindObjectOfType<GameManager>();
+            _gameManager = FindAnyObjectByType<GameManager>();
 
             _inputTimeBuffer = new char[TIMER_BUFFER_SIZE];
             _holdTimeBuffer = new char[TIMER_BUFFER_SIZE];

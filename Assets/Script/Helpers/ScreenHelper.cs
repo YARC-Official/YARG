@@ -22,9 +22,7 @@ namespace YARG.Helpers
 
                 // Update screen resolution when the screen changes
                 var screenResolution = GetScreenResolution();
-                if (screenResolution.width != _lastScreenResolution.width ||
-                    screenResolution.height != _lastScreenResolution.height ||
-                    screenResolution.refreshRate != _lastScreenResolution.refreshRate)
+                if (IsResolutionChanged(screenResolution, _lastScreenResolution))
                 {
                     _lastScreenResolution = screenResolution;
 
@@ -48,6 +46,13 @@ namespace YARG.Helpers
             };
         }
 
+        private static bool IsResolutionChanged(Resolution a, Resolution b)
+        {
+            return a.height != b.height || a.width != b.width ||
+                a.refreshRateRatio.numerator != b.refreshRateRatio.numerator ||
+                a.refreshRateRatio.denominator != b.refreshRateRatio.denominator;
+        }
+
         /// <summary>
         /// Retrieves the resolution of the screen currently being used for the game.
         /// </summary>
@@ -58,7 +63,7 @@ namespace YARG.Helpers
             {
                 width = screenInfo.width,
                 height = screenInfo.height,
-                refreshRate = (int) Math.Round(screenInfo.refreshRate.value),
+                refreshRateRatio = screenInfo.refreshRate,
             };
         }
 
@@ -69,7 +74,7 @@ namespace YARG.Helpers
         {
             YargLogger.LogFormatDebug("Changing screen resolution to {0}", resolution);
             var fullscreenMode = SettingsManager.Settings?.FullscreenMode.Value ?? FullScreenMode.FullScreenWindow;
-            Screen.SetResolution(resolution.width, resolution.height, fullscreenMode, resolution.refreshRate);
+            Screen.SetResolution(resolution.width, resolution.height, fullscreenMode, resolution.refreshRateRatio);
         }
     }
 }

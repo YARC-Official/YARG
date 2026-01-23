@@ -1,11 +1,11 @@
-using DG.Tweening;
+﻿using DG.Tweening;
 using UnityEngine;
-using YARG.Core.Chart;
+using YARG.Playback;
 using YARG.Settings;
 
 namespace YARG.Gameplay.Visuals
 {
-    public class SunburstEffects : GameplayBehaviour
+    public class SunburstEffects : MonoBehaviour
     {
         [SerializeField]
         private GameObject _sunburstEffect;
@@ -44,11 +44,8 @@ namespace YARG.Gameplay.Visuals
 
         private const float TRANSITION_DURATION = 0.433f;
 
-        protected override void GameplayAwake()
+        private void Awake()
         {
-
-            GameManager.BeatEventHandler.Subscribe(PulseSunburst);
-
             // Get the components we'll need to manipulate later
             _sunburstMaterial = _sunburstEffect.GetComponent<SpriteRenderer>().material;
             _light = _lightEffect.GetComponent<Light>();
@@ -63,31 +60,31 @@ namespace YARG.Gameplay.Visuals
             _sunburstPulseTween = _sunburstEffect.transform.DOScale(_originalScale * 0.85f, 0.25f).SetAutoKill(false)
                 .SetEase(Ease.OutSine).Pause();
 
-            _multiplierIncreaseSequence = DOTween.Sequence(_sunburstEffect).SetAutoKill(false).Pause();
+            _multiplierIncreaseSequence = DOTween.Sequence(_sunburstEffect).SetAutoKill(false).Pause().SetLink(_sunburstEffect);
             _multiplierIncreaseSequence.Append(_sunburstEffect.transform.DOScale(0.045f, TRANSITION_DURATION).SetEase(Ease.InSine)).
                 Join(_light.DOIntensity(0.0f, TRANSITION_DURATION).SetEase(Ease.InCubic)).
                 AppendCallback(SetGrooveSunburst);
 
-            _multiplierDecreaseSequence = DOTween.Sequence(_sunburstEffect).SetAutoKill(false).Pause();
+            _multiplierDecreaseSequence = DOTween.Sequence(_sunburstEffect).SetAutoKill(false).Pause().SetLink(_sunburstEffect);
             _multiplierDecreaseSequence.Append(_light.DOColor(Color.red, 0.000001f)).
                 Join(_sunburstMaterial.DOColor(Color.red, 0.000001f)).
                 Append(_sunburstEffect.transform.DOScale(0.045f, TRANSITION_DURATION).SetEase(Ease.InSine)).
                 Join(_light.DOIntensity(0.0f, TRANSITION_DURATION).SetEase(Ease.InCubic)).
                 AppendCallback(SetGrooveSunburst);
 
-            _grooveStartSequence = DOTween.Sequence(_sunburstEffect).SetAutoKill(false).Pause();
+            _grooveStartSequence = DOTween.Sequence(_sunburstEffect).SetAutoKill(false).Pause().SetLink(_sunburstEffect);
             _grooveStartSequence.Append(_sunburstEffect.transform.DOScale(_originalScale, TRANSITION_DURATION)).
                 Join(_sunburstMaterial.DOColor(_grooveSunburstColor, TRANSITION_DURATION)).
                 Join(_light.DOColor(_grooveLightColor, TRANSITION_DURATION)).
                 Join(_light.DOIntensity(_lightIntensity, TRANSITION_DURATION));
 
-            _starpowerStartSequence = DOTween.Sequence(_sunburstEffect).SetAutoKill(false).Pause();
+            _starpowerStartSequence = DOTween.Sequence(_sunburstEffect).SetAutoKill(false).Pause().SetLink(_sunburstEffect);
             _starpowerStartSequence.Append(_sunburstEffect.transform.DOScale(_originalScale, TRANSITION_DURATION)).
                 Join(_sunburstMaterial.DOColor(_starpowerSunburstColor, TRANSITION_DURATION)).
                 Join(_light.DOColor(_starpowerLightColor, TRANSITION_DURATION)).
                 Join(_light.DOIntensity(_lightIntensity, TRANSITION_DURATION));
 
-            _sunburstDisableSequence = DOTween.Sequence(_sunburstEffect).SetAutoKill(false).Pause();
+            _sunburstDisableSequence = DOTween.Sequence(_sunburstEffect).SetAutoKill(false).Pause().SetLink(_sunburstEffect);
             _sunburstDisableSequence.Append(_sunburstEffect.transform.DOScale(_originalScale * 0.4f, TRANSITION_DURATION))
                 .Join(_light.DOIntensity(0.0f, TRANSITION_DURATION)).
                 AppendCallback(DisableSunburst);
@@ -161,7 +158,7 @@ namespace YARG.Gameplay.Visuals
             _sunburstEffect.transform.Rotate(0f, 0f, Time.deltaTime * -25f);
         }
 
-        private void PulseSunburst(Beatline beatline)
+        public void PulseSunburst()
         {
             if (!_groove && !_starpower)
             {
@@ -239,10 +236,18 @@ namespace YARG.Gameplay.Visuals
                 return;
             }
 
-            // Ensure that the disable tween isn't still running
+            // Ensure that any tweens that hide the sunburst are not still running
             if (_sunburstDisableSequence.IsPlaying())
             {
                 _sunburstDisableSequence.Complete(false);
+            }
+            if (_multiplierIncreaseSequence.IsPlaying())
+            {
+                _multiplierIncreaseSequence.Complete(false);
+            }
+            if (_multiplierDecreaseSequence.IsPlaying())
+            {
+                _multiplierDecreaseSequence.Complete(false);
             }
 
             // We need to make sure that we're set up for starpower before we start the sequence
@@ -259,17 +264,6 @@ namespace YARG.Gameplay.Visuals
         {
             _sunburstEffect.SetActive(false);
             _lightEffect.SetActive(false);
-        }
-
-        protected override void GameplayDestroy()
-        {
-            _sunburstPulseTween?.Kill();
-            _multiplierIncreaseSequence?.Kill();
-            _multiplierDecreaseSequence?.Kill();
-            _grooveStartSequence?.Kill();
-            _starpowerStartSequence?.Kill();
-            _sunburstDisableSequence?.Kill();
-            GameManager.BeatEventHandler.Unsubscribe(PulseSunburst);
         }
     }
 }

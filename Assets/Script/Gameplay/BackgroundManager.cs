@@ -1,18 +1,20 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
-using UnityEngine.Rendering.RendererUtils;
 using UnityEngine.UI;
 using UnityEngine.Video;
 using YARG.Core.IO;
-using YARG.Core.Logging;
+using YARG.Core.Song;
 using YARG.Core.Venue;
 using YARG.Helpers.Extensions;
 using YARG.Settings;
 using YARG.Venue;
+#if UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX
+using System.Collections.Generic;
+using YARG.Core.Logging;
+#endif
 
 namespace YARG.Gameplay
 {
@@ -28,6 +30,9 @@ namespace YARG.Gameplay
 
         [SerializeField]
         private Image _backgroundDimmer;
+
+        [SerializeField]
+        private RawImage _venueOutput;
 
         private BackgroundType _type;
         private VenueSource _source;
@@ -66,6 +71,7 @@ namespace YARG.Gameplay
                     var bundle = AssetBundle.LoadFromStream(result.Stream);
                     AssetBundle shaderBundle = null;
 
+                    _venueOutput.gameObject.SetActive(true);
                     // KEEP THIS PATH LOWERCASE
                     // Breaks things for other platforms, because Unity
                     var bg = (GameObject) await bundle.LoadAssetAsync<GameObject>(
@@ -119,11 +125,13 @@ namespace YARG.Gameplay
 #endif
                     // Hookup song-specific textures
                     var textureManager = GetComponent<TextureManager>();
+                    // Load SongBackground here to determine if textures need to be replaced
+                    var songBackground = GameManager.Song.LoadBackground();
                     foreach (var renderer in renderers)
                     {
                         foreach (var material in renderer.sharedMaterials)
                         {
-                            textureManager.ProcessMaterial(material);
+                            textureManager.ProcessMaterial(material, songBackground?.Type);
                         }
                     }
 
@@ -132,38 +140,19 @@ namespace YARG.Gameplay
                     bundleBackgroundManager.Bundle = bundle;
                     bundleBackgroundManager.ShaderBundle = shaderBundle;
                     bundleBackgroundManager.SetupVenueCamera(bgInstance);
+                    bundleBackgroundManager.LimitVenueLights(bgInstance);
 
                     // Destroy the default camera (venue has its own)
                     Destroy(_videoPlayer.targetCamera.gameObject);
 
-                    break;
-                case BackgroundType.Video:
-                    switch (result.Stream)
+                    if (textureManager.VideoTexFound())
                     {
-                        case FileStream fs:
-                        {
-                            _videoPlayer.url = fs.Name;
-                            break;
-                        }
-                        case SngFileStream sngStream:
-                        {
-                            // UNFORTUNATELY, Videoplayer can't use streams, so video files
-                            // MUST BE FULLY DECRYPTED
-
-                            VIDEO_PATH = Path.Combine(Application.persistentDataPath, sngStream.Name);
-                            using var tmp = File.OpenWrite(VIDEO_PATH);
-                            File.SetAttributes(VIDEO_PATH, File.GetAttributes(VIDEO_PATH) | FileAttributes.Temporary | FileAttributes.Hidden);
-                            result.Stream.CopyTo(tmp);
-                            _videoPlayer.url = VIDEO_PATH;
-                            break;
-                        }
+                        SetUpVideoTexture(songBackground);
                     }
 
-                    _videoPlayer.enabled = true;
-                    _videoPlayer.prepareCompleted += OnVideoPrepared;
-                    _videoPlayer.seekCompleted += OnVideoSeeked;
-                    _videoPlayer.Prepare();
-                    enabled = true;
+                    break;
+                case BackgroundType.Video:
+                    LoadVideoBackground(result);
                     break;
                 case BackgroundType.Image:
                     _backgroundImage.texture = result.Image.LoadTexture(false);
@@ -171,6 +160,65 @@ namespace YARG.Gameplay
                     _backgroundImage.gameObject.SetActive(true);
                     break;
             }
+        }
+
+        private void SetUpVideoTexture(BackgroundResult songBackGround)
+        {
+            var textureManager = GetComponent<TextureManager>();
+            textureManager.CreateVideoTexture();
+            if (songBackGround == null || songBackGround.Type == BackgroundType.Yarground)
+            {
+                return;
+            }
+            switch (songBackGround.Type)
+            {
+                case BackgroundType.Video:
+                    //set venue source to song to enable video seeking/pausing features
+                    _source = VenueSource.Song;
+                    //set up videoPlayer to render to venue texture
+                    _videoPlayer.renderMode = VideoRenderMode.RenderTexture;
+                    _videoPlayer.targetTexture = textureManager.GetVideoTexture(0, 0);
+
+                    LoadVideoBackground(songBackGround);
+                    break;
+                case BackgroundType.Image:
+                    var songTex = songBackGround.Image.LoadTexture(false);
+                    //render image background flipped to match video
+                    Graphics.Blit(songTex, textureManager.GetVideoTexture(0, 0), new Vector2(1, -1), new Vector2(0, 1));
+                    //clean up unused texture
+                    Destroy(songTex);
+                    return;
+            }
+        }
+
+        private void LoadVideoBackground(BackgroundResult bg)
+        {
+            switch (bg.Stream)
+            {
+                case FileStream fs:
+                {
+                    _videoPlayer.url = fs.Name;
+                    break;
+                }
+                case SngFileStream sngStream:
+                {
+                    // UNFORTUNATELY, Videoplayer can't use streams, so video files
+                    // MUST BE FULLY DECRYPTED
+
+                    VIDEO_PATH = Path.Combine(Application.persistentDataPath, sngStream.Name);
+                    using var tmp = File.OpenWrite(VIDEO_PATH);
+                    File.SetAttributes(VIDEO_PATH, File.GetAttributes(VIDEO_PATH) | FileAttributes.Temporary | FileAttributes.Hidden);
+                    bg.Stream.CopyTo(tmp);
+                    _videoPlayer.url = VIDEO_PATH;
+                    break;
+                }
+            }
+
+            _videoPlayer.enabled = true;
+            _videoPlayer.prepareCompleted += OnVideoPrepared;
+            _videoPlayer.seekCompleted += OnVideoSeeked;
+            _videoPlayer.Prepare();
+            enabled = true;
         }
 
         private void Update()
@@ -206,7 +254,7 @@ namespace YARG.Gameplay
             }
 
             // End video when reaching the specified end time
-            if (time - _videoStartTime >= _videoEndTime)
+            if (time + _videoStartTime >= _videoEndTime)
             {
                 _videoPlayer.Stop();
                 _videoPlayer.enabled = false;
@@ -305,7 +353,7 @@ namespace YARG.Gameplay
             if (!SettingsManager.Settings.WaitForSongVideo.Value || GameManager.OverrideResume())
                 player.Play();
 
-            enabled = double.IsNaN(_videoEndTime);
+            enabled = !double.IsNaN(_videoEndTime);
             _videoSeeking = false;
         }
 

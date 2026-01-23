@@ -2,6 +2,7 @@
 using UnityEngine;
 using YARG.Core.Chart;
 using YARG.Core.Engine;
+using YARG.Core.Engine.Drums;
 using YARG.Gameplay.Player;
 using YARG.Themes;
 
@@ -10,9 +11,7 @@ namespace YARG.Gameplay.Visuals
     public abstract class DrumsNoteElement : NoteElement<DrumNote, DrumsPlayer>, IThemeNoteCreator
     {
         private const float SPLIT_LANE_SCALE_FACTOR = 4f / 7f;
-
-        private Vector3 normalScale;
-        private Vector3 splitScale;
+        private Vector3 _splitScale = new Vector3(SPLIT_LANE_SCALE_FACTOR, SPLIT_LANE_SCALE_FACTOR, SPLIT_LANE_SCALE_FACTOR);
 
         protected enum NoteType
         {
@@ -49,14 +48,14 @@ namespace YARG.Gameplay.Visuals
             ParentPool.Return(this);
         }
 
-        public override void OnStarPowerUpdated()
+        protected override bool CalcStarPowerVisible()
         {
-            base.OnStarPowerUpdated();
-
-            UpdateColor();
+            if (!NoteRef.IsStarPower)
+            {
+                return false;
+            }
+            return !(((DrumsEngineParameters) Player.BaseParameters).NoStarPowerOverlap && Player.BaseStats.IsStarPowerActive);
         }
-
-        protected abstract void UpdateColor();
 
         protected override void HideElement()
         {
@@ -78,28 +77,32 @@ namespace YARG.Gameplay.Visuals
             return (int) (isCymbal ? NoteType.Cymbal : NoteType.Normal);
         }
 
-        protected override void GameplayAwake()
-        {
-            base.GameplayAwake();
-
-            normalScale = transform.localScale;
-            var newScale = transform.localScale;
-            newScale.Scale(new(SPLIT_LANE_SCALE_FACTOR, 1f, SPLIT_LANE_SCALE_FACTOR));
-            splitScale = newScale;
-        }
-
         protected override void InitializeElement()
         {
             base.InitializeElement();
 
             if (Player.Player.Profile.CurrentInstrument == Core.Instrument.ProDrums && Player.Player.Profile.SplitProTomsAndCymbals)
             {
-                gameObject.transform.localScale = NoteRef.Pad switch
+                if (NoteRef.Pad != 0)
                 {
-                    0 => normalScale,
-                    _ => splitScale
-                };
+                    gameObject.transform.localScale = Vector3.Scale(transform.localScale, _splitScale);
+                }
             }
+        }
+
+        protected abstract void UpdateColor();
+
+        public override void OnStarPowerUpdated()
+        {
+            base.OnStarPowerUpdated();
+
+            UpdateColor();
+        }
+
+        protected static int GetColorFromPulse(int color, float pulse)
+        {
+            float intensity = Mathf.Pow(pulse - 1, 3) + 1f;
+            return (int) (intensity * color);
         }
     }
 }

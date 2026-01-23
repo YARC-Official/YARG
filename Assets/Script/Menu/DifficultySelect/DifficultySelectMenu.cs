@@ -70,6 +70,8 @@ namespace YARG.Menu.DifficultySelect
         [SerializeField]
         private DifficultyItem _difficultyRedPrefab;
         [SerializeField]
+        private DifficultyItem _difficultyItemSmallRedPrefab;
+        [SerializeField]
         private ModifierItem _modifierItemPrefab;
 
         private int _playerIndex;
@@ -81,6 +83,9 @@ namespace YARG.Menu.DifficultySelect
         private readonly List<Instrument> _possibleInstruments  = new();
         private readonly List<Difficulty> _possibleDifficulties = new();
         private readonly List<Modifier>   _possibleModifiers    = new();
+
+        [NonSerialized]
+        private Modifier _excusableModifiers;
 
         private int _maxHarmonyIndex = 3;
 
@@ -156,6 +161,7 @@ namespace YARG.Menu.DifficultySelect
             // Reset content
             _navGroup.ClearNavigatables();
             _container.DestroyChildren();
+            StatsManager.Instance.UpdateActivePlayers();
 
             // Create the menu
             switch (_menuState)
@@ -200,6 +206,19 @@ namespace YARG.Menu.DifficultySelect
             // Only show all these options if there are instruments available
             if (_possibleInstruments.Count > 0)
             {
+                // Ready button
+                CreateItem(LocalizeHeader("Ready"), _lastMenuState == State.Main, _difficultyGreenPrefab, () =>
+                {
+                    // If the player just selected vocal modifiers, don't show them again
+                    if (player.Profile.GameMode == GameMode.Vocals &&
+                        _vocalModifierSelectIndex == -1)
+                    {
+                        _vocalModifierSelectIndex = _playerIndex;
+                    }
+
+                    ChangePlayer(1);
+                });
+
                 CreateItem(LocalizeHeader("Instrument"),
                     player.Profile.CurrentInstrument.ToLocalizedName(),
                     _lastMenuState == State.Instrument, () =>
@@ -229,15 +248,15 @@ namespace YARG.Menu.DifficultySelect
                 }
 
                 // Only allow vocal modifiers to be selected once (so they don't conflict)
-                if (player.Profile.CurrentInstrument.ToGameMode() != GameMode.Vocals ||
+                if (player.Profile.GameMode != GameMode.Vocals ||
                     _vocalModifierSelectIndex == -1 ||
                     _vocalModifierSelectIndex == _playerIndex)
                 {
                     // Create modifiers body text
                     string modifierText = "";
-                    if (player.Profile.CurrentModifiers == Modifier.None)
+                    if ((player.Profile.CurrentModifiers & ~_excusableModifiers) == Modifier.None)
                     {
-                        // If there are no modifiers, then just say "none"
+                        // If there are no modifiers (ignoring the excusable ones), then just say "none"
                         modifierText = Modifier.None.ToLocalizedName();
                     }
                     else
@@ -260,26 +279,13 @@ namespace YARG.Menu.DifficultySelect
                         UpdateForPlayer();
                     });
                 }
-
-                // Ready button
-                CreateItem(LocalizeHeader("Ready"), _lastMenuState == State.Main, _difficultyGreenPrefab, () =>
-                {
-                    // If the player just selected vocal modifiers, don't show them again
-                    if (player.Profile.CurrentInstrument.ToGameMode() == GameMode.Vocals &&
-                        _vocalModifierSelectIndex == -1)
-                    {
-                        _vocalModifierSelectIndex = _playerIndex;
-                    }
-
-                    ChangePlayer(1);
-                });
             }
 
             // Only show if there is more than one play, only if there is instruments available
             if (_possibleInstruments.Count <= 0 || PlayerContainer.Players.Count != 1)
             {
                 // Sit out button
-                CreateItem(LocalizeHeader("SitOut"), _possibleInstruments.Count <= 0, _difficultyRedPrefab, () =>
+                CreateItem(LocalizeHeader("SitOut"), _possibleInstruments.Count <= 0, _difficultyItemSmallRedPrefab, () =>
                 {
                     // If the user went back to sit out, and the vocal modifiers were selected,
                     // deselect them.
@@ -290,6 +296,22 @@ namespace YARG.Menu.DifficultySelect
 
                     player.SittingOut = true;
                     ChangePlayer(1);
+                });
+
+                // Disconnect button
+                CreateItem(LocalizeHeader("Disconnect"), _possibleInstruments.Count <= 0, _difficultyItemSmallRedPrefab, () =>
+                {
+                    // If the user disconnected, and the vocal modifiers were selected,
+                    // deselect them.
+                    if (_vocalModifierSelectIndex == _playerIndex)
+                    {
+                        _vocalModifierSelectIndex = -1;
+                    }
+
+                    PlayerContainer.DisposePlayer(player);
+
+                    // Since we're removing one player from the active players list, don't increment the player index.
+                    ChangePlayer(0);
                 });
             }
         }
@@ -315,14 +337,22 @@ namespace YARG.Menu.DifficultySelect
                 bool selected = CurrentPlayer.Profile.CurrentInstrument == instrument;
                 CreateItem(instrument.ToLocalizedName(), selected, () =>
                 {
+                    var preferredInstrument = CurrentPlayer.Profile.PreferredInstrument;
                     CurrentPlayer.Profile.CurrentInstrument = instrument;
+
+                    // What we are doing here is resetting preferred instrument only if the current preferred instrument
+                    // was an option for this chart. This ensures that preferred instrument does not change when the
+                    // player is forced to use a different instrument.
+                    if (instrument != preferredInstrument && _possibleInstruments.Contains(preferredInstrument))
+                    {
+                        CurrentPlayer.Profile.PreferredInstrument = instrument;
+                    }
+
                     UpdatePossibleDifficulties();
+                    UpdatePossibleModifiers();
 
                     _menuState = State.Main;
                     UpdateForPlayer();
-
-                    // Update the instrument icons on the Status Bar (if enabled)
-                    StatsManager.Instance.UpdateActivePlayers();
                 });
             }
         }
@@ -408,6 +438,40 @@ namespace YARG.Menu.DifficultySelect
             }
         }
 
+        private void UpdatePossibleModifiers()
+        {
+            var profile = CurrentPlayer.Profile;
+
+            // Get the possible modifiers (split the enum into multiple) and
+            // make sure current modifiers are valid, and remove the invalid ones
+            _possibleModifiers.Clear();
+            var (possible, excusable) = profile.GameMode.PossibleModifiers(profile.CurrentInstrument);
+            _excusableModifiers = excusable;
+
+            foreach (var modifier in EnumExtensions<Modifier>.Values)
+            {
+                // Skip if the modifier is not a possible one
+                if ((possible & modifier) == 0)
+                {
+                    // Also try to clear it if it isn't considered excusable yet the player somehow has it
+                    if (((excusable & modifier) == 0) && profile.IsModifierActive(modifier))
+                    {
+                        profile.RemoveModifiers(modifier);
+                    }
+
+                    continue;
+                }
+
+                _possibleModifiers.Add(modifier);
+
+                if (profile.IsModifierActive(modifier) && !_possibleModifiers.Contains(modifier))
+                {
+                    profile.RemoveModifiers(modifier);
+                }
+            }
+
+        }
+
         private void ChangePlayer(int add)
         {
             _playerIndex += add;
@@ -439,7 +503,7 @@ namespace YARG.Menu.DifficultySelect
                         if (player.SittingOut) continue;
                         if (player == primaryPlayer) continue;
 
-                        if (player.Profile.CurrentInstrument.ToGameMode() == GameMode.Vocals)
+                        if (player.Profile.GameMode == GameMode.Vocals)
                         {
                             player.Profile.CopyModifiers(primaryPlayer.Profile);
                         }
@@ -463,8 +527,10 @@ namespace YARG.Menu.DifficultySelect
             // Get the possible instruments for this show and player
             // TODO: We should probably allow players to select instruments that are not in
             //  all songs and have them sit out songs that don't have that instrument
+            // TODO: We should also let Ekit users choose an option that switches them between
+            // each song's native drum format
             _possibleInstruments.Clear();
-            var allowedInstruments = profile.GameMode.PossibleInstruments();
+            var allowedInstruments = profile.GameMode.PossibleInstrumentsForSong(GlobalVariables.State.CurrentSong);
 
             foreach (var instrument in allowedInstruments)
             {
@@ -482,6 +548,12 @@ namespace YARG.Menu.DifficultySelect
                 {
                     _possibleInstruments.Add(instrument);
                 }
+            }
+
+            // If the player's preferred instrument is available, set CurrentInstrument to that
+            if (_possibleInstruments.Contains(profile.PreferredInstrument))
+            {
+                profile.CurrentInstrument = profile.PreferredInstrument;
             }
 
             // Set the instrument to a valid one
@@ -503,31 +575,7 @@ namespace YARG.Menu.DifficultySelect
                 profile.HarmonyIndex = 0;
             }
 
-            // Get the possible modifiers (split the enum into multiple) and
-            // make sure current modifiers are valid, and remove the invalid ones
-            _possibleModifiers.Clear();
-            var possible = profile.GameMode.PossibleModifiers();
-            foreach (var modifier in EnumExtensions<Modifier>.Values)
-            {
-                // Skip if the modifier is not a possible one
-                if ((possible & modifier) == 0)
-                {
-                    // Also try to remove it if the player has it for some reason
-                    if (profile.IsModifierActive(modifier))
-                    {
-                        profile.RemoveModifiers(modifier);
-                    }
-
-                    continue;
-                }
-
-                _possibleModifiers.Add(modifier);
-
-                if (profile.IsModifierActive(modifier) && !_possibleModifiers.Contains(modifier))
-                {
-                    profile.RemoveModifiers(modifier);
-                }
-            }
+            UpdatePossibleModifiers();
 
             // Don't sit out by default
             CurrentPlayer.SittingOut = false;

@@ -261,6 +261,11 @@ namespace YARG.Menu.Settings
             _previewContainerWorld.gameObject.SetActive(false);
 
             _previewContainerUI.DestroyChildren();
+            var image = _previewContainerUI.GetComponent<Image>();
+            if (image != null)
+            {
+                image.enabled = false;
+            }
         }
 
         public void OnSettingChanged()

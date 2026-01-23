@@ -1,10 +1,12 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using Cysharp.Text;
 using UnityEngine;
 using UnityEngine.InputSystem.LowLevel;
+using YARG.Assets.Script.Gameplay.Player;
 using YARG.Core.Audio;
+using YARG.Core.Chart;
 using YARG.Core.Extensions;
 using YARG.Gameplay.Player;
 using YARG.Integration;
@@ -15,17 +17,48 @@ namespace YARG.Gameplay
     {
         private ref struct DebugScrollView
         {
+            private bool _hasVertical;
+
             public static DebugScrollView Begin(string title, GUIStyle verticalStyle,
                 ref Vector2 scrollPosition, params GUILayoutOption[] scrollOptions)
             {
                 GUILayout.BeginVertical(title, verticalStyle);
                 scrollPosition = GUILayout.BeginScrollView(scrollPosition, scrollOptions);
-                return new DebugScrollView();
+                return new DebugScrollView()
+                {
+                    _hasVertical = true,
+                };
+            }
+
+            public static DebugScrollView Begin(ref Vector2 scrollPosition, params GUILayoutOption[] scrollOptions)
+            {
+                scrollPosition = GUILayout.BeginScrollView(scrollPosition, scrollOptions);
+                return new DebugScrollView()
+                {
+                    _hasVertical = false,
+                };
             }
 
             public void Dispose()
             {
                 GUILayout.EndScrollView();
+                if (_hasVertical)
+                {
+                    GUILayout.EndVertical();
+                }
+            }
+        }
+
+        private ref struct DebugVerticalArea
+        {
+            public static DebugVerticalArea Begin(string title, GUIStyle verticalStyle)
+            {
+                GUILayout.BeginVertical(title, verticalStyle);
+                return new DebugVerticalArea();
+            }
+
+            public void Dispose()
+            {
                 GUILayout.EndVertical();
             }
         }
@@ -143,8 +176,16 @@ namespace YARG.Gameplay
             }
 
             // Clamp position to screen bounds
-            _debugWindowRect.x = Math.Clamp(_debugWindowRect.x, 0, Screen.width - _debugWindowRect.width);
-            _debugWindowRect.y = Math.Clamp(_debugWindowRect.y, 0, Screen.height - _debugWindowRect.height);
+            _debugWindowRect.x = Math.Clamp(
+                _debugWindowRect.x,
+                -_debugWindowRect.width + (DEBUG_WINDOW_MARGIN * 2),
+                Math.Max(0, Screen.width - (DEBUG_WINDOW_MARGIN * 2))
+            );
+            _debugWindowRect.y = Math.Clamp(
+                _debugWindowRect.y,
+                0,
+                Math.Max(0, Screen.height - (DEBUG_WINDOW_MARGIN * 2))
+            );
 
             // Reset size so expansions don't persist
             _debugWindowRect.size = new Vector2();
@@ -258,11 +299,13 @@ namespace YARG.Gameplay
                 text.AppendFormat("- Sustain score: {0}\n", stats.SustainScore);
                 text.AppendFormat("- Star Power score: {0}\n", stats.StarPowerScore);
                 text.AppendFormat("- Solo bonus score: {0}\n", stats.SoloBonuses);
+                text.AppendFormat("- Band bonus score: {0}\n", stats.BandBonusScore);
                 text.AppendLine();
                 text.AppendLine("Combo stats:");
                 text.AppendFormat("- Combo: {0}\n", stats.Combo);
                 text.AppendFormat("- Max combo: {0}\n", stats.MaxCombo);
                 text.AppendFormat("- Multiplier: {0}\n", stats.ScoreMultiplier);
+                text.AppendFormat("- Band Bonus Multiplier: {0}\n", stats.BandBonusMultiplier);
                 text.AppendLine();
                 text.AppendFormat("- Notes hit: {0}/{1}\n", stats.NotesHit, stats.TotalNotes);
                 text.AppendFormat("- Notes missed: {0}\n", stats.NotesMissed);
@@ -282,13 +325,17 @@ namespace YARG.Gameplay
                 text.AppendFormat("- Star Power activation count: {0}\n", stats.StarPowerActivationCount);
                 text.AppendFormat("- Total Star Power bars filled: {0:0.000000}\n", stats.TotalStarPowerBarsFilled);
                 text.AppendFormat("- Total time in Star Power: {0:0.000000}\n", stats.TimeInStarPower);
+                text.AppendLine();
+                text.AppendLine("Player Judgement stats:");
+                text.AppendFormat("- Average Offset: {0:0.00} ms", stats.GetAverageOffset() * 1000);
 
                 GUILayout.Label(text.AsSpan().TrimEnd('\n').ToString());
             }
 
             string playerType = player switch
             {
-                FiveFretPlayer => "Five Fret Guitar",
+                FiveFretGuitarPlayer => "Five Fret Guitar",
+                FiveLaneKeysPlayer => "Five Lane Keys",
                 DrumsPlayer => "Drums",
                 VocalsPlayer => "Vocals",
                 ProKeysPlayer => "Pro Keys",
@@ -301,7 +348,7 @@ namespace YARG.Gameplay
             {
                 switch (player)
                 {
-                    case FiveFretPlayer fiveFretPlayer:
+                    case FiveFretGuitarPlayer fiveFretPlayer:
                     {
                         using var text = ZString.CreateStringBuilder(true);
 
@@ -362,6 +409,7 @@ namespace YARG.Gameplay
                         text.AppendFormat("- Ticks hit: {0}\n", stats.TicksHit);
                         text.AppendFormat("- Ticks missed: {0}\n", stats.TicksMissed);
                         text.AppendFormat("- Total ticks so far: {0}\n", stats.TotalTicks);
+                        text.AppendFormat("- Has Note Carry: {0}\n", stats.HasCarryNote);
 
                         GUILayout.Label(text.AsSpan().TrimEnd('\n').ToString());
                         break;
@@ -404,6 +452,42 @@ namespace YARG.Gameplay
                         break;
                     }
 
+                    case FiveLaneKeysPlayer fiveLaneKeysPlayer:
+                    {
+                        using var text = ZString.CreateStringBuilder(true);
+
+                        var engine = fiveLaneKeysPlayer.Engine;
+                        text.AppendLine("State:");
+                        text.AppendFormat("- Key mask: 0x{0:X8}\n", engine.KeyMask);
+                        text.AppendFormat("- Previous key mask: 0x{0:X8}\n", engine.PreviousKeyMask);
+                        text.AppendLine();
+                        text.AppendFormat("- Chord stagger timer: {0}\n", engine.GetChordStaggerTimer());
+
+                        // Don't strip final newline here, for spacing with the toggle below
+                        GUILayout.Label(text.ToString());
+                        text.Clear();
+
+                        _debugProKeysPressTimesToggle = GUILayout.Toggle(_debugProKeysPressTimesToggle, "Key press times:");
+                        if (_debugProKeysPressTimesToggle)
+                        {
+                            var pressTimes = engine.GetKeyPressTimes();
+                            for (int i = 0; i < pressTimes.Length; i++)
+                            {
+                                text.AppendFormat("- {0}: {1:0.000000}\n", i + 1, pressTimes[i]);
+                            }
+
+                            GUILayout.Label(text.AsSpan().TrimEnd('\n').ToString());
+                            text.Clear();
+                        }
+
+                        var stats = fiveLaneKeysPlayer.Engine.EngineStats;
+                        text.AppendLine("\nStats:");
+                        text.AppendFormat("- Overhits: {0}\n", stats.Overhits);
+
+                        GUILayout.Label(text.AsSpan().TrimEnd('\n').ToString());
+                        break;
+                    }
+
                     default:
                         GUILayout.Label($"Player type {player.GetType()} not handled yet");
                         break;
@@ -417,53 +501,68 @@ namespace YARG.Gameplay
 
         private void TimingDebug()
         {
-            using (DebugScrollView.Begin("Calibration", VerticalGroupStyle,
-                ref _debugCalibrationScroll, GUILayout.Height(75 * _debugGuiScale)))
+            using (DebugScrollView.Begin(ref _debugCalibrationScroll, GUILayout.Height(300 * _debugGuiScale)))
             {
-                using var text = ZString.CreateStringBuilder(true);
+                using (DebugVerticalArea.Begin("Calibration", VerticalGroupStyle))
+                {
+                    using var text = ZString.CreateStringBuilder(true);
 
-                text.AppendFormat("Audio calibration: {0}ms\n", _songRunner.AudioCalibration);
-                text.AppendFormat("Video calibration: {0}ms\n", _songRunner.VideoCalibration);
-                text.AppendFormat("Song offset: {0}ms\n", _songRunner.SongOffset);
-                text.AppendFormat("Device audio latency: {0}ms\n", GlobalAudioHandler.PlaybackLatency);
+                    text.AppendFormat("Audio calibration: {0}ms\n", _songRunner.AudioCalibration);
+                    text.AppendFormat("Video calibration: {0}ms\n", _songRunner.VideoCalibration);
+                    text.AppendFormat("Song offset: {0}ms\n", _songRunner.SongOffset);
+                    text.AppendFormat("Device audio latency: {0}ms\n", GlobalAudioHandler.PlaybackLatency);
 
-                GUILayout.Label(text.AsSpan().TrimEnd('\n').ToString());
-            }
+                    GUILayout.Label(text.AsSpan().TrimEnd('\n').ToString());
+                }
 
-            using (DebugScrollView.Begin("Time", VerticalGroupStyle,
-                ref _debugTimeScroll, GUILayout.Height(125 * _debugGuiScale)))
-            {
-                using var text = ZString.CreateStringBuilder(true);
+                using (DebugVerticalArea.Begin("Time", VerticalGroupStyle))
+                {
+                    using var text = ZString.CreateStringBuilder(true);
 
-                text.AppendFormat("Song time: {0:0.000000}\n", _songRunner.SongTime);
-                text.AppendFormat("Audio time: {0:0.000000}\n", _songRunner.AudioTime);
-                text.AppendFormat("Visual time: {0:0.000000}\n", _songRunner.VisualTime);
-                text.AppendFormat("Input time: {0:0.000000}\n", _songRunner.InputTime);
-                text.AppendLine();
-                text.AppendFormat("Real song time: {0:0.000000}\n", _songRunner.RealSongTime);
-                text.AppendFormat("Real audio time: {0:0.000000}\n", _songRunner.RealAudioTime);
-                text.AppendFormat("Real visual time: {0:0.000000}\n", _songRunner.RealVisualTime);
-                text.AppendFormat("Real input time: {0:0.000000}\n", _songRunner.RealInputTime);
-                text.AppendLine();
-                text.AppendFormat("Input base: {0:0.000000}\n", _songRunner.InputTimeBase);
-                text.AppendFormat("Input offset: {0:0.000000}\n", _songRunner.InputTimeOffset);
-                text.AppendFormat("Pause time: {0:0.000000}\n", _songRunner.PauseStartTime);
+                    text.AppendFormat("Song time: {0:0.000000}\n", _songRunner.SongTime);
+                    text.AppendFormat("Audio time: {0:0.000000}\n", _songRunner.AudioTime);
+                    text.AppendFormat("Visual time: {0:0.000000}\n", _songRunner.VisualTime);
+                    text.AppendFormat("Input time: {0:0.000000}\n", _songRunner.InputTime);
+                    text.AppendFormat("Input offset: {0:0.000000}\n", _songRunner.InputTimeOffset);
 
-                GUILayout.Label(text.AsSpan().TrimEnd('\n').ToString());
-            }
+                    GUILayout.Label(text.AsSpan().TrimEnd('\n').ToString());
+                }
 
-            using (DebugScrollView.Begin("Sync", VerticalGroupStyle,
-                ref _debugSyncScroll, GUILayout.Height(100 * _debugGuiScale)))
-            {
-                using var text = ZString.CreateStringBuilder(true);
+                using (DebugVerticalArea.Begin("Sync", VerticalGroupStyle))
+                {
+                    using var text = ZString.CreateStringBuilder(true);
 
-                text.AppendFormat("Audio/visual difference: {0:0.000000}\n", _songRunner.SyncDelta);
-                text.AppendFormat("Resync start delta: {0:0.000000}\n", _songRunner.SyncStartDelta);
-                text.AppendFormat("Resync worst delta: {0:0.000000}\n", _songRunner.SyncWorstDelta);
-                text.AppendFormat("Speed adjustment: {0:0.00}\n", _songRunner.SyncSpeedAdjustment);
-                text.AppendFormat("Speed multiplier: {0}\n", _songRunner.SyncSpeedMultiplier);
+                    text.AppendFormat("Audio/visual difference: {0:0.000000}\n", _songRunner.SyncDelta);
+                    text.AppendFormat("Resync start delta: {0:0.000000}\n", _songRunner.SyncStartDelta);
+                    text.AppendFormat("Resync worst delta: {0:0.000000}\n", _songRunner.SyncWorstDelta);
+                    text.AppendFormat("Speed adjustment: {0:0.00}\n", _songRunner.SyncSpeedAdjustment);
+                    text.AppendFormat("Speed multiplier: {0}\n", _songRunner.SyncSpeedMultiplier);
 
-                GUILayout.Label(text.AsSpan().TrimEnd('\n').ToString());
+                    GUILayout.Label(text.AsSpan().TrimEnd('\n').ToString());
+                }
+
+                using (DebugVerticalArea.Begin("Beats", VerticalGroupStyle))
+                {
+                    using var text = ZString.CreateStringBuilder(true);
+
+                    var sync = Chart.SyncTrack;
+
+                    uint tick = sync.TimeToTick(_songRunner.SongTime);
+
+                    double strongBeat = sync.GetStrongBeatPosition(tick);
+                    double weakBeat = sync.GetWeakBeatPosition(tick);
+                    double denomBeat = sync.GetDenominatorBeatPosition(tick);
+                    double quarterNote = sync.GetQuarterNotePosition(tick);
+                    double measure = sync.GetMeasurePosition(tick);
+
+                    text.AppendFormat("Strong beat position: {0:0.000}\n", strongBeat);
+                    text.AppendFormat("Weak beat position: {0:0.000}\n", weakBeat);
+                    text.AppendFormat("Denominator beat position: {0:0.000}\n", denomBeat);
+                    text.AppendFormat("Quarter note position: {0:0.000}\n", quarterNote);
+                    text.AppendFormat("Measure position: {0:0.000}\n", measure);
+
+                    GUILayout.Label(text.AsSpan().TrimEnd('\n').ToString());
+                }
             }
         }
 
@@ -555,28 +654,94 @@ namespace YARG.Gameplay
             GUILayout.EndVertical();
         }
 
+        private Vector2 _debugVenueScroll;
         private Vector2 _debugLightingScroll;
+        private Vector2 _debugRenderingScroll;
+        private Vector2 _debugCameraScroll;
+        private Vector2 _debugCrowdScroll;
 
         private void VenueDebug()
         {
-            using (DebugScrollView.Begin("Lighting", VerticalGroupStyle,
-                ref _debugLightingScroll, GUILayout.Height(50 * _debugGuiScale)))
+            using (DebugScrollView.Begin(ref _debugVenueScroll, GUILayout.Width(150 * _debugGuiScale), GUILayout.Height(250 * _debugGuiScale)))
             {
-                using var text = ZString.CreateStringBuilder(true);
+                using (DebugVerticalArea.Begin("Rendering", VerticalGroupStyle))
+                {
+                    using var text = ZString.CreateStringBuilder(true);
 
-                text.AppendFormat("Lighting index: {0:000}/{1:000}\n",
-                    MasterLightingGameplayMonitor.LightingIndex,
-                    MasterLightingGameplayMonitor.Venue.Lighting.Count
-                );
+                    text.AppendFormat("Target Venue FPS: {0:00}\n", VenueCameraRenderer.TargetFPS);
+                    text.AppendFormat("Actual Venue FPS: {0:00}\n", VenueCameraRenderer.ActualFPS);
 
-                // Explicit check instead of using ?, as nullable enum types are not specially
-                // formatted by ZString to avoid allocations (while non-nullable enums are)
-                if (MasterLightingController.CurrentLightingCue != null)
-                    text.AppendFormat("Lighting event: {0}\n", MasterLightingController.CurrentLightingCue.Type);
-                else
-                    text.Append("Lighting event: None\n");
+                    GUILayout.Label(text.AsSpan().TrimEnd('\n').ToString());
+                }
 
-                GUILayout.Label(text.AsSpan().TrimEnd('\n').ToString());
+                using (DebugVerticalArea.Begin("Lighting", VerticalGroupStyle))
+                {
+                    using var text = ZString.CreateStringBuilder(true);
+
+                    text.AppendFormat("Lighting index: {0:000}/{1:000}\n",
+                        MasterLightingGameplayMonitor.LightingIndex,
+                        MasterLightingGameplayMonitor.Venue.Lighting.Count
+                    );
+
+                    // Explicit check instead of using ?, as nullable enum types are not specially
+                    // formatted by ZString to avoid allocations (while non-nullable enums are)
+                    if (MasterLightingController.CurrentLightingCue != null)
+                        text.AppendFormat("Lighting event: {0}\n", MasterLightingController.CurrentLightingCue.Type);
+                    else
+                        text.Append("Lighting event: None\n");
+
+                    GUILayout.Label(text.AsSpan().TrimEnd('\n').ToString());
+                }
+
+                if (VenueCameraManager != null)
+                {
+                    using (DebugVerticalArea.Begin("Camera", VerticalGroupStyle))
+                    {
+                        var cut = VenueCameraManager.CurrentCut;
+                        using var text = ZString.CreateStringBuilder(true);
+                        if (cut != null)
+                        {
+                            text.AppendFormat("Camera Subject: {0}\n", cut.Subject);
+                            text.Append("Eligible Subjects: ");
+                            if (cut.Subject == CameraCutEvent.CameraCutSubject.Random)
+                            {
+                                if (cut.RandomChoices.Count > 0)
+                                {
+                                    text.AppendJoin(", ", cut.RandomChoices);
+                                }
+                                else
+                                {
+                                    text.Append("Any");
+                                }
+                            }
+                            else
+                            {
+                                text.Append("n/a");
+                            }
+
+                            text.Append("\n");
+                        }
+                        else
+                        {
+                            text.Append("Camera Subject: null\n");
+                            text.Append("Eligible Subjects: n/a\n");
+                        }
+
+                        text.AppendFormat("Post-Processing Effect: {0}\n", VenueCameraManager.CurrentEffect.Type);
+                        GUILayout.Label(text.AsSpan().TrimEnd('\n').ToString());
+                    }
+                }
+
+                if (CrowdEventHandler != null)
+                {
+                    using (DebugVerticalArea.Begin("Crowd", VerticalGroupStyle))
+                    {
+                        using var text = ZString.CreateStringBuilder(true);
+                        text.AppendFormat("Clap state: {0}\n", CrowdEventHandler.ClapState);
+                        text.AppendFormat("Crowd state: {0}\n", CrowdEventHandler.CrowdState);
+                        GUILayout.Label(text.AsSpan().TrimEnd('\n').ToString());
+                    }
+                }
             }
         }
     }

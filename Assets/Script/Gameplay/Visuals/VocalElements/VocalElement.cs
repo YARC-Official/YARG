@@ -5,7 +5,7 @@ namespace YARG.Gameplay.Visuals
 {
     public abstract class VocalElement : BaseElement
     {
-        private const float SING_LINE_POS = -5f;
+        public const float SING_LINE_POS = -5f;
         private const float REMOVE_POINT = -15f;
 
         protected VocalTrack VocalTrack { get; private set; }
@@ -18,9 +18,9 @@ namespace YARG.Gameplay.Visuals
         protected override bool UpdateElementPosition()
         {
             float x =
-                SING_LINE_POS                                        // Shift origin to the sing line
-                + (float) (ElementTime - GameManager.RealVisualTime) // Get time of note relative to now
-                * VocalTrack.TrackSpeed;                             // Adjust speed (units/s)
+                SING_LINE_POS                                    // Shift origin to the sing line
+                + (float) (ElementTime - GameManager.VisualTime) // Get time of note relative to now
+                * VocalTrack.TrackSpeed;                         // Adjust speed (units/s)
 
             var cacheTransform = transform;
             cacheTransform.localPosition = cacheTransform.localPosition.WithX(x);

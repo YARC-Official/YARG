@@ -459,7 +459,7 @@
             "Advanced": "Advanced",
             "DMXChannels": "DMX Channels",
             "LightingGeneral": "Lighting General",
-            "Export": "Export",
+            "ExportSongs": "Export Songs List",
             "PathsAndFolders": "Paths and Folders",
             "MusicLibrary": "Music Library",
             "ScanningOptions": "Scanning Options",
@@ -474,8 +474,9 @@
         "Button": {
             "CopyCurrentSongJsonFilePath": "Copy Current Song Json File Path",
             "CopyCurrentSongTextFilePath": "Copy Current Song Text File Path",
-            "ExportSongsOuvert": "Export Songs List (For Ouvert Bot)",
-            "ExportSongsText": "Export Songs List (Plain Text)",
+            "ExportSongsJson": "Ouvert (JSON)",
+            "ExportSongsText": "Plain Text",
+            "ExportSongsCsv": "CSV",
             "OpenCalibrator": "Open Calibrator",
             "OpenVenueFolder": "Open Backgrounds/Venue Folder",
             "AddFolder": "Add Folder",
@@ -494,6 +495,7 @@
             },
             "AudioCalibration": {
                 "Name": "Audio Calibration (ms)",
+                "PauseName": "Audio Calibration (ms)",
                 "Description": "Audio calibration in milliseconds. Use the calibrator to automatically calibrate. Higher values make the audio play earlier, while lower ones make the audio play later."
             },
             "AccountForHardwareLatency": {
@@ -546,6 +548,15 @@
             "DisableTextNotifications": {
                 "Name": "Disable Text Notifications",
                 "Description": "Disables text notification on the track such as \"100-Note Streak\" and \"Full Combo.\""
+            },
+            "DiscordRichPresence": {
+                "Name": "Discord Rich Presence",
+                "Description": "Choose how YARG shows on your activity status on Discord.",
+                "Dropdown": {
+                    "Show": "Show all details",
+                    "Limited": "Show without the currently playing song",
+                    "Hide": "Hide"
+                }
             },
             "DMXBlueChannels": {
                 "Name": "DMX Blue",
@@ -707,7 +718,7 @@
                 "Dropdown": {
                     "Disabled": "Disabled",
                     "Frequent": "50, 100, 200, 300, ...",
-                    "Sparse": "50, 100, 250, 500, ..."
+                    "Sparse": "50, 100, 250, 500, 750, ..."
                 }
             },
             "PreviewVolume": {
@@ -809,6 +820,7 @@
             },
             "VideoCalibration": {
                 "Name": "Video Calibration (ms)",
+                "PauseName": "Video Calibration (ms)",
                 "Description": "Video calibration in milliseconds. Use the calibrator to automatically calibrate. This accounts for delays between the game's processing and the actual frame being displayed."
             },
             "VocalMonitoring": {

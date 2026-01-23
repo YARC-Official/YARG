@@ -1,6 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
+using Microsoft.VisualStudio.SolutionPersistence.Model;
+using Microsoft.VisualStudio.SolutionPersistence.Serializer;
 using UnityEditor;
 using UnityEngine;
 
@@ -22,54 +25,85 @@ namespace YARG.Editor.Submodules
             try
             {
                 // Check for submodule
-                string submodule = SubmoduleHelper.SubmoduleRoot;
-                if (!Directory.Exists(submodule))
+                string submoduleFullPath = SubmoduleHelper.SubmoduleRoot;
+                if (!Directory.Exists(submoduleFullPath))
                 {
                     Debug.LogError("YARG.Core submodule does not exist!");
                     return contents;
                 }
 
-                // Write to temporary file
-                string directory = Path.GetDirectoryName(path);
-                string tempFile = Path.Combine(directory, "temp.sln");
-                File.WriteAllText(tempFile, contents);
+                // Need to check format manually instead of using SolutionSerializers.GetSerializerByMoniker,
+                // otherwise we can't load from and save to `contents` directly
+                SolutionModel sln;
+                var openStream = new MemoryStream(Encoding.UTF8.GetBytes(contents));
+                if (SolutionSerializers.SlnFileV12.IsSupported(path))
+                {
+                    sln = SolutionSerializers.SlnFileV12.OpenAsync(openStream, default).Result;
+                }
+                else if (SolutionSerializers.SlnXml.IsSupported(path))
+                {
+                    sln = SolutionSerializers.SlnXml.OpenAsync(openStream, default).Result;
+                }
+                else
+                {
+                    Debug.LogError("Solution format unsupported!");
+                    return contents;
+                }
+
+                // Folder paths are required to start and end with a forward slash,
+                // and use forward slashes as their directory separator
+                string submoduleRelativePath = Path.GetRelativePath(SubmoduleHelper.ProjectRoot, submoduleFullPath);
+                submoduleRelativePath = submoduleRelativePath.Replace(Path.DirectorySeparatorChar, '/');
+                submoduleRelativePath = submoduleRelativePath.Replace(Path.AltDirectorySeparatorChar, '/');
+
+                var submoduleFolder = sln.FindFolder("/YARG.Core/") ?? sln.AddFolder('/' + submoduleRelativePath + '/');
 
                 // Find submodule projects
-                // Collected separately so we can have a count
-                var projectFiles = new List<string>();
-                EditorUtility.DisplayProgressBar("Adding YARG.Core Projects to Solution", "Finding project files", 0f);
-                foreach (string projectFile in Directory.EnumerateFiles(submodule, "*.csproj", SearchOption.AllDirectories))
+                foreach (string projectFile in Directory.EnumerateFiles(submoduleFullPath, "*.csproj", SearchOption.AllDirectories))
                 {
-                    if (!IgnoredProjects.Contains(Path.GetFileName(projectFile)))
+                    string projectPath = Path.GetRelativePath(SubmoduleHelper.ProjectRoot, projectFile);
+                    if (!IgnoredProjects.Contains(Path.GetFileName(projectPath)) && sln.FindProject(projectPath) == null)
                     {
-                        projectFiles.Add(projectFile);
+                        sln.AddProject(projectPath);
                     }
                 }
 
-                // Add submodule projects
-                for (int i = 0; i < projectFiles.Count; i++)
+                foreach (var project in sln.SolutionProjects)
                 {
-                    string projectFile = projectFiles[i];
-                    try
+                    // Ensure submodule projects are always put into the folder
+                    // `contents` does not seem to have folders preserved when passed to us,
+                    // so we need to ensure the projects get put back in it
+                    if (project.FilePath.StartsWith(submoduleRelativePath))
                     {
-                        SubmoduleHelper.RunCommand(
-                            "dotnet",
-                            @$"sln ""{tempFile}"" add ""{projectFile}""",
-                            "Adding YARG.Core Projects to Solution",
-                            $"Adding {Path.GetFileName(projectFile)} ({i + 1} of {projectFiles.Count})",
-                            (float) i / projectFiles.Count
-                        );
+                        project.MoveToFolder(submoduleFolder);
                     }
-                    catch (Exception ex)
+
+                    // Adjust submodule package projects to be contained inside the submodule folder
+                    string projectName = Path.GetFileNameWithoutExtension(project.FilePath);
+                    if (projectName.EndsWith(".Package"))
                     {
-                        Debug.LogError($"Failed to add YARG.Core project {projectFile} to solution {path}");
-                        Debug.LogException(ex);
+                        project.MoveToFolder(submoduleFolder);
                     }
                 }
 
-                // Read back temp file as new contents
-                contents = File.ReadAllText(tempFile);
-                File.Delete(tempFile);
+                var saveStream = new MemoryStream();
+                if (SolutionSerializers.SlnFileV12.IsSupported(path))
+                {
+                    sln.SerializerExtension = SolutionSerializers.SlnFileV12.CreateModelExtension(new()
+                    {
+                        // We need the solution to be written as UTF-8
+                        // so we can convert its written contents back to a string
+                        Encoding = Encoding.UTF8
+                    });
+                    SolutionSerializers.SlnFileV12.SaveAsync(saveStream, sln, default).Wait();
+                }
+                else if (SolutionSerializers.SlnXml.IsSupported(path))
+                {
+                    SolutionSerializers.SlnXml.SaveAsync(saveStream, sln, default).Wait();
+                }
+
+                // Apply new solution contents
+                contents = Encoding.UTF8.GetString(saveStream.ToArray());
             }
             catch (Exception ex)
             {

@@ -23,6 +23,7 @@ namespace YARG.Gameplay.HUD
             QuickSettings,
             SettingsMenu,
             SetlistPause,
+            FailPause
         }
 
         private Dictionary<Menu, PauseMenuObject> _menus;

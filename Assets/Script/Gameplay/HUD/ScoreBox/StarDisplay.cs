@@ -25,13 +25,11 @@ namespace YARG.Gameplay.HUD
 
         [Space]
         [SerializeField]
-        private GameObject _goldProgressContainer;
+        private CanvasGroup _goldProgressGroup;
         [SerializeField]
         private Image _goldProgress;
         [SerializeField]
         private RawImage _goldProgressLine;
-        [SerializeField]
-        private Animator _goldMeterAnimator;
 
         private float _goldMeterHeight;
 
@@ -46,11 +44,9 @@ namespace YARG.Gameplay.HUD
             _starAnimator.Play(ANIMATION_POP_NEW);
         }
 
-        public void PulseGoldMeter()
+        public void SetGoldPulse(float pulse)
         {
-            // TODO: Use animation triggers instead
-            // These arguments are required for it to properly loop
-            _goldMeterAnimator.Play(ANIMATION_GOLD_METER, -1, 0f);
+            _goldProgressGroup.alpha = pulse;
         }
 
         public void SetProgress(float progress)
@@ -58,12 +54,14 @@ namespace YARG.Gameplay.HUD
             if (progress < 1)
             {
                 // Fill the star progress
+                _starProgress.enabled = true;
                 _starProgress.fillAmount = (float) progress;
             }
             else
             {
                 // Finish the star
                 _starProgress.fillAmount = 1;
+                _starProgress.enabled = false;
                 _starAnimator.Play(ANIMATION_COMPLETED);
             }
         }
@@ -80,7 +78,7 @@ namespace YARG.Gameplay.HUD
             {
                 // Finish the gold star
                 _goldProgress.fillAmount = 1;
-                _goldProgressContainer.gameObject.SetActive(false);
+                _goldProgressGroup.gameObject.SetActive(false);
 
                 _starAnimator.Play(ANIMATION_GOLD);
             }

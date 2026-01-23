@@ -2,10 +2,13 @@
 using System.Linq;
 using TMPro;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using YARG.Core;
 using YARG.Core.Game;
 using YARG.Core.Input;
+using YARG.Gameplay.Visuals;
 using YARG.Helpers.Extensions;
+using YARG.Input;
 using YARG.Localization;
 using YARG.Menu.Navigation;
 using YARG.Menu.Persistent;
@@ -30,6 +33,10 @@ namespace YARG.Menu.ProfileList
         [SerializeField]
         private GameObject _profileListHeaderPrefab;
 
+        private readonly int _maxConnected = HighwayCameraRendering.MAX_MATRICES;
+
+        public bool CanConnectProfile => PlayerContainer.Players.Count < _maxConnected;
+
         private void OnEnable()
         {
             RefreshList();
@@ -38,6 +45,8 @@ namespace YARG.Menu.ProfileList
             {
                 new NavigationScheme.Entry(MenuAction.Red, "Menu.Common.Back", () => MenuManager.Instance.PopMenu()),
             }, true));
+
+            PlayerContainer.PlayerAdded += OnPlayerAdded;
         }
 
         private void OnDisable()
@@ -49,6 +58,8 @@ namespace YARG.Menu.ProfileList
             StatsManager.Instance.UpdateActivePlayers();
 
             Navigator.Instance.PopScheme();
+
+            PlayerContainer.PlayerAdded -= OnPlayerAdded;
         }
 
         public void RefreshList(YargProfile selectedProfile = null)
@@ -134,6 +145,20 @@ namespace YARG.Menu.ProfileList
             RefreshList(profile);
         }
 
+        #nullable enable
+        private YargProfile? GetSelectedProfile()
+        #nullable disable
+        {
+            var profileView = _profileList.GetComponentsInChildren<ProfileView>()
+                .FirstOrDefault(e => e.Selected);
+            if (profileView != null)
+            {
+                return profileView.Profile;
+            }
+
+            return null;
+        }
+
         public void SetSelectedProfile(YargProfile profile)
         {
             // Have to use LastOrDefault() here as this GetComponentsInChildren() call may include recently Destroyed objects.
@@ -143,6 +168,11 @@ namespace YARG.Menu.ProfileList
             {
                 profileView.SetSelected(true, SelectionOrigin.Programmatically);
             }
+        }
+
+        public void OnPlayerAdded(YargPlayer player)
+        {
+            RefreshList(GetSelectedProfile());
         }
     }
 }

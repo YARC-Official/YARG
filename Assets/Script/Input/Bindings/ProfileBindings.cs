@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using YARG.Audio;
@@ -19,6 +20,7 @@ namespace YARG.Input
 
         private SerializedMic _unresolvedMic;
         public MicDevice Microphone { get; private set; }
+        public List<InputDevice> InputDevices => _devices;
 
         private readonly List<SerializedInputDevice> _unresolvedDevices = new();
         private readonly List<InputDevice> _devices = new();
@@ -251,6 +253,11 @@ namespace YARG.Input
             return _unresolvedDevices.FindIndex((dev) => dev.MatchesDevice(device));
         }
 
+        public bool MatchesDevice(InputDevice device)
+        {
+            return _unresolvedDevices.Any(dev => dev.MatchesDevice(device));
+        }
+
         public bool ContainsBindingsForDevice(InputDevice device)
         {
             foreach (var bindings in _bindsByGameMode.Values)
@@ -262,14 +269,17 @@ namespace YARG.Input
             return MenuBindings.ContainsBindingsForDevice(device);
         }
 
-        public void ClearBindingsForDevice(InputDevice device)
+        public void ClearBindingsForDevice(InputDevice device, bool clearMenuBindings = true)
         {
             foreach (var bindings in _bindsByGameMode.Values)
             {
                 bindings.ClearBindingsForDevice(device);
             }
 
-            MenuBindings.ClearBindingsForDevice(device);
+            if (clearMenuBindings)
+            {
+                MenuBindings.ClearBindingsForDevice(device);
+            }
         }
 
         public void ClearAllBindings()
