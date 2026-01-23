@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -49,6 +49,8 @@ namespace YARG.Settings
                 nameof(Settings.EnablePracticeSP),
                 nameof(Settings.PracticeRestartDelay),
                 nameof(Settings.NoFailMode),
+                nameof(Settings.LearningGuides),
+                nameof(Settings.ReduceNoteSpeedByDifficulty),
 
                 new HeaderMetadata("StatusBar"),
                 nameof(Settings.ShowBattery),
@@ -61,8 +63,6 @@ namespace YARG.Settings
                 new HeaderMetadata("Other"),
                 nameof(Settings.ReconnectProfiles),
                 nameof(Settings.AutoCreateProfiles),
-                nameof(Settings.ReduceNoteSpeedByDifficulty),
-                nameof(Settings.LearningGuides),
                 nameof(Settings.ShowCursorTimer),
                 nameof(Settings.PauseOnDeviceDisconnect),
                 nameof(Settings.PauseOnFocusLoss),

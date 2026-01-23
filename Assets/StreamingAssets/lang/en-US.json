@@ -1,4 +1,4 @@
-{
+﻿{
     "Language": {
         "Name": "English",
         "Region": "United States",
@@ -1347,7 +1347,7 @@
             },
             "LearningGuides": {
                 "Name": "Learning Guides",
-                "Description": "Adds some musical theory guides to help learn the instrument."
+                "Description": "Adds some musical theory guides for Pro Keys to help learn the instrument."
             },
             "ShowPlayerNameWhenStartingSong": {
                 "Name": "Show Player Name When Starting Song",

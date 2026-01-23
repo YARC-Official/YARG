@@ -1,20 +1,10 @@
-﻿﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System;
 using UnityEngine;
 using YARG.Gameplay.Player;
-using YARG.Core;
 using YARG.Core.Chart;
-using YARG.Core.Engine.ProKeys;
-using YARG.Core.Engine.ProKeys.Engines;
-using YARG.Core.Input;
-using YARG.Core.Logging;
-using YARG.Core.Replays;
-using YARG.Gameplay.Visuals;
 using YARG.Settings;
 using TMPro;
 using Cysharp.Text;
-using System.Text;
 
 namespace YARG.Gameplay.Visuals
 {
@@ -41,14 +31,14 @@ namespace YARG.Gameplay.Visuals
         [Space]
         [SerializeField]
         private Transform _canvas;
-        
+
         [SerializeField]
         private TextMeshPro _leftText;
 
-        string[] chord_call = {};
+        private string[] _chordCall = {};
 
-        int chord_qnty = 0;
-        int[] chord_notes = new int[25];
+        private int   _chordQnty  = 0;
+        private int[] _chordNotes = new int[25];
 
         protected override void InitializeElement()
         {
@@ -112,537 +102,539 @@ namespace YARG.Gameplay.Visuals
         public void ShowChordName()
         {
             //Chordname
-            using var chord_name = new Utf16ValueStringBuilder(true);
+            using var chordName = new Utf16ValueStringBuilder(true);
             _leftText.text = "";
             _leftText.textStyle = TMP_Style.NormalStyle;
-
-            //Use the first note of the array to find the root
-            string GetRoot(int note_slot) //note_slot being the note's position
-            {
-                return (chord_notes[note_slot] % 12) switch 
-                {
-                    0 => "C",
-                    1 => "C♯",
-                    2 => "D",
-                    3 => "Eb",
-                    4 => "E",
-                    5 => "F",
-                    6 => "F♯",
-                    7 => "G",
-                    8 => "G♯",
-                    9 => "A",
-                    10 => "Bb",
-                    11 => "B",
-
-                    _ => "X"
-                };
-            }
 
             foreach (var note in NoteRef.AllNotes)
             {
                 for (int i = 0; i < 4; i++)
                 {
-                    chord_notes[i] = 0;
+                    _chordNotes[i] = 0;
                 }
-                Array.Resize(ref chord_call, chord_call.Length + 1);
+                Array.Resize(ref _chordCall, _chordCall.Length + 1);
 
                 foreach (var child in note.AllNotes)
                 {
-                    if (note.IsChord == true)
+                    if (note.IsChord)
                     {
                         //Get the number of notes in the chord and equate to a int value in the array
-                        chord_qnty += 1;
-                        chord_notes[chord_qnty - 1] = child.Key;
+                        _chordQnty += 1;
+                        _chordNotes[_chordQnty - 1] = child.Key;
                     }
                 }
-                if (chord_qnty <= 2)
+                if (_chordQnty <= 2)
                 {
                 }
                 else
                 {
-                    Array.Sort(chord_notes, 0, chord_qnty);
+                    Array.Sort(_chordNotes, 0, _chordQnty);
                 }
 
                 //Using the lowest note, find the first and second interval for three note chords
-                chord_name.Append(GetRoot(0));
-                if (chord_qnty == 3)
+                chordName.Append(GetRoot(0));
+                if (_chordQnty == 3)
                 {
-                    switch (chord_notes[1] - chord_notes[0])
+                    switch (_chordNotes[1] - _chordNotes[0])
                     {
                         case 2: //major 2nd
-                            switch (chord_notes[2] - chord_notes[1])
+                            switch (_chordNotes[2] - _chordNotes[1])
                             {
                                 case 5: //diminished
-                                    chord_name.Append("<sup>sus2</sup>");
+                                    chordName.Append("<sup>sus2</sup>");
                                     break;
                                 default: //minor
-                                    chord_name.Clear();
+                                    chordName.Clear();
                                     break;
-                            };
+                            }
                             break;
                         case 3: //minor 3rd
-                            switch (chord_notes[2] - chord_notes[1])
+                            switch (_chordNotes[2] - _chordNotes[1])
                             {
                                 case 3: //diminished
-                                    chord_name.Append("<sup>dim</sup>");
+                                    chordName.Append("<sup>dim</sup>");
                                     break;
                                 case 4: //minor
-                                    chord_name.Append('m');
+                                    chordName.Append('m');
                                     break;
                                 case 5: //major, 1st inversion
-                                    chord_name.Clear();
-                                    chord_name.Append(GetRoot(2));
+                                    chordName.Clear();
+                                    chordName.Append(GetRoot(2));
                                     break;
                                 case 6: //diminished, 1st inversion
-                                    chord_name.Clear();
-                                    chord_name.Append(GetRoot(2) + "dim");
+                                    chordName.Clear();
+                                    chordName.Append(GetRoot(2) + "dim");
                                     break;
                                 case 7: //minor 7 no 5
-                                    chord_name.Append("m<sup>7no5</sup>");
+                                    chordName.Append("m<sup>7no5</sup>");
                                     break;
                                 case 8: //minor 7 no 5
-                                    chord_name.Append("m<sup>M7no5</sup>");
+                                    chordName.Append("m<sup>M7no5</sup>");
                                     break;
                                 default:
                                     //chord_name = "an unlisted minor 3rd interval chord.";
-                                    chord_name.Clear();
+                                    chordName.Clear();
                                     break;
                             }
                             break;
                         case 4: //major 3rd
-                            switch (chord_notes[2] - chord_notes[1])
+                            switch (_chordNotes[2] - _chordNotes[1])
                             {
                                 case 2:
-                                    chord_name.Append("<sup>b5</sup>");
+                                    chordName.Append("<sup>b5</sup>");
                                     break;
                                 case 3: //major
                                     break;
                                 case 4: //augmented
-                                    chord_name.Append("<sup>aug</sup>");
+                                    chordName.Append("<sup>aug</sup>");
                                     break;
                                 case 5: //minor, 1st inversion
-                                    chord_name.Clear();
-                                    chord_name.Append(GetRoot(2) + "m");
+                                    chordName.Clear();
+                                    chordName.Append(GetRoot(2) + "m");
                                     break;
                                 case 6:
-                                    chord_name.Append("<sup>7no5</sup>");
+                                    chordName.Append("<sup>7no5</sup>");
                                     break;
                                 case 7:
-                                    chord_name.Append("M<sup>7no5</sup>");
+                                    chordName.Append("M<sup>7no5</sup>");
                                     break;
                                 case 8:
-                                    chord_name.Append("<sup>no5</sup>");
+                                    chordName.Append("<sup>no5</sup>");
                                     break;
                                 default:
-                                    chord_name.Clear();
+                                    chordName.Clear();
                                     break;
                             }
                             break;
                         case 5: //perfect fourth
-                            switch (chord_notes[2] - chord_notes[1])
+                            switch (_chordNotes[2] - _chordNotes[1])
                             {
                                 case 2: //minor, 2nd inversion
-                                    chord_name.Append("<sup>sus4</sup>");
+                                    chordName.Append("<sup>sus4</sup>");
                                     break;
                                 case 3: //minor, 2nd inversion
-                                    chord_name.Clear();
-                                    chord_name.Append(GetRoot(1) + "m");
+                                    chordName.Clear();
+                                    chordName.Append(GetRoot(1) + "m");
                                     break;
                                 case 4: //major, 2nd inversion
-                                    chord_name.Clear();
-                                    chord_name.Append(GetRoot(1));
+                                    chordName.Clear();
+                                    chordName.Append(GetRoot(1));
                                     break;
                                 case 5: //sus2 inversion
-                                    chord_name.Clear();
-                                    chord_name.Append(GetRoot(2) + "sus2");
+                                    chordName.Clear();
+                                    chordName.Append(GetRoot(2) + "sus2");
                                     break;
                                 case 7: //POWER!! 5
-                                    chord_name.Clear();
-                                    chord_name.Append(GetRoot(1) + "5/" + GetRoot(0));
+                                    chordName.Clear();
+                                    chordName.Append(GetRoot(1) + "5/" + GetRoot(0));
                                     break;
                                 default:
-                                    chord_name.Clear();
+                                    chordName.Clear();
                                     break;
                             }
                             break;
                         case 6: //diminished
-                            switch (chord_notes[2] - chord_notes[1])
+                            switch (_chordNotes[2] - _chordNotes[1])
                             {
                                 case 3:
-                                    chord_name.Append("dim7");
+                                    chordName.Append("dim7");
                                     break;
                                 case 4:
-                                    chord_name.Append("m7b5");
+                                    chordName.Append("m7b5");
                                     break;
                                 default:
-                                    chord_name.Clear();
+                                    chordName.Clear();
                                     break;
                             }
                             break;
                         case 7: //perfect fifth
-                            switch (chord_notes[2] - chord_notes[1])
+                            switch (_chordNotes[2] - _chordNotes[1])
                             {
                                 case 3: //minor 7th with no 3
-                                    chord_name.Append("m<sup>7no3</sup>");
+                                    chordName.Append("m<sup>7no3</sup>");
                                     break;
                                 case 4: //major 7 no 3
-                                    chord_name.Append("<sup>7no3</sup>");
+                                    chordName.Append("<sup>7no3</sup>");
                                     break;
                                 case 5: //POWER!! 5
-                                    chord_name.Append('5');
+                                    chordName.Append('5');
                                     break;
                                 default:
-                                    chord_name.Clear();
+                                    chordName.Clear();
                                     break;
                             }
                             break;
                         default:
-                            chord_name.Clear();
+                            chordName.Clear();
                             break;
                     }
-                    _leftText.SetText(chord_name);
+                    _leftText.SetText(chordName);
                 }
-                else if (chord_qnty == 4)
+                else if (_chordQnty == 4)
                 {
-                    switch (chord_notes[1] - chord_notes[0])
+                    switch (_chordNotes[1] - _chordNotes[0])
                     {
                         case 2: //major 2nd
-                            switch (chord_notes[2] - chord_notes[1])
+                            switch (_chordNotes[2] - _chordNotes[1])
                             {
                                 case 2: //C D E
-                                    switch (chord_notes[3] - chord_notes[2])
+                                    switch (_chordNotes[3] - _chordNotes[2])
                                     {
                                         case 3:
-                                            chord_name.Append("<sup>add9</sup>");
+                                            chordName.Append("<sup>add9</sup>");
                                             break;
                                         case 4:
-                                            chord_name.Append("<sup>add9#5</sup>");
+                                            chordName.Append("<sup>add9#5</sup>");
                                             break;
                                         case 5:
-                                            chord_name.Clear();
-                                            chord_name.Append(GetRoot(2) + "m<sup>sus4<sup>");
+                                            chordName.Clear();
+                                            chordName.Append(GetRoot(2) + "m<sup>sus4<sup>");
                                             break;
                                         case 6:
-                                            chord_name.Append("<sup>7add9no5</sup>");
+                                            chordName.Append("<sup>7add9no5</sup>");
                                             break;
                                         case 7:
-                                            chord_name.Append("M<sup>7add9no5</sup>");
+                                            chordName.Append("M<sup>7add9no5</sup>");
                                             break;
                                         default:
                                             //chord_name = "an unlisted minor 2nd interval chord.";
-                                            chord_name.Clear();
+                                            chordName.Clear();
                                             break;
                                     }
                                     break;
                                 case 3: //C D F
-                                    switch (chord_notes[3] - chord_notes[2])
+                                    switch (_chordNotes[3] - _chordNotes[2])
                                     {
                                         case 3:
-                                            chord_name.Clear();
-                                            chord_name.Append(GetRoot(1) + "m7b5/" + GetRoot(0));
+                                            chordName.Clear();
+                                            chordName.Append(GetRoot(1) + "m7b5/" + GetRoot(0));
                                             break;
                                         case 4:
-                                            chord_name.Clear();
-                                            chord_name.Append(GetRoot(1) + "m7/" + GetRoot(0));
+                                            chordName.Clear();
+                                            chordName.Append(GetRoot(1) + "m7/" + GetRoot(0));
                                             break;
                                         case 5:
-                                            chord_name.Clear();
-                                            chord_name.Append(GetRoot(3) + "m<sup>sus4</sup>/" + GetRoot(0));
+                                            chordName.Clear();
+                                            chordName.Append(GetRoot(3) + "m<sup>sus4</sup>/" + GetRoot(0));
                                             break;
                                         default:
-                                            chord_name.Clear();
+                                            chordName.Clear();
                                             break;
                                     }
                                     break;
                                 case 4: //C D F#
-                                    switch (chord_notes[3] - chord_notes[2])
+                                    switch (_chordNotes[3] - _chordNotes[2])
                                     {
                                         case 2:
-                                            chord_name.Clear();
-                                            chord_name.Append(GetRoot(1) + "<sup>7b5</sup>/" + GetRoot(0));
+                                            chordName.Clear();
+                                            chordName.Append(GetRoot(1) + "<sup>7b5</sup>/" + GetRoot(0));
                                             break;
                                         case 3:
-                                            chord_name.Clear();
-                                            chord_name.Append(GetRoot(1) + "<sup>7</sup>/" + GetRoot(0));
+                                            chordName.Clear();
+                                            chordName.Append(GetRoot(1) + "<sup>7</sup>/" + GetRoot(0));
                                             break;
                                         case 4:
-                                            chord_name.Clear();
-                                            chord_name.Append(GetRoot(1) + "7#5/" + GetRoot(0));
+                                            chordName.Clear();
+                                            chordName.Append(GetRoot(1) + "7#5/" + GetRoot(0));
                                             break;
                                         case 5:
-                                            chord_name.Clear();
-                                            chord_name.Append(GetRoot(3) + "m<sup>b9</sup>/" + GetRoot(0));
+                                            chordName.Clear();
+                                            chordName.Append(GetRoot(3) + "m<sup>b9</sup>/" + GetRoot(0));
                                             break;
                                         default:
-                                            chord_name.Clear();
+                                            chordName.Clear();
                                             break;
                                     }
                                     break;
                                 case 5: //C D G
-                                    switch (chord_notes[3] - chord_notes[2])
+                                    switch (_chordNotes[3] - _chordNotes[2])
                                     {
                                         case 3:
-                                            chord_name.Append("7<sup>sus2</sup>");
+                                            chordName.Append("7<sup>sus2</sup>");
                                             break;
                                         case 4:
-                                            chord_name.Append("M7<sup>sus2</sup>");
+                                            chordName.Append("M7<sup>sus2</sup>");
                                             break;
                                         case 5:
-                                            chord_name.Append("<sup>sus2</sup>");
+                                            chordName.Append("<sup>sus2</sup>");
                                             break;
                                         default:
                                             //chord_name = "an unlisted minor 2nd interval chord.";
-                                            chord_name.Clear();
+                                            chordName.Clear();
                                             break;
                                     }
                                     break;
                                 case 7: //C D A
-                                    chord_name.Clear();
+                                    chordName.Clear();
                                     break;
                                 default:
                                     //chord_name = "an unlisted minor 2nd interval chord.";
-                                    chord_name.Clear();
+                                    chordName.Clear();
                                     break;
                             }
                             break;
                         case 3: //minor 3rd
-                            switch (chord_notes[2] - chord_notes[1])
+                            switch (_chordNotes[2] - _chordNotes[1])
                             {
                                 case 2: //C D# F
-                                    switch (chord_notes[3] - chord_notes[2])
+                                    switch (_chordNotes[3] - _chordNotes[2])
                                     {
                                         case 2:
-                                            chord_name.Append("m4");
+                                            chordName.Append("m4");
                                             break;
                                         case 3:
-                                            chord_name.Clear();
-                                            chord_name.Append(GetRoot(3) + "<sup>6</sup>/" + GetRoot(0));
+                                            chordName.Clear();
+                                            chordName.Append(GetRoot(3) + "<sup>6</sup>/" + GetRoot(0));
                                             break;
                                         case 4:
-                                            chord_name.Clear();
-                                            chord_name.Append(GetRoot(2) + "<sup>7</sup>/" + GetRoot(0));
+                                            chordName.Clear();
+                                            chordName.Append(GetRoot(2) + "<sup>7</sup>/" + GetRoot(0));
                                             break;
                                         default:
-                                            chord_name.Clear();
+                                            chordName.Clear();
                                             break;
                                     }
                                     break;
                                 case 3: //C D# F#
-                                    switch (chord_notes[3] - chord_notes[2])
+                                    switch (_chordNotes[3] - _chordNotes[2])
                                     {
                                         case 2:
-                                            chord_name.Clear();
-                                            chord_name.Append(GetRoot(3) + "<sup>7</sup>/" + GetRoot(0));
+                                            chordName.Clear();
+                                            chordName.Append(GetRoot(3) + "<sup>7</sup>/" + GetRoot(0));
                                             break;
                                         case 3:
-                                            chord_name.Append("dim7");
+                                            chordName.Append("dim7");
                                             break;
                                         case 4:
-                                            chord_name.Append("m7b5");
+                                            chordName.Append("m7b5");
                                             break;
                                         case 5:
-                                            chord_name.Append("mM7b5");
+                                            chordName.Append("mM7b5");
                                             break;
                                         default:
                                             //chord_name = "an unlisted minor 2nd interval chord.";
-                                            chord_name.Clear();
+                                            chordName.Clear();
                                             break;
                                     }
                                     break;
                                 case 4: //minor
-                                    switch (chord_notes[3] - chord_notes[2])
+                                    switch (_chordNotes[3] - _chordNotes[2])
                                     {
                                         case 1:
-                                            chord_name.Clear();
-                                            chord_name.Append(GetRoot(3) + "M<sup>7</sup>/" + GetRoot(0));
+                                            chordName.Clear();
+                                            chordName.Append(GetRoot(3) + "M<sup>7</sup>/" + GetRoot(0));
                                             break;
                                         case 2:
-                                            chord_name.Append("m<sup>6</sup>");
+                                            chordName.Append("m<sup>6</sup>");
                                             break;
                                         case 3:
-                                            chord_name.Append("m<sup>7</sup>");
+                                            chordName.Append("m<sup>7</sup>");
                                             break;
                                         case 4:
-                                            chord_name.Append("mM<sup>7</sup>");
+                                            chordName.Append("mM<sup>7</sup>");
                                             break;
                                         case 5:
-                                            chord_name.Append("m");
+                                            chordName.Append("m");
                                             break;
                                         default:
                                             //chord_name = "an unlisted minor 2nd interval chord.";
-                                            chord_name.Clear();
+                                            chordName.Clear();
                                             break;
                                     }
                                     break;
                                 case 5: //C D# G#
-                                    switch (chord_notes[3] - chord_notes[2])
+                                    switch (_chordNotes[3] - _chordNotes[2])
                                     {
                                         case 1:
-                                            chord_name.Clear();
-                                            chord_name.Append(GetRoot(2) + "<sup>addb9</sup>/" + GetRoot(0));
+                                            chordName.Clear();
+                                            chordName.Append(GetRoot(2) + "<sup>addb9</sup>/" + GetRoot(0));
                                             break;
                                         case 2:
-                                            chord_name.Clear();
-                                            chord_name.Append(GetRoot(2) + "<sup>add9</sup>/" + GetRoot(0));
+                                            chordName.Clear();
+                                            chordName.Append(GetRoot(2) + "<sup>add9</sup>/" + GetRoot(0));
                                             break;
                                         case 3:
-                                            chord_name.Clear();
-                                            chord_name.Append(GetRoot(2) + "<sup>add#2</sup>/" + GetRoot(0));
+                                            chordName.Clear();
+                                            chordName.Append(GetRoot(2) + "<sup>add#2</sup>/" + GetRoot(0));
                                             break;
                                         case 4:
-                                            chord_name.Clear();
-                                            chord_name.Append(GetRoot(2));
+                                            chordName.Clear();
+                                            chordName.Append(GetRoot(2));
                                             break;
                                         case 5:
-                                            chord_name.Append('m');
+                                            chordName.Append('m');
                                             break;
                                         default:
                                             //chord_name = "an unlisted minor 2nd interval chord.";
-                                            chord_name.Clear();
+                                            chordName.Clear();
                                             break;
                                     }
                                     break;
                                 case 7: //minor 7 no 5
-                                    chord_name.Append("<sup>m7no5</sup>");
+                                    chordName.Append("<sup>m7no5</sup>");
                                     break;
                                 default:
                                     //chord_name = "an unlisted minor 3rd interval chord.";
-                                    chord_name.Clear();
+                                    chordName.Clear();
                                     break;
                             }
                             break;
                         case 4: //major 3rd
-                            switch (chord_notes[2] - chord_notes[1])
+                            switch (_chordNotes[2] - _chordNotes[1])
                             {
                                 case 1: //C E F
-                                    switch (chord_notes[3] - chord_notes[2])
+                                    switch (_chordNotes[3] - _chordNotes[2])
                                     {
                                         case 2:
-                                            chord_name.Append('4');
+                                            chordName.Append('4');
                                             break;
                                         case 4:
-                                            chord_name.Clear();
-                                            chord_name.Append(GetRoot(2) + "M<sup>7</sup>/" + GetRoot(0));
+                                            chordName.Clear();
+                                            chordName.Append(GetRoot(2) + "M<sup>7</sup>/" + GetRoot(0));
                                             break;
                                         case 6:
-                                            chord_name.Append("<sup>b9no7</sup>");
+                                            chordName.Append("<sup>b9no7</sup>");
                                             break;
                                         case 7:
-                                            chord_name.Append("M<sup>7add9no5</sup>");
+                                            chordName.Append("M<sup>7add9no5</sup>");
                                             break;
                                         default:
                                             //chord_name = "an unlisted minor 2nd interval chord.";
-                                            chord_name.Clear();
+                                            chordName.Clear();
                                             break;
                                     }
                                     break;
                                 case 3: //C E G
-                                    switch (chord_notes[3] - chord_notes[2])
+                                    switch (_chordNotes[3] - _chordNotes[2])
                                     {
                                         case 2:
-                                            chord_name.Append("<sup>6</sup>");
+                                            chordName.Append("<sup>6</sup>");
                                             break;
                                         case 3:
-                                            chord_name.Append("<sup>7</sup>");
+                                            chordName.Append("<sup>7</sup>");
                                             break;
                                         case 4:
-                                            chord_name.Append("M<sup>7</sup>");
+                                            chordName.Append("M<sup>7</sup>");
                                             break;
                                         case 5:
                                             break;
                                         case 6:
-                                            chord_name.Append("<sup>b9no7</sup>");
+                                            chordName.Append("<sup>b9no7</sup>");
                                             break;
                                         case 7:
-                                            chord_name.Append("<sup>9no7</sup>");
+                                            chordName.Append("<sup>9no7</sup>");
                                             break;
                                         default:
                                             //chord_name = "an unlisted minor 2nd interval chord.";
-                                            chord_name.Clear();
+                                            chordName.Clear();
                                             break;
                                     }
                                     break;
                                 case 4: //augmented
-                                    chord_name.Append("<sup>aug</sup>");
+                                    chordName.Append("<sup>aug</sup>");
                                     break;
                                 case 5: //major, 1st inversion
-                                    chord_name.Clear();
-                                    chord_name.Append(GetRoot(2) + "m");
+                                    chordName.Clear();
+                                    chordName.Append(GetRoot(2) + "m");
                                     break;
                                 default:
-                                    chord_name.Clear();
+                                    chordName.Clear();
                                     break;
                             }
                             break;
                         case 5: //perfect fourth
-                            switch (chord_notes[2] - chord_notes[1])
+                            switch (_chordNotes[2] - _chordNotes[1])
                             {
                                 case 2: //sus4
-                                    chord_name.Append("<sup>sus4</sup>");
+                                    chordName.Append("<sup>sus4</sup>");
                                     break;
                                 case 3: //minor, 2nd inversion
-                                    chord_name.Clear();
-                                    chord_name.Append(GetRoot(1) + "m");
+                                    chordName.Clear();
+                                    chordName.Append(GetRoot(1) + "m");
                                     break;
                                 case 4: //major, 2nd inversion
-                                    chord_name.Clear();
-                                    chord_name.Append(GetRoot(1));
+                                    chordName.Clear();
+                                    chordName.Append(GetRoot(1));
                                     break;
                                 case 5: //sus2 inversion
-                                    chord_name.Clear();
-                                    chord_name.Append(GetRoot(2) + "<sup>sus2</sup>");
+                                    chordName.Clear();
+                                    chordName.Append(GetRoot(2) + "<sup>sus2</sup>");
                                     break;
                                 default:
                                     //chord_name = "an unlisted minor perfect 4th chord.";
-                                    chord_name.Clear();
+                                    chordName.Clear();
                                     break;
                             }
                             break;
                         case 6: //diminished
-                            switch (chord_notes[2] - chord_notes[1])
+                            switch (_chordNotes[2] - _chordNotes[1])
                             {
                                 case 3: //minor 7th with no 3
-                                    chord_name.Append("<sup>m7no3</sup>");
+                                    chordName.Append("<sup>m7no3</sup>");
                                     break;
                                 case 4: //minor 7 flat 5
-                                    chord_name.Append("m<sup>7no3</sup>");
+                                    chordName.Append("m<sup>7no3</sup>");
                                     break;
                                 default:
-                                    chord_name.Clear();
+                                    chordName.Clear();
                                     break;
                             }
                             break;
                         case 7: //perfect fifth
-                            switch (chord_notes[2] - chord_notes[1])
+                            switch (_chordNotes[2] - _chordNotes[1])
                             {
                                 case 3: //minor 7th with no 3
-                                    chord_name.Append("<sup>m7no3</sup>");
+                                    chordName.Append("<sup>m7no3</sup>");
                                     break;
                                 case 4: //major 7 no 3
-                                    chord_name.Append("<sup>7no3</sup>");
+                                    chordName.Append("<sup>7no3</sup>");
                                     break;
                                 default:
-                                    chord_name.Clear();
+                                    chordName.Clear();
                                     break;
                             }
                             break;
                         default:
-                            chord_name.Clear();
+                            chordName.Clear();
                             break;
                     }
-                    _leftText.SetText(chord_name);
+                    _leftText.SetText(chordName);
                 }
-                else if (chord_qnty > 4)
+                else if (_chordQnty > 4)
                 {
                     _leftText.text = "!!!";
                 }
 
-                if (chord_notes[3] - chord_notes[0] > 12 || chord_notes[2] - chord_notes[0] > 12)
+                if (_chordNotes[3] - _chordNotes[0] > 12 || _chordNotes[2] - _chordNotes[0] > 12)
                 {
-                    _leftText.text = ">8va (" + (chord_notes[3] - chord_notes[0]) + ")";
+                    _leftText.text = ">8va (" + (_chordNotes[3] - _chordNotes[0]) + ")";
                 }
 
-                chord_qnty = 0;
+                _chordQnty = 0;
+            }
+
+            return;
+
+            //Use the first note of the array to find the root
+            string GetRoot(int noteSlot) //noteSlot being the note's position
+            {
+                return (_chordNotes[noteSlot] % 12) switch
+                {
+                    0  => "C",
+                    1  => "C♯",
+                    2  => "D",
+                    3  => "Eb",
+                    4  => "E",
+                    5  => "F",
+                    6  => "F♯",
+                    7  => "G",
+                    8  => "G♯",
+                    9  => "A",
+                    10 => "Bb",
+                    11 => "B",
+
+                    _ => "X"
+                };
             }
         }
 
