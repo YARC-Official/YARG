@@ -131,7 +131,7 @@ namespace YARG.Gameplay
             set => EngineManager.Stars = value;
         }
 
-        public int   BandMultiplier => EngineManager.BandMultiplier;
+        public int BandMultiplier => EngineManager.BandMultiplier;
 
         public double FirstNoteTime { get; private set; }
         public double LastNoteTime  { get; private set; }
@@ -514,7 +514,7 @@ namespace YARG.Gameplay
             // Get all of the individual player score entries
             var playerEntries = new List<PlayerScoreRecord>();
 
-            // Calculate band score from human players only (excludes bots)
+            // Calculate band score from human players only
             int humanBandScore = 0;
             float humanBandStars = 0f;
 
@@ -529,6 +529,7 @@ namespace YARG.Gameplay
                 }
 
                 humanBandScore += player.Score;
+                humanBandScore += player.BaseStats.BandBonusScoreHuman;
                 humanBandStars += player.Stars;
 
                 playerEntries.Add(new PlayerScoreRecord
@@ -552,13 +553,13 @@ namespace YARG.Gameplay
                 });
             }
 
-            // Calculate band stars by taking average stars for human players
+            // Calculate band stars by taking average stars for human players only
             int humanCount = playerEntries.Count;
+            int averageStars = (int) humanBandStars / humanCount;
             var bandStars = humanCount > 0
-                ? StarAmountHelper.GetStarsFromInt((int) (humanBandStars / humanCount))
+                ? StarAmountHelper.GetStarsFromInt(averageStars)
                 : StarAmount.None;
 
-            // Record the score into the database
             ScoreContainer.RecordScore(new GameRecord
             {
                 Date = DateTime.Now,

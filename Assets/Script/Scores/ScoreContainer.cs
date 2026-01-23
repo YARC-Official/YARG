@@ -90,7 +90,7 @@ namespace YARG.Scores
         {
             var activePlayers = PlayerContainer.Players.Where(p => !p.SittingOut).ToList();
             var humans = activePlayers.Where(p => !p.Profile.IsBot).ToList();
-            var hasBots =  activePlayers.Count > humans.Count;
+            var hasBots = activePlayers.Count > humans.Count;
             var hasHumans = humans.Count > 0;
             var allHumanScoresValid = hasHumans && humans.All(player => IsSoloScoreValid(songSpeed, player));
 
@@ -113,6 +113,7 @@ namespace YARG.Scores
             {
                 return false;
             }
+
             return true;
         }
 
