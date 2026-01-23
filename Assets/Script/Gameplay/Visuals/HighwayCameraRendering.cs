@@ -436,7 +436,7 @@ namespace YARG.Gameplay.Visuals
             public FadePass(HighwayCameraRendering highCamRend)
             {
                 _highwayCameraRendering = highCamRend;
-                renderPassEvent = RenderPassEvent.BeforeRenderingPostProcessing;
+                renderPassEvent = RenderPassEvent.BeforeRendering;
                 _material = new Material(Shader.Find("HighwaysAlphaMask"));
             }
 
@@ -449,13 +449,18 @@ namespace YARG.Gameplay.Visuals
                     var renderingData = frameData.Get<UniversalRenderingData>();
 
                     passData.material = _material;
-                    
+
                     var alphaTextureHandle = renderGraph.ImportTexture(RTHandles.Alloc(_highwayCameraRendering._highwaysAlphaTexture));
-                    builder.SetRenderAttachment(alphaTextureHandle, 0);
+
+                    builder.SetRenderAttachment(alphaTextureHandle, 0, AccessFlags.Write);
+                    // We could allocate a different depth texture, however at this point
+                    // We do not need to preserve depth from the camera as we'll calc this as a very first thing
+                    builder.SetRenderAttachmentDepth(resourceData.activeDepthTexture, AccessFlags.Write);
+
                     builder.AllowPassCulling(false);
 
                     var shaderTagIds = new[] { new ShaderTagId("UniversalForward") };
-                    
+
                     // Create renderer list for transparents
                     var transparentDesc = new RendererListDesc(shaderTagIds, renderingData.cullResults, cameraData.camera)
                     {
@@ -478,6 +483,8 @@ namespace YARG.Gameplay.Visuals
 
                     builder.SetRenderFunc<PassData>((PassData data, RasterGraphContext context) =>
                     {
+                        // Clear both color and depth
+                        context.cmd.ClearRenderTarget(true, true, Color.clear);
                         context.cmd.DrawRendererList(data.transparentRendererList);
                         context.cmd.DrawRendererList(data.opaqueRendererList);
                     });
