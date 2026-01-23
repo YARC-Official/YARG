@@ -577,6 +577,7 @@ namespace YARG.Gameplay
 
                 SongSpeed = SongSpeed,
                 PlayedWithReplay = GlobalVariables.State.PlayingWithReplay,
+                HasBots = _players.Any(p => !p.Player.SittingOut && p.Player.Profile.IsBot),
             }, playerEntries);
         }
 
