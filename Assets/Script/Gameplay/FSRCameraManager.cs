@@ -6,6 +6,8 @@ using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
+using UnityEngine.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.RenderGraphModule.Util;
 
 namespace YARG.Gameplay
 {
@@ -80,7 +82,6 @@ namespace YARG.Gameplay
 
         // Passes
         private FSRPass _fsrPass;
-        private BlitPass _blitPass;
         private JitterProjectionMatrixPass _jitterOpaquesPass;
         private RestoreProjectionMatrixPass _unJitterOpaquesPass;
         private JitterProjectionMatrixPass _jitterTransparentsPass;
@@ -108,7 +109,6 @@ namespace YARG.Gameplay
             _displaySize = new Vector2Int(renderCamera.pixelWidth, renderCamera.pixelHeight);
 
             _fsrPass = new FSRPass(this);
-            _blitPass = new BlitPass(this);
             _jitterOpaquesPass = new JitterProjectionMatrixPass(this, RenderPassEvent.BeforeRenderingOpaques);
             _unJitterOpaquesPass = new RestoreProjectionMatrixPass(RenderPassEvent.AfterRenderingOpaques - 1);
             _jitterTransparentsPass = new JitterProjectionMatrixPass(this, RenderPassEvent.BeforeRenderingTransparents);
@@ -275,7 +275,7 @@ namespace YARG.Gameplay
             renderer.EnqueuePass(_jitterTransparentsPass);
             renderer.EnqueuePass(_unJitterTransparentsPass);
             renderer.EnqueuePass(_fsrPass);
-            renderer.EnqueuePass(_blitPass);
+            // renderer.EnqueuePass(_blitPass);
             if (autoGenerateReactiveMask)
             {
                 SetupAutoReactiveDescription();
@@ -332,7 +332,7 @@ namespace YARG.Gameplay
     class JitterProjectionMatrixPass : ScriptableRenderPass
     {
         private FSRCameraManager _fsr;
-        private CommandBuffer cmd;
+        private readonly ProfilingSampler _profilingSampler = new ProfilingSampler("JitterProjectionMatrix");
 
         public JitterProjectionMatrixPass(FSRCameraManager fsr, RenderPassEvent evt)
         {
@@ -340,148 +340,170 @@ namespace YARG.Gameplay
             renderPassEvent = evt;
         }
 
-        public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
+        public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
         {
-            cmd = CommandBufferPool.Get("JitterProjectionMatrix");
-            RenderingUtils.SetViewAndProjectionMatrices(cmd, renderingData.cameraData.GetViewMatrix(), _fsr._jitterTranslationMatrix * renderingData.cameraData.GetGPUProjectionMatrix(), false);
-            context.ExecuteCommandBuffer(cmd);
-            CommandBufferPool.Release(cmd);
+            using (var builder = renderGraph.AddUnsafePass<PassData>("JitterProjectionMatrix", out var passData, _profilingSampler))
+            {
+                var cameraData = frameData.Get<UniversalCameraData>();
+                passData.fsr = _fsr;
+                passData.viewMatrix = cameraData.GetViewMatrix();
+                passData.projMatrix = cameraData.GetGPUProjectionMatrix();
+
+                builder.SetRenderFunc<PassData>((PassData data, UnsafeGraphContext context) =>
+                {
+                    var cmd = CommandBufferPool.Get("JitterProjectionMatrix");
+                    RenderingUtils.SetViewAndProjectionMatrices(cmd, data.viewMatrix, data.fsr._jitterTranslationMatrix * data.projMatrix, false);
+                    Graphics.ExecuteCommandBuffer(cmd);
+                    CommandBufferPool.Release(cmd);
+                });
+            }
         }
 
+        private class PassData
+        {
+            public FSRCameraManager fsr;
+            public Matrix4x4 viewMatrix;
+            public Matrix4x4 projMatrix;
+        }
     }
 
     // Render pass to restore camera projection matrix
     class RestoreProjectionMatrixPass : ScriptableRenderPass
     {
-        private CommandBuffer cmd;
+        private readonly ProfilingSampler _profilingSampler = new ProfilingSampler("RestoreProjectionMatrix");
 
         public RestoreProjectionMatrixPass(RenderPassEvent evt)
         {
             renderPassEvent = evt;
         }
 
-        public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
+        public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
         {
-            cmd = CommandBufferPool.Get("RestoreProjectionMatrix");
-            RenderingUtils.SetViewAndProjectionMatrices(cmd, renderingData.cameraData.GetViewMatrix(), renderingData.cameraData.GetGPUProjectionMatrix(), false);
-            context.ExecuteCommandBuffer(cmd);
-            CommandBufferPool.Release(cmd);
+            using (var builder = renderGraph.AddUnsafePass<PassData>("RestoreProjectionMatrix", out var passData, _profilingSampler))
+            {
+                var cameraData = frameData.Get<UniversalCameraData>();
+                passData.viewMatrix = cameraData.GetViewMatrix();
+                passData.projMatrix = cameraData.GetGPUProjectionMatrix();
+
+                builder.SetRenderFunc<PassData>((PassData data, UnsafeGraphContext context) =>
+                {
+                    var cmd = CommandBufferPool.Get("RestoreProjectionMatrix");
+                    RenderingUtils.SetViewAndProjectionMatrices(cmd, data.viewMatrix, data.projMatrix, false);
+                    Graphics.ExecuteCommandBuffer(cmd);
+                    CommandBufferPool.Release(cmd);
+                });
+            }
         }
 
+        private class PassData
+        {
+            public Matrix4x4 viewMatrix;
+            public Matrix4x4 projMatrix;
+        }
     }
 
     // Render pass to take unscaled rendered picture and FSR it into a render texture
-    // This will be done before the final blit (which we'll have to overwrite later)
     class FSRPass : ScriptableRenderPass
     {
         private FSRCameraManager _fsr;
-        private CommandBuffer cmd;
-
-        private readonly int depthTexturePropertyID = Shader.PropertyToID("_CameraDepthTexture");
-        private readonly int motionTexturePropertyID = Shader.PropertyToID("_MotionVectorTexture");
+        private readonly ProfilingSampler _profilingSampler = new ProfilingSampler("FSR3Execute");
 
         public FSRPass(FSRCameraManager fsr)
         {
             _fsr = fsr;
-
-            // After things are all rendered before final blit
             renderPassEvent = RenderPassEvent.AfterRenderingPostProcessing;
         }
 
-        public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
+        public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
         {
-            ConfigureInput(ScriptableRenderPassInput.Depth | ScriptableRenderPassInput.Motion);
-        }
-
-        public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
-        {
-            cmd = CommandBufferPool.Get("fsr3_execute");
-
-            _fsr._dispatchDescription.Color = new FidelityFX.ResourceView(renderingData.cameraData.renderer.cameraColorTargetHandle, RenderTextureSubElement.Color);
-            _fsr._dispatchDescription.Depth = new FidelityFX.ResourceView(Shader.GetGlobalTexture(motionTexturePropertyID), RenderTextureSubElement.Depth);
-            _fsr._dispatchDescription.MotionVectors = new FidelityFX.ResourceView(Shader.GetGlobalTexture(motionTexturePropertyID));
-
-            if (_fsr.autoGenerateReactiveMask)
+            var destination = renderGraph.ImportTexture(_fsr._output);
+            using (var builder = renderGraph.AddComputePass<PassData>("FSR3Execute", out var passData, _profilingSampler))
             {
-                _fsr._genReactiveDescription.ColorOpaqueOnly = new ResourceView(_fsr._opaqueOnlyColorBuffer);
-                _fsr._genReactiveDescription.ColorPreUpscale = new ResourceView(_fsr._afterOpaqueOnlyColorBuffer);
-                _fsr._genReactiveDescription.OutReactive = new ResourceView(_fsr._reactiveMaskOutput);
-                _fsr._context.GenerateReactiveMask(_fsr._genReactiveDescription, cmd);
-                _fsr._dispatchDescription.Reactive = new ResourceView(_fsr._reactiveMaskOutput);
+                var resourceData = frameData.Get<UniversalResourceData>();
+                passData.fsr = _fsr;
+                passData.cameraColorHandle = resourceData.activeColorTexture;
+
+                builder.UseTexture(passData.cameraColorHandle, AccessFlags.Read);
+                builder.UseTexture(resourceData.motionVectorColor, AccessFlags.Read);
+                builder.UseTexture(resourceData.motionVectorDepth, AccessFlags.Read);
+                builder.UseTexture(renderGraph.ImportTexture(_fsr._opaqueOnlyColorBuffer), AccessFlags.Read);
+                builder.UseTexture(renderGraph.ImportTexture(_fsr._afterOpaqueOnlyColorBuffer), AccessFlags.Read);
+                builder.UseTexture(destination, AccessFlags.Write);
+                builder.UseTexture(renderGraph.ImportTexture(_fsr._reactiveMaskOutput), AccessFlags.ReadWrite);
+
+                builder.SetRenderFunc<PassData>((PassData data, ComputeGraphContext context) =>
+                {
+                    var cmd = CommandBufferPool.Get("fsr3_execute");
+
+                    data.fsr._dispatchDescription.Color = new FidelityFX.ResourceView(data.cameraColorHandle, RenderTextureSubElement.Color);
+                    data.fsr._dispatchDescription.Depth = new FidelityFX.ResourceView(Shader.GetGlobalTexture("_MotionVectorTexture"), RenderTextureSubElement.Depth);
+                    data.fsr._dispatchDescription.MotionVectors = new FidelityFX.ResourceView(Shader.GetGlobalTexture("_MotionVectorTexture"));
+
+                    if (data.fsr.autoGenerateReactiveMask)
+                    {
+                        data.fsr._genReactiveDescription.ColorOpaqueOnly = new ResourceView(data.fsr._opaqueOnlyColorBuffer);
+                        data.fsr._genReactiveDescription.ColorPreUpscale = new ResourceView(data.fsr._afterOpaqueOnlyColorBuffer);
+                        data.fsr._genReactiveDescription.OutReactive = new ResourceView(data.fsr._reactiveMaskOutput);
+                        data.fsr._context.GenerateReactiveMask(data.fsr._genReactiveDescription, cmd);
+                        data.fsr._dispatchDescription.Reactive = new ResourceView(data.fsr._reactiveMaskOutput);
+                    }
+
+                    data.fsr._context.Dispatch(data.fsr._dispatchDescription, cmd);
+
+                    Graphics.ExecuteCommandBuffer(cmd);
+                    CommandBufferPool.Release(cmd);
+                });
             }
-
-            _fsr._context.Dispatch(_fsr._dispatchDescription, cmd);
-
-            context.ExecuteCommandBuffer(cmd);
-            CommandBufferPool.Release(cmd);
+            frameData.Get<UniversalResourceData>().cameraColor = destination;
         }
 
-    }
-
-    // Render pass to blit final upscaled/antialiased (that was done in FSRPass)
-    // picture onto whatever camera is rendering into
-    // This is executed after everything is already rendered
-    // Note that render pipeline will do its own upscaling and blit and we're
-    // overwriting that basically. I don't believe there is a way to remove that builtin blit
-    // without using our own render pipeline
-    class BlitPass : ScriptableRenderPass
-    {
-        private CommandBuffer cmd;
-        private FSRCameraManager _fsr;
-        public BlitPass(FSRCameraManager fsr)
+        private class PassData
         {
-            _fsr = fsr;
-            renderPassEvent = RenderPassEvent.AfterRendering + 5;
-        }
-
-        [Obsolete]
-        public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
-        {
-            var cameraColorRtHandle = renderingData.cameraData.renderer.cameraColorTargetHandle;
-            cmd = CommandBufferPool.Get("FSR Blit");
-            Blit(cmd, _fsr._output, cameraColorRtHandle);
-            context.ExecuteCommandBuffer(cmd);
-            CommandBufferPool.Release(cmd);
+            public FSRCameraManager fsr;
+            public TextureHandle cameraColorHandle;
         }
     }
 
     // Pass to store copy of color buffer after rendering only opaques
     class CopyColorOpaquePass : ScriptableRenderPass
     {
-        private CommandBuffer cmd;
         private FSRCameraManager _fsr;
+        private readonly ProfilingSampler _profilingSampler = new ProfilingSampler("FSRCopyColorOpaque");
+
         public CopyColorOpaquePass(FSRCameraManager fsr)
         {
             _fsr = fsr;
             renderPassEvent = RenderPassEvent.AfterRenderingOpaques;
         }
 
-        public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
+        public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
         {
-            cmd = CommandBufferPool.Get("FSR CopyColorOpaque");
-            Blit(cmd, renderingData.cameraData.renderer.cameraColorTargetHandle, _fsr._opaqueOnlyColorBuffer);
-            context.ExecuteCommandBuffer(cmd);
-            CommandBufferPool.Release(cmd);
+            var resourceData = frameData.Get<UniversalResourceData>();
+            using (var builder = renderGraph.AddCopyPass(resourceData.activeColorTexture, renderGraph.ImportTexture(_fsr._opaqueOnlyColorBuffer), passName: "Fsr copy opaque"))
+            {
+            }
         }
     }
 
-    // Pass to store copy of color buffer after rendering only opaques
+    // Pass to store copy of color buffer after rendering transparents
     class CopyColorTransparentsPass : ScriptableRenderPass
     {
-        private CommandBuffer cmd;
         private FSRCameraManager _fsr;
+        private readonly ProfilingSampler _profilingSampler = new ProfilingSampler("FSRCopyColorTrans");
+
         public CopyColorTransparentsPass(FSRCameraManager fsr)
         {
             _fsr = fsr;
             renderPassEvent = RenderPassEvent.AfterRenderingTransparents;
         }
 
-        public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
+        public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
         {
-            cmd = CommandBufferPool.Get("FSR CopyColorTrans");
-            Blit(cmd, renderingData.cameraData.renderer.cameraColorTargetHandle, _fsr._afterOpaqueOnlyColorBuffer);
-            context.ExecuteCommandBuffer(cmd);
-            CommandBufferPool.Release(cmd);
+            var resourceData = frameData.Get<UniversalResourceData>();
+            using (var builder = renderGraph.AddCopyPass(resourceData.activeColorTexture, renderGraph.ImportTexture(_fsr._afterOpaqueOnlyColorBuffer), passName: "Fsr copy transparent"))
+            {
+            }
         }
+
     }
 }
