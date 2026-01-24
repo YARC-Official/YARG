@@ -345,7 +345,7 @@
       "url": "https://packages.unity.com"
     },
     "com.unity.toolchain.linux-x86_64": {
-      "version": "2.0.10",
+      "version": "2.0.11",
       "depth": 0,
       "source": "registry",
       "dependencies": {
@@ -382,13 +382,6 @@
         "com.unity.modules.ui": "1.0.0",
         "com.unity.modules.imgui": "1.0.0"
       }
-    },
-    "fidelityfx.fsr": {
-      "version": "https://github.com/ndepoel/FSR3Unity.git?path=/Packages/fidelityfx.fsr",
-      "depth": 0,
-      "source": "git",
-      "dependencies": {},
-      "hash": "71879e71aa72465a79bdf009d7d71f9f7ab83066"
     },
     "in.yarg.core": {
       "version": "file:../YARG.Core/YARG.Core",

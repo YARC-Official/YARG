@@ -48,15 +48,6 @@ namespace YARG.Venue
             {
                 mainCamera.gameObject.AddComponent<VenueCameraRenderer>();
             }
-
-            // TODO: This will not actually work with multi-camera venues
-            var fsrManager = mainCamera.GetComponent<FSRCameraManager>();
-            if (fsrManager != null)
-            {
-                fsrManager.enabled = false;
-                fsrManager.textureParentObject = bgInstance;
-                fsrManager.enabled = true;
-            }
         }
 
         public void LimitVenueLights(GameObject bgInstance)

@@ -17,7 +17,7 @@ namespace YARG
         None,
         FXAA,
         MSAA,
-        FSR3,
+        TAA,
     }
 
     public class GraphicsManager : MonoSingleton<GraphicsManager>

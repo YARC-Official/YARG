@@ -259,7 +259,7 @@ namespace YARG.Settings
             if (!SettingContainer.IsInitialized && SystemInfo.supportsComputeShaders && SystemInfo.supportsMotionVectors)
             {
                 Settings.VenueAntiAliasing.Add(
-                     YARG.VenueAntiAliasingMethod.FSR3
+                     YARG.VenueAntiAliasingMethod.TAA
                 );
             }
             SettingContainer.IsInitialized = true;

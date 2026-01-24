@@ -1174,7 +1174,7 @@
                     "None": "None",
                     "FXAA": "FXAA",
                     "MSAA": "MSAA",
-                    "FSR3": "FSR3"
+                    "TAA": "TAA"
                 }
             },
             "VenuePostProcessing": {

@@ -20,10 +20,18 @@ using YARG.Scores;
 using YARG.Settings.Types;
 using YARG.Song;
 using YARG.Venue;
-using static FidelityFX.FSR3.Fsr3Upscaler;
 
 namespace YARG.Settings
 {
+    public enum QualityMode
+    {
+        NativeAA = 0,
+        UltraQuality = 1,
+        Quality = 2,
+        Balanced = 3,
+        Performance = 4,
+        UltraPerformance = 5,
+    }
     public static partial class SettingsManager
     {
         public class SettingContainer
@@ -49,6 +57,27 @@ namespace YARG.Settings
             #endregion
 
             #region General
+
+            public static float GetUpscaleRatioFromQualityMode(QualityMode qualityMode)
+            {
+                switch (qualityMode)
+                {
+                    case QualityMode.NativeAA:
+                        return 1.0f;
+                    case QualityMode.UltraQuality:
+                        return 1.2f;
+                    case QualityMode.Quality:
+                        return 1.5f;
+                    case QualityMode.Balanced:
+                        return 1.7f;
+                    case QualityMode.Performance:
+                        return 2.0f;
+                    case QualityMode.UltraPerformance:
+                        return 3.0f;
+                    default:
+                        return 1.0f;
+                }
+            }
 
             public void OpenCalibrator()
             {
@@ -265,6 +294,7 @@ namespace YARG.Settings
                      YARG.VenueAntiAliasingMethod.None,
                      YARG.VenueAntiAliasingMethod.FXAA,
                      YARG.VenueAntiAliasingMethod.MSAA,
+                     YARG.VenueAntiAliasingMethod.TAA,
                  };
 
             public ToggleSetting VenuePostProcessing { get; } = new(true);
