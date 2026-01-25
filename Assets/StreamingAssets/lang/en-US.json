@@ -742,7 +742,7 @@
             "Advanced": "Advanced",
             "DMXChannels": "DMX Channels",
             "LightingGeneral": "Lighting General",
-            "Export": "Export",
+            "ExportSongs": "Export Songs List",
             "PathsAndFolders": "Paths and Folders",
             "MusicLibrary": "Music Library",
             "PlayAShow": "Play A Show",
@@ -760,8 +760,9 @@
         "Button": {
             "CopyCurrentSongJsonFilePath": "Copy Current Song Json File Path",
             "CopyCurrentSongTextFilePath": "Copy Current Song Text File Path",
-            "ExportSongsOuvert": "Export Songs List (For Ouvert Bot)",
-            "ExportSongsText": "Export Songs List (Plain Text)",
+            "ExportSongsJson": "Ouvert (JSON)",
+            "ExportSongsText": "Plain Text",
+            "ExportSongsCsv": "CSV",
             "OpenCalibrator": "Open Calibrator",
             "OpenVenueFolder": "Open Backgrounds/Venue Folder",
             "AddFolder": "Add Folder",
@@ -780,6 +781,7 @@
             },
             "AudioCalibration": {
                 "Name": "Audio Calibration (ms)",
+                "PauseName": "Audio Calibration (ms)",
                 "Description": "Audio calibration in milliseconds. Use the calibrator to automatically calibrate. Higher values make the audio play earlier, while lower ones make the audio play later."
             },
             "AccountForHardwareLatency": {
@@ -1172,7 +1174,7 @@
                     "None": "None",
                     "FXAA": "FXAA",
                     "MSAA": "MSAA",
-                    "FSR3": "FSR3"
+                    "TAA": "TAA"
                 }
             },
             "VenuePostProcessing": {
@@ -1193,6 +1195,7 @@
             },
             "VideoCalibration": {
                 "Name": "Video Calibration (ms)",
+                "PauseName": "Video Calibration (ms)",
                 "Description": "Video calibration in milliseconds. Use the calibrator to automatically calibrate. This accounts for delays between the game's processing and the actual frame being displayed."
             },
             "VocalMonitoring": {
@@ -1341,6 +1344,10 @@
             "ReduceNoteSpeedByDifficulty": {
                 "Name": "Reduce Note Speed by Difficulty",
                 "Description": "Reduces the note speed if playing on a lower difficulty than Expert. The specified note speed is applied to Expert, and lower difficulties receive a reduction in speed. This setting does not affect vocal tracks."
+            },
+            "LearningGuides": {
+                "Name": "Learning Guides",
+                "Description": "Adds some musical theory guides for Pro Keys to help learn the instrument."
             },
             "ShowPlayerNameWhenStartingSong": {
                 "Name": "Show Player Name When Starting Song",

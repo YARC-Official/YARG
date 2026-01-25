@@ -326,13 +326,6 @@
         "com.unity.modules.imgui": "1.0.0"
       }
     },
-    "fidelityfx.fsr": {
-      "version": "https://github.com/ndepoel/FSR3Unity.git?path=/Packages/fidelityfx.fsr",
-      "depth": 0,
-      "source": "git",
-      "dependencies": {},
-      "hash": "71879e71aa72465a79bdf009d7d71f9f7ab83066"
-    },
     "in.yarg.core": {
       "version": "file:../YARG.Core/YARG.Core",
       "depth": 0,

@@ -87,8 +87,8 @@ namespace YARG.Gameplay
                     _renderCamera.allowMSAA = true;
                     cameraData.antialiasing = AntialiasingMode.SubpixelMorphologicalAntiAliasing;
                     break;
-                case VenueAntiAliasingMethod.FSR3:
-                    _renderCamera.gameObject.AddComponent<FSRCameraManager>();
+                case VenueAntiAliasingMethod.TAA:
+                    cameraData.antialiasing = AntialiasingMode.TemporalAntiAliasing;
                     break;
             }
             UniversalRenderPipelineAsset = GraphicsSettings.currentRenderPipeline as UniversalRenderPipelineAsset;

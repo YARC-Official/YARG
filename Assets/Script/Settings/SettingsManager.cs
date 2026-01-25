@@ -49,6 +49,8 @@ namespace YARG.Settings
                 nameof(Settings.EnablePracticeSP),
                 nameof(Settings.PracticeRestartDelay),
                 nameof(Settings.NoFailMode),
+                nameof(Settings.LearningGuides),
+                nameof(Settings.ReduceNoteSpeedByDifficulty),
 
                 new HeaderMetadata("StatusBar"),
                 nameof(Settings.ShowBattery),
@@ -61,7 +63,6 @@ namespace YARG.Settings
                 new HeaderMetadata("Other"),
                 nameof(Settings.ReconnectProfiles),
                 nameof(Settings.AutoCreateProfiles),
-                nameof(Settings.ReduceNoteSpeedByDifficulty),
                 nameof(Settings.ShowCursorTimer),
                 nameof(Settings.PauseOnDeviceDisconnect),
                 nameof(Settings.PauseOnFocusLoss),
@@ -172,10 +173,12 @@ namespace YARG.Settings
 
             new MetadataTab("FileManagement", icon: "Files")
             {
-                new HeaderMetadata("Export"),
+                new HeaderMetadata("ExportSongs"),
                 new ButtonRowMetadata(
-                    nameof(Settings.ExportSongsOuvert),
-                    nameof(Settings.ExportSongsText)),
+                    nameof(Settings.ExportSongsJson),
+                    nameof(Settings.ExportSongsText),
+                    nameof(Settings.ExportSongsCsv)
+                ),
                 new HeaderMetadata("PathsAndFolders"),
                 new ButtonRowMetadata(
                     nameof(Settings.CopyCurrentSongTextFilePath),
@@ -256,7 +259,7 @@ namespace YARG.Settings
             if (!SettingContainer.IsInitialized && SystemInfo.supportsComputeShaders && SystemInfo.supportsMotionVectors)
             {
                 Settings.VenueAntiAliasing.Add(
-                     YARG.VenueAntiAliasingMethod.FSR3
+                     YARG.VenueAntiAliasingMethod.TAA
                 );
             }
             SettingContainer.IsInitialized = true;

@@ -1,17 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
-using Cysharp.Threading.Tasks;
 using UnityEngine;
-using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
-using UnityEngine.UI;
 using YARG.Core.Chart;
-using YARG.Core.Extensions;
 using YARG.Core.Logging;
 using YARG.Gameplay;
 using YARG.Helpers.Extensions;
+using YARG.Playback;
 using YARG.Settings;
 using YARG.Venue.VolumeComponents;
 using Random = UnityEngine.Random;
@@ -221,6 +217,12 @@ namespace YARG.Venue.VenueCamera
 
             SwitchCamera(_currentCamera, _useCameraTimer);
 
+            if (_useCameraTimer)
+            {
+                // Subscribe to beat handler for camera cut timing
+                GameManager.BeatEventHandler?.Audio.Subscribe(BeatHandler, BeatEventType.StrongBeat);
+            }
+
             GameManager.SetVenueCameraManager(this);
         }
 
@@ -285,6 +287,15 @@ namespace YARG.Venue.VenueCamera
 
             // Update the camera timer
             _cameraTimer -= Time.deltaTime;
+        }
+
+        private void BeatHandler()
+        {
+            if (!_useCameraTimer)
+            {
+                return;
+            }
+
             if (_cameraTimer <= 0f)
             {
                 YargLogger.LogDebug("Changing camera due to timer expiry");
@@ -330,7 +341,7 @@ namespace YARG.Venue.VenueCamera
 
         private float GetRandomCameraTimer()
         {
-            return Random.Range(3f, 8f);
+            return Random.Range(1f, 4f);
         }
 
         private Camera GetRandomCamera()
@@ -517,6 +528,7 @@ namespace YARG.Venue.VenueCamera
             _currentCamera.enabled = true;
 
             SettingsManager.Settings.VenuePostProcessing.OnChange -= SetPostProcessingEnabled;
+            GameManager.BeatEventHandler?.Audio.Unsubscribe(BeatHandler);
             base.GameplayDestroy();
         }
 

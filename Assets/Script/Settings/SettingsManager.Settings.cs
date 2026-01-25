@@ -1,19 +1,16 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Net;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using YARG.Core.Audio;
 using YARG.Core.Engine;
 using YARG.Core.Logging;
-using YARG.Gameplay;
 using YARG.Gameplay.HUD;
 using YARG.Helpers;
 using YARG.Integration;
 using YARG.Integration.RB3E;
 using YARG.Integration.Sacn;
 using YARG.Integration.StageKit;
-using YARG.Localization;
-using YARG.Menu;
 using YARG.Menu.MusicLibrary;
 using YARG.Menu.Persistent;
 using YARG.Menu.Settings;
@@ -23,10 +20,18 @@ using YARG.Scores;
 using YARG.Settings.Types;
 using YARG.Song;
 using YARG.Venue;
-using static FidelityFX.FSR3.Fsr3Upscaler;
 
 namespace YARG.Settings
 {
+    public enum QualityMode
+    {
+        NativeAA = 0,
+        UltraQuality = 1,
+        Quality = 2,
+        Balanced = 3,
+        Performance = 4,
+        UltraPerformance = 5,
+    }
     public static partial class SettingsManager
     {
         public class SettingContainer
@@ -52,6 +57,27 @@ namespace YARG.Settings
             #endregion
 
             #region General
+
+            public static float GetUpscaleRatioFromQualityMode(QualityMode qualityMode)
+            {
+                switch (qualityMode)
+                {
+                    case QualityMode.NativeAA:
+                        return 1.0f;
+                    case QualityMode.UltraQuality:
+                        return 1.2f;
+                    case QualityMode.Quality:
+                        return 1.5f;
+                    case QualityMode.Balanced:
+                        return 1.7f;
+                    case QualityMode.Performance:
+                        return 2.0f;
+                    case QualityMode.UltraPerformance:
+                        return 3.0f;
+                    default:
+                        return 1.0f;
+                }
+            }
 
             public void OpenCalibrator()
             {
@@ -94,6 +120,8 @@ namespace YARG.Settings
             public ToggleSetting AutoCreateProfiles { get; } = new(true);
 
             public ToggleSetting ReduceNoteSpeedByDifficulty { get; } = new(true);
+
+            public ToggleSetting LearningGuides { get; } = new(false);
 
             public SliderSetting ShowCursorTimer      { get; } = new(2f, 0f, 5f);
 
@@ -266,6 +294,7 @@ namespace YARG.Settings
                      YARG.VenueAntiAliasingMethod.None,
                      YARG.VenueAntiAliasingMethod.FXAA,
                      YARG.VenueAntiAliasingMethod.MSAA,
+                     YARG.VenueAntiAliasingMethod.TAA,
                  };
 
             public ToggleSetting VenuePostProcessing { get; } = new(true);
@@ -349,14 +378,20 @@ namespace YARG.Settings
 
             #region File Management
 
-            public void ExportSongsOuvert()
+            public void ExportSongsJson()
             {
-                FileExplorerHelper.OpenSaveFile(null, "songs", "json", SongExport.ExportOuvert);
+                SongExport.Export(SongExport.ExportFormat.Json);
             }
 
             public void ExportSongsText()
             {
-                FileExplorerHelper.OpenSaveFile(null, "songs", "txt", SongExport.ExportText);
+                SongExport.Export(SongExport.ExportFormat.Text);
+            }
+
+
+            public void ExportSongsCsv()
+            {
+                SongExport.Export(SongExport.ExportFormat.Csv);
             }
 
             public void CopyCurrentSongTextFilePath()

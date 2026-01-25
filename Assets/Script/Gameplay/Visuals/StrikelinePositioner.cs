@@ -61,6 +61,10 @@ namespace YARG.Gameplay.Visuals
                 ? basePlayer.transform.GetSiblingIndex() * LOCAL_ANIM_OFFSET + _globalAnimDelay + ANIM_FRET_ZOOM_DELAY
                 : 0f;
 
+            // Scale delay by song speed so animation completes in time at higher speeds
+            // Cap at 1 so slower speeds don't extend the delay
+            delay /= Mathf.Max(1f, _gameManager.SongSpeed);
+
             yield return DOTween.Sequence()
                 .PrependInterval(delay)
                 .Append(transform
