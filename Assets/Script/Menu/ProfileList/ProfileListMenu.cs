@@ -101,15 +101,15 @@ namespace YARG.Menu.ProfileList
 
             if (!existingNames.Contains(profileName))
             {
-            return profileName;
+                return profileName;
             }
 
             int count = 1;
             string newName;
             do
             {
-            newName = $"{profileName} {count}";
-            count++;
+                newName = $"{profileName} {count}";
+                count++;
             } while (existingNames.Contains(newName));
 
             return newName;
