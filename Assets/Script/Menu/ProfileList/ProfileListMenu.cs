@@ -94,19 +94,24 @@ namespace YARG.Menu.ProfileList
                 _navigationGroup.AddNavigatable(go);
             }
         }
-        
+
         private static string GetUniqueProfileName(string profileName)
         {
-            int count = 1;
             var existingNames = PlayerContainer.Profiles.Select(p => p.Name);
-            
+
+            if (!existingNames.Contains(profileName))
+            {
+            return profileName;
+            }
+
+            int count = 1;
             string newName;
             do
             {
-                newName = $"{profileName} {count}";
-                count++;
+            newName = $"{profileName} {count}";
+            count++;
             } while (existingNames.Contains(newName));
-            
+
             return newName;
         }
 
