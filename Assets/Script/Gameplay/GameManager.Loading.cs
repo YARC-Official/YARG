@@ -9,6 +9,7 @@ using YARG.Core.Chart;
 using YARG.Core.Logging;
 using YARG.Core.Replays;
 using YARG.Gameplay.Player;
+using YARG.Menu;
 using YARG.Menu.Navigation;
 using YARG.Menu.Persistent;
 using YARG.Menu.Settings;
@@ -164,6 +165,7 @@ namespace YARG.Gameplay
             {
                 ToastManager.ToastWarning("Chart requires a rescan!", () =>
                 {
+                    MenuManager.Instance.DisableCurrentMenu();
                     SettingsMenu.Instance.gameObject.SetActive(true);
                     SettingsMenu.Instance.SelectTabByName("SongManager");
                 });

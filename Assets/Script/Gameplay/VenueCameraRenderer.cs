@@ -6,6 +6,7 @@ using UnityEngine.Rendering.Universal;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using YARG.Core.Logging;
+using YARG.Helpers.UI;
 using YARG.Settings;
 using YARG.Venue.VolumeComponents;
 
@@ -139,6 +140,29 @@ namespace YARG.Gameplay
             _staticsCreated = true;
         }
 
+        private void RecreateTextures()
+        {
+            if (_venueTexture != null)
+            {
+                _venueTexture.Release();
+                _venueTexture.DiscardContents();
+            }
+
+            var outputWidth = (int)(Screen.width * renderScale);
+            var outputHeight = (int)(Screen.height * renderScale);
+            _venueTexture = new RenderTexture(outputWidth, outputHeight, 0, RenderTextureFormat.DefaultHDR);
+
+            _venueOutput.texture = _venueTexture;
+
+            if (_trailsTexture != null)
+            {
+                _trailsTexture.Release();
+                _trailsTexture.DiscardContents();
+            }
+
+            _trailsTexture = new RenderTexture(_venueTexture);
+        }
+
         private void OnEnable()
         {
             FPS = SettingsManager.Settings.VenueFpsCap.Value;
@@ -211,6 +235,11 @@ namespace YARG.Gameplay
 
         private void Update()
         {
+            if (ScreenSizeDetector.HasScreenSizeChanged)
+            {
+                RecreateTextures();
+            }
+
             var stack = VolumeManager.instance.stack;
 
             VolumeManager.instance.Update(_renderCamera.gameObject.transform, _venueLayerMask);

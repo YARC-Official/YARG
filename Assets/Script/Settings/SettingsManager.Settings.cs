@@ -319,7 +319,7 @@ namespace YARG.Settings
             public ToggleSetting EnableTrackEffects { get; } = new(true);
             public ToggleSetting EnableHighwayAnimation { get; } = new(true);
             public SliderSetting KickBounceMultiplier { get; } = new(1f, 0f, 2f);
-            public SliderSetting HighwayTiltMultiplier { get; } = new(0.5f, 0f, 1f);
+            public SliderSetting HighwayTiltMultiplier { get; } = new(0.5f, 0f, 0.85f);
 
             public ToggleSetting ShowHitWindow { get; } = new(false, ShowHitWindowCallback);
             public ToggleSetting DisableTextNotifications { get; } = new(false);
