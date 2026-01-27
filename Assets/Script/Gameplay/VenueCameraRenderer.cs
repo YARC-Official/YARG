@@ -121,7 +121,7 @@ namespace YARG.Gameplay
 
             var outputWidth = (int)(Screen.width * renderScale);
             var outputHeight = (int)(Screen.height * renderScale);
-            _venueTexture = new RenderTexture(outputWidth, outputHeight, 0, RenderTextureFormat.DefaultHDR);
+            _venueTexture = new RenderTexture(outputWidth, outputHeight, 32, RenderTextureFormat.DefaultHDR);
             _venueOutput.texture = _venueTexture;
 
             _trailsTexture = new RenderTexture(_venueTexture);
