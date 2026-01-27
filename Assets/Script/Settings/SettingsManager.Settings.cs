@@ -782,7 +782,7 @@ namespace YARG.Settings
                     return;
                 }
 
-                GlobalAudioHandler.SetOutputChannel(SongStem.Metronome, channelId);
+                setOutputChannel(Settings.OutputChannelMetronome, SongStem.Metronome);
             }
 
             private static void OutputChannelSfxCallback(int channelId)

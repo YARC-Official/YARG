@@ -56,8 +56,6 @@ namespace YARG.Audio.BASS
         private int _syncHandle;
 
 #nullable enable
-        private OutputChannel? _outputChannel;
-
         private BassSampleChannel(int handle, int channel, SfxSample sample, string path, int playbackCount, OutputChannel? outputChannel)
             : base(sample, path, playbackCount)
 #nullable disable
@@ -215,8 +213,6 @@ namespace YARG.Audio.BASS
         protected override void SetOutputChannel_Internal(OutputChannel? channel)
 #nullable disable
         {
-            _outputChannel = channel;
-
             BassHelpers.UpdateOutputChannels(_channel, channel);
         }
 

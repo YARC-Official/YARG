@@ -161,34 +161,16 @@ namespace YARG.Audio.BASS
         public static void UpdateOutputChannels(int stream, OutputChannel? channel)
 #nullable disable
         {
-            BassFlags allChannels = BassFlags.SpeakerPair1
-                | BassFlags.SpeakerPair2
-                | BassFlags.SpeakerPair3
-                | BassFlags.SpeakerPair4
-                | BassFlags.SpeakerPair5
-                | BassFlags.SpeakerPair6
-                | BassFlags.SpeakerPair7
-                | BassFlags.SpeakerPair8
-                | BassFlags.SpeakerPair9
-                | BassFlags.SpeakerPair10
-                | BassFlags.SpeakerPair11
-                | BassFlags.SpeakerPair12
-                | BassFlags.SpeakerPair13
-                | BassFlags.SpeakerPair14
-                | BassFlags.SpeakerPair15
-            ;
-
-            // Reset all output channels - do this before determining if channel is null to catch
-            // switching from a valid channel back to all channels
-            Bass.ChannelFlags(stream, 0, allChannels);
-
             if (channel == null || channel is not BassOutputChannel bassChannel)
             {
+                // Remove assigned output channels
+                Bass.ChannelFlags(stream, 0, BassFlags.SpeakerFront);
+
                 return;
             }
 
-            // Add channel(s)
-            Bass.ChannelFlags(stream, bassChannel.Flags, bassChannel.Flags);
+            // Set channel(s)
+            Bass.ChannelFlags(stream, bassChannel.Flags, BassFlags.SpeakerFront);
         }
     }
 }

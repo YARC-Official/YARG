@@ -87,8 +87,6 @@ namespace YARG.Audio.BASS
         private readonly int    _channel;
 
 #nullable enable
-        private OutputChannel? _outputChannel;
-
         private BassVoxSampleChannel(int handle, int channel, VoxSample sample, string path, OutputChannel? outputChannel)
             : base(sample, path)
 #nullable disable
@@ -133,8 +131,6 @@ namespace YARG.Audio.BASS
         protected override void SetOutputChannel_Internal(OutputChannel? channel)
 #nullable disable
         {
-            _outputChannel = channel;
-
             BassHelpers.UpdateOutputChannels(_channel, channel);
         }
 

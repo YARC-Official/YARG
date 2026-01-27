@@ -50,10 +50,6 @@ namespace YARG.Audio.BASS
         private readonly List<StemData> _stemDatas = new();
         private          int            _longestHandle;
 
-#nullable enable
-        private OutputChannel? _outputChannel;
-#nullable disable
-
         private BassNormalizer _normalizer = new();
         private bool           _shouldNormalize;
         private int   _gainDspHandle;
@@ -393,8 +389,6 @@ namespace YARG.Audio.BASS
         protected override void SetOutputChannel_Internal(OutputChannel? channel)
 #nullable disable
         {
-            _outputChannel = channel;
-
             BassHelpers.UpdateOutputChannels(_tempoStreamHandle, channel);
         }
 
