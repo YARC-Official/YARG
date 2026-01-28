@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using YARG.Core.Game;
 using YARG.Core.Logging;
 using YARG.Helpers;
 
@@ -17,6 +18,7 @@ namespace YARG.Settings.Customization
         public static readonly ThemePresetContainer    ThemePresets;
         public static readonly EnginePresetContainer   EnginePresets;
         public static readonly HighwayPresetContainer  HighwayPresets;
+        public static readonly RockMeterPresetContainer RockMeterPresets;
 
         private static readonly List<CustomContent> _customContentContainers;
         public static IReadOnlyList<CustomContent> CustomContentContainers => _customContentContainers;
@@ -28,6 +30,7 @@ namespace YARG.Settings.Customization
             ThemePresets = new ThemePresetContainer();
             EnginePresets = new EnginePresetContainer();
             HighwayPresets = new HighwayPresetContainer();
+            RockMeterPresets = new RockMeterPresetContainer();
 
             _customContentContainers = new()
             {
@@ -35,7 +38,8 @@ namespace YARG.Settings.Customization
                 ColorProfiles,
                 ThemePresets,
                 EnginePresets,
-                HighwayPresets
+                HighwayPresets,
+                RockMeterPresets
             };
         }
 

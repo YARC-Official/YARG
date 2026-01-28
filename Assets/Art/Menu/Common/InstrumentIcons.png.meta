@@ -399,7 +399,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: trueDrums
+      name: eliteDrums
       rect:
         serializedVersion: 2
         x: 1024
@@ -428,7 +428,7 @@ TextureImporter:
         width: 512
         height: 512
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -459,6 +459,7 @@ TextureImporter:
       band: -2104244439
       bass: 1530186425
       drums: 678366802
+      eliteDrums: 1405555635
       ghDrums: -768334538
       guitar: -480311375
       guitarCoop: 1095511443
@@ -469,7 +470,6 @@ TextureImporter:
       realGuitar: 1095511443
       realKeys: 1095511443
       rhythm: -413506960
-      trueDrums: 1405555635
       twoVocals: -2070950562
       vocals: 1095511443
   spritePackingTag: 

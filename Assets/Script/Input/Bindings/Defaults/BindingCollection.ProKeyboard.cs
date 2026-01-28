@@ -1,4 +1,4 @@
-using PlasticBand.Devices;
+﻿using PlasticBand.Devices;
 using YARG.Core;
 using YARG.Core.Input;
 
@@ -8,9 +8,6 @@ namespace YARG.Input
     {
         private bool SetDefaultGameplayBindings(ProKeyboard keyboard)
         {
-            if (Mode != GameMode.ProKeys)
-                return false;
-
             switch (Mode)
             {
                 case GameMode.FiveFretGuitar:
@@ -25,6 +22,8 @@ namespace YARG.Input
                     AddBinding(GuitarAction.YellowFret, keyboard.key17);
                     AddBinding(GuitarAction.BlueFret, keyboard.key18);
                     AddBinding(GuitarAction.OrangeFret, keyboard.key20);
+
+                    AddBinding(GuitarAction.GreenFret, keyboard.key25);
 
                     AddBinding(GuitarAction.StarPower, keyboard.overdrive);
                     AddBinding(GuitarAction.StarPower, keyboard.selectButton);
@@ -71,6 +70,30 @@ namespace YARG.Input
 
                     AddBinding(ProKeysAction.TouchEffects, keyboard.touchStrip);
                     AddBinding(ProKeysAction.TouchEffects, keyboard.analogPedal);
+
+                    // 5LK-specific bindings
+
+                    // Lower octave
+                    AddBinding(ProKeysAction.GreenKey, keyboard.key1);
+                    AddBinding(ProKeysAction.RedKey, keyboard.key3);
+                    AddBinding(ProKeysAction.YellowKey, keyboard.key5);
+                    AddBinding(ProKeysAction.BlueKey, keyboard.key6);
+                    AddBinding(ProKeysAction.OrangeKey, keyboard.key8);
+                    AddBinding(ProKeysAction.OpenNote, keyboard.key10);
+
+                    // Middle octave
+                    AddBinding(ProKeysAction.OpenNote, keyboard.key12);
+                    AddBinding(ProKeysAction.GreenKey, keyboard.key13);
+                    AddBinding(ProKeysAction.RedKey, keyboard.key15);
+                    AddBinding(ProKeysAction.YellowKey, keyboard.key17);
+                    AddBinding(ProKeysAction.BlueKey, keyboard.key18);
+                    AddBinding(ProKeysAction.OrangeKey, keyboard.key20);
+                    AddBinding(ProKeysAction.OpenNote, keyboard.key22);
+
+                    // Upper part-of-an-octave
+                    AddBinding(ProKeysAction.OpenNote, keyboard.key24);
+                    AddBinding(ProKeysAction.GreenKey, keyboard.key25);
+
                     return true;
 
                 default:

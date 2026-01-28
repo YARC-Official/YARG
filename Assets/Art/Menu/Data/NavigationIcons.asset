@@ -34,3 +34,9 @@ MonoBehaviour:
   - Action: 10
     Sprite: {fileID: 21300000, guid: 0d0c4a6295bcbdb448b5fc427b924038, type: 3}
     Color: {r: 1, g: 1, b: 1, a: 1}
+  - Action: 7
+    Sprite: {fileID: 21300000, guid: 5fcba501dc630ce4d8a276ae123dd829, type: 3}
+    Color: {r: 1, g: 1, b: 1, a: 1}
+  - Action: 8
+    Sprite: {fileID: 21300000, guid: 5fcba501dc630ce4d8a276ae123dd829, type: 3}
+    Color: {r: 1, g: 1, b: 1, a: 1}

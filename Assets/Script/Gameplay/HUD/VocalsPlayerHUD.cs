@@ -1,10 +1,10 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using Cysharp.Text;
 using DG.Tweening;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using YARG.Core.Chart;
 using YARG.Core.Game;
 using YARG.Helpers.Extensions;
 using YARG.Localization;
@@ -25,25 +25,17 @@ namespace YARG.Gameplay.HUD
         [SerializeField]
         private TextMeshProUGUI _multiplierText;
         [SerializeField]
-        private TextMeshProUGUI _performanceText;
+        private TextNotifications _textNotifications;
 
         [SerializeField]
         private PlayerNameDisplay _playerNameDisplay;
 
         private float _comboMeterFillTarget;
 
-        private readonly PerformanceTextScaler _scaler = new(2f);
-
-        private Coroutine _notificationCoroutine;
         private Coroutine _hudCoroutine;
 
         private bool _shouldPulse;
         private bool _hudShowing = true;
-
-        protected override void OnChartLoaded(SongChart chart)
-        {
-            _performanceText.text = string.Empty;
-        }
 
         public void Initialize(EnginePreset enginePreset)
         {
@@ -112,43 +104,19 @@ namespace YARG.Gameplay.HUD
             _shouldPulse = isStarPowerActive || starPowerPercent >= 0.5;
         }
 
-        public void ShowPhraseHit(double hitPercent)
-        {
-            if (_notificationCoroutine != null)
-            {
-                StopCoroutine(_notificationCoroutine);
-            }
-
-            _notificationCoroutine = StartCoroutine(ShowNextNotification(hitPercent));
-        }
-
-        private IEnumerator ShowNextNotification(double hitPercent)
+        public static string GetVocalPerformanceText(double hitPercent)
         {
             string performanceKey = hitPercent switch
             {
-                >= 1f   => "Awesome",
+                >= 1f => "Awesome",
                 >= 0.8f => "Strong",
                 >= 0.7f => "Good",
                 >= 0.6f => "Okay",
                 >= 0.1f => "Messy",
-                _       => "Awful"
+                _ => "Awful"
             };
 
-            _performanceText.text = Localize.Key("Gameplay.Vocals.Performance", performanceKey);
-
-            _scaler.ResetAnimationTime();
-
-            while (_scaler.AnimTimeRemaining > 0f)
-            {
-                _scaler.AnimTimeRemaining -= Time.deltaTime;
-                float scale = _scaler.PerformanceTextScale();
-
-                _performanceText.transform.localScale = new Vector3(scale, scale, scale);
-                yield return null;
-            }
-
-            _performanceText.text = string.Empty;
-            _notificationCoroutine = null;
+            return Localize.Key("Gameplay.Vocals.Performance", performanceKey);
         }
 
         public void SetHUDShowing(bool show)
@@ -189,6 +157,21 @@ namespace YARG.Gameplay.HUD
         public void ShowPlayerName(YargPlayer player, int needleId)
         {
             _playerNameDisplay.ShowPlayer(player, needleId);
+        }
+
+        public void ShowPhraseHit(double hitPercent, int combo)
+        {
+            if (!Settings.SettingsManager.Settings.DisableTextNotifications.Value)
+            {
+                _textNotifications.UpdateNoteStreak(combo);
+            }
+            var resultText = GetVocalPerformanceText(hitPercent);
+            _textNotifications.ShowVocalPhraseResult(resultText, combo);
+        }
+
+        public void ShowNotification(TextNotificationType notificationType)
+        {
+            _textNotifications.ShowNotification(notificationType);
         }
     }
 }

@@ -48,6 +48,9 @@ namespace YARG.Settings
                 nameof(Settings.VoiceActivatedVocalStarPower),
                 nameof(Settings.EnablePracticeSP),
                 nameof(Settings.PracticeRestartDelay),
+                nameof(Settings.NoFailMode),
+                nameof(Settings.LearningGuides),
+                nameof(Settings.ReduceNoteSpeedByDifficulty),
 
                 new HeaderMetadata("StatusBar"),
                 nameof(Settings.ShowBattery),
@@ -59,11 +62,12 @@ namespace YARG.Settings
 
                 new HeaderMetadata("Other"),
                 nameof(Settings.ReconnectProfiles),
-                nameof(Settings.ReduceNoteSpeedByDifficulty),
+                nameof(Settings.AutoCreateProfiles),
                 nameof(Settings.ShowCursorTimer),
                 nameof(Settings.PauseOnDeviceDisconnect),
                 nameof(Settings.PauseOnFocusLoss),
                 nameof(Settings.WrapAroundNavigation),
+                nameof(Settings.DiscordRichPresence),
                 nameof(Settings.AmIAwesome),
             },
             new SongManagerTab("SongManager", icon: "Songs")
@@ -108,13 +112,11 @@ namespace YARG.Settings
                 new HeaderMetadata("Gameplay"),
                 nameof(Settings.MuteOnMiss),
                 nameof(Settings.UseStarpowerFx),
-                nameof(Settings.ClapsInStarpower),
+                nameof(Settings.UseCrowdFx),
                 nameof(Settings.OverstrumAndOverhitSoundEffects),
                 nameof(Settings.AlwaysOnDrumSFX),
-                // nameof(Settings.UseWhammyFx),
-                // nameof(Settings.WhammyPitchShiftAmount),
-                // nameof(Settings.WhammyOversampleFactor),
-                // nameof(Settings.ReverbInStarpower),
+                nameof(Settings.UseWhammyFx),
+                nameof(Settings.WhammyPitchShiftAmount),
 
                 new HeaderMetadata("Other"),
                 nameof(Settings.UseChipmunkSpeed),
@@ -126,6 +128,7 @@ namespace YARG.Settings
                 new HeaderMetadata("Display"),
                 nameof(Settings.VSync),
                 nameof(Settings.FpsCap),
+                nameof(Settings.VenueFpsCap),
                 nameof(Settings.FullscreenMode),
                 nameof(Settings.Resolution),
                 nameof(Settings.FpsStats),
@@ -138,16 +141,21 @@ namespace YARG.Settings
                 nameof(Settings.SongBackgroundOpacity),
                 nameof(Settings.VenueRenderingQuality),
                 nameof(Settings.VenueAntiAliasing),
+                nameof(Settings.VenuePostProcessing),
 
                 new HeaderMetadata("Gameplay"),
+                nameof(Settings.StaticVocalsMode),
                 nameof(Settings.UseThreeLaneLyricsInHarmony),
                 nameof(Settings.EnableTrackEffects),
+                nameof(Settings.EnableHighwayAnimation),
                 nameof(Settings.KickBounceMultiplier),
+                nameof(Settings.HighwayTiltMultiplier),
 
                 new HeaderMetadata("HUD"),
                 nameof(Settings.ShowHitWindow),
                 nameof(Settings.DisableTextNotifications),
                 nameof(Settings.NoteStreakFrequency),
+                nameof(Settings.VocalStreakFrequency),
                 nameof(Settings.CountdownDisplay),
                 nameof(Settings.ShowPlayerNameWhenStartingSong),
                 nameof(Settings.LyricDisplay),
@@ -165,10 +173,12 @@ namespace YARG.Settings
 
             new MetadataTab("FileManagement", icon: "Files")
             {
-                new HeaderMetadata("Export"),
+                new HeaderMetadata("ExportSongs"),
                 new ButtonRowMetadata(
-                    nameof(Settings.ExportSongsOuvert),
-                    nameof(Settings.ExportSongsText)),
+                    nameof(Settings.ExportSongsJson),
+                    nameof(Settings.ExportSongsText),
+                    nameof(Settings.ExportSongsCsv)
+                ),
                 new HeaderMetadata("PathsAndFolders"),
                 new ButtonRowMetadata(
                     nameof(Settings.CopyCurrentSongTextFilePath),
@@ -218,11 +228,9 @@ namespace YARG.Settings
             new MetadataTab("Experimental", icon: "Beaker", new ExperimentalPreviewBuilder())
             {
                 new HeaderMetadata("Other"),
-                nameof(Settings.UseWhammyFx),
-                nameof(Settings.WhammyPitchShiftAmount),
                 nameof(Settings.BandComboTypeSetting),
-	            // nameof(Settings.WhammyOversampleFactor),
                 nameof(Settings.DataStreamEnable),
+                nameof(Settings.EnableNormalization),
             }
         };
 
@@ -248,12 +256,6 @@ namespace YARG.Settings
 
             // If null, recreate
             Settings ??= new SettingContainer();
-            if (!SettingContainer.IsInitialized && SystemInfo.supportsComputeShaders && SystemInfo.supportsMotionVectors)
-            {
-                Settings.VenueAntiAliasing.Add(
-                     YARG.VenueAntiAliasingMethod.FSR3
-                );
-            }
             SettingContainer.IsInitialized = true;
 
             // Now that we're done loading, call all of the callbacks

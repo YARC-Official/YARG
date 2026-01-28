@@ -1,9 +1,5 @@
 fileFormatVersion: 2
-<<<<<<<< HEAD:Assets/Script/Audio.meta
 guid: e8d08d16907b648479ac4a1fc36b11da
-========
-guid: aeb9dfe20198db548b01df83490fb2f7
->>>>>>>> master:Assets/Script/ThirdParty.meta
 folderAsset: yes
 DefaultImporter:
   externalObjects: {}

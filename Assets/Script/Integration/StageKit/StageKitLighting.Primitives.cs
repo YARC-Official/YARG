@@ -28,7 +28,7 @@ namespace YARG.Integration.StageKit
         {
             _patternIndex = 0;
             // Brought to you by Hacky Hack and the Hacktones
-            _gameManager = Object.FindObjectOfType<GameManager>();
+            _gameManager = Object.FindAnyObjectByType<GameManager>();
             _gameManager.BeatEventHandler.Visual.Subscribe(OnBeat, BeatEventType.DenominatorBeat, division: _beatsPerCycle / _patternList.Length);
         }
 

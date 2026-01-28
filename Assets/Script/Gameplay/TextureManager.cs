@@ -2,6 +2,7 @@ using System;
 using Cysharp.Threading.Tasks;
 using Unity.Collections;
 using UnityEngine;
+using YARG.Core.Venue;
 using YARG.Helpers.Extensions;
 using YARG.Song;
 
@@ -23,15 +24,24 @@ namespace YARG.Gameplay
         private Texture2D _sourceIcon = null;
         private Texture2D _albumCover = null;
         private Texture2D _soundTexture = null;
+        private RenderTexture _videoTexture = null;
         private float[] _fft = new float[FFT_SIZE / 2];
         private float[] _wave = new float[FFT_TEXTURE_WIDTH];
         private float[] _prevFft = new float[FFT_SIZE / 2];
         private float[] _rawFft = new float[FFT_SIZE * 2];
         private float[] _rawWave = new float[FFT_SIZE];
 
+        private bool _videoTexFound = false;
+
+        private UniTask           _updateTask = UniTask.CompletedTask;
+        private NativeArray<byte> _pixelData;
+
         private static int _soundTexId = Shader.PropertyToID("_Yarg_SoundTex");
         private static int _sourceIconId = Shader.PropertyToID("_Yarg_SourceIcon");
         private static int _albumCoverId = Shader.PropertyToID("_Yarg_AlbumCover");
+        private static int _videoTexId = Shader.PropertyToID("_Yarg_VideoTex");
+        private static int _imageTexId = Shader.PropertyToID("_Yarg_ImageTex");
+        private static int _backgroundTexId = Shader.PropertyToID("_Yarg_BackgroundTex");
 
         private const double MIN_DB = -100.0;
         private const double MAX_DB = -30.0;
@@ -39,6 +49,8 @@ namespace YARG.Gameplay
         private const int FFT_SIZE_LOG = 11 /* aka log2(2048) */;
         private const int FFT_SIZE = 1 << FFT_SIZE_LOG;
         private const int FFT_TEXTURE_WIDTH = 512;
+        private const int VIDEO_TEX_WIDTH = 256;
+        private const int VIDEO_TEX_HEIGHT = 144;
 
         // TODO: Get the number of active channels from the mixer instead of assuming
         //  Note that this won't _break_ if there are more channels, it will just make
@@ -83,7 +95,37 @@ namespace YARG.Gameplay
             return _soundTexture;
         }
 
-        public void ProcessMaterial(Material m)
+        public RenderTexture GetVideoTexture(int width, int height)
+        {
+            if (_videoTexture == null)
+            {
+                _videoTexture = new RenderTexture(VIDEO_TEX_WIDTH, VIDEO_TEX_HEIGHT, 0);
+            }
+            if (width > _videoTexture.width)
+            {
+                _videoTexture.width = width;
+            }
+            if (height > _videoTexture.height)
+            {
+                _videoTexture.height = height;
+            }
+            return _videoTexture;
+        }
+
+        public bool VideoTexFound()
+        {
+            return _videoTexFound;
+        }
+
+        public void CreateVideoTexture()
+        {
+            if (_videoTexture != null && !_videoTexture.IsCreated())
+            {
+                _videoTexture.Create();
+            }
+        }
+
+        public void ProcessMaterial(Material m, BackgroundType? songBackgroundType)
         {
             if (m.HasTexture(_sourceIconId))
             {
@@ -96,6 +138,24 @@ namespace YARG.Gameplay
             if (m.HasTexture(_albumCoverId))
             {
                 m.SetTexture(_albumCoverId, GetAlbumArt());
+            }
+            if (m.HasTexture(_videoTexId) && songBackgroundType is BackgroundType.Video)
+            {
+                var matTex = m.GetTexture(_videoTexId);
+                m.SetTexture(_videoTexId, GetVideoTexture(matTex.width, matTex.height));
+                _videoTexFound = true;
+            }
+            if (m.HasTexture(_imageTexId) && songBackgroundType is BackgroundType.Image)
+            {
+                var matTex = m.GetTexture(_imageTexId);
+                m.SetTexture(_imageTexId, GetVideoTexture(matTex.width, matTex.height));
+                _videoTexFound = true;
+            }
+            if (m.HasTexture(_backgroundTexId) && songBackgroundType is BackgroundType.Image or BackgroundType.Video)
+            {
+                var matTex = m.GetTexture(_backgroundTexId);
+                m.SetTexture(_backgroundTexId, GetVideoTexture(matTex.width, matTex.height));
+                _videoTexFound = true;
             }
         }
 
@@ -141,17 +201,54 @@ namespace YARG.Gameplay
             }
         }
 
-        public async void Update()
+        public void Update()
         {
-            if (_soundTexture != null)
+            if (_soundTexture != null && _updateTask.Status.IsCompleted())
             {
-                var pixelData = _soundTexture.GetPixelData<Byte>(0);
-                await UniTask.RunOnThreadPool(() =>
+                if (_pixelData.IsCreated)
                 {
-                    UpdateFFT(pixelData);
-                });
-                _soundTexture.Apply(false, false);
+                    _soundTexture.Apply(false, false);
+                }
+
+                _pixelData = _soundTexture.GetPixelData<Byte>(0);
+                _updateTask =
+                    UniTask.RunOnThreadPool(static state => ((TextureManager) state).UpdateFFT_Threaded(), this);
             }
+        }
+
+        private void UpdateFFT_Threaded()
+        {
+            UpdateFFT(_pixelData);
+        }
+
+        protected override void GameplayDestroy()
+        {
+            if (_videoTexture != null)
+            {
+                _videoTexture.Release();
+                _videoTexture.DiscardContents();
+                _videoTexture = null;
+            }
+            // Dispose FFT stuff, but only after the FFT update has completed
+            _ = Destroy_Async();
+        }
+
+        private async UniTaskVoid Destroy_Async()
+        {
+            try
+            {
+                await _updateTask;
+            }
+            finally
+            {
+                if (_pixelData.IsCreated)
+                {
+                    _pixelData.Dispose();
+                }
+            }
+
+            Destroy(_soundTexture);
+            _soundTexture = null;
         }
     }
 }

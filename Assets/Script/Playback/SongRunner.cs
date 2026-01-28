@@ -1,9 +1,10 @@
-﻿using System;
+using System;
 using System.Threading;
 using UnityEngine;
 using YARG.Core.Logging;
 using YARG.Core.Audio;
 using YARG.Input;
+using YARG.Settings;
 
 namespace YARG.Playback
 {
@@ -197,7 +198,7 @@ namespace YARG.Playback
         private bool _disposed;
 
         private volatile float _syncSpeedAdjustment;
-        private volatile int _syncSpeedMultiplier;
+        private volatile int   _syncSpeedMultiplier;
         private volatile float _syncStartDelta;
         private volatile float _syncWorstDelta;
 
@@ -264,8 +265,6 @@ namespace YARG.Playback
             double startTime,
             double startDelay,
             float songSpeed,
-            int audioCalibrationMs,
-            int videoCalibrationMs,
             double songOffset
         )
         {
@@ -276,7 +275,7 @@ namespace YARG.Playback
             _syncThread = new Thread(SyncThread) { IsBackground = true };
 
             InitializeSongTime(startTime + SongOffset, startDelay);
-            SetCalibration(audioCalibrationMs, videoCalibrationMs);
+            SetCalibration();
         }
 
         ~SongRunner()
@@ -393,7 +392,7 @@ namespace YARG.Playback
 
                     if (_mixer.IsPaused)
                     {
-                        _mixer.Play(false);
+                        _mixer.Play();
                     }
 
                     if (SyncAudioTime >= _mixer.Length)
@@ -559,7 +558,7 @@ namespace YARG.Playback
                 {
                     _mixer.SetPosition(seekTime);
                     if (!Paused)
-                        _mixer.Play(true);
+                        _mixer.Play();
                 }
 
                 UpdateTimes();
@@ -592,10 +591,15 @@ namespace YARG.Playback
 
         public void AdjustSongSpeed(float deltaSpeed) => SetSongSpeed(SongSpeed + deltaSpeed);
 
-        public void SetCalibration(int audioMs, int videoMs)
+        public void SetCalibration()
         {
-            AudioCalibration = audioMs / 1000.0;
-            VideoCalibration = videoMs / 1000.0;
+            int videoCalibrationMs = SettingsManager.Settings.VideoCalibration.Value;
+            int audioCalibrationMs = SettingsManager.Settings.AudioCalibration.Value;
+            if (SettingsManager.Settings.AccountForHardwareLatency.Value)
+                audioCalibrationMs += GlobalAudioHandler.PlaybackLatency;
+
+            AudioCalibration = audioCalibrationMs / 1000.0;
+            VideoCalibration = videoCalibrationMs / 1000.0;
             SetInputBase(InputTime);
         }
 
@@ -636,7 +640,9 @@ namespace YARG.Playback
             if (!Paused)
                 return;
 
+
             Paused = false;
+            SetCalibration();
             SetInputBaseChecked(InputTime);
 
             YargLogger.LogFormatDebug(

@@ -36,6 +36,8 @@ namespace YARG.Gameplay.HUD
         private bool _isSelected;
         private bool _isDragging;
 
+        public bool HasCustomPosition => _storedPosition != _originalPosition;
+
         protected override void OnSongStarted()
         {
             if (GameManager.Players.Count > 1)
@@ -165,6 +167,7 @@ namespace YARG.Gameplay.HUD
 
         private void SavePosition()
         {
+            _storedPosition = _rectTransform.anchoredPosition;
             _manager.PositionProfile.SaveElementPosition(_draggableElementName,
                 _rectTransform.anchoredPosition);
         }

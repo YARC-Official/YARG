@@ -2,13 +2,17 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Cysharp.Threading.Tasks;
 using Newtonsoft.Json;
+using PlasticBand.Devices;
 using UnityEngine.InputSystem;
+using YARG.Core;
 using YARG.Core.Game;
 using YARG.Core.Logging;
 using YARG.Helpers;
 using YARG.Input;
 using YARG.Input.Bindings;
+using YARG.Localization;
 using YARG.Menu.MusicLibrary;
 using YARG.Menu.Persistent;
 using YARG.Settings;
@@ -32,6 +36,12 @@ namespace YARG.Player
 
         private static readonly Dictionary<Guid, YargProfile>       _profilesById     = new();
         private static readonly Dictionary<YargProfile, YargPlayer> _playersByProfile = new();
+
+        public delegate void OnPlayerAdded(YargPlayer player);
+        public delegate void OnPlayerRemoved(YargPlayer player);
+
+        public static event OnPlayerAdded PlayerAdded;
+        public static event OnPlayerRemoved PlayerRemoved;
 
         /// <summary>
         /// A list of all of the profiles (taken or not).
@@ -124,6 +134,9 @@ namespace YARG.Player
             _players.Add(player);
             _playersByProfile.Add(profile, player);
             ActiveProfilesChanged();
+            player.RefreshPresets();
+            profile.ClaimProfile();
+            PlayerAdded?.Invoke(player);
             return player;
         }
 
@@ -137,6 +150,7 @@ namespace YARG.Player
             _players.Remove(player);
             _playersByProfile.Remove(player.Profile);
 
+            PlayerRemoved?.Invoke(player);
             player.Dispose();
             ActiveProfilesChanged();
             return true;
@@ -184,6 +198,30 @@ namespace YARG.Player
             return player;
         }
 
+#nullable enable
+        public static YargProfile? GetProfileForDevice(InputDevice device)
+#nullable disable
+        {
+            var candidateProfiles = new List<YargProfile>();
+
+            foreach (var profile in _profiles)
+            {
+                if (IsProfileTaken(profile))
+                {
+                    continue;
+                }
+
+                var bindings = BindingsContainer.GetBindingsForProfile(profile);
+                if (bindings.MatchesDevice(device))
+                {
+                    candidateProfiles.Add(profile);
+                }
+            }
+
+            // Return the profile that has the most recent LastUsed time
+            return candidateProfiles.OrderByDescending(e => e.LastUsed).FirstOrDefault();
+        }
+
         public static bool IsDeviceTaken(InputDevice device)
         {
             foreach (var player in _players)
@@ -203,6 +241,13 @@ namespace YARG.Player
             {
                 player.Bindings.OnDeviceAdded(device);
             }
+
+            if (!SettingsManager.Settings.AutoCreateProfiles.Value)
+            {
+                return;
+            }
+
+            _ = TryCreateProfile(device);
         }
 
         private static void OnDeviceRemoved(InputDevice device)
@@ -211,6 +256,41 @@ namespace YARG.Player
             {
                 player.Bindings.OnDeviceRemoved(device);
             }
+        }
+
+        private static async UniTask<bool> TryCreateProfile(InputDevice device)
+        {
+            // Some devices don't appear in their final form immediately, so we have to wait a bit
+            await UniTask.Delay(2500, true);
+
+            if (IsDeviceTaken(device))
+            {
+                return false;
+            }
+
+            if (GetProfileForDevice(device) is not null)
+            {
+                return false;
+            }
+
+            return CreateProfileFromDevice(device);
+        }
+
+        public static bool TryConnectProfile(InputDevice device)
+        {
+            if (IsDeviceTaken(device))
+            {
+                return false;
+            }
+
+            var profile = GetProfileForDevice(device);
+            if (profile is null)
+            {
+                return false;
+            }
+
+            CreatePlayerFromProfile(profile, true);
+            return true;
         }
 
         public static int LoadProfiles()
@@ -378,6 +458,80 @@ namespace YARG.Player
             {
                 CreatePlayerFromProfile(profile, true);
             }
+        }
+
+        private static bool CreateProfileFromDevice(InputDevice device)
+        {
+            if (IsDeviceTaken(device))
+            {
+                return false;
+            }
+
+            GameMode gameMode = default;
+            string profileName = string.Empty;
+
+            if (device is FiveFretGuitar)
+            {
+                gameMode = GameMode.FiveFretGuitar;
+                profileName = "New Guitar Profile";
+            }
+            else if (device is FourLaneDrumkit)
+            {
+                gameMode = GameMode.FourLaneDrums;
+                profileName = "New Drums Profile";
+            }
+            else if (device is FiveLaneDrumkit)
+            {
+                gameMode = GameMode.FiveLaneDrums;
+                profileName = "New Drums Profile";
+            }
+            else if (device is ProKeyboard)
+            {
+                gameMode = GameMode.ProKeys;
+                profileName = "New Keys Profile";
+            }
+            else
+            {
+                // Filter out keyboard and mouse devices for the purposes of this message, otherwise we're just
+                // making noise about nothing for most players
+                if (device is Keyboard or Mouse or Pen)
+                {
+                    return false;
+                }
+
+                // TODO: Figure out why this triggers for non-input devices like stage kits so we can enable this
+                // var failMessage = Localize.KeyFormat("Menu.Toast.UnsupportedDevice", device.displayName);
+                // ToastManager.ToastWarning(failMessage);
+                return false;
+            }
+
+            var newProfile = new YargProfile
+            {
+                Name = profileName,
+                NoteSpeed = 5,
+                HighwayLength = 1,
+                GameMode = gameMode
+            };
+
+            AddProfile(newProfile);
+
+            var player = CreatePlayerFromProfile(newProfile, false);
+            if (player is null)
+            {
+                YargLogger.LogFormatError("Failed to connect profile {0}!", newProfile.Name);
+                return false;
+            }
+
+            player.Bindings.AddDevice(device);
+
+            if (!player.Bindings.ContainsBindingsForDevice(device))
+            {
+                player.Bindings.SetDefaultBinds(device);
+            }
+
+            var successMessage = Localize.KeyFormat("Menu.Toast.ProfileCreated", device.displayName);
+            ToastManager.ToastSuccess(successMessage);
+            return true;
         }
     }
 }

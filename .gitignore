@@ -40,6 +40,7 @@ ExportedObj/
 *.csproj
 *.unityproj
 *.sln
+*.slnx
 *.suo
 *.tmp
 *.user
@@ -117,3 +118,6 @@ reload_lock~.meta
 # Submodule commit hash
 *.githash
 *.githash.meta
+
+# Unity crash dumps
+mono_crash.mem.*.blob

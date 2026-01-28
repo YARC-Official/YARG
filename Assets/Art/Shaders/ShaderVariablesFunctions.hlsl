@@ -1,10 +1,25 @@
 #ifndef UNITY_SHADER_VARIABLES_FUNCTIONS_INCLUDED
 #define UNITY_SHADER_VARIABLES_FUNCTIONS_INCLUDED
 
-#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
-#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+// This include should not be necessary, but is
+#include "Assets/Art/Shaders/ShaderGraph/Includes/Core.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderVariablesFunctions.deprecated.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Debug/DebuggingCommon.hlsl"
+#include "Assets/Art/Shaders/highways.hlsl"
+
+VertexPositionInputs GetVertexPositionInputs(float3 positionOS)
+{
+    VertexPositionInputs input;
+    input.positionWS = TransformObjectToWorld(positionOS);
+    input.positionVS = YargTransformWorldToView(input.positionWS);
+    input.positionCS = YargTransformWorldToHClip(input.positionWS);
+
+    float4 ndc = input.positionCS * 0.5f;
+    input.positionNDC.xy = float2(ndc.x, ndc.y * _ProjectionParams.x) + ndc.w;
+    input.positionNDC.zw = input.positionCS.zw;
+
+    return input;
+}
 
 VertexNormalInputs GetVertexNormalInputs(float3 normalOS)
 {
@@ -82,6 +97,11 @@ float3 GetViewForwardDir()
 // Computes the world space view direction (pointing towards the viewer).
 float3 GetWorldSpaceViewDir(float3 positionWS)
 {
+    if (_YargHighwaysN > 0)
+    {
+        return YargWorldSpaceCameraPos(positionWS).xyz - positionWS;
+    }
+
     if (IsPerspectiveProjection())
     {
         // Perspective
@@ -97,6 +117,14 @@ float3 GetWorldSpaceViewDir(float3 positionWS)
 // Computes the object space view direction (pointing towards the viewer).
 half3 GetObjectSpaceNormalizeViewDir(float3 positionOS)
 {
+    if (_YargHighwaysN > 0)
+    {
+        float3 positionWS = TransformObjectToWorld(positionOS);
+        float3 cameraPosWS = YargWorldSpaceCameraPos(positionWS).xyz;
+        float3 cameraPosOS = TransformWorldToObject(cameraPosWS);
+        return normalize(cameraPosOS - positionOS);
+    }
+
     if (IsPerspectiveProjection())
     {
         // Perspective
@@ -122,49 +150,145 @@ void GetLeftHandedViewSpaceMatrices(out float4x4 viewMatrix, out float4x4 projMa
     projMatrix._13_23_33_43 = -projMatrix._13_23_33_43;
 }
 
-void AlphaDiscard(real alpha, real cutoff, real offset = real(0.0))
-{
-    #ifdef _ALPHATEST_ON
-    if (IsAlphaDiscardEnabled())
-        clip(alpha - cutoff + offset);
-    #endif
-}
-
-half OutputAlpha(half outputAlpha, half surfaceType = half(0.0))
-{
-    return surfaceType == 1 ? outputAlpha : half(1.0);
-}
-
-// A word on normalization of normals:
-// For better quality normals should be normalized before and after
-// interpolation.
-// 1) In vertex, skinning or blend shapes might vary significantly the lenght of normal.
-// 2) In fragment, because even outputting unit-length normals interpolation can make it non-unit.
-// 3) In fragment when using normal map, because mikktspace sets up non orthonormal basis.
-// However we will try to balance performance vs quality here as also let users configure that as
-// shader quality tiers.
-// Low Quality Tier: Don't normalize per-vertex.
-// Medium Quality Tier: Always normalize per-vertex.
-// High Quality Tier: Always normalize per-vertex.
+// Constants that represent material surface types
 //
-// Always normalize per-pixel.
-// Too many bug like lighting quality issues otherwise.
+// These are expected to align with the commonly used "_Surface" material property
+static const half kSurfaceTypeOpaque = 0.0;
+static const half kSurfaceTypeTransparent = 1.0;
+
+// Returns true if the input value represents an opaque surface
+bool IsSurfaceTypeOpaque(half surfaceType)
+{
+    return (surfaceType == kSurfaceTypeOpaque);
+}
+
+// Returns true if the input value represents a transparent surface
+bool IsSurfaceTypeTransparent(half surfaceType)
+{
+    return (surfaceType == kSurfaceTypeTransparent);
+}
+
+// Only define the alpha clipping helpers when the alpha test define is present.
+// This should help identify usage errors early.
+#if defined(_ALPHATEST_ON)
+// Returns true if AlphaToMask functionality is currently available
+// NOTE: This does NOT guarantee that AlphaToMask is enabled for the current draw. It only indicates that AlphaToMask functionality COULD be enabled for it.
+//       In cases where AlphaToMask COULD be enabled, we export a specialized alpha value from the shader.
+//       When AlphaToMask is enabled:     The specialized alpha value is combined with the sample mask
+//       When AlphaToMask is not enabled: The specialized alpha value is either written into the framebuffer or dropped entirely depending on the color write mask
+bool IsAlphaToMaskAvailable()
+{
+    return (_AlphaToMaskAvailable != 0.0);
+}
+
+// Returns a sharpened alpha value for use with alpha to coverage
+// This function behaves correctly in cases where alpha and cutoff are constant values (degenerate usage of alpha clipping)
+half SharpenAlphaStrict(half alpha, half alphaClipTreshold)
+{
+    half dAlpha = fwidth(alpha);
+    return saturate(((alpha - alphaClipTreshold - (0.5 * dAlpha)) / max(dAlpha, 0.0001)) + 1.0);
+}
+
+// When AlphaToMask is available:     Returns a modified alpha value that should be exported from the shader so it can be combined with the sample mask
+// When AlphaToMask is not available: Terminates the current invocation if the alpha value is below the cutoff and returns the input alpha value otherwise
+half AlphaClip(half alpha, half cutoff)
+{
+    bool a2c = IsAlphaToMaskAvailable();
+
+    // We explicitly detect cases where the alpha cutoff threshold is zero or below.
+    // When this case occurs, we need to modify the alpha to coverage logic to avoid visual artifacts.
+    bool zeroCutoff = (cutoff <= 0.0);
+
+    // If the user has specified zero as the cutoff threshold, the expectation is that the shader will function as if alpha-clipping was disabled.
+    // Ideally, the user should just turn off the alpha-clipping feature in this case, but in order to make this case work as expected, we force alpha
+    // to 1.0 here to ensure that alpha-to-coverage never throws away samples when its active. (This would cause opaque objects to appear transparent)
+    half alphaToCoverageAlpha = zeroCutoff ? 1.0 : SharpenAlphaStrict(alpha, cutoff);
+
+    // When the alpha to coverage alpha is used for clipping, we subtract a small value from it to ensure that pixels with zero alpha exit early
+    // rather than running the entire shader and then multiplying the sample coverage mask by zero which outputs nothing.
+    half clipVal = (a2c && !zeroCutoff) ? (alphaToCoverageAlpha - 0.0001) : (alpha - cutoff);
+
+    // When alpha-to-coverage is available:     Use the specialized value which will be exported from the shader and combined with the MSAA coverage mask.
+    // When alpha-to-coverage is not available: Use the "clipped" value. A clipped value will always result in thread termination via the clip() logic below.
+    half outputAlpha = a2c ? alphaToCoverageAlpha : alpha;
+
+    clip(clipVal);
+
+    return outputAlpha;
+}
+#endif
+
+// Terminates the current invocation if the input alpha value is below the specified cutoff value and returns an updated alpha value otherwise.
+// When provided, the offset value is added to the cutoff value during the comparison logic.
+// The return value from this function should be exported as the final alpha value in fragment shaders so it can be combined with the MSAA coverage mask.
+//
+// When _ALPHATEST_ON is defined:     The returned value follows the behavior noted in the AlphaClip function
+// When _ALPHATEST_ON is not defined: The returned value is equal to the original alpha input parameter
+//
+// NOTE: When _ALPHATEST_ON is not defined, this function is effectively a no-op.
+real AlphaDiscard(real alpha, real cutoff, real offset = real(0.0))
+{
+#if defined(_ALPHATEST_ON)
+    if (IsAlphaDiscardEnabled())
+        alpha = AlphaClip(alpha, cutoff + offset);
+#endif
+
+    return alpha;
+}
+
+half OutputAlpha(half alpha, bool isTransparent)
+{
+    if (isTransparent)
+    {
+        return alpha;
+    }
+    else
+    {
+#if defined(_ALPHATEST_ON)
+        // Opaque materials should always export an alpha value of 1.0 unless alpha-to-coverage is available
+        return IsAlphaToMaskAvailable() ? alpha : 1.0;
+#else
+        return 1.0;
+#endif
+    }
+}
+
+half3 AlphaModulate(half3 albedo, half alpha)
+{
+    // Fake alpha for multiply blend by lerping albedo towards 1 (white) using alpha.
+    // Manual adjustment for "lighter" multiply effect (similar to "premultiplied alpha")
+    // would be painting whiter pixels in the texture.
+    // This emulates that procedure in shader, so it should be applied to the base/source color.
+#if defined(_ALPHAMODULATE_ON)
+    return lerp(half3(1.0, 1.0, 1.0), albedo, alpha);
+#else
+    return albedo;
+#endif
+}
+
+half3 AlphaPremultiply(half3 albedo, half alpha)
+{
+    // Multiply alpha into albedo only for Preserve Specular material diffuse part.
+    // Preserve Specular material (glass like) has different alpha for diffuse and specular lighting.
+    // Logically this is "variable" Alpha blending.
+    // (HW blend mode is premultiply, but with alpha multiply in shader.)
+#if defined(_ALPHAPREMULTIPLY_ON)
+    return albedo * alpha;
+#endif
+    return albedo;
+}
+
+// Normalization used to depend on SHADER_QUALITY
+// Currently we always normalize to avoid lighting issues
+// and platform inconsistencies.
 half3 NormalizeNormalPerVertex(half3 normalWS)
 {
-    #if defined(SHADER_QUALITY_LOW) && defined(_NORMALMAP)
-        return normalWS;
-    #else
-        return normalize(normalWS);
-    #endif
+    return normalize(normalWS);
 }
 
 float3 NormalizeNormalPerVertex(float3 normalWS)
 {
-    #if defined(SHADER_QUALITY_LOW) && defined(_NORMALMAP)
-        return normalWS;
-    #else
-        return normalize(normalWS);
-    #endif
+    return normalize(normalWS);
 }
 
 half3 NormalizeNormalPerPixel(half3 normalWS)
@@ -190,17 +314,28 @@ float3 NormalizeNormalPerPixel(float3 normalWS)
 
 real ComputeFogFactorZ0ToFar(float z)
 {
-    #if defined(FOG_LINEAR)
-    // factor = (end-z)/(end-start) = z * (-1/(end-start)) + (end/(end-start))
-    float fogFactor = saturate(z * unity_FogParams.z + unity_FogParams.w);
-    return real(fogFactor);
-    #elif defined(FOG_EXP) || defined(FOG_EXP2)
-    // factor = exp(-(density*z)^2)
-    // -density * z computed at vertex
-    return real(unity_FogParams.x * z);
-    #else
+    #if defined(FOG_LINEAR_KEYWORD_DECLARED)
+    if (FOG_LINEAR)
+    {
+        // factor = (end-z)/(end-start) = z * (-1/(end-start)) + (end/(end-start))
+        float fogFactor = saturate(z * unity_FogParams.z + unity_FogParams.w);
+        return real(fogFactor);
+    }
+    else if (FOG_EXP || FOG_EXP2)
+    {
+        // factor = exp(-(density*z)^2)
+        // -density * z computed at vertex
+        return real(unity_FogParams.x * z);
+    }
+    else
+    {
+        // This process is necessary to avoid errors in iOS graphics tests
+        // when using the dynamic branching of fog keywords.
         return real(0.0);
-    #endif
+    }
+    #else // #if defined(FOG_LINEAR_KEYWORD_DECLARED)
+    return real(0.0);
+    #endif // #if defined(FOG_LINEAR_KEYWORD_DECLARED)
 }
 
 real ComputeFogFactor(float zPositionCS)
@@ -212,19 +347,24 @@ real ComputeFogFactor(float zPositionCS)
 half ComputeFogIntensity(half fogFactor)
 {
     half fogIntensity = half(0.0);
-    #if defined(FOG_LINEAR) || defined(FOG_EXP) || defined(FOG_EXP2)
-        #if defined(FOG_EXP)
-            // factor = exp(-density*z)
-            // fogFactor = density*z compute at vertex
-            fogIntensity = saturate(exp2(-fogFactor));
-        #elif defined(FOG_EXP2)
-            // factor = exp(-(density*z)^2)
-            // fogFactor = density*z compute at vertex
-            fogIntensity = saturate(exp2(-fogFactor * fogFactor));
-        #elif defined(FOG_LINEAR)
-            fogIntensity = fogFactor;
-        #endif
-    #endif
+    #if defined(FOG_LINEAR_KEYWORD_DECLARED)
+    if (FOG_EXP)
+    {
+        // factor = exp(-density*z)
+        // fogFactor = density*z compute at vertex
+        fogIntensity = saturate(exp2(-fogFactor));
+    }
+    else if (FOG_EXP2)
+    {
+        // factor = exp(-(density*z)^2)
+        // fogFactor = density*z compute at vertex
+        fogIntensity = saturate(exp2(-fogFactor * fogFactor));
+    }
+    else if (FOG_LINEAR)
+    {
+        fogIntensity = fogFactor;
+    }
+    #endif // #if defined(FOG_LINEAR_KEYWORD_DECLARED
     return fogIntensity;
 }
 
@@ -234,62 +374,77 @@ real InitializeInputDataFog(float4 positionWS, real vertFogFactor)
 {
     real fogFactor = 0.0;
 #if defined(_FOG_FRAGMENT)
-    #if (defined(FOG_LINEAR) || defined(FOG_EXP) || defined(FOG_EXP2))
+    #if defined(FOG_LINEAR_KEYWORD_DECLARED)
+    if (FOG_LINEAR || FOG_EXP || FOG_EXP2)
+    {
         // Compiler eliminates unused math --> matrix.column_z * vec
         float viewZ = -(mul(UNITY_MATRIX_V, positionWS).z);
         // View Z is 0 at camera pos, remap 0 to near plane.
         float nearToFarZ = max(viewZ - _ProjectionParams.y, 0);
         fogFactor = ComputeFogFactorZ0ToFar(nearToFarZ);
-    #endif
-#else
+    }
+    #endif // #if defined(FOG_LINEAR_KEYWORD_DECLARED)
+#else // #if defined(_FOG_FRAGMENT)
     fogFactor = vertFogFactor;
-#endif
+#endif // #if defined(_FOG_FRAGMENT)
     return fogFactor;
 }
 
 float ComputeFogIntensity(float fogFactor)
 {
     float fogIntensity = 0.0;
-    #if defined(FOG_LINEAR) || defined(FOG_EXP) || defined(FOG_EXP2)
-        #if defined(FOG_EXP)
+    #if defined(FOG_LINEAR_KEYWORD_DECLARED)
+        if (FOG_EXP)
+        {
             // factor = exp(-density*z)
             // fogFactor = density*z compute at vertex
             fogIntensity = saturate(exp2(-fogFactor));
-        #elif defined(FOG_EXP2)
+        }
+        else if (FOG_EXP2)
+        {
             // factor = exp(-(density*z)^2)
             // fogFactor = density*z compute at vertex
             fogIntensity = saturate(exp2(-fogFactor * fogFactor));
-        #elif defined(FOG_LINEAR)
+        }
+        else if (FOG_LINEAR)
+        {
             fogIntensity = fogFactor;
-        #endif
-    #endif
+        }
+    #endif // #if defined(FOG_LINEAR_KEYWORD_DECLARED)
     return fogIntensity;
 }
 
 half3 MixFogColor(half3 fragColor, half3 fogColor, half fogFactor)
 {
-    #if defined(FOG_LINEAR) || defined(FOG_EXP) || defined(FOG_EXP2)
-        half fogIntensity = ComputeFogIntensity(fogFactor);
-        fragColor = lerp(fogColor, fragColor, fogIntensity);
-    #endif
+    #if defined(FOG_LINEAR_KEYWORD_DECLARED)
+        if (FOG_LINEAR || FOG_EXP || FOG_EXP2)
+        {
+            half fogIntensity = ComputeFogIntensity(fogFactor);
+            // Workaround for UUM-61728: using a manual lerp to avoid rendering artifacts on some GPUs when Vulkan is used
+            fragColor = fragColor * fogIntensity + fogColor * (half(1.0) - fogIntensity);
+        }
+    #endif // #if defined(FOG_LINEAR_KEYWORD_DECLARED)
     return fragColor;
 }
 
 float3 MixFogColor(float3 fragColor, float3 fogColor, float fogFactor)
 {
-    #if defined(FOG_LINEAR) || defined(FOG_EXP) || defined(FOG_EXP2)
-    if (IsFogEnabled())
-    {
-        float fogIntensity = ComputeFogIntensity(fogFactor);
-        fragColor = lerp(fogColor, fragColor, fogIntensity);
-    }
-    #endif
+    #if defined(FOG_LINEAR_KEYWORD_DECLARED)
+        if (FOG_LINEAR || FOG_EXP || FOG_EXP2)
+        {
+            if (IsFogEnabled())
+            {
+                float fogIntensity = ComputeFogIntensity(fogFactor);
+                fragColor = lerp(fogColor, fragColor, fogIntensity);
+            }
+        }
+    #endif // #if defined(FOG_LINEAR_KEYWORD_DECLARED)
     return fragColor;
 }
 
 half3 MixFog(half3 fragColor, half fogFactor)
 {
-    return MixFogColor(fragColor, unity_FogColor.rgb, fogFactor);
+    return MixFogColor(fragColor, half3(unity_FogColor.rgb), fogFactor);
 }
 
 float3 MixFog(float3 fragColor, float fogFactor)
@@ -349,23 +504,55 @@ float2 GetNormalizedScreenSpaceUV(float4 positionCS)
     return GetNormalizedScreenSpaceUV(positionCS.xy);
 }
 
-#if defined(UNITY_SINGLE_PASS_STEREO)
-    float2 TransformStereoScreenSpaceTex(float2 uv, float w)
-    {
-        // TODO: RVS support can be added here, if Universal decides to support it
-        float4 scaleOffset = unity_StereoScaleOffset[unity_StereoEyeIndex];
-        return uv.xy * scaleOffset.xy + scaleOffset.zw * w;
-    }
+// Select uint4 component by index.
+// Helper to improve codegen for 2d indexing (data[x][y])
+// Replace:
+// data[i / 4][i % 4];
+// with:
+// select4(data[i / 4], i % 4);
+uint Select4(uint4 v, uint i)
+{
+    // x = 0 = 00
+    // y = 1 = 01
+    // z = 2 = 10
+    // w = 3 = 11
+    uint mask0 = uint(int(i << 31) >> 31);
+    uint mask1 = uint(int(i << 30) >> 31);
+    return
+        (((v.w & mask0) | (v.z & ~mask0)) & mask1) |
+        (((v.y & mask0) | (v.x & ~mask0)) & ~mask1);
+}
 
-    float2 UnityStereoTransformScreenSpaceTex(float2 uv)
-    {
-        return TransformStereoScreenSpaceTex(saturate(uv), 1.0);
-    }
+#if SHADER_TARGET < 45
+uint URP_FirstBitLow(uint m)
+{
+    // http://graphics.stanford.edu/~seander/bithacks.html#ZerosOnRightFloatCast
+    return (asuint((float)(m & asuint(-asint(m)))) >> 23) - 0x7F;
+}
+#define FIRST_BIT_LOW URP_FirstBitLow
 #else
-    #define UnityStereoTransformScreenSpaceTex(uv) uv
-#endif // defined(UNITY_SINGLE_PASS_STEREO)
+#define FIRST_BIT_LOW firstbitlow
+#endif
 
-#include "Assets/Art/Shaders/highways.hlsl"
+#define UnityStereoTransformScreenSpaceTex(uv) uv
+
+uint GetMeshRenderingLayer()
+{
+    return asuint(unity_RenderingLayer.x);
+}
+
+uint EncodeMeshRenderingLayer()
+{
+    // Force any bits above max to be skipped
+    return GetMeshRenderingLayer() & _RenderingLayerMaxInt;
+}
+
+// TODO: implement
+float GetCurrentExposureMultiplier()
+{
+    return 1;
+}
+
 
 half3 GetWorldSpaceNormalizeViewDir(float3 positionWS)
 {
@@ -386,20 +573,6 @@ half3 GetWorldSpaceNormalizeViewDir(float3 positionWS)
         // Orthographic
         return half3(-GetViewForwardDir());
     }
-}
-
-VertexPositionInputs GetVertexPositionInputs(float3 positionOS)
-{
-    VertexPositionInputs input;
-    input.positionWS = TransformObjectToWorld(positionOS);
-    input.positionVS = YargTransformWorldToView(input.positionWS);
-    input.positionCS = YargTransformWorldToHClip(input.positionWS);
-
-    float4 ndc = input.positionCS * 0.5f;
-    input.positionNDC.xy = float2(ndc.x, ndc.y * _ProjectionParams.x) + ndc.w;
-    input.positionNDC.zw = input.positionCS.zw;
-
-    return input;
 }
 
 #endif // UNITY_SHADER_VARIABLES_FUNCTIONS_INCLUDED

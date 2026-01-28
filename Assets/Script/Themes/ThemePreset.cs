@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.AddressableAssets;
 using YARG.Core;
 using YARG.Core.Game;
+using static YARG.Themes.ThemeManager;
 
 namespace YARG.Themes
 {
@@ -11,7 +12,7 @@ namespace YARG.Themes
     {
         public string AssetBundleThemePath;
 
-        public List<GameMode> SupportedGameModes = new();
+        public List<VisualStyle> SupportedStyles = new();
 
         public Guid PreferredColorProfile = Guid.Empty;
         public Guid PreferredCameraPreset = Guid.Empty;
@@ -41,7 +42,7 @@ namespace YARG.Themes
         {
             return new ThemePreset(name, false)
             {
-                SupportedGameModes = new List<GameMode>(SupportedGameModes)
+                SupportedStyles = new List<VisualStyle>(SupportedStyles)
             };
         }
     }

@@ -39,6 +39,9 @@ namespace YARG.Gameplay.Visuals
         public override double ElementTime => NoteRef.Time;
 
         private bool _lastStarPowerState;
+        private bool _lastStarPowerActiveState;
+
+        protected bool IsStarPowerVisible => CalcStarPowerVisible();
 
         public abstract void SetThemeModels(ThemeDict models, ThemeDict starPowerModels);
 
@@ -46,39 +49,52 @@ namespace YARG.Gameplay.Visuals
         {
             SustainState = SustainState.Waiting;
             _lastStarPowerState = NoteRef.IsStarPower;
+            _lastStarPowerActiveState = Player.BaseStats.IsStarPowerActive;
+
+            float noteHeight = Player.Player.HighwayPreset.NoteHeight;
+            transform.localScale = new Vector3(1f, noteHeight, 1f);
         }
 
         protected override void UpdateElement()
         {
-            // Call OnStarPowerUpdated if the star power state of the note changes
-            if (_lastStarPowerState != NoteRef.IsStarPower)
+            // Call OnStarPowerUpdated if the star power state of the note or star power activation changes
+            if (_lastStarPowerState != NoteRef.IsStarPower || _lastStarPowerActiveState != Player.BaseStats.IsStarPowerActive)
             {
                 OnStarPowerUpdated();
-                _lastStarPowerState = NoteRef.IsStarPower;
             }
+            _lastStarPowerState = NoteRef.IsStarPower;
+            _lastStarPowerActiveState = Player.BaseStats.IsStarPowerActive;
+        }
+
+        protected virtual bool CalcStarPowerVisible()
+        {
+            return NoteRef.IsStarPower;
         }
 
         /// <summary>
-        /// Called whenever the star power state of the note changes.
-        /// May also be called when the player activates or gains star power,
-        /// depending on the player class.
+        /// Called whenever the star power state of the note changes, or when the player star power activation changes.
         /// </summary>
         public virtual void OnStarPowerUpdated()
         {
-            // If we still have star power, skip
-            if (NoteRef.IsStarPower) return;
-
-            // If we did have star power, and the user lost it, then swap the model out
-            int index = Array.IndexOf(StarPowerNoteGroups, NoteGroup);
-            if (index != -1 && NoteGroup != NoteGroups[index])
+            // If we did have star power and the user lost it (or vice versa), then swap the model out
+            int index = Array.IndexOf(IsStarPowerVisible ? NoteGroups : StarPowerNoteGroups, NoteGroup);
+            if (index != -1)
             {
                 // Disable the old note group
                 NoteGroup.SetActive(false);
 
                 // Enable the new one
-                NoteGroup = NoteGroups[index];
-                NoteGroup.SetActive(true);
-                NoteGroup.Initialize();
+                NoteGroup = (IsStarPowerVisible ? StarPowerNoteGroups : NoteGroups)[index];
+
+                // TODO: We really should just not be getting this far if we're updating because
+                //  starpower state changed and not because the player missed a note in an SP phrase
+                //  brain is too fried rn to untangle that mess, though
+                // If the note was already hit, don't reinitialize it
+                if (!NoteRef.WasHit)
+                {
+                    NoteGroup.SetActive(true);
+                    NoteGroup.Initialize();
+                }
             }
         }
 

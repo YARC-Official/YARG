@@ -10,7 +10,9 @@ using YARG.Core.Logging;
 using YARG.Core.Replays;
 using YARG.Gameplay.HUD;
 using YARG.Helpers.Extensions;
+using YARG.Helpers.UI;
 using YARG.Input;
+using YARG.Playback;
 using YARG.Player;
 using YARG.Settings;
 
@@ -69,6 +71,7 @@ namespace YARG.Gameplay.Player
         public float Stars => BaseStats.Stars;
 
         public int Score => BaseStats.TotalScore;
+        public int BandBonusScore => BaseStats.BandBonusScore;
         public int Combo => BaseStats.Combo;
         public int NotesHit => BaseStats.NotesHit;
 
@@ -106,9 +109,20 @@ namespace YARG.Gameplay.Player
         {
             _replayInputs = new List<GameInput>();
 
-            InputViewer = FindObjectOfType<BaseInputViewer>();
+            // TODO: Couldn't there be more than one input viewer?
+            //  We were using FindObjectOfType<BaseInputViewer> before anyway, so we're no worse off in that respect
+            InputViewer = FindFirstObjectByType<BaseInputViewer>();
 
             IsFc = true;
+        }
+
+        private void Update()
+        {
+            //Ensure hud elements get repositioned on screen size change
+            if (ScreenSizeDetector.HasScreenSizeChanged)
+            {
+                UpdateVisuals(GameManager.VisualTime);
+            }
         }
 
         protected void Start()
@@ -292,8 +306,8 @@ namespace YARG.Gameplay.Player
 
         protected void OnGameInput(ref GameInput input)
         {
-            // Ignore completely if the song hasn't started yet
-            if (!GameManager.Started)
+            // Ignore completely if the song hasn't started yet or player failed
+            if (!GameManager.Started || GameManager.PlayerHasFailed)
                 return;
 
             // Ignore while paused
@@ -342,12 +356,23 @@ namespace YARG.Gameplay.Player
             }
         }
 
+        protected virtual void OnStarPowerPhraseMissed()
+        {
+
+        }
+
         protected virtual void OnStarPowerStatus(bool active)
         {
+            var deploySample = SfxSample.StarPowerDeploy;
+            if (SettingsManager.Settings.UseCrowdFx.Value == CrowdFxMode.Enabled)
+            {
+                deploySample = SfxSample.StarPowerDeployCrowd;
+            }
+
             if (!GameManager.Paused)
             {
                 GlobalAudioHandler.PlaySoundEffect(active
-                    ? SfxSample.StarPowerDeploy
+                    ? deploySample
                     : SfxSample.StarPowerRelease);
 
                 SetStarPowerFX(active);

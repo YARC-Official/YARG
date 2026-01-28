@@ -83,6 +83,32 @@ namespace YARG.Playlists
             return songlist;
         }
 
+        public void MoveSongUp(SongEntry song)
+        {
+            // Get the index of the song
+            var index = SongHashes.IndexOf(song.Hash);
+
+            // If the song is not at the top, swap it with the previous song
+            if (index > 0)
+            {
+                (SongHashes[index - 1], SongHashes[index]) = (SongHashes[index], SongHashes[index - 1]);
+                PlaylistContainer.SavePlaylist(this);
+            }
+        }
+
+        public void MoveSongDown(SongEntry song)
+        {
+            // Get the index of the song
+            var index = SongHashes.IndexOf(song.Hash);
+
+            // If the song is not at the bottom, swap it with the next song
+            if (index < SongHashes.Count - 1)
+            {
+                (SongHashes[index + 1], SongHashes[index]) = (SongHashes[index], SongHashes[index + 1]);
+                PlaylistContainer.SavePlaylist(this);
+            }
+        }
+
         public void Clear()
         {
             SongHashes.Clear();

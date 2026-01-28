@@ -4,6 +4,7 @@
         "Region": "United States",
         "ListDelimiter": {
             "Default": ", ",
+            "TwoItem": " and ",
             "Last": ", and "
         }
     },
@@ -16,33 +17,34 @@
             "Medium": "Medium"
         },
         "GameMode": {
-            "FiveFretGuitar": "Five Fret Guitar",
-            "SixFretGuitar": "Six Fret Guitar",
-            "FourLaneDrums": "Standard Drums",
-            "FiveLaneDrums": "5-Lane Drums",
-            "ProGuitar": "Pro Guitar",
-            "ProKeys": "Pro Keys",
+            "FiveFretGuitar": "Guitar (5-Fret)",
+            "SixFretGuitar": "Guitar (6-Fret)",
+            "EliteDrums": "MIDI Drumkit",
+            "FourLaneDrums": "Drumkit (4-Lane, Pro)",
+            "FiveLaneDrums": "Drumkit (5-Lane)",
+            "ProGuitar": "Pro Guitar (17-Fret, 22-Fret)",
+            "ProKeys": "Keys (5-Lane, Pro)",
             "Menu": "Menu",
             "Vocals": "Vocals"
         },
         "Instrument": {
             "FiveFretGuitar": "Guitar",
             "FiveFretBass": "Bass",
-            "FiveFretRhythm": "Rhythm Guitar",
-            "FiveFretCoopGuitar": "Co-op Guitar",
+            "FiveFretRhythm": "Rhythm",
+            "FiveFretCoopGuitar": "Co-op",
             "Keys": "Keys",
             "SixFretGuitar": "Guitar",
             "SixFretBass": "Bass",
-            "SixFretRhythm": "Rhythm Guitar",
-            "SixFretCoopGuitar": "Co-op Guitar",
-            "FourLaneDrums": "Four Lane Drums",
+            "SixFretRhythm": "Rhythm",
+            "SixFretCoopGuitar": "Co-op",
+            "FourLaneDrums": "4-Lane Drums",
             "ProDrums": "Pro Drums",
-            "FiveLaneDrums": "Five Lane Drums",
+            "FiveLaneDrums": "5-Lane Drums",
             "EliteDrums": "Elite Drums",
-            "ProGuitar_17Fret": "Pro Guitar (17-fret)",
-            "ProGuitar_22Fret": "Pro Guitar (22-fret)",
-            "ProBass_17Fret": "Pro Bass (17-fret)",
-            "ProBass_22Fret": "Pro Bass (22-fret)",
+            "ProGuitar_17Fret": "Pro Guitar (17-Fret)",
+            "ProGuitar_22Fret": "Pro Guitar (22-Fret)",
+            "ProBass_17Fret": "Pro Bass (17-Fret)",
+            "ProBass_22Fret": "Pro Bass (22-Fret)",
             "ProKeys": "Pro Keys",
             "Vocals": "Vocals",
             "Harmony": "Harmony",
@@ -78,23 +80,23 @@
             "Year": "Year",
             "DateAdded": "Date Added",
             "Playable": "Playable Songs",
-            "FiveFretGuitar": "Five Fret Guitar",
-            "FiveFretBass": "Five Fret Bass",
-            "FiveFretRhythm": "Five Fret Rhythm Guitar",
-            "FiveFretCoop": "Five Fret Co-Op Guitar",
+            "FiveFretGuitar": "Guitar (5-Fret)",
+            "FiveFretBass": "Bass (5-Fret)",
+            "FiveFretRhythm": "Rhythm (5-Fret)",
+            "FiveFretCoop": "Co-op (5-Fret)",
             "Keys": "Keys",
-            "SixFretGuitar": "Six Fret Guitar",
-            "SixFretBass": "Six Fret Bass",
-            "SixFretRhythm": "Six Fret Rhythm Guitar",
-            "SixFretCoop": "Six Fret Co-Op Guitar",
-            "FourLaneDrums": "Four Lane Drums",
+            "SixFretGuitar": "Guitar (6-Fret)",
+            "SixFretBass": "Bass (6-Fret)",
+            "SixFretRhythm": "Rhythm (6-Fret)",
+            "SixFretCoop": "Co-op (6-Fret)",
+            "FourLaneDrums": "Drums (4-Lane)",
             "ProDrums": "Pro Drums",
-            "FiveLaneDrums": "Five Lane Drums",
+            "FiveLaneDrums": "Drums (5-Lane)",
             "EliteDrums": "Elite Drums",
-            "ProGuitar_17": "Pro Guitar (17-fret)",
-            "ProGuitar_22": "Pro Guitar (22-fret)",
-            "ProBass_17": "Pro Bass (17-fret)",
-            "ProBass_22": "Pro Bass (22-fret)",
+            "ProGuitar_17": "Pro Guitar (17-Fret)",
+            "ProGuitar_22": "Pro Guitar (22-Fret)",
+            "ProBass_17": "Pro Bass (17-Fret)",
+            "ProBass_22": "Pro Bass (22-Fret)",
             "ProKeys": "Pro Keys",
             "Vocals": "Vocals",
             "Harmony": "Harmony",
@@ -122,6 +124,7 @@
             "Continue": "Continue",
             "On": "On",
             "Off": "Off",
+            "Start": "Start",
 
             "Up": "Up",
             "Down": "Down",
@@ -143,7 +146,12 @@
             "Delete": "Delete",
 
             "Reset": "Reset",
-            "ResetAll": "Reset All"
+            "ResetAll": "Reset All",
+
+			"Scroll" : "Scroll",
+
+            "Enabled": "Enabled",
+            "Disabled": "Disabled"
         },
         "Credits": {
             "Description": "Contributed To: {0}\n\n{1}",
@@ -158,26 +166,43 @@
                 "Artist": "Artist",
                 "Charter": "Charter",
                 "Developer": "Developer",
-                "Moderator": "Moderator"
+                "DocContributor": "Doc Contributor",
+                "Moderator": "Moderator",
+                "QATester": "QA Tester",
+                "SFXArtist": "SFX Artist",
+                "Translator": "Translator"
             },
             "Header": {
                 "Contributors": "Contributors",
                 "GameStartedBy": "A Game Started By",
                 "LeadArtist": "Lead Artist",
                 "Maintainers": "Maintainers",
+                "ProjectManager": "Project Manager",
                 "SpecialThanks": "Special Thanks",
                 "SetlistManager": "Setlist Manager",
                 "Songs": "Songs"
             },
             "Song": {
-                "Name": "\"{0}\" By {1}",
-                "WrittenBy": "Written By: {0}",
-                "PerformedBy": "Performed By: {0}",
-                "WrittenAndPerformedBy": "Written and Performed By: {0}",
+                "Name": "\"{0}\" by {1}",
+                "PublishedBy": "Published By: {0}",
                 "CourtesyOf": "Courtesy Of: {0}",
                 "AlbumCover": "Album Cover By: {0}",
-                "License": "Song License: {0}"
+                "ChartedBy": "Charted By: {0}",
+                "License": "Song License: {0}",
+                "Written": "Written",
+                "Composed": "Composed",
+                "Arranged": "Arranged",
+                "Performed": "Performed",
+                "Produced": "Produced",
+                "Engineered": "Engineered",
+                "Mixed": "Mixed",
+                "Mastered": "Mastered",
+                "By": "By: {0}"
             }
+        },
+        "Toast": {
+            "ProfileCreated": "Profile created for new device: {0}\nTime to do some YARGin!",
+            "UnsupportedDevice": "Automatic profile creation is not supported for {0}!"
         },
         "Dialog": {
             "DontShowAgain": "Don't Show Again",
@@ -212,6 +237,9 @@
             "ShowDialog": {
                 "Title": "Choose Your Fate",
                 "Select": "That's Plenty"
+            },
+            "FriendlyBindingDialog": {
+                "Skip": "Skip"
             }
         },
         "DifficultySelect": {
@@ -221,6 +249,7 @@
             "Modifiers": "Modifiers",
             "Ready": "Ready",
             "SitOut": "Sit Out",
+			"Disconnect" : "Disconnect",
             "Done": "Done",
             "WarningPlayerNoInputDevice" : "This player has no input device assigned! Assign one from the Profiles menu.",
             "WarningVocalistNoMicrophone" : "This vocalist has no microphone assigned! Assign one from the Profiles menu."
@@ -241,7 +270,7 @@
             "PlayWithReplay": "Play With Replay"
         },
         "Main": {
-            "MessageOfTheDay": "<align=center><size=32><b>Welcome to v0.13!</b></size></align>\n\nv0.13 is a major update that adds Pro Keys, brings major engine improvements for all instruments, along with a ton of quality of life features, performance improvements, and more.\n\n<b>If you have any feedback, or find any bugs, please let us know on Discord or GitHub.</b>\n\nHave fun!",
+            "MessageOfTheDay": "<align=center><size=32><b>Welcome to v0.14 nightlies!</b></size></align>\n\nv0.14 is a major update that adds 5 Lane Keys, a new MIDI Drums profile type, easier instrument setup, support for 3D venue events, performance improvements when using multiple highways, many visual improvements, and uses a newer version of Unity that should improve Linux support.\n\n<b>If you have any feedback or find any bugs, please let us know on Discord or GitHub.</b>\n\nHappy YARGin'!",
             "Options": {
                 "Quickplay": "Quickplay",
                 "Practice": "Practice",
@@ -291,6 +320,8 @@
             "NoPlayersConnected": "No players connected! Go to the profiles menu to connect a player.",
             "Play": "Play Song",
             "Search": "Search",
+            "SkipSection": "<align=left><size=80%>Navigate<br>Sections</size></align>",
+            "MoveInPlaylist": "Move Song",
             "CurrentSetlist": "Current Setlist",
             "AddToSet": "Add To Setlist",
             "AddedToSet": "Added To Setlist",
@@ -302,7 +333,7 @@
             "AddToShow": "Add To Show",
             "AddedToShow": "Added To Show",
             "StartShow": "Start The Show",
-            "MoreOptions": "<align=left><size=80%>More Options<br>(Hold) Navigate Sections</size></align>",
+            "MoreOptions": "More Options",
             "PlayAShow": {
                 "LongSong": "A Long Song",
                 "RandomSong": "A Random Song",
@@ -360,6 +391,7 @@
             "HotStart": "HOT START",
             "NewHighScore": "NEW HIGH SCORE",
             "NoteStreak": "{0:N0}-NOTE STREAK",
+			"PhraseStreak": "{0:N0}-PHRASE STREAK",
             "StarPowerReady": "STAR POWER READY",
             "StrongFinish": "STRONG FINISH"
         },
@@ -606,6 +638,32 @@
         "Drums": {
             "Kick": "Kick Pedal"
         },
+		"EliteDrums": {
+			"Stomp": "Hi-Hat Pedal Stomp",
+			"Splash": "Hi-Hat Pedal Splash",
+			"Snare": "Snare",
+			"ClosedHiHat": "Closed Hi-Hat",
+			"SizzleHiHat": "Sizzle Hi-Hat",
+			"OpenHiHat": "Open Hi-Hat",
+			"LeftCrash": "Left Crash",
+			"Tom1": "Tom 1",
+			"Tom2": "Tom 2",
+			"Tom3": "Tom 3",
+			"Ride": "Ride",
+			"RightCrash": "Right Crash",
+			"FourLaneRedDrum": "4-Lane Red Drum",
+			"FourLaneYellowDrum": "4-Lane Yellow Drum",
+			"FourLaneBlueDrum": "4-Lane Blue Drum",
+			"FourLaneGreenDrum": "4-Lane Green Drum",
+			"FourLaneYellowCymbal": "4-Lane Yellow Cymbal",
+			"FourLaneBlueCymbal": "4-Lane Blue Cymbal",
+			"FourLaneGreenCymbal": "4-Lane Green Cymbal",
+			"FiveLaneRedDrum": "5-Lane Red Drum",
+			"FiveLaneBlueDrum": "5-Lane Blue Drum",
+			"FiveLaneGreenDrum": "5-Lane Green Drum",
+			"FiveLaneYellowCymbal": "5-Lane Yellow Cymbal",
+			"FiveLaneOrangeCymbal": "5-Lane Orange Cymbal"
+		},
         "Vocals": {
             "StarPower": "Star Power Activate"
         },
@@ -642,6 +700,12 @@
             "Key23": "Key 23 (A#3)",
             "Key24": "Key 24 (B3)",
             "Key25": "Key 25 (C4)",
+			"OpenNote": "Five-Lane Open Note",
+			"GreenKey": "Five-Lane Green Key (First)",
+			"RedKey": "Five-Lane Red Key (Second)",
+			"YellowKey": "Five-Lane Yellow Key (Third)",
+			"BlueKey": "Five-Lane Blue Key (Fourth)",
+			"OrangeKey": "Five-Lane Orange Key (Fifth)",
             "StarPower": "Star Power Activate",
             "TouchEffects": "Touch Effects"
         }
@@ -678,7 +742,7 @@
             "Advanced": "Advanced",
             "DMXChannels": "DMX Channels",
             "LightingGeneral": "Lighting General",
-            "Export": "Export",
+            "ExportSongs": "Export Songs List",
             "PathsAndFolders": "Paths and Folders",
             "MusicLibrary": "Music Library",
             "PlayAShow": "Play A Show",
@@ -696,8 +760,9 @@
         "Button": {
             "CopyCurrentSongJsonFilePath": "Copy Current Song Json File Path",
             "CopyCurrentSongTextFilePath": "Copy Current Song Text File Path",
-            "ExportSongsOuvert": "Export Songs List (For Ouvert Bot)",
-            "ExportSongsText": "Export Songs List (Plain Text)",
+            "ExportSongsJson": "Ouvert (JSON)",
+            "ExportSongsText": "Plain Text",
+            "ExportSongsCsv": "CSV",
             "OpenCalibrator": "Open Calibrator",
             "OpenVenueFolder": "Open Backgrounds/Venue Folder",
             "AddFolder": "Add Folder",
@@ -716,6 +781,7 @@
             },
             "AudioCalibration": {
                 "Name": "Audio Calibration (ms)",
+                "PauseName": "Audio Calibration (ms)",
                 "Description": "Audio calibration in milliseconds. Use the calibrator to automatically calibrate. Higher values make the audio play earlier, while lower ones make the audio play later."
             },
             "AccountForHardwareLatency": {
@@ -726,10 +792,6 @@
                 "Name": "Bass Volume",
                 "PauseName": "Bass",
                 "Description": "Adjusts the song's bass guitar track volume. Only does something if the song is multi-track."
-            },
-            "ClapsInStarpower": {
-                "Name": "Star Power Claps",
-                "Description": "Enables claps to the beat while Star Power is active."
             },
             "CountdownDisplay": {
                 "Name": "Countdown Display",
@@ -793,6 +855,15 @@
             "DisableTextNotifications": {
                 "Name": "Disable Text Notifications",
                 "Description": "Disables text notification on the track such as \"100-Note Streak\" and \"Full Combo.\""
+            },
+            "DiscordRichPresence": {
+                "Name": "Discord Rich Presence",
+                "Description": "Choose how YARG shows on your activity status on Discord.",
+                "Dropdown": {
+                    "Show": "Show all details",
+                    "Limited": "Show without the currently playing song",
+                    "Hide": "Hide"
+                }
             },
             "DMXBlueChannels": {
                 "Name": "DMX Blue",
@@ -887,6 +958,10 @@
                     "HighestDifficulty": "Highest-played difficulty only"
                 }
             },
+            "HighwayTiltMultiplier": {
+                "Name": "Highway Tilt Multiplier",
+                "Description": "Controls the amount that the tracks should tilt inward during multiplayer gameplay only."
+            },
             "InputDeviceLogging": {
                 "Name": "Input Device Logging",
                 "Description": "Prints information about connected input devices to the game's log. Do not enable this unless you are having issues with specific devices, as it can print a very large amount of text for some devices!"
@@ -960,13 +1035,17 @@
                 "Name": "No Kicks",
                 "Description": "Removes all kick notes (drums only)."
             },
+            "NoFailMode": {
+                "Name": "No Fail Mode",
+                "Description": "Disables ending a song early when crowd happiness is too low."
+            },
             "NoteStreakFrequency": {
                 "Name": "Note Streak Frequency",
                 "Description": "Sets the frequency of note streak notifications.",
                 "Dropdown": {
                     "Disabled": "Disabled",
                     "Frequent": "50, 100, 200, 300, ...",
-                    "Sparse": "50, 100, 250, 500, ..."
+                    "Sparse": "50, 100, 250, 500, 750, ..."
                 }
             },
             "PlayAShowTimeout": {
@@ -1046,10 +1125,10 @@
                     "Reduced": "Reduced"
                 }
             },
-			"SongBackgroundOpacity": {
-				"Name": "Song Background Opacity",
-				"Description": "Adjusts the opacity of background during gameplay."
-			},
+            "SongBackgroundOpacity": {
+                "Name": "Song Background Opacity",
+                "Description": "Adjusts the opacity of background during gameplay."
+            },
             "UseChipmunkSpeed": {
                 "Name": "Chipmunk Speed",
                 "Description": "Disables pitch correction when playing songs at a fast or slow speed which may lead to some... interesting results."
@@ -1067,9 +1146,22 @@
                     "On": "On"
                 }
             },
+            "UseCrowdFx": {
+                "Name": "Use Crowd SFX",
+                "Description": "If enabled, crowd sounds will be played.\nIf set to Starpower Claps Only, crowd sounds will only be played during Starpower.",
+                "Dropdown": {
+                    "Disabled": "Disabled",
+                    "StarpowerClapsOnly": "Starpower Claps Only",
+                    "Enabled": "Enabled"
+                }
+            },
             "UseWhammyFx": {
                 "Name": "Use Whammy SFX",
                 "Description": "If enabled, it will add pitch bending to guitar stems when the player presses the whammy bar.\nWARNING: This setting is known to cause audio desync issues on some machines."
+            },
+            "VenueFpsCap": {
+                "Name": "Venue FPS Cap",
+                "Description": "The framerate cap for venue backgrounds. Lower this to reduce GPU usage."
             },
             "WhammyPitchShiftAmount": {
                 "Name": "Whammy Pitch Shift Amount",
@@ -1082,8 +1174,12 @@
                     "None": "None",
                     "FXAA": "FXAA",
                     "MSAA": "MSAA",
-                    "FSR3": "FSR3"
+                    "TAA": "TAA"
                 }
+            },
+            "VenuePostProcessing": {
+                "Name": "Venue Post-Processing",
+                "Description": "Determines if post-processing effects are applied to venue backgrounds."
             },
             "VenueRenderingQuality": {
                 "Name": "Venue Rendering Quality",
@@ -1099,6 +1195,7 @@
             },
             "VideoCalibration": {
                 "Name": "Video Calibration (ms)",
+                "PauseName": "Video Calibration (ms)",
                 "Description": "Video calibration in milliseconds. Use the calibrator to automatically calibrate. This accounts for delays between the game's processing and the actual frame being displayed."
             },
             "VocalMonitoring": {
@@ -1106,15 +1203,24 @@
                 "PauseName": "Monitoring",
                 "Description": "Adjusts the feedback you hear when singing."
             },
+			"VocalStreakFrequency": {
+                "Name": "Vocal Streak Frequency",
+                "Description": "Sets the frequency of phrase streak notifications for vocalists.",
+                "Dropdown": {
+                    "Disabled": "Disabled",
+                    "Frequent": "5, 10, 20, 30, ...",
+                    "Sparse": "5, 10, 25, 50, ..."
+                }
+            },
             "VocalsVolume": {
                 "Name": "Vocals Volume",
                 "PauseName": "Vocals",
                 "Description": "Adjusts the song's vocal track volume. Only does something if the song is multi-track."
             },
-            "VoiceActivatedVocalStarPower" : {
-				"Name": "Voice Activated Star Power (Vocals)",
-				"Description": "If enabled, vocalists can activate their Star Power by making a noise. Keybinds can be used instead, regardless of this setting."
-			},
+            "VoiceActivatedVocalStarPower": {
+                "Name": "Voice Activated Star Power (Vocals)",
+                "Description": "If enabled, vocalists can activate their Star Power by making a noise. Keybinds can be used instead, regardless of this setting."
+            },
             "VSync": {
                 "Name": "Enable VSync",
                 "Description": "Enables VSync. VSync caps the framerate at your monitor's maximum framerate, and prevents tearing."
@@ -1215,6 +1321,10 @@
                 "Name": "Reconnect Profiles",
                 "Description": "At startup, reconnect previously connected profiles."
             },
+            "AutoCreateProfiles": {
+                "Name": "Create Profiles Automatically",
+                "Description": "Automatically create profile for any newly connected plastic band devices."
+            },
             "DMXDimmerValues": {
                 "Name": "DMX Master Dimmer Values",
                 "Description": "These are the respective values that the Master Dimmer channels will be set to when YARG starts."
@@ -1235,10 +1345,18 @@
                 "Name": "Reduce Note Speed by Difficulty",
                 "Description": "Reduces the note speed if playing on a lower difficulty than Expert. The specified note speed is applied to Expert, and lower difficulties receive a reduction in speed. This setting does not affect vocal tracks."
             },
+            "LearningGuides": {
+                "Name": "Learning Guides",
+                "Description": "Adds some musical theory guides for Pro Keys to help learn the instrument."
+            },
             "ShowPlayerNameWhenStartingSong": {
                 "Name": "Show Player Name When Starting Song",
                 "Description": "If enabled, the player name and instrument icon will appear when the song starts."
             },
+			"StaticVocalsMode": {
+				"Name": "Static Vocals Mode",
+				"Description": "When enabled, lyrics stay stationary on the left side of the vocal highway. When disabled, lyrics scroll across the vocal highway."
+			},
             "UseThreeLaneLyricsInHarmony": {
                 "Name": "Use Three Lyric Lanes In Harmony",
                 "Description": "If enabled, the game will display three lyric lanes in harmony mode (one for each harmony). When disabled, the game will combine the lyrics of harmonies 2 and 3 into one lane at the top."
@@ -1247,16 +1365,25 @@
                 "Name": "Enable Track Effects",
                 "Description": "If enabled, the game will display track effects for unison, solo, and drum SP activation phrases."
             },
+            "EnableHighwayAnimation": {
+                "Name": "Enable Highway Animation",
+                "Description": "If enabled, the highway will animate at the beginning and end of the song and based on performance."
+            },
             "EnableVoxSamples": {
                 "Name": "Enable Vox Samples",
                 "Description": "If enabled, the game might make some noises at you on the score screen."
+            },
+            "EnableNormalization": {
+                "Name": "Normalize Audio",
+                "Description": "If enabled, normalizes audio so that all songs are approximately the same volume.  Increases memory and performance requirements."
             }
         },
         "PresetType": {
             "CameraSettingsContainer": "Camera Presets",
             "ColorProfileContainer": "Color Profiles",
             "EnginePresetContainer": "Engine Presets",
-            "HighwayPresetContainer" : "Highway Presets"
+            "HighwayPresetContainer" : "Highway Presets",
+			"RockMeterPresetContainer" : "Rock Meter Presets"
         },
         "PresetSetting": {
             "CameraPreset": {
@@ -1293,9 +1420,9 @@
                 "SubSection": {
                     "Name": "Instrument",
                     "Dropdown": {
-                        "FiveFretGuitar": "Five Fret Guitar",
-                        "FiveLaneDrums": "Five Lane Drums",
-                        "FourLaneDrums": "Four Lane Drums",
+                        "FiveFretGuitar": "Guitar (5-Fret)",
+                        "FiveLaneDrums": "Drums (5-Lane)",
+                        "FourLaneDrums": "Drums (4-Lane)",
                         "ProKeys": "Pro Keys"
                     }
                 },
@@ -1607,10 +1734,10 @@
                 "SubSection": {
                     "Name": "Game Mode",
                     "Dropdown": {
-                        "Drums": "Drums (4 and 5 lane)",
-                        "FiveFretGuitar": "Five Fret Guitar",
+                        "Drums": "Drums",
+                        "FiveFretGuitar": "Guitar",
                         "Vocals": "Vocals",
-                        "ProKeys": "Pro Keys"
+                        "ProKeys": "Keys"
                     }
                 },
                 "AntiGhosting": {
@@ -1712,6 +1839,10 @@
                 "SoloTaps": {
                     "Name": "Allow Taps During Solos",
                     "Description": "Allows solo buttons to tap notes during solos"
+                },
+                "NoStarPowerOverlap": {
+                    "Name": "No Star Power Overlap",
+                    "Description": "Disallows earning more Star Power while Star Power is already active."
                 }
             },
             "HighwayPreset" : {
@@ -1741,8 +1872,53 @@
                 },
                 "StarPowerColor": {
                     "Name": "Star Power Color"
+                },
+                "NoteHeight": {
+                    "Name": "Note Height"
+                },
+                "BackgroundImage": {
+                    "Name": "Custom Background Texture"
+                },
+                "SideImage": {
+                    "Name": "Custom Side Texture (Highlighted in SP)"
+                },
+                "BaseWaviness": {
+                    "Name": "Base Texture Waviness"
+                },
+                "SideWaviness": {
+                    "Name": "Side Texture Waviness"
                 }
-            }
+            },
+			"RockMeterPreset" : {
+                "StartingHappiness": {
+                    "Name": "Starting Happiness",
+					"Description": "This controls how full the Rock Meter is at the beginning of the song."
+                },
+				"MissDamageMultiplier": {
+                    "Name": "Miss Damage Multiplier",
+					"Description": "This controls how much the Rock Meter decreases when missing a note. Higher values make the game more difficult."
+                },
+				"OverhitDamageMultiplier": {
+                    "Name": "Overhit Damage Multiplier",
+					"Description": "This controls how much the Rock Meter decreases when over-strumming. Higher values make the game more difficult."
+                },
+				"HitRecoveryMultiplier": {
+                    "Name": "Hit Recovery Multiplier",
+					"Description": "This controls how much the Rock Meter recovers when hitting a note correctly. Higher values make the game easier."
+                },
+				"StarPowerEffectMultiplier": {
+                    "Name": "Star Power Multiplier",
+					"Description": "This controls how much the Rock Meter recovers when successfully hitting a note while Star Power is active. This has no effect on misses or overhits."
+                },
+				"VocalsMissDamageMultiplier": {
+                    "Name": "Miss Damage Multiplier (Vocals)",
+					"Description": "This controls how much the Rock Meter decreases when a vocalist sings a phrase poorly. Higher values make the game more difficult."
+                },
+				"VocalsHitRecoveryMultiplier": {
+                    "Name": "Hit Recovery Multiplier (Vocals)",
+					"Description": "This controls how much the Rock Meter recovers when a vocalist sings a phrase well. Higher values make the game easier."
+                }
+			}
         }
     }
 }

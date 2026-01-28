@@ -94,7 +94,7 @@ namespace YARG.Menu.Persistent
 
         protected override void SingletonAwake()
         {
-            _screenRefreshRate = Screen.currentResolution.refreshRate;
+            _screenRefreshRate = (float) Screen.currentResolution.refreshRateRatio.value;
         }
 
         private GameObject GetStat(Stat stat)

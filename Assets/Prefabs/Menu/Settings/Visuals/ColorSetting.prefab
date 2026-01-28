@@ -1332,6 +1332,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!1 &3786693973871400430 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 4961476867242781604, guid: 6f46741e648c07044852bd3391146600,
+    type: 3}
+  m_PrefabInstance: {fileID: 8095148824242519626}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &5552788490976803366 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 4420504316707193964, guid: 6f46741e648c07044852bd3391146600,
@@ -1351,6 +1357,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _settingLabel: {fileID: 3424729177075475668}
+  _evenBackground: {fileID: 3786693973871400430}
   _colorRectangle: {fileID: 3009981232021390853}
   _inputField: {fileID: 6052348257469417757}
   _opacityField: {fileID: 7671639029682681352}
