@@ -64,7 +64,7 @@ namespace YARG.Song
         private static void ExportCsv(string path)
         {
             using var output = new StreamWriter(path);
-            
+
             output.WriteLine(
                 "Name,Artist,Album,Genre,Year,Length,Charter,Playlist,Source," +
                 "Master,Age Rating,Vocal Parts," +
@@ -93,35 +93,44 @@ namespace YARG.Song
 
                 string songRating = song.SongRating switch
                 {
-                    SongRating.Family_Friendly => "Family Friendly",
+                    SongRating.Family_Friendly         => "Family Friendly",
                     SongRating.Supervision_Recommended => "Supervision Recommended",
-                    SongRating.Mature => "Mature",
-                    _ => "No Rating"
+                    SongRating.Mature                  => "Mature",
+                    _                                  => "No Rating"
                 };
 
                 bool isMaster = song.IsMaster;
                 int vocalsCount = song.VocalsCount;
 
-                int fiveFretGuitar = song.HasInstrument(Instrument.FiveFretGuitar) ? song[Instrument.FiveFretGuitar].Intensity : -1;
-                int fiveFretBass = song.HasInstrument(Instrument.FiveFretBass) ? song[Instrument.FiveFretBass].Intensity : -1;
-                int fiveFretRhythm = song.HasInstrument(Instrument.FiveFretRhythm) ? song[Instrument.FiveFretRhythm].Intensity : -1;
-                int fiveFretCoopGuitar = song.HasInstrument(Instrument.FiveFretCoopGuitar) ? song[Instrument.FiveFretCoopGuitar].Intensity : -1;
-                int keys = song.HasInstrument(Instrument.Keys) ? song[Instrument.Keys].Intensity : -1;
-                int sixFretGuitar = song.HasInstrument(Instrument.SixFretGuitar) ? song[Instrument.SixFretGuitar].Intensity : -1;
-                int sixFretBass = song.HasInstrument(Instrument.SixFretBass) ? song[Instrument.SixFretBass].Intensity : -1;
-                int sixFretRhythm = song.HasInstrument(Instrument.SixFretRhythm) ? song[Instrument.SixFretRhythm].Intensity : -1;
-                int sixFretCoopGuitar = song.HasInstrument(Instrument.SixFretCoopGuitar) ? song[Instrument.SixFretCoopGuitar].Intensity : -1;
-                int fourLaneDrums = song.HasInstrument(Instrument.FourLaneDrums) ? song[Instrument.FourLaneDrums].Intensity : -1;
-                int proDrums = song.HasInstrument(Instrument.ProDrums) ? song[Instrument.ProDrums].Intensity : -1;
-                int fiveLaneDrums = song.HasInstrument(Instrument.FiveLaneDrums) ? song[Instrument.FiveLaneDrums].Intensity : -1;
-                int eliteDrums = song.HasInstrument(Instrument.EliteDrums) ? song[Instrument.EliteDrums].Intensity : -1;
-                int proGuitar17 = song.HasInstrument(Instrument.ProGuitar_17Fret) ? song[Instrument.ProGuitar_17Fret].Intensity : -1;
-                int proGuitar22 = song.HasInstrument(Instrument.ProGuitar_22Fret) ? song[Instrument.ProGuitar_22Fret].Intensity : -1;
-                int proBass17 = song.HasInstrument(Instrument.ProBass_17Fret) ? song[Instrument.ProBass_17Fret].Intensity : -1;
-                int proBass22 = song.HasInstrument(Instrument.ProBass_22Fret) ? song[Instrument.ProBass_22Fret].Intensity : -1;
-                int proKeys = song.HasInstrument(Instrument.ProKeys) ? song[Instrument.ProKeys].Intensity : -1;
-                int vocals = song.HasInstrument(Instrument.Vocals) ? song[Instrument.Vocals].Intensity : -1;
-                int harmony = song.HasInstrument(Instrument.Harmony) ? song[Instrument.Harmony].Intensity : -1;
+                int GetIntensity(Instrument inst)
+                {
+                    if (song.HasInstrument(inst))
+                    {
+                        return Math.Max(0, song[inst].Intensity);
+                    }
+                    return -1;
+                }
+
+                int fiveFretGuitar = GetIntensity(Instrument.FiveFretGuitar);
+                int fiveFretBass = GetIntensity(Instrument.FiveFretBass);
+                int fiveFretRhythm = GetIntensity(Instrument.FiveFretRhythm);
+                int fiveFretCoopGuitar = GetIntensity(Instrument.FiveFretCoopGuitar);
+                int keys = GetIntensity(Instrument.Keys);
+                int sixFretGuitar = GetIntensity(Instrument.SixFretGuitar);
+                int sixFretBass = GetIntensity(Instrument.SixFretBass);
+                int sixFretRhythm = GetIntensity(Instrument.SixFretRhythm);
+                int sixFretCoopGuitar = GetIntensity(Instrument.SixFretCoopGuitar);
+                int fourLaneDrums = GetIntensity(Instrument.FourLaneDrums);
+                int proDrums = GetIntensity(Instrument.ProDrums);
+                int fiveLaneDrums = GetIntensity(Instrument.FiveLaneDrums);
+                int eliteDrums = GetIntensity(Instrument.EliteDrums);
+                int proGuitar17 = GetIntensity(Instrument.ProGuitar_17Fret);
+                int proGuitar22 = GetIntensity(Instrument.ProGuitar_22Fret);
+                int proBass17 = GetIntensity(Instrument.ProBass_17Fret);
+                int proBass22 = GetIntensity(Instrument.ProBass_22Fret);
+                int proKeys = GetIntensity(Instrument.ProKeys);
+                int vocals = GetIntensity(Instrument.Vocals);
+                int harmony = GetIntensity(Instrument.Harmony);
                 int band = song.BandDifficulty;
 
                 string subType = song.SubType.ToString();
