@@ -66,7 +66,20 @@ MonoBehaviour:
       - rid: 4391374056746123265
       - rid: 4391374056746123266
     m_RuntimeSettings:
-      m_List: []
+      m_List:
+      - rid: 8889647198755880962
+      - rid: 8889647198755880964
+      - rid: 8889647198755880968
+      - rid: 8889647198755880969
+      - rid: 8889647198755880971
+      - rid: 8889647198755880972
+      - rid: 8889647198755880973
+      - rid: 8889647198755880974
+      - rid: 8889647198755880979
+      - rid: 8889647198755880980
+      - rid: 8889647198755880984
+      - rid: 8889647198755880985
+      - rid: 8889647198755880986
   m_AssetVersion: 9
   m_ObsoleteDefaultVolumeProfile: {fileID: 0}
   m_RenderingLayerNames:
@@ -135,8 +148,6 @@ MonoBehaviour:
         m_GeometryShadowShader: {fileID: 4800000, guid: 19349a0f9a7ed4c48a27445bcf92e5e1,
           type: 3}
         m_GeometryUnshadowShader: {fileID: 4800000, guid: 77774d9009bb81447b048c907d4c6273,
-          type: 3}
-        m_FallOffLookup: {fileID: 2800000, guid: 5688ab254e4c0634f8d6c8e0792331ca,
           type: 3}
         m_CopyDepthPS: {fileID: 4800000, guid: d6dae50ee9e1bfa4db75f19f99355220, type: 3}
         m_DefaultLitMaterial: {fileID: 2100000, guid: a97c105638bdf8b4a8650670310a4cd3,
@@ -312,7 +323,7 @@ MonoBehaviour:
       type: {class: RenderGraphSettings, ns: UnityEngine.Rendering.Universal, asm: Unity.RenderPipelines.Universal.Runtime}
       data:
         m_Version: 0
-        m_EnableRenderCompatibilityMode: 1
+        m_EnableRenderCompatibilityMode: 0
     - rid: 8889647198755880974
       type: {class: UniversalRenderPipelineRuntimeXRResources, ns: UnityEngine.Rendering.Universal,
         asm: Unity.RenderPipelines.Universal.Runtime}
