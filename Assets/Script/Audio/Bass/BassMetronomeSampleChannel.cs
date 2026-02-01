@@ -50,6 +50,7 @@ namespace YARG.Audio.BASS
         private readonly int _hiChannel;
         private readonly int _loHandle;
         private readonly int _loChannel;
+        private double _volumeSetting = 1;
 
 #nullable enable
         private BassMetronomeSampleChannel(MetronomeSample sample, int hiHandle, int hiChannel, string hiPath, int loHandle, int loChannel, string loPath,
@@ -82,6 +83,9 @@ namespace YARG.Audio.BASS
 
         protected override void SetVolume_Internal(double volume)
         {
+            _volumeSetting = volume;
+            volume *= AudioHelpers.MetronomeSamples[(int) Sample].Volume;
+
             if (!Bass.ChannelSetAttribute(_hiChannel, ChannelAttribute.Volume, volume))
             {
                 YargLogger.LogFormatError("Failed to set {0} hi volume: {1}!", Sample, Bass.LastError);

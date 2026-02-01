@@ -330,6 +330,13 @@ namespace YARG.Audio.BASS
         {
             YargLogger.LogInfo("Loading SFX");
 
+#nullable enable
+            foreach (BassSampleChannel? sample in SfxSamples)
+#nullable disable
+            {
+                sample?.Dispose();
+            }
+
             SfxSamples = new SampleChannel[AudioHelpers.SfxSamples.Count];
 
             string sfxFolder = Path.Combine(Application.streamingAssetsPath, "sfx");
@@ -363,6 +370,13 @@ namespace YARG.Audio.BASS
         {
             YargLogger.LogInfo("Loading Drum SFX");
 
+#nullable enable
+            foreach (BassDrumSampleChannel? sample in DrumSfxSamples)
+#nullable disable
+            {
+                sample?.Dispose();
+            }
+
             DrumSfxSamples = new DrumSampleChannel[AudioHelpers.DrumSamples.Count];
 
             string sfxFolder = Path.Combine(Application.streamingAssetsPath, "drumSfx");
@@ -393,6 +407,13 @@ namespace YARG.Audio.BASS
         private void LoadVox()
         {
             YargLogger.LogInfo("Loading VOX");
+
+#nullable enable
+            foreach (BassVoxSampleChannel? sample in VoxSamples)
+#nullable disable
+            {
+                sample?.Dispose();
+            }
 
             VoxSamples = new VoxSampleChannel[AudioHelpers.VoxSamples.Count];
 
@@ -426,6 +447,16 @@ namespace YARG.Audio.BASS
         private void LoadMetronome()
         {
             YargLogger.LogInfo("Loading Metronome");
+
+#nullable enable
+            foreach (BassMetronomeSampleChannel? sample in MetronomeSamples)
+#nullable disable
+            {
+                sample?.Dispose();
+            }
+
+            MetronomeSamples = new MetronomeSampleChannel[AudioHelpers.MetronomeSamples.Count];
+
             string metronomeFolder = Path.Combine(Application.streamingAssetsPath, "metronome");
 
             foreach (var sample in AudioHelpers.MetronomeSamples)
