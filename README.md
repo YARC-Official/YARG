@@ -123,7 +123,7 @@ SUBSYSTEM=="usb", ATTR{idVendor}=="045e", ATTR{idProduct}=="0719", MODE="0666"
       - A complete example using the main repository's URL is `git clone -b dev --recursive https://github.com/YARC-Official/YARG.git`.
    6. Assets are stored in LFS, if you receive an error that assets can not be loaded or assets are missing, you may need to change into the YARG directory and retrieve assets from LFS by typing in `git lfs fetch` followed by `git lfs checkout` to use them when things get updated.
    7. Because YARG contains submodules, you may need to do `git submodule update` when things get updated.
-4. Install Unity 6000.2.12f1. Easiest method will be using Unity Hub:
+4. Install Unity 6000.3.5f2. Easiest method will be using Unity Hub:
    1. Download and install [Unity Hub](https://unity.com/download).
    2. Sign-in/create an account with a personal license (free).
    3. In Unity Hub, hit the arrow next to Add and select `Add project from disk`, then select the folder you cloned YARG to.
