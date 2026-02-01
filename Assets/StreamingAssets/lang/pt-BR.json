@@ -1085,7 +1085,7 @@
             "OutputChannels": {
                 "Default": "Usar Canais Padrão",
                 "Mono": "{0}",
-                "Stereo": "{0} & {1}"
+                "Stereo": "{0} e {1}"
             },
             "OutputDevice": {
                 "Name": "Dispositivo de Saída",
