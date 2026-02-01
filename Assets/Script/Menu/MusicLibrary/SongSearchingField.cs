@@ -7,6 +7,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using YARG.Core;
 using YARG.Core.Extensions;
+using YARG.Helpers.Extensions;
 using YARG.Song;
 
 namespace YARG.Menu.MusicLibrary
@@ -279,6 +280,13 @@ namespace YARG.Menu.MusicLibrary
         private void OnDisable()
         {
             _searchFilters.ClickedButton -= OnClickedSearchFilter;
+        }
+
+        public bool HasInstrumentFilter(Instrument instrument)
+        {
+            // Messy, but SongSearchingField uses _fullSearchQuery as the source of truth for filters
+            var filter = instrument.ToSortAttribute().ToString().ToLowerInvariant() + ":";
+            return _fullSearchQuery.StartsWith(filter) || _fullSearchQuery.Contains(";" + filter);
         }
     }
 }

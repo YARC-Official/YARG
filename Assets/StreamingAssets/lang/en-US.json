@@ -174,13 +174,14 @@
             },
             "Header": {
                 "Contributors": "Contributors",
-                "GameStartedBy": "A Game Started By",
+                "Founder": "Founder",
                 "LeadArtist": "Lead Artist",
                 "Maintainers": "Maintainers",
-                "ProjectManager": "Project Manager",
+                "ProjectManager": "Project Managers",
                 "SpecialThanks": "Special Thanks",
                 "SetlistManager": "Setlist Manager",
-                "Songs": "Songs"
+                "Songs": "Songs",
+                "Supporters": "Supporters"
             },
             "Song": {
                 "Name": "\"{0}\" by {1}",
@@ -198,6 +199,9 @@
                 "Mixed": "Mixed",
                 "Mastered": "Mastered",
                 "By": "By: {0}"
+            },
+            "Text": {
+                "ExtraSpecialThanks": "An extra special thanks goes to <b>EliteAsian</b>, <b>Kadu</b>, <b>RileyTheFox</b>, <b>TheNathannator</b>, and <b>Sonicfind</b><br><br>We stand on the shoulders of giants."
             }
         },
         "Toast": {
@@ -270,7 +274,7 @@
             "PlayWithReplay": "Play With Replay"
         },
         "Main": {
-            "MessageOfTheDay": "<align=center><size=32><b>Welcome to v0.14 nightlies!</b></size></align>\n\nv0.14 is a major update that adds 5 Lane Keys, a new MIDI Drums profile type, easier instrument setup, support for 3D venue events, performance improvements when using multiple highways, many visual improvements, and uses a newer version of Unity that should improve Linux support.\n\n<b>If you have any feedback or find any bugs, please let us know on Discord or GitHub.</b>\n\nHappy YARGin'!",
+            "MessageOfTheDay": "<align=center><size=32><b>Welcome to v0.14!</b></size></align>\n\nv0.14 is a major update that adds 5 Lane Keys, a new MIDI Drums profile type, easier instrument setup, support for 3D venue events, performance improvements when using multiple highways, many visual improvements, and more.\n\n<b>If you have any feedback or find any bugs, please let us know on Discord or GitHub.</b>\n\nHappy YARGin'!",
             "Options": {
                 "Quickplay": "Quickplay",
                 "Practice": "Practice",
@@ -742,7 +746,7 @@
             "Advanced": "Advanced",
             "DMXChannels": "DMX Channels",
             "LightingGeneral": "Lighting General",
-            "Export": "Export",
+            "ExportSongs": "Export Songs List",
             "PathsAndFolders": "Paths and Folders",
             "MusicLibrary": "Music Library",
             "PlayAShow": "Play A Show",
@@ -761,8 +765,9 @@
         "Button": {
             "CopyCurrentSongJsonFilePath": "Copy Current Song Json File Path",
             "CopyCurrentSongTextFilePath": "Copy Current Song Text File Path",
-            "ExportSongsOuvert": "Export Songs List (For Ouvert Bot)",
-            "ExportSongsText": "Export Songs List (Plain Text)",
+            "ExportSongsJson": "Ouvert (JSON)",
+            "ExportSongsText": "Plain Text",
+            "ExportSongsCsv": "CSV",
             "OpenCalibrator": "Open Calibrator",
             "OpenVenueFolder": "Open Backgrounds/Venue Folder",
             "AddFolder": "Add Folder",
@@ -781,6 +786,7 @@
             },
             "AudioCalibration": {
                 "Name": "Audio Calibration (ms)",
+                "PauseName": "Audio Calibration (ms)",
                 "Description": "Audio calibration in milliseconds. Use the calibrator to automatically calibrate. Higher values make the audio play earlier, while lower ones make the audio play later."
             },
             "AccountForHardwareLatency": {
@@ -1220,7 +1226,7 @@
                     "None": "None",
                     "FXAA": "FXAA",
                     "MSAA": "MSAA",
-                    "FSR3": "FSR3"
+                    "TAA": "TAA"
                 }
             },
             "VenuePostProcessing": {
@@ -1241,6 +1247,7 @@
             },
             "VideoCalibration": {
                 "Name": "Video Calibration (ms)",
+                "PauseName": "Video Calibration (ms)",
                 "Description": "Video calibration in milliseconds. Use the calibrator to automatically calibrate. This accounts for delays between the game's processing and the actual frame being displayed."
             },
             "VocalMonitoring": {
@@ -1389,6 +1396,10 @@
             "ReduceNoteSpeedByDifficulty": {
                 "Name": "Reduce Note Speed by Difficulty",
                 "Description": "Reduces the note speed if playing on a lower difficulty than Expert. The specified note speed is applied to Expert, and lower difficulties receive a reduction in speed. This setting does not affect vocal tracks."
+            },
+            "LearningGuides": {
+                "Name": "Learning Guides",
+                "Description": "Adds some musical theory guides for Pro Keys to help learn the instrument."
             },
             "ShowPlayerNameWhenStartingSong": {
                 "Name": "Show Player Name When Starting Song",

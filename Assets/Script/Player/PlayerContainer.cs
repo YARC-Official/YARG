@@ -499,8 +499,9 @@ namespace YARG.Player
                     return false;
                 }
 
-                var failMessage = Localize.KeyFormat("Menu.Toast.UnsupportedDevice", device.displayName);
-                ToastManager.ToastWarning(failMessage);
+                // TODO: Figure out why this triggers for non-input devices like stage kits so we can enable this
+                // var failMessage = Localize.KeyFormat("Menu.Toast.UnsupportedDevice", device.displayName);
+                // ToastManager.ToastWarning(failMessage);
                 return false;
             }
 

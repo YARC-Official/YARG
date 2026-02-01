@@ -178,11 +178,14 @@ namespace YARG.Gameplay.Visuals
                 color = colors.Miss;
             }
 
-            // Set the note color
-            NoteGroup.SetColorWithEmission(color.ToUnityColor(), colorNoStarPower.ToUnityColor());
+            // Set the note color if not hidden
+            if (!NoteRef.WasHit)
+            {
+                NoteGroup.SetColorWithEmission(color.ToUnityColor(), colorNoStarPower.ToUnityColor());
 
-            // Set the metal color
-            NoteGroup.SetMetalColor(colors.GetMetalColor(IsStarPowerVisible).ToUnityColor());
+                // Set the metal color
+                NoteGroup.SetMetalColor(colors.GetMetalColor(IsStarPowerVisible).ToUnityColor());
+            }
 
             // The rest of this method is for sustain only
             if (!NoteRef.IsSustain) return;

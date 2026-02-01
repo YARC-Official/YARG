@@ -20,5 +20,11 @@ namespace YARG.Gameplay.HUD
             nameof(SettingsManager.Settings.VocalMonitoring),
             nameof(SettingsManager.Settings.MetronomeVolume),
         };
+
+        private static readonly List<string> _calibrationSettings = new()
+        {
+            nameof(SettingsManager.Settings.AudioCalibration),
+            nameof(SettingsManager.Settings.VideoCalibration),
+        };
     }
 }

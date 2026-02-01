@@ -21,7 +21,7 @@ namespace YARG.Gameplay.Visuals
         //For multiple lanes, cap the lane width to a percentage of the screen width, 1.0f = 100% of screen width
         private const float MAX_LANE_SCREEN_WIDTH_PERCENT  = 0.45f;
 
-        //For all lanes, cap the lane height to a percentage of the screen height, 1.0f = 100% of screen height
+        //For multiple lanes, cap the lane height to a percentage of the screen height, 1.0f = 100% of screen height
         private const float MAX_LANE_SCREEN_HEIGHT_PERCENT = 0.55f;
 
         //In single player, allow more height
@@ -47,6 +47,7 @@ namespace YARG.Gameplay.Visuals
         private ScriptableRenderPass       _fadeCalcPass;
         private bool                       _allowTextureRecreation = true;
         private bool                       _needsInitialization    = true;
+        private bool                       _needsCameraReset;
 
         private readonly float[]           _curveFactors       = new float[MAX_MATRICES];
         private readonly float[]           _zeroFadePositions  = new float[MAX_MATRICES];
@@ -244,7 +245,7 @@ namespace YARG.Gameplay.Visuals
             _highwayPositions.Add(position);
             UpdateCurveFactor(curveFactor, index);
             UpdateFadeParams(index, zeroFadePosition, fadeSize);
-            ResetCameras();
+            _needsCameraReset = true;
         }
 
         public void UpdateCurveFactor(float curveFactor, int index)
@@ -336,9 +337,10 @@ namespace YARG.Gameplay.Visuals
                 return;
             }
 
-            if (ScreenSizeDetector.HasScreenSizeChanged)
+            if (ScreenSizeDetector.HasScreenSizeChanged || _needsCameraReset)
             {
                 ResetCameras();
+                _needsCameraReset = false;
             }
 
             RecalculateFadeParams();
@@ -504,9 +506,9 @@ namespace YARG.Gameplay.Visuals
         /// <summary>
         /// Calculates the screen space position of any normalized coordinate on the track, from the strikeline.
         /// </summary>
-        /// <param name="trackIndex">The index of the highway to get the position for. 0 is left most highway</param>
+        /// <param name="trackIndex">The index of the highway to get the position for. 0 is leftmost highway</param>
         /// <param name="x">The normalized position across the track width (0.0 is leftmost track edge. 1.0 is rightmost track edge)</param>
-        /// <param name="y">The normalized position up the track (0.0 = strikeline, 1.0 is zero fade position)</param>
+        /// <param name="y">The normalized position up the track (0.0 is the strikeline, 1.0 is zero fade position)</param>
         public Vector2 GetTrackPositionScreenSpace(int trackIndex, float x, float y)
         {
             if (trackIndex < 0 || trackIndex >= _cameras.Count)
