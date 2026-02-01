@@ -453,7 +453,7 @@ namespace YARG.Audio.BASS
                 length = 0;
             }
 
-            if (!Bass.ChannelSetAttribute(_mixerHandle, ChannelAttribute.Buffer, length))
+            if (!Bass.ChannelSetAttribute(_tempoStreamHandle, ChannelAttribute.Buffer, length))
             {
                 YargLogger.LogFormatError("Failed to set playback buffer: {0}!", Bass.LastError);
             }
