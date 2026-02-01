@@ -1010,6 +1010,7 @@
                 "Dropdown": {
                     "Castanet": "Castanet",
                     "Clap": "Clap",
+                    "None": "None",
                     "Party": "Party",
                     "Quartz": "Quartz",
                     "Sine": "Sine",

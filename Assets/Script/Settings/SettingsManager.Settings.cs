@@ -214,7 +214,7 @@ namespace YARG.Settings
                 new(0.8f, v => GlobalAudioHandler.SetVolumeSetting(SongStem.DrumSfx, v));
 
             public VolumeSetting MetronomeVolume { get; } =
-                new(0f, v => GlobalAudioHandler.SetVolumeSetting(SongStem.Metronome, v));
+                new(0.5f, v => GlobalAudioHandler.SetVolumeSetting(SongStem.Metronome, v));
 
             public VolumeSetting PreviewVolume { get; } = new(0.25f);
             public VolumeSetting MusicPlayerVolume { get; } = new(0.15f, MusicPlayerVolumeCallback);
@@ -264,8 +264,9 @@ namespace YARG.Settings
             public ToggleSetting EnableVoxSamples { get; } = new(true);
 
             public DropdownSetting<MetronomeSample> MetronomeSound { get; }
-                = new(MetronomeSample.Square, MetronomePreviewCallback)
+                = new(MetronomeSample.None, MetronomePreviewCallback)
                 {
+                    MetronomeSample.None,
                     MetronomeSample.Castanet,
                     MetronomeSample.Clap,
                     MetronomeSample.Party,
