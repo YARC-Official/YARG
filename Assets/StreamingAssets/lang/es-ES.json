@@ -167,14 +167,14 @@
             },
             "Header": {
                 "Contributors": "Contribuidores",
-                "Founder": "Founder",
+                "Founder": "Fundador",
                 "LeadArtist": "Artista Líder",
                 "Maintainers": "Mantenedores",
-                "ProjectManager": "Project Managers",
+                "ProjectManager": "Administradores de proyecto",
                 "SpecialThanks": "Agradecimientos Especiales",
                 "SetlistManager": "Administrador de Setlist",
                 "Songs": "Canciones",
-                "Supporters": "Supporters"
+                "Supporters": "Colaboradores"
             },
             "Song": {
                 "Name": "\"{0} por {1}",
@@ -194,7 +194,7 @@
                 "By": "Por: {0}"
             },
             "Text": {
-                "ExtraSpecialThanks": "An extra special thanks goes to <b>EliteAsian</b>, <b>Kadu</b>, <b>RileyTheFox</b>, <b>TheNathannator</b>, and <b>Sonicfind</b><br><br>We stand on the shoulders of giants."
+                "ExtraSpecialThanks": "Un agradecimiento especial a <b>EliteAsian</b>, <b>Kadu</b>, <b>RileyTheFox</b>, <b>TheNathannator</b>, y <b>Sonicfind</b><br><br> Estamos en los hombros de los gigantes."
             }
         },
         "Toast": {
@@ -265,7 +265,7 @@
             "PlayWithReplay": "Jugar con Repetición"
         },
         "Main": {
-            "MessageOfTheDay": "<align=center><size=32><b>Welcome to v0.14!</b></size></align>\n\nv0.14 is a major update that adds 5 Lane Keys, a new MIDI Drums profile type, easier instrument setup, support for 3D venue events, performance improvements when using multiple highways, many visual improvements, and more.\n\n<b>If you have any feedback or find any bugs, please let us know on Discord or GitHub.</b>\n\nHappy YARGin'!",
+            "MessageOfTheDay": "<align=center><size=32><b>Bienvenidos a la v0.14!</b></size></align>\n\nLa v0.14 es una importante actualización que trae modalidad para Teclado de 5 Líneas, un nuevo tipo de perfil MIDI para Batería, una configuración más sencilla para instrumentos, soporte para eventos de escenarios 3D, mejoras de rendimiento al utilizar varias pistas, varias mejoras visuales, y más.\n\n<b>Si tienes algun comentario o encuentras algún error, por favor háznoslo saber en nuestro servidor de Discord o GitHub.</b>\n\nFeliz YARGin'!",
             "Options": {
                 "Quickplay": "Partida Rápida",
                 "Practice": "Práctica",
