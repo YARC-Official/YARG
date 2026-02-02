@@ -555,7 +555,7 @@ namespace YARG.Gameplay
 
             // Calculate band stars by taking average stars for human players only
             int humanCount = playerEntries.Count;
-            int averageStars = (int) humanBandStars / humanCount;
+            int averageStars = (int)(humanBandStars / humanCount);
             var bandStars = humanCount > 0
                 ? StarAmountHelper.GetStarsFromInt(averageStars)
                 : StarAmount.None;
