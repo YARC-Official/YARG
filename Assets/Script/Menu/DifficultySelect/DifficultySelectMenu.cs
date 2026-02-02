@@ -94,6 +94,8 @@ namespace YARG.Menu.DifficultySelect
 
         private YargPlayer CurrentPlayer => PlayerContainer.Players[_playerIndex];
 
+        private Scrollbar _scrollbar;
+
         private void OnEnable()
         {
             string subHeaderKey = GlobalVariables.State.IsPractice ? "Practice" : "Quickplay";
@@ -149,6 +151,32 @@ namespace YARG.Menu.DifficultySelect
 
             _sourceIcon.sprite = SongSources.SourceToIcon(GlobalVariables.State.CurrentSong.Source);
             _sourceIcon.gameObject.SetActive(_sourceIcon.sprite != null);
+
+
+            _scrollbar = GetComponentInChildren<Scrollbar>();
+            _navGroup.SelectionChanged += UpdateForSelectionChanged;
+        }
+
+        private void UpdateForSelectionChanged(NavigatableBehaviour navigatableBehaviour,
+            SelectionOrigin selectionOrigin)
+        {
+            int? index = _navGroup.SelectedIndex;
+            if (index is { } i)
+            {
+                int count = _navGroup.Count;
+                float highScrollBound = _scrollbar.size + (1 - _scrollbar.size) * _scrollbar.value;
+                float lowScrollBound = (1 - _scrollbar.size) * _scrollbar.value;
+                float indexHighBound = 1 - (1 / (float) count) * i;
+                float indexLowBound = 1 - (1 / (float) count) * (i + 1);
+                if (highScrollBound < indexHighBound)
+                {
+                    _scrollbar.value = (indexHighBound - _scrollbar.size) / (1 - _scrollbar.size);
+                }
+                else if (lowScrollBound > indexLowBound)
+                {
+                    _scrollbar.value = indexLowBound / (1 - _scrollbar.size);
+                }
+            }
         }
 
         private void UpdateForPlayer()
