@@ -59,6 +59,8 @@ namespace YARG.Gameplay.Player
         [SerializeField]
         protected KeyedPool NotePool;
         [SerializeField]
+        protected Pool LanePool;
+        [SerializeField]
         protected Pool BeatlinePool;
         [SerializeField]
         protected Pool EffectPool;
@@ -136,6 +138,7 @@ namespace YARG.Gameplay.Player
             TrackView.ForceReset();
 
             NotePool.ReturnAllObjects();
+            LanePool.ReturnAllObjects();
             BeatlinePool.ReturnAllObjects();
 
             HitWindowDisplay.SetHitWindowSize();
@@ -644,6 +647,143 @@ namespace YARG.Gameplay.Player
 
         protected virtual void OnNoteSpawned(TNote parentNote)
         {
+            SpawnLanesFromNote(parentNote);
+        }
+
+        private void SpawnLanesFromNote(TNote parentNote)
+        {
+            if (!Engine.LanesExist || !Engine.BaseParameters.EnableLanes)
+            {
+                return;
+            }
+
+            if (!LanePool.CanSpawnAmount(1))
+            {
+                return;
+            }
+
+            bool containsLaneStart = false;
+            foreach (var childNote in parentNote.AllNotes)
+            {
+                if (childNote.IsLaneStart)
+                {
+                    containsLaneStart = true;
+                    break;
+                }
+            }
+
+            if (containsLaneStart)
+            {
+                var laneStartNotes = new Dictionary<int, TNote>();
+                var laneEndTimes = new Dictionary<int, double>();
+
+                // Iterate forward to find the length of all lanes in this phrase
+                var noteRef = parentNote;
+                var thisLaneFlag = parentNote.IsTrill ? NoteFlags.Trill : NoteFlags.Tremolo;
+
+                while (noteRef != null)
+                {
+                    // Create one lane for single notes, create multiple lanes for non-drum chords
+                    bool containsLaneEnd = false;
+                    foreach (var childNote in noteRef.AllNotes)
+                    {
+                        if (childNote.IsLaneEnd)
+                        {
+                            containsLaneEnd = true;
+                        }
+
+                        if (childNote.IsLane)
+                        {
+                            int laneIndex = GetLaneIndex(childNote);
+
+                            if (laneStartNotes.ContainsKey(laneIndex))
+                            {
+                                laneEndTimes[laneIndex] = noteRef.Time;
+                            }
+                            else
+                            {
+                                laneStartNotes[laneIndex] = childNote;
+                            }
+                        }
+                    }
+
+                    if (containsLaneEnd)
+                    {
+                        break;
+                    }
+
+                    noteRef = noteRef.NextNote;
+                }
+
+                foreach (int laneIndex in laneStartNotes.Keys)
+                {
+                    if (!laneEndTimes.ContainsKey(laneIndex))
+                    {
+                        // Ending note was not found, do not create lane
+                        continue;
+                    }
+
+                    var firstLaneNote = laneStartNotes[laneIndex];
+                    double startTime = firstLaneNote.Time;
+                    double endTime = laneEndTimes[laneIndex];
+
+                    // Extend a previous lane if possible instead of creating two adjoining lanes at the same index
+                    bool extendExisting = false;
+                    foreach (LaneElement existingLane in LanePool.AllSpawned)
+                    {
+                        if (existingLane.ContainsIndex(laneIndex))
+                        {
+                            if (startTime - existingLane.EndTime <= LaneElement.COMBINE_LANE_THRESHOLD)
+                            {
+                                // New lane will overlap with existing one
+                                // Determine if the previous notes in this chart should prevent combining
+                                int notesToSearch = firstLaneNote.IsTrill ? 2 : 1;
+                                noteRef = firstLaneNote.PreviousNote;
+                                for (int n = 0; n < notesToSearch; n++)
+                                {
+                                    if (noteRef == null)
+                                    {
+                                        break;
+                                    }
+
+                                    if (existingLane.ContainsIndex(GetLaneIndex(noteRef)) && (noteRef.Flags & thisLaneFlag) != 0)
+                                    {
+                                        extendExisting = true;
+                                        break;
+                                    }
+
+                                    noteRef = noteRef.PreviousNote;
+                                }
+                            }
+
+                            if (extendExisting)
+                            {
+                                existingLane.SetTimeRange(existingLane.ElementTime, Math.Max(endTime, existingLane.EndTime));
+                            }
+
+                            break;
+                        }
+                    }
+
+                    if (extendExisting)
+                    {
+                        continue;
+                    }
+
+                    // Create a new lane element at this index
+                    var newLane = (LaneElement) LanePool.TakeWithoutEnabling();
+                    newLane.SetTimeRange(startTime, endTime);
+                    InitializeSpawnedLane(newLane, laneIndex);
+                    ModifyLaneFromNote(newLane, firstLaneNote);
+
+                    newLane.EnableFromPool();
+                }
+            }
+        }
+
+        protected virtual int GetLaneIndex(TNote note)
+        {
+            return note.LaneNote;
         }
 
         public override void SetPracticeSection(uint start, uint end)
@@ -727,6 +867,8 @@ namespace YARG.Gameplay.Player
         }
 
         protected abstract void InitializeSpawnedNote(IPoolable poolable, TNote note);
+        protected abstract void InitializeSpawnedLane(LaneElement lane, int index);
+        protected virtual void ModifyLaneFromNote(LaneElement lane, TNote note) {}
 
         protected virtual void OnNoteHit(int index, TNote note)
         {

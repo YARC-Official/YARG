@@ -383,18 +383,18 @@
         "com.unity.modules.imgui": "1.0.0"
       }
     },
+    "com.yasirkula.simplefilebrowser": {
+      "version": "https://github.com/yasirkula/UnitySimpleFileBrowser.git",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {},
+      "hash": "e24fa529103603043f6dad1b66192ff72954ef6e"
+    },
     "in.yarg.core": {
       "version": "file:../YARG.Core/YARG.Core",
       "depth": 0,
       "source": "local",
       "dependencies": {}
-    },
-    "io.github.gkngkc.unity-standalone-file-browser": {
-      "version": "https://github.com/wyrdough/UnityStandaloneFileBrowser.git?path=Packages/StandaloneFileBrowser#upm",
-      "depth": 0,
-      "source": "git",
-      "dependencies": {},
-      "hash": "9ee3c1276182c00758ff506e5e1d4be894b9749e"
     },
     "jp.keijiro.minis": {
       "version": "https://github.com/TheNathannator/Minis.git?path=/Packages/jp.keijiro.minis#yarg",

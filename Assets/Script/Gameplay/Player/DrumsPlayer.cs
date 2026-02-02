@@ -48,6 +48,8 @@ namespace YARG.Gameplay.Player
         private Dictionary<int, float> _fretToLastPressedTimeDelta                                         = new();
         private Dictionary<Fret.AnimType, Dictionary<int, float>> _animTypeToFretToLastPressedDelta = new();
 
+        private bool IsSplitMode => Player.Profile.CurrentInstrument is Instrument.ProDrums && Player.Profile.SplitProTomsAndCymbals;
+
         public override void Initialize(int index, YargPlayer player, SongChart chart, TrackView trackView, StemMixer mixer,
             int? currentHighScore)
         {
@@ -127,7 +129,7 @@ namespace YARG.Gameplay.Player
             {
                 _fretArray.FretCount = 5;
             }
-            else if (Player.Profile.SplitProTomsAndCymbals && EngineParams.Mode == DrumsEngineParameters.DrumMode.ProFourLane)
+            else if (IsSplitMode)
             {
                 _fretArray.FretCount = 7;
             }
@@ -141,7 +143,7 @@ namespace YARG.Gameplay.Player
                 _fiveLaneMode ? VisualStyle.FiveLaneDrums : VisualStyle.FourLaneDrums,
                 colors,
                 Player.Profile.LeftyFlip,
-                Player.Profile.CurrentInstrument is Instrument.ProDrums && Player.Profile.SplitProTomsAndCymbals,
+                IsSplitMode,
                 ShouldSwapSnareAndHiHat(),
                 ShouldSwapCrashAndRide()
             );
@@ -163,6 +165,7 @@ namespace YARG.Gameplay.Player
             InitializeAnimTypes();
 
             base.FinishInitialization();
+            LaneElement.DefineLaneScale(Player.Profile.CurrentInstrument, _fiveLaneMode ? 5 : 4);
         }
 
         private int GetFillLaneForSplitView(int rightmostPad)
@@ -215,7 +218,7 @@ namespace YARG.Gameplay.Player
                 // Convert pad to lane for pro
                 if (Player.Profile.CurrentInstrument == Instrument.ProDrums)
                 {
-                    if (Player.Profile.SplitProTomsAndCymbals)
+                    if (IsSplitMode)
                     {
                         fillLane = GetFillLaneForSplitView(fillLane);
                     }
@@ -296,6 +299,161 @@ namespace YARG.Gameplay.Player
         protected override void InitializeSpawnedNote(IPoolable poolable, DrumNote note)
         {
             ((DrumsNoteElement) poolable).NoteRef = note;
+        }
+
+        protected override int GetLaneIndex(DrumNote note)
+        {
+            int laneIndex = note.Pad;
+
+            if (IsSplitMode)
+            {
+                laneIndex = GetSplitIndex(laneIndex);
+            }
+
+            if (!_fiveLaneMode && laneIndex >= (int) FourLaneDrumPad.YellowCymbal && !IsSplitMode)
+            {
+                laneIndex -= 3;
+            }
+
+            if (Player.Profile.LeftyFlip)
+            {
+                if (_fiveLaneMode)
+                {
+                    laneIndex = 6 - laneIndex;
+                }
+                else if (IsSplitMode)
+                {
+                    laneIndex = 8 - laneIndex;
+                }
+                else
+                {
+                    laneIndex = 5 - laneIndex;
+                }
+            }
+
+            return laneIndex;
+        }
+
+        private int GetColorIndex(int index)
+        {
+            if (IsSplitMode)
+            {
+                if (Player.Profile.LeftyFlip)
+                {
+                    index = index switch
+                    {
+                        0 => 0,
+                        7 => 4,
+                        6 => 6,
+                        5 => 3,
+                        4 => 5,
+                        3 => 2,
+                        2 => 8,
+                        1 => 1,
+                        _ => index
+                    };
+                }
+                else
+                {
+                    index = index switch
+                    {
+                        0 => 0,
+                        1 => 1,
+                        2 => 5,
+                        3 => 2,
+                        4 => 6,
+                        5 => 3,
+                        6 => 7,
+                        7 => 4,
+                        _ => index
+                    };
+                }
+            }
+
+            if (ShouldSwapSnareAndHiHat())
+            {
+                if (Player.Profile.LeftyFlip)
+                {
+                    index = index switch
+                    {
+                        6 => 4,
+                        4 => 6,
+                        _ => index
+                    };
+                }
+                else
+                {
+                    index = index switch
+                    {
+                        1 => 5,
+                        5 => 1,
+                        _ => index
+                    };
+                }
+            }
+
+            if (ShouldSwapCrashAndRide())
+            {
+                if (Player.Profile.LeftyFlip)
+                {
+                    index = index switch
+                    {
+                        8 => 5,
+                        5 => 8,
+                        _ => index
+                    };
+                }
+                else
+                {
+                    index = index switch
+                    {
+                        6 => 7,
+                        7 => 6,
+                        _ => index
+                    };
+                }
+            }
+
+            return index;
+        }
+
+        protected override void InitializeSpawnedLane(LaneElement lane, int index)
+        {
+            Color laneColor;
+            int totalLanes;
+
+            if (IsSplitMode)
+            {
+                totalLanes = 7;
+                laneColor = Player.ColorProfile.FourLaneDrums.GetNoteColor(GetColorIndex(index)).ToUnityColor();
+                // laneColor = Player.ColorProfile.FourLaneDrums.GetNoteColor(index).ToUnityColor();
+            }
+            else if (_fiveLaneMode)
+            {
+                laneColor = Player.ColorProfile.FiveLaneDrums.GetNoteColor(index).ToUnityColor();
+                totalLanes = 5;
+            }
+            else
+            {
+                laneColor = Player.ColorProfile.FourLaneDrums.GetNoteColor(index).ToUnityColor();
+                totalLanes = 4;
+            }
+
+            lane.SetAppearance(Player.Profile.CurrentInstrument, index, totalLanes, laneColor);
+
+        }
+
+        protected override void ModifyLaneFromNote(LaneElement lane, DrumNote note)
+        {
+            if (note.Pad == 0)
+            {
+                lane.ToggleOpen(true);
+            }
+            else
+            {
+                // Correct size of lane slightly for padding in fret array
+                lane.MultiplyScale(0.97f);
+            }
         }
 
         protected override void OnNoteHit(int index, DrumNote note)
@@ -468,10 +626,7 @@ namespace YARG.Gameplay.Player
 
         private bool ShouldSwapSnareAndHiHat()
         {
-            if (
-                (Player.Profile.CurrentInstrument is Instrument.FiveLaneDrums) ||
-                (Player.Profile.CurrentInstrument is Instrument.ProDrums && Player.Profile.SplitProTomsAndCymbals)
-            )
+            if (Player.Profile.CurrentInstrument is Instrument.FiveLaneDrums || IsSplitMode)
             {
                 return Player.Profile.SwapSnareAndHiHat;
             }
@@ -479,10 +634,7 @@ namespace YARG.Gameplay.Player
             return false;
         }
 
-        private bool ShouldSwapCrashAndRide() =>
-            Player.Profile.CurrentInstrument is Instrument.ProDrums &&
-            Player.Profile.SplitProTomsAndCymbals &&
-            Player.Profile.SwapCrashAndRide;
+        private bool ShouldSwapCrashAndRide() => IsSplitMode && Player.Profile.SwapCrashAndRide;
 
         protected override void UpdateVisuals(double visualTime)
         {
@@ -658,7 +810,7 @@ namespace YARG.Gameplay.Player
                 return GetFiveLaneFret(action);
             }
 
-            if (Player.Profile.SplitProTomsAndCymbals && Player.Profile.CurrentInstrument == Instrument.ProDrums)
+            if (IsSplitMode)
             {
                 return GetSplitFret(action);
             }
@@ -713,8 +865,7 @@ namespace YARG.Gameplay.Player
                 return GetFiveLaneFret(pad);
             }
 
-            if (Player.Profile.SplitProTomsAndCymbals
-                && EngineParams.Mode == DrumsEngineParameters.DrumMode.ProFourLane)
+            if (IsSplitMode)
             {
                 return GetSplitFret(pad);
             }
@@ -758,6 +909,21 @@ namespace YARG.Gameplay.Player
                 FourLaneDrumPad.BlueDrum     => 4,
                 FourLaneDrumPad.GreenCymbal  => 5,
                 FourLaneDrumPad.GreenDrum    => 6,
+                _                            => -1,
+            };
+        }
+
+        private int GetSplitIndex(int pad)
+        {
+            return (FourLaneDrumPad) pad switch
+            {
+                FourLaneDrumPad.RedDrum      => ShouldSwapSnareAndHiHat() ? 2 : 1,
+                FourLaneDrumPad.YellowCymbal => ShouldSwapSnareAndHiHat() ? 1 : 2,
+                FourLaneDrumPad.YellowDrum   => 3,
+                FourLaneDrumPad.BlueCymbal   => ShouldSwapCrashAndRide() ? 6 : 4,
+                FourLaneDrumPad.BlueDrum     => 5,
+                FourLaneDrumPad.GreenCymbal  => ShouldSwapCrashAndRide() ? 4 : 6,
+                FourLaneDrumPad.GreenDrum    => 7,
                 _                            => -1,
             };
         }
