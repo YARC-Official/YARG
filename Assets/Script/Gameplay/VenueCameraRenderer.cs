@@ -6,6 +6,7 @@ using UnityEngine.Rendering.Universal;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using YARG.Core.Logging;
+using YARG.Helpers.UI;
 using YARG.Settings;
 using YARG.Venue.VolumeComponents;
 
@@ -87,8 +88,8 @@ namespace YARG.Gameplay
                     _renderCamera.allowMSAA = true;
                     cameraData.antialiasing = AntialiasingMode.SubpixelMorphologicalAntiAliasing;
                     break;
-                case VenueAntiAliasingMethod.FSR3:
-                    _renderCamera.gameObject.AddComponent<FSRCameraManager>();
+                case VenueAntiAliasingMethod.TAA:
+                    cameraData.antialiasing = AntialiasingMode.TemporalAntiAliasing;
                     break;
             }
             UniversalRenderPipelineAsset = GraphicsSettings.currentRenderPipeline as UniversalRenderPipelineAsset;
@@ -137,6 +138,29 @@ namespace YARG.Gameplay
             _alphaClearMaterial = CreateMaterial("Hidden/AlphaClear");
 
             _staticsCreated = true;
+        }
+
+        private void RecreateTextures()
+        {
+            if (_venueTexture != null)
+            {
+                _venueTexture.Release();
+                _venueTexture.DiscardContents();
+            }
+
+            var outputWidth = (int)(Screen.width * renderScale);
+            var outputHeight = (int)(Screen.height * renderScale);
+            _venueTexture = new RenderTexture(outputWidth, outputHeight, 0, RenderTextureFormat.DefaultHDR);
+
+            _venueOutput.texture = _venueTexture;
+
+            if (_trailsTexture != null)
+            {
+                _trailsTexture.Release();
+                _trailsTexture.DiscardContents();
+            }
+
+            _trailsTexture = new RenderTexture(_venueTexture);
         }
 
         private void OnEnable()
@@ -211,6 +235,11 @@ namespace YARG.Gameplay
 
         private void Update()
         {
+            if (ScreenSizeDetector.HasScreenSizeChanged)
+            {
+                RecreateTextures();
+            }
+
             var stack = VolumeManager.instance.stack;
 
             VolumeManager.instance.Update(_renderCamera.gameObject.transform, _venueLayerMask);
@@ -297,6 +326,7 @@ namespace YARG.Gameplay
             var mirrorEffect = stack.GetComponent<MirrorComponent>();
             if (mirrorEffect.IsActive() && _mirrorMaterial != null)
             {
+                _mirrorMaterial.shaderKeywords = Array.Empty<string>();
                 _mirrorMaterial.EnableKeyword(_mirrorKeywords[mirrorEffect.wipeIndex.value]);
                 _mirrorMaterial.SetFloat(_wipeTimeId, mirrorEffect.wipeTime.value);
                 _mirrorMaterial.SetFloat(_startTimeId, mirrorEffect.startTime.value);

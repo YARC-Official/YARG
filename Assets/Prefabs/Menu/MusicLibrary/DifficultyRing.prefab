@@ -69,6 +69,7 @@ MonoBehaviour:
   _ringPurpleColor: {r: 0.53333336, g: 0.26666668, b: 0.9843137, a: 1}
   _ringRainbowMaterial: {fileID: 2100000, guid: 38b352628af319449b76ad71b1dea81a,
     type: 2}
+  _partSelectedColor: {r: 0.18039216, g: 0.8509804, b: 1, a: 0}
 --- !u!1 &431087603098892755
 GameObject:
   m_ObjectHideFlags: 0

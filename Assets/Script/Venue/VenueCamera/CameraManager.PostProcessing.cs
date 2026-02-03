@@ -1040,7 +1040,8 @@ namespace YARG.Venue.VenueCamera
             ResetCameraEffect();
 
             _currentEventIndex = 0;
-            while (_currentEventIndex < _postProcessingEvents.Count && _postProcessingEvents[_currentEventIndex].Time < time)
+            while (_currentEventIndex < _postProcessingEvents.Count - 1  &&
+                _postProcessingEvents[_currentEventIndex + 1].Time < time)
             {
                 _currentEventIndex++;
             }
@@ -1052,7 +1053,7 @@ namespace YARG.Venue.VenueCamera
             }
             else
             {
-                PreviousEffect = null;
+                PreviousEffect = new PostProcessingEvent(PostProcessingType.Default, -2f, 0);
             }
 
             if (_currentEventIndex + 1 < _postProcessingEvents.Count)

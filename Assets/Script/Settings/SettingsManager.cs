@@ -49,6 +49,8 @@ namespace YARG.Settings
                 nameof(Settings.EnablePracticeSP),
                 nameof(Settings.PracticeRestartDelay),
                 nameof(Settings.NoFailMode),
+                nameof(Settings.LearningGuides),
+                nameof(Settings.ReduceNoteSpeedByDifficulty),
 
                 new HeaderMetadata("StatusBar"),
                 nameof(Settings.ShowBattery),
@@ -61,7 +63,6 @@ namespace YARG.Settings
                 new HeaderMetadata("Other"),
                 nameof(Settings.ReconnectProfiles),
                 nameof(Settings.AutoCreateProfiles),
-                nameof(Settings.ReduceNoteSpeedByDifficulty),
                 nameof(Settings.ShowCursorTimer),
                 nameof(Settings.PauseOnDeviceDisconnect),
                 nameof(Settings.PauseOnFocusLoss),
@@ -100,6 +101,7 @@ namespace YARG.Settings
                 nameof(Settings.PreviewVolume),
                 nameof(Settings.MusicPlayerVolume),
                 nameof(Settings.VocalMonitoring),
+                nameof(Settings.MetronomeVolume),
 
                 new HeaderMetadata("Customization"),
                 nameof(Settings.EnablePlaybackBuffer),
@@ -121,6 +123,7 @@ namespace YARG.Settings
                 nameof(Settings.UseChipmunkSpeed),
                 nameof(Settings.ApplyVolumesInMusicLibrary),
                 nameof(Settings.EnableVoxSamples),
+                nameof(Settings.MetronomeSound),
             },
             new MetadataTab("Graphics", icon: "Display", new TrackPreviewBuilder())
             {
@@ -172,10 +175,12 @@ namespace YARG.Settings
 
             new MetadataTab("FileManagement", icon: "Files")
             {
-                new HeaderMetadata("Export"),
+                new HeaderMetadata("ExportSongs"),
                 new ButtonRowMetadata(
-                    nameof(Settings.ExportSongsOuvert),
-                    nameof(Settings.ExportSongsText)),
+                    nameof(Settings.ExportSongsJson),
+                    nameof(Settings.ExportSongsText),
+                    nameof(Settings.ExportSongsCsv)
+                ),
                 new HeaderMetadata("PathsAndFolders"),
                 new ButtonRowMetadata(
                     nameof(Settings.CopyCurrentSongTextFilePath),
@@ -229,6 +234,13 @@ namespace YARG.Settings
                 nameof(Settings.DataStreamEnable),
                 nameof(Settings.EnableNormalization),
                 nameof(Settings.SaveScoresWithBots),
+                new HeaderMetadata("OutputConfiguration"),
+                nameof(Settings.OutputDevice),
+                nameof(Settings.OutputChannelDefault),
+                nameof(Settings.OutputChannelDrumSfx),
+                nameof(Settings.OutputChannelMetronome),
+                nameof(Settings.OutputChannelSfx),
+                nameof(Settings.OutputChannelVox),
             }
         };
 
@@ -254,12 +266,6 @@ namespace YARG.Settings
 
             // If null, recreate
             Settings ??= new SettingContainer();
-            if (!SettingContainer.IsInitialized && SystemInfo.supportsComputeShaders && SystemInfo.supportsMotionVectors)
-            {
-                Settings.VenueAntiAliasing.Add(
-                     YARG.VenueAntiAliasingMethod.FSR3
-                );
-            }
             SettingContainer.IsInitialized = true;
 
             // Now that we're done loading, call all of the callbacks

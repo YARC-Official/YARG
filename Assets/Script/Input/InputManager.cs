@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Cysharp.Text;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.Controls;
 using UnityEngine.InputSystem.Layouts;
 using UnityEngine.InputSystem.LowLevel;
 using YARG.Core.Input;
@@ -218,9 +219,9 @@ namespace YARG.Input
 
                 foreach (var control in eventPtr.EnumerateChangedControls())
                 {
-                    if (control.noisy)
+                    if (control.noisy || control is not ButtonControl)
                     {
-                        return;
+                        continue;
                     }
                     controlChanged = true;
                     break;

@@ -124,6 +124,17 @@ namespace YARG.Settings.Metadata
         {
             // Since we don't wanna put attributes on each color within the color profile,
             // add a special case for that.
+            var settingType = field.GetCustomAttribute<SettingTypeAttribute>();
+
+            // But if the setting type attribute is set to ignore, respect that
+            //
+            // This exists because it can happen that a preset/other settings object
+            // needs to have public fields that we don't want shown in the UI
+            if (settingType is not null && settingType.Type == SettingType.Ignore)
+            {
+                return;
+            }
+
             if (field.FieldType == typeof(SystemColor) && typeof(T) == typeof(ColorProfile))
             {
                 list.Add(new FieldSettingInfo
@@ -136,7 +147,6 @@ namespace YARG.Settings.Metadata
                 return;
             }
 
-            var settingType = field.GetCustomAttribute<SettingTypeAttribute>();
             if (settingType is null)
             {
                 return;
@@ -219,12 +229,6 @@ namespace YARG.Settings.Metadata
                 {
                     foreach (var field in _fields)
                     {
-                        if (field.ParentField is null)
-                        {
-                            YargLogger.LogFormatDebug("Unexpected null parent field for {0}", field.Field);
-                            continue;
-                        }
-
                         if (_subSection is not null && field.ParentField.Name != _subSection)
                         {
                             continue;
@@ -340,10 +344,25 @@ namespace YARG.Settings.Metadata
                 foreach (var windowField in _hitWindowFields)
                 {
                     // Every field should not be added if it is not a dynamic window (except for the ratio)
-                    if (!hitWindow.IsDynamic &&
-                        windowField.Field.Name != nameof(EnginePreset.HitWindowPreset.FrontToBackRatio))
+                    if (!hitWindow.IsDynamic)
                     {
-                        continue;
+                        bool dynamicOnlyField;
+                        switch(windowField.Field.Name)
+                        {
+                            case nameof(EnginePreset.HitWindowPreset.FrontToBackRatio):
+                            case nameof(EnginePreset.HitWindowPreset.TremoloFrontEndPercent):
+                                dynamicOnlyField = false;
+                                break;
+
+                            default:
+                                dynamicOnlyField = true;
+                                break;
+                        }
+
+                        if (dynamicOnlyField)
+                        {
+                            continue;
+                        }
                     }
 
                     if (windowField.Type != SettingType.Slider)

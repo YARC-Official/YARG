@@ -47,15 +47,15 @@ namespace YARG.Gameplay.HUD
             _scaleContainer.localScale = _scaleContainer.localScale.WithX(newScale).WithY(newScale);
 
             //Set center element position
-            Vector2 position = _highwayRenderer.GetTrackPositionScreenSpace(highwayIndex, 0.5f, CENTER_ELEMENT_DEPTH);
-            _centerElementContainer.transform.position = position;
+            var centerPosition = _highwayRenderer.GetTrackPositionScreenSpace(highwayIndex, 0.5f, CENTER_ELEMENT_DEPTH);
+            _centerElementContainer.transform.position = centerPosition;
 
-            if (_topDraggable != null && _topDraggable.HasCustomPosition == false)
+            if (_topDraggable != null && !_topDraggable.HasCustomPosition)
             {
-                // Place top elements at 100% depth plus n screen independent units up to avoid highway overlap
+                // Place top elements at 100% depth of the track, plus some extra amount above the track.
                 var extraOffset = TOP_ELEMENT_EXTRA_OFFSET * Screen.height / 1000f;
-                Vector2 position2 = _highwayRenderer.GetTrackPositionScreenSpace(highwayIndex, 0.5f, 1.0f).AddY(extraOffset);
-                _topElementContainer.position = position2;
+                var topPosition = _highwayRenderer.GetTrackPositionScreenSpace(highwayIndex, 0.5f, 1.0f).AddY(extraOffset);
+                _topElementContainer.position = topPosition;
             }
         }
 
