@@ -160,6 +160,11 @@ namespace YARG.Menu.DifficultySelect
         private void UpdateForSelectionChanged(NavigatableBehaviour navigatableBehaviour,
             SelectionOrigin selectionOrigin)
         {
+            if (!_scrollbar)
+            {
+                return;
+            }
+
             int? index = _navGroup.SelectedIndex;
             if (index is { } i)
             {
