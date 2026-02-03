@@ -43,6 +43,10 @@ namespace YARG.Gameplay.HUD
         [SerializeField]
         private IntPauseSetting _intPauseSettingPrefab;
 
+        [Space]
+        [SerializeField]
+        private TogglePauseSetting _togglePauseSettingPrefab;
+
         private FailMeter _failMeter;
         private TextMeshProUGUI _noFailText;
         private TextMeshProUGUI _venuePostProcessingText;
@@ -140,6 +144,14 @@ namespace YARG.Gameplay.HUD
                     {
                         var settingObject = Instantiate(_intPauseSettingPrefab, _subSettingsContainer);
                         settingObject.Initialize(settingName, intSetting);
+
+                        _subSettingsNavGroup.AddNavigatable(settingObject.gameObject);
+                        break;
+                    }
+                    case ToggleSetting toggleSetting:
+                    {
+                        var settingObject = Instantiate(_togglePauseSettingPrefab, _subSettingsContainer);
+                        settingObject.Initialize(settingName, toggleSetting);
 
                         _subSettingsNavGroup.AddNavigatable(settingObject.gameObject);
                         break;
