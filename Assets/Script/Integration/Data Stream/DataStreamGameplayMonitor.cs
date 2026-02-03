@@ -253,11 +253,12 @@ namespace YARG.Integration
                     break;
             }
 
-            // Instrument events
-            DataStreamController.MLCCurrentDrumNotes = DrumsEventChecker(_drums, ref _drumIndex);
-            DataStreamController.MLCCurrentGuitarNotes = GuitarBassKeyboardEventChecker(_guitar, ref _guitarIndex);
-            DataStreamController.MLCCurrentBassNotes = GuitarBassKeyboardEventChecker(_bass, ref _bassIndex);
-            DataStreamController.MLCCurrentKeysNotes = GuitarBassKeyboardEventChecker(_keys, ref _keysIndex);
+            // Instrument events - enqueue to prevent missed notes between timer ticks
+            var drums = DrumsEventChecker(_drums, ref _drumIndex);
+            var guitar = GuitarBassKeyboardEventChecker(_guitar, ref _guitarIndex);
+            var bass = GuitarBassKeyboardEventChecker(_bass, ref _bassIndex);
+            var keys = GuitarBassKeyboardEventChecker(_keys, ref _keysIndex);
+            DataStreamController.EnqueueInstrumentNotes(drums, guitar, bass, keys);
 
             // Vocal events
             var vocalNote = VocalEventChecker(_vocalsNotes, ref _vocalsIndex);

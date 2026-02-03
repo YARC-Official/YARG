@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
@@ -12,6 +13,12 @@ namespace YARG.Integration
 {
     public class DataStreamController :  MonoSingleton<DataStreamController>
     {
+        // Queues for instrument notes to prevent missed notes between timer ticks
+        private static readonly Queue<int> _drumQueue = new();
+        private static readonly Queue<int> _guitarQueue = new();
+        private static readonly Queue<int> _bassQueue = new();
+        private static readonly Queue<int> _keysQueue = new();
+        private static readonly object _queueLock = new();
         [Serializable]
         public struct DataMessage
         {
@@ -152,6 +159,32 @@ namespace YARG.Integration
             }
         }
 
+        /// <summary>
+        /// Enqueues instrument note values to ensure no notes are missed between timer ticks.
+        /// Call this from the gameplay monitor instead of setting MLCCurrent*Notes directly.
+        /// </summary>
+        public static void EnqueueInstrumentNotes(int drums, int guitar, int bass, int keys)
+        {
+            lock (_queueLock)
+            {
+                _drumQueue.Enqueue(drums);
+                _guitarQueue.Enqueue(guitar);
+                _bassQueue.Enqueue(bass);
+                _keysQueue.Enqueue(keys);
+            }
+        }
+
+        private static void ClearInstrumentQueues()
+        {
+            lock (_queueLock)
+            {
+                _drumQueue.Clear();
+                _guitarQueue.Clear();
+                _bassQueue.Clear();
+                _keysQueue.Clear();
+            }
+        }
+
         // Datagram version history
         // v0 - inital release
         // v1 - added "HasVenueTrack?" byte. renamed 'venue' to 'venueSize'.
@@ -167,10 +200,34 @@ namespace YARG.Integration
             message.BeatsPerMinute = MLCCurrentBPM;               // gets set by the GameplayMonitor.
             message.CurrentSongSection = MLCCurrentSongSection;   // gets set on lighting cue change.
 
-            message.CurrentGuitarNotes = MLCCurrentGuitarNotes;   // gets set by the GameplayMonitor.
-            message.CurrentBassNotes = MLCCurrentBassNotes;       // gets set by the GameplayMonitor.
-            message.CurrentDrumNotes = MLCCurrentDrumNotes;       // gets set by the GameplayMonitor.
-            message.CurrentKeysNotes = MLCCurrentKeysNotes;       // gets set by the GameplayMonitor.
+            // Dequeue instrument notes from the queues to ensure no notes are missed
+            lock (_queueLock)
+            {
+                if (_drumQueue.Count > 0)
+                {
+                    MLCCurrentDrumNotes = _drumQueue.Dequeue();
+                }
+
+                if (_guitarQueue.Count > 0)
+                {
+                    MLCCurrentGuitarNotes = _guitarQueue.Dequeue();
+                }
+
+                if (_bassQueue.Count > 0)
+                {
+                    MLCCurrentBassNotes = _bassQueue.Dequeue();
+                }
+
+                if (_keysQueue.Count > 0)
+                {
+                    MLCCurrentKeysNotes = _keysQueue.Dequeue();
+                }
+            }
+
+            message.CurrentGuitarNotes = MLCCurrentGuitarNotes;   // dequeued above or last known value.
+            message.CurrentBassNotes = MLCCurrentBassNotes;       // dequeued above or last known value.
+            message.CurrentDrumNotes = MLCCurrentDrumNotes;       // dequeued above or last known value.
+            message.CurrentKeysNotes = MLCCurrentKeysNotes;       // dequeued above or last known value.
 
             message.CurrentVocalNote = MLCCurrentVocalNote;       // gets set by the GameplayMonitor.
             message.CurrentHarmony0Note = MLCCurrentHarmony0Note; // gets set by the GameplayMonitor.
@@ -223,12 +280,16 @@ namespace YARG.Integration
                 _sendClient?.Dispose();
                 _timer?.Stop();
                 _timer?.Dispose();
+                ClearInstrumentQueues();
             }
         }
         public static void Initializer(Scene scene)
         {
             // Ignore the persistent scene
             if ((SceneIndex) scene.buildIndex == SceneIndex.Persistent) return;
+
+            // Clear instrument queues on scene change
+            ClearInstrumentQueues();
 
             MLCPaused = PauseStateType.AtMenu;
             MLCVenueSize = VenueType.None;
@@ -290,6 +351,7 @@ namespace YARG.Integration
 
             _timer?.Stop();
             _timer?.Dispose();
+            ClearInstrumentQueues();
 
             if (_sendClient == null) return;
 
