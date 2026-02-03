@@ -11,6 +11,7 @@ using YARG.Core.Game;
 using YARG.Core.Input;
 using YARG.Core.Logging;
 using YARG.Core.Replays;
+using YARG.Core.Replays.Analyzer;
 using YARG.Core.Song;
 using YARG.Gameplay.HUD;
 using YARG.Gameplay.Player;
@@ -155,6 +156,9 @@ namespace YARG.Gameplay
         public int  ShowIndex = 0;
 
         private BandComboType _bandComboType;
+
+        private bool HasBots => _players.Any(p => !p.Player.SittingOut && p.Player.Profile.IsBot);
+        private bool SaveScoresWithBots = SettingsManager.Settings.SaveScoresWithBots.Value;
 
         private void Awake()
         {
@@ -514,10 +518,6 @@ namespace YARG.Gameplay
             // Get all of the individual player score entries
             var playerEntries = new List<PlayerScoreRecord>();
 
-            // Calculate band score from human players only
-            int humanBandScore = 0;
-            float humanBandStars = 0f;
-
             foreach (var player in _players)
             {
                 var profile = player.Player.Profile;
@@ -527,10 +527,6 @@ namespace YARG.Gameplay
                 {
                     continue;
                 }
-
-                humanBandScore += player.Score;
-                humanBandScore += player.BaseStats.BandBonusScoreHuman;
-                humanBandStars += player.Stars;
 
                 playerEntries.Add(new PlayerScoreRecord
                 {
@@ -551,6 +547,41 @@ namespace YARG.Gameplay
 
                     Percent = player.BaseStats.Percent
                 });
+            }
+
+            // TODO: Check for any invalid scores from human players using IsSoloScoreValid.
+            var validScoreCount = _players.Count(p => ScoreContainer.IsSoloScoreValid(SongSpeed, p.Player));
+            if (validScoreCount == 0)
+            {
+                return;
+            }
+
+            int humanBandScore = 0;
+            float humanBandStars = 0f;
+            if (HasBots && SaveScoresWithBots)
+            {
+                // Simulate the replay with only human players to calculate the correct score.
+                // This will remove band multiplier and Star Power contribution from bots
+                if (replayInfo == null || ReplayData == null)
+                {
+                    return;
+                }
+
+                var results = ReplayAnalyzer.AnalyzeReplay(Chart, replayInfo, ReplayData);
+                foreach (var result in results)
+                {
+                    humanBandScore += result.ResultStats.TotalScore + result.ResultStats.BandBonusScore;
+                    humanBandStars += result.ResultStats.Stars;
+                }
+            }
+            else
+            {
+                // No bots, use live scores directly
+                foreach (var player in _players)
+                {
+                    humanBandScore += player.Score + player.BaseStats.BandBonusScore;
+                    humanBandStars += player.Stars;
+                }
             }
 
             // Calculate band stars by taking average stars for human players only
@@ -577,7 +608,7 @@ namespace YARG.Gameplay
 
                 SongSpeed = SongSpeed,
                 PlayedWithReplay = GlobalVariables.State.PlayingWithReplay,
-                HasBots = _players.Any(p => !p.Player.SittingOut && p.Player.Profile.IsBot),
+                HasBots = HasBots,
             }, playerEntries);
         }
 
@@ -658,9 +689,9 @@ namespace YARG.Gameplay
             }
 
             var stars = StarAmountHelper.GetStarsFromInt((int) (bandStars / frames.Count));
-            var data = new ReplayData(colorProfiles, cameraPresets, frames.ToArray(), _frameTimes.ToArray());
+            ReplayData = new ReplayData(colorProfiles, cameraPresets, frames.ToArray(), _frameTimes.ToArray());
 
-            var (success, replayInfo) = ReplayIO.TrySerialize(directory, Song, SongSpeed, length, bandScore, stars, replayStats.ToArray(), data);
+            (bool success, var replayInfo) = ReplayIO.TrySerialize(directory, Song, SongSpeed, length, bandScore, stars, replayStats.ToArray(), ReplayData);
             if (!success)
             {
                 return null;
