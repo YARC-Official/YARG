@@ -182,6 +182,8 @@ namespace YARG.Gameplay.Player
 
         private AutoCalibrator _autoCalibrator;
 
+        private bool IsAutoCalibrating => SettingsManager.Settings.AutoCalibration.Value;
+
         public override void Initialize(int index, YargPlayer player, SongChart chart, TrackView trackView,
             StemMixer mixer, int? currentHighScore)
         {
@@ -881,7 +883,10 @@ namespace YARG.Gameplay.Player
 
         protected virtual void OnNoteHit(int index, TNote note)
         {
-            CalculateAccuracy(note);
+            if (IsAutoCalibrating)
+            {
+                _autoCalibrator.RecordAccuracy(note.Time);
+            }
 
             if (!GameManager.IsSeekingReplay)
             {
@@ -910,29 +915,6 @@ namespace YARG.Gameplay.Player
             }
 
             LastCombo = Combo;
-        }
-
-        private void CalculateAccuracy(TNote note)
-        {
-            _autoCalibrator.RecordAccuracy(note.Time);
-        }
-
-        private double CalculateMedian(List<double> values)
-        {
-            var sorted = values.OrderBy(x => x).ToList();
-            int count = sorted.Count;
-
-            if (count % 2 == 0)
-                return (sorted[count / 2 - 1] + sorted[count / 2]) / 2.0;
-            else
-                return sorted[count / 2];
-        }
-
-        private double CalculateMAD(List<double> values)
-        {
-            double median = CalculateMedian(values);
-            var deviations = values.Select(x => Math.Abs(x - median)).ToList();
-            return CalculateMedian(deviations);
         }
 
         protected virtual void OnNoteMissed(int index, TNote note)

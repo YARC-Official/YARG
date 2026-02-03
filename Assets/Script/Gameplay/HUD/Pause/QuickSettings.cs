@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
+using System.Linq;
 using Cysharp.Threading.Tasks.Triggers;
 using DG.Tweening;
 using TMPro;
@@ -6,6 +7,7 @@ using UnityEngine;
 using UnityEngine.Serialization;
 using YARG.Core.Logging;
 using YARG.Menu.Navigation;
+using YARG.Player;
 using YARG.Settings;
 using YARG.Settings.Types;
 
@@ -89,9 +91,14 @@ namespace YARG.Gameplay.HUD
 
         public void OpenCalibrationSettings()
         {
-            OpenSubSettings(_calibrationSettings);
+            var settings = new List<string>(_calibrationSettings);
+            var allowAutoCalibration = PlayerContainer.Players.Count == 1 && !PlayerContainer.OnlyHasBotsActive();
+            if (!allowAutoCalibration)
+            {
+                settings.Remove(nameof(SettingsManager.Settings.AutoCalibration));
+            }
+            OpenSubSettings(settings);
         }
-
 
         public void ToggleNoFail()
         {

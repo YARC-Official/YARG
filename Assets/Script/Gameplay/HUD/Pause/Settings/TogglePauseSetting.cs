@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using YARG.Core.Input;
@@ -12,40 +13,48 @@ namespace YARG.Gameplay.HUD
         [SerializeField]
         private Toggle _toggle;
 
+
         public override void Initialize(string settingName, ToggleSetting setting)
         {
             base.Initialize(settingName, setting);
 
+            _toggle.onValueChanged.AddListener(SetValue);
             _toggle.SetIsOnWithoutNotify(setting.Value);
         }
 
         protected override NavigationScheme GetNavigationScheme()
         {
-            return new NavigationScheme(new()
+            return new NavigationScheme(new List<NavigationScheme.Entry>
             {
                 NavigateFinish,
-                new NavigationScheme.Entry(MenuAction.Up, "Menu.Common.Toggle", () =>
+                new(MenuAction.Up, "Menu.Common.Toggle", () =>
                 {
-                    Setting.Value = !Setting.Value;
-                    RefreshVisual();
+                    SetValue(!Setting.Value);
                 }),
-                new NavigationScheme.Entry(MenuAction.Down, "Menu.Common.Toggle", () =>
+                new(MenuAction.Down, "Menu.Common.Toggle", () =>
                 {
-                    Setting.Value = !Setting.Value;
-                    RefreshVisual();
+                    SetValue(!Setting.Value);
                 })
-            }, true);
+            }, false);
         }
 
         public void OnValueChange()
         {
-            Setting.Value = _toggle.isOn;
-            RefreshVisual();
+            SetValue(_toggle.isOn);
         }
 
-        private void RefreshVisual()
+        private void SetValue(bool isOn)
         {
+            Setting.Value = isOn;
             _toggle.SetIsOnWithoutNotify(Setting.Value);
+        }
+
+        private void OnDestroy()
+        {
+            if (_toggle != null)
+            {
+                _toggle.onValueChanged.RemoveListener(SetValue);
+            }
         }
     }
 }

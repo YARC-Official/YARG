@@ -48,11 +48,16 @@ namespace YARG.Helpers
 
             if (absMedian < STABLE_THRESHOLD)
             {
-                NotifyCalibrationStable();
+                if (!IsStable)
+                {
+                    NotifyCalibrationStable();
+                }
+
                 IsStable = true;
             }
             else
             {
+                IsStable = false;
                 NotifyCalibrationUpdated();
             }
             _accuracyList.Clear();
