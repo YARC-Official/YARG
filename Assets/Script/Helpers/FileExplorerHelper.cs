@@ -3,6 +3,7 @@ using SimpleFileBrowser;
 using YARG.Core.Logging;
 
 using System.Diagnostics;
+using System.IO;
 
 namespace YARG.Helpers
 {
