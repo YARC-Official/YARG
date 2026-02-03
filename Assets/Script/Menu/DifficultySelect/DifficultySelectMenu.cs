@@ -439,6 +439,8 @@ namespace YARG.Menu.DifficultySelect
                 _menuState = State.Main;
                 UpdateForPlayer();
             });
+
+            _navGroup.SelectFirst();
         }
 
         private void CreateHarmonyMenu()
