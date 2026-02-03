@@ -750,7 +750,8 @@
             "AdvancedDMXSettings": "Zaawansowane ustawienia sACN i DMX",
             "Experimental": "Eksperymentalne",
             "HUD": "Interfejs HUD",
-            "Gameplay": "Rozgrywka"
+            "Gameplay": "Rozgrywka",
+            "OutputConfiguration": "Konfiguracja wyjściowa"
         },
         "Button": {
             "CopyCurrentSongJsonFilePath": "Skopiuj ścieżkę do pliku JSON z aktualnym utworem",
@@ -998,6 +999,25 @@
                 "PauseName": "Głośność",
                 "Description": "Dostosowuje głośność całego utworu."
             },
+            "MetronomeVolume": {
+                "Name": "Głośność metronomu",
+                "PauseName": "Metronom",
+                "Description": "Reguluje głośność metronomu."
+            },
+            "MetronomeSound": {
+                "Name": "Dźwięk metronomu",
+                "Description": "Próbka używana do kliknięć metronomu.",
+                "Dropdown": {
+                    "Castanet": "Castanet",
+                    "Clap": "Clap",
+                    "None": "None",
+                    "Party": "Party",
+                    "Quartz": "Quartz",
+                    "Sine": "Sine",
+                    "Square": "Square",
+                    "Trashcan": "Trashcan"
+                }
+            },
             "MinimumLogLevel": {
                 "Name": "Poziom logowania",
                 "Description": "Kontroluje, ile informacji jest zapisywanych do dziennika.",
@@ -1042,6 +1062,35 @@
                     "Frequent": "50, 100, 200, 300, ...",
                     "Sparse": "50, 100, 250, 500, 750, ..."
                 }
+            },
+            "OutputChannelDefault": {
+                "Name": "Domyślne kanały",
+                "Description": "Domyślne kanały wyjściowe używane dla instrumentów i dźwięków"
+            },
+            "OutputChannelDrumSfx": {
+                "Name": "Sygnały dźwiękowe perkusji",
+                "Description": "Kanały wyjściowe używane dla efektów dźwiękowych perkusji"
+            },
+            "OutputChannelMetronome": {
+                "Name": "Metronom",
+                "Description": "Kanały wyjściowe używane dla kliknięć metronomu"
+            },
+            "OutputChannelSfx": {
+                "Name": "Sygnały dźwiękowe",
+                "Description": "Kanały wyjściowe używane dla innych efektów dźwiękowych"
+            },
+            "OutputChannelVox": {
+                "Name": "Próbki vox",
+                "Description": "Kanały wyjściowe używane dla efektów dźwiękowych ekranu partytury"
+            },
+            "OutputChannels": {
+                "Default": "Użyj domyślnych kanałów",
+                "Mono": "{0}",
+                "Stereo": "{0} i {1}"
+            },
+            "OutputDevice": {
+                "Name": "Urządzenie wyjściowe",
+                "Description": "Interfejs używany podczas odtwarzania dźwięków"
             },
             "PlayAShowTimeout": {
                 "Name": "Czas na wybór utworu",

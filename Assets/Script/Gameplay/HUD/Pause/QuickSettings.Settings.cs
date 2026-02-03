@@ -18,6 +18,7 @@ namespace YARG.Gameplay.HUD
             nameof(SettingsManager.Settings.CrowdVolume),
             nameof(SettingsManager.Settings.SfxVolume),
             nameof(SettingsManager.Settings.VocalMonitoring),
+            nameof(SettingsManager.Settings.MetronomeVolume),
         };
 
         private static readonly List<string> _calibrationSettings = new()

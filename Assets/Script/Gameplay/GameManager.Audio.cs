@@ -80,11 +80,12 @@ namespace YARG.Gameplay
                         or SongStem.Vocals1
                         or SongStem.Vocals2
                         => SettingsManager.Settings.VocalsVolume.Value,
-                    SongStem.Song    => SettingsManager.Settings.SongVolume.Value,
-                    SongStem.Crowd   => SettingsManager.Settings.CrowdVolume.Value,
-                    SongStem.Sfx     => SettingsManager.Settings.SfxVolume.Value,
-                    SongStem.DrumSfx => SettingsManager.Settings.DrumSfxVolume.Value,
-                    _                => DEFAULT_VOLUME
+                    SongStem.Song      => SettingsManager.Settings.SongVolume.Value,
+                    SongStem.Crowd     => SettingsManager.Settings.CrowdVolume.Value,
+                    SongStem.Sfx       => SettingsManager.Settings.SfxVolume.Value,
+                    SongStem.DrumSfx   => SettingsManager.Settings.DrumSfxVolume.Value,
+                    SongStem.Metronome => SettingsManager.Settings.MetronomeVolume.Value,
+                    _                  => DEFAULT_VOLUME
                 };
             }
         }

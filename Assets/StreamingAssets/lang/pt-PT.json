@@ -750,7 +750,8 @@
             "AdvancedDMXSettings": "Configurações avançadas de sACN e DMX",
             "Experimental": "Experimental",
             "HUD": "HUD",
-            "Gameplay": "Gameplay"
+            "Gameplay": "Gameplay",
+            "OutputConfiguration": "Configuração de Saída"
         },
         "Button": {
             "CopyCurrentSongJsonFilePath": "Copiar o Caminho Atual do Arquivo Json da Música",
@@ -998,6 +999,25 @@
                 "PauseName": "Master",
                 "Description": "Adjusts the song's volume as a whole."
             },
+            "MetronomeVolume": {
+                "Name": "Volume do Metrónomo",
+                "PauseName": "Metrônomo",
+                "Description": "Ajusta o volume do metrónomo."
+            },
+            "MetronomeSound": {
+                "Name": "Som de Metrónomo",
+                "Description": "Amostra a utilizar para cliques de metrónomo.",
+                "Dropdown": {
+                    "Castanet": "Castanet",
+                    "Clap": "Clap",
+                    "None": "None",
+                    "Party": "Party",
+                    "Quartz": "Quartz",
+                    "Sine": "Sine",
+                    "Square": "Square",
+                    "Trashcan": "Trashcan"
+                }
+            },
             "MinimumLogLevel": {
                 "Name": "Minimum Log Level",
                 "Description": "Controls how much information is written to log files.",
@@ -1042,6 +1062,35 @@
                     "Frequent": "50, 100, 200, 300, ...",
                     "Sparse": "50, 100, 250, 500, 750, ..."
                 }
+            },
+            "OutputChannelDefault": {
+                "Name": "Canais Padrão",
+                "Description": "Os canais de saída padrão a utilizar para instrumentos e sons."
+            },
+            "OutputChannelDrumSfx": {
+                "Name": "Efeitos Sonoros de Bateria",
+                "Description": "Os canais de saída a utilizar para efeitos sonoros de bateria."
+            },
+            "OutputChannelMetronome": {
+                "Name": "Metrônomo",
+                "Description": "Os canais de saída a utilizar para os cliques do metrónomo."
+            },
+            "OutputChannelSfx": {
+                "Name": "Efeitos Sonoros",
+                "Description": "Os canais de saída a utilizar para outros efeitos sonoros."
+            },
+            "OutputChannelVox": {
+                "Name": "Amostras de Voz",
+                "Description": "Os canais de saída a utilizar para os efeitos sonoros do ecrã de pontuação."
+            },
+            "OutputChannels": {
+                "Default": "Utilizar Canais Padrão",
+                "Mono": "{0}",
+                "Stereo": "{0} e {1}"
+            },
+            "OutputDevice": {
+                "Name": "Dispositivo de Saída",
+                "Description": "A interface a utilizar ao reproduzir sons."
             },
             "PlayAShowTimeout": {
                 "Name": "Show Selection Timeout",

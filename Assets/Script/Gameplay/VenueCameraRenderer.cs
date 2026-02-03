@@ -121,7 +121,7 @@ namespace YARG.Gameplay
 
             var outputWidth = (int)(Screen.width * renderScale);
             var outputHeight = (int)(Screen.height * renderScale);
-            _venueTexture = new RenderTexture(outputWidth, outputHeight, 0, RenderTextureFormat.DefaultHDR);
+            _venueTexture = new RenderTexture(outputWidth, outputHeight, 32, RenderTextureFormat.DefaultHDR);
             _venueOutput.texture = _venueTexture;
 
             _trailsTexture = new RenderTexture(_venueTexture);
@@ -293,7 +293,7 @@ namespace YARG.Gameplay
         {
             var stack = VolumeManager.instance.stack;
 
-            var descriptor = new RenderTextureDescriptor(_venueTexture.width, _venueTexture.height, _venueTexture.format);
+            var descriptor = new RenderTextureDescriptor(_venueTexture.width, _venueTexture.height, _venueTexture.format, 32, 0);
             var rt1 = RenderTexture.GetTemporary(descriptor);
             var rt2 = RenderTexture.GetTemporary(descriptor);
 

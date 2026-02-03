@@ -101,6 +101,7 @@ namespace YARG.Settings
                 nameof(Settings.PreviewVolume),
                 nameof(Settings.MusicPlayerVolume),
                 nameof(Settings.VocalMonitoring),
+                nameof(Settings.MetronomeVolume),
 
                 new HeaderMetadata("Customization"),
                 nameof(Settings.EnablePlaybackBuffer),
@@ -122,6 +123,7 @@ namespace YARG.Settings
                 nameof(Settings.UseChipmunkSpeed),
                 nameof(Settings.ApplyVolumesInMusicLibrary),
                 nameof(Settings.EnableVoxSamples),
+                nameof(Settings.MetronomeSound),
             },
             new MetadataTab("Graphics", icon: "Display", new TrackPreviewBuilder())
             {
@@ -231,6 +233,13 @@ namespace YARG.Settings
                 nameof(Settings.BandComboTypeSetting),
                 nameof(Settings.DataStreamEnable),
                 nameof(Settings.EnableNormalization),
+                new HeaderMetadata("OutputConfiguration"),
+                nameof(Settings.OutputDevice),
+                nameof(Settings.OutputChannelDefault),
+                nameof(Settings.OutputChannelDrumSfx),
+                nameof(Settings.OutputChannelMetronome),
+                nameof(Settings.OutputChannelSfx),
+                nameof(Settings.OutputChannelVox),
             }
         };
 

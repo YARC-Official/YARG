@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.RendererUtils;
 using UnityEngine.Rendering.Universal;
+using UnityEngine.Rendering.RenderGraphModule;
 using UnityEngine.UI;
 using YARG.Core.Logging;
 using YARG.Gameplay.Player;
@@ -98,10 +99,7 @@ namespace YARG.Gameplay.Visuals
                 HighwaysOutputTexture.DiscardContents();
             }
 
-            var descriptor = new RenderTextureDescriptor(Screen.width, Screen.height, RenderTextureFormat.DefaultHDR)
-            {
-                mipCount = 0,
-            };
+            var descriptor = new RenderTextureDescriptor(Screen.width, Screen.height, RenderTextureFormat.DefaultHDR, 32, 0);
 
             HighwaysOutputTexture = new RenderTexture(descriptor);
             if (_highwaysOutput != null)
@@ -434,51 +432,72 @@ namespace YARG.Gameplay.Visuals
         private sealed class FadePass : ScriptableRenderPass
         {
             private readonly ProfilingSampler       _profilingSampler = new ProfilingSampler("CalcFadeAlphaMask");
-            private          CommandBuffer          _cmd;
             private readonly HighwayCameraRendering _highwayCameraRendering;
             private readonly Material               _material;
 
             public FadePass(HighwayCameraRendering highCamRend)
             {
                 _highwayCameraRendering = highCamRend;
-                renderPassEvent = RenderPassEvent.BeforeRenderingPostProcessing;
+                renderPassEvent = RenderPassEvent.BeforeRendering;
                 _material = new Material(Shader.Find("HighwaysAlphaMask"));
             }
 
-            public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
+            public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
             {
-                CommandBuffer cmd = CommandBufferPool.Get("CalcFadeAlphaMask");
-
-                using (new ProfilingScope(cmd, _profilingSampler))
+                using (var builder = renderGraph.AddRasterRenderPass<PassData>("CalcFadeAlphaMask", out var passData, _profilingSampler))
                 {
-                    cmd.SetRenderTarget(_highwayCameraRendering._highwaysAlphaTexture);
+                    var resourceData = frameData.Get<UniversalResourceData>();
+                    var cameraData = frameData.Get<UniversalCameraData>();
+                    var renderingData = frameData.Get<UniversalRenderingData>();
+
+                    passData.material = _material;
+
+                    var alphaTextureHandle = renderGraph.ImportTexture(RTHandles.Alloc(_highwayCameraRendering._highwaysAlphaTexture));
+
+                    builder.SetRenderAttachment(alphaTextureHandle, 0, AccessFlags.Write);
+                    // We could allocate a different depth texture, however at this point
+                    // We do not need to preserve depth from the camera as we'll calc this as a very first thing
+                    builder.SetRenderAttachmentDepth(resourceData.activeDepthTexture, AccessFlags.Write);
+
+                    builder.AllowPassCulling(false);
+
                     var shaderTagIds = new[] { new ShaderTagId("UniversalForward") };
-                    // Draw transparents first
-                    var desc = new RendererListDesc(shaderTagIds, renderingData.cullResults, renderingData.cameraData.camera)
+
+                    // Create renderer list for transparents
+                    var transparentDesc = new RendererListDesc(shaderTagIds, renderingData.cullResults, cameraData.camera)
                     {
                         sortingCriteria = SortingCriteria.RenderQueue,
                         renderQueueRange = RenderQueueRange.transparent,
-                        overrideMaterial = _material
+                        overrideMaterial = passData.material
                     };
+                    passData.transparentRendererList = renderGraph.CreateRendererList(transparentDesc);
+                    builder.UseRendererList(passData.transparentRendererList);
 
-                    var rendererList = context.CreateRendererList(desc);
-                    cmd.DrawRendererList(rendererList);
-
-                    // Now opaques
-                    var opaqueDesc = new RendererListDesc(shaderTagIds, renderingData.cullResults, renderingData.cameraData.camera)
+                    // Create renderer list for opaques
+                    var opaqueDesc = new RendererListDesc(shaderTagIds, renderingData.cullResults, cameraData.camera)
                     {
                         sortingCriteria = SortingCriteria.RenderQueue,
                         renderQueueRange = RenderQueueRange.opaque,
-                        overrideMaterial = _material
+                        overrideMaterial = passData.material
                     };
+                    passData.opaqueRendererList = renderGraph.CreateRendererList(opaqueDesc);
+                    builder.UseRendererList(passData.opaqueRendererList);
 
-                    var opaqueRendererList = context.CreateRendererList(opaqueDesc);
-                    cmd.DrawRendererList(opaqueRendererList);
+                    builder.SetRenderFunc<PassData>((PassData data, RasterGraphContext context) =>
+                    {
+                        // Clear both color and depth
+                        context.cmd.ClearRenderTarget(true, true, Color.clear);
+                        context.cmd.DrawRendererList(data.transparentRendererList);
+                        context.cmd.DrawRendererList(data.opaqueRendererList);
+                    });
                 }
-                context.ExecuteCommandBuffer(cmd);
-                cmd.Clear();
+            }
 
-                CommandBufferPool.Release(cmd);
+            private class PassData
+            {
+                public Material material;
+                public RendererListHandle transparentRendererList;
+                public RendererListHandle opaqueRendererList;
             }
         }
 

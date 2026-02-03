@@ -750,7 +750,8 @@
             "AdvancedDMXSettings": "Impostazioni sACN e DMX Avanzate",
             "Experimental": "Sperimentali",
             "HUD": "HUD",
-            "Gameplay": "Gameplay"
+            "Gameplay": "Gameplay",
+            "OutputConfiguration": "Configurazione di Uscita"
         },
         "Button": {
             "CopyCurrentSongJsonFilePath": "Copia il Percorso Del File JSON del Brano Corrente\",",
@@ -998,6 +999,25 @@
                 "PauseName": "Generale",
                 "Description": "Regola il volume generale del brano."
             },
+            "MetronomeVolume": {
+                "Name": "Volume Metronomo",
+                "PauseName": "Metronomo",
+                "Description": "Regola il volume del metronomo."
+            },
+            "MetronomeSound": {
+                "Name": "Suono Metronomo",
+                "Description": "Il campione da utilizzare per i clic del metronomo.",
+                "Dropdown": {
+                    "Castanet": "Castanet",
+                    "Clap": "Clap",
+                    "None": "None",
+                    "Party": "Party",
+                    "Quartz": "Quartz",
+                    "Sine": "Sine",
+                    "Square": "Square",
+                    "Trashcan": "Trashcan"
+                }
+            },
             "MinimumLogLevel": {
                 "Name": "Livello Di Registro Minimo",
                 "Description": "Controlla quante informazioni vengono scritte nei file di registro.",
@@ -1042,6 +1062,35 @@
                     "Frequent": "50, 100, 200, 300, ...",
                     "Sparse": "50, 100, 250, 500, 750, ..."
                 }
+            },
+            "OutputChannelDefault": {
+                "Name": "Canali predefiniti",
+                "Description": "I canali di uscita predefiniti da utilizzare per strumenti e suoni."
+            },
+            "OutputChannelDrumSfx": {
+                "Name": "Effetti sonori del tamburo",
+                "Description": "I canali di uscita da utilizzare per gli effetti sonori di batteria."
+            },
+            "OutputChannelMetronome": {
+                "Name": "Metronomo",
+                "Description": "I canali di uscita da utilizzare per i clic del metronomo."
+            },
+            "OutputChannelSfx": {
+                "Name": "Effetti sonori",
+                "Description": "I canali di uscita da utilizzare per altri effetti sonori."
+            },
+            "OutputChannelVox": {
+                "Name": "Campioni Vox",
+                "Description": "I canali di uscita da utilizzare per gli effetti sonori della schermata partitura."
+            },
+            "OutputChannels": {
+                "Default": "Usa canali predefiniti",
+                "Mono": "{0}",
+                "Stereo": "{0} e {1}"
+            },
+            "OutputDevice": {
+                "Name": "Dispositivo di uscita",
+                "Description": "L'interfaccia da utilizzare per la riproduzione dei suoni."
             },
             "PlayAShowTimeout": {
                 "Name": "Show Selection Timeout",

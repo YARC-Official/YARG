@@ -208,7 +208,7 @@ namespace YARG.Gameplay.Player
             Chart = chart;
 
             OriginalNoteTrack = GetNotes(chart);
-            player.Profile.ApplyModifiers(OriginalNoteTrack);
+            player.Profile.ApplyModifiers(OriginalNoteTrack, chart.SyncTrack);
 
             NoteTrack = OriginalNoteTrack;
             Notes = NoteTrack.Notes;
@@ -236,6 +236,8 @@ namespace YARG.Gameplay.Player
                 Engine.SetSpeed(GameManager.SongSpeed);
             }
 
+            GameManager.BeatEventHandler.Audio.Subscribe(MetronomeTick, BeatEventType.Measure);
+            GameManager.BeatEventHandler.Audio.Subscribe(MetronomeTock, BeatEventType.QuarterNote);
             GameManager.BeatEventHandler.Visual.Subscribe(SunburstEffects.PulseSunburst, BeatEventType.StrongBeat);
             InitializeTrackEffects();
 
@@ -248,6 +250,8 @@ namespace YARG.Gameplay.Player
 
         protected override void FinishDestruction()
         {
+            GameManager.BeatEventHandler.Audio.Unsubscribe(MetronomeTick);
+            GameManager.BeatEventHandler.Audio.Unsubscribe(MetronomeTock);
             GameManager.BeatEventHandler.Visual.Unsubscribe(SunburstEffects.PulseSunburst);
 
             base.FinishDestruction();
@@ -994,6 +998,16 @@ namespace YARG.Gameplay.Player
                 _newHighScoreShown = true;
                 TrackView.ShowNewHighScore();
             }
+        }
+
+        public void MetronomeTick()
+        {
+            GlobalAudioHandler.PlayMetronomeSoundEffect(SettingsManager.Settings.MetronomeSound.Value, MetronomePitch.Hi);
+        }
+
+        public void MetronomeTock()
+        {
+            GlobalAudioHandler.PlayMetronomeSoundEffect(SettingsManager.Settings.MetronomeSound.Value, MetronomePitch.Lo);
         }
     }
 }

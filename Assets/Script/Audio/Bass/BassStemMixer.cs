@@ -81,9 +81,11 @@ namespace YARG.Audio.BASS
             }
         }
 
-        internal BassStemMixer(string name, BassAudioManager manager, float speed, double volume, int handle,
-            bool clampStemVolume, bool normalize)
+#nullable enable
+        internal BassStemMixer(string name, BassAudioManager manager, float speed, double volume, int handle, 
+            bool clampStemVolume, bool normalize, OutputChannel? outputChannel)
             : base(name, manager, clampStemVolume)
+#nullable disable
         {
             _tempoStreamHandle = BassFx.TempoCreate(handle, BassFlags.SampleOverrideLowestVolume);
             if (_tempoStreamHandle == 0)
@@ -100,6 +102,7 @@ namespace YARG.Audio.BASS
             }
 
             _whammySyncTimer = new Timer();
+            SetOutputChannel_Internal(outputChannel);
             SetVolume_Internal(volume);
             SetSpeed_Internal(speed, true);
         }
@@ -380,6 +383,52 @@ namespace YARG.Audio.BASS
             }
 
             return true;
+        }
+
+#nullable enable
+        protected override void SetOutputChannel_Internal(OutputChannel? channel)
+#nullable disable
+        {
+            BassHelpers.UpdateOutputChannels(_tempoStreamHandle, channel);
+        }
+
+        protected override void SetOutputDevice_Internal(OutputDevice device)
+        {
+            if (device is not BassOutputDevice bassDevice)
+            {
+                return;
+            }
+
+            foreach (StemData stemData in _stemDatas)
+            {
+                if (!Bass.ChannelSetDevice(stemData.ReverbHandles.Stream, bassDevice.DeviceId))
+                {
+                    YargLogger.LogFormatError("Failed to change device for reverb handle: {0}", Bass.LastError);
+                }
+
+                if (!Bass.ChannelSetDevice(stemData.StreamHandles.Stream, bassDevice.DeviceId))
+                {
+                    YargLogger.LogFormatError("Failed to change device for stream handle: {0}", Bass.LastError);
+                }
+            }
+
+            foreach (int handle in _sourceHandles)
+            {
+                if (!Bass.ChannelSetDevice(handle, bassDevice.DeviceId))
+                {
+                    YargLogger.LogFormatError("Failed to change device for source handle: {0}", Bass.LastError);
+                }
+            }
+
+            if (_mixerHandle != 0 && !Bass.ChannelSetDevice(_mixerHandle, bassDevice.DeviceId))
+            {
+                YargLogger.LogFormatError("Failed to change device for mixer handle: {0}", Bass.LastError);
+            }
+
+            if (_tempoStreamHandle != 0 && !Bass.ChannelSetDevice(_tempoStreamHandle, bassDevice.DeviceId))
+            {
+                YargLogger.LogFormatError("Failed to change device for tempo stream handle: {0}", Bass.LastError);
+            }
         }
 
         private bool AddChannelsToMixer(IEnumerable<StemData> stemStreamDataList)
