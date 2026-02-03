@@ -15,7 +15,7 @@ namespace YARG.Integration
     {
         // Queues for instrument notes to prevent missed notes between timer ticks
         // 1/20 being a blink of an eye. It should never lag more than that, and if so shows a larger problem elsewhere.
-        private static readonly int        _defaultSize =  (int)Math.Ceiling(TARGET_FPS * (1 / 20)) + 1;
+        private static readonly int        _defaultSize =  (int)Math.Ceiling(TARGET_FPS * (1f / 20f)) + 1;
         private static readonly Queue<int> _drumQueue   = new(_defaultSize);
         private static readonly Queue<int> _guitarQueue = new(_defaultSize);
         private static readonly Queue<int> _bassQueue   = new(_defaultSize);
