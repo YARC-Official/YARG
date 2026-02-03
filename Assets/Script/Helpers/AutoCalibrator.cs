@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using YARG.Core.Logging;
@@ -11,80 +11,83 @@ namespace YARG.Helpers
 {
     public class AutoCalibrator
     {
+        // Number of notes for the initial (coarse) adjustment
+        private const int INITIAL_SAMPLE_SIZE = 10;
+
+        // Number of notes for subsequent (fine-tuning) adjustments
         private const int SAMPLE_SIZE = 20;
-        private const double MAX_CALIBRATION_CHANGE = 20.0;
+
+        // Median accuracy (in ms) below which calibration is considered stable
         private const double STABLE_THRESHOLD = 10.0;
 
         private readonly List<double> _accuracyList = new();
         private readonly GameManager _gameManager;
 
         private int _baselineCalibration;
-        private double? _lastAbsMedian;
-        public bool IsStable;
+        private bool _isFirstAdjustment = true;
+
+        public bool IsStable { get; private set; }
 
         public AutoCalibrator(GameManager gameManager)
         {
             _gameManager = gameManager;
-            _baselineCalibration = SettingsManager.Settings.AudioCalibration.Value;
+
+            int calibration = SettingsManager.Settings.AudioCalibration.Value;
+            if (SettingsManager.Settings.AccountForHardwareLatency.Value)
+            {
+                calibration -= GlobalAudioHandler.PlaybackLatency;
+            }
+            _baselineCalibration = calibration;
         }
 
         public void RecordAccuracy(double noteTime)
         {
-            if (IsStable)
-            {
-                return;
-            }
 
             double accuracy = (_gameManager.InputTime - noteTime) * 1000;
             _accuracyList.Add(accuracy);
-            if (_accuracyList.Count < SAMPLE_SIZE)
+
+            int requiredSamples = _isFirstAdjustment ? INITIAL_SAMPLE_SIZE : SAMPLE_SIZE;
+            if (_accuracyList.Count < requiredSamples)
             {
                 return;
             }
 
             double median = CalculateMedian(_accuracyList);
             double absMedian = Math.Abs(median);
-            UpdateCalibration(median, absMedian);
+            UpdateCalibration(median);
 
             if (absMedian < STABLE_THRESHOLD)
             {
-                if (!IsStable)
-                {
-                    NotifyCalibrationStable();
-                }
-
-                IsStable = true;
+                NotifyCalibrationStable();
             }
             else
             {
-                IsStable = false;
                 NotifyCalibrationUpdated();
             }
+
+            _isFirstAdjustment = false;
             _accuracyList.Clear();
         }
 
-        private void UpdateCalibration(double median, double absMedian)
+        private void UpdateCalibration(double median)
         {
-            int clampedMedian = (int) Math.Clamp(median, -MAX_CALIBRATION_CHANGE, MAX_CALIBRATION_CHANGE);
-            var hardwareAdjustment = SettingsManager.Settings.AccountForHardwareLatency.Value ? GlobalAudioHandler.PlaybackLatency : 0;
-            int calibrationValue = _baselineCalibration + clampedMedian - hardwareAdjustment;
+            int adjustment = (int) median;
+
+            int calibrationValue = _baselineCalibration + adjustment;
             SettingsManager.Settings.AudioCalibration.Value = calibrationValue;
             _gameManager.UpdateCalibration();
             _baselineCalibration = calibrationValue;
-            _lastAbsMedian = absMedian;
         }
 
         private void NotifyCalibrationUpdated()
         {
-            //TODO: translation
             ToastManager.ToastMessage($"Calibration updated: {_baselineCalibration} ms");
         }
 
         private void NotifyCalibrationStable()
         {
-            //TODO: translation
-            YargLogger.LogInfo($"Calibration stable ({_baselineCalibration} ms)");
-            ToastManager.ToastSuccess($"Calibration stable ({_baselineCalibration} ms)");
+            YargLogger.LogInfo($"Auto calibration stable ({_baselineCalibration} ms)");
+            ToastManager.ToastSuccess($"Auto calibration stable ({_baselineCalibration} ms)");
         }
 
         private static double CalculateMedian(List<double> values)
