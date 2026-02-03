@@ -95,6 +95,7 @@ namespace YARG.Audio.BASS
             _channel = channel;
             SetOutputChannel_Internal(outputChannel);
             Channels.Add(this);
+            SetVolume_Internal(GlobalAudioHandler.GetTrueVolume(SongStem.VoxSample));
         }
 
         protected override void Play_Internal()

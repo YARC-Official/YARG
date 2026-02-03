@@ -63,6 +63,7 @@ namespace YARG.Audio.BASS
             _loHandle = loHandle;
             _loChannel = loChannel;
             SetOutputChannel_Internal(outputChannel);
+            SetVolume_Internal(GlobalAudioHandler.GetTrueVolume(SongStem.Metronome));
         }
 
         protected override void PlayHi_Internal()

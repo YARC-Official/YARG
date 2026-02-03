@@ -64,6 +64,7 @@ namespace YARG.Audio.BASS
             _channel = channel;
             _lastPlaybackTime = -1;
             SetOutputChannel_Internal(outputChannel);
+            SetVolume_Internal(GlobalAudioHandler.GetTrueVolume(SongStem.Sfx));
         }
 
         protected override void Play_Internal(double duration)
