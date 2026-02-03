@@ -166,7 +166,7 @@ namespace YARG.Audio.BASS
             int currentDevice = Bass.CurrentDevice;
 
             OutputDevice? device = GetOutputDevice(name);
-            if (device == null || device is not BassOutputDevice bassDevice || bassDevice.DeviceId == currentDevice)
+            if (device is not BassOutputDevice bassDevice || bassDevice.DeviceId == currentDevice)
             {
                 return;
             }
@@ -208,18 +208,28 @@ namespace YARG.Audio.BASS
             for (int deviceIndex = 0; Bass.RecordGetDeviceInfo(deviceIndex, out var info); deviceIndex++)
             {
                 // Ignore disabled/claimed devices
-                if (!info.IsEnabled || info.IsInitialized) continue;
+                if (!info.IsEnabled || info.IsInitialized)
+                {
+                    continue;
+                }
 
                 // Ignore loopback devices, they're potentially confusing and can cause feedback loops
-                if (info.IsLoopback) continue;
+                if (info.IsLoopback)
+                {
+                    continue;
+                }
 
                 // Check if type is in whitelist
                 // The "Default" device is also excluded here since we want the user to explicitly pick which microphone to use
                 // if (!typeWhitelist.Contains(info.Type) || info.Name == "Default") continue;
-                if (info.Name == "Default" || info.Name != name) continue;
+                if (info.Name == "Default" || info.Name != name)
+                {
+                    continue;
+                }
 
                 return CreateInputDevice(deviceIndex, name);
             }
+
             return null;
         }
 #nullable disable
@@ -243,15 +253,24 @@ namespace YARG.Audio.BASS
             for (int deviceIndex = 0; Bass.RecordGetDeviceInfo(deviceIndex, out var info); deviceIndex++)
             {
                 // Ignore disabled/claimed devices
-                if (!info.IsEnabled || info.IsInitialized) continue;
+                if (!info.IsEnabled || info.IsInitialized)
+                {
+                    continue;
+                }
 
                 // Ignore loopback devices, they're potentially confusing and can cause feedback loops
-                if (info.IsLoopback) continue;
+                if (info.IsLoopback)
+                {
+                    continue;
+                }
 
                 // Check if type is in whitelist
                 // The "Default" device is also excluded here since we want the user to explicitly pick which microphone to use
                 // if (!typeWhitelist.Contains(info.Type) || info.Name == "Default") continue;
-                if (info.Name == "Default") continue;
+                if (info.Name == "Default")
+                {
+                    continue;
+                }
 
                 mics.Add((deviceIndex, info.Name));
             }
@@ -289,10 +308,16 @@ namespace YARG.Audio.BASS
             for (int deviceIndex = 1; Bass.GetDeviceInfo(deviceIndex, out var info); deviceIndex++)
             {
                 // Ignore disabled devices
-                if (!info.IsEnabled) continue;
+                if (!info.IsEnabled)
+                {
+                    continue;
+                }
 
                 // Ignore loopback devices, they're potentially confusing and can cause feedback loops
-                if (info.IsLoopback) continue;
+                if (info.IsLoopback)
+                {
+                    continue;
+                }
 
                 devices.Add((deviceIndex, info.Name));
             }
@@ -312,13 +337,22 @@ namespace YARG.Audio.BASS
             for (int deviceIndex = 0; Bass.GetDeviceInfo(deviceIndex, out var info); deviceIndex++)
             {
                 // Ignore disabled devices
-                if (!info.IsEnabled) continue;
+                if (!info.IsEnabled)
+                {
+                    continue;
+                }
 
                 // Ignore loopback devices, they're potentially confusing and can cause feedback loops
-                if (info.IsLoopback) continue;
+                if (info.IsLoopback)
+                {
+                    continue;
+                }
 
                 // Ensure device names match
-                if (info.Name != name) continue;
+                if (info.Name != name)
+                {
+                    continue;
+                }
 
                 return CreateOutputDevice(deviceIndex, name);
             }

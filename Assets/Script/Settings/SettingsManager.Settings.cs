@@ -547,7 +547,7 @@ namespace YARG.Settings
             #endregion
 
             #region Helpers
-            private static void resetChannelSetting(OutputChannelSetting channelSetting, SongStem stem, int defaultValue = -1)
+            private static void ResetChannelSetting(OutputChannelSetting channelSetting, SongStem stem, int defaultValue = -1)
             {
                 channelSetting.UpdateValues();
 
@@ -556,13 +556,13 @@ namespace YARG.Settings
                 if (currentValue > GlobalAudioHandler.GetOutputChannelCount())
                 {
                     channelSetting.Value = defaultValue;
-                    setOutputChannel(channelSetting, stem);
+                    SetOutputChannel(channelSetting, stem);
                 }
 
                 SettingsMenu.Instance.RefreshAndKeepPosition();
             }
 
-            private static void setOutputChannel(OutputChannelSetting channelSetting, SongStem stem)
+            private static void SetOutputChannel(OutputChannelSetting channelSetting, SongStem stem)
             {
                 GlobalAudioHandler.SetOutputChannel(stem, channelSetting.Value == -1 ? Settings.OutputChannelDefault.Value : channelSetting.Value);
             }
@@ -776,11 +776,11 @@ namespace YARG.Settings
 
                 GlobalAudioHandler.SetOutputDevice(name);
 
-                resetChannelSetting(Settings.OutputChannelDefault, SongStem.Master, 1);
-                resetChannelSetting(Settings.OutputChannelDrumSfx, SongStem.DrumSfx);
-                resetChannelSetting(Settings.OutputChannelSfx, SongStem.Sfx);
-                resetChannelSetting(Settings.OutputChannelVox, SongStem.VoxSample);
-                resetChannelSetting(Settings.OutputChannelMetronome, SongStem.Metronome);
+                ResetChannelSetting(Settings.OutputChannelDefault, SongStem.Master, 1);
+                ResetChannelSetting(Settings.OutputChannelDrumSfx, SongStem.DrumSfx);
+                ResetChannelSetting(Settings.OutputChannelSfx, SongStem.Sfx);
+                ResetChannelSetting(Settings.OutputChannelVox, SongStem.VoxSample);
+                ResetChannelSetting(Settings.OutputChannelMetronome, SongStem.Metronome);
             }
 
             private static void OutputChannelDefaultCallback(int channelId)
@@ -793,10 +793,10 @@ namespace YARG.Settings
 
                 GlobalAudioHandler.SetOutputChannel(SongStem.Master, channelId);
 
-                setOutputChannel(Settings.OutputChannelDrumSfx, SongStem.DrumSfx);
-                setOutputChannel(Settings.OutputChannelSfx, SongStem.Sfx);
-                setOutputChannel(Settings.OutputChannelVox, SongStem.VoxSample);
-                setOutputChannel(Settings.OutputChannelMetronome, SongStem.Metronome);
+                SetOutputChannel(Settings.OutputChannelDrumSfx, SongStem.DrumSfx);
+                SetOutputChannel(Settings.OutputChannelSfx, SongStem.Sfx);
+                SetOutputChannel(Settings.OutputChannelVox, SongStem.VoxSample);
+                SetOutputChannel(Settings.OutputChannelMetronome, SongStem.Metronome);
             }
 
             private static void OutputChannelDrumSfxCallback(int channelId)
@@ -807,7 +807,7 @@ namespace YARG.Settings
                     return;
                 }
 
-                setOutputChannel(Settings.OutputChannelDrumSfx, SongStem.DrumSfx);
+                SetOutputChannel(Settings.OutputChannelDrumSfx, SongStem.DrumSfx);
             }
 
             private static void OutputChannelMetronomeCallback(int channelId)
@@ -818,7 +818,7 @@ namespace YARG.Settings
                     return;
                 }
 
-                setOutputChannel(Settings.OutputChannelMetronome, SongStem.Metronome);
+                SetOutputChannel(Settings.OutputChannelMetronome, SongStem.Metronome);
             }
 
             private static void OutputChannelSfxCallback(int channelId)
@@ -829,7 +829,7 @@ namespace YARG.Settings
                     return;
                 }
 
-                setOutputChannel(Settings.OutputChannelSfx, SongStem.Sfx);
+                SetOutputChannel(Settings.OutputChannelSfx, SongStem.Sfx);
             }
 
             private static void OutputChannelVoxCallback(int channelId)
@@ -840,7 +840,7 @@ namespace YARG.Settings
                     return;
                 }
 
-                setOutputChannel(Settings.OutputChannelVox, SongStem.VoxSample);
+                SetOutputChannel(Settings.OutputChannelVox, SongStem.VoxSample);
             }
 
             private static void MetronomePreviewCallback(MetronomeSample sample)

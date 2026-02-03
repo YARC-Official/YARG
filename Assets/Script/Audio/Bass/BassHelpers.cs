@@ -161,7 +161,7 @@ namespace YARG.Audio.BASS
         public static void UpdateOutputChannels(int stream, OutputChannel? channel)
 #nullable disable
         {
-            if (channel == null || channel is not BassOutputChannel bassChannel)
+            if (channel is not BassOutputChannel bassChannel)
             {
                 // Remove assigned output channels
                 Bass.ChannelFlags(stream, 0, BassFlags.SpeakerFront);
