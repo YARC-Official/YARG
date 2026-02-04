@@ -142,8 +142,6 @@ namespace YARG.Menu.MusicLibrary
                 _currentSong = CurrentlyPlaying;
             }
 
-            ShouldDisplaySoloHighScores = !PlayerContainer.OnlyHasBotsActive();
-
             SetRefreshIfNeeded();
 
             StemSettings.ApplySettings = SettingsManager.Settings.ApplyVolumesInMusicLibrary.Value;

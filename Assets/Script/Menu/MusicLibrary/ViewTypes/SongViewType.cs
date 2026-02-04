@@ -1,4 +1,4 @@
-﻿using System.Linq;
+using System.Linq;
 using Cysharp.Text;
 using UnityEngine;
 using YARG.Core.Game;
@@ -216,7 +216,8 @@ namespace YARG.Menu.MusicLibrary
 
             _fetchedScores = true;
 
-            if (_musicLibrary.ShouldDisplaySoloHighScores)
+            var humanCount = PlayerContainer.Players.Count(p => !p.Profile.IsBot);
+            if (humanCount == 1)
             {
                 var player = PlayerContainer.Players.First(e => !e.Profile.IsBot);
                 _playerScoreRecord = ScoreContainer.GetHighScore(
