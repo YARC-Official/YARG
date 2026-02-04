@@ -74,6 +74,7 @@ namespace YARG.Integration
             DataStreamController.MLCFogState = false;
             DataStreamController.MLCStrobeState = LightingType.StrobeOff;
             DataStreamController.Initializer(SceneManager.GetActiveScene());
+            DataStreamController.MLCPaused = DataStreamController.PauseStateType.Unpaused;
 
             // This should be read from the venue itself eventually, but for now, we'll just randomize it.
             DataStreamController.MLCVenueSize = (DataStreamController.VenueType)Random.Range(1, 2);
