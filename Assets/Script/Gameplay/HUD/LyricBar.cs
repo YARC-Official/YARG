@@ -4,7 +4,6 @@ using System.Linq;
 using DG.Tweening;
 using UnityEngine;
 using YARG.Core.Chart;
-using YARG.Core.Logging;
 using YARG.Settings;
 
 namespace YARG.Gameplay.HUD
@@ -29,11 +28,12 @@ namespace YARG.Gameplay.HUD
         private CanvasGroup _canvas;
 
         private readonly List<double> _fadeTimings = new();
-        private          int _fadeIndex;
-        private const    int PHRASE_OBJECT_COUNT = 5;
-        private const    double PHRASE_DISTANCE_THRESHOLD = 2.0; // At least 2 * FADE_DURATION, to allow for fade in/out
-        private const    double MAX_TRANSITION_DURATION = 0.3;
-        private const    double FADE_DURATION = 0.5;
+        private          int          _fadeIndex;
+
+        private const int    PHRASE_OBJECT_COUNT       = 5;
+        private const double PHRASE_DISTANCE_THRESHOLD = 2.0; // At least 2 * FADE_DURATION, to allow for fade in/out
+        private const double MAX_TRANSITION_DURATION   = 0.3;
+        private const double FADE_DURATION             = 0.5;
 
         protected override void GameplayAwake()
         {
@@ -168,8 +168,6 @@ namespace YARG.Gameplay.HUD
                 return;
             }
 
-            YargLogger.LogFormatDebug("Fading lyrics at time {0}.",
-                GameManager.VisualTime);
             var startValue = _fadeIndex % 2 == 0 ? 0f : 1f;
             var targetValue = _fadeIndex % 2 == 0 ? 1f : 0f;
             var timeFraction = Mathf.Clamp01((float) (1 - (fadeTime + FADE_DURATION - GameManager.VisualTime) /

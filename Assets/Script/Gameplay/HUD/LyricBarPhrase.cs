@@ -22,6 +22,7 @@ namespace YARG.Gameplay.HUD
                 TimeLength = timeEnd - time;
             }
         }
+
         public class LyricPhraseTimingData
         {
             public LyricsPhrase     Phrase;
@@ -36,15 +37,14 @@ namespace YARG.Gameplay.HUD
         private readonly Queue<LyricPhraseTimingData> _phraseQueue = new();
         private          LyricPhraseTimingData        _currentPhraseData;
 
-        [Header("Lyrics Animation Settings")]
-        private readonly Vector2 _inactivePosition = new(0, -90f);
+        private readonly Vector2 _inactivePosition = new(0f, -90f);
 
-        private readonly Vector2 _upcomingPosition = new(0, -72f);
+        private readonly Vector2 _upcomingPosition = new(0f, -72f);
         private const    float   UPCOMING_ALPHA    = 0.65f;
-        private const    float   UPCOMING_SCALE    = 0.7f;
+        private readonly Vector2 _upcomingScale    = new(0.7f, 0.7f);
 
-        private readonly Vector2 _activePosition   = new(0, -22f);
-        private readonly Vector2 _finishedPosition = new(0, 15f);
+        private readonly Vector2 _activePosition   = new(0f, -22f);
+        private readonly Vector2 _finishedPosition = new(0f, 15f);
 
         private int                     _currentLyricIndex;
         private Utf16ValueStringBuilder _builder;
@@ -74,10 +74,12 @@ namespace YARG.Gameplay.HUD
             _currentPhraseData = _phraseQueue.Dequeue();
             // Reset state
             _currentLyricIndex = 0;
-            _lyricText.rectTransform.localScale = new Vector3(UPCOMING_SCALE, UPCOMING_SCALE, 1);
+            _lyricText.rectTransform.localScale = _upcomingScale;
+            _lyricText.alpha = 0.0f;
             // This is kind of a hack, but it somewhat prevents old meshes from sometimes showing up on gimmick lyrics
-            _lyricText.rectTransform.anchoredPosition = Vector2.positiveInfinity;
-            SetPhraseString();
+            // It still happens, but less?
+            // _lyricText.rectTransform.anchoredPosition = Vector2.positiveInfinity;
+            UpdatePhraseString();
         }
 
         private float CalculateTimeFraction(TransitionTiming transitionTiming)
@@ -105,7 +107,7 @@ namespace YARG.Gameplay.HUD
                 _lyricText.rectTransform.anchoredPosition = DOVirtual.EasedValue(_upcomingPosition, _activePosition,
                     timeFraction, Ease.InOutSine);
                 _lyricText.rectTransform.localScale = DOVirtual.EasedValue(
-                    new Vector3(UPCOMING_SCALE, UPCOMING_SCALE, 1), Vector3.one, timeFraction, Ease.InOutSine);
+                    _upcomingScale, Vector3.one, timeFraction, Ease.InOutSine);
                 _lyricText.alpha = DOVirtual.EasedValue(UPCOMING_ALPHA, 1.0f, timeFraction, Ease.InOutSine);
                 return;
             }
@@ -134,7 +136,7 @@ namespace YARG.Gameplay.HUD
             {
                 // Finish highlighting
                 _currentLyricIndex = _currentPhraseData.Phrase.Lyrics.Count;
-                SetPhraseString();
+                UpdatePhraseString();
             }
 
             if (time >= _currentPhraseData.ActiveTransition.TimeEnd && time <= _currentPhraseData.ExitTransition.Time)
@@ -160,10 +162,10 @@ namespace YARG.Gameplay.HUD
 
             _currentLyricIndex = currentIndex;
 
-            SetPhraseString();
+            UpdatePhraseString();
         }
 
-        private void SetPhraseString()
+        private void UpdatePhraseString()
         {
             var lyrics = _currentPhraseData.Phrase.Lyrics;
             _builder.Clear();
