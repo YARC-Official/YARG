@@ -14,11 +14,7 @@ namespace YARG.Helpers
         // Number of notes to collect before each adjustment
         private const int SAMPLE_SIZE = 20;
 
-        // Median accuracy (in ms) below which calibration is considered stable
-        private const double STABLE_THRESHOLD_MS = 10.0;
-
         // Fraction of the measured error to apply as correction (0-1).
-        // Applying 100% causes oscillation; a lower value converges smoothly.
         private const double DAMPING = 0.5;
 
         private readonly List<double> _accuracyList = new();
@@ -43,33 +39,28 @@ namespace YARG.Helpers
                 return;
             }
 
-            double median = CalculateMedian(_accuracyList);
-            double absMedian = Math.Abs(median);
-            UpdateCalibration(median);
+            var filtered = RemoveOutliers(_accuracyList);
+            double median = CalculateMedian(filtered);
+            int adjustment = (int) Math.Round(median * DAMPING);
 
-            if (absMedian < STABLE_THRESHOLD_MS)
+            if (adjustment == 0)
             {
                 NotifyCalibrationStable();
             }
             else
             {
+                ApplyAdjustment(adjustment);
                 NotifyCalibrationUpdated();
             }
 
             _accuracyList.Clear();
         }
 
-        private void UpdateCalibration(double median)
+        private void ApplyAdjustment(int adjustment)
         {
-            int newCalibration = _calibration + (int) Math.Round(median * DAMPING);
-            UpdateCalibrationSetting(newCalibration);
+            _calibration += adjustment;
+            SettingsManager.Settings.AudioCalibration.Value = _calibration;
             _gameManager.UpdateCalibration();
-            _calibration = newCalibration;
-        }
-
-        private void UpdateCalibrationSetting(int calibrationValue)
-        {
-            SettingsManager.Settings.AudioCalibration.Value = calibrationValue;
         }
 
         private void NotifyCalibrationUpdated()
@@ -80,6 +71,23 @@ namespace YARG.Helpers
         private void NotifyCalibrationStable()
         {
             ToastManager.ToastSuccess($"Auto calibration stable ({_calibration} ms)");
+        }
+
+        // Removes hits near the edges of the hit window.  We find the "middle 50%" of the data (Q1 to Q3),
+        // measure how spread out that last range is (IQR), then toss anything more than 1.5x of the range.
+        private static List<double> RemoveOutliers(List<double> values)
+        {
+            var sorted = values.OrderBy(x => x).ToList();
+            int count = sorted.Count;
+
+            double q1 = sorted[count / 4];
+            double q3 = sorted[count * 3 / 4];
+            double iqr = q3 - q1;
+
+            double lowerBound = q1 - 1.5 * iqr;
+            double upperBound = q3 + 1.5 * iqr;
+
+            return sorted.Where(x => x >= lowerBound && x <= upperBound).ToList();
         }
 
         private static double CalculateMedian(List<double> values)
