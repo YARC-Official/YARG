@@ -74,6 +74,10 @@ namespace YARG.Integration
             DataStreamController.MLCFogState = false;
             DataStreamController.MLCStrobeState = LightingType.StrobeOff;
             DataStreamController.Initializer(SceneManager.GetActiveScene());
+            if (GameManager.IsPractice)
+            {
+                DataStreamController.MLCSceneIndex = DataStreamController.SceneIndexByte.Practice;
+            }
             DataStreamController.MLCPaused = DataStreamController.PauseStateType.Unpaused;
 
             // This should be read from the venue itself eventually, but for now, we'll just randomize it.

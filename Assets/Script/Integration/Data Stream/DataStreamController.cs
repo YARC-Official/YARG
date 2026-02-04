@@ -71,6 +71,7 @@ namespace YARG.Integration
             Gameplay,
             Score,
             Calibration,
+            Practice
         }
 
         public enum VenueType
@@ -344,7 +345,6 @@ namespace YARG.Integration
                     MLCSceneIndex = SceneIndexByte.Unknown;
                     break;
             }
-
         }
 
         private void OnApplicationQuit()
