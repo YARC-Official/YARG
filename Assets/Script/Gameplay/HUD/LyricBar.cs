@@ -1,8 +1,10 @@
-﻿using System.Collections.Generic;
-using Cysharp.Text;
-using TMPro;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using DG.Tweening;
 using UnityEngine;
 using YARG.Core.Chart;
+using YARG.Core.Logging;
 using YARG.Settings;
 
 namespace YARG.Gameplay.HUD
@@ -17,26 +19,21 @@ namespace YARG.Gameplay.HUD
 
     public class LyricBar : GameplayBehaviour
     {
-        private const double PHRASE_FADING = 0.5;
-        private const double PHRASE_DISTANCE_THRESHOLD = 2.0;
-
         [SerializeField]
         private GameObject _normalBackground;
         [SerializeField]
         private GameObject _transparentBackground;
-
-        [Space]
         [SerializeField]
-        private TextMeshProUGUI _lyricText;
+        private LyricBarPhrase _phrasePrefab;
         [SerializeField]
-        private TextMeshProUGUI _upcomingLyricText;
+        private CanvasGroup _canvas;
 
-        private List<LyricsPhrase> _phrases;
-        private bool _upcomingLineSet = false;
-
-        private int _currentPhraseIndex = 0;
-        private int _currentLyricIndex = -1;
-        private Utf16ValueStringBuilder _builder;
+        private readonly List<double> _fadeTimings = new();
+        private          int _fadeIndex;
+        private const    int PHRASE_OBJECT_COUNT = 5;
+        private const    double PHRASE_DISTANCE_THRESHOLD = 2.0; // At least 2 * FADE_DURATION, to allow for fade in/out
+        private const    double MAX_TRANSITION_DURATION = 0.3;
+        private const    double FADE_DURATION = 0.5;
 
         protected override void GameplayAwake()
         {
@@ -48,8 +45,6 @@ namespace YARG.Gameplay.HUD
                 return;
             }
 
-            _builder = ZString.CreateStringBuilder(false);
-            // Set the lyric background
             switch (lyricSetting)
             {
                 case LyricDisplayMode.Normal:
@@ -65,165 +60,125 @@ namespace YARG.Gameplay.HUD
                     _transparentBackground.SetActive(false);
                     break;
             }
-
-            // Reset the lyrics
-            _lyricText.text = string.Empty;
-            _upcomingLyricText.text = string.Empty;
         }
 
         protected override void OnChartLoaded(SongChart chart)
         {
-            _phrases = chart.Lyrics.Phrases;
-            if (_phrases.Count < 1)
+            var lyrics = chart.Lyrics;
+
+            if (lyrics.Phrases.Count < 1)
             {
                 gameObject.SetActive(false);
+                return;
             }
-        }
 
-        protected override void GameplayDestroy()
-        {
-            if (!GameManager.IsPractice && SettingsManager.Settings.LyricDisplay.Value != LyricDisplayMode.Disabled)
+            var phraseObjects = new LyricBarPhrase[PHRASE_OBJECT_COUNT];
+            for (int i = 0; i < PHRASE_OBJECT_COUNT; i++)
             {
-                _builder.Dispose();
+                var phraseObject = Instantiate(_phrasePrefab, _canvas.transform);
+                phraseObjects[i] = phraseObject;
+            }
+
+            var phrases = lyrics.Phrases;
+            LyricBarPhrase.LyricPhraseTimingData previousPhrase = null;
+            for (int i = 0; i < phrases.Count; i++)
+            {
+                var currentPhrase = phrases[i];
+                int phraseObjectIndex = i % PHRASE_OBJECT_COUNT;
+                var phraseData = new LyricBarPhrase.LyricPhraseTimingData
+                {
+                    Phrase = currentPhrase,
+                };
+                if (i == 0)
+                {
+                    // Create object for first phrase with only fade in
+                    double initialFadeInTime = currentPhrase.Time - FADE_DURATION;
+                    phraseData.UpcomingTransition =
+                        new LyricBarPhrase.TransitionTiming(initialFadeInTime, initialFadeInTime);
+                    phraseData.ActiveTransition =
+                        new LyricBarPhrase.TransitionTiming(initialFadeInTime, initialFadeInTime);
+                    //phraseTimings.Add(phraseData);
+                    previousPhrase = phraseData;
+                    phraseObjects[phraseObjectIndex].EnqueuePhrase(phraseData);
+                    // Also add fade in
+                    _fadeTimings.Add(initialFadeInTime);
+                    continue;
+                }
+
+                if (i == phrases.Count - 1)
+                {
+                    // Last phrase, so set exit transition to fade out
+                    phraseData.ExitTransition =
+                        new LyricBarPhrase.TransitionTiming(currentPhrase.TimeEnd + FADE_DURATION,
+                            currentPhrase.TimeEnd + FADE_DURATION);
+                    _fadeTimings.Add(currentPhrase.TimeEnd);
+                }
+
+                /*
+                 * Ignoring fade-ins and fade-outs, it should work like such:
+                 * A phrase's transition to Next should be the same length as the previous phrase's transition to Main.
+                 * A previous phrase's transition to Exit should be the same length as the current phrase's transition to Main.
+                 * A phrase's transition to Main should be as large as possible up to MAXIMUM_TRANSITION_TIME,
+                 *  but otherwise equal to the distance from the end of the previous phrase's last lyric.
+                 */
+
+                double phraseGap = currentPhrase.Time - previousPhrase!.Phrase.TimeEnd;
+                if (phraseGap > PHRASE_DISTANCE_THRESHOLD)
+                {
+                    // This is a fade in/out, so we set transitions to 0
+                    double timeBeforeFadeIn = currentPhrase.Time - FADE_DURATION;
+                    double timeAfterFadeOut = previousPhrase.Phrase.TimeEnd + FADE_DURATION;
+                    phraseData.ActiveTransition =
+                        new LyricBarPhrase.TransitionTiming(timeBeforeFadeIn, timeBeforeFadeIn);
+                    phraseData.UpcomingTransition =
+                        new LyricBarPhrase.TransitionTiming(timeBeforeFadeIn, timeBeforeFadeIn);
+                    previousPhrase.ExitTransition =
+                        new LyricBarPhrase.TransitionTiming(timeAfterFadeOut, timeAfterFadeOut);
+                    _fadeTimings.Add(timeAfterFadeOut - FADE_DURATION);
+                    _fadeTimings.Add(timeBeforeFadeIn);
+                }
+                else
+                {
+                    // This needs to be different from phraseGap, since often the end of the previous phrase = the start of the current one
+                    // And therefore phraseGap = 0, which is not helpful for determining transition times
+                    double distanceFromLastLyric = currentPhrase.Time -
+                        previousPhrase.Phrase.Lyrics.Last().Time;
+                    double mainTransitionTime = Math.Min(distanceFromLastLyric, MAX_TRANSITION_DURATION);
+                    phraseData.ActiveTransition = new LyricBarPhrase.TransitionTiming(
+                        currentPhrase.Time - mainTransitionTime,
+                        currentPhrase.Time);
+                    phraseData.UpcomingTransition = new LyricBarPhrase.TransitionTiming(
+                        previousPhrase.ActiveTransition.Time,
+                        previousPhrase.ActiveTransition.TimeEnd);
+                    previousPhrase.ExitTransition = new LyricBarPhrase.TransitionTiming(
+                        phraseData.ActiveTransition.Time,
+                        phraseData.ActiveTransition.TimeEnd);
+                }
+
+                previousPhrase = phraseData;
+                phraseObjects[phraseObjectIndex].EnqueuePhrase(phraseData);
             }
         }
 
         private void Update()
         {
-            while (_currentPhraseIndex < _phrases.Count && _phrases[_currentPhraseIndex].TimeEnd <= GameManager.SongTime)
-            {
-                // We don't want to immedately remove the current line if the next one is close enough
-                if (_currentPhraseIndex + 1 == _phrases.Count || _phrases[_currentPhraseIndex + 1].Time - _phrases[_currentPhraseIndex].TimeEnd >= PHRASE_DISTANCE_THRESHOLD)
-                {
-                    double fadeOut = GameManager.SongTime - _phrases[_currentPhraseIndex].TimeEnd;
-                    if (fadeOut < PHRASE_FADING)
-                    {
-                        float alpha = 1 - (float) (fadeOut / PHRASE_FADING);
-                        _lyricText.alpha = alpha;
-                        _upcomingLyricText.alpha = alpha;
-                        break;
-                    }
-                }
-                else if (GameManager.SongTime < _phrases[_currentPhraseIndex + 1].Time)
-                {
-                    break;
-                }
-
-                _currentPhraseIndex++;
-                _currentLyricIndex = -1;
-                _lyricText.text = string.Empty;
-                _upcomingLyricText.text = string.Empty;
-                _upcomingLineSet = false;
-            }
-
-            // Exit if we've complete all phrases
-            if (_currentPhraseIndex == _phrases.Count)
+            var fadeTime = _fadeTimings[_fadeIndex];
+            if (GameManager.VisualTime < fadeTime)
             {
                 return;
             }
 
-            if (GameManager.SongTime < _phrases[_currentPhraseIndex].Time)
+            YargLogger.LogFormatDebug("Fading lyrics at time {0}.",
+                GameManager.VisualTime);
+            var startValue = _fadeIndex % 2 == 0 ? 0f : 1f;
+            var targetValue = _fadeIndex % 2 == 0 ? 1f : 0f;
+            var timeFraction = Mathf.Clamp01((float) (1 - (fadeTime + FADE_DURATION - GameManager.VisualTime) /
+                FADE_DURATION));
+            _canvas.alpha = DOVirtual.EasedValue(startValue, targetValue, timeFraction, Ease.InOutSine);
+            if (GameManager.VisualTime >= fadeTime + FADE_DURATION)
             {
-                double fadeIn = _phrases[_currentPhraseIndex].Time - GameManager.SongTime;
-                if (fadeIn >= PHRASE_FADING)
-                {
-                    return;
-                }
-                float alpha = 1 - (float) (fadeIn / PHRASE_FADING);
-                _lyricText.alpha = alpha;
-                _upcomingLyricText.alpha = alpha;
+                _fadeIndex++;
             }
-            // Fade-out could be occuring, so we can't just always set alpha to 1.0f here
-            else if (GameManager.SongTime < _phrases[_currentPhraseIndex].TimeEnd)
-            {
-                _lyricText.alpha = 1;
-                _upcomingLyricText.alpha = 1;
-            }
-
-            UpdateCurrentPhrase();
-            UpdateUpcomingPhrase();
-        }
-
-        private void UpdateCurrentPhrase()
-        {
-            var lyrics = _phrases[_currentPhraseIndex].Lyrics;
-
-            // Update the lyric index
-            int currIndex = _currentLyricIndex;
-            while (currIndex == -1 || (currIndex < lyrics.Count && lyrics[currIndex].Time <= GameManager.SongTime))
-            {
-                currIndex++;
-            }
-
-            // If the lyric index hasn't changed, then skip
-            if (_currentLyricIndex == currIndex)
-            {
-                return;
-            }
-
-            _builder.Clear();
-            // Highlighted words
-            _builder.Append("<color=#5CB9FF>");
-            int i = 0;
-            while (i < currIndex)
-            {
-                var lyric = lyrics[i++];
-                _builder.Append(lyric.Text);
-                if (!lyric.JoinOrHyphenateWithNext && i < lyrics.Count)
-                {
-                    _builder.Append(' ');
-                }
-            }
-            _builder.Append("</color>");
-
-            // Non-highlighted words
-            while (i < lyrics.Count)
-            {
-                var lyric = lyrics[i++];
-                _builder.Append(lyric.Text);
-                if (!lyric.JoinOrHyphenateWithNext && i < lyrics.Count)
-                {
-                    _builder.Append(' ');
-                }
-            }
-
-            _currentLyricIndex = currIndex;
-            _lyricText.SetText(_builder);
-        }
-
-        private void UpdateUpcomingPhrase()
-        {
-            const double MIN_PHRASE_LENGTH = 0.25;
-            if (_upcomingLineSet)
-            {
-                return;
-            }
-
-            _upcomingLineSet = true;
-            // We only want the upcoming phrase show if the phrase starts within the phrase-to-phrase threshold.
-            // We also give an excpetion for very very very short phrases (usually for special effects).
-            if (_currentPhraseIndex + 1 == _phrases.Count
-            || _phrases[_currentPhraseIndex + 1].Time - _phrases[_currentPhraseIndex].TimeEnd >= PHRASE_DISTANCE_THRESHOLD
-            || _phrases[_currentPhraseIndex].TimeLength < MIN_PHRASE_LENGTH)
-            {
-                return;
-            }
-
-            var lyrics = _phrases[_currentPhraseIndex + 1].Lyrics;
-
-            _builder.Clear();
-            int i = 0;
-            while (i < lyrics.Count)
-            {
-                var lyric = lyrics[i++];
-                _builder.Append(lyric.Text);
-                if (!lyric.JoinOrHyphenateWithNext && i < lyrics.Count)
-                {
-                    _builder.Append(' ');
-                }
-            }
-
-            _upcomingLyricText.SetText(_builder);
         }
     }
 }
