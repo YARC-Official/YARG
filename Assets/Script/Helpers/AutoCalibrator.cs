@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using YARG.Core.Logging;
 using YARG.Settings;
-using YARG.Core.Audio;
+
 using YARG.Gameplay;
 using YARG.Menu.Persistent;
 
@@ -29,13 +29,7 @@ namespace YARG.Helpers
         public AutoCalibrator(GameManager gameManager)
         {
             _gameManager = gameManager;
-
-            int calibration = SettingsManager.Settings.AudioCalibration.Value;
-            if (SettingsManager.Settings.AccountForHardwareLatency.Value)
-            {
-                calibration -= GlobalAudioHandler.PlaybackLatency;
-            }
-            _calibration = calibration;
+            _calibration = SettingsManager.Settings.AudioCalibration.Value;
         }
 
         public void RecordAccuracy(double noteTime)
