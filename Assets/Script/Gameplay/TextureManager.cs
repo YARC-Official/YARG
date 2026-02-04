@@ -105,7 +105,7 @@ namespace YARG.Gameplay
             {
                 _videoTexture.width = checkedWidth;
             }
-            if (height is {} checkedHeight && checkedHeight > _videoTexture.height)
+            if (height is { } checkedHeight && checkedHeight > _videoTexture.height)
             {
                 _videoTexture.height = checkedHeight;
             }
