@@ -157,8 +157,8 @@ namespace YARG.Gameplay
 
         private BandComboType _bandComboType;
 
-        private bool HasBots => _players.Any(p => !p.Player.SittingOut && p.Player.Profile.IsBot);
-        private bool SaveScoresWithBots = SettingsManager.Settings.SaveScoresWithBots.Value;
+        private        bool HasBots            => _players.Any(p => !p.Player.SittingOut && p.Player.Profile.IsBot);
+        private static bool SaveScoresWithBots => SettingsManager.Settings.SaveScoresWithBots.Value;
 
         private void Awake()
         {
@@ -549,7 +549,6 @@ namespace YARG.Gameplay
                 });
             }
 
-            // TODO: Check for any invalid scores from human players using IsSoloScoreValid.
             var validScoreCount = _players.Count(p => ScoreContainer.IsSoloScoreValid(SongSpeed, p.Player));
             if (validScoreCount == 0)
             {
