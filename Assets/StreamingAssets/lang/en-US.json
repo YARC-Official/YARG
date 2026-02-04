@@ -1900,7 +1900,7 @@
                 },
                 "NoStarPowerOverlap": {
                     "Name": "No Star Power Overlap",
-                    "Description": "Disallows earning more Star Power while Star Power is already active.",
+                    "Description": "Disallows earning more Star Power while Star Power is already active."
                 },
                 "EnableLanes": {
                     "Name": "Enable Trill/Tremolo Lanes",
