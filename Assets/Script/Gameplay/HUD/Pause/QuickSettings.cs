@@ -92,7 +92,8 @@ namespace YARG.Gameplay.HUD
         public void OpenCalibrationSettings()
         {
             var settings = new List<string>(_calibrationSettings);
-            var allowAutoCalibration = PlayerContainer.Players.Count == 1 && !PlayerContainer.OnlyHasBotsActive();
+            var activeHumanPlayers = PlayerContainer.Players.Count(p => !p.SittingOut && !p.Profile.IsBot);
+            var allowAutoCalibration = activeHumanPlayers == 1;
             if (!allowAutoCalibration)
             {
                 settings.Remove(nameof(SettingsManager.Settings.AutoCalibration));

@@ -883,7 +883,7 @@ namespace YARG.Gameplay.Player
 
         protected virtual void OnNoteHit(int index, TNote note)
         {
-            if (IsAutoCalibrating)
+            if (IsAutoCalibrating && !Player.Profile.IsBot)
             {
                 _autoCalibrator.RecordAccuracy(note.Time);
             }
