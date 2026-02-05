@@ -68,11 +68,11 @@ namespace YARG.Song
             output.WriteLine(
                 "Name,Artist,Album,Genre,Year,Length,Charter,Playlist,Source," +
                 "Master,Age Rating,Vocal Parts," +
-                "Guitar (5-Fret),Bass (5-Fret),Rhythm (5-Fret),Co-op (5-Fret),Keys," +
-                "Guitar (6-Fret),Bass (6-Fret),Rhythm (6-Fret),Co-op (6-Fret)," +
-                "Drums (4-Lane),Pro Drums,Drums (5-Lane),Elite Drums," +
-                "Pro Guitar (17-Fret),Pro Guitar (22-Fret),Pro Bass (17-Fret),Pro Bass (22-Fret),Pro Keys," +
-                "Vocals,Harmony,Band,Format,Hash"
+                "Guitar (5-Fret) Difficulty,Bass (5-Fret) Difficulty,Rhythm (5-Fret) Difficulty,Co-op (5-Fret) Difficulty,Keys Difficulty," +
+                "Guitar (6-Fret) Difficulty,Bass (6-Fret) Difficulty,Rhythm (6-Fret) Difficulty,Co-op (6-Fret) Difficulty," +
+                "Drums (4-Lane) Difficulty,Pro Drums Difficulty,Drums (5-Lane) Difficulty,Elite Drums Difficulty," +
+                "Pro Guitar (17-Fret) Difficulty,Pro Guitar (22-Fret) Difficulty,Pro Bass (17-Fret) Difficulty,Pro Bass (22-Fret) Difficulty,Pro Keys Difficulty," +
+                "Vocals Difficulty,Harmony Difficulty,Band Difficulty,Format,Hash"
             );
 
             foreach (var song in SongContainer.Songs)
