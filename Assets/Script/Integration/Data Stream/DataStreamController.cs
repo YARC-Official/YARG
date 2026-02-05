@@ -203,27 +203,40 @@ namespace YARG.Integration
             message.BeatsPerMinute = MLCCurrentBPM;               // gets set by the GameplayMonitor.
             message.CurrentSongSection = MLCCurrentSongSection;   // gets set on lighting cue change.
 
-            // Dequeue instrument notes from the queues to ensure no notes are missed
+            // Drain all queued instrument notes and OR them together (notes are bitmasks)
+            // This prevents queue buildup when notes enqueue faster than send rate
             lock (_queueLock)
             {
                 if (_drumQueue.Count > 0)
                 {
-                    MLCCurrentDrumNotes = _drumQueue.Dequeue();
+                    int combined = 0;
+                    while (_drumQueue.Count > 0)
+                        combined |= _drumQueue.Dequeue();
+                    MLCCurrentDrumNotes = combined;
                 }
 
                 if (_guitarQueue.Count > 0)
                 {
-                    MLCCurrentGuitarNotes = _guitarQueue.Dequeue();
+                    int combined = 0;
+                    while (_guitarQueue.Count > 0)
+                        combined |= _guitarQueue.Dequeue();
+                    MLCCurrentGuitarNotes = combined;
                 }
 
                 if (_bassQueue.Count > 0)
                 {
-                    MLCCurrentBassNotes = _bassQueue.Dequeue();
+                    int combined = 0;
+                    while (_bassQueue.Count > 0)
+                        combined |= _bassQueue.Dequeue();
+                    MLCCurrentBassNotes = combined;
                 }
 
                 if (_keysQueue.Count > 0)
                 {
-                    MLCCurrentKeysNotes = _keysQueue.Dequeue();
+                    int combined = 0;
+                    while (_keysQueue.Count > 0)
+                        combined |= _keysQueue.Dequeue();
+                    MLCCurrentKeysNotes = combined;
                 }
             }
 
