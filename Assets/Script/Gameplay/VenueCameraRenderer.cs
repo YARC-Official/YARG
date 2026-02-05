@@ -66,6 +66,7 @@ namespace YARG.Gameplay
         private static float _timeSinceLastRender;
 
         private static bool _staticsCreated;
+        private bool _needsInitialization = true;
 
         private void Awake()
         {
@@ -235,9 +236,12 @@ namespace YARG.Gameplay
 
         private void Update()
         {
-            if (ScreenSizeDetector.HasScreenSizeChanged)
+            if (ScreenSizeDetector.HasScreenSizeChanged || _needsInitialization)
             {
                 RecreateTextures();
+                _needsInitialization = false;
+                // Force a render this frame to avoid flickering when resizing
+                _timeSinceLastRender = float.MaxValue;
             }
 
             var stack = VolumeManager.instance.stack;

@@ -10,6 +10,7 @@ using YARG.Core.Engine;
 using YARG.Core.Logging;
 using YARG.Gameplay.HUD;
 using YARG.Gameplay.Visuals;
+using YARG.Helpers;
 using YARG.Playback;
 using YARG.Player;
 using YARG.Settings;
@@ -179,6 +180,10 @@ namespace YARG.Gameplay.Player
 
         protected SongChart Chart;
 
+        private AutoCalibrator _autoCalibrator;
+
+        private bool IsAutoCalibrating => SettingsManager.Settings.AutoCalibration.Value;
+
         public override void Initialize(int index, YargPlayer player, SongChart chart, TrackView trackView,
             StemMixer mixer, int? currentHighScore)
         {
@@ -246,6 +251,8 @@ namespace YARG.Gameplay.Player
             FinishInitialization();
 
             SongLength = (float) chart.GetEndTime();
+
+            _autoCalibrator = new AutoCalibrator(GameManager);
         }
 
         protected override void FinishDestruction()
@@ -876,6 +883,11 @@ namespace YARG.Gameplay.Player
 
         protected virtual void OnNoteHit(int index, TNote note)
         {
+            if (IsAutoCalibrating && !Player.Profile.IsBot)
+            {
+                _autoCalibrator.RecordAccuracy(note.Time);
+            }
+
             if (!GameManager.IsSeekingReplay)
             {
                 SetStemMuteState(false);

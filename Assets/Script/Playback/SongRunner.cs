@@ -275,7 +275,7 @@ namespace YARG.Playback
             _syncThread = new Thread(SyncThread) { IsBackground = true };
 
             InitializeSongTime(startTime + SongOffset, startDelay);
-            SetCalibration();
+            UpdateCalibration();
         }
 
         ~SongRunner()
@@ -591,7 +591,7 @@ namespace YARG.Playback
 
         public void AdjustSongSpeed(float deltaSpeed) => SetSongSpeed(SongSpeed + deltaSpeed);
 
-        public void SetCalibration()
+        public void UpdateCalibration()
         {
             int videoCalibrationMs = SettingsManager.Settings.VideoCalibration.Value;
             int audioCalibrationMs = SettingsManager.Settings.AudioCalibration.Value;
@@ -642,7 +642,7 @@ namespace YARG.Playback
 
 
             Paused = false;
-            SetCalibration();
+            UpdateCalibration();
             SetInputBaseChecked(InputTime);
 
             YargLogger.LogFormatDebug(

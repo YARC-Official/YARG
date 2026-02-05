@@ -246,6 +246,8 @@ namespace YARG.Gameplay
                 EngineManager.InitializeHappiness();
 
                 SettingsManager.Settings.NoFailMode.OnChange += OnNoFailModeChanged;
+                SettingsManager.Settings.AutoCalibration.Value = false;
+                SettingsManager.Settings.AutoCalibration.OnChange += OnAutoCalibrationChanged;
             }
 
             // Log constant values

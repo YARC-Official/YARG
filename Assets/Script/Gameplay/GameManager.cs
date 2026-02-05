@@ -205,6 +205,7 @@ namespace YARG.Gameplay
 
             // Unsubscribe from other events
             SettingsManager.Settings.NoFailMode.OnChange -= OnNoFailModeChanged;
+            SettingsManager.Settings.AutoCalibration.OnChange -= OnAutoCalibrationChanged;
             EngineManager.OnSongFailed -= OnSongFailed;
 
             //Restore stem volumes to their original state
@@ -382,6 +383,11 @@ namespace YARG.Gameplay
         {
             _songRunner.Resume();
             ResumeCore();
+        }
+
+        public void UpdateCalibration()
+        {
+            _songRunner.UpdateCalibration();
         }
 
         public void ResumeCore()
@@ -710,6 +716,17 @@ namespace YARG.Gameplay
                 await UniTask.Delay(TimeSpan.FromSeconds(SONG_END_DELAY));
                 GlobalAudioHandler.PlayVoxSample(VoxSample.FailSound);
                 Pause();
+            }
+        }
+
+        private void OnAutoCalibrationChanged(bool enabled)
+        {
+            if (enabled)
+            {
+                foreach (var player in _players)
+                {
+                    player.Player.IsScoreValid = false;
+                }
             }
         }
 

@@ -777,7 +777,7 @@
             },
             "AudioCalibration": {
                 "Name": "オーディオキャリブレーション（ミリ秒）",
-                "PauseName": "Audio Calibration (ms)",
+                "PauseName": "Audio (ms)",
                 "Description": "Audio calibration in milliseconds. Use the calibrator to automatically calibrate. Higher values make the audio play earlier, while lower ones make the audio play later."
             },
             "AccountForHardwareLatency": {

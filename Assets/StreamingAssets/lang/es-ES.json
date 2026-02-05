@@ -777,7 +777,7 @@
             },
             "AudioCalibration": {
                 "Name": "Calibración de Audio (ms)",
-                "PauseName": "Calibración de Audio (ms)",
+                "PauseName": "Audio (ms)",
                 "Description": "Calibración de audio en milisegundos. Usa el calibrador para calibrar automáticamente. Los valores altos hacen que el audio suene antes, mientras que los bajos hacen que suene después."
             },
             "AccountForHardwareLatency": {
@@ -1239,7 +1239,7 @@
             },
             "VideoCalibration": {
                 "Name": "Calibración de Video (ms)",
-                "PauseName": "Calibración de Video (ms)",
+                "PauseName": "Video (ms)",
                 "Description": "Calibración de vídeo en milisegundos. Usa el calibrador para calibrar automáticamente. Esto toma en cuenta las demoras entre el procesamiento del juego y el cuadro que se muestra."
             },
             "VocalMonitoring": {
