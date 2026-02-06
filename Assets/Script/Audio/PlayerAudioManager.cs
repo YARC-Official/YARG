@@ -45,6 +45,7 @@ namespace YARG.Audio
             private readonly GameManager _gameManager;
             private          bool        _isMuted;
             private Instrument CurrentInstrument => _player.Player.Profile.CurrentInstrument;
+            private bool IsSeekingReplay => _gameManager.IsSeekingReplay;
 
             public AudioHandler(SongStem stem, BasePlayer player, GameManager gameManager)
             {
@@ -99,7 +100,7 @@ namespace YARG.Audio
 
             private void OnStarPowerPhraseHit()
             {
-                if (_gameManager.Paused || _gameManager.IsSeekingReplay)
+                if (_gameManager.Paused || IsSeekingReplay)
                 {
                     return;
                 }
@@ -139,7 +140,7 @@ namespace YARG.Audio
 
             private void OnNoteMissed(int lastCombo)
             {
-                if (_gameManager.IsSeekingReplay)
+                if (IsSeekingReplay)
                 {
                     return;
                 }
@@ -155,7 +156,7 @@ namespace YARG.Audio
 
             private void OnOverhit()
             {
-                if (_gameManager.IsSeekingReplay)
+                if (IsSeekingReplay)
                 {
                     return;
                 }
@@ -178,10 +179,11 @@ namespace YARG.Audio
 
             private void OnNoteHit()
             {
-                if (!_gameManager.IsSeekingReplay)
+                if (IsSeekingReplay)
                 {
-                    SetMuteState(false);
+                    return;
                 }
+                SetMuteState(false);
             }
 
             private void SetMuteState(bool muted)

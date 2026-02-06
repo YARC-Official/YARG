@@ -14,6 +14,7 @@ using YARG.Helpers;
 using YARG.Input;
 using YARG.Player;
 using YARG.Settings;
+using static YARG.Gameplay.Player.PlayerEvent;
 
 namespace YARG.Gameplay.Player
 {
