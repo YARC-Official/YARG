@@ -80,7 +80,7 @@ namespace YARG.Gameplay.HUD
             // Set the playback speed to the replay speed
             if (_replay.Frames.Length > 0)
             {
-                SetSpeed((float) _replay.Frames[0].EngineParameters.SongSpeed);
+                SetSpeed((float) _replay.Frames[0].EngineParameters.SongSpeed, reseek: false);
             }
         }
 
@@ -199,11 +199,15 @@ namespace YARG.Gameplay.HUD
             SetSpeed(GameManager.SongSpeed + increment);
         }
 
-        private void SetSpeed(float speed)
+        private void SetSpeed(float speed, bool reseek = true)
         {
-            // Make sure to reset the replay time to prevent inconsistencies
             GameManager.SetSongSpeed(speed);
-            SetReplayTime(GameManager.VisualTime);
+
+            // Reset replay time for user-driven speed changes to prevent inconsistencies
+            if (reseek)
+            {
+                SetReplayTime(GameManager.SongTime);
+            }
 
             _speedInput.text = $"{GameManager.SongSpeed * 100f:0}%";
         }
