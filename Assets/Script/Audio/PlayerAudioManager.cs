@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using YARG.Core;
 using YARG.Core.Audio;
 using YARG.Core.Logging;
 using YARG.Gameplay;
@@ -13,9 +14,9 @@ namespace YARG.Audio
 {
     public class PlayerAudioManager : IDisposable
     {
-        private readonly        List<AudioHandler> _handlers;
-        private readonly        GameManager        _gameManager;
-        private static bool AllowOverhitSfx => SettingsManager.Settings.OverstrumAndOverhitSoundEffects.Value;
+        private readonly List<AudioHandler> _handlers;
+        private readonly GameManager        _gameManager;
+        private static   bool AllowOverhitSfx => SettingsManager.Settings.OverstrumAndOverhitSoundEffects.Value;
 
         public PlayerAudioManager(GameManager gameManager)
         {
@@ -43,6 +44,7 @@ namespace YARG.Audio
             private readonly BasePlayer  _player;
             private readonly GameManager _gameManager;
             private          bool        _isMuted;
+            private Instrument CurrentInstrument => _player.Player.Profile.CurrentInstrument;
 
             public AudioHandler(SongStem stem, BasePlayer player, GameManager gameManager)
             {
@@ -69,8 +71,8 @@ namespace YARG.Audio
                     case NoteHit:
                         OnNoteHit();
                         break;
-                    case NoteMissed:
-                        OnNoteMissed();
+                    case NoteMissed(var lastCombo):
+                        OnNoteMissed(lastCombo);
                         break;
                     case Overhit:
                         OnOverhit();
@@ -122,11 +124,19 @@ namespace YARG.Audio
                 SetMuteState(false);
             }
 
-            private void OnNoteMissed()
+            private void OnNoteMissed(int lastCombo)
             {
-                if (!_gameManager.IsSeekingReplay)
+                if (_gameManager.IsSeekingReplay)
                 {
-                    SetMuteState(true);
+                    return;
+                }
+
+                SetMuteState(true);
+
+                int comboBreakThreshold = _stem == Vocals ? 2 : BasePlayer.COMBO_BREAK_THRESHOLD;
+                if (lastCombo >= comboBreakThreshold)
+                {
+                    GlobalAudioHandler.PlaySoundEffect(SfxSample.NoteMiss);
                 }
             }
 
@@ -137,14 +147,19 @@ namespace YARG.Audio
                     return;
                 }
 
+                if (!CurrentInstrument.IsFiveFret())
+                {
+                    return;
+                }
+
                 if (!AllowOverhitSfx)
                 {
                     return;
                 }
 
-                const int MIN = (int) SfxSample.Overstrum1;
-                const int MAX = (int) SfxSample.Overstrum4;
-                var randomOverstrum = (SfxSample) Random.Range(MIN, MAX + 1);
+                const int min = (int) SfxSample.Overstrum1;
+                const int max = (int) SfxSample.Overstrum4;
+                var randomOverstrum = (SfxSample) Random.Range(min, max + 1);
                 GlobalAudioHandler.PlaySoundEffect(randomOverstrum);
             }
 

@@ -8,7 +8,7 @@ namespace YARG.Gameplay.Player
         public sealed record ReplayTimeChanged(double Time) : PlayerEvent;
         public sealed record VisualsReset : PlayerEvent;
         public sealed record NoteHit : PlayerEvent;
-        public sealed record NoteMissed : PlayerEvent;
+        public sealed record NoteMissed(int LastCombo) : PlayerEvent;
         public sealed record SustainBroken : PlayerEvent;
         public sealed record Overhit : PlayerEvent;
         public sealed record SustainEnded : PlayerEvent;

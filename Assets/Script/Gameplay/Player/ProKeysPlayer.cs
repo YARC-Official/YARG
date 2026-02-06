@@ -1,10 +1,9 @@
-using DG.Tweening;
+﻿using DG.Tweening;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using YARG.Core;
-using YARG.Core.Audio;
 using YARG.Core.Chart;
 using YARG.Core.Engine.Keys;
 using YARG.Core.Engine.Keys.Engines;

@@ -220,11 +220,7 @@ namespace YARG.Gameplay.Player
 
             engine.OnNoteMissed += (_, _) =>
             {
-                if (LastCombo >= 2)
-                {
-                    GlobalAudioHandler.PlaySoundEffect(SfxSample.NoteMiss);
-                }
-
+                OnEvent(new NoteMissed(LastCombo));
                 LastCombo = Combo;
             };
 

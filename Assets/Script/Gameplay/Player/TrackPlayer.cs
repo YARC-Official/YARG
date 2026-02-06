@@ -924,7 +924,7 @@ namespace YARG.Gameplay.Player
 
         protected virtual void OnNoteMissed(int index, TNote note)
         {
-            OnEvent(new NoteMissed());
+            OnEvent(new NoteMissed(LastCombo));
             if (IsFc)
             {
                 ComboMeter.SetFullCombo(false);
@@ -933,9 +933,8 @@ namespace YARG.Gameplay.Player
 
             if (!GameManager.IsSeekingReplay)
             {
-                if (LastCombo >= 10)
+                if (LastCombo >= COMBO_BREAK_THRESHOLD)
                 {
-                    GlobalAudioHandler.PlaySoundEffect(SfxSample.NoteMiss);
                     CameraPositioner.Punch();
                 }
 
@@ -956,7 +955,7 @@ namespace YARG.Gameplay.Player
                 IsFc = false;
             }
 
-            if (LastCombo >= 10)
+            if (LastCombo >= COMBO_BREAK_THRESHOLD)
             {
                 CameraPositioner.Punch();
             }

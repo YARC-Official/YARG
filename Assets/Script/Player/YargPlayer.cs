@@ -38,8 +38,8 @@ namespace YARG.Player
         /// <remarks>Could be invalidated due abusing pauses or no fail mode.</remarks>
         public bool IsScoreValid { get; set; } = true;
 
-        public bool IsReplay { get; private set; }
-        public int ReplayIndex = -1;
+        public bool IsReplay { get; }
+        public int  ReplayIndex = -1;
 
         /// <summary>
         /// Overrides the engine parameters in the gameplay player.

@@ -22,6 +22,8 @@ namespace YARG.Gameplay.Player
 {
     public abstract class BasePlayer : GameplayBehaviour
     {
+        public const int COMBO_BREAK_THRESHOLD = 10;
+
         public event Action<PlayerEvent> Events;
         protected void OnEvent(PlayerEvent playerEvent)
         {
