@@ -4,15 +4,18 @@ using YARG.Core.Audio;
 using YARG.Core.Logging;
 using YARG.Gameplay;
 using YARG.Gameplay.Player;
+using YARG.Settings;
 using static YARG.Core.Audio.SongStem;
 using static YARG.Gameplay.Player.PlayerEvent;
+using Random = UnityEngine.Random;
 
 namespace YARG.Audio
 {
     public class PlayerAudioManager : IDisposable
     {
-        private readonly List<AudioHandler> _handlers;
-        private readonly GameManager        _gameManager;
+        private readonly        List<AudioHandler> _handlers;
+        private readonly        GameManager        _gameManager;
+        private static bool AllowOverhitSfx => SettingsManager.Settings.OverstrumAndOverhitSoundEffects.Value;
 
         public PlayerAudioManager(GameManager gameManager)
         {
@@ -69,6 +72,9 @@ namespace YARG.Audio
                     case NoteMissed:
                         OnNoteMissed();
                         break;
+                    case Overhit:
+                        OnOverhit();
+                        break;
                     case SustainBroken:
                         OnSustainBroken();
                         break;
@@ -122,6 +128,24 @@ namespace YARG.Audio
                 {
                     SetMuteState(true);
                 }
+            }
+
+            private void OnOverhit()
+            {
+                if (_gameManager.IsSeekingReplay)
+                {
+                    return;
+                }
+
+                if (!AllowOverhitSfx)
+                {
+                    return;
+                }
+
+                const int MIN = (int) SfxSample.Overstrum1;
+                const int MAX = (int) SfxSample.Overstrum4;
+                var randomOverstrum = (SfxSample) Random.Range(MIN, MAX + 1);
+                GlobalAudioHandler.PlaySoundEffect(randomOverstrum);
             }
 
             private void OnNoteHit()

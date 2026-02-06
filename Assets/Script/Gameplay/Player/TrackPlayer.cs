@@ -962,6 +962,8 @@ namespace YARG.Gameplay.Player
             }
 
             LastCombo = Combo;
+
+            OnEvent(new Overhit());
         }
 
         protected virtual void OnSoloStart(SoloSection solo)

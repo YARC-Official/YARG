@@ -425,15 +425,6 @@ namespace YARG.Gameplay.Player
                 return;
             }
 
-            if (SettingsManager.Settings.OverstrumAndOverhitSoundEffects.Value)
-            {
-                const int MIN = (int) SfxSample.Overstrum1;
-                const int MAX = (int) SfxSample.Overstrum4;
-
-                var randomOverstrum = (SfxSample) Random.Range(MIN, MAX + 1);
-                GlobalAudioHandler.PlaySoundEffect(randomOverstrum);
-            }
-
             // To check if held frets are valid
             GuitarNote currentNote = null;
             if (Engine.NoteIndex < Notes.Count)
