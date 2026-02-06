@@ -83,6 +83,9 @@ namespace YARG.Audio
                     case SustainEnded:
                         OnSustainEnded();
                         break;
+                    case StarPowerPhraseHit:
+                        OnStarPowerPhraseHit();
+                        break;
                     case WhammyDuringSustain(var whammyFactor):
                         OnWhammyDuringSustain(whammyFactor);
                         break;
@@ -92,6 +95,16 @@ namespace YARG.Audio
             private void OnReplayTimeChanged()
             {
                 SetMuteState(false);
+            }
+
+            private void OnStarPowerPhraseHit()
+            {
+                if (_gameManager.Paused || _gameManager.IsSeekingReplay)
+                {
+                    return;
+                }
+
+                GlobalAudioHandler.PlaySoundEffect(SfxSample.StarPowerAward);
             }
 
             private void OnStarPowerChanged(bool active)
@@ -177,9 +190,6 @@ namespace YARG.Audio
                 {
                     return;
                 }
-
-
-                YargLogger.LogDebug($"SETTING MUTE STATE {muted}");
                 _gameManager.ChangeStemMuteState(_stem, muted);
                 _isMuted = muted;
             }

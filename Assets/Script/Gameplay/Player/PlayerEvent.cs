@@ -12,6 +12,7 @@ namespace YARG.Gameplay.Player
         public sealed record SustainBroken : PlayerEvent;
         public sealed record Overhit : PlayerEvent;
         public sealed record SustainEnded : PlayerEvent;
+        public sealed record StarPowerPhraseHit : PlayerEvent;
         public sealed record WhammyDuringSustain(float WhammyFactor) : PlayerEvent;
     }
 }
