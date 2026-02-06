@@ -65,8 +65,7 @@ namespace YARG.Menu.History
             GlobalVariables.State.CurrentSong = song;
             GlobalVariables.State.CurrentReplay = replay;
 
-            // TODO: Store selected song speed in replays
-            // GlobalVariables.State.SongSpeed = replay.
+            GlobalVariables.State.SongSpeed = replay.SongSpeed;
 
             GlobalVariables.Instance.LoadScene(SceneIndex.Gameplay);
         }

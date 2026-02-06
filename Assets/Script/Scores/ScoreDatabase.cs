@@ -107,6 +107,16 @@ namespace YARG.Scores
             {
                 YargLogger.LogFormatDebug("Successfully updated the PlayedWithReplay field on {0} rows.", amountUpdated);
             }
+
+            amountUpdated = _db.Execute(
+                @"UPDATE GameRecords
+                SET HasBots = 0 WHERE HasBots IS NULL"
+            );
+
+            if (amountUpdated > 0)
+            {
+                YargLogger.LogFormatDebug("Successfully updated the HasBots field on {0} rows.", amountUpdated);
+            }
         }
 
         public void Dispose()

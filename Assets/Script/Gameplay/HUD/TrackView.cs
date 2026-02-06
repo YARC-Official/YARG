@@ -33,6 +33,8 @@ namespace YARG.Gameplay.HUD
 
         private DraggableHudElement _topDraggable;
 
+        private Vector3 _hiddenPosition = new Vector3(-10000f, -10000f, 0f);
+
         public void Initialize(HighwayCameraRendering highwayRenderer)
         {
             _highwayRenderer = highwayRenderer;
@@ -46,15 +48,18 @@ namespace YARG.Gameplay.HUD
             var newScale = Math.Max(0.5f, 1.1f - (0.1f * highwayCount));
             _scaleContainer.localScale = _scaleContainer.localScale.WithX(newScale).WithY(newScale);
 
-            //Set center element position
-            var centerPosition = _highwayRenderer.GetTrackPositionScreenSpace(highwayIndex, 0.5f, CENTER_ELEMENT_DEPTH);
+            var centerPosition =
+                _highwayRenderer.GetTrackPositionScreenSpace(highwayIndex, 0.5f, CENTER_ELEMENT_DEPTH)
+                ?? _hiddenPosition;
             _centerElementContainer.transform.position = centerPosition;
 
             if (_topDraggable != null && !_topDraggable.HasCustomPosition)
             {
                 // Place top elements at 100% depth of the track, plus some extra amount above the track.
                 var extraOffset = TOP_ELEMENT_EXTRA_OFFSET * Screen.height / 1000f;
-                var topPosition = _highwayRenderer.GetTrackPositionScreenSpace(highwayIndex, 0.5f, 1.0f).AddY(extraOffset);
+                var topPosition =
+                    _highwayRenderer.GetTrackPositionScreenSpace(highwayIndex, 0.5f, 1.0f)?.AddY(extraOffset)
+                    ?? _hiddenPosition;
                 _topElementContainer.position = topPosition;
             }
         }

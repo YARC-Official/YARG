@@ -77,7 +77,7 @@ namespace YARG.Audio.BASS
 
             foreach (var stemInfo in stemInfos)
             {
-                var volumeMatrix = stemInfo.GetVolumeMatrix();
+                var volumeMatrix = BassStemMixer.BuildVolumeMatrix(stemInfo);
                 if (volumeMatrix != null)
                 {
                     int[] channelMap = stemInfo.Indices.Append(-1).ToArray();

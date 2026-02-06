@@ -128,8 +128,10 @@ namespace YARG.Menu.MusicLibrary
             _sidebar.Initialize(this, _searchField);
         }
 
-        private void OnEnable()
+        protected override void OnEnable()
         {
+            base.OnEnable();
+
             // Set navigation scheme
             SetNavigationScheme();
 
@@ -141,8 +143,6 @@ namespace YARG.Menu.MusicLibrary
             {
                 _currentSong = CurrentlyPlaying;
             }
-
-            ShouldDisplaySoloHighScores = !PlayerContainer.OnlyHasBotsActive();
 
             SetRefreshIfNeeded();
 
@@ -654,12 +654,10 @@ namespace YARG.Menu.MusicLibrary
             _searchField.UpdateSearchText();
         }
 
-        protected override void Update()
+        protected void Update()
         {
             foreach (var heldInput in _heldInputs)
                 heldInput.Timer -= Time.unscaledDeltaTime;
-
-            base.Update();
         }
 
         private async void StartPreview(double delay, CancellationTokenSource canceller)
@@ -684,8 +682,10 @@ namespace YARG.Menu.MusicLibrary
             }
         }
 
-        private void OnDisable()
+        protected override void OnDisable()
         {
+            base.OnDisable();
+
             if (Navigator.Instance == null) return;
 
             // Save state

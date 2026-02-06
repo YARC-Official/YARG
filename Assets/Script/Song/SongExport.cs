@@ -47,16 +47,7 @@ namespace YARG.Song
                 {
                     string artist = RichTextUtils.StripRichTextTags(song.Artist);
                     string name = RichTextUtils.StripRichTextTags(song.Name);
-                    string playlist = RichTextUtils.StripRichTextTags(song.Playlist);
-
-                    if (playlist == "Unknown Playlist")
-                    {
-                        output.WriteLine($"{artist} - {name}");
-                    }
-                    else
-                    {
-                        output.WriteLine($"{artist} - {name} from {playlist}");
-                    }
+                    output.WriteLine($"{artist} - {name}");
                 }
 
                 output.WriteLine("");
@@ -73,7 +64,17 @@ namespace YARG.Song
         private static void ExportCsv(string path)
         {
             using var output = new StreamWriter(path);
-            output.WriteLine("Name,Artist,Album,Genre,Year,Length");
+
+            output.WriteLine(
+                "Name,Artist,Album,Genre,Year,Length,Charter,Playlist,Source," +
+                "Master,Age Rating,Vocal Parts," +
+                "Guitar (5-Fret) Difficulty,Bass (5-Fret) Difficulty,Rhythm (5-Fret) Difficulty,Co-op (5-Fret) Difficulty,Keys Difficulty," +
+                "Guitar (6-Fret) Difficulty,Bass (6-Fret) Difficulty,Rhythm (6-Fret) Difficulty,Co-op (6-Fret) Difficulty," +
+                "Drums (4-Lane) Difficulty,Pro Drums Difficulty,Drums (5-Lane) Difficulty,Elite Drums Difficulty," +
+                "Pro Guitar (17-Fret) Difficulty,Pro Guitar (22-Fret) Difficulty,Pro Bass (17-Fret) Difficulty,Pro Bass (22-Fret) Difficulty,Pro Keys Difficulty," +
+                "Vocals Difficulty,Harmony Difficulty,Band Difficulty,Format,Hash"
+            );
+
             foreach (var song in SongContainer.Songs)
             {
                 string name = Escape(RichTextUtils.StripRichTextTags(song.Name));
@@ -81,12 +82,69 @@ namespace YARG.Song
                 string album = Escape(RichTextUtils.StripRichTextTags(song.Album));
                 string genre = Escape(RichTextUtils.StripRichTextTags(song.Genre));
                 string year = Escape(RichTextUtils.StripRichTextTags(song.UnmodifiedYear));
+                string charter = Escape(RichTextUtils.StripRichTextTags(song.Charter));
+                string playlist = Escape(RichTextUtils.StripRichTextTags(song.Playlist));
+                string source = Escape(RichTextUtils.StripRichTextTags(song.Source));
 
                 int totalSeconds = (int) song.SongLengthSeconds;
                 int minutes = totalSeconds / 60;
                 int seconds = totalSeconds % 60;
                 string songLength = $"{minutes}:{seconds:D2}";
-                output.WriteLine($"{name},{artist},{album},{genre},{year},{songLength}");
+
+                string songRating = song.SongRating switch
+                {
+                    SongRating.Family_Friendly         => "Family Friendly",
+                    SongRating.Supervision_Recommended => "Supervision Recommended",
+                    SongRating.Mature                  => "Mature",
+                    _                                  => "No Rating"
+                };
+
+                bool isMaster = song.IsMaster;
+                int vocalsCount = song.VocalsCount;
+
+                int GetIntensity(Instrument inst)
+                {
+                    if (song.HasInstrument(inst))
+                    {
+                        return Math.Max((sbyte) 0, song[inst].Intensity);
+                    }
+                    return -1;
+                }
+
+                int fiveFretGuitar = GetIntensity(Instrument.FiveFretGuitar);
+                int fiveFretBass = GetIntensity(Instrument.FiveFretBass);
+                int fiveFretRhythm = GetIntensity(Instrument.FiveFretRhythm);
+                int fiveFretCoopGuitar = GetIntensity(Instrument.FiveFretCoopGuitar);
+                int keys = GetIntensity(Instrument.Keys);
+                int sixFretGuitar = GetIntensity(Instrument.SixFretGuitar);
+                int sixFretBass = GetIntensity(Instrument.SixFretBass);
+                int sixFretRhythm = GetIntensity(Instrument.SixFretRhythm);
+                int sixFretCoopGuitar = GetIntensity(Instrument.SixFretCoopGuitar);
+                int fourLaneDrums = GetIntensity(Instrument.FourLaneDrums);
+                int proDrums = GetIntensity(Instrument.ProDrums);
+                int fiveLaneDrums = GetIntensity(Instrument.FiveLaneDrums);
+                int eliteDrums = GetIntensity(Instrument.EliteDrums);
+                int proGuitar17 = GetIntensity(Instrument.ProGuitar_17Fret);
+                int proGuitar22 = GetIntensity(Instrument.ProGuitar_22Fret);
+                int proBass17 = GetIntensity(Instrument.ProBass_17Fret);
+                int proBass22 = GetIntensity(Instrument.ProBass_22Fret);
+                int proKeys = GetIntensity(Instrument.ProKeys);
+                int vocals = GetIntensity(Instrument.Vocals);
+                int harmony = GetIntensity(Instrument.Harmony);
+                int band = song.BandDifficulty;
+
+                string subType = song.SubType.ToString();
+                string hash = song.Hash.ToString();
+
+                output.WriteLine(
+                    $"{name},{artist},{album},{genre},{year},{songLength},{charter},{playlist},{source}," +
+                    $"{isMaster},{songRating},{vocalsCount}," +
+                    $"{fiveFretGuitar},{fiveFretBass},{fiveFretRhythm},{fiveFretCoopGuitar},{keys}," +
+                    $"{sixFretGuitar},{sixFretBass},{sixFretRhythm},{sixFretCoopGuitar}," +
+                    $"{fourLaneDrums},{proDrums},{fiveLaneDrums},{eliteDrums}," +
+                    $"{proGuitar17},{proGuitar22},{proBass17},{proBass22},{proKeys}," +
+                    $"{vocals},{harmony},{band},{subType},{hash}"
+                );
             }
 
             output.Flush();

@@ -106,7 +106,9 @@ namespace YARG.Gameplay.Visuals
             _globalAnimDelay = Mathf.Clamp((float) latestStart, 0f, MAX_ANIM_DELAY);
 
             // Animate the highway raise
-            if (!_gameManager.IsPractice && SettingsManager.Settings.EnableHighwayAnimation.Value)
+            if (!_gameManager.IsPractice
+                && !GlobalVariables.State.IsReplay
+                && SettingsManager.Settings.EnableHighwayAnimation.Value)
             {
                 if (_highwayRaised)
                 {

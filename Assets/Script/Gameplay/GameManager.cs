@@ -11,6 +11,7 @@ using YARG.Core.Game;
 using YARG.Core.Input;
 using YARG.Core.Logging;
 using YARG.Core.Replays;
+using YARG.Core.Replays.Analyzer;
 using YARG.Core.Song;
 using YARG.Gameplay.HUD;
 using YARG.Gameplay.Player;
@@ -131,7 +132,7 @@ namespace YARG.Gameplay
             set => EngineManager.Stars = value;
         }
 
-        public int   BandMultiplier => EngineManager.BandMultiplier;
+        public int BandMultiplier => EngineManager.BandMultiplier;
 
         public double FirstNoteTime { get; private set; }
         public double LastNoteTime  { get; private set; }
@@ -155,6 +156,9 @@ namespace YARG.Gameplay
         public int  ShowIndex = 0;
 
         private BandComboType _bandComboType;
+
+        private        bool HasBots            => _players.Any(p => !p.Player.SittingOut && p.Player.Profile.IsBot);
+        private static bool SaveScoresWithBots => SettingsManager.Settings.SaveScoresWithBots.Value;
 
         private void Awake()
         {
@@ -551,7 +555,47 @@ namespace YARG.Gameplay
                 });
             }
 
-            // Record the score into the database (but only if there are no bots, and Song Speed is at least 100%)
+            var validScoreCount = _players.Count(p => ScoreContainer.IsSoloScoreValid(SongSpeed, p.Player));
+            if (validScoreCount == 0)
+            {
+                return;
+            }
+
+            int humanBandScore = 0;
+            float humanBandStars = 0f;
+            if (HasBots && SaveScoresWithBots)
+            {
+                // Simulate the replay with only human players to calculate the correct score.
+                // This will remove band multiplier and Star Power contribution from bots
+                if (replayInfo == null || ReplayData == null)
+                {
+                    return;
+                }
+
+                var results = ReplayAnalyzer.AnalyzeReplay(Chart, replayInfo, ReplayData);
+                foreach (var result in results)
+                {
+                    humanBandScore += result.ResultStats.TotalScore + result.ResultStats.BandBonusScore;
+                    humanBandStars += result.ResultStats.Stars;
+                }
+            }
+            else
+            {
+                // No bots, use live scores directly
+                foreach (var player in _players)
+                {
+                    humanBandScore += player.Score + player.BaseStats.BandBonusScore;
+                    humanBandStars += player.Stars;
+                }
+            }
+
+            // Calculate band stars by taking average stars for human players only
+            int humanCount = playerEntries.Count;
+            int averageStars = (int)(humanBandStars / humanCount);
+            var bandStars = humanCount > 0
+                ? StarAmountHelper.GetStarsFromInt(averageStars)
+                : StarAmount.None;
+
             ScoreContainer.RecordScore(new GameRecord
             {
                 Date = DateTime.Now,
@@ -564,11 +608,12 @@ namespace YARG.Gameplay
                 ReplayFileName = replayInfo?.ReplayName,
                 ReplayChecksum = replayInfo?.ReplayChecksum.HashBytes,
 
-                BandScore = BandScore,
-                BandStars = StarAmountHelper.GetStarsFromInt((int) BandStars),
+                BandScore = humanBandScore,
+                BandStars = bandStars,
 
                 SongSpeed = SongSpeed,
                 PlayedWithReplay = GlobalVariables.State.PlayingWithReplay,
+                HasBots = HasBots,
             }, playerEntries);
         }
 
@@ -649,9 +694,9 @@ namespace YARG.Gameplay
             }
 
             var stars = StarAmountHelper.GetStarsFromInt((int) (bandStars / frames.Count));
-            var data = new ReplayData(colorProfiles, cameraPresets, frames.ToArray(), _frameTimes.ToArray());
+            ReplayData = new ReplayData(colorProfiles, cameraPresets, frames.ToArray(), _frameTimes.ToArray());
 
-            var (success, replayInfo) = ReplayIO.TrySerialize(directory, Song, SongSpeed, length, bandScore, stars, replayStats.ToArray(), data);
+            (bool success, var replayInfo) = ReplayIO.TrySerialize(directory, Song, SongSpeed, length, bandScore, stars, replayStats.ToArray(), ReplayData);
             if (!success)
             {
                 return null;

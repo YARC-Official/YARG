@@ -86,7 +86,7 @@
             "FiveFretCoop": "Cooperativo (5 Botões)",
             "Keys": "Teclado",
             "SixFretGuitar": "Guitarra (6-Botões)",
-            "SixFretBass": "Baixo (6-Botões)",
+            "SixFretBass": "Baixo (6 Botões)",
             "SixFretRhythm": "Ritmo (6 Botões)",
             "SixFretCoop": "Cooperativo (6 Botões)",
             "FourLaneDrums": "Bateria (4 Faixas)",
@@ -167,14 +167,14 @@
             },
             "Header": {
                 "Contributors": "Contribuidores",
-                "Founder": "Founder",
+                "Founder": "Fundador",
                 "LeadArtist": "Artista Principal",
                 "Maintainers": "Manutenção",
-                "ProjectManager": "Project Managers",
+                "ProjectManager": "Gerentes do projeto",
                 "SpecialThanks": "Agradecimentos Especiais",
                 "SetlistManager": "Gerenciador da Lista de Músicas",
                 "Songs": "Músicas",
-                "Supporters": "Supporters"
+                "Supporters": "Apoiadores"
             },
             "Song": {
                 "Name": "\"{0}\" por \"{1}\"",
@@ -194,7 +194,7 @@
                 "By": "Por: {0}"
             },
             "Text": {
-                "ExtraSpecialThanks": "An extra special thanks goes to <b>EliteAsian</b>, <b>Kadu</b>, <b>RileyTheFox</b>, <b>TheNathannator</b>, and <b>Sonicfind</b><br><br>We stand on the shoulders of giants."
+                "ExtraSpecialThanks": "Também agradecemos ao  <b>EliteAsian</b>, <b>Kadu</b>, <b>RileyTheFox</b>, <b>TheNathannator</b> e <b>Sonicfind</b><br><br>Eles são demais."
             }
         },
         "Toast": {
@@ -265,7 +265,7 @@
             "PlayWithReplay": "Jogar com Replay"
         },
         "Main": {
-            "MessageOfTheDay": "<align=center><size=32><b>Welcome to v0.14!</b></size></align>\n\nv0.14 is a major update that adds 5 Lane Keys, a new MIDI Drums profile type, easier instrument setup, support for 3D venue events, performance improvements when using multiple highways, many visual improvements, and more.\n\n<b>If you have any feedback or find any bugs, please let us know on Discord or GitHub.</b>\n\nHappy YARGin'!",
+            "MessageOfTheDay": "<align=center><size=32><b>Bem-vindo à versão 0.14! v0.14!</b></size></align>\n\nEsta grande atualização que adiciona suporte ao teclado pro de 5 faixas, um novo tipo de perfil de bateria MIDI, uma configuração de instrumento mais fácil, eventos de palcos 3D, otimizações de performance ao jogar com vários jogadores, melhorias visuais, além da versão mais recente do motor Unity que deve melhorar o suporte com o Linux.\n\n<b>Se você tiver algum feedback ou se encontrar quaisquer bugs, por favor nos avise pelo Discord ou no Github.</b>\n\nDivirta-se!",
             "Options": {
                 "Quickplay": "Jogar",
                 "Practice": "Praticar",

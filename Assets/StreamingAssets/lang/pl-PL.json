@@ -167,14 +167,14 @@
             },
             "Header": {
                 "Contributors": "Współtwórcy",
-                "Founder": "Founder",
+                "Founder": "Założyciel",
                 "LeadArtist": "Główny artysta",
                 "Maintainers": "Opiekunowie projektu",
-                "ProjectManager": "Project Managers",
+                "ProjectManager": "Menedżer projektu",
                 "SpecialThanks": "Specjalne podziękowania",
                 "SetlistManager": "Menedżer setlisty",
                 "Songs": "Utwory",
-                "Supporters": "Supporters"
+                "Supporters": "Wspierający"
             },
             "Song": {
                 "Name": "\"{0}\" przez {1}",
@@ -194,12 +194,12 @@
                 "By": "Przez: {0}"
             },
             "Text": {
-                "ExtraSpecialThanks": "An extra special thanks goes to <b>EliteAsian</b>, <b>Kadu</b>, <b>RileyTheFox</b>, <b>TheNathannator</b>, and <b>Sonicfind</b><br><br>We stand on the shoulders of giants."
+                "ExtraSpecialThanks": "Dodatkowe specjalne podziękowania należą się <b>EliteAsian</b>, <b>Kadu</b>, <b>RileyTheFox</b>, <b>TheNathannator</b>, and <b>Sonicfing</b><br><br>Stoimy na ramionach olbrzymów."
             }
         },
         "Toast": {
-            "ProfileCreated": "Profile created for new device: {0}\nTime to do some YARGin!",
-            "UnsupportedDevice": "Automatic profile creation is not supported for {0}!"
+            "ProfileCreated": "Utworzono profil dla nowego urządzenia: {0}\nCzas na YARGowanie!",
+            "UnsupportedDevice": "Automatyczne tworzenie profili nie jest obsługiwane dla urządzenia: {0}!"
         },
         "Dialog": {
             "DontShowAgain": "Nie pokazuj ponownie",
@@ -265,7 +265,7 @@
             "PlayWithReplay": "Graj z powtórką"
         },
         "Main": {
-            "MessageOfTheDay": "<align=center><size=32><b>Welcome to v0.14!</b></size></align>\n\nv0.14 is a major update that adds 5 Lane Keys, a new MIDI Drums profile type, easier instrument setup, support for 3D venue events, performance improvements when using multiple highways, many visual improvements, and more.\n\n<b>If you have any feedback or find any bugs, please let us know on Discord or GitHub.</b>\n\nHappy YARGin'!",
+            "MessageOfTheDay": "<align=center><size=32><b>Witaj w v0.14!</b></size></align>\n\nv0.14 to wielka aktualizacja, która dodaje 5-ścieżkowe klawisze, nowy typ profilu — perkusja MIDI, ułatwione ustawienie instrumentów, kompatybilność z wydarzeniami w scenach 3D, ulepszona wydajność przy użyciu wielu torów, wiele poprawek wizualnych, i więcej.\n\n<b>Jeżeli chciałyś przekazać nam swoją opinie lub chciałbyś zgłosić błąd, proszę skontaktuj się znami poprzez Discorda lub Githuba.</b>\n\nMiłego YARGowania!",
             "Options": {
                 "Quickplay": "Szybka gra",
                 "Practice": "Ćwicz",
@@ -737,7 +737,7 @@
             "Advanced": "Zaawansowane",
             "DMXChannels": "Kanały DMX",
             "LightingGeneral": "Ogólne oświetlenie",
-            "ExportSongs": "Export Songs List",
+            "ExportSongs": "Eksportuj listę utworów",
             "PathsAndFolders": "Ścieżki i foldery",
             "MusicLibrary": "Biblioteka",
             "PlayAShow": "Zagraj występ",
@@ -757,8 +757,8 @@
             "CopyCurrentSongJsonFilePath": "Skopiuj ścieżkę do pliku JSON z aktualnym utworem",
             "CopyCurrentSongTextFilePath": "Skopiuj ścieżkę do pliku tekstowego z aktualnym utworem",
             "ExportSongsJson": "Ouvert (JSON)",
-            "ExportSongsText": "Plain Text",
-            "ExportSongsCsv": "CSV",
+            "ExportSongsText": "Format .txt",
+            "ExportSongsCsv": "Format .csv",
             "OpenCalibrator": "Otwórz ekran kalibracji",
             "OpenVenueFolder": "Otwórz folder z tłami/scenami",
             "AddFolder": "Dodaj folder",
@@ -777,7 +777,7 @@
             },
             "AudioCalibration": {
                 "Name": "Kalibracja audio (ms)",
-                "PauseName": "Audio Calibration (ms)",
+                "PauseName": "Kalibracja audio (ms)",
                 "Description": "Kalibracja audio w milisekundach. Użyj ekranu kalibracji aby skalibrować automatycznie. Wyższe wartości sprawiają, że muzyka będzie grać wcześniej, a niższe wartości sprawiają, że muzyka będzie grać później."
             },
             "AccountForHardwareLatency": {
@@ -1239,7 +1239,7 @@
             },
             "VideoCalibration": {
                 "Name": "Kalibracja wideo (ms)",
-                "PauseName": "Video Calibration (ms)",
+                "PauseName": "Kalibracja wideo (ms)",
                 "Description": "Kalibracja wideo w milisekundach. Użyj ekranu kalibracji, aby skalibrować automatycznie. Ta wartość służy do ustawienia opóźnienia pomiędzy przetworzeniem danych z urządzeń wejściowych a wyświetleniem klatki na ekranie."
             },
             "VocalMonitoring": {
@@ -1418,8 +1418,8 @@
                 "Description": "Gdy włączone, gra może zagrać wokalne efekty dźwiękowe na ekranie końcowym."
             },
             "EnableNormalization": {
-                "Name": "Normalize Audio",
-                "Description": "If enabled, normalizes audio so that all songs are approximately the same volume.  Increases memory and performance requirements."
+                "Name": "Normalizacja dźwięku",
+                "Description": "Przy włączeniu, reguluje dźwięk, by każdy utwór miał w przybliżeniu tę samą głośność. Zwiększa wymagania pamięci i wydajności."
             }
         },
         "PresetType": {

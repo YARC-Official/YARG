@@ -13,15 +13,22 @@ namespace YARG.Audio.BASS
         internal static BassOutputDevice? Create(int deviceId, string name)
 #nullable disable
         {
-            if (!Bass.Init(deviceId, 44100, DeviceInitFlags.Default | DeviceInitFlags.Latency, IntPtr.Zero))
+            try
             {
-                var error = Bass.LastError;
-                if (Bass.LastError != Errors.Already)
+                if (!Bass.Init(deviceId, 44100, DeviceInitFlags.Default | DeviceInitFlags.Latency, IntPtr.Zero))
                 {
-                    YargLogger.LogFormatError("Failed to initialize BASS device: {0}!", Bass.LastError);
+                    if (Bass.LastError != Errors.Already)
+                    {
+                        YargLogger.LogFormatError("Failed to initialize BASS device: {0}!", Bass.LastError);
 
-                    return null;
+                        return null;
+                    }
                 }
+            }
+            catch (BassException e)
+            {
+                YargLogger.LogException(e);
+                return null;
             }
 
             return new BassOutputDevice(Bass.CurrentDevice, name);

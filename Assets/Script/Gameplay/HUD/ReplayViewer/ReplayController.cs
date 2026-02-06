@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Globalization;
 using DG.Tweening;
 using TMPro;
@@ -8,6 +8,7 @@ using YARG.Core.Input;
 using YARG.Core.Logging;
 using YARG.Core.Replays;
 using YARG.Menu.Navigation;
+using YARG.Settings;
 
 namespace YARG.Gameplay.HUD
 {
@@ -19,6 +20,8 @@ namespace YARG.Gameplay.HUD
         private RectTransform _container;
         [SerializeField]
         private RectTransform _showHudButtonArrow;
+        [SerializeField]
+        private RectTransform _showHudButton;
 
         [Space]
         [SerializeField]
@@ -53,9 +56,9 @@ namespace YARG.Gameplay.HUD
                 return;
             }
 
-            // Get the hidden position based on the container, and then move to that position
-            _hudHiddenY = -_container.sizeDelta.y;
-            _container.position = _container.position.WithY(_hudHiddenY);
+            // Get the hidden position based on the container, accounting for show button arrow height
+            _hudHiddenY = -_container.sizeDelta.y + _showHudButton.sizeDelta.y;
+            _container.position = _container.position.WithY(-_container.sizeDelta.y);
 
             // Listen for menu inputs
             Navigator.Instance.NavigationEvent += OnNavigationEvent;
@@ -80,7 +83,7 @@ namespace YARG.Gameplay.HUD
             // Set the playback speed to the replay speed
             if (_replay.Frames.Length > 0)
             {
-                SetSpeed((float) _replay.Frames[0].EngineParameters.SongSpeed);
+                SetSpeed((float) _replay.Frames[0].EngineParameters.SongSpeed, reseek: false);
             }
         }
 
@@ -91,6 +94,12 @@ namespace YARG.Gameplay.HUD
             if (!GameManager.Paused)
             {
                 UpdateTimeControls();
+            }
+
+            if (_timelineSlider.value >= 1.0f)
+            {
+                //End of song, pause
+                SetPaused(true);
             }
         }
 
@@ -199,11 +208,15 @@ namespace YARG.Gameplay.HUD
             SetSpeed(GameManager.SongSpeed + increment);
         }
 
-        private void SetSpeed(float speed)
+        private void SetSpeed(float speed, bool reseek = true)
         {
-            // Make sure to reset the replay time to prevent inconsistencies
             GameManager.SetSongSpeed(speed);
-            SetReplayTime(GameManager.VisualTime);
+
+            // Reset replay time for user-driven speed changes to prevent inconsistencies
+            if (reseek)
+            {
+                SetReplayTime(GameManager.SongTime);
+            }
 
             _speedInput.text = $"{GameManager.SongSpeed * 100f:0}%";
         }

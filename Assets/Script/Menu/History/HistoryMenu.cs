@@ -42,8 +42,10 @@ namespace YARG.Menu.History
         [SerializeField]
         private HeaderTabs _headerTabs;
 
-        private void OnEnable()
+        protected override void OnEnable()
         {
+            base.OnEnable();
+
             // Set navigation scheme
             Navigator.Instance.PushScheme(new NavigationScheme(new()
             {
@@ -171,8 +173,9 @@ namespace YARG.Menu.History
             });
         }
 
-        private void OnDisable()
+        protected override void OnDisable()
         {
+            base.OnDisable();
             Navigator.Instance.PopScheme();
 
             _headerTabs.TabChanged -= OnTabChanged;

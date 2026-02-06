@@ -4,13 +4,24 @@ using YARG.Core.Logging;
 
 using System.Diagnostics;
 using System.IO;
+using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace YARG.Helpers
 {
     public static class FileExplorerHelper
     {
+        private static FileBrowser _fileBrowser;
+
         public static void OpenChooseFolder(string startingDir, Action<string> callback)
         {
+            if (_fileBrowser == null)
+            {
+                _fileBrowser = Object.FindFirstObjectByType<FileBrowser>(FindObjectsInactive.Include);
+            }
+
+            _fileBrowser.gameObject.SetActive(true);
+
             FileBrowser.ShowLoadDialog((files) =>
             {
                 if (files is not { Length: > 0 })
@@ -33,6 +44,13 @@ namespace YARG.Helpers
 
         public static void OpenChooseFile(string startingDir, string extension, Action<string> callback)
         {
+            if (_fileBrowser == null)
+            {
+                _fileBrowser = Object.FindFirstObjectByType<FileBrowser>(FindObjectsInactive.Include);
+            }
+
+            _fileBrowser.gameObject.SetActive(true);
+
             if (string.IsNullOrEmpty(extension))
             {
                 FileBrowser.SetFilters(true);
@@ -65,6 +83,13 @@ namespace YARG.Helpers
         public static void OpenSaveFile(string startingDir, string defaultName, string extension,
             Action<string> callback)
         {
+            if (_fileBrowser == null)
+            {
+                _fileBrowser = Object.FindFirstObjectByType<FileBrowser>(FindObjectsInactive.Include);
+            }
+
+            _fileBrowser.gameObject.SetActive(true);
+
             if (string.IsNullOrEmpty(extension))
             {
                 FileBrowser.SetFilters(true);

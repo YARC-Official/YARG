@@ -528,7 +528,7 @@ namespace YARG.Gameplay.Visuals
         /// <param name="trackIndex">The index of the highway to get the position for. 0 is leftmost highway</param>
         /// <param name="x">The normalized position across the track width (0.0 is leftmost track edge. 1.0 is rightmost track edge)</param>
         /// <param name="y">The normalized position up the track (0.0 is the strikeline, 1.0 is zero fade position)</param>
-        public Vector2 GetTrackPositionScreenSpace(int trackIndex, float x, float y)
+        public Vector2? GetTrackPositionScreenSpace(int trackIndex, float x, float y)
         {
             if (trackIndex < 0 || trackIndex >= _cameras.Count)
             {
@@ -548,12 +548,18 @@ namespace YARG.Gameplay.Visuals
             float xOffset = Mathf.LerpUnclamped(-trackWidth / 2f, trackWidth / 2f, x);
 
             // Calculate screen space from world position
-            Vector3 worldPositionAtPercent = new Vector3(
+            var worldPositionAtPercent = new Vector3(
                 trackPosition.x + xOffset,
                 trackPosition.y,
                 zPositionAtPercent
             );
-            Vector2 viewportPosition = WorldToViewport(worldPositionAtPercent, trackIndex);
+
+            var viewportPosition = WorldToViewport(worldPositionAtPercent, trackIndex);
+            if (float.IsNaN(viewportPosition.x) || float.IsNaN(viewportPosition.y))
+            {
+                return null;
+            }
+
             float screenX = viewportPosition.x * Screen.width;
             float screenY = (1.0f - viewportPosition.y) * Screen.height;
 

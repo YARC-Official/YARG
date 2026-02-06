@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -233,6 +233,7 @@ namespace YARG.Settings
                 nameof(Settings.BandComboTypeSetting),
                 nameof(Settings.DataStreamEnable),
                 nameof(Settings.EnableNormalization),
+                nameof(Settings.SaveScoresWithBots),
                 new HeaderMetadata("OutputConfiguration"),
                 nameof(Settings.OutputDevice),
                 nameof(Settings.OutputChannelDefault),

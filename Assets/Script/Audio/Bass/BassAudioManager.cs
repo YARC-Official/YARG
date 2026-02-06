@@ -7,6 +7,7 @@ using ManagedBass.Mix;
 using UnityEngine;
 using YARG.Core.Audio;
 using YARG.Core.Logging;
+using YARG.Menu.Persistent;
 using YARG.Settings;
 
 #if UNITY_EDITOR
@@ -24,7 +25,7 @@ namespace YARG.Audio.BASS
 
             int[]? channelMap = null;
 #nullable disable
-            if (indices != null)
+            if (indices.Length > 0)
             {
                 channelMap = new int[indices.Length + 1];
                 for (int i = 0; i < indices.Length; ++i)
@@ -146,7 +147,23 @@ namespace YARG.Audio.BASS
             }
 #endif
 
-            SetOutputDevice("Default");
+            var result = SetOutputDevice("Default");
+
+            if (!result)
+            {
+                var error = Bass.LastError;
+                YargLogger.LogFormatError("BASS Initialization Failure: Failed to set default output device: {0}", error);
+
+#if UNITY_STANDALONE_LINUX
+                // Driver seems to be what we get when ALSA isn't available
+                if (error == Errors.Driver)
+                {
+                    YargLogger.LogError("Failed to set default output device. This is likely due to a missing ALSA plugin. Install pipewire-alsa or equivalent.");
+                    ToastManager.ToastError("Failed to initialize audio device. Make sure you have pipewire-alsa or equivalent installed.");
+                }
+#endif
+                return;
+            }
 
             var info = Bass.Info;
             PlaybackLatency = info.Latency + Bass.DeviceBufferLength + devPeriod;
@@ -161,14 +178,14 @@ namespace YARG.Audio.BASS
             YargLogger.LogFormatInfo("Current Device: {0}", Bass.GetDeviceInfo(Bass.CurrentDevice).Name);
         }
 
-        protected override void SetOutputDevice(string name)
+        protected override bool SetOutputDevice(string name)
         {
             int currentDevice = Bass.CurrentDevice;
 
             OutputDevice? device = GetOutputDevice(name);
             if (device is not BassOutputDevice bassDevice || bassDevice.DeviceId == currentDevice)
             {
-                return;
+                return false;
             }
 
             YargLogger.LogFormatInfo("Changing BASS Device to: {0}", bassDevice.DisplayName);
@@ -185,6 +202,8 @@ namespace YARG.Audio.BASS
             LoadDrumSfx(); // TODO: move drum sfx loading/disposal to song start/end respectively IF there are any drum players
             LoadVox();
             LoadMetronome();
+
+            return true;
         }
 
 #nullable enable
@@ -199,7 +218,7 @@ namespace YARG.Audio.BASS
             {
                 return null;
             }
-            return new BassStemMixer(name, this, speed, mixerVolume, handle, clampStemVolume, normalize, 
+            return new BassStemMixer(name, this, speed, mixerVolume, handle, clampStemVolume, normalize,
                 CreateOutputChannel(SettingsManager.Settings?.OutputChannelDefault.Value ?? 0));
         }
 
@@ -657,23 +676,22 @@ namespace YARG.Audio.BASS
         }
 
 #nullable enable
-        internal static bool CreateSplitStreams(int sourceStream, int[] channelMap, out StreamHandle? streamHandles, out StreamHandle? reverbHandles)
+        internal static (StreamHandle Stream, StreamHandle Reverb)? CreateSplitStreams(int sourceStream, int[] channelMap)
 #nullable disable
         {
-            streamHandles = StreamHandle.Create(sourceStream, channelMap);
+            var streamHandles = StreamHandle.Create(sourceStream, channelMap);
             if (streamHandles == null)
             {
-                reverbHandles = null;
-                return false;
+                return null;
             }
 
-            reverbHandles = StreamHandle.Create(sourceStream, channelMap);
+            var reverbHandles = StreamHandle.Create(sourceStream, channelMap);
             if (reverbHandles == null)
             {
                 streamHandles.Dispose();
-                return false;
+                return null;
             }
-            return true;
+            return (streamHandles, reverbHandles);
         }
 
         internal static PitchShiftParametersStruct SetPitchParams(SongStem stem, float speed, StreamHandle streamHandles, StreamHandle reverbHandles)

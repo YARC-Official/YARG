@@ -536,6 +536,7 @@ namespace YARG.Settings
                 BandComboType.Lenient,
                 BandComboType.Strict
             };
+            public ToggleSetting SaveScoresWithBots { get; } = new(false);
 
             public OutputDeviceSetting OutputDevice { get; } = new("Default", OutputDeviceCallback);
             public OutputChannelDefaultSetting OutputChannelDefault { get; } = new(1, OutputChannelDefaultCallback);

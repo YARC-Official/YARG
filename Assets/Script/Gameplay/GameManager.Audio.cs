@@ -66,20 +66,12 @@ namespace YARG.Gameplay
             {
                 return _stem switch
                 {
-                    SongStem.Guitar => SettingsManager.Settings.GuitarVolume.Value,
-                    SongStem.Rhythm => SettingsManager.Settings.RhythmVolume.Value,
-                    SongStem.Bass   => SettingsManager.Settings.BassVolume.Value,
-                    SongStem.Keys   => SettingsManager.Settings.KeysVolume.Value,
-                    SongStem.Drums
-                        or SongStem.Drums1
-                        or SongStem.Drums2
-                        or SongStem.Drums3
-                        or SongStem.Drums4
-                        => SettingsManager.Settings.DrumsVolume.Value,
-                    SongStem.Vocals
-                        or SongStem.Vocals1
-                        or SongStem.Vocals2
-                        => SettingsManager.Settings.VocalsVolume.Value,
+                    SongStem.Guitar    => SettingsManager.Settings.GuitarVolume.Value,
+                    SongStem.Rhythm    => SettingsManager.Settings.RhythmVolume.Value,
+                    SongStem.Bass      => SettingsManager.Settings.BassVolume.Value,
+                    SongStem.Keys      => SettingsManager.Settings.KeysVolume.Value,
+                    SongStem.Drums     => SettingsManager.Settings.DrumsVolume.Value,
+                    SongStem.Vocals    => SettingsManager.Settings.VocalsVolume.Value,
                     SongStem.Song      => SettingsManager.Settings.SongVolume.Value,
                     SongStem.Crowd     => SettingsManager.Settings.CrowdVolume.Value,
                     SongStem.Sfx       => SettingsManager.Settings.SfxVolume.Value,
@@ -109,24 +101,7 @@ namespace YARG.Gameplay
             foreach (var channel in _mixer.Channels)
             {
                 var stemState = new StemState(channel.Stem);
-                switch (channel.Stem)
-                {
-                    case SongStem.Drums:
-                    case SongStem.Drums1:
-                    case SongStem.Drums2:
-                    case SongStem.Drums3:
-                    case SongStem.Drums4:
-                        _stemStates.TryAdd(SongStem.Drums, stemState);
-                        break;
-                    case SongStem.Vocals:
-                    case SongStem.Vocals1:
-                    case SongStem.Vocals2:
-                        _stemStates.TryAdd(SongStem.Vocals, stemState);
-                        break;
-                    default:
-                        _stemStates.Add(channel.Stem, stemState);
-                        break;
-                }
+                _stemStates.Add(channel.Stem, stemState);
             }
 
             _backgroundStem = _stemStates.Count > 1 ? SongStem.Song : _stemStates.First().Key;

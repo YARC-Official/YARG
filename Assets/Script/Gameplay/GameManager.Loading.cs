@@ -380,6 +380,8 @@ namespace YARG.Gameplay
                 int vocalIndex = -1;
                 foreach (var player in YargPlayers)
                 {
+                    player.IsScoreValid = true;
+
                     if (!player.IsReplay)
                     {
                         // Reset microphone (resets channel buffers)

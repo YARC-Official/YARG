@@ -1128,6 +1128,10 @@
                 "PauseName": "Rhythm",
                 "Description": "Adjusts the song's rhythm guitar track volume. Only does something if the song is multi-track. In some song formats, this may also be the bass guitar."
             },
+            "SaveScoresWithBots": {
+                "Name": "Save Scores with Bots",
+                "Description": "Allows score saving when playing with bots. Only human scores are recorded. Bot scores are excluded."
+            },
             "SfxVolume": {
                 "Name": "SFX Volume",
                 "PauseName": "SFX",
