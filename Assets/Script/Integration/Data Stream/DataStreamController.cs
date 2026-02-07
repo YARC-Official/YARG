@@ -44,17 +44,20 @@ namespace YARG.Integration
             public float CurrentHarmony1Note;
             public float CurrentHarmony2Note;
 
-            public LightingType       LightingCue;
-            public PostProcessingType PostProcessing;
-            public bool               FogState;
-            public LightingType       StrobeState;
-            public byte               Performer;
-            public byte               Beat;
-            public LightingType       Keyframe;
-            public bool               BonusEffect;
-            public bool               AutoGenVenueTrack;
-            public Performer          Spotlight;
-            public Performer          Singalong;
+            public LightingType                       LightingCue;
+            public PostProcessingType                 PostProcessing;
+            public bool                               FogState;
+            public LightingType                       StrobeState;
+            public byte                               Performer;
+            public byte                               Beat;
+            public LightingType                       Keyframe;
+            public bool                               BonusEffect;
+            public bool                               AutoGenVenueTrack;
+            public Performer                          Spotlight;
+            public Performer                          Singalong;
+            public CameraCutEvent.CameraCutConstraint CameraCutConstraint;
+            public CameraCutEvent.CameraCutPriority   CameraCutPriority;
+            public CameraCutEvent.CameraCutSubject    CameraCutSubject;
         }
 
         public enum PlatformByte
@@ -129,6 +132,9 @@ namespace YARG.Integration
         public static bool               MLCAutoGenVenueTrack;
         public static Performer          MLCSpotlight;
         public static Performer          MLCSingalong;
+        public static CameraCutEvent.CameraCutConstraint MLCCameraCutConstraint;
+        public static CameraCutEvent.CameraCutPriority MLCCameraCutPriority;
+        public static CameraCutEvent.CameraCutSubject MLCCameraCutSubject;
 
         public static ushort MLCudpPort = 36107; //hardcoded for now.
         public static string MLCudpIP = "255.255.255.255"; // "this" network's broadcast address
@@ -194,11 +200,12 @@ namespace YARG.Integration
         // v0 - inital release
         // v1 - added "HasVenueTrack?" byte. renamed 'venue' to 'venueSize'.
         // v2 - added Practice to scene, fixed pause
+        // v3 - added CameraCut
         public static void Sender(DataMessage message)
         {
             message.Header = 0x59415247; // Y A R G
 
-            message.DatagramVersion = 2;                          // version 0 currently
+            message.DatagramVersion = 3;                          // version 0 currently
             message.Platform = MLCPlatform;                       // Set by the Preprocessor Directive above.
             message.CurrentScene = MLCSceneIndex;                 // gets set by the initializer.
             message.Paused = MLCPaused;                           // gets set by the GameplayMonitor.
@@ -261,9 +268,12 @@ namespace YARG.Integration
             message.Keyframe = MLCKeyframe;                     // gets set on lighting cue change.
             message.BonusEffect = MLCBonusFX;                   // gets set by the GameplayMonitor.
 
-            message.AutoGenVenueTrack = MLCAutoGenVenueTrack;   // gets set on chart load by the GameplayMonitor.
-            message.Spotlight = MLCSpotlight;                   // gets set by the GameplayMonitor.
-            message.Singalong = MLCSingalong;                   // gets set by the GameplayMonitor.
+            message.AutoGenVenueTrack = MLCAutoGenVenueTrack;     // gets set on chart load by the GameplayMonitor.
+            message.Spotlight = MLCSpotlight;                     // gets set by the GameplayMonitor.
+            message.Singalong = MLCSingalong;                     // gets set by the GameplayMonitor.
+            message.CameraCutConstraint = MLCCameraCutConstraint; // gets set by the GameplayMonitor.
+            message.CameraCutPriority = MLCCameraCutPriority;     // gets set by the GameplayMonitor.
+            message.CameraCutSubject = MLCCameraCutSubject;       // gets set by the GameplayMonitor.
 
             SerializeAndSend(message);
 
@@ -330,7 +340,9 @@ namespace YARG.Integration
             //MLCAutoGenVenueTrack set on chart load by the GameplayMonitor.
             MLCSpotlight = Performer.None;
             MLCSingalong = Performer.None;
-
+            MLCCameraCutPriority = CameraCutEvent.CameraCutPriority.Normal;
+            MLCCameraCutConstraint = CameraCutEvent.CameraCutConstraint.None;
+            MLCCameraCutSubject = CameraCutEvent.CameraCutSubject.AllFar;
 
             switch ((SceneIndex) scene.buildIndex)
             {
@@ -490,6 +502,9 @@ namespace YARG.Integration
                 _writer.Write(message.AutoGenVenueTrack); //bool
                 _writer.Write((byte) message.Spotlight);
                 _writer.Write((byte) message.Singalong);
+                _writer.Write((byte) message.CameraCutConstraint);
+                _writer.Write((byte) message.CameraCutPriority);
+                _writer.Write((byte) message.CameraCutSubject);
 
                 _sendClient.Send(_ms.GetBuffer(), (int) _ms.Position);
             }

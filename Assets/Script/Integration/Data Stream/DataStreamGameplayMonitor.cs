@@ -60,6 +60,7 @@ namespace YARG.Integration
         private int _performerStartIndex;
         private int _performerEndIndex;
         private int _postProcessingIndex;
+        private int _cameraCutIndex;
 
         private List<VocalNoteEvent> _vocalsNotes;
         private List<VocalNoteEvent> _harmony0Notes;
@@ -108,6 +109,7 @@ namespace YARG.Integration
             _performerEndIndex = 0;
             _postProcessingIndex = 0;
             _keysIndex = 0;
+            _cameraCutIndex = 0;
 
             _vocalsNotes = GetAllNoteEvents(_vocals);
             _harmony0Notes = GetAllNoteEvents(_harmony0);
@@ -202,8 +204,10 @@ namespace YARG.Integration
             return -2; // don't change the current note
         }
 
+
         private void PerformerEventChecker(PerformerEventType type, ref Performer MLCvar)
         {
+
             // Add all starting performers at or before SongTime
             while (_performerStartIndex < Venue.Performer.Count &&
                 Venue.Performer[_performerStartIndex].Time <= GameManager.SongTime &&
@@ -302,6 +306,15 @@ namespace YARG.Integration
             {
                 DataStreamController.MLCPostProcessing = Venue.PostProcessing[_postProcessingIndex].Type;
                 _postProcessingIndex++;
+            }
+
+            // Camera cut events
+            while (_cameraCutIndex < Venue.CameraCuts.Count && Venue.CameraCuts[_cameraCutIndex].Time <= GameManager.SongTime)
+            {
+                DataStreamController.MLCCameraCutConstraint = Venue.CameraCuts[_cameraCutIndex].Constraint;
+                DataStreamController.MLCCameraCutPriority = Venue.CameraCuts[_cameraCutIndex].Priority;
+                DataStreamController.MLCCameraCutSubject = Venue.CameraCuts[_cameraCutIndex].Subject;
+                _cameraCutIndex++;
             }
 
             // Beat line events
