@@ -52,6 +52,8 @@ namespace YARG.Gameplay.HUD
             _highwayEditCanvas = _highwayEditContainer.GetComponentInParent<Canvas>();
             _highwayEditParentRect = _highwayEditContainer.parent as RectTransform;
             _highwayDraggable.PositionChanged += OnHighwayDraggablePositionChanged;
+            _highwayDraggable.ScaleChanged += OnHighwayDraggableScaleChanged;
+            _highwayRenderer.SetScaleMultiplier(_highwayDraggable.StoredScale);
         }
 
         public void UpdateHUDPosition(int highwayIndex, int highwayCount)
@@ -130,6 +132,14 @@ namespace YARG.Gameplay.HUD
 
         private void OnHighwayDraggablePositionChanged(Vector2 position)
         {
+            UpdateTopHud(0);
+            UpdateCenterHud(0);
+            UpdateTrackPosition(0);
+        }
+
+        private void OnHighwayDraggableScaleChanged(float scale)
+        {
+            _highwayRenderer.SetScaleMultiplier(scale);
             UpdateTopHud(0);
             UpdateCenterHud(0);
             UpdateTrackPosition(0);
@@ -215,6 +225,7 @@ namespace YARG.Gameplay.HUD
         private void OnDestroy()
         {
             _highwayDraggable.PositionChanged -= OnHighwayDraggablePositionChanged;
+            _highwayDraggable.ScaleChanged -= OnHighwayDraggableScaleChanged;
         }
     }
 }

@@ -50,6 +50,7 @@ namespace YARG.Gameplay.Visuals
         private bool                       _needsInitialization    = true;
         private bool                       _needsCameraReset;
         private float                      _horizontalOffsetPx;
+        private float                      _scaleMultiplier = 1f;
 
         private readonly float[]           _curveFactors       = new float[MAX_MATRICES];
         private readonly float[]           _zeroFadePositions  = new float[MAX_MATRICES];
@@ -74,6 +75,7 @@ namespace YARG.Gameplay.Visuals
             _renderCamera = GetComponent<Camera>();
             _fadeCalcPass ??= new FadePass(this);
             _horizontalOffsetPx = 0f;
+            _scaleMultiplier = 1f;
 
             RecreateHighwayOutputTexture();
             Shader.SetGlobalInteger(YargHighwaysNumberID, 0);
@@ -217,6 +219,9 @@ namespace YARG.Gameplay.Visuals
                     // For multiple lanes, cap to a percentage of screen width and the scale factor to ensure padding
                     : Math.Min(Screen.width * MAX_LANE_SCREEN_WIDTH_PERCENT, (float)Screen.width / _cameras.Count * MULTI_LANE_SCALE_FACTOR);
 
+                //Factor in scale multiplier (from hud scaling)
+                targetScreenWidth = Math.Min(Screen.width, targetScreenWidth * _scaleMultiplier);
+
                 float scaleFactorWidth = targetScreenWidth / trackWidth;
 
                 // Also calculate scale factor needed to fit within 50% of screen height
@@ -226,12 +231,26 @@ namespace YARG.Gameplay.Visuals
                     // Track height can be taller if there is only one player
                     : Screen.height * MAX_LANE_SCREEN_HEIGHT_PERCENT;
 
+                //Factor in scale multiplier (from hud scaling)
+                targetScreenHeight = Math.Min(Screen.height, targetScreenHeight * _scaleMultiplier);
+
                 float scaleFactorHeight = targetScreenHeight / trackHeight;
 
                 // Use the more restrictive scale factor
                 float scaleFactor = Math.Min(scaleFactorWidth, scaleFactorHeight);
                 _laneScales[i] *= scaleFactor;
             }
+        }
+
+        public void SetScaleMultiplier(float scaleMultiplier)
+        {
+            float clampedMultiplier = Mathf.Max(1f, scaleMultiplier);
+            if (Mathf.Approximately(_scaleMultiplier, clampedMultiplier))
+            {
+                return;
+            }
+            _scaleMultiplier = clampedMultiplier;
+            ResetCameras();
         }
 
         // This is only directly used for fake track player really
