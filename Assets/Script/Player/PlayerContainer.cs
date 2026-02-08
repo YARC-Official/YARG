@@ -12,8 +12,10 @@ using YARG.Core.Logging;
 using YARG.Helpers;
 using YARG.Input;
 using YARG.Input.Bindings;
+using YARG.Localization;
 using YARG.Menu.MusicLibrary;
 using YARG.Menu.Persistent;
+using YARG.Menu.ProfileList;
 using YARG.Settings;
 using YARG.Song;
 
@@ -35,6 +37,12 @@ namespace YARG.Player
 
         private static readonly Dictionary<Guid, YargProfile>       _profilesById     = new();
         private static readonly Dictionary<YargProfile, YargPlayer> _playersByProfile = new();
+
+        public delegate void OnPlayerAdded(YargPlayer player);
+        public delegate void OnPlayerRemoved(YargPlayer player);
+
+        public static event OnPlayerAdded PlayerAdded;
+        public static event OnPlayerRemoved PlayerRemoved;
 
         /// <summary>
         /// A list of all of the profiles (taken or not).
@@ -129,6 +137,7 @@ namespace YARG.Player
             ActiveProfilesChanged();
             player.RefreshPresets();
             profile.ClaimProfile();
+            PlayerAdded?.Invoke(player);
             return player;
         }
 
@@ -142,6 +151,7 @@ namespace YARG.Player
             _players.Remove(player);
             _playersByProfile.Remove(player.Profile);
 
+            PlayerRemoved?.Invoke(player);
             player.Dispose();
             ActiveProfilesChanged();
             return true;
@@ -233,6 +243,11 @@ namespace YARG.Player
                 player.Bindings.OnDeviceAdded(device);
             }
 
+            if (!SettingsManager.Settings.AutoCreateProfiles.Value)
+            {
+                return;
+            }
+
             _ = TryCreateProfile(device);
         }
 
@@ -247,7 +262,7 @@ namespace YARG.Player
         private static async UniTask<bool> TryCreateProfile(InputDevice device)
         {
             // Some devices don't appear in their final form immediately, so we have to wait a bit
-            await UniTask.Delay(500, true);
+            await UniTask.Delay(2500, true);
 
             if (IsDeviceTaken(device))
             {
@@ -453,15 +468,8 @@ namespace YARG.Player
                 return false;
             }
 
-            if (device is not (FiveFretGuitar or FourLaneDrumkit or FiveLaneDrumkit or ProKeyboard))
-            {
-                // Add a check for the default Keyboard/Mouse/whatever devices here so we can enable the toast
-                // ToastManager.ToastWarning("Automatic profile creation is not supported for this device!");
-                return false;
-            }
-
             GameMode gameMode = default;
-            string profileName = String.Empty;
+            string profileName = string.Empty;
 
             if (device is FiveFretGuitar)
             {
@@ -483,10 +491,24 @@ namespace YARG.Player
                 gameMode = GameMode.ProKeys;
                 profileName = "New Keys Profile";
             }
+            else
+            {
+                // Filter out keyboard and mouse devices for the purposes of this message, otherwise we're just
+                // making noise about nothing for most players
+                if (device is Keyboard or Mouse or Pen)
+                {
+                    return false;
+                }
+
+                // TODO: Figure out why this triggers for non-input devices like stage kits so we can enable this
+                // var failMessage = Localize.KeyFormat("Menu.Toast.UnsupportedDevice", device.displayName);
+                // ToastManager.ToastWarning(failMessage);
+                return false;
+            }
 
             var newProfile = new YargProfile
             {
-                Name = profileName,
+                Name = ProfileListMenu.GetUniqueProfileName(profileName),
                 NoteSpeed = 5,
                 HighwayLength = 1,
                 GameMode = gameMode
@@ -508,7 +530,8 @@ namespace YARG.Player
                 player.Bindings.SetDefaultBinds(device);
             }
 
-            ToastManager.ToastSuccess("Profile created for new device.\nTime to do some YARGin!");
+            var successMessage = Localize.KeyFormat("Menu.Toast.ProfileCreated", device.displayName);
+            ToastManager.ToastSuccess(successMessage);
             return true;
         }
     }

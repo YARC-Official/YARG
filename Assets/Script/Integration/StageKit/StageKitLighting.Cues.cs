@@ -862,7 +862,7 @@ namespace YARG.Integration.StageKit
 
         public override void Enable()
         {
-            _gameManager = Object.FindObjectOfType<GameManager>();
+            _gameManager = Object.FindAnyObjectByType<GameManager>();
             StageKitInterpreter.Instance.SetLed(RED, NONE);
             StageKitInterpreter.Instance.SetLed(BLUE, TWO | SIX);
 

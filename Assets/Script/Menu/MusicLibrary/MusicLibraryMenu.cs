@@ -149,8 +149,10 @@ namespace YARG.Menu.MusicLibrary
             UpdateSortInformationHeader();
         }
 
-        private void OnEnable()
+        protected override void OnEnable()
         {
+            base.OnEnable();
+
             // Set navigation scheme
             SetNavigationScheme();
 
@@ -163,8 +165,6 @@ namespace YARG.Menu.MusicLibrary
             {
                 _currentSong = CurrentlyPlaying;
             }
-
-            ShouldDisplaySoloHighScores = !PlayerContainer.OnlyHasBotsActive();
 
             SetRefreshIfNeeded();
 
@@ -231,8 +231,8 @@ namespace YARG.Menu.MusicLibrary
             // Fill in sort information
             UpdateSortInformationHeader();
 
-            InputManager.DeviceAdded += OnDeviceAdded;
-            InputManager.DeviceRemoved += OnDeviceRemoved;
+            PlayerContainer.PlayerAdded += OnPlayerAdded;
+            PlayerContainer.PlayerRemoved += OnPlayerRemoved;
         }
 
         private void SetRefreshIfNeeded()
@@ -626,7 +626,7 @@ namespace YARG.Menu.MusicLibrary
                     newPositionStartIndex = _primaryHeaderIndex;
                 }
 
-                if (_searchField.IsUpdatedSearchLonger || _currentSong == null ||
+                if (_currentSong == null ||
                     !SetIndexTo(i => i is SongViewType view && view.SongEntry.SortBasedLocation == _currentSong.SortBasedLocation, newPositionStartIndex))
                 {
                     // Note: it may look like this is expensive, but the whole loop should only last for 4-5 iterations
@@ -652,12 +652,10 @@ namespace YARG.Menu.MusicLibrary
             _searchField.UpdateSearchText();
         }
 
-        protected override void Update()
+        protected void Update()
         {
             foreach (var heldInput in _heldInputs)
                 heldInput.Timer -= Time.unscaledDeltaTime;
-
-            base.Update();
         }
 
         private async void StartPreview(double delay, CancellationTokenSource canceller)
@@ -682,8 +680,10 @@ namespace YARG.Menu.MusicLibrary
             }
         }
 
-        private void OnDisable()
+        protected override void OnDisable()
         {
+            base.OnDisable();
+
             if (Navigator.Instance == null) return;
 
             // Save state
@@ -696,8 +696,8 @@ namespace YARG.Menu.MusicLibrary
             _previewContext?.Stop();
             _searchField.OnSearchQueryUpdated -= UpdateSearch;
 
-            InputManager.DeviceAdded -= OnDeviceAdded;
-            InputManager.DeviceRemoved -= OnDeviceRemoved;
+            PlayerContainer.PlayerAdded -= OnPlayerAdded;
+            PlayerContainer.PlayerRemoved -= OnPlayerRemoved;
         }
 
         private void OnDestroy()
@@ -921,12 +921,12 @@ namespace YARG.Menu.MusicLibrary
             _searchField.SetSearchInput(songAttribute, input);
         }
 
-        private void OnDeviceAdded(InputDevice device)
+        private void OnPlayerAdded(YargPlayer player)
         {
             _noPlayerWarning.SetActive(PlayerContainer.Players.Count <= 0);
         }
 
-        private void OnDeviceRemoved(InputDevice device)
+        private void OnPlayerRemoved(YargPlayer player)
         {
             _noPlayerWarning.SetActive(PlayerContainer.Players.Count <= 0);
         }

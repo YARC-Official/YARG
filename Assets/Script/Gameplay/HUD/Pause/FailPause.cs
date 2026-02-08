@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using Cysharp.Threading.Tasks;
+using UnityEngine;
 using YARG.Menu.Navigation;
 using YARG.Settings;
 
@@ -11,7 +12,12 @@ namespace YARG.Gameplay.HUD
 
         protected override void OnEnable()
         {
-            // Intentionally leaving out the back button here
+            HandleNavigationScheme();
+        }
+
+        private async void HandleNavigationScheme()
+        {
+            await UniTask.WaitForSeconds(0.5f, true);
             Navigator.Instance.PushScheme(new NavigationScheme(new()
             {
                 NavigationScheme.Entry.NavigateSelect,

@@ -10,20 +10,29 @@ namespace YARG.Gameplay.HUD
         public int Version = CURRENT_VERSION;
         public Dictionary<string, Vector2> ElementPositions = new();
 
-        public Vector2 GetElementPositionOrDefault(string name, Vector2 defaultPosition)
+        public bool HasElementPosition(string name)
+        {
+            return ElementPositions.ContainsKey(name);
+        }
+
+        public Vector2? GetElementPosition(string name)
         {
             if (ElementPositions.TryGetValue(name, out var position))
             {
                 return position;
             }
 
-            ElementPositions.Add(name, defaultPosition);
-            return defaultPosition;
+            return null;
         }
 
         public void SaveElementPosition(string name, Vector2 position)
         {
             ElementPositions[name] = position;
+        }
+
+        public void RemoveElementPosition(string name)
+        {
+            ElementPositions.Remove(name);
         }
     }
 }

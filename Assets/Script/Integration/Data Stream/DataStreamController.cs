@@ -1,8 +1,10 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
-using System.Timers;
+using System.Diagnostics;
+using System.Threading;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using YARG.Core.Chart;
@@ -12,6 +14,14 @@ namespace YARG.Integration
 {
     public class DataStreamController :  MonoSingleton<DataStreamController>
     {
+        // Queues for instrument notes to prevent missed notes between timer ticks
+        // 1/20 being a blink of an eye. It should never lag more than that, and if so shows a larger problem elsewhere.
+        private static readonly int        _defaultSize =  (int)Math.Ceiling(TARGET_FPS * (1f / 20f)) + 1;
+        private static readonly Queue<int> _drumQueue   = new(_defaultSize);
+        private static readonly Queue<int> _guitarQueue = new(_defaultSize);
+        private static readonly Queue<int> _bassQueue   = new(_defaultSize);
+        private static readonly Queue<int> _keysQueue   = new(_defaultSize);
+        private static readonly object     _queueLock   = new();
         [Serializable]
         public struct DataMessage
         {
@@ -34,15 +44,20 @@ namespace YARG.Integration
             public float CurrentHarmony1Note;
             public float CurrentHarmony2Note;
 
-            public LightingType       LightingCue;
-            public PostProcessingType PostProcessing;
-            public bool               FogState;
-            public LightingType       StrobeState;
-            public byte               Performer;
-            public byte               Beat;
-            public LightingType       Keyframe;
-            public bool               BonusEffect;
-            public bool               AutoGenVenueTrack;
+            public LightingType                       LightingCue;
+            public PostProcessingType                 PostProcessing;
+            public bool                               FogState;
+            public LightingType                       StrobeState;
+            public byte                               Performer;
+            public byte                               Beat;
+            public LightingType                       Keyframe;
+            public bool                               BonusEffect;
+            public bool                               AutoGenVenueTrack;
+            public Performer                          Spotlight;
+            public Performer                          Singalong;
+            public CameraCutEvent.CameraCutConstraint CameraCutConstraint;
+            public CameraCutEvent.CameraCutPriority   CameraCutPriority;
+            public CameraCutEvent.CameraCutSubject    CameraCutSubject;
         }
 
         public enum PlatformByte
@@ -60,6 +75,7 @@ namespace YARG.Integration
             Gameplay,
             Score,
             Calibration,
+            Practice
         }
 
         public enum VenueType
@@ -82,7 +98,8 @@ namespace YARG.Integration
         //Has to be at least 44 because of DMX, 88 should be enough... for now...
         private const  float         TARGET_FPS         = 88f;
         private const  float         TIME_BETWEEN_CALLS = 1f / TARGET_FPS;
-        private        Timer         _timer;
+        private        Thread        _sendThread;
+        private        CancellationTokenSource _sendCts;
         private        DataMessage   _message = new DataMessage();
         private static LightingEvent _currentLightingCue;
 
@@ -113,6 +130,11 @@ namespace YARG.Integration
         public static LightingType       MLCCurrentLightingCue;
         public static PostProcessingType MLCPostProcessing;
         public static bool               MLCAutoGenVenueTrack;
+        public static Performer          MLCSpotlight;
+        public static Performer          MLCSingalong;
+        public static CameraCutEvent.CameraCutConstraint MLCCameraCutConstraint;
+        public static CameraCutEvent.CameraCutPriority MLCCameraCutPriority;
+        public static CameraCutEvent.CameraCutSubject MLCCameraCutSubject;
 
         public static ushort MLCudpPort = 36107; //hardcoded for now.
         public static string MLCudpIP = "255.255.255.255"; // "this" network's broadcast address
@@ -148,14 +170,42 @@ namespace YARG.Integration
             }
         }
 
+        /// <summary>
+        /// Enqueues instrument note values to ensure no notes are missed between timer ticks.
+        /// Call this from the gameplay monitor instead of setting MLCCurrent*Notes directly.
+        /// </summary>
+        public static void EnqueueInstrumentNotes(int drums, int guitar, int bass, int keys)
+        {
+            lock (_queueLock)
+            {
+                _drumQueue.Enqueue(drums);
+                _guitarQueue.Enqueue(guitar);
+                _bassQueue.Enqueue(bass);
+                _keysQueue.Enqueue(keys);
+            }
+        }
+
+        private static void ClearInstrumentQueues()
+        {
+            lock (_queueLock)
+            {
+                _drumQueue.Clear();
+                _guitarQueue.Clear();
+                _bassQueue.Clear();
+                _keysQueue.Clear();
+            }
+        }
+
         // Datagram version history
         // v0 - inital release
         // v1 - added "HasVenueTrack?" byte. renamed 'venue' to 'venueSize'.
+        // v2 - added Practice to scene, fixed pause
+        // v3 - added CameraCut
         public static void Sender(DataMessage message)
         {
             message.Header = 0x59415247; // Y A R G
 
-            message.DatagramVersion = 1;                          // version 0 currently
+            message.DatagramVersion = 3;                          // version 0 currently
             message.Platform = MLCPlatform;                       // Set by the Preprocessor Directive above.
             message.CurrentScene = MLCSceneIndex;                 // gets set by the initializer.
             message.Paused = MLCPaused;                           // gets set by the GameplayMonitor.
@@ -163,10 +213,47 @@ namespace YARG.Integration
             message.BeatsPerMinute = MLCCurrentBPM;               // gets set by the GameplayMonitor.
             message.CurrentSongSection = MLCCurrentSongSection;   // gets set on lighting cue change.
 
-            message.CurrentGuitarNotes = MLCCurrentGuitarNotes;   // gets set by the GameplayMonitor.
-            message.CurrentBassNotes = MLCCurrentBassNotes;       // gets set by the GameplayMonitor.
-            message.CurrentDrumNotes = MLCCurrentDrumNotes;       // gets set by the GameplayMonitor.
-            message.CurrentKeysNotes = MLCCurrentKeysNotes;       // gets set by the GameplayMonitor.
+            // Drain all queued instrument notes and OR them together (notes are bitmasks)
+            // This prevents queue buildup when notes enqueue faster than send rate
+            lock (_queueLock)
+            {
+                if (_drumQueue.Count > 0)
+                {
+                    int combined = 0;
+                    while (_drumQueue.Count > 0)
+                        combined |= _drumQueue.Dequeue();
+                    MLCCurrentDrumNotes = combined;
+                }
+
+                if (_guitarQueue.Count > 0)
+                {
+                    int combined = 0;
+                    while (_guitarQueue.Count > 0)
+                        combined |= _guitarQueue.Dequeue();
+                    MLCCurrentGuitarNotes = combined;
+                }
+
+                if (_bassQueue.Count > 0)
+                {
+                    int combined = 0;
+                    while (_bassQueue.Count > 0)
+                        combined |= _bassQueue.Dequeue();
+                    MLCCurrentBassNotes = combined;
+                }
+
+                if (_keysQueue.Count > 0)
+                {
+                    int combined = 0;
+                    while (_keysQueue.Count > 0)
+                        combined |= _keysQueue.Dequeue();
+                    MLCCurrentKeysNotes = combined;
+                }
+            }
+
+            message.CurrentGuitarNotes = MLCCurrentGuitarNotes;   // dequeued above or last known value.
+            message.CurrentBassNotes = MLCCurrentBassNotes;       // dequeued above or last known value.
+            message.CurrentDrumNotes = MLCCurrentDrumNotes;       // dequeued above or last known value.
+            message.CurrentKeysNotes = MLCCurrentKeysNotes;       // dequeued above or last known value.
 
             message.CurrentVocalNote = MLCCurrentVocalNote;       // gets set by the GameplayMonitor.
             message.CurrentHarmony0Note = MLCCurrentHarmony0Note; // gets set by the GameplayMonitor.
@@ -177,12 +264,16 @@ namespace YARG.Integration
             message.PostProcessing = MLCPostProcessing;         // setter triggered by the GameplayMonitor.
             message.FogState = MLCFogState;                     // gets set by the GameplayMonitor.
             message.StrobeState = MLCStrobeState;               // gets set by the GameplayMonitor.
-            message.Performer = 0x00;                           // Performer isn't parsed yet
             message.Beat = MLCCurrentBeat;                      // gets set by the GameplayMonitor.
             message.Keyframe = MLCKeyframe;                     // gets set on lighting cue change.
             message.BonusEffect = MLCBonusFX;                   // gets set by the GameplayMonitor.
 
-            message.AutoGenVenueTrack = MLCAutoGenVenueTrack;   // gets set on chart load by the GameplayMonitor.
+            message.AutoGenVenueTrack = MLCAutoGenVenueTrack;     // gets set on chart load by the GameplayMonitor.
+            message.Spotlight = MLCSpotlight;                     // gets set by the GameplayMonitor.
+            message.Singalong = MLCSingalong;                     // gets set by the GameplayMonitor.
+            message.CameraCutConstraint = MLCCameraCutConstraint; // gets set by the GameplayMonitor.
+            message.CameraCutPriority = MLCCameraCutPriority;     // gets set by the GameplayMonitor.
+            message.CameraCutSubject = MLCCameraCutSubject;       // gets set by the GameplayMonitor.
 
             SerializeAndSend(message);
 
@@ -207,23 +298,23 @@ namespace YARG.Integration
                 Initializer(SceneManager.GetActiveScene());
                 _sendClient = new();
                 _sendClient.Connect(new IPEndPoint(IPAddress.Parse(MLCudpIP), MLCudpPort));
-                // start the sending timer
-                _timer = new Timer(TIME_BETWEEN_CALLS * 1000);
-                _timer.Elapsed += (sender, e) => Sender(_message);
-                _timer.Start();
+                StartSendThread();
 
             }
             else
             {
+                StopSendThread();
                 _sendClient?.Dispose();
-                _timer?.Stop();
-                _timer?.Dispose();
+                ClearInstrumentQueues();
             }
         }
         public static void Initializer(Scene scene)
         {
             // Ignore the persistent scene
             if ((SceneIndex) scene.buildIndex == SceneIndex.Persistent) return;
+
+            // Clear instrument queues on scene change
+            ClearInstrumentQueues();
 
             MLCPaused = PauseStateType.AtMenu;
             MLCVenueSize = VenueType.None;
@@ -246,7 +337,12 @@ namespace YARG.Integration
             MLCCurrentBeat = 0;
             MLCKeyframe = 0;
             MLCBonusFX = false;
-
+            //MLCAutoGenVenueTrack set on chart load by the GameplayMonitor.
+            MLCSpotlight = Performer.None;
+            MLCSingalong = Performer.None;
+            MLCCameraCutPriority = CameraCutEvent.CameraCutPriority.Normal;
+            MLCCameraCutConstraint = CameraCutEvent.CameraCutConstraint.None;
+            MLCCameraCutSubject = CameraCutEvent.CameraCutSubject.AllFar;
 
             switch ((SceneIndex) scene.buildIndex)
             {
@@ -273,15 +369,14 @@ namespace YARG.Integration
                     MLCSceneIndex = SceneIndexByte.Unknown;
                     break;
             }
-
         }
 
         private void OnApplicationQuit()
         {
             YargLogger.LogInfo("Killing Data Stream sender...");
 
-            _timer?.Stop();
-            _timer?.Dispose();
+            StopSendThread();
+            ClearInstrumentQueues();
 
             if (_sendClient == null) return;
 
@@ -296,6 +391,74 @@ namespace YARG.Integration
             SerializeAndSend(_message);
 
             _sendClient.Dispose();
+        }
+
+        private void StartSendThread()
+        {
+            StopSendThread();
+
+            _sendCts = new CancellationTokenSource();
+            _sendThread = new Thread(() => SendLoop(_sendCts.Token))
+            {
+                IsBackground = true,
+                Name = "YARG DataStream Sender"
+            };
+            _sendThread.Start();
+        }
+
+        private void StopSendThread()
+        {
+            if (_sendCts == null)
+            {
+                return;
+            }
+
+            try
+            {
+                _sendCts.Cancel();
+                _sendThread?.Join();
+            }
+            catch (Exception ex)
+            {
+                YargLogger.LogError($"Error stopping UDP sender thread: {ex.Message}");
+            }
+            finally
+            {
+                _sendCts.Dispose();
+                _sendCts = null;
+                _sendThread = null;
+            }
+        }
+
+        private void SendLoop(CancellationToken token)
+        {
+            try
+            {
+                var stopwatch = Stopwatch.StartNew();
+                var nextTick = stopwatch.Elapsed;
+                var tickInterval = TimeSpan.FromSeconds(TIME_BETWEEN_CALLS);
+
+                while (!token.IsCancellationRequested)
+                {
+                    nextTick += tickInterval;
+                    Sender(_message);
+
+                    var remaining = nextTick - stopwatch.Elapsed;
+                    if (remaining > TimeSpan.Zero)
+                    {
+                        token.WaitHandle.WaitOne(remaining);
+                    }
+                    else
+                    {
+                        // If we fell behind, reset to avoid drift piling up.
+                        nextTick = stopwatch.Elapsed;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                YargLogger.LogError($"Error in UDP sender thread: {ex.Message}");
+            }
         }
 
         private static void SerializeAndSend(DataMessage message)
@@ -333,11 +496,15 @@ namespace YARG.Integration
                 _writer.Write((byte) message.PostProcessing);
                 _writer.Write(message.FogState); //bool
                 _writer.Write((byte) message.StrobeState);
-                _writer.Write(message.Performer); //byte
                 _writer.Write(message.Beat); //byte
                 _writer.Write((byte) message.Keyframe);
                 _writer.Write(message.BonusEffect); //bool
                 _writer.Write(message.AutoGenVenueTrack); //bool
+                _writer.Write((byte) message.Spotlight);
+                _writer.Write((byte) message.Singalong);
+                _writer.Write((byte) message.CameraCutConstraint);
+                _writer.Write((byte) message.CameraCutPriority);
+                _writer.Write((byte) message.CameraCutSubject);
 
                 _sendClient.Send(_ms.GetBuffer(), (int) _ms.Position);
             }

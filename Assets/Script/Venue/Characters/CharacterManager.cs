@@ -88,12 +88,12 @@ namespace YARG.Venue.Characters
             var vocalsId = chart.Vocals.Parts[0];
             var drumsId = chart.ProDrums.GetDifficulty(Difficulty.Expert);
 
-            InstrumentTrack<GuitarNote> guitarTrack = chart.GetFiveFretTrack(Instrument.FiveFretGuitar);
-            InstrumentTrack<GuitarNote> bassTrack = chart.GetFiveFretTrack(Instrument.FiveFretBass);
-            InstrumentTrack<DrumNote> drumsTrack = chart.GetDrumsTrack(Instrument.ProDrums);
-            VocalsTrack vocalsTrack = chart.GetVocalsTrack(Instrument.Vocals);
-            InstrumentTrack<GuitarNote> keysTrack = chart.GetFiveFretTrack(Instrument.Keys);
-            InstrumentTrack<ProKeysNote> proKeysTrack = chart.ProKeys;
+            var guitarTrack = chart.GetFiveFretTrack(Instrument.FiveFretGuitar);
+            var bassTrack = chart.GetFiveFretTrack(Instrument.FiveFretBass);
+            var drumsTrack = chart.GetDrumsTrack(Instrument.ProDrums);
+            var vocalsTrack = chart.GetVocalsTrack(Instrument.Vocals);
+            var keysTrack = chart.GetFiveFretTrack(Instrument.Keys);
+            var proKeysTrack = chart.ProKeys;
 
             _guitarNotes = guitarId.Notes;
             _bassNotes = bassId.Notes;
@@ -106,6 +106,12 @@ namespace YARG.Venue.Characters
             _bassAnimationEvents = bassTrack.Animations.AnimationEvents;
             _drumAnimationEvents = drumsTrack.Animations.AnimationEvents;
 
+            // We can generate passable drum animations, so do that if necessary
+            if (_drumAnimationEvents.Count < 1)
+            {
+                GenerateDrumsAnimations();
+            }
+
             // This will eventually be combined into the animation events stuff, but for now the text events from the
             // individual instrument difficulties are separate
             _guitarMaps = ProcessAnimationEvents(guitarTrack);
@@ -117,73 +123,29 @@ namespace YARG.Venue.Characters
 
             _tempoList = chart.SyncTrack.Tempos;
 
-            if (_drumAnimationEvents.Count > 0)
-            {
-                _songHasDrumAnimations = true;
-                // Find the drummer and tell it that there are animations
-                foreach (var key in _characters.Keys)
-                {
-                    if (_characters[key].Type == VenueCharacter.CharacterType.Drums)
-                    {
-                        _characters[key].ChartHasDrumAnimations = true;
-                    }
-                }
-            }
-
             // If we have at least [idle] and [playing] set ChartHasAnimations for the character
-            if (_guitarMaps.Count > 0)
+            if (_guitarMaps.Count < 1)
             {
-                foreach (var key in _characters.Keys)
-                {
-                    if (_characters[key].Type == VenueCharacter.CharacterType.Guitar)
-                    {
-                        _characters[key].ChartHasAnimations = true;
-                    }
-                }
+                _guitarMaps = GenerateMap(_guitarNotes);
             }
 
-            if (_bassMaps.Count > 0)
+            if (_bassMaps.Count < 1)
             {
-                foreach (var key in _characters.Keys)
-                {
-                    if (_characters[key].Type == VenueCharacter.CharacterType.Bass)
-                    {
-                        _characters[key].ChartHasAnimations = true;
-                    }
-                }
+                _bassMaps = GenerateMap(_bassNotes);
             }
 
-            if (_drumMaps.Count > 0)
+            if (_drumMaps.Count < 1)
             {
-                foreach (var key in _characters.Keys)
-                {
-                    if (_characters[key].Type == VenueCharacter.CharacterType.Drums)
-                    {
-                        _characters[key].ChartHasAnimations = true;
-                    }
-                }
+                _drumMaps = GenerateMap(_drumNotes);
             }
 
-            if (_vocalMaps.Count > 0)
+            if (_vocalMaps.Count < 1)
             {
-                foreach (var key in _characters.Keys)
-                {
-                    if (_characters[key].Type == VenueCharacter.CharacterType.Vocals)
-                    {
-                        _characters[key].ChartHasAnimations = true;
-                    }
-                }
-            }
-            else
-            {
-                GenerateAnimations();
+                _vocalMaps = GenerateMap(_vocalNotes);
             }
 
-            // Don't animate until there are notes (at least until we have idle animations)
-            // foreach (var character in _characters.Values)
-            // {
-            //     character.StopAnimation();
-            // }
+            // Register self with GameManager
+            GameManager.SetVenueCharacterManager(this);
         }
 
         private void Update()
@@ -223,6 +185,122 @@ namespace YARG.Venue.Characters
                         break;
                 }
             }
+        }
+
+        public void ResetTime(double time)
+        {
+            _guitarNoteIndex = 0;
+            _bassNoteIndex = 0;
+            _drumNoteIndex = 0;
+            _keysNoteIndex = 0;
+            _proKeysNoteIndex = 0;
+            _vocalNoteIndex = 0;
+
+            _guitarAnimationIndex = 0;
+            _bassAnimationIndex = 0;
+            _drumAnimationIndex = 0;
+
+            _guitarTriggerIndex = 0;
+            _bassTriggerIndex = 0;
+            _drumTriggerIndex = 0;
+            _keysTriggerIndex = 0;
+            _proKeysTriggerIndex = 0;
+            _vocalTriggerIndex = 0;
+
+            while (_guitarNoteIndex < _guitarNotes.Count && _guitarNotes[_guitarNoteIndex].Time < time)
+            {
+                _guitarNoteIndex++;
+            }
+
+            while (_bassNoteIndex < _bassNotes.Count && _bassNotes[_bassNoteIndex].Time < time)
+            {
+                _bassNoteIndex++;
+            }
+
+            while (_drumNoteIndex < _drumNotes.Count && _drumNotes[_drumNoteIndex].Time < time)
+            {
+                _drumNoteIndex++;
+            }
+
+            while (_keysNoteIndex < _keysNotes.Count && _keysNotes[_keysNoteIndex].Time < time)
+            {
+                _keysNoteIndex++;
+            }
+
+            while (_proKeysNoteIndex < _proKeysNotes.Count && _proKeysNotes[_proKeysNoteIndex].Time < time)
+            {
+                _proKeysNoteIndex++;
+            }
+
+            while (_vocalNoteIndex < _vocalNotes.Count && _vocalNotes[_vocalNoteIndex].Time < time)
+            {
+                _vocalNoteIndex++;
+            }
+
+            while (_guitarAnimationIndex < _guitarAnimationEvents.Count &&
+                _guitarAnimationEvents[_guitarAnimationIndex].Time < time)
+            {
+                _guitarAnimationIndex++;
+            }
+
+            while (_bassAnimationIndex < _bassAnimationEvents.Count &&
+                _bassAnimationEvents[_bassAnimationIndex].Time < time)
+            {
+                _bassAnimationIndex++;
+            }
+
+            while (_drumAnimationIndex < _drumAnimationEvents.Count &&
+                _drumAnimationEvents[_drumAnimationIndex].Time < time)
+            {
+                _drumAnimationIndex++;
+            }
+
+            while (_guitarTriggerIndex < _guitarMaps.Count && _guitarMaps[_guitarTriggerIndex].Time < time)
+            {
+                _guitarTriggerIndex++;
+            }
+
+            while (_bassTriggerIndex < _bassMaps.Count && _bassMaps[_bassTriggerIndex].Time < time)
+            {
+                _bassTriggerIndex++;
+            }
+
+            while (_drumTriggerIndex < _drumMaps.Count && _drumMaps[_drumTriggerIndex].Time < time)
+            {
+                _drumTriggerIndex++;
+            }
+
+            while (_keysTriggerIndex < _keysMaps.Count && _keysMaps[_keysTriggerIndex].Time < time)
+            {
+                _keysTriggerIndex++;
+            }
+
+            while (_proKeysTriggerIndex < _proKeysMaps.Count && _proKeysMaps[_proKeysTriggerIndex].Time < time)
+            {
+                _proKeysTriggerIndex++;
+            }
+
+            while (_vocalTriggerIndex < _vocalMaps.Count && _vocalMaps[_vocalTriggerIndex].Time < time)
+            {
+                _vocalTriggerIndex++;
+            }
+
+            // Roll back trigger indexes by 1 so states get set correctly next frame
+            _guitarTriggerIndex = Math.Max(0, _guitarTriggerIndex - 1);
+            _bassTriggerIndex = Math.Max(0, _bassTriggerIndex - 1);
+            _drumTriggerIndex = Math.Max(0, _drumTriggerIndex - 1);
+            _keysTriggerIndex = Math.Max(0, _keysTriggerIndex - 1);
+            _proKeysTriggerIndex = Math.Max(0, _proKeysTriggerIndex - 1);
+            _vocalTriggerIndex = Math.Max(0, _vocalTriggerIndex - 1);
+
+            _tempoIndex = 0;
+
+            while (_tempoIndex < _tempoList.Count && _tempoList[_tempoIndex].Time > time)
+            {
+                _tempoIndex++;
+            }
+
+            _previousTempoIndex = Math.Max(0, _tempoIndex - 1);
         }
 
         // TODO: Fix it so the lookahead for moving to the playing animation doesn't also cause us to switch
@@ -371,12 +449,6 @@ namespace YARG.Venue.Characters
                     character.StopAnimation();
                 }
 
-                if (!_songHasDrumAnimations)
-                {
-                    character.OnNote(note);
-                    return;
-                }
-
                 while (_drumAnimationEvents.Count > 0 && _drumAnimationIndex < _drumAnimationEvents.Count &&
                     _drumAnimationEvents[_drumAnimationIndex].Time - character.TimeToFirstHit <= GameManager.SongTime)
                 {
@@ -389,33 +461,6 @@ namespace YARG.Venue.Characters
                     {
                         _hatTimer = animEvent.TimeLength;
                     }
-                }
-            }
-        }
-
-        private void GenerateAnimations()
-        {
-            // If a character is missing animations, generate something (vocals only for now since bass and drums use notes)
-            foreach (var key in _characters.Keys)
-            {
-                var character = _characters[key];
-                if (character.ChartHasAnimations)
-                {
-                    continue;
-                }
-
-                if (character.Type == VenueCharacter.CharacterType.Vocals)
-                {
-                    GenerateVocalMap();
-                    character.ChartHasAnimations = true;
-                }
-
-                if (character.Type == VenueCharacter.CharacterType.Drums)
-                {
-                    GenerateDrumsAnimations();
-                    character.ChartHasAnimations = true;
-                    character.ChartHasDrumAnimations = true;
-                    _songHasDrumAnimations = true;
                 }
             }
         }
@@ -437,46 +482,63 @@ namespace YARG.Venue.Characters
             }
         }
 
-        private void GenerateVocalMap()
+        private static List<AnimationTrigger> GenerateMap<T>(List<T> notes) where T : Note<T>
         {
-            YargLogger.LogDebug("Auto-generating missing vocal maps");
-            _vocalMaps.Clear();
+            var events = new List<ChartEvent>();
+            events.AddRange(notes);
 
-            // Scan through the vocal phrases and create maps. Character should enter Play state half a second
+            return GenerateMap(events);
+        }
+
+        private static List<AnimationTrigger> GenerateMap(List<VocalsPhrase> phrases)
+        {
+            var events = new List<ChartEvent>();
+            events.AddRange(phrases);
+
+            return GenerateMap(events);
+        }
+
+        private static List<AnimationTrigger> GenerateMap(List<ChartEvent> events)
+        {
+            var triggers = new List<AnimationTrigger>();
+
+            // Scan through the events and create animation triggers. Character should enter Play state half a second
             // before the phrase begins and enter idle one second after the phrase ends if there is no phrase before
             // that time.
 
             // Start in idle state
             double endTime = 0;
             bool idle = true;
-            _vocalMaps.Add(new AnimationTrigger(TriggerType.AnimationState, CharacterStateType.Idle, default, default, 0));
+            triggers.Add(new AnimationTrigger(TriggerType.AnimationState, CharacterStateType.Idle, default, default, 0));
 
-            foreach (var phrase in _vocalNotes)
+            foreach (var chartEvent in events)
             {
                 if (idle)
                 {
-                    _vocalMaps.Add(new AnimationTrigger(TriggerType.AnimationState, CharacterStateType.Play, default,
-                        default, phrase.Time - 0.5f));
-                    endTime = phrase.TimeEnd;
+                    triggers.Add(new AnimationTrigger(TriggerType.AnimationState, CharacterStateType.Play, default,
+                        default, chartEvent.Time - 0.5f));
+                    endTime = chartEvent.TimeEnd;
                     idle = false;
                     continue;
                 }
 
                 // We need an idle period here unless the idle would be less than half a second
-                if (phrase.Time - 0.5 > endTime + 1)
+                if (chartEvent.Time - 0.5 > endTime + 1)
                 {
-                    _vocalMaps.Add(new AnimationTrigger(TriggerType.AnimationState, CharacterStateType.Idle, default,
+                    triggers.Add(new AnimationTrigger(TriggerType.AnimationState, CharacterStateType.Idle, default,
                         default, endTime + 1));
                     // Now start playing for the new phrase
-                    _vocalMaps.Add(new AnimationTrigger(TriggerType.AnimationState, CharacterStateType.Play, default,
-                        default, phrase.Time - 0.5f));
+                    triggers.Add(new AnimationTrigger(TriggerType.AnimationState, CharacterStateType.Play, default,
+                        default, chartEvent.Time - 0.5f));
                 }
 
-                endTime = phrase.TimeEnd;
+                endTime = chartEvent.TimeEnd;
             }
 
             // Add the last idle state
-            _vocalMaps.Add(new AnimationTrigger(TriggerType.AnimationState, CharacterStateType.Idle, default, default, endTime));
+            triggers.Add(new AnimationTrigger(TriggerType.AnimationState, CharacterStateType.Idle, default, default, endTime));
+
+            return triggers;
         }
 
         // Translate chart events into animation triggers

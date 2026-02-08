@@ -131,6 +131,15 @@ namespace YARG.Menu
             }
         }
 
+        // Disables the current menu without popping it from the stack
+        public void DisableCurrentMenu()
+        {
+            if (_openMenus.TryPeek(out var currentMenuEnum) && _menus.TryGetValue(currentMenuEnum, out var currentMenu))
+            {
+                currentMenu.gameObject.SetActive(false);
+            }
+        }
+
         public void ReactivateCurrentMenu()
         {
             // Show the under one

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using YARG.Core.Chart;
+using YARG.Core.Engine.Guitar;
 using YARG.Gameplay.Player;
 using YARG.Helpers.Extensions;
 using YARG.Themes;
@@ -49,7 +50,7 @@ namespace YARG.Gameplay.Visuals
         {
             base.InitializeElement();
 
-            var noteGroups = NoteRef.IsStarPower ? StarPowerNoteGroups : NoteGroups;
+            var noteGroups = IsStarPowerVisible ? StarPowerNoteGroups : NoteGroups;
 
             if (NoteRef.Fret != (int) FiveFretGuitarFret.Open)
             {
@@ -148,9 +149,18 @@ namespace YARG.Gameplay.Visuals
             UpdateColor();
         }
 
+        protected override bool CalcStarPowerVisible()
+        {
+            if (!NoteRef.IsStarPower)
+            {
+                return false;
+            }
+            return !(((GuitarEngineParameters) Player.BaseParameters).NoStarPowerOverlap && Player.BaseStats.IsStarPowerActive);
+        }
+
         private void UpdateSustain()
         {
-            _sustainLine.UpdateSustainLine(Player.NoteSpeed * GameManager.SongSpeed);
+            _sustainLine.UpdateSustainLine();
         }
 
         private void UpdateColor()
@@ -159,7 +169,7 @@ namespace YARG.Gameplay.Visuals
 
             // Get which note color to use
             var colorNoStarPower = colors.GetNoteColor(NoteRef.Fret);
-            var color = NoteRef.IsStarPower
+            var color = IsStarPowerVisible
                 ? colors.GetNoteStarPowerColor(NoteRef.Fret)
                 : colorNoStarPower;
 
@@ -168,11 +178,14 @@ namespace YARG.Gameplay.Visuals
                 color = colors.Miss;
             }
 
-            // Set the note color
-            NoteGroup.SetColorWithEmission(color.ToUnityColor(), colorNoStarPower.ToUnityColor());
+            // Set the note color if not hidden
+            if (!NoteRef.WasHit)
+            {
+                NoteGroup.SetColorWithEmission(color.ToUnityColor(), colorNoStarPower.ToUnityColor());
 
-            // Set the metal color
-            NoteGroup.SetMetalColor(colors.GetMetalColor(NoteRef.IsStarPower).ToUnityColor());
+                // Set the metal color
+                NoteGroup.SetMetalColor(colors.GetMetalColor(IsStarPowerVisible).ToUnityColor());
+            }
 
             // The rest of this method is for sustain only
             if (!NoteRef.IsSustain) return;

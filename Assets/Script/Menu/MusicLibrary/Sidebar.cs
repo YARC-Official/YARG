@@ -266,6 +266,10 @@ namespace YARG.Menu.MusicLibrary
             {
                 _difficultyRings[2].SetInfo("ghDrums", Instrument.FiveLaneDrums, entry[Instrument.FiveLaneDrums]);
             }
+            else if (entry.HasInstrument(Instrument.ProDrums))
+            {
+                _difficultyRings[2].SetInfo("realDrums", Instrument.ProDrums, entry[Instrument.ProDrums]);
+            }
             else
             {
                 if (entry.HasInstrument(Instrument.ProDrums))
@@ -315,7 +319,7 @@ namespace YARG.Menu.MusicLibrary
                 _difficultyRings[6].SetInfo("rhythm", Instrument.FiveFretRhythm, entry[Instrument.FiveFretRhythm]);
             }
 
-            _difficultyRings[7].SetInfo("trueDrums", Instrument.EliteDrums, entry[Instrument.EliteDrums]);
+            _difficultyRings[7].SetInfo("eliteDrums", Instrument.EliteDrums, entry[Instrument.EliteDrums]);
             _difficultyRings[8].SetInfo("realKeys", Instrument.ProKeys, entry[Instrument.ProKeys]);
             _difficultyRings[9].SetInfo(
                 entry.VocalsCount switch

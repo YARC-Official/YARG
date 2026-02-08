@@ -54,12 +54,14 @@ namespace YARG.Gameplay.HUD
             if (progress < 1)
             {
                 // Fill the star progress
+                _starProgress.enabled = true;
                 _starProgress.fillAmount = (float) progress;
             }
             else
             {
                 // Finish the star
                 _starProgress.fillAmount = 1;
+                _starProgress.enabled = false;
                 _starAnimator.Play(ANIMATION_COMPLETED);
             }
         }

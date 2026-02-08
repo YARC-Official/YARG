@@ -3,6 +3,7 @@ using ManagedBass;
 using ManagedBass.DirectX8;
 using ManagedBass.Fx;
 using UnityEngine;
+using YARG.Core.Audio;
 using YARG.Core.Logging;
 
 namespace YARG.Audio.BASS
@@ -147,6 +148,29 @@ namespace YARG.Audio.BASS
             }
 
             return true;
+        }
+
+        public static int GetOutputChannelCount()
+        {
+            Bass.GetInfo(out BassInfo info);
+
+            return info.SpeakerCount;
+        }
+
+#nullable enable
+        public static void UpdateOutputChannels(int stream, OutputChannel? channel)
+#nullable disable
+        {
+            if (channel is not BassOutputChannel bassChannel)
+            {
+                // Remove assigned output channels
+                Bass.ChannelFlags(stream, 0, BassFlags.SpeakerFront);
+
+                return;
+            }
+
+            // Set channel(s)
+            Bass.ChannelFlags(stream, bassChannel.Flags, BassFlags.SpeakerFront);
         }
     }
 }

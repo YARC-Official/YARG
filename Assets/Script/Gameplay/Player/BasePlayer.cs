@@ -10,7 +10,9 @@ using YARG.Core.Logging;
 using YARG.Core.Replays;
 using YARG.Gameplay.HUD;
 using YARG.Helpers.Extensions;
+using YARG.Helpers.UI;
 using YARG.Input;
+using YARG.Playback;
 using YARG.Player;
 using YARG.Settings;
 
@@ -69,6 +71,7 @@ namespace YARG.Gameplay.Player
         public float Stars => BaseStats.Stars;
 
         public int Score => BaseStats.TotalScore;
+        public int BandBonusScore => BaseStats.BandBonusScore;
         public int Combo => BaseStats.Combo;
         public int NotesHit => BaseStats.NotesHit;
 
@@ -102,15 +105,24 @@ namespace YARG.Gameplay.Player
 
         protected EngineManager.EngineContainer EngineContainer;
 
-        protected bool IsCrowdMuted { get; set; }
-
         protected override void GameplayAwake()
         {
             _replayInputs = new List<GameInput>();
 
-            InputViewer = FindObjectOfType<BaseInputViewer>();
+            // TODO: Couldn't there be more than one input viewer?
+            //  We were using FindObjectOfType<BaseInputViewer> before anyway, so we're no worse off in that respect
+            InputViewer = FindFirstObjectByType<BaseInputViewer>();
 
             IsFc = true;
+        }
+
+        private void Update()
+        {
+            //Ensure hud elements get repositioned on screen size change
+            if (ScreenSizeDetector.HasScreenSizeChanged)
+            {
+                UpdateVisuals(GameManager.VisualTime);
+            }
         }
 
         protected void Start()
@@ -164,12 +176,18 @@ namespace YARG.Gameplay.Player
                 return;
             }
 
-            UpdateInputs(GameManager.InputTime);
+            if (!GameManager.Rewinding)
+            {
+                UpdateInputs(GameManager.InputTime);
+            }
+
             UpdateVisuals(GameManager.VisualTime);
         }
 
         protected abstract void UpdateVisuals(double visualTime);
         protected abstract void ResetVisuals();
+        public abstract void Rewind(double visualTime);
+        public abstract void PostRewind(double visualTime);
 
         public virtual void ResetPracticeSection()
         {
@@ -294,12 +312,12 @@ namespace YARG.Gameplay.Player
 
         protected void OnGameInput(ref GameInput input)
         {
-            // Ignore completely if the song hasn't started yet
-            if (!GameManager.Started)
+            // Ignore completely if the song hasn't started yet or player failed
+            if (!GameManager.Started || GameManager.PlayerHasFailed)
                 return;
 
             // Ignore while paused
-            if (GameManager.Paused)
+            if (GameManager.Paused || GameManager.Rewinding)
             {
                 if (!ShouldUpdateInputsOnResume)
                 {
@@ -344,12 +362,23 @@ namespace YARG.Gameplay.Player
             }
         }
 
+        protected virtual void OnStarPowerPhraseMissed()
+        {
+
+        }
+
         protected virtual void OnStarPowerStatus(bool active)
         {
+            var deploySample = SfxSample.StarPowerDeploy;
+            if (SettingsManager.Settings.UseCrowdFx.Value == CrowdFxMode.Enabled)
+            {
+                deploySample = SfxSample.StarPowerDeployCrowd;
+            }
+
             if (!GameManager.Paused)
             {
                 GlobalAudioHandler.PlaySoundEffect(active
-                    ? SfxSample.StarPowerDeploy
+                    ? deploySample
                     : SfxSample.StarPowerRelease);
 
                 SetStarPowerFX(active);
@@ -360,40 +389,6 @@ namespace YARG.Gameplay.Player
             foreach (var haptics in SantrollerHaptics)
             {
                 haptics.SetStarPowerActive(active);
-            }
-        }
-
-        protected virtual void OnSongFailed()
-        {
-            if (SettingsManager.Settings.NoFailMode.Value)
-            {
-                return;
-            }
-
-            GameManager.PlayerHasFailed = true;
-            GlobalAudioHandler.PlayVoxSample(VoxSample.FailSound);
-            GameManager.Pause(true);
-        }
-
-        protected virtual void OnHappinessOverThreshold()
-        {
-            // First engine to be instantiated gets the pleasure of dealing with this
-            if (IsCrowdMuted && EngineContainer.EngineId == 0)
-            {
-                GameManager.ChangeStemMuteState(SongStem.Crowd, false, 1.0f);
-                IsCrowdMuted = false;
-                YargLogger.LogFormatDebug("Enabled crowd stem at time {0}", GameManager.SongTime);
-            }
-        }
-
-        protected virtual void OnHappinessUnderThreshold()
-        {
-            // First engine to be instantiated gets the pleasure of dealing with this
-            if (!IsCrowdMuted && EngineContainer.EngineId == 0)
-            {
-                GameManager.ChangeStemMuteState(SongStem.Crowd, true, 1.0f);
-                IsCrowdMuted = true;
-                YargLogger.LogFormatDebug("Disabled crowd stem at time {0}", GameManager.SongTime);
             }
         }
 
