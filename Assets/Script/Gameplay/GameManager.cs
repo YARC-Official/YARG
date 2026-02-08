@@ -15,7 +15,9 @@ using YARG.Core.Replays.Analyzer;
 using YARG.Core.Song;
 using YARG.Gameplay.HUD;
 using YARG.Gameplay.Player;
+using YARG.Input;
 using YARG.Integration;
+using YARG.Localization;
 using YARG.Menu.Navigation;
 using YARG.Menu.Persistent;
 using YARG.Menu.ScoreScreen;
@@ -34,6 +36,10 @@ namespace YARG.Gameplay
     {
         public const double SONG_START_DELAY = SongRunner.SONG_START_DELAY;
         public const double SONG_END_DELAY = SONG_START_DELAY;
+
+        public const double PAUSE_REWIND_LENGTH   = 1;
+        public const double MAXIMUM_REWIND_TIME   = 3;
+        public const double MAXIMUM_REWIND_WINDOW = 20;
 
         public const float TRACK_SPACING_X = 100f;
 
@@ -110,6 +116,11 @@ namespace YARG.Gameplay
         /// <inheritdoc cref="SongRunner.Paused"/>
         public bool Paused => _songRunner.Paused;
 
+        /// <summary>
+        /// Set when we are in the middle of resuming, but have not yet fully resumed
+        /// </summary>
+        public bool Rewinding { get; private set; }
+
         public double SongLength { get; private set; }
 
         public bool IsPractice      { get; private set; }
@@ -140,6 +151,8 @@ namespace YARG.Gameplay
         public ReplayInfo ReplayInfo { get; private set; }
         public ReplayData ReplayData { get; private set; }
 
+        public List<PauseInfo> PauseInfo { get; } = new List<PauseInfo>();
+
         public IReadOnlyList<BasePlayer> Players => _players;
 
         public int StarPowerActivations { get; private set; } = 0;
@@ -151,6 +164,8 @@ namespace YARG.Gameplay
         private StemMixer _mixer;
 
         private List<double> _frameTimes;
+
+        private double _pauseTime;
 
         public bool PlayingAShow => GlobalVariables.State.PlayingAShow;
         public int  ShowIndex = 0;
@@ -374,6 +389,18 @@ namespace YARG.Gameplay
             BackgroundManager.SetPaused(true);
             GameStateFetcher.SetPaused(true);
 
+            // Save state about the pause
+
+            // This uses the raw input update time because it keeps running during the pause
+            // allowing us to accurately calculate the length of the pause later
+            _pauseTime = InputManager.InputUpdateTime;
+            var pauseInfo = new PauseInfo
+            {
+                PauseTime = SongTime,
+                PauseLength = 0
+            };
+            PauseInfo.Add(pauseInfo);
+
             // Pause any audio samples that are currently playing
             GlobalAudioHandler.PauseAllSfx();
 
@@ -383,9 +410,19 @@ namespace YARG.Gameplay
 
         public bool PlayerHasFailed { get; set; } = false;
 
-        public void Resume()
+        public async void Resume()
         {
-            _songRunner.Resume();
+            Rewinding = true;
+            // Update the last PauseInfo with the pause
+            var currentPause = PauseInfo[^1];
+            currentPause.PauseLength = InputManager.InputUpdateTime - _pauseTime;
+            PauseInfo[^1] = currentPause;
+
+            _pauseMenu.PopAllMenus();
+            Time.timeScale = 1f;
+            await RewindAndResume(PAUSE_REWIND_LENGTH);
+
+            // _songRunner.Resume();
             ResumeCore();
         }
 
@@ -401,7 +438,11 @@ namespace YARG.Gameplay
                 SetEditHUD(false);
             }
 
-            _pauseMenu.PopAllMenus();
+            if (!Rewinding)
+            {
+                _pauseMenu.PopAllMenus();
+            }
+
             if (_songRunner.SongTime >= SongLength + SONG_END_DELAY)
             {
                 return;
@@ -419,6 +460,8 @@ namespace YARG.Gameplay
             Screen.sleepTimeout = SleepTimeout.NeverSleep;
 
             _isReplaySaved = false;
+
+            Rewinding = false;
 
             foreach (var player in _players)
             {
@@ -696,7 +739,7 @@ namespace YARG.Gameplay
             var stars = StarAmountHelper.GetStarsFromInt((int) (bandStars / frames.Count));
             ReplayData = new ReplayData(colorProfiles, cameraPresets, frames.ToArray(), _frameTimes.ToArray());
 
-            (bool success, var replayInfo) = ReplayIO.TrySerialize(directory, Song, SongSpeed, length, bandScore, stars, replayStats.ToArray(), ReplayData);
+            (bool success, var replayInfo) = ReplayIO.TrySerialize(directory, Song, SongSpeed, length, bandScore, stars, PauseInfo.ToArray(), replayStats.ToArray(), ReplayData);
             if (!success)
             {
                 return null;
@@ -768,10 +811,7 @@ namespace YARG.Gameplay
         {
             if (enabled)
             {
-                foreach (var player in _players)
-                {
-                    player.Player.IsScoreValid = false;
-                }
+                InvalidateScores("Menu.Toast.AutoCalibrationScore");
             }
         }
 
@@ -783,13 +823,82 @@ namespace YARG.Gameplay
             // but also inhibit score saving to avoid cheesing
             if (!noFail && EngineManager.Happiness <= 0f)
             {
-                foreach (var player in _players)
-                {
-                    player.Player.IsScoreValid = false;
-                }
+                InvalidateScores("Menu.Toast.NoFailScore");
 
                 EngineManager.InitializeHappiness();
             }
+        }
+
+        private void InvalidateScores(string toastKey)
+        {
+            bool invalidated = false;
+
+            foreach (var player in _players)
+            {
+                if (player.Player.IsScoreValid)
+                {
+                    invalidated = true;
+                }
+
+                player.Player.IsScoreValid = false;
+            }
+
+            if (invalidated && !string.IsNullOrEmpty(toastKey))
+            {
+                ToastManager.ToastWarning(Localize.Key(toastKey));
+            }
+        }
+
+        private void CheckForRewindInvalidation()
+        {
+            if (PauseInfo.Count == 0)
+            {
+                return;
+            }
+
+            // If there is more than MAXIMUM_REWIND_TIME seconds of rewind in MAXIMUM_REWIND_WINDOW of song time, invalidate scores
+            var start = 0;
+
+            for (var end = 0; end < PauseInfo.Count; end++)
+            {
+                var endTime = PauseInfo[end].PauseTime;
+
+                while (PauseInfo[start].PauseTime < endTime - MAXIMUM_REWIND_WINDOW)
+                {
+                    start++;
+                }
+
+                var pauses = end - start + 1;
+
+                if (pauses * PAUSE_REWIND_LENGTH > MAXIMUM_REWIND_TIME)
+                {
+                    InvalidateScores("Menu.Toast.TooManyPauses");
+                    return;
+                }
+            }
+        }
+
+        private async UniTask RewindAndResume(double seconds)
+        {
+            YargLogger.LogFormatDebug("Rewinding {0} seconds at VisualTime {1}", seconds, VisualTime);
+            // First we have to set timeScale back to 1 and rewind VisualTime by seconds over a quarter or half second
+            // Then we have to seek audio back by seconds and save InputManager.InputUpdateTime;
+            // Then, when InputManager.InputUpdateTime reaches the saved resume time plus seconds, we can resume songrunner
+
+            // Rewind players
+            foreach (var player in _players)
+            {
+                player.Rewind(VisualTime - seconds);
+            }
+
+            await _songRunner.RewindAndResume(seconds);
+
+            foreach (var player in _players)
+            {
+                player.PostRewind(VisualTime - seconds);
+            }
+
+            CheckForRewindInvalidation();
         }
     }
 }

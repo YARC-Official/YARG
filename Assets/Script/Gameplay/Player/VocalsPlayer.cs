@@ -265,6 +265,17 @@ namespace YARG.Gameplay.Player
             base.ResetPracticeSection();
         }
 
+        public override void Rewind(double visualTime)
+        {
+            _hittingParticleGroup.Stop();
+        }
+
+        public override void PostRewind(double visualTime)
+        {
+            ResetVisuals();
+            UpdateVisuals(visualTime);
+        }
+
         protected override void UpdateInputs(double time)
         {
             // Push all inputs from mic
@@ -424,8 +435,11 @@ namespace YARG.Gameplay.Player
 
                 if (_lastTargetNote is not null && IsInThreshold(singTime, _lastHitTime))
                 {
-                    // Show particles if hitting
-                    _hittingParticleGroup.Play();
+                    // Show particles if hitting (as long as we aren't rewinding)
+                    if (!GameManager.Rewinding)
+                    {
+                        _hittingParticleGroup.Play();
+                    }
 
                     float pitch;
                     float targetRotation = 0f;

@@ -1,5 +1,6 @@
 using System;
 using System.Globalization;
+using Cysharp.Threading.Tasks;
 using DG.Tweening;
 using TMPro;
 using UnityEngine;
@@ -36,6 +37,9 @@ namespace YARG.Gameplay.HUD
         private TextMeshProUGUI _songLengthText;
         [SerializeField]
         private Slider _timelineSlider;
+        [Space]
+        [SerializeField]
+        private GameObject _notificationArea;
 
         [Space]
         [SerializeField]
@@ -48,6 +52,13 @@ namespace YARG.Gameplay.HUD
 
         private bool _sliderPauseState;
 
+        private TextMeshProUGUI _notificationText;
+
+        private PauseInfo[] _pauses;
+        private int         _pauseIndex;
+
+        private double _lastVisualTime;
+
         protected override void GameplayAwake()
         {
             if (GameManager.ReplayInfo == null)
@@ -59,6 +70,14 @@ namespace YARG.Gameplay.HUD
             // Get the hidden position based on the container, accounting for show button arrow height
             _hudHiddenY = -_container.sizeDelta.y + _showHudButton.sizeDelta.y;
             _container.position = _container.position.WithY(-_container.sizeDelta.y);
+
+            // Set up notification area
+            _notificationText = _notificationArea.GetComponentInChildren<TextMeshProUGUI>();
+            _notificationArea.SetActive(false);
+
+            _pauses = GameManager.ReplayInfo.Pauses;
+            YargLogger.LogFormatDebug("Found {0} pauses", _pauses.Length);
+            _lastVisualTime = GameManager.VisualTime;
 
             // Listen for menu inputs
             Navigator.Instance.NavigationEvent += OnNavigationEvent;
@@ -89,7 +108,24 @@ namespace YARG.Gameplay.HUD
 
         private void Update()
         {
-            if (!_hudVisible) return;
+            if (_pauses.Length > 0)
+            {
+                // When we reach a pause time, set the notification
+                while (_pauseIndex < _pauses.Length && _pauses[_pauseIndex].PauseTime <= GameManager.VisualTime)
+                {
+                    if (!GameManager.IsSeekingReplay && _pauses[_pauseIndex].PauseTime > _lastVisualTime)
+                    {
+                        ShowPauseNotification(_pauses[_pauseIndex].PauseLength);
+                    }
+
+                    _pauseIndex++;
+                }
+            }
+
+            if (!_hudVisible)
+            {
+                return;
+            }
 
             if (!GameManager.Paused)
             {
@@ -235,6 +271,15 @@ namespace YARG.Gameplay.HUD
                 player.SetReplayTime(time);
             }
 
+            // Reset pause index
+            _pauseIndex = 0;
+            while (_pauseIndex < _pauses.Length && _pauses[_pauseIndex].PauseTime <= time)
+            {
+                _pauseIndex++;
+            }
+
+            _lastVisualTime = time;
+
             GameManager.IsSeekingReplay = false;
         }
 
@@ -244,6 +289,13 @@ namespace YARG.Gameplay.HUD
             {
                 ToggleHUD();
             }
+        }
+
+        private void ShowPauseNotification(double pauseLength)
+        {
+            _notificationText.SetText($"Song paused for {TimeSpan.FromSeconds(pauseLength):s\\.f} seconds");
+            _notificationArea.SetActive(true);
+            UniTask.Delay(TimeSpan.FromSeconds(2)).ContinueWith(() => _notificationArea.SetActive(false)).Forget();
         }
     }
 }

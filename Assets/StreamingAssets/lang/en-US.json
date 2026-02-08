@@ -206,7 +206,10 @@
             }
         },
         "Toast": {
+            "AutoCalibrationScore": "Score saving disabled: Automatic calibration active.",
+            "NoFailScore": "Score saving disabled: No fail toggle had to reset fail meter.",
             "ProfileCreated": "Profile created for new device: {0}\nTime to do some YARGin!",
+            "TooManyPauses": "Score saving disabled: Too many pauses.",
             "UnsupportedDevice": "Automatic profile creation is not supported for {0}!"
         },
         "Dialog": {

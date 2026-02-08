@@ -358,6 +358,16 @@ namespace YARG.Gameplay.Player
             base.ResetPracticeSection();
         }
 
+        public override void Rewind(double visualTime)
+        {
+
+        }
+
+        public override void PostRewind(double visualTime)
+        {
+
+        }
+
         protected override void UpdateVisuals(double visualTime)
         {
             // Allow the HUD to track the highway with animations

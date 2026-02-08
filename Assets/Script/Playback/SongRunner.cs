@@ -1,5 +1,7 @@
 using System;
 using System.Threading;
+using Cysharp.Threading.Tasks;
+using DG.Tweening;
 using UnityEngine;
 using YARG.Core.Logging;
 using YARG.Core.Audio;
@@ -697,6 +699,25 @@ namespace YARG.Playback
                 Resume();
 
             return !Paused;
+        }
+
+        public async UniTask RewindAndResume(double seconds)
+        {
+            // We can only do this when paused
+            if (!Paused)
+            {
+                return;
+            }
+
+            var targetRewindTime = SongTime - seconds;
+            var targetVisualTime = VisualTime - seconds;
+            var targetResumeTime = SongTime;
+
+            // I don't really care for using DOTween here, but it should be fine since this should be rare
+            await DOTween.To(() => VisualTime, x => VisualTime = x, targetVisualTime, 0.5f).AsyncWaitForCompletion();
+            SetSongTime(targetRewindTime, 0);
+            Resume();
+            await UniTask.WaitUntil(() => SongTime > targetResumeTime);
         }
 
         public static float ClampSongSpeed(float speed)
