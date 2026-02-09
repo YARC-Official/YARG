@@ -26,7 +26,6 @@ namespace YARG.Gameplay.HUD
         {
             _canvasGroup.alpha = 0f;
             _buttonContainer.SetActive(false);
-            _scaleHandle.gameObject.SetActive(false);
         }
 
         public void DoneButton()
