@@ -175,17 +175,29 @@ namespace YARG.Gameplay.HUD
                 return;
             }
 
+            var parentRect = _rectTransform.parent as RectTransform;
+            if (parentRect == null)
+            {
+                return;
+            }
+
+            ScreenPointToLocalPointInRectangle(parentRect, eventData.position,
+                eventData.pressEventCamera, out var localPoint);
+            ScreenPointToLocalPointInRectangle(parentRect, eventData.position - eventData.delta,
+                eventData.pressEventCamera, out var prevLocalPoint);
+            var localDelta = localPoint - prevLocalPoint;
+
             var position = _rectTransform.anchoredPosition;
             var previousPosition = position;
 
             if (_horizontal)
             {
-                position.x += eventData.delta.x;
+                position.x += localDelta.x;
             }
 
             if (_vertical)
             {
-                position.y += eventData.delta.y;
+                position.y += localDelta.y;
             }
 
             if (position != previousPosition)
