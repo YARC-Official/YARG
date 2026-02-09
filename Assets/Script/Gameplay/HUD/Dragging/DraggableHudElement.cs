@@ -41,7 +41,10 @@ namespace YARG.Gameplay.HUD
         private DragMode _dragMode;
 
         private const float MIN_SCALE = 1f;
-        private const float SCALE_SENSITIVITY = 0.0025f;
+
+        private float _dragStartDistance;
+        private float _dragStartScale;
+        private Vector2 _dragClickOffset;
 
         public bool HasCustomPosition =>
             enabled && _manager.PositionProfile.HasElementPosition(_draggableElementName);
@@ -221,6 +224,20 @@ namespace YARG.Gameplay.HUD
             }
 
             _dragMode = ShouldScale(eventData) ? DragMode.Scale : DragMode.Position;
+
+            if (_dragMode == DragMode.Scale)
+            {
+                var centerWorldPoint = _rectTransform.TransformPoint(_rectTransform.rect.center);
+                var centerScreenPoint = WorldToScreenPoint(eventData.pressEventCamera, centerWorldPoint);
+
+                var handleRect = _draggingDisplay.ScaleHandle;
+                var handleWorldPoint = handleRect.TransformPoint(handleRect.rect.center);
+                var handleScreenPoint = WorldToScreenPoint(eventData.pressEventCamera, handleWorldPoint);
+
+                _dragClickOffset = eventData.position - handleScreenPoint;
+                _dragStartDistance = Vector2.Distance(handleScreenPoint, centerScreenPoint);
+                _dragStartScale = StoredScale;
+            }
         }
 
         public void RevertElement()
@@ -272,22 +289,17 @@ namespace YARG.Gameplay.HUD
 
         private void ScaleBy(PointerEventData eventData)
         {
-            var centerWorldPoint = _rectTransform.TransformPoint(_rectTransform.rect.center);
-            var centerScreenPoint = WorldToScreenPoint(
-                eventData.pressEventCamera,
-                centerWorldPoint
-            );
-            var previousPointerPosition = eventData.position - eventData.delta;
-            float previousDistance = Vector2.Distance(previousPointerPosition, centerScreenPoint);
-            float currentDistance = Vector2.Distance(eventData.position, centerScreenPoint);
-            float scaleDelta = (currentDistance - previousDistance) * SCALE_SENSITIVITY;
-
-            if (Mathf.Approximately(scaleDelta, 0f))
+            if (_dragStartDistance < 1f)
             {
                 return;
             }
 
-            float newScale = Mathf.Max(MIN_SCALE, StoredScale + scaleDelta);
+            var centerWorldPoint = _rectTransform.TransformPoint(_rectTransform.rect.center);
+            var centerScreenPoint = WorldToScreenPoint(eventData.pressEventCamera, centerWorldPoint);
+
+            float currentDistance = Vector2.Distance(eventData.position - _dragClickOffset, centerScreenPoint);
+            float newScale = Mathf.Max(MIN_SCALE, _dragStartScale * (currentDistance / _dragStartDistance));
+
             if (Mathf.Approximately(StoredScale, newScale))
             {
                 return;
