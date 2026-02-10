@@ -15,8 +15,8 @@ namespace YARG.Gameplay.HUD
     {
         public bool EditMode { get; private set; }
 
-        public DraggableHudElement SelectedElement { get; private set; }
-        public HUDPositionProfile PositionProfile { get; private set; } = new();
+        private DraggableHudElement SelectedElement { get; set; }
+        public  HUDPositionProfile  PositionProfile { get; private set; } = new();
 
         private List<DraggableHudElement> _draggableElements;
         private bool _navigationPushed;
@@ -90,7 +90,7 @@ namespace YARG.Gameplay.HUD
             }
         }
 
-        public void ResetAllHUDPositions()
+        private void ResetAllHUDPositions()
         {
             foreach (var draggable in _draggableElements)
             {
@@ -98,26 +98,12 @@ namespace YARG.Gameplay.HUD
             }
         }
 
-        public void SelectSmallestAtPoint(Vector2 screenPoint, Camera camera)
+        private void SelectSmallestAtPoint(Vector2 screenPoint, Camera camera)
         {
-            DraggableHudElement smallest = null;
-            float smallestArea = float.MaxValue;
-
-            foreach (var element in _draggableElements)
-            {
-                var rect = element.RectTransform;
-                if (!rect.ContainsScreenPoint(screenPoint, camera))
-                {
-                    continue;
-                }
-
-                float area = rect.rect.width * rect.rect.height;
-                if (area < smallestArea)
-                {
-                    smallestArea = area;
-                    smallest = element;
-                }
-            }
+            var smallest = _draggableElements
+                .Where(e => e.RectTransform.ContainsScreenPoint(screenPoint, camera))
+                .OrderBy(e => e.RectTransform.rect.width * e.RectTransform.rect.height)
+                .FirstOrDefault();
 
             if (smallest != null)
             {

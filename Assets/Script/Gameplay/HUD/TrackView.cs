@@ -89,8 +89,6 @@ namespace YARG.Gameplay.HUD
             _highwayRenderer.SetHorizontalOffsetPx(0);
             _highwayDraggable.SetDefaultPosition(GetHighwayDefaultPosition());
 
-            // Apply current track offset before computing top default so it
-            // accounts for wherever the track actually is.
             SetHighwayOffsetX(_highwayDraggable.CurrentPosition.x);
             UpdateTopDefaultPosition();
         }

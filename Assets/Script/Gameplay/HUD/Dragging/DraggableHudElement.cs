@@ -54,7 +54,6 @@ namespace YARG.Gameplay.HUD
         public float CurrentScale => _scaleHandler?.CurrentScale ?? MIN_SCALE;
         public bool AllowScaling => _allowScaling;
 
-        /// The current anchored position of this element
         public RectTransform RectTransform => _rectTransform;
         public Vector2 CurrentPosition => _rectTransform.anchoredPosition;
         public event Action<Vector2> PositionChanged;
@@ -133,6 +132,7 @@ namespace YARG.Gameplay.HUD
         public void Deselect()
         {
             _isSelected = false;
+            SaveDragState();
             _dragMode = DragMode.NONE;
             _draggingDisplay.Hide();
         }
@@ -203,16 +203,12 @@ namespace YARG.Gameplay.HUD
                 return;
             }
 
-            MoveByDelta(eventData);
+            UpdatePosition(eventData);
         }
 
         public void EndDrag(PointerEventData eventData)
         {
-            if (_dragMode == DragMode.SCALE)
-            {
-                PositionProfile.SaveElementScale(_draggableElementName, CurrentScale);
-            }
-
+            SaveDragState();
             _dragMode = DragMode.NONE;
         }
 
@@ -222,7 +218,6 @@ namespace YARG.Gameplay.HUD
             {
                 return;
             }
-
             _manager.HandlePointerDown(eventData);
         }
 
@@ -244,7 +239,7 @@ namespace YARG.Gameplay.HUD
             NotifyScaleChanged();
         }
 
-        private void MoveByDelta(PointerEventData eventData)
+        private void UpdatePosition(PointerEventData eventData)
         {
             var parentRect = _rectTransform.parent as RectTransform;
             if (parentRect == null)
@@ -261,10 +256,8 @@ namespace YARG.Gameplay.HUD
             }
 
             var localDelta = localPoint.Value - prevLocalPoint.Value;
-
             var position = _rectTransform.anchoredPosition;
             var previousPosition = position;
-
             if (_horizontal)
             {
                 position.x += localDelta.x;
@@ -278,14 +271,20 @@ namespace YARG.Gameplay.HUD
             if (position != previousPosition)
             {
                 _rectTransform.anchoredPosition = position;
-                SavePosition();
                 NotifyPositionChanged();
             }
         }
 
-        private void SavePosition()
+        private void SaveDragState()
         {
-            PositionProfile.SaveElementPosition(_draggableElementName, _rectTransform.anchoredPosition);
+            if (_dragMode == DragMode.POSITION)
+            {
+                PositionProfile.SaveElementPosition(_draggableElementName, _rectTransform.anchoredPosition);
+            }
+            else if (_dragMode == DragMode.SCALE)
+            {
+                PositionProfile.SaveElementScale(_draggableElementName, CurrentScale);
+            }
         }
 
         private void NotifyPositionChanged()

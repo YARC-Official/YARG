@@ -72,8 +72,7 @@ namespace YARG.Gameplay.HUD
             }
 
             var centerScreenPoint = _targetRect.GetScreenCenter(eventData.pressEventCamera);
-            float currentDistance = Vector2.Distance(
-                eventData.position - _dragClickOffset, centerScreenPoint);
+            float currentDistance = Vector2.Distance(eventData.position - _dragClickOffset, centerScreenPoint);
             float rawScale = _dragStartScale * (currentDistance / _dragStartDistance);
             float newScale = Mathf.Max(_minScale, rawScale);
 
