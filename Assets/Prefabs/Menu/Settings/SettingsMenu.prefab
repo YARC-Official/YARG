@@ -489,12 +489,12 @@ GameObject:
   - component: {fileID: 1120024286692657501}
   - component: {fileID: 5513649891281854736}
   m_Layer: 5
-  m_Name: Container
+  m_Name: Preview Container
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1125194357925849411
 RectTransform:
   m_ObjectHideFlags: 0
