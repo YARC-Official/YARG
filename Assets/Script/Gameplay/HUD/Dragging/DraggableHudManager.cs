@@ -1,6 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
 using YARG.Core.Input;
+using YARG.Helpers.Extensions;
 using YARG.Menu.Data;
 using YARG.Menu.Navigation;
 using YARG.Menu.Persistent;
@@ -92,6 +94,33 @@ namespace YARG.Gameplay.HUD
             foreach (var draggable in _draggableElements)
             {
                 draggable.ResetElement();
+            }
+        }
+
+        public void SelectSmallestAtPoint(Vector2 screenPoint, Camera camera)
+        {
+            DraggableHudElement smallest = null;
+            float smallestArea = float.MaxValue;
+
+            foreach (var element in _draggableElements)
+            {
+                var rect = element.RectTransform;
+                if (!rect.ContainsScreenPoint(screenPoint, camera))
+                {
+                    continue;
+                }
+
+                float area = rect.rect.width * rect.rect.height;
+                if (area < smallestArea)
+                {
+                    smallestArea = area;
+                    smallest = element;
+                }
+            }
+
+            if (smallest != null)
+            {
+                SetSelectedElement(smallest);
             }
         }
 

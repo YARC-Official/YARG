@@ -85,44 +85,33 @@ namespace YARG.Gameplay.HUD
 
         private void SetupDefaultHudPositions()
         {
+            // Compute highway default at center (offset 0)
             _highwayRenderer.SetHorizontalOffsetPx(0);
-            _topDraggable.SetDefaultPosition(GetTopDefaultPosition());
             _highwayDraggable.SetDefaultPosition(GetHighwayDefaultPosition());
+
+            // Apply current track offset before computing top default so it
+            // accounts for wherever the track actually is.
+            SetHighwayOffsetX(_highwayDraggable.CurrentPosition.x);
+            UpdateTopDefaultPosition();
+        }
+
+        private void UpdateTopDefaultPosition()
+        {
+            _topDraggable.SetDefaultPosition(GetTopDefaultPosition());
         }
 
         private Vector2 GetTopDefaultPosition()
         {
-            if (_topElementParentRect == null)
-            {
-                return _topElementContainer.anchoredPosition;
-            }
-
             var topScreenPosition =
-                _highwayRenderer.GetTrackPositionScreenSpaceRaised(0, 0.5f, 1.0f)?.AddY(ExtraTopElementOffset);
-            if (!topScreenPosition.HasValue)
-            {
-                return _topElementContainer.anchoredPosition;
-            }
-
-            return _topElementParentRect.ScreenPointToLocalPoint(topScreenPosition.Value)
-                ?? _topElementContainer.anchoredPosition;
+                _highwayRenderer.GetTrackPositionScreenSpaceRaised(0, 0.5f, 1.0f)?.AddY(ExtraTopElementOffset)
+                ?? _hiddenPosition;
+            return _topElementParentRect.ScreenPointToLocalPoint(topScreenPosition) ?? _hiddenPosition;
         }
 
         private Vector2 GetHighwayDefaultPosition()
         {
-            if (_highwayEditParentRect == null)
-            {
-                return _highwayEditContainer.anchoredPosition;
-            }
-
             var trackBounds = _highwayRenderer.GetTrackBoundsScreenSpaceRaised(0);
-            if (trackBounds.width <= 0f || trackBounds.height <= 0f)
-            {
-                return _highwayEditContainer.anchoredPosition;
-            }
-
-            return _highwayEditParentRect.ScreenPointToLocalPoint(trackBounds.center)
-                ?? _highwayEditContainer.anchoredPosition;
+            return _highwayEditParentRect.ScreenPointToLocalPoint(trackBounds.center) ?? _hiddenPosition;
         }
 
         private void UpdateTopHud(int highwayIndex)
@@ -183,6 +172,7 @@ namespace YARG.Gameplay.HUD
         private void OnHighwayDraggablePositionChanged(Vector2 position)
         {
             UpdateHudElements(0);
+            UpdateTopDefaultPosition();
         }
 
         private void OnHighwayDraggableScaleChanged(float scale)
@@ -191,6 +181,7 @@ namespace YARG.Gameplay.HUD
             UpdateTopHud(0);
             UpdateCenterHud(0);
             UpdateTrackPosition(0);
+            UpdateTopDefaultPosition();
         }
 
         private void SetHighwayOffsetX(float xOffsetLocal)

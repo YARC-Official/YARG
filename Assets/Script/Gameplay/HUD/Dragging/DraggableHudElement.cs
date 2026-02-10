@@ -55,6 +55,7 @@ namespace YARG.Gameplay.HUD
         public bool AllowScaling => _allowScaling;
 
         /// The current anchored position of this element
+        public RectTransform RectTransform => _rectTransform;
         public Vector2 CurrentPosition => _rectTransform.anchoredPosition;
         public event Action<Vector2> PositionChanged;
         public event Action<float> ScaleChanged;
@@ -202,10 +203,7 @@ namespace YARG.Gameplay.HUD
                 return;
             }
 
-            if (!_isSelected)
-            {
-                _manager.SetSelectedElement(this);
-            }
+            _manager.SelectSmallestAtPoint(eventData.position, eventData.pressEventCamera);
         }
 
 
