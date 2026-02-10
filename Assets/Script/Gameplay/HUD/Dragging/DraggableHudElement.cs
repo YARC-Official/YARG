@@ -223,7 +223,13 @@ namespace YARG.Gameplay.HUD
                 return;
             }
 
-            _manager.SelectSmallestAtPoint(eventData.position, eventData.pressEventCamera);
+            _manager.HandlePointerDown(eventData);
+        }
+
+        public bool IsScaleHandleAtPoint(Vector2 screenPoint, Camera camera)
+        {
+            return _isSelected && _draggingDisplay != null &&
+                _draggingDisplay.IsScaleHandleAtPoint(screenPoint, camera);
         }
 
 

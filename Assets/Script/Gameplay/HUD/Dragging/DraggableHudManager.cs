@@ -125,6 +125,18 @@ namespace YARG.Gameplay.HUD
             }
         }
 
+        public void HandlePointerDown(PointerEventData eventData)
+        {
+            // Don't change selection if clicking on the selected element's scale handle.
+            if (SelectedElement != null &&
+                SelectedElement.IsScaleHandleAtPoint(eventData.position, eventData.pressEventCamera))
+            {
+                return;
+            }
+
+            SelectSmallestAtPoint(eventData.position, eventData.pressEventCamera);
+        }
+
         public void HandleBeginDrag(PointerEventData eventData)
         {
             SelectedElement?.BeginDrag(eventData);

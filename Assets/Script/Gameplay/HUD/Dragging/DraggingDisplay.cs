@@ -1,4 +1,5 @@
 using UnityEngine;
+using YARG.Helpers.Extensions;
 
 namespace YARG.Gameplay.HUD
 {
@@ -14,6 +15,12 @@ namespace YARG.Gameplay.HUD
         private RectTransform _scaleHandle;
 
         public RectTransform ScaleHandle => _scaleHandle;
+
+        public bool IsScaleHandleAtPoint(Vector2 screenPoint, Camera camera)
+        {
+            return _scaleHandle.gameObject.activeInHierarchy &&
+                _scaleHandle.ContainsScreenPoint(screenPoint, camera);
+        }
 
         public void Show()
         {
