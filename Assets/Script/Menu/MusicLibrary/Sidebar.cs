@@ -81,6 +81,8 @@ namespace YARG.Menu.MusicLibrary
         private readonly Color _unfilledFavoritesHeart = new Color(60 / 255f, 0 / 255f, 11 / 255f);
         private readonly Color _filledFavoritesHeart = new Color(255 / 255f, 89 / 255f, 119 / 255f);
 
+        private float _albumBaseFontSize;
+
         public void Initialize(MusicLibraryMenu musicLibraryMenu, SongSearchingField songSearchingField)
         {
             _musicLibraryMenu = musicLibraryMenu;
@@ -194,7 +196,7 @@ namespace YARG.Menu.MusicLibrary
         {
             var songEntry = songViewType.SongEntry;
 
-            _album.text = songEntry.Album;
+            SetAlbumNameFont(songEntry.Album);
             _source.text = SongSources.SourceToGameName(songEntry.Source);
             _charter.text = songEntry.Charter;
             _genre.text = System.Globalization.CultureInfo.CurrentCulture.TextInfo.ToTitleCase(songEntry.Genre);
@@ -241,6 +243,46 @@ namespace YARG.Menu.MusicLibrary
             _cancellationToken = new();
             _albumCoverSmall.LoadAlbumCover(songEntry, _cancellationToken.Token);
         }
+
+        // Wrap and shrink album name if it's too long to fit in the sidebar
+        private void SetAlbumNameFont(string albumText)
+        {
+            const int maxCharsBeforeWrap = 50; // number of characters before we wrap the text
+            const float shrinkFactor = 0.8f;   // percentage to shrink the font by when wrapping
+
+            if (_albumBaseFontSize <= 0f)
+            {
+                _albumBaseFontSize = _album.fontSize > 0f ? _album.fontSize : 20f;
+            }
+
+            var displayText = albumText ?? string.Empty;
+
+            _album.enableAutoSizing = false;
+            _album.textWrappingMode = TextWrappingModes.Normal;
+            _album.overflowMode = TextOverflowModes.Overflow;
+            _album.fontSize = _albumBaseFontSize;
+
+            if (displayText.Length <= maxCharsBeforeWrap)
+            {
+                _album.text = displayText;
+                return;
+            }
+
+            if (!displayText.Contains('\n'))
+            {
+                var wrapIndex = displayText.LastIndexOf(' ', maxCharsBeforeWrap);
+                if (wrapIndex <= 0)
+                {
+                    wrapIndex = maxCharsBeforeWrap;
+                }
+
+                displayText = displayText[..wrapIndex].TrimEnd() + "\n" + displayText[wrapIndex..].TrimStart();
+            }
+
+            _album.text = displayText;
+            _album.fontSize = _albumBaseFontSize * shrinkFactor;
+        }
+
 
         private void UpdateDifficulties(SongEntry entry)
         {
