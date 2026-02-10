@@ -55,7 +55,9 @@ namespace YARG.Settings.Metadata
                     image.enabled = true;
                 }
                 return PreviewBuilder.BuildPreviewUI(uiContainer);
-            } else {
+            } 
+            else 
+            {
                 uiContainer.gameObject.SetActive(false);
             }
 
