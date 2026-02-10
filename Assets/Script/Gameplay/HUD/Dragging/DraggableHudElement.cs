@@ -1,4 +1,5 @@
 using System;
+using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.EventSystems;
@@ -34,10 +35,10 @@ namespace YARG.Gameplay.HUD
 
         private DraggingDisplay _draggingDisplay;
 
+        // The position to restore to when resetting.  Defaults to anchored position but can be set explicitly too
         private Vector2 _defaultPosition;
 
         private bool _isSelected;
-        private bool _isDragging;
         private DragMode _dragMode;
 
         // 1f = unscaled, prevents shrinking below default size
@@ -45,19 +46,24 @@ namespace YARG.Gameplay.HUD
 
         private ScaleDragHandler _scaleHandler;
 
-        public bool HasCustomPosition =>
-            enabled && _manager.PositionProfile.HasElementPosition(_draggableElementName);
-        public Vector2 StoredPosition { get; private set; }
-        public float StoredScale => _scaleHandler?.CurrentScale ?? MIN_SCALE;
+        private HUDPositionProfile PositionProfile => _manager.PositionProfile;
+
+        private Vector2? PersistedPosition => PositionProfile.GetElementPosition(_draggableElementName);
+        private float?   PersistedScale    => PositionProfile.GetElementScale(_draggableElementName);
+        public bool HasCustomPosition => enabled && PositionProfile.HasElementPosition(_draggableElementName);
+        public float CurrentScale => _scaleHandler?.CurrentScale ?? MIN_SCALE;
         public bool AllowScaling => _allowScaling;
 
+        /// The current anchored position of this element
+        public Vector2 CurrentPosition => _rectTransform.anchoredPosition;
         public event Action<Vector2> PositionChanged;
         public event Action<float> ScaleChanged;
 
         private enum DragMode
         {
-            Position,
-            Scale
+            NONE,
+            POSITION,
+            SCALE
         }
 
         protected override void GameplayAwake()
@@ -67,6 +73,10 @@ namespace YARG.Gameplay.HUD
             _scaleHandler = new ScaleDragHandler(_rectTransform, MIN_SCALE);
         }
 
+        /// <summary>
+        /// Overrides the default position used when resetting.
+        /// If not called, the anchored position at song start is used.
+        /// </summary>
         public void SetDefaultPosition(Vector2 position)
         {
             _defaultPosition = position;
@@ -82,27 +92,18 @@ namespace YARG.Gameplay.HUD
 
             _defaultPosition = _rectTransform.anchoredPosition;
 
-            var customPosition = _manager.PositionProfile.GetElementPosition(_draggableElementName);
+            var customPosition = PersistedPosition;
             if (customPosition.HasValue)
             {
-                StoredPosition = customPosition.Value;
-                _rectTransform.anchoredPosition = StoredPosition;
+                _rectTransform.anchoredPosition = customPosition.Value;
             }
-            else
-            {
-                StoredPosition = _defaultPosition;
-            }
-            PositionChanged?.Invoke(StoredPosition);
+            PositionChanged?.Invoke(CurrentPosition);
 
             if (_allowScaling)
             {
-                var customScale = _manager.PositionProfile.GetElementScale(_draggableElementName) ?? MIN_SCALE;
+                var customScale = PersistedScale ?? MIN_SCALE;
                 _scaleHandler.Initialize(customScale);
-                if (!Mathf.Approximately(customScale, StoredScale))
-                {
-                    _manager.PositionProfile.SaveElementScale(_draggableElementName, StoredScale);
-                }
-                ScaleChanged?.Invoke(StoredScale);
+                ScaleChanged?.Invoke(CurrentScale);
             }
 
             _draggingDisplay = Instantiate(_draggingDisplayPrefab, transform);
@@ -131,18 +132,7 @@ namespace YARG.Gameplay.HUD
         public void Deselect()
         {
             _isSelected = false;
-
-            if (_isDragging)
-            {
-                _isDragging = false;
-                if (_dragMode == DragMode.Position)
-                {
-                    SavePosition();
-                }
-
-                _dragMode = DragMode.Position;
-            }
-
+            _dragMode = DragMode.NONE;
             _draggingDisplay.Hide();
         }
 
@@ -154,31 +144,84 @@ namespace YARG.Gameplay.HUD
 
         public void OnBeginDrag(PointerEventData eventData)
         {
-            if (!_manager.EditMode || _isDragging || eventData.button != PointerEventData.InputButton.Left)
+            if (!_manager.EditMode || _dragMode != DragMode.NONE || !eventData.IsLeftButton())
             {
                 return;
             }
 
-            _isDragging = true;
+            var shouldScale = _allowScaling && _scaleHandler.ShouldScale(eventData, _draggingDisplay.ScaleHandle);
+            if (shouldScale)
+            {
+                _dragMode = DragMode.SCALE;
+                _scaleHandler.BeginScaleDrag(eventData, _draggingDisplay.ScaleHandle);
+            }
+            else
+            {
+                _dragMode = DragMode.POSITION;
+            }
         }
 
         public void OnDrag(PointerEventData eventData)
         {
-            if (!_isDragging || eventData.button != PointerEventData.InputButton.Left)
+            if (!eventData.IsLeftButton())
             {
                 return;
             }
 
-            if (_dragMode == DragMode.Scale)
+            if (_dragMode == DragMode.SCALE)
             {
                 if (_scaleHandler.UpdateScale(eventData))
                 {
-                    _manager.PositionProfile.SaveElementScale(_draggableElementName, StoredScale);
-                    ScaleChanged?.Invoke(StoredScale);
+                    ScaleChanged?.Invoke(CurrentScale);
                 }
                 return;
             }
 
+            MoveByDelta(eventData);
+        }
+
+        public void OnEndDrag(PointerEventData eventData)
+        {
+            if (!eventData.IsLeftButton())
+            {
+                return;
+            }
+
+            if (_dragMode == DragMode.SCALE)
+            {
+                PositionProfile.SaveElementScale(_draggableElementName, CurrentScale);
+            }
+
+            _dragMode = DragMode.NONE;
+        }
+
+        public void OnPointerDown(PointerEventData eventData)
+        {
+            if (!_manager.EditMode || !eventData.IsLeftButton())
+            {
+                return;
+            }
+
+            if (!_isSelected)
+            {
+                _manager.SetSelectedElement(this);
+            }
+        }
+
+
+        public void ResetElement()
+        {
+            _rectTransform.anchoredPosition = _defaultPosition;
+            PositionProfile.RemoveElementPosition(_draggableElementName);
+            NotifyPositionChanged();
+
+            _scaleHandler.Reset();
+            PositionProfile.RemoveElementScale(_draggableElementName);
+            NotifyScaleChanged();
+        }
+
+        private void MoveByDelta(PointerEventData eventData)
+        {
             var parentRect = _rectTransform.parent as RectTransform;
             if (parentRect == null)
             {
@@ -212,72 +255,23 @@ namespace YARG.Gameplay.HUD
             {
                 _rectTransform.anchoredPosition = position;
                 SavePosition();
+                NotifyPositionChanged();
             }
-        }
-
-        public void OnEndDrag(PointerEventData eventData)
-        {
-            if (!_isDragging || eventData.button != PointerEventData.InputButton.Left)
-            {
-                return;
-            }
-
-            _isDragging = false;
-            if (_dragMode == DragMode.Position)
-            {
-                SavePosition();
-            }
-
-            _dragMode = DragMode.Position;
-        }
-
-        public void OnPointerDown(PointerEventData eventData)
-        {
-            if (!_manager.EditMode || eventData.button != PointerEventData.InputButton.Left)
-            {
-                return;
-            }
-
-            if (!_isSelected)
-            {
-                _manager.SetSelectedElement(this);
-            }
-
-            if (_allowScaling && _scaleHandler.ShouldScale(eventData, _draggingDisplay.ScaleHandle))
-            {
-                _dragMode = DragMode.Scale;
-                _scaleHandler.BeginScaleDrag(eventData, _draggingDisplay.ScaleHandle);
-            }
-            else
-            {
-                _dragMode = DragMode.Position;
-            }
-        }
-
-        public void RevertElement()
-        {
-            _rectTransform.anchoredPosition = StoredPosition;
-            SavePosition();
-        }
-
-        public void ResetElement()
-        {
-            _rectTransform.anchoredPosition = _defaultPosition;
-            StoredPosition = _defaultPosition;
-            _manager.PositionProfile.RemoveElementPosition(_draggableElementName);
-            PositionChanged?.Invoke(StoredPosition);
-
-            _scaleHandler.Reset();
-            _manager.PositionProfile.RemoveElementScale(_draggableElementName);
-            ScaleChanged?.Invoke(StoredScale);
         }
 
         private void SavePosition()
         {
-            StoredPosition = _rectTransform.anchoredPosition;
-            _manager.PositionProfile.SaveElementPosition(_draggableElementName,
-                _rectTransform.anchoredPosition);
-            PositionChanged?.Invoke(StoredPosition);
+            PositionProfile.SaveElementPosition(_draggableElementName, _rectTransform.anchoredPosition);
+        }
+
+        private void NotifyPositionChanged()
+        {
+            PositionChanged?.Invoke(CurrentPosition);
+        }
+
+        private void NotifyScaleChanged()
+        {
+            ScaleChanged?.Invoke(CurrentScale);
         }
     }
 }

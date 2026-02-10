@@ -19,7 +19,7 @@ namespace YARG.Gameplay.HUD
 
         public float CurrentScale { get; private set; }
 
-        public ScaleDragHandler(RectTransform targetRect, float minScale = 1f)
+        public ScaleDragHandler(RectTransform targetRect, float minScale)
         {
             _targetRect = targetRect;
             _minScale = minScale;

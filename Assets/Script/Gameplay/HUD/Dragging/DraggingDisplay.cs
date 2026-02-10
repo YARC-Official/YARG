@@ -33,11 +33,6 @@ namespace YARG.Gameplay.HUD
             DraggableHud.Deselect();
         }
 
-        public void RevertButton()
-        {
-            DraggableHud.RevertElement();
-            DraggableHud.Deselect();
-        }
 
         public void ResetButton()
         {

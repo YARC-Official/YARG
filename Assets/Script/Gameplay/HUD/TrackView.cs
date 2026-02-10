@@ -53,7 +53,7 @@ namespace YARG.Gameplay.HUD
             _highwayEditParentRect = _highwayEditContainer.parent as RectTransform;
             _highwayDraggable.PositionChanged += OnHighwayDraggablePositionChanged;
             _highwayDraggable.ScaleChanged += OnHighwayDraggableScaleChanged;
-            _highwayRenderer.SetScaleMultiplier(_highwayDraggable.StoredScale);
+            _highwayRenderer.SetScaleMultiplier(_highwayDraggable.CurrentScale);
         }
 
         public void UpdateHUDPosition(int highwayIndex, int highwayCount)
@@ -94,7 +94,7 @@ namespace YARG.Gameplay.HUD
         // Keep the edit box sized to the track bounds and vertically centered to the track.
         private void UpdateTrackPosition(int highwayIndex)
         {
-            SetHighwayOffsetX(_highwayDraggable.StoredPosition.x);
+            SetHighwayOffsetX(_highwayDraggable.CurrentPosition.x);
 
             var trackBounds = _highwayRenderer.GetTrackBoundsScreenSpace(highwayIndex);
             if (trackBounds == null)
@@ -119,7 +119,7 @@ namespace YARG.Gameplay.HUD
 
             bool hasCustomPosition = _highwayDraggable.HasCustomPosition;
             float targetX = hasCustomPosition
-                ? _highwayDraggable.StoredPosition.x
+                ? _highwayDraggable.CurrentPosition.x
                 : localCenter.Value.x;
             _highwayEditContainer.anchoredPosition = new Vector2(targetX, localCenter.Value.y);
 
