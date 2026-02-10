@@ -74,6 +74,9 @@ Shader "YargParticlesLit"
     //Particle shaders rely on "write" to CB syntax which is not supported by DXC
     #pragma never_use_dxc
 
+    // Required on Metal in all passes or shader compilation will fail
+    #include_with_pragmas "Packages/com.unity.render-pipelines.core/ShaderLibrary/FoveatedRenderingKeywords.hlsl"
+
     ENDHLSL
 
     SubShader
@@ -148,7 +151,6 @@ Shader "YargParticlesLit"
             #pragma multi_compile_fragment _ _LIGHT_COOKIES
             #pragma multi_compile _ _CLUSTER_LIGHT_LOOP
             #pragma multi_compile _ EVALUATE_SH_MIXED EVALUATE_SH_VERTEX
-            #include_with_pragmas "Packages/com.unity.render-pipelines.core/ShaderLibrary/FoveatedRenderingKeywords.hlsl"
             #include_with_pragmas "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Fog.hlsl"
             #include_with_pragmas "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ProbeVolumeVariants.hlsl"
 

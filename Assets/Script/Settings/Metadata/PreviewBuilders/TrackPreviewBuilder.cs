@@ -13,12 +13,8 @@ namespace YARG.Settings.Metadata
     public class TrackPreviewBuilder : IPreviewBuilder
     {
         // Prefabs needed for this tab type
-        private static readonly GameObject _trackPreview = Addressables
-            .LoadAssetAsync<GameObject>("SettingPreviews/TrackPreview")
-            .WaitForCompletion();
-        private static readonly GameObject _trackPreviewUI = Addressables
-            .LoadAssetAsync<GameObject>("SettingPreviews/TrackPreviewUI")
-            .WaitForCompletion();
+        private static GameObject _trackPreview;
+        private static GameObject _trackPreviewUI;
 
         public GameMode? StartingGameMode { get; set; }
 
@@ -35,6 +31,12 @@ namespace YARG.Settings.Metadata
 
         public UniTask BuildPreviewWorld(Transform worldContainer)
         {
+            if (_trackPreview == null)
+            {
+                 _trackPreview = Addressables
+                    .LoadAssetAsync<GameObject>("SettingPreviews/TrackPreview")
+                    .WaitForCompletion();
+            }
             var trackObj = Object.Instantiate(_trackPreview, worldContainer);
             var trackPreview = trackObj.GetComponentInChildren<FakeTrackPlayer>();
 
@@ -53,6 +55,12 @@ namespace YARG.Settings.Metadata
 
         public async UniTask BuildPreviewUI(Transform uiContainer)
         {
+            if (_trackPreviewUI == null)
+            {
+                _trackPreviewUI = Addressables
+                    .LoadAssetAsync<GameObject>("SettingPreviews/TrackPreviewUI")
+                    .WaitForCompletion();
+            }
             var go = Object.Instantiate(_trackPreviewUI, uiContainer);
 
             // Enable and wait for layouts to rebuild

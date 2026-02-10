@@ -95,12 +95,8 @@ namespace YARG.Gameplay.HUD
                     _bandMultiplierBackgroundImage.DOFade(1f, 0.5f)
                 )
                 .SetAutoKill(false)
-                .Pause();
-        }
-
-        protected override void GameplayDestroy()
-        {
-            _multiplierShowTweener?.Kill();
+                .Pause()
+                .SetLink(gameObject);
         }
 
         private void Start()

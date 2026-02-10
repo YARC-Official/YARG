@@ -135,7 +135,7 @@ Material:
     - _ZWrite: 1
     m_Colors:
     - _BaseColor: {r: 1, g: 0.90009195, b: 0.023584902, a: 1}
-    - _Color: {r: 1, g: 0.75337446, b: 0, a: 1}
+    - _Color: {r: 1, g: 0.75, b: 0, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
     - _Noise_Tiling: {r: 0.75, g: 0.75, b: 0, a: 0}
     - _RandomVector: {r: 0, g: 0, b: 0, a: 0}

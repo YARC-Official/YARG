@@ -28,6 +28,8 @@ namespace YARG.Editor
                 }
 
                 var guid = AssetDatabase.AssetPathToGUID("Assets/Art/Shaders/ShaderGraph/Includes/Varyings.hlsl");
+                var coreGuid = AssetDatabase.AssetPathToGUID("Assets/Art/Shaders/ShaderGraph/Includes/Core.hlsl");
+                var inputGuid = AssetDatabase.AssetPathToGUID("Assets/Art/Shaders/ShaderGraph/Includes/Input.hlsl");
 
                 foreach (var f in targetType.GetFields(BindingFlags.Public | BindingFlags.Static))
                 {
@@ -60,14 +62,18 @@ namespace YARG.Editor
                             var guidField = includeType.GetField("_guid", BindingFlags.NonPublic | BindingFlags.Instance);
                             var pathField = includeType.GetField("_path", BindingFlags.NonPublic | BindingFlags.Instance);
                             Debug.Assert(guidField != null && pathField != null);
-                            if (pathField.GetValue(include) as string == "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/Varyings.hlsl")
+                            var path = pathField.GetValue(include) as string;
+                            if (path == "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/Varyings.hlsl")
                             {
                                 guidField.SetValue(include, guid);
                                 Debug.LogFormat("✅ Patched {0} to use custom Varyings.hlsl", f.Name);
                             }
-
+                            else if (path == "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl")
+                            {
+                                guidField.SetValue(include, coreGuid);
+                                Debug.LogFormat("✅ Patched {0} to use custom Core.hlsl", f.Name);
+                            }
                         }
-
                     }
                 }
             }

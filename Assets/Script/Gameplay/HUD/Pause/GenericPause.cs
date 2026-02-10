@@ -13,7 +13,7 @@ namespace YARG.Gameplay.HUD
 
         protected override void GameplayAwake()
         {
-            PauseMenuManager = FindObjectOfType<PauseMenuManager>();
+            PauseMenuManager = FindAnyObjectByType<PauseMenuManager>();
         }
 
         protected virtual void OnEnable()

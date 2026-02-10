@@ -87,7 +87,7 @@ namespace YARG.Gameplay.Visuals
             // Initialize sequences
             InitializeSequences();
 
-            _gameManager = FindObjectOfType<GameManager>();
+            _gameManager = FindAnyObjectByType<GameManager>();
 
             // If there is no game manager, we are in preview mode and none of this should happen
             if (_gameManager == null)
@@ -106,7 +106,9 @@ namespace YARG.Gameplay.Visuals
             _globalAnimDelay = Mathf.Clamp((float) latestStart, 0f, MAX_ANIM_DELAY);
 
             // Animate the highway raise
-            if (!_gameManager.IsPractice && SettingsManager.Settings.EnableHighwayAnimation.Value)
+            if (!_gameManager.IsPractice
+                && !GlobalVariables.State.IsReplay
+                && SettingsManager.Settings.EnableHighwayAnimation.Value)
             {
                 if (_highwayRaised)
                 {
@@ -142,27 +144,17 @@ namespace YARG.Gameplay.Visuals
             ScoopHighway();
         }
 
-        private void OnDestroy()
-        {
-            _lower?.Kill();
-            _raise?.Kill();
-            _scoop?.Kill();
-            _bounce?.Kill();
-            _punchLeft?.Kill();
-            _punchRight?.Kill();
-        }
-
         private void InitializeSequences()
         {
             if (!SettingsManager.Settings.EnableHighwayAnimation.Value)
             {
                 // If animations are disabled, just make empty sequences
-                _raise = DOTween.Sequence().SetAutoKill(false).Pause();
-                _lower = DOTween.Sequence().SetAutoKill(false).Pause();
-                _bounce = DOTween.Sequence().SetAutoKill(false).Pause();
-                _punchLeft = DOTween.Sequence().SetAutoKill(false).Pause();
-                _punchRight = DOTween.Sequence().SetAutoKill(false).Pause();
-                _scoop = DOTween.Sequence().SetAutoKill(false).Pause();
+                _raise = DOTween.Sequence().SetAutoKill(false).Pause().SetLink(gameObject);
+                _lower = DOTween.Sequence().SetAutoKill(false).Pause().SetLink(gameObject);
+                _bounce = DOTween.Sequence().SetAutoKill(false).Pause().SetLink(gameObject);
+                _punchLeft = DOTween.Sequence().SetAutoKill(false).Pause().SetLink(gameObject);
+                _punchRight = DOTween.Sequence().SetAutoKill(false).Pause().SetLink(gameObject);
+                _scoop = DOTween.Sequence().SetAutoKill(false).Pause().SetLink(gameObject);
                 return;
             }
 
@@ -175,7 +167,8 @@ namespace YARG.Gameplay.Visuals
                     .SetEase(Ease.InOutSine))
                 .AppendCallback(InitializeBounce)
                 .SetAutoKill(false)
-                .Pause();
+                .Pause()
+                .SetLink(gameObject);
 
             _lower = DOTween.Sequence()
                 .Append(transform
@@ -186,7 +179,8 @@ namespace YARG.Gameplay.Visuals
                     .SetEase(Ease.InCirc))
                 .SetUpdate(true)
                 .SetAutoKill(false)
-                .Pause();
+                .Pause()
+                .SetLink(gameObject);
 
             var leftVector = new Vector3(-PUNCH_DISTANCE, 0f, 0f);
             var rightVector = new Vector3(PUNCH_DISTANCE, 0f, 0f);
@@ -194,12 +188,14 @@ namespace YARG.Gameplay.Visuals
             _punchLeft = DOTween.Sequence()
                 .Append(transform.DOPunchPosition(leftVector, PUNCH_ANIM_DURATION, 1, 1f, false))
                 .SetAutoKill(false)
-                .Pause();
+                .Pause()
+                .SetLink(gameObject);
 
             _punchRight = DOTween.Sequence()
                 .Append(transform.DOPunchPosition(rightVector, PUNCH_ANIM_DURATION, 1, 1f, false))
                 .SetAutoKill(false)
-                .Pause();
+                .Pause()
+                .SetLink(gameObject);
 
             _scoop = DOTween.Sequence()
                 .Append(transform
@@ -212,7 +208,8 @@ namespace YARG.Gameplay.Visuals
                     .DORotate(new Vector3().WithX(_preset.Rotation), SCOOP_ANIM_DURATION / 4f)
                     .SetEase(Ease.InOutSine))
                 .SetAutoKill(false)
-                .Pause();
+                .Pause()
+                .SetLink(gameObject);
         }
 
         private void InitializeBounce()
@@ -225,7 +222,8 @@ namespace YARG.Gameplay.Visuals
             _bounce = DOTween.Sequence().Append(
                 transform.DOPunchPosition(strength, 0.125f, 10, 1f, false))
                 .SetAutoKill(false)
-                .Pause();
+                .Pause()
+                .SetLink(gameObject);
         }
 
         private void RaiseHighway(bool isGameplayStart)
@@ -236,6 +234,10 @@ namespace YARG.Gameplay.Visuals
             float delay = isGameplayStart
                 ? basePlayer.transform.GetSiblingIndex() * LOCAL_ANIM_OFFSET + _globalAnimDelay
                 : 0f;
+
+            // Scale delay by song speed so animation completes in time at higher speeds
+            // Cap at 1 so slower speeds don't extend the delay
+            delay /= Mathf.Max(1f, _gameManager.SongSpeed);
 
             // TODO: This will need to be reworked when it is possible for the highway to raise and lower other
             //  than at the beginning and end of song

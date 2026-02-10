@@ -95,7 +95,7 @@ namespace YARG.Audio.BASS
             bool success = BassMix.ChannelSetPosition(_streamHandles.Stream, bytes, PositionFlags.Bytes | PositionFlags.MixerReset);
             if (!success)
             {
-                YargLogger.LogFormatError("Failed to seek to position {0} (bytes {1}, length {2}!", position, bytes, _length);
+                YargLogger.LogFormatError("Failed to seek to position {0} (bytes {1}, length {2}: {3}!", position, bytes, _length, Bass.LastError);
             }
         }
 

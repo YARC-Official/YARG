@@ -33,6 +33,7 @@ namespace YARG.Helpers.Extensions
         // Returns a list of valid settings for a given game mode. Each setting can optionally
         // come with override text, for settings that should have different names between profile
         // types
+        #nullable enable
         public static List<(string setting, string? overrideText)> PossibleProfileSettings(
             this GameMode gameMode, Dictionary<string, object> dependencyNamesAndValues)
         {
@@ -171,5 +172,6 @@ namespace YARG.Helpers.Extensions
 
             return conditionalSettings;
         }
+        #nullable disable
     }
 }

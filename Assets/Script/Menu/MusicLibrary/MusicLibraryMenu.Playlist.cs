@@ -98,7 +98,8 @@ namespace YARG.Menu.MusicLibrary
                 list.Add(new SortHeaderViewType(
                     section.Category.ToUpperInvariant(),
                     section.Songs.Length,
-                    section.CategoryGroup));
+                    section.CategoryGroup,
+                    section.Songs));
 
                 foreach (var song in section.Songs)
                 {

@@ -34,7 +34,7 @@ namespace YARG.Menu.Settings
             var preset = _tab.SelectedPreset;
 
             var copy = preset.CopyWithNewName($"Copy of {preset.Name}");
-            _tab.SelectedContent.AddPreset(copy);
+            _tab.SelectedContent.CopyPreset(preset, copy);
             _tab.SelectedPreset = copy;
 
             SettingsMenu.Instance.Refresh();

@@ -87,6 +87,7 @@ namespace YARG.Gameplay.Player
             return true;
         }
 
+        #nullable enable
         public VocalStaticLyricPhraseElement? TrySpawnStaticLyricPhrase(VocalPhrasePair phrasePair, List<VocalsPhrase> scoringPhrases,
             int totalHarms, int harmIndex, float x)
         {
@@ -123,6 +124,7 @@ namespace YARG.Gameplay.Player
 
             return obj;
         }
+        #nullable disable
 
         public void ResetVisuals()
         {

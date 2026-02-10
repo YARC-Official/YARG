@@ -1,16 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using YARG.Core;
 using YARG.Core.Audio;
 using YARG.Core.Chart;
-using YARG.Core.IO;
 using YARG.Core.Logging;
 using YARG.Core.Replays;
 using YARG.Gameplay.Player;
+using YARG.Menu;
 using YARG.Menu.Navigation;
 using YARG.Menu.Persistent;
 using YARG.Menu.Settings;
@@ -166,6 +165,7 @@ namespace YARG.Gameplay
             {
                 ToastManager.ToastWarning("Chart requires a rescan!", () =>
                 {
+                    MenuManager.Instance.DisableCurrentMenu();
                     SettingsMenu.Instance.gameObject.SetActive(true);
                     SettingsMenu.Instance.SelectTabByName("SongManager");
                 });
@@ -185,19 +185,12 @@ namespace YARG.Gameplay
 
             FinalizeChart();
 
-            // Get audio calibration
-            int audioCalibration = SettingsManager.Settings.AudioCalibration.Value;
-            if (SettingsManager.Settings.AccountForHardwareLatency.Value)
-                audioCalibration += GlobalAudioHandler.PlaybackLatency;
-
             // Initialize song runner
             _songRunner = new SongRunner(
                 _mixer,
                 startTime: 0,
                 SONG_START_DELAY,
                 GlobalVariables.State.SongSpeed,
-                audioCalibration,
-                SettingsManager.Settings.VideoCalibration.Value,
                 Song.SongOffsetSeconds);
 
             // Spawn players
@@ -253,6 +246,8 @@ namespace YARG.Gameplay
                 EngineManager.InitializeHappiness();
 
                 SettingsManager.Settings.NoFailMode.OnChange += OnNoFailModeChanged;
+                SettingsManager.Settings.AutoCalibration.Value = false;
+                SettingsManager.Settings.AutoCalibration.OnChange += OnAutoCalibrationChanged;
             }
 
             // Log constant values
@@ -385,6 +380,8 @@ namespace YARG.Gameplay
                 int vocalIndex = -1;
                 foreach (var player in YargPlayers)
                 {
+                    player.IsScoreValid = true;
+
                     if (!player.IsReplay)
                     {
                         // Reset microphone (resets channel buffers)
@@ -433,11 +430,11 @@ namespace YARG.Gameplay
 
                         // Setup player
                         var trackPlayer = playerObject.GetComponent<TrackPlayer>();
-                        var trackView = _trackViewManager.CreateTrackView(trackPlayer, player);
+                        var trackView = _trackViewManager.CreateTrackView();
                         trackPlayer.Initialize(highwayIndex, player, Chart, trackView, _mixer, lastHighScore);
 
                         _players.Add(trackPlayer);
-                        _trackViewManager._highwayCameraRendering.AddTrackPlayer(trackPlayer);
+                        _trackViewManager.AddTrackPlayer(trackPlayer);
                     }
                     else
                     {
@@ -490,8 +487,6 @@ namespace YARG.Gameplay
                         state.Audible += 2;
                     }
                 }
-                // Set the hud scale (position is handled by TrackPlayer)
-                _trackViewManager.SetAllHUDScale();
             }
             catch (Exception ex)
             {

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Reflection;
 using UnityEngine;
 using YARG.Core;
@@ -123,6 +124,17 @@ namespace YARG.Settings.Metadata
         {
             // Since we don't wanna put attributes on each color within the color profile,
             // add a special case for that.
+            var settingType = field.GetCustomAttribute<SettingTypeAttribute>();
+
+            // But if the setting type attribute is set to ignore, respect that
+            //
+            // This exists because it can happen that a preset/other settings object
+            // needs to have public fields that we don't want shown in the UI
+            if (settingType is not null && settingType.Type == SettingType.Ignore)
+            {
+                return;
+            }
+
             if (field.FieldType == typeof(SystemColor) && typeof(T) == typeof(ColorProfile))
             {
                 list.Add(new FieldSettingInfo
@@ -135,7 +147,6 @@ namespace YARG.Settings.Metadata
                 return;
             }
 
-            var settingType = field.GetCustomAttribute<SettingTypeAttribute>();
             if (settingType is null)
             {
                 return;
@@ -272,6 +283,15 @@ namespace YARG.Settings.Metadata
 
                     break;
                 }
+                case SettingType.FileInfo:
+                {
+                    var settingName = field.Field.Name;
+                    setting = new FileInfoSetting(field.GetValue<FileInfo>(preset), preset, settingName, (value) =>
+                    {
+                        field.SetValue(preset, value);
+                    });
+                    break;
+                }
             }
 
             if (setting is not null)
@@ -323,15 +343,26 @@ namespace YARG.Settings.Metadata
                 // Create the other fields
                 foreach (var windowField in _hitWindowFields)
                 {
-                    // Every field should not be added if it is not a dynamic window (except for the ratio and timing thresholds)
-                    if (!hitWindow.IsDynamic &&
-                        windowField.Field.Name != nameof(EnginePreset.HitWindowPreset.FrontToBackRatio) &&
-                        windowField.Field.Name != nameof(EnginePreset.HitWindowPreset.PerfectThresholdPercent) &&
-                        windowField.Field.Name != nameof(EnginePreset.HitWindowPreset.GreatThresholdPercent) &&
-                        windowField.Field.Name != nameof(EnginePreset.HitWindowPreset.GoodThresholdPercent) &&
-                        windowField.Field.Name != nameof(EnginePreset.HitWindowPreset.PoorThresholdPercent))
+                    // Every field should not be added if it is not a dynamic window (except for the ratio)
+                    if (!hitWindow.IsDynamic)
                     {
-                        continue;
+                        bool dynamicOnlyField;
+                        switch(windowField.Field.Name)
+                        {
+                            case nameof(EnginePreset.HitWindowPreset.FrontToBackRatio):
+                            case nameof(EnginePreset.HitWindowPreset.TremoloFrontEndPercent):
+                                dynamicOnlyField = false;
+                                break;
+
+                            default:
+                                dynamicOnlyField = true;
+                                break;
+                        }
+
+                        if (dynamicOnlyField)
+                        {
+                            continue;
+                        }
                     }
 
                     if (windowField.Type != SettingType.Slider)

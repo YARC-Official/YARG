@@ -1,8 +1,25 @@
 #ifndef UNITY_SHADER_VARIABLES_FUNCTIONS_INCLUDED
 #define UNITY_SHADER_VARIABLES_FUNCTIONS_INCLUDED
 
+// This include should not be necessary, but is
+#include "Assets/Art/Shaders/ShaderGraph/Includes/Core.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderVariablesFunctions.deprecated.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Debug/DebuggingCommon.hlsl"
+#include "Assets/Art/Shaders/highways.hlsl"
+
+VertexPositionInputs GetVertexPositionInputs(float3 positionOS)
+{
+    VertexPositionInputs input;
+    input.positionWS = TransformObjectToWorld(positionOS);
+    input.positionVS = YargTransformWorldToView(input.positionWS);
+    input.positionCS = YargTransformWorldToHClip(input.positionWS);
+
+    float4 ndc = input.positionCS * 0.5f;
+    input.positionNDC.xy = float2(ndc.x, ndc.y * _ProjectionParams.x) + ndc.w;
+    input.positionNDC.zw = input.positionCS.zw;
+
+    return input;
+}
 
 VertexNormalInputs GetVertexNormalInputs(float3 normalOS)
 {
@@ -80,6 +97,11 @@ float3 GetViewForwardDir()
 // Computes the world space view direction (pointing towards the viewer).
 float3 GetWorldSpaceViewDir(float3 positionWS)
 {
+    if (_YargHighwaysN > 0)
+    {
+        return YargWorldSpaceCameraPos(positionWS).xyz - positionWS;
+    }
+
     if (IsPerspectiveProjection())
     {
         // Perspective
@@ -95,6 +117,14 @@ float3 GetWorldSpaceViewDir(float3 positionWS)
 // Computes the object space view direction (pointing towards the viewer).
 half3 GetObjectSpaceNormalizeViewDir(float3 positionOS)
 {
+    if (_YargHighwaysN > 0)
+    {
+        float3 positionWS = TransformObjectToWorld(positionOS);
+        float3 cameraPosWS = YargWorldSpaceCameraPos(positionWS).xyz;
+        float3 cameraPosOS = TransformWorldToObject(cameraPosWS);
+        return normalize(cameraPosOS - positionOS);
+    }
+
     if (IsPerspectiveProjection())
     {
         // Perspective
@@ -523,11 +553,6 @@ float GetCurrentExposureMultiplier()
     return 1;
 }
 
-#include "Assets/Art/Shaders/highways.hlsl"
-
-// I reject your reality and substitute my own
-#undef GetVertexPositionInputs
-#undef GetWorldSpaceNormalizeViewDir
 
 half3 GetWorldSpaceNormalizeViewDir(float3 positionWS)
 {
@@ -548,20 +573,6 @@ half3 GetWorldSpaceNormalizeViewDir(float3 positionWS)
         // Orthographic
         return half3(-GetViewForwardDir());
     }
-}
-
-VertexPositionInputs GetVertexPositionInputs(float3 positionOS)
-{
-    VertexPositionInputs input;
-    input.positionWS = TransformObjectToWorld(positionOS);
-    input.positionVS = YargTransformWorldToView(input.positionWS);
-    input.positionCS = YargTransformWorldToHClip(input.positionWS);
-
-    float4 ndc = input.positionCS * 0.5f;
-    input.positionNDC.xy = float2(ndc.x, ndc.y * _ProjectionParams.x) + ndc.w;
-    input.positionNDC.zw = input.positionCS.zw;
-
-    return input;
 }
 
 #endif // UNITY_SHADER_VARIABLES_FUNCTIONS_INCLUDED

@@ -9,12 +9,8 @@ namespace YARG.Settings.Metadata
     public class AllSettingsTab : Tab
     {
         // Prefabs needed for this tab type
-        private static readonly GameObject _settingCategoryViewPrefab = Addressables
-            .LoadAssetAsync<GameObject>("SettingTab/SettingCategoryView")
-            .WaitForCompletion();
-        private static readonly GameObject _searchResultPopulator = Addressables
-            .LoadAssetAsync<GameObject>("SettingTab/SearchResultPopulator")
-            .WaitForCompletion();
+        private static GameObject _settingCategoryViewPrefab;
+        private static GameObject _searchResultPopulator;
 
         public override bool ShowSearchBar => true;
 
@@ -35,6 +31,12 @@ namespace YARG.Settings.Metadata
                         continue;
                     }
 
+                    if (_settingCategoryViewPrefab == null) {
+                        _settingCategoryViewPrefab = Addressables
+                            .LoadAssetAsync<GameObject>("SettingTab/SettingCategoryView")
+                            .WaitForCompletion();
+                    }
+
                     var gameObject = Object.Instantiate(_settingCategoryViewPrefab, settingContainer);
                     var view = gameObject.GetComponent<SettingCategoryView>();
                     view.Initialize(tab);
@@ -47,6 +49,11 @@ namespace YARG.Settings.Metadata
                 // something a little hacky here. Create an empty object with a search result
                 // populator which will wait a little bit before spawning anything to prevent
                 // lag when typing. This will spawn in the results
+                if (_searchResultPopulator == null) {
+                    _searchResultPopulator = Addressables
+                        .LoadAssetAsync<GameObject>("SettingTab/SearchResultPopulator")
+                        .WaitForCompletion();
+                }
                 var gameObject = Object.Instantiate(_searchResultPopulator, settingContainer);
                 var populator = gameObject.GetComponent<SearchResultPopulator>();
                 populator.Initialize(SettingsMenu.Instance.SearchQuery, settingContainer, navGroup);

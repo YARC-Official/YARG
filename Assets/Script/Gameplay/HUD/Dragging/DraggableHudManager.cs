@@ -13,7 +13,7 @@ namespace YARG.Gameplay.HUD
         public bool EditMode { get; private set; }
 
         public DraggableHudElement SelectedElement { get; private set; }
-        public HUDPositionProfile PositionProfile { get; private set; }
+        public HUDPositionProfile PositionProfile { get; private set; } = new();
 
         private List<DraggableHudElement> _draggableElements;
         private bool _navigationPushed;

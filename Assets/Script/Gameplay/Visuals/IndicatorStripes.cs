@@ -16,6 +16,22 @@ namespace YARG.Gameplay.Visuals
         [SerializeField]
         private Transform _rightContainer;
 
+        [Header("Engine Preset Stripe Colors")]
+        [SerializeField]
+        private Color _casual;
+        [SerializeField]
+        private Color _precision;
+        [SerializeField]
+        private Color _custom;
+
+        [Header("Custom Preset Setting Colors")]
+        [SerializeField]
+        private Color _ghostingAllowedColor;
+        [SerializeField]
+        private Color _infiniteFrontEndColor;
+        [SerializeField]
+        private Color _dynamicHitWindowColor;
+
         private int _stripeCount;
         private bool _isCustomPreset;
 
@@ -23,22 +39,23 @@ namespace YARG.Gameplay.Visuals
         {
             _isCustomPreset = false;
 
-            if (enginePreset == EnginePreset.Default)
+            if (enginePreset == EnginePreset.Default || enginePreset == EnginePreset.SoloTaps)
             {
                 // Don't spawn any stripes in if it's the default
+                // or solo taps, too, since it doesn't alter hit windows
             }
             else if (enginePreset == EnginePreset.Casual)
             {
-                SpawnStripe(new Color(0.9f, 0.3f, 0.9f));
+                SpawnStripe(_casual);
             }
             else if (enginePreset == EnginePreset.Precision)
             {
-                SpawnStripe(new Color(1.0f, 0.9f, 0.0f));
+                SpawnStripe(_precision);
             }
             else
             {
                 // Otherwise, it must be a custom preset
-                SpawnStripe(new Color(1.0f, 0.25f, 0.25f));
+                SpawnStripe(_custom);
                 _isCustomPreset = true;
             }
         }
@@ -49,17 +66,17 @@ namespace YARG.Gameplay.Visuals
 
             if (!guitarPreset.AntiGhosting)
             {
-                SpawnStripe(new Color(1f, 0.5f, 0f));
+                SpawnStripe(_ghostingAllowedColor);
             }
 
             if (guitarPreset.InfiniteFrontEnd)
             {
-                SpawnStripe(new Color(0.3f, 0.75f, 0.3f));
+                SpawnStripe(_infiniteFrontEndColor);
             }
 
             if (guitarPreset.HitWindow.IsDynamic)
             {
-                SpawnStripe(new Color(0.3f, 0.3f, 0.75f));;
+                SpawnStripe(_dynamicHitWindowColor);
             }
         }
 

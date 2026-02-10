@@ -27,26 +27,29 @@ namespace YARG.Menu.Navigation
 
             public readonly MenuAction Action;
             public readonly string LocalizationKey;
+            public readonly bool Hide;
 
             private readonly Action<NavigationContext> _handler;
             private readonly Action<NavigationContext> _onHoldOffHandler;
 
             public string DisplayName => Localize.Key(LocalizationKey);
 
-            public Entry(MenuAction action, string localizationKey, Action handler, Action onHoldOffHandler = null)
+            public Entry(MenuAction action, string localizationKey, Action handler, Action onHoldOffHandler = null, bool hide = false)
             {
                 Action = action;
                 LocalizationKey = localizationKey;
                 _handler = _ => handler?.Invoke();
                 _onHoldOffHandler = _ => onHoldOffHandler?.Invoke();
+                Hide = hide;
             }
 
-            public Entry(MenuAction action, string localizationKey, Action<NavigationContext> handler, Action<NavigationContext> onHoldOffHandler = null)
+            public Entry(MenuAction action, string localizationKey, Action<NavigationContext> handler, Action<NavigationContext> onHoldOffHandler = null, bool hide = false)
             {
                 Action = action;
                 LocalizationKey = localizationKey;
                 _handler = handler;
                 _onHoldOffHandler = onHoldOffHandler;
+                Hide = hide;
             }
 
             public void Invoke() => Invoke(new(Action, null));

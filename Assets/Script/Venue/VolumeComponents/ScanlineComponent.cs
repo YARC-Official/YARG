@@ -5,7 +5,8 @@ using UnityEngine.Rendering.Universal;
 namespace YARG.Venue.VolumeComponents
 {
     [Serializable]
-    [VolumeComponentMenuForRenderPipeline("Venue/Scanline", typeof(UniversalRenderPipeline))]
+    [VolumeComponentMenu("Venue/Scanline")]
+    [SupportedOnRenderPipeline(typeof(UniversalRenderPipelineAsset))]
     public class ScanlineComponent : VolumeComponent, IPostProcessComponent
     {
         public ClampedFloatParameter intensity     = new(0f, 0f, 1f);

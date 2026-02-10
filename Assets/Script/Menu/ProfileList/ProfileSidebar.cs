@@ -137,6 +137,11 @@ namespace YARG.Menu.ProfileList
         {
             // These things can change, so do it every time it's enabled.
 
+            PopulateDropdownOptions();
+        }
+
+        private void PopulateDropdownOptions()
+        {
             // Setup preset dropdowns
             _enginePresetsByIndex =
                 CustomContentManager.EnginePresets.AddOptionsToDropdown(_engineDropdown)
@@ -166,6 +171,45 @@ namespace YARG.Menu.ProfileList
             }
         }
 
+        private void RemoveUnusedDropdownOptions(YargProfile profile)
+        {
+            // TODO: Refactor presets so that this doesn't have to be so tightly coupled to the preset implementation
+            //  We could use reflection to figure out what each alternate default changes and only show ones that
+            //  change something relevant to the profile's game mode
+
+            // Solo Taps only changes FiveFretGuitar
+            if (profile.GameMode is not GameMode.FiveFretGuitar)
+            {
+                RemoveDropdownOption(_engineDropdown, _enginePresetsByIndex, EnginePreset.SoloTaps.Id);
+            }
+
+            // Casual only changes FiveFretGuitar and Vocals
+            if (profile.GameMode is not (GameMode.FiveFretGuitar or GameMode.Vocals))
+            {
+                RemoveDropdownOption(_engineDropdown, _enginePresetsByIndex, EnginePreset.Casual.Id);
+            }
+
+            // Pro keys isn't changed by anything, apparently
+            if (profile.GameMode is GameMode.ProKeys)
+            {
+                // We will have necessarily already removed SoloTaps and Casual, so removing Precision removes all but Default
+                RemoveDropdownOption(_engineDropdown, _enginePresetsByIndex, EnginePreset.Precision.Id);
+            }
+        }
+
+        private void RemoveDropdownOption(TMP_Dropdown dropdown, List<Guid> presetsByIndex, Guid guid)
+        {
+            for (int i = presetsByIndex.Count - 1; i >= 0; i--)
+            {
+                if (presetsByIndex[i] == guid)
+                {
+                    dropdown.options.RemoveAt(i);
+                    presetsByIndex.RemoveAt(i);
+                    break;
+                }
+            }
+        }
+
         public void UpdateSidebar(YargProfile profile, ProfileView profileView)
         {
             _profile = profile;
@@ -176,6 +220,9 @@ namespace YARG.Menu.ProfileList
                 HideContents();
                 return;
             }
+
+            PopulateDropdownOptions();
+            RemoveUnusedDropdownOptions(profile);
 
             _contents.SetActive(true);
 
@@ -240,7 +287,9 @@ namespace YARG.Menu.ProfileList
                 // Disable if the child's gameObject.name is not found in possibleSettings
                 var child = _sidebarContent.transform.GetChild(i);
 
+                #nullable enable
                 (string setting, string? overrideText)? settingInfo = null;
+                #nullable disable
 
                 foreach (var possibleSetting in possibleSettings)
                 {

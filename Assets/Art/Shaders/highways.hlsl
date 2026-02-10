@@ -1,3 +1,5 @@
+#ifndef YARG_HIGHWAYS_INCLUDED
+#define YARG_HIGHWAYS_INCLUDED
 #define MAX_MATRICES 32
 uniform int _YargHighwaysN;
 uniform float4x4 _YargCamViewMatrices[MAX_MATRICES];
@@ -78,19 +80,6 @@ inline float3 YargWorldSpaceViewDir(float4 localPos)
 
     } else {
         return WorldSpaceViewDir(localPos);
-    }
-}
-#endif
-
-#ifdef UNITY_SHADER_VARIABLES_FUNCTIONS_INCLUDED
-// Computes the world space view direction (pointing towards the viewer).
-inline float3 YargGetWorldSpaceViewDir(float3 positionWS)
-{
-    if (_YargHighwaysN > 0)
-    {
-        return YargWorldSpaceCameraPos(positionWS).xyz - positionWS;
-    } else {
-        return GetWorldSpaceViewDir(positionWS);
     }
 }
 #endif
@@ -181,4 +170,4 @@ inline float4 YargObjectToClipPos( in float3 pos )
 {
     return YargTransformWorldToHClip(mul(unity_ObjectToWorld, float4(pos, 1.0)).xyz);
 }
-
+#endif

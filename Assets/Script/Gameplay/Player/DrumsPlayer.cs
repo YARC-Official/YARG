@@ -45,7 +45,10 @@ namespace YARG.Gameplay.Player
         private int[] _drumSoundEffectRoundRobin = new int[8];
         private float _drumSoundEffectAccentThreshold;
 
-        private Dictionary<int, float> _fretToLastPressedTimeDelta = new Dictionary<int, float>();
+        private Dictionary<int, float> _fretToLastPressedTimeDelta                                         = new();
+        private Dictionary<Fret.AnimType, Dictionary<int, float>> _animTypeToFretToLastPressedDelta = new();
+
+        private bool IsSplitMode => Player.Profile.CurrentInstrument is Instrument.ProDrums && Player.Profile.SplitProTomsAndCymbals;
 
         public override void Initialize(int index, YargPlayer player, SongChart chart, TrackView trackView, StemMixer mixer,
             int? currentHighScore)
@@ -129,7 +132,7 @@ namespace YARG.Gameplay.Player
             {
                 _fretArray.FretCount = 5;
             }
-            else if (Player.Profile.SplitProTomsAndCymbals && EngineParams.Mode == DrumsEngineParameters.DrumMode.ProFourLane)
+            else if (IsSplitMode)
             {
                 _fretArray.FretCount = 7;
             }
@@ -143,7 +146,7 @@ namespace YARG.Gameplay.Player
                 _fiveLaneMode ? VisualStyle.FiveLaneDrums : VisualStyle.FourLaneDrums,
                 colors,
                 Player.Profile.LeftyFlip,
-                Player.Profile.CurrentInstrument is Instrument.ProDrums && Player.Profile.SplitProTomsAndCymbals,
+                IsSplitMode,
                 ShouldSwapSnareAndHiHat(),
                 ShouldSwapCrashAndRide()
             );
@@ -161,7 +164,11 @@ namespace YARG.Gameplay.Player
             // Initialize hit timestamps
             InitializeHitTimes();
 
+            // Initialize animation types
+            InitializeAnimTypes();
+
             base.FinishInitialization();
+            LaneElement.DefineLaneScale(Player.Profile.CurrentInstrument, _fiveLaneMode ? 5 : 4);
         }
 
         private int GetFillLaneForSplitView(int rightmostPad)
@@ -214,7 +221,7 @@ namespace YARG.Gameplay.Player
                 // Convert pad to lane for pro
                 if (Player.Profile.CurrentInstrument == Instrument.ProDrums)
                 {
-                    if (Player.Profile.SplitProTomsAndCymbals)
+                    if (IsSplitMode)
                     {
                         fillLane = GetFillLaneForSplitView(fillLane);
                     }
@@ -297,6 +304,161 @@ namespace YARG.Gameplay.Player
             ((DrumsNoteElement) poolable).NoteRef = note;
         }
 
+        protected override int GetLaneIndex(DrumNote note)
+        {
+            int laneIndex = note.Pad;
+
+            if (IsSplitMode)
+            {
+                laneIndex = GetSplitIndex(laneIndex);
+            }
+
+            if (!_fiveLaneMode && laneIndex >= (int) FourLaneDrumPad.YellowCymbal && !IsSplitMode)
+            {
+                laneIndex -= 3;
+            }
+
+            if (Player.Profile.LeftyFlip)
+            {
+                if (_fiveLaneMode)
+                {
+                    laneIndex = 6 - laneIndex;
+                }
+                else if (IsSplitMode)
+                {
+                    laneIndex = 8 - laneIndex;
+                }
+                else
+                {
+                    laneIndex = 5 - laneIndex;
+                }
+            }
+
+            return laneIndex;
+        }
+
+        private int GetColorIndex(int index)
+        {
+            if (IsSplitMode)
+            {
+                if (Player.Profile.LeftyFlip)
+                {
+                    index = index switch
+                    {
+                        0 => 0,
+                        7 => 4,
+                        6 => 6,
+                        5 => 3,
+                        4 => 5,
+                        3 => 2,
+                        2 => 8,
+                        1 => 1,
+                        _ => index
+                    };
+                }
+                else
+                {
+                    index = index switch
+                    {
+                        0 => 0,
+                        1 => 1,
+                        2 => 5,
+                        3 => 2,
+                        4 => 6,
+                        5 => 3,
+                        6 => 7,
+                        7 => 4,
+                        _ => index
+                    };
+                }
+            }
+
+            if (ShouldSwapSnareAndHiHat())
+            {
+                if (Player.Profile.LeftyFlip)
+                {
+                    index = index switch
+                    {
+                        6 => 4,
+                        4 => 6,
+                        _ => index
+                    };
+                }
+                else
+                {
+                    index = index switch
+                    {
+                        1 => 5,
+                        5 => 1,
+                        _ => index
+                    };
+                }
+            }
+
+            if (ShouldSwapCrashAndRide())
+            {
+                if (Player.Profile.LeftyFlip)
+                {
+                    index = index switch
+                    {
+                        8 => 5,
+                        5 => 8,
+                        _ => index
+                    };
+                }
+                else
+                {
+                    index = index switch
+                    {
+                        6 => 7,
+                        7 => 6,
+                        _ => index
+                    };
+                }
+            }
+
+            return index;
+        }
+
+        protected override void InitializeSpawnedLane(LaneElement lane, int index)
+        {
+            Color laneColor;
+            int totalLanes;
+
+            if (IsSplitMode)
+            {
+                totalLanes = 7;
+                laneColor = Player.ColorProfile.FourLaneDrums.GetNoteColor(GetColorIndex(index)).ToUnityColor();
+                // laneColor = Player.ColorProfile.FourLaneDrums.GetNoteColor(index).ToUnityColor();
+            }
+            else if (_fiveLaneMode)
+            {
+                laneColor = Player.ColorProfile.FiveLaneDrums.GetNoteColor(index).ToUnityColor();
+                totalLanes = 5;
+            }
+            else
+            {
+                laneColor = Player.ColorProfile.FourLaneDrums.GetNoteColor(index).ToUnityColor();
+                totalLanes = 4;
+            }
+
+            lane.SetAppearance(Player.Profile.CurrentInstrument, index, totalLanes, laneColor);
+
+        }
+
+        protected override void ModifyLaneFromNote(LaneElement lane, DrumNote note)
+        {
+            if (note.Pad == 0)
+            {
+                lane.ToggleOpen(true);
+            }
+            else
+            {
+                // Correct size of lane slightly for padding in fret array
+                lane.MultiplyScale(0.97f);
+            }
+        }
+
         protected override void OnNoteHit(int index, DrumNote note)
         {
             base.OnNoteHit(index, note);
@@ -305,7 +467,9 @@ namespace YARG.Gameplay.Player
 
             (NotePool.GetByKey(note) as DrumsNoteElement)?.HitNote();
 
-            AnimateFret(note.Pad);
+            // The AnimType doesn't actually matter here
+            // We handle the animation in OnPadHit instead
+            AnimateFret(note.Pad, Fret.AnimType.CorrectNormal);
         }
 
         protected override void OnNoteMissed(int index, DrumNote note)
@@ -345,12 +509,24 @@ namespace YARG.Gameplay.Player
             }
         }
 
-        private void OnPadHit(DrumsAction action, bool wasNoteHit, float velocity)
+        private void OnPadHit(DrumsAction action, bool wasNoteHit, bool wasNoteHitCorrectly, DrumNoteType type, float velocity)
         {
             // Update last hit times for fret flashing animation
             if (action is not DrumsAction.Kick)
             {
-                ZeroOutHitTime(action);
+                // Play the correct hit animation based on dynamics
+                Fret.AnimType animType = Fret.AnimType.CorrectNormal;
+
+                if (DrumNoteType.Accent == type)
+                {
+                    animType = wasNoteHitCorrectly ? Fret.AnimType.CorrectHard : Fret.AnimType.TooHard;
+                }
+                else if (DrumNoteType.Ghost == type)
+                {
+                    animType = wasNoteHitCorrectly ? Fret.AnimType.CorrectSoft : Fret.AnimType.TooSoft;
+                }
+
+                ZeroOutHitTime(action, animType);
             }
 
             // Skip if a note was hit, because we have different logic for that below
@@ -453,10 +629,7 @@ namespace YARG.Gameplay.Player
 
         private bool ShouldSwapSnareAndHiHat()
         {
-            if (
-                (Player.Profile.CurrentInstrument is Instrument.FiveLaneDrums) ||
-                (Player.Profile.CurrentInstrument is Instrument.ProDrums && Player.Profile.SplitProTomsAndCymbals)
-            )
+            if (Player.Profile.CurrentInstrument is Instrument.FiveLaneDrums || IsSplitMode)
             {
                 return Player.Profile.SwapSnareAndHiHat;
             }
@@ -464,15 +637,13 @@ namespace YARG.Gameplay.Player
             return false;
         }
 
-        private bool ShouldSwapCrashAndRide() =>
-            Player.Profile.CurrentInstrument is Instrument.ProDrums &&
-            Player.Profile.SplitProTomsAndCymbals &&
-            Player.Profile.SwapCrashAndRide;
+        private bool ShouldSwapCrashAndRide() => IsSplitMode && Player.Profile.SwapCrashAndRide;
 
         protected override void UpdateVisuals(double visualTime)
         {
             base.UpdateVisuals(visualTime);
             UpdateHitTimes();
+            UpdateAnimTimes();
             UpdateFretArray();
         }
 
@@ -484,11 +655,25 @@ namespace YARG.Gameplay.Player
             }
         }
 
+        private void InitializeAnimTypes()
+        {
+            foreach (Fret.AnimType animType in Enum.GetValues(typeof(Fret.AnimType)))
+            {
+                _animTypeToFretToLastPressedDelta[animType] = new Dictionary<int, float>();
+
+                for (int fret = 0; fret < _fretArray.FretCount; fret++)
+                {
+                    _animTypeToFretToLastPressedDelta[animType][fret] = float.MaxValue;
+                }
+            }
+        }
+
         // i.e., flash this fret by making it seem pressed
-        private void ZeroOutHitTime(DrumsAction action)
+        private void ZeroOutHitTime(DrumsAction action, Fret.AnimType animType)
         {
             int fret = GetFret(action);
             _fretToLastPressedTimeDelta[fret] = 0f;
+            _animTypeToFretToLastPressedDelta[animType][fret] = 0f;
         }
 
         private void UpdateHitTimes()
@@ -499,12 +684,50 @@ namespace YARG.Gameplay.Player
             }
         }
 
+        private void UpdateAnimTimes()
+        {
+            foreach (Fret.AnimType animType in Enum.GetValues(typeof(Fret.AnimType)))
+            {
+                for (int fret = 0; fret < _fretArray.FretCount; fret++)
+                {
+                    _animTypeToFretToLastPressedDelta[animType][fret] += Time.deltaTime;
+                }
+            }
+        }
+
         private void UpdateFretArray()
         {
             for (int fret = 0; fret < _fretArray.FretCount; fret++)
             {
-                _fretArray.SetPressed(fret, _fretToLastPressedTimeDelta[fret] < DRUM_PAD_FLASH_HOLD_DURATION);
+                _fretArray.SetPressedDrum(fret, _fretToLastPressedTimeDelta[fret] < DRUM_PAD_FLASH_HOLD_DURATION, GetAnimType(fret));
+                _fretArray.UpdateAccentColorState(fret,
+                    _animTypeToFretToLastPressedDelta[Fret.AnimType.CorrectHard][fret] <
+                    DRUM_PAD_FLASH_HOLD_DURATION);
             }
+        }
+
+        private Fret.AnimType GetAnimType(int fret)
+        {
+            // Prioritize the length of certain animations
+            if (_animTypeToFretToLastPressedDelta[Fret.AnimType.CorrectNormal][fret] < DRUM_PAD_FLASH_HOLD_DURATION)
+            {
+                return Fret.AnimType.CorrectNormal;
+            }
+
+            // Don't hold an accent over a normal note
+            if (_animTypeToFretToLastPressedDelta[Fret.AnimType.CorrectHard][fret] < DRUM_PAD_FLASH_HOLD_DURATION)
+            {
+                return Fret.AnimType.CorrectHard;
+            }
+
+            // Don't cut a bright anim short if a ghost is played
+            if (_animTypeToFretToLastPressedDelta[Fret.AnimType.CorrectSoft][fret] < DRUM_PAD_FLASH_HOLD_DURATION)
+            {
+                return Fret.AnimType.CorrectSoft;
+            }
+
+            // TODO: Add visuals for wrong amounts of velocity
+            return Fret.AnimType.CorrectNormal;
         }
 
         private void AnimateAction(DrumsAction action)
@@ -538,7 +761,7 @@ namespace YARG.Gameplay.Player
             }
         }
 
-        private void AnimateFret(int pad)
+        private void AnimateFret(int pad, Fret.AnimType animType)
         {
             // Four and five lane drums have the same kick value
             if (pad == (int) FourLaneDrumPad.Kick)
@@ -590,7 +813,7 @@ namespace YARG.Gameplay.Player
                 return GetFiveLaneFret(action);
             }
 
-            if (Player.Profile.SplitProTomsAndCymbals && Player.Profile.CurrentInstrument == Instrument.ProDrums)
+            if (IsSplitMode)
             {
                 return GetSplitFret(action);
             }
@@ -645,8 +868,7 @@ namespace YARG.Gameplay.Player
                 return GetFiveLaneFret(pad);
             }
 
-            if (Player.Profile.SplitProTomsAndCymbals
-                && EngineParams.Mode == DrumsEngineParameters.DrumMode.ProFourLane)
+            if (IsSplitMode)
             {
                 return GetSplitFret(pad);
             }
@@ -690,6 +912,21 @@ namespace YARG.Gameplay.Player
                 FourLaneDrumPad.BlueDrum     => 4,
                 FourLaneDrumPad.GreenCymbal  => 5,
                 FourLaneDrumPad.GreenDrum    => 6,
+                _                            => -1,
+            };
+        }
+
+        private int GetSplitIndex(int pad)
+        {
+            return (FourLaneDrumPad) pad switch
+            {
+                FourLaneDrumPad.RedDrum      => ShouldSwapSnareAndHiHat() ? 2 : 1,
+                FourLaneDrumPad.YellowCymbal => ShouldSwapSnareAndHiHat() ? 1 : 2,
+                FourLaneDrumPad.YellowDrum   => 3,
+                FourLaneDrumPad.BlueCymbal   => ShouldSwapCrashAndRide() ? 6 : 4,
+                FourLaneDrumPad.BlueDrum     => 5,
+                FourLaneDrumPad.GreenCymbal  => ShouldSwapCrashAndRide() ? 4 : 6,
+                FourLaneDrumPad.GreenDrum    => 7,
                 _                            => -1,
             };
         }

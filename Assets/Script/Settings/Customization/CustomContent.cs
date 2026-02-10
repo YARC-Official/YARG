@@ -37,7 +37,8 @@ namespace YARG.Settings.Customization
             Directory.CreateDirectory(FullContentDirectory);
         }
 
-        public abstract void AddPreset(BasePreset preset);
+        public abstract BasePreset AddPreset(BasePreset preset);
+        public abstract BasePreset CopyPreset(BasePreset original, BasePreset copy);
         public abstract void DeletePreset(BasePreset preset);
         public abstract void RenamePreset(BasePreset preset, string name);
 
@@ -119,23 +120,30 @@ namespace YARG.Settings.Customization
             LoadFiles();
         }
 
-        public override void AddPreset(BasePreset preset)
+        public override BasePreset AddPreset(BasePreset preset)
         {
             if (preset is T t)
             {
                 // Skip if the user already has the preset
                 if (HasPresetId(preset.Id))
                 {
-                    return;
+                    return preset;
                 }
 
                 Content.Add(t);
                 SavePresetFile(t);
+
+                return t;
             }
             else
             {
                 throw new InvalidOperationException("Attempted to add invalid preset type.");
             }
+        }
+
+        public override BasePreset CopyPreset(BasePreset original, BasePreset copy)
+        {
+            return AddPreset(copy);
         }
 
         public override void DeletePreset(BasePreset preset)
@@ -261,6 +269,7 @@ namespace YARG.Settings.Customization
             var path = Path.Join(FullContentDirectory, GetFileNameForPreset(preset));
 
             File.WriteAllText(path, text);
+            preset.Path = path;
             return path;
         }
 
@@ -276,6 +285,8 @@ namespace YARG.Settings.Customization
 
                     // Prevent the preset from being removed in-game as well
                     PresetsTab.IgnorePathUpdate(path);
+
+                    preset.Path = null;
 
                     return false;
                 }
@@ -363,7 +374,7 @@ namespace YARG.Settings.Customization
 
                 // Add files to zip
                 zip.CreateEntryFromFile(presetPath, "preset.json");
-                AddAdditionalFilesToExport(zip);
+                AddAdditionalFilesToExport(preset, zip);
             }
             catch (Exception e)
             {
@@ -371,7 +382,7 @@ namespace YARG.Settings.Customization
             }
         }
 
-        protected virtual void AddAdditionalFilesToExport(ZipArchive archive)
+        protected virtual void AddAdditionalFilesToExport(BasePreset preset, ZipArchive archive)
         {
         }
 

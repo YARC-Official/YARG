@@ -34,5 +34,6 @@ namespace YARG.Scores
 
         public float SongSpeed        { get; set; }
         public bool  PlayedWithReplay { get; set; }
+        public bool  HasBots          { get; set; }
     }
 }
