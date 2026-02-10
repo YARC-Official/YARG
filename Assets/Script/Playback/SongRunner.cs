@@ -194,6 +194,11 @@ namespace YARG.Playback
         private double _forceStartTime = double.NaN;
         #endregion
 
+        #region Rewind State
+        private CancellationTokenSource _rewindSource;
+        private Tween                   _rewindTween;
+        #endregion
+
         #region Audio syncing
         private Thread _syncThread;
 
@@ -610,6 +615,11 @@ namespace YARG.Playback
         /// </summary>
         public void Pause()
         {
+            // Ensure previous rewind tasks are dead
+            _rewindSource?.Cancel();
+            _rewindTween?.Kill();
+            _rewindTween = null;
+
             if (PauseOverridden)
             {
                 _resumeAfterOverride = false;
@@ -701,23 +711,51 @@ namespace YARG.Playback
             return !Paused;
         }
 
-        public async UniTask RewindAndResume(double seconds)
+        public async UniTask<bool> RewindAndResume(double seconds, double? overrideTargetTime = null)
         {
             // We can only do this when paused
             if (!Paused)
             {
-                return;
+                return false;
             }
 
-            var targetRewindTime = SongTime - seconds;
-            var targetVisualTime = VisualTime - seconds;
-            var targetResumeTime = SongTime;
+            _rewindSource?.Cancel();
+            _rewindSource?.Dispose();
+            _rewindSource = new CancellationTokenSource();
+            var token = _rewindSource.Token;
 
-            // I don't really care for using DOTween here, but it should be fine since this should be rare
-            await DOTween.To(() => VisualTime, x => VisualTime = x, targetVisualTime, 0.5f).AsyncWaitForCompletion();
-            SetSongTime(targetRewindTime, 0);
+            var targetRewindTime = SongTime - seconds;
+            var targetVisualTime = targetRewindTime + (VideoCalibration - AudioCalibration) * SongSpeed;
+            var targetResumeTime = overrideTargetTime ?? SongTime;
+
+            _rewindTween = DOTween.To(() => VisualTime, x => VisualTime = x, targetVisualTime, 0.5f);
+
+            var rewindCanceled = await _rewindTween
+                .AsyncWaitForCompletion()
+                .AsUniTask()
+                .AttachExternalCancellation(token)
+                .SuppressCancellationThrow();
+
+            if (rewindCanceled || token.IsCancellationRequested)
+            {
+                _rewindTween?.Kill();
+                _rewindTween = null;
+                return true;
+            }
+
+            SetSongTime(targetRewindTime - (AudioCalibration * SongSpeed), 0);
             Resume();
-            await UniTask.WaitUntil(() => SongTime > targetResumeTime);
+
+
+            var waitCanceled = await UniTask.WaitUntil(() => SongTime > targetResumeTime, cancellationToken: token)
+                .SuppressCancellationThrow();
+
+            if (waitCanceled || token.IsCancellationRequested)
+            {
+                return true;
+            }
+
+            return false;
         }
 
         public static float ClampSongSpeed(float speed)

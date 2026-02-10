@@ -166,6 +166,8 @@ namespace YARG.Gameplay
         private List<double> _frameTimes;
 
         private double _pauseTime;
+        private double _rewindLimit = double.MinValue;
+        private bool   _resumeInProgress;
 
         public bool PlayingAShow => GlobalVariables.State.PlayingAShow;
         public int  ShowIndex = 0;
@@ -394,17 +396,23 @@ namespace YARG.Gameplay
             BackgroundManager.SetPaused(true);
             GameStateFetcher.SetPaused(true);
 
-            // Save state about the pause
-
             // This uses the raw input update time because it keeps running during the pause
             // allowing us to accurately calculate the length of the pause later
-            _pauseTime = InputManager.InputUpdateTime;
-            var pauseInfo = new PauseInfo
+            if (!Rewinding && showMenu)
             {
-                PauseTime = SongTime,
-                PauseLength = 0
-            };
-            PauseInfo.Add(pauseInfo);
+                // Save state about the pause
+                _pauseTime = InputManager.InputUpdateTime;
+                var pauseInfo = new PauseInfo
+                {
+                    PauseTime = SongTime,
+                    PauseLength = 0
+                };
+                PauseInfo.Add(pauseInfo);
+
+                // Calculate the rewind limit now so it can't be overwritten if the user pauses again before completion
+                var rewindTime = Math.Max(SongTime - PAUSE_REWIND_LENGTH, _rewindLimit);
+                _rewindLimit = rewindTime;
+            }
 
             // Pause any audio samples that are currently playing
             GlobalAudioHandler.PauseAllSfx();
@@ -417,18 +425,41 @@ namespace YARG.Gameplay
 
         public async void Resume()
         {
+            if (_resumeInProgress)
+            {
+                return;
+            }
+
+            _resumeInProgress = true;
             Rewinding = true;
-            // Update the last PauseInfo with the pause
-            var currentPause = PauseInfo[^1];
-            currentPause.PauseLength = InputManager.InputUpdateTime - _pauseTime;
-            PauseInfo[^1] = currentPause;
 
-            _pauseMenu.PopAllMenus();
-            Time.timeScale = 1f;
-            await RewindAndResume(PAUSE_REWIND_LENGTH);
+            // try block is here so we can ensure that _resumeInProgress always gets reset
+            try
+            {
+                _pauseMenu.PopAllMenus();
+                Time.timeScale = 1f;
 
-            // _songRunner.Resume();
-            ResumeCore();
+                // Update the last PauseInfo with the pause length
+                var currentPause = PauseInfo[^1];
+                currentPause.PauseLength = InputManager.InputUpdateTime - _pauseTime;
+                PauseInfo[^1] = currentPause;
+
+                // Don't allow rewinding past the rewind limit
+                var rewindSeconds = Math.Max(0, SongTime - _rewindLimit);
+
+                var canceled = await RewindAndResume(rewindSeconds);
+
+                if (canceled)
+                {
+                    return;
+                }
+
+                ResumeCore();
+            }
+            finally
+            {
+                _resumeInProgress = false;
+            }
         }
 
         public void UpdateCalibration()
@@ -472,6 +503,7 @@ namespace YARG.Gameplay
             {
                 player.SendInputsOnResume();
             }
+
         }
 
         public void SetPaused(bool paused)
@@ -888,12 +920,9 @@ namespace YARG.Gameplay
             }
         }
 
-        private async UniTask RewindAndResume(double seconds)
+        private async UniTask<bool> RewindAndResume(double seconds)
         {
             YargLogger.LogFormatDebug("Rewinding {0} seconds at VisualTime {1}", seconds, VisualTime);
-            // First we have to set timeScale back to 1 and rewind VisualTime by seconds over a quarter or half second
-            // Then we have to seek audio back by seconds and save InputManager.InputUpdateTime;
-            // Then, when InputManager.InputUpdateTime reaches the saved resume time plus seconds, we can resume songrunner
 
             // Rewind players
             foreach (var player in _players)
@@ -901,7 +930,18 @@ namespace YARG.Gameplay
                 player.Rewind(VisualTime - seconds);
             }
 
-            await _songRunner.RewindAndResume(seconds);
+            double? targetTime = null;
+            if (PauseInfo.Count > 0)
+            {
+                targetTime = PauseInfo[^1].PauseTime;
+            }
+
+            var canceled = await _songRunner.RewindAndResume(seconds, targetTime);
+
+            if (canceled)
+            {
+                return true;
+            }
 
             foreach (var player in _players)
             {
@@ -909,6 +949,8 @@ namespace YARG.Gameplay
             }
 
             CheckForRewindInvalidation();
+
+            return false;
         }
     }
 }
