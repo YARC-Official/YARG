@@ -145,7 +145,37 @@ namespace YARG.Gameplay.HUD
 
         public void OnBeginDrag(PointerEventData eventData)
         {
-            if (!_manager.EditMode || _dragMode != DragMode.NONE || !eventData.IsLeftButton())
+            if (!_manager.EditMode || !eventData.IsLeftButton())
+            {
+                return;
+            }
+
+            _manager.HandleBeginDrag(eventData);
+        }
+
+        public void OnDrag(PointerEventData eventData)
+        {
+            if (!_manager.EditMode || !eventData.IsLeftButton())
+            {
+                return;
+            }
+
+            _manager.HandleDrag(eventData);
+        }
+
+        public void OnEndDrag(PointerEventData eventData)
+        {
+            if (!_manager.EditMode || !eventData.IsLeftButton())
+            {
+                return;
+            }
+
+            _manager.HandleEndDrag(eventData);
+        }
+
+        public void BeginDrag(PointerEventData eventData)
+        {
+            if (_dragMode != DragMode.NONE)
             {
                 return;
             }
@@ -162,13 +192,8 @@ namespace YARG.Gameplay.HUD
             }
         }
 
-        public void OnDrag(PointerEventData eventData)
+        public void Drag(PointerEventData eventData)
         {
-            if (!eventData.IsLeftButton())
-            {
-                return;
-            }
-
             if (_dragMode == DragMode.SCALE)
             {
                 if (_scaleHandler.UpdateScale(eventData))
@@ -181,13 +206,8 @@ namespace YARG.Gameplay.HUD
             MoveByDelta(eventData);
         }
 
-        public void OnEndDrag(PointerEventData eventData)
+        public void EndDrag(PointerEventData eventData)
         {
-            if (!eventData.IsLeftButton())
-            {
-                return;
-            }
-
             if (_dragMode == DragMode.SCALE)
             {
                 PositionProfile.SaveElementScale(_draggableElementName, CurrentScale);

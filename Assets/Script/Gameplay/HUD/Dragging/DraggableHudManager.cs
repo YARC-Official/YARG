@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using YARG.Core.Input;
 using YARG.Helpers.Extensions;
 using YARG.Menu.Data;
@@ -122,6 +123,21 @@ namespace YARG.Gameplay.HUD
             {
                 SetSelectedElement(smallest);
             }
+        }
+
+        public void HandleBeginDrag(PointerEventData eventData)
+        {
+            SelectedElement?.BeginDrag(eventData);
+        }
+
+        public void HandleDrag(PointerEventData eventData)
+        {
+            SelectedElement?.Drag(eventData);
+        }
+
+        public void HandleEndDrag(PointerEventData eventData)
+        {
+            SelectedElement?.EndDrag(eventData);
         }
 
         public void SetSelectedElement(DraggableHudElement element)
