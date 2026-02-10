@@ -1,8 +1,8 @@
-﻿using System;
+using System;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.EventSystems;
-using static UnityEngine.RectTransformUtility;
+using YARG.Helpers.Extensions;
 
 namespace YARG.Gameplay.HUD
 {
@@ -40,16 +40,12 @@ namespace YARG.Gameplay.HUD
         private bool _isDragging;
         private DragMode _dragMode;
 
-        private const float MIN_SCALE = 1f;
-
-        private float _dragStartDistance;
-        private float _dragStartScale;
-        private Vector2 _dragClickOffset;
+        private ScaleDragHandler _scaleHandler;
 
         public bool HasCustomPosition =>
             enabled && _manager.PositionProfile.HasElementPosition(_draggableElementName);
         public Vector2 StoredPosition { get; private set; }
-        public float StoredScale { get; private set; } = MIN_SCALE;
+        public float StoredScale => _scaleHandler?.CurrentScale ?? 1f;
         public bool AllowScaling => _allowScaling;
 
         public event Action<Vector2> PositionChanged;
@@ -65,6 +61,7 @@ namespace YARG.Gameplay.HUD
         {
             _manager = GetComponentInParent<DraggableHudManager>();
             _rectTransform = GetComponent<RectTransform>();
+            _scaleHandler = new ScaleDragHandler(_rectTransform);
         }
 
         public void SetDefaultPosition(Vector2 position)
@@ -97,7 +94,7 @@ namespace YARG.Gameplay.HUD
             if (_allowScaling)
             {
                 var customScale = _manager.PositionProfile.GetElementScale(_draggableElementName) ?? 1f;
-                StoredScale = Mathf.Max(MIN_SCALE, customScale);
+                _scaleHandler.Initialize(customScale);
                 if (!Mathf.Approximately(customScale, StoredScale))
                 {
                     _manager.PositionProfile.SaveElementScale(_draggableElementName, StoredScale);
@@ -171,7 +168,11 @@ namespace YARG.Gameplay.HUD
 
             if (_dragMode == DragMode.Scale)
             {
-                ScaleBy(eventData);
+                if (_scaleHandler.UpdateScale(eventData))
+                {
+                    _manager.PositionProfile.SaveElementScale(_draggableElementName, StoredScale);
+                    ScaleChanged?.Invoke(StoredScale);
+                }
                 return;
             }
 
@@ -181,11 +182,15 @@ namespace YARG.Gameplay.HUD
                 return;
             }
 
-            ScreenPointToLocalPointInRectangle(parentRect, eventData.position,
-                eventData.pressEventCamera, out var localPoint);
-            ScreenPointToLocalPointInRectangle(parentRect, eventData.position - eventData.delta,
-                eventData.pressEventCamera, out var prevLocalPoint);
-            var localDelta = localPoint - prevLocalPoint;
+            var localPoint = parentRect.ScreenPointToLocalPoint(eventData.position, eventData.pressEventCamera);
+            var prevLocalPoint = parentRect.ScreenPointToLocalPoint(
+                eventData.position - eventData.delta, eventData.pressEventCamera);
+            if (localPoint == null || prevLocalPoint == null)
+            {
+                return;
+            }
+
+            var localDelta = localPoint.Value - prevLocalPoint.Value;
 
             var position = _rectTransform.anchoredPosition;
             var previousPosition = position;
@@ -235,20 +240,14 @@ namespace YARG.Gameplay.HUD
                 _manager.SetSelectedElement(this);
             }
 
-            _dragMode = ShouldScale(eventData) ? DragMode.Scale : DragMode.Position;
-
-            if (_dragMode == DragMode.Scale)
+            if (_allowScaling && _scaleHandler.ShouldScale(eventData, _draggingDisplay.ScaleHandle))
             {
-                var centerWorldPoint = _rectTransform.TransformPoint(_rectTransform.rect.center);
-                var centerScreenPoint = WorldToScreenPoint(eventData.pressEventCamera, centerWorldPoint);
-
-                var handleRect = _draggingDisplay.ScaleHandle;
-                var handleWorldPoint = handleRect.TransformPoint(handleRect.rect.center);
-                var handleScreenPoint = WorldToScreenPoint(eventData.pressEventCamera, handleWorldPoint);
-
-                _dragClickOffset = eventData.position - handleScreenPoint;
-                _dragStartDistance = Vector2.Distance(handleScreenPoint, centerScreenPoint);
-                _dragStartScale = StoredScale;
+                _dragMode = DragMode.Scale;
+                _scaleHandler.BeginScaleDrag(eventData, _draggingDisplay.ScaleHandle);
+            }
+            else
+            {
+                _dragMode = DragMode.Position;
             }
         }
 
@@ -265,60 +264,8 @@ namespace YARG.Gameplay.HUD
             _manager.PositionProfile.RemoveElementPosition(_draggableElementName);
             PositionChanged?.Invoke(StoredPosition);
 
-            StoredScale = MIN_SCALE;
+            _scaleHandler.Reset();
             _manager.PositionProfile.RemoveElementScale(_draggableElementName);
-            ScaleChanged?.Invoke(StoredScale);
-        }
-
-        private bool ShouldScale(PointerEventData eventData)
-        {
-            if (!_allowScaling)
-            {
-                return false;
-            }
-
-            var scaleHandleRect = _draggingDisplay.ScaleHandle;
-            if (!scaleHandleRect.gameObject.activeInHierarchy)
-            {
-                return false;
-            }
-
-            var pressedObject = eventData.pointerPressRaycast.gameObject ?? eventData.pointerCurrentRaycast.gameObject;
-            if (pressedObject == null)
-            {
-                return false;
-            }
-
-            var isPressingScaleHandle = pressedObject.transform.IsChildOf(scaleHandleRect.transform);
-            if (isPressingScaleHandle)
-            {
-                return true;
-            }
-
-            return RectangleContainsScreenPoint(
-                scaleHandleRect, eventData.pressPosition, eventData.pressEventCamera);
-        }
-
-        private void ScaleBy(PointerEventData eventData)
-        {
-            if (_dragStartDistance < 1f)
-            {
-                return;
-            }
-
-            var centerWorldPoint = _rectTransform.TransformPoint(_rectTransform.rect.center);
-            var centerScreenPoint = WorldToScreenPoint(eventData.pressEventCamera, centerWorldPoint);
-
-            float currentDistance = Vector2.Distance(eventData.position - _dragClickOffset, centerScreenPoint);
-            float newScale = Mathf.Max(MIN_SCALE, _dragStartScale * (currentDistance / _dragStartDistance));
-
-            if (Mathf.Approximately(StoredScale, newScale))
-            {
-                return;
-            }
-
-            StoredScale = newScale;
-            _manager.PositionProfile.SaveElementScale(_draggableElementName, StoredScale);
             ScaleChanged?.Invoke(StoredScale);
         }
 
