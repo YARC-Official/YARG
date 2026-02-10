@@ -61,6 +61,19 @@ namespace YARG.Menu.MusicLibrary
 
         [SerializeField]
         private GameObject _sidebarContents;
+        [SerializeField]
+        private GameObject _difficultiesDisplay;
+        [SerializeField]
+        private GameObject _albumTitleContainer;
+        [SerializeField]
+        private GameObject _timeContainer;
+        [SerializeField]
+        private GameObject _sourceContainer;
+        [SerializeField]
+        private GameObject _charterContainer;
+        [SerializeField]
+        private GameObject _genreContainer;
+
 
         [FormerlySerializedAs("difficultyRingPrefab")]
         [Space]
@@ -149,6 +162,10 @@ namespace YARG.Menu.MusicLibrary
                     ClearSidebar();
                     ShowCategoryInfo(categoryViewType);
                     break;
+                case SortHeaderViewType sortHeaderViewType:
+                    ClearSidebar();
+                    ShowCategoryInfo(sortHeaderViewType);
+                    break;
                 default:
                     ClearSidebar();
                     break;
@@ -159,9 +176,16 @@ namespace YARG.Menu.MusicLibrary
 
         private void ShowCategoryInfo(CategoryViewType categoryViewType)
         {
-            _source.text = categoryViewType.SourceCountText;
-            _charter.text = categoryViewType.CharterCountText;
-            _genre.text = categoryViewType.GenreCountText;
+            SetText(_sourceContainer, _source, categoryViewType.SourceCountText);
+            SetText(_charterContainer, _charter, categoryViewType.CharterCountText);
+            SetText(_genreContainer, _genre, categoryViewType.GenreCountText);
+        }
+
+        private void ShowCategoryInfo(SortHeaderViewType sortHeaderViewType)
+        {
+            SetText(_sourceContainer, _source, sortHeaderViewType.SourceCountText);
+            SetText(_charterContainer, _charter, sortHeaderViewType.CharterCountText);
+            SetText(_genreContainer, _genre, sortHeaderViewType.GenreCountText);
         }
 
         private void ClearSidebar()
@@ -173,9 +197,12 @@ namespace YARG.Menu.MusicLibrary
             _albumCoverSmall.color = Color.clear;
             _album.text = string.Empty;
 
-            _sourceBackground.gameObject.SetActive(false);
-            _charterBackground.gameObject.SetActive(false);
-            _sidebarContents.gameObject.SetActive(false);
+            _sourceBackground.enabled = false;
+            _charterBackground.enabled = false;
+
+            _difficultiesDisplay.SetActive(false);
+            _playButton.DisableButton();
+            _favoriteButton.DisableButton();
 
             _year.text = string.Empty;
             _length.text = string.Empty;
@@ -185,21 +212,25 @@ namespace YARG.Menu.MusicLibrary
             _genre.text = string.Empty;
             _songRatingLabel.text = string.Empty;
 
-            // Hide all difficulty rings
-            foreach (var difficultyRing in _difficultyRings)
-            {
-                difficultyRing.gameObject.SetActive(false);
-            }
+            _albumTitleContainer.SetActive(false);
+            _sourceContainer.SetActive(false);
+            _genreContainer.SetActive(false);
+            _charterContainer.SetActive(false);
+            _timeContainer.SetActive(false);
         }
 
         private void ShowSongInfo(SongViewType songViewType)
         {
             var songEntry = songViewType.SongEntry;
 
+            _albumTitleContainer.SetActive(true);
             SetAlbumNameFont(songEntry.Album);
-            _source.text = SongSources.SourceToGameName(songEntry.Source);
-            _charter.text = songEntry.Charter;
-            _genre.text = System.Globalization.CultureInfo.CurrentCulture.TextInfo.ToTitleCase(songEntry.Genre);
+            SetText(_sourceContainer, _source, SongSources.SourceToGameName(songEntry.Source));
+            SetText(_charterContainer, _charter, songEntry.Charter);
+            SetText(_genreContainer, _genre, System.Globalization.CultureInfo.CurrentCulture.TextInfo.ToTitleCase(songEntry.Genre));
+            // _source.text = SongSources.SourceToGameName(songEntry.Source);
+            // _charter.text = songEntry.Charter;
+            // _genre.text = System.Globalization.CultureInfo.CurrentCulture.TextInfo.ToTitleCase(songEntry.Genre);
             _year.text = songEntry.ParsedYear;
             _songRatingLabel.text = songEntry.SongRating switch
             {
@@ -212,6 +243,7 @@ namespace YARG.Menu.MusicLibrary
             };
 
             // Format and show length
+            _timeContainer.SetActive(true);
             var time = TimeSpan.FromMilliseconds(songEntry.SongLengthMilliseconds);
             if (time.Hours > 0)
             {
@@ -230,13 +262,16 @@ namespace YARG.Menu.MusicLibrary
 
             if (icon is not null)
             {
-                _charterBackground.gameObject.SetActive(true);
+                _charterBackground.enabled = true;
                 _charterBackground.sprite = icon;
-                _sourceBackground.gameObject.SetActive(true);
+                _sourceBackground.enabled = true;
                 _sourceBackground.sprite = icon;
             }
 
-            _sidebarContents.gameObject.SetActive(true);
+            _playButton.EnableButton();
+            _favoriteButton.EnableButton();
+
+            // _sidebarContents.gameObject.SetActive(true);
 
             _cancellationToken = new();
             _albumCover.LoadAlbumCover(songEntry, _cancellationToken.Token, 0.025f);
@@ -286,6 +321,9 @@ namespace YARG.Menu.MusicLibrary
 
         private void UpdateDifficulties(SongEntry entry)
         {
+            // Make sure the display is visible
+            _difficultiesDisplay.SetActive(true);
+
             // Show all difficulty rings
             foreach (var difficultyRing in _difficultyRings)
             {
@@ -424,6 +462,19 @@ namespace YARG.Menu.MusicLibrary
                 case "genre":
                     _songSearchingField.SetSearchInput(SortAttribute.Genre, $"\"{songEntry.Genre.SearchStr}\"");
                     break;
+            }
+        }
+
+        private static void SetText(GameObject container, TextMeshProUGUI label, string text)
+        {
+            if (!string.IsNullOrEmpty(text))
+            {
+                container.SetActive(true);
+                label.text = text;
+            }
+            else
+            {
+                container.SetActive(false);
             }
         }
     }

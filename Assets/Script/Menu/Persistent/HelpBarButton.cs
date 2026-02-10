@@ -178,5 +178,19 @@ namespace YARG.Menu.Persistent
             }
             _entry?.InvokeHoldOffHandler();
         }
+
+        public void DisableButton()
+        {
+            _clickable = false;
+            _buttonBackground.color = Color.gray;
+            _buttonImage.color = Color.gray;
+        }
+
+        public void EnableButton()
+        {
+            _clickable = true;
+            _buttonBackground.color = _buttonBackgroundColor;
+            _buttonImage.color = _buttonImageColor;
+        }
     }
 }

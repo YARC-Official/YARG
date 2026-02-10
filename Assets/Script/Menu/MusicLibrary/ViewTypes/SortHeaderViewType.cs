@@ -1,6 +1,8 @@
-﻿using Cysharp.Text;
+﻿using System.Collections.Generic;
+using Cysharp.Text;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
+using YARG.Core.Song;
 using YARG.Helpers;
 using YARG.Menu.Data;
 
@@ -12,17 +14,38 @@ namespace YARG.Menu.MusicLibrary
 
         public override bool UseWiderPrimaryText => true;
 
-        public readonly string HeaderText;
-        public readonly string ShortcutName;
-        private readonly int _songCount;
-        public int TotalStarsCount { get; set; }
+        public readonly  string HeaderText;
+        public readonly  string ShortcutName;
+        public readonly  string SourceCountText;
+        public readonly  string CharterCountText;
+        public readonly  string GenreCountText;
+        private readonly int    _songCount;
+        public           int    TotalStarsCount { get; set; }
 
-        public SortHeaderViewType(string headerText, int songCount, string shortcutName)
+        private static readonly HashSet<string> SourceCounter  = new();
+        private static readonly HashSet<string> CharterCounter = new();
+        private static readonly HashSet<string> GenreCounter   = new();
+
+        public SortHeaderViewType(string headerText, int songCount, string shortcutName, SongEntry[] songsUnderCategory)
         {
             HeaderText = headerText;
             _songCount = songCount;
 
             ShortcutName = shortcutName;
+
+            foreach (var song in songsUnderCategory)
+            {
+                SourceCounter.Add(song.Source);
+                CharterCounter.Add(song.Charter);
+                GenreCounter.Add(song.Genre);
+            }
+
+            SourceCountText = $"{SourceCounter.Count} sources";
+            CharterCountText = $"{CharterCounter.Count} charters";
+            GenreCountText = $"{GenreCounter.Count} genres";
+            SourceCounter.Clear();
+            CharterCounter.Clear();
+            GenreCounter.Clear();
         }
 
         public override string GetPrimaryText(bool selected)

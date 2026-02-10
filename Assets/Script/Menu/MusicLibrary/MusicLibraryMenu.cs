@@ -402,7 +402,7 @@ namespace YARG.Menu.MusicLibrary
 
             if (!_sortedSongs.Any(section => section.Songs.Length > 0))
             {
-                list.Add(new SortHeaderViewType(Localize.Key("Menu.MusicLibrary.NoSongsMatchCriteria"), 0, null));
+                list.Add(new SortHeaderViewType(Localize.Key("Menu.MusicLibrary.NoSongsMatchCriteria"), 0, null, Array.Empty<SongEntry>()));
                 return list;
             }
 
@@ -491,7 +491,7 @@ namespace YARG.Menu.MusicLibrary
                 SortHeaderViewType sortHeader = null;
                 if (_sortedSongs.Length > 1)
                 {
-                    sortHeader = new SortHeaderViewType(displayName, section.Songs.Length, section.CategoryGroup);
+                    sortHeader = new SortHeaderViewType(displayName, section.Songs.Length, section.CategoryGroup, section.Songs);
                     list.Add(sortHeader);
                 }
 

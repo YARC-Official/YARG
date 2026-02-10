@@ -6207,6 +6207,12 @@ MonoBehaviour:
   _favoriteButton: {fileID: 7245200975423601239}
   _favoriteButtonImage: {fileID: 2342133780687937856}
   _sidebarContents: {fileID: 5958352450756398038}
+  _difficultiesDisplay: {fileID: 1075743806509257609}
+  _albumTitleContainer: {fileID: 5180982014109557589}
+  _timeContainer: {fileID: 5958352449830330596}
+  _sourceContainer: {fileID: 4755058591897142603}
+  _charterContainer: {fileID: 5710763846721672194}
+  _genreContainer: {fileID: 1844083253397971378}
   _difficultyRingPrefab: {fileID: 397774209812536635, guid: 53438a07c6e5ec5409d5bde8514761ca, type: 3}
 --- !u!114 &5958352451011471035
 MonoBehaviour:
