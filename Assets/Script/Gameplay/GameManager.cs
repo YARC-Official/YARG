@@ -497,12 +497,13 @@ namespace YARG.Gameplay
 
             _isReplaySaved = false;
 
+            Rewinding = false;
+
             foreach (var player in _players)
             {
                 player.SendInputsOnResume();
             }
 
-            Rewinding = false;
         }
 
         public void SetPaused(bool paused)
