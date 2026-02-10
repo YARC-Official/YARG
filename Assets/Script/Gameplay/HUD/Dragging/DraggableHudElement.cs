@@ -40,12 +40,15 @@ namespace YARG.Gameplay.HUD
         private bool _isDragging;
         private DragMode _dragMode;
 
+        // 1f = unscaled, prevents shrinking below default size
+        private const float MIN_SCALE = 1f;
+
         private ScaleDragHandler _scaleHandler;
 
         public bool HasCustomPosition =>
             enabled && _manager.PositionProfile.HasElementPosition(_draggableElementName);
         public Vector2 StoredPosition { get; private set; }
-        public float StoredScale => _scaleHandler?.CurrentScale ?? 1f;
+        public float StoredScale => _scaleHandler?.CurrentScale ?? MIN_SCALE;
         public bool AllowScaling => _allowScaling;
 
         public event Action<Vector2> PositionChanged;
@@ -61,7 +64,7 @@ namespace YARG.Gameplay.HUD
         {
             _manager = GetComponentInParent<DraggableHudManager>();
             _rectTransform = GetComponent<RectTransform>();
-            _scaleHandler = new ScaleDragHandler(_rectTransform);
+            _scaleHandler = new ScaleDragHandler(_rectTransform, MIN_SCALE);
         }
 
         public void SetDefaultPosition(Vector2 position)
@@ -93,7 +96,7 @@ namespace YARG.Gameplay.HUD
 
             if (_allowScaling)
             {
-                var customScale = _manager.PositionProfile.GetElementScale(_draggableElementName) ?? 1f;
+                var customScale = _manager.PositionProfile.GetElementScale(_draggableElementName) ?? MIN_SCALE;
                 _scaleHandler.Initialize(customScale);
                 if (!Mathf.Approximately(customScale, StoredScale))
                 {

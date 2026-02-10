@@ -10,8 +10,11 @@ namespace YARG.Gameplay.HUD
         private readonly RectTransform _targetRect;
         private readonly float _minScale;
 
+        // Distance from handle to center when drag began
         private float _dragStartDistance;
+        // Scale value when drag began
         private float _dragStartScale;
+        // Offset from click position to handle center
         private Vector2 _dragClickOffset;
 
         public float CurrentScale { get; private set; }
@@ -71,7 +74,8 @@ namespace YARG.Gameplay.HUD
             var centerScreenPoint = _targetRect.GetScreenCenter(eventData.pressEventCamera);
             float currentDistance = Vector2.Distance(
                 eventData.position - _dragClickOffset, centerScreenPoint);
-            float newScale = Mathf.Max(_minScale, _dragStartScale * (currentDistance / _dragStartDistance));
+            float rawScale = _dragStartScale * (currentDistance / _dragStartDistance);
+            float newScale = Mathf.Max(_minScale, rawScale);
 
             if (Mathf.Approximately(CurrentScale, newScale))
             {
