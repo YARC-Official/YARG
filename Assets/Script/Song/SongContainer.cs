@@ -262,9 +262,9 @@ namespace YARG.Song
                         var set = new HashSet<SongEntry>();
                         foreach (var ins in player.Profile.GameMode.PossibleInstruments())
                         {
-                            if (SongContainer.HasInstrument(ins))
+                            if (HasInstrument(ins))
                             {
-                                foreach (var list in _songCache.Instruments[ins].Values)
+                                foreach (var list in _sortedSongs.Instruments[ins].Values)
                                 {
                                     foreach (var entry in list)
                                     {
