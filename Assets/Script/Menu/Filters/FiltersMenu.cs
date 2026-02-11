@@ -120,8 +120,7 @@ namespace YARG.Menu.Filters
 
         private static Instrument _cachedDifficultyInstrument = Instrument.FiveFretGuitar;
 
-        private static GameObject _selectToggleButtonsPrefab;
-        private static GameObject _settingsButtonRowPrefab;
+        private static GameObject _settingsButtonPrefab;
 
         // Workaround to avoid errors when deactivating menu during startup
         private bool _ready;
@@ -361,14 +360,10 @@ namespace YARG.Menu.Filters
 
         private void AddButton(Transform container, NavigationGroup navGroup, string text, System.Action onClick)
         {
-            if (_settingsButtonRowPrefab == null)
-            {
-                _settingsButtonRowPrefab = Addressables
-                    .LoadAssetAsync<GameObject>("SettingTab/Button")
-                    .WaitForCompletion();
-            }
+            var prefab = GetSettingsButtonPrefab();
+            if (prefab == null) return;
 
-            var row = Instantiate(_settingsButtonRowPrefab, container);
+            var row = Instantiate(prefab, container);
             var buttonRow = row.GetComponent<SettingsButton>();
             if (buttonRow == null) return;
 
@@ -1249,14 +1244,10 @@ namespace YARG.Menu.Filters
             if (_rightContainer == null || _rightNavGroup == null)
                 return;
 
-            if (_selectToggleButtonsPrefab == null)
-            {
-                _selectToggleButtonsPrefab = Addressables
-                    .LoadAssetAsync<GameObject>("SettingTab/Button")
-                    .WaitForCompletion();
-            }
+            var prefab = GetSettingsButtonPrefab();
+            if (prefab == null) return;
 
-            var go = Instantiate(_selectToggleButtonsPrefab, _rightContainer);
+            var go = Instantiate(prefab, _rightContainer);
             var buttonRow = go.GetComponent<SettingsButton>();
             if (buttonRow == null)
                 return;
@@ -1268,6 +1259,18 @@ namespace YARG.Menu.Filters
             });
 
             _rightNavGroup.AddNavigatable(buttonRow);
+        }
+
+        private static GameObject GetSettingsButtonPrefab()
+        {
+            if (_settingsButtonPrefab == null)
+            {
+                _settingsButtonPrefab = Addressables
+                    .LoadAssetAsync<GameObject>("SettingTab/Button")
+                    .WaitForCompletion();
+            }
+
+            return _settingsButtonPrefab;
         }
 
         public void SetupSortedByDropdown(GameObject row, string label)

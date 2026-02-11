@@ -337,8 +337,9 @@ namespace YARG.Menu.MusicLibrary
                         setListNotEmpty ?
                             "Menu.MusicLibrary.AddHoldStartSet" :
                             "Menu.MusicLibrary.PlayHoldAddToSet",
-                        OnGreenHit,
-                        OnGreenRelease,
+                        OnGreenTap,
+                        GREEN_HOLD_SECONDS,
+                        OnGreenHold,
                         hide: true
                     ),
                 new NavigationScheme.Entry(MenuAction.Red, "Menu.Common.Back", Back, hide: true),
@@ -736,36 +737,6 @@ namespace YARG.Menu.MusicLibrary
         {
             foreach (var heldInput in _heldInputs)
                 heldInput.Timer -= Time.unscaledDeltaTime;
-
-            // Fire Green hold actions as soon as the hold threshold is reached.
-            // After firing, remove the hold context so releasing does nothing.
-            for (int i = _heldInputs.Count - 1; i >= 0; i--)
-            {
-                var held = _heldInputs[i];
-
-                if (held.Context.Action != MenuAction.Green)
-                    continue;
-
-                if (held.Timer > 0)
-                    continue;
-
-                bool setListNotEmpty = ShowPlaylist.Count > 0;
-
-                // HOLD action fires immediately at 1s
-                if (setListNotEmpty)
-                {
-                    // same as Blue: Start Setlist
-                    StartSetlist();
-                }
-                else
-                {
-                    // same as Yellow: Add to Setlist
-                    AddToPlaylist(); // already toasts "AddedToSet"
-                }
-
-                // Remove so release does nothing (no tap action)
-                _heldInputs.RemoveAt(i);
-            }
         }
 
         private async void StartPreview(double delay, CancellationTokenSource canceller)
@@ -869,28 +840,9 @@ namespace YARG.Menu.MusicLibrary
         }
 
         private const float GREEN_HOLD_SECONDS = 1f;
-        private void OnGreenHit(NavigationContext ctx)
+
+        private void OnGreenTap(NavigationContext _)
         {
-            var hold = new HoldContext(ctx)
-            {
-                Timer = GREEN_HOLD_SECONDS
-            };
-
-            _heldInputs.Add(hold);
-        }
-
-        private void OnGreenRelease(NavigationContext ctx)
-        {
-            // If the hold already fired in Update(), the context was removed
-            // and release should do nothing.
-            var holdContext = _heldInputs.FirstOrDefault(i => i.Context.IsSameAs(ctx));
-            if (holdContext == null || ctx.Player is null)
-            {
-                _heldInputs.RemoveAll(i => i.Context.IsSameAs(ctx));
-                return;
-            }
-
-            // If we’re releasing before the timer hits 0, it’s a TAP.
             bool setListNotEmpty = ShowPlaylist.Count > 0;
 
             if (setListNotEmpty)
@@ -903,8 +855,22 @@ namespace YARG.Menu.MusicLibrary
                 // same as old Green confirm: Play song
                 CurrentSelection?.PrimaryButtonClick();
             }
+        }
 
-            _heldInputs.RemoveAll(i => i.Context.IsSameAs(ctx));
+        private void OnGreenHold(NavigationContext _)
+        {
+            bool setListNotEmpty = ShowPlaylist.Count > 0;
+
+            if (setListNotEmpty)
+            {
+                // same as Blue: Start Setlist
+                StartSetlist();
+            }
+            else
+            {
+                // same as Yellow: Add to Setlist
+                AddToPlaylist();
+            }
         }
 
         private void OnOrangeHit(NavigationContext ctx)
