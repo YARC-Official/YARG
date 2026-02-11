@@ -325,7 +325,7 @@ namespace YARG.Gameplay.Player
                             // ...but HARM2 gets HARM3 as a merged part
                             _staticPhraseTrackers[i] = new StaticPhraseTracker(GetVocalPhrasePairs(parts[i], parts[i+1]));
                             break;
-                        // Do nothing for HARM3, because it's being handled by HARM2
+                            // Do nothing for HARM3, because it's being handled by HARM2
                     }
                 }
                 _staticPhraseQueues[i] = new Queue<VocalStaticLyricPhraseElement>();
@@ -652,11 +652,11 @@ namespace YARG.Gameplay.Player
             // passing the threshold in the first place)
             int severity = (((int)greatestOffset - THRESHOLD) / 200) + 1;
 
-            return 1f + (severity * 0.3f);
+            return 1f + (severity * 0.2f);
         }
 
         // Necessary for combining HARM2 and HARM3 in two-lane view
-        #nullable enable
+#nullable enable
         public struct VocalPhrasePair
         {
             public double Tick;
@@ -775,6 +775,6 @@ namespace YARG.Gameplay.Player
 
             return phrasePairs;
         }
-        #nullable disable
+#nullable disable
     }
 }

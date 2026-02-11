@@ -1,13 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.UI;
 using UnityEngine.UI;
 using YARG.Settings;
 
 namespace YARG.Menu.ListMenu
 {
-    public abstract class ListMenu<TViewType, TViewObject> : MonoBehaviour
+    public abstract class ListMenu<TViewType, TViewObject> : MonoBehaviour, IScrollHandler
         where TViewType : BaseViewType
         where TViewObject : ViewObject<TViewType>
     {
@@ -74,6 +76,9 @@ namespace YARG.Menu.ListMenu
         protected virtual bool CanScroll => true;
         private float _scrollTimer;
 
+        private float       _pendingScroll;
+        private InputAction _scrollAction;
+
         protected virtual void Awake()
         {
             // Create all of the replay views
@@ -94,6 +99,14 @@ namespace YARG.Menu.ListMenu
             }
 
             RequestViewListUpdate();
+        }
+
+        protected virtual void OnEnable()
+        {
+        }
+
+        protected virtual void OnDisable()
+        {
         }
 
         protected virtual void OnSelectedIndexChanged()
@@ -179,35 +192,39 @@ namespace YARG.Menu.ListMenu
             }
         }
 
-        protected virtual void Update()
+        public void OnScroll(PointerEventData eventData)
         {
-            UpdateScroll();
-        }
-
-        private void UpdateScroll()
-        {
-            if (!CanScroll) return;
-
-            if (_scrollTimer > 0f)
+            if (!CanScroll)
             {
-                _scrollTimer -= Time.deltaTime;
                 return;
             }
 
-            var delta = Mouse.current.scroll.ReadValue().y * Time.deltaTime;
+            if (Time.unscaledTime < _scrollTimer)
+            {
+                return;
+            }
+
+            var delta = eventData.scrollDelta.y * Time.deltaTime;
+
+            // Don't scroll due to tiny noise
+            if (Mathf.Approximately(delta, 0f))
+            {
+                return;
+            }
 
             if (delta > 0f)
             {
                 SelectedIndex--;
-                _scrollTimer = SCROLL_TIME;
-                return;
             }
-
-            if (delta < 0f)
+            else
             {
                 SelectedIndex++;
-                _scrollTimer = SCROLL_TIME;
             }
+
+            _scrollTimer = Time.unscaledTime + SCROLL_TIME;
+
+            // Make sure scroll events don't continue to propagate so there are no more future surprises
+            eventData.Use();
         }
     }
 }

@@ -176,12 +176,18 @@ namespace YARG.Gameplay.Player
                 return;
             }
 
-            UpdateInputs(GameManager.InputTime);
+            if (!GameManager.Rewinding)
+            {
+                UpdateInputs(GameManager.InputTime);
+            }
+
             UpdateVisuals(GameManager.VisualTime);
         }
 
         protected abstract void UpdateVisuals(double visualTime);
         protected abstract void ResetVisuals();
+        public abstract void Rewind(double visualTime);
+        public abstract void PostRewind(double visualTime);
 
         public virtual void ResetPracticeSection()
         {
@@ -311,7 +317,7 @@ namespace YARG.Gameplay.Player
                 return;
 
             // Ignore while paused
-            if (GameManager.Paused)
+            if (GameManager.Paused || GameManager.Rewinding)
             {
                 if (!ShouldUpdateInputsOnResume)
                 {

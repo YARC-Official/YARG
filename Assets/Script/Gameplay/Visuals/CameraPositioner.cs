@@ -106,7 +106,9 @@ namespace YARG.Gameplay.Visuals
             _globalAnimDelay = Mathf.Clamp((float) latestStart, 0f, MAX_ANIM_DELAY);
 
             // Animate the highway raise
-            if (!_gameManager.IsPractice && SettingsManager.Settings.EnableHighwayAnimation.Value)
+            if (!_gameManager.IsPractice
+                && !GlobalVariables.State.IsReplay
+                && SettingsManager.Settings.EnableHighwayAnimation.Value)
             {
                 if (_highwayRaised)
                 {
@@ -232,6 +234,10 @@ namespace YARG.Gameplay.Visuals
             float delay = isGameplayStart
                 ? basePlayer.transform.GetSiblingIndex() * LOCAL_ANIM_OFFSET + _globalAnimDelay
                 : 0f;
+
+            // Scale delay by song speed so animation completes in time at higher speeds
+            // Cap at 1 so slower speeds don't extend the delay
+            delay /= Mathf.Max(1f, _gameManager.SongSpeed);
 
             // TODO: This will need to be reworked when it is possible for the highway to raise and lower other
             //  than at the beginning and end of song

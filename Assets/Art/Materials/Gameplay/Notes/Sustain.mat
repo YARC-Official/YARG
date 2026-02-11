@@ -18,7 +18,7 @@ Material:
   m_LightmapFlags: 2
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
-  m_CustomRenderQueue: 1976
+  m_CustomRenderQueue: 2976
   stringTagMap: {}
   disabledShaderPasses:
   - MOTIONVECTORS
@@ -106,7 +106,15 @@ Material:
         m_Texture: {fileID: 2800000, guid: fecf9fecf4644b643a35395dfd7635cf, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _SustainWave_92ec6e0a65ae46b0b94f3e2e02ce3580_MainTex_1492724380_Texture2D:
+        m_Texture: {fileID: 2800000, guid: fecf9fecf4644b643a35395dfd7635cf, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _SustainWave_ff1ec8740cbc49fe9f832cf077fc4071_MainTex_1492724380:
+        m_Texture: {fileID: 2800000, guid: 342e33d746f923d49819aa62c4aa3534, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _SustainWave_ff1ec8740cbc49fe9f832cf077fc4071_MainTex_1492724380_Texture2D:
         m_Texture: {fileID: 2800000, guid: 342e33d746f923d49819aa62c4aa3534, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}

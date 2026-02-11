@@ -59,11 +59,11 @@ namespace YARG.Gameplay.Visuals
 
         protected override void UpdateElement()
         {
-            if (GameManager.SongTime < _lyricRef.Time)
+            if (GameManager.VisualTime < _lyricRef.Time)
             {
                 _lyricText.color = _isStarpower ? Color.yellow : Color.white;
             }
-            else if (GameManager.SongTime > _lyricRef.Time && GameManager.SongTime < _lyricRef.Time + _lyricLength)
+            else if (GameManager.VisualTime > _lyricRef.Time && GameManager.VisualTime < _lyricRef.Time + _lyricLength)
             {
                 _lyricText.color = new Color(0.0549f, 0.6431f, 0.9765f);
             }

@@ -21,10 +21,10 @@ MonoBehaviour:
     Color: {r: 0.9529412, g: 0.16862746, b: 0.21568628, a: 1}
   - Action: 2
     Sprite: {fileID: 21300000, guid: b511bbfffd0ea184ba6ffda09d17f88c, type: 3}
-    Color: {r: 1, g: 0.73333335, b: 0.050980393, a: 1}
+    Color: {r: 0.9882353, g: 0.8352941, b: 0.28235295, a: 1}
   - Action: 3
     Sprite: {fileID: 21300000, guid: b511bbfffd0ea184ba6ffda09d17f88c, type: 3}
-    Color: {r: 0.21568628, g: 0.5176471, b: 0.9764706, a: 1}
+    Color: {r: 0.07058824, g: 0.44313726, b: 1, a: 1}
   - Action: 4
     Sprite: {fileID: 21300000, guid: b511bbfffd0ea184ba6ffda09d17f88c, type: 3}
     Color: {r: 1, g: 0.5176471, b: 0.07450981, a: 1}

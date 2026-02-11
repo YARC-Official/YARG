@@ -104,7 +104,7 @@ namespace YARG.Menu.Settings
                 new NavigationScheme.Entry(MenuAction.Red, "Menu.Common.Back", () =>
                 {
                     gameObject.SetActive(false);
-                }),
+                }, hide: true),
                 NavigationScheme.Entry.NavigateUp,
                 NavigationScheme.Entry.NavigateDown,
                 _headerTabs.NavigateNextTab,
@@ -261,11 +261,6 @@ namespace YARG.Menu.Settings
             _previewContainerWorld.gameObject.SetActive(false);
 
             _previewContainerUI.DestroyChildren();
-            var image = _previewContainerUI.GetComponent<Image>();
-            if (image != null)
-            {
-                image.enabled = false;
-            }
         }
 
         public void OnSettingChanged()

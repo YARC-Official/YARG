@@ -32,7 +32,6 @@ RectTransform:
   m_Children:
   - {fileID: 3693620849061788594}
   m_Father: {fileID: 3693620849526095517}
-  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
@@ -85,12 +84,11 @@ MonoBehaviour:
   _scrollRect: {fileID: 3693620848635814460}
   _maxScrollRate: 150
   _scrollRateIncreaseMultiplier: 0.25
-  _headerPrefab: {fileID: 8182768269547947474, guid: faeb10e311b8fe54698c1d157c3463af,
-    type: 3}
-  _cardPrefab: {fileID: 8329285916534272885, guid: 5725fac5ba0c79342a1b6c8ef9540763,
-    type: 3}
-  _songCreditPrefab: {fileID: 4624944316608650653, guid: 2ef4ee231d8aeac46bd5e585bc21500e,
-    type: 3}
+  _headerPrefab: {fileID: 8182768269547947474, guid: faeb10e311b8fe54698c1d157c3463af, type: 3}
+  _smallHeaderPrefab: {fileID: 8182768269547947474, guid: a5ba4519c446b1c4dbe3c9048cf4ed67, type: 3}
+  _textPrefab: {fileID: 8182768269547947474, guid: 4fc7c46462ae4134c9575bf8cab25153, type: 3}
+  _cardPrefab: {fileID: 8329285916534272885, guid: 5725fac5ba0c79342a1b6c8ef9540763, type: 3}
+  _songCreditPrefab: {fileID: 4624944316608650653, guid: 2ef4ee231d8aeac46bd5e585bc21500e, type: 3}
 --- !u!1 &3693620849051783740
 GameObject:
   m_ObjectHideFlags: 0
@@ -122,7 +120,6 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 3693620849061788594}
-  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 1, y: 1}
@@ -202,7 +199,6 @@ RectTransform:
   m_Children:
   - {fileID: 3693620849051783739}
   m_Father: {fileID: 3693620848635814461}
-  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
@@ -294,7 +290,6 @@ RectTransform:
   m_Children:
   - {fileID: 3693620848635814461}
   m_Father: {fileID: 0}
-  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
@@ -320,6 +315,7 @@ Canvas:
   m_SortingBucketNormalizedSize: 0
   m_VertexColorAlwaysGammaSpace: 0
   m_AdditionalShaderChannelsFlag: 25
+  m_UpdateRectTransformForStandalone: 0
   m_SortingLayerID: 0
   m_SortingOrder: 1
   m_TargetDisplay: 0

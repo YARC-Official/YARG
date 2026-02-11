@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
+using System.Linq;
 using Cysharp.Threading.Tasks.Triggers;
 using DG.Tweening;
 using TMPro;
@@ -6,6 +7,7 @@ using UnityEngine;
 using UnityEngine.Serialization;
 using YARG.Core.Logging;
 using YARG.Menu.Navigation;
+using YARG.Player;
 using YARG.Settings;
 using YARG.Settings.Types;
 
@@ -38,6 +40,14 @@ namespace YARG.Gameplay.HUD
         [Space]
         [SerializeField]
         private VolumePauseSetting _volumePauseSettingPrefab;
+
+        [Space]
+        [SerializeField]
+        private IntPauseSetting _intPauseSettingPrefab;
+
+        [Space]
+        [SerializeField]
+        private TogglePauseSetting _togglePauseSettingPrefab;
 
         private FailMeter _failMeter;
         private TextMeshProUGUI _noFailText;
@@ -77,6 +87,18 @@ namespace YARG.Gameplay.HUD
         public void OpenAudioSettings()
         {
             OpenSubSettings(_soundSettings);
+        }
+
+        public void OpenCalibrationSettings()
+        {
+            var settings = new List<string>(_calibrationSettings);
+            var activeHumanPlayers = PlayerContainer.Players.Count(p => !p.SittingOut && !p.Profile.IsBot);
+            var allowAutoCalibration = activeHumanPlayers == 1;
+            if (!allowAutoCalibration || GlobalVariables.State.IsReplay)
+            {
+                settings.Remove(nameof(SettingsManager.Settings.AutoCalibration));
+            }
+            OpenSubSettings(settings);
         }
 
         public void ToggleNoFail()
@@ -122,6 +144,22 @@ namespace YARG.Gameplay.HUD
                     {
                         var settingObject = Instantiate(_volumePauseSettingPrefab, _subSettingsContainer);
                         settingObject.Initialize(settingName, volumeSetting);
+
+                        _subSettingsNavGroup.AddNavigatable(settingObject.gameObject);
+                        break;
+                    }
+                    case IntSetting intSetting:
+                    {
+                        var settingObject = Instantiate(_intPauseSettingPrefab, _subSettingsContainer);
+                        settingObject.Initialize(settingName, intSetting);
+
+                        _subSettingsNavGroup.AddNavigatable(settingObject.gameObject);
+                        break;
+                    }
+                    case ToggleSetting toggleSetting:
+                    {
+                        var settingObject = Instantiate(_togglePauseSettingPrefab, _subSettingsContainer);
+                        settingObject.Initialize(settingName, toggleSetting);
 
                         _subSettingsNavGroup.AddNavigatable(settingObject.gameObject);
                         break;
