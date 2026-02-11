@@ -4,6 +4,7 @@ using System.Linq;
 using DG.Tweening;
 using UnityEngine;
 using YARG.Core.Chart;
+using YARG.Core.Logging;
 using YARG.Settings;
 
 namespace YARG.Gameplay.HUD
@@ -44,7 +45,6 @@ namespace YARG.Gameplay.HUD
                 gameObject.SetActive(false);
                 return;
             }
-
             switch (lyricSetting)
             {
                 case LyricDisplayMode.Normal:
@@ -70,6 +70,11 @@ namespace YARG.Gameplay.HUD
                 return;
             }
 
+            if (GameManager.IsPractice)
+            {
+                // The object is already disabled in GameplayAwake
+                return;
+            }
             var phraseObjects = new LyricBarPhrase[PHRASE_OBJECT_COUNT];
             for (int i = 0; i < PHRASE_OBJECT_COUNT; i++)
             {
@@ -78,12 +83,12 @@ namespace YARG.Gameplay.HUD
             }
 
             var phrases = chart.Lyrics.Phrases;
-            LyricBarPhrase.PhraseTransitions previousPhrase = null;
+            LyricBarPhrase.PhraseTransitionData previousPhraseTransitions = null;
             for (int i = 0; i < phrases.Count; i++)
             {
                 var currentPhrase = phrases[i];
                 int phraseObjectIndex = i % PHRASE_OBJECT_COUNT;
-                var phraseData = new LyricBarPhrase.PhraseTransitions
+                var phraseData = new LyricBarPhrase.PhraseTransitionData
                 {
                     Phrase = currentPhrase,
                 };
@@ -95,12 +100,57 @@ namespace YARG.Gameplay.HUD
                         new LyricBarPhrase.TransitionTiming(initialFadeInTime, initialFadeInTime);
                     phraseData.ActiveTransition =
                         new LyricBarPhrase.TransitionTiming(initialFadeInTime, initialFadeInTime);
-                    previousPhrase = phraseData;
+                    previousPhraseTransitions = phraseData;
                     phraseObjects[phraseObjectIndex].EnqueuePhrase(phraseData);
                     _fadeTimings.Add(initialFadeInTime);
                     continue;
                 }
 
+                /*
+                 * Ignoring fade-ins and fade-outs, it should work like such:
+                 * A phrase's upcoming transition should be the same length as the previous phrase's main transition.
+                 * A previous phrase's exit transition should be the same length as the current phrase's main transition.
+                 * A phrase's transition to Main should be as large as possible up to MAXIMUM_TRANSITION_TIME,
+                 *  but otherwise equal to the distance from the end of the previous phrase's last lyric.
+                 */
+
+                // Suppressing null warning since previousPhraseTransitions will never be null here due to the i == 0 case above
+                double phraseGap = currentPhrase.Time - previousPhraseTransitions!.Phrase.TimeEnd;
+                YargLogger.LogFormatDebug("Gap between phrase {0} and previous phrase is {1} seconds", i, phraseGap);
+                if (phraseGap > PHRASE_DISTANCE_THRESHOLD)
+                {
+                    double fadeInTime = currentPhrase.Time - FADE_DURATION;
+                    double fadeOutTime = previousPhraseTransitions.Phrase.TimeEnd;
+                    // This is a fade in/out, so transitions should be instant, and occur when the lyric bar is fully faded out.
+                    phraseData.ActiveTransition =
+                        new LyricBarPhrase.TransitionTiming(fadeInTime, fadeInTime);
+                    phraseData.UpcomingTransition =
+                        new LyricBarPhrase.TransitionTiming(fadeInTime, fadeInTime);
+                    previousPhraseTransitions.ExitTransition =
+                        new LyricBarPhrase.TransitionTiming(fadeOutTime + FADE_DURATION, fadeOutTime + FADE_DURATION);
+                    YargLogger.LogFormatDebug("Adding fade out at {0} and fade in at {1}", fadeOutTime, fadeInTime);
+                    _fadeTimings.Add(fadeOutTime);
+                    _fadeTimings.Add(fadeInTime);
+                }
+                else
+                {
+                    // distanceFromLastLyric needs to be different from phraseGap, since often the end of the previous phrase = the start of the current one
+                    // And therefore phraseGap = 0, which is not helpful for determining transition times
+                    // And the fades look weird if you were to use distanceFromLastLyric for them, since, especially for .charts, lyrics have no length.
+                    double distanceFromLastLyric = currentPhrase.Time -
+                        previousPhraseTransitions.Phrase.Lyrics.Last().TimeEnd;
+                    double activeTransitionTime = Math.Min(distanceFromLastLyric, MAX_TRANSITION_DURATION);
+                    phraseData.ActiveTransition = new LyricBarPhrase.TransitionTiming(
+                        currentPhrase.Time - activeTransitionTime,
+                        currentPhrase.Time);
+                    phraseData.UpcomingTransition = new LyricBarPhrase.TransitionTiming(
+                        previousPhraseTransitions.ActiveTransition.Time,
+                        previousPhraseTransitions.ActiveTransition.TimeEnd);
+                    previousPhraseTransitions.ExitTransition = new LyricBarPhrase.TransitionTiming(
+                        phraseData.ActiveTransition.Time,
+                        phraseData.ActiveTransition.TimeEnd);
+                }
+                // This needs to be after the normal fade calculations, since it can cause issues if the first phrase has a fade in
                 if (i == phrases.Count - 1)
                 {
                     // Last phrase fades out
@@ -110,48 +160,7 @@ namespace YARG.Gameplay.HUD
                     _fadeTimings.Add(currentPhrase.TimeEnd);
                 }
 
-                /*
-                 * Ignoring fade-ins and fade-outs, it should work like such:
-                 * A phrase's transition to Next should be the same length as the previous phrase's transition to Main.
-                 * A previous phrase's transition to Exit should be the same length as the current phrase's transition to Main.
-                 * A phrase's transition to Main should be as large as possible up to MAXIMUM_TRANSITION_TIME,
-                 *  but otherwise equal to the distance from the end of the previous phrase's last lyric.
-                 */
-
-                double phraseGap = currentPhrase.Time - previousPhrase!.Phrase.TimeEnd;
-                if (phraseGap > PHRASE_DISTANCE_THRESHOLD)
-                {
-                    double fadeInTime = currentPhrase.Time - FADE_DURATION;
-                    double fadeOutTime = previousPhrase.Phrase.TimeEnd;
-                    // This is a fade in/out, so transitions should be instant, and occur when the lyric bar is fully faded out.
-                    phraseData.ActiveTransition =
-                        new LyricBarPhrase.TransitionTiming(fadeInTime, fadeInTime);
-                    phraseData.UpcomingTransition =
-                        new LyricBarPhrase.TransitionTiming(fadeInTime, fadeInTime);
-                    previousPhrase.ExitTransition =
-                        new LyricBarPhrase.TransitionTiming(fadeOutTime + FADE_DURATION, fadeOutTime + FADE_DURATION);
-                    _fadeTimings.Add(fadeOutTime);
-                    _fadeTimings.Add(fadeInTime);
-                }
-                else
-                {
-                    // distanceFromLastLyric needs to be different from phraseGap, since often the end of the previous phrase = the start of the current one
-                    // And therefore phraseGap = 0, which is not helpful for determining transition times
-                    double distanceFromLastLyric = currentPhrase.Time -
-                        previousPhrase.Phrase.Lyrics.Last().TimeEnd;
-                    double activeTransitionTime = Math.Min(distanceFromLastLyric, MAX_TRANSITION_DURATION);
-                    phraseData.ActiveTransition = new LyricBarPhrase.TransitionTiming(
-                        currentPhrase.Time - activeTransitionTime,
-                        currentPhrase.Time);
-                    phraseData.UpcomingTransition = new LyricBarPhrase.TransitionTiming(
-                        previousPhrase.ActiveTransition.Time,
-                        previousPhrase.ActiveTransition.TimeEnd);
-                    previousPhrase.ExitTransition = new LyricBarPhrase.TransitionTiming(
-                        phraseData.ActiveTransition.Time,
-                        phraseData.ActiveTransition.TimeEnd);
-                }
-
-                previousPhrase = phraseData;
+                previousPhraseTransitions = phraseData;
                 phraseObjects[phraseObjectIndex].EnqueuePhrase(phraseData);
             }
         }
@@ -177,7 +186,7 @@ namespace YARG.Gameplay.HUD
                     enabled = false;
                     return;
                 }
-
+                YargLogger.LogFormatDebug("Lyric bar fade {0} complete at time {1}, from {2} to {3} alpha", _fadeIndex, GameManager.VisualTime, startValue, targetValue);
                 _fadeIndex++;
             }
         }

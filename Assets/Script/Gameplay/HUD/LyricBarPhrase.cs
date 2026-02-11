@@ -13,17 +13,16 @@ namespace YARG.Gameplay.HUD
         {
             public readonly double Time;
             public readonly double TimeEnd;
-            public readonly double TimeLength;
+            public          double TimeLength => TimeEnd - Time;
 
             public TransitionTiming(double time, double timeEnd)
             {
                 Time = time;
                 TimeEnd = timeEnd;
-                TimeLength = timeEnd - time;
             }
         }
 
-        public class PhraseTransitions
+        public class PhraseTransitionData
         {
             public LyricsPhrase     Phrase;
             public TransitionTiming UpcomingTransition;
@@ -36,31 +35,33 @@ namespace YARG.Gameplay.HUD
 
         private const float MINIMUM_TRANSITION_DURATION = 0.02f;
 
-        private readonly Queue<PhraseTransitions> _phraseQueue = new();
-        private          PhraseTransitions        _currentPhraseData;
+        private readonly Queue<PhraseTransitionData> _phraseQueue = new();
+        private          PhraseTransitionData        _currentPhrase;
 
         private readonly Vector2 _inactivePosition = new(0f, -90f);
 
         private readonly Vector2 _upcomingPosition = new(0f, -72f);
-        private const    float   UPCOMING_ALPHA    = 0.65f;
         private readonly Vector2 _upcomingScale    = new(0.7f, 0.7f);
+        private const    float   UPCOMING_ALPHA    = 0.65f;
 
         private readonly Vector2 _activePosition   = new(0f, -22f);
         private readonly Vector2 _finishedPosition = new(0f, 15f);
 
         private int                     _currentLyricIndex;
         private Utf16ValueStringBuilder _builder;
+        private RectTransform           _lyricTextTransform;
 
         protected override void GameplayAwake()
         {
             _builder = ZString.CreateStringBuilder(false);
-            _lyricText.alpha = 0.0f;
+            // This should improve performance slightly by avoiding the need to call GetComponent
+            _lyricTextTransform = _lyricText.rectTransform;
         }
 
-        public void EnqueuePhrase(PhraseTransitions phrase)
+        public void EnqueuePhrase(PhraseTransitionData phrase)
         {
             _phraseQueue.Enqueue(phrase);
-            if (_currentPhraseData == null)
+            if (_currentPhrase == null)
             {
                 MoveToNextPhrase();
             }
@@ -68,25 +69,37 @@ namespace YARG.Gameplay.HUD
 
         private void MoveToNextPhrase()
         {
-            if (_phraseQueue.Count == 0)
+            // It appears that GameManager.VisualTime cannot be used in InChartLoaded,
+            // so when the first phrase is enqueued, we can't use it
+            if (_currentPhrase == null)
             {
-                gameObject.SetActive(false);
-                return;
+                _currentPhrase = _phraseQueue.Dequeue();
+            }
+            else
+            {
+                while (_currentPhrase.ExitTransition.TimeEnd < GameManager.VisualTime)
+                {
+                    if (_phraseQueue.Count == 0)
+                    {
+                        gameObject.SetActive(false);
+                        return;
+                    }
+
+                    _currentPhrase = _phraseQueue.Dequeue();
+                }
             }
 
-            _currentPhraseData = _phraseQueue.Dequeue();
-            // Reset state
             _currentLyricIndex = 0;
-            // Reset visuals
-            _lyricText.rectTransform.anchoredPosition = _inactivePosition;
-            _lyricText.alpha = 0.0f;
-            _lyricText.rectTransform.localScale = _upcomingScale;
+            _lyricTextTransform.localScale = _upcomingScale;
+            _lyricTextTransform.anchoredPosition = new Vector2(0, -10000f); // Just move it offscreen somewhere
+            _lyricText.alpha = 0;
             UpdatePhraseString();
+            _lyricText.ForceMeshUpdate(false, true);
         }
 
         private float CalculateTimeFraction(TransitionTiming transitionTiming)
         {
-            // If the transition is REALLY short, just snap to the end to avoid weird behavior
+            // If the transition is REALLY short, just snap to the end to avoid weird visual behavior
             if (transitionTiming.TimeLength <= MINIMUM_TRANSITION_DURATION)
             {
                 return 1.0f;
@@ -100,30 +113,45 @@ namespace YARG.Gameplay.HUD
         {
             float timeFraction;
             var time = GameManager.VisualTime;
-            if (time >= _currentPhraseData.ExitTransition.Time)
+            if (time >= _currentPhrase.ExitTransition.Time)
             {
-                timeFraction = CalculateTimeFraction(_currentPhraseData.ExitTransition);
-                _lyricText.rectTransform.anchoredPosition = DOVirtual.EasedValue(_activePosition, _finishedPosition,
+                if (Mathf.Approximately(_lyricTextTransform.anchoredPosition.y, _finishedPosition.y))
+                {
+                    return;
+                }
+
+                timeFraction = CalculateTimeFraction(_currentPhrase.ExitTransition);
+                _lyricTextTransform.anchoredPosition = DOVirtual.EasedValue(_activePosition, _finishedPosition,
                     timeFraction, Ease.InOutSine);
                 _lyricText.alpha = DOVirtual.EasedValue(1.0f, 0.0f, timeFraction, Ease.InOutSine);
                 return;
             }
 
-            if (time >= _currentPhraseData.ActiveTransition.Time)
+            if (time >= _currentPhrase.ActiveTransition.Time)
             {
-                timeFraction = CalculateTimeFraction(_currentPhraseData.ActiveTransition);
-                _lyricText.rectTransform.anchoredPosition = DOVirtual.EasedValue(_upcomingPosition, _activePosition,
+                if (Mathf.Approximately(_lyricTextTransform.anchoredPosition.y, _activePosition.y))
+                {
+                    return;
+                }
+
+                timeFraction = CalculateTimeFraction(_currentPhrase.ActiveTransition);
+                _lyricTextTransform.anchoredPosition = DOVirtual.EasedValue(_upcomingPosition, _activePosition,
                     timeFraction, Ease.InOutSine);
-                _lyricText.rectTransform.localScale = DOVirtual.EasedValue(
+                _lyricTextTransform.localScale = DOVirtual.EasedValue(
                     _upcomingScale, Vector3.one, timeFraction, Ease.InOutSine);
                 _lyricText.alpha = DOVirtual.EasedValue(UPCOMING_ALPHA, 1.0f, timeFraction, Ease.InOutSine);
                 return;
             }
 
-            if (time >= _currentPhraseData.UpcomingTransition.Time)
+            if (time >= _currentPhrase.UpcomingTransition.Time)
             {
-                timeFraction = CalculateTimeFraction(_currentPhraseData.UpcomingTransition);
-                _lyricText.rectTransform.anchoredPosition = DOVirtual.EasedValue(_inactivePosition,
+                if (Mathf.Approximately(_lyricTextTransform.anchoredPosition.y, _upcomingPosition.y))
+                {
+                    return;
+                }
+
+                timeFraction = CalculateTimeFraction(_currentPhrase.UpcomingTransition);
+                _lyricTextTransform.anchoredPosition = DOVirtual.EasedValue(_inactivePosition,
                     _upcomingPosition, timeFraction, Ease.InOutSine);
                 _lyricText.alpha = DOVirtual.EasedValue(0.0f, UPCOMING_ALPHA, timeFraction, Ease.InOutSine);
             }
@@ -132,21 +160,12 @@ namespace YARG.Gameplay.HUD
         private void Update()
         {
             var time = GameManager.VisualTime;
-            if (GameManager.VisualTime >= _currentPhraseData.ExitTransition.TimeEnd)
+            if (GameManager.VisualTime >= _currentPhrase.ExitTransition.TimeEnd)
             {
                 MoveToNextPhrase();
-                return;
             }
 
-            if (GameManager.VisualTime >= _currentPhraseData.ExitTransition.Time &&
-                _currentLyricIndex != _currentPhraseData.Phrase.Lyrics.Count)
-            {
-                // Finish highlighting
-                _currentLyricIndex = _currentPhraseData.Phrase.Lyrics.Count;
-                UpdatePhraseString();
-            }
-
-            if (time >= _currentPhraseData.ActiveTransition.TimeEnd && time <= _currentPhraseData.ExitTransition.Time)
+            if (time >= _currentPhrase.ActiveTransition.TimeEnd && time <= _currentPhrase.ExitTransition.TimeEnd)
             {
                 UpdateHighlighting();
             }
@@ -156,7 +175,7 @@ namespace YARG.Gameplay.HUD
 
         private void UpdateHighlighting()
         {
-            var lyrics = _currentPhraseData.Phrase.Lyrics;
+            var lyrics = _currentPhrase.Phrase.Lyrics;
             int currentIndex = _currentLyricIndex;
 
             while (currentIndex < lyrics.Count && lyrics[currentIndex].Time <= GameManager.VisualTime)
@@ -176,7 +195,7 @@ namespace YARG.Gameplay.HUD
 
         private void UpdatePhraseString()
         {
-            var lyrics = _currentPhraseData.Phrase.Lyrics;
+            var lyrics = _currentPhrase.Phrase.Lyrics;
             _builder.Clear();
             // Highlighted words
             _builder.Append("<color=#5CB9FF>");
