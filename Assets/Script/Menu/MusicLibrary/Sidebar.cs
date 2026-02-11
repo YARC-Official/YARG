@@ -9,7 +9,6 @@ using YARG.Core;
 using YARG.Core.Chart;
 using YARG.Core.Input;
 using YARG.Core.Song;
-using YARG.Core.Utility;
 using YARG.Helpers.Extensions;
 using YARG.Menu.Navigation;
 using YARG.Menu.Persistent;
@@ -32,6 +31,8 @@ namespace YARG.Menu.MusicLibrary
         private TextMeshProUGUI _charter;
         [SerializeField]
         private TextMeshProUGUI _genre;
+        [SerializeField]
+        private TextMeshProUGUI _subgenre;
         [SerializeField]
         private TextMeshProUGUI _year;
         [SerializeField]
@@ -173,6 +174,7 @@ namespace YARG.Menu.MusicLibrary
             SetText(_sourceContainer, _source, categoryViewType.SourceCountText);
             SetText(_charterContainer, _charter, categoryViewType.CharterCountText);
             SetText(_genreContainer, _genre, categoryViewType.GenreCountText);
+            SetText(_genreContainer, _subgenre, categoryViewType.SubgenreCountText);
         }
 
         private void ShowCategoryInfo(SortHeaderViewType sortHeaderViewType)
@@ -180,6 +182,7 @@ namespace YARG.Menu.MusicLibrary
             SetText(_sourceContainer, _source, sortHeaderViewType.SourceCountText);
             SetText(_charterContainer, _charter, sortHeaderViewType.CharterCountText);
             SetText(_genreContainer, _genre, sortHeaderViewType.GenreCountText);
+            SetText(_genreContainer, _subgenre, sortHeaderViewType.SubgenreCountText);
         }
 
         private void ClearSidebar()
@@ -203,6 +206,7 @@ namespace YARG.Menu.MusicLibrary
             _source.text = string.Empty;
             _charter.text = string.Empty;
             _genre.text = string.Empty;
+            _subgenre.text = string.Empty;
             _songRatingLabel.text = string.Empty;
 
             _albumTitleContainer.SetActive(false);
@@ -220,7 +224,10 @@ namespace YARG.Menu.MusicLibrary
             SetAlbumNameFont(songEntry.Album);
             SetText(_sourceContainer, _source, SongSources.SourceToGameName(songEntry.Source));
             SetText(_charterContainer, _charter, songEntry.Charter);
-            SetText(_genreContainer, _genre, System.Globalization.CultureInfo.CurrentCulture.TextInfo.ToTitleCase(songEntry.Genre));
+
+            _genreContainer.SetActive(true); // Empty genres are rendered as "Unknown Genre", so this should always be active
+            _genre.text = System.Globalization.CultureInfo.CurrentCulture.TextInfo.ToTitleCase(songEntry.Genre) + (songEntry.Subgenre == string.Empty ? "" : ",");
+            _subgenre.text = songEntry.Subgenre;
             // _source.text = SongSources.SourceToGameName(songEntry.Source);
             // _charter.text = songEntry.Charter;
             // _genre.text = System.Globalization.CultureInfo.CurrentCulture.TextInfo.ToTitleCase(songEntry.Genre);
@@ -432,6 +439,9 @@ namespace YARG.Menu.MusicLibrary
                     break;
                 case "genre":
                     _songSearchingField.SetSearchInput(SortAttribute.Genre, $"\"{songEntry.Genre.SearchStr}\"");
+                    break;
+                case "subgenre":
+                    _songSearchingField.SetSearchInput(SortAttribute.Subgenre, $"\"{songEntry.Subgenre.SearchStr}\"");
                     break;
             }
         }
