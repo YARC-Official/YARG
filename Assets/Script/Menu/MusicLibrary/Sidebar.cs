@@ -80,6 +80,18 @@ namespace YARG.Menu.MusicLibrary
         [SerializeField]
         private GameObject _difficultyRingPrefab;
 
+        [SerializeField]
+        private Canvas _difficultiesCanvas;
+
+        public void SetDifficultiesVisible(bool visible)
+        {
+            if (_difficultiesDisplay != null)
+                _difficultiesDisplay.SetActive(visible);
+
+            if (_difficultiesCanvas != null)
+                _difficultiesCanvas.enabled = visible;
+        }
+
         private readonly List<DifficultyRing> _difficultyRings = new();
         private CancellationTokenSource _cancellationToken;
         private ViewType _currentView;
@@ -113,8 +125,7 @@ namespace YARG.Menu.MusicLibrary
                 _difficultyRings.Add(go.GetComponent<DifficultyRing>());
             }
 
-            _playButton.SetInfoFromSchemeEntry(new NavigationScheme.Entry(MenuAction.Green,
-                "Menu.MusicLibrary.Play", () => _musicLibraryMenu.CurrentSelection.PrimaryButtonClick()));
+            UpdatePlayButtonLabel(_musicLibraryMenu.ShowPlaylist.Count > 0);
 
             void FavoriteClick()
             {
@@ -427,6 +438,19 @@ namespace YARG.Menu.MusicLibrary
             {
                 _bandDifficultyBar.color = _bandDifficultyBlue;
             }
+        }
+
+        public void UpdatePlayButtonLabel(bool setListNotEmpty)
+        {
+            string key = setListNotEmpty
+                ? "Menu.MusicLibrary.AddHoldStartSet"
+                : "Menu.MusicLibrary.PlayHoldAddToSet";
+
+            _playButton.SetInfoFromSchemeEntry(new NavigationScheme.Entry(
+                MenuAction.Green,
+                key,
+                () => _musicLibraryMenu.CurrentSelection.PrimaryButtonClick()
+            ));
         }
 
         public void PrimaryButtonClick()
