@@ -537,6 +537,7 @@ namespace YARG.Settings
                 BandComboType.Strict
             };
             public ToggleSetting SaveScoresWithBots { get; } = new(false);
+            public SliderSetting FontScaling { get; } = new(0f, 0f, 100f, FontScalingCallback);
 
             public OutputDeviceSetting OutputDevice { get; } = new("Default", OutputDeviceCallback);
             public OutputChannelDefaultSetting OutputChannelDefault { get; } = new(1, OutputChannelDefaultCallback);
@@ -632,6 +633,12 @@ namespace YARG.Settings
                 }
                 DataStreamController.Instance.HandleEnabledChanged(value);
             }
+
+            private static void FontScalingCallback(float value)
+            {
+                MenuFontScaler.Instance.SetFontScalePercent(value);
+            }
+
             private static void RB3EEnabledCallback(bool value)
             {
                 RB3EHardware.Instance.HandleEnabledChanged(value);

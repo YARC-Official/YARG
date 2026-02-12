@@ -4,6 +4,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using YARG.Core.Logging;
+using YARG.Settings;
 
 namespace YARG.Menu.Persistent
 {
@@ -49,6 +50,11 @@ namespace YARG.Menu.Persistent
 
         private void Start()
         {
+            if (SettingsManager.Settings != null)
+            {
+                _fontScaleNormalized = Mathf.Clamp01(SettingsManager.Settings.FontScaling.Value / 100f);
+            }
+
             DoScaling();
         }
 
@@ -160,6 +166,13 @@ namespace YARG.Menu.Persistent
                 text.fontSize = scaledSize;
                 text.ForceMeshUpdate();
             }
+        }
+
+        public void SetFontScalePercent(float percent)
+        {
+            _fontScaleNormalized = Mathf.Clamp01(percent / 100f);
+            ScaleTexts();
+            enabled = _fontScaleNormalized > 0f;
         }
 
         private void OnValidate()
