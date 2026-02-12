@@ -89,10 +89,15 @@ namespace YARG.Gameplay.HUD
                 }
             }
 
+            /*
+             * Setting the alpha to 0, moving the text offscreen, and then updating the text before forcing a mesh update is all to try and stop the text from sometimes ghosting
+             * during extremely fast lyrics. I have no idea what causes this, because what is shown on screen does not match the Unity Inspector, but they do appear to help somewhat.
+             */
             _currentLyricIndex = 0;
             _lyricTextTransform.localScale = _upcomingScale;
             _lyricTextTransform.anchoredPosition = new Vector2(0, -10000f); // Just move it offscreen somewhere
             _lyricText.alpha = 0;
+
             UpdatePhraseString();
             _lyricText.ForceMeshUpdate(false, true);
         }
