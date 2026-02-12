@@ -6,16 +6,23 @@ using YARG.Core.Chart;
 using YARG.Core.Game;
 using YARG.Core.Logging;
 using YARG.Themes;
+using static YARG.Core.Game.ColorProfile;
 using static YARG.Themes.ThemeManager;
 
 namespace YARG.Gameplay.Visuals
 {
+    public struct FretSpec
+    {
+        public float position;
+        public int colorIndex;
+    }
+
+
     public class FretArray : MonoBehaviour
     {
         private const float WIDTH_NUMERATOR   = 2f;
         private const float WIDTH_DENOMINATOR = 5f;
 
-        public int FretCount;
         public bool DontFlipColorsLeftyFlip;
         public bool UseKickFrets;
 
@@ -35,48 +42,39 @@ namespace YARG.Gameplay.Visuals
         private bool[] _pulsingFrets;
         private float  _pulseDuration;
 
-        public void Initialize(ThemePreset themePreset, VisualStyle style,
-            ColorProfile.IFretColorProvider fretColorProvider, bool leftyFlip, bool splitProTomsAndCymbals, bool swapSnareAndHiHat, bool swapCrashAndRide)
+        public void Initialize(List<FretSpec> fretSpecs, GameObject? kickFretPrefab, IFretColorProvider fretColorProvider, ThemePreset themePreset, VisualStyle style)
         {
-            var fretPrefab = ThemeManager.Instance.CreateFretPrefabFromTheme(
-                themePreset, style);
+            var fretPrefab = ThemeManager.Instance.CreateFretPrefabFromTheme(themePreset, style);
 
-            // Spawn in normal frets
             _frets.Clear();
-            for (int i = 0; i < FretCount; i++)
+            foreach (var fretSpec in fretSpecs)
             {
-                int effectivePosition = i switch
-                {
-                    0 => swapSnareAndHiHat ? 1 : 0,
-                    1 => swapSnareAndHiHat ? 0 : 1,
-                    3 => swapCrashAndRide ? 5 : 3,
-                    5 => swapCrashAndRide ? 3 : 5,
-                    _ => i
-                };
-
-                // Spawn
                 var fret = Instantiate(fretPrefab, transform);
                 fret.SetActive(true);
 
+
                 // Position
-                float x = _trackWidth / FretCount * effectivePosition - _trackWidth / 2f + 1f / FretCount;
-                fret.transform.localPosition = new Vector3(leftyFlip ? -x : x, 0f, 0f);
+                float x = _trackWidth / fretSpecs.Count * fretSpec.position - _trackWidth / 2f + 1f / fretSpecs.Count;
+                fret.transform.localPosition = new Vector3(x, 0f, 0f);
 
                 // Scale
-                float scale = (_trackWidth / WIDTH_NUMERATOR) / (FretCount / WIDTH_DENOMINATOR);
+                float scale = (_trackWidth / WIDTH_NUMERATOR) / (fretSpecs.Count / WIDTH_DENOMINATOR);
                 fret.transform.localScale = new Vector3(scale, 1f, 1f);
 
-                // Add
                 var fretComp = fret.GetComponent<Fret>();
+                fretComp.Initialize(
+                    fretColorProvider.GetFretColor(fretSpec.colorIndex),
+                    fretColorProvider.GetFretInnerColor(fretSpec.colorIndex),
+                    fretColorProvider.GetParticleColor(fretSpec.colorIndex),
+                    fretColorProvider.GetParticleColor(0)
+                );
+
                 _frets.Add(fretComp);
             }
 
             _kickFrets.Clear();
-            if (UseKickFrets)
+            if (kickFretPrefab is not null && UseKickFrets)
             {
-                var kickFretPrefab = ThemeManager.Instance.CreateKickFretPrefabFromTheme(
-                    themePreset, style);
-
                 // Spawn in kick frets
                 var leftKick = Instantiate(kickFretPrefab, transform);
                 leftKick.SetActive(true);
@@ -93,12 +91,10 @@ namespace YARG.Gameplay.Visuals
                 _kickFrets.Add(rightKick.GetComponent<KickFret>());
             }
 
-            InitializeColor(fretColorProvider, leftyFlip, splitProTomsAndCymbals);
-
-            _activeFrets = new bool[FretCount];
-            _pulsingFrets = new bool[FretCount];
+            _activeFrets = new bool[fretSpecs.Count];
+            _pulsingFrets = new bool[fretSpecs.Count];
             // Start with all frets active, they will be set inactive once TrackPlayer figures itself out
-            for (int i = 0; i < FretCount; i++)
+            for (int i = 0; i < fretSpecs.Count; i++)
             {
                 _activeFrets[i] = true;
             }

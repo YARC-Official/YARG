@@ -31,6 +31,10 @@ namespace YARG.Settings.Preview
             public bool UseKickFrets;
             public bool UseProKeys;
 
+            public List<FretSpec> FretSpecs;
+            public GameObject? FretPrefab;
+            public GameObject? KickFretPrefab;
+
             public FretColorProviderFunc FretColorProvider;
             public NoteColorProviderFunc NoteColorProvider;
 
@@ -45,7 +49,7 @@ namespace YARG.Settings.Preview
                 GameMode.FiveFretGuitar,
                 new Info
                 {
-                    FretCount = 5,
+                    FretSpecs = FiveFretGuitarPlayer.FRET_SPECS,
 
                     FretColorProvider = (colorProfile) => colorProfile.FiveFretGuitar,
                     NoteColorProvider = (colorProfile, note) => colorProfile.FiveFretGuitar
@@ -99,6 +103,8 @@ namespace YARG.Settings.Preview
                 {
                     FretCount = 4,
                     UseKickFrets = true,
+
+                    FretSpecs = FiveFretGuitarPlayer.FRET_SPECS,
 
                     FretColorProvider = (colorProfile) => colorProfile.FourLaneDrums,
                     NoteColorProvider = (colorProfile, note) =>
@@ -284,10 +290,14 @@ namespace YARG.Settings.Preview
             // Create frets and put then on the right layer
             if (!CurrentGameModeInfo.UseProKeys)
             {
-                _fretArray.FretCount = CurrentGameModeInfo.FretCount;
                 _fretArray.UseKickFrets = CurrentGameModeInfo.UseKickFrets;
-                _fretArray.Initialize(theme, style,
-                    CurrentGameModeInfo.FretColorProvider(ColorProfile.Default), false, false, false, false);
+                _fretArray.Initialize(
+                    CurrentGameModeInfo.FretSpecs,
+                    CurrentGameModeInfo.KickFretPrefab,
+                    CurrentGameModeInfo.FretColorProvider(ColorProfile.Default),
+                    theme,
+                    style
+                );
                 _fretArray.transform.SetLayerRecursive(LayerMask.NameToLayer("Settings Preview"));
             }
 

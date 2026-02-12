@@ -16,12 +16,33 @@ using YARG.Helpers.Extensions;
 using YARG.Player;
 using YARG.Settings;
 using YARG.Themes;
+using static YARG.Core.Game.ColorProfile;
 
 namespace YARG.Gameplay.Player
 {
     public class DrumsPlayer : TrackPlayer<DrumsEngine, DrumNote>
     {
         private const float DRUM_PAD_FLASH_HOLD_DURATION = 0.2f;
+
+        private List<float> _lanePositions;
+        private int _laneCount;
+
+        public static List<FretSpec> DEFAULT_FOUR_LANE_FRET_SPECS = new()
+        {
+            new() { position = 0, colorIndex = (int) FourLaneDrumsFret.RedDrum },
+            new() { position = 1, colorIndex = (int) FourLaneDrumsFret.YellowDrum },
+            new() { position = 2, colorIndex = (int) FourLaneDrumsFret.BlueDrum },
+            new() { position = 3, colorIndex = (int) FourLaneDrumsFret.GreenDrum }
+        };
+
+        public static List<FretSpec> DEFAULT_FIVE_LANE_FRET_SPECS = new()
+        {
+            new() { position = 0, colorIndex = (int)FiveLaneDrumsFret.Red },
+            new() { position = 1, colorIndex = (int)FiveLaneDrumsFret.Yellow },
+            new() { position = 2, colorIndex = (int)FiveLaneDrumsFret.Blue },
+            new() { position = 3, colorIndex = (int)FiveLaneDrumsFret.Orange },
+            new() { position = 4, colorIndex = (int)FiveLaneDrumsFret.Green }
+        };
 
         public DrumsEngineParameters EngineParams { get; private set; }
 
@@ -121,31 +142,23 @@ namespace YARG.Gameplay.Player
             StarScoreThresholds = PopulateStarScoreThresholds(StarMultiplierThresholds, Engine.BaseScore);
 
             // Get the proper info for four/five lane
-            ColorProfile.IFretColorProvider colors = !_fiveLaneMode
+            IFretColorProvider colors = !_fiveLaneMode
                 ? Player.ColorProfile.FourLaneDrums
                 : Player.ColorProfile.FiveLaneDrums;
 
-            if (_fiveLaneMode)
-            {
-                _fretArray.FretCount = 5;
-            }
-            else if (IsSplitMode)
-            {
-                _fretArray.FretCount = 7;
-            }
-            else
-            {
-                _fretArray.FretCount = 4;
-            }
+
+            var kickFretPrefab = _fiveLaneMode ? ThemeManager.Instance.CreateKickFretPrefabFromTheme(Player.ThemePreset, VisualStyle.FiveLaneDrums) :
+                ThemeManager.Instance.CreateKickFretPrefabFromTheme(Player.ThemePreset, VisualStyle.FourLaneDrums);
+
+
+            var fretSpecs = MakeFrets();
 
             _fretArray.Initialize(
-                Player.ThemePreset,
-                _fiveLaneMode ? VisualStyle.FiveLaneDrums : VisualStyle.FourLaneDrums,
+                fretSpecs,
+                kickFretPrefab,
                 colors,
-                Player.Profile.LeftyFlip,
-                IsSplitMode,
-                ShouldSwapSnareAndHiHat(),
-                ShouldSwapCrashAndRide()
+                Player.ThemePreset,
+                VisualStyle.FiveLaneDrums
             );
 
             // Particle 0 is always kick fret
@@ -253,7 +266,7 @@ namespace YARG.Gameplay.Player
                 if (candidateIndex != -1)
                 {
                     _trackEffects[candidateIndex].FillLane = fillLane;
-                    _trackEffects[candidateIndex].TotalLanes = _fretArray.FretCount;
+                    _trackEffects[candidateIndex].TotalLanes = _laneCount;
                     pairedFillIndexes.Add(candidateIndex);
                     checkpoint = candidateIndex;
 
@@ -646,7 +659,7 @@ namespace YARG.Gameplay.Player
 
         private void InitializeHitTimes()
         {
-            for (int fret = 0; fret < _fretArray.FretCount; fret++)
+            for (int fret = 0; fret < _laneCount; fret++)
             {
                 _fretToLastPressedTimeDelta[fret] = float.MaxValue;
             }
@@ -658,7 +671,7 @@ namespace YARG.Gameplay.Player
             {
                 _animTypeToFretToLastPressedDelta[animType] = new Dictionary<int, float>();
 
-                for (int fret = 0; fret < _fretArray.FretCount; fret++)
+                for (int fret = 0; fret < _laneCount; fret++)
                 {
                     _animTypeToFretToLastPressedDelta[animType][fret] = float.MaxValue;
                 }
@@ -675,7 +688,7 @@ namespace YARG.Gameplay.Player
 
         private void UpdateHitTimes()
         {
-            for (int fret = 0; fret < _fretArray.FretCount; fret++)
+            for (int fret = 0; fret < _laneCount; fret++)
             {
                 _fretToLastPressedTimeDelta[fret] += Time.deltaTime;
             }
@@ -685,7 +698,7 @@ namespace YARG.Gameplay.Player
         {
             foreach (Fret.AnimType animType in Enum.GetValues(typeof(Fret.AnimType)))
             {
-                for (int fret = 0; fret < _fretArray.FretCount; fret++)
+                for (int fret = 0; fret < _laneCount; fret++)
                 {
                     _animTypeToFretToLastPressedDelta[animType][fret] += Time.deltaTime;
                 }
@@ -694,7 +707,7 @@ namespace YARG.Gameplay.Player
 
         private void UpdateFretArray()
         {
-            for (int fret = 0; fret < _fretArray.FretCount; fret++)
+            for (int fret = 0; fret < _laneCount; fret++)
             {
                 _fretArray.SetPressedDrum(fret, _fretToLastPressedTimeDelta[fret] < DRUM_PAD_FLASH_HOLD_DURATION, GetAnimType(fret));
                 _fretArray.UpdateAccentColorState(fret,
@@ -925,6 +938,68 @@ namespace YARG.Gameplay.Player
                 FourLaneDrumPad.GreenCymbal  => ShouldSwapCrashAndRide() ? 4 : 6,
                 FourLaneDrumPad.GreenDrum    => 7,
                 _                            => -1,
+            };
+        }
+
+        private List<FretSpec> MakeFrets()
+        {
+            if (Player.Profile.CurrentInstrument is Instrument.FiveLaneDrums)
+            {
+                return MakeFiveLaneFrets();
+            }
+
+            return MakeFourLaneFrets();
+        }
+
+        private List<FretSpec> MakeFourLaneFrets()
+        {
+            if (Player.Profile.SplitProTomsAndCymbals)
+            {
+                _laneCount = 7;
+                _lanePositions = new()
+                {
+                    Player.Profile.SwapSnareAndHiHat ? 1 : 0, // Red drum
+                    Player.Profile.SwapSnareAndHiHat ? 0 : 1, // Yellow cymbal
+                    2, // Yellow drum
+                    Player.Profile.SwapCrashAndRide? 5 : 3, // Blue cymbal
+                    4, // Blue drum
+                    Player.Profile.SwapCrashAndRide? 3 : 5, // Green cymbal
+                    6 // Green drum
+                };
+
+                return new() {
+                    new() { position = _lanePositions[0], colorIndex = (int)FourLaneDrumsFret.RedDrum },
+                    new() { position = _lanePositions[1], colorIndex = (int)FourLaneDrumsFret.YellowCymbal },
+                    new() { position = _lanePositions[2], colorIndex = (int)FourLaneDrumsFret.YellowDrum },
+                    new() { position = _lanePositions[3], colorIndex = (int)FourLaneDrumsFret.BlueCymbal },
+                    new() { position = _lanePositions[4], colorIndex = (int)FourLaneDrumsFret.BlueDrum },
+                    new() { position = _lanePositions[5], colorIndex = (int)FourLaneDrumsFret.GreenCymbal },
+                    new() { position = _lanePositions[6], colorIndex = (int)FourLaneDrumsFret.GreenDrum }
+                };
+            }
+
+            _laneCount = 4;
+            return DEFAULT_FOUR_LANE_FRET_SPECS;
+        }
+
+        private List<FretSpec> MakeFiveLaneFrets()
+        {
+            _laneCount = 5;
+            _lanePositions = new()
+                {
+                    Player.Profile.SwapSnareAndHiHat ? 1 : 0, // Red
+                    Player.Profile.SwapSnareAndHiHat ? 0 : 1, // Yellow
+                    2, // Blue
+                    3, // Orange
+                    4 // Green
+                };
+
+            return new() {
+                new() { position = _lanePositions[0], colorIndex = (int)FiveLaneDrumsFret.Red },
+                new() { position = _lanePositions[1], colorIndex = (int)FiveLaneDrumsFret.Yellow },
+                new() { position = _lanePositions[2], colorIndex = (int)FiveLaneDrumsFret.Blue },
+                new() { position = _lanePositions[3], colorIndex = (int)FiveLaneDrumsFret.Orange },
+                new() { position = _lanePositions[4], colorIndex = (int)FiveLaneDrumsFret.Green }
             };
         }
     }

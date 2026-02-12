@@ -28,7 +28,20 @@ namespace YARG.Assets.Script.Gameplay.Player
 
         private const int SHIFT_INDICATOR_MEASURES_BEFORE = 5;
 
-        public override bool ShouldUpdateInputsOnResume => true;
+        private List<float> _lanePositions;
+        private int _laneCount;
+
+        private static List<FretSpec> OPEN_LANE_FRET_SPECS = new ()
+        {
+            new() { position = 0, colorIndex = (int) FiveFretGuitarFret.Open },
+            new() { position = 1, colorIndex = (int) FiveFretGuitarFret.Green },
+            new() { position = 2, colorIndex = (int) FiveFretGuitarFret.Red },
+            new() { position = 3, colorIndex = (int) FiveFretGuitarFret.Yellow },
+            new() { position = 4, colorIndex = (int) FiveFretGuitarFret.Blue },
+            new() { position = 5, colorIndex = (int) FiveFretGuitarFret.Orange }
+        };
+
+public override bool ShouldUpdateInputsOnResume => true;
 
         private static float[] GuitarStarMultiplierThresholds => new[]
         {
@@ -142,19 +155,22 @@ namespace YARG.Assets.Script.Gameplay.Player
             StarScoreThresholds = PopulateStarScoreThresholds(StarMultiplierThresholds, Engine.BaseScore);
 
             IndicatorStripes.Initialize(Player.EnginePreset.FiveFretGuitar);
+
+            var PLACEHOLDER = false;
+
+            var fretSpecs = PLACEHOLDER ? OPEN_LANE_FRET_SPECS : FiveFretGuitarPlayer.FRET_SPECS;
+
             _fretArray.Initialize(
-                Player.ThemePreset,
-                VisualStyle.FiveLaneKeys,
+                fretSpecs,
+                null,
                 Player.ColorProfile.FiveFretGuitar,
-                Player.Profile.LeftyFlip,
-                false, // Not applicable to five fret
-                false, // Not applicable to five fret
-                false  // Not applicable to five fret
-                );
+                Player.ThemePreset,
+                VisualStyle.FiveFretGuitar
+            );
 
             if (Player.Profile.RangeEnabled)
             {
-                _activeFrets = new bool[_fretArray.FretCount];
+                _activeFrets = new bool[_laneCount];
                 _allRangeShiftEvents = FiveFretRangeShift.GetRangeShiftEvents(NoteTrack);
                 InitializeRangeShift();
             }
@@ -250,7 +266,7 @@ namespace YARG.Assets.Script.Gameplay.Player
             if (nextShift.Time <= visualTime)
             {
                 _rangeShiftEventQueue.Dequeue();
-                for (var i = 0; i < _fretArray.FretCount; i++)
+                for (var i = 0; i < _laneCount; i++)
                 {
                     _fretArray.SetFretColorPulse(i, false, (float) nextShift.BeatDuration);
                 }
