@@ -30,10 +30,12 @@ namespace YARG.Menu.Persistent
         );
 
         [SerializeField][Range(0f, 1f)]
-        private float _fontScaleNormalized;
+        private float _fontScaleFactor;
 
         private readonly Dictionary<TMP_Text, TextFontInfo> _fontInfoByText = new();
         private readonly Dictionary<Transform, int> _childCountByTransform = new();
+
+        private float FontScaleSetting => SettingsManager.Settings.FontScaling.Value;
 
         private struct TextFontInfo
         {
@@ -55,7 +57,7 @@ namespace YARG.Menu.Persistent
         {
             if (SettingsManager.Settings != null)
             {
-                _fontScaleNormalized = Mathf.Clamp01(SettingsManager.Settings.FontScaling.Value / 100f);
+                _fontScaleFactor = Mathf.Clamp01(FontScaleSetting / 100f);
             }
 
             DoScaling();
@@ -159,9 +161,8 @@ namespace YARG.Menu.Persistent
                     continue;
                 }
 
-                float scaledSize = _fontScaleNormalized * AbsoluteMaxFontSize;
-                scaledSize = Mathf.Min(scaledSize, scaleInfo.MaxFontSize);
-                scaledSize = Mathf.Max(scaledSize, scaleInfo.BaseFontSize);
+                float scaledSize = _fontScaleFactor * AbsoluteMaxFontSize;
+                scaledSize = Mathf.Clamp(scaledSize, scaleInfo.BaseFontSize, scaleInfo.MaxFontSize);
 
                 text.enableAutoSizing = false;
                 text.fontSize = scaledSize;
@@ -171,9 +172,9 @@ namespace YARG.Menu.Persistent
 
         public void SetFontScalePercent(float percent)
         {
-            _fontScaleNormalized = Mathf.Clamp01(percent / 100f);
+            _fontScaleFactor = Mathf.Clamp01(percent / 100f);
             ScaleTexts();
-            enabled = _fontScaleNormalized > 0f;
+            enabled = _fontScaleFactor > 0f;
         }
 
         private void OnValidate()
