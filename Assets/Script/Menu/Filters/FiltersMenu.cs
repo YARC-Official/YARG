@@ -88,6 +88,7 @@ namespace YARG.Menu.Filters
         private GameObject _showRecommendationsTogglePrefab;
 
         private readonly Dictionary<FilterGroup, FilterCategoryRow> _leftRows = new();
+        private Toggle _showRecommendationsToggle;
 
         private readonly Dictionary<string, bool> _genreEnabled =
             new(StringComparer.OrdinalIgnoreCase);
@@ -793,6 +794,7 @@ namespace YARG.Menu.Filters
                 {
                     enabled[value] = toggleValue;
                     updateSummary?.Invoke();
+                    DisableRecommendationsIfFiltered();
                 };
             }
         }
@@ -1283,6 +1285,7 @@ namespace YARG.Menu.Filters
         {
             SetAll(dict, value);
             updateSummary?.Invoke();
+            DisableRecommendationsIfFiltered();
 
             if (_rightContainer == null)
                 return;
@@ -1323,6 +1326,31 @@ namespace YARG.Menu.Filters
             }
 
             return _settingsButtonPrefab;
+        }
+
+        private void DisableRecommendationsIfFiltered()
+        {
+            if (!SettingsManager.Settings.ShowRecommendedSongs.Value)
+                return;
+
+            foreach (var def in GetFilterDefs())
+            {
+                var values = def.GetValues();
+                if (values.Count == 0)
+                    continue;
+
+                EnsureDefaults(def.Enabled, values);
+
+                int total = values.Count;
+                int selected = def.Enabled.Count(kvp => kvp.Value);
+                if (selected != total)
+                {
+                    SettingsManager.Settings.ShowRecommendedSongs.Value = false;
+                    if (_showRecommendationsToggle != null)
+                        _showRecommendationsToggle.SetIsOnWithoutNotify(false);
+                    break;
+                }
+            }
         }
 
         public void SetupSortedByDropdown(GameObject row, string label)
@@ -1374,6 +1402,8 @@ namespace YARG.Menu.Filters
 
             visual.AssignPresetSetting("Filters.ShowRecommendations", false, SettingsManager.Settings.ShowRecommendedSongs);
             SetToggleLabel(row, label);
+
+            _showRecommendationsToggle = row.GetComponentInChildren<Toggle>(true);
         }
 
         private static void SetSortedByLabel(GameObject row, string label)
