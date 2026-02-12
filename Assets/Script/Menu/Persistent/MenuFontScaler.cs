@@ -10,8 +10,11 @@ namespace YARG.Menu.Persistent
 {
     public class MenuFontScaler : MonoSingleton<MenuFontScaler>
     {
+        // For most elements, this is used as the "font size floor" when scaling is set to 100%
         private const float DEFAULT_MAX_FONT_SIZE = 22f;
 
+        // This overrides the "font size floor" per section, to be used when scaling is set to 100%.
+        //  This allows us to have some sections that scale more than others without breaking the layout
         private static readonly Dictionary<string, float> MaxFontSizeByContainerName = new()
         {
             { "Persistent Canvas", 22.9f },
@@ -91,8 +94,6 @@ namespace YARG.Menu.Persistent
         {
             BuildTextToFontInfo();
             ScaleTexts();
-
-            YargLogger.LogFormatDebug("MenuFontScaler: found {0} texts across all containers.", _fontInfoByText.Count);
         }
 
         private void BuildTextToFontInfo()
