@@ -58,12 +58,12 @@ namespace YARG.Helpers
         /// </summary>
         public static Resolution GetScreenResolution()
         {
-            var screenInfo = Screen.mainWindowDisplayInfo;
+            var screenInfo = Screen.currentResolution;
             return new Resolution()
             {
                 width = screenInfo.width,
                 height = screenInfo.height,
-                refreshRateRatio = screenInfo.refreshRate,
+                refreshRateRatio = screenInfo.refreshRateRatio,
             };
         }
 
