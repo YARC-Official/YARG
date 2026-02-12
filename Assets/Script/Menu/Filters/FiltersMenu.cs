@@ -24,6 +24,8 @@ namespace YARG.Menu.Filters
     [DefaultExecutionOrder(-10000)]
     public class FiltersMenu : MonoSingleton<FiltersMenu>
     {
+        private const float ResetAllFiltersHoldSeconds = 1f;
+
         private readonly struct FilterHelpBarState
         {
             public readonly string GreenKey;
@@ -165,6 +167,8 @@ namespace YARG.Menu.Filters
             {
                 new NavigationScheme.Entry(MenuAction.Green, "Menu.Common.Confirm", HandleConfirm),
                 new NavigationScheme.Entry(MenuAction.Red, "Menu.Common.Back", HandleBack, hide: true),
+                new NavigationScheme.Entry(MenuAction.Yellow, "Menu.Filters.ResetAllFilters", _ => { },
+                    ResetAllFiltersHoldSeconds, _ => ResetAllFilters()),
                 NavigationScheme.Entry.NavigateUp,
                 NavigationScheme.Entry.NavigateDown
             }, true));
@@ -339,7 +343,6 @@ namespace YARG.Menu.Filters
 
             AddHeader(container, Localize.Key("Menu.Filters.FiltersHeader"));
             rowIndex = 0;
-            AddButton(container, navGroup, Localize.Key("Menu.Filters.ResetAllFilters"), ResetAllFilters);
             AddGroup(container, navGroup, FilterGroup.Genre,  Localize.Key("Menu.Filters.Genres"))?.AssignIndex(rowIndex++);
             AddGroup(container, navGroup, FilterGroup.Decade, Localize.Key("Menu.Filters.Decades"))?.AssignIndex(rowIndex++);
             AddGroup(container, navGroup, FilterGroup.VocalParts, Localize.Key("Menu.Filters.VocalParts.Name"))?.AssignIndex(rowIndex++);
@@ -507,6 +510,8 @@ namespace YARG.Menu.Filters
             {
                 new(MenuAction.Green, state.GreenKey, HandleConfirm),
                 new(MenuAction.Red, "Menu.Common.Back", HandleBack, hide: !state.ShowRed),
+                new(MenuAction.Yellow, "Menu.Filters.ResetAllFilters", _ => { },
+                    ResetAllFiltersHoldSeconds, _ => ResetAllFilters()),
                 NavigationScheme.Entry.NavigateUp,
                 NavigationScheme.Entry.NavigateDown
             };

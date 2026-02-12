@@ -399,7 +399,7 @@
             "FiltersHeader": "Filters",
             "SortedBy": "Sorted By",
             "ShowRecommendations": "Show Recommendations",
-            "ResetAllFilters": "Reset All Filters",
+            "ResetAllFilters": "(Hold) Reset All Filters",
             "SelectAll": "Select All",
             "DeselectAll": "Deselect All",
             "None": "None",
