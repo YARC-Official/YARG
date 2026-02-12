@@ -71,7 +71,7 @@ namespace YARG.Gameplay.HUD
                 return;
             }
 
-            if (GameManager.IsPractice)
+            if (GameManager.IsPractice || SettingsManager.Settings.LyricDisplay.Value == LyricDisplayMode.Disabled)
             {
                 // The object is already disabled in GameplayAwake, but that doesn't stop OnChartLoaded from being called
                 return;

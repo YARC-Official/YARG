@@ -58,6 +58,11 @@ namespace YARG.Gameplay.HUD
             _lyricTextTransform = _lyricText.rectTransform;
         }
 
+        protected override void GameplayDestroy()
+        {
+            _builder.Dispose();
+        }
+
         public void EnqueuePhrase(PhraseTransitionData phrase)
         {
             _phraseQueue.Enqueue(phrase);
