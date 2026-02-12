@@ -1,120 +1,170 @@
-using System;
 using System.Collections.Generic;
+using System.Linq;
 using TMPro;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using YARG.Core.Logging;
 
 namespace YARG.Menu.Persistent
 {
-    public class MenuFontScaler : MonoBehaviour
+    public class MenuFontScaler : MonoSingleton<MenuFontScaler>
     {
-        [SerializeField]
-        private float _minimumFontSize = 14f;
+        private const float DEFAULT_MAX_FONT_SIZE = 22f;
 
-        private TMP_Text[] _allTexts;
-
-        private struct Baseline
+        private static readonly Dictionary<string, float> MaxFontSizeByContainerName = new()
         {
-            public float FontSize;
-            public float FontSizeMin;
-            public float FontSizeMax;
+            { "Persistent Canvas", 22.9f },
+            { "MusicLibraryMenu", 36f },
+            { "ProfileList", 23.5f },
+            { "Songs", 36f },
+            { "Content", 20.4f },
+        };
+
+        private static readonly float AbsoluteMaxFontSize = Mathf.Max(
+            DEFAULT_MAX_FONT_SIZE,
+            MaxFontSizeByContainerName.Values.Max()
+        );
+
+        [SerializeField][Range(0f, 1f)]
+        private float _fontScaleNormalized;
+
+        private readonly Dictionary<TMP_Text, TextFontInfo> _fontInfoByText = new();
+        private readonly Dictionary<Transform, int> _childCountByTransform = new();
+
+        private struct TextFontInfo
+        {
+            public float BaseFontSize;
+            public float MaxFontSize;
         }
 
-        private readonly Dictionary<int, Baseline> _baselines = new();
+        protected override void SingletonAwake()
+        {
+            SceneManager.sceneLoaded += OnSceneLoaded;
+        }
+
+        protected override void SingletonDestroy()
+        {
+            SceneManager.sceneLoaded -= OnSceneLoaded;
+        }
+
         private void Start()
         {
-            _allTexts = GetAllTextObjects();
-            CacheBaselines();
-            ScaleText();
-
-            YargLogger.LogDebug(">>Found " + _allTexts.Length + " text objects for scaling.");
-
-            // PrintAllTextSizes();
+            DoScaling();
         }
 
-        private void PrintAllTextSizes()
+        private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
         {
-            foreach (var text in _allTexts)
-            {
-                int id = text.GetInstanceID();
-                var baseline = _baselines[id];
+            DoScaling();
+        }
 
-                if (text.enableAutoSizing)
-                {
-                    YargLogger.LogFormatDebug("  {0}: auto [{1}-{2}] -> [{3}-{4}]",
-                        text.name, baseline.FontSizeMin, baseline.FontSizeMax,
-                        text.fontSizeMin, text.fontSizeMax);
-                }
-                else
-                {
-                    YargLogger.LogFormatDebug("  {0}: {1} -> {2}",
-                        text.name, baseline.FontSize, text.fontSize);
-                }
+        private void Update()
+        {
+            if (DidAnyTransformChildrenChange())
+            {
+                DoScaling();
             }
         }
 
-        private void ScaleText()
+        private bool DidAnyTransformChildrenChange()
         {
-            foreach (var text in _allTexts)
+            foreach ((var transform, int count) in _childCountByTransform)
             {
-                int id = text.GetInstanceID();
-                var baseline = _baselines[id];
+                var didChildrenChange = transform == null || transform.childCount != count;
+                if (!didChildrenChange)
+                {
+                    continue;
+                }
 
-                if (text.enableAutoSizing)
-                {
-                    float newMin = Mathf.Max(baseline.FontSizeMin, _minimumFontSize);
-                    float newMax = Mathf.Max(baseline.FontSizeMax, _minimumFontSize);
-                    if (newMin != baseline.FontSizeMin || newMax != baseline.FontSizeMax)
-                    {
-                        text.fontSizeMin = newMin;
-                        text.fontSizeMax = newMax;
-                        YargLogger.LogFormatDebug("Scaled {0}: auto [{1}-{2}] -> [{3}-{4}]",
-                            text.name, baseline.FontSizeMin, baseline.FontSizeMax,
-                            newMin, newMax);
-                    }
-                }
-                else
-                {
-                    float newSize = Mathf.Max(baseline.FontSize, _minimumFontSize);
-                    if (newSize != baseline.FontSize)
-                    {
-                        text.fontSize = newSize;
-                        YargLogger.LogFormatDebug("Scaled {0}: {1} -> {2}",
-                            text.name, baseline.FontSize, newSize);
-                    }
-                }
+                return true;
             }
+
+            return false;
         }
 
-        private void CacheBaselines()
+        private void DoScaling()
         {
-            foreach (var text in _allTexts)
+            BuildTextToFontInfo();
+            ScaleTexts();
+
+            YargLogger.LogFormatDebug("MenuFontScaler: found {0} texts across all containers.", _fontInfoByText.Count);
+        }
+
+        private void BuildTextToFontInfo()
+        {
+            var previous = new Dictionary<TMP_Text, TextFontInfo>(_fontInfoByText);
+            _fontInfoByText.Clear();
+            _childCountByTransform.Clear();
+
+            //Set up baseline and max font size using defaults
+            foreach (var text in FindAllTexts())
             {
-                int id = text.GetInstanceID();
-                _baselines[id] = new Baseline
+                float baselineFontSize = previous.TryGetValue(text, out var previousInfo)
+                    ? previousInfo.BaseFontSize
+                    : text.fontSize;
+
+                _fontInfoByText[text] = new TextFontInfo
                 {
-                    FontSize = text.fontSize,
-                    FontSizeMin = text.fontSizeMin,
-                    FontSizeMax = text.fontSizeMax,
+                    BaseFontSize = baselineFontSize,
+                    MaxFontSize = DEFAULT_MAX_FONT_SIZE,
                 };
             }
+
+            // Override with any custom max font sizes for containers, and store child counts to detect changes later
+            foreach (var transform in FindAllTransforms())
+            {
+                if (!MaxFontSizeByContainerName.TryGetValue(transform.name, out float maxFontSize))
+                {
+                    continue;
+                }
+
+                _childCountByTransform[transform] = transform.childCount;
+
+                var transformTexts = transform.GetComponentsInChildren<TMP_Text>(true);
+                foreach (var text in transformTexts)
+                {
+                    if (!_fontInfoByText.TryGetValue(text, out var scaleInfo))
+                    {
+                        continue;
+                    }
+
+                    scaleInfo.MaxFontSize = maxFontSize;
+                    _fontInfoByText[text] = scaleInfo;
+                }
+            }
         }
 
-        private TMP_Text[] GetAllTextObjects()
+        private Transform[] FindAllTransforms()
         {
-            YargLogger.LogDebug(">>GETTING all text objects");
-            return GetComponentsInChildren<TMP_Text>(true);
+            return FindObjectsByType<Transform>(FindObjectsInactive.Include, FindObjectsSortMode.None);
         }
 
-        // Re-apply scaling when values are changed in the inspector
+        private TMP_Text[] FindAllTexts()
+        {
+            return FindObjectsByType<TMP_Text>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+        }
+
+        private void ScaleTexts()
+        {
+            foreach ((var text, TextFontInfo scaleInfo) in _fontInfoByText)
+            {
+                if (text == null)
+                {
+                    continue;
+                }
+
+                float scaledSize = _fontScaleNormalized * AbsoluteMaxFontSize;
+                scaledSize = Mathf.Min(scaledSize, scaleInfo.MaxFontSize);
+                scaledSize = Mathf.Max(scaledSize, scaleInfo.BaseFontSize);
+
+                text.enableAutoSizing = false;
+                text.fontSize = scaledSize;
+                text.ForceMeshUpdate();
+            }
+        }
+
         private void OnValidate()
         {
-            if (_allTexts == null || _allTexts.Length == 0)
-            {
-                return;
-            }
-
-            ScaleText();
+            ScaleTexts();
         }
     }
 }
