@@ -140,6 +140,10 @@ namespace YARG.Menu.Filters
 
         public static Func<SongEntry, bool> ActiveFilterPredicate { get; private set; }
 
+        private static bool _hasSavedFilters;
+        private static readonly Dictionary<FilterGroup, Dictionary<string, bool>> _savedFilters =
+            new();
+
         private FilterSortDropdownSetting _sortDropdownSetting;
         private Button _topBackButton;
         private FilterHelpBarState _lastHelpBarState;
@@ -261,6 +265,7 @@ namespace YARG.Menu.Filters
 
             CacheLeftRows();
 
+            RestoreSavedFilters();
             EnsureAllDefaults();
             UpdateAllSummaries();
 
@@ -608,6 +613,35 @@ namespace YARG.Menu.Filters
         {
             foreach (var def in GetFilterDefs())
                 EnsureDefaults(def.Enabled, def.GetValues());
+        }
+
+        private void RestoreSavedFilters()
+        {
+            if (!_hasSavedFilters)
+                return;
+
+            foreach (var def in GetFilterDefs())
+            {
+                if (!_savedFilters.TryGetValue(def.Group, out var saved))
+                    continue;
+
+                def.Enabled.Clear();
+                foreach (var kvp in saved)
+                    def.Enabled[kvp.Key] = kvp.Value;
+            }
+        }
+
+        private void SaveFilters()
+        {
+            _savedFilters.Clear();
+            foreach (var def in GetFilterDefs())
+            {
+                _savedFilters[def.Group] = new Dictionary<string, bool>(
+                    def.Enabled,
+                    StringComparer.OrdinalIgnoreCase);
+            }
+
+            _hasSavedFilters = true;
         }
 
         private void UpdateAllSummaries()
@@ -1386,6 +1420,7 @@ namespace YARG.Menu.Filters
         {
             if (!_ready) return;
 
+            SaveFilters();
             ActiveFilterPredicate = BuildFilterPredicate();
             var library = FindFirstObjectByType<MusicLibrary.MusicLibraryMenu>();
             library?.SetSidebarDifficultiesVisible(true);
