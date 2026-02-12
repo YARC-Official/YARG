@@ -859,6 +859,11 @@ namespace YARG.Menu.MusicLibrary
 
         private void OnGreenHold(NavigationContext _)
         {
+            ExecuteGreenHoldAction();
+        }
+
+        public void ExecuteGreenHoldAction()
+        {
             bool setListNotEmpty = ShowPlaylist.Count > 0;
 
             if (setListNotEmpty)
@@ -871,6 +876,12 @@ namespace YARG.Menu.MusicLibrary
                 // same as Yellow: Add to Setlist
                 AddToPlaylist();
             }
+        }
+
+        public string GetGreenHoldActionLabel()
+        {
+            bool setListNotEmpty = ShowPlaylist.Count > 0;
+            return Localize.Key(setListNotEmpty ? "Menu.MusicLibrary.StartSet" : "Menu.MusicLibrary.AddToSet");
         }
 
         private void OnOrangeHit(NavigationContext ctx)
