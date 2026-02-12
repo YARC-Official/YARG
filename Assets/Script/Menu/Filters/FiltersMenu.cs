@@ -330,19 +330,23 @@ namespace YARG.Menu.Filters
 
         private void BuildLeftPanel(Transform container, NavigationGroup navGroup)
         {
+            int rowIndex = 0;
+
             AddHeader(container, Localize.Key("Menu.Filters.OptionsHeader"));
-            AddDropdown(container, navGroup, Localize.Key("Menu.Filters.SortedBy"));
-            AddToggle(container, navGroup, Localize.Key("Menu.Filters.ShowRecommendations"));
+            rowIndex = 0;
+            AddDropdown(container, navGroup, Localize.Key("Menu.Filters.SortedBy"))?.AssignIndex(rowIndex++);
+            AddToggle(container, navGroup, Localize.Key("Menu.Filters.ShowRecommendations"))?.AssignIndex(rowIndex++);
 
             AddHeader(container, Localize.Key("Menu.Filters.FiltersHeader"));
+            rowIndex = 0;
             AddButton(container, navGroup, Localize.Key("Menu.Filters.ResetAllFilters"), ResetAllFilters);
-            AddGroup(container, navGroup, FilterGroup.Genre,  Localize.Key("Menu.Filters.Genres"));
-            AddGroup(container, navGroup, FilterGroup.Decade, Localize.Key("Menu.Filters.Decades"));
-            AddGroup(container, navGroup, FilterGroup.VocalParts, Localize.Key("Menu.Filters.VocalParts.Name"));
-            AddGroup(container, navGroup, FilterGroup.Source, Localize.Key("Menu.Filters.Sources"));
-            AddGroup(container, navGroup, FilterGroup.Charter, Localize.Key("Menu.Filters.Charters"));
-            AddGroup(container, navGroup, FilterGroup.Difficulty, Localize.Key("Menu.Filters.Difficulties.Name"));
-            AddGroup(container, navGroup, FilterGroup.Length, Localize.Key("Menu.Filters.Length.Name"));
+            AddGroup(container, navGroup, FilterGroup.Genre,  Localize.Key("Menu.Filters.Genres"))?.AssignIndex(rowIndex++);
+            AddGroup(container, navGroup, FilterGroup.Decade, Localize.Key("Menu.Filters.Decades"))?.AssignIndex(rowIndex++);
+            AddGroup(container, navGroup, FilterGroup.VocalParts, Localize.Key("Menu.Filters.VocalParts.Name"))?.AssignIndex(rowIndex++);
+            AddGroup(container, navGroup, FilterGroup.Source, Localize.Key("Menu.Filters.Sources"))?.AssignIndex(rowIndex++);
+            AddGroup(container, navGroup, FilterGroup.Charter, Localize.Key("Menu.Filters.Charters"))?.AssignIndex(rowIndex++);
+            AddGroup(container, navGroup, FilterGroup.Difficulty, Localize.Key("Menu.Filters.Difficulties.Name"))?.AssignIndex(rowIndex++);
+            AddGroup(container, navGroup, FilterGroup.Length, Localize.Key("Menu.Filters.Length.Name"))?.AssignIndex(rowIndex++);
             // AddGroup(container, navGroup, FilterGroup.VocalGender, "Vocalist Gender");
             // AddGroup(container, navGroup, FilterGroup.HasSolos, "Songs with Solos");
         }
@@ -358,14 +362,14 @@ namespace YARG.Menu.Filters
                 tmp.text = text;
         }
 
-        private void AddButton(Transform container, NavigationGroup navGroup, string text, System.Action onClick)
+        private SettingsButton AddButton(Transform container, NavigationGroup navGroup, string text, System.Action onClick)
         {
             var prefab = GetSettingsButtonPrefab();
-            if (prefab == null) return;
+            if (prefab == null) return null;
 
             var row = Instantiate(prefab, container);
             var buttonRow = row.GetComponent<SettingsButton>();
-            if (buttonRow == null) return;
+            if (buttonRow == null) return null;
 
             buttonRow.SetCustomButtons(new[]
             {
@@ -373,12 +377,13 @@ namespace YARG.Menu.Filters
             });
 
             navGroup.AddNavigatable(buttonRow);
+            return buttonRow;
         }
 
-        private void AddGroup(Transform container, NavigationGroup navGroup, FilterGroup group, string label)
+        private FilterCategoryRow AddGroup(Transform container, NavigationGroup navGroup, FilterGroup group, string label)
         {
             var prefab = _filterCategoryRowPrefab;
-            if (prefab == null) return;
+            if (prefab == null) return null;
 
             var row = Instantiate(prefab, container);
 
@@ -386,12 +391,13 @@ namespace YARG.Menu.Filters
 
             row.Init(group, label, secondary);
             navGroup.AddNavigatable(row);
+            return row;
         }
 
-        private void AddDropdown(Transform container, NavigationGroup navGroup, string label)
+        private BaseSettingVisual AddDropdown(Transform container, NavigationGroup navGroup, string label)
         {
             var prefab = _sortedByDropdownPrefab;
-            if (prefab == null) return;
+            if (prefab == null) return null;
 
             var row = Instantiate(prefab, container);
             SetupSortedByDropdown(row, label);
@@ -399,12 +405,14 @@ namespace YARG.Menu.Filters
             var navigatable = row.GetComponent<BaseSettingNavigatable>();
             if (navigatable != null)
                 navGroup.AddNavigatable(navigatable);
+
+            return row.GetComponent<BaseSettingVisual>();
         }
 
-        private void AddToggle(Transform container, NavigationGroup navGroup, string label)
+        private BaseSettingVisual AddToggle(Transform container, NavigationGroup navGroup, string label)
         {
             var prefab = _showRecommendationsTogglePrefab;
-            if (prefab == null) return;
+            if (prefab == null) return null;
 
             var row = Instantiate(prefab, container);
             SetupShowRecommendationsToggle(row, label);
@@ -412,6 +420,8 @@ namespace YARG.Menu.Filters
             var navigatable = row.GetComponent<BaseSettingNavigatable>();
             if (navigatable != null)
                 navGroup.AddNavigatable(navigatable);
+
+            return row.GetComponent<BaseSettingVisual>();
         }
 
         private void FocusLeft()
@@ -722,10 +732,13 @@ namespace YARG.Menu.Filters
                     () => ApplyRightToggleState(enabled, true, updateSummary),
                     () => ApplyRightToggleState(enabled, false, updateSummary));
 
+            int rowIndex = 0;
             foreach (string value in values)
             {
                 var row = Instantiate(_filterEntryRowPrefab, _rightContainer);
                 _rightNavGroup?.AddNavigatable(row.gameObject);
+
+                row.AssignIndex(rowIndex++);
 
                 bool isOn = enabled[value];
                 counts.TryGetValue(value, out int count);

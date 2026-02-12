@@ -18,8 +18,14 @@ namespace YARG.Menu.Filters
 
         public Toggle Toggle => _toggle;
 
+        private FilterRowBackgroundVisual _backgroundVisual;
+
         private void Awake()
         {
+            _backgroundVisual = GetComponent<FilterRowBackgroundVisual>();
+            if (_backgroundVisual == null)
+                _backgroundVisual = gameObject.AddComponent<FilterRowBackgroundVisual>();
+
             if (_toggle != null)
                 _toggle.onValueChanged.AddListener(OnToggleValueChanged);
         }
@@ -40,6 +46,11 @@ namespace YARG.Menu.Filters
             SetLabelText(labelText);
             SetNumberText(numberText);
             SetToggleIsOn(isOn);
+        }
+
+        public void AssignIndex(int index)
+        {
+            _backgroundVisual?.AssignIndex(index);
         }
 
         public void SetLabelText(string text)

@@ -11,11 +11,27 @@ namespace YARG.Menu.Filters
 
         public FilterGroup Filters { get; private set; }
 
+        private FilterRowBackgroundVisual _backgroundVisual;
+
+        protected override void Awake()
+        {
+            base.Awake();
+
+            _backgroundVisual = GetComponent<FilterRowBackgroundVisual>();
+            if (_backgroundVisual == null)
+                _backgroundVisual = gameObject.AddComponent<FilterRowBackgroundVisual>();
+        }
+
         public void Init(FilterGroup group, string label, string secondaryLabel = null)
         {
             Filters = group;
             _label.text = label;
             SetSecondaryText(secondaryLabel);
+        }
+
+        public void AssignIndex(int index)
+        {
+            _backgroundVisual?.AssignIndex(index);
         }
 
         public void SetSecondaryText(string text)
