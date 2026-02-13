@@ -239,9 +239,7 @@ namespace YARG.Menu.MusicLibrary
 
             if (rescanRequested)
             {
-                SetSidebarDifficultiesVisible(false);
                 RefreshSongs();
-                SetSidebarDifficultiesVisible(true);
             }
         }
 
@@ -939,9 +937,18 @@ namespace YARG.Menu.MusicLibrary
 
         public async void RefreshSongs()
         {
+            SetSidebarDifficultiesVisible(false);
             using var context = new LoadingContext();
-            await SongContainer.RunRefresh(false, context);
-            RefreshAndReselect();
+            try
+            {
+                await SongContainer.RunRefresh(false, context);
+                RefreshAndReselect();
+            }
+            finally
+            {
+                // Ensure difficulty rings are restored even if the scan fails or is canceled
+                SetSidebarDifficultiesVisible(true);
+            }
         }
 
         private void OnPlayerAdded(YargPlayer player)
