@@ -1,7 +1,9 @@
-﻿using Cysharp.Text;
+﻿using System.Diagnostics;
+using Cysharp.Text;
 using TMPro;
 using UnityEngine;
 using YARG.Core.Game;
+using YARG.Core.Logging;
 
 namespace YARG.Gameplay.Visuals
 {
@@ -9,7 +11,6 @@ namespace YARG.Gameplay.Visuals
     {
         private static readonly int _spriteIndexProperty = Shader.PropertyToID("_SpriteIndex");
         private static readonly int _multiplierColorProperty = Shader.PropertyToID("_MultiplierColor");
-        private static readonly int _customPresetColorProperty = Shader.PropertyToID("_CustomPresetColor");
 
         [SerializeField]
         private TextMeshPro _multiplierText;
@@ -25,6 +26,14 @@ namespace YARG.Gameplay.Visuals
         [SerializeField]
         private Material _noFcRingMaterial;
 
+        [Header("Preset Colors")]
+        [SerializeField]
+        private Color _defaultPresetColor;
+        [SerializeField]
+        private Color _customPresetColor;
+        [SerializeField]
+        private Color _soloTapsPresetColor;
+
         private TextMeshPro[] _textCache;
 
         public void Initialize(EnginePreset preset, int maxMultiplier)
@@ -39,19 +48,31 @@ namespace YARG.Gameplay.Visuals
                 _textCache[i].SetTextFormat("{0}<sub>x</sub>", i + 2);
             }
 
-            // Skip if the preset is a default one
-            if (EnginePreset.Defaults.Contains(preset)) return;
+            Color color;
 
-            var color = _comboMesh.material.GetColor(_customPresetColorProperty);
+            // Right now Solo Taps is the only default preset that has a different color. Add more here if needed.
+            if (preset == EnginePreset.SoloTaps)
+            {
+                color = _soloTapsPresetColor;
+            }
+            else if (EnginePreset.Defaults.Contains(preset))
+            {
+                color = _defaultPresetColor;
+            }
+            else
+            {
+                color = _customPresetColor;
+            }
+
             _comboMesh.material.SetColor(_multiplierColorProperty, color);
         }
 
-        public void SetCombo(int multiplier, int maxMultiplier, int combo)
+        public void SetCombo(int multiplier, int displayMultiplier, int maxMultiplier, int combo)
         {
             _multiplierText.enabled = false;
-            if (multiplier > 1)
+            if (displayMultiplier > 1)
             {
-                _multiplierText = _textCache[multiplier - 2];
+                _multiplierText = _textCache[displayMultiplier - 2];
                 _multiplierText.enabled = true;
             }
 

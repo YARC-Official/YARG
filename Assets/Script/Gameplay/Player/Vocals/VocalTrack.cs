@@ -9,6 +9,7 @@ using YARG.Core.Chart;
 using YARG.Core.Logging;
 using YARG.Gameplay.HUD;
 using YARG.Gameplay.Visuals;
+using YARG.Helpers.Extensions;
 using YARG.Menu.Persistent;
 using YARG.Player;
 using YARG.Settings;
@@ -108,6 +109,16 @@ namespace YARG.Gameplay.Player
         /// </summary>
         private const float STANDARD_SCROLL_SPEED = 5f;
 
+        /// <summary>
+        /// The minimum allowed aspect ratio for the vocal track
+        /// </summary>
+        private const float MIN_ASPECT_RATIO = 8.0f;
+
+        /// <summary>
+        /// The maximum allowed aspect ratio for the vocal track
+        /// </summary>
+        private const float MAX_ASPECT_RATIO = 13.0f;
+
         [SerializeField]
         private VocalsPlayer _vocalPlayerPrefab;
         [SerializeField]
@@ -176,7 +187,7 @@ namespace YARG.Gameplay.Player
         private double _changeStartTime;
         private double _changeEndTime;
 
-        
+        private static int _totalHarms;
 
         public float TrackSpeed { get; private set; }
 
@@ -194,21 +205,25 @@ namespace YARG.Gameplay.Player
                 "Note pools must be of length three (one for each harmony part).");
         }
 
-        public void InitializeRenderTexture(float vocalImageAspectRatio, RenderTexture renderTexture)
+        public void InitializeRenderTexture(RectTransform vocalsImage, RenderTexture renderTexture)
         {
-            // Set the vocal track render texture to a constant aspect ratio
-            // to make it easier to work with and size.
-            // int height = (int) (Screen.width / vocalImageAspectRatio);
-            float height =  Screen.width / vocalImageAspectRatio / Screen.height;
-            var cameraRect = new Rect(0.0f, 1.0f - height, 1.0f, height);
+            var vocalsSize = vocalsImage.ToScreenSpace();
+            var imageAspectRatio = vocalsSize.width / vocalsSize.height;
+            var clampedAspectRatio = Math.Clamp(imageAspectRatio, MIN_ASPECT_RATIO, MAX_ASPECT_RATIO);
 
-            // Adjust camera rect so vocal track clears stat bar
-            var statsRect = StatsManager.Instance.GetComponent<RectTransform>();
-            var statsHeightNormalized = statsRect.rect.height / Screen.height;
-            cameraRect.y -= statsHeightNormalized;
-            _trackCamera.rect = cameraRect;
+            float heightPixels = vocalsSize.height;
+            float widthPixels = heightPixels * clampedAspectRatio;
 
-            // Apply the render texture
+            // Convert to normalized coordinates
+            float heightNormalized = heightPixels / Screen.height;
+            float widthNormalized = widthPixels / Screen.width;
+
+            // Center horizontally and position below stats overlay
+            float xPos = (1.0f - widthNormalized) / 2.0f;
+            var statsHeightNormalized = StatsManager.Instance.GetComponent<RectTransform>().ToScreenSpace().height / Screen.height;
+            float yPos = 1.0f - heightNormalized - statsHeightNormalized;
+
+            _trackCamera.rect = new Rect(xPos, yPos, widthNormalized, heightNormalized);
             _trackCamera.targetTexture = renderTexture;
         }
 
@@ -238,7 +253,7 @@ namespace YARG.Gameplay.Player
             // to increase the speed to keep the lyrics from being pushed too far out of sync.
             else if (!SettingsManager.Settings.StaticVocalsMode.Value)
             {
-                scalingFactor = GetScrollSpeedScalingFactor(vocalsTrack.Parts); ;
+                scalingFactor = GetScrollSpeedScalingFactor(vocalsTrack.Parts);
             }
 
             // If we're in static lyrics mode, we don't need to worry about checking the lyric offsets.
@@ -251,17 +266,33 @@ namespace YARG.Gameplay.Player
 
             _lyricContainer.TrackSpeed = TrackSpeed;
 
+            // Reset first
+            _totalHarms = 0;
+
+            // Get the number of harmony parts in the song
+            var parts = _vocalsTrack.Parts;
+            foreach (var part in parts)
+            {
+                if (part.IsHarmony && part.NotePhrases.Count > 0)
+                {
+                    _totalHarms++;
+                }
+            }
+
             // Choose the correct amount of lanes
             LyricLaneCount = 1;
             if (vocalsTrack.Instrument == Instrument.Harmony)
             {
-                LyricLaneCount = SettingsManager.Settings.UseThreeLaneLyricsInHarmony.Value
-                    ? 3
-                    : 2;
+                LyricLaneCount = _totalHarms switch
+                {
+                    1 => 1, // Just in case there's a 1-harm chart
+                    2 => 2,
+                    3 => SettingsManager.Settings.UseThreeLaneLyricsInHarmony.Value ? 3 : 2,
+                    _ => 3,
+                };
             }
 
             // Create trackers and indices
-            var parts = _vocalsTrack.Parts;
             _phraseMarkerIndices = new int[parts.Count];
             _scrollingNoteTrackers = new ScrollingPhraseNoteTracker[parts.Count];
             _scrollingLyricTrackers = new ScrollingPhraseNoteTracker[parts.Count];
@@ -294,7 +325,7 @@ namespace YARG.Gameplay.Player
                             // ...but HARM2 gets HARM3 as a merged part
                             _staticPhraseTrackers[i] = new StaticPhraseTracker(GetVocalPhrasePairs(parts[i], parts[i+1]));
                             break;
-                        // Do nothing for HARM3, because it's being handled by HARM2
+                            // Do nothing for HARM3, because it's being handled by HARM2
                     }
                 }
                 _staticPhraseQueues[i] = new Queue<VocalStaticLyricPhraseElement>();
@@ -621,10 +652,11 @@ namespace YARG.Gameplay.Player
             // passing the threshold in the first place)
             int severity = (((int)greatestOffset - THRESHOLD) / 200) + 1;
 
-            return 1f + (severity * 0.3f);
+            return 1f + (severity * 0.2f);
         }
 
         // Necessary for combining HARM2 and HARM3 in two-lane view
+#nullable enable
         public struct VocalPhrasePair
         {
             public double Tick;
@@ -662,7 +694,7 @@ namespace YARG.Gameplay.Player
             // Percussion is only valid on Solo Vocals and HARM1, so the merged phrase can be assumed false
             public readonly bool IsPercussion => MainPhrase?.IsPercussion ?? false;
 
-            public readonly bool IsStarPower => MainPhrase?.IsStarPower ?? MergedPhrase.IsStarPower;
+            public readonly bool IsStarPower => MainPhrase?.IsStarPower ?? MergedPhrase!.IsStarPower;
 
             public double Duration => GetLastNoteTotalEndTime() - GetFirstNoteStartTime();
 
@@ -670,7 +702,7 @@ namespace YARG.Gameplay.Player
             {
                 if (MergedPhrase is null)
                 {
-                    return MainPhrase.PhraseParentNote.Time;
+                    return MainPhrase!.PhraseParentNote.Time;
                 }
                 if (MainPhrase is null)
                 {
@@ -685,7 +717,7 @@ namespace YARG.Gameplay.Player
             {
                 if (MergedPhrase is null)
                 {
-                    return MainPhrase.PhraseParentNote.ChildNotes[^1].TotalTimeEnd;
+                    return MainPhrase!.PhraseParentNote.ChildNotes[^1].TotalTimeEnd;
                 }
                 if (MainPhrase is null)
                 {
@@ -743,5 +775,6 @@ namespace YARG.Gameplay.Player
 
             return phrasePairs;
         }
+#nullable disable
     }
 }

@@ -18,6 +18,9 @@ namespace YARG.Menu.Settings.Visuals
         [SerializeField]
         private TextMeshProUGUI _settingLabel;
 
+        [SerializeField]
+        private GameObject _evenBackground;
+
         public bool IsPresetSetting { get; private set; }
         public bool HasDescription { get; private set; }
         public string UnlocalizedName { get; private set; }
@@ -46,6 +49,18 @@ namespace YARG.Menu.Settings.Visuals
             AssignSettingFromVariable(reference);
 
             OnSettingInit();
+        }
+
+        public virtual void AssignIndex(int index)
+        {
+            if (index % 2 == 0)
+            {
+                _evenBackground.SetActive(true);
+            }
+            else
+            {
+                _evenBackground.SetActive(false);
+            }
         }
 
         protected abstract void AssignSettingFromVariable(ISettingType reference);

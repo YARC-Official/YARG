@@ -23,6 +23,11 @@ namespace YARG.Venue.Stage
         {
             _stageElements = _venue.GetComponentsInChildren<StageElement>();
 
+            if (_stageElements.Length == 0)
+            {
+                return;
+            }
+
             foreach (var stageElement in _stageElements)
             {
                 if (stageElement.ElementType == StageElementType.Pyro)

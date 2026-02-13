@@ -12,36 +12,36 @@ namespace YARG.Helpers.Authoring
 
     public class EffectGroup : MonoBehaviour
     {
-        private List<EffectParticle> _effectParticles;
-        private List<EffectLight> _effectLights;
+        public List<EffectParticle> EffectParticles { get; private set; }
+        public List<EffectLight>    EffectLights    { get; private set; }
 
         private void Awake()
         {
-            _effectParticles = GetComponentsInChildren<EffectParticle>().ToList();
-            _effectLights = GetComponentsInChildren<EffectLight>().ToList();
+            EffectParticles = GetComponentsInChildren<EffectParticle>().ToList();
+            EffectLights = GetComponentsInChildren<EffectLight>().ToList();
         }
 
         public void SetColor(Color c)
         {
-            foreach (var particles in _effectParticles)
-                particles.SetColor(c);
-            foreach (var lights in _effectLights)
-                lights.SetColor(c);
+            foreach (var particles in EffectParticles)
+                particles.InitializeColor(c);
+            foreach (var lights in EffectLights)
+                lights.InitializeColor(c);
         }
 
         public void Play()
         {
-            foreach (var particles in _effectParticles)
+            foreach (var particles in EffectParticles)
                 particles.Play();
-            foreach (var lights in _effectLights)
+            foreach (var lights in EffectLights)
                 lights.Play();
         }
 
         public void Stop()
         {
-            foreach (var particles in _effectParticles)
+            foreach (var particles in EffectParticles)
                 particles.Stop();
-            foreach (var lights in _effectLights)
+            foreach (var lights in EffectLights)
                 lights.Stop();
         }
     }

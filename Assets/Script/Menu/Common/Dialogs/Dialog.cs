@@ -42,6 +42,11 @@ namespace YARG.Menu.Dialogs
             Navigator.Instance.PopScheme();
         }
 
+        public virtual void Initialize()
+        {
+
+        }
+
         public ColoredButton AddDialogButton(string localizeKey, UnityAction action)
         {
             var button = Instantiate(_dialogButtonPrefab, _dialogButtonContainer);

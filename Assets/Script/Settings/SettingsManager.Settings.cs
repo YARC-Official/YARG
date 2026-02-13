@@ -1,30 +1,38 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Net;
+using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using YARG.Core.Audio;
 using YARG.Core.Engine;
 using YARG.Core.Logging;
-using YARG.Gameplay;
 using YARG.Gameplay.HUD;
 using YARG.Helpers;
 using YARG.Integration;
 using YARG.Integration.RB3E;
 using YARG.Integration.Sacn;
 using YARG.Integration.StageKit;
-using YARG.Menu;
 using YARG.Menu.MusicLibrary;
 using YARG.Menu.Persistent;
 using YARG.Menu.Settings;
+using YARG.Playback;
 using YARG.Player;
 using YARG.Scores;
 using YARG.Settings.Types;
 using YARG.Song;
 using YARG.Venue;
-using static FidelityFX.FSR3.Fsr3Upscaler;
 
 namespace YARG.Settings
 {
+    public enum QualityMode
+    {
+        NativeAA = 0,
+        UltraQuality = 1,
+        Quality = 2,
+        Balanced = 3,
+        Performance = 4,
+        UltraPerformance = 5,
+    }
     public static partial class SettingsManager
     {
         public class SettingContainer
@@ -47,9 +55,32 @@ namespace YARG.Settings
 
             public Dictionary<string, HUDPositionProfile> HUDPositionProfiles = new();
 
+            private static MetronomeSample? _previousMetronomeSound;
+
             #endregion
 
             #region General
+
+            public static float GetUpscaleRatioFromQualityMode(QualityMode qualityMode)
+            {
+                switch (qualityMode)
+                {
+                    case QualityMode.NativeAA:
+                        return 1.0f;
+                    case QualityMode.UltraQuality:
+                        return 1.2f;
+                    case QualityMode.Quality:
+                        return 1.5f;
+                    case QualityMode.Balanced:
+                        return 1.7f;
+                    case QualityMode.Performance:
+                        return 2.0f;
+                    case QualityMode.UltraPerformance:
+                        return 3.0f;
+                    default:
+                        return 1.0f;
+                }
+            }
 
             public void OpenCalibrator()
             {
@@ -59,6 +90,7 @@ namespace YARG.Settings
 
             public IntSetting AudioCalibration { get; } = new(0);
             public IntSetting VideoCalibration { get; } = new(0);
+            public ToggleSetting AutoCalibration { get; } = new(false);
 
             public ToggleSetting AccountForHardwareLatency { get; } = new(true);
 
@@ -88,9 +120,12 @@ namespace YARG.Settings
             public ToggleSetting ShowActivePlayers { get; } = new(false, ShowActivePlayersCallback);
             public ToggleSetting ShowActiveBots { get; } = new(false, ShowActiveBotsCallback);
 
-            public ToggleSetting ReconnectProfiles { get; } = new(true);
+            public ToggleSetting ReconnectProfiles  { get; } = new(true);
+            public ToggleSetting AutoCreateProfiles { get; } = new(true);
 
             public ToggleSetting ReduceNoteSpeedByDifficulty { get; } = new(true);
+
+            public ToggleSetting LearningGuides { get; } = new(false);
 
             public SliderSetting ShowCursorTimer      { get; } = new(2f, 0f, 5f);
 
@@ -98,6 +133,15 @@ namespace YARG.Settings
             public ToggleSetting PauseOnFocusLoss { get; } = new(true);
 
             public ToggleSetting WrapAroundNavigation { get; } = new(true);
+
+            public DropdownSetting<DiscordRichPresenceMode> DiscordRichPresence { get; }
+                = new(DiscordRichPresenceMode.Show, DiscordRichPresenceCallback)
+                {
+                    DiscordRichPresenceMode.Show,
+                    DiscordRichPresenceMode.Limited,
+                    DiscordRichPresenceMode.Hide
+                };
+
             public ToggleSetting AmIAwesome { get; } = new(false);
 
             #endregion
@@ -162,13 +206,16 @@ namespace YARG.Settings
                 new(1f, v => GlobalAudioHandler.SetVolumeSetting(SongStem.Song, v));
 
             public VolumeSetting CrowdVolume { get; } =
-                new(0.5f, v => GlobalAudioHandler.SetVolumeSetting(SongStem.Crowd, v));
+                new(1f, v => GlobalAudioHandler.SetVolumeSetting(SongStem.Crowd, v));
 
             public VolumeSetting SfxVolume { get; } =
                 new(0.8f, v => GlobalAudioHandler.SetVolumeSetting(SongStem.Sfx, v));
 
             public VolumeSetting DrumSfxVolume { get; } =
                 new(0.8f, v => GlobalAudioHandler.SetVolumeSetting(SongStem.DrumSfx, v));
+
+            public VolumeSetting MetronomeVolume { get; } =
+                new(0.5f, v => GlobalAudioHandler.SetVolumeSetting(SongStem.Metronome, v));
 
             public VolumeSetting PreviewVolume { get; } = new(0.25f);
             public VolumeSetting MusicPlayerVolume { get; } = new(0.15f, MusicPlayerVolumeCallback);
@@ -196,29 +243,47 @@ namespace YARG.Settings
                 AudioFxMode.On
             };
 
-            public ToggleSetting ClapsInStarpower { get; } = new(true);
+            public DropdownSetting<CrowdFxMode> UseCrowdFx { get; } = new(CrowdFxMode.Enabled)
+            {
+                CrowdFxMode.Disabled,
+                CrowdFxMode.StarpowerClapsOnly,
+                CrowdFxMode.Enabled
+            };
 
             public ToggleSetting OverstrumAndOverhitSoundEffects { get; } = new(true);
 
             public ToggleSetting AlwaysOnDrumSFX { get; } = new(false);
 
-            public ToggleSetting UseWhammyFx { get; } = new(false, v => GlobalAudioHandler.UseWhammyFx = v);
+            public ToggleSetting UseWhammyFx { get; } = new(true, v => GlobalAudioHandler.UseWhammyFx = v);
 
             public SliderSetting WhammyPitchShiftAmount { get; } = new(1, 1, 5, v => GlobalAudioHandler.WhammyPitchShiftAmount = v);
 
-            // public IntSetting    WhammyOversampleFactor { get; } = new(8, 4, 32, WhammyOversampleFactorChange);
             public ToggleSetting UseChipmunkSpeed { get; } = new(false, UseChipmunkSpeedChange);
 
             public ToggleSetting ApplyVolumesInMusicLibrary { get; } = new(true);
 
             public ToggleSetting EnableVoxSamples { get; } = new(true);
 
+            public DropdownSetting<MetronomeSample> MetronomeSound { get; }
+                = new(MetronomeSample.None, MetronomePreviewCallback)
+                {
+                    MetronomeSample.None,
+                    MetronomeSample.Castanet,
+                    MetronomeSample.Clap,
+                    MetronomeSample.Party,
+                    MetronomeSample.Quartz,
+                    MetronomeSample.Sine,
+                    MetronomeSample.Square,
+                    MetronomeSample.Trashcan
+                };
+
             #endregion
 
             #region Graphics
 
-            public ToggleSetting VSync { get; } = new(true, VSyncCallback);
-            public IntSetting FpsCap { get; } = new(60, 0, onChange: FpsCapCallback);
+            public ToggleSetting VSync       { get; } = new(true, VSyncCallback);
+            public IntSetting    FpsCap      { get; } = new(60, 0, onChange: FpsCapCallback);
+            public IntSetting    VenueFpsCap { get; } = new(60, 1);
 
             public DropdownSetting<FullScreenMode> FullscreenMode { get; }
                 = new(FullScreenMode.FullScreenWindow, FullscreenModeCallback)
@@ -249,8 +314,10 @@ namespace YARG.Settings
                      YARG.VenueAntiAliasingMethod.None,
                      YARG.VenueAntiAliasingMethod.FXAA,
                      YARG.VenueAntiAliasingMethod.MSAA,
+                     YARG.VenueAntiAliasingMethod.TAA,
                  };
 
+            public ToggleSetting VenuePostProcessing { get; } = new(true);
             public ResolutionSetting Resolution { get; } = new(ResolutionCallback);
             public ToggleSetting FpsStats { get; } = new(false, FpsCounterCallback);
 
@@ -270,7 +337,9 @@ namespace YARG.Settings
             public ToggleSetting StaticVocalsMode { get; } = new(false);
             public ToggleSetting UseThreeLaneLyricsInHarmony { get; } = new(true);
             public ToggleSetting EnableTrackEffects { get; } = new(true);
+            public ToggleSetting EnableHighwayAnimation { get; } = new(true);
             public SliderSetting KickBounceMultiplier { get; } = new(1f, 0f, 2f);
+            public SliderSetting HighwayTiltMultiplier { get; } = new(0.5f, 0f, 0.85f);
 
             public ToggleSetting ShowHitWindow { get; } = new(false, ShowHitWindowCallback);
             public ToggleSetting DisableTextNotifications { get; } = new(false);
@@ -281,6 +350,14 @@ namespace YARG.Settings
                     NoteStreakFrequencyMode.Frequent,
                     NoteStreakFrequencyMode.Sparse,
                     NoteStreakFrequencyMode.Disabled
+                };
+
+            public DropdownSetting<VocalStreakFrequencyMode> VocalStreakFrequency { get; }
+                = new(VocalStreakFrequencyMode.Frequent)
+                {
+                    VocalStreakFrequencyMode.Frequent,
+                    VocalStreakFrequencyMode.Sparse,
+                    VocalStreakFrequencyMode.Disabled
                 };
 
             public DropdownSetting<CountdownDisplayMode> CountdownDisplay { get; }
@@ -303,7 +380,7 @@ namespace YARG.Settings
                 };
 
             public DropdownSetting<SongProgressMode> SongTimeOnScoreBox { get; }
-                = new(SongProgressMode.CountUpOnly)
+                = new(SongProgressMode.CountUpAndTotal)
                 {
                     SongProgressMode.None,
                     SongProgressMode.CountUpAndTotal,
@@ -321,14 +398,20 @@ namespace YARG.Settings
 
             #region File Management
 
-            public void ExportSongsOuvert()
+            public void ExportSongsJson()
             {
-                FileExplorerHelper.OpenSaveFile(null, "songs", "json", SongExport.ExportOuvert);
+                SongExport.Export(SongExport.ExportFormat.Json);
             }
 
             public void ExportSongsText()
             {
-                FileExplorerHelper.OpenSaveFile(null, "songs", "txt", SongExport.ExportText);
+                SongExport.Export(SongExport.ExportFormat.Text);
+            }
+
+
+            public void ExportSongsCsv()
+            {
+                SongExport.Export(SongExport.ExportFormat.Csv);
             }
 
             public void CopyCurrentSongTextFilePath()
@@ -453,7 +536,38 @@ namespace YARG.Settings
                 BandComboType.Lenient,
                 BandComboType.Strict
             };
+            public ToggleSetting SaveScoresWithBots { get; } = new(false);
 
+            public OutputDeviceSetting OutputDevice { get; } = new("Default", OutputDeviceCallback);
+            public OutputChannelDefaultSetting OutputChannelDefault { get; } = new(1, OutputChannelDefaultCallback);
+            public OutputChannelSetting OutputChannelDrumSfx { get; } = new(-1, OutputChannelDrumSfxCallback);
+            public OutputChannelSetting OutputChannelSfx { get; } = new(-1, OutputChannelSfxCallback);
+            public OutputChannelSetting OutputChannelVox { get; } = new(-1, OutputChannelVoxCallback);
+            public OutputChannelSetting OutputChannelMetronome { get; } = new(-1, OutputChannelMetronomeCallback);
+
+            public ToggleSetting EnableNormalization { get; } = new(false);
+            #endregion
+
+            #region Helpers
+            private static void ResetChannelSetting(OutputChannelSetting channelSetting, SongStem stem, int defaultValue = -1)
+            {
+                channelSetting.UpdateValues();
+
+                // Only change value if the current value exceeds the number of available channels on the device
+                int currentValue = channelSetting.Value;
+                if (currentValue > GlobalAudioHandler.GetOutputChannelCount())
+                {
+                    channelSetting.Value = defaultValue;
+                    SetOutputChannel(channelSetting, stem);
+                }
+
+                SettingsMenu.Instance.RefreshAndKeepPosition();
+            }
+
+            private static void SetOutputChannel(OutputChannelSetting channelSetting, SongStem stem)
+            {
+                GlobalAudioHandler.SetOutputChannel(stem, channelSetting.Value == -1 ? Settings.OutputChannelDefault.Value : channelSetting.Value);
+            }
             #endregion
 
             #region Callbacks
@@ -461,6 +575,19 @@ namespace YARG.Settings
             private static void SetLogLevelCallback(LogLevel level)
             {
                 YargLogger.MinimumLogLevel = level;
+            }
+
+            private static void DiscordRichPresenceCallback(DiscordRichPresenceMode mode)
+            {
+                // Dispose Discord instance if rich presence is turned off, otherwise try initializing it again
+                if (mode == DiscordRichPresenceMode.Hide)
+                {
+                    DiscordController.Instance.TryDispose();
+                }
+                else
+                {
+                    DiscordController.Instance.CreateInstance();
+                }
             }
 
             private static void ShowBatteryCallback(bool value)
@@ -639,6 +766,111 @@ namespace YARG.Settings
                     YargLogger.LogFormatInfo("Description for device {0}:\n{1}\n", device.displayName,
                         item2: device.description.ToJson());
                 }
+            }
+
+            private static void OutputDeviceCallback(string name)
+            {
+                // Unity saves this information automatically
+                if (!IsInitialized)
+                {
+                    return;
+                }
+
+                GlobalAudioHandler.SetOutputDevice(name);
+
+                ResetChannelSetting(Settings.OutputChannelDefault, SongStem.Master, 1);
+                ResetChannelSetting(Settings.OutputChannelDrumSfx, SongStem.DrumSfx);
+                ResetChannelSetting(Settings.OutputChannelSfx, SongStem.Sfx);
+                ResetChannelSetting(Settings.OutputChannelVox, SongStem.VoxSample);
+                ResetChannelSetting(Settings.OutputChannelMetronome, SongStem.Metronome);
+            }
+
+            private static void OutputChannelDefaultCallback(int channelId)
+            {
+                // Unity saves this information automatically
+                if (!IsInitialized)
+                {
+                    return;
+                }
+
+                GlobalAudioHandler.SetOutputChannel(SongStem.Master, channelId);
+
+                SetOutputChannel(Settings.OutputChannelDrumSfx, SongStem.DrumSfx);
+                SetOutputChannel(Settings.OutputChannelSfx, SongStem.Sfx);
+                SetOutputChannel(Settings.OutputChannelVox, SongStem.VoxSample);
+                SetOutputChannel(Settings.OutputChannelMetronome, SongStem.Metronome);
+            }
+
+            private static void OutputChannelDrumSfxCallback(int channelId)
+            {
+                // Unity saves this information automatically
+                if (!IsInitialized)
+                {
+                    return;
+                }
+
+                SetOutputChannel(Settings.OutputChannelDrumSfx, SongStem.DrumSfx);
+            }
+
+            private static void OutputChannelMetronomeCallback(int channelId)
+            {
+                // Unity saves this information automatically
+                if (!IsInitialized)
+                {
+                    return;
+                }
+
+                SetOutputChannel(Settings.OutputChannelMetronome, SongStem.Metronome);
+            }
+
+            private static void OutputChannelSfxCallback(int channelId)
+            {
+                // Unity saves this information automatically
+                if (!IsInitialized)
+                {
+                    return;
+                }
+
+                SetOutputChannel(Settings.OutputChannelSfx, SongStem.Sfx);
+            }
+
+            private static void OutputChannelVoxCallback(int channelId)
+            {
+                // Unity saves this information automatically
+                if (!IsInitialized)
+                {
+                    return;
+                }
+
+                SetOutputChannel(Settings.OutputChannelVox, SongStem.VoxSample);
+            }
+
+            private static void MetronomePreviewCallback(MetronomeSample sample)
+            {
+                // Unity saves this information automatically
+                if (!IsInitialized)
+                {
+                    return;
+                }
+
+                // Only play sound if this isn't the initial settings load to avoid beeping on start up
+                if (_previousMetronomeSound != null)
+                {
+                    _ = metronomePreview(sample);
+                }
+
+                _previousMetronomeSound = sample;
+            }
+
+            private static async Task metronomePreview(MetronomeSample sample)
+            {
+                GlobalAudioHandler.PlayMetronomeSoundEffect(sample, MetronomePitch.Hi);
+                await Task.Delay(200);
+                GlobalAudioHandler.PlayMetronomeSoundEffect(sample, MetronomePitch.Lo);
+                await Task.Delay(200);
+                GlobalAudioHandler.PlayMetronomeSoundEffect(sample, MetronomePitch.Lo);
+                await Task.Delay(200);
+                GlobalAudioHandler.PlayMetronomeSoundEffect(sample, MetronomePitch.Lo);
             }
             #endregion
         }

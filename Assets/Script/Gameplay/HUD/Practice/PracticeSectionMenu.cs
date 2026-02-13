@@ -72,7 +72,7 @@ namespace YARG.Gameplay.HUD
 
         protected override void GameplayAwake()
         {
-            _pauseMenuManager = FindObjectOfType<PauseMenuManager>();
+            _pauseMenuManager = FindAnyObjectByType<PauseMenuManager>();
 
             if (!GameManager.IsPractice)
             {

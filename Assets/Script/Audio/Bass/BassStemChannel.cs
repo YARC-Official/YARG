@@ -8,19 +8,28 @@ namespace YARG.Audio.BASS
 {
     public sealed class BassStemChannel : StemChannel
     {
-        private StreamHandle _streamHandles;
-        private StreamHandle _reverbHandles;
-        private PitchShiftParametersStruct _pitchParams;
+        private readonly int                        _sourceHandle;
+        private          StreamHandle               _streamHandles;
+        private          StreamHandle               _reverbHandles;
+        private          PitchShiftParametersStruct _pitchParams;
 
-        private double _volume;
-        private bool _isReverbing;
+        private          double _volume;
+        private          bool   _isReverbing;
+        private readonly long   _length;
 
-        internal BassStemChannel(AudioManager manager, SongStem stem, bool clampStemVolume, in PitchShiftParametersStruct pitchParams, in StreamHandle streamHandles, in StreamHandle reverbHandles)
+        internal BassStemChannel(AudioManager manager, SongStem stem, bool clampStemVolume, int sourceStream, in PitchShiftParametersStruct pitchParams, in StreamHandle streamHandles, in StreamHandle reverbHandles)
             : base(manager, stem, clampStemVolume)
         {
+            _sourceHandle = sourceStream;
             _streamHandles = streamHandles;
             _reverbHandles = reverbHandles;
             _pitchParams = pitchParams;
+
+            _length = Bass.ChannelGetLength(_streamHandles.Stream);
+            if (_length < 0)
+            {
+                YargLogger.LogFormatError("Failed to get channel length in bytes: {0}!", Bass.LastError);
+            }
 
             double volume = GlobalAudioHandler.GetTrueVolume(stem);
             if (clampStemVolume && volume < MINIMUM_STEM_VOLUME)
@@ -64,6 +73,11 @@ namespace YARG.Audio.BASS
 
         protected override void SetPosition_Internal(double position)
         {
+            if (_sourceHandle != 0)
+            {
+                BassMix.SplitStreamReset(_sourceHandle);
+            }
+
             long bytes = Bass.ChannelSeconds2Bytes(_streamHandles.Stream, position);
             if (bytes < 0)
             {
@@ -71,52 +85,18 @@ namespace YARG.Audio.BASS
                 return;
             }
 
-            if (_streamHandles.PitchFX != 0)
+            // Don't attempt to seek past the end of the stream
+            if (_length > 0 && bytes > _length)
             {
-                //Account for inherent pitch shift delay
-                bytes += GlobalAudioHandler.WHAMMY_FFT_DEFAULT * 2;
+                bytes = _length - 1;
             }
+
 
             bool success = BassMix.ChannelSetPosition(_streamHandles.Stream, bytes, PositionFlags.Bytes | PositionFlags.MixerReset);
             if (!success)
             {
-                YargLogger.LogFormatError("Failed to seek to position {0}!", position);
+                YargLogger.LogFormatError("Failed to seek to position {0} (bytes {1}, length {2}: {3}!", position, bytes, _length, Bass.LastError);
             }
-        }
-
-        protected override double GetPosition_Internal()
-        {
-            if (_streamHandles.Stream == 0)
-            {
-                return 0.0;
-            }
-
-            long position = BassMix.ChannelGetPosition(_streamHandles.Stream);
-            if (position < 0)
-            {
-                YargLogger.LogFormatError("Failed to get byte position: {0}!", Bass.LastError);
-                return 0.0;
-            }
-
-            if (_streamHandles.PitchFX != 0)
-            {
-                //Account for inherent pitch shift delay
-                position -= GlobalAudioHandler.WHAMMY_FFT_DEFAULT * 2;
-            }
-
-            double seconds = Bass.ChannelBytes2Seconds(_streamHandles.Stream, position);
-            if (seconds < 0)
-            {
-                YargLogger.LogFormatError("Failed to convert bytes to seconds: {0}!", Bass.LastError);
-                return 0.0;
-            }
-
-            return seconds;
-        }
-
-        protected override void SetSpeed_Internal(float speed, bool shiftPitch)
-        {
-            BassAudioManager.SetSpeed(speed, _streamHandles.Stream, _reverbHandles.Stream, shiftPitch);
         }
 
         protected override void SetVolume_Internal(double volume)

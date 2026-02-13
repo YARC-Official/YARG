@@ -10,7 +10,7 @@ namespace YARG.Menu.MusicLibrary
 {
     public static class RecommendedSongs
     {
-        public const int RECOMMEND_SONGS_COUNT = 5;
+        public const int RECOMMEND_SONGS_COUNT = 10;
 
         public static SongEntry[] GetRecommendedSongs()
         {

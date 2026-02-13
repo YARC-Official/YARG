@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using PlasticBand.Haptics;
 using UnityEngine;
+using UnityEngine.Experimental.GlobalIllumination;
 using UnityEngine.SceneManagement;
 using YARG.Core;
 using YARG.Core.Chart;
@@ -56,9 +57,10 @@ namespace YARG.Integration
         private int _guitarIndex;
         private int _bassIndex;
         private int _stageIndex;
-        //NYI
-        //private int _performerIndex;
+        private int _performerStartIndex;
+        private int _performerEndIndex;
         private int _postProcessingIndex;
+        private int _cameraCutIndex;
 
         private List<VocalNoteEvent> _vocalsNotes;
         private List<VocalNoteEvent> _harmony0Notes;
@@ -73,6 +75,11 @@ namespace YARG.Integration
             DataStreamController.MLCFogState = false;
             DataStreamController.MLCStrobeState = LightingType.StrobeOff;
             DataStreamController.Initializer(SceneManager.GetActiveScene());
+            if (GameManager.IsPractice)
+            {
+                DataStreamController.MLCSceneIndex = DataStreamController.SceneIndexByte.Practice;
+            }
+            DataStreamController.MLCPaused = DataStreamController.PauseStateType.Unpaused;
 
             // This should be read from the venue itself eventually, but for now, we'll just randomize it.
             DataStreamController.MLCVenueSize = (DataStreamController.VenueType)Random.Range(1, 2);
@@ -98,10 +105,11 @@ namespace YARG.Integration
             _guitarIndex = 0;
             _bassIndex = 0;
             _drumIndex = 0;
-            //NYI
-            //_performerIndex = 0;
+            _performerStartIndex = 0;
+            _performerEndIndex = 0;
             _postProcessingIndex = 0;
             _keysIndex = 0;
+            _cameraCutIndex = 0;
 
             _vocalsNotes = GetAllNoteEvents(_vocals);
             _harmony0Notes = GetAllNoteEvents(_harmony0);
@@ -196,6 +204,29 @@ namespace YARG.Integration
             return -2; // don't change the current note
         }
 
+
+        private void PerformerEventChecker(PerformerEventType type, ref Performer MLCvar)
+        {
+
+            // Add all starting performers at or before SongTime
+            while (_performerStartIndex < Venue.Performer.Count &&
+                Venue.Performer[_performerStartIndex].Time <= GameManager.SongTime &&
+                Venue.Performer[_performerStartIndex].Type == type)
+            {
+                MLCvar |= Venue.Performer[_performerStartIndex].Performers; // use bitwise OR to combine
+                _performerStartIndex++;
+            }
+
+            // Remove all ending performers at or before SongTime
+            while (_performerEndIndex < Venue.Performer.Count &&
+                Venue.Performer[_performerEndIndex].TimeEnd <= GameManager.SongTime &&
+                Venue.Performer[_performerEndIndex].Type == type)
+            {
+                MLCvar &= ~Venue.Performer[_performerEndIndex].Performers; // bitwise remove
+                _performerEndIndex++;
+            }
+        }
+
         private void Update()
         {
             // Don't do any of this if the option is off
@@ -207,7 +238,7 @@ namespace YARG.Integration
             // Let's get the current state of the game
 
             // Pause state
-            //this is uglier than a simple != because the pausestatetype has 3 states. AtMenu, pause, unpaused.
+            //this is uglier than a simple != because the pause state type has 3 states. AtMenu, pause, unpaused.
             switch (DataStreamController.MLCPaused, GameManager.Paused)
             {
                 case (DataStreamController.PauseStateType.Unpaused, true):
@@ -231,11 +262,12 @@ namespace YARG.Integration
                     break;
             }
 
-            // Instrument events
-            DataStreamController.MLCCurrentDrumNotes = DrumsEventChecker(_drums, ref _drumIndex);
-            DataStreamController.MLCCurrentGuitarNotes = GuitarBassKeyboardEventChecker(_guitar, ref _guitarIndex);
-            DataStreamController.MLCCurrentBassNotes = GuitarBassKeyboardEventChecker(_bass, ref _bassIndex);
-            DataStreamController.MLCCurrentKeysNotes = GuitarBassKeyboardEventChecker(_keys, ref _keysIndex);
+            // Instrument events - enqueue to prevent missed notes between timer ticks
+            var drums = DrumsEventChecker(_drums, ref _drumIndex);
+            var guitar = GuitarBassKeyboardEventChecker(_guitar, ref _guitarIndex);
+            var bass = GuitarBassKeyboardEventChecker(_bass, ref _bassIndex);
+            var keys = GuitarBassKeyboardEventChecker(_keys, ref _keysIndex);
+            DataStreamController.EnqueueInstrumentNotes(drums, guitar, bass, keys);
 
             // Vocal events
             var vocalNote = VocalEventChecker(_vocalsNotes, ref _vocalsIndex);
@@ -262,11 +294,11 @@ namespace YARG.Integration
                 DataStreamController.MLCCurrentHarmony2Note = harmony2Note;
             }
 
-            //Camera Cut events
-            // NYI - waiting for parser rewrite
 
-            // Performer events
-            // NYI - waiting for parser rewrite
+            //Performer events broken down into two types. Spotlight and Singalong
+            PerformerEventChecker(PerformerEventType.Singalong, ref DataStreamController.MLCSingalong);
+            PerformerEventChecker(PerformerEventType.Spotlight, ref DataStreamController.MLCSpotlight);
+
 
             // Post-processing events
             while (_postProcessingIndex < Venue.PostProcessing.Count &&
@@ -276,7 +308,16 @@ namespace YARG.Integration
                 _postProcessingIndex++;
             }
 
-            // Beatline events
+            // Camera cut events
+            while (_cameraCutIndex < Venue.CameraCuts.Count && Venue.CameraCuts[_cameraCutIndex].Time <= GameManager.SongTime)
+            {
+                DataStreamController.MLCCameraCutConstraint = Venue.CameraCuts[_cameraCutIndex].Constraint;
+                DataStreamController.MLCCameraCutPriority = Venue.CameraCuts[_cameraCutIndex].Priority;
+                DataStreamController.MLCCameraCutSubject = Venue.CameraCuts[_cameraCutIndex].Subject;
+                _cameraCutIndex++;
+            }
+
+            // Beat line events
             while (_syncIndex < _sync.Beatlines.Count && _sync.Beatlines[_syncIndex].Time <= GameManager.SongTime)
             {
                 DataStreamController.MLCCurrentBeat = (byte)_sync.Beatlines[_syncIndex].Type;
@@ -318,8 +359,8 @@ namespace YARG.Integration
                     default:
                         // Okay so this a bit odd. The stage kit never has the strobe on with a lighting cue.
                         // But the Strobe_Off event is almost never used, relying instead on the cue change to turn it off.
-                        // So this technically should be in the stage kit lighting controller code but I don't want the
-                        // stage kit reaching into this main lighting controller.So we'll just turn it off here.
+                        // So this technically should be in the stage kit lighting controller code, but I don't want the
+                        // stage kit reaching into this main lighting controller. So we'll just turn it off here.
                         DataStreamController.MLCStrobeState = LightingType.StrobeOff;
                         DataStreamController.CurrentLightingCue = Venue.Lighting[LightingIndex];
                         break;

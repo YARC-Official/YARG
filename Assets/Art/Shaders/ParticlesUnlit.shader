@@ -1,8 +1,7 @@
-// ------------------------------------------
-// This is a copy from com.unity.render-pipelines.universal@12.1.14
+// This is a copy from com.unity.render-pipelines.universal@12.1.15
 // the only change is to include our own ShaderVariablesFunctions.hlsl
 // which will override GetVertexPositionInputs to use YargTransformWorldToHClip
- 
+// ------------------------------------------
 Shader "YargParticlesUnlit"
 {
     Properties
@@ -32,7 +31,10 @@ Shader "YargParticlesUnlit"
         [HideInInspector] _BlendOp("__blendop", Float) = 0.0
         [HideInInspector] _SrcBlend("__src", Float) = 1.0
         [HideInInspector] _DstBlend("__dst", Float) = 0.0
+        [HideInInspector] _SrcBlendAlpha("__srcA", Float) = 1.0
+        [HideInInspector] _DstBlendAlpha("__dstA", Float) = 0.0
         [HideInInspector] _ZWrite("__zw", Float) = 1.0
+        [HideInInspector] _AlphaToMask("__alphaToMask", Float) = 0.0
 
         // Particle specific
         _ColorMode("_ColorMode", Float) = 0.0
@@ -59,11 +61,21 @@ Shader "YargParticlesUnlit"
     //Particle shaders rely on "write" to CB syntax which is not supported by DXC
     #pragma never_use_dxc
 
+    // This is required on Metal in all passes to avoid compilation errors
+    #include_with_pragmas "Packages/com.unity.render-pipelines.core/ShaderLibrary/FoveatedRenderingKeywords.hlsl"
+
     ENDHLSL
 
     SubShader
     {
-        Tags{"RenderType" = "Opaque" "IgnoreProjector" = "True" "PreviewType" = "Plane" "PerformanceChecks" = "False" "RenderPipeline" = "UniversalPipeline"}
+        Tags
+        {
+            "RenderType" = "Opaque"
+            "IgnoreProjector" = "True"
+            "PreviewType" = "Plane"
+            "PerformanceChecks" = "False"
+            "RenderPipeline" = "UniversalPipeline"
+        }
 
         // ------------------------------------------------------------------
         //  Forward pass.
@@ -71,13 +83,21 @@ Shader "YargParticlesUnlit"
         {
             Name "ForwardLit"
 
+            // -------------------------------------
+            // Render State Commands
             BlendOp[_BlendOp]
-            Blend[_SrcBlend][_DstBlend]
+            Blend[_SrcBlend][_DstBlend], [_SrcBlendAlpha][_DstBlendAlpha]
             ZWrite[_ZWrite]
             Cull[_Cull]
+            AlphaToMask[_AlphaToMask]
 
             HLSLPROGRAM
             #pragma target 2.0
+
+            // -------------------------------------
+            // Shader Stages
+            #pragma vertex vertParticleUnlit
+            #pragma fragment fragParticleUnlit
 
             // -------------------------------------
             // Material Keywords
@@ -97,20 +117,19 @@ Shader "YargParticlesUnlit"
 
             // -------------------------------------
             // Unity defined keywords
-            #pragma multi_compile_fog
             #pragma multi_compile_instancing
             #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
             #pragma multi_compile_fragment _ DEBUG_DISPLAY
+            #include_with_pragmas "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Fog.hlsl"
+            #include_with_pragmas "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ProbeVolumeVariants.hlsl"
+            #include_with_pragmas "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DOTS.hlsl"
+
             #pragma instancing_options procedural:ParticleInstancingSetup
 
-            #pragma vertex vertParticleUnlit
-            #pragma fragment fragParticleUnlit
-
-            #define _RAISE_Z
-
-            #include "Assets/Art/Shaders/ShaderVariablesFunctions.hlsl"
-            #include "Packages/com.unity.render-pipelines.universal/Shaders/Particles/ParticlesUnlitInput.hlsl"
-            #include "Packages/com.unity.render-pipelines.universal/Shaders/Particles/ParticlesUnlitForwardPass.hlsl"
+            // -------------------------------------
+            // Includes
+            #include_with_pragmas "Assets/Art/Shaders/YargParticlesUnlitInput.hlsl"
+            #include_with_pragmas "Packages/com.unity.render-pipelines.universal/Shaders/Particles/ParticlesUnlitForwardPass.hlsl"
 
             ENDHLSL
         }
@@ -120,14 +139,24 @@ Shader "YargParticlesUnlit"
         Pass
         {
             Name "DepthOnly"
-            Tags{"LightMode" = "DepthOnly"}
+            Tags
+            {
+                "LightMode" = "DepthOnly"
+            }
 
+            // -------------------------------------
+            // Render State Commands
             ZWrite On
-            ColorMask 0
+            ColorMask R
             Cull[_Cull]
 
             HLSLPROGRAM
             #pragma target 2.0
+
+            // -------------------------------------
+            // Shader Stages
+            #pragma vertex DepthOnlyVertex
+            #pragma fragment DepthOnlyFragment
 
             // -------------------------------------
             // Material Keywords
@@ -139,12 +168,11 @@ Shader "YargParticlesUnlit"
             // Unity defined keywords
             #pragma multi_compile_instancing
             #pragma instancing_options procedural:ParticleInstancingSetup
+            #include_with_pragmas "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DOTS.hlsl"
 
-            #pragma vertex DepthOnlyVertex
-            #pragma fragment DepthOnlyFragment
-
-            #include "Assets/Art/Shaders/ShaderVariablesFunctions.hlsl"
-            #include "Packages/com.unity.render-pipelines.universal/Shaders/Particles/ParticlesUnlitInput.hlsl"
+            // -------------------------------------
+            // Includes
+            #include_with_pragmas "Assets/Art/Shaders/YargParticlesUnlitInput.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/Particles/ParticlesDepthOnlyPass.hlsl"
             ENDHLSL
         }
@@ -152,15 +180,21 @@ Shader "YargParticlesUnlit"
         Pass
         {
             Name "DepthNormalsOnly"
-            Tags{"LightMode" = "DepthNormalsOnly"}
+            Tags
+            {
+                "LightMode" = "DepthNormalsOnly"
+            }
 
+            // -------------------------------------
+            // Render State Commands
             ZWrite On
             Cull[_Cull]
 
             HLSLPROGRAM
-            #pragma exclude_renderers gles gles3 glcore
-            #pragma target 4.5
+            #pragma target 2.0
 
+            // -------------------------------------
+            // Shader Stages
             #pragma vertex DepthNormalsVertex
             #pragma fragment DepthNormalsFragment
 
@@ -177,20 +211,28 @@ Shader "YargParticlesUnlit"
             //--------------------------------------
             // GPU Instancing
             #pragma multi_compile_instancing
-            #pragma multi_compile _ DOTS_INSTANCING_ON
+            #pragma instancing_options procedural:ParticleInstancingSetup
+            #include_with_pragmas "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DOTS.hlsl"
 
-            #include "Assets/Art/Shaders/ShaderVariablesFunctions.hlsl"
-            #include "Packages/com.unity.render-pipelines.universal/Shaders/Particles/ParticlesUnlitInput.hlsl"
+            // -------------------------------------
+            // Includes
+            #include_with_pragmas "Assets/Art/Shaders/YargParticlesUnlitInput.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/Particles/ParticlesDepthNormalsPass.hlsl"
             ENDHLSL
         }
+
         // ------------------------------------------------------------------
         //  Scene view outline pass.
         Pass
         {
             Name "SceneSelectionPass"
-            Tags { "LightMode" = "SceneSelectionPass" }
+            Tags
+            {
+                "LightMode" = "SceneSelectionPass"
+            }
 
+            // -------------------------------------
+            // Render State Commands
             BlendOp Add
             Blend One Zero
             ZWrite On
@@ -201,6 +243,11 @@ Shader "YargParticlesUnlit"
             #pragma target 2.0
 
             // -------------------------------------
+            // Shader Stages
+            #pragma vertex vertParticleEditor
+            #pragma fragment fragParticleSceneHighlight
+
+            // -------------------------------------
             // Particle Keywords
             #pragma shader_feature_local_fragment _ALPHATEST_ON
             #pragma shader_feature_local _FLIPBOOKBLENDING_ON
@@ -209,13 +256,12 @@ Shader "YargParticlesUnlit"
             // Unity defined keywords
             #pragma multi_compile_instancing
             #pragma instancing_options procedural:ParticleInstancingSetup
+            #include_with_pragmas "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DOTS.hlsl"
 
-            #pragma vertex vertParticleEditor
-            #pragma fragment fragParticleSceneHighlight
-
-            #include "Assets/Art/Shaders/ShaderVariablesFunctions.hlsl"
-            #include "Packages/com.unity.render-pipelines.universal/Shaders/Particles/ParticlesUnlitInput.hlsl"
-            #include "Packages/com.unity.render-pipelines.universal/Shaders/Particles/ParticlesEditorPass.hlsl"
+            // -------------------------------------
+            // Includes
+            #include_with_pragmas "Assets/Art/Shaders/YargParticlesUnlitInput.hlsl"
+            #include_with_pragmas "Packages/com.unity.render-pipelines.universal/Shaders/Particles/ParticlesEditorPass.hlsl"
 
             ENDHLSL
         }
@@ -225,8 +271,13 @@ Shader "YargParticlesUnlit"
         Pass
         {
             Name "ScenePickingPass"
-            Tags{ "LightMode" = "Picking" }
+            Tags
+            {
+                "LightMode" = "Picking"
+            }
 
+            // -------------------------------------
+            // Render State Commands
             BlendOp Add
             Blend One Zero
             ZWrite On
@@ -237,6 +288,11 @@ Shader "YargParticlesUnlit"
             #pragma target 2.0
 
             // -------------------------------------
+            // Shader Stages
+            #pragma vertex vertParticleEditor
+            #pragma fragment fragParticleScenePicking
+
+            // -------------------------------------
             // Particle Keywords
             #pragma shader_feature_local_fragment _ALPHATEST_ON
             #pragma shader_feature_local _FLIPBOOKBLENDING_ON
@@ -245,13 +301,12 @@ Shader "YargParticlesUnlit"
             // Unity defined keywords
             #pragma multi_compile_instancing
             #pragma instancing_options procedural:ParticleInstancingSetup
+            #include_with_pragmas "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DOTS.hlsl"
 
-            #pragma vertex vertParticleEditor
-            #pragma fragment fragParticleScenePicking
-
-            #include "Assets/Art/Shaders/ShaderVariablesFunctions.hlsl"
-            #include "Packages/com.unity.render-pipelines.universal/Shaders/Particles/ParticlesUnlitInput.hlsl"
-            #include "Packages/com.unity.render-pipelines.universal/Shaders/Particles/ParticlesEditorPass.hlsl"
+            // -------------------------------------
+            // Includes
+            #include_with_pragmas "Assets/Art/Shaders/YargParticlesUnlitInput.hlsl"
+            #include_with_pragmas "Packages/com.unity.render-pipelines.universal/Shaders/Particles/ParticlesEditorPass.hlsl"
 
             ENDHLSL
         }

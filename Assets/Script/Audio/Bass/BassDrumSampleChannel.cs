@@ -9,7 +9,7 @@ namespace YARG.Audio.BASS
     public sealed class BassDrumSampleChannel : DrumSampleChannel
     {
 #nullable enable
-        public static BassDrumSampleChannel? Create(DrumSfxSample sample, string path, int playbackCount)
+        public static BassDrumSampleChannel? Create(DrumSfxSample sample, string path, int playbackCount, OutputChannel? outputChannel)
 #nullable disable
         {
             int handle = Bass.SampleLoad(path, 0, 0, playbackCount, BassFlags.Decode);
@@ -27,17 +27,20 @@ namespace YARG.Audio.BASS
                 return null;
             }
 
-            return new BassDrumSampleChannel(handle, channel, sample, path, playbackCount);
+            return new BassDrumSampleChannel(handle, channel, sample, path, playbackCount, outputChannel);
         }
 
         private readonly int _sfxHandle;
         private readonly int _channel;
 
-        private BassDrumSampleChannel(int handle, int channel, DrumSfxSample sample, string path, int playbackCount)
+#nullable enable
+        private BassDrumSampleChannel(int handle, int channel, DrumSfxSample sample, string path, int playbackCount, OutputChannel? outputChannel)
             : base(sample, path, playbackCount)
+#nullable disable
         {
             _sfxHandle = handle;
             _channel = channel;
+            SetOutputChannel_Internal(outputChannel);
         }
 
         protected override void Play_Internal()
@@ -54,6 +57,13 @@ namespace YARG.Audio.BASS
             {
                 YargLogger.LogFormatError("Failed to set {0} volume: {1}!", Sample, Bass.LastError);
             }
+        }
+
+#nullable enable
+        protected override void SetOutputChannel_Internal(OutputChannel? channel)
+#nullable disable
+        {
+            BassHelpers.UpdateOutputChannels(_channel, channel);
         }
 
         protected override void DisposeUnmanagedResources()

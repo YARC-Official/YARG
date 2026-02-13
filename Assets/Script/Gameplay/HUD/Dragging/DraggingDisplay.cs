@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+using UnityEngine;
+using YARG.Helpers.Extensions;
 
 namespace YARG.Gameplay.HUD
 {
@@ -10,11 +11,22 @@ namespace YARG.Gameplay.HUD
         private GameObject _buttonContainer;
         [SerializeField]
         private CanvasGroup _canvasGroup;
+        [SerializeField]
+        private RectTransform _scaleHandle;
+
+        public RectTransform ScaleHandle => _scaleHandle;
+
+        public bool IsScaleHandleAtPoint(Vector2 screenPoint, Camera camera)
+        {
+            return _scaleHandle.gameObject.activeInHierarchy &&
+                _scaleHandle.ContainsScreenPoint(screenPoint, camera);
+        }
 
         public void Show()
         {
             _canvasGroup.alpha = 1f;
             _buttonContainer.SetActive(true);
+            _scaleHandle.gameObject.SetActive(DraggableHud.AllowScaling);
         }
 
         public void Hide()
@@ -28,11 +40,6 @@ namespace YARG.Gameplay.HUD
             DraggableHud.Deselect();
         }
 
-        public void RevertButton()
-        {
-            DraggableHud.RevertElement();
-            DraggableHud.Deselect();
-        }
 
         public void ResetButton()
         {

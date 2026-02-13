@@ -18,9 +18,7 @@ namespace YARG.Settings.Metadata
         private static bool _experimentalDialogShown;
 
         // Prefabs needed for this tab type
-        private static readonly GameObject _experimentalPreviewUI = Addressables
-            .LoadAssetAsync<GameObject>("SettingPreviews/ExperimentalPreviewUI")
-            .WaitForCompletion();
+        private static GameObject _experimentalPreviewUI;
 
         public ExperimentalPreviewBuilder()
         {
@@ -33,6 +31,12 @@ namespace YARG.Settings.Metadata
 
         public UniTask BuildPreviewUI(Transform uiContainer)
         {
+            if (_experimentalPreviewUI == null)
+            {
+                 _experimentalPreviewUI = Addressables
+                    .LoadAssetAsync<GameObject>("SettingPreviews/ExperimentalPreviewUI")
+                    .WaitForCompletion();
+            }
             // Instantiate the warning UI
             Object.Instantiate(_experimentalPreviewUI, uiContainer);
 

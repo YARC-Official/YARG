@@ -8,7 +8,7 @@ namespace YARG.Gameplay.HUD
     public class MainHUDPaddingAdjuster : GameplayBehaviour
     {
         [SerializeField]
-        private float _topPaddingForVocals = 128f;
+        private float _topPaddingForVocals = 200f;
 
         protected override void OnChartLoaded(SongChart chart)
         {

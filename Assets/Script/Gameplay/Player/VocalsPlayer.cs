@@ -1,7 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using TMPro;
+﻿using System.Linq;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using YARG.Core;
@@ -53,6 +50,9 @@ namespace YARG.Gameplay.Player
         private VocalNote _lastTargetNote;
         private double?   _lastHitTime;
         private double?   _lastSingTime;
+        private double    _previousStarPowerPercent;
+        private bool      _hotStartChecked;
+        private bool      _newHighScoreShown;
 
         private VocalsPlayerHUD _hud;
         private VocalPercussionTrack _percussionTrack;
@@ -93,6 +93,7 @@ namespace YARG.Gameplay.Player
             NoteTrack = OriginalNoteTrack;
 
             _phraseIndex = -1;
+            _previousStarPowerPercent = 0.0;
 
             // Update speed of particles
             var particles = _hittingParticleGroup.GetComponentsInChildren<ParticleSystem>();
@@ -145,13 +146,6 @@ namespace YARG.Gameplay.Player
                 {
                     GameManager.VocalTrack.UpdateCountdown(countdownLength, endTime);
                 };
-
-                if (!GlobalVariables.State.IsPractice)
-                {
-                    EngineContainer.OnSongFailed += OnSongFailed;
-                    EngineContainer.OnHappinessOverThreshold += OnHappinessOverThreshold;
-                    EngineContainer.OnHappinessUnderThreshold += OnHappinessUnderThreshold;
-                }
             }
 
             if (GameManager.IsPractice)
@@ -201,16 +195,19 @@ namespace YARG.Gameplay.Player
                 _lastTargetNote = note;
             };
 
-            engine.OnPhraseHit += (percent, fullPoints) =>
+            engine.OnPhraseHit += (percent, fullPoints, isLastPhrase) =>
             {
-                _hud.ShowPhraseHit(percent);
-
                 if (!fullPoints)
                 {
                     IsFc = false;
                 }
 
                 LastCombo = Combo;
+
+                ShowTextNotifications(isLastPhrase);
+
+                // Order is important here. ShowVocalPhraseResult() will skip showing AWESOME! if other, more important notifications are already showing.
+                _hud.ShowPhraseHit(percent, Combo);
             };
 
             engine.OnNoteHit += (_, note) =>
@@ -268,6 +265,17 @@ namespace YARG.Gameplay.Player
             base.ResetPracticeSection();
         }
 
+        public override void Rewind(double visualTime)
+        {
+            _hittingParticleGroup.Stop();
+        }
+
+        public override void PostRewind(double visualTime)
+        {
+            ResetVisuals();
+            UpdateVisuals(visualTime);
+        }
+
         protected override void UpdateInputs(double time)
         {
             // Push all inputs from mic
@@ -306,10 +314,60 @@ namespace YARG.Gameplay.Player
                 fill /= (float) EngineParams.PhraseHitPercent;
             }
 
-            // Update HUD
-            _hud.UpdateInfo(fill, Engine.EngineStats.ScoreMultiplier,
-                (float) Engine.GetStarPowerBarAmount(), Engine.EngineStats.IsStarPowerActive);
+            // In multiplayer, don't double the score multiplier in the strikeline element
+            // Otherwise, it looks like the band multiplier applies on top of the score multiplier
+            var engineStats = Engine.EngineStats;
+            int displayMultiplier = GameManager.TotalPlayers > 1 && engineStats.IsStarPowerActive
+                ? engineStats.ScoreMultiplier / 2
+                : engineStats.ScoreMultiplier;
 
+            // Update HUD
+            _hud.UpdateInfo(fill, displayMultiplier,
+                (float) Engine.GetStarPowerBarAmount(), Engine.EngineStats.IsStarPowerActive);
+        }
+
+        private void ShowTextNotifications(bool isLastPhrase)
+        {
+            if (SettingsManager.Settings.DisableTextNotifications.Value)
+            {
+                return;
+            }
+
+            var isStarPowerActive = Engine.EngineStats.IsStarPowerActive;
+            var currentStarPowerPercent = Engine.GetStarPowerBarAmount();
+            if (!isStarPowerActive && _previousStarPowerPercent < 0.5 && currentStarPowerPercent >= 0.5)
+            {
+                _hud.ShowNotification(TextNotificationType.StarPowerReady);
+
+            }
+            _previousStarPowerPercent = Engine.GetStarPowerBarAmount();
+
+            var isMaxMultiplier = Engine.EngineStats.ScoreMultiplier == (isStarPowerActive ? 8 : 4);
+
+            if (!_hotStartChecked && isMaxMultiplier && IsFc)
+            {
+                _hud.ShowNotification(TextNotificationType.HotStart);
+                _hotStartChecked = true;
+            }
+
+            if (LastHighScore != null && !_newHighScoreShown && Score > LastHighScore)
+            {
+                _hud.ShowNotification(TextNotificationType.NewHighScore);
+                _newHighScoreShown = true;
+            }
+
+            if (!isLastPhrase)
+            {
+                return;
+            }
+            if (IsFc)
+            {
+                _hud.ShowNotification(TextNotificationType.FullCombo);
+            }
+            else if (isMaxMultiplier)
+            {
+                _hud.ShowNotification(TextNotificationType.StrongFinish);
+            }
         }
 
         private float GetNeedleRotation(float pitchDist)
@@ -345,7 +403,7 @@ namespace YARG.Gameplay.Player
             const float NEEDLE_ROT_LERP = 25f;
 
             // Get the appropriate sing time
-            var singTime = GameManager.InputTime - Player.Profile.InputCalibrationSeconds;
+            var singTime = GameManager.InputTime;
 
             // Get whether or not the player has sang within the time threshold.
             // We gotta use a threshold here because microphone inputs are passed every X seconds,
@@ -377,8 +435,11 @@ namespace YARG.Gameplay.Player
 
                 if (_lastTargetNote is not null && IsInThreshold(singTime, _lastHitTime))
                 {
-                    // Show particles if hitting
-                    _hittingParticleGroup.Play();
+                    // Show particles if hitting (as long as we aren't rewinding)
+                    if (!GameManager.Rewinding)
+                    {
+                        _hittingParticleGroup.Play();
+                    }
 
                     float pitch;
                     float targetRotation = 0f;
@@ -481,7 +542,7 @@ namespace YARG.Gameplay.Player
                     totalTime += note.TotalTickLength;
                 }
 
-                _hud.SetHUDShowing(totalTime != 0);
+                _hud.SetHUDShowing(!hasPercussion);
                 _percussionTrack.ShowPercussionFret(hasPercussion);
                 _shouldHideNeedle = hasPercussion;
             }

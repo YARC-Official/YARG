@@ -15,12 +15,12 @@ namespace Cysharp.Text
                 text.SetCharArray(array.Array, array.Offset, array.Count);
             }
         }
-        
+
         public static void SetTextFormat<T0>(this TMP_Text text, string format, T0 arg0)
         {
             using (var sb = new Cysharp.Text.Utf16ValueStringBuilder(true))
             {
-                
+
                 sb.AppendFormat(format, arg0);
                 var array = sb.AsArraySegment();
                 text.SetCharArray(array.Array, array.Offset, array.Count);
@@ -31,7 +31,7 @@ namespace Cysharp.Text
         {
             using (var sb = new Cysharp.Text.Utf16ValueStringBuilder(true))
             {
-                
+
                 sb.AppendFormat(format, arg0, arg1);
                 var array = sb.AsArraySegment();
                 text.SetCharArray(array.Array, array.Offset, array.Count);
@@ -42,7 +42,7 @@ namespace Cysharp.Text
         {
             using (var sb = new Cysharp.Text.Utf16ValueStringBuilder(true))
             {
-                
+
                 sb.AppendFormat(format, arg0, arg1, arg2);
                 var array = sb.AsArraySegment();
                 text.SetCharArray(array.Array, array.Offset, array.Count);
@@ -53,7 +53,7 @@ namespace Cysharp.Text
         {
             using (var sb = new Cysharp.Text.Utf16ValueStringBuilder(true))
             {
-                
+
                 sb.AppendFormat(format, arg0, arg1, arg2, arg3);
                 var array = sb.AsArraySegment();
                 text.SetCharArray(array.Array, array.Offset, array.Count);
@@ -64,7 +64,7 @@ namespace Cysharp.Text
         {
             using (var sb = new Cysharp.Text.Utf16ValueStringBuilder(true))
             {
-                
+
                 sb.AppendFormat(format, arg0, arg1, arg2, arg3, arg4);
                 var array = sb.AsArraySegment();
                 text.SetCharArray(array.Array, array.Offset, array.Count);
@@ -75,7 +75,7 @@ namespace Cysharp.Text
         {
             using (var sb = new Cysharp.Text.Utf16ValueStringBuilder(true))
             {
-                
+
                 sb.AppendFormat(format, arg0, arg1, arg2, arg3, arg4, arg5);
                 var array = sb.AsArraySegment();
                 text.SetCharArray(array.Array, array.Offset, array.Count);
@@ -86,7 +86,7 @@ namespace Cysharp.Text
         {
             using (var sb = new Cysharp.Text.Utf16ValueStringBuilder(true))
             {
-                
+
                 sb.AppendFormat(format, arg0, arg1, arg2, arg3, arg4, arg5, arg6);
                 var array = sb.AsArraySegment();
                 text.SetCharArray(array.Array, array.Offset, array.Count);
@@ -97,7 +97,7 @@ namespace Cysharp.Text
         {
             using (var sb = new Cysharp.Text.Utf16ValueStringBuilder(true))
             {
-                
+
                 sb.AppendFormat(format, arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7);
                 var array = sb.AsArraySegment();
                 text.SetCharArray(array.Array, array.Offset, array.Count);
@@ -108,7 +108,7 @@ namespace Cysharp.Text
         {
             using (var sb = new Cysharp.Text.Utf16ValueStringBuilder(true))
             {
-                
+
                 sb.AppendFormat(format, arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8);
                 var array = sb.AsArraySegment();
                 text.SetCharArray(array.Array, array.Offset, array.Count);
@@ -119,7 +119,7 @@ namespace Cysharp.Text
         {
             using (var sb = new Cysharp.Text.Utf16ValueStringBuilder(true))
             {
-                
+
                 sb.AppendFormat(format, arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9);
                 var array = sb.AsArraySegment();
                 text.SetCharArray(array.Array, array.Offset, array.Count);
@@ -130,7 +130,7 @@ namespace Cysharp.Text
         {
             using (var sb = new Cysharp.Text.Utf16ValueStringBuilder(true))
             {
-                
+
                 sb.AppendFormat(format, arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10);
                 var array = sb.AsArraySegment();
                 text.SetCharArray(array.Array, array.Offset, array.Count);
@@ -141,7 +141,7 @@ namespace Cysharp.Text
         {
             using (var sb = new Cysharp.Text.Utf16ValueStringBuilder(true))
             {
-                
+
                 sb.AppendFormat(format, arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11);
                 var array = sb.AsArraySegment();
                 text.SetCharArray(array.Array, array.Offset, array.Count);
@@ -152,7 +152,7 @@ namespace Cysharp.Text
         {
             using (var sb = new Cysharp.Text.Utf16ValueStringBuilder(true))
             {
-                
+
                 sb.AppendFormat(format, arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12);
                 var array = sb.AsArraySegment();
                 text.SetCharArray(array.Array, array.Offset, array.Count);
@@ -163,7 +163,7 @@ namespace Cysharp.Text
         {
             using (var sb = new Cysharp.Text.Utf16ValueStringBuilder(true))
             {
-                
+
                 sb.AppendFormat(format, arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13);
                 var array = sb.AsArraySegment();
                 text.SetCharArray(array.Array, array.Offset, array.Count);
@@ -174,7 +174,7 @@ namespace Cysharp.Text
         {
             using (var sb = new Cysharp.Text.Utf16ValueStringBuilder(true))
             {
-                
+
                 sb.AppendFormat(format, arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14);
                 var array = sb.AsArraySegment();
                 text.SetCharArray(array.Array, array.Offset, array.Count);
@@ -185,7 +185,7 @@ namespace Cysharp.Text
         {
             using (var sb = new Cysharp.Text.Utf16ValueStringBuilder(true))
             {
-                
+
                 sb.AppendFormat(format, arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15);
                 var array = sb.AsArraySegment();
                 text.SetCharArray(array.Array, array.Offset, array.Count);

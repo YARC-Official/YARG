@@ -5,7 +5,8 @@ using UnityEngine.Rendering.Universal;
 namespace YARG.Venue.VolumeComponents
 {
     [Serializable]
-    [VolumeComponentMenuForRenderPipeline("Venue/Mirror", typeof(UniversalRenderPipeline))]
+    [VolumeComponentMenu("Venue/Mirror")]
+    [SupportedOnRenderPipeline(typeof(UniversalRenderPipelineAsset))]
     public class MirrorComponent : VolumeComponent, IPostProcessComponent
     {
         public BoolParameter   enabled   = new(false);

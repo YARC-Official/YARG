@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using UnityEngine;
 using YARG.Gameplay;
+using YARG.Venue.VenueCamera;
 
 #if UNITY_EDITOR
 using System.Linq;
@@ -19,6 +20,10 @@ namespace YARG.Venue
         public const string BACKGROUND_SHADER_BUNDLE_NAME = "_metal_shaders.bytes";
         public const string BACKGOUND_OSX_MATERIAL_PREFIX = "_metal_";
 
+        private const string VENUE_LAYER_NAME = "Venue";
+
+        private int _venueLayerNumber = -1;
+
         // DO NOT CHANGE the name of this! I *know* it doesn't follow naming conventions, but it will also break existing
         // venues if we do change it.
         //
@@ -33,17 +38,32 @@ namespace YARG.Venue
         {
             // Move object out of the way, so its effects don't collide with the tracks
             transform.position += Vector3.forward * 10_000f;
+            _venueLayerNumber = LayerMask.NameToLayer(VENUE_LAYER_NAME);
         }
 
         public void SetupVenueCamera(GameObject bgInstance)
         {
-            mainCamera.gameObject.AddComponent<VenueCameraManager>();
-            var fsrManager = mainCamera.GetComponent<FSRCameraManager>();
-            if (fsrManager != null)
+            // If venue has a CameraManager, don't add VenueCameraRenderer, it will be taken care of
+            if (bgInstance.GetComponentInChildren<CameraManager>() == null)
             {
-                fsrManager.enabled = false;
-                fsrManager.textureParentObject = bgInstance;
-                fsrManager.enabled = true;
+                mainCamera.gameObject.AddComponent<VenueCameraRenderer>();
+            }
+        }
+
+        public void LimitVenueLights(GameObject bgInstance)
+        {
+            if (_venueLayerNumber == -1)
+            {
+                return;
+            }
+
+            int venueLayer = 1 << _venueLayerNumber;
+
+            Light[] lights = bgInstance.GetComponentsInChildren<Light>(true);
+
+            foreach (var light in lights)
+            {
+                light.cullingMask = venueLayer;
             }
         }
 

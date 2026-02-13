@@ -4,6 +4,7 @@ using UnityEngine;
 using YARG.Assets.Script.Gameplay.Player;
 using YARG.Core.Chart;
 using YARG.Core.Engine;
+using YARG.Core.Engine.Keys;
 using YARG.Gameplay.Player;
 using YARG.Helpers.Extensions;
 using YARG.Themes;
@@ -57,7 +58,7 @@ namespace YARG.Gameplay.Visuals
                 NoteGroup = NoteRef.Type switch
                 {
                     GuitarNoteType.Strum or
-                    GuitarNoteType.Hopo  or 
+                    GuitarNoteType.Hopo  or
                     GuitarNoteType.Tap   => noteGroups[(int) NoteType.Normal],
                     _ => throw new ArgumentOutOfRangeException(nameof(NoteRef.Type))
                 };
@@ -114,6 +115,14 @@ namespace YARG.Gameplay.Visuals
             }
         }
 
+
+        public override void MissNote()
+        {
+            base.MissNote();
+
+            UpdateColor();
+        }
+
         protected override void UpdateElement()
         {
             base.UpdateElement();
@@ -135,9 +144,18 @@ namespace YARG.Gameplay.Visuals
             UpdateColor();
         }
 
+        protected override bool CalcStarPowerVisible()
+        {
+            if (!NoteRef.IsStarPower)
+            {
+                return false;
+            }
+            return !(((KeysEngineParameters) Player.BaseParameters).NoStarPowerOverlap && Player.BaseStats.IsStarPowerActive);
+        }
+
         private void UpdateSustain()
         {
-            _sustainLine.UpdateSustainLine(Player.NoteSpeed * GameManager.SongSpeed);
+            _sustainLine.UpdateSustainLine();
         }
 
         private void UpdateColor()
@@ -150,8 +168,19 @@ namespace YARG.Gameplay.Visuals
                 ? colors.GetNoteStarPowerColor(NoteRef.Fret)
                 : colorNoStarPower;
 
-            // Set the note color
-            NoteGroup.SetColorWithEmission(color.ToUnityColor(), colorNoStarPower.ToUnityColor());
+            if (NoteRef.WasMissed)
+            {
+                color = colors.Miss;
+            }
+
+            // Set the note color if not hidden
+            if (!NoteRef.WasHit)
+            {
+                NoteGroup.SetColorWithEmission(color.ToUnityColor(), colorNoStarPower.ToUnityColor());
+
+                // Set the metal color
+                NoteGroup.SetMetalColor(colors.GetMetalColor(NoteRef.IsStarPower).ToUnityColor());
+            }
 
             // The rest of this method is for sustain only
             if (!NoteRef.IsSustain) return;

@@ -42,8 +42,10 @@ namespace YARG.Menu.History
         [SerializeField]
         private HeaderTabs _headerTabs;
 
-        private void OnEnable()
+        protected override void OnEnable()
         {
+            base.OnEnable();
+
             // Set navigation scheme
             Navigator.Instance.PushScheme(new NavigationScheme(new()
             {
@@ -60,7 +62,7 @@ namespace YARG.Menu.History
                 new NavigationScheme.Entry(MenuAction.Green, "Menu.Common.Confirm",
                     () => CurrentSelection?.ViewClick()),
                 new NavigationScheme.Entry(MenuAction.Red, "Menu.Common.Back",
-                    Back),
+                    Back, hide: true),
                 new NavigationScheme.Entry(MenuAction.Yellow, "Menu.History.Analyze",
                     () => CurrentSelection?.Shortcut1()),
                 new NavigationScheme.Entry(MenuAction.Orange, "Menu.History.PlayWithReplay",
@@ -171,8 +173,9 @@ namespace YARG.Menu.History
             });
         }
 
-        private void OnDisable()
+        protected override void OnDisable()
         {
+            base.OnDisable();
             Navigator.Instance.PopScheme();
 
             _headerTabs.TabChanged -= OnTabChanged;
