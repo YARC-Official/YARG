@@ -1,5 +1,4 @@
 using YARG.Core.Extensions;
-using YARG.Core.Song;
 using YARG.Core;
 using YARG.Helpers.Extensions;
 using YARG.Localization;

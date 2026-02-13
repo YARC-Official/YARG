@@ -45,9 +45,6 @@ namespace YARG.Menu.Filters
 
     public enum FilterGroup
     {
-        SortedBy,
-        ShowRecommended,
-
         Genre,
         Decade,
         VocalParts,
@@ -55,8 +52,6 @@ namespace YARG.Menu.Filters
         Charter,
         Difficulty,
         Length
-        // VocalGender,
-        // HasSolos
     }
 }
 

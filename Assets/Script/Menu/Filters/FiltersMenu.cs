@@ -162,10 +162,9 @@ namespace YARG.Menu.Filters
             if (!_ready) return;
 
             _leftNavGroup.SelectionChanged += OnSelectionChanged;
-            if (_rightNavGroup != null)
                 _rightNavGroup.SelectionChanged += OnRightSelectionChanged;
 
-            var library = FindFirstObjectByType<YARG.Menu.MusicLibrary.MusicLibraryMenu>();
+            var library = FindFirstObjectByType<MusicLibrary.MusicLibraryMenu>();
             library?.SetSidebarDifficultiesVisible(false);
 
             Navigator.Instance.PushScheme(new NavigationScheme(new()
@@ -191,14 +190,14 @@ namespace YARG.Menu.Filters
                 // If we're on an action button, confirm it instead of jumping to the right.
                 if (_leftNavGroup?.SelectedBehaviour is SettingsButton buttonRow)
                     buttonRow.Confirm();
-                else if (_leftNavGroup?.SelectedBehaviour is YARG.Menu.Settings.BaseSettingNavigatable settingRow)
+                else if (_leftNavGroup?.SelectedBehaviour is BaseSettingNavigatable settingRow)
                     settingRow.Confirm();
                 else
                     FocusRight();
             }
             else
             {
-                if (_rightNavGroup?.SelectedBehaviour is SettingsButton buttonRow)
+                if (_rightNavGroup.SelectedBehaviour is SettingsButton buttonRow)
                     buttonRow.Confirm();
                 else
                     ToggleFocusedRight();
@@ -290,13 +289,13 @@ namespace YARG.Menu.Filters
                 // Otherwise, selecting the right panel would clear itself.
                 if (_focusSide == FocusSide.Left)
                 {
-                    _rightNavGroup?.ClearNavigatables();
+                    _rightNavGroup.ClearNavigatables();
                     _rightContainer.DestroyChildren();
                 }
                 return;
             }
 
-            _rightNavGroup?.ClearNavigatables();
+            _rightNavGroup.ClearNavigatables();
             _rightContainer.DestroyChildren();
 
             switch (row.Filters)
@@ -322,12 +321,6 @@ namespace YARG.Menu.Filters
                 case FilterGroup.Length:
                     BuildOptionsFor(FilterGroup.Length);
                     break;
-                // case FilterGroup.VocalGender:
-                //     BuildVocalGenderOptions(_rightContainer);
-                //     break;
-                // case FilterGroup.HasSolos:
-                //     BuildHasSolosOptions(_rightContainer);
-                //     break;
             }
         }
 
@@ -356,8 +349,6 @@ namespace YARG.Menu.Filters
             AddGroup(container, navGroup, FilterGroup.Charter, Localize.Key("Menu.Filters.Charters"))?.AssignIndex(rowIndex++);
             AddGroup(container, navGroup, FilterGroup.Difficulty, Localize.Key("Menu.Filters.Difficulties.Name"))?.AssignIndex(rowIndex++);
             AddGroup(container, navGroup, FilterGroup.Length, Localize.Key("Menu.Filters.Length.Name"))?.AssignIndex(rowIndex++);
-            // AddGroup(container, navGroup, FilterGroup.VocalGender, "Vocalist Gender");
-            // AddGroup(container, navGroup, FilterGroup.HasSolos, "Songs with Solos");
         }
 
         private void AddHeader(Transform container, string text)
@@ -369,24 +360,6 @@ namespace YARG.Menu.Filters
             var tmp = header.GetComponentInChildren<TextMeshProUGUI>();
             if (tmp != null)
                 tmp.text = text;
-        }
-
-        private SettingsButton AddButton(Transform container, NavigationGroup navGroup, string text, System.Action onClick)
-        {
-            var prefab = GetSettingsButtonPrefab();
-            if (prefab == null) return null;
-
-            var row = Instantiate(prefab, container);
-            var buttonRow = row.GetComponent<SettingsButton>();
-            if (buttonRow == null) return null;
-
-            buttonRow.SetCustomButtons(new[]
-            {
-                new SettingsButton.CustomButton(text, onClick)
-            });
-
-            navGroup.AddNavigatable(buttonRow);
-            return buttonRow;
         }
 
         private FilterCategoryRow AddGroup(Transform container, NavigationGroup navGroup, FilterGroup group, string label)
@@ -439,9 +412,9 @@ namespace YARG.Menu.Filters
             _pendingHelpBarRefresh = true;
 
             // Remember right selection before clearing
-            _lastRightIndex = _rightNavGroup?.SelectedIndex;
+            _lastRightIndex = _rightNavGroup.SelectedIndex;
 
-            _rightNavGroup?.ClearSelection();
+            _rightNavGroup.ClearSelection();
 
             if (_leftNavGroup == null || _leftNavGroup.Count == 0) return;
 
@@ -460,7 +433,7 @@ namespace YARG.Menu.Filters
 
         private void FocusRight()
         {
-            if (_rightNavGroup == null || _rightNavGroup.Count == 0) return;
+            if (_rightNavGroup.Count == 0) return;
 
             _focusSide = FocusSide.Right;
             _pendingHelpBarRefresh = true;
@@ -483,7 +456,7 @@ namespace YARG.Menu.Filters
 
         private void ToggleFocusedRight()
         {
-            var selected = _rightNavGroup?.SelectedBehaviour;
+            var selected = _rightNavGroup.SelectedBehaviour;
             if (selected == null) return;
 
             var row = selected.GetComponent<FilterEntryRow>();
@@ -499,7 +472,7 @@ namespace YARG.Menu.Filters
 
         private void RefreshHelpBar()
         {
-            if (_leftNavGroup?.SelectedBehaviour is YARG.Menu.Settings.BaseSettingNavigatable settingRow &&
+            if (_leftNavGroup?.SelectedBehaviour is BaseSettingNavigatable settingRow &&
                 settingRow.IsFocused)
             {
                 _pendingHelpBarRefresh = true;
@@ -529,7 +502,7 @@ namespace YARG.Menu.Filters
         {
             if (_focusSide == FocusSide.Right)
             {
-                if (_rightNavGroup?.SelectedBehaviour is SettingsButton)
+                if (_rightNavGroup.SelectedBehaviour is SettingsButton)
                     return new FilterHelpBarState("Menu.Common.Confirm", true);
 
                 return new FilterHelpBarState("Menu.Common.Toggle", true);
@@ -673,10 +646,14 @@ namespace YARG.Menu.Filters
         {
             selected = null;
 
-            if (enabled.Count == 0 || all.Count == 0) return false;
+            if (all.Count == 0) return false;
+
+            EnsureDefaults(enabled, all);
+
+            if (enabled.Count == 0) return false;
 
             int selectedCount = enabled.Count(kvp => kvp.Value);
-            if (selectedCount == all.Count) return false; // no filter for this category
+            if (selectedCount == enabled.Count) return false; // no filter for this category
 
             selected = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             foreach (var kvp in enabled)
@@ -725,7 +702,7 @@ namespace YARG.Menu.Filters
             return dict;
         }
 
-        private void EnsureDefaults(Dictionary<string, bool> enabled, IReadOnlyList<string> values)
+        private static void EnsureDefaults(Dictionary<string, bool> enabled, IReadOnlyList<string> values)
         {
             foreach (var value in values)
             {
@@ -776,7 +753,7 @@ namespace YARG.Menu.Filters
             foreach (string value in values)
             {
                 var row = Instantiate(_filterEntryRowPrefab, _rightContainer);
-                _rightNavGroup?.AddNavigatable(row.gameObject);
+                _rightNavGroup.AddNavigatable(row.gameObject);
 
                 row.AssignIndex(rowIndex++);
 
@@ -848,14 +825,7 @@ namespace YARG.Menu.Filters
 
             if (predicates.Count == 0) return null;
 
-            return entry =>
-            {
-                foreach (var predicate in predicates)
-                {
-                    if (!predicate(entry)) return false;
-                }
-                return true;
-            };
+            return entry => predicates.All(predicate => predicate(entry));
         }
 
 
@@ -1240,22 +1210,6 @@ namespace YARG.Menu.Filters
             return Localize.Key(DifficultyLabelKeys[index]);
         }
 
-        // private void BuildVocalGenderOptions(Transform parent)
-        // {
-        //     AddLabel(parent, "(Not implemented yet)");
-        //     AddLabel(parent, "Woman");
-        //     AddLabel(parent, "Man");
-        //     AddLabel(parent, "Non-Binary");
-        // }
-
-        // private void BuildHasSolosOptions(Transform parent)
-        // {
-        //     AddLabel(parent, "(Not implemented yet)");
-        //     AddLabel(parent, "Guitar Solos");
-        //     AddLabel(parent, "Bass Solos");
-        //     AddLabel(parent, "Drum Solos");
-        // }
-
         public void ResetAllFilters()
         {
             EnsureAllDefaults();
@@ -1287,8 +1241,7 @@ namespace YARG.Menu.Filters
             updateSummary?.Invoke();
             DisableRecommendationsIfFiltered();
 
-            if (_rightContainer == null)
-                return;
+            if (_rightContainer == null) return;
 
             foreach (var row in _rightContainer.GetComponentsInChildren<FilterEntryRow>(true))
                 row.SetToggleIsOn(value);
@@ -1296,16 +1249,14 @@ namespace YARG.Menu.Filters
 
         private void AddSelectDeselectButtons(Action selectAll, Action deselectAll)
         {
-            if (_rightContainer == null || _rightNavGroup == null)
-                return;
+            if (_rightContainer == null) return;
 
             var prefab = GetSettingsButtonPrefab();
             if (prefab == null) return;
 
             var go = Instantiate(prefab, _rightContainer);
             var buttonRow = go.GetComponent<SettingsButton>();
-            if (buttonRow == null)
-                return;
+            if (buttonRow == null) return;
 
             buttonRow.SetCustomButtons(new[]
             {
@@ -1366,7 +1317,7 @@ namespace YARG.Menu.Filters
             {
                 _sortDropdownSetting = new FilterSortDropdownSetting(sort =>
                 {
-                    var library = FindFirstObjectByType<YARG.Menu.MusicLibrary.MusicLibraryMenu>();
+                    var library = FindFirstObjectByType<MusicLibrary.MusicLibraryMenu>();
                     if (library != null)
                     {
                         library.ChangeSort(sort);
@@ -1458,8 +1409,7 @@ namespace YARG.Menu.Filters
 
             Navigator.Instance.PopScheme();
             _leftNavGroup.SelectionChanged -= OnSelectionChanged;
-            if (_rightNavGroup != null)
-                _rightNavGroup.SelectionChanged -= OnRightSelectionChanged;
+            _rightNavGroup.SelectionChanged -= OnRightSelectionChanged;
 
             MenuManager.Instance.ReactivateCurrentMenu();
         }
