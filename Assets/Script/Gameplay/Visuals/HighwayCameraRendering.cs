@@ -508,9 +508,8 @@ namespace YARG.Gameplay.Visuals
                     // Create renderer list for transparents
                     var transparentDesc = new RendererListDesc(shaderTagIds, renderingData.cullResults, cameraData.camera)
                     {
-                        sortingCriteria = SortingCriteria.RenderQueue,
                         renderQueueRange = RenderQueueRange.transparent,
-                        overrideMaterial = passData.material
+                        overrideMaterial = passData.material,
                     };
                     passData.transparentRendererList = renderGraph.CreateRendererList(transparentDesc);
                     builder.UseRendererList(passData.transparentRendererList);
@@ -518,9 +517,8 @@ namespace YARG.Gameplay.Visuals
                     // Create renderer list for opaques
                     var opaqueDesc = new RendererListDesc(shaderTagIds, renderingData.cullResults, cameraData.camera)
                     {
-                        sortingCriteria = SortingCriteria.RenderQueue,
                         renderQueueRange = RenderQueueRange.opaque,
-                        overrideMaterial = passData.material
+                        overrideMaterial = passData.material,
                     };
                     passData.opaqueRendererList = renderGraph.CreateRendererList(opaqueDesc);
                     builder.UseRendererList(passData.opaqueRendererList);
