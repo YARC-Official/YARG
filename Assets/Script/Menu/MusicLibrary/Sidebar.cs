@@ -273,13 +273,12 @@ namespace YARG.Menu.MusicLibrary
         // Wrap and shrink album name if it's too long to fit in the sidebar
         private void SetAlbumNameFont(string albumText)
         {
-            const int maxCharsBeforeWrap = 50; // number of characters before we wrap the text
-            const float shrinkFactor = 0.8f;   // percentage to shrink the font by when wrapping
+            const int maxCharsBeforeShrink = 40; // number of characters before we shrink the text
+            const int maxCharsBeforeWrap = 50;   // number of characters before we wrap the text
+            const float shrinkFactor = 0.8f;     // percentage to shrink the font by after shrink threshold
 
             if (_albumBaseFontSize <= 0f)
-            {
                 _albumBaseFontSize = _album.fontSize > 0f ? _album.fontSize : 20f;
-            }
 
             var displayText = albumText ?? string.Empty;
 
@@ -288,27 +287,20 @@ namespace YARG.Menu.MusicLibrary
             _album.overflowMode = TextOverflowModes.Overflow;
             _album.fontSize = _albumBaseFontSize;
 
-            if (displayText.Length <= maxCharsBeforeWrap)
-            {
-                _album.text = displayText;
-                return;
-            }
+            if (displayText.Length > maxCharsBeforeShrink)
+                _album.fontSize = _albumBaseFontSize * shrinkFactor;
 
-            if (!displayText.Contains('\n'))
+            if (displayText.Length > maxCharsBeforeWrap && !displayText.Contains('\n'))
             {
                 var wrapIndex = displayText.LastIndexOf(' ', maxCharsBeforeWrap);
-                if (wrapIndex <= 0)
-                {
+                if (wrapIndex <= 0 || wrapIndex >= displayText.Length - 1)
                     wrapIndex = maxCharsBeforeWrap;
-                }
 
                 displayText = displayText[..wrapIndex].TrimEnd() + "\n" + displayText[wrapIndex..].TrimStart();
             }
 
             _album.text = displayText;
-            _album.fontSize = _albumBaseFontSize * shrinkFactor;
         }
-
 
         private void UpdateDifficulties(SongEntry entry)
         {
