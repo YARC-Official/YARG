@@ -153,6 +153,8 @@ namespace YARG.Menu.MusicLibrary
         protected override void OnEnable()
         {
             base.OnEnable();
+            bool rescanRequested = SongContainer.ConsumeFullRescanRequest();
+            SetSidebarDifficultiesVisible(true);
 
             // Set navigation scheme
             SetNavigationScheme();
@@ -234,6 +236,13 @@ namespace YARG.Menu.MusicLibrary
 
             PlayerContainer.PlayerAdded += OnPlayerAdded;
             PlayerContainer.PlayerRemoved += OnPlayerRemoved;
+
+            if (rescanRequested)
+            {
+                SetSidebarDifficultiesVisible(false);
+                RefreshSongs();
+                SetSidebarDifficultiesVisible(true);
+            }
         }
 
         private void SetRefreshIfNeeded()
@@ -684,6 +693,7 @@ namespace YARG.Menu.MusicLibrary
         protected override void OnDisable()
         {
             base.OnDisable();
+            SetSidebarDifficultiesVisible(false);
 
             if (Navigator.Instance == null) return;
 
@@ -809,6 +819,11 @@ namespace YARG.Menu.MusicLibrary
         public void RefreshSidebar()
         {
             _sidebar.RefreshFavoriteState();
+        }
+
+        public void SetSidebarDifficultiesVisible(bool visible)
+        {
+            _sidebar?.SetDifficultiesVisible(visible);
         }
 
         public void ChangeSort(SortAttribute sort)

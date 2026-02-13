@@ -84,6 +84,7 @@ namespace YARG.Song
     {
         private static SongCache _songCache = new();
         private static SongEntry[] _songs = Array.Empty<SongEntry>();
+        private static bool _pendingFullRescan;
 
         private static SongCategory[] _sortTitles = Array.Empty<SongCategory>();
         private static SongCategory[] _sortArtists = Array.Empty<SongCategory>();
@@ -154,6 +155,22 @@ namespace YARG.Song
             YargLogger.LogFormatInfo("Scan time: {0}s", stopwatch.Elapsed.TotalSeconds);
             MusicLibraryMenu.SetReload(MusicLibraryReloadState.Full);
             SongSources.LoadSprites(context);
+        }
+
+        public static void RequestFullRescan()
+        {
+            _pendingFullRescan = true;
+        }
+
+        public static bool ConsumeFullRescanRequest()
+        {
+            if (!_pendingFullRescan)
+            {
+                return false;
+            }
+
+            _pendingFullRescan = false;
+            return true;
         }
 
         public static SongCategory[] GetSortedCategory(SortAttribute sort)

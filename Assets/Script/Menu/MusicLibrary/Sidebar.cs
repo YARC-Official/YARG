@@ -74,6 +74,18 @@ namespace YARG.Menu.MusicLibrary
         [SerializeField]
         private GameObject _difficultyRingPrefab;
 
+        [SerializeField]
+        private Canvas _difficultiesCanvas;
+
+        public void SetDifficultiesVisible(bool visible)
+        {
+            if (_difficultiesDisplay != null)
+                _difficultiesDisplay.SetActive(visible);
+
+            if (_difficultiesCanvas != null)
+                _difficultiesCanvas.enabled = visible;
+        }
+
         private readonly List<DifficultyRing> _difficultyRings = new();
         private CancellationTokenSource _cancellationToken;
         private ViewType _currentView;
