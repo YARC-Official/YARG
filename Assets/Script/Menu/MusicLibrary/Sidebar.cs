@@ -13,6 +13,7 @@ using YARG.Helpers.Extensions;
 using YARG.Menu.Navigation;
 using YARG.Menu.Persistent;
 using YARG.Song;
+using static System.Globalization.CultureInfo;
 
 namespace YARG.Menu.MusicLibrary
 {
@@ -237,7 +238,7 @@ namespace YARG.Menu.MusicLibrary
             SetText(_charterContainer, _charter, songEntry.Charter);
 
             _genreContainer.SetActive(true); // Empty genres are rendered as "Unknown Genre", so this should always be active
-            _genre.text = System.Globalization.CultureInfo.CurrentCulture.TextInfo.ToTitleCase(songEntry.Genre) + (songEntry.Subgenre == string.Empty ? "" : ",");
+            _genre.text = CurrentCulture.TextInfo.ToTitleCase(songEntry.Genre) + (songEntry.Subgenre == string.Empty ? "" : ",");
             _subgenre.text = songEntry.Subgenre;
             // _source.text = SongSources.SourceToGameName(songEntry.Source);
             // _charter.text = songEntry.Charter;
