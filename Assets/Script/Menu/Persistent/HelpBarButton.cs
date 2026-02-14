@@ -1,10 +1,10 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using YARG.Core.Input;
-using YARG.Core.Logging;
 using YARG.Menu.Data;
 using YARG.Menu.Navigation;
 using static YARG.Menu.Persistent.ButtonHoldHelper.HoldResult;
@@ -30,20 +30,10 @@ namespace YARG.Menu.Persistent
         [SerializeField]
         private TextMeshProUGUI _buttonText;
 
-        public enum HelpButtonStyle
-        {
-            Default,
-            Filled
-        }
-
-        [SerializeField]
-        private HelpButtonStyle _buttonStyle;
-
         private NavigationScheme.Entry? _entry;
 
         private Color _buttonBackgroundColor;
         private Color _buttonImageColor;
-        private Color _buttonBackgroundColorOnHover;
         private Color _buttonBackgroundColorOnDown;
         private Color _buttonFillColor;
 
@@ -54,6 +44,17 @@ namespace YARG.Menu.Persistent
         private ButtonHoldHelper? _buttonHoldHelper;
 
         private bool _clickable = true;
+
+        private ButtonState _currentState = ButtonState.NONE;
+
+        private enum ButtonState
+        {
+            NONE,
+            HOVER,
+            PRESS,
+            HOLD,
+            DISABLED,
+        }
 
         public void SetInfoFromSchemeEntry(NavigationScheme.Entry entry, bool clickable = true)
         {
@@ -69,10 +70,8 @@ namespace YARG.Menu.Persistent
             var icons = MenuData.NavigationIcons;
             _buttonBackgroundColor = icons.GetColor(entry.Action);
             _buttonBackgroundColor.a = 0.05f;
-            _buttonBackgroundColorOnHover = icons.GetColor(entry.Action);
-            _buttonBackgroundColorOnHover.a = 0.2f;
             _buttonBackgroundColorOnDown = icons.GetColor(entry.Action);
-            _buttonBackgroundColorOnDown.a = 0.1f;
+            _buttonBackgroundColorOnDown.a = 0.2f;
             _buttonFillColor = icons.GetColor(entry.Action);
             _buttonFillColor.a = 0.3f;
             _buttonImageColor = icons.GetColor(entry.Action);
@@ -88,24 +87,10 @@ namespace YARG.Menu.Persistent
                 ? Selectable.Transition.None
                 : Selectable.Transition.SpriteSwap;
 
-            // Set colors
+            // Set sprite and fill color, then apply idle state
             _buttonImage.sprite = icons.GetIcon(entry.Action);
-            _buttonImage.color = _buttonImageColor;
             _buttonHoldFill.color = _buttonFillColor;
-            if (_buttonStyle == HelpButtonStyle.Default)
-            {
-                _buttonBackground.color = _maskableClear;
-                _buttonOutline.color = _maskableClear;
-                _buttonLabel.color = _coolGrey;
-                _buttonText.color = _coolGrey;
-            }
-            else
-            {
-                _buttonBackground.color = _buttonBackgroundColorOnHover;
-                _buttonOutline.color = _buttonBackgroundColorOnHover;
-                _buttonLabel.color = Color.white;
-                _buttonText.color = Color.white;
-            }
+            ApplyState(ButtonState.NONE);
         }
 
         public void OnPointerEnter(PointerEventData eventData)
@@ -115,21 +100,7 @@ namespace YARG.Menu.Persistent
                 return;
             }
 
-            _buttonBackground.color = _buttonBackgroundColor;
-            _buttonImage.color = _buttonBackgroundColor;
-            _buttonImage.color = _buttonImageColor;
-            _buttonLabel.color = Color.white;
-            _buttonText.color = Color.white;
-            if (_buttonStyle == HelpButtonStyle.Default)
-            {
-                _buttonBackground.color = _buttonBackgroundColor;
-                _buttonOutline.color = _buttonBackgroundColor;
-            }
-            else
-            {
-                _buttonBackground.color = _buttonBackgroundColorOnHover;
-                _buttonOutline.color = _buttonBackgroundColorOnHover;
-            }
+            ApplyState(ButtonState.HOVER);
         }
 
         public void OnPointerExit(PointerEventData eventData)
@@ -139,21 +110,7 @@ namespace YARG.Menu.Persistent
                 return;
             }
 
-            _buttonBackground.color = _maskableClear;
-            _buttonImage.color = _buttonBackgroundColor;
-            _buttonImage.color = _buttonImageColor;
-            if (_buttonStyle == HelpButtonStyle.Default)
-            {
-                _buttonBackground.color = _maskableClear;
-                _buttonOutline.color = _maskableClear;
-                _buttonLabel.color = _coolGrey;
-                _buttonText.color = _coolGrey;
-            }
-            else
-            {
-                _buttonBackground.color = _buttonBackgroundColorOnHover;
-                _buttonOutline.color = _buttonBackgroundColorOnHover;
-            }
+            ApplyState(ButtonState.NONE);
         }
 
         public void OnPointerDown(PointerEventData eventData)
@@ -163,17 +120,14 @@ namespace YARG.Menu.Persistent
                 return;
             }
 
-            _buttonBackground.color = _buttonBackgroundColorOnDown;
-            _buttonImage.color = _buttonImageColor;
-            _buttonLabel.color = Color.white;
-            _buttonText.color = Color.white;
-
             if (_buttonHoldHelper != null)
             {
+                ApplyState(ButtonState.HOLD);
                 _buttonHoldHelper.StartHolding();
             }
             else
             {
+                ApplyState(ButtonState.PRESS);
                 _entry?.Invoke();
             }
         }
@@ -186,61 +140,122 @@ namespace YARG.Menu.Persistent
             }
 
             _buttonHoldFill.fillAmount = 0f;
-            _buttonImage.color = _buttonImageColor;
-            _buttonLabel.color = Color.white;
-            _buttonText.color = Color.white;
-            if (_buttonStyle == HelpButtonStyle.Default)
-            {
-                _buttonBackground.color = _maskableClear;
-                _buttonOutline.color = _maskableClear;
-            }
-            else
-            {
-                _buttonBackground.color = _buttonBackgroundColor;
-                _buttonOutline.color = _buttonBackgroundColor;
-            }
+            var isOverButton = eventData.pointerCurrentRaycast.gameObject != null
+                && eventData.pointerCurrentRaycast.gameObject.transform.IsChildOf(transform);
+            ApplyState(isOverButton ? ButtonState.HOVER : ButtonState.NONE);
 
-
-            if (_buttonHoldHelper != null)
+            var result = _buttonHoldHelper?.StopHolding();
+            if (result == CLICK)
             {
-                var result = _buttonHoldHelper.StopHolding();
-                if (result == CLICK)
-                {
-                    _entry?.Invoke();
-                }
+                _entry?.Invoke();
             }
         }
 
         public void DisableButton()
         {
             _clickable = false;
-            _buttonBackground.color = Color.gray;
-            _buttonImage.color = Color.gray;
+            ApplyState(ButtonState.DISABLED);
         }
 
         public void EnableButton()
         {
             _clickable = true;
-            _buttonBackground.color = _buttonBackgroundColor;
-            _buttonImage.color = _buttonImageColor;
+            ApplyState(ButtonState.NONE);
+        }
+
+        private void ApplyState(ButtonState state)
+        {
+            _currentState = state;
+
+            switch (state)
+            {
+                case ButtonState.NONE:
+                    _buttonBackground.color = _maskableClear;
+                    _buttonOutline.color = _maskableClear;
+                    _buttonImage.color = _buttonImageColor;
+                    _buttonLabel.color = _coolGrey;
+                    _buttonText.color = _coolGrey;
+                    break;
+                case ButtonState.HOVER:
+                    _buttonBackground.color = _buttonBackgroundColor;
+                    _buttonOutline.color = _buttonBackgroundColor;
+                    _buttonImage.color = _buttonImageColor;
+                    _buttonLabel.color = Color.white;
+                    _buttonText.color = Color.white;
+                    break;
+                case ButtonState.PRESS:
+                    _buttonBackground.color = _buttonBackgroundColorOnDown;
+                    _buttonOutline.color = _buttonBackgroundColorOnDown;
+                    _buttonImage.color = _buttonImageColor;
+                    _buttonLabel.color = Color.white;
+                    _buttonText.color = Color.white;
+                    break;
+                case ButtonState.HOLD:
+                    _buttonBackground.color = _buttonBackgroundColor;
+                    _buttonOutline.color = _buttonBackgroundColor;
+                    _buttonImage.color = _buttonImageColor;
+                    _buttonLabel.color = Color.white;
+                    _buttonText.color = Color.white;
+                    break;
+                case ButtonState.DISABLED:
+                    _buttonBackground.color = Color.gray;
+                    _buttonOutline.color = Color.gray;
+                    _buttonImage.color = Color.gray;
+                    _buttonLabel.color = _coolGrey;
+                    _buttonText.color = _coolGrey;
+                    break;
+            }
         }
 
         private void Update()
         {
-            if (_buttonHoldHelper == null) return;
+            if (_buttonHoldHelper == null)
+            {
+                return;
+            }
 
+            // Pointer hold
             if (_buttonHoldHelper.IsHolding)
             {
-                _buttonHoldFill.fillAmount = _buttonHoldHelper.HoldProgress;
-                _buttonBackground.color = _buttonBackgroundColor;
+                UpdateButtonFillAmount(_buttonHoldHelper.HoldProgress);
+                var isHoldComplete = _buttonHoldHelper.HoldProgress >= 1f;
+                if (isHoldComplete)
+                {
+                    DoHoldAction();
+                }
+                return;
             }
 
-            if (_buttonHoldHelper.IsHolding && _buttonHoldHelper.HoldProgress >= 1f)
+
+            // Controller hold.  This only handles visuals, the actual hold action is
+            // triggered by the Navigator when the hold is complete
+            if (_entry.HasValue && Navigator.Instance.IsHeld(_entry.Value.Action))
             {
-                _buttonHoldHelper.StopHolding();
-                _entry?.InvokeHoldHandler();
-                _buttonHoldFill.fillAmount = 0f;
+                var holdProgress = Navigator.Instance.GetHoldProgress(_entry.Value.Action);
+                UpdateButtonFillAmount(holdProgress);
             }
+            else if (_buttonHoldFill.fillAmount > 0f)
+            {
+                _buttonHoldFill.fillAmount = 0f;
+                ApplyState(ButtonState.NONE);
+            }
+        }
+
+        private void UpdateButtonFillAmount(float amount)
+        {
+            _buttonHoldFill.fillAmount = amount;
+            if (_currentState != ButtonState.HOLD)
+            {
+                ApplyState(ButtonState.HOLD);
+            }
+        }
+
+        private void DoHoldAction()
+        {
+            _buttonHoldHelper?.StopHolding();
+            _entry?.InvokeHoldHandler();
+            _buttonHoldFill.fillAmount = 0f;
+            ApplyState(ButtonState.NONE);
         }
     }
 }

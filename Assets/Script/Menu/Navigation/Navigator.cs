@@ -62,15 +62,21 @@ namespace YARG.Menu.Navigation
         public class HoldContext
         {
             public readonly NavigationContext Context;
+            public readonly float HoldDuration;
             public float Timer;
             public bool IsRepeat;
             public bool IsHold;
             public bool HoldConsumed;
 
+            public float HoldProgress => HoldDuration > 0f
+                ? Mathf.Clamp01(1f - Timer / HoldDuration)
+                : 0f;
+
             public HoldContext(NavigationContext context)
             {
                 Context = context;
                 Timer = INPUT_REPEAT_COOLDOWN;
+                HoldDuration = 0f;
                 IsRepeat = true;
             }
 
@@ -78,6 +84,7 @@ namespace YARG.Menu.Navigation
             {
                 Context = context;
                 Timer = holdSeconds;
+                HoldDuration = holdSeconds;
                 IsHold = true;
             }
         }
@@ -200,7 +207,24 @@ namespace YARG.Menu.Navigation
 
         public bool IsHeld(MenuAction action)
         {
-            return _heldInputs.Any(i => i.Context.Action == action);
+            return _heldInputs.Any(i =>
+                i.Context.Action == action && i.IsHold && !i.HoldConsumed);
+        }
+
+        public float GetHoldProgress(MenuAction action)
+        {
+            float progress = 0f;
+            foreach (var heldInput in _heldInputs)
+            {
+                bool isActiveHold = heldInput.Context.Action == action
+                    && heldInput.IsHold
+                    && !heldInput.HoldConsumed;
+                if (isActiveHold)
+                {
+                    progress = Mathf.Max(progress, heldInput.HoldProgress);
+                }
+            }
+            return progress;
         }
 
         private void InvokeNavigationEvent(NavigationContext ctx)
