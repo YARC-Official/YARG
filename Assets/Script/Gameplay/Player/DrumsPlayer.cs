@@ -26,14 +26,14 @@ namespace YARG.Gameplay.Player
         private const float DRUM_PAD_FLASH_HOLD_DURATION = 0.2f;
 
         // Key is a FourLaneDrumsFret or FiveLaneDrumsFret
-        // Value is its lateral position among the fret array. -1 represents things that don't have their own fret (by default, kicks)
+        // Value is its lateral position on the fret array
         private Dictionary<int, int> _lanePositions;
 
         // Number of distinct frets in the fret array.
         // Equivalent to counting the number of _lanePosition entries that are not -1, but predetermined by MakeHighwayOrdering() for performance reasons
         public int LaneCount { get; private set; }
 
-        public int GetFretIndex(FourLaneDrumPad note)
+        private int _getFretIndex(FourLaneDrumPad note)
         {
             return note switch
             {
@@ -45,11 +45,11 @@ namespace YARG.Gameplay.Player
                 FourLaneDrumPad.YellowCymbal => (int) FourLaneDrumsFret.YellowCymbal,
                 FourLaneDrumPad.BlueCymbal => (int) FourLaneDrumsFret.BlueCymbal,
                 FourLaneDrumPad.GreenCymbal => (int) FourLaneDrumsFret.GreenCymbal,
-                _ => -1
+                _ => throw new ArgumentOutOfRangeException(nameof(note))
             };
         }
 
-        public int GetFretIndex(FiveLaneDrumPad note)
+        private int _getFretIndex(FiveLaneDrumPad note)
         {
             return note switch
             {
@@ -59,11 +59,11 @@ namespace YARG.Gameplay.Player
                 FiveLaneDrumPad.Blue => (int) FiveLaneDrumsFret.Blue,
                 FiveLaneDrumPad.Orange => (int) FiveLaneDrumsFret.Orange,
                 FiveLaneDrumPad.Green => (int) FiveLaneDrumsFret.Green,
-                _ => -1
+                _ => throw new ArgumentOutOfRangeException(nameof(note))
             };
         }
 
-        public int GetFretIndex(DrumsAction action)
+        private int _getFretIndex(DrumsAction action)
         {
             if (_fiveLaneMode)
             {
@@ -75,7 +75,7 @@ namespace YARG.Gameplay.Player
                     DrumsAction.BlueDrum => (int) FiveLaneDrumsFret.Blue,
                     DrumsAction.OrangeCymbal => (int) FiveLaneDrumsFret.Orange,
                     DrumsAction.GreenDrum => (int) FiveLaneDrumsFret.Green,
-                    _ => -1
+                    _ => throw new ArgumentOutOfRangeException(nameof(action))
                 };
             }
 
@@ -89,26 +89,20 @@ namespace YARG.Gameplay.Player
                 DrumsAction.YellowCymbal => (int) FourLaneDrumsFret.YellowCymbal,
                 DrumsAction.BlueCymbal => (int) FourLaneDrumsFret.BlueCymbal,
                 DrumsAction.GreenCymbal => (int) FourLaneDrumsFret.GreenCymbal,
-                _ => -1
+                _ => throw new ArgumentOutOfRangeException(nameof(action))
             };
         }
 
 
-        public int GetLanePosition(FourLaneDrumPad note)
+        public int GetLanePosition(FourLaneDrumPad pad)
         {
-            var idx = GetFretIndex(note);
+            var idx = _getFretIndex(pad);
             return _lanePositions[idx];
         }
 
-        public int GetLanePosition(FiveLaneDrumPad note)
+        public int GetLanePosition(FiveLaneDrumPad pad)
         {
-            var idx = GetFretIndex(note);
-            return _lanePositions[idx];
-        }
-
-        public int GetLanePosition(DrumsAction action)
-        {
-            var idx = GetFretIndex(action);
+            var idx = _getFretIndex(pad);
             return _lanePositions[idx];
         }
 
@@ -655,7 +649,7 @@ namespace YARG.Gameplay.Player
                 }
                 else
                 {
-                    int fret = GetFretIndex(action);
+                    int fret = _getFretIndex(action);
                     _fretArray.PlayMissAnimation(fret);
                 }
             }
@@ -769,7 +763,7 @@ namespace YARG.Gameplay.Player
         // i.e., flash this fret by making it seem pressed
         private void ZeroOutHitTime(DrumsAction action, Fret.AnimType animType)
         {
-            int fretIdx = GetFretIndex(action);
+            int fretIdx = _getFretIndex(action);
             _fretToLastPressedTimeDelta[fretIdx] = 0f;
             _animTypeToFretToLastPressedDelta[animType][fretIdx] = 0f;
         }
@@ -835,11 +829,11 @@ namespace YARG.Gameplay.Player
                 // Only use cymbal animation if the cymbal gems are being used
                 if (Player.Profile.UseCymbalModels && action is DrumsAction.YellowCymbal or DrumsAction.OrangeCymbal)
                 {
-                    _fretArray.PlayCymbalHitAnimation(GetFretIndex(action));
+                    _fretArray.PlayCymbalHitAnimation(_getFretIndex(action));
                 }
                 else
                 {
-                    _fretArray.PlayHitAnimation(GetFretIndex(action));
+                    _fretArray.PlayHitAnimation(_getFretIndex(action));
                 }
 
                 return;
@@ -848,11 +842,11 @@ namespace YARG.Gameplay.Player
             // Can technically merge this condition with the above, but it's more readable like this
             if (action is DrumsAction.YellowCymbal or DrumsAction.BlueCymbal or DrumsAction.GreenCymbal)
             {
-                _fretArray.PlayCymbalHitAnimation(GetFretIndex(action));
+                _fretArray.PlayCymbalHitAnimation(_getFretIndex(action));
             }
             else
             {
-                _fretArray.PlayHitAnimation(GetFretIndex(action));
+                _fretArray.PlayHitAnimation(_getFretIndex(action));
             }
         }
 
@@ -868,7 +862,7 @@ namespace YARG.Gameplay.Player
             }
 
             // Must be a pad or cymbal
-            int fretIdx = _fiveLaneMode ? GetFretIndex((FiveLaneDrumPad) pad) : GetFretIndex((FourLaneDrumPad) pad);
+            int fretIdx = _fiveLaneMode ? _getFretIndex((FiveLaneDrumPad) pad) : _getFretIndex((FourLaneDrumPad) pad);
 
             if (_fiveLaneMode)
             {

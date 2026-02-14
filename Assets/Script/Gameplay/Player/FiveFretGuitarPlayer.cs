@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using YARG.Core;
@@ -17,6 +18,7 @@ using YARG.Playback;
 using YARG.Player;
 using YARG.Settings;
 using YARG.Themes;
+using static YARG.Core.Game.ColorProfile;
 using Random = UnityEngine.Random;
 
 namespace YARG.Gameplay.Player
@@ -27,7 +29,35 @@ namespace YARG.Gameplay.Player
 
         private const int SHIFT_INDICATOR_MEASURES_BEFORE = 5;
 
-        private const int LANE_COUNT = 5;
+        public const int LANE_COUNT = 5;
+
+        // Value is the fret's lateral position on the fret array
+        private Dictionary<FiveFretGuitarFret, int> _lanePositions = new()
+        {
+                { FiveFretGuitarFret.Green, 0 },
+                { FiveFretGuitarFret.Red, 1 },
+                { FiveFretGuitarFret.Yellow, 2 },
+                { FiveFretGuitarFret.Blue, 3 },
+                { FiveFretGuitarFret.Orange, 4 }
+        };
+
+        private FiveFretGuitarFret _getFretIndex(GuitarAction action)
+        {
+            return action switch
+            {
+                GuitarAction.Fret1 => FiveFretGuitarFret.Green,
+                GuitarAction.Fret2 => FiveFretGuitarFret.Red,
+                GuitarAction.Fret3 => FiveFretGuitarFret.Yellow,
+                GuitarAction.Fret4 => FiveFretGuitarFret.Blue,
+                GuitarAction.Fret5 => FiveFretGuitarFret.Orange,
+                _ => throw new ArgumentOutOfRangeException(nameof(action))
+            };
+        }
+
+        public int GetLanePosition(FiveFretGuitarFret fret)
+        {
+            return _lanePositions[fret];
+        }
 
         public static Dictionary<int, int> HIGHWAY_ORDERING = new()
             {
@@ -166,7 +196,7 @@ namespace YARG.Gameplay.Player
             
             _fretArray.Initialize(
                 HIGHWAY_ORDERING,
-                5,
+                LANE_COUNT,
                 null,
                 Player.ColorProfile.FiveFretGuitar,
                 Player.ThemePreset,
@@ -300,9 +330,9 @@ namespace YARG.Gameplay.Player
 
         private void UpdateFretArray()
         {
-            for (var fret = GuitarAction.GreenFret; fret <= GuitarAction.OrangeFret; fret++)
+            for (var action = GuitarAction.GreenFret; action <= GuitarAction.OrangeFret; action++)
             {
-                _fretArray.SetPressed((int) fret, Engine.IsFretHeld(fret));
+                _fretArray.SetPressed((int)_getFretIndex(action), Engine.IsFretHeld(action));
             }
         }
 
@@ -404,7 +434,7 @@ namespace YARG.Gameplay.Player
 
                 if (note.Fret != (int) FiveFretGuitarFret.Open)
                 {
-                    _fretArray.PlayHitAnimation(note.Fret - 1);
+                    _fretArray.PlayHitAnimation(note.Fret);
                 }
                 else
                 {
@@ -458,18 +488,18 @@ namespace YARG.Gameplay.Player
 
             // Play miss animation for every held fret that does not match the current note
             bool anyHeld = false;
-            for (var fret = GuitarAction.GreenFret; fret <= GuitarAction.OrangeFret; fret++)
+            for (var action = GuitarAction.GreenFret; action <= GuitarAction.OrangeFret; action++)
             {
-                if (!Engine.IsFretHeld(fret))
+                if (!Engine.IsFretHeld(action))
                 {
                     continue;
                 }
 
                 anyHeld = true;
 
-                if (currentNote == null || (currentNote.NoteMask & (1 << (int) fret)) == 0)
+                if (currentNote == null || (currentNote.NoteMask & (1 << (int) action)) == 0)
                 {
-                    _fretArray.PlayMissAnimation((int) fret);
+                    _fretArray.PlayMissAnimation((int) _getFretIndex(action));
                 }
             }
 
@@ -492,7 +522,7 @@ namespace YARG.Gameplay.Player
 
                 if (note.Fret != (int) FiveFretGuitarFret.Open)
                 {
-                    _fretArray.SetSustained(note.Fret - 1, true);
+                    _fretArray.SetSustained(note.Fret, true);
                 }
 
                 _sustainCount++;
@@ -513,7 +543,7 @@ namespace YARG.Gameplay.Player
 
                 if (note.Fret != (int) FiveFretGuitarFret.Open)
                 {
-                    _fretArray.SetSustained(note.Fret - 1, false);
+                    _fretArray.SetSustained(note.Fret, false);
                 }
 
                 _sustainCount--;
