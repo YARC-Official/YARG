@@ -163,8 +163,6 @@ namespace YARG.Gameplay
 
             if (_loadState == LoadFailureState.Rescan)
             {
-                SongContainer.RequestFullRescan();
-
                 ToastManager.ToastWarning("Chart requires a rescan!", () =>
                 {
                     MenuManager.Instance.DisableCurrentMenu();

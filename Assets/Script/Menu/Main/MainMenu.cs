@@ -1,12 +1,10 @@
 using TMPro;
 using UnityEngine;
 using YARG.Core.Input;
-using YARG.Helpers;
-using YARG.Localization;
 using YARG.Menu.MusicLibrary;
-using YARG.Menu.Settings;
 using YARG.Menu.Navigation;
 using YARG.Menu.Persistent;
+using YARG.Menu.Settings;
 using YARG.Settings;
 
 namespace YARG.Menu.Main

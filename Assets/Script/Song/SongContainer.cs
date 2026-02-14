@@ -1,20 +1,20 @@
-﻿using System.Collections.Generic;
-using YARG.Core.Song.Cache;
-using YARG.Core.Song;
-using System;
+﻿using System;
 using System.Linq;
-using YARG.Helpers.Extensions;
-using YARG.Settings;
-using YARG.Helpers;
+using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
-using YARG.Menu.MusicLibrary;
-using YARG.Core.Logging;
 using YARG.Core;
-using YARG.Player;
-using YARG.Localization;
-using YARG.Scores;
-using YARG.Core.Utility;
 using YARG.Core.Game;
+using YARG.Core.Logging;
+using YARG.Core.Song;
+using YARG.Core.Song.Cache;
+using YARG.Core.Utility;
+using YARG.Helpers;
+using YARG.Helpers.Extensions;
+using YARG.Localization;
+using YARG.Menu.MusicLibrary;
+using YARG.Player;
+using YARG.Scores;
+using YARG.Settings;
 
 namespace YARG.Song
 {
@@ -84,7 +84,6 @@ namespace YARG.Song
     {
         private static SongCache _songCache = new();
         private static SongEntry[] _songs = Array.Empty<SongEntry>();
-        private static bool _pendingFullRescan;
 
         private static SongCategory[] _sortTitles = Array.Empty<SongCategory>();
         private static SongCategory[] _sortArtists = Array.Empty<SongCategory>();
@@ -155,22 +154,6 @@ namespace YARG.Song
             YargLogger.LogFormatInfo("Scan time: {0}s", stopwatch.Elapsed.TotalSeconds);
             MusicLibraryMenu.SetReload(MusicLibraryReloadState.Full);
             SongSources.LoadSprites(context);
-        }
-
-        public static void RequestFullRescan()
-        {
-            _pendingFullRescan = true;
-        }
-
-        public static bool ConsumeFullRescanRequest()
-        {
-            if (!_pendingFullRescan)
-            {
-                return false;
-            }
-
-            _pendingFullRescan = false;
-            return true;
         }
 
         public static SongCategory[] GetSortedCategory(SortAttribute sort)

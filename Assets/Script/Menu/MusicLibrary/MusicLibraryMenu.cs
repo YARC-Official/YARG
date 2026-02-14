@@ -6,25 +6,21 @@ using Cysharp.Text;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using UnityEngine.InputSystem;
 using YARG.Core;
 using YARG.Core.Audio;
 using YARG.Core.Game;
 using YARG.Core.Input;
 using YARG.Core.Song;
-using YARG.Input;
 using YARG.Helpers;
 using YARG.Helpers.Extensions;
 using YARG.Localization;
 using YARG.Menu.Data;
 using YARG.Menu.ListMenu;
 using YARG.Menu.Navigation;
-using YARG.Menu.Persistent;
 using YARG.Player;
 using YARG.Playlists;
 using YARG.Settings;
 using YARG.Song;
-using YARG.Helpers;
 using static YARG.Menu.Navigation.Navigator;
 using Random = UnityEngine.Random;
 
@@ -153,8 +149,6 @@ namespace YARG.Menu.MusicLibrary
         protected override void OnEnable()
         {
             base.OnEnable();
-            bool rescanRequested = SongContainer.ConsumeFullRescanRequest();
-            SetSidebarDifficultiesVisible(true);
 
             // Set navigation scheme
             SetNavigationScheme();
@@ -236,11 +230,6 @@ namespace YARG.Menu.MusicLibrary
 
             PlayerContainer.PlayerAdded += OnPlayerAdded;
             PlayerContainer.PlayerRemoved += OnPlayerRemoved;
-
-            if (rescanRequested)
-            {
-                RefreshSongs();
-            }
         }
 
         private void SetRefreshIfNeeded()
