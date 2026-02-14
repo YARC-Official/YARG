@@ -27,11 +27,11 @@ namespace YARG.Settings.Preview
             public delegate EnginePreset.HitWindowPreset HitWindowProviderFunc(EnginePreset e);
             public delegate FakeNoteData CreateFakeNoteFunc(double time);
 
-            public int FretCount;
             public bool UseKickFrets;
             public bool UseProKeys;
 
-            public List<FretSpec> FretSpecs;
+            public Dictionary<int, int> HighwayOrdering;
+            public int LaneCount;
             public GameObject? FretPrefab;
             public GameObject? KickFretPrefab;
 
@@ -49,7 +49,8 @@ namespace YARG.Settings.Preview
                 GameMode.FiveFretGuitar,
                 new Info
                 {
-                    FretSpecs = FiveFretGuitarPlayer.FRET_SPECS,
+                    HighwayOrdering = FiveFretGuitarPlayer.HIGHWAY_ORDERING,
+                    LaneCount = 5,
 
                     FretColorProvider = (colorProfile) => colorProfile.FiveFretGuitar,
                     NoteColorProvider = (colorProfile, note) => colorProfile.FiveFretGuitar
@@ -101,10 +102,10 @@ namespace YARG.Settings.Preview
                 GameMode.FourLaneDrums,
                 new Info
                 {
-                    FretCount = 4,
                     UseKickFrets = true,
 
-                    FretSpecs = FiveFretGuitarPlayer.FRET_SPECS,
+                    HighwayOrdering = DrumsPlayer.DEFAULT_FOUR_LANE_HIGHWAY_ORDERING,
+                    LaneCount = 4,
 
                     FretColorProvider = (colorProfile) => colorProfile.FourLaneDrums,
                     NoteColorProvider = (colorProfile, note) =>
@@ -170,13 +171,15 @@ namespace YARG.Settings.Preview
                 GameMode.FiveLaneDrums,
                 new Info
                 {
-                    FretCount = 5,
                     UseKickFrets = true,
 
                     FretColorProvider = (colorProfile) => colorProfile.FiveLaneDrums,
                     NoteColorProvider = (colorProfile, note) => colorProfile.FiveLaneDrums
                         .GetNoteColor(note.Fret)
                         .ToUnityColor(),
+
+                    HighwayOrdering = DrumsPlayer.DEFAULT_FIVE_LANE_HIGHWAY_ORDERING,
+                    LaneCount = 5,
 
                     HitWindowProvider = (enginePreset) => enginePreset.Drums.HitWindow,
 
@@ -292,7 +295,8 @@ namespace YARG.Settings.Preview
             {
                 _fretArray.UseKickFrets = CurrentGameModeInfo.UseKickFrets;
                 _fretArray.Initialize(
-                    CurrentGameModeInfo.FretSpecs,
+                    CurrentGameModeInfo.HighwayOrdering,
+                    CurrentGameModeInfo.LaneCount,
                     CurrentGameModeInfo.KickFretPrefab,
                     CurrentGameModeInfo.FretColorProvider(ColorProfile.Default),
                     theme,

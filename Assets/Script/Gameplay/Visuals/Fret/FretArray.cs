@@ -11,13 +11,6 @@ using static YARG.Themes.ThemeManager;
 
 namespace YARG.Gameplay.Visuals
 {
-    public struct FretSpec
-    {
-        public float position;
-        public int colorIndex;
-    }
-
-
     public class FretArray : MonoBehaviour
     {
         private const float WIDTH_NUMERATOR   = 2f;
@@ -35,41 +28,41 @@ namespace YARG.Gameplay.Visuals
         [SerializeField]
         private Transform _rightKickFretPosition;
 
-        private readonly List<Fret> _frets = new();
+        private readonly Dictionary<int, Fret> _frets = new();
         private readonly List<KickFret> _kickFrets = new();
 
         private bool[] _activeFrets;
         private bool[] _pulsingFrets;
         private float  _pulseDuration;
 
-        public void Initialize(List<FretSpec> fretSpecs, GameObject? kickFretPrefab, IFretColorProvider fretColorProvider, ThemePreset themePreset, VisualStyle style)
+        public void Initialize(Dictionary<int, int> highwayOrdering, int laneCount, GameObject? kickFretPrefab, IFretColorProvider fretColorProvider, ThemePreset themePreset, VisualStyle style)
         {
             var fretPrefab = ThemeManager.Instance.CreateFretPrefabFromTheme(themePreset, style);
 
             _frets.Clear();
-            foreach (var fretSpec in fretSpecs)
+            foreach (var (noteType, position) in highwayOrdering)
             {
                 var fret = Instantiate(fretPrefab, transform);
                 fret.SetActive(true);
 
 
                 // Position
-                float x = _trackWidth / fretSpecs.Count * fretSpec.position - _trackWidth / 2f + 1f / fretSpecs.Count;
+                float x = _trackWidth / laneCount * position - _trackWidth / 2f + 1f / laneCount;
                 fret.transform.localPosition = new Vector3(x, 0f, 0f);
 
                 // Scale
-                float scale = (_trackWidth / WIDTH_NUMERATOR) / (fretSpecs.Count / WIDTH_DENOMINATOR);
+                float scale = (_trackWidth / WIDTH_NUMERATOR) / (laneCount / WIDTH_DENOMINATOR);
                 fret.transform.localScale = new Vector3(scale, 1f, 1f);
 
                 var fretComp = fret.GetComponent<Fret>();
                 fretComp.Initialize(
-                    fretColorProvider.GetFretColor(fretSpec.colorIndex),
-                    fretColorProvider.GetFretInnerColor(fretSpec.colorIndex),
-                    fretColorProvider.GetParticleColor(fretSpec.colorIndex),
+                    fretColorProvider.GetFretColor(noteType),
+                    fretColorProvider.GetFretInnerColor(noteType),
+                    fretColorProvider.GetParticleColor(noteType),
                     fretColorProvider.GetParticleColor(0)
                 );
 
-                _frets.Add(fretComp);
+                _frets[noteType] = fretComp;
             }
 
             _kickFrets.Clear();
@@ -91,10 +84,10 @@ namespace YARG.Gameplay.Visuals
                 _kickFrets.Add(rightKick.GetComponent<KickFret>());
             }
 
-            _activeFrets = new bool[fretSpecs.Count];
-            _pulsingFrets = new bool[fretSpecs.Count];
+            _activeFrets = new bool[laneCount];
+            _pulsingFrets = new bool[laneCount];
             // Start with all frets active, they will be set inactive once TrackPlayer figures itself out
-            for (int i = 0; i < fretSpecs.Count; i++)
+            for (int i = 0; i < laneCount; i++)
             {
                 _activeFrets[i] = true;
             }
@@ -174,7 +167,7 @@ namespace YARG.Gameplay.Visuals
 
         public void PlayOpenHitAnimation()
         {
-            foreach (var fret in _frets)
+            foreach (var (_, fret) in _frets)
             {
                 fret.PlayHitAnimation();
                 fret.PlayOpenHitParticles();
@@ -183,7 +176,7 @@ namespace YARG.Gameplay.Visuals
 
         public void PlayMissAnimation(int index)
         {
-            if (0 <= index && index <= _frets.Count)
+            if (_frets.ContainsKey(index))
             {
                 _frets[index].PlayMissAnimation();
                 _frets[index].PlayMissParticles();
@@ -192,7 +185,7 @@ namespace YARG.Gameplay.Visuals
 
         public void PlayOpenMissAnimation()
         {
-            foreach (var fret in _frets)
+            foreach (var (_, fret) in _frets)
             {
                 fret.PlayOpenMissAnimation();
                 fret.PlayOpenMissParticles();
@@ -209,7 +202,7 @@ namespace YARG.Gameplay.Visuals
 
         public void ResetAll()
         {
-            foreach (var fret in _frets)
+            foreach (var (_, fret) in _frets)
             {
                 fret.SetSustained(false);
             }

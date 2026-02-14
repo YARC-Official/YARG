@@ -29,13 +29,13 @@ namespace YARG.Gameplay.Player
 
         private const int LANE_COUNT = 5;
 
-        public static List<FretSpec> FRET_SPECS = new()
+        public static Dictionary<int, int> HIGHWAY_ORDERING = new()
             {
-                new() { position = 0, colorIndex = (int)FiveFretGuitarFret.Green },
-                new() { position = 1, colorIndex = (int)FiveFretGuitarFret.Red },
-                new() { position = 2, colorIndex = (int)FiveFretGuitarFret.Yellow },
-                new() { position = 3, colorIndex = (int)FiveFretGuitarFret.Blue },
-                new() { position = 4, colorIndex = (int)FiveFretGuitarFret.Orange }
+                { (int)FiveFretGuitarFret.Green,     0 },
+                { (int)FiveFretGuitarFret.Red,       1 },
+                { (int)FiveFretGuitarFret.Yellow,    2 },
+                { (int)FiveFretGuitarFret.Blue,      3 },
+                { (int)FiveFretGuitarFret.Orange,    4 }
             };
 
         public override bool ShouldUpdateInputsOnResume => true;
@@ -165,7 +165,8 @@ namespace YARG.Gameplay.Player
 
             
             _fretArray.Initialize(
-                FRET_SPECS,
+                HIGHWAY_ORDERING,
+                5,
                 null,
                 Player.ColorProfile.FiveFretGuitar,
                 Player.ThemePreset,

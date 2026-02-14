@@ -31,14 +31,14 @@ namespace YARG.Assets.Script.Gameplay.Player
         private List<float> _lanePositions;
         private int _laneCount;
 
-        private static List<FretSpec> OPEN_LANE_FRET_SPECS = new ()
+        private static Dictionary<int, int> OPEN_LANE_HIGHWAY_ORDERING = new()
         {
-            new() { position = 0, colorIndex = (int) FiveFretGuitarFret.Open },
-            new() { position = 1, colorIndex = (int) FiveFretGuitarFret.Green },
-            new() { position = 2, colorIndex = (int) FiveFretGuitarFret.Red },
-            new() { position = 3, colorIndex = (int) FiveFretGuitarFret.Yellow },
-            new() { position = 4, colorIndex = (int) FiveFretGuitarFret.Blue },
-            new() { position = 5, colorIndex = (int) FiveFretGuitarFret.Orange }
+            { (int) FiveFretGuitarFret.Open,    0 },
+            { (int) FiveFretGuitarFret.Green,   1 },
+            { (int) FiveFretGuitarFret.Red,     2 },
+            { (int) FiveFretGuitarFret.Yellow,  3 },
+            { (int) FiveFretGuitarFret.Blue,    4 },
+            { (int) FiveFretGuitarFret.Orange,  5 }
         };
 
 public override bool ShouldUpdateInputsOnResume => true;
@@ -158,10 +158,11 @@ public override bool ShouldUpdateInputsOnResume => true;
 
             var PLACEHOLDER = false;
 
-            var fretSpecs = PLACEHOLDER ? OPEN_LANE_FRET_SPECS : FiveFretGuitarPlayer.FRET_SPECS;
+            var highwayOrdering = PLACEHOLDER ? OPEN_LANE_HIGHWAY_ORDERING : FiveFretGuitarPlayer.HIGHWAY_ORDERING;
 
             _fretArray.Initialize(
-                fretSpecs,
+                highwayOrdering,
+                PLACEHOLDER ? 6 : 5,
                 null,
                 Player.ColorProfile.FiveFretGuitar,
                 Player.ThemePreset,
