@@ -138,6 +138,7 @@ namespace YARG.Menu.MusicLibrary
 
             // Reset library's main index so we don't return to the index set by play a show
             MusicLibraryMenu.ResetMainLibraryIndex();
+            MusicLibraryMenu.SetReload(MusicLibraryReloadState.Partial);
 
             GlobalVariables.State.CurrentSong = SongEntry;
             // This just makes stuff in DifficultySelectMenu easier

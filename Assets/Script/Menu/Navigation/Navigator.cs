@@ -62,11 +62,23 @@ namespace YARG.Menu.Navigation
         public class HoldContext
         {
             public readonly NavigationContext Context;
-            public float Timer = INPUT_REPEAT_COOLDOWN;
+            public float Timer;
+            public bool IsRepeat;
+            public bool IsHold;
+            public bool HoldConsumed;
 
             public HoldContext(NavigationContext context)
             {
                 Context = context;
+                Timer = INPUT_REPEAT_COOLDOWN;
+                IsRepeat = true;
+            }
+
+            public HoldContext(NavigationContext context, float holdSeconds)
+            {
+                Context = context;
+                Timer = holdSeconds;
+                IsHold = true;
             }
         }
 
@@ -92,10 +104,15 @@ namespace YARG.Menu.Navigation
             {
                 heldInput.Timer -= Time.unscaledDeltaTime;
 
-                if (heldInput.Timer <= 0f)
+                if (heldInput.IsRepeat && heldInput.Timer <= 0f)
                 {
                     heldInput.Timer = INPUT_REPEAT_TIME;
                     InvokeNavigationEvent(heldInput.Context.AsRepeat());
+                }
+                else if (heldInput.IsHold && !heldInput.HoldConsumed && heldInput.Timer <= 0f)
+                {
+                    heldInput.HoldConsumed = true;
+                    InvokeHoldEvent(heldInput.Context);
                 }
             }
 
@@ -140,6 +157,13 @@ namespace YARG.Menu.Navigation
                 return;
             }
 
+            if (_schemeStack.Count > 0 &&
+                _schemeStack.Peek().TryGetHoldSeconds(context.Action, out var holdSeconds))
+            {
+                _heldInputs.Add(new HoldContext(context, holdSeconds));
+                return;
+            }
+
             InvokeNavigationEvent(context);
 
             if (RepeatActions.Contains(context.Action))
@@ -150,7 +174,27 @@ namespace YARG.Menu.Navigation
 
         private void EndNavigationHold(NavigationContext context)
         {
-            _heldInputs.RemoveAll(i => i.Context.IsSameAs(context));
+            bool shouldInvokeTap = false;
+            for (int i = _heldInputs.Count - 1; i >= 0; i--)
+            {
+                if (!_heldInputs[i].Context.IsSameAs(context))
+                {
+                    continue;
+                }
+
+                if (_heldInputs[i].IsHold && !_heldInputs[i].HoldConsumed)
+                {
+                    shouldInvokeTap = true;
+                }
+
+                _heldInputs.RemoveAt(i);
+            }
+
+            if (shouldInvokeTap)
+            {
+                InvokeNavigationEvent(context);
+            }
+
             InvokeHoldOffEvent(context);
         }
 
@@ -184,6 +228,19 @@ namespace YARG.Menu.Navigation
             if (_schemeStack.Count > 0)
             {
                 _schemeStack.Peek().InvokeHoldOffFuncs(ctx);
+            }
+        }
+
+        private void InvokeHoldEvent(NavigationContext ctx)
+        {
+            if (DisableMenuInputs)
+            {
+                return;
+            }
+
+            if (_schemeStack.Count > 0)
+            {
+                _schemeStack.Peek().InvokeHoldFuncs(ctx);
             }
         }
 

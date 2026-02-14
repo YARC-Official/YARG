@@ -4,6 +4,7 @@ using System.Linq;
 using YARG.Core;
 using YARG.Core.Song;
 using YARG.Localization;
+using YARG.Menu.Filters;
 using YARG.Player;
 using YARG.Playlists;
 using YARG.Settings;
@@ -234,7 +235,7 @@ namespace YARG.Menu.MusicLibrary
         }
 
         private static bool TryChooseSubcategory(IReadOnlyDictionary<SortString, List<SongEntry>> container,
-            out SortString subcategory, string[] invalidKeys = null)
+            Func<SongEntry, bool> predicate, out SortString subcategory, string[] invalidKeys = null)
         {
             invalidKeys ??= Array.Empty<string>();
 
@@ -242,7 +243,8 @@ namespace YARG.Menu.MusicLibrary
             // We need to pick a key that has at least MIN_SONGS_PER_CATEGORY songs in it
             foreach (var key in container.Keys)
             {
-                if (!invalidKeys.Contains(key) && container[key].Count >= MIN_SONGS_PER_CATEGORY)
+                if (!invalidKeys.Contains(key.ToString()) &&
+                    GetFilteredCount(container[key], predicate) >= MIN_SONGS_PER_CATEGORY)
                 {
                     validKeys.Add(key);
                 }
@@ -259,15 +261,108 @@ namespace YARG.Menu.MusicLibrary
             return true;
         }
 
+        private static bool TryChooseSubcategory(IReadOnlyDictionary<string, List<SongEntry>> container,
+            Func<SongEntry, bool> predicate, out string subcategory, string[] invalidKeys = null)
+        {
+            invalidKeys ??= Array.Empty<string>();
+
+            List<string> validKeys = new();
+            // We need to pick a key that has at least MIN_SONGS_PER_CATEGORY songs in it
+            foreach (var key in container.Keys)
+            {
+                if (!invalidKeys.Contains(key) &&
+                    GetFilteredCount(container[key], predicate) >= MIN_SONGS_PER_CATEGORY)
+                {
+                    validKeys.Add(key);
+                }
+            }
+
+            if (validKeys.Count == 0)
+            {
+                subcategory = string.Empty;
+                return false;
+            }
+
+            // We now know we have at least one valid key, so pick one
+            subcategory = validKeys[Rng.Next(0, validKeys.Count)];
+            return true;
+        }
+
+        private static Func<SongEntry, bool> GetActiveFilterPredicate()
+        {
+            var predicate = FiltersMenu.ActiveFilterPredicate;
+            if (predicate == null)
+            {
+                return null;
+            }
+
+            // If no songs match, ignore the predicate to avoid empty selections.
+            foreach (var song in SongContainer.Songs)
+            {
+                if (predicate(song))
+                {
+                    return predicate;
+                }
+            }
+
+            return null;
+        }
+
+        private static int GetFilteredCount(IReadOnlyList<SongEntry> songs, Func<SongEntry, bool> predicate)
+        {
+            if (predicate == null)
+            {
+                return songs.Count;
+            }
+
+            int count = 0;
+            foreach (var song in songs)
+            {
+                if (predicate(song))
+                {
+                    count++;
+                }
+            }
+
+            return count;
+        }
+
+        private static List<SongEntry> GetFilteredSongs(IReadOnlyList<SongEntry> songs, Func<SongEntry, bool> predicate)
+        {
+            if (predicate == null)
+            {
+                return songs.ToList();
+            }
+
+            List<SongEntry> filtered = new();
+            foreach (var song in songs)
+            {
+                if (predicate(song))
+                {
+                    filtered.Add(song);
+                }
+            }
+
+            return filtered;
+        }
+
         private static ShowCategory RandomSource()
         {
+            var predicate = GetActiveFilterPredicate();
+
             // Pick a random source from the available sources
-            if (!TryChooseSubcategory(SongContainer.Sources, out var source))
+            if (!TryChooseSubcategory(SongContainer.Sources, predicate, out var source))
             {
                 return RandomSong();
             }
 
-            var song = SongContainer.Sources[source].ElementAt(Rng.Next(0, SongContainer.Sources[source].Count));
+            var songs = GetFilteredSongs(SongContainer.Sources[source], predicate);
+            if (songs.Count == 0)
+            {
+                return RandomSong();
+            }
+
+            var song = songs[Rng.Next(0, songs.Count)];
             var sourceDisplay = SongSources.SourceToGameName(source);
 
             return new ShowCategory(Localize.KeyFormat("Menu.MusicLibrary.PlayAShow.SongFromSource", sourceDisplay), song);
@@ -275,27 +370,43 @@ namespace YARG.Menu.MusicLibrary
 
         private static ShowCategory RandomArtist()
         {
+            var predicate = GetActiveFilterPredicate();
+
             // Pick a random artist from the available artists
-            if (!TryChooseSubcategory(SongContainer.Artists, out var artist))
+            if (!TryChooseSubcategory(SongContainer.Artists, predicate, out var artist))
             {
                 return RandomSong();
             }
 
-            var song = SongContainer.Artists[artist].ElementAt(Rng.Next(0, SongContainer.Artists[artist].Count));
+            var songs = GetFilteredSongs(SongContainer.Artists[artist], predicate);
+            if (songs.Count == 0)
+            {
+                return RandomSong();
+            }
+
+            var song = songs[Rng.Next(0, songs.Count)];
 
             return new ShowCategory(Localize.KeyFormat("Menu.MusicLibrary.PlayAShow.SongFromArtist", artist), song);
         }
 
         private static ShowCategory RandomGenre()
         {
+            var predicate = GetActiveFilterPredicate();
+
             // Pick a random genre from the available genres
-            if (!TryChooseSubcategory(SongContainer.Genres, out var genre))
+            if (!TryChooseSubcategory(SongContainer.Genres, predicate, out var genre))
             {
                 return RandomSong();
             }
 
             // Pick a random song from the genre
-            var song = SongContainer.Genres[genre].ElementAt(Rng.Next(0, SongContainer.Genres[genre].Count));
+            var songs = GetFilteredSongs(SongContainer.Genres[genre], predicate);
+            if (songs.Count == 0)
+            {
+                return RandomSong();
+            }
+
+            var song = songs[Rng.Next(0, songs.Count)];
 
             var genreString = $"{genre}";
             string outString;
@@ -316,6 +427,8 @@ namespace YARG.Menu.MusicLibrary
         {
             // Turns out SongContainer.Years should really be named SongContainer.Decades
 
+            var predicate = GetActiveFilterPredicate();
+
             // Pick a random decade (that is actually a number) from the list
             string decade;
             int tries = 0;
@@ -323,7 +436,7 @@ namespace YARG.Menu.MusicLibrary
             do
             {
                 decade = SongContainer.Years.Keys.ElementAt(Rng.Next(0, SongContainer.Years.Count));
-                categoryCount = SongContainer.Years[decade].Count;
+                categoryCount = GetFilteredCount(SongContainer.Years[decade], predicate);
                 tries++;
             } while ((decade == "####" || categoryCount < MIN_SONGS_PER_CATEGORY) && tries < MAX_TRIES);
 
@@ -333,21 +446,36 @@ namespace YARG.Menu.MusicLibrary
                 return RandomSong();
             }
 
-            var outsong = SongContainer.Years[decade].ElementAt(Rng.Next(0, SongContainer.Years[decade].Count));
+            var songs = GetFilteredSongs(SongContainer.Years[decade], predicate);
+            if (songs.Count == 0)
+            {
+                return RandomSong();
+            }
+
+            var outsong = songs[Rng.Next(0, songs.Count)];
 
             return new ShowCategory(Localize.KeyFormat("Menu.MusicLibrary.PlayAShow.SongFromDecade", decade), outsong);
         }
 
         private static ShowCategory ShortSong()
         {
+            var predicate = GetActiveFilterPredicate();
+
             // Get all the songs less than 2 minutes long (because that's what SongCache already knows)
-            var songs = SongContainer.SongLengths["00:00 - 02:00"];
-            var outsong = songs.ElementAt(Rng.Next(0, songs.Count));
+            var songs = GetFilteredSongs(SongContainer.SongLengths["00:00 - 02:00"], predicate);
+            if (songs.Count == 0)
+            {
+                return RandomSong();
+            }
+
+            var outsong = songs[Rng.Next(0, songs.Count)];
             return new ShowCategory(Localize.Key("Menu.MusicLibrary.PlayAShow.ShortSong"), outsong);
         }
 
         private static ShowCategory LongSong()
         {
+            var predicate = GetActiveFilterPredicate();
+
             // Get all the songs greater than 5 minutes long
             List<SongEntry> songs = new();
 
@@ -367,18 +495,34 @@ namespace YARG.Menu.MusicLibrary
                 }
             }
 
-            var outsong = songs.ElementAt(Rng.Next(0, songs.Count));
+            var filtered = GetFilteredSongs(songs, predicate);
+            if (filtered.Count == 0)
+            {
+                return RandomSong();
+            }
+
+            var outsong = filtered[Rng.Next(0, filtered.Count)];
             return new ShowCategory(Localize.Key("Menu.MusicLibrary.PlayAShow.LongSong"), outsong);
         }
 
         private static ShowCategory SongStartsWith()
         {
+            var predicate = GetActiveFilterPredicate();
+
             // Pick a random letter, check if we have any songs starting with it
 
-            string key = SongContainer.Titles.Keys.ElementAt(Rng.Next(0, SongContainer.Titles.Count));
+            if (!TryChooseSubcategory(SongContainer.Titles, predicate, out var key))
+            {
+                return RandomSong();
+            }
 
-            var songs = SongContainer.Titles[key];
-            var song = songs.ElementAt(Rng.Next(0, songs.Count));
+            var songs = GetFilteredSongs(SongContainer.Titles[key], predicate);
+            if (songs.Count == 0)
+            {
+                return RandomSong();
+            }
+
+            var song = songs[Rng.Next(0, songs.Count)];
 
             if (key == "0-9")
             {
@@ -395,6 +539,7 @@ namespace YARG.Menu.MusicLibrary
 
         private static ShowCategory SongFromPlaylist()
         {
+            var predicate = GetActiveFilterPredicate();
             var playlists = PlaylistContainer.Playlists.Where(e => e.Count > MIN_SONGS_PER_CATEGORY).ToList();
 
             for (int i = 0; i < playlists.Count; i++)
@@ -417,20 +562,34 @@ namespace YARG.Menu.MusicLibrary
             var playlist = playlists.ElementAt(Rng.Next(0, playlists.Count));
 
             // Get random song from said playlist
-            var hash = playlist.SongHashes.ElementAt(Rng.Next(0, playlist.SongHashes.Count));
+            List<SongEntry> songs = new();
+            foreach (var hash in playlist.SongHashes)
+            {
+                // Sometimes a playlist contains a song hash we no longer have
+                if (!SongContainer.SongsByHash.ContainsKey(hash))
+                {
+                    continue;
+                }
 
-            // Sometimes a playlist contains a song hash we no longer have
-            if (!SongContainer.SongsByHash.ContainsKey(hash))
+                var entry = SongContainer.SongsByHash[hash][0];
+                if (predicate == null || predicate(entry))
+                {
+                    songs.Add(entry);
+                }
+            }
+
+            if (songs.Count == 0)
             {
                 return RandomSong();
             }
 
-            return new ShowCategory(Localize.KeyFormat("Menu.MusicLibrary.PlayAShow.SongFromPlaylist", playlist.Name),
-                SongContainer.SongsByHash[hash][0]);
+            var song = songs[Rng.Next(0, songs.Count)];
+            return new ShowCategory(Localize.KeyFormat("Menu.MusicLibrary.PlayAShow.SongFromPlaylist", playlist.Name), song);
         }
 
         private static ShowCategory SongFromFavorites()
         {
+            var predicate = GetActiveFilterPredicate();
             var playlist = PlaylistContainer.FavoritesPlaylist;
 
             if (playlist == null || playlist.SongHashes.Count < MIN_SONGS_PER_CATEGORY)
@@ -439,20 +598,53 @@ namespace YARG.Menu.MusicLibrary
             }
 
             // Get random song from favorites playlist
-            var hash = playlist.SongHashes.ElementAt(Rng.Next(0, playlist.SongHashes.Count));
+            List<SongEntry> songs = new();
+            foreach (var hash in playlist.SongHashes)
+            {
+                if (!SongContainer.SongsByHash.ContainsKey(hash))
+                {
+                    continue;
+                }
 
-            // Sometimes a playlist contains a song hash we no longer have
-            if (!SongContainer.SongsByHash.ContainsKey(hash))
+                var entry = SongContainer.SongsByHash[hash][0];
+                if (predicate == null || predicate(entry))
+                {
+                    songs.Add(entry);
+                }
+            }
+
+            if (songs.Count == 0)
             {
                 return RandomSong();
             }
 
-            return new ShowCategory(Localize.Key("Menu.MusicLibrary.PlayAShow.SongFromFavorites"), SongContainer.SongsByHash[hash][0]);
+            var song = songs[Rng.Next(0, songs.Count)];
+            return new ShowCategory(Localize.Key("Menu.MusicLibrary.PlayAShow.SongFromFavorites"), song);
         }
 
         private static ShowCategory RandomSong()
         {
+            var predicate = GetActiveFilterPredicate();
+
             // Get a random song
+            if (predicate != null)
+            {
+                List<SongEntry> songs = new();
+                foreach (var song in SongContainer.Songs)
+                {
+                    if (predicate(song))
+                    {
+                        songs.Add(song);
+                    }
+                }
+
+                if (songs.Count > 0)
+                {
+                    var filteredSong = songs[Rng.Next(0, songs.Count)];
+                    return new ShowCategory(Localize.Key("Menu.MusicLibrary.PlayAShow.RandomSong"), filteredSong);
+                }
+            }
+
             var outsong = SongContainer.GetRandomSong();
             return new ShowCategory(Localize.Key("Menu.MusicLibrary.PlayAShow.RandomSong"), outsong);
         }
