@@ -158,7 +158,7 @@ public override bool ShouldUpdateInputsOnResume => true;
 
             var PLACEHOLDER = false;
 
-            var highwayOrdering = PLACEHOLDER ? OPEN_LANE_HIGHWAY_ORDERING : FiveFretGuitarPlayer.HIGHWAY_ORDERING;
+            var highwayOrdering = PLACEHOLDER ? OPEN_LANE_HIGHWAY_ORDERING : FiveFretGuitarPlayer.DEFAULT_HIGHWAY_ORDERING;
 
             _fretArray.Initialize(
                 highwayOrdering,

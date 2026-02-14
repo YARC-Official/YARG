@@ -31,15 +31,9 @@ namespace YARG.Gameplay.Player
 
         public const int LANE_COUNT = 5;
 
+        // Key is a FiveFretGuitarFret
         // Value is the fret's lateral position on the fret array
-        private Dictionary<FiveFretGuitarFret, int> _lanePositions = new()
-        {
-                { FiveFretGuitarFret.Green, 0 },
-                { FiveFretGuitarFret.Red, 1 },
-                { FiveFretGuitarFret.Yellow, 2 },
-                { FiveFretGuitarFret.Blue, 3 },
-                { FiveFretGuitarFret.Orange, 4 }
-        };
+        private Dictionary<int, int> _lanePositions;
 
         private FiveFretGuitarFret _getFretIndex(GuitarAction action)
         {
@@ -56,10 +50,10 @@ namespace YARG.Gameplay.Player
 
         public int GetLanePosition(FiveFretGuitarFret fret)
         {
-            return _lanePositions[fret];
+            return _lanePositions[(int)fret];
         }
 
-        public static Dictionary<int, int> HIGHWAY_ORDERING = new()
+        public static Dictionary<int, int> DEFAULT_HIGHWAY_ORDERING = new()
             {
                 { (int)FiveFretGuitarFret.Green,     0 },
                 { (int)FiveFretGuitarFret.Red,       1 },
@@ -189,13 +183,15 @@ namespace YARG.Gameplay.Player
         {
             base.FinishInitialization();
 
+            MakeHighwayOrdering();
+
             StarScoreThresholds = PopulateStarScoreThresholds(StarMultiplierThresholds, Engine.BaseScore);
 
             IndicatorStripes.Initialize(Player.EnginePreset.FiveFretGuitar);
 
             
             _fretArray.Initialize(
-                HIGHWAY_ORDERING,
+                _lanePositions,
                 LANE_COUNT,
                 null,
                 Player.ColorProfile.FiveFretGuitar,
@@ -760,6 +756,24 @@ namespace YARG.Gameplay.Player
             {
                 _activeFrets = newFrets;
                 _fretArray.UpdateFretActiveState(_activeFrets);
+            }
+        }
+
+        private void MakeHighwayOrdering()
+        {
+            if (Player.Profile.LeftyFlip)
+            {
+                _lanePositions = new()
+                {
+                    { (int)FiveFretGuitarFret.Orange,    0 },
+                    { (int)FiveFretGuitarFret.Blue,      1 },
+                    { (int)FiveFretGuitarFret.Yellow,    2 },
+                    { (int)FiveFretGuitarFret.Red,       3 },
+                    { (int)FiveFretGuitarFret.Green,     4 }
+                };
+            } else
+            {
+                _lanePositions = DEFAULT_HIGHWAY_ORDERING;
             }
         }
     }

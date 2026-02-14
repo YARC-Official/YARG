@@ -49,7 +49,7 @@ namespace YARG.Settings.Preview
                 GameMode.FiveFretGuitar,
                 new Info
                 {
-                    HighwayOrdering = FiveFretGuitarPlayer.HIGHWAY_ORDERING,
+                    HighwayOrdering = FiveFretGuitarPlayer.DEFAULT_HIGHWAY_ORDERING,
                     LaneCount = 5,
 
                     FretColorProvider = (colorProfile) => colorProfile.FiveFretGuitar,
