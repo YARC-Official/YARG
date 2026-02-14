@@ -1,5 +1,4 @@
 ﻿#nullable enable
-using System;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -13,6 +12,9 @@ namespace YARG.Menu.Persistent
 {
     public class HelpBarButton : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IPointerDownHandler, IPointerUpHandler
     {
+        // Delay before showing hold fill so short taps do not flash the bar.
+        private const float DELAY_FILL_SECONDS = 0.05f;
+
         [SerializeField]
         private Image _buttonImage;
         [SerializeField]
@@ -59,12 +61,9 @@ namespace YARG.Menu.Persistent
         public void SetInfoFromSchemeEntry(NavigationScheme.Entry entry, bool clickable = true)
         {
             _clickable = clickable;
-            if (clickable)
-            {
-                _entry = entry;
-            }
-            _buttonHoldHelper = _entry?.HasHoldHandler == true
-                ? new ButtonHoldHelper(_entry.Value.HoldSeconds)
+            _entry = entry;
+            _buttonHoldHelper = entry.HasHoldHandler
+                ? new ButtonHoldHelper(entry.HoldSeconds)
                 : null;
 
             var icons = MenuData.NavigationIcons;
@@ -217,8 +216,11 @@ namespace YARG.Menu.Persistent
             // Pointer hold
             if (_buttonHoldHelper.IsHolding)
             {
-                UpdateButtonFillAmount(_buttonHoldHelper.HoldProgress);
-                var isHoldComplete = _buttonHoldHelper.HoldProgress >= 1f;
+                var rawHoldProgress = _buttonHoldHelper.HoldProgress;
+                var visualHoldProgress = GetVisualHoldProgress(rawHoldProgress);
+                UpdateButtonFillAmount(visualHoldProgress);
+
+                var isHoldComplete = rawHoldProgress >= 1f;
                 if (isHoldComplete)
                 {
                     DoHoldAction();
@@ -231,8 +233,9 @@ namespace YARG.Menu.Persistent
             // triggered by the Navigator when the hold is complete
             if (_entry.HasValue && Navigator.Instance.IsHeld(_entry.Value.Action))
             {
-                var holdProgress = Navigator.Instance.GetHoldProgress(_entry.Value.Action);
-                UpdateButtonFillAmount(holdProgress);
+                var rawHoldProgress = Navigator.Instance.GetHoldProgress(_entry.Value.Action);
+                var visualHoldProgress = GetVisualHoldProgress(rawHoldProgress);
+                UpdateButtonFillAmount(visualHoldProgress);
             }
             else if (_buttonHoldFill.fillAmount > 0f)
             {
@@ -241,10 +244,33 @@ namespace YARG.Menu.Persistent
             }
         }
 
+        /// <summary>
+        /// Applies a short visual debounce to hold fill, then remaps the remaining raw progress to [0..1]
+        /// so the fill starts at zero after the delay and still completes at hold completion.
+        /// </summary>
+        private float GetVisualHoldProgress(float rawProgress)
+        {
+            var holdSeconds = _entry?.HoldSeconds ?? 0f;
+            if (holdSeconds <= 0f)
+            {
+                return rawProgress;
+            }
+
+            var delayProgress = Mathf.Clamp01(DELAY_FILL_SECONDS / holdSeconds);
+            var adjustedRange = 1f - delayProgress;
+            if (rawProgress <= delayProgress)
+            {
+                // Don't show visuals during the delay period
+                return 0f;
+            }
+
+            return Mathf.Clamp01((rawProgress - delayProgress) / (adjustedRange + Mathf.Epsilon));
+        }
+
         private void UpdateButtonFillAmount(float amount)
         {
             _buttonHoldFill.fillAmount = amount;
-            if (_currentState != ButtonState.HOLD)
+            if (amount > 0f && _currentState != ButtonState.HOLD)
             {
                 ApplyState(ButtonState.HOLD);
             }
