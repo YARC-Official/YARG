@@ -50,9 +50,10 @@ namespace YARG.Gameplay.Visuals
             if (NoteRef.Fret != (int) FiveFretGuitarFret.Open)
             {
                 // Deal with non-open notes
+                var lane = Player.GetLanePosition((FiveFretGuitarFret) NoteRef.Fret);
 
                 // Set the position
-                transform.localPosition = new Vector3(GetElementX(NoteRef.Fret, 5), 0f, 0f) * LeftyFlipMultiplier;
+                transform.localPosition = new Vector3(GetElementX(lane, Player.LaneCount), 0f, 0f);
 
                 // Get which note model to use
                 NoteGroup = NoteRef.Type switch

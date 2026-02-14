@@ -1,14 +1,15 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using YARG.Core;
 using YARG.Core.Audio;
 using YARG.Core.Chart;
+using YARG.Core.Engine.Keys;
+using YARG.Core.Engine.Keys.Engines;
 using YARG.Core.Input;
 using YARG.Core.Logging;
 using YARG.Core.Replays;
-using YARG.Core.Engine.Keys;
-using YARG.Core.Engine.Keys.Engines;
 using YARG.Gameplay;
 using YARG.Gameplay.HUD;
 using YARG.Gameplay.Player;
@@ -28,8 +29,31 @@ namespace YARG.Assets.Script.Gameplay.Player
 
         private const int SHIFT_INDICATOR_MEASURES_BEFORE = 5;
 
-        private List<float> _lanePositions;
-        private int _laneCount;
+        // Key is a FiveFretGuitarFret
+        // Value is the fret's lateral position on the fret array
+        private Dictionary<int, int> _lanePositions;
+
+
+        public int LaneCount { get; private set; }
+
+        private FiveFretGuitarFret _getFretIndex(FiveLaneKeysAction action)
+        {
+            return action switch
+            {
+                FiveLaneKeysAction.OpenNote => FiveFretGuitarFret.Open,
+                FiveLaneKeysAction.GreenKey => FiveFretGuitarFret.Green,
+                FiveLaneKeysAction.RedKey => FiveFretGuitarFret.Red,
+                FiveLaneKeysAction.YellowKey => FiveFretGuitarFret.Yellow,
+                FiveLaneKeysAction.BlueKey => FiveFretGuitarFret.Blue,
+                FiveLaneKeysAction.OrangeKey => FiveFretGuitarFret.Orange,
+                _ => throw new ArgumentOutOfRangeException(nameof(action))
+            };
+        }
+
+        public int GetLanePosition(FiveFretGuitarFret fret)
+        {
+            return _lanePositions[(int) fret];
+        }
 
         private static Dictionary<int, int> OPEN_LANE_HIGHWAY_ORDERING = new()
         {
@@ -156,13 +180,11 @@ public override bool ShouldUpdateInputsOnResume => true;
 
             IndicatorStripes.Initialize(Player.EnginePreset.FiveFretGuitar);
 
-            var PLACEHOLDER = false;
-
-            var highwayOrdering = PLACEHOLDER ? OPEN_LANE_HIGHWAY_ORDERING : FiveFretGuitarPlayer.DEFAULT_HIGHWAY_ORDERING;
+            MakeHighwayOrdering();
 
             _fretArray.Initialize(
-                highwayOrdering,
-                PLACEHOLDER ? 6 : 5,
+                _lanePositions,
+                LaneCount,
                 null,
                 Player.ColorProfile.FiveFretGuitar,
                 Player.ThemePreset,
@@ -171,7 +193,7 @@ public override bool ShouldUpdateInputsOnResume => true;
 
             if (Player.Profile.RangeEnabled)
             {
-                _activeFrets = new bool[_laneCount];
+                _activeFrets = new bool[LaneCount];
                 _allRangeShiftEvents = FiveFretRangeShift.GetRangeShiftEvents(NoteTrack);
                 InitializeRangeShift();
             }
@@ -267,7 +289,7 @@ public override bool ShouldUpdateInputsOnResume => true;
             if (nextShift.Time <= visualTime)
             {
                 _rangeShiftEventQueue.Dequeue();
-                for (var i = 0; i < _laneCount; i++)
+                for (var i = 0; i < LaneCount; i++)
                 {
                     _fretArray.SetFretColorPulse(i, false, (float) nextShift.BeatDuration);
                 }
@@ -296,9 +318,9 @@ public override bool ShouldUpdateInputsOnResume => true;
 
         private void UpdateFretArray()
         {
-            for (var fret = (int)FiveLaneKeysAction.GreenKey; fret <= (int)FiveLaneKeysAction.OrangeKey; fret++)
+            for (var action = FiveLaneKeysAction.GreenKey; action <= FiveLaneKeysAction.OrangeKey; action++)
             {
-                _fretArray.SetPressed(fret, Engine.IsKeyHeld((FiveLaneKeysAction)fret));
+                _fretArray.SetPressed((int)_getFretIndex(action), Engine.IsKeyHeld(action));
             }
         }
 
@@ -402,7 +424,7 @@ public override bool ShouldUpdateInputsOnResume => true;
                 _fretArray.PlayOpenHitAnimation();
             } else
             {
-                _fretArray.PlayHitAnimation((int)note.FiveLaneKeysAction);
+                _fretArray.PlayHitAnimation((int)_getFretIndex(note.FiveLaneKeysAction));
             }
         }
 
@@ -423,7 +445,7 @@ public override bool ShouldUpdateInputsOnResume => true;
             }
             else
             {
-                _fretArray.PlayMissAnimation(key);
+                _fretArray.PlayMissAnimation((int)_getFretIndex((FiveLaneKeysAction)key));
             }
         }
 
@@ -431,7 +453,7 @@ public override bool ShouldUpdateInputsOnResume => true;
         {
             if (note.FiveLaneKeysAction is not FiveLaneKeysAction.OpenNote)
             {
-                _fretArray.SetSustained((int) note.FiveLaneKeysAction, true);
+                _fretArray.SetSustained((int)_getFretIndex(note.FiveLaneKeysAction), true);
             }
 
             _sustainCount++;
@@ -451,7 +473,7 @@ public override bool ShouldUpdateInputsOnResume => true;
 
             if (note.FiveLaneKeysAction is not FiveLaneKeysAction.OpenNote)
             {
-                _fretArray.SetSustained((int) note.FiveLaneKeysAction, false);
+                _fretArray.SetSustained((int) _getFretIndex(note.FiveLaneKeysAction), false);
             }
 
             _sustainCount--;
@@ -645,6 +667,19 @@ public override bool ShouldUpdateInputsOnResume => true;
             {
                 _activeFrets = newFrets;
                 _fretArray.UpdateFretActiveState(_activeFrets);
+            }
+        }
+
+        private void MakeHighwayOrdering()
+        {
+            if (false) // placeholder for open lane setting
+            {
+                LaneCount = 6;
+                _lanePositions = OPEN_LANE_HIGHWAY_ORDERING;
+            } else
+            {
+                LaneCount = 5;
+                _lanePositions = FiveFretGuitarPlayer.DEFAULT_HIGHWAY_ORDERING;
             }
         }
     }
