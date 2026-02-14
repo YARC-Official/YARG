@@ -3,12 +3,11 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.IO.Compression;
-using System.Net;
-using System.Text;
 using Cysharp.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
+using UnityEngine.Networking;
 using YARG.Core.IO;
 using YARG.Core.Logging;
 using YARG.Core.Song;
@@ -201,17 +200,19 @@ namespace YARG.Song
             try
             {
                 // Retrieve sources file
-                var request = (HttpWebRequest) WebRequest.Create(SOURCE_COMMIT_URL);
-                request.UserAgent = "YARG";
-                request.Timeout = 2500;
+                using var request = UnityWebRequest.Get(SOURCE_COMMIT_URL);
+                request.SetRequestHeader("User-Agent", "YARG");
+                request.timeout = 2;
 
                 // Send the request and wait for the response
-                using var response = await request.GetResponseAsync();
-                using var reader = new StreamReader(response.GetResponseStream()!, Encoding.UTF8);
+                await request.SendWebRequest();
 
-                // Read the JSON
-                var json = JArray.Parse(await reader.ReadToEndAsync());
-                newestVersion = json[0]["sha"]!.ToString();
+                if (request.result == UnityWebRequest.Result.Success)
+                {
+                    // Read the JSON
+                    var json = JArray.Parse(request.downloadHandler.text);
+                    newestVersion = json[0]["sha"]!.ToString();
+                }
             }
             catch (Exception e)
             {
@@ -237,9 +238,17 @@ namespace YARG.Song
                 // Download
                 context.SetSubText("Downloading new version...");
                 string zipPath = Path.Combine(SourcesFolder, "update.zip");
-                using (var client = new WebClient())
+                using (var request = UnityWebRequest.Get(SOURCE_ZIP_URL))
                 {
-                    await UniTask.RunOnThreadPool(() => { client.DownloadFile(SOURCE_ZIP_URL, zipPath); });
+                    await request.SendWebRequest();
+                    if (request.result == UnityWebRequest.Result.Success)
+                    {
+                        await File.WriteAllBytesAsync(zipPath, request.downloadHandler.data);
+                    }
+                    else
+                    {
+                        throw new Exception($"Download failed: {request.error}");
+                    }
                 }
 
                 // Delete the old folder

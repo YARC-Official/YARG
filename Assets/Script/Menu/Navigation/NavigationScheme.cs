@@ -30,7 +30,11 @@ namespace YARG.Menu.Navigation
             public readonly bool Hide;
 
             private readonly Action<NavigationContext> _handler;
+            private readonly Action<NavigationContext> _onHoldHandler;
             private readonly Action<NavigationContext> _onHoldOffHandler;
+
+            public readonly float HoldSeconds;
+            public bool HasHoldHandler => _onHoldHandler != null && HoldSeconds > 0f;
 
             public string DisplayName => Localize.Key(LocalizationKey);
 
@@ -39,7 +43,9 @@ namespace YARG.Menu.Navigation
                 Action = action;
                 LocalizationKey = localizationKey;
                 _handler = _ => handler?.Invoke();
+                _onHoldHandler = null;
                 _onHoldOffHandler = _ => onHoldOffHandler?.Invoke();
+                HoldSeconds = 0f;
                 Hide = hide;
             }
 
@@ -48,7 +54,22 @@ namespace YARG.Menu.Navigation
                 Action = action;
                 LocalizationKey = localizationKey;
                 _handler = handler;
+                _onHoldHandler = null;
                 _onHoldOffHandler = onHoldOffHandler;
+                HoldSeconds = 0f;
+                Hide = hide;
+            }
+
+            public Entry(MenuAction action, string localizationKey, Action<NavigationContext> handler,
+                float holdSeconds, Action<NavigationContext> onHoldHandler,
+                Action<NavigationContext> onHoldOffHandler = null, bool hide = false)
+            {
+                Action = action;
+                LocalizationKey = localizationKey;
+                _handler = handler;
+                _onHoldHandler = onHoldHandler;
+                _onHoldOffHandler = onHoldOffHandler;
+                HoldSeconds = holdSeconds;
                 Hide = hide;
             }
 
@@ -64,6 +85,13 @@ namespace YARG.Menu.Navigation
             public void InvokeHoldOffHandler(NavigationContext context)
             {
                 _onHoldOffHandler?.Invoke(context);
+            }
+
+            public void InvokeHoldHandler() => InvokeHoldHandler(new(Action, null));
+
+            public void InvokeHoldHandler(NavigationContext context)
+            {
+                _onHoldHandler?.Invoke(context);
             }
         }
 
@@ -115,6 +143,28 @@ namespace YARG.Menu.Navigation
             {
                 entry.InvokeHoldOffHandler(context);
             }
+        }
+
+        public void InvokeHoldFuncs(NavigationContext context)
+        {
+            foreach (var entry in _entries.Where(i => i.Action == context.Action && i.HasHoldHandler))
+            {
+                entry.InvokeHoldHandler(context);
+            }
+        }
+
+        public bool TryGetHoldSeconds(MenuAction action, out float holdSeconds)
+        {
+            holdSeconds = float.MaxValue;
+            bool found = false;
+
+            foreach (var entry in _entries.Where(i => i.Action == action && i.HasHoldHandler))
+            {
+                holdSeconds = Math.Min(holdSeconds, entry.HoldSeconds);
+                found = true;
+            }
+
+            return found;
         }
     }
 }

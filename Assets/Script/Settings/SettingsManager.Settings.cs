@@ -12,6 +12,7 @@ using YARG.Integration;
 using YARG.Integration.RB3E;
 using YARG.Integration.Sacn;
 using YARG.Integration.StageKit;
+using YARG.Menu.Filters;
 using YARG.Menu.MusicLibrary;
 using YARG.Menu.Persistent;
 using YARG.Menu.Settings;
@@ -152,6 +153,7 @@ namespace YARG.Settings
             public ToggleSetting UseFullDirectoryForPlaylists { get; } = new(false);
 
             public ToggleSetting ShowFavoriteButton { get; } = new(true);
+            public ToggleSetting ShowRecommendedSongs { get; } = new(true, ShowRecommendedSongsCallback);
 
             public SliderSetting PlayAShowTimeout { get; } = new (10.0f, 1.0f, 30.0f);
             public ToggleSetting RequireAllDifficulties { get; } = new(true);
@@ -621,6 +623,26 @@ namespace YARG.Settings
             private static void ShowActiveBotsCallback(bool value)
             {
                 StatsManager.Instance.SetShowing(StatsManager.Stat.ActiveBots, value);
+            }
+
+            private static void ShowRecommendedSongsCallback(bool value)
+            {
+                if (FiltersMenu.Instance != null && FiltersMenu.Instance.gameObject.activeInHierarchy)
+                {
+                    // Defer refresh until the filters menu closes to avoid switching navigation schemes.
+                    MusicLibraryMenu.SetReload(MusicLibraryReloadState.Partial);
+                    return;
+                }
+
+                var library = Object.FindFirstObjectByType<MusicLibraryMenu>();
+                if (library != null)
+                {
+                    library.RefreshAndReselect();
+                }
+                else
+                {
+                    MusicLibraryMenu.SetReload(MusicLibraryReloadState.Partial);
+                }
             }
 
             private static void DataStreamEnableCallback(bool value)
