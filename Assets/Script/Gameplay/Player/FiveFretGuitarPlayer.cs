@@ -42,7 +42,7 @@ namespace YARG.Gameplay.Player
                 return _lanePositions[fret];
             }
 
-            return LANE_COUNT / 2;
+            return (LANE_COUNT - 1) / 2;
         }
 
         private FiveFretGuitarFret _getFretIndex(GuitarAction action)
@@ -400,7 +400,7 @@ namespace YARG.Gameplay.Player
             lane.SetAppearance(
                 Player.Profile.CurrentInstrument,
                 fret,
-                _lanePositions.GetValueOrDefault(fret, 2),
+                GetLanePositionOrCentered(fret),
                 LANE_COUNT,
                 Player.ColorProfile.FiveFretGuitar.GetNoteColor(fret).ToUnityColor()
             );

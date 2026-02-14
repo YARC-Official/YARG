@@ -67,7 +67,7 @@ namespace YARG.Gameplay.Visuals
 
         private bool _isOpen = false;
 
-        public void SetAppearance(Instrument instrument, int index, int lateralPosition, int subdivisions, Color color)
+        public void SetAppearance(Instrument instrument, int index, float lateralPosition, int subdivisions, Color color)
         {
             _xPosition = GetElementX(lateralPosition, subdivisions);
 

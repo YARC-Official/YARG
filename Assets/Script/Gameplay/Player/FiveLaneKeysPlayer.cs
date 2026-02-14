@@ -33,6 +33,15 @@ namespace YARG.Assets.Script.Gameplay.Player
         // Value is the fret's lateral position on the fret array
         private Dictionary<int, int> _lanePositions;
 
+        private float GetLanePositionOrCentered(int fret)
+        {
+            if (_lanePositions.ContainsKey(fret))
+            {
+                return _lanePositions[fret];
+            }
+
+            return (LaneCount - 1) / 2;
+        }
 
         public int LaneCount { get; private set; }
 
@@ -375,7 +384,7 @@ public override bool ShouldUpdateInputsOnResume => true;
 
         protected override (float lateralPosition, int colorIndex) GetLaneInfo(GuitarNote note)
         {
-            return (_lanePositions[note.Fret], note.Fret);
+            return (GetLanePositionOrCentered(note.Fret), note.Fret);
         }
 
         protected override void InitializeSpawnedLane(LaneElement lane, int fret)
@@ -383,7 +392,7 @@ public override bool ShouldUpdateInputsOnResume => true;
             lane.SetAppearance(
                 Player.Profile.CurrentInstrument,
                 fret,
-                _lanePositions[fret],
+                GetLanePositionOrCentered(fret),
                 LaneCount,
                 Player.ColorProfile.FiveFretGuitar.GetNoteColor(fret).ToUnityColor()
             );
