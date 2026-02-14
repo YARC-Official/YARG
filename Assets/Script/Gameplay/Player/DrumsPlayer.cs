@@ -7,9 +7,7 @@ using YARG.Core.Audio;
 using YARG.Core.Chart;
 using YARG.Core.Engine.Drums;
 using YARG.Core.Engine.Drums.Engines;
-using YARG.Core.Game;
 using YARG.Core.Input;
-using YARG.Core.Logging;
 using YARG.Core.Replays;
 using YARG.Gameplay.HUD;
 using YARG.Gameplay.Visuals;
@@ -396,37 +394,10 @@ namespace YARG.Gameplay.Player
             ((DrumsNoteElement) poolable).NoteRef = note;
         }
 
-        protected override int GetLaneIndex(DrumNote note)
+        protected override (float lateralPosition, int colorIndex) GetLaneInfo(DrumNote note)
         {
-            int laneIndex = note.Pad;
-
-            if (IsSplitMode)
-            {
-                laneIndex = GetSplitIndex(laneIndex);
-            }
-
-            if (!_fiveLaneMode && laneIndex >= (int) FourLaneDrumPad.YellowCymbal && !IsSplitMode)
-            {
-                laneIndex -= 3;
-            }
-
-            if (Player.Profile.LeftyFlip)
-            {
-                if (_fiveLaneMode)
-                {
-                    laneIndex = 6 - laneIndex;
-                }
-                else if (IsSplitMode)
-                {
-                    laneIndex = 8 - laneIndex;
-                }
-                else
-                {
-                    laneIndex = 5 - laneIndex;
-                }
-            }
-
-            return laneIndex;
+            var fretIdx = _fiveLaneMode ? _getFretIndex((FiveLaneDrumPad)note.Pad) : _getFretIndex((FourLaneDrumPad) note.Pad);
+            return (_lanePositions[fretIdx], fretIdx);
         }
 
         private int GetColorIndex(int index)
@@ -534,7 +505,7 @@ namespace YARG.Gameplay.Player
                 totalLanes = 4;
             }
 
-            lane.SetAppearance(Player.Profile.CurrentInstrument, index, totalLanes, laneColor);
+            lane.SetAppearance(Player.Profile.CurrentInstrument, index, _lanePositions[index], totalLanes, laneColor);
 
         }
 

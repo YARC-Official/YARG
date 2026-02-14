@@ -373,30 +373,20 @@ public override bool ShouldUpdateInputsOnResume => true;
             ((FiveLaneKeysNoteElement) poolable).NoteRef = note;
         }
 
-        protected override int GetLaneIndex(GuitarNote note)
+        protected override (float lateralPosition, int colorIndex) GetLaneInfo(GuitarNote note)
         {
-            // Handle lefty flip
-            if (Player.Profile.LeftyFlip)
-            {
-                // 6 because 1 indexed, not zero
-                return 6 - note.Fret;
-            }
-
-            return note.Fret;
+            return (_lanePositions[note.Fret], note.Fret);
         }
 
         protected override void InitializeSpawnedLane(LaneElement lane, int fret)
         {
-            var colorIndex = fret;
-            // Handle lefty flip
-            if (Player.Profile.LeftyFlip)
-            {
-                // 6 because 1 indexed, not zero
-                colorIndex = 6 - fret;
-            }
-
-            lane.SetAppearance(Player.Profile.CurrentInstrument, fret, 5,
-                Player.ColorProfile.FiveFretGuitar.GetNoteColor(colorIndex).ToUnityColor());
+            lane.SetAppearance(
+                Player.Profile.CurrentInstrument,
+                fret,
+                _lanePositions[fret],
+                LaneCount,
+                Player.ColorProfile.FiveFretGuitar.GetNoteColor(fret).ToUnityColor()
+            );
         }
 
         protected override void ModifyLaneFromNote(LaneElement lane, GuitarNote note)

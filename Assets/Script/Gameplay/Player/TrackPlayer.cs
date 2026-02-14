@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -715,7 +715,7 @@ namespace YARG.Gameplay.Player
 
                         if (childNote.IsLane)
                         {
-                            int laneIndex = GetLaneIndex(childNote);
+                            int laneIndex = GetLaneInfo(childNote).colorIndex;
 
                             if (laneStartNotes.ContainsKey(laneIndex))
                             {
@@ -767,7 +767,9 @@ namespace YARG.Gameplay.Player
                                         break;
                                     }
 
-                                    if (existingLane.ContainsIndex(GetLaneIndex(noteRef)) && (noteRef.Flags & thisLaneFlag) != 0)
+                                    var laneInfo = GetLaneInfo(noteRef);
+
+                                    if (existingLane.ContainsIndex(laneInfo.colorIndex) && (noteRef.Flags & thisLaneFlag) != 0)
                                     {
                                         extendExisting = true;
                                         break;
@@ -802,9 +804,9 @@ namespace YARG.Gameplay.Player
             }
         }
 
-        protected virtual int GetLaneIndex(TNote note)
+        protected virtual (float lateralPosition, int colorIndex) GetLaneInfo(TNote note)
         {
-            return note.LaneNote;
+            return (note.LaneNote, note.LaneNote);
         }
 
         public override void SetPracticeSection(uint start, uint end)

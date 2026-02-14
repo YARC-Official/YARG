@@ -35,6 +35,16 @@ namespace YARG.Gameplay.Player
         // Value is the fret's lateral position on the fret array
         private Dictionary<int, int> _lanePositions;
 
+        private float GetLanePositionOrCentered(int fret)
+        {
+            if (_lanePositions.ContainsKey(fret))
+            {
+                return _lanePositions[fret];
+            }
+
+            return LANE_COUNT / 2;
+        }
+
         private FiveFretGuitarFret _getFretIndex(GuitarAction action)
         {
             return action switch
@@ -380,30 +390,20 @@ namespace YARG.Gameplay.Player
             ((FiveFretGuitarNoteElement) poolable).NoteRef = note;
         }
 
-        protected override int GetLaneIndex(GuitarNote note)
+        protected override (float lateralPosition, int colorIndex) GetLaneInfo(GuitarNote note)
         {
-            // Handle lefty flip
-            if (Player.Profile.LeftyFlip)
-            {
-                // 6 because 1 indexed, not zero
-                return 6 - note.Fret;
-            }
-
-            return note.Fret;
+            return (GetLanePositionOrCentered(note.Fret), note.Fret);
         }
 
         protected override void InitializeSpawnedLane(LaneElement lane, int fret)
         {
-            var colorIndex = fret;
-            // Handle lefty flip
-            if (Player.Profile.LeftyFlip)
-            {
-                // 6 because 1 indexed, not zero
-                colorIndex = 6 - fret;
-            }
-
-            lane.SetAppearance(Player.Profile.CurrentInstrument, fret, 5,
-                Player.ColorProfile.FiveFretGuitar.GetNoteColor(colorIndex).ToUnityColor());
+            lane.SetAppearance(
+                Player.Profile.CurrentInstrument,
+                fret,
+                _lanePositions.GetValueOrDefault(fret, 2),
+                LANE_COUNT,
+                Player.ColorProfile.FiveFretGuitar.GetNoteColor(fret).ToUnityColor()
+            );
         }
 
         protected override void ModifyLaneFromNote(LaneElement lane, GuitarNote note)
