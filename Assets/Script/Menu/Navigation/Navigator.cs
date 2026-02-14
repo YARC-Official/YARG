@@ -205,15 +205,9 @@ namespace YARG.Menu.Navigation
             InvokeHoldOffEvent(context);
         }
 
-        public bool IsHeld(MenuAction action)
-        {
-            return _heldInputs.Any(i =>
-                i.Context.Action == action && i.IsHold && !i.HoldConsumed);
-        }
-
         public float GetHoldProgress(MenuAction action)
         {
-            float progress = 0f;
+            float progress = -1f;
             foreach (var heldInput in _heldInputs)
             {
                 bool isActiveHold = heldInput.Context.Action == action
