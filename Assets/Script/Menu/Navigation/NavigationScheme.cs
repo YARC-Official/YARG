@@ -26,8 +26,8 @@ namespace YARG.Menu.Navigation
             });
 
             public readonly MenuAction Action;
-            public readonly string LocalizationKey;
-            public readonly bool Hide;
+            public readonly string     LocalizationKey;
+            public readonly bool       Hide;
 
             private readonly Action<NavigationContext> _handler;
             private readonly Action<NavigationContext> _onHoldHandler;

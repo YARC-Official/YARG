@@ -1,10 +1,13 @@
-﻿using TMPro;
+﻿using System;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using YARG.Core.Input;
+using YARG.Core.Logging;
 using YARG.Menu.Data;
 using YARG.Menu.Navigation;
+using static YARG.Menu.Persistent.ButtonHoldHelper.HoldResult;
 
 namespace YARG.Menu.Persistent
 {
@@ -14,6 +17,8 @@ namespace YARG.Menu.Persistent
         private Image _buttonImage;
         [SerializeField]
         private Image _buttonBackground;
+        [SerializeField]
+        private Image _buttonHoldFill;
         [SerializeField]
         private Image _buttonOutline;
 
@@ -40,8 +45,13 @@ namespace YARG.Menu.Persistent
         private Color _buttonImageColor;
         private Color _buttonBackgroundColorOnHover;
         private Color _buttonBackgroundColorOnDown;
+        private Color _buttonFillColor;
 
-        private readonly Color _coolGrey = new Color(123 / 255f, 127 / 255f, 154 / 255f, 1f);
+        // Visually transparent, but not affected by the mask component
+        private readonly Color _maskableClear = new(0f, 0f, 0f, 0.01f);
+        private readonly Color _coolGrey = new(123 / 255f, 127 / 255f, 154 / 255f, 1f);
+
+        private ButtonHoldHelper? _buttonHoldHelper;
 
         private bool _clickable = true;
 
@@ -52,6 +62,9 @@ namespace YARG.Menu.Persistent
             {
                 _entry = entry;
             }
+            _buttonHoldHelper = _entry?.HasHoldHandler == true
+                ? new ButtonHoldHelper(_entry.Value.HoldSeconds)
+                : null;
 
             var icons = MenuData.NavigationIcons;
             _buttonBackgroundColor = icons.GetColor(entry.Action);
@@ -60,6 +73,8 @@ namespace YARG.Menu.Persistent
             _buttonBackgroundColorOnHover.a = 0.2f;
             _buttonBackgroundColorOnDown = icons.GetColor(entry.Action);
             _buttonBackgroundColorOnDown.a = 0.1f;
+            _buttonFillColor = icons.GetColor(entry.Action);
+            _buttonFillColor.a = 0.3f;
             _buttonImageColor = icons.GetColor(entry.Action);
             _buttonImageColor.a = 1f;
 
@@ -76,10 +91,11 @@ namespace YARG.Menu.Persistent
             // Set colors
             _buttonImage.sprite = icons.GetIcon(entry.Action);
             _buttonImage.color = _buttonImageColor;
+            _buttonHoldFill.color = _buttonFillColor;
             if (_buttonStyle == HelpButtonStyle.Default)
             {
-                _buttonBackground.color = Color.clear;
-                _buttonOutline.color = Color.clear;
+                _buttonBackground.color = _maskableClear;
+                _buttonOutline.color = _maskableClear;
                 _buttonLabel.color = _coolGrey;
                 _buttonText.color = _coolGrey;
             }
@@ -90,7 +106,6 @@ namespace YARG.Menu.Persistent
                 _buttonLabel.color = Color.white;
                 _buttonText.color = Color.white;
             }
-
         }
 
         public void OnPointerEnter(PointerEventData eventData)
@@ -124,13 +139,13 @@ namespace YARG.Menu.Persistent
                 return;
             }
 
-            _buttonBackground.color = Color.clear;
+            _buttonBackground.color = _maskableClear;
             _buttonImage.color = _buttonBackgroundColor;
             _buttonImage.color = _buttonImageColor;
             if (_buttonStyle == HelpButtonStyle.Default)
             {
-                _buttonBackground.color = Color.clear;
-                _buttonOutline.color = Color.clear;
+                _buttonBackground.color = _maskableClear;
+                _buttonOutline.color = _maskableClear;
                 _buttonLabel.color = _coolGrey;
                 _buttonText.color = _coolGrey;
             }
@@ -153,7 +168,14 @@ namespace YARG.Menu.Persistent
             _buttonLabel.color = Color.white;
             _buttonText.color = Color.white;
 
-            _entry?.Invoke();
+            if (_buttonHoldHelper != null)
+            {
+                _buttonHoldHelper.StartHolding();
+            }
+            else
+            {
+                _entry?.Invoke();
+            }
         }
 
         public void OnPointerUp(PointerEventData eventData)
@@ -163,20 +185,30 @@ namespace YARG.Menu.Persistent
                 return;
             }
 
+            _buttonHoldFill.fillAmount = 0f;
             _buttonImage.color = _buttonImageColor;
             _buttonLabel.color = Color.white;
             _buttonText.color = Color.white;
             if (_buttonStyle == HelpButtonStyle.Default)
             {
-                _buttonBackground.color = Color.clear;
-                _buttonOutline.color = Color.clear;
+                _buttonBackground.color = _maskableClear;
+                _buttonOutline.color = _maskableClear;
             }
             else
             {
                 _buttonBackground.color = _buttonBackgroundColor;
                 _buttonOutline.color = _buttonBackgroundColor;
             }
-            _entry?.InvokeHoldOffHandler();
+
+
+            if (_buttonHoldHelper != null)
+            {
+                var result = _buttonHoldHelper.StopHolding();
+                if (result == CLICK)
+                {
+                    _entry?.Invoke();
+                }
+            }
         }
 
         public void DisableButton()
@@ -191,6 +223,24 @@ namespace YARG.Menu.Persistent
             _clickable = true;
             _buttonBackground.color = _buttonBackgroundColor;
             _buttonImage.color = _buttonImageColor;
+        }
+
+        private void Update()
+        {
+            if (_buttonHoldHelper == null) return;
+
+            if (_buttonHoldHelper.IsHolding)
+            {
+                _buttonHoldFill.fillAmount = _buttonHoldHelper.HoldProgress;
+                _buttonBackground.color = _buttonBackgroundColor;
+            }
+
+            if (_buttonHoldHelper.IsHolding && _buttonHoldHelper.HoldProgress >= 1f)
+            {
+                _buttonHoldHelper.StopHolding();
+                _entry?.InvokeHoldHandler();
+                _buttonHoldFill.fillAmount = 0f;
+            }
         }
     }
 }
