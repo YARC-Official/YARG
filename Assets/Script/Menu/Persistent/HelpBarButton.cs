@@ -259,8 +259,7 @@ namespace YARG.Menu.Persistent
         }
 
         /// <summary>
-        /// Applies a short visual debounce to hold fill, then remaps the remaining raw progress to [0..1]
-        /// so the fill starts at zero after the delay and still completes at hold completion.
+        /// Remaps the progress to include a delay, so that the visual fill progress doesn't flash on click
         /// </summary>
         private float GetVisualHoldProgress(float rawProgress)
         {
