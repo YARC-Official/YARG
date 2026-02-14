@@ -308,7 +308,7 @@ namespace YARG.Settings.Preview
 
             var highwayRenderer = _cameraPositioner.GetComponent<HighwayCameraRendering>();
             var camera = _cameraPositioner.GetComponent<Camera>();
-            highwayRenderer.AddPlayerParams(transform.position, camera, 0, 0, 0);
+            highwayRenderer.AddPlayerParams(transform.position, camera, 0, 0, 0, 0, false);
 
             // Force update it as well to make sure it's right before any settings are changed
             OnSettingChanged();

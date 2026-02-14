@@ -10,6 +10,7 @@ using YARG.Core.Logging;
 using YARG.Core.Replays;
 using YARG.Gameplay.HUD;
 using YARG.Helpers.Extensions;
+using YARG.Helpers.UI;
 using YARG.Input;
 using YARG.Playback;
 using YARG.Player;
@@ -108,9 +109,20 @@ namespace YARG.Gameplay.Player
         {
             _replayInputs = new List<GameInput>();
 
-            InputViewer = FindObjectOfType<BaseInputViewer>();
+            // TODO: Couldn't there be more than one input viewer?
+            //  We were using FindObjectOfType<BaseInputViewer> before anyway, so we're no worse off in that respect
+            InputViewer = FindFirstObjectByType<BaseInputViewer>();
 
             IsFc = true;
+        }
+
+        private void Update()
+        {
+            //Ensure hud elements get repositioned on screen size change
+            if (ScreenSizeDetector.HasScreenSizeChanged)
+            {
+                UpdateVisuals(GameManager.VisualTime);
+            }
         }
 
         protected void Start()
@@ -164,12 +176,18 @@ namespace YARG.Gameplay.Player
                 return;
             }
 
-            UpdateInputs(GameManager.InputTime);
+            if (!GameManager.Rewinding)
+            {
+                UpdateInputs(GameManager.InputTime);
+            }
+
             UpdateVisuals(GameManager.VisualTime);
         }
 
         protected abstract void UpdateVisuals(double visualTime);
         protected abstract void ResetVisuals();
+        public abstract void Rewind(double visualTime);
+        public abstract void PostRewind(double visualTime);
 
         public virtual void ResetPracticeSection()
         {
@@ -299,7 +317,7 @@ namespace YARG.Gameplay.Player
                 return;
 
             // Ignore while paused
-            if (GameManager.Paused)
+            if (GameManager.Paused || GameManager.Rewinding)
             {
                 if (!ShouldUpdateInputsOnResume)
                 {

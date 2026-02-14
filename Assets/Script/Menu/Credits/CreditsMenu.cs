@@ -41,6 +41,10 @@ namespace YARG.Menu.Credits
         [SerializeField]
         private GameObject _headerPrefab;
         [SerializeField]
+        private GameObject _smallHeaderPrefab;
+        [SerializeField]
+        private GameObject _textPrefab;
+        [SerializeField]
         private CreditEntry _cardPrefab;
         [SerializeField]
         private SongCreditEntry _songCreditPrefab;
@@ -75,20 +79,16 @@ namespace YARG.Menu.Credits
             var json = File.ReadAllText(creditsFilePath);
             var contributors = JsonConvert.DeserializeObject<Contributor[]>(json);
 
-            CreateHeader("GameStartedBy");
-            CreateCredits(contributors
-                .Where(i => i.SpecialRole == "Founder")
-            );
-
             CreateHeader("ProjectManager");
             CreateCredits(contributors
                 .Where(i => i.SpecialRole == "ProjectManager")
             );
 
-            CreateHeader("LeadArtist");
-            CreateCredits(contributors
-                .Where(i => i.SpecialRole == "LeadArtist")
-            );
+            // We do not presently have a lead artist
+            // CreateHeader("LeadArtist");
+            // CreateCredits(contributors
+            //     .Where(i => i.SpecialRole == "LeadArtist")
+            // );
 
             CreateHeader("SetlistManager");
             CreateCredits(contributors
@@ -106,9 +106,18 @@ namespace YARG.Menu.Credits
             );
 
             CreateHeader("SpecialThanks");
+
+            CreateSmallHeader("Founder");
+            CreateCredits(contributors
+                .Where(i => i.SpecialRole == "Founder")
+            );
+
+            CreateSmallHeader("Supporters");
             CreateCredits(contributors
                 .Where(i => i.SpecialRole == "Supporter")
             );
+
+            CreateText("ExtraSpecialThanks");
 
             CreateHeader("Songs");
             CreateSongCredits();
@@ -136,6 +145,18 @@ namespace YARG.Menu.Credits
             header.GetComponent<TextMeshProUGUI>().text = Localize.Key("Menu.Credits.Header", unlocalizedName);
         }
 
+        private void CreateSmallHeader(string unlocalizedName)
+        {
+            var header = Instantiate(_smallHeaderPrefab, _creditsContainer);
+            header.GetComponent<TextMeshProUGUI>().text = Localize.Key("Menu.Credits.Header", unlocalizedName);
+        }
+
+        private void CreateText(string unlocalizedName)
+        {
+            var textObject = Instantiate(_textPrefab, _creditsContainer);
+            textObject.GetComponent<TextMeshProUGUI>().text = Localize.Key("Menu.Credits.Text", unlocalizedName);
+        }
+
         private void CreateCredits(IEnumerable<Contributor> contributors)
         {
             // The contributors file is kind of in a random order
@@ -150,22 +171,25 @@ namespace YARG.Menu.Credits
 
         private void CreateSongCredits()
         {
-            foreach (var song in SongContainer.Songs)
+            foreach (var artist in SongContainer.Artists.Keys)
             {
-                if (song.Source.ToString() is not ("yarg" or "yargdlc" or "yarn"))
+                foreach (var song in SongContainer.Artists[artist])
                 {
-                    continue;
-                }
+                    if (song.Source.ToString() is not ("yarg" or "yargdlc" or "yarn"))
+                    {
+                        continue;
+                    }
 
-                // If the song has any of these properties, then add it to the credits
-                if (!string.IsNullOrEmpty(song.CreditWrittenBy) ||
-                    !string.IsNullOrEmpty(song.CreditPerformedBy) ||
-                    !string.IsNullOrEmpty(song.CreditCourtesyOf) ||
-                    !string.IsNullOrEmpty(song.CreditAlbumArtDesignedBy) ||
-                    !string.IsNullOrEmpty(song.CreditLicense))
-                {
-                    var card = Instantiate(_songCreditPrefab, _creditsContainer);
-                    card.Initialize(song);
+                    // If the song has any of these properties, then add it to the credits
+                    if (!string.IsNullOrEmpty(song.CreditWrittenBy) ||
+                        !string.IsNullOrEmpty(song.CreditPerformedBy) ||
+                        !string.IsNullOrEmpty(song.CreditCourtesyOf) ||
+                        !string.IsNullOrEmpty(song.CreditAlbumArtDesignedBy) ||
+                        !string.IsNullOrEmpty(song.CreditLicense))
+                    {
+                        var card = Instantiate(_songCreditPrefab, _creditsContainer);
+                        card.Initialize(song);
+                    }
                 }
             }
         }

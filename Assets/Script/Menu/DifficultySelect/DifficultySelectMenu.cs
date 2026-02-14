@@ -84,6 +84,7 @@ namespace YARG.Menu.DifficultySelect
         private readonly List<Difficulty> _possibleDifficulties = new();
         private readonly List<Modifier>   _possibleModifiers    = new();
 
+        [NonSerialized]
         private Modifier _excusableModifiers;
 
         private int _maxHarmonyIndex = 3;
@@ -93,6 +94,8 @@ namespace YARG.Menu.DifficultySelect
         private List<SongEntry> _songList;
 
         private YargPlayer CurrentPlayer => PlayerContainer.Players[_playerIndex];
+
+        private Scrollbar _scrollbar;
 
         private void OnEnable()
         {
@@ -149,6 +152,37 @@ namespace YARG.Menu.DifficultySelect
 
             _sourceIcon.sprite = SongSources.SourceToIcon(GlobalVariables.State.CurrentSong.Source);
             _sourceIcon.gameObject.SetActive(_sourceIcon.sprite != null);
+
+
+            _scrollbar = GetComponentInChildren<Scrollbar>();
+            _navGroup.SelectionChanged += UpdateForSelectionChanged;
+        }
+
+        private void UpdateForSelectionChanged(NavigatableBehaviour navigatableBehaviour,
+            SelectionOrigin selectionOrigin)
+        {
+            if (!_scrollbar)
+            {
+                return;
+            }
+
+            int? index = _navGroup.SelectedIndex;
+            if (index is { } i)
+            {
+                int count = _navGroup.Count;
+                float highScrollBound = _scrollbar.size + (1 - _scrollbar.size) * _scrollbar.value;
+                float lowScrollBound = (1 - _scrollbar.size) * _scrollbar.value;
+                float indexHighBound = 1 - (1 / (float) count) * i;
+                float indexLowBound = 1 - (1 / (float) count) * (i + 1);
+                if (highScrollBound < indexHighBound)
+                {
+                    _scrollbar.value = (indexHighBound - _scrollbar.size) / (1 - _scrollbar.size);
+                }
+                else if (lowScrollBound > indexLowBound)
+                {
+                    _scrollbar.value = indexLowBound / (1 - _scrollbar.size);
+                }
+            }
         }
 
         private void UpdateForPlayer()
@@ -336,7 +370,17 @@ namespace YARG.Menu.DifficultySelect
                 bool selected = CurrentPlayer.Profile.CurrentInstrument == instrument;
                 CreateItem(instrument.ToLocalizedName(), selected, () =>
                 {
+                    var preferredInstrument = CurrentPlayer.Profile.PreferredInstrument;
                     CurrentPlayer.Profile.CurrentInstrument = instrument;
+
+                    // What we are doing here is resetting preferred instrument only if the current preferred instrument
+                    // was an option for this chart. This ensures that preferred instrument does not change when the
+                    // player is forced to use a different instrument.
+                    if (instrument != preferredInstrument && _possibleInstruments.Contains(preferredInstrument))
+                    {
+                        CurrentPlayer.Profile.PreferredInstrument = instrument;
+                    }
+
                     UpdatePossibleDifficulties();
                     UpdatePossibleModifiers();
 
@@ -396,6 +440,8 @@ namespace YARG.Menu.DifficultySelect
                 _menuState = State.Main;
                 UpdateForPlayer();
             });
+
+            _navGroup.SelectFirst();
         }
 
         private void CreateHarmonyMenu()
@@ -537,6 +583,12 @@ namespace YARG.Menu.DifficultySelect
                 {
                     _possibleInstruments.Add(instrument);
                 }
+            }
+
+            // If the player's preferred instrument is available, set CurrentInstrument to that
+            if (_possibleInstruments.Contains(profile.PreferredInstrument))
+            {
+                profile.CurrentInstrument = profile.PreferredInstrument;
             }
 
             // Set the instrument to a valid one

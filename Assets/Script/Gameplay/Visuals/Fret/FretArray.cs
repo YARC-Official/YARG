@@ -154,6 +154,11 @@ namespace YARG.Gameplay.Visuals
             _frets[index].SetPressed(pressed);
         }
 
+        public void SetPressedDrum(int index, bool pressed, Fret.AnimType animType)
+        {
+            _frets[index].SetPressedDrum(pressed, animType);
+        }
+
         public void SetSustained(int index, bool sustained)
         {
             _frets[index].SetSustained(sustained);
@@ -211,6 +216,18 @@ namespace YARG.Gameplay.Visuals
             foreach (var fret in _frets)
             {
                 fret.SetSustained(false);
+            }
+        }
+
+        public void UpdateAccentColorState(int fretIndex, bool shouldWhiten)
+        {
+            if (shouldWhiten)
+            {
+                _frets[fretIndex].WhitenFretColor();
+            }
+            else
+            {
+                _frets[fretIndex].RestoreFretColor();
             }
         }
 

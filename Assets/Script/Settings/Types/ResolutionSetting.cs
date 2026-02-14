@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq;
 using UnityEngine;
 using YARG.Helpers;
 using YARG.Localization;
@@ -37,7 +36,8 @@ namespace YARG.Settings.Types
                 var v2 = value.Value;
                 return v1.height == v2.height &&
                     v1.width == v2.width &&
-                    v1.refreshRate == v2.refreshRate;
+                    v1.refreshRateRatio.numerator == v2.refreshRateRatio.numerator &&
+                    v1.refreshRateRatio.denominator == v2.refreshRateRatio.denominator;
             }
 
             return value.HasValue == Value.HasValue;
@@ -53,9 +53,28 @@ namespace YARG.Settings.Types
 
         public override string ValueToString(Resolution? value)
         {
-            return value?.ToString() ?? Localize.KeyFormat(
-                "Settings.Setting.Resolution.Default", ScreenHelper.GetScreenResolution()
-            );
+            Resolution resolution;
+            bool isDefault = value == null;
+
+            // Newer unity doesn't format the Resolution string so nicely, so we have to do it ourselves
+            if (isDefault)
+            {
+                resolution = ScreenHelper.GetScreenResolution();
+            }
+            else
+            {
+                resolution = value.Value;
+            }
+
+            var refresh = resolution.refreshRateRatio.value;
+            var resolutionString = $"{resolution.width} x {resolution.height} @ {refresh:0.##}Hz";
+
+            if (isDefault)
+            {
+                return Localize.KeyFormat("Settings.Setting.Resolution.Default", resolutionString);
+            }
+
+            return resolutionString;
         }
     }
 }

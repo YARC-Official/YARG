@@ -210,11 +210,11 @@ namespace YARG.Gameplay.Visuals
 
             foreach (var syllable in _syllables)
             {
-                if (GameManager.SongTime < syllable.Time)
+                if (GameManager.VisualTime < syllable.Time)
                 {
                     BuilderAppendWithColorTag(syllable.Text, syllable.IsStarpower ? FUTURE_STAR_POWER_LYRIC_COLOR_TAG : FUTURE_LYRIC_COLOR_TAG);
                 }
-                else if (syllable.Time <= GameManager.SongTime && GameManager.SongTime < syllable.TimeEnd)
+                else if (syllable.Time <= GameManager.VisualTime && GameManager.VisualTime < syllable.TimeEnd)
                 {
                     BuilderAppendWithColorTag(syllable.Text, PRESENT_LYRIC_COLOR_TAG);
                 }

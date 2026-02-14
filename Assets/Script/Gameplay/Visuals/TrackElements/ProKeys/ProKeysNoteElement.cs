@@ -142,7 +142,7 @@ namespace YARG.Gameplay.Visuals
 
         private void UpdateSustain()
         {
-            _sustainLine.UpdateSustainLine(Player.NoteSpeed * GameManager.SongSpeed);
+            _sustainLine.UpdateSustainLine();
         }
 
         private void UpdateColor()
@@ -163,8 +163,11 @@ namespace YARG.Gameplay.Visuals
                 ? colorStarPower
                 : colorNoStarPower;
 
-            NoteGroup.SetColorWithEmission(color, colorNoStarPower);
-            NoteGroup.SetMetalColor(colors.GetMetalColor(IsStarPowerVisible).ToUnityColor());
+            if (!NoteRef.WasHit)
+            {
+                NoteGroup.SetColorWithEmission(color, colorNoStarPower);
+                NoteGroup.SetMetalColor(colors.GetMetalColor(IsStarPowerVisible).ToUnityColor());
+            }
 
             if (!NoteRef.IsSustain) return;
 

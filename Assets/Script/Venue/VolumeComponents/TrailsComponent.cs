@@ -5,7 +5,8 @@ using UnityEngine.Rendering.Universal;
 namespace YARG.Venue.VolumeComponents
 {
     [Serializable]
-    [VolumeComponentMenuForRenderPipeline("Venue/Trails", typeof(UniversalRenderPipeline))]
+    [VolumeComponentMenu("Venue/Trails")]
+    [SupportedOnRenderPipeline(typeof(UniversalRenderPipelineAsset))]
     public class TrailsComponent : VolumeComponent, IPostProcessComponent
     {
         public ClampedFloatParameter length = new(0.5f, 0.35f, 0.85f);

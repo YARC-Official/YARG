@@ -39,6 +39,8 @@ namespace YARG.Scores
         private static bool HighestDifficultyOnly
             => SettingsManager.Settings.HighScoreHistory.Value == HighScoreHistoryMode.HighestDifficulty;
 
+        private static bool AllowScoresWithBots => SettingsManager.Settings.SaveScoresWithBots.Value;
+
         public static void Init()
         {
             ScoreDirectory = Path.Combine(PathHelper.PersistentDataPath, "scores");
@@ -86,13 +88,18 @@ namespace YARG.Scores
 
         public static bool IsBandScoreValid(float songSpeed)
         {
-            if (!PlayerContainer.Players.Any())
+            var activePlayers = PlayerContainer.Players.Where(p => !p.SittingOut).ToList();
+            var humans = activePlayers.Where(p => !p.Profile.IsBot).ToList();
+            var hasBots = activePlayers.Count > humans.Count;
+            var hasHumans = humans.Count > 0;
+            var allHumanScoresValid = hasHumans && humans.All(player => IsSoloScoreValid(songSpeed, player));
+
+            if (!allHumanScoresValid)
             {
                 return false;
             }
 
-            // If any player is disqualified from a valid Solo Score, this should disqualify the Band Score as well.
-            if (PlayerContainer.Players.Any(e => !e.SittingOut && !IsSoloScoreValid(songSpeed, e)))
+            if (!AllowScoresWithBots && hasBots)
             {
                 return false;
             }

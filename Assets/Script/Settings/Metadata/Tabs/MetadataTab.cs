@@ -13,15 +13,9 @@ namespace YARG.Settings.Metadata
     public class MetadataTab : Tab, IEnumerable<AbstractMetadata>
     {
         // Prefabs needed for this tab type
-        private static readonly GameObject _headerPrefab = Addressables
-            .LoadAssetAsync<GameObject>("SettingTab/Header")
-            .WaitForCompletion();
-        private static readonly GameObject _buttonPrefab = Addressables
-            .LoadAssetAsync<GameObject>("SettingTab/Button")
-            .WaitForCompletion();
-        private static readonly GameObject _textPrefab = Addressables
-            .LoadAssetAsync<GameObject>("SettingTab/Text")
-            .WaitForCompletion();
+        private static GameObject _headerPrefab;
+        private static GameObject _buttonPrefab;
+        private static GameObject _textPrefab;
 
         private Dictionary<string, BaseSettingVisual> _settingVisuals = new();
         private readonly List<AbstractMetadata> _settings = new();
@@ -45,6 +39,12 @@ namespace YARG.Settings.Metadata
                 {
                     case HeaderMetadata header:
                     {
+                        if (_headerPrefab == null)
+                        {
+                            _headerPrefab = Addressables
+                                .LoadAssetAsync<GameObject>("SettingTab/Header")
+                                .WaitForCompletion();
+                        }
                         // Spawn in the header
                         var go = Object.Instantiate(_headerPrefab, container);
 
@@ -57,6 +57,12 @@ namespace YARG.Settings.Metadata
                     }
                     case ButtonRowMetadata buttonRow:
                     {
+                        if (_buttonPrefab == null)
+                        {
+                            _buttonPrefab = Addressables
+                                .LoadAssetAsync<GameObject>("SettingTab/Button")
+                                .WaitForCompletion();
+                        }
                         // Spawn the button
                         var go = Object.Instantiate(_buttonPrefab, container);
 
@@ -68,6 +74,12 @@ namespace YARG.Settings.Metadata
                     }
                     case TextMetadata text:
                     {
+                        if (_textPrefab == null)
+                        {
+                            _textPrefab = Addressables
+                                .LoadAssetAsync<GameObject>("SettingTab/Text")
+                                .WaitForCompletion();
+                        }
                         // Spawn in the header
                         var go = Object.Instantiate(_textPrefab, container);
 

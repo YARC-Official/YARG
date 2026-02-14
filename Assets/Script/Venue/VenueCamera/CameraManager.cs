@@ -1,17 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
-using Cysharp.Threading.Tasks;
 using UnityEngine;
-using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
-using UnityEngine.UI;
 using YARG.Core.Chart;
-using YARG.Core.Extensions;
 using YARG.Core.Logging;
 using YARG.Gameplay;
 using YARG.Helpers.Extensions;
+using YARG.Playback;
 using YARG.Settings;
 using YARG.Venue.VolumeComponents;
 using Random = UnityEngine.Random;
@@ -60,6 +56,8 @@ namespace YARG.Venue.VenueCamera
             Front,
             Behind
         }
+
+        public CameraCutEvent CurrentCut { get; private set; }
 
         private readonly HashSet<CameraLocation> _validLocations = new();
 
@@ -112,9 +110,13 @@ namespace YARG.Venue.VenueCamera
         private List<Camera> _frontCameras = new();
         private List<Camera> _behindCameras = new();
 
+        private bool _useCameraTimer;
+
         private float _cameraTimer;
         private int   _cameraIndex;
         private bool  _volumeSet;
+
+        private bool _isPostProcessingEnabled;
 
         protected override void OnChartLoaded(SongChart chart)
         {
@@ -201,11 +203,25 @@ namespace YARG.Venue.VenueCamera
             // Make up a PostProcessingEvent of type default to start us off
             var firstEffect = new PostProcessingEvent(PostProcessingType.Default, -2f, 0);
             CurrentEffect = firstEffect;
+            PreviousEffect = firstEffect;
+
+            if (_cameraCuts.Count > 0)
+            {
+                CurrentCut = _cameraCuts[0];
+            }
 
             InitializePostProcessing();
             InitializeVolume();
 
-            SwitchCamera(_currentCamera, _cameraCuts.Count < 1);
+            _useCameraTimer = _cameraCuts.Count < 1;
+
+            SwitchCamera(_currentCamera, _useCameraTimer);
+
+            if (_useCameraTimer)
+            {
+                // Subscribe to beat handler for camera cut timing
+                GameManager.BeatEventHandler?.Audio.Subscribe(BeatHandler, BeatEventType.StrongBeat);
+            }
 
             GameManager.SetVenueCameraManager(this);
         }
@@ -255,16 +271,31 @@ namespace YARG.Venue.VenueCamera
             while (_currentCutIndex < _cameraCuts.Count && _cameraCuts[_currentCutIndex].Time <= GameManager.VisualTime)
             {
                 var cut = _cameraCuts[_currentCutIndex];
-                if (GameManager.VisualTime >= cut.Time && GameManager.VisualTime <= cut.TimeEnd)
+                if (GameManager.VisualTime >= cut.Time)
                 {
+                    CurrentCut = cut;
                     SwitchCamera(MapSubjectToValidCamera(cut));
                 }
 
                 _currentCutIndex++;
             }
 
+            if (!_useCameraTimer)
+            {
+                return;
+            }
+
             // Update the camera timer
             _cameraTimer -= Time.deltaTime;
+        }
+
+        private void BeatHandler()
+        {
+            if (!_useCameraTimer)
+            {
+                return;
+            }
+
             if (_cameraTimer <= 0f)
             {
                 YargLogger.LogDebug("Changing camera due to timer expiry");
@@ -310,7 +341,7 @@ namespace YARG.Venue.VenueCamera
 
         private float GetRandomCameraTimer()
         {
-            return Random.Range(3f, 8f);
+            return Random.Range(1f, 4f);
         }
 
         private Camera GetRandomCamera()
@@ -487,8 +518,17 @@ namespace YARG.Venue.VenueCamera
 
         protected override void GameplayDestroy()
         {
+            // These need to be explicitly released
+            _invertCurveParam.Release();
+            _defaultCurveParam.Release();
+            _brightCurveParam.Release();
+            _copierCurveParam.Release();
+
             // Enable the camera in case it happens to be disabled
             _currentCamera.enabled = true;
+
+            SettingsManager.Settings.VenuePostProcessing.OnChange -= SetPostProcessingEnabled;
+            GameManager.BeatEventHandler?.Audio.Unsubscribe(BeatHandler);
             base.GameplayDestroy();
         }
 

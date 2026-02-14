@@ -20,6 +20,7 @@ namespace YARG.Menu
 
         public TextMeshProUGUI Text => _text;
 
+        private Color _originalBackgroundColor;
         private Color _backgroundColor;
         public Color BackgroundColor
         {
@@ -35,6 +36,15 @@ namespace YARG.Menu
             }
         }
 
+        private void OnEnable()
+        {
+            // Save the original color of the first image
+            if (_backgroundImages.Length > 0)
+            {
+                _originalBackgroundColor = _backgroundImages[0].color;
+            }
+        }
+
         public Button.ButtonClickedEvent OnClick => _button.onClick;
         public Action<ColoredButton> PointerEnter, PointerExit;
 
@@ -46,6 +56,24 @@ namespace YARG.Menu
         {
             BackgroundColor = background;
             _text.color = MenuData.Colors.GetBestTextColor(background);
+        }
+
+        /// <summary>
+        /// Disables the button and sets the background color to gray to denote this
+        /// </summary>
+        public void DisableButton()
+        {
+            _button.interactable = false;
+            SetBackgroundAndTextColor(Color.gray);
+        }
+
+        /// <summary>
+        /// Enables the button and sets the background color to the original color
+        /// </summary>
+        public void EnableButton()
+        {
+            _button.interactable = true;
+            SetBackgroundAndTextColor(_originalBackgroundColor);
         }
 
         /// <summary>

@@ -61,7 +61,7 @@ namespace YARG.Venue
 
         private void Start()
         {
-            _lightManager = FindObjectOfType<LightManager>();
+            _lightManager = FindFirstObjectByType<LightManager>();
             _light = GetComponent<Light>();
 
             _defaultRotation = transform.rotation;

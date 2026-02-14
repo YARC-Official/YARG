@@ -4,6 +4,22 @@ namespace YARG.Helpers.Extensions
 {
     public static class TransformExtensions
     {
+        /// <summary>
+        /// Converts a screen-space point to a local-space point within this rectangle transform.
+        /// </summary>
+        /// <param name="rect">The target <see cref="RectTransform"/> to convert into.</param>
+        /// <param name="screenPoint">The screen-space point to convert.</param>
+        /// <param name="cam">The camera associated with the screen point, or <see langword="null"/> for overlay canvases.</param>
+        /// <returns>
+        /// The converted local-space point if successful; otherwise, <see langword="null"/>.
+        /// </returns>
+        public static Vector2? ScreenPointToLocalPoint(this RectTransform rect, Vector2 screenPoint, Camera cam = null)
+        {
+            return RectTransformUtility.ScreenPointToLocalPointInRectangle(rect, screenPoint, cam, out var localPoint)
+                ? localPoint
+                : null;
+        }
+
         /// <param name="transform">The <see cref="RectTransform"/> to convert to screen space.</param>
         /// <returns>
         /// A <see cref="Rect"/> representing the screen space of the specified <see cref="RectTransform"/>.

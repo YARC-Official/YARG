@@ -6,6 +6,7 @@ using UnityEngine;
 using UnityEngine.InputSystem.LowLevel;
 using YARG.Assets.Script.Gameplay.Player;
 using YARG.Core.Audio;
+using YARG.Core.Chart;
 using YARG.Core.Extensions;
 using YARG.Gameplay.Player;
 using YARG.Integration;
@@ -324,6 +325,9 @@ namespace YARG.Gameplay
                 text.AppendFormat("- Star Power activation count: {0}\n", stats.StarPowerActivationCount);
                 text.AppendFormat("- Total Star Power bars filled: {0:0.000000}\n", stats.TotalStarPowerBarsFilled);
                 text.AppendFormat("- Total time in Star Power: {0:0.000000}\n", stats.TimeInStarPower);
+                text.AppendLine();
+                text.AppendLine("Player Judgement stats:");
+                text.AppendFormat("- Average Offset: {0:0.00} ms", stats.GetAverageOffset() * 1000);
 
                 GUILayout.Label(text.AsSpan().TrimEnd('\n').ToString());
             }
@@ -405,6 +409,7 @@ namespace YARG.Gameplay
                         text.AppendFormat("- Ticks hit: {0}\n", stats.TicksHit);
                         text.AppendFormat("- Ticks missed: {0}\n", stats.TicksMissed);
                         text.AppendFormat("- Total ticks so far: {0}\n", stats.TotalTicks);
+                        text.AppendFormat("- Has Note Carry: {0}\n", stats.HasCarryNote);
 
                         GUILayout.Label(text.AsSpan().TrimEnd('\n').ToString());
                         break;
@@ -649,37 +654,94 @@ namespace YARG.Gameplay
             GUILayout.EndVertical();
         }
 
+        private Vector2 _debugVenueScroll;
         private Vector2 _debugLightingScroll;
+        private Vector2 _debugRenderingScroll;
+        private Vector2 _debugCameraScroll;
+        private Vector2 _debugCrowdScroll;
 
         private void VenueDebug()
         {
-            using (DebugScrollView.Begin("Lighting", VerticalGroupStyle,
-                ref _debugLightingScroll, GUILayout.Height(50 * _debugGuiScale)))
+            using (DebugScrollView.Begin(ref _debugVenueScroll, GUILayout.Width(150 * _debugGuiScale), GUILayout.Height(250 * _debugGuiScale)))
             {
-                using var text = ZString.CreateStringBuilder(true);
+                using (DebugVerticalArea.Begin("Rendering", VerticalGroupStyle))
+                {
+                    using var text = ZString.CreateStringBuilder(true);
 
-                text.AppendFormat("Target Venue FPS: {0:00}\n", VenueCameraRenderer.TargetFPS);
-                text.AppendFormat("Actual Venue FPS: {0:00}\n", VenueCameraRenderer.ActualFPS);
+                    text.AppendFormat("Target Venue FPS: {0:00}\n", VenueCameraRenderer.TargetFPS);
+                    text.AppendFormat("Actual Venue FPS: {0:00}\n", VenueCameraRenderer.ActualFPS);
 
-                text.AppendFormat("Lighting index: {0:000}/{1:000}\n",
-                    MasterLightingGameplayMonitor.LightingIndex,
-                    MasterLightingGameplayMonitor.Venue.Lighting.Count
-                );
+                    GUILayout.Label(text.AsSpan().TrimEnd('\n').ToString());
+                }
 
-                // Explicit check instead of using ?, as nullable enum types are not specially
-                // formatted by ZString to avoid allocations (while non-nullable enums are)
-                if (MasterLightingController.CurrentLightingCue != null)
-                    text.AppendFormat("Lighting event: {0}\n", MasterLightingController.CurrentLightingCue.Type);
-                else
-                    text.Append("Lighting event: None\n");
+                using (DebugVerticalArea.Begin("Lighting", VerticalGroupStyle))
+                {
+                    using var text = ZString.CreateStringBuilder(true);
+
+                    text.AppendFormat("Lighting index: {0:000}/{1:000}\n",
+                        MasterLightingGameplayMonitor.LightingIndex,
+                        MasterLightingGameplayMonitor.Venue.Lighting.Count
+                    );
+
+                    // Explicit check instead of using ?, as nullable enum types are not specially
+                    // formatted by ZString to avoid allocations (while non-nullable enums are)
+                    if (MasterLightingController.CurrentLightingCue != null)
+                        text.AppendFormat("Lighting event: {0}\n", MasterLightingController.CurrentLightingCue.Type);
+                    else
+                        text.Append("Lighting event: None\n");
+
+                    GUILayout.Label(text.AsSpan().TrimEnd('\n').ToString());
+                }
+
+                if (VenueCameraManager != null)
+                {
+                    using (DebugVerticalArea.Begin("Camera", VerticalGroupStyle))
+                    {
+                        var cut = VenueCameraManager.CurrentCut;
+                        using var text = ZString.CreateStringBuilder(true);
+                        if (cut != null)
+                        {
+                            text.AppendFormat("Camera Subject: {0}\n", cut.Subject);
+                            text.Append("Eligible Subjects: ");
+                            if (cut.Subject == CameraCutEvent.CameraCutSubject.Random)
+                            {
+                                if (cut.RandomChoices.Count > 0)
+                                {
+                                    text.AppendJoin(", ", cut.RandomChoices);
+                                }
+                                else
+                                {
+                                    text.Append("Any");
+                                }
+                            }
+                            else
+                            {
+                                text.Append("n/a");
+                            }
+
+                            text.Append("\n");
+                        }
+                        else
+                        {
+                            text.Append("Camera Subject: null\n");
+                            text.Append("Eligible Subjects: n/a\n");
+                        }
+
+                        text.AppendFormat("Post-Processing Effect: {0}\n", VenueCameraManager.CurrentEffect.Type);
+                        GUILayout.Label(text.AsSpan().TrimEnd('\n').ToString());
+                    }
+                }
 
                 if (CrowdEventHandler != null)
                 {
-                    text.AppendFormat("Clap state: {0}\n", CrowdEventHandler.ClapState);
-                    text.AppendFormat("Crowd state: {0}\n", CrowdEventHandler.CrowdState);
+                    using (DebugVerticalArea.Begin("Crowd", VerticalGroupStyle))
+                    {
+                        using var text = ZString.CreateStringBuilder(true);
+                        text.AppendFormat("Clap state: {0}\n", CrowdEventHandler.ClapState);
+                        text.AppendFormat("Crowd state: {0}\n", CrowdEventHandler.CrowdState);
+                        GUILayout.Label(text.AsSpan().TrimEnd('\n').ToString());
+                    }
                 }
-
-                GUILayout.Label(text.AsSpan().TrimEnd('\n').ToString());
             }
         }
     }

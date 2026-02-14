@@ -7,6 +7,7 @@ using ManagedBass.Mix;
 using UnityEngine;
 using YARG.Core.Audio;
 using YARG.Core.Logging;
+using YARG.Menu.Persistent;
 using YARG.Settings;
 
 #if UNITY_EDITOR
@@ -21,11 +22,10 @@ namespace YARG.Audio.BASS
         public static StreamHandle? Create(int sourceStream, int[] indices)
         {
             const BassFlags splitFlags = BassFlags.Decode | BassFlags.SplitPosition;
-            const BassFlags tempoFlags = BassFlags.SampleOverrideLowestVolume | BassFlags.Decode | BassFlags.FxFreeSource;
 
             int[]? channelMap = null;
 #nullable disable
-            if (indices != null)
+            if (indices.Length > 0)
             {
                 channelMap = new int[indices.Length + 1];
                 for (int i = 0; i < indices.Length; ++i)
@@ -41,11 +41,11 @@ namespace YARG.Audio.BASS
                 YargLogger.LogFormatError("Failed to create split stream: {0}!", Bass.LastError);
                 return null;
             }
-            return new StreamHandle(BassFx.TempoCreate(streamSplit, tempoFlags));
+            return new StreamHandle(streamSplit);
         }
 
-        private bool _disposed;
-        public readonly int Stream;
+        private          bool _disposed;
+        public readonly  int  Stream;
 
         public int CompressorFX;
         public int PitchFX;
@@ -95,6 +95,7 @@ namespace YARG.Audio.BASS
         protected override ReadOnlySpan<string> SupportedFormats => FORMATS;
 
         private readonly int _opusHandle = 0;
+        private BassOutputDevice _currentDevice;
 
         public BassAudioManager()
         {
@@ -145,19 +146,24 @@ namespace YARG.Audio.BASS
                 Bass.Free();
             }
 #endif
-            if (!Bass.Init(-1, 44100, DeviceInitFlags.Default | DeviceInitFlags.Latency, IntPtr.Zero))
+
+            var result = SetOutputDevice("Default");
+
+            if (!result)
             {
                 var error = Bass.LastError;
-                if (error == Errors.Already)
-                    YargLogger.LogError("BASS is already initialized! An error has occurred somewhere and Unity must be restarted!");
-                else
-                    YargLogger.LogFormatError("Failed to initialize BASS: {0}!", error);
+                YargLogger.LogFormatError("BASS Initialization Failure: Failed to set default output device: {0}", error);
+
+#if UNITY_STANDALONE_LINUX
+                // Driver seems to be what we get when ALSA isn't available
+                if (error == Errors.Driver)
+                {
+                    YargLogger.LogError("Failed to set default output device. This is likely due to a missing ALSA plugin. Install pipewire-alsa or equivalent.");
+                    ToastManager.ToastError("Failed to initialize audio device. Make sure you have pipewire-alsa or equivalent installed.");
+                }
+#endif
                 return;
             }
-
-            LoadSfx();
-            LoadDrumSfx(); // TODO: move drum sfx loading/disposal to song start/end respectively IF there are any drum players
-            LoadVox();
 
             var info = Bass.Info;
             PlaybackLatency = info.Latency + Bass.DeviceBufferLength + devPeriod;
@@ -168,11 +174,40 @@ namespace YARG.Audio.BASS
             YargLogger.LogFormatInfo("BASS: {0} - BASS.FX: {1} - BASS.Mix: {2}", Bass.Version, BassFx.Version, BassMix.Version);
             YargLogger.LogFormatInfo("Update Period: {0}ms. Device Buffer Length: {1}ms. Playback Buffer Length: {2}ms. Device Playback Latency: {3}ms",
                 Bass.UpdatePeriod, Bass.DeviceBufferLength, Bass.PlaybackBufferLength, PlaybackLatency);
+
             YargLogger.LogFormatInfo("Current Device: {0}", Bass.GetDeviceInfo(Bass.CurrentDevice).Name);
         }
 
+        protected override bool SetOutputDevice(string name)
+        {
+            int currentDevice = Bass.CurrentDevice;
+
+            OutputDevice? device = GetOutputDevice(name);
+            if (device is not BassOutputDevice bassDevice || bassDevice.DeviceId == currentDevice)
+            {
+                return false;
+            }
+
+            YargLogger.LogFormatInfo("Changing BASS Device to: {0}", bassDevice.DisplayName);
+
+            base.SetOutputDevice(bassDevice.DisplayName);
+
+            _currentDevice?.Dispose();
+            _currentDevice = bassDevice.Use();
+
+            YargLogger.LogFormatInfo("Current BASS Device: {0}", Bass.GetDeviceInfo(Bass.CurrentDevice).Name);
+
+            // Load/reload samples
+            LoadSfx();
+            LoadDrumSfx(); // TODO: move drum sfx loading/disposal to song start/end respectively IF there are any drum players
+            LoadVox();
+            LoadMetronome();
+
+            return true;
+        }
+
 #nullable enable
-        protected override StemMixer? CreateMixer(string name, float speed, double mixerVolume, bool clampStemVolume)
+        protected override StemMixer? CreateMixer(string name, float speed, double mixerVolume, bool clampStemVolume, bool normalize)
         {
             if (GlobalAudioHandler.LogMixerStatus)
             {
@@ -183,7 +218,8 @@ namespace YARG.Audio.BASS
             {
                 return null;
             }
-            return new BassStemMixer(name, this, speed, mixerVolume, handle, clampStemVolume);
+            return new BassStemMixer(name, this, speed, mixerVolume, handle, clampStemVolume, normalize,
+                CreateOutputChannel(SettingsManager.Settings?.OutputChannelDefault.Value ?? 0));
         }
 
         protected override MicDevice? GetInputDevice(string name)
@@ -191,18 +227,28 @@ namespace YARG.Audio.BASS
             for (int deviceIndex = 0; Bass.RecordGetDeviceInfo(deviceIndex, out var info); deviceIndex++)
             {
                 // Ignore disabled/claimed devices
-                if (!info.IsEnabled || info.IsInitialized) continue;
+                if (!info.IsEnabled || info.IsInitialized)
+                {
+                    continue;
+                }
 
                 // Ignore loopback devices, they're potentially confusing and can cause feedback loops
-                if (info.IsLoopback) continue;
+                if (info.IsLoopback)
+                {
+                    continue;
+                }
 
                 // Check if type is in whitelist
                 // The "Default" device is also excluded here since we want the user to explicitly pick which microphone to use
                 // if (!typeWhitelist.Contains(info.Type) || info.Name == "Default") continue;
-                if (info.Name == "Default" || info.Name != name) continue;
+                if (info.Name == "Default" || info.Name != name)
+                {
+                    continue;
+                }
 
-                return CreateDevice(deviceIndex, name);
+                return CreateInputDevice(deviceIndex, name);
             }
+
             return null;
         }
 #nullable disable
@@ -226,15 +272,24 @@ namespace YARG.Audio.BASS
             for (int deviceIndex = 0; Bass.RecordGetDeviceInfo(deviceIndex, out var info); deviceIndex++)
             {
                 // Ignore disabled/claimed devices
-                if (!info.IsEnabled || info.IsInitialized) continue;
+                if (!info.IsEnabled || info.IsInitialized)
+                {
+                    continue;
+                }
 
                 // Ignore loopback devices, they're potentially confusing and can cause feedback loops
-                if (info.IsLoopback) continue;
+                if (info.IsLoopback)
+                {
+                    continue;
+                }
 
                 // Check if type is in whitelist
                 // The "Default" device is also excluded here since we want the user to explicitly pick which microphone to use
                 // if (!typeWhitelist.Contains(info.Type) || info.Name == "Default") continue;
-                if (info.Name == "Default") continue;
+                if (info.Name == "Default")
+                {
+                    continue;
+                }
 
                 mics.Add((deviceIndex, info.Name));
             }
@@ -243,7 +298,7 @@ namespace YARG.Audio.BASS
         }
 
 #nullable enable
-        protected override MicDevice? CreateDevice(int deviceId, string name)
+        protected override MicDevice? CreateInputDevice(int deviceId, string name)
 #nullable disable
         {
             var device = BassMicDevice.Create(deviceId, name);
@@ -251,9 +306,91 @@ namespace YARG.Audio.BASS
             return device;
         }
 
+#nullable enable
+        protected override OutputChannel? CreateOutputChannel(int channelId)
+#nullable disable
+        {
+            return BassOutputChannel.Create(channelId);
+        }
+
+#nullable enable
+        protected override OutputDevice? CreateOutputDevice(int deviceId, string name)
+#nullable disable
+        {
+            return BassOutputDevice.Create(deviceId, name);
+        }
+
+        protected override List<(int id, string name)> GetAllOutputDevices()
+        {
+            var devices = new List<(int id, string name)>();
+
+            for (int deviceIndex = 1; Bass.GetDeviceInfo(deviceIndex, out var info); deviceIndex++)
+            {
+                // Ignore disabled devices
+                if (!info.IsEnabled)
+                {
+                    continue;
+                }
+
+                // Ignore loopback devices, they're potentially confusing and can cause feedback loops
+                if (info.IsLoopback)
+                {
+                    continue;
+                }
+
+                devices.Add((deviceIndex, info.Name));
+            }
+
+            return devices;
+        }
+
+        protected override int GetOutputChannelCount()
+        {
+            return BassHelpers.GetOutputChannelCount();
+        }
+
+#nullable enable
+        protected override OutputDevice? GetOutputDevice(string name)
+#nullable disable
+        {
+            for (int deviceIndex = 0; Bass.GetDeviceInfo(deviceIndex, out var info); deviceIndex++)
+            {
+                // Ignore disabled devices
+                if (!info.IsEnabled)
+                {
+                    continue;
+                }
+
+                // Ignore loopback devices, they're potentially confusing and can cause feedback loops
+                if (info.IsLoopback)
+                {
+                    continue;
+                }
+
+                // Ensure device names match
+                if (info.Name != name)
+                {
+                    continue;
+                }
+
+                return CreateOutputDevice(deviceIndex, name);
+            }
+
+            return null;
+        }
+
         private void LoadSfx()
         {
             YargLogger.LogInfo("Loading SFX");
+
+#nullable enable
+            foreach (BassSampleChannel? sample in SfxSamples)
+#nullable disable
+            {
+                sample?.Dispose();
+            }
+
+            SfxSamples = new SampleChannel[AudioHelpers.SfxSamples.Count];
 
             string sfxFolder = Path.Combine(Application.streamingAssetsPath, "sfx");
 
@@ -267,7 +404,8 @@ namespace YARG.Audio.BASS
                     if (File.Exists(sfxPath))
                     {
                         var sfxSample = sample.Kind;
-                        var sfx = BassSampleChannel.Create(sfxSample, sfxPath, 8, sample.CanLoop);
+                        var sfx = BassSampleChannel.Create(sfxSample, sfxPath, 8,
+                            CreateOutputChannel(SettingsManager.Settings?.OutputChannelSfx.Value ?? 0), sample.CanLoop);
                         if (sfx != null)
                         {
                             SfxSamples[(int) sfxSample] = sfx;
@@ -285,6 +423,15 @@ namespace YARG.Audio.BASS
         {
             YargLogger.LogInfo("Loading Drum SFX");
 
+#nullable enable
+            foreach (BassDrumSampleChannel? sample in DrumSfxSamples)
+#nullable disable
+            {
+                sample?.Dispose();
+            }
+
+            DrumSfxSamples = new DrumSampleChannel[AudioHelpers.DrumSamples.Count];
+
             string sfxFolder = Path.Combine(Application.streamingAssetsPath, "drumSfx");
 
             foreach (var sample in AudioHelpers.DrumSamples)
@@ -296,7 +443,8 @@ namespace YARG.Audio.BASS
                     if (File.Exists(sfxPath))
                     {
                         var sfxSample = sample.Kind;
-                        var sfx = BassDrumSampleChannel.Create(sfxSample, sfxPath, 8);
+                        var sfx = BassDrumSampleChannel.Create(sfxSample, sfxPath, 8,
+                            CreateOutputChannel(SettingsManager.Settings?.OutputChannelDrumSfx.Value ?? 0));
                         if (sfx != null)
                         {
                             DrumSfxSamples[(int) sfxSample] = sfx;
@@ -312,6 +460,16 @@ namespace YARG.Audio.BASS
         private void LoadVox()
         {
             YargLogger.LogInfo("Loading VOX");
+
+#nullable enable
+            foreach (BassVoxSampleChannel? sample in VoxSamples)
+#nullable disable
+            {
+                sample?.Dispose();
+            }
+
+            VoxSamples = new VoxSampleChannel[AudioHelpers.VoxSamples.Count];
+
             string voxFolder = Path.Combine(Application.streamingAssetsPath, "vox");
 
             foreach (var sample in AudioHelpers.VoxSamples)
@@ -323,7 +481,8 @@ namespace YARG.Audio.BASS
                     if (File.Exists(voxPath))
                     {
                         var voxSample = sample.Kind;
-                        var vox = BassVoxSampleChannel.Create(voxSample, voxPath);
+                        var vox = BassVoxSampleChannel.Create(voxSample, voxPath,
+                            CreateOutputChannel(SettingsManager.Settings?.OutputChannelVox.Value ?? 0));
 
                         if (vox != null)
                         {
@@ -336,6 +495,57 @@ namespace YARG.Audio.BASS
             }
 
             YargLogger.LogInfo("Finished loading VOX");
+        }
+
+        private void LoadMetronome()
+        {
+            YargLogger.LogInfo("Loading Metronome");
+
+#nullable enable
+            foreach (BassMetronomeSampleChannel? sample in MetronomeSamples)
+#nullable disable
+            {
+                sample?.Dispose();
+            }
+
+            MetronomeSamples = new MetronomeSampleChannel[AudioHelpers.MetronomeSamples.Count];
+
+            string metronomeFolder = Path.Combine(Application.streamingAssetsPath, "metronome");
+
+            foreach (var sample in AudioHelpers.MetronomeSamples)
+            {
+                string metronomeHi = Path.Combine(metronomeFolder, sample.File);
+                string metronomeLo = Path.Combine(metronomeFolder, sample.AlternateFile);
+
+                string metronomeHiPath = "";
+                string metronomeLoPath = "";
+
+                foreach (string format in SupportedFormats)
+                {
+                    if (File.Exists(metronomeHi + format))
+                    {
+                        metronomeHiPath = metronomeHi + format;
+                    }
+
+                    if (File.Exists(metronomeLo + format))
+                    {
+                        metronomeLoPath = metronomeLo + format;
+                    }
+                }
+
+                if (!String.IsNullOrEmpty(metronomeHiPath) && !String.IsNullOrEmpty(metronomeLoPath))
+                {
+                    var metronomeSample = sample.Kind;
+                    var metronome = BassMetronomeSampleChannel.Create(metronomeSample, metronomeHiPath, metronomeLoPath,
+                        CreateOutputChannel(SettingsManager.Settings?.OutputChannelDefault.Value ?? 0));
+                    if (metronome != null)
+                    {
+                        MetronomeSamples[(int) metronomeSample] = metronome;
+                    }
+                }
+            }
+
+            YargLogger.LogInfo("Finished loading Metronome");
         }
 
         protected override void SetMasterVolume(double volume)
@@ -400,7 +610,7 @@ namespace YARG.Audio.BASS
         {
             // The float flag allows >0dB signals.
             // Note that the compressor attempts to normalize signals >-2dB, but some mixes will pierce through.
-            mixerHandle = BassMix.CreateMixerStream(44100, 2, BassFlags.Float);
+            mixerHandle = BassMix.CreateMixerStream(44100, 2, BassFlags.Float | BassFlags.Decode);
             if (mixerHandle == 0)
             {
                 YargLogger.LogFormatError("Failed to create mixer: {0}!", Bass.LastError);
@@ -447,42 +657,41 @@ namespace YARG.Audio.BASS
             return true;
         }
 
-        internal static void SetSpeed(float speed, int streamHandle, int reverbHandle, bool shiftPitch)
+        internal static void SetSpeed(float speed, int streamHandle, bool shiftPitch)
         {
             // Gets relative speed from 100% (so 1.05f = 5% increase)
             float percentageSpeed = speed * 100;
             float relativeSpeed = percentageSpeed - 100;
 
-            if (!Bass.ChannelSetAttribute(streamHandle, ChannelAttribute.Tempo, relativeSpeed) ||
-                !Bass.ChannelSetAttribute(reverbHandle, ChannelAttribute.Tempo, relativeSpeed))
+
+            if (!Bass.ChannelSetAttribute(streamHandle, ChannelAttribute.Tempo, relativeSpeed))
             {
                 YargLogger.LogFormatError("Failed to set channel speed: {0}!", Bass.LastError);
             }
 
             if (GlobalAudioHandler.IsChipmunkSpeedup && shiftPitch)
             {
-                SetChipmunking(speed, streamHandle, reverbHandle);
+                SetChipmunking(speed, streamHandle);
             }
         }
 
 #nullable enable
-        internal static bool CreateSplitStreams(int sourceStream, int[] channelMap, out StreamHandle? streamHandles, out StreamHandle? reverbHandles)
+        internal static (StreamHandle Stream, StreamHandle Reverb)? CreateSplitStreams(int sourceStream, int[] channelMap)
 #nullable disable
         {
-            streamHandles = StreamHandle.Create(sourceStream, channelMap);
+            var streamHandles = StreamHandle.Create(sourceStream, channelMap);
             if (streamHandles == null)
             {
-                reverbHandles = null;
-                return false;
+                return null;
             }
 
-            reverbHandles = StreamHandle.Create(sourceStream, channelMap);
+            var reverbHandles = StreamHandle.Create(sourceStream, channelMap);
             if (reverbHandles == null)
             {
                 streamHandles.Dispose();
-                return false;
+                return null;
             }
-            return true;
+            return (streamHandles, reverbHandles);
         }
 
         internal static PitchShiftParametersStruct SetPitchParams(SongStem stem, float speed, StreamHandle streamHandles, StreamHandle reverbHandles)
@@ -499,21 +708,14 @@ namespace YARG.Audio.BASS
                     SetupPitchBend(pitchParams, reverbHandles);
                 }
             }
-
-            speed = (float) Math.Clamp(speed, 0.05, 50);
-            if (!Mathf.Approximately(speed, 1))
-            {
-                SetSpeed(speed, streamHandles.Stream, reverbHandles.Stream, true);
-            }
             return pitchParams;
         }
 
-        internal static void SetChipmunking(float speed, int streamHandle, int reverbHandle)
+        internal static void SetChipmunking(float speed, int streamHandle)
         {
             double accurateSemitoneShift = 12 * Math.Log(speed, 2);
             float finalSemitoneShift = (float) Math.Clamp(accurateSemitoneShift, -60, 60);
-            if (!Bass.ChannelSetAttribute(streamHandle, ChannelAttribute.Pitch, finalSemitoneShift) ||
-                !Bass.ChannelSetAttribute(reverbHandle, ChannelAttribute.Pitch, finalSemitoneShift))
+            if (!Bass.ChannelSetAttribute(streamHandle, ChannelAttribute.Pitch, finalSemitoneShift))
             {
                 YargLogger.LogFormatError("Failed to set channel pitch: {0}!", Bass.LastError);
             }
@@ -527,9 +729,6 @@ namespace YARG.Audio.BASS
                 YargLogger.LogError("Failed to set up pitch bend for main stream!");
                 return false;
             }
-
-            // Adjust the position to account for inherent pitch fx delay
-            Bass.ChannelSetPosition(handles.Stream, GlobalAudioHandler.WHAMMY_FFT_DEFAULT * 2);
 
             return true;
         }

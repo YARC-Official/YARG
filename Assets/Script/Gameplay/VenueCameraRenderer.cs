@@ -1,11 +1,12 @@
 using System;
 using System.Threading;
-using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using YARG.Core.Logging;
+using YARG.Helpers.UI;
 using YARG.Settings;
 using YARG.Venue.VolumeComponents;
 
@@ -64,6 +65,9 @@ namespace YARG.Gameplay
         private float _elapsedTime;
         private static float _timeSinceLastRender;
 
+        private static bool _staticsCreated;
+        private bool _needsInitialization = true;
+
         private void Awake()
         {
             renderScale = GraphicsManager.Instance.VenueRenderScale;
@@ -85,8 +89,8 @@ namespace YARG.Gameplay
                     _renderCamera.allowMSAA = true;
                     cameraData.antialiasing = AntialiasingMode.SubpixelMorphologicalAntiAliasing;
                     break;
-                case VenueAntiAliasingMethod.FSR3:
-                    _renderCamera.gameObject.AddComponent<FSRCameraManager>();
+                case VenueAntiAliasingMethod.TAA:
+                    cameraData.antialiasing = AntialiasingMode.TemporalAntiAliasing;
                     break;
             }
             UniversalRenderPipelineAsset = GraphicsSettings.currentRenderPipeline as UniversalRenderPipelineAsset;
@@ -102,21 +106,62 @@ namespace YARG.Gameplay
 
                 if (_venueOutput != null)
                 {
-                    var outputWidth = (int)(Screen.width * renderScale);
-                    var outputHeight = (int)(Screen.height * renderScale);
-                    _venueTexture = new RenderTexture(outputWidth, outputHeight, 0, RenderTextureFormat.DefaultHDR);
-                    _venueOutput.texture = _venueTexture;
-
-                    _trailsTexture = new RenderTexture(_venueTexture);
-                    _trailsTexture.filterMode = FilterMode.Bilinear;
-                    _trailsTexture.wrapMode = TextureWrapMode.Clamp;
-                    _trailsTexture.Create();
-
-                    Graphics.Blit(Texture2D.blackTexture, _trailsTexture);
+                    CreateStatics();
                 }
             }
+        }
 
-            CreateMaterials();
+        private void CreateStatics()
+        {
+            if (_staticsCreated)
+            {
+                return;
+            }
+
+            SceneManager.sceneUnloaded += OnSceneUnloaded;
+
+            var outputWidth = (int)(Screen.width * renderScale);
+            var outputHeight = (int)(Screen.height * renderScale);
+            _venueTexture = new RenderTexture(outputWidth, outputHeight, 32, RenderTextureFormat.DefaultHDR);
+            _venueOutput.texture = _venueTexture;
+
+            _trailsTexture = new RenderTexture(_venueTexture);
+            _trailsTexture.filterMode = FilterMode.Bilinear;
+            _trailsTexture.wrapMode = TextureWrapMode.Clamp;
+            _trailsTexture.Create();
+
+            Graphics.Blit(Texture2D.blackTexture, _trailsTexture);
+
+            _trailsMaterial = CreateMaterial("Trails");
+            _scanlineMaterial = CreateMaterial("Scanlines");
+            _mirrorMaterial = CreateMaterial("Mirror");
+            _posterizeMaterial = CreateMaterial("Posterize");
+            _alphaClearMaterial = CreateMaterial("Hidden/AlphaClear");
+
+            _staticsCreated = true;
+        }
+
+        private void RecreateTextures()
+        {
+            if (_venueTexture != null)
+            {
+                _venueTexture.Release();
+                _venueTexture.DiscardContents();
+            }
+
+            var outputWidth = (int)(Screen.width * renderScale);
+            var outputHeight = (int)(Screen.height * renderScale);
+            _venueTexture = new RenderTexture(outputWidth, outputHeight, 0, RenderTextureFormat.DefaultHDR);
+
+            _venueOutput.texture = _venueTexture;
+
+            if (_trailsTexture != null)
+            {
+                _trailsTexture.Release();
+                _trailsTexture.DiscardContents();
+            }
+
+            _trailsTexture = new RenderTexture(_venueTexture);
         }
 
         private void OnEnable()
@@ -130,12 +175,14 @@ namespace YARG.Gameplay
             if (_venueTexture != null)
             {
                 _venueTexture.Release();
+                Destroy(_venueTexture);
                 _venueTexture = null;
             }
 
             if (_trailsTexture != null)
             {
                 _trailsTexture.Release();
+                Destroy(_trailsTexture);
                 _trailsTexture = null;
             }
 
@@ -146,10 +193,57 @@ namespace YARG.Gameplay
             CoreUtils.Destroy(_mirrorMaterial);
             CoreUtils.Destroy(_posterizeMaterial);
             CoreUtils.Destroy(_alphaClearMaterial);
+
+            _staticsCreated = false;
+        }
+
+        private void OnSceneUnloaded(Scene scene)
+        {
+            if (!_staticsCreated)
+            {
+                return;
+            }
+
+            if (_venueTexture != null)
+            {
+                _venueTexture.Release();
+                Destroy(_venueTexture);
+                _venueTexture = null;
+            }
+
+            if (_trailsTexture != null)
+            {
+                _trailsTexture.Release();
+                Destroy(_trailsTexture);
+                _trailsTexture = null;
+            }
+
+            _venueOutput = null;
+
+            CoreUtils.Destroy(_trailsMaterial);
+            _trailsMaterial = null;
+            CoreUtils.Destroy(_scanlineMaterial);
+            _scanlineMaterial = null;
+            CoreUtils.Destroy(_mirrorMaterial);
+            _mirrorMaterial = null;
+            CoreUtils.Destroy(_posterizeMaterial);
+            _posterizeMaterial = null;
+            CoreUtils.Destroy(_alphaClearMaterial);
+            _alphaClearMaterial = null;
+
+            _staticsCreated = false;
         }
 
         private void Update()
         {
+            if (ScreenSizeDetector.HasScreenSizeChanged || _needsInitialization)
+            {
+                RecreateTextures();
+                _needsInitialization = false;
+                // Force a render this frame to avoid flickering when resizing
+                _timeSinceLastRender = float.MaxValue;
+            }
+
             var stack = VolumeManager.instance.stack;
 
             VolumeManager.instance.Update(_renderCamera.gameObject.transform, _venueLayerMask);
@@ -203,7 +297,7 @@ namespace YARG.Gameplay
         {
             var stack = VolumeManager.instance.stack;
 
-            var descriptor = new RenderTextureDescriptor(_venueTexture.width, _venueTexture.height, _venueTexture.format);
+            var descriptor = new RenderTextureDescriptor(_venueTexture.width, _venueTexture.height, _venueTexture.format, 32, 0);
             var rt1 = RenderTexture.GetTemporary(descriptor);
             var rt2 = RenderTexture.GetTemporary(descriptor);
 
@@ -236,6 +330,7 @@ namespace YARG.Gameplay
             var mirrorEffect = stack.GetComponent<MirrorComponent>();
             if (mirrorEffect.IsActive() && _mirrorMaterial != null)
             {
+                _mirrorMaterial.shaderKeywords = Array.Empty<string>();
                 _mirrorMaterial.EnableKeyword(_mirrorKeywords[mirrorEffect.wipeIndex.value]);
                 _mirrorMaterial.SetFloat(_wipeTimeId, mirrorEffect.wipeTime.value);
                 _mirrorMaterial.SetFloat(_startTimeId, mirrorEffect.startTime.value);
@@ -260,15 +355,6 @@ namespace YARG.Gameplay
 
             RenderTexture.ReleaseTemporary(rt1);
             RenderTexture.ReleaseTemporary(rt2);
-        }
-
-        private void CreateMaterials()
-        {
-            _trailsMaterial = CreateMaterial("Trails");
-            _scanlineMaterial = CreateMaterial("Scanlines");
-            _mirrorMaterial = CreateMaterial("Mirror");
-            _posterizeMaterial = CreateMaterial("Posterize");
-            _alphaClearMaterial = CreateMaterial("Hidden/AlphaClear");
         }
 
         private Material CreateMaterial(string shaderName)

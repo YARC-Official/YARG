@@ -85,8 +85,16 @@ namespace YARG.Gameplay.Visuals
 
                 // Enable the new one
                 NoteGroup = (IsStarPowerVisible ? StarPowerNoteGroups : NoteGroups)[index];
-                NoteGroup.SetActive(true);
-                NoteGroup.Initialize();
+
+                // TODO: We really should just not be getting this far if we're updating because
+                //  starpower state changed and not because the player missed a note in an SP phrase
+                //  brain is too fried rn to untangle that mess, though
+                // If the note was already hit, don't reinitialize it
+                if (!NoteRef.WasHit)
+                {
+                    NoteGroup.SetActive(true);
+                    NoteGroup.Initialize();
+                }
             }
         }
 

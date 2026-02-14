@@ -56,7 +56,7 @@ MonoBehaviour:
   _playerName: {fileID: 7279130075171954488}
   _instrumentIcon: {fileID: 4052958757949844642}
   _needleIcon: {fileID: 1402306547666697911}
-  DisplayTime: 5
+  DisplayTime: 3
   FadeDuration: 0.5
 --- !u!225 &1169966280076727379
 CanvasGroup:

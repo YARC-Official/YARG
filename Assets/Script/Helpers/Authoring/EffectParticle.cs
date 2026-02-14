@@ -28,13 +28,32 @@ namespace YARG.Helpers.Authoring
         private ParticleSystem _particleSystem;
         private ParticleSystemRenderer _particleSystemRenderer;
 
+        private Color InitialColor { get; set; }
+        private Color BrightColor  => Color.Lerp(InitialColor, Color.white, 0.75f);
+
         private void Awake()
         {
             _particleSystem = GetComponent<ParticleSystem>();
             _particleSystemRenderer = GetComponent<ParticleSystemRenderer>();
         }
 
-        public void SetColor(Color color)
+        public void InitializeColor(Color color)
+        {
+            SetColor(color);
+            InitialColor = color;
+        }
+
+        public void BrightenColor()
+        {
+            SetColor(BrightColor);
+        }
+
+        public void RestoreColor()
+        {
+            SetColor(InitialColor);
+        }
+
+        private void SetColor(Color color)
         {
             if (!_allowColoring) return;
 
