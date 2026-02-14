@@ -937,6 +937,11 @@ namespace YARG.Menu.MusicLibrary
 
         public async void RefreshSongs()
         {
+            // Stop any library preview audio so the loading screen doesn't inherit it
+            _previewCanceller?.Cancel();
+            _previewContext?.Stop();
+            _previewContext = null;
+
             SetSidebarDifficultiesVisible(false);
             using var context = new LoadingContext();
             try
