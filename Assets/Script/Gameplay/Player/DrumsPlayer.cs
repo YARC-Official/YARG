@@ -73,7 +73,7 @@ namespace YARG.Gameplay.Player
                     DrumsAction.RedDrum => (int) FiveLaneDrumsFret.Red,
                     DrumsAction.YellowCymbal => (int) FiveLaneDrumsFret.Yellow,
                     DrumsAction.BlueDrum => (int) FiveLaneDrumsFret.Blue,
-                    DrumsAction.OrangeCymbal => (int) FiveLaneDrumsFret.Blue,
+                    DrumsAction.OrangeCymbal => (int) FiveLaneDrumsFret.Orange,
                     DrumsAction.GreenDrum => (int) FiveLaneDrumsFret.Green,
                     _ => -1
                 };
@@ -899,46 +899,6 @@ namespace YARG.Gameplay.Player
             {
                 _fretArray.PlayHitAnimation(fretIdx);
             }
-        }
-
-        private static int GetFourLaneFret(DrumsAction action)
-        {
-            return action switch
-            {
-                DrumsAction.RedDrum                                => 0,
-                DrumsAction.YellowDrum or DrumsAction.YellowCymbal => 1,
-                DrumsAction.BlueDrum or DrumsAction.BlueCymbal     => 2,
-                DrumsAction.GreenDrum or DrumsAction.GreenCymbal   => 3,
-                _                                                  => -1,
-            };
-        }
-
-        private static int GetFiveLaneFret(DrumsAction action)
-        {
-            return action switch
-            {
-                DrumsAction.RedDrum      => 0,
-                DrumsAction.YellowCymbal => 1,
-                DrumsAction.BlueDrum     => 2,
-                DrumsAction.OrangeCymbal => 3,
-                DrumsAction.GreenDrum    => 4,
-                _                        => -1,
-            };
-        }
-
-        private static int GetSplitFret(DrumsAction action)
-        {
-            return action switch
-            {
-                DrumsAction.RedDrum      => 0,
-                DrumsAction.YellowCymbal => 1,
-                DrumsAction.YellowDrum   => 2,
-                DrumsAction.BlueCymbal   => 3,
-                DrumsAction.BlueDrum     => 4,
-                DrumsAction.GreenCymbal  => 5,
-                DrumsAction.GreenDrum    => 6,
-                _                        => -1,
-            };
         }
 
         private int GetSplitIndex(int pad)
