@@ -51,6 +51,10 @@ namespace YARG.Menu.Navigation
         private const float INPUT_REPEAT_TIME = 0.035f;
         private const float INPUT_REPEAT_COOLDOWN = 0.5f;
 
+        // If a hold button is released after this threshold but before the hold
+        // completes, the tap action is suppressed (treated as a cancelled hold).
+        private const float HOLD_CANCEL_THRESHOLD = 0.2f;
+
         private static readonly HashSet<MenuAction> RepeatActions = new()
         {
             MenuAction.Up,
@@ -191,7 +195,8 @@ namespace YARG.Menu.Navigation
 
                 if (_heldInputs[i].IsHold && !_heldInputs[i].HoldConsumed)
                 {
-                    shouldInvokeTap = true;
+                    float elapsed = _heldInputs[i].HoldDuration - _heldInputs[i].Timer;
+                    shouldInvokeTap = elapsed < HOLD_CANCEL_THRESHOLD;
                 }
 
                 _heldInputs.RemoveAt(i);

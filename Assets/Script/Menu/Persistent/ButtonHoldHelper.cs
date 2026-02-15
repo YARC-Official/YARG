@@ -15,15 +15,18 @@ namespace YARG.Menu.Persistent
         public enum HoldResult
         {
             CLICK,
-            HOLD
+            HOLD,
+            CANCELLED
         }
 
         private readonly float _holdTime;
+        private readonly float _cancelThreshold;
         private float _holdStartTime;
 
-        public ButtonHoldHelper(float holdTime)
+        public ButtonHoldHelper(float holdTime, float cancelThreshold = 0f)
         {
             _holdTime = holdTime;
+            _cancelThreshold = cancelThreshold;
         }
 
         public void StartHolding()
@@ -35,7 +38,11 @@ namespace YARG.Menu.Persistent
         public HoldResult StopHolding()
         {
             IsPressed = false;
-            return Elapsed >= _holdTime ? HoldResult.HOLD : HoldResult.CLICK;
+            if (Elapsed >= _holdTime)
+            {
+                return HoldResult.HOLD;
+            }
+            return Elapsed >= _cancelThreshold ? HoldResult.CANCELLED : HoldResult.CLICK;
         }
     }
 }

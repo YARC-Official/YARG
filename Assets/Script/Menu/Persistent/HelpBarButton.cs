@@ -12,7 +12,7 @@ namespace YARG.Menu.Persistent
     public class HelpBarButton : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IPointerDownHandler, IPointerUpHandler
     {
         // Delay before showing hold fill so short taps do not flash the bar.
-        private const float DELAY_FILL_SECONDS = 0.05f;
+        private const float DELAY_FILL_SECONDS = 0.25f;
 
         [SerializeField]
         private Image _buttonImage;
@@ -63,7 +63,7 @@ namespace YARG.Menu.Persistent
             _clickable = clickable;
             _entry = entry;
             _buttonHoldHelper = entry.HasHoldHandler
-                ? new ButtonHoldHelper(entry.HoldSeconds)
+                ? new ButtonHoldHelper(entry.HoldSeconds, DELAY_FILL_SECONDS)
                 : null;
 
             var icons = MenuData.NavigationIcons;
@@ -140,14 +140,18 @@ namespace YARG.Menu.Persistent
                 return;
             }
 
+            var holdResult = _buttonHoldHelper?.StopHolding();
+            bool isClick = holdResult == CLICK;
+
             _buttonHoldFill.fillAmount = 0f;
             ApplyState(_isPointerOver ? ButtonState.HOVER : ButtonState.NONE);
 
-            var result = _buttonHoldHelper?.StopHolding();
-            if (result == CLICK)
+            if (isClick)
             {
                 _entry?.Invoke();
             }
+
+            _entry?.InvokeHoldOffHandler();
         }
 
         public void DisableButton()
@@ -229,10 +233,14 @@ namespace YARG.Menu.Persistent
                 : -1f;
             if (rawHoldProgress >= 0f)
             {
+                if (_currentState != ButtonState.HOLD)
+                {
+                    ApplyState(ButtonState.HOLD);
+                }
                 var visualHoldProgress = GetVisualHoldProgress(rawHoldProgress);
                 UpdateButtonFillAmount(visualHoldProgress);
             }
-            else if (_buttonHoldFill.fillAmount > 0f)
+            else if (_buttonHoldFill.fillAmount > 0f || _currentState == ButtonState.HOLD)
             {
                 _buttonHoldFill.fillAmount = 0f;
                 ApplyState(_isPointerOver ? ButtonState.HOVER : ButtonState.NONE);

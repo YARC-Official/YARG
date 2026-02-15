@@ -843,6 +843,11 @@ namespace YARG.Menu.MusicLibrary
 
         private void OnGreenTap(NavigationContext _)
         {
+            ExecuteGreenTapAction();
+        }
+
+        public void ExecuteGreenTapAction()
+        {
             bool setListNotEmpty = ShowPlaylist.Count > 0;
 
             if (setListNotEmpty)

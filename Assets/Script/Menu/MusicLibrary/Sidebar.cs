@@ -412,7 +412,9 @@ namespace YARG.Menu.MusicLibrary
             _playButton.SetInfoFromSchemeEntry(new NavigationScheme.Entry(
                 MenuAction.Green,
                 key,
-                () => _musicLibraryMenu.CurrentSelection.PrimaryButtonClick()
+                _ => _musicLibraryMenu.ExecuteGreenTapAction(),
+                1f,
+                _ => _musicLibraryMenu.ExecuteGreenHoldAction()
             ));
         }
 
