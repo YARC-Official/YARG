@@ -3,7 +3,6 @@ using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using YARG.Core.Logging;
 using YARG.Settings;
 
 namespace YARG.Menu.Persistent
@@ -11,36 +10,47 @@ namespace YARG.Menu.Persistent
     public class MenuFontScaler : MonoSingleton<MenuFontScaler>
     {
         // For most elements, this is used as the "font size floor" when scaling is set to 100%
-        private const float DEFAULT_MAX_FONT_SIZE = 22f;
+        private const float DEFAULT_FULL_SCALE_SIZE = 22f;
 
         // This overrides the "font size floor" per section, to be used when scaling is set to 100%.
         //  This allows us to have some sections that scale more than others without breaking the layout
-        private static readonly Dictionary<string, float> MaxFontSizeByContainerName = new()
+        private static readonly Dictionary<string, float> ContainerFullScaleSize = new()
         {
             { "Persistent Canvas", 22.9f },
+            { "Button Container", 26f },
             { "MusicLibraryMenu", 36f },
             { "ProfileList", 23.5f },
             { "Songs", 36f },
             { "Content", 20.4f },
+            { "Album Cover Container", 24f },
         };
 
-        private static readonly float AbsoluteMaxFontSize = Mathf.Max(
-            DEFAULT_MAX_FONT_SIZE,
-            MaxFontSizeByContainerName.Values.Max()
+        private static readonly float MaxFullScaleSize = Mathf.Max(
+            DEFAULT_FULL_SCALE_SIZE,
+            ContainerFullScaleSize.Values.Max()
         );
 
         [SerializeField][Range(0f, 1f)]
         private float _fontScaleFactor;
 
         private readonly Dictionary<TMP_Text, TextFontInfo> _fontInfoByText = new();
-        private readonly Dictionary<Transform, int> _childCountByTransform = new();
+        private readonly List<ContainerInfo> _containerInfos = new();
 
         private float FontScaleSetting => SettingsManager.Settings.FontScaling.Value;
 
         private struct TextFontInfo
         {
-            public float BaseFontSize;
-            public float MaxFontSize;
+            public float BaselineFontSize;
+            public float MaxSize;
+            public bool UsesAutoSizing;
+        }
+
+        private struct ContainerInfo
+        {
+            public Transform Transform;
+            public float FullScaleSize;
+            public int ChildCount;
+            public int HierarchyDepth;
         }
 
         protected override void SingletonAwake()
@@ -70,18 +80,18 @@ namespace YARG.Menu.Persistent
 
         private void Update()
         {
-            if (DidAnyTransformChildrenChange())
+            if (DidChildrenChange())
             {
                 DoScaling();
             }
         }
 
-        private bool DidAnyTransformChildrenChange()
+        private bool DidChildrenChange()
         {
-            foreach ((var transform, int count) in _childCountByTransform)
+            foreach (var containerInfo in _containerInfos)
             {
-                var didChildrenChange = transform == null || transform.childCount != count;
-                if (!didChildrenChange)
+                var containerTransform = containerInfo.Transform;
+                if (containerTransform && containerTransform.childCount == containerInfo.ChildCount)
                 {
                     continue;
                 }
@@ -94,52 +104,105 @@ namespace YARG.Menu.Persistent
 
         private void DoScaling()
         {
-            BuildTextToFontInfo();
-            ScaleTexts();
-        }
-
-        private void BuildTextToFontInfo()
-        {
-            var previous = new Dictionary<TMP_Text, TextFontInfo>(_fontInfoByText);
-            _fontInfoByText.Clear();
-            _childCountByTransform.Clear();
-
-            //Set up baseline and max font size using defaults
-            foreach (var text in FindAllTexts())
+            if (IsGameplayScene())
             {
-                float baselineFontSize = previous.TryGetValue(text, out var previousInfo)
-                    ? previousInfo.BaseFontSize
-                    : text.fontSize;
-
-                _fontInfoByText[text] = new TextFontInfo
-                {
-                    BaseFontSize = baselineFontSize,
-                    MaxFontSize = DEFAULT_MAX_FONT_SIZE,
-                };
+                return;
             }
 
-            // Override with any custom max font sizes for containers, and store child counts to detect changes later
+            RebuildScaleSnapshot();
+            ApplyScaleToTexts();
+        }
+
+        private void RebuildScaleSnapshot()
+        {
+            var previousInfoByText = new Dictionary<TMP_Text, TextFontInfo>(_fontInfoByText);
+            _fontInfoByText.Clear();
+
+            CaptureTextInfo(previousInfoByText);
+            CaptureContainerInfo();
+            ApplyContainerSizeOverrides();
+        }
+
+        private void CaptureTextInfo(Dictionary<TMP_Text, TextFontInfo> previousInfoByText)
+        {
+            // Set up baseline and max font size using defaults.
+            foreach (var text in FindAllTexts())
+            {
+                bool hasPreviousInfo = previousInfoByText.TryGetValue(text, out var previousInfo);
+                float baselineFontSize = hasPreviousInfo ? previousInfo.BaselineFontSize : text.fontSize;
+                float defaultFullScaleSize = Mathf.Max(DEFAULT_FULL_SCALE_SIZE, baselineFontSize);
+                bool usesAutoSizing = hasPreviousInfo ? previousInfo.UsesAutoSizing : text.enableAutoSizing;
+                _fontInfoByText[text] = new TextFontInfo
+                {
+                    BaselineFontSize = baselineFontSize,
+                    MaxSize = defaultFullScaleSize,
+                    UsesAutoSizing = usesAutoSizing,
+                };
+            }
+        }
+
+        private void CaptureContainerInfo()
+        {
+            _containerInfos.Clear();
             foreach (var transform in FindAllTransforms())
             {
-                if (!MaxFontSizeByContainerName.TryGetValue(transform.name, out float maxFontSize))
+                if (!ContainerFullScaleSize.TryGetValue(transform.name, out float fullScaleSize))
                 {
                     continue;
                 }
 
-                _childCountByTransform[transform] = transform.childCount;
-
-                var transformTexts = transform.GetComponentsInChildren<TMP_Text>(true);
-                foreach (var text in transformTexts)
+                _containerInfos.Add(new ContainerInfo
                 {
-                    if (!_fontInfoByText.TryGetValue(text, out var scaleInfo))
+                    Transform = transform,
+                    FullScaleSize = fullScaleSize,
+                    ChildCount = transform.childCount,
+                    HierarchyDepth = GetDepth(transform),
+                });
+            }
+
+            // Process from shallowest to deepest container so child containers override parents.
+            _containerInfos.Sort((left, right) => left.HierarchyDepth.CompareTo(right.HierarchyDepth));
+        }
+
+        private void ApplyContainerSizeOverrides()
+        {
+            foreach (var containerInfo in _containerInfos)
+            {
+                var containerTransform = containerInfo.Transform;
+                if (!containerTransform)
+                {
+                    continue;
+                }
+
+                var textsInContainer = containerTransform.GetComponentsInChildren<TMP_Text>(true);
+                foreach (var text in textsInContainer)
+                {
+                    if (!_fontInfoByText.TryGetValue(text, out var textFontInfo))
                     {
                         continue;
                     }
 
-                    scaleInfo.MaxFontSize = maxFontSize;
-                    _fontInfoByText[text] = scaleInfo;
+                    float resolvedFullScaleSize = Mathf.Max(
+                        textFontInfo.BaselineFontSize,
+                        containerInfo.FullScaleSize
+                    );
+
+                    textFontInfo.MaxSize = resolvedFullScaleSize;
+                    _fontInfoByText[text] = textFontInfo;
                 }
             }
+        }
+
+        private static int GetDepth(Transform transform)
+        {
+            int depth = 0;
+            while (transform.parent)
+            {
+                depth++;
+                transform = transform.parent;
+            }
+
+            return depth;
         }
 
         private Transform[] FindAllTransforms()
@@ -152,34 +215,47 @@ namespace YARG.Menu.Persistent
             return FindObjectsByType<TMP_Text>(FindObjectsInactive.Include, FindObjectsSortMode.None);
         }
 
-        private void ScaleTexts()
+        private void ApplyScaleToTexts()
         {
-            foreach ((var text, TextFontInfo scaleInfo) in _fontInfoByText)
+            float scaledSize = _fontScaleFactor * MaxFullScaleSize;
+
+            foreach ((var text, TextFontInfo textFontInfo) in _fontInfoByText)
             {
-                if (text == null)
+                bool isMissingText = !text;
+                bool shouldSkipAutosizedText = textFontInfo.UsesAutoSizing;
+                bool shouldSkipScaling = isMissingText || shouldSkipAutosizedText;
+                if (shouldSkipScaling)
                 {
                     continue;
                 }
 
-                float scaledSize = _fontScaleFactor * AbsoluteMaxFontSize;
-                scaledSize = Mathf.Clamp(scaledSize, scaleInfo.BaseFontSize, scaleInfo.MaxFontSize);
+                float clampedFontSize = Mathf.Clamp(
+                    scaledSize,
+                    textFontInfo.BaselineFontSize,
+                    textFontInfo.MaxSize
+                );
 
                 text.enableAutoSizing = false;
-                text.fontSize = scaledSize;
+                text.fontSize = clampedFontSize;
                 text.ForceMeshUpdate();
             }
         }
 
         public void SetFontScalePercent(float percent)
         {
-            _fontScaleFactor = Mathf.Clamp01(percent / 100f);
-            ScaleTexts();
             enabled = _fontScaleFactor > 0f;
+            _fontScaleFactor = Mathf.Clamp01(percent / 100f);
+            ApplyScaleToTexts();
         }
 
         private void OnValidate()
         {
-            ScaleTexts();
+            ApplyScaleToTexts();
+        }
+
+        private static bool IsGameplayScene()
+        {
+            return SceneManager.GetActiveScene().name == "Gameplay";
         }
     }
 }
