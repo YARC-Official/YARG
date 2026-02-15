@@ -31,8 +31,8 @@ namespace YARG.Gameplay.Visuals
         private readonly Dictionary<int, Fret> _frets = new();
         private readonly List<KickFret> _kickFrets = new();
 
-        private bool[] _activeFrets;
-        private bool[] _pulsingFrets;
+        private List<int> _activeFrets;
+        private List<int> _pulsingFrets;
         private float  _pulseDuration;
 
         public void Initialize(Dictionary<int, int> highwayOrdering, int laneCount, GameObject? kickFretPrefab, IFretColorProvider fretColorProvider, ThemePreset themePreset, VisualStyle style)
@@ -84,12 +84,12 @@ namespace YARG.Gameplay.Visuals
                 _kickFrets.Add(rightKick.GetComponent<KickFret>());
             }
 
-            _activeFrets = new bool[laneCount];
-            _pulsingFrets = new bool[laneCount];
+            _activeFrets = new();
+            _pulsingFrets = new();
             // Start with all frets active, they will be set inactive once TrackPlayer figures itself out
-            for (int i = 0; i < laneCount; i++)
+            foreach (var fretIdx in _frets.Keys)
             {
-                _activeFrets[i] = true;
+                _activeFrets.Add(fretIdx);
             }
         }
 
@@ -223,46 +223,46 @@ namespace YARG.Gameplay.Visuals
         public void SetFretColorPulse(int fretIndex, bool pulse, float duration)
         {
             _pulseDuration = duration;
-            _pulsingFrets[fretIndex] = pulse;
+
+            if (pulse)
+            {
+                _pulsingFrets.Add(fretIndex);
+            } else
+            {
+                _pulsingFrets.Remove(fretIndex);
+            }
         }
 
         public void PulseFretColors()
         {
-            for (int i = 0; i < _pulsingFrets.Length; i++)
+            foreach (var fretIndex in _frets.Keys)
             {
-                if (!_pulsingFrets[i] || _activeFrets[i])
+                if (!_pulsingFrets.Contains(fretIndex) || _activeFrets.Contains(fretIndex))
                 {
                     continue;
                 }
 
-                _frets[i].FadeColor(_pulseDuration, true, false);
+                _frets[fretIndex].FadeColor(_pulseDuration, true, false);
             }
         }
 
-        public void UpdateFretActiveState(bool[] frets)
+        public void UpdateFretActiveState(List<int> newActiveFrets)
         {
-            // We should always receive the same number of frets that we actually have, but...
-            if (frets.Length != _frets.Count)
+            foreach (var fretIndex in _frets.Keys)
             {
-                YargLogger.LogFormatDebug("Received inconsistent fret array. Got {0} flags, but we have {1} frets.", frets.Length, _frets.Count);
-                return;
-            }
-
-            for (int i = 0; i < _frets.Count; i++)
-            {
-                if (_activeFrets[i] != frets[i])
+                if (_activeFrets.Contains(fretIndex) != newActiveFrets.Contains(fretIndex))
                 {
-                    if (frets[i])
+                    if (newActiveFrets.Contains(fretIndex))
                     {
-                        _frets[i].ResetColor(true);
+                        _frets[fretIndex].ResetColor(true);
+                        _activeFrets.Add(fretIndex);
                     }
                     else
                     {
-                        _frets[i].DimColor(true);
+                        _frets[fretIndex].DimColor(true);
+                        _activeFrets.Remove(fretIndex);
                     }
                 }
-
-                _activeFrets[i] = frets[i];
             }
         }
     }

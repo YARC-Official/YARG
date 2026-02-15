@@ -96,7 +96,7 @@ public override bool ShouldUpdateInputsOnResume => true;
         private bool _fretPulseStarting;
         private double _fretPulseStartTime;
 
-        private bool[] _activeFrets = null;
+        private List<int> _activeFrets;
 
         [Header("Five Fret Specific")]
         [SerializeField]
@@ -202,7 +202,7 @@ public override bool ShouldUpdateInputsOnResume => true;
 
             if (Player.Profile.RangeEnabled)
             {
-                _activeFrets = new bool[LaneCount];
+                _activeFrets = new();
                 _allRangeShiftEvents = FiveFretRangeShift.GetRangeShiftEvents(NoteTrack);
                 InitializeRangeShift();
             }
@@ -285,7 +285,7 @@ public override bool ShouldUpdateInputsOnResume => true;
 
             if (_fretPulseStarting && _fretPulseStartTime <= visualTime)
             {
-                for (var i = nextShift.Position - 1; i < nextShift.Position + nextShift.Size - 1; i++)
+                for (var i = nextShift.Position; i < nextShift.Position + nextShift.Size; i++)
                 {
                     _fretArray.SetFretColorPulse(i, true, (float) nextShift.BeatDuration);
                 }
@@ -298,9 +298,9 @@ public override bool ShouldUpdateInputsOnResume => true;
             if (nextShift.Time <= visualTime)
             {
                 _rangeShiftEventQueue.Dequeue();
-                for (var i = 0; i < LaneCount; i++)
+                foreach (var fretIndex in _lanePositions.Keys)
                 {
-                    _fretArray.SetFretColorPulse(i, false, (float) nextShift.BeatDuration);
+                    _fretArray.SetFretColorPulse(fretIndex, false, (float) nextShift.BeatDuration);
                 }
 
                 _fretPulseStarting = false;
@@ -642,13 +642,13 @@ public override bool ShouldUpdateInputsOnResume => true;
 
         private void SetActiveFretsForShiftEvent(FiveFretRangeShift range)
         {
-            bool[] newFrets = new bool[5];
+            var newFrets = new List<int>();
 
-            int start = range.Position - 1;
+            int start = range.Position;
             int end = start + range.Size;
             for (int i = start; i < end; i++)
             {
-                newFrets[i] = true;
+                newFrets.Add(i);
             }
 
             if (!newFrets.SequenceEqual(_activeFrets))
@@ -660,7 +660,11 @@ public override bool ShouldUpdateInputsOnResume => true;
 
         private void SetDefaultActiveFrets()
         {
-            bool[] newFrets = { true, true, true, true, true };
+            var newFrets = new List<int>();
+            foreach (var fretIdx in _lanePositions.Keys)
+            {
+                newFrets.Add(fretIdx);
+            }
 
             if (!newFrets.SequenceEqual(_activeFrets))
             {
