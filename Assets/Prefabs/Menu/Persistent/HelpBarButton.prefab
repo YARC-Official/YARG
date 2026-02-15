@@ -455,7 +455,6 @@ MonoBehaviour:
   _button: {fileID: 412450321716482520}
   _buttonLabel: {fileID: 1121126666004639308}
   _buttonText: {fileID: 5189735305709361124}
-  _buttonStyle: 0
 --- !u!114 &440116509921864197
 MonoBehaviour:
   m_ObjectHideFlags: 0

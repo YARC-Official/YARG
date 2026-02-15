@@ -51,10 +51,6 @@ namespace YARG.Menu.Navigation
         private const float INPUT_REPEAT_TIME = 0.035f;
         private const float INPUT_REPEAT_COOLDOWN = 0.5f;
 
-        // If a hold button is released after this threshold but before the hold
-        // completes, the tap action is suppressed (treated as a cancelled hold).
-        private const float HOLD_CANCEL_THRESHOLD = 0.2f;
-
         private static readonly HashSet<MenuAction> RepeatActions = new()
         {
             MenuAction.Up,
@@ -63,33 +59,45 @@ namespace YARG.Menu.Navigation
             MenuAction.Right,
         };
 
+        /// <summary>
+        /// Tracks a held directional input so we can repeat it.
+        /// </summary>
+        private class RepeatContext
+        {
+            public readonly NavigationContext Context;
+            public float Timer;
+
+            public RepeatContext(NavigationContext context)
+            {
+                Context = context;
+                Timer = INPUT_REPEAT_COOLDOWN;
+            }
+        }
+
+        /// <summary>
+        /// Tracks a held action
+        /// </summary>
+        private class NavigationHold
+        {
+            public readonly NavigationContext Context;
+            public readonly HoldTracker Tracker;
+
+            public NavigationHold(NavigationContext context, HoldTracker tracker)
+            {
+                Context = context;
+                Tracker = tracker;
+            }
+        }
+
         public class HoldContext
         {
             public readonly NavigationContext Context;
-            public readonly float HoldDuration;
             public float Timer;
-            public bool IsRepeat;
-            public bool IsHold;
-            public bool HoldConsumed;
-
-            public float HoldProgress => HoldDuration > 0f
-                ? Mathf.Clamp01(1f - Timer / HoldDuration)
-                : 0f;
 
             public HoldContext(NavigationContext context)
             {
                 Context = context;
                 Timer = INPUT_REPEAT_COOLDOWN;
-                HoldDuration = 0f;
-                IsRepeat = true;
-            }
-
-            public HoldContext(NavigationContext context, float holdSeconds)
-            {
-                Context = context;
-                Timer = holdSeconds;
-                HoldDuration = holdSeconds;
-                IsHold = true;
             }
         }
 
@@ -99,7 +107,8 @@ namespace YARG.Menu.Navigation
 
         public event Action<NavigationContext> NavigationEvent;
 
-        private readonly List<HoldContext> _heldInputs = new();
+        private readonly List<RepeatContext> _repeatInputs = new();
+        private readonly List<NavigationHold> _holdInputs = new();
         private readonly Stack<NavigationScheme> _schemeStack = new();
 
         private void Start()
@@ -110,20 +119,19 @@ namespace YARG.Menu.Navigation
 
         private void Update()
         {
-            // Update held inputs
-            foreach (var heldInput in _heldInputs)
+            foreach (var hold in _holdInputs)
             {
-                heldInput.Timer -= Time.unscaledDeltaTime;
+                hold.Tracker.Tick();
+            }
 
-                if (heldInput.IsRepeat && heldInput.Timer <= 0f)
+            foreach (var repeat in _repeatInputs)
+            {
+                repeat.Timer -= Time.unscaledDeltaTime;
+
+                if (repeat.Timer <= 0f)
                 {
-                    heldInput.Timer = INPUT_REPEAT_TIME;
-                    InvokeNavigationEvent(heldInput.Context.AsRepeat());
-                }
-                else if (heldInput.IsHold && !heldInput.HoldConsumed && heldInput.Timer <= 0f)
-                {
-                    heldInput.HoldConsumed = true;
-                    InvokeHoldEvent(heldInput.Context);
+                    repeat.Timer = INPUT_REPEAT_TIME;
+                    InvokeNavigationEvent(repeat.Context.AsRepeat());
                 }
             }
 
@@ -162,8 +170,14 @@ namespace YARG.Menu.Navigation
 
         private void StartNavigationHold(NavigationContext context)
         {
-            // Skip if the input is already being held
-            if (_heldInputs.Any(i => i.Context.IsSameAs(context)))
+            // Skip if the input is already being tracked as a hold
+            if (_holdInputs.Any(i => i.Context.IsSameAs(context)))
+            {
+                return;
+            }
+
+            // Skip if the input is already being tracked as a repeat
+            if (_repeatInputs.Any(i => i.Context.IsSameAs(context)))
             {
                 return;
             }
@@ -171,7 +185,15 @@ namespace YARG.Menu.Navigation
             if (_schemeStack.Count > 0 &&
                 _schemeStack.Peek().TryGetHoldSeconds(context.Action, out var holdSeconds))
             {
-                _heldInputs.Add(new HoldContext(context, holdSeconds));
+                var tracker = new HoldTracker(holdSeconds);
+                var navHold = new NavigationHold(context, tracker);
+
+                var ctx = context;
+                tracker.OnClick += () => InvokeNavigationEvent(ctx);
+                tracker.OnHoldComplete += () => InvokeHoldEvent(ctx);
+
+                tracker.StartHolding();
+                _holdInputs.Add(navHold);
                 return;
             }
 
@@ -179,32 +201,31 @@ namespace YARG.Menu.Navigation
 
             if (RepeatActions.Contains(context.Action))
             {
-                _heldInputs.Add(new HoldContext(context));
+                _repeatInputs.Add(new RepeatContext(context));
             }
         }
 
         private void EndNavigationHold(NavigationContext context)
         {
-            bool shouldInvokeTap = false;
-            for (int i = _heldInputs.Count - 1; i >= 0; i--)
+            for (int i = _holdInputs.Count - 1; i >= 0; i--)
             {
-                if (!_heldInputs[i].Context.IsSameAs(context))
+                if (!_holdInputs[i].Context.IsSameAs(context))
                 {
                     continue;
                 }
 
-                if (_heldInputs[i].IsHold && !_heldInputs[i].HoldConsumed)
-                {
-                    float elapsed = _heldInputs[i].HoldDuration - _heldInputs[i].Timer;
-                    shouldInvokeTap = elapsed < HOLD_CANCEL_THRESHOLD;
-                }
-
-                _heldInputs.RemoveAt(i);
+                _holdInputs[i].Tracker.StopHolding();
+                _holdInputs[i].Tracker.ClearEvents();
+                _holdInputs.RemoveAt(i);
             }
 
-            if (shouldInvokeTap)
+            // Remove matching repeat inputs
+            for (int i = _repeatInputs.Count - 1; i >= 0; i--)
             {
-                InvokeNavigationEvent(context);
+                if (_repeatInputs[i].Context.IsSameAs(context))
+                {
+                    _repeatInputs.RemoveAt(i);
+                }
             }
 
             InvokeHoldOffEvent(context);
@@ -213,14 +234,11 @@ namespace YARG.Menu.Navigation
         public float GetHoldProgress(MenuAction action)
         {
             float progress = -1f;
-            foreach (var heldInput in _heldInputs)
+            foreach (var hold in _holdInputs)
             {
-                bool isActiveHold = heldInput.Context.Action == action
-                    && heldInput.IsHold
-                    && !heldInput.HoldConsumed;
-                if (isActiveHold)
+                if (hold.Context.Action == action)
                 {
-                    progress = Mathf.Max(progress, heldInput.HoldProgress);
+                    progress = Mathf.Max(progress, hold.Tracker.HoldProgress);
                 }
             }
             return progress;
