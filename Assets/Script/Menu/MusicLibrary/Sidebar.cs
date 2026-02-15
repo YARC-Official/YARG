@@ -420,8 +420,16 @@ namespace YARG.Menu.MusicLibrary
             _playButton.SetInfoFromSchemeEntry(new NavigationScheme.Entry(
                 MenuAction.Green,
                 key,
-                () => _musicLibraryMenu.CurrentSelection.PrimaryButtonClick()
+                _ => _musicLibraryMenu.ExecuteGreenTapAction(),
+                1f,
+                _ => _musicLibraryMenu.ExecuteGreenHoldAction()
             ));
+            _playButton.SetDefaultButtonState(HelpBarButton.ButtonState.HOVER);
+
+            if (_musicLibraryMenu.CurrentSelection is not SongViewType)
+            {
+                _playButton.DisableButton();
+            }
         }
 
         public void PrimaryButtonClick()

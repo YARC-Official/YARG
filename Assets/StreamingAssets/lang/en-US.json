@@ -886,7 +886,8 @@
             "Experimental": "Experimental",
             "HUD": "HUD",
             "Gameplay": "Gameplay",
-            "OutputConfiguration": "Output Configuration"
+            "OutputConfiguration": "Output Configuration",
+            "Accessibility": "Accessibility"
         },
         "Button": {
             "CopyCurrentSongJsonFilePath": "Copy Current Song Json File Path",
@@ -1052,6 +1053,10 @@
             "FpsStats": {
                 "Name": "Show FPS Counter",
                 "Description": "Shows the framerate counter on the Status Bar."
+            },
+            "FontScaling": {
+                "Name": "Font Scaling",
+                "Description": "Scales the minimum font size to be more visible"
             },
             "FullscreenMode": {
                 "Name": "Fullscreen Mode",

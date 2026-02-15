@@ -3103,6 +3103,7 @@ Canvas:
   m_SortingBucketNormalizedSize: 0
   m_VertexColorAlwaysGammaSpace: 0
   m_AdditionalShaderChannelsFlag: 0
+  m_UpdateRectTransformForStandalone: 0
   m_SortingLayerID: 0
   m_SortingOrder: 102
   m_TargetDisplay: 0
@@ -4181,6 +4182,7 @@ GameObject:
   - component: {fileID: 1694016461}
   - component: {fileID: 1694016460}
   - component: {fileID: 1694016464}
+  - component: {fileID: 1694016465}
   m_Layer: 5
   m_Name: Persistent Canvas
   m_TagString: Untagged
@@ -4287,6 +4289,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fe60bde778204d1ab2aad2f2f2c4c49d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &1694016465
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1694016459}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9fc8e810ea88d44f1b1d6151eb0cc3a2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::YARG.Menu.Persistent.MenuFontScaler
+  _fontScaleNormalized: 0
 --- !u!1 &1710005230
 GameObject:
   m_ObjectHideFlags: 0
