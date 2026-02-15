@@ -46,10 +46,11 @@ namespace YARG.Menu.Persistent
         private bool _clickable = true;
         private bool _isPointerOver;
         private bool _isPointerHolding;
+        private ButtonState _defaultState = ButtonState.NONE;
 
         private ButtonState _currentState = ButtonState.NONE;
 
-        private enum ButtonState
+        public enum ButtonState
         {
             NONE,
             HOVER,
@@ -75,6 +76,7 @@ namespace YARG.Menu.Persistent
             }
 
             _isPointerHolding = false;
+            _defaultState = ButtonState.NONE;
 
             var icons = MenuData.NavigationIcons;
             _buttonBackgroundColor = icons.GetColor(entry.Action);
@@ -99,7 +101,7 @@ namespace YARG.Menu.Persistent
             // Set sprite and fill color, then apply idle state
             _buttonImage.sprite = icons.GetIcon(entry.Action);
             _buttonHoldFill.color = _buttonFillColor;
-            ApplyState(ButtonState.NONE);
+            ApplyState(_defaultState);
         }
 
         public void OnPointerEnter(PointerEventData eventData)
@@ -121,7 +123,7 @@ namespace YARG.Menu.Persistent
                 return;
             }
 
-            ApplyState(ButtonState.NONE);
+            ApplyState(_defaultState);
         }
 
         public void OnPointerDown(PointerEventData eventData)
@@ -158,7 +160,7 @@ namespace YARG.Menu.Persistent
             }
 
             _buttonHoldFill.fillAmount = 0f;
-            ApplyState(_isPointerOver ? ButtonState.HOVER : ButtonState.NONE);
+            ApplyState(_isPointerOver ? ButtonState.HOVER : _defaultState);
             _entry?.InvokeHoldOffHandler();
         }
 
@@ -171,7 +173,13 @@ namespace YARG.Menu.Persistent
         public void EnableButton()
         {
             _clickable = true;
-            ApplyState(ButtonState.NONE);
+            ApplyState(_defaultState);
+        }
+
+        public void SetDefaultButtonState(ButtonState state)
+        {
+            _defaultState = state;
+            ApplyState(_defaultState);
         }
 
         private void HandleHoldProgress(float visualProgress)
@@ -189,7 +197,7 @@ namespace YARG.Menu.Persistent
             _isPointerHolding = false;
             _entry?.InvokeHoldHandler();
             _buttonHoldFill.fillAmount = 0f;
-            ApplyState(_isPointerOver ? ButtonState.HOVER : ButtonState.NONE);
+            ApplyState(_isPointerOver ? ButtonState.HOVER : _defaultState);
         }
 
         private void HandleHoldCancelled()
@@ -275,7 +283,7 @@ namespace YARG.Menu.Persistent
             else if (_buttonHoldFill.fillAmount > 0f || _currentState == ButtonState.HOLD)
             {
                 _buttonHoldFill.fillAmount = 0f;
-                ApplyState(_isPointerOver ? ButtonState.HOVER : ButtonState.NONE);
+                ApplyState(_isPointerOver ? ButtonState.HOVER : _defaultState);
             }
         }
 
