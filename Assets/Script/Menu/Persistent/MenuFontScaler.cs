@@ -23,6 +23,10 @@ namespace YARG.Menu.Persistent
             { "Songs", 36f },
             { "Content", 20.4f },
             { "Album Cover Container", 24f },
+            { "Rating", 26f },
+            { "Views", 39f }, //History rows
+            { "Tabs", 30f }, // Top tabs
+            { "Message of the Day", 40f}
         };
 
         private static readonly float MaxFullScaleSize = Mathf.Max(
@@ -129,9 +133,11 @@ namespace YARG.Menu.Persistent
             foreach (var text in FindAllTexts())
             {
                 bool hasPreviousInfo = previousInfoByText.TryGetValue(text, out var previousInfo);
-                float baselineFontSize = hasPreviousInfo ? previousInfo.BaselineFontSize : text.fontSize;
-                float defaultFullScaleSize = Mathf.Max(DEFAULT_FULL_SCALE_SIZE, baselineFontSize);
                 bool usesAutoSizing = hasPreviousInfo ? previousInfo.UsesAutoSizing : text.enableAutoSizing;
+                float baselineFontSize = hasPreviousInfo
+                    ? previousInfo.BaselineFontSize
+                    : usesAutoSizing ? text.fontSizeMax : text.fontSize;
+                float defaultFullScaleSize = Mathf.Max(DEFAULT_FULL_SCALE_SIZE, baselineFontSize);
                 _fontInfoByText[text] = new TextFontInfo
                 {
                     BaselineFontSize = baselineFontSize,
@@ -182,12 +188,12 @@ namespace YARG.Menu.Persistent
                         continue;
                     }
 
-                    float resolvedFullScaleSize = Mathf.Max(
+                    float finalFullScaleSize = Mathf.Max(
                         textFontInfo.BaselineFontSize,
                         containerInfo.FullScaleSize
                     );
 
-                    textFontInfo.MaxSize = resolvedFullScaleSize;
+                    textFontInfo.MaxSize = finalFullScaleSize;
                     _fontInfoByText[text] = textFontInfo;
                 }
             }
@@ -222,9 +228,7 @@ namespace YARG.Menu.Persistent
             foreach ((var text, TextFontInfo textFontInfo) in _fontInfoByText)
             {
                 bool isMissingText = !text;
-                bool shouldSkipAutosizedText = textFontInfo.UsesAutoSizing;
-                bool shouldSkipScaling = isMissingText || shouldSkipAutosizedText;
-                if (shouldSkipScaling)
+                if (isMissingText)
                 {
                     continue;
                 }
@@ -235,8 +239,14 @@ namespace YARG.Menu.Persistent
                     textFontInfo.MaxSize
                 );
 
-                text.enableAutoSizing = false;
-                text.fontSize = clampedFontSize;
+                if (textFontInfo.UsesAutoSizing)
+                {
+                    text.fontSizeMax = clampedFontSize;
+                }
+                else
+                {
+                    text.fontSize = clampedFontSize;
+                }
                 text.ForceMeshUpdate();
             }
         }
