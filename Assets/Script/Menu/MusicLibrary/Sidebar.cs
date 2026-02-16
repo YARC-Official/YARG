@@ -74,6 +74,18 @@ namespace YARG.Menu.MusicLibrary
         [SerializeField]
         private GameObject _difficultyRingPrefab;
 
+        [SerializeField]
+        private Canvas _difficultiesCanvas;
+
+        public void SetDifficultiesVisible(bool visible)
+        {
+            if (_difficultiesDisplay != null)
+                _difficultiesDisplay.SetActive(visible);
+
+            if (_difficultiesCanvas != null)
+                _difficultiesCanvas.enabled = visible;
+        }
+
         private readonly List<DifficultyRing> _difficultyRings = new();
         private CancellationTokenSource _cancellationToken;
         private ViewType _currentView;
@@ -107,8 +119,7 @@ namespace YARG.Menu.MusicLibrary
                 _difficultyRings.Add(go.GetComponent<DifficultyRing>());
             }
 
-            _playButton.SetInfoFromSchemeEntry(new NavigationScheme.Entry(MenuAction.Green,
-                "Menu.MusicLibrary.Play", () => _musicLibraryMenu.CurrentSelection.PrimaryButtonClick()));
+            UpdatePlayButtonLabel(_musicLibraryMenu.ShowPlaylist.Count > 0);
 
             void FavoriteClick()
             {
@@ -273,13 +284,12 @@ namespace YARG.Menu.MusicLibrary
         // Wrap and shrink album name if it's too long to fit in the sidebar
         private void SetAlbumNameFont(string albumText)
         {
-            const int maxCharsBeforeWrap = 50; // number of characters before we wrap the text
-            const float shrinkFactor = 0.8f;   // percentage to shrink the font by when wrapping
+            const int maxCharsBeforeShrink = 40; // number of characters before we shrink the text
+            const int maxCharsBeforeWrap = 50;   // number of characters before we wrap the text
+            const float shrinkFactor = 0.8f;     // percentage to shrink the font by after shrink threshold
 
             if (_albumBaseFontSize <= 0f)
-            {
                 _albumBaseFontSize = _album.fontSize > 0f ? _album.fontSize : 20f;
-            }
 
             var displayText = albumText ?? string.Empty;
 
@@ -288,27 +298,20 @@ namespace YARG.Menu.MusicLibrary
             _album.overflowMode = TextOverflowModes.Overflow;
             _album.fontSize = _albumBaseFontSize;
 
-            if (displayText.Length <= maxCharsBeforeWrap)
-            {
-                _album.text = displayText;
-                return;
-            }
+            if (displayText.Length > maxCharsBeforeShrink)
+                _album.fontSize = _albumBaseFontSize * shrinkFactor;
 
-            if (!displayText.Contains('\n'))
+            if (displayText.Length > maxCharsBeforeWrap && !displayText.Contains('\n'))
             {
                 var wrapIndex = displayText.LastIndexOf(' ', maxCharsBeforeWrap);
-                if (wrapIndex <= 0)
-                {
+                if (wrapIndex <= 0 || wrapIndex >= displayText.Length - 1)
                     wrapIndex = maxCharsBeforeWrap;
-                }
 
                 displayText = displayText[..wrapIndex].TrimEnd() + "\n" + displayText[wrapIndex..].TrimStart();
             }
 
             _album.text = displayText;
-            _album.fontSize = _albumBaseFontSize * shrinkFactor;
         }
-
 
         private void UpdateDifficulties(SongEntry entry)
         {
@@ -398,6 +401,27 @@ namespace YARG.Menu.MusicLibrary
             _difficultyRings[7].SetInfo("eliteDrums", Instrument.EliteDrums, entry[Instrument.EliteDrums]);
             _difficultyRings[8].SetInfo("realKeys", Instrument.ProKeys, entry[Instrument.ProKeys]);
             _difficultyRings[9].SetInfo("band", Instrument.Band, entry[Instrument.Band]);
+        }
+
+        public void UpdatePlayButtonLabel(bool setListNotEmpty)
+        {
+            string key = setListNotEmpty
+                ? "Menu.MusicLibrary.AddHoldStartSet"
+                : "Menu.MusicLibrary.PlayHoldAddToSet";
+
+            _playButton.SetInfoFromSchemeEntry(new NavigationScheme.Entry(
+                MenuAction.Green,
+                key,
+                _ => _musicLibraryMenu.ExecuteGreenTapAction(),
+                1f,
+                _ => _musicLibraryMenu.ExecuteGreenHoldAction()
+            ));
+            _playButton.SetDefaultButtonState(HelpBarButton.ButtonState.HOVER);
+
+            if (_musicLibraryMenu.CurrentSelection is not SongViewType)
+            {
+                _playButton.DisableButton();
+            }
         }
 
         public void PrimaryButtonClick()

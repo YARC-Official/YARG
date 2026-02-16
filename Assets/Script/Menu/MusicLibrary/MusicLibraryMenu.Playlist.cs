@@ -172,7 +172,7 @@ namespace YARG.Menu.MusicLibrary
                 new NavigationScheme.Entry(MenuAction.Blue, "Menu.MusicLibrary.StartShow",
                     OnPlayShowHit),
                 new NavigationScheme.Entry(MenuAction.Orange, "Menu.MusicLibrary.MoreOptions",
-                    OnButtonHit, OnButtonRelease),
+                    OnOrangeHit, OnOrangeRelease),
             }, false));
         }
 

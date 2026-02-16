@@ -182,7 +182,7 @@ namespace YARG.Audio.BASS
         {
             int currentDevice = Bass.CurrentDevice;
 
-            OutputDevice? device = GetOutputDevice(name);
+            var device = GetOutputDevice(name);
             if (device is not BassOutputDevice bassDevice || bassDevice.DeviceId == currentDevice)
             {
                 return false;
