@@ -382,19 +382,14 @@ public override bool ShouldUpdateInputsOnResume => true;
             ((FiveLaneKeysNoteElement) poolable).NoteRef = note;
         }
 
-        protected override HighwayOrderingInfo GetLaneInfo(GuitarNote note)
-        {
-            return new(GetLanePositionOrCentered(note.Fret), note.Fret);
-        }
-
-        protected override void InitializeSpawnedLane(LaneElement lane, int fret)
+        protected override void InitializeSpawnedLane(LaneElement lane, GuitarNote note)
         {
             lane.SetAppearance(
                 Player.Profile.CurrentInstrument,
-                fret,
-                GetLanePositionOrCentered(fret),
+                note.LaneNote,
+                GetLanePositionOrCentered(note.Fret),
                 LaneCount,
-                Player.ColorProfile.FiveFretGuitar.GetNoteColor(fret).ToUnityColor()
+                Player.ColorProfile.FiveFretGuitar.GetNoteColor(note.Fret).ToUnityColor()
             );
         }
 

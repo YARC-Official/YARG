@@ -365,14 +365,9 @@ namespace YARG.Gameplay.Player
             ((DrumsNoteElement) poolable).NoteRef = note;
         }
 
-        protected override HighwayOrderingInfo GetLaneInfo(DrumNote note)
+        protected override void InitializeSpawnedLane(LaneElement lane, DrumNote note)
         {
-            return _highwayOrdering[note.Pad];
-        }
-
-        protected override void InitializeSpawnedLane(LaneElement lane, int index)
-        {
-            var highwayOrderingInfo = _highwayOrdering[index];
+            var highwayOrderingInfo = _highwayOrdering[note.Pad];
 
             var laneColor = (_fiveLaneMode ?
                 Player.ColorProfile.FiveLaneDrums.GetNoteColor(highwayOrderingInfo.ColorIndex) :
@@ -381,7 +376,7 @@ namespace YARG.Gameplay.Player
 
             lane.SetAppearance(
                 Player.Profile.CurrentInstrument,
-                index,
+                note.LaneNote,
                 highwayOrderingInfo.Position,
                 LaneCount,
                 laneColor

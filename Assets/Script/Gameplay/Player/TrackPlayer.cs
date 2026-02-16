@@ -715,15 +715,13 @@ namespace YARG.Gameplay.Player
 
                         if (childNote.IsLane)
                         {
-                            int laneIndex = GetLaneInfo(childNote).ColorIndex;
-
-                            if (laneStartNotes.ContainsKey(laneIndex))
+                            if (laneStartNotes.ContainsKey(childNote.LaneNote))
                             {
-                                laneEndTimes[laneIndex] = noteRef.Time;
+                                laneEndTimes[childNote.LaneNote] = noteRef.Time;
                             }
                             else
                             {
-                                laneStartNotes[laneIndex] = childNote;
+                                laneStartNotes[childNote.LaneNote] = childNote;
                             }
                         }
                     }
@@ -736,7 +734,7 @@ namespace YARG.Gameplay.Player
                     noteRef = noteRef.NextNote;
                 }
 
-                foreach (int laneIndex in laneStartNotes.Keys)
+                foreach (var (laneIndex, note) in laneStartNotes)
                 {
                     if (!laneEndTimes.ContainsKey(laneIndex))
                     {
@@ -767,9 +765,7 @@ namespace YARG.Gameplay.Player
                                         break;
                                     }
 
-                                    var laneInfo = GetLaneInfo(noteRef);
-
-                                    if (existingLane.ContainsIndex(laneInfo.ColorIndex) && (noteRef.Flags & thisLaneFlag) != 0)
+                                    if (existingLane.ContainsIndex(noteRef.LaneNote) && (noteRef.Flags & thisLaneFlag) != 0)
                                     {
                                         extendExisting = true;
                                         break;
@@ -796,17 +792,12 @@ namespace YARG.Gameplay.Player
                     // Create a new lane element at this index
                     var newLane = (LaneElement) LanePool.TakeWithoutEnabling();
                     newLane.SetTimeRange(startTime, endTime);
-                    InitializeSpawnedLane(newLane, laneIndex);
+                    InitializeSpawnedLane(newLane, note);
                     ModifyLaneFromNote(newLane, firstLaneNote);
 
                     newLane.EnableFromPool();
                 }
             }
-        }
-
-        protected virtual HighwayOrderingInfo GetLaneInfo(TNote note)
-        {
-            return new(note.LaneNote, note.LaneNote);
         }
 
         public override void SetPracticeSection(uint start, uint end)
@@ -890,7 +881,7 @@ namespace YARG.Gameplay.Player
         }
 
         protected abstract void InitializeSpawnedNote(IPoolable poolable, TNote note);
-        protected abstract void InitializeSpawnedLane(LaneElement lane, int index);
+        protected abstract void InitializeSpawnedLane(LaneElement lane, TNote note);
         protected virtual void ModifyLaneFromNote(LaneElement lane, TNote note) {}
 
         protected virtual void OnNoteHit(int index, TNote note)

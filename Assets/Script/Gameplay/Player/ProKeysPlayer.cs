@@ -460,15 +460,15 @@ namespace YARG.Gameplay.Player
             ((ProKeysNoteElement) poolable).NoteRef = note;
         }
 
-        protected override void InitializeSpawnedLane(LaneElement lane, int key)
+        protected override void InitializeSpawnedLane(LaneElement lane, ProKeysNote note)
         {
-            int noteIndex = key % 12;
-            int octaveIndex = key / 12;
+            int noteIndex = note.LaneNote % 12;
+            int octaveIndex = note.LaneNote / 12;
 
             // Get the group index (two groups per octave)
             int group = octaveIndex * 2 + (ProKeysUtilities.IsLowerHalfKey(noteIndex) ? 0 : 1);
 
-            lane.SetAppearance(Player.Profile.CurrentInstrument, key, _keysArray.GetKeyX(key), Player.ColorProfile.ProKeys.GetOverlayColor(group).ToUnityColor());
+            lane.SetAppearance(Player.Profile.CurrentInstrument, note.LaneNote, _keysArray.GetKeyX(note.LaneNote), Player.ColorProfile.ProKeys.GetOverlayColor(group).ToUnityColor());
             lane.OffsetXPosition(_currentOffset);
         }
 
