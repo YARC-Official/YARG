@@ -1,16 +1,30 @@
 ﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UIElements;
 using YARG.Core;
 using YARG.Core.Chart;
 using YARG.Core.Game;
 using YARG.Core.Logging;
+using YARG.Gameplay.Player;
 using YARG.Themes;
 using static YARG.Core.Game.ColorProfile;
 using static YARG.Themes.ThemeManager;
 
 namespace YARG.Gameplay.Visuals
 {
+    public readonly struct HighwayOrderingInfo
+    {
+        public HighwayOrderingInfo(float _position, int _colorIndex)
+        {
+            Position = _position;
+            ColorIndex = _colorIndex;
+        }
+
+        public float Position { get; }
+        public int ColorIndex { get; }
+    }
+
     public class FretArray : MonoBehaviour
     {
         private const float WIDTH_NUMERATOR   = 2f;
@@ -35,19 +49,39 @@ namespace YARG.Gameplay.Visuals
         private List<int> _pulsingFrets;
         private float  _pulseDuration;
 
+        /* 
+         * Overload for instruments where lefty flip does not affect color (e.g. a lefty-flipped Green Fret on 5F Guitar is still green, just laterally shifted). 
+         * Acts as a convenience so that you can just pass in a mapping of note type to lateral position, and it will create HighwayOrderingInfos that use the note
+         * type as the color index.
+         * 
+         * On Drums, lefty flip affects position and color separately (e.g. a lefty flipped Red Drum becomes green in addition to being shifted), so you need to
+         * provide HighwayOrderingInfos directly.
+         */
         public void Initialize(Dictionary<int, int> highwayOrdering, int laneCount, GameObject? kickFretPrefab, IFretColorProvider fretColorProvider, ThemePreset themePreset, VisualStyle style)
+        {
+            var derivedDictionary = new Dictionary<int, HighwayOrderingInfo>();
+
+            foreach (var (noteType, position) in highwayOrdering)
+            {
+                derivedDictionary.Add(noteType, new(position, noteType));
+            }
+
+            Initialize(derivedDictionary, laneCount, kickFretPrefab, fretColorProvider, themePreset, style);
+        }
+
+        public void Initialize(Dictionary<int, HighwayOrderingInfo> highwayOrdering, int laneCount, GameObject? kickFretPrefab, IFretColorProvider fretColorProvider, ThemePreset themePreset, VisualStyle style)
         {
             var fretPrefab = ThemeManager.Instance.CreateFretPrefabFromTheme(themePreset, style);
 
             _frets.Clear();
-            foreach (var (noteType, position) in highwayOrdering)
+            foreach (var (noteType, highwayOrderingInfo) in highwayOrdering)
             {
                 var fret = Instantiate(fretPrefab, transform);
                 fret.SetActive(true);
 
 
                 // Position
-                float x = _trackWidth / laneCount * position - _trackWidth / 2f + 1f / laneCount;
+                float x = _trackWidth / laneCount * highwayOrderingInfo.Position - _trackWidth / 2f + 1f / laneCount;
                 fret.transform.localPosition = new Vector3(x, 0f, 0f);
 
                 // Scale
@@ -56,9 +90,9 @@ namespace YARG.Gameplay.Visuals
 
                 var fretComp = fret.GetComponent<Fret>();
                 fretComp.Initialize(
-                    fretColorProvider.GetFretColor(noteType),
-                    fretColorProvider.GetFretInnerColor(noteType),
-                    fretColorProvider.GetParticleColor(noteType),
+                    fretColorProvider.GetFretColor(highwayOrderingInfo.ColorIndex),
+                    fretColorProvider.GetFretInnerColor(highwayOrderingInfo.ColorIndex),
+                    fretColorProvider.GetParticleColor(highwayOrderingInfo.ColorIndex),
                     fretColorProvider.GetParticleColor(0)
                 );
 

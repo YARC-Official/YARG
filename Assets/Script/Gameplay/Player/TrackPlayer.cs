@@ -715,7 +715,7 @@ namespace YARG.Gameplay.Player
 
                         if (childNote.IsLane)
                         {
-                            int laneIndex = GetLaneInfo(childNote).colorIndex;
+                            int laneIndex = GetLaneInfo(childNote).ColorIndex;
 
                             if (laneStartNotes.ContainsKey(laneIndex))
                             {
@@ -769,7 +769,7 @@ namespace YARG.Gameplay.Player
 
                                     var laneInfo = GetLaneInfo(noteRef);
 
-                                    if (existingLane.ContainsIndex(laneInfo.colorIndex) && (noteRef.Flags & thisLaneFlag) != 0)
+                                    if (existingLane.ContainsIndex(laneInfo.ColorIndex) && (noteRef.Flags & thisLaneFlag) != 0)
                                     {
                                         extendExisting = true;
                                         break;
@@ -804,9 +804,9 @@ namespace YARG.Gameplay.Player
             }
         }
 
-        protected virtual (float lateralPosition, int colorIndex) GetLaneInfo(TNote note)
+        protected virtual HighwayOrderingInfo GetLaneInfo(TNote note)
         {
-            return (note.LaneNote, note.LaneNote);
+            return new(note.LaneNote, note.LaneNote);
         }
 
         public override void SetPracticeSection(uint start, uint end)

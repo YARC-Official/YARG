@@ -382,9 +382,9 @@ public override bool ShouldUpdateInputsOnResume => true;
             ((FiveLaneKeysNoteElement) poolable).NoteRef = note;
         }
 
-        protected override (float lateralPosition, int colorIndex) GetLaneInfo(GuitarNote note)
+        protected override HighwayOrderingInfo GetLaneInfo(GuitarNote note)
         {
-            return (GetLanePositionOrCentered(note.Fret), note.Fret);
+            return new(GetLanePositionOrCentered(note.Fret), note.Fret);
         }
 
         protected override void InitializeSpawnedLane(LaneElement lane, int fret)
