@@ -62,9 +62,22 @@ namespace YARG.Menu.Settings
 
         public bool ShowAdvanced
         {
-            get => SettingsManager.Settings.ShowAdvancedSettings.Value;
-            private set => SettingsManager.Settings.ShowAdvancedSettings.Value = value;
+            get => SettingsManager.Settings?.ShowAdvancedSettings?.Value ?? _showAdvanced;
+            private set
+            {
+                var setting = SettingsManager.Settings?.ShowAdvancedSettings;
+                if (setting != null)
+                {
+                    setting.Value = value;
+                }
+                else
+                {
+                    _showAdvanced = value;
+                }
+            }
         }
+
+        public bool ShouldPulseAdvancedSettings { get; private set; }
 
         protected override void SingletonAwake()
         {
@@ -110,8 +123,11 @@ namespace YARG.Menu.Settings
                 return;
             }
 
-            _headerTabs.TabChanged += OnTabChanged;
+            _showAdvanced = ShowAdvanced;
+            ShouldPulseAdvancedSettings = false;
+
             _headerTabs.RefreshTabs();
+            _headerTabs.TabChanged += OnTabChanged;
 
             _settingsNavGroup.SelectionChanged += OnSelectionChanged;
 
@@ -228,6 +244,10 @@ namespace YARG.Menu.Settings
 
         private void UpdateSettings(bool resetScroll)
         {
+            var wasShowingAdvanced = _showAdvanced;
+            _showAdvanced = ShowAdvanced;
+            ShouldPulseAdvancedSettings = _showAdvanced && !wasShowingAdvanced;
+
             _settingsNavGroup.ClearNavigatables();
 
             // Destroy all previous settings

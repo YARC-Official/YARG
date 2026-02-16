@@ -19,14 +19,12 @@ namespace YARG.Settings.Metadata
 
         private Dictionary<string, BaseSettingVisual> _settingVisuals = new();
         private readonly List<AbstractMetadata> _settings = new();
-        private bool _previousShowAdvanced;
 
         public IReadOnlyList<AbstractMetadata> Settings => _settings;
 
         public MetadataTab(string name, string icon = "Generic", IPreviewBuilder previewBuilder = null)
             : base(name, icon, previewBuilder)
         {
-            _previousShowAdvanced = SettingsMenu.Instance.ShowAdvanced;
         }
 
         public override void BuildSettingTab(Transform container, NavigationGroup navGroup)
@@ -34,7 +32,7 @@ namespace YARG.Settings.Metadata
             _settingVisuals.Clear();
 
             var showAdvanced = SettingsMenu.Instance.ShowAdvanced;
-            var shouldFlashAdvancedSettings = !_previousShowAdvanced && showAdvanced;
+            var shouldPulseAdvancedSettings = showAdvanced && SettingsMenu.Instance.ShouldPulseAdvancedSettings;
             var settingIndex = 0;
 
             // Once we've found the tab, add the settings
@@ -107,9 +105,9 @@ namespace YARG.Settings.Metadata
                         visual.AssignSetting(field.FieldName, field.HasDescription);
                         visual.AssignIndex(settingIndex);
 
-                        if (field.IsAdvanced && shouldFlashAdvancedSettings)
+                        if (field.IsAdvanced && shouldPulseAdvancedSettings)
                         {
-                            visual.Flash();
+                            visual.Pulse();
                         }
 
                         _settingVisuals.Add(field.FieldName, visual);
@@ -121,7 +119,6 @@ namespace YARG.Settings.Metadata
                 }
             }
 
-            _previousShowAdvanced = showAdvanced;
         }
 
         // For collection initializer support

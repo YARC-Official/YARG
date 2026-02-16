@@ -1,7 +1,4 @@
-using System;
-using System.Collections;
-using System.Threading;
-using Cysharp.Threading.Tasks;
+using DG.Tweening;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -15,8 +12,8 @@ namespace YARG.Menu.Settings.Visuals
 {
     public abstract class BaseSettingVisual : MonoBehaviour
     {
-        private const float ADVANCED_FLASH_DURATION = 1.5f;
-        private const float ADVANCED_FLASH_BRIGHTNESS = 0.1f;
+        private const float PULSE_DURATION = 1.5f;
+        private const float PULSE_BRIGHTNESS = 0.2f;
 
         protected static readonly NavigationScheme.Entry NavigateFinish = new(MenuAction.Red, "Menu.Common.Confirm", () =>
         {
@@ -30,7 +27,6 @@ namespace YARG.Menu.Settings.Visuals
         private GameObject _evenBackground;
 
         private Image _evenBackgroundImage;
-        private CancellationTokenSource _flashCts;
 
         public bool IsPresetSetting { get; private set; }
         public bool HasDescription { get; private set; }
@@ -38,10 +34,7 @@ namespace YARG.Menu.Settings.Visuals
 
         protected virtual void Awake()
         {
-            if (_evenBackground != null)
-            {
-                _evenBackgroundImage = _evenBackground.GetComponent<Image>();
-            }
+            _evenBackgroundImage = _evenBackground.GetComponent<Image>();
         }
 
         public void AssignSetting(string settingName, bool hasDescription)
@@ -86,100 +79,21 @@ namespace YARG.Menu.Settings.Visuals
 
         public abstract NavigationScheme GetNavigationScheme();
 
-        public void Flash()
+        public void Pulse()
         {
-            // Cancel the previous pulse so they don't overlap if spammed
-            _flashCts?.Cancel();
-            _flashCts?.Dispose();
-            _flashCts = CancellationTokenSource.CreateLinkedTokenSource(this.GetCancellationTokenOnDestroy());
-            FlashAdvancedRevealAsync(_flashCts.Token).Forget();
-        }
-
-        private async UniTaskVoid FlashAdvancedRevealAsync(CancellationToken token)
-        {
-            if (_evenBackgroundImage == null)
-            {
-                return;
-            }
-
             var wasActive = _evenBackground.activeSelf;
+            var initialColor = _evenBackgroundImage.color;
+            var pulseColor = Color.Lerp(initialColor, Color.white, PULSE_BRIGHTNESS);
             _evenBackground.SetActive(true);
-
-            // Calculate target color based on current color
-            var flashColor = Color.Lerp(_evenBackgroundImage.color, Color.white, ADVANCED_FLASH_BRIGHTNESS);
-
-            try
-            {
-                // Pulse handles its own baseColor inference and restoration
-                await PulseColorAsync(
-                    _evenBackgroundImage,
-                    flashColor,
-                    pulseCount: 2,
-                    totalDuration: ADVANCED_FLASH_DURATION,
-                    token: token
-                );
-            }
-            catch (OperationCanceledException)
-            {
-                // Silent catch for cancellation (user triggered new flash or object destroyed)
-            }
-            finally
-            {
-                // Only handle the GameObject state here; PulseColorAsync handles the color restoration
-                if (!wasActive && _evenBackground != null)
+            _evenBackgroundImage.DOKill();
+            _evenBackgroundImage.DOColor(pulseColor, PULSE_DURATION / 4f)
+                .SetEase(Ease.InOutSine)
+                .SetLoops(4, LoopType.Yoyo)
+                .OnKill(() =>
                 {
-                    _evenBackground.SetActive(false);
-                }
-            }
-        }
-
-        /// <summary>
-        /// A generic helper to pulse an Image color in and out.
-        /// Infers the base color from the image and restores it when finished.
-        /// </summary>
-        private async UniTask PulseColorAsync(Image image, Color pulseColor, int pulseCount, float totalDuration, CancellationToken token)
-        {
-            var initialColor = image.color;
-            float phaseDuration = (totalDuration / pulseCount) / 2f;
-            try
-            {
-                for (var i = 0; i < pulseCount; i++)
-                {
-                    // Pulse In
-                    await LerpColorAsync(image, initialColor, pulseColor, phaseDuration, token);
-                    // Pulse Out
-                    await LerpColorAsync(image, pulseColor, initialColor, phaseDuration, token);
-                }
-            }
-            finally
-            {
-                // Ensure color is restored even if cancelled
-                if (image != null)
-                {
-                    image.color = initialColor;
-                }
-            }
-        }
-
-        private async UniTask LerpColorAsync(Image image, Color from, Color to, float duration, CancellationToken token)
-        {
-            float elapsed = 0f;
-            while (elapsed < duration)
-            {
-                elapsed += Time.unscaledDeltaTime;
-                image.color = Color.Lerp(from, to, elapsed / duration);
-
-                await UniTask.Yield(PlayerLoopTiming.Update, token);
-            }
-
-            image.color = to;
-        }
-
-        protected virtual void OnDestroy()
-        {
-            _flashCts?.Cancel();
-            _flashCts?.Dispose();
-            _flashCts = null;
+                    _evenBackgroundImage.color = initialColor;
+                    _evenBackground.SetActive(wasActive);
+                });
         }
     }
 
