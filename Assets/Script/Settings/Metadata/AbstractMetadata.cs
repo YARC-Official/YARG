@@ -4,11 +4,11 @@ namespace YARG.Settings.Metadata
     {
         public abstract string[] UnlocalizedSearchNames { get; }
 
-        public bool Advanced { get; }
+        public bool IsAdvanced { get; }
 
-        protected AbstractMetadata(bool advanced = false)
+        protected AbstractMetadata(bool isAdvanced = false)
         {
-            Advanced = advanced;
+            IsAdvanced = isAdvanced;
         }
 
         public static implicit operator AbstractMetadata(string name) => new FieldMetadata(name);

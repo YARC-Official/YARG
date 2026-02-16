@@ -19,24 +19,28 @@ namespace YARG.Settings.Metadata
 
         private Dictionary<string, BaseSettingVisual> _settingVisuals = new();
         private readonly List<AbstractMetadata> _settings = new();
+        private bool _previousShowAdvanced;
 
         public IReadOnlyList<AbstractMetadata> Settings => _settings;
 
         public MetadataTab(string name, string icon = "Generic", IPreviewBuilder previewBuilder = null)
             : base(name, icon, previewBuilder)
         {
+            _previousShowAdvanced = SettingsMenu.Instance.ShowAdvanced;
         }
 
         public override void BuildSettingTab(Transform container, NavigationGroup navGroup)
         {
             _settingVisuals.Clear();
+
+            var showAdvanced = SettingsMenu.Instance.ShowAdvanced;
+            var shouldFlashAdvancedSettings = !_previousShowAdvanced && showAdvanced;
             var settingIndex = 0;
-            bool flashAdvanced = SettingsMenu.Instance.FlashAdvancedOnBuild;
 
             // Once we've found the tab, add the settings
             foreach (var settingMetadata in _settings)
             {
-                if (settingMetadata.Advanced && !SettingsMenu.Instance.ShowAdvanced)
+                if (settingMetadata.IsAdvanced && !showAdvanced)
                 {
                     continue;
                 }
@@ -103,9 +107,9 @@ namespace YARG.Settings.Metadata
                         visual.AssignSetting(field.FieldName, field.HasDescription);
                         visual.AssignIndex(settingIndex);
 
-                        if (flashAdvanced && field.Advanced)
+                        if (field.IsAdvanced && shouldFlashAdvancedSettings)
                         {
-                            visual.FlashAdvancedReveal();
+                            visual.Flash();
                         }
 
                         _settingVisuals.Add(field.FieldName, visual);
@@ -116,6 +120,8 @@ namespace YARG.Settings.Metadata
                     }
                 }
             }
+
+            _previousShowAdvanced = showAdvanced;
         }
 
         // For collection initializer support
