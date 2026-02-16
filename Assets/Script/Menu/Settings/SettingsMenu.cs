@@ -58,6 +58,8 @@ namespace YARG.Menu.Settings
         private bool _tabsInitialized;
         private string _pendingTabName;
 
+        private bool _showAdvanced;
+
         protected override void SingletonAwake()
         {
             // Settings menu defaults to active so that it will be initialized at startup
@@ -108,18 +110,8 @@ namespace YARG.Menu.Settings
             _settingsNavGroup.SelectionChanged += OnSelectionChanged;
 
             // Set navigation scheme
-            Navigator.Instance.PushScheme(new NavigationScheme(new()
-            {
-                NavigationScheme.Entry.NavigateSelect,
-                new NavigationScheme.Entry(MenuAction.Red, "Menu.Common.Back", () =>
-                {
-                    gameObject.SetActive(false);
-                }, hide: true),
-                NavigationScheme.Entry.NavigateUp,
-                NavigationScheme.Entry.NavigateDown,
-                _headerTabs.NavigateNextTab,
-                _headerTabs.NavigatePreviousTab
-            }, true));
+            _showAdvanced = false;
+            PushNavigationScheme();
 
             if (CurrentTab == null)
             {
@@ -307,6 +299,39 @@ namespace YARG.Menu.Settings
             {
                 Refresh();
             }
+        }
+
+        private void PushNavigationScheme()
+        {
+            string advancedKey = _showAdvanced
+                ? "Menu.Settings.HideAdvanced"
+                : "Menu.Settings.ShowAdvanced";
+
+            Navigator.Instance.PushScheme(new NavigationScheme(new()
+            {
+                NavigationScheme.Entry.NavigateSelect,
+                new NavigationScheme.Entry(MenuAction.Red, "Menu.Common.Back", () =>
+                {
+                    gameObject.SetActive(false);
+                }, hide: true),
+                NavigationScheme.Entry.NavigateUp,
+                NavigationScheme.Entry.NavigateDown,
+                _headerTabs.NavigateNextTab,
+                _headerTabs.NavigatePreviousTab,
+                new NavigationScheme.Entry(MenuAction.Blue, advancedKey,
+                    _ => { },
+                    1f,
+                    _ => ToggleAdvanced())
+            }, true));
+        }
+
+        private void ToggleAdvanced()
+        {
+            _showAdvanced = !_showAdvanced;
+            Debug.Log(_showAdvanced ? "Show Advanced held" : "Hide Advanced held");
+
+            Navigator.Instance.PopScheme();
+            PushNavigationScheme();
         }
 
         private void OnDisable()
