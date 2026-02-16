@@ -35,6 +35,11 @@ namespace YARG.Settings.Metadata
             // Once we've found the tab, add the settings
             foreach (var settingMetadata in _settings)
             {
+                if (settingMetadata.Advanced && !SettingsMenu.Instance.ShowAdvanced)
+                {
+                    continue;
+                }
+
                 switch (settingMetadata)
                 {
                     case HeaderMetadata header:

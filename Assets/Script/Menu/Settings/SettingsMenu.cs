@@ -58,7 +58,7 @@ namespace YARG.Menu.Settings
         private bool _tabsInitialized;
         private string _pendingTabName;
 
-        private bool _showAdvanced;
+        public bool ShowAdvanced { get; private set; }
 
         protected override void SingletonAwake()
         {
@@ -110,7 +110,7 @@ namespace YARG.Menu.Settings
             _settingsNavGroup.SelectionChanged += OnSelectionChanged;
 
             // Set navigation scheme
-            _showAdvanced = false;
+            ShowAdvanced = false;
             PushNavigationScheme();
 
             if (CurrentTab == null)
@@ -303,7 +303,7 @@ namespace YARG.Menu.Settings
 
         private void PushNavigationScheme()
         {
-            string advancedKey = _showAdvanced
+            string advancedKey = ShowAdvanced
                 ? "Menu.Settings.HideAdvanced"
                 : "Menu.Settings.ShowAdvanced";
 
@@ -327,11 +327,12 @@ namespace YARG.Menu.Settings
 
         private void ToggleAdvanced()
         {
-            _showAdvanced = !_showAdvanced;
-            Debug.Log(_showAdvanced ? "Show Advanced held" : "Hide Advanced held");
+            ShowAdvanced = !ShowAdvanced;
+            Debug.Log(ShowAdvanced ? "Show Advanced held" : "Hide Advanced held");
 
             Navigator.Instance.PopScheme();
             PushNavigationScheme();
+            RefreshAndKeepPosition();
         }
 
         private void OnDisable()
