@@ -483,6 +483,7 @@
             "All": "All",
             "SongCount": "{0} SONGS",
             "Genres": "Genres",
+			"Subgenres": "Subgenres",
             "Decades": "Decades",
             "VocalParts": {
                 "Name": "Number of Vocal Parts",

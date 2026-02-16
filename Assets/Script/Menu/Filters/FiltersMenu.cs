@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using TMPro;
@@ -92,6 +92,8 @@ namespace YARG.Menu.Filters
 
         private readonly Dictionary<string, bool> _genreEnabled =
             new(StringComparer.OrdinalIgnoreCase);
+        private readonly Dictionary<string, bool> _subgenreEnabled =
+            new(StringComparer.OrdinalIgnoreCase);
         private readonly Dictionary<string, bool> _decadeEnabled =
             new(StringComparer.OrdinalIgnoreCase);
         private readonly Dictionary<string, bool> _vocalPartsEnabled =
@@ -106,6 +108,7 @@ namespace YARG.Menu.Filters
             new(StringComparer.OrdinalIgnoreCase);
 
         private static IReadOnlyList<string> _cachedGenres;
+        private static IReadOnlyList<string> _cachedSubgenres;
         private static IReadOnlyList<string> _cachedDecades;
         private static IReadOnlyList<string> _cachedVocalParts;
         private static IReadOnlyList<string> _cachedSources;
@@ -114,6 +117,7 @@ namespace YARG.Menu.Filters
         private static IReadOnlyList<string> _cachedDifficulties;
 
         private static int _cachedGenreSongCount = -1;
+        private static int _cachedSubgenreSongCount = -1;
         private static int _cachedDecadeSongCount = -1;
         private static int _cachedVocalPartsSongCount = -1;
         private static int _cachedSourceSongCount = -1;
@@ -303,6 +307,9 @@ namespace YARG.Menu.Filters
                 case FilterGroup.Genre:
                     BuildOptionsFor(FilterGroup.Genre);
                     break;
+                case FilterGroup.Subgenre:
+                    BuildOptionsFor(FilterGroup.Subgenre);
+                    break;
                 case FilterGroup.Decade:
                     BuildOptionsFor(FilterGroup.Decade);
                     break;
@@ -343,6 +350,7 @@ namespace YARG.Menu.Filters
             AddHeader(container, Localize.Key("Menu.Filters.FiltersHeader"));
             rowIndex = 0;
             AddGroup(container, navGroup, FilterGroup.Genre,  Localize.Key("Menu.Filters.Genres"))?.AssignIndex(rowIndex++);
+            AddGroup(container, navGroup, FilterGroup.Subgenre, Localize.Key("Menu.Filters.Subgenres"))?.AssignIndex(rowIndex++);
             AddGroup(container, navGroup, FilterGroup.Decade, Localize.Key("Menu.Filters.Decades"))?.AssignIndex(rowIndex++);
             AddGroup(container, navGroup, FilterGroup.VocalParts, Localize.Key("Menu.Filters.VocalParts.Name"))?.AssignIndex(rowIndex++);
             AddGroup(container, navGroup, FilterGroup.Source, Localize.Key("Menu.Filters.Sources"))?.AssignIndex(rowIndex++);
@@ -527,6 +535,12 @@ namespace YARG.Menu.Filters
                 GetAllGenresCached,
                 () => GetCountsFromCollections(SongContainer.Genres, key => key.ToString()),
                 _genreEnabled);
+
+            yield return new FilterDef(
+                FilterGroup.Subgenre,
+                GetAllSubgenresCached,
+                () => GetCountsFromCollections(SongContainer.Subgenres, key => key.ToString()),
+                _subgenreEnabled);
 
             yield return new FilterDef(
                 FilterGroup.Decade,
@@ -783,6 +797,9 @@ namespace YARG.Menu.Filters
             if (TryGetSelectedSet(_genreEnabled, GetAllGenresCached(), NormalizeFilterKey, out var genres))
                 predicates.Add(entry => genres.Contains(entry.Genre.SearchStr));
 
+            if (TryGetSelectedSet(_subgenreEnabled, GetAllSubgenresCached(), NormalizeFilterKey, out var subgenres))
+                predicates.Add(entry => subgenres.Contains(entry.Subgenre.SearchStr));
+
             if (TryGetSelectedSet(_decadeEnabled, GetAllDecadesCached(), NormalizeDecade, out var decades))
                 predicates.Add(entry =>
                 {
@@ -840,9 +857,22 @@ namespace YARG.Menu.Filters
                     .OrderBy(s => s, StringComparer.OrdinalIgnoreCase)
                     .ToArray());
         }
+        #endregion
+
+#region Subgenres
+        private static IReadOnlyList<string> GetAllSubgenresCached()
+        {
+            return GetAllCached(ref _cachedSubgenres, ref _cachedSubgenreSongCount, () =>
+                SongContainer.Subgenres.Keys
+                    .Select(k => k.ToString()) // SortString -> string
+                    .Where(s => !string.IsNullOrWhiteSpace(s))
+                    .Distinct(StringComparer.OrdinalIgnoreCase)
+                    .OrderBy(s => s, StringComparer.OrdinalIgnoreCase)
+                    .ToArray());
+        }
 #endregion
 
-#region Decades
+        #region Decades
         private static IReadOnlyList<string> GetAllDecadesCached()
         {
             return GetAllCached(ref _cachedDecades, ref _cachedDecadeSongCount, () =>
