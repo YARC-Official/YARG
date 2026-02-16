@@ -57,8 +57,10 @@ namespace YARG.Menu.Settings
         private bool _ready;
         private bool _tabsInitialized;
         private string _pendingTabName;
+        private bool _flashAdvancedOnBuild;
 
         public bool ShowAdvanced { get; private set; }
+        public bool FlashAdvancedOnBuild => _flashAdvancedOnBuild;
 
         protected override void SingletonAwake()
         {
@@ -111,6 +113,7 @@ namespace YARG.Menu.Settings
 
             // Set navigation scheme
             ShowAdvanced = false;
+            _flashAdvancedOnBuild = false;
             PushNavigationScheme();
 
             if (CurrentTab == null)
@@ -230,6 +233,7 @@ namespace YARG.Menu.Settings
 
             // Build the settings tab
             CurrentTab?.BuildSettingTab(_settingsContainer, _settingsNavGroup);
+            _flashAdvancedOnBuild = false;
 
             if (resetScroll)
             {
@@ -328,6 +332,7 @@ namespace YARG.Menu.Settings
         private void ToggleAdvanced()
         {
             ShowAdvanced = !ShowAdvanced;
+            _flashAdvancedOnBuild = ShowAdvanced;
             Debug.Log(ShowAdvanced ? "Show Advanced held" : "Hide Advanced held");
 
             Navigator.Instance.PopScheme();

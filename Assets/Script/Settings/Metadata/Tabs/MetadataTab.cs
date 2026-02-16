@@ -31,6 +31,7 @@ namespace YARG.Settings.Metadata
         {
             _settingVisuals.Clear();
             var settingIndex = 0;
+            bool flashAdvanced = SettingsMenu.Instance.FlashAdvancedOnBuild;
 
             // Once we've found the tab, add the settings
             foreach (var settingMetadata in _settings)
@@ -101,6 +102,11 @@ namespace YARG.Settings.Metadata
                         var visual = SpawnSettingVisual(setting, container);
                         visual.AssignSetting(field.FieldName, field.HasDescription);
                         visual.AssignIndex(settingIndex);
+
+                        if (flashAdvanced && field.Advanced)
+                        {
+                            visual.FlashAdvancedReveal();
+                        }
 
                         _settingVisuals.Add(field.FieldName, visual);
                         navGroup.AddNavigatable(visual.gameObject);

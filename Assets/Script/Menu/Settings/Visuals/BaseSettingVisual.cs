@@ -1,5 +1,7 @@
+using System.Collections;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 using YARG.Core.Input;
 using YARG.Localization;
 using YARG.Menu.Navigation;
@@ -10,6 +12,9 @@ namespace YARG.Menu.Settings.Visuals
 {
     public abstract class BaseSettingVisual : MonoBehaviour
     {
+        private const float ADVANCED_FLASH_DURATION = 1.5f;
+        private const float ADVANCED_FLASH_BRIGHTNESS = 0.1f;
+
         protected static readonly NavigationScheme.Entry NavigateFinish = new(MenuAction.Red, "Menu.Common.Confirm", () =>
         {
             Navigator.Instance.PopScheme();
@@ -20,6 +25,8 @@ namespace YARG.Menu.Settings.Visuals
 
         [SerializeField]
         private GameObject _evenBackground;
+
+        private Coroutine _advancedFlash;
 
         public bool IsPresetSetting { get; private set; }
         public bool HasDescription { get; private set; }
@@ -61,6 +68,50 @@ namespace YARG.Menu.Settings.Visuals
             {
                 _evenBackground.SetActive(false);
             }
+        }
+
+        public void FlashAdvancedReveal()
+        {
+            if (_advancedFlash != null)
+            {
+                StopCoroutine(_advancedFlash);
+            }
+
+            _advancedFlash = StartCoroutine(FlashAdvancedRevealCoroutine());
+        }
+
+        private IEnumerator FlashAdvancedRevealCoroutine()
+        {
+            var wasActive = _evenBackground.activeSelf;
+            _evenBackground.SetActive(true);
+
+            var evenBackgroundImage = _evenBackground.GetComponent<Image>();
+            var baseColor = evenBackgroundImage.color;
+            var flashColor = Color.Lerp(baseColor, Color.white, ADVANCED_FLASH_BRIGHTNESS);
+            const int pulseCount = 2;
+            float pulseDuration = ADVANCED_FLASH_DURATION / pulseCount;
+
+            for (var pulseIndex = 0; pulseIndex < pulseCount; pulseIndex++)
+            {
+                float pulseElapsed = 0f;
+                while (pulseElapsed < pulseDuration)
+                {
+                    pulseElapsed += Time.unscaledDeltaTime;
+                    float pulseProgress = Mathf.Clamp01(pulseElapsed / pulseDuration);
+                    float inOutProgress = Mathf.Sin(pulseProgress * Mathf.PI);
+                    evenBackgroundImage.color = Color.Lerp(baseColor, flashColor, inOutProgress);
+
+                    yield return null;
+                }
+            }
+
+            evenBackgroundImage.color = baseColor;
+            if (!wasActive)
+            {
+                _evenBackground.SetActive(false);
+            }
+
+            _advancedFlash = null;
         }
 
         protected abstract void AssignSettingFromVariable(ISettingType reference);
