@@ -37,7 +37,7 @@ namespace YARG.Settings
                 new FieldMetadata(nameof(Settings.AccountForHardwareLatency), true, isAdvanced: true),
 
                 new HeaderMetadata("Venues"),
-                new ButtonRowMetadata(nameof(Settings.OpenVenueFolder), isAdvanced: true),
+                new ButtonRowMetadata(nameof(Settings.OpenVenueFolder)),
                 new FieldMetadata(nameof(Settings.DisableDefaultBackground), isAdvanced: true),
                 new FieldMetadata(nameof(Settings.DisableGlobalBackgrounds), isAdvanced: true),
                 nameof(Settings.DisablePerSongBackgrounds),
@@ -50,14 +50,14 @@ namespace YARG.Settings
                 new FieldMetadata(nameof(Settings.PracticeRestartDelay), isAdvanced: true),
                 nameof(Settings.NoFailMode),
                 nameof(Settings.LearningGuides),
-                new FieldMetadata(nameof(Settings.ReduceNoteSpeedByDifficulty), isAdvanced: true),
+                new FieldMetadata(nameof(Settings.ReduceNoteSpeedByDifficulty)),
 
                 new HeaderMetadata("StatusBar"),
                 nameof(Settings.ShowBattery),
                 nameof(Settings.ShowTime),
                 new FieldMetadata(nameof(Settings.MemoryStats), isAdvanced: true),
                 new FieldMetadata(nameof(Settings.FpsStats), isAdvanced: true),
-                new FieldMetadata(nameof(Settings.ShowActivePlayers), isAdvanced: true),
+                new FieldMetadata(nameof(Settings.ShowActivePlayers)),
                 new FieldMetadata(nameof(Settings.ShowActiveBots), isAdvanced: true),
 
                 new HeaderMetadata("Other"),
@@ -101,7 +101,7 @@ namespace YARG.Settings
                 new FieldMetadata(nameof(Settings.DrumSfxVolume), isAdvanced: true),
                 new FieldMetadata(nameof(Settings.PreviewVolume), isAdvanced: true),
                 nameof(Settings.MusicPlayerVolume),
-                new FieldMetadata(nameof(Settings.VocalMonitoring), isAdvanced: true),
+                new FieldMetadata(nameof(Settings.VocalMonitoring)),
                 new FieldMetadata(nameof(Settings.MetronomeVolume), isAdvanced: true),
 
                 new HeaderMetadata("Customization", isAdvanced: true),
@@ -130,7 +130,7 @@ namespace YARG.Settings
             {
                 new HeaderMetadata("Display"),
                 nameof(Settings.VSync),
-                new FieldMetadata(nameof(Settings.FpsCap), isAdvanced: true),
+                new FieldMetadata(nameof(Settings.FpsCap)),
                 new FieldMetadata(nameof(Settings.VenueFpsCap), isAdvanced: true),
                 nameof(Settings.FullscreenMode),
                 nameof(Settings.Resolution),
