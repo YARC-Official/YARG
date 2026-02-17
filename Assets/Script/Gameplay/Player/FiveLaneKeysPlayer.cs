@@ -44,6 +44,7 @@ namespace YARG.Assets.Script.Gameplay.Player
         }
 
         public int LaneCount { get; private set; }
+        public bool UsingOpenLane { get; private set; }
 
         private FiveFretGuitarFret _getFretIndex(FiveLaneKeysAction action)
         {
@@ -331,6 +332,11 @@ public override bool ShouldUpdateInputsOnResume => true;
             {
                 _fretArray.SetPressed((int)_getFretIndex(action), Engine.IsKeyHeld(action));
             }
+
+            if (UsingOpenLane)
+            {
+                _fretArray.SetPressed((int)_getFretIndex(FiveLaneKeysAction.OpenNote), Engine.IsKeyHeld(FiveLaneKeysAction.OpenNote));
+            }
         }
 
         private void SpawnRangeIndicator(FiveFretRangeShift nextShift)
@@ -395,7 +401,7 @@ public override bool ShouldUpdateInputsOnResume => true;
 
         protected override void ModifyLaneFromNote(LaneElement lane, GuitarNote note)
         {
-            if (note.Fret == (int) FiveFretGuitarFret.Open)
+            if (note.Fret == (int) FiveFretGuitarFret.Open && !UsingOpenLane)
             {
                 lane.ToggleOpen(true);
             }
@@ -413,7 +419,7 @@ public override bool ShouldUpdateInputsOnResume => true;
 
             (NotePool.GetByKey(note) as FiveLaneKeysNoteElement)?.HitNote();
 
-            if (note.FiveLaneKeysAction is FiveLaneKeysAction.OpenNote)
+            if (note.FiveLaneKeysAction is FiveLaneKeysAction.OpenNote && !UsingOpenLane)
             {
                 _fretArray.PlayOpenHitAnimation();
             } else
@@ -433,7 +439,7 @@ public override bool ShouldUpdateInputsOnResume => true;
         {
             OnOverhit();
 
-            if (key is (int) FiveLaneKeysAction.OpenNote)
+            if (key is (int) FiveLaneKeysAction.OpenNote && !UsingOpenLane)
             {
                 _fretArray.PlayOpenMissAnimation();
             }
@@ -445,7 +451,7 @@ public override bool ShouldUpdateInputsOnResume => true;
 
         private void OnSustainStart(GuitarNote note)
         {
-            if (note.FiveLaneKeysAction is not FiveLaneKeysAction.OpenNote)
+            if (note.FiveLaneKeysAction is not FiveLaneKeysAction.OpenNote || UsingOpenLane)
             {
                 _fretArray.SetSustained((int)_getFretIndex(note.FiveLaneKeysAction), true);
             }
@@ -465,7 +471,7 @@ public override bool ShouldUpdateInputsOnResume => true;
                 SetStemMuteState(true);
             }
 
-            if (note.FiveLaneKeysAction is not FiveLaneKeysAction.OpenNote)
+            if (note.FiveLaneKeysAction is not FiveLaneKeysAction.OpenNote || UsingOpenLane)
             {
                 _fretArray.SetSustained((int) _getFretIndex(note.FiveLaneKeysAction), false);
             }
@@ -670,7 +676,9 @@ public override bool ShouldUpdateInputsOnResume => true;
 
         private void MakeHighwayOrdering()
         {
-            if (false) // placeholder for open lane setting
+            UsingOpenLane = ShouldUseOpenLane();
+
+            if (UsingOpenLane)
             {
                 LaneCount = 6;
                 _lanePositions = OPEN_LANE_HIGHWAY_ORDERING;
@@ -678,6 +686,31 @@ public override bool ShouldUpdateInputsOnResume => true;
             {
                 LaneCount = 5;
                 _lanePositions = FiveFretGuitarPlayer.DEFAULT_HIGHWAY_ORDERING;
+            }
+        }
+
+        private bool ShouldUseOpenLane()
+        {
+            switch (Player.Profile.OpenLaneDisplayType)
+            {
+                case OpenLaneDisplayType.Never:
+                    return false;
+                case OpenLaneDisplayType.Always:
+                    return true;
+                case OpenLaneDisplayType.IfChartContainsOpens:
+                    foreach (var note in NoteTrack.Notes)
+                    {
+                        foreach (var child in note.AllNotes)
+                        {
+                            if (child.Fret is (int)FiveFretGuitarFret.Open)
+                            {
+                                return true;
+                            }
+                        }
+                    }
+                    return false;
+                default:
+                    throw new Exception("Unreachable");
             }
         }
     }

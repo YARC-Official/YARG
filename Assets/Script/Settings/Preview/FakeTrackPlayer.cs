@@ -345,12 +345,6 @@ namespace YARG.Settings.Preview
             highwayRenderer.UpdateFadeParams(0, 3f, cameraPreset.FadeLength);
             highwayRenderer.UpdateCameraProjectionMatrices();
 
-            // Update color profiles
-            if (!CurrentGameModeInfo.UseProKeys)
-            {
-                _fretArray.InitializeColor(CurrentGameModeInfo.FretColorProvider(colorProfile), false, false);
-            }
-
             // Update hit window
             _hitWindow.HitWindow = CurrentGameModeInfo.HitWindowProvider(enginePreset).Create();
 

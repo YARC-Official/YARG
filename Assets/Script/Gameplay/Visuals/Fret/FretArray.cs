@@ -93,7 +93,7 @@ namespace YARG.Gameplay.Visuals
                     fretColorProvider.GetFretColor(highwayOrderingInfo.ColorIndex),
                     fretColorProvider.GetFretInnerColor(highwayOrderingInfo.ColorIndex),
                     fretColorProvider.GetParticleColor(highwayOrderingInfo.ColorIndex),
-                    fretColorProvider.GetParticleColor(0)
+                    fretColorProvider.GetParticleColor((int)FiveFretGuitarFret.Open)
                 );
 
                 _frets[noteType] = fretComp;
@@ -124,51 +124,6 @@ namespace YARG.Gameplay.Visuals
             foreach (var fretIdx in _frets.Keys)
             {
                 _activeFrets.Add(fretIdx);
-            }
-        }
-
-        public void InitializeColor(ColorProfile.IFretColorProvider fretColorProvider, bool leftyFlip, bool splitProTomsAndCymbals)
-        {
-            for (int i = 0; i < _frets.Count; i++)
-            {
-                // This needs unique lefty flip logic because it's the one case where
-                // the fret order is different from the color profile order
-                int index;
-                if (splitProTomsAndCymbals)
-                {
-                    index = i switch
-                    {
-                        0 => leftyFlip ? 4 : 1,
-                        1 => leftyFlip ? 7 : 6,
-                        2 => leftyFlip ? 3 : 2,
-                        3 => leftyFlip ? 6 : 7,
-                        4 => leftyFlip ? 2 : 3,
-                        5 => leftyFlip ? 5 : 8,
-                        6 => leftyFlip ? 1 : 4,
-                        _ => throw new Exception("Unreachable.")
-                    };
-                }
-                else
-                {
-                    index = i + 1;
-                }
-
-                if (DontFlipColorsLeftyFlip && leftyFlip && !splitProTomsAndCymbals)
-                {
-                    index = _frets.Count - index + 1;
-                }
-
-                _frets[i].Initialize(
-                    fretColorProvider.GetFretColor(index),
-                    fretColorProvider.GetFretInnerColor(index),
-                    fretColorProvider.GetParticleColor(index),
-                    fretColorProvider.GetParticleColor(0 /* open note */)
-                );
-            }
-
-            foreach (var kick in _kickFrets)
-            {
-                kick.Initialize(fretColorProvider.GetFretColor(0));
             }
         }
 

@@ -42,6 +42,13 @@ namespace YARG.Menu.ProfileList
             StarPowerActivationType.AllNotes,
         };
 
+        private static readonly OpenLaneDisplayType[] _openLaneDisplayTypes =
+        {
+            OpenLaneDisplayType.Never,
+            OpenLaneDisplayType.IfChartContainsOpens,
+            OpenLaneDisplayType.Always,
+        };
+
         [SerializeField]
         private GameObject _contents;
         [SerializeField]
@@ -68,6 +75,8 @@ namespace YARG.Menu.ProfileList
         private Toggle _leftyFlipToggle;
         [SerializeField]
         private Toggle _rangeDisabledToggle;
+        [SerializeField]
+        private TMP_Dropdown _openLaneDisplayTypeDropdown;
         [SerializeField]
         private Toggle _useCymbalModelsToggle;
         [SerializeField]
@@ -111,6 +120,7 @@ namespace YARG.Menu.ProfileList
         private YargProfile _profile;
 
         private readonly List<GameMode> _gameModesByIndex = new();
+        private readonly List<OpenLaneDisplayType> _openLaneDisplayTypesByIndex = new();
         private readonly List<StarPowerActivationType> _starPowerActivationTypesByIndex = new();
 
         private List<Guid> _enginePresetsByIndex;
@@ -168,6 +178,13 @@ namespace YARG.Menu.ProfileList
             {
                 _starPowerActivationTypesByIndex.Add(starPowerActivationType);
                 _starPowerActivationTypeDropdown.options.Add(new(starPowerActivationType.ToLocalizedName()));
+            }
+
+            _openLaneDisplayTypeDropdown.options.Clear();
+            foreach (var openLaneDisplayType in _openLaneDisplayTypes)
+            {
+                _openLaneDisplayTypesByIndex.Add(openLaneDisplayType);
+                _openLaneDisplayTypeDropdown.options.Add(new(openLaneDisplayType.ToLocalizedName()));
             }
         }
 
@@ -236,6 +253,7 @@ namespace YARG.Menu.ProfileList
             _inputCalibrationField.text = _profile.InputCalibrationMilliseconds.ToString();
             _leftyFlipToggle.isOn = profile.LeftyFlip;
             _rangeDisabledToggle.isOn = profile.RangeEnabled;
+            _openLaneDisplayTypeDropdown.value = _openLaneDisplayTypesByIndex.IndexOf(profile.OpenLaneDisplayType);
             _useCymbalModelsToggle.isOn = profile.UseCymbalModels;
             _splitProTomsAndCymbals.isOn = profile.SplitProTomsAndCymbals;
             _swapSnareAndHiHat.isOn = profile.SwapSnareAndHiHat;
@@ -252,6 +270,8 @@ namespace YARG.Menu.ProfileList
                 _cameraPresetsByIndex.IndexOf(profile.CameraPreset));
             _highwayPresetDropdown.SetValueWithoutNotify(
                 _highwayPresetsByIndex.IndexOf(profile.HighwayPreset));
+            _openLaneDisplayTypeDropdown.SetValueWithoutNotify(
+                _openLaneDisplayTypesByIndex.IndexOf(profile.OpenLaneDisplayType));
             _starPowerActivationTypeDropdown.SetValueWithoutNotify(
                 _starPowerActivationTypesByIndex.IndexOf(profile.StarPowerActivationType));
             _rockMeterPresetDropdown.SetValueWithoutNotify(
@@ -467,6 +487,11 @@ namespace YARG.Menu.ProfileList
         public void ChangeEngine()
         {
             _profile.EnginePreset = _enginePresetsByIndex[_engineDropdown.value];
+        }
+
+        public void ChangeOpenLaneDisplayType()
+        {
+            _profile.OpenLaneDisplayType = _openLaneDisplayTypesByIndex[_openLaneDisplayTypeDropdown.value];
         }
 
         public void ChangeStarPowerActivationType()
