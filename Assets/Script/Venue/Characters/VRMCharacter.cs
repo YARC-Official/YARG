@@ -32,12 +32,14 @@ namespace YARG.Venue.Characters
         private bool _useFullLipsync;
 
         private ExpressionKey _lipsyncKey;
+        private bool          _hasVrmInstance;
 
         public override void Initialize(CharacterManager characterManager)
         {
             _lipsyncKey = GetExpressionKey(_expressionKey);
             _characterManager = characterManager;
             VrmInstance = GetComponent<Vrm10Instance>();
+            _hasVrmInstance = VrmInstance != null;
             _expression = VrmInstance.Runtime.Expression;
             _lipsyncEvents = _characterManager.LipsyncEvents;
 
@@ -77,7 +79,12 @@ namespace YARG.Venue.Characters
 
         private void SetExpression(LipsyncEvent lipsyncEvent)
         {
-            if (VrmInstance != null && TryGetExpressionKey(lipsyncEvent.Type, out var key))
+            if (!_hasVrmInstance)
+            {
+                return;
+            }
+
+            if (TryGetExpressionKey(lipsyncEvent.Type, out var key))
             {
                 _expression.SetWeight(key, lipsyncEvent.Value);
                 return;
@@ -92,7 +99,8 @@ namespace YARG.Venue.Characters
 
         public override void OnNote<T>(Note<T> note)
         {
-            if (VrmInstance == null)
+            // If _useFullLipsync is set, we don't use the default expression or the note-based trigger
+            if (!_hasVrmInstance || _useFullLipsync)
             {
                 return;
             }
