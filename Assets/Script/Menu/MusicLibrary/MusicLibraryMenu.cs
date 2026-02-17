@@ -70,6 +70,9 @@ namespace YARG.Menu.MusicLibrary
         private static int                     _savedIndex;
         private static int                     _mainLibraryIndex = -1;
         private static MusicLibraryReloadState _reloadState = MusicLibraryReloadState.Full;
+        private static Playlist                _savedPlaylist;
+
+        public bool PlaylistMode => SelectedPlaylist != null;
 
         public static void SetReload(MusicLibraryReloadState state)
         {
