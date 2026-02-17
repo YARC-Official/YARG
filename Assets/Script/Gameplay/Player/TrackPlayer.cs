@@ -261,6 +261,8 @@ namespace YARG.Gameplay.Player
             GameManager.BeatEventHandler.Audio.Unsubscribe(MetronomeTock);
             GameManager.BeatEventHandler.Visual.Unsubscribe(SunburstEffects.PulseSunburst);
 
+            _autoCalibrator?.Dispose();
+
             base.FinishDestruction();
         }
 
@@ -893,7 +895,7 @@ namespace YARG.Gameplay.Player
 
         protected virtual void OnNoteHit(int index, TNote note)
         {
-            if (IsAutoCalibrating && !Player.Profile.IsBot)
+            if (!Player.Profile.IsBot)
             {
                 _autoCalibrator.RecordAccuracy(note.Time);
             }
