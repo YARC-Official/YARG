@@ -848,7 +848,8 @@ namespace YARG.Menu.Filters
             Func<string, string> normalize,
             out HashSet<string> selected,
             bool defaultValue = true,
-            bool treatNoneAsNoFilter = false)
+            bool treatNoneAsNoFilter = false,
+            bool treatAllAsNoFilter = true)
         {
             selected = null;
 
@@ -860,7 +861,7 @@ namespace YARG.Menu.Filters
 
             int selectedCount = enabled.Count(kvp => kvp.Value);
             if (treatNoneAsNoFilter && selectedCount == 0) return false;
-            if (selectedCount == enabled.Count) return false; // no filter for this category
+            if (treatAllAsNoFilter && selectedCount == enabled.Count) return false; // no filter for this category
 
             selected = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             foreach (var kvp in enabled)
@@ -980,7 +981,8 @@ namespace YARG.Menu.Filters
                     NormalizeFilterKey,
                     out var playlists,
                     defaultValue: false,
-                    treatNoneAsNoFilter: true))
+                    treatNoneAsNoFilter: true,
+                    treatAllAsNoFilter: false))
             {
                 var playlistHashes = BuildPlaylistHashSets();
 
