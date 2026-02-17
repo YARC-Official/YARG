@@ -1,16 +1,14 @@
 ﻿using Cysharp.Threading.Tasks;
-using DG.Tweening.Plugins.Core.PathCore;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Globalization;
 using System.IO;
 using System.IO.Compression;
-using System.Linq;
 using System.Net;
 using System.Text;
+using UnityEngine.Networking;
 using YARG.Core.Logging;
 using YARG.Core.Song;
 using YARG.Helpers;
@@ -27,8 +25,8 @@ namespace YARG.Song
                 Subgenre = new(subgenre ?? "");
             }
 
-            public SortString Genre { get; set; }
-            public SortString Subgenre { get; set; }
+            public SortString Genre { get; }
+            public SortString Subgenre { get; }
         }
 
         public static void GenrelizeAll(SongCache cache)
@@ -44,7 +42,7 @@ namespace YARG.Song
             {
                 foreach (var songEntry in list.Value)
                 {
-                    var mapping = GetGenresOrDefault(songEntry.Genre, songEntry.Subgenre, songEntry.Artist);
+                    var mapping = _getGenresOrDefault(songEntry.Genre, songEntry.Subgenre, songEntry.Artist);
                     songEntry.Genre = mapping.Genre;
                     songEntry.Subgenre = mapping.Subgenre;
                 }
@@ -62,7 +60,7 @@ namespace YARG.Song
             }
         }
 
-        private static string GetLocalizedGenre(string genre)
+        private static string _getLocalizedGenre(string genre)
         {
             var res = Localization.Localize.Key("Menu.MusicLibrary.Genre", GENRE_LOCALIZATION_KEYS.GetValueOrDefault(genre));
             return res;
@@ -74,14 +72,14 @@ namespace YARG.Song
         private const string GENRE_ZIP_URL =
             "https://github.com/YARC-Official/Genrelizer/archive/refs/heads/master.zip";
 
-        public const string GENRE_REPO_FOLDER = "Genrelizer-master";
+        private const string GENRE_REPO_FOLDER = "Genrelizer-master";
 
         private const string MAPPINGS_FOLDER = "mappings";
 
 #if UNITY_EDITOR
         // The editor does not track the contents of folders that end in ~,
-        // so use this to prevent Unity from stalling due to importing freshly-downloaded sources
-        public static readonly string GenresFolder = System.IO.Path.Combine(PathHelper.StreamingAssetsPath, "genres~");
+        // so use this to prevent Unity from stalling due to importing freshly-downloaded mappings
+        private static readonly string GenresFolder = Path.Combine(PathHelper.StreamingAssetsPath, "genres~");
 #else
         public static readonly string GenresFolder = Path.Combine(PathHelper.StreamingAssetsPath, "genres");
 #endif
@@ -90,14 +88,14 @@ namespace YARG.Song
         {
             if (!GlobalVariables.OfflineMode)
             {
-                await DownloadGenreMappings(context);
+                await _downloadGenreMappings(context);
             }
 
             context.SetSubText("Loading genre mappings...");
-            ReadGenreMappings();
+            _readGenreMappings();
         }
 
-        private static void AddMapping(string key, Mapping mapping)
+        private static void _addMapping(string key, Mapping mapping)
         {
             if (_mappings.ContainsKey(key))
             {
@@ -108,7 +106,7 @@ namespace YARG.Song
             }
         }
 
-        private static void ReadGenreMappings() {
+        private static void _readGenreMappings() {
             var mappingsDirectoryPath = System.IO.Path.Combine(GenresFolder, GENRE_REPO_FOLDER, MAPPINGS_FOLDER);
 
             foreach (var mappingFile in Directory.EnumerateFiles(mappingsDirectoryPath))
@@ -121,7 +119,7 @@ namespace YARG.Song
                     );
                 
 
-                    var localizedGenre = GetLocalizedGenre(data.name);
+                    var localizedGenre = _getLocalizedGenre(data.name);
 
                     // This is the subgenre-less mapping that the genre name itself, and all if its aliases, will point to
                     var genreMapping = new Mapping(localizedGenre, null);
@@ -130,7 +128,7 @@ namespace YARG.Song
                     var allMappingKeys = _getAllKeys(data.name, data.prefixes, data.suffixes, data.substitutions);
                     foreach (var key in allMappingKeys)
                     {
-                        AddMapping(key, genreMapping);
+                        _addMapping(key, genreMapping);
                     }
 
                     foreach (var (subgenreName, subgenreData) in data.subgenres)
@@ -146,7 +144,7 @@ namespace YARG.Song
                         var allSubgenreMappingKeys = _getAllKeys(subgenreName, subgenreData.prefixes, subgenreData.suffixes, subgenreData.substitutions);
                         foreach (var key in allSubgenreMappingKeys)
                         {
-                            AddMapping(key, subgenreMapping);
+                            _addMapping(key, subgenreMapping);
                         }
                     }
                 }
@@ -215,7 +213,7 @@ namespace YARG.Song
 
 
 
-        private static async UniTask DownloadGenreMappings(LoadingContext context)
+        private static async UniTask _downloadGenreMappings(LoadingContext context)
         {
             context.SetLoadingText("Downloading genre mappings...");
 
@@ -228,7 +226,9 @@ namespace YARG.Song
             try
             {
                 if (File.Exists(genreVersionPath))
+                {
                     currentVersion = await File.ReadAllTextAsync(genreVersionPath);
+                }
             }
             catch (Exception e)
             {
@@ -241,17 +241,20 @@ namespace YARG.Song
             try
             {
                 // Retrieve sources file
-                var request = (HttpWebRequest) WebRequest.Create(GENRE_COMMIT_URL);
-                request.UserAgent = "YARG";
-                request.Timeout = 2500;
+                var request = UnityWebRequest.Get(GENRE_COMMIT_URL);
+                request.SetRequestHeader("User-Agent", "YARG");
+                request.timeout = 2;
 
                 // Send the request and wait for the response
-                using var response = await request.GetResponseAsync();
-                using var reader = new StreamReader(response.GetResponseStream()!, Encoding.UTF8);
+                await request.SendWebRequest();
 
-                // Read the JSON
-                var json = JArray.Parse(await reader.ReadToEndAsync());
-                newestVersion = json[0]["sha"]!.ToString();
+                if (request.result == UnityWebRequest.Result.Success)
+                {
+                    // Read the JSON
+                    var json = JArray.Parse(request.downloadHandler.text);
+                    newestVersion = json[0]["sha"]!.ToString();
+                }
+
             }
             catch (Exception e)
             {
@@ -326,7 +329,7 @@ namespace YARG.Song
             }
         }
 
-        public static Mapping GetGenresOrDefault(string? rawGenre, string? rawSubgenre, string artist)
+        private static Mapping _getGenresOrDefault(string? rawGenre, string? rawSubgenre, string artist)
         {
             if (string.IsNullOrEmpty(rawGenre))
             {
@@ -340,23 +343,23 @@ namespace YARG.Song
                 }
 
                 // If only a subgenre is provided (not expected), treat it as the genre
-                return HandleLoneGenre(rawSubgenre, artist);
+                return _handleLoneGenre(rawSubgenre, artist);
             }
 
             if (string.IsNullOrEmpty(rawSubgenre))
             {
-                return HandleLoneGenre(rawGenre, artist);
+                return _handleLoneGenre(rawGenre, artist);
             }
 
-            return HandleGenreSubgenrePair(rawGenre, rawSubgenre, artist);
+            return _handleGenreSubgenrePair(rawGenre, rawSubgenre, artist);
         }
 
-        private static Mapping HandleLoneGenre(string rawGenre, string artist) {
+        private static Mapping _handleLoneGenre(string rawGenre, string artist) {
 
             // Scan up front for the Reggae/Ska special case
             if (rawGenre.ToLower() is REGGAE_SKA)
             {
-                return HandleReggaeSkaSpecialCase(artist);
+                return _handleReggaeSkaSpecialCase(artist);
             }
 
 
@@ -425,25 +428,25 @@ namespace YARG.Song
             );
         }
 
-        private static Mapping HandleGenreSubgenrePair(string rawGenre, string rawSubgenre, string artist)
+        private static Mapping _handleGenreSubgenrePair(string rawGenre, string rawSubgenre, string artist)
         {
             // Scan up front for the Reggae/Ska special case
-            if (rawGenre.ToLower() is REGGAE_SKA && rawSubgenre is "other")
+            if (rawGenre.ToLower() is REGGAE_SKA && rawSubgenre.ToLower() is "other")
             {
-                return HandleReggaeSkaSpecialCase(artist);
+                return _handleReggaeSkaSpecialCase(artist);
             }
 
 
             // Check if this is a telltale value pair from Magma, for which we have a ready-to-go mapping
             if (MAGMA_MAPPINGS.TryGetValue((rawGenre, rawSubgenre), out var magmaMapping))
             {
-                return HandleMagmaValuePair(magmaMapping.genre, magmaMapping.subgenre);
+                return _handleMagmaValuePair(magmaMapping.genre, magmaMapping.subgenre);
             }
 
             // Identical genre/subgenre pairs get treated as just a genre
             if (rawGenre == rawSubgenre)
             {
-                return HandleLoneGenre(rawGenre, artist);
+                return _handleLoneGenre(rawGenre, artist);
             }
 
             // Handle the genre first. We're going to pass it through the Genrelizer data, but we
@@ -461,12 +464,12 @@ namespace YARG.Song
             //
             //  -If it doesn't even match a subgenre, then we'll get Other back. The subgenre will
             //      get a chance to override that value later, but for now it's our fallback
-            var genre = HandleLoneGenre(rawGenre, artist).Genre;
+            var genre = _handleLoneGenre(rawGenre, artist).Genre;
 
 
             // Now the subgenre. Pass that through the Genrelizer data too. This time we care about
             // both returned fields
-            var subgenreMapping = HandleLoneGenre(rawSubgenre, artist);
+            var subgenreMapping = _handleLoneGenre(rawSubgenre, artist);
 
             // The subgenre is a little more complicated
             string subgenre;
@@ -500,7 +503,7 @@ namespace YARG.Song
             // If the genre is Other at this point (even if it was originally provided that way!), then
             // we'll fall back to the genre provided by the subgenre mapping. That could still be Other,
             // of course, but we've done all we can do.
-            if (genre == GetLocalizedGenre("Other"))
+            if (genre == _getLocalizedGenre("Other"))
             {
                 genre = subgenreMapping.Genre;
 
@@ -514,7 +517,7 @@ namespace YARG.Song
             return new(genre, subgenre);
         }
 
-        private static Mapping HandleMagmaValuePair(string magmaGenre, string magmaSubgenre)
+        private static Mapping _handleMagmaValuePair(string magmaGenre, string magmaSubgenre)
         {
             // Localize the returned genre directly
             var genre = Localization.Localize.Key("Menu.MusicLibrary.Genre", GENRE_LOCALIZATION_KEYS.GetValueOrDefault(magmaGenre, "Other"));
@@ -539,7 +542,7 @@ namespace YARG.Song
             return new(genre, subgenre);
         }
 
-        private static Mapping HandleReggaeSkaSpecialCase(string artist)
+        private static Mapping _handleReggaeSkaSpecialCase(string artist)
         {
             if (artist is "UB40" or "Zing Experience" || artist.Contains("Bob Marley"))
             {
