@@ -248,6 +248,8 @@ namespace YARG.Gameplay
                 SettingsManager.Settings.NoFailMode.OnChange += OnNoFailModeChanged;
                 SettingsManager.Settings.AutoCalibrateAudio.Value = false;
                 SettingsManager.Settings.AutoCalibrateAudio.OnChange += OnAutoCalibrationChanged;
+                SettingsManager.Settings.AutoCalibrateVideo.Value = false;
+                SettingsManager.Settings.AutoCalibrateVideo.OnChange += OnAutoCalibrationVideoChanged;
             }
 
             // Log constant values
