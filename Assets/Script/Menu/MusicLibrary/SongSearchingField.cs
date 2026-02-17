@@ -27,7 +27,8 @@ namespace YARG.Menu.MusicLibrary
                     sort != SortAttribute.SongLength &&
                     sort != SortAttribute.DateAdded &&
                     sort != SortAttribute.Playable &&
-                    sort != SortAttribute.Instrument)
+                    sort != SortAttribute.Instrument &&
+                    sort != SortAttribute.Playlist)
                 {
                     _searchQueries.Add(sort, string.Empty);
                 }
@@ -40,8 +41,6 @@ namespace YARG.Menu.MusicLibrary
         private TextMeshProUGUI _searchPlaceholderText;
         [SerializeField]
         private ColoredButtonGroup _searchFilters;
-        [SerializeField]
-        private PlaylistFilterPopup _playlistFilterPopup;
 
         private readonly SongSearching _searchContext = new();
         private string _currentSearchText = string.Empty;
@@ -55,10 +54,6 @@ namespace YARG.Menu.MusicLibrary
         private void OnEnable()
         {
             _searchFilters.ClickedButton += OnClickedSearchFilter;
-            if (_playlistFilterPopup != null)
-            {
-                _playlistFilterPopup.OnSelectionChanged += OnPlaylistSelectionChanged;
-            }
         }
 
         public void Focus()
@@ -75,8 +70,6 @@ namespace YARG.Menu.MusicLibrary
 
             _searchFilters.DeactivateAllButtons();
             ActivateFilterButton(_currentSearchFilter);
-
-            // Update playlist popup state (no action needed on restore - popup is hidden)
 
         }
 
@@ -176,13 +169,6 @@ namespace YARG.Menu.MusicLibrary
             _searchField.text = string.Empty;
 
             _searchFilters.DeactivateAllButtons();
-
-            // Clear playlist popup selection
-            if (_playlistFilterPopup != null)
-            {
-                _playlistFilterPopup.ClearSelection();
-            }
-
             OnSearchQueryUpdated?.Invoke(true);
         }
 
@@ -207,34 +193,15 @@ namespace YARG.Menu.MusicLibrary
 
             _currentSearchFilter = button.Text.text.ToLowerInvariant() switch
             {
-                "track"    => SortAttribute.Name,
-                "artist"   => SortAttribute.Artist,
-                "album"    => SortAttribute.Album,
-                "genre"    => SortAttribute.Genre,
-                "source"   => SortAttribute.Source,
-                "charter"  => SortAttribute.Charter,
-                "year"     => SortAttribute.Year,
-                "playlist" => SortAttribute.Playlist,
-                _          => SortAttribute.Unspecified
+                "track"   => SortAttribute.Name,
+                "artist"  => SortAttribute.Artist,
+                "album"   => SortAttribute.Album,
+                "genre"   => SortAttribute.Genre,
+                "source"  => SortAttribute.Source,
+                "charter" => SortAttribute.Charter,
+                "year"    => SortAttribute.Year,
+                _         => SortAttribute.Unspecified
             };
-
-            // Show playlist popup when playlist filter is activated
-            if (_currentSearchFilter == SortAttribute.Playlist && _playlistFilterPopup != null)
-            {
-                // Get current selection from search query
-                var currentSelection = new HashSet<string>();
-                if (!string.IsNullOrEmpty(_searchQueries[SortAttribute.Playlist]))
-                {
-                    var playlistNames = _searchQueries[SortAttribute.Playlist].Split(',')
-                        .Select(p => p.Trim())
-                        .Where(p => !string.IsNullOrEmpty(p));
-                    foreach (var name in playlistNames)
-                    {
-                        currentSelection.Add(name);
-                    }
-                }
-                _playlistFilterPopup.Show(currentSelection);
-            }
 
             if (previousSearchFilter == SortAttribute.Unspecified)
             {
@@ -254,23 +221,20 @@ namespace YARG.Menu.MusicLibrary
         {
             var toggleName = attribute switch
             {
-                SortAttribute.Name     => "track",
-                SortAttribute.Artist   => "artist",
-                SortAttribute.Album    => "album",
-                SortAttribute.Genre    => "genre",
-                SortAttribute.Source   => "source",
-                SortAttribute.Charter  => "charter",
-                SortAttribute.Year     => "year",
-                SortAttribute.Playlist => "playlist",
-                _                      => string.Empty,
+                SortAttribute.Name    => "track",
+                SortAttribute.Artist  => "artist",
+                SortAttribute.Album   => "album",
+                SortAttribute.Genre   => "genre",
+                SortAttribute.Source  => "source",
+                SortAttribute.Charter => "charter",
+                SortAttribute.Year    => "year",
+                _                     => string.Empty,
             };
 
             if (!string.IsNullOrEmpty(toggleName))
             {
                 _searchFilters.ActivateButton(toggleName);
             }
-
-            // Playlist popup is shown when the filter button is clicked (in OnClickedSearchFilter)
         }
 
         private void ClearSearchQuery(SortAttribute attribute)
@@ -317,25 +281,6 @@ namespace YARG.Menu.MusicLibrary
         private void OnDisable()
         {
             _searchFilters.ClickedButton -= OnClickedSearchFilter;
-            if (_playlistFilterPopup != null)
-            {
-                _playlistFilterPopup.OnSelectionChanged -= OnPlaylistSelectionChanged;
-            }
-        }
-
-        private void OnPlaylistSelectionChanged(HashSet<string> selectedPlaylists)
-        {
-            if (selectedPlaylists.Count == 0)
-            {
-                // No playlists selected, clear the playlist filter
-                ClearSearchQuery(SortAttribute.Playlist);
-            }
-            else
-            {
-                // Join playlist names with commas
-                var playlistQuery = string.Join(",", selectedPlaylists);
-                SetSearchInput(SortAttribute.Playlist, playlistQuery);
-            }
         }
 
         public bool HasInstrumentFilter(Instrument instrument)
