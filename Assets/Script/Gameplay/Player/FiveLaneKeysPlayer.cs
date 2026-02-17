@@ -286,6 +286,11 @@ public override bool ShouldUpdateInputsOnResume => true;
 
             if (_fretPulseStarting && _fretPulseStartTime <= visualTime)
             {
+                if (UsingOpenLane && nextShift.Position is (int)FiveFretGuitarFret.Green)
+                {
+                    _fretArray.SetFretColorPulse((int) FiveFretGuitarFret.Open, true, (float) nextShift.BeatDuration);
+                }
+
                 for (var i = nextShift.Position; i < nextShift.Position + nextShift.Size; i++)
                 {
                     _fretArray.SetFretColorPulse(i, true, (float) nextShift.BeatDuration);
@@ -592,11 +597,7 @@ public override bool ShouldUpdateInputsOnResume => true;
                     continue;
                 }
 
-                // When shift.Position and lastShiftRange.Position are the same, this result doesn't matter because
-                // the shift indicator won't be displayed, so it's OK that neither of these are <= or >=
-                var shiftLeft = Player.Profile.LeftyFlip
-                    ? shift.Position < lastShiftRange.Position
-                    : shift.Position > lastShiftRange.Position;
+                var shiftRight = shift.Position > lastShiftRange.Position;
 
                 double lastBeatTime = 0;
                 double firstBeatTime = double.MaxValue;
@@ -625,11 +626,26 @@ public override bool ShouldUpdateInputsOnResume => true;
 
                     firstBeatTime = beatlines[realIndex].Time < firstBeatTime ? beatlines[realIndex].Time : firstBeatTime;
 
+                    int offset;
+                    if (shiftRight)
+                    {
+                        offset = LaneCount - shift.Position - shift.Size + (UsingOpenLane ? 0 : 1);
+                    } else
+                    {
+                        if (UsingOpenLane && shift.Position is (int)FiveFretGuitarFret.Green)
+                        {
+                            offset = 0; // When shifting down to GRY[B] in open lane mode, treat P as part of the range
+                        } else {
+                            offset = shift.Position - (UsingOpenLane ? 0 : 1);
+                        }
+                    }
+
+
                     _shiftIndicators.Enqueue(new FiveFretGuitarPlayer.RangeShiftIndicator
                     {
                         Time = beatlines[realIndex].Time,
-                        LeftSide = shiftLeft,
-                        Offset = shiftLeft ? ((shift.Position + shift.Size) - 6) * -1 : shift.Position - 1,
+                        RightSide = shiftRight,
+                        Offset = offset,
                         RangeIndicator = i == 1 && !(shift.Position == lastShiftRange.Position && shift.Size == lastShiftRange.Size),
                     });
                 }
@@ -647,6 +663,16 @@ public override bool ShouldUpdateInputsOnResume => true;
 
             int start = range.Position;
             int end = start + range.Size;
+
+            // When using the open lane, assume opens are fair game in GRY[B] ranges and not higher ones.
+            // This isn't strictly true, and we can consider an explicit text event to control this, but
+            // we definitely don't want to test at runtime for whether there's an open between now and the
+            // next shift, so this will have to do for now.
+            if (UsingOpenLane && start is (int)FiveFretGuitarFret.Green)
+            {
+                newFrets.Add((int)FiveFretGuitarFret.Open);
+            }
+
             for (int i = start; i < end; i++)
             {
                 newFrets.Add(i);

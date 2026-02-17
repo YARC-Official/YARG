@@ -91,7 +91,7 @@ namespace YARG.Gameplay.Player
         public struct RangeShiftIndicator
         {
             public double Time;
-            public bool LeftSide;
+            public bool RightSide;
             public int Offset;
             public bool RangeIndicator;
         }
@@ -678,7 +678,7 @@ namespace YARG.Gameplay.Player
 
                 // When shift.Position and lastShiftRange.Position are the same, this result doesn't matter because
                 // the shift indicator won't be displayed, so it's OK that neither of these are <= or >=
-                var shiftLeft = Player.Profile.LeftyFlip
+                var shiftRight = Player.Profile.LeftyFlip
                     ? shift.Position < lastShiftRange.Position
                     : shift.Position > lastShiftRange.Position;
 
@@ -712,8 +712,8 @@ namespace YARG.Gameplay.Player
                     _shiftIndicators.Enqueue(new RangeShiftIndicator
                     {
                         Time = beatlines[realIndex].Time,
-                        LeftSide = shiftLeft,
-                        Offset = shiftLeft ? ((shift.Position + shift.Size) - 6) * -1 : shift.Position - 1,
+                        RightSide = shiftRight,
+                        Offset = shift.Position < lastShiftRange.Position ? shift.Position - 1 : 5 - shift.Position - shift.Size + 1,
                         RangeIndicator = i == 1 && !(shift.Position == lastShiftRange.Position && shift.Size == lastShiftRange.Size),
                     });
                 }
