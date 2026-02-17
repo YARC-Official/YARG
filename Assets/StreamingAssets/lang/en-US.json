@@ -1442,6 +1442,10 @@
             "EnableNormalization": {
                 "Name": "Normalize Audio",
                 "Description": "If enabled, normalizes audio so that all songs are approximately the same volume.  Increases memory and performance requirements."
+            },
+            "CustomVocalsCharacter": {
+                "Name": "Custom Vocals Character",
+                "Description": "Select a custom vocals character to use in venues that support characters."
             }
         },
         "PresetType": {

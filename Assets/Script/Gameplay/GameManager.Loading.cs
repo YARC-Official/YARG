@@ -290,6 +290,7 @@ namespace YARG.Gameplay
                 if (Chart != null)
                 {
                     GenerateVenueTrack();
+                    GenerateLipsyncTrack();
                 }
                 else
                 {
@@ -311,7 +312,7 @@ namespace YARG.Gameplay
             {
                     SongChart.LoadVenueFromMilo(Chart, Song);
 
-                    YargLogger.LogFormatWarning("Loaded {0} lighting events from milo", Chart.VenueTrack.Lighting.Count);
+                    YargLogger.LogFormatDebug("Loaded {0} lighting events from milo", Chart.VenueTrack.Lighting.Count);
             }
 
             if (File.Exists(VenueAutoGenerationPreset.DefaultPath))
@@ -327,6 +328,13 @@ namespace YARG.Gameplay
                     Chart = preset.GenerateLightingEvents(Chart);
                 }
             }
+        }
+
+        private void GenerateLipsyncTrack()
+        {
+            SongChart.LoadLipsyncFromMilo(Chart, Song);
+
+            YargLogger.LogFormatDebug("Loaded {0} lipsync events from milo", Chart.LipsyncEvents.Count);
         }
 
         private void FinalizeChart()

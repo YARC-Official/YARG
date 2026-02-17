@@ -11,15 +11,25 @@ using YARG.Core.Venue;
 using YARG.Helpers.Extensions;
 using YARG.Settings;
 using YARG.Venue;
+using YARG.Venue.Characters;
+using YARG.Core.Logging;
+
+#if UNITY_EDITOR
+using UnityEditor.SceneManagement;
+using UnityEngine.SceneManagement;
+#endif
+
 #if UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX
 using System.Collections.Generic;
-using YARG.Core.Logging;
 #endif
 
 namespace YARG.Gameplay
 {
     public class BackgroundManager : GameplayBehaviour, IDisposable
     {
+        // e.g. DefaultController.Vocals.controller
+        private const string DEFAULT_ANIMATION_CONTROLLER_PATH = "DefaultAnimations/DefaultController.{0}.controller";
+
         private string VIDEO_PATH;
 
         [SerializeField]
@@ -47,12 +57,97 @@ namespace YARG.Gameplay
         // End time cannot be negative; a negative value means it is not set.
         private double _videoEndTime;
 
+        private AssetBundle _characterBundle;
+
+#if UNITY_EDITOR
+        private bool        _usingEditorVenue;
+        private string      _editorVenuePath;
+        private Scene       _editorVenueScene;
+#endif
         // "The Unity message 'Start' has an incorrect signature."
         [SuppressMessage("Type Safety", "UNT0006", Justification = "UniTaskVoid is a compatible return type.")]
         private async UniTaskVoid Start()
         {
             // We don't need to update unless we're using a video
             enabled = false;
+
+#if UNITY_EDITOR
+            if (VenueEditorHelper.IsSceneEnabled())
+            {
+                if (VenueEditorHelper.TryGetScenePath(out _editorVenuePath))
+                {
+                    var loadedScene = SceneManager.GetSceneByName(_editorVenuePath);
+                    if (loadedScene.IsValid() && loadedScene.isLoaded)
+                    {
+                        _editorVenueScene = loadedScene;
+                    }
+                    else
+                    {
+                        var op = EditorSceneManager.LoadSceneAsyncInPlayMode(
+                            _editorVenuePath, new LoadSceneParameters(LoadSceneMode.Additive));
+
+                        await op;
+                        _editorVenueScene = SceneManager.GetSceneByPath(_editorVenuePath);
+                    }
+                }
+
+                if (!_editorVenueScene.IsValid() || !_editorVenueScene.isLoaded)
+                {
+                    YargLogger.LogFormatError("Failed to load editor venue scene {0}", _editorVenuePath);
+                    return;
+                }
+
+                BundleBackgroundManager editorBg = null;
+                foreach (var go in _editorVenueScene.GetRootGameObjects())
+                {
+                    editorBg = go.GetComponent<BundleBackgroundManager>();
+
+                    if (editorBg != null)
+                    {
+                        break;
+                    }
+                }
+
+                if (editorBg == null)
+                {
+                    YargLogger.LogFormatError("Scene {0} missing BundleBackgroundManager", _editorVenuePath);
+                    return;
+                }
+
+                _usingEditorVenue = true;
+
+                _venueOutput.gameObject.SetActive(true);
+
+                var editorRenderers = editorBg.GetComponentsInChildren<Renderer>(true);
+
+                // Song specific textures
+                var tm = GetComponent<TextureManager>();
+                var songBg = GameManager.Song.LoadBackground();
+
+                foreach (var renderer in editorRenderers)
+                {
+                    var materials = renderer.materials;
+
+                    for (int i = 0; i < materials.Length; i++)
+                    {
+                        tm.ProcessMaterial(materials[i], songBg?.Type);
+                    }
+
+                    renderer.materials = materials;
+                }
+
+                editorBg.SetupVenueCamera(editorBg.gameObject);
+                editorBg.LimitVenueLights(editorBg.gameObject);
+
+                if (_videoPlayer != null && _videoPlayer.targetCamera != null)
+                {
+                    Destroy(_videoPlayer.targetCamera.gameObject);
+                }
+
+                _type = BackgroundType.Yarground;
+                return;
+            }
+#endif
 
             using var result = VenueLoader.GetVenue(GameManager.Song, out _source);
             if (result == null)
@@ -77,52 +172,10 @@ namespace YARG.Gameplay
                     var bg = (GameObject) await bundle.LoadAssetAsync<GameObject>(
                         BundleBackgroundManager.BACKGROUND_PREFAB_PATH.ToLowerInvariant());
                     var renderers = bg.GetComponentsInChildren<Renderer>(true);
-#if UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX
-                    var metalShaders = new Dictionary<string, Shader>();
 
-                    var shaderBundleData = (TextAsset)await bundle.LoadAssetAsync<TextAsset>(
-                        "Assets/" + BundleBackgroundManager.BACKGROUND_SHADER_BUNDLE_NAME
-                    );
+                    // Load Metal shaders, if necessary
+                    shaderBundle = await LoadMetalShaders(bundle, bg);
 
-                    if (shaderBundleData != null && shaderBundleData.bytes.Length > 0)
-                    {
-                        YargLogger.LogInfo("Loading Metal shader bundle");
-                        shaderBundle = await AssetBundle.LoadFromMemoryAsync(shaderBundleData.bytes);
-                        var allAssets = shaderBundle.LoadAllAssets<Shader>();
-                        foreach (var shader in allAssets)
-                        {
-                            metalShaders.Add(shader.name, shader);
-                        }
-                    }
-                    else
-                    {
-                        YargLogger.LogInfo("Did not find Metal shader bundle");
-                    }
-
-                    // Yarground comes with shaders for dx11/dx12/glcore/vulkan
-                    // Metal shaders used on OSX come in this separate bundle
-                    // Update our renderers to use them
-
-                    foreach (var renderer in renderers)
-                    {
-                        foreach (var material in renderer.sharedMaterials)
-                        {
-                            var shaderName = material.shader.name;
-                            if (metalShaders.TryGetValue(shaderName, out var shader))
-                            {
-                                YargLogger.LogFormatDebug("Found bundled shader {0}", shaderName);
-                                // We found shader from Yarground
-                                material.shader = shader;
-                            }
-                            else
-                            {
-                                YargLogger.LogFormatDebug("Did not find bundled shader {0}", shaderName);
-                                // Fallback to try to find among builtin shaders
-                                material.shader = Shader.Find(shaderName);
-                            }
-                        }
-                    }
-#endif
                     // Hookup song-specific textures
                     var textureManager = GetComponent<TextureManager>();
                     // Load SongBackground here to determine if textures need to be replaced
@@ -148,6 +201,15 @@ namespace YARG.Gameplay
                     if (textureManager.VideoTexFound())
                     {
                         SetUpVideoTexture(songBackground);
+                    }
+
+                    LoadCustomCharacter(bgInstance);
+
+                    // Initialize CharacterManager, if it exists
+                    var characterManager = bgInstance.GetComponentInChildren<CharacterManager>();
+                    if (characterManager != null)
+                    {
+                        characterManager.Initialize();
                     }
 
                     break;
@@ -385,6 +447,137 @@ namespace YARG.Gameplay
             // The venue is dealt with in the GameManager via Time.timeScale
         }
 
+        private void LoadCustomCharacter(GameObject venueRoot)
+        {
+            string characterPath = SettingsManager.Settings.CustomVocalsCharacter.Value;
+
+            if (string.IsNullOrEmpty(characterPath))
+            {
+                return;
+            }
+
+            var bundle = AssetBundle.LoadFromFile(characterPath);
+
+            if (bundle == null)
+            {
+                return;
+            }
+
+            _characterBundle = bundle;
+
+            var character = bundle.LoadAsset<GameObject>(BundleBackgroundManager.CHARACTER_PREFAB_PATH.ToLowerInvariant());
+            if (character == null)
+            {
+                YargLogger.LogFormatError("Failed to load character from {0}", characterPath);
+                return;
+            }
+
+            // Check for an existing animation controller and use default if none is found
+            // TODO: Do this somewhere else where we can check song genre so we can have different default animations for
+            //  different genres. (Rock vs Dance vs Latin vs whatever)
+            var animator = character.GetComponent<Animator>();
+            if (animator != null)
+            {
+                var controller = animator.runtimeAnimatorController;
+                if (controller == null)
+                {
+                    var charType = character.GetComponent<VenueCharacter>().Type;
+                    var path = string.Format(DEFAULT_ANIMATION_CONTROLLER_PATH, charType.ToString());
+                    var newController = Resources.Load<RuntimeAnimatorController>(path);
+                    if (newController != null)
+                    {
+                        animator.runtimeAnimatorController = newController;
+                    }
+                    else
+                    {
+                        YargLogger.LogFormatError("Failed to load default animation controller for {0}", charType);
+                    }
+                }
+            }
+
+            var newType = character.GetComponent<VenueCharacter>().Type;
+            // Find a character of the same type in venueRoot
+            GameObject existingCharacter = null;
+
+            var characters = venueRoot.GetComponentsInChildren<VenueCharacter>();
+            foreach (var c in characters)
+            {
+                if (c.Type == newType)
+                {
+                    existingCharacter = c.gameObject;
+                    break;
+                }
+            }
+
+            if (existingCharacter == null)
+            {
+                YargLogger.LogFormatError("Failed to find character of type {0} in venue root", newType);
+                return;
+            }
+
+            // Replace existingCharacter with the new character
+            var existingParent = existingCharacter.transform.parent;
+
+            Destroy(existingCharacter);
+            Instantiate(character, existingParent);
+        }
+
+        private async UniTask<AssetBundle> LoadMetalShaders(AssetBundle bundle, GameObject bg)
+        {
+#if UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX
+            AssetBundle shaderBundle = null;
+            var renderers = bg.GetComponentsInChildren<Renderer>(true);
+            var metalShaders = new Dictionary<string, Shader>();
+
+            var shaderBundleData = (TextAsset)await bundle.LoadAssetAsync<TextAsset>(
+                "Assets/" + BundleBackgroundManager.BACKGROUND_SHADER_BUNDLE_NAME
+            );
+
+            if (shaderBundleData != null && shaderBundleData.bytes.Length > 0)
+            {
+                YargLogger.LogInfo("Loading Metal shader bundle");
+                shaderBundle = await AssetBundle.LoadFromMemoryAsync(shaderBundleData.bytes);
+                var allAssets = shaderBundle.LoadAllAssets<Shader>();
+                foreach (var shader in allAssets)
+                {
+                    metalShaders.Add(shader.name, shader);
+                }
+            }
+            else
+            {
+                YargLogger.LogInfo("Did not find Metal shader bundle");
+            }
+
+            // Yarground comes with shaders for dx11/dx12/glcore/vulkan
+            // Metal shaders used on OSX come in this separate bundle
+            // Update our renderers to use them
+
+            foreach (var renderer in renderers)
+            {
+                foreach (var material in renderer.sharedMaterials)
+                {
+                    var shaderName = material.shader.name;
+                    if (metalShaders.TryGetValue(shaderName, out var shader))
+                    {
+                        YargLogger.LogFormatDebug("Found bundled shader {0}", shaderName);
+                        // We found shader from Yarground
+                        material.shader = shader;
+                    }
+                    else
+                    {
+                        YargLogger.LogFormatDebug("Did not find bundled shader {0}", shaderName);
+                        // Fallback to try to find among builtin shaders
+                        material.shader = Shader.Find(shaderName);
+                    }
+                }
+            }
+
+            return shaderBundle;
+#endif
+            // Fallback if we're not running on OSX
+            return null;
+        }
+
         public void Dispose()
         {
             if (VIDEO_PATH != null)
@@ -392,6 +585,18 @@ namespace YARG.Gameplay
                 File.Delete(VIDEO_PATH);
                 VIDEO_PATH = null;
             }
+
+            if (_characterBundle != null)
+            {
+                _characterBundle.Unload(true);
+                _characterBundle = null;
+            }
+#if UNITY_EDITOR
+            if (_usingEditorVenue)
+            {
+                SceneManager.UnloadSceneAsync(_editorVenueScene);
+            }
+#endif
         }
 
         ~BackgroundManager()
