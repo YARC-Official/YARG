@@ -6,7 +6,6 @@ using UnityEngine;
 using UnityEngine.Serialization;
 using UnityEngine.UI;
 using YARG.Core;
-using YARG.Core.Chart;
 using YARG.Core.Input;
 using YARG.Core.Song;
 using YARG.Helpers.Extensions;

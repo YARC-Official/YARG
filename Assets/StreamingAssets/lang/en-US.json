@@ -314,6 +314,7 @@
                 "Item": {
                     "RandomSong": "Random Song",
                     "BackToTop": "Back to Top",
+                    "ScanSongs": "Scan Songs",
                     "SortBy": "Sort By: {0}",
                     "GoToSection": "Go To Section...",
                     "AddToFavorites": "Add To Favorites",

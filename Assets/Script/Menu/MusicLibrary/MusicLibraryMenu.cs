@@ -6,20 +6,17 @@ using Cysharp.Text;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using UnityEngine.InputSystem;
 using YARG.Core;
 using YARG.Core.Audio;
 using YARG.Core.Game;
 using YARG.Core.Input;
 using YARG.Core.Song;
-using YARG.Input;
 using YARG.Helpers;
 using YARG.Helpers.Extensions;
 using YARG.Localization;
 using YARG.Menu.Data;
 using YARG.Menu.ListMenu;
 using YARG.Menu.Navigation;
-using YARG.Menu.Persistent;
 using YARG.Player;
 using YARG.Playlists;
 using YARG.Settings;
@@ -769,6 +766,7 @@ namespace YARG.Menu.MusicLibrary
         protected override void OnDisable()
         {
             base.OnDisable();
+            SetSidebarDifficultiesVisible(false);
 
             if (Navigator.Instance == null) return;
 
@@ -1121,6 +1119,27 @@ namespace YARG.Menu.MusicLibrary
             }
 
             return result[..count];
+        }
+
+        public async void RefreshSongs()
+        {
+            // Stop any library preview audio so the loading screen doesn't inherit it
+            _previewCanceller?.Cancel();
+            _previewContext?.Stop();
+            _previewContext = null;
+
+            SetSidebarDifficultiesVisible(false);
+            using var context = new LoadingContext();
+            try
+            {
+                await SongContainer.RunRefresh(false, context);
+                RefreshAndReselect();
+            }
+            finally
+            {
+                // Ensure difficulty rings are restored even if the scan fails or is canceled
+                SetSidebarDifficultiesVisible(true);
+            }
         }
 
         private void OnPlayerAdded(YargPlayer player)
