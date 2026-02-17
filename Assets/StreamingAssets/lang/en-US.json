@@ -1316,6 +1316,11 @@
                 "PauseName": "Auto Calibrate Audio",
                 "Description": "Automatically adjusts calibration during gameplay based on your input timing."
             },
+            "AutoCalibrateVideo": {
+                "Name": "Auto Video Calibration",
+                "PauseName": "Auto Video Calibration",
+                "Description": "Placeholder setting. Currently has no effect."
+            },
             "VocalMonitoring": {
                 "Name": "Vocal Monitoring Volume",
                 "PauseName": "Monitoring",
