@@ -1,6 +1,7 @@
 using System;
 using TMPro;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using YARG.Core.Input;
 using YARG.Menu.Navigation;
 
@@ -14,8 +15,12 @@ namespace YARG.Gameplay.HUD
         [SerializeField]
         private TextMeshProUGUI _bPositionText;
 
+        private const float SCROLL_TIME = 1f / 60f;
+        private const double SCROLL_ADJUST_SECONDS = 5.0;
+
         private NavigatableBehaviour _aPositionNav;
         private NavigatableBehaviour _bPositionNav;
+        private float _scrollTimer;
 
         protected override void OnEnable()
         {
@@ -35,6 +40,28 @@ namespace YARG.Gameplay.HUD
             }, false));
 
             UpdatePositionText();
+        }
+
+        private void Update()
+        {
+            if (_scrollTimer > 0f)
+            {
+                _scrollTimer -= Time.unscaledDeltaTime;
+                return;
+            }
+
+            var delta = Mouse.current.scroll.ReadValue().y * Time.unscaledDeltaTime;
+
+            if (delta > 0f)
+            {
+                AdjustSelectedPosition(SCROLL_ADJUST_SECONDS);
+                _scrollTimer = SCROLL_TIME;
+            }
+            else if (delta < 0f)
+            {
+                AdjustSelectedPosition(-SCROLL_ADJUST_SECONDS);
+                _scrollTimer = SCROLL_TIME;
+            }
         }
 
         private void AdjustSelectedPosition(double deltaSeconds)
