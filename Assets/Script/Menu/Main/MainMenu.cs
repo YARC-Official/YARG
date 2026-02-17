@@ -1,19 +1,24 @@
 using TMPro;
 using UnityEngine;
+using YARG.Core.Audio;
 using YARG.Core.Input;
 using YARG.Helpers;
 using YARG.Localization;
+using YARG.Menu.Dialogs;
 using YARG.Menu.MusicLibrary;
 using YARG.Menu.Settings;
 using YARG.Menu.Navigation;
 using YARG.Menu.Persistent;
 using YARG.Settings;
+using Cysharp.Threading.Tasks;
 
 namespace YARG.Menu.Main
 {
     public class MainMenu : MonoBehaviour
     {
         private static bool _antiPiracyDialogShown;
+        private static bool _blurbPlayed;
+        private static OneTimeMessageDialog _antiPiracyDialog;
 
         [SerializeField]
         private TextMeshProUGUI _versionText;
@@ -26,7 +31,7 @@ namespace YARG.Menu.Main
             // Also only show it once per game launch
             if (!_antiPiracyDialogShown && SettingsManager.Settings.ShowAntiPiracyDialog)
             {
-                DialogManager.Instance.ShowOneTimeMessage(
+                _antiPiracyDialog = DialogManager.Instance.ShowOneTimeMessage(
                     "Menu.Dialog.AntiPiracy",
                     () =>
                     {
@@ -35,10 +40,12 @@ namespace YARG.Menu.Main
                     });
 
                 _antiPiracyDialogShown = true;
+                GlobalAudioHandler.PlayVoxSample(VoxSample.AntiPiracyBlurb);
             }
+            
         }
 
-        private void OnEnable()
+        private async void OnEnable()
         {
             // Set navigation scheme
             Navigator.Instance.PushScheme(new NavigationScheme(new()
@@ -48,6 +55,19 @@ namespace YARG.Menu.Main
                 NavigationScheme.Entry.NavigateDown,
                 new NavigationScheme.Entry(MenuAction.Select, "Menu.Main.GoToCurrentlyPlaying", CurrentlyPlaying),
             }, true));
+
+            if (!_blurbPlayed)
+            {
+                await UniTask.WaitUntil(() => !LoadingScreen.IsActive);
+                if (_antiPiracyDialog != null)
+                {
+                    await _antiPiracyDialog.WaitUntilClosed();
+                    _antiPiracyDialog = null;
+                }
+                
+                _blurbPlayed = true;
+                GlobalAudioHandler.PlayVoxSample(VoxSample.YargTitleBlurb);
+            }
         }
 
         private void OnDisable()
@@ -82,6 +102,8 @@ namespace YARG.Menu.Main
         public void Profiles()
         {
             MenuManager.Instance.PushMenu(MenuManager.Menu.ProfileList);
+
+            GlobalAudioHandler.PlayVoxSample(VoxSample.MenuProfiles);
         }
 
         public void Replays()
@@ -97,6 +119,8 @@ namespace YARG.Menu.Main
         public void Settings()
         {
             SettingsMenu.Instance.gameObject.SetActive(true);
+
+            GlobalAudioHandler.PlayVoxSample(VoxSample.MenuSettings);
         }
 
         public void Exit()

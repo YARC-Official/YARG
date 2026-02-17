@@ -8,6 +8,7 @@ using UnityEngine.InputSystem;
 using UnityEngine.Serialization;
 using UnityEngine.UI;
 using YARG.Core;
+using YARG.Core.Audio;
 using YARG.Core.Logging;
 using YARG.Input;
 using YARG.Localization;
@@ -62,6 +63,8 @@ namespace YARG.Menu.Dialogs
             _cancelButton = AddDialogButton("Menu.Common.Cancel", MenuData.Colors.CancelButton, OnCancelButtonPressed);
 
             _state = State.Starting;
+
+            GlobalAudioHandler.PlayVoxSample(VoxSample.Onboarding);
         }
 
         public void SetParameters((InputDevice device, YargPlayer player, GameMode mode) parameters)

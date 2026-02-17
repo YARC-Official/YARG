@@ -234,6 +234,8 @@ namespace YARG.Menu.MusicLibrary
 
             PlayerContainer.PlayerAdded += OnPlayerAdded;
             PlayerContainer.PlayerRemoved += OnPlayerRemoved;
+            
+            GlobalAudioHandler.PlayVoxSample(VoxSample.MenuLibrary);
         }
 
         private void SetRefreshIfNeeded()
