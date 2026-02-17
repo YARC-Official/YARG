@@ -10,7 +10,8 @@ namespace YARG.Menu.MusicLibrary
 {
     public class PlaylistViewType : CategoryViewType
     {
-        public override         BackgroundType          Background => BackgroundType.Normal;
+        public override         BackgroundType          Background          => BackgroundType.Normal;
+        public override         bool                    UseWiderPrimaryText => true;
         private static readonly Dictionary<int, Sprite> Sprites     = new();
         private const           string                  ICON_PATH   = "MusicLibraryIcons[Playlists]";
         private const           int                     PLAYLIST_ID = 1;
@@ -49,6 +50,16 @@ namespace YARG.Menu.MusicLibrary
             }
 
             return songs[..count];
+        }
+
+        public override string GetPrimaryText(bool selected)
+        {
+            return FormatAs(Primary, TextType.Primary, selected);
+        }
+
+        public override string GetSecondaryText(bool selected)
+        {
+            return CreateSongCountString(SongCount);
         }
     }
 }

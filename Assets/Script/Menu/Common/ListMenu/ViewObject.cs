@@ -2,6 +2,7 @@
 using System.Threading;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Serialization;
 using UnityEngine.UI;
 
 namespace YARG.Menu.ListMenu
@@ -14,11 +15,11 @@ namespace YARG.Menu.ListMenu
 
         [Space]
         [SerializeField]
-        private GameObject _normalBackground;
+        protected GameObject NormalBackground;
         [SerializeField]
-        private GameObject _selectedBackground;
+        protected GameObject SelectedBackground;
         [SerializeField]
-        private GameObject _categoryBackground;
+        protected GameObject CategoryBackground;
 
         [Space]
         [SerializeField]
@@ -61,33 +62,33 @@ namespace YARG.Menu.ListMenu
             _canvasGroup.alpha = 0f;
         }
 
-        private void SetBackground(bool selected, BaseViewType.BackgroundType type)
+        protected virtual void SetBackground(bool selected, BaseViewType.BackgroundType type)
         {
-            _normalBackground.SetActive(false);
-            _selectedBackground.SetActive(false);
-            _categoryBackground.SetActive(false);
+            NormalBackground.SetActive(false);
+            SelectedBackground.SetActive(false);
+            CategoryBackground.SetActive(false);
 
             switch (type)
             {
                 case BaseViewType.BackgroundType.Normal:
                     if (selected)
                     {
-                        _selectedBackground.SetActive(true);
+                        SelectedBackground.SetActive(true);
                     }
                     else
                     {
-                        _normalBackground.SetActive(true);
+                        NormalBackground.SetActive(true);
                     }
 
                     break;
                 case BaseViewType.BackgroundType.Category:
                     if (selected)
                     {
-                        _selectedBackground.SetActive(true);
+                        SelectedBackground.SetActive(true);
                     }
                     else
                     {
-                        _categoryBackground.SetActive(true);
+                        CategoryBackground.SetActive(true);
                     }
 
                     break;

@@ -34,7 +34,8 @@ namespace YARG.Scores
         private static readonly Dictionary<HashWrapper, GameRecord> BandHighScores = new();
 
         private static Instrument _currentInstrument = Instrument.Band;
-        private static Guid _currentPlayerId;
+        private static Guid       _currentPlayerId;
+        private static bool       _scoresWereFetched;
 
         private static bool HighestDifficultyOnly
             => SettingsManager.Settings.HighScoreHistory.Value == HighScoreHistoryMode.HighestDifficulty;
@@ -288,7 +289,7 @@ namespace YARG.Scores
 
         private static void FetchHighScores(Guid playerId, Instrument instrument)
         {
-            if (_currentPlayerId == playerId && _currentInstrument == instrument && PlayerHighScores.Any())
+            if (_currentPlayerId == playerId && _currentInstrument == instrument && _scoresWereFetched)
             {
                 // Already cached. No need to fetch again from the database.
                 return;
@@ -327,6 +328,7 @@ namespace YARG.Scores
 
                 _currentInstrument = instrument;
                 _currentPlayerId = playerId;
+                _scoresWereFetched = true;
             }
             catch (Exception e)
             {
@@ -338,6 +340,7 @@ namespace YARG.Scores
         {
             _currentPlayerId = Guid.Empty;
             _currentInstrument = Instrument.Band;
+            _scoresWereFetched = false;
         }
 
         public static List<SongEntry> GetMostPlayedSongs(int maxCount)

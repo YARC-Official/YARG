@@ -1,6 +1,9 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
+using UnityEngine.EventSystems;
 using YARG.Core.Input;
+using YARG.Helpers.Extensions;
 using YARG.Menu.Data;
 using YARG.Menu.Navigation;
 using YARG.Menu.Persistent;
@@ -12,8 +15,8 @@ namespace YARG.Gameplay.HUD
     {
         public bool EditMode { get; private set; }
 
-        public DraggableHudElement SelectedElement { get; private set; }
-        public HUDPositionProfile PositionProfile { get; private set; } = new();
+        private DraggableHudElement SelectedElement { get; set; }
+        public  HUDPositionProfile  PositionProfile { get; private set; } = new();
 
         private List<DraggableHudElement> _draggableElements;
         private bool _navigationPushed;
@@ -87,12 +90,52 @@ namespace YARG.Gameplay.HUD
             }
         }
 
-        public void ResetAllHUDPositions()
+        private void ResetAllHUDPositions()
         {
             foreach (var draggable in _draggableElements)
             {
                 draggable.ResetElement();
             }
+        }
+
+        private void SelectSmallestAtPoint(Vector2 screenPoint, Camera camera)
+        {
+            var smallest = _draggableElements
+                .Where(e => e.RectTransform.ContainsScreenPoint(screenPoint, camera))
+                .OrderBy(e => e.RectTransform.rect.width * e.RectTransform.rect.height)
+                .FirstOrDefault();
+
+            if (smallest != null)
+            {
+                SetSelectedElement(smallest);
+            }
+        }
+
+        public void HandlePointerDown(PointerEventData eventData)
+        {
+            // Don't change selection if clicking on the selected element's scale handle.
+            if (SelectedElement != null &&
+                SelectedElement.IsScaleHandleAtPoint(eventData.position, eventData.pressEventCamera))
+            {
+                return;
+            }
+
+            SelectSmallestAtPoint(eventData.position, eventData.pressEventCamera);
+        }
+
+        public void HandleBeginDrag(PointerEventData eventData)
+        {
+            SelectedElement?.BeginDrag(eventData);
+        }
+
+        public void HandleDrag(PointerEventData eventData)
+        {
+            SelectedElement?.Drag(eventData);
+        }
+
+        public void HandleEndDrag(PointerEventData eventData)
+        {
+            SelectedElement?.EndDrag(eventData);
         }
 
         public void SetSelectedElement(DraggableHudElement element)

@@ -20,6 +20,23 @@ namespace YARG.Helpers.Extensions
                 : null;
         }
 
+        /// <summary>
+        /// Returns the screen-space position of this RectTransform's center.
+        /// </summary>
+        public static Vector2 GetScreenCenter(this RectTransform rect, Camera cam = null)
+        {
+            var centerWorldPoint = rect.TransformPoint(rect.rect.center);
+            return RectTransformUtility.WorldToScreenPoint(cam, centerWorldPoint);
+        }
+
+        /// <summary>
+        /// Checks whether a screen-space point is contained within this RectTransform.
+        /// </summary>
+        public static bool ContainsScreenPoint(this RectTransform rect, Vector2 screenPoint, Camera cam = null)
+        {
+            return RectTransformUtility.RectangleContainsScreenPoint(rect, screenPoint, cam);
+        }
+
         /// <param name="transform">The <see cref="RectTransform"/> to convert to screen space.</param>
         /// <returns>
         /// A <see cref="Rect"/> representing the screen space of the specified <see cref="RectTransform"/>.

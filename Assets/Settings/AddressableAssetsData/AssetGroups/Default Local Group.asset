@@ -80,6 +80,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 47970bda16e44c543b7f1b72e04335f7
+    m_Address: MusicLibraryUpIcon
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 4b42c3eb19b10a14d8b5ff4f6afd4b62
     m_Address: VocalNeedle/2
     m_ReadOnly: 0

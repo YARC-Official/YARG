@@ -425,6 +425,15 @@ namespace YARG.Gameplay
 
         public async void Resume()
         {
+            // We don't rewind in practice mode, so we can skip all the BS
+            if (IsPractice)
+            {
+                _pauseMenu.PopAllMenus();
+                _songRunner.Resume();
+                ResumeCore();
+                return;
+            }
+
             if (_resumeInProgress)
             {
                 return;

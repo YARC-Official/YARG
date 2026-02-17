@@ -234,6 +234,8 @@ namespace YARG.Settings
                 nameof(Settings.DataStreamEnable),
                 nameof(Settings.EnableNormalization),
                 nameof(Settings.SaveScoresWithBots),
+                new HeaderMetadata("Accessibility"),
+                nameof(Settings.FontScaling),
                 new HeaderMetadata("OutputConfiguration"),
                 nameof(Settings.OutputDevice),
                 nameof(Settings.OutputChannelDefault),

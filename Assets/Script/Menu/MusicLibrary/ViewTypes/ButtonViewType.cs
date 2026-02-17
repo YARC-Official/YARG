@@ -9,7 +9,7 @@ namespace YARG.Menu.MusicLibrary
     public class ButtonViewType : ViewType
     {
         private static readonly Dictionary<int, Sprite> SPRITES = new();
-        public override BackgroundType Background => BackgroundType.Category;
+        public override BackgroundType Background => BackgroundType.Button;
 
         public readonly int ID;
 

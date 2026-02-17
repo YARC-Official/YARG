@@ -49,12 +49,14 @@ namespace YARG.Gameplay.HUD
             _toggle.SetIsOnWithoutNotify(Setting.Value);
         }
 
-        private void OnDestroy()
+        protected override void OnDestroy()
         {
             if (_toggle != null)
             {
                 _toggle.onValueChanged.RemoveListener(SetValue);
             }
+
+            base.OnDestroy();
         }
     }
 }

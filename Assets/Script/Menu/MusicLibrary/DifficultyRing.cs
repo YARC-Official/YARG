@@ -177,12 +177,6 @@ namespace YARG.Menu.MusicLibrary
 
         public void OnPointerClick(PointerEventData eventData)
         {
-
-            if (!_active)
-            {
-                return;
-            }
-
             if (eventData.button == PointerEventData.InputButton.Right)
             {
                 _songSearchingField.SetSearchInput(_instrument.ToSortAttribute(), $"\"{_intensity}\"");

@@ -161,6 +161,12 @@ namespace YARG.Menu.MusicLibrary
 
                 if (viewType is SongViewType)
                 {
+                    CreateItemUnlocalized(_musicLibrary.GetGreenHoldActionLabel(), () =>
+                    {
+                        _musicLibrary.ExecuteGreenHoldAction();
+                        gameObject.SetActive(false);
+                    });
+
                     // Show "Remove from Playlist" if we're editing a playlist
                     if (_musicLibrary.MenuState == MenuState.Playlist && _musicLibrary.SelectedPlaylist != null)
                     {

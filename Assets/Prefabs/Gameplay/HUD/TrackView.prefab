@@ -50,10 +50,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 27061eb36ef0b1f4fadfa93dd5228555, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _highwayEditContainer: {fileID: 7971716324907425269}
   _topElementContainer: {fileID: 2784863481168182611}
   _centerElementContainer: {fileID: 7858415040353329453}
   _scaleContainer: {fileID: 4061631830353645559}
-  _highwayEditContainer: {fileID: 7971716324907425269}
   _soloBox: {fileID: 2390146520270845346}
   _textNotifications: {fileID: 4946571513074747625}
   _countdownDisplay: {fileID: 202077715988875599}
@@ -469,6 +469,7 @@ MonoBehaviour:
   _draggableElementName: highwayTrack
   _horizontal: 1
   _vertical: 0
+  _allowScaling: 1
   _onEditModeChanged:
     m_PersistentCalls:
       m_Calls:
@@ -675,6 +676,7 @@ MonoBehaviour:
   _draggableElementName: soloBox
   _horizontal: 1
   _vertical: 1
+  _allowScaling: 0
   _onEditModeChanged:
     m_PersistentCalls:
       m_Calls:

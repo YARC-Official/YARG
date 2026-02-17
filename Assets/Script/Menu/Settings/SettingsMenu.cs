@@ -104,7 +104,7 @@ namespace YARG.Menu.Settings
                 new NavigationScheme.Entry(MenuAction.Red, "Menu.Common.Back", () =>
                 {
                     gameObject.SetActive(false);
-                }),
+                }, hide: true),
                 NavigationScheme.Entry.NavigateUp,
                 NavigationScheme.Entry.NavigateDown,
                 _headerTabs.NavigateNextTab,

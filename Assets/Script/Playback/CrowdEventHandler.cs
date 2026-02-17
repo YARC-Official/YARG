@@ -42,7 +42,6 @@ namespace YARG.Playback
         // This is true if we have music start and music end, otherwise we just start with the crowd roar
         private readonly bool _startWithMurmur;
 
-        private bool _openSamplePlayed;
         private bool _startSamplePlayed;
         private bool _endSamplePlayed;
         private bool _disposed;
@@ -95,7 +94,6 @@ namespace YARG.Playback
                 if (_startWithMurmur)
                 {
                     GlobalAudioHandler.PlaySoundEffect(_selectedOpenSample, 1.0);
-                    _openSamplePlayed = true;
                 }
                 else
                 {
@@ -147,7 +145,6 @@ namespace YARG.Playback
                 {
                     if (_startWithMurmur)
                     {
-                        _openSamplePlayed = true;
                         // GlobalAudioHandler.StopSoundEffect(_selectedOpenSample, 1.0);
                     }
 

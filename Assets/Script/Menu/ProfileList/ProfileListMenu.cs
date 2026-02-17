@@ -43,7 +43,7 @@ namespace YARG.Menu.ProfileList
 
             Navigator.Instance.PushScheme(new NavigationScheme(new()
             {
-                new NavigationScheme.Entry(MenuAction.Red, "Menu.Common.Back", () => MenuManager.Instance.PopMenu()),
+                new NavigationScheme.Entry(MenuAction.Red, "Menu.Common.Back", () => MenuManager.Instance.PopMenu(), hide: true),
             }, true));
 
             PlayerContainer.PlayerAdded += OnPlayerAdded;

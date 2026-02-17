@@ -62,7 +62,7 @@ namespace YARG.Menu.History
                 new NavigationScheme.Entry(MenuAction.Green, "Menu.Common.Confirm",
                     () => CurrentSelection?.ViewClick()),
                 new NavigationScheme.Entry(MenuAction.Red, "Menu.Common.Back",
-                    Back),
+                    Back, hide: true),
                 new NavigationScheme.Entry(MenuAction.Yellow, "Menu.History.Analyze",
                     () => CurrentSelection?.Shortcut1()),
                 new NavigationScheme.Entry(MenuAction.Orange, "Menu.History.PlayWithReplay",

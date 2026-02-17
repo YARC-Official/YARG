@@ -130,7 +130,8 @@ namespace YARG.Menu.MusicLibrary
             {
                 ToastManager.ToastError("Cannot rename Favorites playlist");
                 return;
-            }
+                    section.CategoryGroup));
+                    section.Songs));
 
             DialogManager.Instance.ShowRenameDialog(SelectedPlaylist.Name, newName =>
             {
@@ -253,7 +254,7 @@ namespace YARG.Menu.MusicLibrary
                 new NavigationScheme.Entry(MenuAction.Blue, "Menu.MusicLibrary.StartShow",
                     OnPlayShowHit),
                 new NavigationScheme.Entry(MenuAction.Orange, "Menu.MusicLibrary.MoreOptions",
-                    OnButtonHit, OnButtonRelease),
+                    OnOrangeHit, OnOrangeRelease),
             }, false));
         }
 
