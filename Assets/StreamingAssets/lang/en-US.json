@@ -1317,8 +1317,8 @@
                 "Description": "Automatically adjusts calibration during gameplay based on your input timing."
             },
             "AutoCalibrateVideo": {
-                "Name": "Auto Video Calibration",
-                "PauseName": "Auto Video Calibration",
+                "Name": "Auto Calibrate Video",
+                "PauseName": "Auto Calibrate Video",
                 "Description": "Placeholder setting. Currently has no effect."
             },
             "VocalMonitoring": {
