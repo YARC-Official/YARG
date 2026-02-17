@@ -119,6 +119,8 @@ namespace YARG.Menu.MusicLibrary
         private double _previewDelay;
 
         private SongEntry _currentSong;
+        private SortAttribute _playlistSort = SortAttribute.Name;
+        private bool _playlistSortAscending = true;
 
         private List<int> _sectionHeaderIndices = new();
         public List<(string, int)> Shortcuts { get; private set; } = new();
@@ -935,6 +937,48 @@ namespace YARG.Menu.MusicLibrary
             SettingsManager.Settings.LibrarySort = sort;
             UpdateSearch(true);
             UpdateSortInformationHeader();
+        }
+
+        public void ApplySortFromPopup(SortAttribute sort, bool ascending = true)
+        {
+            if (MenuState == MenuState.Playlist && SelectedPlaylist != null)
+            {
+                switch (sort)
+                {
+                    case SortAttribute.Name:
+                        SelectedPlaylist.SortByName(ascending);
+                        break;
+                    case SortAttribute.Artist:
+                        SelectedPlaylist.SortByArtist(ascending);
+                        break;
+                    default:
+                        ToastManager.ToastWarning("Sort not supported in playlists");
+                        return;
+                }
+
+                _playlistSort = sort;
+                _playlistSortAscending = ascending;
+                RefreshAndReselect();
+                return;
+            }
+
+            ChangeSort(sort);
+        }
+
+        public SortAttribute GetPopupSortAttribute()
+        {
+            return MenuState == MenuState.Playlist ? _playlistSort : SettingsManager.Settings.LibrarySort;
+        }
+
+        public string GetPopupSortLabel()
+        {
+            var sort = GetPopupSortAttribute().ToLocalizedName();
+            if (MenuState != MenuState.Playlist)
+            {
+                return sort;
+            }
+
+            return _playlistSortAscending ? $"{sort} (A-Z)" : $"{sort} (Z-A)";
         }
 
         private void UpdateSortInformationHeader()

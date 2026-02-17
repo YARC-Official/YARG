@@ -106,11 +106,14 @@ namespace YARG.Menu.MusicLibrary
         {
             SetHeader(null);
 
-            CreateItem("RandomSong", () =>
+            if (_musicLibrary.MenuState != MenuState.PlaylistSelect)
             {
-                _musicLibrary.SelectRandomSong();
-                gameObject.SetActive(false);
-            });
+                CreateItem("RandomSong", () =>
+                {
+                    _musicLibrary.SelectRandomSong();
+                    gameObject.SetActive(false);
+                });
+            }
 
             CreateItem("BackToTop", () =>
             {
@@ -118,13 +121,18 @@ namespace YARG.Menu.MusicLibrary
                 gameObject.SetActive(false);
             });
 
-            CreateItem("SortBy", SettingsManager.Settings.LibrarySort.ToLocalizedName(), () =>
+            if (_musicLibrary.MenuState != MenuState.PlaylistSelect)
             {
-                _menuState = State.SortSelect;
-                UpdateForState();
-            });
+                CreateItem("SortBy", _musicLibrary.GetPopupSortLabel(), () =>
+                {
+                    _menuState = State.SortSelect;
+                    UpdateForState();
+                });
+            }
 
-            if (_musicLibrary.HasSortHeaders)
+            if (_musicLibrary.MenuState != MenuState.Playlist &&
+                _musicLibrary.MenuState != MenuState.PlaylistSelect &&
+                _musicLibrary.HasSortHeaders)
             {
                 CreateItem("GoToSection", () =>
                 {
@@ -252,6 +260,35 @@ namespace YARG.Menu.MusicLibrary
         {
             SetLocalizedHeader("SortBy");
 
+            if (_musicLibrary.MenuState == MenuState.Playlist)
+            {
+                CreateItemUnlocalized($"{SortAttribute.Name.ToLocalizedName()} (A-Z)", () =>
+                {
+                    _musicLibrary.ApplySortFromPopup(SortAttribute.Name, ascending: true);
+                    gameObject.SetActive(false);
+                });
+
+                CreateItemUnlocalized($"{SortAttribute.Name.ToLocalizedName()} (Z-A)", () =>
+                {
+                    _musicLibrary.ApplySortFromPopup(SortAttribute.Name, ascending: false);
+                    gameObject.SetActive(false);
+                });
+
+                CreateItemUnlocalized($"{SortAttribute.Artist.ToLocalizedName()} (A-Z)", () =>
+                {
+                    _musicLibrary.ApplySortFromPopup(SortAttribute.Artist, ascending: true);
+                    gameObject.SetActive(false);
+                });
+
+                CreateItemUnlocalized($"{SortAttribute.Artist.ToLocalizedName()} (Z-A)", () =>
+                {
+                    _musicLibrary.ApplySortFromPopup(SortAttribute.Artist, ascending: false);
+                    gameObject.SetActive(false);
+                });
+
+                return;
+            }
+
             foreach (var sort in EnumExtensions<SortAttribute>.Values)
             {
                 // Skip theses because they don't make sense
@@ -273,7 +310,7 @@ namespace YARG.Menu.MusicLibrary
 
                 CreateItemUnlocalized(sort.ToLocalizedName(), () =>
                 {
-                    _musicLibrary.ChangeSort(sort);
+                    _musicLibrary.ApplySortFromPopup(sort);
                     gameObject.SetActive(false);
                 });
             }
