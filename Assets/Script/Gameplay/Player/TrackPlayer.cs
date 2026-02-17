@@ -182,7 +182,7 @@ namespace YARG.Gameplay.Player
 
         private AutoCalibrator _autoCalibrator;
 
-        private bool IsAutoCalibrating => SettingsManager.Settings.AutoCalibration.Value;
+        private bool IsAutoCalibrating => SettingsManager.Settings.AutoCalibrateAudio.Value;
 
         public override void Initialize(int index, YargPlayer player, SongChart chart, TrackView trackView,
             StemMixer mixer, int? currentHighScore)

@@ -96,7 +96,7 @@ namespace YARG.Gameplay.HUD
             var allowAutoCalibration = activeHumanPlayers == 1;
             if (!allowAutoCalibration || GlobalVariables.State.IsReplay)
             {
-                settings.Remove(nameof(SettingsManager.Settings.AutoCalibration));
+                settings.Remove(nameof(SettingsManager.Settings.AutoCalibrateAudio));
             }
             OpenSubSettings(settings);
         }

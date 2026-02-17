@@ -91,7 +91,7 @@ namespace YARG.Settings
 
             public IntSetting AudioCalibration { get; } = new(0);
             public IntSetting VideoCalibration { get; } = new(0);
-            public ToggleSetting AutoCalibration { get; } = new(false);
+            public ToggleSetting AutoCalibrateAudio { get; } = new(false);
 
             public ToggleSetting AccountForHardwareLatency { get; } = new(true);
 

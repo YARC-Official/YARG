@@ -226,7 +226,7 @@ namespace YARG.Gameplay
 
             // Unsubscribe from other events
             SettingsManager.Settings.NoFailMode.OnChange -= OnNoFailModeChanged;
-            SettingsManager.Settings.AutoCalibration.OnChange -= OnAutoCalibrationChanged;
+            SettingsManager.Settings.AutoCalibrateAudio.OnChange -= OnAutoCalibrationChanged;
             EngineManager.OnSongFailed -= OnSongFailed;
 
             //Restore stem volumes to their original state
