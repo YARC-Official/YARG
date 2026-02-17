@@ -18,6 +18,9 @@ namespace YARG.Helpers
         // Fraction of the measured error to apply as correction (0-1).
         private const double DAMPING = 0.5;
 
+        // Median error (ms) below which calibration is considered stable.
+        private const double STABLE_THRESHOLD_MS = 5.0;
+
         private readonly List<double> _accuracyList = new();
         private readonly GameManager _gameManager;
 
@@ -92,7 +95,7 @@ namespace YARG.Helpers
             double median = CalculateMedian(filtered);
             int adjustment = (int) Math.Round(median * DAMPING);
 
-            if (adjustment == 0)
+            if (Math.Abs(median) <= STABLE_THRESHOLD_MS)
             {
                 NotifyCalibrationStable();
             }
