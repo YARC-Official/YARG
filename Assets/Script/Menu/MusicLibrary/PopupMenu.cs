@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
@@ -350,7 +351,7 @@ namespace YARG.Menu.MusicLibrary
                     if (value == Localize.Key("Menu.MusicLibrary.CurrentSetlist"))
                     {
                         ToastManager.ToastError("You can't create a playlist with that name");
-                        gameObject.SetActive(false);
+                        CloseAfterDialog().Forget();
                         return;
                     }
 
@@ -372,12 +373,12 @@ namespace YARG.Menu.MusicLibrary
                     {
                         ToastManager.ToastError("You can't add that to a playlist");
                         PlaylistContainer.RemovePlaylist(playlist);
-                        gameObject.SetActive(false);
+                        CloseAfterDialog().Forget();
                         return;
                     }
 
-                    // Close the popup
-                    gameObject.SetActive(false);
+                    // Close the popup after the rename dialog is fully closed
+                    CloseAfterDialog().Forget();
                     _musicLibrary.RefreshAndReselect();
                     ToastManager.ToastSuccess("Playlist Created");
                 });
@@ -412,6 +413,14 @@ namespace YARG.Menu.MusicLibrary
         {
             var localized = Localize.KeyFormat(("Menu.MusicLibrary.Popup.Item", localizeKey), formatArg);
             CreateItemUnlocalized(localized, a);
+        }
+
+        private async UniTaskVoid CloseAfterDialog()
+        {
+            await DialogManager.Instance.WaitUntilCurrentClosed();
+            if (this == null) return;
+            gameObject.SetActive(false);
+            _musicLibrary.SetNavigationScheme(true);
         }
 
         private void CreateItemUnlocalized(string body, UnityAction a)
