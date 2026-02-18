@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
+using UnityEngine.UI;
 using YARG.Localization;
 using YARG.Menu.Navigation;
 using YARG.Menu.Settings;
@@ -12,6 +13,9 @@ namespace YARG.Settings.Metadata
 {
     public class MetadataTab : Tab, IEnumerable<AbstractMetadata>
     {
+        private const string ADVANCED_MARKER_NAME = "AdvancedSettingMarker";
+        private const float ADVANCED_MARKER_WIDTH = 5f;
+        private static readonly Color ADVANCED_MARKER_COLOR = new Color32(75, 191, 208, 255);
         // Prefabs needed for this tab type
         private static GameObject _headerPrefab;
         private static GameObject _buttonPrefab;
@@ -120,7 +124,32 @@ namespace YARG.Settings.Metadata
             }
 
         }
+        private static void AddAdvancedMarker(BaseSettingVisual visual)
+        {
+            if (visual.transform is not RectTransform visualRect)
+            {
+                return;
+            }
 
+            if (visualRect.Find(ADVANCED_MARKER_NAME) != null)
+            {
+                return;
+            }
+
+            var markerObject = new GameObject(ADVANCED_MARKER_NAME, typeof(RectTransform), typeof(Image));
+            var markerRect = markerObject.GetComponent<RectTransform>();
+            markerRect.SetParent(visualRect, false);
+            markerRect.anchorMin = new Vector2(0f, 0f);
+            markerRect.anchorMax = new Vector2(0f, 1f);
+            markerRect.pivot = new Vector2(0f, 0.5f);
+            markerRect.anchoredPosition = Vector2.zero;
+            markerRect.sizeDelta = new Vector2(ADVANCED_MARKER_WIDTH, 0f);
+            markerRect.SetAsLastSibling();
+
+            var markerImage = markerObject.GetComponent<Image>();
+            markerImage.color = ADVANCED_MARKER_COLOR;
+            markerImage.raycastTarget = false;
+        }
         // For collection initializer support
         public void Add(AbstractMetadata setting) => _settings.Add(setting);
         private List<AbstractMetadata>.Enumerator GetEnumerator() => _settings.GetEnumerator();
