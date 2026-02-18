@@ -27,8 +27,8 @@ namespace YARG.Gameplay
 {
     public class BackgroundManager : GameplayBehaviour, IDisposable
     {
-        // e.g. DefaultController.Vocals.controller
-        private const string DEFAULT_ANIMATION_CONTROLLER_PATH = "DefaultAnimations/DefaultController.{0}.controller";
+        // e.g. DefaultController.Vocals.Rock.controller
+        private const string DEFAULT_ANIMATION_CONTROLLER_PATH = "DefaultAnimations/DefaultController.{0}.{1}.controller";
 
         private string VIDEO_PATH;
 
@@ -473,16 +473,15 @@ namespace YARG.Gameplay
             }
 
             // Check for an existing animation controller and use default if none is found
-            // TODO: Do this somewhere else where we can check song genre so we can have different default animations for
-            //  different genres. (Rock vs Dance vs Latin vs whatever)
             var animator = character.GetComponent<Animator>();
             if (animator != null)
             {
                 var controller = animator.runtimeAnimatorController;
                 if (controller == null)
                 {
+                    var genre = GetDefaultGenre(GameManager.Song.Genre);
                     var charType = character.GetComponent<VenueCharacter>().Type;
-                    var path = string.Format(DEFAULT_ANIMATION_CONTROLLER_PATH, charType.ToString());
+                    var path = string.Format(DEFAULT_ANIMATION_CONTROLLER_PATH, charType.ToString(), genre);
                     var newController = Resources.Load<RuntimeAnimatorController>(path);
                     if (newController != null)
                     {
@@ -576,6 +575,12 @@ namespace YARG.Gameplay
 #endif
             // Fallback if we're not running on OSX
             return null;
+        }
+
+        // TODO: Move this to Genrelizer or sth and implement
+        public static string GetDefaultGenre(string realGenre)
+        {
+            return "Generic";
         }
 
         public void Dispose()
