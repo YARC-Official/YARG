@@ -294,7 +294,7 @@ namespace YARG.Menu.MusicLibrary
         private static void SetWrappedText(GameObject container, TextMeshProUGUI label, string text, ref float baseFontSize)
         {
             const int maxCharsBeforeShrink = 36; // number of characters before we shrink the text
-            const int maxCharsBeforeWrap = 48;   // number of characters before we wrap the text
+            const int maxCharsBeforeWrap = 45;   // number of characters before we wrap the text
             const float shrinkFactor = 0.8f;     // percentage to shrink the font by after shrink threshold
 
             if (string.IsNullOrEmpty(text))
