@@ -228,8 +228,6 @@ namespace YARG.Gameplay
 
             // Unsubscribe from other events
             SettingsManager.Settings.NoFailMode.OnChange -= OnNoFailModeChanged;
-            SettingsManager.Settings.AutoCalibrateAudio.OnChange -= OnAutoCalibrationChanged;
-            SettingsManager.Settings.AutoCalibrateVideo.OnChange -= OnAutoCalibrationVideoChanged;
             EngineManager.OnSongFailed -= OnSongFailed;
 
             //Restore stem volumes to their original state
@@ -879,24 +877,6 @@ namespace YARG.Gameplay
             }
         }
 
-        private void OnAutoCalibrationChanged(bool enabled)
-        {
-            if (enabled)
-            {
-                InvalidateScores("Menu.Toast.AutoCalibrationScore");
-                SettingsManager.Settings.AutoCalibrateVideo.Value = false;
-            }
-        }
-
-        private void OnAutoCalibrationVideoChanged(bool enabled)
-        {
-            if (enabled)
-            {
-                InvalidateScores("Menu.Toast.AutoCalibrationScore");
-                SettingsManager.Settings.AutoCalibrateAudio.Value = false;
-            }
-        }
-
         // If we go from no fail to fail, we need to reinitialize the happiness state so we avoid
         // the possibility of an instant fail. Yes, this is cheeseable since toggling no fail resets happiness.
         private void OnNoFailModeChanged(bool noFail)
@@ -911,7 +891,7 @@ namespace YARG.Gameplay
             }
         }
 
-        private void InvalidateScores(string toastKey)
+        internal void InvalidateScores(string toastKey)
         {
             bool invalidated = false;
 

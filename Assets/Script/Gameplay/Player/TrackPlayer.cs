@@ -181,7 +181,7 @@ namespace YARG.Gameplay.Player
         protected SongChart Chart;
 
         private AutoCalibrator _autoCalibrator;
-        
+
         public override void Initialize(int index, YargPlayer player, SongChart chart, TrackView trackView,
             StemMixer mixer, int? currentHighScore)
         {

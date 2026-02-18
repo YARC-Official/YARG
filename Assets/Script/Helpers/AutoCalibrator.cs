@@ -48,19 +48,36 @@ namespace YARG.Helpers
         public AutoCalibrator(GameManager gameManager)
         {
             _gameManager = gameManager;
-            AutoAudioSetting.OnChange += AutoCalibrateModeChanged;
-            AutoVideoSetting.OnChange += AutoCalibrateModeChanged;
+            AutoAudioSetting.OnChange += OnAutoCalibrateAudioChanged;
+            AutoVideoSetting.OnChange += OnAutoCalibrateVideoChanged;
         }
 
-        private void AutoCalibrateModeChanged(bool enabled)
+        private void OnAutoCalibrateAudioChanged(bool enabled)
         {
+            if (enabled)
+            {
+                _gameManager.InvalidateScores("Menu.Toast.AutoCalibrationScore");
+                AutoVideoSetting.Value = false;
+            }
+
+            Reset();
+        }
+
+        private void OnAutoCalibrateVideoChanged(bool enabled)
+        {
+            if (enabled)
+            {
+                _gameManager.InvalidateScores("Menu.Toast.AutoCalibrationScore");
+                AutoAudioSetting.Value = false;
+            }
+
             Reset();
         }
 
         public void Dispose()
         {
-            AutoAudioSetting.OnChange -= AutoCalibrateModeChanged;
-            AutoVideoSetting.OnChange -= AutoCalibrateModeChanged;
+            AutoAudioSetting.OnChange -= OnAutoCalibrateAudioChanged;
+            AutoVideoSetting.OnChange -= OnAutoCalibrateVideoChanged;
         }
 
         private void Reset()
