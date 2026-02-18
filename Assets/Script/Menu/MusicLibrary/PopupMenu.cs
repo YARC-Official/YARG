@@ -121,6 +121,12 @@ namespace YARG.Menu.MusicLibrary
                 gameObject.SetActive(false);
             });
 
+            CreateItem("ScanSongs", () =>
+            {
+                _musicLibrary.RefreshSongs();
+                gameObject.SetActive(false);
+            });
+
             if (_musicLibrary.MenuState != MenuState.PlaylistSelect)
             {
                 CreateItem("SortBy", _musicLibrary.GetPopupSortLabel(), () =>

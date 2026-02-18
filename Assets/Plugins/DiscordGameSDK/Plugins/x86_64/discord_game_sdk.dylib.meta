@@ -14,7 +14,7 @@ PluginImporter:
   - first:
       Any: 
     second:
-      enabled: 1
+      enabled: 0
       settings: {}
   - first:
       Editor: Editor
@@ -26,13 +26,13 @@ PluginImporter:
   - first:
       Standalone: Linux64
     second:
-      enabled: 1
+      enabled: 0
       settings:
         CPU: x86_64
   - first:
       Standalone: OSXUniversal
     second:
-      enabled: 1
+      enabled: 0
       settings:
         CPU: x86_64
   - first:
@@ -44,7 +44,7 @@ PluginImporter:
   - first:
       Standalone: Win64
     second:
-      enabled: 1
+      enabled: 0
       settings:
         CPU: x86_64
   userData: 

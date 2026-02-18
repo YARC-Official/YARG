@@ -1,20 +1,20 @@
-﻿using System.Collections.Generic;
-using YARG.Core.Song.Cache;
-using YARG.Core.Song;
-using System;
+﻿using System;
 using System.Linq;
-using YARG.Helpers.Extensions;
-using YARG.Settings;
-using YARG.Helpers;
+using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
-using YARG.Menu.MusicLibrary;
-using YARG.Core.Logging;
 using YARG.Core;
-using YARG.Player;
-using YARG.Localization;
-using YARG.Scores;
-using YARG.Core.Utility;
 using YARG.Core.Game;
+using YARG.Core.Logging;
+using YARG.Core.Song;
+using YARG.Core.Song.Cache;
+using YARG.Core.Utility;
+using YARG.Helpers;
+using YARG.Helpers.Extensions;
+using YARG.Localization;
+using YARG.Menu.MusicLibrary;
+using YARG.Player;
+using YARG.Scores;
+using YARG.Settings;
 
 namespace YARG.Song
 {
