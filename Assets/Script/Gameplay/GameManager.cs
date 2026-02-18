@@ -168,7 +168,7 @@ namespace YARG.Gameplay
         private double _pauseTime;
         private double _rewindLimit = double.MinValue;
         private bool   _resumeInProgress;
-        private bool   _autoCalibrationVideoOnPause;
+        private bool   _autoCalibrateVideoOnPause;
         private double _preFadeOutVolume = DEFAULT_VOLUME;
 
         public bool PlayingAShow => GlobalVariables.State.PlayingAShow;
@@ -415,7 +415,7 @@ namespace YARG.Gameplay
                 _rewindLimit = rewindTime;
             }
 
-            _autoCalibrationVideoOnPause = SettingsManager.Settings.AutoCalibrateVideo.Value;
+            _autoCalibrateVideoOnPause = SettingsManager.Settings.AutoCalibrateVideo.Value;
 
             // Pause any audio samples that are currently playing
             GlobalAudioHandler.PauseAllSfx();
@@ -447,7 +447,7 @@ namespace YARG.Gameplay
 
             // If AutoCalibrateVideo changed while paused, fade the mixer accordingly
             bool autoCalibrateVideoEnabled = SettingsManager.Settings.AutoCalibrateVideo.Value;
-            bool didChangeWhilePaused = autoCalibrateVideoEnabled != _autoCalibrationVideoOnPause;
+            bool didChangeWhilePaused = autoCalibrateVideoEnabled != _autoCalibrateVideoOnPause;
             if (didChangeWhilePaused)
             {
                 if (autoCalibrateVideoEnabled)
