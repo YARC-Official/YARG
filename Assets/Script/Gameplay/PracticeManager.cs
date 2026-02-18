@@ -63,8 +63,10 @@ namespace YARG.Gameplay
                 return;
             }
 
+            // Reset when A/B positions were adjusted (e.g. from the pause menu) so that
+            // stats are cleared and the song seeks to the updated start position on resume.
             double endPoint = TimeEnd + (SECTION_RESTART_DELAY * GameManager.SongSpeed);
-            if (GameManager.SongTime >= endPoint)
+            if (HasUpdatedAbPositions || GameManager.SongTime >= endPoint)
             {
                 ResetPractice();
             }

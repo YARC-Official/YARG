@@ -73,14 +73,18 @@ namespace YARG.Gameplay.HUD
             {
                 double newTime = Math.Max(0, GameManager.PracticeManager.TimeStart + deltaSeconds);
                 GameManager.PracticeManager.SetAPosition(newTime);
-                UpdatePositionText();
             }
             else if (selected == _bPositionNav)
             {
                 double newTime = Math.Max(0, GameManager.PracticeManager.TimeEnd + deltaSeconds);
                 GameManager.PracticeManager.SetBPosition(newTime);
-                UpdatePositionText();
             }
+            else
+            {
+                return;
+            }
+
+            UpdatePositionText();
         }
 
         public void SetAPosition()
