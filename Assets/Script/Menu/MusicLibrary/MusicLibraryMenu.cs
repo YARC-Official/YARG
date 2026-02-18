@@ -231,6 +231,9 @@ namespace YARG.Menu.MusicLibrary
 
             PlayerContainer.PlayerAdded += OnPlayerAdded;
             PlayerContainer.PlayerRemoved += OnPlayerRemoved;
+
+            // Ensure the sidebar is rendered correctly on first entry
+            _sidebar.UpdateSidebar(true);
         }
 
         private void SetRefreshIfNeeded()
@@ -616,6 +619,9 @@ namespace YARG.Menu.MusicLibrary
                 return;
             }
 
+            string previousSearch = _currentSearch;
+            SongEntry previousSelectedSong = (CurrentSelection as SongViewType)?.SongEntry;
+            int previousSelectedIndex = SelectedIndex;
             if (!PlaylistMode)
             {
                 _sortedSongs = _searchField.Search(SettingsManager.Settings.LibrarySort);
@@ -644,7 +650,13 @@ namespace YARG.Menu.MusicLibrary
                 _searchField.gameObject.SetActive(false);
             }
 
-            if (_reloadState != MusicLibraryReloadState.Partial)
+            string currentSearch = _searchField.FullSearchQuery;
+            bool searchChanged = !PlaylistMode &&
+                !string.Equals(previousSearch, currentSearch, StringComparison.Ordinal);
+            bool searchExpanded = !PlaylistMode && currentSearch.Length > previousSearch.Length;
+            _currentSearch = currentSearch;
+
+            if (_reloadState != MusicLibraryReloadState.Partial && !searchChanged)
             {
                 int newPositionStartIndex = 0;
                 if (_recommendedSongs != null)
@@ -693,6 +705,39 @@ namespace YARG.Menu.MusicLibrary
             if (shouldApplyFilters)
             {
                 EnsureValidSelectionAfterFilter();
+            }
+
+            if (!PlaylistMode && searchChanged)
+            {
+                if (searchExpanded)
+                {
+                    _currentSong = null;
+                    int targetIndex = 0;
+                    for (int i = _primaryHeaderIndex; i < ViewList.Count; i++)
+                    {
+                        if (ViewList[i] is SongViewType)
+                        {
+                            targetIndex = i;
+                            break;
+                        }
+                    }
+
+                    if (SelectedIndex != targetIndex)
+                    {
+                        SelectedIndex = targetIndex;
+                    }
+                    else
+                    {
+                        OnSelectedIndexChanged();
+                    }
+                }
+                else if (previousSelectedSong != null)
+                {
+                    if (!SetIndexTo(i => i is SongViewType view && view.SongEntry == previousSelectedSong, _primaryHeaderIndex))
+                    {
+                        SelectedIndex = Mathf.Clamp(previousSelectedIndex, 0, ViewList.Count - 1);
+                    }
+                }
             }
         }
 

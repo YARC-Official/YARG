@@ -8,6 +8,7 @@ using UnityEngine.UI;
 using YARG.Core;
 using YARG.Core.Input;
 using YARG.Core.Song;
+using YARG.Core.Utility;
 using YARG.Helpers.Extensions;
 using YARG.Menu.Navigation;
 using YARG.Menu.Persistent;
@@ -102,6 +103,8 @@ namespace YARG.Menu.MusicLibrary
         private readonly Color _filledFavoritesHeart = new Color(255 / 255f, 89 / 255f, 119 / 255f);
 
         private float _albumBaseFontSize;
+        private float _charterBaseFontSize;
+        private float _sourceBaseFontSize;
 
         public void Initialize(MusicLibraryMenu musicLibraryMenu, SongSearchingField songSearchingField)
         {
@@ -138,7 +141,7 @@ namespace YARG.Menu.MusicLibrary
                 _filledFavoritesHeart : _unfilledFavoritesHeart;
         }
 
-        public void UpdateSidebar()
+        public void UpdateSidebar(bool force = false)
         {
             if (_musicLibraryMenu.ViewList.Count <= 0)
             {
@@ -146,7 +149,7 @@ namespace YARG.Menu.MusicLibrary
             }
 
             var viewType = _musicLibraryMenu.CurrentSelection;
-            if (_currentView != null && _currentView == viewType)
+            if (!force && _currentView != null && _currentView == viewType)
                 return;
 
             _currentView = viewType;
@@ -231,10 +234,9 @@ namespace YARG.Menu.MusicLibrary
         {
             var songEntry = songViewType.SongEntry;
 
-            _albumTitleContainer.SetActive(true);
-            SetAlbumNameFont(songEntry.Album);
-            SetText(_sourceContainer, _source, SongSources.SourceToGameName(songEntry.Source));
-            SetText(_charterContainer, _charter, songEntry.Charter);
+            SetWrappedText(_albumTitleContainer, _album, songEntry.Album, ref _albumBaseFontSize);
+            SetWrappedText(_sourceContainer, _source, SongSources.SourceToGameName(songEntry.Source), ref _sourceBaseFontSize);
+            SetWrappedText(_charterContainer, _charter, songEntry.Charter, ref _charterBaseFontSize);
 
             _genreContainer.SetActive(true); // Empty genres are rendered as "Unknown Genre", so this should always be active
             _genre.text = CurrentCulture.TextInfo.ToTitleCase(songEntry.Genre) + (songEntry.Subgenre == string.Empty ? "" : ",");
@@ -288,27 +290,42 @@ namespace YARG.Menu.MusicLibrary
             _albumCoverSmall.LoadAlbumCover(songEntry, _cancellationToken.Token);
         }
 
-        // Wrap and shrink album name if it's too long to fit in the sidebar
-        private void SetAlbumNameFont(string albumText)
+        // Wrap and shrink long sidebar fields (album/source/charter) if they are too long to fit
+        private static void SetWrappedText(GameObject container, TextMeshProUGUI label, string text, ref float baseFontSize)
         {
-            const int maxCharsBeforeShrink = 40; // number of characters before we shrink the text
-            const int maxCharsBeforeWrap = 50;   // number of characters before we wrap the text
+            const int maxCharsBeforeShrink = 36; // number of characters before we shrink the text
+            const int maxCharsBeforeWrap = 48;   // number of characters before we wrap the text
             const float shrinkFactor = 0.8f;     // percentage to shrink the font by after shrink threshold
 
-            if (_albumBaseFontSize <= 0f)
-                _albumBaseFontSize = _album.fontSize > 0f ? _album.fontSize : 20f;
+            if (string.IsNullOrEmpty(text))
+            {
+                container.SetActive(false);
+                label.text = string.Empty;
+                return;
+            }
 
-            var displayText = albumText ?? string.Empty;
+            container.SetActive(true);
 
-            _album.enableAutoSizing = false;
-            _album.textWrappingMode = TextWrappingModes.Normal;
-            _album.overflowMode = TextOverflowModes.Overflow;
-            _album.fontSize = _albumBaseFontSize;
+            if (baseFontSize <= 0f)
+            {
+                if (label.enableAutoSizing && label.fontSizeMax > 0f)
+                    baseFontSize = label.fontSizeMax;
+                else
+                    baseFontSize = label.fontSize > 0f ? label.fontSize : 20f;
+            }
 
-            if (displayText.Length > maxCharsBeforeShrink)
-                _album.fontSize = _albumBaseFontSize * shrinkFactor;
+            var measureText = RichTextUtils.StripRichTextTags(text);
+            var displayText = text;
 
-            if (displayText.Length > maxCharsBeforeWrap && !displayText.Contains('\n'))
+            label.enableAutoSizing = false;
+            label.textWrappingMode = TextWrappingModes.Normal;
+            label.overflowMode = TextOverflowModes.Overflow;
+            label.fontSize = baseFontSize;
+
+            if (measureText.Length > maxCharsBeforeShrink)
+                label.fontSize = baseFontSize * shrinkFactor;
+
+            if (measureText.Length > maxCharsBeforeWrap && !displayText.Contains('\n'))
             {
                 var wrapIndex = displayText.LastIndexOf(' ', maxCharsBeforeWrap);
                 if (wrapIndex <= 0 || wrapIndex >= displayText.Length - 1)
@@ -317,7 +334,7 @@ namespace YARG.Menu.MusicLibrary
                 displayText = displayText[..wrapIndex].TrimEnd() + "\n" + displayText[wrapIndex..].TrimStart();
             }
 
-            _album.text = displayText;
+            label.text = displayText;
         }
 
         private void UpdateDifficulties(SongEntry entry)
