@@ -157,7 +157,8 @@ namespace YARG.Song
             if (SettingsManager.Settings.StandardizeGenres.Value && !GlobalVariables.OfflineMode)
             {
                 Genrelizer.GenrelizeAll(_songCache);
-            } else
+            }
+            else
             {
                 Genrelizer.DegenrelizeAll(_songCache);
             }
