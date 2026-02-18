@@ -1,8 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using Cinemachine;
 using Cysharp.Threading.Tasks;
+using UniHumanoid;
 using UnityEngine;
+using UnityEngine.Animations;
 using UnityEngine.UI;
 using UnityEngine.Video;
 using YARG.Core.IO;
@@ -517,8 +521,19 @@ namespace YARG.Gameplay
             // Replace existingCharacter with the new character
             var existingParent = existingCharacter.transform.parent;
 
+            var newCharacter = Instantiate(character, existingParent);
+            ReplaceReferences(venueRoot, existingCharacter, newCharacter);
+            existingCharacter.SetActive(false);
             Destroy(existingCharacter);
-            Instantiate(character, existingParent);
+
+            // Lastly, make sure the new character and all its children are in the Venue layer
+            var layerIndex = LayerMask.NameToLayer("Venue");
+            character.gameObject.layer = layerIndex;
+            var children = character.GetComponentsInChildren<Transform>();
+            foreach (var child in children)
+            {
+                child.gameObject.layer = layerIndex;
+            }
         }
 
         private async UniTask<AssetBundle> LoadMetalShaders(AssetBundle bundle, GameObject bg)
@@ -575,6 +590,100 @@ namespace YARG.Gameplay
 #endif
             // Fallback if we're not running on OSX
             return null;
+        }
+
+        // It would be better if we could replace all references, but I'm not sure how to do that, so I'm fixing up the ones I know how to do
+        public void ReplaceReferences(GameObject venueRoot, GameObject oldObject, GameObject newObject)
+        {
+            Transform hips = null;
+            Transform head = null;
+            var humanoid = newObject.GetComponent<Humanoid>();
+            if (humanoid != null)
+            {
+                hips = humanoid.Hips;
+                head = humanoid.Head;
+            }
+
+            // Find references to oldObject.transform anywhere in venueRoot..for now we'll just deal with Cinemachine and Lights having lookat/follow properties
+            var lookAts = venueRoot.GetComponentsInChildren<LookAtConstraint>(true);
+            var sources = new List<ConstraintSource>();
+            foreach (var lookat in lookAts)
+            {
+                sources.Clear();
+                lookat.GetSources(sources);
+
+                for (int i = 0; i < sources.Count; i++)
+                {
+                    var s = sources[i];
+                    if (s.sourceTransform != null && s.sourceTransform.IsChildOf(oldObject.transform))
+                    {
+                        if (head != null && (s.sourceTransform.gameObject.name.Contains("Head") ||
+                            s.sourceTransform.gameObject.name.Contains("Face")))
+                        {
+                            s.sourceTransform = head;
+                        }
+                        else if (hips != null && s.sourceTransform.gameObject.name.Contains("Hips"))
+                        {
+                            s.sourceTransform = hips;
+                        }
+                        else
+                        {
+                            s.sourceTransform = newObject.transform;
+                        }
+
+                        sources[i] = s;
+                    }
+                }
+
+                lookat.SetSources(sources);
+            }
+
+            var cinemachines = venueRoot.GetComponentsInChildren<CinemachineVirtualCamera>(true);
+            foreach (var cinemachine in cinemachines)
+            {
+                // If we can easily determine face/hips, we use the corresponding transform on the VRM character, otherwise we default to hips if set, otherwise newObject.transform
+                // We also use a heuristic based on the camera name so as to make certain existing venues not look stupid on the Vocals Closeup cam
+                var follow = cinemachine.Follow;
+                if (follow != null && follow.IsChildOf(oldObject.transform))
+                {
+                    if (head != null &&
+                        (follow.gameObject.name.Contains("Face") ||
+                         follow.gameObject.name.Contains("Head") ||
+                         cinemachine.gameObject.name == "Vocals Closeup" ||
+                         cinemachine.gameObject.name.EndsWith("Closeup Head")))
+                    {
+                        cinemachine.Follow = head;
+                    }
+                    else if (hips != null)
+                    {
+                        cinemachine.Follow = hips;
+                    }
+                    else
+                    {
+                        cinemachine.Follow = newObject.transform;
+                    }
+                }
+
+                var lookAt = cinemachine.LookAt;
+                if (lookAt != null && lookAt.IsChildOf(oldObject.transform))
+                {
+                    if (head != null && (lookAt.gameObject.name.Contains("Face") ||
+                        lookAt.gameObject.name.Contains("Head") ||
+                        cinemachine.gameObject.name == "Vocals Closeup" ||
+                        cinemachine.gameObject.name.EndsWith("Closeup Head")))
+                    {
+                        cinemachine.LookAt = head;
+                    }
+                    else if (hips != null)
+                    {
+                        cinemachine.LookAt = hips;
+                    }
+                    else
+                    {
+                        cinemachine.LookAt = newObject.transform;
+                    }
+                }
+            }
         }
 
         // TODO: Move this to Genrelizer or sth and implement
