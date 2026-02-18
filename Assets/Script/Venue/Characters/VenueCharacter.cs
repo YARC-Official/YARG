@@ -5,6 +5,7 @@ using UnityEngine;
 using UniVRM10;
 using YARG.Core.Chart;
 using YARG.Core.Logging;
+using YARG.Core.Song;
 using AnimationTrigger = YARG.Venue.Characters.CharacterManager.AnimationTrigger;
 using CharacterStateType = YARG.Core.Chart.Events.CharacterState.CharacterStateType;
 using AnimationType = YARG.Core.Chart.AnimationEvent.AnimationType;
@@ -34,6 +35,8 @@ namespace YARG.Venue.Characters
 
         [SerializeField]
         public CharacterType Type;
+        [SerializeField]
+        public VocalGender CharacterGender = VocalGender.Unspecified;
 
         [SerializeField]
         private int _actionsPerAnimationCycle;
