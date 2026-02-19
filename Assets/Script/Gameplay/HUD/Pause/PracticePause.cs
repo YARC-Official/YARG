@@ -25,8 +25,14 @@ namespace YARG.Gameplay.HUD
         protected override void OnEnable()
         {
             // Cache navigatable references for the A/B position buttons
-            _aPositionNav ??= _aPositionText.GetComponentInParent<NavigatableBehaviour>();
-            _bPositionNav ??= _bPositionText.GetComponentInParent<NavigatableBehaviour>();
+            if (_aPositionNav == null)
+            {
+                _aPositionNav = _aPositionText.GetComponentInParent<NavigatableBehaviour>();
+            }
+            if (_bPositionNav == null)
+            {
+                _bPositionNav = _bPositionText.GetComponentInParent<NavigatableBehaviour>();
+            }
 
             // Push scheme with Left/Right for position adjustment (replaces base.OnEnable scheme)
             Navigator.Instance.PushScheme(new NavigationScheme(new()
@@ -66,8 +72,17 @@ namespace YARG.Gameplay.HUD
 
         private void AdjustSelectedPosition(double deltaSeconds)
         {
-            var selected = NavigationGroup.CurrentNavigationGroup?.SelectedBehaviour;
-            if (selected == null) return;
+            var group = NavigationGroup.CurrentNavigationGroup;
+            if (group == null)
+            {
+                return;
+            }
+
+            var selected = group.SelectedBehaviour;
+            if (selected == null)
+            {
+                return;
+            }
 
             if (selected == _aPositionNav)
             {
