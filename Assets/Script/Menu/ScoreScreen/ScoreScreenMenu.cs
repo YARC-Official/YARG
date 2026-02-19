@@ -477,17 +477,14 @@ namespace YARG.Menu.ScoreScreen
             card?.ScrollStats(delta);
         }
 
-        private void ToggleAdvancedGuitarStats()
+        private void ToggleAdvancedStats()
         {
             _showAdvancedStats = !_showAdvancedStats;
             UpdateShowAdvancedButton();
 
             foreach (var scoreCard in _scoreCards)
             {
-                if (scoreCard is GuitarScoreCard guitarScoreCard)
-                {
-                    guitarScoreCard.SetAdvancedStatsShown(_showAdvancedStats);
-                }
+                scoreCard.SetAdvancedStatsShown(_showAdvancedStats);
             }
 
             UpdateNavigationScheme(true);
@@ -496,7 +493,7 @@ namespace YARG.Menu.ScoreScreen
         private void UpdateShowAdvancedButton()
         {
             var key = _showAdvancedStats ? "Menu.ScoreScreen.HideAdvanced" : "Menu.ScoreScreen.ShowAdvanced";
-            _showAdvancedButtonEntry = new NavigationScheme.Entry(MenuAction.Orange, key, ToggleAdvancedGuitarStats);
+            _showAdvancedButtonEntry = new NavigationScheme.Entry(MenuAction.Orange, key, ToggleAdvancedStats);
         }
 
         private void UpdateNavigationScheme(bool reset = false)

@@ -144,7 +144,8 @@ namespace YARG.Menu.ScoreScreen
             _notesMissed.text = WrapWithColor(Stats.NotesMissed);
             _starpowerPhrases.text = $"{WrapWithColor(Stats.StarPowerPhrasesHit)} / {Stats.TotalStarPowerPhrases}";
             _bandBonusScore.text = WrapWithColor(Stats.BandBonusScore.ToString("N0"));
-            _averageOffset.text = WrapWithColor(Mathf.RoundToInt((float)(Stats.GetAverageOffset() * 1000.0)).ToString() + " ms");
+            int offsetMs = Mathf.RoundToInt((float)(Stats.GetAverageOffset() * 1000.0));
+            _averageOffset.text = WrapWithColor(offsetMs) + " ms";
 
             // Set background icon
             _instrumentIcon.sprite = Addressables
@@ -200,6 +201,12 @@ namespace YARG.Menu.ScoreScreen
             _advancedStatsRect.gameObject.SetActive(showAdvanced);
             _basicStatsRect.gameObject.SetActive(!showAdvanced);
         }
+
+        public void SetAdvancedStatsShown(bool showAdvanced)
+        {
+            SetAdvancedStatsVisible(showAdvanced);
+            ScrollStatsToTop();
+        }
     }
 
     public interface IScoreCard<out T> where T : BaseStats
@@ -207,5 +214,6 @@ namespace YARG.Menu.ScoreScreen
         YargPlayer Player { get; }
         void ScrollStats(float delta);
         void SetCardContents();
+        void SetAdvancedStatsShown(bool showAdvanced);
     }
 }

@@ -25,11 +25,5 @@ namespace YARG.Menu.ScoreScreen
             _hoposStrummed.text = WrapWithColor(Stats.HoposStrummed);
             _ghostInputs.text = WrapWithColor(Stats.GhostInputs);
         }
-
-        public void SetAdvancedStatsShown(bool showAdvanced)
-        {
-            SetAdvancedStatsVisible(showAdvanced);
-            ScrollStatsToTop();
-        }
     }
 }
