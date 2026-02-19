@@ -346,18 +346,13 @@ namespace YARG.Menu.Settings
                 NavigationScheme.Entry.NavigateDown,
                 _headerTabs.NavigateNextTab,
                 _headerTabs.NavigatePreviousTab,
-                new NavigationScheme.Entry(MenuAction.Blue, advancedKey,
-                    _ => { },
-                    0.6f,
-                    _ => ToggleAdvanced())
+                new NavigationScheme.Entry(MenuAction.Blue, advancedKey, ToggleAdvanced)
             }, true));
         }
 
         private void ToggleAdvanced()
         {
             ShowAdvanced = !ShowAdvanced;
-            Debug.Log(ShowAdvanced ? "Show Advanced held" : "Hide Advanced held");
-
             Navigator.Instance.PopScheme();
             PushNavigationScheme();
             RefreshAndKeepPosition();
