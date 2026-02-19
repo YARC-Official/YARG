@@ -42,7 +42,6 @@ namespace YARG.Settings.Metadata
             _settingVisuals.Clear();
 
             var showAdvanced = SettingsMenu.Instance.ShowAdvanced;
-            var shouldPulseAdvancedSettings = showAdvanced && SettingsMenu.Instance.ShouldPulseAdvancedSettings;
             var settingIndex = 0;
 
             // Once we've found the tab, add the settings
@@ -118,11 +117,6 @@ namespace YARG.Settings.Metadata
                         if (field.IsAdvanced)
                         {
                             AddAdvancedMarker(visual);
-                        }
-
-                        if (field.IsAdvanced && shouldPulseAdvancedSettings)
-                        {
-                            visual.Pulse();
                         }
 
                         _settingVisuals.Add(field.FieldName, visual);

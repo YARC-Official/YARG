@@ -78,8 +78,6 @@ namespace YARG.Menu.Settings
             }
         }
 
-        public bool ShouldPulseAdvancedSettings { get; private set; }
-
         protected override void SingletonAwake()
         {
             // Settings menu defaults to active so that it will be initialized at startup
@@ -125,7 +123,6 @@ namespace YARG.Menu.Settings
             }
 
             _showAdvanced = ShowAdvanced;
-            ShouldPulseAdvancedSettings = false;
 
             _headerTabs.RefreshTabs();
             _headerTabs.TabChanged += OnTabChanged;
@@ -245,9 +242,7 @@ namespace YARG.Menu.Settings
 
         private void UpdateSettings(bool resetScroll)
         {
-            var wasShowingAdvanced = _showAdvanced;
             _showAdvanced = ShowAdvanced;
-            ShouldPulseAdvancedSettings = _showAdvanced && !wasShowingAdvanced;
 
             _settingsNavGroup.ClearNavigatables();
 
