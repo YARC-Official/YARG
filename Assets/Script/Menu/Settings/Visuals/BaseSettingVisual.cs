@@ -12,9 +12,6 @@ namespace YARG.Menu.Settings.Visuals
 {
     public abstract class BaseSettingVisual : MonoBehaviour
     {
-        private const float PULSE_DURATION = 1.5f;
-        private const float PULSE_BRIGHTNESS = 0.2f;
-
         protected static readonly NavigationScheme.Entry NavigateFinish = new(MenuAction.Red, "Menu.Common.Confirm", () =>
         {
             Navigator.Instance.PopScheme();
@@ -29,16 +26,9 @@ namespace YARG.Menu.Settings.Visuals
         [SerializeField]
         private GameObject _advancedMarker;
 
-        private Image _evenBackgroundImage;
-
         public bool IsPresetSetting { get; private set; }
         public bool HasDescription { get; private set; }
         public string UnlocalizedName { get; private set; }
-
-        protected virtual void Awake()
-        {
-            _evenBackgroundImage = _evenBackground.GetComponent<Image>();
-        }
 
         public void AssignSetting(string settingName, bool hasDescription)
         {
@@ -89,23 +79,6 @@ namespace YARG.Menu.Settings.Visuals
         protected abstract void RefreshVisual();
 
         public abstract NavigationScheme GetNavigationScheme();
-
-        public void Pulse()
-        {
-            var wasActive = _evenBackground.activeSelf;
-            var initialColor = _evenBackgroundImage.color;
-            var pulseColor = Color.Lerp(initialColor, Color.white, PULSE_BRIGHTNESS);
-            _evenBackground.SetActive(true);
-            _evenBackgroundImage.DOKill();
-            _evenBackgroundImage.DOColor(pulseColor, PULSE_DURATION / 4f)
-                .SetEase(Ease.InOutSine)
-                .SetLoops(4, LoopType.Yoyo)
-                .OnKill(() =>
-                {
-                    _evenBackgroundImage.color = initialColor;
-                    _evenBackground.SetActive(wasActive);
-                });
-        }
     }
 
     public abstract class BaseSettingVisual<T> : BaseSettingVisual where T : ISettingType
