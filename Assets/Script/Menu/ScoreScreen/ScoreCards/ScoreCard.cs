@@ -196,15 +196,10 @@ namespace YARG.Menu.ScoreScreen
             _statsRect.verticalNormalizedPosition = 1f;
         }
 
-        protected void SetAdvancedStatsVisible(bool showAdvanced)
+        public void SetAdvancedStatsShown(bool showAdvanced)
         {
             _advancedStatsRect.gameObject.SetActive(showAdvanced);
             _basicStatsRect.gameObject.SetActive(!showAdvanced);
-        }
-
-        public void SetAdvancedStatsShown(bool showAdvanced)
-        {
-            SetAdvancedStatsVisible(showAdvanced);
             ScrollStatsToTop();
         }
     }

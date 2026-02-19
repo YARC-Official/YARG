@@ -13,7 +13,6 @@ namespace YARG.Menu.ScoreScreen
         public override void SetCardContents()
         {
             base.SetCardContents();
-            SetAdvancedStatsVisible(false);
 
             _overhits.text = WrapWithColor(Stats.Overhits);
         }
