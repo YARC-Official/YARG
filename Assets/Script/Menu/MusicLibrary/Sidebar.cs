@@ -148,11 +148,11 @@ namespace YARG.Menu.MusicLibrary
                 return;
             }
 
-            var viewType = _musicLibraryMenu.CurrentSelection;
-            if (!force && _currentView != null && _currentView == viewType)
+            var selected = _musicLibraryMenu.CurrentSelection;
+            if (!force && _currentView != null && _currentView == selected)
                 return;
 
-            _currentView = viewType;
+            _currentView = selected;
 
             // Cancel album art
             if (_cancellationToken != null)
@@ -162,7 +162,7 @@ namespace YARG.Menu.MusicLibrary
                 _cancellationToken = null;
             }
 
-            switch (viewType)
+            switch (selected)
             {
                 case SongViewType songViewType:
                     ShowSongInfo(songViewType);
@@ -296,14 +296,13 @@ namespace YARG.Menu.MusicLibrary
             const int maxCharsBeforeWrap = 45;   // number of characters before we wrap the text
             const float shrinkFactor = 0.8f;     // percentage to shrink the font by after shrink threshold
 
+            container.SetActive(true);
+            
             if (string.IsNullOrEmpty(text))
             {
-                container.SetActive(false);
                 label.text = string.Empty;
                 return;
             }
-
-            container.SetActive(true);
 
             if (baseFontSize <= 0f)
             {

@@ -15,6 +15,22 @@ namespace YARG.Helpers.Extensions
 {
     public static class ImageExtensions
     {
+        private sealed class AlbumCoverRequestTracker : MonoBehaviour
+        {
+            private RawImage _rawImage;
+
+            public void Initialize(RawImage rawImage)
+            {
+                _rawImage = rawImage;
+            }
+
+            private void OnDestroy()
+            {
+                if (_rawImage != null)
+                    ClearRequest(_rawImage);
+            }
+        }
+
         public static Texture2D LoadTexture(this YARGImage image, bool mips)
         {
             var gfxFormat = image.Format switch
@@ -70,12 +86,23 @@ namespace YARG.Helpers.Extensions
         }
 
         private static readonly Dictionary<int, AlbumCoverRequestState> _currentByImage = new();
+
+        private static void ClearRequest(RawImage rawImage)
+        {
+            if (rawImage == null) return;
+
+            _currentByImage.Remove(rawImage.GetInstanceID());
+        }
+
         public static async void LoadAlbumCover(this RawImage rawImage, SongEntry songEntry, CancellationToken cancellationToken, float alpha = 1)
         {
-            if (rawImage == null)
-            {
-                return;
-            }
+            if (rawImage == null) return;
+
+            var tracker = rawImage.GetComponent<AlbumCoverRequestTracker>();
+            if (tracker == null)
+                tracker = rawImage.gameObject.AddComponent<AlbumCoverRequestTracker>();
+            
+            tracker.Initialize(rawImage);
 
             var instanceId = rawImage.GetInstanceID();
             if (!_currentByImage.TryGetValue(instanceId, out var state))
@@ -100,10 +127,7 @@ namespace YARG.Helpers.Extensions
                 // Dispose of the old texture (prevent memory leaks)
                 UnityEngine.Object.Destroy(rawImage.texture);
 
-                if (cancellationToken.IsCancellationRequested)
-                {
-                    return;
-                }
+                if (cancellationToken.IsCancellationRequested) return;
 
                 if (image != null)
                 {

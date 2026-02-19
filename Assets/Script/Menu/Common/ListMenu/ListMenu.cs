@@ -164,10 +164,7 @@ namespace YARG.Menu.ListMenu
         private void UpdateScrollbar()
         {
             // Avoid hard crash when loading an empty list
-            if (_scrollbar == null)
-            {
-                return;
-            }
+            if (_scrollbar == null) return;
 
             if (_viewList == null || _viewList.Count == 0)
             {

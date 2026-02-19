@@ -477,8 +477,9 @@ namespace YARG.Menu.MusicLibrary
                         list.Add(new CategoryViewType(key, _recommendedSongs.Length, _recommendedSongs,
                             () =>
                             {
-                                SetRecommendedSongs();
-                                RefreshAndReselect();
+                                bool selectTopOfList = CurrentSelection is SongViewType songView &&
+                                    _recommendedSongs.Contains(songView.SongEntry);
+                                RefreshAndReselect(selectTopOfList);
                             }
                         ));
 
@@ -977,11 +978,21 @@ namespace YARG.Menu.MusicLibrary
             } while (CurrentSelection is not SongViewType);
         }
 
-        public void RefreshAndReselect()
+        public void RefreshAndReselect(bool selectTopOfList = false)
         {
             int index = SelectedIndex;
             var previousSong = _currentSong;
             Refresh();
+
+            if (selectTopOfList)
+            {
+                if (SetIndexToFirstRecommendedSong()) return;
+
+                if (SetIndexTo(i => i is SongViewType)) return;
+
+                SelectedIndex = 0;
+                return;
+            }
 
             if (previousSong != null &&
                 SetIndexTo(i => i is SongViewType view && view.SongEntry.SortBasedLocation == previousSong.SortBasedLocation, _primaryHeaderIndex))
@@ -995,6 +1006,15 @@ namespace YARG.Menu.MusicLibrary
             }
 
             SelectedIndex = index;
+        }
+
+        private bool SetIndexToFirstRecommendedSong()
+        {
+            if (_recommendedSongs == null || _recommendedSongs.Length == 0)
+                return false;
+
+            var recommendedSet = new HashSet<SongEntry>(_recommendedSongs);
+            return SetIndexTo(i => i is SongViewType view && recommendedSet.Contains(view.SongEntry));
         }
 
         public void RefreshSidebar()
