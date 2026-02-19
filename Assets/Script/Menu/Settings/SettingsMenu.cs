@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
+using DG.Tweening;
 using TMPro;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
@@ -261,9 +262,16 @@ namespace YARG.Menu.Settings
                 // Make the settings nav group the main one
                 _settingsNavGroup.SelectFirst();
 
-                // Reset scroll rect
                 _scrollRect.verticalNormalizedPosition = 1f;
             }
+        }
+
+        private void SmoothScrollToTop()
+        {
+            _scrollRect.DOKill();
+            _scrollRect
+                .DOVerticalNormalizedPos(1f, 0.4f)
+                .SetEase(Ease.OutCubic);
         }
 
         private async UniTask UpdatePreview(Tab tabInfo, bool waitForResolution)
@@ -358,6 +366,7 @@ namespace YARG.Menu.Settings
             Navigator.Instance.PopScheme();
             PushNavigationScheme();
             RefreshAndKeepPosition();
+            SmoothScrollToTop();
         }
 
         private void OnDisable()

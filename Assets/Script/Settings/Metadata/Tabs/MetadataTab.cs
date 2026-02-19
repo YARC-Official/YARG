@@ -14,8 +14,14 @@ namespace YARG.Settings.Metadata
     public class MetadataTab : Tab, IEnumerable<AbstractMetadata>
     {
         private const string ADVANCED_MARKER_NAME = "AdvancedSettingMarker";
-        private const float ADVANCED_MARKER_WIDTH = 5f;
-        private static readonly Color ADVANCED_MARKER_COLOR = new Color32(75, 191, 208, 255);
+        private const string ADVANCED_MARKER_TEXT = "ADV";
+        private const float ADVANCED_MARKER_WIDTH = 34f;
+        private const float ADVANCED_MARKER_HEIGHT = 16f;
+        private const float ADVANCED_MARKER_OFFSET = 0f;
+        private const float ADVANCED_MARKER_Y_OFFSET = 0f;
+        private const float ADVANCED_MARKER_FONT_SIZE = 11f;
+        private static readonly Color ADVANCED_MARKER_TEXT_COLOR = new Color32(75, 191, 208, 255);
+        private static readonly Color ADVANCED_MARKER_BACKGROUND_COLOR = new Color32(75, 191, 208, 48);
         // Prefabs needed for this tab type
         private static GameObject _headerPrefab;
         private static GameObject _buttonPrefab;
@@ -109,6 +115,11 @@ namespace YARG.Settings.Metadata
                         visual.AssignSetting(field.FieldName, field.HasDescription);
                         visual.AssignIndex(settingIndex);
 
+                        if (field.IsAdvanced)
+                        {
+                            AddAdvancedMarker(visual);
+                        }
+
                         if (field.IsAdvanced && shouldPulseAdvancedSettings)
                         {
                             visual.Pulse();
@@ -139,16 +150,33 @@ namespace YARG.Settings.Metadata
             var markerObject = new GameObject(ADVANCED_MARKER_NAME, typeof(RectTransform), typeof(Image));
             var markerRect = markerObject.GetComponent<RectTransform>();
             markerRect.SetParent(visualRect, false);
-            markerRect.anchorMin = new Vector2(0f, 0f);
-            markerRect.anchorMax = new Vector2(0f, 1f);
-            markerRect.pivot = new Vector2(0f, 0.5f);
-            markerRect.anchoredPosition = Vector2.zero;
-            markerRect.sizeDelta = new Vector2(ADVANCED_MARKER_WIDTH, 0f);
+            markerRect.anchorMin = new Vector2(1f, 1f);
+            markerRect.anchorMax = new Vector2(1f, 1f);
+            markerRect.pivot = new Vector2(1f, 1f);
+            markerRect.anchoredPosition = new Vector2(-ADVANCED_MARKER_OFFSET, -ADVANCED_MARKER_Y_OFFSET);
+            markerRect.sizeDelta = new Vector2(ADVANCED_MARKER_WIDTH, ADVANCED_MARKER_HEIGHT);
             markerRect.SetAsLastSibling();
 
-            var markerImage = markerObject.GetComponent<Image>();
-            markerImage.color = ADVANCED_MARKER_COLOR;
-            markerImage.raycastTarget = false;
+            var markerBackground = markerObject.GetComponent<Image>();
+            markerBackground.color = ADVANCED_MARKER_BACKGROUND_COLOR;
+            markerBackground.raycastTarget = false;
+
+            var markerTextObject = new GameObject("Text", typeof(RectTransform), typeof(TextMeshProUGUI));
+            var markerTextRect = markerTextObject.GetComponent<RectTransform>();
+            markerTextRect.SetParent(markerRect, false);
+            markerTextRect.anchorMin = Vector2.zero;
+            markerTextRect.anchorMax = Vector2.one;
+            markerTextRect.pivot = new Vector2(0.5f, 0.5f);
+            markerTextRect.anchoredPosition = Vector2.zero;
+            markerTextRect.sizeDelta = Vector2.zero;
+
+            var markerText = markerTextObject.GetComponent<TextMeshProUGUI>();
+            markerText.text = ADVANCED_MARKER_TEXT;
+            markerText.fontSize = ADVANCED_MARKER_FONT_SIZE;
+            markerText.alignment = TextAlignmentOptions.Center;
+            markerText.fontStyle = FontStyles.Bold;
+            markerText.color = ADVANCED_MARKER_TEXT_COLOR;
+            markerText.raycastTarget = false;
         }
         // For collection initializer support
         public void Add(AbstractMetadata setting) => _settings.Add(setting);
