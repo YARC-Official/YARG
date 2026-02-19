@@ -65,6 +65,12 @@ namespace YARG.Menu.ScoreScreen
         [SerializeField]
         private TextMeshProUGUI _averageOffset;
 
+        [SerializeField]
+        private RectTransform _advancedStatsRect;
+        [SerializeField]
+        private RectTransform _basicStatsRect;
+
+
         private ScoreCardColorizer _colorizer;
 
         protected bool IsHighScore;
@@ -182,6 +188,17 @@ namespace YARG.Menu.ScoreScreen
         public void ScrollStats(float delta)
         {
             _statsRect.MoveVerticalInUnits(delta);
+        }
+
+        protected void ScrollStatsToTop()
+        {
+            _statsRect.verticalNormalizedPosition = 1f;
+        }
+
+        protected void SetAdvancedStatsVisible(bool showAdvanced)
+        {
+            _advancedStatsRect.gameObject.SetActive(showAdvanced);
+            _basicStatsRect.gameObject.SetActive(!showAdvanced);
         }
     }
 

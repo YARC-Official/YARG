@@ -459,6 +459,8 @@
         "ScoreScreen" : {
             "BandScoreNotSaved" : "(Score not saved)",
             "RestartSong" : "Restart Song",
+            "ShowAdvanced": "Show Advanced",
+            "HideAdvanced": "Hide Advanced",
             "EndSetlistEarly" : "End Setlist"
         },
         "Settings": {

@@ -68,6 +68,7 @@ namespace YARG.Menu.ScoreScreen
         private bool _analyzingReplay;
 
         private bool _restartingSong;
+        private bool _showAdvancedStats;
 
         private readonly List<IScoreCard<BaseStats>> _scoreCards = new();
 
@@ -386,6 +387,7 @@ namespace YARG.Menu.ScoreScreen
         private NavigationScheme.Entry _continueButtonEntry;
         private NavigationScheme.Entry _endEarlyButtonEntry;
         private NavigationScheme.Entry _restartButtonEntry;
+        private NavigationScheme.Entry _showAdvancedButtonEntry;
         private NavigationScheme.Entry _removeFavoriteButtonEntry;
         private NavigationScheme.Entry _addFavoriteButtonEntry;
         private NavigationScheme.Entry _scrollLeftEntry;
@@ -444,6 +446,8 @@ namespace YARG.Menu.ScoreScreen
                     UpdateNavigationScheme(true);
                 });
 
+            UpdateShowAdvancedButton();
+
             _scrollLeftEntry = new NavigationScheme.Entry(MenuAction.Left, "Menu.Common.Scroll", context =>
                 {
                     _cardScrollRect.MoveHorizontalInUnits(-1 * _horizontalScrollRate);
@@ -473,6 +477,28 @@ namespace YARG.Menu.ScoreScreen
             card?.ScrollStats(delta);
         }
 
+        private void ToggleAdvancedGuitarStats()
+        {
+            _showAdvancedStats = !_showAdvancedStats;
+            UpdateShowAdvancedButton();
+
+            foreach (var scoreCard in _scoreCards)
+            {
+                if (scoreCard is GuitarScoreCard guitarScoreCard)
+                {
+                    guitarScoreCard.SetAdvancedStatsShown(_showAdvancedStats);
+                }
+            }
+
+            UpdateNavigationScheme(true);
+        }
+
+        private void UpdateShowAdvancedButton()
+        {
+            var key = _showAdvancedStats ? "Menu.ScoreScreen.HideAdvanced" : "Menu.ScoreScreen.ShowAdvanced";
+            _showAdvancedButtonEntry = new NavigationScheme.Entry(MenuAction.Orange, key, ToggleAdvancedGuitarStats);
+        }
+
         private void UpdateNavigationScheme(bool reset = false)
         {
             if (reset)
@@ -483,7 +509,8 @@ namespace YARG.Menu.ScoreScreen
             List<NavigationScheme.Entry> buttons = new()
             {
                 _continueButtonEntry,
-                _restartButtonEntry
+                _restartButtonEntry,
+                _showAdvancedButtonEntry
             };
 
             var song = GlobalVariables.State.CurrentSong;
