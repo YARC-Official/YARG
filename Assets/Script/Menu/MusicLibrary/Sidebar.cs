@@ -286,7 +286,6 @@ namespace YARG.Menu.MusicLibrary
 
             _cancellationToken = new();
             _albumCover.LoadAlbumCover(songEntry, _cancellationToken.Token, 0.025f);
-            _cancellationToken = new();
             _albumCoverSmall.LoadAlbumCover(songEntry, _cancellationToken.Token);
         }
 
