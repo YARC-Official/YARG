@@ -1,4 +1,4 @@
-using TMPro;
+﻿using TMPro;
 using UnityEngine;
 using YARG.Menu.Navigation;
 
@@ -46,6 +46,7 @@ namespace YARG.Menu.Filters
     public enum FilterGroup
     {
         Genre,
+        Subgenre,
         Decade,
         VocalParts,
         Source,

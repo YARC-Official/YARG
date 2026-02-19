@@ -225,6 +225,9 @@ namespace YARG.Menu.MusicLibrary
 
             PlayerContainer.PlayerAdded += OnPlayerAdded;
             PlayerContainer.PlayerRemoved += OnPlayerRemoved;
+
+            // Ensure the sidebar is rendered correctly on first entry
+            _sidebar.UpdateSidebar(true);
         }
 
         private void SetRefreshIfNeeded()
@@ -462,8 +465,9 @@ namespace YARG.Menu.MusicLibrary
                         list.Add(new CategoryViewType(key, _recommendedSongs.Length, _recommendedSongs,
                             () =>
                             {
-                                SetRecommendedSongs();
-                                RefreshAndReselect();
+                                bool selectTopOfList = CurrentSelection is SongViewType songView &&
+                                    _recommendedSongs.Contains(songView.SongEntry);
+                                RefreshAndReselect(selectTopOfList);
                             }
                         ));
 
@@ -604,10 +608,44 @@ namespace YARG.Menu.MusicLibrary
                 return;
             }
 
-            _sortedSongs = _searchField.Search(SettingsManager.Settings.LibrarySort);
-            _searchField.gameObject.SetActive(true);
+            string previousSearch = _currentSearch;
+            SongEntry previousSelectedSong = (CurrentSelection as SongViewType)?.SongEntry;
+            int previousSelectedIndex = SelectedIndex;
+            if (!PlaylistMode)
+            {
+                _sortedSongs = _searchField.Search(SettingsManager.Settings.LibrarySort);
+                _searchField.gameObject.SetActive(true);
+            }
+            else
+            {
+                // Show playlist...
 
-            if (_reloadState != MusicLibraryReloadState.Partial)
+                var songs = new SongEntry[SelectedPlaylist.SongHashes.Count];
+                int count = 0;
+                foreach (var hash in SelectedPlaylist.SongHashes)
+                {
+                    // Get the first song with the specified hash
+                    if (SongContainer.SongsByHash.TryGetValue(hash, out var song))
+                    {
+                        songs[count++] = song[0];
+                    }
+                }
+
+                _sortedSongs = new SongCategory[]
+                {
+                    new(SelectedPlaylist.Name, songs[..count], null)
+                };
+
+                _searchField.gameObject.SetActive(false);
+            }
+
+            string currentSearch = _searchField.FullSearchQuery;
+            bool searchChanged = !PlaylistMode &&
+                !string.Equals(previousSearch, currentSearch, StringComparison.Ordinal);
+            bool searchExpanded = !PlaylistMode && currentSearch.Length > previousSearch.Length;
+            _currentSearch = currentSearch;
+
+            if (_reloadState != MusicLibraryReloadState.Partial && !searchChanged)
             {
                 int newPositionStartIndex = 0;
                 if (_recommendedSongs != null)
@@ -656,6 +694,42 @@ namespace YARG.Menu.MusicLibrary
             if (shouldApplyFilters)
             {
                 EnsureValidSelectionAfterFilter();
+            }
+
+            // keep selection stable when the search text changes
+            if (!PlaylistMode && searchChanged)
+            {
+                // jump to top when tightening search (adding characters)
+                if (searchExpanded)
+                {
+                    _currentSong = null;
+                    int targetIndex = 0;
+                    for (int i = _primaryHeaderIndex; i < ViewList.Count; i++)
+                    {
+                        if (ViewList[i] is SongViewType)
+                        {
+                            targetIndex = i;
+                            break;
+                        }
+                    }
+
+                    if (SelectedIndex != targetIndex)
+                    {
+                        SelectedIndex = targetIndex;
+                    }
+                    else
+                    {
+                        OnSelectedIndexChanged();
+                    }
+                }
+                // jump to most recent song when widening search (removing characters)
+                else if (previousSelectedSong != null)
+                {
+                    if (!SetIndexTo(i => i is SongViewType view && view.SongEntry == previousSelectedSong, _primaryHeaderIndex))
+                    {
+                        SelectedIndex = Mathf.Clamp(previousSelectedIndex, 0, ViewList.Count - 1);
+                    }
+                }
             }
         }
 
@@ -894,11 +968,21 @@ namespace YARG.Menu.MusicLibrary
             } while (CurrentSelection is not SongViewType);
         }
 
-        public void RefreshAndReselect()
+        public void RefreshAndReselect(bool selectTopOfList = false)
         {
             int index = SelectedIndex;
             var previousSong = _currentSong;
             Refresh();
+
+            if (selectTopOfList)
+            {
+                if (SetIndexToFirstRecommendedSong()) return;
+
+                if (SetIndexTo(i => i is SongViewType)) return;
+
+                SelectedIndex = 0;
+                return;
+            }
 
             if (previousSong != null &&
                 SetIndexTo(i => i is SongViewType view && view.SongEntry.SortBasedLocation == previousSong.SortBasedLocation, _primaryHeaderIndex))
@@ -912,6 +996,15 @@ namespace YARG.Menu.MusicLibrary
             }
 
             SelectedIndex = index;
+        }
+
+        private bool SetIndexToFirstRecommendedSong()
+        {
+            if (_recommendedSongs == null || _recommendedSongs.Length == 0)
+                return false;
+
+            var recommendedSet = new HashSet<SongEntry>(_recommendedSongs);
+            return SetIndexTo(i => i is SongViewType view && recommendedSet.Contains(view.SongEntry));
         }
 
         public void RefreshSidebar()

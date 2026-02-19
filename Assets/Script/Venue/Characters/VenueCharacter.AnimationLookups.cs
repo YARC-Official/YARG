@@ -707,7 +707,7 @@ namespace YARG.Venue.Characters
                     // We have to special case some of the generic animation states since they are layered with a bool
                     if (IsGenericState(state))
                     {
-                        YargLogger.LogFormatDebug("Setting trigger for generic state {0}", state);
+                        YargLogger.LogFormatDebug("Setting trigger for generic state {0} on {1}", state, Type);
                         // First, reset the bools to false (if they exist)
                         SetBool("isMellow", false);
                         SetBool("isIntense", false);
@@ -776,7 +776,7 @@ namespace YARG.Venue.Characters
         {
             if (!_hashCache.TryGetValue(property, out var hash))
             {
-                hash = Animator.StringToHash(name);
+                hash = Animator.StringToHash(property);
                 _hashCache.Add(property, hash);
             }
 
@@ -819,6 +819,75 @@ namespace YARG.Venue.Characters
             }
 
             SetInteger(hash, value);
+        }
+
+        private Dictionary<string, List<string>> BuildEditorVenueLayerStates()
+        {
+            var states = new Dictionary<string, List<string>>();
+
+            if (_animator == null)
+            {
+                return states;
+            }
+
+            var candidates = new HashSet<string>();
+            if (_animationStates != null && _animationStates.Dictionary != null)
+            {
+                foreach (var kv in _animationStates.Dictionary)
+                {
+                    if (!string.IsNullOrEmpty(kv.Value))
+                    {
+                        candidates.Add(kv.Value);
+                    }
+                }
+            }
+
+            if (_strumUpStates != null)
+            {
+                foreach (var s in _strumUpStates)
+                {
+                    if (!string.IsNullOrEmpty(s))
+                    {
+                        candidates.Add(s);
+                    }
+                }
+            }
+
+            if (_enableAnimationStates)
+            {
+                if (!string.IsNullOrEmpty(_idleAnimationName))
+                {
+                    candidates.Add(_idleAnimationName);
+                }
+
+                if (!string.IsNullOrEmpty(_playingAnimationName))
+                {
+                    candidates.Add(_playingAnimationName);
+                }
+            }
+
+            int layerCount = _animator.layerCount;
+
+            for (int layerIndex = 0; layerIndex < layerCount; layerIndex++)
+            {
+                string layerName = _animator.GetLayerName(layerIndex);
+                if (!states.TryGetValue(layerName, out var layerStates))
+                {
+                    layerStates = new List<string>();
+                    states.Add(layerName, layerStates);
+                }
+
+                foreach (var candidate in candidates)
+                {
+                    int hash = Animator.StringToHash(candidate);
+                    if (_animator.HasState(layerIndex, hash))
+                    {
+                        layerStates.Add(candidate);
+                    }
+                }
+            }
+
+            return states;
         }
 
         private static bool IsLayeredState(AnimationStateType state)

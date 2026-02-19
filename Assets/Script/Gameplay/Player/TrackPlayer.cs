@@ -182,8 +182,6 @@ namespace YARG.Gameplay.Player
 
         private AutoCalibrator _autoCalibrator;
 
-        private bool IsAutoCalibrating => SettingsManager.Settings.AutoCalibration.Value;
-
         public override void Initialize(int index, YargPlayer player, SongChart chart, TrackView trackView,
             StemMixer mixer, int? currentHighScore)
         {
@@ -260,6 +258,8 @@ namespace YARG.Gameplay.Player
             GameManager.BeatEventHandler.Audio.Unsubscribe(MetronomeTick);
             GameManager.BeatEventHandler.Audio.Unsubscribe(MetronomeTock);
             GameManager.BeatEventHandler.Visual.Unsubscribe(SunburstEffects.PulseSunburst);
+
+            _autoCalibrator?.Dispose();
 
             base.FinishDestruction();
         }
@@ -893,7 +893,7 @@ namespace YARG.Gameplay.Player
 
         protected virtual void OnNoteHit(int index, TNote note)
         {
-            if (IsAutoCalibrating && !Player.Profile.IsBot)
+            if (!Player.Profile.IsBot)
             {
                 _autoCalibrator.RecordAccuracy(note.Time);
             }

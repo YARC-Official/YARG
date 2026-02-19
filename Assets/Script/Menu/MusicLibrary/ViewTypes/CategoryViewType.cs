@@ -13,6 +13,7 @@ namespace YARG.Menu.MusicLibrary
         public readonly string SourceCountText;
         public readonly string CharterCountText;
         public readonly string GenreCountText;
+        public readonly string SubgenreCountText;
 
         protected readonly string Primary;
 
@@ -22,6 +23,7 @@ namespace YARG.Menu.MusicLibrary
         private static readonly HashSet<string> SourceCounter  = new();
         private static readonly HashSet<string> CharterCounter = new();
         private static readonly HashSet<string> GenreCounter   = new();
+        private static readonly HashSet<string> SubgenreCounter = new();
         public CategoryViewType(string primary, int songCount, SongEntry[] songsUnderCategory,
             Action clickAction = null)
         {
@@ -34,14 +36,20 @@ namespace YARG.Menu.MusicLibrary
                 SourceCounter.Add(song.Source);
                 CharterCounter.Add(song.Charter);
                 GenreCounter.Add(song.Genre);
+                if (!string.IsNullOrEmpty(song.Subgenre))
+                {
+                    SubgenreCounter.Add(song.Subgenre);
+                }
             }
 
             SourceCountText = $"{SourceCounter.Count} sources";
             CharterCountText = $"{CharterCounter.Count} charters";
             GenreCountText = $"{GenreCounter.Count} genres";
+            SubgenreCountText = $"{SubgenreCounter.Count} subgenres";
             SourceCounter.Clear();
             CharterCounter.Clear();
             GenreCounter.Clear();
+            SubgenreCounter.Clear();
         }
 
         public CategoryViewType(string primary, int songCount, SongCategory[] songsUnderCategory)
@@ -56,15 +64,20 @@ namespace YARG.Menu.MusicLibrary
                     SourceCounter.Add(song.Source);
                     CharterCounter.Add(song.Charter);
                     GenreCounter.Add(song.Genre);
+                    if (!string.IsNullOrEmpty(song.Subgenre)) {
+                        SubgenreCounter.Add(song.Subgenre);
+                    }
                 }
             }
 
             SourceCountText = $"{SourceCounter.Count} sources";
             CharterCountText = $"{CharterCounter.Count} charters";
             GenreCountText = $"{GenreCounter.Count} genres";
+            SubgenreCountText = $"{SubgenreCounter.Count} subgenres";
             SourceCounter.Clear();
             CharterCounter.Clear();
             GenreCounter.Clear();
+            SubgenreCounter.Clear();
         }
 
         public override string GetPrimaryText(bool selected)

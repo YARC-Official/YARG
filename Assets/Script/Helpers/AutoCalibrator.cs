@@ -6,10 +6,11 @@ using YARG.Settings;
 
 using YARG.Gameplay;
 using YARG.Menu.Persistent;
+using YARG.Settings.Types;
 
 namespace YARG.Helpers
 {
-    public class AutoCalibrator
+    public class AutoCalibrator : IDisposable
     {
         // Number of notes to collect before each adjustment
         private const int SAMPLE_SIZE = 20;
@@ -17,19 +18,87 @@ namespace YARG.Helpers
         // Fraction of the measured error to apply as correction (0-1).
         private const double DAMPING = 0.5;
 
+        // Median error (ms) below which calibration is considered stable.
+        private const double STABLE_THRESHOLD_MS = 5.0;
+
         private readonly List<double> _accuracyList = new();
         private readonly GameManager _gameManager;
 
         private int _calibration;
 
+        private bool IsCalibratingAudio => CalibrationMode == CalibrationType.AUDIO;
+        private bool IsCalibratingVideo => CalibrationMode == CalibrationType.VIDEO;
+        private IntSetting AudioCalibrationSetting => SettingsManager.Settings.AudioCalibration;
+        private IntSetting VideoCalibrationSetting => SettingsManager.Settings.VideoCalibration;
+        private ToggleSetting AutoAudioSetting => SettingsManager.Settings.AutoCalibrateAudio;
+        private ToggleSetting AutoVideoSetting => SettingsManager.Settings.AutoCalibrateVideo;
+
+        private enum CalibrationType
+        {
+            DISABLED,
+            AUDIO,
+            VIDEO
+        }
+
+        private CalibrationType CalibrationMode =>
+            AutoAudioSetting.Value   ? CalibrationType.AUDIO
+            : AutoVideoSetting.Value ? CalibrationType.VIDEO
+                                       : CalibrationType.DISABLED;
+
         public AutoCalibrator(GameManager gameManager)
         {
             _gameManager = gameManager;
-            _calibration = SettingsManager.Settings.AudioCalibration.Value;
+            AutoAudioSetting.OnChange += OnAutoCalibrateAudioChanged;
+            AutoVideoSetting.OnChange += OnAutoCalibrateVideoChanged;
+        }
+
+        private void OnAutoCalibrateAudioChanged(bool enabled)
+        {
+            if (enabled)
+            {
+                _gameManager.InvalidateScores("Menu.Toast.AutoCalibrationScore");
+                AutoVideoSetting.Value = false;
+            }
+
+            Reset();
+        }
+
+        private void OnAutoCalibrateVideoChanged(bool enabled)
+        {
+            if (enabled)
+            {
+                _gameManager.InvalidateScores("Menu.Toast.AutoCalibrationScore");
+                AutoAudioSetting.Value = false;
+            }
+
+            Reset();
+        }
+
+        public void Dispose()
+        {
+            AutoAudioSetting.OnChange -= OnAutoCalibrateAudioChanged;
+            AutoVideoSetting.OnChange -= OnAutoCalibrateVideoChanged;
+        }
+
+        private void Reset()
+        {
+            _accuracyList.Clear();
+            if (IsCalibratingAudio)
+            {
+                _calibration = AudioCalibrationSetting.Value;
+            }
+            else if (IsCalibratingVideo)
+            {
+                _calibration = VideoCalibrationSetting.Value;
+            }
         }
 
         public void RecordAccuracy(double noteTime)
         {
+            if (CalibrationMode == CalibrationType.DISABLED)
+            {
+                return;
+            }
 
             double accuracy = (_gameManager.InputTime - noteTime) * 1000;
             _accuracyList.Add(accuracy);
@@ -43,7 +112,7 @@ namespace YARG.Helpers
             double median = CalculateMedian(filtered);
             int adjustment = (int) Math.Round(median * DAMPING);
 
-            if (adjustment == 0)
+            if (Math.Abs(median) <= STABLE_THRESHOLD_MS)
             {
                 NotifyCalibrationStable();
             }
@@ -59,18 +128,26 @@ namespace YARG.Helpers
         private void ApplyAdjustment(int adjustment)
         {
             _calibration += adjustment;
-            SettingsManager.Settings.AudioCalibration.Value = _calibration;
+            if (CalibrationMode == CalibrationType.AUDIO)
+            {
+                AudioCalibrationSetting.Value = _calibration;
+            } else if (CalibrationMode == CalibrationType.VIDEO)
+            {
+                VideoCalibrationSetting.Value = _calibration;
+            }
             _gameManager.UpdateCalibration();
         }
 
         private void NotifyCalibrationUpdated()
         {
-            ToastManager.ToastMessage($"Calibration updated: {_calibration} ms");
+            var type = IsCalibratingAudio ? "Audio" : "Video";
+            ToastManager.ToastMessage($"{type} calibration updated: {_calibration} ms");
         }
 
         private void NotifyCalibrationStable()
         {
-            ToastManager.ToastSuccess($"Auto calibration stable ({_calibration} ms)");
+            var type = IsCalibratingAudio ? "Audio" : "Video";
+            ToastManager.ToastSuccess($"{type} calibration stable ({_calibration} ms)");
         }
 
         // Removes hits near the edges of the hit window.  We find the "middle 50%" of the data (Q1 to Q3),

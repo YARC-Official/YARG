@@ -22,6 +22,7 @@ using YARG.Scores;
 using YARG.Settings.Types;
 using YARG.Song;
 using YARG.Venue;
+using YARG.Venue.Characters;
 
 namespace YARG.Settings
 {
@@ -91,7 +92,8 @@ namespace YARG.Settings
 
             public IntSetting AudioCalibration { get; } = new(0);
             public IntSetting VideoCalibration { get; } = new(0);
-            public ToggleSetting AutoCalibration { get; } = new(false);
+            public ToggleSetting AutoCalibrateAudio { get; } = new(false);
+            public ToggleSetting AutoCalibrateVideo { get; } = new(false);
 
             public ToggleSetting AccountForHardwareLatency { get; } = new(true);
 
@@ -151,6 +153,7 @@ namespace YARG.Settings
 
             public ToggleSetting AllowDuplicateSongs { get; } = new(true, _ => MusicLibraryMenu.SetReload(MusicLibraryReloadState.Partial));
             public ToggleSetting UseFullDirectoryForPlaylists { get; } = new(false);
+            public ToggleSetting StandardizeGenres { get; } = new(true);
 
             public ToggleSetting ShowFavoriteButton { get; } = new(true);
             public ToggleSetting ShowRecommendedSongs { get; } = new(true, ShowRecommendedSongsCallback);
@@ -549,6 +552,7 @@ namespace YARG.Settings
             public OutputChannelSetting OutputChannelMetronome { get; } = new(-1, OutputChannelMetronomeCallback);
 
             public ToggleSetting EnableNormalization { get; } = new(false);
+            public CustomCharacterSetting CustomVocalsCharacter { get; } = new(string.Empty, VenueCharacter.CharacterType.Vocals);
             #endregion
 
             #region Helpers
