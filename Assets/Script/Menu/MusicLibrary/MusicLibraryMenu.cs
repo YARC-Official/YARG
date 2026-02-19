@@ -708,8 +708,10 @@ namespace YARG.Menu.MusicLibrary
                 EnsureValidSelectionAfterFilter();
             }
 
+            // keep selection stable when the search text changes
             if (!PlaylistMode && searchChanged)
             {
+                // jump to top when tightening search
                 if (searchExpanded)
                 {
                     _currentSong = null;
@@ -732,6 +734,7 @@ namespace YARG.Menu.MusicLibrary
                         OnSelectedIndexChanged();
                     }
                 }
+                // jump to most recent song when widening search
                 else if (previousSelectedSong != null)
                 {
                     if (!SetIndexTo(i => i is SongViewType view && view.SongEntry == previousSelectedSong, _primaryHeaderIndex))
