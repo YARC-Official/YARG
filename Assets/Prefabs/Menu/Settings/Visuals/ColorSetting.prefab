@@ -1113,6 +1113,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 4287258232390938833, guid: 6f46741e648c07044852bd3391146600, type: 3}
+      propertyPath: m_fontColor32.rgba
+      value: 4291870539
+      objectReference: {fileID: 0}
+    - target: {fileID: 4287258232390938833, guid: 6f46741e648c07044852bd3391146600, type: 3}
+      propertyPath: m_TextStyleHashCode
+      value: -1183493901
+      objectReference: {fileID: 0}
     - target: {fileID: 4420504316707193964, guid: 6f46741e648c07044852bd3391146600, type: 3}
       propertyPath: m_Name
       value: ColorSetting
@@ -1267,6 +1275,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _settingLabel: {fileID: 3424729177075475668}
   _evenBackground: {fileID: 3786693973871400430}
+  _advancedMarker: {fileID: 9042856458688905155}
   _colorRectangle: {fileID: 3009981232021390853}
   _inputField: {fileID: 6052348257469417757}
   _opacityField: {fileID: 7671639029682681352}
+--- !u!1 &9042856458688905155 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 948307881895838089, guid: 6f46741e648c07044852bd3391146600, type: 3}
+  m_PrefabInstance: {fileID: 8095148824242519626}
+  m_PrefabAsset: {fileID: 0}

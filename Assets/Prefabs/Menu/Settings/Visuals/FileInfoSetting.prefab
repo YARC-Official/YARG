@@ -55,8 +55,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
-  m_Name:
-  m_EditorClassIdentifier:
+  m_Name: 
+  m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 1
@@ -269,12 +269,18 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a7ccb3b427fe4b5ab670f86ecb076446, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::YARG.Menu.Settings.Visuals.FileInfoSettingVisual
   _settingLabel: {fileID: 8398173980181265035}
   _evenBackground: {fileID: 8036200387225160625}
+  _advancedMarker: {fileID: 2771391343436603804}
   _statusText: {fileID: 1482936140848510206}
   _removeButton: {fileID: 4312601872095803265}
+--- !u!1 &2771391343436603804 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 948307881895838089, guid: 6f46741e648c07044852bd3391146600, type: 3}
+  m_PrefabInstance: {fileID: 3124624307905060885}
+  m_PrefabAsset: {fileID: 0}
 --- !u!224 &6395833747087873664 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 8331225728328382101, guid: 6f46741e648c07044852bd3391146600, type: 3}
@@ -294,8 +300,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
-  m_Name:
-  m_EditorClassIdentifier:
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1001 &3820949843116736673
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -306,7 +312,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 719737562248201140, guid: 1559ee81882cd0045b6d33a64692e938, type: 3}
       propertyPath: m_Sprite
-      value:
+      value: 
       objectReference: {fileID: 576907288, guid: d61b57863fe4fc742a1234c2896ca0cd, type: 3}
     - target: {fileID: 1071800837622904608, guid: 1559ee81882cd0045b6d33a64692e938, type: 3}
       propertyPath: m_Color.b
@@ -330,7 +336,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1245898288579793007, guid: 1559ee81882cd0045b6d33a64692e938, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
-      value:
+      value: 
       objectReference: {fileID: -7363390449280688402}
     - target: {fileID: 1245898288579793007, guid: 1559ee81882cd0045b6d33a64692e938, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_CallState
@@ -455,8 +461,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
-  m_Name:
-  m_EditorClassIdentifier:
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1001 &5536973567039816518
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -487,7 +493,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1245898288579793007, guid: f6ac2a9c2f684f84792c7d7cd00ba18c, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
-      value:
+      value: 
       objectReference: {fileID: -7363390449280688402}
     - target: {fileID: 1245898288579793007, guid: f6ac2a9c2f684f84792c7d7cd00ba18c, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_CallState

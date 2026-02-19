@@ -26,6 +26,9 @@ namespace YARG.Menu.Settings.Visuals
         [SerializeField]
         private GameObject _evenBackground;
 
+        [SerializeField]
+        private GameObject _advancedMarker;
+
         private Image _evenBackgroundImage;
 
         public bool IsPresetSetting { get; private set; }
@@ -66,6 +69,14 @@ namespace YARG.Menu.Settings.Visuals
         public virtual void AssignIndex(int index)
         {
             _evenBackground.SetActive(index % 2 == 0);
+        }
+
+        public void ShowAdvancedMarker(bool show)
+        {
+            if (_advancedMarker != null)
+            {
+                _advancedMarker.SetActive(show);
+            }
         }
 
         protected abstract void AssignSettingFromVariable(ISettingType reference);
