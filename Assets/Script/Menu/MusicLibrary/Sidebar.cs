@@ -353,14 +353,7 @@ namespace YARG.Menu.MusicLibrary
             }
             else
             {
-                if (entry.HasInstrument(Instrument.ProDrums))
-                {
-                    _difficultyRings[2].SetInfo("realDrums", Instrument.ProDrums, entry[Instrument.ProDrums]);
-                }
-                else
-                {
-                    _difficultyRings[2].SetInfo("drums", Instrument.FourLaneDrums, entry[Instrument.FourLaneDrums]);
-                }
+                _difficultyRings[2].SetInfo("drums", Instrument.FourLaneDrums, entry[Instrument.FourLaneDrums]);
             }
 
             _difficultyRings[3].SetInfo("keys", Instrument.Keys, entry[Instrument.Keys]);
