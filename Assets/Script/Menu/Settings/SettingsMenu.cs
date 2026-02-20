@@ -55,6 +55,8 @@ namespace YARG.Menu.Settings
 
         // Workaround to avoid errors when deactivating menu during startup
         private bool _ready;
+        private bool _tabsInitialized;
+        private string _pendingTabName;
 
         protected override void SingletonAwake()
         {
@@ -83,6 +85,14 @@ namespace YARG.Menu.Settings
             }
 
             _headerTabs.Tabs = tabs;
+            _tabsInitialized = true;
+
+            if (!string.IsNullOrEmpty(_pendingTabName))
+            {
+                var pending = _pendingTabName;
+                _pendingTabName = null;
+                SelectTabByName(pending);
+            }
         }
 
         private void OnEnable()
@@ -137,6 +147,12 @@ namespace YARG.Menu.Settings
 
         public void SelectTabByName(string name)
         {
+            if (!_tabsInitialized)
+            {
+                _pendingTabName = name;
+                return;
+            }
+
             _headerTabs.SelectTabById(name);
 
             // If the header tab does not exist, then force update to that tab
