@@ -102,8 +102,8 @@ namespace YARG.Menu.Settings
                 return;
             }
 
-            _headerTabs.RefreshTabs();
             _headerTabs.TabChanged += OnTabChanged;
+            _headerTabs.RefreshTabs();
 
             _settingsNavGroup.SelectionChanged += OnSelectionChanged;
 
@@ -121,9 +121,12 @@ namespace YARG.Menu.Settings
                 _headerTabs.NavigatePreviousTab
             }, true));
 
-            CurrentTab = SettingsManager.DisplayedSettingsTabs[0];
-            _searchBarContainer.SetActive(false);
-            Refresh();
+            if (CurrentTab == null)
+            {
+                CurrentTab = SettingsManager.DisplayedSettingsTabs[0];
+                _searchBarContainer.SetActive(false);
+                Refresh();
+            }
         }
 
         private void OnTabChanged(string tab)
