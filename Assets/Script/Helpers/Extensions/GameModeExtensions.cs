@@ -64,6 +64,8 @@ namespace YARG.Helpers.Extensions
                 },
                 GameMode.EliteDrums => new()
                 {
+                    (ProfileSettingStrings.CONFIGURE_FOUR_LANE_DRUMS_HIGHWAY, null),
+                    (ProfileSettingStrings.CONFIGURE_PRO_DRUMS_HIGHWAY, null),
                     (ProfileSettingStrings.LEFTY_FLIP, null),
                     (ProfileSettingStrings.SPLIT_TOM_AND_CYMBAL_LANES_IN_PRO_DRUMS, null),
                     (ProfileSettingStrings.DRUM_STAR_POWER_ACTIVATION_TYPE, null),

@@ -12,6 +12,7 @@ using YARG.Core.Game;
 using YARG.Helpers.Extensions;
 using YARG.Localization;
 using YARG.Menu.Data;
+using YARG.Menu.Main;
 using YARG.Menu.Persistent;
 using YARG.Menu.ProfileInfo;
 using YARG.Player;

@@ -4,12 +4,14 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using YARG.Core;
+using YARG.Core.Audio;
 using YARG.Core.Game;
 using YARG.Core.Input;
 using YARG.Gameplay.Visuals;
 using YARG.Helpers.Extensions;
 using YARG.Input;
 using YARG.Localization;
+using YARG.Menu.MusicLibrary;
 using YARG.Menu.Navigation;
 using YARG.Menu.Persistent;
 using YARG.Player;
@@ -194,6 +196,24 @@ namespace YARG.Menu.ProfileList
         public void OnPlayerAdded(YargPlayer player)
         {
             RefreshList(GetSelectedProfile());
+        }
+
+        public void OpenFourLaneDrumsHighwayConfigurationMenu()
+        {
+            var menu = YARG.Menu.HighwayConfiguration.FourLaneDrumsHighwayConfigurationMenu.Instance;
+            if (menu == null)
+                return;
+
+            menu.gameObject.SetActive(true);
+        }
+
+        public void CloseFourLaneDrumsHighwayConfigurationMenu()
+        {
+            var menu = YARG.Menu.HighwayConfiguration.FourLaneDrumsHighwayConfigurationMenu.Instance;
+            if (menu == null)
+                return;
+
+            menu.gameObject.SetActive(false);
         }
     }
 }
