@@ -985,6 +985,16 @@ namespace YARG.Menu.MusicLibrary
         {
             int index = SelectedIndex;
             var previousSong = _currentSong;
+            string previousHeaderText = null;
+            string previousHeaderShortcut = null;
+            string previousCategoryText = null;
+            SongEntry fallbackSong = null;
+
+            if (previousSong == null && MenuState == MenuState.Library && !PlaylistMode &&
+                CurrentSelection is not SongViewType)
+            {
+                fallbackSong = GetFirstSongAfterIndex(SelectedIndex);
+            }
             Refresh();
 
             if (selectTopOfList)
@@ -998,17 +1008,79 @@ namespace YARG.Menu.MusicLibrary
             }
 
             if (previousSong != null &&
-                SetIndexTo(i => i is SongViewType view && view.SongEntry.SortBasedLocation == previousSong.SortBasedLocation, _primaryHeaderIndex))
+                SetIndexTo(i => i is SongViewType view &&
+                    view.SongEntry.SortBasedLocation == previousSong.SortBasedLocation,
+                    _primaryHeaderIndex))
             {
                 return;
             }
 
-            if (SetIndexTo(i => i is SongViewType))
+            if (MenuState == MenuState.Library && !PlaylistMode)
+            {
+                var headerSnapshot = GetHeaderSnapshotAboveIndex(SelectedIndex);
+                previousHeaderText = headerSnapshot.headerText;
+                previousHeaderShortcut = headerSnapshot.headerShortcut;
+                previousCategoryText = headerSnapshot.categoryText;
+            }
+
+            if (previousHeaderText != null &&
+                SetIndexTo(i => i is SortHeaderViewType header &&
+                    header.HeaderText == previousHeaderText &&
+                    header.ShortcutName == previousHeaderShortcut))
             {
                 return;
             }
+
+            if (previousCategoryText != null &&
+                SetIndexTo(i => i is CategoryViewType category &&
+                    category.GetPrimaryText(false) == previousCategoryText))
+            {
+                return;
+            }
+
+            var targetSong = fallbackSong;
+            if (targetSong != null &&
+                SetIndexTo(i => i is SongViewType view &&
+                    view.SongEntry.SortBasedLocation == targetSong.SortBasedLocation,
+                    _primaryHeaderIndex))
+            {
+                return;
+            }
+
+            if (SetIndexTo(i => i is SongViewType)) return;
 
             SelectedIndex = index;
+        }
+
+        private (string headerText, string headerShortcut, string categoryText) GetHeaderSnapshotAboveIndex(int startIndex)
+        {
+            var list = ViewList;
+            for (int i = Math.Min(startIndex, list.Count - 1); i >= 0; i--)
+            {
+                switch (list[i])
+                {
+                    case SortHeaderViewType sortHeader:
+                        return (sortHeader.HeaderText, sortHeader.ShortcutName, null);
+                    case CategoryViewType category:
+                        return (null, null, category.GetPrimaryText(false));
+                }
+            }
+
+            return (null, null, null);
+        }
+
+        private SongEntry GetFirstSongAfterIndex(int startIndex)
+        {
+            var list = ViewList;
+            for (int i = startIndex + 1; i < list.Count; i++)
+            {
+                if (list[i] is SongViewType songView)
+                {
+                    return songView.SongEntry;
+                }
+            }
+
+            return null;
         }
 
         private bool SetIndexToFirstRecommendedSong()
