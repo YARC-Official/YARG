@@ -34,18 +34,32 @@ namespace YARG.Gameplay.HUD
                 _bPositionNav = _bPositionText.GetComponentInParent<NavigatableBehaviour>();
             }
 
-            // Push scheme with Left/Right for position adjustment (replaces base.OnEnable scheme)
-            Navigator.Instance.PushScheme(new NavigationScheme(new()
-            {
-                NavigationScheme.Entry.NavigateSelect,
-                new NavigationScheme.Entry(MenuAction.Red, "Menu.Common.Back", Back),
-                NavigationScheme.Entry.NavigateUp,
-                NavigationScheme.Entry.NavigateDown,
-                new NavigationScheme.Entry(MenuAction.Left, "Menu.Common.Decrease", () => AdjustSelectedPosition(-1.0)),
-                new NavigationScheme.Entry(MenuAction.Right, "Menu.Common.Increase", () => AdjustSelectedPosition(1.0)),
-            }, false));
+            // Use base scheme for standard navigation (Select, Back, Up, Down)
+            base.OnEnable();
+
+            // Handle Left/Right via NavigationEvent so they don't appear in the help bar
+            Navigator.Instance.NavigationEvent += OnNavigationEvent;
 
             UpdatePositionText();
+        }
+
+        protected override void OnDisable()
+        {
+            Navigator.Instance.NavigationEvent -= OnNavigationEvent;
+            base.OnDisable();
+        }
+
+        private void OnNavigationEvent(NavigationContext ctx)
+        {
+            switch (ctx.Action)
+            {
+                case MenuAction.Left:
+                    AdjustSelectedPosition(-1.0);
+                    break;
+                case MenuAction.Right:
+                    AdjustSelectedPosition(1.0);
+                    break;
+            }
         }
 
         private void Update()
@@ -86,12 +100,14 @@ namespace YARG.Gameplay.HUD
 
             if (selected == _aPositionNav)
             {
-                double newTime = Math.Max(0, GameManager.PracticeManager.TimeStart + deltaSeconds);
+                double newTime = Math.Min(GameManager.SongLength,
+                    Math.Max(0, GameManager.PracticeManager.TimeStart + deltaSeconds));
                 GameManager.PracticeManager.SetAPosition(newTime);
             }
             else if (selected == _bPositionNav)
             {
-                double newTime = Math.Max(0, GameManager.PracticeManager.TimeEnd + deltaSeconds);
+                double newTime = Math.Min(GameManager.SongLength,
+                    Math.Max(0, GameManager.PracticeManager.TimeEnd + deltaSeconds));
                 GameManager.PracticeManager.SetBPosition(newTime);
             }
             else
