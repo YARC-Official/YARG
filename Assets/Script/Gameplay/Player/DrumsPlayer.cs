@@ -801,7 +801,6 @@ namespace YARG.Gameplay.Player
                     { (int)FiveLaneDrumPad.Green,  new(ApplyHandednessToPosition(4),                                        ApplyHandednessToFiveLaneColor(FiveLaneDrumsFret.Green) ) }
                 };
             }
-
             else if (Player.Profile.SplitProTomsAndCymbals)
             {
                 LaneCount = 7;
@@ -816,7 +815,6 @@ namespace YARG.Gameplay.Player
                     { (int)FourLaneDrumPad.GreenDrum,     new(ApplyHandednessToPosition(6),                                          ApplyHandednessToFourLaneColor(FourLaneDrumsFret.GreenDrum)) },
                 };
             }
-
             else
             {
                 LaneCount = 4;
