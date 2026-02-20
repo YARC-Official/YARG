@@ -103,7 +103,8 @@
             "Vocals": "Vocals",
             "Harmony": "Harmony",
             "Band": "Band",
-            "Playcount": "Play Count"
+            "Playcount": "Play Count",
+            "Random": "Random"
         },
         "StarPowerActivationType" : {
             "Freestyle": "Freestyle",
