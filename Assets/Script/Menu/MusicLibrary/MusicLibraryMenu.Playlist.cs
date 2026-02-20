@@ -16,6 +16,7 @@ namespace YARG.Menu.MusicLibrary
     public partial class MusicLibraryMenu
     {
         public Playlist       ShowPlaylist   { get; set; }         = new(true);
+        private Playlist      _lastPlaylistSelectPlaylist;
 
         private List<ViewType> CreatePlaylistSelectViewList()
         {
@@ -32,9 +33,7 @@ namespace YARG.Menu.MusicLibrary
                 list.Add(new PlaylistViewType(Localize.Key("Menu.MusicLibrary.CurrentSetlist"), ShowPlaylist,
                     () =>
                     {
-                        SelectedPlaylist = ShowPlaylist;
-                        MenuState = MenuState.Playlist;
-                        Refresh();
+                        EnterPlaylistView(ShowPlaylist);
                     }, id));
                 id++;
             }
@@ -45,9 +44,7 @@ namespace YARG.Menu.MusicLibrary
                 PlaylistContainer.FavoritesPlaylist,
                 () =>
                 {
-                    SelectedPlaylist = PlaylistContainer.FavoritesPlaylist;
-                    MenuState = MenuState.Playlist;
-                    Refresh();
+                    EnterPlaylistView(PlaylistContainer.FavoritesPlaylist);
                 }, PLAYLIST_ID));
 
             list.Add(new ButtonViewType(Localize.Key("Menu.MusicLibrary.YourPlaylists"),
@@ -58,9 +55,7 @@ namespace YARG.Menu.MusicLibrary
             {
                 list.Add(new PlaylistViewType(playlist.Name, playlist, () =>
                 {
-                    SelectedPlaylist = playlist;
-                    MenuState = MenuState.Playlist;
-                    Refresh();
+                    EnterPlaylistView(playlist);
                 }, id));
                 id++;
             }
@@ -102,6 +97,19 @@ namespace YARG.Menu.MusicLibrary
 
             CalculateCategoryHeaderIndices(list);
             return list;
+        }
+
+        private void EnterPlaylistView(Playlist playlist)
+        {
+            _lastPlaylistSelectPlaylist = playlist;
+            SelectedPlaylist = playlist;
+            MenuState = MenuState.Playlist;
+            Refresh();
+
+            if (!SetIndexTo(i => i is SongViewType))
+            {
+                SelectedIndex = 0;
+            }
         }
 
         private List<ViewType> CreateShowViewList()
@@ -168,19 +176,27 @@ namespace YARG.Menu.MusicLibrary
 
         private void ExitPlaylistView()
         {
+            var lastPlaylist = _lastPlaylistSelectPlaylist;
             SelectedPlaylist = null;
             MenuState = MenuState.PlaylistSelect;
             SetNavigationScheme(true);
+            ClearPreview();
+            // Prevent an out-of-range song index from rendering an empty list while we rebuild.
+            SelectedIndex = 0;
             Refresh();
 
-            // Select playlist button
-            // TODO: Fix this to select the playlist we entered from, not favorites
-            SetIndexTo(i => i is ButtonViewType { ID: PLAYLIST_ID });
+            if (!SetIndexTo(i => i is PlaylistViewType pv && pv.Playlist == lastPlaylist))
+            {
+                // Select playlist button
+                SetIndexTo(i => i is ButtonViewType { ID: PLAYLIST_ID });
+            }
+            _sidebar.UpdateSidebar(true);
         }
 
         private void ExitPlaylistSelect()
         {
             MenuState = MenuState.Library;
+            ClearPreview();
             Refresh();
 
             SetIndexTo(i => i is ButtonViewType { ID: PLAYLIST_ID });

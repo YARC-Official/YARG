@@ -465,11 +465,7 @@ namespace YARG.Menu.MusicLibrary
                 list.Add(new ButtonViewType(
                     Localize.Key("Menu.MusicLibrary.Playlists"),
                     "MusicLibraryIcons[Playlists]",
-                    () =>
-                    {
-                        MenuState = MenuState.PlaylistSelect;
-                        Refresh();
-                    },
+                    EnterPlaylistSelectFromLibrary,
                     PLAYLIST_ID));
 
                 _primaryHeaderIndex += 2;
@@ -621,6 +617,31 @@ namespace YARG.Menu.MusicLibrary
             SetNavigationScheme();
         }
 
+        private void ClearPreview()
+        {
+            _currentSong = null;
+            _previewCanceller?.Cancel();
+            _previewContext?.Stop();
+            _previewContext = null;
+        }
+
+        private void EnterPlaylistSelectFromLibrary()
+        {
+            MenuState = MenuState.PlaylistSelect;
+            ClearPreview();
+
+            Refresh();
+
+            if (ViewList.Count > 0)
+            {
+                SelectedIndex = 0;
+            }
+            else
+            {
+                _sidebar.UpdateSidebar(true);
+            }
+        }
+
         private void UpdateSearch(bool force)
         {
             if (!force && _searchField.IsCurrentSearchInField)
@@ -665,7 +686,8 @@ namespace YARG.Menu.MusicLibrary
             bool searchExpanded = !PlaylistMode && currentSearch.Length > previousSearch.Length;
             _currentSearch = currentSearch;
 
-            if (_reloadState != MusicLibraryReloadState.Partial && !searchChanged)
+            if (_reloadState != MusicLibraryReloadState.Partial && !searchChanged &&
+                MenuState != MenuState.PlaylistSelect)
             {
                 int newPositionStartIndex = 0;
                 if (_recommendedSongs != null)
