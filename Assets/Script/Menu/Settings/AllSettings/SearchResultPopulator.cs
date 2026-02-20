@@ -46,9 +46,15 @@ namespace YARG.Menu.Settings.AllSettings
                     continue;
                 }
 
+                bool showAdvanced = SettingsMenu.Instance.ShowAdvanced;
                 int navIndex = 0;
                 foreach (var metadata in metadataTab.Settings)
                 {
+                    if (metadata.IsAdvanced && !showAdvanced)
+                    {
+                        continue;
+                    }
+
                     var unlocalizedSearch = metadata.UnlocalizedSearchNames;
                     if (unlocalizedSearch is null)
                     {
