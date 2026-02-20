@@ -832,7 +832,9 @@ namespace YARG.Menu.MusicLibrary
             _savedPlaylist = SelectedPlaylist;
             if (MenuState == MenuState.Library && !PlaylistMode)
             {
-                _savedSelectionSnapshot = CaptureSelectionSnapshot();
+                bool preserveIndexOnDynamicSort = SettingsManager.Settings.LibrarySort == SortAttribute.Playcount ||
+                    SettingsManager.Settings.LibrarySort == SortAttribute.Stars;
+                _savedSelectionSnapshot = CaptureSelectionSnapshot(preserveIndexOnDynamicSort);
                 _hasSavedSelectionSnapshot = true;
             }
             else
@@ -1059,6 +1061,7 @@ namespace YARG.Menu.MusicLibrary
             public readonly bool HasButtonId;
             public readonly bool WasRecommendedHeader;
             public readonly bool WasRecommendedSong;
+            public readonly bool PreserveIndexOnDynamicSort;
 
             public SelectionSnapshot(
                 int selectedIndex,
@@ -1070,7 +1073,8 @@ namespace YARG.Menu.MusicLibrary
                 int buttonId,
                 bool hasButtonId,
                 bool wasRecommendedHeader,
-                bool wasRecommendedSong)
+                bool wasRecommendedSong,
+                bool preserveIndexOnDynamicSort)
             {
                 SelectedIndex = selectedIndex;
                 PreviousSong = previousSong;
@@ -1082,10 +1086,11 @@ namespace YARG.Menu.MusicLibrary
                 HasButtonId = hasButtonId;
                 WasRecommendedHeader = wasRecommendedHeader;
                 WasRecommendedSong = wasRecommendedSong;
+                PreserveIndexOnDynamicSort = preserveIndexOnDynamicSort;
             }
         }
 
-        private SelectionSnapshot CaptureSelectionSnapshot()
+        private SelectionSnapshot CaptureSelectionSnapshot(bool preserveIndexOnDynamicSort = false)
         {
             int selectedIndex = SelectedIndex;
             var previousSong = CurrentSelection is SongViewType ? _currentSong : null;
@@ -1149,11 +1154,25 @@ namespace YARG.Menu.MusicLibrary
                 buttonId,
                 hasButtonId,
                 wasRecommendedHeader,
-                wasRecommendedSong);
+                wasRecommendedSong,
+                preserveIndexOnDynamicSort);
         }
 
         private void RestoreSelectionSnapshot(SelectionSnapshot snapshot)
         {
+            if (snapshot.PreserveIndexOnDynamicSort &&
+                (SettingsManager.Settings.LibrarySort == SortAttribute.Playcount ||
+                    SettingsManager.Settings.LibrarySort == SortAttribute.Stars))
+            {
+                if (ViewList.Count == 0)
+                {
+                    return;
+                }
+
+                SelectedIndex = Mathf.Clamp(snapshot.SelectedIndex, 0, ViewList.Count - 1);
+                return;
+            }
+
             if (snapshot.WasRecommendedSong && _recommendedSongs == null &&
                 SetIndexTo(i => i is SortHeaderViewType, _primaryHeaderIndex))
             {
