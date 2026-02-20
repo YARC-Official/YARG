@@ -506,8 +506,7 @@ namespace YARG.Menu.ScoreScreen
             List<NavigationScheme.Entry> buttons = new()
             {
                 _continueButtonEntry,
-                _restartButtonEntry,
-                _showAdvancedButtonEntry
+                _restartButtonEntry
             };
 
             var song = GlobalVariables.State.CurrentSong;
@@ -521,6 +520,8 @@ namespace YARG.Menu.ScoreScreen
             {
                 buttons.Add(_addFavoriteButtonEntry);
             }
+
+            buttons.Add(_showAdvancedButtonEntry);
 
             if (GlobalVariables.State.PlayingAShow &&
                 GlobalVariables.State.ShowIndex + 1 < GlobalVariables.State.ShowSongs.Count)

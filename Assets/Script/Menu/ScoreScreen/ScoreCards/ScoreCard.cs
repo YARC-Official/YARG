@@ -151,7 +151,7 @@ namespace YARG.Menu.ScoreScreen
             using var offsetText = ZString.CreateStringBuilder();
             offsetText.Append(WrapWithColor(offsetMs));
             offsetText.Append(" ms");
-            _averageOffset.SetText(offsetText);
+            _averageOffset.text = offsetText.ToString();
 
             // Set background icon
             _instrumentIcon.sprite = Addressables
