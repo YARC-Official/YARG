@@ -983,18 +983,7 @@ namespace YARG.Menu.MusicLibrary
 
         public void RefreshAndReselect(bool selectTopOfList = false)
         {
-            int index = SelectedIndex;
-            var previousSong = _currentSong;
-            string previousHeaderText = null;
-            string previousHeaderShortcut = null;
-            string previousCategoryText = null;
-            SongEntry fallbackSong = null;
-
-            if (previousSong == null && MenuState == MenuState.Library && !PlaylistMode &&
-                CurrentSelection is not SongViewType)
-            {
-                fallbackSong = GetFirstSongAfterIndex(SelectedIndex);
-            }
+            var snapshot = CaptureSelectionSnapshot();
             Refresh();
 
             if (selectTopOfList)
@@ -1007,49 +996,7 @@ namespace YARG.Menu.MusicLibrary
                 return;
             }
 
-            if (previousSong != null &&
-                SetIndexTo(i => i is SongViewType view &&
-                    view.SongEntry.SortBasedLocation == previousSong.SortBasedLocation,
-                    _primaryHeaderIndex))
-            {
-                return;
-            }
-
-            if (MenuState == MenuState.Library && !PlaylistMode)
-            {
-                var headerSnapshot = GetHeaderSnapshotAboveIndex(SelectedIndex);
-                previousHeaderText = headerSnapshot.headerText;
-                previousHeaderShortcut = headerSnapshot.headerShortcut;
-                previousCategoryText = headerSnapshot.categoryText;
-            }
-
-            if (previousHeaderText != null &&
-                SetIndexTo(i => i is SortHeaderViewType header &&
-                    header.HeaderText == previousHeaderText &&
-                    header.ShortcutName == previousHeaderShortcut))
-            {
-                return;
-            }
-
-            if (previousCategoryText != null &&
-                SetIndexTo(i => i is CategoryViewType category &&
-                    category.GetPrimaryText(false) == previousCategoryText))
-            {
-                return;
-            }
-
-            var targetSong = fallbackSong;
-            if (targetSong != null &&
-                SetIndexTo(i => i is SongViewType view &&
-                    view.SongEntry.SortBasedLocation == targetSong.SortBasedLocation,
-                    _primaryHeaderIndex))
-            {
-                return;
-            }
-
-            if (SetIndexTo(i => i is SongViewType)) return;
-
-            SelectedIndex = index;
+            RestoreSelectionSnapshot(snapshot);
         }
 
         private (string headerText, string headerShortcut, string categoryText) GetHeaderSnapshotAboveIndex(int startIndex)
@@ -1083,6 +1030,101 @@ namespace YARG.Menu.MusicLibrary
             return null;
         }
 
+        private readonly struct SelectionSnapshot
+        {
+            public readonly int SelectedIndex;
+            public readonly SongEntry PreviousSong;
+            public readonly string HeaderText;
+            public readonly string HeaderShortcut;
+            public readonly string CategoryText;
+            public readonly SongEntry FallbackSong;
+
+            public SelectionSnapshot(
+                int selectedIndex,
+                SongEntry previousSong,
+                string headerText,
+                string headerShortcut,
+                string categoryText,
+                SongEntry fallbackSong)
+            {
+                SelectedIndex = selectedIndex;
+                PreviousSong = previousSong;
+                HeaderText = headerText;
+                HeaderShortcut = headerShortcut;
+                CategoryText = categoryText;
+                FallbackSong = fallbackSong;
+            }
+        }
+
+        private SelectionSnapshot CaptureSelectionSnapshot()
+        {
+            int selectedIndex = SelectedIndex;
+            var previousSong = _currentSong;
+            string headerText = null;
+            string headerShortcut = null;
+            string categoryText = null;
+            SongEntry fallbackSong = null;
+
+            if (MenuState == MenuState.Library && !PlaylistMode)
+            {
+                if (previousSong == null && CurrentSelection is not SongViewType)
+                {
+                    fallbackSong = GetFirstSongAfterIndex(selectedIndex);
+                }
+
+                var headerSnapshot = GetHeaderSnapshotAboveIndex(selectedIndex);
+                headerText = headerSnapshot.headerText;
+                headerShortcut = headerSnapshot.headerShortcut;
+                categoryText = headerSnapshot.categoryText;
+            }
+
+            return new SelectionSnapshot(
+                selectedIndex,
+                previousSong,
+                headerText,
+                headerShortcut,
+                categoryText,
+                fallbackSong);
+        }
+
+        private void RestoreSelectionSnapshot(SelectionSnapshot snapshot)
+        {
+            if (snapshot.PreviousSong != null &&
+                SetIndexTo(i => i is SongViewType view &&
+                    view.SongEntry.SortBasedLocation == snapshot.PreviousSong.SortBasedLocation,
+                    _primaryHeaderIndex))
+            {
+                return;
+            }
+
+            if (snapshot.HeaderText != null &&
+                SetIndexTo(i => i is SortHeaderViewType header &&
+                    header.HeaderText == snapshot.HeaderText &&
+                    header.ShortcutName == snapshot.HeaderShortcut))
+            {
+                return;
+            }
+
+            if (snapshot.CategoryText != null &&
+                SetIndexTo(i => i is CategoryViewType category &&
+                    category.GetPrimaryText(false) == snapshot.CategoryText))
+            {
+                return;
+            }
+
+            if (snapshot.FallbackSong != null &&
+                SetIndexTo(i => i is SongViewType view &&
+                    view.SongEntry.SortBasedLocation == snapshot.FallbackSong.SortBasedLocation,
+                    _primaryHeaderIndex))
+            {
+                return;
+            }
+
+            if (SetIndexTo(i => i is SongViewType)) return;
+
+            SelectedIndex = snapshot.SelectedIndex;
+        }
+
         private bool SetIndexToFirstRecommendedSong()
         {
             if (_recommendedSongs == null || _recommendedSongs.Length == 0)
@@ -1104,6 +1146,8 @@ namespace YARG.Menu.MusicLibrary
 
         public void ChangeSort(SortAttribute sort)
         {
+            var snapshot = CaptureSelectionSnapshot();
+
             // Keep the previous sort attribute, too, so it can be used to
             // sort the list of unplayed songs and possibly for other things
             if (sort != SortAttribute.Playcount && sort != SortAttribute.Stars)
@@ -1113,6 +1157,7 @@ namespace YARG.Menu.MusicLibrary
             SettingsManager.Settings.LibrarySort = sort;
             UpdateSearch(true);
             UpdateSortInformationHeader();
+            RestoreSelectionSnapshot(snapshot);
         }
 
         private void UpdateSortInformationHeader()
