@@ -203,7 +203,7 @@ public override bool ShouldUpdateInputsOnResume => true;
 
             if (Player.Profile.RangeEnabled)
             {
-                _activeFrets = new();
+                _activeFrets = new(LaneCount);
                 _allRangeShiftEvents = FiveFretRangeShift.GetRangeShiftEvents(NoteTrack);
                 InitializeRangeShift();
             }
@@ -427,7 +427,8 @@ public override bool ShouldUpdateInputsOnResume => true;
             if (note.FiveLaneKeysAction is FiveLaneKeysAction.OpenNote && !UsingOpenLane)
             {
                 _fretArray.PlayOpenHitAnimation();
-            } else
+            }
+            else
             {
                 _fretArray.PlayHitAnimation((int)_getFretIndex(note.FiveLaneKeysAction));
             }
@@ -627,16 +628,21 @@ public override bool ShouldUpdateInputsOnResume => true;
                     firstBeatTime = beatlines[realIndex].Time < firstBeatTime ? beatlines[realIndex].Time : firstBeatTime;
 
                     int offset;
+
+                    var openLaneAdjustment = UsingOpenLane ? 0 : 1;
+
                     if (shiftRight)
                     {
-                        offset = LaneCount - shift.Position - shift.Size + (UsingOpenLane ? 0 : 1);
+                        offset = LaneCount - shift.Position - shift.Size + openLaneAdjustment;
                     } else
                     {
                         if (UsingOpenLane && shift.Position is (int)FiveFretGuitarFret.Green)
                         {
                             offset = 0; // When shifting down to GRY[B] in open lane mode, treat P as part of the range
-                        } else {
-                            offset = shift.Position - (UsingOpenLane ? 0 : 1);
+                        }
+                        else
+                        {
+                            offset = shift.Position - openLaneAdjustment;
                         }
                     }
 
@@ -736,7 +742,7 @@ public override bool ShouldUpdateInputsOnResume => true;
                     }
                     return false;
                 default:
-                    throw new Exception("Unreachable");
+                    throw new ArgumentOutOfRangeException("Unrecognized OpenLaneDisplayType");
             }
         }
     }

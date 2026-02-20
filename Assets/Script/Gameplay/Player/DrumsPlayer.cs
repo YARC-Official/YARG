@@ -670,16 +670,18 @@ namespace YARG.Gameplay.Player
 
         private void AnimateAction(DrumsAction action)
         {
+            var index = DrumsActionToHighwayIndex(action);
+
             if (_fiveLaneMode)
             {
                 // Only use cymbal animation if the cymbal gems are being used
                 if (Player.Profile.UseCymbalModels && action is DrumsAction.YellowCymbal or DrumsAction.OrangeCymbal)
                 {
-                    _fretArray.PlayCymbalHitAnimation(DrumsActionToHighwayIndex(action));
+                    _fretArray.PlayCymbalHitAnimation(index);
                 }
                 else
                 {
-                    _fretArray.PlayHitAnimation(DrumsActionToHighwayIndex(action));
+                    _fretArray.PlayHitAnimation(index);
                 }
 
                 return;
@@ -688,11 +690,11 @@ namespace YARG.Gameplay.Player
             // Can technically merge this condition with the above, but it's more readable like this
             if (action is DrumsAction.YellowCymbal or DrumsAction.BlueCymbal or DrumsAction.GreenCymbal)
             {
-                _fretArray.PlayCymbalHitAnimation(DrumsActionToHighwayIndex(action));
+                _fretArray.PlayCymbalHitAnimation(index);
             }
             else
             {
-                _fretArray.PlayHitAnimation(DrumsActionToHighwayIndex(action));
+                _fretArray.PlayHitAnimation(index);
             }
         }
 

@@ -39,7 +39,8 @@ namespace YARG.Gameplay.Visuals
             if (Player.UsingOpenLane)
             {
                 positionOffset = rangeIncludesOpen ? -1 : 0;
-            } else
+            }
+            else
             {
                 positionOffset = -1;
             }

@@ -45,8 +45,8 @@ namespace YARG.Gameplay.Visuals
         private readonly Dictionary<int, Fret> _frets = new();
         private readonly List<KickFret> _kickFrets = new();
 
-        private List<int> _activeFrets;
-        private List<int> _pulsingFrets;
+        private List<int> _activeFrets = new();
+        private List<int> _pulsingFrets = new();
         private float  _pulseDuration;
 
         /* 
@@ -118,8 +118,6 @@ namespace YARG.Gameplay.Visuals
                 _kickFrets.Add(rightKick.GetComponent<KickFret>());
             }
 
-            _activeFrets = new();
-            _pulsingFrets = new();
             // Start with all frets active, they will be set inactive once TrackPlayer figures itself out
             foreach (var fretIdx in _frets.Keys)
             {
@@ -216,7 +214,8 @@ namespace YARG.Gameplay.Visuals
             if (pulse)
             {
                 _pulsingFrets.Add(fretIndex);
-            } else
+            }
+            else
             {
                 _pulsingFrets.Remove(fretIndex);
             }
