@@ -95,8 +95,9 @@ namespace YARG.Venue.VenueCamera
         [SerializeField]
         private GameObject _venue;
 
+        public Camera CurrentCamera { get; private set; }
+
         private List<Camera>  _cameras;
-        private Camera        _currentCamera;
 
         private List<CameraCutEvent> _cameraCuts;
         private int                  _currentCutIndex;
@@ -172,7 +173,7 @@ namespace YARG.Venue.VenueCamera
                 if (vc.CameraLocation == CameraLocation.Stage && !foundStage)
                 {
                     // We're setting _currentCamera here so we can avoid checking for null in SwitchCamera
-                    _currentCamera = camera;
+                    CurrentCamera = camera;
                     _cameraTimer = GetRandomCameraTimer();
                     _cameraIndex = _cameras.IndexOf(camera);
                     foundStage = true;
@@ -214,7 +215,7 @@ namespace YARG.Venue.VenueCamera
 
             _useCameraTimer = _cameraCuts.Count < 1;
 
-            SwitchCamera(_currentCamera, _useCameraTimer);
+            SwitchCamera(CurrentCamera, _useCameraTimer);
 
             if (_useCameraTimer)
             {
@@ -322,20 +323,20 @@ namespace YARG.Venue.VenueCamera
         private void SwitchCamera(Camera newCamera, bool random = false)
         {
             // _currentCamera.enabled = false;
-            _currentCamera.gameObject.SetActive(false);
+            CurrentCamera.gameObject.SetActive(false);
 
             if (random)
             {
                 _cameraTimer = GetRandomCameraTimer();
-                _currentCamera = GetRandomCamera();
+                CurrentCamera = GetRandomCamera();
             }
             else
             {
-                _currentCamera = newCamera;
+                CurrentCamera = newCamera;
                 _cameraTimer = _cameraTimer = Mathf.Max(11f, (float) _cameraCuts[_currentCutIndex].TimeLength);
             }
-            _currentCamera.gameObject.SetActive(true);
-            _cameraIndex = _cameras.IndexOf(_currentCamera);
+            CurrentCamera.gameObject.SetActive(true);
+            _cameraIndex = _cameras.IndexOf(CurrentCamera);
         }
 
         private float GetRandomCameraTimer()
@@ -524,7 +525,7 @@ namespace YARG.Venue.VenueCamera
             _copierCurveParam.Release();
 
             // Enable the camera in case it happens to be disabled
-            _currentCamera.enabled = true;
+            CurrentCamera.enabled = true;
 
             SettingsManager.Settings.VenuePostProcessing.OnChange -= SetPostProcessingEnabled;
             GameManager.BeatEventHandler?.Audio.Unsubscribe(BeatHandler);

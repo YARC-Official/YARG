@@ -75,6 +75,7 @@ namespace YARG.Settings
                 new HeaderMetadata("ScanningOptions"),
                 nameof(Settings.AllowDuplicateSongs),
                 nameof(Settings.UseFullDirectoryForPlaylists),
+                nameof(Settings.StandardizeGenres),
                 new HeaderMetadata("MusicLibrary"),
                 nameof(Settings.ShowFavoriteButton),
                 nameof(Settings.DifficultyRings),
@@ -231,6 +232,7 @@ namespace YARG.Settings
             {
                 new HeaderMetadata("Other"),
                 nameof(Settings.BandComboTypeSetting),
+                nameof(Settings.CustomVocalsCharacter),
                 nameof(Settings.DataStreamEnable),
                 nameof(Settings.EnableNormalization),
                 nameof(Settings.SaveScoresWithBots),

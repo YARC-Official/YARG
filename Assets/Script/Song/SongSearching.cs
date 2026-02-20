@@ -208,6 +208,11 @@ namespace YARG.Song
                     attribute = SortAttribute.Genre;
                     argument = argument[6..];
                 }
+                else if (argument.StartsWith("subgenre:"))
+                {
+                    attribute = SortAttribute.Subgenre;
+                    argument = argument[9..];
+                }
                 else if (argument.StartsWith("playlist:"))
                 {
                     attribute = SortAttribute.Playlist;
@@ -310,6 +315,7 @@ namespace YARG.Song
                     SortAttribute.Artist => entry => IsAboveFuzzyThreshold(entry.Artist.SearchStr, filter.Argument),
                     SortAttribute.Album => entry => IsAboveFuzzyThreshold(entry.Album.SearchStr, filter.Argument),
                     SortAttribute.Genre => entry => IsAboveFuzzyThreshold(entry.Genre.SearchStr, filter.Argument),
+                    SortAttribute.Subgenre => entry => IsAboveFuzzyThreshold(entry.Subgenre.SearchStr, filter.Argument),
                     SortAttribute.Year => entry => entry.UnmodifiedYear.Contains(filter.Argument),
                     SortAttribute.Charter => entry => IsAboveFuzzyThreshold(entry.Charter.SearchStr, filter.Argument),
                     SortAttribute.Playlist => entry => IsAboveFuzzyThreshold(entry.Playlist.SearchStr, filter.Argument),
@@ -322,6 +328,7 @@ namespace YARG.Song
                     SortAttribute.Artist => entry => entry.Artist.SearchStr == filter.Argument,
                     SortAttribute.Album => entry => entry.Album.SearchStr == filter.Argument,
                     SortAttribute.Genre => entry => entry.Genre.SearchStr == filter.Argument,
+                    SortAttribute.Subgenre => entry => entry.Subgenre.SearchStr == filter.Argument,
                     SortAttribute.Year => entry => entry.ParsedYear == filter.Argument || entry.UnmodifiedYear == filter.Argument,
                     SortAttribute.Charter => entry => entry.Charter.SearchStr == filter.Argument,
                     SortAttribute.Playlist => entry => entry.Playlist.SearchStr == filter.Argument,

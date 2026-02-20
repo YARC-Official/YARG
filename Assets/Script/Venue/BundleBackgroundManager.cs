@@ -3,12 +3,12 @@ using System.IO;
 using UnityEngine;
 using YARG.Gameplay;
 using YARG.Venue.VenueCamera;
+using YARG.Venue.Characters;
 
 #if UNITY_EDITOR
 using System.Linq;
 using UnityEditor;
 using UnityEditor.Animations;
-using YARG.Venue.Characters;
 #endif
 
 namespace YARG.Venue
@@ -17,6 +17,7 @@ namespace YARG.Venue
     {
         // DO NOT CHANGE THIS! It will break existing venues
         public const string BACKGROUND_PREFAB_PATH = "Assets/_Background.prefab";
+        public const string CHARACTER_PREFAB_PATH = "Assets/_Character.prefab";
         public const string BACKGROUND_SHADER_BUNDLE_NAME = "_metal_shaders.bytes";
         public const string BACKGOUND_OSX_MATERIAL_PREFIX = "_metal_";
 
@@ -30,6 +31,10 @@ namespace YARG.Venue
         // ReSharper disable once InconsistentNaming
         [SerializeField]
         private Camera mainCamera;
+
+        [Space]
+        [SerializeField]
+        private VenueCharacter _replaceableVocalist;
 
         public AssetBundle Bundle { get; set; }
         public AssetBundle ShaderBundle { get; set; }
@@ -69,7 +74,11 @@ namespace YARG.Venue
 
         private void OnDestroy()
         {
-            Bundle.Unload(true);
+            if (Bundle != null)
+            {
+                Bundle.Unload(true);
+            }
+
             if (ShaderBundle != null)
             {
                 ShaderBundle.Unload(true);
@@ -87,11 +96,12 @@ namespace YARG.Venue
 
         private GameObject _backgroundReference;
 
-        [ContextMenu("Export Background")]
-        public void ExportBackground()
+        private void Export(GameObject root, ExportType type)
         {
-            _backgroundReference = gameObject;
-            string path = EditorUtility.SaveFilePanel("Save Background", string.Empty, "bg", "yarground");
+            _backgroundReference = root;
+            string defaultName = type == ExportType.Character ? "character" : "bg";
+            string extension = type == ExportType.Character ? "yargchar" : "yarground";
+            string path = EditorUtility.SaveFilePanel("Save Background", string.Empty, defaultName, extension);
 
             GameObject clonedBackground = null;
 
@@ -169,10 +179,12 @@ namespace YARG.Venue
                 string fileName = Path.GetFileName(path);
                 string folderPath = Path.GetDirectoryName(path);
 
+                var backgroundPath = ExportType.Character == type ? CHARACTER_PREFAB_PATH : BACKGROUND_PREFAB_PATH;
+
                 var assetPaths = new[]
                 {
                     Path.Combine("Assets/", BACKGROUND_SHADER_BUNDLE_NAME),
-                    BACKGROUND_PREFAB_PATH
+                    backgroundPath
                 };
 
                 AssetBundleBuild assetBundleBuild = default;
@@ -214,7 +226,7 @@ namespace YARG.Venue
                     character.LayerStates = layerStates;
                 }
 
-                PrefabUtility.SaveAsPrefabAsset(clonedBackground.gameObject, BACKGROUND_PREFAB_PATH);
+                PrefabUtility.SaveAsPrefabAsset(clonedBackground.gameObject, backgroundPath);
 
                 BuildPipeline.BuildAssetBundles(Application.temporaryCachePath,
                     new[]
@@ -251,6 +263,26 @@ namespace YARG.Venue
                     DestroyImmediate(clonedBackground);
                 }
             }
+        }
+
+        [ContextMenu("Export Vocalist")]
+        public void ExportCharacter()
+        {
+            var vocalist = _replaceableVocalist.gameObject;
+
+            Export(vocalist, ExportType.Character);
+        }
+
+        [ContextMenu("Export Background")]
+        public void ExportBackground()
+        {
+            Export(gameObject, ExportType.Background);
+        }
+
+        private enum ExportType
+        {
+            Character,
+            Background
         }
 #endif
     }
