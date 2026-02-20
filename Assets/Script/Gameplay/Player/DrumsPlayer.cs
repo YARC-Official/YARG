@@ -1,7 +1,5 @@
-﻿using NUnit.Framework;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.Linq;
 using UnityEngine;
 using YARG.Core;
@@ -23,8 +21,6 @@ namespace YARG.Gameplay.Player
 {
     public class DrumsPlayer : TrackPlayer<DrumsEngine, DrumNote>
     {
-
-
         private const float DRUM_PAD_FLASH_HOLD_DURATION = 0.2f;
 
         // Key is a FourLaneDrumPad or FiveLaneDrumPad

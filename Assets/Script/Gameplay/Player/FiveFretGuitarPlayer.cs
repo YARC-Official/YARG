@@ -45,7 +45,7 @@ namespace YARG.Gameplay.Player
             return (LANE_COUNT - 1) / 2;
         }
 
-        private FiveFretGuitarFret _getFretIndex(GuitarAction action)
+        private FiveFretGuitarFret GetFretIndex(GuitarAction action)
         {
             return action switch
             {
@@ -104,7 +104,7 @@ namespace YARG.Gameplay.Player
         private bool _fretPulseStarting;
         private double _fretPulseStartTime;
 
-        private List<int> _activeFrets;
+        private List<int> _activeFrets = new(5);
 
         [Header("Five Fret Specific")]
         [SerializeField]
@@ -211,7 +211,6 @@ namespace YARG.Gameplay.Player
 
             if (Player.Profile.RangeEnabled)
             {
-                _activeFrets = new();
                 _allRangeShiftEvents = FiveFretRangeShift.GetRangeShiftEvents(NoteTrack);
                 InitializeRangeShift();
             }
@@ -338,7 +337,7 @@ namespace YARG.Gameplay.Player
         {
             for (var action = GuitarAction.GreenFret; action <= GuitarAction.OrangeFret; action++)
             {
-                _fretArray.SetPressed((int)_getFretIndex(action), Engine.IsFretHeld(action));
+                _fretArray.SetPressed((int)GetFretIndex(action), Engine.IsFretHeld(action));
             }
         }
 
@@ -490,7 +489,7 @@ namespace YARG.Gameplay.Player
 
                 if (currentNote == null || (currentNote.NoteMask & (1 << (int) action)) == 0)
                 {
-                    _fretArray.PlayMissAnimation((int) _getFretIndex(action));
+                    _fretArray.PlayMissAnimation((int) GetFretIndex(action));
                 }
             }
 
