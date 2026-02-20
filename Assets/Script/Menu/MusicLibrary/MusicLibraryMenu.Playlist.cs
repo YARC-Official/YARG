@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using YARG.Core.Game;
 using YARG.Core.Input;
 using YARG.Localization;
 using YARG.Menu.Navigation;
@@ -22,30 +23,8 @@ namespace YARG.Menu.MusicLibrary
             int id = BACK_ID + 1;
             var list = new List<ViewType>
             {
-                new ButtonViewType(Localize.Key("Menu.MusicLibrary.Back"),
-                    "MusicLibraryIcons[Back]", () =>
-                    {
-                        SelectedPlaylist = null;
-                        MenuState = MenuState.Library;
-                        Refresh();
-                    }, BACK_ID)
+                new ButtonViewType("YARG", "MusicLibraryIcons[Playlists]", () => { })
             };
-
-            list.Add(new ButtonViewType("YARG", "MusicLibraryIcons[Playlists]", () => { }));
-
-            // Favorites is always on top
-            list.Add(new PlaylistViewType(
-                Localize.Key("Menu.MusicLibrary.Favorites"),
-                PlaylistContainer.FavoritesPlaylist,
-                () =>
-                {
-                    SelectedPlaylist = PlaylistContainer.FavoritesPlaylist;
-                    MenuState = MenuState.Playlist;
-                    Refresh();
-                }, PLAYLIST_ID));
-
-            list.Add(new ButtonViewType(Localize.Key("Menu.MusicLibrary.YourPlaylists"),
-                "MusicLibraryIcons[Playlists]", () => { }));
 
             // Add the setlist "playlist" if there are any songs currently in it
             if (ShowPlaylist.Count > 0)
@@ -59,6 +38,20 @@ namespace YARG.Menu.MusicLibrary
                     }, id));
                 id++;
             }
+
+            // Favorites is always on top (within the YARG section)
+            list.Add(new PlaylistViewType(
+                Localize.Key("Menu.MusicLibrary.Favorites"),
+                PlaylistContainer.FavoritesPlaylist,
+                () =>
+                {
+                    SelectedPlaylist = PlaylistContainer.FavoritesPlaylist;
+                    MenuState = MenuState.Playlist;
+                    Refresh();
+                }, PLAYLIST_ID));
+
+            list.Add(new ButtonViewType(Localize.Key("Menu.MusicLibrary.YourPlaylists"),
+                "MusicLibraryIcons[Playlists]", () => { }));
 
             // Add any other user defined playlists
             foreach (var playlist in PlaylistContainer.Playlists)
@@ -78,11 +71,7 @@ namespace YARG.Menu.MusicLibrary
         private List<ViewType> CreatePlaylistViewList()
         {
             SetNavigationScheme(true);
-            var list = new List<ViewType>
-            {
-                new ButtonViewType(Localize.Key("Menu.MusicLibrary.Back"),
-                    "MusicLibraryIcons[Back]", ExitPlaylistView, BACK_ID)
-            };
+            var list = new List<ViewType>();
 
             // If `_sortedSongs` is null, then this function is being called during very first initialization,
             // which means the song list hasn't been constructed yet.
@@ -93,19 +82,20 @@ namespace YARG.Menu.MusicLibrary
             }
 
             bool allowdupes = SettingsManager.Settings.AllowDuplicateSongs.Value;
+            _totalSongCount = 0;
+            _totalStarCount = 0;
             foreach (var section in _sortedSongs)
             {
-                list.Add(new SortHeaderViewType(
-                    section.Category.ToUpperInvariant(),
-                    section.Songs.Length,
-                    section.CategoryGroup,
-                    section.Songs));
-
                 foreach (var song in section.Songs)
                 {
                     if (allowdupes || !song.IsDuplicate)
                     {
-                        list.Add(new SongViewType(this, song));
+                        var songView = new SongViewType(this, song);
+                        list.Add(songView);
+
+                        _totalSongCount++;
+                        var starAmount = songView.GetStarAmount();
+                        _totalStarCount += starAmount is null ? 0 : StarAmountHelper.GetStarCount(starAmount.Value);
                     }
                 }
             }

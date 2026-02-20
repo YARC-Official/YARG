@@ -1115,6 +1115,8 @@ namespace YARG.Menu.MusicLibrary
             }
             else if (MenuState == MenuState.PlaylistSelect)
             {
+                _numPlaylists = GetPlaylistCountForHeader();
+
                 _sortInfoHeaderPrimaryText.text = ZString.Concat(
                     TextColorer.StyleString("SHOWING ", MenuData.Colors.HeaderTertiary, 600),
                     TextColorer.StyleString("ALL PLAYLISTS", MenuData.Colors.HeaderSecondary, 700));
@@ -1138,11 +1140,35 @@ namespace YARG.Menu.MusicLibrary
                 _sortInfoHeaderPrimaryText.text = ZString.Concat(
                     TextColorer.StyleString("PLAYLIST ", MenuData.Colors.HeaderTertiary, 600),
                     TextColorer.StyleString(SelectedPlaylist.Name, MenuData.Colors.HeaderSecondary, 700));
-                _sortInfoHeaderSongCountText.text = "";
-                _sortInfoHeaderStarCountText.text = "";
-                _sortInfoHeaderStarIcon.color = _sortInfoHeaderStarIcon.color.WithAlpha(0);
-            }
 
+                var countText = TextColorer.StyleString(ZString.Format("{0:N0}", _totalSongCount),
+                    MenuData.Colors.HeaderSecondary, 500);
+                var songs = TextColorer.StyleString(
+                    _totalSongCount == 1 ? "SONG" : "SONGS",
+                    MenuData.Colors.HeaderTertiary, 600);
+                _sortInfoHeaderSongCountText.text = ZString.Concat(countText, " ", songs);
+
+                var obtainedStars = TextColorer.StyleString(
+                    ZString.Format("{0}", _totalStarCount),
+                    MenuData.Colors.HeaderSecondary,
+                    700);
+                var totalStars = TextColorer.StyleString(
+                    ZString.Format(" / {0}", _totalSongCount * 5),
+                    MenuData.Colors.HeaderTertiary,
+                    600);
+                _sortInfoHeaderStarCountText.text = ZString.Concat(obtainedStars, totalStars);
+                _sortInfoHeaderStarIcon.color = _sortInfoHeaderStarIcon.color.WithAlpha(1);
+            }
+        }
+
+        private int GetPlaylistCountForHeader()
+        {
+            int count = 1; // Favorites
+            if (ShowPlaylist.Count > 0)
+                count++;
+
+            count += PlaylistContainer.Playlists.Count;
+            return count;
         }
 
         public void SetSearchInput(SortAttribute songAttribute, string input)
