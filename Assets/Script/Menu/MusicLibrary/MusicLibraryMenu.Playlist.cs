@@ -331,8 +331,15 @@ namespace YARG.Menu.MusicLibrary
         {
             if (CurrentSelection is SongViewType selection)
             {
-                SelectedPlaylist.MoveSongUp(selection.SongEntry);
+                var song = selection.SongEntry;
+                int previousIndex = SelectedIndex;
+                SelectedPlaylist.MoveSongUp(song);
                 Refresh();
+                if (!SetIndexTo(i => i is SongViewType view && view.SongEntry == song))
+                {
+                    SelectedIndex = previousIndex < 0 ? 0 :
+                        previousIndex >= ViewList.Count ? ViewList.Count - 1 : previousIndex;
+                }
             }
         }
 
@@ -340,8 +347,15 @@ namespace YARG.Menu.MusicLibrary
         {
             if (CurrentSelection is SongViewType selection)
             {
-                SelectedPlaylist.MoveSongDown(selection.SongEntry);
+                var song = selection.SongEntry;
+                int previousIndex = SelectedIndex;
+                SelectedPlaylist.MoveSongDown(song);
                 Refresh();
+                if (!SetIndexTo(i => i is SongViewType view && view.SongEntry == song))
+                {
+                    SelectedIndex = previousIndex < 0 ? 0 :
+                        previousIndex >= ViewList.Count ? ViewList.Count - 1 : previousIndex;
+                }
             }
         }
     }
