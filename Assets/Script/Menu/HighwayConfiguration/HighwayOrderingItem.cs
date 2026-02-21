@@ -6,6 +6,9 @@ using System.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using YARG.Core;
+using YARG.Core.Chart;
+using YARG.Gameplay.Visuals;
 using YARG.Helpers.Extensions;
 using YARG.Player;
 using static YARG.Core.Game.ColorProfile;
@@ -145,6 +148,42 @@ namespace YARG.Menu.HighwayConfiguration
                 _configMenu.SplitItemInto(_spec.Value, _spec.SplitsInto.Value);
             }
         }
+
+        private static (int pad, int colorIndex) FOUR_LANE_RED_DRUM = ((int) FourLaneDrumPad.RedDrum, (int) FourLaneDrumsFret.RedDrum);
+        private static (int pad, int colorIndex) FOUR_LANE_YELLOW_DRUM = ((int) FourLaneDrumPad.YellowDrum, (int) FourLaneDrumsFret.YellowDrum);
+        private static (int pad, int colorIndex) FOUR_LANE_BLUE_DRUM = ((int) FourLaneDrumPad.BlueDrum, (int) FourLaneDrumsFret.BlueDrum);
+        private static (int pad, int colorIndex) FOUR_LANE_GREEN_DRUM = ((int) FourLaneDrumPad.GreenDrum, (int) FourLaneDrumsFret.GreenDrum);
+        private static (int pad, int colorIndex) FOUR_LANE_YELLOW_CYMBAL = ((int) FourLaneDrumPad.YellowCymbal, (int) FourLaneDrumsFret.YellowCymbal);
+        private static (int pad, int colorIndex) FOUR_LANE_BLUE_CYMBAL = ((int) FourLaneDrumPad.BlueCymbal, (int) FourLaneDrumsFret.BlueCymbal);
+        private static (int pad, int colorIndex) FOUR_LANE_GREEN_CYMBAL = ((int) FourLaneDrumPad.GreenCymbal, (int) FourLaneDrumsFret.GreenCymbal);
+
+        private static (int pad, int colorIndex) FIVE_LANE_RED = ((int) FiveLaneDrumPad.Red, (int) FiveLaneDrumsFret.Red);
+        private static (int pad, int colorIndex) FIVE_LANE_YELLOW = ((int) FiveLaneDrumPad.Yellow, (int) FiveLaneDrumsFret.Yellow);
+        private static (int pad, int colorIndex) FIVE_LANE_BLUE = ((int) FiveLaneDrumPad.Blue, (int) FiveLaneDrumsFret.Blue);
+        private static (int pad, int colorIndex) FIVE_LANE_ORANGE = ((int) FiveLaneDrumPad.Orange, (int) FiveLaneDrumsFret.Orange);
+        private static (int pad, int colorIndex) FIVE_LANE_GREEN = ((int) FiveLaneDrumPad.Green, (int) FiveLaneDrumsFret.Green);
+
+        public static Dictionary<DrumsHighwayItem, List<(int pad, int colorIndex)>> HighwayOrderingInfoMap = new()
+        {
+            { DrumsHighwayItem.FourLaneRed, new() { FOUR_LANE_RED_DRUM } },
+
+            { DrumsHighwayItem.FourLaneYellow, new() { FOUR_LANE_YELLOW_DRUM, FOUR_LANE_YELLOW_CYMBAL } },
+            { DrumsHighwayItem.FourLaneYellowCymbal, new() { FOUR_LANE_YELLOW_CYMBAL } },
+            { DrumsHighwayItem.FourLaneYellowDrum, new() { FOUR_LANE_YELLOW_DRUM } },
+
+            { DrumsHighwayItem.FourLaneBlue, new() { FOUR_LANE_BLUE_DRUM, FOUR_LANE_BLUE_CYMBAL } },
+            { DrumsHighwayItem.FourLaneBlueCymbal, new() { FOUR_LANE_BLUE_CYMBAL } },
+            { DrumsHighwayItem.FourLaneBlueDrum, new() { FOUR_LANE_BLUE_DRUM } },
+
+            { DrumsHighwayItem.FourLaneGreen, new() { FOUR_LANE_GREEN_DRUM, FOUR_LANE_GREEN_CYMBAL } },
+            { DrumsHighwayItem.FourLaneGreenDrum, new() { FOUR_LANE_GREEN_DRUM } },
+            { DrumsHighwayItem.FourLaneGreenCymbal, new() { FOUR_LANE_GREEN_CYMBAL } },
+
+            { DrumsHighwayItem.FiveLaneRed, new() { FIVE_LANE_RED } },
+            { DrumsHighwayItem.FiveLaneYellow, new() { FIVE_LANE_YELLOW } },
+            { DrumsHighwayItem.FiveLaneBlue, new() { FIVE_LANE_BLUE } },
+            { DrumsHighwayItem.FiveLaneOrange, new() { FIVE_LANE_ORANGE } },
+            { DrumsHighwayItem.FiveLaneGreen, new() { FIVE_LANE_GREEN } },
+        };
     }
-    public class FiveLaneDrumsHighwayOrderingItem : HighwayOrderingItem { }
 }

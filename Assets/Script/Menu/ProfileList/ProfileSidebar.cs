@@ -81,12 +81,6 @@ namespace YARG.Menu.ProfileList
         [SerializeField]
         private Toggle _useCymbalModelsToggle;
         [SerializeField]
-        private Toggle _splitProTomsAndCymbals;
-        [SerializeField]
-        private Toggle _swapSnareAndHiHat;
-        [SerializeField]
-        private Toggle _swapCrashAndRide;
-        [SerializeField]
         private TMP_Dropdown _starPowerActivationTypeDropdown;
         [SerializeField]
         private TMP_Dropdown _engineDropdown;
@@ -256,10 +250,7 @@ namespace YARG.Menu.ProfileList
             _rangeDisabledToggle.isOn = profile.RangeEnabled;
             _openLaneDisplayTypeDropdown.value = _openLaneDisplayTypesByIndex.IndexOf(profile.OpenLaneDisplayType);
             _useCymbalModelsToggle.isOn = profile.UseCymbalModels;
-            _splitProTomsAndCymbals.isOn = profile.SplitProTomsAndCymbals;
-            _swapSnareAndHiHat.isOn = profile.SwapSnareAndHiHat;
-            _swapCrashAndRide.isOn = profile.SwapCrashAndRide;
-
+            
             // Update preset dropdowns
             _engineDropdown.SetValueWithoutNotify(
                 _enginePresetsByIndex.IndexOf(profile.EnginePreset));
@@ -297,11 +288,7 @@ namespace YARG.Menu.ProfileList
 
         private void EnableSettingsForGameMode()
         {
-            var possibleSettings = _profile.GameMode.PossibleProfileSettings(
-                new()
-                {
-                    { ProfileSettingStrings.SPLIT_TOM_AND_CYMBAL_LANES_IN_PRO_DRUMS, _profile.SplitProTomsAndCymbals }
-                });
+            var possibleSettings = _profile.GameMode.PossibleProfileSettings(new());
 
             for (var i = 0; i < _sidebarContent.transform.childCount; i++)
             {
@@ -444,45 +431,6 @@ namespace YARG.Menu.ProfileList
         public void ChangeUseCymbalModels()
         {
             _profile.UseCymbalModels = _useCymbalModelsToggle.isOn;
-        }
-
-        public void ChangeSplitProTomsAndCymbals()
-        {
-            _profile.SplitProTomsAndCymbals = _splitProTomsAndCymbals.isOn;
-
-            switch (_profile.GameMode)
-            {
-                case GameMode.FourLaneDrums:
-                    _sidebarContent.transform.Find(ProfileSettingStrings.SWAP_SNARE_AND_HI_HAT).gameObject.SetActive(_profile.SplitProTomsAndCymbals);
-                    _sidebarContent.transform.Find(ProfileSettingStrings.SWAP_CRASH_AND_RIDE).gameObject.SetActive(_profile.SplitProTomsAndCymbals);
-                    if (_profile.SplitProTomsAndCymbals)
-                    {
-                        _sidebarContent.transform
-                            .Find(ProfileSettingStrings.SWAP_SNARE_AND_HI_HAT)
-                            .Find("Option Name")
-                            .GetComponent<TextMeshProUGUI>()
-                            .text = "SWAP SNARE AND HI-HAT LANES";
-                    }
-                    break;
-                case GameMode.EliteDrums:
-                    _sidebarContent.transform.Find(ProfileSettingStrings.SWAP_CRASH_AND_RIDE).gameObject.SetActive(_profile.SplitProTomsAndCymbals);
-                    _sidebarContent.transform
-                            .Find(ProfileSettingStrings.SWAP_SNARE_AND_HI_HAT)
-                            .Find("Option Name")
-                            .GetComponent<TextMeshProUGUI>()
-                            .text = _profile.SplitProTomsAndCymbals ? "SWAP SNARE AND HI-HAT LANES" : "SWAP SNARE AND HI-HAT LANES IN 5-LANE";
-                    break;
-            }
-        }
-
-        public void ChangeSwapSnareAndHiHat()
-        {
-            _profile.SwapSnareAndHiHat = _swapSnareAndHiHat.isOn;
-        }
-
-        public void ChangeSwapCrashAndRide()
-        {
-            _profile.SwapCrashAndRide = _swapCrashAndRide.isOn;
         }
 
         public void ChangeEngine()

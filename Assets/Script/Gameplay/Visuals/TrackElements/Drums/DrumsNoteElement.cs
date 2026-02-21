@@ -10,8 +10,8 @@ namespace YARG.Gameplay.Visuals
 {
     public abstract class DrumsNoteElement : NoteElement<DrumNote, DrumsPlayer>, IThemeNoteCreator
     {
-        private const float SPLIT_LANE_SCALE_FACTOR = 4f / 7f;
-        private Vector3 _splitScale = new Vector3(SPLIT_LANE_SCALE_FACTOR, SPLIT_LANE_SCALE_FACTOR, SPLIT_LANE_SCALE_FACTOR);
+        
+        private Vector3? _scalingFactor = null;
 
         protected enum NoteType
         {
@@ -81,12 +81,11 @@ namespace YARG.Gameplay.Visuals
         {
             base.InitializeElement();
 
-            if (Player.Player.Profile.CurrentInstrument == Core.Instrument.ProDrums && Player.Player.Profile.SplitProTomsAndCymbals)
+            _scalingFactor ??= new Vector3(Player.NoteScaleFactor, Player.NoteScaleFactor, Player.NoteScaleFactor);
+
+            if (NoteRef.Pad != 0)
             {
-                if (NoteRef.Pad != 0)
-                {
-                    gameObject.transform.localScale = Vector3.Scale(transform.localScale, _splitScale);
-                }
+                gameObject.transform.localScale = Vector3.Scale(transform.localScale, _scalingFactor.Value);
             }
         }
 

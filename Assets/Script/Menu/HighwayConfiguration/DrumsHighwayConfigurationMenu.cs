@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using TMPro;
 using UnityEngine;
+using YARG.Core;
 using YARG.Core.Game;
 using YARG.Core.Input;
 using YARG.Helpers.Extensions;
@@ -171,33 +172,6 @@ namespace YARG.Menu.HighwayConfiguration
             { DrumsHighwayItem.FiveLaneOrange,  new( "Orange",  DrumsHighwayItemIconType.Cymbal,    (int)FiveLaneDrumsFret.Orange,  DrumsHighwayItem.FiveLaneOrange ) },
             { DrumsHighwayItem.FiveLaneGreen,   new( "Green",   DrumsHighwayItemIconType.Drum,      (int)FiveLaneDrumsFret.Green,   DrumsHighwayItem.FiveLaneGreen) },
         };
-    }
-
-    public enum DrumsHighwayItem
-    {
-        Kick,
-        Kick1x,
-        Kick2x,
-        Kick2xConditional,
-
-        FourLaneRed,
-        FourLaneYellow,
-        FourLaneBlue,
-        FourLaneGreen,
-
-        FourLaneYellowCymbal,
-        FourLaneBlueCymbal,
-        FourLaneGreenCymbal,
-
-        FourLaneYellowDrum,
-        FourLaneBlueDrum,
-        FourLaneGreenDrum,
-
-        FiveLaneRed,
-        FiveLaneYellow,
-        FiveLaneBlue,
-        FiveLaneOrange,
-        FiveLaneGreen,
     }
 
     public enum DrumsHighwayItemIconType

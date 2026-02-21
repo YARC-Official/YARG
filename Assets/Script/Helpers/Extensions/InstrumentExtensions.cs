@@ -1,6 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 using YARG.Core;
+using YARG.Core.Chart;
+using YARG.Gameplay.Visuals;
 using YARG.Song;
+using static YARG.Core.Game.ColorProfile;
 
 namespace YARG.Helpers.Extensions
 {
