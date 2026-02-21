@@ -178,6 +178,14 @@ namespace YARG.Menu.ListMenu
         protected void RequestViewListUpdate()
         {
             _viewList = CreateViewList();
+            if (_viewList.Count > 0)
+            {
+                _selectedIndex = Mathf.Clamp(_selectedIndex, 0, _viewList.Count - 1);
+            }
+            else
+            {
+                _selectedIndex = 0;
+            }
             RefreshViewsObjects();
             UpdateScrollbar();
         }

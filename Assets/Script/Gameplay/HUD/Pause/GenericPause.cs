@@ -27,7 +27,7 @@ namespace YARG.Gameplay.HUD
             }, false));
         }
 
-        private void OnDisable()
+        protected virtual void OnDisable()
         {
             Navigator.Instance.PopScheme();
         }

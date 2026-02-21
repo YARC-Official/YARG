@@ -107,7 +107,12 @@ namespace YARG.Song
         }
 
         private static void _readGenreMappings() {
-            var mappingsDirectoryPath = System.IO.Path.Combine(GenresFolder, GENRE_REPO_FOLDER, MAPPINGS_FOLDER);
+            var mappingsDirectoryPath = Path.Combine(GenresFolder, GENRE_REPO_FOLDER, MAPPINGS_FOLDER);
+
+            if (!Directory.Exists(mappingsDirectoryPath))
+            {
+                return;
+            }
 
             foreach (var mappingFile in Directory.EnumerateFiles(mappingsDirectoryPath))
             {
@@ -117,7 +122,7 @@ namespace YARG.Song
                         File.ReadAllText(mappingFile),
                         new JsonSerializerSettings() { MissingMemberHandling = MissingMemberHandling.Error }
                     );
-                
+
 
                     var localizedGenre = _getLocalizedGenre(data.name);
 
@@ -221,7 +226,7 @@ namespace YARG.Song
             Directory.CreateDirectory(GenresFolder);
 
             context.SetSubText("Checking version...");
-            string genreVersionPath = System.IO.Path.Combine(GenresFolder, "version.txt");
+            string genreVersionPath = Path.Combine(GenresFolder, "version.txt");
             string currentVersion = null;
             try
             {
@@ -268,7 +273,7 @@ namespace YARG.Song
             }
 
             // If up to date, finish
-            var repoDir = System.IO.Path.Combine(GenresFolder, GENRE_REPO_FOLDER);
+            var repoDir = Path.Combine(GenresFolder, GENRE_REPO_FOLDER);
             if (newestVersion == currentVersion && Directory.Exists(repoDir))
             {
                 return;
@@ -279,10 +284,16 @@ namespace YARG.Song
             {
                 // Download
                 context.SetSubText("Downloading new version...");
-                string zipPath = System.IO.Path.Combine(GenresFolder, "update.zip");
-                using (var client = new WebClient())
+                string zipPath = Path.Combine(GenresFolder, "update.zip");
+                using (var request = new UnityWebRequest(GENRE_ZIP_URL, UnityWebRequest.kHttpVerbGET))
                 {
-                    await UniTask.RunOnThreadPool(() => { client.DownloadFile(GENRE_ZIP_URL, zipPath); });
+                    request.SetRequestHeader("User-Agent", "YARG");
+                    request.downloadHandler = new DownloadHandlerFile(zipPath);
+                    await request.SendWebRequest();
+                    if (request.result != UnityWebRequest.Result.Success)
+                    {
+                        throw new Exception($"Failed to download genre mappings: {request.error}");
+                    }
                 }
 
                 // Delete the old folder
@@ -318,7 +329,7 @@ namespace YARG.Song
                 }
 
                 // Create the version txt
-                await File.WriteAllTextAsync(System.IO.Path.Combine(GenresFolder, "version.txt"), newestVersion);
+                await File.WriteAllTextAsync(Path.Combine(GenresFolder, "version.txt"), newestVersion);
 
                 // Delete the zip
                 File.Delete(zipPath);
@@ -373,7 +384,7 @@ namespace YARG.Song
             {
                 /* Usually, when a genre name contains one or more slashes, it fits one of these two patterns:
                  *
-                 * A) List of several, often unrelated, genre names (e.g. "Hard Rock/Heavy Metal" or 
+                 * A) List of several, often unrelated, genre names (e.g. "Hard Rock/Heavy Metal" or
                  *      "Funk / Disco / Polka")
                  * B) Single genre with multiple adjectives or modifiers (e.g. "Melodic/Neoclassical Metal"
                  *      or "Smooth/Cool/Soft Jazz")
@@ -383,13 +394,13 @@ namespace YARG.Song
                  * in the list. Thus, we'll try matching the content of the string that comes before the first
                  * slash. In the Pattern A examples, this would lead us to "Hard Rock" (a genre in its own right)
                  * and "Funk" (a subgenre that maps to R&B/Soul/Funk), respectively.
-                 * 
+                 *
                  * Applying the same logic to Pattern B strings doesn't yield results though: in the given examples,
                  * we would wind up with "Melodic" and "Smooth", neither of which is a genre of any kind. In this case,
                  * we care more about the noun at the end of the string ("Metal" and "Jazz"). So if Pattern A didn't
                  * yield results, we'll try matching the content that comes after the *last* slash. This yields
                  * "Neoclassical Metal" and "Soft Jazz", which are each mapped subgenres.
-                 * 
+                 *
                  * If neither of these options work out, it probably isn't worth trying stuff between slashes, so give up
                  */
 
@@ -410,7 +421,7 @@ namespace YARG.Song
 
             if (rawGenre.Contains(','))
             {
-                /* 
+                /*
                  * Pattern A can also occur with commas rather than slashes, like "Hard Rock, Heavy Metal", so try
                  * that too. Pattern B generally doesn't appear with commas, so don't bother with that.
                  */

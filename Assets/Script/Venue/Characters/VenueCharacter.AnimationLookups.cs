@@ -73,18 +73,24 @@ namespace YARG.Venue.Characters
                 }
             }
 
-            if (_animationStates.Dictionary.Keys.Count > 0)
+            if (AnimationStates.Dictionary.Keys.Count > 0)
             {
                 // If _animationStates is populated, use it to populate the AnimationEvents
-                var animationDict = _animationStates.Dictionary;
+                var animationDict = AnimationStates.Dictionary;
                 foreach (var stateType in animationDict.Keys)
                 {
                     var stateName = animationDict[stateType];
                     var hash = Animator.StringToHash(stateName);
                     var hasTrigger = _triggerNames.Contains(stateName);
+
+                    // We check character manager to avoid log spam in character preview
                     if (!layerDict.TryGetValue(stateName, out var layerList))
                     {
-                        YargLogger.LogDebug($"Venue specified invalid state name: {stateName} for {stateType}");
+                        if (_characterManager != null)
+                        {
+                            YargLogger.LogFormatDebug("Venue specified invalid state name: {0} for {1}", stateName, stateType);
+                        }
+
                         continue;
                     }
 
@@ -677,6 +683,16 @@ namespace YARG.Venue.Characters
             }
         }
 
+        public void SetPreviewIdle()
+        {
+            SetTrigger(AnimationStateType.Idle);
+        }
+
+        public void SetPreviewPlaying()
+        {
+            SetTrigger(AnimationStateType.Playing);
+        }
+
         private void SetTrigger(AnimationStateType state)
         {
             if (_animationEvents.TryGet(state, out var list))
@@ -831,9 +847,9 @@ namespace YARG.Venue.Characters
             }
 
             var candidates = new HashSet<string>();
-            if (_animationStates != null && _animationStates.Dictionary != null)
+            if (AnimationStates != null && AnimationStates.Dictionary != null)
             {
-                foreach (var kv in _animationStates.Dictionary)
+                foreach (var kv in AnimationStates.Dictionary)
                 {
                     if (!string.IsNullOrEmpty(kv.Value))
                     {
