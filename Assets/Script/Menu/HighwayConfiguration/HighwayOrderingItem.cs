@@ -12,11 +12,11 @@ using static YARG.Core.Game.ColorProfile;
 
 namespace YARG.Menu.HighwayConfiguration
 {
-    public readonly struct HighwayOrderingItemSpec<T> : IHighwayOrderingItemSpec where T : Enum
+    public readonly struct HighwayOrderingItemSpec
     {
         // Neither mergeable nor splittable
         // For example, Red Drum
-        public HighwayOrderingItemSpec(string name, DrumsHighwayItemIconType type, int colorIndex, T enumeratedValue)
+        public HighwayOrderingItemSpec(string name, DrumsHighwayItemIconType type, int colorIndex, DrumsHighwayItem enumeratedValue)
         {
             Name = name;
             Type = type;
@@ -29,7 +29,7 @@ namespace YARG.Menu.HighwayConfiguration
 
         // Splittable. Provide the two items that it splits into as a tuple
         // For example, a combined Yellow splits into a Yellow Cymbal and a Yellow Tom
-        public HighwayOrderingItemSpec(string name, DrumsHighwayItemIconType type, int colorIndex, T enumeratedValue, (T,T) splitsInto)
+        public HighwayOrderingItemSpec(string name, DrumsHighwayItemIconType type, int colorIndex, DrumsHighwayItem enumeratedValue, (DrumsHighwayItem, DrumsHighwayItem) splitsInto)
         {
             Name = name;
             Type = type;
@@ -42,7 +42,7 @@ namespace YARG.Menu.HighwayConfiguration
 
         // Mergeable. Provide what it merges into, and what the merged result is.
         // For example, a Yellow Cymbal merges into a Yellow Drum to produce a combined Yellow
-        public HighwayOrderingItemSpec(string name, DrumsHighwayItemIconType type, int colorIndex, T enumeratedValue, T mergesInto, T mergedResult)
+        public HighwayOrderingItemSpec(string name, DrumsHighwayItemIconType type, int colorIndex, DrumsHighwayItem enumeratedValue, DrumsHighwayItem mergesInto, DrumsHighwayItem mergedResult)
         {
             Name = name;
             Type = type;
@@ -56,10 +56,10 @@ namespace YARG.Menu.HighwayConfiguration
         public string Name { get; }
         public DrumsHighwayItemIconType Type { get; }
         public int ColorIndex { get; }
-        public Enum Value { get; }
-        public (Enum, Enum)? SplitsInto { get; }
-        public Enum? MergesInto { get; }
-        public Enum? MergedResult { get; }
+        public DrumsHighwayItem Value { get; }
+        public (DrumsHighwayItem, DrumsHighwayItem)? SplitsInto { get; }
+        public DrumsHighwayItem? MergesInto { get; }
+        public DrumsHighwayItem? MergedResult { get; }
     }
 
     public class HighwayOrderingItem : MonoBehaviour
@@ -85,12 +85,12 @@ namespace YARG.Menu.HighwayConfiguration
         [SerializeField]
         private Sprite _combinedShape;
 
-        private IDrumsHighwayConfigurationMenu _configMenu;
-        IHighwayOrderingItemSpec _spec;
+        private DrumsHighwayConfigurationMenu _configMenu;
+        private HighwayOrderingItemSpec _spec;
 
         public void Initialize(
-            IDrumsHighwayConfigurationMenu configMenu,
-            IHighwayOrderingItemSpec spec,
+            DrumsHighwayConfigurationMenu configMenu,
+            HighwayOrderingItemSpec spec,
             IFretColorProvider colorProvider,
             bool isFirst,
             bool isLast
@@ -138,7 +138,7 @@ namespace YARG.Menu.HighwayConfiguration
         {
             if (_spec.MergesInto is not null)
             {
-                _configMenu.MergeItemInto(_spec.Value, _spec.MergesInto, _spec.MergedResult);
+                _configMenu.MergeItemInto(_spec.Value, _spec.MergesInto.Value, _spec.MergedResult.Value);
             }
             else if (_spec.SplitsInto is not null)
             {
