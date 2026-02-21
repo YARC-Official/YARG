@@ -1085,30 +1085,48 @@ namespace YARG.Menu.MusicLibrary
         {
             public readonly int SelectedIndex;
             public readonly SongEntry PreviousSong;
+
             public readonly string HeaderText;
             public readonly string HeaderShortcut;
             public readonly string CategoryText;
+
             public readonly SongEntry FallbackSong;
-            public readonly int ButtonId;
-            public readonly bool HasButtonId;
+            public readonly int? ButtonId;
+
             public readonly bool WasRecommendedHeader;
             public readonly bool WasRecommendedSong;
+
             public readonly bool PreserveIndexOnDynamicSort;
             public readonly bool PreferHeaderOverFallback;
+
+            public readonly HashWrapper? PreviousSongHash;
+            public readonly string PreviousSongLocation;
+
+            public readonly HashWrapper? FallbackSongHash;
+            public readonly string FallbackSongLocation;
 
             public SelectionSnapshot(
                 int selectedIndex,
                 SongEntry previousSong,
+
                 string headerText,
                 string headerShortcut,
                 string categoryText,
+
                 SongEntry fallbackSong,
-                int buttonId,
-                bool hasButtonId,
+                int? buttonId,
+
                 bool wasRecommendedHeader,
                 bool wasRecommendedSong,
+
                 bool preserveIndexOnDynamicSort,
-                bool preferHeaderOverFallback)
+                bool preferHeaderOverFallback,
+
+                HashWrapper? previousSongHash,
+                string previousSongLocation,
+
+                HashWrapper? fallbackSongHash,
+                string fallbackSongLocation)
             {
                 SelectedIndex = selectedIndex;
                 PreviousSong = previousSong;
@@ -1117,22 +1135,29 @@ namespace YARG.Menu.MusicLibrary
                 CategoryText = categoryText;
                 FallbackSong = fallbackSong;
                 ButtonId = buttonId;
-                HasButtonId = hasButtonId;
                 WasRecommendedHeader = wasRecommendedHeader;
                 WasRecommendedSong = wasRecommendedSong;
                 PreserveIndexOnDynamicSort = preserveIndexOnDynamicSort;
                 PreferHeaderOverFallback = preferHeaderOverFallback;
+
+                PreviousSongHash = previousSongHash;
+                PreviousSongLocation = previousSongLocation;
+
+                FallbackSongHash = fallbackSongHash;
+                FallbackSongLocation = fallbackSongLocation;
             }
         }
 
         private SelectionSnapshot CaptureSelectionSnapshot(bool preserveIndexOnDynamicSort = false, bool preferHeaderOverFallback = false)
         {
+            // Resolution rules
             if (!preferHeaderOverFallback && _preferHeaderOnNextSnapshot)
             {
                 preferHeaderOverFallback = true;
                 _preferHeaderOnNextSnapshot = false;
             }
 
+            // Selection
             int selectedIndex = SelectedIndex;
             SongEntry previousSong = null;
             if (CurrentSelection is SongViewType songView)
@@ -1144,22 +1169,32 @@ namespace YARG.Menu.MusicLibrary
             {
                 previousSong = _currentSong;
             }
+
+            // Header context
             string headerText = null;
             string headerShortcut = null;
             string categoryText = null;
+
+            // Trigger source
             SongEntry fallbackSong = null;
-            int buttonId = 0;
-            bool hasButtonId = false;
+            int? buttonId = null;
+
+            // Recommendation state
             bool wasRecommendedHeader = false;
             bool wasRecommendedSong = false;
             bool isInRecommendedSection = false;
+
+            // Stable identifiers
+            HashWrapper? previousSongHash = previousSong?.Hash;
+            string previousSongLocation = previousSong?.ActualLocation;
+            HashWrapper? fallbackSongHash = null;
+            string fallbackSongLocation = null;
 
             if (MenuState == MenuState.Library && !PlaylistMode)
             {
                 if (CurrentSelection is ButtonViewType button)
                 {
                     buttonId = button.ID;
-                    hasButtonId = true;
                 }
                 else if (previousSong == null && CurrentSelection is not SongViewType)
                 {
@@ -1194,19 +1229,34 @@ namespace YARG.Menu.MusicLibrary
                 }
             }
 
+            if (fallbackSong != null)
+            {
+                fallbackSongHash = fallbackSong.Hash;
+                fallbackSongLocation = fallbackSong.ActualLocation;
+            }
+
             return new SelectionSnapshot(
                 selectedIndex,
                 previousSong,
+
                 headerText,
                 headerShortcut,
                 categoryText,
+
                 fallbackSong,
                 buttonId,
-                hasButtonId,
+
                 wasRecommendedHeader,
                 wasRecommendedSong,
+
                 preserveIndexOnDynamicSort,
-                preferHeaderOverFallback);
+                preferHeaderOverFallback,
+
+                previousSongHash,
+                previousSongLocation,
+
+                fallbackSongHash,
+                fallbackSongLocation);
         }
 
         private void RestoreSelectionSnapshot(SelectionSnapshot snapshot)
@@ -1237,9 +1287,41 @@ namespace YARG.Menu.MusicLibrary
             }
 
             if (snapshot.WasRecommendedSong && _recommendedSongs != null &&
+                SetIndexTo(i => i is SongViewType view &&
+                    snapshot.PreviousSongHash.HasValue &&
+                    view.SongEntry.Hash.Equals(snapshot.PreviousSongHash.Value)))
+            {
+                return;
+            }
+
+            if (snapshot.WasRecommendedSong && _recommendedSongs != null &&
+                SetIndexTo(i => i is SongViewType view &&
+                    snapshot.PreviousSongLocation != null &&
+                    view.SongEntry.ActualLocation == snapshot.PreviousSongLocation))
+            {
+                return;
+            }
+
+            if (snapshot.WasRecommendedSong && _recommendedSongs != null &&
                 snapshot.PreviousSong != null &&
                 SetIndexTo(i => i is SongViewType view &&
                     view.SongEntry.SortBasedLocation == snapshot.PreviousSong.SortBasedLocation))
+            {
+                return;
+            }
+
+            if (snapshot.PreviousSongHash.HasValue &&
+                SetIndexTo(i => i is SongViewType view &&
+                    view.SongEntry.Hash.Equals(snapshot.PreviousSongHash.Value),
+                    _primaryHeaderIndex))
+            {
+                return;
+            }
+
+            if (snapshot.PreviousSongLocation != null &&
+                SetIndexTo(i => i is SongViewType view &&
+                    view.SongEntry.ActualLocation == snapshot.PreviousSongLocation,
+                    _primaryHeaderIndex))
             {
                 return;
             }
@@ -1252,8 +1334,8 @@ namespace YARG.Menu.MusicLibrary
                 return;
             }
 
-            if (snapshot.HasButtonId &&
-                SetIndexTo(i => i is ButtonViewType button && button.ID == snapshot.ButtonId))
+            if (snapshot.ButtonId.HasValue &&
+                SetIndexTo(i => i is ButtonViewType button && button.ID == snapshot.ButtonId.Value))
             {
                 return;
             }
@@ -1292,6 +1374,22 @@ namespace YARG.Menu.MusicLibrary
                     return;
                 }
 
+                if (snapshot.FallbackSongHash.HasValue &&
+                    SetIndexTo(i => i is SongViewType view &&
+                        view.SongEntry.Hash.Equals(snapshot.FallbackSongHash.Value),
+                        _primaryHeaderIndex))
+                {
+                    return;
+                }
+
+                if (snapshot.FallbackSongLocation != null &&
+                    SetIndexTo(i => i is SongViewType view &&
+                        view.SongEntry.ActualLocation == snapshot.FallbackSongLocation,
+                        _primaryHeaderIndex))
+                {
+                    return;
+                }
+
                 if (snapshot.FallbackSong != null &&
                     SetIndexTo(i => i is SongViewType view &&
                         view.SongEntry.SortBasedLocation == snapshot.FallbackSong.SortBasedLocation,
@@ -1302,6 +1400,22 @@ namespace YARG.Menu.MusicLibrary
             }
             else
             {
+                if (snapshot.FallbackSongHash.HasValue &&
+                    SetIndexTo(i => i is SongViewType view &&
+                        view.SongEntry.Hash.Equals(snapshot.FallbackSongHash.Value),
+                        _primaryHeaderIndex))
+                {
+                    return;
+                }
+
+                if (snapshot.FallbackSongLocation != null &&
+                    SetIndexTo(i => i is SongViewType view &&
+                        view.SongEntry.ActualLocation == snapshot.FallbackSongLocation,
+                        _primaryHeaderIndex))
+                {
+                    return;
+                }
+
                 if (snapshot.FallbackSong != null &&
                     SetIndexTo(i => i is SongViewType view &&
                         view.SongEntry.SortBasedLocation == snapshot.FallbackSong.SortBasedLocation,
