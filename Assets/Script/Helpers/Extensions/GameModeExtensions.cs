@@ -66,6 +66,7 @@ namespace YARG.Helpers.Extensions
                 {
                     (ProfileSettingStrings.CONFIGURE_FOUR_LANE_DRUMS_HIGHWAY, null),
                     (ProfileSettingStrings.CONFIGURE_PRO_DRUMS_HIGHWAY, null),
+                    (ProfileSettingStrings.CONFIGURE_FIVE_LANE_DRUMS_HIGHWAY, null),
                     (ProfileSettingStrings.LEFTY_FLIP, null),
                     (ProfileSettingStrings.SPLIT_TOM_AND_CYMBAL_LANES_IN_PRO_DRUMS, null),
                     (ProfileSettingStrings.DRUM_STAR_POWER_ACTIVATION_TYPE, null),
@@ -77,12 +78,15 @@ namespace YARG.Helpers.Extensions
                 },
                 GameMode.FourLaneDrums => new()
                 {
+                    (ProfileSettingStrings.CONFIGURE_FOUR_LANE_DRUMS_HIGHWAY, null),
+                    (ProfileSettingStrings.CONFIGURE_PRO_DRUMS_HIGHWAY, null),
                     (ProfileSettingStrings.LEFTY_FLIP, null),
                     (ProfileSettingStrings.SPLIT_TOM_AND_CYMBAL_LANES_IN_PRO_DRUMS, null),
                     (ProfileSettingStrings.DRUM_STAR_POWER_ACTIVATION_TYPE, null),
                 },
                 GameMode.FiveLaneDrums => new()
                 {
+                    (ProfileSettingStrings.CONFIGURE_FIVE_LANE_DRUMS_HIGHWAY, "HIGHWAY"),
                     (ProfileSettingStrings.LEFTY_FLIP, null),
                     (ProfileSettingStrings.USE_CYMBAL_MODELS, "USE CYMBAL MODELS"),
                     (ProfileSettingStrings.SWAP_SNARE_AND_HI_HAT, "SWAP SNARE AND HI-HAT LANES"),

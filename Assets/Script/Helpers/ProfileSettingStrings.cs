@@ -26,6 +26,7 @@ namespace YARG.Assets.Script.Helpers
         public const string SPLIT_TOM_AND_CYMBAL_LANES_IN_PRO_DRUMS = "Split Tom and Cymbal Lanes in Pro Drums";
         public const string CONFIGURE_FOUR_LANE_DRUMS_HIGHWAY       = "Configure 4-Lane Drums Highway";
         public const string CONFIGURE_PRO_DRUMS_HIGHWAY             = "Configure Pro Drums Highway";
+        public const string CONFIGURE_FIVE_LANE_DRUMS_HIGHWAY       = "Configure 5-Lane Drums Highway";
         public const string USE_CYMBAL_MODELS                       = "Use Cymbal Models";
         public const string SWAP_SNARE_AND_HI_HAT                   = "Swap Snare and Hi-Hat";
         public const string SWAP_CRASH_AND_RIDE                     = "Swap Crash and Ride";

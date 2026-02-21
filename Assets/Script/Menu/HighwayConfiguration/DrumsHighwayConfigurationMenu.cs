@@ -10,6 +10,7 @@ using YARG.Helpers.Extensions;
 using YARG.Menu.Navigation;
 using YARG.Player;
 using YARG.Settings.Customization;
+using static YARG.Core.Game.ColorProfile;
 
 namespace YARG.Menu.HighwayConfiguration
 {
@@ -22,7 +23,7 @@ namespace YARG.Menu.HighwayConfiguration
         // Workaround to avoid errors when deactivating menu during startup
         private bool _ready;
 
-        protected ColorProfile _colorProfile;
+        protected IFretColorProvider _colorProvider;
 
         [SerializeField]
         protected GameObject _ordering;
@@ -39,9 +40,9 @@ namespace YARG.Menu.HighwayConfiguration
             _ready = true;
         }
 
-        public void SetColorProfile(Guid colorProfile)
+        public void SetColorProvider(IFretColorProvider colorProvider)
         {
-            _colorProfile = CustomContentManager.ColorProfiles.GetPresetById(colorProfile);
+            _colorProvider = colorProvider;
         }
 
         public void SetOrdering(List<T> newOrdering) {
@@ -96,7 +97,7 @@ namespace YARG.Menu.HighwayConfiguration
                 instance.Initialize(
                     this,
                     _specs[HighwayOrdering[i]],
-                    _colorProfile.FourLaneDrums,
+                    _colorProvider,
                     i is 0,
                     i == HighwayOrdering.Count - 1
                 );
@@ -111,19 +112,5 @@ namespace YARG.Menu.HighwayConfiguration
         Cymbal,
         Combined,
         Kick
-    }
-
-    public enum FiveLaneDrumsHighwayItem
-    {
-        Red,
-        Yellow,
-        Blue,
-        Orange,
-        Green,
-
-        Kick,
-        Kick1x,
-        Kick2x,
-        Kick2xConditional
     }
 }

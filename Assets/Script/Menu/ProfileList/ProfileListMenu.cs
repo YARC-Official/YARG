@@ -16,6 +16,7 @@ using YARG.Menu.MusicLibrary;
 using YARG.Menu.Navigation;
 using YARG.Menu.Persistent;
 using YARG.Player;
+using YARG.Settings.Customization;
 
 namespace YARG.Menu.ProfileList
 {
@@ -206,7 +207,7 @@ namespace YARG.Menu.ProfileList
                 return;
 
             var profile = GetSelectedProfile();
-            menu.SetColorProfile(profile.ColorProfile);
+            menu.SetColorProvider(CustomContentManager.ColorProfiles.GetPresetById(profile.ColorProfile).FourLaneDrums);
             menu.SetOrdering(new()
             {
                 FourLaneDrumsHighwayItem.Red,
@@ -235,7 +236,7 @@ namespace YARG.Menu.ProfileList
                 return;
 
             var profile = GetSelectedProfile();
-            menu.SetColorProfile(profile.ColorProfile);
+            menu.SetColorProvider(CustomContentManager.ColorProfiles.GetPresetById(profile.ColorProfile).FourLaneDrums);
             menu.SetOrdering(new()
             {
                 ProDrumsHighwayItem.Red,
@@ -254,6 +255,36 @@ namespace YARG.Menu.ProfileList
         public void CloseProDrumsHighwayConfigurationMenu()
         {
             var menu = YARG.Menu.HighwayConfiguration.ProDrumsHighwayConfigurationMenu.Instance;
+            if (menu == null)
+                return;
+
+            menu.gameObject.SetActive(false);
+        }
+
+        public void OpenFiveLaneDrumsHighwayConfigurationMenu()
+        {
+            var menu = YARG.Menu.HighwayConfiguration.FiveLaneDrumsHighwayConfigurationMenu.Instance;
+            if (menu == null)
+                return;
+
+            var profile = GetSelectedProfile();
+            menu.SetColorProvider(CustomContentManager.ColorProfiles.GetPresetById(profile.ColorProfile).FiveLaneDrums);
+            menu.SetOrdering(new()
+            {
+                FiveLaneDrumsHighwayItem.Red,
+                FiveLaneDrumsHighwayItem.Yellow,
+                FiveLaneDrumsHighwayItem.Blue,
+                FiveLaneDrumsHighwayItem.Orange,
+                FiveLaneDrumsHighwayItem.Green,
+            });
+
+
+            menu.gameObject.SetActive(true);
+        }
+
+        public void CloseFiveLaneDrumsHighwayConfigurationMenu()
+        {
+            var menu = YARG.Menu.HighwayConfiguration.FiveLaneDrumsHighwayConfigurationMenu.Instance;
             if (menu == null)
                 return;
 
