@@ -11,6 +11,7 @@ using YARG.Gameplay.Visuals;
 using YARG.Helpers.Extensions;
 using YARG.Input;
 using YARG.Localization;
+using YARG.Menu.HighwayConfiguration;
 using YARG.Menu.MusicLibrary;
 using YARG.Menu.Navigation;
 using YARG.Menu.Persistent;
@@ -203,6 +204,17 @@ namespace YARG.Menu.ProfileList
             var menu = YARG.Menu.HighwayConfiguration.FourLaneDrumsHighwayConfigurationMenu.Instance;
             if (menu == null)
                 return;
+
+            var profile = GetSelectedProfile();
+            menu.SetColorProfile(profile.ColorProfile);
+            menu.SetOrdering(new()
+            {
+                FourLaneDrumsHighwayItem.Red,
+                FourLaneDrumsHighwayItem.Yellow,
+                FourLaneDrumsHighwayItem.Blue,
+                FourLaneDrumsHighwayItem.Green,
+            });
+
 
             menu.gameObject.SetActive(true);
         }

@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 743960087085927903}
   - component: {fileID: 6968896829530066978}
   - component: {fileID: 6622671146241110410}
+  - component: {fileID: 1222064951905917839}
   m_Layer: 0
   m_Name: HighwayOrderingItem
   m_TagString: Untagged
@@ -98,6 +99,23 @@ MonoBehaviour:
   m_FlexibleWidth: -1
   m_FlexibleHeight: -1
   m_LayoutPriority: 1
+--- !u!114 &1222064951905917839
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3366555885906591001}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ab7a47854acb8eb4594287187e1aa4a8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::YARG.Menu.HighwayConfiguration.HighwayOrderingItem
+  _icon: {fileID: 1697035008842509355}
+  _name: {fileID: 1671749639252177459}
+  _drumShape: {fileID: -5177388603050735206, guid: c2349d2c4643fd14da2565fe944257bf, type: 3}
+  _cymbalShape: {fileID: -2413806693520163455, guid: 8b1d08c10cb41554095f3f30ca9fb0ab, type: 3}
+  _combinedShape: {fileID: -5177388603050735206, guid: 7f0ee9b345584f248986445fe6d7881c, type: 3}
 --- !u!1 &4922085407915184975
 GameObject:
   m_ObjectHideFlags: 0
