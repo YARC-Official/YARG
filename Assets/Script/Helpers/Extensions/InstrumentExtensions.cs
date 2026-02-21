@@ -117,5 +117,10 @@ namespace YARG.Helpers.Extensions
                 _ => throw new NotImplementedException($"Unhandled instrument resource name {name}!"),
             };
         }
+
+        public static bool IsKick(this DrumsHighwayItem item)
+        {
+            return item is DrumsHighwayItem.Kick or DrumsHighwayItem.Kick1x or DrumsHighwayItem.Kick2x or DrumsHighwayItem.Kick2xConditional;
+        }
     }
 }

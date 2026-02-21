@@ -4035,9 +4035,6 @@ MonoBehaviour:
   _rangeDisabledToggle: {fileID: 6002511037411835828}
   _openLaneDisplayTypeDropdown: {fileID: 4259681250864052693}
   _useCymbalModelsToggle: {fileID: 4436803752884059520}
-  _splitProTomsAndCymbals: {fileID: 0}
-  _swapSnareAndHiHat: {fileID: 0}
-  _swapCrashAndRide: {fileID: 0}
   _starPowerActivationTypeDropdown: {fileID: 2746416087152779589}
   _engineDropdown: {fileID: 3309179628695891860}
   _themeDropdown: {fileID: 4805044007390359996}
@@ -8441,6 +8438,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: HighwayConfigurationMenu
       objectReference: {fileID: 0}
+    - target: {fileID: 5009541612151404013, guid: a3b2677e603872648a647475adee140f, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 5009541612151404014, guid: a3b2677e603872648a647475adee140f, type: 3}
       propertyPath: m_Pivot.x
       value: 0.5
@@ -9311,7 +9312,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6232041351873830570, guid: 81863a63e0d96cf459c263ee0ea6f98e, type: 3}
       propertyPath: m_Size
-      value: 0.45142603
+      value: 0.4725249
       objectReference: {fileID: 0}
     - target: {fileID: 6232041351873830570, guid: 81863a63e0d96cf459c263ee0ea6f98e, type: 3}
       propertyPath: m_Value
@@ -9734,6 +9735,10 @@ PrefabInstance:
     - target: {fileID: 6075452999618916321, guid: fbe721481a76d3340871db2a026bbbcb, type: 3}
       propertyPath: m_Name
       value: GenericHeader
+      objectReference: {fileID: 0}
+    - target: {fileID: 6075452999618916321, guid: fbe721481a76d3340871db2a026bbbcb, type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 6360272364437934348, guid: fbe721481a76d3340871db2a026bbbcb, type: 3}
       propertyPath: m_text

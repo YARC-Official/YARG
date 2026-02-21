@@ -75,10 +75,21 @@ namespace YARG.Menu.HighwayConfiguration
         private Button _leftButton;
         [SerializeField]
         private Button _rightButton;
+
         [SerializeField]
-        private Button _splitOrMergeButton;
+        private GameObject _splitOrMerge;
         [SerializeField]
         private TextMeshProUGUI _splitOrMergeButtonText;
+
+        [SerializeField]
+        private GameObject _removeDedicatedLanes;
+        [SerializeField]
+        private TextMeshProUGUI _removeDedicatedLanesButtonText;
+
+        [SerializeField]
+        private GameObject _expertPlusOnly;
+        [SerializeField]
+        private Toggle _expertPlusOnlyToggle;
 
         [Space]
         [SerializeField]
@@ -87,6 +98,8 @@ namespace YARG.Menu.HighwayConfiguration
         private Sprite _cymbalShape;
         [SerializeField]
         private Sprite _combinedShape;
+        [SerializeField]
+        private Sprite _kickShape;
 
         private DrumsHighwayConfigurationMenu _configMenu;
         private HighwayOrderingItemSpec _spec;
@@ -107,6 +120,7 @@ namespace YARG.Menu.HighwayConfiguration
                 DrumsHighwayItemIconType.Drum => _drumShape,
                 DrumsHighwayItemIconType.Cymbal => _cymbalShape,
                 DrumsHighwayItemIconType.Combined => _combinedShape,
+                DrumsHighwayItemIconType.Kick => _kickShape,
                 _ => throw new ArgumentOutOfRangeException("o no")
             };
 
@@ -115,18 +129,30 @@ namespace YARG.Menu.HighwayConfiguration
 
             if (_spec.SplitsInto is not null)
             {
-                _splitOrMergeButton.gameObject.SetActive(true);
+                _splitOrMerge.gameObject.SetActive(true);
                 _splitOrMergeButtonText.text = "Split";
             }
             else if (_spec.MergesInto is not null)
             {
-                _splitOrMergeButton.gameObject.SetActive(true);
+                _splitOrMerge.gameObject.SetActive(true);
                 _splitOrMergeButtonText.text = "Merge";
             }
             else
             {
-                _splitOrMergeButton.gameObject.SetActive(false);
+                _splitOrMerge.gameObject.SetActive(false);
             }
+
+            if (spec.Value is DrumsHighwayItem.Kick or DrumsHighwayItem.Kick1x)
+            {
+                _removeDedicatedLanes.gameObject.SetActive(true);
+                _removeDedicatedLanesButtonText.text = spec.Value is DrumsHighwayItem.Kick ? "Remove Dedicated Lane" : "Remove Dedicated Lanes";
+            } else
+            {
+                _removeDedicatedLanes.gameObject.SetActive(false);
+            }
+
+            _expertPlusOnlyToggle.isOn = spec.Value is DrumsHighwayItem.Kick2xConditional;
+            _expertPlusOnly.gameObject.SetActive(spec.Value is DrumsHighwayItem.Kick2x or DrumsHighwayItem.Kick2xConditional);
         }
 
         public void MoveLeft() {
@@ -147,6 +173,16 @@ namespace YARG.Menu.HighwayConfiguration
             {
                 _configMenu.SplitItemInto(_spec.Value, _spec.SplitsInto.Value);
             }
+        }
+
+        public void RemoveDedicatedKickLanes()
+        {
+            _configMenu.RemoveDedicatedKickLanes();
+        }
+
+        public void ToggleExpertPlusOnly()
+        {
+            _configMenu.ToggleExpertPlusOnly();
         }
 
         private static (int pad, int colorIndex) FOUR_LANE_RED_DRUM = ((int) FourLaneDrumPad.RedDrum, (int) FourLaneDrumsFret.RedDrum);
