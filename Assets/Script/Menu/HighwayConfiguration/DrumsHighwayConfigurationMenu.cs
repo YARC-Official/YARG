@@ -24,7 +24,7 @@ namespace YARG.Menu.HighwayConfiguration
         protected GameObject _ordering;
 
         [SerializeField]
-        protected HighwayOrderingItem _itemPrefab;
+        protected HighwayOrderingItem<T> _itemPrefab;
 
         protected List<T> HighwayOrdering = new();
 
@@ -43,6 +43,43 @@ namespace YARG.Menu.HighwayConfiguration
         public void SetOrdering(List<T> newOrdering) {
             HighwayOrdering = newOrdering;
             Populate();
+        }
+
+        public void MoveItemLeft(T item)
+        {
+            var index = GetItemIndex(item);
+            if (index == 0)
+            {
+                return;
+            }
+
+            HighwayOrdering.RemoveAt(index);
+            HighwayOrdering.Insert(index - 1, item);
+            Populate();
+        }
+
+        public void MoveItemRight(T item)
+        {
+            var index = GetItemIndex(item);
+            if (index == HighwayOrdering.Count - 1)
+            {
+                return;
+            }
+
+            HighwayOrdering.RemoveAt(index);
+            HighwayOrdering.Insert(index + 1, item);
+            Populate();
+        }
+
+        private int GetItemIndex(T item)
+        {
+            int index = HighwayOrdering.IndexOf(item);
+            if (index is -1)
+            {
+                throw new ArgumentException("Item not found in highway ordering");
+            }
+
+            return index;
         }
 
         protected abstract void Populate();

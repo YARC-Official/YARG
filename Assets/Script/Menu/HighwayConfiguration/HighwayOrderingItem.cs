@@ -12,26 +12,32 @@ using static YARG.Core.Game.ColorProfile;
 
 namespace YARG.Menu.HighwayConfiguration
 {
-    public readonly struct HighwayOrderingItemSpec
+    public readonly struct HighwayOrderingItemSpec<T>
     {
-        public HighwayOrderingItemSpec(string name, DrumsHighwayItemIconType type, int colorIndex)
+        public HighwayOrderingItemSpec(string name, DrumsHighwayItemIconType type, int colorIndex, T enumeratedValue)
         {
             this.name = name;
             this.type = type;
             this.colorIndex = colorIndex;
+            this.enumeratedValue = enumeratedValue;
         }
 
         public string name { get; }
         public DrumsHighwayItemIconType type { get; }
         public int colorIndex { get; }
+        public T enumeratedValue { get; }
     }
 
-    public class HighwayOrderingItem : MonoBehaviour
+    public abstract class HighwayOrderingItem<T> : MonoBehaviour
     {
         [SerializeField]
         private Image _icon;
         [SerializeField]
         private TextMeshProUGUI _name;
+        [SerializeField]
+        private Button _leftButton;
+        [SerializeField]
+        private Button _rightButton;
 
         [Space]
         [SerializeField]
@@ -41,8 +47,13 @@ namespace YARG.Menu.HighwayConfiguration
         [SerializeField]
         private Sprite _combinedShape;
 
-        public void Initialize(HighwayOrderingItemSpec spec, IFretColorProvider colorProvider, bool isFirst, bool isLast)
+        private DrumsHighwayConfigurationMenu<T> _configMenu;
+        private T _item;
+
+        public void Initialize(DrumsHighwayConfigurationMenu<T> configMenu, HighwayOrderingItemSpec<T> spec, IFretColorProvider colorProvider, bool isFirst, bool isLast)
         {
+            _item = spec.enumeratedValue;
+            _configMenu = configMenu;
             _name.text = spec.name;
             _icon.color = colorProvider.GetFretColor(spec.colorIndex).ToUnityColor();
             _icon.sprite = spec.type switch
@@ -53,7 +64,19 @@ namespace YARG.Menu.HighwayConfiguration
                 _ => throw new ArgumentOutOfRangeException("o no")
             };
 
+            _leftButton.interactable = !isFirst;
+            _rightButton.interactable = !isLast;
+        }
 
+        public void MoveLeft() {
+            _configMenu.MoveItemLeft(_item);
+        }
+
+        public void MoveRight() {
+            _configMenu.MoveItemRight(_item);
         }
     }
+
+    public class ProDrumsHighwayOrderingItem : HighwayOrderingItem<ProDrumsHighwayItem> { }
+    public class FiveLaneDrumsHighwayOrderingItem : HighwayOrderingItem<FiveLaneDrumsHighwayItem> { }
 }
