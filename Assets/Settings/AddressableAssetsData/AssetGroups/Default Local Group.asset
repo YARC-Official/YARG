@@ -50,11 +50,6 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 274c3f10426fd914fae0818bfe56db5d
-    m_Address: Setting/FileInfo
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 2b33e6e7de204a9439ec85cdb1b7b298
     m_Address: SettingPreviews/ExperimentalPreviewUI
     m_ReadOnly: 0
@@ -77,11 +72,6 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 414b2bebc5293a340be910c46debec04
     m_Address: Themes/AprilFools
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 47970bda16e44c543b7f1b72e04335f7
-    m_Address: MusicLibraryUpIcon
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0

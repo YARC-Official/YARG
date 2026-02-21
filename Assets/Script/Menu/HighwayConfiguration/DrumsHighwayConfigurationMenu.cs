@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 using YARG.Core;
 using YARG.Core.Game;
 using YARG.Core.Input;
@@ -31,6 +32,8 @@ namespace YARG.Menu.HighwayConfiguration
 
         [SerializeField]
         private GameObject _ordering;
+        [SerializeField]
+        private Image _kickBar;
 
         [SerializeField]
         private HighwayOrderingItem _itemPrefab;
@@ -62,6 +65,9 @@ namespace YARG.Menu.HighwayConfiguration
             HighwayOrdering = defaultList;
             _header.text = headerPrefix + HEADER_SUFFIX;
             _setOrdering = setOrdering;
+
+            _kickBar.color = colorProvider.GetFretColor((int)FourLaneDrumsFret.Kick).ToUnityColor();
+
             Populate();
         }
 
@@ -139,6 +145,7 @@ namespace YARG.Menu.HighwayConfiguration
             }
 
             _setOrdering(HighwayOrdering);
+            
         }
 
         public static Dictionary<DrumsHighwayItem, HighwayOrderingItemSpec> FOUR_LANE_SPECS { get; } = new()
