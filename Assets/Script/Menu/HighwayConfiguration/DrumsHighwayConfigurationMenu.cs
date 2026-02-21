@@ -14,10 +14,10 @@ using YARG.Settings.Customization;
 namespace YARG.Menu.HighwayConfiguration
 {
     [DefaultExecutionOrder(-10000)]
-    public abstract class DrumsHighwayConfigurationMenu<T> : MonoSingleton<DrumsHighwayConfigurationMenu<T>>
+    public abstract class DrumsHighwayConfigurationMenu<T> : MonoSingleton<DrumsHighwayConfigurationMenu<T>>,
+        IDrumsHighwayConfigurationMenu where T : Enum
     {
         protected abstract Dictionary<T, HighwayOrderingItemSpec<T>> _specs { get; }
-
 
         // Workaround to avoid errors when deactivating menu during startup
         private bool _ready;
@@ -28,7 +28,7 @@ namespace YARG.Menu.HighwayConfiguration
         protected GameObject _ordering;
 
         [SerializeField]
-        protected HighwayOrderingItem<T> _itemPrefab;
+        protected HighwayOrderingItem _itemPrefab;
 
         protected List<T> HighwayOrdering = new();
 
@@ -49,29 +49,29 @@ namespace YARG.Menu.HighwayConfiguration
             Populate();
         }
 
-        public void MoveItemLeft(T item)
+        public void MoveItemLeft(Enum item)
         {
-            var index = GetItemIndex(item);
+            var index = GetItemIndex((T)item);
             if (index == 0)
             {
                 return;
             }
 
             HighwayOrdering.RemoveAt(index);
-            HighwayOrdering.Insert(index - 1, item);
+            HighwayOrdering.Insert(index - 1, (T)item);
             Populate();
         }
 
-        public void MoveItemRight(T item)
+        public void MoveItemRight(Enum item)
         {
-            var index = GetItemIndex(item);
+            var index = GetItemIndex((T)item);
             if (index == HighwayOrdering.Count - 1)
             {
                 return;
             }
 
             HighwayOrdering.RemoveAt(index);
-            HighwayOrdering.Insert(index + 1, item);
+            HighwayOrdering.Insert(index + 1, (T)item);
             Populate();
         }
 

@@ -12,23 +12,23 @@ using static YARG.Core.Game.ColorProfile;
 
 namespace YARG.Menu.HighwayConfiguration
 {
-    public readonly struct HighwayOrderingItemSpec<T>
+    public readonly struct HighwayOrderingItemSpec<T> : IHighwayOrderingItemSpec where T : Enum
     {
         public HighwayOrderingItemSpec(string name, DrumsHighwayItemIconType type, int colorIndex, T enumeratedValue)
         {
-            this.name = name;
-            this.type = type;
-            this.colorIndex = colorIndex;
-            this.enumeratedValue = enumeratedValue;
+            Name = name;
+            Type = type;
+            ColorIndex = colorIndex;
+            Value = enumeratedValue;
         }
 
-        public string name { get; }
-        public DrumsHighwayItemIconType type { get; }
-        public int colorIndex { get; }
-        public T enumeratedValue { get; }
+        public string Name { get; }
+        public DrumsHighwayItemIconType Type { get; }
+        public int ColorIndex { get; }
+        public Enum Value { get; }
     }
 
-    public abstract class HighwayOrderingItem<T> : MonoBehaviour
+    public class HighwayOrderingItem : MonoBehaviour
     {
         [SerializeField]
         private Image _icon;
@@ -47,16 +47,21 @@ namespace YARG.Menu.HighwayConfiguration
         [SerializeField]
         private Sprite _combinedShape;
 
-        private DrumsHighwayConfigurationMenu<T> _configMenu;
-        private T _item;
+        private IDrumsHighwayConfigurationMenu _configMenu;
+        private Enum _item;
 
-        public void Initialize(DrumsHighwayConfigurationMenu<T> configMenu, HighwayOrderingItemSpec<T> spec, IFretColorProvider colorProvider, bool isFirst, bool isLast)
-        {
-            _item = spec.enumeratedValue;
+        public void Initialize(
+            IDrumsHighwayConfigurationMenu configMenu,
+            IHighwayOrderingItemSpec spec,
+            IFretColorProvider colorProvider,
+            bool isFirst,
+            bool isLast
+        ) {
+            _item = spec.Value;
             _configMenu = configMenu;
-            _name.text = spec.name;
-            _icon.color = colorProvider.GetFretColor(spec.colorIndex).ToUnityColor();
-            _icon.sprite = spec.type switch
+            _name.text = spec.Name;
+            _icon.color = colorProvider.GetFretColor(spec.ColorIndex).ToUnityColor();
+            _icon.sprite = spec.Type switch
             {
                 DrumsHighwayItemIconType.Drum => _drumShape,
                 DrumsHighwayItemIconType.Cymbal => _cymbalShape,
@@ -76,5 +81,5 @@ namespace YARG.Menu.HighwayConfiguration
             _configMenu.MoveItemRight(_item);
         }
     }
-    public class FiveLaneDrumsHighwayOrderingItem : HighwayOrderingItem<FiveLaneDrumsHighwayItem> { }
+    public class FiveLaneDrumsHighwayOrderingItem : HighwayOrderingItem { }
 }

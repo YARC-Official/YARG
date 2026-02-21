@@ -198,7 +198,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::YARG.Menu.HighwayConfiguration.FourLaneDrumsHighwayConfigurationMenu
   _ordering: {fileID: 5009541611764778103}
-  _itemPrefab: {fileID: 1222064951905917839, guid: 2302ef990f8be8e4da63d2a71b82e5e6, type: 3}
+  _itemPrefab: {fileID: 3452384126329768694, guid: 46cd14875b2238b48ada8b64d531ddb5, type: 3}
 --- !u!1001 &8388684637328606417
 PrefabInstance:
   m_ObjectHideFlags: 0
