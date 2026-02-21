@@ -46,6 +46,12 @@ namespace YARG.Settings.Metadata
                     .WaitForCompletion();
             }
 
+            if (_previewWorld == null)
+            {
+                YargLogger.LogError("Failed to load addressable character preview world prefab!");
+                return UniTask.CompletedTask;
+            }
+
             // Instantiate the preview prefab
             var go = Object.Instantiate(_previewWorld, worldContainer);
             _worldInstance = go;
