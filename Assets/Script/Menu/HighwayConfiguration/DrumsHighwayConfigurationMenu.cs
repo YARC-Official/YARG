@@ -40,6 +40,9 @@ namespace YARG.Menu.HighwayConfiguration
 
         private List<DrumsHighwayItem> HighwayOrdering { get; set; }
 
+        public delegate void SetOrdering(List<DrumsHighwayItem> newOrdering);
+        SetOrdering _setOrdering;
+
         protected override void SingletonAwake()
         {
             // Match SettingsMenu behavior: initialized at startup, then hidden.
@@ -51,17 +54,14 @@ namespace YARG.Menu.HighwayConfiguration
             Dictionary<DrumsHighwayItem, HighwayOrderingItemSpec> specs,
             IFretColorProvider colorProvider,
             List<DrumsHighwayItem> defaultList,
-            string headerPrefix
+            string headerPrefix,
+            SetOrdering setOrdering
         ) {
             _specs = specs;
             _colorProvider = colorProvider;
             HighwayOrdering = defaultList;
             _header.text = headerPrefix + HEADER_SUFFIX;
-            Populate();
-        }
-
-        public void SetOrdering(List<DrumsHighwayItem> newOrdering) {
-            HighwayOrdering = newOrdering;
+            _setOrdering = setOrdering;
             Populate();
         }
 
@@ -137,6 +137,8 @@ namespace YARG.Menu.HighwayConfiguration
                     i == HighwayOrdering.Count - 1
                 );
             }
+
+            _setOrdering(HighwayOrdering);
         }
 
         public static Dictionary<DrumsHighwayItem, HighwayOrderingItemSpec> FOUR_LANE_SPECS { get; } = new()

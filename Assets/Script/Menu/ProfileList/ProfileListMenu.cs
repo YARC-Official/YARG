@@ -18,6 +18,7 @@ using YARG.Menu.Persistent;
 using YARG.Player;
 using YARG.Settings.Customization;
 using static YARG.Core.Game.ColorProfile;
+using static YARG.Menu.HighwayConfiguration.DrumsHighwayConfigurationMenu;
 
 namespace YARG.Menu.ProfileList
 {
@@ -205,14 +206,15 @@ namespace YARG.Menu.ProfileList
             Dictionary<DrumsHighwayItem, HighwayOrderingItemSpec> specs,
             IFretColorProvider colorProvider,
             List<DrumsHighwayItem> defaultList,
-            string headerPrefix
+            string headerPrefix,
+            SetOrdering setOrderingInProfile
         ) {
             var menu = DrumsHighwayConfigurationMenu.Instance;
             if (menu == null)
                 return;
 
 
-            menu.Initialize(specs, colorProvider, defaultList, headerPrefix);
+            menu.Initialize(specs, colorProvider, defaultList, headerPrefix, setOrderingInProfile);
             menu.gameObject.SetActive(true);
         }
         public void CloseDrumsHighwayConfigurationMenu()
@@ -228,7 +230,13 @@ namespace YARG.Menu.ProfileList
         {
             var profile = GetSelectedProfile();
             var colorProvider = CustomContentManager.ColorProfiles.GetPresetById(profile.ColorProfile).FourLaneDrums;
-            OpenDrumsHighwayConfigurationMenu(DrumsHighwayConfigurationMenu.FOUR_LANE_SPECS, colorProvider, DEFAULT_4L, "4-Lane");
+            OpenDrumsHighwayConfigurationMenu(
+                DrumsHighwayConfigurationMenu.FOUR_LANE_SPECS,
+                colorProvider,
+                profile.FourLaneDrumsHighwayOrdering.ToList(),
+                "4-Lane",
+                (newOrdering) => { profile.FourLaneDrumsHighwayOrdering = newOrdering.ToArray(); }
+            );
         }
 
 
@@ -236,31 +244,26 @@ namespace YARG.Menu.ProfileList
         {
             var profile = GetSelectedProfile();
             var colorProvider = CustomContentManager.ColorProfiles.GetPresetById(profile.ColorProfile).FourLaneDrums;
-            OpenDrumsHighwayConfigurationMenu(DrumsHighwayConfigurationMenu.PRO_DRUMS_SPECS, colorProvider, DEFAULT_4L, "Pro");
+            OpenDrumsHighwayConfigurationMenu(
+                DrumsHighwayConfigurationMenu.PRO_DRUMS_SPECS,
+                colorProvider,
+                profile.ProDrumsHighwayOrdering.ToList(),
+                "Pro",
+                (newOrdering) => { profile.ProDrumsHighwayOrdering = newOrdering.ToArray(); }
+            );
         }
 
         public void OpenFiveLaneDrumsHighwayConfigurationMenu()
         {
             var profile = GetSelectedProfile();
             var colorProvider = CustomContentManager.ColorProfiles.GetPresetById(profile.ColorProfile).FiveLaneDrums;
-            OpenDrumsHighwayConfigurationMenu(DrumsHighwayConfigurationMenu.FIVE_LANE_SPECS, colorProvider, DEFAULT_5L, "5-Lane");
+            OpenDrumsHighwayConfigurationMenu(
+                DrumsHighwayConfigurationMenu.FIVE_LANE_SPECS,
+                colorProvider,
+                profile.FiveLaneDrumsHighwayOrdering.ToList(),
+                "5-Lane",
+                (newOrdering) => { profile.FiveLaneDrumsHighwayOrdering = newOrdering.ToArray(); }
+            );
         }
-
-        private static List<DrumsHighwayItem> DEFAULT_4L = new()
-            {
-                DrumsHighwayItem.FourLaneRed,
-                DrumsHighwayItem.FourLaneYellow,
-                DrumsHighwayItem.FourLaneBlue,
-                DrumsHighwayItem.FourLaneGreen,
-            };
-
-        private static List<DrumsHighwayItem> DEFAULT_5L = new()
-            {
-                DrumsHighwayItem.FiveLaneRed,
-                DrumsHighwayItem.FiveLaneYellow,
-                DrumsHighwayItem.FiveLaneBlue,
-                DrumsHighwayItem.FiveLaneOrange,
-                DrumsHighwayItem.FiveLaneGreen,
-            };
     }
 }
