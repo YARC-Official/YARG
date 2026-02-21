@@ -948,6 +948,12 @@ namespace YARG.Menu.MusicLibrary
 
         public void ExecuteGreenTapAction()
         {
+            if (CurrentSelection is not SongViewType)
+            {
+                CurrentSelection?.PrimaryButtonClick();
+                return;
+            }
+
             bool setListNotEmpty = ShowPlaylist.Count > 0;
 
             if (setListNotEmpty)
