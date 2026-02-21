@@ -67,6 +67,7 @@ namespace YARG.Menu.MusicLibrary
         private static int                     _savedIndex;
         private static SelectionSnapshot       _savedSelectionSnapshot;
         private static bool                    _hasSavedSelectionSnapshot;
+        private static bool                    _preferHeaderOnNextSnapshot;
         private static int                     _mainLibraryIndex = -1;
         private static MusicLibraryReloadState _reloadState = MusicLibraryReloadState.Full;
         private static Playlist                _savedPlaylist;
@@ -159,7 +160,6 @@ namespace YARG.Menu.MusicLibrary
             // Restore search
             _searchField.Restore();
             _searchField.OnSearchQueryUpdated += UpdateSearch;
-            _searchField.OnSearchQueryUpdated += (bool force) => UpdateSortInformationHeader();
 
             if (CurrentlyPlaying != null)
             {
@@ -181,6 +181,8 @@ namespace YARG.Menu.MusicLibrary
                 SelectedPlaylist = _savedPlaylist;
                 if (SelectedPlaylist != null)
                 {
+                    // Preserve the playlist select anchor across menu reloads (e.g., after playing a song)
+                    _lastPlaylistSelectPlaylist = SelectedPlaylist;
                     MenuState = MenuState.Playlist;
                 }
 
@@ -519,7 +521,9 @@ namespace YARG.Menu.MusicLibrary
                 }
 
                 SortHeaderViewType sortHeader = null;
-                if (showSortHeaders)
+                bool hideSearchResultsHeader = _searchField.IsSearching &&
+                    string.Equals(section.Category, "Search Results", StringComparison.OrdinalIgnoreCase);
+                if (showSortHeaders && !hideSearchResultsHeader)
                 {
                     sortHeader = new SortHeaderViewType(displayName, section.Songs.Length, section.CategoryGroup, section.Songs);
                     list.Add(sortHeader);
@@ -613,7 +617,6 @@ namespace YARG.Menu.MusicLibrary
             SetRecommendedSongs();
             _searchField.Reset();
             UpdateSearch(true);
-            UpdateSortInformationHeader();
             SetNavigationScheme();
         }
 
@@ -721,12 +724,17 @@ namespace YARG.Menu.MusicLibrary
             _searchField.UpdateSearchText();
 
             var predicate = YARG.Menu.Filters.FiltersMenu.ActiveFilterPredicate;
-            bool shouldApplyFilters = !PlaylistMode && MenuState == MenuState.Library && predicate != null;
+            bool inLibrary = !PlaylistMode && MenuState == MenuState.Library;
+            bool shouldApplyFilters = inLibrary && predicate != null;
+            bool shouldShowFilteredCounts = inLibrary && (_searchField.IsSearching || predicate != null);
             if (shouldApplyFilters)
             {
-                _totalSongCountUnfiltered = CountSongs(_sortedSongs);
                 _sortedSongs = ApplyFilterPredicate(_sortedSongs, predicate);
-                _totalSongCount = CountSongs(_sortedSongs);
+            }
+            if (shouldShowFilteredCounts)
+            {
+                var baseList = SongContainer.GetSortedCategory(SettingsManager.Settings.LibrarySort);
+                _totalSongCountUnfiltered = CountSongs(baseList);
             }
             else
             {
@@ -773,6 +781,8 @@ namespace YARG.Menu.MusicLibrary
                     }
                 }
             }
+
+            UpdateSortInformationHeader();
         }
 
         private void EnsureValidSelectionAfterFilter()
@@ -852,11 +862,13 @@ namespace YARG.Menu.MusicLibrary
             // Save state
             _savedIndex = SelectedIndex;
             _savedPlaylist = SelectedPlaylist;
+            bool preferHeaderOverFallback = _preferHeaderOnNextSnapshot;
+            _preferHeaderOnNextSnapshot = false;
             if (MenuState == MenuState.Library && !PlaylistMode)
             {
                 bool preserveIndexOnDynamicSort = SettingsManager.Settings.LibrarySort == SortAttribute.Playcount ||
                     SettingsManager.Settings.LibrarySort == SortAttribute.Stars;
-                _savedSelectionSnapshot = CaptureSelectionSnapshot(preserveIndexOnDynamicSort);
+                _savedSelectionSnapshot = CaptureSelectionSnapshot(preserveIndexOnDynamicSort, preferHeaderOverFallback);
                 _hasSavedSelectionSnapshot = true;
             }
             else
@@ -1063,9 +1075,7 @@ namespace YARG.Menu.MusicLibrary
             for (int i = startIndex + 1; i < list.Count; i++)
             {
                 if (list[i] is SongViewType songView)
-                {
                     return songView.SongEntry;
-                }
             }
 
             return null;
@@ -1084,6 +1094,7 @@ namespace YARG.Menu.MusicLibrary
             public readonly bool WasRecommendedHeader;
             public readonly bool WasRecommendedSong;
             public readonly bool PreserveIndexOnDynamicSort;
+            public readonly bool PreferHeaderOverFallback;
 
             public SelectionSnapshot(
                 int selectedIndex,
@@ -1096,7 +1107,8 @@ namespace YARG.Menu.MusicLibrary
                 bool hasButtonId,
                 bool wasRecommendedHeader,
                 bool wasRecommendedSong,
-                bool preserveIndexOnDynamicSort)
+                bool preserveIndexOnDynamicSort,
+                bool preferHeaderOverFallback)
             {
                 SelectedIndex = selectedIndex;
                 PreviousSong = previousSong;
@@ -1109,13 +1121,29 @@ namespace YARG.Menu.MusicLibrary
                 WasRecommendedHeader = wasRecommendedHeader;
                 WasRecommendedSong = wasRecommendedSong;
                 PreserveIndexOnDynamicSort = preserveIndexOnDynamicSort;
+                PreferHeaderOverFallback = preferHeaderOverFallback;
             }
         }
 
-        private SelectionSnapshot CaptureSelectionSnapshot(bool preserveIndexOnDynamicSort = false)
+        private SelectionSnapshot CaptureSelectionSnapshot(bool preserveIndexOnDynamicSort = false, bool preferHeaderOverFallback = false)
         {
+            if (!preferHeaderOverFallback && _preferHeaderOnNextSnapshot)
+            {
+                preferHeaderOverFallback = true;
+                _preferHeaderOnNextSnapshot = false;
+            }
+
             int selectedIndex = SelectedIndex;
-            var previousSong = CurrentSelection is SongViewType ? _currentSong : null;
+            SongEntry previousSong = null;
+            if (CurrentSelection is SongViewType songView)
+            {
+                // When FiltersMenu is open, _currentSong stops updating.
+                previousSong = songView.SongEntry ?? _currentSong;
+            }
+            else
+            {
+                previousSong = _currentSong;
+            }
             string headerText = null;
             string headerShortcut = null;
             string categoryText = null;
@@ -1133,7 +1161,7 @@ namespace YARG.Menu.MusicLibrary
                     buttonId = button.ID;
                     hasButtonId = true;
                 }
-                else if (previousSong == null && CurrentSelection is not SongViewType && _recommendedSongs == null)
+                else if (previousSong == null && CurrentSelection is not SongViewType)
                 {
                     fallbackSong = GetFirstSongAfterIndex(selectedIndex);
                 }
@@ -1177,7 +1205,8 @@ namespace YARG.Menu.MusicLibrary
                 hasButtonId,
                 wasRecommendedHeader,
                 wasRecommendedSong,
-                preserveIndexOnDynamicSort);
+                preserveIndexOnDynamicSort,
+                preferHeaderOverFallback);
         }
 
         private void RestoreSelectionSnapshot(SelectionSnapshot snapshot)
@@ -1186,10 +1215,7 @@ namespace YARG.Menu.MusicLibrary
                 (SettingsManager.Settings.LibrarySort == SortAttribute.Playcount ||
                     SettingsManager.Settings.LibrarySort == SortAttribute.Stars))
             {
-                if (ViewList.Count == 0)
-                {
-                    return;
-                }
+                if (ViewList.Count == 0) return;
 
                 SelectedIndex = Mathf.Clamp(snapshot.SelectedIndex, 0, ViewList.Count - 1);
                 return;
@@ -1247,30 +1273,63 @@ namespace YARG.Menu.MusicLibrary
                 }
             }
 
-            if (snapshot.HeaderText != null &&
-                SetIndexTo(i => i is SortHeaderViewType header &&
-                    header.HeaderText == snapshot.HeaderText &&
-                    header.ShortcutName == snapshot.HeaderShortcut))
+            bool headerFirst = snapshot.PreferHeaderOverFallback ||
+                (snapshot.PreviousSong == null && snapshot.HeaderText != null);
+            if (headerFirst)
+            {
+                if (snapshot.HeaderText != null &&
+                    SetIndexTo(i => i is SortHeaderViewType header &&
+                        header.HeaderText == snapshot.HeaderText &&
+                        header.ShortcutName == snapshot.HeaderShortcut))
+                {
+                    return;
+                }
+
+                if (snapshot.CategoryText != null &&
+                    SetIndexTo(i => i is CategoryViewType category &&
+                        category.GetPrimaryText(false) == snapshot.CategoryText))
+                {
+                    return;
+                }
+
+                if (snapshot.FallbackSong != null &&
+                    SetIndexTo(i => i is SongViewType view &&
+                        view.SongEntry.SortBasedLocation == snapshot.FallbackSong.SortBasedLocation,
+                        _primaryHeaderIndex))
+                {
+                    return;
+                }
+            }
+            else
+            {
+                if (snapshot.FallbackSong != null &&
+                    SetIndexTo(i => i is SongViewType view &&
+                        view.SongEntry.SortBasedLocation == snapshot.FallbackSong.SortBasedLocation,
+                        _primaryHeaderIndex))
+                {
+                    return;
+                }
+
+                if (snapshot.HeaderText != null &&
+                    SetIndexTo(i => i is SortHeaderViewType header &&
+                        header.HeaderText == snapshot.HeaderText &&
+                        header.ShortcutName == snapshot.HeaderShortcut))
+                {
+                    return;
+                }
+
+                if (snapshot.CategoryText != null &&
+                    SetIndexTo(i => i is CategoryViewType category &&
+                        category.GetPrimaryText(false) == snapshot.CategoryText))
+                {
+                    return;
+                }
+            }
+
+            if (SetIndexTo(i => i is SongViewType))
             {
                 return;
             }
-
-            if (snapshot.CategoryText != null &&
-                SetIndexTo(i => i is CategoryViewType category &&
-                    category.GetPrimaryText(false) == snapshot.CategoryText))
-            {
-                return;
-            }
-
-            if (snapshot.FallbackSong != null &&
-                SetIndexTo(i => i is SongViewType view &&
-                    view.SongEntry.SortBasedLocation == snapshot.FallbackSong.SortBasedLocation,
-                    _primaryHeaderIndex))
-            {
-                return;
-            }
-
-            if (SetIndexTo(i => i is SongViewType)) return;
 
             SelectedIndex = snapshot.SelectedIndex;
         }
@@ -1294,6 +1353,11 @@ namespace YARG.Menu.MusicLibrary
             _sidebar?.SetDifficultiesVisible(visible);
         }
 
+        public void RequestPreferHeaderOnNextSnapshot()
+        {
+            _preferHeaderOnNextSnapshot = true;
+        }
+
         public void ChangeSort(SortAttribute sort)
         {
             var snapshot = CaptureSelectionSnapshot();
@@ -1306,7 +1370,6 @@ namespace YARG.Menu.MusicLibrary
             }
             SettingsManager.Settings.LibrarySort = sort;
             UpdateSearch(true);
-            UpdateSortInformationHeader();
             RestoreSelectionSnapshot(snapshot);
         }
 
@@ -1314,13 +1377,14 @@ namespace YARG.Menu.MusicLibrary
         {
             if (MenuState == MenuState.Library)
             {
-                var prefix = _searchField.IsSearching
-                    ? TextColorer.StyleString(
-                        ZString.Concat(Localize.Key("Menu.MusicLibrary.SearchResults"), " "),
-                        MenuData.Colors.HeaderSecondary, 700)
-                    : "";
-
-                if (SettingsManager.Settings.LibrarySort < SortAttribute.Instrument)
+                if (_searchField.IsSearching)
+                {
+                    _sortInfoHeaderPrimaryText.text = TextColorer.StyleString(
+                        Localize.Key("Menu.MusicLibrary.SearchResults"),
+                        MenuData.Colors.HeaderSecondary,
+                        700);
+                }
+                else if (SettingsManager.Settings.LibrarySort < SortAttribute.Instrument)
                 {
                     var sortingBy = TextColorer.StyleString("SORTED BY ",
                         MenuData.Colors.HeaderTertiary,
@@ -1330,7 +1394,7 @@ namespace YARG.Menu.MusicLibrary
                         MenuData.Colors.HeaderSecondary,
                         700);
 
-                    _sortInfoHeaderPrimaryText.text = ZString.Concat(prefix, sortingBy, sortKey);
+                    _sortInfoHeaderPrimaryText.text = ZString.Concat(sortingBy, sortKey);
                 }
                 else
                 {
@@ -1342,7 +1406,7 @@ namespace YARG.Menu.MusicLibrary
                         MenuData.Colors.HeaderSecondary,
                         700);
 
-                    _sortInfoHeaderPrimaryText.text = ZString.Concat(prefix, playableSongs, sortKey);
+                    _sortInfoHeaderPrimaryText.text = ZString.Concat(playableSongs, sortKey);
                 }
 
                 string countText;

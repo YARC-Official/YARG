@@ -93,14 +93,10 @@ namespace YARG.Menu
             }
 
             if (!string.IsNullOrEmpty(previousSelectedTabId))
-            {
                 SelectTabById(previousSelectedTabId);
-            }
 
             if (string.IsNullOrEmpty(SelectedTabId))
-            {
                 _navigationGroup.SelectFirst();
-            }
         }
 
         public void SelectFirstTab()

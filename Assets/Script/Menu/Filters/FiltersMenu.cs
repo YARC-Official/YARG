@@ -1441,8 +1441,18 @@ namespace YARG.Menu.Filters
             ActiveFilterPredicate = BuildFilterPredicate();
             var library = FindFirstObjectByType<MusicLibrary.MusicLibraryMenu>();
             library?.SetSidebarDifficultiesVisible(true);
-            if (library != null && (filtersChanged || showRecommendationsChanged))
-                library.RefreshAndReselect();
+            if (library != null)
+            {
+                if (filtersChanged || showRecommendationsChanged)
+                {
+                    library.RequestPreferHeaderOnNextSnapshot();
+                    library.RefreshAndReselect();
+                }
+                else
+                {
+                    library.RequestPreferHeaderOnNextSnapshot();
+                }
+            }
 
             Navigator.Instance.PopScheme();
             _leftNavGroup.SelectionChanged -= OnSelectionChanged;

@@ -111,8 +111,7 @@ namespace YARG.Menu.Navigation
             get => _disableMenuInputs;
             set
             {
-                if (_disableMenuInputs == value)
-                    return;
+                if (_disableMenuInputs == value) return;
 
                 _disableMenuInputs = value;
 
@@ -182,10 +181,7 @@ namespace YARG.Menu.Navigation
 
         private void ProcessInput(YargPlayer player, ref GameInput input)
         {
-            if (ShouldBlockInputs())
-            {
-                return;
-            }
+            if (ShouldBlockInputs()) return;
 
             var action = (MenuAction) input.Action;
 
