@@ -244,7 +244,16 @@ namespace YARG.Menu.MusicLibrary
             // _source.text = SongSources.SourceToGameName(songEntry.Source);
             // _charter.text = songEntry.Charter;
             // _genre.text = System.Globalization.CultureInfo.CurrentCulture.TextInfo.ToTitleCase(songEntry.Genre);
-            _year.text = songEntry.ParsedYear;
+
+            if (!string.IsNullOrEmpty(songEntry.YearSecondary))
+            {
+                _year.text = $"{songEntry.ParsedYear} ({songEntry.YearSecondary})";
+            }
+            else
+            {
+                _year.text = songEntry.ParsedYear;
+            }
+
             _songRatingLabel.text = songEntry.SongRating switch
             {
                 SongRating.Unspecified => "NR",
@@ -297,7 +306,7 @@ namespace YARG.Menu.MusicLibrary
             const float shrinkFactor = 0.8f;     // percentage to shrink the font by after shrink threshold
 
             container.SetActive(true);
-            
+
             if (string.IsNullOrEmpty(text))
             {
                 label.text = string.Empty;
