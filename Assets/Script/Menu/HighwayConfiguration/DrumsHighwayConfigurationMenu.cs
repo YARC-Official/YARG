@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using UnityEngine;
 using YARG.Core.Game;
 using YARG.Core.Input;
+using YARG.Helpers.Extensions;
 using YARG.Menu.Navigation;
 using YARG.Player;
 using YARG.Settings.Customization;
@@ -15,6 +16,9 @@ namespace YARG.Menu.HighwayConfiguration
     [DefaultExecutionOrder(-10000)]
     public abstract class DrumsHighwayConfigurationMenu<T> : MonoSingleton<DrumsHighwayConfigurationMenu<T>>
     {
+        protected abstract Dictionary<T, HighwayOrderingItemSpec<T>> _specs { get; }
+
+
         // Workaround to avoid errors when deactivating menu during startup
         private bool _ready;
 
@@ -82,8 +86,23 @@ namespace YARG.Menu.HighwayConfiguration
             return index;
         }
 
-        protected abstract void Populate();
-        
+        protected void Populate()
+        {
+            _ordering.transform.DestroyChildren();
+
+            for (var i = 0; i < HighwayOrdering.Count; i++)
+            {
+                var instance = Instantiate(_itemPrefab, _ordering.transform);
+                instance.Initialize(
+                    this,
+                    _specs[HighwayOrdering[i]],
+                    _colorProfile.FourLaneDrums,
+                    i is 0,
+                    i == HighwayOrdering.Count - 1
+                );
+            }
+        }
+
     }
 
     public enum DrumsHighwayItemIconType
@@ -92,26 +111,6 @@ namespace YARG.Menu.HighwayConfiguration
         Cymbal,
         Combined,
         Kick
-    }
-
-    public enum ProDrumsHighwayItem
-    {
-        Red,
-        Yellow,
-        Blue,
-        Green,
-
-        YellowCymbal,
-        YellowTom,
-        BlueCymbal,
-        BlueTom,
-        GreenCymbal,
-        GreenTom,
-
-        Kick,
-        Kick1x,
-        Kick2x,
-        Kick2xConditional
     }
 
     public enum FiveLaneDrumsHighwayItem

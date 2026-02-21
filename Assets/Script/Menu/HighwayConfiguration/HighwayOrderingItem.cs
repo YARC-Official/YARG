@@ -76,7 +76,5 @@ namespace YARG.Menu.HighwayConfiguration
             _configMenu.MoveItemRight(_item);
         }
     }
-
-    public class ProDrumsHighwayOrderingItem : HighwayOrderingItem<ProDrumsHighwayItem> { }
     public class FiveLaneDrumsHighwayOrderingItem : HighwayOrderingItem<FiveLaneDrumsHighwayItem> { }
 }

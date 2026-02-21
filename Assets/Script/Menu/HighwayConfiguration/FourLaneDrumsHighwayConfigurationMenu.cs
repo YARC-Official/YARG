@@ -12,31 +12,13 @@ namespace YARG.Menu.HighwayConfiguration
 {
     public class FourLaneDrumsHighwayConfigurationMenu : DrumsHighwayConfigurationMenu<FourLaneDrumsHighwayItem>
     {
-        private static Dictionary<FourLaneDrumsHighwayItem, HighwayOrderingItemSpec<FourLaneDrumsHighwayItem>> specs = new()
+        protected override Dictionary<FourLaneDrumsHighwayItem, HighwayOrderingItemSpec<FourLaneDrumsHighwayItem>> _specs { get; } = new()
         {
             { FourLaneDrumsHighwayItem.Red,     new( "Red",     DrumsHighwayItemIconType.Drum,      (int)FourLaneDrumsFret.RedDrum,     FourLaneDrumsHighwayItem.Red ) },
             { FourLaneDrumsHighwayItem.Yellow,  new( "Yellow",  DrumsHighwayItemIconType.Combined,  (int)FourLaneDrumsFret.YellowDrum,  FourLaneDrumsHighwayItem.Yellow) },
             { FourLaneDrumsHighwayItem.Blue,    new( "Blue",    DrumsHighwayItemIconType.Combined,  (int)FourLaneDrumsFret.BlueDrum,    FourLaneDrumsHighwayItem.Blue ) },
             { FourLaneDrumsHighwayItem.Green,   new( "Green",   DrumsHighwayItemIconType.Combined,  (int)FourLaneDrumsFret.GreenDrum,   FourLaneDrumsHighwayItem.Green) },
         };
-
-
-        protected override void Populate()
-        {
-            _ordering.transform.DestroyChildren();
-
-            for (var i = 0; i < HighwayOrdering.Count; i++)
-            {
-                var instance = Instantiate(_itemPrefab, _ordering.transform);
-                instance.Initialize(
-                    this,
-                    specs[HighwayOrdering[i]],
-                    _colorProfile.FourLaneDrums,
-                    i is 0,
-                    i == HighwayOrdering.Count - 1
-                );
-            }
-        }
     }
 
     public enum FourLaneDrumsHighwayItem

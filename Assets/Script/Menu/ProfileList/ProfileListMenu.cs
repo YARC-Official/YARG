@@ -227,5 +227,37 @@ namespace YARG.Menu.ProfileList
 
             menu.gameObject.SetActive(false);
         }
+
+        public void OpenProDrumsHighwayConfigurationMenu()
+        {
+            var menu = YARG.Menu.HighwayConfiguration.ProDrumsHighwayConfigurationMenu.Instance;
+            if (menu == null)
+                return;
+
+            var profile = GetSelectedProfile();
+            menu.SetColorProfile(profile.ColorProfile);
+            menu.SetOrdering(new()
+            {
+                ProDrumsHighwayItem.Red,
+                ProDrumsHighwayItem.YellowCymbal,
+                ProDrumsHighwayItem.YellowTom,
+                ProDrumsHighwayItem.BlueCymbal,
+                ProDrumsHighwayItem.BlueTom,
+                ProDrumsHighwayItem.GreenCymbal,
+                ProDrumsHighwayItem.GreenTom,
+            });
+
+
+            menu.gameObject.SetActive(true);
+        }
+
+        public void CloseProDrumsHighwayConfigurationMenu()
+        {
+            var menu = YARG.Menu.HighwayConfiguration.ProDrumsHighwayConfigurationMenu.Instance;
+            if (menu == null)
+                return;
+
+            menu.gameObject.SetActive(false);
+        }
     }
 }
