@@ -10,6 +10,7 @@ using YARG.Helpers.Extensions;
 using YARG.Menu.Navigation;
 using YARG.Player;
 using YARG.Settings.Customization;
+using static UnityEditor.Progress;
 using static YARG.Core.Game.ColorProfile;
 
 namespace YARG.Menu.HighwayConfiguration
@@ -73,6 +74,26 @@ namespace YARG.Menu.HighwayConfiguration
 
             HighwayOrdering.RemoveAt(index);
             HighwayOrdering.Insert(index + 1, (T)item);
+            Populate();
+        }
+
+        public void MergeItemInto(Enum source, Enum target, Enum merged)
+        {
+            var sourceIndex = GetItemIndex((T) source);
+            HighwayOrdering.RemoveAt(sourceIndex);
+
+            var targetIndex = GetItemIndex((T) target);
+            HighwayOrdering.RemoveAt(targetIndex);
+            HighwayOrdering.Insert(targetIndex, (T) merged);
+            Populate();
+        }
+
+        public void SplitItemInto(Enum source, (Enum, Enum) split)
+        {
+            var index = GetItemIndex((T) source);
+            HighwayOrdering.RemoveAt(index);
+            HighwayOrdering.Insert(index, (T)split.Item1);
+            HighwayOrdering.Insert(index + 1, (T) split.Item2);
             Populate();
         }
 

@@ -202,7 +202,7 @@ namespace YARG.Menu.ProfileList
 
         public void OpenFourLaneDrumsHighwayConfigurationMenu()
         {
-            var menu = YARG.Menu.HighwayConfiguration.FourLaneDrumsHighwayConfigurationMenu.Instance;
+            var menu = FourLaneDrumsHighwayConfigurationMenu.Instance;
             if (menu == null)
                 return;
 
@@ -222,7 +222,7 @@ namespace YARG.Menu.ProfileList
 
         public void CloseFourLaneDrumsHighwayConfigurationMenu()
         {
-            var menu = YARG.Menu.HighwayConfiguration.FourLaneDrumsHighwayConfigurationMenu.Instance;
+            var menu = FourLaneDrumsHighwayConfigurationMenu.Instance;
             if (menu == null)
                 return;
 
@@ -231,7 +231,7 @@ namespace YARG.Menu.ProfileList
 
         public void OpenProDrumsHighwayConfigurationMenu()
         {
-            var menu = YARG.Menu.HighwayConfiguration.ProDrumsHighwayConfigurationMenu.Instance;
+            var menu = ProDrumsHighwayConfigurationMenu.Instance;
             if (menu == null)
                 return;
 
@@ -254,7 +254,7 @@ namespace YARG.Menu.ProfileList
 
         public void CloseProDrumsHighwayConfigurationMenu()
         {
-            var menu = YARG.Menu.HighwayConfiguration.ProDrumsHighwayConfigurationMenu.Instance;
+            var menu = ProDrumsHighwayConfigurationMenu.Instance;
             if (menu == null)
                 return;
 
@@ -263,7 +263,7 @@ namespace YARG.Menu.ProfileList
 
         public void OpenFiveLaneDrumsHighwayConfigurationMenu()
         {
-            var menu = YARG.Menu.HighwayConfiguration.FiveLaneDrumsHighwayConfigurationMenu.Instance;
+            var menu = FiveLaneDrumsHighwayConfigurationMenu.Instance;
             if (menu == null)
                 return;
 
@@ -284,7 +284,7 @@ namespace YARG.Menu.ProfileList
 
         public void CloseFiveLaneDrumsHighwayConfigurationMenu()
         {
-            var menu = YARG.Menu.HighwayConfiguration.FiveLaneDrumsHighwayConfigurationMenu.Instance;
+            var menu = FiveLaneDrumsHighwayConfigurationMenu.Instance;
             if (menu == null)
                 return;
 

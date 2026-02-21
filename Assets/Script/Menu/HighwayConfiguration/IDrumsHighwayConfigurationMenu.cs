@@ -10,5 +10,7 @@ namespace YARG.Menu.HighwayConfiguration
     {
         void MoveItemRight(Enum item);
         void MoveItemLeft(Enum item);
+        void MergeItemInto(Enum source, Enum target, Enum merged);
+        void SplitItemInto(Enum source, (Enum, Enum) split);
     }
 }
