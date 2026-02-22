@@ -143,9 +143,7 @@ namespace YARG.Menu.Persistent
             canvas.sortingOrder = _sortingOrder;
 
             if (GetComponent<GraphicRaycaster>() == null)
-            {
                 gameObject.AddComponent<GraphicRaycaster>();
-            }
         }
 
         private void ShowToast(ToastType type, string body, Action onClick)

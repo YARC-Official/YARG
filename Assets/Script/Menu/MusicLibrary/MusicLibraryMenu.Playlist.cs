@@ -107,9 +107,7 @@ namespace YARG.Menu.MusicLibrary
             Refresh();
 
             if (!SetIndexTo(i => i is SongViewType))
-            {
                 SelectedIndex = 0;
-            }
         }
 
         private List<ViewType> CreateShowViewList()

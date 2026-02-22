@@ -587,9 +587,7 @@ namespace YARG.Menu.MusicLibrary
         private bool TrySelectCurrentSongPreferNaturalLocation(SongEntry targetSong)
         {
             if (targetSong == null)
-            {
                 return false;
-            }
 
             int newPositionStartIndex = _recommendedHeaderIndex != -1 ? _primaryHeaderIndex : 0;
             bool selected = SetIndexTo(i => i is SongViewType view &&
@@ -728,9 +726,8 @@ namespace YARG.Menu.MusicLibrary
             bool shouldApplyFilters = inLibrary && predicate != null;
             bool shouldShowFilteredCounts = inLibrary && (_searchField.IsSearching || predicate != null);
             if (shouldApplyFilters)
-            {
                 _sortedSongs = ApplyFilterPredicate(_sortedSongs, predicate);
-            }
+
             if (shouldShowFilteredCounts)
             {
                 var baseList = SongContainer.GetSortedCategory(SettingsManager.Settings.LibrarySort);
@@ -1234,9 +1231,7 @@ namespace YARG.Menu.MusicLibrary
             if (MenuState == MenuState.Library && !PlaylistMode)
             {
                 if (CurrentSelection is ButtonViewType button)
-                {
                     buttonId = button.ID;
-                }
 
                 headerSnapshot = GetHeaderSnapshotAboveIndex(selectedIndex);
                 wasRecommendedHeader = CurrentSelection is CategoryViewType && _recommendedSongs != null;
@@ -1285,14 +1280,10 @@ namespace YARG.Menu.MusicLibrary
         private SongEntry ResolveFallbackSong(int selectedIndex, SongEntry previousSong)
         {
             if (MenuState != MenuState.Library || PlaylistMode)
-            {
                 return null;
-            }
 
             if (previousSong != null || CurrentSelection is SongViewType)
-            {
                 return null;
-            }
 
             return GetFirstSongAfterIndex(selectedIndex);
         }
