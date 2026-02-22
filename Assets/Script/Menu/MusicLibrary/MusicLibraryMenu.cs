@@ -68,6 +68,8 @@ namespace YARG.Menu.MusicLibrary
         private static SelectionSnapshot       _savedSelectionSnapshot;
         private static bool                    _hasSavedSelectionSnapshot;
         private static bool                    _preferHeaderOnNextSnapshot;
+        private static bool                    _forceGoToCurrentlyPlaying;
+        private static SongEntry               _forceGoToSong;
         private static int                     _mainLibraryIndex = -1;
         private static MusicLibraryReloadState _reloadState = MusicLibraryReloadState.Full;
         private static Playlist                _savedPlaylist;
@@ -77,6 +79,13 @@ namespace YARG.Menu.MusicLibrary
         public static void SetReload(MusicLibraryReloadState state)
         {
             _reloadState = state;
+        }
+
+        public static void RequestGoToCurrentlyPlaying(SongEntry song)
+        {
+            CurrentlyPlaying = song;
+            _forceGoToCurrentlyPlaying = song != null;
+            _forceGoToSong = song;
         }
 
         [Space]
@@ -207,6 +216,13 @@ namespace YARG.Menu.MusicLibrary
             {
                 RestoreSelectionSnapshot(_savedSelectionSnapshot);
                 _hasSavedSelectionSnapshot = false;
+            }
+
+            if (_forceGoToCurrentlyPlaying && MenuState == MenuState.Library && !PlaylistMode)
+            {
+                bool selected = TrySelectCurrentSongPreferNaturalLocation(_forceGoToSong ?? _currentSong);
+                _forceGoToCurrentlyPlaying = false;
+                _forceGoToSong = null;
             }
 
             CurrentlyPlaying = null;
@@ -568,6 +584,20 @@ namespace YARG.Menu.MusicLibrary
             MenuManager.Instance.PopMenu();
         }
 
+        private bool TrySelectCurrentSongPreferNaturalLocation(SongEntry targetSong)
+        {
+            if (targetSong == null)
+            {
+                return false;
+            }
+
+            int newPositionStartIndex = _recommendedHeaderIndex != -1 ? _primaryHeaderIndex : 0;
+            bool selected = SetIndexTo(i => i is SongViewType view &&
+                view.SongEntry.SortBasedLocation == targetSong.SortBasedLocation,
+                newPositionStartIndex);
+            return selected;
+        }
+
         private void CalculateCategoryHeaderIndices(List<ViewType> list)
         {
             _sectionHeaderIndices.Clear();
@@ -717,7 +747,8 @@ namespace YARG.Menu.MusicLibrary
             }
 
             if (_reloadState != MusicLibraryReloadState.Partial && !searchChanged &&
-                MenuState != MenuState.PlaylistSelect)
+                MenuState != MenuState.PlaylistSelect &&
+                !_forceGoToCurrentlyPlaying)
             {
                 int newPositionStartIndex = _recommendedHeaderIndex != -1 ? _primaryHeaderIndex : 0;
 
