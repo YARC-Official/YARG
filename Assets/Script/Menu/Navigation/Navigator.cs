@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
-using YARG;
 using YARG.Core.Input;
 using YARG.Input;
 using YARG.Menu.Persistent;
@@ -109,25 +108,7 @@ namespace YARG.Menu.Navigation
         public bool DisableMenuInputs
         {
             get => _disableMenuInputs;
-            set
-            {
-                if (_disableMenuInputs == value) return;
-
-                _disableMenuInputs = value;
-
-                if (_disableMenuInputs)
-                {
-                    _repeatInputs.Clear();
-
-                    for (int i = _holdInputs.Count - 1; i >= 0; i--)
-                    {
-                        _holdInputs[i].Tracker.StopHolding();
-                        _holdInputs[i].Tracker.ClearEvents();
-                    }
-
-                    _holdInputs.Clear();
-                }
-            }
+            set => SetDisableMenuInputs(value);
         }
 
         public event Action<NavigationContext> NavigationEvent;
@@ -135,6 +116,26 @@ namespace YARG.Menu.Navigation
         private readonly List<RepeatContext> _repeatInputs = new();
         private readonly List<NavigationHold> _holdInputs = new();
         private readonly Stack<NavigationScheme> _schemeStack = new();
+
+        private void SetDisableMenuInputs(bool value)
+        {
+            if (_disableMenuInputs == value) return;
+
+            _disableMenuInputs = value;
+
+            if (_disableMenuInputs)
+            {
+                _repeatInputs.Clear();
+
+                for (int i = _holdInputs.Count - 1; i >= 0; i--)
+                {
+                    _holdInputs[i].Tracker.StopHolding();
+                    _holdInputs[i].Tracker.ClearEvents();
+                }
+
+                _holdInputs.Clear();
+            }
+        }
 
         private void Start()
         {

@@ -220,7 +220,7 @@ namespace YARG.Menu.MusicLibrary
 
             if (_forceGoToCurrentlyPlaying && MenuState == MenuState.Library && !PlaylistMode)
             {
-                bool selected = TrySelectCurrentSongPreferNaturalLocation(_forceGoToSong ?? _currentSong);
+                TrySelectCurrentSongPreferNaturalLocation(_forceGoToSong ?? _currentSong);
                 _forceGoToCurrentlyPlaying = false;
                 _forceGoToSong = null;
             }
@@ -540,6 +540,9 @@ namespace YARG.Menu.MusicLibrary
                 }
 
                 SortHeaderViewType sortHeader = null;
+                // When searching with the generic Search Bar, results come back under a single
+                // "Search Results" category sorted by relevance.  We're showing that text in the
+                // banner and hiding the redundant category header.
                 bool hideSearchResultsHeader = _searchField.IsSearching &&
                     string.Equals(section.Category, "Search Results", StringComparison.OrdinalIgnoreCase);
                 if (showSortHeaders && !hideSearchResultsHeader)
@@ -725,8 +728,10 @@ namespace YARG.Menu.MusicLibrary
             bool inLibrary = !PlaylistMode && MenuState == MenuState.Library;
             bool shouldApplyFilters = inLibrary && predicate != null;
             bool shouldShowFilteredCounts = inLibrary && (_searchField.IsSearching || predicate != null);
-            if (shouldApplyFilters)
+
+            if (shouldApplyFilters) {
                 _sortedSongs = ApplyFilterPredicate(_sortedSongs, predicate);
+            }
 
             if (shouldShowFilteredCounts)
             {
@@ -737,7 +742,9 @@ namespace YARG.Menu.MusicLibrary
             {
                 _totalSongCountUnfiltered = 0;
             }
+
             RequestViewListUpdate();
+            
             if (shouldApplyFilters)
             {
                 EnsureValidSelectionAfterFilter();

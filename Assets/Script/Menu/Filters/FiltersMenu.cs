@@ -1434,7 +1434,6 @@ namespace YARG.Menu.Filters
         {
             if (!_ready) return;
 
-            bool filtersChanged = HaveFiltersChanged();
             bool showRecommendationsChanged = _showRecommendationsOnOpen !=
                 SettingsManager.Settings.ShowRecommendedSongs.Value;
             SaveFilters();
@@ -1443,7 +1442,7 @@ namespace YARG.Menu.Filters
             library?.SetSidebarDifficultiesVisible(true);
             if (library != null)
             {
-                if (filtersChanged || showRecommendationsChanged)
+                if (HaveFiltersChanged() || showRecommendationsChanged)
                 {
                     library.RequestPreferHeaderOnNextSnapshot();
                     library.RefreshAndReselect();
