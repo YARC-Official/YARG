@@ -42,10 +42,10 @@ namespace YARG.Menu.MusicLibrary
                 }
             }
 
-            SourceCountText = $"{SourceCounter.Count} Source{(SourceCounter.Count == 1 ? "" : "s")}";
-            CharterCountText = $"{CharterCounter.Count} Charter{(CharterCounter.Count == 1 ? "" : "s")}";
-            GenreCountText = $"{GenreCounter.Count} Genre{(GenreCounter.Count == 1 ? "" : "s")}";
-            SubgenreCountText = $"{SubgenreCounter.Count} Subgenre{(SubgenreCounter.Count == 1 ? "" : "s")}";
+            SourceCountText = Pluralize("Source", SourceCounter.Count);
+            CharterCountText = Pluralize("Charter", CharterCounter.Count);
+            GenreCountText = Pluralize("Genre", GenreCounter.Count);
+            SubgenreCountText = Pluralize("Subgenre", SubgenreCounter.Count);
             SourceCounter.Clear();
             CharterCounter.Clear();
             GenreCounter.Clear();
@@ -60,6 +60,11 @@ namespace YARG.Menu.MusicLibrary
         public override string GetSideText(bool selected)
         {
             return CreateSongCountString(SongCount);
+        }
+
+        private static string Pluralize(string item, int count)
+        {
+            return $"{count} {item}{(count == 1 ? "" : "s")}";
         }
 
         public override void PrimaryButtonClick()
