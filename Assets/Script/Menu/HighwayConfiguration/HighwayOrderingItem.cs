@@ -185,6 +185,9 @@ namespace YARG.Menu.HighwayConfiguration
             _configMenu.ToggleExpertPlusOnly();
         }
 
+        // Technically we should have separate 4L and 5L kicks, but in practice it doesn't matter
+        private static (int pad, int colorIndex) KICK = ((int) FourLaneDrumPad.Kick, (int) FourLaneDrumsFret.Kick);
+
         private static (int pad, int colorIndex) FOUR_LANE_RED_DRUM = ((int) FourLaneDrumPad.RedDrum, (int) FourLaneDrumsFret.RedDrum);
         private static (int pad, int colorIndex) FOUR_LANE_YELLOW_DRUM = ((int) FourLaneDrumPad.YellowDrum, (int) FourLaneDrumsFret.YellowDrum);
         private static (int pad, int colorIndex) FOUR_LANE_BLUE_DRUM = ((int) FourLaneDrumPad.BlueDrum, (int) FourLaneDrumsFret.BlueDrum);
@@ -192,7 +195,7 @@ namespace YARG.Menu.HighwayConfiguration
         private static (int pad, int colorIndex) FOUR_LANE_YELLOW_CYMBAL = ((int) FourLaneDrumPad.YellowCymbal, (int) FourLaneDrumsFret.YellowCymbal);
         private static (int pad, int colorIndex) FOUR_LANE_BLUE_CYMBAL = ((int) FourLaneDrumPad.BlueCymbal, (int) FourLaneDrumsFret.BlueCymbal);
         private static (int pad, int colorIndex) FOUR_LANE_GREEN_CYMBAL = ((int) FourLaneDrumPad.GreenCymbal, (int) FourLaneDrumsFret.GreenCymbal);
-
+        
         private static (int pad, int colorIndex) FIVE_LANE_RED = ((int) FiveLaneDrumPad.Red, (int) FiveLaneDrumsFret.Red);
         private static (int pad, int colorIndex) FIVE_LANE_YELLOW = ((int) FiveLaneDrumPad.Yellow, (int) FiveLaneDrumsFret.Yellow);
         private static (int pad, int colorIndex) FIVE_LANE_BLUE = ((int) FiveLaneDrumPad.Blue, (int) FiveLaneDrumsFret.Blue);
@@ -201,6 +204,11 @@ namespace YARG.Menu.HighwayConfiguration
 
         public static Dictionary<DrumsHighwayItem, List<(int pad, int colorIndex)>> HighwayOrderingInfoMap = new()
         {
+            { DrumsHighwayItem.Kick, new() { KICK } },
+            { DrumsHighwayItem.Kick1x, new() { KICK } },
+            { DrumsHighwayItem.Kick2x, new() { KICK } },
+            { DrumsHighwayItem.Kick2xConditional, new() { KICK } },
+
             { DrumsHighwayItem.FourLaneRed, new() { FOUR_LANE_RED_DRUM } },
 
             { DrumsHighwayItem.FourLaneYellow, new() { FOUR_LANE_YELLOW_DRUM, FOUR_LANE_YELLOW_CYMBAL } },

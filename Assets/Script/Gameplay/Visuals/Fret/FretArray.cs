@@ -15,6 +15,12 @@ namespace YARG.Gameplay.Visuals
 {
     public readonly struct HighwayOrderingInfo
     {
+        public HighwayOrderingInfo(float _position, int _colorIndex, float _expertPlusPosition)
+        {
+            Position = _position;
+            ColorIndex = _colorIndex;
+        }
+
         public HighwayOrderingInfo(float _position, int _colorIndex)
         {
             Position = _position;

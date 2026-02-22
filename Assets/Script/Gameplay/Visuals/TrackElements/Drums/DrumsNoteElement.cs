@@ -83,7 +83,7 @@ namespace YARG.Gameplay.Visuals
 
             _scalingFactor ??= new Vector3(Player.NoteScaleFactor, Player.NoteScaleFactor, Player.NoteScaleFactor);
 
-            if (NoteRef.Pad != 0)
+            if (NoteRef.Pad != 0 || Player.KickHasLane)
             {
                 gameObject.transform.localScale = Vector3.Scale(transform.localScale, _scalingFactor.Value);
             }

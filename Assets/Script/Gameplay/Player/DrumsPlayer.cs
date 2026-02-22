@@ -35,6 +35,7 @@ namespace YARG.Gameplay.Player
         private bool _blueCymbalHasLane = false;
         private bool _greenCymbalHasLane = false;
 
+        public bool KickHasLane { get; private set; } = false;
         public float NoteScaleFactor = 1f;
 
         private int DrumsActionToHighwayIndex(DrumsAction action)
@@ -423,7 +424,7 @@ namespace YARG.Gameplay.Player
         private void OnPadHit(DrumsAction action, bool wasNoteHit, bool wasNoteHitCorrectly, DrumNoteType type, float velocity)
         {
             // Update last hit times for fret flashing animation
-            if (action is not DrumsAction.Kick)
+            if (action is not DrumsAction.Kick || KickHasLane)
             {
                 // Play the correct hit animation based on dynamics
                 Fret.AnimType animType = Fret.AnimType.CorrectNormal;
@@ -460,7 +461,7 @@ namespace YARG.Gameplay.Player
                 PlayDrumSoundEffect(action, velocity);
             }
 
-            if (action is not DrumsAction.Kick)
+            if (action is not DrumsAction.Kick || KickHasLane)
             {
                 if (isDrumFreestyle)
                 {
@@ -662,7 +663,7 @@ namespace YARG.Gameplay.Player
         private void AnimateFret(int pad, Fret.AnimType animType)
         {
             // Four and five lane drums have the same kick value
-            if (pad == (int) FourLaneDrumPad.Kick)
+            if (pad == (int) FourLaneDrumPad.Kick && !KickHasLane)
             {
                 _kickFretFlash.PlayHitAnimation();
                 _fretArray.PlayKickFretAnimation();
@@ -717,6 +718,7 @@ namespace YARG.Gameplay.Player
             {
                 return fret switch
                 {
+                    FourLaneDrumsFret.Kick =>           (int)FourLaneDrumsFret.Kick,
                     FourLaneDrumsFret.RedDrum =>        (int)FourLaneDrumsFret.GreenDrum,
                     FourLaneDrumsFret.YellowDrum =>     (int)FourLaneDrumsFret.BlueDrum,
                     FourLaneDrumsFret.BlueDrum =>       (int)FourLaneDrumsFret.YellowDrum,
@@ -736,6 +738,7 @@ namespace YARG.Gameplay.Player
             if (Player.Profile.LeftyFlip)
             {
                 return fret switch {
+                    FiveLaneDrumsFret.Kick =>   (int)FiveLaneDrumsFret.Kick,
                     FiveLaneDrumsFret.Red =>    (int)FiveLaneDrumsFret.Green,
                     FiveLaneDrumsFret.Yellow => (int)FiveLaneDrumsFret.Orange,
                     FiveLaneDrumsFret.Blue =>   (int)FiveLaneDrumsFret.Blue,
@@ -770,7 +773,11 @@ namespace YARG.Gameplay.Player
                 _ => throw new ArgumentOutOfRangeException("Unexpected nondrums instrument")
             };
 
-            LaneCount = ordering.Length;
+            // If the player has a dedicated Left Kick lane that's set to Expert+ Only, and isn't playing on Expert+, then the actual amount of lanes is 1 fewer than the size
+            // of the provided ordering because that lane is absent.
+            var conditionalPedalAdjustment = ordering.Contains(DrumsHighwayItem.Kick2xConditional) && Player.Profile.CurrentDifficulty is not Difficulty.ExpertPlus ? 1 : 0;
+
+            LaneCount = ordering.Length - conditionalPedalAdjustment;
             NoteScaleFactor = 4f / LaneCount;
 
             _highwayOrdering = new();
@@ -786,6 +793,9 @@ namespace YARG.Gameplay.Player
 
                     switch (item)
                     {
+                        case DrumsHighwayItem.Kick or DrumsHighwayItem.Kick1x or DrumsHighwayItem.Kick2x or DrumsHighwayItem.Kick2xConditional:
+                            KickHasLane = true;
+                            break;
                         case DrumsHighwayItem.FourLaneYellowCymbal:
                             _yellowCymbalHasLane = true;
                             break;
