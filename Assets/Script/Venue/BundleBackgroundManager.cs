@@ -20,6 +20,7 @@ namespace YARG.Venue
         public const string BACKGROUND_PREFAB_PATH = "Assets/_Background.prefab";
         public const string CHARACTER_PREFAB_PATH = "Assets/_Character.prefab";
         public const string BACKGROUND_SHADER_BUNDLE_NAME = "_metal_shaders.bytes";
+        public const string CHARACTER_SHADER_BUNDLE_NAME = "_character_metal_shaders.bytes";
         public const string BACKGOUND_OSX_MATERIAL_PREFIX = "_metal_";
 
         private const string VENUE_LAYER_NAME = "Venue";
@@ -143,6 +144,7 @@ namespace YARG.Venue
 
                 // We use materials as "anchors" to make sure all required
                 // shader variants are included
+                var metalAssetBundleName = type == ExportType.Background ? BACKGROUND_SHADER_BUNDLE_NAME : CHARACTER_SHADER_BUNDLE_NAME;
                 var materialAssets = EditorUtility.CollectDependencies(new[] { gameObject })
                     .OfType<Material>() // Only material dependencices
                     .Select((mat, i) =>
@@ -176,7 +178,7 @@ namespace YARG.Venue
                 if (materialAssets.Length > 0)
                 {
                     var metalAssetBundleBuild = default(AssetBundleBuild);
-                    metalAssetBundleBuild.assetBundleName = BACKGROUND_SHADER_BUNDLE_NAME;
+                    metalAssetBundleBuild.assetBundleName = metalAssetBundleName;
                     metalAssetBundleBuild.assetNames = materialAssets.Concat(shaderAssets).ToArray();
 
                     BuildPipeline.BuildAssetBundles(Application.temporaryCachePath,
@@ -186,10 +188,10 @@ namespace YARG.Venue
                         }, BuildAssetBundleOptions.ForceRebuildAssetBundle,
                         BuildTarget.StandaloneOSX);
 
-                    var filePath = Path.Combine(Application.temporaryCachePath, BACKGROUND_SHADER_BUNDLE_NAME);
-                    var assetPath = Path.Combine(Application.dataPath, BACKGROUND_SHADER_BUNDLE_NAME);
+                    var filePath = Path.Combine(Application.temporaryCachePath, metalAssetBundleName);
+                    var assetPath = Path.Combine(Application.dataPath, metalAssetBundleName);
                     File.Move(filePath, assetPath);
-                    AssetDatabase.ImportAsset(Path.Combine("Assets", BACKGROUND_SHADER_BUNDLE_NAME));
+                    AssetDatabase.ImportAsset(Path.Combine("Assets", metalAssetBundleName));
                 }
                 // Now delete our material clones
                 foreach (var assetPath in materialAssets)
@@ -206,7 +208,7 @@ namespace YARG.Venue
 
                 var assetPaths = new[]
                 {
-                    Path.Combine("Assets/", BACKGROUND_SHADER_BUNDLE_NAME),
+                    Path.Combine("Assets/", metalAssetBundleName),
                     backgroundPath
                 };
 
@@ -301,12 +303,12 @@ namespace YARG.Venue
         {
             Export(gameObject, ExportType.Background);
         }
+#endif
 
-        private enum ExportType
+        public enum ExportType
         {
             Character,
             Background
         }
-#endif
     }
 }

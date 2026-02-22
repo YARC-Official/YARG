@@ -1,4 +1,5 @@
-﻿using Cysharp.Threading.Tasks;
+﻿using System.Collections.Generic;
+using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
@@ -34,7 +35,7 @@ namespace YARG.Settings.Metadata
         {
         }
 
-        public UniTask BuildPreviewWorld(Transform worldContainer)
+        public async UniTask BuildPreviewWorld(Transform worldContainer)
         {
             _worldContainer = worldContainer;
 
@@ -49,7 +50,7 @@ namespace YARG.Settings.Metadata
             if (_previewWorld == null)
             {
                 YargLogger.LogError("Failed to load addressable character preview world prefab!");
-                return UniTask.CompletedTask;
+                return;
             }
 
             // Instantiate the preview prefab
@@ -59,7 +60,7 @@ namespace YARG.Settings.Metadata
 
             if (string.IsNullOrEmpty(CharacterFile))
             {
-                return UniTask.CompletedTask;
+                return;
             }
 
             if (_characterPrefab != null)
@@ -86,10 +87,18 @@ namespace YARG.Settings.Metadata
                 }
             }
 
+            AssetBundle shaderBundle = null;
             // It is expected that the character bundle may not have loaded
             if (_characterPrefab != null)
             {
+                // Replace shaders if necessary
+                shaderBundle = await LoadMetalShaders(bundle, _characterPrefab);
                 _characterInstance = _previewScriptInstance.Initialize(_characterPrefab);
+            }
+
+            if (shaderBundle != null)
+            {
+                shaderBundle.Unload(false);
             }
 
             if (bundle != null)
@@ -97,7 +106,7 @@ namespace YARG.Settings.Metadata
                 bundle.Unload(false);
             }
 
-            return UniTask.CompletedTask;
+            return;
         }
 
         public async UniTask BuildPreviewUI(Transform uiContainer)
@@ -135,7 +144,7 @@ namespace YARG.Settings.Metadata
             previewTexture.uvRect = rect;
         }
 
-        public static void ChangeCharacter(string path)
+        public static async UniTask ChangeCharacter(string path)
         {
             CharacterFile = path;
 
@@ -146,6 +155,7 @@ namespace YARG.Settings.Metadata
             }
 
             AssetBundle bundle = null;
+            AssetBundle shaderBundle = null;
 
             if (!string.IsNullOrEmpty(CharacterFile))
             {
@@ -178,6 +188,8 @@ namespace YARG.Settings.Metadata
                 return;
             }
 
+            shaderBundle = await LoadMetalShaders(bundle, _characterPrefab);
+
             if (_previewWorld == null)
             {
                 _previewWorld = Addressables
@@ -198,10 +210,74 @@ namespace YARG.Settings.Metadata
 
             _uiScriptInstance.Initialize(_characterInstance);
 
+            if (shaderBundle != null)
+            {
+                shaderBundle.Unload(false);
+            }
+
             if (bundle != null)
             {
                 bundle.Unload(false);
             }
+        }
+
+        // TODO: Refactor the AssetBundle loading such that BackgroundManager and this can share code
+        private static async UniTask<AssetBundle> LoadMetalShaders(AssetBundle bundle, GameObject bg)
+        {
+#if UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX
+            AssetBundle shaderBundle = null;
+            var renderers = bg.GetComponentsInChildren<Renderer>(true);
+            var metalShaders = new Dictionary<string, Shader>();
+
+            var shaderBundleName = "Assets/" + BundleBackgroundManager.CHARACTER_SHADER_BUNDLE_NAME;
+
+            var shaderBundleData = (TextAsset)await bundle.LoadAssetAsync<TextAsset>(
+                shaderBundleName
+            );
+
+            if (shaderBundleData != null && shaderBundleData.bytes.Length > 0)
+            {
+                YargLogger.LogInfo("Loading Metal shader bundle");
+                shaderBundle = await AssetBundle.LoadFromMemoryAsync(shaderBundleData.bytes);
+                var allAssets = shaderBundle.LoadAllAssets<Shader>();
+                foreach (var shader in allAssets)
+                {
+                    metalShaders.Add(shader.name, shader);
+                }
+            }
+            else
+            {
+                YargLogger.LogInfo("Did not find Metal shader bundle");
+            }
+
+            // Yarground comes with shaders for dx11/dx12/glcore/vulkan
+            // Metal shaders used on OSX come in this separate bundle
+            // Update our renderers to use them
+
+            foreach (var renderer in renderers)
+            {
+                foreach (var material in renderer.sharedMaterials)
+                {
+                    var shaderName = material.shader.name;
+                    if (metalShaders.TryGetValue(shaderName, out var shader))
+                    {
+                        YargLogger.LogFormatDebug("Found bundled shader {0}", shaderName);
+                        // We found shader from Yarground
+                        material.shader = shader;
+                    }
+                    else
+                    {
+                        YargLogger.LogFormatDebug("Did not find bundled shader {0}", shaderName);
+                        // Fallback to try to find among builtin shaders
+                        material.shader = Shader.Find(shaderName);
+                    }
+                }
+            }
+
+            return shaderBundle;
+#endif
+            // Fallback if we're not running on OSX
+            return null;
         }
     }
 }

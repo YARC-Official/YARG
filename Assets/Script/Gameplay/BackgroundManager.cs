@@ -17,6 +17,7 @@ using YARG.Settings;
 using YARG.Venue;
 using YARG.Venue.Characters;
 using YARG.Core.Logging;
+using ExportType = YARG.Venue.BundleBackgroundManager.ExportType;
 
 #if UNITY_EDITOR
 using UnityEditor.SceneManagement;
@@ -195,7 +196,7 @@ namespace YARG.Gameplay
             var renderers = bg.GetComponentsInChildren<Renderer>(true);
 
             // Load Metal shaders, if necessary
-            shaderBundle = await LoadMetalShaders(bundle, bg);
+            shaderBundle = await LoadMetalShaders(bundle, bg, ExportType.Background);
 
             // Hookup song-specific textures
             var textureManager = GetComponent<TextureManager>();
@@ -485,7 +486,7 @@ namespace YARG.Gameplay
             }
 
             // Load Metal shaders
-            var shaderBundle = await LoadMetalShaders(bundle, character);
+            var shaderBundle = await LoadMetalShaders(bundle, character, ExportType.Character);
             if (shaderBundle != null)
             {
                 _bundleBackgroundManager.ShaderBundles.Add(shaderBundle);
@@ -546,15 +547,22 @@ namespace YARG.Gameplay
             SetLayer(newCharacter, layerIndex);
         }
 
-        private async UniTask<AssetBundle> LoadMetalShaders(AssetBundle bundle, GameObject bg)
+        private async UniTask<AssetBundle> LoadMetalShaders(AssetBundle bundle, GameObject bg, ExportType type)
         {
 #if UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX
             AssetBundle shaderBundle = null;
             var renderers = bg.GetComponentsInChildren<Renderer>(true);
             var metalShaders = new Dictionary<string, Shader>();
 
+            var shaderBundleName = type switch
+            {
+                ExportType.Character => "Assets/" + BundleBackgroundManager.CHARACTER_SHADER_BUNDLE_NAME,
+                ExportType.Background => "Assets/" + BundleBackgroundManager.BACKGROUND_SHADER_BUNDLE_NAME,
+                _ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
+            };
+
             var shaderBundleData = (TextAsset)await bundle.LoadAssetAsync<TextAsset>(
-                "Assets/" + BundleBackgroundManager.BACKGROUND_SHADER_BUNDLE_NAME
+                shaderBundleName
             );
 
             if (shaderBundleData != null && shaderBundleData.bytes.Length > 0)
