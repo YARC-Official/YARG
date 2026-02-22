@@ -1303,30 +1303,6 @@ namespace YARG.Menu.MusicLibrary
                 (SettingsManager.Settings.LibrarySort == SortAttribute.Playcount ||
                     SettingsManager.Settings.LibrarySort == SortAttribute.Stars))
             {
-                if (snapshot.WasSongSelection)
-                {
-                    if (snapshot.PreviousSongHash.HasValue &&
-                        SetIndexTo(i => i is SongViewType view &&
-                            view.SongEntry.Hash.Equals(snapshot.PreviousSongHash.Value)))
-                    {
-                        return;
-                    }
-
-                    if (snapshot.PreviousSongLocation != null &&
-                        SetIndexTo(i => i is SongViewType view &&
-                            view.SongEntry.ActualLocation == snapshot.PreviousSongLocation))
-                    {
-                        return;
-                    }
-
-                    if (snapshot.PreviousSong != null &&
-                        SetIndexTo(i => i is SongViewType view &&
-                            view.SongEntry.SortBasedLocation == snapshot.PreviousSong.SortBasedLocation))
-                    {
-                        return;
-                    }
-                }
-
                 if (ViewList.Count == 0) return;
 
                 SelectedIndex = Mathf.Clamp(snapshot.SelectedIndex, 0, ViewList.Count - 1);
