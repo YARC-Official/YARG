@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 using YARG.Gameplay;
@@ -36,8 +37,9 @@ namespace YARG.Venue
         [SerializeField]
         private VenueCharacter _replaceableVocalist;
 
-        public AssetBundle Bundle { get; set; }
-        public AssetBundle ShaderBundle { get; set; }
+        public AssetBundle       Bundle        { get; set; }
+        public List<AssetBundle> ShaderBundles { get; set; } = new();
+        public List<AssetBundle> CharacterBundles { get; set; } = new();
 
         private void Awake()
         {
@@ -79,9 +81,30 @@ namespace YARG.Venue
                 Bundle.Unload(true);
             }
 
-            if (ShaderBundle != null)
+            if (ShaderBundles.Count > 0)
             {
-                ShaderBundle.Unload(true);
+                foreach (var bundle in ShaderBundles)
+                {
+                    if (bundle != null)
+                    {
+                        bundle.Unload(true);
+                    }
+                }
+
+                ShaderBundles.Clear();
+            }
+
+            if (CharacterBundles.Count > 0)
+            {
+                foreach (var bundle in CharacterBundles)
+                {
+                    if (bundle != null)
+                    {
+                        bundle.Unload(true);
+                    }
+                }
+
+                CharacterBundles.Clear();
             }
         }
 

@@ -63,6 +63,8 @@ namespace YARG.Gameplay
 
         private AssetBundle _characterBundle;
 
+        private BundleBackgroundManager _bundleBackgroundManager;
+
 #if UNITY_EDITOR
         private bool        _usingEditorVenue;
         private string      _editorVenuePath;
@@ -210,9 +212,11 @@ namespace YARG.Gameplay
             var bgInstance = Instantiate(bg);
             var bundleBackgroundManager = bgInstance.GetComponent<BundleBackgroundManager>();
             bundleBackgroundManager.Bundle = bundle;
-            bundleBackgroundManager.ShaderBundle = shaderBundle;
+            bundleBackgroundManager.ShaderBundles.Add(shaderBundle);
             bundleBackgroundManager.SetupVenueCamera(bgInstance);
             bundleBackgroundManager.LimitVenueLights(bgInstance);
+
+            _bundleBackgroundManager = bundleBackgroundManager;
 
             // Destroy the default camera (venue has its own)
             Destroy(_videoPlayer.targetCamera.gameObject);
@@ -222,7 +226,7 @@ namespace YARG.Gameplay
                 SetUpVideoTexture(songBackground);
             }
 
-            LoadCustomCharacter(bgInstance);
+            await LoadCustomCharacter(bgInstance);
 
             // Initialize CharacterManager, if it exists
             var characterManager = bgInstance.GetComponentInChildren<CharacterManager>();
@@ -455,7 +459,7 @@ namespace YARG.Gameplay
             // The venue is dealt with in the GameManager via Time.timeScale
         }
 
-        private void LoadCustomCharacter(GameObject venueRoot)
+        private async UniTask LoadCustomCharacter(GameObject venueRoot)
         {
             string characterPath = SettingsManager.Settings.CustomVocalsCharacter.Value;
 
@@ -471,13 +475,20 @@ namespace YARG.Gameplay
                 return;
             }
 
-            _characterBundle = bundle;
+            _bundleBackgroundManager.CharacterBundles.Add(bundle);
 
             var character = bundle.LoadAsset<GameObject>(BundleBackgroundManager.CHARACTER_PREFAB_PATH.ToLowerInvariant());
             if (character == null)
             {
                 YargLogger.LogFormatError("Failed to load character from {0}", characterPath);
                 return;
+            }
+
+            // Load Metal shaders
+            var shaderBundle = await LoadMetalShaders(bundle, character);
+            if (shaderBundle != null)
+            {
+                _bundleBackgroundManager.ShaderBundles.Add(shaderBundle);
             }
 
             // Check for an existing animation controller and use default if none is found
@@ -708,11 +719,6 @@ namespace YARG.Gameplay
                 VIDEO_PATH = null;
             }
 
-            if (_characterBundle != null)
-            {
-                _characterBundle.Unload(true);
-                _characterBundle = null;
-            }
 #if UNITY_EDITOR
             if (_usingEditorVenue)
             {
