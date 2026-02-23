@@ -503,14 +503,15 @@ namespace YARG.Menu.MusicLibrary
                             {
                                 bool selectTopOfList = CurrentSelection is SongViewType songView &&
                                     _recommendedSongs.Contains(songView.SongEntry);
-                                RefreshAndReselect(selectTopOfList);
+                                bool preserveSelectedIndex = SelectedIndex != _recommendedHeaderIndex;
+                                RefreshAndReselect(selectTopOfList, preserveSelectedIndex);
                             }
                         ));
                         _recommendedHeaderIndex = list.Count - 1;
 
                         foreach (var song in _recommendedSongs)
                         {
-                            list.Add(new SongViewType(this, song));
+                            list.Add(new SongViewType(this, song, "recommended"));
                         }
                         _primaryHeaderIndex += _recommendedSongs.Length + 1;
                     }
@@ -1076,10 +1077,17 @@ namespace YARG.Menu.MusicLibrary
             } while (CurrentSelection is not SongViewType);
         }
 
-        public void RefreshAndReselect(bool selectTopOfList = false)
+        public void RefreshAndReselect(bool selectTopOfList = false, bool preserveSelectedIndex = false)
         {
+            int preservedIndex = SelectedIndex;
             var snapshot = CaptureSelectionSnapshot();
             Refresh();
+
+            if (preserveSelectedIndex)
+            {
+                SelectedIndex = Mathf.Clamp(preservedIndex, 0, ViewList.Count - 1);
+                return;
+            }
 
             if (selectTopOfList)
             {
@@ -1094,110 +1102,34 @@ namespace YARG.Menu.MusicLibrary
             RestoreSelectionSnapshot(snapshot);
         }
 
-        private readonly struct HeaderSnapshot
-        {
-            public readonly string HeaderText;
-            public readonly string HeaderShortcut;
-            public readonly string CategoryText;
-
-            public HeaderSnapshot(string headerText, string headerShortcut, string categoryText)
-            {
-                HeaderText = headerText;
-                HeaderShortcut = headerShortcut;
-                CategoryText = categoryText;
-            }
-        }
-
-        private HeaderSnapshot GetHeaderSnapshotAboveIndex(int startIndex)
-        {
-            var list = ViewList;
-            for (int i = Math.Min(startIndex, list.Count - 1); i >= 0; i--)
-            {
-                switch (list[i])
-                {
-                    case SortHeaderViewType sortHeader:
-                        return new HeaderSnapshot(sortHeader.HeaderText, sortHeader.ShortcutName, null);
-                    case CategoryViewType category:
-                        return new HeaderSnapshot(null, null, category.GetPrimaryText(false));
-                }
-            }
-
-            return new HeaderSnapshot(null, null, null);
-        }
-
-        private SongEntry GetFirstSongAfterIndex(int startIndex)
-        {
-            var list = ViewList;
-            for (int i = startIndex + 1; i < list.Count; i++)
-            {
-                if (list[i] is SongViewType songView)
-                    return songView.SongEntry;
-            }
-
-            return null;
-        }
-
         private readonly struct SelectionSnapshot
         {
             public readonly int SelectedIndex;
-            public readonly SongEntry PreviousSong;
-
-            public readonly HeaderSnapshot Header;
-
-            public readonly SongEntry FallbackSong;
-            public readonly int? ButtonId;
-
-            public readonly bool WasRecommendedHeader;
-            public readonly bool WasRecommendedSong;
-            public readonly bool WasSongSelection;
+            public readonly string SelectedStableId;
+            public readonly string SelectedSongContentStableId;
+            public readonly string HeaderStableId;
+            public readonly string FallbackSongStableId;
 
             public readonly bool PreserveIndexOnDynamicSort; // Sorted by Playcount or Stars
             public readonly bool PreferHeaderOverFallback;
 
-            public readonly HashWrapper? PreviousSongHash;
-            public readonly string PreviousSongLocation;
-
-            public readonly HashWrapper? FallbackSongHash;
-            public readonly string FallbackSongLocation;
-
             public SelectionSnapshot(
                 int selectedIndex,
-                SongEntry previousSong,
-
-                HeaderSnapshot header,
-
-                SongEntry fallbackSong,
-                int? buttonId,
-
-                bool wasRecommendedHeader,
-                bool wasRecommendedSong,
-                bool wasSongSelection,
+                string selectedStableId,
+                string selectedSongContentStableId,
+                string headerStableId,
+                string fallbackSongStableId,
 
                 bool preserveIndexOnDynamicSort,
-                bool preferHeaderOverFallback,
-
-                HashWrapper? previousSongHash,
-                string previousSongLocation,
-
-                HashWrapper? fallbackSongHash,
-                string fallbackSongLocation)
+                bool preferHeaderOverFallback)
             {
                 SelectedIndex = selectedIndex;
-                PreviousSong = previousSong;
-                Header = header;
-                FallbackSong = fallbackSong;
-                ButtonId = buttonId;
-                WasRecommendedHeader = wasRecommendedHeader;
-                WasRecommendedSong = wasRecommendedSong;
-                WasSongSelection = wasSongSelection;
+                SelectedStableId = selectedStableId;
+                SelectedSongContentStableId = selectedSongContentStableId;
+                HeaderStableId = headerStableId;
+                FallbackSongStableId = fallbackSongStableId;
                 PreserveIndexOnDynamicSort = preserveIndexOnDynamicSort;
                 PreferHeaderOverFallback = preferHeaderOverFallback;
-
-                PreviousSongHash = previousSongHash;
-                PreviousSongLocation = previousSongLocation;
-
-                FallbackSongHash = fallbackSongHash;
-                FallbackSongLocation = fallbackSongLocation;
             }
         }
 
@@ -1212,87 +1144,52 @@ namespace YARG.Menu.MusicLibrary
 
             // Selection
             int selectedIndex = SelectedIndex;
-            SongViewType songView = CurrentSelection as SongViewType;
-            // When FiltersMenu is open, _currentSong stops updating.
-            SongEntry previousSong = songView?.SongEntry ?? _currentSong;
+            string selectedStableId = CurrentSelection?.StableId;
+            string selectedSongContentStableId = (CurrentSelection as SongViewType)?.ContentStableId;
 
             // Header context
-            HeaderSnapshot headerSnapshot = default;
+            string headerStableId = null;
 
             // Trigger source
-            SongEntry fallbackSong = ResolveFallbackSong(selectedIndex, previousSong);
-            int? buttonId = null;
-
-            // Recommendation state
-            bool wasRecommendedHeader = false;
-            bool wasRecommendedSong = false;
-            bool isInRecommendedSection = false;
-            bool wasSongSelection = songView != null;
-
-            // Stable identifiers
-            HashWrapper? previousSongHash = previousSong?.Hash;
-            string previousSongLocation = previousSong?.ActualLocation;
-            HashWrapper? fallbackSongHash = null;
-            string fallbackSongLocation = null;
+            string fallbackSongStableId = null;
 
             if (MenuState == MenuState.Library && !PlaylistMode)
             {
-                if (CurrentSelection is ButtonViewType button)
-                    buttonId = button.ID;
-
-                headerSnapshot = GetHeaderSnapshotAboveIndex(selectedIndex);
-                wasRecommendedHeader = CurrentSelection is CategoryViewType && _recommendedSongs != null;
-                if (CurrentSelection is SongViewType && _recommendedSongs != null && _recommendedSongs.Length > 0)
+                var list = ViewList;
+                for (int i = Math.Min(selectedIndex, list.Count - 1); i >= 0; i--)
                 {
-                    if (_recommendedHeaderIndex != -1)
+                    switch (list[i])
                     {
-                        int startIndex = _recommendedHeaderIndex + 1;
-                        int endIndex = _recommendedHeaderIndex + _recommendedSongs.Length;
-                        isInRecommendedSection = selectedIndex >= startIndex && selectedIndex <= endIndex;
+                        case SortHeaderViewType:
+                        case CategoryViewType:
+                            headerStableId = list[i].StableId;
+                            i = -1;
+                            break;
                     }
-
-                    wasRecommendedSong = isInRecommendedSection && _recommendedSongs.Contains(_currentSong);
                 }
-            }
 
-            if (fallbackSong != null)
-            {
-                fallbackSongHash = fallbackSong.Hash;
-                fallbackSongLocation = fallbackSong.ActualLocation;
+                bool hasSongSelection = CurrentSelection is SongViewType || _currentSong != null;
+                if (!hasSongSelection)
+                {
+                    for (int i = selectedIndex + 1; i < list.Count; i++)
+                    {
+                        if (list[i] is SongViewType songView)
+                        {
+                            fallbackSongStableId = songView.StableId;
+                            break;
+                        }
+                    }
+                }
             }
 
             return new SelectionSnapshot(
                 selectedIndex,
-                previousSong,
-
-                headerSnapshot,
-
-                fallbackSong,
-                buttonId,
-
-                wasRecommendedHeader,
-                wasRecommendedSong,
-                wasSongSelection,
-
+                selectedStableId,
+                selectedSongContentStableId,
+                headerStableId,
+                fallbackSongStableId,
                 preserveIndexOnDynamicSort,
-                preferHeaderOverFallback,
-
-                previousSongHash,
-                previousSongLocation,
-
-                fallbackSongHash,
-                fallbackSongLocation);
-        }
-
-        private SongEntry ResolveFallbackSong(int selectedIndex, SongEntry previousSong)
-        {
-            if (MenuState != MenuState.Library || PlaylistMode)
-                return null;
-
-            if (previousSong != null || CurrentSelection is SongViewType)
-                return null;
-
-            return GetFirstSongAfterIndex(selectedIndex);
+                preferHeaderOverFallback);
         }
 
         private void RestoreSelectionSnapshot(SelectionSnapshot snapshot)
@@ -1307,181 +1204,53 @@ namespace YARG.Menu.MusicLibrary
                 return;
             }
 
-            if (snapshot.WasRecommendedSong && _recommendedSongs == null &&
-                SetIndexTo(i => i is SortHeaderViewType, _primaryHeaderIndex))
-            {
+            if (SetIndexToStableId(snapshot.SelectedStableId))
                 return;
-            }
 
-            if (snapshot.WasRecommendedSong && _recommendedSongs != null && snapshot.PreviousSong != null)
-            {
-                if (!_recommendedSongs.Contains(snapshot.PreviousSong) &&
-                    SetIndexTo(i => i is CategoryViewType))
-                {
-                    return;
-                }
-            }
-
-            if (snapshot.WasRecommendedSong && _recommendedSongs != null &&
-                SetIndexTo(i => i is SongViewType view &&
-                    snapshot.PreviousSongHash.HasValue &&
-                    view.SongEntry.Hash.Equals(snapshot.PreviousSongHash.Value)))
-            {
+            if (SetIndexToSongContentStableId(snapshot.SelectedSongContentStableId, _primaryHeaderIndex))
                 return;
-            }
-
-            if (snapshot.WasRecommendedSong && _recommendedSongs != null &&
-                SetIndexTo(i => i is SongViewType view &&
-                    snapshot.PreviousSongLocation != null &&
-                    view.SongEntry.ActualLocation == snapshot.PreviousSongLocation))
-            {
-                return;
-            }
-
-            if (snapshot.WasRecommendedSong && _recommendedSongs != null &&
-                snapshot.PreviousSong != null &&
-                SetIndexTo(i => i is SongViewType view &&
-                    view.SongEntry.SortBasedLocation == snapshot.PreviousSong.SortBasedLocation))
-            {
-                return;
-            }
-
-            if (snapshot.PreviousSongHash.HasValue &&
-                SetIndexTo(i => i is SongViewType view &&
-                    view.SongEntry.Hash.Equals(snapshot.PreviousSongHash.Value),
-                    _primaryHeaderIndex))
-            {
-                return;
-            }
-
-            if (snapshot.PreviousSongLocation != null &&
-                SetIndexTo(i => i is SongViewType view &&
-                    view.SongEntry.ActualLocation == snapshot.PreviousSongLocation,
-                    _primaryHeaderIndex))
-            {
-                return;
-            }
-
-            if (snapshot.PreviousSong != null &&
-                SetIndexTo(i => i is SongViewType view &&
-                    view.SongEntry.SortBasedLocation == snapshot.PreviousSong.SortBasedLocation,
-                    _primaryHeaderIndex))
-            {
-                return;
-            }
-
-            if (snapshot.ButtonId.HasValue &&
-                SetIndexTo(i => i is ButtonViewType button && button.ID == snapshot.ButtonId.Value))
-            {
-                return;
-            }
-
-            if (snapshot.WasRecommendedHeader)
-            {
-                if (_recommendedSongs != null &&
-                    SetIndexTo(i => i is CategoryViewType))
-                {
-                    return;
-                }
-
-                if (_recommendedSongs == null &&
-                    SetIndexTo(i => i is SortHeaderViewType, _primaryHeaderIndex))
-                {
-                    return;
-                }
-            }
 
             bool headerFirst = snapshot.PreferHeaderOverFallback ||
-                (snapshot.PreviousSong == null && snapshot.Header.HeaderText != null);
+                (snapshot.SelectedStableId == null && snapshot.HeaderStableId != null);
+
             if (headerFirst)
             {
-                if (snapshot.Header.HeaderText != null &&
-                    SetIndexTo(i => i is SortHeaderViewType header &&
-                        header.HeaderText == snapshot.Header.HeaderText &&
-                        header.ShortcutName == snapshot.Header.HeaderShortcut))
-                {
+                if (SetIndexToStableId(snapshot.HeaderStableId))
                     return;
-                }
 
-                if (snapshot.Header.CategoryText != null &&
-                    SetIndexTo(i => i is CategoryViewType category &&
-                        category.GetPrimaryText(false) == snapshot.Header.CategoryText))
-                {
+                if (SetIndexToStableId(snapshot.FallbackSongStableId, _primaryHeaderIndex))
                     return;
-                }
-
-                if (snapshot.FallbackSongHash.HasValue &&
-                    SetIndexTo(i => i is SongViewType view &&
-                        view.SongEntry.Hash.Equals(snapshot.FallbackSongHash.Value),
-                        _primaryHeaderIndex))
-                {
-                    return;
-                }
-
-                if (snapshot.FallbackSongLocation != null &&
-                    SetIndexTo(i => i is SongViewType view &&
-                        view.SongEntry.ActualLocation == snapshot.FallbackSongLocation,
-                        _primaryHeaderIndex))
-                {
-                    return;
-                }
-
-                if (snapshot.FallbackSong != null &&
-                    SetIndexTo(i => i is SongViewType view &&
-                        view.SongEntry.SortBasedLocation == snapshot.FallbackSong.SortBasedLocation,
-                        _primaryHeaderIndex))
-                {
-                    return;
-                }
             }
             else
             {
-                if (snapshot.FallbackSongHash.HasValue &&
-                    SetIndexTo(i => i is SongViewType view &&
-                        view.SongEntry.Hash.Equals(snapshot.FallbackSongHash.Value),
-                        _primaryHeaderIndex))
-                {
+                if (SetIndexToStableId(snapshot.FallbackSongStableId, _primaryHeaderIndex))
                     return;
-                }
 
-                if (snapshot.FallbackSongLocation != null &&
-                    SetIndexTo(i => i is SongViewType view &&
-                        view.SongEntry.ActualLocation == snapshot.FallbackSongLocation,
-                        _primaryHeaderIndex))
-                {
+                if (SetIndexToStableId(snapshot.HeaderStableId))
                     return;
-                }
-
-                if (snapshot.FallbackSong != null &&
-                    SetIndexTo(i => i is SongViewType view &&
-                        view.SongEntry.SortBasedLocation == snapshot.FallbackSong.SortBasedLocation,
-                        _primaryHeaderIndex))
-                {
-                    return;
-                }
-
-                if (snapshot.Header.HeaderText != null &&
-                    SetIndexTo(i => i is SortHeaderViewType header &&
-                        header.HeaderText == snapshot.Header.HeaderText &&
-                        header.ShortcutName == snapshot.Header.HeaderShortcut))
-                {
-                    return;
-                }
-
-                if (snapshot.Header.CategoryText != null &&
-                    SetIndexTo(i => i is CategoryViewType category &&
-                        category.GetPrimaryText(false) == snapshot.Header.CategoryText))
-                {
-                    return;
-                }
             }
 
             if (SetIndexTo(i => i is SongViewType))
-            {
                 return;
-            }
 
             SelectedIndex = snapshot.SelectedIndex;
+        }
+
+        private bool SetIndexToStableId(string stableId, int searchStartIndex = 0)
+        {
+            if (string.IsNullOrEmpty(stableId))
+                return false;
+
+            return SetIndexTo(view => view.StableId == stableId, searchStartIndex);
+        }
+
+        private bool SetIndexToSongContentStableId(string contentStableId, int searchStartIndex = 0)
+        {
+            if (string.IsNullOrEmpty(contentStableId))
+                return false;
+
+            return SetIndexTo(view => view is SongViewType song && song.ContentStableId == contentStableId,
+                searchStartIndex);
         }
 
         private bool SetIndexToFirstRecommendedSong()

@@ -11,6 +11,8 @@ namespace YARG.Menu.MusicLibrary
 {
     public abstract class ViewType : BaseViewType
     {
+        public abstract string StableId { get; }
+
         public struct FavoriteInfo
         {
             public bool ShowFavoriteButton;
