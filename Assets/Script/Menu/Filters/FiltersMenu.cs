@@ -1436,6 +1436,7 @@ namespace YARG.Menu.Filters
 
             bool showRecommendationsChanged = _showRecommendationsOnOpen !=
                 SettingsManager.Settings.ShowRecommendedSongs.Value;
+            HaveFiltersChanged();
             SaveFilters();
             ActiveFilterPredicate = BuildFilterPredicate();
             var library = FindFirstObjectByType<MusicLibrary.MusicLibraryMenu>();
