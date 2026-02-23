@@ -1436,14 +1436,16 @@ namespace YARG.Menu.Filters
 
             bool showRecommendationsChanged = _showRecommendationsOnOpen !=
                 SettingsManager.Settings.ShowRecommendedSongs.Value;
-            HaveFiltersChanged();
+            // Must check before SaveFilters() so we don't overwrite the previous state
+            // otherwise filter changes won't trigger a library refresh
+            bool filtersChanged = HaveFiltersChanged();
             SaveFilters();
             ActiveFilterPredicate = BuildFilterPredicate();
             var library = FindFirstObjectByType<MusicLibrary.MusicLibraryMenu>();
             library?.SetSidebarDifficultiesVisible(true);
             if (library != null)
             {
-                if (HaveFiltersChanged() || showRecommendationsChanged)
+                if (filtersChanged || showRecommendationsChanged)
                 {
                     library.RequestPreferHeaderOnNextSnapshot();
                     library.RefreshAndReselect();
