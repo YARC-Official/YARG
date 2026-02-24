@@ -416,8 +416,7 @@ namespace YARG.Gameplay.Visuals
 
             float increment = HIGHWAY_WIDTH / EffectRef.TotalLanes;
             float initialOffset = -1 * (HIGHWAY_WIDTH / 2) + increment / 2;
-            float sign = Player.Player.Profile.LeftyFlip ? -1f : 1f;
-            return sign * (initialOffset + (EffectRef.FillLanePosition) * increment);
+            return initialOffset + (EffectRef.FillLanePosition) * increment;
         }
 
         private float GetXScaleForLeadUp()
