@@ -189,6 +189,13 @@ namespace YARG.Venue
                         BuildTarget.StandaloneOSX);
 
                     var filePath = Path.Combine(Application.temporaryCachePath, metalAssetBundleName);
+
+                    if (!File.Exists(filePath))
+                    {
+                        EditorUtility.DisplayDialog("Export Unsuccessful", "Failed to build MacOS Shader bundle. See console for more info.", "OK");
+                        throw new FileNotFoundException("MacOS Shader bundle failed to build. <a href=\"https://wiki.yarg.in/wiki/Venue_Creation\">Please ensure you have the \"MacOS Build Support (Mono)\" module installed.</a>");
+                    }
+                    
                     var assetPath = Path.Combine(Application.dataPath, metalAssetBundleName);
                     File.Move(filePath, assetPath);
                     AssetDatabase.ImportAsset(Path.Combine("Assets", metalAssetBundleName));
