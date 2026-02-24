@@ -477,6 +477,8 @@ namespace YARG.Gameplay.Visuals
             private readonly HighwayCameraRendering _highwayCameraRendering;
             private readonly Material               _material;
 
+            public static readonly int LayerMask = ~(1 << UnityEngine.LayerMask.NameToLayer("FadeExclude"));
+
             public FadePass(HighwayCameraRendering highCamRend)
             {
                 _highwayCameraRendering = highCamRend;
@@ -510,6 +512,7 @@ namespace YARG.Gameplay.Visuals
                     {
                         renderQueueRange = RenderQueueRange.transparent,
                         overrideMaterial = passData.material,
+                        layerMask = LayerMask,
                     };
                     passData.transparentRendererList = renderGraph.CreateRendererList(transparentDesc);
                     builder.UseRendererList(passData.transparentRendererList);
@@ -519,6 +522,7 @@ namespace YARG.Gameplay.Visuals
                     {
                         renderQueueRange = RenderQueueRange.opaque,
                         overrideMaterial = passData.material,
+                        layerMask = LayerMask,
                     };
                     passData.opaqueRendererList = renderGraph.CreateRendererList(opaqueDesc);
                     builder.UseRendererList(passData.opaqueRendererList);
