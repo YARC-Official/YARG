@@ -189,6 +189,17 @@ namespace YARG.Venue
                 _lightingEventIndex++;
             }
 
+            // Decrement the spotlight times
+            for (int i = 0; i < _spotlightStates.Length; i++)
+            {
+                if (_spotlightStates[i] <= 0)
+                {
+                    continue;
+                }
+
+                _spotlightStates[i] -= Time.deltaTime;
+            }
+
             // Look for new performer events
             // TODO: Fix the event parsing so that Time and TimeEnd aren't backwards (with the attendant negative length)
             while (_performerEventIndex < _performerEvents.Count &&
@@ -205,7 +216,8 @@ namespace YARG.Venue
                     _performerEventIndex++;
                     continue;
                 }
-                _spotlightStates[(int) location] = current.TimeLength * -1;
+
+                _spotlightStates[(int) location] = current.TimeLength;
 
                 _performerEventIndex++;
             }

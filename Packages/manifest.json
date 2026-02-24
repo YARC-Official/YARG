@@ -46,6 +46,8 @@
     "com.unity.render-pipelines.universal": "17.3.0",
     "com.unity.timeline": "1.8.10",
     "com.unity.ugui": "2.0.0",
+    "com.vrmc.gltf": "https://github.com/vrm-c/UniVRM.git?path=/Packages/UniGLTF#v0.131.0",
+    "com.vrmc.vrm": "https://github.com/vrm-c/UniVRM.git?path=/Packages/VRM10#v0.131.0",
     "com.yasirkula.simplefilebrowser": "https://github.com/yasirkula/UnitySimpleFileBrowser.git",
     "in.yarg.core": "file:../YARG.Core/YARG.Core",
     "jp.keijiro.minis": "https://github.com/TheNathannator/Minis.git?path=/Packages/jp.keijiro.minis#yarg",

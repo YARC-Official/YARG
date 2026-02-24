@@ -66,8 +66,8 @@ namespace YARG.Song
             using var output = new StreamWriter(path);
 
             output.WriteLine(
-                "Name,Artist,Album,Genre,Year,Length,Charter,Playlist,Source," +
-                "Master,Age Rating,Vocal Parts," +
+                "Name,Artist,Album,Genre,Subgenre,Year,Length," +
+                "Charter,Playlist,Source,Master,Age Rating,Vocal Parts," +
                 "Guitar (5-Fret) Difficulty,Bass (5-Fret) Difficulty,Rhythm (5-Fret) Difficulty,Co-op (5-Fret) Difficulty,Keys Difficulty," +
                 "Guitar (6-Fret) Difficulty,Bass (6-Fret) Difficulty,Rhythm (6-Fret) Difficulty,Co-op (6-Fret) Difficulty," +
                 "Drums (4-Lane) Difficulty,Pro Drums Difficulty,Drums (5-Lane) Difficulty,Elite Drums Difficulty," +
@@ -81,6 +81,7 @@ namespace YARG.Song
                 string artist = Escape(RichTextUtils.StripRichTextTags(song.Artist));
                 string album = Escape(RichTextUtils.StripRichTextTags(song.Album));
                 string genre = Escape(RichTextUtils.StripRichTextTags(song.Genre));
+                string subgenre = Escape(RichTextUtils.StripRichTextTags(song.Subgenre));
                 string year = Escape(RichTextUtils.StripRichTextTags(song.UnmodifiedYear));
                 string charter = Escape(RichTextUtils.StripRichTextTags(song.Charter));
                 string playlist = Escape(RichTextUtils.StripRichTextTags(song.Playlist));
@@ -137,8 +138,8 @@ namespace YARG.Song
                 string hash = song.Hash.ToString();
 
                 output.WriteLine(
-                    $"{name},{artist},{album},{genre},{year},{songLength},{charter},{playlist},{source}," +
-                    $"{isMaster},{songRating},{vocalsCount}," +
+                    $"{name},{artist},{album},{genre},{subgenre},{year},{songLength}," +
+                    $"{charter},{playlist},{source},{isMaster},{songRating},{vocalsCount}," +
                     $"{fiveFretGuitar},{fiveFretBass},{fiveFretRhythm},{fiveFretCoopGuitar},{keys}," +
                     $"{sixFretGuitar},{sixFretBass},{sixFretRhythm},{sixFretCoopGuitar}," +
                     $"{fourLaneDrums},{proDrums},{fiveLaneDrums},{eliteDrums}," +

@@ -528,6 +528,14 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 21300000, guid: 3d1a462525fed0543ac9c73b40d35e7c, type: 3}
     - target: {fileID: 2692442145375190135, guid: 81863a63e0d96cf459c263ee0ea6f98e, type: 3}
+      propertyPath: m_Vertical
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2692442145375190135, guid: 81863a63e0d96cf459c263ee0ea6f98e, type: 3}
+      propertyPath: m_Horizontal
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2692442145375190135, guid: 81863a63e0d96cf459c263ee0ea6f98e, type: 3}
       propertyPath: m_VerticalScrollbar
       value: 
       objectReference: {fileID: 0}

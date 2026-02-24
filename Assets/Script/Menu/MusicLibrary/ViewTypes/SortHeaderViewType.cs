@@ -19,12 +19,14 @@ namespace YARG.Menu.MusicLibrary
         public readonly  string SourceCountText;
         public readonly  string CharterCountText;
         public readonly  string GenreCountText;
+        public readonly  string SubgenreCountText;
         private readonly int    _songCount;
         public           int    TotalStarsCount { get; set; }
 
         private static readonly HashSet<string> SourceCounter  = new();
         private static readonly HashSet<string> CharterCounter = new();
         private static readonly HashSet<string> GenreCounter   = new();
+        private static readonly HashSet<string> SubgenreCounter = new();
 
         public SortHeaderViewType(string headerText, int songCount, string shortcutName, SongEntry[] songsUnderCategory)
         {
@@ -38,14 +40,17 @@ namespace YARG.Menu.MusicLibrary
                 SourceCounter.Add(song.Source);
                 CharterCounter.Add(song.Charter);
                 GenreCounter.Add(song.Genre);
+                SubgenreCounter.Add(song.Subgenre);
             }
 
             SourceCountText = $"{SourceCounter.Count} sources";
             CharterCountText = $"{CharterCounter.Count} charters";
             GenreCountText = $"{GenreCounter.Count} genres";
+            SubgenreCountText = $"{SubgenreCounter.Count} subgenres";
             SourceCounter.Clear();
             CharterCounter.Clear();
             GenreCounter.Clear();
+            SubgenreCounter.Clear();
         }
 
         public override string GetPrimaryText(bool selected)

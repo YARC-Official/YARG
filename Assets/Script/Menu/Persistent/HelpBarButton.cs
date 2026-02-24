@@ -10,9 +10,6 @@ namespace YARG.Menu.Persistent
 {
     public class HelpBarButton : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IPointerDownHandler, IPointerUpHandler
     {
-        // Delay before showing hold fill so short taps do not flash the bar.
-        private const float DELAY_FILL_SECONDS = 0.25f;
-
         [SerializeField]
         private Image _buttonImage;
         [SerializeField]
@@ -45,10 +42,11 @@ namespace YARG.Menu.Persistent
 
         private bool _clickable = true;
         private bool _isPointerOver;
-        private bool _isPointerHolding;
         private ButtonState _defaultState = ButtonState.NONE;
 
         private ButtonState _currentState = ButtonState.NONE;
+        private bool IsPointerHolding => _entry?.HasHoldHandler == true && _holdTracker?.IsHolding == true;
+        private bool IsDisabledState => _currentState == ButtonState.DISABLED;
 
         public enum ButtonState
         {
@@ -66,16 +64,9 @@ namespace YARG.Menu.Persistent
 
             if (entry.HasHoldHandler)
             {
-                _holdTracker ??= new HoldTracker(0f);
-                _holdTracker.ClearEvents();
-                _holdTracker.Configure(entry.HoldSeconds, DELAY_FILL_SECONDS);
-                _holdTracker.OnHoldProgress += HandleHoldProgress;
-                _holdTracker.OnClick += HandleClick;
-                _holdTracker.OnHoldComplete += HandleHoldComplete;
-                _holdTracker.OnHoldCancelled += HandleHoldCancelled;
+                ConfigureHoldTracker(entry.HoldSeconds);
             }
 
-            _isPointerHolding = false;
             _defaultState = ButtonState.NONE;
 
             var icons = MenuData.NavigationIcons;
@@ -111,7 +102,6 @@ namespace YARG.Menu.Persistent
             {
                 return;
             }
-
             ApplyState(ButtonState.HOVER);
         }
 
@@ -122,7 +112,6 @@ namespace YARG.Menu.Persistent
             {
                 return;
             }
-
             ApplyState(_defaultState);
         }
 
@@ -135,7 +124,6 @@ namespace YARG.Menu.Persistent
 
             if (_entry?.HasHoldHandler == true)
             {
-                _isPointerHolding = true;
                 _holdTracker.StartHolding();
                 ApplyState(ButtonState.HOLD);
             }
@@ -153,10 +141,9 @@ namespace YARG.Menu.Persistent
                 return;
             }
 
-            if (_isPointerHolding)
+            if (IsPointerHolding)
             {
                 _holdTracker.StopHolding();
-                _isPointerHolding = false;
             }
 
             _buttonHoldFill.fillAmount = 0f;
@@ -167,12 +154,14 @@ namespace YARG.Menu.Persistent
         public void DisableButton()
         {
             _clickable = false;
+            ClearHoldState();
             ApplyState(ButtonState.DISABLED);
         }
 
         public void EnableButton()
         {
             _clickable = true;
+            _currentState = ButtonState.NONE;
             ApplyState(_defaultState);
         }
 
@@ -194,7 +183,6 @@ namespace YARG.Menu.Persistent
 
         private void HandleHoldComplete()
         {
-            _isPointerHolding = false;
             _entry?.InvokeHoldHandler();
             _buttonHoldFill.fillAmount = 0f;
             ApplyState(_isPointerOver ? ButtonState.HOVER : _defaultState);
@@ -205,8 +193,34 @@ namespace YARG.Menu.Persistent
             // Visual reset happens in OnPointerUp
         }
 
+        private void ConfigureHoldTracker(float holdSeconds)
+        {
+            _holdTracker ??= new HoldTracker(holdSeconds);
+            _holdTracker.ClearEvents();
+            _holdTracker.StopHolding();
+            _holdTracker.Configure(holdSeconds);
+            _holdTracker.OnHoldProgress += HandleHoldProgress;
+            _holdTracker.OnClick += HandleClick;
+            _holdTracker.OnHoldComplete += HandleHoldComplete;
+            _holdTracker.OnHoldCancelled += HandleHoldCancelled;
+        }
+
+        private void ClearHoldState()
+        {
+            _buttonHoldFill.fillAmount = 0f;
+            if (_entry?.HasHoldHandler == true)
+            {
+                ConfigureHoldTracker(_entry.Value.HoldSeconds);
+            }
+        }
+
         private void ApplyState(ButtonState state)
         {
+            if (IsDisabledState && state != ButtonState.DISABLED)
+            {
+                return;
+            }
+
             _currentState = state;
 
             switch (state)
@@ -251,14 +265,18 @@ namespace YARG.Menu.Persistent
 
         private void Update()
         {
+            if (IsDisabledState)
+            {
+                return;
+            }
+
             if (_entry?.HasHoldHandler != true)
             {
                 return;
             }
 
             _holdTracker?.Tick();
-
-            if (!_isPointerHolding)
+            if (!IsPointerHolding)
             {
                 HandleControllerHold();
             }

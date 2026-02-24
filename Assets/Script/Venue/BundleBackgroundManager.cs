@@ -1,14 +1,15 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 using YARG.Gameplay;
 using YARG.Venue.VenueCamera;
+using YARG.Venue.Characters;
 
 #if UNITY_EDITOR
 using System.Linq;
 using UnityEditor;
 using UnityEditor.Animations;
-using YARG.Venue.Characters;
 #endif
 
 namespace YARG.Venue
@@ -17,7 +18,9 @@ namespace YARG.Venue
     {
         // DO NOT CHANGE THIS! It will break existing venues
         public const string BACKGROUND_PREFAB_PATH = "Assets/_Background.prefab";
+        public const string CHARACTER_PREFAB_PATH = "Assets/_Character.prefab";
         public const string BACKGROUND_SHADER_BUNDLE_NAME = "_metal_shaders.bytes";
+        public const string CHARACTER_SHADER_BUNDLE_NAME = "_character_metal_shaders.bytes";
         public const string BACKGOUND_OSX_MATERIAL_PREFIX = "_metal_";
 
         private const string VENUE_LAYER_NAME = "Venue";
@@ -31,8 +34,13 @@ namespace YARG.Venue
         [SerializeField]
         private Camera mainCamera;
 
-        public AssetBundle Bundle { get; set; }
-        public AssetBundle ShaderBundle { get; set; }
+        [Space]
+        [SerializeField]
+        private VenueCharacter _replaceableVocalist;
+
+        public AssetBundle       Bundle        { get; set; }
+        public List<AssetBundle> ShaderBundles { get; set; } = new();
+        public List<AssetBundle> CharacterBundles { get; set; } = new();
 
         private void Awake()
         {
@@ -69,10 +77,35 @@ namespace YARG.Venue
 
         private void OnDestroy()
         {
-            Bundle.Unload(true);
-            if (ShaderBundle != null)
+            if (Bundle != null)
             {
-                ShaderBundle.Unload(true);
+                Bundle.Unload(true);
+            }
+
+            if (ShaderBundles.Count > 0)
+            {
+                foreach (var bundle in ShaderBundles)
+                {
+                    if (bundle != null)
+                    {
+                        bundle.Unload(true);
+                    }
+                }
+
+                ShaderBundles.Clear();
+            }
+
+            if (CharacterBundles.Count > 0)
+            {
+                foreach (var bundle in CharacterBundles)
+                {
+                    if (bundle != null)
+                    {
+                        bundle.Unload(true);
+                    }
+                }
+
+                CharacterBundles.Clear();
             }
         }
 
@@ -87,11 +120,12 @@ namespace YARG.Venue
 
         private GameObject _backgroundReference;
 
-        [ContextMenu("Export Background")]
-        public void ExportBackground()
+        private void Export(GameObject root, ExportType type)
         {
-            _backgroundReference = gameObject;
-            string path = EditorUtility.SaveFilePanel("Save Background", string.Empty, "bg", "yarground");
+            _backgroundReference = root;
+            string defaultName = type == ExportType.Character ? "character" : "bg";
+            string extension = type == ExportType.Character ? "yargchar" : "yarground";
+            string path = EditorUtility.SaveFilePanel("Save Background", string.Empty, defaultName, extension);
 
             GameObject clonedBackground = null;
 
@@ -110,6 +144,7 @@ namespace YARG.Venue
 
                 // We use materials as "anchors" to make sure all required
                 // shader variants are included
+                var metalAssetBundleName = type == ExportType.Background ? BACKGROUND_SHADER_BUNDLE_NAME : CHARACTER_SHADER_BUNDLE_NAME;
                 var materialAssets = EditorUtility.CollectDependencies(new[] { gameObject })
                     .OfType<Material>() // Only material dependencices
                     .Select((mat, i) =>
@@ -143,7 +178,7 @@ namespace YARG.Venue
                 if (materialAssets.Length > 0)
                 {
                     var metalAssetBundleBuild = default(AssetBundleBuild);
-                    metalAssetBundleBuild.assetBundleName = BACKGROUND_SHADER_BUNDLE_NAME;
+                    metalAssetBundleBuild.assetBundleName = metalAssetBundleName;
                     metalAssetBundleBuild.assetNames = materialAssets.Concat(shaderAssets).ToArray();
 
                     BuildPipeline.BuildAssetBundles(Application.temporaryCachePath,
@@ -153,10 +188,17 @@ namespace YARG.Venue
                         }, BuildAssetBundleOptions.ForceRebuildAssetBundle,
                         BuildTarget.StandaloneOSX);
 
-                    var filePath = Path.Combine(Application.temporaryCachePath, BACKGROUND_SHADER_BUNDLE_NAME);
-                    var assetPath = Path.Combine(Application.dataPath, BACKGROUND_SHADER_BUNDLE_NAME);
+                    var filePath = Path.Combine(Application.temporaryCachePath, metalAssetBundleName);
+
+                    if (!File.Exists(filePath))
+                    {
+                        EditorUtility.DisplayDialog("Export Unsuccessful", "Failed to build MacOS Shader bundle. See console for more info.", "OK");
+                        throw new FileNotFoundException("MacOS Shader bundle failed to build. <a href=\"https://wiki.yarg.in/wiki/Venue_Creation\">Please ensure you have the \"MacOS Build Support (Mono)\" module installed.</a>");
+                    }
+                    
+                    var assetPath = Path.Combine(Application.dataPath, metalAssetBundleName);
                     File.Move(filePath, assetPath);
-                    AssetDatabase.ImportAsset(Path.Combine("Assets", BACKGROUND_SHADER_BUNDLE_NAME));
+                    AssetDatabase.ImportAsset(Path.Combine("Assets", metalAssetBundleName));
                 }
                 // Now delete our material clones
                 foreach (var assetPath in materialAssets)
@@ -169,10 +211,12 @@ namespace YARG.Venue
                 string fileName = Path.GetFileName(path);
                 string folderPath = Path.GetDirectoryName(path);
 
+                var backgroundPath = ExportType.Character == type ? CHARACTER_PREFAB_PATH : BACKGROUND_PREFAB_PATH;
+
                 var assetPaths = new[]
                 {
-                    Path.Combine("Assets/", BACKGROUND_SHADER_BUNDLE_NAME),
-                    BACKGROUND_PREFAB_PATH
+                    Path.Combine("Assets/", metalAssetBundleName),
+                    backgroundPath
                 };
 
                 AssetBundleBuild assetBundleBuild = default;
@@ -214,7 +258,7 @@ namespace YARG.Venue
                     character.LayerStates = layerStates;
                 }
 
-                PrefabUtility.SaveAsPrefabAsset(clonedBackground.gameObject, BACKGROUND_PREFAB_PATH);
+                PrefabUtility.SaveAsPrefabAsset(clonedBackground.gameObject, backgroundPath);
 
                 BuildPipeline.BuildAssetBundles(Application.temporaryCachePath,
                     new[]
@@ -252,6 +296,26 @@ namespace YARG.Venue
                 }
             }
         }
+
+        [ContextMenu("Export Vocalist")]
+        public void ExportCharacter()
+        {
+            var vocalist = _replaceableVocalist.gameObject;
+
+            Export(vocalist, ExportType.Character);
+        }
+
+        [ContextMenu("Export Background")]
+        public void ExportBackground()
+        {
+            Export(gameObject, ExportType.Background);
+        }
 #endif
+
+        public enum ExportType
+        {
+            Character,
+            Background
+        }
     }
 }

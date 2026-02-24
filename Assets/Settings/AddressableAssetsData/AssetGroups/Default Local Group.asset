@@ -11,7 +11,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: bbb281ee3bf0b054c82ac2347e9e782c, type: 3}
   m_Name: Default Local Group
-  m_EditorClassIdentifier: 
+  m_EditorClassIdentifier:
   m_GroupName: Default Local Group
   m_GUID: 1fc303ae4b596034592a9c3d3864493f
   m_SerializeEntries:
@@ -175,6 +175,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 9fe3f03b859cb4846bfe733521bdbe70
+    m_Address: SettingPreviews/CharacterPreviewUI
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: a525db7d8caeaf043bc242aafb1f8ce2
     m_Address: VocalNeedle/6
     m_ReadOnly: 0
@@ -237,6 +242,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: eda8fcec479d4324eb4bd1d7624e1edc
     m_Address: SettingTab/Header
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: edae7e06bc0cb23478dcea1b38796c5d
+    m_Address: SettingPreviews/CharacterPreview
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
