@@ -272,7 +272,7 @@ namespace YARG.Gameplay.Player
                     continue;
                 }
 
-                int fillLane = rightmostNote.Pad;
+                var fillLanePosition = _highwayOrdering[rightmostNote.Pad].Position;
 
                 int candidateIndex = -1;
 
@@ -298,7 +298,7 @@ namespace YARG.Gameplay.Player
 
                 if (candidateIndex != -1)
                 {
-                    _trackEffects[candidateIndex].FillLane = fillLane;
+                    _trackEffects[candidateIndex].FillLanePosition = fillLanePosition;
                     _trackEffects[candidateIndex].TotalLanes = LaneCount;
                     pairedFillIndexes.Add(candidateIndex);
                     checkpoint = candidateIndex;
