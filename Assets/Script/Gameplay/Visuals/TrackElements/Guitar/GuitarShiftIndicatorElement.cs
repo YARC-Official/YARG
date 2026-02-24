@@ -18,7 +18,7 @@ namespace YARG.Gameplay.Visuals
         protected override void InitializeElement()
         {
             var cachedTransform = transform;
-            var sign = RangeShiftIndicator.LeftSide ? -1f : 1f;
+            var sign = RangeShiftIndicator.RightSide ? -1f : 1f;
             var xPosition = ((WIDTH_NUMERATOR / WIDTH_DENOMINATOR) * RangeShiftIndicator.Offset) * sign;
 
             cachedTransform.localScale = cachedTransform.localScale.WithX(sign);

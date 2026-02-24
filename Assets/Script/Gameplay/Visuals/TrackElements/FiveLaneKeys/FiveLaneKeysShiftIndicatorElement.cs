@@ -6,10 +6,7 @@ namespace YARG.Gameplay.Visuals
 {
     public class FiveLaneKeysShiftIndicatorElement : TrackElement<FiveLaneKeysPlayer>
     {
-        // TODO: These constants will only work for a five fret track, so work will be required to
-        //  make it work with six fret if that ever becomes a thing
         private const float WIDTH_NUMERATOR = 2f;
-        private const float WIDTH_DENOMINATOR = 5f;
         private const float SHIFT_INDICATOR_DEFAULT_POSITION = 1f;
         public FiveFretGuitarPlayer.RangeShiftIndicator RangeShiftIndicator;
 
@@ -18,8 +15,8 @@ namespace YARG.Gameplay.Visuals
         protected override void InitializeElement()
         {
             var cachedTransform = transform;
-            var sign = RangeShiftIndicator.LeftSide ? -1f : 1f;
-            var xPosition = ((WIDTH_NUMERATOR / WIDTH_DENOMINATOR) * RangeShiftIndicator.Offset) * sign;
+            var sign = RangeShiftIndicator.RightSide ? -1f : 1f;
+            var xPosition = ((WIDTH_NUMERATOR / Player.LaneCount) * RangeShiftIndicator.Offset) * sign;
 
             cachedTransform.localScale = cachedTransform.localScale.WithX(sign);
             cachedTransform.localPosition = cachedTransform.localPosition.WithX(xPosition);

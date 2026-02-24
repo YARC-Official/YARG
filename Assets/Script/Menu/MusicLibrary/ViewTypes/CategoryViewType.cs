@@ -9,6 +9,7 @@ namespace YARG.Menu.MusicLibrary
     public class CategoryViewType : ViewType
     {
         public override BackgroundType Background => BackgroundType.Category;
+        public override string StableId => _stableId;
 
         public readonly string SourceCountText;
         public readonly string CharterCountText;
@@ -19,17 +20,19 @@ namespace YARG.Menu.MusicLibrary
 
         protected readonly int SongCount;
         private readonly Action _clickAction;
+        private readonly string _stableId;
 
         private static readonly HashSet<string> SourceCounter  = new();
         private static readonly HashSet<string> CharterCounter = new();
         private static readonly HashSet<string> GenreCounter   = new();
         private static readonly HashSet<string> SubgenreCounter = new();
         public CategoryViewType(string primary, int songCount, SongEntry[] songsUnderCategory,
-            Action clickAction = null)
+            Action clickAction = null, string stableId = null)
         {
             Primary = primary;
             SongCount = songCount;
             _clickAction = clickAction;
+            _stableId = stableId ?? $"Category:{primary}";
 
             foreach (var song in songsUnderCategory)
             {
@@ -52,10 +55,11 @@ namespace YARG.Menu.MusicLibrary
             SubgenreCounter.Clear();
         }
 
-        public CategoryViewType(string primary, int songCount, SongCategory[] songsUnderCategory)
+        public CategoryViewType(string primary, int songCount, SongCategory[] songsUnderCategory, string stableId = null)
         {
             Primary = primary;
             SongCount = songCount;
+            _stableId = stableId ?? $"Category:{primary}";
 
             foreach (var category in songsUnderCategory)
             {

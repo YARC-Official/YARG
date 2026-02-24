@@ -105,6 +105,10 @@ namespace YARG.Song
         private static SongCategory[] _playables = null;
         private static SongCategory[] _sortStars = Array.Empty<SongCategory>();
         private static readonly Dictionary<SongEntry, StarAmount> _runtimeStars = new();
+        private static Guid _starsCacheProfileId = Guid.Empty;
+        private static Instrument _starsCacheInstrument = Instrument.Band;
+        private static Difficulty _starsCacheDifficulty = Difficulty.Easy;
+        private static bool _starsCacheValid;
 
         public static IReadOnlyDictionary<string, List<SongEntry>> Titles => _sortedSongs.Titles;
         public static IReadOnlyDictionary<string, List<SongEntry>> Years => _sortedSongs.Years;
@@ -315,6 +319,13 @@ namespace YARG.Song
             return _songs.Pick();
         }
 
+        public static void InvalidateStarsCache()
+        {
+            _starsCacheValid = false;
+            _sortStars = Array.Empty<SongCategory>();
+            _runtimeStars.Clear();
+        }
+
         // Play count sorting is intentionally not cached, as it must be regenerated after
         // every play, when profiles change, and probably a bunch of other stuff
         private static SongCategory[] GetPlaycounts()
@@ -449,8 +460,17 @@ namespace YARG.Song
                 return _sortTitles;
             }
 
+            var profile = player.Profile;
+            if (_starsCacheValid &&
+                _starsCacheProfileId == profile.Id &&
+                _starsCacheInstrument == profile.CurrentInstrument &&
+                _starsCacheDifficulty == profile.CurrentDifficulty)
+            {
+                return _sortStars;
+            }
+
             _runtimeStars.Clear();
-            Dictionary<HashWrapper, StarAmount> bestStars = ScoreContainer.GetBestStarsForSong(player.Profile);
+            Dictionary<HashWrapper, StarAmount> bestStars = ScoreContainer.GetBestStarsForSong(profile);
             foreach (var song in _songs)
             {
                 if (!bestStars.TryGetValue(song.Hash, out StarAmount stars))
@@ -496,7 +516,12 @@ namespace YARG.Song
                 starCategories[i++] = new SongCategory(label, list.ToArray(), label);
             }
 
-            return starCategories;
+            _sortStars = starCategories;
+            _starsCacheProfileId = profile.Id;
+            _starsCacheInstrument = profile.CurrentInstrument;
+            _starsCacheDifficulty = profile.CurrentDifficulty;
+            _starsCacheValid = true;
+            return _sortStars;
         }
 
         private static void UpdateSongUi(LoadingContext context)
@@ -537,6 +562,7 @@ namespace YARG.Song
 
         private static void FillContainers()
         {
+            InvalidateStarsCache();
             _songs = SetAllSongs(_songCache.Entries);
 
             _sortArtists      = Convert(_sortedSongs.Artists, SongAttribute.Artist);

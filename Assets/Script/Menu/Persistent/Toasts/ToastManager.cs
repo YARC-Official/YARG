@@ -1,12 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace YARG.Menu.Persistent
 {
     public class ToastManager : MonoSingleton<ToastManager>
     {
         private const int MAX_TOAST_COUNT = 5;
+
+        [Header("Sorting")]
+        [SerializeField]
+        private int _sortingOrder = 1000;
 
         [SerializeField]
         private Toast _toastPrefab;
@@ -59,6 +64,12 @@ namespace YARG.Menu.Persistent
                 Text = text;
                 OnClick = onClick;
             }
+        }
+
+        protected override void SingletonAwake()
+        {
+            base.SingletonAwake();
+            EnsureTopmostCanvas();
         }
 
         private void Update()
@@ -117,6 +128,22 @@ namespace YARG.Menu.Persistent
         private static void AddToast(ToastType type, string text, Action onClick)
         {
             _toastQueue.Enqueue(new ToastInfo(type, text, onClick));
+        }
+
+        private void EnsureTopmostCanvas()
+        {
+            var canvas = GetComponent<Canvas>();
+            if (canvas == null)
+            {
+                canvas = gameObject.AddComponent<Canvas>();
+                canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+            }
+
+            canvas.overrideSorting = true;
+            canvas.sortingOrder = _sortingOrder;
+
+            if (GetComponent<GraphicRaycaster>() == null)
+                gameObject.AddComponent<GraphicRaycaster>();
         }
 
         private void ShowToast(ToastType type, string body, Action onClick)

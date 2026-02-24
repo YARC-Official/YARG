@@ -45,6 +45,7 @@ namespace YARG.Gameplay.HUD
         public void TogglePractice()
         {
             GlobalVariables.State.IsPractice = !GlobalVariables.State.IsPractice;
+            GlobalVariables.State.SavedInputTime = GameManager.InputTime;
             PauseMenuManager.Restart();
         }
 

@@ -77,6 +77,8 @@ namespace YARG.Menu
             // Skip if not initialized yet
             if (_navigationGroup == null) return;
 
+            var previousSelectedTabId = SelectedTabId;
+
             transform.DestroyChildren();
             _navigationGroup.ClearNavigatables();
 
@@ -90,7 +92,11 @@ namespace YARG.Menu
                 _navigationGroup.AddNavigatable(tabComponent);
             }
 
-            _navigationGroup.SelectFirst();
+            if (!string.IsNullOrEmpty(previousSelectedTabId))
+                SelectTabById(previousSelectedTabId);
+
+            if (string.IsNullOrEmpty(SelectedTabId))
+                _navigationGroup.SelectFirst();
         }
 
         public void SelectFirstTab()

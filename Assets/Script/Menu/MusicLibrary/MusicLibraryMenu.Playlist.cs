@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using YARG.Core.Game;
 using YARG.Core.Input;
 using YARG.Localization;
 using YARG.Menu.Navigation;
@@ -15,28 +16,36 @@ namespace YARG.Menu.MusicLibrary
     public partial class MusicLibraryMenu
     {
         public Playlist       ShowPlaylist   { get; set; }         = new(true);
+        private Playlist      _lastPlaylistSelectPlaylist;
 
         private List<ViewType> CreatePlaylistSelectViewList()
         {
+            SongCategory[] emptyCategory = Array.Empty<SongCategory>();
             int id = BACK_ID + 1;
             var list = new List<ViewType>
             {
-                new ButtonViewType(Localize.Key("Menu.MusicLibrary.Back"),
-                    "MusicLibraryIcons[Back]", ExitPlaylistSelect, BACK_ID)
+                new ButtonViewType("YARG", "MusicLibraryIcons[Playlists]", () => { })
             };
 
-            list.Add(new ButtonViewType("PLAYLISTS", "MusicLibraryIcons[Playlists]", () => { }));
+            // Add the setlist "playlist" if there are any songs currently in it
+            if (ShowPlaylist.Count > 0)
+            {
+                list.Add(new PlaylistViewType(Localize.Key("Menu.MusicLibrary.CurrentSetlist"), ShowPlaylist,
+                    () =>
+                    {
+                        EnterPlaylistView(ShowPlaylist);
+                    }, id));
+                id++;
+            }
 
-            // Favorites is always on top
+            // Favorites is always on top (within the YARG section)
             list.Add(new PlaylistViewType(
                 Localize.Key("Menu.MusicLibrary.Favorites"),
                 PlaylistContainer.FavoritesPlaylist,
                 () =>
                 {
-                    SelectedPlaylist = PlaylistContainer.FavoritesPlaylist;
-                    MenuState = MenuState.Playlist;
-                    Refresh();
-                }, id++));
+                    EnterPlaylistView(PlaylistContainer.FavoritesPlaylist);
+                }, PLAYLIST_ID));
 
             list.Add(new ButtonViewType(Localize.Key("Menu.MusicLibrary.YourPlaylists"),
                 "MusicLibraryIcons[Playlists]", () => { }));
@@ -46,10 +55,9 @@ namespace YARG.Menu.MusicLibrary
             {
                 list.Add(new PlaylistViewType(playlist.Name, playlist, () =>
                 {
-                    SelectedPlaylist = playlist;
-                    MenuState = MenuState.Playlist;
-                    Refresh();
-                }, id++));
+                    EnterPlaylistView(playlist);
+                }, id));
+                id++;
             }
 
             // Add "Create New Playlist" button
@@ -258,7 +266,33 @@ namespace YARG.Menu.MusicLibrary
             }, false));
         }
 
-        // TODO: Remove - No longer needed with filter system
+        private void ExitPlaylistView()
+        {
+            var lastPlaylist = _lastPlaylistSelectPlaylist;
+            SelectedPlaylist = null;
+            MenuState = MenuState.PlaylistSelect;
+            SetNavigationScheme(true);
+            ClearPreview();
+            // Prevent an out-of-range song index from rendering an empty list while we rebuild.
+            SelectedIndex = 0;
+            Refresh();
+
+            if (!SetIndexTo(i => i is PlaylistViewType pv && pv.Playlist == lastPlaylist))
+            {
+                // Select playlist button
+                SetIndexTo(i => i is ButtonViewType { ID: PLAYLIST_ID });
+            }
+            _sidebar.UpdateSidebar(true);
+        }
+
+        private void ExitPlaylistSelect()
+        {
+            MenuState = MenuState.Library;
+            ClearPreview();
+            Refresh();
+
+            SetIndexTo(i => i is ButtonViewType { ID: PLAYLIST_ID });
+        }
 
         private void EnterShowMode()
         {
@@ -402,8 +436,15 @@ namespace YARG.Menu.MusicLibrary
 
             if (CurrentSelection is SongViewType selection)
             {
-                SelectedPlaylist.MoveSongUp(selection.SongEntry);
+                var song = selection.SongEntry;
+                int previousIndex = SelectedIndex;
+                SelectedPlaylist.MoveSongUp(song);
                 Refresh();
+                if (!SetIndexTo(i => i is SongViewType view && view.SongEntry == song))
+                {
+                    SelectedIndex = previousIndex < 0 ? 0 :
+                        previousIndex >= ViewList.Count ? ViewList.Count - 1 : previousIndex;
+                }
             }
         }
 
@@ -413,8 +454,15 @@ namespace YARG.Menu.MusicLibrary
 
             if (CurrentSelection is SongViewType selection)
             {
-                SelectedPlaylist.MoveSongDown(selection.SongEntry);
+                var song = selection.SongEntry;
+                int previousIndex = SelectedIndex;
+                SelectedPlaylist.MoveSongDown(song);
                 Refresh();
+                if (!SetIndexTo(i => i is SongViewType view && view.SongEntry == song))
+                {
+                    SelectedIndex = previousIndex < 0 ? 0 :
+                        previousIndex >= ViewList.Count ? ViewList.Count - 1 : previousIndex;
+                }
             }
         }
     }

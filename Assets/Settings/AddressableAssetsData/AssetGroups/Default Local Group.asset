@@ -11,7 +11,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: bbb281ee3bf0b054c82ac2347e9e782c, type: 3}
   m_Name: Default Local Group
-  m_EditorClassIdentifier:
+  m_EditorClassIdentifier: 
   m_GroupName: Default Local Group
   m_GUID: 1fc303ae4b596034592a9c3d3864493f
   m_SerializeEntries:
