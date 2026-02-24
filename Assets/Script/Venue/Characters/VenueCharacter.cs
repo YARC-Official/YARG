@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using DG.Tweening;
 using UnityEngine;
+using UnityEngine.Serialization;
 using UniVRM10;
 using YARG.Core.Chart;
 using YARG.Core.Logging;
@@ -59,8 +60,9 @@ namespace YARG.Venue.Characters
         [HideInInspector]
         public AnimationDictionary LayerStates;
 
+        [FormerlySerializedAs("_animationStates")]
         [SerializeField]
-        private AnimationStateMap _animationStates;
+        public AnimationStateMap AnimationStates;
 
 
         private Dictionary<string, List<string>> _layerStates;

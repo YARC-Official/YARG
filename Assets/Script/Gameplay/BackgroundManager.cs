@@ -17,6 +17,7 @@ using YARG.Settings;
 using YARG.Venue;
 using YARG.Venue.Characters;
 using YARG.Core.Logging;
+using ExportType = YARG.Venue.BundleBackgroundManager.ExportType;
 
 #if UNITY_EDITOR
 using UnityEditor.SceneManagement;
@@ -62,6 +63,8 @@ namespace YARG.Gameplay
         private double _videoEndTime;
 
         private AssetBundle _characterBundle;
+
+        private BundleBackgroundManager _bundleBackgroundManager;
 
 #if UNITY_EDITOR
         private bool        _usingEditorVenue;
@@ -193,7 +196,7 @@ namespace YARG.Gameplay
             var renderers = bg.GetComponentsInChildren<Renderer>(true);
 
             // Load Metal shaders, if necessary
-            shaderBundle = await LoadMetalShaders(bundle, bg);
+            shaderBundle = await LoadMetalShaders(bundle, bg, ExportType.Background);
 
             // Hookup song-specific textures
             var textureManager = GetComponent<TextureManager>();
@@ -210,9 +213,11 @@ namespace YARG.Gameplay
             var bgInstance = Instantiate(bg);
             var bundleBackgroundManager = bgInstance.GetComponent<BundleBackgroundManager>();
             bundleBackgroundManager.Bundle = bundle;
-            bundleBackgroundManager.ShaderBundle = shaderBundle;
+            bundleBackgroundManager.ShaderBundles.Add(shaderBundle);
             bundleBackgroundManager.SetupVenueCamera(bgInstance);
             bundleBackgroundManager.LimitVenueLights(bgInstance);
+
+            _bundleBackgroundManager = bundleBackgroundManager;
 
             // Destroy the default camera (venue has its own)
             Destroy(_videoPlayer.targetCamera.gameObject);
@@ -222,7 +227,7 @@ namespace YARG.Gameplay
                 SetUpVideoTexture(songBackground);
             }
 
-            LoadCustomCharacter(bgInstance);
+            await LoadCustomCharacter(bgInstance);
 
             // Initialize CharacterManager, if it exists
             var characterManager = bgInstance.GetComponentInChildren<CharacterManager>();
@@ -455,7 +460,7 @@ namespace YARG.Gameplay
             // The venue is dealt with in the GameManager via Time.timeScale
         }
 
-        private void LoadCustomCharacter(GameObject venueRoot)
+        private async UniTask LoadCustomCharacter(GameObject venueRoot)
         {
             string characterPath = SettingsManager.Settings.CustomVocalsCharacter.Value;
 
@@ -471,13 +476,20 @@ namespace YARG.Gameplay
                 return;
             }
 
-            _characterBundle = bundle;
+            _bundleBackgroundManager.CharacterBundles.Add(bundle);
 
             var character = bundle.LoadAsset<GameObject>(BundleBackgroundManager.CHARACTER_PREFAB_PATH.ToLowerInvariant());
             if (character == null)
             {
                 YargLogger.LogFormatError("Failed to load character from {0}", characterPath);
                 return;
+            }
+
+            // Load Metal shaders
+            var shaderBundle = await LoadMetalShaders(bundle, character, ExportType.Character);
+            if (shaderBundle != null)
+            {
+                _bundleBackgroundManager.ShaderBundles.Add(shaderBundle);
             }
 
             // Check for an existing animation controller and use default if none is found
@@ -535,15 +547,22 @@ namespace YARG.Gameplay
             SetLayer(newCharacter, layerIndex);
         }
 
-        private async UniTask<AssetBundle> LoadMetalShaders(AssetBundle bundle, GameObject bg)
+        private async UniTask<AssetBundle> LoadMetalShaders(AssetBundle bundle, GameObject bg, ExportType type)
         {
 #if UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX
             AssetBundle shaderBundle = null;
             var renderers = bg.GetComponentsInChildren<Renderer>(true);
             var metalShaders = new Dictionary<string, Shader>();
 
+            var shaderBundleName = type switch
+            {
+                ExportType.Character => "Assets/" + BundleBackgroundManager.CHARACTER_SHADER_BUNDLE_NAME,
+                ExportType.Background => "Assets/" + BundleBackgroundManager.BACKGROUND_SHADER_BUNDLE_NAME,
+                _ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
+            };
+
             var shaderBundleData = (TextAsset)await bundle.LoadAssetAsync<TextAsset>(
-                "Assets/" + BundleBackgroundManager.BACKGROUND_SHADER_BUNDLE_NAME
+                shaderBundleName
             );
 
             if (shaderBundleData != null && shaderBundleData.bytes.Length > 0)
@@ -708,11 +727,6 @@ namespace YARG.Gameplay
                 VIDEO_PATH = null;
             }
 
-            if (_characterBundle != null)
-            {
-                _characterBundle.Unload(true);
-                _characterBundle = null;
-            }
 #if UNITY_EDITOR
             if (_usingEditorVenue)
             {

@@ -1,8 +1,8 @@
-// Original Shader: https://www.shadertoy.com/view/ldBXz3
+// Original Shader: https://www.shadertoy.com/view/3dVBDh
 // License: CC BY-NC-SA 3.0 (Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported)
 // https://creativecommons.org/licenses/by-nc-sa/3.0/
 
-Shader "Custom/ShadertoyGridEffect"
+Shader "Custom/RotatingSquares"
 {
     Properties
     {
@@ -34,6 +34,8 @@ Shader "Custom/ShadertoyGridEffect"
             };
 
             sampler2D _MainTex;
+            
+            #define PI 3.14159265358979323846
 
             v2f vert (appdata v)
             {
@@ -43,69 +45,58 @@ Shader "Custom/ShadertoyGridEffect"
                 return o;
             }
 
-            float grid(float2 p) 
+            float2 rotate2D(float2 st, float angle)
             {
-                float2 orient = normalize(float2(1.0, 3.0));
-                float2 perp = float2(orient.y, -orient.x);
-                float val1 = floor(dot(p, orient));
-                float val2 = floor(dot(p, perp));
-                float sum = val1 + val2;
-                float g = sum - 2.0 * floor(sum / 2.0);
-                return g;
+                st -= 0.5;
+                float2x2 rotMatrix = float2x2(cos(angle), -sin(angle),
+                                               sin(angle), cos(angle));
+                st = mul(rotMatrix, st);
+                st += 0.5;
+                return st;
+            }
+
+            float2 tile(float2 st, float zoom, float rotD)
+            {
+                st *= zoom;
+                if(rotD == 1.0) 
+                {
+                    st.x += 0.5;
+                    st.y += 0.5;
+                }
+                return frac(st);
+            }
+
+            float square(float2 st, float2 side)
+            {
+                float2 border = float2(0.5, 0.5) - side * 0.5;
+                float2 pq = smoothstep(border, border + 0.01, st);
+                pq *= smoothstep(border, border + 0.01, float2(1.0, 1.0) - st);
+                return pq.x * pq.y;
             }
 
             fixed4 frag (v2f i) : SV_Target
             {
                 float2 iResolution = float2(800.0, 600.0);
                 float2 fragCoord = i.uv * iResolution;
+                float iTime = _Time.y;
                 
-                float iTime = _Time.y * 0.5;
+                float2 uv = fragCoord.xy / iResolution.y;
+                float color;
+                float Nsquares = 5.0;
+                float rotDirection = 0.0;
+                float warpedTime = iTime * 0.5 + uv.x + uv.y * 0.5;
                 
-                float2 p = fragCoord.xy / 50.0 + float2(-iTime, iTime);
-                float2 q = (fragCoord.xy - (iResolution.xy / 2.0)) / iResolution.x / 1.5;
+                rotDirection = step(0.0, sin(warpedTime * 2.0));
                 
-                float4 c = float4(grid(p), grid(p), grid(p), 1.0);
+                uv = tile(uv, Nsquares, rotDirection);
+                uv = rotate2D(uv, PI / 4.0 - warpedTime);
                 
-                if (q.x + 0.1 * q.y > 100.0) 
-                {
-                    return c;
-                }
+                if (rotDirection == 1.0)
+                    color = 1.0 - square(uv, float2(0.71, 0.71));
                 else 
-                {
-                    float4 cc = float4(0.0, 0.0, 0.0, 0.0);
-                    float total = 0.0;
-                    
-                    float radius = length(q) * 100.0;
-                    float samp = 1.0;
-                    
-                    for (float t = -samp; t <= samp; t += 1.0) 
-                    {
-                        float percent = t / samp;
-                        float weight = 1.0 - abs(percent);
-                        float u = t / 100.0;
-                        
-                        float2 dir = float2(
-                            frac(sin(537.3 * (u + 0.5))), 
-                            frac(sin(523.7 * (u + 0.25)))
-                        );
-                        dir = normalize(dir) * 0.01;
-                        
-                        float skew = percent * radius;
-                        
-                        float4 samplev = float4(
-                            grid(float2(0.03, 0.0) + p + dir * skew),
-                            grid(radius * float2(0.005, 0.00) + p + dir * skew),
-                            grid(radius * float2(0.007, 0.00) + p + dir * skew),
-                            1.0
-                        );
-                        
-                        cc += samplev * weight;
-                        total += weight;
-                    }
-                    
-                    float4 result = cc / total - length(q) * float4(1.0, 1.0, 1.0, 1.0) * 1.5;
-                    return result;
-                }
+                    color = square(uv, float2(0.72, 0.72));
+                
+                return float4(color, color, color, 1.0);
             }
             ENDCG
         }

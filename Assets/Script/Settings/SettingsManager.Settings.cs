@@ -19,6 +19,7 @@ using YARG.Menu.Settings;
 using YARG.Playback;
 using YARG.Player;
 using YARG.Scores;
+using YARG.Settings.Metadata;
 using YARG.Settings.Types;
 using YARG.Song;
 using YARG.Venue;
@@ -552,7 +553,7 @@ namespace YARG.Settings
             public OutputChannelSetting OutputChannelMetronome { get; } = new(-1, OutputChannelMetronomeCallback);
 
             public ToggleSetting EnableNormalization { get; } = new(false);
-            public CustomCharacterSetting CustomVocalsCharacter { get; } = new(string.Empty, VenueCharacter.CharacterType.Vocals);
+            public CustomCharacterSetting CustomVocalsCharacter { get; } = new(string.Empty, VenueCharacter.CharacterType.Vocals, CustomCharacterCallback);
             #endregion
 
             #region Helpers
@@ -904,6 +905,12 @@ namespace YARG.Settings
                 GlobalAudioHandler.PlayMetronomeSoundEffect(sample, MetronomePitch.Lo);
                 await Task.Delay(200);
                 GlobalAudioHandler.PlayMetronomeSoundEffect(sample, MetronomePitch.Lo);
+            }
+
+            private static void CustomCharacterCallback(string file)
+            {
+                // CharacterPreviewBuilder.CharacterFile = file;
+                CharacterPreviewBuilder.ChangeCharacter(file);
             }
             #endregion
         }

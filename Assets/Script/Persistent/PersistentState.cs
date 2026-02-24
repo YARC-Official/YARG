@@ -27,9 +27,10 @@ namespace YARG
         public          List<SongEntry> ShowSongs    { get; set; }
         public          int             ShowIndex    { get; set; }
 
-        public          bool IsPractice;
-        public readonly bool IsReplay => CurrentReplay is not null;
-        public          bool PlayingWithReplay;
+        public          bool    IsPractice;
+        public readonly bool    IsReplay => CurrentReplay is not null;
+        public          bool    PlayingWithReplay;
+        public          double? SavedInputTime;
 
     }
 }
