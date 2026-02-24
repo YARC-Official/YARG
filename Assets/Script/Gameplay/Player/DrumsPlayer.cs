@@ -11,6 +11,7 @@ using YARG.Core.Input;
 using YARG.Core.Replays;
 using YARG.Gameplay.HUD;
 using YARG.Gameplay.Visuals;
+using YARG.Helpers;
 using YARG.Helpers.Extensions;
 using YARG.Menu.HighwayConfiguration;
 using YARG.Player;
@@ -750,57 +751,6 @@ namespace YARG.Gameplay.Player
             return position;
         }
 
-        private int ApplyHandednessToFourLaneColor(FourLaneDrumsFret fret)
-        {
-            if (Player.Profile.LeftyFlip)
-            {
-                return fret switch
-                {
-                    FourLaneDrumsFret.Kick =>           (int)(NumberOfDedicatedKickLanes is 2 ? FourLaneDrumsFret.DoubleKick : FourLaneDrumsFret.Kick),
-                    FourLaneDrumsFret.DoubleKick =>     (int)FourLaneDrumsFret.Kick,
-                    FourLaneDrumsFret.RedDrum =>        (int)FourLaneDrumsFret.GreenDrum,
-                    FourLaneDrumsFret.YellowDrum =>     (int)FourLaneDrumsFret.BlueDrum,
-                    FourLaneDrumsFret.BlueDrum =>       (int)FourLaneDrumsFret.YellowDrum,
-                    FourLaneDrumsFret.GreenDrum =>      (int)FourLaneDrumsFret.RedDrum,
-                    FourLaneDrumsFret.YellowCymbal =>   (int)FourLaneDrumsFret.BlueCymbal,
-                    FourLaneDrumsFret.BlueCymbal =>     (int)FourLaneDrumsFret.YellowCymbal,
-                    FourLaneDrumsFret.GreenCymbal =>    (int)FourLaneDrumsFret.RedCymbal,
-                    _ => (int) fret
-                };
-            }
-
-            return (int) fret;
-        }
-
-        private int ApplyHandednessToFiveLaneColor(FiveLaneDrumsFret fret)
-        {
-            if (Player.Profile.LeftyFlip)
-            {
-                return fret switch {
-                    FiveLaneDrumsFret.Kick =>       (int)(NumberOfDedicatedKickLanes is 2 ? FourLaneDrumsFret.DoubleKick : FourLaneDrumsFret.Kick),
-                    FiveLaneDrumsFret.DoubleKick => (int)FiveLaneDrumsFret.Kick,
-                    FiveLaneDrumsFret.Red =>        (int)FiveLaneDrumsFret.Green,
-                    FiveLaneDrumsFret.Yellow =>     (int)FiveLaneDrumsFret.Orange,
-                    FiveLaneDrumsFret.Blue =>       (int)FiveLaneDrumsFret.Blue,
-                    FiveLaneDrumsFret.Orange =>     (int)FiveLaneDrumsFret.Yellow,
-                    FiveLaneDrumsFret.Green =>      (int)FiveLaneDrumsFret.Red,
-                    _ => (int)fret
-                };
-            }
-
-            return (int)fret;
-        }
-
-        private int ApplyHandednessToColor(int fret, Instrument instrument)
-        {
-            return instrument switch
-            {
-                Instrument.FourLaneDrums or Instrument.ProDrums => ApplyHandednessToFourLaneColor((FourLaneDrumsFret) fret),
-                Instrument.FiveLaneDrums => ApplyHandednessToFiveLaneColor((FiveLaneDrumsFret)fret),
-                _ => throw new ArgumentOutOfRangeException("Unexpected nondrums instrument")
-            };
-        }
-
         private void MakeHighwayOrdering()
         {
             var instrument = Player.Profile.CurrentInstrument;
@@ -838,7 +788,7 @@ namespace YARG.Gameplay.Player
                 {
                     _highwayOrdering[highwayOrderingInfo.pad] = new(
                         ApplyHandednessToPosition(i - skippedPedalAdjustment),
-                        ApplyHandednessToColor(highwayOrderingInfo.colorIndex, instrument)
+                        DrumsColorHelpers.ApplyHandednessToColor(highwayOrderingInfo.colorIndex, Player.Profile.LeftyFlip, NumberOfDedicatedKickLanes == 2, instrument)
                     );
 
                     switch (item)

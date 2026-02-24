@@ -11,6 +11,7 @@ using YARG.Core.Chart;
 using YARG.Core.Game;
 using YARG.Gameplay.Player;
 using YARG.Gameplay.Visuals;
+using YARG.Helpers;
 using YARG.Helpers.Extensions;
 using YARG.Player;
 using static UnityEditor.Progress;
@@ -18,54 +19,16 @@ using static YARG.Core.Game.ColorProfile;
 
 namespace YARG.Menu.HighwayConfiguration
 {
-    public readonly struct HighwayOrderingItemSpec
+    public struct HighwayOrderingItemSpec
     {
-        // Neither mergeable nor splittable
-        // For example, Red Drum
-        public HighwayOrderingItemSpec(string name, DrumsHighwayItemIconType type, int colorIndex, DrumsHighwayItem identity)
-        {
-            Name = name;
-            Type = type;
-            ColorIndex = colorIndex;
-            Identity = identity;
-            SplitsInto = null;
-            MergesInto = null;
-            MergedResult = null;
-        }
-
-        // Splittable. Provide the two items that it splits into as a tuple
-        // For example, a combined Yellow splits into a Yellow Cymbal and a Yellow Tom
-        public HighwayOrderingItemSpec(string name, DrumsHighwayItemIconType type, int colorIndex, DrumsHighwayItem identity, (DrumsHighwayItem, DrumsHighwayItem) splitsInto)
-        {
-            Name = name;
-            Type = type;
-            ColorIndex = colorIndex;
-            Identity = identity;
-            SplitsInto = (splitsInto.Item1, splitsInto.Item2);
-            MergesInto = null;
-            MergedResult = null;
-        }
-
-        // Mergeable. Provide what it merges into, and what the merged result is.
-        // For example, a Yellow Cymbal merges into a Yellow Drum to produce a combined Yellow
-        public HighwayOrderingItemSpec(string name, DrumsHighwayItemIconType type, int colorIndex, DrumsHighwayItem identity, DrumsHighwayItem mergesInto, DrumsHighwayItem mergedResult)
-        {
-            Name = name;
-            Type = type;
-            ColorIndex = colorIndex;
-            Identity = identity;
-            SplitsInto = null;
-            MergesInto = mergesInto;
-            MergedResult = mergedResult;
-        }
-
-        public string Name { get; }
-        public DrumsHighwayItemIconType Type { get; }
-        public int ColorIndex { get; }
-        public DrumsHighwayItem Identity { get; }
-        public (DrumsHighwayItem, DrumsHighwayItem)? SplitsInto { get; }
-        public DrumsHighwayItem? MergesInto { get; }
-        public DrumsHighwayItem? MergedResult { get; }
+        public string Name { get; set; }
+        public string LeftyName { get; set; }
+        public DrumsHighwayItemIconType Type { get; set;  }
+        public int ColorIndex { get; set; }
+        public DrumsHighwayItem Value { get; set; }
+        public (DrumsHighwayItem, DrumsHighwayItem)? SplitsInto { get; set; }
+        public DrumsHighwayItem? MergesInto { get; set; }
+        public DrumsHighwayItem? MergedResult { get; set; }
     }
 
     public class DrumsHighwayItemView : MonoBehaviour
@@ -121,8 +84,11 @@ namespace YARG.Menu.HighwayConfiguration
         public void Render()
         {
             _spec = _configMenu.Specs[Item];
-            _name.text = _spec.Name;
-            _icon.color = _configMenu.ColorProvider.GetFretColor(_spec.ColorIndex).ToUnityColor();
+            _name.text = _configMenu.Lefty ? _spec.LeftyName : _spec.Name;
+
+            var colorIndex = DrumsColorHelpers.ApplyHandednessToColor(_spec.ColorIndex, _configMenu.Lefty, _configMenu.SplitKicksExist, _configMenu.Instrument);
+
+            _icon.color = _configMenu.ColorProvider.GetFretColor(colorIndex).ToUnityColor();
             _icon.sprite = _spec.Type switch
             {
                 DrumsHighwayItemIconType.Drum => _drumShape,
@@ -132,8 +98,8 @@ namespace YARG.Menu.HighwayConfiguration
                 _ => throw new ArgumentOutOfRangeException("o no")
             };
 
-            _leftButton.interactable = _index != 0;
-            _rightButton.interactable = _index != _configMenu.HighwayOrdering.Count - 1;
+            _leftButton.interactable = _index != (_configMenu.Lefty ? _configMenu.HighwayOrdering.Count - 1 : 0);
+            _rightButton.interactable = _index != (_configMenu.Lefty ? 0 : _configMenu.HighwayOrdering.Count - 1);
 
             if (_spec.SplitsInto is not null)
             {
@@ -165,11 +131,25 @@ namespace YARG.Menu.HighwayConfiguration
         }
 
         public void MoveLeft() {
-            _configMenu.MoveItemLeft(Item);
+            if (_configMenu.Lefty)
+            {
+                _configMenu.IncrementItemPosition(Item);
+            }
+            else
+            {
+                _configMenu.DecrementItemPosition(Item);
+            }
         }
 
         public void MoveRight() {
-            _configMenu.MoveItemRight(Item);
+            if (_configMenu.Lefty)
+            {
+                _configMenu.DecrementItemPosition(Item);
+            }
+            else
+            {
+                _configMenu.IncrementItemPosition(Item);
+            }
         }
 
         public void SplitOrMerge()

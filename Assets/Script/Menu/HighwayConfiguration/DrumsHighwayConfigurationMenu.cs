@@ -55,6 +55,11 @@ namespace YARG.Menu.HighwayConfiguration
         public delegate void SetOrdering(List<DrumsHighwayItem> newOrdering);
         SetOrdering _setOrdering;
 
+        public bool Lefty { get; private set; }
+        public bool SplitKicksExist { get; private set; }
+        public Instrument Instrument { get; private set; }
+
+
         protected override void SingletonAwake()
         {
             // Match SettingsMenu behavior: initialized at startup, then hidden.
@@ -67,9 +72,12 @@ namespace YARG.Menu.HighwayConfiguration
             IFretColorProvider colorProvider,
             List<DrumsHighwayItem> defaultList,
             string headerPrefix,
-            SetOrdering setOrdering
+            SetOrdering setOrdering,
+            bool lefty,
+            Instrument instrument
         ) {
             Specs = specs;
+            Instrument = instrument;
             ColorProvider = colorProvider;
             HighwayOrdering = defaultList;
             _header.text = headerPrefix + HEADER_SUFFIX;
@@ -81,8 +89,11 @@ namespace YARG.Menu.HighwayConfiguration
 
             _setOrdering = setOrdering;
 
+            Lefty = lefty;
+            _ordering.GetComponent<HorizontalLayoutGroup>().reverseArrangement = lefty;
+
             var dedicatedKickExists = false;
-            var splitKicksExist = false;
+            SplitKicksExist = false;
 
             foreach (var item in HighwayOrdering)
             {
@@ -95,13 +106,13 @@ namespace YARG.Menu.HighwayConfiguration
                     dedicatedKickExists = true;
                     if (item is DrumsHighwayItem.Kick1x)
                     {
-                        splitKicksExist = true;
+                        SplitKicksExist = true;
                     }
                 }
             }
 
             _kickItem.SetActive(!dedicatedKickExists);
-            _splitKickWarning.gameObject.SetActive(splitKicksExist);
+            _splitKickWarning.gameObject.SetActive(SplitKicksExist);
         }
 
         private void WriteOrderingToProfile()
@@ -109,7 +120,7 @@ namespace YARG.Menu.HighwayConfiguration
             _setOrdering(HighwayOrdering);
         }
 
-        public void MoveItemLeft(DrumsHighwayItem item)
+        public void DecrementItemPosition(DrumsHighwayItem item)
         {
             var index = GetItemIndex(item);
             if (index == 0)
@@ -120,7 +131,7 @@ namespace YARG.Menu.HighwayConfiguration
             MoveItem(item, index, index - 1);
         }
 
-        public void MoveItemRight(DrumsHighwayItem item)
+        public void IncrementItemPosition(DrumsHighwayItem item)
         {
             var index = GetItemIndex(item);
             if (index == HighwayOrdering.Count - 1)
@@ -255,55 +266,6 @@ namespace YARG.Menu.HighwayConfiguration
 
             return index;
         }
-
-        public static Dictionary<DrumsHighwayItem, HighwayOrderingItemSpec> FOUR_LANE_SPECS { get; } = new()
-        {
-            { DrumsHighwayItem.Kick, new( "Kick", DrumsHighwayItemIconType.Kick, (int)FourLaneDrumsFret.Kick, DrumsHighwayItem.Kick, (DrumsHighwayItem.Kick2x, DrumsHighwayItem.Kick1x)) },
-            { DrumsHighwayItem.Kick1x, new( "Right Kick", DrumsHighwayItemIconType.Kick, (int)FourLaneDrumsFret.Kick, DrumsHighwayItem.Kick1x, DrumsHighwayItem.Kick2x, DrumsHighwayItem.Kick) },
-            { DrumsHighwayItem.Kick2x, new( "Left Kick", DrumsHighwayItemIconType.Kick, (int)FourLaneDrumsFret.DoubleKick, DrumsHighwayItem.Kick2x, DrumsHighwayItem.Kick1x, DrumsHighwayItem.Kick) },
-            { DrumsHighwayItem.Kick2xConditional, new( "Left Kick", DrumsHighwayItemIconType.Kick, (int)FourLaneDrumsFret.DoubleKick, DrumsHighwayItem.Kick2x, DrumsHighwayItem.Kick1x, DrumsHighwayItem.Kick) },
-
-            { DrumsHighwayItem.FourLaneRed,     new( "Red",     DrumsHighwayItemIconType.Drum,      (int)FourLaneDrumsFret.RedDrum,     DrumsHighwayItem.FourLaneRed ) },
-            { DrumsHighwayItem.FourLaneYellow,  new( "Yellow",  DrumsHighwayItemIconType.Combined,  (int)FourLaneDrumsFret.YellowDrum,  DrumsHighwayItem.FourLaneYellow) },
-            { DrumsHighwayItem.FourLaneBlue,    new( "Blue",    DrumsHighwayItemIconType.Combined,  (int)FourLaneDrumsFret.BlueDrum,    DrumsHighwayItem.FourLaneBlue ) },
-            { DrumsHighwayItem.FourLaneGreen,   new( "Green",   DrumsHighwayItemIconType.Combined,  (int)FourLaneDrumsFret.GreenDrum,   DrumsHighwayItem.FourLaneGreen) },
-        };
-
-        public static Dictionary<DrumsHighwayItem, HighwayOrderingItemSpec> PRO_DRUMS_SPECS { get; } = new()
-        {
-            { DrumsHighwayItem.Kick,    new( "Kick",        DrumsHighwayItemIconType.Kick, (int)FourLaneDrumsFret.Kick,         DrumsHighwayItem.Kick,      (DrumsHighwayItem.Kick2x, DrumsHighwayItem.Kick1x)) },
-            { DrumsHighwayItem.Kick1x,  new( "Right Kick*",  DrumsHighwayItemIconType.Kick, (int)FourLaneDrumsFret.Kick,         DrumsHighwayItem.Kick1x,    DrumsHighwayItem.Kick2x, DrumsHighwayItem.Kick) },
-            { DrumsHighwayItem.Kick2x,  new( "Left Kick*",   DrumsHighwayItemIconType.Kick, (int)FourLaneDrumsFret.DoubleKick,   DrumsHighwayItem.Kick2x,    DrumsHighwayItem.Kick1x, DrumsHighwayItem.Kick) },
-            { DrumsHighwayItem.Kick2xConditional,  new( "Left Kick*",   DrumsHighwayItemIconType.Kick, (int)FourLaneDrumsFret.DoubleKick,   DrumsHighwayItem.Kick2x,    DrumsHighwayItem.Kick1x, DrumsHighwayItem.Kick) },
-
-            { DrumsHighwayItem.FourLaneRed,             new( "Red",     DrumsHighwayItemIconType.Drum,      (int)FourLaneDrumsFret.RedDrum,     DrumsHighwayItem.FourLaneRed ) },
-
-            { DrumsHighwayItem.FourLaneYellow,          new( "Yellow",  DrumsHighwayItemIconType.Combined,  (int)FourLaneDrumsFret.YellowDrum,  DrumsHighwayItem.FourLaneYellow,  (DrumsHighwayItem.FourLaneYellowCymbal, DrumsHighwayItem.FourLaneYellowDrum)) },
-            { DrumsHighwayItem.FourLaneBlue,            new( "Blue",    DrumsHighwayItemIconType.Combined,  (int)FourLaneDrumsFret.BlueDrum,    DrumsHighwayItem.FourLaneBlue,    (DrumsHighwayItem.FourLaneBlueCymbal, DrumsHighwayItem.FourLaneBlueDrum)) },
-            { DrumsHighwayItem.FourLaneGreen,           new( "Green",   DrumsHighwayItemIconType.Combined,  (int)FourLaneDrumsFret.GreenDrum,   DrumsHighwayItem.FourLaneGreen,   (DrumsHighwayItem.FourLaneGreenCymbal, DrumsHighwayItem.FourLaneGreenDrum)) },
-
-            { DrumsHighwayItem.FourLaneYellowCymbal,    new( "Yellow Cymbal",  DrumsHighwayItemIconType.Cymbal,  (int)FourLaneDrumsFret.YellowCymbal,  DrumsHighwayItem.FourLaneYellowCymbal,   DrumsHighwayItem.FourLaneYellowDrum,  DrumsHighwayItem.FourLaneYellow) },
-            { DrumsHighwayItem.FourLaneBlueCymbal,      new( "Blue Cymbal",    DrumsHighwayItemIconType.Cymbal,  (int)FourLaneDrumsFret.BlueCymbal,    DrumsHighwayItem.FourLaneBlueCymbal,     DrumsHighwayItem.FourLaneBlueDrum,    DrumsHighwayItem.FourLaneBlue) },
-            { DrumsHighwayItem.FourLaneGreenCymbal,     new( "Green Cymbal",   DrumsHighwayItemIconType.Cymbal,  (int)FourLaneDrumsFret.GreenCymbal,   DrumsHighwayItem.FourLaneGreenCymbal,    DrumsHighwayItem.FourLaneGreenDrum,   DrumsHighwayItem.FourLaneGreen) },
-
-            { DrumsHighwayItem.FourLaneYellowDrum,      new( "Yellow Drum",  DrumsHighwayItemIconType.Drum,  (int)FourLaneDrumsFret.YellowDrum,  DrumsHighwayItem.FourLaneYellowDrum,   DrumsHighwayItem.FourLaneYellowCymbal,   DrumsHighwayItem.FourLaneYellow) },
-            { DrumsHighwayItem.FourLaneBlueDrum,        new( "Blue Drum",    DrumsHighwayItemIconType.Drum,  (int)FourLaneDrumsFret.BlueDrum,    DrumsHighwayItem.FourLaneBlueDrum,     DrumsHighwayItem.FourLaneBlueCymbal,     DrumsHighwayItem.FourLaneBlue) },
-            { DrumsHighwayItem.FourLaneGreenDrum,       new( "Green Drum",   DrumsHighwayItemIconType.Drum,  (int)FourLaneDrumsFret.GreenDrum,   DrumsHighwayItem.FourLaneGreenDrum,    DrumsHighwayItem.FourLaneGreenCymbal,    DrumsHighwayItem.FourLaneGreen) },
-        };
-
-        public static Dictionary<DrumsHighwayItem, HighwayOrderingItemSpec> FIVE_LANE_SPECS { get; } = new()
-        {
-            { DrumsHighwayItem.Kick, new( "Kick", DrumsHighwayItemIconType.Kick, (int)FiveLaneDrumsFret.Kick, DrumsHighwayItem.Kick, (DrumsHighwayItem.Kick2x, DrumsHighwayItem.Kick1x)) },
-            { DrumsHighwayItem.Kick1x, new( "Right Kick", DrumsHighwayItemIconType.Kick, (int)FiveLaneDrumsFret.Kick, DrumsHighwayItem.Kick1x, DrumsHighwayItem.Kick2x, DrumsHighwayItem.Kick) },
-            { DrumsHighwayItem.Kick2x, new( "Left Kick", DrumsHighwayItemIconType.Kick, (int)FiveLaneDrumsFret.DoubleKick, DrumsHighwayItem.Kick2x, DrumsHighwayItem.Kick1x, DrumsHighwayItem.Kick) },
-            { DrumsHighwayItem.Kick2xConditional, new( "Left Kick", DrumsHighwayItemIconType.Kick, (int)FiveLaneDrumsFret.DoubleKick, DrumsHighwayItem.Kick2x, DrumsHighwayItem.Kick1x, DrumsHighwayItem.Kick) },
-
-            { DrumsHighwayItem.FiveLaneRed,     new( "Red",     DrumsHighwayItemIconType.Drum,      (int)FiveLaneDrumsFret.Red,     DrumsHighwayItem.FiveLaneRed ) },
-            { DrumsHighwayItem.FiveLaneYellow,  new( "Yellow",  DrumsHighwayItemIconType.Cymbal,    (int)FiveLaneDrumsFret.Yellow,  DrumsHighwayItem.FiveLaneYellow) },
-            { DrumsHighwayItem.FiveLaneBlue,    new( "Blue",    DrumsHighwayItemIconType.Drum,      (int)FiveLaneDrumsFret.Blue,    DrumsHighwayItem.FiveLaneBlue ) },
-            { DrumsHighwayItem.FiveLaneOrange,  new( "Orange",  DrumsHighwayItemIconType.Cymbal,    (int)FiveLaneDrumsFret.Orange,  DrumsHighwayItem.FiveLaneOrange ) },
-            { DrumsHighwayItem.FiveLaneGreen,   new( "Green",   DrumsHighwayItemIconType.Drum,      (int)FiveLaneDrumsFret.Green,   DrumsHighwayItem.FiveLaneGreen) },
-        };
     }
 
     public enum DrumsHighwayItemIconType
