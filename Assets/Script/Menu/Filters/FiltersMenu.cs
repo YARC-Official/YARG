@@ -1441,8 +1441,8 @@ namespace YARG.Menu.Filters
             bool filtersChanged = HaveFiltersChanged();
             SaveFilters();
             ActiveFilterPredicate = BuildFilterPredicate();
+
             var library = FindFirstObjectByType<MusicLibrary.MusicLibraryMenu>();
-            
             if (library != null)
             {
                 library.SetSidebarDifficultiesVisible(true);
