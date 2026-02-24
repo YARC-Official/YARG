@@ -40,6 +40,8 @@ namespace YARG.Menu.HighwayConfiguration
         private GameObject _kickItem;
         [SerializeField]
         private Image _kickImage;
+        [SerializeField]
+        private TextMeshProUGUI _splitKickWarning;
 
         [SerializeField]
         private DrumsHighwayItemView _itemPrefab;
@@ -80,6 +82,7 @@ namespace YARG.Menu.HighwayConfiguration
             _setOrdering = setOrdering;
 
             var dedicatedKickExists = false;
+            var splitKicksExist = false;
 
             foreach (var item in HighwayOrdering)
             {
@@ -90,10 +93,15 @@ namespace YARG.Menu.HighwayConfiguration
                 if (item.IsKick())
                 {
                     dedicatedKickExists = true;
+                    if (item is DrumsHighwayItem.Kick1x)
+                    {
+                        splitKicksExist = true;
+                    }
                 }
             }
 
             _kickItem.SetActive(!dedicatedKickExists);
+            _splitKickWarning.gameObject.SetActive(splitKicksExist);
         }
 
         private void WriteOrderingToProfile()
@@ -155,6 +163,11 @@ namespace YARG.Menu.HighwayConfiguration
             var targetView = _itemViews[targetIndex];
             targetView.Initialize(this, merged);
             WriteOrderingToProfile();
+
+            if (merged is DrumsHighwayItem.Kick)
+            {
+                _splitKickWarning.gameObject.SetActive(false);
+            }
         }
 
         public void SplitItemInto(DrumsHighwayItem source, (DrumsHighwayItem, DrumsHighwayItem) split)
@@ -173,6 +186,11 @@ namespace YARG.Menu.HighwayConfiguration
             view2.transform.SetSiblingIndex(index2);
             _itemViews.Insert(index2, view2);
             WriteOrderingToProfile();
+
+            if (source is DrumsHighwayItem.Kick)
+            {
+                _splitKickWarning.gameObject.SetActive(true);
+            }
         }
 
         public void CreateDedicatedKickLane()
@@ -206,6 +224,7 @@ namespace YARG.Menu.HighwayConfiguration
             _itemViews.Last().Render();
 
             _kickItem.SetActive(true);
+            _splitKickWarning.gameObject.SetActive(false);
             WriteOrderingToProfile();
         }
 
@@ -253,9 +272,9 @@ namespace YARG.Menu.HighwayConfiguration
         public static Dictionary<DrumsHighwayItem, HighwayOrderingItemSpec> PRO_DRUMS_SPECS { get; } = new()
         {
             { DrumsHighwayItem.Kick,    new( "Kick",        DrumsHighwayItemIconType.Kick, (int)FourLaneDrumsFret.Kick,         DrumsHighwayItem.Kick,      (DrumsHighwayItem.Kick2x, DrumsHighwayItem.Kick1x)) },
-            { DrumsHighwayItem.Kick1x,  new( "Right Kick",  DrumsHighwayItemIconType.Kick, (int)FourLaneDrumsFret.Kick,         DrumsHighwayItem.Kick1x,    DrumsHighwayItem.Kick2x, DrumsHighwayItem.Kick) },
-            { DrumsHighwayItem.Kick2x,  new( "Left Kick",   DrumsHighwayItemIconType.Kick, (int)FourLaneDrumsFret.DoubleKick,   DrumsHighwayItem.Kick2x,    DrumsHighwayItem.Kick1x, DrumsHighwayItem.Kick) },
-            { DrumsHighwayItem.Kick2xConditional,  new( "Left Kick",   DrumsHighwayItemIconType.Kick, (int)FourLaneDrumsFret.DoubleKick,   DrumsHighwayItem.Kick2x,    DrumsHighwayItem.Kick1x, DrumsHighwayItem.Kick) },
+            { DrumsHighwayItem.Kick1x,  new( "Right Kick*",  DrumsHighwayItemIconType.Kick, (int)FourLaneDrumsFret.Kick,         DrumsHighwayItem.Kick1x,    DrumsHighwayItem.Kick2x, DrumsHighwayItem.Kick) },
+            { DrumsHighwayItem.Kick2x,  new( "Left Kick*",   DrumsHighwayItemIconType.Kick, (int)FourLaneDrumsFret.DoubleKick,   DrumsHighwayItem.Kick2x,    DrumsHighwayItem.Kick1x, DrumsHighwayItem.Kick) },
+            { DrumsHighwayItem.Kick2xConditional,  new( "Left Kick*",   DrumsHighwayItemIconType.Kick, (int)FourLaneDrumsFret.DoubleKick,   DrumsHighwayItem.Kick2x,    DrumsHighwayItem.Kick1x, DrumsHighwayItem.Kick) },
 
             { DrumsHighwayItem.FourLaneRed,             new( "Red",     DrumsHighwayItemIconType.Drum,      (int)FourLaneDrumsFret.RedDrum,     DrumsHighwayItem.FourLaneRed ) },
 
