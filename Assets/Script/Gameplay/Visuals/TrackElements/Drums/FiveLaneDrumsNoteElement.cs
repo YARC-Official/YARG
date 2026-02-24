@@ -15,7 +15,7 @@ namespace YARG.Gameplay.Visuals
 
             var noteGroups = IsStarPowerVisible ? StarPowerNoteGroups : NoteGroups;
 
-            if (NoteRef.Pad != 0 || Player.KickHasLane)
+            if (NoteRef.Pad != 0 || Player.NumberOfDedicatedKickLanes > 0)
             {
                 // Deal with non-kick notes
                 var position = Player.GetHighwayOrderingInfo(NoteRef.Pad).Position;

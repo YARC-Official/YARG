@@ -8,9 +8,12 @@ using UnityEngine;
 using UnityEngine.UI;
 using YARG.Core;
 using YARG.Core.Chart;
+using YARG.Core.Game;
+using YARG.Gameplay.Player;
 using YARG.Gameplay.Visuals;
 using YARG.Helpers.Extensions;
 using YARG.Player;
+using static UnityEditor.Progress;
 using static YARG.Core.Game.ColorProfile;
 
 namespace YARG.Menu.HighwayConfiguration
@@ -19,12 +22,12 @@ namespace YARG.Menu.HighwayConfiguration
     {
         // Neither mergeable nor splittable
         // For example, Red Drum
-        public HighwayOrderingItemSpec(string name, DrumsHighwayItemIconType type, int colorIndex, DrumsHighwayItem enumeratedValue)
+        public HighwayOrderingItemSpec(string name, DrumsHighwayItemIconType type, int colorIndex, DrumsHighwayItem identity)
         {
             Name = name;
             Type = type;
             ColorIndex = colorIndex;
-            Value = enumeratedValue;
+            Identity = identity;
             SplitsInto = null;
             MergesInto = null;
             MergedResult = null;
@@ -32,25 +35,25 @@ namespace YARG.Menu.HighwayConfiguration
 
         // Splittable. Provide the two items that it splits into as a tuple
         // For example, a combined Yellow splits into a Yellow Cymbal and a Yellow Tom
-        public HighwayOrderingItemSpec(string name, DrumsHighwayItemIconType type, int colorIndex, DrumsHighwayItem enumeratedValue, (DrumsHighwayItem, DrumsHighwayItem) splitsInto)
+        public HighwayOrderingItemSpec(string name, DrumsHighwayItemIconType type, int colorIndex, DrumsHighwayItem identity, (DrumsHighwayItem, DrumsHighwayItem) splitsInto)
         {
             Name = name;
             Type = type;
             ColorIndex = colorIndex;
-            Value = enumeratedValue;
-            SplitsInto = splitsInto;
+            Identity = identity;
+            SplitsInto = (splitsInto.Item1, splitsInto.Item2);
             MergesInto = null;
             MergedResult = null;
         }
 
         // Mergeable. Provide what it merges into, and what the merged result is.
         // For example, a Yellow Cymbal merges into a Yellow Drum to produce a combined Yellow
-        public HighwayOrderingItemSpec(string name, DrumsHighwayItemIconType type, int colorIndex, DrumsHighwayItem enumeratedValue, DrumsHighwayItem mergesInto, DrumsHighwayItem mergedResult)
+        public HighwayOrderingItemSpec(string name, DrumsHighwayItemIconType type, int colorIndex, DrumsHighwayItem identity, DrumsHighwayItem mergesInto, DrumsHighwayItem mergedResult)
         {
             Name = name;
             Type = type;
             ColorIndex = colorIndex;
-            Value = enumeratedValue;
+            Identity = identity;
             SplitsInto = null;
             MergesInto = mergesInto;
             MergedResult = mergedResult;
@@ -59,13 +62,13 @@ namespace YARG.Menu.HighwayConfiguration
         public string Name { get; }
         public DrumsHighwayItemIconType Type { get; }
         public int ColorIndex { get; }
-        public DrumsHighwayItem Value { get; }
+        public DrumsHighwayItem Identity { get; }
         public (DrumsHighwayItem, DrumsHighwayItem)? SplitsInto { get; }
         public DrumsHighwayItem? MergesInto { get; }
         public DrumsHighwayItem? MergedResult { get; }
     }
 
-    public class HighwayOrderingItem : MonoBehaviour
+    public class DrumsHighwayItemView : MonoBehaviour
     {
         [SerializeField]
         private Image _icon;
@@ -103,19 +106,24 @@ namespace YARG.Menu.HighwayConfiguration
 
         private DrumsHighwayConfigurationMenu _configMenu;
         private HighwayOrderingItemSpec _spec;
+        public DrumsHighwayItem Item { get; set; }
+        private int _index => _configMenu.GetItemIndex(Item);
 
         public void Initialize(
             DrumsHighwayConfigurationMenu configMenu,
-            HighwayOrderingItemSpec spec,
-            IFretColorProvider colorProvider,
-            bool isFirst,
-            bool isLast
+            DrumsHighwayItem item
         ) {
-            _spec = spec;
             _configMenu = configMenu;
-            _name.text = spec.Name;
-            _icon.color = colorProvider.GetFretColor(spec.ColorIndex).ToUnityColor();
-            _icon.sprite = spec.Type switch
+            Item = item;
+            Render();
+        }
+
+        public void Render()
+        {
+            _spec = _configMenu.Specs[Item];
+            _name.text = _spec.Name;
+            _icon.color = _configMenu.ColorProvider.GetFretColor(_spec.ColorIndex).ToUnityColor();
+            _icon.sprite = _spec.Type switch
             {
                 DrumsHighwayItemIconType.Drum => _drumShape,
                 DrumsHighwayItemIconType.Cymbal => _cymbalShape,
@@ -124,8 +132,8 @@ namespace YARG.Menu.HighwayConfiguration
                 _ => throw new ArgumentOutOfRangeException("o no")
             };
 
-            _leftButton.interactable = !isFirst;
-            _rightButton.interactable = !isLast;
+            _leftButton.interactable = _index != 0;
+            _rightButton.interactable = _index != _configMenu.HighwayOrdering.Count - 1;
 
             if (_spec.SplitsInto is not null)
             {
@@ -142,36 +150,37 @@ namespace YARG.Menu.HighwayConfiguration
                 _splitOrMerge.gameObject.SetActive(false);
             }
 
-            if (spec.Value is DrumsHighwayItem.Kick or DrumsHighwayItem.Kick1x)
+            if (Item is DrumsHighwayItem.Kick or DrumsHighwayItem.Kick1x)
             {
                 _removeDedicatedLanes.gameObject.SetActive(true);
-                _removeDedicatedLanesButtonText.text = spec.Value is DrumsHighwayItem.Kick ? "Remove Dedicated Lane" : "Remove Dedicated Lanes";
-            } else
+                _removeDedicatedLanesButtonText.text = Item is DrumsHighwayItem.Kick ? "Remove Dedicated Lane" : "Remove Dedicated Lanes";
+            }
+            else
             {
                 _removeDedicatedLanes.gameObject.SetActive(false);
             }
 
-            _expertPlusOnlyToggle.isOn = spec.Value is DrumsHighwayItem.Kick2xConditional;
-            _expertPlusOnly.gameObject.SetActive(spec.Value is DrumsHighwayItem.Kick2x or DrumsHighwayItem.Kick2xConditional);
+            _expertPlusOnly.gameObject.SetActive(Item is DrumsHighwayItem.Kick2x or DrumsHighwayItem.Kick2xConditional);
+            _expertPlusOnlyToggle.SetIsOnWithoutNotify(Item is DrumsHighwayItem.Kick2xConditional);
         }
 
         public void MoveLeft() {
-            _configMenu.MoveItemLeft(_spec.Value);
+            _configMenu.MoveItemLeft(Item);
         }
 
         public void MoveRight() {
-            _configMenu.MoveItemRight(_spec.Value);
+            _configMenu.MoveItemRight(Item);
         }
 
         public void SplitOrMerge()
         {
             if (_spec.MergesInto is not null)
             {
-                _configMenu.MergeItemInto(_spec.Value, _spec.MergesInto.Value, _spec.MergedResult.Value);
+                _configMenu.MergeItemInto(Item, _spec.MergesInto.Value, _spec.MergedResult.Value);
             }
             else if (_spec.SplitsInto is not null)
             {
-                _configMenu.SplitItemInto(_spec.Value, _spec.SplitsInto.Value);
+                _configMenu.SplitItemInto(Item, _spec.SplitsInto.Value);
             }
         }
 
@@ -182,11 +191,12 @@ namespace YARG.Menu.HighwayConfiguration
 
         public void ToggleExpertPlusOnly()
         {
-            _configMenu.ToggleExpertPlusOnly();
+            _configMenu.ToggleExpertPlusOnly(this);
         }
 
         // Technically we should have separate 4L and 5L kicks, but in practice it doesn't matter
         private static (int pad, int colorIndex) KICK = ((int) FourLaneDrumPad.Kick, (int) FourLaneDrumsFret.Kick);
+        private static (int pad, int colorIndex) DOUBLE_KICK = (DrumsPlayer.DOUBLE_KICK_FRET_INDEX, (int) FourLaneDrumsFret.DoubleKick);
 
         private static (int pad, int colorIndex) FOUR_LANE_RED_DRUM = ((int) FourLaneDrumPad.RedDrum, (int) FourLaneDrumsFret.RedDrum);
         private static (int pad, int colorIndex) FOUR_LANE_YELLOW_DRUM = ((int) FourLaneDrumPad.YellowDrum, (int) FourLaneDrumsFret.YellowDrum);
@@ -204,10 +214,10 @@ namespace YARG.Menu.HighwayConfiguration
 
         public static Dictionary<DrumsHighwayItem, List<(int pad, int colorIndex)>> HighwayOrderingInfoMap = new()
         {
-            { DrumsHighwayItem.Kick, new() { KICK } },
+            { DrumsHighwayItem.Kick, new() { KICK, DOUBLE_KICK } },
             { DrumsHighwayItem.Kick1x, new() { KICK } },
-            { DrumsHighwayItem.Kick2x, new() { KICK } },
-            { DrumsHighwayItem.Kick2xConditional, new() { KICK } },
+            { DrumsHighwayItem.Kick2x, new() { DOUBLE_KICK } },
+            { DrumsHighwayItem.Kick2xConditional, new() { DOUBLE_KICK } },
 
             { DrumsHighwayItem.FourLaneRed, new() { FOUR_LANE_RED_DRUM } },
 

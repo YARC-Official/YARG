@@ -17,6 +17,7 @@ using YARG.Player;
 using YARG.Settings;
 using YARG.Themes;
 using static YARG.Core.Game.ColorProfile;
+using static YARG.Gameplay.Visuals.Fret;
 
 namespace YARG.Gameplay.Player
 {
@@ -27,6 +28,10 @@ namespace YARG.Gameplay.Player
         // Key is a FourLaneDrumPad or FiveLaneDrumPad
         private Dictionary<int, HighwayOrderingInfo> _highwayOrdering;
 
+        // The highway ordering is indexed by pad, so we need a special value for dedicated-lane double kicks, since those are
+        // indistinguishable from 1x kicks by pad number
+        public const int DOUBLE_KICK_FRET_INDEX = int.MaxValue;
+
         // Number of distinct frets in the fret array.
         // Derivable, but predetermined by MakeHighwayOrdering() for performance reasons
         public int LaneCount { get; private set; }
@@ -35,7 +40,9 @@ namespace YARG.Gameplay.Player
         private bool _blueCymbalHasLane = false;
         private bool _greenCymbalHasLane = false;
 
-        public bool KickHasLane { get; private set; } = false;
+        public int NumberOfDedicatedKickLanes { get; private set; } = 0;
+
+
         public float NoteScaleFactor = 1f;
 
         private int DrumsActionToHighwayIndex(DrumsAction action)
@@ -381,7 +388,18 @@ namespace YARG.Gameplay.Player
 
             // The AnimType doesn't actually matter here
             // We handle the animation in OnPadHit instead
-            AnimateFret(note.Pad, Fret.AnimType.CorrectNormal);
+
+            int animationIndex;
+            if (note.IsDoubleKick && NumberOfDedicatedKickLanes is 2)
+            {
+                animationIndex = DOUBLE_KICK_FRET_INDEX;
+            }
+            else
+            {
+                animationIndex = note.Pad;
+            }
+
+            AnimateFret(animationIndex, Fret.AnimType.CorrectNormal);
         }
 
         protected override void OnNoteMissed(int index, DrumNote note)
@@ -423,8 +441,10 @@ namespace YARG.Gameplay.Player
 
         private void OnPadHit(DrumsAction action, bool wasNoteHit, bool wasNoteHitCorrectly, DrumNoteType type, float velocity)
         {
+            var kickHasLane = NumberOfDedicatedKickLanes > 0;
+
             // Update last hit times for fret flashing animation
-            if (action is not DrumsAction.Kick || KickHasLane)
+            if (action is not DrumsAction.Kick || kickHasLane)
             {
                 // Play the correct hit animation based on dynamics
                 Fret.AnimType animType = Fret.AnimType.CorrectNormal;
@@ -461,16 +481,28 @@ namespace YARG.Gameplay.Player
                 PlayDrumSoundEffect(action, velocity);
             }
 
-            if (action is not DrumsAction.Kick || KickHasLane)
+            if (action is not DrumsAction.Kick || kickHasLane)
             {
                 if (isDrumFreestyle)
                 {
                     AnimateAction(action);
+
+                    // Special case for split-dedicated kicks; we don't know which pedal was used, so animate both
+                    if (action is DrumsAction.Kick && NumberOfDedicatedKickLanes is 2)
+                    {
+                        _fretArray.PlayHitAnimation(DOUBLE_KICK_FRET_INDEX);
+                    }
                 }
                 else
                 {
                     int fret = DrumsActionToHighwayIndex(action);
                     _fretArray.PlayMissAnimation(fret);
+
+                    // Special case for split-dedicated kicks; we don't know which pedal was used, so animate both
+                    if (action is DrumsAction.Kick && NumberOfDedicatedKickLanes is 2)
+                    {
+                        _fretArray.PlayMissAnimation(DOUBLE_KICK_FRET_INDEX);
+                    }
                 }
             }
             else
@@ -572,8 +604,14 @@ namespace YARG.Gameplay.Player
         private void ZeroOutHitTime(DrumsAction action, Fret.AnimType animType)
         {
             int fretIdx = DrumsActionToHighwayIndex(action);
-            _fretToLastPressedTimeDelta[fretIdx] = 0f;
-            _animTypeToFretToLastPressedDelta[animType][fretIdx] = 0f;
+            ZeroOutHitTime(fretIdx, animType);
+        }
+
+        // i.e., flash this fret by making it seem pressed
+        private void ZeroOutHitTime(int index, Fret.AnimType animType)
+        {
+            _fretToLastPressedTimeDelta[index] = 0f;
+            _animTypeToFretToLastPressedDelta[animType][index] = 0f;
         }
 
         private void UpdateHitTimes()
@@ -663,7 +701,7 @@ namespace YARG.Gameplay.Player
         private void AnimateFret(int pad, Fret.AnimType animType)
         {
             // Four and five lane drums have the same kick value
-            if (pad == (int) FourLaneDrumPad.Kick && !KickHasLane)
+            if (pad == (int) FourLaneDrumPad.Kick && NumberOfDedicatedKickLanes is 0)
             {
                 _kickFretFlash.PlayHitAnimation();
                 _fretArray.PlayKickFretAnimation();
@@ -718,7 +756,8 @@ namespace YARG.Gameplay.Player
             {
                 return fret switch
                 {
-                    FourLaneDrumsFret.Kick =>           (int)FourLaneDrumsFret.Kick,
+                    FourLaneDrumsFret.Kick =>           (int)(NumberOfDedicatedKickLanes is 2 ? FourLaneDrumsFret.DoubleKick : FourLaneDrumsFret.Kick),
+                    FourLaneDrumsFret.DoubleKick =>     (int)FourLaneDrumsFret.Kick,
                     FourLaneDrumsFret.RedDrum =>        (int)FourLaneDrumsFret.GreenDrum,
                     FourLaneDrumsFret.YellowDrum =>     (int)FourLaneDrumsFret.BlueDrum,
                     FourLaneDrumsFret.BlueDrum =>       (int)FourLaneDrumsFret.YellowDrum,
@@ -738,12 +777,13 @@ namespace YARG.Gameplay.Player
             if (Player.Profile.LeftyFlip)
             {
                 return fret switch {
-                    FiveLaneDrumsFret.Kick =>   (int)FiveLaneDrumsFret.Kick,
-                    FiveLaneDrumsFret.Red =>    (int)FiveLaneDrumsFret.Green,
-                    FiveLaneDrumsFret.Yellow => (int)FiveLaneDrumsFret.Orange,
-                    FiveLaneDrumsFret.Blue =>   (int)FiveLaneDrumsFret.Blue,
-                    FiveLaneDrumsFret.Orange => (int)FiveLaneDrumsFret.Yellow,
-                    FiveLaneDrumsFret.Green =>  (int)FiveLaneDrumsFret.Red,
+                    FiveLaneDrumsFret.Kick =>       (int)(NumberOfDedicatedKickLanes is 2 ? FourLaneDrumsFret.DoubleKick : FourLaneDrumsFret.Kick),
+                    FiveLaneDrumsFret.DoubleKick => (int)FiveLaneDrumsFret.Kick,
+                    FiveLaneDrumsFret.Red =>        (int)FiveLaneDrumsFret.Green,
+                    FiveLaneDrumsFret.Yellow =>     (int)FiveLaneDrumsFret.Orange,
+                    FiveLaneDrumsFret.Blue =>       (int)FiveLaneDrumsFret.Blue,
+                    FiveLaneDrumsFret.Orange =>     (int)FiveLaneDrumsFret.Yellow,
+                    FiveLaneDrumsFret.Green =>      (int)FiveLaneDrumsFret.Red,
                     _ => (int)fret
                 };
             }
@@ -773,28 +813,38 @@ namespace YARG.Gameplay.Player
                 _ => throw new ArgumentOutOfRangeException("Unexpected nondrums instrument")
             };
 
-            // If the player has a dedicated Left Kick lane that's set to Expert+ Only, and isn't playing on Expert+, then the actual amount of lanes is 1 fewer than the size
+            // If the player has a dedicated Double Kick lane that's set to Expert+ Only, and isn't playing on Expert+, then the actual amount of lanes is 1 fewer than the size
             // of the provided ordering because that lane is absent.
-            var conditionalPedalAdjustment = ordering.Contains(DrumsHighwayItem.Kick2xConditional) && Player.Profile.CurrentDifficulty is not Difficulty.ExpertPlus ? 1 : 0;
-
-            LaneCount = ordering.Length - conditionalPedalAdjustment;
+            LaneCount = ordering.Length - (ordering.Contains(DrumsHighwayItem.Kick2xConditional) && Player.Profile.CurrentDifficulty is not Difficulty.ExpertPlus ? 1 : 0);
             NoteScaleFactor = 4f / LaneCount;
 
             _highwayOrdering = new();
 
+            // Once we've skipped the conditional Double Kick lane, we'll have an off-by-one relationship between i and the actual intended position
+            var skippedPedalAdjustment = 0;
             for (var i = 0; i < ordering.Length; i++)
             {
                 var item = ordering[i];
-                var highwayOrderingInfos = HighwayOrderingItem.HighwayOrderingInfoMap[item];
+
+                if (item is DrumsHighwayItem.Kick2xConditional && Player.Profile.CurrentDifficulty is not Difficulty.ExpertPlus)
+                {
+                    skippedPedalAdjustment = 1;
+                    continue;
+                }
+
+                var highwayOrderingInfos = DrumsHighwayItemView.HighwayOrderingInfoMap[item];
 
                 foreach (var highwayOrderingInfo in highwayOrderingInfos)
                 {
-                    _highwayOrdering[highwayOrderingInfo.pad] = new(ApplyHandednessToPosition(i), ApplyHandednessToColor(highwayOrderingInfo.colorIndex, instrument));
+                    _highwayOrdering[highwayOrderingInfo.pad] = new(
+                        ApplyHandednessToPosition(i - skippedPedalAdjustment),
+                        ApplyHandednessToColor(highwayOrderingInfo.colorIndex, instrument)
+                    );
 
                     switch (item)
                     {
                         case DrumsHighwayItem.Kick or DrumsHighwayItem.Kick1x or DrumsHighwayItem.Kick2x or DrumsHighwayItem.Kick2xConditional:
-                            KickHasLane = true;
+                            NumberOfDedicatedKickLanes++;
                             break;
                         case DrumsHighwayItem.FourLaneYellowCymbal:
                             _yellowCymbalHasLane = true;

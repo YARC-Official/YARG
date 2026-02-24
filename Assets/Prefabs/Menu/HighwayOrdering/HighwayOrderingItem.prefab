@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 4231007925697717005}
   - component: {fileID: 743960087085927903}
   - component: {fileID: 6622671146241110410}
-  - component: {fileID: 3452384126329768694}
+  - component: {fileID: 3407607107952119645}
   m_Layer: 0
   m_Name: HighwayOrderingItem
   m_TagString: Untagged
@@ -73,7 +73,7 @@ MonoBehaviour:
   m_FlexibleWidth: -1
   m_FlexibleHeight: -1
   m_LayoutPriority: 1
---- !u!114 &3452384126329768694
+--- !u!114 &3407607107952119645
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -82,14 +82,14 @@ MonoBehaviour:
   m_GameObject: {fileID: 3366555885906591001}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ab7a47854acb8eb4594287187e1aa4a8, type: 3}
+  m_Script: {fileID: 11500000, guid: 3782b56e4df3b1e43b7748855f7969c3, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::YARG.Menu.HighwayConfiguration.ProDrumsHighwayOrderingItem
+  m_EditorClassIdentifier: Assembly-CSharp::YARG.Menu.HighwayConfiguration.DrumsHighwayItemView
   _icon: {fileID: 1697035008842509355}
   _name: {fileID: 1671749639252177459}
   _leftButton: {fileID: 3371216075990216867}
   _rightButton: {fileID: 4462113527532140124}
-  _splitOrMerge: {fileID: 843716283482367619}
+  _splitOrMerge: {fileID: 4751693058363979324}
   _splitOrMergeButtonText: {fileID: 9127437948735250048}
   _removeDedicatedLanes: {fileID: 556828517530298000}
   _removeDedicatedLanesButtonText: {fileID: 8260753592463810195}
@@ -570,7 +570,7 @@ PrefabInstance:
     - target: {fileID: 2831387105937332272, guid: af3bb3f5775a8a349b87d677ee5a82c5, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
       value: 
-      objectReference: {fileID: 3452384126329768694}
+      objectReference: {fileID: 3407607107952119645}
     - target: {fileID: 2831387105937332272, guid: af3bb3f5775a8a349b87d677ee5a82c5, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_CallState
       value: 2
@@ -581,7 +581,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2831387105937332272, guid: af3bb3f5775a8a349b87d677ee5a82c5, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
-      value: YARG.Menu.HighwayConfiguration.HighwayOrderingItem, Assembly-CSharp
+      value: YARG.Menu.HighwayConfiguration.DrumsHighwayItemView, Assembly-CSharp
       objectReference: {fileID: 0}
     - target: {fileID: 2831387105937332272, guid: af3bb3f5775a8a349b87d677ee5a82c5, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_ObjectArgumentAssemblyTypeName
@@ -612,14 +612,14 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: af3bb3f5775a8a349b87d677ee5a82c5, type: 3}
---- !u!1 &843716283482367619 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 839192570108900618, guid: af3bb3f5775a8a349b87d677ee5a82c5, type: 3}
-  m_PrefabInstance: {fileID: 4523731872453513}
-  m_PrefabAsset: {fileID: 0}
 --- !u!224 &1959333879559862962 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 1954810208901179707, guid: af3bb3f5775a8a349b87d677ee5a82c5, type: 3}
+  m_PrefabInstance: {fileID: 4523731872453513}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &4751693058363979324 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 4747205114507847093, guid: af3bb3f5775a8a349b87d677ee5a82c5, type: 3}
   m_PrefabInstance: {fileID: 4523731872453513}
   m_PrefabAsset: {fileID: 0}
 --- !u!114 &9127437948735250048 stripped
@@ -752,7 +752,7 @@ PrefabInstance:
     - target: {fileID: 2831387105937332272, guid: af3bb3f5775a8a349b87d677ee5a82c5, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
       value: 
-      objectReference: {fileID: 3452384126329768694}
+      objectReference: {fileID: 3407607107952119645}
     - target: {fileID: 2831387105937332272, guid: af3bb3f5775a8a349b87d677ee5a82c5, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_CallState
       value: 2
@@ -763,7 +763,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2831387105937332272, guid: af3bb3f5775a8a349b87d677ee5a82c5, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
-      value: YARG.Menu.HighwayConfiguration.HighwayOrderingItem, Assembly-CSharp
+      value: YARG.Menu.HighwayConfiguration.DrumsHighwayItemView, Assembly-CSharp
       objectReference: {fileID: 0}
     - target: {fileID: 2831387105937332272, guid: af3bb3f5775a8a349b87d677ee5a82c5, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_ObjectArgumentAssemblyTypeName
@@ -862,7 +862,7 @@ PrefabInstance:
     - target: {fileID: 1245898288579793007, guid: 1559ee81882cd0045b6d33a64692e938, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
       value: 
-      objectReference: {fileID: 3452384126329768694}
+      objectReference: {fileID: 3407607107952119645}
     - target: {fileID: 1245898288579793007, guid: 1559ee81882cd0045b6d33a64692e938, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_CallState
       value: 2
@@ -873,7 +873,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1245898288579793007, guid: 1559ee81882cd0045b6d33a64692e938, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
-      value: YARG.Menu.HighwayConfiguration.ProDrumsHighwayOrderingItem, Assembly-CSharp
+      value: YARG.Menu.HighwayConfiguration.DrumsHighwayItemView, Assembly-CSharp
       objectReference: {fileID: 0}
     - target: {fileID: 1245898288579793007, guid: 1559ee81882cd0045b6d33a64692e938, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_ObjectArgumentAssemblyTypeName
@@ -1071,7 +1071,7 @@ PrefabInstance:
     - target: {fileID: 1245898288579793007, guid: 1559ee81882cd0045b6d33a64692e938, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
       value: 
-      objectReference: {fileID: 3452384126329768694}
+      objectReference: {fileID: 3407607107952119645}
     - target: {fileID: 1245898288579793007, guid: 1559ee81882cd0045b6d33a64692e938, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_CallState
       value: 2
@@ -1082,7 +1082,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1245898288579793007, guid: 1559ee81882cd0045b6d33a64692e938, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
-      value: YARG.Menu.HighwayConfiguration.ProDrumsHighwayOrderingItem, Assembly-CSharp
+      value: YARG.Menu.HighwayConfiguration.DrumsHighwayItemView, Assembly-CSharp
       objectReference: {fileID: 0}
     - target: {fileID: 1245898288579793007, guid: 1559ee81882cd0045b6d33a64692e938, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_ObjectArgumentAssemblyTypeName
@@ -1372,7 +1372,7 @@ PrefabInstance:
     - target: {fileID: 7147442041986558330, guid: aed667cd79204fe4aad4f297b650e848, type: 3}
       propertyPath: onValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_Target
       value: 
-      objectReference: {fileID: 3452384126329768694}
+      objectReference: {fileID: 3407607107952119645}
     - target: {fileID: 7147442041986558330, guid: aed667cd79204fe4aad4f297b650e848, type: 3}
       propertyPath: onValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_CallState
       value: 2
@@ -1383,7 +1383,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7147442041986558330, guid: aed667cd79204fe4aad4f297b650e848, type: 3}
       propertyPath: onValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
-      value: YARG.Menu.HighwayConfiguration.HighwayOrderingItem, Assembly-CSharp
+      value: YARG.Menu.HighwayConfiguration.DrumsHighwayItemView, Assembly-CSharp
+      objectReference: {fileID: 0}
+    - target: {fileID: 7147442041986558330, guid: aed667cd79204fe4aad4f297b650e848, type: 3}
+      propertyPath: onValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_BoolArgument
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7147442041986558330, guid: aed667cd79204fe4aad4f297b650e848, type: 3}
       propertyPath: onValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_ObjectArgumentAssemblyTypeName
@@ -1523,10 +1527,6 @@ PrefabInstance:
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 2831387105937332272, guid: af3bb3f5775a8a349b87d677ee5a82c5, type: 3}
-      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
-      value: 
-      objectReference: {fileID: 3452384126329768694}
-    - target: {fileID: 2831387105937332272, guid: af3bb3f5775a8a349b87d677ee5a82c5, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_CallState
       value: 2
       objectReference: {fileID: 0}
@@ -1654,10 +1654,6 @@ PrefabInstance:
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Mode
       value: 1
       objectReference: {fileID: 0}
-    - target: {fileID: 1245898288579793007, guid: 1559ee81882cd0045b6d33a64692e938, type: 3}
-      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
-      value: 
-      objectReference: {fileID: 3452384126329768694}
     - target: {fileID: 1245898288579793007, guid: 1559ee81882cd0045b6d33a64692e938, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_CallState
       value: 2

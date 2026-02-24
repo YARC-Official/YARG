@@ -237,7 +237,7 @@ MonoBehaviour:
   _ordering: {fileID: 5009541611764778103}
   _kickItem: {fileID: 7961536522532503892}
   _kickImage: {fileID: 5000570524507341579}
-  _itemPrefab: {fileID: 3452384126329768694, guid: 46cd14875b2238b48ada8b64d531ddb5, type: 3}
+  _itemPrefab: {fileID: 3407607107952119645, guid: 46cd14875b2238b48ada8b64d531ddb5, type: 3}
   _header: {fileID: 4968441960163181409}
 --- !u!1001 &4667250889934715981
 PrefabInstance:
