@@ -1447,12 +1447,7 @@ namespace YARG.Menu.Filters
             {
                 if (filtersChanged || showRecommendationsChanged)
                 {
-                    library.RequestPreferHeaderOnNextSnapshot();
                     library.RefreshAndReselect();
-                }
-                else
-                {
-                    library.RequestPreferHeaderOnNextSnapshot();
                 }
             }
 
