@@ -53,7 +53,7 @@ namespace YARG.Venue.Characters
 
         private CameraManager _cameraManager;
 
-        public override void Initialize(CharacterManager characterManager)
+        public override void Initialize(CharacterManager characterManager = null)
         {
             _initialPosition = transform.position;
 
@@ -67,7 +67,11 @@ namespace YARG.Venue.Characters
             VrmInstance = GetComponent<Vrm10Instance>();
             _hasVrmInstance = VrmInstance != null;
             _expression = VrmInstance.Runtime.Expression;
-            _lipsyncEvents = _characterManager.LipsyncEvents;
+
+            if (_characterManager != null)
+            {
+                _lipsyncEvents = _characterManager.LipsyncEvents;
+            }
 
             var clips = VrmInstance.Vrm.Expression.CustomClips;
 
@@ -81,7 +85,11 @@ namespace YARG.Venue.Characters
 
         protected override void Update()
         {
-            ProcessLipsync(_characterManager.SongTime);
+            if (_characterManager != null)
+            {
+                ProcessLipsync(_characterManager.SongTime);
+            }
+
             base.Update();
         }
 
@@ -217,6 +225,11 @@ namespace YARG.Venue.Characters
 
         private void UpdateBounds()
         {
+            if (_visibilityRenderer == null)
+            {
+                return;
+            }
+
             var renderers = GetComponentsInChildren<Renderer>(false);
 
             bool hasAny = false;

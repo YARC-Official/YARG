@@ -228,7 +228,8 @@ namespace YARG.Settings
                 nameof(Settings.ShowAdvancedMusicLibraryOptions),
                 nameof(Settings.MinimumLogLevel),
             },
-            new MetadataTab("Experimental", icon: "Beaker", new ExperimentalPreviewBuilder())
+            // new MetadataTab("Experimental", icon: "Beaker", new ExperimentalPreviewBuilder())
+            new MetadataTab("Experimental", icon: "Beaker", new CharacterPreviewBuilder())
             {
                 new HeaderMetadata("Other"),
                 nameof(Settings.BandComboTypeSetting),
