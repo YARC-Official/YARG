@@ -213,10 +213,10 @@ namespace YARG.Song
                     attribute = SortAttribute.Subgenre;
                     argument = argument[9..];
                 }
-                else if (argument.StartsWith("playlist:"))
+                else if (argument.StartsWith("folder:"))
                 {
-                    attribute = SortAttribute.Playlist;
-                    argument = argument[9..];
+                    attribute = SortAttribute.Folder;
+                    argument = argument[7..];
                 }
                 else if (argument.StartsWith("name:"))
                 {
@@ -318,7 +318,7 @@ namespace YARG.Song
                     SortAttribute.Subgenre => entry => IsAboveFuzzyThreshold(entry.Subgenre.SearchStr, filter.Argument),
                     SortAttribute.Year => entry => entry.UnmodifiedYear.Contains(filter.Argument),
                     SortAttribute.Charter => entry => IsAboveFuzzyThreshold(entry.Charter.SearchStr, filter.Argument),
-                    SortAttribute.Playlist => entry => MatchesAnyPlaylist(entry, filter.Argument, true),
+                    SortAttribute.Folder => entry => MatchesAnyPlaylist(entry, filter.Argument, true),
                     SortAttribute.Source => entry => IsAboveFuzzyThreshold(entry.Source.SearchStr, filter.Argument),
                     _ => throw new Exception("Unhandled seacrh filter")
                 },
@@ -331,7 +331,7 @@ namespace YARG.Song
                     SortAttribute.Subgenre => entry => entry.Subgenre.SearchStr == filter.Argument,
                     SortAttribute.Year => entry => entry.ParsedYear == filter.Argument || entry.UnmodifiedYear == filter.Argument,
                     SortAttribute.Charter => entry => entry.Charter.SearchStr == filter.Argument,
-                    SortAttribute.Playlist => entry => MatchesAnyPlaylist(entry, filter.Argument, false),
+                    SortAttribute.Folder => entry => MatchesAnyPlaylist(entry, filter.Argument, false),
                     SortAttribute.Source => entry => entry.Source.SearchStr == filter.Argument,
                     _ => throw new Exception("Unhandled seacrh filter")
                 },

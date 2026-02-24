@@ -28,7 +28,7 @@ namespace YARG.Menu.MusicLibrary
                     sort != SortAttribute.DateAdded &&
                     sort != SortAttribute.Playable &&
                     sort != SortAttribute.Instrument &&
-                    sort != SortAttribute.Playlist)
+                    sort != SortAttribute.Folder)
                 {
                     _searchQueries.Add(sort, string.Empty);
                 }
