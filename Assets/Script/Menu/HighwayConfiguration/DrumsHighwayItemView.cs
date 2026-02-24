@@ -183,8 +183,8 @@ namespace YARG.Menu.HighwayConfiguration
         private static (int pad, int colorIndex) FOUR_LANE_KICK = ((int) FourLaneDrumPad.Kick, (int) FourLaneDrumsFret.Kick);
         private static (int pad, int colorIndex) FIVE_LANE_KICK = ((int) FiveLaneDrumPad.Kick, (int) FiveLaneDrumsFret.Kick);
 
-        private static (int pad, int colorIndex) FOUR_LANE_DOUBLE_KICK = (DrumsPlayer.DOUBLE_KICK_FRET_INDEX, (int) FiveLaneDrumsFret.DoubleKick);
-        private static (int pad, int colorIndex) FIVE_LANE_DOUBLE_KICK = (DrumsPlayer.DOUBLE_KICK_FRET_INDEX, (int) FourLaneDrumsFret.DoubleKick);
+        private static (int pad, int colorIndex) FOUR_LANE_DOUBLE_KICK = (DrumsPlayer.DOUBLE_KICK_FRET_INDEX, (int) FourLaneDrumsFret.DoubleKick);
+        private static (int pad, int colorIndex) FIVE_LANE_DOUBLE_KICK = (DrumsPlayer.DOUBLE_KICK_FRET_INDEX, (int) FiveLaneDrumsFret.DoubleKick);
 
         private static (int pad, int colorIndex) FOUR_LANE_RED_DRUM = ((int) FourLaneDrumPad.RedDrum, (int) FourLaneDrumsFret.RedDrum);
         private static (int pad, int colorIndex) FOUR_LANE_YELLOW_DRUM = ((int) FourLaneDrumPad.YellowDrum, (int) FourLaneDrumsFret.YellowDrum);
