@@ -1442,9 +1442,10 @@ namespace YARG.Menu.Filters
             SaveFilters();
             ActiveFilterPredicate = BuildFilterPredicate();
             var library = FindFirstObjectByType<MusicLibrary.MusicLibraryMenu>();
-            library?.SetSidebarDifficultiesVisible(true);
+            
             if (library != null)
             {
+                library.SetSidebarDifficultiesVisible(true);
                 if (filtersChanged || showRecommendationsChanged)
                 {
                     library.RefreshAndReselect();
