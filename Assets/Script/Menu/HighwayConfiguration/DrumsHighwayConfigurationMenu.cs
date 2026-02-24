@@ -49,6 +49,12 @@ namespace YARG.Menu.HighwayConfiguration
         [SerializeField]
         private TextMeshProUGUI _header;
 
+        [SerializeField]
+        private Toggle _localLeftyFlipToggle;
+        [SerializeField]
+        private Toggle _profileMenuLeftyFlipToggle;
+
+
         public List<DrumsHighwayItem> HighwayOrdering { get; private set; }
         private List<DrumsHighwayItemView> _itemViews = new();
 
@@ -58,6 +64,9 @@ namespace YARG.Menu.HighwayConfiguration
         public bool Lefty { get; private set; }
         public bool SplitKicksExist { get; private set; }
         public Instrument Instrument { get; private set; }
+
+        private YargProfile _profile;
+        private string _headerPrefix;
 
 
         protected override void SingletonAwake()
@@ -73,13 +82,16 @@ namespace YARG.Menu.HighwayConfiguration
             List<DrumsHighwayItem> defaultList,
             string headerPrefix,
             SetOrdering setOrdering,
-            bool lefty,
-            Instrument instrument
+            Instrument instrument,
+            YargProfile profile
         ) {
             Specs = specs;
+            _profile = profile;
             Instrument = instrument;
             ColorProvider = colorProvider;
             HighwayOrdering = defaultList;
+
+            _headerPrefix = headerPrefix;
             _header.text = headerPrefix + HEADER_SUFFIX;
             
             _kickImage.color = colorProvider.GetFretColor((int)FourLaneDrumsFret.Kick).ToUnityColor();
@@ -89,8 +101,9 @@ namespace YARG.Menu.HighwayConfiguration
 
             _setOrdering = setOrdering;
 
-            Lefty = lefty;
-            _ordering.GetComponent<HorizontalLayoutGroup>().reverseArrangement = lefty;
+            Lefty = profile.LeftyFlip;
+            _ordering.GetComponent<HorizontalLayoutGroup>().reverseArrangement = Lefty;
+            _localLeftyFlipToggle.SetIsOnWithoutNotify(Lefty);
 
             var dedicatedKickExists = false;
             SplitKicksExist = false;
@@ -113,6 +126,7 @@ namespace YARG.Menu.HighwayConfiguration
 
             _kickItem.SetActive(!dedicatedKickExists);
             _splitKickWarning.gameObject.SetActive(SplitKicksExist);
+
         }
 
         private void WriteOrderingToProfile()
@@ -265,6 +279,22 @@ namespace YARG.Menu.HighwayConfiguration
             }
 
             return index;
+        }
+
+        public void ToggleLeftyFlip()
+        {
+            Lefty = !Lefty;
+            _profile.LeftyFlip = Lefty;
+            _profileMenuLeftyFlipToggle.SetIsOnWithoutNotify(Lefty);
+            Initialize(
+                Specs,
+                ColorProvider,
+                HighwayOrdering,
+                _headerPrefix,
+                _setOrdering,
+                Instrument,
+                _profile
+            );
         }
     }
 

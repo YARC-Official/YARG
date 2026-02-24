@@ -208,15 +208,15 @@ namespace YARG.Menu.ProfileList
             List<DrumsHighwayItem> defaultList,
             string headerPrefix,
             SetOrdering setOrderingInProfile,
-            bool lefty,
-            Instrument instrument
+            Instrument instrument,
+            YargProfile profile
         ) {
             var menu = DrumsHighwayConfigurationMenu.Instance;
             if (menu == null)
                 return;
 
 
-            menu.Initialize(specs, colorProvider, defaultList, headerPrefix, setOrderingInProfile, lefty, instrument);
+            menu.Initialize(specs, colorProvider, defaultList, headerPrefix, setOrderingInProfile, instrument, profile);
             menu.gameObject.SetActive(true);
         }
         public void CloseDrumsHighwayConfigurationMenu()
@@ -238,8 +238,8 @@ namespace YARG.Menu.ProfileList
                 profile.FourLaneDrumsHighwayOrdering.ToList(),
                 "4-Lane",
                 (newOrdering) => { profile.FourLaneDrumsHighwayOrdering = newOrdering.ToArray(); },
-                profile.LeftyFlip,
-                Instrument.FourLaneDrums
+                Instrument.FourLaneDrums,
+                profile
             );
         }
 
@@ -254,8 +254,8 @@ namespace YARG.Menu.ProfileList
                 profile.ProDrumsHighwayOrdering.ToList(),
                 "Pro",
                 (newOrdering) => { profile.ProDrumsHighwayOrdering = newOrdering.ToArray(); },
-                profile.LeftyFlip,
-                Instrument.ProDrums
+                Instrument.ProDrums,
+                profile
             );
         }
 
@@ -269,8 +269,8 @@ namespace YARG.Menu.ProfileList
                 profile.FiveLaneDrumsHighwayOrdering.ToList(),
                 "5-Lane",
                 (newOrdering) => { profile.FiveLaneDrumsHighwayOrdering = newOrdering.ToArray(); },
-                profile.LeftyFlip,
-                Instrument.FiveLaneDrums
+                Instrument.FiveLaneDrums,
+                profile
             );
         }
     }

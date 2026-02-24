@@ -8522,6 +8522,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 5877926493042770692, guid: a3b2677e603872648a647475adee140f, type: 3}
+      propertyPath: _profileMenuLeftyFlipToggle
+      value: 
+      objectReference: {fileID: 506496582370905451}
     - target: {fileID: 7471163247741345243, guid: a3b2677e603872648a647475adee140f, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
       value: 
@@ -9312,11 +9316,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6232041351873830570, guid: 81863a63e0d96cf459c263ee0ea6f98e, type: 3}
       propertyPath: m_Size
-      value: 0.4725249
+      value: 0.58747154
       objectReference: {fileID: 0}
     - target: {fileID: 6232041351873830570, guid: 81863a63e0d96cf459c263ee0ea6f98e, type: 3}
       propertyPath: m_Value
-      value: 1.0000001
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8647224329583555657, guid: 81863a63e0d96cf459c263ee0ea6f98e, type: 3}
       propertyPath: m_IsActive
