@@ -120,17 +120,6 @@ namespace YARG.Menu.MusicLibrary
             return list;
         }
 
-        private void ExitPlaylistView()
-        {
-            SelectedPlaylist = null;
-            MenuState = MenuState.PlaylistSelect;
-            SetNavigationScheme(true);
-            Refresh();
-
-            // TODO: Select the playlist we just exited from
-            SetIndexTo(i => i is ButtonViewType { ID: BACK_ID + 1 });
-        }
-
         private void RenamePlaylist()
         {
             if (SelectedPlaylist == null) return;
@@ -283,15 +272,6 @@ namespace YARG.Menu.MusicLibrary
                 SetIndexTo(i => i is ButtonViewType { ID: PLAYLIST_ID });
             }
             _sidebar.UpdateSidebar(true);
-        }
-
-        private void ExitPlaylistSelect()
-        {
-            MenuState = MenuState.Library;
-            ClearPreview();
-            Refresh();
-
-            SetIndexTo(i => i is ButtonViewType { ID: PLAYLIST_ID });
         }
 
         private void EnterShowMode()
