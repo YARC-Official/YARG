@@ -228,22 +228,6 @@ namespace YARG.Gameplay.Player
             LaneElement.DefineLaneScale(Player.Profile.CurrentInstrument, _fiveLaneMode ? 5 : 4);
         }
 
-        private int GetFillLaneForSplitView(int rightmostPad)
-        {
-            return rightmostPad switch
-            {
-                0 => 0,
-                1 => ShouldSwapSnareAndHiHat() ? 2 : 1,
-                2 => 3,
-                3 => 5,
-                4 => 7,
-                5 => ShouldSwapSnareAndHiHat() ? 1 : 2,
-                6 => ShouldSwapCrashAndRide() ? 6 : 4,
-                7 => ShouldSwapCrashAndRide() ? 4 : 6,
-                _ => 0,
-            };
-        }
-
         private void SetDrumFillEffects()
         {
             int checkpoint = 0;
@@ -273,20 +257,7 @@ namespace YARG.Gameplay.Player
                     continue;
                 }
 
-                int fillLane = rightmostNote.Pad;
-
-                // Convert pad to lane for pro
-                if (Player.Profile.CurrentInstrument == Instrument.ProDrums)
-                {
-                    if (IsSplitMode)
-                    {
-                        fillLane = GetFillLaneForSplitView(fillLane);
-                    }
-                    else if (fillLane > 4)
-                    {
-                        fillLane -= 3;
-                    }
-                }
+                var fillLanePosition = _highwayOrdering[rightmostNote.Pad].Position;
 
                 int candidateIndex = -1;
 
@@ -312,7 +283,7 @@ namespace YARG.Gameplay.Player
 
                 if (candidateIndex != -1)
                 {
-                    _trackEffects[candidateIndex].FillLane = fillLane;
+                    _trackEffects[candidateIndex].FillLanePosition = fillLanePosition;
                     _trackEffects[candidateIndex].TotalLanes = LaneCount;
                     pairedFillIndexes.Add(candidateIndex);
                     checkpoint = candidateIndex;
