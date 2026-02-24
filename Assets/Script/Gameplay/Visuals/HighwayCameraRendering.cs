@@ -496,10 +496,10 @@ namespace YARG.Gameplay.Visuals
 
                     var alphaTextureHandle = renderGraph.ImportTexture(RTHandles.Alloc(_highwayCameraRendering._highwaysAlphaTexture));
 
-                    builder.SetRenderAttachment(alphaTextureHandle, 0, AccessFlags.Write);
+                    builder.SetRenderAttachment(alphaTextureHandle, 0, AccessFlags.WriteAll);
                     // We could allocate a different depth texture, however at this point
                     // We do not need to preserve depth from the camera as we'll calc this as a very first thing
-                    builder.SetRenderAttachmentDepth(resourceData.activeDepthTexture, AccessFlags.Write);
+                    builder.SetRenderAttachmentDepth(resourceData.activeDepthTexture, AccessFlags.WriteAll);
 
                     builder.AllowPassCulling(false);
 
