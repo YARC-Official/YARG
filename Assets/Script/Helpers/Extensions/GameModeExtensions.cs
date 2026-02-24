@@ -117,6 +117,8 @@ namespace YARG.Helpers.Extensions
         {
             var conditionalSettings = new List<(string setting, string? overrideText)>();
 
+            // This is empty because the only things we ever conditionalized were the old drum highway settings, which have been superseded by the new highway ordering interface.
+            // The infrastructure remains in case we have another need for conditionalized game mode settings.
             Dictionary<string, (string dependencyName, Func<object, bool> dependencyCondition, string overrideText)> conditionalGameModeOptions = gameMode switch
             {
                 _ => new()

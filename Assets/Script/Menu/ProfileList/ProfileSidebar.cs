@@ -288,6 +288,9 @@ namespace YARG.Menu.ProfileList
 
         private void EnableSettingsForGameMode()
         {
+            // The passed dictionary is empty because we don't currently have any conditionalized profile settings (we used to, but they've all been
+            // superseded by the highway ordering interface). You can still populate this dictionary to conditionalize certain settings behind certain
+            // values of other settings ("hide setting X if setting Y has value Z", etc.).
             var possibleSettings = _profile.GameMode.PossibleProfileSettings(new());
 
             for (var i = 0; i < _sidebarContent.transform.childCount; i++)
