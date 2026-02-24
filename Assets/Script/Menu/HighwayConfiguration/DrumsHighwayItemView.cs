@@ -13,6 +13,7 @@ using YARG.Gameplay.Player;
 using YARG.Gameplay.Visuals;
 using YARG.Helpers;
 using YARG.Helpers.Extensions;
+using YARG.Localization;
 using YARG.Player;
 using static UnityEditor.Progress;
 using static YARG.Core.Game.ColorProfile;
@@ -55,6 +56,8 @@ namespace YARG.Menu.HighwayConfiguration
         [SerializeField]
         private GameObject _expertPlusOnly;
         [SerializeField]
+        private TextMeshProUGUI _expertPlusOnlyText;
+        [SerializeField]
         private Toggle _expertPlusOnlyToggle;
 
         [Space]
@@ -84,7 +87,7 @@ namespace YARG.Menu.HighwayConfiguration
         public void Render()
         {
             _spec = _configMenu.Specs[Item];
-            _name.text = _configMenu.Lefty ? _spec.LeftyName : _spec.Name;
+            _name.text = Localize.Key("Menu.HighwayOrdering", _configMenu.Lefty ? _spec.LeftyName : _spec.Name);
 
             var colorIndex = DrumsColorHelpers.ApplyHandednessToColor(_spec.ColorIndex, _configMenu.Lefty, _configMenu.SplitKicksExist, _configMenu.Instrument);
 
@@ -119,7 +122,8 @@ namespace YARG.Menu.HighwayConfiguration
             if (Item is DrumsHighwayItem.Kick or DrumsHighwayItem.Kick1x)
             {
                 _removeDedicatedLanes.gameObject.SetActive(true);
-                _removeDedicatedLanesButtonText.text = Item is DrumsHighwayItem.Kick ? "Remove Dedicated Lane" : "Remove Dedicated Lanes";
+                _removeDedicatedLanesButtonText.text = Localize.Key("Menu.HighwayOrdering",
+                    Item is DrumsHighwayItem.Kick ? "RemoveDedicatedLane" : "RemoveDedicatedLanes");
             }
             else
             {
@@ -127,6 +131,7 @@ namespace YARG.Menu.HighwayConfiguration
             }
 
             _expertPlusOnly.gameObject.SetActive(Item is DrumsHighwayItem.Kick2x or DrumsHighwayItem.Kick2xConditional);
+            _expertPlusOnlyText.text = Localize.Key("Menu.HighwayOrdering.ExpertPlusOnly");
             _expertPlusOnlyToggle.SetIsOnWithoutNotify(Item is DrumsHighwayItem.Kick2xConditional);
         }
 

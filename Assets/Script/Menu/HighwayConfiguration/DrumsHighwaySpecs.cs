@@ -13,8 +13,8 @@ namespace YARG.Menu.HighwayConfiguration
         public static Dictionary<DrumsHighwayItem, HighwayOrderingItemSpec> FOUR_LANE_SPECS { get; } = new()
         {
             { DrumsHighwayItem.Kick, new() {
-                Name = "Kick",
-                LeftyName = "Kick",
+                Name = KICK,
+                LeftyName = KICK,
                 Type = DrumsHighwayItemIconType.Kick,
                 ColorIndex = (int)FourLaneDrumsFret.Kick,
                 Value = DrumsHighwayItem.Kick,
@@ -22,8 +22,8 @@ namespace YARG.Menu.HighwayConfiguration
             } },
 
             { DrumsHighwayItem.Kick1x, new() {
-                Name = "Right Kick*",
-                LeftyName = "Left Kick*",
+                Name = RIGHT_KICK,
+                LeftyName = LEFT_KICK,
                 Type = DrumsHighwayItemIconType.Kick,
                 ColorIndex = (int)FourLaneDrumsFret.Kick,
                 Value = DrumsHighwayItem.Kick1x,
@@ -32,8 +32,8 @@ namespace YARG.Menu.HighwayConfiguration
             } },
 
             { DrumsHighwayItem.Kick2x, new() {
-                Name = "Left Kick*",
-                LeftyName = "Right Kick*",
+                Name = LEFT_KICK,
+                LeftyName = RIGHT_KICK,
                 Type = DrumsHighwayItemIconType.Kick,
                 ColorIndex = (int)FourLaneDrumsFret.DoubleKick,
                 Value = DrumsHighwayItem.Kick2x,
@@ -42,8 +42,8 @@ namespace YARG.Menu.HighwayConfiguration
             } },
 
             { DrumsHighwayItem.Kick2xConditional, new() {
-                Name = "Left Kick*",
-                LeftyName = "Right Kick*",
+                Name = LEFT_KICK,
+                LeftyName = RIGHT_KICK,
                 Type = DrumsHighwayItemIconType.Kick,
                 ColorIndex = (int)FourLaneDrumsFret.DoubleKick,
                 Value = DrumsHighwayItem.Kick2x,
@@ -52,32 +52,32 @@ namespace YARG.Menu.HighwayConfiguration
             } },
 
             { DrumsHighwayItem.FourLaneRed, new() {
-                Name = "Red",
-                LeftyName = "Green",
+                Name = RED,
+                LeftyName = GREEN,
                 Type = DrumsHighwayItemIconType.Drum,
                 ColorIndex = (int)FourLaneDrumsFret.RedDrum,
                 Value = DrumsHighwayItem.FourLaneRed
             } },
 
             { DrumsHighwayItem.FourLaneYellow, new() {
-                Name = "Yellow",
-                LeftyName = "Blue",
+                Name = YELLOW,
+                LeftyName = BLUE,
                 Type = DrumsHighwayItemIconType.Combined,
                 ColorIndex = (int)FourLaneDrumsFret.YellowDrum,
                 Value = DrumsHighwayItem.FourLaneYellow
             } },
 
             { DrumsHighwayItem.FourLaneBlue, new() {
-                Name = "Blue",
-                LeftyName = "Yellow",
+                Name = BLUE,
+                LeftyName = YELLOW,
                 Type = DrumsHighwayItemIconType.Combined,
                 ColorIndex = (int)FourLaneDrumsFret.BlueDrum,
                 Value = DrumsHighwayItem.FourLaneBlue
             } },
 
             { DrumsHighwayItem.FourLaneGreen, new() {
-                Name = "Green",
-                LeftyName = "Red",
+                Name = GREEN,
+                LeftyName = RED,
                 Type = DrumsHighwayItemIconType.Combined,
                 ColorIndex = (int)FourLaneDrumsFret.GreenDrum,
                 Value = DrumsHighwayItem.FourLaneGreen
@@ -87,8 +87,8 @@ namespace YARG.Menu.HighwayConfiguration
         public static Dictionary<DrumsHighwayItem, HighwayOrderingItemSpec> PRO_DRUMS_SPECS { get; } = new()
         {
            { DrumsHighwayItem.Kick, new() {
-                Name = "Kick",
-                LeftyName = "Kick",
+                Name = KICK,
+                LeftyName = KICK,
                 Type = DrumsHighwayItemIconType.Kick,
                 ColorIndex = (int)FourLaneDrumsFret.Kick,
                 Value = DrumsHighwayItem.Kick,
@@ -96,8 +96,8 @@ namespace YARG.Menu.HighwayConfiguration
             } },
 
             { DrumsHighwayItem.Kick1x, new() {
-                Name = "Right Kick*",
-                LeftyName = "Left Kick*",
+                Name = RIGHT_KICK,
+                LeftyName = LEFT_KICK,
                 Type = DrumsHighwayItemIconType.Kick,
                 ColorIndex = (int)FourLaneDrumsFret.Kick,
                 Value = DrumsHighwayItem.Kick1x,
@@ -106,8 +106,8 @@ namespace YARG.Menu.HighwayConfiguration
             } },
 
             { DrumsHighwayItem.Kick2x, new() {
-                Name = "Left Kick*",
-                LeftyName = "Right Kick*",
+                Name = LEFT_KICK,
+                LeftyName = RIGHT_KICK,
                 Type = DrumsHighwayItemIconType.Kick,
                 ColorIndex = (int)FourLaneDrumsFret.DoubleKick,
                 Value = DrumsHighwayItem.Kick2x,
@@ -116,8 +116,8 @@ namespace YARG.Menu.HighwayConfiguration
             } },
 
             { DrumsHighwayItem.Kick2xConditional, new() {
-                Name = "Left Kick*",
-                LeftyName = "Right Kick*",
+                Name = LEFT_KICK,
+                LeftyName = RIGHT_KICK,
                 Type = DrumsHighwayItemIconType.Kick,
                 ColorIndex = (int)FourLaneDrumsFret.DoubleKick,
                 Value = DrumsHighwayItem.Kick2x,
@@ -126,16 +126,16 @@ namespace YARG.Menu.HighwayConfiguration
             } },
 
             { DrumsHighwayItem.FourLaneRed, new() {
-                Name = "Red",
-                LeftyName = "Green",
+                Name = RED,
+                LeftyName = GREEN,
                 Type = DrumsHighwayItemIconType.Drum,
                 ColorIndex = (int)FourLaneDrumsFret.RedDrum,
                 Value = DrumsHighwayItem.FourLaneRed
             } },
 
             { DrumsHighwayItem.FourLaneYellow, new() {
-                Name = "Yellow",
-                LeftyName = "Blue",
+                Name = YELLOW,
+                LeftyName = BLUE,
                 Type = DrumsHighwayItemIconType.Combined,
                 ColorIndex = (int)FourLaneDrumsFret.YellowDrum,
                 Value = DrumsHighwayItem.FourLaneYellow,
@@ -143,8 +143,8 @@ namespace YARG.Menu.HighwayConfiguration
             } },
 
             { DrumsHighwayItem.FourLaneBlue, new() {
-                Name = "Blue",
-                LeftyName = "Yellow",
+                Name = BLUE,
+                LeftyName = YELLOW,
                 Type = DrumsHighwayItemIconType.Combined,
                 ColorIndex = (int)FourLaneDrumsFret.BlueDrum,
                 Value = DrumsHighwayItem.FourLaneBlue,
@@ -152,8 +152,8 @@ namespace YARG.Menu.HighwayConfiguration
             } },
 
             { DrumsHighwayItem.FourLaneGreen, new() {
-                Name = "Green",
-                LeftyName = "Red",
+                Name = GREEN,
+                LeftyName = RED,
                 Type = DrumsHighwayItemIconType.Combined,
                 ColorIndex = (int)FourLaneDrumsFret.GreenDrum,
                 Value = DrumsHighwayItem.FourLaneGreen,
@@ -161,8 +161,8 @@ namespace YARG.Menu.HighwayConfiguration
             } },
 
             { DrumsHighwayItem.FourLaneYellowCymbal, new() {
-                Name = "Yellow Cymbal",
-                LeftyName = "Blue Cymbal",
+                Name = YELLOW_CYMBAL,
+                LeftyName = BLUE_CYMBAL,
                 Type = DrumsHighwayItemIconType.Cymbal,
                 ColorIndex = (int)FourLaneDrumsFret.YellowCymbal,
                 Value = DrumsHighwayItem.FourLaneYellowCymbal,
@@ -171,8 +171,8 @@ namespace YARG.Menu.HighwayConfiguration
             } },
 
             { DrumsHighwayItem.FourLaneBlueCymbal, new() {
-                Name = "Blue Cymbal",
-                LeftyName = "Yellow Cymbal",
+                Name = BLUE_CYMBAL,
+                LeftyName = YELLOW_CYMBAL,
                 Type = DrumsHighwayItemIconType.Cymbal,
                 ColorIndex = (int)FourLaneDrumsFret.BlueCymbal,
                 Value = DrumsHighwayItem.FourLaneBlueCymbal,
@@ -181,8 +181,8 @@ namespace YARG.Menu.HighwayConfiguration
             } },
 
             { DrumsHighwayItem.FourLaneGreenCymbal, new() {
-                Name = "Green Cymbal",
-                LeftyName = "Red Cymbal",
+                Name = GREEN_CYMBAL,
+                LeftyName = RED_CYMBAL,
                 Type = DrumsHighwayItemIconType.Cymbal,
                 ColorIndex = (int)FourLaneDrumsFret.GreenCymbal,
                 Value = DrumsHighwayItem.FourLaneGreenCymbal,
@@ -191,8 +191,8 @@ namespace YARG.Menu.HighwayConfiguration
             } },
 
             { DrumsHighwayItem.FourLaneYellowDrum, new() {
-                Name = "Yellow Drum",
-                LeftyName = "Blue Drum",
+                Name = YELLOW_DRUM,
+                LeftyName = BLUE_DRUM,
                 Type = DrumsHighwayItemIconType.Drum,
                 ColorIndex = (int)FourLaneDrumsFret.YellowDrum,
                 Value = DrumsHighwayItem.FourLaneYellowDrum,
@@ -201,8 +201,8 @@ namespace YARG.Menu.HighwayConfiguration
             } },
 
             { DrumsHighwayItem.FourLaneBlueDrum, new() {
-                Name = "Blue Drum",
-                LeftyName = "Yellow Drum",
+                Name = BLUE_DRUM,
+                LeftyName = YELLOW_DRUM,
                 Type = DrumsHighwayItemIconType.Drum,
                 ColorIndex = (int)FourLaneDrumsFret.BlueDrum,
                 Value = DrumsHighwayItem.FourLaneBlueDrum,
@@ -211,8 +211,8 @@ namespace YARG.Menu.HighwayConfiguration
             } },
 
             { DrumsHighwayItem.FourLaneGreenDrum, new() {
-                Name = "Green Drum",
-                LeftyName = "Red Drum",
+                Name = GREEN_DRUM,
+                LeftyName = RED_DRUM,
                 Type = DrumsHighwayItemIconType.Drum,
                 ColorIndex = (int)FourLaneDrumsFret.GreenDrum,
                 Value = DrumsHighwayItem.FourLaneGreenDrum,
@@ -224,8 +224,8 @@ namespace YARG.Menu.HighwayConfiguration
         public static Dictionary<DrumsHighwayItem, HighwayOrderingItemSpec> FIVE_LANE_SPECS { get; } = new()
         {
             { DrumsHighwayItem.Kick, new() {
-                Name = "Kick",
-                LeftyName = "Kick",
+                Name = KICK,
+                LeftyName = KICK,
                 Type = DrumsHighwayItemIconType.Kick,
                 ColorIndex = (int)FiveLaneDrumsFret.Kick,
                 Value = DrumsHighwayItem.Kick,
@@ -233,8 +233,8 @@ namespace YARG.Menu.HighwayConfiguration
             } },
 
             { DrumsHighwayItem.Kick1x, new() {
-                Name = "Right Kick*",
-                LeftyName = "Left Kick*",
+                Name = RIGHT_KICK,
+                LeftyName = LEFT_KICK,
                 Type = DrumsHighwayItemIconType.Kick,
                 ColorIndex = (int)FiveLaneDrumsFret.Kick,
                 Value = DrumsHighwayItem.Kick1x,
@@ -243,8 +243,8 @@ namespace YARG.Menu.HighwayConfiguration
             } },
 
             { DrumsHighwayItem.Kick2x, new() {
-                Name = "Left Kick*",
-                LeftyName = "Right Kick*",
+                Name = LEFT_KICK,
+                LeftyName = RIGHT_KICK,
                 Type = DrumsHighwayItemIconType.Kick,
                 ColorIndex = (int)FiveLaneDrumsFret.DoubleKick,
                 Value = DrumsHighwayItem.Kick2x,
@@ -253,8 +253,8 @@ namespace YARG.Menu.HighwayConfiguration
             } },
 
             { DrumsHighwayItem.Kick2xConditional, new() {
-                Name = "Left Kick*",
-                LeftyName = "Right Kick*",
+                Name = LEFT_KICK,
+                LeftyName = RIGHT_KICK,
                 Type = DrumsHighwayItemIconType.Kick,
                 ColorIndex = (int)FiveLaneDrumsFret.DoubleKick,
                 Value = DrumsHighwayItem.Kick2x,
@@ -263,44 +263,62 @@ namespace YARG.Menu.HighwayConfiguration
             } },
 
             { DrumsHighwayItem.FiveLaneRed, new() {
-                Name = "Red",
-                LeftyName = "Green",
+                Name = RED,
+                LeftyName = GREEN,
                 Type = DrumsHighwayItemIconType.Drum,
                 ColorIndex = (int)FiveLaneDrumsFret.Red,
                 Value = DrumsHighwayItem.FiveLaneRed
             } },
 
             { DrumsHighwayItem.FiveLaneYellow, new() {
-                Name = "Yellow",
-                LeftyName = "Orange",
+                Name = YELLOW,
+                LeftyName = ORANGE,
                 Type = DrumsHighwayItemIconType.Cymbal,
                 ColorIndex = (int)FiveLaneDrumsFret.Yellow,
                 Value = DrumsHighwayItem.FiveLaneYellow
             } },
 
             { DrumsHighwayItem.FiveLaneBlue, new() {
-                Name = "Blue",
-                LeftyName = "Blue",
+                Name = BLUE,
+                LeftyName = BLUE,
                 Type = DrumsHighwayItemIconType.Drum,
                 ColorIndex = (int)FiveLaneDrumsFret.Blue,
                 Value = DrumsHighwayItem.FiveLaneBlue
             } },
 
             { DrumsHighwayItem.FiveLaneOrange, new() {
-                Name = "Orange",
-                LeftyName = "Yellow",
+                Name = ORANGE,
+                LeftyName = YELLOW,
                 Type = DrumsHighwayItemIconType.Cymbal,
                 ColorIndex = (int)FiveLaneDrumsFret.Orange,
                 Value = DrumsHighwayItem.FiveLaneOrange
             } },
 
             { DrumsHighwayItem.FiveLaneGreen, new() {
-                Name = "Green",
-                LeftyName = "Red",
+                Name = GREEN,
+                LeftyName = RED,
                 Type = DrumsHighwayItemIconType.Drum,
                 ColorIndex = (int)FiveLaneDrumsFret.Green,
                 Value = DrumsHighwayItem.FiveLaneGreen
             } },
         };
+
+        // Localization codes
+        private const string RED = "Red";
+        private const string RED_CYMBAL = "RedCymbal";
+        private const string RED_DRUM = "RedDrum";
+        private const string YELLOW = "Yellow";
+        private const string YELLOW_CYMBAL = "YellowCymbal";
+        private const string YELLOW_DRUM = "YellowDrum";
+        private const string BLUE = "Blue";
+        private const string BLUE_CYMBAL = "BlueCymbal";
+        private const string BLUE_DRUM = "BlueDrum";
+        private const string GREEN = "Green";
+        private const string GREEN_CYMBAL = "GreenCymbal";
+        private const string GREEN_DRUM = "GreenDrum";
+        private const string ORANGE = "Orange";
+        private const string KICK = "Kick";
+        private const string RIGHT_KICK = "RightKick";
+        private const string LEFT_KICK = "LeftKick";
     }
 }

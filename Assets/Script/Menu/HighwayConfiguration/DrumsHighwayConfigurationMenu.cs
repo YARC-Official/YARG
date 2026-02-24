@@ -12,6 +12,7 @@ using YARG.Core;
 using YARG.Core.Game;
 using YARG.Core.Input;
 using YARG.Helpers.Extensions;
+using YARG.Localization;
 using YARG.Menu.Navigation;
 using YARG.Player;
 using YARG.Settings.Customization;
@@ -25,8 +26,6 @@ namespace YARG.Menu.HighwayConfiguration
     [DefaultExecutionOrder(-10000)]
     public class DrumsHighwayConfigurationMenu : MonoSingleton<DrumsHighwayConfigurationMenu>
     {
-        private const string HEADER_SUFFIX = " Drums Highway Configuration";
-
         public Dictionary<DrumsHighwayItem, HighwayOrderingItemSpec> Specs { get; private set; }
 
         // Workaround to avoid errors when deactivating menu during startup
@@ -38,6 +37,10 @@ namespace YARG.Menu.HighwayConfiguration
         private GameObject _ordering;
         [SerializeField]
         private GameObject _kickItem;
+        [SerializeField]
+        private TextMeshProUGUI _kickText;
+        [SerializeField]
+        private TextMeshProUGUI _kickDedicatedLaneButtonText;
         [SerializeField]
         private Image _kickImage;
         [SerializeField]
@@ -66,8 +69,6 @@ namespace YARG.Menu.HighwayConfiguration
         public Instrument Instrument { get; private set; }
 
         private YargProfile _profile;
-        private string _headerPrefix;
-
 
         protected override void SingletonAwake()
         {
@@ -80,7 +81,7 @@ namespace YARG.Menu.HighwayConfiguration
             Dictionary<DrumsHighwayItem, HighwayOrderingItemSpec> specs,
             IFretColorProvider colorProvider,
             List<DrumsHighwayItem> defaultList,
-            string headerPrefix,
+            string header,
             SetOrdering setOrdering,
             Instrument instrument,
             YargProfile profile
@@ -91,10 +92,11 @@ namespace YARG.Menu.HighwayConfiguration
             ColorProvider = colorProvider;
             HighwayOrdering = defaultList;
 
-            _headerPrefix = headerPrefix;
-            _header.text = headerPrefix + HEADER_SUFFIX;
+            _header.text = header;
             
             _kickImage.color = colorProvider.GetFretColor((int)FourLaneDrumsFret.Kick).ToUnityColor();
+            _kickText.text = Localize.Key("Menu.HighwayOrdering.Kick");
+            _kickDedicatedLaneButtonText.text = Localize.Key("Menu.HighwayOrdering.CreateDedicatedLane");
 
             _itemViews.Clear();
             _ordering.transform.DestroyChildren();
@@ -125,6 +127,7 @@ namespace YARG.Menu.HighwayConfiguration
             }
 
             _kickItem.SetActive(!dedicatedKickExists);
+            _splitKickWarning.text = Localize.Key("Menu.HighwayOrdering.SplitKicksWarning");
             _splitKickWarning.gameObject.SetActive(SplitKicksExist);
 
         }
@@ -290,7 +293,7 @@ namespace YARG.Menu.HighwayConfiguration
                 Specs,
                 ColorProvider,
                 HighwayOrdering,
-                _headerPrefix,
+                _header.text,
                 _setOrdering,
                 Instrument,
                 _profile

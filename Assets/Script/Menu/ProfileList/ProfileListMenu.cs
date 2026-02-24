@@ -206,7 +206,7 @@ namespace YARG.Menu.ProfileList
             Dictionary<DrumsHighwayItem, HighwayOrderingItemSpec> specs,
             IFretColorProvider colorProvider,
             List<DrumsHighwayItem> defaultList,
-            string headerPrefix,
+            string header,
             SetOrdering setOrderingInProfile,
             Instrument instrument,
             YargProfile profile
@@ -216,7 +216,16 @@ namespace YARG.Menu.ProfileList
                 return;
 
 
-            menu.Initialize(specs, colorProvider, defaultList, headerPrefix, setOrderingInProfile, instrument, profile);
+            menu.Initialize(
+                specs,
+                colorProvider,
+                defaultList,
+                Localize.Key("Menu.HighwayOrdering", header),
+                setOrderingInProfile,
+                instrument,
+                profile
+            );
+
             menu.gameObject.SetActive(true);
         }
         public void CloseDrumsHighwayConfigurationMenu()
@@ -236,7 +245,7 @@ namespace YARG.Menu.ProfileList
                 DrumsHighwaySpecs.FOUR_LANE_SPECS,
                 colorProvider,
                 profile.FourLaneDrumsHighwayOrdering.ToList(),
-                "4-Lane",
+                "4LaneHeader",
                 (newOrdering) => { profile.FourLaneDrumsHighwayOrdering = newOrdering.ToArray(); },
                 Instrument.FourLaneDrums,
                 profile
@@ -252,7 +261,7 @@ namespace YARG.Menu.ProfileList
                 DrumsHighwaySpecs.PRO_DRUMS_SPECS,
                 colorProvider,
                 profile.ProDrumsHighwayOrdering.ToList(),
-                "Pro",
+                "ProHeader",
                 (newOrdering) => { profile.ProDrumsHighwayOrdering = newOrdering.ToArray(); },
                 Instrument.ProDrums,
                 profile
@@ -267,7 +276,7 @@ namespace YARG.Menu.ProfileList
                 DrumsHighwaySpecs.FIVE_LANE_SPECS,
                 colorProvider,
                 profile.FiveLaneDrumsHighwayOrdering.ToList(),
-                "5-Lane",
+                "5LaneHeader",
                 (newOrdering) => { profile.FiveLaneDrumsHighwayOrdering = newOrdering.ToArray(); },
                 Instrument.FiveLaneDrums,
                 profile
