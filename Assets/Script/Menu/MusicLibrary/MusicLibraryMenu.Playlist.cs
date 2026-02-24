@@ -84,17 +84,24 @@ namespace YARG.Menu.MusicLibrary
             SetIndexTo(i => i is ButtonViewType { ID: PLAYLIST_ID });
         }
 
+        private void EnterPlaylistView(Playlist playlist)
+        {
+            _lastPlaylistSelectPlaylist = playlist;
+            SelectedPlaylist = playlist;
+            MenuState = MenuState.Playlist;
+            Refresh();
+
+            if (!SetIndexTo(i => i is SongViewType))
+                SelectedIndex = 0;
+        }
+
         private List<ViewType> CreatePlaylistViewList()
         {
             SetNavigationScheme(true);
-            var list = new List<ViewType>
-            {
-                new ButtonViewType(Localize.Key("Menu.MusicLibrary.Back"),
-                    "MusicLibraryIcons[Back]", ExitPlaylistView, BACK_ID)
-            };
+            var list = new List<ViewType>{};
 
-            // Add rename button (not for Favorites)
-            if (SelectedPlaylist != PlaylistContainer.FavoritesPlaylist)
+            // Only allow rename if not Favorites or Current Setlist
+            if (SelectedPlaylist != PlaylistContainer.FavoritesPlaylist && !SelectedPlaylist.Ephemeral)
             {
                 list.Add(new ButtonViewType(
                     Localize.Key("Menu.MusicLibrary.Popup.Item.RenamePlaylist"),
@@ -102,7 +109,7 @@ namespace YARG.Menu.MusicLibrary
                 );
             }
 
-            // Only allow delete if not Favorites or Show playlist
+            // Only allow delete if not Favorites or Current Setlist
             if (SelectedPlaylist != PlaylistContainer.FavoritesPlaylist && !SelectedPlaylist.Ephemeral)
             {
                 list.Add(new ButtonViewType(

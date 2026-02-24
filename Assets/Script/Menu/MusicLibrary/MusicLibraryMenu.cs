@@ -926,6 +926,7 @@ namespace YARG.Menu.MusicLibrary
 
             // Save state
             _savedIndex = SelectedIndex;
+            _savedPlaylist = SelectedPlaylist;
             if (MenuState == MenuState.Library && !PlaylistMode)
             {
                 bool preserveIndexOnDynamicSort = SettingsManager.Settings.LibrarySort == SortAttribute.Playcount ||
