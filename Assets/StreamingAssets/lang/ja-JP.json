@@ -72,7 +72,7 @@
             "Charter": "チャート作者",
             "Genre": "ジャンル",
             "Name": "曲",
-            "Playlist": "プレイリスト",
+            "Folder": "フォルダ",
             "SongLength": "時間",
             "Source": "元",
             "Stars": "スター",
@@ -306,7 +306,8 @@
                     "AddToPlaylist": "プレイリストに付け加える",
                     "RemoveFromPlaylist": "プレイリストから削除",
                     "CreateNewPlaylist": "新しい作成",
-                    "RemovePlaylist": "プレイリストを削除",
+                    "RenamePlaylist": "Rename Playlist",
+                    "DeletePlaylist": "プレイリストを削除",
                     "ViewSongFolder": "曲歌フォルダを見る",
                     "CopySongChecksum": "曲のチェックサムをコピー"
                 }

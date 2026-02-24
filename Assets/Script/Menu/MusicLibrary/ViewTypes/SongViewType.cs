@@ -132,13 +132,6 @@ namespace YARG.Menu.MusicLibrary
         {
             base.PrimaryButtonClick();
 
-            // Don't allow playing songs when editing playlists
-            if (_musicLibrary.MenuState == MenuState.Playlist)
-            {
-                ToastManager.ToastInformation("Use Left/Right to reorder songs, or use the popup menu to remove.");
-                return;
-            }
-
             if (PlayerContainer.Players.Count <= 0)
             {
                 return;

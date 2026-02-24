@@ -72,7 +72,7 @@
             "Charter": "Charter",
             "Genre": "Genre",
             "Name": "Song",
-            "Playlist": "Playlist",
+            "Folder": "Folder",
             "SongLength": "Duration",
             "Source": "Source",
             "Stars": "Stars",
@@ -306,7 +306,8 @@
                     "AddToPlaylist": "Add To Playlist...",
                     "RemoveFromPlaylist": "Remove From Playlist",
                     "CreateNewPlaylist": "Create New...",
-                    "RemovePlaylist": "Remove Playlist",
+                    "RenamePlaylist": "Rename Playlist",
+                    "DeletePlaylist": "Delete Playlist",
                     "ViewSongFolder": "View Song Folder",
                     "CopySongChecksum": "Copy Song Checksum"
                 }

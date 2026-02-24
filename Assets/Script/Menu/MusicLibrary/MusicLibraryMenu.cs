@@ -131,6 +131,7 @@ namespace YARG.Menu.MusicLibrary
         private static Difficulty _lastDifficulty;
 
         private static bool _needsReload = false;
+        private bool _needsNavigationSchemeRefresh = false;
 
         public static void NeedsReload()
         {
@@ -599,7 +600,32 @@ namespace YARG.Menu.MusicLibrary
             _searchField.Reset();
             UpdateSearch(true);
             UpdateSortInformationHeader();
+            if (IsNavigationSchemeBlocked())
+            {
+                _needsNavigationSchemeRefresh = true;
+                return;
+            }
+
             SetNavigationScheme();
+        }
+
+        private bool IsNavigationSchemeBlocked()
+        {
+            if (_popupMenu != null && _popupMenu.gameObject.activeSelf)
+                return true;
+
+            if (DialogManager.Instance != null && DialogManager.Instance.IsDialogShowing)
+                return true;
+
+            return false;
+        }
+
+        public void RefreshNavigationSchemeAfterPopup()
+        {
+            if (!_needsNavigationSchemeRefresh) return;
+
+            _needsNavigationSchemeRefresh = false;
+            SetNavigationScheme(true);
         }
 
         private void UpdateSearch(bool force)
@@ -772,6 +798,12 @@ namespace YARG.Menu.MusicLibrary
         {
             foreach (var heldInput in _heldInputs)
                 heldInput.Timer -= Time.unscaledDeltaTime;
+
+            if (_needsNavigationSchemeRefresh && !IsNavigationSchemeBlocked())
+            {
+                _needsNavigationSchemeRefresh = false;
+                SetNavigationScheme(true);
+            }
         }
 
         private async void StartPreview(double delay, CancellationTokenSource canceller)
@@ -997,6 +1029,15 @@ namespace YARG.Menu.MusicLibrary
             }
 
             SelectedIndex = index;
+        }
+
+        public void RefreshAndSelectPlaylist(Playlist playlist)
+        {
+            Refresh();
+
+            if (playlist == null) return;
+
+            SetIndexTo(i => i is PlaylistViewType view && ReferenceEquals(view.Playlist, playlist));
         }
 
         private bool SetIndexToFirstRecommendedSong()

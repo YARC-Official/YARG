@@ -72,7 +72,7 @@
             "Charter": "Charter",
             "Genre": "Género",
             "Name": "Canción",
-            "Playlist": "Lista de reproducción",
+            "Folder": "Carpeta",
             "SongLength": "Duración",
             "Source": "Origen",
             "Stars": "Estrellas",
@@ -306,7 +306,8 @@
                     "AddToPlaylist": "Agregar a Lista...",
                     "RemoveFromPlaylist": "Eliminar de Lista",
                     "CreateNewPlaylist": "Crear Nueva...",
-                    "RemovePlaylist": "Eliminar Lista",
+                    "RenamePlaylist": "Rename Playlist",
+                    "DeletePlaylist": "Eliminar Lista",
                     "ViewSongFolder": "Ver Carpeta de Canciones",
                     "CopySongChecksum": "Copiar Checksum de Canciones"
                 }

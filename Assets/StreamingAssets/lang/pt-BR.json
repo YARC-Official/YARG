@@ -72,7 +72,7 @@
             "Charter": "Criador",
             "Genre": "Gênero",
             "Name": "Música",
-            "Playlist": "Lista de Reprodução",
+            "Folder": "Pasta",
             "SongLength": "Duração",
             "Source": "Fonte",
             "Stars": "Estrelas",
@@ -306,7 +306,8 @@
                     "AddToPlaylist": "Adicionar à playlist...",
                     "RemoveFromPlaylist": "Remover da playlist",
                     "CreateNewPlaylist": "Criar nova...",
-                    "RemovePlaylist": "Remover playlist",
+                    "RenamePlaylist": "Rename playlist",
+                    "DeletePlaylist": "Remover playlist",
                     "ViewSongFolder": "Ver pasta da música",
                     "CopySongChecksum": "Copiar código da música"
                 }

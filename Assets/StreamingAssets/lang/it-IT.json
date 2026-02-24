@@ -72,7 +72,7 @@
             "Charter": "Creatore",
             "Genre": "Genere",
             "Name": "Brano",
-            "Playlist": "Playlist",
+            "Folder": "Cartella",
             "SongLength": "Durata",
             "Source": "Sorgente",
             "Stars": "Stelle",
@@ -306,7 +306,8 @@
                     "AddToPlaylist": "Aggiungi alla Playlist...",
                     "RemoveFromPlaylist": "Rimuovi dalla Playlist",
                     "CreateNewPlaylist": "Crea nuovo...",
-                    "RemovePlaylist": "Rimuovi playlist",
+                    "RenamePlaylist": "Rename playlist",
+                    "DeletePlaylist": "Rimuovi playlist",
                     "ViewSongFolder": "Visualizza La Cartella Del Brano",
                     "CopySongChecksum": "Copia Il Checksum Del Brano"
                 }

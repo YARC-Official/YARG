@@ -74,6 +74,7 @@ namespace YARG.Menu.MusicLibrary
         private void OnDisable()
         {
             Navigator.Instance.PopScheme();
+            _musicLibrary.RefreshNavigationSchemeAfterPopup();
         }
 
         private void UpdateForState()
@@ -209,7 +210,22 @@ namespace YARG.Menu.MusicLibrary
             if (viewType is PlaylistViewType playlistView &&
                 playlistView.Playlist != PlaylistContainer.FavoritesPlaylist)
             {
-                CreateItem("RemovePlaylist", () =>
+                if (!playlistView.Playlist.Ephemeral)
+                {
+                    CreateItem("RenamePlaylist", () =>
+                    {
+                        DialogManager.Instance.ShowRenameDialog(playlistView.Playlist.Name, newName =>
+                        {
+                            PlaylistContainer.RenamePlaylist(playlistView.Playlist, newName);
+                            ToastManager.ToastSuccess($"Renamed to '{newName}'");
+                            _musicLibrary.RefreshAndSelectPlaylist(playlistView.Playlist);
+                        });
+
+                        CloseAfterDialog().Forget();
+                    });
+                }
+
+                CreateItem("DeletePlaylist", () =>
                 {
                     // Special handling for the ad hoc setlist
                     if (playlistView.Playlist.Ephemeral)
@@ -218,7 +234,8 @@ namespace YARG.Menu.MusicLibrary
                     }
                     else
                     {
-                        PlaylistContainer.RemovePlaylist(playlistView.Playlist);
+                        PlaylistContainer.DeletePlaylist(playlistView.Playlist);
+                        ToastManager.ToastSuccess($"Deleted '{playlistView.Playlist.Name}'");
                     }
 
                     _musicLibrary.RefreshAndReselect();
@@ -415,7 +432,7 @@ namespace YARG.Menu.MusicLibrary
                     else
                     {
                         ToastManager.ToastError("You can't add that to a playlist");
-                        PlaylistContainer.RemovePlaylist(playlist);
+                        PlaylistContainer.DeletePlaylist(playlist);
                         CloseAfterDialog().Forget();
                         return;
                     }

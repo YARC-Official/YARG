@@ -72,7 +72,7 @@
             "Charter": "Auteur",
             "Genre": "Genre",
             "Name": "Musique",
-            "Playlist": "Playlist",
+            "Folder": "Dossier",
             "SongLength": "Durée",
             "Source": "Source",
             "Stars": "Étoiles",
@@ -306,7 +306,8 @@
                     "AddToPlaylist": "Ajouter à la playlist...",
                     "RemoveFromPlaylist": "Retirer de la playlist",
                     "CreateNewPlaylist": "Créer nouvelle...",
-                    "RemovePlaylist": "Retirer playlist",
+                    "RenamePlaylist": "Rename playlist",
+                    "DeletePlaylist": "Retirer playlist",
                     "ViewSongFolder": "Voir le dossier des musiques",
                     "CopySongChecksum": "Copier le checksum de la musique"
                 }

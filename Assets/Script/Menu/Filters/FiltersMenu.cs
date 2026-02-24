@@ -1048,12 +1048,22 @@ namespace YARG.Menu.Filters
         {
             EnsureAllDefaults();
             SetAllFilters(true);
+            SetShowAnyOfFilters(false);
             UpdateAllSummaries();
 
             // If right panel is visible, update toggles there too
             if (_rightContainer != null)
-                foreach (var row in _rightContainer.GetComponentsInChildren<FilterEntryRow>(true))
-                    row.SetToggleIsOn(true);
+            {
+                bool? rightPanelDefault = null;
+                if (_leftNavGroup?.SelectedBehaviour is FilterCategoryRow row)
+                    rightPanelDefault = IsShowAnyOfGroup(row.Filters) ? false : true;
+
+                if (rightPanelDefault.HasValue)
+                {
+                    foreach (var rowEntry in _rightContainer.GetComponentsInChildren<FilterEntryRow>(true))
+                        rowEntry.SetToggleIsOn(rightPanelDefault.Value);
+                }
+            }
         }
 
         private static void SetAll(Dictionary<string, bool> dict, bool value)
@@ -1067,6 +1077,20 @@ namespace YARG.Menu.Filters
         {
             foreach (var def in GetFilterDefs())
                 SetAll(def.Enabled, value);
+        }
+
+        private void SetShowAnyOfFilters(bool value)
+        {
+            foreach (var def in GetFilterDefs())
+            {
+                if (IsShowAnyOfGroup(def.Group))
+                    SetAll(def.Enabled, value);
+            }
+        }
+
+        private static bool IsShowAnyOfGroup(FilterGroup group)
+        {
+            return group == FilterGroup.Playlist;
         }
 
         private void ApplyRightToggleState(Dictionary<string, bool> dict, bool value, Action updateSummary)

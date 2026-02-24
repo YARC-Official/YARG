@@ -72,7 +72,7 @@
             "Charter": "Autor",
             "Genre": "Género",
             "Name": "Música",
-            "Playlist": "Listas de reprodução",
+            "Folder": "Pasta",
             "SongLength": "Duração",
             "Source": "Origem",
             "Stars": "Stars",
@@ -306,7 +306,8 @@
                     "AddToPlaylist": "Add To Playlist...",
                     "RemoveFromPlaylist": "Remove From Playlist",
                     "CreateNewPlaylist": "Create New...",
-                    "RemovePlaylist": "Remove Playlist",
+                    "RenamePlaylist": "Rename playlist",
+                    "DeletePlaylist": "Delete Playlist",
                     "ViewSongFolder": "View Song Folder",
                     "CopySongChecksum": "Copy Song Checksum"
                 }

@@ -53,13 +53,15 @@ namespace YARG.Menu.MusicLibrary
             }
 
             // Add "Create New Playlist" button
-            list.Add(new ButtonViewType("Create New Playlist", "MusicLibraryIcons[Playlists]", () =>
+            list.Add(new ButtonViewType(
+                Localize.Key("Menu.MusicLibrary.Popup.Item.CreateNewPlaylist"),
+                "MusicLibraryIcons[Playlists]", () =>
             {
                 DialogManager.Instance.ShowRenameDialog("New Playlist Name", playlistName =>
                 {
                     var playlist = PlaylistContainer.CreatePlaylist(playlistName);
                     ToastManager.ToastSuccess($"Created '{playlistName}'");
-                    RefreshAndReselect();
+                    RefreshAndSelectPlaylist(playlist);
                 });
             }, id++));
 
@@ -86,13 +88,19 @@ namespace YARG.Menu.MusicLibrary
             // Add rename button (not for Favorites)
             if (SelectedPlaylist != PlaylistContainer.FavoritesPlaylist)
             {
-                list.Add(new ButtonViewType("Rename Playlist", "MusicLibraryIcons[Playlists]", RenamePlaylist));
+                list.Add(new ButtonViewType(
+                    Localize.Key("Menu.MusicLibrary.Popup.Item.RenamePlaylist"),
+                    "MusicLibraryIcons[Playlists]", RenamePlaylist)
+                );
             }
 
             // Only allow delete if not Favorites or Show playlist
             if (SelectedPlaylist != PlaylistContainer.FavoritesPlaylist && !SelectedPlaylist.Ephemeral)
             {
-                list.Add(new ButtonViewType("Delete Playlist", "MusicLibraryIcons[Playlists]", DeletePlaylist));
+                list.Add(new ButtonViewType(
+                    Localize.Key("Menu.MusicLibrary.Popup.Item.DeletePlaylist"),
+                    "MusicLibraryIcons[Playlists]", DeletePlaylist)
+                );
             }
 
             // Add songs in the playlist
@@ -181,9 +189,8 @@ namespace YARG.Menu.MusicLibrary
                 return;
             }
 
-            var playlistName = SelectedPlaylist.Name;
-            PlaylistContainer.RemovePlaylist(SelectedPlaylist);
-            ToastManager.ToastSuccess($"Deleted '{playlistName}'");
+            PlaylistContainer.DeletePlaylist(SelectedPlaylist);
+            ToastManager.ToastSuccess($"Deleted '{SelectedPlaylist.Name}'");
 
             // Exit back to library
             ExitPlaylistView();
