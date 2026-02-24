@@ -9,8 +9,10 @@ Shader "HighwaysAlphaMask"
             Tags { "LightMode"="UniversalForward" }
 
             ZWrite Off
+            ZTest Always
             Cull Off
-            Blend One Zero   // no blending, overwrite red channel
+            Blend One One
+            BlendOp Max
 
             HLSLPROGRAM
             #pragma vertex vert
@@ -49,17 +51,17 @@ Shader "HighwaysAlphaMask"
 
                 if (dist < fadeStartPos)
                 {
-                    alpha = 1.0;
+                    alpha = 0.0;
                 }
                 else if (dist > fadeEndPos)
                 {
-                    alpha = 0.0;
+                    alpha = 1.0;
                 }
                 else
                 {
                     float rate = 1.0 / (fadeEndPos - fadeStartPos);
                     float fadeValue = (dist - fadeStartPos) * rate;
-                    alpha = 1.0 - smoothstep(0.0, 1.0, fadeValue);
+                    alpha = smoothstep(0.0, 1.0, fadeValue);
                 }
 
                 // Only write into R channel, others zero

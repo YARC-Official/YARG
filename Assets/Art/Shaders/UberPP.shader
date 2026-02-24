@@ -320,7 +320,7 @@ Shader "Artificial Artists/Universal Render Pipeline/AA_UberPost"
 
             if (_YargHighwaysN > 0)
             {
-                half alpha_mask = SAMPLE_TEXTURE2D(_YargHighwaysAlphaMask, sampler_LinearClamp, uvDistorted).r;
+                half alpha_mask = 1.0 - SAMPLE_TEXTURE2D(_YargHighwaysAlphaMask, sampler_LinearClamp, uvDistorted).r;
 
                 return half4(color, min(alpha, alpha_mask));
             }
