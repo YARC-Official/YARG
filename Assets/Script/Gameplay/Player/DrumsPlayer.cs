@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEditorInternal;
 using UnityEngine;
 using YARG.Core;
 using YARG.Core.Audio;
@@ -782,7 +783,7 @@ namespace YARG.Gameplay.Player
                     continue;
                 }
 
-                var highwayOrderingInfos = DrumsHighwayItemView.HighwayOrderingInfoMap[item];
+                var highwayOrderingInfos = DrumsHighwayItemView.GetHighwayOrderingInfo(item, instrument);
 
                 foreach (var highwayOrderingInfo in highwayOrderingInfos)
                 {
@@ -796,13 +797,13 @@ namespace YARG.Gameplay.Player
                         case DrumsHighwayItem.Kick or DrumsHighwayItem.Kick1x or DrumsHighwayItem.Kick2x or DrumsHighwayItem.Kick2xConditional:
                             NumberOfDedicatedKickLanes++;
                             break;
-                        case DrumsHighwayItem.FourLaneYellowCymbal:
+                        case DrumsHighwayItem.YellowCymbal:
                             _yellowCymbalHasLane = true;
                             break;
-                        case DrumsHighwayItem.FourLaneBlueCymbal:
+                        case DrumsHighwayItem.BlueCymbal:
                             _blueCymbalHasLane = true;
                             break;
-                        case DrumsHighwayItem.FourLaneGreenCymbal:
+                        case DrumsHighwayItem.GreenCymbal:
                             _greenCymbalHasLane = true;
                             break;
                     }

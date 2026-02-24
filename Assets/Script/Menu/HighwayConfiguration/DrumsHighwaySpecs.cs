@@ -51,36 +51,36 @@ namespace YARG.Menu.HighwayConfiguration
                 MergedResult = DrumsHighwayItem.Kick
             } },
 
-            { DrumsHighwayItem.FourLaneRed, new() {
+            { DrumsHighwayItem.Red, new() {
                 Name = RED,
                 LeftyName = GREEN,
                 Type = DrumsHighwayItemIconType.Drum,
                 ColorIndex = (int)FourLaneDrumsFret.RedDrum,
-                Value = DrumsHighwayItem.FourLaneRed
+                Value = DrumsHighwayItem.Red
             } },
 
-            { DrumsHighwayItem.FourLaneYellow, new() {
+            { DrumsHighwayItem.Yellow, new() {
                 Name = YELLOW,
                 LeftyName = BLUE,
                 Type = DrumsHighwayItemIconType.Combined,
                 ColorIndex = (int)FourLaneDrumsFret.YellowDrum,
-                Value = DrumsHighwayItem.FourLaneYellow
+                Value = DrumsHighwayItem.Yellow
             } },
 
-            { DrumsHighwayItem.FourLaneBlue, new() {
+            { DrumsHighwayItem.Blue, new() {
                 Name = BLUE,
                 LeftyName = YELLOW,
                 Type = DrumsHighwayItemIconType.Combined,
                 ColorIndex = (int)FourLaneDrumsFret.BlueDrum,
-                Value = DrumsHighwayItem.FourLaneBlue
+                Value = DrumsHighwayItem.Blue
             } },
 
-            { DrumsHighwayItem.FourLaneGreen, new() {
+            { DrumsHighwayItem.Green, new() {
                 Name = GREEN,
                 LeftyName = RED,
                 Type = DrumsHighwayItemIconType.Combined,
                 ColorIndex = (int)FourLaneDrumsFret.GreenDrum,
-                Value = DrumsHighwayItem.FourLaneGreen
+                Value = DrumsHighwayItem.Green
             } },
         };
 
@@ -125,99 +125,99 @@ namespace YARG.Menu.HighwayConfiguration
                 MergedResult = DrumsHighwayItem.Kick
             } },
 
-            { DrumsHighwayItem.FourLaneRed, new() {
+            { DrumsHighwayItem.Red, new() {
                 Name = RED,
                 LeftyName = GREEN,
                 Type = DrumsHighwayItemIconType.Drum,
                 ColorIndex = (int)FourLaneDrumsFret.RedDrum,
-                Value = DrumsHighwayItem.FourLaneRed
+                Value = DrumsHighwayItem.Red
             } },
 
-            { DrumsHighwayItem.FourLaneYellow, new() {
+            { DrumsHighwayItem.Yellow, new() {
                 Name = YELLOW,
                 LeftyName = BLUE,
                 Type = DrumsHighwayItemIconType.Combined,
                 ColorIndex = (int)FourLaneDrumsFret.YellowDrum,
-                Value = DrumsHighwayItem.FourLaneYellow,
-                SplitsInto = (DrumsHighwayItem.FourLaneYellowCymbal, DrumsHighwayItem.FourLaneYellowDrum)
+                Value = DrumsHighwayItem.Yellow,
+                SplitsInto = (DrumsHighwayItem.YellowCymbal, DrumsHighwayItem.YellowDrum)
             } },
 
-            { DrumsHighwayItem.FourLaneBlue, new() {
+            { DrumsHighwayItem.Blue, new() {
                 Name = BLUE,
                 LeftyName = YELLOW,
                 Type = DrumsHighwayItemIconType.Combined,
                 ColorIndex = (int)FourLaneDrumsFret.BlueDrum,
-                Value = DrumsHighwayItem.FourLaneBlue,
-                SplitsInto = (DrumsHighwayItem.FourLaneBlueCymbal, DrumsHighwayItem.FourLaneBlueDrum)
+                Value = DrumsHighwayItem.Blue,
+                SplitsInto = (DrumsHighwayItem.BlueCymbal, DrumsHighwayItem.BlueDrum)
             } },
 
-            { DrumsHighwayItem.FourLaneGreen, new() {
+            { DrumsHighwayItem.Green, new() {
                 Name = GREEN,
                 LeftyName = RED,
                 Type = DrumsHighwayItemIconType.Combined,
                 ColorIndex = (int)FourLaneDrumsFret.GreenDrum,
-                Value = DrumsHighwayItem.FourLaneGreen,
-                SplitsInto = (DrumsHighwayItem.FourLaneGreenCymbal, DrumsHighwayItem.FourLaneGreenDrum)
+                Value = DrumsHighwayItem.Green,
+                SplitsInto = (DrumsHighwayItem.GreenCymbal, DrumsHighwayItem.GreenDrum)
             } },
 
-            { DrumsHighwayItem.FourLaneYellowCymbal, new() {
+            { DrumsHighwayItem.YellowCymbal, new() {
                 Name = YELLOW_CYMBAL,
                 LeftyName = BLUE_CYMBAL,
                 Type = DrumsHighwayItemIconType.Cymbal,
                 ColorIndex = (int)FourLaneDrumsFret.YellowCymbal,
-                Value = DrumsHighwayItem.FourLaneYellowCymbal,
-                MergesInto = DrumsHighwayItem.FourLaneYellowDrum,
-                MergedResult = DrumsHighwayItem.FourLaneYellow
+                Value = DrumsHighwayItem.YellowCymbal,
+                MergesInto = DrumsHighwayItem.YellowDrum,
+                MergedResult = DrumsHighwayItem.Yellow
             } },
 
-            { DrumsHighwayItem.FourLaneBlueCymbal, new() {
+            { DrumsHighwayItem.BlueCymbal, new() {
                 Name = BLUE_CYMBAL,
                 LeftyName = YELLOW_CYMBAL,
                 Type = DrumsHighwayItemIconType.Cymbal,
                 ColorIndex = (int)FourLaneDrumsFret.BlueCymbal,
-                Value = DrumsHighwayItem.FourLaneBlueCymbal,
-                MergesInto = DrumsHighwayItem.FourLaneBlueDrum,
-                MergedResult = DrumsHighwayItem.FourLaneBlue
+                Value = DrumsHighwayItem.BlueCymbal,
+                MergesInto = DrumsHighwayItem.BlueDrum,
+                MergedResult = DrumsHighwayItem.Blue
             } },
 
-            { DrumsHighwayItem.FourLaneGreenCymbal, new() {
+            { DrumsHighwayItem.GreenCymbal, new() {
                 Name = GREEN_CYMBAL,
                 LeftyName = RED_CYMBAL,
                 Type = DrumsHighwayItemIconType.Cymbal,
                 ColorIndex = (int)FourLaneDrumsFret.GreenCymbal,
-                Value = DrumsHighwayItem.FourLaneGreenCymbal,
-                MergesInto = DrumsHighwayItem.FourLaneGreenDrum,
-                MergedResult = DrumsHighwayItem.FourLaneGreen
+                Value = DrumsHighwayItem.GreenCymbal,
+                MergesInto = DrumsHighwayItem.GreenDrum,
+                MergedResult = DrumsHighwayItem.Green
             } },
 
-            { DrumsHighwayItem.FourLaneYellowDrum, new() {
+            { DrumsHighwayItem.YellowDrum, new() {
                 Name = YELLOW_DRUM,
                 LeftyName = BLUE_DRUM,
                 Type = DrumsHighwayItemIconType.Drum,
                 ColorIndex = (int)FourLaneDrumsFret.YellowDrum,
-                Value = DrumsHighwayItem.FourLaneYellowDrum,
-                MergesInto = DrumsHighwayItem.FourLaneYellowCymbal,
-                MergedResult = DrumsHighwayItem.FourLaneYellow
+                Value = DrumsHighwayItem.YellowDrum,
+                MergesInto = DrumsHighwayItem.YellowCymbal,
+                MergedResult = DrumsHighwayItem.Yellow
             } },
 
-            { DrumsHighwayItem.FourLaneBlueDrum, new() {
+            { DrumsHighwayItem.BlueDrum, new() {
                 Name = BLUE_DRUM,
                 LeftyName = YELLOW_DRUM,
                 Type = DrumsHighwayItemIconType.Drum,
                 ColorIndex = (int)FourLaneDrumsFret.BlueDrum,
-                Value = DrumsHighwayItem.FourLaneBlueDrum,
-                MergesInto = DrumsHighwayItem.FourLaneBlueCymbal,
-                MergedResult = DrumsHighwayItem.FourLaneBlue
+                Value = DrumsHighwayItem.BlueDrum,
+                MergesInto = DrumsHighwayItem.BlueCymbal,
+                MergedResult = DrumsHighwayItem.Blue
             } },
 
-            { DrumsHighwayItem.FourLaneGreenDrum, new() {
+            { DrumsHighwayItem.GreenDrum, new() {
                 Name = GREEN_DRUM,
                 LeftyName = RED_DRUM,
                 Type = DrumsHighwayItemIconType.Drum,
                 ColorIndex = (int)FourLaneDrumsFret.GreenDrum,
-                Value = DrumsHighwayItem.FourLaneGreenDrum,
-                MergesInto = DrumsHighwayItem.FourLaneGreenCymbal,
-                MergedResult = DrumsHighwayItem.FourLaneGreen
+                Value = DrumsHighwayItem.GreenDrum,
+                MergesInto = DrumsHighwayItem.GreenCymbal,
+                MergedResult = DrumsHighwayItem.Green
             } },
         };
 
@@ -262,44 +262,44 @@ namespace YARG.Menu.HighwayConfiguration
                 MergedResult = DrumsHighwayItem.Kick
             } },
 
-            { DrumsHighwayItem.FiveLaneRed, new() {
+            { DrumsHighwayItem.Red, new() {
                 Name = RED,
                 LeftyName = GREEN,
                 Type = DrumsHighwayItemIconType.Drum,
                 ColorIndex = (int)FiveLaneDrumsFret.Red,
-                Value = DrumsHighwayItem.FiveLaneRed
+                Value = DrumsHighwayItem.Red
             } },
 
-            { DrumsHighwayItem.FiveLaneYellow, new() {
+            { DrumsHighwayItem.Yellow, new() {
                 Name = YELLOW,
                 LeftyName = ORANGE,
                 Type = DrumsHighwayItemIconType.Cymbal,
                 ColorIndex = (int)FiveLaneDrumsFret.Yellow,
-                Value = DrumsHighwayItem.FiveLaneYellow
+                Value = DrumsHighwayItem.Yellow
             } },
 
-            { DrumsHighwayItem.FiveLaneBlue, new() {
+            { DrumsHighwayItem.Blue, new() {
                 Name = BLUE,
                 LeftyName = BLUE,
                 Type = DrumsHighwayItemIconType.Drum,
                 ColorIndex = (int)FiveLaneDrumsFret.Blue,
-                Value = DrumsHighwayItem.FiveLaneBlue
+                Value = DrumsHighwayItem.Blue
             } },
 
-            { DrumsHighwayItem.FiveLaneOrange, new() {
+            { DrumsHighwayItem.Orange, new() {
                 Name = ORANGE,
                 LeftyName = YELLOW,
                 Type = DrumsHighwayItemIconType.Cymbal,
                 ColorIndex = (int)FiveLaneDrumsFret.Orange,
-                Value = DrumsHighwayItem.FiveLaneOrange
+                Value = DrumsHighwayItem.Orange
             } },
 
-            { DrumsHighwayItem.FiveLaneGreen, new() {
+            { DrumsHighwayItem.Green, new() {
                 Name = GREEN,
                 LeftyName = RED,
                 Type = DrumsHighwayItemIconType.Drum,
                 ColorIndex = (int)FiveLaneDrumsFret.Green,
-                Value = DrumsHighwayItem.FiveLaneGreen
+                Value = DrumsHighwayItem.Green
             } },
         };
 
