@@ -118,10 +118,32 @@ namespace YARG.Menu.MusicLibrary
                 );
             }
 
-            // Add songs in the playlist
-            foreach (var song in SelectedPlaylist.ToList())
+            // If `_sortedSongs` is null, then this function is being called during very first initialization,
+            // which means the song list hasn't been constructed yet.
+            if (_sortedSongs is null || SongContainer.Count <= 0)
             {
-                list.Add(new SongViewType(this, song));
+                return list;
+            }
+
+            bool allowdupes = SettingsManager.Settings.AllowDuplicateSongs.Value;
+            _totalSongCount = 0;
+            _totalStarCount = 0;
+
+            // Add songs in the playlist
+            foreach (var section in _sortedSongs)
+            {
+                foreach (var song in section.Songs)
+                {
+                    if (allowdupes || !song.IsDuplicate)
+                    {
+                        var songView = new SongViewType(this, song);
+                        list.Add(songView);
+
+                        _totalSongCount++;
+                        var starAmount = songView.GetStarAmount();
+                        _totalStarCount += starAmount is null ? 0 : StarAmountHelper.GetStarCount(starAmount.Value);
+                    }
+                }
             }
 
             return list;
