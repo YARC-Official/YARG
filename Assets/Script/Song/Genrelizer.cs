@@ -368,7 +368,7 @@ namespace YARG.Song
         private static Mapping _handleLoneGenre(string rawGenre, string artist) {
 
             // Scan up front for the Reggae/Ska special case
-            if (rawGenre.ToLower() is REGGAE_SKA)
+            if (rawGenre.ToLower() is REGGAE_SKA or REGGAE_SKA_RAW)
             {
                 return _handleReggaeSkaSpecialCase(artist);
             }
