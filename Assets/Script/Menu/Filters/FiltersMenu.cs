@@ -153,6 +153,7 @@ namespace YARG.Menu.Filters
         private Button _topBackButton;
         private FilterHelpBarState _lastHelpBarState;
         private bool _pendingHelpBarRefresh;
+        private bool _showRecommendationsOnOpen;
 
         protected override void SingletonAwake()
         {
@@ -184,6 +185,8 @@ namespace YARG.Menu.Filters
             WireTopBackButton();
 
             Refresh();
+            SaveFilters();
+            _showRecommendationsOnOpen = SettingsManager.Settings.ShowRecommendedSongs.Value;
             RefreshHelpBar();
         }
 
@@ -1431,17 +1434,53 @@ namespace YARG.Menu.Filters
         {
             if (!_ready) return;
 
+            bool showRecommendationsChanged = _showRecommendationsOnOpen !=
+                SettingsManager.Settings.ShowRecommendedSongs.Value;
+            // Must check before SaveFilters() so we don't overwrite the previous state
+            // otherwise filter changes won't trigger a library refresh
+            bool filtersChanged = HaveFiltersChanged();
             SaveFilters();
             ActiveFilterPredicate = BuildFilterPredicate();
+
             var library = FindFirstObjectByType<MusicLibrary.MusicLibraryMenu>();
-            library?.SetSidebarDifficultiesVisible(true);
-            library?.RefreshAndReselect();
+            if (library != null)
+            {
+                library.SetSidebarDifficultiesVisible(true);
+                if (filtersChanged || showRecommendationsChanged)
+                {
+                    library.RefreshAndReselect();
+                }
+            }
 
             Navigator.Instance.PopScheme();
             _leftNavGroup.SelectionChanged -= OnSelectionChanged;
             _rightNavGroup.SelectionChanged -= OnRightSelectionChanged;
 
             MenuManager.Instance.ReactivateCurrentMenu();
+        }
+
+        private bool HaveFiltersChanged()
+        {
+            if (!_hasSavedFilters)
+                return false;
+
+            foreach (var def in GetFilterDefs())
+            {
+                EnsureDefaults(def.Enabled, def.GetValues());
+                if (!_savedFilters.TryGetValue(def.Group, out var saved))
+                    return true;
+
+                if (def.Enabled.Count != saved.Count)
+                    return true;
+
+                foreach (var kvp in def.Enabled)
+                {
+                    if (!saved.TryGetValue(kvp.Key, out bool savedValue) || savedValue != kvp.Value)
+                        return true;
+                }
+            }
+
+            return false;
         }
     }
 }

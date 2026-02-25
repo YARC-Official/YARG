@@ -103,13 +103,39 @@ namespace YARG.Menu.Navigation
 
         public bool MusicPlayerActive => HelpBar.Instance.MusicPlayer.isActiveAndEnabled;
 
-        public bool DisableMenuInputs { get; set; }
+        private bool _disableMenuInputs;
+
+        public bool DisableMenuInputs
+        {
+            get => _disableMenuInputs;
+            set => SetDisableMenuInputs(value);
+        }
 
         public event Action<NavigationContext> NavigationEvent;
 
         private readonly List<RepeatContext> _repeatInputs = new();
         private readonly List<NavigationHold> _holdInputs = new();
         private readonly Stack<NavigationScheme> _schemeStack = new();
+
+        private void SetDisableMenuInputs(bool value)
+        {
+            if (_disableMenuInputs == value) return;
+
+            _disableMenuInputs = value;
+
+            if (_disableMenuInputs)
+            {
+                _repeatInputs.Clear();
+
+                for (int i = _holdInputs.Count - 1; i >= 0; i--)
+                {
+                    _holdInputs[i].Tracker.StopHolding();
+                    _holdInputs[i].Tracker.ClearEvents();
+                }
+
+                _holdInputs.Clear();
+            }
+        }
 
         private void Start()
         {
@@ -119,6 +145,21 @@ namespace YARG.Menu.Navigation
 
         private void Update()
         {
+            if (ShouldBlockInputs())
+            {
+                if (_repeatInputs.Count > 0 || _holdInputs.Count > 0)
+                {
+                    _repeatInputs.Clear();
+                    for (int i = _holdInputs.Count - 1; i >= 0; i--)
+                    {
+                        _holdInputs[i].Tracker.StopHolding();
+                        _holdInputs[i].Tracker.ClearEvents();
+                    }
+                    _holdInputs.Clear();
+                }
+                return;
+            }
+
             foreach (var hold in _holdInputs)
             {
                 hold.Tracker.Tick();
@@ -141,6 +182,8 @@ namespace YARG.Menu.Navigation
 
         private void ProcessInput(YargPlayer player, ref GameInput input)
         {
+            if (ShouldBlockInputs()) return;
+
             var action = (MenuAction) input.Action;
 
             // Swap up and down for lefty flip
@@ -246,7 +289,7 @@ namespace YARG.Menu.Navigation
 
         private void InvokeNavigationEvent(NavigationContext ctx)
         {
-            if (DisableMenuInputs)
+            if (ShouldBlockInputs())
             {
                 return;
             }
@@ -261,7 +304,7 @@ namespace YARG.Menu.Navigation
 
         private void InvokeHoldOffEvent(NavigationContext ctx)
         {
-            if (DisableMenuInputs)
+            if (ShouldBlockInputs())
             {
                 return;
             }
@@ -274,7 +317,7 @@ namespace YARG.Menu.Navigation
 
         private void InvokeHoldEvent(NavigationContext ctx)
         {
-            if (DisableMenuInputs)
+            if (ShouldBlockInputs())
             {
                 return;
             }
@@ -324,6 +367,11 @@ namespace YARG.Menu.Navigation
             {
                 HelpBar.Instance.SetInfoFromScheme(_schemeStack.Peek());
             }
+        }
+
+        private bool ShouldBlockInputs()
+        {
+            return DisableMenuInputs || LoadingScreen.IsActive;
         }
     }
 }

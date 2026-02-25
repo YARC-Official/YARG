@@ -1,21 +1,35 @@
 ﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UIElements;
 using YARG.Core;
 using YARG.Core.Chart;
 using YARG.Core.Game;
 using YARG.Core.Logging;
+using YARG.Gameplay.Player;
 using YARG.Themes;
+using static YARG.Core.Game.ColorProfile;
 using static YARG.Themes.ThemeManager;
 
 namespace YARG.Gameplay.Visuals
 {
+    public readonly struct HighwayOrderingInfo
+    {
+        public HighwayOrderingInfo(float _position, int _colorIndex)
+        {
+            Position = _position;
+            ColorIndex = _colorIndex;
+        }
+
+        public float Position { get; }
+        public int ColorIndex { get; }
+    }
+
     public class FretArray : MonoBehaviour
     {
         private const float WIDTH_NUMERATOR   = 2f;
         private const float WIDTH_DENOMINATOR = 5f;
 
-        public int FretCount;
         public bool DontFlipColorsLeftyFlip;
         public bool UseKickFrets;
 
@@ -28,55 +42,66 @@ namespace YARG.Gameplay.Visuals
         [SerializeField]
         private Transform _rightKickFretPosition;
 
-        private readonly List<Fret> _frets = new();
+        private readonly Dictionary<int, Fret> _frets = new();
         private readonly List<KickFret> _kickFrets = new();
 
-        private bool[] _activeFrets;
-        private bool[] _pulsingFrets;
+        private List<int> _activeFrets = new();
+        private List<int> _pulsingFrets = new();
         private float  _pulseDuration;
 
-        public void Initialize(ThemePreset themePreset, VisualStyle style,
-            ColorProfile.IFretColorProvider fretColorProvider, bool leftyFlip, bool splitProTomsAndCymbals, bool swapSnareAndHiHat, bool swapCrashAndRide)
+        /* 
+         * Overload for instruments where lefty flip does not affect color (e.g. a lefty-flipped Green Fret on 5F Guitar is still green, just laterally shifted). 
+         * Acts as a convenience so that you can just pass in a mapping of note type to lateral position, and it will create HighwayOrderingInfos that use the note
+         * type as the color index.
+         * 
+         * On Drums, lefty flip affects position and color separately (e.g. a lefty flipped Red Drum becomes green in addition to being shifted), so you need to
+         * provide HighwayOrderingInfos directly.
+         */
+        public void Initialize(Dictionary<int, int> highwayOrdering, int laneCount, GameObject? kickFretPrefab, IFretColorProvider fretColorProvider, ThemePreset themePreset, VisualStyle style)
         {
-            var fretPrefab = ThemeManager.Instance.CreateFretPrefabFromTheme(
-                themePreset, style);
+            var derivedDictionary = new Dictionary<int, HighwayOrderingInfo>();
 
-            // Spawn in normal frets
-            _frets.Clear();
-            for (int i = 0; i < FretCount; i++)
+            foreach (var (noteType, position) in highwayOrdering)
             {
-                int effectivePosition = i switch
-                {
-                    0 => swapSnareAndHiHat ? 1 : 0,
-                    1 => swapSnareAndHiHat ? 0 : 1,
-                    3 => swapCrashAndRide ? 5 : 3,
-                    5 => swapCrashAndRide ? 3 : 5,
-                    _ => i
-                };
+                derivedDictionary.Add(noteType, new(position, noteType));
+            }
 
-                // Spawn
+            Initialize(derivedDictionary, laneCount, kickFretPrefab, fretColorProvider, themePreset, style);
+        }
+
+        public void Initialize(Dictionary<int, HighwayOrderingInfo> highwayOrdering, int laneCount, GameObject? kickFretPrefab, IFretColorProvider fretColorProvider, ThemePreset themePreset, VisualStyle style)
+        {
+            var fretPrefab = ThemeManager.Instance.CreateFretPrefabFromTheme(themePreset, style);
+
+            _frets.Clear();
+            foreach (var (noteType, highwayOrderingInfo) in highwayOrdering)
+            {
                 var fret = Instantiate(fretPrefab, transform);
                 fret.SetActive(true);
 
+
                 // Position
-                float x = _trackWidth / FretCount * effectivePosition - _trackWidth / 2f + 1f / FretCount;
-                fret.transform.localPosition = new Vector3(leftyFlip ? -x : x, 0f, 0f);
+                float x = _trackWidth / laneCount * highwayOrderingInfo.Position - _trackWidth / 2f + 1f / laneCount;
+                fret.transform.localPosition = new Vector3(x, 0f, 0f);
 
                 // Scale
-                float scale = (_trackWidth / WIDTH_NUMERATOR) / (FretCount / WIDTH_DENOMINATOR);
+                float scale = (_trackWidth / WIDTH_NUMERATOR) / (laneCount / WIDTH_DENOMINATOR);
                 fret.transform.localScale = new Vector3(scale, 1f, 1f);
 
-                // Add
                 var fretComp = fret.GetComponent<Fret>();
-                _frets.Add(fretComp);
+                fretComp.Initialize(
+                    fretColorProvider.GetFretColor(highwayOrderingInfo.ColorIndex),
+                    fretColorProvider.GetFretInnerColor(highwayOrderingInfo.ColorIndex),
+                    fretColorProvider.GetParticleColor(highwayOrderingInfo.ColorIndex),
+                    fretColorProvider.GetParticleColor((int)FiveFretGuitarFret.Open)
+                );
+
+                _frets[noteType] = fretComp;
             }
 
             _kickFrets.Clear();
-            if (UseKickFrets)
+            if (kickFretPrefab is not null && UseKickFrets)
             {
-                var kickFretPrefab = ThemeManager.Instance.CreateKickFretPrefabFromTheme(
-                    themePreset, style);
-
                 // Spawn in kick frets
                 var leftKick = Instantiate(kickFretPrefab, transform);
                 leftKick.SetActive(true);
@@ -93,59 +118,10 @@ namespace YARG.Gameplay.Visuals
                 _kickFrets.Add(rightKick.GetComponent<KickFret>());
             }
 
-            InitializeColor(fretColorProvider, leftyFlip, splitProTomsAndCymbals);
-
-            _activeFrets = new bool[FretCount];
-            _pulsingFrets = new bool[FretCount];
             // Start with all frets active, they will be set inactive once TrackPlayer figures itself out
-            for (int i = 0; i < FretCount; i++)
+            foreach (var fretIdx in _frets.Keys)
             {
-                _activeFrets[i] = true;
-            }
-        }
-
-        public void InitializeColor(ColorProfile.IFretColorProvider fretColorProvider, bool leftyFlip, bool splitProTomsAndCymbals)
-        {
-            for (int i = 0; i < _frets.Count; i++)
-            {
-                // This needs unique lefty flip logic because it's the one case where
-                // the fret order is different from the color profile order
-                int index;
-                if (splitProTomsAndCymbals)
-                {
-                    index = i switch
-                    {
-                        0 => leftyFlip ? 4 : 1,
-                        1 => leftyFlip ? 7 : 6,
-                        2 => leftyFlip ? 3 : 2,
-                        3 => leftyFlip ? 6 : 7,
-                        4 => leftyFlip ? 2 : 3,
-                        5 => leftyFlip ? 5 : 8,
-                        6 => leftyFlip ? 1 : 4,
-                        _ => throw new Exception("Unreachable.")
-                    };
-                }
-                else
-                {
-                    index = i + 1;
-                }
-
-                if (DontFlipColorsLeftyFlip && leftyFlip && !splitProTomsAndCymbals)
-                {
-                    index = _frets.Count - index + 1;
-                }
-
-                _frets[i].Initialize(
-                    fretColorProvider.GetFretColor(index),
-                    fretColorProvider.GetFretInnerColor(index),
-                    fretColorProvider.GetParticleColor(index),
-                    fretColorProvider.GetParticleColor(0 /* open note */)
-                );
-            }
-
-            foreach (var kick in _kickFrets)
-            {
-                kick.Initialize(fretColorProvider.GetFretColor(0));
+                _activeFrets.Add(fretIdx);
             }
         }
 
@@ -178,7 +154,7 @@ namespace YARG.Gameplay.Visuals
 
         public void PlayOpenHitAnimation()
         {
-            foreach (var fret in _frets)
+            foreach (var (_, fret) in _frets)
             {
                 fret.PlayHitAnimation();
                 fret.PlayOpenHitParticles();
@@ -187,7 +163,7 @@ namespace YARG.Gameplay.Visuals
 
         public void PlayMissAnimation(int index)
         {
-            if (0 <= index && index <= _frets.Count)
+            if (_frets.ContainsKey(index))
             {
                 _frets[index].PlayMissAnimation();
                 _frets[index].PlayMissParticles();
@@ -196,7 +172,7 @@ namespace YARG.Gameplay.Visuals
 
         public void PlayOpenMissAnimation()
         {
-            foreach (var fret in _frets)
+            foreach (var (_, fret) in _frets)
             {
                 fret.PlayOpenMissAnimation();
                 fret.PlayOpenMissParticles();
@@ -213,7 +189,7 @@ namespace YARG.Gameplay.Visuals
 
         public void ResetAll()
         {
-            foreach (var fret in _frets)
+            foreach (var (_, fret) in _frets)
             {
                 fret.SetSustained(false);
             }
@@ -234,46 +210,47 @@ namespace YARG.Gameplay.Visuals
         public void SetFretColorPulse(int fretIndex, bool pulse, float duration)
         {
             _pulseDuration = duration;
-            _pulsingFrets[fretIndex] = pulse;
+
+            if (pulse)
+            {
+                _pulsingFrets.Add(fretIndex);
+            }
+            else
+            {
+                _pulsingFrets.Remove(fretIndex);
+            }
         }
 
         public void PulseFretColors()
         {
-            for (int i = 0; i < _pulsingFrets.Length; i++)
+            foreach (var fretIndex in _frets.Keys)
             {
-                if (!_pulsingFrets[i] || _activeFrets[i])
+                if (!_pulsingFrets.Contains(fretIndex) || _activeFrets.Contains(fretIndex))
                 {
                     continue;
                 }
 
-                _frets[i].FadeColor(_pulseDuration, true, false);
+                _frets[fretIndex].FadeColor(_pulseDuration, true, false);
             }
         }
 
-        public void UpdateFretActiveState(bool[] frets)
+        public void UpdateFretActiveState(List<int> newActiveFrets)
         {
-            // We should always receive the same number of frets that we actually have, but...
-            if (frets.Length != _frets.Count)
+            foreach (var fretIndex in _frets.Keys)
             {
-                YargLogger.LogFormatDebug("Received inconsistent fret array. Got {0} flags, but we have {1} frets.", frets.Length, _frets.Count);
-                return;
-            }
-
-            for (int i = 0; i < _frets.Count; i++)
-            {
-                if (_activeFrets[i] != frets[i])
+                if (_activeFrets.Contains(fretIndex) != newActiveFrets.Contains(fretIndex))
                 {
-                    if (frets[i])
+                    if (newActiveFrets.Contains(fretIndex))
                     {
-                        _frets[i].ResetColor(true);
+                        _frets[fretIndex].ResetColor(true);
+                        _activeFrets.Add(fretIndex);
                     }
                     else
                     {
-                        _frets[i].DimColor(true);
+                        _frets[fretIndex].DimColor(true);
+                        _activeFrets.Remove(fretIndex);
                     }
                 }
-
-                _activeFrets[i] = frets[i];
             }
         }
     }

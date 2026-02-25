@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing.Text;
 using UnityEngine;
 using YARG.Assets.Script.Gameplay.Player;
 using YARG.Core.Chart;
@@ -13,6 +14,9 @@ namespace YARG.Gameplay.Visuals
 {
     public sealed class FiveLaneKeysNoteElement : NoteElement<GuitarNote, FiveLaneKeysPlayer>
     {
+        private const float OPEN_LANE_SCALE_FACTOR = 5f / 6f;
+        private Vector3 OPEN_LANE_SCALE = new(OPEN_LANE_SCALE_FACTOR, OPEN_LANE_SCALE_FACTOR, 1);
+
         private enum NoteType
         {
             Normal = 0,
@@ -47,12 +51,19 @@ namespace YARG.Gameplay.Visuals
 
             var noteGroups = NoteRef.IsStarPower ? StarPowerNoteGroups : NoteGroups;
 
-            if (NoteRef.Fret != (int) FiveFretGuitarFret.Open)
+            if (NoteRef.Fret != (int) FiveFretGuitarFret.Open || Player.UsingOpenLane)
             {
                 // Deal with non-open notes
+                var lane = Player.GetLanePosition((FiveFretGuitarFret) NoteRef.Fret);
 
                 // Set the position
-                transform.localPosition = new Vector3(GetElementX(NoteRef.Fret, 5), 0f, 0f) * LeftyFlipMultiplier;
+                transform.localPosition = new Vector3(GetElementX(lane, Player.LaneCount), 0f, 0f);
+
+                // Set the scale; in more complex scenarios this can be computed as 5f/Player.LaneCount, but since we only have two
+                // possible lane counts, it's more efficient to just precompute the one nondefault scale
+                if (Player.UsingOpenLane) {
+                    gameObject.transform.localScale = OPEN_LANE_SCALE;
+                }
 
                 // Get which note model to use
                 NoteGroup = NoteRef.Type switch

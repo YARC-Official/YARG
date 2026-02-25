@@ -98,6 +98,11 @@ namespace YARG.Localization
             return Key("Enum.GameMode", gameMode);
         }
 
+        public static string ToLocalizedName(this OpenLaneDisplayType openLaneDisplayType)
+        {
+            return Key("Enum.OpenLaneDisplayType", openLaneDisplayType);
+        }
+
         public static string ToLocalizedName(this StarPowerActivationType starPowerActivationType)
         {
             return Key("Enum.StarPowerActivationType", starPowerActivationType);

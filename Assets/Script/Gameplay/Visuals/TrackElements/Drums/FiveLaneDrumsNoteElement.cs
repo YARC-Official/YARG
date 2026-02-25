@@ -18,24 +18,10 @@ namespace YARG.Gameplay.Visuals
             if (NoteRef.Pad != 0)
             {
                 // Deal with non-kick notes
-
+                var position = Player.GetHighwayOrderingInfo(NoteRef.Pad).Position;
+                
                 // Set the position
-                int position;
-                if (Player.Player.Profile.SwapSnareAndHiHat)
-                {
-                    position = NoteRef.Pad switch
-                    {
-                        1 => 2,
-                        2 => 1,
-                        _ => NoteRef.Pad
-                    };
-                }
-                else
-                {
-                    position = NoteRef.Pad;
-                }
-
-                transform.localPosition = new Vector3(GetElementX(position, 5), 0f, 0f) * LeftyFlipMultiplier;
+                transform.localPosition = new Vector3(GetElementX(position, Player.LaneCount), 0f, 0f);
 
                 // Get which note model to use
                 if (Player.Player.Profile.UseCymbalModels)
@@ -75,23 +61,10 @@ namespace YARG.Gameplay.Visuals
             var colors = Player.Player.ColorProfile.FiveLaneDrums;
 
             // Get pad index
-            int pad = NoteRef.Pad;
-            if (LeftyFlip)
-            {
-                pad = (FiveLaneDrumPad) pad switch
-                {
-                    FiveLaneDrumPad.Kick   => (int) FiveLaneDrumPad.Kick,
-                    FiveLaneDrumPad.Red    => (int) FiveLaneDrumPad.Green,
-                    FiveLaneDrumPad.Yellow => (int) FiveLaneDrumPad.Orange,
-                    FiveLaneDrumPad.Blue   => (int) FiveLaneDrumPad.Blue,
-                    FiveLaneDrumPad.Orange => (int) FiveLaneDrumPad.Yellow,
-                    FiveLaneDrumPad.Green  => (int) FiveLaneDrumPad.Red,
-                    _                      => throw new Exception("Unreachable.")
-                };
-            }
-
+            var colorIndex = Player.GetHighwayOrderingInfo(NoteRef.Pad).ColorIndex;
+            
             // Get colors
-            var colorNoStarPower = colors.GetNoteColor(pad);
+            var colorNoStarPower = colors.GetNoteColor(colorIndex);
             var color = colorNoStarPower;
 
             if (NoteRef.WasMissed)
@@ -101,7 +74,7 @@ namespace YARG.Gameplay.Visuals
             else if (NoteRef.IsStarPowerActivator && Player.Engine.CanStarPowerActivate && !Player.Engine.BaseStats.IsStarPowerActive)
             {
                 float pulse = (float) GameManager.BeatEventHandler.Visual.StrongBeat.CurrentPercentage;
-                var fullColor = colors.GetActivationNoteColor(pad);
+                var fullColor = colors.GetActivationNoteColor(colorIndex);
                 color = Color.FromArgb(
                     fullColor.A,
                     GetColorFromPulse(fullColor.R, pulse),
@@ -111,7 +84,7 @@ namespace YARG.Gameplay.Visuals
             }
             else if (IsStarPowerVisible)
             {
-                color = colors.GetNoteStarPowerColor(pad);
+                color = colors.GetNoteStarPowerColor(colorIndex);
             }
 
             // Set the note color if not hidden

@@ -14,6 +14,8 @@ namespace YARG.Menu.MusicLibrary
 
         public override bool UseWiderPrimaryText => true;
 
+        public override string StableId => _stableId;
+
         public readonly  string HeaderText;
         public readonly  string ShortcutName;
         public readonly  string SourceCountText;
@@ -27,6 +29,7 @@ namespace YARG.Menu.MusicLibrary
         private static readonly HashSet<string> CharterCounter = new();
         private static readonly HashSet<string> GenreCounter   = new();
         private static readonly HashSet<string> SubgenreCounter = new();
+        private readonly string _stableId;
 
         public SortHeaderViewType(string headerText, int songCount, string shortcutName, SongEntry[] songsUnderCategory)
         {
@@ -34,6 +37,7 @@ namespace YARG.Menu.MusicLibrary
             _songCount = songCount;
 
             ShortcutName = shortcutName;
+            _stableId = $"SortHeader:{headerText}:{shortcutName}";
 
             foreach (var song in songsUnderCategory)
             {
