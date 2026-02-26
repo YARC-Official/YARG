@@ -87,6 +87,7 @@ namespace YARG.Song
         private const string POP_DANCE_ELECTRONIC = "pop/dance/electronic";
         private const string PROG = "prog";
         private const string REGGAE_SKA = "reggae/ska";
+        private const string REGGAE_SKA_RAW = "reggaeska"; // As rendered in raw CONs
         private const string URBAN = "urban";
 
         
