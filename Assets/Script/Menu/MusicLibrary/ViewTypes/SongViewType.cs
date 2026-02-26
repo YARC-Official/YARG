@@ -24,18 +24,24 @@ namespace YARG.Menu.MusicLibrary
         public override bool UseAsMadeFamousBy => !SongEntry.IsMaster;
 
         public readonly SongEntry SongEntry;
+        public override string StableId => _stableId;
+        public string ContentStableId => _contentStableId;
 
         private readonly MusicLibraryMenu _musicLibrary;
+        private readonly string _stableId;
+        private readonly string _contentStableId;
 
         private bool _fetchedScores;
         private PlayerScoreRecord _playerScoreRecord;
         private PlayerScoreRecord _playerPercentRecord;
         private GameRecord _bandScoreRecord;
 
-        public SongViewType(MusicLibraryMenu musicLibrary, SongEntry songEntry)
+        public SongViewType(MusicLibraryMenu musicLibrary, SongEntry songEntry, string context = "library")
         {
             _musicLibrary = musicLibrary;
             SongEntry = songEntry;
+            _contentStableId = $"Song:{SongEntry.Hash}_{SongEntry.ActualLocation}";
+            _stableId = $"Song:{context}:{_contentStableId}";
         }
 
         public override string GetPrimaryText(bool selected)

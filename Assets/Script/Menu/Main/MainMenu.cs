@@ -55,7 +55,7 @@ namespace YARG.Menu.Main
 
         public void CurrentlyPlaying()
         {
-            MusicLibraryMenu.CurrentlyPlaying = MusicPlayer.NowPlaying;
+            MusicLibraryMenu.RequestGoToCurrentlyPlaying(MusicPlayer.NowPlaying);
             QuickPlay();
         }
 

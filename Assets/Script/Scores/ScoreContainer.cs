@@ -151,6 +151,7 @@ namespace YARG.Scores
                     UpdatePlayerHighScores(songChecksum, playerEntries.First());
                 }
 
+                SongContainer.InvalidateStarsCache();
                 YargLogger.LogInfo("Recorded score for song.");
             }
             catch (Exception e)

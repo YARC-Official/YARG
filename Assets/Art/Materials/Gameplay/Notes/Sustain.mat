@@ -8,8 +8,7 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: Sustain
-  m_Shader: {fileID: -6465566751694194690, guid: 3edcc544976f240fcb743fd3e09893f8,
-    type: 3}
+  m_Shader: {fileID: -6465566751694194690, guid: 3edcc544976f240fcb743fd3e09893f8, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []
@@ -18,7 +17,7 @@ Material:
   m_LightmapFlags: 2
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
-  m_CustomRenderQueue: 2976
+  m_CustomRenderQueue: 3000
   stringTagMap: {}
   disabledShaderPasses:
   - MOTIONVECTORS
@@ -183,7 +182,7 @@ Material:
     - _PrimaryAmplitude: 0.18
     - _PrimaryFrequency: 10
     - _QueueControl: 0
-    - _QueueOffset: -24
+    - _QueueOffset: 0
     - _ReceiveShadows: 1
     - _Scroll: 0
     - _SecondaryAmplitude: 0.47380185

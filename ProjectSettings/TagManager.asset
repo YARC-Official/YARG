@@ -2,13 +2,14 @@
 %TAG !u! tag:unity3d.com,2011:
 --- !u!78 &1
 TagManager:
-  serializedVersion: 2
-  tags: []
+  serializedVersion: 3
+  tags:
+  - FileBrowser
   layers:
   - Default
   - TransparentFX
   - Ignore Raycast
-  - 
+  - FadeExclude
   - Water
   - UI
   - Notes
@@ -50,3 +51,5 @@ TagManager:
   - name: Harm3
     uniqueID: 3317812413
     locked: 0
+  m_RenderingLayers:
+  - Default

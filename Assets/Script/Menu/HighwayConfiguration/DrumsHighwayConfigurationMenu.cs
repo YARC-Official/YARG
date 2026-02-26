@@ -84,8 +84,8 @@ namespace YARG.Menu.HighwayConfiguration
             string header,
             SetOrdering setOrdering,
             Instrument instrument,
-            YargProfile profile
-        ) {
+            YargProfile profile)
+        {
             Specs = specs;
             _profile = profile;
             Instrument = instrument;

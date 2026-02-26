@@ -273,7 +273,7 @@ namespace YARG.Gameplay.Player
                     continue;
                 }
 
-                var fillLanePosition =_highwayOrdering.ContainsKey(rightmostNote.Pad) ? _highwayOrdering[rightmostNote.Pad].Position : 0;
+                var fillLanePosition = GetHighwayOrderingInfo(rightmostNote.Pad).Position;
 
                 int candidateIndex = -1;
 
