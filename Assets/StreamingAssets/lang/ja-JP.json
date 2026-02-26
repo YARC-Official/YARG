@@ -305,6 +305,7 @@
                     "RemoveFromFavorites": "お気に入りから削除",
                     "AddToPlaylist": "プレイリストに付け加える",
                     "RemoveFromPlaylist": "プレイリストから削除",
+                    "RemoveFromSetlist": "Remove From Setlist",
                     "CreateNewPlaylist": "新しい作成",
                     "RenamePlaylist": "Rename Playlist",
                     "DeletePlaylist": "プレイリストを削除",

@@ -128,7 +128,7 @@ namespace YARG.Menu.MusicLibrary
 
                 _sortedSongs = new SongCategory[]
                 {
-                    new(SelectedPlaylist.Name, songs[..count], null)
+                    new(GetPlaylistDisplayName(SelectedPlaylist), songs[..count], null)
                 };
 
                 _searchField.gameObject.SetActive(false);
@@ -450,7 +450,7 @@ namespace YARG.Menu.MusicLibrary
             {
                 _sortInfoHeaderPrimaryText.text = ZString.Concat(
                     TextColorer.StyleString("PLAYLIST ", MenuData.Colors.HeaderTertiary, 600),
-                    TextColorer.StyleString(SelectedPlaylist.Name, MenuData.Colors.HeaderSecondary, 700));
+                    TextColorer.StyleString(GetPlaylistDisplayName(SelectedPlaylist), MenuData.Colors.HeaderSecondary, 700));
 
                 var countText = TextColorer.StyleString(ZString.Format("{0:N0}", _totalSongCount),
                     MenuData.Colors.HeaderSecondary, 500);
@@ -480,6 +480,17 @@ namespace YARG.Menu.MusicLibrary
 
             count += PlaylistContainer.Playlists.Count;
             return count;
+        }
+
+        private static string GetPlaylistDisplayName(Playlist playlist)
+        {
+            if (playlist == null)
+                return string.Empty;
+
+            if (playlist.Ephemeral)
+                return Localize.Key("Menu.MusicLibrary.CurrentSetlist");
+
+            return playlist.Name;
         }
 
         public void SetSearchInput(SortAttribute songAttribute, string input)

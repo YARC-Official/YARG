@@ -183,10 +183,17 @@ namespace YARG.Menu.MusicLibrary
                         gameObject.SetActive(false);
                     });
 
-                    // Show "Remove from Playlist" if we're editing a playlist
-                    if (_musicLibrary.MenuState == MenuState.Playlist && _musicLibrary.SelectedPlaylist != null)
+                    bool isInPlaylist = _musicLibrary.MenuState == MenuState.Playlist &&
+                        _musicLibrary.SelectedPlaylist != null &&
+                        _musicLibrary.SelectedPlaylist != PlaylistContainer.FavoritesPlaylist;
+                    bool isSetlist = isInPlaylist && _musicLibrary.SelectedPlaylist.Ephemeral;
+
+                    void AddRemoveFromPlaylistItem()
                     {
-                        CreateItem("RemoveFromPlaylist", () =>
+                        var removeKey = _musicLibrary.SelectedPlaylist.Ephemeral
+                            ? "RemoveFromSetlist"
+                            : "RemoveFromPlaylist";
+                        CreateItem(removeKey, () =>
                         {
                             var songView = viewType as SongViewType;
                             _musicLibrary.SelectedPlaylist.RemoveSong(songView.SongEntry);
@@ -195,15 +202,20 @@ namespace YARG.Menu.MusicLibrary
                             ToastManager.ToastSuccess("Removed from playlist");
                         });
                     }
-                    else
+
+                    if (isSetlist)
+                        AddRemoveFromPlaylistItem();
+
+                    // Show "Add to Playlist" even when editing a playlist.
+                    CreateItem("AddToPlaylist", () =>
                     {
-                        // Only show "Add to Playlist" when not editing a playlist
-                        CreateItem("AddToPlaylist", () =>
-                        {
-                            _menuState = State.AddToPlaylist;
-                            UpdateForState();
-                        });
-                    }
+                        _menuState = State.AddToPlaylist;
+                        UpdateForState();
+                    });
+
+                    // Show "Remove from Playlist" if we're editing a playlist
+                    if (isInPlaylist && !isSetlist)
+                        AddRemoveFromPlaylistItem();
                 }
             }
 
@@ -371,6 +383,13 @@ namespace YARG.Menu.MusicLibrary
             // Get the list of playlists from PlaylistContainer and create items for each
             foreach (var playlist in PlaylistContainer.Playlists)
             {
+                if (_musicLibrary.MenuState == MenuState.Playlist &&
+                    _musicLibrary.SelectedPlaylist != null &&
+                    ReferenceEquals(playlist, _musicLibrary.SelectedPlaylist))
+                {
+                    continue;
+                }
+
                 CreateItemUnlocalized(playlist.Name, () =>
                 {
                     if (_musicLibrary.CurrentSelection is SongViewType songView)

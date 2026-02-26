@@ -305,6 +305,7 @@
                     "RemoveFromFavorites": "Remove From Favorites",
                     "AddToPlaylist": "Add To Playlist...",
                     "RemoveFromPlaylist": "Remove From Playlist",
+                    "RemoveFromSetlist": "Remove From Setlist",
                     "CreateNewPlaylist": "Create New...",
                     "RenamePlaylist": "Rename Playlist",
                     "DeletePlaylist": "Delete Playlist",
