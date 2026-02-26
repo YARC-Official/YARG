@@ -56,22 +56,22 @@ namespace YARG.Menu.MusicLibrary
         public static MusicLibraryMode LibraryMode;
 
         public static SongEntry CurrentlyPlaying;
-        public        MenuState MenuState;
-        public        Playlist  SelectedPlaylist;
+        public MenuState MenuState;
+        public Playlist SelectedPlaylist;
 
 #nullable enable
         private static SongEntry[]? _recommendedSongs;
 #nullable disable
 
-        private static string                  _currentSearch = string.Empty;
-        private static int                     _savedIndex;
-        private static SelectionSnapshot       _savedSelectionSnapshot;
-        private static bool                    _hasSavedSelectionSnapshot;
-        private static bool                    _forceGoToCurrentlyPlaying;
-        private static SongEntry               _forceGoToSong;
-        private static int                     _mainLibraryIndex = -1;
+        private static string _currentSearch = string.Empty;
+        private static int _savedIndex;
+        private static SelectionSnapshot _savedSelectionSnapshot;
+        private static bool _hasSavedSelectionSnapshot;
+        private static bool _forceGoToCurrentlyPlaying;
+        private static SongEntry _forceGoToSong;
+        private static int _mainLibraryIndex = -1;
         private static MusicLibraryReloadState _reloadState = MusicLibraryReloadState.Full;
-        private static Playlist                _savedPlaylist;
+        private static Playlist _savedPlaylist;
 
         public bool PlaylistMode => SelectedPlaylist != null;
 
@@ -231,8 +231,8 @@ namespace YARG.Menu.MusicLibrary
             _subHeader.text = LibraryMode switch
             {
                 MusicLibraryMode.QuickPlay => Localize.Key("Menu.Main.Options.Quickplay"),
-                MusicLibraryMode.Practice  => Localize.Key("Menu.Main.Options.Practice"),
-                _                          => throw new Exception("Unreachable.")
+                MusicLibraryMode.Practice => Localize.Key("Menu.Main.Options.Practice"),
+                _ => throw new Exception("Unreachable.")
             };
 
             // Set IsPractice as well
@@ -246,7 +246,9 @@ namespace YARG.Menu.MusicLibrary
             // Make sure sort is not by play count if there are only bots
             if (PlayerContainer.OnlyHasBotsActive() &&
                 (SettingsManager.Settings.LibrarySort == SortAttribute.Playcount ||
-                    SettingsManager.Settings.LibrarySort == SortAttribute.Stars))
+                SettingsManager.Settings.LibrarySort == SortAttribute.Stars ||
+                SettingsManager.Settings.LibrarySort == SortAttribute.Percentage ||
+                SettingsManager.Settings.LibrarySort == SortAttribute.Score))
             {
                 // Name makes a good fallback?
                 ChangeSort(SortAttribute.Name);
@@ -423,11 +425,11 @@ namespace YARG.Menu.MusicLibrary
 
             var viewList = MenuState switch
             {
-                MenuState.Library        => CreateNormalViewList(),
+                MenuState.Library => CreateNormalViewList(),
                 MenuState.PlaylistSelect => CreatePlaylistSelectViewList(),
-                MenuState.Playlist       => CreatePlaylistViewList(),
-                MenuState.Show           => CreateShowViewList(),
-                _                        => throw new Exception("Unreachable.")
+                MenuState.Playlist => CreatePlaylistViewList(),
+                MenuState.Show => CreateShowViewList(),
+                _ => throw new Exception("Unreachable.")
             };
 
             // Disable shortcuts if there are less than 2 sort headers in the viewlist
@@ -729,7 +731,8 @@ namespace YARG.Menu.MusicLibrary
             bool shouldApplyFilters = inLibrary && predicate != null;
             bool shouldShowFilteredCounts = inLibrary && (_searchField.IsSearching || predicate != null);
 
-            if (shouldApplyFilters) {
+            if (shouldApplyFilters)
+            {
                 _sortedSongs = ApplyFilterPredicate(_sortedSongs, predicate);
             }
 
@@ -744,7 +747,7 @@ namespace YARG.Menu.MusicLibrary
             }
 
             RequestViewListUpdate();
-            
+
             if (shouldApplyFilters)
             {
                 EnsureValidSelectionAfterFilter();
@@ -901,7 +904,10 @@ namespace YARG.Menu.MusicLibrary
             if (MenuState == MenuState.Library && !PlaylistMode)
             {
                 bool preserveIndexOnDynamicSort = SettingsManager.Settings.LibrarySort == SortAttribute.Playcount ||
-                    SettingsManager.Settings.LibrarySort == SortAttribute.Stars;
+                SettingsManager.Settings.LibrarySort == SortAttribute.Stars ||
+                SettingsManager.Settings.LibrarySort == SortAttribute.Percentage ||
+                SettingsManager.Settings.LibrarySort == SortAttribute.Score;
+
                 _savedSelectionSnapshot = CaptureSelectionSnapshot(preserveIndexOnDynamicSort);
                 _hasSavedSelectionSnapshot = true;
             }
@@ -936,7 +942,7 @@ namespace YARG.Menu.MusicLibrary
                 return;
             }
 
-            switch(MenuState)
+            switch (MenuState)
             {
                 case MenuState.Playlist:
                     ExitPlaylistView();
@@ -962,7 +968,7 @@ namespace YARG.Menu.MusicLibrary
             }
             else
             {
-                 nextSort = (SortAttribute) ((int) SettingsManager.Settings.LibrarySort + 1);
+                nextSort = (SortAttribute) ((int) SettingsManager.Settings.LibrarySort + 1);
             }
 
             ChangeSort(nextSort);
@@ -1197,7 +1203,9 @@ namespace YARG.Menu.MusicLibrary
         {
             if (snapshot.PreserveIndexOnDynamicSort &&
                 (SettingsManager.Settings.LibrarySort == SortAttribute.Playcount ||
-                    SettingsManager.Settings.LibrarySort == SortAttribute.Stars))
+                SettingsManager.Settings.LibrarySort == SortAttribute.Stars ||
+                SettingsManager.Settings.LibrarySort == SortAttribute.Percentage ||
+                SettingsManager.Settings.LibrarySort == SortAttribute.Score))
             {
                 if (ViewList.Count == 0) return;
 
@@ -1318,7 +1326,8 @@ namespace YARG.Menu.MusicLibrary
 
             // Keep the previous sort attribute, too, so it can be used to
             // sort the list of unplayed songs and possibly for other things
-            if (sort != SortAttribute.Playcount && sort != SortAttribute.Stars)
+            if (sort != SortAttribute.Playcount && sort != SortAttribute.Stars &&
+                sort != SortAttribute.Percentage && sort != SortAttribute.Score)
             {
                 SettingsManager.Settings.PreviousLibrarySort = sort;
             }

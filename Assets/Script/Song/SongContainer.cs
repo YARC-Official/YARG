@@ -36,6 +36,8 @@ namespace YARG.Song
         DateAdded,
         Playcount,
         Stars,
+        Percentage,
+        Score,
         Playable,
 
         Instrument,
@@ -64,9 +66,9 @@ namespace YARG.Song
 
     public readonly struct SongCategory
     {
-        public string      Category      { get; }
-        public string      CategoryGroup { get; }
-        public SongEntry[] Songs         { get; }
+        public string Category { get; }
+        public string CategoryGroup { get; }
+        public SongEntry[] Songs { get; }
 
         public SongCategory(string category, SongEntry[] songs, string categoryGroupName)
         {
@@ -142,7 +144,7 @@ namespace YARG.Song
             var stopwatch = System.Diagnostics.Stopwatch.StartNew();
             var task = UniTask.RunOnThreadPool(() =>
             {
-                _songCache =  CacheHandler.RunScan(quick,
+                _songCache = CacheHandler.RunScan(quick,
                     PathHelper.SongCachePath,
                     PathHelper.BadSongsPath,
                     SettingsManager.Settings.UseFullDirectoryForPlaylists.Value,
@@ -194,28 +196,30 @@ namespace YARG.Song
                 SortAttribute.Playcount => GetPlaycounts(),
                 SortAttribute.Playable => GetPlayableSongs(),
                 SortAttribute.Stars => GetStars(),
+                SortAttribute.Percentage => GetPercentage(),
+                SortAttribute.Score => GetScore(),
 
                 SortAttribute.FiveFretGuitar => _sortInstruments[Instrument.FiveFretGuitar],
-                SortAttribute.FiveFretBass   => _sortInstruments[Instrument.FiveFretBass],
+                SortAttribute.FiveFretBass => _sortInstruments[Instrument.FiveFretBass],
                 SortAttribute.FiveFretRhythm => _sortInstruments[Instrument.FiveFretRhythm],
-                SortAttribute.FiveFretCoop   => _sortInstruments[Instrument.FiveFretCoopGuitar],
-                SortAttribute.Keys           => _sortInstruments[Instrument.Keys],
-                SortAttribute.SixFretGuitar  => _sortInstruments[Instrument.SixFretGuitar],
-                SortAttribute.SixFretBass    => _sortInstruments[Instrument.SixFretBass],
-                SortAttribute.SixFretRhythm  => _sortInstruments[Instrument.SixFretRhythm],
-                SortAttribute.SixFretCoop    => _sortInstruments[Instrument.SixFretCoopGuitar],
-                SortAttribute.FourLaneDrums  => _sortInstruments[Instrument.FourLaneDrums],
-                SortAttribute.ProDrums       => _sortInstruments[Instrument.ProDrums],
-                SortAttribute.FiveLaneDrums  => _sortInstruments[Instrument.FiveLaneDrums],
-                SortAttribute.EliteDrums     => _sortInstruments[Instrument.EliteDrums],
-                SortAttribute.ProGuitar_17   => _sortInstruments[Instrument.ProGuitar_17Fret],
-                SortAttribute.ProGuitar_22   => _sortInstruments[Instrument.ProGuitar_22Fret],
-                SortAttribute.ProBass_17     => _sortInstruments[Instrument.ProBass_17Fret],
-                SortAttribute.ProBass_22     => _sortInstruments[Instrument.ProBass_22Fret],
-                SortAttribute.ProKeys        => _sortInstruments[Instrument.ProKeys],
-                SortAttribute.Vocals         => _sortInstruments[Instrument.Vocals],
-                SortAttribute.Harmony        => _sortInstruments[Instrument.Harmony],
-                SortAttribute.Band           => _sortInstruments[Instrument.Band],
+                SortAttribute.FiveFretCoop => _sortInstruments[Instrument.FiveFretCoopGuitar],
+                SortAttribute.Keys => _sortInstruments[Instrument.Keys],
+                SortAttribute.SixFretGuitar => _sortInstruments[Instrument.SixFretGuitar],
+                SortAttribute.SixFretBass => _sortInstruments[Instrument.SixFretBass],
+                SortAttribute.SixFretRhythm => _sortInstruments[Instrument.SixFretRhythm],
+                SortAttribute.SixFretCoop => _sortInstruments[Instrument.SixFretCoopGuitar],
+                SortAttribute.FourLaneDrums => _sortInstruments[Instrument.FourLaneDrums],
+                SortAttribute.ProDrums => _sortInstruments[Instrument.ProDrums],
+                SortAttribute.FiveLaneDrums => _sortInstruments[Instrument.FiveLaneDrums],
+                SortAttribute.EliteDrums => _sortInstruments[Instrument.EliteDrums],
+                SortAttribute.ProGuitar_17 => _sortInstruments[Instrument.ProGuitar_17Fret],
+                SortAttribute.ProGuitar_22 => _sortInstruments[Instrument.ProGuitar_22Fret],
+                SortAttribute.ProBass_17 => _sortInstruments[Instrument.ProBass_17Fret],
+                SortAttribute.ProBass_22 => _sortInstruments[Instrument.ProBass_22Fret],
+                SortAttribute.ProKeys => _sortInstruments[Instrument.ProKeys],
+                SortAttribute.Vocals => _sortInstruments[Instrument.Vocals],
+                SortAttribute.Harmony => _sortInstruments[Instrument.Harmony],
+                SortAttribute.Band => _sortInstruments[Instrument.Band],
                 _ => null
             };
 
@@ -524,6 +528,153 @@ namespace YARG.Song
             return _sortStars;
         }
 
+        private static SongCategory[] GetPercentage()
+        {
+            if (PlayerContainer.OnlyHasBotsActive())
+            {
+                var previousSort = SettingsManager.Settings.PreviousLibrarySort;
+                if (previousSort != SortAttribute.Stars && previousSort != SortAttribute.Playcount &&
+                    previousSort != SortAttribute.Playable && previousSort != SortAttribute.Percentage &&
+                    previousSort != SortAttribute.Score)
+                {
+                    return GetSortedCategory(previousSort);
+                }
+                return _sortTitles;
+            }
+
+            var player = PlayerContainer.Players.FirstOrDefault(e => !e.Profile.IsBot);
+            if (player == null) return _sortTitles;
+
+            var profile = player.Profile;
+
+            // Percentage Categories
+            var buckets = new Dictionary<string, List<SongEntry>>
+            {
+                { Localize.Key("Menu.MusicLibrary.Sort.Percentage.100"), new() },
+                { Localize.Key("Menu.MusicLibrary.Sort.Percentage.90"), new() },
+                { Localize.Key("Menu.MusicLibrary.Sort.Percentage.80"), new() },
+                { Localize.Key("Menu.MusicLibrary.Sort.Percentage.70"), new() },
+                { Localize.Key("Menu.MusicLibrary.Sort.Percentage.60"), new() },
+                { Localize.Key("Menu.MusicLibrary.Sort.Percentage.50"), new() },
+                { Localize.Key("Menu.MusicLibrary.Sort.Percentage.Below50"), new() },
+                { Localize.Key("Menu.MusicLibrary.Sort.NotPlayed"), new() },
+            };
+
+            var instrument = profile.CurrentInstrument;
+            var comparer = new IntensityComparer(instrument);
+
+            foreach (var song in _songs)
+            {
+                var record = ScoreContainer.GetBestPercentageScore(
+                    song.Hash, profile.Id, instrument);
+
+                string bucket;
+                if (record == null)
+                {
+                    bucket = Localize.Key("Menu.MusicLibrary.Sort.NotPlayed");
+                }
+                else
+                {
+                    float pct = record.GetPercent() * 100f;
+                    bucket = pct switch
+                    {
+                        >= 100f => Localize.Key("Menu.MusicLibrary.Sort.Percentage.100"),
+                        >= 90f => Localize.Key("Menu.MusicLibrary.Sort.Percentage.90"),
+                        >= 80f => Localize.Key("Menu.MusicLibrary.Sort.Percentage.80"),
+                        >= 70f => Localize.Key("Menu.MusicLibrary.Sort.Percentage.70"),
+                        >= 60f => Localize.Key("Menu.MusicLibrary.Sort.Percentage.60"),
+                        >= 50f => Localize.Key("Menu.MusicLibrary.Sort.Percentage.50"),
+                        _ => Localize.Key("Menu.MusicLibrary.Sort.Percentage.Below50"),
+                    };
+                }
+
+                var list = buckets[bucket];
+                int index = list.BinarySearch(song, comparer);
+                list.Insert(~index, song);
+            }
+
+            var result = new List<SongCategory>();
+            foreach (var (label, list) in buckets)
+            {
+                if (list.Count > 0)
+                {
+                    result.Add(new SongCategory(label, list.ToArray(), label));
+                }
+            }
+            return result.ToArray();
+        }
+
+        private static SongCategory[] GetScore()
+        {
+            if (PlayerContainer.OnlyHasBotsActive())
+            {
+                var previousSort = SettingsManager.Settings.PreviousLibrarySort;
+                if (previousSort != SortAttribute.Stars && previousSort != SortAttribute.Playcount &&
+                    previousSort != SortAttribute.Playable && previousSort != SortAttribute.Percentage &&
+                    previousSort != SortAttribute.Score)
+                {
+                    return GetSortedCategory(previousSort);
+                }
+                return _sortTitles;
+            }
+
+            var player = PlayerContainer.Players.FirstOrDefault(e => !e.Profile.IsBot);
+            if (player == null) return _sortTitles;
+
+            var profile = player.Profile;
+            var instrument = profile.CurrentInstrument;
+
+            int[] thresholds = { 500000, 400000, 300000, 200000, 150000, 100000, 75000, 50000, 30000, 10000, 1 };
+            var categorySongs = new List<SongEntry>[thresholds.Length];
+            for (int i = 0; i < thresholds.Length; i++)
+                categorySongs[i] = new List<SongEntry>();
+
+            var notPlayed = new List<SongEntry>();
+            var comparer = new IntensityComparer(instrument);
+
+            foreach (var song in _songs)
+            {
+                var record = ScoreContainer.GetHighScore(song.Hash, profile.Id, instrument);
+                if (record == null)
+                {
+                    int idx = notPlayed.BinarySearch(song, comparer);
+                    notPlayed.Insert(~idx, song);
+                    continue;
+                }
+
+                int bucketIndex = thresholds.Length - 1;
+                for (int i = 0; i < thresholds.Length; i++)
+                {
+                    if (record.Score >= thresholds[i])
+                    {
+                        bucketIndex = i;
+                        break;
+                    }
+                }
+
+                int index = categorySongs[bucketIndex].BinarySearch(song, comparer);
+                categorySongs[bucketIndex].Insert(~index, song);
+            }
+
+            var result = new List<SongCategory>();
+            for (int i = 0; i < thresholds.Length; i++)
+            {
+                if (categorySongs[i].Count > 0)
+                {
+                    string label = Localize.Key($"Menu.MusicLibrary.Sort.Score.{thresholds[i]}");
+                    result.Add(new SongCategory(label, categorySongs[i].ToArray(), label));
+                }
+            }
+
+            if (notPlayed.Count > 0)
+            {
+                string label = Localize.Key("Menu.MusicLibrary.Sort.NotPlayed");
+                result.Add(new SongCategory(label, notPlayed.ToArray(), label));
+            }
+
+            return result.ToArray();
+        }
+
         private static void UpdateSongUi(LoadingContext context)
         {
             var tracker = CacheHandler.Progress;
@@ -565,18 +716,18 @@ namespace YARG.Song
             InvalidateStarsCache();
             _songs = SetAllSongs(_songCache.Entries);
 
-            _sortArtists      = Convert(_sortedSongs.Artists, SongAttribute.Artist);
-            _sortAlbums       = Convert(_sortedSongs.Albums, SongAttribute.Album);
-            _sortGenres       = Convert(_sortedSongs.Genres, SongAttribute.Genre);
-            _sortSubgenres    = Convert(_sortedSongs.Subgenres, SongAttribute.Subgenre);
-            _sortCharters     = Convert(_sortedSongs.Charters, SongAttribute.Charter);
-            _sortPlaylists    = Convert(_sortedSongs.Playlists, SongAttribute.Playlist);
-            _sortSources      = Convert(_sortedSongs.Sources, SongAttribute.Source);
+            _sortArtists = Convert(_sortedSongs.Artists, SongAttribute.Artist);
+            _sortAlbums = Convert(_sortedSongs.Albums, SongAttribute.Album);
+            _sortGenres = Convert(_sortedSongs.Genres, SongAttribute.Genre);
+            _sortSubgenres = Convert(_sortedSongs.Subgenres, SongAttribute.Subgenre);
+            _sortCharters = Convert(_sortedSongs.Charters, SongAttribute.Charter);
+            _sortPlaylists = Convert(_sortedSongs.Playlists, SongAttribute.Playlist);
+            _sortSources = Convert(_sortedSongs.Sources, SongAttribute.Source);
             _sortArtistAlbums = Combine(_sortedSongs.ArtistAlbums);
 
-            _sortTitles       = Cast(_sortedSongs.Titles);
-            _sortYears        = Cast(_sortedSongs.Years);
-            _sortSongLengths  = Cast(_sortedSongs.SongLengths);
+            _sortTitles = Cast(_sortedSongs.Titles);
+            _sortYears = Cast(_sortedSongs.Years);
+            _sortSongLengths = Cast(_sortedSongs.SongLengths);
             _playables = null;
 
             _sortDatesAdded = new SongCategory[_sortedSongs.DatesAdded.Count];
