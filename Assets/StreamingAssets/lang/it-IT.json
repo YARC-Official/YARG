@@ -587,10 +587,20 @@
           "100000": "100.000+ punti",
           "75000": "75.000+ punti",
           "50000": "50.000+ punti",
-          "35000": "35.000+ punti",
+          "30000": "30.000+ punti",
           "10000": "10.000+ punti",
           "1": "1+ punto"
-        }
+        },
+        "Playable": "Giocabile",
+        "Played": "Riprodotta {0}+ volte"
+      },
+      "Loading": {
+        "SongCache": "Caricamento cache canzoni...",
+        "Songs": "Caricamento canzoni...",
+        "SortingSongs": "Ordinamento canzoni...",
+        "WritingSongCache": "Scrittura cache canzoni...",
+        "WritingBadSongs": "Scrittura canzoni non valide...",
+        "SongSubText": "Cartelle scansionate: {0}\nCanzoni scansionate: {1}\nErrori: {2}"
       }
     }
   },

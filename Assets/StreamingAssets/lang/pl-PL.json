@@ -587,10 +587,20 @@
           "100000": "100 000+ punktów",
           "75000": "75 000+ punktów",
           "50000": "50 000+ punktów",
-          "35000": "35 000+ punktów",
+          "30000": "30 000+ punktów",
           "10000": "10 000+ punktów",
           "1": "1+ punkt"
-        }
+        },
+        "Playable": "Grywalna",
+        "Played": "Zagrana {0}+ razy"
+      },
+      "Loading": {
+        "SongCache": "Wczytywanie pamięci podręcznej utworów...",
+        "Songs": "Wczytywanie utworów...",
+        "SortingSongs": "Sortowanie utworów...",
+        "WritingSongCache": "Zapisywanie pamięci podręcznej utworów...",
+        "WritingBadSongs": "Zapisywanie uszkodzonych utworów...",
+        "SongSubText": "Przeskanowane foldery: {0}\nPrzeskanowane utwory: {1}\nBłędy: {2}"
       }
     }
   },

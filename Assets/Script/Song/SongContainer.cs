@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using UniRx;
+using Cysharp.Text;
 using YARG.Core;
 using YARG.Core.Game;
 using YARG.Core.Logging;
@@ -309,7 +309,7 @@ namespace YARG.Song
 
                         if (intersectCount > 0)
                         {
-                            arr[categoryCount++] = new SongCategory($"Playable [{node.Category}]", intersect[..intersectCount], node.Category);
+                            arr[categoryCount++] = new SongCategory($"{Localize.Key("Menu.MusicLibrary.Sort.Playable")} [{node.Category}]", intersect[..intersectCount], node.Category);
                         }
                     }
                     _playables = arr[..categoryCount];
@@ -363,7 +363,7 @@ namespace YARG.Song
             // Counts will be in descending order, so we can iterate through the list until we drop below the threshold
             // and then move to the next threshold
             int thresholdIndex = 0;
-            foreach ((SongEntry song, int count) in counts)
+            foreach ((var song, int count) in counts)
             {
                 if (count < countThresholds[thresholdIndex])
                 {
@@ -427,7 +427,11 @@ namespace YARG.Song
             {
                 if (categorySongs[i].Count > 0)
                 {
-                    categories[categoryIndex] = new SongCategory($"Played {countThresholds[i]}+ times", categorySongs[i].ToArray(), $"Played {countThresholds[i]}+ times");
+                    string label = ZString.Format(
+                        Localize.Key("Menu.MusicLibrary.Sort.Played"),
+                        countThresholds[i]
+                    );
+                    categories[categoryIndex] = new SongCategory(label, categorySongs[i].ToArray(), label);
                     categoryIndex++;
                 }
             }
@@ -457,7 +461,7 @@ namespace YARG.Song
                 return _sortTitles;
             }
 
-            YargPlayer player = PlayerContainer.Players.FirstOrDefault(e => !e.Profile.IsBot);
+            var player = PlayerContainer.Players.FirstOrDefault(e => !e.Profile.IsBot);
             if (player == null)
             {
                 // This case should have been caught above, but just in case
@@ -474,31 +478,31 @@ namespace YARG.Song
             }
 
             _runtimeStars.Clear();
-            Dictionary<HashWrapper, StarAmount> bestStars = ScoreContainer.GetBestStarsForSong(profile);
+            var bestStars = ScoreContainer.GetBestStarsForSong(profile);
             foreach (var song in _songs)
             {
-                if (!bestStars.TryGetValue(song.Hash, out StarAmount stars))
+                if (!bestStars.TryGetValue(song.Hash, out var stars))
                 {
                     stars = StarAmount.None;
                 }
                 _runtimeStars[song] = stars;
             }
 
-            Instrument instrument = player.Profile.CurrentInstrument;
-            IntensityComparer comparer = new IntensityComparer(instrument);
+            var instrument = player.Profile.CurrentInstrument;
+            var comparer = new IntensityComparer(instrument);
 
             // Use Dictionary instead of array due to complex enum values
-            Dictionary<StarAmount, List<SongEntry>> grouped = new Dictionary<StarAmount, List<SongEntry>>();
+            var grouped = new Dictionary<StarAmount, List<SongEntry>>();
 
             foreach (var song in _songs)
             {
-                StarAmount key = StarAmount.NoPart;
+                var key = StarAmount.NoPart;
                 if (song[instrument].IsActive() && !_runtimeStars.TryGetValue(song, out key))
                 {
                     key = StarAmount.None;
                 }
 
-                if (!grouped.TryGetValue(key, out List<SongEntry> list))
+                if (!grouped.TryGetValue(key, out var list))
                 {
                     list = new List<SongEntry>();
                     grouped[key] = list;
@@ -508,14 +512,14 @@ namespace YARG.Song
                 list.Insert(~index, song);
             }
 
-            List<StarAmount> sortedKeys = grouped.Keys.ToList();
+            var sortedKeys = grouped.Keys.ToList();
             sortedKeys.Sort((a, b) => b.GetSortWeight().CompareTo(a.GetSortWeight()));
 
-            SongCategory[] starCategories = new SongCategory[sortedKeys.Count];
+            var starCategories = new SongCategory[sortedKeys.Count];
             int i = 0;
             foreach (var key in sortedKeys)
             {
-                List<SongEntry> list = grouped[key];
+                var list = grouped[key];
                 string label = key.GetDisplayName();
                 starCategories[i++] = new SongCategory(label, list.ToArray(), label);
             }
@@ -543,7 +547,10 @@ namespace YARG.Song
             }
 
             var player = PlayerContainer.Players.FirstOrDefault(e => !e.Profile.IsBot);
-            if (player == null) return _sortTitles;
+            if (player == null)
+            {
+                return _sortTitles;
+            }
 
             var profile = player.Profile;
 
@@ -619,7 +626,10 @@ namespace YARG.Song
             }
 
             var player = PlayerContainer.Players.FirstOrDefault(e => !e.Profile.IsBot);
-            if (player == null) return _sortTitles;
+            if (player == null)
+            {
+                return _sortTitles;
+            }
 
             var profile = player.Profile;
             var instrument = profile.CurrentInstrument;
@@ -627,7 +637,9 @@ namespace YARG.Song
             int[] thresholds = { 500000, 400000, 300000, 200000, 150000, 100000, 75000, 50000, 30000, 10000, 1 };
             var categorySongs = new List<SongEntry>[thresholds.Length];
             for (int i = 0; i < thresholds.Length; i++)
+            {
                 categorySongs[i] = new List<SongEntry>();
+            }
 
             var notPlayed = new List<SongEntry>();
             var comparer = new IntensityComparer(instrument);
@@ -684,19 +696,19 @@ namespace YARG.Song
             switch (tracker.Stage)
             {
                 case ScanStage.LoadingCache:
-                    phrase = "Loading song cache...";
+                    phrase = Localize.Key("Menu.MusicLibrary.Loading.SongCache");
                     break;
                 case ScanStage.LoadingSongs:
-                    phrase = "Loading songs...";
+                    phrase = Localize.Key("Menu.MusicLibrary.Loading.Songs");
                     break;
                 case ScanStage.Sorting:
-                    phrase = "Sorting songs...";
+                    phrase = Localize.Key("Menu.MusicLibrary.Loading.SortingSongs");
                     break;
                 case ScanStage.WritingCache:
-                    phrase = "Writing song cache...";
+                    phrase = Localize.Key("Menu.MusicLibrary.Loading.WritingSongCache");
                     break;
                 case ScanStage.WritingBadSongs:
-                    phrase = "Writing bad songs...";
+                    phrase = Localize.Key("Menu.MusicLibrary.Loading.WritingBadSongs");
                     break;
             }
 
@@ -704,9 +716,13 @@ namespace YARG.Song
             {
                 case ScanStage.LoadingCache:
                 case ScanStage.LoadingSongs:
-                    subText = $"Folders Scanned: {tracker.NumScannedDirectories}\n" +
-                              $"Songs Scanned: {tracker.Count}\n" +
-                              $"Errors: {tracker.BadSongCount}"; break;
+                    subText = ZString.Format(
+                        Localize.Key("Menu.MusicLibrary.Loading.SongSubText"),
+                        tracker.NumScannedDirectories,
+                        tracker.Count,
+                        tracker.BadSongCount
+                    );
+                    break;
             }
             context.SetLoadingText(phrase, subText);
         }
@@ -767,14 +783,14 @@ namespace YARG.Song
                     songCount += node.Value.Count;
                 }
 
-                SongEntry[] songs = new SongEntry[songCount];
+                var songs = new SongEntry[songCount];
                 int index = 0;
 
                 foreach (var node in entries)
                 {
-                    for (int i = 0; i < node.Value.Count; i++)
+                    foreach (var t in node.Value)
                     {
-                        songs[index++] = node.Value[i];
+                        songs[index++] = t;
                     }
                 }
                 return songs;
@@ -901,7 +917,7 @@ namespace YARG.Song
             }
         }
 
-        readonly struct IntensityComparer : IComparer<SongEntry>
+        private readonly struct IntensityComparer : IComparer<SongEntry>
         {
             private readonly Instrument _instrument;
 

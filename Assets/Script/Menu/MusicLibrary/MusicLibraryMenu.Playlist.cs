@@ -20,7 +20,7 @@ namespace YARG.Menu.MusicLibrary
 
         private List<ViewType> CreatePlaylistSelectViewList()
         {
-            SongCategory[] emptyCategory = Array.Empty<SongCategory>();
+            var emptyCategory = Array.Empty<SongCategory>();
             int id = BACK_ID + 1;
             var list = new List<ViewType>
             {
@@ -107,7 +107,9 @@ namespace YARG.Menu.MusicLibrary
             Refresh();
 
             if (!SetIndexTo(i => i is SongViewType))
+            {
                 SelectedIndex = 0;
+            }
         }
 
         private List<ViewType> CreateShowViewList()

@@ -465,10 +465,20 @@
           "100000": "100,000+ Points",
           "75000": "75,000+ Points",
           "50000": "50,000+ Points",
-          "35000": "30,000+ Points",
+          "30000": "30,000+ Points",
           "10000": "10,000+ Points",
           "1": "1+ Points"
-        }
+        },
+        "Playable": "Playable",
+        "Played": "Played {0}+ times"
+      },
+      "Loading": {
+        "SongCache": "Loading song cache...",
+        "Songs": "Loading songs...",
+        "SortingSongs": "Sorting songs...",
+        "WritingSongCache": "Writing song cache...",
+        "WritingBadSongs": "Writing bad songs...",
+        "SongSubText": "Folders Scanned: {0}\nSongs Scanned: {1}\nErrors: {2}"
       }
     },
     "ProfileInfo": {
