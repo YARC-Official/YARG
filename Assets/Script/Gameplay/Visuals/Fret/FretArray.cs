@@ -15,10 +15,10 @@ namespace YARG.Gameplay.Visuals
 {
     public readonly struct HighwayOrderingInfo
     {
-        public HighwayOrderingInfo(float _position, int _colorIndex)
+        public HighwayOrderingInfo(float position, int colorIndex)
         {
-            Position = _position;
-            ColorIndex = _colorIndex;
+            Position = position;
+            ColorIndex = colorIndex;
         }
 
         public float Position { get; }
@@ -49,11 +49,11 @@ namespace YARG.Gameplay.Visuals
         private List<int> _pulsingFrets = new();
         private float  _pulseDuration;
 
-        /* 
-         * Overload for instruments where lefty flip does not affect color (e.g. a lefty-flipped Green Fret on 5F Guitar is still green, just laterally shifted). 
+        /*
+         * Overload for instruments where lefty flip does not affect color (e.g. a lefty-flipped Green Fret on 5F Guitar is still green, just laterally shifted).
          * Acts as a convenience so that you can just pass in a mapping of note type to lateral position, and it will create HighwayOrderingInfos that use the note
          * type as the color index.
-         * 
+         *
          * On Drums, lefty flip affects position and color separately (e.g. a lefty flipped Red Drum becomes green in addition to being shifted), so you need to
          * provide HighwayOrderingInfos directly.
          */

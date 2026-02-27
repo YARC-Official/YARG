@@ -46,18 +46,18 @@ namespace YARG.Gameplay.Player
                 };
             }
 
-                return action switch
-                {
-                    DrumsAction.Kick =>         (int) FourLaneDrumPad.Kick,
-                    DrumsAction.RedDrum =>      (int) FourLaneDrumPad.RedDrum,
-                    DrumsAction.YellowDrum =>   (int) FourLaneDrumPad.YellowDrum,
-                    DrumsAction.BlueDrum =>     (int) FourLaneDrumPad.BlueDrum,
-                    DrumsAction.GreenDrum =>    (int) FourLaneDrumPad.GreenDrum,
-                    DrumsAction.YellowCymbal => (int) (Player.Profile.SplitProTomsAndCymbals ? FourLaneDrumPad.YellowCymbal : FourLaneDrumPad.YellowDrum),
-                    DrumsAction.BlueCymbal =>   (int) (Player.Profile.SplitProTomsAndCymbals ? FourLaneDrumPad.BlueCymbal : FourLaneDrumPad.BlueDrum),
-                    DrumsAction.GreenCymbal =>  (int) (Player.Profile.SplitProTomsAndCymbals ? FourLaneDrumPad.GreenCymbal : FourLaneDrumPad.GreenDrum),
-                    _ => throw new ArgumentOutOfRangeException(nameof(action))
-                };
+            return action switch
+            {
+                DrumsAction.Kick =>         (int) FourLaneDrumPad.Kick,
+                DrumsAction.RedDrum =>      (int) FourLaneDrumPad.RedDrum,
+                DrumsAction.YellowDrum =>   (int) FourLaneDrumPad.YellowDrum,
+                DrumsAction.BlueDrum =>     (int) FourLaneDrumPad.BlueDrum,
+                DrumsAction.GreenDrum =>    (int) FourLaneDrumPad.GreenDrum,
+                DrumsAction.YellowCymbal => (int) (Player.Profile.SplitProTomsAndCymbals ? FourLaneDrumPad.YellowCymbal : FourLaneDrumPad.YellowDrum),
+                DrumsAction.BlueCymbal =>   (int) (Player.Profile.SplitProTomsAndCymbals ? FourLaneDrumPad.BlueCymbal : FourLaneDrumPad.BlueDrum),
+                DrumsAction.GreenCymbal =>  (int) (Player.Profile.SplitProTomsAndCymbals ? FourLaneDrumPad.GreenCymbal : FourLaneDrumPad.GreenDrum),
+                _ => throw new ArgumentOutOfRangeException(nameof(action))
+            };
         }
 
         public HighwayOrderingInfo GetHighwayOrderingInfo(int pad)
@@ -257,7 +257,7 @@ namespace YARG.Gameplay.Player
                     continue;
                 }
 
-                var fillLanePosition = _highwayOrdering[rightmostNote.Pad].Position;
+                var fillLanePosition = GetHighwayOrderingInfo(rightmostNote.Pad).Position;
 
                 int candidateIndex = -1;
 
