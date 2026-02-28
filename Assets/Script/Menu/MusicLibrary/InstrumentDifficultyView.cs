@@ -33,7 +33,8 @@ namespace YARG.Menu.MusicLibrary
             _difficultyIcon.sprite = difficultyIcon;
 
             // Set percent value
-            _percentText.text = $"{Math.Floor(scoreInfo.Percent * 100)}%";
+            var percent = Mathf.Floor(scoreInfo.Percent * 1000f) / 10f;
+            _percentText.text = $"{percent:0.0}%";
             _percentText.color = scoreInfo.IsFc ? _fcGold : Color.white;
         }
     }

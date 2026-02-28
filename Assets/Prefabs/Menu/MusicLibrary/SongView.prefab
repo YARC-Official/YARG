@@ -2809,7 +2809,7 @@ MonoBehaviour:
   m_IgnoreLayout: 0
   m_MinWidth: -1
   m_MinHeight: -1
-  m_PreferredWidth: 120
+  m_PreferredWidth: 150
   m_PreferredHeight: -1
   m_FlexibleWidth: -1
   m_FlexibleHeight: -1
@@ -3823,7 +3823,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3714506624951436115, guid: 2757d4382315f8a46a8a0c2e76c0f881, type: 3}
       propertyPath: m_SizeDelta.x
-      value: 130
+      value: 150
       objectReference: {fileID: 0}
     - target: {fileID: 3714506624951436115, guid: 2757d4382315f8a46a8a0c2e76c0f881, type: 3}
       propertyPath: m_SizeDelta.y
@@ -3932,7 +3932,7 @@ MonoBehaviour:
   m_IgnoreLayout: 0
   m_MinWidth: -1
   m_MinHeight: -1
-  m_PreferredWidth: 120.00094
+  m_PreferredWidth: 150.00094
   m_PreferredHeight: 36
   m_FlexibleWidth: -1
   m_FlexibleHeight: 0
