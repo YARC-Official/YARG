@@ -23,7 +23,7 @@ namespace YARG.Gameplay.Visuals
                 bool isCymbal = NoteRef.Pad >= (int) FourLaneDrumPad.YellowCymbal;
 
                 // Set the position
-                transform.localPosition = new Vector3(GetElementX(position, Player.LaneCount), 0f, 0f);
+                transform.localPosition = new Vector3(GetElementX(position, Player.FretCount), 0f, 0f);
 
                 // Get which note model to use
                 NoteGroup = noteGroups[GetNoteGroup(isCymbal)];

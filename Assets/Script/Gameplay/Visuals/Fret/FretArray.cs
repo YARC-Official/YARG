@@ -15,14 +15,17 @@ namespace YARG.Gameplay.Visuals
 {
     public readonly struct HighwayOrderingInfo
     {
-        public HighwayOrderingInfo(float position, int colorIndex)
+        public HighwayOrderingInfo(int position, int colorIndex)
         {
             Position = position;
             ColorIndex = colorIndex;
         }
 
-        public float Position { get; }
+        public int Position { get; }
         public int ColorIndex { get; }
+
+        // The DisplayLane is the same as the fret, except that it's 1-indexed instead of 0-indexed
+        public int DisplayLane => Position + 1;
     }
 
     public class FretArray : MonoBehaviour
@@ -30,7 +33,6 @@ namespace YARG.Gameplay.Visuals
         private const float WIDTH_NUMERATOR   = 2f;
         private const float WIDTH_DENOMINATOR = 5f;
 
-        public bool DontFlipColorsLeftyFlip;
         public bool UseKickFrets;
 
         [SerializeField]

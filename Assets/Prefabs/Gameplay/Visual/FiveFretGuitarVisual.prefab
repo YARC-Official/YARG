@@ -45,7 +45,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   FretCount: 5
-  DontFlipColorsLeftyFlip: 0
   UseKickFrets: 0
   _trackWidth: 2
   _leftKickFretPosition: {fileID: 1059056642713352937}

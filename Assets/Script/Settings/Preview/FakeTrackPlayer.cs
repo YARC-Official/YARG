@@ -104,7 +104,15 @@ namespace YARG.Settings.Preview
                 {
                     UseKickFrets = true,
 
-                    HighwayOrdering = DrumsPlayer.DEFAULT_FOUR_LANE_HIGHWAY_ORDERING,
+                    HighwayOrdering = {
+                        { (int)FourLaneDrumPad.RedDrum,       0 },
+                        { (int)FourLaneDrumPad.YellowCymbal,  1 },
+                        { (int)FourLaneDrumPad.YellowDrum,    1 },
+                        { (int)FourLaneDrumPad.BlueCymbal,    2 },
+                        { (int)FourLaneDrumPad.BlueDrum,      2 },
+                        { (int)FourLaneDrumPad.GreenCymbal,   3 },
+                        { (int)FourLaneDrumPad.GreenDrum,     3 }
+                    },
                     LaneCount = 4,
 
                     FretColorProvider = (colorProfile) => colorProfile.FourLaneDrums,
@@ -178,7 +186,13 @@ namespace YARG.Settings.Preview
                         .GetNoteColor(note.Fret)
                         .ToUnityColor(),
 
-                    HighwayOrdering = DrumsPlayer.DEFAULT_FIVE_LANE_HIGHWAY_ORDERING,
+                    HighwayOrdering = {
+                        { (int)FiveLaneDrumPad.Red,       0 },
+                        { (int)FiveLaneDrumPad.Yellow,    1 },
+                        { (int)FiveLaneDrumPad.Blue,      2 },
+                        { (int)FiveLaneDrumPad.Orange,    3 },
+                        { (int)FiveLaneDrumPad.Green,     4 }
+                    },
                     LaneCount = 5,
 
                     HitWindowProvider = (enginePreset) => enginePreset.Drums.HitWindow,
