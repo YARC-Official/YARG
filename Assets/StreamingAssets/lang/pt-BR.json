@@ -72,7 +72,7 @@
             "Charter": "Criador",
             "Genre": "Gênero",
             "Name": "Música",
-            "Folder": "Pasta",
+            "Playlist": "Lista de Reprodução",
             "SongLength": "Duração",
             "Source": "Fonte",
             "Stars": "Estrelas",
@@ -288,7 +288,7 @@
             },
             "PlayableSongs": "MÚSICAS DISPONÍVEIS",
             "RandomSong": "MÚSICA ALEATÓRIA",
-            "Playlists": "PLAYLIST MANAGER",
+            "Playlists": "PLAYLISTS",
             "Favorites": "Favoritos",
             "YourPlaylists": "SUAS PLAYLISTS",
             "Popup": {
@@ -305,10 +305,8 @@
                     "RemoveFromFavorites": "Remover dos favoritos",
                     "AddToPlaylist": "Adicionar à playlist...",
                     "RemoveFromPlaylist": "Remover da playlist",
-                    "RemoveFromSetlist": "Remove From Setlist",
                     "CreateNewPlaylist": "Criar nova...",
-                    "RenamePlaylist": "Rename playlist",
-                    "DeletePlaylist": "Remover playlist",
+                    "RemovePlaylist": "Remover playlist",
                     "ViewSongFolder": "Ver pasta da música",
                     "CopySongChecksum": "Copiar código da música"
                 }

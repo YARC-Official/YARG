@@ -72,7 +72,7 @@
             "Charter": "Charter",
             "Genre": "Genre",
             "Name": "Song",
-            "Folder": "Folder",
+            "Playlist": "Playlist",
             "SongLength": "Duration",
             "Source": "Source",
             "Stars": "Stars",
@@ -305,10 +305,8 @@
                     "RemoveFromFavorites": "Remove From Favorites",
                     "AddToPlaylist": "Add To Playlist...",
                     "RemoveFromPlaylist": "Remove From Playlist",
-                    "RemoveFromSetlist": "Remove From Setlist",
                     "CreateNewPlaylist": "Create New...",
-                    "RenamePlaylist": "Rename Playlist",
-                    "DeletePlaylist": "Delete Playlist",
+                    "RemovePlaylist": "Remove Playlist",
                     "ViewSongFolder": "View Song Folder",
                     "CopySongChecksum": "Copy Song Checksum"
                 }

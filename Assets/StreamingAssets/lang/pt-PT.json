@@ -72,7 +72,7 @@
             "Charter": "Autor",
             "Genre": "Género",
             "Name": "Música",
-            "Folder": "Pasta",
+            "Playlists": "PLAYLISTS",
             "SongLength": "Duração",
             "Source": "Origem",
             "Stars": "Stars",
@@ -288,7 +288,7 @@
             },
             "PlayableSongs": "PLAYABLE SONGS",
             "RandomSong": "RANDOM SONG",
-            "Playlists": "PLAYLIST MANAGER",
+            "Playlists": "PLAYLISTS",
             "Favorites": "Favorites",
             "YourPlaylists": "YOUR PLAYLISTS",
             "Popup": {
@@ -305,10 +305,8 @@
                     "RemoveFromFavorites": "Remove From Favorites",
                     "AddToPlaylist": "Add To Playlist...",
                     "RemoveFromPlaylist": "Remove From Playlist",
-                    "RemoveFromSetlist": "Remove From Setlist",
                     "CreateNewPlaylist": "Create New...",
-                    "RenamePlaylist": "Rename playlist",
-                    "DeletePlaylist": "Delete Playlist",
+                    "RemovePlaylist": "Remove Playlist",
                     "ViewSongFolder": "View Song Folder",
                     "CopySongChecksum": "Copy Song Checksum"
                 }

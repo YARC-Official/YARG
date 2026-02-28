@@ -72,7 +72,7 @@
             "Charter": "Charter",
             "Genre": "Gatunek",
             "Name": "Tytuł",
-            "Folder": "Folder",
+            "Playlist": "Playlista",
             "SongLength": "Długość",
             "Source": "Źródło",
             "Stars": "Gwiazdki",
@@ -305,10 +305,8 @@
                     "RemoveFromFavorites": "Usuń z ulubionych",
                     "AddToPlaylist": "Dodaj do playlisty...",
                     "RemoveFromPlaylist": "Usuń z playlisty",
-                    "RemoveFromSetlist": "Remove From Setlist",
                     "CreateNewPlaylist": "Dodaj nową...",
-                    "RenamePlaylist": "Rename playlist",
-                    "DeletePlaylist": "Usuń playlistę",
+                    "RemovePlaylist": "Usuń playlistę",
                     "ViewSongFolder": "Pokaż folder utworu",
                     "CopySongChecksum": "Skopiuj sumę kontrolną utworu"
                 }

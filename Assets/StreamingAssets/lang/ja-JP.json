@@ -72,7 +72,7 @@
             "Charter": "チャート作者",
             "Genre": "ジャンル",
             "Name": "曲",
-            "Folder": "フォルダ",
+            "Playlist": "プレイリスト",
             "SongLength": "時間",
             "Source": "元",
             "Stars": "スター",
@@ -288,7 +288,7 @@
             },
             "PlayableSongs": "プレイ可能の曲",
             "RandomSong": "ランダムな曲",
-            "Playlists": "PLAYLIST MANAGER",
+            "Playlists": "プレイリスト",
             "Favorites": "お気に入り",
             "YourPlaylists": "プレイリスト",
             "Popup": {
@@ -305,10 +305,8 @@
                     "RemoveFromFavorites": "お気に入りから削除",
                     "AddToPlaylist": "プレイリストに付け加える",
                     "RemoveFromPlaylist": "プレイリストから削除",
-                    "RemoveFromSetlist": "Remove From Setlist",
                     "CreateNewPlaylist": "新しい作成",
-                    "RenamePlaylist": "Rename Playlist",
-                    "DeletePlaylist": "プレイリストを削除",
+                    "RemovePlaylist": "プレイリストを削除",
                     "ViewSongFolder": "曲歌フォルダを見る",
                     "CopySongChecksum": "曲のチェックサムをコピー"
                 }

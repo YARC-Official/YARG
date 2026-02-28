@@ -72,7 +72,7 @@
             "Charter": "Charter",
             "Genre": "Género",
             "Name": "Canción",
-            "Folder": "Carpeta",
+            "Playlist": "Lista de reproducción",
             "SongLength": "Duración",
             "Source": "Origen",
             "Stars": "Estrellas",
@@ -288,7 +288,7 @@
             },
             "PlayableSongs": "CANCIONES JUGABLES",
             "RandomSong": "CANCIÓN ALEATORIA",
-            "Playlists": "PLAYLIST MANAGER",
+            "Playlists": "LISTAS DE REPRODUCCIÓN",
             "Favorites": "Favoritos",
             "YourPlaylists": "TUS LISTAS DE REPRODUCCIÓN",
             "Popup": {
@@ -305,10 +305,8 @@
                     "RemoveFromFavorites": "Eliminar de Favoritos",
                     "AddToPlaylist": "Agregar a Lista...",
                     "RemoveFromPlaylist": "Eliminar de Lista",
-                    "RemoveFromSetlist": "Remove From Setlist",
                     "CreateNewPlaylist": "Crear Nueva...",
-                    "RenamePlaylist": "Rename Playlist",
-                    "DeletePlaylist": "Eliminar Lista",
+                    "RemovePlaylist": "Eliminar Lista",
                     "ViewSongFolder": "Ver Carpeta de Canciones",
                     "CopySongChecksum": "Copiar Checksum de Canciones"
                 }
