@@ -23,9 +23,6 @@ namespace YARG.Gameplay.Visuals
 
         public int Position { get; }
         public int ColorIndex { get; }
-
-        // The DisplayLane is the same as the fret, except that it's 1-indexed instead of 0-indexed
-        public int DisplayLane => Position + 1;
     }
 
     public class FretArray : MonoBehaviour
