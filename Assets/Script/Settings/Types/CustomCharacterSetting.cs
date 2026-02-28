@@ -54,7 +54,7 @@ namespace YARG.Settings.Types
 
                 string name;
 
-                if (!string.IsNullOrEmpty(vrmInstance.Vrm.Meta.Name))
+                if (vrmInstance.Vrm != null && vrmInstance.Vrm.Meta != null && string.IsNullOrEmpty(vrmInstance.Vrm.Meta.Name))
                 {
                     name = vrmInstance.Vrm.Meta.Name;
                 }

@@ -1,4 +1,4 @@
-﻿using Cysharp.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -39,6 +39,7 @@ namespace YARG.Song
         Percentage,
         Score,
         Playable,
+        Random,
 
         Instrument,
         FiveFretGuitar,
@@ -198,6 +199,7 @@ namespace YARG.Song
                 SortAttribute.Stars => GetStars(),
                 SortAttribute.Percentage => GetPercentage(),
                 SortAttribute.Score => GetScore(),
+                SortAttribute.Random => GetRandomSort(),
 
                 SortAttribute.FiveFretGuitar => _sortInstruments[Instrument.FiveFretGuitar],
                 SortAttribute.FiveFretBass => _sortInstruments[Instrument.FiveFretBass],
@@ -530,6 +532,13 @@ namespace YARG.Song
             _starsCacheDifficulty = profile.CurrentDifficulty;
             _starsCacheValid = true;
             return _sortStars;
+        }
+        
+        private static SongCategory[] GetRandomSort()
+        {
+            var shuffled = new List<SongEntry>(_songs);
+            shuffled.Shuffle();
+            return new[] { new SongCategory(string.Empty, shuffled.ToArray(), null) };
         }
 
         private static SongCategory[] GetPercentage()
