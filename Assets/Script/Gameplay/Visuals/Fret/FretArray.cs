@@ -123,6 +123,11 @@ namespace YARG.Gameplay.Visuals
             {
                 _activeFrets.Add(fretIdx);
             }
+
+            foreach (var kickFret in _kickFrets)
+            {
+                kickFret.Initialize(fretColorProvider.GetFretColor(0));
+            }
         }
 
         public void SetPressed(int index, bool pressed)
