@@ -72,8 +72,8 @@ namespace YARG.Audio
                     case NoteHit:
                         OnNoteHit();
                         break;
-                    case NoteMissed(var lastCombo):
-                        OnNoteMissed(lastCombo);
+                    case NoteMissed(var isComboBreak):
+                        OnNoteMissed(isComboBreak);
                         break;
                     case Overhit:
                         OnOverhit();
@@ -138,7 +138,7 @@ namespace YARG.Audio
                 SetMuteState(false);
             }
 
-            private void OnNoteMissed(int lastCombo)
+            private void OnNoteMissed(bool isComboBreak)
             {
                 if (IsSeekingReplay)
                 {
@@ -147,8 +147,7 @@ namespace YARG.Audio
 
                 SetMuteState(true);
 
-                int comboBreakThreshold = _stem == Vocals ? 2 : BasePlayer.COMBO_BREAK_THRESHOLD;
-                if (lastCombo >= comboBreakThreshold)
+                if (isComboBreak)
                 {
                     GlobalAudioHandler.PlaySoundEffect(SfxSample.NoteMiss);
                 }
@@ -156,25 +155,11 @@ namespace YARG.Audio
 
             private void OnOverhit()
             {
-                if (IsSeekingReplay)
+                var shouldPlaySfx = !IsSeekingReplay && CurrentInstrument.IsFiveFret() && AllowOverhitSfx;
+                if (shouldPlaySfx)
                 {
-                    return;
+                    PlayOverstrumSfx();
                 }
-
-                if (!CurrentInstrument.IsFiveFret())
-                {
-                    return;
-                }
-
-                if (!AllowOverhitSfx)
-                {
-                    return;
-                }
-
-                const int min = (int) SfxSample.Overstrum1;
-                const int max = (int) SfxSample.Overstrum4;
-                var randomOverstrum = (SfxSample) Random.Range(min, max + 1);
-                GlobalAudioHandler.PlaySoundEffect(randomOverstrum);
             }
 
             private void OnNoteHit()
@@ -194,6 +179,14 @@ namespace YARG.Audio
                 }
                 _gameManager.ChangeStemMuteState(_stem, muted);
                 _isMuted = muted;
+            }
+
+            private void PlayOverstrumSfx()
+            {
+                const int min = (int) SfxSample.Overstrum1;
+                const int max = (int) SfxSample.Overstrum4;
+                var randomOverstrum = (SfxSample) Random.Range(min, max + 1);
+                GlobalAudioHandler.PlaySoundEffect(randomOverstrum);
             }
 
             public void Dispose()

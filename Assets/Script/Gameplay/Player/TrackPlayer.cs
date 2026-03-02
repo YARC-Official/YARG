@@ -924,7 +924,8 @@ namespace YARG.Gameplay.Player
 
         protected virtual void OnNoteMissed(int index, TNote note)
         {
-            OnEvent(new NoteMissed(LastCombo));
+            bool isComboBreak = LastCombo >= COMBO_BREAK_THRESHOLD;
+            OnEvent(new NoteMissed(isComboBreak));
             if (IsFc)
             {
                 ComboMeter.SetFullCombo(false);

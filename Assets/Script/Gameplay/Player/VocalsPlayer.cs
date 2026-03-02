@@ -20,6 +20,8 @@ namespace YARG.Gameplay.Player
 {
     public class VocalsPlayer : BasePlayer
     {
+        private const int COMBO_BREAK_THRESHOLD = 2;
+
         public VocalsEngineParameters EngineParams { get; private set; }
         public VocalsEngine           Engine       { get; private set; }
 
@@ -221,7 +223,8 @@ namespace YARG.Gameplay.Player
 
             engine.OnNoteMissed += (_, _) =>
             {
-                OnEvent(new NoteMissed(LastCombo));
+                bool isComboBreak = LastCombo >= COMBO_BREAK_THRESHOLD;
+                OnEvent(new NoteMissed(isComboBreak));
                 LastCombo = Combo;
             };
 
