@@ -175,12 +175,6 @@ namespace YARG.Gameplay
 
         public void ChangeStemWhammyPitch(SongStem stem, float percent)
         {
-            // If Whammy FX is turned off, ignore.
-            if (!SettingsManager.Settings.UseWhammyFx.Value)
-            {
-                return;
-            }
-
             // If the specified stem is the same as the background stem,
             // ignore the request. This may be a chart without separate
             // stems for each instrument. In that scenario we don't want

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using YARG.Core;
 using YARG.Core.Audio;
@@ -16,7 +16,6 @@ namespace YARG.Audio
     {
         private readonly List<AudioHandler> _handlers;
         private readonly GameManager        _gameManager;
-        private static   bool AllowOverhitSfx => SettingsManager.Settings.OverstrumAndOverhitSoundEffects.Value;
 
         public PlayerAudioManager(GameManager gameManager)
         {
@@ -44,8 +43,10 @@ namespace YARG.Audio
             private readonly BasePlayer  _player;
             private readonly GameManager _gameManager;
             private          bool        _isMuted;
-            private Instrument CurrentInstrument => _player.Player.Profile.CurrentInstrument;
-            private bool IsSeekingReplay => _gameManager.IsSeekingReplay;
+            private          Instrument CurrentInstrument => _player.Player.Profile.CurrentInstrument;
+            private          bool IsSeekingReplay => _gameManager.IsSeekingReplay;
+            private static   bool AllowOverhitSfx => SettingsManager.Settings.OverstrumAndOverhitSoundEffects.Value;
+            private static   bool AllowWhammySetting => SettingsManager.Settings.UseWhammyFx.Value;
 
             public AudioHandler(SongStem stem, BasePlayer player, GameManager gameManager)
             {
@@ -120,6 +121,11 @@ namespace YARG.Audio
 
             private void OnWhammyDuringSustain(float whammyFactor)
             {
+                if (!AllowWhammySetting)
+                {
+                    return;
+                }
+
                 _gameManager.ChangeStemWhammyPitch(_stem, whammyFactor);
             }
 
@@ -149,7 +155,7 @@ namespace YARG.Audio
 
                 if (isComboBreak)
                 {
-                    GlobalAudioHandler.PlaySoundEffect(SfxSample.NoteMiss);
+                    PlayMissSfx();
                 }
             }
 
@@ -177,6 +183,7 @@ namespace YARG.Audio
                 {
                     return;
                 }
+
                 _gameManager.ChangeStemMuteState(_stem, muted);
                 _isMuted = muted;
             }
@@ -187,6 +194,11 @@ namespace YARG.Audio
                 const int max = (int) SfxSample.Overstrum4;
                 var randomOverstrum = (SfxSample) Random.Range(min, max + 1);
                 GlobalAudioHandler.PlaySoundEffect(randomOverstrum);
+            }
+
+            private void PlayMissSfx()
+            {
+                GlobalAudioHandler.PlaySoundEffect(SfxSample.NoteMiss);
             }
 
             public void Dispose()
