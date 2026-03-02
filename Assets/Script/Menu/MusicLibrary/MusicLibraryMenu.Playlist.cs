@@ -109,11 +109,14 @@ namespace YARG.Menu.MusicLibrary
                 );
             }
 
-            // Only allow delete if not Favorites or Current Setlist
-            if (SelectedPlaylist != PlaylistContainer.FavoritesPlaylist && !SelectedPlaylist.Ephemeral)
+            // Only allow delete if not Favorites
+            if (SelectedPlaylist != PlaylistContainer.FavoritesPlaylist)
             {
+                var deleteLabel = SelectedPlaylist == ShowPlaylist
+                    ? Localize.Key("Menu.MusicLibrary.Popup.Item.DeleteSetlist")
+                    : Localize.Key("Menu.MusicLibrary.Popup.Item.DeletePlaylist");
                 list.Add(new ButtonViewType(
-                    Localize.Key("Menu.MusicLibrary.Popup.Item.DeletePlaylist"),
+                    deleteLabel,
                     "MusicLibraryIcons[Playlists]", DeletePlaylist)
                 );
             }
@@ -208,14 +211,22 @@ namespace YARG.Menu.MusicLibrary
         {
             if (SelectedPlaylist == null) return;
 
-            // Don't allow deleting Favorites or Show playlist
-            if (SelectedPlaylist == PlaylistContainer.FavoritesPlaylist || SelectedPlaylist.Ephemeral)
+            // Don't allow deleting Favorites
+            if (SelectedPlaylist == PlaylistContainer.FavoritesPlaylist)
             {
                 ToastManager.ToastError("Cannot delete this playlist");
                 return;
             }
 
-            PlaylistContainer.DeletePlaylist(SelectedPlaylist);
+            if (SelectedPlaylist.Ephemeral)
+            {
+                SelectedPlaylist.Clear();
+            }
+            else
+            {
+                PlaylistContainer.DeletePlaylist(SelectedPlaylist);
+            }
+            
             ToastManager.ToastSuccess($"Deleted '{SelectedPlaylist.Name}'");
 
             // Exit back to library

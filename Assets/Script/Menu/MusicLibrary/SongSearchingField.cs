@@ -71,7 +71,6 @@ namespace YARG.Menu.MusicLibrary
 
             _searchFilters.DeactivateAllButtons();
             ActivateFilterButton(_currentSearchFilter);
-
         }
 
         public void SetSearchInput(SortAttribute attribute, string input)

@@ -237,7 +237,10 @@ namespace YARG.Menu.MusicLibrary
                     });
                 }
 
-                CreateItem("DeletePlaylist", () =>
+                var deleteLabel = playlistView.Playlist.Ephemeral
+                    ? Localize.Key("Menu.MusicLibrary.Popup.Item.DeleteSetlist")
+                    : Localize.Key("Menu.MusicLibrary.Popup.Item.DeletePlaylist");
+                CreateItemUnlocalized(deleteLabel, () =>
                 {
                     // Special handling for the ad hoc setlist
                     if (playlistView.Playlist.Ephemeral)
@@ -247,8 +250,9 @@ namespace YARG.Menu.MusicLibrary
                     else
                     {
                         PlaylistContainer.DeletePlaylist(playlistView.Playlist);
-                        ToastManager.ToastSuccess($"Deleted '{playlistView.Playlist.Name}'");
                     }
+                    
+                    ToastManager.ToastSuccess($"Deleted '{playlistView.Playlist.Name}'");
 
                     _musicLibrary.RefreshAndReselect();
                     gameObject.SetActive(false);

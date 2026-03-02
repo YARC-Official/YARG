@@ -331,6 +331,7 @@
                     "CreateNewPlaylist": "Create New...",
                     "RenamePlaylist": "Rename Playlist",
                     "DeletePlaylist": "Delete Playlist",
+                    "DeleteSetlist": "Delete Setlist",
                     "ViewSongFolder": "View Song Folder",
                     "CopySongChecksum": "Copy Song Checksum"
                 }
