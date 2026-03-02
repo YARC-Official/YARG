@@ -45,6 +45,8 @@ namespace YARG.Menu.MusicLibrary
         [SerializeField]
         private Image _sourceBackground;
         [SerializeField]
+        private TextMeshProUGUI _songRatingLabel;
+        [SerializeField]
         private HelpBarButton _playButton;
 
         [Space]
@@ -67,22 +69,6 @@ namespace YARG.Menu.MusicLibrary
         private GameObject _charterContainer;
         [SerializeField]
         private GameObject _genreContainer;
-        [SerializeField]
-        private Image _contentRatingBackgroundImage;
-        [SerializeField]
-        private Image _contentRatingImage;
-
-        [Space]
-        [SerializeField]
-        private Sprite _contentRatingFF;
-        [SerializeField]
-        private Sprite _contentRatingSR;
-        [SerializeField]
-        private Sprite _contentRatingMC;
-        [SerializeField]
-        private Sprite _contentRatingSC;
-        [SerializeField]
-        private Sprite _contentRatingNR;
 
 
         [FormerlySerializedAs("difficultyRingPrefab")]
@@ -238,6 +224,7 @@ namespace YARG.Menu.MusicLibrary
             _charter.text = string.Empty;
             _genre.text = string.Empty;
             _subgenre.text = string.Empty;
+            _songRatingLabel.text = string.Empty;
 
             _albumTitleContainer.SetActive(false);
             _sourceContainer.SetActive(false);
@@ -257,18 +244,19 @@ namespace YARG.Menu.MusicLibrary
             _genreContainer.SetActive(true); // Empty genres are rendered as "Unknown Genre", so this should always be active
             _genre.text = CurrentCulture.TextInfo.ToTitleCase(songEntry.Genre) + (songEntry.Subgenre == string.Empty ? "" : ",");
             _subgenre.text = songEntry.Subgenre;
+            // _source.text = SongSources.SourceToGameName(songEntry.Source);
+            // _charter.text = songEntry.Charter;
+            // _genre.text = System.Globalization.CultureInfo.CurrentCulture.TextInfo.ToTitleCase(songEntry.Genre);
             _year.text = songEntry.ParsedYear;
-            _contentRatingImage.sprite = songEntry.SongRating switch
+            _songRatingLabel.text = songEntry.SongRating switch
             {
-                SongRating.Unspecified             => _contentRatingNR,
-                SongRating.Family_Friendly         => _contentRatingFF,
-                SongRating.Supervision_Recommended => _contentRatingSR,
-                SongRating.Mature                  => _contentRatingMC,
-                //SongRating.Sensitive_Content       => _contentRatingSC,
-                SongRating.No_Rating               => _contentRatingNR,
-                _                                  => _contentRatingNR,
+                SongRating.Unspecified => "NR",
+                SongRating.Family_Friendly => "FF",
+                SongRating.Supervision_Recommended => "SR",
+                SongRating.Mature => "MC",
+                SongRating.No_Rating => "NR",
+                _ => "?",
             };
-            _contentRatingBackgroundImage.sprite = _contentRatingImage.sprite;
 
             // Format and show length
             _timeContainer.SetActive(true);
