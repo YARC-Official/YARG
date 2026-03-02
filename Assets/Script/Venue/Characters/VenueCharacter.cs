@@ -1,8 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using DG.Tweening;
 using UnityEngine;
+using UnityEngine.Serialization;
+using UniVRM10;
 using YARG.Core.Chart;
 using YARG.Core.Logging;
+using YARG.Core.Song;
 using AnimationTrigger = YARG.Venue.Characters.CharacterManager.AnimationTrigger;
 using CharacterStateType = YARG.Core.Chart.Events.CharacterState.CharacterStateType;
 using AnimationType = YARG.Core.Chart.AnimationEvent.AnimationType;
@@ -27,11 +31,14 @@ namespace YARG.Venue.Characters
             Keys,
         }
 
+        [Tooltip("This only needs to be set if you are building the character into a venue.\n\nIt is handled automatically for .yargchar exports.")]
         [SerializeField]
-        private CharacterManager _characterManager;
+        protected CharacterManager _characterManager;
 
         [SerializeField]
         public CharacterType Type;
+        [SerializeField]
+        public VocalGender CharacterGender = VocalGender.Unspecified;
 
         [SerializeField]
         private int _actionsPerAnimationCycle;
@@ -53,8 +60,9 @@ namespace YARG.Venue.Characters
         [HideInInspector]
         public AnimationDictionary LayerStates;
 
+        [FormerlySerializedAs("_animationStates")]
         [SerializeField]
-        private AnimationStateMap _animationStates;
+        public AnimationStateMap AnimationStates;
 
 
         private Dictionary<string, List<string>> _layerStates;
@@ -108,20 +116,40 @@ namespace YARG.Venue.Characters
         private bool _hasSlap;
         private bool _hasPick;
 
-        private void Awake()
+        private bool _hasAnimationController;
+
+        protected Vrm10Instance VrmInstance;
+
+        public virtual void Initialize(CharacterManager characterManager)
         {
+            _characterManager = characterManager;
             _animator = GetComponent<Animator>();
             _animatorController = _animator.runtimeAnimatorController;
 
+            _hasAnimationController = _animatorController != null;
+
             _layerStates = LayerStates.ToDictionary();
+
+            if (_layerStates == null || _layerStates.Count == 0)
+            {
+                _layerStates = BuildEditorVenueLayerStates();
+            }
 
             PopulateAnimationData();
             CheckAdvancedAnimations();
 
             // Get the available animations so we don't try to call ones the venue author didn't implement
-            foreach (var animation in _animatorController.animationClips)
+            if (_hasAnimationController)
             {
-                _availableAnimations.Add(animation.name);
+                foreach (var animation in _animatorController.animationClips)
+                {
+                    _availableAnimations.Add(animation.name);
+                }
+            }
+            else
+            {
+                YargLogger.LogWarning("No animation controller found for character type {Type}");
+                _availableAnimations.Clear();
             }
 
             foreach (var state in _strumUpStates)
@@ -129,9 +157,17 @@ namespace YARG.Venue.Characters
                 _strumUpHashes.Add(Animator.StringToHash(state));
             }
 
-            var clip = _animatorController.animationClips[0];
-            _animationLength = clip.length;
-            TimeToFirstHit = _framesToFirstHit / clip.frameRate;
+            if (_hasAnimationController)
+            {
+                var clip = _animatorController.animationClips[0];
+                _animationLength = clip.length;
+                TimeToFirstHit = _framesToFirstHit / clip.frameRate;
+            }
+            else
+            {
+                // Arbitrary default
+                TimeToFirstHit = 0.1f;
+            }
 
             _speedAdjustmentHash = Animator.StringToHash("SpeedAdjustment");
             _unclampedSpeedAdjustmentHash = Animator.StringToHash("UnclampedSpeedAdjustment");
@@ -143,7 +179,6 @@ namespace YARG.Venue.Characters
 
             GetPositionHashes();
             GetIKTargets();
-
         }
 
         private void CheckAdvancedAnimations()
@@ -216,7 +251,7 @@ namespace YARG.Venue.Characters
             _hasAdvancedAnimations = false;
         }
 
-        private void Update()
+        protected virtual void Update()
         {
             if (_delayedTriggerTime > 0)
             {
@@ -434,7 +469,7 @@ namespace YARG.Venue.Characters
 
         }
 
-        public void OnNote<T>(Note<T> note) where T : Note<T>
+        public virtual void OnNote<T>(Note<T> note) where T : Note<T>
         {
 
             if (note is GuitarNote gNote)
@@ -486,9 +521,20 @@ namespace YARG.Venue.Characters
                 SetHandAnimationForNote(gNote);
             }
 
-            if (note is Note<VocalNote>)
+            if (note is Note<VocalNote> vocalNote)
             {
+                if (VrmInstance != null)
+                {
+                    var expression = VrmInstance.Runtime.Expression;
 
+                    expression.SetWeight(ExpressionKey.Oh, 1.0f);
+
+                    DOTween.Sequence().AppendInterval((float) vocalNote.TimeLength).AppendCallback(() =>
+                    {
+                        expression.SetWeight(ExpressionKey.Oh, 0.0f);
+                        expression.SetWeight(ExpressionKey.Happy, 1.0f);
+                    }).SetAutoKill(true);
+                }
             }
 
             if (note is Note<ProKeysNote>)

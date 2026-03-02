@@ -10,19 +10,23 @@ namespace YARG.Menu.MusicLibrary
 {
     public class PlaylistViewType : CategoryViewType
     {
-        public override         BackgroundType          Background => BackgroundType.Normal;
+        public override         BackgroundType          Background          => BackgroundType.Normal;
+        public override         bool                    UseWiderPrimaryText => true;
+        public override         string                  StableId            => _stableId;
         private static readonly Dictionary<int, Sprite> Sprites     = new();
         private const           string                  ICON_PATH   = "MusicLibraryIcons[Playlists]";
         private const           int                     PLAYLIST_ID = 1;
         public                  Playlist                Playlist;
         public                  int                     ID;
         private readonly        Sprite                  _sprite;
+        private readonly        string                  _stableId;
 
         public PlaylistViewType(string primary, int songCount, SongEntry[] songsUnderCategory, Playlist playlist,
             Action clickAction = null, int id = -1) : base(primary, songCount, songsUnderCategory, clickAction)
         {
             Playlist = playlist;
             ID = id;
+            _stableId = $"Playlist:{playlist?.Id}";
         }
 
         // I do not like that GetSongsFromPlaylist has to do the work twice, but songs can't be cached since
@@ -33,6 +37,7 @@ namespace YARG.Menu.MusicLibrary
         {
             Playlist = playlist;
             ID = id;
+            _stableId = $"Playlist:{playlist?.Id}";
         }
 
         public static SongEntry[] GetSongsFromPlaylist(Playlist playlist)
@@ -49,6 +54,16 @@ namespace YARG.Menu.MusicLibrary
             }
 
             return songs[..count];
+        }
+
+        public override string GetPrimaryText(bool selected)
+        {
+            return FormatAs(Primary, TextType.Primary, selected);
+        }
+
+        public override string GetSecondaryText(bool selected)
+        {
+            return CreateSongCountString(SongCount);
         }
     }
 }

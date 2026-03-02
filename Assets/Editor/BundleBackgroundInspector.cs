@@ -11,10 +11,14 @@ namespace Editor
     public class BundleBackgroundInspector : UnityEditor.Editor
     {
         private SerializedProperty _mainCameraProperty;
+        private SerializedProperty _replaceableVocalistProperty;
+
+        private Button _characterExportButton;
 
         private void OnEnable()
         {
             _mainCameraProperty = serializedObject.FindProperty("mainCamera");
+            _replaceableVocalistProperty = serializedObject.FindProperty("_replaceableVocalist");
         }
 
         public override VisualElement CreateInspectorGUI()
@@ -34,6 +38,7 @@ namespace Editor
             });
 
             myInspector.Add(new PropertyField(_mainCameraProperty));
+            myInspector.Add(new PropertyField(_replaceableVocalistProperty));
 
             myInspector.Add(new Label("\n\n<b><size=1.25em>Actions</size></b>\n"));
 
@@ -48,7 +53,29 @@ namespace Editor
             exportButton.Add(new Label("Export Background"));
             myInspector.Add(exportButton);
 
+            _characterExportButton = new Button(() =>
+            {
+                if (target is BundleBackgroundManager manager)
+                {
+                    manager.ExportCharacter();
+                }
+            });
+
+            if (_replaceableVocalistProperty.objectReferenceValue == null)
+            {
+                _characterExportButton.SetEnabled(false);
+            }
+
+            _characterExportButton.Add(new Label("Export Character"));
+            myInspector.Add(_characterExportButton);
+            myInspector.TrackPropertyValue(_replaceableVocalistProperty, OnCharacterChanged);
+
             return myInspector;
+        }
+
+        private void OnCharacterChanged(SerializedProperty property)
+        {
+            _characterExportButton.SetEnabled(_replaceableVocalistProperty.objectReferenceValue != null);
         }
     }
 }

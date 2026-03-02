@@ -23,6 +23,40 @@ namespace YARG.Menu.Settings
 
         private bool _focused;
 
+        public readonly struct CustomButton
+        {
+            public readonly string Label;
+            public readonly Action Action;
+
+            public CustomButton(string label, Action action)
+            {
+                Label = label;
+                Action = action;
+            }
+        }
+
+        public void SetCustomButtons(IEnumerable<CustomButton> buttons, bool localize = false, string localizationKey = "Settings.Button")
+        {
+            foreach (var buttonInfo in buttons)
+            {
+                var button = Instantiate(_buttonTemplate, _container);
+
+                var labelText = localize
+                    ? Localize.Key(localizationKey, buttonInfo.Label)
+                    : buttonInfo.Label;
+
+                button.GetComponentInChildren<TextMeshProUGUI>().text = labelText;
+
+                var capture = buttonInfo.Action;
+                button.GetComponentInChildren<Button>()
+                    .onClick.AddListener(() => capture?.Invoke());
+
+                _navGroup.AddNavigatable(button.GetComponentInChildren<NavigatableUnityButton>());
+            }
+
+            Destroy(_buttonTemplate);
+        }
+
         public void SetInfo(IEnumerable<string> buttons)
         {
             // Spawn button(s)

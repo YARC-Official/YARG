@@ -1,6 +1,10 @@
-﻿using Cysharp.Threading.Tasks;
+﻿using System.Collections.Generic;
+using Cysharp.Text;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
+using YARG.Core.Song;
+using YARG.Helpers;
+using YARG.Menu.Data;
 
 namespace YARG.Menu.MusicLibrary
 {
@@ -10,33 +14,92 @@ namespace YARG.Menu.MusicLibrary
 
         public override bool UseWiderPrimaryText => true;
 
-        public readonly string HeaderText;
-        public readonly string ShortcutName;
-        private readonly int _songCount;
+        public override string StableId => _stableId;
 
-        public SortHeaderViewType(string headerText, int songCount, string shortcutName)
+        public readonly  string HeaderText;
+        public readonly  string ShortcutName;
+        public readonly  string SourceCountText;
+        public readonly  string CharterCountText;
+        public readonly  string GenreCountText;
+        public readonly  string SubgenreCountText;
+        private readonly int    _songCount;
+        public           int    TotalStarsCount { get; set; }
+
+        private static readonly HashSet<string> SourceCounter  = new();
+        private static readonly HashSet<string> CharterCounter = new();
+        private static readonly HashSet<string> GenreCounter   = new();
+        private static readonly HashSet<string> SubgenreCounter = new();
+        private readonly string _stableId;
+
+        public SortHeaderViewType(string headerText, int songCount, string shortcutName, SongEntry[] songsUnderCategory)
         {
             HeaderText = headerText;
             _songCount = songCount;
-            
+
             ShortcutName = shortcutName;
+            _stableId = $"SortHeader:{headerText}:{shortcutName}";
+
+            foreach (var song in songsUnderCategory)
+            {
+                SourceCounter.Add(song.Source);
+                CharterCounter.Add(song.Charter);
+                GenreCounter.Add(song.Genre);
+                SubgenreCounter.Add(song.Subgenre);
+            }
+
+            SourceCountText = Pluralize("Source", SourceCounter.Count);
+            CharterCountText = Pluralize("Charter", CharterCounter.Count);
+            GenreCountText = Pluralize("Genre", GenreCounter.Count);
+            SubgenreCountText = Pluralize("Subgenre", SubgenreCounter.Count);
+            SourceCounter.Clear();
+            CharterCounter.Clear();
+            GenreCounter.Clear();
+            SubgenreCounter.Clear();
         }
 
         public override string GetPrimaryText(bool selected)
         {
-            return FormatAs(HeaderText, TextType.Bright, selected);
+            if (selected)
+            {
+                return TextColorer.StyleString(HeaderText, MenuData.Colors.HeaderSelectedPrimary, 600);
+            }
+            else
+            {
+                return TextColorer.StyleString(HeaderText, MenuData.Colors.HeaderPrimary, 600);
+            }
+        }
+
+        public override string GetSecondaryText(bool selected)
+        {
+            return CreateSongCountString(_songCount);
         }
 
         public override string GetSideText(bool selected)
         {
-            return CreateSongCountString(_songCount);
+            var obtainedStars = TextColorer.StyleString(
+                ZString.Format("{0}", TotalStarsCount),
+                MenuData.Colors.HeaderSecondary,
+                700);
+
+            var totalStars = TextColorer.StyleString(
+                ZString.Format(" / {0}", _songCount * 5),
+                MenuData.Colors.HeaderTertiary,
+                600);
+
+            return ZString.Concat(obtainedStars, totalStars);
         }
+
+        private static string Pluralize(string item, int count)
+        {
+            return $"{count} {item}{(count == 1 ? "" : "s")}";
+        }
+
 
 #nullable enable
         public override Sprite? GetIcon()
 #nullable disable
         {
-            return Addressables.LoadAssetAsync<Sprite>("MusicLibraryIcons[Down]").WaitForCompletion();
+            return Addressables.LoadAssetAsync<Sprite>("MusicLibraryUpIcon").WaitForCompletion();
         }
     }
 }

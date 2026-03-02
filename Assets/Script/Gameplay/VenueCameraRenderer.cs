@@ -66,6 +66,7 @@ namespace YARG.Gameplay
         private static float _timeSinceLastRender;
 
         private static bool _staticsCreated;
+        private bool _needsInitialization = true;
 
         private void Awake()
         {
@@ -121,7 +122,7 @@ namespace YARG.Gameplay
 
             var outputWidth = (int)(Screen.width * renderScale);
             var outputHeight = (int)(Screen.height * renderScale);
-            _venueTexture = new RenderTexture(outputWidth, outputHeight, 0, RenderTextureFormat.DefaultHDR);
+            _venueTexture = new RenderTexture(outputWidth, outputHeight, 32, RenderTextureFormat.DefaultHDR);
             _venueOutput.texture = _venueTexture;
 
             _trailsTexture = new RenderTexture(_venueTexture);
@@ -235,9 +236,12 @@ namespace YARG.Gameplay
 
         private void Update()
         {
-            if (ScreenSizeDetector.HasScreenSizeChanged)
+            if (ScreenSizeDetector.HasScreenSizeChanged || _needsInitialization)
             {
                 RecreateTextures();
+                _needsInitialization = false;
+                // Force a render this frame to avoid flickering when resizing
+                _timeSinceLastRender = float.MaxValue;
             }
 
             var stack = VolumeManager.instance.stack;
@@ -293,7 +297,7 @@ namespace YARG.Gameplay
         {
             var stack = VolumeManager.instance.stack;
 
-            var descriptor = new RenderTextureDescriptor(_venueTexture.width, _venueTexture.height, _venueTexture.format);
+            var descriptor = new RenderTextureDescriptor(_venueTexture.width, _venueTexture.height, _venueTexture.format, 32, 0);
             var rt1 = RenderTexture.GetTemporary(descriptor);
             var rt2 = RenderTexture.GetTemporary(descriptor);
 

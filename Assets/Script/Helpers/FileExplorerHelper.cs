@@ -1,25 +1,36 @@
 ﻿using System;
-using SFB;
+using SimpleFileBrowser;
 using YARG.Core.Logging;
 
 using System.Diagnostics;
-
-using UnityEngine;
-using YARG.Menu.Persistent;
 using System.IO;
+using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace YARG.Helpers
 {
     public static class FileExplorerHelper
     {
+        private static FileBrowser _fileBrowser;
+
         public static void OpenChooseFolder(string startingDir, Action<string> callback)
         {
-            StandaloneFileBrowser.OpenFolderPanelAsync("Choose Folder", startingDir, false, (files) =>
+            if (_fileBrowser == null)
+            {
+                _fileBrowser = Object.FindFirstObjectByType<FileBrowser>(FindObjectsInactive.Include);
+            }
+
+            _fileBrowser.gameObject.SetActive(true);
+
+            FileBrowser.ShowLoadDialog((files) =>
             {
                 if (files is not { Length: > 0 })
+                {
                     return;
+                }
 
                 string path = files[0];
+
                 try
                 {
                     callback(path);
@@ -28,45 +39,89 @@ namespace YARG.Helpers
                 {
                     YargLogger.LogException(ex, $"Error when handling folder {path}!");
                 }
-            });
+            }, null, FileBrowser.PickMode.Folders, false, startingDir, null, "Choose Folder");
         }
 
         public static void OpenChooseFile(string startingDir, string extension, Action<string> callback)
         {
-            StandaloneFileBrowser.OpenFilePanelAsync("Choose File", startingDir, extension, false, (files) =>
+            if (_fileBrowser == null)
+            {
+                _fileBrowser = Object.FindFirstObjectByType<FileBrowser>(FindObjectsInactive.Include);
+            }
+
+            _fileBrowser.gameObject.SetActive(true);
+
+            if (string.IsNullOrEmpty(extension))
+            {
+                FileBrowser.SetFilters(true);
+            }
+            else
+            {
+                FileBrowser.SetFilters(false, $".{extension}");
+            }
+
+            FileBrowser.ShowLoadDialog((files) =>
             {
                 if (files is not { Length: > 0 })
+                {
                     return;
+                }
 
                 string path = files[0];
+
                 try
                 {
                     callback(path);
                 }
                 catch (Exception ex)
                 {
-                    YargLogger.LogException(ex, $"Error when handling file {path}!");
+                    YargLogger.LogException(ex, $"Error when handling folder {path}!");
                 }
-            });
+            }, null, FileBrowser.PickMode.Files, false, startingDir, null, "Choose Folder");
         }
 
         public static void OpenSaveFile(string startingDir, string defaultName, string extension,
             Action<string> callback)
         {
-            StandaloneFileBrowser.SaveFilePanelAsync("Save File", startingDir, defaultName, extension, (path) =>
+            if (_fileBrowser == null)
             {
-                if (string.IsNullOrEmpty(path))
+                _fileBrowser = Object.FindFirstObjectByType<FileBrowser>(FindObjectsInactive.Include);
+            }
+
+            _fileBrowser.gameObject.SetActive(true);
+
+            if (string.IsNullOrEmpty(extension))
+            {
+                FileBrowser.SetFilters(true);
+            }
+            else
+            {
+                FileBrowser.SetFilters(false, $".{extension}");
+            }
+
+            FileBrowser.ShowSaveDialog((path) =>
+            {
+                if (path is not { Length: > 0 })
+                {
                     return;
+                }
+
+                var file = path[0];
+
+                if (string.IsNullOrEmpty(file))
+                {
+                    return;
+                }
 
                 try
                 {
-                    callback(path);
+                    callback(file);
                 }
                 catch (Exception ex)
                 {
-                    YargLogger.LogException(ex, $"Error when saving file {path}!");
+                    YargLogger.LogException(ex, $"Error when saving file {file}!");
                 }
-            });
+            }, null, FileBrowser.PickMode.Files, false, startingDir, $"{defaultName}.{extension}", "Save File");
         }
 
         public static void OpenFolder(string folderPath)

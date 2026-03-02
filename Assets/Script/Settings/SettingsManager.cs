@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -75,6 +75,7 @@ namespace YARG.Settings
                 new HeaderMetadata("ScanningOptions"),
                 nameof(Settings.AllowDuplicateSongs),
                 nameof(Settings.UseFullDirectoryForPlaylists),
+                nameof(Settings.StandardizeGenres),
                 new HeaderMetadata("MusicLibrary"),
                 nameof(Settings.ShowFavoriteButton),
                 nameof(Settings.DifficultyRings),
@@ -101,6 +102,7 @@ namespace YARG.Settings
                 nameof(Settings.PreviewVolume),
                 nameof(Settings.MusicPlayerVolume),
                 nameof(Settings.VocalMonitoring),
+                nameof(Settings.MetronomeVolume),
 
                 new HeaderMetadata("Customization"),
                 nameof(Settings.EnablePlaybackBuffer),
@@ -122,6 +124,7 @@ namespace YARG.Settings
                 nameof(Settings.UseChipmunkSpeed),
                 nameof(Settings.ApplyVolumesInMusicLibrary),
                 nameof(Settings.EnableVoxSamples),
+                nameof(Settings.MetronomeSound),
             },
             new MetadataTab("Graphics", icon: "Display", new TrackPreviewBuilder())
             {
@@ -225,12 +228,24 @@ namespace YARG.Settings
                 nameof(Settings.ShowAdvancedMusicLibraryOptions),
                 nameof(Settings.MinimumLogLevel),
             },
-            new MetadataTab("Experimental", icon: "Beaker", new ExperimentalPreviewBuilder())
+            // new MetadataTab("Experimental", icon: "Beaker", new ExperimentalPreviewBuilder())
+            new MetadataTab("Experimental", icon: "Beaker", new CharacterPreviewBuilder())
             {
                 new HeaderMetadata("Other"),
                 nameof(Settings.BandComboTypeSetting),
+                nameof(Settings.CustomVocalsCharacter),
                 nameof(Settings.DataStreamEnable),
                 nameof(Settings.EnableNormalization),
+                nameof(Settings.SaveScoresWithBots),
+                new HeaderMetadata("Accessibility"),
+                nameof(Settings.FontScaling),
+                new HeaderMetadata("OutputConfiguration"),
+                nameof(Settings.OutputDevice),
+                nameof(Settings.OutputChannelDefault),
+                nameof(Settings.OutputChannelDrumSfx),
+                nameof(Settings.OutputChannelMetronome),
+                nameof(Settings.OutputChannelSfx),
+                nameof(Settings.OutputChannelVox),
             }
         };
 

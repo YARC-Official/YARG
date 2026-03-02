@@ -68,6 +68,7 @@ namespace YARG.Menu.ScoreScreen
         private bool _analyzingReplay;
 
         private bool _restartingSong;
+        private bool _showAdvancedStats;
 
         private readonly List<IScoreCard<BaseStats>> _scoreCards = new();
 
@@ -386,6 +387,7 @@ namespace YARG.Menu.ScoreScreen
         private NavigationScheme.Entry _continueButtonEntry;
         private NavigationScheme.Entry _endEarlyButtonEntry;
         private NavigationScheme.Entry _restartButtonEntry;
+        private NavigationScheme.Entry _showAdvancedButtonEntry;
         private NavigationScheme.Entry _removeFavoriteButtonEntry;
         private NavigationScheme.Entry _addFavoriteButtonEntry;
         private NavigationScheme.Entry _scrollLeftEntry;
@@ -444,6 +446,8 @@ namespace YARG.Menu.ScoreScreen
                     UpdateNavigationScheme(true);
                 });
 
+            UpdateShowAdvancedButton();
+
             _scrollLeftEntry = new NavigationScheme.Entry(MenuAction.Left, "Menu.Common.Scroll", context =>
                 {
                     _cardScrollRect.MoveHorizontalInUnits(-1 * _horizontalScrollRate);
@@ -473,6 +477,25 @@ namespace YARG.Menu.ScoreScreen
             card?.ScrollStats(delta);
         }
 
+        private void ToggleAdvancedStats()
+        {
+            _showAdvancedStats = !_showAdvancedStats;
+            UpdateShowAdvancedButton();
+
+            foreach (var scoreCard in _scoreCards)
+            {
+                scoreCard.SetAdvancedStatsShown(_showAdvancedStats);
+            }
+
+            UpdateNavigationScheme(true);
+        }
+
+        private void UpdateShowAdvancedButton()
+        {
+            var key = _showAdvancedStats ? "Menu.ScoreScreen.HideAdvanced" : "Menu.ScoreScreen.ShowAdvanced";
+            _showAdvancedButtonEntry = new NavigationScheme.Entry(MenuAction.Orange, key, ToggleAdvancedStats);
+        }
+
         private void UpdateNavigationScheme(bool reset = false)
         {
             if (reset)
@@ -497,6 +520,8 @@ namespace YARG.Menu.ScoreScreen
             {
                 buttons.Add(_addFavoriteButtonEntry);
             }
+
+            buttons.Add(_showAdvancedButtonEntry);
 
             if (GlobalVariables.State.PlayingAShow &&
                 GlobalVariables.State.ShowIndex + 1 < GlobalVariables.State.ShowSongs.Count)

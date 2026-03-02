@@ -43,7 +43,7 @@ namespace YARG.Menu.ProfileList
 
             Navigator.Instance.PushScheme(new NavigationScheme(new()
             {
-                new NavigationScheme.Entry(MenuAction.Red, "Menu.Common.Back", () => MenuManager.Instance.PopMenu()),
+                new NavigationScheme.Entry(MenuAction.Red, "Menu.Common.Back", () => MenuManager.Instance.PopMenu(), hide: true),
             }, true));
 
             PlayerContainer.PlayerAdded += OnPlayerAdded;
@@ -106,11 +106,32 @@ namespace YARG.Menu.ProfileList
             }
         }
 
+        // TODO: Since we're using this outside of ProfileListMenu, we should probably find a better home for it
+        public static string GetUniqueProfileName(string profileName)
+        {
+            var existingNames = PlayerContainer.Profiles.Select(p => p.Name);
+
+            if (!existingNames.Contains(profileName))
+            {
+                return profileName;
+            }
+
+            int count = 1;
+            string newName;
+            do
+            {
+                newName = $"{profileName} {count}";
+                count++;
+            } while (existingNames.Contains(newName));
+
+            return newName;
+        }
+
         public void AddProfile()
         {
             PlayerContainer.AddProfile(new YargProfile
             {
-                Name = "New Profile",
+                Name = GetUniqueProfileName("New Profile"),
                 NoteSpeed = 5,
                 HighwayLength = 1,
                 GameMode = GameMode.FiveFretGuitar
@@ -123,7 +144,7 @@ namespace YARG.Menu.ProfileList
         {
             PlayerContainer.AddProfile(new YargProfile
             {
-                Name = "Bot",
+                Name = GetUniqueProfileName("Bot"),
                 NoteSpeed = 5,
                 HighwayLength = 1,
                 GameMode = GameMode.FiveFretGuitar,

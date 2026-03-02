@@ -60,6 +60,7 @@ namespace YARG.Integration
         private int _performerStartIndex;
         private int _performerEndIndex;
         private int _postProcessingIndex;
+        private int _cameraCutIndex;
 
         private List<VocalNoteEvent> _vocalsNotes;
         private List<VocalNoteEvent> _harmony0Notes;
@@ -74,6 +75,11 @@ namespace YARG.Integration
             DataStreamController.MLCFogState = false;
             DataStreamController.MLCStrobeState = LightingType.StrobeOff;
             DataStreamController.Initializer(SceneManager.GetActiveScene());
+            if (GameManager.IsPractice)
+            {
+                DataStreamController.MLCSceneIndex = DataStreamController.SceneIndexByte.Practice;
+            }
+            DataStreamController.MLCPaused = DataStreamController.PauseStateType.Unpaused;
 
             // This should be read from the venue itself eventually, but for now, we'll just randomize it.
             DataStreamController.MLCVenueSize = (DataStreamController.VenueType)Random.Range(1, 2);
@@ -103,6 +109,7 @@ namespace YARG.Integration
             _performerEndIndex = 0;
             _postProcessingIndex = 0;
             _keysIndex = 0;
+            _cameraCutIndex = 0;
 
             _vocalsNotes = GetAllNoteEvents(_vocals);
             _harmony0Notes = GetAllNoteEvents(_harmony0);
@@ -197,8 +204,10 @@ namespace YARG.Integration
             return -2; // don't change the current note
         }
 
+
         private void PerformerEventChecker(PerformerEventType type, ref Performer MLCvar)
         {
+
             // Add all starting performers at or before SongTime
             while (_performerStartIndex < Venue.Performer.Count &&
                 Venue.Performer[_performerStartIndex].Time <= GameManager.SongTime &&
@@ -253,11 +262,12 @@ namespace YARG.Integration
                     break;
             }
 
-            // Instrument events
-            DataStreamController.MLCCurrentDrumNotes = DrumsEventChecker(_drums, ref _drumIndex);
-            DataStreamController.MLCCurrentGuitarNotes = GuitarBassKeyboardEventChecker(_guitar, ref _guitarIndex);
-            DataStreamController.MLCCurrentBassNotes = GuitarBassKeyboardEventChecker(_bass, ref _bassIndex);
-            DataStreamController.MLCCurrentKeysNotes = GuitarBassKeyboardEventChecker(_keys, ref _keysIndex);
+            // Instrument events - enqueue to prevent missed notes between timer ticks
+            var drums = DrumsEventChecker(_drums, ref _drumIndex);
+            var guitar = GuitarBassKeyboardEventChecker(_guitar, ref _guitarIndex);
+            var bass = GuitarBassKeyboardEventChecker(_bass, ref _bassIndex);
+            var keys = GuitarBassKeyboardEventChecker(_keys, ref _keysIndex);
+            DataStreamController.EnqueueInstrumentNotes(drums, guitar, bass, keys);
 
             // Vocal events
             var vocalNote = VocalEventChecker(_vocalsNotes, ref _vocalsIndex);
@@ -296,6 +306,15 @@ namespace YARG.Integration
             {
                 DataStreamController.MLCPostProcessing = Venue.PostProcessing[_postProcessingIndex].Type;
                 _postProcessingIndex++;
+            }
+
+            // Camera cut events
+            while (_cameraCutIndex < Venue.CameraCuts.Count && Venue.CameraCuts[_cameraCutIndex].Time <= GameManager.SongTime)
+            {
+                DataStreamController.MLCCameraCutConstraint = Venue.CameraCuts[_cameraCutIndex].Constraint;
+                DataStreamController.MLCCameraCutPriority = Venue.CameraCuts[_cameraCutIndex].Priority;
+                DataStreamController.MLCCameraCutSubject = Venue.CameraCuts[_cameraCutIndex].Subject;
+                _cameraCutIndex++;
             }
 
             // Beat line events

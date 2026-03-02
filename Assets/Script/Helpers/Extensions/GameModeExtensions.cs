@@ -93,7 +93,8 @@ namespace YARG.Helpers.Extensions
                 },
                 GameMode.ProKeys => new()
                 {
-                    (ProfileSettingStrings.RANGE_DISABLE, "5-LANE RANGE SHIFT MARKERS")
+                    (ProfileSettingStrings.RANGE_DISABLE, "5-LANE RANGE SHIFT MARKERS"),
+                    (ProfileSettingStrings.OPEN_LANE_DISPLAY_TYPE, "DEDICATED OPEN NOTE LANE"),
                 },
                 _ => new()
             };

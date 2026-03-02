@@ -15,6 +15,7 @@ using YARG.Input.Bindings;
 using YARG.Localization;
 using YARG.Menu.MusicLibrary;
 using YARG.Menu.Persistent;
+using YARG.Menu.ProfileList;
 using YARG.Settings;
 using YARG.Song;
 
@@ -507,7 +508,7 @@ namespace YARG.Player
 
             var newProfile = new YargProfile
             {
-                Name = profileName,
+                Name = ProfileListMenu.GetUniqueProfileName(profileName),
                 NoteSpeed = 5,
                 HighwayLength = 1,
                 GameMode = gameMode

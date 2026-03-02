@@ -11,7 +11,7 @@ namespace YARG.Audio.BASS
     {
 #nullable enable
         public static BassSampleChannel? Create(SfxSample sample, string path, int playbackCount,
-            bool loop = false)
+            OutputChannel? outputChannel, bool loop = false)
 #nullable disable
         {
             BassFlags flags = 0;
@@ -44,7 +44,7 @@ namespace YARG.Audio.BASS
                 YargLogger.LogFormatError("Failed to set {0} volume: {1}!", sample, Bass.LastError);
             }
 
-            return new BassSampleChannel(handle, channel, sample, path, playbackCount);
+            return new BassSampleChannel(handle, channel, sample, path, playbackCount, outputChannel);
         }
 
         private readonly int _sfxHandle;
@@ -55,12 +55,16 @@ namespace YARG.Audio.BASS
 
         private int _syncHandle;
 
-        private BassSampleChannel(int handle, int channel, SfxSample sample, string path, int playbackCount)
+#nullable enable
+        private BassSampleChannel(int handle, int channel, SfxSample sample, string path, int playbackCount, OutputChannel? outputChannel)
             : base(sample, path, playbackCount)
+#nullable disable
         {
             _sfxHandle = handle;
             _channel = channel;
             _lastPlaybackTime = -1;
+            SetOutputChannel_Internal(outputChannel);
+            SetVolume_Internal(GlobalAudioHandler.GetTrueVolume(SongStem.Sfx));
         }
 
         protected override void Play_Internal(double duration)
@@ -204,6 +208,13 @@ namespace YARG.Audio.BASS
             {
                 YargLogger.LogFormatError("Failed to set {0} end callback: {1}!", Sample, Bass.LastError);
             }
+        }
+
+#nullable enable
+        protected override void SetOutputChannel_Internal(OutputChannel? channel)
+#nullable disable
+        {
+            BassHelpers.UpdateOutputChannels(_channel, channel);
         }
 
         protected override void EndCallback_Internal(int _, int __, int ___, IntPtr ____)

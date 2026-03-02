@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -10,6 +10,7 @@ using YARG.Core.Engine;
 using YARG.Core.Logging;
 using YARG.Gameplay.HUD;
 using YARG.Gameplay.Visuals;
+using YARG.Helpers;
 using YARG.Playback;
 using YARG.Player;
 using YARG.Settings;
@@ -58,6 +59,8 @@ namespace YARG.Gameplay.Player
         [Header("Pools")]
         [SerializeField]
         protected KeyedPool NotePool;
+        [SerializeField]
+        protected Pool LanePool;
         [SerializeField]
         protected Pool BeatlinePool;
         [SerializeField]
@@ -136,6 +139,7 @@ namespace YARG.Gameplay.Player
             TrackView.ForceReset();
 
             NotePool.ReturnAllObjects();
+            LanePool.ReturnAllObjects();
             BeatlinePool.ReturnAllObjects();
 
             HitWindowDisplay.SetHitWindowSize();
@@ -176,6 +180,8 @@ namespace YARG.Gameplay.Player
 
         protected SongChart Chart;
 
+        private AutoCalibrator _autoCalibrator;
+
         public override void Initialize(int index, YargPlayer player, SongChart chart, TrackView trackView,
             StemMixer mixer, int? currentHighScore)
         {
@@ -205,7 +211,7 @@ namespace YARG.Gameplay.Player
             Chart = chart;
 
             OriginalNoteTrack = GetNotes(chart);
-            player.Profile.ApplyModifiers(OriginalNoteTrack);
+            player.Profile.ApplyModifiers(OriginalNoteTrack, chart.SyncTrack);
 
             NoteTrack = OriginalNoteTrack;
             Notes = NoteTrack.Notes;
@@ -233,6 +239,8 @@ namespace YARG.Gameplay.Player
                 Engine.SetSpeed(GameManager.SongSpeed);
             }
 
+            GameManager.BeatEventHandler.Audio.Subscribe(MetronomeTick, BeatEventType.Measure);
+            GameManager.BeatEventHandler.Audio.Subscribe(MetronomeTock, BeatEventType.QuarterNote);
             GameManager.BeatEventHandler.Visual.Subscribe(SunburstEffects.PulseSunburst, BeatEventType.StrongBeat);
             InitializeTrackEffects();
 
@@ -241,11 +249,17 @@ namespace YARG.Gameplay.Player
             FinishInitialization();
 
             SongLength = (float) chart.GetEndTime();
+
+            _autoCalibrator = new AutoCalibrator(GameManager);
         }
 
         protected override void FinishDestruction()
         {
+            GameManager.BeatEventHandler.Audio.Unsubscribe(MetronomeTick);
+            GameManager.BeatEventHandler.Audio.Unsubscribe(MetronomeTock);
             GameManager.BeatEventHandler.Visual.Unsubscribe(SunburstEffects.PulseSunburst);
+
+            _autoCalibrator?.Dispose();
 
             base.FinishDestruction();
         }
@@ -342,6 +356,16 @@ namespace YARG.Gameplay.Player
             ResetNoteCounters();
 
             base.ResetPracticeSection();
+        }
+
+        public override void Rewind(double visualTime)
+        {
+
+        }
+
+        public override void PostRewind(double visualTime)
+        {
+
         }
 
         protected override void UpdateVisuals(double visualTime)
@@ -644,6 +668,136 @@ namespace YARG.Gameplay.Player
 
         protected virtual void OnNoteSpawned(TNote parentNote)
         {
+            SpawnLanesFromNote(parentNote);
+        }
+
+        private void SpawnLanesFromNote(TNote parentNote)
+        {
+            if (!Engine.LanesExist || !Engine.BaseParameters.EnableLanes)
+            {
+                return;
+            }
+
+            if (!LanePool.CanSpawnAmount(1))
+            {
+                return;
+            }
+
+            bool containsLaneStart = false;
+            foreach (var childNote in parentNote.AllNotes)
+            {
+                if (childNote.IsLaneStart)
+                {
+                    containsLaneStart = true;
+                    break;
+                }
+            }
+
+            if (containsLaneStart)
+            {
+                var laneStartNotes = new Dictionary<int, TNote>();
+                var laneEndTimes = new Dictionary<int, double>();
+
+                // Iterate forward to find the length of all lanes in this phrase
+                var noteRef = parentNote;
+                var thisLaneFlag = parentNote.IsTrill ? NoteFlags.Trill : NoteFlags.Tremolo;
+
+                while (noteRef != null)
+                {
+                    // Create one lane for single notes, create multiple lanes for non-drum chords
+                    bool containsLaneEnd = false;
+                    foreach (var childNote in noteRef.AllNotes)
+                    {
+                        if (childNote.IsLaneEnd)
+                        {
+                            containsLaneEnd = true;
+                        }
+
+                        if (childNote.IsLane)
+                        {
+                            if (laneStartNotes.ContainsKey(childNote.LaneNote))
+                            {
+                                laneEndTimes[childNote.LaneNote] = noteRef.Time;
+                            }
+                            else
+                            {
+                                laneStartNotes[childNote.LaneNote] = childNote;
+                            }
+                        }
+                    }
+
+                    if (containsLaneEnd)
+                    {
+                        break;
+                    }
+
+                    noteRef = noteRef.NextNote;
+                }
+
+                foreach (var (laneIndex, note) in laneStartNotes)
+                {
+                    if (!laneEndTimes.ContainsKey(laneIndex))
+                    {
+                        // Ending note was not found, do not create lane
+                        continue;
+                    }
+
+                    var firstLaneNote = laneStartNotes[laneIndex];
+                    double startTime = firstLaneNote.Time;
+                    double endTime = laneEndTimes[laneIndex];
+
+                    // Extend a previous lane if possible instead of creating two adjoining lanes at the same index
+                    bool extendExisting = false;
+                    foreach (LaneElement existingLane in LanePool.AllSpawned)
+                    {
+                        if (existingLane.ContainsIndex(laneIndex))
+                        {
+                            if (startTime - existingLane.EndTime <= LaneElement.COMBINE_LANE_THRESHOLD)
+                            {
+                                // New lane will overlap with existing one
+                                // Determine if the previous notes in this chart should prevent combining
+                                int notesToSearch = firstLaneNote.IsTrill ? 2 : 1;
+                                noteRef = firstLaneNote.PreviousNote;
+                                for (int n = 0; n < notesToSearch; n++)
+                                {
+                                    if (noteRef == null)
+                                    {
+                                        break;
+                                    }
+
+                                    if (existingLane.ContainsIndex(noteRef.LaneNote) && (noteRef.Flags & thisLaneFlag) != 0)
+                                    {
+                                        extendExisting = true;
+                                        break;
+                                    }
+
+                                    noteRef = noteRef.PreviousNote;
+                                }
+                            }
+
+                            if (extendExisting)
+                            {
+                                existingLane.SetTimeRange(existingLane.ElementTime, Math.Max(endTime, existingLane.EndTime));
+                            }
+
+                            break;
+                        }
+                    }
+
+                    if (extendExisting)
+                    {
+                        continue;
+                    }
+
+                    // Create a new lane element at this index
+                    var newLane = (LaneElement) LanePool.TakeWithoutEnabling();
+                    newLane.SetTimeRange(startTime, endTime);
+                    InitializeSpawnedLane(newLane, note);
+                    ModifyLaneFromNote(newLane, firstLaneNote);
+
+                    newLane.EnableFromPool();
+                }
+            }
         }
 
         public override void SetPracticeSection(uint start, uint end)
@@ -727,9 +881,16 @@ namespace YARG.Gameplay.Player
         }
 
         protected abstract void InitializeSpawnedNote(IPoolable poolable, TNote note);
+        protected abstract void InitializeSpawnedLane(LaneElement lane, TNote note);
+        protected virtual void ModifyLaneFromNote(LaneElement lane, TNote note) {}
 
         protected virtual void OnNoteHit(int index, TNote note)
         {
+            if (!Player.Profile.IsBot)
+            {
+                _autoCalibrator.RecordAccuracy(note.Time);
+            }
+
             if (!GameManager.IsSeekingReplay)
             {
                 SetStemMuteState(false);
@@ -852,6 +1013,16 @@ namespace YARG.Gameplay.Player
                 _newHighScoreShown = true;
                 TrackView.ShowNewHighScore();
             }
+        }
+
+        public void MetronomeTick()
+        {
+            GlobalAudioHandler.PlayMetronomeSoundEffect(SettingsManager.Settings.MetronomeSound.Value, MetronomePitch.Hi);
+        }
+
+        public void MetronomeTock()
+        {
+            GlobalAudioHandler.PlayMetronomeSoundEffect(SettingsManager.Settings.MetronomeSound.Value, MetronomePitch.Lo);
         }
     }
 }

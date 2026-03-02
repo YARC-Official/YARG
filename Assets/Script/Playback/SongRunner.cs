@@ -1,5 +1,7 @@
 using System;
 using System.Threading;
+using Cysharp.Threading.Tasks;
+using DG.Tweening;
 using UnityEngine;
 using YARG.Core.Logging;
 using YARG.Core.Audio;
@@ -192,6 +194,11 @@ namespace YARG.Playback
         private double _forceStartTime = double.NaN;
         #endregion
 
+        #region Rewind State
+        private CancellationTokenSource _rewindSource;
+        private Tween                   _rewindTween;
+        #endregion
+
         #region Audio syncing
         private Thread _syncThread;
 
@@ -275,7 +282,7 @@ namespace YARG.Playback
             _syncThread = new Thread(SyncThread) { IsBackground = true };
 
             InitializeSongTime(startTime + SongOffset, startDelay);
-            SetCalibration();
+            UpdateCalibration();
         }
 
         ~SongRunner()
@@ -591,12 +598,14 @@ namespace YARG.Playback
 
         public void AdjustSongSpeed(float deltaSpeed) => SetSongSpeed(SongSpeed + deltaSpeed);
 
-        public void SetCalibration()
+        public void UpdateCalibration()
         {
             int videoCalibrationMs = SettingsManager.Settings.VideoCalibration.Value;
             int audioCalibrationMs = SettingsManager.Settings.AudioCalibration.Value;
             if (SettingsManager.Settings.AccountForHardwareLatency.Value)
+            {
                 audioCalibrationMs += GlobalAudioHandler.PlaybackLatency;
+            }
 
             AudioCalibration = audioCalibrationMs / 1000.0;
             VideoCalibration = videoCalibrationMs / 1000.0;
@@ -608,6 +617,11 @@ namespace YARG.Playback
         /// </summary>
         public void Pause()
         {
+            // Ensure previous rewind tasks are dead
+            _rewindSource?.Cancel();
+            _rewindTween?.Kill();
+            _rewindTween = null;
+
             if (PauseOverridden)
             {
                 _resumeAfterOverride = false;
@@ -642,7 +656,7 @@ namespace YARG.Playback
 
 
             Paused = false;
-            SetCalibration();
+            UpdateCalibration();
             SetInputBaseChecked(InputTime);
 
             YargLogger.LogFormatDebug(
@@ -697,6 +711,53 @@ namespace YARG.Playback
                 Resume();
 
             return !Paused;
+        }
+
+        public async UniTask<bool> RewindAndResume(double seconds, double? overrideTargetTime = null)
+        {
+            // We can only do this when paused
+            if (!Paused)
+            {
+                return false;
+            }
+
+            _rewindSource?.Cancel();
+            _rewindSource?.Dispose();
+            _rewindSource = new CancellationTokenSource();
+            var token = _rewindSource.Token;
+
+            var targetRewindTime = SongTime - seconds;
+            var targetVisualTime = targetRewindTime + (VideoCalibration - AudioCalibration) * SongSpeed;
+            var targetResumeTime = overrideTargetTime ?? SongTime;
+
+            _rewindTween = DOTween.To(() => VisualTime, x => VisualTime = x, targetVisualTime, 0.5f);
+
+            var rewindCanceled = await _rewindTween
+                .AsyncWaitForCompletion()
+                .AsUniTask()
+                .AttachExternalCancellation(token)
+                .SuppressCancellationThrow();
+
+            if (rewindCanceled || token.IsCancellationRequested)
+            {
+                _rewindTween?.Kill();
+                _rewindTween = null;
+                return true;
+            }
+
+            SetSongTime(targetRewindTime - (AudioCalibration * SongSpeed), 0);
+            Resume();
+
+
+            var waitCanceled = await UniTask.WaitUntil(() => SongTime > targetResumeTime, cancellationToken: token)
+                .SuppressCancellationThrow();
+
+            if (waitCanceled || token.IsCancellationRequested)
+            {
+                return true;
+            }
+
+            return false;
         }
 
         public static float ClampSongSpeed(float speed)

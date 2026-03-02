@@ -23,7 +23,9 @@ namespace YARG.Audio.BASS
         private readonly        int                         _sampleHandle;
         private static          bool                        _queueActive;
 
-        public static BassVoxSampleChannel? Create(VoxSample sample, string path)
+#nullable enable
+        public static BassVoxSampleChannel? Create(VoxSample sample, string path, OutputChannel? outputChannel)
+#nullable disable
         {
             int handle = Bass.SampleLoad(path, 0, 0, 2, BassFlags.Decode);
             if (handle == 0)
@@ -46,7 +48,7 @@ namespace YARG.Audio.BASS
                 YargLogger.LogFormatError("Failed to set {0} volume: {1}!", sample, Bass.LastError);
             }
 
-            return new BassVoxSampleChannel(handle, channel, sample, path);
+            return new BassVoxSampleChannel(handle, channel, sample, path, outputChannel);
         }
 
         private static void QueuePlayback(BassVoxSampleChannel channel)
@@ -84,12 +86,16 @@ namespace YARG.Audio.BASS
 
         private readonly int    _channel;
 
-        private BassVoxSampleChannel(int handle, int channel, VoxSample sample, string path)
+#nullable enable
+        private BassVoxSampleChannel(int handle, int channel, VoxSample sample, string path, OutputChannel? outputChannel)
             : base(sample, path)
+#nullable disable
         {
             _sampleHandle = handle;
             _channel = channel;
+            SetOutputChannel_Internal(outputChannel);
             Channels.Add(this);
+            SetVolume_Internal(GlobalAudioHandler.GetTrueVolume(SongStem.VoxSample));
         }
 
         protected override void Play_Internal()
@@ -120,6 +126,13 @@ namespace YARG.Audio.BASS
             {
                 YargLogger.LogFormatError("Failed to set {0} volume: {1}!", Sample, Bass.LastError);
             }
+        }
+
+#nullable enable
+        protected override void SetOutputChannel_Internal(OutputChannel? channel)
+#nullable disable
+        {
+            BassHelpers.UpdateOutputChannels(_channel, channel);
         }
 
         protected override bool IsPlaying_Internal()

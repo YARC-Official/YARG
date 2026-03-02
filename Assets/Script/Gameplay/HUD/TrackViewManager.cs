@@ -32,8 +32,6 @@ namespace YARG.Gameplay.HUD
             return trackView;
         }
 
-        private bool isInit = false;
-
         protected override void GameplayAwake()
         {
             _highwayCameraRendering.OnHighwaysTextureCreated += OnTextureCreated;

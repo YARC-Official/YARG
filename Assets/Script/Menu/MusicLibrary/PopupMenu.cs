@@ -117,6 +117,12 @@ namespace YARG.Menu.MusicLibrary
                 gameObject.SetActive(false);
             });
 
+            CreateItem("ScanSongs", () =>
+            {
+                _musicLibrary.RefreshSongs();
+                gameObject.SetActive(false);
+            });
+
             CreateItem("SortBy", SettingsManager.Settings.LibrarySort.ToLocalizedName(), () =>
             {
                 _menuState = State.SortSelect;
@@ -161,6 +167,12 @@ namespace YARG.Menu.MusicLibrary
 
                 if (viewType is SongViewType && !_musicLibrary.PlaylistMode)
                 {
+                    CreateItemUnlocalized(_musicLibrary.GetGreenHoldActionLabel(), () =>
+                    {
+                        _musicLibrary.ExecuteGreenHoldAction();
+                        gameObject.SetActive(false);
+                    });
+
                     CreateItem("AddToPlaylist", () =>
                     {
                         _menuState = State.AddToPlaylist;

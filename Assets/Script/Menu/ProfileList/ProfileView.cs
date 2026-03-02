@@ -201,7 +201,7 @@ namespace YARG.Menu.ProfileList
                 devicesAvailable = true;
                 dialog.AddListButton(microphone.name, () =>
                 {
-                    var device = GlobalAudioHandler.CreateDevice(microphone.id, microphone.name);
+                    var device = GlobalAudioHandler.CreateInputDevice(microphone.id, microphone.name);
                     player.Bindings.AddMicrophone(device);
                     selectedDevice = true;
                 });

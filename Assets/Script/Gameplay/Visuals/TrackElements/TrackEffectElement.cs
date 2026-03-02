@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Serialization;
@@ -409,15 +409,14 @@ namespace YARG.Gameplay.Visuals
         private float GetXOffsetForLeadUp()
         {
             // Kick lead-ups and unknown indices should be centered
-            if (EffectRef.FillLane <= 0 || EffectRef.FillLane > EffectRef.TotalLanes)
+            if (EffectRef.FillLanePosition <= 0 || EffectRef.FillLanePosition > EffectRef.TotalLanes)
             {
                 return 0f;
             }
 
             float increment = HIGHWAY_WIDTH / EffectRef.TotalLanes;
             float initialOffset = -1 * (HIGHWAY_WIDTH / 2) + increment / 2;
-            float sign = Player.Player.Profile.LeftyFlip ? -1f : 1f;
-            return sign * (initialOffset + (EffectRef.FillLane - 1) * increment);
+            return initialOffset + (EffectRef.FillLanePosition) * increment;
         }
 
         private float GetXScaleForLeadUp()
@@ -430,7 +429,7 @@ namespace YARG.Gameplay.Visuals
             }
 
             // Kick lead-ups and unknown indices should not be shrunken
-            if (EffectRef.FillLane <= 0 || EffectRef.FillLane > EffectRef.TotalLanes)
+            if (EffectRef.FillLanePosition <= 0 || EffectRef.FillLanePosition > EffectRef.TotalLanes)
             {
                 return 1f;
             }
