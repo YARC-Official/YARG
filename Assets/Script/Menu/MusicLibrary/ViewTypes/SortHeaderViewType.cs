@@ -47,10 +47,10 @@ namespace YARG.Menu.MusicLibrary
                 SubgenreCounter.Add(song.Subgenre);
             }
 
-            SourceCountText = $"{SourceCounter.Count} sources";
-            CharterCountText = $"{CharterCounter.Count} charters";
-            GenreCountText = $"{GenreCounter.Count} genres";
-            SubgenreCountText = $"{SubgenreCounter.Count} subgenres";
+            SourceCountText = Pluralize("Source", SourceCounter.Count);
+            CharterCountText = Pluralize("Charter", CharterCounter.Count);
+            GenreCountText = Pluralize("Genre", GenreCounter.Count);
+            SubgenreCountText = Pluralize("Subgenre", SubgenreCounter.Count);
             SourceCounter.Clear();
             CharterCounter.Clear();
             GenreCounter.Clear();
@@ -87,6 +87,11 @@ namespace YARG.Menu.MusicLibrary
                 600);
 
             return ZString.Concat(obtainedStars, totalStars);
+        }
+
+        private static string Pluralize(string item, int count)
+        {
+            return $"{count} {item}{(count == 1 ? "" : "s")}";
         }
 
 

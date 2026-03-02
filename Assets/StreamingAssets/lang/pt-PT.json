@@ -63,7 +63,8 @@
             "UnpitchedOnly": "Apenas sem afinação",
             "NoDynamics": "No Dynamics",
             "NoVocalPercussion": "No Percussion",
-            "RangeCompress": "No Range Shifts"
+            "RangeCompress": "No Range Shifts",
+            "OpensToGreens": "Opens To Greens"
         },
         "SortAttribute": {
             "Album": "Álbum",
@@ -75,6 +76,7 @@
             "Playlist": "Listas de reprodução",
             "SongLength": "Duração",
             "Source": "Origem",
+            "Subgenre": "Subgenre",
             "Stars": "Stars",
             "Unspecified": "Nenhum",
             "Year": "Ano",
@@ -101,13 +103,19 @@
             "Vocals": "Vocais",
             "Harmony": "Harmonia",
             "Band": "Banda",
-            "Playcount": "Play Count"
+            "Playcount": "Play Count",
+            "Random": "Random"
         },
         "StarPowerActivationType": {
             "Freestyle": "Freestyle",
             "RightmostLane": "Rightmost Lane",
             "RightmostNote": "Rightmost Note",
             "AllNotes": "All Notes"
+        },
+        "OpenLaneDisplayType": {
+            "Never": "Never",
+            "Always": "Always",
+            "IfChartContainsOpens": "If chart contains open notes"
         }
     },
     "Menu": {
@@ -122,6 +130,7 @@
             "Close": "Close",
             "Confirm": "Confirm",
             "Continue": "Continue",
+            "Toggle": "Toggle",
             "On": "On",
             "Off": "Off",
             "Start": "Start",
@@ -198,7 +207,10 @@
             }
         },
         "Toast": {
+            "AutoCalibrationScore": "Score saving disabled: Automatic calibration active.",
+            "NoFailScore": "Score saving disabled: No fail toggle had to reset fail meter.",
             "ProfileCreated": "Profile created for new device: {0}\nTime to do some YARGin!",
+            "TooManyPauses": "Score saving disabled: Too many pauses.",
             "UnsupportedDevice": "Automatic profile creation is not supported for {0}!"
         },
         "Dialog": {
@@ -265,7 +277,7 @@
             "PlayWithReplay": "Play With Replay"
         },
         "Main": {
-            "MessageOfTheDay": "<align=center><size=32><b>Welcome to v0.14!</b></size></align>\n\nv0.14 is a major update that adds 5 Lane Keys, a new MIDI Drums profile type, easier instrument setup, support for 3D venue events, performance improvements when using multiple highways, many visual improvements, and more.\n\n<b>If you have any feedback or find any bugs, please let us know on Discord or GitHub.</b>\n\nHappy YARGin'!",
+            "MessageOfTheDay": "<align=center><size=32><b>Welcome to the v0.15 nightlies!</b></size></align>\n\nv0.15 now has support for tremolo/trill lanes, customizable track backgrounds (including transparency), custom vocal characters for venues, advanced player performance tracking, repositionable highways, adds new in game calibration tools, and more! Oh, and the new and improved music library is finally here, including advanced song filters so even the largest library can't keep you from finding what you're looking for! :D\n\n<b>If you have any feedback or find any bugs, please let us know on Discord or GitHub.</b>\n\nHappy YARGin'!",
             "Options": {
                 "Quickplay": "Jogo rápido",
                 "Practice": "Praticar",
@@ -299,6 +311,7 @@
                 "Item": {
                     "RandomSong": "Random Song",
                     "BackToTop": "Back to Top",
+                    "ScanSongs": "Scan Songs",
                     "SortBy": "Sort By: {0}",
                     "GoToSection": "Go To Section...",
                     "AddToFavorites": "Add To Favorites",
@@ -314,8 +327,10 @@
             "Back": "BACK",
             "NoPlayersConnected": "No players connected! Go to the profiles menu to connect a player.",
             "Play": "Play Song",
+            "PlayHoldAddToSet": "<align=left><size=80%>Play Song<br>(Hold) Add To Setlist</size></align>",
+            "AddHoldStartSet": "<align=left><size=80%>Add to Setlist<br>(Hold) Start The Set</size></align>",
             "Search": "Search",
-            "SkipSection": "<align=left><size=80%>Navigate<br>Sections</size></align>",
+            "SkipSection": "<align=left>Navigate Sections</align>",
             "MoveInPlaylist": "Move Song",
             "CurrentSetlist": "Current Setlist",
             "AddToSet": "Add To Setlist",
@@ -323,12 +338,13 @@
             "PlaylistAddedToSet": "Added {0:N0} Songs From Playlist To Setlist",
             "StartSet": "Start The Set",
             "PlayShow": "Play A Show",
+            "Filters": "Filters",
             "NoSongsInPlaylist": "No Songs In Playlist",
             "CannotAddToSelf": "No, I will not create an ouroboros for you. Nice try, Jaden.",
             "AddToShow": "Add To Show",
             "AddedToShow": "Added To Show",
             "StartShow": "Start The Show",
-            "MoreOptions": "More Options",
+            "MoreOptions": "<align=left><size=80%>More Options<br>(Hold) Navigate Sections</size></align>",
             "PlayAShow": {
                 "LongSong": "A Long Song",
                 "RandomSong": "A Random Song",
@@ -343,6 +359,81 @@
                 "StartsWithLetter": "A Song Starting With The Letter \"{0}\"",
                 "StartsWithNumber": "A Song Starting With A Number",
                 "StartsWithOther": "A Song Starting With Something Non-Alphanumeric"
+            },
+            "Genre": {
+                "Alternative": "Alternative",
+                "AmbientDrone": "Ambient/Drone",
+                "Ballad": "Ballad",
+                "Blues": "Blues",
+                "ChildrensMusic": "Children's Music",
+                "Chiptune": "Chiptune",
+                "ClassicRock": "Classic Rock",
+                "Classical": "Classical",
+                "Country": "Country",
+                "Dance": "Dance",
+                "DeathBlackMetal": "Death/Black Metal",
+                "Disco": "Disco",
+                "Djent": "Djent",
+                "DnbBreakbeatJungle": "DnB/Breakbeat/Jungle",
+                "DoomMetal": "Doom Metal",
+                "Dubstep": "Dubstep",
+                "Electronic": "Electronic",
+                "ElectronicRock": "Electronic Rock",
+                "Emo": "Emo",
+                "Folk": "Folk",
+                "Fusion": "Fusion",
+                "Glam": "Glam",
+                "Glitch": "Glitch",
+                "Grindcore": "Grindcore",
+                "GrooveMetal": "Groove Metal",
+                "Grunge": "Grunge",
+                "HardcoreEDM": "Hardcore EDM",
+                "HardRock": "Hard Rock",
+                "HeavyMetal": "Heavy Metal",
+                "HipHopRap": "Hip-Hop/Rap",
+                "Holiday": "Holiday",
+                "House": "House",
+                "IDM": "IDM",
+                "IndieRock": "Indie Rock",
+                "Industrial": "Industrial",
+                "Inspirational": "Inspirational",
+                "JPop": "J-Pop",
+                "JRock": "J-Rock",
+                "Jazz": "Jazz",
+                "KPop": "K-Pop",
+                "Latin": "Latin",
+                "Mashup": "Mashup",
+                "MathRock": "Math Rock",
+                "MelodicPowerMetal": "Melodic/Power Metal",
+                "Metalcore": "Metalcore",
+                "Noise": "Noise",
+                "NewWave": "New Wave",
+                "Novelty": "Novelty",
+                "NuMetal": "Nu-Metal",
+                "Orchestral": "Orchestral",
+                "Pop": "Pop",
+                "PopPunk": "Pop-Punk",
+                "PopRock": "Pop-Rock",
+                "PostHardcore": "Post-Hardcore",
+                "Progressive": "Progressive",
+                "Psychedelic": "Psychedelic",
+                "Punk": "Punk",
+                "RnbSoulFunk": "R&B/Soul/Funk",
+                "Reggae": "Reggae",
+                "Rock": "Rock",
+                "RockAndRoll": "Rock & Roll",
+                "Ska": "Ska",
+                "Soundtrack": "Soundtrack",
+                "SouthernRock": "Southern Rock",
+                "SurfRock": "Surf Rock",
+                "SynthpopElectropop": "Synthpop/Electropop",
+                "Techno": "Techno",
+                "ThrashSpeedMetal": "Thrash/Speed Metal",
+                "Trance": "Trance",
+                "Trap": "Trap",
+                "World": "World",
+                "Other": "Other",
+                "UnknownGenre": "Unknown Genre"
             }
         },
         "ProfileInfo": {
@@ -365,6 +456,8 @@
         "ScoreScreen": {
             "BandScoreNotSaved": "(Score not saved)",
             "RestartSong": "Restart Song",
+            "ShowAdvanced": "Show Advanced",
+            "HideAdvanced": "Hide Advanced",
             "EndSetlistEarly": "End Setlist"
         },
         "Settings": {
@@ -376,6 +469,49 @@
             "SongCount": "{0:N0} <alpha=#60>Songs",
             "ScanNeeded": "<alpha=#60>Scan Necessário",
             "DMXInfo": "DMX refere-se à mudança de cue e aos valores dos canais de pós-processamento:\n\n<b>Mudança de Cues:</b>\n\n0 - Sem cue\n10 - Menu\n20 - Pontuação\n30 - Introdução\n40 - Verso\n50 - Refrão\n60 - Legal (loop)\n70 - Quente (loop)\n80 - Legal (manual)\n90 - Quente (manual)\n100 - Dissonância\n110 - Pisada\n120 - Padrão\n130 - Harmonia\n140 - Frenesi\n150 - Silhuetas\n160 - Silhuetas Holofote\n170 - Holofotes\n180 - Varredura\n190 - Apagão (rápido)\n200 - Apagão (lento)\n210 - Apagão (holofote)\n220 - Flare (lento)\n230 - Flare (rápido)\n240 - Final Grande de Rock\n\nPara o status de Strobe e Fog, consulte seus respectivos canais.\n\n<b>Pós-processamento:</b>\n\n0 - Padrão\n\nEfeitos básicos\n4 - Bloom\n14 - Brilhante\n24 - Contraste\n34 - Espelho\n44 - Foto Negativo\n54 - Posterizar\n\nFiltros/efeitos de cor\n64 - Preto e Branco\n74 - Sépia\n84 - Prata\n94 - Preto e Branco Instável\n104 - Negativo Preto e Vermelho\n114 - Polarizado Preto e Branco\n124 - Polarizado Vermelho e Azul\n134 - Vermelho Dessaturado\n144 - Azul Dessaturado\n154 - Contraste Vermelho\n164 - Contraste Verde\n174 - Contraste Azul\n\nGranulado\n184 - Filme Granulado\n194 - Abordagem Cromática Granulada\n\nLinhas de Varredura\n204 - Linhas de Varredura\n214 - Linhas de Varredura Preto e Branco\n224 - Linhas de Varredura Azul\n234 - Linhas de Varredura Segurança\n\nTrails (Trilhas)\n244 - Trilhas\n252 - Trilhas Longas\n253 - Trilhas Dessaturadas\n254 - Trilhas Cintilantes\n255 - Rastros Espaciais\n\nVer documentos YARG para mais informações: https://docs.yarg.in/en/DMX"
+        },
+        "Filters": {
+            "OptionsHeader": "Options",
+            "FiltersHeader": "Filters",
+            "SortedBy": "Sorted By",
+            "ShowRecommendations": "Show Recommendations",
+            "ResetAllFilters": "(Hold) Reset All Filters",
+            "SelectAll": "Select All",
+            "DeselectAll": "Deselect All",
+            "None": "None",
+            "Selected": "{0} Selected",
+            "All": "All",
+            "SongCount": "{0} SONGS",
+            "Genres": "Genres",
+            "Subgenres": "Subgenres",
+            "Decades": "Decades",
+            "VocalParts": {
+                "Name": "Number of Vocal Parts",
+                "Solo": "Solo",
+                "Duet": "2-Part Harmony",
+                "Trio": "3-Part Harmony"
+            },
+            "Sources": "Song Sources",
+            "Charters": "Charters",
+            "Difficulties": {
+                "Name": "Difficulties",
+                "WarmUp": "Warm Up",
+                "Apprentice": "Apprentice",
+                "Solid": "Solid",
+                "Moderate": "Moderate",
+                "Challenging": "Challenging",
+                "Nightmare": "Nightmare",
+                "Impossible": "Impossible",
+                "Unknown": "Unknown",
+                "NoPart": "No Part"
+            },
+            "Length": {
+                "Name": "Song Lengths",
+                "Short": "Short (Under 3 Min)",
+                "Medium": "Medium (3-5 Min)",
+                "Long": "Long (5-7 Min)",
+                "Epic": "Epic (Over 7 Min)"
+            }
         }
     },
     "Gameplay": {
@@ -751,7 +887,8 @@
             "Experimental": "Experimental",
             "HUD": "HUD",
             "Gameplay": "Gameplay",
-            "OutputConfiguration": "Configuração de Saída"
+            "OutputConfiguration": "Output Configuration",
+            "Accessibility": "Accessibility"
         },
         "Button": {
             "CopyCurrentSongJsonFilePath": "Copiar o Caminho Atual do Arquivo Json da Música",
@@ -918,6 +1055,10 @@
                 "Name": "Mostrar Contador de FPS",
                 "Description": "Shows the framerate counter on the Status Bar."
             },
+            "FontScaling": {
+                "Name": "Font Scaling",
+                "Description": "Scales the minimum font size to be more visible"
+            },
             "FullscreenMode": {
                 "Name": "Modo de Ecrã Completo",
                 "Description": "Altera o modo de ecrã completo.",
@@ -1000,13 +1141,13 @@
                 "Description": "Adjusts the song's volume as a whole."
             },
             "MetronomeVolume": {
-                "Name": "Volume do Metrónomo",
-                "PauseName": "Metrônomo",
-                "Description": "Ajusta o volume do metrónomo."
+                "Name": "Metronome Volume",
+                "PauseName": "Metronome",
+                "Description": "Adjusts the volume of the metronome."
             },
             "MetronomeSound": {
-                "Name": "Som de Metrónomo",
-                "Description": "Amostra a utilizar para cliques de metrónomo.",
+                "Name": "Metronome Sound",
+                "Description": "The sample to use for metronome clicks.",
                 "Dropdown": {
                     "Castanet": "Castanet",
                     "Clap": "Clap",
@@ -1064,33 +1205,33 @@
                 }
             },
             "OutputChannelDefault": {
-                "Name": "Canais Padrão",
-                "Description": "Os canais de saída padrão a utilizar para instrumentos e sons."
+                "Name": "Default Channel(s)",
+                "Description": "The default output channel(s) to use for instruments and sounds."
             },
             "OutputChannelDrumSfx": {
-                "Name": "Efeitos Sonoros de Bateria",
-                "Description": "Os canais de saída a utilizar para efeitos sonoros de bateria."
+                "Name": "Drum SFX",
+                "Description": "The output channel(s) to use for drum sound effects."
             },
             "OutputChannelMetronome": {
-                "Name": "Metrônomo",
-                "Description": "Os canais de saída a utilizar para os cliques do metrónomo."
+                "Name": "Metronome",
+                "Description": "The output channel(s) to use for metronome clicks."
             },
             "OutputChannelSfx": {
-                "Name": "Efeitos Sonoros",
-                "Description": "Os canais de saída a utilizar para outros efeitos sonoros."
+                "Name": "SFX",
+                "Description": "The output channel(s) to use for other sound effects."
             },
             "OutputChannelVox": {
-                "Name": "Amostras de Voz",
-                "Description": "Os canais de saída a utilizar para os efeitos sonoros do ecrã de pontuação."
+                "Name": "Vox Samples",
+                "Description": "The output channel(s) to use for score screen sound effects."
             },
             "OutputChannels": {
-                "Default": "Utilizar Canais Padrão",
+                "Default": "Use Default Channel(s)",
                 "Mono": "{0}",
-                "Stereo": "{0} e {1}"
+                "Stereo": "{0} & {1}"
             },
             "OutputDevice": {
-                "Name": "Dispositivo de Saída",
-                "Description": "A interface a utilizar ao reproduzir sons."
+                "Name": "Output Device",
+                "Description": "The interface to use when playing sounds."
             },
             "PlayAShowTimeout": {
                 "Name": "Show Selection Timeout",
@@ -1117,6 +1258,10 @@
                 "Name": "Rhythm Volume",
                 "PauseName": "Rhythm",
                 "Description": "Adjusts the song's rhythm guitar track volume. Only does something if the song is multi-track. In some song formats, this may also be the bass guitar."
+            },
+            "SaveScoresWithBots": {
+                "Name": "Save Scores with Bots",
+                "Description": "Allows score saving when playing with bots. Only human scores are recorded. Bot scores are excluded."
             },
             "SfxVolume": {
                 "Name": "SFX Volume",
@@ -1159,6 +1304,10 @@
             "StageKitEnabled": {
                 "Name": "Enable Stage Kit",
                 "Description": "Enables sending Stage Kit lighting data to all connected devices capable of reading it."
+            },
+            "StandardizeGenres": {
+                "Name": "Standardize Genre Metadata",
+                "Description": "Categorizes genre metadata into a standard set of genres, using data from the Genrelizer GitHub repository. <color=white>Rescan required if changed!</color>"
             },
             "StarPowerHighwayFx": {
                 "Name": "Star Power Highway FX Mode",
@@ -1241,6 +1390,16 @@
                 "Name": "Video Calibration (ms)",
                 "PauseName": "Video Calibration (ms)",
                 "Description": "Video calibration in milliseconds. Use the calibrator to automatically calibrate. This accounts for delays between the game's processing and the actual frame being displayed."
+            },
+            "AutoCalibrateAudio": {
+                "Name": "Auto Calibrate Audio",
+                "PauseName": "Auto Calibrate Audio",
+                "Description": "Automatically adjusts calibration during gameplay based on your input timing."
+            },
+            "AutoCalibrateVideo": {
+                "Name": "Auto Calibrate Video",
+                "PauseName": "Auto Calibrate Video",
+                "Description": "Placeholder setting. Currently has no effect."
             },
             "VocalMonitoring": {
                 "Name": "Vocal Monitoring Volume",
@@ -1420,6 +1579,10 @@
             "EnableNormalization": {
                 "Name": "Normalize Audio",
                 "Description": "If enabled, normalizes audio so that all songs are approximately the same volume.  Increases memory and performance requirements."
+            },
+            "CustomVocalsCharacter": {
+                "Name": "Custom Vocals Character",
+                "Description": "Select a custom vocals character to use in venues that support characters."
             }
         },
         "PresetType": {
@@ -1792,6 +1955,10 @@
                     "Name": "Hit Window Ratio",
                     "Description": "The hit window's front to back ratio. \"0\" will bring the hit window fully backwards, \"1\" will keep it in the center, and \"2\" will move it to the front."
                 },
+                "TremoloFrontEndPercent": {
+                    "Name": "Tremolo Hit Window",
+                    "Description": "This determines how many notes can be hit with a single input during a tremolo or trill phrase. Calculated as a percentage of the current hit window frontend."
+                },
                 "HitPercentE": {
                     "Name": "Hit Percent (Easy)",
                     "Description": "This determines how much of the phrase has to be accurately sung in order to fully fill the accuracy meter, in the Easy difficulty."
@@ -1887,6 +2054,10 @@
                 "NoStarPowerOverlap": {
                     "Name": "No Star Power Overlap",
                     "Description": "Disallows earning more Star Power while Star Power is already active."
+                },
+                "EnableLanes": {
+                    "Name": "Enable Trill/Tremolo Lanes",
+                    "Description": "If enabled, the game honor charted trill/tremolo lanes."
                 }
             },
             "HighwayPreset": {

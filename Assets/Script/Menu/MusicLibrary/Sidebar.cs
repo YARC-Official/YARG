@@ -137,8 +137,11 @@ namespace YARG.Menu.MusicLibrary
 
         public void RefreshFavoriteState()
         {
-            _favoriteButtonImage.color = _musicLibraryMenu.CurrentSelection.GetFavoriteInfo().IsFavorited ?
-                _filledFavoritesHeart : _unfilledFavoritesHeart;
+            if (_musicLibraryMenu.CurrentSelection is SongViewType)
+            {
+                _favoriteButtonImage.color = _musicLibraryMenu.CurrentSelection.GetFavoriteInfo().IsFavorited ?
+                    _filledFavoritesHeart : _unfilledFavoritesHeart;
+            }
         }
 
         public void UpdateSidebar(bool force = false)
@@ -297,7 +300,7 @@ namespace YARG.Menu.MusicLibrary
             const float shrinkFactor = 0.8f;     // percentage to shrink the font by after shrink threshold
 
             container.SetActive(true);
-            
+
             if (string.IsNullOrEmpty(text))
             {
                 label.text = string.Empty;
