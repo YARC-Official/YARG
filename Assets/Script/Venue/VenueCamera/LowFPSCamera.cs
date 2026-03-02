@@ -1,19 +1,20 @@
 using UnityEngine;
+using YARG.Settings;
 
 namespace YARG.Venue.VenueCamera
 {
     public class LowFPSCamera : MonoBehaviour
     {
         public Camera TargetCamera;
-        public float  TargetFPS = 30f;
-
+        private float  _targetFPS;
         private float _timePassed;
         private float _interval;
         private bool _isRenderTextureCamera;
 
         void Start()
         {
-            _interval = 1f / TargetFPS;
+            _targetFPS = SettingsManager.Settings.VenueFpsCap.Value;
+            _interval = 1f / _targetFPS;
             //disable camera so it doesn't render on its own
             TargetCamera.enabled = false;
         }
