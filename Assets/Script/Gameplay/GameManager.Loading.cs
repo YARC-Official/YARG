@@ -267,12 +267,13 @@ namespace YARG.Gameplay
             _playerAudioManager = new PlayerAudioManager(this, _backgroundStem);
             foreach (var player in _players)
             {
-                var songStem = player.Player.Profile.CurrentInstrument.ToSongStem();
-                if (songStem == SongStem.Bass && _mixer[SongStem.Bass] == null)
+                var instrumentStem = player.Player.Profile.CurrentInstrument.ToSongStem();
+                if (instrumentStem == SongStem.Bass && _mixer[SongStem.Bass] == null)
                 {
-                    songStem = SongStem.Rhythm;
+                    instrumentStem = SongStem.Rhythm;
                 }
-                _playerAudioManager.AddPlayer(songStem, player);
+                var reverbStem = _mixer[instrumentStem] != null ? instrumentStem : _backgroundStem;
+                _playerAudioManager.AddPlayer(instrumentStem, reverbStem, player);
             }
         }
 

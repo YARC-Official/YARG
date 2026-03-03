@@ -14,20 +14,39 @@ namespace YARG.Audio
 {
     public class PlayerAudioManager : IDisposable
     {
-        private readonly List<AudioHandler> _handlers;
-        private readonly GameManager        _gameManager;
-        private readonly SongStem           _backgroundStem;
+        private readonly List<AudioHandler>        _handlers;
+        private readonly GameManager               _gameManager;
+        private readonly SongStem                  _backgroundStem;
+        private readonly Dictionary<SongStem, int> _reverbCounts;
 
         public PlayerAudioManager(GameManager gameManager, SongStem backgroundStem)
         {
             _gameManager = gameManager;
             _backgroundStem = backgroundStem;
             _handlers = new List<AudioHandler>();
+            _reverbCounts = new Dictionary<SongStem, int>();
         }
 
-        public void AddPlayer(SongStem stem, BasePlayer player)
+        public void AddPlayer(SongStem stem, SongStem reverbStem, BasePlayer player)
         {
-            _handlers.Add(new AudioHandler(stem, player, _gameManager, stem == _backgroundStem));
+            _handlers.Add(new AudioHandler(stem, reverbStem, player, _gameManager, this, stem != _backgroundStem));
+        }
+
+        private static AudioFxMode StarPowerFxSetting => SettingsManager.Settings.UseStarpowerFx.Value;
+
+        private void ChangeStemReverbState(SongStem stem, bool reverb)
+        {
+            int count = _reverbCounts.GetValueOrDefault(stem);
+            if (reverb)
+            {
+                count++;
+            }
+            else if (count > 0)
+            {
+                count--;
+            }
+            _reverbCounts[stem] = count;
+            MixerAudioHandler.SetReverbSetting(stem, count > 0);
         }
 
         public void Dispose()
@@ -41,21 +60,25 @@ namespace YARG.Audio
 
         private class AudioHandler : IDisposable
         {
-            private readonly SongStem    _stem;
-            private readonly BasePlayer  _player;
-            private readonly GameManager _gameManager;
-            private readonly bool        _isBackgroundStem;
-            private          bool        _isMuted;
+            private readonly SongStem           _stem;
+            private readonly SongStem           _reverbStem;
+            private readonly BasePlayer         _player;
+            private readonly GameManager        _gameManager;
+            private readonly PlayerAudioManager _audioManager;
+            private readonly bool               _isMultiTrack;
+            private          bool               _isMuted;
             private          Instrument CurrentInstrument => _player.Player.Profile.CurrentInstrument;
             private          bool IsSeekingReplay => _gameManager.IsSeekingReplay;
             private static   bool AllowOverhitSfx => SettingsManager.Settings.OverstrumAndOverhitSoundEffects.Value;
             private static   bool AllowWhammySetting => SettingsManager.Settings.UseWhammyFx.Value;
 
-            public AudioHandler(SongStem stem, BasePlayer player, GameManager gameManager, bool isBackgroundStem)
+            public AudioHandler(SongStem stem, SongStem reverbStem, BasePlayer player, GameManager gameManager, PlayerAudioManager audioManager, bool isMultiTrack)
             {
                 _stem = stem;
+                _reverbStem = reverbStem;
                 _gameManager = gameManager;
-                _isBackgroundStem = isBackgroundStem;
+                _audioManager = audioManager;
+                _isMultiTrack = isMultiTrack;
                 _player = player;
                 _player.Events += HandlePlayerEvent;
             }
@@ -115,12 +138,15 @@ namespace YARG.Audio
 
             private void OnStarPowerChanged(bool active)
             {
-                var reverbStem = SongStem.Song;
-                if (_stem is Drums or Bass or Rhythm or Guitar)
+                var isSettingOff = StarPowerFxSetting == AudioFxMode.Off;
+                var isMultiTrackOnlySetting = StarPowerFxSetting == AudioFxMode.MultitrackOnly;
+                bool shouldSkipReverb = isSettingOff || (isMultiTrackOnlySetting && !_isMultiTrack);
+                if (shouldSkipReverb)
                 {
-                    reverbStem = _stem;
+                    return;
                 }
-                _gameManager.ChangeStemReverbState(reverbStem, active);
+
+                _audioManager.ChangeStemReverbState(_reverbStem, active);
             }
 
             private void OnWhammyDuringSustain(float whammyFactor)
@@ -195,7 +221,7 @@ namespace YARG.Audio
             private void ChangeWhammyPitch(float percent)
             {
                 // Ignore whammy on the background stem to avoid pitch-bending the full mix.
-                if (_isBackgroundStem)
+                if (!_isMultiTrack)
                 {
                     return;
                 }

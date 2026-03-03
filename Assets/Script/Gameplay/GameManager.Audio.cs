@@ -18,8 +18,6 @@ namespace YARG.Gameplay
             public double Volume => GetVolumeSetting();
             public int Total;
             public int Audible;
-            public int ReverbCount;
-
             public StemState(SongStem stem)
             {
                 _stem = stem;
@@ -37,19 +35,6 @@ namespace YARG.Gameplay
                 }
 
                 return Volume * Audible / Total;
-            }
-
-            public bool SetReverb(bool reverb)
-            {
-                if (reverb)
-                {
-                    ++ReverbCount;
-                }
-                else if (ReverbCount > 0)
-                {
-                    --ReverbCount;
-                }
-                return ReverbCount > 0;
             }
 
             private double GetVolumeSetting()
@@ -134,33 +119,6 @@ namespace YARG.Gameplay
             {
                 _volumeTween.ChangeEndValue(volume);
             }
-        }
-
-        public void ChangeStemReverbState(SongStem stem, bool reverb)
-        {
-            var setting = SettingsManager.Settings.UseStarpowerFx.Value;
-            if (setting == AudioFxMode.Off)
-            {
-                return;
-            }
-
-            StemState state;
-            while (!_stemStates.TryGetValue(stem, out state))
-            {
-                if (stem == _backgroundStem)
-                {
-                    return;
-                }
-                stem = _backgroundStem;
-            }
-
-            if (setting == AudioFxMode.MultitrackOnly && stem == _backgroundStem)
-            {
-                return;
-            }
-
-            bool reverbActive = state.SetReverb(reverb);
-            MixerAudioHandler.SetReverbSetting(stem, reverbActive);
         }
 
     }
