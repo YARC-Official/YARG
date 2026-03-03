@@ -14,27 +14,70 @@ namespace YARG.Audio
 {
     public class PlayerAudioManager : IDisposable
     {
-        private readonly List<AudioHandler>        _handlers;
-        private readonly GameManager               _gameManager;
-        private readonly SongStem                  _backgroundStem;
-        private readonly Dictionary<SongStem, int> _reverbCounts;
+        private readonly List<AudioHandler>              _handlers;
+        private readonly GameManager                     _gameManager;
+        private readonly SongStem                        _backgroundStem;
+        private readonly Dictionary<SongStem, int>       _reverbCounts;
+        private readonly Dictionary<SongStem, StemState>  _stemStates;
+        private readonly HashSet<SongStem>               _mixerStems;
+        private bool IsMultiTrack => _mixerStems.Count > 1;
 
-        public PlayerAudioManager(GameManager gameManager, SongStem backgroundStem)
+        private static AudioFxMode MuteOnMissSetting => SettingsManager.Settings.MuteOnMiss.Value;
+
+        public PlayerAudioManager(GameManager gameManager, SongStem backgroundStem, IEnumerable<SongStem> mixerStems)
         {
             _gameManager = gameManager;
             _backgroundStem = backgroundStem;
             _handlers = new List<AudioHandler>();
             _reverbCounts = new Dictionary<SongStem, int>();
+            _stemStates = new Dictionary<SongStem, StemState>();
+            _mixerStems = new HashSet<SongStem>(mixerStems);
         }
 
         public void AddPlayer(SongStem stem, SongStem reverbStem, BasePlayer player)
         {
             _handlers.Add(new AudioHandler(stem, reverbStem, player, _gameManager, this, stem != _backgroundStem));
+            RegisterStemForPlayer(stem);
         }
 
-        public void ChangeStemMuteState(SongStem stem, bool muted, float duration = 0.0f)
+        private void RegisterStemForPlayer(SongStem stem)
         {
-            _gameManager.ChangeStemMuteState(stem, muted, duration);
+            var state = GetOrCreateStemState(stem);
+            if (IsMultiTrack && _mixerStems.Contains(stem))
+            {
+                ++state.Total;
+                ++state.Audible;
+            }
+            else if (_mixerStems.Contains(_backgroundStem))
+            {
+                // Ensures the stem will still play at a minimum of 50%, even if all players mute
+                state.Total += 2;
+                state.Audible += 2;
+            }
+        }
+
+        private StemState GetOrCreateStemState(SongStem stem)
+        {
+            if (!_stemStates.TryGetValue(stem, out var state))
+            {
+                state = new StemState(stem);
+                _stemStates[stem] = state;
+            }
+
+            return state;
+        }
+
+        public void ChangeStemMuteState(SongStem stem, bool muted)
+        {
+            if (MuteOnMissSetting == AudioFxMode.Off
+                || !_stemStates.TryGetValue(stem, out var state)
+                || (MuteOnMissSetting == AudioFxMode.MultitrackOnly && !IsMultiTrack))
+            {
+                return;
+            }
+
+            double volume = state.SetMute(muted);
+            MixerAudioHandler.SetVolumeSetting(stem, volume);
         }
 
         private static AudioFxMode StarPowerFxSetting => SettingsManager.Settings.UseStarpowerFx.Value;
@@ -61,6 +104,12 @@ namespace YARG.Audio
                 handler.Dispose();
             }
             _handlers.Clear();
+
+            // Restore player-owned stems to current user settings
+            foreach (var (stem, state) in _stemStates)
+            {
+                MixerAudioHandler.SetVolumeSetting(stem, state.Volume);
+            }
         }
 
         private class AudioHandler : IDisposable

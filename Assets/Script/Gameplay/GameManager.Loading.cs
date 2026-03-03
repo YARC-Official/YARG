@@ -257,7 +257,7 @@ namespace YARG.Gameplay
 
         private void SetupPlayerAudio()
         {
-            _playerAudioManager = new PlayerAudioManager(this, _backgroundStem);
+            _playerAudioManager = new PlayerAudioManager(this, _backgroundStem, _mixerStems);
             foreach (var player in _players)
             {
                 var instrumentStem = player.Player.Profile.CurrentInstrument.ToSongStem();
@@ -486,24 +486,6 @@ namespace YARG.Gameplay
                         _players.Add(vocalsPlayer);
                     }
 
-                    // Add (or increase total of) the stem state
-                    var stem = player.Profile.CurrentInstrument.ToSongStem();
-                    if (stem == SongStem.Bass && !_stemStates.ContainsKey(SongStem.Bass))
-                    {
-                        stem = SongStem.Rhythm;
-                    }
-
-                    if (stem != _backgroundStem && _stemStates.TryGetValue(stem, out var state))
-                    {
-                        ++state.Total;
-                        ++state.Audible;
-                    }
-                    else if (_stemStates.TryGetValue(_backgroundStem, out state))
-                    {
-                        // Ensures the stem will still play at a minimum of 50%, even if all players mute
-                        state.Total += 2;
-                        state.Audible += 2;
-                    }
                 }
             }
             catch (Exception ex)
