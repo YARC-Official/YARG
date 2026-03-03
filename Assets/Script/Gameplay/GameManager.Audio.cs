@@ -60,6 +60,7 @@ namespace YARG.Gameplay
         private readonly Dictionary<SongStem, StemState>        _stemStates = new();
         private          SongStem                               _backgroundStem;
         private          TweenerCore<double, double, NoOptions> _volumeTween;
+        private          TweenerCore<double, double, NoOptions> _crowdVolumeTween;
 
         private void LoadAudio()
         {
@@ -118,6 +119,34 @@ namespace YARG.Gameplay
             else
             {
                 _volumeTween.ChangeEndValue(volume);
+            }
+        }
+
+        public void ChangeCrowdMuteState(bool muted, float duration = 0.0f)
+        {
+            if (!_stemStates.ContainsKey(SongStem.Crowd))
+            {
+                return;
+            }
+
+            double volume = muted ? 0.0 : SettingsManager.Settings.CrowdVolume.Value;
+
+            if (duration <= 0.0f)
+            {
+                MixerAudioHandler.SetVolumeSetting(SongStem.Crowd, volume);
+                return;
+            }
+
+            if (_crowdVolumeTween == null || !_crowdVolumeTween.IsPlaying())
+            {
+                _crowdVolumeTween = DOTween.To(
+                    () => MixerAudioHandler.GetVolumeSetting(SongStem.Crowd),
+                    x => MixerAudioHandler.SetVolumeSetting(SongStem.Crowd, x),
+                    volume, duration);
+            }
+            else
+            {
+                _crowdVolumeTween.ChangeEndValue(volume);
             }
         }
 

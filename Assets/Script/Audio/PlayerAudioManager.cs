@@ -32,6 +32,11 @@ namespace YARG.Audio
             _handlers.Add(new AudioHandler(stem, reverbStem, player, _gameManager, this, stem != _backgroundStem));
         }
 
+        public void ChangeStemMuteState(SongStem stem, bool muted, float duration = 0.0f)
+        {
+            _gameManager.ChangeStemMuteState(stem, muted, duration);
+        }
+
         private static AudioFxMode StarPowerFxSetting => SettingsManager.Settings.UseStarpowerFx.Value;
 
         private void ChangeStemReverbState(SongStem stem, bool reverb)
@@ -214,7 +219,7 @@ namespace YARG.Audio
                     return;
                 }
 
-                _gameManager.ChangeStemMuteState(_stem, muted);
+                _audioManager.ChangeStemMuteState(_stem, muted);
                 _isMuted = muted;
             }
 

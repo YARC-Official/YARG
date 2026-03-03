@@ -198,13 +198,6 @@ namespace YARG.Gameplay
             CreatePlayers();
             SetupPlayerAudio();
 
-            // Set up the crowd stem so it can be restored after muting (if it exists)
-            if (_stemStates.TryGetValue(SongStem.Crowd, out var state))
-            {
-                state.Total = 1;
-                state.Audible = 1;
-            }
-
             if (_loadState == LoadFailureState.Error)
             {
                 ToastManager.ToastError(_loadFailureMessage);

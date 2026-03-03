@@ -233,6 +233,10 @@ namespace YARG.Gameplay
             SettingsManager.Settings.NoFailMode.OnChange -= OnNoFailModeChanged;
             EngineManager.OnSongFailed -= OnSongFailed;
 
+            // Kill active volume tweens before restoring
+            _volumeTween?.Kill();
+            _crowdVolumeTween?.Kill();
+
             //Restore stem volumes to their original state
             foreach (var (stem, state) in _stemStates)
             {
