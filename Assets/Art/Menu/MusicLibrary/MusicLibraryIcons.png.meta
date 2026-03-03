@@ -109,9 +109,9 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 0
-        y: 64
-        width: 64
-        height: 64
+        y: 128
+        width: 128
+        height: 128
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -129,10 +129,10 @@ TextureImporter:
       name: Playlists
       rect:
         serializedVersion: 2
-        x: 64
-        y: 64
-        width: 64
-        height: 64
+        x: 128
+        y: 128
+        width: 128
+        height: 128
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -152,8 +152,8 @@ TextureImporter:
         serializedVersion: 2
         x: 0
         y: 0
-        width: 64
-        height: 64
+        width: 128
+        height: 128
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -171,10 +171,10 @@ TextureImporter:
       name: Back
       rect:
         serializedVersion: 2
-        x: 64
+        x: 128
         y: 0
-        width: 64
-        height: 64
+        width: 128
+        height: 128
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
