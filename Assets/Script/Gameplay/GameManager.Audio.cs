@@ -3,7 +3,6 @@ using System.Linq;
 using DG.Tweening;
 using DG.Tweening.Core;
 using DG.Tweening.Plugins.Options;
-using UnityEngine;
 using YARG.Core.Audio;
 using YARG.Playback;
 using YARG.Settings;
@@ -20,7 +19,6 @@ namespace YARG.Gameplay
             public int Total;
             public int Audible;
             public int ReverbCount;
-            public float WhammyPitch;
 
             public StemState(SongStem stem)
             {
@@ -52,14 +50,6 @@ namespace YARG.Gameplay
                     --ReverbCount;
                 }
                 return ReverbCount > 0;
-            }
-
-            public float SetWhammyPitch(float percent)
-            {
-                // TODO: Would be nice to handle multiple inputs
-                // but for now last one wins
-                WhammyPitch = Mathf.Clamp01(percent);
-                return WhammyPitch;
             }
 
             private double GetVolumeSetting()
@@ -173,26 +163,5 @@ namespace YARG.Gameplay
             MixerAudioHandler.SetReverbSetting(stem, reverbActive);
         }
 
-        public void ChangeStemWhammyPitch(SongStem stem, float percent)
-        {
-            // If the specified stem is the same as the background stem,
-            // ignore the request. This may be a chart without separate
-            // stems for each instrument. In that scenario we don't want
-            // to pitch bend because we'd be bending the entire track.
-            if (stem == _backgroundStem)
-            {
-                return;
-            }
-
-            // If we can't get the state for the stem, bail.
-            if (!_stemStates.TryGetValue(stem, out var state))
-            {
-                return;
-            }
-
-            // Set the pitch
-            float percentActive = state.SetWhammyPitch(percent);
-            MixerAudioHandler.SetWhammyPitchSetting(stem, percentActive);
-        }
     }
 }

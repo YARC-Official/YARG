@@ -264,7 +264,7 @@ namespace YARG.Gameplay
 
         private void SetupPlayerAudio()
         {
-            _playerAudioManager = new PlayerAudioManager(this);
+            _playerAudioManager = new PlayerAudioManager(this, _backgroundStem);
             foreach (var player in _players)
             {
                 var songStem = player.Player.Profile.CurrentInstrument.ToSongStem();

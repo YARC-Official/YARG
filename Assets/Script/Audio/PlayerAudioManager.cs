@@ -16,16 +16,18 @@ namespace YARG.Audio
     {
         private readonly List<AudioHandler> _handlers;
         private readonly GameManager        _gameManager;
+        private readonly SongStem           _backgroundStem;
 
-        public PlayerAudioManager(GameManager gameManager)
+        public PlayerAudioManager(GameManager gameManager, SongStem backgroundStem)
         {
             _gameManager = gameManager;
+            _backgroundStem = backgroundStem;
             _handlers = new List<AudioHandler>();
         }
 
         public void AddPlayer(SongStem stem, BasePlayer player)
         {
-            _handlers.Add(new AudioHandler(stem, player, _gameManager));
+            _handlers.Add(new AudioHandler(stem, player, _gameManager, stem == _backgroundStem));
         }
 
         public void Dispose()
@@ -42,16 +44,18 @@ namespace YARG.Audio
             private readonly SongStem    _stem;
             private readonly BasePlayer  _player;
             private readonly GameManager _gameManager;
+            private readonly bool        _isBackgroundStem;
             private          bool        _isMuted;
             private          Instrument CurrentInstrument => _player.Player.Profile.CurrentInstrument;
             private          bool IsSeekingReplay => _gameManager.IsSeekingReplay;
             private static   bool AllowOverhitSfx => SettingsManager.Settings.OverstrumAndOverhitSoundEffects.Value;
             private static   bool AllowWhammySetting => SettingsManager.Settings.UseWhammyFx.Value;
 
-            public AudioHandler(SongStem stem, BasePlayer player, GameManager gameManager)
+            public AudioHandler(SongStem stem, BasePlayer player, GameManager gameManager, bool isBackgroundStem)
             {
                 _stem = stem;
                 _gameManager = gameManager;
+                _isBackgroundStem = isBackgroundStem;
                 _player = player;
                 _player.Events += HandlePlayerEvent;
             }
@@ -126,12 +130,12 @@ namespace YARG.Audio
                     return;
                 }
 
-                _gameManager.ChangeStemWhammyPitch(_stem, whammyFactor);
+                ChangeWhammyPitch(whammyFactor);
             }
 
             private void OnSustainEnded()
             {
-                _gameManager.ChangeStemWhammyPitch(_stem, 0);
+                ChangeWhammyPitch(0);
             }
 
             private void OnSustainBroken()
@@ -186,6 +190,16 @@ namespace YARG.Audio
 
                 _gameManager.ChangeStemMuteState(_stem, muted);
                 _isMuted = muted;
+            }
+
+            private void ChangeWhammyPitch(float percent)
+            {
+                // Ignore whammy on the background stem to avoid pitch-bending the full mix.
+                if (_isBackgroundStem)
+                {
+                    return;
+                }
+                MixerAudioHandler.SetWhammyPitchSetting(_stem, percent);
             }
 
             private void PlayOverstrumSfx()
