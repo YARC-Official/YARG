@@ -131,14 +131,14 @@ namespace YARG.Gameplay
 
             if (duration <= 0.0f)
             {
-                GlobalAudioHandler.SetVolumeSetting(stem, volume);
+                MixerAudioHandler.SetVolumeSetting(stem, volume);
                 return;
             }
 
             if (_volumeTween == null || !_volumeTween.IsPlaying())
             {
-                _volumeTween = DOTween.To(() => GlobalAudioHandler.GetVolumeSetting(stem),
-                    x => GlobalAudioHandler.SetVolumeSetting(stem, x), volume, duration);
+                _volumeTween = DOTween.To(() => MixerAudioHandler.GetVolumeSetting(stem),
+                    x => MixerAudioHandler.SetVolumeSetting(stem, x), volume, duration);
             }
             else
             {
@@ -170,7 +170,7 @@ namespace YARG.Gameplay
             }
 
             bool reverbActive = state.SetReverb(reverb);
-            GlobalAudioHandler.SetReverbSetting(stem, reverbActive);
+            MixerAudioHandler.SetReverbSetting(stem, reverbActive);
         }
 
         public void ChangeStemWhammyPitch(SongStem stem, float percent)
@@ -192,7 +192,7 @@ namespace YARG.Gameplay
 
             // Set the pitch
             float percentActive = state.SetWhammyPitch(percent);
-            GlobalAudioHandler.SetWhammyPitchSetting(stem, percentActive);
+            MixerAudioHandler.SetWhammyPitchSetting(stem, percentActive);
         }
     }
 }

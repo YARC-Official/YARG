@@ -31,7 +31,7 @@ namespace YARG.Audio.BASS
                 YargLogger.LogFormatError("Failed to get channel length in bytes: {0}!", Bass.LastError);
             }
 
-            double volume = GlobalAudioHandler.GetTrueVolume(stem);
+            double volume = MixerAudioHandler.GetTrueVolume(stem);
             if (clampStemVolume && volume < MINIMUM_STEM_VOLUME)
             {
                 volume = MINIMUM_STEM_VOLUME;

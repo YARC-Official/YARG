@@ -236,7 +236,7 @@ namespace YARG.Gameplay
             //Restore stem volumes to their original state
             foreach (var (stem, state) in _stemStates)
             {
-                GlobalAudioHandler.SetVolumeSetting(stem, state.Volume);
+                MixerAudioHandler.SetVolumeSetting(stem, state.Volume);
             }
 
             DisposeDebug();

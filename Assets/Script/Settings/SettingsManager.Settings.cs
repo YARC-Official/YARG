@@ -191,37 +191,37 @@ namespace YARG.Settings
             public VolumeSetting MasterMusicVolume { get; } = new(0.75f, v => GlobalAudioHandler.SetMasterVolume(v));
 
             public VolumeSetting GuitarVolume { get; } =
-                new(1f, v => GlobalAudioHandler.SetVolumeSetting(SongStem.Guitar, v));
+                new(1f, v => MixerAudioHandler.SetVolumeSetting(SongStem.Guitar, v));
 
             public VolumeSetting RhythmVolume { get; } =
-                new(1f, v => GlobalAudioHandler.SetVolumeSetting(SongStem.Rhythm, v));
+                new(1f, v => MixerAudioHandler.SetVolumeSetting(SongStem.Rhythm, v));
 
             public VolumeSetting BassVolume { get; } =
-                new(1f, v => GlobalAudioHandler.SetVolumeSetting(SongStem.Bass, v));
+                new(1f, v => MixerAudioHandler.SetVolumeSetting(SongStem.Bass, v));
 
             public VolumeSetting KeysVolume { get; } =
-                new(1f, v => GlobalAudioHandler.SetVolumeSetting(SongStem.Keys, v));
+                new(1f, v => MixerAudioHandler.SetVolumeSetting(SongStem.Keys, v));
 
             public VolumeSetting DrumsVolume { get; } =
-                new(1f, v => GlobalAudioHandler.SetVolumeSetting(SongStem.Drums, v));
+                new(1f, v => MixerAudioHandler.SetVolumeSetting(SongStem.Drums, v));
 
             public VolumeSetting VocalsVolume { get; } =
-                new(1f, v => GlobalAudioHandler.SetVolumeSetting(SongStem.Vocals, v));
+                new(1f, v => MixerAudioHandler.SetVolumeSetting(SongStem.Vocals, v));
 
             public VolumeSetting SongVolume { get; } =
-                new(1f, v => GlobalAudioHandler.SetVolumeSetting(SongStem.Song, v));
+                new(1f, v => MixerAudioHandler.SetVolumeSetting(SongStem.Song, v));
 
             public VolumeSetting CrowdVolume { get; } =
-                new(1f, v => GlobalAudioHandler.SetVolumeSetting(SongStem.Crowd, v));
+                new(1f, v => MixerAudioHandler.SetVolumeSetting(SongStem.Crowd, v));
 
             public VolumeSetting SfxVolume { get; } =
-                new(0.8f, v => GlobalAudioHandler.SetVolumeSetting(SongStem.Sfx, v));
+                new(0.8f, v => GlobalAudioHandler.SetSampleVolumeSetting(SongStem.Sfx, v));
 
             public VolumeSetting DrumSfxVolume { get; } =
-                new(0.8f, v => GlobalAudioHandler.SetVolumeSetting(SongStem.DrumSfx, v));
+                new(0.8f, v => GlobalAudioHandler.SetSampleVolumeSetting(SongStem.DrumSfx, v));
 
             public VolumeSetting MetronomeVolume { get; } =
-                new(0.5f, v => GlobalAudioHandler.SetVolumeSetting(SongStem.Metronome, v));
+                new(0.5f, v => GlobalAudioHandler.SetSampleVolumeSetting(SongStem.Metronome, v));
 
             public VolumeSetting PreviewVolume { get; } = new(0.25f);
             public VolumeSetting MusicPlayerVolume { get; } = new(0.15f, MusicPlayerVolumeCallback);
