@@ -67,14 +67,11 @@ namespace YARG.Audio
             var state = GetOrCreateStemState(stem);
             if (IsMultiTrack && _mixerStems.Contains(stem))
             {
-                ++state.Total;
-                ++state.Audible;
+                state.RegisterTrack();
             }
             else if (_mixerStems.Contains(_backgroundStem))
             {
-                // Ensures the stem will still play at a minimum of 50%, even if all players mute
-                state.Total += 2;
-                state.Audible += 2;
+                state.RegisterBackground();
             }
         }
 
@@ -89,7 +86,7 @@ namespace YARG.Audio
             return state;
         }
 
-        public void ChangeStemMuteState(StemState state, bool muted)
+        private void ChangeStemMuteState(StemState state, bool muted)
         {
             if (MuteOnMissSetting == AudioFxMode.Off
                 || (MuteOnMissSetting == AudioFxMode.MultitrackOnly && !IsMultiTrack))
@@ -103,16 +100,8 @@ namespace YARG.Audio
 
         private void ChangeStemReverbState(StemState state, bool reverb)
         {
-            if (reverb)
-            {
-                state.ReverbCount++;
-            }
-            else if (state.ReverbCount > 0)
-            {
-                state.ReverbCount--;
-            }
-
-            MixerAudioHandler.SetReverbSetting(state.Stem, state.ReverbCount > 0);
+            var hasReverb = state.SetReverb(reverb);
+            MixerAudioHandler.SetReverbSetting(state.Stem, hasReverb);
         }
 
         private void HandlePlayerEvent(PlayerContext context, PlayerEvent playerEvent)
@@ -252,7 +241,7 @@ namespace YARG.Audio
             context.IsMuted = muted;
         }
 
-        private void ChangeWhammyPitch(PlayerContext context, float percent)
+        private static void ChangeWhammyPitch(PlayerContext context, float percent)
         {
             // Ignore whammy on the background stem to avoid pitch-bending the full mix.
             if (!context.IsMultiTrack)
@@ -263,7 +252,7 @@ namespace YARG.Audio
             MixerAudioHandler.SetWhammyPitchSetting(context.StemState.Stem, percent);
         }
 
-        private void PlayOverstrumSfx()
+        private static void PlayOverstrumSfx()
         {
             const int min = (int) SfxSample.Overstrum1;
             const int max = (int) SfxSample.Overstrum4;
@@ -271,7 +260,7 @@ namespace YARG.Audio
             GlobalAudioHandler.PlaySoundEffect(randomOverstrum);
         }
 
-        private void PlayMissSfx()
+        private static void PlayMissSfx()
         {
             GlobalAudioHandler.PlaySoundEffect(SfxSample.NoteMiss);
         }

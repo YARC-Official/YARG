@@ -8,9 +8,9 @@ namespace YARG.Audio
         private const double DEFAULT_VOLUME = 1.0;
 
         public readonly SongStem Stem;
-        public int Total;
-        public int Audible;
-        public int ReverbCount;
+        private         int      _total;
+        private         int      _audible;
+        private         int      _reverbCount;
 
         public double Volume => GetVolumeSetting();
 
@@ -19,18 +19,44 @@ namespace YARG.Audio
             Stem = stem;
         }
 
+        public void RegisterTrack()
+        {
+            _total++;
+            _audible++;
+        }
+
+        public void RegisterBackground()
+        {
+            _total += 2;
+            _audible += 2;
+        }
+
         public double SetMute(bool muted)
         {
             if (muted)
             {
-                --Audible;
+                --_audible;
             }
-            else if (Audible < Total)
+            else if (_audible < _total)
             {
-                ++Audible;
+                ++_audible;
             }
 
-            return Volume * Audible / Total;
+            return Volume * _audible / _total;
+        }
+
+        public bool SetReverb(bool reverb)
+        {
+            if (reverb)
+            {
+                _reverbCount++;
+            }
+            else if (_reverbCount > 0)
+            {
+                _reverbCount--;
+            }
+
+            return _reverbCount > 0;
         }
 
         private double GetVolumeSetting()
