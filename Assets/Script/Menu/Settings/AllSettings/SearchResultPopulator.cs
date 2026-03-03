@@ -15,6 +15,7 @@ namespace YARG.Menu.Settings.AllSettings
         {
             public string Tab;
             public int Index;
+            public bool IsAdvanced;
             public string LocalizedName;
         }
 
@@ -47,17 +48,21 @@ namespace YARG.Menu.Settings.AllSettings
                 }
 
                 bool showAdvanced = SettingsMenu.Instance.ShowAdvanced;
-                int navIndex = 0;
+                int navIndexAll = 0;
+                int navIndexBasic = 0;
                 foreach (var metadata in metadataTab.Settings)
                 {
-                    if (metadata.IsAdvanced && !showAdvanced)
-                    {
-                        continue;
-                    }
-
                     var unlocalizedSearch = metadata.UnlocalizedSearchNames;
                     if (unlocalizedSearch is null)
                     {
+                        if (metadata is not HeaderMetadata)
+                        {
+                            navIndexAll++;
+                            if (!metadata.IsAdvanced)
+                            {
+                                navIndexBasic++;
+                            }
+                        }
                         continue;
                     }
 
@@ -66,10 +71,16 @@ namespace YARG.Menu.Settings.AllSettings
                         var localized = Localize.Key("Settings", unlocalized);
                         if (localized.ToLowerInvariant().Contains(query))
                         {
+                            bool isAdvanced = metadata.IsAdvanced;
+                            int index = (isAdvanced || showAdvanced)
+                                ? navIndexAll
+                                : navIndexBasic;
+
                             results.Add(new SearchResult
                             {
                                 Tab = tab.Name,
-                                Index = navIndex,
+                                Index = index,
+                                IsAdvanced = isAdvanced,
                                 LocalizedName = localized
                             });
                             break;
@@ -80,7 +91,11 @@ namespace YARG.Menu.Settings.AllSettings
                     // for the navigation index.
                     if (metadata is not HeaderMetadata)
                     {
-                        navIndex++;
+                        navIndexAll++;
+                        if (!metadata.IsAdvanced)
+                        {
+                            navIndexBasic++;
+                        }
                     }
                 }
 
@@ -96,7 +111,7 @@ namespace YARG.Menu.Settings.AllSettings
             foreach (var result in results)
             {
                 var resultObject = Instantiate(_resultPrefab, container);
-                resultObject.Initialize(result.LocalizedName, result.Tab, result.Index);
+                resultObject.Initialize(result.LocalizedName, result.Tab, result.Index, result.IsAdvanced);
                 navGroup.AddNavigatable(resultObject);
             }
         }

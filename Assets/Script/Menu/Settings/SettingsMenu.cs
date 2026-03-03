@@ -69,7 +69,7 @@ namespace YARG.Menu.Settings
                 var setting = SettingsManager.Settings?.ShowAdvancedSettings;
                 if (setting != null)
                 {
-                    setting.Value = value;
+                    setting.SetValueWithoutNotify(value);
                 }
                 else
                 {
@@ -350,11 +350,26 @@ namespace YARG.Menu.Settings
             }, true));
         }
 
-        private void ToggleAdvanced()
+        public void EnableAdvanced(bool isEnabled)
         {
-            ShowAdvanced = !ShowAdvanced;
+            if (isEnabled == ShowAdvanced)
+            {
+                return;
+            }
+
+            ShowAdvanced = isEnabled;
+        }
+
+        public void RefreshNavigationScheme()
+        {
             Navigator.Instance.PopScheme();
             PushNavigationScheme();
+        }
+
+        private void ToggleAdvanced()
+        {
+            EnableAdvanced(!ShowAdvanced);
+            RefreshNavigationScheme();
             RefreshAndKeepPosition();
             SmoothScrollToTop();
         }
