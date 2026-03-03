@@ -14,29 +14,51 @@ namespace YARG.Audio
 {
     public class PlayerAudioManager : IDisposable
     {
-        private readonly List<AudioHandler>              _handlers;
+        private class PlayerContext
+        {
+            public StemState           StemState;
+            public StemState           ReverbStemState;
+            public BasePlayer          Player;
+            public bool                IsMultiTrack;
+            public bool                IsMuted;
+            public Action<PlayerEvent> EventHandler;
+        }
+
+        private readonly List<PlayerContext>             _contexts;
         private readonly GameManager                     _gameManager;
         private readonly SongStem                        _backgroundStem;
-        private readonly Dictionary<SongStem, int>       _reverbCounts;
-        private readonly Dictionary<SongStem, StemState>  _stemStates;
+        private readonly Dictionary<SongStem, StemState> _stemStates;
         private readonly HashSet<SongStem>               _mixerStems;
-        private bool IsMultiTrack => _mixerStems.Count > 1;
+        private          bool                            IsMultiTrack => _mixerStems.Count > 1;
 
-        private static AudioFxMode MuteOnMissSetting => SettingsManager.Settings.MuteOnMiss.Value;
+        private static AudioFxMode MuteOnMissSetting  => SettingsManager.Settings.MuteOnMiss.Value;
+        private static AudioFxMode StarPowerFxSetting => SettingsManager.Settings.UseStarpowerFx.Value;
+        private static bool        AllowOverhitSfx    => SettingsManager.Settings.OverstrumAndOverhitSoundEffects.Value;
+        private static bool        AllowWhammySetting => SettingsManager.Settings.UseWhammyFx.Value;
 
         public PlayerAudioManager(GameManager gameManager, SongStem backgroundStem, IEnumerable<SongStem> mixerStems)
         {
             _gameManager = gameManager;
             _backgroundStem = backgroundStem;
-            _handlers = new List<AudioHandler>();
-            _reverbCounts = new Dictionary<SongStem, int>();
+            _contexts = new List<PlayerContext>();
             _stemStates = new Dictionary<SongStem, StemState>();
             _mixerStems = new HashSet<SongStem>(mixerStems);
         }
 
         public void AddPlayer(SongStem stem, SongStem reverbStem, BasePlayer player)
         {
-            _handlers.Add(new AudioHandler(stem, reverbStem, player, _gameManager, this, stem != _backgroundStem));
+            var context = new PlayerContext
+            {
+                StemState = GetOrCreateStemState(stem),
+                ReverbStemState = GetOrCreateStemState(reverbStem),
+                Player = player,
+                IsMultiTrack = stem != _backgroundStem
+            };
+
+            context.EventHandler = (playerEvent) => HandlePlayerEvent(context, playerEvent);
+            player.Events += context.EventHandler;
+            _contexts.Add(context);
+
             RegisterStemForPlayer(stem);
         }
 
@@ -67,237 +89,206 @@ namespace YARG.Audio
             return state;
         }
 
-        public void ChangeStemMuteState(SongStem stem, bool muted)
+        public void ChangeStemMuteState(StemState state, bool muted)
         {
             if (MuteOnMissSetting == AudioFxMode.Off
-                || !_stemStates.TryGetValue(stem, out var state)
                 || (MuteOnMissSetting == AudioFxMode.MultitrackOnly && !IsMultiTrack))
             {
                 return;
             }
 
             double volume = state.SetMute(muted);
-            MixerAudioHandler.SetVolumeSetting(stem, volume);
+            MixerAudioHandler.SetVolumeSetting(state.Stem, volume);
         }
 
-        private static AudioFxMode StarPowerFxSetting => SettingsManager.Settings.UseStarpowerFx.Value;
-
-        private void ChangeStemReverbState(SongStem stem, bool reverb)
+        private void ChangeStemReverbState(StemState state, bool reverb)
         {
-            int count = _reverbCounts.GetValueOrDefault(stem);
             if (reverb)
             {
-                count++;
+                state.ReverbCount++;
             }
-            else if (count > 0)
+            else if (state.ReverbCount > 0)
             {
-                count--;
+                state.ReverbCount--;
             }
-            _reverbCounts[stem] = count;
-            MixerAudioHandler.SetReverbSetting(stem, count > 0);
+
+            MixerAudioHandler.SetReverbSetting(state.Stem, state.ReverbCount > 0);
+        }
+
+        private void HandlePlayerEvent(PlayerContext context, PlayerEvent playerEvent)
+        {
+            YargLogger.LogDebug($"Received event: {playerEvent} for stem {context.StemState.Stem}");
+            switch (playerEvent)
+            {
+                case StarPowerChanged(var active):
+                    OnStarPowerChanged(context, active);
+                    break;
+                case ReplayTimeChanged:
+                    OnReplayTimeChanged(context);
+                    break;
+                case VisualsReset:
+                    OnVisualsReset(context);
+                    break;
+                case NoteHit:
+                    OnNoteHit(context);
+                    break;
+                case NoteMissed(var isComboBreak):
+                    OnNoteMissed(context, isComboBreak);
+                    break;
+                case Overhit:
+                    OnOverhit(context);
+                    break;
+                case SustainBroken:
+                    OnSustainBroken(context);
+                    break;
+                case SustainEnded:
+                    OnSustainEnded(context);
+                    break;
+                case StarPowerPhraseHit:
+                    OnStarPowerPhraseHit();
+                    break;
+                case WhammyDuringSustain(var whammyFactor):
+                    OnWhammyDuringSustain(context, whammyFactor);
+                    break;
+            }
+        }
+
+        private void OnReplayTimeChanged(PlayerContext context)
+        {
+            SetMuteState(context, false);
+        }
+
+        private void OnStarPowerPhraseHit()
+        {
+            if (_gameManager.Paused || _gameManager.IsSeekingReplay)
+            {
+                return;
+            }
+
+            GlobalAudioHandler.PlaySoundEffect(SfxSample.StarPowerAward);
+        }
+
+        private void OnStarPowerChanged(PlayerContext context, bool active)
+        {
+            var isSettingOff = StarPowerFxSetting == AudioFxMode.Off;
+            var isMultiTrackOnlySetting = StarPowerFxSetting == AudioFxMode.MultitrackOnly;
+            bool shouldSkipReverb = isSettingOff || (isMultiTrackOnlySetting && !context.IsMultiTrack);
+            if (shouldSkipReverb)
+            {
+                return;
+            }
+
+            ChangeStemReverbState(context.ReverbStemState, active);
+        }
+
+        private void OnWhammyDuringSustain(PlayerContext context, float whammyFactor)
+        {
+            if (!AllowWhammySetting)
+            {
+                return;
+            }
+
+            ChangeWhammyPitch(context, whammyFactor);
+        }
+
+        private void OnSustainEnded(PlayerContext context)
+        {
+            ChangeWhammyPitch(context, 0);
+        }
+
+        private void OnSustainBroken(PlayerContext context)
+        {
+            SetMuteState(context, true);
+        }
+
+        private void OnVisualsReset(PlayerContext context)
+        {
+            SetMuteState(context, false);
+        }
+
+        private void OnNoteMissed(PlayerContext context, bool isComboBreak)
+        {
+            if (_gameManager.IsSeekingReplay)
+            {
+                return;
+            }
+
+            SetMuteState(context, true);
+
+            if (isComboBreak)
+            {
+                PlayMissSfx();
+            }
+        }
+
+        private void OnOverhit(PlayerContext context)
+        {
+            var shouldPlaySfx = !_gameManager.IsSeekingReplay &&
+                context.Player.Player.Profile.CurrentInstrument.IsFiveFret() && AllowOverhitSfx;
+            if (shouldPlaySfx)
+            {
+                PlayOverstrumSfx();
+            }
+        }
+
+        private void OnNoteHit(PlayerContext context)
+        {
+            if (_gameManager.IsSeekingReplay)
+            {
+                return;
+            }
+
+            SetMuteState(context, false);
+        }
+
+        private void SetMuteState(PlayerContext context, bool muted)
+        {
+            if (context.StemState.Stem == Vocals || context.IsMuted == muted)
+            {
+                return;
+            }
+
+            ChangeStemMuteState(context.StemState, muted);
+            context.IsMuted = muted;
+        }
+
+        private void ChangeWhammyPitch(PlayerContext context, float percent)
+        {
+            // Ignore whammy on the background stem to avoid pitch-bending the full mix.
+            if (!context.IsMultiTrack)
+            {
+                return;
+            }
+
+            MixerAudioHandler.SetWhammyPitchSetting(context.StemState.Stem, percent);
+        }
+
+        private void PlayOverstrumSfx()
+        {
+            const int min = (int) SfxSample.Overstrum1;
+            const int max = (int) SfxSample.Overstrum4;
+            var randomOverstrum = (SfxSample) Random.Range(min, max + 1);
+            GlobalAudioHandler.PlaySoundEffect(randomOverstrum);
+        }
+
+        private void PlayMissSfx()
+        {
+            GlobalAudioHandler.PlaySoundEffect(SfxSample.NoteMiss);
         }
 
         public void Dispose()
         {
-            foreach (var handler in _handlers)
+            foreach (var context in _contexts)
             {
-                handler.Dispose();
+                context.Player.Events -= context.EventHandler;
             }
-            _handlers.Clear();
+
+            _contexts.Clear();
 
             // Restore player-owned stems to current user settings
-            foreach (var (stem, state) in _stemStates)
+            foreach (var state in _stemStates.Values)
             {
-                MixerAudioHandler.SetVolumeSetting(stem, state.Volume);
-            }
-        }
-
-        private class AudioHandler : IDisposable
-        {
-            private readonly SongStem           _stem;
-            private readonly SongStem           _reverbStem;
-            private readonly BasePlayer         _player;
-            private readonly GameManager        _gameManager;
-            private readonly PlayerAudioManager _audioManager;
-            private readonly bool               _isMultiTrack;
-            private          bool               _isMuted;
-            private          Instrument CurrentInstrument => _player.Player.Profile.CurrentInstrument;
-            private          bool IsSeekingReplay => _gameManager.IsSeekingReplay;
-            private static   bool AllowOverhitSfx => SettingsManager.Settings.OverstrumAndOverhitSoundEffects.Value;
-            private static   bool AllowWhammySetting => SettingsManager.Settings.UseWhammyFx.Value;
-
-            public AudioHandler(SongStem stem, SongStem reverbStem, BasePlayer player, GameManager gameManager, PlayerAudioManager audioManager, bool isMultiTrack)
-            {
-                _stem = stem;
-                _reverbStem = reverbStem;
-                _gameManager = gameManager;
-                _audioManager = audioManager;
-                _isMultiTrack = isMultiTrack;
-                _player = player;
-                _player.Events += HandlePlayerEvent;
-            }
-
-            private void HandlePlayerEvent(PlayerEvent playerEvent)
-            {
-                YargLogger.LogDebug($"Received event: {playerEvent} for stem {_stem}");
-                switch (playerEvent)
-                {
-                    case StarPowerChanged(var active):
-                        OnStarPowerChanged(active);
-                        break;
-                    case ReplayTimeChanged:
-                        OnReplayTimeChanged();
-                        break;
-                    case VisualsReset:
-                        OnVisualsReset();
-                        break;
-                    case NoteHit:
-                        OnNoteHit();
-                        break;
-                    case NoteMissed(var isComboBreak):
-                        OnNoteMissed(isComboBreak);
-                        break;
-                    case Overhit:
-                        OnOverhit();
-                        break;
-                    case SustainBroken:
-                        OnSustainBroken();
-                        break;
-                    case SustainEnded:
-                        OnSustainEnded();
-                        break;
-                    case StarPowerPhraseHit:
-                        OnStarPowerPhraseHit();
-                        break;
-                    case WhammyDuringSustain(var whammyFactor):
-                        OnWhammyDuringSustain(whammyFactor);
-                        break;
-                }
-            }
-
-            private void OnReplayTimeChanged()
-            {
-                SetMuteState(false);
-            }
-
-            private void OnStarPowerPhraseHit()
-            {
-                if (_gameManager.Paused || IsSeekingReplay)
-                {
-                    return;
-                }
-
-                GlobalAudioHandler.PlaySoundEffect(SfxSample.StarPowerAward);
-            }
-
-            private void OnStarPowerChanged(bool active)
-            {
-                var isSettingOff = StarPowerFxSetting == AudioFxMode.Off;
-                var isMultiTrackOnlySetting = StarPowerFxSetting == AudioFxMode.MultitrackOnly;
-                bool shouldSkipReverb = isSettingOff || (isMultiTrackOnlySetting && !_isMultiTrack);
-                if (shouldSkipReverb)
-                {
-                    return;
-                }
-
-                _audioManager.ChangeStemReverbState(_reverbStem, active);
-            }
-
-            private void OnWhammyDuringSustain(float whammyFactor)
-            {
-                if (!AllowWhammySetting)
-                {
-                    return;
-                }
-
-                ChangeWhammyPitch(whammyFactor);
-            }
-
-            private void OnSustainEnded()
-            {
-                ChangeWhammyPitch(0);
-            }
-
-            private void OnSustainBroken()
-            {
-                SetMuteState(true);
-            }
-
-            private void OnVisualsReset()
-            {
-                SetMuteState(false);
-            }
-
-            private void OnNoteMissed(bool isComboBreak)
-            {
-                if (IsSeekingReplay)
-                {
-                    return;
-                }
-
-                SetMuteState(true);
-
-                if (isComboBreak)
-                {
-                    PlayMissSfx();
-                }
-            }
-
-            private void OnOverhit()
-            {
-                var shouldPlaySfx = !IsSeekingReplay && CurrentInstrument.IsFiveFret() && AllowOverhitSfx;
-                if (shouldPlaySfx)
-                {
-                    PlayOverstrumSfx();
-                }
-            }
-
-            private void OnNoteHit()
-            {
-                if (IsSeekingReplay)
-                {
-                    return;
-                }
-                SetMuteState(false);
-            }
-
-            private void SetMuteState(bool muted)
-            {
-                if (_stem == Vocals || _isMuted == muted)
-                {
-                    return;
-                }
-
-                _audioManager.ChangeStemMuteState(_stem, muted);
-                _isMuted = muted;
-            }
-
-            private void ChangeWhammyPitch(float percent)
-            {
-                // Ignore whammy on the background stem to avoid pitch-bending the full mix.
-                if (!_isMultiTrack)
-                {
-                    return;
-                }
-                MixerAudioHandler.SetWhammyPitchSetting(_stem, percent);
-            }
-
-            private void PlayOverstrumSfx()
-            {
-                const int min = (int) SfxSample.Overstrum1;
-                const int max = (int) SfxSample.Overstrum4;
-                var randomOverstrum = (SfxSample) Random.Range(min, max + 1);
-                GlobalAudioHandler.PlaySoundEffect(randomOverstrum);
-            }
-
-            private void PlayMissSfx()
-            {
-                GlobalAudioHandler.PlaySoundEffect(SfxSample.NoteMiss);
-            }
-
-            public void Dispose()
-            {
-                _player.Events -= HandlePlayerEvent;
+                MixerAudioHandler.SetVolumeSetting(state.Stem, state.Volume);
             }
         }
     }

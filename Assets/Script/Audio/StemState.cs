@@ -7,15 +7,16 @@ namespace YARG.Audio
     {
         private const double DEFAULT_VOLUME = 1.0;
 
-        private readonly SongStem _stem;
+        public readonly SongStem Stem;
         public int Total;
         public int Audible;
+        public int ReverbCount;
 
         public double Volume => GetVolumeSetting();
 
         public StemState(SongStem stem)
         {
-            _stem = stem;
+            Stem = stem;
         }
 
         public double SetMute(bool muted)
@@ -34,7 +35,7 @@ namespace YARG.Audio
 
         private double GetVolumeSetting()
         {
-            return _stem switch
+            return Stem switch
             {
                 SongStem.Guitar    => SettingsManager.Settings.GuitarVolume.Value,
                 SongStem.Rhythm    => SettingsManager.Settings.RhythmVolume.Value,
