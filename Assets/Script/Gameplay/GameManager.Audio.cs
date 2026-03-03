@@ -1,8 +1,5 @@
 using System.Collections.Generic;
 using System.Linq;
-using DG.Tweening;
-using DG.Tweening.Core;
-using DG.Tweening.Plugins.Options;
 using YARG.Core.Audio;
 using YARG.Playback;
 using YARG.Settings;
@@ -13,9 +10,8 @@ namespace YARG.Gameplay
     {
         private const double DEFAULT_VOLUME = 1.0;
 
-        private SongStem                               _backgroundStem;
-        private TweenerCore<double, double, NoOptions> _crowdVolumeTween;
-        private bool                                   _hasCrowdStem;
+        private SongStem _backgroundStem;
+        private bool     _hasCrowdStem;
 
         private void LoadAudio()
         {
@@ -45,12 +41,13 @@ namespace YARG.Gameplay
 
             StarPowerActivations += active ? 1 : -1;
             if (StarPowerActivations < 0)
+            {
                 StarPowerActivations = 0;
+            }
         }
 
         private void RestoreCrowdAudio()
         {
-            _crowdVolumeTween?.Kill();
             if (_hasCrowdStem)
             {
                 MixerAudioHandler.SetVolumeSetting(SongStem.Crowd, SettingsManager.Settings.CrowdVolume.Value);
@@ -65,24 +62,7 @@ namespace YARG.Gameplay
             }
 
             double volume = muted ? 0.0 : SettingsManager.Settings.CrowdVolume.Value;
-
-            if (duration <= 0.0f)
-            {
-                MixerAudioHandler.SetVolumeSetting(SongStem.Crowd, volume);
-                return;
-            }
-
-            if (_crowdVolumeTween == null || !_crowdVolumeTween.IsPlaying())
-            {
-                _crowdVolumeTween = DOTween.To(
-                    () => MixerAudioHandler.GetVolumeSetting(SongStem.Crowd),
-                    x => MixerAudioHandler.SetVolumeSetting(SongStem.Crowd, x),
-                    volume, duration);
-            }
-            else
-            {
-                _crowdVolumeTween.ChangeEndValue(volume);
-            }
+            MixerAudioHandler.SetVolumeSetting(SongStem.Crowd, volume, duration);
         }
 
     }
