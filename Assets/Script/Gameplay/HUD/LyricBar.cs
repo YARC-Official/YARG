@@ -90,10 +90,10 @@ namespace YARG.Gameplay.HUD
                 _lyricTextObjects[i] = phraseObject;
             }
 
-            BuildLyricQueue();
+            BuildLyricTimings();
         }
 
-        private void BuildLyricQueue()
+        private void BuildLyricTimings()
         {
             var phrases = _songChart.Lyrics.Phrases;
             LyricBarPhrase.PhraseTransitionData previousPhraseTransitionData = null;
@@ -107,7 +107,6 @@ namespace YARG.Gameplay.HUD
                     Phrase = currentPhrase,
                 };
 
-                // Can't use i == 0 since we may not be building from the start
                 if (i == 0)
                 {
                     // First phrase fades in
