@@ -26,6 +26,8 @@ namespace YARG.Gameplay
         private static RawImage                _venueOutput;
         private static RenderTexture           _venueTexture;
         private static RenderTexture           _trailsTexture;
+        private static RenderTexture           _postProcessRT1;
+        private static RenderTexture           _postProcessRT2;
         private static CancellationTokenSource _cts;
 
         private static Material _trailsMaterial;
@@ -132,6 +134,14 @@ namespace YARG.Gameplay
 
             Graphics.Blit(Texture2D.blackTexture, _trailsTexture);
 
+            _postProcessRT1 = new RenderTexture(outputWidth, outputHeight, 32, RenderTextureFormat.DefaultHDR);
+            _postProcessRT1.filterMode = FilterMode.Bilinear;
+            _postProcessRT1.Create();
+
+            _postProcessRT2 = new RenderTexture(outputWidth, outputHeight, 32, RenderTextureFormat.DefaultHDR);
+            _postProcessRT2.filterMode = FilterMode.Bilinear;
+            _postProcessRT2.Create();
+
             _trailsMaterial = CreateMaterial("Trails");
             _scanlineMaterial = CreateMaterial("Scanlines");
             _mirrorMaterial = CreateMaterial("Mirror");
@@ -162,6 +172,26 @@ namespace YARG.Gameplay
             }
 
             _trailsTexture = new RenderTexture(_venueTexture);
+
+            if (_postProcessRT1 != null)
+            {
+                _postProcessRT1.Release();
+                _postProcessRT1.DiscardContents();
+            }
+
+            _postProcessRT1 = new RenderTexture(outputWidth, outputHeight, 32, RenderTextureFormat.DefaultHDR);
+            _postProcessRT1.filterMode = FilterMode.Bilinear;
+            _postProcessRT1.Create();
+
+            if (_postProcessRT2 != null)
+            {
+                _postProcessRT2.Release();
+                _postProcessRT2.DiscardContents();
+            }
+
+            _postProcessRT2 = new RenderTexture(outputWidth, outputHeight, 32, RenderTextureFormat.DefaultHDR);
+            _postProcessRT2.filterMode = FilterMode.Bilinear;
+            _postProcessRT2.Create();
         }
 
         private void OnEnable()
@@ -184,6 +214,20 @@ namespace YARG.Gameplay
                 _trailsTexture.Release();
                 Destroy(_trailsTexture);
                 _trailsTexture = null;
+            }
+
+            if (_postProcessRT1 != null)
+            {
+                _postProcessRT1.Release();
+                Destroy(_postProcessRT1);
+                _postProcessRT1 = null;
+            }
+
+            if (_postProcessRT2 != null)
+            {
+                _postProcessRT2.Release();
+                Destroy(_postProcessRT2);
+                _postProcessRT2 = null;
             }
 
             _venueOutput = null;
@@ -216,6 +260,20 @@ namespace YARG.Gameplay
                 _trailsTexture.Release();
                 Destroy(_trailsTexture);
                 _trailsTexture = null;
+            }
+
+            if (_postProcessRT1 != null)
+            {
+                _postProcessRT1.Release();
+                Destroy(_postProcessRT1);
+                _postProcessRT1 = null;
+            }
+
+            if (_postProcessRT2 != null)
+            {
+                _postProcessRT2.Release();
+                Destroy(_postProcessRT2);
+                _postProcessRT2 = null;
             }
 
             _venueOutput = null;
@@ -297,15 +355,11 @@ namespace YARG.Gameplay
         {
             var stack = VolumeManager.instance.stack;
 
-            var descriptor = new RenderTextureDescriptor(_venueTexture.width, _venueTexture.height, _venueTexture.format, 32, 0);
-            var rt1 = RenderTexture.GetTemporary(descriptor);
-            var rt2 = RenderTexture.GetTemporary(descriptor);
-
-            _renderCamera.targetTexture = rt1;
+            _renderCamera.targetTexture = _postProcessRT1;
             _renderCamera.Render();
 
-            RenderTargetIdentifier currentSource = rt1;
-            RenderTargetIdentifier currentDest = rt2;
+            RenderTargetIdentifier currentSource = _postProcessRT1;
+            RenderTargetIdentifier currentDest = _postProcessRT2;
 
             var cmd = CommandBufferPool.Get("Venue Post Process");
 
@@ -352,9 +406,6 @@ namespace YARG.Gameplay
 
             Graphics.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
-
-            RenderTexture.ReleaseTemporary(rt1);
-            RenderTexture.ReleaseTemporary(rt2);
         }
 
         private Material CreateMaterial(string shaderName)
