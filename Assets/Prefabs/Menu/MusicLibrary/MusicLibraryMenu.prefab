@@ -7926,8 +7926,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Padding:
-    m_Left: 15
-    m_Right: 15
+    m_Left: 60
+    m_Right: 60
     m_Top: 25
     m_Bottom: 25
   m_ChildAlignment: 4
@@ -9920,7 +9920,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 721981088149125613, guid: 8d66523691e71cd4c9a529b0324dfed2, type: 3}
       propertyPath: m_PixelsPerUnitMultiplier
-      value: 2
+      value: 1.25
       objectReference: {fileID: 0}
     - target: {fileID: 801383918954392180, guid: 8d66523691e71cd4c9a529b0324dfed2, type: 3}
       propertyPath: m_AnchorMax.y
@@ -9960,11 +9960,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1121126666004639308, guid: 8d66523691e71cd4c9a529b0324dfed2, type: 3}
       propertyPath: m_margin.x
-      value: 31.25
+      value: 30
       objectReference: {fileID: 0}
     - target: {fileID: 1121126666004639308, guid: 8d66523691e71cd4c9a529b0324dfed2, type: 3}
       propertyPath: m_margin.y
       value: -4
+      objectReference: {fileID: 0}
+    - target: {fileID: 1121126666004639308, guid: 8d66523691e71cd4c9a529b0324dfed2, type: 3}
+      propertyPath: m_lineSpacing
+      value: -12
       objectReference: {fileID: 0}
     - target: {fileID: 1121126666004639308, guid: 8d66523691e71cd4c9a529b0324dfed2, type: 3}
       propertyPath: m_HorizontalAlignment
@@ -10124,7 +10128,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7617404234607777830, guid: 8d66523691e71cd4c9a529b0324dfed2, type: 3}
       propertyPath: m_PixelsPerUnitMultiplier
-      value: 2
+      value: 1.25
       objectReference: {fileID: 0}
     - target: {fileID: 7617404234607777830, guid: 8d66523691e71cd4c9a529b0324dfed2, type: 3}
       propertyPath: m_Color.b
