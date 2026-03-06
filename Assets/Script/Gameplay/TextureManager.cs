@@ -112,10 +112,7 @@ namespace YARG.Gameplay
             return _videoTexture;
         }
 
-        public bool VideoTexFound()
-        {
-            return _videoTexFound;
-        }
+        public bool VideoTexFound() => _videoTexFound;
 
         public void CreateVideoTexture()
         {
@@ -142,20 +139,32 @@ namespace YARG.Gameplay
             if (m.HasTexture(_videoTexId) && songBackgroundType is BackgroundType.Video)
             {
                 var matTex = m.GetTexture(_videoTexId);
-                m.SetTexture(_videoTexId, GetVideoTexture(matTex?.width, matTex?.height));
-                _videoTexFound = true;
+
+                if (matTex != null)
+                {
+                    m.SetTexture(_videoTexId, GetVideoTexture(matTex.width, matTex.height));
+                    _videoTexFound = true;
+                }
             }
             if (m.HasTexture(_imageTexId) && songBackgroundType is BackgroundType.Image)
             {
                 var matTex = m.GetTexture(_imageTexId);
-                m.SetTexture(_imageTexId, GetVideoTexture(matTex?.width, matTex?.height));
-                _videoTexFound = true;
+
+                if (matTex != null)
+                {
+                    m.SetTexture(_imageTexId, GetVideoTexture(matTex.width, matTex.height));
+                    _videoTexFound = true;
+                }
             }
             if (m.HasTexture(_backgroundTexId) && songBackgroundType is BackgroundType.Image or BackgroundType.Video)
             {
                 var matTex = m.GetTexture(_backgroundTexId);
-                m.SetTexture(_backgroundTexId, GetVideoTexture(matTex?.width, matTex?.height));
-                _videoTexFound = true;
+
+                if (matTex != null)
+                {
+                    m.SetTexture(_backgroundTexId, GetVideoTexture(matTex.width, matTex.height));
+                    _videoTexFound = true;
+                }
             }
         }
 

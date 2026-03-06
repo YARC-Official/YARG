@@ -41,8 +41,7 @@ namespace YARG.Gameplay.HUD
         private bool _isSelected;
         private DragMode _dragMode;
 
-        // 1f = unscaled, prevents shrinking below default size
-        private const float MIN_SCALE = 1f;
+        private const float MIN_SCALE = 0.5f;
 
         private ScaleDragHandler _scaleHandler;
 
@@ -101,7 +100,7 @@ namespace YARG.Gameplay.HUD
 
             if (_allowScaling)
             {
-                var customScale = PersistedScale ?? MIN_SCALE;
+                var customScale = PersistedScale ?? 1f;
                 _scaleHandler.Initialize(customScale);
                 ScaleChanged?.Invoke(CurrentScale);
             }

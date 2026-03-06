@@ -243,12 +243,11 @@ namespace YARG.Gameplay.Visuals
 
         public void SetScaleMultiplier(float scaleMultiplier)
         {
-            float clampedMultiplier = Mathf.Max(1f, scaleMultiplier);
-            if (Mathf.Approximately(_scaleMultiplier, clampedMultiplier))
+            if (Mathf.Approximately(_scaleMultiplier, scaleMultiplier))
             {
                 return;
             }
-            _scaleMultiplier = clampedMultiplier;
+            _scaleMultiplier = scaleMultiplier;
             ResetCameras();
         }
 
