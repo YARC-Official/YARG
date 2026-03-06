@@ -2,9 +2,6 @@
 {
     Properties
     {
-        _MainTex ("Texture", 2D) = "white" {}
-        _PrevFrame ("Texture", 2D) = "black" {}
-        _FrameCount ("Frames to blend", Integer) = 4
         _Length ("Trail Length", Float) = 0.5
     }
     SubShader
@@ -17,45 +14,25 @@
 
         Pass
         {
-            CGPROGRAM
-            #pragma vertex vert
+            HLSLPROGRAM
+            #pragma vertex Vert
             #pragma fragment frag
 
-            #include "UnityCG.cginc"
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+            #include "Packages/com.unity.render-pipelines.core/Runtime/Utilities/Blit.hlsl"
 
-            struct appdata
-            {
-                float4 vertex : POSITION;
-                float2 uv : TEXCOORD0;
-            };
-
-            struct v2f
-            {
-                float2 uv : TEXCOORD0;
-                float4 vertex : SV_POSITION;
-            };
-
-            v2f vert(appdata v)
-            {
-                v2f o;
-                o.vertex = UnityObjectToClipPos(v.vertex);
-                o.uv = v.uv;
-                return o;
-            }
-
-            sampler2D _MainTex;
+            FRAMEBUFFER_INPUT_X_HALF(0);
             float _Length;
-            UNITY_DECLARE_TEX2DARRAY(_PrevFrames);
 
-            fixed4 frag(v2f i) : SV_Target
+            float4 frag(Varyings input) : SV_Target
             {
-                fixed4 col = tex2D(_MainTex, i.uv);
+                half4 col = LOAD_FRAMEBUFFER_X_INPUT(0, input.positionCS.xy);
 
                 col.a = _Length;
 
                 return col;
             }
-            ENDCG
+            ENDHLSL
         }
     }
 }

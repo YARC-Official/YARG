@@ -2,7 +2,6 @@
 {
     Properties
     {
-        _MainTex ("Texture", 2D) = "white" {}
         _ScanlineColor ("Scanline Color", Color) = (0,0,0,0)
         _ScanlineSize ("Scanline Size", Float) = 180
         _ScanlineIntensity ("Scanline Intensity", Float) = 0.5
@@ -10,46 +9,21 @@
     }
     SubShader
     {
-        Tags { "RenderType"="Opaque" "RenderPipeline"="UniversalPipeline" }
-        LOD 100
-
-//        Blend SrcAlpha OneMinusSrcAlpha
         ZWrite Off
 
         Pass
         {
             HLSLPROGRAM
-            #pragma vertex vert
+            #pragma vertex Vert
             #pragma fragment frag
-            // Include necessary headers for shader functions
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+            #include "Packages/com.unity.render-pipelines.core/Runtime/Utilities/Blit.hlsl"
 
-            struct Attributes
-            {
-                float4 positionOS : POSITION;
-                float2 uv : TEXCOORD0;
-            };
-
-            struct Varyings
-            {
-                float4 positionHCS : SV_POSITION;
-                float2 uv : TEXCOORD0;
-            };
-
-            sampler2D _MainTex;
-            float4 _MainTex_ST;
+            FRAMEBUFFER_INPUT_X_HALF(0);
             float4 _ScanlineColor;
             float _ScanlineSize;
             float _ScanlineIntensity;
             float _EasingPower;
-
-            Varyings vert (Attributes input)
-            {
-                Varyings output;
-                output.positionHCS = TransformObjectToHClip(input.positionOS.xyz);
-                output.uv = TRANSFORM_TEX(input.uv, _MainTex);
-                return output;
-            }
 
             float ExpInOut(float t)
             {
@@ -87,11 +61,10 @@
 
             float4 frag (Varyings input) : SV_Target
             {
-                // Sample the main texture
-                float4 col = tex2D(_MainTex, input.uv);
+                half4 col = LOAD_FRAMEBUFFER_X_INPUT(0, input.positionCS.xy);
 
                 // Calculate scanline effect
-                float scanline = frac(input.uv.y * _ScanlineSize);
+                float scanline = frac(input.texcoord.y * _ScanlineSize);
 
                 // Apply scanline color
                 col = ColorBlend(col, _ScanlineColor, scanline);

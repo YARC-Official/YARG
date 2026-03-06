@@ -2,6 +2,8 @@ using System;
 using System.Threading;
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEngine.Rendering.RenderGraphModule;
+using UnityEngine.Rendering.RenderGraphModule.Util;
 using UnityEngine.Rendering.Universal;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -23,11 +25,10 @@ namespace YARG.Gameplay
         private float _originalFactor;
         private UniversalRenderPipelineAsset UniversalRenderPipelineAsset;
 
-        private static RawImage                _venueOutput;
-        private static RenderTexture           _venueTexture;
-        private static RenderTexture           _trailsTexture;
-        private static RenderTexture           _postProcessRT1;
-        private static RenderTexture           _postProcessRT2;
+        private static RawImage _venueOutput;
+        private static RenderTexture _venueTexture;
+        private static RenderTexture _trailsTexture;
+
         private static CancellationTokenSource _cts;
 
         private static Material _trailsMaterial;
@@ -44,6 +45,8 @@ namespace YARG.Gameplay
         private static readonly int _startTimeId = Shader.PropertyToID("_StartTime");
 
         private static readonly string[] _mirrorKeywords = { "LEFT", "RIGHT", "CLOCK_CCW", "NONE" };
+
+        private VenuePostPostProcessingPass _pass;
 
         public static float ActualFPS;
         public static float TargetFPS;
@@ -63,7 +66,7 @@ namespace YARG.Gameplay
 
         private bool _didRender;
 
-        private int   _frameCount;
+        private int _frameCount;
         private float _elapsedTime;
         private static float _timeSinceLastRender;
 
@@ -72,6 +75,8 @@ namespace YARG.Gameplay
 
         private void Awake()
         {
+            _pass = new VenuePostPostProcessingPass(this);
+
             renderScale = GraphicsManager.Instance.VenueRenderScale;
             _renderCamera = GetComponent<Camera>();
             // Disable the camera so we can control when it renders
@@ -122,26 +127,6 @@ namespace YARG.Gameplay
 
             SceneManager.sceneUnloaded += OnSceneUnloaded;
 
-            var outputWidth = (int)(Screen.width * renderScale);
-            var outputHeight = (int)(Screen.height * renderScale);
-            _venueTexture = new RenderTexture(outputWidth, outputHeight, 32, RenderTextureFormat.DefaultHDR);
-            _venueOutput.texture = _venueTexture;
-
-            _trailsTexture = new RenderTexture(_venueTexture);
-            _trailsTexture.filterMode = FilterMode.Bilinear;
-            _trailsTexture.wrapMode = TextureWrapMode.Clamp;
-            _trailsTexture.Create();
-
-            Graphics.Blit(Texture2D.blackTexture, _trailsTexture);
-
-            _postProcessRT1 = new RenderTexture(outputWidth, outputHeight, 32, RenderTextureFormat.DefaultHDR);
-            _postProcessRT1.filterMode = FilterMode.Bilinear;
-            _postProcessRT1.Create();
-
-            _postProcessRT2 = new RenderTexture(outputWidth, outputHeight, 32, RenderTextureFormat.DefaultHDR);
-            _postProcessRT2.filterMode = FilterMode.Bilinear;
-            _postProcessRT2.Create();
-
             _trailsMaterial = CreateMaterial("Trails");
             _scanlineMaterial = CreateMaterial("Scanlines");
             _mirrorMaterial = CreateMaterial("Mirror");
@@ -161,9 +146,6 @@ namespace YARG.Gameplay
 
             var outputWidth = (int)(Screen.width * renderScale);
             var outputHeight = (int)(Screen.height * renderScale);
-            _venueTexture = new RenderTexture(outputWidth, outputHeight, 0, RenderTextureFormat.DefaultHDR);
-
-            _venueOutput.texture = _venueTexture;
 
             if (_trailsTexture != null)
             {
@@ -171,33 +153,30 @@ namespace YARG.Gameplay
                 _trailsTexture.DiscardContents();
             }
 
-            _trailsTexture = new RenderTexture(_venueTexture);
+            var descriptor = new RenderTextureDescriptor(outputWidth, outputHeight, RenderTextureFormat.DefaultHDR, 16, 0);
+            _venueTexture = new RenderTexture(descriptor);
+            _venueOutput.texture = _venueTexture;
 
-            if (_postProcessRT1 != null)
-            {
-                _postProcessRT1.Release();
-                _postProcessRT1.DiscardContents();
-            }
+            descriptor.depthBufferBits = 0;
+            _trailsTexture = new RenderTexture(descriptor);
+            _trailsTexture.filterMode = FilterMode.Bilinear;
+            _trailsTexture.wrapMode = TextureWrapMode.Clamp;
+            _trailsTexture.Create();
 
-            _postProcessRT1 = new RenderTexture(outputWidth, outputHeight, 32, RenderTextureFormat.DefaultHDR);
-            _postProcessRT1.filterMode = FilterMode.Bilinear;
-            _postProcessRT1.Create();
+            Graphics.Blit(Texture2D.blackTexture, _trailsTexture);
 
-            if (_postProcessRT2 != null)
-            {
-                _postProcessRT2.Release();
-                _postProcessRT2.DiscardContents();
-            }
-
-            _postProcessRT2 = new RenderTexture(outputWidth, outputHeight, 32, RenderTextureFormat.DefaultHDR);
-            _postProcessRT2.filterMode = FilterMode.Bilinear;
-            _postProcessRT2.Create();
         }
 
         private void OnEnable()
         {
             FPS = SettingsManager.Settings.VenueFpsCap.Value;
             _timeSinceLastRender = 0f;
+            RenderPipelineManager.beginCameraRendering += OnPreCameraRender;
+        }
+
+        private void OnDisable()
+        {
+            RenderPipelineManager.beginCameraRendering -= OnPreCameraRender;
         }
 
         private void OnDestroy()
@@ -214,20 +193,6 @@ namespace YARG.Gameplay
                 _trailsTexture.Release();
                 Destroy(_trailsTexture);
                 _trailsTexture = null;
-            }
-
-            if (_postProcessRT1 != null)
-            {
-                _postProcessRT1.Release();
-                Destroy(_postProcessRT1);
-                _postProcessRT1 = null;
-            }
-
-            if (_postProcessRT2 != null)
-            {
-                _postProcessRT2.Release();
-                Destroy(_postProcessRT2);
-                _postProcessRT2 = null;
             }
 
             _venueOutput = null;
@@ -260,20 +225,6 @@ namespace YARG.Gameplay
                 _trailsTexture.Release();
                 Destroy(_trailsTexture);
                 _trailsTexture = null;
-            }
-
-            if (_postProcessRT1 != null)
-            {
-                _postProcessRT1.Release();
-                Destroy(_postProcessRT1);
-                _postProcessRT1 = null;
-            }
-
-            if (_postProcessRT2 != null)
-            {
-                _postProcessRT2.Release();
-                Destroy(_postProcessRT2);
-                _postProcessRT2 = null;
             }
 
             _venueOutput = null;
@@ -351,61 +302,30 @@ namespace YARG.Gameplay
             }
         }
 
+        private void OnPreCameraRender(ScriptableRenderContext ctx, Camera cam)
+        {
+            if (cam != _renderCamera)
+            {
+                return;
+            }
+
+            var renderer = _renderCamera.GetUniversalAdditionalCameraData().scriptableRenderer;
+            renderer.EnqueuePass(_pass);
+        }
+
         private void Render(int effectiveFps)
         {
-            var stack = VolumeManager.instance.stack;
+            _pass.effectiveFPS = effectiveFps;
+            // Create a standard request
+            var request = new RenderPipeline.StandardRequest();
 
-            _renderCamera.targetTexture = _postProcessRT1;
-            _renderCamera.Render();
-
-            RenderTargetIdentifier currentSource = _postProcessRT1;
-            RenderTargetIdentifier currentDest = _postProcessRT2;
-
-            var cmd = CommandBufferPool.Get("Venue Post Process");
-
-            var trailsEffect = stack.GetComponent<TrailsComponent>();
-            if (trailsEffect.IsActive() && _trailsMaterial != null)
+            // Check if the request is supported by the active render pipeline
+            if (RenderPipeline.SupportsRenderRequest(_renderCamera, request))
             {
-                var adjustedLength = Mathf.Pow(trailsEffect.Length, effectiveFps / 60f);
-
-                _trailsMaterial.SetFloat(_trailsLengthId, adjustedLength);
-                cmd.Blit(currentSource, _trailsTexture, _trailsMaterial);
-                currentSource = _trailsTexture;
+                request.destination = _venueTexture;
+                // Render camera and fill texture2D with its view
+                RenderPipeline.SubmitRenderRequest(_renderCamera, request);
             }
-
-            var posterizeEffect = stack.GetComponent<PosterizeComponent>();
-            if (posterizeEffect.IsActive() && _posterizeMaterial != null)
-            {
-                _posterizeMaterial.SetInteger(_posterizeStepsId, posterizeEffect.Steps.value);
-                cmd.Blit(currentSource, currentDest, _posterizeMaterial);
-                (currentSource, currentDest) = (currentDest, currentSource);
-            }
-
-            var mirrorEffect = stack.GetComponent<MirrorComponent>();
-            if (mirrorEffect.IsActive() && _mirrorMaterial != null)
-            {
-                _mirrorMaterial.shaderKeywords = Array.Empty<string>();
-                _mirrorMaterial.EnableKeyword(_mirrorKeywords[mirrorEffect.wipeIndex.value]);
-                _mirrorMaterial.SetFloat(_wipeTimeId, mirrorEffect.wipeTime.value);
-                _mirrorMaterial.SetFloat(_startTimeId, mirrorEffect.startTime.value);
-                cmd.Blit(currentSource, currentDest, _mirrorMaterial);
-                (currentSource, currentDest) = (currentDest, currentSource);
-            }
-
-            var scanlineEffect = stack.GetComponent<ScanlineComponent>();
-            if (scanlineEffect.IsActive() && _scanlineMaterial != null)
-            {
-                _scanlineMaterial.SetFloat(_scanlineIntensityId, scanlineEffect.intensity.value);
-                _scanlineMaterial.SetInt(_scanlineSizeId, scanlineEffect.scanlineCount.value);
-                cmd.Blit(currentSource, currentDest, _scanlineMaterial);
-                (currentSource, currentDest) = (currentDest, currentSource);
-            }
-
-            // Now blit the combined effects to the output texture (while clearing alpha)
-            cmd.Blit(currentSource, _venueTexture, _alphaClearMaterial);
-
-            Graphics.ExecuteCommandBuffer(cmd);
-            CommandBufferPool.Release(cmd);
         }
 
         private Material CreateMaterial(string shaderName)
@@ -419,5 +339,113 @@ namespace YARG.Gameplay
 
             return CoreUtils.CreateEngineMaterial(shader);
         }
+
+        private sealed class VenuePostPostProcessingPass : ScriptableRenderPass
+        {
+            private readonly ProfilingSampler _profilingSampler = new ProfilingSampler("VenuePostPostProcessingPass");
+            public int effectiveFPS;
+
+            public VenuePostPostProcessingPass(VenueCameraRenderer vcr)
+            {
+                renderPassEvent = RenderPassEvent.AfterRendering;
+                requiresIntermediateTexture = true;
+            }
+
+            public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
+            {
+                UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
+
+                var destinationDesc = renderGraph.GetTextureDesc(resourceData.cameraColor);
+                destinationDesc.clearBuffer = false;
+                destinationDesc.depthBufferBits = 0;
+
+                TextureHandle trailsTexture = renderGraph.ImportTexture(RTHandles.Alloc(_trailsTexture));
+                TextureHandle tempTexture = renderGraph.CreateTexture(destinationDesc);
+
+                TextureHandle currentDest = tempTexture;
+                TextureHandle currentSource = resourceData.activeColorTexture;
+
+
+                var stack = VolumeManager.instance.stack;
+
+                Action<string, Material> AddPass = (name, material) =>
+                {
+                    using (var builder = renderGraph.AddRasterRenderPass<PassData>("Scanlines", out var passData, _profilingSampler))
+                    {
+                        builder.SetInputAttachment(currentSource, 0);
+                        builder.SetRenderAttachment(currentDest, 0);
+                        passData.material = _scanlineMaterial;
+                        builder.AllowPassCulling(false);
+                        builder.SetRenderFunc<PassData>(RenderFunc);
+
+                        (currentSource, currentDest) = (currentDest, currentSource);
+                        if (currentDest.Equals(trailsTexture))
+                        {
+                            if (currentSource.Equals(resourceData.activeColorTexture))
+                            {
+                                currentDest = tempTexture;
+                            }
+                            else
+                            {
+                                currentDest = resourceData.activeColorTexture;
+                            }
+                        }
+                    }
+                };
+
+                var trailsEffect = stack.GetComponent<TrailsComponent>();
+                if (trailsEffect.IsActive() && _trailsMaterial != null)
+                {
+                    var adjustedLength = Mathf.Pow(trailsEffect.Length, effectiveFPS / 60f);
+
+                    _trailsMaterial.SetFloat(_trailsLengthId, adjustedLength);
+
+                    currentDest = trailsTexture;
+                    AddPass("Trails Pass", _trailsMaterial);
+                }
+
+                var posterizeEffect = stack.GetComponent<PosterizeComponent>();
+                if (posterizeEffect.IsActive() && _posterizeMaterial != null)
+                {
+                    _posterizeMaterial.SetInteger(_posterizeStepsId, posterizeEffect.Steps.value);
+                    AddPass("Posterize Pass", _posterizeMaterial);
+                }
+
+                var mirrorEffect = stack.GetComponent<MirrorComponent>();
+                if (mirrorEffect.IsActive() && _mirrorMaterial != null)
+                {
+                    _mirrorMaterial.shaderKeywords = Array.Empty<string>();
+                    _mirrorMaterial.EnableKeyword(_mirrorKeywords[mirrorEffect.wipeIndex.value]);
+                    _mirrorMaterial.SetFloat(_wipeTimeId, mirrorEffect.wipeTime.value);
+                    _mirrorMaterial.SetFloat(_startTimeId, mirrorEffect.startTime.value);
+                    AddPass("Mirror Pass", _mirrorMaterial);
+                }
+
+                var scanlineEffect = stack.GetComponent<ScanlineComponent>();
+                if (scanlineEffect.IsActive() && _scanlineMaterial != null)
+                {
+                    _scanlineMaterial.SetFloat(_scanlineIntensityId, scanlineEffect.intensity.value);
+                    _scanlineMaterial.SetInt(_scanlineSizeId, scanlineEffect.scanlineCount.value);
+
+                    AddPass("Scanlines", _scanlineMaterial);
+                }
+
+                if (!currentSource.Equals(resourceData.activeColorTexture))
+                {
+                    renderGraph.AddCopyPass(currentSource, resourceData.activeColorTexture, passName: "Copy Temp Texture to Active Color Texture");
+                }
+            }
+
+            private static void RenderFunc(PassData data, RasterGraphContext context)
+            {
+                Blitter.BlitTexture(context.cmd, new Vector4(1, 1, 0, 0), data.material, 0);
+            }
+
+            private class PassData
+            {
+                public Material material;
+            }
+        }
+
     }
 }

@@ -2,54 +2,27 @@
 {
     Properties
     {
-        _MainTex ("Texture", 2D) = "white" {}
         _StartTime ("Start Time", Float) = 0
         _WipeLength ("Wipe Length", Float) = 0.5
     }
     SubShader
     {
-        Tags { "RenderType"="Opaque" "RenderPipeline"="UniversalPipeline" }
-        LOD 100
-
         Pass
         {
             HLSLPROGRAM
             #pragma multi_compile_local LEFT RIGHT CLOCK_CCW NONE
-            #pragma vertex vert
+            #pragma vertex Vert
             #pragma fragment frag
-            // Include necessary headers for shader functions
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+            #include "Packages/com.unity.render-pipelines.core/Runtime/Utilities/Blit.hlsl"
 
-            struct Attributes
-            {
-                float4 positionOS : POSITION;
-                float2 uv : TEXCOORD0;
-            };
-
-            struct Varyings
-            {
-                float4 positionHCS : SV_POSITION;
-                float2 uv : TEXCOORD0;
-            };
-
-            sampler2D _MainTex;
-            float4 _MainTex_ST;
-
+            FRAMEBUFFER_INPUT_X_HALF(0);
             float _StartTime;
             float _WipeLength;
 
-            Varyings vert (Attributes input)
-            {
-                Varyings output;
-                output.positionHCS = TransformObjectToHClip(input.positionOS.xyz);
-                output.uv = TRANSFORM_TEX(input.uv, _MainTex);
-                return output;
-            }
-
             float4 frag (Varyings input) : SV_Target
             {
-                float4 col;
-                float2 uv = input.uv;
+                float2 uv = input.texcoord;
 
                 float elapsedTime = _Time.y - _StartTime;
                 float t = saturate(elapsedTime / _WipeLength);
@@ -85,15 +58,15 @@
                         uv.x = 1.0 - uv.x;
                     }
                 #else
-                    uv = input.uv;
+                    uv = input.texcoord;
                     if (uv.x < 0.5)
                     {
                         uv.x = 1 - uv.x;
                     }
                 #endif
 
-                // Sample the main texture
-                col = tex2D(_MainTex, uv);
+                float2 samplePos = uv * _ScreenParams.xy;
+                half4 col = LOAD_FRAMEBUFFER_X_INPUT(0, samplePos);
 
                 return col;
             }
