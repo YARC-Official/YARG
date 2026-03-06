@@ -87,15 +87,12 @@ namespace YARG.Integration.Sacn
 
             if (channel == bass || channel == drums || channel == guitar || channel == keys)
             {
-                if (value <= 0 && PulseDuration > 0f) return;
+                if (value <= 0) return;
                 _dataPacket[channel - 1] = value;
-                if (value > 0)
-                {
-                    if (PulseDuration > 0f)
-                        _channelOffTimes[channel] = Time.time + PulseDuration;
-                    else
-                        _channelOffTimes[channel] = Time.time + TIME_BETWEEN_CALLS;
-                }
+                if (PulseDuration > 0f)
+                    _channelOffTimes[channel] = Time.time + PulseDuration;
+                else
+                    _channelOffTimes[channel] = Time.time + TIME_BETWEEN_CALLS;
             }
             else
             {

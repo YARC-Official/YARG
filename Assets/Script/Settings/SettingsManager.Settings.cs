@@ -496,7 +496,7 @@ namespace YARG.Settings
 
             public IntSetting DMXTargetFPS { get; } = new(44, 10, 60);
 
-            public IntSetting DMXPulseDuration { get; } = new(0, 0, 500);
+            public IntSetting DMXPulseDuration { get; } = new(60, 0, 500);
 
             public DMXChannelsSetting DMXDimmerValues { get; } = new(new[] { 255, 255, 255, 255, 255, 255, 255, 255 });
 
