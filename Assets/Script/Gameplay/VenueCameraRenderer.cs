@@ -374,7 +374,7 @@ namespace YARG.Gameplay
                     {
                         builder.SetInputAttachment(currentSource, 0);
                         builder.SetRenderAttachment(currentDest, 0);
-                        passData.material = _scanlineMaterial;
+                        passData.material = material;
                         builder.AllowPassCulling(false);
                         builder.SetRenderFunc<PassData>(RenderFunc);
 
