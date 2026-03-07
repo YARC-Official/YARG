@@ -36,6 +36,7 @@ Shader "Artificial Artists/Universal Render Pipeline/AA_UberPost"
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/FoveatedRendering.hlsl"
         #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareDepthTexture.hlsl"
         #include "Assets/Art/Shaders/highways.hlsl"
+        #include "Assets/Resources/VenueShaders/VenuePP.hlsl"
 
         // Hardcoded dependencies to reduce the number of variants
         #if _BLOOM_LQ || _BLOOM_HQ || _BLOOM_LQ_DIRT || _BLOOM_HQ_DIRT
@@ -156,6 +157,7 @@ Shader "Artificial Artists/Universal Render Pipeline/AA_UberPost"
 
             float2 uv = SCREEN_COORD_APPLY_SCALEBIAS(UnityStereoTransformScreenSpaceTex(input.texcoord));
             float2 uvDistorted = DistortUV(uv);
+            uvDistorted = YargVenueUV(uvDistorted);
 
             // NOTE: Hlsl specifies missing input.a to fill 1 (0 for .rgb).
             // InputColor is a "bottom" layer for alpha output.
@@ -325,14 +327,19 @@ Shader "Artificial Artists/Universal Render Pipeline/AA_UberPost"
                 return half4(color, min(alpha, alpha_mask));
             }
 
+            // If we're here, this is not highway, and we don't want transparency in venues
+            alpha = 1.0;
+            
+            color = YargVenuePP(color, uvDistorted);
+
             return half4(color, alpha);
 
-            #if _ENABLE_ALPHA_OUTPUT
-            // Saturate is necessary to avoid issues when additive blending pushes the alpha over 1.
-            return half4(color, saturate(inputColor.a));
-            #else
-            return half4(color, 1);
-            #endif
+            // #if _ENABLE_ALPHA_OUTPUT
+            // // Saturate is necessary to avoid issues when additive blending pushes the alpha over 1.
+            // return half4(color, saturate(inputColor.a));
+            // #else
+            // return half4(color, 1);
+            // #endif
         }
 
     ENDHLSL

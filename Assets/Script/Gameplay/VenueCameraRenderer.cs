@@ -38,13 +38,15 @@ namespace YARG.Gameplay
         private static Material _alphaClearMaterial;
 
         private static readonly int _trailsLengthId = Shader.PropertyToID("_Length");
-        private static readonly int _posterizeStepsId = Shader.PropertyToID("_Steps");
-        private static readonly int _scanlineIntensityId = Shader.PropertyToID("_ScanlineIntensity");
-        private static readonly int _scanlineSizeId = Shader.PropertyToID("_ScanlineSize");
-        private static readonly int _wipeTimeId = Shader.PropertyToID("_WipeTime");
-        private static readonly int _startTimeId = Shader.PropertyToID("_StartTime");
+        private static readonly int _posterizeStepsId = Shader.PropertyToID("_YargPosterizeSteps");
+        private static readonly int _scanlineIntensityId = Shader.PropertyToID("_YargScanlineIntensity");
+        private static readonly int _scanlineSizeId = Shader.PropertyToID("_YargScanlineSize");
+        private static readonly int _scanlineColor = Shader.PropertyToID("_YargScanlineColor");
+        private static readonly int _scanlineEasingPower = Shader.PropertyToID("_YargScanlineEasingPower");
+        private static readonly int _wipeTimeId = Shader.PropertyToID("_YargMirrorWipeTime");
+        private static readonly int _startTimeId = Shader.PropertyToID("_YargMirrorStartTime");
 
-        private static readonly string[] _mirrorKeywords = { "LEFT", "RIGHT", "CLOCK_CCW", "NONE" };
+        private static readonly string[] _mirrorKeywords = { "YARG_MIRROR_LEFT", "YARG_MIRROR_RIGHT", "YARG_MIRROR_CLOCK_CCW", "YARG_MIRROR_NONE" };
 
         private VenuePostPostProcessingPass _pass;
 
@@ -76,6 +78,9 @@ namespace YARG.Gameplay
         private void Awake()
         {
             _pass = new VenuePostPostProcessingPass(this);
+
+            Shader.SetGlobalColor(_scanlineColor, Color.black);
+            Shader.SetGlobalFloat(_scanlineEasingPower, 2.0f);
 
             renderScale = GraphicsManager.Instance.VenueRenderScale;
             _renderCamera = GetComponent<Camera>();
@@ -172,11 +177,13 @@ namespace YARG.Gameplay
             FPS = SettingsManager.Settings.VenueFpsCap.Value;
             _timeSinceLastRender = 0f;
             RenderPipelineManager.beginCameraRendering += OnPreCameraRender;
+            RenderPipelineManager.endCameraRendering += OnEndCameraRender;
         }
 
         private void OnDisable()
         {
             RenderPipelineManager.beginCameraRendering -= OnPreCameraRender;
+            RenderPipelineManager.endCameraRendering -= OnEndCameraRender;
         }
 
         private void OnDestroy()
@@ -302,11 +309,55 @@ namespace YARG.Gameplay
             }
         }
 
+        private void OnEndCameraRender(ScriptableRenderContext ctx, Camera cam)
+        {
+            if (cam != _renderCamera)
+            {
+                return;
+            }
+            Shader.SetGlobalInteger(_posterizeStepsId, 0);
+            Shader.SetGlobalFloat(_startTimeId, 0);
+            Shader.SetGlobalInt(_scanlineSizeId, 0);
+        }
+
         private void OnPreCameraRender(ScriptableRenderContext ctx, Camera cam)
         {
             if (cam != _renderCamera)
             {
                 return;
+            }
+
+            var stack = VolumeManager.instance.stack;
+
+            var posterizeEffect = stack.GetComponent<PosterizeComponent>();
+            if (posterizeEffect.IsActive())
+            {
+                Shader.SetGlobalInteger(_posterizeStepsId, posterizeEffect.Steps.value);
+            }
+
+            var mirrorEffect = stack.GetComponent<MirrorComponent>();
+            if (mirrorEffect.IsActive())
+            {
+                for(int i = 0; i < _mirrorKeywords.Length; ++i)
+                {
+                    if (i == mirrorEffect.wipeIndex.value)
+                    {
+                        Shader.EnableKeyword(_mirrorKeywords[i]);
+                    }
+                    else
+                    {
+                        Shader.DisableKeyword(_mirrorKeywords[i]);
+                    }
+                }
+                Shader.SetGlobalFloat(_wipeTimeId, mirrorEffect.wipeTime.value);
+                Shader.SetGlobalFloat(_startTimeId, mirrorEffect.startTime.value);
+            }
+
+            var scanlineEffect = stack.GetComponent<ScanlineComponent>();
+            if (scanlineEffect.IsActive())
+            {
+                Shader.SetGlobalFloat(_scanlineIntensityId, scanlineEffect.intensity.value);
+                Shader.SetGlobalInt(_scanlineSizeId, scanlineEffect.scanlineCount.value);
             }
 
             var renderer = _renderCamera.GetUniversalAdditionalCameraData().scriptableRenderer;
@@ -404,31 +455,31 @@ namespace YARG.Gameplay
                     AddPass("Trails Pass", _trailsMaterial);
                 }
 
-                var posterizeEffect = stack.GetComponent<PosterizeComponent>();
-                if (posterizeEffect.IsActive() && _posterizeMaterial != null)
-                {
-                    _posterizeMaterial.SetInteger(_posterizeStepsId, posterizeEffect.Steps.value);
-                    AddPass("Posterize Pass", _posterizeMaterial);
-                }
+                // var posterizeEffect = stack.GetComponent<PosterizeComponent>();
+                // if (posterizeEffect.IsActive() && _posterizeMaterial != null)
+                // {
+                //     _posterizeMaterial.SetInteger(_posterizeStepsId, posterizeEffect.Steps.value);
+                //     AddPass("Posterize Pass", _posterizeMaterial);
+                // }
 
-                var mirrorEffect = stack.GetComponent<MirrorComponent>();
-                if (mirrorEffect.IsActive() && _mirrorMaterial != null)
-                {
-                    _mirrorMaterial.shaderKeywords = Array.Empty<string>();
-                    _mirrorMaterial.EnableKeyword(_mirrorKeywords[mirrorEffect.wipeIndex.value]);
-                    _mirrorMaterial.SetFloat(_wipeTimeId, mirrorEffect.wipeTime.value);
-                    _mirrorMaterial.SetFloat(_startTimeId, mirrorEffect.startTime.value);
-                    AddPass("Mirror Pass", _mirrorMaterial);
-                }
+                // var mirrorEffect = stack.GetComponent<MirrorComponent>();
+                // if (mirrorEffect.IsActive() && _mirrorMaterial != null)
+                // {
+                //     _mirrorMaterial.shaderKeywords = Array.Empty<string>();
+                //     _mirrorMaterial.EnableKeyword(_mirrorKeywords[mirrorEffect.wipeIndex.value]);
+                //     _mirrorMaterial.SetFloat(_wipeTimeId, mirrorEffect.wipeTime.value);
+                //     _mirrorMaterial.SetFloat(_startTimeId, mirrorEffect.startTime.value);
+                //     AddPass("Mirror Pass", _mirrorMaterial);
+                // }
 
-                var scanlineEffect = stack.GetComponent<ScanlineComponent>();
-                if (scanlineEffect.IsActive() && _scanlineMaterial != null)
-                {
-                    _scanlineMaterial.SetFloat(_scanlineIntensityId, scanlineEffect.intensity.value);
-                    _scanlineMaterial.SetInt(_scanlineSizeId, scanlineEffect.scanlineCount.value);
+                // var scanlineEffect = stack.GetComponent<ScanlineComponent>();
+                // if (scanlineEffect.IsActive() && _scanlineMaterial != null)
+                // {
+                //     _scanlineMaterial.SetFloat(_scanlineIntensityId, scanlineEffect.intensity.value);
+                //     _scanlineMaterial.SetInt(_scanlineSizeId, scanlineEffect.scanlineCount.value);
 
-                    AddPass("Scanlines", _scanlineMaterial);
-                }
+                //     AddPass("Scanlines", _scanlineMaterial);
+                // }
 
                 if (!currentSource.Equals(resourceData.activeColorTexture))
                 {
