@@ -23,7 +23,7 @@ namespace YARG.Gameplay.HUD
         {
             _targetRect = targetRect;
             _minScale = minScale;
-            CurrentScale = minScale;
+            CurrentScale = 1f;
         }
 
         public void Initialize(float persistedScale)
@@ -87,7 +87,7 @@ namespace YARG.Gameplay.HUD
 
         public void Reset()
         {
-            CurrentScale = _minScale;
+            CurrentScale = 1f;
         }
     }
 }

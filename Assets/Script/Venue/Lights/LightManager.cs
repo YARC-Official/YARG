@@ -203,7 +203,7 @@ namespace YARG.Venue
             // Look for new performer events
             // TODO: Fix the event parsing so that Time and TimeEnd aren't backwards (with the attendant negative length)
             while (_performerEventIndex < _performerEvents.Count &&
-                _performerEvents[_performerEventIndex].TimeEnd <= GameManager.VisualTime)
+                _performerEvents[_performerEventIndex].Time <= GameManager.VisualTime)
             {
                 var current = _performerEvents[_performerEventIndex];
                 if (current.Type != PerformerEventType.Spotlight)
