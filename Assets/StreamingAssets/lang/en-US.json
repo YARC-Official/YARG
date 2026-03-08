@@ -1098,6 +1098,10 @@
                     "Stars": "Stars"
                 }
             },
+            "ShowPercentDecimals": {
+                "Name": "Show Percent Decimals",
+                "Description": "Shows one decimal place for accuracy percentages in the Music Library and Score Screen."
+            },
             "HighScoreHistory": {
                 "Name": "High Score History",
                 "Description": "Changes how score history gets used for high score information displayed in the Music Library.",

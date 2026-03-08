@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.UI;
 using YARG.Helpers.Extensions;
+using YARG.Settings;
 
 
 namespace YARG.Menu.MusicLibrary
@@ -33,8 +34,16 @@ namespace YARG.Menu.MusicLibrary
             _difficultyIcon.sprite = difficultyIcon;
 
             // Set percent value
-            var percent = Mathf.Floor(scoreInfo.Percent * 1000f) / 10f;
-            _percentText.text = $"{percent:0.0}%";
+            if (SettingsManager.Settings.ShowPercentDecimals.Value)
+            {
+                var percent = Mathf.Floor(scoreInfo.Percent * 1000f) / 10f;
+                _percentText.text = $"{percent:0.0}%";
+            }
+            else
+            {
+                _percentText.text = $"{Mathf.FloorToInt(scoreInfo.Percent * 100f)}%";
+            }
+
             _percentText.color = scoreInfo.IsFc ? _fcGold : Color.white;
         }
     }
