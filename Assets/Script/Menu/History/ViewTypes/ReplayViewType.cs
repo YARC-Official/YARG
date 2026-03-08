@@ -105,7 +105,7 @@ namespace YARG.Menu.History
             LoadIntoReplay(_entry, _songEntry);
         }
 
-        // Anaylze Replay Button
+        // Analyze Replay Button
         public override void Shortcut1()
         {
             if (_songEntry == null)
