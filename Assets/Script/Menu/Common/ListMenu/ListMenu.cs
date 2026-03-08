@@ -208,6 +208,27 @@ namespace YARG.Menu.ListMenu
                 // Otherwise, show
                 _viewObjects[i].Show(relativeIndex == 0, _viewList[realIndex]);
             }
+
+            RealignParentViewObject();
+        }
+
+        private void RealignParentViewObject()
+        {
+            float topHeight = 0;
+            float bottomHeight = 0;
+            for (int i = 0; i < _viewObjects.Count; i++)
+            {
+                if (i < ExtraListViewPadding)
+                {
+                    topHeight += _viewObjects[i].gameObject.GetComponent<RectTransform>().rect.height;
+                }
+                else if (i > ExtraListViewPadding)
+                {
+                    bottomHeight += _viewObjects[i].gameObject.GetComponent<RectTransform>().rect.height;
+                }
+            }
+
+            _viewObjectParent.GetComponent<RectTransform>().anchoredPosition = new Vector2(0, (topHeight - bottomHeight) / 2);
         }
 
         public void OnScroll(PointerEventData eventData)
