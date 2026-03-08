@@ -63,7 +63,8 @@
             "UnpitchedOnly": "ピッチなしのみ",
             "NoDynamics": "強弱法なし",
             "NoVocalPercussion": "打楽器なし",
-            "RangeCompress": "範囲の変動なし"
+            "RangeCompress": "範囲の変動なし",
+            "OpensToGreens": "オプンをグリンに交換する"
         },
         "SortAttribute": {
             "Album": "アルバム",
@@ -75,6 +76,7 @@
             "Playlist": "プレイリスト",
             "SongLength": "時間",
             "Source": "元",
+            "Subgenre": "サブジャンル",
             "Stars": "スター",
             "Unspecified": "なし",
             "Year": "公開年",
@@ -101,13 +103,19 @@
             "Vocals": "ボーカル",
             "Harmony": "ハーモニー",
             "Band": "バンド",
-            "Playcount": "プレイ回数"
+            "Playcount": "プレイ回数",
+            "Random": "Random"
         },
         "StarPowerActivationType": {
             "Freestyle": "フリースタイル",
             "RightmostLane": "最右車線",
             "RightmostNote": "最右ノーツ",
             "AllNotes": "全てのノーツ"
+        },
+        "OpenLaneDisplayType": {
+            "Never": "Never",
+            "Always": "Always",
+            "IfChartContainsOpens": "If chart contains open notes"
         }
     },
     "Menu": {
@@ -122,6 +130,7 @@
             "Close": "閉じる",
             "Confirm": "確定",
             "Continue": "続行",
+            "Toggle": "切り替え",
             "On": "オン",
             "Off": "オフ",
             "Start": "スタート",
@@ -167,14 +176,14 @@
             },
             "Header": {
                 "Contributors": "寄稿者",
-                "Founder": "Founder",
+                "Founder": "ファウンダー",
                 "LeadArtist": "主任アーティスト",
                 "Maintainers": "保守担当者",
-                "ProjectManager": "Project Managers",
+                "ProjectManager": "プロジェクトマネージャー",
                 "SpecialThanks": "スペシャルサンクス",
                 "SetlistManager": "セットリスト担当",
                 "Songs": "曲",
-                "Supporters": "Supporters"
+                "Supporters": "サポーター"
             },
             "Song": {
                 "Name": "「{0}」、{1}による",
@@ -194,12 +203,15 @@
                 "By": "アーティスト: {0}"
             },
             "Text": {
-                "ExtraSpecialThanks": "An extra special thanks goes to <b>EliteAsian</b>, <b>Kadu</b>, <b>RileyTheFox</b>, <b>TheNathannator</b>, and <b>Sonicfind</b><br><br>We stand on the shoulders of giants."
+                "ExtraSpecialThanks": "<b>EliteAsian</b>、 <b>Kadu</b>、<b>RileyTheFox</b>、<b>TheNathannator</b>、 <b>Sonicfind</b><br><br>とに特別なお礼します。先人の知恵を借ります。"
             }
         },
         "Toast": {
+            "AutoCalibrationScore": "Score saving disabled: Automatic calibration active.",
+            "NoFailScore": "Score saving disabled: No fail toggle had to reset fail meter.",
             "ProfileCreated": "Profile created for new device: {0}\nTime to do some YARGin!",
-            "UnsupportedDevice": "Automatic profile creation is not supported for {0}!"
+            "TooManyPauses": "Score saving disabled: Too many pauses.",
+            "UnsupportedDevice": "{0}に自動プロフィールサポートがありません！"
         },
         "Dialog": {
             "DontShowAgain": "これから表示しない",
@@ -265,7 +277,7 @@
             "PlayWithReplay": "リプレイでプレイ"
         },
         "Main": {
-            "MessageOfTheDay": "<align=center><size=32><b>Welcome to v0.14!</b></size></align>\n\nv0.14 is a major update that adds 5 Lane Keys, a new MIDI Drums profile type, easier instrument setup, support for 3D venue events, performance improvements when using multiple highways, many visual improvements, and more.\n\n<b>If you have any feedback or find any bugs, please let us know on Discord or GitHub.</b>\n\nHappy YARGin'!",
+            "MessageOfTheDay": "<align=center><size=32><b>Welcome to the v0.15 nightlies!</b></size></align>\n\nv0.15 now has support for tremolo/trill lanes, customizable track backgrounds (including transparency), custom vocal characters for venues, advanced player performance tracking, repositionable highways, adds new in game calibration tools, and more! Oh, and the new and improved music library is finally here, including advanced song filters so even the largest library can't keep you from finding what you're looking for! :D\n\n<b>If you have any feedback or find any bugs, please let us know on Discord or GitHub.</b>\n\nHappy YARGin'!",
             "Options": {
                 "Quickplay": "クイックプレイ",
                 "Practice": "練習",
@@ -299,6 +311,7 @@
                 "Item": {
                     "RandomSong": "ランダムな曲",
                     "BackToTop": "トップへ戻る",
+                    "ScanSongs": "曲をスキャン",
                     "SortBy": "{0}で並び替え",
                     "GoToSection": "セクションへ",
                     "AddToFavorites": "お気に入りへ追加",
@@ -314,8 +327,10 @@
             "Back": "戻る",
             "NoPlayersConnected": "プレイヤは接続していません！　プロファイルのメニューでプレイヤを接続できます。",
             "Play": "曲を再生",
+            "PlayHoldAddToSet": "<align=left><size=80%>Play Song<br>(Hold) Add To Setlist</size></align>",
+            "AddHoldStartSet": "<align=left><size=80%>セットリストに追加<br>（ホールド）セットリストをスタート</size></align>",
             "Search": "検索",
-            "SkipSection": "<align=left><size=80%>Navigate<br>Sections</size></align>",
+            "SkipSection": "<align=left>Navigate Sections</align>",
             "MoveInPlaylist": "曲歌を移動する",
             "CurrentSetlist": "現在のセットリスト",
             "AddToSet": "セットリストに追加する",
@@ -323,12 +338,13 @@
             "PlaylistAddedToSet": "プレイリストからセットリストまで{0:N0}曲歌を追加しました",
             "StartSet": "セットリストを始める",
             "PlayShow": "ショーを演奏する",
+            "Filters": "フィルター",
             "NoSongsInPlaylist": "プレイリストから曲歌がありません",
             "CannotAddToSelf": "いや、ウロボロスをつくてくれない。惜しいね、ジェイデン。",
             "AddToShow": "ショーに追加する",
             "AddedToShow": "ショーに追加しました",
             "StartShow": "ショーを始める",
-            "MoreOptions": "その他",
+            "MoreOptions": "<align=left><size=80%>More Options<br>(Hold) Navigate Sections</size></align>",
             "PlayAShow": {
                 "LongSong": "長い曲",
                 "RandomSong": "ランダムな曲",
@@ -343,6 +359,81 @@
                 "StartsWithLetter": "「{0}」の文字で始まる曲",
                 "StartsWithNumber": "番号で始まる曲歌",
                 "StartsWithOther": "アルファベット以外のもので始まる曲"
+            },
+            "Genre": {
+                "Alternative": "オルタナティブ",
+                "AmbientDrone": "アンビエント",
+                "Ballad": "バラード",
+                "Blues": "ブルーズ",
+                "ChildrensMusic": "童謡",
+                "Chiptune": "チップチュン",
+                "ClassicRock": "クラシック・ロック",
+                "Classical": "クラシッカル",
+                "Country": "カントリー",
+                "Dance": "ダンス",
+                "DeathBlackMetal": "デスメタル",
+                "Disco": "ディスコ",
+                "Djent": "ジェント",
+                "DnbBreakbeatJungle": "DnB/Breakbeat/Jungle",
+                "DoomMetal": "ドゥーム・メタル",
+                "Dubstep": "ダブステップ",
+                "Electronic": "エレクトロニック",
+                "ElectronicRock": "エレクトロニック・ロック",
+                "Emo": "エモい",
+                "Folk": "フォーク",
+                "Fusion": "フュジョン",
+                "Glam": "グラム",
+                "Glitch": "グリッチ",
+                "Grindcore": "グラインドコア",
+                "GrooveMetal": "グルーブ・メタル",
+                "Grunge": "グランジ",
+                "HardcoreEDM": "ハードコアEDM",
+                "HardRock": "ハード・ロック",
+                "HeavyMetal": "メタル",
+                "HipHopRap": "ヒップホップ・ラップ",
+                "Holiday": "祭",
+                "House": "ハウス",
+                "IDM": "IDM",
+                "IndieRock": "インディー・ロック",
+                "Industrial": "Industrial",
+                "Inspirational": "Inspirational",
+                "JPop": "Jポップ",
+                "JRock": "Jロック",
+                "Jazz": "ジャズ",
+                "KPop": "Kポップ",
+                "Latin": "ラテン",
+                "Mashup": "Mashup",
+                "MathRock": "マスロック",
+                "MelodicPowerMetal": "メロディック・パワー・メタル",
+                "Metalcore": "メタルコア",
+                "Noise": "ノイズ",
+                "NewWave": "ニューウェーブ",
+                "Novelty": "ノベルティ",
+                "NuMetal": "ニューメタル",
+                "Orchestral": "オーケストラ",
+                "Pop": "ポップ",
+                "PopPunk": "ポップ・パンク",
+                "PopRock": "ポップ・ロック",
+                "PostHardcore": "ポスト・ハードコア",
+                "Progressive": "プログレッシブ",
+                "Psychedelic": "サイケデリック",
+                "Punk": "パンク",
+                "RnbSoulFunk": "R&B・ソウル・ファンク",
+                "Reggae": "レゲエ",
+                "Rock": "ロック",
+                "RockAndRoll": "ロック＆ロール",
+                "Ska": "スカ",
+                "Soundtrack": "BGM",
+                "SouthernRock": "Southern Rock",
+                "SurfRock": "Surf Rock",
+                "SynthpopElectropop": "センスポップ",
+                "Techno": "テクノ",
+                "ThrashSpeedMetal": "スラッシュ・メタル、スピードメタル",
+                "Trance": "トランス",
+                "Trap": "トラップ",
+                "World": "世界",
+                "Other": "その他",
+                "UnknownGenre": "不明ジャンル"
             }
         },
         "ProfileInfo": {
@@ -365,6 +456,8 @@
         "ScoreScreen": {
             "BandScoreNotSaved": "（スコアは保存されていません）",
             "RestartSong": "曲をリスタート",
+            "ShowAdvanced": "Show Advanced",
+            "HideAdvanced": "Hide Advanced",
             "EndSetlistEarly": "セットリストを終了"
         },
         "Settings": {
@@ -376,6 +469,49 @@
             "SongCount": "{0:N0} <alpha=#60>曲歌",
             "ScanNeeded": "<alpha=#60>スキャンが必要です",
             "DMXInfo": "DMX cue change and post-processing channel values:\n\n<b>Cue Change:</b>\n\n0 - No cue\n10 - Menu\n20 - Score\n30 - Intro\n40 - Verse\n50 - Chorus\n60 - Cool (loop)\n70 - Warm (loop)\n80 - Cool (manual)\n90 - Warm (manual)\n100 - Dischord\n110 - Stomp\n120 - Default\n130 - Harmony\n140 - Frenzy\n150 - Silhouettes\n160 - Silhouettes Spotlight\n170 - Searchlights\n180 - Sweep\n190 - Blackout (fast)\n200 - Blackout (slow)\n210 - Blackout (spotlight)\n220 - Flare (slow)\n230 - Flare (fast)\n240 - Big Rock Ending\n\nFor Strobe and Fog status listen to their respective channels.\n\n<b>Post-Processing:</b>\n\n0 - Default\r\n\nBasic effects\r\n4 - Bloom\n14 - Bright\n24 - Contrast\n34 - Mirror\n44 - PhotoNegative\n54 - Posterize\n\n\rColor filters/effects\r\n64 - Black And White\n74 - Sepia Tone\n84 - Silver Tone\n94 - Choppy Black And White\n104 - Photo Negative Red And Black\n114 - Polarized Black And White\n124 - Polarized Red And Blue\n134 - Desaturated Red\n144 - Desaturated Blue\n154 - Contrast Red\n164 - Contrast Green\n174 - Contrast Blue\n\r\nGrainy\r\n184 - Grainy Film\n194 - Grainy Chromatic Abberation\n\nScanlines\r\n204 - Scanlines\n214 - Scanlines Black And White\n224 - Scanlines Blue\n234 - Scanlines Security\n\r\nTrails\r\n244 - Trails\n252 - Trails Long\n253 - Trails Desaturated\n254 - Trails Flickery\n255 - Trails Spacey\n\nSee YARG docs for more information: https://docs.yarg.in/en/DMX"
+        },
+        "Filters": {
+            "OptionsHeader": "設定",
+            "FiltersHeader": "フィルター",
+            "SortedBy": "並べ替え",
+            "ShowRecommendations": "おすすめを表示",
+            "ResetAllFilters": "(Hold) Reset All Filters",
+            "SelectAll": "すべてを選択",
+            "DeselectAll": "Deselect All",
+            "None": "なし",
+            "Selected": "{0}選択された",
+            "All": "すべて",
+            "SongCount": "{0}曲",
+            "Genres": "ジャンル",
+            "Subgenres": "サブジャンル",
+            "Decades": "Decades",
+            "VocalParts": {
+                "Name": "Number of Vocal Parts",
+                "Solo": "ソロ",
+                "Duet": "2-Part Harmony",
+                "Trio": "3-Part Harmony"
+            },
+            "Sources": "Song Sources",
+            "Charters": "Charters",
+            "Difficulties": {
+                "Name": "Difficulties",
+                "WarmUp": "ウォームアップ",
+                "Apprentice": "Apprentice",
+                "Solid": "ソリッド",
+                "Moderate": "Moderate",
+                "Challenging": "チャレンジ",
+                "Nightmare": "ナイトメア",
+                "Impossible": "無理",
+                "Unknown": "不明",
+                "NoPart": "パートなし"
+            },
+            "Length": {
+                "Name": "曲の長さ",
+                "Short": "短い（3分以下）",
+                "Medium": "中（3～5分）",
+                "Long": "長い（5～7分）",
+                "Epic": "エピック（7分以上）"
+            }
         }
     },
     "Gameplay": {
@@ -515,8 +651,8 @@
                 "vamp": "Vamp",
                 "build_up": "落ちサビ",
                 "speed_up": "スピードアップ",
-                "tension": "Tension",
-                "release": "Release",
+                "tension": "テンション",
+                "release": "リリース",
                 "crescendo": "クレッシェンド",
                 "melody": "メロディー",
                 "lo_melody": "低めのメロディ",
@@ -751,13 +887,14 @@
             "Experimental": "実験的",
             "HUD": "HUD",
             "Gameplay": "ゲームプレイ",
-            "OutputConfiguration": "出力構成"
+            "OutputConfiguration": "Output Configuration",
+            "Accessibility": "Accessibility"
         },
         "Button": {
             "CopyCurrentSongJsonFilePath": "現在の曲のJSONファイルパスをコピー",
             "CopyCurrentSongTextFilePath": "現在の曲のテキストパスをコピー",
             "ExportSongsJson": "Ouvert (JSON)",
-            "ExportSongsText": "Plain Text",
+            "ExportSongsText": "プレーンテキスト",
             "ExportSongsCsv": "CSV",
             "OpenCalibrator": "自動でキャリブレーション",
             "OpenVenueFolder": "背景とベニューのフォルダを開く",
@@ -777,7 +914,7 @@
             },
             "AudioCalibration": {
                 "Name": "オーディオキャリブレーション（ミリ秒）",
-                "PauseName": "Audio (ms)",
+                "PauseName": "Audio Calibration (ms)",
                 "Description": "Audio calibration in milliseconds. Use the calibrator to automatically calibrate. Higher values make the audio play earlier, while lower ones make the audio play later."
             },
             "AccountForHardwareLatency": {
@@ -918,6 +1055,10 @@
                 "Name": "フレームレートを表示",
                 "Description": "ステータスバーでフレームレートを表示。"
             },
+            "FontScaling": {
+                "Name": "フォントスケール",
+                "Description": "Scales the minimum font size to be more visible"
+            },
             "FullscreenMode": {
                 "Name": "フルスクリーンモード",
                 "Description": "フルスクリーンモードを変更します。",
@@ -1000,22 +1141,22 @@
                 "Description": "丸ごとでボリュームを調整されます。"
             },
             "MetronomeVolume": {
-                "Name": "メトロノームの音量",
+                "Name": "メトロノームボリューム",
                 "PauseName": "メトロノーム",
-                "Description": "メトロノームの音量を調整します。"
+                "Description": "メトロノームのボリュームを変更します"
             },
             "MetronomeSound": {
-                "Name": "メトロノーム音",
-                "Description": "メトロノームのクリックに使用するサンプル。",
+                "Name": "メトロノームの音",
+                "Description": "The sample to use for metronome clicks.",
                 "Dropdown": {
-                    "Castanet": "Castanet",
-                    "Clap": "Clap",
-                    "None": "None",
-                    "Party": "Party",
-                    "Quartz": "Quartz",
-                    "Sine": "Sine",
-                    "Square": "Square",
-                    "Trashcan": "Trashcan"
+                    "Castanet": "カスタネット",
+                    "Clap": "クラップ",
+                    "None": "なし",
+                    "Party": "パーティー",
+                    "Quartz": "クオーツ",
+                    "Sine": "サイン",
+                    "Square": "スクエア",
+                    "Trashcan": "ゴミ箱"
                 }
             },
             "MinimumLogLevel": {
@@ -1064,33 +1205,33 @@
                 }
             },
             "OutputChannelDefault": {
-                "Name": "デフォルトのチャンネル",
-                "Description": "楽器とサウンドに使用するデフォルトの出力チャンネル。"
+                "Name": "Default Channel(s)",
+                "Description": "The default output channel(s) to use for instruments and sounds."
             },
             "OutputChannelDrumSfx": {
-                "Name": "ドラムサウンドエフェクト",
-                "Description": "ドラムのサウンドエフェクトに使用する出力チャンネル。"
+                "Name": "ドラムSE",
+                "Description": "The output channel(s) to use for drum sound effects."
             },
             "OutputChannelMetronome": {
                 "Name": "メトロノーム",
-                "Description": "メトロノームのクリックに使用する出力チャンネル。"
+                "Description": "The output channel(s) to use for metronome clicks."
             },
             "OutputChannelSfx": {
-                "Name": "サウンドエフェクト",
-                "Description": "他のサウンドエフェクトに使用する出力チャンネル。"
+                "Name": "SE",
+                "Description": "The output channel(s) to use for other sound effects."
             },
             "OutputChannelVox": {
-                "Name": "ヴォックスサンプル",
-                "Description": "スコア画面のサウンド効果に使用する出力チャンネル。"
+                "Name": "Vox Samples",
+                "Description": "The output channel(s) to use for score screen sound effects."
             },
             "OutputChannels": {
-                "Default": "デフォルトのチャネルを使用する",
+                "Default": "Use Default Channel(s)",
                 "Mono": "{0}",
-                "Stereo": "{0} & {1}"
+                "Stereo": "{0}と{1}"
             },
             "OutputDevice": {
                 "Name": "出力デバイス",
-                "Description": "サウンドを再生するときに使用するインターフェース。"
+                "Description": "The interface to use when playing sounds."
             },
             "PlayAShowTimeout": {
                 "Name": "Show Selection Timeout",
@@ -1117,6 +1258,10 @@
                 "Name": "リズムボリューム",
                 "PauseName": "バッキングギター",
                 "Description": "Adjusts the song's rhythm guitar track volume. Only does something if the song is multi-track. In some song formats, this may also be the bass guitar."
+            },
+            "SaveScoresWithBots": {
+                "Name": "ボットプレイでスコアを保存",
+                "Description": "Allows score saving when playing with bots. Only human scores are recorded. Bot scores are excluded."
             },
             "SfxVolume": {
                 "Name": "SEボリューム",
@@ -1154,11 +1299,15 @@
             "SongVolume": {
                 "Name": "バッキングトラックのボリューム",
                 "PauseName": "伴奏",
-                "Description": "Adjusts the song's backing track volume. These are all of the instruments that are not included in the multi-track."
+                "Description": "曲のバッキングトラックのボリュームを変更します。これはマルチトラックにない楽器です。"
             },
             "StageKitEnabled": {
                 "Name": "ステージキットをオンにする",
                 "Description": "Enables sending Stage Kit lighting data to all connected devices capable of reading it."
+            },
+            "StandardizeGenres": {
+                "Name": "Standardize Genre Metadata",
+                "Description": "Categorizes genre metadata into a standard set of genres, using data from the Genrelizer GitHub repository. <color=white>Rescan required if changed!</color>"
             },
             "StarPowerHighwayFx": {
                 "Name": "スターパワーのハイウェイエフェクトモード",
@@ -1166,7 +1315,7 @@
                 "Dropdown": {
                     "Off": "オフ",
                     "On": "オン",
-                    "Reduced": "Reduced"
+                    "Reduced": "下げた"
                 }
             },
             "SongBackgroundOpacity": {
@@ -1241,6 +1390,16 @@
                 "Name": "Video Calibration (ms)",
                 "PauseName": "Video Calibration (ms)",
                 "Description": "Video calibration in milliseconds. Use the calibrator to automatically calibrate. This accounts for delays between the game's processing and the actual frame being displayed."
+            },
+            "AutoCalibrateAudio": {
+                "Name": "Auto Calibrate Audio",
+                "PauseName": "Auto Calibrate Audio",
+                "Description": "Automatically adjusts calibration during gameplay based on your input timing."
+            },
+            "AutoCalibrateVideo": {
+                "Name": "Auto Calibrate Video",
+                "PauseName": "Auto Calibrate Video",
+                "Description": "Placeholder setting. Currently has no effect."
             },
             "VocalMonitoring": {
                 "Name": "ボーカルモニタリング出力ボリューム",
@@ -1420,6 +1579,10 @@
             "EnableNormalization": {
                 "Name": "Normalize Audio",
                 "Description": "If enabled, normalizes audio so that all songs are approximately the same volume.  Increases memory and performance requirements."
+            },
+            "CustomVocalsCharacter": {
+                "Name": "Custom Vocals Character",
+                "Description": "Select a custom vocals character to use in venues that support characters."
             }
         },
         "PresetType": {
@@ -1792,6 +1955,10 @@
                     "Name": "Hit Window Ratio",
                     "Description": "The hit window's front to back ratio. \"0\" will bring the hit window fully backwards, \"1\" will keep it in the center, and \"2\" will move it to the front."
                 },
+                "TremoloFrontEndPercent": {
+                    "Name": "Tremolo Hit Window",
+                    "Description": "This determines how many notes can be hit with a single input during a tremolo or trill phrase. Calculated as a percentage of the current hit window frontend."
+                },
                 "HitPercentE": {
                     "Name": "ヒット割合（EASY)",
                     "Description": "This determines how much of the phrase has to be accurately sung in order to fully fill the accuracy meter, in the Easy difficulty."
@@ -1857,7 +2024,7 @@
                     "Description": ""
                 },
                 "FatFingerWindow": {
-                    "Name": "Fat Finger Window",
+                    "Name": "押しミスウインドウ",
                     "Description": ""
                 },
                 "DynamicScale": {
@@ -1887,6 +2054,10 @@
                 "NoStarPowerOverlap": {
                     "Name": "No Star Power Overlap",
                     "Description": "Disallows earning more Star Power while Star Power is already active."
+                },
+                "EnableLanes": {
+                    "Name": "Enable Trill/Tremolo Lanes",
+                    "Description": "If enabled, the game honor charted trill/tremolo lanes."
                 }
             },
             "HighwayPreset": {

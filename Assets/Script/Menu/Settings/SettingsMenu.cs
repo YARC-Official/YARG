@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
+using DG.Tweening;
 using TMPro;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
@@ -58,6 +59,25 @@ namespace YARG.Menu.Settings
         private bool _tabsInitialized;
         private string _pendingTabName;
 
+        private bool _showAdvanced;
+
+        public bool ShowAdvanced
+        {
+            get => SettingsManager.Settings?.ShowAdvancedSettings?.Value ?? _showAdvanced;
+            private set
+            {
+                var setting = SettingsManager.Settings?.ShowAdvancedSettings;
+                if (setting != null)
+                {
+                    setting.SetValueWithoutNotify(value);
+                }
+                else
+                {
+                    _showAdvanced = value;
+                }
+            }
+        }
+
         protected override void SingletonAwake()
         {
             // Settings menu defaults to active so that it will be initialized at startup
@@ -102,24 +122,15 @@ namespace YARG.Menu.Settings
                 return;
             }
 
-            _headerTabs.TabChanged += OnTabChanged;
+            _showAdvanced = ShowAdvanced;
+
             _headerTabs.RefreshTabs();
+            _headerTabs.TabChanged += OnTabChanged;
 
             _settingsNavGroup.SelectionChanged += OnSelectionChanged;
 
             // Set navigation scheme
-            Navigator.Instance.PushScheme(new NavigationScheme(new()
-            {
-                NavigationScheme.Entry.NavigateSelect,
-                new NavigationScheme.Entry(MenuAction.Red, "Menu.Common.Back", () =>
-                {
-                    gameObject.SetActive(false);
-                }, hide: true),
-                NavigationScheme.Entry.NavigateUp,
-                NavigationScheme.Entry.NavigateDown,
-                _headerTabs.NavigateNextTab,
-                _headerTabs.NavigatePreviousTab
-            }, true));
+            PushNavigationScheme();
 
             if (CurrentTab == null)
             {
@@ -231,6 +242,8 @@ namespace YARG.Menu.Settings
 
         private void UpdateSettings(bool resetScroll)
         {
+            _showAdvanced = ShowAdvanced;
+
             _settingsNavGroup.ClearNavigatables();
 
             // Destroy all previous settings
@@ -244,9 +257,16 @@ namespace YARG.Menu.Settings
                 // Make the settings nav group the main one
                 _settingsNavGroup.SelectFirst();
 
-                // Reset scroll rect
                 _scrollRect.verticalNormalizedPosition = 1f;
             }
+        }
+
+        private void SmoothScrollToTop()
+        {
+            _scrollRect.DOKill();
+            _scrollRect
+                .DOVerticalNormalizedPos(1f, 0.4f)
+                .SetEase(Ease.OutCubic);
         }
 
         private async UniTask UpdatePreview(Tab tabInfo, bool waitForResolution)
@@ -307,6 +327,51 @@ namespace YARG.Menu.Settings
             {
                 Refresh();
             }
+        }
+
+        private void PushNavigationScheme()
+        {
+            string advancedKey = ShowAdvanced
+                ? "Menu.Settings.HideAdvanced"
+                : "Menu.Settings.ShowAdvanced";
+
+            Navigator.Instance.PushScheme(new NavigationScheme(new()
+            {
+                NavigationScheme.Entry.NavigateSelect,
+                new NavigationScheme.Entry(MenuAction.Red, "Menu.Common.Back", () =>
+                {
+                    gameObject.SetActive(false);
+                }, hide: true),
+                NavigationScheme.Entry.NavigateUp,
+                NavigationScheme.Entry.NavigateDown,
+                _headerTabs.NavigateNextTab,
+                _headerTabs.NavigatePreviousTab,
+                new NavigationScheme.Entry(MenuAction.Blue, advancedKey, ToggleAdvanced)
+            }, true));
+        }
+
+        public void EnableAdvanced(bool isEnabled)
+        {
+            if (isEnabled == ShowAdvanced)
+            {
+                return;
+            }
+
+            ShowAdvanced = isEnabled;
+        }
+
+        public void RefreshNavigationScheme()
+        {
+            Navigator.Instance.PopScheme();
+            PushNavigationScheme();
+        }
+
+        private void ToggleAdvanced()
+        {
+            EnableAdvanced(!ShowAdvanced);
+            RefreshNavigationScheme();
+            RefreshAndKeepPosition();
+            SmoothScrollToTop();
         }
 
         private void OnDisable()

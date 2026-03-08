@@ -55,6 +55,8 @@ namespace YARG.Gameplay
         private bool _videoStarted = false;
         private bool _videoSeeking = false;
 
+        private float YARGROUND_OFFSET = 50f;
+
         // These values are relative to the video, not to song time!
         // A negative start time will delay when the video starts, a positive one will set the video position
         // to that value when starting playback at the start of a song.
@@ -218,6 +220,9 @@ namespace YARG.Gameplay
             bundleBackgroundManager.LimitVenueLights(bgInstance);
 
             _bundleBackgroundManager = bundleBackgroundManager;
+
+            // Position venue as close to origin as is conveniently possible without wrecking scene view
+            SetYargroundOrigin(bgInstance);
 
             // Destroy the default camera (venue has its own)
             Destroy(_videoPlayer.targetCamera.gameObject);
@@ -711,6 +716,27 @@ namespace YARG.Gameplay
             {
                 SetLayer(child.gameObject, layer);
             }
+        }
+
+        private void SetYargroundOrigin(GameObject venueRoot)
+        {
+            // Calculate bounds for everything in venueRoot
+            venueRoot.transform.localPosition = Vector3.zero;
+            var bounds = new Bounds(Vector3.zero, Vector3.one);
+            var children = venueRoot.GetComponentsInChildren<Renderer>(true);
+            foreach (var child in children)
+            {
+                bounds.Encapsulate(child.bounds);
+            }
+
+            var sizeX = bounds.size.x;
+            var sizeZ = bounds.size.z;
+
+            var offsetX = (sizeX * 0.5f) + YARGROUND_OFFSET;
+            var offsetZ = (sizeZ * 0.5f) + YARGROUND_OFFSET;
+
+            // New origin places maxZ and maxX at -50
+            venueRoot.transform.position = new Vector3(-offsetX, 0, -offsetZ);
         }
 
         // TODO: Move this to Genrelizer or sth and implement
