@@ -103,16 +103,16 @@ namespace YARG.Audio.BASS
         {
             _volume = volume;
 
-            int slideTime = (int)(duration * 1000);
+            int fadeTime = (int)(duration * 1000);
 
-            if (!Bass.ChannelSlideAttribute(_streamHandles.Stream, ChannelAttribute.Volume, (float) volume, slideTime))
+            if (!Bass.ChannelSlideAttribute(_streamHandles.Stream, ChannelAttribute.Volume, (float) volume, fadeTime))
             {
                 YargLogger.LogFormatError("Failed to set stream volume: {0}!", Bass.LastError);
             }
 
             float reverbVolume = _isReverbing ? (float) volume * BassHelpers.REVERB_VOLUME_MULTIPLIER : 0;
 
-            if (!Bass.ChannelSlideAttribute(_reverbHandles.Stream, ChannelAttribute.Volume, reverbVolume, slideTime))
+            if (!Bass.ChannelSlideAttribute(_reverbHandles.Stream, ChannelAttribute.Volume, reverbVolume, fadeTime))
             {
                 YargLogger.LogFormatError("Failed to set reverb volume: {0}!", Bass.LastError);
             }

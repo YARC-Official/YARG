@@ -45,6 +45,17 @@ namespace YARG.Audio
             _mixerStems = new HashSet<SongStem>(mixerStems);
         }
 
+        public void AddPlayer(BasePlayer player)
+        {
+            var instrumentStem = player.Player.Profile.CurrentInstrument.ToSongStem();
+            if (instrumentStem == Bass && !_mixerStems.Contains(Bass))
+            {
+                instrumentStem = Rhythm;
+            }
+            var reverbStem = _mixerStems.Contains(instrumentStem) ? instrumentStem : _backgroundStem;
+            AddPlayer(instrumentStem, reverbStem, player);
+        }
+
         public void AddPlayer(SongStem stem, SongStem reverbStem, BasePlayer player)
         {
             var context = new PlayerContext
