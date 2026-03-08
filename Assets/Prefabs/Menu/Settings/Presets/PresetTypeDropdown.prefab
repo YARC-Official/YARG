@@ -299,6 +299,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 948307881895838089, guid: 6f46741e648c07044852bd3391146600, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4420504316707193964, guid: 6f46741e648c07044852bd3391146600, type: 3}
       propertyPath: m_Name
       value: PresetTypeDropdown
