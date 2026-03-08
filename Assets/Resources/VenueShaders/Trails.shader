@@ -50,8 +50,11 @@
             fixed4 frag(v2f i) : SV_Target
             {
                 fixed4 col = tex2D(_MainTex, i.uv);
-
-                col.a = _Length;
+				
+				float luma = dot(col.rgb, float3(0.2126, 0.7152, 0.0722));
+                luma = smoothstep(0.3, 0.301, luma);
+                float4 trail = lerp((col.rgb, 0), col, luma);
+				col.a = clamp(0, 1.1, (luma+((_Length/3)+0.07)));
 
                 return col;
             }
