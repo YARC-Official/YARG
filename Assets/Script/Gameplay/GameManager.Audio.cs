@@ -32,6 +32,17 @@ namespace YARG.Gameplay
             _hasCrowdStem = mixerStems.Contains(SongStem.Crowd);
             _backgroundStem = mixerStems.Count > 1 ? SongStem.Song : mixerStems.First();
             _mixerStems = mixerStems;
+
+            SetupStemVolumes();
+        }
+
+        private void SetupStemVolumes()
+        {
+            foreach (var stem in _mixerStems)
+            {
+                var volume = SettingsManager.Settings.GetVolumeSetting(stem);
+                MixerAudioHandler.SetVolumeSetting(stem, volume);
+            }
         }
 
         public void ChangeStarPowerStatus(bool active)
@@ -50,7 +61,8 @@ namespace YARG.Gameplay
         {
             if (_hasCrowdStem)
             {
-                MixerAudioHandler.SetVolumeSetting(SongStem.Crowd, SettingsManager.Settings.CrowdVolume.Value);
+                var volume = SettingsManager.Settings.GetVolumeSetting(SongStem.Crowd);
+                MixerAudioHandler.SetVolumeSetting(SongStem.Crowd, volume);
             }
         }
 
@@ -61,7 +73,7 @@ namespace YARG.Gameplay
                 return;
             }
 
-            double volume = muted ? 0.0 : SettingsManager.Settings.CrowdVolume.Value;
+            double volume = muted ? 0.0 : SettingsManager.Settings.GetVolumeSetting(SongStem.Crowd);
             MixerAudioHandler.SetVolumeSetting(SongStem.Crowd, volume, duration);
         }
 

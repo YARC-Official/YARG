@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -177,7 +177,6 @@ namespace YARG.Menu.MusicLibrary
 
             SetRefreshIfNeeded();
 
-            StemSettings.ApplySettings = SettingsManager.Settings.ApplyVolumesInMusicLibrary.Value;
             _previewDelay = 0;
             if (_reloadState == MusicLibraryReloadState.Full)
             {
@@ -583,7 +582,6 @@ namespace YARG.Menu.MusicLibrary
             _previewCanceller?.Cancel();
             _previewContext?.Dispose();
             _previewContext = null;
-            StemSettings.ApplySettings = true;
             MenuManager.Instance.PopMenu();
         }
 
@@ -744,7 +742,7 @@ namespace YARG.Menu.MusicLibrary
             }
 
             RequestViewListUpdate();
-            
+
             if (shouldApplyFilters)
             {
                 EnsureValidSelectionAfterFilter();
@@ -874,16 +872,26 @@ namespace YARG.Menu.MusicLibrary
             }
 
             const double FADE_DURATION = 1.25;
-            float previewVolume = SettingsManager.Settings.PreviewVolume.Value;
+            var settings = SettingsManager.Settings;
+            float previewVolume = settings.PreviewVolume.Value;
             if (previewVolume == 0)
             {
                 return;
             }
 
-            var context = await PreviewContext.Create(_currentSong, previewVolume, GlobalVariables.State.SongSpeed,
-                delay, FADE_DURATION, canceller);
+            var context = await PreviewContext.Create(_currentSong, previewVolume, GlobalVariables.State.SongSpeed, delay, FADE_DURATION, canceller);
             if (context != null)
             {
+                MixerAudioHandler.SetMixer(context.Mixer);
+                if (settings.ApplyVolumesInMusicLibrary.Value)
+                {
+                    foreach (var channel in context.Mixer.Channels)
+                    {
+                        var stem = channel.Stem;
+                        var volume = SettingsManager.Settings.GetVolumeSetting(stem);
+                        MixerAudioHandler.SetVolumeSetting(stem, volume);
+                    }
+                }
                 _previewContext = context;
             }
         }
@@ -925,7 +933,6 @@ namespace YARG.Menu.MusicLibrary
             _previewCanceller?.Cancel();
             _previewContext?.Dispose();
             _reloadState = MusicLibraryReloadState.Partial;
-            StemSettings.ApplySettings = true;
         }
 
         public void Back()

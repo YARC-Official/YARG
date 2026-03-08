@@ -18,13 +18,16 @@ namespace YARG.Audio.BASS
     /// </summary>
     public sealed class BassVoxSampleChannel : VoxSampleChannel
     {
+        private const double DefaultVolume = 1.0;
+
         private static readonly List<BassVoxSampleChannel>  Channels = new();
         private static readonly Queue<BassVoxSampleChannel> Queue    = new();
         private readonly        int                         _sampleHandle;
         private static          bool                        _queueActive;
 
 #nullable enable
-        public static BassVoxSampleChannel? Create(VoxSample sample, string path, OutputChannel? outputChannel)
+        public static BassVoxSampleChannel? Create(VoxSample sample, string path, OutputChannel? outputChannel,
+            double initialVolume = DefaultVolume)
 #nullable disable
         {
             int handle = Bass.SampleLoad(path, 0, 0, 2, BassFlags.Decode);
@@ -43,12 +46,12 @@ namespace YARG.Audio.BASS
             }
 
             // TODO: This should probably have its own volume setting at some point
-            if (!Bass.ChannelSetAttribute(channel, ChannelAttribute.Volume, 1.0f))
+            if (!Bass.ChannelSetAttribute(channel, ChannelAttribute.Volume, initialVolume))
             {
                 YargLogger.LogFormatError("Failed to set {0} volume: {1}!", sample, Bass.LastError);
             }
 
-            return new BassVoxSampleChannel(handle, channel, sample, path, outputChannel);
+            return new BassVoxSampleChannel(handle, channel, sample, path, outputChannel, initialVolume);
         }
 
         private static void QueuePlayback(BassVoxSampleChannel channel)
@@ -87,7 +90,8 @@ namespace YARG.Audio.BASS
         private readonly int    _channel;
 
 #nullable enable
-        private BassVoxSampleChannel(int handle, int channel, VoxSample sample, string path, OutputChannel? outputChannel)
+        private BassVoxSampleChannel(int handle, int channel, VoxSample sample, string path, OutputChannel? outputChannel,
+            double initialVolume)
             : base(sample, path)
 #nullable disable
         {
@@ -95,7 +99,7 @@ namespace YARG.Audio.BASS
             _channel = channel;
             SetOutputChannel_Internal(outputChannel);
             Channels.Add(this);
-            SetVolume_Internal(GlobalAudioHandler.GetSampleTrueVolume(SongStem.VoxSample));
+            SetVolume_Internal(initialVolume);
         }
 
         protected override void Play_Internal()

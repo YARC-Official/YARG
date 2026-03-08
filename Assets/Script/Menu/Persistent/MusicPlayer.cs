@@ -1,10 +1,8 @@
-﻿using System.Diagnostics.CodeAnalysis;
-using Cysharp.Threading.Tasks;
+﻿using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using YARG.Settings;
-using YARG.Helpers.Extensions;
 using YARG.Core.Audio;
 using YARG.Core.Song;
 using YARG.Song;
@@ -94,6 +92,7 @@ namespace YARG.Menu.Persistent
 
                     _mixer?.Dispose();
                     _mixer = mixer;
+                    SetupStemVolumes(_mixer);
                     _mixer.SongEnd += () =>
                     {
                         _mixer.Dispose();
@@ -116,6 +115,21 @@ namespace YARG.Menu.Persistent
             lock (_lock)
             {
                 _mixer?.SetVolume(volume);
+            }
+        }
+
+        private static void SetupStemVolumes(StemMixer mixer)
+        {
+            if (!SettingsManager.Settings.ApplyVolumesInMusicLibrary.Value)
+            {
+                return;
+            }
+
+            foreach (var channel in mixer.Channels)
+            {
+                var stem = channel.Stem;
+                var volume = SettingsManager.Settings.GetVolumeSetting(stem);
+                MixerAudioHandler.SetVolumeSetting(stem, volume);
             }
         }
 

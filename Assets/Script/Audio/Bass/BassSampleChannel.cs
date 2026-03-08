@@ -9,9 +9,11 @@ namespace YARG.Audio.BASS
 {
     public sealed class BassSampleChannel : SampleChannel
     {
+        private const double DefaultVolume = 1.0;
+
 #nullable enable
         public static BassSampleChannel? Create(SfxSample sample, string path, int playbackCount,
-            OutputChannel? outputChannel, bool loop = false)
+            OutputChannel? outputChannel, bool loop = false, double initialVolume = DefaultVolume)
 #nullable disable
         {
             BassFlags flags = 0;
@@ -44,19 +46,20 @@ namespace YARG.Audio.BASS
                 YargLogger.LogFormatError("Failed to set {0} volume: {1}!", sample, Bass.LastError);
             }
 
-            return new BassSampleChannel(handle, channel, sample, path, playbackCount, outputChannel);
+            return new BassSampleChannel(handle, channel, sample, path, playbackCount, outputChannel, initialVolume);
         }
 
         private readonly int _sfxHandle;
         private readonly int _channel;
         private double _lastPlaybackTime;
 
-        private double _volumeSetting = 1;
+        private double _volumeSetting = DefaultVolume;
 
         private int _syncHandle;
 
 #nullable enable
-        private BassSampleChannel(int handle, int channel, SfxSample sample, string path, int playbackCount, OutputChannel? outputChannel)
+        private BassSampleChannel(int handle, int channel, SfxSample sample, string path, int playbackCount,
+            OutputChannel? outputChannel, double initialVolume)
             : base(sample, path, playbackCount)
 #nullable disable
         {
@@ -64,7 +67,7 @@ namespace YARG.Audio.BASS
             _channel = channel;
             _lastPlaybackTime = -1;
             SetOutputChannel_Internal(outputChannel);
-            SetVolume_Internal(GlobalAudioHandler.GetSampleTrueVolume(SongStem.Sfx));
+            SetVolume_Internal(initialVolume);
         }
 
         protected override void Play_Internal(double duration)

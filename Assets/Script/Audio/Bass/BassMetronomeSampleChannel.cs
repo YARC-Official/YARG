@@ -8,9 +8,11 @@ namespace YARG.Audio.BASS
 {
     public sealed class BassMetronomeSampleChannel : MetronomeSampleChannel
     {
+        private const double DefaultVolume = 1.0;
+
 #nullable enable
         public static BassMetronomeSampleChannel? Create(MetronomeSample sample, string hiPath, string loPath,
-             OutputChannel? outputChannel)
+             OutputChannel? outputChannel, double initialVolume = DefaultVolume)
 #nullable disable
         {
             int hiHandle = Bass.SampleLoad(hiPath, 0, 0, 1, BassFlags.Decode);
@@ -43,18 +45,19 @@ namespace YARG.Audio.BASS
                 return null;
             }
 
-            return new BassMetronomeSampleChannel(sample, hiHandle, hiChannel, hiPath, loHandle, loChannel, loPath, outputChannel);
+            return new BassMetronomeSampleChannel(sample, hiHandle, hiChannel, hiPath, loHandle, loChannel, loPath,
+                outputChannel, initialVolume);
         }
 
         private readonly int _hiHandle;
         private readonly int _hiChannel;
         private readonly int _loHandle;
         private readonly int _loChannel;
-        private double _volumeSetting = 1;
+        private double _volumeSetting = DefaultVolume;
 
 #nullable enable
         private BassMetronomeSampleChannel(MetronomeSample sample, int hiHandle, int hiChannel, string hiPath, int loHandle, int loChannel, string loPath,
-            OutputChannel? outputChannel)
+            OutputChannel? outputChannel, double initialVolume)
             : base(sample, hiPath, loPath)
 #nullable disable
         {
@@ -63,7 +66,7 @@ namespace YARG.Audio.BASS
             _loHandle = loHandle;
             _loChannel = loChannel;
             SetOutputChannel_Internal(outputChannel);
-            SetVolume_Internal(GlobalAudioHandler.GetSampleTrueVolume(SongStem.Metronome));
+            SetVolume_Internal(initialVolume);
         }
 
         protected override void PlayHi_Internal()

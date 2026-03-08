@@ -5,14 +5,12 @@ namespace YARG.Audio
 {
     public class StemState
     {
-        private const double DEFAULT_VOLUME = 1.0;
-
         public readonly SongStem Stem;
         private         int      _total;
         private         int      _audible;
         private         int      _reverbCount;
 
-        public double Volume => GetVolumeSetting();
+        public double Volume => SettingsManager.Settings.GetVolumeSetting(Stem);
 
         public StemState(SongStem stem)
         {
@@ -57,25 +55,6 @@ namespace YARG.Audio
             }
 
             return _reverbCount > 0;
-        }
-
-        private double GetVolumeSetting()
-        {
-            return Stem switch
-            {
-                SongStem.Guitar    => SettingsManager.Settings.GuitarVolume.Value,
-                SongStem.Rhythm    => SettingsManager.Settings.RhythmVolume.Value,
-                SongStem.Bass      => SettingsManager.Settings.BassVolume.Value,
-                SongStem.Keys      => SettingsManager.Settings.KeysVolume.Value,
-                SongStem.Drums     => SettingsManager.Settings.DrumsVolume.Value,
-                SongStem.Vocals    => SettingsManager.Settings.VocalsVolume.Value,
-                SongStem.Song      => SettingsManager.Settings.SongVolume.Value,
-                SongStem.Crowd     => SettingsManager.Settings.CrowdVolume.Value,
-                SongStem.Sfx       => SettingsManager.Settings.SfxVolume.Value,
-                SongStem.DrumSfx   => SettingsManager.Settings.DrumSfxVolume.Value,
-                SongStem.Metronome => SettingsManager.Settings.MetronomeVolume.Value,
-                _                  => DEFAULT_VOLUME
-            };
         }
     }
 }
