@@ -36,7 +36,7 @@ Shader "Artificial Artists/Universal Render Pipeline/AA_UberPost"
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/FoveatedRendering.hlsl"
         #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareDepthTexture.hlsl"
         #include "Assets/Art/Shaders/highways.hlsl"
-        #include "Assets/Resources/VenueShaders/VenuePP.hlsl"
+        #include_with_pragmas "Assets/Art/Shaders/VenueShaders/VenuePP.hlsl"
 
         // Hardcoded dependencies to reduce the number of variants
         #if _BLOOM_LQ || _BLOOM_HQ || _BLOOM_LQ_DIRT || _BLOOM_HQ_DIRT
@@ -327,12 +327,7 @@ Shader "Artificial Artists/Universal Render Pipeline/AA_UberPost"
                 return half4(color, min(alpha, alpha_mask));
             }
 
-            // If we're here, this is not highway, and we don't want transparency in venues
-            alpha = 1.0;
-            
-            color = YargVenuePP(color, uvDistorted);
-
-            return half4(color, alpha);
+            return YargVenuePP(color, uvDistorted, uv);
 
             // #if _ENABLE_ALPHA_OUTPUT
             // // Saturate is necessary to avoid issues when additive blending pushes the alpha over 1.

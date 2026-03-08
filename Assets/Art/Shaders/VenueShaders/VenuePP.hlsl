@@ -9,6 +9,10 @@ float4 _YargScanlineColor;
 float  _YargScanlineSize;
 float  _YargScanlineIntensity;
 float  _YargScanlineEasingPower;
+// Trails
+float _YargTrailLength;
+TEXTURE2D(_YargPrevFrame);
+
 
 float2 YargVenueMirror(float2 uv)
 {
@@ -114,7 +118,7 @@ float2 YargVenueUV(float2 uv)
     return uv;
 }
 
-half3 YargVenuePP(half3 col, float2 uv)
+half4 YargVenuePP(half3 col, float2 uvDistorted, float2 uv)
 {
     if(_YargPosterizeSteps > 0)
     {
@@ -123,8 +127,14 @@ half3 YargVenuePP(half3 col, float2 uv)
 
     if(_YargScanlineSize > 0)
     {
-        col = YargScanlines(col, uv); 
+        col = YargScanlines(col, uvDistorted); 
     }
 
-    return col;
+    if(_YargTrailLength > 0)
+    {
+        half3 prevCol = SAMPLE_TEXTURE2D(_YargPrevFrame, sampler_LinearClamp, uv).rgb;
+        col = col + (1.0 - _YargTrailLength) * prevCol;
+    }
+
+    return half4(col, 1.0 /* alpha */);
 }
