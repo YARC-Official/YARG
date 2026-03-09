@@ -49,7 +49,7 @@ namespace YARG.Settings.Metadata
                 CustomContentManager.RockMeterPresets,
                 new TrackPreviewBuilder(),
                 true),
-                
+
         };
 
         private static readonly Dictionary<Type, BasePreset> _lastSelectedPresetOfType = new();

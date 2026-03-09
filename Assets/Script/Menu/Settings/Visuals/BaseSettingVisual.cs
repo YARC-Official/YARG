@@ -1,5 +1,7 @@
+using DG.Tweening;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 using YARG.Core.Input;
 using YARG.Localization;
 using YARG.Menu.Navigation;
@@ -20,6 +22,9 @@ namespace YARG.Menu.Settings.Visuals
 
         [SerializeField]
         private GameObject _evenBackground;
+
+        [SerializeField]
+        private GameObject _advancedMarker;
 
         public bool IsPresetSetting { get; private set; }
         public bool HasDescription { get; private set; }
@@ -53,13 +58,14 @@ namespace YARG.Menu.Settings.Visuals
 
         public virtual void AssignIndex(int index)
         {
-            if (index % 2 == 0)
+            _evenBackground.SetActive(index % 2 == 0);
+        }
+
+        public void ShowAdvancedMarker(bool show)
+        {
+            if (_advancedMarker != null)
             {
-                _evenBackground.SetActive(true);
-            }
-            else
-            {
-                _evenBackground.SetActive(false);
+                _advancedMarker.SetActive(show);
             }
         }
 

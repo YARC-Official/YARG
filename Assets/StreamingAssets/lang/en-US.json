@@ -470,6 +470,8 @@
             "EndSetlistEarly" : "End Setlist"
         },
         "Settings": {
+            "ShowAdvanced": "Show Advanced",
+            "HideAdvanced": "Hide Advanced",
             "NoFolder": "<i>No Folder</i>",
             "SearchHeader": {
                 "AllCategories": "All Categories",

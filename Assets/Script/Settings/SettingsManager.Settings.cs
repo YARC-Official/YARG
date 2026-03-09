@@ -511,6 +511,8 @@ namespace YARG.Settings
 
             public ToggleSetting ShowAdvancedMusicLibraryOptions { get; } = new(false);
 
+            public ToggleSetting ShowAdvancedSettings { get; } = new(false);
+
             public DropdownSetting<LogLevel> MinimumLogLevel { get; } = new(
 #if UNITY_EDITOR
                 LogLevel.Debug,
