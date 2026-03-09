@@ -133,9 +133,9 @@ half4 YargVenuePP(half3 col, float2 uvDistorted, float2 uv)
     if(_YargTrailLength > 0)
     {
         half3 prevCol = SAMPLE_TEXTURE2D(_YargPrevFrame, sampler_LinearClamp, uv).rgb;
-        float luma = dot(prevCol, float3(0.2126, 0.7152, 0.0722));
-        float mask = step(0.15, luma);
-        col = max(col.rgb, prevCol.rgb * (mask - _YargTrailLength / 2));
+        half luma = dot(prevCol, half3(0.2126, 0.7152, 0.0722));
+        half mask = step(0.15, luma);
+        col = max(col, prevCol * (mask - _YargTrailLength / 2));
     }
 
     return half4(col, 1.0 /* alpha */);
