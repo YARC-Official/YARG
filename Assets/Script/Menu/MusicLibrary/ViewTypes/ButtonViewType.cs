@@ -10,18 +10,21 @@ namespace YARG.Menu.MusicLibrary
     {
         private static readonly Dictionary<int, Sprite> SPRITES = new();
         public override BackgroundType Background => BackgroundType.Button;
+        public override string StableId => _stableId;
 
         public readonly int ID;
 
         private readonly string _text;
         private readonly Action _buttonAction;
         private readonly Sprite _sprite;
+        private readonly string _stableId;
 
         public ButtonViewType(string text, string iconPath, Action buttonAction, int id = -1)
         {
             _text = text;
             _buttonAction = buttonAction;
             ID = id;
+            _stableId = $"Button:{id}:{text}";
 
             if (!SPRITES.TryGetValue(id, out _sprite))
             {

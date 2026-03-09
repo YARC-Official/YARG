@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -182,8 +182,6 @@ namespace YARG.Gameplay.Player
 
         private AutoCalibrator _autoCalibrator;
 
-        private bool IsAutoCalibrating => SettingsManager.Settings.AutoCalibration.Value;
-
         public override void Initialize(int index, YargPlayer player, SongChart chart, TrackView trackView,
             StemMixer mixer, int? currentHighScore)
         {
@@ -260,6 +258,8 @@ namespace YARG.Gameplay.Player
             GameManager.BeatEventHandler.Audio.Unsubscribe(MetronomeTick);
             GameManager.BeatEventHandler.Audio.Unsubscribe(MetronomeTock);
             GameManager.BeatEventHandler.Visual.Unsubscribe(SunburstEffects.PulseSunburst);
+
+            _autoCalibrator?.Dispose();
 
             base.FinishDestruction();
         }
@@ -715,15 +715,13 @@ namespace YARG.Gameplay.Player
 
                         if (childNote.IsLane)
                         {
-                            int laneIndex = GetLaneIndex(childNote);
-
-                            if (laneStartNotes.ContainsKey(laneIndex))
+                            if (laneStartNotes.ContainsKey(childNote.LaneNote))
                             {
-                                laneEndTimes[laneIndex] = noteRef.Time;
+                                laneEndTimes[childNote.LaneNote] = noteRef.Time;
                             }
                             else
                             {
-                                laneStartNotes[laneIndex] = childNote;
+                                laneStartNotes[childNote.LaneNote] = childNote;
                             }
                         }
                     }
@@ -736,7 +734,7 @@ namespace YARG.Gameplay.Player
                     noteRef = noteRef.NextNote;
                 }
 
-                foreach (int laneIndex in laneStartNotes.Keys)
+                foreach (var (laneIndex, note) in laneStartNotes)
                 {
                     if (!laneEndTimes.ContainsKey(laneIndex))
                     {
@@ -767,7 +765,7 @@ namespace YARG.Gameplay.Player
                                         break;
                                     }
 
-                                    if (existingLane.ContainsIndex(GetLaneIndex(noteRef)) && (noteRef.Flags & thisLaneFlag) != 0)
+                                    if (existingLane.ContainsIndex(noteRef.LaneNote) && (noteRef.Flags & thisLaneFlag) != 0)
                                     {
                                         extendExisting = true;
                                         break;
@@ -794,17 +792,12 @@ namespace YARG.Gameplay.Player
                     // Create a new lane element at this index
                     var newLane = (LaneElement) LanePool.TakeWithoutEnabling();
                     newLane.SetTimeRange(startTime, endTime);
-                    InitializeSpawnedLane(newLane, laneIndex);
+                    InitializeSpawnedLane(newLane, note);
                     ModifyLaneFromNote(newLane, firstLaneNote);
 
                     newLane.EnableFromPool();
                 }
             }
-        }
-
-        protected virtual int GetLaneIndex(TNote note)
-        {
-            return note.LaneNote;
         }
 
         public override void SetPracticeSection(uint start, uint end)
@@ -888,12 +881,12 @@ namespace YARG.Gameplay.Player
         }
 
         protected abstract void InitializeSpawnedNote(IPoolable poolable, TNote note);
-        protected abstract void InitializeSpawnedLane(LaneElement lane, int index);
+        protected abstract void InitializeSpawnedLane(LaneElement lane, TNote note);
         protected virtual void ModifyLaneFromNote(LaneElement lane, TNote note) {}
 
         protected virtual void OnNoteHit(int index, TNote note)
         {
-            if (IsAutoCalibrating && !Player.Profile.IsBot)
+            if (!Player.Profile.IsBot)
             {
                 _autoCalibrator.RecordAccuracy(note.Time);
             }

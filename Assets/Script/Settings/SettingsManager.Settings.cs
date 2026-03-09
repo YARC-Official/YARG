@@ -19,9 +19,11 @@ using YARG.Menu.Settings;
 using YARG.Playback;
 using YARG.Player;
 using YARG.Scores;
+using YARG.Settings.Metadata;
 using YARG.Settings.Types;
 using YARG.Song;
 using YARG.Venue;
+using YARG.Venue.Characters;
 
 namespace YARG.Settings
 {
@@ -91,7 +93,8 @@ namespace YARG.Settings
 
             public IntSetting AudioCalibration { get; } = new(0);
             public IntSetting VideoCalibration { get; } = new(0);
-            public ToggleSetting AutoCalibration { get; } = new(false);
+            public ToggleSetting AutoCalibrateAudio { get; } = new(false);
+            public ToggleSetting AutoCalibrateVideo { get; } = new(false);
 
             public ToggleSetting AccountForHardwareLatency { get; } = new(true);
 
@@ -151,6 +154,7 @@ namespace YARG.Settings
 
             public ToggleSetting AllowDuplicateSongs { get; } = new(true, _ => MusicLibraryMenu.SetReload(MusicLibraryReloadState.Partial));
             public ToggleSetting UseFullDirectoryForPlaylists { get; } = new(false);
+            public ToggleSetting StandardizeGenres { get; } = new(true);
 
             public ToggleSetting ShowFavoriteButton { get; } = new(true);
             public ToggleSetting ShowRecommendedSongs { get; } = new(true, ShowRecommendedSongsCallback);
@@ -179,6 +183,8 @@ namespace YARG.Settings
                     HighScoreHistoryMode.HighestOverall,
                     HighScoreHistoryMode.HighestDifficulty,
                 };
+
+            public ToggleSetting ShowPercentDecimals { get; } = new(false);
 
             #endregion
 
@@ -507,6 +513,8 @@ namespace YARG.Settings
 
             public ToggleSetting ShowAdvancedMusicLibraryOptions { get; } = new(false);
 
+            public ToggleSetting ShowAdvancedSettings { get; } = new(false);
+
             public DropdownSetting<LogLevel> MinimumLogLevel { get; } = new(
 #if UNITY_EDITOR
                 LogLevel.Debug,
@@ -549,6 +557,7 @@ namespace YARG.Settings
             public OutputChannelSetting OutputChannelMetronome { get; } = new(-1, OutputChannelMetronomeCallback);
 
             public ToggleSetting EnableNormalization { get; } = new(false);
+            public CustomCharacterSetting CustomVocalsCharacter { get; } = new(string.Empty, VenueCharacter.CharacterType.Vocals, CustomCharacterCallback);
             #endregion
 
             #region Helpers
@@ -900,6 +909,12 @@ namespace YARG.Settings
                 GlobalAudioHandler.PlayMetronomeSoundEffect(sample, MetronomePitch.Lo);
                 await Task.Delay(200);
                 GlobalAudioHandler.PlayMetronomeSoundEffect(sample, MetronomePitch.Lo);
+            }
+
+            private static void CustomCharacterCallback(string file)
+            {
+                // CharacterPreviewBuilder.CharacterFile = file;
+                CharacterPreviewBuilder.ChangeCharacter(file);
             }
             #endregion
         }

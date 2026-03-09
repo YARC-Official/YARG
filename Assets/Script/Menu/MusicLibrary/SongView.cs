@@ -150,13 +150,9 @@ namespace YARG.Menu.MusicLibrary
             {
                 gameObject.GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, 60);
             }
-            else if (viewType is ButtonViewType)
-            {
-                gameObject.GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, 70);
-            }
             else
             {
-                gameObject.GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, 80);
+                gameObject.GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, 70);
             }
 
             StarAmount starHeaderAmount = StarAmount.None;

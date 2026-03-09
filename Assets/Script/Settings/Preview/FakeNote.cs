@@ -48,7 +48,7 @@ namespace YARG.Settings.Preview
             if (!NoteRef.CenterNote)
             {
                 // Set the position
-                int fretCount = FakeTrackPlayer.CurrentGameModeInfo.FretCount;
+                int fretCount = FakeTrackPlayer.CurrentGameModeInfo.LaneCount;
                 transform.localPosition = new Vector3(
                     TrackPlayer.TRACK_WIDTH / fretCount * NoteRef.Fret - TrackPlayer.TRACK_WIDTH / 2f - 1f / fretCount,
                     0f, 0f);

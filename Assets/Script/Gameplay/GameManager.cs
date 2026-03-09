@@ -56,7 +56,7 @@ namespace YARG.Gameplay
         private DraggableHudManager _draggableHud;
 
         [SerializeField]
-        private GameObject _lyricBar;
+        private LyricBar _lyricBar;
 
         [SerializeField]
         private FailMeter _failMeter;
@@ -125,6 +125,8 @@ namespace YARG.Gameplay
 
         public bool IsPractice      { get; private set; }
 
+        public bool IsReplay => ReplayInfo != null && !GlobalVariables.State.PlayingWithReplay;
+
         public int BandScore
         {
             get => EngineManager.Score;
@@ -168,6 +170,8 @@ namespace YARG.Gameplay
         private double _pauseTime;
         private double _rewindLimit = double.MinValue;
         private bool   _resumeInProgress;
+        private bool   _autoCalibrateVideoOnPause;
+        private double _preFadeOutVolume = DEFAULT_VOLUME;
 
         public bool PlayingAShow => GlobalVariables.State.PlayingAShow;
         public int  ShowIndex = 0;
@@ -226,7 +230,6 @@ namespace YARG.Gameplay
 
             // Unsubscribe from other events
             SettingsManager.Settings.NoFailMode.OnChange -= OnNoFailModeChanged;
-            SettingsManager.Settings.AutoCalibration.OnChange -= OnAutoCalibrationChanged;
             EngineManager.OnSongFailed -= OnSongFailed;
 
             //Restore stem volumes to their original state
@@ -322,6 +325,10 @@ namespace YARG.Gameplay
             BackgroundManager.SetTime(_songRunner.SongTime + Song.SongOffsetSeconds);
             VenueCameraManager?.ResetTime(time);
             VenueCharacterManager?.ResetTime(time);
+            if (_lyricBar.gameObject.activeSelf)
+            {
+                _lyricBar.SetSongTime(time);
+            }
         }
 
         public void SetSongSpeed(float speed)
@@ -398,7 +405,7 @@ namespace YARG.Gameplay
 
             // This uses the raw input update time because it keeps running during the pause
             // allowing us to accurately calculate the length of the pause later
-            if (!Rewinding && showMenu)
+            if (!Rewinding && !IsReplay && showMenu)
             {
                 // Save state about the pause
                 _pauseTime = InputManager.InputUpdateTime;
@@ -414,6 +421,8 @@ namespace YARG.Gameplay
                 _rewindLimit = rewindTime;
             }
 
+            _autoCalibrateVideoOnPause = SettingsManager.Settings.AutoCalibrateVideo.Value;
+
             // Pause any audio samples that are currently playing
             GlobalAudioHandler.PauseAllSfx();
 
@@ -425,8 +434,8 @@ namespace YARG.Gameplay
 
         public async void Resume()
         {
-            // We don't rewind in practice mode, so we can skip all the BS
-            if (IsPractice)
+            // We don't rewind in practice mode or in replay, so we can skip all the BS
+            if (IsPractice || IsReplay)
             {
                 _pauseMenu.PopAllMenus();
                 _songRunner.Resume();
@@ -441,6 +450,22 @@ namespace YARG.Gameplay
 
             _resumeInProgress = true;
             Rewinding = true;
+
+            // If AutoCalibrateVideo changed while paused, fade the mixer accordingly
+            bool autoCalibrateVideoEnabled = SettingsManager.Settings.AutoCalibrateVideo.Value;
+            bool didChangeWhilePaused = autoCalibrateVideoEnabled != _autoCalibrateVideoOnPause;
+            if (didChangeWhilePaused)
+            {
+                if (autoCalibrateVideoEnabled)
+                {
+                    _preFadeOutVolume = _mixer.GetVolume();
+                    _mixer.FadeOut(SONG_START_DELAY);
+                }
+                else
+                {
+                    _mixer.FadeIn(_preFadeOutVolume, SONG_START_DELAY);
+                }
+            }
 
             // try block is here so we can ensure that _resumeInProgress always gets reset
             try
@@ -858,14 +883,6 @@ namespace YARG.Gameplay
             }
         }
 
-        private void OnAutoCalibrationChanged(bool enabled)
-        {
-            if (enabled)
-            {
-                InvalidateScores("Menu.Toast.AutoCalibrationScore");
-            }
-        }
-
         // If we go from no fail to fail, we need to reinitialize the happiness state so we avoid
         // the possibility of an instant fail. Yes, this is cheeseable since toggling no fail resets happiness.
         private void OnNoFailModeChanged(bool noFail)
@@ -880,7 +897,7 @@ namespace YARG.Gameplay
             }
         }
 
-        private void InvalidateScores(string toastKey)
+        internal void InvalidateScores(string toastKey)
         {
             bool invalidated = false;
 

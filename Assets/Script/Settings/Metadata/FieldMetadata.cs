@@ -7,15 +7,11 @@ namespace YARG.Settings.Metadata
         public string FieldName { get; }
         public bool HasDescription { get; } = true;
 
-        public FieldMetadata(string fieldName)
+        public FieldMetadata(string fieldName, bool hasDescription = true, bool isAdvanced = false)
+            : base(isAdvanced)
         {
             UnlocalizedSearchNames = new[] { $"Setting.{fieldName}.Name" };
             FieldName = fieldName;
-        }
-
-        public FieldMetadata(string fieldName, bool hasDescription)
-            : this(fieldName)
-        {
             HasDescription = hasDescription;
         }
     }

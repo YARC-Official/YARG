@@ -163,13 +163,31 @@ namespace YARG.Menu.ListMenu
 
         private void UpdateScrollbar()
         {
+            // Avoid hard crash when loading an empty list
+            if (_scrollbar == null) return;
+
+            if (_viewList == null || _viewList.Count == 0)
+            {
+                _scrollbar.SetValueWithoutNotify(0f);
+                return;
+            }
+
             _scrollbar.SetValueWithoutNotify((float) SelectedIndex / _viewList.Count);
         }
 
         protected void RequestViewListUpdate()
         {
             _viewList = CreateViewList();
+            if (_viewList.Count > 0)
+            {
+                _selectedIndex = Mathf.Clamp(_selectedIndex, 0, _viewList.Count - 1);
+            }
+            else
+            {
+                _selectedIndex = 0;
+            }
             RefreshViewsObjects();
+            UpdateScrollbar();
         }
 
         protected abstract List<TViewType> CreateViewList();

@@ -1,9 +1,9 @@
 fileFormatVersion: 2
-guid: 970ee7dd4bc38ed4ba1a4ea95ff39ff7
+guid: 0e3516b2ea3f0b349a4d58a762715896
 TextureImporter:
   internalIDToNameTable: []
   externalObjects: {}
-  serializedVersion: 12
+  serializedVersion: 13
   mipmaps:
     mipMapMode: 0
     enableMipMap: 0
@@ -20,11 +20,12 @@ TextureImporter:
     externalNormalMap: 0
     heightScale: 0.25
     normalMapFilter: 0
+    flipGreenChannel: 0
   isReadable: 0
   streamingMipmaps: 0
   streamingMipmapsPriority: 0
   vTOnly: 0
-  ignoreMasterTextureLimit: 0
+  ignoreMipmapLimit: 0
   grayScaleToAlpha: 0
   generateCubemap: 6
   cubemapConvolution: 0
@@ -63,9 +64,10 @@ TextureImporter:
   textureFormatSet: 0
   ignorePngGamma: 0
   applyGammaDecoding: 0
+  swizzle: 50462976
   cookieLightType: 0
   platformSettings:
-  - serializedVersion: 3
+  - serializedVersion: 4
     buildTarget: DefaultTexturePlatform
     maxTextureSize: 2048
     resizeAlgorithm: 0
@@ -75,9 +77,10 @@ TextureImporter:
     crunchedCompression: 0
     allowsAlphaSplitting: 0
     overridden: 0
+    ignorePlatformSupport: 0
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 0
-  - serializedVersion: 3
+  - serializedVersion: 4
     buildTarget: Standalone
     maxTextureSize: 2048
     resizeAlgorithm: 0
@@ -87,157 +90,143 @@ TextureImporter:
     crunchedCompression: 0
     allowsAlphaSplitting: 0
     overridden: 0
+    ignorePlatformSupport: 0
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 0
   spriteSheet:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: AlbumIcons
+      name: SidebarAlbum
       rect:
         serializedVersion: 2
         x: 0
-        y: 2
-        width: 22
-        height: 22
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: 78038cbd38c53d94e90c5a928a446c93
-      internalID: 1871101318
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: GenreIcon
-      rect:
-        serializedVersion: 2
-        x: 22
-        y: 2
-        width: 22
-        height: 22
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: ebdbda7b4e2a0184bb042247b068f924
-      internalID: -546018842
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: LengthIcon
-      rect:
-        serializedVersion: 2
-        x: 44
-        y: 4
-        width: 20
-        height: 20
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: 7f9e170c569d2a5488c29b10e4cf316c
-      internalID: -938189368
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: LoadingPhraseIcon
-      rect:
-        serializedVersion: 2
-        x: 64
         y: 0
-        width: 24
-        height: 24
+        width: 128
+        height: 128
       alignment: 0
-      pivot: {x: 0.5, y: 0.5}
+      pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 7980ee06544c6bc4899a99ed8ff15417
-      internalID: -1314841266
+      spriteID: 3fc386c8473adbc4b876b30cc902e607
+      internalID: -939891392
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: CalendarIcon
+      name: SidebarGenre
       rect:
         serializedVersion: 2
-        x: 89
-        y: 7
-        width: 15
-        height: 17
+        x: 128
+        y: 0
+        width: 128
+        height: 128
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 27c142d5ce3363b48a6c5606cb58201f
-      internalID: 1984728626
+      spriteID: c6f830c9d125b924cab0114e1b0de2d9
+      internalID: -187228932
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: PersonIcon
+      name: SidebarLength
       rect:
         serializedVersion: 2
-        x: 105
-        y: 7
-        width: 14
-        height: 17
+        x: 256
+        y: 0
+        width: 128
+        height: 128
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: f57646e34d07d924d90e3ae0b882024b
-      internalID: 2040723077
+      spriteID: 9a4bc4fdd9c163f4b8f45f95f4cc341a
+      internalID: -1346723640
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SidebarSource
+      rect:
+        serializedVersion: 2
+        x: 384
+        y: 0
+        width: 128
+        height: 128
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: b1ee1c179e744ef46a27e6922da53f89
+      internalID: 1930670314
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SidebarYear
+      rect:
+        serializedVersion: 2
+        x: 512
+        y: 0
+        width: 128
+        height: 128
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 4415c5749ae49ec41abd3b7802720130
+      internalID: -1185046248
       vertices: []
       indices: 
       edges: []
       weights: []
     outline: []
+    customData: 
     physicsShape: []
     bones: []
-    spriteID: 4314b768e0274d648a28d7702174b727
+    spriteID: c5c725e395cbd8843884ea5bad369ff6
     internalID: 0
     vertices: []
     indices: 
     edges: []
     weights: []
     secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
     nameFileIdTable:
-      AlbumIcons: 1871101318
-      CalendarIcon: 1984728626
-      GenreIcon: -546018842
-      LengthIcon: -938189368
-      LoadingPhraseIcon: -1314841266
-      PersonIcon: 2040723077
-  spritePackingTag: 
+      SidebarAlbum: -939891392
+      SidebarGenre: -187228932
+      SidebarLength: -1346723640
+      SidebarSource: 1930670314
+      SidebarYear: -1185046248
+  mipmapLimitGroupName: 
   pSDRemoveMatte: 0
-  pSDShowRemoveMatteOption: 0
   userData: 
   assetBundleName: 
   assetBundleVariant: 

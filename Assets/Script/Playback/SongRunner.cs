@@ -603,7 +603,9 @@ namespace YARG.Playback
             int videoCalibrationMs = SettingsManager.Settings.VideoCalibration.Value;
             int audioCalibrationMs = SettingsManager.Settings.AudioCalibration.Value;
             if (SettingsManager.Settings.AccountForHardwareLatency.Value)
+            {
                 audioCalibrationMs += GlobalAudioHandler.PlaybackLatency;
+            }
 
             AudioCalibration = audioCalibrationMs / 1000.0;
             VideoCalibration = videoCalibrationMs / 1000.0;

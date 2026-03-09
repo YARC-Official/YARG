@@ -28,11 +28,12 @@ namespace YARG.Menu.MusicLibrary
         private Color _buttonBackgroundColorOnHover;
         private Color _buttonBackgroundColorOnDown;
 
+        private readonly Color _lightCoolGrey = new(123 / 255f, 127 / 255f, 154 / 255f, 0.2f);
+        private readonly Color _darkCoolGrey = new(123 / 255f, 127 / 255f, 154 / 255f, 0.05f);
+
         private Action _onClickHandler;
 
         private bool _clickable = true;
-
-        private readonly Color _coolGrey = new Color(123 / 255f, 127 / 255f, 154 / 255f, 1f);
 
         public void Initialize(Action onClickHandler)
         {
@@ -99,8 +100,9 @@ namespace YARG.Menu.MusicLibrary
         public void DisableButton()
         {
             _clickable = false;
-            _buttonBackground.color = Color.gray;
-            _buttonImage.color = Color.gray;
+            _buttonBackground.color = _darkCoolGrey;
+            _buttonImage.color = _lightCoolGrey;
+            _buttonOutline.color = _darkCoolGrey;
         }
 
         public void EnableButton()
@@ -108,6 +110,7 @@ namespace YARG.Menu.MusicLibrary
             _clickable = true;
             _buttonBackground.color = _buttonBackgroundColor;
             _buttonImage.color = _buttonImageColor;
+            _buttonOutline.color = _buttonBackgroundColor;
         }
     }
 }

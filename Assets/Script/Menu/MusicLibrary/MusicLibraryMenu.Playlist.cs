@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using YARG.Core.Game;
 using YARG.Core.Input;
 using YARG.Localization;
 using YARG.Menu.Navigation;
@@ -15,6 +16,7 @@ namespace YARG.Menu.MusicLibrary
     public partial class MusicLibraryMenu
     {
         public Playlist       ShowPlaylist   { get; set; }         = new(true);
+        private Playlist      _lastPlaylistSelectPlaylist;
 
         private List<ViewType> CreatePlaylistSelectViewList()
         {
@@ -22,30 +24,8 @@ namespace YARG.Menu.MusicLibrary
             int id = BACK_ID + 1;
             var list = new List<ViewType>
             {
-                new ButtonViewType(Localize.Key("Menu.MusicLibrary.Back"),
-                    "MusicLibraryIcons[Back]", () =>
-                    {
-                        SelectedPlaylist = null;
-                        MenuState = MenuState.Library;
-                        Refresh();
-                    }, BACK_ID)
+                new ButtonViewType("YARG", "MusicLibraryIcons[Playlists]", () => { })
             };
-
-            list.Add(new ButtonViewType("YARG", "MusicLibraryIcons[Playlists]", () => { }));
-
-            // Favorites is always on top
-            list.Add(new PlaylistViewType(
-                Localize.Key("Menu.MusicLibrary.Favorites"),
-                PlaylistContainer.FavoritesPlaylist,
-                () =>
-                {
-                    SelectedPlaylist = PlaylistContainer.FavoritesPlaylist;
-                    MenuState = MenuState.Playlist;
-                    Refresh();
-                }, PLAYLIST_ID));
-
-            list.Add(new ButtonViewType(Localize.Key("Menu.MusicLibrary.YourPlaylists"),
-                "MusicLibraryIcons[Playlists]", () => { }));
 
             // Add the setlist "playlist" if there are any songs currently in it
             if (ShowPlaylist.Count > 0)
@@ -53,21 +33,29 @@ namespace YARG.Menu.MusicLibrary
                 list.Add(new PlaylistViewType(Localize.Key("Menu.MusicLibrary.CurrentSetlist"), ShowPlaylist,
                     () =>
                     {
-                        SelectedPlaylist = ShowPlaylist;
-                        MenuState = MenuState.Playlist;
-                        Refresh();
+                        EnterPlaylistView(ShowPlaylist);
                     }, id));
                 id++;
             }
+
+            // Favorites is always on top (within the YARG section)
+            list.Add(new PlaylistViewType(
+                Localize.Key("Menu.MusicLibrary.Favorites"),
+                PlaylistContainer.FavoritesPlaylist,
+                () =>
+                {
+                    EnterPlaylistView(PlaylistContainer.FavoritesPlaylist);
+                }, PLAYLIST_ID));
+
+            list.Add(new ButtonViewType(Localize.Key("Menu.MusicLibrary.YourPlaylists"),
+                "MusicLibraryIcons[Playlists]", () => { }));
 
             // Add any other user defined playlists
             foreach (var playlist in PlaylistContainer.Playlists)
             {
                 list.Add(new PlaylistViewType(playlist.Name, playlist, () =>
                 {
-                    SelectedPlaylist = playlist;
-                    MenuState = MenuState.Playlist;
-                    Refresh();
+                    EnterPlaylistView(playlist);
                 }, id));
                 id++;
             }
@@ -78,11 +66,7 @@ namespace YARG.Menu.MusicLibrary
         private List<ViewType> CreatePlaylistViewList()
         {
             SetNavigationScheme(true);
-            var list = new List<ViewType>
-            {
-                new ButtonViewType(Localize.Key("Menu.MusicLibrary.Back"),
-                    "MusicLibraryIcons[Back]", ExitPlaylistView, BACK_ID)
-            };
+            var list = new List<ViewType>();
 
             // If `_sortedSongs` is null, then this function is being called during very first initialization,
             // which means the song list hasn't been constructed yet.
@@ -93,25 +77,37 @@ namespace YARG.Menu.MusicLibrary
             }
 
             bool allowdupes = SettingsManager.Settings.AllowDuplicateSongs.Value;
+            _totalSongCount = 0;
+            _totalStarCount = 0;
             foreach (var section in _sortedSongs)
             {
-                list.Add(new SortHeaderViewType(
-                    section.Category.ToUpperInvariant(),
-                    section.Songs.Length,
-                    section.CategoryGroup,
-                    section.Songs));
-
                 foreach (var song in section.Songs)
                 {
                     if (allowdupes || !song.IsDuplicate)
                     {
-                        list.Add(new SongViewType(this, song));
+                        var songView = new SongViewType(this, song);
+                        list.Add(songView);
+
+                        _totalSongCount++;
+                        var starAmount = songView.GetStarAmount();
+                        _totalStarCount += starAmount is null ? 0 : StarAmountHelper.GetStarCount(starAmount.Value);
                     }
                 }
             }
 
             CalculateCategoryHeaderIndices(list);
             return list;
+        }
+
+        private void EnterPlaylistView(Playlist playlist)
+        {
+            _lastPlaylistSelectPlaylist = playlist;
+            SelectedPlaylist = playlist;
+            MenuState = MenuState.Playlist;
+            Refresh();
+
+            if (!SetIndexTo(i => i is SongViewType))
+                SelectedIndex = 0;
         }
 
         private List<ViewType> CreateShowViewList()
@@ -178,19 +174,27 @@ namespace YARG.Menu.MusicLibrary
 
         private void ExitPlaylistView()
         {
+            var lastPlaylist = _lastPlaylistSelectPlaylist;
             SelectedPlaylist = null;
             MenuState = MenuState.PlaylistSelect;
             SetNavigationScheme(true);
+            ClearPreview();
+            // Prevent an out-of-range song index from rendering an empty list while we rebuild.
+            SelectedIndex = 0;
             Refresh();
 
-            // Select playlist button
-            // TODO: Fix this to select the playlist we entered from, not favorites
-            SetIndexTo(i => i is ButtonViewType { ID: PLAYLIST_ID });
+            if (!SetIndexTo(i => i is PlaylistViewType pv && pv.Playlist == lastPlaylist))
+            {
+                // Select playlist button
+                SetIndexTo(i => i is ButtonViewType { ID: PLAYLIST_ID });
+            }
+            _sidebar.UpdateSidebar(true);
         }
 
         private void ExitPlaylistSelect()
         {
             MenuState = MenuState.Library;
+            ClearPreview();
             Refresh();
 
             SetIndexTo(i => i is ButtonViewType { ID: PLAYLIST_ID });
@@ -341,8 +345,15 @@ namespace YARG.Menu.MusicLibrary
         {
             if (CurrentSelection is SongViewType selection)
             {
-                SelectedPlaylist.MoveSongUp(selection.SongEntry);
+                var song = selection.SongEntry;
+                int previousIndex = SelectedIndex;
+                SelectedPlaylist.MoveSongUp(song);
                 Refresh();
+                if (!SetIndexTo(i => i is SongViewType view && view.SongEntry == song))
+                {
+                    SelectedIndex = previousIndex < 0 ? 0 :
+                        previousIndex >= ViewList.Count ? ViewList.Count - 1 : previousIndex;
+                }
             }
         }
 
@@ -350,8 +361,15 @@ namespace YARG.Menu.MusicLibrary
         {
             if (CurrentSelection is SongViewType selection)
             {
-                SelectedPlaylist.MoveSongDown(selection.SongEntry);
+                var song = selection.SongEntry;
+                int previousIndex = SelectedIndex;
+                SelectedPlaylist.MoveSongDown(song);
                 Refresh();
+                if (!SetIndexTo(i => i is SongViewType view && view.SongEntry == song))
+                {
+                    SelectedIndex = previousIndex < 0 ? 0 :
+                        previousIndex >= ViewList.Count ? ViewList.Count - 1 : previousIndex;
+                }
             }
         }
     }

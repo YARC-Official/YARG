@@ -27,7 +27,7 @@ namespace YARG.Gameplay.HUD
             }, false));
         }
 
-        private void OnDisable()
+        protected virtual void OnDisable()
         {
             Navigator.Instance.PopScheme();
         }
@@ -45,6 +45,7 @@ namespace YARG.Gameplay.HUD
         public void TogglePractice()
         {
             GlobalVariables.State.IsPractice = !GlobalVariables.State.IsPractice;
+            GlobalVariables.State.SavedInputTime = GameManager.InputTime;
             PauseMenuManager.Restart();
         }
 

@@ -243,12 +243,11 @@ namespace YARG.Gameplay.Visuals
 
         public void SetScaleMultiplier(float scaleMultiplier)
         {
-            float clampedMultiplier = Mathf.Max(1f, scaleMultiplier);
-            if (Mathf.Approximately(_scaleMultiplier, clampedMultiplier))
+            if (Mathf.Approximately(_scaleMultiplier, scaleMultiplier))
             {
                 return;
             }
-            _scaleMultiplier = clampedMultiplier;
+            _scaleMultiplier = scaleMultiplier;
             ResetCameras();
         }
 
@@ -477,6 +476,8 @@ namespace YARG.Gameplay.Visuals
             private readonly HighwayCameraRendering _highwayCameraRendering;
             private readonly Material               _material;
 
+            public static readonly int LayerMask = ~(1 << UnityEngine.LayerMask.NameToLayer("FadeExclude"));
+
             public FadePass(HighwayCameraRendering highCamRend)
             {
                 _highwayCameraRendering = highCamRend;
@@ -496,10 +497,10 @@ namespace YARG.Gameplay.Visuals
 
                     var alphaTextureHandle = renderGraph.ImportTexture(RTHandles.Alloc(_highwayCameraRendering._highwaysAlphaTexture));
 
-                    builder.SetRenderAttachment(alphaTextureHandle, 0, AccessFlags.Write);
+                    builder.SetRenderAttachment(alphaTextureHandle, 0, AccessFlags.WriteAll);
                     // We could allocate a different depth texture, however at this point
                     // We do not need to preserve depth from the camera as we'll calc this as a very first thing
-                    builder.SetRenderAttachmentDepth(resourceData.activeDepthTexture, AccessFlags.Write);
+                    builder.SetRenderAttachmentDepth(resourceData.activeDepthTexture, AccessFlags.WriteAll);
 
                     builder.AllowPassCulling(false);
 
@@ -510,6 +511,7 @@ namespace YARG.Gameplay.Visuals
                     {
                         renderQueueRange = RenderQueueRange.transparent,
                         overrideMaterial = passData.material,
+                        layerMask = LayerMask,
                     };
                     passData.transparentRendererList = renderGraph.CreateRendererList(transparentDesc);
                     builder.UseRendererList(passData.transparentRendererList);
@@ -519,6 +521,7 @@ namespace YARG.Gameplay.Visuals
                     {
                         renderQueueRange = RenderQueueRange.opaque,
                         overrideMaterial = passData.material,
+                        layerMask = LayerMask,
                     };
                     passData.opaqueRendererList = renderGraph.CreateRendererList(opaqueDesc);
                     builder.UseRendererList(passData.opaqueRendererList);

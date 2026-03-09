@@ -133,13 +133,11 @@ namespace YARG.Gameplay
                 }
                 else
                 {
-                    // var players = new YargPlayer[YargPlayers.Count + PlayerContainer.Players.Count];
                     _replayController.gameObject.SetActive(false);
                     var players = new List<YargPlayer>();
                     players.AddRange(PlayerContainer.Players);
                     for (int i = 0; i < YargPlayers.Count; i++)
                     {
-                         // YargPlayers[i].ReplayIndex = i;
                          players.Add(YargPlayers[i]);
                     }
 
@@ -246,8 +244,8 @@ namespace YARG.Gameplay
                 EngineManager.InitializeHappiness();
 
                 SettingsManager.Settings.NoFailMode.OnChange += OnNoFailModeChanged;
-                SettingsManager.Settings.AutoCalibration.Value = false;
-                SettingsManager.Settings.AutoCalibration.OnChange += OnAutoCalibrationChanged;
+                SettingsManager.Settings.AutoCalibrateAudio.Value = false;
+                SettingsManager.Settings.AutoCalibrateVideo.Value = false;
             }
 
             // Log constant values
@@ -290,6 +288,7 @@ namespace YARG.Gameplay
                 if (Chart != null)
                 {
                     GenerateVenueTrack();
+                    GenerateLipsyncTrack();
                 }
                 else
                 {
@@ -311,7 +310,7 @@ namespace YARG.Gameplay
             {
                     SongChart.LoadVenueFromMilo(Chart, Song);
 
-                    YargLogger.LogFormatWarning("Loaded {0} lighting events from milo", Chart.VenueTrack.Lighting.Count);
+                    YargLogger.LogFormatDebug("Loaded {0} lighting events from milo", Chart.VenueTrack.Lighting.Count);
             }
 
             if (File.Exists(VenueAutoGenerationPreset.DefaultPath))
@@ -327,6 +326,13 @@ namespace YARG.Gameplay
                     Chart = preset.GenerateLightingEvents(Chart);
                 }
             }
+        }
+
+        private void GenerateLipsyncTrack()
+        {
+            SongChart.LoadLipsyncFromMilo(Chart, Song);
+
+            YargLogger.LogFormatDebug("Loaded {0} lipsync events from milo", Chart.LipsyncEvents.Count);
         }
 
         private void FinalizeChart()
@@ -451,7 +457,7 @@ namespace YARG.Gameplay
                                 : Chart.Harmony;
                             VocalTrack.Initialize(chart, player, Song.VocalScrollSpeedScalingFactor);
 
-                            _lyricBar.SetActive(false);
+                            _lyricBar.gameObject.SetActive(false);
                             vocalTrackInitialized = true;
                         }
 
