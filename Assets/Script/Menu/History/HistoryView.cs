@@ -11,8 +11,6 @@ namespace YARG.Menu.History
         [Space]
         [SerializeField]
         private GameObject _fullContainer;
-        [SerializeField]
-        private GameObject _categoryContainer;
 
         [Space]
         [SerializeField]
