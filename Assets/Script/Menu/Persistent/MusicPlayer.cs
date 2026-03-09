@@ -1,4 +1,4 @@
-﻿using Cysharp.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -73,7 +73,10 @@ namespace YARG.Menu.Persistent
                 lock (_lock)
                 {
                     const float SPEED = 1f;
-                    _current = task = Task.Run(() => entry.LoadAudio(SPEED, SettingsManager.Settings.MusicPlayerVolume.Value, SongStem.Crowd));
+                    var settings = SettingsManager.Settings;
+                    _current = task = Task.Run(() => entry.LoadAudio(SPEED,
+                        settings.MusicPlayerVolume.Value,
+                        SongStem.Crowd));
                 }
 
                 var mixer = await task;
@@ -92,7 +95,6 @@ namespace YARG.Menu.Persistent
 
                     _mixer?.Dispose();
                     _mixer = mixer;
-                    SetupStemVolumes(_mixer);
                     _mixer.SongEnd += () =>
                     {
                         _mixer.Dispose();
@@ -115,20 +117,6 @@ namespace YARG.Menu.Persistent
             lock (_lock)
             {
                 _mixer?.SetVolume(volume);
-            }
-        }
-
-        private static void SetupStemVolumes(StemMixer mixer)
-        {
-            if (!SettingsManager.Settings.ApplyVolumesInMusicLibrary.Value)
-            {
-                return;
-            }
-
-            foreach (var stem in mixer.Stems)
-            {
-                var volume = SettingsManager.Settings.GetVolumeSetting(stem);
-                MixerAudioHandler.SetVolumeSetting(stem, volume);
             }
         }
 

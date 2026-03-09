@@ -6,11 +6,11 @@ using ManagedBass;
 using ManagedBass.Fx;
 using ManagedBass.Mix;
 using UnityEngine;
+using YARG.Audio;
 using YARG.Core.Audio;
 using YARG.Core.Logging;
 using YARG.Core.Song;
 using YARG.Helpers;
-using YARG.Settings;
 
 namespace YARG.Audio.BASS
 {
@@ -36,7 +36,7 @@ namespace YARG.Audio.BASS
 
         private const    float WHAMMY_SYNC_INTERVAL_SECONDS = 1f;
 
-        private static bool IsWhammyEnabled => SettingsManager.Settings.UseWhammyFx.Value;
+        private static bool IsWhammyEnabled => GlobalAudioHandler.UseWhammyFx;
         private        bool IsPlaying       => Bass.ChannelIsActive(_tempoStreamHandle) == PlaybackState.Playing;
 
         private readonly int            _mixerHandle;
@@ -95,7 +95,7 @@ namespace YARG.Audio.BASS
             }
 
             _mixerHandle = handle;
-            _shouldNormalize = normalize && SettingsManager.Settings.EnableNormalization.Value;
+            _shouldNormalize = normalize;
             if (_shouldNormalize)
             {
                 AddGainDSP();
@@ -541,7 +541,10 @@ namespace YARG.Audio.BASS
 
         protected override void SetBufferLength_Internal(int length)
         {
-            _BufferSetter(SettingsManager.Settings.EnablePlaybackBuffer.Value, length);
+            // Fallback since we don't have SettingsManager directly
+            // BassAudioManager should be invoking ToggleBuffer so we don't strictly need to read setting here 
+            // but we'll assume it's true unless told otherwise by ToggleBuffer.
+            _BufferSetter(true, length);
         }
 
         private void _BufferSetter(bool enable, int length)

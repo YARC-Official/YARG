@@ -29,6 +29,7 @@ namespace YARG.Audio
         private readonly SongStem                        _backgroundStem;
         private readonly Dictionary<SongStem, StemState> _stemStates;
         private readonly HashSet<SongStem>               _mixerStems;
+        private readonly StemMixer                       _mixer;
         private          bool                            IsMultiTrack => _mixerStems.Count > 1;
 
         private static AudioFxMode MuteOnMissSetting  => SettingsManager.Settings.MuteOnMiss.Value;
@@ -36,13 +37,15 @@ namespace YARG.Audio
         private static bool        AllowOverhitSfx    => SettingsManager.Settings.OverstrumAndOverhitSoundEffects.Value;
         private static bool        AllowWhammySetting => SettingsManager.Settings.UseWhammyFx.Value;
 
-        public PlayerAudioManager(GameManager gameManager, SongStem backgroundStem, IEnumerable<SongStem> mixerStems)
+        public PlayerAudioManager(GameManager gameManager, SongStem backgroundStem, IEnumerable<SongStem> mixerStems,
+            StemMixer mixer)
         {
             _gameManager = gameManager;
             _backgroundStem = backgroundStem;
             _contexts = new List<PlayerContext>();
             _stemStates = new Dictionary<SongStem, StemState>();
             _mixerStems = new HashSet<SongStem>(mixerStems);
+            _mixer = mixer;
         }
 
         public void AddPlayer(BasePlayer player)
@@ -106,13 +109,13 @@ namespace YARG.Audio
             }
 
             double volume = state.SetMute(muted);
-            MixerAudioHandler.SetVolumeSetting(state.Stem, volume);
+            _mixer.SetVolume(state.Stem, volume);
         }
 
         private void ChangeStemReverbState(StemState state, bool reverb)
         {
             var hasReverb = state.SetReverb(reverb);
-            MixerAudioHandler.SetReverbSetting(state.Stem, hasReverb);
+            _mixer.SetReverb(state.Stem, hasReverb);
         }
 
         private void HandlePlayerEvent(PlayerContext context, PlayerEvent playerEvent)
@@ -252,7 +255,7 @@ namespace YARG.Audio
             context.IsMuted = muted;
         }
 
-        private static void ChangeWhammyPitch(PlayerContext context, float percent)
+        private void ChangeWhammyPitch(PlayerContext context, float percent)
         {
             // Ignore whammy on the background stem to avoid pitch-bending the full mix.
             if (!context.IsMultiTrack)
@@ -260,7 +263,7 @@ namespace YARG.Audio
                 return;
             }
 
-            MixerAudioHandler.SetWhammyPitchSetting(context.StemState.Stem, percent);
+            _mixer.SetWhammyPitch(context.StemState.Stem, percent);
         }
 
         private static void PlayOverstrumSfx()
@@ -288,7 +291,7 @@ namespace YARG.Audio
             // Restore player-owned stems to current user settings
             foreach (var state in _stemStates.Values)
             {
-                MixerAudioHandler.SetVolumeSetting(state.Stem, state.Volume);
+                _mixer.SetVolume(state.Stem, state.Volume);
             }
         }
     }

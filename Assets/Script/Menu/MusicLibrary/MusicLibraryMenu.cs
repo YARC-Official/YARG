@@ -6,6 +6,7 @@ using Cysharp.Text;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using YARG.Audio;
 using YARG.Core;
 using YARG.Core.Audio;
 using YARG.Core.Game;
@@ -124,6 +125,7 @@ namespace YARG.Menu.MusicLibrary
 
         private CancellationTokenSource _previewCanceller;
         private PreviewContext _previewContext;
+        private StemVolumeLinker _previewVolumeLinker;
         private double _previewDelay;
 
         private SongEntry _currentSong;
@@ -406,8 +408,7 @@ namespace YARG.Menu.MusicLibrary
 
             _previewCanceller?.Cancel();
             _previewCanceller = new CancellationTokenSource();
-            _previewContext?.Stop();
-            _previewContext = null;
+            StopPreviewContext();
             StartPreview(_previewDelay, _previewCanceller);
 
             _previewDelay = PREVIEW_SCROLL_DELAY;
@@ -656,8 +657,7 @@ namespace YARG.Menu.MusicLibrary
         {
             _currentSong = null;
             _previewCanceller?.Cancel();
-            _previewContext?.Stop();
-            _previewContext = null;
+            StopPreviewContext();
         }
 
         private void EnterPlaylistSelectFromLibrary()
@@ -879,20 +879,17 @@ namespace YARG.Menu.MusicLibrary
                 return;
             }
 
-            var context = await PreviewContext.Create(_currentSong, previewVolume, GlobalVariables.State.SongSpeed, delay, FADE_DURATION, canceller);
+            bool applyVolumes = settings.ApplyVolumesInMusicLibrary.Value;
+            var context = await PreviewContext.Create(_currentSong, previewVolume, GlobalVariables.State.SongSpeed,
+                delay, FADE_DURATION, canceller);
             if (context != null)
             {
-                MixerAudioHandler.SetMixer(context.Mixer);
-                if (settings.ApplyVolumesInMusicLibrary.Value)
+                if (applyVolumes)
                 {
-                    foreach (var stem in context.Mixer.Stems)
-                    {
-                        //We do have a mixer instance here:
-                        // var mixer = _previewContext.Mixer;
-                        var volume = SettingsManager.Settings.GetVolumeSetting(stem);
-                        MixerAudioHandler.SetVolumeSetting(stem, volume);
-                    }
+                    var mixer = context.Mixer;
+                    _previewVolumeLinker = new StemVolumeLinker(mixer, settings);
                 }
+
                 _previewContext = context;
             }
         }
@@ -922,7 +919,7 @@ namespace YARG.Menu.MusicLibrary
             Navigator.Instance.PopScheme();
 
             _previewCanceller?.Cancel();
-            _previewContext?.Stop();
+            StopPreviewContext();
             _searchField.OnSearchQueryUpdated -= UpdateSearch;
 
             PlayerContainer.PlayerAdded -= OnPlayerAdded;
@@ -1474,8 +1471,7 @@ namespace YARG.Menu.MusicLibrary
         {
             // Stop any library preview audio so the Filters menu doesn't inherit it
             _previewCanceller?.Cancel();
-            _previewContext?.Stop();
-            _previewContext = null;
+            StopPreviewContext();
 
             var menu = YARG.Menu.Filters.FiltersMenu.Instance;
             if (menu == null)
@@ -1512,8 +1508,7 @@ namespace YARG.Menu.MusicLibrary
         {
             // Stop any library preview audio so the loading screen doesn't inherit it
             _previewCanceller?.Cancel();
-            _previewContext?.Stop();
-            _previewContext = null;
+            StopPreviewContext();
 
             SetSidebarDifficultiesVisible(false);
             using var context = new LoadingContext();
@@ -1537,6 +1532,14 @@ namespace YARG.Menu.MusicLibrary
         private void OnPlayerRemoved(YargPlayer player)
         {
             _noPlayerWarning.SetActive(PlayerContainer.Players.Count <= 0);
+        }
+
+        private void StopPreviewContext()
+        {
+            _previewVolumeLinker?.Dispose();
+            _previewVolumeLinker = null;
+            _previewContext?.Stop();
+            _previewContext = null;
         }
 
         public static void ResetMainLibraryIndex()

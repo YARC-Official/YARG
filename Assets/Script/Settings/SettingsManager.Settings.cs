@@ -190,29 +190,21 @@ namespace YARG.Settings
 
             public VolumeSetting MasterMusicVolume { get; } = new(0.75f, v => GlobalAudioHandler.SetMasterVolume(v));
 
-            public VolumeSetting GuitarVolume { get; } =
-                new(1f, v => MixerAudioHandler.SetVolumeSetting(SongStem.Guitar, v));
+            public VolumeSetting GuitarVolume { get; } = new(1f);
 
-            public VolumeSetting RhythmVolume { get; } =
-                new(1f, v => MixerAudioHandler.SetVolumeSetting(SongStem.Rhythm, v));
+            public VolumeSetting RhythmVolume { get; } = new(1f);
 
-            public VolumeSetting BassVolume { get; } =
-                new(1f, v => MixerAudioHandler.SetVolumeSetting(SongStem.Bass, v));
+            public VolumeSetting BassVolume { get; } = new(1f);
 
-            public VolumeSetting KeysVolume { get; } =
-                new(1f, v => MixerAudioHandler.SetVolumeSetting(SongStem.Keys, v));
+            public VolumeSetting KeysVolume { get; } = new(1f);
 
-            public VolumeSetting DrumsVolume { get; } =
-                new(1f, v => MixerAudioHandler.SetVolumeSetting(SongStem.Drums, v));
+            public VolumeSetting DrumsVolume { get; } = new(1f);
 
-            public VolumeSetting VocalsVolume { get; } =
-                new(1f, v => MixerAudioHandler.SetVolumeSetting(SongStem.Vocals, v));
+            public VolumeSetting VocalsVolume { get; } = new(1f);
 
-            public VolumeSetting SongVolume { get; } =
-                new(1f, v => MixerAudioHandler.SetVolumeSetting(SongStem.Song, v));
+            public VolumeSetting SongVolume { get; } = new(1f);
 
-            public VolumeSetting CrowdVolume { get; } =
-                new(1f, v => MixerAudioHandler.SetVolumeSetting(SongStem.Crowd, v));
+            public VolumeSetting CrowdVolume { get; } = new(1f);
 
             public VolumeSetting SfxVolume { get; } =
                 new(0.8f, v => GlobalAudioHandler.SetSampleVolumeSetting(SongStem.Sfx, v));

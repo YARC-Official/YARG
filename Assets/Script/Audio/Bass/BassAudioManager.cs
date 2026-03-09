@@ -209,7 +209,8 @@ namespace YARG.Audio.BASS
         }
 
 #nullable enable
-        protected override StemMixer? CreateMixer(string name, float speed, double mixerVolume, bool clampStemVolume, bool normalize)
+        protected override StemMixer? CreateMixer(string name, float speed, double mixerVolume,
+            bool clampStemVolume, bool normalize)
         {
             if (GlobalAudioHandler.LogMixerStatus)
             {
@@ -220,7 +221,10 @@ namespace YARG.Audio.BASS
             {
                 return null;
             }
-            return new BassStemMixer(name, this, speed, mixerVolume, handle, clampStemVolume, normalize,
+
+            bool normalizationEnabled = SettingsManager.Settings.EnableNormalization.Value;
+            bool shouldNormalize = normalize && normalizationEnabled;
+            return new BassStemMixer(name, this, speed, mixerVolume, handle, clampStemVolume, shouldNormalize,
                 CreateOutputChannel(SettingsManager.Settings?.OutputChannelDefault.Value ?? 0));
         }
 

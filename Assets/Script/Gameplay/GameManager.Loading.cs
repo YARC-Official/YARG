@@ -257,7 +257,7 @@ namespace YARG.Gameplay
 
         private void SetupPlayerAudio()
         {
-            _playerAudioManager = new PlayerAudioManager(this, _backgroundStem, _mixerStems);
+            _playerAudioManager = new PlayerAudioManager(this, _backgroundStem, _mixerStems, _mixer);
             foreach (var player in _players)
             {
                 _playerAudioManager.AddPlayer(player);

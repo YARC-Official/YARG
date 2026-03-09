@@ -239,9 +239,10 @@ namespace YARG.Gameplay
 
             DisposeDebug();
             _pauseMenu.PopAllMenus();
+            _playerAudioManager?.Dispose();
+            _volumeLinker?.Dispose();
             _mixer?.Dispose();
             _songRunner?.Dispose();
-            _playerAudioManager?.Dispose();
             BackgroundManager.Dispose();
             CrowdEventHandler.Dispose();
 

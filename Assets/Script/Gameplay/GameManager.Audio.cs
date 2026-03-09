@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using YARG.Audio;
 using YARG.Core.Audio;
 using YARG.Playback;
 using YARG.Settings;
@@ -12,6 +13,7 @@ namespace YARG.Gameplay
 
         private SongStem _backgroundStem;
         private bool     _hasCrowdStem;
+        private StemVolumeLinker _volumeLinker;
 
         private void LoadAudio()
         {
@@ -23,6 +25,8 @@ namespace YARG.Gameplay
                 return;
             }
 
+            _volumeLinker = new StemVolumeLinker(_mixer, SettingsManager.Settings);
+
             var mixerStems = new HashSet<SongStem>();
             foreach (var stem in _mixer.Stems)
             {
@@ -32,24 +36,14 @@ namespace YARG.Gameplay
             _hasCrowdStem = mixerStems.Contains(SongStem.Crowd);
             _backgroundStem = mixerStems.Count > 1 ? SongStem.Song : mixerStems.First();
             _mixerStems = mixerStems;
-
-            SetupStemVolumes();
-        }
-
-        private void SetupStemVolumes()
-        {
-            //Have a mixer instance here already
-            foreach (var stem in _mixerStems)
-            {
-                var volume = SettingsManager.Settings.GetVolumeSetting(stem);
-                MixerAudioHandler.SetVolumeSetting(stem, volume);
-            }
         }
 
         public void ChangeStarPowerStatus(bool active)
         {
             if (SettingsManager.Settings.UseCrowdFx.Value == CrowdFxMode.Disabled)
+            {
                 return;
+            }
 
             StarPowerActivations += active ? 1 : -1;
             if (StarPowerActivations < 0)
@@ -63,7 +57,7 @@ namespace YARG.Gameplay
             if (_hasCrowdStem)
             {
                 var volume = SettingsManager.Settings.GetVolumeSetting(SongStem.Crowd);
-                MixerAudioHandler.SetVolumeSetting(SongStem.Crowd, volume);
+                _mixer?.SetVolume(SongStem.Crowd, volume);
             }
         }
 
@@ -75,7 +69,7 @@ namespace YARG.Gameplay
             }
 
             double volume = muted ? 0.0 : SettingsManager.Settings.GetVolumeSetting(SongStem.Crowd);
-            MixerAudioHandler.SetVolumeSetting(SongStem.Crowd, volume, duration);
+            _mixer?.SetVolume(SongStem.Crowd, volume, duration);
         }
 
     }
