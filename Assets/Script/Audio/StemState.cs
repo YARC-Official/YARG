@@ -10,7 +10,7 @@ namespace YARG.Audio
         private         int      _audible;
         private         int      _reverbCount;
 
-        public double Volume => SettingsManager.Settings.GetVolumeSetting(Stem);
+        public double Volume => SettingsManager.Settings.GetVolumeSettingValue(Stem);
 
         public StemState(SongStem stem)
         {

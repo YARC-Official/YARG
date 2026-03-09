@@ -410,7 +410,7 @@ namespace YARG.Audio.BASS
                     if (File.Exists(sfxPath))
                     {
                         var sfxSample = sample.Kind;
-                        var initialSfxVolume = SettingsManager.Settings?.GetVolumeSetting(SongStem.Sfx) ?? DefaultVolume;
+                        var initialSfxVolume = SettingsManager.Settings?.GetVolumeSettingValue(SongStem.Sfx) ?? DefaultVolume;
                         var sfx = BassSampleChannel.Create(sfxSample, sfxPath, 8,
                             CreateOutputChannel(SettingsManager.Settings?.OutputChannelSfx.Value ?? 0), sample.CanLoop,
                             initialVolume: initialSfxVolume);
@@ -489,7 +489,7 @@ namespace YARG.Audio.BASS
                     if (File.Exists(voxPath))
                     {
                         var voxSample = sample.Kind;
-                        var initialVoxVolume = SettingsManager.Settings?.GetVolumeSetting(SongStem.VoxSample) ?? DefaultVolume;
+                        var initialVoxVolume = SettingsManager.Settings?.GetVolumeSettingValue(SongStem.VoxSample) ?? DefaultVolume;
                         var vox = BassVoxSampleChannel.Create(voxSample, voxPath,
                             CreateOutputChannel(SettingsManager.Settings?.OutputChannelVox.Value ?? 0),
                             initialVolume: initialVoxVolume);
@@ -546,7 +546,7 @@ namespace YARG.Audio.BASS
                 if (!String.IsNullOrEmpty(metronomeHiPath) && !String.IsNullOrEmpty(metronomeLoPath))
                 {
                     var metronomeSample = sample.Kind;
-                    var initialMetronomeVolume = SettingsManager.Settings?.GetVolumeSetting(SongStem.Metronome) ?? DefaultVolume;
+                    var initialMetronomeVolume = SettingsManager.Settings?.GetVolumeSettingValue(SongStem.Metronome) ?? DefaultVolume;
                     var metronome = BassMetronomeSampleChannel.Create(metronomeSample, metronomeHiPath, metronomeLoPath,
                         CreateOutputChannel(SettingsManager.Settings?.OutputChannelDefault.Value ?? 0),
                         initialVolume: initialMetronomeVolume);

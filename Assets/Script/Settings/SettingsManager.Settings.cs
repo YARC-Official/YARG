@@ -275,22 +275,24 @@ namespace YARG.Settings
                     MetronomeSample.Trashcan
                 };
 
-            public double GetVolumeSetting(SongStem stem)
+            public double GetVolumeSettingValue(SongStem stem) => GetVolumeSetting(stem)?.Value ?? 1.0;
+
+            public VolumeSetting? GetVolumeSetting(SongStem stem)
             {
                 return stem switch
                 {
-                    SongStem.Guitar    => GuitarVolume.Value,
-                    SongStem.Rhythm    => RhythmVolume.Value,
-                    SongStem.Bass      => BassVolume.Value,
-                    SongStem.Keys      => KeysVolume.Value,
-                    SongStem.Drums     => DrumsVolume.Value,
-                    SongStem.Vocals    => VocalsVolume.Value,
-                    SongStem.Song      => SongVolume.Value,
-                    SongStem.Crowd     => CrowdVolume.Value,
-                    SongStem.Sfx       => SfxVolume.Value,
-                    SongStem.DrumSfx   => DrumSfxVolume.Value,
-                    SongStem.Metronome => MetronomeVolume.Value,
-                    _                  => 1.0
+                    SongStem.Guitar    => GuitarVolume,
+                    SongStem.Rhythm    => RhythmVolume,
+                    SongStem.Bass      => BassVolume,
+                    SongStem.Keys      => KeysVolume,
+                    SongStem.Drums     => DrumsVolume,
+                    SongStem.Vocals    => VocalsVolume,
+                    SongStem.Song      => SongVolume,
+                    SongStem.Crowd     => CrowdVolume,
+                    SongStem.Sfx       => SfxVolume,
+                    SongStem.DrumSfx   => DrumSfxVolume,
+                    SongStem.Metronome => MetronomeVolume,
+                    _                  => null
                 };
             }
 

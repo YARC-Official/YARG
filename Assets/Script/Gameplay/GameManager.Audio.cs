@@ -56,7 +56,7 @@ namespace YARG.Gameplay
         {
             if (_hasCrowdStem)
             {
-                var volume = SettingsManager.Settings.GetVolumeSetting(SongStem.Crowd);
+                var volume = SettingsManager.Settings.GetVolumeSettingValue(SongStem.Crowd);
                 _mixer?.SetVolume(SongStem.Crowd, volume);
             }
         }
@@ -68,7 +68,7 @@ namespace YARG.Gameplay
                 return;
             }
 
-            double volume = muted ? 0.0 : SettingsManager.Settings.GetVolumeSetting(SongStem.Crowd);
+            double volume = muted ? 0.0 : SettingsManager.Settings.GetVolumeSettingValue(SongStem.Crowd);
             _mixer?.SetVolume(SongStem.Crowd, volume, duration);
         }
 
