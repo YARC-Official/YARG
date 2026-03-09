@@ -886,8 +886,7 @@ namespace YARG.Menu.MusicLibrary
             {
                 if (applyVolumes)
                 {
-                    var mixer = context.Mixer;
-                    _previewVolumeLinker = new StemVolumeLinker(mixer, settings);
+                    _previewVolumeLinker = new StemVolumeLinker(context.Mixer, settings);
                 }
 
                 _previewContext = context;

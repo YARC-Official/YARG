@@ -9,11 +9,10 @@ namespace YARG.Audio.BASS
 {
     public sealed class BassSampleChannel : SampleChannel
     {
-        private const double DefaultVolume = 1.0;
 
 #nullable enable
         public static BassSampleChannel? Create(SfxSample sample, string path, int playbackCount,
-            OutputChannel? outputChannel, bool loop = false, double initialVolume = DefaultVolume)
+            OutputChannel? outputChannel, bool loop = false, double initialVolume = 1.0)
 #nullable disable
         {
             BassFlags flags = 0;
@@ -53,7 +52,7 @@ namespace YARG.Audio.BASS
         private readonly int _channel;
         private double _lastPlaybackTime;
 
-        private double _volumeSetting = DefaultVolume;
+        private double _volumeSetting = 1.0;
 
         private int _syncHandle;
 

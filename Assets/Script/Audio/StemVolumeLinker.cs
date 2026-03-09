@@ -15,18 +15,13 @@ namespace YARG.Audio
         {
             _mixer = mixer;
             _settings = settings;
-            BindAllMixerStems();
-        }
-
-        private void BindAllMixerStems()
-        {
             foreach (var stem in _mixer.Stems)
             {
                 BindStem(stem);
             }
         }
 
-        public void BindStem(SongStem stem)
+        private void BindStem(SongStem stem)
         {
             if (_callbacks.ContainsKey(stem))
             {
@@ -39,12 +34,9 @@ namespace YARG.Audio
                 return;
             }
 
-            // Create and register callback
             Action<float> callback = volume => _mixer.SetVolume(stem, volume);
             setting.OnChange += callback;
             _callbacks.Add(stem, callback);
-
-            // Set initial volume
             _mixer.SetVolume(stem, setting.Value);
         }
 

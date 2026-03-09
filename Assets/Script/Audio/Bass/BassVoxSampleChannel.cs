@@ -18,8 +18,6 @@ namespace YARG.Audio.BASS
     /// </summary>
     public sealed class BassVoxSampleChannel : VoxSampleChannel
     {
-        private const double DefaultVolume = 1.0;
-
         private static readonly List<BassVoxSampleChannel>  Channels = new();
         private static readonly Queue<BassVoxSampleChannel> Queue    = new();
         private readonly        int                         _sampleHandle;
@@ -27,7 +25,7 @@ namespace YARG.Audio.BASS
 
 #nullable enable
         public static BassVoxSampleChannel? Create(VoxSample sample, string path, OutputChannel? outputChannel,
-            double initialVolume = DefaultVolume)
+            double initialVolume = 1.0)
 #nullable disable
         {
             int handle = Bass.SampleLoad(path, 0, 0, 2, BassFlags.Decode);

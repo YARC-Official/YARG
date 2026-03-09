@@ -7,7 +7,6 @@ using ManagedBass.Mix;
 using UnityEngine;
 using YARG.Core.Audio;
 using YARG.Core.Logging;
-using YARG.Menu.Persistent;
 using YARG.Settings;
 
 #if UNITY_EDITOR
@@ -91,8 +90,6 @@ namespace YARG.Audio.BASS
         {
             ".ogg", ".mogg", ".wav", ".mp3", ".aiff", ".opus",
         };
-
-        private const double DefaultVolume = 1.0;
 
         protected override ReadOnlySpan<string> SupportedFormats => FORMATS;
 
@@ -410,7 +407,7 @@ namespace YARG.Audio.BASS
                     if (File.Exists(sfxPath))
                     {
                         var sfxSample = sample.Kind;
-                        var initialSfxVolume = SettingsManager.Settings?.GetVolumeSettingValue(SongStem.Sfx) ?? DefaultVolume;
+                        var initialSfxVolume = SettingsManager.Settings?.GetVolumeSettingValue(SongStem.Sfx) ?? 1.0;
                         var sfx = BassSampleChannel.Create(sfxSample, sfxPath, 8,
                             CreateOutputChannel(SettingsManager.Settings?.OutputChannelSfx.Value ?? 0), sample.CanLoop,
                             initialVolume: initialSfxVolume);
@@ -489,7 +486,7 @@ namespace YARG.Audio.BASS
                     if (File.Exists(voxPath))
                     {
                         var voxSample = sample.Kind;
-                        var initialVoxVolume = SettingsManager.Settings?.GetVolumeSettingValue(SongStem.VoxSample) ?? DefaultVolume;
+                        var initialVoxVolume = SettingsManager.Settings?.GetVolumeSettingValue(SongStem.VoxSample) ?? 1.0;
                         var vox = BassVoxSampleChannel.Create(voxSample, voxPath,
                             CreateOutputChannel(SettingsManager.Settings?.OutputChannelVox.Value ?? 0),
                             initialVolume: initialVoxVolume);
@@ -546,7 +543,7 @@ namespace YARG.Audio.BASS
                 if (!String.IsNullOrEmpty(metronomeHiPath) && !String.IsNullOrEmpty(metronomeLoPath))
                 {
                     var metronomeSample = sample.Kind;
-                    var initialMetronomeVolume = SettingsManager.Settings?.GetVolumeSettingValue(SongStem.Metronome) ?? DefaultVolume;
+                    var initialMetronomeVolume = SettingsManager.Settings?.GetVolumeSettingValue(SongStem.Metronome) ?? 1.0;
                     var metronome = BassMetronomeSampleChannel.Create(metronomeSample, metronomeHiPath, metronomeLoPath,
                         CreateOutputChannel(SettingsManager.Settings?.OutputChannelDefault.Value ?? 0),
                         initialVolume: initialMetronomeVolume);
