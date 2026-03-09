@@ -885,9 +885,10 @@ namespace YARG.Menu.MusicLibrary
                 MixerAudioHandler.SetMixer(context.Mixer);
                 if (settings.ApplyVolumesInMusicLibrary.Value)
                 {
-                    foreach (var channel in context.Mixer.Channels)
+                    foreach (var stem in context.Mixer.Stems)
                     {
-                        var stem = channel.Stem;
+                        //We do have a mixer instance here:
+                        // var mixer = _previewContext.Mixer;
                         var volume = SettingsManager.Settings.GetVolumeSetting(stem);
                         MixerAudioHandler.SetVolumeSetting(stem, volume);
                     }

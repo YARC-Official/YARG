@@ -155,11 +155,11 @@ namespace YARG.Audio.BASS
         /// </summary>
         private void SyncWhammyDrift()
         {
-            foreach (var channel in Channels)
+            foreach (var channel in _channels)
             {
                 if (Mathf.Approximately(channel.GetWhammyPitch(), 1.0f))
                 {
-                    channel.SetWhammyPitch(percent: 0.0f);
+                    SetWhammyPitch(channel.Stem, 0f);
                 }
             }
         }
@@ -575,7 +575,7 @@ namespace YARG.Audio.BASS
             _normalizer.OnGainAdjusted -= OnGainAdjusted;
             _normalizer.Dispose();
 
-            foreach (var channel in Channels)
+            foreach (var channel in _channels)
             {
                 channel.Dispose();
             }

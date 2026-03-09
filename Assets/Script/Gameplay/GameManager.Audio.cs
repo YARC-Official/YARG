@@ -24,9 +24,9 @@ namespace YARG.Gameplay
             }
 
             var mixerStems = new HashSet<SongStem>();
-            foreach (var channel in _mixer.Channels)
+            foreach (var stem in _mixer.Stems)
             {
-                mixerStems.Add(channel.Stem);
+                mixerStems.Add(stem);
             }
 
             _hasCrowdStem = mixerStems.Contains(SongStem.Crowd);
@@ -38,6 +38,7 @@ namespace YARG.Gameplay
 
         private void SetupStemVolumes()
         {
+            //Have a mixer instance here already
             foreach (var stem in _mixerStems)
             {
                 var volume = SettingsManager.Settings.GetVolumeSetting(stem);

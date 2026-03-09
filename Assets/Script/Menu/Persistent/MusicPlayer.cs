@@ -125,9 +125,8 @@ namespace YARG.Menu.Persistent
                 return;
             }
 
-            foreach (var channel in mixer.Channels)
+            foreach (var stem in mixer.Stems)
             {
-                var stem = channel.Stem;
                 var volume = SettingsManager.Settings.GetVolumeSetting(stem);
                 MixerAudioHandler.SetVolumeSetting(stem, volume);
             }
