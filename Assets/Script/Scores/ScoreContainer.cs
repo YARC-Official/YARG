@@ -483,8 +483,9 @@ namespace YARG.Scores
         {
             try
             {
-                List<PlayerScoreWithChecksum> records = _db.QueryPlayerBestStars(
-                    profile, SettingsManager.Settings.HighScoreHistory.Value);
+                List<PlayerScoreWithChecksum> records = profile.GameMode == GameMode.EliteDrums
+                    ? _db.QueryPlayerBestStarsForInstruments(profile, MidiDrumkitHelper.Instruments, false)
+                    : _db.QueryPlayerBestStars(profile, SettingsManager.Settings.HighScoreHistory.Value);
                 Dictionary<HashWrapper, StarAmount> result = new Dictionary<HashWrapper, StarAmount>();
 
                 foreach (PlayerScoreWithChecksum record in records)
@@ -512,6 +513,68 @@ namespace YARG.Scores
             return BandHighScores.ToDictionary(
                 record => record.Key,
                 record => record.Value.BandStars);
+        }
+
+        public static PlayerScoreRecord GetPreferredHighScoreForInstruments(
+            HashWrapper songChecksum,
+            Guid playerId,
+            IReadOnlyList<Instrument> instruments)
+        {
+            return UseHighestScore
+                ? GetHighScoreForInstruments(songChecksum, playerId, instruments)
+                : GetBestPercentageScoreForInstruments(songChecksum, playerId, instruments);
+        }
+
+        public static PlayerScoreRecord GetHighScoreForInstruments(
+            HashWrapper songChecksum,
+            Guid playerId,
+            IReadOnlyList<Instrument> instruments)
+        {
+            if (instruments == null || instruments.Count == 0)
+            {
+                return null;
+            }
+
+            if (instruments.Count == 1)
+            {
+                return GetHighScore(songChecksum, playerId, instruments[0]);
+            }
+
+            try
+            {
+                return _db.QueryPlayerSongHighScoreForInstruments(songChecksum, playerId, instruments, HighestDifficultyOnly);
+            }
+            catch (Exception e)
+            {
+                YargLogger.LogException(e, $"Failed to load high score from database for player with ID {playerId}.");
+                return null;
+            }
+        }
+
+        public static PlayerScoreRecord GetBestPercentageScoreForInstruments(
+            HashWrapper songChecksum,
+            Guid playerId,
+            IReadOnlyList<Instrument> instruments)
+        {
+            if (instruments == null || instruments.Count == 0)
+            {
+                return null;
+            }
+
+            if (instruments.Count == 1)
+            {
+                return GetBestPercentageScore(songChecksum, playerId, instruments[0]);
+            }
+
+            try
+            {
+                return _db.QueryPlayerSongHighestPercentageForInstruments(songChecksum, playerId, instruments, HighestDifficultyOnly);
+            }
+            catch (Exception e)
+            {
+                YargLogger.LogException(e, $"Failed to load high score from database for player with ID {playerId}.");
+                return null;
+        }
         }
     }
 }
