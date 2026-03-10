@@ -7,14 +7,17 @@ using UnityEngine.AddressableAssets;
 using UnityEngine.UI;
 using YARG.Helpers.Extensions;
 using YARG.Core;
+using YARG.Core.Game;
 using YARG.Core.Input;
 using YARG.Core.Song;
 using YARG.Core.Utility;
 using YARG.Localization;
 using YARG.Menu.Navigation;
+using YARG.Menu.MusicLibrary;
 using YARG.Menu.Settings;
 using YARG.Menu.Settings.Visuals;
 using YARG.Menu.Persistent;
+using YARG.Menu.Data;
 using YARG.Player;
 using YARG.Playlists;
 using YARG.Song;
@@ -41,24 +44,43 @@ namespace YARG.Menu.Filters
 
         private readonly struct FilterDef
         {
-            public readonly FilterGroup Group;
+            public readonly FilterKey Key;
             public readonly Func<IReadOnlyList<string>> GetValues;
             public readonly Func<Dictionary<string, int>> GetCounts;
             public readonly Dictionary<string, bool> Enabled;
             public readonly Func<string, string> LabelTransform;
+            public readonly Instrument IntensityInstrument;
+
+            public FilterGroup Group => Key.Group;
 
             public FilterDef(
-                FilterGroup group,
+                FilterKey key,
                 Func<IReadOnlyList<string>> getValues,
                 Func<Dictionary<string, int>> getCounts,
                 Dictionary<string, bool> enabled,
-                Func<string, string> labelTransform = null)
+                Func<string, string> labelTransform = null,
+                Instrument intensityInstrument = default)
             {
-                Group = group;
+                Key = key;
                 GetValues = getValues;
                 GetCounts = getCounts;
                 Enabled = enabled;
                 LabelTransform = labelTransform;
+                IntensityInstrument = intensityInstrument;
+            }
+        }
+
+        private readonly struct IntensityFilterContext
+        {
+            public readonly Guid ProfileId;
+            public readonly string ProfileName;
+            public readonly Instrument Instrument;
+
+            public IntensityFilterContext(Guid profileId, string profileName, Instrument instrument)
+            {
+                ProfileId = profileId;
+                ProfileName = profileName;
+                Instrument = instrument;
             }
         }
         [SerializeField]
@@ -88,7 +110,7 @@ namespace YARG.Menu.Filters
         [SerializeField]
         private GameObject _showRecommendationsTogglePrefab;
 
-        private readonly Dictionary<FilterGroup, FilterCategoryRow> _leftRows = new();
+        private readonly Dictionary<FilterKey, FilterCategoryRow> _leftRows = new();
         private Toggle _showRecommendationsToggle;
 
         private readonly Dictionary<string, bool> _genreEnabled =
@@ -107,8 +129,8 @@ namespace YARG.Menu.Filters
             new(StringComparer.OrdinalIgnoreCase);
         private readonly Dictionary<string, bool> _lengthEnabled =
             new(StringComparer.OrdinalIgnoreCase);
-        private readonly Dictionary<string, bool> _intensityEnabled =
-            new(StringComparer.OrdinalIgnoreCase);
+        private readonly Dictionary<Guid, Dictionary<string, bool>> _intensityEnabledByProfile =
+            new();
 
         private static IReadOnlyList<string> _cachedGenres;
         private static IReadOnlyList<string> _cachedSubgenres;
@@ -118,7 +140,7 @@ namespace YARG.Menu.Filters
         private static IReadOnlyList<string> _cachedPlaylists;
         private static IReadOnlyList<string> _cachedCharters;
         private static IReadOnlyList<string> _cachedLengths;
-        private static IReadOnlyList<string> _cachedIntensities;
+        private static readonly Dictionary<Instrument, IReadOnlyList<string>> _cachedIntensitiesByInstrument = new();
 
         private static int _cachedGenreSongCount = -1;
         private static int _cachedSubgenreSongCount = -1;
@@ -131,7 +153,6 @@ namespace YARG.Menu.Filters
         private static int _cachedLengthSongCount = -1;
         private static int _cachedIntensitySongCount = -1;
 
-        private static Instrument _cachedIntensityInstrument = Instrument.FiveFretGuitar;
 
         private static GameObject _settingsButtonPrefab;
 
@@ -152,7 +173,7 @@ namespace YARG.Menu.Filters
         public static Func<SongEntry, bool> ActiveFilterPredicate { get; private set; }
 
         private static bool _hasSavedFilters;
-        private static readonly Dictionary<FilterGroup, Dictionary<string, bool>> _savedFilters =
+        private static readonly Dictionary<FilterKey, Dictionary<string, bool>> _savedFilters =
             new();
 
         private FilterSortDropdownSetting _sortDropdownSetting;
@@ -311,43 +332,14 @@ namespace YARG.Menu.Filters
             _rightNavGroup.ClearNavigatables();
             _rightContainer.DestroyChildren();
 
-            switch (row.Filters)
-            {
-                case FilterGroup.Genre:
-                    BuildOptionsFor(FilterGroup.Genre);
-                    break;
-                case FilterGroup.Subgenre:
-                    BuildOptionsFor(FilterGroup.Subgenre);
-                    break;
-                case FilterGroup.Decade:
-                    BuildOptionsFor(FilterGroup.Decade);
-                    break;
-                case FilterGroup.VocalParts:
-                    BuildOptionsFor(FilterGroup.VocalParts);
-                    break;
-                case FilterGroup.Source:
-                    BuildOptionsFor(FilterGroup.Source);
-                    break;
-                case FilterGroup.Charter:
-                    BuildOptionsFor(FilterGroup.Charter);
-                    break;
-                case FilterGroup.Intensity:
-                    BuildOptionsFor(FilterGroup.Intensity);
-                    break;
-                case FilterGroup.Length:
-                    BuildOptionsFor(FilterGroup.Length);
-                    break;
-                case FilterGroup.Playlist:
-                    BuildOptionsFor(FilterGroup.Playlist);
-                    break;
-            }
+            BuildOptionsFor(row.Key);
         }
 
         private void CacheLeftRows()
         {
             _leftRows.Clear();
             foreach (var row in _leftContainer.GetComponentsInChildren<FilterCategoryRow>(true))
-                _leftRows[row.Filters] = row;
+                _leftRows[row.Key] = row;
         }
 
 #region Unity Prefab/Asset Building
@@ -362,18 +354,23 @@ namespace YARG.Menu.Filters
 
             AddHeader(container, Localize.Key("Menu.Filters.FiltersHeader"));
             rowIndex = 0;
-            AddGroup(container, navGroup, FilterGroup.Genre,  Localize.Key("Menu.Filters.Genres"))?.AssignIndex(rowIndex++);
-            AddGroup(container, navGroup, FilterGroup.Subgenre, Localize.Key("Menu.Filters.Subgenres"))?.AssignIndex(rowIndex++);
-            AddGroup(container, navGroup, FilterGroup.Decade, Localize.Key("Menu.Filters.Decades"))?.AssignIndex(rowIndex++);
-            AddGroup(container, navGroup, FilterGroup.VocalParts, Localize.Key("Menu.Filters.VocalParts.Name"))?.AssignIndex(rowIndex++);
-            AddGroup(container, navGroup, FilterGroup.Source, Localize.Key("Menu.Filters.Sources"))?.AssignIndex(rowIndex++);
-            AddGroup(container, navGroup, FilterGroup.Charter, Localize.Key("Menu.Filters.Charters"))?.AssignIndex(rowIndex++);
-            AddGroup(container, navGroup, FilterGroup.Intensity, Localize.Key("Menu.Filters.Intensities.Name"))?.AssignIndex(rowIndex++);
-            AddGroup(container, navGroup, FilterGroup.Length, Localize.Key("Menu.Filters.Length.Name"))?.AssignIndex(rowIndex++);
+            AddGroup(container, navGroup, new FilterKey(FilterGroup.Genre), Localize.Key("Menu.Filters.Genres"))?.AssignIndex(rowIndex++);
+            AddGroup(container, navGroup, new FilterKey(FilterGroup.Subgenre), Localize.Key("Menu.Filters.Subgenres"))?.AssignIndex(rowIndex++);
+            AddGroup(container, navGroup, new FilterKey(FilterGroup.Decade), Localize.Key("Menu.Filters.Decades"))?.AssignIndex(rowIndex++);
+            AddGroup(container, navGroup, new FilterKey(FilterGroup.VocalParts), Localize.Key("Menu.Filters.VocalParts.Name"))?.AssignIndex(rowIndex++);
+            AddGroup(container, navGroup, new FilterKey(FilterGroup.Source), Localize.Key("Menu.Filters.Sources"))?.AssignIndex(rowIndex++);
+            AddGroup(container, navGroup, new FilterKey(FilterGroup.Charter), Localize.Key("Menu.Filters.Charters"))?.AssignIndex(rowIndex++);
 
-            AddHeader(container, Localize.Key("Menu.Filters.ShowAnyOfHeader"));
-            rowIndex = 0;
-            AddGroup(container, navGroup, FilterGroup.Playlist, Localize.Key("Menu.Filters.Playlists"))?.AssignIndex(rowIndex++);
+            var intensityContexts = GetIntensityFilterContexts();
+            bool showIntensityContext = intensityContexts.Count > 1;
+            foreach (var context in intensityContexts)
+            {
+                var label = BuildIntensityGroupLabel(context, showIntensityContext);
+                AddGroup(container, navGroup, new FilterKey(FilterGroup.Intensity, context.ProfileId), label)
+                    ?.AssignIndex(rowIndex++);
+            }
+
+            AddGroup(container, navGroup, new FilterKey(FilterGroup.Length), Localize.Key("Menu.Filters.Length.Name"))?.AssignIndex(rowIndex++);
         }
 
         private void AddHeader(Transform container, string text)
@@ -387,18 +384,139 @@ namespace YARG.Menu.Filters
                 tmp.text = text;
         }
 
-        private FilterCategoryRow AddGroup(Transform container, NavigationGroup navGroup, FilterGroup group, string label)
+        private FilterCategoryRow AddGroup(Transform container, NavigationGroup navGroup, FilterKey key, string label)
         {
             var prefab = _filterCategoryRowPrefab;
             if (prefab == null) return null;
 
             var row = Instantiate(prefab, container);
 
-            string secondary = group == FilterGroup.Genre ? Localize.Key("Menu.Filters.All") : string.Empty;
+            string secondary = key.Group == FilterGroup.Genre ? Localize.Key("Menu.Filters.All") : string.Empty;
 
-            row.Init(group, label, secondary);
+            row.Init(key, label, secondary);
             navGroup.AddNavigatable(row);
             return row;
+        }
+
+        private static Instrument GetIntensityInstrumentForProfile(YargProfile profile)
+        {
+            if (profile == null)
+                return Instrument.FiveFretGuitar;
+
+            return profile.GameMode == GameMode.EliteDrums
+                ? Instrument.EliteDrums
+                : profile.CurrentInstrument;
+        }
+
+        private static List<IntensityFilterContext> GetIntensityFilterContexts()
+        {
+            var players = PlayerContainer.Players.Where(player => !player.Profile.IsBot).ToList();
+            if (players.Count == 0)
+            {
+                return new List<IntensityFilterContext>
+                {
+                    new(Guid.Empty, string.Empty, Instrument.FiveFretGuitar)
+                };
+            }
+
+            var contexts = new List<IntensityFilterContext>(players.Count);
+            var seenInstruments = new HashSet<Instrument>();
+            foreach (var player in players)
+            {
+                var profile = player.Profile;
+                var instrument = GetIntensityInstrumentForProfile(profile);
+                if (!seenInstruments.Add(instrument)) continue;
+
+                contexts.Add(new IntensityFilterContext(
+                    profile.Id,
+                    profile.Name,
+                    instrument));
+            }
+
+            return contexts;
+        }
+
+        private static string BuildIntensityGroupLabel(IntensityFilterContext context, bool showContext)
+        {
+            string baseLabel = Localize.Key("Menu.Filters.Intensities.Name");
+            if (!showContext)
+                return baseLabel;
+
+            string profileName = string.IsNullOrWhiteSpace(context.ProfileName)
+                ? Localize.Key(IntensityLabelUnknownKey)
+                : context.ProfileName;
+            string instrumentName = context.Instrument == Instrument.EliteDrums
+                ? SortAttribute.AggregateDrums.ToLocalizedName()
+                : context.Instrument.ToLocalizedName();
+            string contextLabel = $"({profileName} on {instrumentName})";
+
+            return $"{baseLabel} {TextColorer.StyleString(contextLabel, MenuData.Colors.TrackDefaultSecondary, 400)}";
+        }
+
+        private static FiltersMenu GetMenuInstance()
+        {
+            var menu = Instance;
+            if (menu == null)
+            {
+                var menus = Resources.FindObjectsOfTypeAll<FiltersMenu>();
+                if (menus != null && menus.Length > 0)
+                    menu = menus[0];
+            }
+
+            return menu;
+        }
+
+        public static void ResetIntensityFiltersForProfile(YargProfile profile)
+        {
+            if (profile == null) return;
+
+            var menu = GetMenuInstance();
+            if (menu == null) return;
+
+            menu.ResetIntensityFilters(profile);
+        }
+
+        public static void RefreshActiveFilterPredicate()
+        {
+            var menu = GetMenuInstance();
+            if (menu == null) return;
+
+            menu.RestoreSavedFilters();
+            menu.EnsureAllDefaults();
+            ActiveFilterPredicate = menu.BuildFilterPredicate();
+        }
+
+        private void ResetIntensityFilters(YargProfile profile)
+        {
+            var instrument = GetIntensityInstrumentForProfile(profile);
+            ResetIntensityFilters(profile.Id, instrument);
+        }
+
+        private void ResetIntensityFilters(Guid profileId, Instrument instrument)
+        {
+            var enabled = GetIntensityEnabled(profileId);
+            enabled.Clear();
+            foreach (var value in GetAllIntensitiesCached(instrument))
+                enabled[value] = true;
+
+            var key = new FilterKey(FilterGroup.Intensity, profileId);
+            _savedFilters[key] = new Dictionary<string, bool>(enabled, StringComparer.OrdinalIgnoreCase);
+
+            ActiveFilterPredicate = BuildFilterPredicate();
+
+            var library = FindFirstObjectByType<MusicLibraryMenu>();
+            library?.RefreshAndReselect();
+        }
+
+        private Dictionary<string, bool> GetIntensityEnabled(Guid profileId)
+        {
+            if (!_intensityEnabledByProfile.TryGetValue(profileId, out var enabled))
+            {
+                enabled = new Dictionary<string, bool>(StringComparer.OrdinalIgnoreCase);
+                _intensityEnabledByProfile[profileId] = enabled;
+            }
+
+            return enabled;
         }
 
         private BaseSettingVisual AddDropdown(Transform container, NavigationGroup navGroup, string label)
@@ -719,34 +837,32 @@ namespace YARG.Menu.Filters
 
         private IEnumerable<FilterDef> GetFilterDefs()
         {
-            var IntensityInstrument = GetIntensityFilterInstrument();
-
             yield return new FilterDef(
-                FilterGroup.Genre,
+                new FilterKey(FilterGroup.Genre),
                 GetAllGenresCached,
                 () => GetCountsFromCollections(SongContainer.Genres, key => key.ToString()),
                 _genreEnabled);
 
             yield return new FilterDef(
-                FilterGroup.Subgenre,
+                new FilterKey(FilterGroup.Subgenre),
                 GetAllSubgenresCached,
                 () => GetCountsFromCollections(SongContainer.Subgenres, key => key.ToString()),
                 _subgenreEnabled);
 
             yield return new FilterDef(
-                FilterGroup.Decade,
+                new FilterKey(FilterGroup.Decade),
                 GetAllDecadesCached,
                 GetDecadeCounts,
                 _decadeEnabled);
 
             yield return new FilterDef(
-                FilterGroup.VocalParts,
+                new FilterKey(FilterGroup.VocalParts),
                 GetAllVocalPartsCached,
                 GetVocalPartsCounts,
                 _vocalPartsEnabled);
 
             yield return new FilterDef(
-                FilterGroup.Source,
+                new FilterKey(FilterGroup.Source),
                 GetAllSourcesCached,
                 () => GetCountsFromCollections(
                     SongContainer.Sources,
@@ -754,36 +870,35 @@ namespace YARG.Menu.Filters
                 _sourceEnabled);
 
             yield return new FilterDef(
-                FilterGroup.Playlist,
-                GetAllPlaylistsCached,
-                GetPlaylistCounts,
-                _playlistEnabled);
-
-            yield return new FilterDef(
-                FilterGroup.Charter,
+                new FilterKey(FilterGroup.Charter),
                 GetAllChartersCached,
                 () => GetCountsFromCollections(SongContainer.Charters, key => key.ToString()),
                 _charterEnabled,
                 WrapCharterLabel);
 
-            yield return new FilterDef(
-                FilterGroup.Intensity,
-                () => GetAllIntensitiesCached(IntensityInstrument),
-                () => GetIntensityCounts(IntensityInstrument),
-                _intensityEnabled);
+            foreach (var context in GetIntensityFilterContexts())
+            {
+                var instrument = context.Instrument;
+                yield return new FilterDef(
+                    new FilterKey(FilterGroup.Intensity, context.ProfileId),
+                    () => GetAllIntensitiesCached(instrument),
+                    () => GetIntensityCounts(instrument),
+                    GetIntensityEnabled(context.ProfileId),
+                    intensityInstrument: instrument);
+            }
 
             yield return new FilterDef(
-                FilterGroup.Length,
+                new FilterKey(FilterGroup.Length),
                 GetAllLengthsCached,
                 GetLengthCounts,
                 _lengthEnabled);
         }
 
-        private bool TryGetFilterDef(FilterGroup group, out FilterDef def)
+        private bool TryGetFilterDef(FilterKey key, out FilterDef def)
         {
             foreach (var candidate in GetFilterDefs())
             {
-                if (candidate.Group == group)
+                if (candidate.Key == key)
                 {
                     def = candidate;
                     return true;
@@ -812,7 +927,7 @@ namespace YARG.Menu.Filters
 
             foreach (var def in GetFilterDefs())
             {
-                if (!_savedFilters.TryGetValue(def.Group, out var saved))
+                if (!_savedFilters.TryGetValue(def.Key, out var saved))
                     continue;
 
                 def.Enabled.Clear();
@@ -826,7 +941,7 @@ namespace YARG.Menu.Filters
             _savedFilters.Clear();
             foreach (var def in GetFilterDefs())
             {
-                _savedFilters[def.Group] = new Dictionary<string, bool>(
+                _savedFilters[def.Key] = new Dictionary<string, bool>(
                     def.Enabled,
                     StringComparer.OrdinalIgnoreCase);
             }
@@ -837,12 +952,12 @@ namespace YARG.Menu.Filters
         private void UpdateAllSummaries()
         {
             foreach (var def in GetFilterDefs())
-                UpdateSummary(def.Group, def.Enabled, def.GetValues());
+                UpdateSummary(def.Key, def.Enabled, def.GetValues());
         }
 
-        private void BuildOptionsFor(FilterGroup group)
+        private void BuildOptionsFor(FilterKey key)
         {
-            if (!TryGetFilterDef(group, out var def)) return;
+            if (!TryGetFilterDef(key, out var def)) return;
 
             var values = def.GetValues();
             var counts = def.GetCounts();
@@ -853,9 +968,8 @@ namespace YARG.Menu.Filters
                 values,
                 def.Enabled,
                 counts,
-                () => UpdateSummary(def.Group, def.Enabled, def.GetValues()),
-                def.LabelTransform,
-                useDefaults);
+                () => UpdateSummary(def.Key, def.Enabled, def.GetValues()),
+                def.LabelTransform);
         }
 
         private static bool TryGetSelectedSet(
@@ -942,11 +1056,11 @@ namespace YARG.Menu.Filters
         }
 
         private void UpdateSummary(
-            FilterGroup group,
+            FilterKey key,
             Dictionary<string, bool> enabled,
             IReadOnlyList<string> values)
         {
-            if (!_leftRows.TryGetValue(group, out var row)) return;
+            if (!_leftRows.TryGetValue(key, out var row)) return;
 
             int total = values.Count;
             int selected = enabled.Count(kvp => kvp.Value);
@@ -1033,13 +1147,18 @@ namespace YARG.Menu.Filters
                     return label != null && lengths.Contains(NormalizeFilterKey(label));
                 });
 
-            var intensityInstrument = GetIntensityFilterInstrument();
-            if (TryGetSelectedSet(_intensityEnabled, GetAllIntensitiesCached(intensityInstrument), NormalizeFilterKey, out var intensities))
-                predicates.Add(entry =>
-                {
-                    var label = GetIntensityLabel(entry, intensityInstrument);
-                    return label != null && intensities.Contains(NormalizeFilterKey(label));
-                });
+            foreach (var def in GetFilterDefs())
+            {
+                if (def.Group != FilterGroup.Intensity) continue;
+
+                var instrument = def.IntensityInstrument;
+                if (TryGetSelectedSet(def.Enabled, def.GetValues(), NormalizeFilterKey, out var intensities))
+                    predicates.Add(entry =>
+                    {
+                        var label = GetIntensityLabel(entry, instrument);
+                        return label != null && intensities.Contains(NormalizeFilterKey(label));
+                    });
+            }
 
             if (predicates.Count == 0) return null;
 
@@ -1455,23 +1574,20 @@ namespace YARG.Menu.Filters
         private const string IntensityLabelUnknownKey = "Menu.Filters.Intensities.Unknown";
         private const string IntensityLabelNoPartKey = "Menu.Filters.Intensities.NoPart";
 
-        private static Instrument GetIntensityFilterInstrument()
-        {
-            foreach (var player in PlayerContainer.Players)
-            {
-                if (!player.Profile.IsBot) return player.Profile.CurrentInstrument;
-            }
-            return Instrument.FiveFretGuitar;
-        }
-
         private static IReadOnlyList<string> GetAllIntensitiesCached(Instrument instrument)
         {
-            if (_cachedIntensities != null && _cachedIntensitySongCount == SongContainer.Count && _cachedIntensityInstrument == instrument) return _cachedIntensities;
+            if (_cachedIntensitySongCount != SongContainer.Count)
+            {
+                _cachedIntensitySongCount = SongContainer.Count;
+                _cachedIntensitiesByInstrument.Clear();
+            }
 
-            _cachedIntensitySongCount = SongContainer.Count;
-            _cachedIntensityInstrument = instrument;
-            _cachedIntensities = BuildIntensityList(instrument);
-            return _cachedIntensities;
+            if (_cachedIntensitiesByInstrument.TryGetValue(instrument, out var cached))
+                return cached;
+
+            var built = BuildIntensityList(instrument);
+            _cachedIntensitiesByInstrument[instrument] = built;
+            return built;
         }
 
         private static IReadOnlyList<string> BuildIntensityList(Instrument instrument)
@@ -1733,7 +1849,7 @@ namespace YARG.Menu.Filters
             foreach (var def in GetFilterDefs())
             {
                 EnsureDefaults(def.Enabled, def.GetValues());
-                if (!_savedFilters.TryGetValue(def.Group, out var saved))
+                if (!_savedFilters.TryGetValue(def.Key, out var saved))
                     return true;
 
                 if (def.Enabled.Count != saved.Count)

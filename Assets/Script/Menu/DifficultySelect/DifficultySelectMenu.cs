@@ -16,6 +16,7 @@ using YARG.Helpers.Extensions;
 using YARG.Localization;
 using YARG.Menu.Navigation;
 using YARG.Menu.Persistent;
+using YARG.Menu.Filters;
 using YARG.Player;
 using YARG.Song;
 
@@ -381,6 +382,7 @@ namespace YARG.Menu.DifficultySelect
                         CurrentPlayer.Profile.PreferredInstrument = instrument;
                     }
 
+                    FiltersMenu.ResetIntensityFiltersForProfile(CurrentPlayer.Profile);
                     UpdatePossibleDifficulties();
                     UpdatePossibleModifiers();
 
