@@ -1236,7 +1236,8 @@ namespace YARG.Menu.MusicLibrary
 
         private static bool IsDynamicScoreSort(SortAttribute sort)
         {
-            return sort is SortAttribute.Playcount or SortAttribute.Stars;
+            return sort is SortAttribute.Playcount or SortAttribute.Stars or
+                SortAttribute.Percentage or SortAttribute.Score;
         }
 
         private bool SetIndexToStableId(string stableId, int searchStartIndex = 0)

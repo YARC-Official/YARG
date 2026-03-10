@@ -650,7 +650,8 @@ namespace YARG.Menu.Filters
                     }
                     else
                     {
-                        if (sort != SortAttribute.Playcount && sort != SortAttribute.Stars)
+                        if (sort != SortAttribute.Playcount && sort != SortAttribute.Stars &&
+                            sort != SortAttribute.Percentage && sort != SortAttribute.Score)
                             SettingsManager.Settings.PreviousLibrarySort = sort;
 
                         SettingsManager.Settings.LibrarySort = sort;
