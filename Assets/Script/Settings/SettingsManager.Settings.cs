@@ -184,6 +184,8 @@ namespace YARG.Settings
                     HighScoreHistoryMode.HighestDifficulty,
                 };
 
+            public ToggleSetting ShowPercentDecimals { get; } = new(false);
+
             #endregion
 
             #region Sound

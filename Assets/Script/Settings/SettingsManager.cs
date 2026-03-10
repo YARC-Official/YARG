@@ -80,6 +80,7 @@ namespace YARG.Settings
                 nameof(Settings.ShowFavoriteButton),
                 nameof(Settings.DifficultyRings),
                 nameof(Settings.HighScoreInfo),
+                new FieldMetadata(nameof(Settings.ShowPercentDecimals), isAdvanced: true),
                 nameof(Settings.HighScoreHistory),
                 new HeaderMetadata("PlayAShow"),
                 nameof(Settings.PlayAShowTimeout),

@@ -9,6 +9,7 @@ using YARG.Core.Extensions;
 using YARG.Core.Game;
 using YARG.Localization;
 using YARG.Player;
+using YARG.Settings;
 
 namespace YARG.Menu.ScoreScreen
 {
@@ -116,8 +117,15 @@ namespace YARG.Menu.ScoreScreen
             _difficulty.text = Player.Profile.CurrentDifficulty.ToDisplayName();
 
             // Set percent
-            _accuracyPercent.text = $"{Mathf.FloorToInt(Stats.Percent * 100f)}%";
-
+            if (SettingsManager.Settings.ShowPercentDecimals.Value)
+            {
+                var percent = Mathf.Floor(Stats.Percent * 1000f) / 10f;
+                _accuracyPercent.text = $"{percent:0.0}%";
+            }
+            else
+            {
+                _accuracyPercent.text = $"{Mathf.FloorToInt(Stats.Percent * 100f)}%";
+            }
 
             // Set background and foreground colors
             if (Player.Profile.IsBot)
