@@ -1330,8 +1330,7 @@ namespace YARG.Menu.Filters
                 foreach (var song in SongContainer.Songs)
                 {
                     int count = Math.Clamp(song.VocalsCount, 0, 3);
-                    if (count > 0)
-                        counts.Add(count);
+                    counts.Add(count);
                 }
 
                 var ordered = new List<string>(counts.Count);
@@ -1340,6 +1339,9 @@ namespace YARG.Menu.Filters
                     if (counts.Contains(i))
                         ordered.Add(GetVocalPartsLabel(i));
                 }
+
+                if (counts.Contains(0))
+                    ordered.Add(GetVocalPartsLabel(0));
 
                 return ordered;
             });
@@ -1368,6 +1370,7 @@ namespace YARG.Menu.Filters
                 >= 3 => Localize.Key("Menu.Filters.VocalParts.Trio"),
                 2 => Localize.Key("Menu.Filters.VocalParts.Duet"),
                 1 => Localize.Key("Menu.Filters.VocalParts.Solo"),
+                0 => Localize.Key("Menu.Filters.VocalParts.Instrumental"),
                 _ => null
             };
         }

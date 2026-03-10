@@ -531,8 +531,9 @@
             "VocalParts": {
                 "Name": "Number of Vocal Parts",
                 "Solo": "Solo",
-                "Duet": "2-Part Harmony",
-                "Trio": "3-Part Harmony"
+                "Duet": "Duet / 2-Part Harmony",
+                "Trio": "Trio / 3-Part Harmony",
+                "Instrumental": "Instrumental"
             },
             "Sources": "Song Sources",
             "Charters": "Charters",
