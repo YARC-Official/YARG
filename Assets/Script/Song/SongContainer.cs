@@ -53,6 +53,7 @@ namespace YARG.Song
         ProDrums,
         FiveLaneDrums,
         EliteDrums,
+        AggregateDrums,
         ProGuitar_17,
         ProGuitar_22,
         ProBass_17,
@@ -105,6 +106,7 @@ namespace YARG.Song
         private static SongCategory[] _sortSongLengths = Array.Empty<SongCategory>();
         private static SongCategory[] _sortDatesAdded = Array.Empty<SongCategory>();
         private static Dictionary<Instrument, SongCategory[]> _sortInstruments = new();
+        private static SongCategory[] _sortAggregateDrums = Array.Empty<SongCategory>();
 
         private static SongCategory[] _playables = null;
         private static SongCategory[] _sortStars = Array.Empty<SongCategory>();
@@ -129,6 +131,7 @@ namespace YARG.Song
         public static IReadOnlyDictionary<SortString, List<SongEntry>> Sources => _sortedSongs.Sources;
         public static IReadOnlyDictionary<SortString, SortedDictionary<SortString, List<SongEntry>>> ArtistAlbums => _sortedSongs.ArtistAlbums;
         public static IReadOnlyDictionary<Instrument, SortedDictionary<int, List<SongEntry>>> Instruments => _sortedSongs.Instruments;
+        public static IReadOnlyDictionary<int, List<SongEntry>> AggregateDrums => _sortedSongs.AggregateDrums;
 
         public static int Count => _songs.Length;
         // public static IReadOnlyDictionary<HashWrapper, List<SongEntry>> SongsByHash => _songCache.Entries;
@@ -228,6 +231,7 @@ namespace YARG.Song
                     SortAttribute.ProDrums       => _sortInstruments[Instrument.ProDrums],
                     SortAttribute.FiveLaneDrums  => _sortInstruments[Instrument.FiveLaneDrums],
                     SortAttribute.EliteDrums     => _sortInstruments[Instrument.EliteDrums],
+                	SortAttribute.AggregateDrums => _sortAggregateDrums,
                     SortAttribute.ProGuitar_17   => _sortInstruments[Instrument.ProGuitar_17Fret],
                     SortAttribute.ProGuitar_22   => _sortInstruments[Instrument.ProGuitar_22Fret],
                     SortAttribute.ProBass_17     => _sortInstruments[Instrument.ProBass_17Fret],
@@ -660,6 +664,16 @@ namespace YARG.Song
                 catch (Exception ex)
                 {
                     YargLogger.LogException(ex);
+                }
+            }
+
+            _sortAggregateDrums = new SongCategory[_sortedSongs.AggregateDrums.Count];
+            {
+                int index = 0;
+                foreach (var difficulty in _sortedSongs.AggregateDrums)
+                {
+                    string categoryName = $"{SortAttribute.AggregateDrums.ToLocalizedName()} [{difficulty.Key}]";
+                    _sortAggregateDrums[index++] = new SongCategory(categoryName, difficulty.Value.ToArray(), categoryName);
                 }
             }
 

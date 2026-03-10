@@ -180,9 +180,9 @@ namespace YARG.Menu.MusicLibrary
 
         private static readonly unsafe delegate*<SongCache, SortedSongs, void>[] SORTERS =
         {
-            &SortByTitle,    &SortByArtist,   &SortByAlbum,  &SortByGenre,       &SortBySubgenre,   &SortByYear,
-            &SortByCharter,  &SortByPlaylist, &SortBySource, &SortByArtistAlbum, &SortByLength,     &SortByDateAdded,
-            &SortByInstruments
+            &SortByTitle,       &SortByArtist,   &SortByAlbum,  &SortByGenre,       &SortBySubgenre,   &SortByYear,
+            &SortByCharter,     &SortByPlaylist, &SortBySource, &SortByArtistAlbum, &SortByLength,     &SortByDateAdded,
+            &SortByInstruments, &SortByAggregateDrums
         };
 
         internal static unsafe void SortEntries(SongCache cache, SortedSongs sorted)
@@ -502,22 +502,11 @@ namespace YARG.Menu.MusicLibrary
                     foreach (var entry in list.Value)
                     {
                         int intensity;
-                        if (instrument == Instrument.EliteDrums)
-                        {
-                            var preferredInstrument = MidiDrumkitHelper.GetPreferredInstrumentForSong(entry);
-                            if (!preferredInstrument.HasValue)
-                                continue;
+                        var part = entry[instrument];
 
-                            intensity = entry[preferredInstrument.Value].Intensity;
-                        }
-                        else
-                        {
-                            var part = entry[instrument];
-                            if (!part.IsActive())
-                                continue;
+                        if (!part.IsActive()) continue;
 
-                            intensity = part.Intensity;
-                        }
+                        intensity = part.Intensity;
 
                         if (intensities == null)
                         {
@@ -532,9 +521,7 @@ namespace YARG.Menu.MusicLibrary
                             intensities.Add(intensity, category = new List<SongEntry>());
                         }
 
-                        IComparer<SongEntry> comparer = instrument == Instrument.EliteDrums
-                            ? new AggregateDrumsComparer(intensity)
-                            : new InstrumentComparer(instrument, intensity);
+                        IComparer<SongEntry> comparer = new InstrumentComparer(instrument, intensity);
 
                         int index = category.BinarySearch(entry, comparer);
                         category.Insert(~index, entry);
@@ -542,6 +529,35 @@ namespace YARG.Menu.MusicLibrary
                 }
             });
         }
-        #nullable restore
+
+        private static void SortByAggregateDrums(SongCache cache, SortedSongs sorted)
+        {
+            SortedDictionary<int, List<SongEntry>>? intensities = null;
+            foreach (var list in cache.Entries)
+            {
+                foreach (var entry in list.Value)
+                {
+                    var preferredInstrument = MidiDrumkitHelper.GetPreferredInstrumentForSong(entry);
+                    if (!preferredInstrument.HasValue) continue;
+
+                    int intensity = entry[preferredInstrument.Value].Intensity;
+                    if (intensities == null)
+                    {
+                        lock (sorted.AggregateDrums)
+                        {
+                            sorted.AggregateDrums.Clear();
+                            intensities = sorted.AggregateDrums;
+                        }
+                    }
+
+                    if (!intensities.TryGetValue(intensity, out var category))
+                        intensities.Add(intensity, category = new List<SongEntry>());
+
+                    IComparer<SongEntry> comparer = new AggregateDrumsComparer(intensity);
+                    int index = category.BinarySearch(entry, comparer);
+                    category.Insert(~index, entry);
+                }
+            }
+        }
     }
 }

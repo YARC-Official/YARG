@@ -8,10 +8,10 @@ namespace YARG.Helpers
         // Preferred order for display and fallbacks when multiple drum charts exist.
         public static readonly Instrument[] Instruments =
         {
-            Instrument.FiveLaneDrums,
+            Instrument.EliteDrums,
             Instrument.ProDrums,
-            Instrument.FourLaneDrums,
-            Instrument.EliteDrums
+            Instrument.FiveLaneDrums,
+            Instrument.FourLaneDrums
         };
 
         public static bool HasAnyDrumPart(SongEntry song)
