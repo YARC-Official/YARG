@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Discord;
 using UnityEngine;
 using YARG.Core;
 using YARG.Core.Chart;
@@ -20,6 +21,8 @@ namespace YARG.Venue.Characters
         private GameObject _venue;
 
         private readonly Dictionary<VenueCharacter.CharacterType, VenueCharacter> _characters = new();
+
+        private DrumCharacterHelper _drumCharacterHelper = new();
 
         // Ugh, the different note types ruin me again
         private List<VocalNote>    _vocalNotes;
@@ -515,7 +518,7 @@ namespace YARG.Venue.Characters
             {
                 foreach (var note in parent.AllNotes)
                 {
-                    var anim = GetDrumAnimationForNote(note);
+                    var anim = _drumCharacterHelper.GetDrumAnimationForNote(note);
 
                     _drumAnimationEvents.Add(new AnimationEvent(anim, note.Time, note.TimeLength, note.Tick, note.TickLength));
                 }
@@ -628,23 +631,6 @@ namespace YARG.Venue.Characters
             triggers.Sort((a, b) => a.Time.CompareTo(b.Time));
 
             return triggers;
-        }
-
-        public static AnimationEvent.AnimationType GetDrumAnimationForNote(DrumNote child)
-        {
-            var pad = (FourLaneDrumPad) child.Pad;
-            return pad switch
-            {
-                FourLaneDrumPad.Kick => AnimationEvent.AnimationType.Kick,
-                FourLaneDrumPad.YellowCymbal => AnimationEvent.AnimationType.HihatRightHand,
-                FourLaneDrumPad.BlueCymbal => AnimationEvent.AnimationType.RideRh,
-                FourLaneDrumPad.GreenCymbal => AnimationEvent.AnimationType.Crash1RhHard,
-                FourLaneDrumPad.GreenDrum => AnimationEvent.AnimationType.FloorTomRightHand,
-                FourLaneDrumPad.BlueDrum => AnimationEvent.AnimationType.Tom2RightHand,
-                FourLaneDrumPad.YellowDrum => AnimationEvent.AnimationType.Tom1RightHand,
-                FourLaneDrumPad.RedDrum => AnimationEvent.AnimationType.SnareLhHard,
-                _ => throw new ArgumentOutOfRangeException(nameof(pad), pad, "Bad drum pad how?")
-            };
         }
 
         public enum TriggerType
