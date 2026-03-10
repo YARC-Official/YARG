@@ -107,7 +107,7 @@ namespace YARG.Menu.Filters
             new(StringComparer.OrdinalIgnoreCase);
         private readonly Dictionary<string, bool> _lengthEnabled =
             new(StringComparer.OrdinalIgnoreCase);
-        private readonly Dictionary<string, bool> _difficultyEnabled =
+        private readonly Dictionary<string, bool> _intensityEnabled =
             new(StringComparer.OrdinalIgnoreCase);
 
         private static IReadOnlyList<string> _cachedGenres;
@@ -118,8 +118,7 @@ namespace YARG.Menu.Filters
         private static IReadOnlyList<string> _cachedPlaylists;
         private static IReadOnlyList<string> _cachedCharters;
         private static IReadOnlyList<string> _cachedLengths;
-        private static IReadOnlyList<string> _cachedDifficulties;
-        private static Dictionary<string, int> _cachedPlaylistCounts;
+        private static IReadOnlyList<string> _cachedIntensities;
 
         private static int _cachedGenreSongCount = -1;
         private static int _cachedSubgenreSongCount = -1;
@@ -130,9 +129,9 @@ namespace YARG.Menu.Filters
         private static int _cachedPlaylistCountsSignature = -1;
         private static int _cachedCharterSongCount = -1;
         private static int _cachedLengthSongCount = -1;
-        private static int _cachedDifficultySongCount = -1;
+        private static int _cachedIntensitySongCount = -1;
 
-        private static Instrument _cachedDifficultyInstrument = Instrument.FiveFretGuitar;
+        private static Instrument _cachedIntensityInstrument = Instrument.FiveFretGuitar;
 
         private static GameObject _settingsButtonPrefab;
 
@@ -332,8 +331,8 @@ namespace YARG.Menu.Filters
                 case FilterGroup.Charter:
                     BuildOptionsFor(FilterGroup.Charter);
                     break;
-                case FilterGroup.Difficulty:
-                    BuildOptionsFor(FilterGroup.Difficulty);
+                case FilterGroup.Intensity:
+                    BuildOptionsFor(FilterGroup.Intensity);
                     break;
                 case FilterGroup.Length:
                     BuildOptionsFor(FilterGroup.Length);
@@ -369,7 +368,7 @@ namespace YARG.Menu.Filters
             AddGroup(container, navGroup, FilterGroup.VocalParts, Localize.Key("Menu.Filters.VocalParts.Name"))?.AssignIndex(rowIndex++);
             AddGroup(container, navGroup, FilterGroup.Source, Localize.Key("Menu.Filters.Sources"))?.AssignIndex(rowIndex++);
             AddGroup(container, navGroup, FilterGroup.Charter, Localize.Key("Menu.Filters.Charters"))?.AssignIndex(rowIndex++);
-            AddGroup(container, navGroup, FilterGroup.Difficulty, Localize.Key("Menu.Filters.Difficulties.Name"))?.AssignIndex(rowIndex++);
+            AddGroup(container, navGroup, FilterGroup.Intensity, Localize.Key("Menu.Filters.Intensities.Name"))?.AssignIndex(rowIndex++);
             AddGroup(container, navGroup, FilterGroup.Length, Localize.Key("Menu.Filters.Length.Name"))?.AssignIndex(rowIndex++);
 
             AddHeader(container, Localize.Key("Menu.Filters.ShowAnyOfHeader"));
@@ -720,7 +719,7 @@ namespace YARG.Menu.Filters
 
         private IEnumerable<FilterDef> GetFilterDefs()
         {
-            var difficultyInstrument = GetDifficultyFilterInstrument();
+            var IntensityInstrument = GetIntensityFilterInstrument();
 
             yield return new FilterDef(
                 FilterGroup.Genre,
@@ -768,10 +767,10 @@ namespace YARG.Menu.Filters
                 WrapCharterLabel);
 
             yield return new FilterDef(
-                FilterGroup.Difficulty,
-                () => GetAllDifficultiesCached(difficultyInstrument),
-                () => GetDifficultyCounts(difficultyInstrument),
-                _difficultyEnabled);
+                FilterGroup.Intensity,
+                () => GetAllIntensitiesCached(IntensityInstrument),
+                () => GetIntensityCounts(IntensityInstrument),
+                _intensityEnabled);
 
             yield return new FilterDef(
                 FilterGroup.Length,
@@ -1034,12 +1033,12 @@ namespace YARG.Menu.Filters
                     return label != null && lengths.Contains(NormalizeFilterKey(label));
                 });
 
-            var difficultyInstrument = GetDifficultyFilterInstrument();
-            if (TryGetSelectedSet(_difficultyEnabled, GetAllDifficultiesCached(difficultyInstrument), NormalizeFilterKey, out var difficulties))
+            var intensityInstrument = GetIntensityFilterInstrument();
+            if (TryGetSelectedSet(_intensityEnabled, GetAllIntensitiesCached(intensityInstrument), NormalizeFilterKey, out var intensities))
                 predicates.Add(entry =>
                 {
-                    var label = GetDifficultyLabel(entry, difficultyInstrument);
-                    return label != null && difficulties.Contains(NormalizeFilterKey(label));
+                    var label = GetIntensityLabel(entry, intensityInstrument);
+                    return label != null && intensities.Contains(NormalizeFilterKey(label));
                 });
 
             if (predicates.Count == 0) return null;
@@ -1441,22 +1440,22 @@ namespace YARG.Menu.Filters
         }
 #endregion
 
-#region Difficulties
-        private static readonly string[] DifficultyLabelKeys =
+#region Intensities
+        private static readonly string[] IntensityLabelKeys =
         {
-            "Menu.Filters.Difficulties.WarmUp",
-            "Menu.Filters.Difficulties.Apprentice",
-            "Menu.Filters.Difficulties.Solid",
-            "Menu.Filters.Difficulties.Moderate",
-            "Menu.Filters.Difficulties.Challenging",
-            "Menu.Filters.Difficulties.Nightmare",
-            "Menu.Filters.Difficulties.Impossible",
+            "Menu.Filters.Intensities.WarmUp",
+            "Menu.Filters.Intensities.Apprentice",
+            "Menu.Filters.Intensities.Solid",
+            "Menu.Filters.Intensities.Moderate",
+            "Menu.Filters.Intensities.Challenging",
+            "Menu.Filters.Intensities.Nightmare",
+            "Menu.Filters.Intensities.Impossible",
         };
 
-        private const string DifficultyLabelUnknownKey = "Menu.Filters.Difficulties.Unknown";
-        private const string DifficultyLabelNoPartKey = "Menu.Filters.Difficulties.NoPart";
+        private const string IntensityLabelUnknownKey = "Menu.Filters.Intensities.Unknown";
+        private const string IntensityLabelNoPartKey = "Menu.Filters.Intensities.NoPart";
 
-        private static Instrument GetDifficultyFilterInstrument()
+        private static Instrument GetIntensityFilterInstrument()
         {
             foreach (var player in PlayerContainer.Players)
             {
@@ -1465,46 +1464,46 @@ namespace YARG.Menu.Filters
             return Instrument.FiveFretGuitar;
         }
 
-        private static IReadOnlyList<string> GetAllDifficultiesCached(Instrument instrument)
+        private static IReadOnlyList<string> GetAllIntensitiesCached(Instrument instrument)
         {
-            if (_cachedDifficulties != null && _cachedDifficultySongCount == SongContainer.Count && _cachedDifficultyInstrument == instrument) return _cachedDifficulties;
+            if (_cachedIntensities != null && _cachedIntensitySongCount == SongContainer.Count && _cachedIntensityInstrument == instrument) return _cachedIntensities;
 
-            _cachedDifficultySongCount = SongContainer.Count;
-            _cachedDifficultyInstrument = instrument;
-            _cachedDifficulties = BuildDifficultyList(instrument);
-            return _cachedDifficulties;
+            _cachedIntensitySongCount = SongContainer.Count;
+            _cachedIntensityInstrument = instrument;
+            _cachedIntensities = BuildIntensityList(instrument);
+            return _cachedIntensities;
         }
 
-        private static IReadOnlyList<string> BuildDifficultyList(Instrument instrument)
+        private static IReadOnlyList<string> BuildIntensityList(Instrument instrument)
         {
-            var counts = GetDifficultyCounts(instrument);
-            var ordered = new List<string>(DifficultyLabelKeys.Length + 2);
+            var counts = GetIntensityCounts(instrument);
+            var ordered = new List<string>(IntensityLabelKeys.Length + 2);
 
-            for (int i = 0; i < DifficultyLabelKeys.Length; i++)
+            for (int i = 0; i < IntensityLabelKeys.Length; i++)
             {
-                var label = GetDifficultyLabelByIndex(i);
+                var label = GetIntensityLabelByIndex(i);
                 if (counts.TryGetValue(label, out int count) && count > 0)
                     ordered.Add(label);
             }
 
-            var unknownLabel = Localize.Key(DifficultyLabelUnknownKey);
+            var unknownLabel = Localize.Key(IntensityLabelUnknownKey);
             if (counts.TryGetValue(unknownLabel, out int unknownCount) && unknownCount > 0)
                 ordered.Add(unknownLabel);
 
-            var noPartLabel = Localize.Key(DifficultyLabelNoPartKey);
+            var noPartLabel = Localize.Key(IntensityLabelNoPartKey);
             if (counts.TryGetValue(noPartLabel, out int noPartCount) && noPartCount > 0)
                 ordered.Add(noPartLabel);
 
             return ordered;
         }
 
-        private static Dictionary<string, int> GetDifficultyCounts(Instrument instrument)
+        private static Dictionary<string, int> GetIntensityCounts(Instrument instrument)
         {
             var dict = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
 
             foreach (var song in SongContainer.Songs)
             {
-                var label = GetDifficultyLabel(song, instrument);
+                var label = GetIntensityLabel(song, instrument);
                 if (string.IsNullOrWhiteSpace(label))
                     continue;
 
@@ -1515,25 +1514,44 @@ namespace YARG.Menu.Filters
             return dict;
         }
 
-        private static string GetDifficultyLabel(SongEntry entry, Instrument instrument)
+        private static string GetIntensityLabel(SongEntry entry, Instrument instrument)
         {
+            if (instrument == Instrument.EliteDrums)
+            {
+                var preferredInstrument = MidiDrumkitHelper.GetPreferredInstrumentForSong(entry);
+                if (!preferredInstrument.HasValue)
+                    return Localize.Key(IntensityLabelNoPartKey);
+
+                var preferredPart = entry[preferredInstrument.Value];
+                if (!preferredPart.IsActive())
+                    return Localize.Key(IntensityLabelNoPartKey);
+
+                int preferredIntensity = preferredPart.Intensity;
+                if (preferredIntensity < 0) return Localize.Key(IntensityLabelUnknownKey);
+
+                if (preferredIntensity >= IntensityLabelKeys.Length)
+                    return GetIntensityLabelByIndex(IntensityLabelKeys.Length - 1);
+
+                return GetIntensityLabelByIndex(preferredIntensity);
+            }
+
             var part = entry[instrument];
-            if (!part.IsActive()) return Localize.Key(DifficultyLabelNoPartKey);
+            if (!part.IsActive()) return Localize.Key(IntensityLabelNoPartKey);
 
             int intensity = part.Intensity;
-            if (intensity < 0) return Localize.Key(DifficultyLabelUnknownKey);
+            if (intensity < 0) return Localize.Key(IntensityLabelUnknownKey);
 
-            if (intensity >= DifficultyLabelKeys.Length) return GetDifficultyLabelByIndex(DifficultyLabelKeys.Length - 1);
+            if (intensity >= IntensityLabelKeys.Length) return GetIntensityLabelByIndex(IntensityLabelKeys.Length - 1);
 
-            return GetDifficultyLabelByIndex(intensity);
+            return GetIntensityLabelByIndex(intensity);
         }
 
-        private static string GetDifficultyLabelByIndex(int index)
+        private static string GetIntensityLabelByIndex(int index)
         {
             if (index < 0) return null;
-            if (index >= DifficultyLabelKeys.Length) index = DifficultyLabelKeys.Length - 1;
+            if (index >= IntensityLabelKeys.Length) index = IntensityLabelKeys.Length - 1;
 
-            return Localize.Key(DifficultyLabelKeys[index]);
+            return Localize.Key(IntensityLabelKeys[index]);
         }
 #endregion
 

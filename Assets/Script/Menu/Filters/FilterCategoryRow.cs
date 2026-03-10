@@ -51,9 +51,8 @@ namespace YARG.Menu.Filters
         VocalParts,
         Source,
         Charter,
-        Difficulty,
-        Length,
-        Playlist
+        Intensity,
+        Length
     }
 }
 

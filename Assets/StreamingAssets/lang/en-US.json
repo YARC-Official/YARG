@@ -536,8 +536,8 @@
             },
             "Sources": "Song Sources",
             "Charters": "Charters",
-            "Difficulties": {
-                "Name": "Difficulties",
+            "Intensities": {
+                "Name": "Intensities",
                 "WarmUp": "Warm Up",
                 "Apprentice": "Apprentice",
                 "Solid": "Solid",
