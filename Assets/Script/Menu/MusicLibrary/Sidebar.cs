@@ -183,6 +183,7 @@ namespace YARG.Menu.MusicLibrary
                     break;
             }
 
+            UpdatePlayButtonLabel(_musicLibraryMenu.ShowPlaylist.Count > 0);
             RefreshFavoriteState();
         }
 
@@ -423,9 +424,33 @@ namespace YARG.Menu.MusicLibrary
 
         public void UpdatePlayButtonLabel(bool setListNotEmpty)
         {
-            string key = setListNotEmpty
-                ? "Menu.MusicLibrary.AddHoldStartSet"
-                : "Menu.MusicLibrary.PlayHoldAddToSet";
+            string key;
+            bool enableButton;
+
+            if (_musicLibraryMenu.CurrentSelection is SortHeaderViewType sortHeader)
+            {
+                if (setListNotEmpty)
+                {
+                    key = sortHeader.Collapsed
+                        ? "Menu.MusicLibrary.ExpandHeaderHoldStartSet"
+                        : "Menu.MusicLibrary.CollapseHeaderHoldStartSet";
+                }
+                else
+                {
+                    key = sortHeader.Collapsed
+                        ? "Menu.MusicLibrary.ExpandHeaderHoldAddToSet"
+                        : "Menu.MusicLibrary.CollapseHeaderHoldAddToSet";
+                }
+
+                enableButton = true;
+            }
+            else
+            {
+                key = setListNotEmpty
+                    ? "Menu.MusicLibrary.AddHoldStartSet"
+                    : "Menu.MusicLibrary.PlayHoldAddToSet";
+                enableButton = _musicLibraryMenu.CurrentSelection is SongViewType;
+            }
 
             _playButton.SetInfoFromSchemeEntry(new NavigationScheme.Entry(
                 MenuAction.Green,
@@ -436,7 +461,10 @@ namespace YARG.Menu.MusicLibrary
             ));
             _playButton.SetDefaultButtonState(HelpBarButton.ButtonState.HOVER);
 
-            if (_musicLibraryMenu.CurrentSelection is not SongViewType)
+            if (enableButton) {
+                _playButton.EnableButton();
+            }
+            else
             {
                 _playButton.DisableButton();
             }

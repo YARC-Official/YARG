@@ -19,6 +19,7 @@ using YARG.Menu.ListMenu;
 using YARG.Menu.Navigation;
 using YARG.Player;
 using YARG.Playlists;
+using YARG.Scores;
 using YARG.Settings;
 using YARG.Song;
 using static YARG.Menu.Navigation.Navigator;
@@ -121,6 +122,7 @@ namespace YARG.Menu.MusicLibrary
         public bool ShouldDisplaySoloHighScores { get; private set; }
 
         private SongCategory[] _sortedSongs;
+        public IReadOnlyList<SongCategory> SortedSongs => _sortedSongs;
 
         private CancellationTokenSource _previewCanceller;
         private PreviewContext _previewContext;
@@ -583,24 +585,27 @@ namespace YARG.Menu.MusicLibrary
                 }
 
                 int sectionTotalStars = 0;
-                if (_sortedSongs.Length <= 1 || !section.Collapsed)
-                {
-                    foreach (var song in section.Songs)
-                    {
-                        if (!allowdupes && song.IsDuplicate)
-                        {
-                            continue;
-                        }
+                bool includeSongs = _sortedSongs.Length <= 1 || !section.Collapsed;
 
+                foreach (var song in section.Songs)
+                {
+                    if (!allowdupes && song.IsDuplicate) continue;
+
+                    StarAmount? starAmount;
+                    
+                    if (includeSongs)
+                    {
                         var songView = new SongViewType(this, song);
                         list.Add(songView);
-
-                        var starAmount = songView.GetStarAmount();
-                        if (starAmount is not null)
-                        {
-                            sectionTotalStars += StarAmountHelper.GetStarCount(starAmount.Value);
-                        }
+                        starAmount = songView.GetStarAmount();
                     }
+                    else
+                    {
+                        starAmount = GetStarAmountForSong(song);
+                    }
+
+                    if (starAmount is not null)
+                        sectionTotalStars += StarAmountHelper.GetStarCount(starAmount.Value);
                 }
                 _totalStarCount += sectionTotalStars;
 
@@ -614,6 +619,21 @@ namespace YARG.Menu.MusicLibrary
             _totalSongCount = songCount;
             CalculateCategoryHeaderIndices(list);
             return list;
+        }
+
+        private static StarAmount? GetStarAmountForSong(SongEntry song)
+        {
+            var humanCount = PlayerContainer.Players.Count(p => !p.Profile.IsBot);
+            if (humanCount == 1)
+            {
+                var player = PlayerContainer.Players.First(e => !e.Profile.IsBot);
+                var playerScoreRecord = ScoreContainer.GetHighScore(
+                    song.Hash, player.Profile.Id, player.Profile.CurrentInstrument);
+                return playerScoreRecord?.Stars;
+            }
+
+            var bandScoreRecord = ScoreContainer.GetBandHighScore(song.Hash);
+            return bandScoreRecord?.BandStars;
         }
 
         private void ExitLibrary()
