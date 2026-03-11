@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using YARG.Core.Chart;
+using YARG.Core.Logging;
 
 namespace YARG.Venue.Characters
 {
@@ -41,25 +42,75 @@ namespace YARG.Venue.Characters
                 { FourLaneDrumPad.RedDrum, new PadState(Hand.LEFT) },
             };
 
-        public AnimationEvent.AnimationType GetDrumAnimationForNote(DrumNote note)
+        public List<AnimationEvent> GetDrumAnimations(List<DrumNote> drumNotes)
         {
-            var pad = (FourLaneDrumPad) note.Pad;
-            if (pad == FourLaneDrumPad.Kick)
+            var drumAnimationEvents = new List<AnimationEvent>();
+            foreach (var parent in drumNotes)
             {
-                return AnimationEvent.AnimationType.Kick;
+                var animations = GetAnimationsForParentNote(parent);
+                foreach (var animation in animations)
+                {
+                    drumAnimationEvents.Add(new AnimationEvent(animation, parent.Time, parent.TimeLength, parent.Tick, parent.TickLength));
+                }
             }
 
-            var noteTime = note.Time;
-            var hand = GetHandForAnimation(pad, noteTime);
-            return GetAnimationType(pad, hand);
+            return drumAnimationEvents;
         }
 
-        private Hand GetHandForAnimation(FourLaneDrumPad pad, double noteTime)
+        private List<AnimationEvent.AnimationType> GetAnimationsForParentNote(DrumNote parentNote)
+        {
+            var animations = new List<AnimationEvent.AnimationType>();
+            var padHands = new List<(FourLaneDrumPad Pad, Hand Hand)>();
+
+            foreach (var note in parentNote.AllNotes)
+            {
+                var pad = (FourLaneDrumPad) note.Pad;
+                if (pad == FourLaneDrumPad.Kick)
+                {
+                    animations.Add(AnimationEvent.AnimationType.Kick);
+                    continue;
+                }
+
+                var hand = GetHandForPad(pad, note.Time);
+                padHands.Add((pad, hand));
+            }
+
+            // Resolve conflicting hands when two non-kick pads want the same hand
+            if (padHands.Count >= 2 && padHands[0].Hand == padHands[1].Hand)
+            {
+                var first = padHands[0];
+                var second = padHands[1];
+                var firstDefault = _handStateByPad[first.Pad].DefaultHand;
+                var secondDefault = _handStateByPad[second.Pad].DefaultHand;
+
+                if (firstDefault != second.Hand)
+                {
+                    padHands[0] = (first.Pad, firstDefault);
+                }
+                else if (secondDefault != first.Hand)
+                {
+                    padHands[1] = (second.Pad, secondDefault);
+                }
+                else
+                {
+                    padHands[0] = (first.Pad, AlternateHand(first.Hand));
+                }
+            }
+
+            foreach (var (pad, hand) in padHands)
+            {
+                animations.Add(GetAnimationType(pad, hand));
+            }
+
+            return animations;
+        }
+
+        private Hand GetHandForPad(FourLaneDrumPad pad, double noteTime)
         {
             var state = _handStateByPad.GetValueOrDefault(pad);
             if (state is null)
             {
-                //TODO log it
+                YargLogger.LogFormatWarning("Unknown drum pad {0}, defaulting to right hand", pad);
                 return Hand.RIGHT;
             }
 

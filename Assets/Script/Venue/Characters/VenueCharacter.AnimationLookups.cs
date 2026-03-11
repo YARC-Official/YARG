@@ -640,7 +640,7 @@ namespace YARG.Venue.Characters
                 FourLaneDrumPad.Kick => AnimationStateType.Kick,
                 FourLaneDrumPad.YellowCymbal => AnimationStateType.HihatRightHand,
                 FourLaneDrumPad.BlueCymbal => AnimationStateType.RideRh,
-                FourLaneDrumPad.GreenCymbal => AnimationStateType.Crash1RhHard,
+                FourLaneDrumPad.GreenCymbal => AnimationStateType.Crash2RhHard,
                 FourLaneDrumPad.GreenDrum => AnimationStateType.FloorTomRightHand,
                 FourLaneDrumPad.BlueDrum => AnimationStateType.Tom2RightHand,
                 FourLaneDrumPad.YellowDrum => AnimationStateType.Tom1RightHand,

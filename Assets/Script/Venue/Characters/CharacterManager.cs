@@ -512,17 +512,8 @@ namespace YARG.Venue.Characters
         {
             YargLogger.LogDebug("Auto-generating missing drum animations");
             _drumAnimationEvents.Clear();
-
-            // Create a drum animation event for each note, using GetDrumAnimationForNote
-            foreach (var parent in _drumNotes)
-            {
-                foreach (var note in parent.AllNotes)
-                {
-                    var anim = _drumCharacterHelper.GetDrumAnimationForNote(note);
-
-                    _drumAnimationEvents.Add(new AnimationEvent(anim, note.Time, note.TimeLength, note.Tick, note.TickLength));
-                }
-            }
+            var animationEvents = _drumCharacterHelper.GetDrumAnimations(_drumNotes);
+            _drumAnimationEvents.AddRange(animationEvents);
         }
 
         private static List<AnimationTrigger> GenerateMap<T>(List<T> notes) where T : Note<T>
