@@ -483,7 +483,7 @@ namespace YARG.Venue.Characters
                 if (!character.IsAnimating())
                 {
                     character.StartAnimation(_currentTempo.SecondsPerBeat);
-                    return;
+                    break;
                 }
 
                 // If next note is more than secondsPerBeat away, stop animating
@@ -491,20 +491,29 @@ namespace YARG.Venue.Characters
                 {
                     character.StopAnimation();
                 }
+            }
 
-                while (_drumAnimationEvents.Count > 0 && _drumAnimationIndex < _drumAnimationEvents.Count &&
-                    _drumAnimationEvents[_drumAnimationIndex].Time - character.TimeToFirstHit <= GameManager.SongTime)
+            // Process animation events separately so they don't get skipped when StartAnimation exits early
+            var hasAnimationEvents = _drumAnimationIndex < _drumAnimationEvents.Count;
+            while (hasAnimationEvents)
+            {
+                var animEvent = _drumAnimationEvents[_drumAnimationIndex];
+                var animationIsReady = animEvent.Time - character.TimeToFirstHit <= GameManager.SongTime;
+                if (!animationIsReady)
                 {
-                    var animEvent = _drumAnimationEvents[_drumAnimationIndex];
-                    _drumAnimationIndex++;
-
-                    character.OnDrumAnimation(animEvent.Type);
-
-                    if (animEvent.Type == AnimationEvent.AnimationType.OpenHiHat)
-                    {
-                        _hatTimer = animEvent.TimeLength;
-                    }
+                    break;
                 }
+
+                _drumAnimationIndex++;
+
+                character.OnDrumAnimation(animEvent.Type);
+
+                if (animEvent.Type == AnimationEvent.AnimationType.OpenHiHat)
+                {
+                    _hatTimer = animEvent.TimeLength;
+                }
+
+                hasAnimationEvents = _drumAnimationIndex < _drumAnimationEvents.Count;
             }
         }
 
