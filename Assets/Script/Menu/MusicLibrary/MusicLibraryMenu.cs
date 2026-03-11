@@ -1230,7 +1230,7 @@ namespace YARG.Menu.MusicLibrary
             finally
             {
                 // Ensure difficulty rings are restored even if the scan fails or is canceled
-                SetSidebarDifficultiesVisible(true);
+                _sidebar.UpdateSidebar(true);
             }
         }
 
