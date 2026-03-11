@@ -255,6 +255,7 @@ namespace YARG.Menu.MusicLibrary
                 SongRating.Supervision_Recommended => "SR",
                 SongRating.Mature => "MC",
                 SongRating.No_Rating => "NR",
+                SongRating.Sensitive_Content => "SC",
                 _ => "?",
             };
 
