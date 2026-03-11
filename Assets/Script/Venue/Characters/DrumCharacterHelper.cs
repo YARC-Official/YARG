@@ -8,6 +8,8 @@ namespace YARG.Venue.Characters
     public class DrumCharacterHelper
     {
         private const double REPEAT_THRESHOLD = 0.125;
+        private readonly Random _random = new();
+
         private enum Hand
         {
             LEFT,
@@ -50,7 +52,9 @@ namespace YARG.Venue.Characters
                 var animations = GetAnimationsForParentNote(parent);
                 foreach (var animation in animations)
                 {
-                    drumAnimationEvents.Add(new AnimationEvent(animation, parent.Time, parent.TimeLength, parent.Tick, parent.TickLength));
+                    drumAnimationEvents.Add(
+                        new AnimationEvent(animation, parent.Time, parent.TimeLength, parent.Tick, parent.TickLength)
+                    );
                 }
             }
 
@@ -62,12 +66,12 @@ namespace YARG.Venue.Characters
             var animations = new List<AnimationEvent.AnimationType>();
             var padHands = new List<(FourLaneDrumPad Pad, Hand Hand)>();
 
+            //Map each pad to a hand
             foreach (var note in parentNote.AllNotes)
             {
                 var pad = (FourLaneDrumPad) note.Pad;
                 if (pad == FourLaneDrumPad.Kick)
                 {
-                    animations.Add(AnimationEvent.AnimationType.Kick);
                     continue;
                 }
 
@@ -75,28 +79,24 @@ namespace YARG.Venue.Characters
                 padHands.Add((pad, hand));
             }
 
-            // Resolve conflicting hands when two non-kick pads want the same hand
+            // Resolve conflicting hands by switching the first hand
             if (padHands.Count >= 2 && padHands[0].Hand == padHands[1].Hand)
             {
                 var first = padHands[0];
-                var second = padHands[1];
-                var firstDefault = _handStateByPad[first.Pad].DefaultHand;
-                var secondDefault = _handStateByPad[second.Pad].DefaultHand;
-
-                if (firstDefault != second.Hand)
-                {
-                    padHands[0] = (first.Pad, firstDefault);
-                }
-                else if (secondDefault != first.Hand)
-                {
-                    padHands[1] = (second.Pad, secondDefault);
-                }
-                else
-                {
-                    padHands[0] = (first.Pad, AlternateHand(first.Hand));
-                }
+                padHands[0] = (first.Pad, SwitchHand(first.Hand));
             }
 
+            // Special case: consecutive solo snare notes at non-fast tempo use right hand
+            var isSoloSnare = padHands.Count == 1 && padHands[0].Pad == FourLaneDrumPad.RedDrum;
+            var previousWasSnare = PreviousWasSnareHit(parentNote.PreviousNote);
+            var isNotFastRepeat = parentNote.PreviousNote is null
+                || parentNote.Time - parentNote.PreviousNote.Time > REPEAT_THRESHOLD;
+            if (isSoloSnare && previousWasSnare && isNotFastRepeat)
+            {
+                padHands[0] = (FourLaneDrumPad.RedDrum, Hand.RIGHT);
+            }
+
+            //Map each pad and hand to an animation
             foreach (var (pad, hand) in padHands)
             {
                 animations.Add(GetAnimationType(pad, hand));
@@ -110,7 +110,7 @@ namespace YARG.Venue.Characters
             var state = _handStateByPad.GetValueOrDefault(pad);
             if (state is null)
             {
-                YargLogger.LogFormatWarning("Unknown drum pad {0}, defaulting to right hand", pad);
+                YargLogger.LogFormatWarning("Unknown drum pad {0}, defaulting to right", pad);
                 return Hand.RIGHT;
             }
 
@@ -118,17 +118,49 @@ namespace YARG.Venue.Characters
             var isRepeatedNote = noteTime - previousHitTime <= REPEAT_THRESHOLD;
             var previousHand = state.LastUsedHand.GetValueOrDefault();
             var shouldAlternateHand = state.LastUsedHand.HasValue && isRepeatedNote;
-            var hand = shouldAlternateHand ? AlternateHand(previousHand) : state.DefaultHand;
+            var hand = shouldAlternateHand ? SwitchHand(previousHand) : state.DefaultHand;
             state.RecordHit(hand, noteTime);
             return hand;
         }
 
-        private static Hand AlternateHand(Hand hand)
+        private static bool PreviousWasSnareHit(DrumNote previousNote)
+        {
+            if (previousNote is null)
+            {
+                return false;
+            }
+
+            foreach (var note in previousNote.AllNotes)
+            {
+                var pad = (FourLaneDrumPad) note.Pad;
+                if (pad != FourLaneDrumPad.RedDrum && pad != FourLaneDrumPad.Kick)
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        private static Hand SwitchHand(Hand hand)
         {
             return hand == Hand.LEFT ? Hand.RIGHT : Hand.LEFT;
         }
 
-        private static AnimationEvent.AnimationType GetAnimationType(FourLaneDrumPad pad, Hand hand)
+        private AnimationEvent.AnimationType GetRandomCrashAnimation(Hand hand)
+        {
+            bool useCrash2 = _random.Next(2) == 0;
+            return (useCrash2, hand) switch
+            {
+                (false, Hand.LEFT)  => AnimationEvent.AnimationType.Crash1LhHard,
+                (false, Hand.RIGHT) => AnimationEvent.AnimationType.Crash1RhHard,
+                (true,  Hand.LEFT)  => AnimationEvent.AnimationType.Crash2LhHard,
+                (true,  Hand.RIGHT) => AnimationEvent.AnimationType.Crash2RhHard,
+                _ => AnimationEvent.AnimationType.Crash1LhHard,
+            };
+        }
+
+        private AnimationEvent.AnimationType GetAnimationType(FourLaneDrumPad pad, Hand hand)
         {
             return pad switch
             {
@@ -144,9 +176,7 @@ namespace YARG.Venue.Characters
                     ? AnimationEvent.AnimationType.RideLh
                     : AnimationEvent.AnimationType.RideRh,
 
-                FourLaneDrumPad.GreenCymbal => hand == Hand.LEFT
-                    ? AnimationEvent.AnimationType.Crash1LhHard
-                    : AnimationEvent.AnimationType.Crash1RhHard,
+                FourLaneDrumPad.GreenCymbal => GetRandomCrashAnimation(hand),
 
                 FourLaneDrumPad.YellowDrum => hand == Hand.LEFT
                     ? AnimationEvent.AnimationType.Tom1LeftHand
@@ -159,6 +189,8 @@ namespace YARG.Venue.Characters
                 FourLaneDrumPad.GreenDrum => hand == Hand.LEFT
                     ? AnimationEvent.AnimationType.FloorTomLeftHand
                     : AnimationEvent.AnimationType.FloorTomRightHand,
+
+                FourLaneDrumPad.Kick => AnimationEvent.AnimationType.Kick,
 
                 _ => throw new ArgumentOutOfRangeException(nameof(pad), pad, "Unsupported drum pad for animation mapping."),
             };
