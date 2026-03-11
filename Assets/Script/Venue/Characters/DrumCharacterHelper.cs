@@ -74,16 +74,16 @@ namespace YARG.Venue.Characters
                 {
                     continue;
                 }
-
                 var hand = GetHandForPad(pad, note.Time);
                 padHands.Add((pad, hand));
             }
 
-            // Resolve conflicting hands by switching the first hand
+            // Resolve conflicting hands by switching one hand, preferring to keep blue unchanged
             if (padHands.Count >= 2 && padHands[0].Hand == padHands[1].Hand)
             {
-                var first = padHands[0];
-                padHands[0] = (first.Pad, SwitchHand(first.Hand));
+                var indexToSwitch = IsBlueCymbal(padHands[0].Pad) ? 1 : 0;
+                var toSwitch = padHands[indexToSwitch];
+                padHands[indexToSwitch] = (toSwitch.Pad, SwitchHand(toSwitch.Hand));
             }
 
             // Special case: consecutive solo snare notes at non-fast tempo use right hand
@@ -114,6 +114,13 @@ namespace YARG.Venue.Characters
                 return Hand.RIGHT;
             }
 
+            // Blue cymbal should stay right hand to prevent excessive twisting
+            if (IsBlueCymbal(pad))
+            {
+                state.RecordHit(state.DefaultHand, noteTime);
+                return state.DefaultHand;
+            }
+
             var previousHitTime = state.LastHitTime.GetValueOrDefault(double.MaxValue);
             var isRepeatedNote = noteTime - previousHitTime <= REPEAT_THRESHOLD;
             var previousHand = state.LastUsedHand.GetValueOrDefault();
@@ -140,6 +147,11 @@ namespace YARG.Venue.Characters
             }
 
             return true;
+        }
+
+        private static bool IsBlueCymbal(FourLaneDrumPad pad)
+        {
+            return pad == FourLaneDrumPad.BlueCymbal;
         }
 
         private static Hand SwitchHand(Hand hand)
