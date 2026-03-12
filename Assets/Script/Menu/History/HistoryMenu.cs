@@ -93,7 +93,7 @@ namespace YARG.Menu.History
             list.Add(new CategoryViewType(LocalizeTime(_categoryTimes[0])));
 
             List<PlayerScoreRecord> allPlayerScoreRecords = ScoreContainer.GetAllPlayerScoreRecords();
-            var gameIdToPlayerRecord = allPlayerScoreRecords
+            var gameIdToPlayerRecords = allPlayerScoreRecords
                 .GroupBy(x => x.GameRecordId)
                 .ToDictionary(g => g.Key, g => g.ToList());
 
@@ -114,7 +114,7 @@ namespace YARG.Menu.History
                     list.Add(new CategoryViewType(text));
                 }
 
-                gameIdToPlayerRecord.TryGetValue(record.Id, out var playerScoreRecords);
+                gameIdToPlayerRecords.TryGetValue(record.Id, out var playerScoreRecords);
                 list.Add(new ReplayViewType(record, playerScoreRecords));
             }
 
