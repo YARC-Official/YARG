@@ -1,8 +1,13 @@
-﻿using Cysharp.Text;
+﻿using System.Collections.Generic;
+using Cysharp.Text;
 using TMPro;
 using UnityEngine;
+using UnityEngine.AddressableAssets;
 using UnityEngine.UI;
+using YARG.Core;
+using YARG.Helpers.Extensions;
 using YARG.Menu.ListMenu;
+using YARG.Scores;
 
 namespace YARG.Menu.History
 {
@@ -19,6 +24,12 @@ namespace YARG.Menu.History
         private TextMeshProUGUI _bandScore;
         [SerializeField]
         private StarView _starView;
+        [SerializeField]
+        private GameObject _instrumentsContainer;
+        [SerializeField]
+        private Image[] _instrumentIcons;
+        [SerializeField]
+        private TextMeshProUGUI _additionalInstrumentsText;
 
         public void OnClick()
         {
@@ -50,11 +61,63 @@ namespace YARG.Menu.History
                 builder.AppendFormat("<mspace=.5em>{0:N0}</mspace>", gameInfo.Value.BandScore);
                 _bandScore.text = builder.ToString();
                 _starView.SetStars(gameInfo.Value.BandStars);
+
+                if (gameInfo.Value.PlayerScoreRecords is not null)
+                {
+                    _instrumentsContainer.SetActive(true);
+                    PopulatePlayerInstrumentIcons(gameInfo.Value.PlayerScoreRecords);
+                }
+                else
+                {
+                    _instrumentsContainer.SetActive(false);
+                }
             }
             else
             {
                 _scoreContainer.SetActive(false);
+                _instrumentsContainer.SetActive(false);
             }
+        }
+
+        private void PopulatePlayerInstrumentIcons(List<PlayerScoreRecord> playerScoreRecords)
+        {
+            // _instrumentIcons[0] is used for nPlayers > 5 and shares a spot with [1]
+            if (playerScoreRecords.Count <= 5)
+            {
+                _instrumentIcons[0].enabled = false;
+                _additionalInstrumentsText.enabled = false;
+
+                for (int i = 1; i <= 5; i++)
+                {
+                    if (i > playerScoreRecords.Count)
+                    {
+                        _instrumentIcons[i].enabled = false;
+                    }
+                    else
+                    {
+                        EnableInstrumentIcon(i, playerScoreRecords[i - 1].Instrument);
+                    }
+                }
+            }
+            else
+            {
+                _instrumentIcons[0].enabled = true;
+                _instrumentIcons[1].enabled = false;
+                _additionalInstrumentsText.enabled = true;
+                _additionalInstrumentsText.text = "+" + (playerScoreRecords.Count - 4);
+
+                for (int i = 2; i <= 5; i++)
+                {
+                    EnableInstrumentIcon(i, playerScoreRecords[i - 2].Instrument);
+                }
+            }
+        }
+
+        private void EnableInstrumentIcon(int idx, Instrument instrument)
+        {
+            var icon = Addressables.LoadAssetAsync<Sprite>($"InstrumentIcons[{instrument.ToResourceName()}]").WaitForCompletion();
+            _instrumentIcons[idx].sprite = icon;
+            _instrumentIcons[idx].enabled = true;
         }
     }
 }
