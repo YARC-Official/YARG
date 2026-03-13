@@ -43,6 +43,7 @@ namespace YARG.Gameplay
 
         public const float TRACK_SPACING_X = 100f;
 
+
         public bool IsSeekingReplay;
 
         [Header("References")]
@@ -142,11 +143,7 @@ namespace YARG.Gameplay
             set => EngineManager.Combo = value;
         }
 
-        public float BandStars
-        {
-            get => EngineManager.Stars;
-            set => EngineManager.Stars = value;
-        }
+        public float BandStars => EngineManager.Stars;
 
         public int BandMultiplier => EngineManager.BandMultiplier;
 
@@ -294,14 +291,12 @@ namespace YARG.Gameplay
 
             // Update players
             int totalScore = 0;
-            float totalStars = 0f;
             foreach (var player in _players)
             {
                 player.GameplayUpdate();
 
                 totalScore += player.Score;
                 totalScore += player.BandBonusScore;
-                totalStars += player.Stars;
             }
 
             if (GlobalVariables.VerboseReplays)
@@ -310,7 +305,7 @@ namespace YARG.Gameplay
             }
 
             BandScore = totalScore;
-            BandStars = totalStars / _players.Count;
+            EngineManager.UpdateStars();
 
             // End song if needed (required for the [end] event)
             if (_songRunner.SongTime >= SongLength)
@@ -321,6 +316,7 @@ namespace YARG.Gameplay
                 }
             }
         }
+
 
         public void SetSongTime(double time, double delayTime = SONG_START_DELAY)
         {

@@ -52,7 +52,7 @@ namespace YARG.Gameplay.Player
 
         public override float[] StarMultiplierThresholds { get; protected set; } =
         {
-            0.21f, 0.46f, 0.77f, 1.85f, 3.08f, 4.52f
+            0.06f, 0.12f, 0.2f, 0.47f, 0.78f, 1.15f
         };
 
         public override int[] StarScoreThresholds { get; protected set; }

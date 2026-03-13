@@ -37,7 +37,7 @@ namespace YARG.Gameplay.Player
 
         public override float[] StarMultiplierThresholds { get; protected set; } =
         {
-            0.21f, 0.46f, 0.77f, 1.85f, 3.08f, 4.18f
+            0.05f, 0.11f, 0.19f, 0.46f, 0.77f, 1.06f
         };
 
         public override int[] StarScoreThresholds { get; protected set; }
@@ -157,7 +157,7 @@ namespace YARG.Gameplay.Player
                 Engine.SetSpeed(GameManager.SongSpeed);
             }
 
-            StarScoreThresholds = PopulateStarScoreThresholds(StarMultiplierThresholds, Engine.BaseScore);
+            StarScoreThresholds = Engine.StarScoreThresholds;
         }
 
         protected override void FinishDestruction()

@@ -80,12 +80,12 @@ public override bool ShouldUpdateInputsOnResume => true;
 
         private static float[] GuitarStarMultiplierThresholds => new[]
         {
-            0.21f, 0.46f, 0.77f, 1.85f, 3.08f, 4.52f
+            0.06f, 0.12f, 0.2f, 0.47f, 0.78f, 1.15f
         };
 
         private static float[] BassStarMultiplierThresholds => new[]
         {
-            0.21f, 0.50f, 0.90f, 2.77f, 4.62f, 6.78f
+            0.05f, 0.1f, 0.19f, 0.47f, 0.78f, 1.15f
         };
 
         public KeysEngineParameters EngineParams { get; private set; }
@@ -197,7 +197,7 @@ public override bool ShouldUpdateInputsOnResume => true;
         {
             base.FinishInitialization();
 
-            StarScoreThresholds = PopulateStarScoreThresholds(StarMultiplierThresholds, Engine.BaseScore);
+            StarScoreThresholds = Engine.StarScoreThresholds;
 
             IndicatorStripes.Initialize(Player.EnginePreset.FiveFretGuitar);
 

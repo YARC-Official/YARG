@@ -104,7 +104,7 @@ namespace YARG.Gameplay.Player
 
         public override float[] StarMultiplierThresholds { get; protected set; } =
         {
-            0.21f, 0.46f, 0.77f, 1.85f, 3.08f, 4.29f
+            0.06f, 0.12f, 0.2f, 0.45f, 0.75f, 1.09f
         };
 
         public override int[] StarScoreThresholds { get; protected set; }
@@ -195,7 +195,7 @@ namespace YARG.Gameplay.Player
 
         protected override void FinishInitialization()
         {
-            StarScoreThresholds = PopulateStarScoreThresholds(StarMultiplierThresholds, Engine.BaseScore);
+            StarScoreThresholds = Engine.StarScoreThresholds;
 
             // Get the proper info for four/five lane
             IFretColorProvider colors = !_fiveLaneMode

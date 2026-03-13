@@ -412,18 +412,6 @@ namespace YARG.Gameplay.Player
             GameManager.ResetBandCombo();
         }
 
-        protected static int[] PopulateStarScoreThresholds(float[] multiplierThresh, int baseScore)
-        {
-            var starScoreThresh = new int[multiplierThresh.Length];
-
-            for (int i = 0; i < multiplierThresh.Length; i++)
-            {
-                starScoreThresh[i] = Mathf.FloorToInt(baseScore * multiplierThresh[i]);
-            }
-
-            return starScoreThresh;
-        }
-
         public abstract (ReplayFrame Frame, ReplayStats Stats) ConstructReplayData();
     }
 }

@@ -194,6 +194,9 @@ namespace YARG.Gameplay
             // Spawn players
             CreatePlayers();
 
+            EngineManager.PopulateStarScoreThresholds();
+
+
             // Set up the crowd stem so it can be restored after muting (if it exists)
             if (_stemStates.TryGetValue(SongStem.Crowd, out var state))
             {
