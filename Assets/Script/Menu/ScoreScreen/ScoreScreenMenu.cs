@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Collections.Generic;
+using System.Threading;
 using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
@@ -36,6 +37,8 @@ namespace YARG.Menu.ScoreScreen
         private Transform _cardContainer;
         [SerializeField]
         private Image _sourceIcon;
+        [SerializeField]
+        private RawImage _albumCover;
         [SerializeField]
         private TextMeshProUGUI _songTitle;
         [SerializeField]
@@ -138,6 +141,9 @@ namespace YARG.Menu.ScoreScreen
             CreateScoreCards(scoreScreenStats);
 
             _sourceIcon.sprite = SongSources.SourceToIcon(song.Source);
+
+            var cancellationToken = new CancellationTokenSource();
+            _albumCover.LoadAlbumCover(song, cancellationToken.Token, 0.07f);
 
             //set restarting state
             _restartingSong = false;
