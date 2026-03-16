@@ -159,7 +159,7 @@ namespace YARG.Menu.ScoreScreen
             else
             {
                 _colorizer.SetCardColor(ScoreCardColorizer.ScoreCardColor.Blue);
-                HideTag();
+                ShowTag("Song Clear");
             }
 
             _score.text = Stats.TotalScore.ToString("N0");
