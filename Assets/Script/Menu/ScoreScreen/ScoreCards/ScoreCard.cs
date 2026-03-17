@@ -8,6 +8,7 @@ using YARG.Core.Engine;
 using YARG.Core.Extensions;
 using YARG.Core.Game;
 using YARG.Localization;
+using YARG.Menu.MusicLibrary;
 using YARG.Player;
 using YARG.Settings;
 
@@ -43,6 +44,8 @@ namespace YARG.Menu.ScoreScreen
         private TextMeshProUGUI _score;
         [SerializeField]
         private StarView _starView;
+        [SerializeField]
+        private DifficultyRing _difficultyRing;
         [SerializeField]
         private Transform _modifierIconContainer;
 
@@ -116,6 +119,13 @@ namespace YARG.Menu.ScoreScreen
             _instrument.text = Player.Profile.CurrentInstrument.ToLocalizedName();
             _difficulty.text = Player.Profile.CurrentDifficulty.ToDisplayName();
 
+            if (_difficultyRing is not null)
+            {
+                _difficultyRing.SetInfo(Player.Profile.CurrentInstrument.ToResourceName(),
+                    Player.Profile.CurrentInstrument,
+                    GlobalVariables.State.CurrentSong[Player.Profile.CurrentInstrument]);
+            }
+
             // Set percent
             if (SettingsManager.Settings.ShowPercentDecimals.Value)
             {
@@ -159,7 +169,7 @@ namespace YARG.Menu.ScoreScreen
             else
             {
                 _colorizer.SetCardColor(ScoreCardColorizer.ScoreCardColor.Blue);
-                ShowTag("Song Clear");
+                ShowTag("Complete");
             }
 
             _score.text = Stats.TotalScore.ToString("N0");
