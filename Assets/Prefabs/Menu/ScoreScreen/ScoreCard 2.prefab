@@ -1993,7 +1993,6 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1749843355031537720}
-  - {fileID: 1249301355256193335}
   - {fileID: 1874797806112872989}
   - {fileID: 2885240813714138371}
   - {fileID: 2885240812740932785}
@@ -2043,33 +2042,37 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _coloredImages:
-  - {fileID: 912852301950886670}
-  - {fileID: 7768229543108252824}
+  - {fileID: 7257251774523383226}
+  - {fileID: 8716948352154913920}
   - {fileID: 2187843614222030936}
+  - {fileID: 4063417625122513036}
+  - {fileID: 9096695876533255188}
   _coloredHeaders:
-  - {fileID: 943804104679766038}
-  _background: {fileID: 1584860862528283953}
+  - {fileID: 2885240812982242934}
+  - {fileID: 2885240813990305847}
+  - {fileID: 2885240813266969299}
+  _background: {fileID: 8959844594856795087}
   _bottomTag: {fileID: 2885240812740932787}
   _backgrounds:
-  - {fileID: 21300000, guid: c77d6abd01d63a44db8ee0db6dad65d4, type: 3}
-  - {fileID: 21300000, guid: 4378f7a0a29d499428d2ab64d5b3c37a, type: 3}
-  - {fileID: 21300000, guid: 57fbe767878904744aba1b19607ad366, type: 3}
-  - {fileID: 21300000, guid: 2f109c1df18dde64b88109ebc1fde8c4, type: 3}
+  - {fileID: 21300000, guid: 2071b28f0fd6c8f46a15b59c805fd7d0, type: 3}
+  - {fileID: 21300000, guid: ccc9ddccd5bb9b14bbac42eb90adb308, type: 3}
+  - {fileID: 21300000, guid: 1ec3ca8d0ee67c640a67fc9f92ab9002, type: 3}
+  - {fileID: 21300000, guid: 2071b28f0fd6c8f46a15b59c805fd7d0, type: 3}
   _tags:
   - {fileID: 21300000, guid: 6c9c719bb23ed664c9b4a284a9bec4c9, type: 3}
   - {fileID: 21300000, guid: 79c256946ee8b1f479f3ff0fe6cff17c, type: 3}
   - {fileID: 21300000, guid: beb35e12c2991fa45bcb0f5cf37a83ed, type: 3}
   - {fileID: 21300000, guid: 00c40c9c2a343db43bc7d51b5f97351f, type: 3}
   _colors:
-  - {r: 0.18039216, g: 0.8509804, b: 1, a: 1}
-  - {r: 1, g: 0.88235295, b: 0.45490196, a: 1}
-  - {r: 0.9372549, g: 0.14117648, b: 0.1882353, a: 1}
-  - {r: 0.4627451, g: 0.4627451, b: 0.4627451, a: 1}
+  - {r: 0.07058824, g: 0.08235294, b: 0.1764706, a: 1}
+  - {r: 0.3529412, g: 0.27450982, b: 0.07450981, a: 1}
+  - {r: 0.28627452, g: 0.05490196, b: 0.07058824, a: 1}
+  - {r: 0.07058824, g: 0.08235294, b: 0.1764706, a: 1}
   _headerColors:
-  - {r: 0, g: 0.16470589, b: 0.2, a: 1}
-  - {r: 0.3529412, g: 0.14901961, b: 0, a: 1}
-  - {r: 0.20784314, g: 0, b: 0.011764706, a: 1}
-  - {r: 0.56078434, g: 0.56078434, b: 0.56078434, a: 1}
+  - {r: 1, g: 1, b: 1, a: 1}
+  - {r: 1, g: 0.8392157, b: 0.25882354, a: 1}
+  - {r: 0.98039216, g: 0.03529412, b: 0.050980393, a: 1}
+  - {r: 0.40392157, g: 0.42352942, b: 0.5372549, a: 1}
 --- !u!1 &2885240813714138368
 GameObject:
   m_ObjectHideFlags: 0
@@ -4263,41 +4266,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Padding: {x: 0, y: 0, z: 0, w: 0}
   m_Softness: {x: 0, y: 0}
---- !u!1 &9080380672533112854
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1249301355256193335}
-  m_Layer: 5
-  m_Name: Score Background
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!224 &1249301355256193335
-RectTransform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 9080380672533112854}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 2885240813551093152}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
-  m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &9120751791352291423
 GameObject:
   m_ObjectHideFlags: 0
@@ -4372,8 +4340,8 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4281543168
-  m_fontColor: {r: 0, g: 0.16470589, b: 0.2, a: 1}
+    rgba: 4283712768
+  m_fontColor: {r: 0, g: 0.27058825, b: 0.32941177, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
