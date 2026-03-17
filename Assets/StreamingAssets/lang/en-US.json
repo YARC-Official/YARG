@@ -330,7 +330,9 @@
                     "CreateNewPlaylist": "Create New...",
                     "RemovePlaylist": "Remove Playlist",
                     "ViewSongFolder": "View Song Folder",
-                    "CopySongChecksum": "Copy Song Checksum"
+                    "CopySongChecksum": "Copy Song Checksum",
+                    "CollapseAll": "Collapse All",
+                    "ExpandAll": "Expand All"
                 }
             },
             "Back": "BACK",
@@ -338,6 +340,10 @@
             "Play": "Play Song",
             "PlayHoldAddToSet": "<align=left>Play Song<br><size=67%>(Hold) Add To Setlist</size></align>",
             "AddHoldStartSet": "<align=left>Add to Setlist<br><size=67%>(Hold) Start The Set</size></align>",
+            "ExpandHeaderHoldAddToSet": "<align=left>Expand Header</align>",
+            "CollapseHeaderHoldAddToSet": "<align=left>Collapse Header</align>",
+            "ExpandHeaderHoldStartSet": "<align=left>Expand Header<br><size=67%>(Hold) Start The Set</size></align>",
+            "CollapseHeaderHoldStartSet": "<align=left>Collapse Header<br><size=67%>(Hold) Start The Set</size></align>",
             "Search": "Search",
             "SkipSection": "<align=left>Navigate Sections</align>",
             "MoveInPlaylist": "Move Song",

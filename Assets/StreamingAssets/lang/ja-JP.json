@@ -321,7 +321,9 @@
                     "CreateNewPlaylist": "新しい作成",
                     "RemovePlaylist": "プレイリストを削除",
                     "ViewSongFolder": "曲歌フォルダを見る",
-                    "CopySongChecksum": "曲のチェックサムをコピー"
+                    "CopySongChecksum": "曲のチェックサムをコピー",
+                    "CollapseAll": "すべて折りたたむ",
+                    "ExpandAll": "すべて展開"
                 }
             },
             "Back": "戻る",

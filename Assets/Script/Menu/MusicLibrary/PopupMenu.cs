@@ -138,6 +138,43 @@ namespace YARG.Menu.MusicLibrary
                 });
             }
 
+            if (_musicLibrary.MenuState == MenuState.Library && !_musicLibrary.PlaylistMode)
+            {
+                bool hasCollapsed = false;
+                bool hasExpanded = false;
+                foreach (var section in _musicLibrary.SortedSongs)
+                {
+                    if (section.Collapsed)
+                    {
+                        hasCollapsed = true;
+                    }
+                    else
+                    {
+                        hasExpanded = true;
+                    }
+
+                    if (hasCollapsed && hasExpanded) break;
+                }
+
+                if (hasCollapsed)
+                {
+                    CreateItem("ExpandAll", () =>
+                    {
+                        _musicLibrary.ExpandAll();
+                        gameObject.SetActive(false);
+                    });
+                }
+
+                if (hasExpanded)
+                {
+                    CreateItem("CollapseAll", () =>
+                    {
+                        _musicLibrary.CollapseAll();
+                        gameObject.SetActive(false);
+                    });
+                }
+            }
+
             var viewType = _musicLibrary.CurrentSelection;
 
             // Add/remove to favorites

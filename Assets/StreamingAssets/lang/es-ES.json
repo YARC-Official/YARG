@@ -321,7 +321,9 @@
                     "CreateNewPlaylist": "Crear Nueva...",
                     "RemovePlaylist": "Eliminar Lista",
                     "ViewSongFolder": "Ver Carpeta de Canciones",
-                    "CopySongChecksum": "Copiar Checksum de Canciones"
+                    "CopySongChecksum": "Copiar Checksum de Canciones",
+                    "CollapseAll": "Colapsar todo",
+                    "ExpandAll": "Expandir todo"
                 }
             },
             "Back": "VOLVER",

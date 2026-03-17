@@ -19,6 +19,7 @@ using YARG.Menu.ListMenu;
 using YARG.Menu.Navigation;
 using YARG.Player;
 using YARG.Playlists;
+using YARG.Scores;
 using YARG.Settings;
 using YARG.Song;
 using static YARG.Menu.Navigation.Navigator;
@@ -121,6 +122,7 @@ namespace YARG.Menu.MusicLibrary
         public bool ShouldDisplaySoloHighScores { get; private set; }
 
         private SongCategory[] _sortedSongs;
+        public IReadOnlyList<SongCategory> SortedSongs => _sortedSongs;
 
         private CancellationTokenSource _previewCanceller;
         private PreviewContext _previewContext;
@@ -520,7 +522,7 @@ namespace YARG.Menu.MusicLibrary
             bool showSortHeaders = _sortedSongs.Length > 1 ||
                 YARG.Menu.Filters.FiltersMenu.ActiveFilterPredicate != null;
 
-            foreach (var section in _sortedSongs)
+            foreach (var (section, index) in _sortedSongs.Select((s, i) => (s, i)))
             {
                 var displayName = section.Category;
                 if (SettingsManager.Settings.LibrarySort == SortAttribute.Source)
@@ -547,21 +549,63 @@ namespace YARG.Menu.MusicLibrary
                     string.Equals(section.Category, "Search Results", StringComparison.OrdinalIgnoreCase);
                 if (showSortHeaders && !hideSearchResultsHeader)
                 {
-                    sortHeader = new SortHeaderViewType(displayName, section.Songs.Length, section.CategoryGroup, section.Songs);
+                    Action onHeaderClicked = null;
+                    if (_sortedSongs.Length > 1)
+                    {
+                        onHeaderClicked = () =>
+                        {
+                            var category = _sortedSongs[index];
+                            _sortedSongs[index] = new SongCategory(
+                                category.Category,
+                                category.Songs,
+                                category.CategoryGroup,
+                                !category.Collapsed
+                            );
+
+                            var (headerIndex, offset) = GetClosestHeaderIndexAndOffset();
+                            RequestViewListUpdate();
+                            var closestHeader = ViewList[_sectionHeaderIndices[headerIndex]];
+                            if (closestHeader is SortHeaderViewType closestSortHeader && closestSortHeader.Collapsed)
+                            {
+                                // If the current section is collapsed, return to its header.
+                                offset = 0;
+                            }
+                            SelectedIndex = _sectionHeaderIndices[headerIndex] + offset;
+                        };
+                    }
+
+                    sortHeader = new SortHeaderViewType(
+                        displayName,
+                        section.Songs.Length,
+                        section.CategoryGroup,
+                        section.Songs,
+                        section.Collapsed,
+                        onHeaderClicked);
                     list.Add(sortHeader);
                 }
 
                 int sectionTotalStars = 0;
+                bool includeSongs = _sortedSongs.Length <= 1 || !section.Collapsed;
+
                 foreach (var song in section.Songs)
                 {
-                    if (allowdupes || !song.IsDuplicate)
+                    if (!allowdupes && song.IsDuplicate) continue;
+
+                    StarAmount? starAmount;
+                    
+                    if (includeSongs)
                     {
                         var songView = new SongViewType(this, song);
                         list.Add(songView);
-
-                        var starAmount = songView?.GetStarAmount();
-                        sectionTotalStars += starAmount is null ? 0 : StarAmountHelper.GetStarCount(starAmount.Value);
+                        starAmount = songView.GetStarAmount();
                     }
+                    else
+                    {
+                        starAmount = GetStarAmountForSong(song);
+                    }
+
+                    if (starAmount is not null)
+                        sectionTotalStars += StarAmountHelper.GetStarCount(starAmount.Value);
                 }
                 _totalStarCount += sectionTotalStars;
 
@@ -575,6 +619,21 @@ namespace YARG.Menu.MusicLibrary
             _totalSongCount = songCount;
             CalculateCategoryHeaderIndices(list);
             return list;
+        }
+
+        private static StarAmount? GetStarAmountForSong(SongEntry song)
+        {
+            var humanCount = PlayerContainer.Players.Count(p => !p.Profile.IsBot);
+            if (humanCount == 1)
+            {
+                var player = PlayerContainer.Players.First(e => !e.Profile.IsBot);
+                var playerScoreRecord = ScoreContainer.GetHighScore(
+                    song.Hash, player.Profile.Id, player.Profile.CurrentInstrument);
+                return playerScoreRecord?.Stars;
+            }
+
+            var bandScoreRecord = ScoreContainer.GetBandHighScore(song.Hash);
+            return bandScoreRecord?.BandStars;
         }
 
         private void ExitLibrary()
@@ -607,7 +666,7 @@ namespace YARG.Menu.MusicLibrary
             for (int i = 0; i < list.Count; i++)
             {
                 var entry = list[i];
-                if (entry is CategoryViewType)
+                if (entry is CategoryViewType or ButtonViewType)
                 {
                     _sectionHeaderIndices.Add(i);
                 }
@@ -1074,6 +1133,42 @@ namespace YARG.Menu.MusicLibrary
             } while (CurrentSelection is not SongViewType);
         }
 
+        public void ExpandAll()
+        {
+            var (headerIndex, offset) = GetClosestHeaderIndexAndOffset();
+            _sortedSongs = _sortedSongs
+                .Select(cat => new SongCategory(cat.Category, cat.Songs, cat.CategoryGroup, false))
+                .ToArray();
+            RequestViewListUpdate();
+            SelectedIndex = _sectionHeaderIndices[headerIndex] + offset;
+        }
+
+        public void CollapseAll()
+        {
+            var (headerIndex, offset) = GetClosestHeaderIndexAndOffset();
+            _sortedSongs = _sortedSongs
+                .Select(cat => new SongCategory(cat.Category, cat.Songs, cat.CategoryGroup, true))
+                .ToArray();
+            RequestViewListUpdate();
+            var closestHeader = ViewList[_sectionHeaderIndices[headerIndex]];
+            if (closestHeader is SortHeaderViewType sortHeader && sortHeader.Collapsed)
+            {
+                offset = 0;
+            }
+            SelectedIndex = _sectionHeaderIndices[headerIndex] + offset;
+        }
+
+        private (int headerIndex, int offset) GetClosestHeaderIndexAndOffset()
+        {
+            var closestHeader = _sectionHeaderIndices
+                .Where(x => x <= SelectedIndex)
+                .OrderByDescending(x => x)
+                .First();
+            var headerIndex = _sectionHeaderIndices.IndexOf(closestHeader);
+            var offset = SelectedIndex - _sectionHeaderIndices[headerIndex];
+            return (headerIndex, offset);
+        }
+		
         public void RefreshAndReselect(bool selectTopOfList = false, bool preserveSelectedIndex = false)
         {
             int preservedIndex = SelectedIndex;
