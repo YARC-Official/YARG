@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using Discord;
 using UnityEngine;
 using YARG.Core;
 using YARG.Core.Chart;
