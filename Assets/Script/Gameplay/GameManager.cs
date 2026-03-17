@@ -680,7 +680,8 @@ namespace YARG.Gameplay
             }
 
             int humanBandScore = 0;
-            float humanBandStars = 0f;
+            float humanBandStars;
+            int humanCount = playerEntries.Count;
             if (HasBots && SaveScoresWithBots)
             {
                 // Simulate the replay with only human players to calculate the correct score.
@@ -689,12 +690,13 @@ namespace YARG.Gameplay
                 {
                     return;
                 }
-
+                var humanStarScoreCutoffs = EngineManager.GetStarScoreCutoffs(humanCount);
+                humanBandStars = humanStarScoreCutoffs.Count(cutoff => humanBandScore >= cutoff);
                 var results = ReplayAnalyzer.AnalyzeReplay(Chart, replayInfo, ReplayData);
+
                 foreach (var result in results)
                 {
                     humanBandScore += result.ResultStats.TotalScore + result.ResultStats.BandBonusScore;
-                    humanBandStars += result.ResultStats.Stars;
                 }
             }
             else
@@ -703,15 +705,12 @@ namespace YARG.Gameplay
                 foreach (var player in _players)
                 {
                     humanBandScore += player.Score + player.BaseStats.BandBonusScore;
-                    humanBandStars += player.Stars;
                 }
+                humanBandStars = EngineManager.Stars;
             }
 
-            // Calculate band stars by taking average stars for human players only
-            int humanCount = playerEntries.Count;
-            int averageStars = (int)(humanBandStars / humanCount);
             var bandStars = humanCount > 0
-                ? StarAmountHelper.GetStarsFromInt(averageStars)
+                ? StarAmountHelper.GetStarsFromInt(Mathf.FloorToInt(humanBandStars))
                 : StarAmount.None;
 
             ScoreContainer.RecordScore(new GameRecord
@@ -780,7 +779,7 @@ namespace YARG.Gameplay
             var cameraPresets = new Dictionary<Guid, CameraPreset>();
 
             int bandScore = 0;
-            float bandStars = 0f;
+            float bandStars = EngineManager.Stars;
             for (int i = 0; i < _players.Count; i++)
             {
                 var player = _players[i];
@@ -793,7 +792,6 @@ namespace YARG.Gameplay
                 frames.Add(frame);
                 replayStats.Add(stats);
                 bandScore += player.Score;
-                bandStars += player.Stars;
 
                 if (!player.Player.ColorProfile.DefaultPreset)
                 {
@@ -811,7 +809,7 @@ namespace YARG.Gameplay
                 return null;
             }
 
-            var stars = StarAmountHelper.GetStarsFromInt((int) (bandStars / frames.Count));
+            var stars = StarAmountHelper.GetStarsFromInt(Mathf.FloorToInt(bandStars));
             ReplayData = new ReplayData(colorProfiles, cameraPresets, frames.ToArray(), _frameTimes.ToArray());
 
             (bool success, var replayInfo) = ReplayIO.TrySerialize(directory, Song, SongSpeed, length, bandScore, stars, PauseInfo.ToArray(), replayStats.ToArray(), ReplayData);

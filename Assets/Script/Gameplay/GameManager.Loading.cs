@@ -193,8 +193,9 @@ namespace YARG.Gameplay
 
             // Spawn players
             CreatePlayers();
-
-            EngineManager.PopulateStarScoreThresholds();
+            YargLogger.LogFormatDebug("Calculating star cutoffs for {0} players", YargPlayers.Count);
+            EngineManager.StarScoreThresholds = EngineManager.GetStarScoreCutoffs(YargPlayers.Count);
+            YargLogger.LogFormatDebug("Star score thresholds: {0}", string.Join(", ", EngineManager.StarScoreThresholds));
 
 
             // Set up the crowd stem so it can be restored after muting (if it exists)
