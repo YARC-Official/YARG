@@ -81,7 +81,13 @@ namespace YARG.Menu.History
 
         private void PopulatePlayerInstrumentIcons(List<PlayerScoreRecord> playerScoreRecords)
         {
-            // _instrumentIcons[0] is used for nPlayers > 5 and shares a spot with [1]
+            /*
+             - "Instrument Icons" on the HistoryView prefab is arranged visually as:
+               [5][4][3][2][1 and 0]
+             - If there are 5 players or fewer, display their icons in indices 1 to n
+             - For 6+ players, display number of extra players in slot 0, then use slots 2-5
+               to display the icons of the first 4 players
+             */
             if (playerScoreRecords.Count <= 5)
             {
                 _instrumentIcons[0].enabled = false;
