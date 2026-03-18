@@ -28,6 +28,12 @@ namespace YARG.Menu.ScoreScreen
 
         [Space]
         [SerializeField]
+        private TextMeshProUGUI[] _coloredTextFields;
+        [SerializeField]
+        private Color[] _coloredTextColors;
+
+        [Space]
+        [SerializeField]
         private Image _headerTag;
         [SerializeField]
         private Sprite[] _headerTags;
@@ -68,6 +74,11 @@ namespace YARG.Menu.ScoreScreen
             foreach (var text in _coloredHeaders)
             {
                 text.color = HeaderColor;
+            }
+
+            foreach (var text in _coloredTextFields)
+            {
+                text.color = _coloredTextColors[(int) _scoreCardColor];
             }
 
             _background.sprite = _backgrounds[idx];

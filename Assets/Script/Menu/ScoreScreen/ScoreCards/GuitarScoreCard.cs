@@ -20,9 +20,9 @@ namespace YARG.Menu.ScoreScreen
         {
             base.SetCardContents();
 
-            _overstrums.text = WrapWithColor(Stats.Overstrums);
-            _hoposStrummed.text = WrapWithColor(Stats.HoposStrummed);
-            _ghostInputs.text = WrapWithColor(Stats.GhostInputs);
+            _overstrums.text = ColorizePrimary(Stats.Overstrums);
+            _hoposStrummed.text = ColorizePrimary(Stats.HoposStrummed);
+            _ghostInputs.text = ColorizePrimary(Stats.GhostInputs);
         }
     }
 }

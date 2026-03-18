@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
@@ -175,13 +176,13 @@ namespace YARG.Menu.ScoreScreen
             _score.text = Stats.TotalScore.ToString("N0");
             _starView.SetStars((int) Stats.Stars);
 
-            _notesHit.text = $"{WrapWithColor(Stats.NotesHit)} / {Stats.TotalNotes}";
-            _maxStreak.text = WrapWithColor(Stats.MaxCombo);
-            _notesMissed.text = WrapWithColor(Stats.NotesMissed);
-            _starpowerPhrases.text = $"{WrapWithColor(Stats.StarPowerPhrasesHit)} / {Stats.TotalStarPowerPhrases}";
-            _bandBonusScore.text = WrapWithColor(Stats.BandBonusScore.ToString("N0"));
-            _averageOffset.text = WrapWithColor(
-                Mathf.RoundToInt((float) (Stats.GetAverageOffset() * 1000.0)).ToString() + " ms");
+            _notesHit.text = $"{ColorizePrimary(Stats.NotesHit)} / {ColorizeSecondary(Stats.TotalNotes)}";
+            _maxStreak.text = ColorizePrimary(Stats.MaxCombo);
+            _notesMissed.text = ColorizePrimary(Stats.NotesMissed);
+            _starpowerPhrases.text = $"{ColorizePrimary(Stats.StarPowerPhrasesHit)} / " +
+                $"{ColorizeSecondary(Stats.TotalStarPowerPhrases)}";
+            _bandBonusScore.text = ColorizePrimary(Stats.BandBonusScore.ToString("N0"));
+            _averageOffset.text = $"{ColorizePrimary(Math.Round(Stats.GetAverageOffset() * 1000, MidpointRounding.AwayFromZero))} {ColorizeSecondary("ms")}";
             BuildOffsetHistogram();
 
             // Set background icon
@@ -542,6 +543,16 @@ namespace YARG.Menu.ScoreScreen
             return
                 $"<font-weight=700><color=#{ColorUtility.ToHtmlStringRGB(_colorizer.CurrentColor)}>" +
                 $"{s}</color></font-weight>";
+        }
+
+        protected string ColorizePrimary(object s)
+        {
+            return $"<font-weight=600><color=#FFFFFF>{s}</color></font-weight>";
+        }
+
+        private string ColorizeSecondary(object s)
+        {
+            return $"<font-weight=500><color=#7D7DA3>{s}</color></font-weight>";
         }
 
         public void ScrollStats(float delta)
