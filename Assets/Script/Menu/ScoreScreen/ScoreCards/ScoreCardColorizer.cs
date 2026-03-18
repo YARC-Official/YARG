@@ -14,28 +14,41 @@ namespace YARG.Menu.ScoreScreen
             Gray = 3
         }
 
+        [Space]
         [SerializeField]
         private Image[] _coloredImages;
         [SerializeField]
+        private Color[] _colors;
+
+        [Space]
+        [SerializeField]
         private TextMeshProUGUI[] _coloredHeaders;
+        [SerializeField]
+        private Color[] _headerColors;
+
+        [Space]
+        [SerializeField]
+        private Image _headerTag;
+        [SerializeField]
+        private Sprite[] _headerTags;
 
         [Space]
         [SerializeField]
         private Image _background;
         [SerializeField]
-        private Image _bottomTag;
+        private Sprite[] _backgrounds;
 
         [Space]
         [SerializeField]
-        private Sprite[] _backgrounds;
+        private Image _bottomTag;
         [SerializeField]
         private Sprite[] _tags;
 
         [Space]
         [SerializeField]
-        private Color[] _colors;
+        private TextMeshProUGUI _bottomTagText;
         [SerializeField]
-        private Color[] _headerColors;
+        private Color[] _bottomTagTextColors;
 
         private ScoreCardColor _scoreCardColor;
 
@@ -45,6 +58,7 @@ namespace YARG.Menu.ScoreScreen
         public void SetCardColor(ScoreCardColor scoreCardColor)
         {
             _scoreCardColor = scoreCardColor;
+            int idx = (int) scoreCardColor;
 
             foreach (var image in _coloredImages)
             {
@@ -56,8 +70,10 @@ namespace YARG.Menu.ScoreScreen
                 text.color = HeaderColor;
             }
 
-            _background.sprite = _backgrounds[(int) scoreCardColor];
-            _bottomTag.sprite = _tags[(int) scoreCardColor];
+            _background.sprite = _backgrounds[idx];
+            _headerTag.sprite = _headerTags[idx];
+            _bottomTag.sprite = _tags[idx];
+            _bottomTagText.color = _bottomTagTextColors[idx];
         }
     }
 }
