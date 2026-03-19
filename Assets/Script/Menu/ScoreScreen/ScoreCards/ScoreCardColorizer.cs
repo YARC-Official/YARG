@@ -52,6 +52,12 @@ namespace YARG.Menu.ScoreScreen
 
         [Space]
         [SerializeField]
+        private Image[] _borderImages;
+        [SerializeField]
+        private Sprite[] _borders;
+
+        [Space]
+        [SerializeField]
         private TextMeshProUGUI _bottomTagText;
         [SerializeField]
         private Color[] _bottomTagTextColors;
@@ -78,12 +84,18 @@ namespace YARG.Menu.ScoreScreen
 
             foreach (var text in _coloredTextFields)
             {
-                text.color = _coloredTextColors[(int) _scoreCardColor];
+                text.color = _coloredTextColors[idx];
             }
 
             _background.sprite = _backgrounds[idx];
             _headerTag.sprite = _headerTags[idx];
             _bottomTag.sprite = _tags[idx];
+
+            foreach (var border in _borderImages)
+            {
+                border.sprite = _borders[idx];
+            }
+
             _bottomTagText.color = _bottomTagTextColors[idx];
         }
     }
