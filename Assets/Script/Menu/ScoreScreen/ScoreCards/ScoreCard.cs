@@ -83,6 +83,11 @@ namespace YARG.Menu.ScoreScreen
         [SerializeField]
         private RectTransform _basicStatsRect;
 
+        [SerializeField]
+        private ColoredPillElement _enginePresetTag;
+        [SerializeField]
+        private ColoredPillElement _modifiersUsedTag;
+
 
         private ScoreCardColorizer _colorizer;
         private GameObject _offsetHistogramObject;
@@ -190,6 +195,29 @@ namespace YARG.Menu.ScoreScreen
                 .LoadAssetAsync<Sprite>($"InstrumentIcons[{Player.Profile.CurrentInstrument.ToResourceName()}]")
                 .WaitForCompletion();
 
+            // Set engine preset tag
+            var enginePresetId = Player.EnginePreset.Id;
+            if (enginePresetId == EnginePreset.Default.Id)
+            {
+                _enginePresetTag.SetValues("Default Engine", ColoredPillElement.ColoredPillPreset.Default);
+            }
+            else if (enginePresetId == EnginePreset.Casual.Id)
+            {
+                _enginePresetTag.SetValues("Casual Engine", ColoredPillElement.ColoredPillPreset.CasualEngine);
+            }
+            else if (enginePresetId == EnginePreset.Precision.Id)
+            {
+                _enginePresetTag.SetValues("Precision Engine", ColoredPillElement.ColoredPillPreset.PrecisionEngine);
+            }
+            else if (enginePresetId == EnginePreset.SoloTaps.Id)
+            {
+                _enginePresetTag.SetValues("Solo Taps Engine", ColoredPillElement.ColoredPillPreset.Default);
+            }
+            else
+            {
+                _enginePresetTag.SetValues("Custom Engine Preset", ColoredPillElement.ColoredPillPreset.CustomEngine);
+            }
+
             // Set engine preset icons
             ModifierIcon.SpawnEnginePresetIcons(_modifierIconPrefab, _modifierIconContainer,
                 Player.EnginePreset, Player.Profile.GameMode);
@@ -203,6 +231,8 @@ namespace YARG.Menu.ScoreScreen
 
                 var icon = Instantiate(_modifierIconPrefab, _modifierIconContainer);
                 icon.InitializeForModifier(modifier);
+
+                _modifiersUsedTag.gameObject.SetActive(true);
             }
         }
 
