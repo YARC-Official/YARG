@@ -1509,6 +1509,14 @@
                 "Name": "DMX Keys",
                 "Description": "This channel gets additively set to the current key notes: Green (2), Red (4), Yellow (8), Blue (16), Orange (32)."
             },
+            "DMXTargetFPS": {
+                "Name": "DMX Target FPS",
+                "Description": "How often DMX lighting updates are sent per second. Set to 44 for best responsiveness (DMX protocol maximum). Lower values (10-20) can help with cheap or unstable USB DMX adapters that struggle at higher rates."
+            },
+            "DMXPulseDuration": {
+                "Name": "DMX Pulse Duration (MS)",
+                "Description": "How long a DMX channel stays on after receiving a trigger, in milliseconds. Increase this value if lights are not firing reliably. Set to 0 to disable pulse stretching entirely."
+            },
             "EnablePlaybackBuffer": {
                 "Name": "Use Audio Playback Buffer",
                 "Description": "Buffers audio data by decoding ahead-of-time in chunks. Improves audio stability on low-performance devices, at the cost of added latency on sound effects."

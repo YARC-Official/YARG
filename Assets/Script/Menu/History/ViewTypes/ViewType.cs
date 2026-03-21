@@ -1,8 +1,9 @@
-﻿using YARG.Core.Game;
+﻿using System.Collections.Generic;
+using YARG.Core.Game;
 using YARG.Core.Replays;
 using YARG.Core.Song;
 using YARG.Menu.ListMenu;
-using YARG.Replays;
+using YARG.Scores;
 
 namespace YARG.Menu.History
 {
@@ -10,8 +11,9 @@ namespace YARG.Menu.History
     {
         public struct GameInfo
         {
-            public int BandScore;
-            public StarAmount BandStars;
+            public int                     BandScore;
+            public StarAmount              BandStars;
+            public List<PlayerScoreRecord> PlayerScoreRecords;
         }
 
         public abstract bool UseFullContainer { get; }

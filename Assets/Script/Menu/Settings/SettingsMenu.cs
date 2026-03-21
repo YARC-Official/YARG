@@ -134,9 +134,20 @@ namespace YARG.Menu.Settings
 
             if (CurrentTab == null)
             {
-                CurrentTab = SettingsManager.DisplayedSettingsTabs[0];
-                _searchBarContainer.SetActive(false);
-                Refresh();
+                var tabId = !string.IsNullOrEmpty(_pendingTabName)
+                    ? _pendingTabName
+                    : _headerTabs.SelectedTabId;
+
+                if (!string.IsNullOrEmpty(tabId))
+                {
+                    SelectTabByName(tabId);
+                }
+                else
+                {
+                    CurrentTab = SettingsManager.DisplayedSettingsTabs[0];
+                    _searchBarContainer.SetActive(false);
+                    Refresh();
+                }
             }
         }
 

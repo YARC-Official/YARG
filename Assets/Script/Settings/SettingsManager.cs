@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -217,6 +217,9 @@ namespace YARG.Settings
                 new HeaderMetadata("AdvancedDMXSettings"),
                 nameof(Settings.DMXUniverseChannel),
                 nameof(Settings.DMXDimmerValues),
+                nameof(Settings.DMXTargetFPS),
+                nameof(Settings.DMXPulseDuration),
+
                 //NYI
                 //nameof(Settings.DMXPerformerChannel)
                 new HeaderMetadata("RB3E"),
@@ -316,31 +319,33 @@ namespace YARG.Settings
         {
             var field = typeof(SettingContainer).GetProperty(name);
 
-            if (field == null)
+            if (field != null)
             {
-                throw new Exception($"The field `{name}` does not exist.");
+                var value = field.GetValue(Settings);
+
+                if (value == null)
+                {
+                    YargLogger.LogFormatWarning("`{0}` has a value of null. This might create errors.", name);
+                }
+
+                return (ISettingType) value;
             }
 
-            var value = field.GetValue(Settings);
-
-            if (value == null)
-            {
-                YargLogger.LogFormatWarning("`{0}` has a value of null. This might create errors.", name);
-            }
-
-            return (ISettingType) value;
+            throw new Exception($"The field `{name}` does not exist.");
         }
 
         public static void InvokeButton(string name)
         {
             var method = typeof(SettingContainer).GetMethod(name);
 
-            if (method == null)
+            if (method != null)
+            {
+                method.Invoke(Settings, null);
+            }
+            else
             {
                 throw new Exception($"The method `{name}` does not exist.");
             }
-
-            method.Invoke(Settings, null);
         }
 
         public static Tab GetTabByName(string name)
