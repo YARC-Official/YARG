@@ -149,7 +149,7 @@ namespace YARG.Menu.ScoreScreen
             _sourceIcon.sprite = SongSources.SourceToIcon(song.Source);
 
             var cancellationToken = new CancellationTokenSource();
-            _albumCover.LoadAlbumCover(song, cancellationToken.Token, 0.07f);
+            _albumCover.LoadAlbumCover(song, cancellationToken.Token, 0.2f);
 
             //set restarting state
             _restartingSong = false;
