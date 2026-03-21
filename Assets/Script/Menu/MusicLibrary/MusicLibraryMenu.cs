@@ -623,52 +623,6 @@ namespace YARG.Menu.MusicLibrary
             return selected;
         }
 
-        private void CalculateCategoryHeaderIndices(List<ViewType> list)
-        {
-            _sectionHeaderIndices.Clear();
-            Shortcuts.Clear();
-
-            for (int i = 0; i < list.Count; i++)
-            {
-                var entry = list[i];
-                if (entry is CategoryViewType or ButtonViewType)
-                {
-                    _sectionHeaderIndices.Add(i);
-                }
-                else if (entry is SortHeaderViewType header)
-                {
-                    _sectionHeaderIndices.Add(i);
-
-                    string curShortcut = header.ShortcutName;
-
-                    // Assume that any header with a ShortcutName of null is not meant to be included
-                    // Add this shortcut if it does not match the one at end of the list
-                    if (curShortcut != null &&
-                        (Shortcuts.Count == 0 || curShortcut != Shortcuts[^1].Item1))
-                    {
-                        Shortcuts.Add((curShortcut, i));
-                    }
-                }
-            }
-        }
-
-        private void SetRecommendedSongs()
-        {
-            if (!SettingsManager.Settings.ShowRecommendedSongs.Value)
-            {
-                _recommendedSongs = null;
-                return;
-            }
-
-            if (SongContainer.Count > RecommendedSongs.RECOMMEND_SONGS_COUNT)
-            {
-                _recommendedSongs = RecommendedSongs.GetRecommendedSongs();
-            }
-            else
-            {
-                _recommendedSongs = null;
-            }
-        }
         public void Refresh()
         {
             SetRecommendedSongs();

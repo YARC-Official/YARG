@@ -57,7 +57,7 @@ namespace YARG.Menu.MusicLibrary
             for (int i = 0; i < list.Count; i++)
             {
                 var entry = list[i];
-                if (entry is CategoryViewType)
+                if (entry is CategoryViewType or ButtonViewType)
                 {
                     _sectionHeaderIndices.Add(i);
                 }
