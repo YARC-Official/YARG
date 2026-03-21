@@ -22,6 +22,10 @@ namespace YARG.Menu.ScoreScreen
 
         [Space]
         [SerializeField]
+        private Image _headerBackgroundGradient;
+
+        [Space]
+        [SerializeField]
         private TextMeshProUGUI[] _coloredHeaders;
         [SerializeField]
         private Color[] _headerColors;
@@ -97,6 +101,8 @@ namespace YARG.Menu.ScoreScreen
             }
 
             _bottomTagText.color = _bottomTagTextColors[idx];
+
+            _headerBackgroundGradient.enabled = (scoreCardColor != ScoreCardColor.Gold) && (scoreCardColor != ScoreCardColor.Red);
         }
     }
 }
