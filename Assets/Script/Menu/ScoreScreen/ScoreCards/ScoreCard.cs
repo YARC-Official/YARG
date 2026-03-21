@@ -223,6 +223,7 @@ namespace YARG.Menu.ScoreScreen
                 Player.EnginePreset, Player.Profile.GameMode);
 
             // Set modifier icons
+            bool modifiersUsed = false;
             foreach (var modifier in EnumExtensions<Modifier>.Values)
             {
                 if (modifier == Modifier.None) continue;
@@ -232,8 +233,9 @@ namespace YARG.Menu.ScoreScreen
                 var icon = Instantiate(_modifierIconPrefab, _modifierIconContainer);
                 icon.InitializeForModifier(modifier);
 
-                _modifiersUsedTag.gameObject.SetActive(true);
+                modifiersUsed = true;
             }
+            _modifiersUsedTag.gameObject.SetActive(modifiersUsed);
         }
 
         private void BuildOffsetHistogram()
