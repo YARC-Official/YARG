@@ -192,7 +192,21 @@ namespace YARG.Scores
             return null;
         }
 
-        public static List<PlayerScoreRecord> GetAllPlayerScores(Guid id)
+        public static List<PlayerScoreRecord> GetAllPlayerScoreRecords()
+        {
+            try
+            {
+                return _db.QueryAllPlayerScoreRecords();
+            }
+            catch (Exception e)
+            {
+                YargLogger.LogException(e, "Failed to load all PlayerScoreRecords from database.");
+            }
+
+            return null;
+        }
+
+        public static List<PlayerScoreRecord> GetAllScoresByPlayerId(Guid id)
         {
             try
             {

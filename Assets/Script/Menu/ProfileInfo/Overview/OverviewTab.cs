@@ -29,7 +29,7 @@ namespace YARG.Menu.ProfileInfo.Overview
         private void OnEnable()
         {
             var profile = _profileInfoMenu.CurrentProfile;
-            var scores = ScoreContainer.GetAllPlayerScores(profile.Id);
+            var scores = ScoreContainer.GetAllScoresByPlayerId(profile.Id);
 
             _profileName.text = profile.Name;
             _profileExtras.text = Localize.KeyFormat("Menu.ProfileInfo.Stats.SongPlays", scores.Count);

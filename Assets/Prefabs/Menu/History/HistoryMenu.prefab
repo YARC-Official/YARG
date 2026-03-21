@@ -297,7 +297,7 @@ MonoBehaviour:
   _viewObjectPrefab: {fileID: 4753457024697432023, guid: 170621276b777a744bd6c46aededed3f, type: 3}
   _viewObjectParent: {fileID: 7242423078743798783}
   _scrollbar: {fileID: 5397532863659418013}
-  _viewAligner: {fileID: 619021696685137995}
+  _viewAligner: {fileID: 0}
   _exportReplayButton: {fileID: 8577329528064569814}
   _importReplayButton: {fileID: 7535555724622063350}
   _headerTabs: {fileID: 4155919010694207238}
@@ -358,9 +358,9 @@ MonoBehaviour:
   m_ChildAlignment: 4
   m_Spacing: 0
   m_ChildForceExpandWidth: 1
-  m_ChildForceExpandHeight: 1
+  m_ChildForceExpandHeight: 0
   m_ChildControlWidth: 1
-  m_ChildControlHeight: 1
+  m_ChildControlHeight: 0
   m_ChildScaleWidth: 0
   m_ChildScaleHeight: 0
   m_ReverseArrangement: 0

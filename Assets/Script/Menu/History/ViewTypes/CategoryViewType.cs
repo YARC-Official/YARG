@@ -15,7 +15,7 @@
 
         public override string GetPrimaryText(bool selected)
         {
-            return FormatAs(_headerText, TextType.Bright, selected);
+            return FormatAs(_headerText, TextType.Bright, selected).ToUpper();
         }
 
         public override string GetSecondaryText(bool selected) => string.Empty;

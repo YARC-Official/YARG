@@ -321,7 +321,9 @@
                     "CreateNewPlaylist": "Criar nova...",
                     "RemovePlaylist": "Remover playlist",
                     "ViewSongFolder": "Ver pasta da música",
-                    "CopySongChecksum": "Copiar código da música"
+                    "CopySongChecksum": "Copiar código da música",
+                    "CollapseAll": "Recolher tudo",
+                    "ExpandAll": "Expandir tudo"
                 }
             },
             "Back": "VOLTAR",

@@ -30,11 +30,18 @@ namespace YARG.Settings.Metadata
         public override void BuildSettingTab(Transform container, NavigationGroup navGroup)
         {
             _settingVisuals.Clear();
+
+            var showAdvanced = SettingsMenu.Instance.ShowAdvanced;
             var settingIndex = 0;
 
             // Once we've found the tab, add the settings
             foreach (var settingMetadata in _settings)
             {
+                if (settingMetadata.IsAdvanced && !showAdvanced)
+                {
+                    continue;
+                }
+
                 switch (settingMetadata)
                 {
                     case HeaderMetadata header:
@@ -96,6 +103,7 @@ namespace YARG.Settings.Metadata
                         var visual = SpawnSettingVisual(setting, container);
                         visual.AssignSetting(field.FieldName, field.HasDescription);
                         visual.AssignIndex(settingIndex);
+                        visual.ShowAdvancedMarker(field.IsAdvanced);
 
                         _settingVisuals.Add(field.FieldName, visual);
                         navGroup.AddNavigatable(visual.gameObject);
@@ -105,8 +113,8 @@ namespace YARG.Settings.Metadata
                     }
                 }
             }
-        }
 
+        }
         // For collection initializer support
         public void Add(AbstractMetadata setting) => _settings.Add(setting);
         private List<AbstractMetadata>.Enumerator GetEnumerator() => _settings.GetEnumerator();

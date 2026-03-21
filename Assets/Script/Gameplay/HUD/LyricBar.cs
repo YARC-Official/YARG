@@ -82,14 +82,15 @@ namespace YARG.Gameplay.HUD
                 // The object is already disabled in GameplayAwake, but that doesn't stop OnChartLoaded from being called
                 return;
             }
+            // If there are fewer phrases than PHRASE_OBJECT_COUNT, don't create more than we need
+            var phraseCount = Math.Min(_songChart.Lyrics.Phrases.Count, PHRASE_OBJECT_COUNT);
 
-            _lyricTextObjects = new LyricBarPhrase[PHRASE_OBJECT_COUNT];
-            for (int i = 0; i < PHRASE_OBJECT_COUNT; i++)
+            _lyricTextObjects = new LyricBarPhrase[phraseCount];
+            for (int i = 0; i < phraseCount; i++)
             {
                 var phraseObject = Instantiate(_phrasePrefab, _canvas.transform);
                 _lyricTextObjects[i] = phraseObject;
             }
-
             BuildLyricTimings();
         }
 

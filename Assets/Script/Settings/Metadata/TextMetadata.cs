@@ -6,7 +6,8 @@
 
         public string TextName { get; private set; }
 
-        public TextMetadata(string textName)
+        public TextMetadata(string textName, bool isAdvanced = false)
+            : base(isAdvanced)
         {
             TextName = textName;
         }
