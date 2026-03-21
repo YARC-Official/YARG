@@ -34,9 +34,14 @@ namespace YARG.Menu
 
         public void SetValues(string text, ColoredPillPreset preset)
         {
+            _textBox.text = text;
+            SetPresetColors(preset);
+        }
+
+        public void SetPresetColors(ColoredPillPreset preset)
+        {
             int idx = (int) preset;
 
-            _textBox.text = text;
             _textBox.color = _textColors[idx];
             _backgroundImage.color = _backgroundColors[idx];
             _outlineImage.color = _outlineColors[idx];

@@ -48,7 +48,7 @@ namespace YARG.Menu.ScoreScreen
         [SerializeField]
         private TextMeshProUGUI _bandScore;
         [SerializeField]
-        private TextMeshProUGUI _bandScoreNotSavedMessage;
+        private ColoredPillElement _bandScoreNotSavedPill;
         [SerializeField]
         private ScrollRect _cardScrollRect;
         [SerializeField]
@@ -122,7 +122,13 @@ namespace YARG.Menu.ScoreScreen
             // Set text
             _songTitle.text = song.Name;
             _artistName.text = song.Artist;
-            _bandScoreNotSavedMessage.gameObject.SetActive(
+
+            var scoreNotSavedText = Localize.Key("Menu.ScoreScreen.BandScoreNotSaved")
+                .Replace("(", string.Empty)
+                .Replace(")", string.Empty);
+            _bandScoreNotSavedPill.SetValues(scoreNotSavedText,
+                ColoredPillElement.ColoredPillPreset.HarderModifier);
+            _bandScoreNotSavedPill.gameObject.SetActive(
                 !ScoreContainer.IsBandScoreValid(PersistentState.Default.SongSpeed));
 
             // Set speed text (if not at 100% speed)
