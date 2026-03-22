@@ -102,6 +102,8 @@ namespace YARG.Menu.ScoreScreen
 
             _bottomTagText.color = _bottomTagTextColors[idx];
 
+            // with the default blue and gray cards, the instrument icon looks better with
+            // an extra gradient overlaid
             _headerBackgroundGradient.enabled = (scoreCardColor != ScoreCardColor.Gold) && (scoreCardColor != ScoreCardColor.Red);
         }
     }
