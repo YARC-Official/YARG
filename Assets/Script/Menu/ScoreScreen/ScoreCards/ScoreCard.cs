@@ -70,9 +70,13 @@ namespace YARG.Menu.ScoreScreen
         [SerializeField]
         private TextMeshProUGUI _maxStreak;
         [SerializeField]
+        private GameObject _notesMissedContainer;
+        [SerializeField]
         private TextMeshProUGUI _notesMissed;
         [SerializeField]
         private TextMeshProUGUI _starpowerPhrases;
+        [SerializeField]
+        private TextMeshProUGUI _averageMultiplier;
         [SerializeField]
         private TextMeshProUGUI _bandBonusScore;
         [SerializeField]
@@ -103,6 +107,7 @@ namespace YARG.Menu.ScoreScreen
 
         protected bool IsHighScore;
         protected T Stats;
+        protected float AverageMultiplier;
 
         public YargPlayer Player { get; private set; }
 
@@ -111,11 +116,12 @@ namespace YARG.Menu.ScoreScreen
             _colorizer = GetComponent<ScoreCardColorizer>();
         }
 
-        public void Initialize(bool isHighScore, YargPlayer player, T stats)
+        public void Initialize(bool isHighScore, YargPlayer player, T stats, float averageMultiplier)
         {
             IsHighScore = isHighScore;
             Player = player;
             Stats = stats;
+            AverageMultiplier = averageMultiplier;
         }
 
         public virtual void SetCardContents()
@@ -183,9 +189,11 @@ namespace YARG.Menu.ScoreScreen
 
             _notesHit.text = $"{ColorizePrimary(Stats.NotesHit)} / {ColorizeSecondary(Stats.TotalNotes)}";
             _maxStreak.text = ColorizePrimary(Stats.MaxCombo);
-            _notesMissed.text = ColorizePrimary(Stats.NotesMissed);
+            _notesMissed.text = ColorizePrimary("-" + Stats.NotesMissed);
+            _notesMissedContainer.gameObject.SetActive(Stats.NotesMissed != 0);
             _starpowerPhrases.text = $"{ColorizePrimary(Stats.StarPowerPhrasesHit)} / " +
                 $"{ColorizeSecondary(Stats.TotalStarPowerPhrases)}";
+            _averageMultiplier.text = ColorizePrimary(AverageMultiplier.ToString("0.00"));
             _bandBonusScore.text = ColorizePrimary(Stats.BandBonusScore.ToString("N0"));
             _averageOffset.text = $"{ColorizePrimary(Math.Round(Stats.GetAverageOffset() * 1000, MidpointRounding.AwayFromZero))} {ColorizeSecondary("ms")}";
             BuildOffsetHistogram();

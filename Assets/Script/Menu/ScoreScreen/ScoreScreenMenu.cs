@@ -199,7 +199,7 @@ namespace YARG.Menu.ScoreScreen
                     case GameMode.FiveFretGuitar:
                     {
                         card = Instantiate(_guitarCardPrefab, _cardContainer);
-                        ((ScoreCard<GuitarStats>)card).Initialize(score.IsHighScore, score.Player, score.Stats as GuitarStats);
+                        ((ScoreCard<GuitarStats>)card).Initialize(score.IsHighScore, score.Player, score.Stats as GuitarStats, score.AverageMultiplier);
                         break;
                     }
                     case GameMode.FourLaneDrums:
@@ -207,13 +207,13 @@ namespace YARG.Menu.ScoreScreen
                     case GameMode.EliteDrums:
                     {
                         card = Instantiate(_drumsCardPrefab, _cardContainer);
-                        ((ScoreCard<DrumsStats>)card).Initialize(score.IsHighScore, score.Player, score.Stats as DrumsStats);
+                        ((ScoreCard<DrumsStats>)card).Initialize(score.IsHighScore, score.Player, score.Stats as DrumsStats, score.AverageMultiplier);
                         break;
                     }
                     case GameMode.Vocals:
                     {
                         card = Instantiate(_vocalsCardPrefab, _cardContainer);
-                        ((ScoreCard<VocalsStats>)card).Initialize(score.IsHighScore, score.Player, score.Stats as VocalsStats);
+                        ((ScoreCard<VocalsStats>)card).Initialize(score.IsHighScore, score.Player, score.Stats as VocalsStats, score.AverageMultiplier);
                         break;
                     }
                     case GameMode.ProKeys:
@@ -227,7 +227,7 @@ namespace YARG.Menu.ScoreScreen
                             card = Instantiate(_fiveLaneKeysCardPrefab, _cardContainer);
                         }
                         ((ScoreCard<KeysStats>) card).Initialize(score.IsHighScore, score.Player,
-                            score.Stats as KeysStats);
+                            score.Stats as KeysStats, score.AverageMultiplier);
                         break;
                     }
                 }
