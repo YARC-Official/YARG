@@ -37,11 +37,12 @@ namespace YARG.Input
             for (int i = 0; i < DefaultBindings.Length; i++)
             {
                 var (menuAction, key) = DefaultBindings[i];
+                var keyPath = key.ToString().Replace("Digit", "");
 
                 var action = new InputAction(
                     name: $"Menu_{menuAction}_{key}",
                     type: InputActionType.Button,
-                    binding: $"<Keyboard>/{key}"
+                    binding: $"<Keyboard>/{keyPath}"
                 );
 
                 action.performed += _ => InputManager.OnMenuAction(menuAction, true);
