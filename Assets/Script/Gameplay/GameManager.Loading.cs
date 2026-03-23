@@ -193,8 +193,8 @@ namespace YARG.Gameplay
 
             // Spawn players
             CreatePlayers();
-            YargLogger.LogFormatDebug("Calculating star cutoffs for {0} players", YargPlayers.Count);
-            EngineManager.StarScoreThresholds = EngineManager.GetStarScoreCutoffs(YargPlayers.Count);
+            YargLogger.LogFormatDebug("Calculating star cutoffs for {0} players", _players.Count);
+            EngineManager.StarScoreThresholds = EngineManager.GetStarScoreCutoffs(_players.Count);
             YargLogger.LogFormatDebug("Star score thresholds: {0}", string.Join(", ", EngineManager.StarScoreThresholds));
 
 
