@@ -143,11 +143,6 @@ namespace YARG.Menu.Navigation
             UpdateHelpBar().Forget();
         }
 
-        private void OnDestroy()
-        {
-            InputManager.MenuInput -= ProcessInput;
-        }
-
         private void Update()
         {
             if (ShouldBlockInputs())

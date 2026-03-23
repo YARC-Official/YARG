@@ -134,6 +134,11 @@ namespace YARG.Input
                 {
                     YargLogger.LogFormatError("Player already registered with device: {0}", device);
                 }
+
+                if (device is Keyboard)
+                {
+                    _defaultKeyboardMenuBindings.Disable();
+                }
             }
         }
 
