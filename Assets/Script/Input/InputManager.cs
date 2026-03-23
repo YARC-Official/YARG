@@ -63,7 +63,12 @@ namespace YARG.Input
         private static bool _focusChanged;
         private static HashSet<InputDevice> _backgroundDisabledDevices = new();
 
-        private static bool HasProfileWithKeyboard => _registeredDevices.Any(d => d is Keyboard);
+        private static bool HasProfileWithKeyboard =>
+            PlayerContainer.Players
+                .Where(p => p.InputsEnabled)
+                .SelectMany(p => p.Bindings.InputDevices)
+                .OfType<Keyboard>()
+                .Any();
 
         public static void Initialize()
         {
@@ -145,13 +150,15 @@ namespace YARG.Input
                     YargLogger.LogFormatError("Player not registered with device: {0}", device);
                 }
             }
+
+            if (!HasProfileWithKeyboard)
+            {
+                _defaultKeyboardMenuBindings.Enable();
+            }
         }
 
         private static void OnPlayerBindingDeviceAdded(InputDevice device)
         {
-            _registeredDevices.Add(device);
-            
-            if (HasRegisteredKeyboard)
             if (HasProfileWithKeyboard)
             {
                 _defaultKeyboardMenuBindings.Disable();
@@ -160,9 +167,6 @@ namespace YARG.Input
 
         private static void OnPlayerBindingDeviceRemoved(InputDevice device)
         {
-            _registeredDevices.Remove(device);
-            
-            if (!HasRegisteredKeyboard)
             if (!HasProfileWithKeyboard)
             {
                 _defaultKeyboardMenuBindings.Enable();
