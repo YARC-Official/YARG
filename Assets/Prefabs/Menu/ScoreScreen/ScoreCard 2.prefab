@@ -3313,7 +3313,7 @@ MonoBehaviour:
   m_fontSizeMax: 72
   m_fontStyle: 16
   m_HorizontalAlignment: 4
-  m_VerticalAlignment: 512
+  m_VerticalAlignment: 4096
   m_textAlignment: 65535
   m_characterSpacing: 0
   m_characterHorizontalScale: 1
@@ -3523,7 +3523,7 @@ MonoBehaviour:
   m_fontSizeMax: 72
   m_fontStyle: 16
   m_HorizontalAlignment: 1
-  m_VerticalAlignment: 512
+  m_VerticalAlignment: 4096
   m_textAlignment: 65535
   m_characterSpacing: 0
   m_characterHorizontalScale: 1
@@ -5913,7 +5913,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2893973478277531959, guid: c2968c80c91783d4284890bcfd20ced9, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 350.22223
+      value: 378
       objectReference: {fileID: 0}
     - target: {fileID: 2893973478277531959, guid: c2968c80c91783d4284890bcfd20ced9, type: 3}
       propertyPath: m_AnchoredPosition.y

@@ -91,6 +91,10 @@ namespace YARG.Menu.ScoreScreen
         private ColoredPillElement _enginePresetTag;
         [SerializeField]
         private ColoredPillElement _modifiersUsedTag;
+        [SerializeField]
+        private GameObject _modifiersUsedContainer;
+        [SerializeField]
+        private GameObject _modifiersUsedSeparator;
 
 
         private ScoreCardColorizer _colorizer;
@@ -244,6 +248,8 @@ namespace YARG.Menu.ScoreScreen
                 modifiersUsed = true;
             }
             _modifiersUsedTag.gameObject.SetActive(modifiersUsed);
+            _modifiersUsedContainer.gameObject.SetActive(modifiersUsed);
+            _modifiersUsedSeparator.gameObject.SetActive(modifiersUsed);
         }
 
         private void BuildOffsetHistogram()
