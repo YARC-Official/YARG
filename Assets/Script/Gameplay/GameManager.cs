@@ -680,7 +680,7 @@ namespace YARG.Gameplay
             }
 
             int humanBandScore = 0;
-            float humanBandStars;
+            float humanBandStars = 0;
             int humanCount = playerEntries.Count;
             if (HasBots && SaveScoresWithBots)
             {
@@ -690,13 +690,25 @@ namespace YARG.Gameplay
                 {
                     return;
                 }
-                var humanStarScoreCutoffs = EngineManager.GetStarScoreCutoffs(humanCount);
-                humanBandStars = humanStarScoreCutoffs.Count(cutoff => humanBandScore >= cutoff);
                 var results = ReplayAnalyzer.AnalyzeReplay(Chart, replayInfo, ReplayData);
 
                 foreach (var result in results)
                 {
                     humanBandScore += result.ResultStats.TotalScore + result.ResultStats.BandBonusScore;
+                }
+
+                var humanStarScoreCutoffs = EngineManager.GetStarScoreCutoffs(humanCount);
+                // Determine where in the cutoffs humanBandScore is
+                // Iterating backwards is slightly faster assuming people are good at the game
+                for (int i = humanStarScoreCutoffs.Length - 1; i >= 0; i--)
+                {
+                    if (humanBandScore >= humanStarScoreCutoffs[i])
+                    {
+                        // This gives humanBandStars as an int, which is not exactly correct but should make no difference
+                        // since it is converted into StarAmount by int anyway
+                        humanBandStars = i + 1;
+                        break;
+                    }
                 }
             }
             else
