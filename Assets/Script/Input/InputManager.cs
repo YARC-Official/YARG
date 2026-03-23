@@ -8,6 +8,7 @@ using UnityEngine.InputSystem.Layouts;
 using UnityEngine.InputSystem.LowLevel;
 using YARG.Core.Input;
 using YARG.Core.Logging;
+using YARG.Menu.Navigation;
 using YARG.Menu.Persistent;
 using YARG.Player;
 using YARG.Settings;
@@ -52,12 +53,22 @@ namespace YARG.Input
 
         private static HashSet<InputDevice> _registeredDevices = new();
 
+        private static DefaultKeyboardMenuBindings _defaultKeyboardMenuBindings;
+
         // We do this song and dance of tracking focus changes manually rather than setting
         // InputSettings.backgroundBehavior to IgnoreFocus, so that input is still (largely) disabled when unfocused
         // but devices are not removed only to be re-added when coming back into focus
         private static bool _gameFocused;
         private static bool _focusChanged;
         private static HashSet<InputDevice> _backgroundDisabledDevices = new();
+        public static bool HasRegisteredKeyboard
+        {
+            get
+            {
+                var keyboard = InputSystem.GetDevice<Keyboard>();
+                return keyboard != null && _registeredDevices.Contains(keyboard);
+            }
+        }
 
         public static void Initialize()
         {
@@ -71,6 +82,8 @@ namespace YARG.Input
             _gameFocused = Application.isFocused;
             Application.focusChanged += OnFocusChange;
             InputSystem.onDeviceChange += OnDeviceChange;
+
+            _defaultKeyboardMenuBindings = new DefaultKeyboardMenuBindings();
 
             // Notify of all current devices
             ToastManager.ToastInformation("Devices found: " + (Microphone.devices.Length + InputSystem.devices.Count));
@@ -98,6 +111,9 @@ namespace YARG.Input
 
         public static void Destroy()
         {
+            _defaultKeyboardMenuBindings?.Dispose();
+            _defaultKeyboardMenuBindings = null;
+
             InputSystem.onEvent -= OnEvent;
 
             InputSystem.onBeforeUpdate -= OnBeforeUpdate;
@@ -109,6 +125,9 @@ namespace YARG.Input
         public static void RegisterPlayer(YargPlayer player)
         {
             player.MenuInput += OnMenuInput;
+            player.Bindings.DeviceAdded += OnPlayerBindingDeviceAdded;
+            player.Bindings.DeviceRemoved += OnPlayerBindingDeviceRemoved;
+
             foreach (var device in player.Bindings.InputDevices)
             {
                 if (!_registeredDevices.Add(device))
@@ -121,6 +140,8 @@ namespace YARG.Input
         public static void UnregisterPlayer(YargPlayer player)
         {
             player.MenuInput -= OnMenuInput;
+            player.Bindings.DeviceAdded -= OnPlayerBindingDeviceAdded;
+            player.Bindings.DeviceRemoved -= OnPlayerBindingDeviceRemoved;
 
             foreach (var device in player.Bindings.InputDevices)
             {
@@ -129,6 +150,38 @@ namespace YARG.Input
                     YargLogger.LogFormatError("Player not registered with device: {0}", device);
                 }
             }
+        }
+
+        private static void OnPlayerBindingDeviceAdded(InputDevice device)
+        {
+            if (!_registeredDevices.Add(device))
+            {
+                YargLogger.LogFormatError("Device already registered when added to player bindings: {0}", device);
+            }
+
+            if (HasRegisteredKeyboard)
+            {
+                _defaultKeyboardMenuBindings.Disable();
+            }
+        }
+
+        private static void OnPlayerBindingDeviceRemoved(InputDevice device)
+        {
+            if (!_registeredDevices.Remove(device))
+            {
+                YargLogger.LogFormatError("Device not registered when removed from player bindings: {0}", device);
+            }
+
+            if (!HasRegisteredKeyboard)
+            {
+                _defaultKeyboardMenuBindings.Enable();
+            }
+        }
+
+        public static void OnMenuAction(MenuAction action, bool pressed)
+        {
+            var input = new GameInput(CurrentInputTime, (int)action, pressed);
+            MenuInput?.Invoke(null, ref input);
         }
 
         private static void OnMenuInput(YargPlayer player, ref GameInput input)
