@@ -570,6 +570,13 @@ namespace YARG.Gameplay
                 shaderBundleName
             );
 
+            if (shaderBundleData == null)
+            {
+                shaderBundleData = (TextAsset)await bundle.LoadAssetAsync<TextAsset>(
+                    bundle.name + BundleBackgroundManager.BUNDLE_OSX_SUFFIX
+                );
+            }
+
             if (shaderBundleData != null && shaderBundleData.bytes.Length > 0)
             {
                 YargLogger.LogInfo("Loading Metal shader bundle");
