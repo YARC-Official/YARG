@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Cysharp.Text;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -61,14 +62,8 @@ namespace YARG.Input
         private static bool _gameFocused;
         private static bool _focusChanged;
         private static HashSet<InputDevice> _backgroundDisabledDevices = new();
-        public static bool HasRegisteredKeyboard
-        {
-            get
-            {
-                var keyboard = InputSystem.GetDevice<Keyboard>();
-                return keyboard != null && _registeredDevices.Contains(keyboard);
-            }
-        }
+
+        private static bool HasProfileWithKeyboard => _registeredDevices.Any(d => d is Keyboard);
 
         public static void Initialize()
         {
@@ -154,12 +149,10 @@ namespace YARG.Input
 
         private static void OnPlayerBindingDeviceAdded(InputDevice device)
         {
-            if (!_registeredDevices.Add(device))
-            {
-                YargLogger.LogFormatError("Device already registered when added to player bindings: {0}", device);
-            }
-
+            _registeredDevices.Add(device);
+            
             if (HasRegisteredKeyboard)
+            if (HasProfileWithKeyboard)
             {
                 _defaultKeyboardMenuBindings.Disable();
             }
@@ -167,12 +160,10 @@ namespace YARG.Input
 
         private static void OnPlayerBindingDeviceRemoved(InputDevice device)
         {
-            if (!_registeredDevices.Remove(device))
-            {
-                YargLogger.LogFormatError("Device not registered when removed from player bindings: {0}", device);
-            }
-
+            _registeredDevices.Remove(device);
+            
             if (!HasRegisteredKeyboard)
+            if (!HasProfileWithKeyboard)
             {
                 _defaultKeyboardMenuBindings.Enable();
             }
