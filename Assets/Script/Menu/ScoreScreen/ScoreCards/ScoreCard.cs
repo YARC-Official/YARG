@@ -52,7 +52,7 @@ namespace YARG.Menu.ScoreScreen
 
         [Space]
         [SerializeField]
-        private Image _instrumentIcon;
+        protected Image _instrumentIcon;
 
         [Space]
         [SerializeField]
@@ -81,6 +81,10 @@ namespace YARG.Menu.ScoreScreen
         private TextMeshProUGUI _bandBonusScore;
         [SerializeField]
         private TextMeshProUGUI _averageOffset;
+        [SerializeField]
+        private TextMeshProUGUI _starPowerActivations;
+        [SerializeField]
+        private TextMeshProUGUI _timeInStarPower;
 
         [SerializeField]
         private RectTransform _advancedStatsRect;
@@ -200,12 +204,10 @@ namespace YARG.Menu.ScoreScreen
             _averageMultiplier.text = ColorizePrimary(AverageMultiplier.ToString("0.00"));
             _bandBonusScore.text = ColorizePrimary(Stats.BandBonusScore.ToString("N0"));
             _averageOffset.text = $"{ColorizePrimary(Math.Round(Stats.GetAverageOffset() * 1000, MidpointRounding.AwayFromZero))} {ColorizeSecondary("ms")}";
+            _starPowerActivations.text = ColorizePrimary(Stats.StarPowerActivationCount);
+            string timeInStarPower = TimeSpan.FromSeconds(Stats.TimeInStarPower).ToString(@"m\:ss");
+            _timeInStarPower.text = ColorizePrimary(timeInStarPower);
             BuildOffsetHistogram();
-
-            // Set background icon
-            _instrumentIcon.sprite = Addressables
-                .LoadAssetAsync<Sprite>($"InstrumentIcons[{Player.Profile.CurrentInstrument.ToResourceName()}]")
-                .WaitForCompletion();
 
             // Set engine preset tag
             var enginePresetId = Player.EnginePreset.Id;

@@ -2223,10 +2223,10 @@ MonoBehaviour:
   _horizontalScrollRate: 30
   _verticalScrollRate: 15
   _guitarCardPrefab: {fileID: 5926515049655832625, guid: 67a865c532a041040af79b1d10b9e981, type: 3}
-  _drumsCardPrefab: {fileID: 8960343160157875094, guid: 2ab07d8b9969ef4418e8da74642a371f, type: 3}
-  _vocalsCardPrefab: {fileID: 8427776599031895052, guid: d037b5975b78e3a4481a5c9d3d7f8c35, type: 3}
-  _proKeysCardPrefab: {fileID: 7609862917790866568, guid: f5b2b04f2ac03bf4687dfc0f22f83212, type: 3}
-  _fiveLaneKeysCardPrefab: {fileID: 7609862917790866568, guid: 9edc458410d0341468ddff2aa7952f7d, type: 3}
+  _drumsCardPrefab: {fileID: -2071408240334197186, guid: ed90c7135db69294fb83c178b9639d1d, type: 3}
+  _vocalsCardPrefab: {fileID: 6891626793606566773, guid: c02db1ae7a4611443a13ca461d92364d, type: 3}
+  _proKeysCardPrefab: {fileID: 5381187122609696476, guid: ac3122fe6cc869f41851bebdf53f3dad, type: 3}
+  _fiveLaneKeysCardPrefab: {fileID: 5381187122609696476, guid: ac3122fe6cc869f41851bebdf53f3dad, type: 3}
 --- !u!114 &1731608351534815137
 MonoBehaviour:
   m_ObjectHideFlags: 0

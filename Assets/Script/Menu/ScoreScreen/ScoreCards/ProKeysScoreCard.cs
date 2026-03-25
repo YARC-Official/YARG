@@ -1,5 +1,6 @@
 ﻿using TMPro;
 using UnityEngine;
+using UnityEngine.AddressableAssets;
 using YARG.Core.Engine.Keys;
 
 namespace YARG.Menu.ScoreScreen
@@ -14,7 +15,12 @@ namespace YARG.Menu.ScoreScreen
         {
             base.SetCardContents();
 
-            _overhits.text = WrapWithColor(Stats.Overhits);
+            // Set background icon
+            _instrumentIcon.sprite = Addressables
+                .LoadAssetAsync<Sprite>($"InstrumentIcons[keys]")
+                .WaitForCompletion();
+
+            _overhits.text = ColorizePrimary(Stats.Overhits);
         }
     }
 }
