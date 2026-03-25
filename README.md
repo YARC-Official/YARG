@@ -25,7 +25,7 @@
     <img src="./Images/Socials/Instagram.png" height="38px" width="38px" alt="Instagram">
   </a>
   <a href="https://reddit.com/r/yarg">
-    <img src="./Images/Socials/Reddit.png" height="38px" width="38px" alt="Discord">
+    <img src="./Images/Socials/Reddit.png" height="38px" width="38px" alt="Reddit">
   </a>
   <a href="https://tiktok.com/@yarggame">
     <img src="./Images/Socials/TikTok.png" height="38px" width="38px" alt="TikTok">

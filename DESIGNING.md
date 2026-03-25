@@ -17,8 +17,8 @@ YARG's general artstyle and UI is meticulously planned on Figma before any devel
 
 **[Click here to view the YARG Design System Figma project](https://www.figma.com/design/v2uJdQ03SKjIL18slAA1wD/YARG---Design-System--Original-?node-id=1-165&t=mluFHT9q9FwGY8U0-1)**
 
-### Project Outline
-Here is the general outline for the YARG Design System Figma project. Before building any 
+### Figma Project Outline
+This Figma project is consistently updated with new designs for the in-game UI, websites, and other external applications we plan to build under the YARC umbrella.
 
 - Overall Branding
   - Contains YARG's main branding elements, including colors, fonts, and logos, as well as special icons for things like instruments.
