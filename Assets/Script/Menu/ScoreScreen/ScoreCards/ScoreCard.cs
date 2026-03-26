@@ -189,7 +189,7 @@ namespace YARG.Menu.ScoreScreen
             else
             {
                 _colorizer.SetCardColor(ScoreCardColorizer.ScoreCardColor.Blue);
-                ShowTag("Complete");
+                ShowTag(SettingsManager.Settings.NoFailMode.Value ? "Completed" : "Cleared");
             }
 
             _score.text = Stats.TotalScore.ToString("N0");
@@ -581,18 +581,6 @@ namespace YARG.Menu.ScoreScreen
         {
             _tagGameObject.SetActive(true);
             _tagText.text = tagText;
-        }
-
-        private void HideTag()
-        {
-            _tagGameObject.SetActive(false);
-        }
-
-        protected string WrapWithColor(object s)
-        {
-            return
-                $"<font-weight=700><color=#{ColorUtility.ToHtmlStringRGB(_colorizer.CurrentColor)}>" +
-                $"{s}</color></font-weight>";
         }
 
         protected string ColorizePrimary(object s)
