@@ -56,6 +56,8 @@ namespace YARG.Gameplay.HUD
                 // Otherwise, it must be a custom preset
                 _comboMeterFill.color = new Color(1.0f, 0.25f, 0.25f);
             }
+
+            _starPowerFill.fillAmount = 0f;
         }
 
         private void Update()
