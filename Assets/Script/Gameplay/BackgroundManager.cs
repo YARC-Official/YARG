@@ -49,11 +49,16 @@ namespace YARG.Gameplay
         [SerializeField]
         private RawImage _venueOutput;
 
+        [SerializeField]
+        private Image _venueFadeOverlay;
+
         private BackgroundType _type;
         private VenueSource _source;
 
         private bool _videoStarted = false;
         private bool _videoSeeking = false;
+
+        private const float FADE_DURATION = 0.5f;
 
         private float YARGROUND_OFFSET = 50f;
 
@@ -125,7 +130,7 @@ namespace YARG.Gameplay
 
                 _usingEditorVenue = true;
 
-                _venueOutput.gameObject.SetActive(true);
+                ShowVenue();
 
                 var editorRenderers = editorBg.GetComponentsInChildren<Renderer>(true);
 
@@ -190,7 +195,7 @@ namespace YARG.Gameplay
             var bundle = AssetBundle.LoadFromStream(result.Stream);
             AssetBundle shaderBundle = null;
 
-            _venueOutput.gameObject.SetActive(true);
+            ShowVenue();
             // KEEP THIS PATH LOWERCASE
             // Breaks things for other platforms, because Unity
             var bg = (GameObject) await bundle.LoadAssetAsync<GameObject>(
@@ -269,6 +274,25 @@ namespace YARG.Gameplay
                     Destroy(songTex);
                     return;
             }
+        }
+
+        private void ShowVenue()
+        {
+            _venueOutput.gameObject.SetActive(true);
+            FadeInVenue().Forget();
+        }
+
+        private async UniTaskVoid FadeInVenue()
+        {
+            // Wait for the venue to be rendered, otherwise we will see a gray screen
+            var token = this.GetCancellationTokenOnDestroy();
+            await UniTask
+                .WaitUntil(
+                    () => VenueCameraRenderer.IsRendered,
+                    cancellationToken: token
+                )
+                .SuppressCancellationThrow();
+            _venueFadeOverlay.CrossFadeAlpha(0f, FADE_DURATION, true);
         }
 
         private void LoadVideoBackground(BackgroundResult bg)
