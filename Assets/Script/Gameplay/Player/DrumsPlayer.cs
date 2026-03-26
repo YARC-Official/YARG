@@ -205,7 +205,7 @@ namespace YARG.Gameplay.Player
                 kickFretPrefab,
                 colors,
                 Player.ThemePreset,
-                VisualStyle.FiveLaneDrums
+                _fiveLaneMode ? VisualStyle.FiveLaneDrums : VisualStyle.FourLaneDrums
             );
 
             // Particle 0 is always kick fret
@@ -768,7 +768,7 @@ namespace YARG.Gameplay.Player
                     { (int)FiveLaneDrumPad.Green,  new(ApplyHandednessToPosition(4),                                        ApplyHandednessToFiveLaneColor(FiveLaneDrumsFret.Green) ) }
                 };
             }
-            else if (Player.Profile.SplitProTomsAndCymbals)
+            else if (Player.Profile.SplitProTomsAndCymbals && Player.Profile.CurrentInstrument is Instrument.ProDrums)
             {
                 LaneCount = 7;
                 _highwayOrdering = new()
