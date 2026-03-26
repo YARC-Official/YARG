@@ -64,9 +64,7 @@ namespace YARG.Menu.ScoreScreen
         [SerializeField]
         private VocalsScoreCard _vocalsCardPrefab;
         [SerializeField]
-        private ProKeysScoreCard _proKeysCardPrefab;
-        [SerializeField]
-        private ProKeysScoreCard _fiveLaneKeysCardPrefab;
+        private ProKeysScoreCard _keysCardPrefab;
 
         private bool _analyzingReplay;
 
@@ -218,16 +216,8 @@ namespace YARG.Menu.ScoreScreen
                     }
                     case GameMode.ProKeys:
                     {
-                        if (score.Player.Profile.CurrentInstrument is Instrument.ProKeys)
-                        {
-                            card = Instantiate(_proKeysCardPrefab, _cardContainer);
-                        }
-                        else
-                        {
-                            card = Instantiate(_fiveLaneKeysCardPrefab, _cardContainer);
-                        }
-                        ((ScoreCard<KeysStats>) card).Initialize(score.IsHighScore, score.Player,
-                            score.Stats as KeysStats, score.AverageMultiplier);
+                        card = Instantiate(_keysCardPrefab, _cardContainer);
+                        ((ScoreCard<KeysStats>) card).Initialize(score.IsHighScore, score.Player, score.Stats as KeysStats, score.AverageMultiplier);
                         break;
                     }
                 }
