@@ -6252,7 +6252,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6232041351873830570, guid: 81863a63e0d96cf459c263ee0ea6f98e, type: 3}
       propertyPath: m_Size
-      value: 0.52020204
+      value: 0.5137157
       objectReference: {fileID: 0}
     - target: {fileID: 6232041351873830570, guid: 81863a63e0d96cf459c263ee0ea6f98e, type: 3}
       propertyPath: m_Value
@@ -6344,7 +6344,7 @@ MonoBehaviour:
     m_Left: 0
     m_Right: 0
     m_Top: 25
-    m_Bottom: 25
+    m_Bottom: 35
   m_ChildAlignment: 0
   m_Spacing: 25
   m_ChildForceExpandWidth: 1
