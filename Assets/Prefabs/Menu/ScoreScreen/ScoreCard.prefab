@@ -2032,7 +2032,7 @@ GameObject:
   - component: {fileID: 2885240813551093157}
   - component: {fileID: 139459874872009117}
   m_Layer: 5
-  m_Name: ScoreCard 2
+  m_Name: ScoreCard
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
