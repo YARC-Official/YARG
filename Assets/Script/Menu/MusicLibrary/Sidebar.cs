@@ -299,7 +299,7 @@ namespace YARG.Menu.MusicLibrary
             // _sidebarContents.gameObject.SetActive(true);
 
             _cancellationToken = new();
-            _albumCover.LoadAlbumCover(songEntry, _cancellationToken.Token, 0.025f);
+            _albumCover.LoadAlbumCover(songEntry, _cancellationToken.Token, 0.05f);
             _albumCoverSmall.LoadAlbumCover(songEntry, _cancellationToken.Token);
         }
 
