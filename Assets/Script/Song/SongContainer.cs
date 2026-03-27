@@ -1,8 +1,9 @@
-﻿using Cysharp.Threading.Tasks;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using Cysharp.Text;
+using Cysharp.Threading.Tasks;
 using YARG.Core;
 using YARG.Core.Game;
 using YARG.Core.Logging;
@@ -504,7 +505,7 @@ namespace YARG.Song
             var bestStars = ScoreContainer.GetBestStarsForSong(profile);
             foreach (var song in _songs)
             {
-                if (!bestStars.TryGetValue(song.Hash, out var stars))
+                if (!bestStars.TryGetValue(song.Hash, out var stars) || stars <= StarAmount.None)
                 {
                     stars = StarAmount.None;
                 }
@@ -520,15 +521,19 @@ namespace YARG.Song
 
             foreach (var song in _songs)
             {
-                var key = StarAmount.NoPart;
-                if (song[instrument].IsActive() && !_runtimeStars.TryGetValue(song, out key))
+                StarAmount key;
+                if (!song[instrument].IsActive())
+                {
+                    key = StarAmount.NoPart;
+                }
+                else if (!_runtimeStars.TryGetValue(song, out key) || key <= StarAmount.None)
                 {
                     key = StarAmount.None;
                 }
 
                 if (!grouped.TryGetValue(key, out var list))
                 {
-                    list = new List<SongEntry>();
+                    list = new List<SongEntry>(); 
                     grouped[key] = list;
                 }
 

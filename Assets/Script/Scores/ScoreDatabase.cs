@@ -444,37 +444,30 @@ namespace YARG.Scores
             );
         }
 
-        public List<PlayerScoreWithChecksum> QueryPlayerBestStars(YargProfile profile, bool highestDifficultyOnly)
+        public List<PlayerScoreWithChecksum> QueryPlayerBestStars(YargProfile profile)
         {
-            string difficultyFilter = highestDifficultyOnly ? "" : " AND ps.Difficulty = ?";
-            string subDifficultyFilter = highestDifficultyOnly ? "" : " AND ps2.Difficulty = ps.Difficulty";
-
             string query = $@"SELECT ps.*, gr.SongChecksum FROM PlayerScores ps
                 INNER JOIN GameRecords gr
                     ON ps.GameRecordId = gr.Id
                 WHERE ps.PlayerId = ?
-                    AND ps.Instrument = ?{difficultyFilter}
+                    AND ps.Instrument = ?
+                    AND ps.IsReplay = 0
                     AND ps.Id = (
                         SELECT ps2.Id FROM PlayerScores ps2
                             INNER JOIN GameRecords gr2
                                 ON ps2.GameRecordId = gr2.Id
                         WHERE ps2.PlayerId = ps.PlayerId
-                            AND ps2.Instrument = ps.Instrument{subDifficultyFilter}
+                            AND ps2.Instrument = ps.Instrument
+                            AND ps.IsReplay = 0
                             AND gr2.SongChecksum = gr.SongChecksum
                         ORDER BY ps2.Stars DESC
                         LIMIT 1
                     )";
 
-            return highestDifficultyOnly
-                ? Query<PlayerScoreWithChecksum>(
-                    query,
-                    profile.Id,
-                    (int) profile.CurrentInstrument)
-                : Query<PlayerScoreWithChecksum>(
-                    query,
-                    profile.Id,
-                    (int) profile.CurrentInstrument,
-                    (int) profile.CurrentDifficulty);
+            return Query<PlayerScoreWithChecksum>(
+                query,
+                profile.Id,
+                (int) profile.CurrentInstrument);
         }
 
         #endregion

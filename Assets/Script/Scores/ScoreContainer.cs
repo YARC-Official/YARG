@@ -403,12 +403,12 @@ namespace YARG.Scores
         {
             try
             {
-                List<PlayerScoreWithChecksum> records = _db.QueryPlayerBestStars(profile, false);
+                List<PlayerScoreWithChecksum> records = _db.QueryPlayerBestStars(profile);
                 Dictionary<HashWrapper, StarAmount> result = new Dictionary<HashWrapper, StarAmount>();
 
                 foreach (PlayerScoreWithChecksum record in records)
                 {
-                    HashWrapper hash = HashWrapper.Create(record.SongChecksum);
+                    HashWrapper hash = HashWrapper.Create(record.SongChecksum); 
                     result[hash] = record.Stars;
                 }
 
