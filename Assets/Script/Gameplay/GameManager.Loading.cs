@@ -6,6 +6,7 @@ using UnityEngine;
 using YARG.Core;
 using YARG.Core.Audio;
 using YARG.Core.Chart;
+using YARG.Core.Engine;
 using YARG.Core.Logging;
 using YARG.Core.Replays;
 using YARG.Gameplay.Player;
@@ -194,7 +195,7 @@ namespace YARG.Gameplay
             // Spawn players
             CreatePlayers();
             YargLogger.LogFormatDebug("Calculating star cutoffs for {0} players", _players.Count);
-            EngineManager.StarScoreThresholds = EngineManager.GetStarScoreCutoffs(_players.Count);
+            EngineManager.StarScoreThresholds = EngineManager.GetStarScoreCutoffs(_players.ConvertAll(p => p.BaseEngine.StarScoreThresholds));
             YargLogger.LogFormatDebug("Star score thresholds: {0}", string.Join(", ", EngineManager.StarScoreThresholds));
 
 

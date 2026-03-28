@@ -641,7 +641,7 @@ namespace YARG.Gameplay
 
             // Get all of the individual player score entries
             var playerEntries = new List<PlayerScoreRecord>();
-
+            var starScoreCutoffsList = new List<int[]>();
             foreach (var player in _players)
             {
                 var profile = player.Player.Profile;
@@ -671,6 +671,8 @@ namespace YARG.Gameplay
 
                     Percent = player.BaseStats.Percent
                 });
+
+                starScoreCutoffsList.Add(player.StarScoreThresholds);
             }
 
             var validScoreCount = _players.Count(p => ScoreContainer.IsSoloScoreValid(SongSpeed, p.Player));
@@ -691,13 +693,11 @@ namespace YARG.Gameplay
                     return;
                 }
                 var results = ReplayAnalyzer.AnalyzeReplay(Chart, replayInfo, ReplayData);
-
                 foreach (var result in results)
                 {
                     humanBandScore += result.ResultStats.TotalScore + result.ResultStats.BandBonusScore;
                 }
-
-                var humanStarScoreCutoffs = EngineManager.GetStarScoreCutoffs(humanCount);
+                var humanStarScoreCutoffs = EngineManager.GetStarScoreCutoffs(starScoreCutoffsList);
                 // Determine where in the cutoffs humanBandScore is
                 // Iterating backwards is slightly faster assuming people are good at the game
                 for (int i = humanStarScoreCutoffs.Length - 1; i >= 0; i--)
@@ -707,6 +707,7 @@ namespace YARG.Gameplay
                         // This gives humanBandStars as an int, which is not exactly correct but should make no difference
                         // since it is converted into StarAmount by int anyway
                         humanBandStars = i + 1;
+                        YargLogger.LogFormatDebug("Star count: {0}", humanBandStars);
                         break;
                     }
                 }
