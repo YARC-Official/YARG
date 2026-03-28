@@ -76,16 +76,9 @@ namespace YARG.Menu.MusicLibrary
         [SerializeField]
         private GameObject _difficultyRingPrefab;
 
-        [SerializeField]
-        private Canvas _difficultiesCanvas;
-
         public void SetDifficultiesVisible(bool visible)
         {
-            if (_difficultiesDisplay != null)
-                _difficultiesDisplay.SetActive(visible);
-
-            if (_difficultiesCanvas != null)
-                _difficultiesCanvas.enabled = visible;
+            _difficultiesDisplay.SetActive(visible);
         }
 
         private readonly List<DifficultyRing> _difficultyRings = new();
@@ -191,7 +184,7 @@ namespace YARG.Menu.MusicLibrary
         {
             SetText(_sourceContainer, _source, categoryViewType.SourceCountText);
             SetText(_charterContainer, _charter, categoryViewType.CharterCountText);
-            SetText(_genreContainer, _genre, categoryViewType.GenreCountText);
+            SetText(_genreContainer, _genre, categoryViewType.GenreCountText + ",");
             SetText(_genreContainer, _subgenre, categoryViewType.SubgenreCountText);
         }
 
@@ -199,7 +192,7 @@ namespace YARG.Menu.MusicLibrary
         {
             SetText(_sourceContainer, _source, sortHeaderViewType.SourceCountText);
             SetText(_charterContainer, _charter, sortHeaderViewType.CharterCountText);
-            SetText(_genreContainer, _genre, sortHeaderViewType.GenreCountText);
+            SetText(_genreContainer, _genre, sortHeaderViewType.GenreCountText + ",");
             SetText(_genreContainer, _subgenre, sortHeaderViewType.SubgenreCountText);
         }
 
@@ -245,9 +238,6 @@ namespace YARG.Menu.MusicLibrary
             _genreContainer.SetActive(true); // Empty genres are rendered as "Unknown Genre", so this should always be active
             _genre.text = CurrentCulture.TextInfo.ToTitleCase(songEntry.Genre) + (songEntry.Subgenre == string.Empty ? "" : ",");
             _subgenre.text = songEntry.Subgenre;
-            // _source.text = SongSources.SourceToGameName(songEntry.Source);
-            // _charter.text = songEntry.Charter;
-            // _genre.text = System.Globalization.CultureInfo.CurrentCulture.TextInfo.ToTitleCase(songEntry.Genre);
 
             if (!string.IsNullOrEmpty(songEntry.YearSecondary))
             {

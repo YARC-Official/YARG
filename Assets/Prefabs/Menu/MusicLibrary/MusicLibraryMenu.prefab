@@ -4283,7 +4283,7 @@ MonoBehaviour:
   m_Padding:
     m_Left: 10
     m_Right: 10
-    m_Top: 3
+    m_Top: 0
     m_Bottom: 0
   m_ChildAlignment: 4
   m_Spacing: 10
@@ -5686,14 +5686,13 @@ MonoBehaviour:
   _favoriteButton: {fileID: 7245200975423601239}
   _favoriteButtonImage: {fileID: 2342133780687937856}
   _sidebarContents: {fileID: 5958352450756398038}
-  _difficultiesDisplay: {fileID: 1075743806509257609}
+  _difficultiesDisplay: {fileID: 5958352450117307646}
   _albumTitleContainer: {fileID: 5180982014109557589}
   _timeContainer: {fileID: 5958352449830330596}
   _sourceContainer: {fileID: 4755058591897142603}
   _charterContainer: {fileID: 5710763846721672194}
   _genreContainer: {fileID: 1844083253397971378}
   _difficultyRingPrefab: {fileID: 397774209812536635, guid: 53438a07c6e5ec5409d5bde8514761ca, type: 3}
-  _difficultiesCanvas: {fileID: 0}
 --- !u!114 &5958352451011471035
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7213,7 +7212,7 @@ MonoBehaviour:
   m_fontSizeMax: 20
   m_fontStyle: 0
   m_HorizontalAlignment: 2
-  m_VerticalAlignment: 8192
+  m_VerticalAlignment: 512
   m_textAlignment: 65535
   m_characterSpacing: 0
   m_characterHorizontalScale: 1
@@ -7244,7 +7243,7 @@ MonoBehaviour:
   m_VertexBufferAutoSizeReduction: 0
   m_useMaxVisibleDescender: 1
   m_pageToDisplay: 1
-  m_margin: {x: 0, y: 0, z: 0, w: 0}
+  m_margin: {x: 0, y: 1.4, z: 0, w: -1.4}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
   m_hasFontAssetChanged: 0
@@ -8740,7 +8739,7 @@ MonoBehaviour:
   m_fontSizeMax: 24
   m_fontStyle: 0
   m_HorizontalAlignment: 2
-  m_VerticalAlignment: 4096
+  m_VerticalAlignment: 512
   m_textAlignment: 65535
   m_characterSpacing: 0
   m_characterHorizontalScale: 1
