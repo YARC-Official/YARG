@@ -118,8 +118,6 @@ namespace YARG.Gameplay.Player
         public override float[] StarMultiplierThresholds { get; protected set; } =
             GuitarStarMultiplierThresholds;
 
-        public override int[] StarScoreThresholds { get; protected set; }
-
         public float WhammyFactor { get; private set; }
 
         private int _sustainCount;
@@ -159,7 +157,7 @@ namespace YARG.Gameplay.Player
             if (!Player.IsReplay)
             {
                 // Create the engine params from the engine preset
-                EngineParams = Player.EnginePreset.FiveFretGuitar.Create(StarMultiplierThresholds, isBass);
+                EngineParams = Player.EnginePreset.FiveFretGuitar.Create(StarMultiplierThresholds, SoloBonusStarMultiplierThresholds, isBass);
                 //EngineParams = EnginePreset.Precision.FiveFretGuitar.Create(StarMultiplierThresholds, isBass);
             }
             else
@@ -208,8 +206,6 @@ namespace YARG.Gameplay.Player
             base.FinishInitialization();
 
             MakeHighwayOrdering();
-
-            StarScoreThresholds = Engine.StarScoreThresholds;
 
             IndicatorStripes.Initialize(Player.EnginePreset.FiveFretGuitar);
 

@@ -111,8 +111,6 @@ public override bool ShouldUpdateInputsOnResume => true;
         public override float[] StarMultiplierThresholds { get; protected set; } =
             GuitarStarMultiplierThresholds;
 
-        public override int[] StarScoreThresholds { get; protected set; }
-
         public float WhammyFactor { get; private set; }
 
         private int _sustainCount;
@@ -149,7 +147,7 @@ public override bool ShouldUpdateInputsOnResume => true;
             if (!Player.IsReplay)
             {
                 // Create the engine params from the engine preset
-                EngineParams = Player.EnginePreset.ProKeys.Create(StarMultiplierThresholds, isBass);
+                EngineParams = Player.EnginePreset.ProKeys.Create(StarMultiplierThresholds, SoloBonusStarMultiplierThresholds, isBass);
                 //EngineParams = EnginePreset.Precision.FiveFretGuitar.Create(StarMultiplierThresholds, isBass);
             }
             else
@@ -196,8 +194,6 @@ public override bool ShouldUpdateInputsOnResume => true;
         protected override void FinishInitialization()
         {
             base.FinishInitialization();
-
-            StarScoreThresholds = Engine.StarScoreThresholds;
 
             IndicatorStripes.Initialize(Player.EnginePreset.FiveFretGuitar);
 

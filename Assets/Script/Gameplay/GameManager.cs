@@ -672,7 +672,7 @@ namespace YARG.Gameplay
                     Percent = player.BaseStats.Percent
                 });
 
-                starScoreCutoffsList.Add(player.StarScoreThresholds);
+                starScoreCutoffsList.Add(player.BaseEngine.StarScoreThresholds);
             }
 
             var validScoreCount = _players.Count(p => ScoreContainer.IsSoloScoreValid(SongSpeed, p.Player));

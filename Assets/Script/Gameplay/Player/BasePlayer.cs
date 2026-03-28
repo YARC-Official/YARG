@@ -62,8 +62,10 @@ namespace YARG.Gameplay.Player
         public BaseEngineParameters BaseParameters => BaseEngine.BaseParameters;
 
         public abstract float[] StarMultiplierThresholds { get; protected set; }
-        public abstract int[] StarScoreThresholds { get; protected set; }
 
+        protected readonly float[] SoloBonusStarMultiplierThresholds = {
+            0.05f, 0.1f, 0.2f, 0.35f, 0.65f, 0.95f
+        };
         public abstract bool ShouldUpdateInputsOnResume { get; }
 
         public HitWindowSettings HitWindow { get; protected set; }
