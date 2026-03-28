@@ -61,7 +61,7 @@ namespace YARG.Gameplay.Player
         public BaseStats BaseStats => BaseEngine.BaseStats;
         public BaseEngineParameters BaseParameters => BaseEngine.BaseParameters;
 
-        public abstract float[] StarMultiplierThresholds { get; protected set; }
+        protected abstract float[] StarMultiplierThresholds { get; set; }
 
         protected readonly float[] SoloBonusStarMultiplierThresholds = {
             0.05f, 0.1f, 0.2f, 0.35f, 0.65f, 0.95f

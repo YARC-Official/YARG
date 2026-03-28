@@ -102,7 +102,7 @@ namespace YARG.Gameplay.Player
 
         public override bool ShouldUpdateInputsOnResume => false;
 
-        public override float[] StarMultiplierThresholds { get; protected set; } =
+        protected override float[] StarMultiplierThresholds { get; set; } =
         {
             0.06f, 0.12f, 0.2f, 0.45f, 0.75f, 1.09f
         };

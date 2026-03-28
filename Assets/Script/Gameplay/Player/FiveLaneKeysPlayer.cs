@@ -108,7 +108,7 @@ public override bool ShouldUpdateInputsOnResume => true;
         [SerializeField]
         private Pool _rangeIndicatorPool;
 
-        public override float[] StarMultiplierThresholds { get; protected set; } =
+        protected override float[] StarMultiplierThresholds { get; set; } =
             GuitarStarMultiplierThresholds;
 
         public float WhammyFactor { get; private set; }

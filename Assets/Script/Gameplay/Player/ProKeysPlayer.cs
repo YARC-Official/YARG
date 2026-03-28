@@ -50,7 +50,7 @@ namespace YARG.Gameplay.Player
 
         private const int SHIFT_INDICATOR_MEASURES_BEFORE = 4;
 
-        public override float[] StarMultiplierThresholds { get; protected set; } =
+        protected override float[] StarMultiplierThresholds { get; set; } =
         {
             0.06f, 0.12f, 0.2f, 0.47f, 0.78f, 1.15f
         };
