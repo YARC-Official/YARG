@@ -426,6 +426,7 @@ namespace YARG.Menu.MusicLibrary
         {
             string key;
             bool enableButton;
+            Action<NavigationContext> holdHandler = null;
 
             if (_musicLibraryMenu.CurrentSelection is SortHeaderViewType sortHeader)
             {
@@ -450,6 +451,7 @@ namespace YARG.Menu.MusicLibrary
                     ? "Menu.MusicLibrary.AddHoldStartSet"
                     : "Menu.MusicLibrary.PlayHoldAddToSet";
                 enableButton = _musicLibraryMenu.CurrentSelection is SongViewType;
+                holdHandler = _ => _musicLibraryMenu.ExecuteGreenHoldAction();
             }
 
             _playButton.SetInfoFromSchemeEntry(new NavigationScheme.Entry(
@@ -457,7 +459,7 @@ namespace YARG.Menu.MusicLibrary
                 key,
                 _ => _musicLibraryMenu.ExecuteGreenTapAction(),
                 1f,
-                _ => _musicLibraryMenu.ExecuteGreenHoldAction()
+                holdHandler
             ));
             _playButton.SetDefaultButtonState(HelpBarButton.ButtonState.HOVER);
 
