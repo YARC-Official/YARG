@@ -118,16 +118,16 @@ namespace YARG.Gameplay
             var outputWidth = (int)(Screen.width * renderScale);
             var outputHeight = (int)(Screen.height * renderScale);
 
-            var descriptor = new RenderTextureDescriptor(outputWidth, outputHeight, RenderTextureFormat.DefaultHDR, 16, 0);
-            _venueTexture = new RenderTexture(descriptor);
-            _venueTexture.Create();
-            _venueOutput.texture = _venueTexture;
-
             if (_trailsTexture != null)
             {
                 _trailsTexture.Release();
                 _trailsTexture.DiscardContents();
             }
+
+            var descriptor = new RenderTextureDescriptor(outputWidth, outputHeight, RenderTextureFormat.DefaultHDR, 16, 0);
+            _venueTexture = new RenderTexture(descriptor);
+            _venueTexture.Create();
+            _venueOutput.texture = _venueTexture;
 
             descriptor.depthBufferBits = 0;
             _trailsTexture = new RenderTexture(descriptor);
@@ -142,7 +142,6 @@ namespace YARG.Gameplay
         {
             FPS = SettingsManager.Settings.VenueFpsCap.Value;
             _timeSinceLastRender = 0f;
-            _needsInitialization = true;
             RenderPipelineManager.beginCameraRendering += OnPreCameraRender;
             RenderPipelineManager.endCameraRendering += OnEndCameraRender;
             SceneManager.sceneUnloaded += OnSceneUnloaded;
