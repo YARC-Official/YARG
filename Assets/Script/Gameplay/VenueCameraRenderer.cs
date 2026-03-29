@@ -27,6 +27,7 @@ namespace YARG.Gameplay
         private static RenderTexture _venueTexture;
         private static RenderTexture _trailsTexture;
 
+        private static readonly int _IsVenueId = Shader.PropertyToID("_YargIsVenue");
         private static readonly int _trailsLengthId = Shader.PropertyToID("_YargTrailLength");
         private static readonly int _trailsTextureId = Shader.PropertyToID("_YargPrevFrame");
         private static readonly int _posterizeStepsId = Shader.PropertyToID("_YargPosterizeSteps");
@@ -260,6 +261,7 @@ namespace YARG.Gameplay
             }
             Shader.SetGlobalInteger(_posterizeStepsId, 0);
             Shader.SetGlobalFloat(_startTimeId, 0);
+            Shader.SetGlobalFloat(_IsVenueId, 0);
             Shader.SetGlobalInt(_scanlineSizeId, 0);
             Shader.SetGlobalFloat(_trailsLengthId, 0);
         }
@@ -270,6 +272,8 @@ namespace YARG.Gameplay
             {
                 return;
             }
+
+            Shader.SetGlobalFloat(_IsVenueId, 1);
 
             var stack = VolumeManager.instance.stack;
 

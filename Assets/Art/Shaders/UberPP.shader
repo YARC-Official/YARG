@@ -327,7 +327,7 @@ Shader "Artificial Artists/Universal Render Pipeline/AA_UberPost"
                 return half4(color, min(alpha, alpha_mask));
             }
 
-            if (_YargPosterizeSteps + _YargScanlineSize + _YargTrailLength > 0)
+            if (_YargIsVenue > 0)
             {
                 return YargVenuePP(color, uvDistorted, uv);
             }
