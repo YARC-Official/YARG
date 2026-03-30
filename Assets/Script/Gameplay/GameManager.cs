@@ -612,7 +612,9 @@ namespace YARG.Gameplay
                     IsHighScore = player.Score > player.LastHighScore,
                     Player = player.Player,
                     Stats = player.BaseStats,
-                    AverageMultiplier = (float) player.BaseStats.StarScore / player.BaseEngine.BaseScore
+                    AverageMultiplier = player.BaseEngine.BaseScore == 0 ?
+                        0 :
+                        (float) player.BaseStats.StarScore / player.BaseEngine.BaseScore
                 }).ToArray(),
                 BandScore = BandScore,
                 BandStars = (int) BandStars,
