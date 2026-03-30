@@ -38,31 +38,22 @@ namespace YARG.Menu.Navigation
 
             public string DisplayName => Localize.Key(LocalizationKey);
 
-            public Entry(MenuAction action, string localizationKey, Action handler, Action onHoldOffHandler = null, bool hide = false)
-            {
-                Action = action;
-                LocalizationKey = localizationKey;
-                _handler = _ => handler?.Invoke();
-                _onHoldHandler = null;
-                _onHoldOffHandler = _ => onHoldOffHandler?.Invoke();
-                HoldSeconds = 0f;
-                Hide = hide;
-            }
+            public Entry(MenuAction action,
+                string localizationKey,
+                Action handler,
+                Action onHoldOffHandler = null,
+                Action onHoldHandler = null,
+                float holdSeconds = 0,
+                bool hide = false) : this(action, localizationKey, _ => handler?.Invoke(), _ => onHoldHandler?.Invoke(), _ => onHoldOffHandler?.Invoke(), holdSeconds, hide)
+            { }
 
-            public Entry(MenuAction action, string localizationKey, Action<NavigationContext> handler, Action<NavigationContext> onHoldOffHandler = null, bool hide = false)
-            {
-                Action = action;
-                LocalizationKey = localizationKey;
-                _handler = handler;
-                _onHoldHandler = null;
-                _onHoldOffHandler = onHoldOffHandler;
-                HoldSeconds = 0f;
-                Hide = hide;
-            }
-
-            public Entry(MenuAction action, string localizationKey, Action<NavigationContext> handler,
-                float holdSeconds, Action<NavigationContext> onHoldHandler,
-                Action<NavigationContext> onHoldOffHandler = null, bool hide = false)
+            public Entry(MenuAction action,
+                string localizationKey,
+                Action<NavigationContext> handler,
+                Action<NavigationContext> onHoldOffHandler = null,
+                Action<NavigationContext> onHoldHandler = null,
+                float holdSeconds = 0,
+                bool hide = false)
             {
                 Action = action;
                 LocalizationKey = localizationKey;

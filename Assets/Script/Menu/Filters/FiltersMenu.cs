@@ -177,7 +177,7 @@ namespace YARG.Menu.Filters
                 new NavigationScheme.Entry(MenuAction.Green, "Menu.Common.Confirm", HandleConfirm),
                 new NavigationScheme.Entry(MenuAction.Red, "Menu.Common.Back", HandleBack, hide: true),
                 new NavigationScheme.Entry(MenuAction.Yellow, "Menu.Filters.ResetAllFilters", _ => { },
-                    ResetAllFiltersHoldSeconds, _ => ResetAllFilters()),
+                    holdSeconds: ResetAllFiltersHoldSeconds, onHoldHandler: _ => ResetAllFilters()),
                 NavigationScheme.Entry.NavigateUp,
                 NavigationScheme.Entry.NavigateDown
             }, true));
@@ -282,7 +282,7 @@ namespace YARG.Menu.Filters
                 if (_leftScrollRect != null)
                     _leftScrollRect.verticalNormalizedPosition = 1f;
             }
-            
+
             FocusLeft();
         }
 
@@ -431,7 +431,7 @@ namespace YARG.Menu.Filters
 
             if (_lastLeftIndex != null)
             {
-                _leftNavGroup.SelectAt(_lastLeftIndex, SelectionOrigin.Navigation);   
+                _leftNavGroup.SelectAt(_lastLeftIndex, SelectionOrigin.Navigation);
             }
             else
             {
@@ -501,7 +501,7 @@ namespace YARG.Menu.Filters
                 new(MenuAction.Green, state.GreenKey, HandleConfirm),
                 new(MenuAction.Red, "Menu.Common.Back", HandleBack, hide: !state.ShowRed),
                 new(MenuAction.Yellow, "Menu.Filters.ResetAllFilters", _ => { },
-                    ResetAllFiltersHoldSeconds, _ => ResetAllFilters()),
+                    holdSeconds: ResetAllFiltersHoldSeconds, onHoldHandler: _ => ResetAllFilters()),
                 NavigationScheme.Entry.NavigateUp,
                 NavigationScheme.Entry.NavigateDown
             };
@@ -1080,7 +1080,7 @@ namespace YARG.Menu.Filters
 
             return dict;
         }
-        
+
         // Toggle which length buckets to use by switching this flag.
         // - true  -> Legacy labels (Short/Medium/Long/Epic)
         // - false -> Range labels (0-2, 2-5, 5-10, 10-15, 15-20, 20+)

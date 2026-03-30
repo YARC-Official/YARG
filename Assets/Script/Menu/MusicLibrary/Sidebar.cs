@@ -435,6 +435,7 @@ namespace YARG.Menu.MusicLibrary
                     key = sortHeader.Collapsed
                         ? "Menu.MusicLibrary.ExpandHeaderHoldStartSet"
                         : "Menu.MusicLibrary.CollapseHeaderHoldStartSet";
+                    holdHandler = _ => _musicLibraryMenu.ExecuteGreenHoldAction();
                 }
                 else
                 {
@@ -458,8 +459,8 @@ namespace YARG.Menu.MusicLibrary
                 MenuAction.Green,
                 key,
                 _ => _musicLibraryMenu.ExecuteGreenTapAction(),
-                1f,
-                holdHandler
+                holdSeconds: 1f,
+                onHoldHandler: holdHandler
             ));
             _playButton.SetDefaultButtonState(HelpBarButton.ButtonState.HOVER);
 

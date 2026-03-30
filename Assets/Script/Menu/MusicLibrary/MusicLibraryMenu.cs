@@ -366,8 +366,8 @@ namespace YARG.Menu.MusicLibrary
                             "Menu.MusicLibrary.AddHoldStartSet" :
                             "Menu.MusicLibrary.PlayHoldAddToSet",
                         OnGreenTap,
-                        GREEN_HOLD_SECONDS,
-                        OnGreenHold,
+                        holdSeconds: GREEN_HOLD_SECONDS,
+                        onHoldHandler: OnGreenHold,
                         hide: true
                     ),
                 new NavigationScheme.Entry(MenuAction.Red, "Menu.Common.Back", Back, hide: true),
@@ -592,7 +592,7 @@ namespace YARG.Menu.MusicLibrary
                     if (!allowdupes && song.IsDuplicate) continue;
 
                     StarAmount? starAmount;
-                    
+
                     if (includeSongs)
                     {
                         var songView = new SongViewType(this, song);
@@ -803,7 +803,7 @@ namespace YARG.Menu.MusicLibrary
             }
 
             RequestViewListUpdate();
-            
+
             if (shouldApplyFilters)
             {
                 EnsureValidSelectionAfterFilter();
@@ -1168,7 +1168,7 @@ namespace YARG.Menu.MusicLibrary
             var offset = SelectedIndex - _sectionHeaderIndices[headerIndex];
             return (headerIndex, offset);
         }
-		
+
         public void RefreshAndReselect(bool selectTopOfList = false, bool preserveSelectedIndex = false)
         {
             int preservedIndex = SelectedIndex;
