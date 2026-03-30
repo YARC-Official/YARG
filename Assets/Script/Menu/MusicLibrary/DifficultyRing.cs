@@ -168,7 +168,7 @@ namespace YARG.Menu.MusicLibrary
                 return;
             }
 
-            if (_songSearchingField is not null && _songSearchingField.HasInstrumentFilter(_instrument))
+            if (_songSearchingField != null && _songSearchingField.HasInstrumentFilter(_instrument))
             {
                 _instrumentIcon.color = _partSelectedColor.WithAlpha(ACTIVE_OPACITY);
                 return;
@@ -178,7 +178,7 @@ namespace YARG.Menu.MusicLibrary
 
         public void OnPointerClick(PointerEventData eventData)
         {
-            if (_songSearchingField is null)
+            if (_songSearchingField == null)
             {
                 return;
             }
