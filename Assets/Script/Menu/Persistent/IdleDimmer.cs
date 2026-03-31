@@ -10,7 +10,7 @@ namespace YARG.Menu.Persistent
 {
     public class IdleDimmer : MonoSingleton<IdleDimmer>
     {
-        private const float IDLE_DELAY_SECONDS = 120f;
+        private const float IDLE_DELAY_SECONDS = 60f * 3; // 5 minutes
         private const float DIM_ALPHA = 0.9f; //90% opaque, 10% transparent
         private const float FADE_DURATION_SECONDS = 0.5f;
 
