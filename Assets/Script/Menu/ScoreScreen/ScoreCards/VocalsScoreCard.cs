@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.AddressableAssets;
 using YARG.Core.Engine.Vocals;
+using YARG.Helpers.Extensions;
 
 namespace YARG.Menu.ScoreScreen
 {
@@ -12,7 +13,7 @@ namespace YARG.Menu.ScoreScreen
 
             // Set background icon
             _instrumentIcon.sprite = Addressables
-                .LoadAssetAsync<Sprite>($"InstrumentIcons[vocals]")
+                .LoadAssetAsync<Sprite>($"InstrumentIcons[{Player.Profile.CurrentInstrument.ToResourceName()}]")
                 .WaitForCompletion();
         }
     }
