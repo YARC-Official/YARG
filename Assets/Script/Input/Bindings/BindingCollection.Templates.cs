@@ -17,10 +17,12 @@ namespace YARG.Input
             new ButtonBinding("Menu.Blue",   (int) MenuAction.Blue),
             new ButtonBinding("Menu.Orange", (int) MenuAction.Orange),
 
-            new ButtonBinding("Menu.Up",    (int) MenuAction.Up),
-            new ButtonBinding("Menu.Down",  (int) MenuAction.Down),
-            new ButtonBinding("Menu.Left",  (int) MenuAction.Left),
-            new ButtonBinding("Menu.Right", (int) MenuAction.Right),
+            new ButtonBinding("Menu.Up",     (int) MenuAction.Up),
+            new ButtonBinding("Menu.Down",   (int) MenuAction.Down),
+            new ButtonBinding("Menu.Left",   (int) MenuAction.Left),
+            new ButtonBinding("Menu.Right",  (int) MenuAction.Right),
+
+            new ButtonBinding("Menu.Search", (int) MenuAction.Search),
         };
 
         public static BindingCollection CreateFiveFretGuitarBindings() => new(GameMode.FiveFretGuitar)

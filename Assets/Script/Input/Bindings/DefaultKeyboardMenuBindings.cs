@@ -19,6 +19,7 @@ namespace YARG.Input
             (MenuAction.Orange, Key.Digit5),
             (MenuAction.Start,  Key.Space),
             (MenuAction.Select, Key.Backspace),
+            (MenuAction.Search, Key.Tab),
             (MenuAction.Up,     Key.UpArrow),
             (MenuAction.Down,   Key.DownArrow),
             (MenuAction.Left,   Key.LeftArrow),

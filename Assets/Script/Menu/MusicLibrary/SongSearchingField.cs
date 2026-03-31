@@ -8,7 +8,6 @@ using UnityEngine.InputSystem;
 using YARG.Core;
 using YARG.Core.Extensions;
 using YARG.Helpers.Extensions;
-using YARG.Player;
 using YARG.Song;
 
 namespace YARG.Menu.MusicLibrary
@@ -175,17 +174,9 @@ namespace YARG.Menu.MusicLibrary
 
         private void Update()
         {
-            bool wasEscapePressed = Keyboard.current.escapeKey.wasPressedThisFrame;
-            bool wasTabPressed =  Keyboard.current.tabKey.wasPressedThisFrame;
-            bool hasConnectedKeyboardProfile = !PlayerContainer.HasConnectedKeyboardProfile();
-
-            if (wasEscapePressed)
+            if (Keyboard.current.escapeKey.wasPressedThisFrame)
             {
                 ClearFilterQueries();
-            }
-            else if (wasTabPressed && !hasConnectedKeyboardProfile)
-            {
-                Focus();
             }
         }
 
