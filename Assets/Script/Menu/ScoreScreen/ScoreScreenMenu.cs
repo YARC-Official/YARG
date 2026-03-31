@@ -67,9 +67,9 @@ namespace YARG.Menu.ScoreScreen
         private ProKeysScoreCard _keysCardPrefab;
 
         private bool _analyzingReplay;
-
         private bool _restartingSong;
         private bool _showAdvancedStats;
+        private CancellationTokenSource _cancellationToken;
 
         private readonly List<IScoreCard<BaseStats>> _scoreCards = new();
 
@@ -146,8 +146,8 @@ namespace YARG.Menu.ScoreScreen
 
             _sourceIcon.sprite = SongSources.SourceToIcon(song.Source);
 
-            var cancellationToken = new CancellationTokenSource();
-            _albumCover.LoadAlbumCover(song, cancellationToken.Token, 0.2f);
+            _cancellationToken = new CancellationTokenSource();
+            _albumCover.LoadAlbumCover(song, _cancellationToken.Token, 0.2f);
 
             //set restarting state
             _restartingSong = false;
@@ -166,6 +166,8 @@ namespace YARG.Menu.ScoreScreen
                 GlobalAudioHandler.StopSoundEffect(SfxSample.Chatter, 1.0);
             }
 
+            _cancellationToken?.Cancel();
+            _cancellationToken?.Dispose();
             Navigator.Instance.PopScheme();
         }
 
