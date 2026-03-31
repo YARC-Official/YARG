@@ -213,23 +213,28 @@ namespace YARG.Menu.ScoreScreen
             var enginePresetId = Player.EnginePreset.Id;
             if (enginePresetId == EnginePreset.Default.Id)
             {
-                _enginePresetTag.SetValues("Default Engine", ColoredPillElement.ColoredPillPreset.Default);
+                _enginePresetTag.SetValues(Localize.Key("Settings.PresetSetting.EnginePreset.DefaultEngines.DefaultEngine"),
+                    ColoredPillElement.ColoredPillPreset.Default);
             }
             else if (enginePresetId == EnginePreset.Casual.Id)
             {
-                _enginePresetTag.SetValues("Casual Engine", ColoredPillElement.ColoredPillPreset.CasualEngine);
+                _enginePresetTag.SetValues(Localize.Key("Settings.PresetSetting.EnginePreset.DefaultEngines.CasualEngine"),
+                    ColoredPillElement.ColoredPillPreset.CasualEngine);
             }
             else if (enginePresetId == EnginePreset.Precision.Id)
             {
-                _enginePresetTag.SetValues("Precision Engine", ColoredPillElement.ColoredPillPreset.PrecisionEngine);
+                _enginePresetTag.SetValues(Localize.Key("Settings.PresetSetting.EnginePreset.DefaultEngines.PrecisionEngine"),
+                    ColoredPillElement.ColoredPillPreset.PrecisionEngine);
             }
             else if (enginePresetId == EnginePreset.SoloTaps.Id)
             {
-                _enginePresetTag.SetValues("Solo Taps Engine", ColoredPillElement.ColoredPillPreset.Default);
+                _enginePresetTag.SetValues(Localize.Key("Settings.PresetSetting.EnginePreset.DefaultEngines.SoloTapsEngine"),
+                    ColoredPillElement.ColoredPillPreset.Default);
             }
             else
             {
-                _enginePresetTag.SetValues("Custom Engine Preset", ColoredPillElement.ColoredPillPreset.CustomEngine);
+                _enginePresetTag.SetValues(Localize.Key("Settings.PresetSetting.EnginePreset.DefaultEngines.CustomEnginePreset"),
+                    ColoredPillElement.ColoredPillPreset.CustomEngine);
             }
 
             // Set engine preset icons

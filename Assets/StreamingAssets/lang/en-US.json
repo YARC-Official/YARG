@@ -1976,6 +1976,13 @@
                         "ProKeys": "Keys"
                     }
                 },
+                "DefaultEngines": {
+                    "DefaultEngine": "Default Engine",
+                    "CasualEngine": "Casual Engine",
+                    "PrecisionEngine": "Precision Engine",
+                    "SoloTapsEngine": "Solo Taps Engine",
+                    "CustomEnginePreset": "Custom Engine Preset"
+                },
                 "AntiGhosting": {
                     "Name": "Anti-Ghosting",
                     "Description": "Upon ghosting (or fretting a note that is not present) the player will drop their combo (guitar only)."
