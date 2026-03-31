@@ -1,4 +1,3 @@
-using DG.Tweening;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
@@ -10,20 +9,19 @@ namespace YARG.Menu.Persistent
 {
     public class IdleDimmer : MonoSingleton<IdleDimmer>
     {
-        private const float IDLE_DELAY_SECONDS = 60f * 3; // 5 minutes
-        private const float DIM_ALPHA = 0.9f; //90% opaque, 10% transparent
-        private const float FADE_DURATION_SECONDS = 0.5f;
+        private const float IDLE_DELAY_SECONDS = 60f * 3; // 3 minutes
+        private const float DIM_ALPHA = 0.8f; // 80% opaque
+        private const float RAMP_DURATION_SECONDS = 20f;
 
         [SerializeField]
         private Image _dimmer;
 
         private float _lastActivityTime;
-        private Tween _fadeTween;
 
         protected override void SingletonAwake()
         {
             ResetTimer();
-            SetDimmed(false);
+            SetDimmed(0f);
         }
 
         private void OnEnable()
@@ -34,15 +32,13 @@ namespace YARG.Menu.Persistent
         private void OnDisable()
         {
             InputManager.MenuInput -= OnMenuInput;
-            _fadeTween?.Kill();
-            _fadeTween = null;
         }
 
         private void Update()
         {
             var currentScene = GlobalVariables.Instance.CurrentScene;
             bool isGameplay = currentScene is SceneIndex.Gameplay;
-            bool isNotFocused = Application.isFocused;
+            bool isNotFocused = !Application.isFocused;
             bool didReceiveInput = CheckKeyboardMouse();
 
             if (didReceiveInput || isGameplay || isNotFocused)
@@ -51,8 +47,8 @@ namespace YARG.Menu.Persistent
             }
 
             var idleDuration = Time.unscaledTime - _lastActivityTime;
-            var shouldDim = idleDuration >= IDLE_DELAY_SECONDS;
-            SetDimmed(shouldDim);
+            var rampProgress = Mathf.Clamp01((idleDuration - IDLE_DELAY_SECONDS) / RAMP_DURATION_SECONDS);
+            SetDimmed(rampProgress);
         }
 
         private void OnMenuInput(YargPlayer player, ref GameInput input)
@@ -89,13 +85,12 @@ namespace YARG.Menu.Persistent
             _lastActivityTime = Time.unscaledTime;
         }
 
-        private void SetDimmed(bool dimmed)
+        private void SetDimmed(float rampProgress)
         {
-            _fadeTween?.Kill();
-            _fadeTween = _dimmer
-                .DOFade(dimmed ? DIM_ALPHA : 0f, dimmed ? FADE_DURATION_SECONDS : 0f)
-                .SetEase(Ease.Linear)
-                .SetUpdate(true);
+            var targetAlpha = rampProgress * DIM_ALPHA;
+            var color = _dimmer.color;
+            color.a = targetAlpha;
+            _dimmer.color = color;
         }
     }
 }

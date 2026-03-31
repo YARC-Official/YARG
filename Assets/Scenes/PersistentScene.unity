@@ -705,7 +705,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cb571d2edd9f48aa92ce4ec54703652e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::YARG.Menu.Persistent.MenuIdleDimmer
-  _overlay: {fileID: 2010981932}
+  _dimmer: {fileID: 2010981934}
 --- !u!225 &415396142
 CanvasGroup:
   m_ObjectHideFlags: 0
@@ -5227,7 +5227,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 0, g: 0, b: 0, a: 0.92941177}
+  m_Color: {r: 0, g: 0, b: 0, a: 0}
   m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
