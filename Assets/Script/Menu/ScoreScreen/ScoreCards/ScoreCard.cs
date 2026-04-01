@@ -139,7 +139,7 @@ namespace YARG.Menu.ScoreScreen
             _instrument.text = Player.Profile.CurrentInstrument.ToLocalizedName();
             _difficulty.text = Player.Profile.CurrentDifficulty.ToDisplayName();
 
-            if (_difficultyRing is not null)
+            if (_difficultyRing != null)
             {
                 _difficultyRing.SetInfo(Player.Profile.CurrentInstrument.ToResourceName(),
                     Player.Profile.CurrentInstrument,
