@@ -135,6 +135,8 @@ namespace YARG.Gameplay
 
         public void SetPracticeSection(Section start, Section end)
         {
+            bool includesLastSection = _chart.Sections[^1] == end;
+
             if (start.Time > end.Time)
             {
                 (start, end) = (end, start);
@@ -146,7 +148,7 @@ namespace YARG.Gameplay
             _sectionEndTick = end.TickEnd;
             _sectionEndTime = end.TimeEnd;
 
-            if (end.Tick == _lastTick)
+            if (end.Tick == _lastTick || includesLastSection)
             {
                 _sectionEndTick += 1;
                 _sectionEndTime += 0.01;
@@ -257,7 +259,7 @@ namespace YARG.Gameplay
         {
             return _chart.Sections.Where(s => s.Tick >= start && s.TickEnd <= end).ToArray();
         }
-        
+
         private Section FindSectionAtTime(double time)
         {
             var sections = _chart.Sections;

@@ -7,6 +7,8 @@ using YARG.Core.Audio;
 using YARG.Core.Chart;
 using YARG.Core.Engine.Keys;
 using YARG.Core.Engine.Keys.Engines;
+using YARG.Core.Engine;
+using YARG.Core.Extensions;
 using YARG.Core.Input;
 using YARG.Core.Logging;
 using YARG.Core.Replays;
@@ -43,10 +45,9 @@ namespace YARG.Assets.Script.Gameplay.Player
             return (LaneCount - 1) / 2;
         }
 
-        public int LaneCount { get; private set; }
         public bool UsingOpenLane { get; private set; }
 
-        private FiveFretGuitarFret GetFretIndex(FiveLaneKeysAction action)
+        private static FiveFretGuitarFret GetFretIndex(FiveLaneKeysAction action)
         {
             return action switch
             {
@@ -126,6 +127,7 @@ public override bool ShouldUpdateInputsOnResume => true;
             {
                 _stem = SongStem.Rhythm;
             }
+
             base.Initialize(index, player, chart, trackView, mixer, currentHighScore);
         }
 
@@ -156,6 +158,12 @@ public override bool ShouldUpdateInputsOnResume => true;
                 EngineParams = (KeysEngineParameters) Player.EngineParameterOverride;
             }
 
+            if (EngineContainer != null)
+            {
+                GameManager.EngineManager.Unregister(EngineContainer);
+                EngineContainer = null;
+            }
+
             var engine = new YargFiveLaneKeysEngine(NoteTrack, SyncTrack, EngineParams, Player.Profile.IsBot);
             EngineContainer = GameManager.EngineManager.Register(engine, NoteTrack.Instrument, Chart, Player.RockMeterPreset);
 
@@ -172,6 +180,9 @@ public override bool ShouldUpdateInputsOnResume => true;
 
             engine.OnSoloStart += OnSoloStart;
             engine.OnSoloEnd += OnSoloEnd;
+
+            engine.OnCodaStart += OnCodaStart;
+            engine.OnCodaEnd += OnCodaEnd;
 
             engine.OnStarPowerPhraseHit += OnStarPowerPhraseHit;
             engine.OnStarPowerPhraseMissed += OnStarPowerPhraseMissed;
@@ -208,7 +219,9 @@ public override bool ShouldUpdateInputsOnResume => true;
                 InitializeRangeShift();
             }
 
-            LaneElement.DefineLaneScale(Player.Profile.CurrentInstrument, 4);
+            BRELanes = new LaneElement[LaneCount];
+
+            LaneElement.DefineLaneScale(Player.Profile.CurrentInstrument, LaneCount);
 
             GameManager.BeatEventHandler.Visual.Subscribe(_fretArray.PulseFretColors, BeatEventType.StrongBeat);
         }
@@ -404,6 +417,27 @@ public override bool ShouldUpdateInputsOnResume => true;
             );
         }
 
+        protected override void InitializeSpawnedLane(LaneElement lane, int laneIndex)
+        {
+            if (UsingOpenLane)
+            {
+                if (laneIndex == 0)
+                {
+                    laneIndex = 7;
+                }
+            }
+            else
+            {
+                laneIndex++;
+            }
+
+            lane.SetAppearance(Player.Profile.CurrentInstrument,
+                laneIndex,
+                GetLanePositionOrCentered(laneIndex),
+                LaneCount,
+                Player.ColorProfile.FiveFretGuitar.GetNoteColor(laneIndex).ToUnityColor());
+        }
+
         protected override void ModifyLaneFromNote(LaneElement lane, GuitarNote note)
         {
             if (note.Fret == (int) FiveFretGuitarFret.Open && !UsingOpenLane)
@@ -415,6 +449,40 @@ public override bool ShouldUpdateInputsOnResume => true;
                 lane.MultiplyScale(0.85f);
             }
         }
+
+        protected override void RescaleLanesForBRE()
+        {
+            LaneElement.DefineLaneScale(Player.Profile.CurrentInstrument, LaneCount, true);
+        }
+
+        private void OnLaneHit(int fret)
+        {
+            // Adjustment for open lane
+            if (fret == 5)
+            {
+                fret++;
+            }
+
+            var index = GetFretIndex((FiveLaneKeysAction)fret).Convert();
+            _fretArray.PlayCodaHitAnimation(index);
+        }
+
+        protected override void OnCodaStart(CodaSection coda)
+        {
+            base.OnCodaStart(coda);
+            CurrentCoda.OnLaneHit += OnLaneHit;
+
+            _fretArray.SetBreMode(true);
+        }
+
+        protected override void OnCodaEnd(CodaSection coda)
+        {
+            base.OnCodaEnd(coda);
+            CurrentCoda.OnLaneHit -= OnLaneHit;
+
+            _fretArray.SetBreMode(false);
+        }
+
 
         protected override void OnNoteHit(int index, GuitarNote note)
         {
@@ -746,6 +814,31 @@ public override bool ShouldUpdateInputsOnResume => true;
                 default:
                     throw new ArgumentOutOfRangeException("Unrecognized OpenLaneDisplayType");
             }
+        }
+
+        protected override Dictionary<int, int> GetLaneIndexes()
+        {
+            if (UsingOpenLane)
+            {
+                return new Dictionary<int, int>
+                {
+                    { (int) FiveLaneKeysAction.GreenKey, 1 },
+                    { (int) FiveLaneKeysAction.RedKey, 2 },
+                    { (int) FiveLaneKeysAction.YellowKey, 3 },
+                    { (int) FiveLaneKeysAction.BlueKey, 4 },
+                    { (int) FiveLaneKeysAction.OrangeKey, 5 },
+                    { (int) FiveLaneKeysAction.OpenNote, 0 }
+                };
+            }
+
+            return new Dictionary<int, int>
+            {
+                { (int) FiveLaneKeysAction.GreenKey, 0 },
+                { (int) FiveLaneKeysAction.RedKey, 1 },
+                { (int) FiveLaneKeysAction.YellowKey, 2 },
+                { (int) FiveLaneKeysAction.BlueKey, 3 },
+                { (int) FiveLaneKeysAction.OrangeKey, 4 }
+            };
         }
     }
 }

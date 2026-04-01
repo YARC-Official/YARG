@@ -6,6 +6,7 @@ using UnityEngine;
 using YARG.Core;
 using YARG.Core.Audio;
 using YARG.Core.Chart;
+using YARG.Core.Engine;
 using YARG.Core.Engine.Keys;
 using YARG.Core.Engine.Keys.Engines;
 using YARG.Core.Input;
@@ -87,9 +88,12 @@ namespace YARG.Gameplay.Player
         private double _offsetStartTime;
         private double _offsetEndTime;
 
-        private float _previousOffset;
-        private float _currentOffset;
-        private float _targetOffset;
+        private float                _previousOffset;
+        private float                _currentOffset;
+        private float                _targetOffset;
+        private int                  _currentIndex;
+
+        private List<LaneParameters> _breLaneParameters;
 
         private Tween _leftOutOfRangeTween => DOTween.Sequence(_leftOutOfRangeFlasher.material)
             .Append(_leftOutOfRangeFlasher.material.DOFade(1.0f, 0.05f))
@@ -120,6 +124,12 @@ namespace YARG.Gameplay.Player
                 EngineParams = (KeysEngineParameters) Player.EngineParameterOverride;
             }
 
+            if (EngineContainer != null)
+            {
+                GameManager.EngineManager.Unregister(EngineContainer);
+                EngineContainer = null;
+            }
+
             var engine = new YargProKeysEngine(NoteTrack, SyncTrack, EngineParams, Player.Profile.IsBot);
             EngineContainer = GameManager.EngineManager.Register(engine, NoteTrack.Instrument, Chart, Player.RockMeterPreset);
 
@@ -136,6 +146,9 @@ namespace YARG.Gameplay.Player
 
             engine.OnSoloStart += OnSoloStart;
             engine.OnSoloEnd += OnSoloEnd;
+
+            engine.OnCodaStart += OnCodaStart;
+            engine.OnCodaEnd += OnCodaEnd;
 
             engine.OnStarPowerPhraseHit += OnStarPowerPhraseHit;
             engine.OnStarPowerStatus += OnStarPowerStatus;
@@ -334,6 +347,8 @@ namespace YARG.Gameplay.Player
 
             // We need to get the offset relative to the 0th key (as that's the base)
             _targetOffset = _keysArray.GetKeyX(0) - _keysArray.GetKeyX(shift.Key);
+
+            _currentIndex = shift.Key;
         }
 
         public float GetNoteX(int index)
@@ -346,6 +361,23 @@ namespace YARG.Gameplay.Player
             base.UpdateVisuals(visualTime);
             UpdatePhrases(visualTime);
             UpdateRange(visualTime);
+            UpdateCodaVisuals(visualTime);
+        }
+
+        private void UpdateCodaVisuals(double visualTime)
+        {
+            if (Engine.IsCodaActive)
+            {
+                for (int i = 0; i < CurrentCoda.Lanes; i++)
+                {
+                    if (i >= BRELanes.Length)
+                    {
+                        continue;
+                    }
+
+                    BRELanes[i].SetEmissionColor(CurrentCoda.GetNormalizedTimeSinceLastHit(i, visualTime));
+                }
+            }
         }
 
         protected override void ResetVisuals()
@@ -472,6 +504,17 @@ namespace YARG.Gameplay.Player
             lane.OffsetXPosition(_currentOffset);
         }
 
+        protected override void InitializeSpawnedLane(LaneElement lane, int index)
+        {
+            int noteIndex = index % 12;
+            int octaveIndex = index / 12;
+
+            int group = octaveIndex * 2 + (ProKeysUtilities.IsLowerHalfKey(noteIndex) ? 0 : 1);
+
+            lane.SetAppearance(Player.Profile.CurrentInstrument, index, _keysArray.GetKeyX(index), Player.ColorProfile.ProKeys.GetOverlayColor(group).ToUnityColor());
+            lane.OffsetXPosition(_currentOffset);
+        }
+
         protected override void ModifyLaneFromNote(LaneElement lane, ProKeysNote note)
         {
             if (note.IsTrill && note.NextNote != null)
@@ -505,6 +548,98 @@ namespace YARG.Gameplay.Player
             {
                 // White notes are slightly wider than the lane
                 lane.MultiplyScale(1.25f);
+            }
+        }
+
+        protected override void RescaleLanesForBRE()
+        {
+            // Unused because we have to change the scale for each lane individually, so we handle it in StartBRE directly
+        }
+
+        private void OnLaneHit(int key)
+        {
+            _keysArray.PlayHitAnimation(key);
+        }
+
+        protected override Dictionary<int,int> GetLaneIndexes()
+        {
+            var laneIndexes = new Dictionary<int, int>();
+
+            var colorIndex = 1;
+            var laneIndex = 0;
+            var topKey = ColorStartKeys[colorIndex] - 1;
+            var totalLanes = _breLaneParameters.Count;
+            for (int i = 0; i < TOTAL_KEY_COUNT; i++)
+            {
+                // Distribute out of range keys between the visible lanes
+                if (i < _currentIndex || i > _breLaneParameters[^1].LeftKey + _breLaneParameters[^1].Width)
+                {
+                    laneIndexes[i] = i % totalLanes;
+                    continue;
+                }
+
+                // Increment indexes when we cross a color boundary
+                if (i == ColorStartKeys[colorIndex])
+                {
+                    colorIndex++;
+                    laneIndex++;
+                    topKey = ColorStartKeys[colorIndex] - 1;
+                }
+
+                // Assign in range keys to their corresponding lane
+                if (i <= topKey)
+                {
+                    laneIndexes[i] = laneIndex;
+                }
+            }
+
+            return laneIndexes;
+        }
+
+        protected override void OnCodaStart(CodaSection coda)
+        {
+            base.OnCodaStart(coda);
+            CurrentCoda.OnLaneHit += OnLaneHit;
+            CurrentCoda.SetLaneIndexes(GetLaneIndexes());
+        }
+
+        protected override void OnCodaEnd(CodaSection coda)
+        {
+            base.OnCodaEnd(coda);
+            CurrentCoda.OnLaneHit -= OnLaneHit;
+        }
+
+        protected override void StartBRE(double timeStart, double timeEnd)
+        {
+            _breLaneParameters = GetLaneParameters();
+            BRELanes = new LaneElement[_breLaneParameters.Count];
+
+            if (!LanePool.CanSpawnAmount(BRELanes.Length))
+            {
+                return;
+            }
+
+            for (int i = 0; i < BRELanes.Length; i++)
+            {
+                var newLane = (LaneElement) LanePool.TakeWithoutEnabling();
+                if (newLane == null)
+                {
+                    YargLogger.LogWarning("Attempted to spawn BRE lane, but it's at its cap!");
+                    return;
+                }
+
+                newLane.SetTimeRange(timeStart, timeEnd);
+
+                var laneParameters = _breLaneParameters[i];
+
+                InitializeSpawnedLane(newLane, laneParameters.CenterKey);
+                newLane.MultiplyScale(laneParameters.Width);
+                newLane.MultiplyScale(0.95f);
+                newLane.EnableFromPool();
+
+                newLane.SetEmissionColor(0);
+
+                BRELanes[i] = newLane;
             }
         }
 
@@ -634,6 +769,129 @@ namespace YARG.Gameplay.Player
             _leftOutOfRangeTween.Kill();
             _rightOutOfRangeTween.Kill();
             base.FinishDestruction();
+        }
+
+        private struct LaneParameters
+        {
+            public int   LeftKey;
+            public int   CenterKey;
+            public int   Width;
+            public float OffsetX;
+        }
+
+        private static readonly int[] ColorStartKeys = { 0, 5, 12, 17, 24 };
+
+        private int GetLeftmostWhiteKey()
+        {
+            if (ProKeysUtilities.IsWhiteKey(_currentIndex % 12))
+            {
+                return _currentIndex;
+            }
+
+            return _currentIndex + 1;
+        }
+
+        private List<LaneParameters> GetLaneParameters()
+        {
+            var lanes = new List<LaneParameters>();
+
+            int leftmost = GetLeftmostWhiteKey();
+
+            int colorIndex = 0;
+            // Find the element in ColorStartKeys immediately below leftmost
+            for (int i = 0; i < ColorStartKeys.Length; i++)
+            {
+                if (leftmost <= ColorStartKeys[i])
+                {
+                    colorIndex = i;
+                    break;
+                }
+            }
+
+            int currentKey = leftmost;
+            // bandStart should be the same as currentKey if currentKey is one of the values in ColorStartKeys
+            int bandStart;
+            if (ColorStartKeys.Contains(currentKey))
+            {
+                bandStart = currentKey;
+            }
+            else if (colorIndex > 0 && currentKey > ColorStartKeys[colorIndex - 1])
+            {
+                bandStart = ColorStartKeys[colorIndex - 1];
+            }
+            else
+            {
+                bandStart = 0;
+            }
+            // int bandStart = colorIndex > 0 ? ColorStartKeys[colorIndex - 1] : 0;
+            // int bandStart = ColorStartKeys[colorIndex];
+            int whitesFound = 0;
+            int width = 0;
+            int keysInBand = leftmost - bandStart;
+            bool blackOnLeft = ProKeysUtilities.IsBlackKey((_currentIndex - 1) % 12);
+            leftmost = bandStart;
+            // Increment until we find 10 whites, creating new lanes as we cross ColorStartKeys indexes
+            while (whitesFound <= WHITE_KEY_VISIBLE_COUNT)
+            {
+                keysInBand++;
+
+                if (currentKey == ColorStartKeys[colorIndex])
+                {
+                    var extraOffset = keysInBand % 2 == 0 ? _keysArray.KeySpacing * 0.5f : 0f;
+                    var halfBand = keysInBand == 1 ? 1 : keysInBand / 2;
+                    var centerKey = leftmost + halfBand;
+
+                    if (width > 0)
+                    {
+                        if (lanes.Count == 0 && width == 1)
+                        {
+                            centerKey = GetLeftmostWhiteKey();
+                        }
+
+                        lanes.Add(new LaneParameters
+                        {
+                            LeftKey = leftmost,
+                            CenterKey = centerKey,
+                            Width = width,
+                            OffsetX = 0
+                        });
+                    }
+
+                    colorIndex++;
+                    keysInBand = 0;
+                    width = 0;
+                    leftmost = currentKey;
+                }
+
+                if (ProKeysUtilities.IsWhiteKey(currentKey % 12))
+                {
+                    whitesFound++;
+                    width++;
+                }
+
+                currentKey++;
+            }
+
+            if (keysInBand > 0)
+            {
+                var offsetX = 0f;
+                var centerKey = leftmost + (keysInBand / 2);
+
+                // The loop will have incremented centerKey and width one too many
+                width--;
+                centerKey--;
+
+                // Except when we ended on the last key in a color band
+                if (ColorStartKeys.Contains(currentKey + 1))
+                {
+                    centerKey++;
+                    width++;
+                }
+
+                lanes.Add(new LaneParameters {LeftKey = leftmost, CenterKey = centerKey, Width = width, OffsetX = offsetX});
+            }
+
+            return lanes;
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.UIElements;
 using YARG.Core;
@@ -154,6 +155,13 @@ namespace YARG.Gameplay.Visuals
             _frets[index].PlayHitParticles();
         }
 
+        public void PlayCodaHitAnimation(int index)
+        {
+            // index = Mathf.Clamp(index, _frets.Keys.Min(), _frets.Keys.Max());
+            _frets[index].PlayHitAnimation();
+            _frets[index].PlayHitParticles();
+        }
+
         public void PlayCymbalHitAnimation(int index)
         {
             _frets[index].PlayCymbalHitAnimation();
@@ -200,6 +208,7 @@ namespace YARG.Gameplay.Visuals
             foreach (var (_, fret) in _frets)
             {
                 fret.SetSustained(false);
+                fret.SetBreMode(false);
             }
         }
 
@@ -259,6 +268,14 @@ namespace YARG.Gameplay.Visuals
                         _activeFrets.Remove(fretIndex);
                     }
                 }
+            }
+        }
+
+        public void SetBreMode(bool breMode)
+        {
+            foreach (var (_, fret) in _frets)
+            {
+                fret.SetBreMode(breMode);
             }
         }
     }

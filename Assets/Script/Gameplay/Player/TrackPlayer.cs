@@ -79,9 +79,13 @@ namespace YARG.Gameplay.Player
 
         protected bool IsBass { get; private set; }
 
+        public int LaneCount { get; protected set; }
+
         private float _spawnAheadDelay;
 
         protected float SongLength;
+
+        protected LaneElement[] BRELanes;
 
         public virtual void Initialize(int index, YargPlayer player, SongChart chart, TrackView trackView,
             StemMixer mixer, int? lastHighScore)
@@ -137,6 +141,7 @@ namespace YARG.Gameplay.Player
 
             ComboMeter.SetFullCombo(IsFc);
             TrackView.ForceReset();
+            GameManager.ResetCoda();
 
             NotePool.ReturnAllObjects();
             LanePool.ReturnAllObjects();
@@ -178,9 +183,14 @@ namespace YARG.Gameplay.Player
         private List<TrackEffectElement> _currentEffects = new();
         protected List<TrackEffect> _trackEffects = new();
 
+        private List<Phrase> _brePhrases = new();
+        private int _breIndex;
+
         protected SongChart Chart;
 
         private AutoCalibrator _autoCalibrator;
+
+        protected CodaSection CurrentCoda;
 
         public override void Initialize(int index, YargPlayer player, SongChart chart, TrackView trackView,
             StemMixer mixer, int? currentHighScore)
@@ -243,6 +253,7 @@ namespace YARG.Gameplay.Player
             GameManager.BeatEventHandler.Audio.Subscribe(MetronomeTock, BeatEventType.QuarterNote);
             GameManager.BeatEventHandler.Visual.Subscribe(SunburstEffects.PulseSunburst, BeatEventType.StrongBeat);
             InitializeTrackEffects();
+            InitializeCodaEvents();
 
             ResetNoteCounters();
 
@@ -262,6 +273,17 @@ namespace YARG.Gameplay.Player
             _autoCalibrator?.Dispose();
 
             base.FinishDestruction();
+        }
+
+        private void InitializeCodaEvents()
+        {
+            foreach (var phrase in NoteTrack.Phrases)
+            {
+                if (phrase.Type == PhraseType.BigRockEnding)
+                {
+                    _brePhrases.Add(phrase);
+                }
+            }
         }
 
         private void InitializeTrackEffects()
@@ -355,6 +377,9 @@ namespace YARG.Gameplay.Player
             BeatlineIndex = 0;
             ResetNoteCounters();
 
+            CurrentCoda = null;
+            _breIndex = 0;
+
             base.ResetPracticeSection();
         }
 
@@ -376,6 +401,7 @@ namespace YARG.Gameplay.Player
             UpdateNotes(visualTime);
             UpdateBeatlines(visualTime);
             UpdateTrackEffects(visualTime);
+            UpdateCodaEvents(visualTime);
 
             var stats = Engine.BaseStats;
 
@@ -401,8 +427,8 @@ namespace YARG.Gameplay.Player
                 ? stats.ScoreMultiplier / 2
                 : stats.ScoreMultiplier;
 
-            ComboMeter.SetCombo(stats.ScoreMultiplier, displayMultiplier, maxMultiplier, stats.Combo);
-            StarpowerBar.SetStarpower(currentStarPowerAmount, stats.IsStarPowerActive);
+            ComboMeter.SetCombo(stats.ScoreMultiplier, displayMultiplier, maxMultiplier, stats.Combo, Engine.CodaHasStarted);
+            StarpowerBar.SetStarpower(currentStarPowerAmount, stats.IsStarPowerActive, Engine.CodaHasStarted);
             StarpowerBar.UpdateFlash(GameManager.BeatEventHandler.Visual.StrongBeat.CurrentPercentage);
             SunburstEffects.SetSunburstEffects(groove, stats.IsStarPowerActive, _currentMultiplier);
 
@@ -463,13 +489,19 @@ namespace YARG.Gameplay.Player
             {
                 var note = Notes[NoteIndex];
 
-                // Skip this frame if the pool is full
+                // Skip this frame if the pool is full or note is part of a BRE
                 if (!NotePool.CanSpawnAmount(note.ChildNotes.Count + 1))
                 {
                     break;
                 }
 
                 NoteIndex++;
+
+                // Don't spawn the note if it is under a BRE
+                if (note.IsBigRockEnding)
+                {
+                    continue;
+                }
 
                 OnNoteSpawned(note);
 
@@ -521,6 +553,18 @@ namespace YARG.Gameplay.Player
                 poolable.EnableFromPool();
 
                 BeatlineIndex++;
+            }
+        }
+
+        private void UpdateCodaEvents(double time)
+        {
+            while (_breIndex < _brePhrases.Count && _brePhrases[_breIndex].Time <= time + SpawnTimeOffset)
+            {
+
+                var phrase = _brePhrases[_breIndex];
+                _breIndex++;
+
+                StartBRE(phrase.Time, phrase.TimeEnd);
             }
         }
 
@@ -664,6 +708,36 @@ namespace YARG.Gameplay.Player
             ((TrackEffectElement) poolable).EffectRef = nextEffect;
             _currentEffects.Add((TrackEffectElement) poolable);
             poolable.EnableFromPool();
+        }
+
+        // ReSharper disable once InconsistentNaming
+        protected virtual void StartBRE(double timeStart, double timeEnd)
+        {
+            RescaleLanesForBRE();
+
+            if (!LanePool.CanSpawnAmount(BRELanes.Length))
+            {
+                return;
+            }
+
+            for (int i = 0; i < BRELanes.Length; i++)
+            {
+                var newLane = (LaneElement) LanePool.TakeWithoutEnabling();
+
+                if (newLane == null)
+                {
+                    YargLogger.LogWarning("Attempted to spawn BRE lane, but it's at its cap!");
+                    return;
+                }
+
+                newLane.SetTimeRange(timeStart, timeEnd);
+                InitializeSpawnedLane(newLane, i);
+                newLane.EnableFromPool();
+
+                newLane.SetEmissionColor(0);
+
+                BRELanes[i] = newLane;
+            }
         }
 
         protected virtual void OnNoteSpawned(TNote parentNote)
@@ -882,7 +956,10 @@ namespace YARG.Gameplay.Player
 
         protected abstract void InitializeSpawnedNote(IPoolable poolable, TNote note);
         protected abstract void InitializeSpawnedLane(LaneElement lane, TNote note);
+        protected abstract void InitializeSpawnedLane(LaneElement lane, int laneIndex);
         protected virtual void ModifyLaneFromNote(LaneElement lane, TNote note) {}
+
+        protected abstract void RescaleLanesForBRE();
 
         protected virtual void OnNoteHit(int index, TNote note)
         {
@@ -983,6 +1060,18 @@ namespace YARG.Gameplay.Player
             }
         }
 
+        protected virtual void OnCodaStart(CodaSection coda)
+        {
+            CurrentCoda = coda;
+            CurrentCoda.SetLaneIndexes(GetLaneIndexes());
+            GameManager.StartCoda();
+        }
+
+        protected virtual void OnCodaEnd(CodaSection coda)
+        {
+            GameManager.EndCoda(coda);
+        }
+
         protected virtual void OnCountdownChange(double countdownLength, double endTime)
         {
             TrackView.UpdateCountdown(countdownLength, endTime);
@@ -1023,6 +1112,17 @@ namespace YARG.Gameplay.Player
         public void MetronomeTock()
         {
             GlobalAudioHandler.PlayMetronomeSoundEffect(SettingsManager.Settings.MetronomeSound.Value, MetronomePitch.Lo);
+        }
+
+        protected virtual Dictionary<int, int> GetLaneIndexes()
+        {
+            var indexDict = new Dictionary<int, int>();
+            for (int i = 0; i < LaneCount; i++)
+            {
+                indexDict[i] = i;
+            }
+
+            return indexDict;
         }
     }
 }

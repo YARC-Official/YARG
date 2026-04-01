@@ -22,6 +22,7 @@ namespace YARG.Venue
         public const string BACKGROUND_SHADER_BUNDLE_NAME = "_metal_shaders.bytes";
         public const string CHARACTER_SHADER_BUNDLE_NAME = "_character_metal_shaders.bytes";
         public const string BACKGOUND_OSX_MATERIAL_PREFIX = "_metal_";
+        public const string BUNDLE_OSX_SUFFIX = "_metal";
 
         private const string VENUE_LAYER_NAME = "Venue";
 
@@ -137,6 +138,8 @@ namespace YARG.Venue
                 {
                     return;
                 }
+                string fileName = Path.GetFileName(path);
+                string folderPath = Path.GetDirectoryName(path);
 
                 // First we'll collect all shaders and build a separate bundle out of them
                 // for Mac as no other build target will include Metal shaders
@@ -144,7 +147,7 @@ namespace YARG.Venue
 
                 // We use materials as "anchors" to make sure all required
                 // shader variants are included
-                var metalAssetBundleName = type == ExportType.Background ? BACKGROUND_SHADER_BUNDLE_NAME : CHARACTER_SHADER_BUNDLE_NAME;
+                var metalAssetBundleName = fileName + BUNDLE_OSX_SUFFIX;
                 var materialAssets = EditorUtility.CollectDependencies(new[] { gameObject })
                     .OfType<Material>() // Only material dependencices
                     .Select((mat, i) =>
@@ -207,9 +210,6 @@ namespace YARG.Venue
                 }
 
                 clonedBackground = Instantiate(_backgroundReference.gameObject);
-
-                string fileName = Path.GetFileName(path);
-                string folderPath = Path.GetDirectoryName(path);
 
                 var backgroundPath = ExportType.Character == type ? CHARACTER_PREFAB_PATH : BACKGROUND_PREFAB_PATH;
 

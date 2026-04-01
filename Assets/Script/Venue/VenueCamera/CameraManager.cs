@@ -322,19 +322,24 @@ namespace YARG.Venue.VenueCamera
 
         private void SwitchCamera(Camera newCamera, bool random = false)
         {
-            // _currentCamera.enabled = false;
-            CurrentCamera.gameObject.SetActive(false);
-
             if (random)
             {
                 _cameraTimer = GetRandomCameraTimer();
-                CurrentCamera = GetRandomCamera();
+                newCamera = GetRandomCamera();
             }
             else
             {
-                CurrentCamera = newCamera;
                 _cameraTimer = _cameraTimer = Mathf.Max(11f, (float) _cameraCuts[_currentCutIndex].TimeLength);
             }
+
+            // If we are switching to the same camera, just leave it active
+            if (newCamera == CurrentCamera)
+            {
+                return;
+            }
+
+            CurrentCamera.gameObject.SetActive(false);
+            CurrentCamera = newCamera;
             CurrentCamera.gameObject.SetActive(true);
             _cameraIndex = _cameras.IndexOf(CurrentCamera);
         }
