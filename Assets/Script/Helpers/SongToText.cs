@@ -47,8 +47,9 @@ namespace YARG.Helpers
         public const string FORMAT_LONG =
             "<header> song (speed_percent)\n" +
             "<sub_header> artist\n" +
-            "album, year\n" +
-            "if charter then \"Charter:\" charter";
+            "if album then album, year\n" +
+            "if covered_by then covered_by\n" +
+            "\"Charter:\" charter";
 
         public const string FORMAT_SHORT =
             "<header> song (speed_percent)\n" +
@@ -62,16 +63,53 @@ namespace YARG.Helpers
                 "song", x => x.Name
             },
             {
-                "artist", x => x.Artist
+                "artist", x =>
+                {
+                    string text = x.Artist;
+
+                    if (!x.IsMaster)
+                    {
+                        text = $"<size=60%>As Made Famous By</size> {text}";
+                    }
+
+                    if ((string.IsNullOrEmpty(x.Album) || x.Album == SongMetadata.DEFAULT_ALBUM)
+                        && !string.IsNullOrEmpty(x.ParsedYear) && x.ParsedYear != SongMetadata.DEFAULT_YEAR)
+                    {
+                        text += $", {x.ParsedYear}";
+                    }
+
+                    return text;
+                }
             },
             {
-                "year", x => x.ParsedYear
+                "covered_by", x =>
+                {
+                    string text = $"<size=60%>Covered By</size> {x.CoveredBy}";
+
+                    if (!string.IsNullOrEmpty(x.YearSecondary))
+                    {
+                        text += $", {x.YearSecondary}";
+                    }
+
+                    return text;
+                }
+            },
+            {
+                "year", x =>
+                {
+                    if (string.IsNullOrEmpty(x.ParsedYear) || x.ParsedYear == SongMetadata.DEFAULT_YEAR)
+                    {
+                        return string.Empty;
+                    }
+
+                    return x.ParsedYear;
+                }
             },
             {
                 "album", x => x.Album
             },
             {
-                "charter", x => string.IsNullOrEmpty(x.Charter) ? "Unknown" : x.Charter
+                "charter", x => string.IsNullOrEmpty(x.Charter) || x.Charter == SongMetadata.DEFAULT_CHARTER ? "Unknown" : x.Charter
             },
             {
                 "speed_percent", _ =>
@@ -95,10 +133,13 @@ namespace YARG.Helpers
                 "artist", x => !string.IsNullOrEmpty(x.Artist)
             },
             {
+                "covered_by", x => !x.IsMaster && !string.IsNullOrEmpty(x.CoveredBy)
+            },
+            {
                 "year", x => !string.IsNullOrEmpty(x.ParsedYear)
             },
             {
-                "album", x => !string.IsNullOrEmpty(x.Album)
+                "album", x => !string.IsNullOrEmpty(x.Album) && x.Album != SongMetadata.DEFAULT_ALBUM
             },
             {
                 "charter", x => !string.IsNullOrEmpty(x.Charter)
@@ -111,7 +152,7 @@ namespace YARG.Helpers
         public static Line[] ToStyled(string format, SongEntry song)
         {
             var formatLines = Regex.Split(format, @"\r?\n|\r");
-            var outputLines = new Line[formatLines.Length];
+            var outputLines = new List<Line>();
 
             for (int i = 0; i < formatLines.Length; i++)
             {
@@ -264,10 +305,10 @@ namespace YARG.Helpers
                     outputLine += token.Value;
                 }
 
-                outputLines[i] = new Line(style, outputLine.Trim());
+                outputLines.Add(new Line(style, outputLine.Trim()));
             }
 
-            return outputLines;
+            return outputLines.ToArray();
         }
 
         private static List<Token> Tokenize(string line)
