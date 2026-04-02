@@ -119,6 +119,8 @@ namespace YARG.Gameplay
             var outputWidth = (int)(Screen.width * renderScale);
             var outputHeight = (int)(Screen.height * renderScale);
 
+            ScalableBufferManager.ResizeBuffers(renderScale, renderScale);
+            
             if (_trailsTexture != null)
             {
                 _trailsTexture.Release();
