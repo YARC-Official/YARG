@@ -444,6 +444,7 @@
                 "SynthpopElectropop": "Synthpop/Electropop",
                 "Techno": "Techno",
                 "ThrashSpeedMetal": "Thrash/Speed Metal",
+				"Traditional": "Traditional",
                 "Trance": "Trance",
                 "Trap": "Trap",
                 "World": "World",
@@ -451,7 +452,7 @@
                 "UnknownGenre": "Unknown Genre",
                 "Broad": {
                     "Alternative": "Alternative",
-                    "Country": "Country",
+                    "CountryFolk": "Country/Folk",
                     "ClassicalTraditional": "Classical/Traditional",
                     "DanceElectronic": "Dance/Electronic",
                     "HipHop": "Hip-Hop",

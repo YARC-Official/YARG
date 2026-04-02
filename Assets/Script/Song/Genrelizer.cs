@@ -87,13 +87,14 @@ namespace YARG.Song
 
                 COUNTRY or
                 FOLK or
-                SOUTHERN_ROCK => OVER_COUNTRY,
+                SOUTHERN_ROCK => OVER_COUNTRY_FOLK,
 
                 CHILDRENS_MUSIC or
                 CLASSICAL or
                 HOLIDAY or
                 ORCHESTRAL or
-                SOUNDTRACK => OVER_CLASSICAL_TRADITIONAL,
+                SOUNDTRACK or
+                TRADITIONAL => OVER_CLASSICAL_TRADITIONAL,
 
                 AMBIENT_DRONE or
                 CHIPTUNE or

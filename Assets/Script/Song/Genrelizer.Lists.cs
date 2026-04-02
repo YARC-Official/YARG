@@ -79,6 +79,7 @@ namespace YARG.Song
         private const string SYNTHPOP_ELECTROPOP = "synthpop/electropop";
         private const string TECHNO = "techno";
         private const string THRASH_SPEED_METAL = "thrash/speed metal";
+        private const string TRADITIONAL = "traditional";
         private const string TRANCE = "trance";
         private const string TRAP = "trap";
         private const string WORLD = "world";
@@ -94,7 +95,7 @@ namespace YARG.Song
 
         // Overgenrelizer
         private static SortString OVER_ALTERNATIVE = new(Localize.Key("Menu.MusicLibrary.Genre.Broad.Alternative"));
-        private static SortString OVER_COUNTRY = new(Localize.Key("Menu.MusicLibrary.Genre.Broad.Country"));
+        private static SortString OVER_COUNTRY_FOLK = new(Localize.Key("Menu.MusicLibrary.Genre.Broad.CountryFolk"));
         private static SortString OVER_CLASSICAL_TRADITIONAL = new(Localize.Key("Menu.MusicLibrary.Genre.Broad.ClassicalTraditional"));
         private static SortString OVER_DANCE_ELECTRONIC = new(Localize.Key("Menu.MusicLibrary.Genre.Broad.DanceElectronic"));
         private static SortString OVER_HIP_HOP = new(Localize.Key("Menu.MusicLibrary.Genre.Broad.HipHop"));
@@ -179,6 +180,7 @@ namespace YARG.Song
             { SYNTHPOP_ELECTROPOP, "SynthpopElectropop"},
             { TECHNO, "Techno"},
             { THRASH_SPEED_METAL, "ThrashSpeedMetal"},
+            { TRADITIONAL, "Traditional" },
             { TRANCE, "Trance"},
             { TRAP, "Trap"},
             { WORLD, "World"},
