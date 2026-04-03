@@ -17,10 +17,10 @@ namespace YARG.Gameplay.Visuals
     [RequireComponent(typeof(Camera))]
     public class HighwayCameraRendering : MonoBehaviour
     {
-        public const int   MAX_MATRICES                  = 32;
+        public const int MAX_MATRICES = 32;
 
         //For multiple lanes, cap the lane width to a percentage of the screen width, 1.0f = 100% of screen width
-        private const float MAX_LANE_SCREEN_WIDTH_PERCENT  = 0.45f;
+        private const float MAX_LANE_SCREEN_WIDTH_PERCENT = 0.45f;
 
         //For multiple lanes, cap the lane height to a percentage of the screen height, 1.0f = 100% of screen height
         private const float MAX_LANE_SCREEN_HEIGHT_PERCENT = 0.55f;
@@ -35,31 +35,31 @@ namespace YARG.Gameplay.Visuals
         [SerializeField]
         private RawImage _highwaysOutput;
 
-        private readonly List<Camera>  _cameras          = new();
+        private readonly List<Camera> _cameras = new();
         private readonly List<Vector3> _highwayPositions = new();
-        private readonly List<float>   _raisedRotations  = new();
+        private readonly List<float> _raisedRotations = new();
 
-        private Camera                     _renderCamera;
-        private GameManager                _gameManager;
+        private Camera _renderCamera;
+        private GameManager _gameManager;
 
-        public  RenderTexture              HighwaysOutputTexture { get; private set; }
+        public RenderTexture HighwaysOutputTexture { get; private set; }
         public event Action<RenderTexture> OnHighwaysTextureCreated;
-        private RenderTexture              _highwaysAlphaTexture;
-        private ScriptableRenderPass       _fadeCalcPass;
-        private bool                       _allowTextureRecreation = true;
-        private bool                       _needsInitialization    = true;
-        private bool                       _needsCameraReset;
-        private float                      _horizontalOffsetPx;
-        private float                      _scaleMultiplier = 1f;
+        private RenderTexture _highwaysAlphaTexture;
+        private ScriptableRenderPass _fadeCalcPass;
+        private bool _allowTextureRecreation = true;
+        private bool _needsInitialization = true;
+        private bool _needsCameraReset;
+        private float _horizontalOffsetPx;
+        private float _scaleMultiplier = 1f;
 
-        private readonly float[]           _curveFactors       = new float[MAX_MATRICES];
-        private readonly float[]           _zeroFadePositions  = new float[MAX_MATRICES];
-        private readonly float[]           _fadeSize           = new float[MAX_MATRICES];
-        private readonly float[]           _fadeParams         = new float[MAX_MATRICES * 2];
-        private readonly Matrix4x4[]       _camViewMatrices    = new Matrix4x4[MAX_MATRICES];
-        private readonly Matrix4x4[]       _camInvViewMatrices = new Matrix4x4[MAX_MATRICES];
-        private readonly Matrix4x4[]       _camProjMatrices    = new Matrix4x4[MAX_MATRICES];
-        private readonly float[]           _laneScales         = new float[MAX_MATRICES];
+        private readonly float[] _curveFactors = new float[MAX_MATRICES];
+        private readonly float[] _zeroFadePositions = new float[MAX_MATRICES];
+        private readonly float[] _fadeSize = new float[MAX_MATRICES];
+        private readonly float[] _fadeParams = new float[MAX_MATRICES * 2];
+        private readonly Matrix4x4[] _camViewMatrices = new Matrix4x4[MAX_MATRICES];
+        private readonly Matrix4x4[] _camInvViewMatrices = new Matrix4x4[MAX_MATRICES];
+        private readonly Matrix4x4[] _camProjMatrices = new Matrix4x4[MAX_MATRICES];
+        private readonly float[] _laneScales = new float[MAX_MATRICES];
 
         public static readonly int YargHighwaysNumberID = Shader.PropertyToID("_YargHighwaysN");
         public static readonly int YargHighwayCamViewMatricesID = Shader.PropertyToID("_YargCamViewMatrices");
@@ -193,7 +193,7 @@ namespace YARG.Gameplay.Visuals
 
             foreach (var camera in _cameras)
             {
-                camera.aspect = (float) Screen.width / Screen.height;
+                camera.aspect = (float)Screen.width / Screen.height;
             }
 
             //First pass, just scale according to aspect ratio, then recalculate matrices
@@ -297,6 +297,15 @@ namespace YARG.Gameplay.Visuals
             AddPlayerParams(trackPlayer.transform.position, trackPlayer.TrackCamera, trackPlayer.Player.CameraPreset.CurveFactor, trackPlayer.ZeroFadePosition, trackPlayer.FadeSize, trackPlayer.Player.CameraPreset.Rotation);
         }
 
+        public void AddVocalTrack(VocalTrack vocalTrack, int highwayIndex)
+        {
+            var camera = vocalTrack.GetTrackCamera();
+            var cameraData = camera.GetUniversalAdditionalCameraData();
+            cameraData.renderType = CameraRenderType.Overlay;
+            // Vocals have no curve or tilt — use 0 for curveFactor and raisedRotation.
+            AddPlayerParams(vocalTrack.transform.position, camera, 0f, float.MaxValue, 0.0f, 0f);
+        }
+
         public void SetHorizontalOffsetPx(float horizontalOffsetPx)
         {
             if (_cameras.Count != 1)
@@ -322,7 +331,7 @@ namespace YARG.Gameplay.Visuals
 
             float scaling = 1.0f;
             var descriptor = new RenderTextureDescriptor(
-                (int) (Screen.width * scaling), (int) (Screen.height * scaling),
+                (int)(Screen.width * scaling), (int)(Screen.height * scaling),
                 RenderTextureFormat.RFloat)
             {
                 mipCount = 0,
@@ -419,8 +428,12 @@ namespace YARG.Gameplay.Visuals
 
                 float safeScreenWidth = Mathf.Max(Screen.width, 0.001f);
                 float horizontalOffsetNdc = _horizontalOffsetPx / safeScreenWidth * 2f;
-                var projMatrix = GetModifiedProjectionMatrix(camera.projectionMatrix,
-                    i, _cameras.Count, _laneScales[i], horizontalOffsetNdc);
+                var projMatrix = camera.projectionMatrix;
+                if (!camera.orthographic)
+                {
+                    projMatrix = GetModifiedProjectionMatrix(camera.projectionMatrix,
+                        i, _cameras.Count, _laneScales[i], horizontalOffsetNdc);
+                }
                 _camProjMatrices[i] = GL.GetGPUProjectionMatrix(projMatrix, SystemInfo.graphicsUVStartsAtTop);
                 Shader.SetGlobalMatrixArray(YargHighwayCamProjMatricesID, _camProjMatrices);
             }
@@ -472,9 +485,9 @@ namespace YARG.Gameplay.Visuals
         // Calculate Alpha mask for the highways rt
         private sealed class FadePass : ScriptableRenderPass
         {
-            private readonly ProfilingSampler       _profilingSampler = new ProfilingSampler("CalcFadeAlphaMask");
+            private readonly ProfilingSampler _profilingSampler = new ProfilingSampler("CalcFadeAlphaMask");
             private readonly HighwayCameraRendering _highwayCameraRendering;
-            private readonly Material               _material;
+            private readonly Material _material;
 
             public static readonly int LayerMask = ~(1 << UnityEngine.LayerMask.NameToLayer("FadeExclude"));
 
@@ -504,7 +517,12 @@ namespace YARG.Gameplay.Visuals
 
                     builder.AllowPassCulling(false);
 
-                    var shaderTagIds = new[] { new ShaderTagId("UniversalForward") };
+                    var shaderTagIds = new[]
+                    {
+                        new ShaderTagId("UniversalForward"), // For Lit shaders
+                        new ShaderTagId("UniversalForwardOnly"), // For specific forward-only shaders
+                        new ShaderTagId("SRPDefaultUnlit") // For Unlit shaders
+                    };
 
                     // Create renderer list for transparents
                     var transparentDesc = new RendererListDesc(shaderTagIds, renderingData.cullResults, cameraData.camera)
