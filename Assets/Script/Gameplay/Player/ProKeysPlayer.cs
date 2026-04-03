@@ -563,52 +563,16 @@ namespace YARG.Gameplay.Player
 
         protected override Dictionary<int,int> GetLaneIndexes()
         {
-            var laneIndexes = new Dictionary<int, int>();
-            var totalLanes = _breLaneParameters.Count;
-            var laneIndex = 0;
-
-            var baseColor = 0;
-            // Get the starting lane index
-            for (int color = 1; color < ColorStartKeys.Length; color++)
+            return _currentIndex switch
             {
-                if (_currentIndex >= ColorStartKeys[color])
-                {
-                    baseColor++;
-                }
-                else
-                {
-                    break;
-                }
-            }
-
-            var colorIndex = baseColor + 1;
-            var topKey = ColorStartKeys[colorIndex];
-
-            for (int i = 0; i < TOTAL_KEY_COUNT; i++)
-            {
-                // Distribute out of range keys between the visible lanes
-                if (i < _currentIndex || i > _breLaneParameters[^1].LeftKey + _breLaneParameters[^1].Width)
-                {
-                    laneIndexes[i] = i % totalLanes;
-                    continue;
-                }
-
-                // Increment indexes when we cross a color boundary
-                if (i == ColorStartKeys[colorIndex])
-                {
-                    colorIndex++;
-                    laneIndex++;
-                    topKey = ColorStartKeys[colorIndex] - 1;
-                }
-
-                // Assign in range keys to their corresponding lane
-                if (i <= topKey)
-                {
-                    laneIndexes[i] = laneIndex;
-                }
-            }
-
-            return laneIndexes;
+                ProKeysUtilities.LOW_C => LANE_INDEXES_C3_TO_E4,
+                ProKeysUtilities.LOW_D => LANE_INDEXES_D3_TO_F4,
+                ProKeysUtilities.LOW_E => LANE_INDEXES_E3_TO_G4,
+                ProKeysUtilities.LOW_F => LANE_INDEXES_F3_TO_A4,
+                ProKeysUtilities.LOW_G => LANE_INDEXES_G3_TO_B4,
+                ProKeysUtilities.LOW_A => LANE_INDEXES_A3_TO_C5,
+                _ => throw new ArgumentOutOfRangeException($"Impossible Pro Keys range starting from key {_currentIndex}")
+            };
         }
 
         protected override void OnCodaStart(CodaSection coda)
@@ -628,7 +592,7 @@ namespace YARG.Gameplay.Player
 
         protected override void StartBRE(double timeStart, double timeEnd)
         {
-            _breLaneParameters = GetLaneParameters();
+            _breLaneParameters = GetLaneParameters(timeStart);
             BRELanes = new LaneElement[_breLaneParameters.Count];
 
             if (!LanePool.CanSpawnAmount(BRELanes.Length))
@@ -793,7 +757,6 @@ namespace YARG.Gameplay.Player
             public int   LeftKey;
             public int   CenterKey;
             public int   Width;
-            public float OffsetX;
         }
 
         private static readonly int[] ColorStartKeys = { 0, 5, 12, 17, 24 };
@@ -808,107 +771,257 @@ namespace YARG.Gameplay.Player
             return _currentIndex + 1;
         }
 
-        private List<LaneParameters> GetLaneParameters()
+        private int GetLeftmostWhiteKeyAtTime(double time)
         {
-            var lanes = new List<LaneParameters>();
-
-            int leftmost = GetLeftmostWhiteKey();
-
-            int colorIndex = 0;
-            // Find the element in ColorStartKeys immediately below leftmost
-            for (int i = 0; i < ColorStartKeys.Length; i++)
+            // Work backwards since BREs are almost always in the last range
+            for (int i = _rangeShifts.Count - 1; i >= 0; i--)
             {
-                if (leftmost <= ColorStartKeys[i])
+                if (_rangeShifts[i].Time <= time)
                 {
-                    colorIndex = i;
-                    break;
+                    return _rangeShifts[i].Key;
                 }
             }
 
-            int currentKey = leftmost;
-            // bandStart should be the same as currentKey if currentKey is one of the values in ColorStartKeys
-            int bandStart;
-            if (ColorStartKeys.Contains(currentKey))
-            {
-                bandStart = currentKey;
-            }
-            else if (colorIndex > 0 && currentKey > ColorStartKeys[colorIndex - 1])
-            {
-                bandStart = ColorStartKeys[colorIndex - 1];
-            }
-            else
-            {
-                bandStart = 0;
-            }
-            // int bandStart = colorIndex > 0 ? ColorStartKeys[colorIndex - 1] : 0;
-            // int bandStart = ColorStartKeys[colorIndex];
-            int whitesFound = 0;
-            int width = 0;
-            int keysInBand = leftmost - bandStart;
-            bool blackOnLeft = ProKeysUtilities.IsBlackKey((_currentIndex - 1) % 12);
-            leftmost = bandStart;
-            // Increment until we find 10 whites, creating new lanes as we cross ColorStartKeys indexes
-            while (whitesFound <= WHITE_KEY_VISIBLE_COUNT)
-            {
-                keysInBand++;
-
-                if (currentKey == ColorStartKeys[colorIndex])
-                {
-                    var extraOffset = keysInBand % 2 == 0 ? _keysArray.KeySpacing * 0.5f : 0f;
-                    var halfBand = keysInBand == 1 ? 1 : keysInBand / 2;
-                    var centerKey = leftmost + halfBand;
-
-                    if (width > 0)
-                    {
-                        if (lanes.Count == 0 && width == 1)
-                        {
-                            centerKey = GetLeftmostWhiteKey();
-                        }
-
-                        lanes.Add(new LaneParameters
-                        {
-                            LeftKey = leftmost,
-                            CenterKey = centerKey,
-                            Width = width,
-                            OffsetX = 0
-                        });
-                    }
-
-                    colorIndex++;
-                    keysInBand = 0;
-                    width = 0;
-                    leftmost = currentKey;
-                }
-
-                if (ProKeysUtilities.IsWhiteKey(currentKey % 12))
-                {
-                    whitesFound++;
-                    width++;
-                }
-
-                currentKey++;
-            }
-
-            if (keysInBand > 0)
-            {
-                var offsetX = 0f;
-                var centerKey = leftmost + (keysInBand / 2);
-
-                // The loop will have incremented centerKey and width one too many
-                width--;
-                centerKey--;
-
-                // Except when we ended on the last key in a color band
-                if (ColorStartKeys.Contains(currentKey + 1))
-                {
-                    centerKey++;
-                    width++;
-                }
-
-                lanes.Add(new LaneParameters {LeftKey = leftmost, CenterKey = centerKey, Width = width, OffsetX = offsetX});
-            }
-
-            return lanes;
+            return _rangeShifts[0].Key;
         }
+
+        private List<LaneParameters> GetLaneParameters(double breStartTime)
+        {
+            int leftmost = GetLeftmostWhiteKeyAtTime(breStartTime);
+
+            return leftmost switch
+            {
+                ProKeysUtilities.LOW_C => LANE_PARAMETERS_C3_TO_E4,
+                ProKeysUtilities.LOW_D => LANE_PARAMETERS_D3_TO_F4,
+                ProKeysUtilities.LOW_E => LANE_PARAMETERS_E3_TO_G4,
+                ProKeysUtilities.LOW_F => LANE_PARAMETERS_F3_TO_A4,
+                ProKeysUtilities.LOW_G => LANE_PARAMETERS_G3_TO_B4,
+                ProKeysUtilities.LOW_A => LANE_PARAMETERS_A3_TO_C5,
+                _ => throw new ArgumentOutOfRangeException($"Impossible Pro Keys range starting from key {leftmost}")
+            };
+        }
+
+        private static LaneParameters YELLOW_LANE_PARAMETERS = new() { LeftKey = ProKeysUtilities.LOW_F, CenterKey = ProKeysUtilities.LOW_G_SHARP, Width = 4 };
+        private static LaneParameters BLUE_LANE_PARAMETERS = new() { LeftKey = ProKeysUtilities.MIDDLE_C, CenterKey = ProKeysUtilities.HIGH_D, Width = 3 };
+        private static LaneParameters GREEN_LANE_PARAMETERS = new() { LeftKey = ProKeysUtilities.HIGH_F, CenterKey = ProKeysUtilities.HIGH_G_SHARP, Width = 4 };
+
+        private static List<LaneParameters> LANE_PARAMETERS_C3_TO_E4 = new()
+        {
+            new() { LeftKey = ProKeysUtilities.LOW_C,       CenterKey = ProKeysUtilities.LOW_D,         Width = 3 }, // Red
+            YELLOW_LANE_PARAMETERS,
+            BLUE_LANE_PARAMETERS
+        };
+
+        private static List<LaneParameters> LANE_PARAMETERS_D3_TO_F4 = new()
+        {
+            new() { LeftKey = ProKeysUtilities.LOW_C,       CenterKey = ProKeysUtilities.LOW_D_SHARP,   Width = 2 }, // Part of red
+            YELLOW_LANE_PARAMETERS,
+            BLUE_LANE_PARAMETERS,
+            new() { LeftKey = ProKeysUtilities.HIGH_F,      CenterKey = ProKeysUtilities.HIGH_F,        Width = 1 } // Part of green
+        };
+
+        private static List<LaneParameters> LANE_PARAMETERS_E3_TO_G4 = new()
+        {
+            new() { LeftKey = ProKeysUtilities.LOW_C,       CenterKey = ProKeysUtilities.LOW_E,         Width = 1 }, // Part of red
+            YELLOW_LANE_PARAMETERS,
+            BLUE_LANE_PARAMETERS,
+            new() { LeftKey = ProKeysUtilities.HIGH_F,      CenterKey = ProKeysUtilities.HIGH_F_SHARP,  Width = 2 } // Part of green
+        };
+
+        private static List<LaneParameters> LANE_PARAMETERS_F3_TO_A4 = new()
+        {
+            YELLOW_LANE_PARAMETERS,
+            BLUE_LANE_PARAMETERS,
+            new() { LeftKey = ProKeysUtilities.HIGH_F,      CenterKey = ProKeysUtilities.HIGH_G,        Width = 3 } // Part of green
+        };
+
+        private static List<LaneParameters> LANE_PARAMETERS_G3_TO_B4 = new()
+        {
+            new() { LeftKey = ProKeysUtilities.LOW_F,       CenterKey = ProKeysUtilities.LOW_A,         Width = 3 }, // Part of yellow
+            BLUE_LANE_PARAMETERS,
+            GREEN_LANE_PARAMETERS
+        };
+
+        private static List<LaneParameters> LANE_PARAMETERS_A3_TO_C5 = new()
+        {
+            new() { LeftKey = ProKeysUtilities.LOW_F,       CenterKey = ProKeysUtilities.LOW_A_SHARP,   Width = 2 }, // Part of yellow
+            BLUE_LANE_PARAMETERS,
+            GREEN_LANE_PARAMETERS,
+            new() { LeftKey = ProKeysUtilities.HIGH_C,      CenterKey = ProKeysUtilities.HIGH_C,        Width = 1 }, // Orange
+        };
+
+        private static Dictionary<int, int> LANE_INDEXES_C3_TO_E4 = new()
+        {
+            { ProKeysUtilities.LOW_C,           0 }, // Red
+            { ProKeysUtilities.LOW_C_SHARP,     0 }, // Red
+            { ProKeysUtilities.LOW_D,           0 }, // Red
+            { ProKeysUtilities.LOW_D_SHARP,     0 }, // Red
+            { ProKeysUtilities.LOW_E,           0 }, // Red
+            { ProKeysUtilities.LOW_F,           1 }, // Yellow
+            { ProKeysUtilities.LOW_F_SHARP,     1 }, // Yellow
+            { ProKeysUtilities.LOW_G,           1 }, // Yellow
+            { ProKeysUtilities.LOW_G_SHARP,     1 }, // Yellow
+            { ProKeysUtilities.LOW_A,           1 }, // Yellow
+            { ProKeysUtilities.LOW_A_SHARP,     1 }, // Yellow
+            { ProKeysUtilities.LOW_B,           1 }, // Yellow
+            { ProKeysUtilities.MIDDLE_C,        2 }, // Blue
+            { ProKeysUtilities.HIGH_C_SHARP,    2 }, // Blue
+            { ProKeysUtilities.HIGH_D,          2 }, // Blue
+            { ProKeysUtilities.HIGH_D_SHARP,    2 }, // Blue
+            { ProKeysUtilities.HIGH_E,          2 }, // Blue
+            { ProKeysUtilities.HIGH_F,          2 }, // Out of range; distribute
+            { ProKeysUtilities.HIGH_F_SHARP,    0 }, // Out of range; distribute
+            { ProKeysUtilities.HIGH_G,          1 }, // Out of range; distribute
+            { ProKeysUtilities.HIGH_G_SHARP,    2 }, // Out of range; distribute
+            { ProKeysUtilities.HIGH_A,          0 }, // Out of range; distribute
+            { ProKeysUtilities.HIGH_A_SHARP,    1 }, // Out of range; distribute
+            { ProKeysUtilities.HIGH_B,          2 }, // Out of range; distribute
+            { ProKeysUtilities.HIGH_C,          0 }, // Out of range; distribute
+        };
+
+        private static Dictionary<int, int> LANE_INDEXES_D3_TO_F4 = new()
+        {
+            { ProKeysUtilities.LOW_C,           0 }, // Out of range; distribute
+            { ProKeysUtilities.LOW_C_SHARP,     1 }, // Out of range; distribute
+            { ProKeysUtilities.LOW_D,           0 }, // Red
+            { ProKeysUtilities.LOW_D_SHARP,     0 }, // Red
+            { ProKeysUtilities.LOW_E,           0 }, // Red
+            { ProKeysUtilities.LOW_F,           1 }, // Yellow
+            { ProKeysUtilities.LOW_F_SHARP,     1 }, // Yellow
+            { ProKeysUtilities.LOW_G,           1 }, // Yellow
+            { ProKeysUtilities.LOW_G_SHARP,     1 }, // Yellow
+            { ProKeysUtilities.LOW_A,           1 }, // Yellow
+            { ProKeysUtilities.LOW_A_SHARP,     1 }, // Yellow
+            { ProKeysUtilities.LOW_B,           1 }, // Yellow
+            { ProKeysUtilities.MIDDLE_C,        2 }, // Blue
+            { ProKeysUtilities.HIGH_C_SHARP,    2 }, // Blue
+            { ProKeysUtilities.HIGH_D,          2 }, // Blue
+            { ProKeysUtilities.HIGH_D_SHARP,    2 }, // Blue
+            { ProKeysUtilities.HIGH_E,          2 }, // Blue
+            { ProKeysUtilities.HIGH_F,          3 }, // Green
+            { ProKeysUtilities.HIGH_F_SHARP,    2 }, // Out of range; distribute
+            { ProKeysUtilities.HIGH_G,          3 }, // Out of range; distribute
+            { ProKeysUtilities.HIGH_G_SHARP,    0 }, // Out of range; distribute
+            { ProKeysUtilities.HIGH_A,          1 }, // Out of range; distribute
+            { ProKeysUtilities.HIGH_A_SHARP,    2 }, // Out of range; distribute
+            { ProKeysUtilities.HIGH_B,          3 }, // Out of range; distribute
+            { ProKeysUtilities.HIGH_C,          0 }, // Out of range; distribute
+        };
+
+        private static Dictionary<int, int> LANE_INDEXES_E3_TO_G4 = new()
+        {
+            { ProKeysUtilities.LOW_C,           0 }, // Out of range; distribute
+            { ProKeysUtilities.LOW_C_SHARP,     1 }, // Out of range; distribute
+            { ProKeysUtilities.LOW_D,           2 }, // Out of range; distribute
+            { ProKeysUtilities.LOW_D_SHARP,     3 }, // Out of range; distribute
+            { ProKeysUtilities.LOW_E,           0 }, // Red
+            { ProKeysUtilities.LOW_F,           1 }, // Yellow
+            { ProKeysUtilities.LOW_F_SHARP,     1 }, // Yellow
+            { ProKeysUtilities.LOW_G,           1 }, // Yellow
+            { ProKeysUtilities.LOW_G_SHARP,     1 }, // Yellow
+            { ProKeysUtilities.LOW_A,           1 }, // Yellow
+            { ProKeysUtilities.LOW_A_SHARP,     1 }, // Yellow
+            { ProKeysUtilities.LOW_B,           1 }, // Yellow
+            { ProKeysUtilities.MIDDLE_C,        2 }, // Blue
+            { ProKeysUtilities.HIGH_C_SHARP,    2 }, // Blue
+            { ProKeysUtilities.HIGH_D,          2 }, // Blue
+            { ProKeysUtilities.HIGH_D_SHARP,    2 }, // Blue
+            { ProKeysUtilities.HIGH_E,          2 }, // Blue
+            { ProKeysUtilities.HIGH_F,          3 }, // Green
+            { ProKeysUtilities.HIGH_F_SHARP,    3 }, // Green
+            { ProKeysUtilities.HIGH_G,          3 }, // Green
+            { ProKeysUtilities.HIGH_G_SHARP,    0 }, // Out of range; distribute
+            { ProKeysUtilities.HIGH_A,          1 }, // Out of range; distribute
+            { ProKeysUtilities.HIGH_A_SHARP,    2 }, // Out of range; distribute
+            { ProKeysUtilities.HIGH_B,          3 }, // Out of range; distribute
+            { ProKeysUtilities.HIGH_C,          0 }, // Out of range; distribute
+        };
+
+        private static Dictionary<int, int> LANE_INDEXES_F3_TO_A4 = new()
+        {
+            { ProKeysUtilities.LOW_C,           0 }, // Out of range; distribute
+            { ProKeysUtilities.LOW_C_SHARP,     1 }, // Out of range; distribute
+            { ProKeysUtilities.LOW_D,           2 }, // Out of range; distribute
+            { ProKeysUtilities.LOW_D_SHARP,     0 }, // Out of range; distribute
+            { ProKeysUtilities.LOW_E,           1 }, // Out of range; distribute
+            { ProKeysUtilities.LOW_F,           0 }, // Yellow
+            { ProKeysUtilities.LOW_F_SHARP,     0 }, // Yellow
+            { ProKeysUtilities.LOW_G,           0 }, // Yellow
+            { ProKeysUtilities.LOW_G_SHARP,     0 }, // Yellow
+            { ProKeysUtilities.LOW_A,           0 }, // Yellow
+            { ProKeysUtilities.LOW_A_SHARP,     0 }, // Yellow
+            { ProKeysUtilities.LOW_B,           0 }, // Yellow
+            { ProKeysUtilities.MIDDLE_C,        1 }, // Blue
+            { ProKeysUtilities.HIGH_C_SHARP,    1 }, // Blue
+            { ProKeysUtilities.HIGH_D,          1 }, // Blue
+            { ProKeysUtilities.HIGH_D_SHARP,    1 }, // Blue
+            { ProKeysUtilities.HIGH_E,          1 }, // Blue
+            { ProKeysUtilities.HIGH_F,          2 }, // Green
+            { ProKeysUtilities.HIGH_F_SHARP,    2 }, // Green
+            { ProKeysUtilities.HIGH_G,          2 }, // Green
+            { ProKeysUtilities.HIGH_G_SHARP,    2 }, // Green
+            { ProKeysUtilities.HIGH_A,          2 }, // Green
+            { ProKeysUtilities.HIGH_A_SHARP,    1 }, // Out of range; distribute
+            { ProKeysUtilities.HIGH_B,          2 }, // Out of range; distribute
+            { ProKeysUtilities.HIGH_C,          0 }, // Out of range; distribute
+        };
+
+        private static Dictionary<int, int> LANE_INDEXES_G3_TO_B4 = new()
+        {
+            { ProKeysUtilities.LOW_C,           0 }, // Out of range; distribute
+            { ProKeysUtilities.LOW_C_SHARP,     1 }, // Out of range; distribute
+            { ProKeysUtilities.LOW_D,           2 }, // Out of range; distribute
+            { ProKeysUtilities.LOW_D_SHARP,     0 }, // Out of range; distribute
+            { ProKeysUtilities.LOW_E,           1 }, // Out of range; distribute
+            { ProKeysUtilities.LOW_F,           2 }, // Out of range; distribute
+            { ProKeysUtilities.LOW_F_SHARP,     0 }, // Out of range; distribute
+            { ProKeysUtilities.LOW_G,           0 }, // Yellow
+            { ProKeysUtilities.LOW_G_SHARP,     0 }, // Yellow
+            { ProKeysUtilities.LOW_A,           0 }, // Yellow
+            { ProKeysUtilities.LOW_A_SHARP,     0 }, // Yellow
+            { ProKeysUtilities.LOW_B,           0 }, // Yellow
+            { ProKeysUtilities.MIDDLE_C,        1 }, // Blue
+            { ProKeysUtilities.HIGH_C_SHARP,    1 }, // Blue
+            { ProKeysUtilities.HIGH_D,          1 }, // Blue
+            { ProKeysUtilities.HIGH_D_SHARP,    1 }, // Blue
+            { ProKeysUtilities.HIGH_E,          1 }, // Blue
+            { ProKeysUtilities.HIGH_F,          2 }, // Green
+            { ProKeysUtilities.HIGH_F_SHARP,    2 }, // Green
+            { ProKeysUtilities.HIGH_G,          2 }, // Green
+            { ProKeysUtilities.HIGH_G_SHARP,    2 }, // Green
+            { ProKeysUtilities.HIGH_A,          2 }, // Green
+            { ProKeysUtilities.HIGH_A_SHARP,    2 }, // Green
+            { ProKeysUtilities.HIGH_B,          2 }, // Green
+            { ProKeysUtilities.HIGH_C,          0 }, // Out of range; distribute
+        };
+
+        private static Dictionary<int, int> LANE_INDEXES_A3_TO_C5 = new()
+        {
+            { ProKeysUtilities.LOW_C,           0 }, // Out of range; distribute
+            { ProKeysUtilities.LOW_C_SHARP,     1 }, // Out of range; distribute
+            { ProKeysUtilities.LOW_D,           2 }, // Out of range; distribute
+            { ProKeysUtilities.LOW_D_SHARP,     3 }, // Out of range; distribute
+            { ProKeysUtilities.LOW_E,           0 }, // Out of range; distribute
+            { ProKeysUtilities.LOW_F,           1 }, // Out of range; distribute
+            { ProKeysUtilities.LOW_F_SHARP,     2 }, // Out of range; distribute
+            { ProKeysUtilities.LOW_G,           3 }, // Out of range; distribute
+            { ProKeysUtilities.LOW_G_SHARP,     0 }, // Out of range; distribute
+            { ProKeysUtilities.LOW_A,           0 }, // Yellow
+            { ProKeysUtilities.LOW_A_SHARP,     0 }, // Yellow
+            { ProKeysUtilities.LOW_B,           0 }, // Yellow
+            { ProKeysUtilities.MIDDLE_C,        1 }, // Blue
+            { ProKeysUtilities.HIGH_C_SHARP,    1 }, // Blue
+            { ProKeysUtilities.HIGH_D,          1 }, // Blue
+            { ProKeysUtilities.HIGH_D_SHARP,    1 }, // Blue
+            { ProKeysUtilities.HIGH_E,          1 }, // Blue
+            { ProKeysUtilities.HIGH_F,          2 }, // Green
+            { ProKeysUtilities.HIGH_F_SHARP,    2 }, // Green
+            { ProKeysUtilities.HIGH_G,          2 }, // Green
+            { ProKeysUtilities.HIGH_G_SHARP,    2 }, // Green
+            { ProKeysUtilities.HIGH_A,          2 }, // Green
+            { ProKeysUtilities.HIGH_A_SHARP,    2 }, // Green
+            { ProKeysUtilities.HIGH_B,          2 }, // Green
+            { ProKeysUtilities.HIGH_C,          3 }, // Orange
+        };
     }
 }
