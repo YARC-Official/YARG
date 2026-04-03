@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using DG.Tweening;
@@ -728,7 +728,6 @@ namespace YARG.Playback
 
             var targetRewindTime = SongTime - seconds;
             var targetVisualTime = targetRewindTime + (VideoCalibration - AudioCalibration) * SongSpeed;
-            var targetResumeTime = overrideTargetTime ?? SongTime;
 
             _rewindTween = DOTween.To(() => VisualTime, x => VisualTime = x, targetVisualTime, 0.5f);
 
@@ -748,11 +747,7 @@ namespace YARG.Playback
             SetSongTime(targetRewindTime - (AudioCalibration * SongSpeed), 0);
             Resume();
 
-
-            var waitCanceled = await UniTask.WaitUntil(() => SongTime > targetResumeTime, cancellationToken: token)
-                .SuppressCancellationThrow();
-
-            if (waitCanceled || token.IsCancellationRequested)
+            if (token.IsCancellationRequested)
             {
                 return true;
             }

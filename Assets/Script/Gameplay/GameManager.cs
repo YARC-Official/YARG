@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using Cysharp.Threading.Tasks;
@@ -970,12 +970,18 @@ namespace YARG.Gameplay
                 targetTime = PauseInfo[^1].PauseTime;
             }
 
-            var canceled = await _songRunner.RewindAndResume(seconds, targetTime);
+            var (canceled, _) = await UniTask.WhenAll(
+                _songRunner.RewindAndResume(seconds, targetTime),
+                BackgroundManager.FadeOut()
+            );
 
             if (canceled)
             {
+                _ = BackgroundManager.SeekAndFadeIn(VisualTime);
                 return true;
             }
+
+            _  = BackgroundManager.SeekAndFadeIn(_songRunner.SongTime + Song.SongOffsetSeconds);
 
             foreach (var player in _players)
             {

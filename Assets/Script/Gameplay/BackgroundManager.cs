@@ -4,6 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using Cinemachine;
 using Cysharp.Threading.Tasks;
+using DG.Tweening;
 using UniHumanoid;
 using UnityEngine;
 using UnityEngine.Animations;
@@ -438,8 +439,7 @@ namespace YARG.Gameplay
                         enabled = false; // Temp disable
                         _videoPlayer.enabled = true;
 
-                        // Hack to ensure the video stays synced to the audio
-                        _videoSeeking = true; // Signaling flag; must come first
+                        _videoSeeking = true;
                         if (SettingsManager.Settings.WaitForSongVideo.Value)
                             GameManager.OverridePause();
 
@@ -459,6 +459,45 @@ namespace YARG.Gameplay
 
             enabled = !double.IsNaN(_videoEndTime);
             _videoSeeking = false;
+        }
+
+        public async UniTask<bool> FadeOut()
+        {
+            _backgroundDimmer.DOKill();
+            _backgroundDimmer.DOFade(1f, 0.25f);
+
+            return true;
+        }
+
+        public async UniTask SeekAndFadeIn(double songTime)
+        {
+            _backgroundDimmer.DOKill();
+            _backgroundDimmer.color = new Color(0, 0, 0, 1f);
+
+            var seekTask = PrepareVideoSeekTask();
+
+            SetTime(songTime);
+
+            await seekTask;
+
+            await _backgroundDimmer.DOFade(0f, 0.25f).AsyncWaitForCompletion().AsUniTask();
+        }
+
+        private async UniTask PrepareVideoSeekTask()
+        {
+            if (_type != BackgroundType.Video || _videoPlayer == null) return;
+
+            var completionSource = new UniTaskCompletionSource();
+
+            void OnSeekCompleted(VideoPlayer vp)
+            {
+                _videoPlayer.seekCompleted -= OnSeekCompleted;
+                completionSource.TrySetResult();
+            }
+
+            _videoPlayer.seekCompleted += OnSeekCompleted;
+
+            await completionSource.Task.Timeout(TimeSpan.FromSeconds(1)).SuppressCancellationThrow();
         }
 
         public void SetSpeed(float speed)
