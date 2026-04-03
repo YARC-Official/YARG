@@ -98,8 +98,8 @@ namespace YARG.Song
         private const string NEW_WAVE_RAW = "new_wave";
         private const string POP_DANCE_ELECTRONIC_RAW = "popdanceelectronic";
         private const string POP_ROCK_RAW = "poprock";
-        private const string RNB_SOUL_FUNK_RAW = "rbsoulfunk";
         private const string REGGAE_SKA_RAW = "reggaeska";
+        private const string RNB_SOUL_FUNK_RAW = "rbsoulfunk";
 
 
         // Overgenrelizer
