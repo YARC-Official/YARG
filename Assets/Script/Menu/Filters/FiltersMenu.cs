@@ -371,6 +371,10 @@ namespace YARG.Menu.Filters
             }
 
             AddGroup(container, navGroup, new FilterKey(FilterGroup.Length), Localize.Key("Menu.Filters.Length.Name"))?.AssignIndex(rowIndex++);
+
+            AddHeader(container, Localize.Key("Menu.Filters.ShowAnyOfHeader"));
+            rowIndex = 0;
+            AddGroup(container, navGroup, new FilterKey(FilterGroup.Playlist), Localize.Key("Menu.Filters.Playlists"))?.AssignIndex(rowIndex++);
         }
 
         private void AddHeader(Transform container, string text)
@@ -834,6 +838,65 @@ namespace YARG.Menu.Filters
                 StringTransformations.RemoveDiacritics(
                     RichTextUtils.StripRichTextTags(text)));
         }
+        
+        private const int FilterLabelWrapLimit = 30;
+
+        private static string WrapFilterLabel(string text)
+        {
+            if (string.IsNullOrWhiteSpace(text)) return text;
+
+            string plain = RichTextUtils.StripRichTextTags(text);
+            if (plain.Length <= FilterLabelWrapLimit) return text;
+
+            int breakVisibleIndex = FindLastWhitespaceIndex(plain, FilterLabelWrapLimit);
+            if (breakVisibleIndex < 0)
+                breakVisibleIndex = FilterLabelWrapLimit;
+
+            return InsertLineBreakAtVisibleIndex(text, breakVisibleIndex);
+        }
+
+        private static int FindLastWhitespaceIndex(string text, int maxIndex)
+        {
+            int last = -1;
+            int limit = Math.Min(text.Length - 1, maxIndex);
+            for (int i = 0; i <= limit; i++)
+            {
+                if (char.IsWhiteSpace(text[i]))
+                    last = i;
+            }
+            return last;
+        }
+
+        private static string InsertLineBreakAtVisibleIndex(string text, int visibleIndex)
+        {
+            int visibleCount = 0;
+            bool inTag = false;
+            for (int i = 0; i < text.Length; i++)
+            {
+                char c = text[i];
+                if (c == '<')
+                    inTag = true;
+                else if (c == '>' && inTag)
+                {
+                    inTag = false;
+                    continue;
+                }
+
+                if (inTag)
+                    continue;
+
+                if (visibleCount == visibleIndex)
+                {
+                    if (char.IsWhiteSpace(c)) return text.Remove(i, 1).Insert(i, "\n");
+
+                    return text.Insert(i, "\n");
+                }
+
+                visibleCount++;
+            }
+
+            return text;
+        }
 
         private IEnumerable<FilterDef> GetFilterDefs()
         {
@@ -867,14 +930,22 @@ namespace YARG.Menu.Filters
                 () => GetCountsFromCollections(
                     SongContainer.Sources,
                     key => SongSources.SourceToGameName(key.ToString())),
-                _sourceEnabled);
+                _sourceEnabled,
+                WrapFilterLabel);
+
+            yield return new FilterDef(
+                new FilterKey(FilterGroup.Playlist),
+                GetAllPlaylistsCached,
+                GetPlaylistCounts,
+                _playlistEnabled,
+                WrapFilterLabel);
 
             yield return new FilterDef(
                 new FilterKey(FilterGroup.Charter),
                 GetAllChartersCached,
                 () => GetCountsFromCollections(SongContainer.Charters, key => key.ToString()),
                 _charterEnabled,
-                WrapCharterLabel);
+                WrapFilterLabel);
 
             foreach (var context in GetIntensityFilterContexts())
             {
@@ -961,7 +1032,7 @@ namespace YARG.Menu.Filters
 
             var values = def.GetValues();
             var counts = def.GetCounts();
-            bool useDefaults = group != FilterGroup.Playlist;
+            bool useDefaults = def.Group != FilterGroup.Playlist;
             if (!useDefaults)
                 EnsureDefaults(def.Enabled, values, defaultValue: false);
             BuildOptions(
@@ -1066,7 +1137,7 @@ namespace YARG.Menu.Filters
             int selected = enabled.Count(kvp => kvp.Value);
 
             string text;
-            if (group == FilterGroup.Playlist)
+            if (key.Group == FilterGroup.Playlist)
             {
                 text = selected == 0
                     ? Localize.Key("Menu.Filters.None")
@@ -1177,7 +1248,7 @@ namespace YARG.Menu.Filters
             {
                 bool? rightPanelDefault = null;
                 if (_leftNavGroup?.SelectedBehaviour is FilterCategoryRow row)
-                    rightPanelDefault = IsShowAnyOfGroup(row.Filters) ? false : true;
+                    rightPanelDefault = IsShowAnyOfGroup(row.Group) ? false : true;
 
                 if (rightPanelDefault.HasValue)
                 {
@@ -1400,64 +1471,6 @@ namespace YARG.Menu.Filters
                     .OrderBy(s => RichTextUtils.StripRichTextTags(s), StringComparer.OrdinalIgnoreCase)
                     .ThenBy(s => s, StringComparer.OrdinalIgnoreCase)
                     .ToArray());
-        }
-        private const int CharterWrapLimit = 30;
-
-        private static string WrapCharterLabel(string text)
-        {
-            if (string.IsNullOrWhiteSpace(text)) return text;
-
-            string plain = RichTextUtils.StripRichTextTags(text);
-            if (plain.Length <= CharterWrapLimit) return text;
-
-            int breakVisibleIndex = FindLastWhitespaceIndex(plain, CharterWrapLimit);
-            if (breakVisibleIndex < 0)
-                breakVisibleIndex = CharterWrapLimit;
-
-            return InsertLineBreakAtVisibleIndex(text, breakVisibleIndex);
-        }
-
-        private static int FindLastWhitespaceIndex(string text, int maxIndex)
-        {
-            int last = -1;
-            int limit = Math.Min(text.Length - 1, maxIndex);
-            for (int i = 0; i <= limit; i++)
-            {
-                if (char.IsWhiteSpace(text[i]))
-                    last = i;
-            }
-            return last;
-        }
-
-        private static string InsertLineBreakAtVisibleIndex(string text, int visibleIndex)
-        {
-            int visibleCount = 0;
-            bool inTag = false;
-            for (int i = 0; i < text.Length; i++)
-            {
-                char c = text[i];
-                if (c == '<')
-                    inTag = true;
-                else if (c == '>' && inTag)
-                {
-                    inTag = false;
-                    continue;
-                }
-
-                if (inTag)
-                    continue;
-
-                if (visibleCount == visibleIndex)
-                {
-                    if (char.IsWhiteSpace(c)) return text.Remove(i, 1).Insert(i, "\n");
-
-                    return text.Insert(i, "\n");
-                }
-
-                visibleCount++;
-            }
-
-            return text;
         }
 #endregion
 
