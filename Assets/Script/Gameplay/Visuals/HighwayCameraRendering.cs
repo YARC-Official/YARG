@@ -177,6 +177,8 @@ namespace YARG.Gameplay.Visuals
                     minWorld = x - 5;
                 }
             }
+            // Account for vocals track orthogonal orientation
+            minWorld -= 20;
 
             _renderCamera.transform.position = _renderCamera.transform.position.WithX((minWorld + maxWorld) / 2);
             float safeAspect = Mathf.Max(_renderCamera.aspect, 0.001f);
