@@ -234,6 +234,8 @@ namespace YARG.Gameplay
             // Unsubscribe from other events
             SettingsManager.Settings.NoFailMode.OnChange -= OnNoFailModeChanged;
             EngineManager.OnSongFailed -= OnSongFailed;
+            EngineManager.OnCodaStart -= StartCoda;
+            EngineManager.OnCodaEnd -= EndCoda;
 
             //Restore stem volumes to their original state
             foreach (var (stem, state) in _stemStates)
@@ -985,7 +987,7 @@ namespace YARG.Gameplay
             return false;
         }
 
-        public void StartCoda()
+        public void StartCoda(CodaSection _)
         {
             if (_breBoxActive)
             {

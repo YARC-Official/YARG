@@ -3316,7 +3316,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Texture: {fileID: 1649514944}
+  m_Texture: {fileID: 1645788388}
   m_UVRect:
     serializedVersion: 2
     x: 0
@@ -7277,7 +7277,7 @@ Camera:
     serializedVersion: 2
     m_Bits: 511
   m_RenderingPath: -1
-  m_TargetTexture: {fileID: 1649514944}
+  m_TargetTexture: {fileID: 1645788388}
   m_TargetDisplay: 0
   m_TargetEye: 3
   m_HDR: 1
@@ -7614,7 +7614,7 @@ MonoBehaviour:
   m_ChildScaleWidth: 0
   m_ChildScaleHeight: 0
   m_ReverseArrangement: 0
---- !u!84 &1649514944
+--- !u!84 &1645788388
 RenderTexture:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}

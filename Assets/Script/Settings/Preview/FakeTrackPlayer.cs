@@ -32,8 +32,10 @@ namespace YARG.Settings.Preview
 
             public Dictionary<int, int> HighwayOrdering;
             public int LaneCount;
+            #nullable enable
             public GameObject? FretPrefab;
             public GameObject? KickFretPrefab;
+            #nullable restore
 
             public FretColorProviderFunc FretColorProvider;
             public NoteColorProviderFunc NoteColorProvider;

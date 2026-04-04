@@ -158,7 +158,7 @@ namespace YARG.Input
 
             if (!HasProfileWithKeyboard)
             {
-                _defaultKeyboardMenuBindings.Enable();
+                _defaultKeyboardMenuBindings?.Enable();
             }
         }
 

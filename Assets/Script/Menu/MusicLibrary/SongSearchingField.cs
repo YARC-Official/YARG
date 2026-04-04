@@ -24,11 +24,11 @@ namespace YARG.Menu.MusicLibrary
             foreach (var sort in EnumExtensions<SortAttribute>.Values)
             {
                 if (sort != SortAttribute.Artist_Album &&
-                    sort != SortAttribute.Playlist &&
                     sort != SortAttribute.SongLength &&
                     sort != SortAttribute.DateAdded &&
                     sort != SortAttribute.Playable &&
-                    sort != SortAttribute.Instrument)
+                    sort != SortAttribute.Instrument &&
+                    sort != SortAttribute.Folder)
                 {
                     _searchQueries.Add(sort, string.Empty);
                 }

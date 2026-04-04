@@ -144,18 +144,19 @@ namespace YARG.Gameplay.HUD
             _breBox.sprite = sprite;
             _breFullText.colorGradientPreset = gradient;
 
-            _breFullText.text = Localize.KeyFormat("Gameplay.Solo.PointsResult", breBonus);
-
             // Move the box so we aren't obscuring strong finish/full combo text
             _breBoxCanvasGroup.transform.DOMoveY(Screen.height / 2, 0.25f);
 
             // Go away sadly if BRE failed or triumphantly engorge if successful
             if (!_manager.CodaSuccess)
             {
-                _breBoxCanvasGroup.transform.DOScale(0.01f, 0.25f);
+                _breFullText.text = Localize.KeyFormat("Gameplay.Solo.PointsResult", 0);
+                yield return new WaitForSeconds(0.5f);
+                _breBoxCanvasGroup.transform.DOScale(0.01f, 1.5f);
             }
             else
             {
+                _breFullText.text = Localize.KeyFormat("Gameplay.Solo.PointsResult", breBonus);
                 _breBoxCanvasGroup.transform.DOScale(1.5f, 0.25f);
                 yield return new WaitForSeconds(2f);
             }

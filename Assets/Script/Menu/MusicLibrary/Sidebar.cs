@@ -243,7 +243,7 @@ namespace YARG.Menu.MusicLibrary
             SetWrappedText(_charterContainer, _charter, songEntry.Charter, ref _charterBaseFontSize);
 
             _genreContainer.SetActive(true); // Empty genres are rendered as "Unknown Genre", so this should always be active
-            _genre.text = CurrentCulture.TextInfo.ToTitleCase(songEntry.Genre) + (songEntry.Subgenre == string.Empty ? "" : ",");
+            _genre.text = songEntry.Genre + (songEntry.Subgenre == string.Empty ? "" : ",");
             _subgenre.text = songEntry.Subgenre;
             // _source.text = SongSources.SourceToGameName(songEntry.Source);
             // _charter.text = songEntry.Charter;

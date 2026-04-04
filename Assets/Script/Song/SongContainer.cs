@@ -1,4 +1,4 @@
-using Cysharp.Threading.Tasks;
+﻿using Cysharp.Threading.Tasks;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -30,7 +30,7 @@ namespace YARG.Song
         Subgenre,
         Year,
         Charter,
-        Playlist,
+        Folder,
         Source,
         SongLength,
         DateAdded,
@@ -161,9 +161,13 @@ namespace YARG.Song
                 await UniTask.NextFrame();
             }
 
-            if (SettingsManager.Settings.StandardizeGenres.Value && !GlobalVariables.OfflineMode)
+            if (SettingsManager.Settings.Genrelizer.Value is GenrelizerMode.Genrelize && !GlobalVariables.OfflineMode)
             {
-                Genrelizer.GenrelizeAll(_songCache);
+                Genrelizer.GenrelizeAll(_songCache, false);
+            }
+            else if (SettingsManager.Settings.Genrelizer.Value is GenrelizerMode.Overgenrelize && !GlobalVariables.OfflineMode)
+            {
+                Genrelizer.GenrelizeAll(_songCache, true);
             }
             else
             {
@@ -189,7 +193,7 @@ namespace YARG.Song
                 SortAttribute.Subgenre => _sortSubgenres,
                 SortAttribute.Year => _sortYears,
                 SortAttribute.Charter => _sortCharters,
-                SortAttribute.Playlist => _sortPlaylists,
+                SortAttribute.Folder => _sortPlaylists,
                 SortAttribute.Source => _sortSources,
                 SortAttribute.Artist_Album => _sortArtistAlbums,
                 SortAttribute.SongLength => _sortSongLengths,
@@ -527,7 +531,7 @@ namespace YARG.Song
             _starsCacheValid = true;
             return _sortStars;
         }
-        
+
         private static SongCategory[] GetRandomSort()
         {
             var shuffled = new List<SongEntry>(_songs);

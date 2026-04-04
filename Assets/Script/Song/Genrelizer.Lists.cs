@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using YARG.Core.Song;
+using YARG.Localization;
 
 namespace YARG.Song
 {
@@ -77,6 +79,7 @@ namespace YARG.Song
         private const string SYNTHPOP_ELECTROPOP = "synthpop/electropop";
         private const string TECHNO = "techno";
         private const string THRASH_SPEED_METAL = "thrash/speed metal";
+        private const string TRADITIONAL = "traditional";
         private const string TRANCE = "trance";
         private const string TRAP = "trap";
         private const string WORLD = "world";
@@ -87,10 +90,36 @@ namespace YARG.Song
         private const string POP_DANCE_ELECTRONIC = "pop/dance/electronic";
         private const string PROG = "prog";
         private const string REGGAE_SKA = "reggae/ska";
-        private const string REGGAE_SKA_RAW = "reggaeska"; // As rendered in raw CONs
         private const string URBAN = "urban";
 
+        // Raw DTA form
+        private const string HIP_HOP_RAP_RAW = "hiphoprap";
+        private const string INDIE_ROCK_RAW = "indierock";
+        private const string NEW_WAVE_RAW = "new_wave";
+        private const string POP_DANCE_ELECTRONIC_RAW = "popdanceelectronic";
+        private const string POP_ROCK_RAW = "poprock";
+        private const string REGGAE_SKA_RAW = "reggaeska";
+        private const string RNB_SOUL_FUNK_RAW = "rbsoulfunk";
+
+
+        // Overgenrelizer
+        private static SortString OVER_ALTERNATIVE = new(Localize.Key("Menu.MusicLibrary.Genre.Broad.Alternative"));
+        private static SortString OVER_COUNTRY_FOLK = new(Localize.Key("Menu.MusicLibrary.Genre.Broad.CountryFolk"));
+        private static SortString OVER_CLASSICAL_TRADITIONAL = new(Localize.Key("Menu.MusicLibrary.Genre.Broad.ClassicalTraditional"));
+        private static SortString OVER_DANCE_ELECTRONIC = new(Localize.Key("Menu.MusicLibrary.Genre.Broad.DanceElectronic"));
+        private static SortString OVER_HIP_HOP = new(Localize.Key("Menu.MusicLibrary.Genre.Broad.HipHop"));
+        private static SortString OVER_JAZZ_BLUES = new(Localize.Key("Menu.MusicLibrary.Genre.Broad.JazzBlues"));
+        private static SortString OVER_METAL = new(Localize.Key("Menu.MusicLibrary.Genre.Broad.Metal"));
+        private static SortString OVER_POP = new(Localize.Key("Menu.MusicLibrary.Genre.Broad.Pop"));
+        private static SortString OVER_PUNK_SCENE_CORE = new(Localize.Key("Menu.MusicLibrary.Genre.Broad.PunkSceneCore"));
+        private static SortString OVER_RNB_SOUL_FUNK = new(Localize.Key("Menu.MusicLibrary.Genre.Broad.RnbSoulFunk"));
+        private static SortString OVER_ROCK = new(Localize.Key("Menu.MusicLibrary.Genre.Broad.Rock"));
+        private static SortString OVER_WORLD = new(Localize.Key("Menu.MusicLibrary.Genre.Broad.World"));
+        private static SortString OVER_OTHER = new(Localize.Key("Menu.MusicLibrary.Genre.Broad.Other"));
+
+
         
+
 
 
         // Mapping from official genre name to localization key
@@ -164,6 +193,7 @@ namespace YARG.Song
             { SYNTHPOP_ELECTROPOP, "SynthpopElectropop"},
             { TECHNO, "Techno"},
             { THRASH_SPEED_METAL, "ThrashSpeedMetal"},
+            { TRADITIONAL, "Traditional" },
             { TRANCE, "Trance"},
             { TRAP, "Trap"},
             { WORLD, "World"},
@@ -209,6 +239,19 @@ namespace YARG.Song
             { (HIP_HOP_RAP, "triphop"),                 (HIP_HOP_RAP, "Trip Hop") },
             //(HIP_HOP_RAP, "underground rap")          unchanged
             { (HIP_HOP_RAP, "undergroundrap"),          (HIP_HOP_RAP, "Underground Rap") },
+            //(HIP_HOP_RAP_RAW, "alternative rap")      unchanged
+            { (HIP_HOP_RAP_RAW, "alternativerap"),      (HIP_HOP_RAP, "Alternative Rap") },
+            { (HIP_HOP_RAP_RAW, "gangsta"),             (HIP_HOP_RAP, "Gangsta Rap") },
+            //(HIP_HOP_RAP_RAW, "hardcore rap")         unchanged
+            { (HIP_HOP_RAP_RAW, "hardcorerap"),         (HIP_HOP_RAP, "Hardcore Rap") },
+            { (HIP_HOP_RAP_RAW, "old school hip hop"),  (HIP_HOP_RAP, "Oldschool Hip-Hop") },
+            { (HIP_HOP_RAP_RAW, "oldschoolhiphop"),     (HIP_HOP_RAP, "Oldschool Hip-Hop") },
+            { (HIP_HOP_RAP_RAW, "other"),               (HIP_HOP_RAP, null) },
+            //(HIP_HOP_RAP_RAW, "rap")                  unchanged
+            //(HIP_HOP_RAP_RAW, "trip hop")             unchanged
+            { (HIP_HOP_RAP_RAW, "triphop"),             (HIP_HOP_RAP, "Trip Hop") },
+            //(HIP_HOP_RAP_RAW, "underground rap")      unchanged
+            { (HIP_HOP_RAP_RAW, "undergroundrap"),      (HIP_HOP_RAP, "Underground Rap") },
 
             //(INDIE_ROCK, "lo-fi")                     unchanged
             { (INDIE_ROCK, "lofi"),                     (INDIE_ROCK, "Lo-Fi") },
@@ -218,6 +261,14 @@ namespace YARG.Song
             { (INDIE_ROCK, "other"),                    (INDIE_ROCK, null) },
             //(INDIE_ROCK, "post rock")                 unchanged
             { (INDIE_ROCK, "postrock"),                 (INDIE_ROCK, "Post Rock") },
+            //(INDIE_ROCK_RAW, "lo-fi")                     unchanged
+            { (INDIE_ROCK_RAW, "lofi"),                     (INDIE_ROCK, "Lo-Fi") },
+            { (INDIE_ROCK_RAW, "math rock"),                (MATH_ROCK, null) },
+            { (INDIE_ROCK_RAW, "mathrock"),                 (MATH_ROCK, null) },
+            { (INDIE_ROCK_RAW, "noise"),                    (NOISE, "Noise Rock") },
+            { (INDIE_ROCK_RAW, "other"),                    (INDIE_ROCK, null) },
+            //(INDIE_ROCK_RAW, "post rock")                 unchanged
+            { (INDIE_ROCK_RAW, "postrock"),                 (INDIE_ROCK, "Post Rock") },
 
             //(JAZZ, "acid jazz")                       unchanged
             { (JAZZ, "acidjazz"),                       (JAZZ, "Acid Jazz") },
@@ -245,6 +296,11 @@ namespace YARG.Song
             //(NEW_WAVE, "electroclash)                 unchanged
             { (NEW_WAVE, "synthpop"),                   (SYNTHPOP_ELECTROPOP, "Synthpop") },
             { (NEW_WAVE, "other"),                      (NEW_WAVE, null) },
+            { (NEW_WAVE_RAW, "dark wave"),              (NEW_WAVE, "Darkwave") },
+            //(NEW_WAVE_RAW, "darkwave"),               unchanged
+            //(NEW_WAVE_RAW, "electroclash)             unchanged
+            { (NEW_WAVE_RAW, "synthpop"),               (SYNTHPOP_ELECTROPOP, "Synthpop") },
+            { (NEW_WAVE_RAW, "other"),                  (NEW_WAVE, null) },
 
             { (POP_DANCE_ELECTRONIC, "ambient"),        (AMBIENT_DRONE, "Ambient") },
             { (POP_DANCE_ELECTRONIC, "breakbeat"),      (DNB_BREAKBEAT_JUNGLE, "Breakbeat") },
@@ -263,6 +319,23 @@ namespace YARG.Song
             { (POP_DANCE_ELECTRONIC, "techno"),         (TECHNO, "") },
             { (POP_DANCE_ELECTRONIC, "trance"),         (TRANCE, "") },
             { (POP_DANCE_ELECTRONIC, "other"),          (ELECTRONIC, null) },
+            { (POP_DANCE_ELECTRONIC_RAW, "ambient"),        (AMBIENT_DRONE, "Ambient") },
+            { (POP_DANCE_ELECTRONIC_RAW, "breakbeat"),      (DNB_BREAKBEAT_JUNGLE, "Breakbeat") },
+            { (POP_DANCE_ELECTRONIC_RAW, "chiptune"),       (CHIPTUNE, null) },
+            { (POP_DANCE_ELECTRONIC_RAW, "dance"),          (DANCE, null) },
+            { (POP_DANCE_ELECTRONIC_RAW, "downtempo"),      (ELECTRONIC, "Downtempo") },
+            { (POP_DANCE_ELECTRONIC_RAW, "dub"),            (DUBSTEP, null) },
+            { (POP_DANCE_ELECTRONIC_RAW, "drum and bass"),  (DNB_BREAKBEAT_JUNGLE, "Drum and Bass") },
+            { (POP_DANCE_ELECTRONIC_RAW, "drumandbass"),    (DNB_BREAKBEAT_JUNGLE, "Drum and Bass") },
+            { (POP_DANCE_ELECTRONIC_RAW, "electronica"),    (ELECTRONIC, "Electronica") },
+            { (POP_DANCE_ELECTRONIC_RAW, "garage"),         (ELECTRONIC, "Garage") },
+            { (POP_DANCE_ELECTRONIC_RAW, "hardcore dance"), (HARDCORE_EDM, "Hardcore Dance") },
+            { (POP_DANCE_ELECTRONIC_RAW, "hardcoredance"),  (HARDCORE_EDM, "Hardcore Dance") },
+            { (POP_DANCE_ELECTRONIC_RAW, "house"),          (HOUSE, null) },
+            { (POP_DANCE_ELECTRONIC_RAW, "industrial"),     (INDUSTRIAL, null) },
+            { (POP_DANCE_ELECTRONIC_RAW, "techno"),         (TECHNO, "") },
+            { (POP_DANCE_ELECTRONIC_RAW, "trance"),         (TRANCE, "") },
+            { (POP_DANCE_ELECTRONIC_RAW, "other"),          (ELECTRONIC, null) },
 
             { (POP_ROCK, "contemporary"),               (POP_ROCK, "Contemporary Pop-Rock") },
             { (POP_ROCK, "disco"),                      (DISCO, null) },
@@ -275,12 +348,23 @@ namespace YARG.Song
             { (POP_ROCK, "soul"),                       (RNB_SOUL_FUNK, "Soul") },
             { (POP_ROCK, "teen"),                       (POP, "Teen Pop") },
             { (POP_ROCK, "other"),                      (POP_ROCK, null) },
+            { (POP_ROCK_RAW, "contemporary"),               (POP_ROCK, "Contemporary Pop-Rock") },
+            { (POP_ROCK_RAW, "disco"),                      (DISCO, null) },
+            { (POP_ROCK_RAW, "motown"),                     (RNB_SOUL_FUNK, "Motown") },
+            { (POP_ROCK_RAW, "pop"),                        (POP, "PopRock") },
+            { (POP_ROCK_RAW, "rhythm and blues"),           (RNB_SOUL_FUNK, "Rhythm and Blues") },
+            { (POP_ROCK_RAW, "rhythmandblues"),             (RNB_SOUL_FUNK, "Rhythm and Blues") },
+            //(POP_ROCK_RAW, "soft rock")                   unchanged
+            { (POP_ROCK_RAW, "softrock"),                   (POP_ROCK, "Soft Rock") },
+            { (POP_ROCK_RAW, "soul"),                       (RNB_SOUL_FUNK, "Soul") },
+            { (POP_ROCK_RAW, "teen"),                       (POP, "Teen Pop") },
+            { (POP_ROCK_RAW, "other"),                      (POP_ROCK, null) },
 
             { (PROG, "prog rock"),                      (PROGRESSIVE, null) }, // Without other Prog subgenres, this is effectively meaningless
             { (PROG, "progrock"),                       (PROGRESSIVE, null) },
 
-            { (PUNK, "alternative"),                    (PUNK, "Alternative Punk Rock") },
-            { (PUNK, "classic"),                        (PUNK, "Classic Punk Rock") },
+            { (PUNK, "alternative"),                    (PUNK, "Alternative Punk") },
+            { (PUNK, "classic"),                        (PUNK, "Classic Punk") },
             { (PUNK, "garage"),                         (PUNK, "Garage Punk") },
             { (PUNK, "hardcore"),                       (PUNK, "Hardcore Punk") },
             { (PUNK, "pop"),                            (POP_PUNK, null) },
@@ -292,18 +376,30 @@ namespace YARG.Song
             { (RNB_SOUL_FUNK, "other"),                 (RNB_SOUL_FUNK, null) },
             //(RNB_SOUL_FUNK, "rhythm and blues")       unchanged
             //(RNB_SOUL_FUNK, "soul")                   unchanged
+            { (RNB_SOUL_FUNK_RAW, "disco"),             (DISCO, null) },
+            //(RNB_SOUL_FUNK_RAW, "funk")               unchanged
+            //(RNB_SOUL_FUNK_RAW, "motown")             unchanged
+            { (RNB_SOUL_FUNK_RAW, "other"),             (RNB_SOUL_FUNK, null) },
+            { (RNB_SOUL_FUNK_RAW, "rhythmandblues"),    (RNB_SOUL_FUNK, "Rhythm and Blues") },
+            //(RNB_SOUL_FUNK_RAW, "soul")               unchanged
 
             { (REGGAE_SKA, "reggae"),                   (REGGAE, null) },
             { (REGGAE_SKA, "ska"),                      (SKA, null) },
             { (REGGAE_SKA, "other"),                    (SKA, null) }, // Belt & suspenders; should've been caught earlier as a special case
+            { (REGGAE_SKA_RAW, "reggae"),               (REGGAE, null) },
+            { (REGGAE_SKA_RAW, "ska"),                  (SKA, null) },
+            { (REGGAE_SKA_RAW, "other"),                (SKA, null) }, // Belt & suspenders; should've been caught earlier as a special case
 
-            { (ROCK, "arena"),                          (ROCK, "Arena Rock") },
+            { (ROCK, "arena"),                          (HARD_ROCK, "Arena Rock") },
             { (ROCK, "blues"),                          (ROCK, "Blues Rock") },
             { (ROCK, "folk rock"),                      (FOLK, "Folk Rock") },
             { (ROCK, "folkrock"),                       (FOLK, "Folk Rock") },
             { (ROCK, "funk"),                           (RNB_SOUL_FUNK, "Funk") },
             { (ROCK, "garage"),                         (ROCK, "Garage Rock") },
-            { (ROCK, "psychedelic"),                    (ROCK, "Psychedelic Rock") },
+            { (ROCK, "hard rock"),                      (HARD_ROCK, null) },
+            { (ROCK, "hardrock"),                       (HARD_ROCK, null) },
+            { (ROCK, "psychadelic"),                    (PSYCHEDELIC, "Psychedelic Rock") },
+            { (ROCK, "psychedelic"),                    (PSYCHEDELIC, "Psychedelic Rock") },
             { (ROCK, "reggae"),                         (REGGAE, null) },
             { (ROCK, "rockabilly"),                     (ROCK_AND_ROLL, "Rockabilly") },
             { (ROCK, "rock and roll"),                  (ROCK_AND_ROLL, null) },
@@ -333,6 +429,7 @@ namespace YARG.Song
             { (URBAN, "rap"),                           (HIP_HOP_RAP, "Rap") },
             { (URBAN, "trip hop"),                      (HIP_HOP_RAP, "Trip Hop") },
             { (URBAN, "underground rap"),               (HIP_HOP_RAP, "Underground Rap") },
+            { (URBAN, "undergroundrap"),                (HIP_HOP_RAP, "Underground Rap") },
             { (URBAN, "other"),                         (OTHER, "Urban") }, // Urban is deprecated as a genre
 
             //(OTHER, "a capella")                      unchanged

@@ -222,7 +222,9 @@ namespace YARG.Settings.Metadata
         }
 
         // TODO: Refactor the AssetBundle loading such that BackgroundManager and this can share code
+#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
         private static async UniTask<AssetBundle> LoadMetalShaders(AssetBundle bundle, GameObject bg)
+#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
         {
 #if UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX
             AssetBundle shaderBundle = null;

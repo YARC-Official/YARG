@@ -3,6 +3,7 @@ using Cysharp.Text;
 using UnityEngine;
 using YARG.Core.Game;
 using YARG.Core.Song;
+using YARG.Menu.Persistent;
 using YARG.Player;
 using YARG.Playlists;
 using YARG.Scores;
@@ -174,12 +175,8 @@ namespace YARG.Menu.MusicLibrary
             {
                 PlaylistContainer.FavoritesPlaylist.RemoveSong(SongEntry);
 
-                // If we are in the favorites menu, then update the playlist
-                // to remove the song that was just removed.
-                if (_musicLibrary.SelectedPlaylist == PlaylistContainer.FavoritesPlaylist)
-                {
-                    _musicLibrary.RefreshAndReselect();
-                }
+                // Refresh the view to update the filter results
+                _musicLibrary.RefreshAndReselect();
             }
 
             _musicLibrary.RefreshSidebar();
@@ -194,10 +191,8 @@ namespace YARG.Menu.MusicLibrary
         {
             playlist.RemoveSong(SongEntry);
 
-            if (_musicLibrary.SelectedPlaylist == playlist)
-            {
-                _musicLibrary.RefreshAndReselect();
-            }
+            // Refresh the view to update the filter results
+            _musicLibrary.RefreshAndReselect();
         }
 
         private void FetchHighScores()

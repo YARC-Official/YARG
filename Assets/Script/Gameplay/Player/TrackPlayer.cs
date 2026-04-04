@@ -361,7 +361,7 @@ namespace YARG.Gameplay.Player
         protected void ResetNoteCounters()
         {
             NoteIndex = 0;
-            TotalNotes = Notes.Sum(i => Engine.GetNumberOfNotes(i));
+            TotalNotes = Notes.Where(n => !n.IsBigRockEnding).Sum(i => Engine.GetNumberOfNotes(i));
         }
 
         public override void ResetPracticeSection()
@@ -1064,12 +1064,12 @@ namespace YARG.Gameplay.Player
         {
             CurrentCoda = coda;
             CurrentCoda.SetLaneIndexes(GetLaneIndexes());
-            GameManager.StartCoda();
+            SetStemMuteState(false);
         }
 
         protected virtual void OnCodaEnd(CodaSection coda)
         {
-            GameManager.EndCoda(coda);
+
         }
 
         protected virtual void OnCountdownChange(double countdownLength, double endTime)

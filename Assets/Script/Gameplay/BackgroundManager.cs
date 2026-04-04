@@ -177,7 +177,7 @@ namespace YARG.Gameplay
             switch (_type)
             {
                 case BackgroundType.Yarground:
-                    LoadYarground(result);
+                    await LoadYarground(result);
                     break;
                 case BackgroundType.Video:
                     LoadVideoBackground(result);
@@ -190,7 +190,7 @@ namespace YARG.Gameplay
             }
         }
 
-        private async UniTaskVoid LoadYarground(BackgroundResult result)
+        private async UniTask LoadYarground(BackgroundResult result)
         {
             var bundle = AssetBundle.LoadFromStream(result.Stream);
             AssetBundle shaderBundle = null;
@@ -576,7 +576,9 @@ namespace YARG.Gameplay
             SetLayer(newCharacter, layerIndex);
         }
 
+#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
         private async UniTask<AssetBundle> LoadMetalShaders(AssetBundle bundle, GameObject bg, ExportType type)
+#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
         {
 #if UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX
             AssetBundle shaderBundle = null;

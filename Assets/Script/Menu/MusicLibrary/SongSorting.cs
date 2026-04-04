@@ -406,6 +406,7 @@ namespace YARG.Menu.MusicLibrary
             }
         }
 
+        #nullable enable
         private static void SortByInstruments(SongCache cache, SortedSongs sorted)
         {
             Parallel.ForEach(EnumExtensions<Instrument>.Values, instrument =>
@@ -438,5 +439,6 @@ namespace YARG.Menu.MusicLibrary
                 }
             });
         }
+        #nullable restore
     }
 }

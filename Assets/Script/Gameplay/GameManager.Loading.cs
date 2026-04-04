@@ -248,6 +248,9 @@ namespace YARG.Gameplay
                 SettingsManager.Settings.AutoCalibrateVideo.Value = false;
             }
 
+            EngineManager.OnCodaStart += StartCoda;
+            EngineManager.OnCodaEnd += EndCoda;
+
             // Log constant values
             YargLogger.LogFormatDebug("Audio calibration: {0}, video calibration: {1}, song offset: {2}",
                 _songRunner.AudioCalibration, _songRunner.VideoCalibration, _songRunner.SongOffset);

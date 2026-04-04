@@ -532,7 +532,7 @@ namespace YARG.Menu.ScoreScreen
             label.font = _averageOffset.font;
             label.fontSharedMaterial = _averageOffset.fontSharedMaterial;
             label.color = _averageOffset.color;
-            label.enableWordWrapping = false;
+            label.textWrappingMode = TextWrappingModes.NoWrap;
             label.richText = true;
             label.alignment = alignment;
             label.raycastTarget = false;

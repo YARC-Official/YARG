@@ -251,6 +251,27 @@ public override bool ShouldUpdateInputsOnResume => true;
 
         protected override void UpdateVisuals(double visualTime)
         {
+            if (Engine.IsCodaActive)
+            {
+                // Open lane requires stupidity
+                if (UsingOpenLane)
+                {
+                    for (int i = 0; i < (int)FiveLaneKeysAction.OrangeKey + 1; i++)
+                    {
+                        BRELanes[i + 1].SetEmissionColor(CurrentCoda.GetNormalizedTimeSinceLastHit(i, visualTime));
+                    }
+
+                    BRELanes[0].SetEmissionColor(CurrentCoda.GetNormalizedTimeSinceLastHit(6, visualTime));
+                }
+                else
+                {
+                    for (int i = 0; i < BRELanes.Length; i++)
+                    {
+                        BRELanes[i].SetEmissionColor(CurrentCoda.GetNormalizedTimeSinceLastHit(i, visualTime));
+                    }
+                }
+            }
+
             base.UpdateVisuals(visualTime);
             UpdateRangeShift(visualTime);
             UpdateFretArray();
@@ -506,7 +527,7 @@ public override bool ShouldUpdateInputsOnResume => true;
         {
             base.OnNoteMissed(index, chordParent);
 
-            (NotePool.GetByKey(chordParent) as FiveLaneKeysNoteElement).MissNote();
+            (NotePool.GetByKey(chordParent) as FiveLaneKeysNoteElement)?.MissNote();
         }
 
         private void OnOverhit(int key)
@@ -822,12 +843,12 @@ public override bool ShouldUpdateInputsOnResume => true;
             {
                 return new Dictionary<int, int>
                 {
-                    { (int) FiveLaneKeysAction.GreenKey, 1 },
-                    { (int) FiveLaneKeysAction.RedKey, 2 },
-                    { (int) FiveLaneKeysAction.YellowKey, 3 },
-                    { (int) FiveLaneKeysAction.BlueKey, 4 },
-                    { (int) FiveLaneKeysAction.OrangeKey, 5 },
-                    { (int) FiveLaneKeysAction.OpenNote, 0 }
+                    { (int) FiveLaneKeysAction.GreenKey, 0 },
+                    { (int) FiveLaneKeysAction.RedKey, 1 },
+                    { (int) FiveLaneKeysAction.YellowKey, 2 },
+                    { (int) FiveLaneKeysAction.BlueKey, 3 },
+                    { (int) FiveLaneKeysAction.OrangeKey, 4 },
+                    { (int) FiveLaneKeysAction.OpenNote, 5 }
                 };
             }
 
