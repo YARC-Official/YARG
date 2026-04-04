@@ -49,11 +49,18 @@ namespace YARG.Gameplay
         [SerializeField]
         private RawImage _venueOutput;
 
+        [SerializeField]
+        private Image _venueFadeOverlay;
+
         private BackgroundType _type;
         private VenueSource _source;
 
         private bool _videoStarted = false;
         private bool _videoSeeking = false;
+
+        private const float FADE_DURATION = 0.5f;
+
+        private float YARGROUND_OFFSET = 50f;
 
         // These values are relative to the video, not to song time!
         // A negative start time will delay when the video starts, a positive one will set the video position
@@ -123,7 +130,7 @@ namespace YARG.Gameplay
 
                 _usingEditorVenue = true;
 
-                _venueOutput.gameObject.SetActive(true);
+                ShowVenue();
 
                 var editorRenderers = editorBg.GetComponentsInChildren<Renderer>(true);
 
@@ -170,7 +177,7 @@ namespace YARG.Gameplay
             switch (_type)
             {
                 case BackgroundType.Yarground:
-                    LoadYarground(result);
+                    await LoadYarground(result);
                     break;
                 case BackgroundType.Video:
                     LoadVideoBackground(result);
@@ -183,12 +190,12 @@ namespace YARG.Gameplay
             }
         }
 
-        private async UniTaskVoid LoadYarground(BackgroundResult result)
+        private async UniTask LoadYarground(BackgroundResult result)
         {
             var bundle = AssetBundle.LoadFromStream(result.Stream);
             AssetBundle shaderBundle = null;
 
-            _venueOutput.gameObject.SetActive(true);
+            ShowVenue();
             // KEEP THIS PATH LOWERCASE
             // Breaks things for other platforms, because Unity
             var bg = (GameObject) await bundle.LoadAssetAsync<GameObject>(
@@ -218,6 +225,9 @@ namespace YARG.Gameplay
             bundleBackgroundManager.LimitVenueLights(bgInstance);
 
             _bundleBackgroundManager = bundleBackgroundManager;
+
+            // Position venue as close to origin as is conveniently possible without wrecking scene view
+            SetYargroundOrigin(bgInstance);
 
             // Destroy the default camera (venue has its own)
             Destroy(_videoPlayer.targetCamera.gameObject);
@@ -264,6 +274,25 @@ namespace YARG.Gameplay
                     Destroy(songTex);
                     return;
             }
+        }
+
+        private void ShowVenue()
+        {
+            _venueOutput.gameObject.SetActive(true);
+            FadeInVenue().Forget();
+        }
+
+        private async UniTaskVoid FadeInVenue()
+        {
+            // Wait for the venue to be rendered, otherwise we will see a gray screen
+            var token = this.GetCancellationTokenOnDestroy();
+            await UniTask
+                .WaitUntil(
+                    () => VenueCameraRenderer.IsRendered,
+                    cancellationToken: token
+                )
+                .SuppressCancellationThrow();
+            _venueFadeOverlay.CrossFadeAlpha(0f, FADE_DURATION, true);
         }
 
         private void LoadVideoBackground(BackgroundResult bg)
@@ -547,7 +576,9 @@ namespace YARG.Gameplay
             SetLayer(newCharacter, layerIndex);
         }
 
+#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
         private async UniTask<AssetBundle> LoadMetalShaders(AssetBundle bundle, GameObject bg, ExportType type)
+#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
         {
 #if UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX
             AssetBundle shaderBundle = null;
@@ -564,6 +595,13 @@ namespace YARG.Gameplay
             var shaderBundleData = (TextAsset)await bundle.LoadAssetAsync<TextAsset>(
                 shaderBundleName
             );
+
+            if (shaderBundleData == null)
+            {
+                shaderBundleData = (TextAsset)await bundle.LoadAssetAsync<TextAsset>(
+                    bundle.name + BundleBackgroundManager.BUNDLE_OSX_SUFFIX
+                );
+            }
 
             if (shaderBundleData != null && shaderBundleData.bytes.Length > 0)
             {
@@ -711,6 +749,27 @@ namespace YARG.Gameplay
             {
                 SetLayer(child.gameObject, layer);
             }
+        }
+
+        private void SetYargroundOrigin(GameObject venueRoot)
+        {
+            // Calculate bounds for everything in venueRoot
+            venueRoot.transform.localPosition = Vector3.zero;
+            var bounds = new Bounds(Vector3.zero, Vector3.one);
+            var children = venueRoot.GetComponentsInChildren<Renderer>(true);
+            foreach (var child in children)
+            {
+                bounds.Encapsulate(child.bounds);
+            }
+
+            var sizeX = bounds.size.x;
+            var sizeZ = bounds.size.z;
+
+            var offsetX = (sizeX * 0.5f) + YARGROUND_OFFSET;
+            var offsetZ = (sizeZ * 0.5f) + YARGROUND_OFFSET;
+
+            // New origin places maxZ and maxX at -50
+            venueRoot.transform.position = new Vector3(-offsetX, 0, -offsetZ);
         }
 
         // TODO: Move this to Genrelizer or sth and implement

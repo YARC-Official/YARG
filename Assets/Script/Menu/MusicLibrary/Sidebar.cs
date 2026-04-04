@@ -137,8 +137,11 @@ namespace YARG.Menu.MusicLibrary
 
         public void RefreshFavoriteState()
         {
-            _favoriteButtonImage.color = _musicLibraryMenu.CurrentSelection.GetFavoriteInfo().IsFavorited ?
-                _filledFavoritesHeart : _unfilledFavoritesHeart;
+            if (_musicLibraryMenu.CurrentSelection is SongViewType)
+            {
+                _favoriteButtonImage.color = _musicLibraryMenu.CurrentSelection.GetFavoriteInfo().IsFavorited ?
+                    _filledFavoritesHeart : _unfilledFavoritesHeart;
+            }
         }
 
         public void UpdateSidebar(bool force = false)
@@ -180,6 +183,7 @@ namespace YARG.Menu.MusicLibrary
                     break;
             }
 
+            UpdatePlayButtonLabel(_musicLibraryMenu.ShowPlaylist.Count > 0);
             RefreshFavoriteState();
         }
 
@@ -239,12 +243,21 @@ namespace YARG.Menu.MusicLibrary
             SetWrappedText(_charterContainer, _charter, songEntry.Charter, ref _charterBaseFontSize);
 
             _genreContainer.SetActive(true); // Empty genres are rendered as "Unknown Genre", so this should always be active
-            _genre.text = CurrentCulture.TextInfo.ToTitleCase(songEntry.Genre) + (songEntry.Subgenre == string.Empty ? "" : ",");
+            _genre.text = songEntry.Genre + (songEntry.Subgenre == string.Empty ? "" : ",");
             _subgenre.text = songEntry.Subgenre;
             // _source.text = SongSources.SourceToGameName(songEntry.Source);
             // _charter.text = songEntry.Charter;
             // _genre.text = System.Globalization.CultureInfo.CurrentCulture.TextInfo.ToTitleCase(songEntry.Genre);
-            _year.text = songEntry.ParsedYear;
+
+            if (!string.IsNullOrEmpty(songEntry.YearSecondary))
+            {
+                _year.text = $"{songEntry.ParsedYear} ({songEntry.YearSecondary})";
+            }
+            else
+            {
+                _year.text = songEntry.ParsedYear;
+            }
+
             _songRatingLabel.text = songEntry.SongRating switch
             {
                 SongRating.Unspecified => "NR",
@@ -252,6 +265,7 @@ namespace YARG.Menu.MusicLibrary
                 SongRating.Supervision_Recommended => "SR",
                 SongRating.Mature => "MC",
                 SongRating.No_Rating => "NR",
+                SongRating.Sensitive_Content => "SC",
                 _ => "?",
             };
 
@@ -297,7 +311,7 @@ namespace YARG.Menu.MusicLibrary
             const float shrinkFactor = 0.8f;     // percentage to shrink the font by after shrink threshold
 
             container.SetActive(true);
-            
+
             if (string.IsNullOrEmpty(text))
             {
                 label.text = string.Empty;
@@ -420,9 +434,33 @@ namespace YARG.Menu.MusicLibrary
 
         public void UpdatePlayButtonLabel(bool setListNotEmpty)
         {
-            string key = setListNotEmpty
-                ? "Menu.MusicLibrary.AddHoldStartSet"
-                : "Menu.MusicLibrary.PlayHoldAddToSet";
+            string key;
+            bool enableButton;
+
+            if (_musicLibraryMenu.CurrentSelection is SortHeaderViewType sortHeader)
+            {
+                if (setListNotEmpty)
+                {
+                    key = sortHeader.Collapsed
+                        ? "Menu.MusicLibrary.ExpandHeaderHoldStartSet"
+                        : "Menu.MusicLibrary.CollapseHeaderHoldStartSet";
+                }
+                else
+                {
+                    key = sortHeader.Collapsed
+                        ? "Menu.MusicLibrary.ExpandHeaderHoldAddToSet"
+                        : "Menu.MusicLibrary.CollapseHeaderHoldAddToSet";
+                }
+
+                enableButton = true;
+            }
+            else
+            {
+                key = setListNotEmpty
+                    ? "Menu.MusicLibrary.AddHoldStartSet"
+                    : "Menu.MusicLibrary.PlayHoldAddToSet";
+                enableButton = _musicLibraryMenu.CurrentSelection is SongViewType;
+            }
 
             _playButton.SetInfoFromSchemeEntry(new NavigationScheme.Entry(
                 MenuAction.Green,
@@ -433,7 +471,10 @@ namespace YARG.Menu.MusicLibrary
             ));
             _playButton.SetDefaultButtonState(HelpBarButton.ButtonState.HOVER);
 
-            if (_musicLibraryMenu.CurrentSelection is not SongViewType)
+            if (enableButton) {
+                _playButton.EnableButton();
+            }
+            else
             {
                 _playButton.DisableButton();
             }

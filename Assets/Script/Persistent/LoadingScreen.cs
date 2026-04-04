@@ -22,9 +22,19 @@ namespace YARG
 
         public static bool IsActive => Instance.gameObject.activeSelf;
 
+        private void PreInitLipsync()
+        {
+            var _unused = YARG.Core.Chart.LipsyncGenerator.GenerateFromLyrics(new Core.Chart.LyricsTrack());
+            YargLogger.LogInfo("Initialized phoneme dictionary");
+        }
+
         private async void Start()
         {
             using var context = new LoadingContext();
+
+            // Initialize phoneme dictionary
+            var _ = UniTask.RunOnThreadPool(PreInitLipsync);
+
 
             // Load language
             try

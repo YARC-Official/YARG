@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Cysharp.Text;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
@@ -24,6 +25,8 @@ namespace YARG.Menu.MusicLibrary
         public readonly  string SubgenreCountText;
         private readonly int    _songCount;
         public           int    TotalStarsCount { get; set; }
+        public readonly  bool   Collapsed;
+        private readonly Action _onClicked;
 
         private static readonly HashSet<string> SourceCounter  = new();
         private static readonly HashSet<string> CharterCounter = new();
@@ -31,12 +34,15 @@ namespace YARG.Menu.MusicLibrary
         private static readonly HashSet<string> SubgenreCounter = new();
         private readonly string _stableId;
 
-        public SortHeaderViewType(string headerText, int songCount, string shortcutName, SongEntry[] songsUnderCategory)
+        public SortHeaderViewType(string headerText, int songCount, string shortcutName, SongEntry[] songsUnderCategory,
+            bool collapsed = false, Action onClicked = null)
         {
             HeaderText = headerText;
             _songCount = songCount;
-
             ShortcutName = shortcutName;
+            Collapsed = collapsed;
+            _onClicked = onClicked;
+
             _stableId = $"SortHeader:{headerText}:{shortcutName}";
 
             foreach (var song in songsUnderCategory)
@@ -47,10 +53,10 @@ namespace YARG.Menu.MusicLibrary
                 SubgenreCounter.Add(song.Subgenre);
             }
 
-            SourceCountText = $"{SourceCounter.Count} sources";
-            CharterCountText = $"{CharterCounter.Count} charters";
-            GenreCountText = $"{GenreCounter.Count} genres";
-            SubgenreCountText = $"{SubgenreCounter.Count} subgenres";
+            SourceCountText = Pluralize("Source", SourceCounter.Count);
+            CharterCountText = Pluralize("Charter", CharterCounter.Count);
+            GenreCountText = Pluralize("Genre", GenreCounter.Count);
+            SubgenreCountText = Pluralize("Subgenre", SubgenreCounter.Count);
             SourceCounter.Clear();
             CharterCounter.Clear();
             GenreCounter.Clear();
@@ -89,12 +95,23 @@ namespace YARG.Menu.MusicLibrary
             return ZString.Concat(obtainedStars, totalStars);
         }
 
+        private static string Pluralize(string item, int count)
+        {
+            return $"{count} {item}{(count == 1 ? "" : "s")}";
+        }
+
 
 #nullable enable
         public override Sprite? GetIcon()
 #nullable disable
         {
-            return Addressables.LoadAssetAsync<Sprite>("MusicLibraryUpIcon").WaitForCompletion();
+            string assetKey = Collapsed ? "MusicLibraryIcons[Right]" : "MusicLibraryIcons[Down]";
+            return Addressables.LoadAssetAsync<Sprite>(assetKey).WaitForCompletion();
+        }
+
+        public override void PrimaryButtonClick()
+        {
+            _onClicked?.Invoke();
         }
     }
 }

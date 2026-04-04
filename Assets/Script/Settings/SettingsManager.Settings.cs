@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
 using UnityEngine;
@@ -66,23 +66,16 @@ namespace YARG.Settings
 
             public static float GetUpscaleRatioFromQualityMode(QualityMode qualityMode)
             {
-                switch (qualityMode)
+                return qualityMode switch
                 {
-                    case QualityMode.NativeAA:
-                        return 1.0f;
-                    case QualityMode.UltraQuality:
-                        return 1.2f;
-                    case QualityMode.Quality:
-                        return 1.5f;
-                    case QualityMode.Balanced:
-                        return 1.7f;
-                    case QualityMode.Performance:
-                        return 2.0f;
-                    case QualityMode.UltraPerformance:
-                        return 3.0f;
-                    default:
-                        return 1.0f;
-                }
+                    QualityMode.NativeAA         => 1.0f,
+                    QualityMode.UltraQuality     => 1.2f,
+                    QualityMode.Quality          => 1.5f,
+                    QualityMode.Balanced         => 1.7f,
+                    QualityMode.Performance      => 2.0f,
+                    QualityMode.UltraPerformance => 3.0f,
+                    _                            => 1.0f
+                };
             }
 
             public void OpenCalibrator()
@@ -154,7 +147,6 @@ namespace YARG.Settings
 
             public ToggleSetting AllowDuplicateSongs { get; } = new(true, _ => MusicLibraryMenu.SetReload(MusicLibraryReloadState.Partial));
             public ToggleSetting UseFullDirectoryForPlaylists { get; } = new(false);
-            public ToggleSetting StandardizeGenres { get; } = new(true);
 
             public ToggleSetting ShowFavoriteButton { get; } = new(true);
             public ToggleSetting ShowRecommendedSongs { get; } = new(true, ShowRecommendedSongsCallback);
@@ -167,6 +159,14 @@ namespace YARG.Settings
                 {
                     DifficultyRingMode.Classic,
                     DifficultyRingMode.Expanded,
+                };
+
+            public DropdownSetting<GenrelizerMode> Genrelizer { get; } =
+                new(GenrelizerMode.Genrelize)
+                {
+                    GenrelizerMode.Genrelize,
+                    GenrelizerMode.Overgenrelize,
+                    GenrelizerMode.Off,
                 };
 
             public DropdownSetting<HighScoreInfoMode> HighScoreInfo { get; }
@@ -183,6 +183,8 @@ namespace YARG.Settings
                     HighScoreHistoryMode.HighestOverall,
                     HighScoreHistoryMode.HighestDifficulty,
                 };
+
+            public ToggleSetting ShowPercentDecimals { get; } = new(false);
 
             #endregion
 
@@ -501,6 +503,10 @@ namespace YARG.Settings
 
             public IntSetting DMXUniverseChannel { get; } = new(1, 1, 65535);
 
+            public IntSetting DMXTargetFPS { get; } = new(44, 10, 60);
+
+            public IntSetting DMXPulseDuration { get; } = new(60, 0, 500);
+
             public DMXChannelsSetting DMXDimmerValues { get; } = new(new[] { 255, 255, 255, 255, 255, 255, 255, 255 });
 
             #endregion
@@ -510,6 +516,8 @@ namespace YARG.Settings
             public ToggleSetting InputDeviceLogging { get; } = new(false, InputDeviceLoggingCallback);
 
             public ToggleSetting ShowAdvancedMusicLibraryOptions { get; } = new(false);
+
+            public ToggleSetting ShowAdvancedSettings { get; } = new(false);
 
             public DropdownSetting<LogLevel> MinimumLogLevel { get; } = new(
 #if UNITY_EDITOR
@@ -910,7 +918,7 @@ namespace YARG.Settings
             private static void CustomCharacterCallback(string file)
             {
                 // CharacterPreviewBuilder.CharacterFile = file;
-                CharacterPreviewBuilder.ChangeCharacter(file);
+                _ = CharacterPreviewBuilder.ChangeCharacter(file);
             }
             #endregion
         }

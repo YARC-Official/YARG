@@ -14,6 +14,23 @@ namespace YARG.Settings.Types
         private VenueCharacter.CharacterType _characterType;
         private Dictionary<string, string>   _fileToName = new();
 
+        private const string CHARACTER_FOLDER = "characters";
+
+        public string CustomCharacterPath
+        {
+            get
+            {
+                var folder = Path.Combine(CustomContentManager.CustomizationDirectory, CHARACTER_FOLDER);
+
+                if (!Directory.Exists(folder))
+                {
+                    Directory.CreateDirectory(folder);
+                }
+
+                return folder;
+            }
+        }
+
         public CustomCharacterSetting(string value, VenueCharacter.CharacterType characterType, Action<string> onChange = null) :
             base(value, onChange, localizable: false)
         {
@@ -26,7 +43,7 @@ namespace YARG.Settings.Types
             _possibleValues.Clear();
             _possibleValues.Add(string.Empty);
 
-            var folder = Path.Combine(CustomContentManager.CustomizationDirectory, "characters");
+            var folder = CustomCharacterPath;
             string[] files = Directory.Exists(folder) ? Directory.GetFiles(folder, "*.yargchar") : Array.Empty<string>();
 
             // Load the AssetBundles and pull the character names from the VrmInstance (and use the filename as a fallback for the display name)
@@ -54,7 +71,7 @@ namespace YARG.Settings.Types
 
                 string name;
 
-                if (!string.IsNullOrEmpty(vrmInstance.Vrm.Meta.Name))
+                if (vrmInstance.Vrm != null && vrmInstance.Vrm.Meta != null && string.IsNullOrEmpty(vrmInstance.Vrm.Meta.Name))
                 {
                     name = vrmInstance.Vrm.Meta.Name;
                 }

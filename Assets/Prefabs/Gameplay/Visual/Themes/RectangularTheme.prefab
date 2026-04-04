@@ -245,6 +245,7 @@ MonoBehaviour:
   _keepAlphaWhenColoring: 1
   _setEmissionWhenColoring: 0
   _emissionColorMultiplier: 1
+  _modifyInBre: 0
 --- !u!198 &2008615935179895456
 ParticleSystem:
   m_ObjectHideFlags: 0
@@ -5156,6 +5157,7 @@ MonoBehaviour:
   _keepAlphaWhenColoring: 1
   _setEmissionWhenColoring: 1
   _emissionColorMultiplier: 35
+  _modifyInBre: 1
 --- !u!198 &8346301906413767494
 ParticleSystem:
   m_ObjectHideFlags: 0
@@ -10805,6 +10807,7 @@ MonoBehaviour:
   _keepAlphaWhenColoring: 1
   _setEmissionWhenColoring: 0
   _emissionColorMultiplier: 1
+  _modifyInBre: 0
 --- !u!198 &4462939375951403473
 ParticleSystem:
   m_ObjectHideFlags: 0
@@ -16029,6 +16032,7 @@ MonoBehaviour:
   _keepAlphaWhenColoring: 1
   _setEmissionWhenColoring: 0
   _emissionColorMultiplier: 1
+  _modifyInBre: 1
 --- !u!198 &1101005614980831216
 ParticleSystem:
   m_ObjectHideFlags: 0
@@ -21011,6 +21015,7 @@ MonoBehaviour:
   _keepAlphaWhenColoring: 1
   _setEmissionWhenColoring: 0
   _emissionColorMultiplier: 1
+  _modifyInBre: 0
 --- !u!198 &472418960166070297
 ParticleSystem:
   m_ObjectHideFlags: 0
@@ -26050,6 +26055,7 @@ MonoBehaviour:
   _keepAlphaWhenColoring: 1
   _setEmissionWhenColoring: 0
   _emissionColorMultiplier: 1
+  _modifyInBre: 0
 --- !u!198 &4765560359781954378
 ParticleSystem:
   m_ObjectHideFlags: 0
@@ -31473,6 +31479,7 @@ MonoBehaviour:
   _keepAlphaWhenColoring: 1
   _setEmissionWhenColoring: 0
   _emissionColorMultiplier: 1
+  _modifyInBre: 1
 --- !u!198 &6007056365511324645
 ParticleSystem:
   m_ObjectHideFlags: 0
@@ -36327,6 +36334,7 @@ MonoBehaviour:
   _keepAlphaWhenColoring: 1
   _setEmissionWhenColoring: 0
   _emissionColorMultiplier: 1
+  _modifyInBre: 0
 --- !u!198 &2589131311803491130
 ParticleSystem:
   m_ObjectHideFlags: 0
@@ -41924,6 +41932,7 @@ MonoBehaviour:
   _keepAlphaWhenColoring: 1
   _setEmissionWhenColoring: 0
   _emissionColorMultiplier: 1
+  _modifyInBre: 0
 --- !u!198 &71207950476677262
 ParticleSystem:
   m_ObjectHideFlags: 0
@@ -46951,6 +46960,7 @@ MonoBehaviour:
   _keepAlphaWhenColoring: 1
   _setEmissionWhenColoring: 1
   _emissionColorMultiplier: 35
+  _modifyInBre: 1
 --- !u!198 &3033433848283276734
 ParticleSystem:
   m_ObjectHideFlags: 0
@@ -51880,6 +51890,7 @@ MonoBehaviour:
   _keepAlphaWhenColoring: 1
   _setEmissionWhenColoring: 0
   _emissionColorMultiplier: 1
+  _modifyInBre: 0
 --- !u!198 &45876816380195592
 ParticleSystem:
   m_ObjectHideFlags: 0
@@ -56835,6 +56846,7 @@ MonoBehaviour:
   _keepAlphaWhenColoring: 1
   _setEmissionWhenColoring: 0
   _emissionColorMultiplier: 1
+  _modifyInBre: 0
 --- !u!198 &4168261935637161882
 ParticleSystem:
   m_ObjectHideFlags: 0

@@ -6,7 +6,8 @@ namespace YARG.Settings.Metadata
 
         public string HeaderName { get; private set; }
 
-        public HeaderMetadata(string headerName)
+        public HeaderMetadata(string headerName, bool isAdvanced = false)
+            : base(isAdvanced)
         {
             HeaderName = headerName;
         }

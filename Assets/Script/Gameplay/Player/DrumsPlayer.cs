@@ -6,9 +6,11 @@ using UnityEngine;
 using YARG.Core;
 using YARG.Core.Audio;
 using YARG.Core.Chart;
+using YARG.Core.Engine;
 using YARG.Core.Engine.Drums;
 using YARG.Core.Engine.Drums.Engines;
 using YARG.Core.Input;
+using YARG.Core.Logging;
 using YARG.Core.Replays;
 using YARG.Gameplay.HUD;
 using YARG.Gameplay.Visuals;
@@ -37,6 +39,7 @@ namespace YARG.Gameplay.Player
         // Number of distinct frets in the fret array.
         // Derivable, but predetermined by MakeHighwayOrdering() for performance reasons
         public int LaneCount { get; private set; }
+        private Dictionary<int, int>                 _actionToBreScoringZoneIndex;
 
         private bool _yellowCymbalHasLane = false;
         private bool _blueCymbalHasLane = false;
@@ -130,8 +133,9 @@ namespace YARG.Gameplay.Player
         private int[] _drumSoundEffectRoundRobin = new int[8];
         private float _drumSoundEffectAccentThreshold;
 
-        private Dictionary<int, float> _fretToLastPressedTimeDelta                                  = new();
+        private Dictionary<int, float>                            _fretToLastPressedTimeDelta       = new();
         private Dictionary<Fret.AnimType, Dictionary<int, float>> _animTypeToFretToLastPressedDelta = new();
+        private Dictionary<int, int>                              _highwayOrderingIndexToBreScoringZoneIndex;
 
 
         public override void Initialize(int index, YargPlayer player, SongChart chart, TrackView trackView, StemMixer mixer,
@@ -170,6 +174,12 @@ namespace YARG.Gameplay.Player
                 EngineParams = (DrumsEngineParameters) Player.EngineParameterOverride;
             }
 
+            if (EngineContainer != null)
+            {
+                GameManager.EngineManager.Unregister(EngineContainer);
+                EngineContainer = null;
+            }
+
             var engine = new YargDrumsEngine(NoteTrack, SyncTrack, EngineParams, Player.Profile.IsBot, Player.Profile.GameMode is GameMode.EliteDrums);
             EngineContainer = GameManager.EngineManager.Register(engine, NoteTrack.Instrument, Chart, Player.RockMeterPreset);
 
@@ -188,6 +198,9 @@ namespace YARG.Gameplay.Player
 
             engine.OnSoloStart += OnSoloStart;
             engine.OnSoloEnd += OnSoloEnd;
+
+            engine.OnCodaStart += OnCodaStart;
+            engine.OnCodaEnd += OnCodaEnd;
 
             engine.OnStarPowerPhraseHit += OnStarPowerPhraseHit;
             engine.OnStarPowerPhraseMissed += OnStarPowerPhraseMissed;
@@ -221,7 +234,7 @@ namespace YARG.Gameplay.Player
                 kickFretPrefab,
                 colors,
                 Player.ThemePreset,
-                VisualStyle.FiveLaneDrums
+                _fiveLaneMode ? VisualStyle.FiveLaneDrums : VisualStyle.FourLaneDrums
             );
 
             // Particle 0 is always kick fret
@@ -239,6 +252,8 @@ namespace YARG.Gameplay.Player
 
             // Initialize animation types
             InitializeAnimTypes();
+
+            BRELanes = new LaneElement[LaneCount];
 
             base.FinishInitialization();
             LaneElement.DefineLaneScale(Player.Profile.CurrentInstrument, _fiveLaneMode ? 5 : 4);
@@ -367,6 +382,40 @@ namespace YARG.Gameplay.Player
 
         }
 
+        protected override void InitializeSpawnedLane(LaneElement lane, int laneIndex)
+        {
+            int highwayIndex = -1;
+            HighwayOrderingInfo highwayOrderingInfo = default;
+            foreach ((int index, var info) in _highwayOrdering)
+            {
+                if (laneIndex == Mathf.RoundToInt(info.Position))
+                {
+                    highwayIndex = index;
+                    highwayOrderingInfo = info;
+                    break;
+                }
+            }
+
+            if (highwayIndex == -1)
+            {
+                YargLogger.LogError("Unable to find highway index for lane index " + laneIndex + " in drums player.");
+                return;
+            }
+
+            var laneColor = (_fiveLaneMode ?
+                    Player.ColorProfile.FiveLaneDrums.GetNoteColor(highwayOrderingInfo.ColorIndex) :
+                    Player.ColorProfile.FourLaneDrums.GetNoteColor(highwayOrderingInfo.ColorIndex)
+                ).ToUnityColor();
+
+            lane.SetAppearance(
+                Player.Profile.CurrentInstrument,
+                highwayIndex,
+                highwayOrderingInfo.Position,
+                LaneCount,
+                laneColor
+                );
+        }
+
         protected override void ModifyLaneFromNote(LaneElement lane, DrumNote note)
         {
             if (note.Pad == 0)
@@ -378,6 +427,22 @@ namespace YARG.Gameplay.Player
                 // Correct size of lane slightly for padding in fret array
                 lane.MultiplyScale(0.97f);
             }
+        }
+
+        protected override void RescaleLanesForBRE()
+        {
+            int subdivisions = 4;
+
+            if (_fiveLaneMode)
+            {
+                subdivisions = 5;
+            }
+            else if (IsSplitMode)
+            {
+                subdivisions = 7;
+            }
+
+            LaneElement.DefineLaneScale(Player.Profile.CurrentInstrument, subdivisions, true);
         }
 
         protected override void OnNoteHit(int index, DrumNote note)
@@ -441,8 +506,39 @@ namespace YARG.Gameplay.Player
             }
         }
 
+        private void OnLaneHit(int fret)
+        {
+            fret = DrumsActionToHighwayIndex((DrumsAction) fret);
+            _fretArray.PlayCodaHitAnimation(fret);
+        }
+
+        protected override void OnCodaStart(CodaSection coda)
+        {
+            base.OnCodaStart(coda);
+            CurrentCoda.OnLaneHit += OnLaneHit;
+
+            _fretArray.SetBreMode(true);
+        }
+
+        protected override void OnCodaEnd(CodaSection coda)
+        {
+            base.OnCodaEnd(coda);
+            CurrentCoda.OnLaneHit -= OnLaneHit;
+
+            _fretArray.SetBreMode(false);
+        }
+
+
         private void OnPadHit(DrumsAction action, bool wasNoteHit, bool wasNoteHitCorrectly, DrumNoteType type, float velocity)
         {
+            var fret = DrumsActionToHighwayIndex(action);
+
+            // This is done here for drums rather than in-engine because engine doesn't know about pad ordering
+            if (Engine.IsCodaActive)
+            {
+                CurrentCoda.HitLane(GameManager.VisualTime, (int) action);
+            }
+
             var kickHasLane = NumberOfDedicatedKickLanes > 0;
 
             // Update last hit times for fret flashing animation
@@ -497,7 +593,6 @@ namespace YARG.Gameplay.Player
                 }
                 else
                 {
-                    int fret = DrumsActionToHighwayIndex(action);
                     _fretArray.PlayMissAnimation(fret);
 
                     // Special case for split-dedicated kicks; we don't know which pedal was used, so animate both
@@ -561,10 +656,10 @@ namespace YARG.Gameplay.Player
 
         private bool IsDrumFreestyle()
         {
-            return Engine.NoteIndex == 0 || // Can freestyle before first note is hit/missed
+            return Engine.NoteIndex == 0 ||        // Can freestyle before first note is hit/missed
                 Engine.NoteIndex >= Notes.Count || // Can freestyle after last note
-                Engine.IsWaitCountdownActive; // Can freestyle during WaitCountdown
-            // TODO: add drum fill / BRE conditions
+                Engine.IsWaitCountdownActive ||    // Can freestyle during WaitCountdown
+                Engine.IsCodaActive;               // Can freestyle during Coda
         }
 
         public override (ReplayFrame Frame, ReplayStats Stats) ConstructReplayData()
@@ -576,6 +671,17 @@ namespace YARG.Gameplay.Player
         protected override void UpdateVisuals(double visualTime)
         {
             base.UpdateVisuals(visualTime);
+
+            if (Engine.IsCodaActive)
+            {
+                // Set emission color of BRE lanes depending on time since last hit
+
+                foreach (var (k, v) in _highwayOrderingIndexToBreScoringZoneIndex)
+                {
+                    BRELanes[k].SetEmissionColor(CurrentCoda.GetNormalizedTimeSinceLastHit(v, visualTime));
+                }
+            }
+
             UpdateHitTimes();
             UpdateAnimTimes();
             UpdateFretArray();
@@ -810,5 +916,7 @@ namespace YARG.Gameplay.Player
                 }
             }
         }
+
+        protected override Dictionary<int, int> GetLaneIndexes() => _actionToBreScoringZoneIndex;
     }
 }

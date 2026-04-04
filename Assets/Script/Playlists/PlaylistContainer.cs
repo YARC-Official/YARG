@@ -83,6 +83,8 @@ namespace YARG.Playlists
                     _playlists.Add(playlist);
                 }
             }
+
+            SortPlaylistsByName();
         }
 
         public static void SaveAll()
@@ -109,7 +111,7 @@ namespace YARG.Playlists
             }
         }
 
-        private static void DeletePlaylist(Playlist playlist)
+        private static void DeletePlaylistFile(Playlist playlist)
         {
             var path = Path.Join(PlaylistDirectory, GetFileNameForPlaylist(playlist));
             if (File.Exists(path))
@@ -165,13 +167,32 @@ namespace YARG.Playlists
 
             SavePlaylist(playlist);
             _playlists.Add(playlist);
+            SortPlaylistsByName();
             return playlist;
         }
 
-        public static void RemovePlaylist(Playlist playlist)
+        public static void DeletePlaylist(Playlist playlist)
         {
             _playlists.Remove(playlist);
-            DeletePlaylist(playlist);
+            DeletePlaylistFile(playlist);
+        }
+
+        public static void RenamePlaylist(Playlist playlist, string newName)
+        {
+            // Delete old file
+            DeletePlaylistFile(playlist);
+
+            // Update name
+            playlist.Name = newName;
+
+            // Save with new name
+            SavePlaylist(playlist);
+            SortPlaylistsByName();
+        }
+
+        private static void SortPlaylistsByName()
+        {
+            _playlists.Sort((a, b) => string.Compare(a.Name, b.Name, StringComparison.OrdinalIgnoreCase));
         }
     }
 }

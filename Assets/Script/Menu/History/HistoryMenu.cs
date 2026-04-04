@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
+using System.Linq;
 using UnityEngine;
 using YARG.Core.Input;
-using YARG.Core.Logging;
 using YARG.Core.Replays;
 using YARG.Helpers;
 using YARG.Localization;
@@ -93,6 +92,11 @@ namespace YARG.Menu.History
             int categoryIndex = 0;
             list.Add(new CategoryViewType(LocalizeTime(_categoryTimes[0])));
 
+            List<PlayerScoreRecord> allPlayerScoreRecords = ScoreContainer.GetAllPlayerScoreRecords();
+            var gameIdToPlayerRecords = allPlayerScoreRecords
+                .GroupBy(x => x.GameRecordId)
+                .ToDictionary(g => g.Key, g => g.ToList());
+
             foreach (var record in ScoreContainer.GetAllGameRecords())
             {
                 // See if we should create a category (make sure to skip the ones that have nothing in them)
@@ -110,7 +114,8 @@ namespace YARG.Menu.History
                     list.Add(new CategoryViewType(text));
                 }
 
-                list.Add(new ReplayViewType(record));
+                gameIdToPlayerRecords.TryGetValue(record.Id, out var playerScoreRecords);
+                list.Add(new ReplayViewType(record, playerScoreRecords));
             }
 
             return list;

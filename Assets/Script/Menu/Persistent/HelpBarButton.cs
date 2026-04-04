@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using YARG.Core.Input;
+using YARG.Helpers.Extensions;
 using YARG.Menu.Data;
 using YARG.Menu.Navigation;
 
@@ -31,6 +32,7 @@ namespace YARG.Menu.Persistent
 
         private NavigationScheme.Entry? _entry;
 
+        private bool  _isSpecialButton;
         private Color _buttonBackgroundColor;
         private Color _buttonImageColor;
         private Color _buttonBackgroundColorOnDown;
@@ -38,7 +40,8 @@ namespace YARG.Menu.Persistent
 
         // Visually transparent, but not affected by the mask component
         private readonly Color _maskableClear = new(0f, 0f, 0f, 0.01f);
-        private readonly Color _coolGrey = new(123 / 255f, 127 / 255f, 154 / 255f, 1f);
+        private readonly Color _coolGrey      = new(123 / 255f, 127 / 255f, 154 / 255f, 1f);
+        private readonly Color _darkCoolGrey = new(123 / 255f, 127 / 255f, 154 / 255f, 0.05f);
 
         private bool _clickable = true;
         private bool _isPointerOver;
@@ -70,22 +73,18 @@ namespace YARG.Menu.Persistent
             _defaultState = ButtonState.NONE;
 
             var icons = MenuData.NavigationIcons;
-            _buttonBackgroundColor = icons.GetColor(entry.Action);
-            _buttonBackgroundColor.a = 0.05f;
-            _buttonBackgroundColorOnDown = icons.GetColor(entry.Action);
-            _buttonBackgroundColorOnDown.a = 0.2f;
-            _buttonFillColor = icons.GetColor(entry.Action);
-            _buttonFillColor.a = 0.3f;
-            _buttonImageColor = icons.GetColor(entry.Action);
-            _buttonImageColor.a = 1f;
+            _buttonBackgroundColor = icons.GetColor(entry.Action).WithAlpha(0.05f);
+            _buttonBackgroundColorOnDown = icons.GetColor(entry.Action).WithAlpha(0.02f);
+            _buttonFillColor = icons.GetColor(entry.Action).WithAlpha(0.3f);;
+            _buttonImageColor = icons.GetColor(entry.Action).WithAlpha(1f);;
 
             // Label
             _buttonLabel.text = entry.DisplayName;
 
             // Show/hide text and transitions
-            var special = entry.Action is MenuAction.Select or MenuAction.Start or MenuAction.Left or MenuAction.Right;
-            _buttonText.gameObject.SetActive(!special);
-            _button.transition = special
+            _isSpecialButton = entry.Action is MenuAction.Select or MenuAction.Start or MenuAction.Left or MenuAction.Right;
+            _buttonText.gameObject.SetActive(!_isSpecialButton);
+            _button.transition = _isSpecialButton
                 ? Selectable.Transition.None
                 : Selectable.Transition.SpriteSwap;
 
@@ -223,6 +222,7 @@ namespace YARG.Menu.Persistent
 
             _currentState = state;
 
+            _button.transition = _isSpecialButton ? Selectable.Transition.None : Selectable.Transition.SpriteSwap;
             switch (state)
             {
                 case ButtonState.NONE:
@@ -254,11 +254,12 @@ namespace YARG.Menu.Persistent
                     _buttonText.color = Color.white;
                     break;
                 case ButtonState.DISABLED:
-                    _buttonBackground.color = Color.gray;
-                    _buttonOutline.color = Color.gray;
-                    _buttonImage.color = Color.gray;
+                    _buttonBackground.color = _darkCoolGrey;
+                    _buttonOutline.color = _darkCoolGrey;
+                    _buttonImage.color = _coolGrey;
                     _buttonLabel.color = _coolGrey;
                     _buttonText.color = _coolGrey;
+                    _button.transition = Selectable.Transition.None;
                     break;
             }
         }

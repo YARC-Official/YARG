@@ -56,10 +56,13 @@ namespace YARG.Gameplay
         private DraggableHudManager _draggableHud;
 
         [SerializeField]
-        private GameObject _lyricBar;
+        private LyricBar _lyricBar;
 
         [SerializeField]
         private FailMeter _failMeter;
+
+        [SerializeField]
+        private BREBox _breBox;
 
         [field: SerializeField]
         public VocalTrack VocalTrack { get; private set; }
@@ -125,6 +128,8 @@ namespace YARG.Gameplay
 
         public bool IsPractice      { get; private set; }
 
+        public bool IsReplay => ReplayInfo != null && !GlobalVariables.State.PlayingWithReplay;
+
         public int BandScore
         {
             get => EngineManager.Score;
@@ -158,8 +163,8 @@ namespace YARG.Gameplay
         public int StarPowerActivations { get; private set; } = 0;
 
         private bool _isReplaySaved;
-
         private int _originalSleepTimeout;
+        private bool _breBoxActive;
 
         private StemMixer _mixer;
 
@@ -229,6 +234,8 @@ namespace YARG.Gameplay
             // Unsubscribe from other events
             SettingsManager.Settings.NoFailMode.OnChange -= OnNoFailModeChanged;
             EngineManager.OnSongFailed -= OnSongFailed;
+            EngineManager.OnCodaStart -= StartCoda;
+            EngineManager.OnCodaEnd -= EndCoda;
 
             //Restore stem volumes to their original state
             foreach (var (stem, state) in _stemStates)
@@ -323,6 +330,10 @@ namespace YARG.Gameplay
             BackgroundManager.SetTime(_songRunner.SongTime + Song.SongOffsetSeconds);
             VenueCameraManager?.ResetTime(time);
             VenueCharacterManager?.ResetTime(time);
+            if (_lyricBar.gameObject.activeSelf)
+            {
+                _lyricBar.SetSongTime(time);
+            }
         }
 
         public void SetSongSpeed(float speed)
@@ -399,7 +410,7 @@ namespace YARG.Gameplay
 
             // This uses the raw input update time because it keeps running during the pause
             // allowing us to accurately calculate the length of the pause later
-            if (!Rewinding && showMenu)
+            if (!Rewinding && !IsReplay && showMenu)
             {
                 // Save state about the pause
                 _pauseTime = InputManager.InputUpdateTime;
@@ -428,8 +439,8 @@ namespace YARG.Gameplay
 
         public async void Resume()
         {
-            // We don't rewind in practice mode, so we can skip all the BS
-            if (IsPractice)
+            // We don't rewind in practice mode or in replay, so we can skip all the BS
+            if (IsPractice || IsReplay)
             {
                 _pauseMenu.PopAllMenus();
                 _songRunner.Resume();
@@ -971,6 +982,28 @@ namespace YARG.Gameplay
             CheckForRewindInvalidation();
 
             return false;
+        }
+
+        public void StartCoda(CodaSection _)
+        {
+            if (_breBoxActive)
+            {
+                return;
+            }
+
+            _breBoxActive = true;
+            _breBox.StartCoda(EngineManager);
+        }
+
+        public void EndCoda(CodaSection coda)
+        {
+            _breBox.EndCoda(EngineManager.TotalCodaBonus, () => { _breBoxActive = false; });
+        }
+
+        public void ResetCoda()
+        {
+            _breBox.ForceReset();
+            _breBoxActive = false;
         }
     }
 }

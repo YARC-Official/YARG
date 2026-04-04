@@ -133,13 +133,11 @@ namespace YARG.Gameplay
                 }
                 else
                 {
-                    // var players = new YargPlayer[YargPlayers.Count + PlayerContainer.Players.Count];
                     _replayController.gameObject.SetActive(false);
                     var players = new List<YargPlayer>();
                     players.AddRange(PlayerContainer.Players);
                     for (int i = 0; i < YargPlayers.Count; i++)
                     {
-                         // YargPlayers[i].ReplayIndex = i;
                          players.Add(YargPlayers[i]);
                     }
 
@@ -249,6 +247,9 @@ namespace YARG.Gameplay
                 SettingsManager.Settings.AutoCalibrateAudio.Value = false;
                 SettingsManager.Settings.AutoCalibrateVideo.Value = false;
             }
+
+            EngineManager.OnCodaStart += StartCoda;
+            EngineManager.OnCodaEnd += EndCoda;
 
             // Log constant values
             YargLogger.LogFormatDebug("Audio calibration: {0}, video calibration: {1}, song offset: {2}",
@@ -459,7 +460,7 @@ namespace YARG.Gameplay
                                 : Chart.Harmony;
                             VocalTrack.Initialize(chart, player, Song.VocalScrollSpeedScalingFactor);
 
-                            _lyricBar.SetActive(false);
+                            _lyricBar.gameObject.SetActive(false);
                             vocalTrackInitialized = true;
                         }
 

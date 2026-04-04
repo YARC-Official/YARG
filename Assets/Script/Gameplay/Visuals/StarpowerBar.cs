@@ -13,8 +13,15 @@ namespace YARG.Gameplay.Visuals
         private double _starpowerAmount;
         private bool _starpowerActive;
 
-        public void SetStarpower(double starpowerAmount, bool starpowerActive)
+        public void SetStarpower(double starpowerAmount, bool starpowerActive, bool codaStarted)
         {
+            // Starpower bar should be empty during coda mode
+            if (codaStarted)
+            {
+                starpowerAmount = 0;
+                starpowerActive = false;
+            }
+
             _starpowerAmount = starpowerAmount;
             _starpowerActive = starpowerActive;
 
