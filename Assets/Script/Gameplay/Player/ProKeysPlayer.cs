@@ -368,7 +368,7 @@ namespace YARG.Gameplay.Player
         {
             if (Engine.IsCodaActive)
             {
-                for (int i = 0; i < CurrentCoda.Lanes; i++)
+                for (int i = 0; i < CurrentCoda.ScoringZones; i++)
                 {
                     if (i >= BRELanes.Length)
                     {

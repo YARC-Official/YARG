@@ -263,7 +263,7 @@ namespace YARG.Gameplay.Player
             if (Engine.IsCodaActive)
             {
                 // Set emission color of BRE lanes depending on currently available score value
-                for (int i = 0; i < CurrentCoda.Lanes; i++)
+                for (int i = 0; i < CurrentCoda.ScoringZones; i++)
                 {
                     // var intensity = CurrentCoda.GetNormalizedTimeSinceLastHit(i, visualTime);
                     // intensity = (float) Math.Clamp(Math.Cos(Math.PI * intensity), 0f, 1f);
