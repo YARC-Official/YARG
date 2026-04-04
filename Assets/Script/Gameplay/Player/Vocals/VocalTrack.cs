@@ -237,42 +237,42 @@ namespace YARG.Gameplay.Player
             // currentFrustrum.bottom += 1.0f;
             // _trackCamera.projectionMatrix = Matrix4x4.Frustum(currentFrustrum);
 
-// 2. Reset the Rect to full screen
-_trackCamera.rect = new Rect(0, 0, 1, 1);
+            // 2. Reset the Rect to full screen
+            _trackCamera.rect = new Rect(0, 0, 1, 1);
 
-// 3. Calculate the "Actual" screen aspect ratio
-float screenAspect = (float)Screen.width / Screen.height;
+            // 3. Calculate the "Actual" screen aspect ratio
+            float screenAspect = (float)Screen.width / Screen.height;
 
-// 4. Determine the TOTAL world height needed so that the 'heightNormalized' 
-// slice of the screen equals your desired camera framing (orthographicSize * 2).
-float totalWorldHeight = (_trackCamera.orthographicSize * 2.0f) / heightNormalized;
+            // 4. Determine the TOTAL world height needed so that the 'heightNormalized' 
+            // slice of the screen equals your desired camera framing (orthographicSize * 2).
+            float totalWorldHeight = (_trackCamera.orthographicSize * 2.0f) / heightNormalized;
 
-// 5. Derive the TOTAL world width based on the SCREEN aspect ratio.
-// This is the step that prevents horizontal squishing or "too small" rendering.
-float totalWorldWidth = totalWorldHeight * screenAspect;
+            // 5. Derive the TOTAL world width based on the SCREEN aspect ratio.
+            // This is the step that prevents horizontal squishing or "too small" rendering.
+            float totalWorldWidth = totalWorldHeight * screenAspect;
 
-// 6. Calculate the center of your target Rect in 0-1 space
-float centerX = xPos + (widthNormalized / 2.0f);
-float centerY = yPos + (heightNormalized / 2.0f);
+            // 6. Calculate the center of your target Rect in 0-1 space
+            float centerX = xPos + (widthNormalized / 2.0f);
+            float centerY = yPos + (heightNormalized / 2.0f);
 
-// 7. Define the planes. 
-// We shift the 'center' of the world (0,0) to align with the center of your UI Rect.
-float left   = -centerX * totalWorldWidth;
-float right  = totalWorldWidth * (1.0f - centerX);
-float bottom = -centerY * totalWorldHeight;
-float top    = totalWorldHeight * (1.0f - centerY);
+            // 7. Define the planes. 
+            // We shift the 'center' of the world (0,0) to align with the center of your UI Rect.
+            float left = -centerX * totalWorldWidth;
+            float right = totalWorldWidth * (1.0f - centerX);
+            float bottom = -centerY * totalWorldHeight;
+            float top = totalWorldHeight * (1.0f - centerY);
 
-// 8. Apply the matrix
-_trackCamera.projectionMatrix = Matrix4x4.Ortho(
-    left, 
-    right, 
-    bottom, 
-    top, 
-    _trackCamera.nearClipPlane, 
-    _trackCamera.farClipPlane
-);
+            // 8. Apply the matrix
+            _trackCamera.projectionMatrix = Matrix4x4.Ortho(
+                left,
+                right,
+                bottom,
+                top,
+                _trackCamera.nearClipPlane,
+                _trackCamera.farClipPlane
+            );
 
-// Disable standalone rendering — HighwayCameraRendering will drive this camera.
+            // Disable standalone rendering — HighwayCameraRendering will drive this camera.
             _trackCamera.enabled = false;
         }
 
