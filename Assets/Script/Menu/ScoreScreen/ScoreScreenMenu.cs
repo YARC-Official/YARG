@@ -121,9 +121,7 @@ namespace YARG.Menu.ScoreScreen
             _songTitle.text = song.Name;
             _artistName.text = song.Artist;
 
-            var scoreNotSavedText = Localize.Key("Menu.ScoreScreen.BandScoreNotSaved")
-                .Replace("(", string.Empty)
-                .Replace(")", string.Empty);
+            var scoreNotSavedText = Localize.Key("Menu.ScoreScreen.BandScoreNotSaved");
             _bandScoreNotSavedPill.SetValues(scoreNotSavedText,
                 ColoredPillElement.ColoredPillPreset.HarderModifier);
             _bandScoreNotSavedPill.gameObject.SetActive(
