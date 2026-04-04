@@ -59,7 +59,7 @@ namespace YARG.Gameplay.Visuals
                 1 => 0.025f,
                 0 => 0.05f,
                 _ => 0f,
-            };
+            } + 100f;
             transform.position = transform.position.WithY(yPos);
         }
 
