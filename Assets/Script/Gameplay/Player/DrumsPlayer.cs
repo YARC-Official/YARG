@@ -39,7 +39,6 @@ namespace YARG.Gameplay.Player
         // Number of distinct frets in the fret array.
         // Derivable, but predetermined by MakeHighwayOrdering() for performance reasons
         public int LaneCount { get; private set; }
-        private Dictionary<int, int>                 _actionToBreScoringZoneIndex;
 
         private bool _yellowCymbalHasLane = false;
         private bool _blueCymbalHasLane = false;
@@ -431,18 +430,7 @@ namespace YARG.Gameplay.Player
 
         protected override void RescaleLanesForBRE()
         {
-            int subdivisions = 4;
-
-            if (_fiveLaneMode)
-            {
-                subdivisions = 5;
-            }
-            else if (IsSplitMode)
-            {
-                subdivisions = 7;
-            }
-
-            LaneElement.DefineLaneScale(Player.Profile.CurrentInstrument, subdivisions, true);
+            LaneElement.DefineLaneScale(Player.Profile.CurrentInstrument, LaneCount, true);
         }
 
         protected override void OnNoteHit(int index, DrumNote note)
@@ -516,7 +504,7 @@ namespace YARG.Gameplay.Player
         {
             base.OnCodaStart(coda);
             CurrentCoda.OnLaneHit += OnLaneHit;
-
+            CurrentCoda.SetLaneIndexes(GetLaneIndexes());
             _fretArray.SetBreMode(true);
         }
 
@@ -676,9 +664,9 @@ namespace YARG.Gameplay.Player
             {
                 // Set emission color of BRE lanes depending on time since last hit
 
-                foreach (var (k, v) in _highwayOrderingIndexToBreScoringZoneIndex)
+                foreach (var (pad, highwayOrderingInfo) in _highwayOrdering)
                 {
-                    BRELanes[k].SetEmissionColor(CurrentCoda.GetNormalizedTimeSinceLastHit(v, visualTime));
+                    BRELanes[highwayOrderingInfo.Position].SetEmissionColor(CurrentCoda.GetNormalizedTimeSinceLastHit(PadToScoringZoneIndex(pad), visualTime));
                 }
             }
 
@@ -860,6 +848,8 @@ namespace YARG.Gameplay.Player
 
         private void MakeHighwayOrdering()
         {
+
+
             var instrument = Player.Profile.CurrentInstrument;
 
             var ordering = instrument switch
@@ -917,6 +907,70 @@ namespace YARG.Gameplay.Player
             }
         }
 
-        protected override Dictionary<int, int> GetLaneIndexes() => _actionToBreScoringZoneIndex;
+        private const int FOUR_LANE_SCORING_ZONE_RED = 0;
+        private const int FOUR_LANE_SCORING_ZONE_YELLOW = 1;
+        private const int FOUR_LANE_SCORING_ZONE_BLUE = 2;
+        private const int FOUR_LANE_SCORING_ZONE_GREEN = 3;
+        private const int FOUR_LANE_SCORING_ZONE_KICK = 4;
+
+        private const int FIVE_LANE_SCORING_ZONE_RED = 0;
+        private const int FIVE_LANE_SCORING_ZONE_YELLOW = 1;
+        private const int FIVE_LANE_SCORING_ZONE_BLUE = 2;
+        private const int FIVE_LANE_SCORING_ZONE_ORANGE = 3;
+        private const int FIVE_LANE_SCORING_ZONE_GREEN = 4;
+        private const int FIVE_LANE_SCORING_ZONE_KICK = 5;
+
+        protected override Dictionary<int, int> GetLaneIndexes() => _fiveLaneMode ? _fiveLaneActionToScoreZoneIndex : _fourLaneActionToScoreZoneIndex;
+
+        private static Dictionary<int, int> _fiveLaneActionToScoreZoneIndex = new()
+        {
+            { (int) DrumsAction.RedDrum,        FIVE_LANE_SCORING_ZONE_RED },
+            { (int) DrumsAction.YellowCymbal,   FIVE_LANE_SCORING_ZONE_YELLOW },
+            { (int) DrumsAction.BlueDrum,       FIVE_LANE_SCORING_ZONE_BLUE },
+            { (int) DrumsAction.OrangeCymbal,   FIVE_LANE_SCORING_ZONE_ORANGE },
+            { (int) DrumsAction.GreenDrum,      FIVE_LANE_SCORING_ZONE_GREEN },
+            { (int) DrumsAction.Kick,           FIVE_LANE_SCORING_ZONE_KICK }
+        };
+
+        private static Dictionary<int, int> _fourLaneActionToScoreZoneIndex = new()
+        {
+            { (int) DrumsAction.RedDrum,        FOUR_LANE_SCORING_ZONE_RED },
+            { (int) DrumsAction.YellowDrum,     FOUR_LANE_SCORING_ZONE_YELLOW },
+            { (int) DrumsAction.YellowCymbal,   FOUR_LANE_SCORING_ZONE_YELLOW },
+            { (int) DrumsAction.BlueDrum,       FOUR_LANE_SCORING_ZONE_BLUE },
+            { (int) DrumsAction.BlueCymbal,     FOUR_LANE_SCORING_ZONE_BLUE },
+            { (int) DrumsAction.GreenDrum,      FOUR_LANE_SCORING_ZONE_GREEN },
+            { (int) DrumsAction.GreenCymbal,    FOUR_LANE_SCORING_ZONE_GREEN },
+            { (int) DrumsAction.Kick,           FOUR_LANE_SCORING_ZONE_KICK },
+        };
+
+        private int PadToScoringZoneIndex(int pad)
+        {
+            if (_fiveLaneMode)
+            {
+                return pad switch
+                {
+                    (int) FiveLaneDrumPad.Red =>                            FIVE_LANE_SCORING_ZONE_RED,
+                    (int) FiveLaneDrumPad.Yellow =>                         FIVE_LANE_SCORING_ZONE_YELLOW,
+                    (int) FiveLaneDrumPad.Blue =>                           FIVE_LANE_SCORING_ZONE_BLUE,
+                    (int) FiveLaneDrumPad.Orange =>                         FIVE_LANE_SCORING_ZONE_ORANGE,
+                    (int) FiveLaneDrumPad.Green =>                          FIVE_LANE_SCORING_ZONE_GREEN,
+                    (int) FiveLaneDrumPad.Kick or DOUBLE_KICK_FRET_INDEX => FIVE_LANE_SCORING_ZONE_KICK,
+                    _ => throw new ArgumentOutOfRangeException()
+                };
+            }
+
+            return pad switch
+            {
+                (int) FourLaneDrumPad.RedDrum =>                                            FOUR_LANE_SCORING_ZONE_RED,
+                (int) FourLaneDrumPad.YellowDrum or (int) FourLaneDrumPad.YellowCymbal =>   FOUR_LANE_SCORING_ZONE_YELLOW,
+                (int) FourLaneDrumPad.BlueDrum or (int) FourLaneDrumPad.BlueCymbal =>       FOUR_LANE_SCORING_ZONE_BLUE,
+                (int) FourLaneDrumPad.GreenDrum or (int) FourLaneDrumPad.GreenCymbal =>     FOUR_LANE_SCORING_ZONE_GREEN,
+                (int) FourLaneDrumPad.Kick or DOUBLE_KICK_FRET_INDEX =>                     FOUR_LANE_SCORING_ZONE_KICK,
+                _ => throw new ArgumentOutOfRangeException()
+            };
+        }
+
+
     }
 }

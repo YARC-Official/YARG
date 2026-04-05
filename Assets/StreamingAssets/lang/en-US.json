@@ -577,10 +577,8 @@
 			"4LaneHeader": "4-Lane Drums Highway Configuration",
 			"ProHeader": "Pro Drums Highway Configuration",
 			"5LaneHeader": "5-Lane Drums Highway Configuration"
-		}
-            },
-            "Playlists": "Playlists"
-        }
+		},
+        "Playlists": "Playlists"
     },
     "Gameplay": {
         "Notifications": {
