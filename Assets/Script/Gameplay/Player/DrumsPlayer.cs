@@ -701,6 +701,12 @@ namespace YARG.Gameplay.Player
         {
             int fretIdx = DrumsActionToHighwayIndex(action);
             ZeroOutHitTime(fretIdx, animType);
+
+            // When kicks have split dedicated lanes, zero out both for kick inputs
+            if (action is DrumsAction.Kick && NumberOfDedicatedKickLanes == 2)
+            {
+                ZeroOutHitTime(DOUBLE_KICK_FRET_INDEX, animType);
+            }
         }
 
         // i.e., flash this fret by making it seem pressed
