@@ -52,7 +52,8 @@ namespace YARG.Menu.Filters
         Source,
         Charter,
         Difficulty,
-        Length
+        Length,
+        Playlist
     }
 }
 

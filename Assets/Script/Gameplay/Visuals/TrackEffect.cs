@@ -13,6 +13,7 @@ namespace YARG.Gameplay.Visuals
         DrumFill,
         SoloAndDrumFill,
         DrumFillAndUnison,
+        BigRockEnding
     }
 
     // Small warning, TrackEffects are equal if their Time and TimeEnd values

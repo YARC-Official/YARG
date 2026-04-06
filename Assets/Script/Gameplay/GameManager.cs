@@ -61,6 +61,9 @@ namespace YARG.Gameplay
         [SerializeField]
         private FailMeter _failMeter;
 
+        [SerializeField]
+        private BREBox _breBox;
+
         [field: SerializeField]
         public VocalTrack VocalTrack { get; private set; }
 
@@ -160,8 +163,8 @@ namespace YARG.Gameplay
         public int StarPowerActivations { get; private set; } = 0;
 
         private bool _isReplaySaved;
-
         private int _originalSleepTimeout;
+        private bool _breBoxActive;
 
         private StemMixer _mixer;
 
@@ -231,6 +234,8 @@ namespace YARG.Gameplay
             // Unsubscribe from other events
             SettingsManager.Settings.NoFailMode.OnChange -= OnNoFailModeChanged;
             EngineManager.OnSongFailed -= OnSongFailed;
+            EngineManager.OnCodaStart -= StartCoda;
+            EngineManager.OnCodaEnd -= EndCoda;
 
             //Restore stem volumes to their original state
             foreach (var (stem, state) in _stemStates)
@@ -611,7 +616,10 @@ namespace YARG.Gameplay
                 {
                     IsHighScore = player.Score > player.LastHighScore,
                     Player = player.Player,
-                    Stats = player.BaseStats
+                    Stats = player.BaseStats,
+                    AverageMultiplier = player.BaseEngine.BaseScore == 0 ?
+                        0 :
+                        (float) player.BaseStats.StarScore / player.BaseEngine.BaseScore
                 }).ToArray(),
                 BandScore = BandScore,
                 BandStars = (int) BandStars,
@@ -977,6 +985,28 @@ namespace YARG.Gameplay
             CheckForRewindInvalidation();
 
             return false;
+        }
+
+        public void StartCoda(CodaSection _)
+        {
+            if (_breBoxActive)
+            {
+                return;
+            }
+
+            _breBoxActive = true;
+            _breBox.StartCoda(EngineManager);
+        }
+
+        public void EndCoda(CodaSection coda)
+        {
+            _breBox.EndCoda(EngineManager.TotalCodaBonus, () => { _breBoxActive = false; });
+        }
+
+        public void ResetCoda()
+        {
+            _breBox.ForceReset();
+            _breBoxActive = false;
         }
     }
 }

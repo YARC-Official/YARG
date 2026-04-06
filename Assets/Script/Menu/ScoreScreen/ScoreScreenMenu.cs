@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Collections.Generic;
+using System.Threading;
 using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
@@ -37,6 +38,8 @@ namespace YARG.Menu.ScoreScreen
         [SerializeField]
         private Image _sourceIcon;
         [SerializeField]
+        private RawImage _albumCover;
+        [SerializeField]
         private TextMeshProUGUI _songTitle;
         [SerializeField]
         private TextMeshProUGUI _artistName;
@@ -45,7 +48,7 @@ namespace YARG.Menu.ScoreScreen
         [SerializeField]
         private TextMeshProUGUI _bandScore;
         [SerializeField]
-        private TextMeshProUGUI _bandScoreNotSavedMessage;
+        private ColoredPillElement _bandScoreNotSavedPill;
         [SerializeField]
         private ScrollRect _cardScrollRect;
         [SerializeField]
@@ -61,14 +64,12 @@ namespace YARG.Menu.ScoreScreen
         [SerializeField]
         private VocalsScoreCard _vocalsCardPrefab;
         [SerializeField]
-        private ProKeysScoreCard _proKeysCardPrefab;
-        [SerializeField]
-        private ProKeysScoreCard _fiveLaneKeysCardPrefab;
+        private ProKeysScoreCard _keysCardPrefab;
 
         private bool _analyzingReplay;
-
         private bool _restartingSong;
         private bool _showAdvancedStats;
+        private CancellationTokenSource _cancellationToken;
 
         private readonly List<IScoreCard<BaseStats>> _scoreCards = new();
 
@@ -119,7 +120,11 @@ namespace YARG.Menu.ScoreScreen
             // Set text
             _songTitle.text = song.Name;
             _artistName.text = song.Artist;
-            _bandScoreNotSavedMessage.gameObject.SetActive(
+
+            var scoreNotSavedText = Localize.Key("Menu.ScoreScreen.BandScoreNotSaved");
+            _bandScoreNotSavedPill.SetValues(scoreNotSavedText,
+                ColoredPillElement.ColoredPillPreset.HarderModifier);
+            _bandScoreNotSavedPill.gameObject.SetActive(
                 !ScoreContainer.IsBandScoreValid(PersistentState.Default.SongSpeed));
 
             // Set speed text (if not at 100% speed)
@@ -139,6 +144,9 @@ namespace YARG.Menu.ScoreScreen
 
             _sourceIcon.sprite = SongSources.SourceToIcon(song.Source);
 
+            _cancellationToken = new CancellationTokenSource();
+            _albumCover.LoadAlbumCover(song, _cancellationToken.Token, 0.2f);
+
             //set restarting state
             _restartingSong = false;
         }
@@ -156,6 +164,8 @@ namespace YARG.Menu.ScoreScreen
                 GlobalAudioHandler.StopSoundEffect(SfxSample.Chatter, 1.0);
             }
 
+            _cancellationToken?.Cancel();
+            _cancellationToken?.Dispose();
             Navigator.Instance.PopScheme();
         }
 
@@ -187,7 +197,7 @@ namespace YARG.Menu.ScoreScreen
                     case GameMode.FiveFretGuitar:
                     {
                         card = Instantiate(_guitarCardPrefab, _cardContainer);
-                        ((ScoreCard<GuitarStats>)card).Initialize(score.IsHighScore, score.Player, score.Stats as GuitarStats);
+                        ((ScoreCard<GuitarStats>)card).Initialize(score.IsHighScore, score.Player, score.Stats as GuitarStats, score.AverageMultiplier);
                         break;
                     }
                     case GameMode.FourLaneDrums:
@@ -195,27 +205,19 @@ namespace YARG.Menu.ScoreScreen
                     case GameMode.EliteDrums:
                     {
                         card = Instantiate(_drumsCardPrefab, _cardContainer);
-                        ((ScoreCard<DrumsStats>)card).Initialize(score.IsHighScore, score.Player, score.Stats as DrumsStats);
+                        ((ScoreCard<DrumsStats>)card).Initialize(score.IsHighScore, score.Player, score.Stats as DrumsStats, score.AverageMultiplier);
                         break;
                     }
                     case GameMode.Vocals:
                     {
                         card = Instantiate(_vocalsCardPrefab, _cardContainer);
-                        ((ScoreCard<VocalsStats>)card).Initialize(score.IsHighScore, score.Player, score.Stats as VocalsStats);
+                        ((ScoreCard<VocalsStats>)card).Initialize(score.IsHighScore, score.Player, score.Stats as VocalsStats, score.AverageMultiplier);
                         break;
                     }
                     case GameMode.ProKeys:
                     {
-                        if (score.Player.Profile.CurrentInstrument is Instrument.ProKeys)
-                        {
-                            card = Instantiate(_proKeysCardPrefab, _cardContainer);
-                        }
-                        else
-                        {
-                            card = Instantiate(_fiveLaneKeysCardPrefab, _cardContainer);
-                        }
-                        ((ScoreCard<KeysStats>) card).Initialize(score.IsHighScore, score.Player,
-                            score.Stats as KeysStats);
+                        card = Instantiate(_keysCardPrefab, _cardContainer);
+                        ((ScoreCard<KeysStats>) card).Initialize(score.IsHighScore, score.Player, score.Stats as KeysStats, score.AverageMultiplier);
                         break;
                     }
                 }

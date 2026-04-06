@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
@@ -73,6 +74,7 @@ namespace YARG.Menu.MusicLibrary
         private void OnDisable()
         {
             Navigator.Instance.PopScheme();
+            _musicLibrary.RefreshNavigationSchemeAfterPopup();
         }
 
         private void UpdateForState()
@@ -105,11 +107,14 @@ namespace YARG.Menu.MusicLibrary
         {
             SetHeader(null);
 
-            CreateItem("RandomSong", () =>
+            if (_musicLibrary.MenuState != MenuState.PlaylistSelect)
             {
-                _musicLibrary.SelectRandomSong();
-                gameObject.SetActive(false);
-            });
+                CreateItem("RandomSong", () =>
+                {
+                    _musicLibrary.SelectRandomSong();
+                    gameObject.SetActive(false);
+                });
+            }
 
             CreateItem("BackToTop", () =>
             {
@@ -123,13 +128,18 @@ namespace YARG.Menu.MusicLibrary
                 gameObject.SetActive(false);
             });
 
-            CreateItem("SortBy", SettingsManager.Settings.LibrarySort.ToLocalizedName(), () =>
+            if (_musicLibrary.MenuState != MenuState.PlaylistSelect)
             {
-                _menuState = State.SortSelect;
-                UpdateForState();
-            });
+                CreateItem("SortBy", _musicLibrary.GetPopupSortLabel(), () =>
+                {
+                    _menuState = State.SortSelect;
+                    UpdateForState();
+                });
+            }
 
-            if (_musicLibrary.HasSortHeaders)
+            if (_musicLibrary.MenuState != MenuState.Playlist &&
+                _musicLibrary.MenuState != MenuState.PlaylistSelect &&
+                _musicLibrary.HasSortHeaders)
             {
                 CreateItem("GoToSection", () =>
                 {
@@ -202,7 +212,7 @@ namespace YARG.Menu.MusicLibrary
                     });
                 }
 
-                if (viewType is SongViewType && !_musicLibrary.PlaylistMode)
+                if (viewType is SongViewType)
                 {
                     CreateItemUnlocalized(_musicLibrary.GetGreenHoldActionLabel(), () =>
                     {
@@ -210,40 +220,64 @@ namespace YARG.Menu.MusicLibrary
                         gameObject.SetActive(false);
                     });
 
+                    bool isInPlaylist = _musicLibrary.MenuState == MenuState.Playlist &&
+                        _musicLibrary.SelectedPlaylist != null &&
+                        _musicLibrary.SelectedPlaylist != PlaylistContainer.FavoritesPlaylist;
+                    bool isSetlist = isInPlaylist && _musicLibrary.SelectedPlaylist.Ephemeral;
+
+                    void AddRemoveFromPlaylistItem()
+                    {
+                        var removeKey = _musicLibrary.SelectedPlaylist.Ephemeral
+                            ? "RemoveFromSetlist"
+                            : "RemoveFromPlaylist";
+                        CreateItem(removeKey, () =>
+                        {
+                            var songView = viewType as SongViewType;
+                            _musicLibrary.SelectedPlaylist.RemoveSong(songView.SongEntry);
+                            _musicLibrary.RefreshAndReselect();
+                            gameObject.SetActive(false);
+                            ToastManager.ToastSuccess("Removed from playlist");
+                        });
+                    }
+
+                    if (isSetlist)
+                        AddRemoveFromPlaylistItem();
+
+                    // Show "Add to Playlist" even when editing a playlist.
                     CreateItem("AddToPlaylist", () =>
                     {
                         _menuState = State.AddToPlaylist;
                         UpdateForState();
                     });
-                }
 
-                if (_musicLibrary.PlaylistMode)
-                {
-                    CreateItem("RemoveFromPlaylist", () =>
-                    {
-                        _musicLibrary.CurrentSelection.RemoveFromPlaylist(_musicLibrary.SelectedPlaylist);
-                        gameObject.SetActive(false);
-                    });
-                }
-            }
-
-            if (viewType is PlaylistViewType && _musicLibrary.MenuState == MenuState.PlaylistSelect)
-            {
-                // Only for the ad hoc setlist
-                if (_musicLibrary.CurrentSelection is PlaylistViewType pv && pv.Playlist.Ephemeral)
-                {
-                    CreateItem("AddToPlaylist", () =>
-                    {
-                        _menuState = State.AddToPlaylist;
-                        UpdateForState();
-                    });
+                    // Show "Remove from Playlist" if we're editing a playlist
+                    if (isInPlaylist && !isSetlist)
+                        AddRemoveFromPlaylistItem();
                 }
             }
 
             if (viewType is PlaylistViewType playlistView &&
                 playlistView.Playlist != PlaylistContainer.FavoritesPlaylist)
             {
-                CreateItem("RemovePlaylist", () =>
+                if (!playlistView.Playlist.Ephemeral)
+                {
+                    CreateItem("RenamePlaylist", () =>
+                    {
+                        DialogManager.Instance.ShowRenameDialog(playlistView.Playlist.Name, newName =>
+                        {
+                            PlaylistContainer.RenamePlaylist(playlistView.Playlist, newName);
+                            ToastManager.ToastSuccess($"Renamed to '{newName}'");
+                            _musicLibrary.RefreshAndSelectPlaylist(playlistView.Playlist);
+                        });
+
+                        CloseAfterDialog().Forget();
+                    });
+                }
+
+                var deleteLabel = playlistView.Playlist.Ephemeral
+                    ? Localize.Key("Menu.MusicLibrary.Popup.Item.DeleteSetlist")
+                    : Localize.Key("Menu.MusicLibrary.Popup.Item.DeletePlaylist");
+                CreateItemUnlocalized(deleteLabel, () =>
                 {
                     // Special handling for the ad hoc setlist
                     if (playlistView.Playlist.Ephemeral)
@@ -252,8 +286,10 @@ namespace YARG.Menu.MusicLibrary
                     }
                     else
                     {
-                        PlaylistContainer.RemovePlaylist(playlistView.Playlist);
+                        PlaylistContainer.DeletePlaylist(playlistView.Playlist);
                     }
+                    
+                    ToastManager.ToastSuccess($"Deleted '{playlistView.Playlist.Name}'");
 
                     _musicLibrary.RefreshAndReselect();
                     gameObject.SetActive(false);
@@ -300,6 +336,35 @@ namespace YARG.Menu.MusicLibrary
         {
             SetLocalizedHeader("SortBy");
 
+            if (_musicLibrary.MenuState == MenuState.Playlist)
+            {
+                CreateItemUnlocalized($"{SortAttribute.Name.ToLocalizedName()} (A-Z)", () =>
+                {
+                    _musicLibrary.ApplySortFromPopup(SortAttribute.Name, ascending: true);
+                    gameObject.SetActive(false);
+                });
+
+                CreateItemUnlocalized($"{SortAttribute.Name.ToLocalizedName()} (Z-A)", () =>
+                {
+                    _musicLibrary.ApplySortFromPopup(SortAttribute.Name, ascending: false);
+                    gameObject.SetActive(false);
+                });
+
+                CreateItemUnlocalized($"{SortAttribute.Artist.ToLocalizedName()} (A-Z)", () =>
+                {
+                    _musicLibrary.ApplySortFromPopup(SortAttribute.Artist, ascending: true);
+                    gameObject.SetActive(false);
+                });
+
+                CreateItemUnlocalized($"{SortAttribute.Artist.ToLocalizedName()} (Z-A)", () =>
+                {
+                    _musicLibrary.ApplySortFromPopup(SortAttribute.Artist, ascending: false);
+                    gameObject.SetActive(false);
+                });
+
+                return;
+            }
+
             foreach (var sort in EnumExtensions<SortAttribute>.Values)
             {
                 // Skip theses because they don't make sense
@@ -321,7 +386,7 @@ namespace YARG.Menu.MusicLibrary
 
                 CreateItemUnlocalized(sort.ToLocalizedName(), () =>
                 {
-                    _musicLibrary.ChangeSort(sort);
+                    _musicLibrary.ApplySortFromPopup(sort);
                     gameObject.SetActive(false);
                 });
             }
@@ -359,6 +424,13 @@ namespace YARG.Menu.MusicLibrary
             // Get the list of playlists from PlaylistContainer and create items for each
             foreach (var playlist in PlaylistContainer.Playlists)
             {
+                if (_musicLibrary.MenuState == MenuState.Playlist &&
+                    _musicLibrary.SelectedPlaylist != null &&
+                    ReferenceEquals(playlist, _musicLibrary.SelectedPlaylist))
+                {
+                    continue;
+                }
+
                 CreateItemUnlocalized(playlist.Name, () =>
                 {
                     if (_musicLibrary.CurrentSelection is SongViewType songView)
@@ -399,7 +471,7 @@ namespace YARG.Menu.MusicLibrary
                     if (value == Localize.Key("Menu.MusicLibrary.CurrentSetlist"))
                     {
                         ToastManager.ToastError("You can't create a playlist with that name");
-                        gameObject.SetActive(false);
+                        CloseAfterDialog().Forget();
                         return;
                     }
 
@@ -420,13 +492,13 @@ namespace YARG.Menu.MusicLibrary
                     else
                     {
                         ToastManager.ToastError("You can't add that to a playlist");
-                        PlaylistContainer.RemovePlaylist(playlist);
-                        gameObject.SetActive(false);
+                        PlaylistContainer.DeletePlaylist(playlist);
+                        CloseAfterDialog().Forget();
                         return;
                     }
 
-                    // Close the popup
-                    gameObject.SetActive(false);
+                    // Close the popup after the rename dialog is fully closed
+                    CloseAfterDialog().Forget();
                     _musicLibrary.RefreshAndReselect();
                     ToastManager.ToastSuccess("Playlist Created");
                 });
@@ -461,6 +533,14 @@ namespace YARG.Menu.MusicLibrary
         {
             var localized = Localize.KeyFormat(("Menu.MusicLibrary.Popup.Item", localizeKey), formatArg);
             CreateItemUnlocalized(localized, a);
+        }
+
+        private async UniTaskVoid CloseAfterDialog()
+        {
+            await DialogManager.Instance.WaitUntilCurrentClosed();
+            if (this == null) return;
+            gameObject.SetActive(false);
+            _musicLibrary.SetNavigationScheme(true);
         }
 
         private void CreateItemUnlocalized(string body, UnityAction a)

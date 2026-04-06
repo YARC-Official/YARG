@@ -6,8 +6,6 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.IO.Compression;
-using System.Net;
-using System.Text;
 using UnityEngine.Networking;
 using YARG.Core.Logging;
 using YARG.Core.Song;
@@ -29,12 +27,27 @@ namespace YARG.Song
             public SortString Subgenre { get; }
         }
 
-        public static void GenrelizeAll(SongCache cache)
+        public static void GenrelizeAll(SongCache cache, bool overgenrelize)
         {
             // If Genrelizer data has failed, fall back to parsing literally
             if (_mappings.Count == 0)
             {
                 DegenrelizeAll(cache);
+                return;
+            }
+
+            if (overgenrelize)
+            {
+                foreach (var list in cache.Entries)
+                {
+                    foreach (var songEntry in list.Value)
+                    {
+                        var mapping = _getGenresOrDefault(songEntry.Genre, songEntry.Subgenre, songEntry.Artist);
+                        songEntry.Genre = Overgenrelize(mapping.Genre);
+                        songEntry.Subgenre = SortString.Empty;
+                    }
+                }
+
                 return;
             }
 
@@ -58,6 +71,94 @@ namespace YARG.Song
                     (songEntry.Genre, songEntry.Subgenre) = (songEntry.RawGenre, songEntry.RawSubgenre);
                 }
             }
+        }
+
+        private static SortString Overgenrelize(SortString genre)
+        {
+            return genre.SortStr switch
+            {
+                ALTERNATIVE or
+                INDIE_ROCK => OVER_ALTERNATIVE,
+
+                COUNTRY or
+                FOLK or
+                SOUTHERN_ROCK => OVER_COUNTRY_FOLK,
+
+                CHILDRENS_MUSIC or
+                CLASSICAL or
+                HOLIDAY or
+                ORCHESTRAL or
+                SOUNDTRACK or
+                TRADITIONAL => OVER_CLASSICAL_TRADITIONAL,
+
+                AMBIENT_DRONE or
+                CHIPTUNE or
+                DANCE or
+                DNB_BREAKBEAT_JUNGLE or
+                DUBSTEP or
+                ELECTRONIC or
+                GLITCH or
+                HARDCORE_EDM or
+                HOUSE or
+                IDM or
+                TECHNO or
+                TRANCE => OVER_DANCE_ELECTRONIC,
+
+                HIP_HOP_RAP or
+                TRAP => OVER_HIP_HOP,
+
+                BLUES or
+                FUSION or
+                JAZZ => OVER_JAZZ_BLUES,
+
+                DEATH_BLACK_METAL or
+                DJENT or
+                DOOM_METAL or
+                GRINDCORE or
+                GROOVE_METAL or
+                HEAVY_METAL or
+                MELODIC_POWER_METAL or
+                THRASH_SPEED_METAL => OVER_METAL,
+
+                BALLAD or
+                J_POP or
+                K_POP or
+                NEW_WAVE or
+                POP or
+                SYNTHPOP_ELECTROPOP => OVER_POP,
+
+                EMO or
+                METALCORE or
+                NU_METAL or
+                POP_PUNK or
+                POST_HARDCORE or
+                PUNK => OVER_PUNK_SCENE_CORE,
+
+                RNB_SOUL_FUNK or
+                DISCO => OVER_RNB_SOUL_FUNK,
+
+                CLASSIC_ROCK or
+                ELECTRONIC_ROCK or
+                GLAM or
+                GRUNGE or
+                HARD_ROCK or
+                INDUSTRIAL or
+                J_ROCK or
+                MATH_ROCK or
+                POP_ROCK or
+                PROGRESSIVE or
+                PSYCHEDELIC or
+                ROCK or
+                ROCK_AND_ROLL or
+                SKA or
+                SURF_ROCK => OVER_ROCK,
+
+                LATIN or
+                REGGAE or
+                WORLD => OVER_WORLD,
+
+                _ => OVER_OTHER
+            };
         }
 
         private static string _getLocalizedGenre(string genre)
@@ -307,13 +408,13 @@ namespace YARG.Song
                 ZipFile.ExtractToDirectory(zipPath, GenresFolder);
 
                 // Delete the random folders
-                var ignoreFolder = System.IO.Path.Combine(repoDir, "ignore");
+                var ignoreFolder = Path.Combine(repoDir, "ignore");
                 if (Directory.Exists(ignoreFolder))
                 {
                     Directory.Delete(ignoreFolder, true);
                 }
 
-                var githubFolder = System.IO.Path.Combine(repoDir, ".github");
+                var githubFolder = Path.Combine(repoDir, ".github");
                 if (Directory.Exists(githubFolder))
                 {
                     Directory.Delete(githubFolder, true);
@@ -340,7 +441,9 @@ namespace YARG.Song
             }
         }
 
+        #nullable enable
         private static Mapping _getGenresOrDefault(string? rawGenre, string? rawSubgenre, string artist)
+        #nullable restore
         {
             if (string.IsNullOrEmpty(rawGenre))
             {
@@ -535,7 +638,7 @@ namespace YARG.Song
 
             string subgenre = null;
 
-            // Run the subgenre through the Genrelzier data, just for the purpose of localizing it
+            // Run the subgenre through the Genrelizer data, just for the purpose of localizing it
             if (magmaSubgenre is not null)
             {
                 if (_mappings.TryGetValue(magmaSubgenre, out var subgenreMapping))
@@ -557,9 +660,9 @@ namespace YARG.Song
         {
             if (artist is "UB40" or "Zing Experience" || artist.Contains("Bob Marley"))
             {
-                return new(REGGAE, null);
+                return new(_getLocalizedGenre(REGGAE), null);
             }
-            return new(SKA, null);
+            return new(_getLocalizedGenre(SKA), null);
         }
 
         private static string _sanitize(string subgenre)
@@ -567,5 +670,12 @@ namespace YARG.Song
             var textInfo = new CultureInfo(Localization.LocalizationManager.CultureCode).TextInfo;
             return textInfo.ToTitleCase(subgenre.Trim());
         }
+    }
+
+    public enum GenrelizerMode
+    {
+        Off,
+        Genrelize,
+        Overgenrelize
     }
 }

@@ -16,6 +16,7 @@ using YARG.Menu.Settings;
 using YARG.Menu.Settings.Visuals;
 using YARG.Menu.Persistent;
 using YARG.Player;
+using YARG.Playlists;
 using YARG.Song;
 using YARG.Settings;
 
@@ -100,6 +101,8 @@ namespace YARG.Menu.Filters
             new(StringComparer.OrdinalIgnoreCase);
         private readonly Dictionary<string, bool> _sourceEnabled =
             new(StringComparer.OrdinalIgnoreCase);
+        private readonly Dictionary<string, bool> _playlistEnabled =
+            new(StringComparer.OrdinalIgnoreCase);
         private readonly Dictionary<string, bool> _charterEnabled =
             new(StringComparer.OrdinalIgnoreCase);
         private readonly Dictionary<string, bool> _lengthEnabled =
@@ -112,15 +115,19 @@ namespace YARG.Menu.Filters
         private static IReadOnlyList<string> _cachedDecades;
         private static IReadOnlyList<string> _cachedVocalParts;
         private static IReadOnlyList<string> _cachedSources;
+        private static IReadOnlyList<string> _cachedPlaylists;
         private static IReadOnlyList<string> _cachedCharters;
         private static IReadOnlyList<string> _cachedLengths;
         private static IReadOnlyList<string> _cachedDifficulties;
+        private static Dictionary<string, int> _cachedPlaylistCounts;
 
         private static int _cachedGenreSongCount = -1;
         private static int _cachedSubgenreSongCount = -1;
         private static int _cachedDecadeSongCount = -1;
         private static int _cachedVocalPartsSongCount = -1;
         private static int _cachedSourceSongCount = -1;
+        private static int _cachedPlaylistSignature = -1;
+        private static int _cachedPlaylistCountsSignature = -1;
         private static int _cachedCharterSongCount = -1;
         private static int _cachedLengthSongCount = -1;
         private static int _cachedDifficultySongCount = -1;
@@ -331,6 +338,9 @@ namespace YARG.Menu.Filters
                 case FilterGroup.Length:
                     BuildOptionsFor(FilterGroup.Length);
                     break;
+                case FilterGroup.Playlist:
+                    BuildOptionsFor(FilterGroup.Playlist);
+                    break;
             }
         }
 
@@ -341,6 +351,7 @@ namespace YARG.Menu.Filters
                 _leftRows[row.Filters] = row;
         }
 
+#region Unity Prefab/Asset Building
         private void BuildLeftPanel(Transform container, NavigationGroup navGroup)
         {
             int rowIndex = 0;
@@ -360,6 +371,10 @@ namespace YARG.Menu.Filters
             AddGroup(container, navGroup, FilterGroup.Charter, Localize.Key("Menu.Filters.Charters"))?.AssignIndex(rowIndex++);
             AddGroup(container, navGroup, FilterGroup.Difficulty, Localize.Key("Menu.Filters.Difficulties.Name"))?.AssignIndex(rowIndex++);
             AddGroup(container, navGroup, FilterGroup.Length, Localize.Key("Menu.Filters.Length.Name"))?.AssignIndex(rowIndex++);
+
+            AddHeader(container, Localize.Key("Menu.Filters.ShowAnyOfHeader"));
+            rowIndex = 0;
+            AddGroup(container, navGroup, FilterGroup.Playlist, Localize.Key("Menu.Filters.Playlists"))?.AssignIndex(rowIndex++);
         }
 
         private void AddHeader(Transform container, string text)
@@ -417,6 +432,178 @@ namespace YARG.Menu.Filters
             return row.GetComponent<BaseSettingVisual>();
         }
 
+        private void AddSelectDeselectButtons(Action selectAll, Action deselectAll)
+        {
+            if (_rightContainer == null) return;
+
+            var prefab = GetSettingsButtonPrefab();
+            if (prefab == null) return;
+
+            var go = Instantiate(prefab, _rightContainer);
+            var buttonRow = go.GetComponent<SettingsButton>();
+            if (buttonRow == null) return;
+
+            buttonRow.SetCustomButtons(new[]
+            {
+                new SettingsButton.CustomButton(Localize.Key("Menu.Filters.SelectAll"), selectAll),
+                new SettingsButton.CustomButton(Localize.Key("Menu.Filters.DeselectAll"), deselectAll)
+            });
+
+            _rightNavGroup.AddNavigatable(buttonRow);
+        }
+
+        private void BuildOptions(
+            IReadOnlyList<string> values,
+            Dictionary<string, bool> enabled,
+            Dictionary<string, int> counts,
+            Action updateSummary,
+            Func<string, string> labelTransform = null,
+            bool useDefaults = true)
+        {
+            if (_rightContainer == null || _filterEntryRowPrefab == null) return;
+
+            if (useDefaults)
+                EnsureDefaults(enabled, values);
+
+            if (values.Count > 0)
+                AddSelectDeselectButtons(
+                    () => ApplyRightToggleState(enabled, true, updateSummary),
+                    () => ApplyRightToggleState(enabled, false, updateSummary));
+
+            int rowIndex = 0;
+            foreach (string value in values)
+            {
+                var row = Instantiate(_filterEntryRowPrefab, _rightContainer);
+                _rightNavGroup.AddNavigatable(row.gameObject);
+
+                row.AssignIndex(rowIndex++);
+
+                bool isOn = enabled[value];
+                counts.TryGetValue(value, out int count);
+                var labelText = labelTransform != null ? labelTransform(value) : value;
+
+                row.Bind(
+                    labelText: labelText,
+                    numberText: Localize.KeyFormat("Menu.Filters.SongCount", count),
+                    isOn: isOn
+                );
+
+                row.ToggleChanged += toggleValue =>
+                {
+                    enabled[value] = toggleValue;
+                    updateSummary?.Invoke();
+                    DisableRecommendationsIfFiltered();
+                };
+            }
+        }
+
+        private static GameObject GetSettingsButtonPrefab()
+        {
+            if (_settingsButtonPrefab == null)
+            {
+                _settingsButtonPrefab = Addressables
+                    .LoadAssetAsync<GameObject>("SettingTab/Button")
+                    .WaitForCompletion();
+            }
+
+            return _settingsButtonPrefab;
+        }
+
+        public void SetupSortedByDropdown(GameObject row, string label)
+        {
+            if (row == null)
+                return;
+
+            var visual = row.GetComponent<DropdownSettingVisual>();
+            if (visual == null)
+                return;
+
+            if (_sortDropdownSetting == null)
+            {
+                _sortDropdownSetting = new FilterSortDropdownSetting(sort =>
+                {
+                    var library = FindFirstObjectByType<MusicLibrary.MusicLibraryMenu>();
+                    if (library != null)
+                    {
+                        library.ChangeSort(sort);
+                    }
+                    else
+                    {
+                        if (sort != SortAttribute.Playcount && sort != SortAttribute.Stars)
+                            SettingsManager.Settings.PreviousLibrarySort = sort;
+
+                        SettingsManager.Settings.LibrarySort = sort;
+                    }
+                });
+            }
+
+            _sortDropdownSetting.UpdateValues();
+
+            int index = FindSortIndex(_sortDropdownSetting.PossibleValues, SettingsManager.Settings.LibrarySort);
+            if (index >= 0)
+                _sortDropdownSetting.SetValueWithoutNotify(_sortDropdownSetting.PossibleValues[index]);
+
+            visual.AssignPresetSetting("Filters.SortBy", false, _sortDropdownSetting);
+            SetSortedByLabel(row, label);
+        }
+
+        public void SetupShowRecommendationsToggle(GameObject row, string label)
+        {
+            if (row == null)
+                return;
+
+            var visual = row.GetComponent<ToggleSettingVisual>();
+            if (visual == null)
+                return;
+
+            visual.AssignPresetSetting("Filters.ShowRecommendations", false, SettingsManager.Settings.ShowRecommendedSongs);
+            SetToggleLabel(row, label);
+
+            _showRecommendationsToggle = row.GetComponentInChildren<Toggle>(true);
+        }
+
+        private static void SetSortedByLabel(GameObject row, string label)
+        {
+            if (string.IsNullOrEmpty(label))
+                return;
+
+            var dropdown = row.GetComponentInChildren<TMP_Dropdown>(true);
+            var caption = dropdown != null ? dropdown.captionText : null;
+            var item = dropdown != null ? dropdown.itemText : null;
+
+            foreach (var tmp in row.GetComponentsInChildren<TextMeshProUGUI>(true))
+            {
+                if (tmp == null || tmp == caption || tmp == item)
+                    continue;
+
+                tmp.text = label;
+                break;
+            }
+        }
+
+        private static void SetToggleLabel(GameObject row, string label)
+        {
+            if (string.IsNullOrEmpty(label))
+                return;
+
+            var tmp = row.GetComponentInChildren<TextMeshProUGUI>(true);
+            if (tmp != null)
+                tmp.text = label;
+        }
+
+        private static int FindSortIndex(IReadOnlyList<SortAttribute> values, SortAttribute sort)
+        {
+            for (int i = 0; i < values.Count; i++)
+            {
+                if (values[i] == sort)
+                    return i;
+            }
+
+            return -1;
+        }
+#endregion
+
+#region Navigation/Focus
         private void FocusLeft()
         {
             _focusSide = FocusSide.Left;
@@ -521,7 +708,9 @@ namespace YARG.Menu.Filters
 
             return new FilterHelpBarState("Menu.Common.Confirm", false);
         }
+#endregion
 
+#region Filter Application
         private static string NormalizeFilterKey(string text)
         {
             return StringTransformations.RemoveUnwantedWhitespace(
@@ -566,6 +755,12 @@ namespace YARG.Menu.Filters
                 _sourceEnabled);
 
             yield return new FilterDef(
+                FilterGroup.Playlist,
+                GetAllPlaylistsCached,
+                GetPlaylistCounts,
+                _playlistEnabled);
+
+            yield return new FilterDef(
                 FilterGroup.Charter,
                 GetAllChartersCached,
                 () => GetCountsFromCollections(SongContainer.Charters, key => key.ToString()),
@@ -603,7 +798,12 @@ namespace YARG.Menu.Filters
         private void EnsureAllDefaults()
         {
             foreach (var def in GetFilterDefs())
-                EnsureDefaults(def.Enabled, def.GetValues());
+            {
+                if (def.Group == FilterGroup.Playlist)
+                    EnsureDefaults(def.Enabled, def.GetValues(), defaultValue: false);
+                else
+                    EnsureDefaults(def.Enabled, def.GetValues());
+            }
         }
 
         private void RestoreSavedFilters()
@@ -647,30 +847,38 @@ namespace YARG.Menu.Filters
 
             var values = def.GetValues();
             var counts = def.GetCounts();
+            bool useDefaults = group != FilterGroup.Playlist;
+            if (!useDefaults)
+                EnsureDefaults(def.Enabled, values, defaultValue: false);
             BuildOptions(
                 values,
                 def.Enabled,
                 counts,
                 () => UpdateSummary(def.Group, def.Enabled, def.GetValues()),
-                def.LabelTransform);
+                def.LabelTransform,
+                useDefaults);
         }
 
         private static bool TryGetSelectedSet(
             Dictionary<string, bool> enabled,
             IReadOnlyList<string> all,
             Func<string, string> normalize,
-            out HashSet<string> selected)
+            out HashSet<string> selected,
+            bool defaultValue = true,
+            bool treatNoneAsNoFilter = false,
+            bool treatAllAsNoFilter = true)
         {
             selected = null;
 
             if (all.Count == 0) return false;
 
-            EnsureDefaults(enabled, all);
+            EnsureDefaults(enabled, all, defaultValue);
 
             if (enabled.Count == 0) return false;
 
             int selectedCount = enabled.Count(kvp => kvp.Value);
-            if (selectedCount == enabled.Count) return false; // no filter for this category
+            if (treatNoneAsNoFilter && selectedCount == 0) return false;
+            if (treatAllAsNoFilter && selectedCount == enabled.Count) return false; // no filter for this category
 
             selected = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             foreach (var kvp in enabled)
@@ -680,9 +888,6 @@ namespace YARG.Menu.Filters
             }
             return true;
         }
-
-        private static string NormalizeDecade(string text) =>
-            string.IsNullOrEmpty(text) ? string.Empty : text.ToLowerInvariant();
 
         private static IReadOnlyList<string> GetAllCached(
             ref IReadOnlyList<string> cache,
@@ -721,10 +926,15 @@ namespace YARG.Menu.Filters
 
         private static void EnsureDefaults(Dictionary<string, bool> enabled, IReadOnlyList<string> values)
         {
+            EnsureDefaults(enabled, values, defaultValue: true);
+        }
+
+        private static void EnsureDefaults(Dictionary<string, bool> enabled, IReadOnlyList<string> values, bool defaultValue)
+        {
             foreach (var value in values)
             {
                 if (!enabled.ContainsKey(value))
-                    enabled[value] = true;
+                    enabled[value] = defaultValue;
             }
 
             var set = new HashSet<string>(values, StringComparer.OrdinalIgnoreCase);
@@ -742,55 +952,22 @@ namespace YARG.Menu.Filters
             int total = values.Count;
             int selected = enabled.Count(kvp => kvp.Value);
 
-            string text =
-                selected == 0 ? Localize.Key("Menu.Filters.None") :
-                selected == total ? Localize.Key("Menu.Filters.All") :
-                Localize.KeyFormat("Menu.Filters.Selected", selected);
+            string text;
+            if (group == FilterGroup.Playlist)
+            {
+                text = selected == 0
+                    ? Localize.Key("Menu.Filters.None")
+                    : Localize.KeyFormat("Menu.Filters.AnyOf", selected);
+            }
+            else
+            {
+                text =
+                    selected == 0 ? Localize.Key("Menu.Filters.None") :
+                    selected == total ? Localize.Key("Menu.Filters.All") :
+                    Localize.KeyFormat("Menu.Filters.Selected", selected);
+            }
 
             row.SetSecondaryText(text);
-        }
-
-        private void BuildOptions(
-            IReadOnlyList<string> values,
-            Dictionary<string, bool> enabled,
-            Dictionary<string, int> counts,
-            Action updateSummary,
-            Func<string, string> labelTransform = null)
-        {
-            if (_rightContainer == null || _filterEntryRowPrefab == null) return;
-
-            EnsureDefaults(enabled, values);
-
-            if (values.Count > 0)
-                AddSelectDeselectButtons(
-                    () => ApplyRightToggleState(enabled, true, updateSummary),
-                    () => ApplyRightToggleState(enabled, false, updateSummary));
-
-            int rowIndex = 0;
-            foreach (string value in values)
-            {
-                var row = Instantiate(_filterEntryRowPrefab, _rightContainer);
-                _rightNavGroup.AddNavigatable(row.gameObject);
-
-                row.AssignIndex(rowIndex++);
-
-                bool isOn = enabled[value];
-                counts.TryGetValue(value, out int count);
-                var labelText = labelTransform != null ? labelTransform(value) : value;
-
-                row.Bind(
-                    labelText: labelText,
-                    numberText: Localize.KeyFormat("Menu.Filters.SongCount", count),
-                    isOn: isOn
-                );
-
-                row.ToggleChanged += toggleValue =>
-                {
-                    enabled[value] = toggleValue;
-                    updateSummary?.Invoke();
-                    DisableRecommendationsIfFiltered();
-                };
-            }
         }
 
         private Func<SongEntry, bool> BuildFilterPredicate()
@@ -817,6 +994,28 @@ namespace YARG.Menu.Filters
                     var normalized = NormalizeFilterKey(display);
                     return sources.Contains(normalized);
                 });
+
+            if (TryGetSelectedSet(
+                    _playlistEnabled,
+                    GetAllPlaylistsCached(),
+                    NormalizeFilterKey,
+                    out var playlists,
+                    defaultValue: false,
+                    treatNoneAsNoFilter: true,
+                    treatAllAsNoFilter: false))
+            {
+                var playlistHashes = BuildPlaylistHashSets();
+
+                var selectedHashes = new HashSet<HashWrapper>();
+                foreach (var selected in playlists)
+                {
+                    if (playlistHashes.TryGetValue(selected, out var set))
+                        selectedHashes.UnionWith(set);
+                }
+
+                predicates.Add(entry =>
+                    selectedHashes.Contains(entry.Hash));
+            }
 
             if (TryGetSelectedSet(_charterEnabled, GetAllChartersCached(), NormalizeFilterKey, out var charters))
                 predicates.Add(entry => charters.Contains(entry.Charter.SearchStr));
@@ -848,6 +1047,95 @@ namespace YARG.Menu.Filters
             return entry => predicates.All(predicate => predicate(entry));
         }
 
+        public void ResetAllFilters()
+        {
+            EnsureAllDefaults();
+            SetAllFilters(true);
+            SetShowAnyOfFilters(false);
+            UpdateAllSummaries();
+
+            // If right panel is visible, update toggles there too
+            if (_rightContainer != null)
+            {
+                bool? rightPanelDefault = null;
+                if (_leftNavGroup?.SelectedBehaviour is FilterCategoryRow row)
+                    rightPanelDefault = IsShowAnyOfGroup(row.Filters) ? false : true;
+
+                if (rightPanelDefault.HasValue)
+                {
+                    foreach (var rowEntry in _rightContainer.GetComponentsInChildren<FilterEntryRow>(true))
+                        rowEntry.SetToggleIsOn(rightPanelDefault.Value);
+                }
+            }
+        }
+
+        private static void SetAll(Dictionary<string, bool> dict, bool value)
+        {
+            var keys = dict.Keys.ToList();
+            foreach (var key in keys)
+                dict[key] = value;
+        }
+
+        private void SetAllFilters(bool value)
+        {
+            foreach (var def in GetFilterDefs())
+                SetAll(def.Enabled, value);
+        }
+
+        private void SetShowAnyOfFilters(bool value)
+        {
+            foreach (var def in GetFilterDefs())
+            {
+                if (IsShowAnyOfGroup(def.Group))
+                    SetAll(def.Enabled, value);
+            }
+        }
+
+        private static bool IsShowAnyOfGroup(FilterGroup group)
+        {
+            return group == FilterGroup.Playlist;
+        }
+
+        private void ApplyRightToggleState(Dictionary<string, bool> dict, bool value, Action updateSummary)
+        {
+            SetAll(dict, value);
+            updateSummary?.Invoke();
+            DisableRecommendationsIfFiltered();
+
+            if (_rightContainer == null) return;
+
+            foreach (var row in _rightContainer.GetComponentsInChildren<FilterEntryRow>(true))
+                row.SetToggleIsOn(value);
+        }
+
+        private void DisableRecommendationsIfFiltered()
+        {
+            if (!SettingsManager.Settings.ShowRecommendedSongs.Value)
+                return;
+
+            foreach (var def in GetFilterDefs())
+            {
+                if (def.Group == FilterGroup.Playlist)
+                    continue;
+
+                var values = def.GetValues();
+                if (values.Count == 0)
+                    continue;
+
+                EnsureDefaults(def.Enabled, values);
+
+                int total = values.Count;
+                int selected = def.Enabled.Count(kvp => kvp.Value);
+                if (selected != total)
+                {
+                    SettingsManager.Settings.ShowRecommendedSongs.Value = false;
+                    if (_showRecommendationsToggle != null)
+                        _showRecommendationsToggle.SetIsOnWithoutNotify(false);
+                    break;
+                }
+            }
+        }
+#endregion
 
 #region Genres
         private static IReadOnlyList<string> GetAllGenresCached()
@@ -886,6 +1174,9 @@ namespace YARG.Menu.Filters
                     .OrderBy(s => s, StringComparer.OrdinalIgnoreCase)
                     .ToArray());
         }
+
+        private static string NormalizeDecade(string text) =>
+            string.IsNullOrEmpty(text) ? string.Empty : text.ToLowerInvariant();
 
         private static Dictionary<string, int> GetDecadeCounts()
         {
@@ -1135,15 +1426,18 @@ namespace YARG.Menu.Filters
                 };
             }
 
+            // Left for possible future use
+#pragma warning disable CS0162 // Unreachable code detected
             return lengthMilliseconds switch
             {
-                < 120000 => RangeLengthLabels[0],
-                < 300000 => RangeLengthLabels[1],
-                < 600000 => RangeLengthLabels[2],
-                < 900000 => RangeLengthLabels[3],
+                < 120000  => RangeLengthLabels[0],
+                < 300000  => RangeLengthLabels[1],
+                < 600000  => RangeLengthLabels[2],
+                < 900000  => RangeLengthLabels[3],
                 < 1200000 => RangeLengthLabels[4],
-                _ => RangeLengthLabels[5],
+                _         => RangeLengthLabels[5],
             };
+#pragma warning restore CS0162 // Unreachable code detected
         }
 #endregion
 
@@ -1233,7 +1527,6 @@ namespace YARG.Menu.Filters
 
             return GetDifficultyLabelByIndex(intensity);
         }
-#endregion
 
         private static string GetDifficultyLabelByIndex(int index)
         {
@@ -1242,193 +1535,148 @@ namespace YARG.Menu.Filters
 
             return Localize.Key(DifficultyLabelKeys[index]);
         }
+#endregion
 
-        public void ResetAllFilters()
+#region Playlists
+        private static IReadOnlyList<string> GetAllPlaylistsCached()
         {
-            EnsureAllDefaults();
-            SetAllFilters(true);
-            UpdateAllSummaries();
+            int signature = BuildPlaylistSignature();
+            if (_cachedPlaylists != null && _cachedPlaylistSignature == signature)
+                return _cachedPlaylists;
 
-            // If right panel is visible, update toggles there too
-            if (_rightContainer != null)
-                foreach (var row in _rightContainer.GetComponentsInChildren<FilterEntryRow>(true))
-                    row.SetToggleIsOn(true);
+            _cachedPlaylistSignature = signature;
+            _cachedPlaylists = BuildPlaylistList();
+            return _cachedPlaylists;
         }
 
-        private static void SetAll(Dictionary<string, bool> dict, bool value)
+        private static IReadOnlyList<string> BuildPlaylistList()
         {
-            var keys = dict.Keys.ToList();
-            foreach (var key in keys)
-                dict[key] = value;
-        }
+            var counts = GetPlaylistCounts();
+            var list = new List<string>();
+            var added = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
-        private void SetAllFilters(bool value)
-        {
-            foreach (var def in GetFilterDefs())
-                SetAll(def.Enabled, value);
-        }
-
-        private void ApplyRightToggleState(Dictionary<string, bool> dict, bool value, Action updateSummary)
-        {
-            SetAll(dict, value);
-            updateSummary?.Invoke();
-            DisableRecommendationsIfFiltered();
-
-            if (_rightContainer == null) return;
-
-            foreach (var row in _rightContainer.GetComponentsInChildren<FilterEntryRow>(true))
-                row.SetToggleIsOn(value);
-        }
-
-        private void AddSelectDeselectButtons(Action selectAll, Action deselectAll)
-        {
-            if (_rightContainer == null) return;
-
-            var prefab = GetSettingsButtonPrefab();
-            if (prefab == null) return;
-
-            var go = Instantiate(prefab, _rightContainer);
-            var buttonRow = go.GetComponent<SettingsButton>();
-            if (buttonRow == null) return;
-
-            buttonRow.SetCustomButtons(new[]
+            void TryAdd(string name)
             {
-                new SettingsButton.CustomButton(Localize.Key("Menu.Filters.SelectAll"), selectAll),
-                new SettingsButton.CustomButton(Localize.Key("Menu.Filters.DeselectAll"), deselectAll)
-            });
+                if (string.IsNullOrWhiteSpace(name))
+                    return;
 
-            _rightNavGroup.AddNavigatable(buttonRow);
-        }
+                if (!counts.TryGetValue(name, out int count) || count <= 0)
+                    return;
 
-        private static GameObject GetSettingsButtonPrefab()
-        {
-            if (_settingsButtonPrefab == null)
-            {
-                _settingsButtonPrefab = Addressables
-                    .LoadAssetAsync<GameObject>("SettingTab/Button")
-                    .WaitForCompletion();
+                if (added.Add(name))
+                    list.Add(name);
             }
 
-            return _settingsButtonPrefab;
+            var favorites = PlaylistContainer.FavoritesPlaylist;
+            if (favorites != null)
+                TryAdd(favorites.Name);
+
+            foreach (var playlist in PlaylistContainer.Playlists)
+            {
+                if (playlist == null) continue;
+                TryAdd(playlist.Name);
+            }
+
+            return list;
         }
 
-        private void DisableRecommendationsIfFiltered()
+        private static Dictionary<string, int> GetPlaylistCounts()
         {
-            if (!SettingsManager.Settings.ShowRecommendedSongs.Value)
-                return;
+            int signature = BuildPlaylistSignature();
+            if (_cachedPlaylistCounts != null && _cachedPlaylistCountsSignature == signature)
+                return _cachedPlaylistCounts;
 
-            foreach (var def in GetFilterDefs())
+            _cachedPlaylistCountsSignature = signature;
+
+            var counts = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+
+            void AddPlaylistCounts(Playlist playlist)
             {
-                var values = def.GetValues();
-                if (values.Count == 0)
-                    continue;
+                if (playlist == null || string.IsNullOrWhiteSpace(playlist.Name))
+                    return;
 
-                EnsureDefaults(def.Enabled, values);
-
-                int total = values.Count;
-                int selected = def.Enabled.Count(kvp => kvp.Value);
-                if (selected != total)
+                int count = 0;
+                foreach (var hash in playlist.SongHashes)
                 {
-                    SettingsManager.Settings.ShowRecommendedSongs.Value = false;
-                    if (_showRecommendationsToggle != null)
-                        _showRecommendationsToggle.SetIsOnWithoutNotify(false);
-                    break;
+                    if (SongContainer.SongsByHash.TryGetValue(hash, out _))
+                        count++;
+                }
+
+                if (count > 0)
+                {
+                    counts.TryGetValue(playlist.Name, out int existing);
+                    counts[playlist.Name] = existing + count;
                 }
             }
+
+            AddPlaylistCounts(PlaylistContainer.FavoritesPlaylist);
+            foreach (var playlist in PlaylistContainer.Playlists)
+                AddPlaylistCounts(playlist);
+
+            _cachedPlaylistCounts = counts;
+            return counts;
         }
 
-        public void SetupSortedByDropdown(GameObject row, string label)
+        private static Dictionary<string, HashSet<HashWrapper>> BuildPlaylistHashSets()
         {
-            if (row == null)
-                return;
+            var playlistHashesLocal = new Dictionary<string, HashSet<HashWrapper>>(StringComparer.OrdinalIgnoreCase);
 
-            var visual = row.GetComponent<DropdownSettingVisual>();
-            if (visual == null)
-                return;
-
-            if (_sortDropdownSetting == null)
+            void AddPlaylist(Playlist playlist)
             {
-                _sortDropdownSetting = new FilterSortDropdownSetting(sort =>
+                if (playlist == null || string.IsNullOrWhiteSpace(playlist.Name))
+                    return;
+
+                var key = NormalizeFilterKey(playlist.Name);
+                if (!playlistHashesLocal.TryGetValue(key, out var set))
                 {
-                    var library = FindFirstObjectByType<MusicLibrary.MusicLibraryMenu>();
-                    if (library != null)
-                    {
-                        library.ChangeSort(sort);
-                    }
-                    else
-                    {
-                        if (sort != SortAttribute.Playcount && sort != SortAttribute.Stars)
-                            SettingsManager.Settings.PreviousLibrarySort = sort;
+                    set = new HashSet<HashWrapper>();
+                    playlistHashesLocal[key] = set;
+                }
 
-                        SettingsManager.Settings.LibrarySort = sort;
-                    }
-                });
+                foreach (var hash in playlist.SongHashes)
+                {
+                    set.Add(hash);
+                }
             }
 
-            _sortDropdownSetting.UpdateValues();
+            AddPlaylist(PlaylistContainer.FavoritesPlaylist);
+            foreach (var playlist in PlaylistContainer.Playlists)
+                AddPlaylist(playlist);
 
-            int index = FindSortIndex(_sortDropdownSetting.PossibleValues, SettingsManager.Settings.LibrarySort);
-            if (index >= 0)
-                _sortDropdownSetting.SetValueWithoutNotify(_sortDropdownSetting.PossibleValues[index]);
-
-            visual.AssignPresetSetting("Filters.SortBy", false, _sortDropdownSetting);
-            SetSortedByLabel(row, label);
+            return playlistHashesLocal;
         }
 
-        public void SetupShowRecommendationsToggle(GameObject row, string label)
+        private static int BuildPlaylistSignature()
         {
-            if (row == null)
-                return;
-
-            var visual = row.GetComponent<ToggleSettingVisual>();
-            if (visual == null)
-                return;
-
-            visual.AssignPresetSetting("Filters.ShowRecommendations", false, SettingsManager.Settings.ShowRecommendedSongs);
-            SetToggleLabel(row, label);
-
-            _showRecommendationsToggle = row.GetComponentInChildren<Toggle>(true);
-        }
-
-        private static void SetSortedByLabel(GameObject row, string label)
-        {
-            if (string.IsNullOrEmpty(label))
-                return;
-
-            var dropdown = row.GetComponentInChildren<TMP_Dropdown>(true);
-            var caption = dropdown != null ? dropdown.captionText : null;
-            var item = dropdown != null ? dropdown.itemText : null;
-
-            foreach (var tmp in row.GetComponentsInChildren<TextMeshProUGUI>(true))
+            unchecked
             {
-                if (tmp == null || tmp == caption || tmp == item)
-                    continue;
+                int hash = 17;
+                hash = (hash * 31) + SongContainer.Count;
 
-                tmp.text = label;
-                break;
+                void MixString(string value)
+                {
+                    hash = (hash * 31) + StringComparer.OrdinalIgnoreCase.GetHashCode(value ?? string.Empty);
+                }
+
+                void MixPlaylist(Playlist playlist)
+                {
+                    if (playlist == null) return;
+
+                    MixString(playlist.Name);
+                    hash = (hash * 31) + playlist.SongHashes.Count;
+
+                    foreach (var songHash in playlist.SongHashes)
+                        hash = (hash * 31) + songHash.GetHashCode();
+                }
+
+                MixPlaylist(PlaylistContainer.FavoritesPlaylist);
+                foreach (var playlist in PlaylistContainer.Playlists)
+                    MixPlaylist(playlist);
+
+                return hash;
             }
         }
-
-        private static void SetToggleLabel(GameObject row, string label)
-        {
-            if (string.IsNullOrEmpty(label))
-                return;
-
-            var tmp = row.GetComponentInChildren<TextMeshProUGUI>(true);
-            if (tmp != null)
-                tmp.text = label;
-        }
-
-        private static int FindSortIndex(IReadOnlyList<SortAttribute> values, SortAttribute sort)
-        {
-            for (int i = 0; i < values.Count; i++)
-            {
-                if (values[i] == sort)
-                    return i;
-            }
-
-            return -1;
-        }
+#endregion
 
         private void OnDisable()
         {

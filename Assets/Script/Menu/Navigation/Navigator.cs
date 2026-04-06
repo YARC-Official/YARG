@@ -175,9 +175,6 @@ namespace YARG.Menu.Navigation
                     InvokeNavigationEvent(repeat.Context.AsRepeat());
                 }
             }
-
-            // TODO: Keyboard inputs for menus
-            // UpdateKeyboardInput();
         }
 
         private void ProcessInput(YargPlayer player, ref GameInput input)
@@ -187,7 +184,7 @@ namespace YARG.Menu.Navigation
             var action = (MenuAction) input.Action;
 
             // Swap up and down for lefty flip
-            if (player.Profile.LeftyFlip)
+            if (player?.Profile.LeftyFlip == true)
             {
                 action = action switch
                 {

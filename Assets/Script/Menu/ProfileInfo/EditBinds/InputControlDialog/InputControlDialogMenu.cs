@@ -51,7 +51,7 @@ namespace YARG.Menu.ProfileInfo
             _controlChooseContainer.SetActive(false);
 
             _bindingTokenSource = new CancellationTokenSource();
-            var bindingToken = _cancellationToken.Token;
+            var bindingToken = _bindingTokenSource.Token;
 
             try
             {

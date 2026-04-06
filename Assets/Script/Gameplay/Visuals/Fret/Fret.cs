@@ -300,6 +300,11 @@ namespace YARG.Gameplay.Visuals
             }
         }
 
+        public void SetBreMode(bool breMode)
+        {
+            ThemeBind.SetBreMode(breMode);
+        }
+
         /// <summary>
         /// Fades or pulses the fret color between the normal color and inactive color
         ///

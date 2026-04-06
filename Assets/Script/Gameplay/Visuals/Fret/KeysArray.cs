@@ -118,5 +118,13 @@ namespace YARG.Gameplay.Visuals
             _keys[index].PlayMissAnimation();
             _keys[index].PlayMissParticles();
         }
+
+        public void SetBreMode(bool breMode)
+        {
+            foreach (var fret in _keys)
+            {
+                fret.SetBreMode(breMode);
+            }
+        }
     }
 }
