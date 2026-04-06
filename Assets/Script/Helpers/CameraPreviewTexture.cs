@@ -38,6 +38,7 @@ namespace YARG.Helpers
                 32
             );
             descriptor.mipCount = 0;
+            descriptor.msaaSamples = Screen.msaaSamples;
             PreviewTexture = new RenderTexture(descriptor);
 
             foreach (var script in _previews)

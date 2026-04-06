@@ -318,13 +318,11 @@ Shader "Artificial Artists/Universal Render Pipeline/AA_UberPost"
             }
             #endif
 
-            half alpha = SAMPLE_TEXTURE2D_X(_BlitTexture, sampler_LinearClamp, uvDistorted).w;
-
             if (_YargHighwaysN > 0)
             {
                 half alpha_mask = SAMPLE_TEXTURE2D(_YargHighwaysAlphaMask, sampler_LinearClamp, uvDistorted).r;
 
-                return half4(color, min(alpha, alpha_mask));
+                return half4(color, min(inputColor.a, alpha_mask));
             }
 
             if (_YargIsVenue > 0)

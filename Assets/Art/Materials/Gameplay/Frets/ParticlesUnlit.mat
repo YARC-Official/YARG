@@ -87,7 +87,7 @@ Material:
     - _AlphaClip: 0
     - _AlphaToMask: 0
     - _BaseColorMode: 0
-    - _Blend: 2
+    - _Blend: 0
     - _BlendModePreserveSpecular: 0
     - _BlendOp: 0
     - _BumpScale: 1
@@ -102,8 +102,8 @@ Material:
     - _DistortionEnabled: 0
     - _DistortionStrength: 1
     - _DistortionStrengthScaled: 0
-    - _DstBlend: 1
-    - _DstBlendAlpha: 1
+    - _DstBlend: 10
+    - _DstBlendAlpha: 10
     - _EmissionEnabled: 0
     - _EnvironmentReflections: 1
     - _FlipbookBlending: 0

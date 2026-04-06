@@ -7,7 +7,6 @@ using Cysharp.Threading.Tasks;
 using UniHumanoid;
 using UnityEngine;
 using UnityEngine.Animations;
-using UnityEngine.UI;
 using UnityEngine.Video;
 using YARG.Core.IO;
 using YARG.Core.Song;
@@ -39,18 +38,6 @@ namespace YARG.Gameplay
 
         [SerializeField]
         private VideoPlayer _videoPlayer;
-
-        [SerializeField]
-        private RawImage _backgroundImage;
-
-        [SerializeField]
-        private Image _backgroundDimmer;
-
-        [SerializeField]
-        private RawImage _venueOutput;
-
-        [SerializeField]
-        private Image _venueFadeOverlay;
 
         private BackgroundType _type;
         private VenueSource _source;
@@ -169,23 +156,22 @@ namespace YARG.Gameplay
                 return;
             }
 
-            var colorDim = _backgroundDimmer.color.WithAlpha(1 - SettingsManager.Settings.SongBackgroundOpacity.Value);
+            // var colorDim = _backgroundDimmer.color.WithAlpha(1 - SettingsManager.Settings.SongBackgroundOpacity.Value);
 
-            _backgroundDimmer.color = colorDim;
+            // _backgroundDimmer.color = colorDim;
 
             _type = result.Type;
+            VenueCameraRenderer.CreateUnscaledBackgroundTexture();
             switch (_type)
             {
                 case BackgroundType.Yarground:
-                    await LoadYarground(result);
+                    LoadYarground(result).Forget();
                     break;
                 case BackgroundType.Video:
                     LoadVideoBackground(result);
                     break;
                 case BackgroundType.Image:
-                    _backgroundImage.texture = result.Image.LoadTexture(false);
-                    _backgroundImage.uvRect = new Rect(0f, 0f, 1f, -1f);
-                    _backgroundImage.gameObject.SetActive(true);
+                    Graphics.Blit(result.Image.LoadTexture(false), VenueCameraRenderer.VenueTexture, new Vector2(1, -1), new Vector2(0, 1));
                     break;
             }
         }
@@ -228,9 +214,6 @@ namespace YARG.Gameplay
 
             // Position venue as close to origin as is conveniently possible without wrecking scene view
             SetYargroundOrigin(bgInstance);
-
-            // Destroy the default camera (venue has its own)
-            Destroy(_videoPlayer.targetCamera.gameObject);
 
             if (textureManager.VideoTexFound())
             {
@@ -278,21 +261,21 @@ namespace YARG.Gameplay
 
         private void ShowVenue()
         {
-            _venueOutput.gameObject.SetActive(true);
-            FadeInVenue().Forget();
+            // _venueOutput.gameObject.SetActive(true);
+            // FadeInVenue().Forget();
         }
 
         private async UniTaskVoid FadeInVenue()
         {
             // Wait for the venue to be rendered, otherwise we will see a gray screen
-            var token = this.GetCancellationTokenOnDestroy();
-            await UniTask
-                .WaitUntil(
-                    () => VenueCameraRenderer.IsRendered,
-                    cancellationToken: token
-                )
-                .SuppressCancellationThrow();
-            _venueFadeOverlay.CrossFadeAlpha(0f, FADE_DURATION, true);
+            // var token = this.GetCancellationTokenOnDestroy();
+            // await UniTask
+            //     .WaitUntil(
+            //         () => VenueCameraRenderer.IsRendered,
+            //         cancellationToken: token
+            //     )
+            //     .SuppressCancellationThrow();
+            // _venueFadeOverlay.CrossFadeAlpha(0f, FADE_DURATION, true);
         }
 
         private void LoadVideoBackground(BackgroundResult bg)
@@ -322,6 +305,7 @@ namespace YARG.Gameplay
             _videoPlayer.prepareCompleted += OnVideoPrepared;
             _videoPlayer.seekCompleted += OnVideoSeeked;
             _videoPlayer.Prepare();
+            _videoPlayer.targetTexture = VenueCameraRenderer.VenueTexture;
             enabled = true;
         }
 
