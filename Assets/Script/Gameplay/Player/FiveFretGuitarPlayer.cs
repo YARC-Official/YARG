@@ -417,6 +417,36 @@ namespace YARG.Gameplay.Player
         protected override void InitializeSpawnedNote(IPoolable poolable, GuitarNote note)
         {
             ((FiveFretGuitarNoteElement) poolable).NoteRef = note;
+
+            // Have to do a little more work in the case of open chords
+            // Note that we have to check both IsChord and IsChild because IsChord is not set on child notes
+            // TODO: Change chart parsing to add a flag to chord notes to make this easier
+            if ((note.IsChord || note.IsChild) && note.Fret == (int) FiveFretGuitarFret.Open)
+            {
+                // Allocate a six position array to be sure we can hold all notes, then pack it down
+                // Otherwise, we'd have to enumerate AllNotes twice
+                var notes = new int[6];
+
+                var index = 0;
+                foreach (var n in note.ParentOrSelf.AllNotes)
+                {
+                    if (n.Fret == (int) FiveFretGuitarFret.Open)
+                    {
+                        continue;
+                    }
+
+                    notes[index++] = n.Fret;
+                }
+
+                var packedNotes = new int[index];
+
+                for (var i = 0; i < index; i++)
+                {
+                    packedNotes[i] = notes[i];
+                }
+
+                ((FiveFretGuitarNoteElement) poolable).OpenChordFrets = packedNotes;
+            }
         }
 
         protected override void InitializeSpawnedLane(LaneElement lane, GuitarNote note)

@@ -1,11 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Numerics;
 using UnityEngine;
 using YARG.Core.Chart;
 using YARG.Core.Engine.Guitar;
 using YARG.Gameplay.Player;
 using YARG.Helpers.Extensions;
 using YARG.Themes;
+using Matrix4x4 = UnityEngine.Matrix4x4;
+using Vector3 = UnityEngine.Vector3;
 
 namespace YARG.Gameplay.Visuals
 {
@@ -30,8 +33,16 @@ namespace YARG.Gameplay.Visuals
 
         private SustainLine _sustainLine;
 
+        // Only for five fret, so it's defined here
+        public int[] OpenChordFrets { get; set; } = Array.Empty<int>();
+
+        private Matrix4x4 _chordMatrix = new();
+
         // Make sure the remove it later if it has a sustain
         protected override float RemovePointOffset => (float) NoteRef.TimeLength * Player.NoteSpeed;
+
+        private const float CHORD_DIM_MARGIN = 0.02f;
+        private const float ONE_FRET_WIDTH   = 0.2f;
 
         public override void SetThemeModels(
             Dictionary<ThemeNoteType, GameObject> models,
@@ -90,6 +101,11 @@ namespace YARG.Gameplay.Visuals
                 _sustainLine = _openSustainLine;
             }
 
+            if (NoteRef.Fret == (int) FiveFretGuitarFret.Open)
+            {
+                NoteGroup.NotePositions = SetOpenChordInfo(OpenChordFrets);
+            }
+
             // Show and set material properties
             NoteGroup.SetActive(true);
             NoteGroup.Initialize();
@@ -105,6 +121,49 @@ namespace YARG.Gameplay.Visuals
 
             // Set note and sustain color
             UpdateColor();
+        }
+
+        private Matrix4x4 SetOpenChordInfo(int[] frets)
+        {
+            // Take frets and pack them into the matrix representing uv values that need to be dimmed
+
+            _chordMatrix = new Matrix4x4();
+
+            float lower;
+            float upper;
+            int row = 0;
+
+            for (int i = 0; i < frets.Length; i++)
+            {
+                // This only combines adjacent frets, but that's all we need since we just need to get it down
+                // to no more than 3 dimmed regions for the shader
+                if (i + 1 < frets.Length && frets[i] == frets[i + 1] - 1)
+                {
+                    // Use lower from current fret and upper from next fret
+                    lower = (frets[i] - 1) * ONE_FRET_WIDTH;
+                    // two because we're coalescing two frets here
+                    upper = lower + ONE_FRET_WIDTH * 2;
+
+                    _chordMatrix[i, 0] = lower;
+                    _chordMatrix[i, 1] = upper;
+
+                    // Skip the next fret since we already accounted for it
+                    i++;
+                }
+                else
+                {
+                    lower = (frets[i] - 1) * ONE_FRET_WIDTH;
+                    upper = lower + ONE_FRET_WIDTH;
+                }
+
+                // These are being inverted, so instead of 0 = lower, 1 = upper it's 0 = 1 - upper, 1 = 1 - lower
+                _chordMatrix[row, 0] = (1 - upper) - CHORD_DIM_MARGIN;
+                _chordMatrix[row, 1] = (1 - lower) + CHORD_DIM_MARGIN;
+
+                row++;
+            }
+
+            return _chordMatrix;
         }
 
         public override void HitNote()
@@ -200,6 +259,12 @@ namespace YARG.Gameplay.Visuals
 
             _normalSustainLine.gameObject.SetActive(false);
             _openSustainLine.gameObject.SetActive(false);
+        }
+
+        public override void DisableIntoPool()
+        {
+            OpenChordFrets = Array.Empty<int>();
+            base.DisableIntoPool();
         }
     }
 }

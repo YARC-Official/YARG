@@ -52,7 +52,7 @@
             UpdateElement();
         }
 
-        public void DisableIntoPool()
+        public virtual void DisableIntoPool()
         {
             HideElement();
 

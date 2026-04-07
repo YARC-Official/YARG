@@ -29,6 +29,11 @@ namespace YARG.Gameplay.Visuals
         private static readonly int _randomFloat = Shader.PropertyToID("_RandomFloat");
         private static readonly int _randomVector = Shader.PropertyToID("_RandomVector");
 
+        private static readonly int _notePositions = Shader.PropertyToID("_NotePositions");
+        private static readonly int _fadeAmount = Shader.PropertyToID("_OpenFadeAmount");
+
+        public Matrix4x4 NotePositions { get; set; } = Matrix4x4.zero;
+
         // If we want info to be copied over when we copy the prefab,
         // we must make them SerializeFields.
         [SerializeField]
@@ -38,6 +43,7 @@ namespace YARG.Gameplay.Visuals
         private MaterialInfo[] _coloredMaterialNoStarPowerCache;
         private MaterialInfo[] _allColoredCache;
         private MaterialInfo[] _coloredMetalMaterialCache;
+        private Material[] _allMaterials;
 
         public void Initialize()
         {
@@ -45,6 +51,10 @@ namespace YARG.Gameplay.Visuals
             _coloredMaterialNoStarPowerCache ??= _themeNote.ColoredMaterialsNoStarPower.Select(MaterialInfo.From).ToArray();
             _allColoredCache ??= _coloredMaterialCache.Concat(_coloredMaterialNoStarPowerCache).ToArray();
             _coloredMetalMaterialCache ??= _themeNote.ColoredMetalMaterials.Select(MaterialInfo.From).ToArray();
+
+            // If ever we have a theme that has an open note that has some part on the track that shouldn't be dimmed
+            // when it is an open chord this will have to change...
+            _allMaterials ??= _themeNote.transform.GetComponentsInChildren<MeshRenderer>().SelectMany(meshrenderer => meshrenderer.materials).ToArray();
 
             // Set random values
             var randomFloat = Random.Range(-1f, 1f);
@@ -62,6 +72,23 @@ namespace YARG.Gameplay.Visuals
                 {
                     material.SetVector(_randomVector, randomVector);
                 }
+            }
+
+            SetChordFade();
+        }
+
+        private void SetChordFade()
+        {
+            foreach (var material in _allMaterials)
+            {
+                material.SetMatrix(_notePositions, NotePositions);
+            }
+
+            foreach (var info in _allColoredCache)
+            {
+                var material = info.MaterialCache;
+
+                material.SetMatrix(_notePositions, NotePositions);
             }
         }
 
