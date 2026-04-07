@@ -592,8 +592,6 @@ namespace YARG.Gameplay.Visuals
                     builder.AllowPassCulling(false);
                     builder.SetRenderAttachment(resourceData.activeColorTexture, 0, AccessFlags.Write);
 
-                    float heightScale = ScalableBufferManager.heightScaleFactor;
-                    float widthScale = ScalableBufferManager.widthScaleFactor;
                     Vector4 scaleBias;
 
                     // Check if we need to flip the UVs vertically
@@ -604,11 +602,11 @@ namespace YARG.Gameplay.Visuals
                     {
                         // Scale is (scaleX, -scaleY), Bias is (offsetX, offsetY)
                         // We use 'scale' as the Y-bias to shift the negative coordinates back into 0-1 range
-                        scaleBias = new Vector4(widthScale, -heightScale, 0, heightScale);
+                        scaleBias = new Vector4(1, -1, 0, 1);
                     }
                     else
                     {
-                        scaleBias = new Vector4(widthScale, heightScale, 0, 0);
+                        scaleBias = new Vector4(1, 1, 0, 0);
                     }
 
                     builder.SetRenderFunc<PassData>((PassData data, RasterGraphContext context) =>

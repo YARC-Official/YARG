@@ -324,6 +324,7 @@ namespace YARG.Gameplay
             if (RenderPipeline.SupportsRenderRequest(_renderCamera, request))
             {
                 request.destination = VenueTexture;
+                _renderCamera.allowDynamicResolution = true;
                 // Render camera and fill texture2D with its view
                 RenderPipeline.SubmitRenderRequest(_renderCamera, request);
             }
