@@ -45,7 +45,8 @@ namespace YARG.Gameplay
         private bool _videoStarted = false;
         private bool _videoSeeking = false;
 
-        private const float FADE_DURATION = 0.5f;
+        private const float FADE_DURATION = 4.0f;
+        static int dimmerPropertyID = Shader.PropertyToID("_YargBackgroundAlpha");
 
         private float YARGROUND_OFFSET = 50f;
 
@@ -71,6 +72,7 @@ namespace YARG.Gameplay
         {
             // We don't need to update unless we're using a video
             enabled = false;
+            Shader.SetGlobalFloat(dimmerPropertyID, 0.0f);
 
 #if UNITY_EDITOR
             if (VenueEditorHelper.IsSceneEnabled())
@@ -117,8 +119,6 @@ namespace YARG.Gameplay
 
                 _usingEditorVenue = true;
 
-                ShowVenue();
-
                 var editorRenderers = editorBg.GetComponentsInChildren<Renderer>(true);
 
                 // Song specific textures
@@ -146,6 +146,8 @@ namespace YARG.Gameplay
                 }
 
                 _type = BackgroundType.Yarground;
+                ShowVenue();
+
                 return;
             }
 #endif
@@ -156,10 +158,6 @@ namespace YARG.Gameplay
                 return;
             }
 
-            // var colorDim = _backgroundDimmer.color.WithAlpha(1 - SettingsManager.Settings.SongBackgroundOpacity.Value);
-
-            // _backgroundDimmer.color = colorDim;
-
             _type = result.Type;
             VenueCameraRenderer.CreateUnscaledBackgroundTexture();
             switch (_type)
@@ -169,9 +167,11 @@ namespace YARG.Gameplay
                     break;
                 case BackgroundType.Video:
                     LoadVideoBackground(result);
+                    ShowVenue();
                     break;
                 case BackgroundType.Image:
                     Graphics.Blit(result.Image.LoadTexture(false), VenueCameraRenderer.VenueTexture, new Vector2(1, -1), new Vector2(0, 1));
+                    ShowVenue();
                     break;
             }
         }
@@ -181,10 +181,9 @@ namespace YARG.Gameplay
             var bundle = AssetBundle.LoadFromStream(result.Stream);
             AssetBundle shaderBundle = null;
 
-            ShowVenue();
             // KEEP THIS PATH LOWERCASE
             // Breaks things for other platforms, because Unity
-            var bg = (GameObject) await bundle.LoadAssetAsync<GameObject>(
+            var bg = (GameObject)await bundle.LoadAssetAsync<GameObject>(
                 BundleBackgroundManager.BACKGROUND_PREFAB_PATH.ToLowerInvariant());
             var renderers = bg.GetComponentsInChildren<Renderer>(true);
 
@@ -228,6 +227,7 @@ namespace YARG.Gameplay
             {
                 characterManager.Initialize();
             }
+            ShowVenue();
         }
 
         private void SetUpVideoTexture(BackgroundResult songBackGround)
@@ -261,21 +261,30 @@ namespace YARG.Gameplay
 
         private void ShowVenue()
         {
-            // _venueOutput.gameObject.SetActive(true);
-            // FadeInVenue().Forget();
+            StartCoroutine(FadeInVenue(0f, SettingsManager.Settings.SongBackgroundOpacity.Value, FADE_DURATION));
         }
 
-        private async UniTaskVoid FadeInVenue()
+        System.Collections.IEnumerator FadeInVenue(float start, float end, float time)
         {
-            // Wait for the venue to be rendered, otherwise we will see a gray screen
-            // var token = this.GetCancellationTokenOnDestroy();
-            // await UniTask
-            //     .WaitUntil(
-            //         () => VenueCameraRenderer.IsRendered,
-            //         cancellationToken: token
-            //     )
-            //     .SuppressCancellationThrow();
-            // _venueFadeOverlay.CrossFadeAlpha(0f, FADE_DURATION, true);
+            float elapsed = 0.0f;
+
+
+            while (elapsed < time)
+            {
+                elapsed += Time.deltaTime;
+
+                // Calculate the current opacity based on elapsed time
+                float currentOpacity = Mathf.Lerp(start, end, elapsed / time);
+
+                // Update the shader
+                Shader.SetGlobalFloat(dimmerPropertyID, currentOpacity);
+
+                // Wait until the next frame
+                yield return null;
+            }
+
+            // Ensure it ends exactly at the target value
+            Shader.SetGlobalFloat(dimmerPropertyID, end);
         }
 
         private void LoadVideoBackground(BackgroundResult bg)
@@ -283,22 +292,22 @@ namespace YARG.Gameplay
             switch (bg.Stream)
             {
                 case FileStream fs:
-                {
-                    _videoPlayer.url = fs.Name;
-                    break;
-                }
+                    {
+                        _videoPlayer.url = fs.Name;
+                        break;
+                    }
                 case SngFileStream sngStream:
-                {
-                    // UNFORTUNATELY, Videoplayer can't use streams, so video files
-                    // MUST BE FULLY DECRYPTED
+                    {
+                        // UNFORTUNATELY, Videoplayer can't use streams, so video files
+                        // MUST BE FULLY DECRYPTED
 
-                    VIDEO_PATH = Path.Combine(Application.persistentDataPath, sngStream.Name);
-                    using var tmp = File.OpenWrite(VIDEO_PATH);
-                    File.SetAttributes(VIDEO_PATH, File.GetAttributes(VIDEO_PATH) | FileAttributes.Temporary | FileAttributes.Hidden);
-                    bg.Stream.CopyTo(tmp);
-                    _videoPlayer.url = VIDEO_PATH;
-                    break;
-                }
+                        VIDEO_PATH = Path.Combine(Application.persistentDataPath, sngStream.Name);
+                        using var tmp = File.OpenWrite(VIDEO_PATH);
+                        File.SetAttributes(VIDEO_PATH, File.GetAttributes(VIDEO_PATH) | FileAttributes.Temporary | FileAttributes.Hidden);
+                        bg.Stream.CopyTo(tmp);
+                        _videoPlayer.url = VIDEO_PATH;
+                        break;
+                    }
             }
 
             _videoPlayer.enabled = true;

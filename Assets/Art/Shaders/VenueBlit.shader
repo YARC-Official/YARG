@@ -16,6 +16,8 @@ Shader "YargBackgroundUnderlay"
  
            #pragma vertex Vert 
            #pragma fragment Frag 
+
+           float _YargBackgroundAlpha;
  
            float4 Frag(Varyings input) : SV_Target0 
            { 
@@ -24,7 +26,7 @@ Shader "YargBackgroundUnderlay"
                 
                 // Use the standard macro for sampling blit textures
                 half4 color = SAMPLE_TEXTURE2D_X_LOD(_BlitTexture, sampler_LinearRepeat, uv, _BlitMipLevel); 
-                return color; 
+                return color * _YargBackgroundAlpha; 
            } 
            ENDHLSL 
        } 
