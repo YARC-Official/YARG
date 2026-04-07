@@ -200,22 +200,11 @@ namespace YARG.Gameplay
             // Breaks things for other platforms, because Unity
             var bg = (GameObject) await bundle.LoadAssetAsync<GameObject>(
                 BundleBackgroundManager.BACKGROUND_PREFAB_PATH.ToLowerInvariant());
-            var renderers = bg.GetComponentsInChildren<Renderer>(true);
 
             // Load Metal shaders, if necessary
             shaderBundle = await BackgroundHelper.LoadMetalShaders(bundle, bg, BackgroundHelper.ExportType.Background);
 
-            // Hookup song-specific textures
-            var textureManager = GetComponent<TextureManager>();
-            // Load SongBackground here to determine if textures need to be replaced
-            var songBackground = GameManager.Song.LoadBackground();
-            foreach (var renderer in renderers)
-            {
-                foreach (var material in renderer.sharedMaterials)
-                {
-                    textureManager.ProcessMaterial(material, songBackground?.Type);
-                }
-            }
+
 
             var bgInstance = Instantiate(bg);
             var bundleBackgroundManager = bgInstance.GetComponent<BundleBackgroundManager>();
@@ -232,12 +221,26 @@ namespace YARG.Gameplay
             // Destroy the default camera (venue has its own)
             Destroy(_videoPlayer.targetCamera.gameObject);
 
+            await LoadCustomCharacter(bgInstance);
+
+            var renderers = bgInstance.GetComponentsInChildren<Renderer>(true);
+
+            // Hookup song-specific textures
+            var textureManager = GetComponent<TextureManager>();
+            // Load SongBackground here to determine if textures need to be replaced
+            var songBackground = GameManager.Song.LoadBackground();
+            foreach (var renderer in renderers)
+            {
+                foreach (var material in renderer.sharedMaterials)
+                {
+                    textureManager.ProcessMaterial(material, songBackground?.Type);
+                }
+            }
+
             if (textureManager.VideoTexFound())
             {
                 SetUpVideoTexture(songBackground);
             }
-
-            await LoadCustomCharacter(bgInstance);
 
             // Initialize CharacterManager, if it exists
             var characterManager = bgInstance.GetComponentInChildren<CharacterManager>();
