@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
@@ -8,6 +9,7 @@ using YARG.Core.Engine;
 using YARG.Core.Extensions;
 using YARG.Core.Game;
 using YARG.Localization;
+using YARG.Menu.MusicLibrary;
 using YARG.Player;
 using YARG.Settings;
 
@@ -44,11 +46,13 @@ namespace YARG.Menu.ScoreScreen
         [SerializeField]
         private StarView _starView;
         [SerializeField]
+        private DifficultyRing _difficultyRing;
+        [SerializeField]
         private Transform _modifierIconContainer;
 
         [Space]
         [SerializeField]
-        private Image _instrumentIcon;
+        protected Image _instrumentIcon;
 
         [Space]
         [SerializeField]
@@ -66,18 +70,35 @@ namespace YARG.Menu.ScoreScreen
         [SerializeField]
         private TextMeshProUGUI _maxStreak;
         [SerializeField]
+        private GameObject _notesMissedContainer;
+        [SerializeField]
         private TextMeshProUGUI _notesMissed;
         [SerializeField]
         private TextMeshProUGUI _starpowerPhrases;
         [SerializeField]
+        private TextMeshProUGUI _averageMultiplier;
+        [SerializeField]
         private TextMeshProUGUI _bandBonusScore;
         [SerializeField]
         private TextMeshProUGUI _averageOffset;
+        [SerializeField]
+        private TextMeshProUGUI _starPowerActivations;
+        [SerializeField]
+        private TextMeshProUGUI _timeInStarPower;
 
         [SerializeField]
         private RectTransform _advancedStatsRect;
         [SerializeField]
         private RectTransform _basicStatsRect;
+
+        [SerializeField]
+        private ColoredPillElement _enginePresetTag;
+        [SerializeField]
+        private ColoredPillElement _modifiersUsedTag;
+        [SerializeField]
+        private GameObject _modifiersUsedContainer;
+        [SerializeField]
+        private GameObject _modifiersUsedSeparator;
 
 
         private ScoreCardColorizer _colorizer;
@@ -94,6 +115,7 @@ namespace YARG.Menu.ScoreScreen
 
         protected bool IsHighScore;
         protected T Stats;
+        protected float AverageMultiplier;
 
         public YargPlayer Player { get; private set; }
 
@@ -102,11 +124,12 @@ namespace YARG.Menu.ScoreScreen
             _colorizer = GetComponent<ScoreCardColorizer>();
         }
 
-        public void Initialize(bool isHighScore, YargPlayer player, T stats)
+        public void Initialize(bool isHighScore, YargPlayer player, T stats, float averageMultiplier)
         {
             IsHighScore = isHighScore;
             Player = player;
             Stats = stats;
+            AverageMultiplier = averageMultiplier;
         }
 
         public virtual void SetCardContents()
@@ -115,6 +138,13 @@ namespace YARG.Menu.ScoreScreen
 
             _instrument.text = Player.Profile.CurrentInstrument.ToLocalizedName();
             _difficulty.text = Player.Profile.CurrentDifficulty.ToDisplayName();
+
+            if (_difficultyRing != null)
+            {
+                _difficultyRing.SetInfo(Player.Profile.CurrentInstrument.ToResourceName(),
+                    Player.Profile.CurrentInstrument,
+                    GlobalVariables.State.CurrentSong[Player.Profile.CurrentInstrument]);
+            }
 
             // Set percent
             if (SettingsManager.Settings.ShowPercentDecimals.Value)
@@ -159,31 +189,60 @@ namespace YARG.Menu.ScoreScreen
             else
             {
                 _colorizer.SetCardColor(ScoreCardColorizer.ScoreCardColor.Blue);
-                HideTag();
+                ShowTag(SettingsManager.Settings.NoFailMode.Value ? "Completed" : "Cleared");
             }
 
             _score.text = Stats.TotalScore.ToString("N0");
             _starView.SetStars((int) Stats.Stars);
 
-            _notesHit.text = $"{WrapWithColor(Stats.NotesHit)} / {Stats.TotalNotes}";
-            _maxStreak.text = WrapWithColor(Stats.MaxCombo);
-            _notesMissed.text = WrapWithColor(Stats.NotesMissed);
-            _starpowerPhrases.text = $"{WrapWithColor(Stats.StarPowerPhrasesHit)} / {Stats.TotalStarPowerPhrases}";
-            _bandBonusScore.text = WrapWithColor(Stats.BandBonusScore.ToString("N0"));
-            _averageOffset.text = WrapWithColor(
-                Mathf.RoundToInt((float) (Stats.GetAverageOffset() * 1000.0)).ToString() + " ms");
+            _notesHit.text = $"{ColorizePrimary(Stats.NotesHit)} / {ColorizeSecondary(Stats.TotalNotes)}";
+            _maxStreak.text = ColorizePrimary(Stats.MaxCombo);
+            _notesMissed.text = ColorizePrimary("-" + Stats.NotesMissed);
+            _notesMissedContainer.gameObject.SetActive(Stats.NotesMissed != 0);
+            _starpowerPhrases.text = $"{ColorizePrimary(Stats.StarPowerPhrasesHit)} / " +
+                $"{ColorizeSecondary(Stats.TotalStarPowerPhrases)}";
+            _averageMultiplier.text = ColorizePrimary(AverageMultiplier.ToString("0.00"));
+            _bandBonusScore.text = ColorizePrimary(Stats.BandBonusScore.ToString("N0"));
+            _averageOffset.text = $"{ColorizePrimary(Math.Round(Stats.GetAverageOffset() * 1000, MidpointRounding.AwayFromZero))} {ColorizeSecondary("ms")}";
+            _starPowerActivations.text = ColorizePrimary(Stats.StarPowerActivationCount);
+            string timeInStarPower = TimeSpan.FromSeconds(Stats.TimeInStarPower).ToString(@"m\:ss");
+            _timeInStarPower.text = ColorizePrimary(timeInStarPower);
             BuildOffsetHistogram();
 
-            // Set background icon
-            _instrumentIcon.sprite = Addressables
-                .LoadAssetAsync<Sprite>($"InstrumentIcons[{Player.Profile.CurrentInstrument.ToResourceName()}]")
-                .WaitForCompletion();
+            // Set engine preset tag
+            var enginePresetId = Player.EnginePreset.Id;
+            if (enginePresetId == EnginePreset.Default.Id)
+            {
+                _enginePresetTag.SetValues(Localize.Key("Settings.PresetSetting.EnginePreset.DefaultEngines.DefaultEngine"),
+                    ColoredPillElement.ColoredPillPreset.Default);
+            }
+            else if (enginePresetId == EnginePreset.Casual.Id)
+            {
+                _enginePresetTag.SetValues(Localize.Key("Settings.PresetSetting.EnginePreset.DefaultEngines.CasualEngine"),
+                    ColoredPillElement.ColoredPillPreset.CasualEngine);
+            }
+            else if (enginePresetId == EnginePreset.Precision.Id)
+            {
+                _enginePresetTag.SetValues(Localize.Key("Settings.PresetSetting.EnginePreset.DefaultEngines.PrecisionEngine"),
+                    ColoredPillElement.ColoredPillPreset.PrecisionEngine);
+            }
+            else if (enginePresetId == EnginePreset.SoloTaps.Id)
+            {
+                _enginePresetTag.SetValues(Localize.Key("Settings.PresetSetting.EnginePreset.DefaultEngines.SoloTapsEngine"),
+                    ColoredPillElement.ColoredPillPreset.Default);
+            }
+            else
+            {
+                _enginePresetTag.SetValues(Localize.Key("Settings.PresetSetting.EnginePreset.DefaultEngines.CustomEnginePreset"),
+                    ColoredPillElement.ColoredPillPreset.CustomEngine);
+            }
 
             // Set engine preset icons
             ModifierIcon.SpawnEnginePresetIcons(_modifierIconPrefab, _modifierIconContainer,
                 Player.EnginePreset, Player.Profile.GameMode);
 
             // Set modifier icons
+            bool nonEngineModifiersUsed = false;
             foreach (var modifier in EnumExtensions<Modifier>.Values)
             {
                 if (modifier == Modifier.None) continue;
@@ -192,7 +251,14 @@ namespace YARG.Menu.ScoreScreen
 
                 var icon = Instantiate(_modifierIconPrefab, _modifierIconContainer);
                 icon.InitializeForModifier(modifier);
+
+                nonEngineModifiersUsed = true;
             }
+
+            bool anyModifiersUsed = _modifierIconContainer.childCount > 0;
+            _modifiersUsedTag.gameObject.SetActive(nonEngineModifiersUsed);
+            _modifiersUsedContainer.gameObject.SetActive(anyModifiersUsed);
+            _modifiersUsedSeparator.gameObject.SetActive(anyModifiersUsed);
         }
 
         private void BuildOffsetHistogram()
@@ -522,16 +588,14 @@ namespace YARG.Menu.ScoreScreen
             _tagText.text = tagText;
         }
 
-        private void HideTag()
+        protected string ColorizePrimary(object s)
         {
-            _tagGameObject.SetActive(false);
+            return $"<font-weight=600><color=#FFFFFF>{s}</color></font-weight>";
         }
 
-        protected string WrapWithColor(object s)
+        private string ColorizeSecondary(object s)
         {
-            return
-                $"<font-weight=700><color=#{ColorUtility.ToHtmlStringRGB(_colorizer.CurrentColor)}>" +
-                $"{s}</color></font-weight>";
+            return $"<font-weight=500><color=#7D7DA3>{s}</color></font-weight>";
         }
 
         public void ScrollStats(float delta)

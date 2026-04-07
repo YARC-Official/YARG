@@ -638,7 +638,7 @@ namespace YARG.Song
 
             string subgenre = null;
 
-            // Run the subgenre through the Genrelzier data, just for the purpose of localizing it
+            // Run the subgenre through the Genrelizer data, just for the purpose of localizing it
             if (magmaSubgenre is not null)
             {
                 if (_mappings.TryGetValue(magmaSubgenre, out var subgenreMapping))
@@ -660,9 +660,9 @@ namespace YARG.Song
         {
             if (artist is "UB40" or "Zing Experience" || artist.Contains("Bob Marley"))
             {
-                return new(REGGAE, null);
+                return new(_getLocalizedGenre(REGGAE), null);
             }
-            return new(SKA, null);
+            return new(_getLocalizedGenre(SKA), null);
         }
 
         private static string _sanitize(string subgenre)

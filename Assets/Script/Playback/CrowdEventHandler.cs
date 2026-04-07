@@ -221,6 +221,13 @@ namespace YARG.Playback
             }
         }
 
+        public void StopAllCrowdSounds()
+        {
+            GlobalAudioHandler.StopSoundEffect(_selectedOpenSample, 2.5);
+            GlobalAudioHandler.StopSoundEffect(_selectedStartSample);
+            GlobalAudioHandler.StopSoundEffect(_selectedEndSample, 0.5);
+        }
+
         public void Dispose()
         {
             Dispose(true);
@@ -236,9 +243,7 @@ namespace YARG.Playback
                 _engineManager.OnSongFailed -= OnSongFailed;
                 _gameManager?.BeatEventHandler?.Audio.Unsubscribe(Clap);
 
-                GlobalAudioHandler.StopSoundEffect(_selectedOpenSample, 2.5);
-                GlobalAudioHandler.StopSoundEffect(_selectedStartSample);
-                GlobalAudioHandler.StopSoundEffect(_selectedEndSample, 0.5);
+                StopAllCrowdSounds();
             }
 
             _disposed = true;

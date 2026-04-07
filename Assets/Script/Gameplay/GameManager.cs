@@ -580,6 +580,9 @@ namespace YARG.Gameplay
 
         private bool EndSong()
         {
+            // Dispose the crowd handler
+            CrowdEventHandler.Dispose();
+
             if (IsPractice)
             {
                 PracticeManager.ResetPractice();
@@ -616,7 +619,10 @@ namespace YARG.Gameplay
                 {
                     IsHighScore = player.Score > player.LastHighScore,
                     Player = player.Player,
-                    Stats = player.BaseStats
+                    Stats = player.BaseStats,
+                    AverageMultiplier = player.BaseEngine.BaseScore == 0 ?
+                        0 :
+                        (float) player.BaseStats.StarScore / player.BaseEngine.BaseScore
                 }).ToArray(),
                 BandScore = BandScore,
                 BandStars = (int) BandStars,
@@ -624,9 +630,6 @@ namespace YARG.Gameplay
             };
 
             RecordScores(replayInfo);
-
-            // Dispose the crowd handler
-            CrowdEventHandler.Dispose();
 
             // Go to the score screen
             GlobalVariables.Instance.LoadScene(SceneIndex.Score);

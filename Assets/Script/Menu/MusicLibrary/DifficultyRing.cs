@@ -167,7 +167,8 @@ namespace YARG.Menu.MusicLibrary
                 _instrumentIcon.color = Color.white.WithAlpha(INACTIVE_OPACITY);
                 return;
             }
-            if (_songSearchingField.HasInstrumentFilter(_instrument))
+
+            if (_songSearchingField != null && _songSearchingField.HasInstrumentFilter(_instrument))
             {
                 _instrumentIcon.color = _partSelectedColor.WithAlpha(ACTIVE_OPACITY);
                 return;
@@ -177,6 +178,11 @@ namespace YARG.Menu.MusicLibrary
 
         public void OnPointerClick(PointerEventData eventData)
         {
+            if (_songSearchingField == null)
+            {
+                return;
+            }
+
             if (eventData.button == PointerEventData.InputButton.Right)
             {
                 _songSearchingField.SetSearchInput(_instrument.ToSortAttribute(), $"\"{_intensity}\"");

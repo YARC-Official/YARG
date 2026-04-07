@@ -489,7 +489,7 @@
             "Players" : "Players"
         },
         "ScoreScreen" : {
-            "BandScoreNotSaved" : "(Score not saved)",
+            "BandScoreNotSaved" : "Score not saved",
             "RestartSong" : "Restart Song",
             "ShowAdvanced": "Show Advanced",
             "HideAdvanced": "Hide Advanced",
@@ -2047,6 +2047,13 @@
                         "Vocals": "Vocals",
                         "ProKeys": "Keys"
                     }
+                },
+                "DefaultEngines": {
+                    "DefaultEngine": "Default Engine",
+                    "CasualEngine": "Casual Engine",
+                    "PrecisionEngine": "Precision Engine",
+                    "SoloTapsEngine": "Solo Taps Engine",
+                    "CustomEnginePreset": "Custom Engine Preset"
                 },
                 "AntiGhosting": {
                     "Name": "Anti-Ghosting",
