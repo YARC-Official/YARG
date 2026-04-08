@@ -21,6 +21,8 @@ Shader "Custom/RotatingSquares"
 
             #include "UnityCG.cginc"
 
+            float _YargBackgroundAlpha;
+
             struct appdata
             {
                 float4 vertex : POSITION;
@@ -95,6 +97,8 @@ Shader "Custom/RotatingSquares"
                     color = 1.0 - square(uv, float2(0.71, 0.71));
                 else 
                     color = square(uv, float2(0.72, 0.72));
+
+                color = color * _YargBackgroundAlpha;
                 
                 return float4(color, color, color, 1.0);
             }

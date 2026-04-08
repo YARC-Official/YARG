@@ -122,19 +122,19 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5450824049626431651, guid: 0f7a37c9e4abcad4da73b7603d4b7596, type: 3}
       propertyPath: m_BackGroundColor.a
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 5450824049626431651, guid: 0f7a37c9e4abcad4da73b7603d4b7596, type: 3}
       propertyPath: m_BackGroundColor.b
-      value: 0.21960784
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5450824049626431651, guid: 0f7a37c9e4abcad4da73b7603d4b7596, type: 3}
       propertyPath: m_BackGroundColor.g
-      value: 0.21960784
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5450824049626431651, guid: 0f7a37c9e4abcad4da73b7603d4b7596, type: 3}
       propertyPath: m_BackGroundColor.r
-      value: 0.21960784
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5450824049626431651, guid: 0f7a37c9e4abcad4da73b7603d4b7596, type: 3}
       propertyPath: m_CullingMask.m_Bits
@@ -341,7 +341,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 19b73f8c1d10b1f5ca0912eeefcc50b6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _highwaysOutput: {fileID: 0}
 --- !u!114 &2238655681509252365 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 1060069523843335645, guid: 0f7a37c9e4abcad4da73b7603d4b7596, type: 3}

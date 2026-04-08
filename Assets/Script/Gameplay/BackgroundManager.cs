@@ -46,7 +46,7 @@ namespace YARG.Gameplay
         private bool _videoSeeking = false;
 
         private const float FADE_DURATION = 4.0f;
-        static int dimmerPropertyID = Shader.PropertyToID("_YargBackgroundAlpha");
+        public static int dimmerPropertyID = Shader.PropertyToID("_YargBackgroundAlpha");
 
         private float YARGROUND_OFFSET = 50f;
 
