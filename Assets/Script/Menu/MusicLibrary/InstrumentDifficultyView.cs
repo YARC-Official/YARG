@@ -25,6 +25,11 @@ namespace YARG.Menu.MusicLibrary
 
         public void SetInfo(ViewType.ScoreInfo scoreInfo)
         {
+            // Set width
+            var rect = GetComponent<RectTransform>();
+            var length = SettingsManager.Settings.ShowPercentDecimals.Value ? 150 : 130;
+            GetComponent<RectTransform>().sizeDelta = new Vector2(length, rect.sizeDelta.y);
+
             // Set instrument icon
             var icon = Addressables.LoadAssetAsync<Sprite>($"InstrumentIcons[{scoreInfo.Instrument.ToResourceName()}]").WaitForCompletion();
             _instrumentIcon.sprite = icon;
