@@ -433,6 +433,9 @@ namespace YARG.Gameplay
 
             // Allow sleeping
             Screen.sleepTimeout = _originalSleepTimeout;
+
+            // Fade out background
+            _ = BackgroundManager.FadeOut();
         }
 
         public bool PlayerHasFailed { get; set; } = false;
@@ -525,6 +528,10 @@ namespace YARG.Gameplay
 
             // Unpause the background/venue
             Time.timeScale = 1f;
+
+            // Fade in background
+            BackgroundManager.FadeIn();
+
             BackgroundManager.SetPaused(false);
             GameStateFetcher.SetPaused(false);
 
@@ -970,18 +977,14 @@ namespace YARG.Gameplay
                 targetTime = PauseInfo[^1].PauseTime;
             }
 
-            var (canceled, _) = await UniTask.WhenAll(
-                _songRunner.RewindAndResume(seconds, targetTime),
-                BackgroundManager.FadeOut()
-            );
+            var canceled = await _songRunner.RewindAndResume(seconds, targetTime);
 
             if (canceled)
             {
-                _ = BackgroundManager.SeekAndFadeIn(VisualTime);
                 return true;
             }
 
-            _  = BackgroundManager.SeekAndFadeIn(_songRunner.SongTime + Song.SongOffsetSeconds);
+            BackgroundManager.SetTime(_songRunner.SongTime + Song.SongOffsetSeconds);
 
             foreach (var player in _players)
             {

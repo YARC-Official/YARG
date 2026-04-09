@@ -469,35 +469,12 @@ namespace YARG.Gameplay
             return true;
         }
 
-        public async UniTask SeekAndFadeIn(double songTime)
+        public async void FadeIn()
         {
+            await UniTask.Delay(TimeSpan.FromSeconds(0.3f));
+
             _backgroundDimmer.DOKill();
-            _backgroundDimmer.color = new Color(0, 0, 0, 1f);
-
-            var seekTask = PrepareVideoSeekTask();
-
-            SetTime(songTime);
-
-            await seekTask;
-
-            await _backgroundDimmer.DOFade(0f, 0.25f).AsyncWaitForCompletion().AsUniTask();
-        }
-
-        private async UniTask PrepareVideoSeekTask()
-        {
-            if (_type != BackgroundType.Video || _videoPlayer == null) return;
-
-            var completionSource = new UniTaskCompletionSource();
-
-            void OnSeekCompleted(VideoPlayer vp)
-            {
-                _videoPlayer.seekCompleted -= OnSeekCompleted;
-                completionSource.TrySetResult();
-            }
-
-            _videoPlayer.seekCompleted += OnSeekCompleted;
-
-            await completionSource.Task.Timeout(TimeSpan.FromSeconds(1)).SuppressCancellationThrow();
+            _backgroundDimmer.DOFade(0f, 0.25f);
         }
 
         public void SetSpeed(float speed)
