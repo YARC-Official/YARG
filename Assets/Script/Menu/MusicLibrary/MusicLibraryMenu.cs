@@ -10,6 +10,7 @@ using YARG.Core.Game;
 using YARG.Core.Input;
 using YARG.Core.Song;
 using YARG.Localization;
+using YARG.Menu.Filters;
 using YARG.Menu.ListMenu;
 using YARG.Menu.Navigation;
 using YARG.Menu.Persistent;
@@ -624,6 +625,8 @@ namespace YARG.Menu.MusicLibrary
 
         public void Refresh()
         {
+            FiltersMenu.Instance.SetDefaultFilters();
+
             SetRecommendedSongs();
             _searchField.Reset();
             UpdateSearch(true);

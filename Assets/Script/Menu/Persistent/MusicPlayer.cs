@@ -61,7 +61,7 @@ namespace YARG.Menu.Persistent
         private static Task<StemMixer> _current;
         public async void NextSong()
         {
-            const int MAX_TRIES = 10;
+            const int MAX_TRIES = 20;
             for (int tries = 0; tries < MAX_TRIES; tries++)
             {
                 var entry = SongContainer.GetRandomSong();

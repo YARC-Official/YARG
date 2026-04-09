@@ -324,7 +324,17 @@ namespace YARG.Song
 
         public static SongEntry GetRandomSong()
         {
-            return _songs.Pick();
+            SongEntry song;
+            const int maxTries = 50;
+            int tries = 0;
+
+            do
+            {
+                song = _songs.Pick();
+            }
+            while (song.SongRating > SettingsManager.Settings.MaximumSongRating.Value && tries++ < maxTries);
+
+            return song;
         }
 
         public static void InvalidateStarsCache()

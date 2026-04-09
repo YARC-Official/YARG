@@ -4,6 +4,7 @@ using System.Linq;
 using UnityEngine;
 using YARG.Core.Input;
 using YARG.Core.Replays;
+using YARG.Core.Song;
 using YARG.Helpers;
 using YARG.Localization;
 using YARG.Menu.ListMenu;
@@ -11,6 +12,8 @@ using YARG.Menu.Navigation;
 using YARG.Menu.Persistent;
 using YARG.Replays;
 using YARG.Scores;
+using YARG.Settings;
+using YARG.Song;
 
 namespace YARG.Menu.History
 {
@@ -31,6 +34,8 @@ namespace YARG.Menu.History
         };
 
         protected override int ExtraListViewPadding => 10;
+
+        public static bool ForceUpdate { get; set; } = false;
 
         [SerializeField]
         private GameObject _exportReplayButton;
@@ -69,6 +74,12 @@ namespace YARG.Menu.History
             }, false));
 
             _headerTabs.TabChanged += OnTabChanged;
+
+            if (ForceUpdate)
+            {
+                ForceUpdate = false;
+                RequestViewListUpdate();
+            }
         }
 
         protected override List<ViewType> CreateViewList()
@@ -99,6 +110,31 @@ namespace YARG.Menu.History
 
             foreach (var record in ScoreContainer.GetAllGameRecords())
             {
+                // TODO: We should probably serialize the rating in the future so we don't have to do a song cache lookup here
+                if (SettingsManager.Settings.MaximumSongRating.Value < SongRating.Any)
+                {
+                    bool shouldSkip = false;
+                    var songHash = HashWrapper.Create(record.SongChecksum);
+                    if (!SongContainer.SongsByHash.TryGetValue(songHash, out var songs))
+                    {
+                        continue;
+                    }
+
+                    foreach (var song in songs)
+                    {
+                        if (song.SongRating > SettingsManager.Settings.MaximumSongRating.Value)
+                        {
+                            shouldSkip = true;
+                            break;
+                        }
+                    }
+
+                    if (shouldSkip)
+                    {
+                        continue;
+                    }
+                }
+
                 // See if we should create a category (make sure to skip the ones that have nothing in them)
                 bool shouldCreateCategory = false;
                 while (record.Date < _categoryTimes[categoryIndex].MinTime)

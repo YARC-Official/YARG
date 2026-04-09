@@ -580,6 +580,9 @@ namespace YARG.Gameplay
 
         private bool EndSong()
         {
+            // Dispose the crowd handler
+            CrowdEventHandler.Dispose();
+
             if (IsPractice)
             {
                 PracticeManager.ResetPractice();
@@ -627,9 +630,6 @@ namespace YARG.Gameplay
             };
 
             RecordScores(replayInfo);
-
-            // Dispose the crowd handler
-            CrowdEventHandler.Dispose();
 
             // Go to the score screen
             GlobalVariables.Instance.LoadScene(SceneIndex.Score);

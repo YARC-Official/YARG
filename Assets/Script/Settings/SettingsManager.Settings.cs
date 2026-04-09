@@ -6,6 +6,7 @@ using UnityEngine.InputSystem;
 using YARG.Core.Audio;
 using YARG.Core.Engine;
 using YARG.Core.Logging;
+using YARG.Core.Song;
 using YARG.Gameplay.HUD;
 using YARG.Helpers;
 using YARG.Integration;
@@ -13,6 +14,7 @@ using YARG.Integration.RB3E;
 using YARG.Integration.Sacn;
 using YARG.Integration.StageKit;
 using YARG.Menu.Filters;
+using YARG.Menu.History;
 using YARG.Menu.MusicLibrary;
 using YARG.Menu.Persistent;
 using YARG.Menu.Settings;
@@ -36,6 +38,18 @@ namespace YARG.Settings
         Performance = 4,
         UltraPerformance = 5,
     }
+
+    public enum MaximumRating
+    {
+        Family_Friendly,
+        Supervision_Recommended,
+        Mature,
+        Unspecified,
+        No_Rating,
+        Sensitive_Content,
+        Any
+    }
+
     public static partial class SettingsManager
     {
         public class SettingContainer
@@ -144,6 +158,20 @@ namespace YARG.Settings
             #endregion
 
             #region Songs
+
+            public DropdownSetting<SongRating> MaximumSongRating { get; }
+                = new(SongRating.Mature, _ =>
+                {
+                    MusicLibraryMenu.SetReload(MusicLibraryReloadState.Full);
+                    HistoryMenu.ForceUpdate = true;
+                })
+            {
+                SongRating.Family_Friendly,
+                SongRating.Supervision_Recommended,
+                SongRating.Mature,
+                SongRating.Sensitive_Content,
+                SongRating.Any,
+            };
 
             public ToggleSetting AllowDuplicateSongs { get; } = new(true, _ => MusicLibraryMenu.SetReload(MusicLibraryReloadState.Partial));
             public ToggleSetting UseFullDirectoryForPlaylists { get; } = new(false);

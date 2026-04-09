@@ -974,6 +974,12 @@ namespace YARG.Menu.Filters
         {
             var predicates = new List<Func<SongEntry, bool>>();
 
+            // Unless MaximumRating is Any, we need to add a rating filter
+            if (SettingsManager.Settings.MaximumSongRating.Value < SongRating.Any)
+            {
+                predicates.Add(entry => entry.SongRating <= SettingsManager.Settings.MaximumSongRating.Value);
+            }
+
             if (TryGetSelectedSet(_genreEnabled, GetAllGenresCached(), NormalizeFilterKey, out var genres))
                 predicates.Add(entry => genres.Contains(entry.Genre.SearchStr));
 
@@ -1729,6 +1735,11 @@ namespace YARG.Menu.Filters
             }
 
             return false;
+        }
+
+        public void SetDefaultFilters()
+        {
+            ActiveFilterPredicate = BuildFilterPredicate();
         }
     }
 }
