@@ -342,7 +342,6 @@ namespace YARG.Menu.MusicLibrary
                 new NavigationScheme.Entry(MenuAction.Blue, "Menu.MusicLibrary.Filters", OpenFilters),
                 new NavigationScheme.Entry(MenuAction.Orange, "Menu.MusicLibrary.MoreOptions",
                     OnOrangeHit, OnOrangeRelease),
-                new NavigationScheme.Entry(MenuAction.Select, "Next Sort Category", NextSort, hide: true),
             }, false));
 
         }
