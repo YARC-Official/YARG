@@ -10573,6 +10573,14 @@ PrefabInstance:
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
       value: 
       objectReference: {fileID: 0}
+    - target: {fileID: 7959930116988539466, guid: 65e13b7c168673844aafd68c9c01d1c5, type: 3}
+      propertyPath: m_SizeDelta.x
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7959930116988539466, guid: 65e13b7c168673844aafd68c9c01d1c5, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: -0.5
+      objectReference: {fileID: 0}
     - target: {fileID: 9056057400455014970, guid: 65e13b7c168673844aafd68c9c01d1c5, type: 3}
       propertyPath: m_text
       value: Sorting BY
