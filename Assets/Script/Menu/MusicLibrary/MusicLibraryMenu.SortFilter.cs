@@ -274,6 +274,11 @@ namespace YARG.Menu.MusicLibrary
 
         public void NextSort()
         {
+            if (MenuState != MenuState.Library)
+            {
+                return;
+            }
+
             SortAttribute nextSort;
             if (SettingsManager.Settings.LibrarySort >= SortAttribute.Playable)
             {
