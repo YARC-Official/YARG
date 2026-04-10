@@ -46,11 +46,13 @@ namespace YARG.Menu.Persistent
                 gameObject.SetActive(false);
                 return;
             }
+            StemSettings.ApplySettings = false; // ensure that MusicPlayer uses the full-volume mix
             NextSong();
         }
 
         private void OnDisable()
         {
+            StemSettings.ApplySettings = true; // reset to default value
             lock (_lock)
             {
                 _mixer?.Dispose();
