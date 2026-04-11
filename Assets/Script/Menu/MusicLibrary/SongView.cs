@@ -52,6 +52,8 @@ namespace YARG.Menu.MusicLibrary
         private TextMeshProUGUI _starsObtainedText;
         [SerializeField]
         private TextMeshProUGUI _scoreText;
+        [SerializeField]
+        private TextMeshProUGUI _buttonHelpText;
 
         [Space]
         [SerializeField]
@@ -122,6 +124,13 @@ namespace YARG.Menu.MusicLibrary
             if (viewType is SortHeaderViewType)
             {
                 _starsObtainedText.text = viewType.GetSideText(selected);
+            }
+
+            // Set help text for button views
+            _buttonHelpText.gameObject.SetActive(viewType is ButtonViewType);
+            if (viewType is ButtonViewType)
+            {
+                _buttonHelpText.text = viewType.GetSideText(selected);
             }
 
             _scoreText.gameObject.SetActive(scoreInfoMode == HighScoreInfoMode.Score && viewType is SongViewType);

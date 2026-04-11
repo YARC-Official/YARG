@@ -50,6 +50,7 @@ namespace YARG.Menu.MusicLibrary
         private const int RANDOM_SONG_ID = 0;
         private const int PLAYLIST_ID = 1;
         private const int BACK_ID = 2;
+        private const int RECOMMENDED_SONGS_ID = 3;
 
         public static MusicLibraryMode LibraryMode;
 
@@ -446,13 +447,15 @@ namespace YARG.Menu.MusicLibrary
                     Localize.Key("Menu.MusicLibrary.RandomSong"),
                     "MusicLibraryIcons[Random]",
                     SelectRandomSong,
-                    RANDOM_SONG_ID));
+                    RANDOM_SONG_ID,
+                    "Select a Random Song"));
 
                 list.Add(new ButtonViewType(
                     Localize.Key("Menu.MusicLibrary.Playlists"),
                     "MusicLibraryIcons[Playlists]",
                     EnterPlaylistSelectFromLibrary,
-                    PLAYLIST_ID));
+                    PLAYLIST_ID,
+                    Localize.Key("Menu.MusicLibrary.PlaylistsHelp")));
 
                 _primaryHeaderIndex += 2;
 
@@ -464,14 +467,16 @@ namespace YARG.Menu.MusicLibrary
                         string key = Localize.Key("Menu.MusicLibrary.RecommendedSongs",
                             _recommendedSongs.Length == 1 ? "Singular" : "Plural");
 
-                        list.Add(new CategoryViewType(key, _recommendedSongs.Length, _recommendedSongs,
+                        list.Add(new ButtonViewType(key, "MusicLibraryIcons[Recommended]",
                             () =>
                             {
                                 bool selectTopOfList = CurrentSelection is SongViewType songView &&
                                     _recommendedSongs.Contains(songView.SongEntry);
                                 bool preserveSelectedIndex = SelectedIndex != _recommendedHeaderIndex;
                                 RefreshAndReselect(selectTopOfList, preserveSelectedIndex);
-                            }
+                            },
+                            RECOMMENDED_SONGS_ID,
+                            Localize.Key("Menu.MusicLibrary.RecommendedSongsHelp")
                         ));
                         _recommendedHeaderIndex = list.Count - 1;
 
