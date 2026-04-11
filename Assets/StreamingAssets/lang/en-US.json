@@ -1194,7 +1194,7 @@
                 "PauseName": "Master",
                 "Description": "Adjusts the song's volume as a whole."
             },
-            "MaximumSongRating": {
+            "MaxSongRating": {
                 "Name": "Maximum Song Rating",
                 "Description": "Hide any song with a rating higher than the specified value. Note that this is a best-effort filter that does not apply to the Playlist Manager. Custom songs may not be rated correctly.",
                 "Dropdown": {
@@ -1202,7 +1202,7 @@
                     "Supervision_Recommended": "Supervision Recommended",
                     "Mature": "Mature",
                     "Sensitive_Content": "Sensitive Content",
-                    "Any": "Any"
+                    "None": "None"
                 }
             },
             "MetronomeVolume": {

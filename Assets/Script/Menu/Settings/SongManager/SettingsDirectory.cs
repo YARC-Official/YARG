@@ -37,7 +37,7 @@ namespace YARG.Menu.Settings
                 _pathText.text = SongFolders[_index];
 
                 int songCount = 0;
-                foreach (var song in SongContainer.Songs)
+                foreach (var song in SongContainer.UnfilteredSongs)
                 {
                     if (song.SortBasedLocation.StartsWith(SongFolders[_index]))
                     {
