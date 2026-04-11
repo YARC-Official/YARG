@@ -444,20 +444,13 @@ namespace YARG.Menu.MusicLibrary
             if (!_searchField.IsSearching)
             {
                 list.Add(new ButtonViewType(
-                    Localize.Key("Menu.MusicLibrary.RandomSong"),
-                    "MusicLibraryIcons[Random]",
-                    SelectRandomSong,
-                    RANDOM_SONG_ID,
-                    "Select a Random Song"));
-
-                list.Add(new ButtonViewType(
                     Localize.Key("Menu.MusicLibrary.Playlists"),
                     "MusicLibraryIcons[Playlists]",
                     EnterPlaylistSelectFromLibrary,
                     PLAYLIST_ID,
                     Localize.Key("Menu.MusicLibrary.PlaylistsHelp")));
 
-                _primaryHeaderIndex += 2;
+                _primaryHeaderIndex += 1;
 
                 if (SettingsManager.Settings.LibrarySort < SortAttribute.Instrument &&
                     SettingsManager.Settings.ShowRecommendedSongs.Value)
