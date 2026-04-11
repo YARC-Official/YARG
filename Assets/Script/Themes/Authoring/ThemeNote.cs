@@ -27,6 +27,8 @@ namespace YARG.Themes
         White     = 11,
         Black     = 12,
         Glissando = 13,
+
+        Wildcard = 14,
     }
 
     public class ThemeNote : MonoBehaviour

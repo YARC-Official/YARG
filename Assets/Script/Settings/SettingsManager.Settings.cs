@@ -162,6 +162,7 @@ namespace YARG.Settings
             public DropdownSetting<SongRating> MaximumSongRating { get; }
                 = new(SongRating.Mature, _ =>
                 {
+                    SongContainer.RequestContainerRefresh();
                     MusicLibraryMenu.SetReload(MusicLibraryReloadState.Full);
                     HistoryMenu.ForceUpdate = true;
                 })

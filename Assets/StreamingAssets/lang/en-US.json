@@ -10,6 +10,7 @@
     },
     "Enum": {
         "Difficulty": {
+            "Beginner": "Beginner",
             "Easy": "Easy",
             "Hard": "Hard",
             "Expert": "Expert",

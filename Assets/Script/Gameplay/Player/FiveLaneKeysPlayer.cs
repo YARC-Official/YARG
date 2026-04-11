@@ -66,6 +66,12 @@ namespace YARG.Assets.Script.Gameplay.Player
             return _lanePositions[(int) fret];
         }
 
+        public bool IsNormalNote(GuitarNote note)
+        {
+            return (note.FiveLaneKeysAction is not FiveLaneKeysAction.OpenNote || UsingOpenLane) &&
+                note.FiveLaneKeysAction is not FiveLaneKeysAction.Wildcard;
+        }
+
         private static Dictionary<int, int> OPEN_LANE_HIGHWAY_ORDERING = new()
         {
             { (int) FiveFretGuitarFret.Open,    0 },
@@ -513,7 +519,7 @@ public override bool ShouldUpdateInputsOnResume => true;
 
             (NotePool.GetByKey(note) as FiveLaneKeysNoteElement)?.HitNote();
 
-            if (note.FiveLaneKeysAction is FiveLaneKeysAction.OpenNote && !UsingOpenLane)
+            if (!IsNormalNote(note))
             {
                 _fretArray.PlayOpenHitAnimation();
             }
@@ -546,7 +552,7 @@ public override bool ShouldUpdateInputsOnResume => true;
 
         private void OnSustainStart(GuitarNote note)
         {
-            if (note.FiveLaneKeysAction is not FiveLaneKeysAction.OpenNote || UsingOpenLane)
+            if (IsNormalNote(note))
             {
                 _fretArray.SetSustained((int)GetFretIndex(note.FiveLaneKeysAction), true);
             }
@@ -566,7 +572,7 @@ public override bool ShouldUpdateInputsOnResume => true;
                 SetStemMuteState(true);
             }
 
-            if (note.FiveLaneKeysAction is not FiveLaneKeysAction.OpenNote || UsingOpenLane)
+            if (IsNormalNote(note))
             {
                 _fretArray.SetSustained((int) GetFretIndex(note.FiveLaneKeysAction), false);
             }

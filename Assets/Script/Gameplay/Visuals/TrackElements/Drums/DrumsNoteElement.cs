@@ -22,6 +22,7 @@ namespace YARG.Gameplay.Visuals
             Ghost         = 4,
             CymbalAccent  = 5,
             CymbalGhost   = 6,
+            Wildcard      = 7,
 
             Count
         }
@@ -39,6 +40,7 @@ namespace YARG.Gameplay.Visuals
             AssignNoteGroup(models, starpowerModels, (int) NoteType.Ghost,          ThemeNoteType.Ghost);
             AssignNoteGroup(models, starpowerModels, (int) NoteType.CymbalAccent,   ThemeNoteType.CymbalAccent);
             AssignNoteGroup(models, starpowerModels, (int) NoteType.CymbalGhost,    ThemeNoteType.CymbalGhost);
+            AssignNoteGroup(models, starpowerModels, (int) NoteType.Wildcard,       ThemeNoteType.Wildcard);
         }
 
         public override void HitNote()
@@ -83,7 +85,7 @@ namespace YARG.Gameplay.Visuals
 
             if (Player.Player.Profile.CurrentInstrument == Core.Instrument.ProDrums && Player.Player.Profile.SplitProTomsAndCymbals)
             {
-                if (NoteRef.Pad != 0)
+                if (NoteRef.Pad is not ((int) FourLaneDrumPad.Kick or (int) FourLaneDrumPad.Wildcard))
                 {
                     gameObject.transform.localScale = Vector3.Scale(transform.localScale, _splitScale);
                 }
