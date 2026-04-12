@@ -36,9 +36,12 @@ namespace YARG.Gameplay.HUD
 
         private bool _shouldPulse;
         private bool _hudShowing = true;
+        private int _displayedMultiplier = int.MinValue;
 
         public void Initialize(EnginePreset enginePreset)
         {
+            _displayedMultiplier = int.MinValue;
+
             if (enginePreset == EnginePreset.Default)
             {
                 // Don't change combo meter fill color if it's the default
@@ -91,13 +94,18 @@ namespace YARG.Gameplay.HUD
         {
             _comboMeterFillTarget = phrasePercent;
 
-            if (multiplier != 1)
+            if (_displayedMultiplier != multiplier)
             {
-                _multiplierText.SetTextFormat("{0}<sub>x</sub>", multiplier);
-            }
-            else
-            {
-                _multiplierText.text = string.Empty;
+                _displayedMultiplier = multiplier;
+
+                if (multiplier != 1)
+                {
+                    _multiplierText.SetTextFormat("{0}<sub>x</sub>", multiplier);
+                }
+                else
+                {
+                    _multiplierText.text = string.Empty;
+                }
             }
 
             _starPowerFill.fillAmount = starPowerPercent;
