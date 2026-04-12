@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Assertions;
@@ -518,7 +517,7 @@ namespace YARG.Gameplay.Player
             UpdateSpawning();
 
             // Fade on/off the starpower overlay
-            bool starpowerActive = _vocalPlayers.Any(player => player.Engine.EngineStats.IsStarPowerActive);
+            bool starpowerActive = IsAnyStarPowerActive();
             float currentStarpower = _starpowerMaterial.GetFloat(_alphaMultiplier);
             if (starpowerActive)
             {
@@ -530,6 +529,19 @@ namespace YARG.Gameplay.Player
                 _starpowerMaterial.SetFloat(_alphaMultiplier,
                     Mathf.Lerp(currentStarpower, 0f, Time.deltaTime * 4f));
             }
+        }
+
+        private bool IsAnyStarPowerActive()
+        {
+            for (int i = 0; i < _vocalPlayers.Count; i++)
+            {
+                if (_vocalPlayers[i].Engine.EngineStats.IsStarPowerActive)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private void UpdateHighwayGuidelines()
