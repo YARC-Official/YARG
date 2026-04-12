@@ -44,8 +44,16 @@ namespace YARG.Menu.Navigation
                 Action onHoldOffHandler = null,
                 Action onHoldHandler = null,
                 float holdSeconds = 0,
-                bool hide = false) : this(action, localizationKey, _ => handler?.Invoke(), _ => onHoldHandler?.Invoke(), _ => onHoldOffHandler?.Invoke(), holdSeconds, hide)
-            { }
+                bool hide = false)
+            {
+                Action = action;
+                LocalizationKey = localizationKey;
+                _handler = _ => handler?.Invoke();
+                _onHoldOffHandler = _ => onHoldOffHandler?.Invoke();
+                _onHoldHandler = _ => onHoldHandler?.Invoke();
+                HoldSeconds = holdSeconds;
+                Hide = hide;
+            }
 
             public Entry(MenuAction action,
                 string localizationKey,
