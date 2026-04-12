@@ -24,6 +24,7 @@ namespace YARG.Gameplay.Player
     public class DrumsPlayer : TrackPlayer<DrumsEngine, DrumNote>
     {
         private const float DRUM_PAD_FLASH_HOLD_DURATION = 0.2f;
+        private static readonly Fret.AnimType[] AnimTypes = (Fret.AnimType[]) Enum.GetValues(typeof(Fret.AnimType));
 
         // Key is a FourLaneDrumPad or FiveLaneDrumPad
         private Dictionary<int, HighwayOrderingInfo> _highwayOrdering;
@@ -63,12 +64,12 @@ namespace YARG.Gameplay.Player
 
         public HighwayOrderingInfo GetHighwayOrderingInfo(int pad)
         {
-            if (_highwayOrdering.ContainsKey(pad))
+            if (_highwayOrdering.TryGetValue(pad, out var info))
             {
-                return _highwayOrdering[pad];
+                return info;
             }
 
-            return new(-1, pad);
+            return new HighwayOrderingInfo(-1, pad);
         }
 
 
@@ -672,7 +673,7 @@ namespace YARG.Gameplay.Player
 
         private void InitializeAnimTypes()
         {
-            foreach (Fret.AnimType animType in Enum.GetValues(typeof(Fret.AnimType)))
+            foreach (var animType in AnimTypes)
             {
                 _animTypeToFretToLastPressedDelta[animType] = new Dictionary<int, float>();
 
@@ -701,7 +702,7 @@ namespace YARG.Gameplay.Player
 
         private void UpdateAnimTimes()
         {
-            foreach (Fret.AnimType animType in Enum.GetValues(typeof(Fret.AnimType)))
+            foreach (var animType in AnimTypes)
             {
                 foreach (var fretIdx in _highwayOrdering.Keys)
                 {
@@ -936,7 +937,7 @@ namespace YARG.Gameplay.Player
             else
             {
                 LaneCount = 4;
-                _highwayOrdering = new()
+                _highwayOrdering = new Dictionary<int, HighwayOrderingInfo>
                 {
                     { (int)FourLaneDrumPad.RedDrum,       new(ApplyHandednessToPosition(0), ApplyHandednessToFourLaneColor(FourLaneDrumsFret.RedDrum)) },
                     { (int)FourLaneDrumPad.YellowCymbal,  new(ApplyHandednessToPosition(1), ApplyHandednessToFourLaneColor(FourLaneDrumsFret.YellowCymbal)) },
