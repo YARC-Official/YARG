@@ -10571,7 +10571,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6846856529861592903, guid: 65e13b7c168673844aafd68c9c01d1c5, type: 3}
       propertyPath: m_Name
-      value: SongView
+      value: Status Subheader
       objectReference: {fileID: 0}
     - target: {fileID: 7595498556028577441, guid: 65e13b7c168673844aafd68c9c01d1c5, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
