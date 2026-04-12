@@ -355,6 +355,7 @@ namespace YARG.Settings.Preview
             highwayRenderer.UpdateCurveFactor(cameraPreset.CurveFactor, 0);
             highwayRenderer.UpdateFadeParams(0, 3f, cameraPreset.FadeLength);
             highwayRenderer.UpdateCameraProjectionMatrices();
+            highwayRenderer.ResetTextures();
 
             // Update hit window
             _hitWindow.HitWindow = CurrentGameModeInfo.HitWindowProvider(enginePreset).Create();
