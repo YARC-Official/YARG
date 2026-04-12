@@ -159,8 +159,8 @@ namespace YARG.Settings
 
             #region Songs
 
-            public DropdownSetting<SongRating> MaximumSongRating { get; }
-                = new(SongRating.Mature, _ =>
+            public DropdownSetting<SongRating> MaxSongRating { get; }
+                = new(SongRating.None, _ =>
                 {
                     SongContainer.RequestContainerRefresh();
                     MusicLibraryMenu.SetReload(MusicLibraryReloadState.Full);
@@ -171,7 +171,7 @@ namespace YARG.Settings
                 SongRating.Supervision_Recommended,
                 SongRating.Mature,
                 SongRating.Sensitive_Content,
-                SongRating.Any,
+                SongRating.None,
             };
 
             public ToggleSetting AllowDuplicateSongs { get; } = new(true, _ => MusicLibraryMenu.SetReload(MusicLibraryReloadState.Partial));

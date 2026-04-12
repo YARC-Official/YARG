@@ -77,7 +77,7 @@ namespace YARG.Settings
                 nameof(Settings.UseFullDirectoryForPlaylists),
                 nameof(Settings.Genrelizer),
                 new HeaderMetadata("MusicLibrary"),
-                nameof(Settings.MaximumSongRating),
+                nameof(Settings.MaxSongRating),
                 nameof(Settings.ShowFavoriteButton),
                 nameof(Settings.DifficultyRings),
                 nameof(Settings.HighScoreInfo),

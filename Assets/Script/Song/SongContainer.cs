@@ -133,7 +133,9 @@ namespace YARG.Song
         public static IReadOnlyDictionary<HashWrapper, List<SongEntry>> SongsByHash => _songsByHash;
         public static SongEntry[]                                       Songs       => _songs;
 
-        private static bool AllowedByRating(SongRating rating) => rating <= SettingsManager.Settings.MaximumSongRating.Value;
+        public static SongEntry[] UnfilteredSongs => _songCache.Entries.Values.SelectMany(e => e).ToArray();
+
+        private static bool AllowedByRating(SongRating rating) => rating <= SettingsManager.Settings.MaxSongRating.Value;
 
 #nullable enable
         public static async UniTask RunRefresh(bool quick, LoadingContext? context = null)

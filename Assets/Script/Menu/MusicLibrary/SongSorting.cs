@@ -12,7 +12,7 @@ namespace YARG.Menu.MusicLibrary
 {
     public static class SongSorting
     {
-        private static bool DisallowedByRating(SongRating rating) => rating > SettingsManager.Settings.MaximumSongRating.Value;
+        private static bool DisallowedByRating(SongRating rating) => rating > SettingsManager.Settings.MaxSongRating.Value;
 
         private readonly struct ArtistComparer : IComparer<SongEntry>
         {

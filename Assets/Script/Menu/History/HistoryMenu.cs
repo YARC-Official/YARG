@@ -110,7 +110,7 @@ namespace YARG.Menu.History
 
             foreach (var record in ScoreContainer.GetAllGameRecords())
             {
-                if (SettingsManager.Settings.MaximumSongRating.Value < SongRating.Any &&
+                if (SettingsManager.Settings.MaxSongRating.Value < SongRating.None &&
                     !SongContainer.SongsByHash.ContainsKey(HashWrapper.Create(record.SongChecksum)))
                 {
                     // If we are doing a rating filter, we need to bowlderize the history menu in case the missing song has an explicit title
