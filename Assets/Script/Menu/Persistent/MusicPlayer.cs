@@ -46,11 +46,13 @@ namespace YARG.Menu.Persistent
                 gameObject.SetActive(false);
                 return;
             }
+            StemSettings.ApplySettings = false; // ensure that MusicPlayer uses the full-volume mix
             NextSong();
         }
 
         private void OnDisable()
         {
+            StemSettings.ApplySettings = SettingsManager.Settings.ApplyVolumesInMusicLibrary.Value; // reset to default value
             lock (_lock)
             {
                 _mixer?.Dispose();
@@ -61,7 +63,7 @@ namespace YARG.Menu.Persistent
         private static Task<StemMixer> _current;
         public async void NextSong()
         {
-            const int MAX_TRIES = 10;
+            const int MAX_TRIES = 20;
             for (int tries = 0; tries < MAX_TRIES; tries++)
             {
                 var entry = SongContainer.GetRandomSong();

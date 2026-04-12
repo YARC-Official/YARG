@@ -34,8 +34,7 @@ namespace YARG.Playback
 
         private SfxSample _selectedOpenSample;
         private SfxSample _selectedStartSample;
-        // Only one for now, but more will come
-        private SfxSample _selectedEndSample = SfxSample.CrowdEnd1;
+        private SfxSample _selectedEndSample;
 
         private int _eventIndex;
 
@@ -225,7 +224,7 @@ namespace YARG.Playback
         {
             GlobalAudioHandler.StopSoundEffect(_selectedOpenSample, 2.5);
             GlobalAudioHandler.StopSoundEffect(_selectedStartSample);
-            GlobalAudioHandler.StopSoundEffect(_selectedEndSample, 0.5);
+            GlobalAudioHandler.StopSoundEffect(_selectedEndSample, 1.5);
         }
 
         public void Dispose()
