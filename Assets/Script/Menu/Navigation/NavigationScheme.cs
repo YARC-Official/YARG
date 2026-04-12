@@ -66,8 +66,8 @@ namespace YARG.Menu.Navigation
                 Action = action;
                 LocalizationKey = localizationKey;
                 _handler = handler;
-                _onHoldHandler = onHoldHandler;
                 _onHoldOffHandler = onHoldOffHandler;
+                _onHoldHandler = onHoldHandler;
                 HoldSeconds = holdSeconds;
                 Hide = hide;
             }
