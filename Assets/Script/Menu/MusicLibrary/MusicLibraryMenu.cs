@@ -51,6 +51,7 @@ namespace YARG.Menu.MusicLibrary
         private const int PLAYLIST_ID = 1;
         private const int BACK_ID = 2;
         private const int RECOMMENDED_SONGS_ID = 3;
+        private const int CREATE_NEW_PLAYLIST_ID = 4;
 
         public static MusicLibraryMode LibraryMode;
 
