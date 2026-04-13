@@ -39,6 +39,7 @@ namespace YARG.Gameplay.Visuals
         private GameManager _gameManager;
 
         private RenderTexture _highwaysAlphaTexture;
+        private RenderTexture _highwaysDepthTexture;
         private ScriptableRenderPass _fadeCalcPass;
         private ScriptableRenderPass _cleanupPass;
         private ScriptableRenderPass _venuePass;
@@ -314,19 +315,34 @@ namespace YARG.Gameplay.Visuals
                 _highwaysAlphaTexture.Release();
             }
 
+            if (_highwaysDepthTexture != null)
+            {
+                _highwaysDepthTexture.Release();
+            }
+
             float scaling = 1.0f;
-            var descriptor = new RenderTextureDescriptor(
+
+            // Create color texture (alpha mask) - no MSAA needed for mask
+            var colorDescriptor = new RenderTextureDescriptor(
                 (int)(Screen.width * scaling), (int)(Screen.height * scaling),
                 RenderTextureFormat.RFloat)
             {
-                mipCount = 0
+                mipCount = 0,
+                msaaSamples = 1
             };
-            if (Screen.msaaSamples > 0)
-            {
-                descriptor.msaaSamples = Screen.msaaSamples;
-            }
-            _highwaysAlphaTexture = new RenderTexture(descriptor);
+            _highwaysAlphaTexture = new RenderTexture(colorDescriptor);
             Shader.SetGlobalTexture(YargHighwaysAlphaTextureID, _highwaysAlphaTexture);
+
+            // Create matching depth texture - no MSAA needed
+            var depthDescriptor = new RenderTextureDescriptor(
+                (int)(Screen.width * scaling), (int)(Screen.height * scaling),
+                RenderTextureFormat.Depth)
+            {
+                mipCount = 0,
+                msaaSamples = 1,
+                depthBufferBits = 24
+            };
+            _highwaysDepthTexture = new RenderTexture(depthDescriptor);
         }
 
         private void OnDisable()
@@ -337,6 +353,12 @@ namespace YARG.Gameplay.Visuals
             {
                 _highwaysAlphaTexture.Release();
                 _highwaysAlphaTexture = null;
+            }
+
+            if (_highwaysDepthTexture != null)
+            {
+                _highwaysDepthTexture.Release();
+                _highwaysDepthTexture = null;
             }
         }
 
@@ -493,11 +515,11 @@ namespace YARG.Gameplay.Visuals
                     passData.material = _material;
 
                     var alphaTextureHandle = renderGraph.ImportTexture(RTHandles.Alloc(_highwayCameraRendering._highwaysAlphaTexture));
+                    var depthTextureHandle = renderGraph.ImportTexture(RTHandles.Alloc(_highwayCameraRendering._highwaysDepthTexture));
 
                     builder.SetRenderAttachment(alphaTextureHandle, 0, AccessFlags.WriteAll);
-                    // We could allocate a different depth texture, however at this point
-                    // We do not need to preserve depth from the camera as we'll calc this as a very first thing
-                    builder.SetRenderAttachmentDepth(resourceData.activeDepthTexture, AccessFlags.WriteAll);
+                    // Use our own depth texture with matching MSAA sample count
+                    builder.SetRenderAttachmentDepth(depthTextureHandle, AccessFlags.WriteAll);
 
                     builder.AllowPassCulling(false);
 
