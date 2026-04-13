@@ -501,7 +501,7 @@ namespace YARG.Gameplay.Player
         }
 
 
-        private void OnPadHit(DrumsAction action, bool wasNoteHit, bool wasNoteHitCorrectly, DrumNoteType type, float velocity)
+        private void OnPadHit(DrumsAction action, bool wasNoteHit, bool wasNoteHitCorrectly, bool wasOverhitInLane, DrumNoteType type, float velocity)
         {
             var fret = DrumsActionToHighwayIndex(action);
 
@@ -512,7 +512,8 @@ namespace YARG.Gameplay.Player
             }
 
             // Update last hit times for fret flashing animation
-            if (action is not DrumsAction.Kick)
+            // Overhits in a lane should not play any animation, nor update the flashing
+            if (action is not DrumsAction.Kick && !wasOverhitInLane)
             {
                 // Play the correct hit animation based on dynamics
                 Fret.AnimType animType = Fret.AnimType.CorrectNormal;
@@ -530,7 +531,8 @@ namespace YARG.Gameplay.Player
             }
 
             // Skip if a note was hit, because we have different logic for that below
-            if (wasNoteHit)
+            // Also skip if it was an overhit in a lane, since we only want it to play the AODSFX
+            if (wasNoteHit || wasOverhitInLane)
             {
                 // If AODSFX is turned on and a note was hit, Play the drum sfx. Without this, drum sfx will only play on misses.
                 if (SettingsManager.Settings.AlwaysOnDrumSFX.Value)
