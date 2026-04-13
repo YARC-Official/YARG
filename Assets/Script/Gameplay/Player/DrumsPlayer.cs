@@ -54,9 +54,9 @@ namespace YARG.Gameplay.Player
                 DrumsAction.YellowDrum =>   (int) FourLaneDrumPad.YellowDrum,
                 DrumsAction.BlueDrum =>     (int) FourLaneDrumPad.BlueDrum,
                 DrumsAction.GreenDrum =>    (int) FourLaneDrumPad.GreenDrum,
-                DrumsAction.YellowCymbal => (int) (Player.Profile.SplitProTomsAndCymbals ? FourLaneDrumPad.YellowCymbal : FourLaneDrumPad.YellowDrum),
-                DrumsAction.BlueCymbal =>   (int) (Player.Profile.SplitProTomsAndCymbals ? FourLaneDrumPad.BlueCymbal : FourLaneDrumPad.BlueDrum),
-                DrumsAction.GreenCymbal =>  (int) (Player.Profile.SplitProTomsAndCymbals ? FourLaneDrumPad.GreenCymbal : FourLaneDrumPad.GreenDrum),
+                DrumsAction.YellowCymbal => (int) FourLaneDrumPad.YellowCymbal,
+                DrumsAction.BlueCymbal =>   (int) FourLaneDrumPad.BlueCymbal,
+                DrumsAction.GreenCymbal =>  (int) FourLaneDrumPad.GreenCymbal,
                 DrumsAction.WildcardPad =>  (int) FourLaneDrumPad.Kick,
                 _ => throw new ArgumentOutOfRangeException(nameof(action))
             };

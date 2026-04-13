@@ -2033,9 +2033,9 @@
                     "Name": "Hit Window Ratio",
                     "Description": "The hit window's front to back ratio. \"0\" will bring the hit window fully backwards, \"1\" will keep it in the center, and \"2\" will move it to the front."
                 },
-                "TremoloFrontEndPercent": {
+                "TremoloWindow": {
                     "Name": "Tremolo Hit Window",
-                    "Description": "This determines how many notes can be hit with a single input during a tremolo or trill phrase. Calculated as a percentage of the current hit window frontend."
+                    "Description": "This determines the frequency of lane inputs required to maintain lane behavior."
                 },
                 "HitPercentE": {
                     "Name": "Hit Percent (Easy)",

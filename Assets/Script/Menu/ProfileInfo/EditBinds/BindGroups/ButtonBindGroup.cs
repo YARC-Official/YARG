@@ -41,7 +41,7 @@ namespace YARG.Menu.ProfileInfo
 
             foreach (var control in _binding.Bindings)
             {
-                if (control.Control is MidiButtonControl)
+                if (control.Control is MidiNoteControl)
                 {
                     _header.AddBinding<SingleMidiNoteBindView, float, ButtonBinding, SingleButtonBinding>(
                         _midiNoteViewPrefab, _binding, control);

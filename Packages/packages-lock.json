@@ -367,9 +367,17 @@
       "depth": 0,
       "source": "git",
       "dependencies": {
+        "jp.keijiro.rtmidi": "1.0.4",
         "com.unity.inputsystem": "1.0.1"
       },
-      "hash": "eb3d689d5f44daad36132debdbd5755f344775b6"
+      "hash": "29dee9f786d99cfae145d1972a39fb79117c1b8f"
+    },
+    "jp.keijiro.rtmidi": {
+      "version": "1.0.4",
+      "depth": 1,
+      "source": "registry",
+      "dependencies": {},
+      "url": "https://registry.npmjs.com"
     },
     "com.unity.modules.accessibility": {
       "version": "1.0.0",
