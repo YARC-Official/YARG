@@ -36,6 +36,10 @@ namespace YARG.Gameplay.Visuals
         private Transform _rightKickFretPosition;
 
         private readonly Dictionary<int, Fret> _frets = new();
+        // These will be empty on anything that does not have stacked frets, which is only 4L and Pro Drums right now.
+        private readonly Dictionary<int, int>       _stackedFretIndices        = new();
+        private readonly HashSet<int>               _enabledStackedFretIndices = new();
+
         private readonly List<KickFret> _kickFrets = new();
 
         private readonly List<int> _activeFrets  = new();
@@ -90,6 +94,16 @@ namespace YARG.Gameplay.Visuals
                     fretColorProvider.GetParticleColor((int)FiveFretGuitarFret.Open)
                 );
 
+                foreach (var f in _frets)
+                {
+                    if (Mathf.Approximately(f.Value.transform.localPosition.x, x))
+                    {
+                        // We add both ways because we want to be able to look up either fret and find the other one
+                        _stackedFretIndices.Add(noteType, f.Key);
+                        _stackedFretIndices.Add(f.Key, noteType);
+                        break;
+                    }
+                }
                 _frets[noteType] = fretComp;
             }
 
@@ -127,6 +141,22 @@ namespace YARG.Gameplay.Visuals
             }
         }
         #nullable restore
+        private void SetActiveStackedFret(int index)
+        {
+            if (_stackedFretIndices.Count == 0 || _enabledStackedFretIndices.Contains(index) || !_stackedFretIndices.TryGetValue(index, out int otherFretIndex))
+            {
+                return;
+            }
+            var fretTransform = _frets[index].transform;
+            var otherFretTransform = _frets[otherFretIndex].transform;
+
+            // Disabling the gameObject can cause the animation to get stuck in a weird spot, so just set the Z scale to 0
+            fretTransform.localScale = fretTransform.localScale.WithZ(1f);
+            otherFretTransform.localScale = otherFretTransform.localScale.WithZ(0f);
+
+            _enabledStackedFretIndices.Remove(otherFretIndex);
+            _enabledStackedFretIndices.Add(index);
+        }
 
         public void SetPressed(int index, bool pressed)
         {
@@ -145,6 +175,7 @@ namespace YARG.Gameplay.Visuals
 
         public void PlayHitAnimation(int index)
         {
+            SetActiveStackedFret(index);
             _frets[index].PlayHitAnimation();
             _frets[index].PlayHitParticles();
         }
@@ -155,13 +186,14 @@ namespace YARG.Gameplay.Visuals
             {
                 return;
             }
-
+            SetActiveStackedFret(index);
             fret.PlayHitAnimation();
             fret.PlayHitParticles();
         }
 
         public void PlayCymbalHitAnimation(int index)
         {
+            SetActiveStackedFret(index);
             _frets[index].PlayCymbalHitAnimation();
             _frets[index].PlayHitParticles();
         }
@@ -179,6 +211,7 @@ namespace YARG.Gameplay.Visuals
         {
             if (_frets.ContainsKey(index))
             {
+                SetActiveStackedFret(index);
                 _frets[index].PlayMissAnimation();
                 _frets[index].PlayMissParticles();
             }
