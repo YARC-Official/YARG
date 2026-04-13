@@ -36,11 +36,11 @@ namespace YARG.Gameplay.HUD
 
         private bool _shouldPulse;
         private bool _hudShowing = true;
-        private int _displayedMultiplier = int.MinValue;
+        private TextMeshProUGUI[] _textCache;
 
         public void Initialize(EnginePreset enginePreset)
         {
-            _displayedMultiplier = int.MinValue;
+            InitializeMultiplierTextCache(EnginePreset.DEFAULT_MAX_MULTIPLIER);
 
             if (enginePreset == EnginePreset.Default)
             {
@@ -61,6 +61,35 @@ namespace YARG.Gameplay.HUD
             }
 
             _starPowerFill.fillAmount = 0f;
+        }
+
+        private void InitializeMultiplierTextCache(int maxMultiplier)
+        {
+            if (_textCache != null)
+            {
+                foreach (var t in _textCache)
+                {
+                    t.enabled = false;
+                }
+
+                _multiplierText = _textCache[0];
+                return;
+            }
+
+            _textCache = new TextMeshProUGUI[maxMultiplier - 1];
+            for (int i = 0; i < _textCache.Length; i++)
+            {
+                var text = i == 0
+                    ? _multiplierText
+                    : Instantiate(_multiplierText, _multiplierText.transform.parent, true);
+
+                text.enabled = false;
+                text.text = string.Empty;
+                text.SetTextFormat("{0}<sub>x</sub>", i + 2);
+                _textCache[i] = text;
+            }
+
+            _multiplierText = _textCache[0];
         }
 
         private void Update()
@@ -94,18 +123,11 @@ namespace YARG.Gameplay.HUD
         {
             _comboMeterFillTarget = phrasePercent;
 
-            if (_displayedMultiplier != multiplier)
+            _multiplierText.enabled = false;
+            if (multiplier > 1)
             {
-                _displayedMultiplier = multiplier;
-
-                if (multiplier != 1)
-                {
-                    _multiplierText.SetTextFormat("{0}<sub>x</sub>", multiplier);
-                }
-                else
-                {
-                    _multiplierText.text = string.Empty;
-                }
+                _multiplierText = _textCache[multiplier - 2];
+                _multiplierText.enabled = true;
             }
 
             _starPowerFill.fillAmount = starPowerPercent;
