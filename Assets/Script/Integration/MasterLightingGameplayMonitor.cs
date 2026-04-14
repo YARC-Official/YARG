@@ -37,6 +37,16 @@ namespace YARG.Integration
         private int _drumEndCheckIndex = -1;
         private int _keysEndCheckIndex = -1;
 
+        protected override void GameplayAwake()
+        {
+            MasterLightingController.SetBeatVisual(GameManager.BeatEventHandler.Visual);
+        }
+
+        protected override void GameplayDestroy()
+        {
+            MasterLightingController.SetBeatVisual(null);
+        }
+
         protected override void OnChartLoaded(SongChart chart)
         {
             MasterLightingController.CurrentLightingCue = null;

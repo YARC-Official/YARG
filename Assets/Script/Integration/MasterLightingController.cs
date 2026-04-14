@@ -5,6 +5,7 @@ using UnityEngine.SceneManagement;
 using YARG.Core.Chart;
 using YARG.Core.Logging;
 using YARG.Gameplay;
+using YARG.Playback;
 
 namespace YARG.Integration
 {
@@ -237,6 +238,13 @@ namespace YARG.Integration
         private static int _currentBassNote;
         private static PerformerEvent _currentPerformerEvent;
         private static int _currentKeysNote;
+
+        public static BeatEventController BeatVisual { get; private set; }
+
+        internal static void SetBeatVisual(BeatEventController beatVisual)
+        {
+            BeatVisual = beatVisual;
+        }
 
         public static void FireBonusFXEvent()
         {
