@@ -485,6 +485,7 @@ namespace YARG.Gameplay.Visuals
             private readonly ProfilingSampler       _profilingSampler = new ProfilingSampler("CalcFadeAlphaMask");
             private readonly HighwayCameraRendering _highwayCameraRendering;
             private readonly Material               _material;
+            private readonly ShaderTagId[]          _shaderTagIds = { new ShaderTagId("UniversalForward") };
 
             public static readonly int LayerMask = ~(1 << UnityEngine.LayerMask.NameToLayer("FadeExclude"));
 
@@ -514,10 +515,8 @@ namespace YARG.Gameplay.Visuals
 
                     builder.AllowPassCulling(false);
 
-                    var shaderTagIds = new[] { new ShaderTagId("UniversalForward") };
-
                     // Create renderer list for transparents
-                    var transparentDesc = new RendererListDesc(shaderTagIds, renderingData.cullResults, cameraData.camera)
+                    var transparentDesc = new RendererListDesc(_shaderTagIds, renderingData.cullResults, cameraData.camera)
                     {
                         renderQueueRange = RenderQueueRange.transparent,
                         overrideMaterial = passData.material,
@@ -527,7 +526,7 @@ namespace YARG.Gameplay.Visuals
                     builder.UseRendererList(passData.transparentRendererList);
 
                     // Create renderer list for opaques
-                    var opaqueDesc = new RendererListDesc(shaderTagIds, renderingData.cullResults, cameraData.camera)
+                    var opaqueDesc = new RendererListDesc(_shaderTagIds, renderingData.cullResults, cameraData.camera)
                     {
                         renderQueueRange = RenderQueueRange.opaque,
                         overrideMaterial = passData.material,
