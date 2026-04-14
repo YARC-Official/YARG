@@ -15,6 +15,7 @@ using YARG.Core.Replays.Analyzer;
 using YARG.Core.Song;
 using YARG.Gameplay.HUD;
 using YARG.Gameplay.Player;
+using YARG.Gameplay.Visuals;
 using YARG.Input;
 using YARG.Integration;
 using YARG.Localization;
@@ -437,7 +438,7 @@ namespace YARG.Gameplay
 
         public bool PlayerHasFailed { get; set; } = false;
 
-        public async void Resume()
+        public async void Resume(double? rewindTime = null)
         {
             // We don't rewind in practice mode or in replay, so we can skip all the BS
             if (IsPractice || IsReplay)
@@ -484,7 +485,7 @@ namespace YARG.Gameplay
                 PauseInfo[^1] = currentPause;
 
                 // Don't allow rewinding past the rewind limit
-                var rewindSeconds = Math.Max(0, SongTime - _rewindLimit);
+                var rewindSeconds = rewindTime ?? Math.Max(0, SongTime - _rewindLimit);
 
                 var canceled = await RewindAndResume(rewindSeconds);
 
@@ -884,6 +885,8 @@ namespace YARG.Gameplay
             if (!PlayerHasFailed)
             {
                 PlayerHasFailed = true;
+                // Pause gameplay immediately, but don't show the menu
+                //_songRunner.Pause();
                 _mixer.FadeOut(SONG_END_DELAY);
                 await UniTask.Delay(TimeSpan.FromSeconds(SONG_END_DELAY));
                 GlobalAudioHandler.PlayVoxSample(VoxSample.FailSound);
@@ -891,6 +894,13 @@ namespace YARG.Gameplay
             }
         }
 
+        public void UnfailSong()
+        {
+            YargLogger.LogFormatDebug("Unfailing song at SongTime {0}", SongTime);
+            PlayerHasFailed = false;
+            _mixer.FadeIn(DEFAULT_VOLUME, SONG_START_DELAY);
+            Resume(5);
+        }
         // If we go from no fail to fail, we need to reinitialize the happiness state so we avoid
         // the possibility of an instant fail. Yes, this is cheeseable since toggling no fail resets happiness.
         private void OnNoFailModeChanged(NoFailMode mode)

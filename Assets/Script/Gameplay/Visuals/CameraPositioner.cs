@@ -3,6 +3,7 @@ using DG.Tweening;
 using UnityEngine;
 using UnityEngine.Rendering.Universal;
 using YARG.Core.Game;
+using YARG.Core.Logging;
 using YARG.Gameplay.HUD;
 using YARG.Gameplay.Player;
 using YARG.Settings;
@@ -115,8 +116,7 @@ namespace YARG.Gameplay.Visuals
                     return;
                 }
 
-                RaiseHighway(true);
-                _highwayRaised = true;
+                Raise(true);
             }
         }
 
@@ -129,8 +129,19 @@ namespace YARG.Gameplay.Visuals
         {
             if (_highwayRaised)
             {
+                YargLogger.LogDebug("Lowering highway");
                 LowerHighway(isGameplayEnd);
                 _highwayRaised = false;
+            }
+        }
+
+        public void Raise(bool isGameplayStart)
+        {
+            if (!_highwayRaised)
+            {
+                YargLogger.LogDebug("Raising highway");
+                RaiseHighway(isGameplayStart);
+                _highwayRaised = true;
             }
         }
 
@@ -247,8 +258,6 @@ namespace YARG.Gameplay.Visuals
         // NOTE: Requires SONG_END_DELAY; will not animate until https://github.com/YARC-Official/YARG/pull/993 is in.
         private void LowerHighway(bool isGameplayEnd)
         {
-            // TODO: Remove this when bandmate saving is implemented
-            _scoop?.Kill();
 
             transform.localRotation = Quaternion.Euler(new Vector3().WithX(_preset.Rotation));
 

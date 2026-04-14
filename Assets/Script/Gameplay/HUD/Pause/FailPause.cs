@@ -25,14 +25,20 @@ namespace YARG.Gameplay.HUD
                 NavigationScheme.Entry.NavigateDown,
             }, false));
         }
-
-        // TODO: Make a similar option that only makes the rest of this song no fail
-        //  and then resumes the song
-        public void EnableNoFail()
+        public void EnableNoFail(bool resume)
         {
             // It feels a bit icky reaching down into the settings like this
             SettingsManager.Settings.NoFail.SetValueWithoutNotify(NoFailMode.On);
-            Restart();
+            if (resume)
+            {
+                // UnfailSong already resumes, don't do it twice by calling Back()
+                PauseMenuManager.PopAllMenus();
+                GameManager.UnfailSong();
+            }
+            else
+            {
+                Restart();
+            }
         }
     }
 }

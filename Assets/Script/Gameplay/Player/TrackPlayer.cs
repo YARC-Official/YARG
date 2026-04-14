@@ -480,6 +480,10 @@ namespace YARG.Gameplay.Player
             {
                 _didLowerTrack = true;
                 CameraPositioner.Lower(isSongEnd);
+            } else if (_didLowerTrack && !shouldLowerTrack)
+            {
+                _didLowerTrack = false;
+                CameraPositioner.Raise(false);
             }
         }
 
