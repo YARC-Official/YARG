@@ -34,6 +34,9 @@ namespace YARG.Gameplay.Visuals
         private Mesh _sustainMesh;
         private Material _materialInstance;
         private TrackPlayer _player;
+        private Vector3[] _vertices;
+        private Vector3[] _normals;
+        private Vector2[] _uvs;
 
         private SustainState _hitState = SustainState.Waiting;
         private float _whammyFactor;
@@ -80,37 +83,31 @@ namespace YARG.Gameplay.Visuals
 
             // Ensure subdivisions is at least 1
             int subdivisions = Mathf.Max(1, _subdivisions);
-
-            // Calculate vertex count: (subdivisions + 1) vertices on each end edge
-            int verticesPerEdge = subdivisions + 1;
-            int totalVertices = verticesPerEdge * 2; // Start edge + end edge
-
-            Vector3[] vertices = new Vector3[totalVertices];
-            Vector3[] normals = new Vector3[totalVertices];
-            Vector2[] uvs = new Vector2[totalVertices];
+            EnsureMeshBuffers(subdivisions);
 
             // Calculate triangle count: subdivisions * 2 triangles per subdivision
             int triangleCount = subdivisions * 2;
             int[] triangles = new int[triangleCount * 3];
 
             // Set up UVs and normals
-            for (int i = 0; i < totalVertices; i++)
+            for (int i = 0; i < _vertices.Length; i++)
             {
-                normals[i] = Vector3.up;
+                _normals[i] = Vector3.up;
             }
 
             // Set up UVs for start edge (right side in UV space)
+            int verticesPerEdge = subdivisions + 1;
             for (int i = 0; i < verticesPerEdge; i++)
             {
                 float t = (float)i / subdivisions; // 0 to 1 across the width
-                uvs[i] = new Vector2(1f, 1f - t); // Right side, top to bottom
+                _uvs[i] = new Vector2(1f, 1f - t); // Right side, top to bottom
             }
 
             // Set up UVs for end edge (left side in UV space)
             for (int i = 0; i < verticesPerEdge; i++)
             {
                 float t = (float)i / subdivisions; // 0 to 1 across the width
-                uvs[verticesPerEdge + i] = new Vector2(0f, 1f - t); // Left side, top to bottom
+                _uvs[verticesPerEdge + i] = new Vector2(0f, 1f - t); // Left side, top to bottom
             }
 
             // Set up triangles with consistent winding
@@ -134,9 +131,9 @@ namespace YARG.Gameplay.Visuals
                 triangles[triangleIndex++] = topRight;
             }
 
-            _sustainMesh.vertices = vertices;
-            _sustainMesh.normals = normals;
-            _sustainMesh.uv = uvs;
+            _sustainMesh.vertices = _vertices;
+            _sustainMesh.normals = _normals;
+            _sustainMesh.uv = _uvs;
             _sustainMesh.triangles = triangles;
 
             // Ensure proper bounds and validate mesh
@@ -151,6 +148,21 @@ namespace YARG.Gameplay.Visuals
             }
 
             _meshFilter.mesh = _sustainMesh;
+        }
+
+        private void EnsureMeshBuffers(int subdivisions)
+        {
+            int verticesPerEdge = subdivisions + 1;
+            int totalVertices = verticesPerEdge * 2;
+
+            if (_vertices is { Length: var length } && length == totalVertices)
+            {
+                return;
+            }
+
+            _vertices = new Vector3[totalVertices];
+            _normals = new Vector3[totalVertices];
+            _uvs = new Vector2[totalVertices];
         }
 
         public void Initialize(float len)
@@ -252,12 +264,8 @@ namespace YARG.Gameplay.Visuals
 
             // Ensure subdivisions is at least 1
             int subdivisions = Mathf.Max(1, _subdivisions);
+            EnsureMeshBuffers(subdivisions);
             int verticesPerEdge = subdivisions + 1;
-            int totalVertices = verticesPerEdge * 2;
-
-            Vector3[] vertices = new Vector3[totalVertices];
-            Vector3[] normals = new Vector3[totalVertices];
-            Vector2[] uvs = new Vector2[totalVertices];
             float halfWidth = _sustainWidth * 0.5f;
 
             // Create start edge vertices (at _currentStartZ)
@@ -265,9 +273,9 @@ namespace YARG.Gameplay.Visuals
             {
                 float t = (float)i / subdivisions; // 0 to 1 across the width
                 float x = Mathf.Lerp(-halfWidth, halfWidth, t);
-                vertices[i] = new Vector3(x, 0f, _currentStartZ);
-                normals[i] = Vector3.up;
-                uvs[i] = new Vector2(_currentLength - _currentStartZ, 1f - t);
+                _vertices[i] = new Vector3(x, 0f, _currentStartZ);
+                _normals[i] = Vector3.up;
+                _uvs[i] = new Vector2(_currentLength - _currentStartZ, 1f - t);
             }
 
             // Create end edge vertices (at _currentLength)
@@ -275,14 +283,14 @@ namespace YARG.Gameplay.Visuals
             {
                 float t = (float)i / subdivisions; // 0 to 1 across the width
                 float x = Mathf.Lerp(-halfWidth, halfWidth, t);
-                vertices[verticesPerEdge + i] = new Vector3(x, 0.01f, _currentLength); // Slightly elevated
-                normals[verticesPerEdge + i] = Vector3.up;
-                uvs[verticesPerEdge + i] = new Vector2(0f, 1f - t);
+                _vertices[verticesPerEdge + i] = new Vector3(x, 0.01f, _currentLength); // Slightly elevated
+                _normals[verticesPerEdge + i] = Vector3.up;
+                _uvs[verticesPerEdge + i] = new Vector2(0f, 1f - t);
             }
 
-            _sustainMesh.vertices = vertices;
-            _sustainMesh.normals = normals;
-            _sustainMesh.uv = uvs;
+            _sustainMesh.vertices = _vertices;
+            _sustainMesh.normals = _normals;
+            _sustainMesh.uv = _uvs;
             _sustainMesh.RecalculateNormals();
             _sustainMesh.RecalculateBounds();
         }
