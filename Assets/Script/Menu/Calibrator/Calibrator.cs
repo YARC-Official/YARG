@@ -54,7 +54,7 @@ namespace YARG.Menu.Calibrator
 
         private void Awake()
         {
-            _wasWhammyEnabled = SettingsManager.Settings?.UseWhammyFx?.Value ?? false;
+            _wasWhammyEnabled = SettingsManager.Settings.UseWhammyFx.Value;
         }
 
         private void Start()
