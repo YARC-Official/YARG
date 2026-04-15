@@ -22,6 +22,8 @@ namespace YARG.Gameplay
         private Camera _renderCamera;
         private float _originalFactor;
         private UniversalRenderPipelineAsset UniversalRenderPipelineAsset;
+        private readonly RenderPipeline.StandardRequest _renderRequest = new();
+        private bool _supportsRenderRequest;
 
         private static RawImage _venueOutput;
         private static RenderTexture _venueTexture;
@@ -98,6 +100,7 @@ namespace YARG.Gameplay
             }
             UniversalRenderPipelineAsset = GraphicsSettings.currentRenderPipeline as UniversalRenderPipelineAsset;
             _originalFactor = UniversalRenderPipelineAsset.renderScale;
+            _supportsRenderRequest = RenderPipeline.SupportsRenderRequest(_renderCamera, _renderRequest);
 
             FPS = SettingsManager.Settings.VenueFpsCap.Value;
             _venueLayerMask = LayerMask.GetMask("Venue");
@@ -121,7 +124,7 @@ namespace YARG.Gameplay
             var outputHeight = (int)(Screen.height * renderScale);
 
             ScalableBufferManager.ResizeBuffers(renderScale, renderScale);
-            
+
             if (_trailsTexture != null)
             {
                 _trailsTextureHandle?.Release();
@@ -335,20 +338,18 @@ namespace YARG.Gameplay
 
         private void Render()
         {
-            // Create a standard request
-            var request = new RenderPipeline.StandardRequest();
-
-            // Check if the request is supported by the active render pipeline
-            if (RenderPipeline.SupportsRenderRequest(_renderCamera, request))
+            if (!_supportsRenderRequest)
             {
-                request.destination = _venueTexture;
-                // Render camera and fill texture2D with its view
-                RenderPipeline.SubmitRenderRequest(_renderCamera, request);
+                return;
+            }
 
-                if (!IsRendered)
-                {
-                    IsRendered = true;
-                }
+            _renderRequest.destination = _venueTexture;
+            // Render camera and fill texture2D with its view
+            RenderPipeline.SubmitRenderRequest(_renderCamera, _renderRequest);
+
+            if (!IsRendered)
+            {
+                IsRendered = true;
             }
         }
 
