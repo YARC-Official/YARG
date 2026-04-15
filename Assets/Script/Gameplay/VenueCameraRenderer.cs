@@ -26,6 +26,7 @@ namespace YARG.Gameplay
         private static RawImage _venueOutput;
         private static RenderTexture _venueTexture;
         private static RenderTexture _trailsTexture;
+        private static RTHandle _trailsTextureHandle;
 
         private static readonly int _IsVenueId = Shader.PropertyToID("_YargIsVenue");
         private static readonly int _trailsLengthId = Shader.PropertyToID("_YargTrailLength");
@@ -123,6 +124,8 @@ namespace YARG.Gameplay
             
             if (_trailsTexture != null)
             {
+                _trailsTextureHandle?.Release();
+                _trailsTextureHandle = null;
                 _trailsTexture.Release();
                 _trailsTexture.DiscardContents();
             }
@@ -137,6 +140,7 @@ namespace YARG.Gameplay
             _trailsTexture.filterMode = FilterMode.Bilinear;
             _trailsTexture.wrapMode = TextureWrapMode.Clamp;
             _trailsTexture.Create();
+            _trailsTextureHandle = RTHandles.Alloc(_trailsTexture);
             Shader.SetGlobalTexture(_trailsTextureId, _trailsTexture);
             Graphics.Blit(Texture2D.blackTexture, _trailsTexture);
         }
@@ -168,6 +172,8 @@ namespace YARG.Gameplay
 
             if (_trailsTexture != null)
             {
+                _trailsTextureHandle?.Release();
+                _trailsTextureHandle = null;
                 _trailsTexture.Release();
                 Destroy(_trailsTexture);
                 _trailsTexture = null;
@@ -188,6 +194,8 @@ namespace YARG.Gameplay
 
             if (_trailsTexture != null)
             {
+                _trailsTextureHandle?.Release();
+                _trailsTextureHandle = null;
                 _trailsTexture.Release();
                 Destroy(_trailsTexture);
                 _trailsTexture = null;
@@ -366,7 +374,7 @@ namespace YARG.Gameplay
             public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
             {
                 UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
-                TextureHandle trailsTexture = renderGraph.ImportTexture(RTHandles.Alloc(_trailsTexture));
+                TextureHandle trailsTexture = renderGraph.ImportTexture(_trailsTextureHandle);
                 renderGraph.AddCopyPass(resourceData.activeColorTexture, trailsTexture, "Store frame for trail");
             }
         }
