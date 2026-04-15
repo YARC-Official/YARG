@@ -26,8 +26,6 @@ namespace YARG.Gameplay.HUD
     public class ScoreBox : GameplayBehaviour
     {
         private const string SCORE_PREFIX = "<mspace=0.538em>";
-        private const string SCORE_TEXT_FORMAT = SCORE_PREFIX + "{0:0,0}";
-        private const string MULTIPLIER_TEXT_FORMAT = "{0:0}x";
 
         private const string TIME_FORMAT       = @"m\:ss";
         private const string TIME_FORMAT_HOURS = @"h\:mm\:ss";
@@ -81,8 +79,6 @@ namespace YARG.Gameplay.HUD
         private bool _easterEggTriggered;
         private bool _vocalsOnly;
         private bool _singlePlayer;
-        private int _displayedCountUpSeconds = -1;
-        private int _displayedCountDownSeconds = -1;
 
         private Tween _multiplierShowTweener;
 
@@ -108,8 +104,6 @@ namespace YARG.Gameplay.HUD
             _scoreText.text = SCORE_PREFIX + "0";
             _bandComboText.text = SCORE_PREFIX + "0";
             _songTimer.text = string.Empty;
-            _displayedCountUpSeconds = -1;
-            _displayedCountDownSeconds = -1;
 
             _songProgressBar.SetProgress(0f);
         }
@@ -147,7 +141,7 @@ namespace YARG.Gameplay.HUD
             if (GameManager.BandScore != _bandScore)
             {
                 _bandScore = GameManager.BandScore;
-                _scoreText.SetText(SCORE_TEXT_FORMAT, _bandScore);
+                _scoreText.SetTextFormat("{0}{1:N0}", SCORE_PREFIX, _bandScore);
 
                 var scoreTextLength = _bandScore == 0 ? 1 : Math.Floor(Math.Log10(_bandScore) + 1);
                 scoreTextLength += Math.Floor((scoreTextLength - 1) / 3); // thousand coma separators
@@ -169,7 +163,7 @@ namespace YARG.Gameplay.HUD
             {
                 _bandCombo = GameManager.BandCombo;
                 var modifier = _vocalsOnly ? 10 : 1;
-                _bandComboText.SetText(SCORE_TEXT_FORMAT, _bandCombo / (float) modifier);
+                _bandComboText.SetTextFormat("{0}{1:N0}", SCORE_PREFIX, _bandCombo / modifier);
             }
 
             UpdateBandMultiplier();
@@ -184,21 +178,13 @@ namespace YARG.Gameplay.HUD
             }
 
             // Skip if the song length has not been established yet, or if disabled
-            if (_songLengthTime == null)
-            {
-                return;
-            }
+            // Skip if the song length has not been established yet, or if disabled
+            if (_songLengthTime == null) return;
 
-            var countUpSeconds = (int) time;
-            var countDownSeconds = (int) (length - time);
-            if (countUpSeconds != _displayedCountUpSeconds || countDownSeconds != _displayedCountDownSeconds)
-            {
-                var countUp = TimeSpan.FromSeconds(countUpSeconds);
-                var countDown = TimeSpan.FromSeconds(countDownSeconds);
-                _songTimer.SetTextFormat(_timeFormat, countUp, countDown, _songLengthTime);
-                _displayedCountUpSeconds = countUpSeconds;
-                _displayedCountDownSeconds = countDownSeconds;
-            }
+            var countUp = TimeSpan.FromSeconds(time);
+            var countDown = TimeSpan.FromSeconds(length - time);
+
+            _songTimer.SetTextFormat(_timeFormat, countUp, countDown, _songLengthTime);
         }
 
         private void UpdateBandMultiplier()
@@ -210,7 +196,7 @@ namespace YARG.Gameplay.HUD
 
             var show = GameManager.BandMultiplier > 1 && !_singlePlayer;
             _bandMultiplier = GameManager.BandMultiplier;
-            _bandMultiplierText.SetText(MULTIPLIER_TEXT_FORMAT, GameManager.BandMultiplier);
+            _bandMultiplierText.SetTextFormat("{0}x", GameManager.BandMultiplier);
 
             if (show)
             {
