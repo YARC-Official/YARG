@@ -26,6 +26,8 @@ namespace YARG.Gameplay.HUD
     public class ScoreBox : GameplayBehaviour
     {
         private const string SCORE_PREFIX = "<mspace=0.538em>";
+        private const string SCORE_TEXT_FORMAT = SCORE_PREFIX + "{0:0,0}";
+        private const string MULTIPLIER_TEXT_FORMAT = "{0:0}x";
 
         private const string TIME_FORMAT       = @"m\:ss";
         private const string TIME_FORMAT_HOURS = @"h\:mm\:ss";
@@ -145,7 +147,7 @@ namespace YARG.Gameplay.HUD
             if (GameManager.BandScore != _bandScore)
             {
                 _bandScore = GameManager.BandScore;
-                _scoreText.SetTextFormat("{0}{1:N0}", SCORE_PREFIX, _bandScore);
+                _scoreText.SetText(SCORE_TEXT_FORMAT, _bandScore);
 
                 var scoreTextLength = _bandScore == 0 ? 1 : Math.Floor(Math.Log10(_bandScore) + 1);
                 scoreTextLength += Math.Floor((scoreTextLength - 1) / 3); // thousand coma separators
@@ -167,7 +169,7 @@ namespace YARG.Gameplay.HUD
             {
                 _bandCombo = GameManager.BandCombo;
                 var modifier = _vocalsOnly ? 10 : 1;
-                _bandComboText.SetTextFormat("{0}{1:N0}", SCORE_PREFIX, _bandCombo / modifier);
+                _bandComboText.SetText(SCORE_TEXT_FORMAT, _bandCombo / (float) modifier);
             }
 
             UpdateBandMultiplier();
@@ -208,7 +210,7 @@ namespace YARG.Gameplay.HUD
 
             var show = GameManager.BandMultiplier > 1 && !_singlePlayer;
             _bandMultiplier = GameManager.BandMultiplier;
-            _bandMultiplierText.SetTextFormat("{0}x", GameManager.BandMultiplier);
+            _bandMultiplierText.SetText(MULTIPLIER_TEXT_FORMAT, GameManager.BandMultiplier);
 
             if (show)
             {
