@@ -250,7 +250,8 @@ namespace YARG.Gameplay.Visuals
 
             DOVirtual.DelayedCall(delay, () => {
                 _raise.Restart();
-            });
+                // Needs to obey timeScale or the delay will be wrong on start
+            }, false);
         }
 
         private void LowerHighway(bool isGameplayEnd)
@@ -265,7 +266,8 @@ namespace YARG.Gameplay.Visuals
 
             DOVirtual.DelayedCall(delay, () => {
                 _lower.Restart();
-            });
+                // Obey timeScale to match the old behavior
+            }, false);
         }
 
         private void PunchHighway()
