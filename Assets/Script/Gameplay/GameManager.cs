@@ -438,7 +438,7 @@ namespace YARG.Gameplay
 
         public bool PlayerHasFailed { get; set; } = false;
 
-        public async void Resume(double? rewindTime = null)
+        public async void Resume(double? rewindDuration = null)
         {
             // We don't rewind in practice mode or in replay, so we can skip all the BS
             if (IsPractice || IsReplay)
@@ -484,8 +484,8 @@ namespace YARG.Gameplay
                 currentPause.PauseLength = InputManager.InputUpdateTime - _pauseTime;
                 PauseInfo[^1] = currentPause;
 
-                // Don't allow rewinding past the rewind limit
-                var rewindSeconds = rewindTime ?? Math.Max(0, SongTime - _rewindLimit);
+                // Don't allow rewinding past the rewind limit, unless a duration was explicitly passed to the resume function
+                var rewindSeconds = rewindDuration ?? Math.Max(0, SongTime - _rewindLimit);
 
                 var canceled = await RewindAndResume(rewindSeconds);
 
