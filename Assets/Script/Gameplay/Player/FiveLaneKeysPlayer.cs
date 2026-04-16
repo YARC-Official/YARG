@@ -33,13 +33,26 @@ namespace YARG.Assets.Script.Gameplay.Player
 
         // Key is a FiveFretGuitarFret
         // Value is the fret's lateral position on the fret array
-        private Dictionary<int, int> _lanePositions;
+        private Dictionary<int, int> _highwayOrdering;
+
+
+        // When an action happens, we'll use this to determine which _actionToMostRecentTime entry to update
+        // This is usually 1:1, but if there's no dedicated open lane enabled, then we'll redirect open note inputs to the
+        // green lane visuals because they share a notional scoring zone behind the scenes
+        private Dictionary<FiveLaneKeysAction, FiveLaneKeysBreLaneIndex> _actionToBreLaneIndex;
+
+        // When a BRE lane element needs to know how bright it should be, it'll use this table to get the right BRE lane index
+        private Dictionary<int, FiveLaneKeysBreLaneIndex> _highwayOrderingIndexToBreLaneIndex;
+
+        // Record of the most recent time that each BRE lane has been lit up by any of the actions that map to it
+        private Dictionary<FiveLaneKeysBreLaneIndex, double> _breLaneIndexToMostRecentTime = new();
+
 
         private float GetLanePositionOrCentered(int fret)
         {
-            if (_lanePositions.ContainsKey(fret))
+            if (_highwayOrdering.ContainsKey(fret))
             {
-                return _lanePositions[fret];
+                return _highwayOrdering[fret];
             }
 
             return (LaneCount - 1) / 2;
@@ -63,7 +76,7 @@ namespace YARG.Assets.Script.Gameplay.Player
 
         public int GetLanePosition(FiveFretGuitarFret fret)
         {
-            return _lanePositions[(int) fret];
+            return _highwayOrdering[(int) fret];
         }
 
         public bool IsNormalNote(GuitarNote note)
@@ -210,7 +223,7 @@ public override bool ShouldUpdateInputsOnResume => true;
             MakeHighwayOrdering();
 
             _fretArray.Initialize(
-                _lanePositions,
+                _highwayOrdering,
                 LaneCount,
                 null,
                 Player.ColorProfile.FiveFretGuitar,
@@ -259,22 +272,12 @@ public override bool ShouldUpdateInputsOnResume => true;
         {
             if (Engine.IsCodaActive)
             {
-                // Open lane requires stupidity
-                if (UsingOpenLane)
+                // Set emission color of BRE lanes depending on time since last hit
+                foreach (var (highwayOrderingIndex, breLaneIndex) in _highwayOrderingIndexToBreLaneIndex)
                 {
-                    for (int i = 0; i < (int)FiveLaneKeysAction.OrangeKey + 1; i++)
-                    {
-                        BRELanes[i + 1].SetEmissionColor(CurrentCoda.GetNormalizedTimeSinceLastHit(i, visualTime));
-                    }
-
-                    BRELanes[0].SetEmissionColor(CurrentCoda.GetNormalizedTimeSinceLastHit(6, visualTime));
-                }
-                else
-                {
-                    for (int i = 0; i < BRELanes.Length; i++)
-                    {
-                        BRELanes[i].SetEmissionColor(CurrentCoda.GetNormalizedTimeSinceLastHit(i, visualTime));
-                    }
+                    var mostRecentTime = _breLaneIndexToMostRecentTime[breLaneIndex];
+                    var normalizedTimeSinceLastHit = CodaSection.GetNormalizedTimeSinceLastHit(visualTime, mostRecentTime);
+                    BRELanes[highwayOrderingIndex].SetEmissionColor(normalizedTimeSinceLastHit);
                 }
             }
 
@@ -344,7 +347,7 @@ public override bool ShouldUpdateInputsOnResume => true;
             if (nextShift.Time <= visualTime)
             {
                 _rangeShiftEventQueue.Dequeue();
-                foreach (var fretIndex in _lanePositions.Keys)
+                foreach (var fretIndex in _highwayOrdering.Keys)
                 {
                     _fretArray.SetFretColorPulse(fretIndex, false, (float) nextShift.BeatDuration);
                 }
@@ -482,16 +485,13 @@ public override bool ShouldUpdateInputsOnResume => true;
             LaneElement.DefineLaneScale(Player.Profile.CurrentInstrument, LaneCount, true);
         }
 
-        private void OnLaneHit(int fret)
+        private void OnLaneHit(int action)
         {
-            // Adjustment for open lane
-            if (fret == 5)
-            {
-                fret++;
-            }
+            var breIndex = _actionToBreLaneIndex[(FiveLaneKeysAction)action];
 
-            var index = GetFretIndex((FiveLaneKeysAction)fret).Convert();
-            _fretArray.PlayCodaHitAnimation(index);
+            _breLaneIndexToMostRecentTime[breIndex] = GameManager.VisualTime;
+            _fretArray.PlayCodaHitAnimation((int)breIndex);
+
         }
 
         protected override void OnCodaStart(CodaSection coda)
@@ -790,7 +790,7 @@ public override bool ShouldUpdateInputsOnResume => true;
         private void SetDefaultActiveFrets()
         {
             var newFrets = new List<int>();
-            foreach (var fretIdx in _lanePositions.Keys)
+            foreach (var fretIdx in _highwayOrdering.Keys)
             {
                 newFrets.Add(fretIdx);
             }
@@ -809,12 +809,59 @@ public override bool ShouldUpdateInputsOnResume => true;
             if (UsingOpenLane)
             {
                 LaneCount = 6;
-                _lanePositions = OPEN_LANE_HIGHWAY_ORDERING;
+
+                _highwayOrdering = OPEN_LANE_HIGHWAY_ORDERING;
+
+                _actionToBreLaneIndex = new()
+                {
+                    { FiveLaneKeysAction.OpenNote,  FiveLaneKeysBreLaneIndex.Open },
+                    { FiveLaneKeysAction.GreenKey,  FiveLaneKeysBreLaneIndex.Green },
+                    { FiveLaneKeysAction.RedKey,  FiveLaneKeysBreLaneIndex.Red },
+                    { FiveLaneKeysAction.YellowKey,  FiveLaneKeysBreLaneIndex.Yellow },
+                    { FiveLaneKeysAction.BlueKey,  FiveLaneKeysBreLaneIndex.Blue },
+                    { FiveLaneKeysAction.OrangeKey,  FiveLaneKeysBreLaneIndex.Orange },
+                };
+
+                _highwayOrderingIndexToBreLaneIndex = new()
+                {
+                    { _highwayOrdering[(int)FiveFretGuitarFret.Open],   FiveLaneKeysBreLaneIndex.Open },
+                    { _highwayOrdering[(int)FiveFretGuitarFret.Green],  FiveLaneKeysBreLaneIndex.Green },
+                    { _highwayOrdering[(int)FiveFretGuitarFret.Red],    FiveLaneKeysBreLaneIndex.Red },
+                    { _highwayOrdering[(int)FiveFretGuitarFret.Yellow], FiveLaneKeysBreLaneIndex.Yellow },
+                    { _highwayOrdering[(int)FiveFretGuitarFret.Blue],   FiveLaneKeysBreLaneIndex.Blue },
+                    { _highwayOrdering[(int)FiveFretGuitarFret.Orange], FiveLaneKeysBreLaneIndex.Orange },
+                };
             }
             else
             {
                 LaneCount = 5;
-                _lanePositions = FiveFretGuitarPlayer.DEFAULT_HIGHWAY_ORDERING;
+                _highwayOrdering = FiveFretGuitarPlayer.DEFAULT_HIGHWAY_ORDERING;
+
+                _actionToBreLaneIndex = new()
+                {
+                    // Open has no dedicated lane, so map its inputs to Green since they share a notional scoring zone
+                    { FiveLaneKeysAction.OpenNote,  FiveLaneKeysBreLaneIndex.Green },
+                    { FiveLaneKeysAction.GreenKey,  FiveLaneKeysBreLaneIndex.Green },
+                    { FiveLaneKeysAction.RedKey,  FiveLaneKeysBreLaneIndex.Red },
+                    { FiveLaneKeysAction.YellowKey,  FiveLaneKeysBreLaneIndex.Yellow },
+                    { FiveLaneKeysAction.BlueKey,  FiveLaneKeysBreLaneIndex.Blue },
+                    { FiveLaneKeysAction.OrangeKey,  FiveLaneKeysBreLaneIndex.Orange },
+                };
+
+                _highwayOrderingIndexToBreLaneIndex = new()
+                {
+                    // Open has no dedicated lane, so we'll never query this for the open lane
+                    { _highwayOrdering[(int)FiveFretGuitarFret.Green],  FiveLaneKeysBreLaneIndex.Green },
+                    { _highwayOrdering[(int)FiveFretGuitarFret.Red],    FiveLaneKeysBreLaneIndex.Red },
+                    { _highwayOrdering[(int)FiveFretGuitarFret.Yellow], FiveLaneKeysBreLaneIndex.Yellow },
+                    { _highwayOrdering[(int)FiveFretGuitarFret.Blue],   FiveLaneKeysBreLaneIndex.Blue },
+                    { _highwayOrdering[(int)FiveFretGuitarFret.Orange], FiveLaneKeysBreLaneIndex.Orange },
+                };
+            }
+
+            foreach (var breLaneIndex in _highwayOrderingIndexToBreLaneIndex.Values)
+            {
+                _breLaneIndexToMostRecentTime[breLaneIndex] = 0;
             }
         }
 
@@ -843,7 +890,7 @@ public override bool ShouldUpdateInputsOnResume => true;
             }
         }
 
-        protected override Dictionary<int, int> GetLaneIndexes()
+        protected Dictionary<int, int> GetLaneIndexes()
         {
             if (UsingOpenLane)
             {
@@ -866,6 +913,16 @@ public override bool ShouldUpdateInputsOnResume => true;
                 { (int) FiveLaneKeysAction.BlueKey, 3 },
                 { (int) FiveLaneKeysAction.OrangeKey, 4 }
             };
+        }
+
+        private enum FiveLaneKeysBreLaneIndex
+        {
+            Open, // Only exists if the Dedicated Open Lane setting is enabled
+            Green,
+            Red,
+            Yellow,
+            Blue,
+            Orange
         }
     }
 }

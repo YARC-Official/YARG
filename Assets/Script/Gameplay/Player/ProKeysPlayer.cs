@@ -375,7 +375,7 @@ namespace YARG.Gameplay.Player
                         continue;
                     }
 
-                    BRELanes[i].SetEmissionColor(CurrentCoda.GetNormalizedTimeSinceLastHit(i, visualTime));
+                    //BRELanes[i].SetEmissionColor(CurrentCoda.GetNormalizedTimeSinceLastHit(i, visualTime));
                 }
             }
         }
@@ -561,7 +561,7 @@ namespace YARG.Gameplay.Player
             _keysArray.PlayHitAnimation(key);
         }
 
-        protected override Dictionary<int,int> GetLaneIndexes()
+        protected Dictionary<int,int> GetLaneIndexes()
         {
             return _currentIndex switch
             {

@@ -1063,7 +1063,6 @@ namespace YARG.Gameplay.Player
         protected virtual void OnCodaStart(CodaSection coda)
         {
             CurrentCoda = coda;
-            CurrentCoda.SetLaneIndexes(GetLaneIndexes());
             SetStemMuteState(false);
         }
 
@@ -1112,17 +1111,6 @@ namespace YARG.Gameplay.Player
         public void MetronomeTock()
         {
             GlobalAudioHandler.PlayMetronomeSoundEffect(SettingsManager.Settings.MetronomeSound.Value, MetronomePitch.Lo);
-        }
-
-        protected virtual Dictionary<int, int> GetLaneIndexes()
-        {
-            var indexDict = new Dictionary<int, int>();
-            for (int i = 0; i < LaneCount; i++)
-            {
-                indexDict[i] = i;
-            }
-
-            return indexDict;
         }
     }
 }

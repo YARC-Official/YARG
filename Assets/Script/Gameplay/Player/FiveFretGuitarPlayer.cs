@@ -32,6 +32,25 @@ namespace YARG.Gameplay.Player
 
         public const int LANE_COUNT = 5;
 
+        private static Dictionary<GuitarAction, FiveFretGuitarFret> _actionToFret = new() {
+            { GuitarAction.Fret1,    FiveFretGuitarFret.Green},
+            { GuitarAction.Fret2,     FiveFretGuitarFret.Red},
+            { GuitarAction.Fret3,   FiveFretGuitarFret.Yellow},
+            { GuitarAction.Fret4,     FiveFretGuitarFret.Blue},
+            { GuitarAction.Fret5,   FiveFretGuitarFret.Orange},
+        };
+
+        // Record of the most recent time that each BRE lane has been lit up by any of the actions that map to it
+        private static Dictionary<FiveFretGuitarFret, double> _fretToMostRecentTime = new()
+        {
+            { FiveFretGuitarFret.Green,     0 },
+            { FiveFretGuitarFret.Red,       0 },
+            { FiveFretGuitarFret.Yellow,    0 },
+            { FiveFretGuitarFret.Blue,      0 },
+            { FiveFretGuitarFret.Orange,    0 },
+        };
+
+
         // Key is a FiveFretGuitarFret
         // Value is the fret's lateral position on the fret array
         private Dictionary<int, int> _lanePositions;
@@ -263,15 +282,11 @@ namespace YARG.Gameplay.Player
             if (Engine.IsCodaActive)
             {
                 // Set emission color of BRE lanes depending on currently available score value
-                for (int i = 0; i < CurrentCoda.ScoringZones; i++)
+                foreach (var (breLaneIndex, highwayOrderingIndex) in DEFAULT_HIGHWAY_ORDERING)
                 {
-                    // var intensity = CurrentCoda.GetNormalizedTimeSinceLastHit(i, visualTime);
-                    // intensity = (float) Math.Clamp(Math.Cos(Math.PI * intensity), 0f, 1f);
-                    // intensity = (float) Math.Clamp((Math.Tan(intensity) * -1) + 1, 0f, 1f);
-                    // intensity = (float) Math.Clamp((Math.Atan(intensity * 3) * -1.8) + 2, 0f, 2f);
-                    // intensity = 1 - Mathf.Sin(Mathf.Pow(intensity, 1f / 2.4f) * 2);
-                    // intensity = 1 - Mathf.Sin(Mathf.Pow(intensity, 0.5f) * 1.6f);
-                    BRELanes[i].SetEmissionColor(CurrentCoda.GetNormalizedTimeSinceLastHit(i, visualTime));
+                    var mostRecentTime = _fretToMostRecentTime[(FiveFretGuitarFret)breLaneIndex];
+                    var normalizedTimeSinceLastHit = CodaSection.GetNormalizedTimeSinceLastHit(visualTime, mostRecentTime);
+                    BRELanes[highwayOrderingIndex].SetEmissionColor(normalizedTimeSinceLastHit);
                 }
             }
 
@@ -458,9 +473,12 @@ namespace YARG.Gameplay.Player
             LaneElement.DefineLaneScale(Player.Profile.CurrentInstrument, 5, true);
         }
 
-        private void OnLaneHit(int fret)
+        private void OnLaneHit(int action)
         {
-            _fretArray.PlayCodaHitAnimation(fret + 1);
+            var asFret = _actionToFret[(GuitarAction)action];
+
+            _fretToMostRecentTime[asFret] = GameManager.VisualTime;
+            _fretArray.PlayCodaHitAnimation((int)asFret);
         }
 
         protected override void OnCodaStart(CodaSection coda)

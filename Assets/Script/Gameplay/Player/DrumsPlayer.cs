@@ -28,7 +28,16 @@ namespace YARG.Gameplay.Player
 
         // Key is a FourLaneDrumPad or FiveLaneDrumPad
         private Dictionary<int, HighwayOrderingInfo> _highwayOrdering;
-        private Dictionary<int, int>                 _actionToBreScoringZoneIndex;
+
+        // When an action happens, we'll use this to determine which _actionToMostRecentTime entry to update
+        // This is often 1:1, but non-split 4L maps multiple actions to the shared lanes
+        private Dictionary<DrumsAction, DrumsBreLaneIndex> _actionToBreLaneIndex;
+
+        // When a BRE lane element needs to know how bright it should be, it'll use this table to get the right BRE lane index
+        private Dictionary<int, DrumsBreLaneIndex> _highwayOrderingIndexToBreLaneIndex;
+
+        // Record of the most recent time that each BRE lane has been lit up by any of the actions that map to it
+        private Dictionary<DrumsBreLaneIndex, double> _breLaneIndexToMostRecentTime = new();
 
         private int DrumsActionToHighwayIndex(DrumsAction action)
         {
@@ -117,7 +126,6 @@ namespace YARG.Gameplay.Player
 
         private Dictionary<int, float>                            _fretToLastPressedTimeDelta       = new();
         private Dictionary<Fret.AnimType, Dictionary<int, float>> _animTypeToFretToLastPressedDelta = new();
-        private Dictionary<int, int>                              _highwayOrderingIndexToBreScoringZoneIndex;
 
         private bool IsSplitMode => Player.Profile.CurrentInstrument is Instrument.ProDrums && Player.Profile.SplitProTomsAndCymbals;
 
@@ -509,6 +517,9 @@ namespace YARG.Gameplay.Player
             if (Engine.IsCodaActive)
             {
                 CurrentCoda.HitLane(GameManager.VisualTime, (int) action);
+
+                var breLaneIndex = _actionToBreLaneIndex[action];
+                _breLaneIndexToMostRecentTime[breLaneIndex] = GameManager.VisualTime;
             }
 
             // Update last hit times for fret flashing animation
@@ -654,9 +665,11 @@ namespace YARG.Gameplay.Player
             {
                 // Set emission color of BRE lanes depending on time since last hit
 
-                foreach (var (k, v) in _highwayOrderingIndexToBreScoringZoneIndex)
+                foreach (var (highwayOrderingIndex, breLaneIndex) in _highwayOrderingIndexToBreLaneIndex)
                 {
-                    BRELanes[k].SetEmissionColor(CurrentCoda.GetNormalizedTimeSinceLastHit(v, visualTime));
+                    var mostRecentTime = _breLaneIndexToMostRecentTime[breLaneIndex];
+                    var normalizedTimeSinceLastHit = CodaSection.GetNormalizedTimeSinceLastHit(visualTime, mostRecentTime);
+                    BRELanes[highwayOrderingIndex].SetEmissionColor(normalizedTimeSinceLastHit);
                 }
             }
 
@@ -881,23 +894,23 @@ namespace YARG.Gameplay.Player
                     { (int)FiveLaneDrumPad.Green,  new(ApplyHandednessToPosition(4),                                        ApplyHandednessToFiveLaneColor(FiveLaneDrumsFret.Green) ) }
                 };
 
-                _actionToBreScoringZoneIndex = new Dictionary<int, int>
+                _actionToBreLaneIndex = new()
                 {
-                    { (int)DrumsAction.RedDrum, 0 },
-                    { (int)DrumsAction.YellowCymbal, 1 },
-                    { (int)DrumsAction.BlueDrum, 2 },
-                    { (int)DrumsAction.OrangeCymbal, 3 },
-                    { (int)DrumsAction.GreenDrum, 4 },
-                    { (int)DrumsAction.Kick, 5 }
+                    { DrumsAction.RedDrum,         DrumsBreLaneIndex.Red },
+                    { DrumsAction.YellowCymbal,    DrumsBreLaneIndex.Yellow },
+                    { DrumsAction.BlueDrum,        DrumsBreLaneIndex.Blue },
+                    { DrumsAction.OrangeCymbal,    DrumsBreLaneIndex.Orange },
+                    { DrumsAction.GreenDrum,       DrumsBreLaneIndex.Green },
+                    { DrumsAction.Kick,            DrumsBreLaneIndex.Kick }
                 };
 
-                _highwayOrderingIndexToBreScoringZoneIndex = new Dictionary<int, int>
+                _highwayOrderingIndexToBreLaneIndex = new()
                 {
-                    { _highwayOrdering[(int)FiveLaneDrumPad.Red].Position, 0 },
-                    { _highwayOrdering[(int)FiveLaneDrumPad.Yellow].Position, 1 },
-                    { _highwayOrdering[(int)FiveLaneDrumPad.Blue].Position, 2 },
-                    { _highwayOrdering[(int)FiveLaneDrumPad.Orange].Position, 3 },
-                    { _highwayOrdering[(int)FiveLaneDrumPad.Green].Position, 4 },
+                    { _highwayOrdering[(int)FiveLaneDrumPad.Red].Position,      DrumsBreLaneIndex.Red },
+                    { _highwayOrdering[(int)FiveLaneDrumPad.Yellow].Position,   DrumsBreLaneIndex.Yellow },
+                    { _highwayOrdering[(int)FiveLaneDrumPad.Blue].Position,     DrumsBreLaneIndex.Blue },
+                    { _highwayOrdering[(int)FiveLaneDrumPad.Orange].Position,   DrumsBreLaneIndex.Orange },
+                    { _highwayOrdering[(int)FiveLaneDrumPad.Green].Position,    DrumsBreLaneIndex.Green },
                 };
             }
             else if (Player.Profile.SplitProTomsAndCymbals && Player.Profile.CurrentInstrument is Instrument.ProDrums)
@@ -914,26 +927,26 @@ namespace YARG.Gameplay.Player
                     { (int)FourLaneDrumPad.GreenDrum,     new(ApplyHandednessToPosition(6),                                          ApplyHandednessToFourLaneColor(FourLaneDrumsFret.GreenDrum)) },
                 };
 
-                _actionToBreScoringZoneIndex = new Dictionary<int, int>
+                _actionToBreLaneIndex = new()
                 {
-                    { (int)DrumsAction.RedDrum, 0 },
-                    { (int)DrumsAction.YellowDrum, 1 },
-                    { (int)DrumsAction.BlueDrum, 2 },
-                    { (int)DrumsAction.GreenDrum, 3 },
-                    { (int)DrumsAction.YellowCymbal, 1 },
-                    { (int)DrumsAction.BlueCymbal, 2 },
-                    { (int)DrumsAction.GreenCymbal, 3 },
-                    { (int)DrumsAction.Kick, 4 },
+                    { DrumsAction.RedDrum,         DrumsBreLaneIndex.Red },
+                    { DrumsAction.YellowDrum,      DrumsBreLaneIndex.YellowDrum },
+                    { DrumsAction.BlueDrum,        DrumsBreLaneIndex.BlueDrum },
+                    { DrumsAction.GreenDrum,       DrumsBreLaneIndex.GreenDrum },
+                    { DrumsAction.YellowCymbal,    DrumsBreLaneIndex.YellowCymbal },
+                    { DrumsAction.BlueCymbal,      DrumsBreLaneIndex.BlueCymbal },
+                    { DrumsAction.GreenCymbal,     DrumsBreLaneIndex.GreenCymbal },
+                    { DrumsAction.Kick,            DrumsBreLaneIndex.Kick },
                 };
 
-                _highwayOrderingIndexToBreScoringZoneIndex = new Dictionary<int, int> {
-                    { _highwayOrdering[(int)FourLaneDrumPad.RedDrum].Position, 0 },
-                    { _highwayOrdering[(int)FourLaneDrumPad.YellowDrum].Position, 1 },
-                    { _highwayOrdering[(int)FourLaneDrumPad.BlueDrum].Position, 2 },
-                    { _highwayOrdering[(int)FourLaneDrumPad.GreenDrum].Position, 3 },
-                    { _highwayOrdering[(int)FourLaneDrumPad.YellowCymbal].Position, 1 },
-                    { _highwayOrdering[(int)FourLaneDrumPad.BlueCymbal].Position, 2 },
-                    { _highwayOrdering[(int)FourLaneDrumPad.GreenCymbal].Position, 3 }
+                _highwayOrderingIndexToBreLaneIndex = new() {
+                    { _highwayOrdering[(int)FourLaneDrumPad.RedDrum].Position,      DrumsBreLaneIndex.Red },
+                    { _highwayOrdering[(int)FourLaneDrumPad.YellowDrum].Position,   DrumsBreLaneIndex.YellowDrum },
+                    { _highwayOrdering[(int)FourLaneDrumPad.BlueDrum].Position,     DrumsBreLaneIndex.BlueDrum },
+                    { _highwayOrdering[(int)FourLaneDrumPad.GreenDrum].Position,    DrumsBreLaneIndex.GreenDrum },
+                    { _highwayOrdering[(int)FourLaneDrumPad.YellowCymbal].Position, DrumsBreLaneIndex.YellowCymbal },
+                    { _highwayOrdering[(int)FourLaneDrumPad.BlueCymbal].Position,   DrumsBreLaneIndex.BlueCymbal },
+                    { _highwayOrdering[(int)FourLaneDrumPad.GreenCymbal].Position,  DrumsBreLaneIndex.GreenCymbal },
                 };
             }
             else
@@ -950,27 +963,51 @@ namespace YARG.Gameplay.Player
                     { (int)FourLaneDrumPad.GreenDrum,     new(ApplyHandednessToPosition(3), ApplyHandednessToFourLaneColor(FourLaneDrumsFret.GreenDrum)) },
                 };
 
-                _actionToBreScoringZoneIndex = new Dictionary<int, int>
+                _actionToBreLaneIndex = new()
                 {
-                    { (int)DrumsAction.RedDrum, 0 },
-                    { (int)DrumsAction.YellowDrum, 1 },
-                    { (int)DrumsAction.BlueDrum, 2 },
-                    { (int)DrumsAction.GreenDrum, 3 },
-                    { (int)DrumsAction.YellowCymbal, 1 },
-                    { (int)DrumsAction.BlueCymbal, 2 },
-                    { (int)DrumsAction.GreenCymbal, 3 },
-                    { (int)DrumsAction.Kick, 4 },
+                    { DrumsAction.RedDrum,      DrumsBreLaneIndex.Red },
+                    { DrumsAction.YellowDrum,   DrumsBreLaneIndex.Yellow },
+                    { DrumsAction.BlueDrum,     DrumsBreLaneIndex.Blue },
+                    { DrumsAction.GreenDrum,    DrumsBreLaneIndex.Green },
+                    { DrumsAction.YellowCymbal, DrumsBreLaneIndex.Yellow },
+                    { DrumsAction.BlueCymbal,   DrumsBreLaneIndex.Blue },
+                    { DrumsAction.GreenCymbal,  DrumsBreLaneIndex.Green },
+                    { DrumsAction.Kick,         DrumsBreLaneIndex.Kick },
                 };
 
-                _highwayOrderingIndexToBreScoringZoneIndex = new Dictionary<int, int> {
-                    { _highwayOrdering[(int)FourLaneDrumPad.RedDrum].Position, 0 }, // RedDrum
-                    { _highwayOrdering[(int)FourLaneDrumPad.YellowDrum].Position, 1 }, // YellowDrum and YellowCymbal
-                    { _highwayOrdering[(int)FourLaneDrumPad.BlueDrum].Position, 2 }, // BlueDrum and BlueCymbal
-                    { _highwayOrdering[(int)FourLaneDrumPad.GreenDrum].Position, 3 }, // GreenDrum and GreenCymbal
+                _highwayOrderingIndexToBreLaneIndex = new() {
+                    { _highwayOrdering[(int)FourLaneDrumPad.RedDrum].Position,      DrumsBreLaneIndex.Red },
+                    { _highwayOrdering[(int)FourLaneDrumPad.YellowDrum].Position,   DrumsBreLaneIndex.Yellow },
+                    { _highwayOrdering[(int)FourLaneDrumPad.BlueDrum].Position,     DrumsBreLaneIndex.Blue },
+                    { _highwayOrdering[(int)FourLaneDrumPad.GreenDrum].Position,    DrumsBreLaneIndex.Green },
                 };
+            }
+
+            foreach (var breLaneIndex in _highwayOrderingIndexToBreLaneIndex.Values)
+            {
+                _breLaneIndexToMostRecentTime[breLaneIndex] = 0;
             }
         }
 
-        protected override Dictionary<int, int> GetLaneIndexes() => _actionToBreScoringZoneIndex;
+        private enum DrumsBreLaneIndex
+        {
+            Kick,
+
+            Red,
+
+            Yellow,
+            YellowDrum,
+            YellowCymbal,
+
+            Blue,
+            BlueDrum,
+            BlueCymbal,
+
+            Green,
+            GreenDrum,
+            GreenCymbal,
+
+            Orange
+        }
     }
 }
