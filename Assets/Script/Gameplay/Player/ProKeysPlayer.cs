@@ -582,9 +582,9 @@ namespace YARG.Gameplay.Player
             _breLaneIndexToMostRecentTime[breLaneIndex] = GameManager.VisualTime;
         }
 
-        protected Dictionary<int, int> GetLaneIndexes()
+        protected Dictionary<int, int> GetLaneIndexes(int leftmostKey)
         {
-            return _currentIndex switch
+            return leftmostKey switch
             {
                 ProKeysUtilities.LOW_C => LANE_INDEXES_C3_TO_E4,
                 ProKeysUtilities.LOW_D => LANE_INDEXES_D3_TO_F4,
@@ -600,9 +600,7 @@ namespace YARG.Gameplay.Player
         {
             base.OnCodaStart(coda);
             CurrentCoda.OnLaneHit += OnLaneHit;
-            CurrentCoda.SetLaneIndexes(GetLaneIndexes());
-
-            _actionToBreLaneIndex = GetLaneIndexes();
+            CurrentCoda.SetLaneIndexes(GetLaneIndexes(_currentIndex));
 
             for (var i = 0; i < MAX_TOTAL_BRE_LANES; i++)
             {
@@ -623,6 +621,8 @@ namespace YARG.Gameplay.Player
         {
             _breLaneParameters = GetLaneParameters(timeStart);
             BRELanes = new LaneElement[_breLaneParameters.Count];
+
+            _actionToBreLaneIndex = GetLaneIndexes(GetLeftmostWhiteKeyAtTime(timeStart));
 
             if (!LanePool.CanSpawnAmount(BRELanes.Length))
             {
