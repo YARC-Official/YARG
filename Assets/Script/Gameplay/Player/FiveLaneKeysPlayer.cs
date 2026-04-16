@@ -47,7 +47,6 @@ namespace YARG.Assets.Script.Gameplay.Player
         // Record of the most recent time that each BRE lane has been lit up by any of the actions that map to it
         private Dictionary<FiveLaneKeysBreLaneIndex, double> _breLaneIndexToMostRecentTime = new();
 
-
         private float GetLanePositionOrCentered(int fret)
         {
             if (_highwayOrdering.ContainsKey(fret))
@@ -490,8 +489,8 @@ public override bool ShouldUpdateInputsOnResume => true;
             var breIndex = _actionToBreLaneIndex[(FiveLaneKeysAction)action];
 
             _breLaneIndexToMostRecentTime[breIndex] = GameManager.VisualTime;
-            _fretArray.PlayCodaHitAnimation((int)breIndex);
 
+            _fretArray.PlayCodaHitAnimation((int)((FiveLaneKeysAction)action).ToFret());
         }
 
         protected override void OnCodaStart(CodaSection coda)
