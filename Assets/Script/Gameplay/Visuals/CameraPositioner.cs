@@ -129,7 +129,6 @@ namespace YARG.Gameplay.Visuals
         {
             if (_highwayRaised)
             {
-                YargLogger.LogDebug("Lowering highway");
                 LowerHighway(isGameplayEnd);
                 _highwayRaised = false;
             }
@@ -139,7 +138,6 @@ namespace YARG.Gameplay.Visuals
         {
             if (!_highwayRaised)
             {
-                YargLogger.LogDebug("Raising highway");
                 RaiseHighway(isGameplayStart);
                 _highwayRaised = true;
             }
@@ -250,12 +248,11 @@ namespace YARG.Gameplay.Visuals
             // Cap at 1 so slower speeds don't extend the delay
             delay /= Mathf.Max(1f, _gameManager.SongSpeed);
 
-            // TODO: This will need to be reworked when it is possible for the highway to raise and lower other
-            //  than at the beginning and end of song
-            _raise.PrependInterval(delay).Restart();
+            DOVirtual.DelayedCall(delay, () => {
+                _raise.Restart();
+            });
         }
 
-        // NOTE: Requires SONG_END_DELAY; will not animate until https://github.com/YARC-Official/YARG/pull/993 is in.
         private void LowerHighway(bool isGameplayEnd)
         {
 
@@ -266,9 +263,9 @@ namespace YARG.Gameplay.Visuals
                 ? basePlayer.transform.GetSiblingIndex() * LOCAL_ANIM_OFFSET
                 : 0f;
 
-            // TODO: This will need to be reworked when it is possible for the highway to raise and lower other
-            //  than at the beginning and end of song
-            _lower.PrependInterval(delay).Restart();
+            DOVirtual.DelayedCall(delay, () => {
+                _lower.Restart();
+            });
         }
 
         private void PunchHighway()

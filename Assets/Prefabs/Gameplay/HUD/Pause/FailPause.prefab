@@ -512,7 +512,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8918172423096749144, guid: d0426e4d1cafc1c489d1df380508ec96, type: 3}
       propertyPath: m_SizeDelta.y
-      value: -256
+      value: -228
       objectReference: {fileID: 0}
     - target: {fileID: 8918172423096749144, guid: d0426e4d1cafc1c489d1df380508ec96, type: 3}
       propertyPath: m_AnchoredPosition.x
@@ -520,7 +520,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8918172423096749144, guid: d0426e4d1cafc1c489d1df380508ec96, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: 0
+      value: 65
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -533,10 +533,10 @@ PrefabInstance:
       addedObject: {fileID: 750999126915196452}
     - targetCorrespondingSourceObject: {fileID: 8918172421510936374, guid: d0426e4d1cafc1c489d1df380508ec96, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 1918904377473378338}
+      addedObject: {fileID: 2210231065117062661}
     - targetCorrespondingSourceObject: {fileID: 8918172421510936374, guid: d0426e4d1cafc1c489d1df380508ec96, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 2210231065117062661}
+      addedObject: {fileID: 1918904377473378338}
     - targetCorrespondingSourceObject: {fileID: 8918172421510936374, guid: d0426e4d1cafc1c489d1df380508ec96, type: 3}
       insertIndex: -1
       addedObject: {fileID: 2759867317516032987}

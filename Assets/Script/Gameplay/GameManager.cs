@@ -885,8 +885,15 @@ namespace YARG.Gameplay
             if (!PlayerHasFailed)
             {
                 PlayerHasFailed = true;
-                // Pause gameplay immediately, but don't show the menu
-                //_songRunner.Pause();
+
+                if (_players.Count > 1)
+                {
+                    // For some reason you seem to need this many frames to pass before pause for every highway to lower?
+                    await UniTask.DelayFrame(_players.Count - 1);
+                }
+
+                // Pause gameplay immediately, but don't show the menu until the highways have lowered
+                _songRunner.Pause();
                 _mixer.FadeOut(SONG_END_DELAY);
                 await UniTask.Delay(TimeSpan.FromSeconds(SONG_END_DELAY));
                 GlobalAudioHandler.PlayVoxSample(VoxSample.FailSound);
@@ -899,7 +906,8 @@ namespace YARG.Gameplay
             YargLogger.LogFormatDebug("Unfailing song at SongTime {0}", SongTime);
             PlayerHasFailed = false;
             _mixer.FadeIn(DEFAULT_VOLUME, SONG_START_DELAY);
-            Resume(5);
+            // This is an arbitrary value, just want to give players enough time to adjust
+            Resume(SONG_START_DELAY + 1);
         }
         // If we go from no fail to fail, we need to reinitialize the happiness state so we avoid
         // the possibility of an instant fail. Yes, this is cheeseable since toggling no fail resets happiness.
