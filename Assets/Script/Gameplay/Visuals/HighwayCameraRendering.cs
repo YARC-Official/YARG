@@ -485,7 +485,7 @@ namespace YARG.Gameplay.Visuals
             private readonly ProfilingSampler       _profilingSampler = new ProfilingSampler("CalcFadeAlphaMask");
             private readonly HighwayCameraRendering _highwayCameraRendering;
             private readonly Material               _material;
-            private readonly ShaderTagId[]          _shaderTagIds = { new ShaderTagId("UniversalForward") };
+            private readonly ShaderTagId[]          _shaderTagIds = { new ShaderTagId("SRPDefaultUnlit"), new ShaderTagId("UniversalForward"), new ShaderTagId("UniversalForwardOnly") };
 
             public static readonly int LayerMask = ~(1 << UnityEngine.LayerMask.NameToLayer("FadeExclude"));
 
