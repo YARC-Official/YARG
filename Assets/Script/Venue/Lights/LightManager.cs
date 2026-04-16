@@ -1,8 +1,11 @@
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using YARG.Core.Chart;
 using YARG.Core.Extensions;
+using YARG.Core.Logging;
 using YARG.Gameplay;
+using YARG.Helpers;
 using YARG.Playback;
 using Random = UnityEngine.Random;
 
@@ -71,6 +74,11 @@ namespace YARG.Venue
 
         private List<LightingEvent>  _lightingEvents;
         private List<PerformerEvent> _performerEvents;
+        private List<TempoChange> _tempoList;
+
+        private Color[] _currentColors;
+        private float[] _currentIntensity;
+        private LightingType _prevLight;
 
         private Gradient _warmGradient;
         private Gradient _coolGradient;
@@ -80,6 +88,13 @@ namespace YARG.Venue
         private int _lightingEventIndex;
         private int _performerEventIndex;
         private int _beatIndex;
+        private int _tempoIndex;
+        private double _currentTempo;
+        private float _BPMAdjust;
+        private float _blendTime;
+        private float _timer;
+        private bool _blending;
+        private bool _auto;
 
         protected override void OnChartLoaded(SongChart chart)
         {
@@ -88,6 +103,7 @@ namespace YARG.Venue
 
             _lightingEvents = chart.VenueTrack.Lighting;
             _performerEvents = chart.VenueTrack.Performer;
+            _tempoList = chart.SyncTrack.Tempos;
 
             // If the color arrays are empty, add basic ones for safety
 
@@ -129,6 +145,19 @@ namespace YARG.Venue
                 };
             }
 
+            _currentColors = new[]
+            {
+                Color.white,
+                Color.white,
+                Color.white,
+                Color.white,
+                Color.white,
+                Color.white,
+                Color.white,
+            };
+
+            _currentIntensity = new[] { 1f, 1f, 1f, 1f, 1f, 1f, 1f };
+
 			// Store gradient speed for temporary Frenzy/BRE speedup
 			_initialGradientSpeed = _gradientLightingSpeed;
 
@@ -149,43 +178,113 @@ namespace YARG.Venue
 
         private void Update()
         {
+            while (_tempoList.Count > 0 && _tempoIndex < _tempoList.Count &&
+                   _tempoList[_tempoIndex].Time <= GameManager.VisualTime)
+            {
+                _currentTempo = _tempoList[_tempoIndex].BeatsPerMinute;
+                _tempoIndex++;
+                _BPMAdjust = (float)_currentTempo / 60;
+            }
+
             // Look for new lighting events
             while (_lightingEventIndex < _lightingEvents.Count &&
                 _lightingEvents[_lightingEventIndex].Time <= GameManager.VisualTime)
             {
                 var current = _lightingEvents[_lightingEventIndex];
+                _blendTime = 0.1f / _BPMAdjust;
 
-                switch (current.Type)
+                for (int i = 0; i < _lightStates.Length; i++)
                 {
-                    case LightingType.KeyframeNext:
-                        AnimationFrame++;
-                        break;
-                    case LightingType.KeyframePrevious:
-                        AnimationFrame--;
-                        break;
-                    case LightingType.KeyframeFirst:
-                        AnimationFrame = 0;
-                        break;
-                    case LightingType.WarmAutomatic:
-                    case LightingType.WarmManual:
-                    case LightingType.CoolAutomatic:
-                    case LightingType.CoolManual:
-                    case LightingType.Verse:
-                    case LightingType.Chorus:
-					case LightingType.Searchlights:
-                        // Add a slight randomness to colored cues
-                        for (int i = 0; i < _lightStates.Length; i++)
-                        {
-                            _lightStates[i].Delta = Random.Range(0f, _gradientRandomness);
-                        }
-
-                        goto default;
-                    default:
-                        Animation = current.Type;
-                        AnimationFrame = 0;
-                        break;
+                    _currentColors[i] = _lightStates[i].Color ?? Color.white;
+                    _currentIntensity[i] = _lightStates[i].Intensity;
                 }
 
+                if (_lightingEventIndex + 1 < _lightingEvents.Count)
+                {
+                    var nextlight = _lightingEvents[_lightingEventIndex + 1];
+                    var nextindex = _lightingEventIndex + 1;
+
+                    while (nextindex < _lightingEvents.Count && (nextlight.Type == LightingType.KeyframeFirst ||
+                                                                 nextlight.Type == LightingType.KeyframeNext ||
+                                                                 nextlight.Type == LightingType.KeyframePrevious))
+                    {
+                        nextlight = _lightingEvents[nextindex];
+                        nextindex++;
+                    }
+
+                    if (current.Type == _prevLight && current.Type != LightingType.KeyframeFirst &&
+                        current.Type != LightingType.KeyframeNext && current.Type != LightingType.KeyframePrevious &&
+                        current.Type != nextlight.Type)
+                    {
+                        _auto = false;
+                        _blendTime = (float)(nextlight.Time - current.Time);
+                        _blending = true;
+                        switch (nextlight.Type)
+                        {
+                            case LightingType.WarmAutomatic:
+                            case LightingType.CoolAutomatic:
+                            case LightingType.Sweep:
+                            case LightingType.Searchlights:
+                            case LightingType.Frenzy:
+                            case LightingType.BigRockEnding:
+                                // Add a slight randomness to automatic cues
+                                for (int i = 0; i < _lightStates.Length; i++)
+                                {
+                                    _lightStates[i].Delta = Random.Range(0f, _gradientRandomness);
+                                }
+                                _auto = true;
+                                goto default;
+                            default:
+                                Animation = nextlight.Type;
+                                AnimationFrame = 0;
+                                StartCoroutine(BlendTimerBool(_blendTime));
+                                break;
+                        }
+                    }
+                }
+
+                if (_blending == false)
+                {
+                    _auto = false;
+                    switch (current.Type)
+                    {
+                        case LightingType.KeyframeNext:
+                            _blendTime = 0.25f / _BPMAdjust;
+                            StartCoroutine(BlendTimer(_blendTime));
+                            AnimationFrame++;
+                            break;
+                        case LightingType.KeyframePrevious:
+                            _blendTime = 0.25f / _BPMAdjust;
+                            StartCoroutine(BlendTimer(_blendTime));
+                            AnimationFrame--;
+                            break;
+                        case LightingType.KeyframeFirst:
+                            _blendTime = 0.25f / _BPMAdjust;
+                            StartCoroutine(BlendTimer(_blendTime));
+                            AnimationFrame = 0;
+                            break;
+                        case LightingType.WarmAutomatic:
+                        case LightingType.CoolAutomatic:
+                        case LightingType.Sweep:
+                        case LightingType.Searchlights:
+                        case LightingType.Harmony:
+                        case LightingType.Frenzy:
+                        case LightingType.BigRockEnding:
+                            // Add a slight randomness to automatic cues
+                            for (int i = 0; i < _lightStates.Length; i++)
+                            {
+                                _lightStates[i].Delta = Random.Range(0f, _gradientRandomness);
+                            }
+                            _auto = true;
+                            goto default;
+                        default:
+                            Animation = current.Type;
+                            AnimationFrame = 0;
+                            StartCoroutine(BlendTimer(_blendTime));
+                            break;
+                    }
+                }
+                _prevLight = current.Type;
                 _lightingEventIndex++;
             }
 
@@ -253,73 +352,87 @@ namespace YARG.Venue
                 switch (Animation)
                 {
 					case LightingType.Default:
-						_lightStates[i] = Default(_lightStates[i], location, _harmoniousGradient);
+                    case LightingType.Intro:
+						_lightStates[i] = Default(_lightStates[i], location, _harmoniousGradient, _currentIntensity[i]);
 						break;
                     case LightingType.Verse:
-                        _lightStates[i] = AutoGradientSplit(_lightStates[i], location, _harmoniousGradient, _dissonantGradient);
+                        _lightStates[i] = AutoGradientSplit(_lightStates[i], location, _harmoniousGradient, _dissonantGradient,
+                            _currentColors[i], _currentIntensity[i], _auto);
 						_gradientLightingSpeed = _initialGradientSpeed;
                         break;
                     case LightingType.Chorus:
-                        _lightStates[i] = AutoGradientSplit(_lightStates[i], location, _warmGradient, _coolGradient);
+                        _lightStates[i] = AutoGradientSplit(_lightStates[i], location, _warmGradient, _coolGradient,
+                            _currentColors[i], _currentIntensity[i], _auto);
 						_gradientLightingSpeed = _initialGradientSpeed;
                         break;
                     case LightingType.BlackoutFast:
-                        _lightStates[i] = BlackOut(_lightStates[i], 30f);
-                        break;
                     case LightingType.BlackoutSlow:
-                        _lightStates[i] = BlackOut(_lightStates[i], 5f);
+                        _lightStates[i] = BlackOut(_lightStates[i], _currentIntensity[i]);
                         break;
                     case LightingType.BlackoutSpotlight:
-                        _lightStates[i] = BlackOutSpot(_lightStates[i], 30f, location);
+                        _lightStates[i] = BlackOutSpot(_lightStates[i], location,
+                            _currentColors[i], _currentIntensity[i]);
                         break;
                     case LightingType.Dischord:
-						_lightStates[i] = AutoGradient(_lightStates[i], location, _dissonantGradient);
+						_lightStates[i] = AutoGradient(_lightStates[i], location, _dissonantGradient,
+                            _currentColors[i], _currentIntensity[i], _auto);
 						_gradientLightingSpeed = _initialGradientSpeed;
 						break;
                     case LightingType.BigRockEnding:
-                        _lightStates[i] = AutoGradientSplit(_lightStates[i], location, _dissonantGradient, _harmoniousGradient);
-						_gradientLightingSpeed = _initialGradientSpeed*16f;
+                        _lightStates[i] = AutoGradientSplit(_lightStates[i], location, _dissonantGradient, _harmoniousGradient,
+                            _currentColors[i], _currentIntensity[i], _auto);
+						_gradientLightingSpeed = _initialGradientSpeed * (4f * _BPMAdjust);
                         break;
                     case LightingType.Frenzy:
-                        _lightStates[i] = AutoGradientSplit(_lightStates[i], location, _dissonantGradient, _harmoniousGradient);
-						_gradientLightingSpeed = _initialGradientSpeed*8f;
+                        _lightStates[i] = AutoGradientSplit(_lightStates[i], location, _warmGradient, _coolGradient,
+                            _currentColors[i], _currentIntensity[i], _auto);
+						_gradientLightingSpeed = _initialGradientSpeed * (2f * _BPMAdjust);
                         break;
                     case LightingType.CoolAutomatic:
                     case LightingType.CoolManual:
+                        _lightStates[i] = AutoGradient(_lightStates[i], location, _coolGradient,
+                            _currentColors[i], _currentIntensity[i], _auto);
+                        _gradientLightingSpeed = _initialGradientSpeed;
+                        break;
 					case LightingType.Sweep:
-                        _lightStates[i] = AutoGradient(_lightStates[i], location, _coolGradient);
+                        _lightStates[i] = AutoGradientSplit(_lightStates[i], location, _coolGradient, _harmoniousGradient,
+                            _currentColors[i], _currentIntensity[i], _auto);
 						_gradientLightingSpeed = _initialGradientSpeed;
                         break;
                     case LightingType.FlareFast:
-                        _lightStates[i] = Flare(_lightStates[i], 30f);
-                        break;
                     case LightingType.FlareSlow:
-                        _lightStates[i] = Flare(_lightStates[i], 5f);
+                        _lightStates[i] = Flare(_lightStates[i]);
                         break;
                     case LightingType.Harmony:
-                        _lightStates[i] = AutoGradient(_lightStates[i], location, _harmoniousGradient);
+                        _lightStates[i] = AutoGradient(_lightStates[i], location, _harmoniousGradient,
+                            _currentColors[i], _currentIntensity[i], _auto);
 						_gradientLightingSpeed = _initialGradientSpeed;
                         break;
                     case LightingType.Silhouettes:
-                        _lightStates[i] = Silhouette(_lightStates[i], location);
+                        _lightStates[i] = Silhouette(_lightStates[i], location,
+                            _currentColors[i], _currentIntensity[i]);
                         break;
                     case LightingType.SilhouettesSpotlight:
-                        _lightStates[i] = SilhouetteSpot(_lightStates[i], location);
+                        _lightStates[i] = SilhouetteSpot(_lightStates[i], location,
+                            _currentColors[i], _currentIntensity[i]);
                         break;
 					case LightingType.Searchlights:
-						_lightStates[i] = Searchlights(_lightStates[i], location, _warmGradient);
+						_lightStates[i] = Searchlights(_lightStates[i], location, _warmGradient,
+                            _currentColors[i], _currentIntensity[i]);
 						_gradientLightingSpeed = _initialGradientSpeed;
 						break;
                     case LightingType.StrobeFast:
                     case LightingType.StrobeSlow:
-                        _lightStates[i] = Strobe(_lightStates[i]);
+                        _lightStates[i] = Strobe(_lightStates[i], _currentColors[i], _currentIntensity[i]);
                         break;
                     case LightingType.Stomp:
-						_lightStates[i] = Stomp(_lightStates[i], _warmGradient);
+						_lightStates[i] = Stomp(_lightStates[i], _warmGradient,
+                            _currentColors[i], _currentIntensity[i]);
 						break;
                     case LightingType.WarmAutomatic:
                     case LightingType.WarmManual:
-                        _lightStates[i] = AutoGradient(_lightStates[i], location, _warmGradient);
+                        _lightStates[i] = AutoGradient(_lightStates[i], location, _warmGradient,
+                            _currentColors[i], _currentIntensity[i], _auto);
 						_gradientLightingSpeed = _initialGradientSpeed;
                         break;
                     default:
@@ -363,6 +476,31 @@ namespace YARG.Venue
             });
 
             return gradient;
+        }
+
+        private IEnumerator BlendTimerBool(float time)
+        {
+            _timer = 0f;
+            while (_timer < 1f)
+            {
+                _timer += Time.deltaTime / time;
+                yield return null;
+            }
+            if (_blending == true && _timer >= 1f)
+            {
+                yield return new WaitForSeconds(0.05f);
+                _blending = false;
+            }
+        }
+
+        private IEnumerator BlendTimer(float time)
+        {
+            _timer = 0f;
+            while (_timer < 1f)
+            {
+                _timer += Time.deltaTime / time;
+                yield return null;
+            }
         }
     }
 }
