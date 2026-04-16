@@ -75,11 +75,13 @@ namespace YARG.Gameplay.Player
 
         public override bool ShouldUpdateInputsOnResume => true;
 
+        /// See <see cref="StarMultiplierThresholds"/>
         private static float[] GuitarStarMultiplierThresholds => new[]
         {
             0.06f, 0.12f, 0.2f, 0.47f, 0.78f, 1.15f
         };
 
+        /// See <see cref="StarMultiplierThresholds"/>
         private static float[] BassStarMultiplierThresholds => new[]
         {
             0.05f, 0.1f, 0.19f, 0.47f, 0.78f, 1.15f

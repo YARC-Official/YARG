@@ -61,11 +61,21 @@ namespace YARG.Gameplay.Player
         public BaseStats BaseStats => BaseEngine.BaseStats;
         public BaseEngineParameters BaseParameters => BaseEngine.BaseParameters;
 
+        /// <summary>
+        /// <p> Star thresholds, from 1 to 5 stars, then gold stars. </p>
+        /// <p> These values represent multiples of the score if you were to FC, hold all sustains fully, hit no dynamics, and use no star power. </p>
+        /// <p> Multiplying these by the max multiplier of the instrument will also roughly give you the average multiplier needed for that star. </p>
+        /// </summary>
         protected abstract float[] StarMultiplierThresholds { get; set; }
 
+        /// <summary>
+        /// Multiples of the maximum points it is possible to get from a solo, which is then added to each star point threshold (1 to 5, then gold stars).
+        /// <seealso cref="StarMultiplierThresholds"/>
+        /// </summary>
         protected readonly float[] SoloBonusStarMultiplierThresholds = {
             0.05f, 0.1f, 0.2f, 0.35f, 0.65f, 0.95f
         };
+
         public abstract bool ShouldUpdateInputsOnResume { get; }
 
         public HitWindowSettings HitWindow { get; protected set; }
