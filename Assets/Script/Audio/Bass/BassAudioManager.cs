@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using ManagedBass;
@@ -47,6 +47,7 @@ namespace YARG.Audio.BASS
         private          bool _disposed;
         public readonly  int  Stream;
 
+#pragma warning disable CS0649
         public int CompressorFX;
         public int PitchFX;
         public int ReverbFX;
@@ -54,6 +55,7 @@ namespace YARG.Audio.BASS
         public int LowEQ;
         public int MidEQ;
         public int HighEQ;
+#pragma warning restore CS0649
 
         private StreamHandle(int stream)
         {
