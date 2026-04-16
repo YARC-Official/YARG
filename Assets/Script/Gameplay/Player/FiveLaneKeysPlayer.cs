@@ -888,32 +888,6 @@ public override bool ShouldUpdateInputsOnResume => true;
                     throw new ArgumentOutOfRangeException("Unrecognized OpenLaneDisplayType");
             }
         }
-
-        protected Dictionary<int, int> GetLaneIndexes()
-        {
-            if (UsingOpenLane)
-            {
-                return new Dictionary<int, int>
-                {
-                    { (int) FiveLaneKeysAction.GreenKey, 0 },
-                    { (int) FiveLaneKeysAction.RedKey, 1 },
-                    { (int) FiveLaneKeysAction.YellowKey, 2 },
-                    { (int) FiveLaneKeysAction.BlueKey, 3 },
-                    { (int) FiveLaneKeysAction.OrangeKey, 4 },
-                    { (int) FiveLaneKeysAction.OpenNote, 5 }
-                };
-            }
-
-            return new Dictionary<int, int>
-            {
-                { (int) FiveLaneKeysAction.GreenKey, 0 },
-                { (int) FiveLaneKeysAction.RedKey, 1 },
-                { (int) FiveLaneKeysAction.YellowKey, 2 },
-                { (int) FiveLaneKeysAction.BlueKey, 3 },
-                { (int) FiveLaneKeysAction.OrangeKey, 4 }
-            };
-        }
-
         private enum FiveLaneKeysBreLaneIndex
         {
             Open, // Only exists if the Dedicated Open Lane setting is enabled
