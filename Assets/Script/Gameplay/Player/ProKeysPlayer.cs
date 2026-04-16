@@ -45,10 +45,8 @@ namespace YARG.Gameplay.Player
             public bool LeftSide;
         }
 
-        // When an action happens, we'll use this to determine which _actionToMostRecentTime entry to update
-        // This is often 1:1, but non-split 4L maps multiple actions to the shared lanes
         // The key is really a ProKeysAction, but we have to store it as a regular int because - unlike any other instrument
-        // currently - Pro Keys' BRE lanes can change from one BRE to the next within the same song (due ro range shifts),
+        // currently - Pro Keys' BRE lanes can change from one BRE to the next within the same song (due to range shifts),
         // meaning we have to pass the indexes to CurrentCoda.
         private Dictionary<int, int> _actionToBreLaneIndex;
 
