@@ -41,7 +41,7 @@ namespace YARG.Gameplay.Player
         };
 
         // Record of the most recent time that each BRE lane has been lit up by any of the actions that map to it
-        private static Dictionary<FiveFretGuitarFret, double> _fretToMostRecentTime = new()
+        private Dictionary<FiveFretGuitarFret, double> _fretToMostRecentTime = new()
         {
             { FiveFretGuitarFret.Green,     0 },
             { FiveFretGuitarFret.Red,       0 },
