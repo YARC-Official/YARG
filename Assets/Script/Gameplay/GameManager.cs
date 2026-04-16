@@ -906,6 +906,7 @@ namespace YARG.Gameplay
             YargLogger.LogFormatDebug("Unfailing song at SongTime {0}", SongTime);
             PlayerHasFailed = false;
             _mixer.FadeIn(DEFAULT_VOLUME, SONG_START_DELAY);
+            InvalidateScores("Menu.Toast.ResumeAfterFailInvalidate");
             // This is an arbitrary value, just want to give players enough time to adjust
             Resume(SONG_START_DELAY + 1);
         }

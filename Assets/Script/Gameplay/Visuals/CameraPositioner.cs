@@ -3,7 +3,6 @@ using DG.Tweening;
 using UnityEngine;
 using UnityEngine.Rendering.Universal;
 using YARG.Core.Game;
-using YARG.Core.Logging;
 using YARG.Gameplay.HUD;
 using YARG.Gameplay.Player;
 using YARG.Settings;
