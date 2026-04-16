@@ -5,6 +5,7 @@ using YARG.Core.Chart;
 using YARG.Core.Engine;
 using YARG.Core.Parsing;
 using YARG.Gameplay;
+using YARG.Gameplay.HUD;
 using YARG.Settings;
 
 namespace YARG.Playback
@@ -101,7 +102,7 @@ namespace YARG.Playback
                 }
             }
 
-            if (SettingsManager.Settings.NoFailMode.Value || GlobalVariables.State.IsPractice)
+            if (SettingsManager.Settings.NoFail.Value == NoFailMode.NoMeter || GlobalVariables.State.IsPractice)
             {
                 return;
             }

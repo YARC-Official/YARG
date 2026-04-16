@@ -232,7 +232,7 @@ namespace YARG.Gameplay
             }
 
             // Unsubscribe from other events
-            SettingsManager.Settings.NoFailMode.OnChange -= OnNoFailModeChanged;
+            SettingsManager.Settings.NoFail.OnChange -= OnNoFailModeChanged;
             EngineManager.OnSongFailed -= OnSongFailed;
             EngineManager.OnCodaStart -= StartCoda;
             EngineManager.OnCodaEnd -= EndCoda;
@@ -876,7 +876,7 @@ namespace YARG.Gameplay
 
         private async void OnSongFailed()
         {
-            if (SettingsManager.Settings.NoFailMode.Value || IsPractice)
+            if (SettingsManager.Settings.NoFail.Value != NoFailMode.Off || IsPractice)
             {
                 return;
             }
@@ -893,16 +893,16 @@ namespace YARG.Gameplay
 
         // If we go from no fail to fail, we need to reinitialize the happiness state so we avoid
         // the possibility of an instant fail. Yes, this is cheeseable since toggling no fail resets happiness.
-        private void OnNoFailModeChanged(bool noFail)
+        private void OnNoFailModeChanged(NoFailMode mode)
         {
             // If we're going from no fail to fail and happiness would result in an insta-fail, reset happiness,
             // but also inhibit score saving to avoid cheesing
-            if (!noFail && EngineManager.Happiness <= 0f)
+            if (mode == NoFailMode.Off && EngineManager.Happiness <= 0f)
             {
                 InvalidateScores("Menu.Toast.NoFailScore");
-
                 EngineManager.InitializeHappiness();
             }
+            _failMeter.SetActive(mode != NoFailMode.NoMeter);
         }
 
         internal void InvalidateScores(string toastKey)

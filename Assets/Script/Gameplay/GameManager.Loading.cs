@@ -8,6 +8,7 @@ using YARG.Core.Audio;
 using YARG.Core.Chart;
 using YARG.Core.Logging;
 using YARG.Core.Replays;
+using YARG.Gameplay.HUD;
 using YARG.Gameplay.Player;
 using YARG.Menu;
 using YARG.Menu.Navigation;
@@ -230,7 +231,7 @@ namespace YARG.Gameplay
 
             _failMeter.Initialize(EngineManager, this);
 
-            if (SettingsManager.Settings.NoFailMode.Value || IsPractice)
+            if (SettingsManager.Settings.NoFail.Value == NoFailMode.NoMeter || IsPractice)
             {
                 _failMeter.SetActive(false);
             }
@@ -243,7 +244,7 @@ namespace YARG.Gameplay
 
                 EngineManager.InitializeHappiness();
 
-                SettingsManager.Settings.NoFailMode.OnChange += OnNoFailModeChanged;
+                SettingsManager.Settings.NoFail.OnChange += OnNoFailModeChanged;
                 SettingsManager.Settings.AutoCalibrateAudio.Value = false;
                 SettingsManager.Settings.AutoCalibrateVideo.Value = false;
             }

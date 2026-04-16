@@ -8,6 +8,7 @@ using YARG.Helpers.Extensions;
 using YARG.Core.Engine;
 using YARG.Core.Extensions;
 using YARG.Core.Game;
+using YARG.Gameplay.HUD;
 using YARG.Localization;
 using YARG.Menu.MusicLibrary;
 using YARG.Player;
@@ -189,7 +190,7 @@ namespace YARG.Menu.ScoreScreen
             else
             {
                 _colorizer.SetCardColor(ScoreCardColorizer.ScoreCardColor.Blue);
-                ShowTag(SettingsManager.Settings.NoFailMode.Value ? "Completed" : "Cleared");
+                ShowTag(SettingsManager.Settings.NoFail.Value != NoFailMode.Off ? "Completed" : "Cleared");
             }
 
             _score.text = Stats.TotalScore.ToString("N0");

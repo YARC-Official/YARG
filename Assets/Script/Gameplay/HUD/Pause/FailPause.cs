@@ -31,7 +31,7 @@ namespace YARG.Gameplay.HUD
         public void EnableNoFail()
         {
             // It feels a bit icky reaching down into the settings like this
-            SettingsManager.Settings.NoFailMode.SetValueWithoutNotify(true);
+            SettingsManager.Settings.NoFail.SetValueWithoutNotify(NoFailMode.On);
             Restart();
         }
     }

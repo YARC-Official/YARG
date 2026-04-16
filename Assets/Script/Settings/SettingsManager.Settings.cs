@@ -110,7 +110,12 @@ namespace YARG.Settings
                 FileExplorerHelper.OpenFolder(VenueLoader.VenueFolder);
             }
 
-            public ToggleSetting NoFailMode { get; } = new(false);
+            public DropdownSetting<NoFailMode> NoFail { get; } = new(NoFailMode.Off)
+            {
+                NoFailMode.Off,
+                NoFailMode.On,
+                NoFailMode.NoMeter
+            };
 
             public ToggleSetting DisableDefaultBackground  { get; } = new(false);
             public ToggleSetting DisableGlobalBackgrounds  { get; } = new(false);
