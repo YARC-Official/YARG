@@ -69,6 +69,10 @@ namespace YARG.Menu.MusicLibrary
         private GameObject _charterContainer;
         [SerializeField]
         private GameObject _genreContainer;
+        [SerializeField]
+        private Image _contentRatingImage;
+        [SerializeField]
+        private Sprite[] _contentRatingIcons;
 
 
         [FormerlySerializedAs("difficultyRingPrefab")]
@@ -257,6 +261,16 @@ namespace YARG.Menu.MusicLibrary
                 SongRating.No_Rating => "NR",
                 SongRating.Sensitive_Content => "SC",
                 _ => "?",
+            };
+            _contentRatingImage.sprite = songEntry.SongRating switch
+            {
+                SongRating.Unspecified             => _contentRatingIcons[0],
+                SongRating.Family_Friendly         => _contentRatingIcons[1],
+                SongRating.Supervision_Recommended => _contentRatingIcons[2],
+                SongRating.Mature                  => _contentRatingIcons[3],
+                SongRating.No_Rating               => _contentRatingIcons[0],
+                SongRating.Sensitive_Content       => _contentRatingIcons[4],
+                _                                  => _contentRatingIcons[0],
             };
 
             // Format and show length
