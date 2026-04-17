@@ -45,8 +45,6 @@ namespace YARG.Menu.MusicLibrary
         [SerializeField]
         private Image _sourceBackground;
         [SerializeField]
-        private TextMeshProUGUI _songRatingLabel;
-        [SerializeField]
         private HelpBarButton _playButton;
 
         [Space]
@@ -222,7 +220,6 @@ namespace YARG.Menu.MusicLibrary
             _charter.text = string.Empty;
             _genre.text = string.Empty;
             _subgenre.text = string.Empty;
-            _songRatingLabel.text = string.Empty;
 
             _albumTitleContainer.SetActive(false);
             _sourceContainer.SetActive(false);
@@ -252,16 +249,6 @@ namespace YARG.Menu.MusicLibrary
                 _year.text = songEntry.ParsedYear;
             }
 
-            _songRatingLabel.text = songEntry.SongRating switch
-            {
-                SongRating.Unspecified => "NR",
-                SongRating.Family_Friendly => "FF",
-                SongRating.Supervision_Recommended => "SR",
-                SongRating.Mature => "MC",
-                SongRating.No_Rating => "NR",
-                SongRating.Sensitive_Content => "SC",
-                _ => "?",
-            };
             _contentRatingImage.sprite = songEntry.SongRating switch
             {
                 SongRating.Unspecified             => _contentRatingIcons[0],
