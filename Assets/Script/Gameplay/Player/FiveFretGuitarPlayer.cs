@@ -280,7 +280,7 @@ namespace YARG.Gameplay.Player
             if (Engine.IsCodaActive)
             {
                 // Set emission color of BRE lanes depending on currently available score value
-                foreach (var (breLaneIndex, highwayOrderingIndex) in DEFAULT_HIGHWAY_ORDERING)
+                foreach (var (breLaneIndex, highwayOrderingIndex) in _lanePositions)
                 {
                     var mostRecentTime = _fretToMostRecentTime[(FiveFretGuitarFret)breLaneIndex];
                     var normalizedTimeSinceLastHit = CodaSection.GetNormalizedTimeSinceLastHit(visualTime, mostRecentTime);
