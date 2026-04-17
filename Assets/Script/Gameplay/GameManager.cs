@@ -485,7 +485,7 @@ namespace YARG.Gameplay
                 PauseInfo[^1] = currentPause;
 
                 // Don't allow rewinding past the rewind limit, unless a duration was explicitly passed to the resume function
-                var rewindSeconds = rewindDuration ?? Math.Max(0, SongTime - _rewindLimit);
+                var rewindSeconds = Math.Max(0, rewindDuration ?? SongTime - _rewindLimit);
 
                 var canceled = await RewindAndResume(rewindSeconds);
 
