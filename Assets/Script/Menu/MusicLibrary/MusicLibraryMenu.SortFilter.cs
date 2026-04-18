@@ -507,9 +507,7 @@ namespace YARG.Menu.MusicLibrary
         private void OpenFilters()
         {
             // Stop any library preview audio so the Filters menu doesn't inherit it
-            _previewCanceller?.Cancel();
-            _previewContext?.Stop();
-            _previewContext = null;
+            StopPreview();
 
             var menu = YARG.Menu.Filters.FiltersMenu.Instance;
             if (menu == null)

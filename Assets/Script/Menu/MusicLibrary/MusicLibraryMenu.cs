@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 using YARG.Core;
@@ -377,10 +378,8 @@ namespace YARG.Menu.MusicLibrary
                 _currentSong = null;
             }
 
-            _previewCanceller?.Cancel();
+            StopPreview();
             _previewCanceller = new CancellationTokenSource();
-            _previewContext?.Stop();
-            _previewContext = null;
             StartPreview(_previewDelay, _previewCanceller);
 
             _previewDelay = PREVIEW_SCROLL_DELAY;
@@ -660,10 +659,48 @@ namespace YARG.Menu.MusicLibrary
 
         private void ClearPreview()
         {
-            _currentSong = null;
-            _previewCanceller?.Cancel();
-            _previewContext?.Stop();
+            StopPreview(clearCurrentSong: true);
+        }
+
+        private void StopPreview(bool clearCurrentSong = false)
+        {
+            _ = StopPreviewAsync(clearCurrentSong);
+        }
+
+        private async Task StopPreviewAsync(bool clearCurrentSong = false)
+        {
+            if (clearCurrentSong)
+            {
+                _currentSong = null;
+            }
+
+            var previewCanceller = _previewCanceller;
+            var previewContext = _previewContext;
+
+            _previewCanceller = null;
             _previewContext = null;
+
+            previewCanceller?.Cancel();
+            if (previewContext != null)
+            {
+                await previewContext.WaitForCompletionAsync();
+            }
+
+            previewCanceller?.Dispose();
+        }
+
+        private void DisposePreview()
+        {
+            var previewCanceller = _previewCanceller;
+            var previewContext = _previewContext;
+
+            _previewCanceller = null;
+            _previewContext = null;
+            _currentSong = null;
+
+            previewCanceller?.Cancel();
+            previewContext?.Dispose();
+            previewCanceller?.Dispose();
         }
 
         private void EnterPlaylistSelectFromLibrary()
@@ -714,11 +751,23 @@ namespace YARG.Menu.MusicLibrary
                 return;
             }
 
-            var context = await PreviewContext.Create(_currentSong, previewVolume, GlobalVariables.State.SongSpeed,
-                delay, FADE_DURATION, canceller);
+            var context = await PreviewContext.Create(
+                _currentSong,
+                previewVolume,
+                GlobalVariables.State.SongSpeed,
+                delay,
+                FADE_DURATION,
+                canceller.Token);
             if (context != null)
             {
-                _previewContext = context;
+                if (_previewCanceller == canceller && !canceller.IsCancellationRequested)
+                {
+                    _previewContext = context;
+                }
+                else
+                {
+                    context.Dispose();
+                }
             }
         }
 
@@ -746,8 +795,7 @@ namespace YARG.Menu.MusicLibrary
 
             Navigator.Instance.PopScheme();
 
-            _previewCanceller?.Cancel();
-            _previewContext?.Stop();
+            StopPreview();
             _searchField.OnSearchQueryUpdated -= UpdateSearch;
 
             PlayerContainer.PlayerAdded -= OnPlayerAdded;
@@ -756,8 +804,7 @@ namespace YARG.Menu.MusicLibrary
 
         private void OnDestroy()
         {
-            _previewCanceller?.Cancel();
-            _previewContext?.Dispose();
+            DisposePreview();
             _reloadState = MusicLibraryReloadState.Partial;
             StemSettings.ApplySettings = true;
         }
@@ -1169,9 +1216,7 @@ namespace YARG.Menu.MusicLibrary
         public async void RefreshSongs()
         {
             // Stop any library preview audio so the loading screen doesn't inherit it
-            _previewCanceller?.Cancel();
-            _previewContext?.Stop();
-            _previewContext = null;
+            await StopPreviewAsync();
 
             SetSidebarDifficultiesVisible(false);
             using var context = new LoadingContext();
