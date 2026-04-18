@@ -409,7 +409,7 @@ namespace YARG.Gameplay.Visuals
         private float GetXOffsetForLeadUp()
         {
             // Kick lead-ups and unknown indices should be centered
-            if (EffectRef.FillLanePosition <= 0 || EffectRef.FillLanePosition > EffectRef.TotalLanes)
+            if (EffectRef.FillLanePosition < 0 || EffectRef.FillLanePosition > EffectRef.TotalLanes)
             {
                 return 0f;
             }
@@ -429,7 +429,7 @@ namespace YARG.Gameplay.Visuals
             }
 
             // Kick lead-ups and unknown indices should not be shrunken
-            if (EffectRef.FillLanePosition <= 0 || EffectRef.FillLanePosition > EffectRef.TotalLanes)
+            if (EffectRef.FillLanePosition < 0 || EffectRef.FillLanePosition > EffectRef.TotalLanes)
             {
                 return 1f;
             }
