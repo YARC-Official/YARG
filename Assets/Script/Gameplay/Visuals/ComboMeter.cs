@@ -1,9 +1,11 @@
-﻿using System.Diagnostics;
+﻿using System.Collections.Generic;
+using System.Diagnostics;
 using Cysharp.Text;
 using TMPro;
 using UnityEngine;
 using YARG.Core.Game;
 using YARG.Core.Logging;
+using YARG.Helpers.UI;
 
 namespace YARG.Gameplay.Visuals
 {
@@ -34,19 +36,13 @@ namespace YARG.Gameplay.Visuals
         [SerializeField]
         private Color _soloTapsPresetColor;
 
-        private TextMeshPro[] _textCache;
+        private Dictionary<int, TextMeshPro> _textCache;
 
-        public void Initialize(EnginePreset preset, int maxMultiplier)
+        public void Initialize(EnginePreset preset, int maxMultiplier, bool isMultiplayer)
         {
             _multiplierText.enabled = false;
             _multiplierText.text = string.Empty;
-            _textCache = new TextMeshPro[maxMultiplier * 2 - 1];
-            _textCache[0] = _multiplierText;
-            for(int i = 0; i < _textCache.Length; ++i)
-            {
-                _textCache[i] = Instantiate(_multiplierText, _multiplierText.transform.parent, true);
-                _textCache[i].SetTextFormat("{0}<sub>x</sub>", i + 2);
-            }
+            _textCache = MultiplierTextHelper.CreateMultiplierTextCache(maxMultiplier, _multiplierText, isMultiplayer);
 
             Color color;
 
@@ -80,7 +76,7 @@ namespace YARG.Gameplay.Visuals
 
             if (displayMultiplier > 1)
             {
-                _multiplierText = _textCache[displayMultiplier - 2];
+                _multiplierText = _textCache[displayMultiplier];
                 _multiplierText.enabled = true;
             }
 

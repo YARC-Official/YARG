@@ -229,8 +229,7 @@ namespace YARG.Gameplay.Player
             var events = NoteTrack.TextEvents;
 
             Engine = CreateEngine();
-
-            base.ComboMeter.Initialize(player.EnginePreset, Engine.BaseParameters.MaxMultiplier);
+            base.ComboMeter.Initialize(player.EnginePreset, Engine.BaseParameters.MaxMultiplier, GameManager.Players.Count > 1);
 
             Engine.OnComboIncrement += OnComboIncrement;
             Engine.OnComboReset += OnComboReset;
