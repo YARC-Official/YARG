@@ -674,6 +674,8 @@ namespace YARG.Menu.MusicLibrary
                 _currentSong = null;
             }
 
+            // Snapshot the current preview before awaiting so a newer preview started in the meantime
+            // cannot be canceled, disposed, or cleared by this older shutdown path.
             var previewCanceller = _previewCanceller;
             var previewContext = _previewContext;
 
