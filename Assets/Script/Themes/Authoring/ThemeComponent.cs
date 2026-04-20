@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using YARG.Core;
@@ -16,6 +16,8 @@ namespace YARG.Themes
         [SerializeField]
         private GameObject _fiveFretNotes;
         [SerializeField]
+        private GameObject _sixFretNotes;
+        [SerializeField]
         private GameObject _fourLaneNotes;
         [SerializeField]
         private GameObject _fiveLaneNotes;
@@ -25,6 +27,8 @@ namespace YARG.Themes
         [Space]
         [SerializeField]
         private GameObject _fiveFretFret;
+        [SerializeField]
+        private GameObject _sixFretFret;
         [SerializeField]
         private GameObject _fourLaneFret;
         [SerializeField]
@@ -46,6 +50,7 @@ namespace YARG.Themes
             {
                 VisualStyle.FiveFretGuitar or
                 VisualStyle.FiveLaneKeys   => _fiveFretNotes,
+                VisualStyle.SixFretGuitar  => _sixFretNotes,
                 VisualStyle.FourLaneDrums  => _fourLaneNotes,
                 VisualStyle.FiveLaneDrums  => _fiveLaneNotes,
                 VisualStyle.ProKeys        => _proKeysNotes,
@@ -87,6 +92,7 @@ namespace YARG.Themes
             {
                 VisualStyle.FiveFretGuitar or
                 VisualStyle.FiveLaneKeys => _fiveFretFret,
+                VisualStyle.SixFretGuitar  => _sixFretFret,
                 VisualStyle.FourLaneDrums  => _fourLaneFret,
                 VisualStyle.FiveLaneDrums  => _fiveLaneFret,
                 _  => throw new Exception("Unreachable.")
