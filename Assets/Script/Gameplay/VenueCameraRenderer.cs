@@ -240,20 +240,11 @@ namespace YARG.Gameplay
             _timeSinceLastRender += Time.unscaledDeltaTime;
             _elapsedTime += Time.unscaledDeltaTime;
 
-            float targetInterval = 1f / _effectiveFps;
-
-            if (_timeSinceLastRender >= targetInterval)
+            if (_effectiveFps == 0 || _timeSinceLastRender >= 1f / _effectiveFps)
             {
                 Render();
 
-                _timeSinceLastRender -= targetInterval;
-
-                // Check to see if we are too far behind..if so, make sure we render next update
-                if (_timeSinceLastRender > targetInterval)
-                {
-                    _timeSinceLastRender = 0f;
-                }
-
+                _timeSinceLastRender = 0f;
                 _frameCount++;
             }
 
