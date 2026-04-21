@@ -527,6 +527,7 @@ namespace YARG.Menu.MusicLibrary
                                 category.CategoryGroup,
                                 !category.Collapsed
                             );
+                            SaveCollapsedHeaders();
 
                             var (headerIndex, offset) = GetClosestHeaderIndexAndOffset();
                             RequestViewListUpdate();
@@ -794,6 +795,7 @@ namespace YARG.Menu.MusicLibrary
             {
                 _hasSavedSelectionSnapshot = false;
             }
+            SaveCollapsedHeaders();
 
             Navigator.Instance.PopScheme();
 
@@ -948,6 +950,7 @@ namespace YARG.Menu.MusicLibrary
             _sortedSongs = _sortedSongs
                 .Select(cat => new SongCategory(cat.Category, cat.Songs, cat.CategoryGroup, false))
                 .ToArray();
+            SaveCollapsedHeaders();
             RequestViewListUpdate();
             SelectedIndex = _sectionHeaderIndices[headerIndex] + offset;
         }
@@ -958,6 +961,7 @@ namespace YARG.Menu.MusicLibrary
             _sortedSongs = _sortedSongs
                 .Select(cat => new SongCategory(cat.Category, cat.Songs, cat.CategoryGroup, true))
                 .ToArray();
+            SaveCollapsedHeaders();
             RequestViewListUpdate();
             var closestHeader = ViewList[_sectionHeaderIndices[headerIndex]];
             if (closestHeader is SortHeaderViewType sortHeader && sortHeader.Collapsed)
