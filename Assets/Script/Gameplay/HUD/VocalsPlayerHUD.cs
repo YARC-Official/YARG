@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using Cysharp.Text;
+﻿using System.Collections;
 using DG.Tweening;
 using TMPro;
 using UnityEngine;
@@ -38,7 +35,7 @@ namespace YARG.Gameplay.HUD
 
         private bool                             _shouldPulse;
         private bool                             _hudShowing = true;
-        private Dictionary<int, TextMeshProUGUI> _textCache;
+        private TextMeshProUGUI[] _textCache;
 
         public void Initialize(EnginePreset enginePreset)
         {
@@ -99,7 +96,7 @@ namespace YARG.Gameplay.HUD
             _multiplierText.enabled = false;
             if (multiplier > 1)
             {
-                _multiplierText = _textCache[multiplier];
+                _multiplierText = _textCache[multiplier - 2];
                 _multiplierText.enabled = true;
             }
 

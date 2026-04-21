@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using Cysharp.Text;
+﻿using Cysharp.Text;
 using TMPro;
 
 namespace YARG.Helpers.UI
@@ -14,19 +12,22 @@ namespace YARG.Helpers.UI
         /// <param name="multiplierTextPrefab">The prefab of the text to instantiate.</param>
         /// <param name="isMultiplayer"> Whether we are playing multiplayer (and therefore do not need to generate SP multipliers).</param>
         /// <typeparam name="T">TextMeshPro type being used</typeparam>
-        /// <returns>Dictionary with keys as multiplier values, and values as TMP objects.</returns>
-        public static Dictionary<int, T> CreateMultiplierTextCache<T>(int maxMultiplier, T multiplierTextPrefab,
+        /// <returns>Array where the corresponding TMP object is at arr[multiplier - 2]</returns>
+        public static T[] CreateMultiplierTextCache<T>(int maxMultiplier, T multiplierTextPrefab,
             bool isMultiplayer) where T : TMP_Text
         {
-            var textCache = new Dictionary<int, T>();
-            // I know this is non-conventional for for-loops, but it makes i correspond with the actual multipliers
-            for (int i = 1; i <= maxMultiplier; i++)
+            var textCache = isMultiplayer ? new T[maxMultiplier - 1] : new T[2 * maxMultiplier - 1];
+            for (int i = 2; i <= maxMultiplier; i++)
             {
-                textCache[i] = GenerateMultiplierText(i, multiplierTextPrefab);
-                // Also SP, but only in single-player as multiplayer uses band multipliers
-                if (!isMultiplayer)
+                if (textCache[i - 2] == null)
                 {
-                    textCache[i * 2] = GenerateMultiplierText(i * 2, multiplierTextPrefab);
+                    textCache[i - 2] = GenerateMultiplierText(i, multiplierTextPrefab);
+                }
+
+                // Also SP, but only in single-player as multiplayer uses band multipliers
+                if (!isMultiplayer && textCache[i * 2 - 2] == null)
+                {
+                    textCache[i * 2 - 2] = GenerateMultiplierText(i * 2, multiplierTextPrefab);
                 }
             }
 
