@@ -29,6 +29,7 @@ namespace YARG.Menu.ProfileList
         private static readonly GameMode[] _gameModes =
         {
             GameMode.FiveFretGuitar,
+            GameMode.SixFretGuitar,
             GameMode.EliteDrums,
             GameMode.FourLaneDrums,
             GameMode.FiveLaneDrums,
