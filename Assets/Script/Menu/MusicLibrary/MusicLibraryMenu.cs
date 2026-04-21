@@ -1221,6 +1221,7 @@ namespace YARG.Menu.MusicLibrary
             await StopPreviewAsync();
 
             SetSidebarDifficultiesVisible(false);
+            _sidebar.gameObject.SetActive(false);
             using var context = new LoadingContext();
             try
             {
@@ -1230,6 +1231,7 @@ namespace YARG.Menu.MusicLibrary
             finally
             {
                 // Ensure difficulty rings are restored even if the scan fails or is canceled
+                _sidebar.gameObject.SetActive(true);
                 _sidebar.UpdateSidebar(true);
             }
         }
