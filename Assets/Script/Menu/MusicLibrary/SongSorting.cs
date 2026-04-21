@@ -5,6 +5,8 @@ using YARG.Core.Extensions;
 using YARG.Core.Song;
 using YARG.Core.Utility;
 using YARG.Helpers;
+using YARG.Helpers.Extensions;
+using YARG.Settings;
 using static YARG.Core.Song.SongEntrySorting;
 
 namespace YARG.Menu.MusicLibrary
