@@ -228,8 +228,7 @@ namespace YARG.Gameplay
             if (fpsEffect.IsActive())
             {
                 // The divisor is relative to 60 fps, so we need to adjust for that if FPS is something other than 60
-                // TODO: Consider using ActualFPS here
-                var fpsRatio = FPS / 60f;
+                var fpsRatio = ActualFPS / 60f;
                 var adjustedDivisor = fpsRatio * fpsEffect.Divisor.value;
                 _effectiveFps = Mathf.RoundToInt(FPS / adjustedDivisor);
                 // Don't allow a rate higher than the FPS cap
@@ -319,7 +318,7 @@ namespace YARG.Gameplay
             if (trailsEffect.IsActive() )
             {
                 YargLogger.LogFormatTrace("Venue PP: trails, length: {0}", trailsEffect.length.value);
-                var adjustedLength = Mathf.Pow(trailsEffect.Length, _effectiveFps / 60f);
+                var adjustedLength = Mathf.Pow(trailsEffect.Length, ActualFPS / 60f);
                 Shader.SetGlobalFloat(_trailsLengthId, adjustedLength);
             }
 
