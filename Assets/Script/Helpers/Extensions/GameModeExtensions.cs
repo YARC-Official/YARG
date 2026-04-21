@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using YARG.Assets.Script.Helpers;
@@ -89,7 +89,6 @@ namespace YARG.Helpers.Extensions
                 GameMode.SixFretGuitar => new()
                 {
                     (ProfileSettingStrings.LEFTY_FLIP, null),
-                    (ProfileSettingStrings.RANGE_DISABLE, "5-LANE RANGE SHIFT MARKERS"),
                 },
                 GameMode.ProKeys => new()
                 {
