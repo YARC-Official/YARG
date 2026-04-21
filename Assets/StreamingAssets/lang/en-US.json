@@ -1,4 +1,4 @@
-﻿{
+{
     "Language": {
         "Name": "English",
         "Region": "United States",
@@ -34,10 +34,10 @@
             "FiveFretRhythm": "Rhythm",
             "FiveFretCoopGuitar": "Co-op",
             "Keys": "Keys",
-            "SixFretGuitar": "Guitar",
-            "SixFretBass": "Bass",
-            "SixFretRhythm": "Rhythm",
-            "SixFretCoopGuitar": "Co-op",
+            "SixFretGuitar": "Guitar (6-Fret)",
+            "SixFretBass": "Bass (6-Fret)",
+            "SixFretRhythm": "Rhythm (6-Fret)",
+            "SixFretCoopGuitar": "Co-op (6-Fret)",
             "FourLaneDrums": "4-Lane Drums",
             "ProDrums": "Pro Drums",
             "FiveLaneDrums": "5-Lane Drums",
