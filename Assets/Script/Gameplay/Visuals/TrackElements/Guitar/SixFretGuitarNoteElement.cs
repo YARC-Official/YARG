@@ -9,8 +9,20 @@ using YARG.Themes;
 
 namespace YARG.Gameplay.Visuals
 {
-    public sealed class SixFretGuitarNoteElement : FiveFretGuitarNoteElement
+    public sealed class SixFretGuitarNoteElement : NoteElement<GuitarNote, SixFretGuitarPlayer>
     {
+        private enum NoteType
+        {
+            Strum    = 0,
+            HOPO     = 1,
+            Tap      = 2,
+            Open     = 3,
+            OpenHOPO = 4,
+            Wildcard = 5,
+
+            Count
+        }
+
         [Space]
         [SerializeField]
         private SustainLine _normalSustainLine;
@@ -21,7 +33,6 @@ namespace YARG.Gameplay.Visuals
 
         private SustainLine _sustainLine;
 
-        // Make sure the remove it later if it has a sustain
         protected override float RemovePointOffset => (float) NoteRef.TimeLength * Player.NoteSpeed;
 
         public override void SetThemeModels(
@@ -44,15 +55,12 @@ namespace YARG.Gameplay.Visuals
 
             var noteGroups = IsStarPowerVisible ? StarPowerNoteGroups : NoteGroups;
 
-            if (NoteRef.Fret != (int) FiveFretGuitarFret.Open && NoteRef.Fret != (int) FiveFretGuitarFret.Wildcard)
+            if (NoteRef.Fret != (int) SixFretGuitarFret.Open && NoteRef.Fret != (int) SixFretGuitarFret.Wildcard)
             {
-                // Deal with non-open notes
-                var lane = Player.GetLanePosition((FiveFretGuitarFret)NoteRef.Fret);
+                var lane = Player.GetLanePosition((SixFretGuitarFret)NoteRef.Fret);
 
-                // Set the position
                 transform.localPosition = new Vector3(GetElementX(lane, Player.LaneCount), 0f, 0f);
 
-                // Get which note model to use
                 NoteGroup = NoteRef.Type switch
                 {
                     GuitarNoteType.Strum => noteGroups[(int) NoteType.Strum],
@@ -63,14 +71,10 @@ namespace YARG.Gameplay.Visuals
 
                 _sustainLine = _normalSustainLine;
             }
-            else if (NoteRef.Fret == (int) FiveFretGuitarFret.Open)
+            else if (NoteRef.Fret == (int) SixFretGuitarFret.Open)
             {
-                // Deal with open notes
-
-                // Set the position
                 transform.localPosition = Vector3.zero;
 
-                // Get which note model to use
                 NoteGroup = NoteRef.Type switch
                 {
                     GuitarNoteType.Strum => noteGroups[(int) NoteType.Open],
@@ -83,7 +87,6 @@ namespace YARG.Gameplay.Visuals
             }
             else
             {
-                // Deal with wildcard notes
                 transform.localPosition = Vector3.zero;
 
                 NoteGroup = noteGroups[(int) NoteType.Wildcard];
@@ -91,11 +94,9 @@ namespace YARG.Gameplay.Visuals
                 _sustainLine = _wildcardSustainLine;
             }
 
-            // Show and set material properties
             NoteGroup.SetActive(true);
             NoteGroup.Initialize();
 
-            // Set line length
             if (NoteRef.IsSustain)
             {
                 _sustainLine.gameObject.SetActive(true);
@@ -104,7 +105,6 @@ namespace YARG.Gameplay.Visuals
                 _sustainLine.Initialize(len);
             }
 
-            // Set note and sustain color
             UpdateColor();
         }
 
@@ -165,11 +165,10 @@ namespace YARG.Gameplay.Visuals
             _sustainLine.UpdateSustainLine();
         }
 
-        protected override void UpdateColor()
+      protected void UpdateColor()
         {
             var colors = Player.Player.ColorProfile.SixFretGuitar;
 
-            // Get which note color to use
             var colorNoStarPower = colors.GetNoteColor(NoteRef.Fret);
             var color = IsStarPowerVisible
                 ? colors.GetNoteStarPowerColor(NoteRef.Fret)
@@ -180,16 +179,13 @@ namespace YARG.Gameplay.Visuals
                 color = colors.Miss;
             }
 
-            // Set the note color if not hidden
             if (!NoteRef.WasHit)
             {
                 NoteGroup.SetColorWithEmission(color.ToUnityColor(), colorNoStarPower.ToUnityColor());
 
-                // Set the metal color
                 NoteGroup.SetMetalColor(colors.GetMetalColor(IsStarPowerVisible).ToUnityColor());
             }
 
-            // The rest of this method is for sustain only
             if (!NoteRef.IsSustain) return;
 
             _sustainLine.SetState(SustainState, color.ToUnityColor());

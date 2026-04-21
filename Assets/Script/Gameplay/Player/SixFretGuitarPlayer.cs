@@ -20,6 +20,7 @@ using YARG.Player;
 using YARG.Settings;
 using YARG.Themes;
 using static YARG.Core.Game.ColorProfile;
+using Random = UnityEngine.Random;
 
 namespace YARG.Gameplay.Player
 {
@@ -27,7 +28,7 @@ namespace YARG.Gameplay.Player
     {
         private const double SUSTAIN_END_MUTE_THRESHOLD = 0.1;
 
-        private const int SHIFT_INDICATOR_MEASURES_BEFORE = 5;
+ 
 
         public new virtual int LaneCount => 6;
 
@@ -131,31 +132,12 @@ namespace YARG.Gameplay.Player
 
         private double TimeFromSpawnToStrikeline => SpawnTimeOffset - (-STRIKE_LINE_POS / NoteSpeed);
 
-        public struct RangeShiftIndicator
-        {
-            public double Time;
-            public bool RightSide;
-            public int Offset;
-            public bool RangeIndicator;
-        }
-
-        private SixFretRangeShift[] _allRangeShiftEvents;
-        private readonly Queue<SixFretRangeShift> _rangeShiftEventQueue = new();
-        private SixFretRangeShift CurrentRange { get; set; }
-        private readonly Queue<RangeShiftIndicator> _shiftIndicators = new();
-        private int _shiftIndicatorIndex;
-        private bool _fretPulseStarting;
-        private double _fretPulseStartTime;
-
-        private List<int> _activeFrets = new(6);
+   
+ 
 
         [Header("Six Fret Specific")]
         [SerializeField]
         private FretArray _fretArray;
-        [SerializeField]
-        private Pool _shiftIndicatorPool;
-        [SerializeField]
-        private Pool _rangeIndicatorPool;
 
         protected override float[] StarMultiplierThresholds { get; set; } =
             GuitarStarMultiplierThresholds;
@@ -164,8 +146,7 @@ namespace YARG.Gameplay.Player
 
         private int _sustainCount;
 
-        private SongStem _stem;
-        private double _practiceSectionStartTime;
+    private SongStem _stem;
 
         public override void Initialize(int index, YargPlayer player, SongChart chart, TrackView trackView, StemMixer mixer, int? currentHighScore)
         {
@@ -270,21 +251,16 @@ namespace YARG.Gameplay.Player
             GameManager.BeatEventHandler.Visual.Subscribe(_fretArray.PulseFretColors, BeatEventType.StrongBeat);
         }
 
-        public override void ResetPracticeSection()
+       public override void ResetPracticeSection()
         {
             base.ResetPracticeSection();
-            ResetRangeShift(_practiceSectionStartTime);
 
             _fretArray.ResetAll();
         }
 
-        public override void SetPracticeSection(uint start, uint end)
+    public override void SetPracticeSection(uint start, uint end)
         {
             base.SetPracticeSection(start, end);
-
-            // This will set the current range correctly
-            _practiceSectionStartTime = SyncTrack.TickToTime(start);
-            ResetRangeShift(_practiceSectionStartTime);
         }
 
         protected override void ResetLastHitTimes()
@@ -297,11 +273,10 @@ namespace YARG.Gameplay.Player
 
         public override void SetReplayTime(double time)
         {
-            ResetRangeShift(time);
             base.SetReplayTime(time);
         }
 
-        protected override void UpdateVisuals(double visualTime)
+  protected override void UpdateVisuals(double visualTime)
         {
             // Update coda lane emissions if necessary
             if (Engine.IsCodaActive)
@@ -310,96 +285,12 @@ namespace YARG.Gameplay.Player
                 foreach (var (breLaneIndex, highwayOrderingIndex) in _lanePositions)
                 {
                     var mostRecentTime = _fretToMostRecentTime[(SixFretGuitarFret)breLaneIndex];
-                    BRELanes[highwayOrderingIndex].SetEmissionColor(normalizedTimeSinceLastHit(visualTime, mostRecentTime));
+                    BRELanes[highwayOrderingIndex].SetEmissionColor(CodaSection.GetNormalizedTimeSinceLastHit(visualTime, mostRecentTime));
                 }
             }
 
             base.UpdateVisuals(visualTime);
-            UpdateRangeShift(visualTime);
             UpdateFretArray();
-        }
-
-        public void UpdateRangeShift(double visualTime)
-        {
-            if (!_rangeShiftEventQueue.TryPeek(out var nextShift))
-            {
-                return;
-            }
-
-            if (_shiftIndicators.TryPeek(out var shiftIndicator) && shiftIndicator.Time <= visualTime + SpawnTimeOffset)
-            {
-                // The range indicator is dealt with in its own function
-                if (shiftIndicator.RangeIndicator)
-                {
-                    SpawnRangeIndicator(nextShift);
-                    return;
-                }
-                if (!_shiftIndicatorPool.CanSpawnAmount(1))
-                {
-                    return;
-                }
-
-                var poolable = _shiftIndicatorPool.TakeWithoutEnabling();
-                if (poolable == null)
-                {
-                    YargLogger.LogWarning("Attempted to spawn shift indicator, but it's at its cap!");
-                    return;
-                }
-
-                YargLogger.LogDebug("Shift indicator spawned!");
-
-                ((GuitarShiftIndicatorElement) poolable).RangeShiftIndicator = shiftIndicator;
-                poolable.EnableFromPool();
-
-                _shiftIndicators.Dequeue();
-
-                if (!_fretPulseStarting)
-                {
-                    _fretPulseStarting = true;
-                    _fretPulseStartTime = nextShift.Time - (nextShift.BeatDuration * SHIFT_INDICATOR_MEASURES_BEFORE);
-                }
-            }
-
-            if (_fretPulseStarting && _fretPulseStartTime <= visualTime)
-            {
-                for (var i = nextShift.Position; i < nextShift.Position + nextShift.Size; i++)
-                {
-                    _fretArray.SetFretColorPulse(i, true, (float) nextShift.BeatDuration);
-                }
-
-                _fretPulseStarting = false;
-            }
-
-
-            // Turn off the pulsing and switch active frets now that we're in the new range
-            if (nextShift.Time <= visualTime)
-            {
-                _rangeShiftEventQueue.Dequeue();
-                foreach (var fretIndex in _lanePositions.Keys)
-                {
-                    _fretArray.SetFretColorPulse(fretIndex, false, (float) nextShift.BeatDuration);
-                }
-
-                _fretPulseStarting = false;
-                CurrentRange = nextShift;
-                SetActiveFretsForShiftEvent(nextShift);
-            }
-        }
-
-        private void ResetRangeShift(double time)
-        {
-            if (!Player.Profile.RangeEnabled)
-            {
-                return;
-            }
-
-            // Despawn shift indicators and rebuild the shift queues based on the replay time
-            _rangeShiftEventQueue.Clear();
-            _shiftIndicators.Clear();
-            _shiftIndicatorPool.ReturnAllObjects();
-            _rangeIndicatorPool.ReturnAllObjects();
-            InitializeRangeShift(time);
-
         }
 
         private void UpdateFretArray()
@@ -410,29 +301,7 @@ namespace YARG.Gameplay.Player
             }
         }
 
-      protected virtual GuitarAction GetFretActionMax() => GuitarAction.White3Fret;
-
-        private void SpawnRangeIndicator(SixFretRangeShift nextShift)
-        {
-            if (!_rangeIndicatorPool.CanSpawnAmount(1))
-            {
-                return;
-            }
-
-            var poolable = _rangeIndicatorPool.TakeWithoutEnabling();
-            if (poolable == null)
-            {
-                YargLogger.LogWarning("Attempted to spawn range indicator, but it's at its cap!");
-                return;
-            }
-
-            YargLogger.LogDebug("Range indicator spawned!");
-
-            ((GuitarRangeIndicatorElement) poolable).RangeShift = nextShift;
-            poolable.EnableFromPool();
-
-            _shiftIndicators.Dequeue();
-        }
+    protected virtual GuitarAction GetFretActionMax() => GuitarAction.White3Fret;
 
         public override void SetStemMuteState(bool muted)
         {
@@ -703,172 +572,7 @@ namespace YARG.Gameplay.Player
         }
 
 
-        private void InitializeRangeShift(double time = 0)
-        {
-            var firstShiftAfterFirstNote = false;
-            _rangeShiftEventQueue.Clear();
-            // Default to all frets on
-            SetDefaultActiveFrets();
-
-            // No range shifts, so just return
-            if (_allRangeShiftEvents.Length < 1)
-            {
-                return;
-            }
-
-            // Now that we know there is at least one range shift, figure out if it is after the first note
-            if (Notes.Count > 0 && _allRangeShiftEvents[0].Time > Notes[0].Time)
-            {
-                firstShiftAfterFirstNote = true;
-            }
-
-            if (_allRangeShiftEvents.Length == 1)
-            {
-                // There are no actual shifts (or we aren't shifting because of range compression), but we should dim unused frets
-                CurrentRange = _allRangeShiftEvents[0];
-                // If the range shift is after the first note, leave all the frets on because chart is broke
-                if (!firstShiftAfterFirstNote)
-                {
-                    SetActiveFretsForShiftEvent(CurrentRange);
-                }
-
-                return;
-            }
-
-            // Turns out that we have range shifts that need indicators
-            var firstEvent = _allRangeShiftEvents[0];
-
-            SixFretRangeShift mostRecentEvent = firstEvent;
-
-            // Only queue range shifts that happen after time
-            for (int i = 1; i < _allRangeShiftEvents.Length; i++)
-            {
-                SixFretRangeShift e = _allRangeShiftEvents[i];
-                // These have no visible effect on the track, so we just
-                // want to make sure any that are current or in the future are queued
-                // and to figure out which was the most recent event
-                if (e.Time >= time)
-                {
-                    _rangeShiftEventQueue.Enqueue(e);
-                    continue;
-                }
-
-                if (e.Time > mostRecentEvent.Time)
-                {
-                    mostRecentEvent = e;
-                }
-            }
-
-            CurrentRange = mostRecentEvent;
-            if (time < mostRecentEvent.Time)
-            {
-                // If we get here, the only range shifts are in the future
-                SetDefaultActiveFrets();
-            }
-            else
-            {
-                SetActiveFretsForShiftEvent(CurrentRange);
-            }
-
-            // Figure out where the indicators should go
-            var beatlines = Beatlines
-                .Where(i => i.Type is BeatlineType.Measure or BeatlineType.Strong)
-                .ToList();
-
-            _shiftIndicators.Clear();
-            var lastShiftRange = mostRecentEvent;
-            int beatlineIndex = 0;
-
-            foreach (var shift in _rangeShiftEventQueue.ToList())
-            {
-                if (shift.Position == lastShiftRange.Position && shift.Size == lastShiftRange.Size)
-                {
-                    continue;
-                }
-
-                // When shift.Position and lastShiftRange.Position are the same, this result doesn't matter because
-                // the shift indicator won't be displayed, so it's OK that neither of these are <= or >=
-                var shiftRight = Player.Profile.LeftyFlip
-                    ? shift.Position < lastShiftRange.Position
-                    : shift.Position > lastShiftRange.Position;
-
-                double lastBeatTime = 0;
-                double firstBeatTime = double.MaxValue;
-
-                // Find the first beatline index after the range shift
-                for (; beatlineIndex < beatlines.Count; beatlineIndex++)
-                {
-                    if (beatlines[beatlineIndex].Time > shift.Time)
-                    {
-                        lastBeatTime = beatlines[beatlineIndex].Time;
-                        break;
-                    }
-                }
-
-                // Add the indicators before the range shift
-                // While we're doing this, figure out the time between beats
-                for (int i = SHIFT_INDICATOR_MEASURES_BEFORE; i > 0; i--)
-                {
-                    var realIndex = beatlineIndex - i;
-
-                    // If the indicator is before any measures, skip
-                    if (realIndex < 0)
-                    {
-                        break;
-                    }
-
-                    firstBeatTime = beatlines[realIndex].Time < firstBeatTime ? beatlines[realIndex].Time : firstBeatTime;
-
-                    _shiftIndicators.Enqueue(new RangeShiftIndicator
-                    {
-                        Time = beatlines[realIndex].Time,
-                        RightSide = shiftRight,
-                        Offset = shift.Position < lastShiftRange.Position ? shift.Position - 1 : 5 - shift.Position - shift.Size + 1,
-                        RangeIndicator = i == 1 && !(shift.Position == lastShiftRange.Position && shift.Size == lastShiftRange.Size),
-                    });
-                }
-
-                lastShiftRange = shift;
-
-                // In case we have no samples for this shift event, 0.5 is a reasonable default
-                shift.BeatDuration = firstBeatTime < double.MaxValue ? (lastBeatTime - firstBeatTime) / SHIFT_INDICATOR_MEASURES_BEFORE : 0.5;
-            }
-        }
-
-        private void SetActiveFretsForShiftEvent(SixFretRangeShift range)
-        {
-            var newFrets = new List<int>();
-
-            int start = range.Position;
-            int end = start + range.Size;
-            for (int i = start; i < end; i++)
-            {
-                newFrets.Add(i);
-            }
-
-            if (!newFrets.SequenceEqual(_activeFrets))
-            {
-                _activeFrets = newFrets;
-                _fretArray.UpdateFretActiveState(_activeFrets);
-            }
-        }
-
-        private void SetDefaultActiveFrets()
-        {
-            var newFrets = new List<int>();
-            foreach (var fretIdx in _lanePositions.Keys)
-            {
-                newFrets.Add(fretIdx);
-            }
-
-            if (!newFrets.SequenceEqual(_activeFrets))
-            {
-                _activeFrets = newFrets;
-                _fretArray.UpdateFretActiveState(_activeFrets);
-            }
-        }
-
-        private void MakeHighwayOrdering()
+      private void MakeHighwayOrdering()
         {
             if (Player.Profile.LeftyFlip)
             {
