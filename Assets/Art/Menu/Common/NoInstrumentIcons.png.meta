@@ -30,7 +30,7 @@ TextureImporter:
   cubemapConvolution: 0
   seamlessCubemap: 0
   textureFormat: 1
-  maxTextureSize: 2048
+  maxTextureSize: 2560
   textureSettings:
     serializedVersion: 2
     filterMode: 1
@@ -455,6 +455,10 @@ TextureImporter:
       rhythm: -2134676079
       twoVocals: -189867252
       vocals: -595053334
+      guitar6: 1095511443
+      bass6: 1095511443
+      rhythm6: 1095511443
+      coop6: 1095511443
   spritePackingTag: 
   pSDRemoveMatte: 0
   pSDShowRemoveMatteOption: 0
