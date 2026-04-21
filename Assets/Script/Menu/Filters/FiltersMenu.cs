@@ -22,6 +22,7 @@ using YARG.Player;
 using YARG.Playlists;
 using YARG.Song;
 using YARG.Settings;
+using YARG.Helpers;
 
 namespace YARG.Menu.Filters
 {
@@ -138,6 +139,7 @@ namespace YARG.Menu.Filters
         private static IReadOnlyList<string> _cachedVocalParts;
         private static IReadOnlyList<string> _cachedSources;
         private static IReadOnlyList<string> _cachedPlaylists;
+        private static Dictionary<string, int> _cachedPlaylistCounts;
         private static IReadOnlyList<string> _cachedCharters;
         private static IReadOnlyList<string> _cachedLengths;
         private static readonly Dictionary<Instrument, IReadOnlyList<string>> _cachedIntensitiesByInstrument = new();
@@ -449,9 +451,7 @@ namespace YARG.Menu.Filters
             string profileName = string.IsNullOrWhiteSpace(context.ProfileName)
                 ? Localize.Key(IntensityLabelUnknownKey)
                 : context.ProfileName;
-            string instrumentName = context.Instrument == Instrument.EliteDrums
-                ? SortAttribute.AggregateDrums.ToLocalizedName()
-                : context.Instrument.ToLocalizedName();
+            string instrumentName = context.Instrument.ToLocalizedName();
             string contextLabel = $"({profileName} on {instrumentName})";
 
             return $"{baseLabel} {TextColorer.StyleString(contextLabel, MenuData.Colors.TrackDefaultSecondary, 400)}";
@@ -1648,25 +1648,6 @@ namespace YARG.Menu.Filters
 
         private static string GetIntensityLabel(SongEntry entry, Instrument instrument)
         {
-            if (instrument == Instrument.EliteDrums)
-            {
-                var preferredInstrument = MidiDrumkitHelper.GetPreferredInstrumentForSong(entry);
-                if (!preferredInstrument.HasValue)
-                    return Localize.Key(IntensityLabelNoPartKey);
-
-                var preferredPart = entry[preferredInstrument.Value];
-                if (!preferredPart.IsActive())
-                    return Localize.Key(IntensityLabelNoPartKey);
-
-                int preferredIntensity = preferredPart.Intensity;
-                if (preferredIntensity < 0) return Localize.Key(IntensityLabelUnknownKey);
-
-                if (preferredIntensity >= IntensityLabelKeys.Length)
-                    return GetIntensityLabelByIndex(IntensityLabelKeys.Length - 1);
-
-                return GetIntensityLabelByIndex(preferredIntensity);
-            }
-
             var part = entry[instrument];
             if (!part.IsActive()) return Localize.Key(IntensityLabelNoPartKey);
 

@@ -82,6 +82,7 @@ namespace YARG.Menu.Filters
         Decade,
         VocalParts,
         Source,
+        Playlist,
         Charter,
         Intensity,
         Length
