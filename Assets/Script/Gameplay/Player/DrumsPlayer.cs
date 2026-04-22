@@ -408,9 +408,10 @@ namespace YARG.Gameplay.Player
         {
             int highwayIndex = -1;
             HighwayOrderingInfo highwayOrderingInfo = default;
+
             foreach ((int index, var info) in _highwayOrdering)
             {
-                if (laneIndex == Mathf.RoundToInt(info.Position))
+                if (laneIndex == info.Position)
                 {
                     highwayIndex = index;
                     highwayOrderingInfo = info;

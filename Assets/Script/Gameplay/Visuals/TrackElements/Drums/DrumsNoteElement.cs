@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 using YARG.Core.Chart;
-using YARG.Core.Engine;
 using YARG.Core.Engine.Drums;
 using YARG.Gameplay.Player;
 using YARG.Themes;
