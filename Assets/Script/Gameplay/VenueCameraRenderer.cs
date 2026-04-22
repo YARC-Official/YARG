@@ -22,8 +22,6 @@ namespace YARG.Gameplay
         private Camera _renderCamera;
         private float _originalFactor;
         private UniversalRenderPipelineAsset UniversalRenderPipelineAsset;
-        private readonly RenderPipeline.StandardRequest _renderRequest = new();
-        private bool _supportsRenderRequest;
 
         private static RawImage _venueOutput;
         private static RenderTexture _venueTexture;
@@ -100,7 +98,6 @@ namespace YARG.Gameplay
             }
             UniversalRenderPipelineAsset = GraphicsSettings.currentRenderPipeline as UniversalRenderPipelineAsset;
             _originalFactor = UniversalRenderPipelineAsset.renderScale;
-            _supportsRenderRequest = RenderPipeline.SupportsRenderRequest(_renderCamera, _renderRequest);
 
             FPS = SettingsManager.Settings.VenueFpsCap.Value;
             _venueLayerMask = LayerMask.GetMask("Venue");
@@ -262,6 +259,11 @@ namespace YARG.Gameplay
             {
                 return;
             }
+
+            // Disable the camera after rendering so it only renders when explicitly triggered
+            _renderCamera.enabled = false;
+            _renderCamera.targetTexture = null;
+
             Shader.SetGlobalInteger(_posterizeStepsId, 0);
             Shader.SetGlobalFloat(_startTimeId, 0);
             Shader.SetGlobalFloat(_IsVenueId, 0);
@@ -328,14 +330,9 @@ namespace YARG.Gameplay
 
         private void Render()
         {
-            if (!_supportsRenderRequest)
-            {
-                return;
-            }
-
-            _renderRequest.destination = _venueTexture;
-            // Render camera and fill texture2D with its view
-            RenderPipeline.SubmitRenderRequest(_renderCamera, _renderRequest);
+            // Set target texture and enable the camera so it renders through the normal pipeline
+            _renderCamera.targetTexture = _venueTexture;
+            _renderCamera.enabled = true;
 
             if (!IsRendered)
             {
