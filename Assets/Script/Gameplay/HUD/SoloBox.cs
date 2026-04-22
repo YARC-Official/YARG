@@ -42,6 +42,9 @@ namespace YARG.Gameplay.HUD
         private SoloSection _solo;
 
         private bool _showingForPreview;
+        private int _displayedHitPercent = int.MinValue;
+        private int _displayedNotesHit = int.MinValue;
+        private int _displayedNoteCount = int.MinValue;
 
         private int HitPercent => Mathf.FloorToInt((float) _solo.NotesHit / _solo.NoteCount * 100f);
 
@@ -54,6 +57,9 @@ namespace YARG.Gameplay.HUD
 
             _solo = solo;
             _soloEnded = false;
+            _displayedHitPercent = int.MinValue;
+            _displayedNotesHit = int.MinValue;
+            _displayedNoteCount = int.MinValue;
             gameObject.SetActive(true);
 
             StopCurrentCoroutine();
@@ -80,8 +86,19 @@ namespace YARG.Gameplay.HUD
         {
             if (_soloEnded || _showingForPreview) return;
 
-            _soloTopText.SetTextFormat("{0}%", HitPercent);
-            _soloBottomText.SetTextFormat("{0}/{1}", _solo.NotesHit, _solo.NoteCount);
+            var hitPercent = HitPercent;
+            if (_displayedHitPercent != hitPercent)
+            {
+                _displayedHitPercent = hitPercent;
+                _soloTopText.SetTextFormat("{0}%", hitPercent);
+            }
+
+            if (_displayedNotesHit != _solo.NotesHit || _displayedNoteCount != _solo.NoteCount)
+            {
+                _displayedNotesHit = _solo.NotesHit;
+                _displayedNoteCount = _solo.NoteCount;
+                _soloBottomText.SetTextFormat("{0}/{1}", _displayedNotesHit, _displayedNoteCount);
+            }
         }
 
         public void EndSolo(int soloBonus, Action endCallback)

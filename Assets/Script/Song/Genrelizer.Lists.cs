@@ -118,7 +118,7 @@ namespace YARG.Song
         private static SortString OVER_OTHER = new(Localize.Key("Menu.MusicLibrary.Genre.Broad.Other"));
 
 
-        
+
 
 
 
@@ -299,6 +299,7 @@ namespace YARG.Song
             { (NEW_WAVE_RAW, "dark wave"),              (NEW_WAVE, "Darkwave") },
             //(NEW_WAVE_RAW, "darkwave"),               unchanged
             //(NEW_WAVE_RAW, "electroclash)             unchanged
+            { (NEW_WAVE_RAW, "synth"),                  (SYNTHPOP_ELECTROPOP, "Synthpop") }, // Raw DTA value for Synthpop subgenre
             { (NEW_WAVE_RAW, "synthpop"),               (SYNTHPOP_ELECTROPOP, "Synthpop") },
             { (NEW_WAVE_RAW, "other"),                  (NEW_WAVE, null) },
 

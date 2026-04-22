@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
 using UnityEngine;
@@ -6,6 +6,7 @@ using UnityEngine.InputSystem;
 using YARG.Core.Audio;
 using YARG.Core.Engine;
 using YARG.Core.Logging;
+using YARG.Core.Song;
 using YARG.Gameplay.HUD;
 using YARG.Helpers;
 using YARG.Integration;
@@ -13,6 +14,7 @@ using YARG.Integration.RB3E;
 using YARG.Integration.Sacn;
 using YARG.Integration.StageKit;
 using YARG.Menu.Filters;
+using YARG.Menu.History;
 using YARG.Menu.MusicLibrary;
 using YARG.Menu.Persistent;
 using YARG.Menu.Settings;
@@ -36,6 +38,18 @@ namespace YARG.Settings
         Performance = 4,
         UltraPerformance = 5,
     }
+
+    public enum MaximumRating
+    {
+        Family_Friendly,
+        Supervision_Recommended,
+        Mature,
+        Unspecified,
+        No_Rating,
+        Sensitive_Content,
+        Any
+    }
+
     public static partial class SettingsManager
     {
         public class SettingContainer
@@ -96,7 +110,12 @@ namespace YARG.Settings
                 FileExplorerHelper.OpenFolder(VenueLoader.VenueFolder);
             }
 
-            public ToggleSetting NoFailMode { get; } = new(false);
+            public DropdownSetting<NoFailMode> NoFail { get; } = new(NoFailMode.Off)
+            {
+                NoFailMode.Off,
+                NoFailMode.On,
+                NoFailMode.NoMeter
+            };
 
             public ToggleSetting DisableDefaultBackground  { get; } = new(false);
             public ToggleSetting DisableGlobalBackgrounds  { get; } = new(false);
@@ -144,6 +163,21 @@ namespace YARG.Settings
             #endregion
 
             #region Songs
+
+            public DropdownSetting<SongRating> MaxSongRating { get; }
+                = new(SongRating.None, _ =>
+                {
+                    SongContainer.RequestContainerRefresh();
+                    MusicLibraryMenu.SetReload(MusicLibraryReloadState.Full);
+                    HistoryMenu.ForceUpdate = true;
+                })
+            {
+                SongRating.Family_Friendly,
+                SongRating.Supervision_Recommended,
+                SongRating.Mature,
+                SongRating.Sensitive_Content,
+                SongRating.None,
+            };
 
             public ToggleSetting AllowDuplicateSongs { get; } = new(true, _ => MusicLibraryMenu.SetReload(MusicLibraryReloadState.Partial));
             public ToggleSetting UseFullDirectoryForPlaylists { get; } = new(false);
@@ -291,7 +325,7 @@ namespace YARG.Settings
 
             public ToggleSetting VSync       { get; } = new(true, VSyncCallback);
             public IntSetting    FpsCap      { get; } = new(60, 0, onChange: FpsCapCallback);
-            public IntSetting    VenueFpsCap { get; } = new(60, 1);
+            public IntSetting    VenueFpsCap { get; } = new(60, 0);
 
             public DropdownSetting<FullScreenMode> FullscreenMode { get; }
                 = new(FullScreenMode.FullScreenWindow, FullscreenModeCallback)

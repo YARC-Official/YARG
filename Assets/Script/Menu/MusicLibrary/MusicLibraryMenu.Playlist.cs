@@ -71,7 +71,7 @@ namespace YARG.Menu.MusicLibrary
                     ToastManager.ToastSuccess($"Created '{playlistName}'");
                     RefreshAndSelectPlaylist(playlist);
                 });
-            }, id++));
+            }, CREATE_NEW_PLAYLIST_ID));
 
             return list;
         }
@@ -226,7 +226,7 @@ namespace YARG.Menu.MusicLibrary
             {
                 PlaylistContainer.DeletePlaylist(SelectedPlaylist);
             }
-            
+
             ToastManager.ToastSuccess($"Deleted '{SelectedPlaylist.Name}'");
 
             // Exit back to library

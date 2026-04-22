@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 using YARG.Core;
@@ -10,6 +11,7 @@ using YARG.Core.Game;
 using YARG.Core.Input;
 using YARG.Core.Song;
 using YARG.Localization;
+using YARG.Menu.Filters;
 using YARG.Menu.ListMenu;
 using YARG.Menu.Navigation;
 using YARG.Menu.Persistent;
@@ -49,6 +51,8 @@ namespace YARG.Menu.MusicLibrary
         private const int RANDOM_SONG_ID = 0;
         private const int PLAYLIST_ID = 1;
         private const int BACK_ID = 2;
+        private const int RECOMMENDED_SONGS_ID = 3;
+        private const int CREATE_NEW_PLAYLIST_ID = 4;
 
         public static MusicLibraryMode LibraryMode;
 
@@ -135,6 +139,9 @@ namespace YARG.Menu.MusicLibrary
         protected override void OnEnable()
         {
             base.OnEnable();
+
+            // Hack to ensure that crowd samples are stopped no matter what
+            GlobalAudioHandler.StopAllSfxChannels();
 
             // Set navigation scheme
             SetNavigationScheme();
@@ -331,8 +338,8 @@ namespace YARG.Menu.MusicLibrary
                             "Menu.MusicLibrary.AddHoldStartSet" :
                             "Menu.MusicLibrary.PlayHoldAddToSet",
                         OnGreenTap,
-                        GREEN_HOLD_SECONDS,
-                        OnGreenHold,
+                        holdSeconds: GREEN_HOLD_SECONDS,
+                        onHoldHandler: OnGreenHold,
                         hide: true
                     ),
                 new NavigationScheme.Entry(MenuAction.Red, "Menu.Common.Back", Back, hide: true),
@@ -342,7 +349,6 @@ namespace YARG.Menu.MusicLibrary
                 new NavigationScheme.Entry(MenuAction.Blue, "Menu.MusicLibrary.Filters", OpenFilters),
                 new NavigationScheme.Entry(MenuAction.Orange, "Menu.MusicLibrary.MoreOptions",
                     OnOrangeHit, OnOrangeRelease),
-                new NavigationScheme.Entry(MenuAction.Select, "Next Sort Category", NextSort, hide: true),
             }, false));
 
         }
@@ -372,10 +378,8 @@ namespace YARG.Menu.MusicLibrary
                 _currentSong = null;
             }
 
-            _previewCanceller?.Cancel();
+            StopPreview();
             _previewCanceller = new CancellationTokenSource();
-            _previewContext?.Stop();
-            _previewContext = null;
             StartPreview(_previewDelay, _previewCanceller);
 
             _previewDelay = PREVIEW_SCROLL_DELAY;
@@ -443,18 +447,13 @@ namespace YARG.Menu.MusicLibrary
             if (!_searchField.IsSearching)
             {
                 list.Add(new ButtonViewType(
-                    Localize.Key("Menu.MusicLibrary.RandomSong"),
-                    "MusicLibraryIcons[Random]",
-                    SelectRandomSong,
-                    RANDOM_SONG_ID));
-
-                list.Add(new ButtonViewType(
                     Localize.Key("Menu.MusicLibrary.Playlists"),
                     "MusicLibraryIcons[Playlists]",
                     EnterPlaylistSelectFromLibrary,
-                    PLAYLIST_ID));
+                    PLAYLIST_ID,
+                    Localize.Key("Menu.MusicLibrary.PlaylistsHelp")));
 
-                _primaryHeaderIndex += 2;
+                _primaryHeaderIndex += 1;
 
                 if (SettingsManager.Settings.LibrarySort < SortAttribute.Instrument &&
                     SettingsManager.Settings.ShowRecommendedSongs.Value)
@@ -464,14 +463,16 @@ namespace YARG.Menu.MusicLibrary
                         string key = Localize.Key("Menu.MusicLibrary.RecommendedSongs",
                             _recommendedSongs.Length == 1 ? "Singular" : "Plural");
 
-                        list.Add(new CategoryViewType(key, _recommendedSongs.Length, _recommendedSongs,
+                        list.Add(new ButtonViewType(key, "MusicLibraryIcons[Recommended]",
                             () =>
                             {
                                 bool selectTopOfList = CurrentSelection is SongViewType songView &&
                                     _recommendedSongs.Contains(songView.SongEntry);
                                 bool preserveSelectedIndex = SelectedIndex != _recommendedHeaderIndex;
                                 RefreshAndReselect(selectTopOfList, preserveSelectedIndex);
-                            }
+                            },
+                            RECOMMENDED_SONGS_ID,
+                            Localize.Key("Menu.MusicLibrary.RecommendedSongsHelp")
                         ));
                         _recommendedHeaderIndex = list.Count - 1;
 
@@ -557,7 +558,7 @@ namespace YARG.Menu.MusicLibrary
                     if (!allowdupes && song.IsDuplicate) continue;
 
                     StarAmount? starAmount;
-                    
+
                     if (includeSongs)
                     {
                         var songView = new SongViewType(this, song);
@@ -658,10 +659,50 @@ namespace YARG.Menu.MusicLibrary
 
         private void ClearPreview()
         {
-            _currentSong = null;
-            _previewCanceller?.Cancel();
-            _previewContext?.Stop();
+            StopPreview(clearCurrentSong: true);
+        }
+
+        private void StopPreview(bool clearCurrentSong = false)
+        {
+            _ = StopPreviewAsync(clearCurrentSong);
+        }
+
+        private async Task StopPreviewAsync(bool clearCurrentSong = false)
+        {
+            if (clearCurrentSong)
+            {
+                _currentSong = null;
+            }
+
+            // Snapshot the current preview before awaiting so a newer preview started in the meantime
+            // cannot be canceled, disposed, or cleared by this older shutdown path.
+            var previewCanceller = _previewCanceller;
+            var previewContext = _previewContext;
+
+            _previewCanceller = null;
             _previewContext = null;
+
+            previewCanceller?.Cancel();
+            if (previewContext != null)
+            {
+                await previewContext.WaitForCompletionAsync();
+            }
+
+            previewCanceller?.Dispose();
+        }
+
+        private void DisposePreview()
+        {
+            var previewCanceller = _previewCanceller;
+            var previewContext = _previewContext;
+
+            _previewCanceller = null;
+            _previewContext = null;
+            _currentSong = null;
+
+            previewCanceller?.Cancel();
+            previewContext?.Dispose();
+            previewCanceller?.Dispose();
         }
 
         private void EnterPlaylistSelectFromLibrary()
@@ -712,11 +753,23 @@ namespace YARG.Menu.MusicLibrary
                 return;
             }
 
-            var context = await PreviewContext.Create(_currentSong, previewVolume, GlobalVariables.State.SongSpeed,
-                delay, FADE_DURATION, canceller);
+            var context = await PreviewContext.Create(
+                _currentSong,
+                previewVolume,
+                GlobalVariables.State.SongSpeed,
+                delay,
+                FADE_DURATION,
+                canceller.Token);
             if (context != null)
             {
-                _previewContext = context;
+                if (_previewCanceller == canceller && !canceller.IsCancellationRequested)
+                {
+                    _previewContext = context;
+                }
+                else
+                {
+                    context.Dispose();
+                }
             }
         }
 
@@ -744,8 +797,7 @@ namespace YARG.Menu.MusicLibrary
 
             Navigator.Instance.PopScheme();
 
-            _previewCanceller?.Cancel();
-            _previewContext?.Stop();
+            StopPreview();
             _searchField.OnSearchQueryUpdated -= UpdateSearch;
 
             PlayerContainer.PlayerAdded -= OnPlayerAdded;
@@ -754,8 +806,7 @@ namespace YARG.Menu.MusicLibrary
 
         private void OnDestroy()
         {
-            _previewCanceller?.Cancel();
-            _previewContext?.Dispose();
+            DisposePreview();
             _reloadState = MusicLibraryReloadState.Partial;
             StemSettings.ApplySettings = true;
         }
@@ -926,7 +977,7 @@ namespace YARG.Menu.MusicLibrary
             var offset = SelectedIndex - _sectionHeaderIndices[headerIndex];
             return (headerIndex, offset);
         }
-		
+
         public void RefreshAndReselect(bool selectTopOfList = false, bool preserveSelectedIndex = false)
         {
             int preservedIndex = SelectedIndex;
@@ -1167,11 +1218,10 @@ namespace YARG.Menu.MusicLibrary
         public async void RefreshSongs()
         {
             // Stop any library preview audio so the loading screen doesn't inherit it
-            _previewCanceller?.Cancel();
-            _previewContext?.Stop();
-            _previewContext = null;
+            await StopPreviewAsync();
 
             SetSidebarDifficultiesVisible(false);
+            _sidebar.gameObject.SetActive(false);
             using var context = new LoadingContext();
             try
             {
@@ -1181,7 +1231,8 @@ namespace YARG.Menu.MusicLibrary
             finally
             {
                 // Ensure difficulty rings are restored even if the scan fails or is canceled
-                SetSidebarDifficultiesVisible(true);
+                _sidebar.gameObject.SetActive(true);
+                _sidebar.UpdateSidebar(true);
             }
         }
 

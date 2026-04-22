@@ -27,7 +27,8 @@ namespace YARG.Themes
         White     = 11,
         Black     = 12,
         Glissando = 13,
-        // BlackGlissando (reserved)
+
+        Wildcard = 14,
 
         DedicatedLaneKick = 15
     }

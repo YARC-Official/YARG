@@ -18,9 +18,9 @@ namespace YARG.Gameplay.Visuals
 
             var noteGroups = IsStarPowerVisible ? StarPowerNoteGroups : NoteGroups;
 
-            if (NoteRef.Pad != 0)
+            if (NoteRef.Pad != 0 && NoteRef.Pad != (int) FourLaneDrumPad.Wildcard)
             {
-                // Deal with non-kick notes
+                // Deal with non-kick/wildcard notes
                 var position = Player.GetHighwayOrderingInfo(NoteRef.Pad).Position;
 
                 bool isCymbal = NoteRef.Pad >= (int) FourLaneDrumPad.YellowCymbal;
@@ -31,7 +31,7 @@ namespace YARG.Gameplay.Visuals
                 // Get which note model to use
                 NoteGroup = noteGroups[GetNoteGroup(isCymbal)];
             }
-            else if (Player.NumberOfDedicatedKickLanes > 0)
+            else if (NoteRef.Pad == 0 && Player.NumberOfDedicatedKickLanes > 0)
             {
                 // Deal with dedicated-lane kick notes
                 int highwayIndex;
@@ -52,9 +52,10 @@ namespace YARG.Gameplay.Visuals
             }
             else
             {
-                // Deal with regular kick notes
+                // Deal with wildcard and regular kick notes
+                var groupIndex = NoteRef.Pad == 0 ? (int)NoteType.Kick : (int)NoteType.Wildcard;
                 transform.localPosition = Vector3.zero;
-                NoteGroup = noteGroups[(int) NoteType.Kick];
+                NoteGroup = noteGroups[groupIndex];
             }
 
             // Show and set material properties

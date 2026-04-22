@@ -10,6 +10,7 @@ namespace YARG.Helpers.Extensions
         {
             return diff switch
             {
+                Difficulty.Beginner   => 'B',
                 Difficulty.Easy       => 'E',
                 Difficulty.Medium     => 'M',
                 Difficulty.Hard       => 'H',
@@ -24,6 +25,7 @@ namespace YARG.Helpers.Extensions
         {
             return diff switch
             {
+                'B' => Difficulty.Beginner,
                 'E' => Difficulty.Easy,
                 'M' => Difficulty.Medium,
                 'H' => Difficulty.Hard,
@@ -38,6 +40,7 @@ namespace YARG.Helpers.Extensions
         {
             return difficulty switch
             {
+                Difficulty.Beginner   => "Beginner",
                 Difficulty.Easy       => "Easy",
                 Difficulty.Medium     => "Medium",
                 Difficulty.Hard       => "Hard",
@@ -58,9 +61,10 @@ namespace YARG.Helpers.Extensions
             {
                 return 1f;
             }
-            
+
             return difficulty switch
             {
+                Difficulty.Beginner   => 0.421875f, // TODO: Consider making this different from Easy
                 Difficulty.Easy       => 0.421875f,
                 Difficulty.Medium     => 0.5625f,
                 Difficulty.Hard       => 0.75f,

@@ -79,6 +79,8 @@ namespace YARG.Gameplay.HUD
         private bool _easterEggTriggered;
         private bool _vocalsOnly;
         private bool _singlePlayer;
+        private int _displayedCountUpSeconds = -1;
+        private int _displayedCountDownSeconds = -1;
 
         private Tween _multiplierShowTweener;
 
@@ -104,6 +106,8 @@ namespace YARG.Gameplay.HUD
             _scoreText.text = SCORE_PREFIX + "0";
             _bandComboText.text = SCORE_PREFIX + "0";
             _songTimer.text = string.Empty;
+            _displayedCountUpSeconds = -1;
+            _displayedCountDownSeconds = -1;
 
             _songProgressBar.SetProgress(0f);
         }
@@ -178,12 +182,21 @@ namespace YARG.Gameplay.HUD
             }
 
             // Skip if the song length has not been established yet, or if disabled
-            if (_songLengthTime == null) return;
+            if (_songLengthTime == null)
+            {
+                return;
+            }
 
-            var countUp = TimeSpan.FromSeconds(time);
-            var countDown = TimeSpan.FromSeconds(length - time);
-
-            _songTimer.SetTextFormat(_timeFormat, countUp, countDown, _songLengthTime);
+            var countUpSeconds = (int) time;
+            var countDownSeconds = (int) (length - time);
+            if (countUpSeconds != _displayedCountUpSeconds || countDownSeconds != _displayedCountDownSeconds)
+            {
+                var countUp = TimeSpan.FromSeconds(countUpSeconds);
+                var countDown = TimeSpan.FromSeconds(countDownSeconds);
+                _songTimer.SetTextFormat(_timeFormat, countUp, countDown, _songLengthTime);
+                _displayedCountUpSeconds = countUpSeconds;
+                _displayedCountDownSeconds = countDownSeconds;
+            }
         }
 
         private void UpdateBandMultiplier()

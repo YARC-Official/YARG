@@ -2,8 +2,6 @@ using System;
 using System.Collections.Generic;
 using PlasticBand.Haptics;
 using YARG.Core.Chart;
-using YARG.Gameplay;
-using Object = UnityEngine.Object;
 
 namespace YARG.Integration.StageKit
 {
@@ -802,7 +800,6 @@ namespace YARG.Integration.StageKit
 
     public class Dischord : StageKitLightingCue
     {
-        private GameManager _gameManager;
         private float _currentPitch;
         private bool _greenIsSpinning;
         private bool _blueOnTwo = true;
@@ -862,7 +859,6 @@ namespace YARG.Integration.StageKit
 
         public override void Enable()
         {
-            _gameManager = Object.FindAnyObjectByType<GameManager>();
             StageKitInterpreter.Instance.SetLed(RED, NONE);
             StageKitInterpreter.Instance.SetLed(BLUE, TWO | SIX);
 

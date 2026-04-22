@@ -276,9 +276,7 @@ namespace YARG.Gameplay.Visuals
             {
                 combo = inner.EffectType switch
                 {
-                    // By request of the art department, unison phrases in drum fills are
-                    // rendered as if there was no unison
-                    TrackEffectType.Unison => TrackEffectType.DrumFill,
+                    TrackEffectType.Unison => TrackEffectType.DrumFillAndUnison,
                     _                      => null
                 };
             }

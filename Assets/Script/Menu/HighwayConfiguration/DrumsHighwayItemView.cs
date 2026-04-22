@@ -9,6 +9,7 @@ using UnityEngine.UI;
 using YARG.Core;
 using YARG.Core.Chart;
 using YARG.Core.Game;
+using YARG.Core.Input;
 using YARG.Gameplay.Player;
 using YARG.Gameplay.Visuals;
 using YARG.Helpers;
@@ -17,6 +18,7 @@ using YARG.Localization;
 using YARG.Player;
 using static UnityEditor.Progress;
 using static YARG.Core.Game.ColorProfile;
+using static YARG.Gameplay.Player.DrumsPlayer;
 
 namespace YARG.Menu.HighwayConfiguration
 {
@@ -180,28 +182,28 @@ namespace YARG.Menu.HighwayConfiguration
         }
 
         
-        private static (int pad, int colorIndex) FOUR_LANE_KICK = ((int) FourLaneDrumPad.Kick, (int) FourLaneDrumsFret.Kick);
-        private static (int pad, int colorIndex) FIVE_LANE_KICK = ((int) FiveLaneDrumPad.Kick, (int) FiveLaneDrumsFret.Kick);
+        private static HighwayOrderingElement FOUR_LANE_KICK = new((int) FourLaneDrumPad.Kick, DrumsAction.Kick, (int) FourLaneDrumsFret.Kick);
+        private static HighwayOrderingElement FIVE_LANE_KICK = new((int) FiveLaneDrumPad.Kick, DrumsAction.Kick, (int) FiveLaneDrumsFret.Kick);
 
-        private static (int pad, int colorIndex) FOUR_LANE_DOUBLE_KICK = (DrumsPlayer.DOUBLE_KICK_FRET_INDEX, (int) FourLaneDrumsFret.DoubleKick);
-        private static (int pad, int colorIndex) FIVE_LANE_DOUBLE_KICK = (DrumsPlayer.DOUBLE_KICK_FRET_INDEX, (int) FiveLaneDrumsFret.DoubleKick);
+        private static HighwayOrderingElement FOUR_LANE_DOUBLE_KICK = new(DOUBLE_KICK_FRET_INDEX, DrumsAction.Kick, (int) FourLaneDrumsFret.DoubleKick);
+        private static HighwayOrderingElement FIVE_LANE_DOUBLE_KICK = new(DOUBLE_KICK_FRET_INDEX, DrumsAction.Kick, (int) FiveLaneDrumsFret.DoubleKick);
 
-        private static (int pad, int colorIndex) FOUR_LANE_RED_DRUM = ((int) FourLaneDrumPad.RedDrum, (int) FourLaneDrumsFret.RedDrum);
-        private static (int pad, int colorIndex) FOUR_LANE_YELLOW_DRUM = ((int) FourLaneDrumPad.YellowDrum, (int) FourLaneDrumsFret.YellowDrum);
-        private static (int pad, int colorIndex) FOUR_LANE_BLUE_DRUM = ((int) FourLaneDrumPad.BlueDrum, (int) FourLaneDrumsFret.BlueDrum);
-        private static (int pad, int colorIndex) FOUR_LANE_GREEN_DRUM = ((int) FourLaneDrumPad.GreenDrum, (int) FourLaneDrumsFret.GreenDrum);
-        private static (int pad, int colorIndex) FOUR_LANE_YELLOW_CYMBAL = ((int) FourLaneDrumPad.YellowCymbal, (int) FourLaneDrumsFret.YellowCymbal);
-        private static (int pad, int colorIndex) FOUR_LANE_BLUE_CYMBAL = ((int) FourLaneDrumPad.BlueCymbal, (int) FourLaneDrumsFret.BlueCymbal);
-        private static (int pad, int colorIndex) FOUR_LANE_GREEN_CYMBAL = ((int) FourLaneDrumPad.GreenCymbal, (int) FourLaneDrumsFret.GreenCymbal);
-        
-        private static (int pad, int colorIndex) FIVE_LANE_RED = ((int) FiveLaneDrumPad.Red, (int) FiveLaneDrumsFret.Red);
-        private static (int pad, int colorIndex) FIVE_LANE_YELLOW = ((int) FiveLaneDrumPad.Yellow, (int) FiveLaneDrumsFret.Yellow);
-        private static (int pad, int colorIndex) FIVE_LANE_BLUE = ((int) FiveLaneDrumPad.Blue, (int) FiveLaneDrumsFret.Blue);
-        private static (int pad, int colorIndex) FIVE_LANE_ORANGE = ((int) FiveLaneDrumPad.Orange, (int) FiveLaneDrumsFret.Orange);
-        private static (int pad, int colorIndex) FIVE_LANE_GREEN = ((int) FiveLaneDrumPad.Green, (int) FiveLaneDrumsFret.Green);
+        private static HighwayOrderingElement FOUR_LANE_RED_DRUM = new((int) FourLaneDrumPad.RedDrum, DrumsAction.RedDrum, (int) FourLaneDrumsFret.RedDrum);
+        private static HighwayOrderingElement FOUR_LANE_YELLOW_DRUM = new((int) FourLaneDrumPad.YellowDrum, DrumsAction.YellowDrum, (int) FourLaneDrumsFret.YellowDrum);
+        private static HighwayOrderingElement FOUR_LANE_BLUE_DRUM = new((int) FourLaneDrumPad.BlueDrum, DrumsAction.BlueDrum, (int) FourLaneDrumsFret.BlueDrum);
+        private static HighwayOrderingElement FOUR_LANE_GREEN_DRUM = new((int) FourLaneDrumPad.GreenDrum, DrumsAction.GreenDrum, (int) FourLaneDrumsFret.GreenDrum);
+        private static HighwayOrderingElement FOUR_LANE_YELLOW_CYMBAL = new((int) FourLaneDrumPad.YellowCymbal, DrumsAction.YellowCymbal, (int) FourLaneDrumsFret.YellowCymbal);
+        private static HighwayOrderingElement FOUR_LANE_BLUE_CYMBAL = new((int) FourLaneDrumPad.BlueCymbal, DrumsAction.BlueCymbal, (int) FourLaneDrumsFret.BlueCymbal);
+        private static HighwayOrderingElement FOUR_LANE_GREEN_CYMBAL = new((int) FourLaneDrumPad.GreenCymbal, DrumsAction.GreenCymbal, (int) FourLaneDrumsFret.GreenCymbal);
+
+        private static HighwayOrderingElement FIVE_LANE_RED = new((int) FiveLaneDrumPad.Red, DrumsAction.RedDrum, (int) FiveLaneDrumsFret.Red);
+        private static HighwayOrderingElement FIVE_LANE_YELLOW = new((int) FiveLaneDrumPad.Yellow, DrumsAction.YellowCymbal, (int) FiveLaneDrumsFret.Yellow);
+        private static HighwayOrderingElement FIVE_LANE_BLUE = new((int) FiveLaneDrumPad.Blue, DrumsAction.BlueDrum, (int) FiveLaneDrumsFret.Blue);
+        private static HighwayOrderingElement FIVE_LANE_ORANGE = new((int) FiveLaneDrumPad.Orange, DrumsAction.OrangeCymbal, (int) FiveLaneDrumsFret.Orange);
+        private static HighwayOrderingElement FIVE_LANE_GREEN = new((int) FiveLaneDrumPad.Green, DrumsAction.GreenDrum, (int) FiveLaneDrumsFret.Green);
 
 
-        public static List<(int pad, int colorIndex)> GetHighwayOrderingInfo(DrumsHighwayItem item, Instrument instrument)
+        public static HighwayOrderingInfo GetHighwayOrderingInfo(DrumsHighwayItem item, Instrument instrument)
         {
             return instrument switch {
                 Instrument.FourLaneDrums or Instrument.ProDrums => GetFourLaneHighwayOrderingInfo(item),
@@ -210,48 +212,74 @@ namespace YARG.Menu.HighwayConfiguration
             };
         }
 
-        private static List<(int pad, int colorIndex)> GetFourLaneHighwayOrderingInfo(DrumsHighwayItem item)
+        private static HighwayOrderingInfo GetFourLaneHighwayOrderingInfo(DrumsHighwayItem item)
         {
             return item switch {
-                DrumsHighwayItem.Kick               => new() { FOUR_LANE_KICK, FOUR_LANE_DOUBLE_KICK },
-                DrumsHighwayItem.Kick1x             => new() { FOUR_LANE_KICK },
-                DrumsHighwayItem.Kick2x             => new() { FOUR_LANE_DOUBLE_KICK },
-                DrumsHighwayItem.Kick2xConditional  => new() { FOUR_LANE_DOUBLE_KICK },
+                DrumsHighwayItem.Kick               => new(new() { FOUR_LANE_KICK, FOUR_LANE_DOUBLE_KICK }, DrumsBreLaneIndex.Kick ),
+                DrumsHighwayItem.Kick1x             => new(new() { FOUR_LANE_KICK }, DrumsBreLaneIndex.Kick),
+                DrumsHighwayItem.Kick2x             => new(new() { FOUR_LANE_DOUBLE_KICK }, DrumsBreLaneIndex.Kick ),
+                DrumsHighwayItem.Kick2xConditional  => new(new() { FOUR_LANE_DOUBLE_KICK }, DrumsBreLaneIndex.Kick),
 
-                DrumsHighwayItem.Red                => new() { FOUR_LANE_RED_DRUM },
+                DrumsHighwayItem.Red                => new(new() { FOUR_LANE_RED_DRUM }, DrumsBreLaneIndex.Red),
 
-                DrumsHighwayItem.Yellow             => new() { FOUR_LANE_YELLOW_DRUM, FOUR_LANE_YELLOW_CYMBAL },
-                DrumsHighwayItem.YellowCymbal       => new() { FOUR_LANE_YELLOW_CYMBAL },
-                DrumsHighwayItem.YellowDrum         => new() { FOUR_LANE_YELLOW_DRUM },
+                DrumsHighwayItem.Yellow             => new(new() { FOUR_LANE_YELLOW_DRUM, FOUR_LANE_YELLOW_CYMBAL }, DrumsBreLaneIndex.Yellow ),
+                DrumsHighwayItem.YellowCymbal       => new(new() { FOUR_LANE_YELLOW_CYMBAL }, DrumsBreLaneIndex.YellowCymbal ),
+                DrumsHighwayItem.YellowDrum         => new(new() { FOUR_LANE_YELLOW_DRUM }, DrumsBreLaneIndex.YellowDrum ),
 
-                DrumsHighwayItem.Blue               => new() { FOUR_LANE_BLUE_DRUM, FOUR_LANE_BLUE_CYMBAL },
-                DrumsHighwayItem.BlueCymbal         => new() { FOUR_LANE_BLUE_CYMBAL },
-                DrumsHighwayItem.BlueDrum           => new() { FOUR_LANE_BLUE_DRUM },
+                DrumsHighwayItem.Blue               => new(new() { FOUR_LANE_BLUE_DRUM, FOUR_LANE_BLUE_CYMBAL }, DrumsBreLaneIndex.Blue ),
+                DrumsHighwayItem.BlueCymbal         => new(new() { FOUR_LANE_BLUE_CYMBAL }, DrumsBreLaneIndex.BlueCymbal ),
+                DrumsHighwayItem.BlueDrum           => new(new() { FOUR_LANE_BLUE_DRUM }, DrumsBreLaneIndex.BlueDrum),
 
-                DrumsHighwayItem.Green              => new() { FOUR_LANE_GREEN_DRUM, FOUR_LANE_GREEN_CYMBAL },
-                DrumsHighwayItem.GreenDrum          => new() { FOUR_LANE_GREEN_DRUM },
-                DrumsHighwayItem.GreenCymbal        => new() { FOUR_LANE_GREEN_CYMBAL },
+                DrumsHighwayItem.Green              => new(new() { FOUR_LANE_GREEN_DRUM, FOUR_LANE_GREEN_CYMBAL }, DrumsBreLaneIndex.Green),
+                DrumsHighwayItem.GreenDrum          => new(new() { FOUR_LANE_GREEN_DRUM }, DrumsBreLaneIndex.GreenCymbal),
+                DrumsHighwayItem.GreenCymbal        => new(new() { FOUR_LANE_GREEN_CYMBAL }, DrumsBreLaneIndex.GreenDrum),
 
-                _ => new() { ((int) item, (int) item) }
+                _ => new(new() { new((int) item, (DrumsAction) item, (int) item) }, 0)
             };
         }
 
-        private static List<(int pad, int colorIndex)> GetFiveLaneHighwayOrderingInfo(DrumsHighwayItem item)
+        private static HighwayOrderingInfo GetFiveLaneHighwayOrderingInfo(DrumsHighwayItem item)
         {
             return item switch {
-                DrumsHighwayItem.Kick               => new() { FIVE_LANE_KICK, FIVE_LANE_DOUBLE_KICK },
-                DrumsHighwayItem.Kick1x             => new() { FIVE_LANE_KICK },
-                DrumsHighwayItem.Kick2x             => new() { FIVE_LANE_DOUBLE_KICK },
-                DrumsHighwayItem.Kick2xConditional  => new() { FIVE_LANE_DOUBLE_KICK },
+                DrumsHighwayItem.Kick               => new(new() { FIVE_LANE_KICK, FIVE_LANE_DOUBLE_KICK }, DrumsBreLaneIndex.Kick),
+                DrumsHighwayItem.Kick1x             => new(new() { FIVE_LANE_KICK }, DrumsBreLaneIndex.Kick),
+                DrumsHighwayItem.Kick2x             => new(new() { FIVE_LANE_DOUBLE_KICK }, DrumsBreLaneIndex.Kick),
+                DrumsHighwayItem.Kick2xConditional  => new(new() { FIVE_LANE_DOUBLE_KICK }, DrumsBreLaneIndex.Kick),
 
-                DrumsHighwayItem.Red                => new() { FIVE_LANE_RED },
-                DrumsHighwayItem.Yellow             => new() { FIVE_LANE_YELLOW },
-                DrumsHighwayItem.Blue               => new() { FIVE_LANE_BLUE },
-                DrumsHighwayItem.Orange             => new() { FIVE_LANE_ORANGE },
-                DrumsHighwayItem.Green              => new() { FIVE_LANE_GREEN },
+                DrumsHighwayItem.Red                => new(new() { FIVE_LANE_RED }, DrumsBreLaneIndex.Red),
+                DrumsHighwayItem.Yellow             => new(new() { FIVE_LANE_YELLOW }, DrumsBreLaneIndex.Yellow),
+                DrumsHighwayItem.Blue               => new(new() { FIVE_LANE_BLUE }, DrumsBreLaneIndex.Blue),
+                DrumsHighwayItem.Orange             => new(new() { FIVE_LANE_ORANGE }, DrumsBreLaneIndex.Orange),
+                DrumsHighwayItem.Green              => new(new() { FIVE_LANE_GREEN }, DrumsBreLaneIndex.Green),
 
-                _ => new() { ((int)item, (int)item) }
+                _ => new(new() { new((int) item, (DrumsAction) item, (int) item) }, 0)
             };
+        }
+
+        public struct HighwayOrderingInfo
+        {
+            public HighwayOrderingInfo(List<HighwayOrderingElement> elements, DrumsBreLaneIndex breLaneIndex)
+            {
+                Elements = elements;
+                BreLaneIndex = breLaneIndex;
+            }
+
+            public List<HighwayOrderingElement> Elements{ get; set; }
+            public DrumsBreLaneIndex BreLaneIndex { get; set; }
+        }
+
+        public struct HighwayOrderingElement
+        {
+            public HighwayOrderingElement(int pad, DrumsAction action, int colorIndex)
+            {
+                Pad = pad;
+                Action = action;
+                ColorIndex = colorIndex;
+            }
+
+            public int Pad { get; set; }
+            public DrumsAction Action {get; set;}
+            public int ColorIndex {get; set;}
         }
     }
 }

@@ -15,14 +15,15 @@ namespace YARG.Gameplay.Visuals
 
         protected enum NoteType
         {
-            Normal            = 0,
-            Cymbal            = 1,
-            Kick              = 2,
-            Accent            = 3,
-            Ghost             = 4,
-            CymbalAccent      = 5,
-            CymbalGhost       = 6,
-            DedicatedLaneKick = 7,
+            Normal        = 0,
+            Cymbal        = 1,
+            Kick          = 2,
+            Accent        = 3,
+            Ghost         = 4,
+            CymbalAccent  = 5,
+            CymbalGhost   = 6,
+            Wildcard      = 7,
+            DedicatedLaneKick = 8,
 
             Count
         }
@@ -33,14 +34,15 @@ namespace YARG.Gameplay.Visuals
         {
             CreateNoteGroupArrays((int) NoteType.Count);
 
-            AssignNoteGroup(models, starpowerModels, (int) NoteType.Normal,             ThemeNoteType.Normal);
-            AssignNoteGroup(models, starpowerModels, (int) NoteType.Cymbal,             ThemeNoteType.Cymbal);
-            AssignNoteGroup(models, starpowerModels, (int) NoteType.Kick,               ThemeNoteType.Kick);
-            AssignNoteGroup(models, starpowerModels, (int) NoteType.Accent,             ThemeNoteType.Accent);
-            AssignNoteGroup(models, starpowerModels, (int) NoteType.Ghost,              ThemeNoteType.Ghost);
-            AssignNoteGroup(models, starpowerModels, (int) NoteType.CymbalAccent,       ThemeNoteType.CymbalAccent);
-            AssignNoteGroup(models, starpowerModels, (int) NoteType.CymbalGhost,        ThemeNoteType.CymbalGhost);
-            AssignNoteGroup(models, starpowerModels, (int) NoteType.DedicatedLaneKick,  ThemeNoteType.DedicatedLaneKick);
+            AssignNoteGroup(models, starpowerModels, (int) NoteType.Normal,         ThemeNoteType.Normal);
+            AssignNoteGroup(models, starpowerModels, (int) NoteType.Cymbal,         ThemeNoteType.Cymbal);
+            AssignNoteGroup(models, starpowerModels, (int) NoteType.Kick,           ThemeNoteType.Kick);
+            AssignNoteGroup(models, starpowerModels, (int) NoteType.Accent,         ThemeNoteType.Accent);
+            AssignNoteGroup(models, starpowerModels, (int) NoteType.Ghost,          ThemeNoteType.Ghost);
+            AssignNoteGroup(models, starpowerModels, (int) NoteType.CymbalAccent,   ThemeNoteType.CymbalAccent);
+            AssignNoteGroup(models, starpowerModels, (int) NoteType.CymbalGhost,    ThemeNoteType.CymbalGhost);
+            AssignNoteGroup(models, starpowerModels, (int) NoteType.Wildcard,       ThemeNoteType.Wildcard);
+            AssignNoteGroup(models, starpowerModels, (int)NoteType.DedicatedLaneKick, ThemeNoteType.DedicatedLaneKick);
         }
 
         public override void HitNote()
@@ -85,7 +87,7 @@ namespace YARG.Gameplay.Visuals
 
             _scalingFactor ??= new Vector3(Player.NoteScaleFactor, Player.NoteScaleFactor, Player.NoteScaleFactor);
 
-            if (NoteRef.Pad != 0 || Player.NumberOfDedicatedKickLanes > 0)
+            if ((NoteRef.Pad != 0 || Player.NumberOfDedicatedKickLanes > 0) && NoteRef.Pad != (int)FourLaneDrumPad.Wildcard)
             {
                 gameObject.transform.localScale = Vector3.Scale(transform.localScale, _scalingFactor.Value);
             }

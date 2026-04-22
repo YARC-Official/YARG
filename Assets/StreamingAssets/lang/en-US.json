@@ -10,6 +10,7 @@
     },
     "Enum": {
         "Difficulty": {
+            "Beginner": "Beginner",
             "Easy": "Easy",
             "Hard": "Hard",
             "Expert": "Expert",
@@ -216,6 +217,7 @@
         "Toast": {
             "AutoCalibrationScore": "Score saving disabled: Automatic calibration active.",
             "NoFailScore": "Score saving disabled: No fail toggle had to reset fail meter.",
+            "ResumeAfterFailInvalidate": "Score saving disabled: Resuming after failure invalidated score.",
             "ProfileCreated": "Profile created for new device: {0}\nTime to do some YARGin!",
             "TooManyPauses": "Score saving disabled: Too many pauses.",
             "UnsupportedDevice": "Automatic profile creation is not supported for {0}!"
@@ -307,9 +309,11 @@
                 "Singular": "RECOMMENDED SONG",
                 "Plural": "RECOMMENDED SONGS"
             },
+            "RecommendedSongsHelp": "Refresh List of Recommended Songs",
             "PlayableSongs": "PLAYABLE SONGS",
             "RandomSong": "RANDOM SONG",
             "Playlists": "PLAYLIST MANAGER",
+            "PlaylistsHelp": "Create, View, and Edit Custom Playlists",
             "Favorites": "Favorites",
             "YourPlaylists": "YOUR PLAYLISTS",
             "Popup": {
@@ -1219,6 +1223,17 @@
                 "PauseName": "Master",
                 "Description": "Adjusts the song's volume as a whole."
             },
+            "MaxSongRating": {
+                "Name": "Maximum Song Rating",
+                "Description": "Hide any song with a rating higher than the specified value. Note that this is a best-effort filter that does not apply to the Playlist Manager. Custom songs may not be rated correctly.",
+                "Dropdown": {
+                    "Family_Friendly": "Family Friendly",
+                    "Supervision_Recommended": "Supervision Recommended",
+                    "Mature": "Mature",
+                    "Sensitive_Content": "Sensitive Content",
+                    "None": "None"
+                }
+            },
             "MetronomeVolume": {
                 "Name": "Metronome Volume",
                 "PauseName": "Metronome",
@@ -1270,9 +1285,14 @@
                 "Name": "No Kicks",
                 "Description": "Removes all kick notes (drums only)."
             },
-            "NoFailMode": {
+            "NoFail": {
                 "Name": "No Fail Mode",
-                "Description": "Disables ending a song early when crowd happiness is too low."
+                "Description": "Disables ending a song early when crowd happiness is too low.",
+                "Dropdown": {
+                    "Off": "Off",
+                    "On": "On",
+                    "NoMeter": "On + No Meter"
+                }
             },
             "NoteStreakFrequency": {
                 "Name": "Note Streak Frequency",
@@ -2063,9 +2083,9 @@
                     "Name": "Hit Window Ratio",
                     "Description": "The hit window's front to back ratio. \"0\" will bring the hit window fully backwards, \"1\" will keep it in the center, and \"2\" will move it to the front."
                 },
-                "TremoloFrontEndPercent": {
+                "TremoloWindow": {
                     "Name": "Tremolo Hit Window",
-                    "Description": "This determines how many notes can be hit with a single input during a tremolo or trill phrase. Calculated as a percentage of the current hit window frontend."
+                    "Description": "This determines the frequency of lane inputs required to maintain lane behavior."
                 },
                 "HitPercentE": {
                     "Name": "Hit Percent (Easy)",

@@ -13,6 +13,12 @@ using YARG.Settings;
 
 namespace YARG.Gameplay.HUD
 {
+    public enum NoFailMode
+    {
+        Off,
+        On,
+        NoMeter
+    }
     public class FailMeter : MonoBehaviour
     {
         [SerializeField]
@@ -51,7 +57,7 @@ namespace YARG.Gameplay.HUD
 
         private void Awake()
         {
-            if (SettingsManager.Settings.NoFailMode.Value)
+            if (SettingsManager.Settings.NoFail.Value == NoFailMode.NoMeter)
             {
                 _meterContainer.transform.position = new Vector3(
                     _meterContainer.transform.position.x,
@@ -188,10 +194,12 @@ namespace YARG.Gameplay.HUD
                 }
 
                 // The extra SPRITE_INITIAL_OFFSET is to get the whole group a bit farther from the meter itself
-                var xOffset =  SPRITE_INITIAL_OFFSET + (SPRITE_OVERLAP_OFFSET * overlap);
-                _xPosVectors[i].x = xOffset;
-
-                _xposTweeners[i].ChangeEndValue(_xPosVectors[i], 0.125f, true).Play();
+                var xOffset = SPRITE_INITIAL_OFFSET + (SPRITE_OVERLAP_OFFSET * overlap);
+                if (!Mathf.Approximately(_xPosVectors[i].x, xOffset))
+                {
+                    _xPosVectors[i].x = xOffset;
+                    _xposTweeners[i].ChangeEndValue(_xPosVectors[i], 0.125f, true).Play();
+                }
 
                 // This we can not do if the current player's happiness hasn't changed
                 if (_previousPlayerHappiness[i] != _players[i].Happiness)
