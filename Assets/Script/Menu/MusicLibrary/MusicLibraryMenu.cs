@@ -135,14 +135,7 @@ namespace YARG.Menu.MusicLibrary
             // Fill in sort information
             UpdateSortInformationHeader();
 
-            // This should go in its own method
-            foreach (SortAttribute attribute in Enum.GetValues(typeof(SortAttribute)))
-            {
-                if (!_collapsedHeaders.ContainsKey(attribute))
-                {
-                    _collapsedHeaders.Add(attribute, new HashSet<SongCategory>(_comparer));
-                }
-            }
+            InitializeCollapsedHeaderSets();
         }
 
         protected override void OnEnable()
@@ -499,6 +492,7 @@ namespace YARG.Menu.MusicLibrary
 
             foreach (var (section, index) in _sortedSongs.Select((s, i) => (s, i)))
             {
+                var collapseTarget = GetCollapseTarget(index, section);
                 var displayName = section.Category;
                 if (SettingsManager.Settings.LibrarySort == SortAttribute.Source)
                 {
@@ -529,14 +523,13 @@ namespace YARG.Menu.MusicLibrary
                     {
                         onHeaderClicked = () =>
                         {
-                            var category = _sortedSongs[index];
-                            if (_collapsedHeaders[SettingsManager.Settings.LibrarySort].Contains(category))
+                            if (_collapsedHeaders[SettingsManager.Settings.LibrarySort].Contains(collapseTarget))
                             {
-                                _collapsedHeaders[SettingsManager.Settings.LibrarySort].Remove(category);
+                                _collapsedHeaders[SettingsManager.Settings.LibrarySort].Remove(collapseTarget);
                             }
                             else
                             {
-                                _collapsedHeaders[SettingsManager.Settings.LibrarySort].Add(category);
+                                _collapsedHeaders[SettingsManager.Settings.LibrarySort].Add(collapseTarget);
                             }
 
                             var (headerIndex, offset) = GetClosestHeaderIndexAndOffset();
@@ -556,13 +549,13 @@ namespace YARG.Menu.MusicLibrary
                         section.Songs.Length,
                         section.CategoryGroup,
                         section.Songs,
-                        _collapsedHeaders[SettingsManager.Settings.LibrarySort].Contains(section),
+                        _collapsedHeaders[SettingsManager.Settings.LibrarySort].Contains(collapseTarget),
                         onHeaderClicked);
                     list.Add(sortHeader);
                 }
 
                 int sectionTotalStars = 0;
-                bool includeSongs = _sortedSongs.Length <= 1 || !_collapsedHeaders[SettingsManager.Settings.LibrarySort].Contains(section);
+                bool includeSongs = _sortedSongs.Length <= 1 || !_collapsedHeaders[SettingsManager.Settings.LibrarySort].Contains(collapseTarget);
 
                 foreach (var song in section.Songs)
                 {
@@ -822,6 +815,17 @@ namespace YARG.Menu.MusicLibrary
             StemSettings.ApplySettings = true;
         }
 
+        private void InitializeCollapsedHeaderSets()
+        {
+            foreach (SortAttribute attribute in Enum.GetValues(typeof(SortAttribute)))
+            {
+                if (!_collapsedHeaders.ContainsKey(attribute))
+                {
+                    _collapsedHeaders.Add(attribute, new HashSet<SongCategory>(_comparer));
+                }
+            }
+        }
+
         public void Back()
         {
             if (_searchField.IsSearching)
@@ -964,11 +968,13 @@ namespace YARG.Menu.MusicLibrary
         public void CollapseAll()
         {
             var (headerIndex, offset) = GetClosestHeaderIndexAndOffset();
-            foreach (var cat in _sortedSongs)
+            foreach (var (section, index) in _sortedSongs.Select((s, i) => (s, i)))
             {
-                _collapsedHeaders[SettingsManager.Settings.LibrarySort].Add(cat);
+                _collapsedHeaders[SettingsManager.Settings.LibrarySort].Add(GetCollapseTarget(index, section));
             }
+
             RequestViewListUpdate();
+
             var closestHeader = ViewList[_sectionHeaderIndices[headerIndex]];
             if (closestHeader is SortHeaderViewType sortHeader && sortHeader.Collapsed)
             {

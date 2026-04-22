@@ -42,6 +42,7 @@ namespace YARG.Menu.MusicLibrary
         public bool HasSortHeaders { get; private set; }
 
         private SongCategory[] _sortedSongs;
+        private SongCategory[] _collapsedHeaderTargets;
         private SortAttribute _playlistSort = SortAttribute.Name;
         private bool _playlistSortAscending = true;
         private static readonly Dictionary<SortAttribute, HashSet<SongCategory>> _collapsedHeaders = new();
@@ -112,6 +113,7 @@ namespace YARG.Menu.MusicLibrary
             if (!PlaylistMode)
             {
                 _sortedSongs = _searchField.Search(SettingsManager.Settings.LibrarySort);
+                _collapsedHeaderTargets = _sortedSongs;
                 // _sortedSongs = ApplyCollapsedSectionsForCurrentSort(_sortedSongs);
                 _searchField.gameObject.SetActive(true);
             }
@@ -134,6 +136,7 @@ namespace YARG.Menu.MusicLibrary
                 {
                     new(GetPlaylistDisplayName(SelectedPlaylist), songs[..count], null)
                 };
+                _collapsedHeaderTargets = _sortedSongs;
 
                 _searchField.gameObject.SetActive(false);
             }
@@ -150,9 +153,8 @@ namespace YARG.Menu.MusicLibrary
             bool shouldApplyFilters = inLibrary && predicate != null;
             bool shouldShowFilteredCounts = inLibrary && (_searchField.IsSearching || predicate != null);
 
-            if (shouldApplyFilters) {
-                _sortedSongs = ApplyFilterPredicate(_sortedSongs, predicate);
-            }
+            if (shouldApplyFilters)
+                _sortedSongs = ApplyFilterPredicate(_sortedSongs, predicate, _collapsedHeaderTargets, out _collapsedHeaderTargets);
 
             if (shouldShowFilteredCounts)
             {
@@ -527,13 +529,28 @@ namespace YARG.Menu.MusicLibrary
             return menu != null && menu.gameObject.activeInHierarchy;
         }
 
-        private static SongCategory[] ApplyFilterPredicate(SongCategory[] categories, Func<SongEntry, bool> predicate)
+        private SongCategory GetCollapseTarget(int index, SongCategory fallback)
         {
+            if (_collapsedHeaderTargets != null && (uint) index < (uint) _collapsedHeaderTargets.Length)
+                return _collapsedHeaderTargets[index];
+
+            return fallback;
+        }
+
+        private static SongCategory[] ApplyFilterPredicate(
+            SongCategory[] categories,
+            Func<SongEntry, bool> predicate,
+            SongCategory[] collapseTargets,
+            out SongCategory[] filteredCollapseTargets)
+        {
+            collapseTargets ??= categories;
             var result = new SongCategory[categories.Length];
+            var filteredTargets = new SongCategory[categories.Length];
             int count = 0;
 
-            foreach (var category in categories)
+            for (int i = 0; i < categories.Length; i++)
             {
+                var category = categories[i];
                 var songs = category.Songs.Where(predicate).ToArray();
                 if (songs.Length > 0)
                 {
@@ -542,9 +559,13 @@ namespace YARG.Menu.MusicLibrary
                         songs,
                         category.CategoryGroup,
                         category.Collapsed);
+                    filteredTargets[count - 1] = (uint) i < (uint) collapseTargets.Length
+                        ? collapseTargets[i]
+                        : category;
                 }
             }
 
+            filteredCollapseTargets = filteredTargets[..count];
             return result[..count];
         }
 
@@ -559,7 +580,7 @@ namespace YARG.Menu.MusicLibrary
 
             public override int GetHashCode(SongCategory obj)
             {
-                return HashCode.Combine(obj.Category, obj.CategoryGroup, obj.Collapsed);
+                return HashCode.Combine(obj.Category, obj.CategoryGroup, obj.Songs);
             }
         }
     }
