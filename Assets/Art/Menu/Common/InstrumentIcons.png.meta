@@ -465,8 +465,8 @@ TextureImporter:
       name: guitar6
       rect:
         serializedVersion: 2
-        x: 0
-        y: 2048
+        x: 2048
+        y: 1536
         width: 512
         height: 512
       alignment: 0
@@ -487,8 +487,8 @@ TextureImporter:
       name: bass6
       rect:
         serializedVersion: 2
-        x: 512
-        y: 2048
+        x: 2048
+        y: 1536
         width: 512
         height: 512
       alignment: 0
@@ -509,8 +509,8 @@ TextureImporter:
       name: rhythm6
       rect:
         serializedVersion: 2
-        x: 1024
-        y: 2048
+        x: 2048
+        y: 0
         width: 512
         height: 512
       alignment: 0
@@ -531,8 +531,8 @@ TextureImporter:
       name: coop6
       rect:
         serializedVersion: 2
-        x: 1536
-        y: 2048
+        x: 2048
+        y: 512
         width: 512
         height: 512
       alignment: 0

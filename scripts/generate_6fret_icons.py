@@ -1,172 +1,163 @@
 #!/usr/bin/env python3
-"""Generate 6-fret instrument icon sprites for the YARG sprite sheet.
+"""Add 6-fret guitar icons to InstrumentIcons sprite sheets.
 
-Takes the existing InstrumentIcons.png sprite sheet, extracts the 5-fret
-icons (guitar, bass, rhythm, guitarCoop), adds a "6" badge in the corner,
-and creates an expanded sprite sheet with the new icons.
+Adds a new column at x=2048 with guitar6, bass6, rhythm6, coop6 icons.
+All existing icon coordinates remain unchanged.
 
-Sprite sheet layout (5x4 grid, 512x512 each):
-Row 0 (y=2048): guitar6, bass6, rhythm6, coop6
-Row 1 (y=1536): bass, guitar, drums, keys
-Row 2 (y=1024): realBass, realGuitar, realDrums, realKeys
-Row 3 (y=512):  vocals, harmVocals, ghDrums, guitarCoop
-Row 4 (y=0):    rhythm, band, eliteDrums, twoVocals
+Source icons:
+  guitar  -> guitar6  (from 512,1536)
+  bass    -> bass6    (from 0,1536)
+  rhythm  -> rhythm6  (from 0,0)
+  guitarCoop -> coop6 (from 1536,512)
+
+New column positions (x=2048):
+  guitar6  at (2048, 1536)
+  bass6    at (2048, 1536)
+  rhythm6  at (2048, 0)
+  coop6    at (2048, 512)
 """
 
 from PIL import Image, ImageDraw, ImageFont
 import os
+import re
+import hashlib
 
-# Sprite dimensions
-CELL_SIZE = 512
-OLD_WIDTH = 2048
-OLD_HEIGHT = 2048
-
-# New sprite sheet: add 4 rows -> 5 rows total (2048x2560)
-NEW_WIDTH = OLD_WIDTH
-NEW_HEIGHT = OLD_HEIGHT + CELL_SIZE  # 2560
-
-# Source icon positions in the original 4x4 sheet (x, y)
-# Row 0 (y=1536): bass(0), guitar(512), drums(1024), keys(1536)
-# Row 2 (y=512): vocals(0), harmVocals(512), ghDrums(1024), guitarCoop(1536)
-# Row 3 (y=0):   rhythm(0), band(512), eliteDrums(1024), twoVocals(1536)
 SOURCE_ICONS = {
-    "guitar":     (512, 1536),
-    "bass":       (0, 1536),
-    "rhythm":     (0, 0),
-    "guitarCoop": (1536, 512),
+    "guitar6":    ("guitar",     512, 1536),
+    "bass6":      ("bass",       0,   1536),
+    "rhythm6":    ("rhythm",     0,   0),
+    "coop6":      ("guitarCoop", 1536, 512),
 }
 
-# New icon positions in the expanded sheet (top row = row 0, y=2048)
-NEW_ICONS = {
-    "guitar6":    (0, 2048),
-    "bass6":      (512, 2048),
-    "rhythm6":    (1024, 2048),
-    "coop6":      (1536, 2048),
-}
+NEW_COL_X = 2048
+NEW_WIDTH = 2560
+NEW_HEIGHT = 2048
+CELL_SIZE = 512
 
-def create_badge(draw, font_size=180, font=None):
-    """Draw a small circular badge with '6' in the top-right corner."""
-    badge_radius = font_size // 2 + 20
-    badge_center_x = CELL_SIZE - badge_radius - 30
-    badge_center_y = badge_radius + 30
-    badge_x0 = badge_center_x - badge_radius
-    badge_y0 = badge_center_y - badge_radius
-    badge_x1 = badge_center_x + badge_radius
-    badge_y1 = badge_center_y + badge_radius
-    
-    # Draw circle background
-    draw.ellipse(
-        [badge_x0, badge_y0, badge_x1, badge_y1],
-        fill=(0, 0, 0, 180),
-        outline=(255, 255, 255, 255),
-        width=6
-    )
-    
-    # Draw "6" text
-    text_pos = (badge_center_x - font_size // 2, badge_center_y - font_size // 2)
-    draw.text(text_pos, "6", fill=(255, 255, 255, 255), font=font)
 
-def generate_icons():
-    """Generate the expanded sprite sheet with 6-fret icons."""
-    print(f"Loading sprite sheet: {OLD_WIDTH}x{OLD_HEIGHT}")
-    sheet = Image.open("Assets/Art/Menu/Common/InstrumentIcons.png")
-    
-    # Create new expanded sheet
-    new_sheet = Image.new("RGBA", (NEW_WIDTH, NEW_HEIGHT), (0, 0, 0, 0))
-    
-    # Paste existing sheet at offset (new icons go in top row)
-    new_sheet.paste(sheet, (0, CELL_SIZE))
-    
-    # Try to load a font; fall back to default if not available
-    font = None
-    font_paths = [
-        "/usr/share/fonts/freefont/FreeSansBold.otf",
-        "/usr/share/fonts/freefont/FreeSansBold.ttf",
-        "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
-        "/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf",
-        "/usr/share/fonts/TTF/DejaVuSans-Bold.ttf",
-        "/System/Library/Fonts/Helvetica.ttc",
-        "C:/Windows/Fonts/arialbd.ttf",
-    ]
-    for fp in font_paths:
+def find_font():
+    for fp in ["/usr/share/fonts/freefont/FreeSansBold.otf",
+               "/usr/share/fonts/freefont/FreeSansBold.ttf"]:
         if os.path.exists(fp):
             try:
-                font = ImageFont.truetype(fp, 180)
-                print(f"Using font: {fp}")
-                break
-            except Exception:
-                continue
-    
-    if font is None:
-        print("WARNING: No font found, using default (badge may not render correctly)")
-        font = ImageFont.load_default()
-    
-    # Generate each 6-fret icon
-    mapping = {
-        "guitar6":    "guitar",
-        "bass6":      "bass",
-        "rhythm6":    "rhythm",
-        "coop6":      "guitarCoop",
-    }
-    
-    for new_name, source_name in mapping.items():
-        print(f"Creating {new_name} from {source_name}...")
-        sx, sy = SOURCE_ICONS[source_name]
-        
-        # Extract source icon
-        source = sheet.crop((sx, sy, sx + CELL_SIZE, sy + CELL_SIZE))
-        
-        # Create new icon canvas
-        new_icon = source.copy()
-        draw = ImageDraw.Draw(new_icon)
-        
-        # Add badge
-        create_badge(draw, font=font)
-        
-        # Place in new sheet
-        nx, ny = NEW_ICONS[new_name]
-        new_sheet.paste(new_icon, (nx, ny))
-        
-        # Also save individual icon for reference
-        new_icon.save(f"Assets/Art/Menu/Common/{new_name}_icon.png")
-    
-    # Save expanded sprite sheet
-    output_path = "Assets/Art/Menu/Common/InstrumentIcons.png"
-    new_sheet.save(output_path)
-    print(f"Saved expanded sprite sheet: {NEW_WIDTH}x{NEW_HEIGHT}")
-    
-    # Update the .meta file
-    update_meta_file()
-    
-    print("Done!")
+                return ImageFont.truetype(fp, 180)
+            except:
+                pass
+    return ImageFont.load_default()
 
-def update_meta_file():
-    """Update the .meta file to reflect the new sprite sheet dimensions."""
-    meta_path = "Assets/Art/Menu/Common/InstrumentIcons.png.meta"
-    
-    if not os.path.exists(meta_path):
-        print("WARNING: .meta file not found, skipping update")
-        return
-    
+
+def create_badge(draw, font):
+    r = 110
+    cx, cy = CELL_SIZE - r - 30, r + 30
+    draw.ellipse([cx-r, cy-r, cx+r, cy+r],
+                 fill=(0, 0, 0, 180),
+                 outline=(255, 255, 255, 255),
+                 width=6)
+    draw.text((cx-90, cy-90), "6", fill=(255, 255, 255, 255), font=font)
+
+
+def generate_sheet(orig_path, out_path, meta_path):
+    sheet = Image.open(orig_path)
+    print(f"Loaded {orig_path}: {sheet.size}")
+
+    # Create expanded sheet - paste original at (0,0) to keep all coords intact
+    new_sheet = Image.new("RGBA", (NEW_WIDTH, NEW_HEIGHT), (0, 0, 0, 0))
+    new_sheet.paste(sheet, (0, 0))
+
+    font = find_font()
+
+    # Add 6-fret icons in new column
+    for icon_name, (source_name, sx, sy) in SOURCE_ICONS.items():
+        print(f"  {icon_name} <- {source_name} at ({sx},{sy}) -> ({NEW_COL_X},{sy})")
+        icon = sheet.crop((sx, sy, sx + CELL_SIZE, sy + CELL_SIZE)).copy()
+        create_badge(ImageDraw.Draw(icon), font)
+        new_sheet.paste(icon, (NEW_COL_X, sy))
+
+    # Save image
+    new_sheet.save(out_path)
+    print(f"Saved {out_path}: {NEW_WIDTH}x{NEW_HEIGHT}")
+
+    # Update meta file minimally
     with open(meta_path, "r") as f:
-        meta_content = f.read()
-    
-    # Update the texture dimensions in the meta file
-    # Unity stores textureImporter settings in the .meta file
-    # We need to update the m_TextureRect to include the new rows
-    # and update the texture dimensions
-    
-    # Read the existing meta to get the GUID
-    import re
-    guid_match = re.search(r'fileID: (\d+), guid: ([a-f0-9]+)', meta_content)
-    if not guid_match:
-        print("WARNING: Could not find GUID in .meta file")
-        return
-    
-    # The sprite sheet meta file needs to be re-imported by Unity
-    # to pick up the new dimensions. We'll note this for the user.
-    print("NOTE: Unity needs to re-import the sprite sheet to recognize new sprites.")
-    print("      Open Unity and the InstrumentIcons.png file to trigger re-import.")
+        content = f.read()
+
+    # 1. Update maxTextureSize
+    content = content.replace("maxTextureSize: 2048", "maxTextureSize: 2560", 1)
+
+    # 2. Add sprite entries before "    outline: []" (after last sprite entry)
+    new_sprites_block = ""
+    for icon_name in SOURCE_ICONS:
+        sid = hashlib.md5(icon_name.encode()).hexdigest()
+        x, y = NEW_COL_X, SOURCE_ICONS[icon_name][2]
+        new_sprites_block += f"""    - serializedVersion: 2
+      name: {icon_name}
+      rect:
+        serializedVersion: 2
+        x: {x}
+        y: {y}
+        width: 512
+        height: 512
+      alignment: 0
+      pivot: {{x: 0.5, y: 0.5}}
+      border: {{x: 0, y: 0, z: 0, w: 0}}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: {sid}
+      internalID: -1
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+"""
+
+    # Insert before the global outline section (after last sprite's weights: [])
+    content = content.replace(
+        "      weights: []\n    outline: []",
+        "      weights: []\n" + new_sprites_block + "    outline: []",
+        1
+    )
+
+    # 3. Add nameFileIdTable entries before the closing of nameFileIdTable
+    # Find the last entry in nameFileIdTable and add after it
+    namefile_entries = ""
+    for icon_name in SOURCE_ICONS:
+        namefile_entries += f"      {icon_name}: 1095511443\n"
+
+    # Insert before the line after nameFileIdTable entries (mipmapLimitGroupName or similar)
+    content = content.replace(
+        "      vocals: 1095511443\n  mipmapLimitGroupName:",
+        "      vocals: 1095511443\n" + namefile_entries + "  mipmapLimitGroupName:",
+        1
+    )
+    # Fallback for NoInstrumentIcons which may have different last entry
+    if "mipmapLimitGroupName" not in content.split("nameFileIdTable:")[1].split("  ")[0] if "nameFileIdTable:" in content else True:
+        content = content.replace(
+            "      vocals: -595053334\n  spritePackingTag:",
+            "      vocals: -595053334\n" + namefile_entries + "  spritePackingTag:",
+            1
+        )
+
+    with open(meta_path, "w") as f:
+        f.write(content)
+
+    print(f"Updated {meta_path}")
+
 
 if __name__ == "__main__":
-    generate_icons()
+    print("=== InstrumentIcons.png ===")
+    generate_sheet(
+        "Assets/Art/Menu/Common/InstrumentIcons.png",
+        "Assets/Art/Menu/Common/InstrumentIcons.png",
+        "Assets/Art/Menu/Common/InstrumentIcons.png.meta"
+    )
+    print()
+    print("=== NoInstrumentIcons.png ===")
+    generate_sheet(
+        "Assets/Art/Menu/Common/NoInstrumentIcons.png",
+        "Assets/Art/Menu/Common/NoInstrumentIcons.png",
+        "Assets/Art/Menu/Common/NoInstrumentIcons.png.meta"
+    )
+    print("\nDone!")
