@@ -41,7 +41,7 @@ namespace YARG.Gameplay.Visuals
             AssignNoteGroup(models, starpowerModels, (int) NoteType.CymbalAccent,   ThemeNoteType.CymbalAccent);
             AssignNoteGroup(models, starpowerModels, (int) NoteType.CymbalGhost,    ThemeNoteType.CymbalGhost);
             AssignNoteGroup(models, starpowerModels, (int) NoteType.Wildcard,       ThemeNoteType.Wildcard);
-            AssignNoteGroup(models, starpowerModels, (int)NoteType.DedicatedLaneKick, ThemeNoteType.DedicatedLaneKick);
+            AssignNoteGroup(models, starpowerModels, (int) NoteType.DedicatedLaneKick, ThemeNoteType.DedicatedLaneKick);
         }
 
         public override void HitNote()
