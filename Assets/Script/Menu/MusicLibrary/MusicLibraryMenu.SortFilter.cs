@@ -44,60 +44,13 @@ namespace YARG.Menu.MusicLibrary
         private SongCategory[] _sortedSongs;
         private SortAttribute _playlistSort = SortAttribute.Name;
         private bool _playlistSortAscending = true;
-        private static readonly Dictionary<SortAttribute, HashSet<string>> _collapsedHeaders = new();
+        private static readonly Dictionary<SortAttribute, HashSet<SongCategory>> _collapsedHeaders = new();
 
         private List<int> _sectionHeaderIndices = new();
         private int _primaryHeaderIndex;
         private int _recommendedHeaderIndex = -1;
 
-        private static string GetCategoryCollapseKey(SongCategory category)
-        {
-            return $"{category.CategoryGroup ?? string.Empty}\u001F{category.Category ?? string.Empty}";
-        }
-
-        private void SaveCollapsedHeaders()
-        {
-            if (PlaylistMode || _sortedSongs == null) return;
-
-            var collapsed = new HashSet<string>(StringComparer.Ordinal);
-            foreach (var category in _sortedSongs)
-            {
-                if (category.Collapsed)
-                    collapsed.Add(GetCategoryCollapseKey(category));
-            }
-
-            _collapsedHeaders[SettingsManager.Settings.LibrarySort] = collapsed;
-        }
-
-        private SongCategory[] ApplyCollapsedSectionsForCurrentSort(SongCategory[] categories)
-        {
-            if (PlaylistMode || categories == null)
-                return categories;
-
-            if (!_collapsedHeaders.TryGetValue(SettingsManager.Settings.LibrarySort, out var collapsed) ||
-                collapsed.Count == 0)
-            {
-                return categories;
-            }
-
-            SongCategory[] updated = null;
-            for (int i = 0; i < categories.Length; i++)
-            {
-                bool shouldCollapse = collapsed.Contains(GetCategoryCollapseKey(categories[i]));
-                if (categories[i].Collapsed == shouldCollapse)
-                    continue;
-
-                updated ??= (SongCategory[]) categories.Clone();
-                var category = categories[i];
-                updated[i] = new SongCategory(
-                    category.Category,
-                    category.Songs,
-                    category.CategoryGroup,
-                    shouldCollapse);
-            }
-
-            return updated ?? categories;
-        }
+        private SongCategoryEqualityComparer _comparer = new();
 
         private void CalculateCategoryHeaderIndices(List<ViewType> list)
         {
@@ -158,9 +111,8 @@ namespace YARG.Menu.MusicLibrary
             int previousSelectedIndex = SelectedIndex;
             if (!PlaylistMode)
             {
-                SaveCollapsedHeaders();
                 _sortedSongs = _searchField.Search(SettingsManager.Settings.LibrarySort);
-                _sortedSongs = ApplyCollapsedSectionsForCurrentSort(_sortedSongs);
+                // _sortedSongs = ApplyCollapsedSectionsForCurrentSort(_sortedSongs);
                 _searchField.gameObject.SetActive(true);
             }
             else
@@ -594,6 +546,21 @@ namespace YARG.Menu.MusicLibrary
             }
 
             return result[..count];
+        }
+
+        private class SongCategoryEqualityComparer : EqualityComparer<SongCategory>
+        {
+            public override bool Equals(SongCategory x, SongCategory y)
+            {
+                return x.Category == y.Category &&
+                    x.CategoryGroup == y.CategoryGroup &&
+                    x.Songs == y.Songs;
+            }
+
+            public override int GetHashCode(SongCategory obj)
+            {
+                return HashCode.Combine(obj.Category, obj.CategoryGroup, obj.Collapsed);
+            }
         }
     }
 }
