@@ -12,7 +12,7 @@ Source icons:
 
 New column positions (x=2048):
   guitar6  at (2048, 1536)
-  bass6    at (2048, 1536)
+  bass6    at (2048, 1024)
   rhythm6  at (2048, 0)
   coop6    at (2048, 512)
 """
@@ -23,10 +23,10 @@ import re
 import hashlib
 
 SOURCE_ICONS = {
-    "guitar6":    ("guitar",     512, 1536),
-    "bass6":      ("bass",       0,   1536),
-    "rhythm6":    ("rhythm",     0,   0),
-    "coop6":      ("guitarCoop", 1536, 512),
+    "guitar6":    ("guitar",     512, 1536, 1536),
+    "bass6":      ("bass",       0,   1536, 1024),
+    "rhythm6":    ("rhythm",     0,   0, 0),
+    "coop6":      ("guitarCoop", 1536, 512, 512),
 }
 
 NEW_COL_X = 2048
@@ -67,11 +67,11 @@ def generate_sheet(orig_path, out_path, meta_path):
     font = find_font()
 
     # Add 6-fret icons in new column
-    for icon_name, (source_name, sx, sy) in SOURCE_ICONS.items():
-        print(f"  {icon_name} <- {source_name} at ({sx},{sy}) -> ({NEW_COL_X},{sy})")
+    for icon_name, (source_name, sx, sy, dest_y) in SOURCE_ICONS.items():
+        print(f"  {icon_name} <- {source_name} at ({sx},{sy}) -> ({NEW_COL_X},{dest_y})")
         icon = sheet.crop((sx, sy, sx + CELL_SIZE, sy + CELL_SIZE)).copy()
         create_badge(ImageDraw.Draw(icon), font)
-        new_sheet.paste(icon, (NEW_COL_X, sy))
+        new_sheet.paste(icon, (NEW_COL_X, dest_y))
 
     # Save image
     new_sheet.save(out_path)
@@ -88,7 +88,8 @@ def generate_sheet(orig_path, out_path, meta_path):
     new_sprites_block = ""
     for icon_name in SOURCE_ICONS:
         sid = hashlib.md5(icon_name.encode()).hexdigest()
-        x, y = NEW_COL_X, SOURCE_ICONS[icon_name][2]
+        _, _, sy, dest_y = SOURCE_ICONS[icon_name]
+        x, y = NEW_COL_X, dest_y
         new_sprites_block += f"""    - serializedVersion: 2
       name: {icon_name}
       rect:
