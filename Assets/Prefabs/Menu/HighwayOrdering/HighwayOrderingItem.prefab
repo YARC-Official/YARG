@@ -89,7 +89,7 @@ MonoBehaviour:
   _name: {fileID: 1671749639252177459}
   _leftButton: {fileID: 3371216075990216867}
   _rightButton: {fileID: 4462113527532140124}
-  _splitOrMerge: {fileID: 4751693058363979324}
+  _splitOrMerge: {fileID: 843716283482367619}
   _splitOrMergeButtonText: {fileID: 9127437948735250048}
   _removeDedicatedLanes: {fileID: 556828517530298000}
   _removeDedicatedLanesButtonText: {fileID: 8260753592463810195}
@@ -625,14 +625,14 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: af3bb3f5775a8a349b87d677ee5a82c5, type: 3}
+--- !u!1 &843716283482367619 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 839192570108900618, guid: af3bb3f5775a8a349b87d677ee5a82c5, type: 3}
+  m_PrefabInstance: {fileID: 4523731872453513}
+  m_PrefabAsset: {fileID: 0}
 --- !u!224 &1959333879559862962 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 1954810208901179707, guid: af3bb3f5775a8a349b87d677ee5a82c5, type: 3}
-  m_PrefabInstance: {fileID: 4523731872453513}
-  m_PrefabAsset: {fileID: 0}
---- !u!1 &4751693058363979324 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 4747205114507847093, guid: af3bb3f5775a8a349b87d677ee5a82c5, type: 3}
   m_PrefabInstance: {fileID: 4523731872453513}
   m_PrefabAsset: {fileID: 0}
 --- !u!114 &9127437948735250048 stripped
