@@ -135,6 +135,7 @@ namespace YARG.Menu.MusicLibrary
             // Fill in sort information
             UpdateSortInformationHeader();
 
+            // Ensure collapsed-header sets exist for each sort attribute
             InitializeCollapsedHeaderSets();
         }
 
