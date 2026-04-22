@@ -493,7 +493,6 @@ namespace YARG.Menu.MusicLibrary
 
             foreach (var (section, index) in _sortedSongs.Select((s, i) => (s, i)))
             {
-                var collapseTarget = GetCollapseTarget(index, section);
                 var displayName = section.Category;
                 if (SettingsManager.Settings.LibrarySort == SortAttribute.Source)
                 {
@@ -524,13 +523,14 @@ namespace YARG.Menu.MusicLibrary
                     {
                         onHeaderClicked = () =>
                         {
-                            if (_collapsedHeaders[SettingsManager.Settings.LibrarySort].Contains(collapseTarget))
+                            var category = _sortedSongs[index];
+                            if (_collapsedHeaders[SettingsManager.Settings.LibrarySort].Contains(category))
                             {
-                                _collapsedHeaders[SettingsManager.Settings.LibrarySort].Remove(collapseTarget);
+                                _collapsedHeaders[SettingsManager.Settings.LibrarySort].Remove(category);
                             }
                             else
                             {
-                                _collapsedHeaders[SettingsManager.Settings.LibrarySort].Add(collapseTarget);
+                                _collapsedHeaders[SettingsManager.Settings.LibrarySort].Add(category);
                             }
 
                             var (headerIndex, offset) = GetClosestHeaderIndexAndOffset();
@@ -550,13 +550,13 @@ namespace YARG.Menu.MusicLibrary
                         section.Songs.Length,
                         section.CategoryGroup,
                         section.Songs,
-                        _collapsedHeaders[SettingsManager.Settings.LibrarySort].Contains(collapseTarget),
+                        _collapsedHeaders[SettingsManager.Settings.LibrarySort].Contains(section),
                         onHeaderClicked);
                     list.Add(sortHeader);
                 }
 
                 int sectionTotalStars = 0;
-                bool includeSongs = _sortedSongs.Length <= 1 || !_collapsedHeaders[SettingsManager.Settings.LibrarySort].Contains(collapseTarget);
+                bool includeSongs = _sortedSongs.Length <= 1 || !_collapsedHeaders[SettingsManager.Settings.LibrarySort].Contains(section);
 
                 foreach (var song in section.Songs)
                 {
@@ -969,9 +969,9 @@ namespace YARG.Menu.MusicLibrary
         public void CollapseAll()
         {
             var (headerIndex, offset) = GetClosestHeaderIndexAndOffset();
-            foreach (var (section, index) in _sortedSongs.Select((s, i) => (s, i)))
+            foreach (var cat in _sortedSongs)
             {
-                _collapsedHeaders[SettingsManager.Settings.LibrarySort].Add(GetCollapseTarget(index, section));
+                _collapsedHeaders[SettingsManager.Settings.LibrarySort].Add(cat);
             }
 
             RequestViewListUpdate();
