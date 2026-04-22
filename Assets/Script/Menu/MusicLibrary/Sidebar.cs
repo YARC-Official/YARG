@@ -422,7 +422,7 @@ namespace YARG.Menu.MusicLibrary
             }
             else
             {
-                _difficultyRings[7].gameObject.SetActive(false);
+                _difficultyRings[7].SetInfo("eliteDrums", Instrument.EliteDrums, entry[Instrument.EliteDrums]);
             }
             _difficultyRings[8].SetInfo("realKeys", Instrument.ProKeys, entry[Instrument.ProKeys]);
             _difficultyRings[9].SetInfo("band", Instrument.Band, entry[Instrument.Band]);
