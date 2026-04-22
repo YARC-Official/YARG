@@ -924,7 +924,7 @@ namespace YARG.Gameplay.Player
 
                 var highwayOrderingInfo = DrumsHighwayItemView.GetHighwayOrderingInfo(item, instrument);
 
-                _highwayOrderingIndexToBreLaneIndex.Add(adjustedIndex, highwayOrderingInfo.BreLaneIndex);
+                _highwayOrderingIndexToBreLaneIndex.Add(ApplyHandednessToPosition(adjustedIndex), highwayOrderingInfo.BreLaneIndex);
 
                 foreach (var highwayOrderingElement in highwayOrderingInfo.Elements)
                 {
