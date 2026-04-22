@@ -39,10 +39,10 @@ namespace YARG.Assets.Script.Gameplay.Player
         // When an action happens, we'll use this to determine which _actionToMostRecentTime entry to update
         // This is usually 1:1, but if there's no dedicated open lane enabled, then we'll redirect open note inputs to the
         // green lane visuals because they share a notional scoring zone behind the scenes
-        private Dictionary<FiveLaneKeysAction, FiveLaneKeysBreLaneIndex> _actionToBreLaneIndex;
+        private Dictionary<FiveLaneKeysAction, FiveLaneKeysBreLaneIndex> _actionToBreLaneIndex = new();
 
         // When a BRE lane element needs to know how bright it should be, it'll use this table to get the right BRE lane index
-        private Dictionary<int, FiveLaneKeysBreLaneIndex> _highwayOrderingIndexToBreLaneIndex;
+        private Dictionary<int, FiveLaneKeysBreLaneIndex> _highwayOrderingIndexToBreLaneIndex = new();
 
         // Record of the most recent time that each BRE lane has been lit up by any of the actions that map to it
         private Dictionary<FiveLaneKeysBreLaneIndex, double> _breLaneIndexToMostRecentTime = new();
@@ -815,11 +815,29 @@ public override bool ShouldUpdateInputsOnResume => true;
             {
                 LaneCount = 6;
                 _highwayOrdering = OPEN_LANE_HIGHWAY_ORDERING;
+                _actionToBreLaneIndex = new()
+                {
+                    { FiveLaneKeysAction.OpenNote, FiveLaneKeysBreLaneIndex.Open },
+                    { FiveLaneKeysAction.GreenKey, FiveLaneKeysBreLaneIndex.Green },
+                    { FiveLaneKeysAction.RedKey, FiveLaneKeysBreLaneIndex.Red },
+                    { FiveLaneKeysAction.YellowKey, FiveLaneKeysBreLaneIndex.Yellow },
+                    { FiveLaneKeysAction.BlueKey, FiveLaneKeysBreLaneIndex.Blue },
+                    { FiveLaneKeysAction.OrangeKey, FiveLaneKeysBreLaneIndex.Orange },
+                };
             }
             else
             {
                 LaneCount = 5;
                 _highwayOrdering = FiveFretGuitarPlayer.DEFAULT_HIGHWAY_ORDERING;
+                _actionToBreLaneIndex = new()
+                {
+                    { FiveLaneKeysAction.OpenNote, FiveLaneKeysBreLaneIndex.Green },
+                    { FiveLaneKeysAction.GreenKey, FiveLaneKeysBreLaneIndex.Green },
+                    { FiveLaneKeysAction.RedKey, FiveLaneKeysBreLaneIndex.Red },
+                    { FiveLaneKeysAction.YellowKey, FiveLaneKeysBreLaneIndex.Yellow },
+                    { FiveLaneKeysAction.BlueKey, FiveLaneKeysBreLaneIndex.Blue },
+                    { FiveLaneKeysAction.OrangeKey, FiveLaneKeysBreLaneIndex.Orange },
+                };
             }
         }
 
