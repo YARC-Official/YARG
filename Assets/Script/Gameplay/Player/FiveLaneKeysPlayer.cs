@@ -42,7 +42,7 @@ namespace YARG.Assets.Script.Gameplay.Player
         private Dictionary<FiveLaneKeysAction, FiveLaneKeysBreLaneIndex> _actionToBreLaneIndex = new();
 
         // When a BRE lane element needs to know how bright it should be, it'll use this table to get the right BRE lane index
-        private Dictionary<int, FiveLaneKeysBreLaneIndex> _highwayOrderingIndexToBreLaneIndex = new();
+        private Dictionary<int, FiveLaneKeysBreLaneIndex> _highwayOrderingIndexToBreLaneIndex;
 
         // Record of the most recent time that each BRE lane has been lit up by any of the actions that map to it
         private Dictionary<FiveLaneKeysBreLaneIndex, double> _breLaneIndexToMostRecentTime = new();
@@ -503,6 +503,16 @@ public override bool ShouldUpdateInputsOnResume => true;
         {
             base.OnCodaStart(coda);
             CurrentCoda.OnLaneHit += OnLaneHit;
+            CurrentCoda.SetLaneIndexes(new()
+            {
+                // Open forwards its inputs to the green scoring zone, since opens aren't supposed to be part of 5LK
+                {(int)FiveLaneKeysAction.OpenNote, (int)FiveLaneKeysBreLaneIndex.Green },
+                {(int)FiveLaneKeysAction.GreenKey, (int)FiveLaneKeysBreLaneIndex.Green },
+                {(int)FiveLaneKeysAction.RedKey, (int)FiveLaneKeysBreLaneIndex.Green },
+                {(int)FiveLaneKeysAction.YellowKey, (int)FiveLaneKeysBreLaneIndex.Green },
+                {(int)FiveLaneKeysAction.BlueKey, (int)FiveLaneKeysBreLaneIndex.Green },
+                {(int)FiveLaneKeysAction.OrangeKey, (int)FiveLaneKeysBreLaneIndex.Green },
+            });
 
             _fretArray.SetBreMode(true);
         }
@@ -824,6 +834,16 @@ public override bool ShouldUpdateInputsOnResume => true;
                     { FiveLaneKeysAction.BlueKey, FiveLaneKeysBreLaneIndex.Blue },
                     { FiveLaneKeysAction.OrangeKey, FiveLaneKeysBreLaneIndex.Orange },
                 };
+
+                _highwayOrderingIndexToBreLaneIndex = new()
+                {
+                    { _highwayOrdering[(int)FiveFretGuitarFret.Open], FiveLaneKeysBreLaneIndex.Open },
+                    { _highwayOrdering[(int)FiveFretGuitarFret.Green], FiveLaneKeysBreLaneIndex.Green },
+                    { _highwayOrdering[(int)FiveFretGuitarFret.Red], FiveLaneKeysBreLaneIndex.Red },
+                    { _highwayOrdering[(int)FiveFretGuitarFret.Yellow], FiveLaneKeysBreLaneIndex.Yellow },
+                    { _highwayOrdering[(int)FiveFretGuitarFret.Blue], FiveLaneKeysBreLaneIndex.Blue },
+                    { _highwayOrdering[(int)FiveFretGuitarFret.Orange], FiveLaneKeysBreLaneIndex.Orange },
+                };
             }
             else
             {
@@ -837,6 +857,15 @@ public override bool ShouldUpdateInputsOnResume => true;
                     { FiveLaneKeysAction.YellowKey, FiveLaneKeysBreLaneIndex.Yellow },
                     { FiveLaneKeysAction.BlueKey, FiveLaneKeysBreLaneIndex.Blue },
                     { FiveLaneKeysAction.OrangeKey, FiveLaneKeysBreLaneIndex.Orange },
+                };
+
+                _highwayOrderingIndexToBreLaneIndex = new()
+                {
+                    { _highwayOrdering[(int)FiveFretGuitarFret.Green], FiveLaneKeysBreLaneIndex.Green },
+                    { _highwayOrdering[(int)FiveFretGuitarFret.Red], FiveLaneKeysBreLaneIndex.Red },
+                    { _highwayOrdering[(int)FiveFretGuitarFret.Yellow], FiveLaneKeysBreLaneIndex.Yellow },
+                    { _highwayOrdering[(int)FiveFretGuitarFret.Blue], FiveLaneKeysBreLaneIndex.Blue },
+                    { _highwayOrdering[(int)FiveFretGuitarFret.Orange], FiveLaneKeysBreLaneIndex.Orange },
                 };
             }
         }
