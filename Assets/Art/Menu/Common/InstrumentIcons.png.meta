@@ -472,7 +472,7 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
-      customData:
+      customData: 
       outline: []
       physicsShape: []
       tessellationDetail: 0
@@ -480,7 +480,7 @@ TextureImporter:
       spriteID: d43e8546fcf779f01b15aac1122c92bd
       internalID: -1
       vertices: []
-      indices:
+      indices: 
       edges: []
       weights: []
     - serializedVersion: 2
@@ -494,7 +494,7 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
-      customData:
+      customData: 
       outline: []
       physicsShape: []
       tessellationDetail: 0
@@ -502,7 +502,7 @@ TextureImporter:
       spriteID: a212c4d6e29341178fc60decf5454b00
       internalID: -1
       vertices: []
-      indices:
+      indices: 
       edges: []
       weights: []
     - serializedVersion: 2
@@ -516,7 +516,7 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
-      customData:
+      customData: 
       outline: []
       physicsShape: []
       tessellationDetail: 0
@@ -524,7 +524,7 @@ TextureImporter:
       spriteID: 5927fdbb2f9f06a34e60e5c6540c289e
       internalID: -1
       vertices: []
-      indices:
+      indices: 
       edges: []
       weights: []
     - serializedVersion: 2
@@ -538,7 +538,7 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
-      customData:
+      customData: 
       outline: []
       physicsShape: []
       tessellationDetail: 0
@@ -546,7 +546,7 @@ TextureImporter:
       spriteID: d1122c5ae22434e0f4c02397accc8a23
       internalID: -1
       vertices: []
-      indices:
+      indices: 
       edges: []
       weights: []
     outline: []
@@ -570,10 +570,13 @@ TextureImporter:
       FontSprites_15: 224382224
       band: -2104244439
       bass: 1530186425
+      bass6: 1095511443
+      coop6: 1095511443
       drums: 678366802
       eliteDrums: 1405555635
       ghDrums: -768334538
       guitar: -480311375
+      guitar6: 1095511443
       guitarCoop: 1095511443
       harmVocals: -871424490
       keys: 1353769368
@@ -582,12 +585,9 @@ TextureImporter:
       realGuitar: 1095511443
       realKeys: 1095511443
       rhythm: -413506960
+      rhythm6: 1095511443
       twoVocals: -2070950562
       vocals: 1095511443
-      guitar6: 1095511443
-      bass6: 1095511443
-      rhythm6: 1095511443
-      coop6: 1095511443
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
