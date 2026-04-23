@@ -184,6 +184,14 @@ namespace YARG.Menu.Settings
             if (_headerTabs.SelectedTabId is null)
             {
                 SelectTab(SettingsManager.GetTabByName(name));
+                return;
+            }
+
+            // Selecting the already-selected header tab does not fire TabChanged.
+            // This matters when reopening settings after CurrentTab was cleared on close.
+            if (CurrentTab?.Name != _headerTabs.SelectedTabId)
+            {
+                SelectTab(SettingsManager.GetTabByName(_headerTabs.SelectedTabId));
             }
         }
 
