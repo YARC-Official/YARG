@@ -1,6 +1,7 @@
 Shader "Hidden/YARG/VenueAlphaFix"
 {
     HLSLINCLUDE
+        #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
         #include "Packages/com.unity.render-pipelines.core/Runtime/Utilities/Blit.hlsl"
 
         half4 FragAlphaFix(Varyings input) : SV_Target

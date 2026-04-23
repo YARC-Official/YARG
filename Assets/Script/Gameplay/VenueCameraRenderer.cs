@@ -380,22 +380,12 @@ namespace YARG.Gameplay
 
                 // Blit through alpha-fix shader to force alpha to 1.0, preventing transparency artifacts
                 // when the venue renders without post-processing (UberPP doesn't run to fix alpha).
-                var targetDesc = renderGraph.GetTextureDesc(source);
-                targetDesc.name = "_VenueAlphaFix";
-                targetDesc.clearBuffer = false;
-                TextureHandle alphaFixedTexture = renderGraph.CreateTexture(targetDesc);
 
-                var blitParams = new BlitMaterialParameters(source, alphaFixedTexture, _alphaFixMaterial, 0);
-                renderGraph.AddBlitPass(blitParams, passName: "Venue Alpha Fix");
+                var blitParams = new BlitMaterialParameters(source, trailsTexture, _alphaFixMaterial, 0);
+                renderGraph.AddBlitPass(blitParams, passName: "Venue Alpha Fix / Trails Copy");
 
-                // Update cameraColor so the final blit (no PP) or UberPP (with PP) uses the alpha-fixed texture.
-                resourceData.cameraColor = alphaFixedTexture;
-
-                // Store frame for trails using the alpha-fixed texture.
-                renderGraph.AddCopyPass(alphaFixedTexture, trailsTexture, "Store frame for trail");
-
-                // Update the global shader texture so trails sampling in UberPP uses the latest frame.
-                Shader.SetGlobalTexture(_trailsTextureId, _trailsTexture);
+                // Update cameraColor so the final blit uses the alpha-fixed texture.
+                resourceData.cameraColor = trailsTexture;
             }
         }
 
