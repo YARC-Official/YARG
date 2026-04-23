@@ -94,6 +94,7 @@ namespace YARG.Settings
 
             public void OpenCalibrator()
             {
+                SettingsMenu.OpenOnNextMenuLoad();
                 GlobalVariables.Instance.LoadScene(SceneIndex.Calibration);
                 SettingsMenu.Instance.gameObject.SetActive(false);
             }

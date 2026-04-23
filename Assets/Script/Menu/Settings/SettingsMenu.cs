@@ -54,6 +54,8 @@ namespace YARG.Menu.Settings
 
         public event Action SettingChanged;
 
+        private static bool _openOnNextMenuLoad;
+
         // Workaround to avoid errors when deactivating menu during startup
         private bool _ready;
         private bool _tabsInitialized;
@@ -76,6 +78,22 @@ namespace YARG.Menu.Settings
                     _showAdvanced = value;
                 }
             }
+        }
+
+        public static void OpenOnNextMenuLoad()
+        {
+            _openOnNextMenuLoad = true;
+        }
+
+        public static bool ConsumeOpenOnNextMenuLoad()
+        {
+            if (!_openOnNextMenuLoad)
+            {
+                return false;
+            }
+
+            _openOnNextMenuLoad = false;
+            return true;
         }
 
         protected override void SingletonAwake()
