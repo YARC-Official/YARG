@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.RenderGraphModule;
 using UnityEngine.Rendering.RenderGraphModule.Util;
+using static UnityEngine.Rendering.RenderGraphModule.Util.RenderGraphUtils;
 using UnityEngine.Rendering.Universal;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -42,6 +43,7 @@ namespace YARG.Gameplay
         private static readonly string[] _mirrorKeywords = { "YARG_MIRROR_LEFT", "YARG_MIRROR_RIGHT", "YARG_MIRROR_CLOCK_CCW", "YARG_MIRROR_NONE" };
 
         private VenuePostPostProcessingPass _pass;
+        private Material _alphaFixMaterial;
 
         public static float ActualFPS;
         public static float TargetFPS;
@@ -68,6 +70,7 @@ namespace YARG.Gameplay
 
         private void Awake()
         {
+            _alphaFixMaterial = CreateMaterial("Hidden/YARG/VenueAlphaFix");
             _pass = new VenuePostPostProcessingPass(this);
 
             Shader.SetGlobalColor(_scanlineColor, Color.black);
@@ -177,6 +180,12 @@ namespace YARG.Gameplay
                 _trailsTexture.Release();
                 Destroy(_trailsTexture);
                 _trailsTexture = null;
+            }
+
+            if (_alphaFixMaterial != null)
+            {
+                CoreUtils.Destroy(_alphaFixMaterial);
+                _alphaFixMaterial = null;
             }
 
             _venueOutput = null;
@@ -354,16 +363,39 @@ namespace YARG.Gameplay
 
         private sealed class VenuePostPostProcessingPass : ScriptableRenderPass
         {
+            private readonly Material _alphaFixMaterial;
+
             public VenuePostPostProcessingPass(VenueCameraRenderer vcr)
             {
                 renderPassEvent = RenderPassEvent.AfterRenderingPostProcessing;
+                _alphaFixMaterial = vcr._alphaFixMaterial;
             }
 
             public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
             {
                 UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
+
+                TextureHandle source = resourceData.activeColorTexture;
                 TextureHandle trailsTexture = renderGraph.ImportTexture(_trailsTextureHandle);
-                renderGraph.AddCopyPass(resourceData.activeColorTexture, trailsTexture, "Store frame for trail");
+
+                // Blit through alpha-fix shader to force alpha to 1.0, preventing transparency artifacts
+                // when the venue renders without post-processing (UberPP doesn't run to fix alpha).
+                var targetDesc = renderGraph.GetTextureDesc(source);
+                targetDesc.name = "_VenueAlphaFix";
+                targetDesc.clearBuffer = false;
+                TextureHandle alphaFixedTexture = renderGraph.CreateTexture(targetDesc);
+
+                var blitParams = new BlitMaterialParameters(source, alphaFixedTexture, _alphaFixMaterial, 0);
+                renderGraph.AddBlitPass(blitParams, passName: "Venue Alpha Fix");
+
+                // Update cameraColor so the final blit (no PP) or UberPP (with PP) uses the alpha-fixed texture.
+                resourceData.cameraColor = alphaFixedTexture;
+
+                // Store frame for trails using the alpha-fixed texture.
+                renderGraph.AddCopyPass(alphaFixedTexture, trailsTexture, "Store frame for trail");
+
+                // Update the global shader texture so trails sampling in UberPP uses the latest frame.
+                Shader.SetGlobalTexture(_trailsTextureId, _trailsTexture);
             }
         }
 
