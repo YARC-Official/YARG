@@ -266,6 +266,9 @@ namespace YARG.Gameplay.HUD
             // Do this before we do it for the players so the notes don't get destroyed early
             GameManager.SetSongTime(time, 0);
 
+            // EngineManager's state will get fixed when the players play up to time
+            GameManager.EngineManager.Reset();
+
             foreach (var player in GameManager.Players)
             {
                 player.SetReplayTime(time);
