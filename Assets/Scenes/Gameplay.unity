@@ -1387,7 +1387,7 @@ MonoBehaviour:
   <VocalTrack>k__BackingField: {fileID: 1312797156}
   ShowIndex: 0
   _fiveFretGuitarPrefab: {fileID: 7381119128095886790, guid: 0f7a37c9e4abcad4da73b7603d4b7596, type: 3}
-  _sixFretGuitarPrefab: {fileID: 7381119128095886790, guid: 6f7e8d9c1a2b3c4d5e6f7a8b9c0d1e2f, type: 3}
+  _sixFretGuitarPrefab: {fileID: 7381119128095886790, guid: 93bb65c0743846fb28f6ecbb05e1e37b, type: 3}
   _fourLaneDrumsPrefab: {fileID: 7508612376246159914, guid: 14dfc37fcbd6e0c4ba41507437a52fea, type: 3}
   _fiveLaneDrumsPrefab: {fileID: 7912406415472637727, guid: b98748e11cf38534c814f11da4eaa863, type: 3}
   _proKeysPrefab: {fileID: 7381119128095886790, guid: 52322b4e39d4f9349a65c60a07fc1b3a, type: 3}

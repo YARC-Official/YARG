@@ -334,6 +334,7 @@ namespace YARG.Gameplay
             string playerType = player switch
             {
                 FiveFretGuitarPlayer => "Five Fret Guitar",
+                SixFretGuitarPlayer => "Six Fret Guitar",
                 FiveLaneKeysPlayer => "Five Lane Keys",
                 DrumsPlayer => "Drums",
                 VocalsPlayer => "Vocals",

@@ -212,6 +212,7 @@ namespace YARG.Settings.Metadata
                         trackPreviewBuilder.StartingGameMode = _subSection switch
                         {
                             nameof(ColorProfile.FiveFretGuitar) => GameMode.FiveFretGuitar,
+                            nameof(ColorProfile.SixFretGuitar)  => GameMode.SixFretGuitar,
                             nameof(ColorProfile.FourLaneDrums)  => GameMode.FourLaneDrums,
                             nameof(ColorProfile.FiveLaneDrums)  => GameMode.FiveLaneDrums,
                             nameof(ColorProfile.ProKeys)        => GameMode.ProKeys,

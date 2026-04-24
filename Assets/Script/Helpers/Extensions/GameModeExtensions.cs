@@ -13,7 +13,7 @@ namespace YARG.Helpers.Extensions
             return instrument switch
             {
                 GameMode.FiveFretGuitar => "guitar",
-                GameMode.SixFretGuitar  => "guitar",
+                GameMode.SixFretGuitar  => "guitar6",
 
                 GameMode.FourLaneDrums  => "drums",
                 GameMode.FiveLaneDrums  => "ghDrums",
