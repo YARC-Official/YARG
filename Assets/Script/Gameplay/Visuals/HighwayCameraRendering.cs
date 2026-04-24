@@ -45,6 +45,7 @@ namespace YARG.Gameplay.Visuals
         public  RenderTexture              HighwaysOutputTexture { get; private set; }
         public event Action<RenderTexture> OnHighwaysTextureCreated;
         private RenderTexture              _highwaysAlphaTexture;
+        private RTHandle                   _highwaysAlphaTextureHandle;
         private ScriptableRenderPass       _fadeCalcPass;
         private bool                       _allowTextureRecreation = true;
         private bool                       _needsInitialization    = true;
@@ -315,6 +316,12 @@ namespace YARG.Gameplay.Visuals
 
         private void ResetHighwayAlphaTexture()
         {
+            if (_highwaysAlphaTextureHandle != null)
+            {
+                _highwaysAlphaTextureHandle.Release();
+                _highwaysAlphaTextureHandle = null;
+            }
+
             if (_highwaysAlphaTexture != null)
             {
                 _highwaysAlphaTexture.Release();
@@ -328,6 +335,7 @@ namespace YARG.Gameplay.Visuals
                 mipCount = 0,
             };
             _highwaysAlphaTexture = new RenderTexture(descriptor);
+            _highwaysAlphaTextureHandle = RTHandles.Alloc(_highwaysAlphaTexture);
             Shader.SetGlobalTexture(YargHighwaysAlphaTextureID, _highwaysAlphaTexture);
         }
 
@@ -344,6 +352,8 @@ namespace YARG.Gameplay.Visuals
             }
             if (_highwaysAlphaTexture != null)
             {
+                _highwaysAlphaTextureHandle?.Release();
+                _highwaysAlphaTextureHandle = null;
                 _highwaysAlphaTexture.Release();
                 _highwaysAlphaTexture = null;
             }
@@ -475,6 +485,7 @@ namespace YARG.Gameplay.Visuals
             private readonly ProfilingSampler       _profilingSampler = new ProfilingSampler("CalcFadeAlphaMask");
             private readonly HighwayCameraRendering _highwayCameraRendering;
             private readonly Material               _material;
+            private readonly ShaderTagId[]          _shaderTagIds = { new ShaderTagId("SRPDefaultUnlit"), new ShaderTagId("UniversalForward"), new ShaderTagId("UniversalForwardOnly") };
 
             public static readonly int LayerMask = ~(1 << UnityEngine.LayerMask.NameToLayer("FadeExclude"));
 
@@ -495,7 +506,7 @@ namespace YARG.Gameplay.Visuals
 
                     passData.material = _material;
 
-                    var alphaTextureHandle = renderGraph.ImportTexture(RTHandles.Alloc(_highwayCameraRendering._highwaysAlphaTexture));
+                    var alphaTextureHandle = renderGraph.ImportTexture(_highwayCameraRendering._highwaysAlphaTextureHandle);
 
                     builder.SetRenderAttachment(alphaTextureHandle, 0, AccessFlags.WriteAll);
                     // We could allocate a different depth texture, however at this point
@@ -504,10 +515,8 @@ namespace YARG.Gameplay.Visuals
 
                     builder.AllowPassCulling(false);
 
-                    var shaderTagIds = new[] { new ShaderTagId("UniversalForward") };
-
                     // Create renderer list for transparents
-                    var transparentDesc = new RendererListDesc(shaderTagIds, renderingData.cullResults, cameraData.camera)
+                    var transparentDesc = new RendererListDesc(_shaderTagIds, renderingData.cullResults, cameraData.camera)
                     {
                         renderQueueRange = RenderQueueRange.transparent,
                         overrideMaterial = passData.material,
@@ -517,7 +526,7 @@ namespace YARG.Gameplay.Visuals
                     builder.UseRendererList(passData.transparentRendererList);
 
                     // Create renderer list for opaques
-                    var opaqueDesc = new RendererListDesc(shaderTagIds, renderingData.cullResults, cameraData.camera)
+                    var opaqueDesc = new RendererListDesc(_shaderTagIds, renderingData.cullResults, cameraData.camera)
                     {
                         renderQueueRange = RenderQueueRange.opaque,
                         overrideMaterial = passData.material,

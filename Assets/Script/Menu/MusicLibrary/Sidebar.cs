@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading;
+using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Serialization;
@@ -150,13 +151,7 @@ namespace YARG.Menu.MusicLibrary
 
             _currentView = selected;
 
-            // Cancel album art
-            if (_cancellationToken != null)
-            {
-                _cancellationToken.Cancel();
-                _cancellationToken.Dispose();
-                _cancellationToken = null;
-            }
+            CancelAlbumLoad();
 
             switch (selected)
             {
@@ -198,11 +193,7 @@ namespace YARG.Menu.MusicLibrary
 
         private void ClearSidebar()
         {
-            // Hide album art
-            _albumCover.texture = null;
-            _albumCover.color = Color.clear;
-            _albumCoverSmall.texture = null;
-            _albumCoverSmall.color = Color.clear;
+            ClearAlbumCoverTextures();
             _album.text = string.Empty;
 
             _sourceBackground.enabled = false;
@@ -273,9 +264,7 @@ namespace YARG.Menu.MusicLibrary
 
             UpdateDifficulties(songEntry);
 
-            CancellationTokenSource token = new();
             var icon = SongSources.SourceToIcon(songEntry.Source);
-            token.Token.ThrowIfCancellationRequested();
 
             if (icon is not null)
             {
@@ -289,8 +278,7 @@ namespace YARG.Menu.MusicLibrary
             // _sidebarContents.gameObject.SetActive(true);
 
             _cancellationToken = new();
-            _albumCover.LoadAlbumCover(songEntry, _cancellationToken.Token, 0.05f);
-            _albumCoverSmall.LoadAlbumCover(songEntry, _cancellationToken.Token);
+            LoadAlbumCover(songEntry, _cancellationToken.Token).Forget();
         }
 
         // Wrap and shrink long sidebar fields (album/source/charter) if they are too long to fit
@@ -376,12 +364,10 @@ namespace YARG.Menu.MusicLibrary
             }
 
             _difficultyRings[3].SetInfo("keys", Instrument.Keys, entry[Instrument.Keys]);
-            _difficultyRings[4].SetInfo(entry.VocalsCount switch
-            {
-                >= 3 => "harmVocals",
-                2    => "twoVocals",
-                _    => "vocals",
-            }, Instrument.Vocals, entry[Instrument.Vocals]);
+
+            var vocalsPart = GetVocalsPartValues(entry);
+
+            _difficultyRings[4].SetInfo(vocalsPart.PartIcon, Instrument.Vocals, vocalsPart.PartValues);
 
             // Protar or Co-op
             if (entry.HasInstrument(Instrument.ProGuitar_17Fret) || entry.HasInstrument(Instrument.ProGuitar_22Fret))
@@ -420,6 +406,30 @@ namespace YARG.Menu.MusicLibrary
             _difficultyRings[7].SetInfo("eliteDrums", Instrument.EliteDrums, entry[Instrument.EliteDrums]);
             _difficultyRings[8].SetInfo("realKeys", Instrument.ProKeys, entry[Instrument.ProKeys]);
             _difficultyRings[9].SetInfo("band", Instrument.Band, entry[Instrument.Band]);
+            return;
+
+            static (string PartIcon, PartValues PartValues) GetVocalsPartValues(SongEntry songEntry)
+            {
+                PartValues vocalsPart;
+
+                if (!songEntry.HasInstrument(Instrument.Vocals) && songEntry.HasInstrument(Instrument.Harmony))
+                {
+                    vocalsPart = songEntry[Instrument.Harmony];
+                }
+                else
+                {
+                    vocalsPart = songEntry[Instrument.Vocals];
+                }
+
+                var partIcon = songEntry.VocalsCount switch
+                {
+                    >= 3 => "harmVocals",
+                    2    => "twoVocals",
+                    _    => "vocals",
+                };
+
+                return (partIcon, vocalsPart);
+            }
         }
 
         public void UpdatePlayButtonLabel(bool setListNotEmpty)
@@ -471,6 +481,87 @@ namespace YARG.Menu.MusicLibrary
             {
                 _playButton.DisableButton();
             }
+        }
+
+        private void OnDisable()
+        {
+            CancelAlbumLoad();
+            ClearAlbumCoverTextures();
+        }
+
+        private async UniTaskVoid LoadAlbumCover(SongEntry songEntry, CancellationToken cancellationToken)
+        {
+            Texture2D texture = null;
+
+            try
+            {
+                using var image = await UniTask.RunOnThreadPool(songEntry.LoadAlbumData, cancellationToken: cancellationToken);
+                if (image != null)
+                {
+                    texture = image.LoadTexture(false);
+                }
+
+                if (cancellationToken.IsCancellationRequested
+                    || _currentView is not SongViewType currentView
+                    || currentView.SongEntry != songEntry)
+                {
+                    if (texture != null)
+                    {
+                        Destroy(texture);
+                    }
+                    return;
+                }
+
+                ClearAlbumCoverTextures();
+
+                SetAlbumCover(_albumCover, texture, 0.05f);
+                SetAlbumCover(_albumCoverSmall, texture, 1f);
+            }
+            catch (OperationCanceledException)
+            {
+                if (texture != null)
+                {
+                    Destroy(texture);
+                }
+            }
+        }
+
+        private void CancelAlbumLoad()
+        {
+            if (_cancellationToken == null)
+            {
+                return;
+            }
+
+            _cancellationToken.Cancel();
+            _cancellationToken.Dispose();
+            _cancellationToken = null;
+        }
+
+        private void ClearAlbumCoverTextures()
+        {
+            var mainTexture = _albumCover.texture;
+            var smallTexture = _albumCoverSmall.texture;
+
+            if (mainTexture != null)
+            {
+                Destroy(mainTexture);
+            }
+
+            if (smallTexture != null && !ReferenceEquals(mainTexture, smallTexture))
+            {
+                Destroy(smallTexture);
+            }
+
+            SetAlbumCover(_albumCover, null, 0.05f);
+            SetAlbumCover(_albumCoverSmall, null, 1f);
+        }
+
+        private static void SetAlbumCover(RawImage image, Texture2D texture, float alpha)
+        {
+            image.texture = texture;
+            image.uvRect = new Rect(0f, 0f, 1f, -1f);
+            image.color = texture != null ? Color.white.WithAlpha(alpha) : Color.clear;
         }
 
         public void PrimaryButtonClick()

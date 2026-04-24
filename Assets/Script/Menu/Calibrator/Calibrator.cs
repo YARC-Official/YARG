@@ -50,7 +50,12 @@ namespace YARG.Menu.Calibrator
         private double _time;
 #nullable disable
 
-        private bool wasWhammyEnabled = SettingsManager.Settings.UseWhammyFx.Value;
+        private bool _wasWhammyEnabled;
+
+        private void Awake()
+        {
+            _wasWhammyEnabled = SettingsManager.Settings.UseWhammyFx.Value;
+        }
 
         private void Start()
         {
@@ -152,7 +157,7 @@ namespace YARG.Menu.Calibrator
                     break;
                 case State.AudioDone:
                     //Restore whammy settings
-                    SettingsManager.Settings.UseWhammyFx.Value = wasWhammyEnabled;
+                    SettingsManager.Settings.UseWhammyFx.Value = _wasWhammyEnabled;
 
                     _audioCalibrateContainer.SetActive(true);
                     CalculateAudioLatency();

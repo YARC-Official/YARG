@@ -551,10 +551,10 @@ namespace YARG.Gameplay.Player
             for (int i = 0; i < _scrollingNoteTrackers.Length; i++)
             {
                 _phraseMarkerIndices[i] = 0;
-                _scrollingNoteTrackers[i].Reset();
-                _scrollingLyricTrackers[i].Reset();
-                _staticPhraseTrackers[i].Reset();
-                _staticPhraseQueues[i].Clear();
+                _scrollingNoteTrackers[i]?.Reset();
+                _scrollingLyricTrackers[i]?.Reset();
+                _staticPhraseTrackers[i]?.Reset();
+                _staticPhraseQueues[i]?.Clear();
                 _highestEnqueuedPhrasePairIndices[i] = -1;
                 _rightEdges[i] = DEFAULT_STATIC_LYRICS_RIGHT_EDGE;
                 _noMoreStaticPhrases[i] = false;

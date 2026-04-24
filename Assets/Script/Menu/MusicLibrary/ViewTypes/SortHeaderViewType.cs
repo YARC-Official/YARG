@@ -32,6 +32,7 @@ namespace YARG.Menu.MusicLibrary
         private static readonly HashSet<string> CharterCounter = new();
         private static readonly HashSet<string> GenreCounter   = new();
         private static readonly HashSet<string> SubgenreCounter = new();
+        private static readonly Dictionary<string, Sprite> IconCache = new();
         private readonly string _stableId;
 
         public SortHeaderViewType(string headerText, int songCount, string shortcutName, SongEntry[] songsUnderCategory,
@@ -106,7 +107,12 @@ namespace YARG.Menu.MusicLibrary
 #nullable disable
         {
             string assetKey = Collapsed ? "MusicLibraryIcons[Right]" : "MusicLibraryIcons[Down]";
-            return Addressables.LoadAssetAsync<Sprite>(assetKey).WaitForCompletion();
+            if (!IconCache.TryGetValue(assetKey, out var icon))
+            {
+                IconCache[assetKey] = icon = Addressables.LoadAssetAsync<Sprite>(assetKey).WaitForCompletion();
+            }
+
+            return icon;
         }
 
         public override void PrimaryButtonClick()

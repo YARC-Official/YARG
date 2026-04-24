@@ -14,7 +14,7 @@ namespace YARG.Venue.VenueCamera
         void Start()
         {
             _targetFPS = SettingsManager.Settings.VenueFpsCap.Value;
-            _interval = 1f / _targetFPS;
+            _interval = _targetFPS == 0 ? 0f : 1f / _targetFPS;
             //disable camera so it doesn't render on its own
             TargetCamera.enabled = false;
         }
@@ -23,9 +23,9 @@ namespace YARG.Venue.VenueCamera
         {
             _timePassed += Time.deltaTime;
 
-            if (_timePassed >= _interval)
+            if (_targetFPS == 0 || _timePassed >= _interval)
             {
-                _timePassed -= _interval;
+                _timePassed = 0f;
                 TargetCamera.Render();
             }
         }

@@ -1,12 +1,11 @@
-﻿using System;
-using System.Collections;
-using Cysharp.Text;
+﻿using System.Collections;
 using DG.Tweening;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using YARG.Core.Game;
 using YARG.Helpers.Extensions;
+using YARG.Helpers.UI;
 using YARG.Localization;
 using YARG.Player;
 
@@ -34,13 +33,13 @@ namespace YARG.Gameplay.HUD
 
         private Coroutine _hudCoroutine;
 
-        private bool _shouldPulse;
-        private bool _hudShowing = true;
+        private bool                             _shouldPulse;
+        private bool                             _hudShowing = true;
         private TextMeshProUGUI[] _textCache;
 
         public void Initialize(EnginePreset enginePreset)
         {
-            InitializeMultiplierTextCache(EnginePreset.DEFAULT_MAX_MULTIPLIER);
+            _textCache = MultiplierTextHelper.CreateMultiplierTextCache(EnginePreset.DEFAULT_MAX_MULTIPLIER, _multiplierText, GameManager.Players.Count > 1);
 
             if (enginePreset == EnginePreset.Default)
             {
@@ -61,35 +60,6 @@ namespace YARG.Gameplay.HUD
             }
 
             _starPowerFill.fillAmount = 0f;
-        }
-
-        private void InitializeMultiplierTextCache(int maxMultiplier)
-        {
-            if (_textCache != null)
-            {
-                foreach (var t in _textCache)
-                {
-                    t.enabled = false;
-                }
-
-                _multiplierText = _textCache[0];
-                return;
-            }
-
-            _textCache = new TextMeshProUGUI[maxMultiplier - 1];
-            for (int i = 0; i < _textCache.Length; i++)
-            {
-                var text = i == 0
-                    ? _multiplierText
-                    : Instantiate(_multiplierText, _multiplierText.transform.parent, true);
-
-                text.enabled = false;
-                text.text = string.Empty;
-                text.SetTextFormat("{0}<sub>x</sub>", i + 2);
-                _textCache[i] = text;
-            }
-
-            _multiplierText = _textCache[0];
         }
 
         private void Update()
