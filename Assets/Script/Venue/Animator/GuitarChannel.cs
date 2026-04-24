@@ -33,7 +33,9 @@ namespace YARG.Venue
                 {
                     if (gNoteMask[i])
                     {
-                        queue.Add(AnimatorCommand.BoolOn(t, _animator, _hashes.GuitarNoteHashes[i], (float) gNote.TimeLength));
+                        // Turn the note off after a frame unless it is longer
+                        var length = Mathf.Max((float) gNote.TimeLength, 0.0167f);
+                        queue.Add(AnimatorCommand.BoolOn(t, _animator, _hashes.GuitarNoteHashes[i], length));
                     }
                 }
             }

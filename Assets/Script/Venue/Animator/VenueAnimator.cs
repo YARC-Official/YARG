@@ -335,7 +335,6 @@ namespace YARG.Venue
                 _channels.Add(new VocalChannel(_harmony2Animator, _hashLib, _leadingFramesHarmony2, 2));
 
             // Initialize all channels
-            var engineManager = GameManager.EngineManager;
             foreach (var channel in _channels)
             {
                 channel.BuildCommands(chart, _queue);

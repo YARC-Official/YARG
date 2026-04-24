@@ -33,7 +33,8 @@ namespace YARG.Venue
                 {
                     if (pkNoteMask[i])
                     {
-                        queue.Add(AnimatorCommand.BoolOn(t, _animator, _hashes.ProKeysHashes[i], (float) pkNote.TimeLength));
+                        var length = Mathf.Max((float) pkNote.TimeLength, 0.0167f);
+                        queue.Add(AnimatorCommand.BoolOn(t, _animator, _hashes.ProKeysHashes[i], length));
                     }
                 }
             }
