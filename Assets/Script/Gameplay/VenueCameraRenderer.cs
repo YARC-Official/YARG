@@ -223,13 +223,9 @@ namespace YARG.Gameplay
                 _timeSinceLastRender = float.MaxValue;
             }
 
-            var stack = VolumeManager.instance.stack;
-
-            VolumeManager.instance.Update(_renderCamera.gameObject.transform, _venueLayerMask);
-
             _effectiveFps = FPS;
 
-            var fpsEffect = stack.GetComponent<SlowFPSComponent>();
+            var fpsEffect = VolumeManager.instance.stack.GetComponent<SlowFPSComponent>();
 
             if (fpsEffect.IsActive())
             {
@@ -288,6 +284,12 @@ namespace YARG.Gameplay
             }
 
             Shader.SetGlobalFloat(_IsVenueId, 1);
+
+            // URP replaces VolumeManager.instance.stack with either the global stack
+            // or the camera's local volumeStack during rendering setup, depending on
+            // the volume framework update mode. We need to update the same stack that
+            // URP is using, so we update it here (after URP's setup) before reading.
+            VolumeManager.instance.Update(VolumeManager.instance.stack, _renderCamera.gameObject.transform, _venueLayerMask);
 
             var stack = VolumeManager.instance.stack;
 
