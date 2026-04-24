@@ -223,9 +223,14 @@ namespace YARG.Gameplay
                 _timeSinceLastRender = float.MaxValue;
             }
 
+            // Update the global volume stack with venue effects so SlowFPS
+            // (and any other effects read in Update()) can access them.
+            VolumeManager.instance.Update(_renderCamera.gameObject.transform, _venueLayerMask);
+
             _effectiveFps = FPS;
 
-            var fpsEffect = VolumeManager.instance.stack.GetComponent<SlowFPSComponent>();
+            var stack = VolumeManager.instance.stack;
+            var fpsEffect = stack.GetComponent<SlowFPSComponent>();
 
             if (fpsEffect.IsActive())
             {
