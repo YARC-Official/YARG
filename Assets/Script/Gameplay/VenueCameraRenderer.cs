@@ -63,9 +63,9 @@ namespace YARG.Gameplay
 
         private int _venueLayerMask;
 
-        private int _frameCount;
-        private float _elapsedTime;
-        private static float _timeSinceLastRender;
+        private static float _frameAccumulator = 0f;
+        private static float _fpsWindowStart = 0f;
+        private static int _fpsWindowFrames = 0;
         private bool _needsInitialization = true;
 
         private void Awake()
@@ -148,10 +148,17 @@ namespace YARG.Gameplay
             Graphics.Blit(Texture2D.blackTexture, _trailsTexture);
         }
 
+        private static void ResetRenderState()
+        {
+            _frameAccumulator = 0f;
+            _fpsWindowStart = 0f;
+            _fpsWindowFrames = 0;
+        }
+
         private void OnEnable()
         {
             FPS = SettingsManager.Settings.VenueFpsCap.Value;
-            _timeSinceLastRender = 0f;
+            ResetRenderState();
             RenderPipelineManager.beginCameraRendering += OnPreCameraRender;
             RenderPipelineManager.endCameraRendering += OnEndCameraRender;
             SceneManager.sceneUnloaded += OnSceneUnloaded;
@@ -220,7 +227,7 @@ namespace YARG.Gameplay
                 RecreateTextures();
                 _needsInitialization = false;
                 // Force a render this frame to avoid flickering when resizing
-                _timeSinceLastRender = float.MaxValue;
+                ResetRenderState();
             }
 
             // Update the global volume stack with venue effects so SlowFPS
@@ -248,23 +255,32 @@ namespace YARG.Gameplay
             }
 
             // Increment wall clock time regardless of whether we render a frame
-            _timeSinceLastRender += Time.unscaledDeltaTime;
-            _elapsedTime += Time.unscaledDeltaTime;
+            var currentFrameTime = Time.unscaledTime;
 
-            if (_effectiveFps == 0 || _timeSinceLastRender >= 1f / _effectiveFps)
+            // Accumulator-based FPS limiting: smooths quantization over time.
+            // Add dt each frame, when accumulator >= frameInterval, render and subtract.
+            // This averages to the exact target FPS regardless of Update() frequency.
+            float frameInterval = _effectiveFps > 0 ? 1f / _effectiveFps : 0f;
+            _frameAccumulator += Time.unscaledDeltaTime;
+
+            if (_effectiveFps == 0 || _frameAccumulator >= frameInterval)
             {
+                // Sliding window: reset every ~1 second, compute FPS from frame count / elapsed time.
+                if (_fpsWindowStart > 0f && currentFrameTime - _fpsWindowStart > 1.0f)
+                {
+                    ActualFPS = _fpsWindowFrames / (currentFrameTime - _fpsWindowStart);
+                    _fpsWindowStart = currentFrameTime;
+                    _fpsWindowFrames = 0;
+                }
+
+                _fpsWindowFrames++;
+                if (_fpsWindowFrames == 1)
+                {
+                    _fpsWindowStart = currentFrameTime;
+                }
+
                 Render();
-
-                _timeSinceLastRender = 0f;
-                _frameCount++;
-            }
-
-            // Update FPS counter
-            if (_elapsedTime >= 1f)
-            {
-                ActualFPS = _frameCount / _elapsedTime;
-                _frameCount = 0;
-                _elapsedTime = 0f;
+                _frameAccumulator -= frameInterval;
             }
         }
 
