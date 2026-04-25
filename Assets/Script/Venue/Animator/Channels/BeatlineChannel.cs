@@ -23,6 +23,7 @@ namespace YARG.Venue
             {
                 double t = beat.Time - _leadingFrames / 60.0;
                 int hash = _hashes.BeatlineHashes[(int) beat.Type];
+                queue.Add(AnimatorCommand.Randomize(t, _animator));
                 queue.Add(AnimatorCommand.Trigger(t, _animator, hash));
             }
         }

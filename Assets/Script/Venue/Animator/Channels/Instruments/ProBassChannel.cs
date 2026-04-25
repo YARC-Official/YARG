@@ -35,6 +35,7 @@ namespace YARG.Venue
                 {
                     int hash = _hashes.ProBassHashes[note.String * VenueHashLibrary.FretCount + note.Fret];
                     var length = Mathf.Max((float) pbNote.TimeLength, 0.0167f);
+                    queue.Add(AnimatorCommand.Randomize(t, _animator));
                     queue.Add(AnimatorCommand.BoolOn(t, _animator, hash, length));
                 }
             }

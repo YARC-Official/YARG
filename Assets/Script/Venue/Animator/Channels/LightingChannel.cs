@@ -17,7 +17,7 @@ namespace YARG.Venue
             _animator = animator;
             _hashes = hashes;
             _leadingFrames = leadingFrames;
-            _lightingLayerHash = _animator.GetLayerIndex("Lighting");
+            _lightingLayerHash = hashes.LightingLayerHash;
         }
 
         public void BuildCommands(SongChart chart, AnimatorCommandQueue queue)
@@ -28,9 +28,12 @@ namespace YARG.Venue
                 var e = events[i];
                 double t = e.Time - _leadingFrames / 60.0;
 
+                // Always re-roll RNG before update
+                queue.Add(AnimatorCommand.Randomize(t, _animator));
+
                 // Resolve the hash without any string allocation
                 int hash = e.Type is LightingType.Default or LightingType.Intro
-                    ? _hashes.LightingBlendHashes[(int) LightingType.Default]
+                    ? _hashes.LightDefault
                     : _hashes.LightingBlendHashes[(int) e.Type];
 
                 // Crossfade if same event repeats and there is a known next event
@@ -38,7 +41,7 @@ namespace YARG.Venue
                 {
                     var next = events[i + 1];
                     int nextHash = next.Type is LightingType.Default or LightingType.Intro
-                        ? _hashes.LightingBlendHashes[(int) LightingType.Default]
+                        ? _hashes.LightDefault
                         : _hashes.LightingBlendHashes[(int) next.Type];
 
                     if (hash == nextHash)

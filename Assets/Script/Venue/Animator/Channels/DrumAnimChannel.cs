@@ -31,6 +31,8 @@ namespace YARG.Venue
             {
                 double t = dAnim.Time - _leadingFrames / 60.0;
 
+                queue.Add(AnimatorCommand.Randomize(t, _animator));
+                
                 int hash = _hashes.DrumAnimHashes[(int) dAnim.Type];
                 queue.Add(AnimatorCommand.Trigger(t, _animator, hash));
             }

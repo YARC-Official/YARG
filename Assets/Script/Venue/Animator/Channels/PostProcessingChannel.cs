@@ -16,7 +16,7 @@ namespace YARG.Venue
             _animator = animator;
             _hashes = hashes;
             _leadingFrames = leadingFrames;
-            _postProcessingLayerHash = _animator.GetLayerIndex("PostProcessing");
+            _postProcessingLayerHash = hashes.PostProcessingLayerHash;
         }
 
         public void BuildCommands(SongChart chart, AnimatorCommandQueue queue)
@@ -27,15 +27,18 @@ namespace YARG.Venue
                 var e = events[i];
                 double t = e.Time - _leadingFrames / 60.0;
 
+                // Always re-roll RNG before update
+                queue.Add(AnimatorCommand.Randomize(t, _animator));
+
                 int hash = e.Type == PostProcessingType.Default
-                    ? _hashes.PostProcessingBlendHashes[(int) PostProcessingType.Default]
+                    ? _hashes.PPDefault
                     : _hashes.PostProcessingBlendHashes[(int) e.Type];
 
                 if (i + 1 < events.Count)
                 {
                     var next = events[i + 1];
                     int nextHash = next.Type == PostProcessingType.Default
-                        ? _hashes.PostProcessingBlendHashes[(int) PostProcessingType.Default]
+                        ? _hashes.PPDefault
                         : _hashes.PostProcessingBlendHashes[(int) next.Type];
 
                     if (hash == nextHash)

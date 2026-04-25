@@ -43,6 +43,7 @@ namespace YARG.Venue
                 {
                     if (dNoteMask[i])
                     {
+                        queue.Add(AnimatorCommand.Randomize(t, _animator));
                         queue.Add(AnimatorCommand.Trigger(t, _animator, _hashes.DrumNoteHashes[i]));
                     }
                 }

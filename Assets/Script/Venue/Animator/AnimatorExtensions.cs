@@ -100,11 +100,10 @@ namespace YARG.Venue
             }
         }
 
-        public static void SafeCrossFadeInFixedTime(this Animator animator, int hash, float value, int blendLayer)
+        public static void SafeCrossFadeInFixedTime(this Animator animator, int hash, float value, int blendLayer, string name)
         {
             if (animator.IsValidBlendParameter(hash))
             {
-                YargLogger.LogFormatDebug("CrossFadeInFixedTime {0} {1} {2}", hash, value, blendLayer);
                 if (blendLayer == -1)
                 {
                     animator.CrossFadeInFixedTime(hash, value);

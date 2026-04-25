@@ -19,8 +19,6 @@ namespace YARG.Venue
         public readonly int BonusFx        = Animator.StringToHash("BonusFx");
         public readonly int CrowdClap      = Animator.StringToHash("CrowdClap");
         public readonly int Happiness      = Animator.StringToHash("Happiness");
-        public readonly int LightDefault   = Animator.StringToHash("LightDefault");
-        public readonly int PPDefault      = Animator.StringToHash("PPDefault");
         public readonly int HappyHigh      = Animator.StringToHash("HappyHigh");
         public readonly int HappyMed       = Animator.StringToHash("HappyMed");
         public readonly int HappyLow       = Animator.StringToHash("HappyLow");
@@ -74,6 +72,9 @@ namespace YARG.Venue
         public int LightingLayerHash = -1;
         public int PostProcessingLayerHash = -1;
 
+        public int LightDefault;
+        public int PPDefault;
+
         public VenueHashLibrary(
             IReadOnlyList<string> guitarNoteNames,
             IReadOnlyList<string> bassNoteNames,
@@ -86,10 +87,13 @@ namespace YARG.Venue
             string lightingLayerName,
             string postProcessingLayerName)
         {
+            LightDefault = Animator.StringToHash($"{lightingLayerName}.LightDefault");
+            PPDefault = Animator.StringToHash($"{postProcessingLayerName}.PPDefault");
+
             LightingHashes = HashEnum<LightingType>();
             PostProcessingHashes = HashEnum<PostProcessingType>();
-            LightingBlendHashes = HashEnumQualified<LightingType>(lightingLayerName);
-            PostProcessingBlendHashes = HashEnumQualified<PostProcessingType>(postProcessingLayerName);
+            LightingBlendHashes = HashEnumQualified<LightingType>(lightingLayerName, LightDefault);
+            PostProcessingBlendHashes = HashEnumQualified<PostProcessingType>(postProcessingLayerName, PPDefault);
             BeatlineHashes = HashEnum<BeatlineType>();
             DrumAnimHashes = HashEnum<AnimationEvent.AnimationType>();
             CameraSubjectHashes = HashEnum<CameraCutEvent.CameraCutSubject>();
@@ -137,7 +141,7 @@ namespace YARG.Venue
 
         // ── Helpers ───────────────────────────────────────────────────────────────
 
-        private static int[] HashEnumQualified<TEnum>(string layerName) where TEnum : Enum
+        private static int[] HashEnumQualified<TEnum>(string layerName, int defaultHash = -1) where TEnum : Enum
         {
             var values = (int[]) Enum.GetValues(typeof(TEnum));
             int max = 0;
@@ -147,6 +151,8 @@ namespace YARG.Venue
             var result = new int[max + 1];
             foreach (TEnum val in Enum.GetValues(typeof(TEnum)))
                 result[(int) (object) val] = Animator.StringToHash($"{layerName}.{val.ToString()}");
+            if (defaultHash != -1)
+                result[0] = defaultHash;
             return result;
         }
 

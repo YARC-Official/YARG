@@ -26,12 +26,14 @@ namespace YARG.Venue
                 switch (e.Effect)
                 {
                     case StageEffect.FogOn:
+                        queue.Add(AnimatorCommand.Randomize(t, _animator));
                         queue.Add(AnimatorCommand.BoolOn(t, _animator, _hashes.Fog, 0f));
                         break;
                     case StageEffect.FogOff:
                         queue.Add(AnimatorCommand.BoolOff(t, _animator, _hashes.Fog));
                         break;
                     case StageEffect.BonusFx:
+                        queue.Add(AnimatorCommand.Randomize(t, _animator));
                         queue.Add(AnimatorCommand.Trigger(t, _animator, _hashes.BonusFx));
                         break;
                 }

@@ -77,6 +77,7 @@ namespace YARG.Venue
                     subject = cam.Subject;
                 }
 
+                queue.Add(AnimatorCommand.Randomize(t, _animator));
                 int hash = _hashes.CameraSubjectHashes[(int) subject];
                 queue.Add(AnimatorCommand.Trigger(t, _animator, hash));
             }

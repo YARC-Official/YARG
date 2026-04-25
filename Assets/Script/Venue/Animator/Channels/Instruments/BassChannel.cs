@@ -34,6 +34,7 @@ namespace YARG.Venue
                     if (bNoteMask[i])
                     {
                         var length = Mathf.Max((float) bNote.TimeLength, 0.0167f);
+                        queue.Add(AnimatorCommand.Randomize(t, _animator));
                         queue.Add(AnimatorCommand.BoolOn(t, _animator, _hashes.BassNoteHashes[i], length));
                     }
                 }

@@ -59,6 +59,7 @@ namespace YARG.Venue
                     int noteOnHash = _instrumentIndex == 0 ? _hashes.VocalNote :
                                     _instrumentIndex == 1 ? _hashes.Har1Note : _hashes.Har2Note;
 
+                    queue.Add(AnimatorCommand.Randomize(t, _animator));
                     queue.Add(AnimatorCommand.BoolOn(t, _animator, noteOnHash, (float) phraseNote.TotalTimeLength));
 
                     if (phraseNote.IsNonPitched)
