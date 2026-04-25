@@ -55,7 +55,7 @@ namespace YARG.Venue
                         ? _hashes.PPBlendDefault
                         : _hashes.PostProcessingBlendHashes[(int) next.Type];
 
-                    if (hash == nextHash)
+                    if (prevBlendHash == hash)
                     {
                         float duration = (float) (next.Time - e.Time);
                         queue.Add(AnimatorCommand.Blend(t, _animator, nextHash, duration, _postProcessingLayerHash));
