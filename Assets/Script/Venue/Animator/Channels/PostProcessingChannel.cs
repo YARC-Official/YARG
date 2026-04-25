@@ -38,7 +38,17 @@ namespace YARG.Venue
                     ? _hashes.PPDefault
                     : _hashes.PostProcessingHashes[(int) e.Type];
 
-                if (i + 1 < events.Count)
+                int prevBlendHash = -1;
+                if (i > 0)
+                {
+                    var prev = events[i - 1];
+                    prevBlendHash = prev.Type == PostProcessingType.Default
+                        ? _hashes.PPBlendDefault
+                        : _hashes.PostProcessingBlendHashes[(int) prev.Type];
+                }
+
+                // Handle crossfade
+                if (prevBlendHash != -1 && hash == prevBlendHash && i + 1 < events.Count)
                 {
                     var next = events[i + 1];
                     int nextHash = next.Type == PostProcessingType.Default
