@@ -218,8 +218,8 @@ namespace YARG.Audio.BASS
             {
                 return null;
             }
-            return new BassStemMixer(name, this, speed, mixerVolume, handle, clampStemVolume, normalize,
-                CreateOutputChannel(SettingsManager.Settings?.OutputChannelDefault.Value ?? 0));
+            return new BassStemMixer(name, this, speed, mixerVolume, handle, clampStemVolume: clampStemVolume,
+                normalize: normalize, outputChannel: CreateOutputChannel(SettingsManager.Settings?.OutputChannelDefault.Value ?? 0));
         }
 
         protected override MicDevice? GetInputDevice(string name)
