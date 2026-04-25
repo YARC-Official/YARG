@@ -225,6 +225,19 @@ namespace YARG.Venue
 
         protected override void GameplayAwake()
         {
+            string lightingLayerName = "Base Layer";
+            string postProcessingLayerName = "Base Layer";
+
+            if (_lightingAnimator && _lightingAnimator.GetLayerIndex("Lighting") != -1)
+            {
+                lightingLayerName = "Lighting";
+            }
+
+            if (_postProcessingAnimator && _postProcessingAnimator.GetLayerIndex("Post Processing") != -1)
+            {
+                postProcessingLayerName = "Post Processing";
+            }
+
             _hashLib = new VenueHashLibrary(
                 GuitarNoteNames,
                 BassNoteNames,
@@ -233,7 +246,9 @@ namespace YARG.Venue
                 ProGuitarStringNames,
                 ProKeysNoteNames,
                 VocalNoteNames,
-                CrowdStateNames);
+                CrowdStateNames,
+                lightingLayerName,
+                postProcessingLayerName);
 
             _queue = new AnimatorCommandQueue();
             _pendingBoolOffs = new List<AnimatorCommand>(64);
@@ -264,6 +279,35 @@ namespace YARG.Venue
             foreach (var animator in _animators)
             {
                 AnimatorExtensions.RegisterAnimator(animator);
+            }
+
+            if (_lightingAnimator)
+            {
+                int layer = _lightingAnimator.GetLayerIndex("Lighting");
+                if (layer == -1)
+                {
+                    layer = _lightingAnimator.GetLayerIndex("Base Layer");
+                }
+
+                if (layer != -1)
+                {
+                    _hashLib.LightingLayerHash = layer;
+                    AnimatorExtensions.RegisterBlendStates(_lightingAnimator, layer, _hashLib.LightingBlendHashes);
+                }
+            }
+
+            if (_postProcessingAnimator)
+            {
+                int layer = _postProcessingAnimator.GetLayerIndex("Post Processing");
+                if (layer == -1)
+                {
+                    layer = _postProcessingAnimator.GetLayerIndex("Base Layer");
+                }
+
+                if (layer != -1) {
+                    _hashLib.PostProcessingLayerHash = layer;
+                        AnimatorExtensions.RegisterBlendStates(_postProcessingAnimator, layer, _hashLib.PostProcessingBlendHashes);
+                }
             }
         }
 

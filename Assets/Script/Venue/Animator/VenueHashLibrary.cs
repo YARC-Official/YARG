@@ -43,6 +43,11 @@ namespace YARG.Venue
         public readonly int[] CameraSubjectHashes;
         public readonly int[] CrowdStateHashes;
 
+        // ── Blend state hashes (LayerName.StateName)  ─────────────────────────────
+        // Indexed same as LightingHashes, PostProcessingHashes
+        public readonly int[] LightingBlendHashes;
+        public readonly int[] PostProcessingBlendHashes;
+
         // ── List-indexed arrays ───────────────────────────────────────────────────
         // Index matches the existing note name lists
         public readonly int[] GuitarNoteHashes;
@@ -65,6 +70,10 @@ namespace YARG.Venue
         public readonly int   VocalNoteCount;
         public const    int   VocalInstrumentCount = 3;
 
+        // IDs that vary between venues
+        public int LightingLayerHash = -1;
+        public int PostProcessingLayerHash = -1;
+
         public VenueHashLibrary(
             IReadOnlyList<string> guitarNoteNames,
             IReadOnlyList<string> bassNoteNames,
@@ -73,10 +82,14 @@ namespace YARG.Venue
             IReadOnlyList<string> proGuitarStringNames,
             IReadOnlyList<string> proKeysNoteNames,
             IReadOnlyList<string> vocalNoteNames,
-            IReadOnlyList<string> crowdStateNames)
+            IReadOnlyList<string> crowdStateNames,
+            string lightingLayerName,
+            string postProcessingLayerName)
         {
             LightingHashes = HashEnum<LightingType>();
             PostProcessingHashes = HashEnum<PostProcessingType>();
+            LightingBlendHashes = HashEnumQualified<LightingType>(lightingLayerName);
+            PostProcessingBlendHashes = HashEnumQualified<PostProcessingType>(postProcessingLayerName);
             BeatlineHashes = HashEnum<BeatlineType>();
             DrumAnimHashes = HashEnum<AnimationEvent.AnimationType>();
             CameraSubjectHashes = HashEnum<CameraCutEvent.CameraCutSubject>();
@@ -123,6 +136,19 @@ namespace YARG.Venue
         }
 
         // ── Helpers ───────────────────────────────────────────────────────────────
+
+        private static int[] HashEnumQualified<TEnum>(string layerName) where TEnum : Enum
+        {
+            var values = (int[]) Enum.GetValues(typeof(TEnum));
+            int max = 0;
+            foreach (int v in values)
+                if (v > max)
+                    max = v;
+            var result = new int[max + 1];
+            foreach (TEnum val in Enum.GetValues(typeof(TEnum)))
+                result[(int) (object) val] = Animator.StringToHash($"{layerName}.{val.ToString()}");
+            return result;
+        }
 
         private static int[] HashEnum<TEnum>() where TEnum : Enum
         {

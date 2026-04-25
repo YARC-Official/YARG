@@ -9,12 +9,14 @@ namespace YARG.Venue
         private readonly Animator         _animator;
         private readonly VenueHashLibrary _hashes;
         private readonly int              _leadingFrames;
+        private readonly int              _postProcessingLayerHash;
 
         public PostProcessingChannel(Animator animator, VenueHashLibrary hashes, int leadingFrames)
         {
             _animator = animator;
             _hashes = hashes;
             _leadingFrames = leadingFrames;
+            _postProcessingLayerHash = _animator.GetLayerIndex("PostProcessing");
         }
 
         public void BuildCommands(SongChart chart, AnimatorCommandQueue queue)
@@ -26,21 +28,20 @@ namespace YARG.Venue
                 double t = e.Time - _leadingFrames / 60.0;
 
                 int hash = e.Type == PostProcessingType.Default
-                    ? _hashes.PPDefault
-                    : _hashes.PostProcessingHashes[(int) e.Type];
+                    ? _hashes.PostProcessingBlendHashes[(int) PostProcessingType.Default]
+                    : _hashes.PostProcessingBlendHashes[(int) e.Type];
 
                 if (i + 1 < events.Count)
                 {
                     var next = events[i + 1];
                     int nextHash = next.Type == PostProcessingType.Default
-                        ? _hashes.PPDefault
-                        : _hashes.PostProcessingHashes[(int) next.Type];
+                        ? _hashes.PostProcessingBlendHashes[(int) PostProcessingType.Default]
+                        : _hashes.PostProcessingBlendHashes[(int) next.Type];
 
                     if (hash == nextHash)
                     {
                         float duration = (float) (next.Time - e.Time);
-                        int layer = Mathf.Max(_animator.GetLayerIndex("Post Processing"), 0);
-                        queue.Add(AnimatorCommand.Blend(t, _animator, nextHash, duration, layer));
+                        queue.Add(AnimatorCommand.Blend(t, _animator, nextHash, duration, _postProcessingLayerHash));
                         continue;
                     }
                 }
