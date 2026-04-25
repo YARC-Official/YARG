@@ -5630,11 +5630,11 @@ MonoBehaviour:
   _genreContainer: {fileID: 1844083253397971378}
   _contentRatingImage: {fileID: 2179431986232809938}
   _contentRatingIcons:
-  - {fileID: 1037530716, guid: d654eff7c3ab0b04a8e5c22100a037fe, type: 3}
-  - {fileID: -477141551, guid: d654eff7c3ab0b04a8e5c22100a037fe, type: 3}
-  - {fileID: 939043236, guid: d654eff7c3ab0b04a8e5c22100a037fe, type: 3}
-  - {fileID: 321535304, guid: d654eff7c3ab0b04a8e5c22100a037fe, type: 3}
-  - {fileID: 1538118582, guid: d654eff7c3ab0b04a8e5c22100a037fe, type: 3}
+  - {fileID: -22552776, guid: d654eff7c3ab0b04a8e5c22100a037fe, type: 3}
+  - {fileID: 1383214845, guid: d654eff7c3ab0b04a8e5c22100a037fe, type: 3}
+  - {fileID: 1975822979, guid: d654eff7c3ab0b04a8e5c22100a037fe, type: 3}
+  - {fileID: -1194512660, guid: d654eff7c3ab0b04a8e5c22100a037fe, type: 3}
+  - {fileID: 22296138, guid: d654eff7c3ab0b04a8e5c22100a037fe, type: 3}
   _difficultyRingPrefab: {fileID: 397774209812536635, guid: 53438a07c6e5ec5409d5bde8514761ca, type: 3}
 --- !u!114 &5958352451011471035
 MonoBehaviour:
