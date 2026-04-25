@@ -13,6 +13,12 @@ using YARG.Settings;
 
 namespace YARG.Gameplay.HUD
 {
+    public enum NoFailMode
+    {
+        Off,
+        On,
+        NoMeter
+    }
     public class FailMeter : MonoBehaviour
     {
         [SerializeField]
@@ -51,7 +57,7 @@ namespace YARG.Gameplay.HUD
 
         private void Awake()
         {
-            if (SettingsManager.Settings.NoFailMode.Value)
+            if (SettingsManager.Settings.NoFail.Value == NoFailMode.NoMeter)
             {
                 _meterContainer.transform.position = new Vector3(
                     _meterContainer.transform.position.x,

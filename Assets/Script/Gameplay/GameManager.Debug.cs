@@ -293,7 +293,6 @@ namespace YARG.Gameplay
                 text.AppendFormat("- Committed score: {0}\n", stats.CommittedScore);
                 text.AppendFormat("- Pending score: {0}\n", stats.PendingScore);
                 text.AppendFormat("- Total score: {0}\n", stats.TotalScore);
-                text.AppendFormat("- Star score: {0}\n", stats.StarScore);
                 text.AppendFormat("- Stars: {0}\n", stats.Stars);
                 text.AppendLine();
                 text.AppendFormat("- Sustain score: {0}\n", stats.SustainScore);

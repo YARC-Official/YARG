@@ -68,7 +68,7 @@ namespace YARG.Gameplay.HUD
             _quickSettingsContainer.gameObject.SetActive(true);
             _subSettingsObject.SetActive(false);
             // _noFailButton.SetActive(!SettingsManager.Settings.NoFailMode.Value);
-            _noFailText.text = SettingsManager.Settings.NoFailMode.Value ? "Disable No Fail" : "Enable No Fail";
+            _noFailText.text = SettingsManager.Settings.NoFail.Value != NoFailMode.Off ? "Disable No Fail" : "Enable No Fail";
             _venuePostProcessingText.text = SettingsManager.Settings.VenuePostProcessing.Value
                 ? "Disable Venue Post Processing"
                 : "Enable Venue Post Processing";
@@ -104,11 +104,15 @@ namespace YARG.Gameplay.HUD
 
         public void ToggleNoFail()
         {
-            SettingsManager.Settings.NoFailMode.Value = !SettingsManager.Settings.NoFailMode.Value;
-            _noFailText.text = SettingsManager.Settings.NoFailMode.Value ? "Disable No Fail" : "Enable No Fail";
-
-            // Disappear the fail meter
-            _failMeter.SetActive(!SettingsManager.Settings.NoFailMode.Value);
+            if (SettingsManager.Settings.NoFail.Value == NoFailMode.Off)
+            {
+                SettingsManager.Settings.NoFail.Value = NoFailMode.On;
+            }
+            else
+            {
+                SettingsManager.Settings.NoFail.Value = NoFailMode.Off;
+            }
+            _noFailText.text = SettingsManager.Settings.NoFail.Value != NoFailMode.Off ? "Disable No Fail" : "Enable No Fail";
         }
 
         public void ToggleVenuePostProcessing()

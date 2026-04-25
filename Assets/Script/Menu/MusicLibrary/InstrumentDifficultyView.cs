@@ -1,4 +1,4 @@
-using System;
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
@@ -6,11 +6,12 @@ using UnityEngine.UI;
 using YARG.Helpers.Extensions;
 using YARG.Settings;
 
-
 namespace YARG.Menu.MusicLibrary
 {
     public class InstrumentDifficultyView : MonoBehaviour
     {
+        private static readonly Dictionary<string, Sprite> SpriteCache = new();
+
         [SerializeField]
         private Image _instrumentIcon;
 
@@ -20,7 +21,7 @@ namespace YARG.Menu.MusicLibrary
         [SerializeField]
         private TextMeshProUGUI _percentText;
 
-        private static Color _fcGold = new(1, 208 / 255f, 41 / 255f);
+        private static readonly Color FcGold = new(1, 208 / 255f, 41 / 255f);
 
 
         public void SetInfo(ViewType.ScoreInfo scoreInfo)
@@ -31,12 +32,10 @@ namespace YARG.Menu.MusicLibrary
             GetComponent<RectTransform>().sizeDelta = new Vector2(length, rect.sizeDelta.y);
 
             // Set instrument icon
-            var icon = Addressables.LoadAssetAsync<Sprite>($"InstrumentIcons[{scoreInfo.Instrument.ToResourceName()}]").WaitForCompletion();
-            _instrumentIcon.sprite = icon;
+            _instrumentIcon.sprite = GetSprite($"InstrumentIcons[{scoreInfo.Instrument.ToResourceName()}]");
 
             // Set difficulty icon
-            var difficultyIcon = Addressables.LoadAssetAsync<Sprite>($"DifficultyIcons[{scoreInfo.Difficulty.ToString()}]").WaitForCompletion();
-            _difficultyIcon.sprite = difficultyIcon;
+            _difficultyIcon.sprite = GetSprite($"DifficultyIcons[{scoreInfo.Difficulty.ToString()}]");
 
             // Set percent value
             if (SettingsManager.Settings.ShowPercentDecimals.Value)
@@ -49,7 +48,17 @@ namespace YARG.Menu.MusicLibrary
                 _percentText.text = $"{Mathf.FloorToInt(scoreInfo.Percent * 100f)}%";
             }
 
-            _percentText.color = scoreInfo.IsFc ? _fcGold : Color.white;
+            _percentText.color = scoreInfo.IsFc ? FcGold : Color.white;
+        }
+
+        private static Sprite GetSprite(string assetKey)
+        {
+            if (!SpriteCache.TryGetValue(assetKey, out var sprite))
+            {
+                SpriteCache[assetKey] = sprite = Addressables.LoadAssetAsync<Sprite>(assetKey).WaitForCompletion();
+            }
+
+            return sprite;
         }
     }
 }
