@@ -72,8 +72,10 @@ namespace YARG.Venue
         public int LightingLayerHash = -1;
         public int PostProcessingLayerHash = -1;
 
-        public int LightDefault;
-        public int PPDefault;
+        public int LightDefault = Animator.StringToHash("LightDefault");
+        public int PPDefault = Animator.StringToHash("PPDefault");
+        public int LightBlendDefault;
+        public int PPBlendDefault;
 
         public VenueHashLibrary(
             IReadOnlyList<string> guitarNoteNames,
@@ -87,13 +89,13 @@ namespace YARG.Venue
             string lightingLayerName,
             string postProcessingLayerName)
         {
-            LightDefault = Animator.StringToHash($"{lightingLayerName}.LightDefault");
-            PPDefault = Animator.StringToHash($"{postProcessingLayerName}.PPDefault");
+            LightBlendDefault = Animator.StringToHash($"{lightingLayerName}.LightDefault");
+            PPBlendDefault = Animator.StringToHash($"{postProcessingLayerName}.PPDefault");
 
             LightingHashes = HashEnum<LightingType>();
             PostProcessingHashes = HashEnum<PostProcessingType>();
-            LightingBlendHashes = HashEnumQualified<LightingType>(lightingLayerName, LightDefault);
-            PostProcessingBlendHashes = HashEnumQualified<PostProcessingType>(postProcessingLayerName, PPDefault);
+            LightingBlendHashes = HashEnumQualified<LightingType>(lightingLayerName, LightBlendDefault);
+            PostProcessingBlendHashes = HashEnumQualified<PostProcessingType>(postProcessingLayerName, PPBlendDefault);
             BeatlineHashes = HashEnum<BeatlineType>();
             DrumAnimHashes = HashEnum<AnimationEvent.AnimationType>();
             CameraSubjectHashes = HashEnum<CameraCutEvent.CameraCutSubject>();

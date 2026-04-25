@@ -100,7 +100,7 @@ namespace YARG.Venue
             }
         }
 
-        public static void SafeCrossFadeInFixedTime(this Animator animator, int hash, float value, int blendLayer, string name)
+        public static void SafeCrossFadeInFixedTime(this Animator animator, int hash, float value, int blendLayer)
         {
             if (animator.IsValidBlendParameter(hash))
             {

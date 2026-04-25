@@ -136,7 +136,10 @@ namespace YARG.Gameplay
             var descriptor = new RenderTextureDescriptor(outputWidth, outputHeight, RenderTextureFormat.DefaultHDR, 16, 0);
             _venueTexture = new RenderTexture(descriptor);
             _venueTexture.Create();
-            _venueOutput.texture = _venueTexture;
+            if (_venueOutput != null)
+            {
+                _venueOutput.texture = _venueTexture;
+            }
 
             descriptor.depthBufferBits = 0;
             _trailsTexture = new RenderTexture(descriptor);

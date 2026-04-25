@@ -32,9 +32,29 @@ namespace YARG.Venue
                 queue.Add(AnimatorCommand.Randomize(t, _animator));
 
                 // Resolve the hash without any string allocation
-                int hash = e.Type is LightingType.Default or LightingType.Intro
-                    ? _hashes.LightDefault
+                int blendHash = e.Type is LightingType.Default or LightingType.Intro
+                    ? _hashes.LightBlendDefault
                     : _hashes.LightingBlendHashes[(int) e.Type];
+
+                // We also need the unblended hash for SetTrigger
+                int unblendedHash = e.Type is LightingType.Default or LightingType.Intro
+                    ? _hashes.LightDefault
+                    : _hashes.LightingHashes[(int) e.Type];
+
+                // Determine previous hash
+                int prevBlendHash = -1;
+                if (i > 0)
+                {
+                    var prev = events[i - 1];
+                    prevBlendHash = prev.Type is LightingType.Default or LightingType.Intro
+                        ? _hashes.LightingBlendHashes[(int) LightingType.Default]
+                        : _hashes.LightingBlendHashes[(int) prev.Type];
+                    if (prev.Type is LightingType.KeyframeFirst or LightingType.KeyframeNext
+                        or LightingType.KeyframePrevious)
+                    {
+                        prevBlendHash = -1;
+                    }
+                }
 
                 int nexti = i + 1;
 
@@ -45,13 +65,11 @@ namespace YARG.Venue
                 }
 
                 // Crossfade if same event repeats and there is a known next event
-                if (nexti < events.Count && events[i].Type == events[nexti].Type && e.Type
-                    is not LightingType.KeyframeFirst and not LightingType.KeyframeNext
-                    and not LightingType.KeyframePrevious)
+                if (blendHash == prevBlendHash && blendHash != -1 && nexti < events.Count)
                 {
                     var next = events[nexti];
                     int nextHash = next.Type is LightingType.Default or LightingType.Intro
-                        ? _hashes.LightDefault
+                        ? _hashes.LightingBlendHashes[(int) LightingType.Default]
                         : _hashes.LightingBlendHashes[(int) next.Type];
 
                     float duration = (float) (next.Time - e.Time);
@@ -66,7 +84,7 @@ namespace YARG.Venue
                     queue.Add(AnimatorCommand.Float(t, _animator, _hashes.BPMAdjust, 0f));
                 }
 
-                queue.Add(AnimatorCommand.Trigger(t, _animator, hash));
+                queue.Add(AnimatorCommand.Trigger(t, _animator, unblendedHash));
             }
         }
 

@@ -21,10 +21,9 @@ namespace YARG.Venue
         public readonly int                 ParamHash;
         public readonly float               Value;      // Bool: 1=true/0=false, Float: the value, Blend: duration
         public readonly int                 BlendLayer; // only used for Blend
-        public readonly string              StringValue;
 
         private AnimatorCommand(double time, Animator target, AnimatorCommandType type,
-            int hash = 0, float value = 0f, int blendLayer = 0, string stringValue = "")
+            int hash = 0, float value = 0f, int blendLayer = 0)
         {
             Time = time;
             Target = target;
@@ -32,7 +31,6 @@ namespace YARG.Venue
             ParamHash = hash;
             Value = value;
             BlendLayer = blendLayer;
-            StringValue = stringValue;
         }
 
         public static AnimatorCommand Trigger(double time, Animator target, int hash) =>
@@ -50,9 +48,6 @@ namespace YARG.Venue
         public static AnimatorCommand Blend(double time, Animator target, int hash,
             float duration, int layer) =>
             new(time, target, AnimatorCommandType.Blend, hash, duration, layer);
-
-        public static AnimatorCommand Blend(double time, Animator target, int hash, float duration, int layer, string name) =>
-            new(time, target, AnimatorCommandType.Blend, hash, duration, layer, name);
 
         public static AnimatorCommand Randomize(double time, Animator target) =>
             new(time, target, AnimatorCommandType.Randomize);
@@ -104,7 +99,7 @@ namespace YARG.Venue
                         break;
                     case AnimatorCommandType.Blend:
                         hashLib.Randomize(cmd.Target);
-                        cmd.Target.SafeCrossFadeInFixedTime(cmd.ParamHash, cmd.Value, cmd.BlendLayer, cmd.StringValue);
+                        cmd.Target.SafeCrossFadeInFixedTime(cmd.ParamHash, cmd.Value, cmd.BlendLayer);
                         break;
                     case AnimatorCommandType.Randomize:
                         hashLib.Randomize(cmd.Target);

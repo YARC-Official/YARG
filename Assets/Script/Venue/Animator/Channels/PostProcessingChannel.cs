@@ -31,14 +31,18 @@ namespace YARG.Venue
                 queue.Add(AnimatorCommand.Randomize(t, _animator));
 
                 int hash = e.Type == PostProcessingType.Default
-                    ? _hashes.PPDefault
+                    ? _hashes.PPBlendDefault
                     : _hashes.PostProcessingBlendHashes[(int) e.Type];
+
+                int unblendedHash = e.Type == PostProcessingType.Default
+                    ? _hashes.PPDefault
+                    : _hashes.PostProcessingHashes[(int) e.Type];
 
                 if (i + 1 < events.Count)
                 {
                     var next = events[i + 1];
                     int nextHash = next.Type == PostProcessingType.Default
-                        ? _hashes.PPDefault
+                        ? _hashes.PPBlendDefault
                         : _hashes.PostProcessingBlendHashes[(int) next.Type];
 
                     if (hash == nextHash)
@@ -49,7 +53,7 @@ namespace YARG.Venue
                     }
                 }
 
-                queue.Add(AnimatorCommand.Trigger(t, _animator, hash));
+                queue.Add(AnimatorCommand.Trigger(t, _animator, unblendedHash));
             }
         }
 
