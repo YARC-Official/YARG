@@ -207,7 +207,7 @@ PrefabInstance:
     - target: {fileID: 1265137121616536561, guid: 5800c42510b55c549be95ec3ecd75e1c, type: 3}
       propertyPath: _prefab
       value: 
-      objectReference: {fileID: 861361446070616044, guid: 03b0fdd0f2d131d4682ccf3aaf6ee2a7, type: 3}
+      objectReference: {fileID: 861361446070616044, guid: b75b54235ee4df11d84aeb45ef1e7997, type: 3}
     - target: {fileID: 1322894404919002691, guid: 5800c42510b55c549be95ec3ecd75e1c, type: 3}
       propertyPath: m_Name
       value: Effect Pool
@@ -219,11 +219,11 @@ PrefabInstance:
     - target: {fileID: 3161527738386327264, guid: 5800c42510b55c549be95ec3ecd75e1c, type: 3}
       propertyPath: _prefab
       value: 
-      objectReference: {fileID: 861361446070616044, guid: 03b0fdd0f2d131d4682ccf3aaf6ee2a7, type: 3}
+      objectReference: {fileID: 861361446070616044, guid: b75b54235ee4df11d84aeb45ef1e7997, type: 3}
     - target: {fileID: 3161527738386327264, guid: 5800c42510b55c549be95ec3ecd75e1c, type: 3}
       propertyPath: <Prefab>k__BackingField
       value: 
-      objectReference: {fileID: 861361446070616044, guid: 03b0fdd0f2d131d4682ccf3aaf6ee2a7, type: 3}
+      objectReference: {fileID: 861361446070616044, guid: b75b54235ee4df11d84aeb45ef1e7997, type: 3}
     - target: {fileID: 3428521509162818570, guid: 5800c42510b55c549be95ec3ecd75e1c, type: 3}
       propertyPath: m_RootOrder
       value: 2
