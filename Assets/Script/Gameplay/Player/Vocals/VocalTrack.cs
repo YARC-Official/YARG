@@ -176,6 +176,7 @@ namespace YARG.Gameplay.Player
         private VocalsTrack _vocalsTrack;
 
         private Material _guidelineMaterial;
+        private TextMeshPro _lyricWidthTester;
 
         private bool _isRangeChanging;
         private Range _viewRange;
@@ -376,6 +377,9 @@ namespace YARG.Gameplay.Player
 
             // Hide overlay
             _starpowerMaterial.SetFloat(_alphaMultiplier, 0f);
+
+            PrepareLyricSpawns();
+            PrewarmVocalPools();
 
             AllowStarPower = true;
         }
@@ -611,7 +615,23 @@ namespace YARG.Gameplay.Player
             uint rangesStart = _vocalsTrack.RangeShifts.LowerBoundElement(start).Tick;
             _vocalsTrack.RangeShifts.RemoveAll(n => n.Tick < rangesStart || n.Tick >= end);
 
+            PrepareLyricSpawns();
+            PrewarmVocalPools();
+
             ResetPracticeSection();
+        }
+
+        private TextMeshPro GetLyricWidthTester()
+        {
+            if (_lyricWidthTester != null)
+            {
+                return _lyricWidthTester;
+            }
+
+            _lyricWidthTester = gameObject.AddComponent<TextMeshPro>();
+            _lyricWidthTester.enabled = false;
+            _lyricWidthTester.text = string.Empty;
+            return _lyricWidthTester;
         }
 
         // Should only be used when the chart did not provide an explicit vocal scroll speed. Finds the largest distance
@@ -619,7 +639,7 @@ namespace YARG.Gameplay.Player
         // that distance is too big, returns an increased vocal scroll speed
         private float GetScrollSpeedScalingFactor(List<VocalsPart> parts)
         {
-            var textWidthTester = gameObject.AddComponent<TextMeshPro>();
+            var textWidthTester = GetLyricWidthTester();
 
             const float DEFAULT_TRACK_SPEED = 5;
             const int THRESHOLD = 300;
