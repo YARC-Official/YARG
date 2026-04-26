@@ -36,42 +36,85 @@ namespace YARG.Menu.ScoreScreen
             switch (gameMode)
             {
                 case GameMode.FiveFretGuitar:
+                {
+                    var guitarPreset = enginePreset.FiveFretGuitar;
                     // Ghosting Icon
-                    if (!enginePreset.FiveFretGuitar.AntiGhosting)
+                    if (!guitarPreset.AntiGhosting)
                     {
                         var icon = Instantiate(prefab, parent);
                         icon.InitializeCustom(GHOSTING);
                     }
 
                     // Infinite Front-End Icon
-                    if (enginePreset.FiveFretGuitar.InfiniteFrontEnd)
+                    if (guitarPreset.InfiniteFrontEnd)
                     {
                         var icon = Instantiate(prefab, parent);
                         icon.InitializeCustom(INFINITE_FRONT_END);
                     }
 
                     // Dynamic Hit Window
-                    if (enginePreset.FiveFretGuitar.HitWindow.IsDynamic)
+                    if (guitarPreset.HitWindow.IsDynamic)
                     {
                         var icon = Instantiate(prefab, parent);
                         icon.InitializeCustom(DYNAMIC_HIT_WINDOW);
                     }
 
                     // Solo Taps
-                    if (enginePreset.FiveFretGuitar.SoloTaps)
+                    if (guitarPreset.SoloTaps)
                     {
                         var icon = Instantiate(prefab, parent);
                         icon.InitializeCustom(SOLO_TAPS);
                     }
 
                     // No Star Power Overlap
-                    if (enginePreset.FiveFretGuitar.NoStarPowerOverlap)
+                    if (guitarPreset.NoStarPowerOverlap)
                     {
                         var icon = Instantiate(prefab, parent);
                         icon.InitializeCustom(NO_STAR_POWER_OVERLAP);
                     }
 
                     break;
+                }
+                case GameMode.SixFretGuitar:
+                {
+                    var guitarPreset = enginePreset.SixFretGuitar;
+                    // Ghosting Icon
+                    if (!guitarPreset.AntiGhosting)
+                    {
+                        var icon = Instantiate(prefab, parent);
+                        icon.InitializeCustom(GHOSTING);
+                    }
+
+                    // Infinite Front-End Icon
+                    if (guitarPreset.InfiniteFrontEnd)
+                    {
+                        var icon = Instantiate(prefab, parent);
+                        icon.InitializeCustom(INFINITE_FRONT_END);
+                    }
+
+                    // Dynamic Hit Window
+                    if (guitarPreset.HitWindow.IsDynamic)
+                    {
+                        var icon = Instantiate(prefab, parent);
+                        icon.InitializeCustom(DYNAMIC_HIT_WINDOW);
+                    }
+
+                    // Solo Taps
+                    if (guitarPreset.SoloTaps)
+                    {
+                        var icon = Instantiate(prefab, parent);
+                        icon.InitializeCustom(SOLO_TAPS);
+                    }
+
+                    // No Star Power Overlap
+                    if (guitarPreset.NoStarPowerOverlap)
+                    {
+                        var icon = Instantiate(prefab, parent);
+                        icon.InitializeCustom(NO_STAR_POWER_OVERLAP);
+                    }
+
+                    break;
+                }
                 case GameMode.FiveLaneDrums:
                 case GameMode.FourLaneDrums:
                     // Dynamic Hit Window
