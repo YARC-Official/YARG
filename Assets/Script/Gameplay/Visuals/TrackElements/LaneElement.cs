@@ -85,6 +85,7 @@ namespace YARG.Gameplay.Visuals
         private Color _color;
 
         private bool _isOpen = false;
+        private bool _isCombinedSpan = false;
 
         public void SetAppearance(Instrument instrument, int index, float lateralPosition, int subdivisions, Color color)
         {
@@ -195,6 +196,15 @@ namespace YARG.Gameplay.Visuals
             }
         }
 
+        public void SetCombinedSpan(bool combined)
+        {
+            _isCombinedSpan = combined;
+            if (combined && Initialized)
+            {
+                RenderScale();
+            }
+        }
+
         public void ToggleOpen(bool state)
         {
             if (state == _isOpen)
@@ -245,7 +255,8 @@ namespace YARG.Gameplay.Visuals
         private void RenderScale()
         {
             // Set scale
-            _meshTransform.localScale = new Vector3(_scale, 1f, _scale);
+            float scaleX = _isCombinedSpan ? _scale * 2f : _scale;
+            _meshTransform.localScale = new Vector3(scaleX, 1f, scaleX);
 
             // Recalculate length from new scale
             RenderLength();

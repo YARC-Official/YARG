@@ -28,7 +28,15 @@ namespace YARG.Gameplay.Player
     {
         private const double SUSTAIN_END_MUTE_THRESHOLD = 0.1;
 
- 
+        // Combined lane pair index: (Black1,White1)->0, (Black2,White2)->1, (Black3,White3)->2
+        private static readonly Dictionary<SixFretGuitarFret, int> COMBINED_PAIR_INDEX = new()
+        {
+            { SixFretGuitarFret.Black1, 0 }, { SixFretGuitarFret.White1, 0 },
+            { SixFretGuitarFret.Black2, 1 }, { SixFretGuitarFret.White2, 1 },
+            { SixFretGuitarFret.Black3, 2 }, { SixFretGuitarFret.White3, 2 },
+        };
+
+        private static int GetPairIndex(SixFretGuitarFret fret) => COMBINED_PAIR_INDEX[fret];
 
         public new virtual int LaneCount => 6;
 
@@ -326,7 +334,40 @@ namespace YARG.Gameplay.Player
 
         protected override void InitializeSpawnedNote(IPoolable poolable, GuitarNote note)
         {
-            ((SixFretGuitarNoteElement) poolable).NoteRef = note;
+            var element = (SixFretGuitarNoteElement) poolable;
+            element.NoteRef = note;
+
+            if (!Player.Profile.SixFretSplitLanes &&
+                note.Fret != (int)SixFretGuitarFret.Open &&
+                note.Fret != (int)SixFretGuitarFret.Wildcard)
+            {
+                element.IsPaired = FindPairInChord(note);
+            }
+            else
+            {
+                element.IsPaired = false;
+            }
+        }
+
+        private bool FindPairInChord(GuitarNote note)
+        {
+            int pairIdx = GetPairIndex((SixFretGuitarFret)note.Fret);
+
+            // Use ParentOrSelf to get full chord; child notes have empty ChildNotes
+            foreach (var other in note.ParentOrSelf.AllNotes)
+            {
+                if (other == note) continue;
+                int otherFret = other.Fret;
+                if (otherFret == (int)SixFretGuitarFret.Open ||
+                    otherFret == (int)SixFretGuitarFret.Wildcard) continue;
+                if (otherFret == note.Fret) continue;
+
+                if (GetPairIndex((SixFretGuitarFret)otherFret) == pairIdx)
+                {
+                    return true;
+                }
+            }
+            return false;
         }
 
         protected override void InitializeSpawnedLane(LaneElement lane, GuitarNote note)
@@ -338,6 +379,14 @@ namespace YARG.Gameplay.Player
                 LaneCount,
                 Player.ColorProfile.SixFretGuitar.GetNoteColor(note.Fret).ToUnityColor()
             );
+
+            if (!Player.Profile.SixFretSplitLanes &&
+                note.Fret != (int)SixFretGuitarFret.Open &&
+                note.Fret != (int)SixFretGuitarFret.Wildcard &&
+                !FindPairInChord(note))
+            {
+                lane.SetCombinedSpan(true);
+            }
         }
 
         protected override void InitializeSpawnedLane(LaneElement lane, int laneIndex)

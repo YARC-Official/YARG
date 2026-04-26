@@ -28,5 +28,6 @@ namespace YARG.Assets.Script.Helpers
         public const string SWAP_SNARE_AND_HI_HAT                   = "Swap Snare and Hi-Hat";
         public const string SWAP_CRASH_AND_RIDE                     = "Swap Crash and Ride";
         public const string DRUM_STAR_POWER_ACTIVATION_TYPE         = "Star Power Activation Type";
+        public const string SIX_FRET_SPLIT_LANES                    = "Six Fret Split Lanes";
     }
 }

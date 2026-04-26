@@ -33,6 +33,12 @@ namespace YARG.Gameplay.Visuals
 
         private SustainLine _sustainLine;
 
+        /// <summary>
+        /// Whether this note has a paired sibling in the same combined lane.
+        /// Only meaningful when SixFretSplitLanes is false.
+        /// </summary>
+        public bool IsPaired = false;
+
         protected override float RemovePointOffset => (float) NoteRef.TimeLength * Player.NoteSpeed;
 
         public override void SetThemeModels(
@@ -55,11 +61,11 @@ namespace YARG.Gameplay.Visuals
 
             var noteGroups = IsStarPowerVisible ? StarPowerNoteGroups : NoteGroups;
 
+            int lane = -1;
+
             if (NoteRef.Fret != (int) SixFretGuitarFret.Open && NoteRef.Fret != (int) SixFretGuitarFret.Wildcard)
             {
-                var lane = Player.GetLanePosition((SixFretGuitarFret)NoteRef.Fret);
-
-                transform.localPosition = new Vector3(GetElementX(lane, Player.LaneCount), 0f, 0f);
+                lane = Player.GetLanePosition((SixFretGuitarFret)NoteRef.Fret);
 
                 NoteGroup = NoteRef.Type switch
                 {
@@ -70,6 +76,22 @@ namespace YARG.Gameplay.Visuals
                 };
 
                 _sustainLine = _normalSustainLine;
+
+                if (!Player.Player.Profile.SixFretSplitLanes && !IsPaired)
+                {
+                    // Combined mode, solo note: center between pair, scale wider
+                    float combinedX = GetCombinedCenterX(lane);
+                    transform.localPosition = new Vector3(combinedX, 0f, 0f);
+
+                    // Scale note group to span both lanes
+                    var s = NoteGroup.transform.localScale;
+                    NoteGroup.transform.localScale = new Vector3(s.x * 2f, s.y, s.z);
+                }
+                else
+                {
+                    // Split mode or paired: normal
+                    transform.localPosition = new Vector3(GetElementX(lane, Player.LaneCount), 0f, 0f);
+                }
             }
             else if (NoteRef.Fret == (int) SixFretGuitarFret.Open)
             {
@@ -103,6 +125,13 @@ namespace YARG.Gameplay.Visuals
 
                 float len = (float) NoteRef.TimeLength * Player.NoteSpeed;
                 _sustainLine.Initialize(len);
+
+                if (!Player.Player.Profile.SixFretSplitLanes && !IsPaired && lane >= 0)
+                {
+                    _sustainLine.SetWidthMultiplier(2f);
+                    float offsetX = transform.localPosition.x - GetElementX(lane, Player.LaneCount);
+                    _sustainLine.transform.localPosition = _sustainLine.transform.localPosition.WithX(offsetX);
+                }
             }
 
             UpdateColor();
@@ -165,6 +194,21 @@ namespace YARG.Gameplay.Visuals
             _sustainLine.UpdateSustainLine();
         }
 
+        private float GetCombinedCenterX(int fretLane)
+        {
+            int pairLane = GetPairedLane(fretLane);
+            float x1 = GetElementX(fretLane, Player.LaneCount);
+            float x2 = GetElementX(pairLane, Player.LaneCount);
+            return (x1 + x2) / 2f;
+        }
+
+        private int GetPairedLane(int fretLane)
+        {
+            // Highway ordering: Black1=0, White1=1, Black2=2, White2=3, Black3=4, White3=5
+            // Pairs: (0,1), (2,3), (4,5) — always adjacent even/odd
+            return fretLane % 2 == 0 ? fretLane + 1 : fretLane - 1;
+        }
+
       protected void UpdateColor()
         {
             var colors = Player.Player.ColorProfile.SixFretGuitar;
@@ -194,6 +238,24 @@ namespace YARG.Gameplay.Visuals
         protected override void HideElement()
         {
             HideNotes();
+
+            // Reset note group X scales (combined mode doubles them)
+            foreach (var group in NoteGroups)
+            {
+                if (group != null)
+                {
+                    var s = group.transform.localScale;
+                    group.transform.localScale = new Vector3(1f, s.y, s.z);
+                }
+            }
+            foreach (var group in StarPowerNoteGroups)
+            {
+                if (group != null)
+                {
+                    var s = group.transform.localScale;
+                    group.transform.localScale = new Vector3(1f, s.y, s.z);
+                }
+            }
 
             _normalSustainLine.gameObject.SetActive(false);
             _openSustainLine.gameObject.SetActive(false);

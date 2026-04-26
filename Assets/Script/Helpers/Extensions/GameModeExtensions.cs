@@ -89,6 +89,7 @@ namespace YARG.Helpers.Extensions
                 GameMode.SixFretGuitar => new()
                 {
                     (ProfileSettingStrings.LEFTY_FLIP, null),
+                    (ProfileSettingStrings.SIX_FRET_SPLIT_LANES, null),
                 },
                 GameMode.ProKeys => new()
                 {
