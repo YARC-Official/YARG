@@ -77,7 +77,8 @@ namespace YARG.Gameplay.HUD
         private string _timeFormat;
 
         private bool _easterEggTriggered;
-        private int _bandComboUnits;
+        // Default to 1 to prevent divide-by-zero when disabled
+        private int _bandComboUnits = 1;
         private bool _singlePlayer;
         private int _displayedCountUpSeconds = -1;
         private int _displayedCountDownSeconds = -1;
