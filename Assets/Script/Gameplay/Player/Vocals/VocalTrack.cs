@@ -728,37 +728,54 @@ namespace YARG.Gameplay.Player
 
             public readonly bool IsStarPower => MainPhrase?.IsStarPower ?? MergedPhrase!.IsStarPower;
 
+            public readonly bool HasNotes => HasNotesInPhrase(MainPhrase) || HasNotesInPhrase(MergedPhrase);
+
             public double Duration => GetLastNoteTotalEndTime() - GetFirstNoteStartTime();
 
             public double GetFirstNoteStartTime()
             {
-                if (MergedPhrase is null)
+                if (!HasNotes)
+                {
+                    return Time;
+                }
+
+                if (!HasNotesInPhrase(MergedPhrase))
                 {
                     return MainPhrase!.PhraseParentNote.Time;
                 }
-                if (MainPhrase is null)
+
+                if (!HasNotesInPhrase(MainPhrase))
                 {
-                    return MergedPhrase.PhraseParentNote.Time;
-                } else
-                {
-                    return Math.Min(MainPhrase.PhraseParentNote.Time, MergedPhrase.PhraseParentNote.Time);
+                    return MergedPhrase!.PhraseParentNote.Time;
                 }
+
+                return Math.Min(MainPhrase!.PhraseParentNote.Time, MergedPhrase!.PhraseParentNote.Time);
             }
 
             public double GetLastNoteTotalEndTime()
             {
-                if (MergedPhrase is null)
+                if (!HasNotes)
+                {
+                    return Time;
+                }
+
+                if (!HasNotesInPhrase(MergedPhrase))
                 {
                     return MainPhrase!.PhraseParentNote.ChildNotes[^1].TotalTimeEnd;
                 }
-                if (MainPhrase is null)
+
+                if (!HasNotesInPhrase(MainPhrase))
                 {
-                    return MergedPhrase.PhraseParentNote.ChildNotes[^1].TotalTimeEnd;
+                    return MergedPhrase!.PhraseParentNote.ChildNotes[^1].TotalTimeEnd;
                 }
-                else
-                {
-                    return Math.Max(MainPhrase.PhraseParentNote.ChildNotes[^1].TotalTimeEnd, MergedPhrase.PhraseParentNote.ChildNotes[^1].TotalTimeEnd);
-                }
+
+                return Math.Max(MainPhrase!.PhraseParentNote.ChildNotes[^1].TotalTimeEnd,
+                    MergedPhrase!.PhraseParentNote.ChildNotes[^1].TotalTimeEnd);
+            }
+
+            private static bool HasNotesInPhrase(VocalsPhrase? phrase)
+            {
+                return phrase?.PhraseParentNote.ChildNotes.Count > 0;
             }
         }
 
