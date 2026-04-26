@@ -794,6 +794,14 @@
             "SoloBlue": "Solo Blue Fret",
             "SoloOrange": "Solo Orange Fret"
         },
+        "SixFret": {
+            "Black1": "Black Fret 1 (First)",
+            "Black2": "Black Fret 2 (Second)",
+            "Black3": "Black Fret 3 (Third)",
+            "White1": "White Fret 1 (Fourth)",
+            "White2": "White Fret 2 (Fifth)",
+            "White3": "White Fret 3 (Sixth)"
+        },
         "Guitar": {
             "StrumUp": "Strum Up",
             "StrumDown": "Strum Down",
