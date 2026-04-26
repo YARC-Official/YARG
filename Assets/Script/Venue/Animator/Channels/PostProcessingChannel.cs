@@ -22,6 +22,8 @@ namespace YARG.Venue
         public void BuildCommands(SongChart chart, AnimatorCommandQueue queue)
         {
             var events = chart.VenueTrack.PostProcessing;
+            bool suppressNext = false;
+
             for (int i = 0; i < events.Count; i++)
             {
                 var e = events[i];
@@ -59,11 +61,16 @@ namespace YARG.Venue
                     {
                         float duration = (float) (next.Time - e.Time);
                         queue.Add(AnimatorCommand.Blend(t, _animator, nextHash, duration, _postProcessingLayerHash));
+                        suppressNext = true;
                         continue;
                     }
                 }
 
-                queue.Add(AnimatorCommand.Trigger(t, _animator, unblendedHash));
+                if (!suppressNext)
+                {
+                    queue.Add(AnimatorCommand.Trigger(t, _animator, unblendedHash));
+                }
+                suppressNext = false;
             }
         }
 
