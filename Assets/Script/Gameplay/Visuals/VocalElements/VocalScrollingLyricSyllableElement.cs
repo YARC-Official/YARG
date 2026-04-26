@@ -7,8 +7,12 @@ namespace YARG.Gameplay.Visuals
 {
     public class VocalScrollingLyricSyllableElement : VocalElement
     {
+        private static readonly int _sharpness = Shader.PropertyToID("_Sharpness");
+        private const float VOCAL_LYRIC_SHARPNESS = 0.5f;
+
         private LyricEvent _lyricRef;
         private double _lyricLength;
+        private bool _sharpnessApplied;
 
         private double _minimumTime;
         private bool _isStarpower;
@@ -38,6 +42,8 @@ namespace YARG.Gameplay.Visuals
 
         protected override void InitializeElement()
         {
+            ApplySharpness();
+
             if (_lyricRef.HarmonyHidden && _allowHiding)
             {
                 _lyricText.text = string.Empty;
@@ -75,6 +81,22 @@ namespace YARG.Gameplay.Visuals
 
         protected override void HideElement()
         {
+        }
+
+        private void ApplySharpness()
+        {
+            if (_sharpnessApplied)
+            {
+                return;
+            }
+
+            var material = _lyricText.fontMaterial;
+            if (material != null && material.HasFloat(_sharpness))
+            {
+                material.SetFloat(_sharpness, VOCAL_LYRIC_SHARPNESS);
+            }
+
+            _sharpnessApplied = true;
         }
     }
 }

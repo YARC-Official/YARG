@@ -16,6 +16,9 @@ namespace YARG.Gameplay.Visuals
 {
     public class VocalStaticLyricPhraseElement : BaseElement // not a VocalElement because it doesn't scroll along the highway
     {
+        private static readonly int _sharpness = Shader.PropertyToID("_Sharpness");
+        private const float VOCAL_LYRIC_SHARPNESS = 0.5f;
+
         private const string PAST_LYRIC_COLOR_TAG = "<color=#595959>";
         private const string PAST_STAR_POWER_LYRIC_COLOR_TAG = "<color=#757519>";
         private const string PRESENT_LYRIC_COLOR_TAG = "<color=#13f0a6>";
@@ -31,6 +34,7 @@ namespace YARG.Gameplay.Visuals
         private bool _allowHiding;
         private float _x;
         private bool _isFuture = true;
+        private bool _sharpnessApplied;
 
         private Utf16ValueStringBuilder _builder;
 
@@ -59,6 +63,8 @@ namespace YARG.Gameplay.Visuals
 
         protected override void InitializeElement()
         {
+            ApplySharpness();
+
             var mergedLyricIdx = 0;
 
             var mainPhrase = _phrasePairRef.MainPhrase;
@@ -233,6 +239,22 @@ namespace YARG.Gameplay.Visuals
 
         protected override void HideElement()
         {
+        }
+
+        private void ApplySharpness()
+        {
+            if (_sharpnessApplied)
+            {
+                return;
+            }
+
+            var material = _phraseText.fontMaterial;
+            if (material != null && material.HasFloat(_sharpness))
+            {
+                material.SetFloat(_sharpness, VOCAL_LYRIC_SHARPNESS);
+            }
+
+            _sharpnessApplied = true;
         }
 
         private void BuilderAppendWithColorTag(string text, string colorTag)
