@@ -95,8 +95,8 @@ namespace YARG.Settings
             public void OpenCalibrator()
             {
                 SettingsMenu.OpenOnNextMenuLoad();
+                SettingsMenu.Instance.PrepareForSceneTransition();
                 GlobalVariables.Instance.LoadScene(SceneIndex.Calibration);
-                SettingsMenu.Instance.gameObject.SetActive(false);
             }
 
             public IntSetting AudioCalibration { get; } = new(0);

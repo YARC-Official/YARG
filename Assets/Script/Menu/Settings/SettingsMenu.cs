@@ -5,6 +5,7 @@ using DG.Tweening;
 using TMPro;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using YARG.Core.Input;
 using YARG.Helpers;
@@ -55,6 +56,7 @@ namespace YARG.Menu.Settings
         public event Action SettingChanged;
 
         private static bool _openOnNextMenuLoad;
+        private static bool _skipMenuReactivationOnDisable;
 
         // Workaround to avoid errors when deactivating menu during startup
         private bool _ready;
@@ -94,6 +96,19 @@ namespace YARG.Menu.Settings
 
             _openOnNextMenuLoad = false;
             return true;
+        }
+
+        public void PrepareForSceneTransition()
+        {
+            _skipMenuReactivationOnDisable = true;
+            SceneManager.sceneLoaded -= HideAfterSceneTransition;
+            SceneManager.sceneLoaded += HideAfterSceneTransition;
+        }
+
+        private void HideAfterSceneTransition(Scene scene, LoadSceneMode mode)
+        {
+            SceneManager.sceneLoaded -= HideAfterSceneTransition;
+            gameObject.SetActive(false);
         }
 
         protected override void SingletonAwake()
@@ -432,9 +447,20 @@ namespace YARG.Menu.Settings
             SettingsManager.SaveSettings();
             CustomContentManager.SaveAll();
 
+            if (_skipMenuReactivationOnDisable)
+            {
+                _skipMenuReactivationOnDisable = false;
+                return;
+            }
+
             //This is a bit of a hack to update the CurrentNavigationGroup again.
             //ideally the settings menu should work just like every other menu so this isn't needed
             MenuManager.Instance.ReactivateCurrentMenu();
+        }
+
+        protected override void SingletonDestroy()
+        {
+            SceneManager.sceneLoaded -= HideAfterSceneTransition;
         }
     }
 }
