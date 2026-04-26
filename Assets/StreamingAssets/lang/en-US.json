@@ -1705,6 +1705,7 @@
                     "Name": "Instrument",
                     "Dropdown": {
                         "FiveFretGuitar": "Guitar (5-Fret)",
+                        "SixFretGuitar": "Guitar (6-Fret)",
                         "FiveLaneDrums": "Drums (5-Lane)",
                         "FourLaneDrums": "Drums (4-Lane)",
                         "ProKeys": "Pro Keys"
@@ -2012,6 +2013,24 @@
                 },
                 "BlackNoteStarPower": {
                     "Name": "Black Note Star Power"
+                },
+                "BlackFret": {
+                    "Name": "Black Fret"
+                },
+                "WhiteFret": {
+                    "Name": "White Fret"
+                },
+                "BlackFretInner": {
+                    "Name": "Black Fret Inner"
+                },
+                "WhiteFretInner": {
+                    "Name": "White Fret Inner"
+                },
+                "BlackParticles": {
+                    "Name": "Black Particles"
+                },
+                "WhiteParticles": {
+                    "Name": "White Particles"
                 }
             },
             "EnginePreset": {
