@@ -210,19 +210,18 @@ namespace YARG.Gameplay.Player
             var imageAspectRatio = vocalsSize.width / vocalsSize.height;
             var clampedAspectRatio = Math.Clamp(imageAspectRatio, MIN_ASPECT_RATIO, MAX_ASPECT_RATIO);
 
-            float heightPixels = vocalsSize.height;
-            float widthPixels = heightPixels * clampedAspectRatio;
-
-            // Convert to normalized coordinates
-            float heightNormalized = heightPixels / Screen.height;
-            float widthNormalized = widthPixels / Screen.width;
-
             // Center horizontally and position below stats overlay
-            float xPos = (1.0f - widthNormalized) / 2.0f;
-            var statsHeightNormalized = StatsManager.Instance.GetComponent<RectTransform>().ToScreenSpace().height / Screen.height;
-            float yPos = 1.0f - heightNormalized - statsHeightNormalized;
+            float heightPixels = Mathf.Round(vocalsSize.height);
+            float widthPixels = Mathf.Round(heightPixels * clampedAspectRatio);
+            float xPixels = Mathf.Round((Screen.width - widthPixels) / 2.0f);
+            float statsHeightPixels = Mathf.Round(StatsManager.Instance.GetComponent<RectTransform>().ToScreenSpace().height);
+            float yPixels = Mathf.Round(Screen.height - heightPixels - statsHeightPixels);
 
-            _trackCamera.rect = new Rect(xPos, yPos, widthNormalized, heightNormalized);
+            _trackCamera.rect = new Rect(
+                xPixels / Screen.width,
+                yPixels / Screen.height,
+                widthPixels / Screen.width,
+                heightPixels / Screen.height);
             _trackCamera.targetTexture = renderTexture;
         }
 
