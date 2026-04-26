@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
 using UnityEngine;
@@ -110,7 +110,12 @@ namespace YARG.Settings
                 FileExplorerHelper.OpenFolder(VenueLoader.VenueFolder);
             }
 
-            public ToggleSetting NoFailMode { get; } = new(false);
+            public DropdownSetting<NoFailMode> NoFail { get; } = new(NoFailMode.Off)
+            {
+                NoFailMode.Off,
+                NoFailMode.On,
+                NoFailMode.NoMeter
+            };
 
             public ToggleSetting DisableDefaultBackground  { get; } = new(false);
             public ToggleSetting DisableGlobalBackgrounds  { get; } = new(false);
@@ -320,7 +325,7 @@ namespace YARG.Settings
 
             public ToggleSetting VSync       { get; } = new(true, VSyncCallback);
             public IntSetting    FpsCap      { get; } = new(60, 0, onChange: FpsCapCallback);
-            public IntSetting    VenueFpsCap { get; } = new(60, 1);
+            public IntSetting    VenueFpsCap { get; } = new(60, 0);
 
             public DropdownSetting<FullScreenMode> FullscreenMode { get; }
                 = new(FullScreenMode.FullScreenWindow, FullscreenModeCallback)

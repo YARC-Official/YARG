@@ -22,10 +22,13 @@ namespace YARG.Gameplay
         private Camera _renderCamera;
         private float _originalFactor;
         private UniversalRenderPipelineAsset UniversalRenderPipelineAsset;
+        private readonly RenderPipeline.StandardRequest _renderRequest = new();
+        private bool _supportsRenderRequest;
 
         private static RawImage _venueOutput;
         private static RenderTexture _venueTexture;
         private static RenderTexture _trailsTexture;
+        private static RTHandle _trailsTextureHandle;
 
         private static readonly int _IsVenueId = Shader.PropertyToID("_YargIsVenue");
         private static readonly int _trailsLengthId = Shader.PropertyToID("_YargTrailLength");
@@ -97,6 +100,7 @@ namespace YARG.Gameplay
             }
             UniversalRenderPipelineAsset = GraphicsSettings.currentRenderPipeline as UniversalRenderPipelineAsset;
             _originalFactor = UniversalRenderPipelineAsset.renderScale;
+            _supportsRenderRequest = RenderPipeline.SupportsRenderRequest(_renderCamera, _renderRequest);
 
             FPS = SettingsManager.Settings.VenueFpsCap.Value;
             _venueLayerMask = LayerMask.GetMask("Venue");
@@ -120,9 +124,11 @@ namespace YARG.Gameplay
             var outputHeight = (int)(Screen.height * renderScale);
 
             ScalableBufferManager.ResizeBuffers(renderScale, renderScale);
-            
+
             if (_trailsTexture != null)
             {
+                _trailsTextureHandle?.Release();
+                _trailsTextureHandle = null;
                 _trailsTexture.Release();
                 _trailsTexture.DiscardContents();
             }
@@ -130,13 +136,17 @@ namespace YARG.Gameplay
             var descriptor = new RenderTextureDescriptor(outputWidth, outputHeight, RenderTextureFormat.DefaultHDR, 16, 0);
             _venueTexture = new RenderTexture(descriptor);
             _venueTexture.Create();
-            _venueOutput.texture = _venueTexture;
+            if (_venueOutput != null)
+            {
+                _venueOutput.texture = _venueTexture;
+            }
 
             descriptor.depthBufferBits = 0;
             _trailsTexture = new RenderTexture(descriptor);
             _trailsTexture.filterMode = FilterMode.Bilinear;
             _trailsTexture.wrapMode = TextureWrapMode.Clamp;
             _trailsTexture.Create();
+            _trailsTextureHandle = RTHandles.Alloc(_trailsTexture);
             Shader.SetGlobalTexture(_trailsTextureId, _trailsTexture);
             Graphics.Blit(Texture2D.blackTexture, _trailsTexture);
         }
@@ -168,6 +178,8 @@ namespace YARG.Gameplay
 
             if (_trailsTexture != null)
             {
+                _trailsTextureHandle?.Release();
+                _trailsTextureHandle = null;
                 _trailsTexture.Release();
                 Destroy(_trailsTexture);
                 _trailsTexture = null;
@@ -188,6 +200,8 @@ namespace YARG.Gameplay
 
             if (_trailsTexture != null)
             {
+                _trailsTextureHandle?.Release();
+                _trailsTextureHandle = null;
                 _trailsTexture.Release();
                 Destroy(_trailsTexture);
                 _trailsTexture = null;
@@ -217,8 +231,7 @@ namespace YARG.Gameplay
             if (fpsEffect.IsActive())
             {
                 // The divisor is relative to 60 fps, so we need to adjust for that if FPS is something other than 60
-                // TODO: Consider using ActualFPS here
-                var fpsRatio = FPS / 60f;
+                var fpsRatio = ActualFPS / 60f;
                 var adjustedDivisor = fpsRatio * fpsEffect.Divisor.value;
                 _effectiveFps = Mathf.RoundToInt(FPS / adjustedDivisor);
                 // Don't allow a rate higher than the FPS cap
@@ -229,20 +242,11 @@ namespace YARG.Gameplay
             _timeSinceLastRender += Time.unscaledDeltaTime;
             _elapsedTime += Time.unscaledDeltaTime;
 
-            float targetInterval = 1f / _effectiveFps;
-
-            if (_timeSinceLastRender >= targetInterval)
+            if (_effectiveFps == 0 || _timeSinceLastRender >= 1f / _effectiveFps)
             {
                 Render();
 
-                _timeSinceLastRender -= targetInterval;
-
-                // Check to see if we are too far behind..if so, make sure we render next update
-                if (_timeSinceLastRender > targetInterval)
-                {
-                    _timeSinceLastRender = 0f;
-                }
-
+                _timeSinceLastRender = 0f;
                 _frameCount++;
             }
 
@@ -317,7 +321,7 @@ namespace YARG.Gameplay
             if (trailsEffect.IsActive() )
             {
                 YargLogger.LogFormatTrace("Venue PP: trails, length: {0}", trailsEffect.length.value);
-                var adjustedLength = Mathf.Pow(trailsEffect.Length, _effectiveFps / 60f);
+                var adjustedLength = Mathf.Pow(trailsEffect.Length, ActualFPS / 60f);
                 Shader.SetGlobalFloat(_trailsLengthId, adjustedLength);
             }
 
@@ -327,20 +331,18 @@ namespace YARG.Gameplay
 
         private void Render()
         {
-            // Create a standard request
-            var request = new RenderPipeline.StandardRequest();
-
-            // Check if the request is supported by the active render pipeline
-            if (RenderPipeline.SupportsRenderRequest(_renderCamera, request))
+            if (!_supportsRenderRequest)
             {
-                request.destination = _venueTexture;
-                // Render camera and fill texture2D with its view
-                RenderPipeline.SubmitRenderRequest(_renderCamera, request);
+                return;
+            }
 
-                if (!IsRendered)
-                {
-                    IsRendered = true;
-                }
+            _renderRequest.destination = _venueTexture;
+            // Render camera and fill texture2D with its view
+            RenderPipeline.SubmitRenderRequest(_renderCamera, _renderRequest);
+
+            if (!IsRendered)
+            {
+                IsRendered = true;
             }
         }
 
@@ -366,7 +368,7 @@ namespace YARG.Gameplay
             public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
             {
                 UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
-                TextureHandle trailsTexture = renderGraph.ImportTexture(RTHandles.Alloc(_trailsTexture));
+                TextureHandle trailsTexture = renderGraph.ImportTexture(_trailsTextureHandle);
                 renderGraph.AddCopyPass(resourceData.activeColorTexture, trailsTexture, "Store frame for trail");
             }
         }

@@ -35,11 +35,11 @@ namespace YARG.Gameplay
             // we're not stuck as disabled from it immediately executing the method)
             enabled = GameManager.IsSongStarted;
 
+            GameplayAwake();
+
             GameManager.ChartLoaded += _OnChartLoaded;
             GameManager.SongLoaded += _OnSongLoaded;
             GameManager.SongStarted += _OnSongStarted;
-
-            GameplayAwake();
         }
 
         // Protected to warn when hidden by an inheriting class
