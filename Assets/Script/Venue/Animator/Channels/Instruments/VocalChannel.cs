@@ -74,17 +74,18 @@ namespace YARG.Venue
 
         public void Update(double visualTime)
         {
-            while (_currentNoteIndex < _notes.Count && _notes[_currentNoteIndex].TimeEnd < visualTime)
+            while (_currentNoteIndex < _notes.Count && _notes[_currentNoteIndex].TotalTimeEnd < visualTime)
             {
                 _currentNoteIndex++;
                 _prevPitchIndex = -1;
             }
 
-            if (_currentNoteIndex < _notes.Count && _notes[_currentNoteIndex].Time <= visualTime)
+            if (_currentNoteIndex < _notes.Count && (
+                visualTime >= _notes[_currentNoteIndex].Time &&
+                visualTime <= _notes[_currentNoteIndex].TotalTimeEnd))
             {
                 var note = _notes[_currentNoteIndex];
-                float songTime = (float)visualTime;
-                float pitch = note.PitchAtSongTime(songTime);
+                float pitch = note.PitchAtSongTime(visualTime);
 
                 int pitchHash = _instrumentIndex switch
                 {
@@ -93,7 +94,7 @@ namespace YARG.Venue
                     _ => _hashes.Har2Pitch
                 };
 
-                _animator.SetFloat(pitchHash, pitch);
+                _animator.SafeSetFloat(pitchHash, pitch);
 
                 int pitchIndex = Mathf.Clamp(Mathf.RoundToInt(pitch), 35, 100) - 35;
                 if (pitchIndex != _prevPitchIndex)
