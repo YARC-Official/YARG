@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using DG.Tweening;
 using UnityEngine;
@@ -368,7 +368,7 @@ namespace YARG.Venue.Characters
         private void HandleHandMap(HandMapType handMap)
         {
             // Hand map is only valid for guitar and bass
-            if (Type != CharacterType.Guitar || Type != CharacterType.Bass)
+            if (Type is not (CharacterType.Guitar or CharacterType.Bass))
             {
                 return;
             }
