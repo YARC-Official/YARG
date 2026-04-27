@@ -205,7 +205,7 @@ namespace YARG.Gameplay.Visuals
             return fretLane % 2 == 0 ? fretLane + 1 : fretLane - 1;
         }
 
-        protected void UpdateColor()
+        private void UpdateColor()
         {
             var colors = Player.Player.ColorProfile.SixFretGuitar;
 
