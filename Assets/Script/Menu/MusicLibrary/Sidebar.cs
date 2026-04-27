@@ -310,6 +310,7 @@ namespace YARG.Menu.MusicLibrary
             label.enableAutoSizing = false;
             label.textWrappingMode = TextWrappingModes.Normal;
             label.overflowMode = TextOverflowModes.Overflow;
+            label.verticalAlignment = VerticalAlignmentOptions.Middle;
             label.fontSize = baseFontSize;
 
             if (measureText.Length > maxCharsBeforeShrink)

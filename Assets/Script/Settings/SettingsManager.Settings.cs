@@ -94,8 +94,9 @@ namespace YARG.Settings
 
             public void OpenCalibrator()
             {
+                SettingsMenu.OpenOnNextMenuLoad();
+                SettingsMenu.Instance.PrepareForSceneTransition();
                 GlobalVariables.Instance.LoadScene(SceneIndex.Calibration);
-                SettingsMenu.Instance.gameObject.SetActive(false);
             }
 
             public IntSetting AudioCalibration { get; } = new(0);
@@ -224,7 +225,8 @@ namespace YARG.Settings
 
             #region Sound
 
-            public VolumeSetting MasterMusicVolume { get; } = new(0.75f, v => GlobalAudioHandler.SetMasterVolume(v));
+            public ToggleSetting EnableNormalization { get; } = new(true);
+            public VolumeSetting MasterMusicVolume   { get; } = new(0.75f, v => GlobalAudioHandler.SetMasterVolume(v));
 
             public VolumeSetting GuitarVolume { get; } =
                 new(1f, v => GlobalAudioHandler.SetVolumeSetting(SongStem.Guitar, v));
@@ -594,7 +596,6 @@ namespace YARG.Settings
             public OutputChannelSetting OutputChannelVox { get; } = new(-1, OutputChannelVoxCallback);
             public OutputChannelSetting OutputChannelMetronome { get; } = new(-1, OutputChannelMetronomeCallback);
 
-            public ToggleSetting EnableNormalization { get; } = new(false);
             public CustomCharacterSetting CustomVocalsCharacter { get; } = new(string.Empty, VenueCharacter.CharacterType.Vocals, CustomCharacterCallback);
             #endregion
 

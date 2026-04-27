@@ -49,7 +49,7 @@ namespace YARG.Menu.Settings
 
                 var capture = buttonInfo.Action;
                 button.GetComponentInChildren<Button>()
-                    .onClick.AddListener(() => capture?.Invoke());
+                    .onClick.AddListener(() => InvokeFocusedAction(capture));
 
                 _navGroup.AddNavigatable(button.GetComponentInChildren<NavigatableUnityButton>());
             }
@@ -71,7 +71,7 @@ namespace YARG.Menu.Settings
                 // Set button action
                 var capture = buttonName;
                 button.GetComponentInChildren<Button>()
-                    .onClick.AddListener(() => SettingsManager.InvokeButton(capture));
+                    .onClick.AddListener(() => InvokeFocusedAction(() => SettingsManager.InvokeButton(capture)));
 
                 // Add to nav group
                 _navGroup.AddNavigatable(button.GetComponentInChildren<NavigatableUnityButton>());
@@ -85,7 +85,7 @@ namespace YARG.Menu.Settings
         {
             _buttonTemplate.GetComponentInChildren<TextMeshProUGUI>().text = Localize.Key(localizationKey);
 
-            _buttonTemplate.GetComponentInChildren<Button>().onClick.AddListener(() => action?.Invoke());
+            _buttonTemplate.GetComponentInChildren<Button>().onClick.AddListener(() => InvokeFocusedAction(action));
         }
 
         public override void Confirm()
@@ -95,7 +95,7 @@ namespace YARG.Menu.Settings
                 NavigationScheme.Entry.NavigateSelect,
                 new NavigationScheme.Entry(MenuAction.Red, "Menu.Common.Back", () =>
                 {
-                    Navigator.Instance.PopScheme();
+                    CloseFocusedNavigation();
                 }),
                 NavigationScheme.Entry.NavigateUp,
                 NavigationScheme.Entry.NavigateDown
@@ -114,6 +114,20 @@ namespace YARG.Menu.Settings
             _navGroup.SelectFirst();
         }
 
+        private void InvokeFocusedAction(Action action)
+        {
+            CloseFocusedNavigation();
+            action?.Invoke();
+        }
+
+        private void CloseFocusedNavigation()
+        {
+            if (_focused)
+            {
+                Navigator.Instance.PopScheme();
+            }
+        }
+
         protected override void OnSelectionChanged(bool selected)
         {
             base.OnSelectionChanged(selected);
@@ -125,7 +139,7 @@ namespace YARG.Menu.Settings
             // If the visual's nav scheme is still in the stack, make sure to pop it.
             if (_focused)
             {
-                Navigator.Instance.PopScheme();
+                CloseFocusedNavigation();
             }
         }
     }

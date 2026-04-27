@@ -12,7 +12,9 @@ namespace YARG.Input.Devices
         public FourCC format => new('G', 'I', 'P');
 
         [InputControl(layout = "Integer")]
-        public byte dummy;
+#pragma warning disable CS0649
+        public byte dummy; // Required by InputSystem layout, never accessed in code
+#pragma warning restore CS0649
     }
 
     /// <summary>

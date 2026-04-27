@@ -134,6 +134,9 @@ namespace YARG.Menu.MusicLibrary
 
             // Fill in sort information
             UpdateSortInformationHeader();
+
+            // Ensure collapsed-header sets exist for each sort attribute
+            InitializeCollapsedHeaderSets();
         }
 
         protected override void OnEnable()
@@ -521,12 +524,14 @@ namespace YARG.Menu.MusicLibrary
                         onHeaderClicked = () =>
                         {
                             var category = _sortedSongs[index];
-                            _sortedSongs[index] = new SongCategory(
-                                category.Category,
-                                category.Songs,
-                                category.CategoryGroup,
-                                !category.Collapsed
-                            );
+                            if (_collapsedHeaders[SettingsManager.Settings.LibrarySort].Contains(category))
+                            {
+                                _collapsedHeaders[SettingsManager.Settings.LibrarySort].Remove(category);
+                            }
+                            else
+                            {
+                                _collapsedHeaders[SettingsManager.Settings.LibrarySort].Add(category);
+                            }
 
                             var (headerIndex, offset) = GetClosestHeaderIndexAndOffset();
                             RequestViewListUpdate();
@@ -545,13 +550,13 @@ namespace YARG.Menu.MusicLibrary
                         section.Songs.Length,
                         section.CategoryGroup,
                         section.Songs,
-                        section.Collapsed,
+                        _collapsedHeaders[SettingsManager.Settings.LibrarySort].Contains(section),
                         onHeaderClicked);
                     list.Add(sortHeader);
                 }
 
                 int sectionTotalStars = 0;
-                bool includeSongs = _sortedSongs.Length <= 1 || !section.Collapsed;
+                bool includeSongs = _sortedSongs.Length <= 1 || !_collapsedHeaders[SettingsManager.Settings.LibrarySort].Contains(section);
 
                 foreach (var song in section.Songs)
                 {
@@ -811,6 +816,17 @@ namespace YARG.Menu.MusicLibrary
             StemSettings.ApplySettings = true;
         }
 
+        private void InitializeCollapsedHeaderSets()
+        {
+            foreach (SortAttribute attribute in Enum.GetValues(typeof(SortAttribute)))
+            {
+                if (!_collapsedHeaders.ContainsKey(attribute))
+                {
+                    _collapsedHeaders.Add(attribute, new HashSet<SongCategory>(_comparer));
+                }
+            }
+        }
+
         public void Back()
         {
             if (_searchField.IsSearching)
@@ -945,9 +961,7 @@ namespace YARG.Menu.MusicLibrary
         public void ExpandAll()
         {
             var (headerIndex, offset) = GetClosestHeaderIndexAndOffset();
-            _sortedSongs = _sortedSongs
-                .Select(cat => new SongCategory(cat.Category, cat.Songs, cat.CategoryGroup, false))
-                .ToArray();
+            _collapsedHeaders[SettingsManager.Settings.LibrarySort].Clear();
             RequestViewListUpdate();
             SelectedIndex = _sectionHeaderIndices[headerIndex] + offset;
         }
@@ -955,10 +969,13 @@ namespace YARG.Menu.MusicLibrary
         public void CollapseAll()
         {
             var (headerIndex, offset) = GetClosestHeaderIndexAndOffset();
-            _sortedSongs = _sortedSongs
-                .Select(cat => new SongCategory(cat.Category, cat.Songs, cat.CategoryGroup, true))
-                .ToArray();
+            foreach (var cat in _sortedSongs)
+            {
+                _collapsedHeaders[SettingsManager.Settings.LibrarySort].Add(cat);
+            }
+
             RequestViewListUpdate();
+
             var closestHeader = ViewList[_sectionHeaderIndices[headerIndex]];
             if (closestHeader is SortHeaderViewType sortHeader && sortHeader.Collapsed)
             {
