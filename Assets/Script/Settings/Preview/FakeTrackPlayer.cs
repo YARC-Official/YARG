@@ -101,6 +101,59 @@ namespace YARG.Settings.Preview
                 }
             },
             {
+                GameMode.SixFretGuitar,
+                new Info
+                {
+                    HighwayOrdering = SixFretGuitarPlayer.DEFAULT_HIGHWAY_ORDERING,
+                    LaneCount = 6,
+
+                    FretColorProvider = (colorProfile) => colorProfile.SixFretGuitar,
+                    NoteColorProvider = (colorProfile, note) => colorProfile.SixFretGuitar
+                        .GetNoteColor(note.Fret)
+                        .ToUnityColor(),
+
+                    HitWindowProvider = (enginePreset) => enginePreset.SixFretGuitar.HitWindow,
+
+                    CreateFakeNote = (time) =>
+                    {
+                        // Here we use 0 as open as it's easier to visualize.
+                        // We convert this into the correct value in the if below.
+                        int fret = Random.Range(0, 7);
+
+                        // Open notes have different models
+                        if (fret == 0)
+                        {
+                            return new FakeNoteData
+                            {
+                                Time = time,
+
+                                Fret = (int) SixFretGuitarFret.Open,
+                                CenterNote = true,
+                                NoteType = ThemeNoteType.Open
+                            };
+                        }
+
+                        // Otherwise, select a random note type
+                        var noteType = Random.Range(0, 3) switch
+                        {
+                            0 => ThemeNoteType.Normal,
+                            1 => ThemeNoteType.HOPO,
+                            2 => ThemeNoteType.Tap,
+                            _ => throw new Exception("Unreachable.")
+                        };
+
+                        return new FakeNoteData
+                        {
+                            Time = time,
+
+                            Fret = fret,
+                            CenterNote = false,
+                            NoteType = noteType
+                        };
+                    }
+                }
+            },
+            {
                 GameMode.FourLaneDrums,
                 new Info
                 {
