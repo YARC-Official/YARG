@@ -175,9 +175,9 @@ namespace YARG.Gameplay.Visuals
             ResetAmplitudes();
         }
 
-        public void SetWidthMultiplier(float multiplier)
+        public void SetWidth(float width)
         {
-            _widthMultiplier = multiplier;
+            _widthMultiplier = width / _sustainWidth;
             UpdateMeshGeometry();
         }
 

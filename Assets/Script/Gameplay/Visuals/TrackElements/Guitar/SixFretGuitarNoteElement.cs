@@ -85,7 +85,7 @@ namespace YARG.Gameplay.Visuals
 
                     // Scale note group to span both lanes
                     var s = NoteGroup.transform.localScale;
-                    NoteGroup.transform.localScale = new Vector3(s.x * 2f, s.y, s.z);
+                    NoteGroup.transform.localScale = new Vector3(s.x * 1.6f, s.y, s.z);
                 }
                 else
                 {
@@ -128,7 +128,8 @@ namespace YARG.Gameplay.Visuals
 
                 if (!Player.Player.Profile.SixFretSplitLanes && !IsPaired && lane >= 0)
                 {
-                    _sustainLine.SetWidthMultiplier(2f);
+                    float combinedWidth = TrackPlayer.TRACK_WIDTH / Player.LaneCount * 2f;
+                    _sustainLine.SetWidth(combinedWidth);
                     float offsetX = transform.localPosition.x - GetElementX(lane, Player.LaneCount);
                     _sustainLine.transform.localPosition = _sustainLine.transform.localPosition.WithX(offsetX);
                 }
