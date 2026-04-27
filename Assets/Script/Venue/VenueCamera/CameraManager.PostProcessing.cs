@@ -132,52 +132,52 @@ namespace YARG.Venue.VenueCamera
 
         private static List<PostProcessingEvent> ReduceFlashingPostProcessingEvents(List<PostProcessingEvent> sourceEvents)
         {
-            var mapped = MapPpEvents(sourceEvents);
+            var replacedEvents = ReplaceFlashingPostProcessingEvents(sourceEvents);
 
             return ChartEvent.FilterByInterval(
-                mapped,
+                replacedEvents,
                 REDUCED_FLASHING_INTERVAL,
                 isDuplicate: (curr, prev) => curr.Type == prev.Type
             );
         }
 
-        private static List<PostProcessingEvent> MapPpEvents(List<PostProcessingEvent> source)
+        private static List<PostProcessingEvent> ReplaceFlashingPostProcessingEvents(List<PostProcessingEvent> sourceEvents)
         {
-            var mapped = new List<PostProcessingEvent>(source.Count);
-
-            foreach (var ev in source)
+            var mapped = new List<PostProcessingEvent>(sourceEvents.Count);
+            foreach (var ev in sourceEvents)
             {
-                var replacement = ev.Type switch
-                {
-                    PostProcessingType.PhotoNegative => PostProcessingType.BlackAndWhite,
-                    PostProcessingType.PhotoNegative_RedAndBlack => PostProcessingType.BlackAndWhite,
-                    PostProcessingType.Mirror => PostProcessingType.Default,
-                    PostProcessingType.Polarized_RedAndBlue => PostProcessingType.BlackAndWhite,
-                    PostProcessingType.Choppy_BlackAndWhite => PostProcessingType.BlackAndWhite,
-                    PostProcessingType.Polarized_BlackAndWhite => PostProcessingType.BlackAndWhite,
-                    PostProcessingType.Trails_Flickery => PostProcessingType.Trails,
-                    PostProcessingType.Trails_Spacey => PostProcessingType.Trails,
-                    PostProcessingType.Trails_Desaturated => PostProcessingType.Trails,
-                    PostProcessingType.Grainy_ChromaticAbberation => PostProcessingType.Grainy_Film,
-                    PostProcessingType.Scanlines_Security => PostProcessingType.Scanlines,
-                    PostProcessingType.Bright => PostProcessingType.Bloom,
-                    PostProcessingType.SepiaTone => PostProcessingType.Bloom,
-                    PostProcessingType.Scanlines_Blue => PostProcessingType.Scanlines,
-                    PostProcessingType.Desaturated_Red => PostProcessingType.Bloom,
-                    PostProcessingType.Desaturated_Blue => PostProcessingType.Bloom,
-                    PostProcessingType.Contrast_Red => PostProcessingType.Contrast,
-                    PostProcessingType.Contrast_Green => PostProcessingType.Contrast,
-                    PostProcessingType.Contrast_Blue => PostProcessingType.Contrast,
-                    _ => (PostProcessingType?) null,
-                };
-
-                mapped.Add(replacement != null
+                var replacement = GetReducedPostProcessingType(ev.Type);
+                mapped.Add(replacement.HasValue
                     ? new PostProcessingEvent(replacement.Value, ev.Time, ev.Tick)
                     : ev);
             }
 
             return mapped;
         }
+
+        private static PostProcessingType? GetReducedPostProcessingType(PostProcessingType type) => type switch
+        {
+            PostProcessingType.PhotoNegative => PostProcessingType.BlackAndWhite,
+            PostProcessingType.PhotoNegative_RedAndBlack => PostProcessingType.BlackAndWhite,
+            PostProcessingType.Mirror => PostProcessingType.Default,
+            PostProcessingType.Polarized_RedAndBlue => PostProcessingType.BlackAndWhite,
+            PostProcessingType.Choppy_BlackAndWhite => PostProcessingType.BlackAndWhite,
+            PostProcessingType.Polarized_BlackAndWhite => PostProcessingType.BlackAndWhite,
+            PostProcessingType.Trails_Flickery => PostProcessingType.Trails,
+            PostProcessingType.Trails_Spacey => PostProcessingType.Trails,
+            PostProcessingType.Trails_Desaturated => PostProcessingType.Trails,
+            PostProcessingType.Grainy_ChromaticAbberation => PostProcessingType.Grainy_Film,
+            PostProcessingType.Scanlines_Security => PostProcessingType.Scanlines,
+            PostProcessingType.Bright => PostProcessingType.Bloom,
+            PostProcessingType.SepiaTone => PostProcessingType.Bloom,
+            PostProcessingType.Scanlines_Blue => PostProcessingType.Scanlines,
+            PostProcessingType.Desaturated_Red => PostProcessingType.Bloom,
+            PostProcessingType.Desaturated_Blue => PostProcessingType.Bloom,
+            PostProcessingType.Contrast_Red => PostProcessingType.Contrast,
+            PostProcessingType.Contrast_Green => PostProcessingType.Contrast,
+            PostProcessingType.Contrast_Blue => PostProcessingType.Contrast,
+            _ => null,
+        };
 
         private void ApplyEffect(PostProcessingEvent effect, PostProcessingEvent previousEffect)
         {

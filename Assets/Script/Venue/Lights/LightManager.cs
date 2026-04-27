@@ -188,28 +188,29 @@ namespace YARG.Venue
             var mapped = new List<LightingEvent>(events.Count);
             foreach (var ev in events)
             {
-                var replacement = ev.Type switch
-                {
-                    LightingType.StrobeFastest => LightingType.Harmony,
-                    LightingType.StrobeFast => LightingType.Harmony,
-                    LightingType.StrobeMedium => LightingType.Harmony,
-                    LightingType.StrobeSlow => LightingType.Harmony,
-                    LightingType.FlareFast => LightingType.FlareSlow,
-                    LightingType.BlackoutFast => LightingType.Harmony,
-                    LightingType.BlackoutSlow => LightingType.Harmony,
-                    LightingType.BlackoutSpotlight => LightingType.Harmony,
-                    LightingType.BigRockEnding => LightingType.Chorus,
-                    LightingType.Frenzy => LightingType.Chorus,
-                    _ => (LightingType?) null,
-                };
-
-                mapped.Add(replacement != null
+                var replacement = GetReducedLightingType(ev.Type);
+                mapped.Add(replacement.HasValue
                     ? new LightingEvent(replacement.Value, ev.Time, ev.Tick)
                     : ev);
             }
 
             return mapped;
         }
+
+        private static LightingType? GetReducedLightingType(LightingType type) => type switch
+        {
+            LightingType.StrobeFastest => LightingType.Harmony,
+            LightingType.StrobeFast => LightingType.Harmony,
+            LightingType.StrobeMedium => LightingType.Harmony,
+            LightingType.StrobeSlow => LightingType.Harmony,
+            LightingType.FlareFast => LightingType.FlareSlow,
+            LightingType.BlackoutFast => LightingType.Harmony,
+            LightingType.BlackoutSlow => LightingType.Harmony,
+            LightingType.BlackoutSpotlight => LightingType.Harmony,
+            LightingType.BigRockEnding => LightingType.Chorus,
+            LightingType.Frenzy => LightingType.Chorus,
+            _ => null,
+        };
 
         private void Update()
         {
