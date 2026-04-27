@@ -1,9 +1,11 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using YARG.Core.Chart;
 using YARG.Core.Extensions;
 using YARG.Gameplay;
 using YARG.Playback;
+using YARG.Settings;
 using Random = UnityEngine.Random;
 
 namespace YARG.Venue
@@ -77,9 +79,13 @@ namespace YARG.Venue
         private Gradient _dissonantGradient;
         private Gradient _harmoniousGradient;
 
-        private int _lightingEventIndex;
-        private int _performerEventIndex;
-        private int _beatIndex;
+        private        int  _lightingEventIndex;
+        private        int  _performerEventIndex;
+        private        int  _beatIndex;
+        private static bool ReducedFlashing => SettingsManager.Settings.ReduceFlashingLights.Value;
+
+        // Minimum interval between lighting/performer events when reduce flashing is enabled
+        private const float REDUCED_FLASHING_LIGHT_INTERVAL = 1.0f;
 
         protected override void OnChartLoaded(SongChart chart)
         {
@@ -88,6 +94,15 @@ namespace YARG.Venue
 
             _lightingEvents = chart.VenueTrack.Lighting;
             _performerEvents = chart.VenueTrack.Performer;
+
+            if (ReducedFlashing)
+            {
+                var mapped = ReduceFlashingLightingEvents(_lightingEvents);
+                _lightingEvents = ChartEvent.ReduceByInterval(mapped, REDUCED_FLASHING_LIGHT_INTERVAL,
+                    (curr, prev) => curr.Type == prev.Type);
+                _performerEvents = ChartEvent.ReduceByInterval(_performerEvents, REDUCED_FLASHING_LIGHT_INTERVAL,
+                    (curr, prev) => curr.Type == prev.Type && curr.Performers == prev.Performers);
+            }
 
             // If the color arrays are empty, add basic ones for safety
 
@@ -145,6 +160,38 @@ namespace YARG.Venue
         protected override void GameplayDestroy()
         {
             GameManager.BeatEventHandler.Visual.Unsubscribe(UpdateLightAnimation);
+        }
+
+        /// <summary>
+        /// Replaces flashing lighting types with reduced equivalents.
+        /// </summary>
+        private static List<LightingEvent> ReduceFlashingLightingEvents(List<LightingEvent> events)
+        {
+            var mapped = new List<LightingEvent>(events.Count);
+
+            foreach (var ev in events)
+            {
+                var replacement = ev.Type switch
+                {
+                    LightingType.StrobeFastest => LightingType.Harmony,
+                    LightingType.StrobeFast => LightingType.Harmony,
+                    LightingType.StrobeMedium => LightingType.Harmony,
+                    LightingType.StrobeSlow => LightingType.Harmony,
+                    LightingType.FlareFast => LightingType.FlareSlow,
+                    LightingType.BlackoutFast => LightingType.Harmony,
+                    LightingType.BlackoutSlow => LightingType.Harmony,
+                    LightingType.BlackoutSpotlight => LightingType.Harmony,
+                    LightingType.BigRockEnding => LightingType.Chorus,
+                    LightingType.Frenzy => LightingType.Chorus,
+                    _ => (LightingType?) null,
+                };
+
+                mapped.Add(replacement != null
+                    ? new LightingEvent(replacement.Value, ev.Time, ev.Tick)
+                    : ev);
+            }
+
+            return mapped;
         }
 
         private void Update()

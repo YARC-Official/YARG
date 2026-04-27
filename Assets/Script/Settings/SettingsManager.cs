@@ -148,6 +148,7 @@ namespace YARG.Settings
                 new FieldMetadata(nameof(Settings.VenueRenderingQuality), isAdvanced: true),
                 new FieldMetadata(nameof(Settings.VenueAntiAliasing), isAdvanced: true),
                 new FieldMetadata(nameof(Settings.VenuePostProcessing), isAdvanced: true),
+                nameof(Settings.ReduceFlashingLights),
 
                 new HeaderMetadata("Gameplay"),
                 nameof(Settings.StaticVocalsMode),
