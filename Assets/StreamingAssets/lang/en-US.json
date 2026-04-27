@@ -840,7 +840,8 @@
 			"FiveLaneOrangeCymbal": "5-Lane Orange Cymbal"
 		},
         "Vocals": {
-            "StarPower": "Star Power Activate"
+            "StarPower": "Star Power Activate",
+            "Hit": "Percussion Hit"
         },
         "FiveDrums": {
             "RedPad": "Red Pad (First)",
