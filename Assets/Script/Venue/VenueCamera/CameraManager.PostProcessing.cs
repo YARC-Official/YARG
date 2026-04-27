@@ -130,17 +130,15 @@ namespace YARG.Venue.VenueCamera
             SettingsManager.Settings.VenuePostProcessing.OnChange += SetPostProcessingEnabled;
         }
 
-        private List<PostProcessingEvent> FilterPpEvents(List<PostProcessingEvent> sourceEvents)
+        private static List<PostProcessingEvent> ReduceFlashingPostProcessingEvents(List<PostProcessingEvent> sourceEvents)
         {
-            if (!ReducedFlashing)
-            {
-                return sourceEvents;
-            }
-
             var mapped = MapPpEvents(sourceEvents);
 
-            return ChartEvent.ReduceByInterval(mapped, REDUCED_FLASHING_INTERVAL,
-                (curr, prev) => curr.Type == prev.Type);
+            return ChartEvent.FilterByInterval(
+                mapped,
+                REDUCED_FLASHING_INTERVAL,
+                isDuplicate: (curr, prev) => curr.Type == prev.Type
+            );
         }
 
         private static List<PostProcessingEvent> MapPpEvents(List<PostProcessingEvent> source)

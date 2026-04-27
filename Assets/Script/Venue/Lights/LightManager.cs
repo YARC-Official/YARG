@@ -92,17 +92,16 @@ namespace YARG.Venue
             _lightStates = new LightState[EnumExtensions<VenueLightLocation>.Count];
             _spotlightStates = new double[EnumExtensions<VenueSpotLightLocation>.Count];
 
-            _lightingEvents = chart.VenueTrack.Lighting;
-            _performerEvents = chart.VenueTrack.Performer;
+            var lightingEvents = chart.VenueTrack.Lighting;
+            var performerEvents = chart.VenueTrack.Performer;
 
             if (ReducedFlashing)
             {
-                var mapped = ReduceFlashingLightingEvents(_lightingEvents);
-                _lightingEvents = ChartEvent.ReduceByInterval(mapped, REDUCED_FLASHING_LIGHT_INTERVAL,
-                    (curr, prev) => curr.Type == prev.Type);
-                _performerEvents = ChartEvent.ReduceByInterval(_performerEvents, REDUCED_FLASHING_LIGHT_INTERVAL,
-                    (curr, prev) => curr.Type == prev.Type && curr.Performers == prev.Performers);
+                (lightingEvents, performerEvents) = ReduceFlashingEvents(lightingEvents, performerEvents);
             }
+
+            _lightingEvents = lightingEvents;
+            _performerEvents = performerEvents;
 
             // If the color arrays are empty, add basic ones for safety
 
@@ -162,13 +161,31 @@ namespace YARG.Venue
             GameManager.BeatEventHandler.Visual.Unsubscribe(UpdateLightAnimation);
         }
 
+        private static (List<LightingEvent> LightingEvents, List<PerformerEvent> PerformerEvents) ReduceFlashingEvents(
+            List<LightingEvent> lightingEvents, List<PerformerEvent> performerEvents)
+        {
+            var replacedLightingEvents = ReplaceFlashingLightingEvents(lightingEvents);
+            var filteredLightingEvents = ChartEvent.FilterByInterval(
+                replacedLightingEvents,
+                REDUCED_FLASHING_LIGHT_INTERVAL,
+                isDuplicate: (curr, prev) => curr.Type == prev.Type
+            );
+            var filteredPerformerEvents = ChartEvent.FilterByInterval(
+                performerEvents,
+                REDUCED_FLASHING_LIGHT_INTERVAL,
+                isDuplicate: (curr, prev) =>
+                    curr.Type == prev.Type && curr.Performers == prev.Performers
+            );
+
+            return (filteredLightingEvents, filteredPerformerEvents);
+        }
+
         /// <summary>
         /// Replaces flashing lighting types with reduced equivalents.
         /// </summary>
-        private static List<LightingEvent> ReduceFlashingLightingEvents(List<LightingEvent> events)
+        private static List<LightingEvent> ReplaceFlashingLightingEvents(List<LightingEvent> events)
         {
             var mapped = new List<LightingEvent>(events.Count);
-
             foreach (var ev in events)
             {
                 var replacement = ev.Type switch

@@ -201,17 +201,16 @@ namespace YARG.Venue.VenueCamera
                 cameraData.volumeLayerMask = layerMask;
             }
 
-            _postProcessingEvents = FilterPpEvents(chart.VenueTrack.PostProcessing);
+            var postProcessingEvents = chart.VenueTrack.PostProcessing;
+            var cameraCuts = chart.VenueTrack.CameraCuts;
 
             if (ReducedFlashing)
             {
-                _cameraCuts = ChartEvent.ReduceByInterval(chart.VenueTrack.CameraCuts, REDUCED_CAMERA_CUT_INTERVAL,
-                    (curr, prev) => curr.Subject == prev.Subject && curr.Constraint == prev.Constraint);
+                (postProcessingEvents, cameraCuts) = ReduceFlashingEvents(postProcessingEvents, cameraCuts);
             }
-            else
-            {
-                _cameraCuts = chart.VenueTrack.CameraCuts;
-            }
+
+            _postProcessingEvents = postProcessingEvents;
+            _cameraCuts = cameraCuts;
 
             // Make up a PostProcessingEvent of type default to start us off
             var firstEffect = new PostProcessingEvent(PostProcessingType.Default, -2f, 0);
@@ -237,6 +236,19 @@ namespace YARG.Venue.VenueCamera
             }
 
             GameManager.SetVenueCameraManager(this);
+        }
+
+        private static (List<PostProcessingEvent> PostProcessingEvents, List<CameraCutEvent> CameraCuts) ReduceFlashingEvents(
+            List<PostProcessingEvent> postProcessingEvents, List<CameraCutEvent> cameraCuts)
+        {
+            var reducedPostProcessingEvents = ReduceFlashingPostProcessingEvents(postProcessingEvents);
+            var reducedCameraCuts = ChartEvent.FilterByInterval(
+                cameraCuts,
+                REDUCED_CAMERA_CUT_INTERVAL,
+                isDuplicate: (curr, prev) => curr.Subject == prev.Subject && curr.Constraint == prev.Constraint
+            );
+
+            return (reducedPostProcessingEvents, reducedCameraCuts);
         }
 
         private void InitializeVolume()
