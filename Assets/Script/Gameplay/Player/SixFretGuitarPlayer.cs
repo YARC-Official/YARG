@@ -119,7 +119,7 @@ namespace YARG.Gameplay.Player
 
         public int GetLanePosition(SixFretGuitarFret fret)
         {
-            return _lanePositions[(int)fret];
+            return _lanePositions[(int) fret];
         }
 
         public override bool ShouldUpdateInputsOnResume => true;
@@ -140,8 +140,8 @@ namespace YARG.Gameplay.Player
 
         private double TimeFromSpawnToStrikeline => SpawnTimeOffset - (-STRIKE_LINE_POS / NoteSpeed);
 
-   
- 
+
+
 
         [Header("Six Fret Specific")]
         [SerializeField]
@@ -154,7 +154,7 @@ namespace YARG.Gameplay.Player
 
         private int _sustainCount;
 
-    private SongStem _stem;
+        private SongStem _stem;
 
         public override void Initialize(int index, YargPlayer player, SongChart chart, TrackView trackView, StemMixer mixer, int? currentHighScore)
         {
@@ -259,14 +259,14 @@ namespace YARG.Gameplay.Player
             GameManager.BeatEventHandler.Visual.Subscribe(_fretArray.PulseFretColors, BeatEventType.StrongBeat);
         }
 
-       public override void ResetPracticeSection()
+        public override void ResetPracticeSection()
         {
             base.ResetPracticeSection();
 
             _fretArray.ResetAll();
         }
 
-    public override void SetPracticeSection(uint start, uint end)
+        public override void SetPracticeSection(uint start, uint end)
         {
             base.SetPracticeSection(start, end);
         }
@@ -284,7 +284,7 @@ namespace YARG.Gameplay.Player
             base.SetReplayTime(time);
         }
 
-  protected override void UpdateVisuals(double visualTime)
+        protected override void UpdateVisuals(double visualTime)
         {
             // Update coda lane emissions if necessary
             if (Engine.IsCodaActive)
@@ -292,7 +292,7 @@ namespace YARG.Gameplay.Player
                 // Set emission color of BRE lanes depending on currently available score value
                 foreach (var (breLaneIndex, highwayOrderingIndex) in _lanePositions)
                 {
-                    var mostRecentTime = _fretToMostRecentTime[(SixFretGuitarFret)breLaneIndex];
+                    var mostRecentTime = _fretToMostRecentTime[(SixFretGuitarFret) breLaneIndex];
                     BRELanes[highwayOrderingIndex].SetEmissionColor(CodaSection.GetNormalizedTimeSinceLastHit(visualTime, mostRecentTime));
                 }
             }
@@ -305,11 +305,11 @@ namespace YARG.Gameplay.Player
         {
             for (var action = GuitarAction.Black1Fret; action <= GetFretActionMax(); action++)
             {
-                _fretArray.SetPressed((int)GetFretIndex(action), Engine.IsFretHeld(action));
+                _fretArray.SetPressed((int) GetFretIndex(action), Engine.IsFretHeld(action));
             }
         }
 
-    protected virtual GuitarAction GetFretActionMax() => GuitarAction.White3Fret;
+        protected virtual GuitarAction GetFretActionMax() => GuitarAction.White3Fret;
 
         public override void SetStemMuteState(bool muted)
         {
@@ -338,8 +338,8 @@ namespace YARG.Gameplay.Player
             element.NoteRef = note;
 
             if (!Player.Profile.SixFretSplitLanes &&
-                note.Fret != (int)SixFretGuitarFret.Open &&
-                note.Fret != (int)SixFretGuitarFret.Wildcard)
+                note.Fret != (int) SixFretGuitarFret.Open &&
+                note.Fret != (int) SixFretGuitarFret.Wildcard)
             {
                 element.IsPaired = FindPairInChord(note);
             }
@@ -351,18 +351,18 @@ namespace YARG.Gameplay.Player
 
         private bool FindPairInChord(GuitarNote note)
         {
-            int pairIdx = GetPairIndex((SixFretGuitarFret)note.Fret);
+            int pairIdx = GetPairIndex((SixFretGuitarFret) note.Fret);
 
             // Use ParentOrSelf to get full chord; child notes have empty ChildNotes
             foreach (var other in note.ParentOrSelf.AllNotes)
             {
                 if (other == note) continue;
                 int otherFret = other.Fret;
-                if (otherFret == (int)SixFretGuitarFret.Open ||
-                    otherFret == (int)SixFretGuitarFret.Wildcard) continue;
+                if (otherFret == (int) SixFretGuitarFret.Open ||
+                    otherFret == (int) SixFretGuitarFret.Wildcard) continue;
                 if (otherFret == note.Fret) continue;
 
-                if (GetPairIndex((SixFretGuitarFret)otherFret) == pairIdx)
+                if (GetPairIndex((SixFretGuitarFret) otherFret) == pairIdx)
                 {
                     return true;
                 }
@@ -381,8 +381,8 @@ namespace YARG.Gameplay.Player
             );
 
             if (!Player.Profile.SixFretSplitLanes &&
-                note.Fret != (int)SixFretGuitarFret.Open &&
-                note.Fret != (int)SixFretGuitarFret.Wildcard &&
+                note.Fret != (int) SixFretGuitarFret.Open &&
+                note.Fret != (int) SixFretGuitarFret.Wildcard &&
                 !FindPairInChord(note))
             {
                 lane.SetCombinedSpan(true);
@@ -419,10 +419,10 @@ namespace YARG.Gameplay.Player
 
         private void OnLaneHit(int action)
         {
-            var asFret = GetFretFromAction((GuitarAction)action);
+            var asFret = GetFretFromAction((GuitarAction) action);
 
             _fretToMostRecentTime[asFret] = GameManager.VisualTime;
-            _fretArray.PlayCodaHitAnimation((int)asFret);
+            _fretArray.PlayCodaHitAnimation((int) asFret);
         }
 
         protected override void OnCodaStart(CodaSection coda)
@@ -621,7 +621,7 @@ namespace YARG.Gameplay.Player
         }
 
 
-      private void MakeHighwayOrdering()
+        private void MakeHighwayOrdering()
         {
             if (Player.Profile.LeftyFlip)
             {
@@ -634,7 +634,8 @@ namespace YARG.Gameplay.Player
                     { (int)SixFretGuitarFret.White1,     4 },
                     { (int)SixFretGuitarFret.Black1,     5 }
                 };
-            } else
+            }
+            else
             {
                 _lanePositions = DEFAULT_HIGHWAY_ORDERING;
             }
