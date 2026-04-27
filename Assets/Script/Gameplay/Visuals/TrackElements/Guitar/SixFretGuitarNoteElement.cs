@@ -13,16 +13,19 @@ namespace YARG.Gameplay.Visuals
     {
         private enum NoteType
         {
-            Strum    = 0,
-            HOPO     = 1,
-            Tap      = 2,
-            Open     = 3,
+            Strum = 0,
+            HOPO = 1,
+            Tap = 2,
+            Open = 3,
             OpenHOPO = 4,
             Wildcard = 5,
 
             Count
         }
 
+        // If out of a black/white pair only one note show and split option is not set
+        // it has it's width increased by this to cover both black and white lanes
+        private const float SINGLE_NOTE_MULTIPLIER = 1.95f;
         [Space]
         [SerializeField]
         private SustainLine _normalSustainLine;
@@ -47,10 +50,10 @@ namespace YARG.Gameplay.Visuals
         {
             CreateNoteGroupArrays((int) NoteType.Count);
 
-            AssignNoteGroup(models, starPowerModels, (int) NoteType.Strum,    ThemeNoteType.Normal);
-            AssignNoteGroup(models, starPowerModels, (int) NoteType.HOPO,     ThemeNoteType.HOPO);
-            AssignNoteGroup(models, starPowerModels, (int) NoteType.Tap,      ThemeNoteType.Tap);
-            AssignNoteGroup(models, starPowerModels, (int) NoteType.Open,     ThemeNoteType.Open);
+            AssignNoteGroup(models, starPowerModels, (int) NoteType.Strum, ThemeNoteType.Normal);
+            AssignNoteGroup(models, starPowerModels, (int) NoteType.HOPO, ThemeNoteType.HOPO);
+            AssignNoteGroup(models, starPowerModels, (int) NoteType.Tap, ThemeNoteType.Tap);
+            AssignNoteGroup(models, starPowerModels, (int) NoteType.Open, ThemeNoteType.Open);
             AssignNoteGroup(models, starPowerModels, (int) NoteType.OpenHOPO, ThemeNoteType.OpenHOPO);
             AssignNoteGroup(models, starPowerModels, (int) NoteType.Wildcard, ThemeNoteType.Wildcard);
         }
@@ -65,13 +68,13 @@ namespace YARG.Gameplay.Visuals
 
             if (NoteRef.Fret != (int) SixFretGuitarFret.Open && NoteRef.Fret != (int) SixFretGuitarFret.Wildcard)
             {
-                lane = Player.GetLanePosition((SixFretGuitarFret)NoteRef.Fret);
+                lane = Player.GetLanePosition((SixFretGuitarFret) NoteRef.Fret);
 
                 NoteGroup = NoteRef.Type switch
                 {
                     GuitarNoteType.Strum => noteGroups[(int) NoteType.Strum],
-                    GuitarNoteType.Hopo  => noteGroups[(int) NoteType.HOPO],
-                    GuitarNoteType.Tap   => noteGroups[(int) NoteType.Tap],
+                    GuitarNoteType.Hopo => noteGroups[(int) NoteType.HOPO],
+                    GuitarNoteType.Tap => noteGroups[(int) NoteType.Tap],
                     _ => throw new ArgumentOutOfRangeException(nameof(NoteRef.Type))
                 };
 
@@ -85,7 +88,7 @@ namespace YARG.Gameplay.Visuals
 
                     // Scale note group to span both lanes
                     var s = NoteGroup.transform.localScale;
-                    NoteGroup.transform.localScale = new Vector3(s.x * 1.6f, s.y, s.z);
+                    NoteGroup.transform.localScale = new Vector3(s.x * SINGLE_NOTE_MULTIPLIER, s.y, s.z);
                 }
                 else
                 {
@@ -101,7 +104,7 @@ namespace YARG.Gameplay.Visuals
                 {
                     GuitarNoteType.Strum => noteGroups[(int) NoteType.Open],
                     GuitarNoteType.Hopo or
-                    GuitarNoteType.Tap   => noteGroups[(int) NoteType.OpenHOPO],
+                    GuitarNoteType.Tap => noteGroups[(int) NoteType.OpenHOPO],
                     _ => throw new ArgumentOutOfRangeException(nameof(NoteRef.Type))
                 };
 
@@ -125,14 +128,6 @@ namespace YARG.Gameplay.Visuals
 
                 float len = (float) NoteRef.TimeLength * Player.NoteSpeed;
                 _sustainLine.Initialize(len);
-
-                if (!Player.Player.Profile.SixFretSplitLanes && !IsPaired && lane >= 0)
-                {
-                    float combinedWidth = TrackPlayer.TRACK_WIDTH / Player.LaneCount * 2f;
-                    _sustainLine.SetWidth(combinedWidth);
-                    float offsetX = transform.localPosition.x - GetElementX(lane, Player.LaneCount);
-                    _sustainLine.transform.localPosition = _sustainLine.transform.localPosition.WithX(offsetX);
-                }
             }
 
             UpdateColor();
@@ -210,7 +205,7 @@ namespace YARG.Gameplay.Visuals
             return fretLane % 2 == 0 ? fretLane + 1 : fretLane - 1;
         }
 
-      protected void UpdateColor()
+        protected void UpdateColor()
         {
             var colors = Player.Player.ColorProfile.SixFretGuitar;
 

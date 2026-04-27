@@ -24,7 +24,6 @@ namespace YARG.Gameplay.Visuals
         private Material _sustainMaterial;
         [SerializeField]
         private float _sustainWidth = 0.1f;
-        private float _widthMultiplier = 1f;
         [SerializeField]
         private int _subdivisions = 1; // Number of subdivisions on start/end edges
         [SerializeField]
@@ -170,15 +169,8 @@ namespace YARG.Gameplay.Visuals
         {
             _currentLength = len;
             _currentStartZ = 0f;
-            _widthMultiplier = 1f;
             UpdateMeshGeometry();
             ResetAmplitudes();
-        }
-
-        public void SetWidth(float width)
-        {
-            _widthMultiplier = width / _sustainWidth;
-            UpdateMeshGeometry();
         }
 
         public void SetState(SustainState state, Color c)
@@ -256,13 +248,6 @@ namespace YARG.Gameplay.Visuals
             }
 
             // Update whammy factor
-            if (_player is SixFretGuitarPlayer sixFretPlayer)
-            {
-                // Make sure to lerp it to prevent jumps
-                _whammyFactor = Mathf.Lerp(_whammyFactor, sixFretPlayer.WhammyFactor, Time.deltaTime * 6f);
-            }
-
-            // Update whammy factor
             if (_player is FiveLaneKeysPlayer keysPlayer)
             {
                 // Make sure to lerp it to prevent jumps
@@ -281,7 +266,7 @@ namespace YARG.Gameplay.Visuals
             int subdivisions = Mathf.Max(1, _subdivisions);
             EnsureMeshBuffers(subdivisions);
             int verticesPerEdge = subdivisions + 1;
-            float halfWidth = _sustainWidth * _widthMultiplier * 0.5f;
+            float halfWidth = _sustainWidth * 0.5f;
 
             // Create start edge vertices (at _currentStartZ)
             for (int i = 0; i < verticesPerEdge; i++)
