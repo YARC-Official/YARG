@@ -1,12 +1,10 @@
-using System;
 using System.Collections.Generic;
-using UnityEngine;
 using YARG.Core;
 using YARG.Core.Chart;
+using YARG.Core.Game;
 using YARG.Core.Engine.Guitar;
 using YARG.Core.Engine.Guitar.Engines;
 using YARG.Core.Input;
-using YARG.Core.Logging;
 using YARG.Gameplay.Visuals;
 using YARG.Helpers.Extensions;
 using YARG.Themes;
@@ -39,16 +37,16 @@ namespace YARG.Gameplay.Player
 
         protected override int GetFretIndex(GuitarAction action)
         {
-            return (int)(action switch
+            return action switch
             {
-                GuitarAction.Black1Fret => SixFretGuitarFret.Black1,
-                GuitarAction.Black2Fret => SixFretGuitarFret.Black2,
-                GuitarAction.Black3Fret => SixFretGuitarFret.Black3,
-                GuitarAction.White1Fret => SixFretGuitarFret.White1,
-                GuitarAction.White2Fret => SixFretGuitarFret.White2,
-                GuitarAction.White3Fret => SixFretGuitarFret.White3,
-                _ => throw new ArgumentOutOfRangeException(nameof(action))
-            });
+                GuitarAction.Black1Fret => (int)SixFretGuitarFret.Black1,
+                GuitarAction.Black2Fret => (int)SixFretGuitarFret.Black2,
+                GuitarAction.Black3Fret => (int)SixFretGuitarFret.Black3,
+                GuitarAction.White1Fret => (int)SixFretGuitarFret.White1,
+                GuitarAction.White2Fret => (int)SixFretGuitarFret.White2,
+                GuitarAction.White3Fret => (int)SixFretGuitarFret.White3,
+                _ => base.GetFretIndex(action)
+            };
         }
 
         protected override GuitarAction GetFretActionMax() => GuitarAction.White3Fret;
@@ -74,57 +72,16 @@ namespace YARG.Gameplay.Player
             return track.GetDifficulty(Player.Profile.CurrentDifficulty);
         }
 
-        protected override GuitarEngine CreateEngine()
-        {
-            bool isBass = Player.Profile.CurrentInstrument == Instrument.SixFretBass;
-            if (isBass)
-            {
-                StarMultiplierThresholds = new[] { 0.05f, 0.1f, 0.19f, 0.47f, 0.78f, 1.15f };
-            }
+        // --- CreateEngine() hooks (replaces full method duplication) ---
 
-            if (!Player.IsReplay)
-            {
-                EngineParams = Player.EnginePreset.SixFretGuitar.Create(StarMultiplierThresholds, SoloBonusStarMultiplierThresholds, isBass);
-            }
-            else
-            {
-                EngineParams = (GuitarEngineParameters)Player.EngineParameterOverride;
-            }
+        protected override Instrument GetBassInstrument() => Instrument.SixFretBass;
 
-            if (EngineContainer != null)
-            {
-                GameManager.EngineManager.Unregister(EngineContainer);
-                EngineContainer = null;
-            }
+        protected override EnginePreset.FiveFretGuitarPreset GetEnginePreset() => Player.EnginePreset.SixFretGuitar;
 
-            var engine = new YargSixFretGuitarEngine(NoteTrack, SyncTrack, EngineParams, Player.Profile.IsBot);
-            EngineContainer = GameManager.EngineManager.Register(engine, NoteTrack.Instrument, Chart, Player.RockMeterPreset);
+        protected override GuitarEngine BuildEngine(GuitarEngineParameters parameters)
+            => new YargSixFretGuitarEngine(NoteTrack, SyncTrack, parameters, Player.Profile.IsBot);
 
-            HitWindow = EngineParams.HitWindow;
-
-            YargLogger.LogFormatDebug("Note count: {0}", NoteTrack.Notes.Count);
-
-            engine.OnNoteHit += OnNoteHit;
-            engine.OnNoteMissed += OnNoteMissed;
-            engine.OnOverstrum += OnOverhit;
-
-            engine.OnSustainStart += OnSustainStart;
-            engine.OnSustainEnd += OnSustainEnd;
-
-            engine.OnSoloStart += OnSoloStart;
-            engine.OnSoloEnd += OnSoloEnd;
-
-            engine.OnCodaStart += OnCodaStart;
-            engine.OnCodaEnd += OnCodaEnd;
-
-            engine.OnStarPowerPhraseHit += OnStarPowerPhraseHit;
-            engine.OnStarPowerPhraseMissed += OnStarPowerPhraseMissed;
-            engine.OnStarPowerStatus += OnStarPowerStatus;
-
-            engine.OnCountdownChange += OnCountdownChange;
-
-            return engine;
-        }
+        // --- End CreateEngine() hooks ---
 
         protected override void InitializeIndicatorStripes()
         {
@@ -258,7 +215,7 @@ namespace YARG.Gameplay.Player
             }
         }
 
-        private void OnSustainStart(GuitarNote parent)
+        protected override void OnSustainStart(GuitarNote parent)
         {
             foreach (var note in parent.AllNotes)
             {
@@ -273,7 +230,7 @@ namespace YARG.Gameplay.Player
             }
         }
 
-        private void OnSustainEnd(GuitarNote parent, double timeEnded, bool finished)
+        protected override void OnSustainEnd(GuitarNote parent, double timeEnded, bool finished)
         {
             foreach (var note in parent.AllNotes)
             {
@@ -310,17 +267,6 @@ namespace YARG.Gameplay.Player
             foreach (var note in NotePool.AllSpawned)
             {
                 (note as SixFretGuitarNoteElement)?.OnStarPowerUpdated();
-            }
-        }
-
-        protected override void OnInputQueued(GameInput input)
-        {
-            base.OnInputQueued(input);
-
-            if (_sustainCount > 0 && input.GetAction<GuitarAction>() == GuitarAction.Whammy)
-            {
-                WhammyFactor = Mathf.Clamp01(input.Axis);
-                GameManager.ChangeStemWhammyPitch(_stem, WhammyFactor);
             }
         }
 

@@ -23,8 +23,8 @@ namespace YARG.Gameplay.Visuals
             Count
         }
 
-        // If out of a black/white pair only one note show and split option is not set
-        // it has it's width increased by this to cover both black and white lanes
+        // When only one note in a black/white pair is present and split mode is off,
+        // its width is increased by this multiplier to span both lanes
         private const float SINGLE_NOTE_MULTIPLIER = 1.95f;
         [Space]
         [SerializeField]

@@ -33,88 +33,51 @@ namespace YARG.Menu.ScoreScreen
         public static void SpawnEnginePresetIcons(ModifierIcon prefab, Transform parent,
             EnginePreset enginePreset, GameMode gameMode)
         {
+            // Resolve guitar preset for 5-fret and 6-fret (same preset type, same logic)
+            EnginePreset.FiveFretGuitarPreset guitarPreset = gameMode switch
+            {
+                GameMode.FiveFretGuitar => enginePreset.FiveFretGuitar,
+                GameMode.SixFretGuitar  => enginePreset.SixFretGuitar,
+                _ => null
+            };
+
+            if (guitarPreset != null)
+            {
+                if (!guitarPreset.AntiGhosting)
+                {
+                    var icon = Instantiate(prefab, parent);
+                    icon.InitializeCustom(GHOSTING);
+                }
+
+                if (guitarPreset.InfiniteFrontEnd)
+                {
+                    var icon = Instantiate(prefab, parent);
+                    icon.InitializeCustom(INFINITE_FRONT_END);
+                }
+
+                if (guitarPreset.HitWindow.IsDynamic)
+                {
+                    var icon = Instantiate(prefab, parent);
+                    icon.InitializeCustom(DYNAMIC_HIT_WINDOW);
+                }
+
+                if (guitarPreset.SoloTaps)
+                {
+                    var icon = Instantiate(prefab, parent);
+                    icon.InitializeCustom(SOLO_TAPS);
+                }
+
+                if (guitarPreset.NoStarPowerOverlap)
+                {
+                    var icon = Instantiate(prefab, parent);
+                    icon.InitializeCustom(NO_STAR_POWER_OVERLAP);
+                }
+
+                return;
+            }
+
             switch (gameMode)
             {
-                case GameMode.FiveFretGuitar:
-                {
-                    var guitarPreset = enginePreset.FiveFretGuitar;
-                    // Ghosting Icon
-                    if (!guitarPreset.AntiGhosting)
-                    {
-                        var icon = Instantiate(prefab, parent);
-                        icon.InitializeCustom(GHOSTING);
-                    }
-
-                    // Infinite Front-End Icon
-                    if (guitarPreset.InfiniteFrontEnd)
-                    {
-                        var icon = Instantiate(prefab, parent);
-                        icon.InitializeCustom(INFINITE_FRONT_END);
-                    }
-
-                    // Dynamic Hit Window
-                    if (guitarPreset.HitWindow.IsDynamic)
-                    {
-                        var icon = Instantiate(prefab, parent);
-                        icon.InitializeCustom(DYNAMIC_HIT_WINDOW);
-                    }
-
-                    // Solo Taps
-                    if (guitarPreset.SoloTaps)
-                    {
-                        var icon = Instantiate(prefab, parent);
-                        icon.InitializeCustom(SOLO_TAPS);
-                    }
-
-                    // No Star Power Overlap
-                    if (guitarPreset.NoStarPowerOverlap)
-                    {
-                        var icon = Instantiate(prefab, parent);
-                        icon.InitializeCustom(NO_STAR_POWER_OVERLAP);
-                    }
-
-                    break;
-                }
-                case GameMode.SixFretGuitar:
-                {
-                    var guitarPreset = enginePreset.SixFretGuitar;
-                    // Ghosting Icon
-                    if (!guitarPreset.AntiGhosting)
-                    {
-                        var icon = Instantiate(prefab, parent);
-                        icon.InitializeCustom(GHOSTING);
-                    }
-
-                    // Infinite Front-End Icon
-                    if (guitarPreset.InfiniteFrontEnd)
-                    {
-                        var icon = Instantiate(prefab, parent);
-                        icon.InitializeCustom(INFINITE_FRONT_END);
-                    }
-
-                    // Dynamic Hit Window
-                    if (guitarPreset.HitWindow.IsDynamic)
-                    {
-                        var icon = Instantiate(prefab, parent);
-                        icon.InitializeCustom(DYNAMIC_HIT_WINDOW);
-                    }
-
-                    // Solo Taps
-                    if (guitarPreset.SoloTaps)
-                    {
-                        var icon = Instantiate(prefab, parent);
-                        icon.InitializeCustom(SOLO_TAPS);
-                    }
-
-                    // No Star Power Overlap
-                    if (guitarPreset.NoStarPowerOverlap)
-                    {
-                        var icon = Instantiate(prefab, parent);
-                        icon.InitializeCustom(NO_STAR_POWER_OVERLAP);
-                    }
-
-                    break;
-                }
                 case GameMode.FiveLaneDrums:
                 case GameMode.FourLaneDrums:
                     // Dynamic Hit Window

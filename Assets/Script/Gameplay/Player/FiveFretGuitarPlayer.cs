@@ -4,6 +4,7 @@ using System.Linq;
 using UnityEngine;
 using YARG.Core;
 using YARG.Core.Audio;
+using YARG.Core.Game;
 using YARG.Core.Chart;
 using YARG.Core.Engine;
 using YARG.Core.Engine.Guitar;
@@ -95,7 +96,7 @@ namespace YARG.Gameplay.Player
         };
 
         /// See <see cref="StarMultiplierThresholds"/>
-        private static float[] BassStarMultiplierThresholds => new[]
+        protected static float[] BassStarMultiplierThresholds => new[]
         {
             0.05f, 0.1f, 0.19f, 0.47f, 0.78f, 1.15f
         };
@@ -150,7 +151,6 @@ namespace YARG.Gameplay.Player
 
             _fretToMostRecentTime = CreateFretToMostRecentTime();
             BRELanes = new LaneElement[LaneCount];
-            // LaneCount is set by the base class, no need to assign here
 
             base.Initialize(index, player, chart, trackView, mixer, currentHighScore);
         }
@@ -161,10 +161,20 @@ namespace YARG.Gameplay.Player
             return track.GetDifficulty(Player.Profile.CurrentDifficulty);
         }
 
+        /// <summary>The instrument that counts as "bass" for star multiplier threshold purposes.</summary>
+        protected virtual Instrument GetBassInstrument() => Instrument.FiveFretBass;
+
+        /// <summary>The engine preset to use for this guitar variant.</summary>
+        protected virtual EnginePreset.FiveFretGuitarPreset GetEnginePreset() => Player.EnginePreset.FiveFretGuitar;
+
+        /// <summary>Creates the concrete guitar engine instance.</summary>
+        protected virtual GuitarEngine BuildEngine(GuitarEngineParameters parameters)
+            => new YargFiveFretGuitarEngine(NoteTrack, SyncTrack, parameters, Player.Profile.IsBot);
+
         protected override GuitarEngine CreateEngine()
         {
             // If on bass, replace the star multiplier threshold
-            bool isBass = Player.Profile.CurrentInstrument == Instrument.FiveFretBass;
+            bool isBass = Player.Profile.CurrentInstrument == GetBassInstrument();
             if (isBass)
             {
                 StarMultiplierThresholds = BassStarMultiplierThresholds;
@@ -172,14 +182,11 @@ namespace YARG.Gameplay.Player
 
             if (!Player.IsReplay)
             {
-                // Create the engine params from the engine preset
-                EngineParams = Player.EnginePreset.FiveFretGuitar.Create(StarMultiplierThresholds, SoloBonusStarMultiplierThresholds, isBass);
-                //EngineParams = EnginePreset.Precision.FiveFretGuitar.Create(StarMultiplierThresholds, isBass);
+                EngineParams = GetEnginePreset().Create(StarMultiplierThresholds, SoloBonusStarMultiplierThresholds, isBass);
             }
             else
             {
-                // Otherwise, get from the replay
-                EngineParams = (GuitarEngineParameters) Player.EngineParameterOverride;
+                EngineParams = (GuitarEngineParameters)Player.EngineParameterOverride;
             }
 
             if (EngineContainer != null)
@@ -188,7 +195,7 @@ namespace YARG.Gameplay.Player
                 EngineContainer = null;
             }
 
-            var engine = new YargFiveFretGuitarEngine(NoteTrack, SyncTrack, EngineParams, Player.Profile.IsBot);
+            var engine = BuildEngine(EngineParams);
             EngineContainer = GameManager.EngineManager.Register(engine, NoteTrack.Instrument, Chart, Player.RockMeterPreset);
 
             HitWindow = EngineParams.HitWindow;
@@ -596,17 +603,13 @@ namespace YARG.Gameplay.Player
             }
         }
 
-        private void OnSustainStart(GuitarNote parent)
+        protected virtual void OnSustainStart(GuitarNote parent)
         {
             foreach (var note in parent.AllNotes)
             {
-                // If the note is disjoint, only iterate the parent as sustains are added separately
-                if (parent.IsDisjoint && parent != note)
-                {
-                    continue;
-                }
+                if (parent.IsDisjoint && parent != note) continue;
 
-                if (note.Fret != (int) FiveFretGuitarFret.Open && note.Fret != (int) FiveFretGuitarFret.Wildcard)
+                if (note.Fret != (int)FiveFretGuitarFret.Open && note.Fret != (int)FiveFretGuitarFret.Wildcard)
                 {
                     _fretArray.SetSustained(note.Fret, true);
                 }
@@ -615,19 +618,15 @@ namespace YARG.Gameplay.Player
             }
         }
 
-        private void OnSustainEnd(GuitarNote parent, double timeEnded, bool finished)
+        protected virtual void OnSustainEnd(GuitarNote parent, double timeEnded, bool finished)
         {
             foreach (var note in parent.AllNotes)
             {
-                // If the note is disjoint, only iterate the parent as sustains are added separately
-                if (parent.IsDisjoint && parent != note)
-                {
-                    continue;
-                }
+                if (parent.IsDisjoint && parent != note) continue;
 
                 (NotePool.GetByKey(note) as FiveFretGuitarNoteElement)?.SustainEnd(finished);
 
-                if (note.Fret != (int) FiveFretGuitarFret.Open && note.Fret != (int) FiveFretGuitarFret.Wildcard)
+                if (note.Fret != (int)FiveFretGuitarFret.Open && note.Fret != (int)FiveFretGuitarFret.Wildcard)
                 {
                     _fretArray.SetSustained(note.Fret, false);
                 }
@@ -635,8 +634,6 @@ namespace YARG.Gameplay.Player
                 _sustainCount--;
             }
 
-            // Mute the stem if you let go of the sustain too early.
-            // Leniency is handled by the engine's sustain burst threshold.
             if (!finished)
             {
                 if (!parent.IsDisjoint || _sustainCount == 0)
