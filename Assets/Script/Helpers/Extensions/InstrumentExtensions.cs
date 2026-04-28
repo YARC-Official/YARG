@@ -74,12 +74,12 @@ namespace YARG.Helpers.Extensions
                 Instrument.FiveFretCoopGuitar => "guitarCoop",
                 Instrument.Keys               => "keys",
 
-                 Instrument.SixFretGuitar      => "guitar6",
-                 Instrument.SixFretBass        => "bass6",
-                 Instrument.SixFretRhythm      => "rhythm6",
-                 Instrument.SixFretCoopGuitar  => "coop6",
+                Instrument.SixFretGuitar      => "guitar6",
+                Instrument.SixFretBass        => "bass6",
+                Instrument.SixFretRhythm      => "rhythm6",
+                Instrument.SixFretCoopGuitar  => "coop6",
 
-                 Instrument.FourLaneDrums => "drums",
+                Instrument.FourLaneDrums => "drums",
                 Instrument.ProDrums      => "realDrums",
                 Instrument.FiveLaneDrums => "ghDrums",
                 Instrument.EliteDrums => "eliteDrums",
@@ -103,14 +103,14 @@ namespace YARG.Helpers.Extensions
                 "bass"       => Instrument.FiveFretBass,
                 "rhythm"     => Instrument.FiveFretRhythm,
                 "guitarCoop" => Instrument.FiveFretCoopGuitar,
-               "keys"       => Instrument.Keys,
+                "keys"       => Instrument.Keys,
 
-                 "guitar6"    => Instrument.SixFretGuitar,
-                 "bass6"      => Instrument.SixFretBass,
-                 "rhythm6"    => Instrument.SixFretRhythm,
-                 "coop6"      => Instrument.SixFretCoopGuitar,
+                "guitar6"    => Instrument.SixFretGuitar,
+                "bass6"      => Instrument.SixFretBass,
+                "rhythm6"    => Instrument.SixFretRhythm,
+                "coop6"      => Instrument.SixFretCoopGuitar,
 
-                 "drums"     => Instrument.FourLaneDrums,
+                "drums"     => Instrument.FourLaneDrums,
                 "realDrums" => Instrument.ProDrums,
                 "ghDrums"   => Instrument.FiveLaneDrums,
 

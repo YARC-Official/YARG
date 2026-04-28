@@ -19,7 +19,6 @@ using YARG.Playback;
 using YARG.Player;
 using YARG.Settings;
 using YARG.Themes;
-using static YARG.Core.Game.ColorProfile;
 using Random = UnityEngine.Random;
 
 namespace YARG.Gameplay.Player
@@ -32,35 +31,38 @@ namespace YARG.Gameplay.Player
 
         public new virtual int LaneCount => 5;
 
-        protected virtual FiveFretGuitarFret GetFretFromAction(GuitarAction action)
+        /// <summary>Returns the fret's lateral index on the fret array for the given action.</summary>
+        protected virtual int GetFretIndex(GuitarAction action)
         {
-            return action switch
+            return (int)(action switch
             {
                 GuitarAction.Fret1 => FiveFretGuitarFret.Green,
                 GuitarAction.Fret2 => FiveFretGuitarFret.Red,
                 GuitarAction.Fret3 => FiveFretGuitarFret.Yellow,
                 GuitarAction.Fret4 => FiveFretGuitarFret.Blue,
                 GuitarAction.Fret5 => FiveFretGuitarFret.Orange,
-                _ => FiveFretGuitarFret.Green // fallback
-            };
+                _ => throw new ArgumentOutOfRangeException(nameof(action))
+            });
         }
 
         // Record of the most recent time that each BRE lane has been lit up by any of the actions that map to it
-        private Dictionary<FiveFretGuitarFret, double> _fretToMostRecentTime = new()
+        // Key is the fret enum value cast to int
+        protected Dictionary<int, double> _fretToMostRecentTime;
+
+        protected virtual Dictionary<int, double> CreateFretToMostRecentTime() => new()
         {
-            { FiveFretGuitarFret.Green,     0 },
-            { FiveFretGuitarFret.Red,       0 },
-            { FiveFretGuitarFret.Yellow,    0 },
-            { FiveFretGuitarFret.Blue,      0 },
-            { FiveFretGuitarFret.Orange,    0 },
+            { (int)FiveFretGuitarFret.Green,     0 },
+            { (int)FiveFretGuitarFret.Red,       0 },
+            { (int)FiveFretGuitarFret.Yellow,    0 },
+            { (int)FiveFretGuitarFret.Blue,      0 },
+            { (int)FiveFretGuitarFret.Orange,    0 },
         };
 
-
-        // Key is a FiveFretGuitarFret
+        // Key is a fret enum value cast to int
         // Value is the fret's lateral position on the fret array
-        private Dictionary<int, int> _lanePositions;
+        protected Dictionary<int, int> _lanePositions;
 
-        private float GetLanePositionOrCentered(int fret)
+        protected float GetLanePositionOrCentered(int fret)
         {
             if (_lanePositions.ContainsKey(fret))
             {
@@ -70,44 +72,19 @@ namespace YARG.Gameplay.Player
             return (LaneCount - 1) / 2;
         }
 
-        protected virtual FiveFretGuitarFret GetFretIndex(GuitarAction action)
-        {
-            return action switch
-            {
-                GuitarAction.Fret1 => FiveFretGuitarFret.Green,
-                GuitarAction.Fret2 => FiveFretGuitarFret.Red,
-                GuitarAction.Fret3 => FiveFretGuitarFret.Yellow,
-                GuitarAction.Fret4 => FiveFretGuitarFret.Blue,
-                GuitarAction.Fret5 => FiveFretGuitarFret.Orange,
-                _ => throw new ArgumentOutOfRangeException(nameof(action))
-            };
-        }
-
         public int GetLanePosition(FiveFretGuitarFret fret)
         {
             return _lanePositions[(int)fret];
         }
 
-        protected virtual Dictionary<int, int> GetDefaultHighwayOrdering()
+        public static Dictionary<int, int> DEFAULT_HIGHWAY_ORDERING { get; } = new()
         {
-            return new()
-            {
-                { (int)FiveFretGuitarFret.Green,     0 },
-                { (int)FiveFretGuitarFret.Red,       1 },
-                { (int)FiveFretGuitarFret.Yellow,    2 },
-                { (int)FiveFretGuitarFret.Blue,      3 },
-                { (int)FiveFretGuitarFret.Orange,    4 }
-            };
-        }
-
-      public static Dictionary<int, int> DEFAULT_HIGHWAY_ORDERING { get; } = new()
-      {
-          { (int)FiveFretGuitarFret.Green,     0 },
-          { (int)FiveFretGuitarFret.Red,       1 },
-          { (int)FiveFretGuitarFret.Yellow,    2 },
-          { (int)FiveFretGuitarFret.Blue,      3 },
-          { (int)FiveFretGuitarFret.Orange,    4 }
-      };
+            { (int)FiveFretGuitarFret.Green,     0 },
+            { (int)FiveFretGuitarFret.Red,       1 },
+            { (int)FiveFretGuitarFret.Yellow,    2 },
+            { (int)FiveFretGuitarFret.Blue,      3 },
+            { (int)FiveFretGuitarFret.Orange,    4 }
+        };
 
         public override bool ShouldUpdateInputsOnResume => true;
 
@@ -123,7 +100,7 @@ namespace YARG.Gameplay.Player
             0.05f, 0.1f, 0.19f, 0.47f, 0.78f, 1.15f
         };
 
-        public GuitarEngineParameters EngineParams { get; private set; }
+        public GuitarEngineParameters EngineParams { get; protected set; }
 
         private double TimeFromSpawnToStrikeline => SpawnTimeOffset - (-STRIKE_LINE_POS / NoteSpeed);
 
@@ -147,7 +124,7 @@ namespace YARG.Gameplay.Player
 
         [Header("Five Fret Specific")]
         [SerializeField]
-        private FretArray _fretArray;
+        protected FretArray _fretArray;
         [SerializeField]
         private Pool _shiftIndicatorPool;
         [SerializeField]
@@ -156,11 +133,11 @@ namespace YARG.Gameplay.Player
         protected override float[] StarMultiplierThresholds { get; set; } =
             GuitarStarMultiplierThresholds;
 
-        public float WhammyFactor { get; private set; }
+        public float WhammyFactor { get; protected set; }
 
-        private int _sustainCount;
+        protected int _sustainCount;
 
-        private SongStem _stem;
+        protected SongStem _stem;
         private double _practiceSectionStartTime;
 
         public override void Initialize(int index, YargPlayer player, SongChart chart, TrackView trackView, StemMixer mixer, int? currentHighScore)
@@ -171,6 +148,7 @@ namespace YARG.Gameplay.Player
                 _stem = SongStem.Rhythm;
             }
 
+            _fretToMostRecentTime = CreateFretToMostRecentTime();
             BRELanes = new LaneElement[LaneCount];
             // LaneCount is set by the base class, no need to assign here
 
@@ -245,9 +223,27 @@ namespace YARG.Gameplay.Player
 
             MakeHighwayOrdering();
 
+            InitializeIndicatorStripes();
+            InitializeFretArray();
+
+            if (Player.Profile.RangeEnabled)
+            {
+                _allRangeShiftEvents = FiveFretRangeShift.GetRangeShiftEvents(NoteTrack);
+                InitializeRangeShift();
+            }
+
+            LaneElement.DefineLaneScale(Player.Profile.CurrentInstrument, LaneCount);
+
+            GameManager.BeatEventHandler.Visual.Subscribe(_fretArray.PulseFretColors, BeatEventType.StrongBeat);
+        }
+
+        protected virtual void InitializeIndicatorStripes()
+        {
             IndicatorStripes.Initialize(Player.EnginePreset.FiveFretGuitar);
+        }
 
-
+        protected virtual void InitializeFretArray()
+        {
             _fretArray.Initialize(
                 _lanePositions,
                 LaneCount,
@@ -256,16 +252,6 @@ namespace YARG.Gameplay.Player
                 Player.ThemePreset,
                 VisualStyle.FiveFretGuitar
             );
-
-            if (Player.Profile.RangeEnabled)
-            {
-                _allRangeShiftEvents = FiveFretRangeShift.GetRangeShiftEvents(NoteTrack);
-                InitializeRangeShift();
-            }
-
-            LaneElement.DefineLaneScale(Player.Profile.CurrentInstrument, 5);
-
-            GameManager.BeatEventHandler.Visual.Subscribe(_fretArray.PulseFretColors, BeatEventType.StrongBeat);
         }
 
         public override void ResetPracticeSection()
@@ -289,7 +275,7 @@ namespace YARG.Gameplay.Player
         {
             foreach (var fret in _lanePositions.Keys)
             {
-                _fretToMostRecentTime[(FiveFretGuitarFret) fret] = 0;
+                _fretToMostRecentTime[fret] = 0;
             }
         }
 
@@ -307,7 +293,7 @@ namespace YARG.Gameplay.Player
                 // Set emission color of BRE lanes depending on currently available score value
                 foreach (var (breLaneIndex, highwayOrderingIndex) in _lanePositions)
                 {
-                    var mostRecentTime = _fretToMostRecentTime[(FiveFretGuitarFret)breLaneIndex];
+                    var mostRecentTime = _fretToMostRecentTime[breLaneIndex];
                     var normalizedTimeSinceLastHit = CodaSection.GetNormalizedTimeSinceLastHit(visualTime, mostRecentTime);
                     BRELanes[highwayOrderingIndex].SetEmissionColor(normalizedTimeSinceLastHit);
                 }
@@ -405,11 +391,11 @@ namespace YARG.Gameplay.Player
         {
             for (var action = GuitarAction.GreenFret; action <= GetFretActionMax(); action++)
             {
-                _fretArray.SetPressed((int)GetFretIndex(action), Engine.IsFretHeld(action));
+                _fretArray.SetPressed(GetFretIndex(action), Engine.IsFretHeld(action));
             }
         }
 
-      protected virtual GuitarAction GetFretActionMax() => GuitarAction.OrangeFret;
+        protected virtual GuitarAction GetFretActionMax() => GuitarAction.OrangeFret;
 
         private void SpawnRangeIndicator(FiveFretRangeShift nextShift)
         {
@@ -500,10 +486,10 @@ namespace YARG.Gameplay.Player
 
         private void OnLaneHit(int action)
         {
-            var asFret = GetFretFromAction((GuitarAction)action);
+            var asFret = GetFretIndex((GuitarAction)action);
 
             _fretToMostRecentTime[asFret] = GameManager.VisualTime;
-            _fretArray.PlayCodaHitAnimation((int)asFret);
+            _fretArray.PlayCodaHitAnimation(asFret);
         }
 
         protected override void OnCodaStart(CodaSection coda)
@@ -599,7 +585,7 @@ namespace YARG.Gameplay.Player
 
                 if (currentNote == null || (currentNote.NoteMask & (1 << (int) action)) == 0)
                 {
-                    _fretArray.PlayMissAnimation((int) GetFretIndex(action));
+                    _fretArray.PlayMissAnimation(GetFretIndex(action));
                 }
             }
 
@@ -867,7 +853,7 @@ namespace YARG.Gameplay.Player
             }
         }
 
-        private void MakeHighwayOrdering()
+        protected virtual void MakeHighwayOrdering()
         {
             if (Player.Profile.LeftyFlip)
             {
@@ -879,7 +865,8 @@ namespace YARG.Gameplay.Player
                     { (int)FiveFretGuitarFret.Red,       3 },
                     { (int)FiveFretGuitarFret.Green,     4 }
                 };
-            } else
+            }
+            else
             {
                 _lanePositions = DEFAULT_HIGHWAY_ORDERING;
             }

@@ -199,7 +199,7 @@ namespace YARG.Gameplay.Visuals
         public void SetCombinedSpan(bool combined)
         {
             _isCombinedSpan = combined;
-            if (combined && Initialized)
+            if (Initialized)
             {
                 RenderScale();
             }
