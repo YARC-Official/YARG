@@ -482,6 +482,10 @@ namespace YARG.Gameplay
 
                 // Don't allow rewinding past the rewind limit, unless a duration was explicitly passed to the resume function
                 var rewindSeconds = Math.Max(0, rewindDuration ?? SongTime - _rewindLimit);
+                if (rewindSeconds == PAUSE_REWIND_LENGTH)
+                {
+                    GlobalAudioHandler.PlaySoundEffect(SfxSample.Rewind);
+                }
 
                 var canceled = await RewindAndResume(rewindSeconds);
 

@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.RenderGraphModule;
 using UnityEngine.Rendering.RenderGraphModule.Util;
+using static UnityEngine.Rendering.RenderGraphModule.Util.RenderGraphUtils;
 using UnityEngine.Rendering.Universal;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -22,8 +23,6 @@ namespace YARG.Gameplay
         private Camera _renderCamera;
         private float _originalFactor;
         private UniversalRenderPipelineAsset UniversalRenderPipelineAsset;
-        private readonly RenderPipeline.StandardRequest _renderRequest = new();
-        private bool _supportsRenderRequest;
 
         private static RawImage _venueOutput;
         private static RenderTexture _venueTexture;
@@ -44,6 +43,7 @@ namespace YARG.Gameplay
         private static readonly string[] _mirrorKeywords = { "YARG_MIRROR_LEFT", "YARG_MIRROR_RIGHT", "YARG_MIRROR_CLOCK_CCW", "YARG_MIRROR_NONE" };
 
         private VenuePostPostProcessingPass _pass;
+        private Material _alphaFixMaterial;
 
         public static float ActualFPS;
         public static float TargetFPS;
@@ -63,13 +63,14 @@ namespace YARG.Gameplay
 
         private int _venueLayerMask;
 
-        private int _frameCount;
-        private float _elapsedTime;
-        private static float _timeSinceLastRender;
+        private static float _frameAccumulator = 0f;
+        private static float _fpsWindowStart = 0f;
+        private static int _fpsWindowFrames = 0;
         private bool _needsInitialization = true;
 
         private void Awake()
         {
+            _alphaFixMaterial = CreateMaterial("Hidden/YARG/VenueAlphaFix");
             _pass = new VenuePostPostProcessingPass(this);
 
             Shader.SetGlobalColor(_scanlineColor, Color.black);
@@ -100,7 +101,6 @@ namespace YARG.Gameplay
             }
             UniversalRenderPipelineAsset = GraphicsSettings.currentRenderPipeline as UniversalRenderPipelineAsset;
             _originalFactor = UniversalRenderPipelineAsset.renderScale;
-            _supportsRenderRequest = RenderPipeline.SupportsRenderRequest(_renderCamera, _renderRequest);
 
             FPS = SettingsManager.Settings.VenueFpsCap.Value;
             _venueLayerMask = LayerMask.GetMask("Venue");
@@ -136,7 +136,10 @@ namespace YARG.Gameplay
             var descriptor = new RenderTextureDescriptor(outputWidth, outputHeight, RenderTextureFormat.DefaultHDR, 16, 0);
             _venueTexture = new RenderTexture(descriptor);
             _venueTexture.Create();
-            _venueOutput.texture = _venueTexture;
+            if (_venueOutput != null)
+            {
+                _venueOutput.texture = _venueTexture;
+            }
 
             descriptor.depthBufferBits = 0;
             _trailsTexture = new RenderTexture(descriptor);
@@ -148,10 +151,17 @@ namespace YARG.Gameplay
             Graphics.Blit(Texture2D.blackTexture, _trailsTexture);
         }
 
+        private static void ResetRenderState()
+        {
+            _frameAccumulator = 0f;
+            _fpsWindowStart = 0f;
+            _fpsWindowFrames = 0;
+        }
+
         private void OnEnable()
         {
             FPS = SettingsManager.Settings.VenueFpsCap.Value;
-            _timeSinceLastRender = 0f;
+            ResetRenderState();
             RenderPipelineManager.beginCameraRendering += OnPreCameraRender;
             RenderPipelineManager.endCameraRendering += OnEndCameraRender;
             SceneManager.sceneUnloaded += OnSceneUnloaded;
@@ -180,6 +190,12 @@ namespace YARG.Gameplay
                 _trailsTexture.Release();
                 Destroy(_trailsTexture);
                 _trailsTexture = null;
+            }
+
+            if (_alphaFixMaterial != null)
+            {
+                CoreUtils.Destroy(_alphaFixMaterial);
+                _alphaFixMaterial = null;
             }
 
             _venueOutput = null;
@@ -214,45 +230,60 @@ namespace YARG.Gameplay
                 RecreateTextures();
                 _needsInitialization = false;
                 // Force a render this frame to avoid flickering when resizing
-                _timeSinceLastRender = float.MaxValue;
+                ResetRenderState();
             }
 
-            var stack = VolumeManager.instance.stack;
-
+            // Update the global volume stack with venue effects so SlowFPS
+            // (and any other effects read in Update()) can access them.
             VolumeManager.instance.Update(_renderCamera.gameObject.transform, _venueLayerMask);
 
             _effectiveFps = FPS;
 
+            var stack = VolumeManager.instance.stack;
             var fpsEffect = stack.GetComponent<SlowFPSComponent>();
 
             if (fpsEffect.IsActive())
             {
-                // The divisor is relative to 60 fps, so we need to adjust for that if FPS is something other than 60
-                var fpsRatio = ActualFPS / 60f;
-                var adjustedDivisor = fpsRatio * fpsEffect.Divisor.value;
-                _effectiveFps = Mathf.RoundToInt(FPS / adjustedDivisor);
-                // Don't allow a rate higher than the FPS cap
-                _effectiveFps = Mathf.Min(FPS, _effectiveFps);
+                if (FPS == 0)
+                {
+                    _effectiveFps = Mathf.RoundToInt(60f / fpsEffect.Divisor.value);
+                } else {
+                    // The divisor is relative to 60 fps, so we need to adjust for that if FPS is something other than 60
+                    var fpsRatio = ActualFPS / 60f;
+                    var adjustedDivisor = fpsRatio * fpsEffect.Divisor.value;
+                    _effectiveFps = Mathf.RoundToInt(FPS / adjustedDivisor);
+                    // Don't allow a rate higher than the FPS cap
+                    _effectiveFps = Mathf.Min(FPS, _effectiveFps);
+                }
             }
 
             // Increment wall clock time regardless of whether we render a frame
-            _timeSinceLastRender += Time.unscaledDeltaTime;
-            _elapsedTime += Time.unscaledDeltaTime;
+            var currentFrameTime = Time.unscaledTime;
 
-            if (_effectiveFps == 0 || _timeSinceLastRender >= 1f / _effectiveFps)
+            // Accumulator-based FPS limiting: smooths quantization over time.
+            // Add dt each frame, when accumulator >= frameInterval, render and subtract.
+            // This averages to the exact target FPS regardless of Update() frequency.
+            float frameInterval = _effectiveFps > 0 ? 1f / _effectiveFps : 0f;
+            _frameAccumulator += Time.unscaledDeltaTime;
+
+            if (_effectiveFps == 0 || _frameAccumulator >= frameInterval)
             {
+                // Sliding window: reset every ~1 second, compute FPS from frame count / elapsed time.
+                if (_fpsWindowStart > 0f && currentFrameTime - _fpsWindowStart > 1.0f)
+                {
+                    ActualFPS = _fpsWindowFrames / (currentFrameTime - _fpsWindowStart);
+                    _fpsWindowStart = currentFrameTime;
+                    _fpsWindowFrames = 0;
+                }
+
+                _fpsWindowFrames++;
+                if (_fpsWindowFrames == 1)
+                {
+                    _fpsWindowStart = currentFrameTime;
+                }
+
                 Render();
-
-                _timeSinceLastRender = 0f;
-                _frameCount++;
-            }
-
-            // Update FPS counter
-            if (_elapsedTime >= 1f)
-            {
-                ActualFPS = _frameCount / _elapsedTime;
-                _frameCount = 0;
-                _elapsedTime = 0f;
+                _frameAccumulator -= frameInterval;
             }
         }
 
@@ -262,6 +293,11 @@ namespace YARG.Gameplay
             {
                 return;
             }
+
+            // Disable the camera after rendering so it only renders when explicitly triggered
+            _renderCamera.enabled = false;
+            _renderCamera.targetTexture = null;
+
             Shader.SetGlobalInteger(_posterizeStepsId, 0);
             Shader.SetGlobalFloat(_startTimeId, 0);
             Shader.SetGlobalFloat(_IsVenueId, 0);
@@ -277,6 +313,12 @@ namespace YARG.Gameplay
             }
 
             Shader.SetGlobalFloat(_IsVenueId, 1);
+
+            // URP replaces VolumeManager.instance.stack with either the global stack
+            // or the camera's local volumeStack during rendering setup, depending on
+            // the volume framework update mode. We need to update the same stack that
+            // URP is using, so we update it here (after URP's setup) before reading.
+            VolumeManager.instance.Update(VolumeManager.instance.stack, _renderCamera.gameObject.transform, _venueLayerMask);
 
             var stack = VolumeManager.instance.stack;
 
@@ -328,14 +370,9 @@ namespace YARG.Gameplay
 
         private void Render()
         {
-            if (!_supportsRenderRequest)
-            {
-                return;
-            }
-
-            _renderRequest.destination = _venueTexture;
-            // Render camera and fill texture2D with its view
-            RenderPipeline.SubmitRenderRequest(_renderCamera, _renderRequest);
+            // Set target texture and enable the camera so it renders through the normal pipeline
+            _renderCamera.targetTexture = _venueTexture;
+            _renderCamera.enabled = true;
 
             if (!IsRendered)
             {
@@ -357,16 +394,29 @@ namespace YARG.Gameplay
 
         private sealed class VenuePostPostProcessingPass : ScriptableRenderPass
         {
+            private readonly Material _alphaFixMaterial;
+
             public VenuePostPostProcessingPass(VenueCameraRenderer vcr)
             {
                 renderPassEvent = RenderPassEvent.AfterRenderingPostProcessing;
+                _alphaFixMaterial = vcr._alphaFixMaterial;
             }
 
             public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
             {
                 UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
+
+                TextureHandle source = resourceData.activeColorTexture;
                 TextureHandle trailsTexture = renderGraph.ImportTexture(_trailsTextureHandle);
-                renderGraph.AddCopyPass(resourceData.activeColorTexture, trailsTexture, "Store frame for trail");
+
+                // Blit through alpha-fix shader to force alpha to 1.0, preventing transparency artifacts
+                // when the venue renders without post-processing (UberPP doesn't run to fix alpha).
+
+                var blitParams = new BlitMaterialParameters(source, trailsTexture, _alphaFixMaterial, 0);
+                renderGraph.AddBlitPass(blitParams, passName: "Venue Alpha Fix / Trails Copy");
+
+                // Update cameraColor so the final blit uses the alpha-fixed texture.
+                resourceData.cameraColor = trailsTexture;
             }
         }
 

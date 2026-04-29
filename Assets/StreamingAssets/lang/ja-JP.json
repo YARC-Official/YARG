@@ -10,6 +10,7 @@
     },
     "Enum": {
         "Difficulty": {
+            "Beginner": "Beginner",
             "Easy": "EASY",
             "Hard": "HARD",
             "Expert": "EXPERT",
@@ -73,7 +74,7 @@
             "Charter": "チャート作者",
             "Genre": "ジャンル",
             "Name": "曲",
-            "Playlist": "プレイリスト",
+            "Folder": "Folder",
             "SongLength": "時間",
             "Source": "元",
             "Subgenre": "サブジャンル",
@@ -209,6 +210,7 @@
         "Toast": {
             "AutoCalibrationScore": "Score saving disabled: Automatic calibration active.",
             "NoFailScore": "Score saving disabled: No fail toggle had to reset fail meter.",
+            "ResumeAfterFailInvalidate": "Score saving disabled: Resuming after failure invalidated score.",
             "ProfileCreated": "Profile created for new device: {0}\nTime to do some YARGin!",
             "TooManyPauses": "Score saving disabled: Too many pauses.",
             "UnsupportedDevice": "{0}に自動プロフィールサポートがありません！"
@@ -298,15 +300,18 @@
                 "Singular": "おすすめの曲",
                 "Plural": "おすすめの曲"
             },
+            "RecommendedSongsHelp": "Refresh List of Recommended Songs",
             "PlayableSongs": "プレイ可能の曲",
             "RandomSong": "ランダムな曲",
-            "Playlists": "プレイリスト",
+            "Playlists": "PLAYLIST MANAGER",
+            "PlaylistsHelp": "Create, View, and Edit Custom Playlists",
             "Favorites": "お気に入り",
             "YourPlaylists": "プレイリスト",
             "Popup": {
                 "Header": {
                     "SortBy": "並び替え…",
-                    "GoTo": "へ"
+                    "GoTo": "へ",
+                    "SelectPlaylists": "Select Playlists"
                 },
                 "Item": {
                     "RandomSong": "ランダムな曲",
@@ -318,19 +323,26 @@
                     "RemoveFromFavorites": "お気に入りから削除",
                     "AddToPlaylist": "プレイリストに付け加える",
                     "RemoveFromPlaylist": "プレイリストから削除",
+                    "RemoveFromSetlist": "Remove From Setlist",
                     "CreateNewPlaylist": "新しい作成",
-                    "RemovePlaylist": "プレイリストを削除",
+                    "RenamePlaylist": "Rename Playlist",
+                    "DeletePlaylist": "Delete Playlist",
+                    "DeleteSetlist": "Delete Setlist",
                     "ViewSongFolder": "曲歌フォルダを見る",
                     "CopySongChecksum": "曲のチェックサムをコピー",
-                    "CollapseAll": "すべて折りたたむ",
-                    "ExpandAll": "すべて展開"
+                    "CollapseAll": "Collapse All",
+                    "ExpandAll": "Expand All"
                 }
             },
             "Back": "戻る",
             "NoPlayersConnected": "プレイヤは接続していません！　プロファイルのメニューでプレイヤを接続できます。",
             "Play": "曲を再生",
-            "PlayHoldAddToSet": "<align=left><size=80%>Play Song<br>(Hold) Add To Setlist</size></align>",
-            "AddHoldStartSet": "<align=left><size=80%>セットリストに追加<br>（ホールド）セットリストをスタート</size></align>",
+            "PlayHoldAddToSet": "<align=left>Play Song<br><size=67%>(Hold) Add To Setlist</size></align>",
+            "AddHoldStartSet": "<align=left>Add to Setlist<br><size=67%>(Hold) Start The Set</size></align>",
+            "ExpandHeaderHoldAddToSet": "<align=left>Expand Header</align>",
+            "CollapseHeaderHoldAddToSet": "<align=left>Collapse Header</align>",
+            "ExpandHeaderHoldStartSet": "<align=left>Expand Header<br><size=67%>(Hold) Start The Set</size></align>",
+            "CollapseHeaderHoldStartSet": "<align=left>Collapse Header<br><size=67%>(Hold) Start The Set</size></align>",
             "Search": "検索",
             "SkipSection": "<align=left>Navigate Sections</align>",
             "MoveInPlaylist": "曲歌を移動する",
@@ -431,11 +443,27 @@
                 "SynthpopElectropop": "センスポップ",
                 "Techno": "テクノ",
                 "ThrashSpeedMetal": "スラッシュ・メタル、スピードメタル",
+                "Traditional": "Traditional",
                 "Trance": "トランス",
                 "Trap": "トラップ",
                 "World": "世界",
                 "Other": "その他",
-                "UnknownGenre": "不明ジャンル"
+                "UnknownGenre": "不明ジャンル",
+                "Broad": {
+                    "Alternative": "Alternative",
+                    "CountryFolk": "Country/Folk",
+                    "ClassicalTraditional": "Classical/Traditional",
+                    "DanceElectronic": "Dance/Electronic",
+                    "HipHop": "Hip-Hop",
+                    "JazzBlues": "Jazz/Blues",
+                    "Metal": "Metal",
+                    "Pop": "Pop",
+                    "PunkSceneCore": "Punk/Scene/Core",
+                    "RnbSoulFunk": "R&B/Soul/Funk",
+                    "Rock": "Rock",
+                    "World": "World",
+                    "Other": "Other"
+                }
             }
         },
         "ProfileInfo": {
@@ -456,13 +484,15 @@
             "Players": "プレイヤー"
         },
         "ScoreScreen": {
-            "BandScoreNotSaved": "（スコアは保存されていません）",
+            "BandScoreNotSaved": "Score not saved",
             "RestartSong": "曲をリスタート",
             "ShowAdvanced": "Show Advanced",
             "HideAdvanced": "Hide Advanced",
             "EndSetlistEarly": "セットリストを終了"
         },
         "Settings": {
+            "ShowAdvanced": "Show Advanced",
+            "HideAdvanced": "Hide Advanced",
             "NoFolder": "<i>フォルダーなし</i>",
             "SearchHeader": {
                 "AllCategories": "すべてのカテゴリー",
@@ -475,6 +505,7 @@
         "Filters": {
             "OptionsHeader": "設定",
             "FiltersHeader": "フィルター",
+            "ShowAnyOfHeader": "Show Any Of",
             "SortedBy": "並べ替え",
             "ShowRecommendations": "おすすめを表示",
             "ResetAllFilters": "(Hold) Reset All Filters",
@@ -482,6 +513,7 @@
             "DeselectAll": "Deselect All",
             "None": "なし",
             "Selected": "{0}選択された",
+            "AnyOf": "Any of {0}",
             "All": "すべて",
             "SongCount": "{0}曲",
             "Genres": "ジャンル",
@@ -513,7 +545,8 @@
                 "Medium": "中（3～5分）",
                 "Long": "長い（5～7分）",
                 "Epic": "エピック（7分以上）"
-            }
+            },
+            "Playlists": "Playlists"
         }
     },
     "Gameplay": {
@@ -1071,6 +1104,15 @@
                     "Windowed": "ウィンドウ"
                 }
             },
+            "Genrelizer": {
+                "Name": "Standardize Genre Metadata",
+                "Description": "Categorizes genre metadata into standard sets of genres, using data from the Genrelizer GitHub repository. <color=white>Rescan required if changed!</color>",
+                "Dropdown": {
+                    "Genrelize": "Full",
+                    "Overgenrelize": "Simplified",
+                    "Off": "None"
+                }
+            },
             "GraphicalProgressOnScoreBox": {
                 "Name": "Graphical Progress On Score Box",
                 "Description": "Enables and disables the graphical blue outline on the score box that displays the song's progress."
@@ -1088,6 +1130,10 @@
                     "Score": "スコア",
                     "Stars": "スター"
                 }
+            },
+            "ShowPercentDecimals": {
+                "Name": "Show Percent Decimals",
+                "Description": "Shows one decimal place for accuracy percentages in the Music Library and Score Screen."
             },
             "HighScoreHistory": {
                 "Name": "ハイスコア記録",
@@ -1142,6 +1188,17 @@
                 "PauseName": "マスター",
                 "Description": "丸ごとでボリュームを調整されます。"
             },
+            "MaxSongRating": {
+                "Name": "Maximum Song Rating",
+                "Description": "Hide any song with a rating higher than the specified value. Note that this is a best-effort filter that does not apply to the Playlist Manager. Custom songs may not be rated correctly.",
+                "Dropdown": {
+                    "Family_Friendly": "Family Friendly",
+                    "Supervision_Recommended": "Supervision Recommended",
+                    "Mature": "Mature",
+                    "Sensitive_Content": "Sensitive Content",
+                    "None": "None"
+                }
+            },
             "MetronomeVolume": {
                 "Name": "メトロノームボリューム",
                 "PauseName": "メトロノーム",
@@ -1193,9 +1250,14 @@
                 "Name": "キックなし",
                 "Description": "すべてのキックを外します。（ドラムのみ）"
             },
-            "NoFailMode": {
-                "Name": "失敗なしモード",
-                "Description": "Disables ending a song early when crowd happiness is too low."
+            "NoFail": {
+                "Name": "No Fail Mode",
+                "Description": "Disables ending a song early when crowd happiness is too low.",
+                "Dropdown": {
+                    "Off": "Off",
+                    "On": "On",
+                    "NoMeter": "On + No Meter"
+                }
             },
             "NoteStreakFrequency": {
                 "Name": "コンボ表示頻度",
@@ -1306,10 +1368,6 @@
             "StageKitEnabled": {
                 "Name": "ステージキットをオンにする",
                 "Description": "Enables sending Stage Kit lighting data to all connected devices capable of reading it."
-            },
-            "StandardizeGenres": {
-                "Name": "Standardize Genre Metadata",
-                "Description": "Categorizes genre metadata into a standard set of genres, using data from the Genrelizer GitHub repository. <color=white>Rescan required if changed!</color>"
             },
             "StarPowerHighwayFx": {
                 "Name": "スターパワーのハイウェイエフェクトモード",
@@ -1489,6 +1547,14 @@
             "DMXKeysChannel": {
                 "Name": "DMXキー",
                 "Description": "This channel gets additively set to the current key notes: Green (2), Red (4), Yellow (8), Blue (16), Orange (32)."
+            },
+            "DMXTargetFPS": {
+                "Name": "DMX Target FPS",
+                "Description": "How often DMX lighting updates are sent per second. Set to 44 for best responsiveness (DMX protocol maximum). Lower values (10-20) can help with cheap or unstable USB DMX adapters that struggle at higher rates."
+            },
+            "DMXPulseDuration": {
+                "Name": "DMX Pulse Duration (MS)",
+                "Description": "How long a DMX channel stays on after receiving a trigger, in milliseconds. Increase this value if lights are not firing reliably. Set to 0 to disable pulse stretching entirely."
             },
             "EnablePlaybackBuffer": {
                 "Name": "Use Audio Playback Buffer",
@@ -1949,6 +2015,13 @@
                         "ProKeys": "キーボード"
                     }
                 },
+                "DefaultEngines": {
+                    "DefaultEngine": "Default Engine",
+                    "CasualEngine": "Casual Engine",
+                    "PrecisionEngine": "Precision Engine",
+                    "SoloTapsEngine": "Solo Taps Engine",
+                    "CustomEnginePreset": "Custom Engine Preset"
+                },
                 "AntiGhosting": {
                     "Name": "アンチーゴスト",
                     "Description": "Upon ghosting (or fretting a note that is not present) the player will drop their combo (guitar only)."
@@ -1957,9 +2030,9 @@
                     "Name": "Hit Window Ratio",
                     "Description": "The hit window's front to back ratio. \"0\" will bring the hit window fully backwards, \"1\" will keep it in the center, and \"2\" will move it to the front."
                 },
-                "TremoloFrontEndPercent": {
+                "TremoloWindow": {
                     "Name": "Tremolo Hit Window",
-                    "Description": "This determines how many notes can be hit with a single input during a tremolo or trill phrase. Calculated as a percentage of the current hit window frontend."
+                    "Description": "This determines the frequency of lane inputs required to maintain lane behavior."
                 },
                 "HitPercentE": {
                     "Name": "ヒット割合（EASY)",

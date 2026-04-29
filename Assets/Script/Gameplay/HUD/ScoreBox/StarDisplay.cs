@@ -1,27 +1,28 @@
+using DG.Tweening;
 using UnityEngine;
+using UnityEngine.Serialization;
 using UnityEngine.UI;
 
 namespace YARG.Gameplay.HUD
 {
     public class StarDisplay : MonoBehaviour
     {
-        public enum Animation
+        private enum State
         {
-            PopNew,
+            Hidden,
+            Progress,
             Completed,
-            Gold,
+            CompletedGold
         }
-
-        private const string ANIMATION_POP_NEW   = "PopNew";
-        private const string ANIMATION_COMPLETED = "Completed";
-        private const string ANIMATION_GOLD      = "Gold";
-
-        private const string ANIMATION_GOLD_METER = "GoldMeter";
 
         [SerializeField]
         private Image _starProgress;
         [SerializeField]
-        private Animator _starAnimator;
+        private Image _completedStar;
+        [SerializeField]
+        private Image _completedGold;
+        [SerializeField]
+        private Image _white;
 
         [Space]
         [SerializeField]
@@ -33,15 +34,55 @@ namespace YARG.Gameplay.HUD
 
         private float _goldMeterHeight;
 
+        private Sequence _popNewSequence;
+        private Sequence _completedStarSequence;
+        private Sequence _completedGoldSequence;
+        private State    _state = State.Hidden;
+
         private void Awake()
         {
             _goldMeterHeight = _goldProgress.rectTransform.rect.height;
+            var t = gameObject.transform;
+            _popNewSequence = DOTween.Sequence().Append(t.DOScale(1.4f, 0.3f)).Append(t.DOScale(1f, 0.2f))
+                .SetAutoKill(false).Pause().SetLink(gameObject);
+            _completedStarSequence = DOTween.Sequence().Append(_completedStar.DOFillAmount(1f, 0.33f))
+                .Join(t.DOScale(1.5f, 0.166f)).Append(t.DOScale(1f, 0.166f)).SetAutoKill(false).Pause()
+                .SetLink(gameObject);
+            _completedGoldSequence = DOTween.Sequence().Append(t.DOScale(1.6f, 0.25f))
+                .Insert(0.04f, _white.DOFade(1f, 0.21f)).Append(t.DOScale(1f, 0.25f))
+                .Insert(0.25f, _white.DOFade(0f, 0.25f)).Insert(0.25f, _completedGold.DOFade(1f, 0.25f))
+                .SetAutoKill(false).Pause().SetLink(gameObject);
         }
 
         public void PopNew()
         {
+            if (_state != State.Hidden)
+            {
+                return;
+            }
+
             GetComponent<Image>().fillAmount = 1;
-            _starAnimator.Play(ANIMATION_POP_NEW);
+            _state = State.Progress;
+            _popNewSequence.Restart();
+        }
+
+        public void HideStar()
+        {
+            _state = State.Hidden;
+
+            _popNewSequence.Rewind();
+            _completedStarSequence.Rewind();
+            _completedGoldSequence.Rewind();
+
+            _starProgress.fillAmount = 0;
+            _starProgress.enabled = true;
+            _completedStar.fillAmount = 0;
+
+            _goldProgressGroup.gameObject.SetActive(true);
+            _goldProgress.fillAmount = 0;
+            _goldProgressLine.rectTransform.anchoredPosition = Vector2.zero;
+
+            gameObject.transform.localScale = Vector3.zero;
         }
 
         public void SetGoldPulse(float pulse)
@@ -53,25 +94,51 @@ namespace YARG.Gameplay.HUD
         {
             if (progress < 1)
             {
-                // Fill the star progress
+                if (_state is State.Completed or State.CompletedGold)
+                {
+                    _completedStarSequence.Rewind();
+                    _state = State.Progress;
+                }
+
+                _completedStarSequence.Pause();
+                _completedStar.fillAmount = 0;
                 _starProgress.enabled = true;
-                _starProgress.fillAmount = (float) progress;
+                _starProgress.fillAmount = progress;
             }
-            else
+            else if (_state == State.Progress)
             {
                 // Finish the star
                 _starProgress.fillAmount = 1;
                 _starProgress.enabled = false;
-                _starAnimator.Play(ANIMATION_COMPLETED);
+                _state = State.Completed;
+                _completedStarSequence.Restart();
             }
         }
 
         public void SetGoldProgress(float progress)
         {
-            if (progress < 1)
+            if (progress <= 0)
             {
-                // Fill the gold progress
-                _goldProgress.fillAmount = (float) progress;
+                if (_state == State.CompletedGold)
+                {
+                    _state = State.Completed;
+                }
+
+                _completedGoldSequence.Rewind();
+                _goldProgressGroup.gameObject.SetActive(true);
+                _goldProgress.fillAmount = 0;
+                _goldProgressLine.rectTransform.anchoredPosition = Vector2.zero;
+            }
+            else if (progress < 1)
+            {
+                if (_state == State.CompletedGold)
+                {
+                    _state = State.Completed;
+                    _completedGoldSequence.Rewind();
+                    _goldProgressGroup.gameObject.SetActive(true);
+                }
+
+                _goldProgress.fillAmount = progress;
                 _goldProgressLine.rectTransform.anchoredPosition = new Vector2(0, progress * _goldMeterHeight);
             }
             else
@@ -79,8 +146,11 @@ namespace YARG.Gameplay.HUD
                 // Finish the gold star
                 _goldProgress.fillAmount = 1;
                 _goldProgressGroup.gameObject.SetActive(false);
-
-                _starAnimator.Play(ANIMATION_GOLD);
+                if (_state == State.Completed)
+                {
+                    _state = State.CompletedGold;
+                    _completedGoldSequence.Restart();
+                }
             }
         }
     }

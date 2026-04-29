@@ -103,16 +103,15 @@ namespace YARG.Gameplay.Player
             return new HighwayOrderingInfo(-1, pad);
         }
 
-
         public static Dictionary<int, int> DEFAULT_FOUR_LANE_HIGHWAY_ORDERING = new()
         {
             { (int)FourLaneDrumPad.RedDrum,       0 },
-            { (int)FourLaneDrumPad.YellowCymbal,  1 },
             { (int)FourLaneDrumPad.YellowDrum,    1 },
-            { (int)FourLaneDrumPad.BlueCymbal,    2 },
+            { (int)FourLaneDrumPad.YellowCymbal,  1 },
             { (int)FourLaneDrumPad.BlueDrum,      2 },
-            { (int)FourLaneDrumPad.GreenCymbal,   3 },
-            { (int)FourLaneDrumPad.GreenDrum,     3 }
+            { (int)FourLaneDrumPad.BlueCymbal,    2 },
+            { (int)FourLaneDrumPad.GreenDrum,     3 },
+            { (int)FourLaneDrumPad.GreenCymbal,   3 }
         };
 
         public static Dictionary<int, int> DEFAULT_FIVE_LANE_HIGHWAY_ORDERING = new()
