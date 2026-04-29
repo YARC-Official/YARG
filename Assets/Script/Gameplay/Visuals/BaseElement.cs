@@ -30,7 +30,7 @@
             Initialized = true;
 
             // Force update the position once just in case to prevent flickering
-            Update();
+            UpdateVisualElement();
         }
 
         protected abstract void InitializeElement();
@@ -39,7 +39,12 @@
 
         protected abstract bool UpdateElementPosition();
 
-        protected void Update()
+        protected void LateUpdate()
+        {
+            UpdateVisualElement();
+        }
+
+        private void UpdateVisualElement()
         {
             // Skip if not initialized
             if (!Initialized) return;
