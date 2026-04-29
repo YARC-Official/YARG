@@ -925,6 +925,22 @@ namespace YARG.Gameplay.Player
 
                 _highwayOrderingIndexToBreLaneIndex.Add(ApplyHandednessToPosition(adjustedIndex), highwayOrderingInfo.BreLaneIndex);
 
+                switch (item)
+                {
+                    case DrumsHighwayItem.Kick or DrumsHighwayItem.Kick1x or DrumsHighwayItem.Kick2x or DrumsHighwayItem.Kick2xConditional:
+                        NumberOfDedicatedKickLanes++;
+                        break;
+                    case DrumsHighwayItem.YellowCymbal:
+                        _yellowCymbalHasLane = true;
+                        break;
+                    case DrumsHighwayItem.BlueCymbal:
+                        _blueCymbalHasLane = true;
+                        break;
+                    case DrumsHighwayItem.GreenCymbal:
+                        _greenCymbalHasLane = true;
+                        break;
+                }
+
                 foreach (var highwayOrderingElement in highwayOrderingInfo.Elements)
                 {
                     _highwayOrdering[highwayOrderingElement.Pad] = new(
@@ -934,22 +950,6 @@ namespace YARG.Gameplay.Player
 
                     if (!_actionToBreLaneIndex.ContainsKey(highwayOrderingElement.Action)) {
                         _actionToBreLaneIndex.Add(highwayOrderingElement.Action, highwayOrderingInfo.BreLaneIndex);
-                    }
-
-                    switch (item)
-                    {
-                        case DrumsHighwayItem.Kick or DrumsHighwayItem.Kick1x or DrumsHighwayItem.Kick2x or DrumsHighwayItem.Kick2xConditional:
-                            NumberOfDedicatedKickLanes++;
-                            break;
-                        case DrumsHighwayItem.YellowCymbal:
-                            _yellowCymbalHasLane = true;
-                            break;
-                        case DrumsHighwayItem.BlueCymbal:
-                            _blueCymbalHasLane = true;
-                            break;
-                        case DrumsHighwayItem.GreenCymbal:
-                            _greenCymbalHasLane = true;
-                            break;
                     }
                 }
             }

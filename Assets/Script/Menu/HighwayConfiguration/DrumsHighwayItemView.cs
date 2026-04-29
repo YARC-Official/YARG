@@ -185,11 +185,8 @@ namespace YARG.Menu.HighwayConfiguration
         private static HighwayOrderingElement FOUR_LANE_KICK = new((int) FourLaneDrumPad.Kick, DrumsAction.Kick, (int) FourLaneDrumsFret.Kick);
         private static HighwayOrderingElement FIVE_LANE_KICK = new((int) FiveLaneDrumPad.Kick, DrumsAction.Kick, (int) FiveLaneDrumsFret.Kick);
 
-        private static HighwayOrderingElement FOUR_LANE_SEPARATE_DOUBLE_KICK = new(DOUBLE_KICK_FRET_INDEX, DrumsAction.Kick, (int) FourLaneDrumsFret.DoubleKick);
-        private static HighwayOrderingElement FIVE_LANE_SEPARATE_DOUBLE_KICK = new(DOUBLE_KICK_FRET_INDEX, DrumsAction.Kick, (int) FiveLaneDrumsFret.DoubleKick);
-
-        private static HighwayOrderingElement FOUR_LANE_MERGED_DOUBLE_KICK = new(DOUBLE_KICK_FRET_INDEX, DrumsAction.Kick, (int) FourLaneDrumsFret.Kick);
-        private static HighwayOrderingElement FIVE_LANE_MERGED_DOUBLE_KICK = new(DOUBLE_KICK_FRET_INDEX, DrumsAction.Kick, (int) FiveLaneDrumsFret.Kick);
+        private static HighwayOrderingElement FOUR_LANE_DOUBLE_KICK = new(DOUBLE_KICK_FRET_INDEX, DrumsAction.Kick, (int) FourLaneDrumsFret.DoubleKick);
+        private static HighwayOrderingElement FIVE_LANE_DOUBLE_KICK = new(DOUBLE_KICK_FRET_INDEX, DrumsAction.Kick, (int) FiveLaneDrumsFret.DoubleKick);
 
         private static HighwayOrderingElement FOUR_LANE_RED_DRUM = new((int) FourLaneDrumPad.RedDrum, DrumsAction.RedDrum, (int) FourLaneDrumsFret.RedDrum);
         private static HighwayOrderingElement FOUR_LANE_YELLOW_DRUM = new((int) FourLaneDrumPad.YellowDrum, DrumsAction.YellowDrum, (int) FourLaneDrumsFret.YellowDrum);
@@ -218,10 +215,10 @@ namespace YARG.Menu.HighwayConfiguration
         private static HighwayOrderingInfo GetFourLaneHighwayOrderingInfo(DrumsHighwayItem item)
         {
             return item switch {
-                DrumsHighwayItem.Kick               => new(new() { FOUR_LANE_KICK, FOUR_LANE_MERGED_DOUBLE_KICK }, DrumsBreLaneIndex.Kick ),
+                DrumsHighwayItem.Kick               => new(new() { FOUR_LANE_KICK, FOUR_LANE_DOUBLE_KICK }, DrumsBreLaneIndex.Kick ),
                 DrumsHighwayItem.Kick1x             => new(new() { FOUR_LANE_KICK }, DrumsBreLaneIndex.Kick),
-                DrumsHighwayItem.Kick2x             => new(new() { FOUR_LANE_SEPARATE_DOUBLE_KICK }, DrumsBreLaneIndex.Kick ),
-                DrumsHighwayItem.Kick2xConditional  => new(new() { FOUR_LANE_SEPARATE_DOUBLE_KICK }, DrumsBreLaneIndex.Kick),
+                DrumsHighwayItem.Kick2x             => new(new() { FOUR_LANE_DOUBLE_KICK }, DrumsBreLaneIndex.Kick ),
+                DrumsHighwayItem.Kick2xConditional  => new(new() { FOUR_LANE_DOUBLE_KICK }, DrumsBreLaneIndex.Kick),
 
                 DrumsHighwayItem.Red                => new(new() { FOUR_LANE_RED_DRUM }, DrumsBreLaneIndex.Red),
 
@@ -244,10 +241,10 @@ namespace YARG.Menu.HighwayConfiguration
         private static HighwayOrderingInfo GetFiveLaneHighwayOrderingInfo(DrumsHighwayItem item)
         {
             return item switch {
-                DrumsHighwayItem.Kick               => new(new() { FIVE_LANE_KICK, FIVE_LANE_MERGED_DOUBLE_KICK }, DrumsBreLaneIndex.Kick),
+                DrumsHighwayItem.Kick               => new(new() { FIVE_LANE_KICK, FIVE_LANE_DOUBLE_KICK }, DrumsBreLaneIndex.Kick),
                 DrumsHighwayItem.Kick1x             => new(new() { FIVE_LANE_KICK }, DrumsBreLaneIndex.Kick),
-                DrumsHighwayItem.Kick2x             => new(new() { FIVE_LANE_SEPARATE_DOUBLE_KICK }, DrumsBreLaneIndex.Kick),
-                DrumsHighwayItem.Kick2xConditional  => new(new() { FIVE_LANE_SEPARATE_DOUBLE_KICK }, DrumsBreLaneIndex.Kick),
+                DrumsHighwayItem.Kick2x             => new(new() { FIVE_LANE_DOUBLE_KICK }, DrumsBreLaneIndex.Kick),
+                DrumsHighwayItem.Kick2xConditional  => new(new() { FIVE_LANE_DOUBLE_KICK }, DrumsBreLaneIndex.Kick),
 
                 DrumsHighwayItem.Red                => new(new() { FIVE_LANE_RED }, DrumsBreLaneIndex.Red),
                 DrumsHighwayItem.Yellow             => new(new() { FIVE_LANE_YELLOW }, DrumsBreLaneIndex.Yellow),
