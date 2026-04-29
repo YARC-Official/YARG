@@ -36,15 +36,13 @@ namespace YARG.Gameplay.Visuals
         private Transform _rightKickFretPosition;
 
         private readonly Dictionary<int, Fret> _frets = new();
-        // These will be empty on anything that does not have stacked frets, which is only 4L and Pro Drums right now.
-        private readonly Dictionary<int, int>       _stackedFretIndices        = new();
-        private readonly HashSet<int>               _enabledStackedFretIndices = new();
-
         private readonly List<KickFret> _kickFrets = new();
 
         private readonly List<int> _activeFrets  = new();
         private readonly List<int> _pulsingFrets = new();
         private          float     _pulseDuration;
+
+        private readonly HashSet<int> _usedFretIndexes = new();
 
         /*
          * Overload for instruments where lefty flip does not affect color (e.g. a lefty-flipped Green Fret on 5F Guitar is still green, just laterally shifted).
@@ -55,7 +53,8 @@ namespace YARG.Gameplay.Visuals
          * provide HighwayOrderingInfos directly.
          */
         #nullable enable
-        public void Initialize(Dictionary<int, int> highwayOrdering, int laneCount, GameObject? kickFretPrefab, IFretColorProvider fretColorProvider, ThemePreset themePreset, VisualStyle style)
+        public void Initialize(Dictionary<int, int> highwayOrdering, int laneCount, GameObject? kickFretPrefab,
+            IFretColorProvider fretColorProvider, ThemePreset themePreset, VisualStyle style)
         {
             var derivedDictionary = new Dictionary<int, HighwayOrderingInfo>();
 
@@ -67,13 +66,31 @@ namespace YARG.Gameplay.Visuals
             Initialize(derivedDictionary, laneCount, kickFretPrefab, fretColorProvider, themePreset, style);
         }
 
-        public void Initialize(Dictionary<int, HighwayOrderingInfo> highwayOrdering, int laneCount, GameObject? kickFretPrefab, IFretColorProvider fretColorProvider, ThemePreset themePreset, VisualStyle style)
+        public void Initialize(Dictionary<int, HighwayOrderingInfo> highwayOrdering, int laneCount,
+            GameObject? kickFretPrefab, IFretColorProvider fretColorProvider, ThemePreset themePreset, VisualStyle style)
         {
             var fretPrefab = ThemeManager.Instance.CreateFretPrefabFromTheme(themePreset, style);
 
             _frets.Clear();
             foreach (var (noteType, highwayOrderingInfo) in highwayOrdering)
             {
+                // Note that the correctness of this depends on instruments with shared lanes having the note type that
+                // corresponds to the fret color coming first in their pad/fret/whatever enum
+                if (!_usedFretIndexes.Add(highwayOrderingInfo.Position))
+                {
+                    // Find the earlier highway ordering info with the same position
+                    foreach (var (otherNoteType, otherHighwayOrderingInfo) in highwayOrdering)
+                    {
+                        if (otherHighwayOrderingInfo.Position == highwayOrderingInfo.Position)
+                        {
+                            _frets[noteType] = _frets[otherNoteType];
+                            break;
+                        }
+                    }
+
+                    continue;
+                }
+
                 var fret = Instantiate(fretPrefab, transform);
                 fret.SetActive(true);
 
@@ -94,16 +111,6 @@ namespace YARG.Gameplay.Visuals
                     fretColorProvider.GetParticleColor((int)FiveFretGuitarFret.Open)
                 );
 
-                foreach (var f in _frets)
-                {
-                    if (Mathf.Approximately(f.Value.transform.localPosition.x, x))
-                    {
-                        // We add both ways because we want to be able to look up either fret and find the other one
-                        _stackedFretIndices.Add(noteType, f.Key);
-                        _stackedFretIndices.Add(f.Key, noteType);
-                        break;
-                    }
-                }
                 _frets[noteType] = fretComp;
             }
 
@@ -141,22 +148,6 @@ namespace YARG.Gameplay.Visuals
             }
         }
         #nullable restore
-        private void SetActiveStackedFret(int index)
-        {
-            if (_stackedFretIndices.Count == 0 || _enabledStackedFretIndices.Contains(index) || !_stackedFretIndices.TryGetValue(index, out int otherFretIndex))
-            {
-                return;
-            }
-            var fretTransform = _frets[index].transform;
-            var otherFretTransform = _frets[otherFretIndex].transform;
-
-            // Disabling the gameObject can cause the animation to get stuck in a weird spot, so just set the Z scale to 0
-            fretTransform.localScale = fretTransform.localScale.WithZ(1f);
-            otherFretTransform.localScale = otherFretTransform.localScale.WithZ(0f);
-
-            _enabledStackedFretIndices.Remove(otherFretIndex);
-            _enabledStackedFretIndices.Add(index);
-        }
 
         public void SetPressed(int index, bool pressed)
         {
@@ -175,7 +166,6 @@ namespace YARG.Gameplay.Visuals
 
         public void PlayHitAnimation(int index)
         {
-            SetActiveStackedFret(index);
             _frets[index].PlayHitAnimation();
             _frets[index].PlayHitParticles();
         }
@@ -186,14 +176,13 @@ namespace YARG.Gameplay.Visuals
             {
                 return;
             }
-            SetActiveStackedFret(index);
+
             fret.PlayHitAnimation();
             fret.PlayHitParticles();
         }
 
         public void PlayCymbalHitAnimation(int index)
         {
-            SetActiveStackedFret(index);
             _frets[index].PlayCymbalHitAnimation();
             _frets[index].PlayHitParticles();
         }
@@ -211,7 +200,6 @@ namespace YARG.Gameplay.Visuals
         {
             if (_frets.ContainsKey(index))
             {
-                SetActiveStackedFret(index);
                 _frets[index].PlayMissAnimation();
                 _frets[index].PlayMissParticles();
             }

@@ -63,9 +63,9 @@ namespace YARG.Gameplay.Player
                 DrumsAction.YellowDrum =>   (int) FourLaneDrumPad.YellowDrum,
                 DrumsAction.BlueDrum =>     (int) FourLaneDrumPad.BlueDrum,
                 DrumsAction.GreenDrum =>    (int) FourLaneDrumPad.GreenDrum,
-                DrumsAction.YellowCymbal => (int) FourLaneDrumPad.YellowCymbal,
-                DrumsAction.BlueCymbal =>   (int) FourLaneDrumPad.BlueCymbal,
-                DrumsAction.GreenCymbal =>  (int) FourLaneDrumPad.GreenCymbal,
+                DrumsAction.YellowCymbal => (int) (Player.Profile.SplitProTomsAndCymbals ? FourLaneDrumPad.YellowCymbal : FourLaneDrumPad.YellowDrum),
+                DrumsAction.BlueCymbal =>   (int) (Player.Profile.SplitProTomsAndCymbals ? FourLaneDrumPad.BlueCymbal : FourLaneDrumPad.BlueDrum),
+                DrumsAction.GreenCymbal =>  (int) (Player.Profile.SplitProTomsAndCymbals ? FourLaneDrumPad.GreenCymbal : FourLaneDrumPad.GreenDrum),
                 DrumsAction.WildcardPad =>  (int) FourLaneDrumPad.Kick,
                 _ => throw new ArgumentOutOfRangeException(nameof(action))
             };
@@ -81,16 +81,15 @@ namespace YARG.Gameplay.Player
             return new HighwayOrderingInfo(-1, pad);
         }
 
-
         public static Dictionary<int, int> DEFAULT_FOUR_LANE_HIGHWAY_ORDERING = new()
         {
             { (int)FourLaneDrumPad.RedDrum,       0 },
-            { (int)FourLaneDrumPad.YellowCymbal,  1 },
             { (int)FourLaneDrumPad.YellowDrum,    1 },
-            { (int)FourLaneDrumPad.BlueCymbal,    2 },
+            { (int)FourLaneDrumPad.YellowCymbal,  1 },
             { (int)FourLaneDrumPad.BlueDrum,      2 },
-            { (int)FourLaneDrumPad.GreenCymbal,   3 },
-            { (int)FourLaneDrumPad.GreenDrum,     3 }
+            { (int)FourLaneDrumPad.BlueCymbal,    2 },
+            { (int)FourLaneDrumPad.GreenDrum,     3 },
+            { (int)FourLaneDrumPad.GreenCymbal,   3 }
         };
 
         public static Dictionary<int, int> DEFAULT_FIVE_LANE_HIGHWAY_ORDERING = new()
