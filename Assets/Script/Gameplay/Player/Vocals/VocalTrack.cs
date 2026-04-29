@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Assertions;
@@ -177,6 +176,7 @@ namespace YARG.Gameplay.Player
         private VocalsTrack _vocalsTrack;
 
         private Material _guidelineMaterial;
+        private TextMeshPro _lyricWidthTester;
 
         private bool _isRangeChanging;
         private Range _viewRange;
@@ -378,6 +378,9 @@ namespace YARG.Gameplay.Player
             // Hide overlay
             _starpowerMaterial.SetFloat(_alphaMultiplier, 0f);
 
+            PrepareLyricSpawns();
+            PrewarmVocalPools();
+
             AllowStarPower = true;
         }
 
@@ -469,7 +472,7 @@ namespace YARG.Gameplay.Player
             UpdateSpawning();
 
             // Fade on/off the starpower overlay
-            bool starpowerActive = _vocalPlayers.Any(player => player.Engine.EngineStats.IsStarPowerActive);
+            bool starpowerActive = IsAnyStarPowerActive();
             float currentStarpower = _starpowerMaterial.GetFloat(_alphaMultiplier);
             if (starpowerActive)
             {
@@ -481,6 +484,19 @@ namespace YARG.Gameplay.Player
                 _starpowerMaterial.SetFloat(_alphaMultiplier,
                     Mathf.Lerp(currentStarpower, 0f, Time.deltaTime * 4f));
             }
+        }
+
+        private bool IsAnyStarPowerActive()
+        {
+            for (int i = 0; i < _vocalPlayers.Count; i++)
+            {
+                if (_vocalPlayers[i].Engine.EngineStats.IsStarPowerActive)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private void UpdateHighwayGuidelines()
@@ -539,10 +555,10 @@ namespace YARG.Gameplay.Player
             for (int i = 0; i < _scrollingNoteTrackers.Length; i++)
             {
                 _phraseMarkerIndices[i] = 0;
-                _scrollingNoteTrackers[i].Reset();
-                _scrollingLyricTrackers[i].Reset();
-                _staticPhraseTrackers[i].Reset();
-                _staticPhraseQueues[i].Clear();
+                _scrollingNoteTrackers[i]?.Reset();
+                _scrollingLyricTrackers[i]?.Reset();
+                _staticPhraseTrackers[i]?.Reset();
+                _staticPhraseQueues[i]?.Clear();
                 _highestEnqueuedPhrasePairIndices[i] = -1;
                 _rightEdges[i] = DEFAULT_STATIC_LYRICS_RIGHT_EDGE;
                 _noMoreStaticPhrases[i] = false;
@@ -599,7 +615,23 @@ namespace YARG.Gameplay.Player
             uint rangesStart = _vocalsTrack.RangeShifts.LowerBoundElement(start).Tick;
             _vocalsTrack.RangeShifts.RemoveAll(n => n.Tick < rangesStart || n.Tick >= end);
 
+            PrepareLyricSpawns();
+            PrewarmVocalPools();
+
             ResetPracticeSection();
+        }
+
+        private TextMeshPro GetLyricWidthTester()
+        {
+            if (_lyricWidthTester != null)
+            {
+                return _lyricWidthTester;
+            }
+
+            _lyricWidthTester = gameObject.AddComponent<TextMeshPro>();
+            _lyricWidthTester.enabled = false;
+            _lyricWidthTester.text = string.Empty;
+            return _lyricWidthTester;
         }
 
         // Should only be used when the chart did not provide an explicit vocal scroll speed. Finds the largest distance
@@ -607,7 +639,7 @@ namespace YARG.Gameplay.Player
         // that distance is too big, returns an increased vocal scroll speed
         private float GetScrollSpeedScalingFactor(List<VocalsPart> parts)
         {
-            var textWidthTester = gameObject.AddComponent<TextMeshPro>();
+            var textWidthTester = GetLyricWidthTester();
 
             const float DEFAULT_TRACK_SPEED = 5;
             const int THRESHOLD = 300;
@@ -696,37 +728,54 @@ namespace YARG.Gameplay.Player
 
             public readonly bool IsStarPower => MainPhrase?.IsStarPower ?? MergedPhrase!.IsStarPower;
 
+            public readonly bool HasNotes => HasNotesInPhrase(MainPhrase) || HasNotesInPhrase(MergedPhrase);
+
             public double Duration => GetLastNoteTotalEndTime() - GetFirstNoteStartTime();
 
             public double GetFirstNoteStartTime()
             {
-                if (MergedPhrase is null)
+                if (!HasNotes)
+                {
+                    return Time;
+                }
+
+                if (!HasNotesInPhrase(MergedPhrase))
                 {
                     return MainPhrase!.PhraseParentNote.Time;
                 }
-                if (MainPhrase is null)
+
+                if (!HasNotesInPhrase(MainPhrase))
                 {
-                    return MergedPhrase.PhraseParentNote.Time;
-                } else
-                {
-                    return Math.Min(MainPhrase.PhraseParentNote.Time, MergedPhrase.PhraseParentNote.Time);
+                    return MergedPhrase!.PhraseParentNote.Time;
                 }
+
+                return Math.Min(MainPhrase!.PhraseParentNote.Time, MergedPhrase!.PhraseParentNote.Time);
             }
 
             public double GetLastNoteTotalEndTime()
             {
-                if (MergedPhrase is null)
+                if (!HasNotes)
+                {
+                    return Time;
+                }
+
+                if (!HasNotesInPhrase(MergedPhrase))
                 {
                     return MainPhrase!.PhraseParentNote.ChildNotes[^1].TotalTimeEnd;
                 }
-                if (MainPhrase is null)
+
+                if (!HasNotesInPhrase(MainPhrase))
                 {
-                    return MergedPhrase.PhraseParentNote.ChildNotes[^1].TotalTimeEnd;
+                    return MergedPhrase!.PhraseParentNote.ChildNotes[^1].TotalTimeEnd;
                 }
-                else
-                {
-                    return Math.Max(MainPhrase.PhraseParentNote.ChildNotes[^1].TotalTimeEnd, MergedPhrase.PhraseParentNote.ChildNotes[^1].TotalTimeEnd);
-                }
+
+                return Math.Max(MainPhrase!.PhraseParentNote.ChildNotes[^1].TotalTimeEnd,
+                    MergedPhrase!.PhraseParentNote.ChildNotes[^1].TotalTimeEnd);
+            }
+
+            private static bool HasNotesInPhrase(VocalsPhrase? phrase)
+            {
+                return phrase?.PhraseParentNote.ChildNotes.Count > 0;
             }
         }
 

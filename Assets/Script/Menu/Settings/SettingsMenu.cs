@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
+using DG.Tweening;
 using TMPro;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using YARG.Core.Input;
 using YARG.Helpers;
@@ -53,10 +55,61 @@ namespace YARG.Menu.Settings
 
         public event Action SettingChanged;
 
+        private static bool _openOnNextMenuLoad;
+        private static bool _skipMenuReactivationOnDisable;
+
         // Workaround to avoid errors when deactivating menu during startup
         private bool _ready;
         private bool _tabsInitialized;
         private string _pendingTabName;
+
+        private bool _showAdvanced;
+
+        public bool ShowAdvanced
+        {
+            get => SettingsManager.Settings?.ShowAdvancedSettings?.Value ?? _showAdvanced;
+            private set
+            {
+                var setting = SettingsManager.Settings?.ShowAdvancedSettings;
+                if (setting != null)
+                {
+                    setting.SetValueWithoutNotify(value);
+                }
+                else
+                {
+                    _showAdvanced = value;
+                }
+            }
+        }
+
+        public static void OpenOnNextMenuLoad()
+        {
+            _openOnNextMenuLoad = true;
+        }
+
+        public static bool ConsumeOpenOnNextMenuLoad()
+        {
+            if (!_openOnNextMenuLoad)
+            {
+                return false;
+            }
+
+            _openOnNextMenuLoad = false;
+            return true;
+        }
+
+        public void PrepareForSceneTransition()
+        {
+            _skipMenuReactivationOnDisable = true;
+            SceneManager.sceneLoaded -= HideAfterSceneTransition;
+            SceneManager.sceneLoaded += HideAfterSceneTransition;
+        }
+
+        private void HideAfterSceneTransition(Scene scene, LoadSceneMode mode)
+        {
+            SceneManager.sceneLoaded -= HideAfterSceneTransition;
+            gameObject.SetActive(false);
+        }
 
         protected override void SingletonAwake()
         {
@@ -102,30 +155,32 @@ namespace YARG.Menu.Settings
                 return;
             }
 
-            _headerTabs.TabChanged += OnTabChanged;
+            _showAdvanced = ShowAdvanced;
+
             _headerTabs.RefreshTabs();
+            _headerTabs.TabChanged += OnTabChanged;
 
             _settingsNavGroup.SelectionChanged += OnSelectionChanged;
 
             // Set navigation scheme
-            Navigator.Instance.PushScheme(new NavigationScheme(new()
-            {
-                NavigationScheme.Entry.NavigateSelect,
-                new NavigationScheme.Entry(MenuAction.Red, "Menu.Common.Back", () =>
-                {
-                    gameObject.SetActive(false);
-                }, hide: true),
-                NavigationScheme.Entry.NavigateUp,
-                NavigationScheme.Entry.NavigateDown,
-                _headerTabs.NavigateNextTab,
-                _headerTabs.NavigatePreviousTab
-            }, true));
+            PushNavigationScheme();
 
             if (CurrentTab == null)
             {
-                CurrentTab = SettingsManager.DisplayedSettingsTabs[0];
-                _searchBarContainer.SetActive(false);
-                Refresh();
+                var tabId = !string.IsNullOrEmpty(_pendingTabName)
+                    ? _pendingTabName
+                    : _headerTabs.SelectedTabId;
+
+                if (!string.IsNullOrEmpty(tabId))
+                {
+                    SelectTabByName(tabId);
+                }
+                else
+                {
+                    CurrentTab = SettingsManager.DisplayedSettingsTabs[0];
+                    _searchBarContainer.SetActive(false);
+                    Refresh();
+                }
             }
         }
 
@@ -162,6 +217,14 @@ namespace YARG.Menu.Settings
             if (_headerTabs.SelectedTabId is null)
             {
                 SelectTab(SettingsManager.GetTabByName(name));
+                return;
+            }
+
+            // Selecting the already-selected header tab does not fire TabChanged.
+            // This matters when reopening settings after CurrentTab was cleared on close.
+            if (CurrentTab?.Name != _headerTabs.SelectedTabId)
+            {
+                SelectTab(SettingsManager.GetTabByName(_headerTabs.SelectedTabId));
             }
         }
 
@@ -231,6 +294,8 @@ namespace YARG.Menu.Settings
 
         private void UpdateSettings(bool resetScroll)
         {
+            _showAdvanced = ShowAdvanced;
+
             _settingsNavGroup.ClearNavigatables();
 
             // Destroy all previous settings
@@ -244,9 +309,16 @@ namespace YARG.Menu.Settings
                 // Make the settings nav group the main one
                 _settingsNavGroup.SelectFirst();
 
-                // Reset scroll rect
                 _scrollRect.verticalNormalizedPosition = 1f;
             }
+        }
+
+        private void SmoothScrollToTop()
+        {
+            _scrollRect.DOKill();
+            _scrollRect
+                .DOVerticalNormalizedPos(1f, 0.4f)
+                .SetEase(Ease.OutCubic);
         }
 
         private async UniTask UpdatePreview(Tab tabInfo, bool waitForResolution)
@@ -309,6 +381,51 @@ namespace YARG.Menu.Settings
             }
         }
 
+        private void PushNavigationScheme()
+        {
+            string advancedKey = ShowAdvanced
+                ? "Menu.Settings.HideAdvanced"
+                : "Menu.Settings.ShowAdvanced";
+
+            Navigator.Instance.PushScheme(new NavigationScheme(new()
+            {
+                NavigationScheme.Entry.NavigateSelect,
+                new NavigationScheme.Entry(MenuAction.Red, "Menu.Common.Back", () =>
+                {
+                    gameObject.SetActive(false);
+                }, hide: true),
+                NavigationScheme.Entry.NavigateUp,
+                NavigationScheme.Entry.NavigateDown,
+                _headerTabs.NavigateNextTab,
+                _headerTabs.NavigatePreviousTab,
+                new NavigationScheme.Entry(MenuAction.Blue, advancedKey, ToggleAdvanced)
+            }, true));
+        }
+
+        public void EnableAdvanced(bool isEnabled)
+        {
+            if (isEnabled == ShowAdvanced)
+            {
+                return;
+            }
+
+            ShowAdvanced = isEnabled;
+        }
+
+        public void RefreshNavigationScheme()
+        {
+            Navigator.Instance.PopScheme();
+            PushNavigationScheme();
+        }
+
+        private void ToggleAdvanced()
+        {
+            EnableAdvanced(!ShowAdvanced);
+            RefreshNavigationScheme();
+            RefreshAndKeepPosition();
+            SmoothScrollToTop();
+        }
+
         private void OnDisable()
         {
             if (!_ready)
@@ -330,9 +447,19 @@ namespace YARG.Menu.Settings
             SettingsManager.SaveSettings();
             CustomContentManager.SaveAll();
 
-            //This is a bit of a hack to update the CurrentNavigationGroup again.
-            //ideally the settings menu should work just like every other menu so this isn't needed
-            MenuManager.Instance.ReactivateCurrentMenu();
+            if (_skipMenuReactivationOnDisable)
+            {
+                _skipMenuReactivationOnDisable = false;
+                return;
+            }
+
+            // The settings menu overlays the current menu, so avoid toggling an already-active menu.
+            MenuManager.Instance.ReactivateCurrentMenu(false);
+        }
+
+        protected override void SingletonDestroy()
+        {
+            SceneManager.sceneLoaded -= HideAfterSceneTransition;
         }
     }
 }

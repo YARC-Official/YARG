@@ -1,7 +1,9 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.Rendering;
 using YARG.Core;
+using YARG.Core.Logging;
 using YARG.Gameplay.Player;
 using YARG.Helpers.Extensions;
 using YARG.Themes;
@@ -19,20 +21,31 @@ namespace YARG.Gameplay.Visuals
         private const float OPEN_LANE_SCALE = 0.5f;
         private const float OPEN_LANE_START_TIME_OFFSET = 0.05f;
 
-        private static readonly int _emissionEnabled = Shader.PropertyToID("_Emission");
-        private static readonly int _emissionColor = Shader.PropertyToID("_EmissionColor");
+        private static readonly int EmissionColor = Shader.PropertyToID("_EmissionColor");
+
+        private const string EMISSION_ENABLED_KEYWORD = "_EMISSION_ENABLED";
+        private const string EMISSION_DISABLED_KEYWORD = "_EMISSION_DISABLED";
+        private const string EMISSION_COLORCORRECTION = "_EMISSION_ENABLED_WITH_COLOR_CORRECTION";
 
         private static Dictionary<Instrument,float> _scaleByInstrument = new();
 
-        public static void DefineLaneScale(Instrument instrument, int subdivisions)
+        public static void DefineLaneScale(Instrument instrument, int subdivisions, bool rescaling = false)
         {
-            if (_scaleByInstrument.ContainsKey(instrument))
+            if (_scaleByInstrument.ContainsKey(instrument) && !rescaling)
             {
                 return;
             }
 
             float laneScaleX = TrackPlayer.TRACK_WIDTH / subdivisions;
-            _scaleByInstrument.Add(instrument, laneScaleX);
+
+            if (rescaling && _scaleByInstrument.ContainsKey(instrument))
+            {
+                _scaleByInstrument[instrument] = laneScaleX;
+            }
+            else
+            {
+                _scaleByInstrument.Add(instrument, laneScaleX);
+            }
         }
 
         [SerializeField]
@@ -45,14 +58,20 @@ namespace YARG.Gameplay.Visuals
         [SerializeField]
         private SkinnedMeshRenderer _meshRenderer;
 
+        [Space]
+        [SerializeField]
+        private int _innerMaterialIndex;
+
+
         public override double ElementTime => _startTime;
         [HideInInspector]
         public double EndTime;
 
         protected override float RemovePointOffset => _zLength;
 
-        private int _startIndex;
-        private int _endIndex = -1;
+        private Material _innerMaterial;
+        private int      _startIndex;
+        private int      _endIndex = -1;
 
         private double _startTime;
 
@@ -80,6 +99,26 @@ namespace YARG.Gameplay.Visuals
             _xPosition = xPosition;
             _scale = _scaleByInstrument[instrument];
             _color = color;
+        }
+
+        public void SetEmissionColor(float normalizedTime)
+        {
+            // var strength = 1 - Mathf.Sin(Mathf.Pow(normalizedTime, 0.5f) * 1.6f);
+            // var strength = Mathf.Atan(normalizedTime * 8) * -0.69f + 1;
+            var strength = 1 - Mathf.Pow(normalizedTime, 0.2f);
+            var newColor = _color * strength;
+
+            _innerMaterial.SetColor(EmissionColor, newColor);
+            _innerMaterial.DisableKeyword(EMISSION_DISABLED_KEYWORD);
+            _innerMaterial.DisableKeyword(EMISSION_COLORCORRECTION);
+            _innerMaterial.EnableKeyword(EMISSION_ENABLED_KEYWORD);
+        }
+
+        public void ResetEmissionState()
+        {
+            _innerMaterial.SetColor(EmissionColor, _color);
+            _innerMaterial.DisableKeyword(EMISSION_ENABLED_KEYWORD);
+            _innerMaterial.EnableKeyword(EMISSION_DISABLED_KEYWORD);
         }
 
         public void MultiplyScale(float scaleOffset)
@@ -183,18 +222,10 @@ namespace YARG.Gameplay.Visuals
             // Prevent mesh overlap with adjacent lanes
             transform.localPosition = transform.localPosition.WithX(_xPosition + _xOffset);
 
-            // Initialize materials
-            for (int i = 0; i < _meshRenderer.materials.Length; i++)
-            {
-                var thisMaterial = _meshRenderer.materials[i];
-
-                if (i == 0)
-                {
-                    // Set color
-                    thisMaterial.color = _color;
-                    thisMaterial.SetColor(_emissionColor, _color);
-                }
-            }
+            // Initialize material
+            _innerMaterial = _meshRenderer.materials[_innerMaterialIndex];
+            _innerMaterial.color = _color;
+            ResetEmissionState();
         }
 
         protected override void UpdateElement()

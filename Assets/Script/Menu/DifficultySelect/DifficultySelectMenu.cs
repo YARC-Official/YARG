@@ -754,7 +754,7 @@ namespace YARG.Menu.DifficultySelect
             // For vocals, insert special difficulties
             if (instrument is Instrument.Vocals or Instrument.Harmony)
             {
-                return difficulty is not (Difficulty.Beginner or Difficulty.ExpertPlus);
+                return difficulty is not Difficulty.ExpertPlus;
             }
 
             // Otherwise, we can do this

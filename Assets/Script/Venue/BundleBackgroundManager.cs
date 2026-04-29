@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 using YARG.Gameplay;
+using YARG.Helpers;
 using YARG.Venue.VenueCamera;
 using YARG.Venue.Characters;
 
@@ -22,6 +23,7 @@ namespace YARG.Venue
         public const string BACKGROUND_SHADER_BUNDLE_NAME = "_metal_shaders.bytes";
         public const string CHARACTER_SHADER_BUNDLE_NAME = "_character_metal_shaders.bytes";
         public const string BACKGOUND_OSX_MATERIAL_PREFIX = "_metal_";
+        public const string BUNDLE_OSX_SUFFIX = "_metal.bytes";
 
         private const string VENUE_LAYER_NAME = "Venue";
 
@@ -120,12 +122,13 @@ namespace YARG.Venue
 
         private GameObject _backgroundReference;
 
-        private void Export(GameObject root, ExportType type)
+        private void Export(GameObject root, BackgroundHelper.ExportType type)
         {
             _backgroundReference = root;
-            string defaultName = type == ExportType.Character ? "character" : "bg";
-            string extension = type == ExportType.Character ? "yargchar" : "yarground";
-            string path = EditorUtility.SaveFilePanel("Save Background", string.Empty, defaultName, extension);
+            string defaultName = type == BackgroundHelper.ExportType.Character ? "character" : "bg";
+            string extension = type == BackgroundHelper.ExportType.Character ? "yargchar" : "yarground";
+            string title = type == BackgroundHelper.ExportType.Character ? "Export Character" : "Export Background";
+            string path = EditorUtility.SaveFilePanel(title, string.Empty, defaultName, extension);
 
             GameObject clonedBackground = null;
 
@@ -137,6 +140,8 @@ namespace YARG.Venue
                 {
                     return;
                 }
+                string fileName = Path.GetFileName(path);
+                string folderPath = Path.GetDirectoryName(path);
 
                 // First we'll collect all shaders and build a separate bundle out of them
                 // for Mac as no other build target will include Metal shaders
@@ -144,7 +149,7 @@ namespace YARG.Venue
 
                 // We use materials as "anchors" to make sure all required
                 // shader variants are included
-                var metalAssetBundleName = type == ExportType.Background ? BACKGROUND_SHADER_BUNDLE_NAME : CHARACTER_SHADER_BUNDLE_NAME;
+                var metalAssetBundleName = fileName + BUNDLE_OSX_SUFFIX;
                 var materialAssets = EditorUtility.CollectDependencies(new[] { gameObject })
                     .OfType<Material>() // Only material dependencices
                     .Select((mat, i) =>
@@ -195,7 +200,7 @@ namespace YARG.Venue
                         EditorUtility.DisplayDialog("Export Unsuccessful", "Failed to build MacOS Shader bundle. See console for more info.", "OK");
                         throw new FileNotFoundException("MacOS Shader bundle failed to build. <a href=\"https://wiki.yarg.in/wiki/Venue_Creation\">Please ensure you have the \"MacOS Build Support (Mono)\" module installed.</a>");
                     }
-                    
+
                     var assetPath = Path.Combine(Application.dataPath, metalAssetBundleName);
                     File.Move(filePath, assetPath);
                     AssetDatabase.ImportAsset(Path.Combine("Assets", metalAssetBundleName));
@@ -208,10 +213,7 @@ namespace YARG.Venue
 
                 clonedBackground = Instantiate(_backgroundReference.gameObject);
 
-                string fileName = Path.GetFileName(path);
-                string folderPath = Path.GetDirectoryName(path);
-
-                var backgroundPath = ExportType.Character == type ? CHARACTER_PREFAB_PATH : BACKGROUND_PREFAB_PATH;
+                var backgroundPath = BackgroundHelper.ExportType.Character == type ? CHARACTER_PREFAB_PATH : BACKGROUND_PREFAB_PATH;
 
                 var assetPaths = new[]
                 {
@@ -302,20 +304,14 @@ namespace YARG.Venue
         {
             var vocalist = _replaceableVocalist.gameObject;
 
-            Export(vocalist, ExportType.Character);
+            Export(vocalist, BackgroundHelper.ExportType.Character);
         }
 
         [ContextMenu("Export Background")]
         public void ExportBackground()
         {
-            Export(gameObject, ExportType.Background);
+            Export(gameObject, BackgroundHelper.ExportType.Background);
         }
 #endif
-
-        public enum ExportType
-        {
-            Character,
-            Background
-        }
     }
 }

@@ -77,6 +77,7 @@ namespace YARG.Helpers.Extensions
                 Instrument.FourLaneDrums => "drums",
                 Instrument.ProDrums      => "realDrums",
                 Instrument.FiveLaneDrums => "ghDrums",
+                Instrument.EliteDrums => "eliteDrums",
 
                 Instrument.ProGuitar_17Fret => "realGuitar",
                 Instrument.ProBass_17Fret   => "realBass",

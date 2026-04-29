@@ -9,9 +9,16 @@ using YARG.Core.Engine;
 using YARG.Core.Game;
 using YARG.Core.Logging;
 using YARG.Helpers.Extensions;
+using YARG.Settings;
 
 namespace YARG.Gameplay.HUD
 {
+    public enum NoFailMode
+    {
+        Off,
+        On,
+        NoMeter
+    }
     public class FailMeter : MonoBehaviour
     {
         [SerializeField]
@@ -46,8 +53,18 @@ namespace YARG.Gameplay.HUD
 
         private Vector2[] _xPosVectors;
 
-        private bool _intendedActive;
+        private const float OFFSCREEN_Y = -400f;
 
+        private void Awake()
+        {
+            if (SettingsManager.Settings.NoFail.Value == NoFailMode.NoMeter)
+            {
+                _meterContainer.transform.position = new Vector3(
+                    _meterContainer.transform.position.x,
+                    OFFSCREEN_Y,
+                    _meterContainer.transform.position.z);
+            }
+        }
 
         // TODO: Should probably make a more specific class we can reference here
         private EngineManager _engineManager;
@@ -99,7 +116,7 @@ namespace YARG.Gameplay.HUD
                 SetLink(_fillImage.gameObject);
 
             // This is set up to move the container offscreen, but may later be used to move it back on
-            _meterPositionTweener = _meterContainer.transform.DOMoveY(-400f, 0.5f).
+            _meterPositionTweener = _meterContainer.transform.DOMoveY(OFFSCREEN_Y, 0.5f).
                 SetAutoKill(false).
                 Pause().
                 SetLink(_meterContainer);
@@ -177,10 +194,12 @@ namespace YARG.Gameplay.HUD
                 }
 
                 // The extra SPRITE_INITIAL_OFFSET is to get the whole group a bit farther from the meter itself
-                var xOffset =  SPRITE_INITIAL_OFFSET + (SPRITE_OVERLAP_OFFSET * overlap);
-                _xPosVectors[i].x = xOffset;
-
-                _xposTweeners[i].ChangeEndValue(_xPosVectors[i], 0.125f, true).Play();
+                var xOffset = SPRITE_INITIAL_OFFSET + (SPRITE_OVERLAP_OFFSET * overlap);
+                if (!Mathf.Approximately(_xPosVectors[i].x, xOffset))
+                {
+                    _xPosVectors[i].x = xOffset;
+                    _xposTweeners[i].ChangeEndValue(_xPosVectors[i], 0.125f, true).Play();
+                }
 
                 // This we can not do if the current player's happiness hasn't changed
                 if (_previousPlayerHappiness[i] != _players[i].Happiness)

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using YARG.Core.Input;
@@ -9,12 +9,14 @@ namespace YARG.Menu.Data
     public class NavigationIcons : ScriptableObject
     {
         [Serializable]
+#pragma warning disable CS0649
         private struct NavigationIcon
         {
             public MenuAction Action;
             public Sprite Sprite;
             public Color Color;
         }
+#pragma warning restore CS0649
 
         [SerializeField]
         private List<NavigationIcon> _menuIcons;

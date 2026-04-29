@@ -25,8 +25,6 @@ namespace YARG.Menu.ListMenu
         private Transform _viewObjectParent;
         [SerializeField]
         private Scrollbar _scrollbar;
-        [SerializeField]
-        private ViewAligner _viewAligner;
 
         private List<TViewType> _viewList;
         private readonly List<TViewObject> _viewObjects = new();
@@ -89,13 +87,6 @@ namespace YARG.Menu.ListMenu
                 // Add
                 var view = gameObject.GetComponent<TViewObject>();
                 _viewObjects.Add(view);
-
-                // If the middle one...
-                if (i == ExtraListViewPadding && _viewAligner != null)
-                {
-                    // Provide it to the view aligner
-                    _viewAligner.SelectedView = gameObject.GetComponent<RectTransform>();
-                }
             }
 
             RequestViewListUpdate();
@@ -113,13 +104,6 @@ namespace YARG.Menu.ListMenu
         {
             UpdateScrollbar();
             RefreshViewsObjects();
-
-            if (_viewAligner != null)
-            {
-                // Make sure to update the canvases since we *just* changed the view objects
-                Canvas.ForceUpdateCanvases();
-                _viewAligner.RequestAlignView();
-            }
         }
 
         /// <summary>
@@ -208,6 +192,27 @@ namespace YARG.Menu.ListMenu
                 // Otherwise, show
                 _viewObjects[i].Show(relativeIndex == 0, _viewList[realIndex]);
             }
+
+            RealignParentViewObject();
+        }
+
+        private void RealignParentViewObject()
+        {
+            float topHeight = 0;
+            float bottomHeight = 0;
+            for (int i = 0; i < _viewObjects.Count; i++)
+            {
+                if (i < ExtraListViewPadding)
+                {
+                    topHeight += _viewObjects[i].gameObject.GetComponent<RectTransform>().rect.height;
+                }
+                else if (i > ExtraListViewPadding)
+                {
+                    bottomHeight += _viewObjects[i].gameObject.GetComponent<RectTransform>().rect.height;
+                }
+            }
+
+            _viewObjectParent.GetComponent<RectTransform>().anchoredPosition = new Vector2(0, (topHeight - bottomHeight) / 2);
         }
 
         public void OnScroll(PointerEventData eventData)

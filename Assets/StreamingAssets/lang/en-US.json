@@ -10,6 +10,7 @@
     },
     "Enum": {
         "Difficulty": {
+            "Beginner": "Beginner",
             "Easy": "Easy",
             "Hard": "Hard",
             "Expert": "Expert",
@@ -73,7 +74,7 @@
             "Charter": "Charter",
             "Genre": "Genre",
             "Name": "Song",
-            "Playlist": "Playlist",
+            "Folder": "Folder",
             "SongLength": "Duration",
             "Source": "Source",
 			"Subgenre": "Subgenre",
@@ -216,6 +217,7 @@
         "Toast": {
             "AutoCalibrationScore": "Score saving disabled: Automatic calibration active.",
             "NoFailScore": "Score saving disabled: No fail toggle had to reset fail meter.",
+            "ResumeAfterFailInvalidate": "Score saving disabled: Resuming after failure invalidated score.",
             "ProfileCreated": "Profile created for new device: {0}\nTime to do some YARGin!",
             "TooManyPauses": "Score saving disabled: Too many pauses.",
             "UnsupportedDevice": "Automatic profile creation is not supported for {0}!"
@@ -307,15 +309,18 @@
                 "Singular": "RECOMMENDED SONG",
                 "Plural": "RECOMMENDED SONGS"
             },
+            "RecommendedSongsHelp": "Refresh List of Recommended Songs",
             "PlayableSongs": "PLAYABLE SONGS",
             "RandomSong": "RANDOM SONG",
-            "Playlists": "PLAYLISTS",
+            "Playlists": "PLAYLIST MANAGER",
+            "PlaylistsHelp": "Create, View, and Edit Custom Playlists",
             "Favorites": "Favorites",
             "YourPlaylists": "YOUR PLAYLISTS",
             "Popup": {
                 "Header": {
                     "SortBy": "Sort By...",
-                    "GoTo": "Go To..."
+                    "GoTo": "Go To...",
+                    "SelectPlaylists": "Select Playlists"
                 },
                 "Item": {
                     "RandomSong": "Random Song",
@@ -327,17 +332,26 @@
                     "RemoveFromFavorites": "Remove From Favorites",
                     "AddToPlaylist": "Add To Playlist...",
                     "RemoveFromPlaylist": "Remove From Playlist",
+                    "RemoveFromSetlist": "Remove From Setlist",
                     "CreateNewPlaylist": "Create New...",
-                    "RemovePlaylist": "Remove Playlist",
+                    "RenamePlaylist": "Rename Playlist",
+                    "DeletePlaylist": "Delete Playlist",
+                    "DeleteSetlist": "Delete Setlist",
                     "ViewSongFolder": "View Song Folder",
-                    "CopySongChecksum": "Copy Song Checksum"
+                    "CopySongChecksum": "Copy Song Checksum",
+                    "CollapseAll": "Collapse All",
+                    "ExpandAll": "Expand All"
                 }
             },
             "Back": "BACK",
             "NoPlayersConnected": "No players connected! Go to the profiles menu to connect a player.",
             "Play": "Play Song",
-            "PlayHoldAddToSet": "<align=left><size=80%>Play Song<br>(Hold) Add To Setlist</size></align>",
-            "AddHoldStartSet": "<align=left><size=80%>Add to Setlist<br>(Hold) Start The Set</size></align>",
+            "PlayHoldAddToSet": "<align=left>Play Song<br><size=67%>(Hold) Add To Setlist</size></align>",
+            "AddHoldStartSet": "<align=left>Add to Setlist<br><size=67%>(Hold) Start The Set</size></align>",
+            "ExpandHeaderHoldAddToSet": "<align=left>Expand Header</align>",
+            "CollapseHeaderHoldAddToSet": "<align=left>Collapse Header</align>",
+            "ExpandHeaderHoldStartSet": "<align=left>Expand Header<br><size=67%>(Hold) Start The Set</size></align>",
+            "CollapseHeaderHoldStartSet": "<align=left>Collapse Header<br><size=67%>(Hold) Start The Set</size></align>",
             "Search": "Search",
             "SkipSection": "<align=left>Navigate Sections</align>",
             "MoveInPlaylist": "Move Song",
@@ -369,81 +383,97 @@
                 "StartsWithNumber": "A Song Starting With A Number",
                 "StartsWithOther": "A Song Starting With Something Non-Alphanumeric"
             },
-			"Genre": {
-				"Alternative": "Alternative",
-				"AmbientDrone": "Ambient/Drone",
-				"Ballad": "Ballad",
-				"Blues": "Blues",
-				"ChildrensMusic": "Children's Music",
-				"Chiptune": "Chiptune",
-				"ClassicRock": "Classic Rock",
-				"Classical": "Classical",
-				"Country": "Country",
-				"Dance": "Dance",
-				"DeathBlackMetal": "Death/Black Metal",
-				"Disco": "Disco",
-				"Djent": "Djent",
-				"DnbBreakbeatJungle": "DnB/Breakbeat/Jungle",
-				"DoomMetal": "Doom Metal",
-				"Dubstep": "Dubstep",
-				"Electronic": "Electronic",
-				"ElectronicRock": "Electronic Rock",
-				"Emo": "Emo",
-				"Folk": "Folk",
-				"Fusion": "Fusion",
-				"Glam": "Glam",
-				"Glitch": "Glitch",
-				"Grindcore": "Grindcore",
-				"GrooveMetal": "Groove Metal",
-				"Grunge": "Grunge",
-				"HardcoreEDM": "Hardcore EDM",
-				"HardRock": "Hard Rock",
-				"HeavyMetal": "Heavy Metal",
-				"HipHopRap": "Hip-Hop/Rap",
-				"Holiday": "Holiday",
-				"House": "House",
-				"IDM": "IDM",
-				"IndieRock": "Indie Rock",
-				"Industrial": "Industrial",
-				"Inspirational": "Inspirational",
-				"JPop": "J-Pop",
-				"JRock": "J-Rock",
-				"Jazz": "Jazz",
-				"KPop": "K-Pop",
-				"Latin": "Latin",
-				"Mashup": "Mashup",
-				"MathRock": "Math Rock",
-				"MelodicPowerMetal": "Melodic/Power Metal",
-				"Metalcore": "Metalcore",
-				"Noise": "Noise",
-				"NewWave": "New Wave",
-				"Novelty": "Novelty",
-				"NuMetal": "Nu-Metal",
-				"Orchestral": "Orchestral",
-				"Pop": "Pop",
-				"PopPunk": "Pop-Punk",
-				"PopRock": "Pop-Rock",
-				"PostHardcore": "Post-Hardcore",
-				"Progressive": "Progressive",
-				"Psychedelic": "Psychedelic",
-				"Punk": "Punk",
-				"RnbSoulFunk": "R&B/Soul/Funk",
-				"Reggae": "Reggae",
-				"Rock": "Rock",
-				"RockAndRoll": "Rock & Roll",
-				"Ska": "Ska",
-				"Soundtrack": "Soundtrack",
-				"SouthernRock": "Southern Rock",
-				"SurfRock": "Surf Rock",
-				"SynthpopElectropop": "Synthpop/Electropop",
-				"Techno": "Techno",
-				"ThrashSpeedMetal": "Thrash/Speed Metal",
-				"Trance": "Trance",
-				"Trap": "Trap",
-				"World": "World",
-				"Other": "Other",
-				"UnknownGenre": "Unknown Genre"
-			}
+            "Genre": {
+                "Alternative": "Alternative",
+                "AmbientDrone": "Ambient/Drone",
+                "Ballad": "Ballad",
+                "Blues": "Blues",
+                "ChildrensMusic": "Children's Music",
+                "Chiptune": "Chiptune",
+                "ClassicRock": "Classic Rock",
+                "Classical": "Classical",
+                "Country": "Country",
+                "Dance": "Dance",
+                "DeathBlackMetal": "Death/Black Metal",
+                "Disco": "Disco",
+                "Djent": "Djent",
+                "DnbBreakbeatJungle": "DnB/Breakbeat/Jungle",
+                "DoomMetal": "Doom Metal",
+                "Dubstep": "Dubstep",
+                "Electronic": "Electronic",
+                "ElectronicRock": "Electronic Rock",
+                "Emo": "Emo",
+                "Folk": "Folk",
+                "Fusion": "Fusion",
+                "Glam": "Glam",
+                "Glitch": "Glitch",
+                "Grindcore": "Grindcore",
+                "GrooveMetal": "Groove Metal",
+                "Grunge": "Grunge",
+                "HardcoreEDM": "Hardcore EDM",
+                "HardRock": "Hard Rock",
+                "HeavyMetal": "Heavy Metal",
+                "HipHopRap": "Hip-Hop/Rap",
+                "Holiday": "Holiday",
+                "House": "House",
+                "IDM": "IDM",
+                "IndieRock": "Indie Rock",
+                "Industrial": "Industrial",
+                "Inspirational": "Inspirational",
+                "JPop": "J-Pop",
+                "JRock": "J-Rock",
+                "Jazz": "Jazz",
+                "KPop": "K-Pop",
+                "Latin": "Latin",
+                "Mashup": "Mashup",
+                "MathRock": "Math Rock",
+                "MelodicPowerMetal": "Melodic/Power Metal",
+                "Metalcore": "Metalcore",
+                "Noise": "Noise",
+                "NewWave": "New Wave",
+                "Novelty": "Novelty",
+                "NuMetal": "Nu-Metal",
+                "Orchestral": "Orchestral",
+                "Pop": "Pop",
+                "PopPunk": "Pop-Punk",
+                "PopRock": "Pop-Rock",
+                "PostHardcore": "Post-Hardcore",
+                "Progressive": "Progressive",
+                "Psychedelic": "Psychedelic",
+                "Punk": "Punk",
+                "RnbSoulFunk": "R&B/Soul/Funk",
+                "Reggae": "Reggae",
+                "Rock": "Rock",
+                "RockAndRoll": "Rock & Roll",
+                "Ska": "Ska",
+                "Soundtrack": "Soundtrack",
+                "SouthernRock": "Southern Rock",
+                "SurfRock": "Surf Rock",
+                "SynthpopElectropop": "Synthpop/Electropop",
+                "Techno": "Techno",
+                "ThrashSpeedMetal": "Thrash/Speed Metal",
+				"Traditional": "Traditional",
+                "Trance": "Trance",
+                "Trap": "Trap",
+                "World": "World",
+                "Other": "Other",
+                "UnknownGenre": "Unknown Genre",
+                "Broad": {
+                    "Alternative": "Alternative",
+                    "CountryFolk": "Country/Folk",
+                    "ClassicalTraditional": "Classical/Traditional",
+                    "DanceElectronic": "Dance/Electronic",
+                    "HipHop": "Hip-Hop",
+                    "JazzBlues": "Jazz/Blues",
+                    "Metal": "Metal",
+                    "Pop": "Pop",
+                    "PunkSceneCore": "Punk/Scene/Core",
+                    "RnbSoulFunk": "R&B/Soul/Funk",
+                    "Rock": "Rock",
+                    "World": "World",
+                    "Other": "Other"
+                }
+            }
         },
         "ProfileInfo": {
             "Name": "Edit Profile",
@@ -463,13 +493,15 @@
             "Players" : "Players"
         },
         "ScoreScreen" : {
-            "BandScoreNotSaved" : "(Score not saved)",
+            "BandScoreNotSaved" : "Score not saved",
             "RestartSong" : "Restart Song",
             "ShowAdvanced": "Show Advanced",
             "HideAdvanced": "Hide Advanced",
             "EndSetlistEarly" : "End Setlist"
         },
         "Settings": {
+            "ShowAdvanced": "Show Advanced",
+            "HideAdvanced": "Hide Advanced",
             "NoFolder": "<i>No Folder</i>",
             "SearchHeader": {
                 "AllCategories": "All Categories",
@@ -482,6 +514,7 @@
         "Filters": {
             "OptionsHeader": "Options",
             "FiltersHeader": "Filters",
+            "ShowAnyOfHeader": "Show Any Of",
             "SortedBy": "Sorted By",
             "ShowRecommendations": "Show Recommendations",
             "ResetAllFilters": "(Hold) Reset All Filters",
@@ -489,6 +522,7 @@
             "DeselectAll": "Deselect All",
             "None": "None",
             "Selected": "{0} Selected",
+            "AnyOf": "Any of {0}",
             "All": "All",
             "SongCount": "{0} SONGS",
             "Genres": "Genres",
@@ -520,7 +554,8 @@
                 "Medium": "Medium (3-5 Min)",
                 "Long": "Long (5-7 Min)",
                 "Epic": "Epic (Over 7 Min)"
-            }
+            },
+            "Playlists": "Playlists"
         }
     },
     "Gameplay": {
@@ -805,7 +840,8 @@
 			"FiveLaneOrangeCymbal": "5-Lane Orange Cymbal"
 		},
         "Vocals": {
-            "StarPower": "Star Power Activate"
+            "StarPower": "Star Power Activate",
+            "Hit": "Percussion Hit"
         },
         "FiveDrums": {
             "RedPad": "Red Pad (First)",
@@ -1078,6 +1114,15 @@
                     "Windowed": "Windowed"
                 }
             },
+			"Genrelizer": {
+				"Name": "Standardize Genre Metadata",
+				"Description": "Categorizes genre metadata into standard sets of genres, using data from the Genrelizer GitHub repository. <color=white>Rescan required if changed!</color>",
+				"Dropdown": {
+				    "Genrelize": "Full",
+					"Overgenrelize": "Simplified",
+					"Off": "None"
+				}
+			},
             "GraphicalProgressOnScoreBox": {
                 "Name": "Graphical Progress On Score Box",
                 "Description": "Enables and disables the graphical blue outline on the score box that displays the song's progress."
@@ -1095,6 +1140,10 @@
                     "Score": "Score",
                     "Stars": "Stars"
                 }
+            },
+            "ShowPercentDecimals": {
+                "Name": "Show Percent Decimals",
+                "Description": "Shows one decimal place for accuracy percentages in the Music Library and Score Screen."
             },
             "HighScoreHistory": {
                 "Name": "High Score History",
@@ -1149,6 +1198,17 @@
                 "PauseName": "Master",
                 "Description": "Adjusts the song's volume as a whole."
             },
+            "MaxSongRating": {
+                "Name": "Maximum Song Rating",
+                "Description": "Hide any song with a rating higher than the specified value. Note that this is a best-effort filter that does not apply to the Playlist Manager. Custom songs may not be rated correctly.",
+                "Dropdown": {
+                    "Family_Friendly": "Family Friendly",
+                    "Supervision_Recommended": "Supervision Recommended",
+                    "Mature": "Mature",
+                    "Sensitive_Content": "Sensitive Content",
+                    "None": "None"
+                }
+            },
             "MetronomeVolume": {
                 "Name": "Metronome Volume",
                 "PauseName": "Metronome",
@@ -1200,9 +1260,14 @@
                 "Name": "No Kicks",
                 "Description": "Removes all kick notes (drums only)."
             },
-            "NoFailMode": {
+            "NoFail": {
                 "Name": "No Fail Mode",
-                "Description": "Disables ending a song early when crowd happiness is too low."
+                "Description": "Disables ending a song early when crowd happiness is too low.",
+                "Dropdown": {
+                    "Off": "Off",
+                    "On": "On",
+                    "NoMeter": "On + No Meter"
+                }
             },
             "NoteStreakFrequency": {
                 "Name": "Note Streak Frequency",
@@ -1314,10 +1379,6 @@
                 "Name": "Enable Stage Kit",
                 "Description": "Enables sending Stage Kit lighting data to all connected devices capable of reading it."
             },
-			"StandardizeGenres": {
-				"Name": "Standardize Genre Metadata",
-				"Description": "Categorizes genre metadata into a standard set of genres, using data from the Genrelizer GitHub repository. <color=white>Rescan required if changed!</color>"
-			},
             "StarPowerHighwayFx": {
                 "Name": "Star Power Highway FX Mode",
                 "Description": "Disables visual elements on the highway which appear when Star Power is active.",
@@ -1496,6 +1557,14 @@
             "DMXKeysChannel": {
                 "Name": "DMX Keys",
                 "Description": "This channel gets additively set to the current key notes: Green (2), Red (4), Yellow (8), Blue (16), Orange (32)."
+            },
+            "DMXTargetFPS": {
+                "Name": "DMX Target FPS",
+                "Description": "How often DMX lighting updates are sent per second. Set to 44 for best responsiveness (DMX protocol maximum). Lower values (10-20) can help with cheap or unstable USB DMX adapters that struggle at higher rates."
+            },
+            "DMXPulseDuration": {
+                "Name": "DMX Pulse Duration (MS)",
+                "Description": "How long a DMX channel stays on after receiving a trigger, in milliseconds. Increase this value if lights are not firing reliably. Set to 0 to disable pulse stretching entirely."
             },
             "EnablePlaybackBuffer": {
                 "Name": "Use Audio Playback Buffer",
@@ -1956,6 +2025,13 @@
                         "ProKeys": "Keys"
                     }
                 },
+                "DefaultEngines": {
+                    "DefaultEngine": "Default Engine",
+                    "CasualEngine": "Casual Engine",
+                    "PrecisionEngine": "Precision Engine",
+                    "SoloTapsEngine": "Solo Taps Engine",
+                    "CustomEnginePreset": "Custom Engine Preset"
+                },
                 "AntiGhosting": {
                     "Name": "Anti-Ghosting",
                     "Description": "Upon ghosting (or fretting a note that is not present) the player will drop their combo (guitar only)."
@@ -1964,9 +2040,9 @@
                     "Name": "Hit Window Ratio",
                     "Description": "The hit window's front to back ratio. \"0\" will bring the hit window fully backwards, \"1\" will keep it in the center, and \"2\" will move it to the front."
                 },
-                "TremoloFrontEndPercent": {
+                "TremoloWindow": {
                     "Name": "Tremolo Hit Window",
-                    "Description": "This determines how many notes can be hit with a single input during a tremolo or trill phrase. Calculated as a percentage of the current hit window frontend."
+                    "Description": "This determines the frequency of lane inputs required to maintain lane behavior."
                 },
                 "HitPercentE": {
                     "Name": "Hit Percent (Easy)",

@@ -44,5 +44,13 @@ namespace YARG.Helpers.Authoring
             foreach (var lights in EffectLights)
                 lights.Stop();
         }
+
+        public void SetBreMode(bool breMode)
+        {
+            foreach (var particles in EffectParticles)
+            {
+                particles.SetBreMode(breMode);
+            }
+        }
     }
 }

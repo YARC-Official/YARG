@@ -8,7 +8,7 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: Lane
-  m_Shader: {fileID: -6465566751694194690, guid: 0c474304b74472f4a8b212da29713486, type: 3}
+  m_Shader: {fileID: -6465566751694194690, guid: c15cf80e3f166374c8263f5403e2ffcb, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords:

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Cysharp.Text;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
@@ -24,19 +25,25 @@ namespace YARG.Menu.MusicLibrary
         public readonly  string SubgenreCountText;
         private readonly int    _songCount;
         public           int    TotalStarsCount { get; set; }
+        public readonly  bool   Collapsed;
+        private readonly Action _onClicked;
 
         private static readonly HashSet<string> SourceCounter  = new();
         private static readonly HashSet<string> CharterCounter = new();
         private static readonly HashSet<string> GenreCounter   = new();
         private static readonly HashSet<string> SubgenreCounter = new();
+        private static readonly Dictionary<string, Sprite> IconCache = new();
         private readonly string _stableId;
 
-        public SortHeaderViewType(string headerText, int songCount, string shortcutName, SongEntry[] songsUnderCategory)
+        public SortHeaderViewType(string headerText, int songCount, string shortcutName, SongEntry[] songsUnderCategory,
+            bool collapsed = false, Action onClicked = null)
         {
             HeaderText = headerText;
             _songCount = songCount;
-
             ShortcutName = shortcutName;
+            Collapsed = collapsed;
+            _onClicked = onClicked;
+
             _stableId = $"SortHeader:{headerText}:{shortcutName}";
 
             foreach (var song in songsUnderCategory)
@@ -99,7 +106,18 @@ namespace YARG.Menu.MusicLibrary
         public override Sprite? GetIcon()
 #nullable disable
         {
-            return Addressables.LoadAssetAsync<Sprite>("MusicLibraryUpIcon").WaitForCompletion();
+            string assetKey = Collapsed ? "MusicLibraryIcons[Right]" : "MusicLibraryIcons[Down]";
+            if (!IconCache.TryGetValue(assetKey, out var icon))
+            {
+                IconCache[assetKey] = icon = Addressables.LoadAssetAsync<Sprite>(assetKey).WaitForCompletion();
+            }
+
+            return icon;
+        }
+
+        public override void PrimaryButtonClick()
+        {
+            _onClicked?.Invoke();
         }
     }
 }

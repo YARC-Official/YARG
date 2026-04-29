@@ -85,6 +85,22 @@ namespace YARG
                 PlayerContainer.ClearProfileOrder();
             }
 
+            // Initialize phoneme dictionary (must load on main thread, parse on thread pool)
+            var cmudictAsset = Resources.Load<TextAsset>("cmudict");
+            if (cmudictAsset == null)
+            {
+                YargLogger.LogError("Failed to load cmudict.txt from Resources");
+            }
+            else
+            {
+                var dictText = cmudictAsset.text;
+                await UniTask.RunOnThreadPool(() =>
+                {
+                    YARG.Core.Chart.LipsyncGenerator.Initialize(dictText);
+                    YargLogger.LogInfo("Initialized phoneme dictionary");
+                });
+            }
+
             // Fast scan (cache read) on startup
             await SongContainer.RunRefresh(true, context);
         }
