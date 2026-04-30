@@ -18,13 +18,15 @@ namespace YARG.Menu.MusicLibrary
         private readonly Action _buttonAction;
         private readonly Sprite _sprite;
         private readonly string _stableId;
+        private readonly string _buttonHelpText;
 
-        public ButtonViewType(string text, string iconPath, Action buttonAction, int id = -1)
+        public ButtonViewType(string text, string iconPath, Action buttonAction, int id = -1, string buttonHelpText = "")
         {
             _text = text;
             _buttonAction = buttonAction;
             ID = id;
             _stableId = $"Button:{id}:{text}";
+            _buttonHelpText = buttonHelpText;
 
             if (!SPRITES.TryGetValue(id, out _sprite))
             {
@@ -35,6 +37,11 @@ namespace YARG.Menu.MusicLibrary
         public override string GetPrimaryText(bool selected)
         {
             return FormatAs(_text, TextType.Bright, selected);
+        }
+
+        public override string GetSideText(bool selected)
+        {
+            return _buttonHelpText;
         }
 
 #nullable enable

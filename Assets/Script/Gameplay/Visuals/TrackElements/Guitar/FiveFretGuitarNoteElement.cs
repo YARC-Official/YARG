@@ -18,6 +18,7 @@ namespace YARG.Gameplay.Visuals
             Tap      = 2,
             Open     = 3,
             OpenHOPO = 4,
+            Wildcard = 5,
 
             Count
         }
@@ -27,6 +28,8 @@ namespace YARG.Gameplay.Visuals
         private SustainLine _normalSustainLine;
         [SerializeField]
         private SustainLine _openSustainLine;
+        [SerializeField]
+        private SustainLine _wildcardSustainLine;
 
         private SustainLine _sustainLine;
 
@@ -44,6 +47,7 @@ namespace YARG.Gameplay.Visuals
             AssignNoteGroup(models, starPowerModels, (int) NoteType.Tap,      ThemeNoteType.Tap);
             AssignNoteGroup(models, starPowerModels, (int) NoteType.Open,     ThemeNoteType.Open);
             AssignNoteGroup(models, starPowerModels, (int) NoteType.OpenHOPO, ThemeNoteType.OpenHOPO);
+            AssignNoteGroup(models, starPowerModels, (int) NoteType.Wildcard, ThemeNoteType.Wildcard);
         }
 
         protected override void InitializeElement()
@@ -52,7 +56,7 @@ namespace YARG.Gameplay.Visuals
 
             var noteGroups = IsStarPowerVisible ? StarPowerNoteGroups : NoteGroups;
 
-            if (NoteRef.Fret != (int) FiveFretGuitarFret.Open)
+            if (NoteRef.Fret != (int) FiveFretGuitarFret.Open && NoteRef.Fret != (int) FiveFretGuitarFret.Wildcard)
             {
                 // Deal with non-open notes
                 var lane = Player.GetLanePosition((FiveFretGuitarFret)NoteRef.Fret);
@@ -71,7 +75,7 @@ namespace YARG.Gameplay.Visuals
 
                 _sustainLine = _normalSustainLine;
             }
-            else
+            else if (NoteRef.Fret == (int) FiveFretGuitarFret.Open)
             {
                 // Deal with open notes
 
@@ -88,6 +92,15 @@ namespace YARG.Gameplay.Visuals
                 };
 
                 _sustainLine = _openSustainLine;
+            }
+            else
+            {
+                // Deal with wildcard notes
+                transform.localPosition = Vector3.zero;
+
+                NoteGroup = noteGroups[(int) NoteType.Wildcard];
+
+                _sustainLine = _wildcardSustainLine;
             }
 
             // Show and set material properties
@@ -200,6 +213,7 @@ namespace YARG.Gameplay.Visuals
 
             _normalSustainLine.gameObject.SetActive(false);
             _openSustainLine.gameObject.SetActive(false);
+            _wildcardSustainLine.gameObject.SetActive(false);
         }
     }
 }

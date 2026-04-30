@@ -7,7 +7,28 @@ namespace YARG.Gameplay.Visuals
 {
     public class VocalScrollingLyricSyllableElement : VocalElement
     {
+        public sealed class PreparedLyric
+        {
+            public readonly LyricEvent Lyric;
+            public readonly string DisplayText;
+            public readonly FontStyles FontStyle;
+            public readonly float Width;
+            public readonly double NoteLength;
+            public readonly bool IsHidden;
+
+            public PreparedLyric(LyricEvent lyric, VocalNote probableNote, bool allowHiding, float width)
+            {
+                Lyric = lyric;
+                NoteLength = probableNote?.TotalTimeLength ?? 0;
+                DisplayText = lyric.HarmonyHidden && allowHiding ? string.Empty : lyric.Text;
+                FontStyle = lyric.NonPitched ? FontStyles.Italic : FontStyles.Normal;
+                IsHidden = string.IsNullOrEmpty(DisplayText);
+                Width = IsHidden ? 0f : width;
+            }
+        }
+
         private LyricEvent _lyricRef;
+        private PreparedLyric _preparedLyric;
         private double _lyricLength;
 
         private double _minimumTime;
@@ -21,12 +42,13 @@ namespace YARG.Gameplay.Visuals
         [SerializeField]
         private TextMeshPro _lyricText;
 
-        public float Width => _lyricText.GetPreferredValues().x;
+        public float Width => _preparedLyric.Width;
 
-        public void Initialize(LyricEvent lyric, double minTime, double lyricLength,
+        public void Initialize(PreparedLyric preparedLyric, double minTime, double lyricLength,
             bool isStarpower, int harmonyIndex, bool allowHiding)
         {
-            _lyricRef = lyric;
+            _preparedLyric = preparedLyric;
+            _lyricRef = preparedLyric.Lyric;
             _lyricLength = lyricLength;
 
             _minimumTime = minTime;
@@ -38,17 +60,8 @@ namespace YARG.Gameplay.Visuals
 
         protected override void InitializeElement()
         {
-            if (_lyricRef.HarmonyHidden && _allowHiding)
-            {
-                _lyricText.text = string.Empty;
-            }
-            else
-            {
-                _lyricText.text = _lyricRef.Text;
-            }
-
-            // If it's a talkie, italicize it
-            _lyricText.fontStyle = _lyricRef.NonPitched ? FontStyles.Italic : FontStyles.Normal;
+            _lyricText.text = _preparedLyric.DisplayText;
+            _lyricText.fontStyle = _preparedLyric.FontStyle;
 
             // Disable automatically if the text is just nothing
             if (string.IsNullOrEmpty(_lyricText.text))

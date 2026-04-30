@@ -2141,6 +2141,7 @@ MonoBehaviour:
   _borderImages:
   - {fileID: 7257251774523383226}
   - {fileID: 8716948352154913920}
+  - {fileID: 4630733461216211057}
   _borders:
   - {fileID: 21300000, guid: aa73d2d01e5cc8f4191e058ac1784d68, type: 3}
   - {fileID: 21300000, guid: a38431aad26b9794fa1cac2033fee86f, type: 3}
@@ -3498,14 +3499,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 0.07058824, g: 0.08235294, b: 0.1764706, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: b038556afd6775c4d8eeea78927256ca, type: 3}
+  m_Sprite: {fileID: 21300000, guid: aa73d2d01e5cc8f4191e058ac1784d68, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1

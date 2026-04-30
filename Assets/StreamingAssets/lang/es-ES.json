@@ -10,6 +10,7 @@
     },
     "Enum": {
         "Difficulty": {
+            "Beginner": "Principiante",
             "Easy": "Fácil",
             "Hard": "Difícil",
             "Expert": "Experto",
@@ -73,7 +74,7 @@
             "Charter": "Charter",
             "Genre": "Género",
             "Name": "Canción",
-            "Playlist": "Lista de reproducción",
+            "Folder": "Carpeta",
             "SongLength": "Duración",
             "Source": "Origen",
             "Subgenre": "Subgénero",
@@ -209,6 +210,7 @@
         "Toast": {
             "AutoCalibrationScore": "Guardado de puntaje desactivado: Calibración automática activa.",
             "NoFailScore": "Guardado de puntaje desactivado: Alternar el modo sin fallos tenía que reiniciar el medidor de fallo.",
+            "ResumeAfterFailInvalidate": "Score saving disabled: Resuming after failure invalidated score.",
             "ProfileCreated": "Perfil creado para nuevo dispositivo: {0}\nHora de hacer un poco de YARGin!",
             "TooManyPauses": "Guardado de puntaje desactivado: Demasiadas pausas.",
             "UnsupportedDevice": "¡Creación automática de perfil no es compatible con {0}!"
@@ -298,15 +300,18 @@
                 "Singular": "CANCIÓN RECOMENDADA",
                 "Plural": "CANCIONES RECOMENDADAS"
             },
+            "RecommendedSongsHelp": "Refresh List of Recommended Songs",
             "PlayableSongs": "CANCIONES JUGABLES",
             "RandomSong": "CANCIÓN ALEATORIA",
-            "Playlists": "LISTAS DE REPRODUCCIÓN",
+            "Playlists": "ADMINISTRADOR DE LISTA DE REPRODUCCION",
+            "PlaylistsHelp": "Create, View, and Edit Custom Playlists",
             "Favorites": "Favoritos",
             "YourPlaylists": "TUS LISTAS DE REPRODUCCIÓN",
             "Popup": {
                 "Header": {
                     "SortBy": "Ordenar por...",
-                    "GoTo": "Ir a..."
+                    "GoTo": "Ir a...",
+                    "SelectPlaylists": "Seleccionar listas de reproducción"
                 },
                 "Item": {
                     "RandomSong": "Canción Aleatoria",
@@ -318,19 +323,26 @@
                     "RemoveFromFavorites": "Eliminar de Favoritos",
                     "AddToPlaylist": "Agregar a Lista...",
                     "RemoveFromPlaylist": "Eliminar de Lista",
+                    "RemoveFromSetlist": "Quitar del setlist",
                     "CreateNewPlaylist": "Crear Nueva...",
-                    "RemovePlaylist": "Eliminar Lista",
+                    "RenamePlaylist": "Renombrar Lista de Reproducción",
+                    "DeletePlaylist": "Borrar lista de reproducción",
+                    "DeleteSetlist": "Eliminar setlist",
                     "ViewSongFolder": "Ver Carpeta de Canciones",
                     "CopySongChecksum": "Copiar Checksum de Canciones",
-                    "CollapseAll": "Colapsar todo",
-                    "ExpandAll": "Expandir todo"
+                    "CollapseAll": "Contraer Todo",
+                    "ExpandAll": "Expandir Todo"
                 }
             },
             "Back": "VOLVER",
             "NoPlayersConnected": "¡No hay jugadores conectados! Ve al menú de perfiles para conectar a un jugador.",
             "Play": "Reproducir Canción",
-            "PlayHoldAddToSet": "<align=left><size=80%>Reproducir la canción<br>(Mantener) Añadir al Set</size></align>",
-            "AddHoldStartSet": "<align=left><size=80%>Añadir al Set<br>(Mantener) Iniciar el Set</size></align>",
+            "PlayHoldAddToSet": "<align=left><br>Reproducir la canción<size=67%>(Mantener) Añadir al Set</size></align>",
+            "AddHoldStartSet": "<align=left><br>Añadir al Set<size=67%>(Mantener) Iniciar el Set</size></align>",
+            "ExpandHeaderHoldAddToSet": "<align=left>Expandir Encabezado</align>",
+            "CollapseHeaderHoldAddToSet": "<align=left>Contraer Encabezado</align>",
+            "ExpandHeaderHoldStartSet": "<align=left>Expandir Encabezado<br><size=67%>(Mantener) Iniciar El Set</size></align>",
+            "CollapseHeaderHoldStartSet": "<align=left>Contraer Encabezado<br><size=67%>(Mantener) Iniciar El Set</size></align>",
             "Search": "Buscar",
             "SkipSection": "<align=left>Navegar Secciones</align>",
             "MoveInPlaylist": "Mover canción",
@@ -431,11 +443,27 @@
                 "SynthpopElectropop": "Synthpop/Electropop",
                 "Techno": "Techno",
                 "ThrashSpeedMetal": "Thrash/Speed Metal",
+                "Traditional": "Tradicional",
                 "Trance": "Trance",
                 "Trap": "Trap",
                 "World": "Mundo",
                 "Other": "Otro",
-                "UnknownGenre": "Género desconocido"
+                "UnknownGenre": "Género desconocido",
+                "Broad": {
+                    "Alternative": "Alternativo",
+                    "CountryFolk": "Country/Folk",
+                    "ClassicalTraditional": "Clásico / Tradicional",
+                    "DanceElectronic": "Baile/Electrónico",
+                    "HipHop": "Hip-Hop",
+                    "JazzBlues": "Jazz/Blues",
+                    "Metal": "Metal",
+                    "Pop": "Pop",
+                    "PunkSceneCore": "Punk/Scene/Core",
+                    "RnbSoulFunk": "R&B/Soul/Funk",
+                    "Rock": "Rock",
+                    "World": "World",
+                    "Other": "Otro"
+                }
             }
         },
         "ProfileInfo": {
@@ -456,13 +484,15 @@
             "Players": "Jugadores"
         },
         "ScoreScreen": {
-            "BandScoreNotSaved": "(Puntuación no guardada)",
+            "BandScoreNotSaved": "Puntuación no guardada",
             "RestartSong": "Reiniciar canción",
             "ShowAdvanced": "Mostrar Avanzado",
             "HideAdvanced": "Ocultar Avanzado",
             "EndSetlistEarly": "Finalizar lista de canciones"
         },
         "Settings": {
+            "ShowAdvanced": "Mostrar Avanzado",
+            "HideAdvanced": "Ocultar Avanzado",
             "NoFolder": "<i>Sin Carpeta</i>",
             "SearchHeader": {
                 "AllCategories": "Todas las Categorías",
@@ -475,6 +505,7 @@
         "Filters": {
             "OptionsHeader": "Opciones",
             "FiltersHeader": "Filtros",
+            "ShowAnyOfHeader": "Mostrar cualquiera de",
             "SortedBy": "Ordenado por",
             "ShowRecommendations": "Mostrar Recomendaciones",
             "ResetAllFilters": "(Mantener) Reiniciar todos los filtros",
@@ -482,6 +513,7 @@
             "DeselectAll": "Deseleccionar Todo",
             "None": "Ninguno",
             "Selected": "{0} Seleccionado",
+            "AnyOf": "Cualquiera de {0}",
             "All": "Todo",
             "SongCount": "{0} CANCIONES",
             "Genres": "Géneros",
@@ -513,7 +545,8 @@
                 "Medium": "Medio (3 a 5 min)",
                 "Long": "Largo (5 a 7 min)",
                 "Epic": "Épico (más de 7 min)"
-            }
+            },
+            "Playlists": "Listas de reproducción"
         }
     },
     "Gameplay": {
@@ -1071,6 +1104,15 @@
                     "Windowed": "En Ventana"
                 }
             },
+            "Genrelizer": {
+                "Name": "Estandarizar metadatos de género",
+                "Description": "Categoriza los metadatos del género en un conjunto estándar de géneros, utilizando los datos del repositorio de GitHub de Generalizador.<color=white>¡Requiere reescanear si se cambia!</color>",
+                "Dropdown": {
+                    "Genrelize": "Lleno",
+                    "Overgenrelize": "Simplificado",
+                    "Off": "Ninguno"
+                }
+            },
             "GraphicalProgressOnScoreBox": {
                 "Name": "Progreso Gráfico en Caja de Puntaje",
                 "Description": "Alterna el gráfico del contorno azul en la caja de puntaje que muestra el progreso de la canción."
@@ -1088,6 +1130,10 @@
                     "Score": "Puntaje",
                     "Stars": "Estrellas"
                 }
+            },
+            "ShowPercentDecimals": {
+                "Name": "Mostrar Decimales de Porcentajes",
+                "Description": "Muestra un punto decimal para los porcentajes de precisión en la Biblioteca de Música y la Pantalla de Puntuación."
             },
             "HighScoreHistory": {
                 "Name": "Historial de Puntajes Altos",
@@ -1142,6 +1188,17 @@
                 "PauseName": "Maestro",
                 "Description": "Ajusta el volumen de la canción en su totalidad."
             },
+            "MaxSongRating": {
+                "Name": "Maximum Song Rating",
+                "Description": "Hide any song with a rating higher than the specified value. Note that this is a best-effort filter that does not apply to the Playlist Manager. Custom songs may not be rated correctly.",
+                "Dropdown": {
+                    "Family_Friendly": "Para toda la familia",
+                    "Supervision_Recommended": "Supervisión Recomendada",
+                    "Mature": "Maduro",
+                    "Sensitive_Content": "Contenido sensible",
+                    "None": "Ninguno"
+                }
+            },
             "MetronomeVolume": {
                 "Name": "Volumen del metrónomo",
                 "PauseName": "Metrónomo",
@@ -1193,9 +1250,14 @@
                 "Name": "Sin Bombos",
                 "Description": "Remueve todas las notas de bombo (solo para batería)."
             },
-            "NoFailMode": {
-                "Name": "Modo Sin Fallos",
-                "Description": "Deshabilita terminar una canción temprano cuando la felicidad del público es demasiado baja."
+            "NoFail": {
+                "Name": "No Fail Mode",
+                "Description": "Disables ending a song early when crowd happiness is too low.",
+                "Dropdown": {
+                    "Off": "Off",
+                    "On": "On",
+                    "NoMeter": "On + No Meter"
+                }
             },
             "NoteStreakFrequency": {
                 "Name": "Frecuencia de Racha de Notas",
@@ -1306,10 +1368,6 @@
             "StageKitEnabled": {
                 "Name": "Habilitar Kit de Escenario",
                 "Description": "Habilita el envío de datos de iluminación de Kit de Escenario a todos los dispositivos capaces de leerlo."
-            },
-            "StandardizeGenres": {
-                "Name": "Estandarizar metadatos de género",
-                "Description": "Categoriza los metadatos del género en un conjunto estándar de géneros, utilizando los datos del repositorio de GitHub de Generalizador.<color=white>¡Requiere reescanear si se cambia!</color>"
             },
             "StarPowerHighwayFx": {
                 "Name": "Modo de Efecto en Pista de Energía Estrella",
@@ -1489,6 +1547,14 @@
             "DMXKeysChannel": {
                 "Name": "Teclado DMX",
                 "Description": "Este canal se ajusta a las notas de teclado actuales: Verde (2), Rojo (4), Amarillo (8), Azul (16), Naranja (32)."
+            },
+            "DMXTargetFPS": {
+                "Name": "DMX Objetivo de FPS",
+                "Description": "Con qué frecuencia se envían las actualizaciones de iluminación DMX por segundo. Establezca en 44 para una mejor respuesta (máximo protocolo DMX). Los valores más bajos (10-20) pueden ayudar con adaptadores USB DMX baratos o inestables que tienen problemas a velocidades más altas."
+            },
+            "DMXPulseDuration": {
+                "Name": "Duración de Pulso DMX (MS)",
+                "Description": "Cuánto tiempo permanece un canal DMX después de recibir un activador, en milisegundos. Aumente este valor si las luces no están iluminando de forma fiable. Establezca en 0 para desactivar completamente el estiramiento de pulsos."
             },
             "EnablePlaybackBuffer": {
                 "Name": "Usar Buffer de Reproducción de Audio",
@@ -1949,6 +2015,13 @@
                         "ProKeys": "Teclado"
                     }
                 },
+                "DefaultEngines": {
+                    "DefaultEngine": "Motor predeterminado",
+                    "CasualEngine": "Motor Casual",
+                    "PrecisionEngine": "Motor Precisión",
+                    "SoloTapsEngine": "Motor Solo Taps",
+                    "CustomEnginePreset": "Ajuste de motor personalizado"
+                },
                 "AntiGhosting": {
                     "Name": "Anti-Ghosting",
                     "Description": "Al hacer ghosting (o trastear una nota que no está) el jugador romperá el combo (solo para guitarra)."
@@ -1957,9 +2030,9 @@
                     "Name": "Relación de Ventana de Golpe",
                     "Description": "La relación frontal y trasera de la ventana de golpe. \"0\" traerá la ventana de golpe hacia atrás, \"1\" la mantendrá en el centro y \"2\" la moverá al frente."
                 },
-                "TremoloFrontEndPercent": {
-                    "Name": "Ventana de golpe de Trémolo",
-                    "Description": "Esto determina cuantas notas se pueden golpear en una sola entrada durante una fase de trémolo o trino. Calculado como un porcentaje de la interfaz de ventana de golpe actual."
+                "TremoloWindow": {
+                    "Name": "Tremolo Hit Window",
+                    "Description": "This determines the frequency of lane inputs required to maintain lane behavior."
                 },
                 "HitPercentE": {
                     "Name": "Porcentaje de Golpe (Fácil)",

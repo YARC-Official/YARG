@@ -20,6 +20,7 @@ namespace YARG.Settings
         public static string DefaultPath =>
             Path.Combine(PathHelper.StreamingAssetsPath, "DefaultVenuePreset.json");
 
+#pragma warning disable CS0649
         private class VenueAutoGenerationFile
         {
             public string CameraPacing;
@@ -43,6 +44,7 @@ namespace YARG.Settings
 
             public string CameraPacingOverride;
         }
+#pragma warning restore CS0649
 
         private class AutoGenerationSectionPreset
         {

@@ -45,17 +45,24 @@ namespace YARG.Gameplay.Player
             public bool LeftSide;
         }
 
+        // The key is really a ProKeysAction, but we have to store it as a regular int because - unlike any other instrument
+        // currently - Pro Keys' BRE lanes can change from one BRE to the next within the same song (due to range shifts),
+        // meaning we have to pass the indexes to CurrentCoda.
+        private Dictionary<int, int> _actionToBreLaneIndex;
+
+        // Record of the most recent time that each BRE lane has been lit up by any of the actions that map to it
+        private Dictionary<int, double> _breLaneIndexToMostRecentTime = new();
+
         public const int WHITE_KEY_VISIBLE_COUNT = 10;
         public const int TOTAL_KEY_COUNT = 25;
 
         private const int SHIFT_INDICATOR_MEASURES_BEFORE = 4;
+        private const int MAX_TOTAL_BRE_LANES = 4;
 
-        public override float[] StarMultiplierThresholds { get; protected set; } =
+        protected override float[] StarMultiplierThresholds { get; set; } =
         {
-            0.21f, 0.46f, 0.77f, 1.85f, 3.08f, 4.52f
+            0.06f, 0.12f, 0.2f, 0.47f, 0.78f, 1.15f
         };
-
-        public override int[] StarScoreThresholds { get; protected set; }
 
         public KeysEngineParameters EngineParams { get; private set; }
 
@@ -95,7 +102,18 @@ namespace YARG.Gameplay.Player
 
         private List<LaneParameters> _breLaneParameters;
 
-        private Tween _leftOutOfRangeTween => DOTween.Sequence(_leftOutOfRangeFlasher.material)
+        private (int minimumKeyInRange, int maximumKeyInRange) _minAndMaxKeysInRange => _rangeShifts[_rangeShiftIndex - 1].Key switch
+            {
+                ProKeysUtilities.LOW_C => (ProKeysUtilities.LOW_C, ProKeysUtilities.HIGH_E),
+                ProKeysUtilities.LOW_D => (ProKeysUtilities.LOW_C_SHARP, ProKeysUtilities.HIGH_F_SHARP),
+                ProKeysUtilities.LOW_E => (ProKeysUtilities.LOW_D_SHARP, ProKeysUtilities.HIGH_G_SHARP),
+                ProKeysUtilities.LOW_F => (ProKeysUtilities.LOW_F, ProKeysUtilities.HIGH_A_SHARP),
+                ProKeysUtilities.LOW_G => (ProKeysUtilities.LOW_F_SHARP, ProKeysUtilities.HIGH_B),
+                ProKeysUtilities.LOW_A => (ProKeysUtilities.LOW_G_SHARP, ProKeysUtilities.HIGH_C),
+                _ => throw new ArgumentOutOfRangeException("Unexpected Pro Keys range")
+            };
+
+    private Tween _leftOutOfRangeTween => DOTween.Sequence(_leftOutOfRangeFlasher.material)
             .Append(_leftOutOfRangeFlasher.material.DOFade(1.0f, 0.05f))
             .Append(_leftOutOfRangeFlasher.material.DOFade(0.0f, 0.6f))
             .SetAutoKill(false).Pause().SetEase(Ease.Linear);
@@ -116,7 +134,7 @@ namespace YARG.Gameplay.Player
             if (!Player.IsReplay)
             {
                 // Create the engine params from the engine preset
-                EngineParams = Player.EnginePreset.ProKeys.Create(StarMultiplierThresholds, false);
+                EngineParams = Player.EnginePreset.ProKeys.Create(StarMultiplierThresholds, SoloBonusStarMultiplierThresholds, false);
             }
             else
             {
@@ -249,6 +267,14 @@ namespace YARG.Gameplay.Player
             }
         }
 
+        protected override void ResetLastHitTimes()
+        {
+            for (var i = 0; i < MAX_TOTAL_BRE_LANES; i++)
+            {
+                _breLaneIndexToMostRecentTime[i] = 0;
+            }
+        }
+
         protected override void OnNoteHit(int index, ProKeysNote note)
         {
             base.OnNoteHit(index, note);
@@ -309,25 +335,19 @@ namespace YARG.Gameplay.Player
         {
             var currentRange = _rangeShifts[_rangeShiftIndex-1];
 
-            var (minimumKeyInRange, maximumKeyInRange) = currentRange.Key switch
-            {
-                ProKeysUtilities.LOW_C => (ProKeysUtilities.LOW_C, ProKeysUtilities.HIGH_E),
-                ProKeysUtilities.LOW_D => (ProKeysUtilities.LOW_C_SHARP, ProKeysUtilities.HIGH_F_SHARP),
-                ProKeysUtilities.LOW_E => (ProKeysUtilities.LOW_D_SHARP, ProKeysUtilities.HIGH_G_SHARP),
-                ProKeysUtilities.LOW_F => (ProKeysUtilities.LOW_F, ProKeysUtilities.HIGH_A_SHARP),
-                ProKeysUtilities.LOW_G => (ProKeysUtilities.LOW_F_SHARP, ProKeysUtilities.HIGH_B),
-                ProKeysUtilities.LOW_A => (ProKeysUtilities.LOW_G_SHARP, ProKeysUtilities.HIGH_C),
-                _ => (currentRange.Key, currentRange.Key + 16) // Should never happen, but might as well have a naive fallback
-            };
+            var (minimumKeyInRange, maximumKeyInRange) = _minAndMaxKeysInRange;
 
-            if (key < minimumKeyInRange)
+            if (!Engine.IsCodaActive) // We still award points for out-of-range hits during a BRE, so don't discourage them
             {
-                _leftOutOfRangeTween.Restart();
-            }
-            else if (key > maximumKeyInRange)
-            {
+                if (key < minimumKeyInRange)
+                {
+                    _leftOutOfRangeTween.Restart();
+                }
+                else if (key > maximumKeyInRange)
+                {
 
-                _rightOutOfRangeTween.Restart();
+                    _rightOutOfRangeTween.Restart();
+                }
             }
         }
 
@@ -368,14 +388,11 @@ namespace YARG.Gameplay.Player
         {
             if (Engine.IsCodaActive)
             {
-                for (int i = 0; i < CurrentCoda.ScoringZones; i++)
+                for (var i = 0; i < BRELanes.Length; i++)
                 {
-                    if (i >= BRELanes.Length)
-                    {
-                        continue;
-                    }
-
-                    BRELanes[i].SetEmissionColor(CurrentCoda.GetNormalizedTimeSinceLastHit(i, visualTime));
+                    var mostRecentTime = _breLaneIndexToMostRecentTime[i];
+                    var normalizedTimeSinceLastHit = CodaSection.GetNormalizedTimeSinceLastHit(visualTime, mostRecentTime);
+                    BRELanes[i].SetEmissionColor(normalizedTimeSinceLastHit);
                 }
             }
         }
@@ -558,12 +575,20 @@ namespace YARG.Gameplay.Player
 
         private void OnLaneHit(int key)
         {
-            _keysArray.PlayHitAnimation(key);
+            var (minimumKeyInRange, maximumKeyInRange) = _minAndMaxKeysInRange;
+
+            if (minimumKeyInRange <= key && key <= maximumKeyInRange)
+            {
+                _keysArray.PlayHitAnimation(key);
+            }
+
+            var breLaneIndex = _actionToBreLaneIndex[key];
+            _breLaneIndexToMostRecentTime[breLaneIndex] = GameManager.VisualTime;
         }
 
-        protected override Dictionary<int,int> GetLaneIndexes()
+        protected Dictionary<int, int> GetLaneIndexes(int leftmostKey)
         {
-            return _currentIndex switch
+            return leftmostKey switch
             {
                 ProKeysUtilities.LOW_C => LANE_INDEXES_C3_TO_E4,
                 ProKeysUtilities.LOW_D => LANE_INDEXES_D3_TO_F4,
@@ -579,7 +604,13 @@ namespace YARG.Gameplay.Player
         {
             base.OnCodaStart(coda);
             CurrentCoda.OnLaneHit += OnLaneHit;
-            CurrentCoda.SetLaneIndexes(GetLaneIndexes());
+            CurrentCoda.SetLaneIndexes(GetLaneIndexes(_currentIndex));
+
+            for (var i = 0; i < MAX_TOTAL_BRE_LANES; i++)
+            {
+                _breLaneIndexToMostRecentTime[i] = 0;
+            }
+
             _keysArray.SetBreMode(true);
         }
 
@@ -594,6 +625,8 @@ namespace YARG.Gameplay.Player
         {
             _breLaneParameters = GetLaneParameters(timeStart);
             BRELanes = new LaneElement[_breLaneParameters.Count];
+
+            _actionToBreLaneIndex = GetLaneIndexes(GetLeftmostWhiteKeyAtTime(timeStart));
 
             if (!LanePool.CanSpawnAmount(BRELanes.Length))
             {

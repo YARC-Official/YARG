@@ -77,8 +77,11 @@ namespace YARG.Gameplay.HUD
         private string _timeFormat;
 
         private bool _easterEggTriggered;
-        private bool _vocalsOnly;
+        // Default to 1 to prevent divide-by-zero when disabled
+        private int _bandComboUnits = 1;
         private bool _singlePlayer;
+        private int _displayedCountUpSeconds = -1;
+        private int _displayedCountDownSeconds = -1;
 
         private Tween _multiplierShowTweener;
 
@@ -104,6 +107,8 @@ namespace YARG.Gameplay.HUD
             _scoreText.text = SCORE_PREFIX + "0";
             _bandComboText.text = SCORE_PREFIX + "0";
             _songTimer.text = string.Empty;
+            _displayedCountUpSeconds = -1;
+            _displayedCountDownSeconds = -1;
 
             _songProgressBar.SetProgress(0f);
         }
@@ -111,8 +116,6 @@ namespace YARG.Gameplay.HUD
         protected override void OnChartLoaded(SongChart chart)
         {
             _bandComboObject.SetActive(SettingsManager.Settings.BandComboTypeSetting.Value != BandComboType.Off);
-            _vocalsOnly = PlayerContainer.Players.All(e => e.SittingOut || e.Profile.GameMode == GameMode.Vocals);
-            _singlePlayer = PlayerContainer.Players.Count(e => !e.SittingOut) == 1 && !GlobalVariables.State.PlayingWithReplay;
         }
 
         protected override void OnSongStarted()
@@ -133,6 +136,12 @@ namespace YARG.Gameplay.HUD
 
                 _ => string.Empty
             };
+
+            // This is here because in the other init functions, GameManager.Players is not yet defined.
+            if (_bandComboObject.activeSelf)             {
+                _bandComboUnits = GameManager.Players.Min(e => e.BaseStats.BandComboUnits);
+            }
+            _singlePlayer = GameManager.Players.Count == 1;
         }
 
         private void Update()
@@ -162,8 +171,7 @@ namespace YARG.Gameplay.HUD
             if (GameManager.BandCombo != _bandCombo)
             {
                 _bandCombo = GameManager.BandCombo;
-                var modifier = _vocalsOnly ? 10 : 1;
-                _bandComboText.SetTextFormat("{0}{1:N0}", SCORE_PREFIX, _bandCombo / modifier);
+                _bandComboText.SetTextFormat("{0}{1:N0}", SCORE_PREFIX, _bandCombo / _bandComboUnits);
             }
 
             UpdateBandMultiplier();
@@ -178,12 +186,21 @@ namespace YARG.Gameplay.HUD
             }
 
             // Skip if the song length has not been established yet, or if disabled
-            if (_songLengthTime == null) return;
+            if (_songLengthTime == null)
+            {
+                return;
+            }
 
-            var countUp = TimeSpan.FromSeconds(time);
-            var countDown = TimeSpan.FromSeconds(length - time);
-
-            _songTimer.SetTextFormat(_timeFormat, countUp, countDown, _songLengthTime);
+            var countUpSeconds = (int) time;
+            var countDownSeconds = (int) (length - time);
+            if (countUpSeconds != _displayedCountUpSeconds || countDownSeconds != _displayedCountDownSeconds)
+            {
+                var countUp = TimeSpan.FromSeconds(countUpSeconds);
+                var countDown = TimeSpan.FromSeconds(countDownSeconds);
+                _songTimer.SetTextFormat(_timeFormat, countUp, countDown, _songLengthTime);
+                _displayedCountUpSeconds = countUpSeconds;
+                _displayedCountDownSeconds = countDownSeconds;
+            }
         }
 
         private void UpdateBandMultiplier()

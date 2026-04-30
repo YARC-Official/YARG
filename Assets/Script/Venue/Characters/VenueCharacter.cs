@@ -368,7 +368,7 @@ namespace YARG.Venue.Characters
         private void HandleHandMap(HandMapType handMap)
         {
             // Hand map is only valid for guitar and bass
-            if (Type != CharacterType.Guitar)
+            if (Type is not (CharacterType.Guitar or CharacterType.Bass))
             {
                 return;
             }
@@ -548,12 +548,12 @@ namespace YARG.Venue.Characters
             int lowestFret = 5;
             bool openGreen = _handMap is HandMapType.DropD or HandMapType.DropD2;
             bool useChordShape =
-                (gNote.IsChord && (!_inhibitHandShape || Type != CharacterType.Guitar) &&
+                (gNote.IsChord && (!_inhibitHandShape || Type != CharacterType.Guitar || Type != CharacterType.Bass) &&
                     _handMap != HandMapType.NoChords) || _handMap == HandMapType.AllChords;
             bool isSustain = gNote.IsSustain;
             float sustainLength = (float) gNote.TimeLength;
 
-            if (_inhibitHandShape && Type == CharacterType.Guitar && (_handMap != HandMapType.DropD && _handMap != HandMapType.DropD2))
+            if (_inhibitHandShape && (Type == CharacterType.Guitar || Type == CharacterType.Bass) && (_handMap != HandMapType.DropD && _handMap != HandMapType.DropD2))
             {
                 return;
             }
@@ -565,7 +565,7 @@ namespace YARG.Venue.Characters
             }
 
             // Just for testing
-            if (Type != CharacterType.Guitar)
+            if (Type == CharacterType.Vocals || Type == CharacterType.Drums || Type == CharacterType.Keys)
             {
                 return;
             }

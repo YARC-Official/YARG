@@ -184,7 +184,7 @@ namespace YARG.Menu.Filters
                 new NavigationScheme.Entry(MenuAction.Green, "Menu.Common.Confirm", HandleConfirm),
                 new NavigationScheme.Entry(MenuAction.Red, "Menu.Common.Back", HandleBack, hide: true),
                 new NavigationScheme.Entry(MenuAction.Yellow, "Menu.Filters.ResetAllFilters", _ => { },
-                    ResetAllFiltersHoldSeconds, _ => ResetAllFilters()),
+                    holdSeconds: ResetAllFiltersHoldSeconds, onHoldHandler: _ => ResetAllFilters()),
                 NavigationScheme.Entry.NavigateUp,
                 NavigationScheme.Entry.NavigateDown
             }, true));
@@ -688,7 +688,7 @@ namespace YARG.Menu.Filters
                 new(MenuAction.Green, state.GreenKey, HandleConfirm),
                 new(MenuAction.Red, "Menu.Common.Back", HandleBack, hide: !state.ShowRed),
                 new(MenuAction.Yellow, "Menu.Filters.ResetAllFilters", _ => { },
-                    ResetAllFiltersHoldSeconds, _ => ResetAllFilters()),
+                    holdSeconds: ResetAllFiltersHoldSeconds, onHoldHandler: _ => ResetAllFilters()),
                 NavigationScheme.Entry.NavigateUp,
                 NavigationScheme.Entry.NavigateDown
             };

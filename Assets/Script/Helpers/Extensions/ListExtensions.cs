@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using YARG.Core.Logging;
 
 namespace YARG.Helpers.Extensions
 {
@@ -27,6 +28,17 @@ namespace YARG.Helpers.Extensions
             {
                 return list[Random.Next(0, list.Count)];
             }
+        }
+
+        public static void SafeInsert<T>(this IList<T> list, int index, T item)
+        {
+            if (index < 0)
+            {
+                YargLogger.LogDebug("Negative index passed to SafeInsert, converting to positive (likely the result of a duplicate CON or PKG)");
+                index = ~index;
+            }
+
+            list.Insert(index, item);
         }
     }
 }

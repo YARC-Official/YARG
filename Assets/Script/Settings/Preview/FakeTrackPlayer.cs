@@ -114,16 +114,16 @@ namespace YARG.Settings.Preview
                     {
                         int colorNote = (note.Fret, note.NoteType) switch
                         {
-                            (0, _) => 0, // Kick
-                            (1, ThemeNoteType.Cymbal) => 8, // The forbidden red cymbal
-                            (1, _) => 1, // Red drum
-                            (2, ThemeNoteType.Cymbal) => 5, // Yellow cymbal
-                            (2, _) => 2, // Yellow drum
-                            (3, ThemeNoteType.Cymbal) => 6, // Blue cymbal
-                            (3, _) => 3, // Blue drum
-                            (4, ThemeNoteType.Cymbal) => 7, // Green cymbal
-                            (4, _) => 4, // Green drum
-                            _ => throw new Exception("Unreachable.")
+                            ((int) ColorProfile.FourLaneDrumsFret.Kick, _)                          => (int) ColorProfile.FourLaneDrumsFret.Kick,
+                            ((int) ColorProfile.FourLaneDrumsFret.RedDrum, ThemeNoteType.Cymbal)    => (int) ColorProfile.FourLaneDrumsFret.RedCymbal,
+                            ((int) ColorProfile.FourLaneDrumsFret.RedDrum, _)                       => (int) ColorProfile.FourLaneDrumsFret.RedDrum,
+                            ((int) ColorProfile.FourLaneDrumsFret.YellowDrum, ThemeNoteType.Cymbal) => (int) ColorProfile.FourLaneDrumsFret.YellowCymbal,
+                            ((int) ColorProfile.FourLaneDrumsFret.YellowDrum, _)                    => (int) ColorProfile.FourLaneDrumsFret.YellowDrum,
+                            ((int) ColorProfile.FourLaneDrumsFret.BlueDrum, ThemeNoteType.Cymbal)   => (int) ColorProfile.FourLaneDrumsFret.BlueCymbal,
+                            ((int) ColorProfile.FourLaneDrumsFret.BlueDrum, _)                      => (int) ColorProfile.FourLaneDrumsFret.BlueDrum,
+                            ((int) ColorProfile.FourLaneDrumsFret.GreenDrum, ThemeNoteType.Cymbal)  => (int) ColorProfile.FourLaneDrumsFret.GreenCymbal,
+                            ((int) ColorProfile.FourLaneDrumsFret.GreenDrum, _)                     => (int) ColorProfile.FourLaneDrumsFret.GreenDrum,
+                            _                                                    => throw new Exception("Unreachable.")
                         };
 
                         return colorProfile.FourLaneDrums
@@ -136,6 +136,7 @@ namespace YARG.Settings.Preview
                     CreateFakeNote = (time) =>
                     {
                         int fret = Random.Range(0, 5);
+                        ThemeNoteType noteType;
 
                         // Kick notes have different models
                         if (fret == 0)
@@ -150,13 +151,20 @@ namespace YARG.Settings.Preview
                             };
                         }
 
-                        // Otherwise, select a random note type
-                        var noteType = Random.Range(0, 2) switch
+                        // First lane can't have cymbals
+                        if (fret == 1)
                         {
-                            0 => ThemeNoteType.Normal,
-                            1 => ThemeNoteType.Cymbal,
-                            _ => throw new Exception("Unreachable.")
-                        };
+                            noteType = ThemeNoteType.Normal;
+                        }
+                        else
+                        {
+                            noteType = Random.Range(0, 2) switch
+                            {
+                                0 => ThemeNoteType.Cymbal,
+                                1 => ThemeNoteType.Normal,
+                                _ => throw new Exception("Unreachable.")
+                            };
+                        }
 
                         return new FakeNoteData
                         {

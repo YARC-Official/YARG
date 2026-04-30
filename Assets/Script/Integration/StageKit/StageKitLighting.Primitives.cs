@@ -3,9 +3,8 @@ using System.Threading;
 using Cysharp.Threading.Tasks;
 using PlasticBand.Haptics;
 using YARG.Core.Chart;
-using YARG.Gameplay;
+using YARG.Integration;
 using YARG.Playback;
-using Object = UnityEngine.Object;
 
 namespace YARG.Integration.StageKit
 {
@@ -14,7 +13,6 @@ namespace YARG.Integration.StageKit
         private readonly bool _continuous;
         private int _patternIndex;
         private readonly (StageKitLedColor color, byte data)[] _patternList;
-        private GameManager _gameManager;
         private readonly float _beatsPerCycle;
 
         public BeatPattern((StageKitLedColor, byte)[] patternList, float beatsPerCycle, bool continuous = true)
@@ -27,9 +25,7 @@ namespace YARG.Integration.StageKit
         public override void Enable()
         {
             _patternIndex = 0;
-            // Brought to you by Hacky Hack and the Hacktones
-            _gameManager = Object.FindAnyObjectByType<GameManager>();
-            _gameManager.BeatEventHandler.Visual.Subscribe(OnBeat, BeatEventType.DenominatorBeat, division: _beatsPerCycle / _patternList.Length);
+            MasterLightingController.BeatVisual?.Subscribe(OnBeat, BeatEventType.DenominatorBeat, division: _beatsPerCycle / _patternList.Length);
         }
 
         private void OnBeat()
@@ -41,7 +37,7 @@ namespace YARG.Integration.StageKit
             // otherwise they pile up.
             if (!_continuous && _patternIndex == _patternList.Length)
             {
-                _gameManager.BeatEventHandler.Visual.Unsubscribe(OnBeat);
+                MasterLightingController.BeatVisual?.Unsubscribe(OnBeat);
                 KillSelf();
             }
 
@@ -53,10 +49,7 @@ namespace YARG.Integration.StageKit
 
         public override void KillSelf()
         {
-            if (_gameManager != null)
-            {
-                _gameManager.BeatEventHandler.Visual.Unsubscribe(OnBeat);
-            }
+            MasterLightingController.BeatVisual?.Unsubscribe(OnBeat);
         }
     }
 

@@ -1,18 +1,17 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Threading;
+using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Serialization;
 using YARG.Core;
-using YARG.Core.Game;
 using YARG.Gameplay.Player;
-using YARG.Helpers.Extensions;
-using Color = System.Drawing.Color;
 
 namespace YARG.Gameplay.Visuals
 {
     public class TrackEffectElement : TrackElement<TrackPlayer>
     {
-        private static readonly float HIGHWAY_WIDTH = 10f;
+        private static readonly float HIGHWAY_WIDTH                  = 10f;
+        private const           float VISIBILITY_TRANSITION_DURATION = 10f / 60f;
 
         [SerializeField]
         private MeshRenderer _meshRenderer;
@@ -82,9 +81,12 @@ namespace YARG.Gameplay.Visuals
         private bool _maskEnabled = false;
 
 
-        private bool _previousStartTransitionEnable;
-        private bool _previousEndTransitionEnable;
+        private bool   _previousStartTransitionEnable;
+        private bool   _previousEndTransitionEnable;
         private double _visibilityStartTime;
+        private float  _visibilityStartValue;
+        private float  _visibilityTargetValue;
+
         public TrackEffect EffectRef { get; set; }
 
         private static readonly int _visibility = Shader.PropertyToID("_Visibility");
@@ -99,6 +101,13 @@ namespace YARG.Gameplay.Visuals
         private float EndZ => ZFromTime(EffectRef.TimeEnd);
 
         public bool Active { get; private set; }
+
+        private CancellationTokenSource _visibilityToken;
+
+        public void Reinitialize()
+        {
+            InitializeElement();
+        }
 
         protected override void InitializeElement()
         {
@@ -121,13 +130,6 @@ namespace YARG.Gameplay.Visuals
 
         private void InitializeMaterials()
         {
-            // This has to be done because it gets messed up when objects
-            // get recycled. The effect is visually interesting, but not what is desired.
-
-            // Get fade info
-            float fadePos = Player.ZeroFadePosition;
-            float fadeSize = Player.FadeSize;
-
             // Set all fade values for meshes
             var meshRenderers = GetComponentsInChildren<MeshRenderer>(true);
             foreach (var meshRenderer in meshRenderers)
@@ -230,7 +232,7 @@ namespace YARG.Gameplay.Visuals
 
         // We're taking a Transform because SetTransitionState uses them
         // and that's who we're expecting to call
-        void SetMaterialVisibility(Transform target, float visibility)
+        private static void SetMaterialVisibility(Transform target, float visibility)
         {
             var children = target.GetComponentsInChildren<Renderer>(true);
             foreach (var child in children)
@@ -243,12 +245,36 @@ namespace YARG.Gameplay.Visuals
             }
         }
 
-        public void MakeVisible(bool enable = true)
+        public void MakeVisible(bool enable = true, bool useMask = true)
         {
+            // In case the async version is running, cancel it
+            _visibilityToken?.Cancel();
+            _visibilityToken?.Dispose();
+            _visibilityToken = null;
+
             _visibilityInTransition = true;
             _visibilityStartTime = GameManager.VisualTime;
-            _maskEnabled = enable;
+            _maskEnabled = enable && useMask;
+            _visibilityStartValue = Visibility;
             Visibility = enable ? 1.0f : 0.0f;
+
+            if (_maskEnabled)
+            {
+                Visibility = 1.0f;
+                SetAllVisibility(1.0f);
+            }
+        }
+
+        public UniTask MakeVisibleAsync(bool enable = true, bool useMask = true)
+        {
+            _visibilityToken?.Cancel();
+            _visibilityToken?.Dispose();
+            _visibilityToken = new CancellationTokenSource();
+
+            MakeVisible(enable, useMask);
+
+            return UniTask.WaitUntil(() => _visibilityToken.IsCancellationRequested || !_visibilityInTransition,
+                cancellationToken: this.GetCancellationTokenOnDestroy());
         }
 
         private void SetEffectMask(float endZ)
@@ -409,7 +435,7 @@ namespace YARG.Gameplay.Visuals
         private float GetXOffsetForLeadUp()
         {
             // Kick lead-ups and unknown indices should be centered
-            if (EffectRef.FillLanePosition <= 0 || EffectRef.FillLanePosition > EffectRef.TotalLanes)
+            if (EffectRef.FillLanePosition < 0 || EffectRef.FillLanePosition > EffectRef.TotalLanes)
             {
                 return 0f;
             }
@@ -429,7 +455,7 @@ namespace YARG.Gameplay.Visuals
             }
 
             // Kick lead-ups and unknown indices should not be shrunken
-            if (EffectRef.FillLanePosition <= 0 || EffectRef.FillLanePosition > EffectRef.TotalLanes)
+            if (EffectRef.FillLanePosition < 0 || EffectRef.FillLanePosition > EffectRef.TotalLanes)
             {
                 return 1f;
             }
@@ -590,7 +616,11 @@ namespace YARG.Gameplay.Visuals
         {
             if (_visibilityInTransition)
             {
-                SetAllVisibility(Visibility);
+                var elapsed = (float) (GameManager.VisualTime - _visibilityStartTime);
+                var progress = Mathf.Clamp01(elapsed / VISIBILITY_TRANSITION_DURATION);
+
+                var currentVisibility = Mathf.Lerp(_visibilityStartValue, Visibility, progress);
+                SetAllVisibility(currentVisibility);
             }
 
             if (_maskEnabled)

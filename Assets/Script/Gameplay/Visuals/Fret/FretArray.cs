@@ -42,6 +42,8 @@ namespace YARG.Gameplay.Visuals
         private readonly List<int> _pulsingFrets = new();
         private          float     _pulseDuration;
 
+        private readonly HashSet<int> _usedFretIndexes = new();
+
         /*
          * Overload for instruments where lefty flip does not affect color (e.g. a lefty-flipped Green Fret on 5F Guitar is still green, just laterally shifted).
          * Acts as a convenience so that you can just pass in a mapping of note type to lateral position, and it will create HighwayOrderingInfos that use the note
@@ -51,7 +53,8 @@ namespace YARG.Gameplay.Visuals
          * provide HighwayOrderingInfos directly.
          */
         #nullable enable
-        public void Initialize(Dictionary<int, int> highwayOrdering, int laneCount, GameObject? kickFretPrefab, IFretColorProvider fretColorProvider, ThemePreset themePreset, VisualStyle style)
+        public void Initialize(Dictionary<int, int> highwayOrdering, int laneCount, GameObject? kickFretPrefab,
+            IFretColorProvider fretColorProvider, ThemePreset themePreset, VisualStyle style)
         {
             var derivedDictionary = new Dictionary<int, HighwayOrderingInfo>();
 
@@ -63,13 +66,31 @@ namespace YARG.Gameplay.Visuals
             Initialize(derivedDictionary, laneCount, kickFretPrefab, fretColorProvider, themePreset, style);
         }
 
-        public void Initialize(Dictionary<int, HighwayOrderingInfo> highwayOrdering, int laneCount, GameObject? kickFretPrefab, IFretColorProvider fretColorProvider, ThemePreset themePreset, VisualStyle style)
+        public void Initialize(Dictionary<int, HighwayOrderingInfo> highwayOrdering, int laneCount,
+            GameObject? kickFretPrefab, IFretColorProvider fretColorProvider, ThemePreset themePreset, VisualStyle style)
         {
             var fretPrefab = ThemeManager.Instance.CreateFretPrefabFromTheme(themePreset, style);
 
             _frets.Clear();
             foreach (var (noteType, highwayOrderingInfo) in highwayOrdering)
             {
+                // Note that the correctness of this depends on instruments with shared lanes having the note type that
+                // corresponds to the fret color coming first in their pad/fret/whatever enum
+                if (!_usedFretIndexes.Add(highwayOrderingInfo.Position))
+                {
+                    // Find the earlier highway ordering info with the same position
+                    foreach (var (otherNoteType, otherHighwayOrderingInfo) in highwayOrdering)
+                    {
+                        if (otherHighwayOrderingInfo.Position == highwayOrderingInfo.Position)
+                        {
+                            _frets[noteType] = _frets[otherNoteType];
+                            break;
+                        }
+                    }
+
+                    continue;
+                }
+
                 var fret = Instantiate(fretPrefab, transform);
                 fret.SetActive(true);
 

@@ -22,19 +22,9 @@ namespace YARG
 
         public static bool IsActive => Instance.gameObject.activeSelf;
 
-        private void PreInitLipsync()
-        {
-            var _unused = YARG.Core.Chart.LipsyncGenerator.GenerateFromLyrics(new Core.Chart.LyricsTrack());
-            YargLogger.LogInfo("Initialized phoneme dictionary");
-        }
-
         private async void Start()
         {
             using var context = new LoadingContext();
-
-            // Initialize phoneme dictionary
-            var _ = UniTask.RunOnThreadPool(PreInitLipsync);
-
 
             // Load language
             try
@@ -93,6 +83,22 @@ namespace YARG
             else
             {
                 PlayerContainer.ClearProfileOrder();
+            }
+
+            // Initialize phoneme dictionary (must load on main thread, parse on thread pool)
+            var cmudictAsset = Resources.Load<TextAsset>("cmudict");
+            if (cmudictAsset == null)
+            {
+                YargLogger.LogError("Failed to load cmudict.txt from Resources");
+            }
+            else
+            {
+                var dictText = cmudictAsset.text;
+                await UniTask.RunOnThreadPool(() =>
+                {
+                    YARG.Core.Chart.LipsyncGenerator.Initialize(dictText);
+                    YargLogger.LogInfo("Initialized phoneme dictionary");
+                });
             }
 
             // Fast scan (cache read) on startup

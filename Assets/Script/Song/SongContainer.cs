@@ -90,6 +90,7 @@ namespace YARG.Song
         private static SongCache _songCache = new();
         private static SortedSongs _sortedSongs = new();
         private static SongEntry[] _songs = Array.Empty<SongEntry>();
+        private static Dictionary<HashWrapper, List<SongEntry>> _songsByHash = new();
 
         private static SongCategory[] _sortTitles = Array.Empty<SongCategory>();
         private static SongCategory[] _sortArtists = Array.Empty<SongCategory>();
@@ -128,8 +129,13 @@ namespace YARG.Song
         public static IReadOnlyDictionary<Instrument, SortedDictionary<int, List<SongEntry>>> Instruments => _sortedSongs.Instruments;
 
         public static int Count => _songs.Length;
-        public static IReadOnlyDictionary<HashWrapper, List<SongEntry>> SongsByHash => _songCache.Entries;
-        public static SongEntry[] Songs => _songs;
+        // public static IReadOnlyDictionary<HashWrapper, List<SongEntry>> SongsByHash => _songCache.Entries;
+        public static IReadOnlyDictionary<HashWrapper, List<SongEntry>> SongsByHash => _songsByHash;
+        public static SongEntry[]                                       Songs       => _songs;
+
+        public static SongEntry[] UnfilteredSongs => _songCache.Entries.Values.SelectMany(e => e).ToArray();
+
+        private static bool AllowedByRating(SongRating rating) => rating <= SettingsManager.Settings.MaxSongRating.Value;
 
 #nullable enable
         public static async UniTask RunRefresh(bool quick, LoadingContext? context = null)
@@ -625,10 +631,19 @@ namespace YARG.Song
 
             static SongEntry[] SetAllSongs(Dictionary<HashWrapper, List<SongEntry>> entries)
             {
+                _songsByHash.Clear();
+
                 int songCount = 0;
                 foreach (var node in entries)
                 {
-                    songCount += node.Value.Count;
+                    var count = node.Value.Count;
+                    for (int i = 0; i < count; i++)
+                    {
+                        if (AllowedByRating(node.Value[i].SongRating))
+                        {
+                            songCount++;
+                        }
+                    }
                 }
 
                 SongEntry[] songs = new SongEntry[songCount];
@@ -638,7 +653,19 @@ namespace YARG.Song
                 {
                     for (int i = 0; i < node.Value.Count; i++)
                     {
-                        songs[index++] = node.Value[i];
+                        if (AllowedByRating(node.Value[i].SongRating))
+                        {
+                            if (_songsByHash.ContainsKey(node.Key))
+                            {
+                                _songsByHash[node.Key].Add(node.Value[i]);
+                            }
+                            else
+                            {
+                                _songsByHash.Add(node.Key, new List<SongEntry> { node.Value[i] });
+                            }
+
+                            songs[index++] = node.Value[i];
+                        }
                     }
                 }
                 return songs;
@@ -763,6 +790,12 @@ namespace YARG.Song
                 }
                 return sort;
             }
+        }
+
+        public static void RequestContainerRefresh()
+        {
+            SongSorting.SortEntries(_songCache, _sortedSongs);
+            FillContainers();
         }
 
         readonly struct IntensityComparer : IComparer<SongEntry>

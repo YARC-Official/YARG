@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
 using UnityEngine;
@@ -6,6 +6,7 @@ using UnityEngine.InputSystem;
 using YARG.Core.Audio;
 using YARG.Core.Engine;
 using YARG.Core.Logging;
+using YARG.Core.Song;
 using YARG.Gameplay.HUD;
 using YARG.Helpers;
 using YARG.Integration;
@@ -13,6 +14,7 @@ using YARG.Integration.RB3E;
 using YARG.Integration.Sacn;
 using YARG.Integration.StageKit;
 using YARG.Menu.Filters;
+using YARG.Menu.History;
 using YARG.Menu.MusicLibrary;
 using YARG.Menu.Persistent;
 using YARG.Menu.Settings;
@@ -36,6 +38,18 @@ namespace YARG.Settings
         Performance = 4,
         UltraPerformance = 5,
     }
+
+    public enum MaximumRating
+    {
+        Family_Friendly,
+        Supervision_Recommended,
+        Mature,
+        Unspecified,
+        No_Rating,
+        Sensitive_Content,
+        Any
+    }
+
     public static partial class SettingsManager
     {
         public class SettingContainer
@@ -80,8 +94,9 @@ namespace YARG.Settings
 
             public void OpenCalibrator()
             {
+                SettingsMenu.OpenOnNextMenuLoad();
+                SettingsMenu.Instance.PrepareForSceneTransition();
                 GlobalVariables.Instance.LoadScene(SceneIndex.Calibration);
-                SettingsMenu.Instance.gameObject.SetActive(false);
             }
 
             public IntSetting AudioCalibration { get; } = new(0);
@@ -96,7 +111,12 @@ namespace YARG.Settings
                 FileExplorerHelper.OpenFolder(VenueLoader.VenueFolder);
             }
 
-            public ToggleSetting NoFailMode { get; } = new(false);
+            public DropdownSetting<NoFailMode> NoFail { get; } = new(NoFailMode.Off)
+            {
+                NoFailMode.Off,
+                NoFailMode.On,
+                NoFailMode.NoMeter
+            };
 
             public ToggleSetting DisableDefaultBackground  { get; } = new(false);
             public ToggleSetting DisableGlobalBackgrounds  { get; } = new(false);
@@ -145,6 +165,21 @@ namespace YARG.Settings
 
             #region Songs
 
+            public DropdownSetting<SongRating> MaxSongRating { get; }
+                = new(SongRating.None, _ =>
+                {
+                    SongContainer.RequestContainerRefresh();
+                    MusicLibraryMenu.SetReload(MusicLibraryReloadState.Full);
+                    HistoryMenu.ForceUpdate = true;
+                })
+            {
+                SongRating.Family_Friendly,
+                SongRating.Supervision_Recommended,
+                SongRating.Mature,
+                SongRating.Sensitive_Content,
+                SongRating.None,
+            };
+
             public ToggleSetting AllowDuplicateSongs { get; } = new(true, _ => MusicLibraryMenu.SetReload(MusicLibraryReloadState.Partial));
             public ToggleSetting UseFullDirectoryForPlaylists { get; } = new(false);
 
@@ -190,7 +225,8 @@ namespace YARG.Settings
 
             #region Sound
 
-            public VolumeSetting MasterMusicVolume { get; } = new(0.75f, v => GlobalAudioHandler.SetMasterVolume(v));
+            public ToggleSetting EnableNormalization { get; } = new(true);
+            public VolumeSetting MasterMusicVolume   { get; } = new(0.75f, v => GlobalAudioHandler.SetMasterVolume(v));
 
             public VolumeSetting GuitarVolume { get; } =
                 new(1f, v => GlobalAudioHandler.SetVolumeSetting(SongStem.Guitar, v));
@@ -291,7 +327,7 @@ namespace YARG.Settings
 
             public ToggleSetting VSync       { get; } = new(true, VSyncCallback);
             public IntSetting    FpsCap      { get; } = new(60, 0, onChange: FpsCapCallback);
-            public IntSetting    VenueFpsCap { get; } = new(60, 1);
+            public IntSetting    VenueFpsCap { get; } = new(60, 0);
 
             public DropdownSetting<FullScreenMode> FullscreenMode { get; }
                 = new(FullScreenMode.FullScreenWindow, FullscreenModeCallback)
@@ -560,7 +596,6 @@ namespace YARG.Settings
             public OutputChannelSetting OutputChannelVox { get; } = new(-1, OutputChannelVoxCallback);
             public OutputChannelSetting OutputChannelMetronome { get; } = new(-1, OutputChannelMetronomeCallback);
 
-            public ToggleSetting EnableNormalization { get; } = new(false);
             public CustomCharacterSetting CustomVocalsCharacter { get; } = new(string.Empty, VenueCharacter.CharacterType.Vocals, CustomCharacterCallback);
             #endregion
 
