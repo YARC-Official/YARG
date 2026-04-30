@@ -72,6 +72,8 @@ namespace YARG.Venue.Characters
                 var pad = (FourLaneDrumPad) note.Pad;
                 if (pad == FourLaneDrumPad.Kick)
                 {
+                    // Kick doesn't need hand tracking, add animation directly
+                    animations.Add(AnimationEvent.AnimationType.Kick);
                     continue;
                 }
                 var hand = GetHandForPad(pad, note.Time);
