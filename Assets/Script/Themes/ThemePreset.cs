@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using YARG.Core;
 using YARG.Core.Game;
+using YARG.Core.Logging;
 using static YARG.Themes.ThemeManager;
 
 namespace YARG.Themes
@@ -17,6 +19,12 @@ namespace YARG.Themes
         public Guid PreferredColorProfile = Guid.Empty;
         public Guid PreferredCameraPreset = Guid.Empty;
 
+        // Path to custom bundle file (null for built-in themes)
+        public string CustomBundlePath;
+
+        // Format version for forward compatibility (defaults to 1)
+        public int FormatVersion = 1;
+
         public ThemePreset(string name, bool defaultPreset)
             : base(name, defaultPreset)
         {
@@ -24,6 +32,37 @@ namespace YARG.Themes
 
         public ThemeContainer CreateThemeContainer()
         {
+            const int CurrentFormatVersion = 1;
+
+            if (FormatVersion > CurrentFormatVersion)
+            {
+                YargLogger.LogFormatWarning(
+                    "Theme '{0}' was created with format version {1}, but this game supports {2}. Loading with best-effort compatibility.",
+                    Name, FormatVersion, CurrentFormatVersion);
+            }
+
+            // Custom bundle path — load from file
+            if (!string.IsNullOrEmpty(CustomBundlePath) && File.Exists(CustomBundlePath))
+            {
+                var bundle = AssetBundle.LoadFromFile(CustomBundlePath);
+                if (bundle == null)
+                {
+                    YargLogger.LogFormatError("Failed to load asset bundle for theme '{0}'", Name);
+                    return null;
+                }
+
+                var themePrefab = bundle.LoadAsset<GameObject>("_theme.prefab");
+                if (themePrefab == null)
+                {
+                    bundle.Unload(true);
+                    YargLogger.LogFormatError("Theme '{0}' bundle missing '_theme.prefab'", Name);
+                    return null;
+                }
+
+                return new ThemeContainer(themePrefab, false, bundle);
+            }
+
+            // Built-in — load via Addressables
             if (DefaultPreset)
             {
                 var themePrefab = Addressables
@@ -32,17 +71,17 @@ namespace YARG.Themes
 
                 return new ThemeContainer(themePrefab, true);
             }
-            else
-            {
-                throw new NotImplementedException();
-            }
+
+            throw new NotImplementedException();
         }
 
         public override BasePreset CopyWithNewName(string name)
         {
             return new ThemePreset(name, false)
             {
-                SupportedStyles = new List<VisualStyle>(SupportedStyles)
+                SupportedStyles     = new List<VisualStyle>(SupportedStyles),
+                FormatVersion       = FormatVersion
+                // CustomBundlePath intentionally NOT copied — copy is not yet on disk
             };
         }
     }

@@ -11,13 +11,15 @@ namespace YARG.Themes
     {
         private readonly GameObject _prefab;
         private readonly bool _builtIn;
+        private readonly AssetBundle _bundle;
 
         public readonly Dictionary<(VisualStyle style, string Name), GameObject> PrefabCache = new();
 
-        public ThemeContainer(GameObject themePrefab, bool builtIn)
+        public ThemeContainer(GameObject themePrefab, bool builtIn, AssetBundle bundle = null)
         {
             _prefab = themePrefab;
             _builtIn = builtIn;
+            _bundle = bundle;
         }
 
         public ThemeComponent GetThemeComponent()
@@ -36,7 +38,7 @@ namespace YARG.Themes
 
             if (_builtIn) return;
 
-            // TODO: Deal with asset bundle unloading
+            _bundle?.Unload(true);
         }
     }
 }
