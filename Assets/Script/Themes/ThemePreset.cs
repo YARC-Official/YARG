@@ -51,11 +51,11 @@ namespace YARG.Themes
                     return null;
                 }
 
-                var themePrefab = bundle.LoadAsset<GameObject>("_theme.prefab");
+                var themePrefab = bundle.LoadAsset<GameObject>("ThemeRoot");
                 if (themePrefab == null)
                 {
                     bundle.Unload(true);
-                    YargLogger.LogFormatError("Theme '{0}' bundle missing '_theme.prefab'", Name);
+                    YargLogger.LogFormatError("Theme '{0}' bundle missing 'ThemeRoot' prefab", Name);
                     return null;
                 }
 

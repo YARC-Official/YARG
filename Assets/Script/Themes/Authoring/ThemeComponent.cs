@@ -7,7 +7,6 @@ using static YARG.Themes.ThemeManager;
 
 #if UNITY_EDITOR
 using System.IO;
-using System.IO.Compression;
 using System.Linq;
 using Newtonsoft.Json;
 using UnityEditor;
@@ -103,7 +102,10 @@ namespace YARG.Themes
         }
 
 #if UNITY_EDITOR
-        private const string THEME_PREFAB_PATH = "Assets/_Theme.prefab";
+        private const string THEME_PREFAB_NAME = "ThemeRoot";
+        private const string THEME_META_NAME = "theme_meta";
+        private const string THEME_PREFAB_PATH = "Assets/" + THEME_PREFAB_NAME + ".prefab";
+        private const string THEME_META_PATH = "Assets/" + THEME_META_NAME + ".asset";
         private const string BUNDLE_OSX_SUFFIX = "_metal.bytes";
         private const string BACKGOUND_OSX_MATERIAL_PREFIX = "_metal_";
 
@@ -115,15 +117,22 @@ namespace YARG.Themes
 
             string fileName = Path.GetFileNameWithoutExtension(path);
             GameObject clonedTheme = null;
+            TextAsset metaAsset = null;
 
             AssetDatabase.DisallowAutoRefresh();
 
             try
             {
-                // 1. Build Metal shader sub-bundle (macOS target)
+                // 1. Collect all dependencies in a single pass
+                var allDeps = EditorUtility.CollectDependencies(new[] { gameObject });
+                var depsMaterials = allDeps.OfType<Material>().ToArray();
+                var depsShaderAssets = allDeps.OfType<Shader>().Select(AssetDatabase.GetAssetPath).ToArray();
+
+                // 2. Build Metal shader sub-bundle (macOS target)
                 var metalAssetBundleName = fileName + BUNDLE_OSX_SUFFIX;
-                var materialAssets = EditorUtility.CollectDependencies(new[] { gameObject })
-                    .OfType<Material>()
+                string metalBundleAssetPath = null;
+
+                var materialAssets = depsMaterials
                     .Select((mat, i) =>
                     {
                         var matClone = new Material(mat);
@@ -145,15 +154,12 @@ namespace YARG.Themes
                     })
                     .ToArray();
 
-                var shaderAssets = EditorUtility.CollectDependencies(new[] { gameObject })
-                    .OfType<Shader>().Select(AssetDatabase.GetAssetPath);
-
                 if (materialAssets.Length > 0)
                 {
                     var metalBuild = new AssetBundleBuild
                     {
                         assetBundleName = metalAssetBundleName,
-                        assetNames = materialAssets.Concat(shaderAssets).ToArray()
+                        assetNames = materialAssets.Concat(depsShaderAssets).ToArray()
                     };
 
                     BuildPipeline.BuildAssetBundles(
@@ -170,8 +176,8 @@ namespace YARG.Themes
                         throw new FileNotFoundException("MacOS Shader bundle failed to build.");
                     }
 
-                    var assetPath = Path.Combine(Application.dataPath, metalAssetBundleName);
-                    File.Move(filePath, assetPath);
+                    metalBundleAssetPath = Path.Combine(Application.dataPath, metalAssetBundleName);
+                    File.Move(filePath, metalBundleAssetPath);
                     AssetDatabase.ImportAsset(Path.Combine("Assets", metalAssetBundleName));
                 }
 
@@ -181,27 +187,10 @@ namespace YARG.Themes
                     AssetDatabase.DeleteAsset(assetPath);
                 }
 
-                // 2. Save theme prefab
+                // 3. Save theme prefab
                 clonedTheme = Instantiate(gameObject);
+                clonedTheme.name = THEME_PREFAB_NAME;
                 PrefabUtility.SaveAsPrefabAsset(clonedTheme, THEME_PREFAB_PATH);
-
-                // 3. Build main AssetBundle (Windows target)
-                var metalBundleAssetPath = Path.Combine("Assets/", metalAssetBundleName);
-                var assetPaths = File.Exists(metalBundleAssetPath)
-                    ? new[] { metalBundleAssetPath, THEME_PREFAB_PATH }
-                    : new[] { THEME_PREFAB_PATH };
-
-                var mainBuild = new AssetBundleBuild
-                {
-                    assetBundleName = "theme.bundle",
-                    assetNames = assetPaths
-                };
-
-                BuildPipeline.BuildAssetBundles(
-                    Application.temporaryCachePath,
-                    new[] { mainBuild },
-                    BuildAssetBundleOptions.ForceRebuildAssetBundle,
-                    BuildTarget.StandaloneWindows);
 
                 // 4. Determine SupportedStyles from non-null fields
                 var supportedStyles = new List<VisualStyle>();
@@ -214,7 +203,7 @@ namespace YARG.Themes
                 if (_fiveLaneNotes != null) supportedStyles.Add(VisualStyle.FiveLaneDrums);
                 if (_proKeysNotes != null) supportedStyles.Add(VisualStyle.ProKeys);
 
-                // 5. Create theme.json
+                // 5. Create metadata TextAsset
                 var preset = new ThemePreset(fileName, false)
                 {
                     Type = "ThemePreset",
@@ -225,29 +214,43 @@ namespace YARG.Themes
                 };
 
                 string jsonText = JsonConvert.SerializeObject(preset, Formatting.Indented);
+                metaAsset = new TextAsset(jsonText);
+                metaAsset.name = THEME_META_NAME;
+                AssetDatabase.CreateAsset(metaAsset, THEME_META_PATH);
 
-                // 6. Create ZIP: theme.json + theme.bundle
-                if (File.Exists(path)) File.Delete(path);
-
-                using (var zip = ZipFile.Open(path, ZipArchiveMode.Create))
+                // 6. Build AssetBundle (Windows target) with prefab + meta (+ metal if any)
+                var bundleAssetPaths = new List<string> { THEME_PREFAB_PATH, THEME_META_PATH };
+                if (!string.IsNullOrEmpty(metalBundleAssetPath))
                 {
-                    var jsonEntry = zip.CreateEntry("theme.json");
-                    using (var writer = new StreamWriter(jsonEntry.Open()))
-                    {
-                        writer.Write(jsonText);
-                    }
-
-                    var bundleSource = Path.Combine(Application.temporaryCachePath, "theme.bundle");
-                    if (File.Exists(bundleSource))
-                    {
-                        zip.CreateEntryFromFile(bundleSource, "theme.bundle");
-                    }
+                    bundleAssetPaths.Add(Path.Combine("Assets/", metalAssetBundleName));
                 }
 
-                // 7. Cleanup
-                foreach (var asset in assetPaths)
+                var mainBuild = new AssetBundleBuild
                 {
-                    if (File.Exists(asset)) AssetDatabase.DeleteAsset(asset);
+                    assetBundleName = fileName.ToLowerInvariant() + ".yargtheme",
+                    assetNames = bundleAssetPaths.ToArray()
+                };
+
+                BuildPipeline.BuildAssetBundles(
+                    Application.temporaryCachePath,
+                    new[] { mainBuild },
+                    BuildAssetBundleOptions.ForceRebuildAssetBundle,
+                    BuildTarget.StandaloneWindows);
+
+                // 7. Copy output to user-chosen path
+                if (File.Exists(path)) File.Delete(path);
+
+                var bundleOutput = Path.Combine(Application.temporaryCachePath, mainBuild.assetBundleName);
+                File.Move(bundleOutput, path);
+
+                // 8. Cleanup
+                foreach (var assetPath in bundleAssetPaths)
+                {
+                    AssetDatabase.DeleteAsset(assetPath);
+                }
+                if (!string.IsNullOrEmpty(metalBundleAssetPath) && File.Exists(metalBundleAssetPath))
+                {
+                    AssetDatabase.DeleteAsset(Path.Combine("Assets", metalAssetBundleName));
                 }
 
                 EditorUtility.DisplayDialog("Export Successful!",
@@ -260,10 +263,8 @@ namespace YARG.Themes
             finally
             {
                 AssetDatabase.AllowAutoRefresh();
-                if (clonedTheme != null)
-                {
-                    DestroyImmediate(clonedTheme);
-                }
+                if (clonedTheme != null) DestroyImmediate(clonedTheme);
+                if (metaAsset != null) DestroyImmediate(metaAsset);
             }
         }
 #endif

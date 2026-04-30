@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.IO.Compression;
 using Newtonsoft.Json;
+using UnityEngine;
 using YARG.Core.Logging;
 using YARG.Themes;
 
@@ -38,40 +38,29 @@ namespace YARG.Settings.Customization
 
         private void LoadThemeFile(string file)
         {
-            string fileName = Path.GetFileNameWithoutExtension(file);
-            string extractDir = Path.Combine(FullContentDirectory, fileName);
-
-            // Extract if not already extracted, or if zip is newer
-            bool needsExtract = !Directory.Exists(extractDir);
-            if (!needsExtract)
+            // Load bundle to read embedded metadata
+            var bundle = AssetBundle.LoadFromFile(file);
+            if (bundle == null)
             {
-                try
-                {
-                    needsExtract = File.GetLastWriteTime(file) > Directory.GetLastWriteTime(extractDir);
-                }
-                catch { needsExtract = true; }
-            }
-
-            if (needsExtract)
-            {
-                if (Directory.Exists(extractDir)) Directory.Delete(extractDir, true);
-                ZipFile.ExtractToDirectory(file, extractDir);
-            }
-
-            // Read theme.json
-            string jsonPath = Path.Combine(extractDir, "theme.json");
-            if (!File.Exists(jsonPath))
-            {
-                YargLogger.LogFormatWarning("Theme '{0}' missing theme.json, skipping.", file);
+                YargLogger.LogFormatWarning("Failed to load bundle '{0}', skipping.", file);
                 return;
             }
 
-            var preset = JsonConvert.DeserializeObject<ThemePreset>(
-                File.ReadAllText(jsonPath), JsonSettings);
+            // Read embedded metadata TextAsset
+            var metaText = bundle.LoadAsset<TextAsset>("theme_meta");
+            if (metaText == null)
+            {
+                bundle.Unload(false);
+                YargLogger.LogFormatWarning("Theme '{0}' missing theme_meta, skipping.", file);
+                return;
+            }
 
-            // Resolve bundle path
-            preset.CustomBundlePath = Path.Combine(extractDir, "theme.bundle");
+            var preset = JsonConvert.DeserializeObject<ThemePreset>(metaText.text, JsonSettings);
+            preset.CustomBundlePath = file; // .yargtheme IS the bundle
             preset.Path = file;
+
+            // Unload temp bundle — will be re-loaded at gameplay time by CreateThemeContainer
+            bundle.Unload(false);
 
             // Skip duplicates
             if (HasPresetId(preset.Id))
