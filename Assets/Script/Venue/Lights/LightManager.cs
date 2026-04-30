@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using UnityEngine;
 using YARG.Core.Chart;
@@ -167,14 +166,11 @@ namespace YARG.Venue
             var replacedLightingEvents = ReplaceFlashingLightingEvents(lightingEvents);
             var filteredLightingEvents = ChartEvent.FilterByInterval(
                 replacedLightingEvents,
-                REDUCED_FLASHING_LIGHT_INTERVAL,
-                isDuplicate: (curr, prev) => curr.Type == prev.Type
+                REDUCED_FLASHING_LIGHT_INTERVAL
             );
             var filteredPerformerEvents = ChartEvent.FilterByInterval(
                 performerEvents,
-                REDUCED_FLASHING_LIGHT_INTERVAL,
-                isDuplicate: (curr, prev) =>
-                    curr.Type == prev.Type && curr.Performers == prev.Performers
+                REDUCED_FLASHING_LIGHT_INTERVAL
             );
 
             return (filteredLightingEvents, filteredPerformerEvents);

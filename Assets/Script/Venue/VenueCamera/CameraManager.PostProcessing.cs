@@ -136,8 +136,7 @@ namespace YARG.Venue.VenueCamera
 
             return ChartEvent.FilterByInterval(
                 replacedEvents,
-                REDUCED_FLASHING_INTERVAL,
-                isDuplicate: (curr, prev) => curr.Type == prev.Type
+                REDUCED_FLASHING_INTERVAL
             );
         }
 
