@@ -494,37 +494,30 @@ namespace YARG.Menu.MusicLibrary
         {
             Texture2D texture = null;
 
-            try
+            // We explicity don't use the cancellation token here as we need control to resume
+            // in *this method* to ensure that image gets disposed since it is backed by a FixedArray
+            // ReSharper disable once MethodSupportsCancellation
+            using var image = await UniTask.RunOnThreadPool(songEntry.LoadAlbumData);
+            if (image != null)
             {
-                using var image = await UniTask.RunOnThreadPool(songEntry.LoadAlbumData, cancellationToken: cancellationToken);
-                if (image != null)
-                {
-                    texture = image.LoadTexture(false);
-                }
-
-                if (cancellationToken.IsCancellationRequested
-                    || _currentView is not SongViewType currentView
-                    || currentView.SongEntry != songEntry)
-                {
-                    if (texture != null)
-                    {
-                        Destroy(texture);
-                    }
-                    return;
-                }
-
-                ClearAlbumCoverTextures();
-
-                SetAlbumCover(_albumCover, texture, 0.05f);
-                SetAlbumCover(_albumCoverSmall, texture, 1f);
+                texture = image.LoadTexture(false);
             }
-            catch (OperationCanceledException)
+
+            if (cancellationToken.IsCancellationRequested
+                || _currentView is not SongViewType currentView
+                || currentView.SongEntry != songEntry)
             {
                 if (texture != null)
                 {
                     Destroy(texture);
                 }
+                return;
             }
+
+            ClearAlbumCoverTextures();
+
+            SetAlbumCover(_albumCover, texture, 0.05f);
+            SetAlbumCover(_albumCoverSmall, texture, 1f);
         }
 
         private void CancelAlbumLoad()

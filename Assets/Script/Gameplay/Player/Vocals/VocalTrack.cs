@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
@@ -205,7 +205,17 @@ namespace YARG.Gameplay.Player
                 "Note pools must be of length three (one for each harmony part).");
         }
 
-        public void InitializeRenderTexture(RectTransform vocalsImage, RenderTexture renderTexture)
+        /// <summary>
+        /// Returns the vocal track's camera for registration
+        /// with <see cref="HighwayCameraRendering"/>. The camera's standalone rendering is
+        /// disabled here so the shared highway camera owns the output.
+        /// </summary>
+        public Camera GetTrackCamera()
+        {
+            return _trackCamera;
+        }
+
+        public void InitializeCamera(RectTransform vocalsImage)
         {
             var vocalsSize = vocalsImage.ToScreenSpace();
             var imageAspectRatio = vocalsSize.width / vocalsSize.height;
@@ -223,8 +233,47 @@ namespace YARG.Gameplay.Player
             var statsHeightNormalized = StatsManager.Instance.GetComponent<RectTransform>().ToScreenSpace().height / Screen.height;
             float yPos = 1.0f - heightNormalized - statsHeightNormalized;
 
-            _trackCamera.rect = new Rect(xPos, yPos, widthNormalized, heightNormalized);
-            _trackCamera.targetTexture = renderTexture;
+            // var currentFrustrum = _trackCamera.projectionMatrix.decomposeProjection;
+            // currentFrustrum.bottom += 1.0f;
+            // _trackCamera.projectionMatrix = Matrix4x4.Frustum(currentFrustrum);
+
+            // 2. Reset the Rect to full screen
+            _trackCamera.rect = new Rect(0, 0, 1, 1);
+
+            // 3. Calculate the "Actual" screen aspect ratio
+            float screenAspect = (float)Screen.width / Screen.height;
+
+            // 4. Determine the TOTAL world height needed so that the 'heightNormalized' 
+            // slice of the screen equals your desired camera framing (orthographicSize * 2).
+            float totalWorldHeight = (_trackCamera.orthographicSize * 2.0f) / heightNormalized;
+
+            // 5. Derive the TOTAL world width based on the SCREEN aspect ratio.
+            // This is the step that prevents horizontal squishing or "too small" rendering.
+            float totalWorldWidth = totalWorldHeight * screenAspect;
+
+            // 6. Calculate the center of your target Rect in 0-1 space
+            float centerX = xPos + (widthNormalized / 2.0f);
+            float centerY = yPos + (heightNormalized / 2.0f);
+
+            // 7. Define the planes. 
+            // We shift the 'center' of the world (0,0) to align with the center of your UI Rect.
+            float left = -centerX * totalWorldWidth;
+            float right = totalWorldWidth * (1.0f - centerX);
+            float bottom = -centerY * totalWorldHeight;
+            float top = totalWorldHeight * (1.0f - centerY);
+
+            // 8. Apply the matrix
+            _trackCamera.projectionMatrix = Matrix4x4.Ortho(
+                left,
+                right,
+                bottom,
+                top,
+                _trackCamera.nearClipPlane,
+                _trackCamera.farClipPlane
+            );
+
+            // Disable standalone rendering — HighwayCameraRendering will drive this camera.
+            _trackCamera.enabled = false;
         }
 
         public void Initialize(VocalsTrack vocalsTrack, YargPlayer primaryPlayer, float? trackSpeed)
@@ -323,7 +372,7 @@ namespace YARG.Gameplay.Player
                             break;
                         case 1:
                             // ...but HARM2 gets HARM3 as a merged part
-                            _staticPhraseTrackers[i] = new StaticPhraseTracker(GetVocalPhrasePairs(parts[i], parts[i+1]));
+                            _staticPhraseTrackers[i] = new StaticPhraseTracker(GetVocalPhrasePairs(parts[i], parts[i + 1]));
                             break;
                             // Do nothing for HARM3, because it's being handled by HARM2
                     }
@@ -433,7 +482,7 @@ namespace YARG.Gameplay.Player
             // Update the range
             if (_isRangeChanging)
             {
-                float changePercent = (float) YargMath.InverseLerpD(_changeStartTime, _changeEndTime, time);
+                float changePercent = (float)YargMath.InverseLerpD(_changeStartTime, _changeEndTime, time);
 
                 if (changePercent >= 1f)
                 {
@@ -536,7 +585,7 @@ namespace YARG.Gameplay.Player
 
         public float GetPosForTime(double time)
         {
-            return (float) time * TrackSpeed;
+            return (float)time * TrackSpeed;
         }
 
         public float GetPosForPitch(float pitch)
@@ -713,11 +762,13 @@ namespace YARG.Gameplay.Player
                 {
                     Tick = mainPhrase.Tick;
                     Time = mainPhrase.Time;
-                } else if (mergedPhrase is not null)
+                }
+                else if (mergedPhrase is not null)
                 {
                     Tick = mergedPhrase.Tick;
                     Time = mergedPhrase.Time;
-                } else
+                }
+                else
                 {
                     throw new InvalidOperationException("Tried to create VocalPhrasePair with two null phrases");
                 }
