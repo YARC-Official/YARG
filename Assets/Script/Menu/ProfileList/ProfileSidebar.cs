@@ -12,6 +12,7 @@ using YARG.Core.Game;
 using YARG.Helpers.Extensions;
 using YARG.Localization;
 using YARG.Menu.Data;
+using YARG.Menu.Filters;
 using YARG.Menu.Main;
 using YARG.Menu.Persistent;
 using YARG.Menu.ProfileInfo;
@@ -384,6 +385,7 @@ namespace YARG.Menu.ProfileList
             _profile.CurrentInstrument = _profile.GameMode.PossibleInstruments()[0];
 
             _profileView.UpdateDisplay(_profile);
+            FiltersMenu.ResetIntensityFiltersForProfile(_profile);
             // Update sidebar when game mode changes so the correct settings are displayed
             UpdateSidebar(_profile, _profileView);
         }

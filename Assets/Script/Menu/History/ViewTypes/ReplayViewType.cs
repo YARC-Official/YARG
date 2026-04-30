@@ -81,6 +81,12 @@ namespace YARG.Menu.History
         // AKA, the Play Replay Button
         public override async void ViewClick()
         {
+            if (_songEntry == null)
+            {
+                DialogManager.Instance.ShowMessage("Unavailable Song", "A song compatible with the selected play is not present in your library! Most likely deleted!");
+                return;
+            }
+
             _entry ??= LoadReplay("Cannot Play Replay");
             if (_entry == null)
             {
@@ -166,6 +172,12 @@ namespace YARG.Menu.History
 
         public override void PlayWithReplayClick()
         {
+            if (_songEntry == null)
+            {
+                DialogManager.Instance.ShowMessage("Unavailable Song", "A song compatible with the selected play is not present in your library! Most likely deleted!");
+                return;
+            }
+
             _entry ??= LoadReplay("Cannot Play Replay");
             if (_entry == null)
             {

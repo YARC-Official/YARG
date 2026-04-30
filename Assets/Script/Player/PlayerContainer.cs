@@ -14,6 +14,7 @@ using YARG.Input;
 using YARG.Input.Bindings;
 using YARG.Localization;
 using YARG.Menu.MusicLibrary;
+using YARG.Menu.Filters;
 using YARG.Menu.Persistent;
 using YARG.Menu.ProfileList;
 using YARG.Settings;
@@ -186,6 +187,9 @@ namespace YARG.Player
             {
                 MusicLibraryMenu.SetReload(MusicLibraryReloadState.Full);
             }
+
+            FiltersMenu.RefreshActiveFilterPredicate();
+            MusicLibraryMenu.NeedsReload();
 
             StatsManager.Instance?.UpdateActivePlayers();
         }
