@@ -47,7 +47,7 @@ namespace YARG.Settings.Customization
             }
 
             // Read embedded metadata TextAsset
-            var metaText = bundle.LoadAsset<TextAsset>("theme_meta");
+            var metaText = bundle.LoadAsset<TextAsset>(ThemeComponent.THEME_META_NAME);
             if (metaText == null)
             {
                 bundle.Unload(false);

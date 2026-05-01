@@ -3,10 +3,9 @@ using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
-using YARG.Core;
 using YARG.Core.Game;
 using YARG.Core.Logging;
-using static YARG.Themes.ThemeManager;
+using YARG.Helpers;
 
 namespace YARG.Themes
 {
@@ -51,13 +50,16 @@ namespace YARG.Themes
                     return null;
                 }
 
-                var themePrefab = bundle.LoadAsset<GameObject>("ThemeRoot");
+                var themePrefab = bundle.LoadAsset<GameObject>(BackgroundHelper.GENERIC_PREFAB_PATH);
                 if (themePrefab == null)
                 {
                     bundle.Unload(true);
                     YargLogger.LogFormatError("Theme '{0}' bundle missing 'ThemeRoot' prefab", Name);
                     return null;
                 }
+
+                // Fixup Metal shaders on macOS (replaces renderer shaders with bundled Metal variants)
+                BackgroundHelper.LoadMetalShaders(bundle, themePrefab, BackgroundHelper.ExportType.Generic);
 
                 return new ThemeContainer(themePrefab, false, bundle);
             }

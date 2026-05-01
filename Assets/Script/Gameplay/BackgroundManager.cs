@@ -24,10 +24,6 @@ using UnityEditor.SceneManagement;
 using UnityEngine.SceneManagement;
 #endif
 
-#if UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX
-using System.Collections.Generic;
-#endif
-
 namespace YARG.Gameplay
 {
     public class BackgroundManager : GameplayBehaviour, IDisposable
@@ -199,11 +195,11 @@ namespace YARG.Gameplay
             // KEEP THIS PATH LOWERCASE
             // Breaks things for other platforms, because Unity
             var bg = (GameObject) await bundle.LoadAssetAsync<GameObject>(
-                BundleBackgroundManager.BACKGROUND_PREFAB_PATH.ToLowerInvariant());
+                BackgroundHelper.BACKGROUND_PREFAB_PATH.ToLowerInvariant());
             var renderers = bg.GetComponentsInChildren<Renderer>(true);
 
             // Load Metal shaders, if necessary
-            shaderBundle = await BackgroundHelper.LoadMetalShaders(bundle, bg, BackgroundHelper.ExportType.Background);
+            shaderBundle = BackgroundHelper.LoadMetalShaders(bundle, bg, BackgroundHelper.ExportType.Background);
 
             // Hookup song-specific textures
             var textureManager = GetComponent<TextureManager>();
@@ -507,7 +503,7 @@ namespace YARG.Gameplay
 
             _bundleBackgroundManager.CharacterBundles.Add(bundle);
 
-            var character = bundle.LoadAsset<GameObject>(BundleBackgroundManager.CHARACTER_PREFAB_PATH.ToLowerInvariant());
+            var character = bundle.LoadAsset<GameObject>(BackgroundHelper.CHARACTER_PREFAB_PATH.ToLowerInvariant());
             if (character == null)
             {
                 YargLogger.LogFormatError("Failed to load character from {0}", characterPath);
@@ -515,7 +511,7 @@ namespace YARG.Gameplay
             }
 
             // Load Metal shaders
-            var shaderBundle = await BackgroundHelper.LoadMetalShaders(bundle, character, BackgroundHelper.ExportType.Character);
+            var shaderBundle = BackgroundHelper.LoadMetalShaders(bundle, character, BackgroundHelper.ExportType.Character);
             if (shaderBundle != null)
             {
                 _bundleBackgroundManager.ShaderBundles.Add(shaderBundle);
