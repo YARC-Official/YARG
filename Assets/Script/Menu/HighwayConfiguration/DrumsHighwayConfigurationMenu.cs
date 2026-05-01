@@ -1,22 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Policy;
-using System.Text;
-using System.Threading.Tasks;
 using TMPro;
-using UnityEditor.Rendering.LookDev;
 using UnityEngine;
 using UnityEngine.UI;
 using YARG.Core;
 using YARG.Core.Game;
-using YARG.Core.Input;
 using YARG.Helpers.Extensions;
 using YARG.Localization;
-using YARG.Menu.Navigation;
-using YARG.Player;
-using YARG.Settings.Customization;
-using static UnityEditor.Progress;
 using static YARG.Core.Game.ColorProfile;
 
 namespace YARG.Menu.HighwayConfiguration

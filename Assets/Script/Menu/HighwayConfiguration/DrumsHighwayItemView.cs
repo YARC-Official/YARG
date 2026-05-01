@@ -1,22 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using YARG.Core;
 using YARG.Core.Chart;
-using YARG.Core.Game;
 using YARG.Core.Input;
-using YARG.Gameplay.Player;
-using YARG.Gameplay.Visuals;
 using YARG.Helpers;
 using YARG.Helpers.Extensions;
 using YARG.Localization;
-using YARG.Player;
-using static UnityEditor.Progress;
 using static YARG.Core.Game.ColorProfile;
 using static YARG.Gameplay.Player.DrumsPlayer;
 

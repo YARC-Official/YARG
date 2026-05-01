@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEditorInternal;
 using UnityEngine;
 using YARG.Core;
 using YARG.Core.Audio;
@@ -9,7 +8,6 @@ using YARG.Core.Chart;
 using YARG.Core.Engine;
 using YARG.Core.Engine.Drums;
 using YARG.Core.Engine.Drums.Engines;
-using YARG.Core.Extensions;
 using YARG.Core.Input;
 using YARG.Core.Logging;
 using YARG.Core.Replays;
@@ -22,7 +20,6 @@ using YARG.Player;
 using YARG.Settings;
 using YARG.Themes;
 using static YARG.Core.Game.ColorProfile;
-using static YARG.Gameplay.Visuals.Fret;
 
 namespace YARG.Gameplay.Player
 {
