@@ -462,7 +462,7 @@ namespace YARG.Gameplay.Player
                     var lerp = Mathf.Lerp(transformCache.localPosition.z, z, Time.deltaTime * lerpRate);
                     transformCache.localPosition = new Vector3(0f, 0f, lerp);
                     _needleTransform.rotation = Quaternion.Lerp(_needleTransform.rotation,
-                        Quaternion.Euler(0f, targetRotation, 0f), Time.deltaTime * NEEDLE_ROT_LERP);
+                        Quaternion.Euler(0f, targetRotation + 90f, 0f), Time.deltaTime * NEEDLE_ROT_LERP);
                 }
                 else
                 {
@@ -496,7 +496,7 @@ namespace YARG.Gameplay.Player
 
                     // Lerp the rotation to none
                     _needleTransform.rotation = Quaternion.Lerp(_needleTransform.rotation,
-                        Quaternion.identity, Time.deltaTime * NEEDLE_ROT_LERP);
+                        Quaternion.Euler(0f, 90f, 0f), Time.deltaTime * NEEDLE_ROT_LERP);
                 }
             }
         }

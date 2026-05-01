@@ -456,8 +456,11 @@ namespace YARG.Gameplay
                         // Initialize the vocal track if it hasn't been already, and hide lyric bar
                         if (!vocalTrackInitialized)
                         {
+                            highwayIndex++;
                             VocalTrack.gameObject.SetActive(true);
-                            _trackViewManager.CreateVocalTrackView();
+                            // Position the vocal track at its highway slot so the shader's WorldPosToIndex maps it correctly
+                            VocalTrack.transform.position = new Vector3(highwayIndex * TRACK_SPACING_X, 100, 0);
+                            _trackViewManager.CreateVocalTrackView(highwayIndex);
 
                             // Since all players have to select the same vocals
                             // type (solo/harmony) this works no problem.

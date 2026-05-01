@@ -88,7 +88,7 @@ namespace YARG.Gameplay.Player
                 PhrasePairs = new();
                 foreach (var phrasePair in phrasePairs)
                 {
-                    if (!phrasePair.IsPercussion)
+                    if (!phrasePair.IsPercussion && phrasePair.HasNotes)
                     {
                         PhrasePairs.Add(phrasePair);
                     }

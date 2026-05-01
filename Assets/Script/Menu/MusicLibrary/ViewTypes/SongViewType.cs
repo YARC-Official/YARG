@@ -3,7 +3,7 @@ using Cysharp.Text;
 using UnityEngine;
 using YARG.Core.Game;
 using YARG.Core.Song;
-using YARG.Menu.Persistent;
+using YARG.Helpers;
 using YARG.Player;
 using YARG.Playlists;
 using YARG.Scores;

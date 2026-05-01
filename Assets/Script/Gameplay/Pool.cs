@@ -35,9 +35,20 @@ namespace YARG.Gameplay
 
         protected virtual void Awake()
         {
-            for (int i = 0; i < _prewarmAmount; i++)
+            PrewarmTo(_prewarmAmount);
+        }
+
+        public void PrewarmTo(int targetTotalCount)
+        {
+            while (TotalCount < targetTotalCount)
             {
-                _pooled.Push(CreateNew());
+                var poolable = CreateNew();
+                if (poolable == null)
+                {
+                    break;
+                }
+
+                _pooled.Push(poolable);
             }
         }
 
@@ -49,11 +60,7 @@ namespace YARG.Gameplay
             _pooled.Clear();
             _spawnedObjects.Clear();
 
-            // Re-prewarm
-            for (int i = 0; i < _prewarmAmount; i++)
-            {
-                _pooled.Push(CreateNew());
-            }
+            PrewarmTo(_prewarmAmount);
         }
 
         private IPoolable CreateNew()

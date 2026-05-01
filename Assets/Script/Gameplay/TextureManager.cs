@@ -73,7 +73,7 @@ namespace YARG.Gameplay
         {
             if (_albumCover == null)
             {
-                var image = GameManager.Song.LoadAlbumData();
+                using var image = GameManager.Song.LoadAlbumData();
                 _albumCover = image.LoadTexture(false);
             }
             return _albumCover;
