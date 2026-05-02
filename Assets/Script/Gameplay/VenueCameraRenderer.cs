@@ -66,7 +66,6 @@ namespace YARG.Gameplay
         private static float _frameAccumulator = 0f;
         private static float _fpsWindowStart = 0f;
         private static int _fpsWindowFrames = 0;
-        private bool _needsInitialization = true;
 
         private void Awake()
         {
@@ -225,10 +224,9 @@ namespace YARG.Gameplay
 
         private void Update()
         {
-            if (ScreenSizeDetector.HasScreenSizeChanged || _needsInitialization)
+            if (ScreenSizeDetector.HasScreenSizeChanged || _venueTexture == null)
             {
                 RecreateTextures();
-                _needsInitialization = false;
                 // Force a render this frame to avoid flickering when resizing
                 ResetRenderState();
             }
