@@ -17,6 +17,7 @@ namespace YARG.Gameplay.Visuals
         private static readonly int _openMiss  = Animator.StringToHash("OpenMiss");
         private static readonly int _pressed   = Animator.StringToHash("Pressed");
         private static readonly int _sustain   = Animator.StringToHash("Sustain");
+        private static readonly int _secondaryPressed = Animator.StringToHash("SecondaryPressed");
 
         // If we want info to be copied over when we copy the prefab,
         // we must make them SerializeFields.
@@ -27,9 +28,14 @@ namespace YARG.Gameplay.Visuals
         private readonly List<Material> _topMaterials   = new();
         private readonly List<Material> _innerMaterials = new();
 
+        // Secondary half materials (for 6-fret dual-half frets)
+        private readonly List<Material> _secondaryTopMaterials   = new();
+        private readonly List<Material> _secondaryInnerMaterials = new();
+
         private bool _hasPressedParam;
         private bool _hasSustainParam;
         private bool _hasOpenMissTrigger;
+        private bool _hasSecondaryPressedParam;
 
         // These need to be saved since the colors can now change during play
         // They are saved as Unity colors to avoid having to repeatedly convert
@@ -37,6 +43,11 @@ namespace YARG.Gameplay.Visuals
         private UnityEngine.Color _originalUnityTopColor;
         private UnityEngine.Color _originalUnityInnerColor;
         private UnityEngine.Color _originalEmissionColor;
+
+        // Secondary half original colors
+        private UnityEngine.Color _secondaryOriginalUnityTopColor;
+        private UnityEngine.Color _secondaryOriginalUnityInnerColor;
+        private UnityEngine.Color _secondaryOriginalEmissionColor;
 
         // TODO: Consider making this customizable or perhaps just a desaturated and dimmed version of the base color
         private UnityEngine.Color _inactiveColor = new(0.321f, 0.321f, 0.321f, 1.0f);
@@ -92,6 +103,43 @@ namespace YARG.Gameplay.Visuals
             _hasOpenMissTrigger = ThemeBind.Animator.HasParameter(_openMiss);
         }
 
+        // Initialize dual-half fret (primary + secondary)
+        public void Initialize(Color top, Color inner, Color particles, Color openParticles,
+            Color secondaryTop, Color secondaryInner, Color secondaryParticles)
+        {
+            // Primary half (existing logic)
+            Initialize(top, inner, particles, openParticles);
+
+            // Secondary half
+            _secondaryOriginalUnityTopColor = secondaryTop.ToUnityColor();
+            _secondaryOriginalUnityInnerColor = secondaryInner.ToUnityColor();
+            _secondaryOriginalEmissionColor = secondaryTop.ToUnityColor() * 11.5f;
+
+            // Set secondary top materials
+            foreach (var material in ThemeBind.GetSecondaryColoredMaterials())
+            {
+                material.color = _secondaryOriginalUnityTopColor;
+                material.SetColor(_emissionColor, _secondaryOriginalEmissionColor);
+                _secondaryTopMaterials.Add(material);
+            }
+
+            // Set secondary inner materials
+            foreach (var material in ThemeBind.GetSecondaryInnerColoredMaterials())
+            {
+                material.color = _secondaryOriginalUnityInnerColor;
+                _secondaryInnerMaterials.Add(material);
+            }
+
+            // Set secondary particle colors
+            if (ThemeBind.SecondaryPressedEffect != null)
+            {
+                ThemeBind.SecondaryPressedEffect.SetColor(secondaryParticles.ToUnityColor());
+            }
+
+            // Check for secondary pressed param
+            _hasSecondaryPressedParam = ThemeBind.Animator.HasParameter(_secondaryPressed);
+        }
+
         public void Update()
         {
             UpdateColor();
@@ -122,6 +170,18 @@ namespace YARG.Gameplay.Visuals
                 material.SetColor(_emissionColor, UnityEngine.Color.white);
             }
 
+            foreach (var material in _secondaryTopMaterials)
+            {
+                material.color = UnityEngine.Color.white;
+                material.SetColor(_emissionColor, UnityEngine.Color.white);
+            }
+
+            foreach (var material in _secondaryInnerMaterials)
+            {
+                material.color = UnityEngine.Color.white;
+                material.SetColor(_emissionColor, UnityEngine.Color.white);
+            }
+
             foreach (var light in ThemeBind.HitEffect.EffectLights)
             {
                 light.IsBrightened = true;
@@ -145,6 +205,18 @@ namespace YARG.Gameplay.Visuals
             {
                 material.color = _originalUnityInnerColor;
                 material.SetColor(_emissionColor, _originalEmissionColor);
+            }
+
+            foreach (var material in _secondaryTopMaterials)
+            {
+                material.color = _secondaryOriginalUnityTopColor;
+                material.SetColor(_emissionColor, _secondaryOriginalEmissionColor);
+            }
+
+            foreach (var material in _secondaryInnerMaterials)
+            {
+                material.color = _secondaryOriginalUnityInnerColor;
+                material.SetColor(_emissionColor, _secondaryOriginalEmissionColor);
             }
 
             foreach (var light in ThemeBind.HitEffect.EffectLights)
@@ -183,6 +255,43 @@ namespace YARG.Gameplay.Visuals
             else
             {
                 ThemeBind.PressedEffect.Stop();
+            }
+        }
+
+        // Secondary half press (white fret half)
+        public void SetPressedSecondary(bool pressed, float value)
+        {
+            foreach (var material in _secondaryInnerMaterials)
+            {
+                material.SetFloat(_fade, value);
+            }
+
+            if (_hasSecondaryPressedParam)
+            {
+                ThemeBind.Animator.SetBool(_secondaryPressed, pressed);
+            }
+
+            if (pressed && ThemeBind.SecondaryPressedEffect != null)
+            {
+                ThemeBind.SecondaryPressedEffect.Play();
+            }
+            else if (ThemeBind.SecondaryPressedEffect != null)
+            {
+                ThemeBind.SecondaryPressedEffect.Stop();
+            }
+        }
+
+        // Set secondary half color (for Star Power transitions)
+        public void SetSecondaryColor(Color top, Color inner)
+        {
+            foreach (var mat in _secondaryTopMaterials)
+            {
+                mat.color = top.ToUnityColor();
+                mat.SetColor(_emissionColor, top.ToUnityColor() * 11.5f);
+            }
+            foreach (var mat in _secondaryInnerMaterials)
+            {
+                mat.color = inner.ToUnityColor();
             }
         }
 

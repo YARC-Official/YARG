@@ -190,6 +190,44 @@ namespace YARG.Gameplay.Player
             LaneElement.DefineLaneScale(Player.Profile.CurrentInstrument, 3, true);
         }
 
+        protected override void UpdateFretArray()
+        {
+            // Iterate lane pairs (0, 1, 2)
+            for (int pair = 0; pair < 3; pair++)
+            {
+                var blackFret = (SixFretGuitarFret)(pair + 1); // Black1=1, Black2=2, Black3=3
+                var whiteFret = (SixFretGuitarFret)(pair + 4); // White1=4, White2=5, White3=6
+                var blackHeld = Engine.IsFretHeld((GuitarAction)(int)blackFret);
+                var whiteHeld = Engine.IsFretHeld((GuitarAction)(int)whiteFret);
+                var fretIndex = (int)blackFret; // Matches _frets dict key (Black1=1)
+
+                if (blackHeld && whiteHeld)
+                {
+                    // Both pressed — light both halves
+                    _fretArray.SetPressed(fretIndex, true);
+                    _fretArray.SetPressedSecondary(fretIndex, true);
+                }
+                else if (blackHeld)
+                {
+                    // Black only — primary half
+                    _fretArray.SetPressed(fretIndex, true);
+                    _fretArray.SetPressedSecondary(fretIndex, false);
+                }
+                else if (whiteHeld)
+                {
+                    // White only — secondary half
+                    _fretArray.SetPressed(fretIndex, false);
+                    _fretArray.SetPressedSecondary(fretIndex, true);
+                }
+                else
+                {
+                    // Neither — both off
+                    _fretArray.SetPressed(fretIndex, false);
+                    _fretArray.SetPressedSecondary(fretIndex, false);
+                }
+            }
+        }
+
         protected override void OnNoteHit(int index, GuitarNote chordParent)
         {
             base.OnNoteHit(index, chordParent);
