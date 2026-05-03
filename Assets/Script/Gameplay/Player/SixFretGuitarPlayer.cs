@@ -109,7 +109,7 @@ namespace YARG.Gameplay.Player
                 note.Fret != (int)SixFretGuitarFret.Open &&
                 note.Fret != (int)SixFretGuitarFret.Wildcard)
             {
-                element.IsPaired = FindPairInChord(note);
+                element.IsPaired = FindPairInBarre(note);
             }
             else
             {
@@ -117,7 +117,7 @@ namespace YARG.Gameplay.Player
             }
         }
 
-        private bool FindPairInChord(GuitarNote note)
+        private bool FindPairInBarre(GuitarNote note)
         {
             int pairIdx = GetPairIndex((SixFretGuitarFret)note.Fret);
 
@@ -150,7 +150,7 @@ namespace YARG.Gameplay.Player
             if (!Player.Profile.SixFretSplitLanes &&
                 note.Fret != (int)SixFretGuitarFret.Open &&
                 note.Fret != (int)SixFretGuitarFret.Wildcard &&
-                !FindPairInChord(note))
+                !FindPairInBarre(note))
             {
                 lane.SetCombinedSpan(true);
             }
