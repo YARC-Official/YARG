@@ -88,8 +88,6 @@ namespace YARG.Menu.ProfileList
         [SerializeField]
         private Toggle _swapCrashAndRide;
         [SerializeField]
-        private Toggle _sixFretSplitLanes;
-        [SerializeField]
         private TMP_Dropdown _starPowerActivationTypeDropdown;
         [SerializeField]
         private TMP_Dropdown _engineDropdown;
@@ -262,7 +260,6 @@ namespace YARG.Menu.ProfileList
             _splitProTomsAndCymbals.isOn = profile.SplitProTomsAndCymbals;
             _swapSnareAndHiHat.isOn = profile.SwapSnareAndHiHat;
             _swapCrashAndRide.isOn = profile.SwapCrashAndRide;
-            _sixFretSplitLanes.isOn = profile.SixFretSplitLanes;
 
             // Update preset dropdowns
             _engineDropdown.SetValueWithoutNotify(
@@ -490,11 +487,6 @@ namespace YARG.Menu.ProfileList
         public void ChangeSwapCrashAndRide()
         {
             _profile.SwapCrashAndRide = _swapCrashAndRide.isOn;
-        }
-
-        public void ChangeSixFretSplitLanes()
-        {
-            _profile.SixFretSplitLanes = _sixFretSplitLanes.isOn;
         }
 
         public void ChangeEngine()
