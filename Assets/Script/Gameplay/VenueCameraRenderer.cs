@@ -244,15 +244,11 @@ namespace YARG.Gameplay
 
             if (fpsEffect.IsActive())
             {
-                if (FPS == 0)
+                // Divisor is relative to 60 FPS, so target is always 60/divisor
+                _effectiveFps = Mathf.RoundToInt(60f / fpsEffect.Divisor.value);
+                // Clamp to FPS cap if non-zero (no cap when FPS=0)
+                if (FPS > 0)
                 {
-                    _effectiveFps = Mathf.RoundToInt(60f / fpsEffect.Divisor.value);
-                } else {
-                    // The divisor is relative to 60 fps, so we need to adjust for that if FPS is something other than 60
-                    var fpsRatio = ActualFPS / 60f;
-                    var adjustedDivisor = fpsRatio * fpsEffect.Divisor.value;
-                    _effectiveFps = Mathf.RoundToInt(FPS / adjustedDivisor);
-                    // Don't allow a rate higher than the FPS cap
                     _effectiveFps = Mathf.Min(FPS, _effectiveFps);
                 }
             }
