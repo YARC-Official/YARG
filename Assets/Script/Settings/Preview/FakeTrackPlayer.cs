@@ -45,10 +45,10 @@ namespace YARG.Settings.Preview
             public CreateFakeNoteFunc CreateFakeNote;
         }
 
+        public GameMode CurrentGameMode { get; set; }
+
         private static readonly Dictionary<GameMode, Info> _gameModeInfos = new()
         {
-
-        public GameMode CurrentGameMode { get; set; }
             {
                 GameMode.FiveFretGuitar,
                 new Info
