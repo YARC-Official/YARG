@@ -29,6 +29,15 @@ namespace YARG.Themes
         Glissando = 13,
 
         Wildcard = 14,
+
+        // 6-fret guitar specific types
+        SixFretUp       = 15,
+        SixFretDown     = 16,
+        SixFretBarre    = 17,
+        SixFretUpHOPO   = 18,
+        SixFretDownHOPO = 19,
+        SixFretUpTap    = 20,
+        SixFretDownTap  = 21,
     }
 
     public class ThemeNote : MonoBehaviour
@@ -47,9 +56,14 @@ namespace YARG.Themes
         [SerializeField]
         private MeshEmissionMaterialIndex[] _coloredMetalMaterials;
 
+        [Space]
+        [SerializeField]
+        private MeshEmissionMaterialIndex[] _coloredSecondaryMaterials;
+
         public IEnumerable<MeshEmissionMaterialIndex> ColoredMaterials => _coloredMaterials;
         public IEnumerable<MeshEmissionMaterialIndex> ColoredMaterialsNoStarPower => _coloredMaterialsNoStarPower;
         public IEnumerable<MeshEmissionMaterialIndex> ColoredMetalMaterials => _coloredMetalMaterials;
+        public IEnumerable<MeshEmissionMaterialIndex> ColoredSecondaryMaterials => _coloredSecondaryMaterials;
 
         private void OnDrawGizmos()
         {

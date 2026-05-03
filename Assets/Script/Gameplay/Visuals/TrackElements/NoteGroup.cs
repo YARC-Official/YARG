@@ -102,6 +102,27 @@ namespace YARG.Gameplay.Visuals
             }
         }
 
+        private MaterialInfo[] _coloredSecondaryMaterialCache;
+
+        public void SetSecondaryColor(Color secondary, Color secondaryNoStarPower)
+        {
+            _coloredSecondaryMaterialCache ??= _themeNote.ColoredSecondaryMaterials?.Select(MaterialInfo.From).ToArray() ?? System.Array.Empty<MaterialInfo>();
+
+            if (_coloredSecondaryMaterialCache.Length == 0) return;
+
+            // Apply secondary color (with star power)
+            foreach (var info in _coloredSecondaryMaterialCache)
+            {
+                float a = info.EmissionAddition;
+                var realColor = secondary + new Color(a, a, a);
+
+                info.MaterialCache.color = realColor;
+                info.MaterialCache.SetColor(_emissionColor, realColor * info.EmissionMultiplier);
+            }
+
+            // Note: No separate no-star-power cache for secondary, as barre notes use same SP state as primary
+        }
+
         public void SetActive(bool a) => gameObject.SetActive(a);
 
         /// <summary>
