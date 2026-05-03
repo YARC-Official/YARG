@@ -198,8 +198,9 @@ namespace YARG.Gameplay.Visuals
             var colors = Player.Player.ColorProfile.SixFretGuitar;
             bool isSp = IsStarPowerVisible;
 
-            // Get base colors
-            Color primaryColor, primaryNoSp, secondaryColor = default, secondaryNoSp = default;
+            // Use System.Drawing.Color explicitly to avoid UnityEngine.Color ambiguity
+            System.Drawing.Color primaryColor, primaryNoSp;
+            System.Drawing.Color secondaryColor = default, secondaryNoSp = default;
 
             if (NoteRef.Fret == (int)SixFretGuitarFret.Open || NoteRef.Fret == (int)SixFretGuitarFret.Wildcard)
             {

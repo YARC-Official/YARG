@@ -14,7 +14,7 @@ namespace YARG.Gameplay.Player
     public class SixFretGuitarPlayer : FiveFretGuitarPlayer
     {
         // Lane mapping: 3 visual lanes, each = black+white pair
-        public new static Dictionary<int, int> DEFAULT_LANE_POSITIONS { get; } = new()
+        public static Dictionary<int, int> DEFAULT_LANE_POSITIONS { get; } = new()
         {
             { (int)SixFretGuitarFret.Black1, 0 },
             { (int)SixFretGuitarFret.White1, 0 },
@@ -26,8 +26,6 @@ namespace YARG.Gameplay.Player
 
         public new int LaneCount => 3;
 
-        protected override Dictionary<int, int> _lanePositions { get; set; } = new(DEFAULT_LANE_POSITIONS);
-
         // Determine if fret is "up" row (black normal, white lefty flip)
         protected bool IsUpFret(SixFretGuitarFret fret)
         {
@@ -36,8 +34,8 @@ namespace YARG.Gameplay.Player
                 : fret is >= SixFretGuitarFret.Black1 and <= SixFretGuitarFret.Black3;
         }
 
-        // Get lane index (0-2) for a fret
-        protected int GetLaneIndex(SixFretGuitarFret fret) => _lanePositions[(int)fret];
+        // Get lane index (0-2) for a fret (accessible to note elements)
+        public int GetLaneIndex(SixFretGuitarFret fret) => _lanePositions[(int)fret];
 
         protected override int GetFretIndex(GuitarAction action)
         {
@@ -118,12 +116,19 @@ namespace YARG.Gameplay.Player
             }
 
             // Check if sibling note exists in same lane pair (barre)
-            bool hasSibling = note.ParentOrSelf.AllNotes.Any(other =>
-                other != note &&
-                other.Fret != (int)SixFretGuitarFret.Open &&
-                other.Fret != (int)SixFretGuitarFret.Wildcard &&
-                GetLaneIndex((SixFretGuitarFret)other.Fret) == GetLaneIndex((SixFretGuitarFret)note.Fret) &&
-                other.Fret != note.Fret);
+            bool hasSibling = false;
+            foreach (var other in note.ParentOrSelf.AllNotes)
+            {
+                if (other != note &&
+                    other.Fret != (int)SixFretGuitarFret.Open &&
+                    other.Fret != (int)SixFretGuitarFret.Wildcard &&
+                    GetLaneIndex((SixFretGuitarFret)other.Fret) == GetLaneIndex((SixFretGuitarFret)note.Fret) &&
+                    other.Fret != note.Fret)
+                {
+                    hasSibling = true;
+                    break;
+                }
+            }
 
             if (hasSibling)
             {
@@ -331,7 +336,7 @@ namespace YARG.Gameplay.Player
             }
             else
             {
-                _lanePositions = new(DEFAULT_LANE_POSITIONS);
+                _lanePositions = new Dictionary<int, int>(DEFAULT_LANE_POSITIONS);
             }
         }
     }

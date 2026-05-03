@@ -47,6 +47,8 @@ namespace YARG.Settings.Preview
 
         private static readonly Dictionary<GameMode, Info> _gameModeInfos = new()
         {
+
+        public GameMode CurrentGameMode { get; set; }
             {
                 GameMode.FiveFretGuitar,
                 new Info
