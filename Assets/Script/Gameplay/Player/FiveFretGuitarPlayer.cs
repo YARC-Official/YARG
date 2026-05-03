@@ -394,7 +394,7 @@ namespace YARG.Gameplay.Player
 
         }
 
-        private void UpdateFretArray()
+        protected virtual void UpdateFretArray()
         {
             for (var action = GuitarAction.GreenFret; action <= GetFretActionMax(); action++)
             {

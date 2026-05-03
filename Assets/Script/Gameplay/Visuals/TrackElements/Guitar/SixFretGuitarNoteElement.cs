@@ -11,21 +11,18 @@ namespace YARG.Gameplay.Visuals
 {
     public sealed class SixFretGuitarNoteElement : NoteElement<GuitarNote, SixFretGuitarPlayer>
     {
-        private enum NoteType
+        // Lane note type for 3-lane rendering
+        public enum LaneNoteType
         {
-            Strum = 0,
-            HOPO = 1,
-            Tap = 2,
-            Open = 3,
-            OpenHOPO = 4,
-            Wildcard = 5,
-
-            Count
+            None,   // Open/Wildcard (full-width)
+            Up,     // "Up" row note (black normal / white lefty)
+            Down,   // "Down" row note (white normal / black lefty)
+            Barre   // Both rows in same lane pair
         }
 
-        // When only one note in a black/white pair is present and split mode is off,
-        // its width is increased by this multiplier to span both lanes
-        private const float SINGLE_NOTE_MULTIPLIER = 1.95f;
+        // Theme model mapping count (Up/Down/Barre × Strum/HOPO/Tap + Open + Wildcard)
+        private const int THEME_MODEL_COUNT = 3 * 3 + 2; // 11 total
+
         [Space]
         [SerializeField]
         private SustainLine _normalSustainLine;
@@ -37,10 +34,9 @@ namespace YARG.Gameplay.Visuals
         private SustainLine _sustainLine;
 
         /// <summary>
-        /// Whether this note has a paired sibling in the same combined lane.
-        /// Only meaningful when SixFretSplitLanes is false.
+        /// Lane note type determined at spawn time by SixFretGuitarPlayer.
         /// </summary>
-        public bool IsPaired = false;
+        public LaneNoteType LaneType = LaneNoteType.None;
 
         protected override float RemovePointOffset => (float) NoteRef.TimeLength * Player.NoteSpeed;
 
@@ -48,14 +44,25 @@ namespace YARG.Gameplay.Visuals
             Dictionary<ThemeNoteType, GameObject> models,
             Dictionary<ThemeNoteType, GameObject> starPowerModels)
         {
-            CreateNoteGroupArrays((int) NoteType.Count);
+            CreateNoteGroupArrays(THEME_MODEL_COUNT);
 
-            AssignNoteGroup(models, starPowerModels, (int) NoteType.Strum, ThemeNoteType.Normal);
-            AssignNoteGroup(models, starPowerModels, (int) NoteType.HOPO, ThemeNoteType.HOPO);
-            AssignNoteGroup(models, starPowerModels, (int) NoteType.Tap, ThemeNoteType.Tap);
-            AssignNoteGroup(models, starPowerModels, (int) NoteType.Open, ThemeNoteType.Open);
-            AssignNoteGroup(models, starPowerModels, (int) NoteType.OpenHOPO, ThemeNoteType.OpenHOPO);
-            AssignNoteGroup(models, starPowerModels, (int) NoteType.Wildcard, ThemeNoteType.Wildcard);
+            // Map (LaneType, GuitarNoteType) to ThemeNoteType
+            // Up notes
+            AssignNoteGroup(models, starPowerModels, 0, ThemeNoteType.SixFretUp);
+            AssignNoteGroup(models, starPowerModels, 1, ThemeNoteType.SixFretUpHOPO);
+            AssignNoteGroup(models, starPowerModels, 2, ThemeNoteType.SixFretUpTap);
+            // Down notes
+            AssignNoteGroup(models, starPowerModels, 3, ThemeNoteType.SixFretDown);
+            AssignNoteGroup(models, starPowerModels, 4, ThemeNoteType.SixFretDownHOPO);
+            AssignNoteGroup(models, starPowerModels, 5, ThemeNoteType.SixFretDownTap);
+            // Barre notes (only strum)
+            AssignNoteGroup(models, starPowerModels, 6, ThemeNoteType.SixFretBarre);
+            // Open notes
+            AssignNoteGroup(models, starPowerModels, 7, ThemeNoteType.Open);
+            AssignNoteGroup(models, starPowerModels, 8, ThemeNoteType.OpenHOPO);
+            // Wildcard
+            AssignNoteGroup(models, starPowerModels, 9, ThemeNoteType.Wildcard);
+            // Unused slot (10) for alignment
         }
 
         protected override void InitializeElement()
@@ -63,70 +70,66 @@ namespace YARG.Gameplay.Visuals
             base.InitializeElement();
 
             var noteGroups = IsStarPowerVisible ? StarPowerNoteGroups : NoteGroups;
+            int modelIndex = -1;
 
-            int lane = -1;
-
-            if (NoteRef.Fret != (int) SixFretGuitarFret.Open && NoteRef.Fret != (int) SixFretGuitarFret.Wildcard)
-            {
-                lane = Player.GetLanePosition((SixFretGuitarFret) NoteRef.Fret);
-
-                NoteGroup = NoteRef.Type switch
-                {
-                    GuitarNoteType.Strum => noteGroups[(int) NoteType.Strum],
-                    GuitarNoteType.Hopo => noteGroups[(int) NoteType.HOPO],
-                    GuitarNoteType.Tap => noteGroups[(int) NoteType.Tap],
-                    _ => throw new ArgumentOutOfRangeException(nameof(NoteRef.Type))
-                };
-
-                _sustainLine = _normalSustainLine;
-
-                if (!Player.Player.Profile.SixFretSplitLanes && !IsPaired)
-                {
-                    // Combined mode, solo note: center between pair, scale wider
-                    float combinedX = GetCombinedCenterX(lane);
-                    transform.localPosition = new Vector3(combinedX, 0f, 0f);
-
-                    // Scale note group to span both lanes
-                    var s = NoteGroup.transform.localScale;
-                    NoteGroup.transform.localScale = new Vector3(s.x * SINGLE_NOTE_MULTIPLIER, s.y, s.z);
-                }
-                else
-                {
-                    // Split mode or paired: normal
-                    transform.localPosition = new Vector3(GetElementX(lane, Player.LaneCount), 0f, 0f);
-                }
-            }
-            else if (NoteRef.Fret == (int) SixFretGuitarFret.Open)
+            // Open/Wildcard: full-width, position at center
+            if (NoteRef.Fret == (int) SixFretGuitarFret.Open)
             {
                 transform.localPosition = Vector3.zero;
 
-                NoteGroup = NoteRef.Type switch
+                modelIndex = NoteRef.Type switch
                 {
-                    GuitarNoteType.Strum => noteGroups[(int) NoteType.Open],
-                    GuitarNoteType.Hopo or
-                    GuitarNoteType.Tap => noteGroups[(int) NoteType.OpenHOPO],
+                    GuitarNoteType.Strum => 7, // Open
+                    GuitarNoteType.Hopo or GuitarNoteType.Tap => 8, // OpenHOPO
                     _ => throw new ArgumentOutOfRangeException(nameof(NoteRef.Type))
                 };
 
                 _sustainLine = _openSustainLine;
             }
-            else
+            else if (NoteRef.Fret == (int) SixFretGuitarFret.Wildcard)
             {
                 transform.localPosition = Vector3.zero;
-
-                NoteGroup = noteGroups[(int) NoteType.Wildcard];
-
+                modelIndex = 9; // Wildcard
                 _sustainLine = _wildcardSustainLine;
             }
+            else
+            {
+                // 3-lane note: position based on lane index (0-2)
+                int laneIndex = Player.GetLaneIndex((SixFretGuitarFret)NoteRef.Fret);
+                transform.localPosition = new Vector3(GetElementX(laneIndex, 3), 0f, 0f);
 
+                // Map LaneType + NoteType to model index
+                modelIndex = LaneType switch
+                {
+                    LaneNoteType.Up => NoteRef.Type switch
+                    {
+                        GuitarNoteType.Strum => 0, // SixFretUp
+                        GuitarNoteType.Hopo => 1, // SixFretUpHOPO
+                        GuitarNoteType.Tap => 2,  // SixFretUpTap
+                        _ => throw new ArgumentOutOfRangeException()
+                    },
+                    LaneNoteType.Down => NoteRef.Type switch
+                    {
+                        GuitarNoteType.Strum => 3, // SixFretDown
+                        GuitarNoteType.Hopo => 4, // SixFretDownHOPO
+                        GuitarNoteType.Tap => 5,  // SixFretDownTap
+                        _ => throw new ArgumentOutOfRangeException()
+                    },
+                    LaneNoteType.Barre => 6, // SixFretBarre (only strum)
+                    _ => throw new ArgumentOutOfRangeException()
+                };
+
+                _sustainLine = _normalSustainLine;
+            }
+
+            NoteGroup = noteGroups[modelIndex];
             NoteGroup.SetActive(true);
             NoteGroup.Initialize();
 
             if (NoteRef.IsSustain)
             {
                 _sustainLine.gameObject.SetActive(true);
-
-                float len = (float) NoteRef.TimeLength * Player.NoteSpeed;
+                float len = (float)NoteRef.TimeLength * Player.NoteSpeed;
                 _sustainLine.Initialize(len);
             }
 
@@ -190,68 +193,74 @@ namespace YARG.Gameplay.Visuals
             _sustainLine.UpdateSustainLine();
         }
 
-        private float GetCombinedCenterX(int fretLane)
-        {
-            int pairLane = GetPairedLane(fretLane);
-            float x1 = GetElementX(fretLane, Player.LaneCount);
-            float x2 = GetElementX(pairLane, Player.LaneCount);
-            return (x1 + x2) / 2f;
-        }
-
-        private int GetPairedLane(int fretLane)
-        {
-            // Highway ordering: Black1=0, White1=1, Black2=2, White2=3, Black3=4, White3=5
-            // Pairs: (0,1), (2,3), (4,5) — always adjacent even/odd
-            return fretLane % 2 == 0 ? fretLane + 1 : fretLane - 1;
-        }
-
         private void UpdateColor()
         {
             var colors = Player.Player.ColorProfile.SixFretGuitar;
+            bool isSp = IsStarPowerVisible;
 
-            var colorNoStarPower = colors.GetNoteColor(NoteRef.Fret);
-            var color = IsStarPowerVisible
-                ? colors.GetNoteStarPowerColor(NoteRef.Fret)
-                : colorNoStarPower;
+            // Get base colors
+            Color primaryColor, primaryNoSp, secondaryColor = default, secondaryNoSp = default;
+
+            if (NoteRef.Fret == (int)SixFretGuitarFret.Open || NoteRef.Fret == (int)SixFretGuitarFret.Wildcard)
+            {
+                primaryColor = isSp ? colors.GetNoteStarPowerColor(NoteRef.Fret) : colors.GetNoteColor(NoteRef.Fret);
+                primaryNoSp = colors.GetNoteColor(NoteRef.Fret);
+            }
+            else
+            {
+                // Determine primary/secondary based on LaneType
+                switch (LaneType)
+                {
+                    case LaneNoteType.Up:
+                        primaryColor = isSp ? colors.BlackNoteStarPower : colors.BlackNote;
+                        primaryNoSp = colors.BlackNote;
+                        break;
+                    case LaneNoteType.Down:
+                        primaryColor = isSp ? colors.WhiteNoteStarPower : colors.WhiteNote;
+                        primaryNoSp = colors.WhiteNote;
+                        break;
+                    case LaneNoteType.Barre:
+                        primaryColor = isSp ? colors.BlackNoteStarPower : colors.BlackNote;
+                        primaryNoSp = colors.BlackNote;
+                        secondaryColor = isSp ? colors.WhiteNoteStarPower : colors.WhiteNote;
+                        secondaryNoSp = colors.WhiteNote;
+                        break;
+                    default:
+                        return;
+                }
+            }
 
             if (NoteRef.WasMissed)
             {
-                color = colors.Miss;
+                primaryColor = colors.Miss;
+                primaryNoSp = colors.Miss;
             }
 
             if (!NoteRef.WasHit)
             {
-                NoteGroup.SetColorWithEmission(color.ToUnityColor(), colorNoStarPower.ToUnityColor());
+                NoteGroup.SetColorWithEmission(primaryColor.ToUnityColor(), primaryNoSp.ToUnityColor());
 
-                NoteGroup.SetMetalColor(colors.GetMetalColor(IsStarPowerVisible).ToUnityColor());
+                // Apply secondary color for barre notes
+                if (LaneType == LaneNoteType.Barre)
+                {
+                    NoteGroup.SetSecondaryColor(secondaryColor.ToUnityColor(), secondaryNoSp.ToUnityColor());
+                }
+
+                NoteGroup.SetMetalColor(colors.GetMetalColor(isSp).ToUnityColor());
             }
 
             if (!NoteRef.IsSustain) return;
 
-            _sustainLine.SetState(SustainState, color.ToUnityColor());
+            _sustainLine.SetState(SustainState, primaryColor.ToUnityColor());
+            if (LaneType == LaneNoteType.Barre)
+            {
+                _sustainLine.SetSecondaryColor(secondaryColor.ToUnityColor());
+            }
         }
 
         protected override void HideElement()
         {
             HideNotes();
-
-            // Reset note group X scales (combined mode doubles them)
-            foreach (var group in NoteGroups)
-            {
-                if (group != null)
-                {
-                    var s = group.transform.localScale;
-                    group.transform.localScale = new Vector3(1f, s.y, s.z);
-                }
-            }
-            foreach (var group in StarPowerNoteGroups)
-            {
-                if (group != null)
-                {
-                    var s = group.transform.localScale;
-                    group.transform.localScale = new Vector3(1f, s.y, s.z);
-                }
-            }
 
             _normalSustainLine.gameObject.SetActive(false);
             _openSustainLine.gameObject.SetActive(false);

@@ -13,27 +13,31 @@ namespace YARG.Gameplay.Player
 {
     public class SixFretGuitarPlayer : FiveFretGuitarPlayer
     {
-        // Combined lane pair index: (Black1,White1)->0, (Black2,White2)->1, (Black3,White3)->2
-        private static readonly Dictionary<SixFretGuitarFret, int> COMBINED_PAIR_INDEX = new()
-        {
-            { SixFretGuitarFret.Black1, 0 }, { SixFretGuitarFret.White1, 0 },
-            { SixFretGuitarFret.Black2, 1 }, { SixFretGuitarFret.White2, 1 },
-            { SixFretGuitarFret.Black3, 2 }, { SixFretGuitarFret.White3, 2 },
-        };
-
-        private static int GetPairIndex(SixFretGuitarFret fret) => COMBINED_PAIR_INDEX[fret];
-
-        public new static Dictionary<int, int> DEFAULT_HIGHWAY_ORDERING { get; } = new()
+        // Lane mapping: 3 visual lanes, each = black+white pair
+        public new static Dictionary<int, int> DEFAULT_LANE_POSITIONS { get; } = new()
         {
             { (int)SixFretGuitarFret.Black1, 0 },
-            { (int)SixFretGuitarFret.White1, 1 },
-            { (int)SixFretGuitarFret.Black2, 2 },
-            { (int)SixFretGuitarFret.White2, 3 },
-            { (int)SixFretGuitarFret.Black3, 4 },
-            { (int)SixFretGuitarFret.White3, 5 },
+            { (int)SixFretGuitarFret.White1, 0 },
+            { (int)SixFretGuitarFret.Black2, 1 },
+            { (int)SixFretGuitarFret.White2, 1 },
+            { (int)SixFretGuitarFret.Black3, 2 },
+            { (int)SixFretGuitarFret.White3, 2 },
         };
 
-        public new int LaneCount => 6;
+        public new int LaneCount => 3;
+
+        protected override Dictionary<int, int> _lanePositions { get; set; } = new(DEFAULT_LANE_POSITIONS);
+
+        // Determine if fret is "up" row (black normal, white lefty flip)
+        protected bool IsUpFret(SixFretGuitarFret fret)
+        {
+            return Player.Profile.LeftyFlip
+                ? fret is >= SixFretGuitarFret.White1 and <= SixFretGuitarFret.White3
+                : fret is >= SixFretGuitarFret.Black1 and <= SixFretGuitarFret.Black3;
+        }
+
+        // Get lane index (0-2) for a fret
+        protected int GetLaneIndex(SixFretGuitarFret fret) => _lanePositions[(int)fret];
 
         protected override int GetFretIndex(GuitarAction action)
         {
@@ -92,7 +96,7 @@ namespace YARG.Gameplay.Player
         {
             _fretArray.Initialize(
                 _lanePositions,
-                LaneCount,
+                3,  // 3 visual lanes
                 null,
                 Player.ColorProfile.SixFretGuitar,
                 Player.ThemePreset,
@@ -105,66 +109,68 @@ namespace YARG.Gameplay.Player
             var element = (SixFretGuitarNoteElement)poolable;
             element.NoteRef = note;
 
-            if (!Player.Profile.SixFretSplitLanes &&
-                note.Fret != (int)SixFretGuitarFret.Open &&
-                note.Fret != (int)SixFretGuitarFret.Wildcard)
+            // Open/Wildcard: no lane type (full-width)
+            if (note.Fret == (int)SixFretGuitarFret.Open ||
+                note.Fret == (int)SixFretGuitarFret.Wildcard)
             {
-                element.IsPaired = FindPairInBarre(note);
+                element.LaneType = SixFretGuitarNoteElement.LaneNoteType.None;
+                return;
+            }
+
+            // Check if sibling note exists in same lane pair (barre)
+            bool hasSibling = note.ParentOrSelf.AllNotes.Any(other =>
+                other != note &&
+                other.Fret != (int)SixFretGuitarFret.Open &&
+                other.Fret != (int)SixFretGuitarFret.Wildcard &&
+                GetLaneIndex((SixFretGuitarFret)other.Fret) == GetLaneIndex((SixFretGuitarFret)note.Fret) &&
+                other.Fret != note.Fret);
+
+            if (hasSibling)
+            {
+                element.LaneType = SixFretGuitarNoteElement.LaneNoteType.Barre;
+            }
+            else if (IsUpFret((SixFretGuitarFret)note.Fret))
+            {
+                element.LaneType = SixFretGuitarNoteElement.LaneNoteType.Up;
             }
             else
             {
-                element.IsPaired = false;
+                element.LaneType = SixFretGuitarNoteElement.LaneNoteType.Down;
             }
-        }
-
-        private bool FindPairInBarre(GuitarNote note)
-        {
-            int pairIdx = GetPairIndex((SixFretGuitarFret)note.Fret);
-
-            foreach (var other in note.ParentOrSelf.AllNotes)
-            {
-                if (other == note) continue;
-                int otherFret = other.Fret;
-                if (otherFret == (int)SixFretGuitarFret.Open ||
-                    otherFret == (int)SixFretGuitarFret.Wildcard) continue;
-                if (otherFret == note.Fret) continue;
-
-                if (GetPairIndex((SixFretGuitarFret)otherFret) == pairIdx)
-                {
-                    return true;
-                }
-            }
-            return false;
         }
 
         protected override void InitializeSpawnedLane(LaneElement lane, GuitarNote note)
         {
+            int laneIndex = GetLaneIndex((SixFretGuitarFret)note.Fret);
             lane.SetAppearance(
                 Player.Profile.CurrentInstrument,
                 note.LaneNote,
-                GetLanePositionOrCentered(note.Fret),
-                LaneCount,
+                laneIndex,
+                3,  // 3 visual lanes
                 Player.ColorProfile.SixFretGuitar.GetNoteColor(note.Fret).ToUnityColor()
             );
-
-            if (!Player.Profile.SixFretSplitLanes &&
-                note.Fret != (int)SixFretGuitarFret.Open &&
-                note.Fret != (int)SixFretGuitarFret.Wildcard &&
-                !FindPairInBarre(note))
-            {
-                lane.SetCombinedSpan(true);
-            }
         }
 
         protected override void InitializeSpawnedLane(LaneElement lane, int laneIndex)
         {
-            var index = Player.Profile.LeftyFlip ? (LaneCount - 1) - laneIndex : laneIndex;
+            // Map laneIndex (0-2) to corresponding fret color
+            var fret = (SixFretGuitarFret)(laneIndex + 1); // Black1, Black2, Black3
+            if (Player.Profile.LeftyFlip)
+            {
+                fret = laneIndex switch
+                {
+                    0 => SixFretGuitarFret.Black3,
+                    1 => SixFretGuitarFret.Black2,
+                    2 => SixFretGuitarFret.Black1,
+                    _ => fret
+                };
+            }
             lane.SetAppearance(
                 Player.Profile.CurrentInstrument,
                 laneIndex,
                 laneIndex,
-                LaneCount,
-                Player.ColorProfile.SixFretGuitar.GetNoteColor(index + 1).ToUnityColor());
+                3,  // 3 visual lanes
+                Player.ColorProfile.SixFretGuitar.GetNoteColor((int)fret).ToUnityColor());
         }
 
         protected override void ModifyLaneFromNote(LaneElement lane, GuitarNote note)
@@ -181,7 +187,7 @@ namespace YARG.Gameplay.Player
 
         protected override void RescaleLanesForBRE()
         {
-            LaneElement.DefineLaneScale(Player.Profile.CurrentInstrument, 6, true);
+            LaneElement.DefineLaneScale(Player.Profile.CurrentInstrument, 3, true);
         }
 
         protected override void OnNoteHit(int index, GuitarNote chordParent)
@@ -274,19 +280,20 @@ namespace YARG.Gameplay.Player
         {
             if (Player.Profile.LeftyFlip)
             {
+                // Swap lane 0 ↔ 2, keep lane 1 centered
                 _lanePositions = new()
                 {
+                    { (int)SixFretGuitarFret.Black1, 2 },
+                    { (int)SixFretGuitarFret.White1, 2 },
+                    { (int)SixFretGuitarFret.Black2, 1 },
+                    { (int)SixFretGuitarFret.White2, 1 },
+                    { (int)SixFretGuitarFret.Black3, 0 },
                     { (int)SixFretGuitarFret.White3, 0 },
-                    { (int)SixFretGuitarFret.Black3, 1 },
-                    { (int)SixFretGuitarFret.White2, 2 },
-                    { (int)SixFretGuitarFret.Black2, 3 },
-                    { (int)SixFretGuitarFret.White1, 4 },
-                    { (int)SixFretGuitarFret.Black1, 5 },
                 };
             }
             else
             {
-                _lanePositions = DEFAULT_HIGHWAY_ORDERING;
+                _lanePositions = new(DEFAULT_LANE_POSITIONS);
             }
         }
     }
