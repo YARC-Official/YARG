@@ -47,11 +47,22 @@ namespace YARG.Settings.Preview
 
             if (!NoteRef.CenterNote)
             {
-                // Set the position
-                int fretCount = FakeTrackPlayer.CurrentGameModeInfo.LaneCount;
-                transform.localPosition = new Vector3(
-                    TrackPlayer.TRACK_WIDTH / fretCount * NoteRef.Fret - TrackPlayer.TRACK_WIDTH / 2f - 1f / fretCount,
-                    0f, 0f);
+                int laneCount = FakeTrackPlayer.CurrentGameModeInfo.LaneCount;
+                float x;
+
+                // Special handling for 6-fret (3 visual lanes)
+                if (FakeTrackPlayer.CurrentGameMode == GameMode.SixFretGuitar)
+                {
+                    // Map fret to lane index (1,4→0; 2,5→1; 3,6→2)
+                    int laneIndex = (NoteRef.Fret - 1) % 3;
+                    x = TrackPlayer.TRACK_WIDTH / laneCount * laneIndex - TrackPlayer.TRACK_WIDTH / 2f + 1f / laneCount;
+                }
+                else
+                {
+                    x = TrackPlayer.TRACK_WIDTH / laneCount * NoteRef.Fret - TrackPlayer.TRACK_WIDTH / 2f - 1f / laneCount;
+                }
+
+                transform.localPosition = new Vector3(x, 0f, 0f);
             }
             else
             {

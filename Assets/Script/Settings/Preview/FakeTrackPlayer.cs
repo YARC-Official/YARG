@@ -104,8 +104,8 @@ namespace YARG.Settings.Preview
                 GameMode.SixFretGuitar,
                 new Info
                 {
-                    HighwayOrdering = SixFretGuitarPlayer.DEFAULT_HIGHWAY_ORDERING,
-                    LaneCount = 6,
+                    HighwayOrdering = SixFretGuitarPlayer.DEFAULT_LANE_POSITIONS,
+                    LaneCount = 3,
 
                     FretColorProvider = (colorProfile) => colorProfile.SixFretGuitar,
                     NoteColorProvider = (colorProfile, note) => colorProfile.SixFretGuitar
@@ -116,36 +116,57 @@ namespace YARG.Settings.Preview
 
                     CreateFakeNote = (time) =>
                     {
-                        // Here we use 0 as open as it's easier to visualize.
-                        // We convert this into the correct value in the if below.
-                        int fret = Random.Range(0, 7);
+                        // 0 = Open, 1-6 = 6 frets, 7 = Wildcard
+                        int fret = Random.Range(0, 8);
 
-                        // Open notes have different models
+                        // Open notes
                         if (fret == 0)
                         {
                             return new FakeNoteData
                             {
                                 Time = time,
-
-                                Fret = (int) SixFretGuitarFret.Open,
+                                Fret = (int)SixFretGuitarFret.Open,
                                 CenterNote = true,
                                 NoteType = ThemeNoteType.Open
                             };
                         }
 
-                        // Otherwise, select a random note type
+                        // Wildcard
+                        if (fret == 7)
+                        {
+                            return new FakeNoteData
+                            {
+                                Time = time,
+                                Fret = (int)SixFretGuitarFret.Wildcard,
+                                CenterNote = true,
+                                NoteType = ThemeNoteType.Wildcard
+                            };
+                        }
+
+                        // Determine lane type for 3-lane preview
+                        var fretEnum = (SixFretGuitarFret)fret;
+                        bool isBlack = fret is >= 1 and <= 3; // Black1(1)-Black3(3)
+                        bool isUp = isBlack; // Normal mode: black = up
+                        bool isBarre = Random.value > 0.7f; // 30% chance of barre
+
+                        // Map to theme note type
+                        ThemeNoteType themeType = isBarre ? ThemeNoteType.SixFretBarre :
+                            (isUp ? ThemeNoteType.SixFretUp : ThemeNoteType.SixFretDown);
+
+                        // Override to HOPO/Tap variants randomly
                         var noteType = Random.Range(0, 3) switch
                         {
-                            0 => ThemeNoteType.Normal,
-                            1 => ThemeNoteType.HOPO,
-                            2 => ThemeNoteType.Tap,
+                            0 => themeType, // Strum
+                            1 => isBarre ? themeType : // Barre only has strum
+                                (isUp ? ThemeNoteType.SixFretUpHOPO : ThemeNoteType.SixFretDownHOPO),
+                            2 => isBarre ? themeType : // Barre only has strum
+                                (isUp ? ThemeNoteType.SixFretUpTap : ThemeNoteType.SixFretDownTap),
                             _ => throw new Exception("Unreachable.")
                         };
 
                         return new FakeNoteData
                         {
                             Time = time,
-
                             Fret = fret,
                             CenterNote = false,
                             NoteType = noteType
