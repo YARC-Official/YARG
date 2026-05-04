@@ -25,6 +25,8 @@ namespace YARG.Gameplay.Visuals
         }
 
         private static readonly int _emissionColor = Shader.PropertyToID("_EmissionColor");
+        private static readonly int _secondaryColor = Shader.PropertyToID("_SecondaryColor");
+        private static readonly int _secondaryEmissionColor = Shader.PropertyToID("_SecondaryEmissionColor");
 
         private static readonly int _randomFloat = Shader.PropertyToID("_RandomFloat");
         private static readonly int _randomVector = Shader.PropertyToID("_RandomVector");
@@ -115,8 +117,8 @@ namespace YARG.Gameplay.Visuals
                 float a = info.EmissionAddition;
                 var realColor = secondary + new Color(a, a, a);
 
-                info.MaterialCache.color = realColor;
-                info.MaterialCache.SetColor(_emissionColor, realColor * info.EmissionMultiplier);
+                info.MaterialCache.SetColor(_secondaryColor, realColor);
+                info.MaterialCache.SetColor(_secondaryEmissionColor, realColor * info.EmissionMultiplier);
             }
 
             // Note: No separate no-star-power cache for secondary, as barre notes use same SP state as primary
