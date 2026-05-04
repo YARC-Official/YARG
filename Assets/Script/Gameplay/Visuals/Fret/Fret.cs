@@ -10,6 +10,8 @@ namespace YARG.Gameplay.Visuals
     {
         private static readonly int _fade          = Shader.PropertyToID("Fade");
         private static readonly int _emissionColor = Shader.PropertyToID("_EmissionColor");
+        private static readonly int _secondaryColor = Shader.PropertyToID("_SecondaryColor");
+        private static readonly int _secondaryEmissionColor = Shader.PropertyToID("_SecondaryEmissionColor");
 
         private static readonly int _hit       = Animator.StringToHash("Hit");
         private static readonly int _cymbalHit = Animator.StringToHash("CymbalHit");
@@ -173,13 +175,13 @@ namespace YARG.Gameplay.Visuals
             foreach (var material in _secondaryTopMaterials)
             {
                 material.color = UnityEngine.Color.white;
-                material.SetColor(_emissionColor, UnityEngine.Color.white);
+                material.SetColor(_secondaryEmissionColor, UnityEngine.Color.white);
             }
 
             foreach (var material in _secondaryInnerMaterials)
             {
                 material.color = UnityEngine.Color.white;
-                material.SetColor(_emissionColor, UnityEngine.Color.white);
+                material.SetColor(_secondaryEmissionColor, UnityEngine.Color.white);
             }
 
             foreach (var light in ThemeBind.HitEffect.EffectLights)
@@ -210,13 +212,13 @@ namespace YARG.Gameplay.Visuals
             foreach (var material in _secondaryTopMaterials)
             {
                 material.color = _secondaryOriginalUnityTopColor;
-                material.SetColor(_emissionColor, _secondaryOriginalEmissionColor);
+                material.SetColor(_secondaryEmissionColor, _secondaryOriginalEmissionColor);
             }
 
             foreach (var material in _secondaryInnerMaterials)
             {
                 material.color = _secondaryOriginalUnityInnerColor;
-                material.SetColor(_emissionColor, _secondaryOriginalEmissionColor);
+                material.SetColor(_secondaryEmissionColor, _secondaryOriginalEmissionColor);
             }
 
             foreach (var light in ThemeBind.HitEffect.EffectLights)
@@ -286,12 +288,12 @@ namespace YARG.Gameplay.Visuals
         {
             foreach (var mat in _secondaryTopMaterials)
             {
-                mat.color = top.ToUnityColor();
-                mat.SetColor(_emissionColor, top.ToUnityColor() * 11.5f);
+                mat.SetColor(_secondaryColor, top.ToUnityColor());
+                mat.SetColor(_secondaryEmissionColor, top.ToUnityColor() * 11.5f);
             }
             foreach (var mat in _secondaryInnerMaterials)
             {
-                mat.color = inner.ToUnityColor();
+                mat.SetColor(_secondaryColor, inner.ToUnityColor());
             }
         }
 
