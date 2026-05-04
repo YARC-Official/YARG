@@ -41,10 +41,11 @@ namespace YARG.Gameplay.Visuals
 
         public void Initialize()
         {
-            _coloredMaterialCache ??= _themeNote.ColoredMaterials.Select(MaterialInfo.From).ToArray();
-            _coloredMaterialNoStarPowerCache ??= _themeNote.ColoredMaterialsNoStarPower.Select(MaterialInfo.From).ToArray();
-            _allColoredCache ??= _coloredMaterialCache.Concat(_coloredMaterialNoStarPowerCache).ToArray();
-            _coloredMetalMaterialCache ??= _themeNote.ColoredMetalMaterials.Select(MaterialInfo.From).ToArray();
+            _coloredMaterialCache = _themeNote.ColoredMaterials.Select(MaterialInfo.From).ToArray();
+            _coloredMaterialNoStarPowerCache = _themeNote.ColoredMaterialsNoStarPower.Select(MaterialInfo.From).ToArray();
+            _allColoredCache = _coloredMaterialCache.Concat(_coloredMaterialNoStarPowerCache).ToArray();
+            _coloredMetalMaterialCache = _themeNote.ColoredMetalMaterials.Select(MaterialInfo.From).ToArray();
+            _coloredSecondaryMaterialCache = _themeNote.ColoredSecondaryMaterials?.Select(MaterialInfo.From).ToArray() ?? System.Array.Empty<MaterialInfo>();
 
             // Set random values
             var randomFloat = Random.Range(-1f, 1f);
@@ -106,8 +107,6 @@ namespace YARG.Gameplay.Visuals
 
         public void SetSecondaryColor(Color secondary, Color secondaryNoStarPower)
         {
-            _coloredSecondaryMaterialCache ??= _themeNote.ColoredSecondaryMaterials?.Select(MaterialInfo.From).ToArray() ?? System.Array.Empty<MaterialInfo>();
-
             if (_coloredSecondaryMaterialCache.Length == 0) return;
 
             // Apply secondary color (with star power)
