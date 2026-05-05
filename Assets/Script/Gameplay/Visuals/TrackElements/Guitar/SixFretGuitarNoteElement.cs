@@ -95,7 +95,7 @@ namespace YARG.Gameplay.Visuals
             else
             {
                 // 3-lane note: position based on lane index (0-2)
-                int laneIndex = Player.GetLaneIndex((SixFretGuitarFret)NoteRef.Fret);
+                int laneIndex = Player.GetLaneIndex((SixFretGuitarFret) NoteRef.Fret);
                 transform.localPosition = new Vector3(GetElementX(laneIndex, 3), 0f, 0f);
 
                 // Map LaneType + NoteType to model index
@@ -129,7 +129,7 @@ namespace YARG.Gameplay.Visuals
             if (NoteRef.IsSustain)
             {
                 _sustainLine.gameObject.SetActive(true);
-                float len = (float)NoteRef.TimeLength * Player.NoteSpeed;
+                float len = (float) NoteRef.TimeLength * Player.NoteSpeed;
                 _sustainLine.Initialize(len);
             }
 
@@ -202,7 +202,7 @@ namespace YARG.Gameplay.Visuals
             System.Drawing.Color primaryColor, primaryNoSp;
             System.Drawing.Color secondaryColor = default, secondaryNoSp = default;
 
-            if (NoteRef.Fret == (int)SixFretGuitarFret.Open || NoteRef.Fret == (int)SixFretGuitarFret.Wildcard)
+            if (NoteRef.Fret == (int) SixFretGuitarFret.Open || NoteRef.Fret == (int) SixFretGuitarFret.Wildcard)
             {
                 primaryColor = isSp ? colors.GetNoteStarPowerColor(NoteRef.Fret) : colors.GetNoteColor(NoteRef.Fret);
                 primaryNoSp = colors.GetNoteColor(NoteRef.Fret);
@@ -210,21 +210,31 @@ namespace YARG.Gameplay.Visuals
             else
             {
                 // Determine primary/secondary based on LaneType
-                switch (LaneType)
+                var colorType = LaneType == LaneNoteType.Barre ? LaneNoteType.Barre : LeftyFlip && LaneType == LaneNoteType.Up ? LaneNoteType.Down : LaneNoteType.Up;
+                switch (colorType)
                 {
                     case LaneNoteType.Up:
                         primaryColor = isSp ? colors.BlackNoteStarPower : colors.BlackNote;
                         primaryNoSp = colors.BlackNote;
+                        secondaryColor = primaryColor;
+                        secondaryNoSp = primaryNoSp;
                         break;
                     case LaneNoteType.Down:
                         primaryColor = isSp ? colors.WhiteNoteStarPower : colors.WhiteNote;
                         primaryNoSp = colors.WhiteNote;
+                        secondaryColor = primaryColor;
+                        secondaryNoSp = primaryNoSp;
                         break;
                     case LaneNoteType.Barre:
                         primaryColor = isSp ? colors.BlackNoteStarPower : colors.BlackNote;
                         primaryNoSp = colors.BlackNote;
                         secondaryColor = isSp ? colors.WhiteNoteStarPower : colors.WhiteNote;
                         secondaryNoSp = colors.WhiteNote;
+                        if (LeftyFlip)
+                        {
+                            (primaryColor, secondaryColor) = (secondaryColor, primaryColor);
+                            (primaryNoSp, secondaryNoSp) = (secondaryNoSp, primaryNoSp);
+                        }
                         break;
                     default:
                         return;
@@ -241,11 +251,8 @@ namespace YARG.Gameplay.Visuals
             {
                 NoteGroup.SetColorWithEmission(primaryColor.ToUnityColor(), primaryNoSp.ToUnityColor());
 
-                // Apply secondary color for barre notes
-                if (LaneType == LaneNoteType.Barre)
-                {
-                    NoteGroup.SetSecondaryColor(secondaryColor.ToUnityColor(), secondaryNoSp.ToUnityColor());
-                }
+                // Apply secondary color
+                NoteGroup.SetSecondaryColor(secondaryColor.ToUnityColor(), secondaryNoSp.ToUnityColor());
 
                 NoteGroup.SetMetalColor(colors.GetMetalColor(isSp).ToUnityColor());
             }
@@ -253,10 +260,7 @@ namespace YARG.Gameplay.Visuals
             if (!NoteRef.IsSustain) return;
 
             _sustainLine.SetState(SustainState, primaryColor.ToUnityColor());
-            if (LaneType == LaneNoteType.Barre)
-            {
-                _sustainLine.SetSecondaryColor(secondaryColor.ToUnityColor());
-            }
+            _sustainLine.SetSecondaryColor(secondaryColor.ToUnityColor());
         }
 
         protected override void HideElement()
