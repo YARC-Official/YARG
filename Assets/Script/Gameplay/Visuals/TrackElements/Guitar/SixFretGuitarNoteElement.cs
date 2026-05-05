@@ -210,7 +210,16 @@ namespace YARG.Gameplay.Visuals
             else
             {
                 // Determine primary/secondary based on LaneType
-                var colorType = LaneType == LaneNoteType.Barre ? LaneNoteType.Barre : LeftyFlip && LaneType == LaneNoteType.Up ? LaneNoteType.Down : LaneNoteType.Up;
+                var colorType = LaneType;
+                if (colorType == LaneNoteType.Up && LeftyFlip)
+                {
+                    colorType = LaneNoteType.Down;
+                }
+                else if (colorType == LaneNoteType.Down && LeftyFlip) 
+                {
+                    colorType = LaneNoteType.Up;
+                }
+
                 switch (colorType)
                 {
                     case LaneNoteType.Up:

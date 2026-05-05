@@ -7,7 +7,7 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: SixFretNoteMiddle
+  m_Name: SixFretNoteMiddleHOPO
   m_Shader: {fileID: -6465566751694194690, guid: ab6b9c8ac9be64ceb99de53cae8c8b12, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
@@ -117,7 +117,7 @@ Material:
     - _QueueOffset: 0
     - _RandomFloat: 0
     - _ReceiveShadows: 1
-    - _Shine_Amount: 5
+    - _Shine_Amount: 1000
     - _Smoothness: 0.5
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1
