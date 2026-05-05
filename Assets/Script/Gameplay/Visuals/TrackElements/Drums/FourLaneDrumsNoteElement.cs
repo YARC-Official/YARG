@@ -1,8 +1,11 @@
 ﻿using DG.Tweening;
 using System;
 using UnityEngine;
+using UnityEngine.UIElements;
 using YARG.Core.Chart;
+using YARG.Gameplay.Player;
 using YARG.Helpers.Extensions;
+using static YARG.Core.Game.ColorProfile;
 using Color = System.Drawing.Color;
 
 namespace YARG.Gameplay.Visuals
@@ -15,9 +18,9 @@ namespace YARG.Gameplay.Visuals
 
             var noteGroups = IsStarPowerVisible ? StarPowerNoteGroups : NoteGroups;
 
-            if (NoteRef.Pad != 0)
+            if (NoteRef.Pad != 0 && NoteRef.Pad != (int) FourLaneDrumPad.Wildcard)
             {
-                // Deal with non-kick notes
+                // Deal with non-kick/wildcard notes
                 var position = Player.GetHighwayOrderingInfo(NoteRef.Pad).Position;
 
                 bool isCymbal = NoteRef.Pad >= (int) FourLaneDrumPad.YellowCymbal;
@@ -28,11 +31,31 @@ namespace YARG.Gameplay.Visuals
                 // Get which note model to use
                 NoteGroup = noteGroups[GetNoteGroup(isCymbal)];
             }
+            else if (NoteRef.Pad == 0 && Player.NumberOfDedicatedKickLanes > 0)
+            {
+                // Deal with dedicated-lane kick notes
+                int highwayIndex;
+                if (NoteRef.IsDoubleKick && Player.NumberOfDedicatedKickLanes == 2)
+                {
+                    highwayIndex = DrumsPlayer.DOUBLE_KICK_FRET_INDEX;
+                }
+                else
+                {
+                    highwayIndex = (int)FourLaneDrumPad.Kick;
+                }
+
+                // Set the position
+                var position = Player.GetHighwayOrderingInfo(highwayIndex).Position;
+                transform.localPosition = new Vector3(GetElementX(position, Player.LaneCount), 0f, 0f);
+
+                NoteGroup = noteGroups[(int) NoteType.DedicatedLaneKick];
+            }
             else
             {
-                // Deal with kick notes
+                // Deal with wildcard and regular kick notes
+                var groupIndex = NoteRef.Pad == 0 ? (int)NoteType.Kick : (int)NoteType.Wildcard;
                 transform.localPosition = Vector3.zero;
-                NoteGroup = noteGroups[(int) NoteType.Kick];
+                NoteGroup = noteGroups[groupIndex];
             }
 
             // Show and set material properties
@@ -54,7 +77,16 @@ namespace YARG.Gameplay.Visuals
             var colors = Player.Player.ColorProfile.FourLaneDrums;
 
             // Get pad index
-            int colorIndex = Player.GetHighwayOrderingInfo(NoteRef.Pad).ColorIndex;
+            int colorIndex;
+
+            if (NoteRef.IsDoubleKick && Player.NumberOfDedicatedKickLanes is 2)
+            {
+                colorIndex = (int)FourLaneDrumsFret.DoubleKick;
+            }
+            else
+            {
+                colorIndex = Player.GetHighwayOrderingInfo(NoteRef.Pad).ColorIndex;
+            }
 
             // Get colors
             var colorNoStarPower = colors.GetNoteColor(colorIndex);

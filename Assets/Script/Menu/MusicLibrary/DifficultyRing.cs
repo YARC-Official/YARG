@@ -1,4 +1,5 @@
-﻿using TMPro;
+﻿using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.EventSystems;
@@ -18,6 +19,8 @@ namespace YARG.Menu.MusicLibrary
 
     public class DifficultyRing : MonoBehaviour, IPointerClickHandler
     {
+        private static readonly Dictionary<string, Sprite> ICON_CACHE = new();
+
         [SerializeField]
         private Image _instrumentIcon;
 
@@ -59,7 +62,7 @@ namespace YARG.Menu.MusicLibrary
         public void SetInfo(string assetName, Instrument instrument, PartValues values)
         {
             // Set instrument icon
-            var icon = Addressables.LoadAssetAsync<Sprite>($"InstrumentIcons[{assetName}]").WaitForCompletion();
+            var icon = GetIcon(assetName);
             _instrumentIcon.sprite = icon;
             _instrument = instrument;
             _intensity = values.Intensity;
@@ -160,6 +163,17 @@ namespace YARG.Menu.MusicLibrary
             UpdateIconColor();
         }
 
+        private static Sprite GetIcon(string assetName)
+        {
+            string assetKey = $"InstrumentIcons[{assetName}]";
+            if (!ICON_CACHE.TryGetValue(assetKey, out var icon))
+            {
+                ICON_CACHE[assetKey] = icon = Addressables.LoadAssetAsync<Sprite>(assetKey).WaitForCompletion();
+            }
+
+            return icon;
+        }
+
         private void UpdateIconColor()
         {
             if (!_active)
@@ -167,7 +181,8 @@ namespace YARG.Menu.MusicLibrary
                 _instrumentIcon.color = Color.white.WithAlpha(INACTIVE_OPACITY);
                 return;
             }
-            if (_songSearchingField.HasInstrumentFilter(_instrument))
+
+            if (_songSearchingField != null && _songSearchingField.HasInstrumentFilter(_instrument))
             {
                 _instrumentIcon.color = _partSelectedColor.WithAlpha(ACTIVE_OPACITY);
                 return;
@@ -177,6 +192,11 @@ namespace YARG.Menu.MusicLibrary
 
         public void OnPointerClick(PointerEventData eventData)
         {
+            if (_songSearchingField == null)
+            {
+                return;
+            }
+
             if (eventData.button == PointerEventData.InputButton.Right)
             {
                 _songSearchingField.SetSearchInput(_instrument.ToSortAttribute(), $"\"{_intensity}\"");

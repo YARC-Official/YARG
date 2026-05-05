@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 using YARG.Core.Chart;
-using YARG.Core.Engine;
 using YARG.Core.Engine.Drums;
 using YARG.Gameplay.Player;
 using YARG.Themes;
@@ -10,8 +9,8 @@ namespace YARG.Gameplay.Visuals
 {
     public abstract class DrumsNoteElement : NoteElement<DrumNote, DrumsPlayer>, IThemeNoteCreator
     {
-        private const float SPLIT_LANE_SCALE_FACTOR = 4f / 7f;
-        private Vector3 _splitScale = new Vector3(SPLIT_LANE_SCALE_FACTOR, SPLIT_LANE_SCALE_FACTOR, SPLIT_LANE_SCALE_FACTOR);
+        
+        private Vector3? _scalingFactor = null;
 
         protected enum NoteType
         {
@@ -22,6 +21,8 @@ namespace YARG.Gameplay.Visuals
             Ghost         = 4,
             CymbalAccent  = 5,
             CymbalGhost   = 6,
+            Wildcard      = 7,
+            DedicatedLaneKick = 8,
 
             Count
         }
@@ -39,6 +40,8 @@ namespace YARG.Gameplay.Visuals
             AssignNoteGroup(models, starpowerModels, (int) NoteType.Ghost,          ThemeNoteType.Ghost);
             AssignNoteGroup(models, starpowerModels, (int) NoteType.CymbalAccent,   ThemeNoteType.CymbalAccent);
             AssignNoteGroup(models, starpowerModels, (int) NoteType.CymbalGhost,    ThemeNoteType.CymbalGhost);
+            AssignNoteGroup(models, starpowerModels, (int) NoteType.Wildcard,       ThemeNoteType.Wildcard);
+            AssignNoteGroup(models, starpowerModels, (int) NoteType.DedicatedLaneKick, ThemeNoteType.DedicatedLaneKick);
         }
 
         public override void HitNote()
@@ -81,12 +84,11 @@ namespace YARG.Gameplay.Visuals
         {
             base.InitializeElement();
 
-            if (Player.Player.Profile.CurrentInstrument == Core.Instrument.ProDrums && Player.Player.Profile.SplitProTomsAndCymbals)
+            _scalingFactor ??= new Vector3(Player.NoteScaleFactor, Player.NoteScaleFactor, Player.NoteScaleFactor);
+
+            if ((NoteRef.Pad != 0 || Player.NumberOfDedicatedKickLanes > 0) && NoteRef.Pad != (int)FourLaneDrumPad.Wildcard)
             {
-                if (NoteRef.Pad != 0)
-                {
-                    gameObject.transform.localScale = Vector3.Scale(transform.localScale, _splitScale);
-                }
+                gameObject.transform.localScale = Vector3.Scale(transform.localScale, _scalingFactor.Value);
             }
         }
 

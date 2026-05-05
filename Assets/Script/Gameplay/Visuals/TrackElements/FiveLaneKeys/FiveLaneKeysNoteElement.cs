@@ -21,6 +21,7 @@ namespace YARG.Gameplay.Visuals
         {
             Normal = 0,
             Open = 1,
+            Wildcard = 2,
             Count
         }
 
@@ -29,6 +30,8 @@ namespace YARG.Gameplay.Visuals
         private SustainLine _normalSustainLine;
         [SerializeField]
         private SustainLine _openSustainLine;
+        [SerializeField]
+        private SustainLine _wildcardSustainLine;
 
         private SustainLine _sustainLine;
 
@@ -43,6 +46,7 @@ namespace YARG.Gameplay.Visuals
 
             AssignNoteGroup(models, starPowerModels, (int) NoteType.Normal, ThemeNoteType.Normal);
             AssignNoteGroup(models, starPowerModels, (int) NoteType.Open,     ThemeNoteType.Open);
+            AssignNoteGroup(models, starPowerModels, (int) NoteType.Wildcard, ThemeNoteType.Wildcard);
         }
 
         protected override void InitializeElement()
@@ -51,7 +55,7 @@ namespace YARG.Gameplay.Visuals
 
             var noteGroups = NoteRef.IsStarPower ? StarPowerNoteGroups : NoteGroups;
 
-            if (NoteRef.Fret != (int) FiveFretGuitarFret.Open || Player.UsingOpenLane)
+            if (Player.IsNormalNote(NoteRef))
             {
                 // Deal with non-open notes
                 var lane = Player.GetLanePosition((FiveFretGuitarFret) NoteRef.Fret);
@@ -76,7 +80,7 @@ namespace YARG.Gameplay.Visuals
 
                 _sustainLine = _normalSustainLine;
             }
-            else
+            else if (NoteRef.FiveLaneKeysAction is FiveLaneKeysEngine.FiveLaneKeysAction.OpenNote)
             {
                 // Deal with open notes
 
@@ -93,6 +97,15 @@ namespace YARG.Gameplay.Visuals
                 };
 
                 _sustainLine = _openSustainLine;
+            }
+            else
+            {
+                // Deal with wildcard notes
+                transform.localPosition = Vector3.zero;
+
+                NoteGroup = noteGroups[(int) NoteType.Wildcard];
+
+                _sustainLine = _wildcardSustainLine;
             }
 
             // Show and set material properties

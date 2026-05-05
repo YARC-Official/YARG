@@ -97,6 +97,7 @@ namespace YARG.Song
                     SongRating.Family_Friendly         => "Family Friendly",
                     SongRating.Supervision_Recommended => "Supervision Recommended",
                     SongRating.Mature                  => "Mature",
+                    SongRating.Sensitive_Content       => "Sensitive Content",
                     _                                  => "No Rating"
                 };
 

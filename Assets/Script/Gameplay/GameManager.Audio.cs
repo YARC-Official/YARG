@@ -100,8 +100,7 @@ namespace YARG.Gameplay
             _backgroundStem = SongStem.Song;
             foreach (var channel in _mixer.Channels)
             {
-                var stemState = new StemState(channel.Stem);
-                _stemStates.Add(channel.Stem, stemState);
+                _stemStates.TryAdd(channel.Stem, new StemState(channel.Stem));
             }
 
             _backgroundStem = _stemStates.Count > 1 ? SongStem.Song : _stemStates.First().Key;

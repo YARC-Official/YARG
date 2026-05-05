@@ -11,6 +11,7 @@ using YARG.Core.Input;
 using YARG.Helpers;
 using YARG.Localization;
 using YARG.Menu.Navigation;
+using YARG.Settings;
 using YARG.Song;
 
 namespace YARG.Menu.Credits

@@ -227,6 +227,15 @@ namespace YARG.Scores
             );
         }
 
+        public List<PlayerScoreRecord> QueryAllPlayerScoreRecords()
+        {
+            return Query<PlayerScoreRecord>(
+                @"SELECT * FROM PlayerScores
+                ORDER BY Id;"
+            );
+        }
+
+
         public List<GameRecord> QueryBandHighScores()
         {
             return Query<GameRecord>(

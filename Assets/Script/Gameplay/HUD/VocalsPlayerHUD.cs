@@ -1,12 +1,11 @@
-﻿using System;
-using System.Collections;
-using Cysharp.Text;
+﻿using System.Collections;
 using DG.Tweening;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using YARG.Core.Game;
 using YARG.Helpers.Extensions;
+using YARG.Helpers.UI;
 using YARG.Localization;
 using YARG.Player;
 
@@ -34,11 +33,14 @@ namespace YARG.Gameplay.HUD
 
         private Coroutine _hudCoroutine;
 
-        private bool _shouldPulse;
-        private bool _hudShowing = true;
+        private bool                             _shouldPulse;
+        private bool                             _hudShowing = true;
+        private TextMeshProUGUI[] _textCache;
 
         public void Initialize(EnginePreset enginePreset)
         {
+            _textCache = MultiplierTextHelper.CreateMultiplierTextCache(EnginePreset.DEFAULT_MAX_MULTIPLIER, _multiplierText, GameManager.Players.Count > 1);
+
             if (enginePreset == EnginePreset.Default)
             {
                 // Don't change combo meter fill color if it's the default
@@ -56,6 +58,8 @@ namespace YARG.Gameplay.HUD
                 // Otherwise, it must be a custom preset
                 _comboMeterFill.color = new Color(1.0f, 0.25f, 0.25f);
             }
+
+            _starPowerFill.fillAmount = 0f;
         }
 
         private void Update()
@@ -89,13 +93,11 @@ namespace YARG.Gameplay.HUD
         {
             _comboMeterFillTarget = phrasePercent;
 
-            if (multiplier != 1)
+            _multiplierText.enabled = false;
+            if (multiplier > 1)
             {
-                _multiplierText.SetTextFormat("{0}<sub>x</sub>", multiplier);
-            }
-            else
-            {
-                _multiplierText.text = string.Empty;
+                _multiplierText = _textCache[multiplier - 2];
+                _multiplierText.enabled = true;
             }
 
             _starPowerFill.fillAmount = starPowerPercent;

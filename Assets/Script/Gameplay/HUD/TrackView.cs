@@ -57,6 +57,8 @@ namespace YARG.Gameplay.HUD
             _highwayDraggable.PositionChanged += OnHighwayDraggablePositionChanged;
             _highwayDraggable.ScaleChanged += OnHighwayDraggableScaleChanged;
             _highwayRenderer.SetScaleMultiplier(_highwayDraggable.CurrentScale);
+
+            _centerElementContainer.position = _hiddenPosition;
         }
 
         public void UpdateHUDPosition(int highwayIndex, int highwayCount)

@@ -350,7 +350,7 @@ namespace YARG.Settings.Metadata
                         switch(windowField.Field.Name)
                         {
                             case nameof(EnginePreset.HitWindowPreset.FrontToBackRatio):
-                            case nameof(EnginePreset.HitWindowPreset.TremoloFrontEndPercent):
+                            case nameof(EnginePreset.HitWindowPreset.TremoloWindow):
                                 dynamicOnlyField = false;
                                 break;
 
@@ -365,16 +365,28 @@ namespace YARG.Settings.Metadata
                         }
                     }
 
-                    if (windowField.Type != SettingType.Slider)
+                    ISettingType setting = null;
+
+                    switch (windowField.Type)
                     {
-                        throw new Exception("Non-slider types are not supported within the hit window preset.");
+                        case SettingType.Slider:
+                            setting = new SliderSetting((float) windowField.GetValue<double>(hitWindow),
+                                windowField.Min, windowField.Max, (value) =>
+                                {
+                                    windowField.SetValue(hitWindow, (double) value);
+                                });
+                            break;
+                        case SettingType.MillisecondInput:
+                            setting = new DurationSetting(windowField.GetValue<double>(hitWindow),
+                                DurationInputField.Unit.Milliseconds, windowField.Max, (value) =>
+                                {
+                                    windowField.SetValue(hitWindow, value);
+                                });
+                            break;
+                        default:
+                            throw new Exception("Unsupported setting type in hit window preset.");
                     }
 
-                    var setting = new SliderSetting((float) windowField.GetValue<double>(hitWindow),
-                        windowField.Min, windowField.Max, (value) =>
-                        {
-                            windowField.SetValue(hitWindow, (double) value);
-                        });
                     CreateField(container, navGroup, typeof(T).Name, windowField.Field.Name, setting);
                 }
             }

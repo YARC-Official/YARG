@@ -14,6 +14,7 @@ using YARG.Input;
 using YARG.Input.Bindings;
 using YARG.Localization;
 using YARG.Menu.MusicLibrary;
+using YARG.Menu.Filters;
 using YARG.Menu.Persistent;
 using YARG.Menu.ProfileList;
 using YARG.Settings;
@@ -31,6 +32,7 @@ namespace YARG.Player
     {
         public  static string ProfilesDirectory => Path.Combine(PathHelper.PersistentDataPath, "profiles");
         private static string ProfilesPath      => Path.Combine(ProfilesDirectory, "profiles.json");
+        private static string ProfilesBackupPath => Path.Combine(ProfilesDirectory, "profiles.json.bak");
 
         private static readonly List<YargProfile> _profiles = new();
         private static readonly List<YargPlayer>  _players  = new();
@@ -186,6 +188,9 @@ namespace YARG.Player
                 MusicLibraryMenu.SetReload(MusicLibraryReloadState.Full);
             }
 
+            FiltersMenu.RefreshActiveFilterPredicate();
+            MusicLibraryMenu.NeedsReload();
+
             StatsManager.Instance?.UpdateActivePlayers();
         }
 
@@ -296,6 +301,8 @@ namespace YARG.Player
 
         public static int LoadProfiles()
         {
+            bool usedBackup = false;
+
             _profiles.Clear();
             _profilesById.Clear();
 
@@ -312,21 +319,32 @@ namespace YARG.Player
             }
 
             string profilesJson = File.ReadAllText(profilesPath);
-            List<YargProfile> profiles;
+            List<YargProfile> profiles = null;
             try
             {
                 profiles = JsonConvert.DeserializeObject<List<YargProfile>>(profilesJson);
             }
             catch (Exception ex)
             {
-                YargLogger.LogException(ex, "Error while loading profiles! Bindings loading will be skipped.");
-                return 0;
+                YargLogger.LogException(ex, "Error while loading profiles! Recovery will be attempted.");
             }
 
             if (profiles is null)
             {
-                YargLogger.LogWarning("Failed to load profiles! Bindings loading will be skipped.");
-                return 0;
+                // Attempt to load from backup before giving up
+                profiles = LoadProfilesFromBackup();
+
+                if (profiles.Count > 0)
+                {
+                    // Flag that we used the backup so we can immediately save once everything is loaded
+                    YargLogger.LogWarning("Failed to load profiles from main file, using backup.");
+                    usedBackup = true;
+                }
+                else
+                {
+                    YargLogger.LogWarning("Failed to load profiles! Bindings loading will be skipped.");
+                    return 0;
+                }
             }
 
             _profiles.AddRange(profiles);
@@ -334,6 +352,7 @@ namespace YARG.Player
             // Store profiles by ID
             foreach (var profile in _profiles)
             {
+                profile.GrandfatherIn();
                 _profilesById.Add(profile.Id, profile);
             }
 
@@ -341,7 +360,37 @@ namespace YARG.Player
 
             _isInitialized = true;
 
+            if (usedBackup)
+            {
+                // Rewrite the main profiles file with the backup data
+                SaveProfiles(false);
+            }
+            else
+            {
+                // If we didn't use the backup, that means loading was good so we should save a new backup
+                SaveBackupProfiles();
+            }
+
             return _profiles.Count;
+        }
+
+        private static List<YargProfile> LoadProfilesFromBackup()
+        {
+            if (!File.Exists(ProfilesBackupPath))
+            {
+                return new List<YargProfile>();
+            }
+
+            string profilesJson = File.ReadAllText(ProfilesBackupPath);
+            try
+            {
+                return JsonConvert.DeserializeObject<List<YargProfile>>(profilesJson);
+            }
+            catch (Exception e)
+            {
+                YargLogger.LogFormatError("Failed to load profiles from backup file: {0}", e.Message);
+                return new List<YargProfile>();
+            }
         }
 
         public static int SaveProfiles(bool updateOrder = true)
@@ -358,11 +407,76 @@ namespace YARG.Player
             }
 
             string profilesJson = JsonConvert.SerializeObject(_profiles, Formatting.Indented);
-            File.WriteAllText(ProfilesPath, profilesJson);
+
+            // We do this dance with the temporary file to avoid the possibility of corruption during saving
+            string tempPath = Path.Combine(ProfilesDirectory, Path.GetRandomFileName());
+
+            try
+            {
+                File.WriteAllText(tempPath, profilesJson);
+            }
+            catch (Exception e)
+            {
+                YargLogger.LogFormatError("Failed to write profiles to file: {0}", e.Message);
+                return 0;
+            }
+
+            // Verify that the newly written file is valid before replacing the old one
+            int? profileCount = VerifyProfileFile(tempPath);
+            if (profileCount is null || profileCount != _profiles.Count)
+            {
+                YargLogger.LogFormatError("Failed to verify new profiles file: {0} profiles were expected, but {1} were found", _profiles.Count, profileCount ?? -1);
+                File.Delete(tempPath);
+                return 0;
+            }
+
+            if (File.Exists(ProfilesPath))
+            {
+                File.Delete(ProfilesPath);
+            }
+
+            File.Move(tempPath, ProfilesPath);
 
             BindingsContainer.SaveBindings();
 
             return _profiles.Count;
+        }
+
+        private static bool SaveBackupProfiles()
+        {
+            if (!_isInitialized)
+            {
+                YargLogger.LogWarning("Profiles could not be saved as they were not loaded");
+                return false;
+            }
+
+            string profilesJson = JsonConvert.SerializeObject(_profiles, Formatting.Indented);
+            File.WriteAllText(ProfilesBackupPath, profilesJson);
+
+            return true;
+        }
+
+        private static int? VerifyProfileFile(string path)
+        {
+            if (!File.Exists(path))
+            {
+                return null;
+            }
+
+            List<YargProfile> profiles;
+
+            try
+            {
+                string profilesJson = File.ReadAllText(path);
+                profiles = JsonConvert.DeserializeObject<List<YargProfile>>(profilesJson);
+            }
+            catch (Exception e)
+            {
+                YargLogger.LogFormatError("Failed to verify profile file: {0}", e.Message);
+                return null;
+            }
+
+            return profiles.Count;
         }
 
         public static void Destroy()

@@ -1,5 +1,4 @@
-﻿using Cysharp.Threading.Tasks;
-using System.Drawing.Drawing2D;
+﻿using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 using YARG.Core.Logging;
@@ -7,7 +6,6 @@ using YARG.Core.Replays;
 using YARG.Core.Replays.Analyzer;
 using YARG.Core.Song;
 using YARG.Helpers;
-using YARG.Localization;
 using YARG.Menu.Persistent;
 using YARG.Replays;
 using YARG.Scores;
@@ -34,7 +32,7 @@ namespace YARG.Menu.History
         private readonly GameInfo _gameInfo;
         private readonly Sprite? _sprite;
 
-        public ReplayViewType(GameRecord record)
+        public ReplayViewType(GameRecord record, List<PlayerScoreRecord>? playerScoreRecords)
         {
             _record = record;
             if (SongContainer.SongsByHash.TryGetValue(HashWrapper.Create(record.SongChecksum), out var songs))
@@ -44,6 +42,7 @@ namespace YARG.Menu.History
             }
             _gameInfo.BandScore = _record.BandScore;
             _gameInfo.BandStars = _record.BandStars;
+            _gameInfo.PlayerScoreRecords = playerScoreRecords;
             _songName = _record.SongName;
             _artistName = _record.SongArtist;
         }
@@ -82,6 +81,12 @@ namespace YARG.Menu.History
         // AKA, the Play Replay Button
         public override async void ViewClick()
         {
+            if (_songEntry == null)
+            {
+                DialogManager.Instance.ShowMessage("Unavailable Song", "A song compatible with the selected play is not present in your library! Most likely deleted!");
+                return;
+            }
+
             _entry ??= LoadReplay("Cannot Play Replay");
             if (_entry == null)
             {
@@ -105,7 +110,7 @@ namespace YARG.Menu.History
             LoadIntoReplay(_entry, _songEntry);
         }
 
-        // Anaylze Replay Button
+        // Analyze Replay Button
         public override void Shortcut1()
         {
             if (_songEntry == null)
@@ -167,6 +172,12 @@ namespace YARG.Menu.History
 
         public override void PlayWithReplayClick()
         {
+            if (_songEntry == null)
+            {
+                DialogManager.Instance.ShowMessage("Unavailable Song", "A song compatible with the selected play is not present in your library! Most likely deleted!");
+                return;
+            }
+
             _entry ??= LoadReplay("Cannot Play Replay");
             if (_entry == null)
             {

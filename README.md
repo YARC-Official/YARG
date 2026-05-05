@@ -9,14 +9,26 @@
 </p>
 
 <p align="center">
-  <a href="https://twitter.com/YARGGame">
-    <img src="./Images/Socials/Twitter.png" width="38px" height="38px" alt="Twitter">
-  </a>
   <a href="https://discord.gg/sqpu4R552r">
     <img src="./Images/Socials/Discord.png" height="38px" width="38px" alt="Discord">
   </a>
+  <a href="https://youtube.com/@yarggame">
+    <img src="./Images/Socials/YouTube.png" height="38px" width="38px" alt="YouTube">
+  </a>
+  <a href="https://twitter.com/YARGGame">
+    <img src="./Images/Socials/Twitter.png" width="38px" height="38px" alt="Twitter">
+  </a>
+  <a href="https://bsky.app/yarg.in">
+    <img src="./Images/Socials/Bsky.png" height="38px" width="38px" alt="Bsky">
+  </a>
+  <a href="https://instagram.com/yarg.game">
+    <img src="./Images/Socials/Instagram.png" height="38px" width="38px" alt="Instagram">
+  </a>
   <a href="https://reddit.com/r/yarg">
-    <img src="./Images/Socials/Reddit.png" height="38px" width="38px" alt="Discord">
+    <img src="./Images/Socials/Reddit.png" height="38px" width="38px" alt="Reddit">
+  </a>
+  <a href="https://tiktok.com/@yarggame">
+    <img src="./Images/Socials/TikTok.png" height="38px" width="38px" alt="TikTok">
   </a>
 </p>
 

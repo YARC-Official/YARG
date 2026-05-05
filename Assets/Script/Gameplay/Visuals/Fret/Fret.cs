@@ -110,13 +110,13 @@ namespace YARG.Gameplay.Visuals
 
         public void WhitenFretColor()
         {
-            foreach (var material in ThemeBind.GetColoredMaterials())
+            foreach (var material in _topMaterials)
             {
                 material.color = UnityEngine.Color.white;
                 material.SetColor(_emissionColor, UnityEngine.Color.white);
             }
 
-            foreach (var material in ThemeBind.GetInnerColoredMaterials())
+            foreach (var material in _innerMaterials)
             {
                 material.color = UnityEngine.Color.white;
                 material.SetColor(_emissionColor, UnityEngine.Color.white);
@@ -135,13 +135,13 @@ namespace YARG.Gameplay.Visuals
 
         public void RestoreFretColor()
         {
-            foreach (var material in ThemeBind.GetColoredMaterials())
+            foreach (var material in _topMaterials)
             {
                 material.color = _originalUnityTopColor;
                 material.SetColor(_emissionColor, _originalEmissionColor);
             }
 
-            foreach (var material in ThemeBind.GetInnerColoredMaterials())
+            foreach (var material in _innerMaterials)
             {
                 material.color = _originalUnityInnerColor;
                 material.SetColor(_emissionColor, _originalEmissionColor);
@@ -298,6 +298,11 @@ namespace YARG.Gameplay.Visuals
                     material.color = _originalUnityInnerColor;
                 }
             }
+        }
+
+        public void SetBreMode(bool breMode)
+        {
+            ThemeBind.SetBreMode(breMode);
         }
 
         /// <summary>

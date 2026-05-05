@@ -15,6 +15,7 @@ namespace YARG.Input.Bindings
     public static class BindingsContainer
     {
         private static string BindingsPath => Path.Combine(PlayerContainer.ProfilesDirectory, "bindings.json");
+        private static string BindingsBackupPath => Path.Combine(PlayerContainer.ProfilesDirectory, "bindings.json.bak");
 
         private static readonly Dictionary<Guid, ProfileBindings> _bindings = new();
 
@@ -32,6 +33,8 @@ namespace YARG.Input.Bindings
 
         public static int LoadBindings()
         {
+            bool usedBackup = false;
+
             _bindings.Clear();
 
             string bindingsPath = BindingsPath;
@@ -41,8 +44,15 @@ namespace YARG.Input.Bindings
             var bindings = BindingSerialization.DeserializeBindings(bindingsPath);
             if (bindings is null)
             {
-                YargLogger.LogWarning("Failed to load bindings!");
-                return 0;
+                YargLogger.LogWarning("Failed to load bindings! Attempting to load backup.");
+
+                bindings = BindingSerialization.DeserializeBindings(BindingsBackupPath);
+                if (bindings is null)
+                {
+                    YargLogger.LogWarning("Failed to load bindings from backup!");
+                    return 0;
+                }
+                usedBackup = true;
             }
 
             foreach (var (id, serialized) in bindings.Profiles)
@@ -62,11 +72,23 @@ namespace YARG.Input.Bindings
                 _bindings.Add(id, deserialized);
             }
 
+            // If we used the backup save the backup data to the main path, otherwise save main to backup
+            if (usedBackup)
+            {
+                SaveBindings(BindingsPath);
+            }
+            else
+            {
+                SaveBindings(BindingsBackupPath);
+            }
+
             return _bindings.Count;
         }
 
-        public static int SaveBindings()
+        public static int SaveBindings(string path = null)
         {
+            path ??= BindingsPath;
+
             var serialized = new SerializedBindings();
             foreach (var (id, binds) in _bindings)
             {
@@ -77,7 +99,7 @@ namespace YARG.Input.Bindings
                 serialized.Profiles[id] = binds.Serialize();
             }
 
-            BindingSerialization.SerializeBindings(serialized, BindingsPath);
+            BindingSerialization.SerializeBindings(serialized, path);
             return _bindings.Count;
         }
     }

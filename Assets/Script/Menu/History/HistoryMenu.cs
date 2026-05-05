@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
+using System.Linq;
 using UnityEngine;
+using YARG.Core.Audio;
 using YARG.Core.Input;
-using YARG.Core.Logging;
 using YARG.Core.Replays;
+using YARG.Core.Song;
 using YARG.Helpers;
 using YARG.Localization;
 using YARG.Menu.ListMenu;
@@ -12,6 +13,8 @@ using YARG.Menu.Navigation;
 using YARG.Menu.Persistent;
 using YARG.Replays;
 using YARG.Scores;
+using YARG.Settings;
+using YARG.Song;
 
 namespace YARG.Menu.History
 {
@@ -32,6 +35,8 @@ namespace YARG.Menu.History
         };
 
         protected override int ExtraListViewPadding => 10;
+
+        public static bool ForceUpdate { get; set; } = false;
 
         [SerializeField]
         private GameObject _exportReplayButton;
@@ -70,6 +75,12 @@ namespace YARG.Menu.History
             }, false));
 
             _headerTabs.TabChanged += OnTabChanged;
+
+            if (ForceUpdate)
+            {
+                ForceUpdate = false;
+                RequestViewListUpdate();
+            }
         }
 
         protected override List<ViewType> CreateViewList()
@@ -93,8 +104,20 @@ namespace YARG.Menu.History
             int categoryIndex = 0;
             list.Add(new CategoryViewType(LocalizeTime(_categoryTimes[0])));
 
+            List<PlayerScoreRecord> allPlayerScoreRecords = ScoreContainer.GetAllPlayerScoreRecords();
+            var gameIdToPlayerRecords = allPlayerScoreRecords
+                .GroupBy(x => x.GameRecordId)
+                .ToDictionary(g => g.Key, g => g.ToList());
+
             foreach (var record in ScoreContainer.GetAllGameRecords())
             {
+                if (SettingsManager.Settings.MaxSongRating.Value < SongRating.None &&
+                    !SongContainer.SongsByHash.ContainsKey(HashWrapper.Create(record.SongChecksum)))
+                {
+                    // If we are doing a rating filter, we need to bowlderize the history menu in case the missing song has an explicit title
+                    continue;
+                }
+
                 // See if we should create a category (make sure to skip the ones that have nothing in them)
                 bool shouldCreateCategory = false;
                 while (record.Date < _categoryTimes[categoryIndex].MinTime)
@@ -110,7 +133,8 @@ namespace YARG.Menu.History
                     list.Add(new CategoryViewType(text));
                 }
 
-                list.Add(new ReplayViewType(record));
+                gameIdToPlayerRecords.TryGetValue(record.Id, out var playerScoreRecords);
+                list.Add(new ReplayViewType(record, playerScoreRecords));
             }
 
             return list;
@@ -176,6 +200,7 @@ namespace YARG.Menu.History
         protected override void OnDisable()
         {
             base.OnDisable();
+            StemSettings.ApplySettings = true; // Ensure that we are using user's mix settings when launching into a replay
             Navigator.Instance.PopScheme();
 
             _headerTabs.TabChanged -= OnTabChanged;

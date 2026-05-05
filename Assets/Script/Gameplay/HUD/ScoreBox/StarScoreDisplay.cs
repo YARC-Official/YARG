@@ -14,21 +14,19 @@ namespace YARG.Gameplay.HUD
         [SerializeField]
         private StarDisplay[] _starObjects;
 
-        private int _currentStar;
+        private int  _currentStar;
         private bool _isGoldAchieved;
-
-        private float _goldMeterHeight;
 
         protected override void OnChartLoaded(SongChart chart)
         {
-            _goldMeterHeight = GetComponent<RectTransform>().rect.height;
+            _starObjects[0].PopNew();
         }
 
         private void Update()
         {
             if (_currentStar == 5 && !_isGoldAchieved)
             {
-                float pulse = 1 - (float)((GameManager.BeatEventHandler.Visual.StrongBeat.CurrentProgress / 2) % 1);
+                float pulse = 1 - (float) ((GameManager.BeatEventHandler.Visual.StrongBeat.CurrentProgress / 2) % 1);
                 foreach (var star in _starObjects)
                 {
                     star.SetGoldPulse(pulse);
@@ -38,60 +36,90 @@ namespace YARG.Gameplay.HUD
 
         public void SetStars(float stars)
         {
-            if (_isGoldAchieved)
-            {
-                // We don't need to update anymore, because you can't get any higher!
-                return;
-            }
-
             int topStar = (int) stars;
             float starProgress = stars - topStar;
 
-            if (_currentStar < 5)
+            // Revert gold state if the score has dropped back below gold threshold
+            if (_isGoldAchieved && stars < 6f)
             {
-                if (topStar > _currentStar)
+                _isGoldAchieved = false;
+            }
+
+            if (topStar < _currentStar)
+            {
+                for (int i = _currentStar; i > topStar; i--)
                 {
-                    // Complete current star
-                    _starObjects[_currentStar++].SetProgress(1);
-
-                    // Show and complete any skipped stars
-                    for (int i = _currentStar; i < topStar && i < _starObjects.Length; i++)
+                    if (i < _starObjects.Length)
                     {
-                        _starObjects[i].PopNew();
-                        _starObjects[i].SetProgress(1);
+                        _starObjects[i].HideStar();
                     }
-
-                    // Show new star
-                    _currentStar = topStar;
-                    if (_currentStar < _starObjects.Length)
-                        _starObjects[_currentStar].PopNew();
-
-                    GlobalAudioHandler.PlaySoundEffect(SfxSample.StarGain);
-                    YargLogger.LogFormatDebug("Gained star {0} at score {1}", topStar, GameManager.BandScore);
                 }
+
+                _currentStar = topStar;
 
                 if (_currentStar < _starObjects.Length)
                 {
-                    _starObjects[_currentStar].SetProgress(starProgress);
+                    _starObjects[_currentStar].PopNew();
                 }
+            }
+            else if (topStar > _currentStar)
+            {
+                if (_currentStar < _starObjects.Length)
+                {
+                    _starObjects[_currentStar].SetProgress(1);
+                }
+
+                _currentStar++;
+
+                // Show and complete any skipped stars
+                for (int i = _currentStar; i < topStar && i < _starObjects.Length; i++)
+                {
+                    _starObjects[i].PopNew();
+                    _starObjects[i].SetProgress(1);
+                }
+
+                // Show new star
+                _currentStar = topStar;
+                if (_currentStar < _starObjects.Length)
+                {
+                    _starObjects[_currentStar].PopNew();
+                }
+
+                GlobalAudioHandler.PlaySoundEffect(SfxSample.StarGain);
+                YargLogger.LogFormatDebug("Gained star {0} at score {1}", topStar, GameManager.BandScore);
             }
 
-            if (stars is >= 5f and < 6f)
+            if (_currentStar < _starObjects.Length)
             {
-                foreach (var star in _starObjects)
-                {
-                    star.SetGoldProgress(starProgress);
-                }
+                _starObjects[_currentStar].SetProgress(starProgress);
             }
-            else if (stars >= 6f)
+
+            if (stars >= 6f)
             {
                 foreach (var star in _starObjects)
                 {
                     star.SetGoldProgress(1);
                 }
 
-                GlobalAudioHandler.PlaySoundEffect(SfxSample.StarGold);
-                _isGoldAchieved = true;
+                if (!_isGoldAchieved)
+                {
+                    GlobalAudioHandler.PlaySoundEffect(SfxSample.StarGold);
+                    _isGoldAchieved = true;
+                }
+            }
+            else if (stars >= 5f)
+            {
+                foreach (var star in _starObjects)
+                {
+                    star.SetGoldProgress(starProgress);
+                }
+            }
+            else
+            {
+                foreach (var star in _starObjects)
+                {
+                    star.SetGoldProgress(0);
+                }
             }
         }
     }

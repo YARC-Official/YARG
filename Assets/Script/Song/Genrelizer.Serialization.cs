@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -9,6 +9,7 @@ namespace YARG.Song
 {
     public static partial class Genrelizer
     {
+#pragma warning disable CS0649
         [Serializable]
         // This is a serialized class; naming conventions are JSON's, not C#'s
         [SuppressMessage("ReSharper", "All")]
@@ -37,5 +38,6 @@ namespace YARG.Song
             public Dictionary<string, List<string>> substitutions = new();
             public Dictionary<string, string> localizations = new();
         }
+#pragma warning restore CS0649
     }
 }
