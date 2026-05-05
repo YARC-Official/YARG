@@ -555,9 +555,35 @@
                 "Medium": "Medium (3-5 Min)",
                 "Long": "Long (5-7 Min)",
                 "Epic": "Epic (Over 7 Min)"
-            },
-            "Playlists": "Playlists"
-        }
+            }
+        },
+		"HighwayOrdering": {
+			"Red": "Red",
+			"RedCymbal": "Red Cymbal",
+			"RedDrum": "Red Drum",
+			"Yellow": "Yellow",
+			"YellowCymbal": "Yellow Cymbal",
+			"YellowDrum": "Yellow Drum",
+			"Blue": "Blue",
+			"BlueCymbal": "Blue Cymbal",
+			"BlueDrum": "Blue Drum",
+			"Green": "Green",
+			"GreenCymbal": "Green Cymbal",
+			"GreenDrum": "Green Drum",
+			"Orange": "Orange",
+			"CreateDedicatedLane": "Create Dedicated Lane",
+			"RemoveDedicatedLane": "Remove Dedicated Lane",
+			"RemoveDedicatedLanes": "Remove Dedicated Lanes",
+			"Kick": "Kick",
+			"RightKick": "Right Kick*",
+			"LeftKick": "Left Kick*",
+			"SplitKicksWarning": "* Split kicks can still be hit with either pedal and may not correspond to the most comfortable footing for double-kick patterns.",
+			"ExpertPlusOnly": "Expert+ Only",
+			"4LaneHeader": "4-Lane Drums Highway Configuration",
+			"ProHeader": "Pro Drums Highway Configuration",
+			"5LaneHeader": "5-Lane Drums Highway Configuration"
+		},
+        "Playlists": "Playlists"
     },
     "Gameplay": {
         "Notifications": {
@@ -1771,6 +1797,24 @@
                 },
                 "BlueStarpower": {
                     "Name": "Blue Star Power"
+                },
+				"DoubleKickFret": {
+                    "Name": "Double Kick Fret\n(dedicated lane only)"
+                },
+                "DoubleKickFretInner": {
+                    "Name": "Double Kick Fret Inner\n(dedicated lane only)"
+                },
+                "DoubleKickNote": {
+                    "Name": "Double Kick Note\n(dedicated lane only)"
+                },
+                "DoubleKickParticles": {
+                    "Name": "Double Kick Particles\n(dedicated lane only)"
+                },
+                "DoubleKickStarpower": {
+                    "Name": "Double Kick Star Power\n(dedicated lane only)"
+                },
+                "DoubleKickActivationNote": {
+                    "Name": "Double Kick Star Power\nActivation\n(dedicated lane only)"
                 },
                 "GreenCymbal": {
                     "Name": "Green Cymbal"

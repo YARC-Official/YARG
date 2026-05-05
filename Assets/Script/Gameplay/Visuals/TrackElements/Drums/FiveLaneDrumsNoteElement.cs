@@ -1,8 +1,10 @@
 ﻿using System;
 using UnityEngine;
 using YARG.Core.Chart;
+using YARG.Gameplay.Player;
 using YARG.Helpers.Extensions;
 using YARG.Settings;
+using static YARG.Core.Game.ColorProfile;
 using Color = System.Drawing.Color;
 
 namespace YARG.Gameplay.Visuals
@@ -35,10 +37,29 @@ namespace YARG.Gameplay.Visuals
                     NoteGroup = noteGroups[(int) NoteType.Normal];
                 }
             }
+            else if (NoteRef.Pad == 0 && Player.NumberOfDedicatedKickLanes > 0)
+            {
+                // Deal with dedicated-lane kick notes
+                int highwayIndex;
+                if (NoteRef.IsDoubleKick && Player.NumberOfDedicatedKickLanes == 2)
+                {
+                    highwayIndex = DrumsPlayer.DOUBLE_KICK_FRET_INDEX;
+                }
+                else
+                {
+                    highwayIndex = (int) FiveLaneDrumPad.Kick;
+                }
+
+                // Set the position
+                var position = Player.GetHighwayOrderingInfo(highwayIndex).Position;
+                transform.localPosition = new Vector3(GetElementX(position, Player.LaneCount), 0f, 0f);
+
+                NoteGroup = noteGroups[(int) NoteType.DedicatedLaneKick];
+            }
             else
             {
-                // Deal with kick and wildcard notes
-                var groupIndex = NoteRef.Pad == 0 ? (int) NoteType.Kick : (int) NoteType.Wildcard;
+                // Deal with wildcard and regular kick notes
+                var groupIndex = NoteRef.Pad == 0 ? (int)NoteType.Kick : (int)NoteType.Wildcard;
                 transform.localPosition = Vector3.zero;
                 NoteGroup = noteGroups[groupIndex];
             }
@@ -61,9 +82,17 @@ namespace YARG.Gameplay.Visuals
         {
             var colors = Player.Player.ColorProfile.FiveLaneDrums;
 
-            // Get pad index
-            var colorIndex = Player.GetHighwayOrderingInfo(NoteRef.Pad).ColorIndex;
-
+            int colorIndex;
+            if (NoteRef.IsDoubleKick && Player.NumberOfDedicatedKickLanes is 2)
+            {
+                colorIndex = (int) FiveLaneDrumsFret.DoubleKick;
+            }
+            else
+            {
+                colorIndex = Player.GetHighwayOrderingInfo(NoteRef.Pad).ColorIndex;
+            }
+            
+            
             // Get colors
             var colorNoStarPower = colors.GetNoteColor(colorIndex);
             var color = colorNoStarPower;

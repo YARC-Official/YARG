@@ -352,6 +352,7 @@ namespace YARG.Player
             // Store profiles by ID
             foreach (var profile in _profiles)
             {
+                profile.GrandfatherIn();
                 _profilesById.Add(profile.Id, profile);
             }
 
