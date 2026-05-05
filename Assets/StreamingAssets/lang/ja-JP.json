@@ -522,22 +522,23 @@
             "VocalParts": {
                 "Name": "Number of Vocal Parts",
                 "Solo": "ソロ",
-                "Duet": "2-Part Harmony",
-                "Trio": "3-Part Harmony"
+                "Duet": "Duet / 2-Part Harmony",
+                "Trio": "Trio / 3-Part Harmony",
+                "Instrumental": "Instrumental"
             },
             "Sources": "Song Sources",
             "Charters": "Charters",
-            "Difficulties": {
-                "Name": "Difficulties",
-                "WarmUp": "ウォームアップ",
+            "Intensities": {
+                "Name": "Intensities",
+                "WarmUp": "Warm Up",
                 "Apprentice": "Apprentice",
-                "Solid": "ソリッド",
+                "Solid": "Solid",
                 "Moderate": "Moderate",
-                "Challenging": "チャレンジ",
-                "Nightmare": "ナイトメア",
-                "Impossible": "無理",
-                "Unknown": "不明",
-                "NoPart": "パートなし"
+                "Challenging": "Challenging",
+                "Nightmare": "Nightmare",
+                "Impossible": "Impossible",
+                "Unknown": "Unknown",
+                "NoPart": "No Part"
             },
             "Length": {
                 "Name": "曲の長さ",
@@ -831,7 +832,8 @@
             "FiveLaneOrangeCymbal": "５レーンオレンジシンバル"
         },
         "Vocals": {
-            "StarPower": "スターパワー発動"
+            "StarPower": "スターパワー発動",
+            "Hit": "Percussion Hit"
         },
         "FiveDrums": {
             "RedPad": "赤いパッド（1番目）",

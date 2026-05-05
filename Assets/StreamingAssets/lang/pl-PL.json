@@ -522,22 +522,23 @@
             "VocalParts": {
                 "Name": "Ilość partii wokalnych",
                 "Solo": "Solo",
-                "Duet": "Duet",
-                "Trio": "Trio"
+                "Duet": "Duet / 2-Part Harmony",
+                "Trio": "Trio / 3-Part Harmony",
+                "Instrumental": "Instrumental"
             },
             "Sources": "Źródła utworów",
             "Charters": "Charterzy",
-            "Difficulties": {
-                "Name": "Poziomy trudności",
-                "WarmUp": "Rozgrzewka",
-                "Apprentice": "Uczeń",
-                "Solid": "Solidny",
-                "Moderate": "Umiarkowany",
-                "Challenging": "Wymagający",
-                "Nightmare": "Koszmarny",
-                "Impossible": "Niemożliwy",
-                "Unknown": "Nieznany",
-                "NoPart": "Brak partii"
+            "Intensities": {
+                "Name": "Intensities",
+                "WarmUp": "Warm Up",
+                "Apprentice": "Apprentice",
+                "Solid": "Solid",
+                "Moderate": "Moderate",
+                "Challenging": "Challenging",
+                "Nightmare": "Nightmare",
+                "Impossible": "Impossible",
+                "Unknown": "Unknown",
+                "NoPart": "No Part"
             },
             "Length": {
                 "Name": "Długość utworów",
@@ -831,7 +832,8 @@
             "FiveLaneOrangeCymbal": "Pomarańczowy talerz (5-ścieżkowy)"
         },
         "Vocals": {
-            "StarPower": "Aktywuj Star Power"
+            "StarPower": "Aktywuj Star Power",
+            "Hit": "Percussion Hit"
         },
         "FiveDrums": {
             "RedPad": "Czerwony Pad (Pierwszy)",

@@ -522,22 +522,23 @@
             "VocalParts": {
                 "Name": "Número de Partes de Vocal",
                 "Solo": "Solo",
-                "Duet": "Harmonia de 2 Partes",
-                "Trio": "Harmonia de 3 Partes"
+                "Duet": "Duet / 2-Part Harmony",
+                "Trio": "Trio / 3-Part Harmony",
+                "Instrumental": "Instrumental"
             },
             "Sources": "Origens das Músicas",
             "Charters": "Criadores",
-            "Difficulties": {
-                "Name": "Dificuldades",
-                "WarmUp": "Aquecimento",
-                "Apprentice": "Aprendiz",
-                "Solid": "Sólido",
-                "Moderate": "Moderado",
-                "Challenging": "Desafiador",
-                "Nightmare": "Pesadelo",
-                "Impossible": "Impossível",
-                "Unknown": "Desconhecido",
-                "NoPart": "Sem Parte"
+            "Intensities": {
+                "Name": "Intensities",
+                "WarmUp": "Warm Up",
+                "Apprentice": "Apprentice",
+                "Solid": "Solid",
+                "Moderate": "Moderate",
+                "Challenging": "Challenging",
+                "Nightmare": "Nightmare",
+                "Impossible": "Impossible",
+                "Unknown": "Unknown",
+                "NoPart": "No Part"
             },
             "Length": {
                 "Name": "Comprimento das Músicas",
@@ -831,7 +832,8 @@
             "FiveLaneOrangeCymbal": "Prato Laranja — 5 Faixas"
         },
         "Vocals": {
-            "StarPower": "Ativar Especial"
+            "StarPower": "Ativar Especial",
+            "Hit": "Percussion Hit"
         },
         "FiveDrums": {
             "RedPad": "Pad Vermelho (Primeiro)",

@@ -522,13 +522,14 @@
             "VocalParts": {
                 "Name": "Number of Vocal Parts",
                 "Solo": "Solo",
-                "Duet": "2-Part Harmony",
-                "Trio": "3-Part Harmony"
+                "Duet": "Duet / 2-Part Harmony",
+                "Trio": "Trio / 3-Part Harmony",
+                "Instrumental": "Instrumental"
             },
             "Sources": "Song Sources",
             "Charters": "Charters",
-            "Difficulties": {
-                "Name": "Difficulties",
+            "Intensities": {
+                "Name": "Intensities",
                 "WarmUp": "Warm Up",
                 "Apprentice": "Apprentice",
                 "Solid": "Solid",
@@ -831,7 +832,8 @@
             "FiveLaneOrangeCymbal": "5-Lane Orange Cymbal"
         },
         "Vocals": {
-            "StarPower": "Poder Estelar Ativado"
+            "StarPower": "Poder Estelar Ativado",
+            "Hit": "Percussion Hit"
         },
         "FiveDrums": {
             "RedPad": "Tambor Vermelho (Primeiro)",

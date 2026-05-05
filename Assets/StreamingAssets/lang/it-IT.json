@@ -210,7 +210,7 @@
         "Toast": {
             "AutoCalibrationScore": "Salvataggio punteggio disabilitato: calibrazione automatica attiva.",
             "NoFailScore": "Salvataggio del punteggio disabilitato: L'opzione Nessun Fallimento ha dovuto ripristinare la barra di fallimento.",
-            "ResumeAfterFailInvalidate": "Score saving disabled: Resuming after failure invalidated score.",
+            "ResumeAfterFailInvalidate": "Salvataggio del punteggio disabilitato: Riprendere dopo aver fallito ha invalidato il punteggio.",
             "ProfileCreated": "Profilo creato per il nuovo dispositivo: {0}\nÈ ora di fare qualche YARGin!",
             "TooManyPauses": "Salvataggio punteggio disabilitato: Troppe pause.",
             "UnsupportedDevice": "La creazione automatica del profilo non è supportata per {0}!"
@@ -522,13 +522,14 @@
             "VocalParts": {
                 "Name": "Numero di parti vocali",
                 "Solo": "Assolo",
-                "Duet": "Armonia in 2 Parti",
-                "Trio": "Armonia in 3 Parti"
+                "Duet": "Duetto / Armonia in 2 parti",
+                "Trio": "Trio / Armonia in 3 parti",
+                "Instrumental": "Strumentale"
             },
             "Sources": "Sorgenti Brano",
             "Charters": "Creatori",
-            "Difficulties": {
-                "Name": "Difficoltà",
+            "Intensities": {
+                "Name": "Intensità",
                 "WarmUp": "Riscaldamento",
                 "Apprentice": "Apprendista",
                 "Solid": "Solido",
@@ -831,7 +832,8 @@
             "FiveLaneOrangeCymbal": "Batteria 5 corsie arancione"
         },
         "Vocals": {
-            "StarPower": "Attivazione Star Power"
+            "StarPower": "Attivazione Star Power",
+            "Hit": "Colpo Percussione"
         },
         "FiveDrums": {
             "RedPad": "Pad Rosso (Primo)",
