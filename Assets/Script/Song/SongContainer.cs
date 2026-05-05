@@ -1,10 +1,8 @@
-using Cysharp.Threading.Tasks;
+﻿using Cysharp.Threading.Tasks;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using Cysharp.Text;
-using Cysharp.Threading.Tasks;
 using YARG.Core;
 using YARG.Core.Game;
 using YARG.Core.Logging;
@@ -72,7 +70,7 @@ namespace YARG.Song
         public string      Category      { get; }
         public string      CategoryGroup { get; }
         public SongEntry[] Songs         { get; }
-        public bool Collapsed { get; }
+        public bool        Collapsed     { get; }
 
         public SongCategory(string category, SongEntry[] songs, string categoryGroupName, bool collapsed = false)
         {
@@ -91,9 +89,9 @@ namespace YARG.Song
 
     public static class SongContainer
     {
-        private static SongCache   _songCache   = new();
-        private static SortedSongs _sortedSongs = new();
-        private static SongEntry[] _songs = Array.Empty<SongEntry>();
+        private static SongCache                                _songCache   = new();
+        private static SortedSongs                              _sortedSongs = new();
+        private static SongEntry[]                              _songs       = Array.Empty<SongEntry>();
         private static Dictionary<HashWrapper, List<SongEntry>> _songsByHash = new();
 
         private static SongCategory[]                         _sortTitles       = Array.Empty<SongCategory>();
@@ -130,14 +128,22 @@ namespace YARG.Song
         public static IReadOnlyDictionary<SortString, List<SongEntry>> Playlists   => _sortedSongs.Playlists;
         public static IReadOnlyDictionary<SortString, List<SongEntry>> Sources     => _sortedSongs.Sources;
 
+        public static IReadOnlyDictionary<SortString, SortedDictionary<SortString, List<SongEntry>>> ArtistAlbums =>
+            _sortedSongs.ArtistAlbums;
+
+        public static IReadOnlyDictionary<Instrument, SortedDictionary<int, List<SongEntry>>> Instruments =>
+            _sortedSongs.Instruments;
+
         public static int Count => _songs.Length;
+
         // public static IReadOnlyDictionary<HashWrapper, List<SongEntry>> SongsByHash => _songCache.Entries;
         public static IReadOnlyDictionary<HashWrapper, List<SongEntry>> SongsByHash => _songsByHash;
         public static SongEntry[]                                       Songs       => _songs;
 
         public static SongEntry[] UnfilteredSongs => _songCache.Entries.Values.SelectMany(e => e).ToArray();
 
-        private static bool AllowedByRating(SongRating rating) => rating <= SettingsManager.Settings.MaxSongRating.Value;
+        private static bool AllowedByRating(SongRating rating) =>
+            rating <= SettingsManager.Settings.MaxSongRating.Value;
 
 #nullable enable
         public static async UniTask RunRefresh(bool quick, LoadingContext? context = null)
@@ -174,7 +180,8 @@ namespace YARG.Song
             {
                 Genrelizer.GenrelizeAll(_songCache, false);
             }
-            else if (SettingsManager.Settings.Genrelizer.Value is GenrelizerMode.Overgenrelize && !GlobalVariables.OfflineMode)
+            else if (SettingsManager.Settings.Genrelizer.Value is GenrelizerMode.Overgenrelize &&
+                !GlobalVariables.OfflineMode)
             {
                 Genrelizer.GenrelizeAll(_songCache, true);
             }
@@ -196,15 +203,15 @@ namespace YARG.Song
         {
             var proposedSort = sort switch
             {
-                SortAttribute.Name => _sortTitles,
-                SortAttribute.Artist => _sortArtists,
-                SortAttribute.Album => _sortAlbums,
-                SortAttribute.Genre => _sortGenres,
-                SortAttribute.Subgenre => _sortSubgenres,
-                SortAttribute.Year => _sortYears,
-                SortAttribute.Charter => _sortCharters,
-                SortAttribute.Folder => _sortPlaylists,
-                SortAttribute.Source => _sortSources,
+                SortAttribute.Name         => _sortTitles,
+                SortAttribute.Artist       => _sortArtists,
+                SortAttribute.Album        => _sortAlbums,
+                SortAttribute.Genre        => _sortGenres,
+                SortAttribute.Subgenre     => _sortSubgenres,
+                SortAttribute.Year         => _sortYears,
+                SortAttribute.Charter      => _sortCharters,
+                SortAttribute.Folder       => _sortPlaylists,
+                SortAttribute.Source       => _sortSources,
                 SortAttribute.Artist_Album => _sortArtistAlbums,
                 SortAttribute.SongLength   => _sortSongLengths,
                 SortAttribute.DateAdded    => _sortDatesAdded,
@@ -512,7 +519,7 @@ namespace YARG.Song
             var bestStars = ScoreContainer.GetBestStarsForSong(profile);
             foreach (var song in _songs)
             {
-                if (!bestStars.TryGetValue(song.Hash, out var stars) || stars <= StarAmount.None)
+                if (!bestStars.TryGetValue(song.Hash, out var stars))
                 {
                     stars = StarAmount.None;
                 }
@@ -528,19 +535,15 @@ namespace YARG.Song
 
             foreach (var song in _songs)
             {
-                StarAmount key;
-                if (!song[instrument].IsActive())
-                {
-                    key = StarAmount.NoPart;
-                }
-                else if (!_runtimeStars.TryGetValue(song, out key) || key <= StarAmount.None)
+                var key = StarAmount.NoPart;
+                if (song[instrument].IsActive() && !_runtimeStars.TryGetValue(song, out key))
                 {
                     key = StarAmount.None;
                 }
 
                 if (!grouped.TryGetValue(key, out var list))
                 {
-                    list = new List<SongEntry>(); 
+                    list = new List<SongEntry>();
                     grouped[key] = list;
                 }
 
@@ -634,7 +637,8 @@ namespace YARG.Song
                 }
                 else
                 {
-                    var record = ScoreContainer.GetBestPercentageScore(song.Hash, profile.Id, instrument, allowCacheUpdate: false);
+                    var record = ScoreContainer.GetBestPercentageScore(song.Hash, profile.Id, instrument,
+                        allowCacheUpdate: false);
                     if (record == null || record.GetPercent() <= 0f)
                     {
                         bucketIndex = bucketKeys.Length - 2; // Unplayed
@@ -893,7 +897,7 @@ namespace YARG.Song
 
                 foreach (var node in entries)
                 {
-                    foreach (var t in node.Value)
+                    for (int i = 0; i < node.Value.Count; i++)
                     {
                         if (AllowedByRating(node.Value[i].SongRating))
                         {
@@ -903,7 +907,10 @@ namespace YARG.Song
                             }
                             else
                             {
-                                _songsByHash.Add(node.Key, new List<SongEntry> { node.Value[i] });
+                                _songsByHash.Add(node.Key, new List<SongEntry>
+                                {
+                                    node.Value[i]
+                                });
                             }
 
                             songs[index++] = node.Value[i];
