@@ -133,7 +133,6 @@ MonoBehaviour:
     MaterialIndex: 2
     EmissionMultiplier: 0
     EmissionAddition: 0
-  _coloredSecondaryMaterials: []
 --- !u!1 &413377233256013164
 GameObject:
   m_ObjectHideFlags: 0
@@ -266,7 +265,6 @@ MonoBehaviour:
     MaterialIndex: 2
     EmissionMultiplier: 0
     EmissionAddition: 0
-  _coloredSecondaryMaterials: []
 --- !u!1 &486428908879041675
 GameObject:
   m_ObjectHideFlags: 0
@@ -325,7 +323,6 @@ MonoBehaviour:
     MaterialIndex: 0
     EmissionMultiplier: 0
     EmissionAddition: 0
-  _coloredSecondaryMaterials: []
 --- !u!1 &523444858385620418
 GameObject:
   m_ObjectHideFlags: 0
@@ -10230,7 +10227,6 @@ MonoBehaviour:
     MaterialIndex: 2
     EmissionMultiplier: 0
     EmissionAddition: 0
-  _coloredSecondaryMaterials: []
 --- !u!1 &605571588776134883
 GameObject:
   m_ObjectHideFlags: 0
@@ -10289,7 +10285,6 @@ MonoBehaviour:
     MaterialIndex: 0
     EmissionMultiplier: 0
     EmissionAddition: 0
-  _coloredSecondaryMaterials: []
 --- !u!1 &864788763194525350
 GameObject:
   m_ObjectHideFlags: 0
@@ -10388,7 +10383,6 @@ MonoBehaviour:
     MaterialIndex: 1
     EmissionMultiplier: 0
     EmissionAddition: 0
-  _coloredSecondaryMaterials: []
 --- !u!1 &922141262468047875
 GameObject:
   m_ObjectHideFlags: 0
@@ -10661,7 +10655,6 @@ MonoBehaviour:
     MaterialIndex: 2
     EmissionMultiplier: 0
     EmissionAddition: 0
-  _coloredSecondaryMaterials: []
 --- !u!1 &1447334668336755401
 GameObject:
   m_ObjectHideFlags: 0
@@ -10796,7 +10789,6 @@ MonoBehaviour:
     MaterialIndex: 0
     EmissionMultiplier: 0
     EmissionAddition: 0
-  _coloredSecondaryMaterials: []
 --- !u!1 &1778767071586293085
 GameObject:
   m_ObjectHideFlags: 0
@@ -15999,7 +15991,6 @@ MonoBehaviour:
     MaterialIndex: 2
     EmissionMultiplier: 0
     EmissionAddition: 0
-  _coloredSecondaryMaterials: []
 --- !u!1 &2293016267227878471
 GameObject:
   m_ObjectHideFlags: 0
@@ -16157,7 +16148,6 @@ MonoBehaviour:
     MaterialIndex: 2
     EmissionMultiplier: 0
     EmissionAddition: 0
-  _coloredSecondaryMaterials: []
 --- !u!1 &2492432553916221412
 GameObject:
   m_ObjectHideFlags: 0
@@ -16216,7 +16206,6 @@ MonoBehaviour:
     MaterialIndex: 0
     EmissionMultiplier: 0
     EmissionAddition: 0
-  _coloredSecondaryMaterials: []
 --- !u!1 &2519982101321810702
 GameObject:
   m_ObjectHideFlags: 0
@@ -16275,7 +16264,6 @@ MonoBehaviour:
     MaterialIndex: 0
     EmissionMultiplier: 0
     EmissionAddition: 0
-  _coloredSecondaryMaterials: []
 --- !u!1 &2573877056044305055
 GameObject:
   m_ObjectHideFlags: 0
@@ -16366,7 +16354,6 @@ MonoBehaviour:
     MaterialIndex: 0
     EmissionMultiplier: 0
     EmissionAddition: 0
-  _coloredSecondaryMaterials: []
 --- !u!1 &2852395855816787385
 GameObject:
   m_ObjectHideFlags: 0
@@ -21288,7 +21275,6 @@ MonoBehaviour:
     MaterialIndex: 2
     EmissionMultiplier: 0
     EmissionAddition: 0
-  _coloredSecondaryMaterials: []
 --- !u!1 &3007197943067896178
 GameObject:
   m_ObjectHideFlags: 0
@@ -21351,7 +21337,6 @@ MonoBehaviour:
     MaterialIndex: 2
     EmissionMultiplier: 0
     EmissionAddition: 0
-  _coloredSecondaryMaterials: []
 --- !u!1 &3028842569811858915
 GameObject:
   m_ObjectHideFlags: 0
@@ -26330,7 +26315,6 @@ MonoBehaviour:
     MaterialIndex: 3
     EmissionMultiplier: 0
     EmissionAddition: 0
-  _coloredSecondaryMaterials: []
 --- !u!1 &3503407201778625847
 GameObject:
   m_ObjectHideFlags: 0
@@ -26393,7 +26377,6 @@ MonoBehaviour:
     MaterialIndex: 2
     EmissionMultiplier: 0
     EmissionAddition: 0
-  _coloredSecondaryMaterials: []
 --- !u!1 &3992999653289438935
 GameObject:
   m_ObjectHideFlags: 0
@@ -31483,7 +31466,6 @@ MonoBehaviour:
     MaterialIndex: 3
     EmissionMultiplier: 0
     EmissionAddition: 0
-  _coloredSecondaryMaterials: []
 --- !u!1 &4787541845059292856
 GameObject:
   m_ObjectHideFlags: 0
@@ -31649,7 +31631,6 @@ MonoBehaviour:
     MaterialIndex: 2
     EmissionMultiplier: 0
     EmissionAddition: 0
-  _coloredSecondaryMaterials: []
 --- !u!1 &5103552119702715995
 GameObject:
   m_ObjectHideFlags: 0
@@ -31708,7 +31689,6 @@ MonoBehaviour:
     MaterialIndex: 0
     EmissionMultiplier: 0
     EmissionAddition: 0
-  _coloredSecondaryMaterials: []
 --- !u!1 &5105827407962776137
 GameObject:
   m_ObjectHideFlags: 0
@@ -31888,7 +31868,6 @@ MonoBehaviour:
     MaterialIndex: 2
     EmissionMultiplier: 0
     EmissionAddition: 0
-  _coloredSecondaryMaterials: []
 --- !u!1 &5319861011254233844
 GameObject:
   m_ObjectHideFlags: 0
@@ -41932,7 +41911,6 @@ MonoBehaviour:
     MaterialIndex: 1
     EmissionMultiplier: 0
     EmissionAddition: 0
-  _coloredSecondaryMaterials: []
 --- !u!1 &6269854297387791962
 GameObject:
   m_ObjectHideFlags: 0
@@ -42155,7 +42133,6 @@ MonoBehaviour:
     MaterialIndex: 1
     EmissionMultiplier: 0
     EmissionAddition: 0
-  _coloredSecondaryMaterials: []
 --- !u!1 &6602038446696215791
 GameObject:
   m_ObjectHideFlags: 0
@@ -42214,7 +42191,6 @@ MonoBehaviour:
     MaterialIndex: 0
     EmissionMultiplier: 0
     EmissionAddition: 0
-  _coloredSecondaryMaterials: []
 --- !u!1 &6648822484547972196
 GameObject:
   m_ObjectHideFlags: 0
@@ -42420,7 +42396,6 @@ MonoBehaviour:
     MaterialIndex: 2
     EmissionMultiplier: 0
     EmissionAddition: 0
-  _coloredSecondaryMaterials: []
 --- !u!1 &6666075225030478821
 GameObject:
   m_ObjectHideFlags: 0
@@ -42487,7 +42462,6 @@ MonoBehaviour:
     MaterialIndex: 2
     EmissionMultiplier: 0
     EmissionAddition: 0
-  _coloredSecondaryMaterials: []
 --- !u!1 &6964720023847268071
 GameObject:
   m_ObjectHideFlags: 0
@@ -42546,7 +42520,6 @@ MonoBehaviour:
     MaterialIndex: 0
     EmissionMultiplier: 0
     EmissionAddition: 0
-  _coloredSecondaryMaterials: []
 --- !u!1 &7038179290471763809
 GameObject:
   m_ObjectHideFlags: 0
@@ -47584,7 +47557,6 @@ MonoBehaviour:
     MaterialIndex: 0
     EmissionMultiplier: 0
     EmissionAddition: 0
-  _coloredSecondaryMaterials: []
 --- !u!1 &7440427008969540099
 GameObject:
   m_ObjectHideFlags: 0
@@ -47643,7 +47615,6 @@ MonoBehaviour:
     MaterialIndex: 0
     EmissionMultiplier: 0
     EmissionAddition: 0
-  _coloredSecondaryMaterials: []
 --- !u!1 &7447106803091914923
 GameObject:
   m_ObjectHideFlags: 0
@@ -52673,7 +52644,6 @@ MonoBehaviour:
     MaterialIndex: 0
     EmissionMultiplier: 0
     EmissionAddition: 0
-  _coloredSecondaryMaterials: []
 --- !u!1 &8072907275037494799
 GameObject:
   m_ObjectHideFlags: 0
@@ -57644,7 +57614,6 @@ MonoBehaviour:
     MaterialIndex: 0
     EmissionMultiplier: 0
     EmissionAddition: 0
-  _coloredSecondaryMaterials: []
 --- !u!1 &8467855815840554094
 GameObject:
   m_ObjectHideFlags: 0
