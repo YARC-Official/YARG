@@ -117,7 +117,7 @@ Material:
     - _QueueOffset: 0
     - _RandomFloat: 0
     - _ReceiveShadows: 1
-    - _Shine_Amount: 1000
+    - _Shine_Amount: 3000
     - _Smoothness: 0.5
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1

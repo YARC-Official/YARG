@@ -26,6 +26,7 @@ Material:
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords:
   - _EMISSION_DISABLED
+  - _SHINE
   m_InvalidKeywords: []
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
@@ -127,7 +128,7 @@ Material:
     - _QueueOffset: 0
     - _RAISE_Z: 0
     - _ReceiveShadows: 1
-    - _SHINE: 0
+    - _SHINE: 1
     - _ShineAmount: 9.1
     - _Smoothness: 0.5
     - _SmoothnessTextureChannel: 0
