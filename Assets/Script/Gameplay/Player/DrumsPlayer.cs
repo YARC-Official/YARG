@@ -306,7 +306,9 @@ namespace YARG.Gameplay.Player
                     continue;
                 }
 
-                var fillLanePosition = GetHighwayOrderingInfo(rightmostNote.Pad).Position;
+                var highwayOrderingIndex = rightmostNote.IsDoubleKick ? DOUBLE_KICK_FRET_INDEX : rightmostNote.Pad;
+
+                var fillLanePosition = GetHighwayOrderingInfo(highwayOrderingIndex).Position;
 
                 int candidateIndex = -1;
 
