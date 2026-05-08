@@ -35,6 +35,8 @@ namespace YARG.Gameplay.Visuals
         [SerializeField]
         private Transform _rightKickFretPosition;
 
+        public Dictionary<int, Fret> Frets => _frets;
+
         private readonly Dictionary<int, Fret> _frets = new();
         private readonly List<KickFret> _kickFrets = new();
 
@@ -74,8 +76,6 @@ namespace YARG.Gameplay.Visuals
             _frets.Clear();
             foreach (var (noteType, highwayOrderingInfo) in highwayOrdering)
             {
-                // Note that the correctness of this depends on instruments with shared lanes having the note type that
-                // corresponds to the fret color coming first in their pad/fret/whatever enum
                 if (!_usedFretIndexes.Add(highwayOrderingInfo.Position))
                 {
                     // Find the earlier highway ordering info with the same position
