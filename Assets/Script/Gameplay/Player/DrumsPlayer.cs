@@ -804,7 +804,6 @@ namespace YARG.Gameplay.Player
 
                 if (padToPress is not null)
                 {
-
                     _fretArray.SetPressedDrum(padToPress.Value, lowestDelta < DRUM_PAD_FLASH_HOLD_DURATION, GetAnimType(padToPress.Value));
                     _fretArray.UpdateAccentColorState(padToPress.Value,
                         _animTypeToPadToLastPressedDelta[Fret.AnimType.CorrectHard][padToPress.Value] <
