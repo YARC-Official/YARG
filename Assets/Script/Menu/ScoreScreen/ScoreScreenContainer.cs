@@ -8,7 +8,7 @@ namespace YARG.Menu.ScoreScreen
     public struct PlayerScoreCard
     {
         public bool  IsHighScore;
-        public float AverageMultiplier;
+        public bool  IsReplay;
 
         public YargPlayer Player;
         public BaseStats  Stats;

@@ -7,6 +7,8 @@ using YARG.Core.Replays.Analyzer;
 using YARG.Core.Song;
 using YARG.Helpers;
 using YARG.Menu.Persistent;
+using YARG.Menu.ScoreScreen;
+using YARG.Player;
 using YARG.Replays;
 using YARG.Scores;
 using YARG.Settings;
@@ -111,7 +113,7 @@ namespace YARG.Menu.History
         }
 
         // Analyze Replay Button
-        public override void Shortcut1()
+        public override void AnalyzeReplayClick()
         {
             if (_songEntry == null)
             {
@@ -156,6 +158,58 @@ namespace YARG.Menu.History
                         profile.Name, profile.CurrentDifficulty, profile.CurrentDifficulty, item4: analysisResult.StatLog);
                 }
             }
+        }
+
+        public override void ViewScoreCardClick()
+        {
+            _entry ??= LoadReplay("Cannot load replay.");
+            if (_entry == null)
+            {
+                return;
+            }
+            if (_songEntry == null)
+            {
+                DialogManager.Instance.ShowMessage("Unavailable Song", "A song compatible with the selected play is not present in your library! Most likely deleted!");
+                return;
+            }
+            GlobalVariables.State.CurrentSong = _songEntry;
+            GlobalVariables.State.CurrentReplay = _entry;
+            var chart = _songEntry.LoadChart();
+            if (chart == null)
+            {
+                YargLogger.LogError("Failed to load chart");
+                return;
+            }
+            var replayOptions = new ReplayReadOptions { KeepFrameTimes = GlobalVariables.VerboseReplays };
+            var (result, data) = ReplayIO.TryLoadData(_entry, replayOptions);
+            if (result != ReplayReadResult.Valid)
+            {
+                YargLogger.LogFormatError("Failed to load replay. {0}", result);
+                return;
+            }
+            var results = ReplayAnalyzer.AnalyzeReplay(chart, _entry, data);
+            var playerScoreCards = new PlayerScoreCard[results.Length];
+            for (int i = 0; i < _entry.Stats.Length; i++)
+            {
+                var playerResult = results[i];
+                var playerEntry = _entry.Stats[i];
+                playerScoreCards[i] = new PlayerScoreCard
+                {
+                    IsHighScore = false, // No way to know this from a replay
+                    Player = new YargPlayer(playerResult.Frame, data),
+                    Stats = playerResult.ResultStats,
+                    IsReplay = playerEntry.IsReplayPlayer
+                };
+            }
+            GlobalVariables.State.ScoreScreenStats = new ScoreScreenStats
+            {
+                PlayerScores = playerScoreCards,
+                BandScore = _entry.BandScore,
+                BandStars = (int) _entry.BandStars,
+                ReplayInfo = _entry,
+            };
+            // Go to the score screen
+            GlobalVariables.Instance.LoadScene(SceneIndex.Score);
         }
 
         public void ExportReplay()

@@ -106,28 +106,31 @@ namespace YARG.Menu.ScoreScreen
             // Do analysis of replay before showing any score data
             // This will make it so that if the analysis takes a while the screen is blank
             // (kinda like a loading screen)
-            try
+            if (!GlobalVariables.State.IsReplay)
             {
-                if (!AnalyzeReplay(song, scoreScreenStats.ReplayInfo))
+                try
                 {
-                    DialogManager.Instance.ShowMessage("Inconsistent Replay Results!",
-                        "The replay analysis for this run produced inconsistent results to the actual gameplay.\n" +
+                    if (!AnalyzeReplay(song, scoreScreenStats.ReplayInfo))
+                    {
+                        DialogManager.Instance.ShowMessage("Inconsistent Replay Results!",
+                            "The replay analysis for this run produced inconsistent results to the actual gameplay.\n" +
+                            "Please report this issue to the YARG developers on GitHub or Discord.\n\n" +
+                            $"Chart Hash: {song.Hash}");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    YargLogger.LogException(ex, $"Failed to analyze replay! Song hash: {song.Hash}");
+                    DialogManager.Instance.ShowMessage("Failed To Analyze Replay!",
+                        "The replay analysis for this run resulted in an unexpected error.\n" +
                         "Please report this issue to the YARG developers on GitHub or Discord.\n\n" +
                         $"Chart Hash: {song.Hash}");
                 }
-            }
-            catch (Exception ex)
-            {
-                YargLogger.LogException(ex, $"Failed to analyze replay! Song hash: {song.Hash}");
-                DialogManager.Instance.ShowMessage("Failed To Analyze Replay!",
-                    "The replay analysis for this run resulted in an unexpected error.\n" +
-                    "Please report this issue to the YARG developers on GitHub or Discord.\n\n" +
-                    $"Chart Hash: {song.Hash}");
-            }
+        }
 #endif
 
-            // Play audience chatter
-            if (SettingsManager.Settings.UseCrowdFx.Value == CrowdFxMode.Enabled)
+        // Play audience chatter, unless we are viewing a replay score
+        if (SettingsManager.Settings.UseCrowdFx.Value == CrowdFxMode.Enabled && !GlobalVariables.State.IsReplay)
             {
                 GlobalAudioHandler.PlaySoundEffect(SfxSample.Chatter, 1.0);
             }
@@ -139,7 +142,7 @@ namespace YARG.Menu.ScoreScreen
             var scoreNotSavedText = Localize.Key("Menu.ScoreScreen.BandScoreNotSaved");
             _bandScoreNotSavedPill.SetValues(scoreNotSavedText,
                 ColoredPillElement.ColoredPillPreset.HarderModifier);
-            _bandScoreNotSavedPill.gameObject.SetActive(
+            _bandScoreNotSavedPill.gameObject.SetActive(!GlobalVariables.State.IsReplay &&
                 !ScoreContainer.IsBandScoreValid(PersistentState.Default.SongSpeed));
 
             // Set speed text (if not at 100% speed)
@@ -214,7 +217,7 @@ namespace YARG.Menu.ScoreScreen
                     case GameMode.FiveFretGuitar:
                     {
                         card = Instantiate(_guitarCardPrefab, _cardContainer);
-                        ((ScoreCard<GuitarStats>)card).Initialize(score.IsHighScore, score.Player, score.Stats as GuitarStats, score.AverageMultiplier);
+                        ((ScoreCard<GuitarStats>)card).Initialize(score.IsHighScore, score.Player, score.Stats as GuitarStats, score.IsReplay);
                         break;
                     }
                     case GameMode.FourLaneDrums:
@@ -222,19 +225,19 @@ namespace YARG.Menu.ScoreScreen
                     case GameMode.EliteDrums:
                     {
                         card = Instantiate(_drumsCardPrefab, _cardContainer);
-                        ((ScoreCard<DrumsStats>)card).Initialize(score.IsHighScore, score.Player, score.Stats as DrumsStats, score.AverageMultiplier);
+                        ((ScoreCard<DrumsStats>)card).Initialize(score.IsHighScore, score.Player, score.Stats as DrumsStats, score.IsReplay);
                         break;
                     }
                     case GameMode.Vocals:
                     {
                         card = Instantiate(_vocalsCardPrefab, _cardContainer);
-                        ((ScoreCard<VocalsStats>)card).Initialize(score.IsHighScore, score.Player, score.Stats as VocalsStats, score.AverageMultiplier);
+                        ((ScoreCard<VocalsStats>)card).Initialize(score.IsHighScore, score.Player, score.Stats as VocalsStats, score.IsReplay);
                         break;
                     }
                     case GameMode.ProKeys:
                     {
                         card = Instantiate(_keysCardPrefab, _cardContainer);
-                        ((ScoreCard<KeysStats>) card).Initialize(score.IsHighScore, score.Player, score.Stats as KeysStats, score.AverageMultiplier);
+                        ((ScoreCard<KeysStats>) card).Initialize(score.IsHighScore, score.Player, score.Stats as KeysStats, score.IsReplay);
                         break;
                     }
                 }
@@ -420,6 +423,7 @@ namespace YARG.Menu.ScoreScreen
         private NavigationScheme.Entry _continueButtonEntry;
         private NavigationScheme.Entry _endEarlyButtonEntry;
         private NavigationScheme.Entry _restartButtonEntry;
+        private NavigationScheme.Entry _viewReplayButtonEntry;
         private NavigationScheme.Entry _showAdvancedButtonEntry;
         private NavigationScheme.Entry _removeFavoriteButtonEntry;
         private NavigationScheme.Entry _addFavoriteButtonEntry;
@@ -431,7 +435,6 @@ namespace YARG.Menu.ScoreScreen
         private void SetNavigationScheme()
         {
             var song = GlobalVariables.State.CurrentSong;
-
             _continueButtonEntry = new NavigationScheme.Entry(MenuAction.Green, "Menu.Common.Continue", () =>
                 {
                     if (!_analyzingReplay)
@@ -447,6 +450,11 @@ namespace YARG.Menu.ScoreScreen
                         }
                         else
                         {
+                            if (GlobalVariables.State.IsReplay)
+                            {
+                                GlobalVariables.State.CurrentReplay = null;
+                            }
+
                             GlobalVariables.State.PlayingAShow = false;
                             GlobalVariables.Instance.LoadScene(SceneIndex.Menu);
                         }
@@ -457,6 +465,14 @@ namespace YARG.Menu.ScoreScreen
             {
                 GlobalVariables.State.PlayingAShow = false;
                 GlobalVariables.Instance.LoadScene(SceneIndex.Menu);
+            });
+
+            _viewReplayButtonEntry = new NavigationScheme.Entry(MenuAction.Yellow, "Menu.ScoreScreen.ViewReplay", () =>
+            {
+                        _restartingSong = true;
+                        // Not null, isReplay is only true if CurrentReplay is defined.
+                        GlobalVariables.State.SongSpeed = GlobalVariables.State.CurrentReplay!.SongSpeed;
+                        GlobalVariables.Instance.LoadScene(SceneIndex.Gameplay);
             });
 
             _restartButtonEntry = new NavigationScheme.Entry(MenuAction.Yellow, "Menu.ScoreScreen.RestartSong", () =>
@@ -576,11 +592,20 @@ namespace YARG.Menu.ScoreScreen
             List<NavigationScheme.Entry> buttons = new()
             {
                 _continueButtonEntry,
-                _restartButtonEntry
             };
 
+            var isReplay = GlobalVariables.State.IsReplay;
             var song = GlobalVariables.State.CurrentSong;
             var isFavorited = PlaylistContainer.FavoritesPlaylist.ContainsSong(song);
+
+            if (isReplay)
+            {
+                buttons.Add(_viewReplayButtonEntry);
+            }
+            else
+            {
+                buttons.Add(_restartButtonEntry);
+            }
 
             if (isFavorited)
             {

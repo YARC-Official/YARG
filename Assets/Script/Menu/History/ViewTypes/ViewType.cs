@@ -28,7 +28,12 @@ namespace YARG.Menu.History
 
         }
 
-        public virtual void Shortcut1()
+        public virtual void ViewScoreCardClick()
+        {
+
+        }
+
+        public virtual void AnalyzeReplayClick()
         {
 
         }

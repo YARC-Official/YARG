@@ -285,6 +285,7 @@
             },
 
             "Analyze": "Analyze",
+            "ViewScoreCard": "View Results",
             "PlayWithReplay": "Play With Replay"
         },
         "Main": {
@@ -497,7 +498,8 @@
             "RestartSong" : "Restart Song",
             "ShowAdvanced": "Show Advanced",
             "HideAdvanced": "Hide Advanced",
-            "EndSetlistEarly" : "End Setlist"
+            "EndSetlistEarly" : "End Setlist",
+            "ViewReplay": "View Replay"
         },
         "Settings": {
             "ShowAdvanced": "Show Advanced",
