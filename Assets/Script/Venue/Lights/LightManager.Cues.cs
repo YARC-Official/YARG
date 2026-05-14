@@ -6,8 +6,8 @@ namespace YARG.Venue
     {
 		private Color target;
 		private float targetint;
-		
-		private LightState Default(LightState current, VenueLightLocation location, Gradient gradient)
+
+		private LightState Default(LightState current, VenueLightLocation location, Gradient gradient, float startint)
         {
 			if (AnimationFrame < 1)
 			{
@@ -34,7 +34,7 @@ namespace YARG.Venue
 				};
 			}
 			targetint = 1f;
-			current.Intensity = Mathf.Lerp(current.Intensity, targetint, Time.deltaTime * 30f);
+			current.Intensity = Mathf.Lerp(startint, targetint, _timer);
 
             current.Delta += Time.deltaTime * _gradientLightingSpeed;
             if (current.Delta > 1f)
@@ -44,10 +44,10 @@ namespace YARG.Venue
 
             return current;
         }
-		
-		private LightState AutoGradient(LightState current, VenueLightLocation location, Gradient gradient)
+
+		private LightState AutoGradient(LightState current, VenueLightLocation location, Gradient gradient, Color startcol, float startint, bool auto)
         {
-			if (AnimationFrame < 1)
+			if (auto)
 			{
 				target = gradient.Evaluate(current.Delta);
 			}
@@ -62,8 +62,8 @@ namespace YARG.Venue
 				};
 			}
 			targetint = 1f;
-			current.Color = Color.Lerp(current.Color ?? Color.white, target, Time.deltaTime * 25f);
-			current.Intensity = Mathf.Lerp(current.Intensity, targetint, Time.deltaTime * 30f);
+			current.Color = Color.Lerp(startcol, target, _timer);
+			current.Intensity = Mathf.Lerp(startint, targetint, _timer);
 
             current.Delta += Time.deltaTime * _gradientLightingSpeed;
             if (current.Delta > 1f)
@@ -75,7 +75,7 @@ namespace YARG.Venue
         }
 
         private LightState AutoGradientSplit(LightState current, VenueLightLocation location,
-            Gradient innerGradient, Gradient outerGradient)
+            Gradient innerGradient, Gradient outerGradient, Color startcol, float startint, bool auto)
         {
             var gradient = location switch
             {
@@ -85,16 +85,16 @@ namespace YARG.Venue
                 _                        => innerGradient,
             };
 
-            return AutoGradient(current, location, gradient);
+            return AutoGradient(current, location, gradient, startcol, startint, auto);
         }
 
-        private LightState BlackOut(LightState current, float speed)
+        private LightState BlackOut(LightState current, float startint)
         {
-            current.Intensity = Mathf.Lerp(current.Intensity, 0f, Time.deltaTime * speed);
+	        current.Intensity = Mathf.Lerp(startint, 0f, _timer);
             return current;
         }
-		
-		private LightState BlackOutSpot(LightState current, float speed, VenueLightLocation location)
+
+		private LightState BlackOutSpot(LightState current, VenueLightLocation location, Color startcol, float startint)
         {
 			if (location == VenueLightLocation.Front)
 			{
@@ -110,37 +110,40 @@ namespace YARG.Venue
 			{
 				targetint = 0f;
 			}
-			current.Color = Color.Lerp(current.Color ?? Color.white, target, Time.deltaTime * speed);
-			current.Intensity = Mathf.Lerp(current.Intensity, targetint, Time.deltaTime * speed);
+			current.Color = Color.Lerp(startcol, target, _timer);
+			current.Intensity = Mathf.Lerp(startint, targetint, _timer);
 			return current;
         }
 
-        private LightState Flare(LightState current, float speed)
+        private LightState Flare(LightState current)
         {
-            current.Intensity = Mathf.Lerp(current.Intensity, 1.5f, Time.deltaTime * speed);
-            current.Color = Color.Lerp(current.Color ?? Color.white, Color.white, Time.deltaTime * speed);
+	        current.Color = Color.white;
+	        current.Intensity = 1f;
             return current;
         }
 
-        private LightState Strobe(LightState current)
+        private LightState Strobe(LightState current, Color startcol, float startint)
         {
-			target = Color.white;
-            targetint = AnimationFrame % 2 == 0 ? 1f : 0f;
-			current.Color = Color.Lerp(current.Color ?? Color.white, target, Time.deltaTime * 50f);
-			current.Intensity = Mathf.Lerp(current.Intensity, targetint, Time.deltaTime * 50f);
+            var strobe = AnimationFrame % 2 == 0 ? 1f : 0f;
+            targetint = Mathf.Lerp(current.Intensity, strobe, Time.deltaTime / (0.05f / _BPMAdjust));
+            var blendstrobe = Mathf.Lerp(startint, targetint, _timer);
+			current.Color = Color.Lerp(startcol, Color.white, _timer);
+			current.Intensity = Mathf.Lerp(startint, blendstrobe, _timer);
             return current;
         }
-		
-        private LightState Stomp(LightState current, Gradient gradient)
+
+        private LightState Stomp(LightState current, Gradient gradient, Color startcol, float startint)
         {
-			target = ((gradient.Evaluate(current.Delta) + Color.white) * 0.5f);
-            targetint = AnimationFrame % 2 == 0 ? 1f : 0f;
-			current.Color = Color.Lerp(current.Color ?? Color.white, target, Time.deltaTime * 25f);
-			current.Intensity = Mathf.Lerp(current.Intensity, targetint, Time.deltaTime * 30f);
+			target = ((gradient.Evaluate(current.Delta) + Color.white * 2 ) * 0.3f);
+            var stomp = AnimationFrame % 2 == 0 ? 1f : 0f;
+            targetint = Mathf.Lerp(current.Intensity, stomp, Time.deltaTime / (0.1f / _BPMAdjust));
+            var blendstomp = Mathf.Lerp(startint, targetint, _timer);
+            current.Color = Color.Lerp(startcol, target, _timer);
+            current.Intensity = Mathf.Lerp(startint, blendstomp, _timer);
             return current;
         }
-		
-        private LightState Silhouette(LightState current, VenueLightLocation location)
+
+        private LightState Silhouette(LightState current, VenueLightLocation location, Color startcol, float startint)
         {
             if (location == VenueLightLocation.Back)
             {
@@ -151,12 +154,12 @@ namespace YARG.Venue
             {
                 targetint = 0f;
             }
-			current.Color = Color.Lerp(current.Color ?? Color.white, target, Time.deltaTime * 25f);
-			current.Intensity = Mathf.Lerp(current.Intensity, targetint, Time.deltaTime * 30f);
+            current.Color = Color.Lerp(startcol, target, _timer);
+            current.Intensity = Mathf.Lerp(startint, targetint, _timer);
             return current;
         }
 
-        private LightState SilhouetteSpot(LightState current, VenueLightLocation location)
+        private LightState SilhouetteSpot(LightState current, VenueLightLocation location, Color startcol, float startint)
         {
             if (location == VenueLightLocation.Crowd || location == VenueLightLocation.Front || location == VenueLightLocation.Center)
             {
@@ -171,13 +174,13 @@ namespace YARG.Venue
                     _                         => _silhouetteColor
                 };
             }
-			current.Color = Color.Lerp(current.Color ?? Color.white, target, Time.deltaTime * 25f);
-			current.Intensity = Mathf.Lerp(current.Intensity, targetint, Time.deltaTime * 30f);
+            current.Color = Color.Lerp(startcol, target, _timer);
+            current.Intensity = Mathf.Lerp(startint, targetint, _timer);
             return current;
         }
 
         private LightState Searchlights(LightState current, VenueLightLocation location,
-            Gradient gradient)
+            Gradient gradient, Color startcol, float startint)
         {
             targetint = 1f;
             target = location switch
@@ -186,10 +189,10 @@ namespace YARG.Venue
                 VenueLightLocation.Left  => Color.white,
                 _                        => gradient.Evaluate(current.Delta),
             };
-			
-			current.Color = Color.Lerp(current.Color ?? Color.white, target, Time.deltaTime * 25f);
-			current.Intensity = Mathf.Lerp(current.Intensity, targetint, Time.deltaTime * 30f);
-			
+
+			current.Color = Color.Lerp(startcol, target, _timer);
+			current.Intensity = Mathf.Lerp(startint, targetint, _timer);
+
 			current.Delta += Time.deltaTime * _gradientLightingSpeed;
             if (current.Delta > 1f)
             {
