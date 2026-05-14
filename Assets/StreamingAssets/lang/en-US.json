@@ -555,7 +555,8 @@
                 "Medium": "Medium (3-5 Min)",
                 "Long": "Long (5-7 Min)",
                 "Epic": "Epic (Over 7 Min)"
-            }
+            },
+            "Playlists": "Playlists"
         },
 		"HighwayOrdering": {
 			"Red": "Red",
@@ -582,8 +583,7 @@
 			"4LaneHeader": "4-Lane Drums Highway Configuration",
 			"ProHeader": "Pro Drums Highway Configuration",
 			"5LaneHeader": "5-Lane Drums Highway Configuration"
-		},
-        "Playlists": "Playlists"
+		}
     },
     "Gameplay": {
         "Notifications": {
