@@ -12,6 +12,8 @@ namespace YARG.Gameplay.Visuals
 
         [SerializeField]
         private TextMeshPro _multiplierText;
+		[SerializeField]
+        private TextMeshPro _comboText;
         [SerializeField]
         private MeshRenderer _comboMesh;
 
@@ -39,7 +41,7 @@ namespace YARG.Gameplay.Visuals
             _multiplierText.enabled = false;
             _multiplierText.text = string.Empty;
             _textCache = MultiplierTextHelper.CreateMultiplierTextCache(maxMultiplier, _multiplierText, isMultiplayer);
-
+			
             Color color;
 
             // Right now Solo Taps is the only default preset that has a different color. Add more here if needed.
@@ -69,7 +71,7 @@ namespace YARG.Gameplay.Visuals
                 _comboMesh.material.SetFloat(_spriteIndexProperty, 0);
                 return;
             }
-
+			
             if (displayMultiplier > 1)
             {
                 _multiplierText = _textCache[displayMultiplier - 2];
@@ -86,6 +88,9 @@ namespace YARG.Gameplay.Visuals
                 index = 10;
             }
 
+            // Option 3: Performance-optimized (fewer allocations)
+            _comboText.SetText("{0} COMBO", combo);
+
             _comboMesh.material.SetFloat(_spriteIndexProperty, index);
         }
 
@@ -93,5 +98,10 @@ namespace YARG.Gameplay.Visuals
         {
             _ringMesh.sharedMaterial = isFc ? _fcRingMaterial : _noFcRingMaterial;
         }
+
+        //public void ComboUpdate(int combo)
+        //{
+            
+        //}
     }
 }
