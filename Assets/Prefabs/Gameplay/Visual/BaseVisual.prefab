@@ -163,18 +163,18 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 614032301339591597}
-  m_LocalRotation: {x: 0.5406491, y: -0, z: -0, w: 0.8412483}
-  m_LocalPosition: {x: 0, y: 0, z: -0.5002706}
+  m_LocalRotation: {x: 0.50069225, y: -0, z: -0, w: 0.86562544}
+  m_LocalPosition: {x: 0, y: 0, z: -0.5424366}
   m_LocalScale: {x: 0.142494, y: 0.14249401, z: 0.14249401}
   m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 5842857839435330127}
-  m_LocalEulerAnglesHint: {x: 66.555, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 60.092, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -0.541, y: 0.25498396}
+  m_AnchoredPosition: {x: 0.528, y: 0.09619567}
   m_SizeDelta: {x: 1.3, y: 1.3}
-  m_Pivot: {x: 0.5, y: 0.5}
+  m_Pivot: {x: 0, y: 0}
 --- !u!23 &7525542880326763752
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -200,7 +200,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 3946058399964092608, guid: f941d094fa226f74e9866f5e556ce769, type: 2}
+  - {fileID: 1134014722335189955, guid: 21db4751dd6d460499117f8c2d3de781, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -244,10 +244,10 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 0 <sub>COMBO</sub>
+  m_text: 0 COMBO
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: f941d094fa226f74e9866f5e556ce769, type: 2}
-  m_sharedMaterial: {fileID: 3946058399964092608, guid: f941d094fa226f74e9866f5e556ce769, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 21db4751dd6d460499117f8c2d3de781, type: 2}
+  m_sharedMaterial: {fileID: 1134014722335189955, guid: 21db4751dd6d460499117f8c2d3de781, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -271,7 +271,7 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 10
+  m_fontSize: 9.8
   m_fontSizeBase: 10
   m_fontWeight: 400
   m_enableAutoSizing: 1
@@ -310,7 +310,7 @@ MonoBehaviour:
   m_VertexBufferAutoSizeReduction: 0
   m_useMaxVisibleDescender: 1
   m_pageToDisplay: 1
-  m_margin: {x: -1.5549183, y: 0, z: -1.5816479, w: 0}
+  m_margin: {x: -2.437888, y: 0, z: -1.5816479, w: 0}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
   _SortingLayer: 0
