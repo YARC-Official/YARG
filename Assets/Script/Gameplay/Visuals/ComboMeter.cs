@@ -89,7 +89,7 @@ namespace YARG.Gameplay.Visuals
             }
 
             // Update the combo text everytime.
-            _comboText.SetText("{0} COMBO", combo);
+            _comboText.SetText("<sub>COMBO</sub>\n{0}", combo);
             _comboMesh.material.SetFloat(_spriteIndexProperty, index);
         }
 
