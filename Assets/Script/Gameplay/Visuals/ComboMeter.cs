@@ -88,9 +88,8 @@ namespace YARG.Gameplay.Visuals
                 index = 10;
             }
 
-            // Option 3: Performance-optimized (fewer allocations)
+            // Update the combo text everytime.
             _comboText.SetText("{0} COMBO", combo);
-
             _comboMesh.material.SetFloat(_spriteIndexProperty, index);
         }
 
@@ -98,10 +97,5 @@ namespace YARG.Gameplay.Visuals
         {
             _ringMesh.sharedMaterial = isFc ? _fcRingMaterial : _noFcRingMaterial;
         }
-
-        //public void ComboUpdate(int combo)
-        //{
-            
-        //}
     }
 }
