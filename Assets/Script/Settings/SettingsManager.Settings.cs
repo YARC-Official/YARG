@@ -362,6 +362,7 @@ namespace YARG.Settings
                  };
 
             public ToggleSetting VenuePostProcessing { get; } = new(true);
+            public ToggleSetting ReduceFlashingLights { get; } = new(false);
             public ResolutionSetting Resolution { get; } = new(ResolutionCallback);
             public ToggleSetting FpsStats { get; } = new(false, FpsCounterCallback);
 

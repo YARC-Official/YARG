@@ -1471,6 +1471,10 @@
                 "Name": "Venue Post-Processing",
                 "Description": "Determines if post-processing effects are applied to venue backgrounds."
             },
+            "ReduceFlashingLights": {
+                "Name": "Reduce Flashing Lights",
+                "Description": "Reduces rapid flashing and strobing effects in venues."
+            },
             "VenueRenderingQuality": {
                 "Name": "Venue Rendering Quality",
                 "Description": "The quality/resolution to use for venue backgrounds.",

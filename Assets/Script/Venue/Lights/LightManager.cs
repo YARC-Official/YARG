@@ -4,6 +4,7 @@ using YARG.Core.Chart;
 using YARG.Core.Extensions;
 using YARG.Gameplay;
 using YARG.Playback;
+using YARG.Settings;
 using Random = UnityEngine.Random;
 
 namespace YARG.Venue
@@ -77,17 +78,29 @@ namespace YARG.Venue
         private Gradient _dissonantGradient;
         private Gradient _harmoniousGradient;
 
-        private int _lightingEventIndex;
-        private int _performerEventIndex;
-        private int _beatIndex;
+        private        int  _lightingEventIndex;
+        private        int  _performerEventIndex;
+        private        int  _beatIndex;
+        private static bool ReducedFlashing => SettingsManager.Settings.ReduceFlashingLights.Value;
+
+        // Minimum interval between lighting/performer events when reduce flashing is enabled
+        private const float REDUCED_FLASHING_LIGHT_INTERVAL = 1.0f;
 
         protected override void OnChartLoaded(SongChart chart)
         {
             _lightStates = new LightState[EnumExtensions<VenueLightLocation>.Count];
             _spotlightStates = new double[EnumExtensions<VenueSpotLightLocation>.Count];
 
-            _lightingEvents = chart.VenueTrack.Lighting;
-            _performerEvents = chart.VenueTrack.Performer;
+            var lightingEvents = chart.VenueTrack.Lighting;
+            var performerEvents = chart.VenueTrack.Performer;
+
+            if (ReducedFlashing)
+            {
+                (lightingEvents, performerEvents) = ReduceFlashingEvents(lightingEvents, performerEvents);
+            }
+
+            _lightingEvents = lightingEvents;
+            _performerEvents = performerEvents;
 
             // If the color arrays are empty, add basic ones for safety
 
@@ -146,6 +159,54 @@ namespace YARG.Venue
         {
             GameManager.BeatEventHandler.Visual.Unsubscribe(UpdateLightAnimation);
         }
+
+        private static (List<LightingEvent> LightingEvents, List<PerformerEvent> PerformerEvents) ReduceFlashingEvents(
+            List<LightingEvent> lightingEvents, List<PerformerEvent> performerEvents)
+        {
+            var replacedLightingEvents = ReplaceFlashingLightingEvents(lightingEvents);
+            var filteredLightingEvents = ChartEvent.FilterByInterval(
+                replacedLightingEvents,
+                REDUCED_FLASHING_LIGHT_INTERVAL
+            );
+            var filteredPerformerEvents = ChartEvent.FilterByInterval(
+                performerEvents,
+                REDUCED_FLASHING_LIGHT_INTERVAL
+            );
+
+            return (filteredLightingEvents, filteredPerformerEvents);
+        }
+
+        /// <summary>
+        /// Replaces flashing lighting types with reduced equivalents.
+        /// </summary>
+        private static List<LightingEvent> ReplaceFlashingLightingEvents(List<LightingEvent> events)
+        {
+            var mapped = new List<LightingEvent>(events.Count);
+            foreach (var ev in events)
+            {
+                var replacement = GetReducedLightingType(ev.Type);
+                mapped.Add(replacement.HasValue
+                    ? new LightingEvent(replacement.Value, ev.Time, ev.Tick)
+                    : ev);
+            }
+
+            return mapped;
+        }
+
+        private static LightingType? GetReducedLightingType(LightingType type) => type switch
+        {
+            LightingType.StrobeFastest => LightingType.Harmony,
+            LightingType.StrobeFast => LightingType.Harmony,
+            LightingType.StrobeMedium => LightingType.Harmony,
+            LightingType.StrobeSlow => LightingType.Harmony,
+            LightingType.FlareFast => LightingType.FlareSlow,
+            LightingType.BlackoutFast => LightingType.Harmony,
+            LightingType.BlackoutSlow => LightingType.Harmony,
+            LightingType.BlackoutSpotlight => LightingType.Harmony,
+            LightingType.BigRockEnding => LightingType.Chorus,
+            LightingType.Frenzy => LightingType.Chorus,
+            _ => null,
+        };
 
         private void Update()
         {
