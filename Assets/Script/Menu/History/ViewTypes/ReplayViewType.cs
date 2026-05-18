@@ -193,9 +193,12 @@ namespace YARG.Menu.History
             {
                 var playerResult = results[i];
                 var playerEntry = _entry.Stats[i];
+                var currentHighScore = ScoreContainer.GetHighScore(_entry.SongChecksum, _gameInfo.PlayerScoreRecords[i].PlayerId, playerResult.Frame.Profile.CurrentInstrument, false);
                 playerScoreCards[i] = new PlayerScoreCard
                 {
-                    IsHighScore = false, // No way to know this from a replay
+                    // If it's null, technically it is a high score but who knows what the hell happened so don't show that
+                    // This compares ids, so imported replays should never be the high score.
+                    IsHighScore = currentHighScore != null && _gameInfo.PlayerScoreRecords[i].GameRecordId == currentHighScore.GameRecordId,
                     Player = new YargPlayer(playerResult.Frame, data),
                     Stats = playerResult.ResultStats,
                     IsReplay = playerEntry.IsReplayPlayer
