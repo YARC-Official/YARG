@@ -1,5 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using Cysharp.Threading.Tasks;
 using UnityEngine;
 using YARG.Core.Logging;
 using YARG.Core.Replays;
@@ -160,7 +162,7 @@ namespace YARG.Menu.History
             }
         }
 
-        public override void ViewScoreCardClick()
+        public override async void ViewScoreCardClick()
         {
             _entry ??= LoadReplay("Cannot load replay.");
             if (_entry == null)
@@ -181,13 +183,15 @@ namespace YARG.Menu.History
                 return;
             }
             var replayOptions = new ReplayReadOptions { KeepFrameTimes = GlobalVariables.VerboseReplays };
-            var (result, data) = ReplayIO.TryLoadData(_entry, replayOptions);
-            if (result != ReplayReadResult.Valid)
-            {
-                YargLogger.LogFormatError("Failed to load replay. {0}", result);
-                return;
-            }
+            var (_, data) = ReplayIO.TryLoadData(_entry, replayOptions);
             var results = ReplayAnalyzer.AnalyzeReplay(chart, _entry, data);
+            if (results.Any(r => !r.Passed))
+            {
+                YargLogger.LogInfo("Replay did not pass verification! Displaying warning.");
+                DialogManager.Instance.ShowMessage("Replay Not Consistent!", "The inputs stored in this replay did not produce a consistent result to the stored stats! You can still view the replay, however information may not exactly match the original play.");
+                // If the score screen loads before this dialog has been closed, the state of the bottom navbar becomes wrong and causes errors.
+                await UniTask.WaitUntil(() => !DialogManager.Instance.IsDialogShowing);
+            }
             var playerScoreCards = new PlayerScoreCard[results.Length];
             for (int i = 0; i < _entry.Stats.Length; i++)
             {
