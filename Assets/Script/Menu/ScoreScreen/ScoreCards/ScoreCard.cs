@@ -187,10 +187,15 @@ namespace YARG.Menu.ScoreScreen
                 _colorizer.SetCardColor(ScoreCardColorizer.ScoreCardColor.Blue);
                 ShowTag("High Score");
             }
-            else
+            else if (!GlobalVariables.State.IsReplay)
             {
                 _colorizer.SetCardColor(ScoreCardColorizer.ScoreCardColor.Blue);
                 ShowTag(SettingsManager.Settings.NoFail.Value != NoFailMode.Off ? "Completed" : "Cleared");
+            }
+            else
+            {
+                _colorizer.SetCardColor(ScoreCardColorizer.ScoreCardColor.Blue);
+                _tagGameObject.SetActive(false);
             }
 
             _score.text = Stats.TotalScore.ToString("N0");
