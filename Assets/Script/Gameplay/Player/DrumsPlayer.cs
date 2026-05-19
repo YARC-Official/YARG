@@ -47,6 +47,7 @@ namespace YARG.Gameplay.Player
 
 
         public float NoteScaleFactor = 1f;
+        private float _baselineLaneCount => _fiveLaneMode ? 5f : 4f;
 
         // When an action happens, we'll use this to determine which _actionToMostRecentTime entry to update
         // This is often 1:1, but non-split 4L maps multiple actions to the shared lanes
@@ -933,7 +934,7 @@ namespace YARG.Gameplay.Player
             // If the player has a dedicated Double Kick lane that's set to Expert+ Only, and isn't playing on Expert+, then the actual amount of lanes is 1 fewer than the size
             // of the provided ordering because that lane is absent.
             LaneCount = ordering.Length - (ordering.Contains(DrumsHighwayItem.Kick2xConditional) && Player.Profile.CurrentDifficulty is not Difficulty.ExpertPlus ? 1 : 0);
-            NoteScaleFactor = 4f / LaneCount;
+            NoteScaleFactor = _baselineLaneCount / LaneCount;
 
             // Once we've skipped the conditional Double Kick lane (when not present), we'll have an off-by-one relationship between i and the actual intended position
             var skippedPedalAdjustment = 0;
