@@ -104,14 +104,14 @@ namespace YARG.Audio.BASS
 
     internal class RecordingHandle : IDisposable
     {
-        private static readonly int[] SampleRates = { 48000, 44100, 96000, 16000 };
+        private static readonly int[] _sampleRates = { 48000, 44100, 96000, 16000 };
 
 #nullable enable
         public static RecordingHandle? CreateRecordingHandle(RecordProcedure procedure)
 #nullable disable
         {
             var devPeriod = Bass.GetConfig(Configuration.DevicePeriod);
-            foreach (int sampleRate in SampleRates)
+            foreach (int sampleRate in _sampleRates)
             {
                 int handle = Bass.RecordStart(sampleRate, 1, BassFlags.Default, devPeriod, procedure, IntPtr.Zero);
                 if (handle == 0)
@@ -129,7 +129,6 @@ namespace YARG.Audio.BASS
                     continue;
                 }
 
-                YargLogger.LogFormatInfo("Mic opened successfully at {0} Hz", sampleRate);
                 return new RecordingHandle(handle, processedHandle, devPeriod, sampleRate);
             }
 
@@ -206,7 +205,7 @@ namespace YARG.Audio.BASS
                 return null;
             }
 
-            device._pitchDetector = new PitchTracker(sampleRate: device._recordHandle.SampleRate);
+            device._pitchDetector = new PitchTracker(device._recordHandle.SampleRate);
 
             var monitorPlayback = MonitorPlaybackHandle.Create(device._recordHandle.SampleRate);
             if (monitorPlayback == null)
