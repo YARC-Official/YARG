@@ -471,18 +471,29 @@ namespace YARG.Gameplay.Visuals
 
         private static Matrix4x4 GetOrthographicProjectionMatrix(Camera camera, Rect layoutRect)
         {
+            // Calculate the "Actual" screen aspect ratio
             float screenAspect = (float)Screen.width / Screen.height;
+
+            // Determine the TOTAL world height needed so that the 'heightNormalized'
+            // slice of the screen equals your desired camera framing (orthographicSize * 2).
             float totalWorldHeight = (camera.orthographicSize * 2.0f) / layoutRect.height;
+
+            // Derive the TOTAL world width based on the SCREEN aspect ratio.
+            // This is the step that prevents horizontal squishing or "too small" rendering.
             float totalWorldWidth = totalWorldHeight * screenAspect;
 
+            // Calculate the center of the target Rect in 0-1 space
             float centerX = layoutRect.x + layoutRect.width / 2.0f;
             float centerY = layoutRect.y + layoutRect.height / 2.0f;
 
+            // Define the planes.
+            // We shift the 'center' of the world (0,0) to align with the center of the UI Rect.
             float left = -centerX * totalWorldWidth;
             float right = totalWorldWidth * (1.0f - centerX);
             float bottom = -centerY * totalWorldHeight;
             float top = totalWorldHeight * (1.0f - centerY);
 
+            // Apply the matrix
             return Matrix4x4.Ortho(
                 left,
                 right,

@@ -239,9 +239,11 @@ namespace YARG.Gameplay.Player
             float heightPixels = vocalsSize.height;
             float widthPixels = heightPixels * clampedAspectRatio;
 
+            // Convert to normalized coordinates
             float heightNormalized = heightPixels / Screen.height;
             float widthNormalized = widthPixels / Screen.width;
 
+            // Center horizontally and position below stats overlay
             float xPos = (1.0f - widthNormalized) / 2.0f;
             var statsHeightNormalized = StatsManager.Instance.GetComponent<RectTransform>().ToScreenSpace().height / Screen.height;
             float yPos = 1.0f - heightNormalized - statsHeightNormalized;
