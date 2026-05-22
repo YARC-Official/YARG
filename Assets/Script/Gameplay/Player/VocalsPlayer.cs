@@ -525,19 +525,20 @@ namespace YARG.Gameplay.Player
                 // End if that's the last note
                 if (_phraseIndex >= NoteTrack.Notes.Count)
                 {
-                    _hud.SetHUDShowing(true);
-                    _percussionTrack.ShowPercussionFret(false);
-                    _shouldHideNeedle = false;
+                    TogglePercussion(false);
                     break;
                 }
 
                 var phrase = NoteTrack.Notes[_phraseIndex];
-                bool hasPercussion = HasPercussion(phrase);
-
-                _hud.SetHUDShowing(!hasPercussion);
-                _percussionTrack.ShowPercussionFret(hasPercussion);
-                _shouldHideNeedle = hasPercussion;
+                TogglePercussion(HasPercussion(phrase));
             }
+        }
+
+        private void TogglePercussion(bool show)
+        {
+            _hud.SetHUDShowing(!show);
+            _percussionTrack.ShowPercussionFret(show);
+            _shouldHideNeedle = show;
         }
 
         private static bool HasPercussion(VocalNote phrase)
