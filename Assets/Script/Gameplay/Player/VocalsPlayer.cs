@@ -516,8 +516,7 @@ namespace YARG.Gameplay.Player
             while (_phraseIndex < NoteTrack.Notes.Count &&
                 (_phraseIndex == -1
                     ? NoteTrack.Notes.Count > 0 &&
-                        (NoteTrack.Notes[0].Time <= time ||
-                            NoteTrack.Notes[0].ChildNotes.Any(note => note.IsPercussion))
+                        (NoteTrack.Notes[0].Time <= time || HasPercussion(NoteTrack.Notes[0]))
                     : NoteTrack.Notes[_phraseIndex].TimeEnd <= time))
             {
                 _phraseIndex++;
@@ -532,24 +531,17 @@ namespace YARG.Gameplay.Player
                 }
 
                 var phrase = NoteTrack.Notes[_phraseIndex];
-
-                bool hasPercussion = false;
-                uint totalTime = 0;
-                foreach (var note in phrase.ChildNotes)
-                {
-                    if (note.IsPercussion)
-                    {
-                        hasPercussion = true;
-                        continue;
-                    }
-
-                    totalTime += note.TotalTickLength;
-                }
+                bool hasPercussion = HasPercussion(phrase);
 
                 _hud.SetHUDShowing(!hasPercussion);
                 _percussionTrack.ShowPercussionFret(hasPercussion);
                 _shouldHideNeedle = hasPercussion;
             }
+        }
+
+        private static bool HasPercussion(VocalNote phrase)
+        {
+            return phrase.ChildNotes.Any(note => note.IsPercussion);
         }
 
         public override void SetPracticeSection(uint start, uint end)
