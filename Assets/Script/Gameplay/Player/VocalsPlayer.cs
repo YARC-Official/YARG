@@ -515,7 +515,9 @@ namespace YARG.Gameplay.Player
             // an index of -1 for that.
             while (_phraseIndex < NoteTrack.Notes.Count &&
                 (_phraseIndex == -1
-                    ? NoteTrack.Notes.Count > 0 && NoteTrack.Notes[0].Time <= time
+                    ? NoteTrack.Notes.Count > 0 &&
+                        (NoteTrack.Notes[0].Time <= time ||
+                            NoteTrack.Notes[0].ChildNotes.Any(note => note.IsPercussion))
                     : NoteTrack.Notes[_phraseIndex].TimeEnd <= time))
             {
                 _phraseIndex++;
