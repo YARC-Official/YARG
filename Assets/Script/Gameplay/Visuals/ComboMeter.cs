@@ -12,10 +12,16 @@ namespace YARG.Gameplay.Visuals
 
         [SerializeField]
         private TextMeshPro _multiplierText;
-		[SerializeField]
-        private TextMeshPro _comboText;
         [SerializeField]
         private MeshRenderer _comboMesh;
+
+        [Header("ComboNumber")]
+        [SerializeField]
+        private TextMeshPro _comboText;
+        [SerializeField]
+        private Color _noFcColor;
+        [SerializeField]
+        private Color _FcColor;
 
         [Header("FC Ring")]
         [SerializeField]
@@ -89,13 +95,14 @@ namespace YARG.Gameplay.Visuals
             }
 
             // Update the combo text everytime.
-            _comboText.SetText("<sub>COMBO</sub>\n{0}", combo);
+            _comboText.SetText("{0}", combo);
             _comboMesh.material.SetFloat(_spriteIndexProperty, index);
         }
 
         public void SetFullCombo(bool isFc)
         {
             _ringMesh.sharedMaterial = isFc ? _fcRingMaterial : _noFcRingMaterial;
+            _comboText.color = isFc ? _FcColor : _noFcColor;
         }
     }
 }
