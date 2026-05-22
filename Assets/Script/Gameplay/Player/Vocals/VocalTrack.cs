@@ -169,6 +169,8 @@ namespace YARG.Gameplay.Player
 
         private readonly List<VocalsPlayer> _vocalPlayers = new();
 
+        private RectTransform _vocalsImage;
+
         private float _currentTrackTop;
         private Material _starpowerMaterial;
 
@@ -217,7 +219,20 @@ namespace YARG.Gameplay.Player
 
         public void InitializeCamera(RectTransform vocalsImage)
         {
-            var vocalsSize = vocalsImage.ToScreenSpace();
+            _vocalsImage = vocalsImage;
+
+            // Reset the Rect to full screen. HighwayCameraRendering applies the vocal layout
+            // through the orthographic projection matrix.
+            _trackCamera.rect = new Rect(0, 0, 1, 1);
+
+            // Disable standalone rendering. HighwayCameraRendering still uses this camera
+            // as a matrix/config source for shared highway rendering.
+            _trackCamera.enabled = false;
+        }
+
+        public Rect GetVocalLayoutRect()
+        {
+            var vocalsSize = _vocalsImage.ToScreenSpace();
             var imageAspectRatio = vocalsSize.width / vocalsSize.height;
             var clampedAspectRatio = Math.Clamp(imageAspectRatio, MIN_ASPECT_RATIO, MAX_ASPECT_RATIO);
 
@@ -233,47 +248,7 @@ namespace YARG.Gameplay.Player
             var statsHeightNormalized = StatsManager.Instance.GetComponent<RectTransform>().ToScreenSpace().height / Screen.height;
             float yPos = 1.0f - heightNormalized - statsHeightNormalized;
 
-            // var currentFrustrum = _trackCamera.projectionMatrix.decomposeProjection;
-            // currentFrustrum.bottom += 1.0f;
-            // _trackCamera.projectionMatrix = Matrix4x4.Frustum(currentFrustrum);
-
-            // 2. Reset the Rect to full screen
-            _trackCamera.rect = new Rect(0, 0, 1, 1);
-
-            // 3. Calculate the "Actual" screen aspect ratio
-            float screenAspect = (float)Screen.width / Screen.height;
-
-            // 4. Determine the TOTAL world height needed so that the 'heightNormalized' 
-            // slice of the screen equals your desired camera framing (orthographicSize * 2).
-            float totalWorldHeight = (_trackCamera.orthographicSize * 2.0f) / heightNormalized;
-
-            // 5. Derive the TOTAL world width based on the SCREEN aspect ratio.
-            // This is the step that prevents horizontal squishing or "too small" rendering.
-            float totalWorldWidth = totalWorldHeight * screenAspect;
-
-            // 6. Calculate the center of your target Rect in 0-1 space
-            float centerX = xPos + (widthNormalized / 2.0f);
-            float centerY = yPos + (heightNormalized / 2.0f);
-
-            // 7. Define the planes. 
-            // We shift the 'center' of the world (0,0) to align with the center of your UI Rect.
-            float left = -centerX * totalWorldWidth;
-            float right = totalWorldWidth * (1.0f - centerX);
-            float bottom = -centerY * totalWorldHeight;
-            float top = totalWorldHeight * (1.0f - centerY);
-
-            // 8. Apply the matrix
-            _trackCamera.projectionMatrix = Matrix4x4.Ortho(
-                left,
-                right,
-                bottom,
-                top,
-                _trackCamera.nearClipPlane,
-                _trackCamera.farClipPlane
-            );
-
-            // Disable standalone rendering — HighwayCameraRendering will drive this camera.
-            _trackCamera.enabled = false;
+            return new Rect(xPos, yPos, widthNormalized, heightNormalized);
         }
 
         public void Initialize(VocalsTrack vocalsTrack, YargPlayer primaryPlayer, float? trackSpeed)
