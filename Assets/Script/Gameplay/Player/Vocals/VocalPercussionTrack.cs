@@ -47,6 +47,11 @@ namespace YARG.Gameplay.Player
         public void Initialize(List<VocalNote> notes)
         {
             _notes = notes;
+            _phraseIndex = 0;
+            _noteIndex = 0;
+
+            _percussionFret.transform.rotation = Quaternion.Euler(0f, 0f, 0f);
+            _percussionFret.gameObject.SetActive(false);
         }
 
         private void Update()
@@ -103,7 +108,7 @@ namespace YARG.Gameplay.Player
                 return;
             }
 
-            StartCoroutine(ShowPercussionFretAnimation(show));
+            _fretShowCoroutine = StartCoroutine(ShowPercussionFretAnimation(show));
         }
 
         private IEnumerator ShowPercussionFretAnimation(bool show)

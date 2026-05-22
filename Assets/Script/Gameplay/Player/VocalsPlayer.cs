@@ -513,8 +513,10 @@ namespace YARG.Gameplay.Player
             // the end times of phrases instead (where the phrase lines are). Problem
             // with this is that we still gotta account for the first phrase, so use
             // an index of -1 for that.
-            while (_phraseIndex == -1 ||
-                (_phraseIndex < NoteTrack.Notes.Count && NoteTrack.Notes[_phraseIndex].TimeEnd <= time))
+            while (_phraseIndex < NoteTrack.Notes.Count &&
+                (_phraseIndex == -1
+                    ? NoteTrack.Notes.Count > 0 && NoteTrack.Notes[0].Time <= time
+                    : NoteTrack.Notes[_phraseIndex].TimeEnd <= time))
             {
                 _phraseIndex++;
 
