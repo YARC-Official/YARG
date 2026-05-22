@@ -523,6 +523,9 @@ namespace YARG.Gameplay.Player
                 // End if that's the last note
                 if (_phraseIndex >= NoteTrack.Notes.Count)
                 {
+                    _hud.SetHUDShowing(true);
+                    _percussionTrack.ShowPercussionFret(false);
+                    _shouldHideNeedle = false;
                     break;
                 }
 
