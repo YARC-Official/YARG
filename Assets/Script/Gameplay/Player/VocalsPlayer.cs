@@ -258,6 +258,7 @@ namespace YARG.Gameplay.Player
             }
 
             _phraseIndex = -1;
+            _percussionTrack.Initialize(NoteTrack.Notes);
 
             base.ResetPracticeSection();
         }

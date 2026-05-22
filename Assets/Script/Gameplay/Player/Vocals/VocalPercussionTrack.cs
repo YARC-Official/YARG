@@ -46,6 +46,8 @@ namespace YARG.Gameplay.Player
 
         public void Initialize(List<VocalNote> notes)
         {
+            _pool.ReturnAllObjects();
+
             _notes = notes;
             _phraseIndex = 0;
             _noteIndex = 0;
@@ -91,7 +93,10 @@ namespace YARG.Gameplay.Player
         public void HitPercussionNote(VocalNote note)
         {
             var obj = _pool.GetByKey(note);
-            _pool.Return(obj);
+            if (obj != null)
+            {
+                _pool.Return(obj);
+            }
 
             _hitEffects.Play();
         }
