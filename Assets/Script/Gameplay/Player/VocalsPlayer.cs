@@ -543,7 +543,15 @@ namespace YARG.Gameplay.Player
 
         private static bool HasPercussion(VocalNote phrase)
         {
-            return phrase.ChildNotes.Any(note => note.IsPercussion);
+            foreach (var note in phrase.ChildNotes)
+            {
+                if (note.IsPercussion)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         public override void SetPracticeSection(uint start, uint end)
