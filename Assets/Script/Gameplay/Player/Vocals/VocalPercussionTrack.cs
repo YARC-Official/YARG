@@ -101,6 +101,7 @@ namespace YARG.Gameplay.Player
             if (_fretShowCoroutine != null)
             {
                 StopCoroutine(_fretShowCoroutine);
+                _fretShowCoroutine = null;
             }
 
             if (show == _percussionFret.gameObject.activeSelf)
