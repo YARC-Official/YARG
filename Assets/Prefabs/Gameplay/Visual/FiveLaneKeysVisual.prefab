@@ -215,6 +215,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: DRUMS (1)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: a9ffe91dd541dda45aeb33478df6c0d7, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -296,6 +300,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: a9ffe91dd541dda45aeb33478df6c0d7, type: 3}
       propertyPath: m_Name
       value: DRUMS (3)
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: a9ffe91dd541dda45aeb33478df6c0d7, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -379,6 +387,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: DRUMS (2)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: a9ffe91dd541dda45aeb33478df6c0d7, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -460,6 +472,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: a9ffe91dd541dda45aeb33478df6c0d7, type: 3}
       propertyPath: m_Name
       value: DRUMS
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: a9ffe91dd541dda45aeb33478df6c0d7, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
