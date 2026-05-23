@@ -510,31 +510,53 @@ namespace YARG.Gameplay.Player
                 return;
             }
 
+            while (ShouldAdvancePhraseIndex(time))
+            {
+                _phraseIndex++;
+
+                // We've reached the end. No need to continue.
+                if (_phraseIndex >= NoteTrack.Notes.Count)
+                {
+                    SetPercussionMode(false);
+                    return;
+                }
+
+                var phrase = NoteTrack.Notes[_phraseIndex];
+                SetPercussionMode(HasPercussion(phrase));
+            }
+        }
+
+        private bool ShouldAdvancePhraseIndex(double time)
+        {
             // Since phrases start at the note, and not sometime before it, use
             // the end times of phrases instead (where the phrase lines are). Problem
             // with this is that we still gotta account for the first phrase, so use
             // an index of -1 for that.
-            while (_phraseIndex < NoteTrack.Notes.Count &&
-                (_phraseIndex == -1
-                    ? NoteTrack.Notes.Count > 0 &&
-                        (NoteTrack.Notes[0].Time <= time || HasPercussion(NoteTrack.Notes[0]))
-                    : NoteTrack.Notes[_phraseIndex].TimeEnd <= time))
+            bool beforeFirstPhrase = _phraseIndex == -1;
+            if (beforeFirstPhrase)
             {
-                _phraseIndex++;
-
-                // End if that's the last note
-                if (_phraseIndex >= NoteTrack.Notes.Count)
+                // Track has no notes. Bail early.
+                if (NoteTrack.Notes.Count <= 0)
                 {
-                    TogglePercussion(false);
-                    break;
+                    return false;
                 }
 
-                var phrase = NoteTrack.Notes[_phraseIndex];
-                TogglePercussion(HasPercussion(phrase));
+                var firstPhrase = NoteTrack.Notes[0];
+                var firstPhraseHasStarted = firstPhrase.Time <= time;
+                return firstPhraseHasStarted || HasPercussion(firstPhrase);
             }
+
+            bool atTheEndOfTrack = _phraseIndex >= NoteTrack.Notes.Count;
+            if (atTheEndOfTrack)
+            {
+                return false;
+            }
+
+            var currentPhrase = NoteTrack.Notes[_phraseIndex];
+            return currentPhrase.TimeEnd <= time;
         }
 
-        private void TogglePercussion(bool show)
+        private void SetPercussionMode(bool show)
         {
             _hud.SetHUDShowing(!show);
             _percussionTrack.ShowPercussionFret(show);
