@@ -330,28 +330,7 @@ namespace YARG.Gameplay.Player
             {
                 _scrollingNoteTrackers[i] = new ScrollingPhraseNoteTracker(parts[i], false);
                 _scrollingLyricTrackers[i] = new ScrollingPhraseNoteTracker(parts[i], true);
-
-                if (SettingsManager.Settings.UseThreeLaneLyricsInHarmony.Value)
-                {
-                    // If we're in 3-lane mode, just give each lane its own tracker with no merging
-                    _staticPhraseTrackers[i] = new StaticPhraseTracker(GetVocalPhrasePairs(parts[i], null));
-                }
-                else
-                {
-                    // If we're in 2-lane mode...
-                    switch (i)
-                    {
-                        case 0:
-                            // ...HARM1 gets its own tracker with no merging...
-                            _staticPhraseTrackers[i] = new StaticPhraseTracker(GetVocalPhrasePairs(parts[i], null));
-                            break;
-                        case 1:
-                            // ...but HARM2 gets HARM3 as a merged part
-                            _staticPhraseTrackers[i] = new StaticPhraseTracker(GetVocalPhrasePairs(parts[i], parts[i + 1]));
-                            break;
-                            // Do nothing for HARM3, because it's being handled by HARM2
-                    }
-                }
+                _staticPhraseTrackers[i] = CreateStaticPhraseTracker(parts, i);
                 _staticPhraseQueues[i] = new Queue<VocalStaticLyricPhraseElement>();
             }
 
@@ -629,19 +608,7 @@ namespace YARG.Gameplay.Player
             // Keep this separate from the trimming loop so merged harmony lanes only use fully-trimmed parts
             for (int i = 0; i < parts.Count; i++)
             {
-                if (SettingsManager.Settings.UseThreeLaneLyricsInHarmony.Value)
-                {
-                    _staticPhraseTrackers[i] = new StaticPhraseTracker(GetVocalPhrasePairs(parts[i], null));
-                }
-                else
-                {
-                    _staticPhraseTrackers[i] = i switch
-                    {
-                        0 => new StaticPhraseTracker(GetVocalPhrasePairs(parts[i], null)),
-                        1 => new StaticPhraseTracker(GetVocalPhrasePairs(parts[i], parts[i + 1])),
-                        _ => _staticPhraseTrackers[i]
-                    };
-                }
+                _staticPhraseTrackers[i] = CreateStaticPhraseTracker(parts, i);
                 _staticPhraseQueues[i].Clear();
             }
 
@@ -719,6 +686,25 @@ namespace YARG.Gameplay.Player
             int severity = (((int)greatestOffset - THRESHOLD) / 200) + 1;
 
             return 1f + (severity * 0.2f);
+        }
+
+        private StaticPhraseTracker CreateStaticPhraseTracker(List<VocalsPart> parts, int index)
+        {
+            if (SettingsManager.Settings.UseThreeLaneLyricsInHarmony.Value || index == 0)
+            {
+                // In 3-lane mode, each lane gets its own tracker with no merging.
+                // In 2-lane mode, HARM1 still gets its own tracker with no merging.
+                return new StaticPhraseTracker(GetVocalPhrasePairs(parts[index], null));
+            }
+
+            return index switch
+            {
+                // In 2-lane mode, HARM2 gets HARM3 as a merged part.
+                1 => new StaticPhraseTracker(GetVocalPhrasePairs(parts[index],
+                    index + 1 < parts.Count ? parts[index + 1] : null)),
+                // HARM3 is handled by HARM2 in 2-lane mode.
+                _ => null
+            };
         }
 
         // Necessary for combining HARM2 and HARM3 in two-lane view
