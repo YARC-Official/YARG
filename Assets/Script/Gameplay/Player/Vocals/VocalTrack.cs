@@ -592,29 +592,16 @@ namespace YARG.Gameplay.Player
                 return;
             }
 
-            _vocalsTrack = _originalVocalsTrack.Clone();
+            _vocalsTrack = _originalVocalsTrack.CloneInTickRange(start, end);
             var parts = _vocalsTrack.Parts;
-
-            // Trim out all the parts not in section
             for (int i = 0; i < parts.Count; i++)
             {
                 var part = parts[i];
-                part.TrimToTickRange(start, end);
-
                 _scrollingNoteTrackers[i] = new ScrollingPhraseNoteTracker(part, false);
                 _scrollingLyricTrackers[i] = new ScrollingPhraseNoteTracker(part, true);
-            }
-
-            // Keep this separate from the trimming loop so merged harmony lanes only use fully-trimmed parts
-            for (int i = 0; i < parts.Count; i++)
-            {
                 _staticPhraseTrackers[i] = CreateStaticPhraseTracker(parts, i);
                 _staticPhraseQueues[i].Clear();
             }
-
-            // The most recent range shift before the start tick should still be preserved
-            uint rangesStart = _vocalsTrack.RangeShifts.LowerBoundElement(start).Tick;
-            _vocalsTrack.RangeShifts.RemoveAll(n => n.Tick < rangesStart || n.Tick >= end);
 
             PrepareLyricSpawns();
             PrewarmVocalPools();
