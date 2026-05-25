@@ -258,6 +258,7 @@ namespace YARG.Gameplay.Player
             }
 
             _phraseIndex = -1;
+            _percussionTrack.Initialize(NoteTrack.Notes);
 
             base.ResetPracticeSection();
         }
@@ -509,40 +510,70 @@ namespace YARG.Gameplay.Player
                 return;
             }
 
+            while (ShouldAdvancePhraseIndex(time))
+            {
+                _phraseIndex++;
+
+                // We've reached the end. No need to continue.
+                if (_phraseIndex >= NoteTrack.Notes.Count)
+                {
+                    SetPercussionMode(false);
+                    return;
+                }
+
+                var phrase = NoteTrack.Notes[_phraseIndex];
+                SetPercussionMode(HasPercussion(phrase));
+            }
+        }
+
+        private bool ShouldAdvancePhraseIndex(double time)
+        {
             // Since phrases start at the note, and not sometime before it, use
             // the end times of phrases instead (where the phrase lines are). Problem
             // with this is that we still gotta account for the first phrase, so use
             // an index of -1 for that.
-            while (_phraseIndex == -1 ||
-                (_phraseIndex < NoteTrack.Notes.Count && NoteTrack.Notes[_phraseIndex].TimeEnd <= time))
+            bool beforeFirstPhrase = _phraseIndex == -1;
+            if (beforeFirstPhrase)
             {
-                _phraseIndex++;
-
-                // End if that's the last note
-                if (_phraseIndex >= NoteTrack.Notes.Count)
+                // Track has no notes. Bail early.
+                if (NoteTrack.Notes.Count <= 0)
                 {
-                    break;
+                    return false;
                 }
 
-                var phrase = NoteTrack.Notes[_phraseIndex];
-
-                bool hasPercussion = false;
-                uint totalTime = 0;
-                foreach (var note in phrase.ChildNotes)
-                {
-                    if (note.IsPercussion)
-                    {
-                        hasPercussion = true;
-                        continue;
-                    }
-
-                    totalTime += note.TotalTickLength;
-                }
-
-                _hud.SetHUDShowing(!hasPercussion);
-                _percussionTrack.ShowPercussionFret(hasPercussion);
-                _shouldHideNeedle = hasPercussion;
+                var firstPhrase = NoteTrack.Notes[0];
+                var firstPhraseHasStarted = firstPhrase.Time <= time;
+                return firstPhraseHasStarted || HasPercussion(firstPhrase);
             }
+
+            bool atTheEndOfTrack = _phraseIndex >= NoteTrack.Notes.Count;
+            if (atTheEndOfTrack)
+            {
+                return false;
+            }
+
+            var currentPhrase = NoteTrack.Notes[_phraseIndex];
+            return currentPhrase.TimeEnd <= time;
+        }
+
+        private void SetPercussionMode(bool show)
+        {
+            _hud.SetHUDShowing(!show);
+            _percussionTrack.ShowPercussionFret(show);
+            _shouldHideNeedle = show;
+        }
+
+        private static bool HasPercussion(VocalNote phrase)
+        {
+            foreach (var note in phrase.ChildNotes)
+            {
+                if (note.IsPercussion)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         public override void SetPracticeSection(uint start, uint end)
