@@ -614,24 +614,34 @@ namespace YARG.Gameplay.Player
             }
 
             _vocalsTrack = _originalVocalsTrack.Clone();
+            var parts = _vocalsTrack.Parts;
 
-            // Remove all events not in the section
-            for (int i = 0; i < _vocalsTrack.Parts.Count; i++)
+            // Trim out all the parts not in section
+            for (int i = 0; i < parts.Count; i++)
             {
-                var part = _vocalsTrack.Parts[i];
-                part.NotePhrases.RemoveAll(n => n.Tick < start || n.Tick >= end);
-                part.TextEvents.RemoveAll(n => n.Tick < start || n.Tick >= end);
+                var part = parts[i];
+                part.TrimToTickRange(start, end);
 
-                _scrollingNoteTrackers[i] = new(part, false);
-                _scrollingLyricTrackers[i] = new(part, true);
+                _scrollingNoteTrackers[i] = new ScrollingPhraseNoteTracker(part, false);
+                _scrollingLyricTrackers[i] = new ScrollingPhraseNoteTracker(part, true);
             }
 
-            for (int i = 0; i < LyricLaneCount; i++)
+            // Keep this separate from the trimming loop so merged harmony lanes only use fully-trimmed parts
+            for (int i = 0; i < parts.Count; i++)
             {
-                var phrasePairs = _staticPhraseTrackers[i].PhrasePairs;
-                phrasePairs.RemoveAll(n => n.Tick < start || n.Tick >= end);
-
-                _staticPhraseTrackers[i] = new(phrasePairs);
+                if (SettingsManager.Settings.UseThreeLaneLyricsInHarmony.Value)
+                {
+                    _staticPhraseTrackers[i] = new StaticPhraseTracker(GetVocalPhrasePairs(parts[i], null));
+                }
+                else
+                {
+                    _staticPhraseTrackers[i] = i switch
+                    {
+                        0 => new StaticPhraseTracker(GetVocalPhrasePairs(parts[i], null)),
+                        1 => new StaticPhraseTracker(GetVocalPhrasePairs(parts[i], parts[i + 1])),
+                        _ => _staticPhraseTrackers[i]
+                    };
+                }
                 _staticPhraseQueues[i].Clear();
             }
 
