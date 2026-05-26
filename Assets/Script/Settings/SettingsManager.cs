@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -108,7 +108,6 @@ namespace YARG.Settings
                 new FieldMetadata(nameof(Settings.MetronomeVolume), isAdvanced: true),
 
                 new HeaderMetadata("Customization", isAdvanced: true),
-                new FieldMetadata(nameof(Settings.EnablePlaybackBuffer), isAdvanced: true),
                 new FieldMetadata(nameof(Settings.PlaybackBufferLength), isAdvanced: true),
 
                 new HeaderMetadata("Input"),
