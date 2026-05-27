@@ -2089,9 +2089,13 @@
                     "Name": "Hit Window Ratio",
                     "Description": "The hit window's front to back ratio. \"0\" will bring the hit window fully backwards, \"1\" will keep it in the center, and \"2\" will move it to the front."
                 },
-                "TremoloWindow": {
-                    "Name": "Tremolo Hit Window",
-                    "Description": "This determines the frequency of lane inputs required to maintain lane behavior."
+                "LaneAutohitWindow": {
+                    "Name": "Lane Autohit Window",
+                    "Description": "This determines the minimum input speed that guarantees autohitting behavior in a lane, regardless of the speed of the notes within the lane."
+                },
+				"LaneProximityProtectionWindow": {
+                    "Name": "Lane Proximity Protection\nWindow",
+                    "Description": "This determines the window of time before and after a lane where overhitting is forgiven."
                 },
                 "HitPercentE": {
                     "Name": "Hit Percent (Easy)",
@@ -2191,7 +2195,7 @@
                 },
                 "EnableLanes": {
                     "Name": "Enable Trill/Tremolo Lanes",
-                    "Description": "If enabled, the game honor charted trill/tremolo lanes."
+                    "Description": "If enabled, the game honors charted trill/tremolo lanes."
                 }
             },
             "HighwayPreset" : {
