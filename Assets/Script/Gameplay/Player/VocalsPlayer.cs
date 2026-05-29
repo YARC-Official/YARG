@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using DG.Tweening;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using YARG.Core;
@@ -11,6 +12,7 @@ using YARG.Core.Input;
 using YARG.Core.Replays;
 using YARG.Gameplay.HUD;
 using YARG.Helpers;
+using YARG.Helpers.Extensions;
 using YARG.Input;
 using YARG.Player;
 using YARG.Settings;
@@ -397,8 +399,9 @@ namespace YARG.Gameplay.Player
         {
             const float NEEDLE_POS_LERP = 30f;
             const float NEEDLE_POS_SNAP_MULTIPLIER = 10f;
-
             const float NEEDLE_ROT_LERP = 25f;
+            const float NEEDLE_FADE_IN_MULTIPLIER = 40f;
+            const float NEEDLE_FADE_OUT_MULTIPLIER = 15f;
 
             // Get the appropriate sing time
             var singTime = GameManager.InputTime;
@@ -408,22 +411,18 @@ namespace YARG.Gameplay.Player
             // not in a constant stream.
             if (!IsInThreshold(singTime, _lastSingTime) || _shouldHideNeedle)
             {
-                // Hide the needle if there's no singing
-                if (_needleVisualContainer.activeSelf)
-                {
-                    _needleVisualContainer.SetActive(false);
-                    _hittingParticleGroup.Stop();
-                }
+                var color = _needleRenderer.material.color;
+                _needleRenderer.material.color = color.WithAlpha(DOVirtual.EasedValue(color.a, 0, Time.deltaTime * NEEDLE_FADE_IN_MULTIPLIER, Ease.InSine));
+                _hittingParticleGroup.Stop();
             }
             else
             {
-                float lerpRate = NEEDLE_POS_LERP;
-
-                // Show needle
-                if (!_needleVisualContainer.activeSelf)
+                var lerpRate = NEEDLE_POS_LERP;
+                var color = _needleRenderer.material.color;
+                var alpha = DOVirtual.EasedValue(color.a, 1, Time.deltaTime * NEEDLE_FADE_OUT_MULTIPLIER, Ease.OutSine);
+                _needleRenderer.material.color = color.WithAlpha(alpha);
+                if (!Mathf.Approximately(1, alpha))
                 {
-                    _needleVisualContainer.SetActive(true);
-
                     // Lerp X times faster if we've just started showing the needle
                     lerpRate *= NEEDLE_POS_SNAP_MULTIPLIER;
                 }
