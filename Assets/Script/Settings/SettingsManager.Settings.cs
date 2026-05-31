@@ -181,6 +181,13 @@ namespace YARG.Settings
                 SongRating.None,
             };
 
+            public ToggleSetting CensorMatureContent { get; } = new(false, _ =>
+            {
+                SongContainer.RequestContainerRefresh();
+                MusicLibraryMenu.SetReload(MusicLibraryReloadState.Full);
+                HistoryMenu.ForceUpdate = true;
+            });
+
             public ToggleSetting AllowDuplicateSongs { get; } = new(true, _ => MusicLibraryMenu.SetReload(MusicLibraryReloadState.Partial));
             public ToggleSetting UseFullDirectoryForPlaylists { get; } = new(false);
 

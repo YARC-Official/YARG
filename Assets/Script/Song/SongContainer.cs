@@ -639,7 +639,7 @@ namespace YARG.Song
                     var count = node.Value.Count;
                     for (int i = 0; i < count; i++)
                     {
-                        if (AllowedByRating(node.Value[i].SongRating))
+                        if (AllowedByRating(node.Value[i].GetSongRating(SettingsManager.Settings.CensorMatureContent.Value)))
                         {
                             songCount++;
                         }
@@ -653,7 +653,7 @@ namespace YARG.Song
                 {
                     for (int i = 0; i < node.Value.Count; i++)
                     {
-                        if (AllowedByRating(node.Value[i].SongRating))
+                        if (AllowedByRating(node.Value[i].GetSongRating(SettingsManager.Settings.CensorMatureContent.Value)))
                         {
                             if (_songsByHash.ContainsKey(node.Key))
                             {

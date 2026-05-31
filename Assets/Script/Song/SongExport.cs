@@ -6,6 +6,7 @@ using YARG.Core;
 using YARG.Core.Song;
 using YARG.Core.Utility;
 using YARG.Helpers;
+using YARG.Settings;
 
 namespace YARG.Song
 {
@@ -92,7 +93,7 @@ namespace YARG.Song
                 int seconds = totalSeconds % 60;
                 string songLength = $"{minutes}:{seconds:D2}";
 
-                string songRating = song.SongRating switch
+                string songRating = song.GetSongRating(SettingsManager.Settings.CensorMatureContent.Value) switch
                 {
                     SongRating.Family_Friendly         => "Family Friendly",
                     SongRating.Supervision_Recommended => "Supervision Recommended",

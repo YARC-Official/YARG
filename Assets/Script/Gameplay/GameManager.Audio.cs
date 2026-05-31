@@ -89,7 +89,7 @@ namespace YARG.Gameplay
         private void LoadAudio()
         {
             _stemStates.Clear();
-            _mixer = Song.LoadAudio(GlobalVariables.State.SongSpeed, DEFAULT_VOLUME);
+            _mixer = Song.LoadAudio(GlobalVariables.State.SongSpeed, DEFAULT_VOLUME, SettingsManager.Settings.CensorMatureContent.Value);
             if (_mixer == null)
             {
                 _loadState = LoadFailureState.Error;
