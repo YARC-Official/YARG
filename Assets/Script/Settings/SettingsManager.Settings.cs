@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
 using UnityEngine;
@@ -587,6 +587,7 @@ namespace YARG.Settings
                 BandComboType.Lenient,
                 BandComboType.Strict
             };
+            public ToggleSetting StreakCounter { get; } = new(false);
             public ToggleSetting SaveScoresWithBots { get; } = new(false);
             public SliderSetting FontScaling { get; } = new(0f, 0f, 100f, FontScalingCallback);
 
@@ -704,6 +705,11 @@ namespace YARG.Settings
                 }
                 DataStreamController.Instance.HandleEnabledChanged(value);
             }
+
+            /*private static void StreakCounterCallback(bool value)
+            {
+                GameplayManager.Instance.HandleStreakCounterEnabledChanged(value);
+            }*/
 
             private static void FontScalingCallback(float value)
             {

@@ -2,6 +2,7 @@
 using UnityEngine;
 using YARG.Core.Game;
 using YARG.Helpers.UI;
+using YARG.Settings;
 
 namespace YARG.Gameplay.Visuals
 {
@@ -42,6 +43,8 @@ namespace YARG.Gameplay.Visuals
 
         private TextMeshPro[] _textCache;
 
+        private static bool StreakCounterEnabled => SettingsManager.Settings.StreakCounter.Value;
+
         public void Initialize(EnginePreset preset, int maxMultiplier, bool isMultiplayer)
         {
             _multiplierText.enabled = false;
@@ -62,6 +65,15 @@ namespace YARG.Gameplay.Visuals
             else
             {
                 color = _customPresetColor;
+            }
+
+            if (StreakCounterEnabled)
+            {
+                _comboText.enabled = true;
+            }
+            else
+            {
+                _comboText.enabled = false;
             }
 
             _comboMesh.material.SetColor(_multiplierColorProperty, color);
