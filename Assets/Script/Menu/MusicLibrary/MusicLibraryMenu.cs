@@ -370,7 +370,7 @@ namespace YARG.Menu.MusicLibrary
             if (CurrentSelection is SongViewType song)
             {
                 if (CurrentlyPlaying == null && song.SongEntry == _currentSong &&
-                    (_previewCanceller == null || !_previewCanceller.IsCancellationRequested))
+                    _previewCanceller != null && !_previewCanceller.IsCancellationRequested)
                 {
                     return;
                 }
