@@ -583,7 +583,7 @@ namespace YARG.Gameplay.Player
 
         public override void SetPracticeSection(uint start, uint end)
         {
-            var practiceNotes = OriginalNoteTrack.Notes.Where(n => n.Tick >= start && n.Tick < end).ToList();
+            var practiceNotes = OriginalNoteTrack.Notes.Where(n => IsVocalPhraseInPracticeRange(n, start, end)).ToList();
 
             NoteTrack = new InstrumentDifficulty<VocalNote>(
                 OriginalNoteTrack.Instrument,
@@ -597,6 +597,17 @@ namespace YARG.Gameplay.Player
             Engine = CreateEngine();
             Engine.SetSpeed(GameManager.SongSpeed >= 1 ? GameManager.SongSpeed : 1);
             ResetPracticeSection();
+        }
+
+        private static bool IsVocalPhraseInPracticeRange(VocalNote note, uint start, uint end)
+        {
+            if (note.Tick >= start && note.Tick < end)
+            {
+                return true;
+            }
+
+            return note.ChildNotes.Count > 0 &&
+                note.ChildNotes.All(child => child.Tick >= start && child.TotalTickEnd <= end);
         }
 
         public override void SetStemMuteState(bool muted)
