@@ -1,15 +1,10 @@
 ﻿using Cysharp.Text;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 using YARG.Core.Chart;
 using YARG.Gameplay.Player;
-using YARG.Gameplay.Visuals;
-using YARG.Settings;
 using static YARG.Gameplay.Player.VocalTrack;
 
 namespace YARG.Gameplay.Visuals
@@ -25,44 +20,208 @@ namespace YARG.Gameplay.Visuals
         private const string FUTURE_STAR_POWER_PHRASE_COLOR_TAG = "<color=#757519>";
         private const string CLOSE_COLOR_TAG = "</color>";
 
-        private VocalPhrasePair _phrasePairRef;
-        private List<VocalsPhrase> _scoringPhrases; // Needed to determine which syllables should have star power coloring
-        private int _harmonyIndex;
-        private bool _allowHiding;
+        public sealed class PreparedPhrase
+        {
+            public readonly VocalPhrasePair PhrasePair;
+            public readonly List<StaticLyricSyllable> Syllables;
+            public readonly string FutureText;
+            public readonly float Width;
+            public readonly double Duration;
+
+            public PreparedPhrase(VocalPhrasePair phrasePair, List<VocalsPhrase> scoringPhrases,
+                bool allowHiding, float width)
+            {
+                PhrasePair = phrasePair;
+                Duration = phrasePair.Duration;
+                Syllables = BuildSyllables(phrasePair, scoringPhrases, allowHiding);
+                FutureText = BuildFutureText(Syllables);
+                Width = width;
+            }
+
+            private PreparedPhrase(VocalPhrasePair phrasePair, double duration,
+                List<StaticLyricSyllable> syllables, string futureText, float width)
+            {
+                PhrasePair = phrasePair;
+                Duration = duration;
+                Syllables = syllables;
+                FutureText = futureText;
+                Width = width;
+            }
+
+            public PreparedPhrase WithWidth(float width)
+            {
+                return new PreparedPhrase(PhrasePair, Duration, Syllables, FutureText, width);
+            }
+        }
+
+        public readonly struct StaticLyricSyllable
+        {
+            public readonly string Text;
+            public readonly double Time;
+            public readonly double TimeEnd;
+            public readonly bool IsStarpower;
+
+            public StaticLyricSyllable(string text, double time, double timeEnd, bool isStarpower,
+                LyricSymbolFlags flags, bool isLastLyricOfPhrase)
+            {
+                var builder = ZString.CreateStringBuilder(false);
+
+                Time = time;
+                TimeEnd = timeEnd;
+                IsStarpower = isStarpower;
+
+                if ((flags & LyricSymbolFlags.NonPitched) != 0)
+                {
+                    builder.Append("<i>");
+                }
+
+                if ((flags & LyricSymbolFlags.JoinWithNext) != 0)
+                {
+                    builder.Append(text[0..^1]);
+                }
+                else
+                {
+                    builder.Append(text);
+                }
+
+                if ((flags & LyricSymbolFlags.NonPitched) != 0)
+                {
+                    builder.Append("</i>");
+                }
+
+                if (!isLastLyricOfPhrase && (flags & LyricSymbolFlags.JoinWithNext) == 0 &&
+                    (flags & LyricSymbolFlags.HyphenateWithNext) == 0)
+                {
+                    builder.Append(" ");
+                }
+
+                Text = builder.ToString();
+            }
+        }
+
+        private PreparedPhrase _preparedPhrase;
         private float _x;
         private bool _isFuture = true;
+        private int _lastRenderState = int.MinValue;
 
         private Utf16ValueStringBuilder _builder;
 
-        private List<StaticLyricSyllable> _syllables = new();
-
-        public override double ElementTime => _phrasePairRef.Time;
+        public override double ElementTime => _preparedPhrase.PhrasePair.Time;
 
         [SerializeField]
         private TextMeshPro _phraseText;
 
-        public float Width => _phraseText.GetPreferredValues().x;
+        public float Width => _preparedPhrase.Width;
 
-        public double Duration => _phrasePairRef.Duration;
+        public double Duration => _preparedPhrase.Duration;
 
-        public void Initialize(VocalPhrasePair phrasePair, List<VocalsPhrase> scoringPhrases, int harmonyIndex,
-            bool allowHiding, float x)
+        public void Initialize(PreparedPhrase preparedPhrase, float x)
         {
-            _phrasePairRef = phrasePair;
-            _scoringPhrases = scoringPhrases;
-            _harmonyIndex = harmonyIndex;
-            _allowHiding = allowHiding;
+            _preparedPhrase = preparedPhrase;
             _x = x;
-
+            _isFuture = true;
             _builder = ZString.CreateStringBuilder(false);
+            _lastRenderState = int.MinValue;
         }
 
         protected override void InitializeElement()
         {
+            transform.localPosition = transform.localPosition.WithX(_x);
+            _phraseText.text = _preparedPhrase.FutureText;
+        }
+
+        public void Activate()
+        {
+            _isFuture = false;
+            _lastRenderState = int.MinValue;
+        }
+
+        public void Dismiss()
+        {
+            _isFuture = true;
+            _lastRenderState = int.MinValue;
+            _builder.Clear();
+            DisableIntoPool();
+            ParentPool.Return(this);
+        }
+
+        protected override void UpdateElement()
+        {
+            if (_isFuture)
+            {
+                return;
+            }
+
+            var renderState = GetRenderState();
+            if (renderState == _lastRenderState)
+            {
+                return;
+            }
+
+            _lastRenderState = renderState;
+            _builder.Clear();
+
+            foreach (var syllable in _preparedPhrase.Syllables)
+            {
+                if (GameManager.VisualTime < syllable.Time)
+                {
+                    BuilderAppendWithColorTag(syllable.Text, syllable.IsStarpower ? FUTURE_STAR_POWER_LYRIC_COLOR_TAG : FUTURE_LYRIC_COLOR_TAG);
+                }
+                else if (syllable.Time <= GameManager.VisualTime && GameManager.VisualTime < syllable.TimeEnd)
+                {
+                    BuilderAppendWithColorTag(syllable.Text, PRESENT_LYRIC_COLOR_TAG);
+                }
+                else {
+                    BuilderAppendWithColorTag(syllable.Text, syllable.IsStarpower ? PAST_STAR_POWER_LYRIC_COLOR_TAG : PAST_LYRIC_COLOR_TAG);
+                }
+            }
+
+            _phraseText.text = _builder.ToString();
+        }
+
+        protected override bool UpdateElementPosition()
+        {
+            return true;
+        }
+
+        protected override void HideElement()
+        {
+        }
+
+        private int GetRenderState()
+        {
+            for (int i = 0; i < _preparedPhrase.Syllables.Count; i++)
+            {
+                var syllable = _preparedPhrase.Syllables[i];
+                if (GameManager.VisualTime < syllable.Time)
+                {
+                    return i * 2;
+                }
+
+                if (GameManager.VisualTime < syllable.TimeEnd)
+                {
+                    return i * 2 + 1;
+                }
+            }
+
+            return _preparedPhrase.Syllables.Count * 2;
+        }
+
+        private void BuilderAppendWithColorTag(string text, string colorTag)
+        {
+            _builder.Append(colorTag);
+            _builder.Append(text);
+            _builder.Append(CLOSE_COLOR_TAG);
+        }
+
+        private static List<StaticLyricSyllable> BuildSyllables(VocalPhrasePair phrasePair,
+            List<VocalsPhrase> scoringPhrases, bool allowHiding)
+        {
+            var syllables = new List<StaticLyricSyllable>();
             var mergedLyricIdx = 0;
 
-            var mainPhrase = _phrasePairRef.MainPhrase;
-            var mergedPhrase = _phrasePairRef.MergedPhrase;
+            var mainPhrase = phrasePair.MainPhrase;
+            var mergedPhrase = phrasePair.MergedPhrase;
 
             // Handle HARM3-only phrases
             if (mainPhrase is null)
@@ -79,11 +238,12 @@ namespace YARG.Gameplay.Visuals
                         continue;
                     }
 
-                    MakeStaticLyricSyllable(mergedLyric.Text, mergedLyric.Time, probableMergedLyricEnd.Value, mergedLyric.Flags, isLastLyricOfMergedPhrase);
+                    MakeStaticLyricSyllable(syllables, scoringPhrases, allowHiding, mergedLyric.Text,
+                        mergedLyric.Time, probableMergedLyricEnd.Value, mergedLyric.Flags, isLastLyricOfMergedPhrase);
                 }
             }
-
-            else {
+            else
+            {
                 for (var mainLyricIdx = 0; mainLyricIdx < mainPhrase.Lyrics.Count; mainLyricIdx++)
                 {
                     var mainLyric = mainPhrase.Lyrics[mainLyricIdx];
@@ -113,7 +273,8 @@ namespace YARG.Gameplay.Visuals
                             }
 
                             // isLastLyricOfPhrase is definitely false, because we still have at least one main phrase lyric to add
-                            MakeStaticLyricSyllable(mergedLyric.Text, mergedLyric.Time, probableMergedLyricEnd.Value, mergedLyric.Flags, false);
+                            MakeStaticLyricSyllable(syllables, scoringPhrases, allowHiding, mergedLyric.Text,
+                                mergedLyric.Time, probableMergedLyricEnd.Value, mergedLyric.Flags, false);
                         }
                     }
 
@@ -128,7 +289,8 @@ namespace YARG.Gameplay.Visuals
                         mainLyricIsLastLyricOfEntirePhrase = false;
                     }
 
-                    MakeStaticLyricSyllable(mainLyric.Text, mainLyric.Time, probableMainLyricEnd.Value, mainLyric.Flags, mainLyricIsLastLyricOfEntirePhrase);
+                    MakeStaticLyricSyllable(syllables, scoringPhrases, allowHiding, mainLyric.Text,
+                        mainLyric.Time, probableMainLyricEnd.Value, mainLyric.Flags, mainLyricIsLastLyricOfEntirePhrase);
 
                     // If there's a simultaneous syllable in the merged part...
                     if (mergedPhrase is not null && mergedLyricIdx < mergedPhrase.Lyrics.Count && mergedPhrase.Lyrics[mergedLyricIdx].Time == mainLyric.Time)
@@ -146,6 +308,9 @@ namespace YARG.Gameplay.Visuals
 
                                 // ...add it after the main syllable
                                 MakeStaticLyricSyllable(
+                                    syllables,
+                                    scoringPhrases,
+                                    allowHiding,
                                     simultaneousMergedLyric.Text,
                                     simultaneousMergedLyric.Time,
                                     probableSimultaneousMergedLyricEnd.Value,
@@ -170,76 +335,13 @@ namespace YARG.Gameplay.Visuals
                         }
 
                         var isLastLyricOfMergedPhrase = mergedLyricIdx == mergedPhrase.Lyrics.Count - 1;
-                        MakeStaticLyricSyllable(mergedLyric.Text, mergedLyric.Time, probableMergedLyricEnd.Value, mergedLyric.Flags, mergedLyricIdx == mergedPhrase.Lyrics.Count - 1);
+                        MakeStaticLyricSyllable(syllables, scoringPhrases, allowHiding, mergedLyric.Text,
+                            mergedLyric.Time, probableMergedLyricEnd.Value, mergedLyric.Flags, isLastLyricOfMergedPhrase);
                     }
                 }
             }
 
-            transform.localPosition = transform.localPosition.WithX(_x);
-
-            foreach (var syllable in _syllables)
-            {
-                BuilderAppendWithColorTag(syllable.Text, syllable.IsStarpower ? FUTURE_STAR_POWER_PHRASE_COLOR_TAG : FUTURE_PHRASE_COLOR_TAG);
-            }
-
-            _phraseText.text = _builder.ToString();
-        }
-
-        public void Activate()
-        {
-            _isFuture = false;
-        }
-
-        public void Dismiss()
-        {
-            _isFuture = true;
-            _syllables.Clear();
-            _builder.Clear();
-            DisableIntoPool();
-            ParentPool.Return(this);
-        }
-
-        protected override void UpdateElement()
-        {
-            if (_isFuture)
-            {
-                return;
-            }
-
-            _builder.Clear();
-
-            foreach (var syllable in _syllables)
-            {
-                if (GameManager.VisualTime < syllable.Time)
-                {
-                    BuilderAppendWithColorTag(syllable.Text, syllable.IsStarpower ? FUTURE_STAR_POWER_LYRIC_COLOR_TAG : FUTURE_LYRIC_COLOR_TAG);
-                }
-                else if (syllable.Time <= GameManager.VisualTime && GameManager.VisualTime < syllable.TimeEnd)
-                {
-                    BuilderAppendWithColorTag(syllable.Text, PRESENT_LYRIC_COLOR_TAG);
-                }
-                else {
-                    BuilderAppendWithColorTag(syllable.Text, syllable.IsStarpower ? PAST_STAR_POWER_LYRIC_COLOR_TAG : PAST_LYRIC_COLOR_TAG);
-                }
-            }
-
-            _phraseText.text = _builder.ToString();
-        }
-
-        protected override bool UpdateElementPosition()
-        {
-            return true;
-        }
-
-        protected override void HideElement()
-        {
-        }
-
-        private void BuilderAppendWithColorTag(string text, string colorTag)
-        {
-            _builder.Append(colorTag);
-            _builder.Append(text);
-            _builder.Append(CLOSE_COLOR_TAG);
+            return syllables;
         }
 
         private static double? GetProbableNoteEndOfLyric(VocalsPhrase phrase, LyricEvent lyric)
@@ -248,16 +350,18 @@ namespace YARG.Gameplay.Visuals
                 .FirstOrDefault(note => note.Tick == lyric.Tick)?.TotalTimeEnd;
         }
 
-        private void MakeStaticLyricSyllable(string text, double time, double timeEnd, LyricSymbolFlags flags, bool isLastLyricOfPhrase)
+        private static void MakeStaticLyricSyllable(List<StaticLyricSyllable> syllables,
+            List<VocalsPhrase> scoringPhrases, bool allowHiding, string text, double time, double timeEnd,
+            LyricSymbolFlags flags, bool isLastLyricOfPhrase)
         {
-            if (_allowHiding && ((flags & LyricSymbolFlags.HarmonyHidden) != 0))
+            if (allowHiding && ((flags & LyricSymbolFlags.HarmonyHidden) != 0))
             {
                 return;
             }
 
             // Determine whether the lyric falls within a star power scoring phrase
             var isStarpower = false;
-            foreach (var scoringPhrase in _scoringPhrases)
+            foreach (var scoringPhrase in scoringPhrases)
             {
                 if (scoringPhrase.Time > time)
                 {
@@ -276,49 +380,20 @@ namespace YARG.Gameplay.Visuals
                 isStarpower = scoringPhrase.IsStarPower;
             }
 
-            _syllables.Add(new(text, time, timeEnd, isStarpower, flags, isLastLyricOfPhrase));
+            syllables.Add(new(text, time, timeEnd, isStarpower, flags, isLastLyricOfPhrase));
         }
 
-        private struct StaticLyricSyllable
+        private static string BuildFutureText(List<StaticLyricSyllable> syllables)
         {
-            public string Text;
-            public double Time;
-            public double TimeEnd;
-            public bool IsStarpower;
-
-            public StaticLyricSyllable(string text, double time, double timeEnd, bool isStarpower, LyricSymbolFlags flags, bool isLastLyricOfPhrase)
+            var builder = ZString.CreateStringBuilder(false);
+            foreach (var syllable in syllables)
             {
-                var builder = ZString.CreateStringBuilder(false);
-
-                Time = time;
-                TimeEnd = timeEnd;
-                IsStarpower = isStarpower;
-
-                if ((flags & LyricSymbolFlags.NonPitched) != 0)
-                {
-                    builder.Append("<i>");
-                }
-
-                if ((flags & LyricSymbolFlags.JoinWithNext) != 0)
-                {
-                    builder.Append(text[0..^1]);
-                } else
-                {
-                    builder.Append(text);
-                }
-
-                if ((flags & LyricSymbolFlags.NonPitched) != 0)
-                {
-                    builder.Append("</i>");
-                }
-
-                if (!isLastLyricOfPhrase && (flags & LyricSymbolFlags.JoinWithNext) == 0 && (flags & LyricSymbolFlags.HyphenateWithNext) == 0)
-                {
-                    builder.Append(" ");
-                }
-
-                Text = builder.ToString();
+                builder.Append(syllable.IsStarpower ? FUTURE_STAR_POWER_PHRASE_COLOR_TAG : FUTURE_PHRASE_COLOR_TAG);
+                builder.Append(syllable.Text);
+                builder.Append(CLOSE_COLOR_TAG);
             }
+
+            return builder.ToString();
         }
     }
 }

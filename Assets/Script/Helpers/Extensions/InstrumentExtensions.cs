@@ -1,6 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 using YARG.Core;
+using YARG.Core.Chart;
+using YARG.Gameplay.Visuals;
 using YARG.Song;
+using static YARG.Core.Game.ColorProfile;
 
 namespace YARG.Helpers.Extensions
 {
@@ -113,6 +117,11 @@ namespace YARG.Helpers.Extensions
 
                 _ => throw new NotImplementedException($"Unhandled instrument resource name {name}!"),
             };
+        }
+
+        public static bool IsKick(this DrumsHighwayItem item)
+        {
+            return item is DrumsHighwayItem.Kick or DrumsHighwayItem.Kick1x or DrumsHighwayItem.Kick2x or DrumsHighwayItem.Kick2xConditional;
         }
     }
 }

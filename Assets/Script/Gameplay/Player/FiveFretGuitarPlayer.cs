@@ -32,6 +32,25 @@ namespace YARG.Gameplay.Player
 
         public const int LANE_COUNT = 5;
 
+        private static Dictionary<GuitarAction, FiveFretGuitarFret> _actionToFret = new() {
+            { GuitarAction.Fret1,    FiveFretGuitarFret.Green},
+            { GuitarAction.Fret2,     FiveFretGuitarFret.Red},
+            { GuitarAction.Fret3,   FiveFretGuitarFret.Yellow},
+            { GuitarAction.Fret4,     FiveFretGuitarFret.Blue},
+            { GuitarAction.Fret5,   FiveFretGuitarFret.Orange},
+        };
+
+        // Record of the most recent time that each BRE lane has been lit up by any of the actions that map to it
+        private Dictionary<FiveFretGuitarFret, double> _fretToMostRecentTime = new()
+        {
+            { FiveFretGuitarFret.Green,     0 },
+            { FiveFretGuitarFret.Red,       0 },
+            { FiveFretGuitarFret.Yellow,    0 },
+            { FiveFretGuitarFret.Blue,      0 },
+            { FiveFretGuitarFret.Orange,    0 },
+        };
+
+
         // Key is a FiveFretGuitarFret
         // Value is the fret's lateral position on the fret array
         private Dictionary<int, int> _lanePositions;
@@ -75,14 +94,16 @@ namespace YARG.Gameplay.Player
 
         public override bool ShouldUpdateInputsOnResume => true;
 
+        /// See <see cref="StarMultiplierThresholds"/>
         private static float[] GuitarStarMultiplierThresholds => new[]
         {
-            0.21f, 0.46f, 0.77f, 1.85f, 3.08f, 4.52f
+            0.06f, 0.12f, 0.2f, 0.47f, 0.78f, 1.15f
         };
 
+        /// See <see cref="StarMultiplierThresholds"/>
         private static float[] BassStarMultiplierThresholds => new[]
         {
-            0.21f, 0.50f, 0.90f, 2.77f, 4.62f, 6.78f
+            0.05f, 0.1f, 0.19f, 0.47f, 0.78f, 1.15f
         };
 
         public GuitarEngineParameters EngineParams { get; private set; }
@@ -115,10 +136,8 @@ namespace YARG.Gameplay.Player
         [SerializeField]
         private Pool _rangeIndicatorPool;
 
-        public override float[] StarMultiplierThresholds { get; protected set; } =
+        protected override float[] StarMultiplierThresholds { get; set; } =
             GuitarStarMultiplierThresholds;
-
-        public override int[] StarScoreThresholds { get; protected set; }
 
         public float WhammyFactor { get; private set; }
 
@@ -159,7 +178,7 @@ namespace YARG.Gameplay.Player
             if (!Player.IsReplay)
             {
                 // Create the engine params from the engine preset
-                EngineParams = Player.EnginePreset.FiveFretGuitar.Create(StarMultiplierThresholds, isBass);
+                EngineParams = Player.EnginePreset.FiveFretGuitar.Create(StarMultiplierThresholds, SoloBonusStarMultiplierThresholds, isBass);
                 //EngineParams = EnginePreset.Precision.FiveFretGuitar.Create(StarMultiplierThresholds, isBass);
             }
             else
@@ -209,8 +228,6 @@ namespace YARG.Gameplay.Player
 
             MakeHighwayOrdering();
 
-            StarScoreThresholds = PopulateStarScoreThresholds(StarMultiplierThresholds, Engine.BaseScore);
-
             IndicatorStripes.Initialize(Player.EnginePreset.FiveFretGuitar);
 
 
@@ -251,6 +268,14 @@ namespace YARG.Gameplay.Player
             ResetRangeShift(_practiceSectionStartTime);
         }
 
+        protected override void ResetLastHitTimes()
+        {
+            foreach (var fret in _lanePositions.Keys)
+            {
+                _fretToMostRecentTime[(FiveFretGuitarFret) fret] = 0;
+            }
+        }
+
         public override void SetReplayTime(double time)
         {
             ResetRangeShift(time);
@@ -263,15 +288,11 @@ namespace YARG.Gameplay.Player
             if (Engine.IsCodaActive)
             {
                 // Set emission color of BRE lanes depending on currently available score value
-                for (int i = 0; i < CurrentCoda.ScoringZones; i++)
+                foreach (var (breLaneIndex, highwayOrderingIndex) in _lanePositions)
                 {
-                    // var intensity = CurrentCoda.GetNormalizedTimeSinceLastHit(i, visualTime);
-                    // intensity = (float) Math.Clamp(Math.Cos(Math.PI * intensity), 0f, 1f);
-                    // intensity = (float) Math.Clamp((Math.Tan(intensity) * -1) + 1, 0f, 1f);
-                    // intensity = (float) Math.Clamp((Math.Atan(intensity * 3) * -1.8) + 2, 0f, 2f);
-                    // intensity = 1 - Mathf.Sin(Mathf.Pow(intensity, 1f / 2.4f) * 2);
-                    // intensity = 1 - Mathf.Sin(Mathf.Pow(intensity, 0.5f) * 1.6f);
-                    BRELanes[i].SetEmissionColor(CurrentCoda.GetNormalizedTimeSinceLastHit(i, visualTime));
+                    var mostRecentTime = _fretToMostRecentTime[(FiveFretGuitarFret)breLaneIndex];
+                    var normalizedTimeSinceLastHit = CodaSection.GetNormalizedTimeSinceLastHit(visualTime, mostRecentTime);
+                    BRELanes[highwayOrderingIndex].SetEmissionColor(normalizedTimeSinceLastHit);
                 }
             }
 
@@ -458,9 +479,12 @@ namespace YARG.Gameplay.Player
             LaneElement.DefineLaneScale(Player.Profile.CurrentInstrument, 5, true);
         }
 
-        private void OnLaneHit(int fret)
+        private void OnLaneHit(int action)
         {
-            _fretArray.PlayCodaHitAnimation(fret + 1);
+            var asFret = _actionToFret[(GuitarAction)action];
+
+            _fretToMostRecentTime[asFret] = GameManager.VisualTime;
+            _fretArray.PlayCodaHitAnimation((int)asFret);
         }
 
         protected override void OnCodaStart(CodaSection coda)
@@ -489,7 +513,7 @@ namespace YARG.Gameplay.Player
             {
                 (NotePool.GetByKey(note) as FiveFretGuitarNoteElement)?.HitNote();
 
-                if (note.Fret != (int) FiveFretGuitarFret.Open)
+                if (note.Fret != (int) FiveFretGuitarFret.Open && note.Fret != (int) FiveFretGuitarFret.Wildcard)
                 {
                     _fretArray.PlayHitAnimation(note.Fret);
                 }
@@ -577,7 +601,7 @@ namespace YARG.Gameplay.Player
                     continue;
                 }
 
-                if (note.Fret != (int) FiveFretGuitarFret.Open)
+                if (note.Fret != (int) FiveFretGuitarFret.Open && note.Fret != (int) FiveFretGuitarFret.Wildcard)
                 {
                     _fretArray.SetSustained(note.Fret, true);
                 }
@@ -598,7 +622,7 @@ namespace YARG.Gameplay.Player
 
                 (NotePool.GetByKey(note) as FiveFretGuitarNoteElement)?.SustainEnd(finished);
 
-                if (note.Fret != (int) FiveFretGuitarFret.Open)
+                if (note.Fret != (int) FiveFretGuitarFret.Open && note.Fret != (int) FiveFretGuitarFret.Wildcard)
                 {
                     _fretArray.SetSustained(note.Fret, false);
                 }
@@ -655,7 +679,7 @@ namespace YARG.Gameplay.Player
         public override (ReplayFrame Frame, ReplayStats Stats) ConstructReplayData()
         {
             var frame = new ReplayFrame(Player.Profile, EngineParams, Engine.EngineStats, ReplayInputs.ToArray());
-            return (frame, Engine.EngineStats.ConstructReplayStats(Player.Profile.Name));
+            return (frame, Engine.EngineStats.ConstructReplayStats(Player.Profile.Name, Player.IsReplay));
         }
 
 

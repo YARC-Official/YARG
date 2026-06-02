@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using ManagedBass;
@@ -47,6 +47,7 @@ namespace YARG.Audio.BASS
         private          bool _disposed;
         public readonly  int  Stream;
 
+#pragma warning disable CS0649
         public int CompressorFX;
         public int PitchFX;
         public int ReverbFX;
@@ -54,6 +55,7 @@ namespace YARG.Audio.BASS
         public int LowEQ;
         public int MidEQ;
         public int HighEQ;
+#pragma warning restore CS0649
 
         private StreamHandle(int stream)
         {
@@ -120,7 +122,12 @@ namespace YARG.Audio.BASS
 
             // Documentation recommends setting the device buffer to at least 2x the device period
             // https://www.un4seen.com/doc/#bass/BASS_CONFIG_DEV_BUFFER.html
+#if !UNITY_EDITOR && UNITY_STANDALONE_LINUX
+            // Linux sometimes needs a higher buffer length to prevent underruns
+            Bass.DeviceBufferLength = 4 * devPeriod;
+#else
             Bass.DeviceBufferLength = 2 * devPeriod;
+#endif
 
             // Affects Windows only. Forces device names to be in UTF-8 on Windows rather than ANSI.
             Bass.UnicodeDeviceInformation = true;
@@ -218,8 +225,8 @@ namespace YARG.Audio.BASS
             {
                 return null;
             }
-            return new BassStemMixer(name, this, speed, mixerVolume, handle, clampStemVolume, normalize,
-                CreateOutputChannel(SettingsManager.Settings?.OutputChannelDefault.Value ?? 0));
+            return new BassStemMixer(name, this, speed, mixerVolume, handle, clampStemVolume: clampStemVolume,
+                normalize: normalize, outputChannel: CreateOutputChannel(SettingsManager.Settings?.OutputChannelDefault.Value ?? 0));
         }
 
         protected override MicDevice? GetInputDevice(string name)

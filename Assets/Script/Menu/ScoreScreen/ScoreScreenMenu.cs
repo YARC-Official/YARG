@@ -3,6 +3,7 @@ using System.Linq;
 using System.Collections.Generic;
 using System.Threading;
 using Cysharp.Threading.Tasks;
+using DG.Tweening;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -54,6 +55,10 @@ namespace YARG.Menu.ScoreScreen
         [SerializeField]
         private float _horizontalScrollRate = 30f;
         [SerializeField]
+        private float _horizontalScrollDuration = 0.25f;
+        [SerializeField]
+        private Ease _horizontalScrollEase = Ease.OutCubic;
+        [SerializeField]
         private float _verticalScrollRate = 15f;
 
         [Space]
@@ -66,12 +71,22 @@ namespace YARG.Menu.ScoreScreen
         [SerializeField]
         private ProKeysScoreCard _keysCardPrefab;
 
+        private enum ScrollDirection
+        {
+            Left,
+            Right
+        }
+
         private bool _analyzingReplay;
         private bool _restartingSong;
         private bool _showAdvancedStats;
+
+        private float                   _horizontalScrollStep;
+        private Tween                   _horizontalScrollTween;
         private CancellationTokenSource _cancellationToken;
 
         private readonly List<IScoreCard<BaseStats>> _scoreCards = new();
+
 
         private void OnEnable()
         {
@@ -164,6 +179,8 @@ namespace YARG.Menu.ScoreScreen
                 GlobalAudioHandler.StopSoundEffect(SfxSample.Chatter, 1.0);
             }
 
+            KillScrollTween();
+
             _cancellationToken?.Cancel();
             _cancellationToken?.Dispose();
             Navigator.Instance.PopScheme();
@@ -243,10 +260,24 @@ namespace YARG.Menu.ScoreScreen
             PlayScoreVox(fcCount, highScoreCount);
         }
 
+        private void KillScrollTween()
+        {
+            _horizontalScrollTween?.Kill();
+            _horizontalScrollTween = null;
+        }
+
         private async void InitializeScrollRect()
         {
-            await UniTask.Yield(PlayerLoopTiming.LastPostLateUpdate);
+            KillScrollTween();
             _cardScrollRect.horizontalNormalizedPosition = 0f;
+            SetupScrollStep();
+        }
+
+        private void SetupScrollStep()
+        {
+            var cardRect = _cardContainer.GetChild(0) as RectTransform;
+            var layoutGroup = _cardContainer.GetComponent<HorizontalLayoutGroup>();
+            _horizontalScrollStep = cardRect.rect.width + layoutGroup.spacing;
         }
 
         private static void PlayScoreVox(int fcCount, int highScoreCount)
@@ -452,12 +483,12 @@ namespace YARG.Menu.ScoreScreen
 
             _scrollLeftEntry = new NavigationScheme.Entry(MenuAction.Left, "Menu.Common.Scroll", context =>
                 {
-                    _cardScrollRect.MoveHorizontalInUnits(-1 * _horizontalScrollRate);
+                    ScrollScoresHorizontal(ScrollDirection.Left, context.IsRepeat);
                 });
 
             _scrollRightEntry = new NavigationScheme.Entry(MenuAction.Right, "Menu.Common.Scroll", context =>
                 {
-                    _cardScrollRect.MoveHorizontalInUnits(_horizontalScrollRate);
+                    ScrollScoresHorizontal(ScrollDirection.Right, context.IsRepeat);
                 });
 
             _scrollUpEntry = new NavigationScheme.Entry(MenuAction.Up, "Menu.Common.Scroll", context =>
@@ -471,6 +502,43 @@ namespace YARG.Menu.ScoreScreen
                 });
 
             UpdateNavigationScheme();
+        }
+        private void ScrollScoresHorizontal(ScrollDirection direction, bool isHeld)
+        {
+            float scrollableWidth = _cardScrollRect.ScrollableWidth();
+            bool canScroll = scrollableWidth > 0f;
+            if (!canScroll)
+            {
+                return;
+            }
+
+            // If dpad is held, ignore repeated inputs while tween is active
+            bool isTweenActive = _horizontalScrollTween != null;
+            if (isHeld && isTweenActive)
+            {
+                return;
+            }
+
+            float startPos = _cardScrollRect.horizontalNormalizedPosition;
+            float directionMultiplier = direction == ScrollDirection.Right ? 1f : -1f;
+            float targetPos = Mathf.Clamp(startPos + directionMultiplier * _horizontalScrollStep / scrollableWidth, 0f, 1f);
+
+            if (targetPos == startPos)
+            {
+                return;
+            }
+
+            SmoothScrollTo(targetPos);
+        }
+
+        private void SmoothScrollTo(float targetPos)
+        {
+            KillScrollTween();
+            _horizontalScrollTween = _cardScrollRect
+                .DOHorizontalNormalizedPos(targetPos, _horizontalScrollDuration)
+                .SetEase(_horizontalScrollEase)
+                .SetUpdate(true)
+                .OnComplete(() => _horizontalScrollTween = null);
         }
 
         private void ScrollScoreCard(Player.YargPlayer player, float delta)

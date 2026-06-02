@@ -13,7 +13,9 @@ using YARG.Core.Logging;
 using YARG.Core.Replays;
 using YARG.Gameplay.HUD;
 using YARG.Gameplay.Visuals;
+using YARG.Helpers;
 using YARG.Helpers.Extensions;
+using YARG.Menu.HighwayConfiguration;
 using YARG.Player;
 using YARG.Settings;
 using YARG.Themes;
@@ -24,12 +26,40 @@ namespace YARG.Gameplay.Player
     public class DrumsPlayer : TrackPlayer<DrumsEngine, DrumNote>
     {
         private const float DRUM_PAD_FLASH_HOLD_DURATION = 0.2f;
+        private static readonly Fret.AnimType[] AnimTypes = (Fret.AnimType[]) Enum.GetValues(typeof(Fret.AnimType));
 
         // Key is a FourLaneDrumPad or FiveLaneDrumPad
-        private Dictionary<int, HighwayOrderingInfo> _highwayOrdering;
-        private Dictionary<int, int>                 _actionToBreScoringZoneIndex;
+        private Dictionary<int, HighwayOrderingInfo> _highwayOrdering = new();
 
-        private int DrumsActionToHighwayIndex(DrumsAction action)
+        // The highway ordering is indexed by pad, so we need a special value for dedicated-lane double kicks, since those are
+        // indistinguishable from 1x kicks by pad number
+        public const int DOUBLE_KICK_FRET_INDEX = int.MaxValue;
+
+        // Number of distinct frets in the fret array.
+        // Derivable, but predetermined by MakeHighwayOrdering() for performance reasons
+        public int LaneCount { get; private set; }
+
+        private bool _yellowCymbalHasLane = false;
+        private bool _blueCymbalHasLane = false;
+        private bool _greenCymbalHasLane = false;
+
+        public int NumberOfDedicatedKickLanes { get; private set; } = 0;
+
+
+        public float NoteScaleFactor = 1f;
+        private float _baselineLaneCount => _fiveLaneMode ? 5f : 4f;
+
+        // When an action happens, we'll use this to determine which _actionToMostRecentTime entry to update
+        // This is often 1:1, but non-split 4L maps multiple actions to the shared lanes
+        private Dictionary<DrumsAction, DrumsBreLaneIndex> _actionToBreLaneIndex = new();
+
+        // When a BRE lane element needs to know how bright it should be, it'll use this table to get the right BRE lane index
+        private Dictionary<int, DrumsBreLaneIndex> _highwayOrderingIndexToBreLaneIndex = new();
+
+        // Record of the most recent time that each BRE lane has been lit up by any of the actions that map to it
+        private Dictionary<DrumsBreLaneIndex, double> _breLaneIndexToMostRecentTime = new();
+
+        private int DrumsActionToPad(DrumsAction action)
         {
             if (_fiveLaneMode)
             {
@@ -41,44 +71,45 @@ namespace YARG.Gameplay.Player
                     DrumsAction.BlueDrum => (int) FiveLaneDrumPad.Blue,
                     DrumsAction.OrangeCymbal => (int) FiveLaneDrumPad.Orange,
                     DrumsAction.GreenDrum => (int) FiveLaneDrumPad.Green,
+                    DrumsAction.WildcardPad => (int) FiveLaneDrumPad.Kick,
                     _ => throw new ArgumentOutOfRangeException(nameof(action))
                 };
             }
 
-            return action switch
-            {
-                DrumsAction.Kick =>         (int) FourLaneDrumPad.Kick,
-                DrumsAction.RedDrum =>      (int) FourLaneDrumPad.RedDrum,
-                DrumsAction.YellowDrum =>   (int) FourLaneDrumPad.YellowDrum,
-                DrumsAction.BlueDrum =>     (int) FourLaneDrumPad.BlueDrum,
-                DrumsAction.GreenDrum =>    (int) FourLaneDrumPad.GreenDrum,
-                DrumsAction.YellowCymbal => (int) (Player.Profile.SplitProTomsAndCymbals ? FourLaneDrumPad.YellowCymbal : FourLaneDrumPad.YellowDrum),
-                DrumsAction.BlueCymbal =>   (int) (Player.Profile.SplitProTomsAndCymbals ? FourLaneDrumPad.BlueCymbal : FourLaneDrumPad.BlueDrum),
-                DrumsAction.GreenCymbal =>  (int) (Player.Profile.SplitProTomsAndCymbals ? FourLaneDrumPad.GreenCymbal : FourLaneDrumPad.GreenDrum),
-                _ => throw new ArgumentOutOfRangeException(nameof(action))
-            };
+                return action switch
+                {
+                    DrumsAction.Kick =>         (int) FourLaneDrumPad.Kick,
+                    DrumsAction.RedDrum =>      (int) FourLaneDrumPad.RedDrum,
+                    DrumsAction.YellowDrum =>   (int) FourLaneDrumPad.YellowDrum,
+                    DrumsAction.BlueDrum =>     (int) FourLaneDrumPad.BlueDrum,
+                    DrumsAction.GreenDrum =>    (int) FourLaneDrumPad.GreenDrum,
+                    DrumsAction.YellowCymbal => (int) (_yellowCymbalHasLane ? FourLaneDrumPad.YellowCymbal : FourLaneDrumPad.YellowDrum),
+                    DrumsAction.BlueCymbal =>   (int) (_blueCymbalHasLane ? FourLaneDrumPad.BlueCymbal : FourLaneDrumPad.BlueDrum),
+                    DrumsAction.GreenCymbal =>  (int) (_greenCymbalHasLane ? FourLaneDrumPad.GreenCymbal : FourLaneDrumPad.GreenDrum),
+                    DrumsAction.WildcardPad =>  (int)FourLaneDrumPad.Kick,
+                    _ => throw new ArgumentOutOfRangeException(nameof(action))
+                };
         }
 
         public HighwayOrderingInfo GetHighwayOrderingInfo(int pad)
         {
-            if (_highwayOrdering.ContainsKey(pad))
+            if (_highwayOrdering.TryGetValue(pad, out var info))
             {
-                return _highwayOrdering[pad];
+                return info;
             }
 
-            return new(-1, pad);
+            return new HighwayOrderingInfo(-1, pad);
         }
-
 
         public static Dictionary<int, int> DEFAULT_FOUR_LANE_HIGHWAY_ORDERING = new()
         {
             { (int)FourLaneDrumPad.RedDrum,       0 },
-            { (int)FourLaneDrumPad.YellowCymbal,  1 },
             { (int)FourLaneDrumPad.YellowDrum,    1 },
-            { (int)FourLaneDrumPad.BlueCymbal,    2 },
+            { (int)FourLaneDrumPad.YellowCymbal,  1 },
             { (int)FourLaneDrumPad.BlueDrum,      2 },
-            { (int)FourLaneDrumPad.GreenCymbal,   3 },
-            { (int)FourLaneDrumPad.GreenDrum,     3 }
+            { (int)FourLaneDrumPad.BlueCymbal,    2 },
+            { (int)FourLaneDrumPad.GreenDrum,     3 },
+            { (int)FourLaneDrumPad.GreenCymbal,   3 }
         };
 
         public static Dictionary<int, int> DEFAULT_FIVE_LANE_HIGHWAY_ORDERING = new()
@@ -102,21 +133,17 @@ namespace YARG.Gameplay.Player
 
         public override bool ShouldUpdateInputsOnResume => false;
 
-        public override float[] StarMultiplierThresholds { get; protected set; } =
+        protected override float[] StarMultiplierThresholds { get; set; } =
         {
-            0.21f, 0.46f, 0.77f, 1.85f, 3.08f, 4.29f
+            0.06f, 0.12f, 0.2f, 0.45f, 0.75f, 1.09f
         };
-
-        public override int[] StarScoreThresholds { get; protected set; }
 
         private int[] _drumSoundEffectRoundRobin = new int[8];
         private float _drumSoundEffectAccentThreshold;
 
-        private Dictionary<int, float>                            _fretToLastPressedTimeDelta       = new();
-        private Dictionary<Fret.AnimType, Dictionary<int, float>> _animTypeToFretToLastPressedDelta = new();
-        private Dictionary<int, int>                              _highwayOrderingIndexToBreScoringZoneIndex;
+        private Dictionary<int, float>                            _padToLastPressedTimeDelta       = new();
+        private Dictionary<Fret.AnimType, Dictionary<int, float>> _animTypeToPadToLastPressedDelta = new();
 
-        private bool IsSplitMode => Player.Profile.CurrentInstrument is Instrument.ProDrums && Player.Profile.SplitProTomsAndCymbals;
 
         public override void Initialize(int index, YargPlayer player, SongChart chart, TrackView trackView, StemMixer mixer,
             int? currentHighScore)
@@ -146,7 +173,7 @@ namespace YARG.Gameplay.Player
             if (!Player.IsReplay)
             {
                 // Create the engine params from the engine preset
-                EngineParams = Player.EnginePreset.Drums.Create(StarMultiplierThresholds, mode);
+                EngineParams = Player.EnginePreset.Drums.Create(StarMultiplierThresholds, SoloBonusStarMultiplierThresholds, mode);
             }
             else
             {
@@ -195,8 +222,6 @@ namespace YARG.Gameplay.Player
 
         protected override void FinishInitialization()
         {
-            StarScoreThresholds = PopulateStarScoreThresholds(StarMultiplierThresholds, Engine.BaseScore);
-
             // Get the proper info for four/five lane
             IFretColorProvider colors = !_fiveLaneMode
                 ? Player.ColorProfile.FourLaneDrums
@@ -239,6 +264,20 @@ namespace YARG.Gameplay.Player
             LaneElement.DefineLaneScale(Player.Profile.CurrentInstrument, _fiveLaneMode ? 5 : 4);
         }
 
+        public override void ResetPracticeSection()
+        {
+            base.ResetPracticeSection();
+            _fretArray.ResetAll();
+        }
+
+        protected override void ResetLastHitTimes()
+        {
+            foreach (var breLaneIndex in _highwayOrderingIndexToBreLaneIndex.Values)
+            {
+                _breLaneIndexToMostRecentTime[breLaneIndex] = 0;
+            }
+        }
+
         private void SetDrumFillEffects()
         {
             int checkpoint = 0;
@@ -268,7 +307,9 @@ namespace YARG.Gameplay.Player
                     continue;
                 }
 
-                var fillLanePosition = GetHighwayOrderingInfo(rightmostNote.Pad).Position;
+                var highwayOrderingIndex = rightmostNote.IsDoubleKick ? DOUBLE_KICK_FRET_INDEX : rightmostNote.Pad;
+
+                var fillLanePosition = GetHighwayOrderingInfo(highwayOrderingIndex).Position;
 
                 int candidateIndex = -1;
 
@@ -366,9 +407,10 @@ namespace YARG.Gameplay.Player
         {
             int highwayIndex = -1;
             HighwayOrderingInfo highwayOrderingInfo = default;
+
             foreach ((int index, var info) in _highwayOrdering)
             {
-                if (laneIndex == Mathf.RoundToInt(info.Position))
+                if (laneIndex == info.Position)
                 {
                     highwayIndex = index;
                     highwayOrderingInfo = info;
@@ -411,18 +453,7 @@ namespace YARG.Gameplay.Player
 
         protected override void RescaleLanesForBRE()
         {
-            int subdivisions = 4;
-
-            if (_fiveLaneMode)
-            {
-                subdivisions = 5;
-            }
-            else if (IsSplitMode)
-            {
-                subdivisions = 7;
-            }
-
-            LaneElement.DefineLaneScale(Player.Profile.CurrentInstrument, subdivisions, true);
+            LaneElement.DefineLaneScale(Player.Profile.CurrentInstrument, LaneCount, true);
         }
 
         protected override void OnNoteHit(int index, DrumNote note)
@@ -435,7 +466,18 @@ namespace YARG.Gameplay.Player
 
             // The AnimType doesn't actually matter here
             // We handle the animation in OnPadHit instead
-            AnimateFret(note.Pad, Fret.AnimType.CorrectNormal);
+
+            int animationIndex;
+            if (note.IsDoubleKick && NumberOfDedicatedKickLanes is 2)
+            {
+                animationIndex = DOUBLE_KICK_FRET_INDEX;
+            }
+            else
+            {
+                animationIndex = note.Pad;
+            }
+
+            AnimateFret(animationIndex, Fret.AnimType.CorrectNormal);
         }
 
         protected override void OnNoteMissed(int index, DrumNote note)
@@ -477,7 +519,7 @@ namespace YARG.Gameplay.Player
 
         private void OnLaneHit(int fret)
         {
-            fret = DrumsActionToHighwayIndex((DrumsAction) fret);
+            fret = DrumsActionToPad((DrumsAction) fret);
             _fretArray.PlayCodaHitAnimation(fret);
         }
 
@@ -498,18 +540,26 @@ namespace YARG.Gameplay.Player
         }
 
 
-        private void OnPadHit(DrumsAction action, bool wasNoteHit, bool wasNoteHitCorrectly, DrumNoteType type, float velocity)
+        private void OnPadHit(DrumsAction action, bool wasNoteHit, bool wasNoteHitCorrectly, bool wasOverhitInLane, DrumNoteType type, float velocity)
         {
-            var fret = DrumsActionToHighwayIndex(action);
+            var fret = DrumsActionToPad(action);
 
             // This is done here for drums rather than in-engine because engine doesn't know about pad ordering
             if (Engine.IsCodaActive)
             {
                 CurrentCoda.HitLane(GameManager.VisualTime, (int) action);
+
+                if (_actionToBreLaneIndex.TryGetValue(action, out var breLaneIndex))
+                {
+                    _breLaneIndexToMostRecentTime[breLaneIndex] = GameManager.VisualTime;
+                }
+
             }
 
+            var kickHasLane = NumberOfDedicatedKickLanes > 0;
+
             // Update last hit times for fret flashing animation
-            if (action is not DrumsAction.Kick)
+            if ((action is not DrumsAction.Kick || kickHasLane) && !wasOverhitInLane)
             {
                 // Play the correct hit animation based on dynamics
                 Fret.AnimType animType = Fret.AnimType.CorrectNormal;
@@ -527,7 +577,8 @@ namespace YARG.Gameplay.Player
             }
 
             // Skip if a note was hit, because we have different logic for that below
-            if (wasNoteHit)
+            // Also skip if it was an overhit in a lane, since we only want it to play the AODSFX
+            if (wasNoteHit || wasOverhitInLane)
             {
                 // If AODSFX is turned on and a note was hit, Play the drum sfx. Without this, drum sfx will only play on misses.
                 if (SettingsManager.Settings.AlwaysOnDrumSFX.Value)
@@ -546,15 +597,27 @@ namespace YARG.Gameplay.Player
                 PlayDrumSoundEffect(action, velocity);
             }
 
-            if (action is not DrumsAction.Kick)
+            if ((action is not DrumsAction.Kick || kickHasLane) && action is not DrumsAction.WildcardPad)
             {
                 if (isDrumFreestyle)
                 {
                     AnimateAction(action);
+
+                    // Special case for split-dedicated kicks; we don't know which pedal was used, so animate both
+                    if (action is DrumsAction.Kick && NumberOfDedicatedKickLanes is 2)
+                    {
+                        _fretArray.PlayHitAnimation(DOUBLE_KICK_FRET_INDEX);
+                    }
                 }
                 else
                 {
                     _fretArray.PlayMissAnimation(fret);
+
+                    // Special case for split-dedicated kicks; we don't know which pedal was used, so animate both
+                    if (action is DrumsAction.Kick && NumberOfDedicatedKickLanes is 2)
+                    {
+                        _fretArray.PlayMissAnimation(DOUBLE_KICK_FRET_INDEX);
+                    }
                 }
             }
             else
@@ -576,6 +639,12 @@ namespace YARG.Gameplay.Player
         private void PlayDrumSoundEffect(DrumsAction action, float velocity)
         {
             int actionIndex = (int) action;
+
+            if (actionIndex == (int) DrumsAction.WildcardPad)
+            {
+                return;
+            }
+
             double sampleVolume = velocity;
 
             // Define sample
@@ -620,20 +689,8 @@ namespace YARG.Gameplay.Player
         public override (ReplayFrame Frame, ReplayStats Stats) ConstructReplayData()
         {
             var frame = new ReplayFrame(Player.Profile, EngineParams, Engine.EngineStats, ReplayInputs.ToArray());
-            return (frame, Engine.EngineStats.ConstructReplayStats(Player.Profile.Name));
+            return (frame, Engine.EngineStats.ConstructReplayStats(Player.Profile.Name, Player.IsReplay));
         }
-
-        private bool ShouldSwapSnareAndHiHat()
-        {
-            if (Player.Profile.CurrentInstrument is Instrument.FiveLaneDrums || IsSplitMode)
-            {
-                return Player.Profile.SwapSnareAndHiHat;
-            }
-
-            return false;
-        }
-
-        private bool ShouldSwapCrashAndRide() => IsSplitMode && Player.Profile.SwapCrashAndRide;
 
         protected override void UpdateVisuals(double visualTime)
         {
@@ -643,9 +700,11 @@ namespace YARG.Gameplay.Player
             {
                 // Set emission color of BRE lanes depending on time since last hit
 
-                foreach (var (k, v) in _highwayOrderingIndexToBreScoringZoneIndex)
+                foreach (var (highwayOrderingIndex, breLaneIndex) in _highwayOrderingIndexToBreLaneIndex)
                 {
-                    BRELanes[k].SetEmissionColor(CurrentCoda.GetNormalizedTimeSinceLastHit(v, visualTime));
+                    var mostRecentTime = _breLaneIndexToMostRecentTime[breLaneIndex];
+                    var normalizedTimeSinceLastHit = CodaSection.GetNormalizedTimeSinceLastHit(visualTime, mostRecentTime);
+                    BRELanes[highwayOrderingIndex].SetEmissionColor(normalizedTimeSinceLastHit);
                 }
             }
 
@@ -656,21 +715,21 @@ namespace YARG.Gameplay.Player
 
         private void InitializeHitTimes()
         {
-            foreach (var fretIdx in _highwayOrdering.Keys)
+            foreach (var pad in _highwayOrdering.Keys)
             {
-                _fretToLastPressedTimeDelta[fretIdx] = float.MaxValue;
+                _padToLastPressedTimeDelta[pad] = float.MaxValue;
             }
         }
 
         private void InitializeAnimTypes()
         {
-            foreach (Fret.AnimType animType in Enum.GetValues(typeof(Fret.AnimType)))
+            foreach (var animType in AnimTypes)
             {
-                _animTypeToFretToLastPressedDelta[animType] = new Dictionary<int, float>();
+                _animTypeToPadToLastPressedDelta[animType] = new Dictionary<int, float>();
 
-                foreach (var fretIdx in _highwayOrdering.Keys)
+                foreach (var pad in _highwayOrdering.Keys)
                 {
-                    _animTypeToFretToLastPressedDelta[animType][fretIdx] = float.MaxValue;
+                    _animTypeToPadToLastPressedDelta[animType][pad] = float.MaxValue;
                 }
             }
         }
@@ -678,57 +737,98 @@ namespace YARG.Gameplay.Player
         // i.e., flash this fret by making it seem pressed
         private void ZeroOutHitTime(DrumsAction action, Fret.AnimType animType)
         {
-            int fretIdx = DrumsActionToHighwayIndex(action);
-            _fretToLastPressedTimeDelta[fretIdx] = 0f;
-            _animTypeToFretToLastPressedDelta[animType][fretIdx] = 0f;
+            int pad = DrumsActionToPad(action);
+            ZeroOutHitTime(pad, animType);
+
+            // When kicks have split dedicated lanes, zero out both for kick inputs
+            if (action is DrumsAction.Kick && NumberOfDedicatedKickLanes == 2)
+            {
+                ZeroOutHitTime(DOUBLE_KICK_FRET_INDEX, animType);
+            }
+        }
+
+        // i.e., flash this fret by making it seem pressed
+        private void ZeroOutHitTime(int pad, Fret.AnimType animType)
+        {
+            _padToLastPressedTimeDelta[pad] = 0f;
+            _animTypeToPadToLastPressedDelta[animType][pad] = 0f;
         }
 
         private void UpdateHitTimes()
         {
-            foreach (var fretIdx in _highwayOrdering.Keys)
+            foreach (var pad in _highwayOrdering.Keys)
             {
-                _fretToLastPressedTimeDelta[fretIdx] += Time.deltaTime;
+                _padToLastPressedTimeDelta[pad] += Time.deltaTime;
             }
         }
 
         private void UpdateAnimTimes()
         {
-            foreach (Fret.AnimType animType in Enum.GetValues(typeof(Fret.AnimType)))
+            foreach (var animType in AnimTypes)
             {
-                foreach (var fretIdx in _highwayOrdering.Keys)
+                foreach (var pad in _highwayOrdering.Keys)
                 {
-                    _animTypeToFretToLastPressedDelta[animType][fretIdx] += Time.deltaTime;
+                    _animTypeToPadToLastPressedDelta[animType][pad] += Time.deltaTime;
                 }
             }
         }
 
         private void UpdateFretArray()
         {
-            foreach (var fretIdx in _highwayOrdering.Keys)
+            // For each visual fret...
+            for (var i = 0; i < LaneCount; i++)
             {
-                _fretArray.SetPressedDrum(fretIdx, _fretToLastPressedTimeDelta[fretIdx] < DRUM_PAD_FLASH_HOLD_DURATION, GetAnimType(fretIdx));
-                _fretArray.UpdateAccentColorState(fretIdx,
-                    _animTypeToFretToLastPressedDelta[Fret.AnimType.CorrectHard][fretIdx] <
-                    DRUM_PAD_FLASH_HOLD_DURATION);
+                // ...find the lowest last-pressed delta among pads that the visual fret represents
+                // Usually there's just one pad for each fret, but tom+cymbal frets have two so we
+                // want to take the minimum of those
+
+                var lowestDelta = float.MaxValue;
+
+                // The fret array's animation functions take pads, so we need to know which pad is relevant for the
+                // current visual fret. If there are multiple (shared fret), we can send it either; the fret array
+                // forwards shared fret indices to the right fret. If we don't find any pads, we won't call any
+                // animations.
+                int? padToPress = null;
+
+                foreach (var (pad, highwayOrderingInfo) in _highwayOrdering)
+                {
+                    // We only care about pads that are mapped to this position
+                    if (highwayOrderingInfo.Position == i)
+                    {
+                        padToPress ??= pad;
+                        if (_padToLastPressedTimeDelta[pad] < lowestDelta)
+                        {
+                            lowestDelta = _padToLastPressedTimeDelta[pad];
+                        }
+                    }
+                }
+
+                if (padToPress is not null)
+                {
+                    _fretArray.SetPressedDrum(padToPress.Value, lowestDelta < DRUM_PAD_FLASH_HOLD_DURATION, GetAnimType(padToPress.Value));
+                    _fretArray.UpdateAccentColorState(padToPress.Value,
+                        _animTypeToPadToLastPressedDelta[Fret.AnimType.CorrectHard][padToPress.Value] <
+                        DRUM_PAD_FLASH_HOLD_DURATION);
+                }
             }
         }
 
         private Fret.AnimType GetAnimType(int fretIdx)
         {
             // Prioritize the length of certain animations
-            if (_animTypeToFretToLastPressedDelta[Fret.AnimType.CorrectNormal][fretIdx] < DRUM_PAD_FLASH_HOLD_DURATION)
+            if (_animTypeToPadToLastPressedDelta[Fret.AnimType.CorrectNormal][fretIdx] < DRUM_PAD_FLASH_HOLD_DURATION)
             {
                 return Fret.AnimType.CorrectNormal;
             }
 
             // Don't hold an accent over a normal note
-            if (_animTypeToFretToLastPressedDelta[Fret.AnimType.CorrectHard][fretIdx] < DRUM_PAD_FLASH_HOLD_DURATION)
+            if (_animTypeToPadToLastPressedDelta[Fret.AnimType.CorrectHard][fretIdx] < DRUM_PAD_FLASH_HOLD_DURATION)
             {
                 return Fret.AnimType.CorrectHard;
             }
 
             // Don't cut a bright anim short if a ghost is played
-            if (_animTypeToFretToLastPressedDelta[Fret.AnimType.CorrectSoft][fretIdx] < DRUM_PAD_FLASH_HOLD_DURATION)
+            if (_animTypeToPadToLastPressedDelta[Fret.AnimType.CorrectSoft][fretIdx] < DRUM_PAD_FLASH_HOLD_DURATION)
             {
                 return Fret.AnimType.CorrectSoft;
             }
@@ -739,7 +839,7 @@ namespace YARG.Gameplay.Player
 
         private void AnimateAction(DrumsAction action)
         {
-            var index = DrumsActionToHighwayIndex(action);
+            var index = DrumsActionToPad(action);
 
             if (_fiveLaneMode)
             {
@@ -770,7 +870,7 @@ namespace YARG.Gameplay.Player
         private void AnimateFret(int pad, Fret.AnimType animType)
         {
             // Four and five lane drums have the same kick value
-            if (pad == (int) FourLaneDrumPad.Kick)
+            if ((pad == (int) FourLaneDrumPad.Kick && NumberOfDedicatedKickLanes == 0) || pad == (int)FourLaneDrumPad.Wildcard)
             {
                 _kickFretFlash.PlayHitAnimation();
                 _fretArray.PlayKickFretAnimation();
@@ -819,147 +919,92 @@ namespace YARG.Gameplay.Player
             return position;
         }
 
-        private int ApplyHandednessToFourLaneColor(FourLaneDrumsFret fret)
-        {
-            if (Player.Profile.LeftyFlip)
-            {
-                return fret switch
-                {
-                    FourLaneDrumsFret.RedDrum =>        (int)FourLaneDrumsFret.GreenDrum,
-                    FourLaneDrumsFret.YellowDrum =>     (int)FourLaneDrumsFret.BlueDrum,
-                    FourLaneDrumsFret.BlueDrum =>       (int)FourLaneDrumsFret.YellowDrum,
-                    FourLaneDrumsFret.GreenDrum =>      (int)FourLaneDrumsFret.RedDrum,
-                    FourLaneDrumsFret.YellowCymbal =>   (int)FourLaneDrumsFret.BlueCymbal,
-                    FourLaneDrumsFret.BlueCymbal =>     (int)FourLaneDrumsFret.YellowCymbal,
-                    FourLaneDrumsFret.GreenCymbal =>    (int)FourLaneDrumsFret.RedCymbal,
-                    _ => (int) fret
-                };
-            }
-
-            return (int) fret;
-        }
-
-        private int ApplyHandednessToFiveLaneColor(FiveLaneDrumsFret fret)
-        {
-            if (Player.Profile.LeftyFlip)
-            {
-                return fret switch {
-                    FiveLaneDrumsFret.Red =>    (int)FiveLaneDrumsFret.Green,
-                    FiveLaneDrumsFret.Yellow => (int)FiveLaneDrumsFret.Orange,
-                    FiveLaneDrumsFret.Blue =>   (int)FiveLaneDrumsFret.Blue,
-                    FiveLaneDrumsFret.Orange => (int)FiveLaneDrumsFret.Yellow,
-                    FiveLaneDrumsFret.Green =>  (int)FiveLaneDrumsFret.Red,
-                    _ => (int)fret
-                };
-            }
-
-            return (int)fret;
-        }
-
         private void MakeHighwayOrdering()
         {
-            if (Player.Profile.CurrentInstrument is Instrument.FiveLaneDrums)
+            var instrument = Player.Profile.CurrentInstrument;
+
+            var ordering = instrument switch
             {
-                LaneCount = 5;
-                _highwayOrdering = new()
-                {
-                    { (int)FiveLaneDrumPad.Red,    new(ApplyHandednessToPosition(Player.Profile.SwapSnareAndHiHat ? 1 : 0), ApplyHandednessToFiveLaneColor(FiveLaneDrumsFret.Red) ) },
-                    { (int)FiveLaneDrumPad.Yellow, new(ApplyHandednessToPosition(Player.Profile.SwapSnareAndHiHat ? 0 : 1), ApplyHandednessToFiveLaneColor(FiveLaneDrumsFret.Yellow) ) },
-                    { (int)FiveLaneDrumPad.Blue,   new(ApplyHandednessToPosition(2),                                        (int)FiveLaneDrumsFret.Blue) }, // No need to waste a function call on this
-                    { (int)FiveLaneDrumPad.Orange, new(ApplyHandednessToPosition(3),                                        ApplyHandednessToFiveLaneColor(FiveLaneDrumsFret.Orange) ) },
-                    { (int)FiveLaneDrumPad.Green,  new(ApplyHandednessToPosition(4),                                        ApplyHandednessToFiveLaneColor(FiveLaneDrumsFret.Green) ) }
-                };
+                Instrument.FourLaneDrums => Player.Profile.FourLaneDrumsHighwayOrdering,
+                Instrument.ProDrums => Player.Profile.ProDrumsHighwayOrdering,
+                Instrument.FiveLaneDrums => Player.Profile.FiveLaneDrumsHighwayOrdering,
+                _ => throw new ArgumentOutOfRangeException("Unexpected nondrums instrument")
+            };
 
-                _actionToBreScoringZoneIndex = new Dictionary<int, int>
-                {
-                    { (int)DrumsAction.RedDrum, 0 },
-                    { (int)DrumsAction.YellowCymbal, 1 },
-                    { (int)DrumsAction.BlueDrum, 2 },
-                    { (int)DrumsAction.OrangeCymbal, 3 },
-                    { (int)DrumsAction.GreenDrum, 4 },
-                    { (int)DrumsAction.Kick, 5 }
-                };
+            // If the player has a dedicated Double Kick lane that's set to Expert+ Only, and isn't playing on Expert+, then the actual amount of lanes is 1 fewer than the size
+            // of the provided ordering because that lane is absent.
+            LaneCount = ordering.Length - (ordering.Contains(DrumsHighwayItem.Kick2xConditional) && Player.Profile.CurrentDifficulty is not Difficulty.ExpertPlus ? 1 : 0);
+            NoteScaleFactor = _baselineLaneCount / LaneCount;
 
-                _highwayOrderingIndexToBreScoringZoneIndex = new Dictionary<int, int>
-                {
-                    { _highwayOrdering[(int)FiveLaneDrumPad.Red].Position, 0 },
-                    { _highwayOrdering[(int)FiveLaneDrumPad.Yellow].Position, 1 },
-                    { _highwayOrdering[(int)FiveLaneDrumPad.Blue].Position, 2 },
-                    { _highwayOrdering[(int)FiveLaneDrumPad.Orange].Position, 3 },
-                    { _highwayOrdering[(int)FiveLaneDrumPad.Green].Position, 4 },
-                };
-            }
-            else if (Player.Profile.SplitProTomsAndCymbals && Player.Profile.CurrentInstrument is Instrument.ProDrums)
+            // Once we've skipped the conditional Double Kick lane (when not present), we'll have an off-by-one relationship between i and the actual intended position
+            var skippedPedalAdjustment = 0;
+            for (var i = 0; i < ordering.Length; i++)
             {
-                LaneCount = 7;
-                _highwayOrdering = new()
-                {
-                    { (int)FourLaneDrumPad.RedDrum,       new(ApplyHandednessToPosition(Player.Profile.SwapSnareAndHiHat ? 1 : 0),   ApplyHandednessToFourLaneColor(FourLaneDrumsFret.RedDrum)) },
-                    { (int)FourLaneDrumPad.YellowCymbal,  new(ApplyHandednessToPosition(Player.Profile.SwapSnareAndHiHat ? 0 : 1),   ApplyHandednessToFourLaneColor(FourLaneDrumsFret.YellowCymbal)) },
-                    { (int)FourLaneDrumPad.YellowDrum,    new(ApplyHandednessToPosition(2),                                          ApplyHandednessToFourLaneColor(FourLaneDrumsFret.YellowDrum)) },
-                    { (int)FourLaneDrumPad.BlueCymbal,    new(ApplyHandednessToPosition(Player.Profile.SwapCrashAndRide ? 5 : 3),    ApplyHandednessToFourLaneColor(FourLaneDrumsFret.BlueCymbal)) },
-                    { (int)FourLaneDrumPad.BlueDrum,      new(ApplyHandednessToPosition(4),                                          ApplyHandednessToFourLaneColor(FourLaneDrumsFret.BlueDrum)) },
-                    { (int)FourLaneDrumPad.GreenCymbal,   new(ApplyHandednessToPosition(Player.Profile.SwapCrashAndRide ? 3 : 5),    ApplyHandednessToFourLaneColor(FourLaneDrumsFret.GreenCymbal)) },
-                    { (int)FourLaneDrumPad.GreenDrum,     new(ApplyHandednessToPosition(6),                                          ApplyHandednessToFourLaneColor(FourLaneDrumsFret.GreenDrum)) },
-                };
+                var item = ordering[i];
 
-                _actionToBreScoringZoneIndex = new Dictionary<int, int>
+                if (item is DrumsHighwayItem.Kick2xConditional && Player.Profile.CurrentDifficulty is not Difficulty.ExpertPlus)
                 {
-                    { (int)DrumsAction.RedDrum, 0 },
-                    { (int)DrumsAction.YellowDrum, 1 },
-                    { (int)DrumsAction.BlueDrum, 2 },
-                    { (int)DrumsAction.GreenDrum, 3 },
-                    { (int)DrumsAction.YellowCymbal, 1 },
-                    { (int)DrumsAction.BlueCymbal, 2 },
-                    { (int)DrumsAction.GreenCymbal, 3 },
-                    { (int)DrumsAction.Kick, 4 },
-                };
+                    skippedPedalAdjustment = 1;
+                    continue;
+                }
 
-                _highwayOrderingIndexToBreScoringZoneIndex = new Dictionary<int, int> {
-                    { _highwayOrdering[(int)FourLaneDrumPad.RedDrum].Position, 0 },
-                    { _highwayOrdering[(int)FourLaneDrumPad.YellowDrum].Position, 1 },
-                    { _highwayOrdering[(int)FourLaneDrumPad.BlueDrum].Position, 2 },
-                    { _highwayOrdering[(int)FourLaneDrumPad.GreenDrum].Position, 3 },
-                    { _highwayOrdering[(int)FourLaneDrumPad.YellowCymbal].Position, 1 },
-                    { _highwayOrdering[(int)FourLaneDrumPad.BlueCymbal].Position, 2 },
-                    { _highwayOrdering[(int)FourLaneDrumPad.GreenCymbal].Position, 3 } 
-                };
+                var adjustedIndex = i - skippedPedalAdjustment;
+
+                var highwayOrderingInfo = DrumsHighwayItemView.GetHighwayOrderingInfo(item, instrument);
+
+                _highwayOrderingIndexToBreLaneIndex.Add(ApplyHandednessToPosition(adjustedIndex), highwayOrderingInfo.BreLaneIndex);
+
+                switch (item)
+                {
+                    case DrumsHighwayItem.Kick or DrumsHighwayItem.Kick1x or DrumsHighwayItem.Kick2x or DrumsHighwayItem.Kick2xConditional:
+                        NumberOfDedicatedKickLanes++;
+                        break;
+                    case DrumsHighwayItem.YellowCymbal:
+                        _yellowCymbalHasLane = true;
+                        break;
+                    case DrumsHighwayItem.BlueCymbal:
+                        _blueCymbalHasLane = true;
+                        break;
+                    case DrumsHighwayItem.GreenCymbal:
+                        _greenCymbalHasLane = true;
+                        break;
+                }
+
+                foreach (var highwayOrderingElement in highwayOrderingInfo.Elements)
+                {
+                    _highwayOrdering[highwayOrderingElement.Pad] = new(
+                        ApplyHandednessToPosition(adjustedIndex),
+                        DrumsColorHelpers.ApplyHandednessToColor(highwayOrderingElement.ColorIndex, Player.Profile.LeftyFlip, NumberOfDedicatedKickLanes == 2, instrument)
+                    );
+
+                    if (!_actionToBreLaneIndex.ContainsKey(highwayOrderingElement.Action)) {
+                        _actionToBreLaneIndex.Add(highwayOrderingElement.Action, highwayOrderingInfo.BreLaneIndex);
+                    }
+                }
             }
-            else
-            {
-                LaneCount = 4;
-                _highwayOrdering = new()
-                {
-                    { (int)FourLaneDrumPad.RedDrum,       new(ApplyHandednessToPosition(0), ApplyHandednessToFourLaneColor(FourLaneDrumsFret.RedDrum)) },
-                    { (int)FourLaneDrumPad.YellowCymbal,  new(ApplyHandednessToPosition(1), ApplyHandednessToFourLaneColor(FourLaneDrumsFret.YellowCymbal)) },
-                    { (int)FourLaneDrumPad.YellowDrum,    new(ApplyHandednessToPosition(1), ApplyHandednessToFourLaneColor(FourLaneDrumsFret.YellowDrum)) },
-                    { (int)FourLaneDrumPad.BlueCymbal,    new(ApplyHandednessToPosition(2), ApplyHandednessToFourLaneColor(FourLaneDrumsFret.BlueCymbal)) },
-                    { (int)FourLaneDrumPad.BlueDrum,      new(ApplyHandednessToPosition(2), ApplyHandednessToFourLaneColor(FourLaneDrumsFret.BlueDrum)) },
-                    { (int)FourLaneDrumPad.GreenCymbal,   new(ApplyHandednessToPosition(3), ApplyHandednessToFourLaneColor(FourLaneDrumsFret.GreenCymbal)) },
-                    { (int)FourLaneDrumPad.GreenDrum,     new(ApplyHandednessToPosition(3), ApplyHandednessToFourLaneColor(FourLaneDrumsFret.GreenDrum)) },
-                };
 
-                _actionToBreScoringZoneIndex = new Dictionary<int, int>
-                {
-                    { (int)DrumsAction.RedDrum, 0 },
-                    { (int)DrumsAction.YellowDrum, 1 },
-                    { (int)DrumsAction.BlueDrum, 2 },
-                    { (int)DrumsAction.GreenDrum, 3 },
-                    { (int)DrumsAction.YellowCymbal, 1 },
-                    { (int)DrumsAction.BlueCymbal, 2 },
-                    { (int)DrumsAction.GreenCymbal, 3 },
-                    { (int)DrumsAction.Kick, 4 },
-                };
-
-                _highwayOrderingIndexToBreScoringZoneIndex = new Dictionary<int, int> {
-                    { _highwayOrdering[(int)FourLaneDrumPad.RedDrum].Position, 0 }, // RedDrum
-                    { _highwayOrdering[(int)FourLaneDrumPad.YellowDrum].Position, 1 }, // YellowDrum and YellowCymbal
-                    { _highwayOrdering[(int)FourLaneDrumPad.BlueDrum].Position, 2 }, // BlueDrum and BlueCymbal
-                    { _highwayOrdering[(int)FourLaneDrumPad.GreenDrum].Position, 3 }, // GreenDrum and GreenCymbal
-                };
-            }
+            ResetLastHitTimes();
         }
 
-        protected override Dictionary<int, int> GetLaneIndexes() => _actionToBreScoringZoneIndex;
+        public enum DrumsBreLaneIndex
+        {
+            Kick,
+
+            Red,
+
+            Yellow,
+            YellowDrum,
+            YellowCymbal,
+
+            Blue,
+            BlueDrum,
+            BlueCymbal,
+
+            Green,
+            GreenDrum,
+            GreenCymbal,
+
+            Orange
+        }
     }
 }

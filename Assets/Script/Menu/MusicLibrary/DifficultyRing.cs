@@ -1,4 +1,5 @@
-﻿using TMPro;
+﻿using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.EventSystems;
@@ -18,6 +19,8 @@ namespace YARG.Menu.MusicLibrary
 
     public class DifficultyRing : MonoBehaviour, IPointerClickHandler
     {
+        private static readonly Dictionary<string, Sprite> ICON_CACHE = new();
+
         [SerializeField]
         private Image _instrumentIcon;
 
@@ -59,7 +62,7 @@ namespace YARG.Menu.MusicLibrary
         public void SetInfo(string assetName, Instrument instrument, PartValues values)
         {
             // Set instrument icon
-            var icon = Addressables.LoadAssetAsync<Sprite>($"InstrumentIcons[{assetName}]").WaitForCompletion();
+            var icon = GetIcon(assetName);
             _instrumentIcon.sprite = icon;
             _instrument = instrument;
             _intensity = values.Intensity;
@@ -158,6 +161,17 @@ namespace YARG.Menu.MusicLibrary
             }
 
             UpdateIconColor();
+        }
+
+        private static Sprite GetIcon(string assetName)
+        {
+            string assetKey = $"InstrumentIcons[{assetName}]";
+            if (!ICON_CACHE.TryGetValue(assetKey, out var icon))
+            {
+                ICON_CACHE[assetKey] = icon = Addressables.LoadAssetAsync<Sprite>(assetKey).WaitForCompletion();
+            }
+
+            return icon;
         }
 
         private void UpdateIconColor()

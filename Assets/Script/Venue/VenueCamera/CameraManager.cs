@@ -97,6 +97,9 @@ namespace YARG.Venue.VenueCamera
 
         public Camera CurrentCamera { get; private set; }
 
+        // Minimum of 1 second between camera cuts when reduce flashing lights is enabled
+        private const float REDUCED_CAMERA_CUT_INTERVAL = 1.0f;
+
         private List<Camera>  _cameras;
 
         private List<CameraCutEvent> _cameraCuts;
@@ -117,6 +120,7 @@ namespace YARG.Venue.VenueCamera
         private bool  _volumeSet;
 
         private bool _isPostProcessingEnabled;
+        private bool ReducedFlashing => SettingsManager.Settings.ReduceFlashingLights.Value;
 
         protected override void OnChartLoaded(SongChart chart)
         {
@@ -197,8 +201,16 @@ namespace YARG.Venue.VenueCamera
                 cameraData.volumeLayerMask = layerMask;
             }
 
-            _postProcessingEvents = chart.VenueTrack.PostProcessing;
-            _cameraCuts = chart.VenueTrack.CameraCuts;
+            var postProcessingEvents = chart.VenueTrack.PostProcessing;
+            var cameraCuts = chart.VenueTrack.CameraCuts;
+
+            if (ReducedFlashing)
+            {
+                (postProcessingEvents, cameraCuts) = ReduceFlashingEvents(postProcessingEvents, cameraCuts);
+            }
+
+            _postProcessingEvents = postProcessingEvents;
+            _cameraCuts = cameraCuts;
 
             // Make up a PostProcessingEvent of type default to start us off
             var firstEffect = new PostProcessingEvent(PostProcessingType.Default, -2f, 0);
@@ -224,6 +236,19 @@ namespace YARG.Venue.VenueCamera
             }
 
             GameManager.SetVenueCameraManager(this);
+        }
+
+        private static (List<PostProcessingEvent> PostProcessingEvents, List<CameraCutEvent> CameraCuts) ReduceFlashingEvents(
+            List<PostProcessingEvent> postProcessingEvents, List<CameraCutEvent> cameraCuts)
+        {
+            var reducedPostProcessingEvents = ReduceFlashingPostProcessingEvents(postProcessingEvents);
+            var reducedCameraCuts = ChartEvent.FilterByInterval(
+                cameraCuts,
+                REDUCED_CAMERA_CUT_INTERVAL,
+                isDuplicate: (curr, prev) => curr.Subject == prev.Subject && curr.Constraint == prev.Constraint
+            );
+
+            return (reducedPostProcessingEvents, reducedCameraCuts);
         }
 
         private void InitializeVolume()
@@ -329,7 +354,7 @@ namespace YARG.Venue.VenueCamera
             }
             else
             {
-                _cameraTimer = _cameraTimer = Mathf.Max(11f, (float) _cameraCuts[_currentCutIndex].TimeLength);
+                _cameraTimer = Mathf.Max(11f, (float) _cameraCuts[_currentCutIndex].TimeLength);
             }
 
             // If we are switching to the same camera, just leave it active
@@ -348,6 +373,7 @@ namespace YARG.Venue.VenueCamera
         {
             return Random.Range(1f, 4f);
         }
+
 
         private Camera GetRandomCamera()
         {

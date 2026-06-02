@@ -46,7 +46,14 @@ namespace YARG.Gameplay.Player
 
         public void Initialize(List<VocalNote> notes)
         {
+            _pool.ReturnAllObjects();
+
             _notes = notes;
+            _phraseIndex = 0;
+            _noteIndex = 0;
+
+            _percussionFret.transform.rotation = Quaternion.Euler(0f, 0f, 0f);
+            _percussionFret.gameObject.SetActive(false);
         }
 
         private void Update()
@@ -86,7 +93,10 @@ namespace YARG.Gameplay.Player
         public void HitPercussionNote(VocalNote note)
         {
             var obj = _pool.GetByKey(note);
-            _pool.Return(obj);
+            if (obj != null)
+            {
+                _pool.Return(obj);
+            }
 
             _hitEffects.Play();
         }
@@ -96,6 +106,7 @@ namespace YARG.Gameplay.Player
             if (_fretShowCoroutine != null)
             {
                 StopCoroutine(_fretShowCoroutine);
+                _fretShowCoroutine = null;
             }
 
             if (show == _percussionFret.gameObject.activeSelf)
@@ -103,7 +114,7 @@ namespace YARG.Gameplay.Player
                 return;
             }
 
-            StartCoroutine(ShowPercussionFretAnimation(show));
+            _fretShowCoroutine = StartCoroutine(ShowPercussionFretAnimation(show));
         }
 
         private IEnumerator ShowPercussionFretAnimation(bool show)

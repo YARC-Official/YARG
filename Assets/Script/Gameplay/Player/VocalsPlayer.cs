@@ -35,12 +35,10 @@ namespace YARG.Gameplay.Player
 
         public override bool ShouldUpdateInputsOnResume => false;
 
-        public override float[] StarMultiplierThresholds { get; protected set; } =
+        protected override float[] StarMultiplierThresholds { get; set; } =
         {
-            0.21f, 0.46f, 0.77f, 1.85f, 3.08f, 4.18f
+            0.05f, 0.11f, 0.19f, 0.46f, 0.77f, 1.06f
         };
-
-        public override int[] StarScoreThresholds { get; protected set; }
 
         private InstrumentDifficulty<VocalNote> NoteTrack { get; set; }
         private InstrumentDifficulty<VocalNote> OriginalNoteTrack { get; set; }
@@ -157,7 +155,6 @@ namespace YARG.Gameplay.Player
                 Engine.SetSpeed(GameManager.SongSpeed);
             }
 
-            StarScoreThresholds = PopulateStarScoreThresholds(StarMultiplierThresholds, Engine.BaseScore);
         }
 
         protected override void FinishDestruction()
@@ -172,7 +169,7 @@ namespace YARG.Gameplay.Player
                 var singToActivateStarPower = SettingsManager.Settings.VoiceActivatedVocalStarPower.Value;
 
                 // Create the engine params from the engine preset
-                EngineParams = Player.EnginePreset.Vocals.Create(StarMultiplierThresholds,
+                EngineParams = Player.EnginePreset.Vocals.Create(StarMultiplierThresholds, SoloBonusStarMultiplierThresholds,
                     Player.Profile.CurrentDifficulty, MicDevice.UPDATES_PER_SECOND, singToActivateStarPower);
             }
             else
@@ -261,6 +258,7 @@ namespace YARG.Gameplay.Player
             }
 
             _phraseIndex = -1;
+            _percussionTrack.Initialize(NoteTrack.Notes);
 
             base.ResetPracticeSection();
         }
@@ -465,7 +463,7 @@ namespace YARG.Gameplay.Player
                     var lerp = Mathf.Lerp(transformCache.localPosition.z, z, Time.deltaTime * lerpRate);
                     transformCache.localPosition = new Vector3(0f, 0f, lerp);
                     _needleTransform.rotation = Quaternion.Lerp(_needleTransform.rotation,
-                        Quaternion.Euler(0f, targetRotation, 0f), Time.deltaTime * NEEDLE_ROT_LERP);
+                        Quaternion.Euler(0f, targetRotation + 90f, 0f), Time.deltaTime * NEEDLE_ROT_LERP);
                 }
                 else
                 {
@@ -499,7 +497,7 @@ namespace YARG.Gameplay.Player
 
                     // Lerp the rotation to none
                     _needleTransform.rotation = Quaternion.Lerp(_needleTransform.rotation,
-                        Quaternion.identity, Time.deltaTime * NEEDLE_ROT_LERP);
+                        Quaternion.Euler(0f, 90f, 0f), Time.deltaTime * NEEDLE_ROT_LERP);
                 }
             }
         }
@@ -512,40 +510,70 @@ namespace YARG.Gameplay.Player
                 return;
             }
 
+            while (ShouldAdvancePhraseIndex(time))
+            {
+                _phraseIndex++;
+
+                // We've reached the end. No need to continue.
+                if (_phraseIndex >= NoteTrack.Notes.Count)
+                {
+                    SetPercussionMode(false);
+                    return;
+                }
+
+                var phrase = NoteTrack.Notes[_phraseIndex];
+                SetPercussionMode(HasPercussion(phrase));
+            }
+        }
+
+        private bool ShouldAdvancePhraseIndex(double time)
+        {
             // Since phrases start at the note, and not sometime before it, use
             // the end times of phrases instead (where the phrase lines are). Problem
             // with this is that we still gotta account for the first phrase, so use
             // an index of -1 for that.
-            while (_phraseIndex == -1 ||
-                (_phraseIndex < NoteTrack.Notes.Count && NoteTrack.Notes[_phraseIndex].TimeEnd <= time))
+            bool beforeFirstPhrase = _phraseIndex == -1;
+            if (beforeFirstPhrase)
             {
-                _phraseIndex++;
-
-                // End if that's the last note
-                if (_phraseIndex >= NoteTrack.Notes.Count)
+                // Track has no notes. Bail early.
+                if (NoteTrack.Notes.Count <= 0)
                 {
-                    break;
+                    return false;
                 }
 
-                var phrase = NoteTrack.Notes[_phraseIndex];
-
-                bool hasPercussion = false;
-                uint totalTime = 0;
-                foreach (var note in phrase.ChildNotes)
-                {
-                    if (note.IsPercussion)
-                    {
-                        hasPercussion = true;
-                        continue;
-                    }
-
-                    totalTime += note.TotalTickLength;
-                }
-
-                _hud.SetHUDShowing(!hasPercussion);
-                _percussionTrack.ShowPercussionFret(hasPercussion);
-                _shouldHideNeedle = hasPercussion;
+                var firstPhrase = NoteTrack.Notes[0];
+                var firstPhraseHasStarted = firstPhrase.Time <= time;
+                return firstPhraseHasStarted || HasPercussion(firstPhrase);
             }
+
+            bool atTheEndOfTrack = _phraseIndex >= NoteTrack.Notes.Count;
+            if (atTheEndOfTrack)
+            {
+                return false;
+            }
+
+            var currentPhrase = NoteTrack.Notes[_phraseIndex];
+            return currentPhrase.TimeEnd <= time;
+        }
+
+        private void SetPercussionMode(bool show)
+        {
+            _hud.SetHUDShowing(!show);
+            _percussionTrack.ShowPercussionFret(show);
+            _shouldHideNeedle = show;
+        }
+
+        private static bool HasPercussion(VocalNote phrase)
+        {
+            foreach (var note in phrase.ChildNotes)
+            {
+                if (note.IsPercussion)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         public override void SetPracticeSection(uint start, uint end)
@@ -615,7 +643,7 @@ namespace YARG.Gameplay.Player
         public override (ReplayFrame Frame, ReplayStats Stats) ConstructReplayData()
         {
             var frame = new ReplayFrame(Player.Profile, EngineParams, Engine.EngineStats, ReplayInputs.ToArray());
-            return (frame, Engine.EngineStats.ConstructReplayStats(Player.Profile.Name));
+            return (frame, Engine.EngineStats.ConstructReplayStats(Player.Profile.Name, Player.IsReplay));
         }
     }
 }

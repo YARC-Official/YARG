@@ -68,6 +68,9 @@ namespace YARG.Venue.VenueCamera
         private readonly List<ColorAnimation>        _colorAnimations        = new();
         private readonly List<ClampedIntAnimation>   _clampedIntAnimations   = new();
 
+        // Reduce flashing effects to one every 2 seconds
+        private const float REDUCED_FLASHING_INTERVAL = 2.0f;
+
         public void InitializePostProcessing()
         {
             if (_profile.TryGet<Bloom>(out var bloom))
@@ -99,16 +102,16 @@ namespace YARG.Venue.VenueCamera
                 false, in bounds);
             _flatHalfCurve = new TextureCurve(new AnimationCurve(new Keyframe(0f, 0.5f), new Keyframe(1.0f, 0.5f)),
                 0.5f, false, in bounds);
-            _mirrorRCurve = new TextureCurve(new AnimationCurve(new Keyframe(0.2f, 0f, 8.1f, 8.1f), 
+            _mirrorRCurve = new TextureCurve(new AnimationCurve(new Keyframe(0.2f, 0f, 8.1f, 8.1f),
 				new Keyframe(0.375f, 1f, 0f, 0f)), 0.5f, false, in bounds);
-            _mirrorGCurve = new TextureCurve(new AnimationCurve(new Keyframe(0f, 0.012f, 1.65f, 1.65f), 
+            _mirrorGCurve = new TextureCurve(new AnimationCurve(new Keyframe(0f, 0.012f, 1.65f, 1.65f),
 				new Keyframe(0.8f, 1f, 0.9f, 0.9f)), 0.5f, false, in bounds);
-			_mirrorBCurve = new TextureCurve(new AnimationCurve(new Keyframe(0.25f, 0f, 2.1f, 2.1f), 
+			_mirrorBCurve = new TextureCurve(new AnimationCurve(new Keyframe(0.25f, 0f, 2.1f, 2.1f),
 				new Keyframe(1f, 1f, 0.9f, 0.9f)), 0.5f, false, in bounds);
-			_posterMasterCurve = new TextureCurve(new AnimationCurve(new Keyframe(0.02f, 0f), new Keyframe(0.02f, 0.005f), 
-				new Keyframe(0.1f, 0.005f), new Keyframe(0.1f, 0.1f, 1f, 1f), new Keyframe(1f, 1f, 1f, 1f)), 
+			_posterMasterCurve = new TextureCurve(new AnimationCurve(new Keyframe(0.02f, 0f), new Keyframe(0.02f, 0.005f),
+				new Keyframe(0.1f, 0.005f), new Keyframe(0.1f, 0.1f, 1f, 1f), new Keyframe(1f, 1f, 1f, 1f)),
 				0.5f, false, in bounds);
-			_posterLumSatCurve = 
+			_posterLumSatCurve =
 				new TextureCurve(new AnimationCurve(new Keyframe(0.05f, 0f, 180f, 0f), new Keyframe(0.1f, 0.5f, 180f, 0f)),
 				0.5f, false, in bounds);
 
@@ -127,7 +130,63 @@ namespace YARG.Venue.VenueCamera
             SettingsManager.Settings.VenuePostProcessing.OnChange += SetPostProcessingEnabled;
         }
 
-        public void SetCameraPostProcessing(PostProcessingEvent newEffect)
+        private static List<PostProcessingEvent> ReduceFlashingPostProcessingEvents(List<PostProcessingEvent> sourceEvents)
+        {
+            var replacedEvents = ReplaceFlashingPostProcessingEvents(sourceEvents);
+
+            return ChartEvent.FilterByInterval(
+                replacedEvents,
+                REDUCED_FLASHING_INTERVAL
+            );
+        }
+
+        private static List<PostProcessingEvent> ReplaceFlashingPostProcessingEvents(List<PostProcessingEvent> sourceEvents)
+        {
+            var mapped = new List<PostProcessingEvent>(sourceEvents.Count);
+            foreach (var ev in sourceEvents)
+            {
+                var replacement = GetReducedPostProcessingType(ev.Type);
+                mapped.Add(replacement.HasValue
+                    ? new PostProcessingEvent(replacement.Value, ev.Time, ev.Tick)
+                    : ev);
+            }
+
+            return mapped;
+        }
+
+        private static PostProcessingType? GetReducedPostProcessingType(PostProcessingType type) => type switch
+        {
+            PostProcessingType.PhotoNegative => PostProcessingType.BlackAndWhite,
+            PostProcessingType.PhotoNegative_RedAndBlack => PostProcessingType.BlackAndWhite,
+            PostProcessingType.Mirror => PostProcessingType.Default,
+            PostProcessingType.Polarized_RedAndBlue => PostProcessingType.BlackAndWhite,
+            PostProcessingType.Choppy_BlackAndWhite => PostProcessingType.BlackAndWhite,
+            PostProcessingType.Polarized_BlackAndWhite => PostProcessingType.BlackAndWhite,
+            PostProcessingType.Trails_Flickery => PostProcessingType.Trails,
+            PostProcessingType.Trails_Spacey => PostProcessingType.Trails,
+            PostProcessingType.Trails_Desaturated => PostProcessingType.Trails,
+            PostProcessingType.Grainy_ChromaticAbberation => PostProcessingType.Grainy_Film,
+            PostProcessingType.Scanlines_Security => PostProcessingType.Scanlines,
+            PostProcessingType.Bright => PostProcessingType.Bloom,
+            PostProcessingType.SepiaTone => PostProcessingType.Bloom,
+            PostProcessingType.Scanlines_Blue => PostProcessingType.Scanlines,
+            PostProcessingType.Desaturated_Red => PostProcessingType.Bloom,
+            PostProcessingType.Desaturated_Blue => PostProcessingType.Bloom,
+            PostProcessingType.Contrast_Red => PostProcessingType.Contrast,
+            PostProcessingType.Contrast_Green => PostProcessingType.Contrast,
+            PostProcessingType.Contrast_Blue => PostProcessingType.Contrast,
+            _ => null,
+        };
+
+        private void ApplyEffect(PostProcessingEvent effect, PostProcessingEvent previousEffect)
+        {
+            PreviousEffect = previousEffect;
+            CurrentEffect = effect;
+            NextEffect = _currentEventIndex < _postProcessingEvents.Count ? _postProcessingEvents[_currentEventIndex] : null;
+            SetCameraPostProcessing(effect);
+        }
+
+        private void SetCameraPostProcessing(PostProcessingEvent newEffect)
         {
             var found = true;
             float duration = 0.0f;
@@ -516,6 +575,11 @@ namespace YARG.Venue.VenueCamera
 
         public void SetLowFrameRate(bool enabled, int divisor = 5)
         {
+            if (ReducedFlashing)
+            {
+                return;
+            }
+
             if (!_profile.TryGet<SlowFPSComponent>(out var slowFPS))
             {
                 return;
@@ -587,7 +651,7 @@ namespace YARG.Venue.VenueCamera
             {
                 return;
             }
-			
+
 			SetAnimation(colorCurves.master, enabled ? _posterMasterCurve : _defaultCurve, 0.01f, enabled);
 			SetAnimation(colorCurves.lumVsSat, enabled ? _posterLumSatCurve : _defaultLumSatCurve, 0.01f, enabled);
         }
@@ -648,12 +712,12 @@ namespace YARG.Venue.VenueCamera
 
             mirror.enabled.value = enabled;
             mirror.enabled.overrideState = enabled;
-			
+
             if (!_profile.TryGet<ColorCurves>(out var colorCurves))
             {
                 return;
             }
-			
+
 			SetAnimation(colorCurves.red, enabled ? _mirrorRCurve : _defaultCurve, 0.01f, enabled);
 			SetAnimation(colorCurves.green, enabled ? _mirrorGCurve : _defaultCurve, 0.01f, enabled);
 			SetAnimation(colorCurves.blue, enabled ? _mirrorBCurve : _defaultCurve, 0.01f, enabled);
@@ -668,7 +732,7 @@ namespace YARG.Venue.VenueCamera
 
             SetAnimation(colorAdjustments.saturation, (float)(enabled ? strength : 0.0f), 0.01f, enabled);
         }
-		
+
 		private void SetTrailsDesaturation(bool enabled, float strength = -85.0f, float contrast = 100f)
         {
             if (!_profile.TryGet<ColorAdjustments>(out var colorAdjustments))
@@ -1054,29 +1118,17 @@ namespace YARG.Venue.VenueCamera
             UpdateAnimations();
 
             // Check for a change in post processing type, if we have a volume to work with in the first place
-            if (_volumeSet)
+            if (!_volumeSet)
             {
-                while (_currentEventIndex < _postProcessingEvents.Count &&
-                    _postProcessingEvents[_currentEventIndex].Time <= GameManager.VisualTime)
-                {
-                    var effect = _postProcessingEvents[_currentEventIndex];
+                return;
+            }
 
-                    // Yes, we do need all of these for full compatibility
-                    PreviousEffect = CurrentEffect;
-                    CurrentEffect = effect;
-
-                    if (_currentEventIndex < _postProcessingEvents.Count - 1)
-                    {
-                        NextEffect = _postProcessingEvents[_currentEventIndex + 1];
-                    }
-                    else
-                    {
-                        NextEffect = null;
-                    }
-
-                    _currentEventIndex++;
-                    SetCameraPostProcessing(effect);
-                }
+            while (_currentEventIndex < _postProcessingEvents.Count &&
+                _postProcessingEvents[_currentEventIndex].Time <= GameManager.VisualTime)
+            {
+                var effect = _postProcessingEvents[_currentEventIndex];
+                _currentEventIndex++;
+                ApplyEffect(effect, CurrentEffect);
             }
         }
 
@@ -1363,9 +1415,8 @@ namespace YARG.Venue.VenueCamera
 
             // We are between start and end, so we need to normalize the time span so we can lerp
             // Starts at (almost) 0 and increases to 1 at EndTime
-            var normalizedTime = (float) (_elapsedTime / _duration);
+            var normalizedTime = Mathf.Clamp01((float) (_elapsedTime / _duration));
             _param.Interp(_startValue, _endValue, normalizedTime);
-            // _param.value = Mathf.Lerp(_startValue, _endValue, (float) normalizedTime);
 
             return false;
         }
@@ -1440,9 +1491,8 @@ namespace YARG.Venue.VenueCamera
 
             // We are between start and end, so we need to normalize the time span so we can lerp
             // Starts at (almost) 0 and increases to 1 at EndTime
-            var normalizedTime = (float) (_elapsedTime / _duration);
+            var normalizedTime = Mathf.Clamp01((float) (_elapsedTime / _duration));
             _param.Interp(_startValue, _endValue, normalizedTime);
-            // _param.value = Mathf.Lerp(_startValue, _endValue, (float) normalizedTime);
             return false;
         }
     }
@@ -1515,7 +1565,7 @@ namespace YARG.Venue.VenueCamera
 
             // We are between start and end, so we need to normalize the time span so we can lerp
             // Starts at (almost) 0 and increases to 1 at EndTime
-            var normalizedTime = (float) (_elapsedTime / _duration);
+            var normalizedTime = Mathf.Clamp01((float) (_elapsedTime / _duration));
             _param.Interp(_startValue.value, _endValue, normalizedTime);
             return false;
         }

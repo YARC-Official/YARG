@@ -725,6 +725,9 @@ namespace YARG.Venue.Characters
                     {
                         YargLogger.LogFormatDebug("Setting trigger for generic state {0} on {1}", state, Type);
                         // First, reset the bools to false (if they exist)
+                        SetBool("isIdle", false);
+                        SetBool("isIdleRealtime", false);
+                        SetBool("isPlaying", false);
                         SetBool("isMellow", false);
                         SetBool("isIntense", false);
 
@@ -736,19 +739,26 @@ namespace YARG.Venue.Characters
                         {
                             switch (state)
                             {
+                                case AnimationStateType.Idle:
+                                    SetBool("isIdle", true);
+                                    break;
+                                case AnimationStateType.IdleRealtime:
+                                    SetBool("isIdleRealtime", true);
+                                    break;
+                                case AnimationStateType.Playing:
+                                    SetBool("isPlaying", true);
+                                    break;
                                 case AnimationStateType.Mellow:
                                     SetBool("isMellow", true);
                                     break;
                                 case AnimationStateType.Intense:
                                     SetBool("isIntense", true);
                                     break;
-                            };
+                            }
                         }
                     }
 
-                    // Seems like it could be expensive to reset all triggers every time we set a trigger, so leaving it
-                    // commented out until it proves necessary
-                    // ResetAllTriggers();
+                    ResetAllTriggers();
 
                     _animator.SetTrigger(hash);
                 }
@@ -908,7 +918,8 @@ namespace YARG.Venue.Characters
 
         private static bool IsLayeredState(AnimationStateType state)
         {
-            return state is AnimationStateType.Mellow or AnimationStateType.Intense;
+            // All generic states are layered states now
+            return IsGenericState(state);
         }
 
         private static bool IsGenericState(AnimationStateType state)

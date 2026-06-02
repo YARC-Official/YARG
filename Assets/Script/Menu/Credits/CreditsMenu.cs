@@ -11,6 +11,7 @@ using YARG.Core.Input;
 using YARG.Helpers;
 using YARG.Localization;
 using YARG.Menu.Navigation;
+using YARG.Settings;
 using YARG.Song;
 
 namespace YARG.Menu.Credits
@@ -175,7 +176,7 @@ namespace YARG.Menu.Credits
             {
                 foreach (var song in SongContainer.Artists[artist])
                 {
-                    if (song.Source.ToString() is not ("yarg" or "yargdlc" or "yarn"))
+                    if (song.Source.ToString() is not ("yarg" or "yargdlc" or "yarn" or "creativech"))
                     {
                         continue;
                     }

@@ -64,26 +64,25 @@ namespace YARG.Helpers.Extensions
                 },
                 GameMode.EliteDrums => new()
                 {
+                    (ProfileSettingStrings.CONFIGURE_FOUR_LANE_DRUMS_HIGHWAY, null),
+                    (ProfileSettingStrings.CONFIGURE_PRO_DRUMS_HIGHWAY, null),
+                    (ProfileSettingStrings.CONFIGURE_FIVE_LANE_DRUMS_HIGHWAY, "5-LANE DRUMS HIGHWAY"),
                     (ProfileSettingStrings.LEFTY_FLIP, null),
-                    (ProfileSettingStrings.SPLIT_TOM_AND_CYMBAL_LANES_IN_PRO_DRUMS, null),
                     (ProfileSettingStrings.DRUM_STAR_POWER_ACTIVATION_TYPE, null),
                     (ProfileSettingStrings.USE_CYMBAL_MODELS, "USE CYMBAL MODELS IN 5-LANE"),
-                    (ProfileSettingStrings.SWAP_SNARE_AND_HI_HAT,
-                        (bool)dependencyNamesAndValues[ProfileSettingStrings.SPLIT_TOM_AND_CYMBAL_LANES_IN_PRO_DRUMS] ?
-                        "SWAP SNARE AND HI-HAT LANES" : "SWAP SNARE AND HI-HAT LANES IN 5-LANE"
-                    ),
                 },
                 GameMode.FourLaneDrums => new()
                 {
+                    (ProfileSettingStrings.CONFIGURE_FOUR_LANE_DRUMS_HIGHWAY, null),
+                    (ProfileSettingStrings.CONFIGURE_PRO_DRUMS_HIGHWAY, null),
                     (ProfileSettingStrings.LEFTY_FLIP, null),
-                    (ProfileSettingStrings.SPLIT_TOM_AND_CYMBAL_LANES_IN_PRO_DRUMS, null),
                     (ProfileSettingStrings.DRUM_STAR_POWER_ACTIVATION_TYPE, null),
                 },
                 GameMode.FiveLaneDrums => new()
                 {
+                    (ProfileSettingStrings.CONFIGURE_FIVE_LANE_DRUMS_HIGHWAY, "HIGHWAY"),
                     (ProfileSettingStrings.LEFTY_FLIP, null),
                     (ProfileSettingStrings.USE_CYMBAL_MODELS, "USE CYMBAL MODELS"),
-                    (ProfileSettingStrings.SWAP_SNARE_AND_HI_HAT, "SWAP SNARE AND HI-HAT LANES"),
                     (ProfileSettingStrings.DRUM_STAR_POWER_ACTIVATION_TYPE, null),
                 },
                 GameMode.SixFretGuitar => new()
@@ -118,38 +117,10 @@ namespace YARG.Helpers.Extensions
         {
             var conditionalSettings = new List<(string setting, string? overrideText)>();
 
+            // This is empty because the only things we ever conditionalized were the old drum highway settings, which have been superseded by the new highway ordering interface.
+            // The infrastructure remains in case we have another need for conditionalized game mode settings.
             Dictionary<string, (string dependencyName, Func<object, bool> dependencyCondition, string overrideText)> conditionalGameModeOptions = gameMode switch
             {
-                GameMode.EliteDrums => new()
-                {
-                    {
-                        ProfileSettingStrings.SWAP_CRASH_AND_RIDE,
-                        (
-                            ProfileSettingStrings.SPLIT_TOM_AND_CYMBAL_LANES_IN_PRO_DRUMS,
-                            (object value)=>(bool)value,
-                            "SWAP CRASH AND RIDE LANES IN PRO DRUMS"
-                        )
-                    }
-                },
-                GameMode.FourLaneDrums => new()
-                {
-                    {
-                        ProfileSettingStrings.SWAP_SNARE_AND_HI_HAT,
-                        (
-                            ProfileSettingStrings.SPLIT_TOM_AND_CYMBAL_LANES_IN_PRO_DRUMS,
-                            (object value)=>(bool)value,
-                            "SWAP SNARE AND HI-HAT LANES"
-                        )
-                    },
-                    {
-                        ProfileSettingStrings.SWAP_CRASH_AND_RIDE,
-                        (
-                            ProfileSettingStrings.SPLIT_TOM_AND_CYMBAL_LANES_IN_PRO_DRUMS,
-                            (object value)=>(bool)value,
-                            "SWAP CRASH AND RIDE LANES IN PRO DRUMS"
-                        )
-                    }
-                },
                 _ => new()
             };
 
