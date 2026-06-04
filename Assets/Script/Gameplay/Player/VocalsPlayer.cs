@@ -148,13 +148,14 @@ namespace YARG.Gameplay.Player
         }
 
         protected VocalsEngine CreateEngine()
-        { if (!Player.IsReplay)
+        {
+            if (!Player.IsReplay)
             {
                 var singToActivateStarPower = SettingsManager.Settings.VoiceActivatedVocalStarPower.Value;
 
                 // Create the engine params from the engine preset
                 EngineParams = Player.EnginePreset.Vocals.Create(StarMultiplierThresholds, SoloBonusStarMultiplierThresholds,
-                    Player.Profile.CurrentDifficulty, MicDevice.UPDATES_PER_SECOND, singToActivateStarPower, SettingsManager.Settings.CensorMatureContent.Value);
+                    Player.Profile.CurrentDifficulty, MicDevice.UPDATES_PER_SECOND, singToActivateStarPower);
             }
             else
             {
