@@ -310,7 +310,7 @@ namespace YARG.Gameplay
         {
             try
             {
-                Chart = Song.LoadChart();
+                Chart = Song.LoadChart(SettingsManager.Settings.CensorMatureContent.Value);
                 if (Chart != null)
                 {
                     GenerateVenueTrack();

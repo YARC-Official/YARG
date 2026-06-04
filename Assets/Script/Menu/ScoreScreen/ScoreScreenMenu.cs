@@ -352,7 +352,7 @@ namespace YARG.Menu.ScoreScreen
         {
             _analyzingReplay = true;
 
-            var chart = songEntry.LoadChart();
+            var chart = songEntry.LoadChart(SettingsManager.Settings.CensorMatureContent.Value);
             if (chart == null)
             {
                 YargLogger.LogError("Chart did not load");

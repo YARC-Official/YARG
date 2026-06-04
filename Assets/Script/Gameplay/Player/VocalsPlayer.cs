@@ -148,15 +148,13 @@ namespace YARG.Gameplay.Player
         }
 
         protected VocalsEngine CreateEngine()
-        {
-            var enableCensorship = SettingsManager.Settings.CensorMatureContent.Value;
-            if (!Player.IsReplay)
+        { if (!Player.IsReplay)
             {
                 var singToActivateStarPower = SettingsManager.Settings.VoiceActivatedVocalStarPower.Value;
 
                 // Create the engine params from the engine preset
                 EngineParams = Player.EnginePreset.Vocals.Create(StarMultiplierThresholds, SoloBonusStarMultiplierThresholds,
-                    Player.Profile.CurrentDifficulty, MicDevice.UPDATES_PER_SECOND, singToActivateStarPower, enableCensorship);
+                    Player.Profile.CurrentDifficulty, MicDevice.UPDATES_PER_SECOND, singToActivateStarPower, SettingsManager.Settings.CensorMatureContent.Value);
             }
             else
             {
@@ -166,23 +164,6 @@ namespace YARG.Gameplay.Player
 
             // The hit window can just be taken from the params
             HitWindow = EngineParams.HitWindow;
-
-            if (enableCensorship)
-            {
-                for (int i = NoteTrack.Notes.Count - 1; i >= 0; i--)
-                {
-                    var note = NoteTrack.Notes[i];
-                    for (int j = note.ChildNotes.Count - 1; j >= 0; j--)
-                    {
-                        var childNote = note.ChildNotes[j];
-                        if (childNote.IsCensorable)
-                        {
-                            YargLogger.LogFormatDebug("Removing note at {0} for censorship", note.Time);
-                            note.ChildNotes.RemoveAt(j);
-                        }
-                    }
-                }
-            }
 
             var engine = new YargVocalsEngine(NoteTrack, SyncTrack, EngineParams, Player.Profile.IsBot);
             EngineContainer = GameManager.EngineManager.Register(engine, NoteTrack.Instrument, Player.Profile.HarmonyIndex, _chart, Player.RockMeterPreset);
@@ -679,7 +660,7 @@ namespace YARG.Gameplay.Player
         public override (ReplayFrame Frame, ReplayStats Stats) ConstructReplayData()
         {
             var frame = new ReplayFrame(Player.Profile, EngineParams, Engine.EngineStats, ReplayInputs.ToArray());
-            return (frame, Engine.EngineStats.ConstructReplayStats(Player.Profile.Name, Player.IsReplay));
+            return (frame, Engine.EngineStats.ConstructReplayStats(Player.Profile.Name, Player.IsReplay, SettingsManager.Settings.CensorMatureContent.Value));
         }
     }
 }

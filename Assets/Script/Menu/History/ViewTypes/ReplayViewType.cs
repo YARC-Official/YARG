@@ -125,7 +125,7 @@ namespace YARG.Menu.History
                 return;
             }
 
-            var chart = _songEntry.LoadChart();
+            var chart = _songEntry.LoadChart(SettingsManager.Settings.CensorMatureContent.Value);
             if (chart == null)
             {
                 YargLogger.LogError("Failed to load chart");
