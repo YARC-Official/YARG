@@ -135,7 +135,7 @@ namespace YARG.Gameplay.Visuals
             _startTime = startTime - 0.01;
             EndTime = endTime;
 
-            _zLength = GetZPositionAtTime(endTime) - GetZPositionAtTime(startTime);
+            _zLength = GetZPositionAtTime(endTime) - GetZPositionAtTime(_startTime);
 
             if (Initialized)
             {
