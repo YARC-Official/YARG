@@ -132,10 +132,10 @@ namespace YARG.Gameplay.Visuals
 
         public void SetTimeRange(double startTime, double endTime)
         {
-            _startTime = startTime - 0.01;
+            _startTime = startTime;
             EndTime = endTime;
 
-            _zLength = GetZPositionAtTime(endTime) - GetZPositionAtTime(_startTime);
+            _zLength = GetZPositionAtTime(endTime) - GetZPositionAtTime(startTime);
 
             if (Initialized)
             {
