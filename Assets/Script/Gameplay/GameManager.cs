@@ -833,7 +833,7 @@ namespace YARG.Gameplay
             var stars = StarAmountHelper.GetStarsFromInt(Mathf.FloorToInt(bandStars));
             ReplayData = new ReplayData(colorProfiles, cameraPresets, frames.ToArray(), _frameTimes.ToArray());
 
-            (bool success, var replayInfo) = ReplayIO.TrySerialize(directory, Song, SongSpeed, length, bandScore, stars, PauseInfo.ToArray(), replayStats.ToArray(), ReplayData);
+            (bool success, var replayInfo) = ReplayIO.TrySerialize(directory, Song, SongSpeed, length, bandScore, stars, PauseInfo.ToArray(), SettingsManager.Settings.CensorMatureContent.Value, replayStats.ToArray(), ReplayData);
             if (!success)
             {
                 return null;
