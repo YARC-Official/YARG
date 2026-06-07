@@ -47,6 +47,7 @@ namespace YARG.Gameplay.HUD
         private readonly Vector2 _finishedPosition = new(0f, 15f);
 
         private int                     _currentLyricIndex;
+        private double                  _greatestVisualTime;
         private Utf16ValueStringBuilder _builder;
         private RectTransform           _lyricTextTransform;
 
@@ -113,6 +114,10 @@ namespace YARG.Gameplay.HUD
             var currentPhrase = _phrases[_currentPhraseIndex];
             float timeFraction;
             var time = GameManager.VisualTime;
+            if (time < _greatestVisualTime)
+            {
+                return;
+            }
             if (time >= currentPhrase.ExitTransition.Time)
             {
                 if (Mathf.Approximately(_lyricTextTransform.anchoredPosition.y, _finishedPosition.y))
@@ -166,6 +171,7 @@ namespace YARG.Gameplay.HUD
             }
 
             var time = GameManager.VisualTime;
+
             if (GameManager.VisualTime >= currentPhrase.ExitTransition.TimeEnd)
             {
                 MoveToPhraseAtTime(time);
@@ -182,14 +188,25 @@ namespace YARG.Gameplay.HUD
             }
 
             UpdatePosition();
+
+            if (time > _greatestVisualTime)
+            {
+                _greatestVisualTime = time;
+            }
+
         }
 
         private void UpdateHighlighting()
         {
             var lyrics = _phrases[_currentPhraseIndex].Phrase.Lyrics;
+            var time = GameManager.VisualTime;
+            if (time < _greatestVisualTime)
+            {
+                _currentLyricIndex = 0;
+            }
             int currentIndex = _currentLyricIndex;
 
-            while (currentIndex < lyrics.Count && lyrics[currentIndex].Time <= GameManager.VisualTime)
+            while (currentIndex < lyrics.Count && lyrics[currentIndex].Time <= time)
             {
                 currentIndex++;
             }
@@ -240,6 +257,7 @@ namespace YARG.Gameplay.HUD
         public void SetSongTime(double time)
         {
             _currentPhraseIndex = 0;
+            _greatestVisualTime = 0;
             MoveToPhraseAtTime(time);
         }
     }
