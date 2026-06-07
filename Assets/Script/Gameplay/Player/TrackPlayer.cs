@@ -824,14 +824,12 @@ namespace YARG.Gameplay.Player
 
                         if (childNote.IsLane)
                         {
-                            if (laneStartNotes.ContainsKey(childNote.LaneNote))
-                            {
-                                laneEndTimes[childNote.LaneNote] = noteRef.Time;
-                            }
-                            else
+                            if (!laneStartNotes.ContainsKey(childNote.LaneNote))
                             {
                                 laneStartNotes[childNote.LaneNote] = childNote;
                             }
+
+                            laneEndTimes[childNote.LaneNote] = noteRef.Time;
                         }
                     }
 
