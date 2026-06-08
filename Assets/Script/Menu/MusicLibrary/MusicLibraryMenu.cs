@@ -143,6 +143,8 @@ namespace YARG.Menu.MusicLibrary
         {
             base.OnEnable();
 
+            _heldInputs.Clear();
+
             // Hack to ensure that crowd samples are stopped no matter what
             GlobalAudioHandler.StopAllSfxChannels();
 
@@ -782,6 +784,7 @@ namespace YARG.Menu.MusicLibrary
         {
             base.OnDisable();
             SetSidebarDifficultiesVisible(false);
+            _heldInputs.Clear();
 
             if (Navigator.Instance == null) return;
 
