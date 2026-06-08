@@ -16,7 +16,12 @@ namespace YARG.Gameplay.Visuals
         Missed
     }
 
-    public abstract class NoteElement<TNote, TPlayer> : TrackElement<TPlayer>, IThemeNoteCreator
+    public interface INoteElement
+    {
+        void OnRewind();
+    }
+
+    public abstract class NoteElement<TNote, TPlayer> : TrackElement<TPlayer>, IThemeNoteCreator, INoteElement
         where TNote : Note<TNote>
         where TPlayer : TrackPlayer
     {
@@ -38,9 +43,9 @@ namespace YARG.Gameplay.Visuals
 
         public override double ElementTime => NoteRef.Time;
 
-        private bool _lastStarPowerState;
-        private bool _lastStarPowerActiveState;
-
+        private   bool _lastStarPowerState;
+        private   bool _lastStarPowerActiveState;
+        private   bool _wasMissed;
         protected bool IsStarPowerVisible => CalcStarPowerVisible();
 
         public abstract void SetThemeModels(ThemeDict models, ThemeDict starPowerModels);
@@ -112,8 +117,17 @@ namespace YARG.Gameplay.Visuals
         /// </summary>
         public virtual void MissNote()
         {
+            _wasMissed = true;
             SustainState = SustainState.Missed;
             OnNoteStateChanged();
+        }
+
+        public void OnRewind()
+        {
+            if (_wasMissed)
+            {
+                ParentPool.Return(this);
+            }
         }
 
         /// <summary>

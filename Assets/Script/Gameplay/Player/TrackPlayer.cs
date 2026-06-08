@@ -392,7 +392,14 @@ namespace YARG.Gameplay.Player
 
         public override void Rewind(double visualTime)
         {
-
+            for (int index = NotePool.AllSpawned.Count - 1; index >= 0; index--)
+            {
+                var poolable = NotePool.AllSpawned[index];
+                if (poolable is INoteElement note)
+                {
+                    note.OnRewind();
+                }
+            }
         }
 
         public override void PostRewind(double visualTime)
