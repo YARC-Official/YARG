@@ -989,6 +989,11 @@ namespace YARG.Gameplay
         {
             YargLogger.LogFormatDebug("Rewinding {0} seconds at VisualTime {1}", seconds, VisualTime);
 
+            if (_lyricBar.gameObject.activeSelf)
+            {
+                _lyricBar.Rewind(VisualTime - seconds, 0.5f);
+            }
+
             // Rewind players
             foreach (var player in _players)
             {
