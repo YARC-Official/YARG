@@ -45,7 +45,6 @@ namespace YARG.Gameplay.Visuals
 
         private   bool _lastStarPowerState;
         private   bool _lastStarPowerActiveState;
-        private   bool _wasMissed;
         protected bool IsStarPowerVisible => CalcStarPowerVisible();
 
         public abstract void SetThemeModels(ThemeDict models, ThemeDict starPowerModels);
@@ -117,14 +116,13 @@ namespace YARG.Gameplay.Visuals
         /// </summary>
         public virtual void MissNote()
         {
-            _wasMissed = true;
             SustainState = SustainState.Missed;
             OnNoteStateChanged();
         }
 
         public void OnRewind()
         {
-            if (_wasMissed)
+            if (NoteRef.WasMissed)
             {
                 ParentPool.Return(this);
             }
