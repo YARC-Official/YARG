@@ -205,6 +205,7 @@ public override bool ShouldUpdateInputsOnResume => true;
             engine.OnStarPowerPhraseHit += OnStarPowerPhraseHit;
             engine.OnStarPowerPhraseMissed += OnStarPowerPhraseMissed;
             engine.OnStarPowerStatus += OnStarPowerStatus;
+            engine.OnStarPowerGain += OnStarPowerGain;
 
             engine.OnCountdownChange += OnCountdownChange;
 

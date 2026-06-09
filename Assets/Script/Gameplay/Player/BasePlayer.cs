@@ -374,6 +374,14 @@ namespace YARG.Gameplay.Player
             }
         }
 
+        protected virtual void OnStarPowerGain()
+        {
+            if (!GameManager.Paused && !GameManager.IsSeekingReplay)
+            {
+                GlobalAudioHandler.PlaySoundEffect(SfxSample.StarPowerGain);
+            }
+        }
+
         protected virtual void OnStarPowerPhraseMissed()
         {
 
