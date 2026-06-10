@@ -120,6 +120,17 @@ namespace YARG.Menu.ScoreScreen
 
         public YargPlayer Player { get; private set; }
 
+        protected virtual bool ShouldShowOffsetHistogram => true;
+
+        protected RectTransform AdvancedStatsRect => _advancedStatsRect;
+
+        protected Color AdvancedAccentColor => _colorizer != null ? _colorizer.CurrentColor : Color.white;
+
+        protected TextMeshProUGUI CreateStatLabel(Transform parent, string name, TextAlignmentOptions alignment)
+        {
+            return CreateHistogramLabel(parent, name, alignment);
+        }
+
         private void Awake()
         {
             _colorizer = GetComponent<ScoreCardColorizer>();
@@ -208,7 +219,14 @@ namespace YARG.Menu.ScoreScreen
             _starPowerActivations.text = ColorizePrimary(Stats.StarPowerActivationCount);
             string timeInStarPower = TimeSpan.FromSeconds(Stats.TimeInStarPower).ToString(@"m\:ss");
             _timeInStarPower.text = ColorizePrimary(timeInStarPower);
-            BuildOffsetHistogram();
+            if (ShouldShowOffsetHistogram)
+            {
+                BuildOffsetHistogram();
+            }
+            else
+            {
+                SetOffsetHistogramActive(false);
+            }
 
             // Set engine preset tag
             var enginePresetId = Player.EnginePreset.Id;

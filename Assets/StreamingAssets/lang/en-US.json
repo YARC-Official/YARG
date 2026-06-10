@@ -497,7 +497,9 @@
             "RestartSong" : "Restart Song",
             "ShowAdvanced": "Show Advanced",
             "HideAdvanced": "Hide Advanced",
-            "EndSetlistEarly" : "End Setlist"
+            "EndSetlistEarly" : "End Setlist",
+            "PhraseSummaryHeader": "Phrase Breakdown",
+            "Percussion": "Percussion"
         },
         "Settings": {
             "ShowAdvanced": "Show Advanced",

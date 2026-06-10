@@ -61,6 +61,20 @@ namespace YARG.Gameplay.Player
 
         private int _phraseIndex = -1;
 
+        // Per-phrase normalized hit percents, captured live from OnPhraseHit in chronological
+        // (song) order. Routed to the score screen's Advanced view for the vocals phrase summary.
+        private readonly List<float> _phrasePercents = new();
+        public IReadOnlyList<float> PhrasePercents => _phrasePercents;
+
+        // Vocal percussion isn't tracked in stats; tally hits/total live for the score screen.
+        // Total is derived from chart data so it's correct regardless of shared mutable state
+        // (multiple engines on the same VocalsPart share VocalNote objects — first engine to hit
+        // a percussion note mutates WasHit, causing sibling engines to skip it).
+        private int _percussionHits;
+        private int _percussionTotalFromChart;
+        public int PercussionHits => _percussionHits;
+        public int PercussionTotal => _percussionTotalFromChart;
+
         private const int NEEDLES_COUNT = 7;
 
         private SongChart _chart;
@@ -94,6 +108,11 @@ namespace YARG.Gameplay.Player
 
             OriginalNoteTrack = track.CloneAsInstrumentDifficulty();
             NoteTrack = OriginalNoteTrack;
+
+            // Count percussion notes from the chart data so the denominator is authoritative
+            // regardless of shared-mutable-state bugs between engines on the same part.
+            _percussionTotalFromChart = NoteTrack.Notes
+                .Sum(phrase => phrase.ChildNotes.Count(n => n.IsPercussion));
 
             _phraseIndex = -1;
             _previousStarPowerPercent = 0.0;
@@ -189,6 +208,10 @@ namespace YARG.Gameplay.Player
 
                 LastCombo = Combo;
 
+                // Capture the phrase score for the score screen's phrase summary. The event fires
+                // once per non-empty phrase in chronological order, so this list stays in song order.
+                _phrasePercents.Add((float) percent);
+
                 ShowTextNotifications(isLastPhrase);
 
                 // Order is important here. ShowVocalPhraseResult() will skip showing AWESOME! if other, more important notifications are already showing.
@@ -200,10 +223,11 @@ namespace YARG.Gameplay.Player
                 if (note.IsPercussion)
                 {
                     _percussionTrack.HitPercussionNote(note);
+                    _percussionHits++;
                 }
             };
 
-            engine.OnNoteMissed += (_, _) =>
+            engine.OnNoteMissed += (_, note) =>
             {
                 if (LastCombo >= 2)
                 {
@@ -252,8 +276,28 @@ namespace YARG.Gameplay.Player
             _lastTargetNote = null;
         }
 
+        // The phrase/percussion captures live Unity-side (the engine doesn't store them), so they
+        // must be cleared by hand whenever the engine resets and reprocesses — otherwise the
+        // re-fired OnPhraseHit/OnNoteHit events would append duplicates (e.g. on replay seek).
+        private void ResetScoreScreenCaptures()
+        {
+            _phrasePercents.Clear();
+            _percussionHits = 0;
+        }
+
+        public override void SetReplayTime(double time)
+        {
+            // Base resets the engine and reprocesses inputs up to `time`; clear first so the
+            // re-fired events rebuild the captures from scratch.
+            ResetScoreScreenCaptures();
+
+            base.SetReplayTime(time);
+        }
+
         public override void ResetPracticeSection()
         {
+            ResetScoreScreenCaptures();
+
             Engine.Reset(true);
 
             if (NoteTrack.Notes.Count > 0)
