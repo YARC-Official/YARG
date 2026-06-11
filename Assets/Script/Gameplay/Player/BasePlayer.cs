@@ -378,7 +378,7 @@ namespace YARG.Gameplay.Player
         {
             if (!GameManager.Paused && !GameManager.IsSeekingReplay)
             {
-                GlobalAudioHandler.PlaySoundEffect(SfxSample.StarPowerGain);
+                GlobalAudioHandler.PlaySoundEffect(SfxSample.StarPowerReady);
             }
         }
 
