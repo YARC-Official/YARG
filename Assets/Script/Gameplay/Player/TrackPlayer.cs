@@ -1120,9 +1120,9 @@ namespace YARG.Gameplay.Player
             OnStarPowerPhraseHit();
         }
 
-        protected override void OnStarPowerGain()
+        protected override void OnStarPowerReady()
         {
-            base.OnStarPowerGain();
+            base.OnStarPowerReady();
             TrackView.ShowStarPowerReady();
         }
 

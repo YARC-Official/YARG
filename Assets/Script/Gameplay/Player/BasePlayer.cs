@@ -374,7 +374,7 @@ namespace YARG.Gameplay.Player
             }
         }
 
-        protected virtual void OnStarPowerGain()
+        protected virtual void OnStarPowerReady()
         {
             if (!GameManager.Paused && !GameManager.IsSeekingReplay)
             {

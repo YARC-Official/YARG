@@ -174,7 +174,7 @@ namespace YARG.Gameplay.Player
 
             engine.OnStarPowerPhraseHit += _ => OnStarPowerPhraseHit();
             engine.OnStarPowerStatus += OnStarPowerStatus;
-            engine.OnStarPowerReady += OnStarPowerGain;
+            engine.OnStarPowerReady += OnStarPowerReady;
 
             engine.OnTargetNoteChanged += (note) =>
             {
@@ -330,9 +330,9 @@ namespace YARG.Gameplay.Player
                 (float) Engine.GetStarPowerBarAmount(), Engine.EngineStats.IsStarPowerActive);
         }
 
-        protected override void OnStarPowerGain()
+        protected override void OnStarPowerReady()
         {
-            base.OnStarPowerGain();
+            base.OnStarPowerReady();
             _hud.ShowNotification(TextNotificationType.StarPowerReady);
         }
 

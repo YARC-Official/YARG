@@ -170,7 +170,7 @@ namespace YARG.Gameplay.Player
 
             engine.OnStarPowerPhraseHit += OnStarPowerPhraseHit;
             engine.OnStarPowerStatus += OnStarPowerStatus;
-            engine.OnStarPowerReady += OnStarPowerGain;
+            engine.OnStarPowerReady += OnStarPowerReady;
 
             engine.OnKeyStateChange += OnKeyStateChange;
 
