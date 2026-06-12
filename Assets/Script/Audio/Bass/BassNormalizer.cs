@@ -21,8 +21,7 @@ namespace YARG.Audio.BASS
     /// </summary>
     public class BassNormalizer : IDisposable
     {
-        // Target RMS to normalize to, typically results in around -14 LUFS
-        private const float TARGET_RMS         = 0.12f;
+
 
         // Low initial gain so it typically ramps up instead of ramps down
         private const float INITIAL_GAIN       = 0.3f;
@@ -211,7 +210,7 @@ namespace YARG.Audio.BASS
                     totalSamples += samplesPerWindow;
 
                     double rms = Math.Sqrt(cumulativeSumSquares / totalSamples);
-                    float targetGain = (float) Math.Min(MAX_GAIN, TARGET_RMS / rms);
+                    float targetGain = (float) Math.Min(MAX_GAIN, BassHelpers.TARGET_RMS / rms);
                     float delta = Math.Clamp(targetGain - Gain, -MAX_GAIN_STEP, MAX_GAIN_STEP);
                     Gain += delta;
                     progress?.Report(Gain);

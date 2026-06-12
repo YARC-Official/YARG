@@ -1,8 +1,10 @@
+using System;
 using ManagedBass;
 using UnityEngine;
 using YARG.Core.Audio;
 using YARG.Core.Logging;
 using YARG.Input;
+using YARG.Settings;
 
 namespace YARG.Audio.BASS
 {
@@ -43,7 +45,10 @@ namespace YARG.Audio.BASS
                 return null;
             }
 
-            return new BassMetronomeSampleChannel(sample, hiHandle, hiChannel, hiPath, loHandle, loChannel, loPath, outputChannel);
+            float hiNormMultiplier = BassHelpers.GetNormMultiplier(hiPath);
+            float loNormMultiplier = BassHelpers.GetNormMultiplier(loPath);
+
+            return new BassMetronomeSampleChannel(sample, hiHandle, hiChannel, hiPath, loHandle, loChannel, loPath, outputChannel, hiNormMultiplier, loNormMultiplier);
         }
 
         private readonly int _hiHandle;
@@ -51,10 +56,12 @@ namespace YARG.Audio.BASS
         private readonly int _loHandle;
         private readonly int _loChannel;
         private double _volumeSetting = 1;
+        private readonly float _hiNormalizationMultiplier;
+        private readonly float _loNormalizationMultiplier;
 
 #nullable enable
         private BassMetronomeSampleChannel(MetronomeSample sample, int hiHandle, int hiChannel, string hiPath, int loHandle, int loChannel, string loPath,
-            OutputChannel? outputChannel)
+            OutputChannel? outputChannel, float hiNormalizationMultiplier, float loNormalizationMultiplier)
             : base(sample, hiPath, loPath)
 #nullable disable
         {
@@ -62,12 +69,15 @@ namespace YARG.Audio.BASS
             _hiChannel = hiChannel;
             _loHandle = loHandle;
             _loChannel = loChannel;
+            _hiNormalizationMultiplier = hiNormalizationMultiplier;
+            _loNormalizationMultiplier = loNormalizationMultiplier;
             SetOutputChannel_Internal(outputChannel);
             SetVolume_Internal(GlobalAudioHandler.GetTrueVolume(SongStem.Metronome));
         }
 
         protected override void PlayHi_Internal()
         {
+            SetVolume_Internal(_volumeSetting);
             if (!Bass.ChannelPlay(_hiChannel, true))
             {
                 YargLogger.LogFormatError("Failed to play {0} hi channel: {1}!", Sample, Bass.LastError);
@@ -76,6 +86,7 @@ namespace YARG.Audio.BASS
 
         protected override void PlayLo_Internal()
         {
+            SetVolume_Internal(_volumeSetting);
             if (!Bass.ChannelPlay(_loChannel, true))
             {
                 YargLogger.LogFormatError("Failed to play {0} lo channel: {1}!", Sample, Bass.LastError);
@@ -87,12 +98,12 @@ namespace YARG.Audio.BASS
             _volumeSetting = volume;
             volume *= AudioHelpers.MetronomeSamples[(int) Sample].Volume;
 
-            if (!Bass.ChannelSetAttribute(_hiChannel, ChannelAttribute.Volume, volume))
+            if (!Bass.ChannelSetAttribute(_hiChannel, ChannelAttribute.Volume, volume * _hiNormalizationMultiplier))
             {
                 YargLogger.LogFormatError("Failed to set {0} hi volume: {1}!", Sample, Bass.LastError);
             }
 
-            if (!Bass.ChannelSetAttribute(_loChannel, ChannelAttribute.Volume, volume))
+            if (!Bass.ChannelSetAttribute(_loChannel, ChannelAttribute.Volume, volume * _loNormalizationMultiplier))
             {
                 YargLogger.LogFormatError("Failed to set {0} lo volume: {1}!", Sample, Bass.LastError);
             }

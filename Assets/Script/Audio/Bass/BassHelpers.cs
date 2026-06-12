@@ -1,15 +1,23 @@
-﻿using System;
+using System;
 using ManagedBass;
 using ManagedBass.DirectX8;
 using ManagedBass.Fx;
 using UnityEngine;
 using YARG.Core.Audio;
 using YARG.Core.Logging;
+using YARG.Settings;
 
 namespace YARG.Audio.BASS
 {
     public static class BassHelpers
     {
+        public const float TARGET_RMS = 0.12f;
+
+        public static bool IsNormalizationEnabled => SettingsManager.Settings?.EnableNormalization?.Value ?? false;
+
+        public const float MIN_NORMALIZATION_MULTIPLIER = 0.1f;
+        public const float MAX_NORMALIZATION_MULTIPLIER = 2.0f;
+
         public const int PLAYBACK_BUFFER_LENGTH = 75;
         public const double PLAYBACK_BUFFER_DESYNC = PLAYBACK_BUFFER_LENGTH / 1000.0;
 
@@ -21,6 +29,65 @@ namespace YARG.Audio.BASS
         public const int REVERB_SLIDE_OUT_MILLISECONDS = 500;
 
         public const EffectType REVERB_TYPE = EffectType.Freeverb;
+
+        private static float MeasureRms(string path)
+        {
+            if (string.IsNullOrEmpty(path) || !System.IO.File.Exists(path))
+            {
+                return TARGET_RMS;
+            }
+
+            int decodeStream = Bass.CreateStream(path, 0, 0, BassFlags.Decode);
+            if (decodeStream == 0)
+            {
+                return TARGET_RMS;
+            }
+
+            try
+            {
+                long lengthBytes = Bass.ChannelGetLength(decodeStream);
+                double lengthSeconds = Bass.ChannelBytes2Seconds(decodeStream, lengthBytes);
+                if (lengthSeconds <= 0)
+                {
+                    return TARGET_RMS;
+                }
+
+                float[] levels = new float[1];
+                if (Bass.ChannelGetLevel(decodeStream, levels, (float) lengthSeconds,
+                    LevelRetrievalFlags.Mono | LevelRetrievalFlags.RMS))
+                {
+                    return levels[0];
+                }
+            }
+            catch (Exception ex)
+            {
+                YargLogger.LogError($"Failed to measure RMS for sample {path}: {ex.Message}");
+            }
+            finally
+            {
+                Bass.StreamFree(decodeStream);
+            }
+
+            return TARGET_RMS;
+        }
+
+        /// <summary>
+        /// Calculates the normalization multiplier for a sample file by measuring its RMS level
+        /// and computing the gain required to match the target song RMS.
+        /// </summary>
+        /// <param name="path">The file path to the audio sample.</param>
+        /// <returns>A clamped normalization multiplier to apply to the channel volume.</returns>
+        public static float GetNormMultiplier(string path)
+        {
+            if (!IsNormalizationEnabled)
+            {
+                return 1.0f;
+            }
+
+            float rms = MeasureRms(path) + float.Epsilon;
+            return Math.Clamp(TARGET_RMS / rms,
+                MIN_NORMALIZATION_MULTIPLIER, MAX_NORMALIZATION_MULTIPLIER);
+        }
 
         /*
          * From Bass documentation (http://bass.radio42.com/help/html/4c663bda-2751-c2c3-eaf2-770b846b6652.htm)

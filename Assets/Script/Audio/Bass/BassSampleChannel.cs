@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using ManagedBass;
 using UnityEngine;
 using YARG.Core.Audio;
@@ -12,7 +12,7 @@ namespace YARG.Audio.BASS
 #nullable enable
         public static BassSampleChannel? Create(SfxSample sample, string path, int playbackCount,
             OutputChannel? outputChannel, bool loop = false)
-#nullable disable
+#nullable enable
         {
             BassFlags flags = 0;
             // flags = BassFlags.Decode;
@@ -44,7 +44,9 @@ namespace YARG.Audio.BASS
                 YargLogger.LogFormatError("Failed to set {0} volume: {1}!", sample, Bass.LastError);
             }
 
-            return new BassSampleChannel(handle, channel, sample, path, playbackCount, outputChannel);
+            float normMultiplier = BassHelpers.GetNormMultiplier(path);
+
+            return new BassSampleChannel(handle, channel, sample, path, playbackCount, outputChannel, normMultiplier);
         }
 
         private readonly int _sfxHandle;
@@ -52,17 +54,19 @@ namespace YARG.Audio.BASS
         private double _lastPlaybackTime;
 
         private double _volumeSetting = 1;
+        private readonly float _normalizationMultiplier;
 
         private int _syncHandle;
 
 #nullable enable
-        private BassSampleChannel(int handle, int channel, SfxSample sample, string path, int playbackCount, OutputChannel? outputChannel)
+        private BassSampleChannel(int handle, int channel, SfxSample sample, string path, int playbackCount, OutputChannel? outputChannel, float normalizationMultiplier)
             : base(sample, path, playbackCount)
 #nullable disable
         {
             _sfxHandle = handle;
             _channel = channel;
             _lastPlaybackTime = -1;
+            _normalizationMultiplier = normalizationMultiplier;
             SetOutputChannel_Internal(outputChannel);
             SetVolume_Internal(GlobalAudioHandler.GetTrueVolume(SongStem.Sfx));
         }
@@ -85,7 +89,7 @@ namespace YARG.Audio.BASS
             {
                 var time = (int) Math.Round(duration * 1000);
                 Bass.ChannelSetAttribute(_channel, ChannelAttribute.Volume, 0);
-                var sfxVolume = AudioHelpers.SfxSamples[(int) Sample].Volume * (float) _volumeSetting;
+                var sfxVolume = AudioHelpers.SfxSamples[(int) Sample].Volume * (float) _volumeSetting * _normalizationMultiplier;
                 if (!Bass.ChannelSlideAttribute(_channel, ChannelAttribute.Volume, sfxVolume, time))
                 {
                     YargLogger.LogFormatError("Failed to set volume slide for {0}: {1}!", Sample, Bass.LastError);
@@ -189,6 +193,7 @@ namespace YARG.Audio.BASS
         {
             _volumeSetting = volume;
             volume *= AudioHelpers.SfxSamples[(int) Sample].Volume;
+            volume *= _normalizationMultiplier;
             if (!Bass.ChannelSetAttribute(_channel, ChannelAttribute.Volume, volume))
             {
                 YargLogger.LogFormatError("Failed to set {0} volume: {1}!", Sample, Bass.LastError);

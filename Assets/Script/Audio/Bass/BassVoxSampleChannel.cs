@@ -1,4 +1,4 @@
-﻿#nullable enable
+#nullable enable
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -48,7 +48,9 @@ namespace YARG.Audio.BASS
                 YargLogger.LogFormatError("Failed to set {0} volume: {1}!", sample, Bass.LastError);
             }
 
-            return new BassVoxSampleChannel(handle, channel, sample, path, outputChannel);
+            float normMultiplier = BassHelpers.GetNormMultiplier(path);
+
+            return new BassVoxSampleChannel(handle, channel, sample, path, outputChannel, normMultiplier);
         }
 
         private static void QueuePlayback(BassVoxSampleChannel channel)
@@ -85,14 +87,16 @@ namespace YARG.Audio.BASS
         }
 
         private readonly int    _channel;
+        private readonly float  _normalizationMultiplier;
 
 #nullable enable
-        private BassVoxSampleChannel(int handle, int channel, VoxSample sample, string path, OutputChannel? outputChannel)
+        private BassVoxSampleChannel(int handle, int channel, VoxSample sample, string path, OutputChannel? outputChannel, float normalizationMultiplier)
             : base(sample, path)
 #nullable disable
         {
             _sampleHandle = handle;
             _channel = channel;
+            _normalizationMultiplier = normalizationMultiplier;
             SetOutputChannel_Internal(outputChannel);
             Channels.Add(this);
             SetVolume_Internal(GlobalAudioHandler.GetTrueVolume(SongStem.VoxSample));
@@ -113,6 +117,8 @@ namespace YARG.Audio.BASS
                 return;
             }
 
+            SetVolume_Internal(GlobalAudioHandler.GetTrueVolume(SongStem.VoxSample));
+
             if (!Bass.ChannelPlay(_channel, true))
             {
                 YargLogger.LogFormatError("Failed to play {0} channel: {1}!", Sample, Bass.LastError);
@@ -121,7 +127,8 @@ namespace YARG.Audio.BASS
 
         protected override void SetVolume_Internal(double volume)
         {
-            volume *= AudioHelpers.SfxSamples[(int) Sample].Volume;
+            volume *= AudioHelpers.VoxSamples[(int) Sample].Volume;
+            volume *= _normalizationMultiplier;
             if (!Bass.ChannelSetAttribute(_channel, ChannelAttribute.Volume, volume))
             {
                 YargLogger.LogFormatError("Failed to set {0} volume: {1}!", Sample, Bass.LastError);
