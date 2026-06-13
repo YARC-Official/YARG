@@ -1,4 +1,5 @@
-using System;
+﻿using System;
+using System.Collections.Generic;
 using ManagedBass;
 using ManagedBass.DirectX8;
 using ManagedBass.Fx;
@@ -12,6 +13,9 @@ namespace YARG.Audio.BASS
     public static class BassHelpers
     {
         public const float TARGET_RMS = 0.12f;
+        public const float TARGET_PEAK = 0.5f;
+
+        private static readonly Dictionary<string, float> _peakCache = new();
 
         public static bool IsNormalizationEnabled => SettingsManager.Settings?.EnableNormalization?.Value ?? false;
 
@@ -30,17 +34,22 @@ namespace YARG.Audio.BASS
 
         public const EffectType REVERB_TYPE = EffectType.Freeverb;
 
-        private static float MeasureRms(string path)
+        private static float MeasurePeak(string path)
         {
             if (string.IsNullOrEmpty(path) || !System.IO.File.Exists(path))
             {
-                return TARGET_RMS;
+                return 0f;
+            }
+
+            if (_peakCache.TryGetValue(path, out float cachedPeak))
+            {
+                return cachedPeak;
             }
 
             int decodeStream = Bass.CreateStream(path, 0, 0, BassFlags.Decode);
             if (decodeStream == 0)
             {
-                return TARGET_RMS;
+                return 0f;
             }
 
             try
@@ -49,43 +58,66 @@ namespace YARG.Audio.BASS
                 double lengthSeconds = Bass.ChannelBytes2Seconds(decodeStream, lengthBytes);
                 if (lengthSeconds <= 0)
                 {
-                    return TARGET_RMS;
+                    return 0f;
                 }
 
                 float[] levels = new float[1];
                 if (Bass.ChannelGetLevel(decodeStream, levels, (float) lengthSeconds,
-                    LevelRetrievalFlags.Mono | LevelRetrievalFlags.RMS))
+                    LevelRetrievalFlags.Mono))
                 {
-                    return levels[0];
+                    float peak = levels[0];
+                    _peakCache[path] = peak;
+                    return peak;
                 }
             }
             catch (Exception ex)
             {
-                YargLogger.LogError($"Failed to measure RMS for sample {path}: {ex.Message}");
+                YargLogger.LogError($"Failed to measure peak for sample {path}: {ex.Message}");
             }
             finally
             {
                 Bass.StreamFree(decodeStream);
             }
 
-            return TARGET_RMS;
+            return 0f;
         }
 
         /// <summary>
-        /// Calculates the normalization multiplier for a sample file by measuring its RMS level
-        /// and computing the gain required to match the target song RMS.
+        /// Calculates a single shared peak normalization multiplier for a group of sample
+        /// files.  Reduces volume of the peak volume of the loudest sample in the group to the target peak.
+        /// Applying one shared multiplier to all samples in a category preserves dynamics within the group.
         /// </summary>
-        /// <param name="path">The file path to the audio sample.</param>
-        /// <returns>A clamped normalization multiplier to apply to the channel volume.</returns>
-        public static float GetNormMultiplier(string path)
+        /// <param name="paths">The file paths of all samples in the category.</param>
+        /// <returns>A clamped normalization multiplier shared by all samples in the category.</returns>
+        public static float GetNormalizationMultiplier(IEnumerable<string> paths)
         {
             if (!IsNormalizationEnabled)
             {
                 return 1.0f;
             }
 
-            float rms = MeasureRms(path) + float.Epsilon;
-            return Math.Clamp(TARGET_RMS / rms,
+            float maxPeak = 0f;
+            foreach (string path in paths)
+            {
+                if (string.IsNullOrEmpty(path))
+                {
+                    continue;
+                }
+
+                float peak = MeasurePeak(path);
+                if (peak > maxPeak)
+                {
+                    maxPeak = peak;
+                }
+            }
+
+            if (maxPeak <= 0f)
+            {
+                // All silent / empty group: nothing to normalize; avoid div-by-zero / NaN.
+                return 1.0f;
+            }
+
+            return Math.Clamp(TARGET_PEAK / (maxPeak + float.Epsilon),
                 MIN_NORMALIZATION_MULTIPLIER, MAX_NORMALIZATION_MULTIPLIER);
         }
 
@@ -93,12 +125,12 @@ namespace YARG.Audio.BASS
          * From Bass documentation (http://bass.radio42.com/help/html/4c663bda-2751-c2c3-eaf2-770b846b6652.htm)
          * "With a ratio of 4:1, when the (time averaged) input level is 4 dB over the threshold, the output signal level will be 1 dB over the threshold."
          * "[Additionally,] with any threshold/ratio combination, you could calculate the gain for a 0dB peak like this: fGain=fThreshold*(1/fRatio-1)"
-         * 
+         *
          * The intention of the gain is to normalize 0dB signals back to 0dB after compression.
          * However, we only want the compressors to handle "clipping" situations (audio that exceeds 0dB).
          * So we set the gain and thresholds both to zero - which still follows the formula.
          * We can then set the ratio to whatever we want.
-         * 
+         *
          * Note: you don't want to apply a negative gain as the gain value effects ALL audio, not just the part that got compressed.
          * We don't want to make quiet parts even quieter.
          */
@@ -106,7 +138,7 @@ namespace YARG.Audio.BASS
         {
             fGain = 0f, fThreshold = 0, fAttack = 10f, fRelease = 100f, fRatio = 8,
         };
-        
+
         public static readonly PeakEQParameters LowEqParams = new()
         {
             fBandwidth = 1.25f, fCenter = 250.0f, fGain = -12f

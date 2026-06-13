@@ -29,23 +29,20 @@ namespace YARG.Audio.BASS
                 return null;
             }
 
-            float normMultiplier = BassHelpers.GetNormMultiplier(path);
-
-            return new BassDrumSampleChannel(handle, channel, sample, path, playbackCount, outputChannel, normMultiplier);
+            return new BassDrumSampleChannel(handle, channel, sample, path, playbackCount, outputChannel);
         }
 
         private readonly int _sfxHandle;
         private readonly int _channel;
-        private readonly float _normalizationMultiplier;
+        private float _normalizationMultiplier = 1.0f;
 
 #nullable enable
-        private BassDrumSampleChannel(int handle, int channel, DrumSfxSample sample, string path, int playbackCount, OutputChannel? outputChannel, float normalizationMultiplier)
+        private BassDrumSampleChannel(int handle, int channel, DrumSfxSample sample, string path, int playbackCount, OutputChannel? outputChannel)
             : base(sample, path, playbackCount)
 #nullable disable
         {
             _sfxHandle = handle;
             _channel = channel;
-            _normalizationMultiplier = normalizationMultiplier;
             SetOutputChannel_Internal(outputChannel);
         }
 
@@ -55,6 +52,11 @@ namespace YARG.Audio.BASS
             {
                 YargLogger.LogFormatError("Failed to play {0} channel: {1}!", Sample, Bass.LastError);
             }
+        }
+
+        public override void SetNormalizationMultiplier(float multiplier)
+        {
+            _normalizationMultiplier = multiplier;
         }
 
         protected override void SetVolume_Internal(double volume)

@@ -44,29 +44,25 @@ namespace YARG.Audio.BASS
                 YargLogger.LogFormatError("Failed to set {0} volume: {1}!", sample, Bass.LastError);
             }
 
-            float normMultiplier = BassHelpers.GetNormMultiplier(path);
-
-            return new BassSampleChannel(handle, channel, sample, path, playbackCount, outputChannel, normMultiplier);
+            return new BassSampleChannel(handle, channel, sample, path, playbackCount, outputChannel);
         }
 
         private readonly int _sfxHandle;
         private readonly int _channel;
         private double _lastPlaybackTime;
 
-        private double _volumeSetting = 1;
-        private readonly float _normalizationMultiplier;
+        private float _normalizationMultiplier = 1.0f;
 
         private int _syncHandle;
 
 #nullable enable
-        private BassSampleChannel(int handle, int channel, SfxSample sample, string path, int playbackCount, OutputChannel? outputChannel, float normalizationMultiplier)
+        private BassSampleChannel(int handle, int channel, SfxSample sample, string path, int playbackCount, OutputChannel? outputChannel)
             : base(sample, path, playbackCount)
 #nullable disable
         {
             _sfxHandle = handle;
             _channel = channel;
             _lastPlaybackTime = -1;
-            _normalizationMultiplier = normalizationMultiplier;
             SetOutputChannel_Internal(outputChannel);
             SetVolume_Internal(GlobalAudioHandler.GetTrueVolume(SongStem.Sfx));
         }
@@ -187,6 +183,12 @@ namespace YARG.Audio.BASS
             {
                 YargLogger.LogFormatError("Failed to resume {0} channel: {1}!", Sample, Bass.LastError);
             }
+        }
+
+        public override void SetNormalizationMultiplier(float multiplier)
+        {
+            _normalizationMultiplier = multiplier;
+            SetVolume_Internal(_volumeSetting);
         }
 
         protected override void SetVolume_Internal(double volume)

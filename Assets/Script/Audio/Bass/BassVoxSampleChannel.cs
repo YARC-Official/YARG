@@ -48,9 +48,7 @@ namespace YARG.Audio.BASS
                 YargLogger.LogFormatError("Failed to set {0} volume: {1}!", sample, Bass.LastError);
             }
 
-            float normMultiplier = BassHelpers.GetNormMultiplier(path);
-
-            return new BassVoxSampleChannel(handle, channel, sample, path, outputChannel, normMultiplier);
+            return new BassVoxSampleChannel(handle, channel, sample, path, outputChannel);
         }
 
         private static void QueuePlayback(BassVoxSampleChannel channel)
@@ -87,16 +85,15 @@ namespace YARG.Audio.BASS
         }
 
         private readonly int    _channel;
-        private readonly float  _normalizationMultiplier;
+        private float  _normalizationMultiplier = 1.0f;
 
 #nullable enable
-        private BassVoxSampleChannel(int handle, int channel, VoxSample sample, string path, OutputChannel? outputChannel, float normalizationMultiplier)
+        private BassVoxSampleChannel(int handle, int channel, VoxSample sample, string path, OutputChannel? outputChannel)
             : base(sample, path)
 #nullable disable
         {
             _sampleHandle = handle;
             _channel = channel;
-            _normalizationMultiplier = normalizationMultiplier;
             SetOutputChannel_Internal(outputChannel);
             Channels.Add(this);
             SetVolume_Internal(GlobalAudioHandler.GetTrueVolume(SongStem.VoxSample));
@@ -123,6 +120,12 @@ namespace YARG.Audio.BASS
             {
                 YargLogger.LogFormatError("Failed to play {0} channel: {1}!", Sample, Bass.LastError);
             }
+        }
+
+        public override void SetNormalizationMultiplier(float multiplier)
+        {
+            _normalizationMultiplier = multiplier;
+            SetVolume_Internal(GlobalAudioHandler.GetTrueVolume(SongStem.VoxSample));
         }
 
         protected override void SetVolume_Internal(double volume)

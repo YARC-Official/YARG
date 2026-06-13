@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using ManagedBass;
 using ManagedBass.Fx;
 using ManagedBass.Mix;
@@ -379,6 +380,56 @@ namespace YARG.Audio.BASS
             }
 
             return null;
+        }
+
+        /**
+         * Normalizes sample channel volumes by a single factor per category
+         */
+        protected override void ApplySampleNormalization()
+        {
+            if (!BassHelpers.IsNormalizationEnabled)
+            {
+                return;
+            }
+
+            var sfxPaths = SfxSamples.Where(s => s != null)
+                .Select(s => s.FilePath)
+                .ToArray();
+            var sfxMult = BassHelpers.GetNormalizationMultiplier(sfxPaths);
+            foreach (var sample in SfxSamples)
+            {
+                sample?.SetNormalizationMultiplier(sfxMult);
+            }
+
+            var drumPaths = DrumSfxSamples.Where(s => s != null)
+                .Select(s => s.FilePath)
+                .ToArray();
+            var drumMult = BassHelpers.GetNormalizationMultiplier(drumPaths);
+            foreach (var sample in DrumSfxSamples)
+            {
+                sample?.SetNormalizationMultiplier(drumMult);
+            }
+
+            var voxPaths = VoxSamples.Where(s => s != null).Select(s => s.Path).ToArray();
+            var voxMult = BassHelpers.GetNormalizationMultiplier(voxPaths);
+            foreach (var sample in VoxSamples)
+            {
+                sample?.SetNormalizationMultiplier(voxMult);
+            }
+
+            var metronomePaths = MetronomeSamples
+                .Where(s => s != null)
+                .SelectMany(s => new[]
+                {
+                    s.HiFilePath,
+                    s.LoFilePath
+                })
+                .ToArray();
+            var metronomeMult = BassHelpers.GetNormalizationMultiplier(metronomePaths);
+            foreach (var sample in MetronomeSamples)
+            {
+                sample?.SetNormalizationMultipliers(metronomeMult, metronomeMult);
+            }
         }
 
         private void LoadSfx()

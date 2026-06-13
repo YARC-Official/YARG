@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using UnityEngine;
@@ -85,8 +85,6 @@ namespace YARG
             int savedCount = PlayerContainer.SaveProfiles(false);
             YargLogger.LogFormatInfo("Saved {0} profiles", savedCount);
 
-            SettingsManager.LoadSettings();
-
             GlobalAudioHandler.Initialize<BassAudioManager>();
 
             Players = new List<YargPlayer>();
@@ -98,6 +96,7 @@ namespace YARG
 
         private void Start()
         {
+            SettingsManager.LoadSettings();
             InputManager.Initialize();
 
             LoadScene(SceneIndex.Menu);

@@ -49,7 +49,7 @@ namespace YARG.Gameplay
         private GameObject _proGuitarPrefab;
 
         private LoadFailureState _loadState;
-        private string _loadFailureMessage;
+        private string           _loadFailureMessage;
 
         // All access to chart data must be done through this event,
         // since things are loaded asynchronously
@@ -106,6 +106,8 @@ namespace YARG.Gameplay
             using var context = new LoadingContext();
             var global = GlobalVariables.Instance;
 
+            GlobalAudioHandler.ApplySampleNormalization();
+
             // Disable until everything's loaded
             enabled = false;
 
@@ -113,12 +115,14 @@ namespace YARG.Gameplay
 
             if (ReplayInfo != null)
             {
-                if (!SongContainer.SongsByHash.TryGetValue(GlobalVariables.State.CurrentReplay.SongChecksum, out var songs))
+                if (!SongContainer.SongsByHash.TryGetValue(GlobalVariables.State.CurrentReplay.SongChecksum,
+                    out var songs))
                 {
                     ToastManager.ToastWarning("Song not present in library");
                     global.LoadScene(SceneIndex.Menu);
                     return;
                 }
+
                 Song = songs[0];
 
                 context.SetLoadingText("Loading replay...");
@@ -140,7 +144,7 @@ namespace YARG.Gameplay
                     players.AddRange(PlayerContainer.Players);
                     for (int i = 0; i < YargPlayers.Count; i++)
                     {
-                         players.Add(YargPlayers[i]);
+                        players.Add(YargPlayers[i]);
                     }
 
                     YargPlayers = players.ToArray();
@@ -196,9 +200,10 @@ namespace YARG.Gameplay
             // Spawn players
             CreatePlayers();
             YargLogger.LogFormatDebug("Calculating star cutoffs for {0} players", _players.Count);
-            EngineManager.StarScoreThresholds = EngineManager.GetStarScoreCutoffs(_players.ConvertAll(p => p.BaseEngine.StarScoreThresholds));
-            YargLogger.LogFormatDebug("Star score thresholds: {0}", string.Join(", ", EngineManager.StarScoreThresholds));
-
+            EngineManager.StarScoreThresholds =
+                EngineManager.GetStarScoreCutoffs(_players.ConvertAll(p => p.BaseEngine.StarScoreThresholds));
+            YargLogger.LogFormatDebug("Star score thresholds: {0}",
+                string.Join(", ", EngineManager.StarScoreThresholds));
 
             // Set up the crowd stem so it can be restored after muting (if it exists)
             if (_stemStates.TryGetValue(SongStem.Crowd, out var state))
@@ -269,7 +274,10 @@ namespace YARG.Gameplay
 
         private bool LoadReplay()
         {
-            var readOptions = new ReplayReadOptions { KeepFrameTimes = GlobalVariables.VerboseReplays };
+            var readOptions = new ReplayReadOptions
+            {
+                KeepFrameTimes = GlobalVariables.VerboseReplays
+            };
             var (result, data) = ReplayIO.TryLoadData(ReplayInfo, readOptions);
             if (result != ReplayReadResult.Valid)
             {
@@ -317,15 +325,17 @@ namespace YARG.Gameplay
             // If we have no venue events, attempt to load from milo
             if (Chart.VenueTrack.IsEmpty)
             {
-                    SongChart.LoadVenueFromMilo(Chart, Song);
+                SongChart.LoadVenueFromMilo(Chart, Song);
 
-                    YargLogger.LogFormatDebug("Loaded {0} lighting events from milo", Chart.VenueTrack.Lighting.Count);
+                YargLogger.LogFormatDebug("Loaded {0} lighting events from milo", Chart.VenueTrack.Lighting.Count);
             }
 
             if (File.Exists(VenueAutoGenerationPreset.DefaultPath))
             {
                 var preset = new VenueAutoGenerationPreset(VenueAutoGenerationPreset.DefaultPath);
-                if (!preset.ChartHasFog(Chart)) // This is separate because we may want to add fog even if venue is authored
+                if (
+                    !preset.ChartHasFog(
+                        Chart)) // This is separate because we may want to add fog even if venue is authored
                 {
                     Chart = preset.GenerateFogEvents(Chart);
                 }
@@ -409,6 +419,7 @@ namespace YARG.Gameplay
                     {
                         continue;
                     }
+
                     index++;
 
                     if (!player.IsReplay)
@@ -418,7 +429,8 @@ namespace YARG.Gameplay
                         player.RefreshPresets();
                     }
 
-                    var lastHighScore = ScoreContainer.GetHighScore(Song.Hash, player.Profile.Id, player.Profile.CurrentInstrument, false)?.Score;
+                    var lastHighScore = ScoreContainer
+                        .GetHighScore(Song.Hash, player.Profile.Id, player.Profile.CurrentInstrument, false)?.Score;
                     YargLogger.LogFormatInfo("Current high score for player {0} on {1}: {2}",
                         player.Profile.Name, player.Profile.CurrentInstrument, lastHighScore ?? 0);
 
@@ -431,10 +443,14 @@ namespace YARG.Gameplay
                             GameMode.SixFretGuitar  => _sixFretGuitarPrefab,
                             GameMode.FourLaneDrums  => _fourLaneDrumsPrefab,
                             GameMode.FiveLaneDrums  => _fiveLaneDrumsPrefab,
-                            GameMode.EliteDrums     => Song.HasInstrument(Instrument.FiveLaneDrums) ? _fiveLaneDrumsPrefab : _fourLaneDrumsPrefab,
-                            GameMode.ProKeys        => player.Profile.CurrentInstrument is Instrument.ProKeys ? _proKeysPrefab : _fiveLaneKeysPrefab,
-                            GameMode.ProGuitar      => _proGuitarPrefab,
-                            _                       => null
+                            GameMode.EliteDrums => Song.HasInstrument(Instrument.FiveLaneDrums)
+                                ? _fiveLaneDrumsPrefab
+                                : _fourLaneDrumsPrefab,
+                            GameMode.ProKeys => player.Profile.CurrentInstrument is Instrument.ProKeys
+                                ? _proKeysPrefab
+                                : _fiveLaneKeysPrefab,
+                            GameMode.ProGuitar => _proGuitarPrefab,
+                            _                  => null
                         };
 
                         // Skip if there's no prefab for the game mode
@@ -481,7 +497,8 @@ namespace YARG.Gameplay
 
                         var percussionTrack = VocalTrack.CreatePercussionTrack();
                         percussionTrack.TrackSpeed = VocalTrack.TrackSpeed;
-                        vocalsPlayer.Initialize(index, vocalIndex, player, Chart, playerHud, percussionTrack, lastHighScore, VocalTrack.TrackSpeed);
+                        vocalsPlayer.Initialize(index, vocalIndex, player, Chart, playerHud, percussionTrack,
+                            lastHighScore, VocalTrack.TrackSpeed);
 
                         _players.Add(vocalsPlayer);
                     }

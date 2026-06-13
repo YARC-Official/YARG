@@ -45,10 +45,7 @@ namespace YARG.Audio.BASS
                 return null;
             }
 
-            float hiNormMultiplier = BassHelpers.GetNormMultiplier(hiPath);
-            float loNormMultiplier = BassHelpers.GetNormMultiplier(loPath);
-
-            return new BassMetronomeSampleChannel(sample, hiHandle, hiChannel, hiPath, loHandle, loChannel, loPath, outputChannel, hiNormMultiplier, loNormMultiplier);
+            return new BassMetronomeSampleChannel(sample, hiHandle, hiChannel, hiPath, loHandle, loChannel, loPath, outputChannel);
         }
 
         private readonly int _hiHandle;
@@ -56,12 +53,12 @@ namespace YARG.Audio.BASS
         private readonly int _loHandle;
         private readonly int _loChannel;
         private double _volumeSetting = 1;
-        private readonly float _hiNormalizationMultiplier;
-        private readonly float _loNormalizationMultiplier;
+        private float _hiNormalizationMultiplier = 1.0f;
+        private float _loNormalizationMultiplier = 1.0f;
 
 #nullable enable
         private BassMetronomeSampleChannel(MetronomeSample sample, int hiHandle, int hiChannel, string hiPath, int loHandle, int loChannel, string loPath,
-            OutputChannel? outputChannel, float hiNormalizationMultiplier, float loNormalizationMultiplier)
+            OutputChannel? outputChannel)
             : base(sample, hiPath, loPath)
 #nullable disable
         {
@@ -69,10 +66,15 @@ namespace YARG.Audio.BASS
             _hiChannel = hiChannel;
             _loHandle = loHandle;
             _loChannel = loChannel;
-            _hiNormalizationMultiplier = hiNormalizationMultiplier;
-            _loNormalizationMultiplier = loNormalizationMultiplier;
             SetOutputChannel_Internal(outputChannel);
             SetVolume_Internal(GlobalAudioHandler.GetTrueVolume(SongStem.Metronome));
+        }
+
+        public override void SetNormalizationMultipliers(float hiMultiplier, float loMultiplier)
+        {
+            _hiNormalizationMultiplier = hiMultiplier;
+            _loNormalizationMultiplier = loMultiplier;
+            SetVolume_Internal(_volumeSetting);
         }
 
         protected override void PlayHi_Internal()
