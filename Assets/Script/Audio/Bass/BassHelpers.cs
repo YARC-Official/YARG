@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using ManagedBass;
 using ManagedBass.DirectX8;
 using ManagedBass.Fx;
@@ -13,14 +12,8 @@ namespace YARG.Audio.BASS
     public static class BassHelpers
     {
         public const float TARGET_RMS = 0.12f;
-        public const float TARGET_PEAK = 0.5f;
-
-        private static readonly Dictionary<string, float> _peakCache = new();
 
         public static bool IsNormalizationEnabled => SettingsManager.Settings?.EnableNormalization?.Value ?? false;
-
-        public const float MIN_NORMALIZATION_MULTIPLIER = 0.1f;
-        public const float MAX_NORMALIZATION_MULTIPLIER = 2.0f;
 
         public const int PLAYBACK_BUFFER_LENGTH = 75;
         public const double PLAYBACK_BUFFER_DESYNC = PLAYBACK_BUFFER_LENGTH / 1000.0;
@@ -33,93 +26,6 @@ namespace YARG.Audio.BASS
         public const int REVERB_SLIDE_OUT_MILLISECONDS = 500;
 
         public const EffectType REVERB_TYPE = EffectType.Freeverb;
-
-        private static float MeasurePeak(string path)
-        {
-            if (string.IsNullOrEmpty(path) || !System.IO.File.Exists(path))
-            {
-                return 0f;
-            }
-
-            if (_peakCache.TryGetValue(path, out float cachedPeak))
-            {
-                return cachedPeak;
-            }
-
-            int decodeStream = Bass.CreateStream(path, 0, 0, BassFlags.Decode);
-            if (decodeStream == 0)
-            {
-                return 0f;
-            }
-
-            try
-            {
-                long lengthBytes = Bass.ChannelGetLength(decodeStream);
-                double lengthSeconds = Bass.ChannelBytes2Seconds(decodeStream, lengthBytes);
-                if (lengthSeconds <= 0)
-                {
-                    return 0f;
-                }
-
-                float[] levels = new float[1];
-                if (Bass.ChannelGetLevel(decodeStream, levels, (float) lengthSeconds,
-                    LevelRetrievalFlags.Mono))
-                {
-                    float peak = levels[0];
-                    _peakCache[path] = peak;
-                    return peak;
-                }
-            }
-            catch (Exception ex)
-            {
-                YargLogger.LogError($"Failed to measure peak for sample {path}: {ex.Message}");
-            }
-            finally
-            {
-                Bass.StreamFree(decodeStream);
-            }
-
-            return 0f;
-        }
-
-        /// <summary>
-        /// Calculates a single shared peak normalization multiplier for a group of sample
-        /// files.  Reduces volume of the peak volume of the loudest sample in the group to the target peak.
-        /// Applying one shared multiplier to all samples in a category preserves dynamics within the group.
-        /// </summary>
-        /// <param name="paths">The file paths of all samples in the category.</param>
-        /// <returns>A clamped normalization multiplier shared by all samples in the category.</returns>
-        public static float GetNormalizationMultiplier(IEnumerable<string> paths)
-        {
-            if (!IsNormalizationEnabled)
-            {
-                return 1.0f;
-            }
-
-            float maxPeak = 0f;
-            foreach (string path in paths)
-            {
-                if (string.IsNullOrEmpty(path))
-                {
-                    continue;
-                }
-
-                float peak = MeasurePeak(path);
-                if (peak > maxPeak)
-                {
-                    maxPeak = peak;
-                }
-            }
-
-            if (maxPeak <= 0f)
-            {
-                // All silent / empty group: nothing to normalize; avoid div-by-zero / NaN.
-                return 1.0f;
-            }
-
-            return Math.Clamp(TARGET_PEAK / (maxPeak + float.Epsilon),
-                MIN_NORMALIZATION_MULTIPLIER, MAX_NORMALIZATION_MULTIPLIER);
-        }
 
         /*
          * From Bass documentation (http://bass.radio42.com/help/html/4c663bda-2751-c2c3-eaf2-770b846b6652.htm)
