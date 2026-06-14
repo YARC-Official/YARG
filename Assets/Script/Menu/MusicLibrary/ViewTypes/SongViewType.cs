@@ -1,6 +1,5 @@
 using System.Linq;
 using Cysharp.Text;
-using JetBrains.Annotations;
 using UnityEngine;
 using YARG.Core.Game;
 using YARG.Core.Song;
@@ -121,8 +120,8 @@ namespace YARG.Menu.MusicLibrary
         }
 
         private static StarAmount? GetStarAmount(
-            [CanBeNull] PlayerScoreRecord playerScoreRecord,
-            [CanBeNull] GameRecord bandScoreRecord)
+            PlayerScoreRecord? playerScoreRecord,
+            GameRecord? bandScoreRecord)
         {
             if (bandScoreRecord is not null)
             {
