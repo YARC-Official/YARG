@@ -4,7 +4,6 @@ using JetBrains.Annotations;
 using UnityEngine;
 using YARG.Core.Game;
 using YARG.Core.Song;
-using YARG.Helpers;
 using YARG.Player;
 using YARG.Playlists;
 using YARG.Scores;
@@ -34,7 +33,7 @@ namespace YARG.Menu.MusicLibrary
         private readonly string _contentStableId;
 
         private bool _fetchedScores;
-        private PlayerScoreRecord _playerPercentRecord;
+        private PlayerScoreRecord _playerScoreRecord;
         private GameRecord _bandScoreRecord;
 
         public SongViewType(MusicLibraryMenu musicLibrary, SongEntry songEntry, string context = "library")
@@ -76,14 +75,14 @@ namespace YARG.Menu.MusicLibrary
             }
 
             // Never played!
-            if (_playerPercentRecord is null)
+            if (_playerScoreRecord is null)
             {
                 return string.Empty;
             }
 
-            var scoreColor = _playerPercentRecord.IsFc ? "#ffd029" : "#ffffff";
+            var scoreColor = _playerScoreRecord.IsFc ? "#ffd029" : "#ffffff";
             builder.AppendFormat("<mspace=.5em><color={1}>{0:N0}</color></mspace>",
-                _playerPercentRecord.Score, scoreColor);
+                _playerScoreRecord.Score, scoreColor);
             return builder.ToString();
         }
 
@@ -92,18 +91,18 @@ namespace YARG.Menu.MusicLibrary
             FetchHighScores();
 
             // Never played!
-            if (_playerPercentRecord is null)
+            if (_playerScoreRecord is null)
             {
                 return null;
             }
 
             return new ScoreInfo
             {
-                Score = _playerPercentRecord.Score,
-                Difficulty = _playerPercentRecord.Difficulty,
-                Percent = _playerPercentRecord.GetPercent(),
-                Instrument = _playerPercentRecord.Instrument,
-                IsFc = _playerPercentRecord.IsFc
+                Score = _playerScoreRecord.Score,
+                Difficulty = _playerScoreRecord.Difficulty,
+                Percent = _playerScoreRecord.GetPercent(),
+                Instrument = _playerScoreRecord.Instrument,
+                IsFc = _playerScoreRecord.IsFc
             };
         }
 
@@ -111,18 +110,18 @@ namespace YARG.Menu.MusicLibrary
         {
             FetchHighScores();
 
-            return GetStarAmount(_playerPercentRecord, _bandScoreRecord);
+            return GetStarAmount(_playerScoreRecord, _bandScoreRecord);
         }
 
         public static StarAmount? GetStarAmountForSong(SongEntry songEntry)
         {
-            FetchHighScores(songEntry, out var playerPercentRecord, out var bandScoreRecord);
+            FetchHighScores(songEntry, out var playerScoreRecord, out var bandScoreRecord);
 
-            return GetStarAmount(playerPercentRecord, bandScoreRecord);
+            return GetStarAmount(playerScoreRecord, bandScoreRecord);
         }
 
         private static StarAmount? GetStarAmount(
-            [CanBeNull] PlayerScoreRecord playerPercentRecord,
+            [CanBeNull] PlayerScoreRecord playerScoreRecord,
             [CanBeNull] GameRecord bandScoreRecord)
         {
             if (bandScoreRecord is not null)
@@ -130,7 +129,7 @@ namespace YARG.Menu.MusicLibrary
                 return bandScoreRecord.BandStars;
             }
 
-            return playerPercentRecord?.Stars;
+            return playerScoreRecord?.Stars;
         }
 
         public override FavoriteInfo GetFavoriteInfo()
@@ -216,20 +215,20 @@ namespace YARG.Menu.MusicLibrary
                 return;
             }
 
-            FetchHighScores(SongEntry, out _playerPercentRecord, out _bandScoreRecord);
+            FetchHighScores(SongEntry, out _playerScoreRecord, out _bandScoreRecord);
             _fetchedScores = true;
         }
 
-        private static void FetchHighScores(SongEntry songEntry, out PlayerScoreRecord playerPercentRecord, out GameRecord bandScoreRecord)
+        private static void FetchHighScores(SongEntry songEntry, out PlayerScoreRecord playerScoreRecord, out GameRecord bandScoreRecord)
         {
-            playerPercentRecord = null;
+            playerScoreRecord = null;
             bandScoreRecord = null;
 
             var humanCount = PlayerContainer.Players.Count(p => !p.Profile.IsBot);
             if (humanCount == 1)
             {
                 var player = PlayerContainer.Players.First(e => !e.Profile.IsBot);
-                playerPercentRecord = ScoreContainer.GetBestPercentageScore(
+                playerScoreRecord = ScoreContainer.GetPreferredHighScore(
                     songEntry.Hash, player.Profile.Id, player.Profile.CurrentInstrument);
             }
             else

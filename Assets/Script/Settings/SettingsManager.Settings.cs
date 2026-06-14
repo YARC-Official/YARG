@@ -213,10 +213,12 @@ namespace YARG.Settings
                 };
 
             public DropdownSetting<HighScoreHistoryMode> HighScoreHistory { get; }
-                = new(HighScoreHistoryMode.HighestDifficulty, _ => ScoreContainer.InvalidateScoreCache())
+                = new(HighScoreHistoryMode.HighestPercentageDifficulty, _ => ScoreContainer.InvalidateScoreCache())
                 {
-                    HighScoreHistoryMode.HighestOverall,
-                    HighScoreHistoryMode.HighestDifficulty,
+                    HighScoreHistoryMode.HighestPercentageOverall,
+                    HighScoreHistoryMode.HighestPercentageDifficulty,
+                    HighScoreHistoryMode.HighestScoreOverall,
+                    HighScoreHistoryMode.HighestScoreDifficulty,
                 };
 
             public ToggleSetting ShowPercentDecimals { get; } = new(false);
