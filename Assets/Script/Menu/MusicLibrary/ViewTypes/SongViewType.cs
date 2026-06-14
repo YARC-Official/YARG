@@ -1,5 +1,6 @@
 using System.Linq;
 using Cysharp.Text;
+using JetBrains.Annotations;
 using UnityEngine;
 using YARG.Core.Game;
 using YARG.Core.Song;
@@ -110,12 +111,26 @@ namespace YARG.Menu.MusicLibrary
         {
             FetchHighScores();
 
-            if (_bandScoreRecord is not null)
+            return GetStarAmount(_playerPercentRecord, _bandScoreRecord);
+        }
+
+        public static StarAmount? GetStarAmountForSong(SongEntry songEntry)
+        {
+            FetchHighScores(songEntry, out var playerPercentRecord, out var bandScoreRecord);
+
+            return GetStarAmount(playerPercentRecord, bandScoreRecord);
+        }
+
+        private static StarAmount? GetStarAmount(
+            [CanBeNull] PlayerScoreRecord playerPercentRecord,
+            [CanBeNull] GameRecord bandScoreRecord)
+        {
+            if (bandScoreRecord is not null)
             {
-                return _bandScoreRecord.BandStars;
+                return bandScoreRecord.BandStars;
             }
 
-            return _playerPercentRecord?.Stars;
+            return playerPercentRecord?.Stars;
         }
 
         public override FavoriteInfo GetFavoriteInfo()
@@ -201,18 +216,25 @@ namespace YARG.Menu.MusicLibrary
                 return;
             }
 
+            FetchHighScores(SongEntry, out _playerPercentRecord, out _bandScoreRecord);
             _fetchedScores = true;
+        }
+
+        private static void FetchHighScores(SongEntry songEntry, out PlayerScoreRecord playerPercentRecord, out GameRecord bandScoreRecord)
+        {
+            playerPercentRecord = null;
+            bandScoreRecord = null;
 
             var humanCount = PlayerContainer.Players.Count(p => !p.Profile.IsBot);
             if (humanCount == 1)
             {
                 var player = PlayerContainer.Players.First(e => !e.Profile.IsBot);
-                _playerPercentRecord = ScoreContainer.GetBestPercentageScore(
-                    SongEntry.Hash, player.Profile.Id, player.Profile.CurrentInstrument);
+                playerPercentRecord = ScoreContainer.GetBestPercentageScore(
+                    songEntry.Hash, player.Profile.Id, player.Profile.CurrentInstrument);
             }
             else
             {
-                _bandScoreRecord = ScoreContainer.GetBandHighScore(SongEntry.Hash);
+                bandScoreRecord = ScoreContainer.GetBandHighScore(songEntry.Hash);
             }
         }
     }

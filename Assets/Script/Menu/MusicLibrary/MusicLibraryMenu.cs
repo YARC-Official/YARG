@@ -574,11 +574,13 @@ namespace YARG.Menu.MusicLibrary
                     }
                     else
                     {
-                        starAmount = GetStarAmountForSong(song);
+                        starAmount = SongViewType.GetStarAmountForSong(song);
                     }
 
                     if (starAmount is not null)
-                        sectionTotalStars += StarAmountHelper.GetStarCount(starAmount.Value);
+                    {
+                        sectionTotalStars += starAmount.Value.GetStarCount();
+                    }
                 }
                 _totalStarCount += sectionTotalStars;
 
@@ -586,27 +588,11 @@ namespace YARG.Menu.MusicLibrary
                 {
                     sortHeader.TotalStarsCount = sectionTotalStars;
                 }
-
             }
 
             _totalSongCount = songCount;
             CalculateCategoryHeaderIndices(list);
             return list;
-        }
-
-        private static StarAmount? GetStarAmountForSong(SongEntry song)
-        {
-            var humanCount = PlayerContainer.Players.Count(p => !p.Profile.IsBot);
-            if (humanCount == 1)
-            {
-                var player = PlayerContainer.Players.First(e => !e.Profile.IsBot);
-                var playerScoreRecord = ScoreContainer.GetBestPercentageScore(
-                    song.Hash, player.Profile.Id, player.Profile.CurrentInstrument);
-                return playerScoreRecord?.Stars;
-            }
-
-            var bandScoreRecord = ScoreContainer.GetBandHighScore(song.Hash);
-            return bandScoreRecord?.BandStars;
         }
 
         private void ExitLibrary()
