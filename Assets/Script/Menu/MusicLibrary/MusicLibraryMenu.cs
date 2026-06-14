@@ -600,7 +600,7 @@ namespace YARG.Menu.MusicLibrary
             if (humanCount == 1)
             {
                 var player = PlayerContainer.Players.First(e => !e.Profile.IsBot);
-                var playerScoreRecord = ScoreContainer.GetHighScore(
+                var playerScoreRecord = ScoreContainer.GetBestPercentageScore(
                     song.Hash, player.Profile.Id, player.Profile.CurrentInstrument);
                 return playerScoreRecord?.Stars;
             }
