@@ -188,20 +188,15 @@ namespace YARG.Audio.BASS
             // Must initialise device before recording
             if (!Bass.RecordInit(deviceId))
             {
-                if (Bass.LastError != Errors.Already)
-                {
-                    YargLogger.LogFormatError("Failed to initialize recording device: {0}!", Bass.LastError);
-                    return null;
-                }
-                Bass.CurrentRecordingDevice = deviceId;
+                YargLogger.LogFormatError("Failed to initialize recording device: {0}!", Bass.LastError);
+                return null;
             }
 
             var device = new BassMicDevice(deviceId, name);
             device._recordHandle = RecordingHandle.CreateRecordingHandle(device.ProcessRecordData);
             if (device._recordHandle == null)
             {
-                // Not device.Dispose() as to not free resources that we may want to keep around
-                // i.e, the record-enabled device
+                FreeDevice(deviceId);
                 return null;
             }
 
@@ -211,6 +206,7 @@ namespace YARG.Audio.BASS
             if (monitorPlayback == null)
             {
                 device._recordHandle.Dispose();
+                FreeDevice(deviceId);
                 return null;
             }
             device._monitorHandle = monitorPlayback;
@@ -224,6 +220,15 @@ namespace YARG.Audio.BASS
                 return null;
             }
             return device;
+        }
+
+        private static void FreeDevice(int deviceId)
+        {
+            Bass.CurrentRecordingDevice = deviceId;
+            if (!Bass.RecordFree())
+            {
+                YargLogger.LogFormatWarning("Failed to free recording device after initialization failure: {0}!", Bass.LastError);
+            }
         }
 
         private static readonly PeakEQParameters _lowEqParameters = new()

@@ -139,7 +139,7 @@ namespace YARG.Gameplay
 
                 // Song specific textures
                 var tm = GetComponent<TextureManager>();
-                var songBg = GameManager.Song.LoadBackground();
+                var songBg = GameManager.Song.LoadBackground(true);
 
                 foreach (var renderer in editorRenderers)
                 {
@@ -162,6 +162,14 @@ namespace YARG.Gameplay
                 }
 
                 _type = BackgroundType.Yarground;
+
+                // Initialize CharacterManager, if it exists
+                var characterManager = editorBg.GetComponentInChildren<CharacterManager>();
+                if (characterManager != null)
+                {
+                    characterManager.Initialize();
+                }
+
                 return;
             }
 #endif
@@ -211,7 +219,7 @@ namespace YARG.Gameplay
             // Hookup song-specific textures
             var textureManager = GetComponent<TextureManager>();
             // Load SongBackground here to determine if textures need to be replaced
-            var songBackground = GameManager.Song.LoadBackground();
+            var songBackground = GameManager.Song.LoadBackground(true);
             foreach (var renderer in renderers)
             {
                 foreach (var material in renderer.sharedMaterials)

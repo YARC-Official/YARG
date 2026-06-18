@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Net;
@@ -82,6 +82,13 @@ namespace YARG.Integration
             try
             {
                 _discord = new Discord.Discord(APPLICATION_ID, (ulong) CreateFlags.NoRequireDiscord);
+            }
+            catch (ResultException e) when (e.Result == Result.InternalError)
+            {
+                YargLogger.LogWarning("Failed to start Discord presence client: Discord is not running or unreachable.");
+
+                _discord = null;
+                return;
             }
             catch (Exception e)
             {

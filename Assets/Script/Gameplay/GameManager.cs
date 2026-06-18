@@ -762,11 +762,13 @@ namespace YARG.Gameplay
         public void SetVenueCameraManager(CameraManager cameraManager)
         {
             VenueCameraManager = cameraManager;
+            InitializeCameraDebug();
         }
 
         public void SetVenueCharacterManager(CharacterManager characterManager)
         {
             VenueCharacterManager = characterManager;
+            InitializeCharacterDebug();
         }
 
         public void SetEditHUD(bool on)
@@ -989,6 +991,11 @@ namespace YARG.Gameplay
         {
             YargLogger.LogFormatDebug("Rewinding {0} seconds at VisualTime {1}", seconds, VisualTime);
 
+            if (_lyricBar.gameObject.activeSelf)
+            {
+                _lyricBar.Rewind(VisualTime - seconds, 0.5f);
+            }
+
             // Rewind players
             foreach (var player in _players)
             {
@@ -1031,7 +1038,8 @@ namespace YARG.Gameplay
 
         public void EndCoda(CodaSection coda)
         {
-            _breBox.EndCoda(EngineManager.TotalCodaBonus, () => { _breBoxActive = false; });
+            var songEnding = SongTime >= LastNoteTime;
+            _breBox.EndCoda(EngineManager.TotalCodaBonus, songEnding, () => { _breBoxActive = false; });
         }
 
         public void ResetCoda()

@@ -202,9 +202,19 @@ namespace YARG.Menu.ProfileList
                 dialog.AddListButton(microphone.name, () =>
                 {
                     var device = GlobalAudioHandler.CreateInputDevice(microphone.id, microphone.name);
+                    if (device is null)
+                    {
+                        YargLogger.LogFormatWarning("Failed to initialize microphone `{0}`.", microphone.name);
+                        DialogManager.Instance.ClearDialog();
+                        DialogManager.Instance.ShowMessage("Microphone Error",
+                            $"Failed to initialize microphone:\n\n{microphone.name}\n\nPlease try again or choose a different microphone.");
+                        return;
+                    }
+
                     player.Bindings.AddMicrophone(device);
                     selectedDevice = true;
-                });
+                    DialogManager.Instance.ClearDialog();
+                }, closeOnClick: false);
             }
 
             if (devicesAvailable)
@@ -358,6 +368,7 @@ namespace YARG.Menu.ProfileList
                 {
                     // Don't leak player when cancelling
                     PlayerContainer.DisposePlayer(player);
+                    _profileListMenu.RefreshList(Profile);
                     return;
                 }
             }

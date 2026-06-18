@@ -190,7 +190,7 @@ namespace YARG.Venue.VenueCamera
                 _cameraLocations[vc.CameraLocation] = camera;
                 _validLocations.Add(vc.CameraLocation);
 
-                // Add VenueCameraHelper component to cameras that don't already have it
+                // Add VenueCameraRenderer component to cameras that don't already have it
                 if (camera.GetComponent<VenueCameraRenderer>() == null)
                 {
                     camera.gameObject.AddComponent<VenueCameraRenderer>();

@@ -174,6 +174,7 @@ namespace YARG.Gameplay.Player
 
             engine.OnStarPowerPhraseHit += _ => OnStarPowerPhraseHit();
             engine.OnStarPowerStatus += OnStarPowerStatus;
+            engine.OnStarPowerReady += OnStarPowerReady;
 
             engine.OnTargetNoteChanged += (note) =>
             {
@@ -329,6 +330,12 @@ namespace YARG.Gameplay.Player
                 (float) Engine.GetStarPowerBarAmount(), Engine.EngineStats.IsStarPowerActive);
         }
 
+        protected override void OnStarPowerReady()
+        {
+            base.OnStarPowerReady();
+            _hud.ShowNotification(TextNotificationType.StarPowerReady);
+        }
+
         private void ShowTextNotifications(bool isLastPhrase)
         {
             if (SettingsManager.Settings.DisableTextNotifications.Value)
@@ -337,12 +344,6 @@ namespace YARG.Gameplay.Player
             }
 
             var isStarPowerActive = Engine.EngineStats.IsStarPowerActive;
-            var currentStarPowerPercent = Engine.GetStarPowerBarAmount();
-            if (!isStarPowerActive && _previousStarPowerPercent < 0.5 && currentStarPowerPercent >= 0.5)
-            {
-                _hud.ShowNotification(TextNotificationType.StarPowerReady);
-
-            }
             _previousStarPowerPercent = Engine.GetStarPowerBarAmount();
 
             var isMaxMultiplier = Engine.EngineStats.ScoreMultiplier == (isStarPowerActive ? 8 : 4);
