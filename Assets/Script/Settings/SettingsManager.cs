@@ -66,6 +66,7 @@ namespace YARG.Settings
                 new FieldMetadata(nameof(Settings.ShowCursorTimer), isAdvanced: true),
                 nameof(Settings.PauseOnDeviceDisconnect),
                 nameof(Settings.PauseOnFocusLoss),
+                nameof(Settings.MuteOnFocusLoss),
                 nameof(Settings.WrapAroundNavigation),
                 nameof(Settings.DiscordRichPresence),
                 new FieldMetadata(nameof(Settings.AmIAwesome), isAdvanced: true),
