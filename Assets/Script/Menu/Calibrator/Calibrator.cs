@@ -50,7 +50,13 @@ namespace YARG.Menu.Calibrator
         private double _time;
 #nullable disable
 
-        private bool wasWhammyEnabled = SettingsManager.Settings.UseWhammyFx.Value;
+        private bool _wasWhammyEnabled;
+        private bool _hasNavigationScheme;
+
+        private void Awake()
+        {
+            _wasWhammyEnabled = SettingsManager.Settings.UseWhammyFx.Value;
+        }
 
         private void Start()
         {
@@ -60,6 +66,7 @@ namespace YARG.Menu.Calibrator
         private void OnDestroy()
         {
             InputManager.MenuInput -= OnMenuInput;
+            ClearNavigation();
             _mixer?.Dispose();
         }
 
@@ -152,7 +159,7 @@ namespace YARG.Menu.Calibrator
                     break;
                 case State.AudioDone:
                     //Restore whammy settings
-                    SettingsManager.Settings.UseWhammyFx.Value = wasWhammyEnabled;
+                    SettingsManager.Settings.UseWhammyFx.Value = _wasWhammyEnabled;
 
                     _audioCalibrateContainer.SetActive(true);
                     CalculateAudioLatency();
@@ -170,7 +177,7 @@ namespace YARG.Menu.Calibrator
 
         private void SetConfirmNavigation()
         {
-            Navigator.Instance.PushScheme(new NavigationScheme(new()
+            SetNavigation(new NavigationScheme(new()
             {
                 new NavigationScheme.Entry(MenuAction.Green, "Menu.Common.Confirm", () => StartAudioMode()),
                 new NavigationScheme.Entry(MenuAction.Red, "Menu.Common.Back", () => BackButton()),
@@ -179,17 +186,35 @@ namespace YARG.Menu.Calibrator
 
         private void SetBackNavigation()
         {
-            Navigator.Instance.PopScheme();
-            Navigator.Instance.PushScheme(new NavigationScheme(new()
+            SetNavigation(new NavigationScheme(new()
             {
                 new NavigationScheme.Entry(MenuAction.Red, "Menu.Common.Back", () => BackButton()),
             }, true));
         }
+
         private void SetEmptyNavigation()
         {
-            Navigator.Instance.PopScheme();
-            Navigator.Instance.PushScheme(NavigationScheme.Empty);
+            SetNavigation(NavigationScheme.Empty);
         }
+
+        private void SetNavigation(NavigationScheme scheme)
+        {
+            ClearNavigation();
+            Navigator.Instance.PushScheme(scheme);
+            _hasNavigationScheme = true;
+        }
+
+        private void ClearNavigation()
+        {
+            if (!_hasNavigationScheme || Navigator.Instance == null)
+            {
+                return;
+            }
+
+            Navigator.Instance.PopScheme();
+            _hasNavigationScheme = false;
+        }
+
         private void CalculateAudioLatency()
         {
             // Drop all discrepancies

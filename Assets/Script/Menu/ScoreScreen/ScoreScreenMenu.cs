@@ -1,7 +1,9 @@
 using System;
 using System.Linq;
 using System.Collections.Generic;
+using System.Threading;
 using Cysharp.Threading.Tasks;
+using DG.Tweening;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -37,6 +39,8 @@ namespace YARG.Menu.ScoreScreen
         [SerializeField]
         private Image _sourceIcon;
         [SerializeField]
+        private RawImage _albumCover;
+        [SerializeField]
         private TextMeshProUGUI _songTitle;
         [SerializeField]
         private TextMeshProUGUI _artistName;
@@ -45,11 +49,15 @@ namespace YARG.Menu.ScoreScreen
         [SerializeField]
         private TextMeshProUGUI _bandScore;
         [SerializeField]
-        private TextMeshProUGUI _bandScoreNotSavedMessage;
+        private ColoredPillElement _bandScoreNotSavedPill;
         [SerializeField]
         private ScrollRect _cardScrollRect;
         [SerializeField]
         private float _horizontalScrollRate = 30f;
+        [SerializeField]
+        private float _horizontalScrollDuration = 0.25f;
+        [SerializeField]
+        private Ease _horizontalScrollEase = Ease.OutCubic;
         [SerializeField]
         private float _verticalScrollRate = 15f;
 
@@ -61,15 +69,24 @@ namespace YARG.Menu.ScoreScreen
         [SerializeField]
         private VocalsScoreCard _vocalsCardPrefab;
         [SerializeField]
-        private ProKeysScoreCard _proKeysCardPrefab;
-        [SerializeField]
-        private ProKeysScoreCard _fiveLaneKeysCardPrefab;
+        private ProKeysScoreCard _keysCardPrefab;
+
+        private enum ScrollDirection
+        {
+            Left,
+            Right
+        }
 
         private bool _analyzingReplay;
-
         private bool _restartingSong;
+        private bool _showAdvancedStats;
+
+        private float                   _horizontalScrollStep;
+        private Tween                   _horizontalScrollTween;
+        private CancellationTokenSource _cancellationToken;
 
         private readonly List<IScoreCard<BaseStats>> _scoreCards = new();
+
 
         private void OnEnable()
         {
@@ -118,7 +135,11 @@ namespace YARG.Menu.ScoreScreen
             // Set text
             _songTitle.text = song.Name;
             _artistName.text = song.Artist;
-            _bandScoreNotSavedMessage.gameObject.SetActive(
+
+            var scoreNotSavedText = Localize.Key("Menu.ScoreScreen.BandScoreNotSaved");
+            _bandScoreNotSavedPill.SetValues(scoreNotSavedText,
+                ColoredPillElement.ColoredPillPreset.HarderModifier);
+            _bandScoreNotSavedPill.gameObject.SetActive(
                 !ScoreContainer.IsBandScoreValid(PersistentState.Default.SongSpeed));
 
             // Set speed text (if not at 100% speed)
@@ -138,6 +159,9 @@ namespace YARG.Menu.ScoreScreen
 
             _sourceIcon.sprite = SongSources.SourceToIcon(song.Source);
 
+            _cancellationToken = new CancellationTokenSource();
+            _albumCover.LoadAlbumCover(song, _cancellationToken.Token, 0.2f);
+
             //set restarting state
             _restartingSong = false;
         }
@@ -155,6 +179,10 @@ namespace YARG.Menu.ScoreScreen
                 GlobalAudioHandler.StopSoundEffect(SfxSample.Chatter, 1.0);
             }
 
+            KillScrollTween();
+
+            _cancellationToken?.Cancel();
+            _cancellationToken?.Dispose();
             Navigator.Instance.PopScheme();
         }
 
@@ -186,7 +214,7 @@ namespace YARG.Menu.ScoreScreen
                     case GameMode.FiveFretGuitar:
                     {
                         card = Instantiate(_guitarCardPrefab, _cardContainer);
-                        ((ScoreCard<GuitarStats>)card).Initialize(score.IsHighScore, score.Player, score.Stats as GuitarStats);
+                        ((ScoreCard<GuitarStats>)card).Initialize(score.IsHighScore, score.Player, score.Stats as GuitarStats, score.AverageMultiplier);
                         break;
                     }
                     case GameMode.FourLaneDrums:
@@ -194,27 +222,19 @@ namespace YARG.Menu.ScoreScreen
                     case GameMode.EliteDrums:
                     {
                         card = Instantiate(_drumsCardPrefab, _cardContainer);
-                        ((ScoreCard<DrumsStats>)card).Initialize(score.IsHighScore, score.Player, score.Stats as DrumsStats);
+                        ((ScoreCard<DrumsStats>)card).Initialize(score.IsHighScore, score.Player, score.Stats as DrumsStats, score.AverageMultiplier);
                         break;
                     }
                     case GameMode.Vocals:
                     {
                         card = Instantiate(_vocalsCardPrefab, _cardContainer);
-                        ((ScoreCard<VocalsStats>)card).Initialize(score.IsHighScore, score.Player, score.Stats as VocalsStats);
+                        ((ScoreCard<VocalsStats>)card).Initialize(score.IsHighScore, score.Player, score.Stats as VocalsStats, score.AverageMultiplier);
                         break;
                     }
                     case GameMode.ProKeys:
                     {
-                        if (score.Player.Profile.CurrentInstrument is Instrument.ProKeys)
-                        {
-                            card = Instantiate(_proKeysCardPrefab, _cardContainer);
-                        }
-                        else
-                        {
-                            card = Instantiate(_fiveLaneKeysCardPrefab, _cardContainer);
-                        }
-                        ((ScoreCard<KeysStats>) card).Initialize(score.IsHighScore, score.Player,
-                            score.Stats as KeysStats);
+                        card = Instantiate(_keysCardPrefab, _cardContainer);
+                        ((ScoreCard<KeysStats>) card).Initialize(score.IsHighScore, score.Player, score.Stats as KeysStats, score.AverageMultiplier);
                         break;
                     }
                 }
@@ -240,10 +260,24 @@ namespace YARG.Menu.ScoreScreen
             PlayScoreVox(fcCount, highScoreCount);
         }
 
+        private void KillScrollTween()
+        {
+            _horizontalScrollTween?.Kill();
+            _horizontalScrollTween = null;
+        }
+
         private async void InitializeScrollRect()
         {
-            await UniTask.Yield(PlayerLoopTiming.LastPostLateUpdate);
+            KillScrollTween();
             _cardScrollRect.horizontalNormalizedPosition = 0f;
+            SetupScrollStep();
+        }
+
+        private void SetupScrollStep()
+        {
+            var cardRect = _cardContainer.GetChild(0) as RectTransform;
+            var layoutGroup = _cardContainer.GetComponent<HorizontalLayoutGroup>();
+            _horizontalScrollStep = cardRect.rect.width + layoutGroup.spacing;
         }
 
         private static void PlayScoreVox(int fcCount, int highScoreCount)
@@ -386,6 +420,7 @@ namespace YARG.Menu.ScoreScreen
         private NavigationScheme.Entry _continueButtonEntry;
         private NavigationScheme.Entry _endEarlyButtonEntry;
         private NavigationScheme.Entry _restartButtonEntry;
+        private NavigationScheme.Entry _showAdvancedButtonEntry;
         private NavigationScheme.Entry _removeFavoriteButtonEntry;
         private NavigationScheme.Entry _addFavoriteButtonEntry;
         private NavigationScheme.Entry _scrollLeftEntry;
@@ -444,14 +479,16 @@ namespace YARG.Menu.ScoreScreen
                     UpdateNavigationScheme(true);
                 });
 
+            UpdateShowAdvancedButton();
+
             _scrollLeftEntry = new NavigationScheme.Entry(MenuAction.Left, "Menu.Common.Scroll", context =>
                 {
-                    _cardScrollRect.MoveHorizontalInUnits(-1 * _horizontalScrollRate);
+                    ScrollScoresHorizontal(ScrollDirection.Left, context.IsRepeat);
                 });
 
             _scrollRightEntry = new NavigationScheme.Entry(MenuAction.Right, "Menu.Common.Scroll", context =>
                 {
-                    _cardScrollRect.MoveHorizontalInUnits(_horizontalScrollRate);
+                    ScrollScoresHorizontal(ScrollDirection.Right, context.IsRepeat);
                 });
 
             _scrollUpEntry = new NavigationScheme.Entry(MenuAction.Up, "Menu.Common.Scroll", context =>
@@ -466,11 +503,67 @@ namespace YARG.Menu.ScoreScreen
 
             UpdateNavigationScheme();
         }
+        private void ScrollScoresHorizontal(ScrollDirection direction, bool isHeld)
+        {
+            float scrollableWidth = _cardScrollRect.ScrollableWidth();
+            bool canScroll = scrollableWidth > 0f;
+            if (!canScroll)
+            {
+                return;
+            }
+
+            // If dpad is held, ignore repeated inputs while tween is active
+            bool isTweenActive = _horizontalScrollTween != null;
+            if (isHeld && isTweenActive)
+            {
+                return;
+            }
+
+            float startPos = _cardScrollRect.horizontalNormalizedPosition;
+            float directionMultiplier = direction == ScrollDirection.Right ? 1f : -1f;
+            float targetPos = Mathf.Clamp(startPos + directionMultiplier * _horizontalScrollStep / scrollableWidth, 0f, 1f);
+
+            if (targetPos == startPos)
+            {
+                return;
+            }
+
+            SmoothScrollTo(targetPos);
+        }
+
+        private void SmoothScrollTo(float targetPos)
+        {
+            KillScrollTween();
+            _horizontalScrollTween = _cardScrollRect
+                .DOHorizontalNormalizedPos(targetPos, _horizontalScrollDuration)
+                .SetEase(_horizontalScrollEase)
+                .SetUpdate(true)
+                .OnComplete(() => _horizontalScrollTween = null);
+        }
 
         private void ScrollScoreCard(Player.YargPlayer player, float delta)
         {
             var card = _scoreCards.FirstOrDefault(card => card.Player == player);
             card?.ScrollStats(delta);
+        }
+
+        private void ToggleAdvancedStats()
+        {
+            _showAdvancedStats = !_showAdvancedStats;
+            UpdateShowAdvancedButton();
+
+            foreach (var scoreCard in _scoreCards)
+            {
+                scoreCard.SetAdvancedStatsShown(_showAdvancedStats);
+            }
+
+            UpdateNavigationScheme(true);
+        }
+
+        private void UpdateShowAdvancedButton()
+        {
+            var key = _showAdvancedStats ? "Menu.ScoreScreen.HideAdvanced" : "Menu.ScoreScreen.ShowAdvanced";
+            _showAdvancedButtonEntry = new NavigationScheme.Entry(MenuAction.Orange, key, ToggleAdvancedStats);
         }
 
         private void UpdateNavigationScheme(bool reset = false)
@@ -497,6 +590,8 @@ namespace YARG.Menu.ScoreScreen
             {
                 buttons.Add(_addFavoriteButtonEntry);
             }
+
+            buttons.Add(_showAdvancedButtonEntry);
 
             if (GlobalVariables.State.PlayingAShow &&
                 GlobalVariables.State.ShowIndex + 1 < GlobalVariables.State.ShowSongs.Count)

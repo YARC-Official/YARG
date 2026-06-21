@@ -1,4 +1,5 @@
 ﻿using Cysharp.Text;
+using YARG.Core;
 using YARG.Core.Game;
 using YARG.Helpers;
 using YARG.Helpers.Extensions;
@@ -10,10 +11,21 @@ namespace YARG.Menu.MusicLibrary
 {
     public abstract class ViewType : BaseViewType
     {
+        public abstract string StableId { get; }
+
         public struct FavoriteInfo
         {
             public bool ShowFavoriteButton;
             public bool IsFavorited;
+        }
+
+        public struct ScoreInfo
+        {
+            public float      Percent;
+            public int        Score;
+            public Difficulty Difficulty;
+            public Instrument Instrument;
+            public bool       IsFc;
         }
 
         public virtual bool UseAsMadeFamousBy => false;
@@ -22,6 +34,7 @@ namespace YARG.Menu.MusicLibrary
 
         public override string GetSecondaryText(bool selected) => string.Empty;
         public virtual string GetSideText(bool selected) => string.Empty;
+        public virtual ScoreInfo? GetScoreInfo() => null;
 
         public virtual StarAmount? GetStarAmount() => null;
 
@@ -63,13 +76,13 @@ namespace YARG.Menu.MusicLibrary
         {
             var count = TextColorer.StyleString(
                 ZString.Format("{0:N0}", songCount),
-                MenuData.Colors.PrimaryText,
+                MenuData.Colors.HeaderSecondary,
                 500);
 
             var songs = TextColorer.StyleString(
                 songCount == 1 ? "SONG" : "SONGS",
-                MenuData.Colors.PrimaryText.WithAlpha(0.5f),
-                500);
+                MenuData.Colors.HeaderTertiary,
+                600);
 
             return ZString.Concat(count, " ", songs);
         }

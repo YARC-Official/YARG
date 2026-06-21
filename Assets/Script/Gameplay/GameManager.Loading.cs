@@ -6,8 +6,10 @@ using UnityEngine;
 using YARG.Core;
 using YARG.Core.Audio;
 using YARG.Core.Chart;
+using YARG.Core.Engine;
 using YARG.Core.Logging;
 using YARG.Core.Replays;
+using YARG.Gameplay.HUD;
 using YARG.Gameplay.Player;
 using YARG.Menu;
 using YARG.Menu.Navigation;
@@ -45,6 +47,9 @@ namespace YARG.Gameplay
         private GameObject _fiveLaneKeysPrefab;
         [SerializeField]
         private GameObject _proGuitarPrefab;
+
+        private const double NORMALIZED_SAMPLE_VOLUME_MULTIPLIER = 0.5;
+        private const double DEFAULT_SAMPLE_VOLUME_MULTIPLIER = 1.0;
 
         private LoadFailureState _loadState;
         private string _loadFailureMessage;
@@ -107,6 +112,8 @@ namespace YARG.Gameplay
             // Disable until everything's loaded
             enabled = false;
 
+            ApplySampleNormalization();
+
             YargLogger.LogFormatInfo("Loading song {0} - {1}", Song.Name, Song.Artist);
 
             if (ReplayInfo != null)
@@ -133,13 +140,11 @@ namespace YARG.Gameplay
                 }
                 else
                 {
-                    // var players = new YargPlayer[YargPlayers.Count + PlayerContainer.Players.Count];
                     _replayController.gameObject.SetActive(false);
                     var players = new List<YargPlayer>();
                     players.AddRange(PlayerContainer.Players);
                     for (int i = 0; i < YargPlayers.Count; i++)
                     {
-                         // YargPlayers[i].ReplayIndex = i;
                          players.Add(YargPlayers[i]);
                     }
 
@@ -195,6 +200,10 @@ namespace YARG.Gameplay
 
             // Spawn players
             CreatePlayers();
+            YargLogger.LogFormatDebug("Calculating star cutoffs for {0} players", _players.Count);
+            EngineManager.StarScoreThresholds = EngineManager.GetStarScoreCutoffs(_players.ConvertAll(p => p.BaseEngine.StarScoreThresholds));
+            YargLogger.LogFormatDebug("Star score thresholds: {0}", string.Join(", ", EngineManager.StarScoreThresholds));
+
 
             // Set up the crowd stem so it can be restored after muting (if it exists)
             if (_stemStates.TryGetValue(SongStem.Crowd, out var state))
@@ -232,7 +241,7 @@ namespace YARG.Gameplay
 
             _failMeter.Initialize(EngineManager, this);
 
-            if (SettingsManager.Settings.NoFailMode.Value || IsPractice)
+            if (SettingsManager.Settings.NoFail.Value == NoFailMode.NoMeter || IsPractice)
             {
                 _failMeter.SetActive(false);
             }
@@ -245,8 +254,13 @@ namespace YARG.Gameplay
 
                 EngineManager.InitializeHappiness();
 
-                SettingsManager.Settings.NoFailMode.OnChange += OnNoFailModeChanged;
+                SettingsManager.Settings.NoFail.OnChange += OnNoFailModeChanged;
+                SettingsManager.Settings.AutoCalibrateAudio.Value = false;
+                SettingsManager.Settings.AutoCalibrateVideo.Value = false;
             }
+
+            EngineManager.OnCodaStart += StartCoda;
+            EngineManager.OnCodaEnd += EndCoda;
 
             // Log constant values
             YargLogger.LogFormatDebug("Audio calibration: {0}, video calibration: {1}, song offset: {2}",
@@ -256,6 +270,18 @@ namespace YARG.Gameplay
             enabled = true;
             IsSongStarted = true;
             _songStarted?.Invoke();
+        }
+
+        private void ApplySampleNormalization()
+        {
+            double multiplier = SettingsManager.Settings.EnableNormalization.Value
+                ? NORMALIZED_SAMPLE_VOLUME_MULTIPLIER
+                : DEFAULT_SAMPLE_VOLUME_MULTIPLIER;
+
+            GlobalAudioHandler.SetVolumeMultiplier(SongStem.Sfx, multiplier);
+            GlobalAudioHandler.SetVolumeMultiplier(SongStem.DrumSfx, multiplier);
+            GlobalAudioHandler.SetVolumeMultiplier(SongStem.VoxSample, multiplier);
+            GlobalAudioHandler.SetVolumeMultiplier(SongStem.Metronome, multiplier);
         }
 
         private bool LoadReplay()
@@ -288,6 +314,7 @@ namespace YARG.Gameplay
                 if (Chart != null)
                 {
                     GenerateVenueTrack();
+                    GenerateLipsyncTrack();
                 }
                 else
                 {
@@ -309,7 +336,7 @@ namespace YARG.Gameplay
             {
                     SongChart.LoadVenueFromMilo(Chart, Song);
 
-                    YargLogger.LogFormatWarning("Loaded {0} lighting events from milo", Chart.VenueTrack.Lighting.Count);
+                    YargLogger.LogFormatDebug("Loaded {0} lighting events from milo", Chart.VenueTrack.Lighting.Count);
             }
 
             if (File.Exists(VenueAutoGenerationPreset.DefaultPath))
@@ -325,6 +352,13 @@ namespace YARG.Gameplay
                     Chart = preset.GenerateLightingEvents(Chart);
                 }
             }
+        }
+
+        private void GenerateLipsyncTrack()
+        {
+            SongChart.LoadLipsyncFromMilo(Chart, Song);
+
+            YargLogger.LogFormatDebug("Loaded {0} lipsync events from milo", Chart.LipsyncEvents.Count);
         }
 
         private void FinalizeChart()
@@ -378,6 +412,8 @@ namespace YARG.Gameplay
                 int vocalIndex = -1;
                 foreach (var player in YargPlayers)
                 {
+                    player.IsScoreValid = true;
+
                     if (!player.IsReplay)
                     {
                         // Reset microphone (resets channel buffers)
@@ -437,8 +473,11 @@ namespace YARG.Gameplay
                         // Initialize the vocal track if it hasn't been already, and hide lyric bar
                         if (!vocalTrackInitialized)
                         {
+                            highwayIndex++;
                             VocalTrack.gameObject.SetActive(true);
-                            _trackViewManager.CreateVocalTrackView();
+                            // Position the vocal track at its highway slot so the shader's WorldPosToIndex maps it correctly
+                            VocalTrack.transform.position = new Vector3(highwayIndex * TRACK_SPACING_X, 100, 0);
+                            _trackViewManager.CreateVocalTrackView(highwayIndex);
 
                             // Since all players have to select the same vocals
                             // type (solo/harmony) this works no problem.
@@ -447,7 +486,7 @@ namespace YARG.Gameplay
                                 : Chart.Harmony;
                             VocalTrack.Initialize(chart, player, Song.VocalScrollSpeedScalingFactor);
 
-                            _lyricBar.SetActive(false);
+                            _lyricBar.gameObject.SetActive(false);
                             vocalTrackInitialized = true;
                         }
 

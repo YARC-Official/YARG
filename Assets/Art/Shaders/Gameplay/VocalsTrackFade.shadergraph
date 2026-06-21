@@ -626,12 +626,12 @@
 
 {
     "m_SGVersion": 0,
-    "m_Type": "UnityEditor.ShaderGraph.ScreenPositionNode",
+    "m_Type": "UnityEditor.ShaderGraph.UVNode",
     "m_ObjectId": "3b4e61963ae5414bb9698d6c15608940",
     "m_Group": {
         "m_Id": ""
     },
-    "m_Name": "Screen Position",
+    "m_Name": "UV",
     "m_DrawState": {
         "m_Expanded": true,
         "m_Position": {
@@ -647,14 +647,18 @@
             "m_Id": "cefa66c04ef04972a2513484b76f9c0f"
         }
     ],
-    "synonyms": [],
+    "synonyms": [
+        "texcoords",
+        "coords",
+        "coordinates"
+    ],
     "m_Precision": 0,
     "m_PreviewExpanded": true,
     "m_PreviewMode": 0,
     "m_CustomColors": {
         "m_SerializableColors": []
     },
-    "m_ScreenSpaceType": 0
+    "m_OutputChannel": 0
 }
 
 {
@@ -1669,7 +1673,7 @@
     "m_Type": "UnityEditor.ShaderGraph.Vector4MaterialSlot",
     "m_ObjectId": "cefa66c04ef04972a2513484b76f9c0f",
     "m_Id": 0,
-    "m_DisplayName": "Out",
+    "m_DisplayName": "UV",
     "m_SlotType": 1,
     "m_Hidden": false,
     "m_ShaderOutputName": "Out",

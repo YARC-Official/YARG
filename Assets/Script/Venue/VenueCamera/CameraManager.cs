@@ -74,18 +74,17 @@ namespace YARG.Venue.VenueCamera
             { CameraCutEvent.CameraCutSubject.Vocals, CameraLocation.Vocals },
             { CameraCutEvent.CameraCutSubject.AllBehind, CameraLocation.Behind },
             { CameraCutEvent.CameraCutSubject.BehindNoDrum, CameraLocation.Behind },
-            // For testing
-            { CameraCutEvent.CameraCutSubject.BassBehind, CameraLocation.Behind },
-            { CameraCutEvent.CameraCutSubject.GuitarBehind, CameraLocation.Behind },
-            { CameraCutEvent.CameraCutSubject.DrumsBehind, CameraLocation.Behind },
-            { CameraCutEvent.CameraCutSubject.KeysBehind, CameraLocation.Behind },
-            { CameraCutEvent.CameraCutSubject.VocalsBehind, CameraLocation.Behind },
-            { CameraCutEvent.CameraCutSubject.BassGuitarBehind, CameraLocation.Behind },
-            { CameraCutEvent.CameraCutSubject.BassVocalsBehind, CameraLocation.Behind },
-            { CameraCutEvent.CameraCutSubject.GuitarVocalsBehind, CameraLocation.Behind },
-            { CameraCutEvent.CameraCutSubject.KeysVocalsBehind, CameraLocation.Behind },
-            { CameraCutEvent.CameraCutSubject.BassKeysBehind, CameraLocation.Behind },
-            { CameraCutEvent.CameraCutSubject.GuitarKeysBehind, CameraLocation.Behind },
+            { CameraCutEvent.CameraCutSubject.BassBehind, CameraLocation.BassBehind },
+            { CameraCutEvent.CameraCutSubject.GuitarBehind, CameraLocation.GuitarBehind },
+            { CameraCutEvent.CameraCutSubject.DrumsBehind, CameraLocation.DrumsBehind },
+            { CameraCutEvent.CameraCutSubject.KeysBehind, CameraLocation.KeysBehind },
+            { CameraCutEvent.CameraCutSubject.VocalsBehind, CameraLocation.VocalsBehind },
+            { CameraCutEvent.CameraCutSubject.BassGuitarBehind, CameraLocation.BassGuitarBehind },
+            { CameraCutEvent.CameraCutSubject.BassVocalsBehind, CameraLocation.BassVocalsBehind },
+            { CameraCutEvent.CameraCutSubject.GuitarVocalsBehind, CameraLocation.GuitarVocalsBehind },
+            { CameraCutEvent.CameraCutSubject.KeysVocalsBehind, CameraLocation.KeysVocalsBehind },
+            { CameraCutEvent.CameraCutSubject.BassKeysBehind, CameraLocation.BassKeysBehind },
+            { CameraCutEvent.CameraCutSubject.GuitarKeysBehind, CameraLocation.GuitarKeysBehind },
 
             { CameraCutEvent.CameraCutSubject.AllFar, CameraLocation.Stage },
             { CameraCutEvent.CameraCutSubject.AllNear, CameraLocation.Stage },
@@ -96,8 +95,12 @@ namespace YARG.Venue.VenueCamera
         [SerializeField]
         private GameObject _venue;
 
+        public Camera CurrentCamera { get; private set; }
+
+        // Minimum of 1 second between camera cuts when reduce flashing lights is enabled
+        private const float REDUCED_CAMERA_CUT_INTERVAL = 1.0f;
+
         private List<Camera>  _cameras;
-        private Camera        _currentCamera;
 
         private List<CameraCutEvent> _cameraCuts;
         private int                  _currentCutIndex;
@@ -117,6 +120,7 @@ namespace YARG.Venue.VenueCamera
         private bool  _volumeSet;
 
         private bool _isPostProcessingEnabled;
+        private bool ReducedFlashing => SettingsManager.Settings.ReduceFlashingLights.Value;
 
         protected override void OnChartLoaded(SongChart chart)
         {
@@ -173,7 +177,7 @@ namespace YARG.Venue.VenueCamera
                 if (vc.CameraLocation == CameraLocation.Stage && !foundStage)
                 {
                     // We're setting _currentCamera here so we can avoid checking for null in SwitchCamera
-                    _currentCamera = camera;
+                    CurrentCamera = camera;
                     _cameraTimer = GetRandomCameraTimer();
                     _cameraIndex = _cameras.IndexOf(camera);
                     foundStage = true;
@@ -186,7 +190,7 @@ namespace YARG.Venue.VenueCamera
                 _cameraLocations[vc.CameraLocation] = camera;
                 _validLocations.Add(vc.CameraLocation);
 
-                // Add VenueCameraHelper component to cameras that don't already have it
+                // Add VenueCameraRenderer component to cameras that don't already have it
                 if (camera.GetComponent<VenueCameraRenderer>() == null)
                 {
                     camera.gameObject.AddComponent<VenueCameraRenderer>();
@@ -197,8 +201,16 @@ namespace YARG.Venue.VenueCamera
                 cameraData.volumeLayerMask = layerMask;
             }
 
-            _postProcessingEvents = chart.VenueTrack.PostProcessing;
-            _cameraCuts = chart.VenueTrack.CameraCuts;
+            var postProcessingEvents = chart.VenueTrack.PostProcessing;
+            var cameraCuts = chart.VenueTrack.CameraCuts;
+
+            if (ReducedFlashing)
+            {
+                (postProcessingEvents, cameraCuts) = ReduceFlashingEvents(postProcessingEvents, cameraCuts);
+            }
+
+            _postProcessingEvents = postProcessingEvents;
+            _cameraCuts = cameraCuts;
 
             // Make up a PostProcessingEvent of type default to start us off
             var firstEffect = new PostProcessingEvent(PostProcessingType.Default, -2f, 0);
@@ -215,7 +227,7 @@ namespace YARG.Venue.VenueCamera
 
             _useCameraTimer = _cameraCuts.Count < 1;
 
-            SwitchCamera(_currentCamera, _useCameraTimer);
+            SwitchCamera(CurrentCamera, _useCameraTimer);
 
             if (_useCameraTimer)
             {
@@ -224,6 +236,19 @@ namespace YARG.Venue.VenueCamera
             }
 
             GameManager.SetVenueCameraManager(this);
+        }
+
+        private static (List<PostProcessingEvent> PostProcessingEvents, List<CameraCutEvent> CameraCuts) ReduceFlashingEvents(
+            List<PostProcessingEvent> postProcessingEvents, List<CameraCutEvent> cameraCuts)
+        {
+            var reducedPostProcessingEvents = ReduceFlashingPostProcessingEvents(postProcessingEvents);
+            var reducedCameraCuts = ChartEvent.FilterByInterval(
+                cameraCuts,
+                REDUCED_CAMERA_CUT_INTERVAL,
+                isDuplicate: (curr, prev) => curr.Subject == prev.Subject && curr.Constraint == prev.Constraint
+            );
+
+            return (reducedPostProcessingEvents, reducedCameraCuts);
         }
 
         private void InitializeVolume()
@@ -322,27 +347,33 @@ namespace YARG.Venue.VenueCamera
 
         private void SwitchCamera(Camera newCamera, bool random = false)
         {
-            // _currentCamera.enabled = false;
-            _currentCamera.gameObject.SetActive(false);
-
             if (random)
             {
                 _cameraTimer = GetRandomCameraTimer();
-                _currentCamera = GetRandomCamera();
+                newCamera = GetRandomCamera();
             }
             else
             {
-                _currentCamera = newCamera;
-                _cameraTimer = _cameraTimer = Mathf.Max(11f, (float) _cameraCuts[_currentCutIndex].TimeLength);
+                _cameraTimer = Mathf.Max(11f, (float) _cameraCuts[_currentCutIndex].TimeLength);
             }
-            _currentCamera.gameObject.SetActive(true);
-            _cameraIndex = _cameras.IndexOf(_currentCamera);
+
+            // If we are switching to the same camera, just leave it active
+            if (newCamera == CurrentCamera)
+            {
+                return;
+            }
+
+            CurrentCamera.gameObject.SetActive(false);
+            CurrentCamera = newCamera;
+            CurrentCamera.gameObject.SetActive(true);
+            _cameraIndex = _cameras.IndexOf(CurrentCamera);
         }
 
         private float GetRandomCameraTimer()
         {
             return Random.Range(1f, 4f);
         }
+
 
         private Camera GetRandomCamera()
         {
@@ -525,7 +556,7 @@ namespace YARG.Venue.VenueCamera
             _copierCurveParam.Release();
 
             // Enable the camera in case it happens to be disabled
-            _currentCamera.enabled = true;
+            CurrentCamera.enabled = true;
 
             SettingsManager.Settings.VenuePostProcessing.OnChange -= SetPostProcessingEnabled;
             GameManager.BeatEventHandler?.Audio.Unsubscribe(BeatHandler);

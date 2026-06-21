@@ -127,6 +127,7 @@ namespace YARG.Menu.Credits
             Add(song.CharterKeys);
             Add(song.CharterProKeys);
             Add(song.CharterVenue);
+            Add(song.CharterAudio);
 
             // For future use
             // Add(song.CharterProGuitar);

@@ -1,8 +1,13 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using Cinemachine;
 using Cysharp.Threading.Tasks;
+using Newtonsoft.Json;
+using UniHumanoid;
 using UnityEngine;
+using UnityEngine.Animations;
 using UnityEngine.UI;
 using UnityEngine.Video;
 using YARG.Core.IO;
@@ -11,15 +16,28 @@ using YARG.Core.Venue;
 using YARG.Helpers.Extensions;
 using YARG.Settings;
 using YARG.Venue;
+using YARG.Venue.Characters;
+using YARG.Core.Logging;
+using YARG.Helpers;
+
+#if UNITY_EDITOR
+using UnityEditor.SceneManagement;
+using UnityEngine.SceneManagement;
+#endif
+
 #if UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX
 using System.Collections.Generic;
-using YARG.Core.Logging;
 #endif
 
 namespace YARG.Gameplay
 {
     public class BackgroundManager : GameplayBehaviour, IDisposable
     {
+        // e.g. DefaultController.Vocals.Rock.controller
+        private const string DEFAULT_ANIMATION_CONTROLLER_PATH     = "Animations/{0}/{1}/";
+        private const string DEFAULT_ANIMATION_CONTROLLER_FILENAME = "DefaultController";
+        private const string DEFAULT_ANIMATION_PARAMETERS_FILENAME = "AnimatorParameters";
+
         private string VIDEO_PATH;
 
         [SerializeField]
@@ -34,11 +52,18 @@ namespace YARG.Gameplay
         [SerializeField]
         private RawImage _venueOutput;
 
+        [SerializeField]
+        private Image _venueFadeOverlay;
+
         private BackgroundType _type;
         private VenueSource _source;
 
         private bool _videoStarted = false;
         private bool _videoSeeking = false;
+
+        private const float FADE_DURATION = 0.5f;
+
+        private float YARGROUND_OFFSET = 50f;
 
         // These values are relative to the video, not to song time!
         // A negative start time will delay when the video starts, a positive one will set the video position
@@ -47,12 +72,107 @@ namespace YARG.Gameplay
         // End time cannot be negative; a negative value means it is not set.
         private double _videoEndTime;
 
+        private AssetBundle _characterBundle;
+
+        private BundleBackgroundManager _bundleBackgroundManager;
+
+#if UNITY_EDITOR
+        private          bool             _usingEditorVenue;
+        private          string           _editorVenuePath;
+        private          Scene            _editorVenueScene;
+#endif
         // "The Unity message 'Start' has an incorrect signature."
         [SuppressMessage("Type Safety", "UNT0006", Justification = "UniTaskVoid is a compatible return type.")]
         private async UniTaskVoid Start()
         {
             // We don't need to update unless we're using a video
             enabled = false;
+
+#if UNITY_EDITOR
+            if (VenueEditorHelper.IsSceneEnabled())
+            {
+                if (VenueEditorHelper.TryGetScenePath(out _editorVenuePath))
+                {
+                    var loadedScene = SceneManager.GetSceneByName(_editorVenuePath);
+                    if (loadedScene.IsValid() && loadedScene.isLoaded)
+                    {
+                        _editorVenueScene = loadedScene;
+                    }
+                    else
+                    {
+                        var op = EditorSceneManager.LoadSceneAsyncInPlayMode(
+                            _editorVenuePath, new LoadSceneParameters(LoadSceneMode.Additive));
+
+                        await op;
+                        _editorVenueScene = SceneManager.GetSceneByPath(_editorVenuePath);
+                    }
+                }
+
+                if (!_editorVenueScene.IsValid() || !_editorVenueScene.isLoaded)
+                {
+                    YargLogger.LogFormatError("Failed to load editor venue scene {0}", _editorVenuePath);
+                    return;
+                }
+
+                BundleBackgroundManager editorBg = null;
+                foreach (var go in _editorVenueScene.GetRootGameObjects())
+                {
+                    editorBg = go.GetComponent<BundleBackgroundManager>();
+
+                    if (editorBg != null)
+                    {
+                        break;
+                    }
+                }
+
+                if (editorBg == null)
+                {
+                    YargLogger.LogFormatError("Scene {0} missing BundleBackgroundManager", _editorVenuePath);
+                    return;
+                }
+
+                _usingEditorVenue = true;
+
+                ShowVenue();
+
+                var editorRenderers = editorBg.GetComponentsInChildren<Renderer>(true);
+
+                // Song specific textures
+                var tm = GetComponent<TextureManager>();
+                var songBg = GameManager.Song.LoadBackground(true);
+
+                foreach (var renderer in editorRenderers)
+                {
+                    var materials = renderer.materials;
+
+                    for (int i = 0; i < materials.Length; i++)
+                    {
+                        tm.ProcessMaterial(materials[i], songBg?.Type);
+                    }
+
+                    renderer.materials = materials;
+                }
+
+                editorBg.SetupVenueCamera(editorBg.gameObject);
+                editorBg.LimitVenueLights(editorBg.gameObject);
+
+                if (_videoPlayer != null && _videoPlayer.targetCamera != null)
+                {
+                    Destroy(_videoPlayer.targetCamera.gameObject);
+                }
+
+                _type = BackgroundType.Yarground;
+
+                // Initialize CharacterManager, if it exists
+                var characterManager = editorBg.GetComponentInChildren<CharacterManager>();
+                if (characterManager != null)
+                {
+                    characterManager.Initialize();
+                }
+
+                return;
+            }
+#endif
 
             using var result = VenueLoader.GetVenue(GameManager.Song, out _source);
             if (result == null)
@@ -68,88 +188,7 @@ namespace YARG.Gameplay
             switch (_type)
             {
                 case BackgroundType.Yarground:
-                    var bundle = AssetBundle.LoadFromStream(result.Stream);
-                    AssetBundle shaderBundle = null;
-
-                    _venueOutput.gameObject.SetActive(true);
-                    // KEEP THIS PATH LOWERCASE
-                    // Breaks things for other platforms, because Unity
-                    var bg = (GameObject) await bundle.LoadAssetAsync<GameObject>(
-                        BundleBackgroundManager.BACKGROUND_PREFAB_PATH.ToLowerInvariant());
-                    var renderers = bg.GetComponentsInChildren<Renderer>(true);
-#if UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX
-                    var metalShaders = new Dictionary<string, Shader>();
-
-                    var shaderBundleData = (TextAsset)await bundle.LoadAssetAsync<TextAsset>(
-                        "Assets/" + BundleBackgroundManager.BACKGROUND_SHADER_BUNDLE_NAME
-                    );
-
-                    if (shaderBundleData != null && shaderBundleData.bytes.Length > 0)
-                    {
-                        YargLogger.LogInfo("Loading Metal shader bundle");
-                        shaderBundle = await AssetBundle.LoadFromMemoryAsync(shaderBundleData.bytes);
-                        var allAssets = shaderBundle.LoadAllAssets<Shader>();
-                        foreach (var shader in allAssets)
-                        {
-                            metalShaders.Add(shader.name, shader);
-                        }
-                    }
-                    else
-                    {
-                        YargLogger.LogInfo("Did not find Metal shader bundle");
-                    }
-
-                    // Yarground comes with shaders for dx11/dx12/glcore/vulkan
-                    // Metal shaders used on OSX come in this separate bundle
-                    // Update our renderers to use them
-
-                    foreach (var renderer in renderers)
-                    {
-                        foreach (var material in renderer.sharedMaterials)
-                        {
-                            var shaderName = material.shader.name;
-                            if (metalShaders.TryGetValue(shaderName, out var shader))
-                            {
-                                YargLogger.LogFormatDebug("Found bundled shader {0}", shaderName);
-                                // We found shader from Yarground
-                                material.shader = shader;
-                            }
-                            else
-                            {
-                                YargLogger.LogFormatDebug("Did not find bundled shader {0}", shaderName);
-                                // Fallback to try to find among builtin shaders
-                                material.shader = Shader.Find(shaderName);
-                            }
-                        }
-                    }
-#endif
-                    // Hookup song-specific textures
-                    var textureManager = GetComponent<TextureManager>();
-                    // Load SongBackground here to determine if textures need to be replaced
-                    var songBackground = GameManager.Song.LoadBackground();
-                    foreach (var renderer in renderers)
-                    {
-                        foreach (var material in renderer.sharedMaterials)
-                        {
-                            textureManager.ProcessMaterial(material, songBackground?.Type);
-                        }
-                    }
-
-                    var bgInstance = Instantiate(bg);
-                    var bundleBackgroundManager = bgInstance.GetComponent<BundleBackgroundManager>();
-                    bundleBackgroundManager.Bundle = bundle;
-                    bundleBackgroundManager.ShaderBundle = shaderBundle;
-                    bundleBackgroundManager.SetupVenueCamera(bgInstance);
-                    bundleBackgroundManager.LimitVenueLights(bgInstance);
-
-                    // Destroy the default camera (venue has its own)
-                    Destroy(_videoPlayer.targetCamera.gameObject);
-
-                    if (textureManager.VideoTexFound())
-                    {
-                        SetUpVideoTexture(songBackground);
-                    }
-
+                    await LoadYarground(result);
                     break;
                 case BackgroundType.Video:
                     LoadVideoBackground(result);
@@ -159,6 +198,63 @@ namespace YARG.Gameplay
                     _backgroundImage.uvRect = new Rect(0f, 0f, 1f, -1f);
                     _backgroundImage.gameObject.SetActive(true);
                     break;
+            }
+        }
+
+        private async UniTask LoadYarground(BackgroundResult result)
+        {
+            var bundle = AssetBundle.LoadFromStream(result.Stream);
+            AssetBundle shaderBundle = null;
+
+            ShowVenue();
+            // KEEP THIS PATH LOWERCASE
+            // Breaks things for other platforms, because Unity
+            var bg = (GameObject) await bundle.LoadAssetAsync<GameObject>(
+                BundleBackgroundManager.BACKGROUND_PREFAB_PATH.ToLowerInvariant());
+            var renderers = bg.GetComponentsInChildren<Renderer>(true);
+
+            // Load Metal shaders, if necessary
+            shaderBundle = await BackgroundHelper.LoadMetalShaders(bundle, bg, BackgroundHelper.ExportType.Background);
+
+            // Hookup song-specific textures
+            var textureManager = GetComponent<TextureManager>();
+            // Load SongBackground here to determine if textures need to be replaced
+            var songBackground = GameManager.Song.LoadBackground(true);
+            foreach (var renderer in renderers)
+            {
+                foreach (var material in renderer.sharedMaterials)
+                {
+                    textureManager.ProcessMaterial(material, songBackground?.Type);
+                }
+            }
+
+            var bgInstance = Instantiate(bg);
+            var bundleBackgroundManager = bgInstance.GetComponent<BundleBackgroundManager>();
+            bundleBackgroundManager.Bundle = bundle;
+            bundleBackgroundManager.ShaderBundles.Add(shaderBundle);
+            bundleBackgroundManager.SetupVenueCamera(bgInstance);
+            bundleBackgroundManager.LimitVenueLights(bgInstance);
+
+            _bundleBackgroundManager = bundleBackgroundManager;
+
+            // Position venue as close to origin as is conveniently possible without wrecking scene view
+            SetYargroundOrigin(bgInstance);
+
+            // Destroy the default camera (venue has its own)
+            Destroy(_videoPlayer.targetCamera.gameObject);
+
+            if (textureManager.VideoTexFound())
+            {
+                SetUpVideoTexture(songBackground);
+            }
+
+            await LoadCustomCharacter(bgInstance);
+
+            // Initialize CharacterManager, if it exists
+            var characterManager = bgInstance.GetComponentInChildren<CharacterManager>();
+            if (characterManager != null)
+            {
+                characterManager.Initialize();
             }
         }
 
@@ -189,6 +285,25 @@ namespace YARG.Gameplay
                     Destroy(songTex);
                     return;
             }
+        }
+
+        private void ShowVenue()
+        {
+            _venueOutput.gameObject.SetActive(true);
+            FadeInVenue().Forget();
+        }
+
+        private async UniTaskVoid FadeInVenue()
+        {
+            // Wait for the venue to be rendered, otherwise we will see a gray screen
+            var token = this.GetCancellationTokenOnDestroy();
+            await UniTask
+                .WaitUntil(
+                    () => VenueCameraRenderer.IsRendered,
+                    cancellationToken: token
+                )
+                .SuppressCancellationThrow();
+            _venueFadeOverlay.CrossFadeAlpha(0f, FADE_DURATION, true);
         }
 
         private void LoadVideoBackground(BackgroundResult bg)
@@ -385,6 +500,301 @@ namespace YARG.Gameplay
             // The venue is dealt with in the GameManager via Time.timeScale
         }
 
+        private async UniTask LoadCustomCharacter(GameObject venueRoot)
+        {
+            string characterPath = SettingsManager.Settings.CustomVocalsCharacter.Value;
+
+            if (string.IsNullOrEmpty(characterPath))
+            {
+                return;
+            }
+
+            var bundle = AssetBundle.LoadFromFile(characterPath);
+
+            if (bundle == null)
+            {
+                return;
+            }
+
+            _bundleBackgroundManager.CharacterBundles.Add(bundle);
+
+            var character = bundle.LoadAsset<GameObject>(BundleBackgroundManager.CHARACTER_PREFAB_PATH.ToLowerInvariant());
+            if (character == null)
+            {
+                YargLogger.LogFormatError("Failed to load character from {0}", characterPath);
+                return;
+            }
+
+            // Load Metal shaders
+            var shaderBundle = await BackgroundHelper.LoadMetalShaders(bundle, character, BackgroundHelper.ExportType.Character);
+            if (shaderBundle != null)
+            {
+                _bundleBackgroundManager.ShaderBundles.Add(shaderBundle);
+            }
+
+            // Load default animation controller and parameters if necessary
+            LoadAnimationDefaults(character);
+
+            var newType = character.GetComponent<VenueCharacter>().Type;
+            // Find a character of the same type in venueRoot
+            GameObject existingCharacter = null;
+
+            var characters = venueRoot.GetComponentsInChildren<VenueCharacter>();
+            foreach (var c in characters)
+            {
+                if (c.Type == newType)
+                {
+                    existingCharacter = c.gameObject;
+                    break;
+                }
+            }
+
+            if (existingCharacter == null)
+            {
+                YargLogger.LogFormatError("Failed to find character of type {0} in venue root", newType);
+                return;
+            }
+
+            // Replace existingCharacter with the new character
+            var existingParent = existingCharacter.transform.parent;
+
+            var newCharacter = Instantiate(character, existingParent);
+            ReplaceReferences(venueRoot, existingCharacter, newCharacter);
+            existingCharacter.SetActive(false);
+            Destroy(existingCharacter);
+
+            AddMicrophoneToCharacter(newCharacter);
+
+            // Lastly, make sure the new character and all its children are in the Venue layer
+            var layerIndex = LayerMask.NameToLayer("Venue");
+            SetLayer(newCharacter, layerIndex);
+        }
+
+        private void AddMicrophoneToCharacter(GameObject character)
+        {
+            var vrmCharacter = character.GetComponent<VRMCharacter>();
+            if (vrmCharacter == null || vrmCharacter.Type != VenueCharacter.CharacterType.Vocals ||
+                vrmCharacter.UseCustomAnimations)
+            {
+                return;
+            }
+
+            var animator = vrmCharacter.GetComponent<Animator>();
+
+            if (animator == null)
+            {
+                return;
+            }
+
+            // TODO: Come up with a better means of doing this, because this is both cursed and barely adequate
+
+            // Make sure the animator has taken the character out of t-pose
+            animator.Update(0f);
+
+            // Needed to calculate position and rotation
+            var rightHand = animator.GetBoneTransform(HumanBodyBones.RightHand);
+            var rightLittleDistal = animator.GetBoneTransform(HumanBodyBones.RightLittleDistal);
+            var rightLittleIntermediate = animator.GetBoneTransform(HumanBodyBones.RightLittleIntermediate);
+            var rightLittleProximal = animator.GetBoneTransform(HumanBodyBones.RightLittleProximal);
+            var rightRingIntermediate = animator.GetBoneTransform(HumanBodyBones.RightRingIntermediate);
+            var rightMiddleIntermediate = animator.GetBoneTransform(HumanBodyBones.RightMiddleIntermediate);
+            var rightIndexDistal = animator.GetBoneTransform(HumanBodyBones.RightIndexDistal);
+            var rightIndexIntermediate = animator.GetBoneTransform(HumanBodyBones.RightIndexIntermediate);
+            var rightIndexProximal = animator.GetBoneTransform(HumanBodyBones.RightIndexProximal);
+            var rightThumbDistal = animator.GetBoneTransform(HumanBodyBones.RightThumbDistal);
+
+            // Parent microphone to right hand
+            var mic = Instantiate(Resources.Load<GameObject>("Animations/Vocals/Microphone"), rightHand);
+
+            var indexGripCenter = Vector3.Lerp(rightThumbDistal.position, rightIndexIntermediate.position, 0.25f);
+            var yuiIndexGripCenter = Vector3.Lerp(rightThumbDistal.position, rightIndexProximal.position, 0.25f);
+            var littleGripCenter = Vector3.Lerp(rightLittleDistal.position, rightLittleProximal.position, 0.5f);
+
+            mic.transform.position = yuiIndexGripCenter;
+        }
+
+        private void LoadAnimationDefaults(GameObject character)
+        {
+            // Check for an existing animation controller and use default if none is found
+            var animator = character.GetComponent<Animator>();
+            var vrmCharacter = character.GetComponent<VRMCharacter>();
+            if (!vrmCharacter.UseCustomAnimations && animator != null)
+            {
+                var controller = animator.runtimeAnimatorController;
+                if (controller == null || !vrmCharacter.UseCustomAnimations)
+                {
+                    var genre = GetDefaultGenre(GameManager.Song.Genre);
+                    var charType = character.GetComponent<VenueCharacter>().Type;
+                    var basePath = string.Format(DEFAULT_ANIMATION_CONTROLLER_PATH, charType.ToString(), genre);
+                    var controllerPath = Path.Combine(basePath, DEFAULT_ANIMATION_CONTROLLER_FILENAME);
+                    var newController = Resources.Load<RuntimeAnimatorController>(controllerPath);
+                    if (newController != null)
+                    {
+                        animator.runtimeAnimatorController = newController;
+                        animator.Rebind();
+
+                        // We swapped controllers, so we need to clear the character's animation dicts
+                        vrmCharacter.AnimationStates.Clear();
+                        vrmCharacter.LayerStates.Clear();
+                    }
+                    else
+                    {
+                        YargLogger.LogFormatError("Failed to load default animation controller for {0}", charType);
+                    }
+
+                    // Read AnimatorParameters json and set _actionsPerAnimationCycle and _framesToFirstHit
+                    var parametersPath = Path.Combine(basePath, DEFAULT_ANIMATION_PARAMETERS_FILENAME);
+                    var jsonAsset = Resources.Load<TextAsset>(parametersPath);
+                    if (jsonAsset != null)
+                    {
+                        var props =
+                            JsonConvert.DeserializeObject<Dictionary<string, int>>(jsonAsset.text);
+                        if (props != null)
+                        {
+                            vrmCharacter.ActionsPerAnimationCycle = props["ActionsPerAnimationCycle"];
+                            vrmCharacter.FramesToFirstHit = props["FramesToFirstHit"];
+                        }
+                    }
+                    else
+                    {
+                        YargLogger.LogFormatError("Failed to load default animation parameters for {0}", charType);
+                    }
+                }
+            }
+        }
+
+#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
+
+        // It would be better if we could replace all references, but I'm not sure how to do that, so I'm fixing up the ones I know how to do
+        public void ReplaceReferences(GameObject venueRoot, GameObject oldObject, GameObject newObject)
+        {
+            Transform hips = null;
+            Transform head = null;
+            var humanoid = newObject.GetComponent<Humanoid>();
+            if (humanoid != null)
+            {
+                hips = humanoid.Hips;
+                head = humanoid.Head;
+            }
+
+            // Find references to oldObject.transform anywhere in venueRoot..for now we'll just deal with Cinemachine and Lights having lookat/follow properties
+            var lookAts = venueRoot.GetComponentsInChildren<LookAtConstraint>(true);
+            var sources = new List<ConstraintSource>();
+            foreach (var lookat in lookAts)
+            {
+                sources.Clear();
+                lookat.GetSources(sources);
+
+                for (int i = 0; i < sources.Count; i++)
+                {
+                    var s = sources[i];
+                    if (s.sourceTransform != null && s.sourceTransform.IsChildOf(oldObject.transform))
+                    {
+                        if (head != null && (s.sourceTransform.gameObject.name.Contains("Head") ||
+                            s.sourceTransform.gameObject.name.Contains("Face")))
+                        {
+                            s.sourceTransform = head;
+                        }
+                        else if (hips != null && s.sourceTransform.gameObject.name.Contains("Hips"))
+                        {
+                            s.sourceTransform = hips;
+                        }
+                        else
+                        {
+                            s.sourceTransform = newObject.transform;
+                        }
+
+                        sources[i] = s;
+                    }
+                }
+
+                lookat.SetSources(sources);
+            }
+
+            var cinemachines = venueRoot.GetComponentsInChildren<CinemachineVirtualCamera>(true);
+            foreach (var cinemachine in cinemachines)
+            {
+                // If we can easily determine face/hips, we use the corresponding transform on the VRM character, otherwise we default to hips if set, otherwise newObject.transform
+                // We also use a heuristic based on the camera name so as to make certain existing venues not look stupid on the Vocals Closeup cam
+                var follow = cinemachine.Follow;
+                if (follow != null && follow.IsChildOf(oldObject.transform))
+                {
+                    if (head != null &&
+                        (follow.gameObject.name.Contains("Face") ||
+                         follow.gameObject.name.Contains("Head") ||
+                         cinemachine.gameObject.name == "Vocals Closeup" ||
+                         cinemachine.gameObject.name.EndsWith("Closeup Head")))
+                    {
+                        cinemachine.Follow = head;
+                    }
+                    else if (hips != null)
+                    {
+                        cinemachine.Follow = hips;
+                    }
+                    else
+                    {
+                        cinemachine.Follow = newObject.transform;
+                    }
+                }
+
+                var lookAt = cinemachine.LookAt;
+                if (lookAt != null && lookAt.IsChildOf(oldObject.transform))
+                {
+                    if (head != null && (lookAt.gameObject.name.Contains("Face") ||
+                        lookAt.gameObject.name.Contains("Head") ||
+                        cinemachine.gameObject.name == "Vocals Closeup" ||
+                        cinemachine.gameObject.name.EndsWith("Closeup Head")))
+                    {
+                        cinemachine.LookAt = head;
+                    }
+                    else if (hips != null)
+                    {
+                        cinemachine.LookAt = hips;
+                    }
+                    else
+                    {
+                        cinemachine.LookAt = newObject.transform;
+                    }
+                }
+            }
+        }
+
+        private void SetLayer(GameObject go, int layer)
+        {
+            go.layer = layer;
+            foreach (Transform child in go.transform)
+            {
+                SetLayer(child.gameObject, layer);
+            }
+        }
+
+        private void SetYargroundOrigin(GameObject venueRoot)
+        {
+            // Calculate bounds for everything in venueRoot
+            venueRoot.transform.localPosition = Vector3.zero;
+            var bounds = new Bounds(Vector3.zero, Vector3.one);
+            var children = venueRoot.GetComponentsInChildren<Renderer>(true);
+            foreach (var child in children)
+            {
+                bounds.Encapsulate(child.bounds);
+            }
+
+            var sizeX = bounds.size.x;
+            var sizeZ = bounds.size.z;
+
+            var offsetX = (sizeX * 0.5f) + YARGROUND_OFFSET;
+            var offsetZ = (sizeZ * 0.5f) + YARGROUND_OFFSET;
+
+            // New origin places maxZ and maxX at -50
+            venueRoot.transform.position = new Vector3(-offsetX, 0, -offsetZ);
+        }
+
+        // TODO: Move this to Genrelizer or sth and implement
+        public static string GetDefaultGenre(string realGenre)
+        {
+            return "Default";
+        }
+
         public void Dispose()
         {
             if (VIDEO_PATH != null)
@@ -392,6 +802,13 @@ namespace YARG.Gameplay
                 File.Delete(VIDEO_PATH);
                 VIDEO_PATH = null;
             }
+
+#if UNITY_EDITOR
+            if (_usingEditorVenue)
+            {
+                SceneManager.UnloadSceneAsync(_editorVenueScene);
+            }
+#endif
         }
 
         ~BackgroundManager()

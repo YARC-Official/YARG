@@ -1,13 +1,11 @@
-﻿using System.Linq;
+using System.Linq;
 using Cysharp.Text;
 using UnityEngine;
 using YARG.Core.Game;
-using YARG.Core.Logging;
 using YARG.Core.Song;
 using YARG.Player;
 using YARG.Playlists;
 using YARG.Scores;
-using YARG.Settings;
 using YARG.Song;
 
 namespace YARG.Menu.MusicLibrary
@@ -26,18 +24,23 @@ namespace YARG.Menu.MusicLibrary
         public override bool UseAsMadeFamousBy => !SongEntry.IsMaster;
 
         public readonly SongEntry SongEntry;
+        public override string StableId => _stableId;
+        public string ContentStableId => _contentStableId;
 
         private readonly MusicLibraryMenu _musicLibrary;
+        private readonly string _stableId;
+        private readonly string _contentStableId;
 
         private bool _fetchedScores;
         private PlayerScoreRecord _playerScoreRecord;
-        private PlayerScoreRecord _playerPercentRecord;
         private GameRecord _bandScoreRecord;
 
-        public SongViewType(MusicLibraryMenu musicLibrary, SongEntry songEntry)
+        public SongViewType(MusicLibraryMenu musicLibrary, SongEntry songEntry, string context = "library")
         {
             _musicLibrary = musicLibrary;
             SongEntry = songEntry;
+            _contentStableId = $"Song:{SongEntry.Hash}_{SongEntry.ActualLocation}";
+            _stableId = $"Song:{context}:{_contentStableId}";
         }
 
         public override string GetPrimaryText(bool selected)
@@ -63,14 +66,10 @@ namespace YARG.Menu.MusicLibrary
 
             using var builder = ZString.CreateStringBuilder();
 
+            // If non-null, band score is being requested
             if (_bandScoreRecord is not null)
             {
-                // Append the band score if the setting is enabled
-                if (SettingsManager.Settings.HighScoreInfo.Value == HighScoreInfoMode.Score)
-                {
-                    builder.AppendFormat("{0:N0}", _bandScoreRecord.BandScore);
-                }
-
+                builder.AppendFormat("{0:N0}", _bandScoreRecord.BandScore);
                 return builder.ToString();
             }
 
@@ -80,52 +79,56 @@ namespace YARG.Menu.MusicLibrary
                 return string.Empty;
             }
 
-            if (_playerPercentRecord is null)
-            {
-                YargLogger.Fail("Best Percentage score is missing!");
-                return "Score display error!";
-            }
-
-            var percentDifficulty = _playerPercentRecord.Difficulty;
-            var percent = Mathf.Floor(_playerPercentRecord.GetPercent() * 100f);
-            var percentColor = _playerPercentRecord.IsFc ? "#fcd13c" : "#ffffff";
-
-            builder.AppendFormat("<sprite name=\"{0}\"> <mspace=.5em><color={1}>{2,3:N0}</mspace>%</color><space=0.5em>",
-                percentDifficulty, percentColor, percent);
-
-            var scoreInfoMode = SettingsManager.Settings.HighScoreInfo.Value;
-
-            // Percent and score could potentially come from separate difficulties depending on settings
-            if (scoreInfoMode != HighScoreInfoMode.Off && _playerScoreRecord.Difficulty != _playerPercentRecord.Difficulty)
-            {
-                builder.AppendFormat("|<space=0.5em><sprite name=\"{0}\"> ", _playerScoreRecord.Difficulty);
-            }
-
-            // Append the score if the setting is enabled
-            if (scoreInfoMode == HighScoreInfoMode.Score)
-            {
-                builder.AppendFormat("{0:N0}", _playerScoreRecord.Score);
-            }
-
+            var scoreColor = _playerScoreRecord.IsFc ? "#ffd029" : "#ffffff";
+            builder.AppendFormat("<mspace=.5em><color={1}>{0:N0}</color></mspace>",
+                _playerScoreRecord.Score, scoreColor);
             return builder.ToString();
         }
 
-        public override StarAmount? GetStarAmount()
+        public override ScoreInfo? GetScoreInfo()
         {
-            // Only show stars if enabled
-            if (SettingsManager.Settings.HighScoreInfo.Value != HighScoreInfoMode.Stars)
+            FetchHighScores();
+
+            // Never played!
+            if (_playerScoreRecord is null)
             {
                 return null;
             }
 
+            return new ScoreInfo
+            {
+                Score = _playerScoreRecord.Score,
+                Difficulty = _playerScoreRecord.Difficulty,
+                Percent = _playerScoreRecord.GetPercent(),
+                Instrument = _playerScoreRecord.Instrument,
+                IsFc = _playerScoreRecord.IsFc
+            };
+        }
+
+        public override StarAmount? GetStarAmount()
+        {
             FetchHighScores();
 
-            if (_bandScoreRecord is not null)
+            return GetStarAmount(_playerScoreRecord, _bandScoreRecord);
+        }
+
+        public static StarAmount? GetStarAmountForSong(SongEntry songEntry)
+        {
+            FetchHighScores(songEntry, out var playerScoreRecord, out var bandScoreRecord);
+
+            return GetStarAmount(playerScoreRecord, bandScoreRecord);
+        }
+
+        private static StarAmount? GetStarAmount(
+            PlayerScoreRecord? playerScoreRecord,
+            GameRecord? bandScoreRecord)
+        {
+            if (bandScoreRecord is not null)
             {
-                return _bandScoreRecord.BandStars;
+                return bandScoreRecord.BandStars;
             }
 
-            return _playerScoreRecord?.Stars;
+            return playerScoreRecord?.Stars;
         }
 
         public override FavoriteInfo GetFavoriteInfo()
@@ -154,6 +157,7 @@ namespace YARG.Menu.MusicLibrary
 
             // Reset library's main index so we don't return to the index set by play a show
             MusicLibraryMenu.ResetMainLibraryIndex();
+            MusicLibraryMenu.SetReload(MusicLibraryReloadState.Partial);
 
             GlobalVariables.State.CurrentSong = SongEntry;
             // This just makes stuff in DifficultySelectMenu easier
@@ -183,13 +187,11 @@ namespace YARG.Menu.MusicLibrary
             {
                 PlaylistContainer.FavoritesPlaylist.RemoveSong(SongEntry);
 
-                // If we are in the favorites menu, then update the playlist
-                // to remove the song that was just removed.
-                if (_musicLibrary.SelectedPlaylist == PlaylistContainer.FavoritesPlaylist)
-                {
-                    _musicLibrary.RefreshAndReselect();
-                }
+                // Refresh the view to update the filter results
+                _musicLibrary.RefreshAndReselect();
             }
+
+            _musicLibrary.RefreshSidebar();
         }
 
         public override void AddToPlaylist(Playlist playlist)
@@ -201,10 +203,8 @@ namespace YARG.Menu.MusicLibrary
         {
             playlist.RemoveSong(SongEntry);
 
-            if (_musicLibrary.SelectedPlaylist == playlist)
-            {
-                _musicLibrary.RefreshAndReselect();
-            }
+            // Refresh the view to update the filter results
+            _musicLibrary.RefreshAndReselect();
         }
 
         private void FetchHighScores()
@@ -214,19 +214,25 @@ namespace YARG.Menu.MusicLibrary
                 return;
             }
 
+            FetchHighScores(SongEntry, out _playerScoreRecord, out _bandScoreRecord);
             _fetchedScores = true;
+        }
 
-            if (_musicLibrary.ShouldDisplaySoloHighScores)
+        private static void FetchHighScores(SongEntry songEntry, out PlayerScoreRecord playerScoreRecord, out GameRecord bandScoreRecord)
+        {
+            playerScoreRecord = null;
+            bandScoreRecord = null;
+
+            var humanCount = PlayerContainer.Players.Count(p => !p.Profile.IsBot);
+            if (humanCount == 1)
             {
                 var player = PlayerContainer.Players.First(e => !e.Profile.IsBot);
-                _playerScoreRecord = ScoreContainer.GetHighScore(
-                    SongEntry.Hash, player.Profile.Id, player.Profile.CurrentInstrument);
-                _playerPercentRecord = ScoreContainer.GetBestPercentageScore(
-                    SongEntry.Hash, player.Profile.Id, player.Profile.CurrentInstrument);
+                playerScoreRecord = ScoreContainer.GetPreferredHighScore(
+                    songEntry.Hash, player.Profile.Id, player.Profile.CurrentInstrument);
             }
             else
             {
-                _bandScoreRecord = ScoreContainer.GetBandHighScore(SongEntry.Hash);
+                bandScoreRecord = ScoreContainer.GetBandHighScore(songEntry.Hash);
             }
         }
     }

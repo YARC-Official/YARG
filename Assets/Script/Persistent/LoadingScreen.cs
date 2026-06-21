@@ -65,6 +65,16 @@ namespace YARG
                 YargLogger.LogException(ex);
             }
 
+            // Load (sub)genre mappings
+            try
+            {
+                await Genrelizer.LoadGenreMappings(context);
+            }
+            catch (Exception ex)
+            {
+                YargLogger.LogException(ex);
+            }
+
             // Auto connect profiles, using the same order that they were previously connected.
             if (SettingsManager.Settings.ReconnectProfiles.Value)
             {
@@ -73,6 +83,22 @@ namespace YARG
             else
             {
                 PlayerContainer.ClearProfileOrder();
+            }
+
+            // Initialize phoneme dictionary (must load on main thread, parse on thread pool)
+            var cmudictAsset = Resources.Load<TextAsset>("cmudict");
+            if (cmudictAsset == null)
+            {
+                YargLogger.LogError("Failed to load cmudict.txt from Resources");
+            }
+            else
+            {
+                var dictText = cmudictAsset.text;
+                await UniTask.RunOnThreadPool(() =>
+                {
+                    YARG.Core.Chart.LipsyncGenerator.Initialize(dictText);
+                    YargLogger.LogInfo("Initialized phoneme dictionary");
+                });
             }
 
             // Fast scan (cache read) on startup

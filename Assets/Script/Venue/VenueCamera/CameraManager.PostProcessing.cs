@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -32,14 +32,26 @@ namespace YARG.Venue.VenueCamera
 
         private TextureCurve _invertCurve;
         private TextureCurve _defaultCurve;
+		private TextureCurve _defaultLumSatCurve;
         private TextureCurve _copierCurve;
         private TextureCurve _brightCurve;
         private TextureCurve _flatHalfCurve;
+		private TextureCurve _mirrorRCurve;
+		private TextureCurve _mirrorGCurve;
+		private TextureCurve _mirrorBCurve;
+		private TextureCurve _posterMasterCurve;
+		private TextureCurve _posterLumSatCurve;
 
         private TextureCurveParameter _invertCurveParam;
         private TextureCurveParameter _defaultCurveParam;
+        private TextureCurveParameter _defaultLumSatCurveParam;
         private TextureCurveParameter _copierCurveParam;
         private TextureCurveParameter _brightCurveParam;
+		private TextureCurveParameter _mirrorRCurveParam;
+		private TextureCurveParameter _mirrorGCurveParam;
+		private TextureCurveParameter _mirrorBCurveParam;
+		private TextureCurveParameter _posterMasterCurveParam;
+		private TextureCurveParameter _posterLumSatCurveParam;
 
         private ClampedFloatParameter _defaultGrainIntensity;
         private ClampedFloatParameter _defaultGrainResponse;
@@ -55,6 +67,9 @@ namespace YARG.Venue.VenueCamera
         private readonly List<ClampedFloatAnimation> _clampedFloatAnimations = new();
         private readonly List<ColorAnimation>        _colorAnimations        = new();
         private readonly List<ClampedIntAnimation>   _clampedIntAnimations   = new();
+
+        // Reduce flashing effects to one every 2 seconds
+        private const float REDUCED_FLASHING_INTERVAL = 2.0f;
 
         public void InitializePostProcessing()
         {
@@ -76,6 +91,8 @@ namespace YARG.Venue.VenueCamera
             _defaultCurve =
                 new TextureCurve(new AnimationCurve(new Keyframe(0f, 0f, 1f, 1f), new Keyframe(1f, 1f, 1f, 1f)), 0.5f,
                     false, in bounds);
+            _defaultLumSatCurve =
+                new TextureCurve(new AnimationCurve(new Keyframe(0f, 0.5f), new Keyframe(1f, 0.5f)), 0.5f, false, in bounds);
             _invertCurve =
                 new TextureCurve(new AnimationCurve(new Keyframe(0, 0.550f, -1f, -6f), new Keyframe(0.25f, 0f, 0f, 0f)),
                     0.5f, false, in bounds);
@@ -85,18 +102,91 @@ namespace YARG.Venue.VenueCamera
                 false, in bounds);
             _flatHalfCurve = new TextureCurve(new AnimationCurve(new Keyframe(0f, 0.5f), new Keyframe(1.0f, 0.5f)),
                 0.5f, false, in bounds);
+            _mirrorRCurve = new TextureCurve(new AnimationCurve(new Keyframe(0.2f, 0f, 8.1f, 8.1f),
+				new Keyframe(0.375f, 1f, 0f, 0f)), 0.5f, false, in bounds);
+            _mirrorGCurve = new TextureCurve(new AnimationCurve(new Keyframe(0f, 0.012f, 1.65f, 1.65f),
+				new Keyframe(0.8f, 1f, 0.9f, 0.9f)), 0.5f, false, in bounds);
+			_mirrorBCurve = new TextureCurve(new AnimationCurve(new Keyframe(0.25f, 0f, 2.1f, 2.1f),
+				new Keyframe(1f, 1f, 0.9f, 0.9f)), 0.5f, false, in bounds);
+			_posterMasterCurve = new TextureCurve(new AnimationCurve(new Keyframe(0.02f, 0f), new Keyframe(0.02f, 0.005f),
+				new Keyframe(0.1f, 0.005f), new Keyframe(0.1f, 0.1f, 1f, 1f), new Keyframe(1f, 1f, 1f, 1f)),
+				0.5f, false, in bounds);
+			_posterLumSatCurve =
+				new TextureCurve(new AnimationCurve(new Keyframe(0.05f, 0f, 180f, 0f), new Keyframe(0.1f, 0.5f, 180f, 0f)),
+				0.5f, false, in bounds);
 
 
             _defaultCurveParam = new TextureCurveParameter(_defaultCurve);
             _invertCurveParam = new TextureCurveParameter(_invertCurve, true);
             _copierCurveParam = new TextureCurveParameter(_copierCurve, true);
             _brightCurveParam = new TextureCurveParameter(_brightCurve, true);
+			_mirrorRCurveParam = new TextureCurveParameter(_mirrorRCurve, true);
+			_mirrorGCurveParam = new TextureCurveParameter(_mirrorGCurve, true);
+			_mirrorBCurveParam = new TextureCurveParameter(_mirrorBCurve, true);
+			_posterMasterCurveParam = new TextureCurveParameter(_posterMasterCurve, true);
+			_posterLumSatCurveParam = new TextureCurveParameter(_posterLumSatCurve, true);
 
             _isPostProcessingEnabled = SettingsManager.Settings.VenuePostProcessing.Value;
             SettingsManager.Settings.VenuePostProcessing.OnChange += SetPostProcessingEnabled;
         }
 
-        public void SetCameraPostProcessing(PostProcessingEvent newEffect)
+        private static List<PostProcessingEvent> ReduceFlashingPostProcessingEvents(List<PostProcessingEvent> sourceEvents)
+        {
+            var replacedEvents = ReplaceFlashingPostProcessingEvents(sourceEvents);
+
+            return ChartEvent.FilterByInterval(
+                replacedEvents,
+                REDUCED_FLASHING_INTERVAL
+            );
+        }
+
+        private static List<PostProcessingEvent> ReplaceFlashingPostProcessingEvents(List<PostProcessingEvent> sourceEvents)
+        {
+            var mapped = new List<PostProcessingEvent>(sourceEvents.Count);
+            foreach (var ev in sourceEvents)
+            {
+                var replacement = GetReducedPostProcessingType(ev.Type);
+                mapped.Add(replacement.HasValue
+                    ? new PostProcessingEvent(replacement.Value, ev.Time, ev.Tick)
+                    : ev);
+            }
+
+            return mapped;
+        }
+
+        private static PostProcessingType? GetReducedPostProcessingType(PostProcessingType type) => type switch
+        {
+            PostProcessingType.PhotoNegative => PostProcessingType.BlackAndWhite,
+            PostProcessingType.PhotoNegative_RedAndBlack => PostProcessingType.BlackAndWhite,
+            PostProcessingType.Mirror => PostProcessingType.Default,
+            PostProcessingType.Polarized_RedAndBlue => PostProcessingType.BlackAndWhite,
+            PostProcessingType.Choppy_BlackAndWhite => PostProcessingType.BlackAndWhite,
+            PostProcessingType.Polarized_BlackAndWhite => PostProcessingType.BlackAndWhite,
+            PostProcessingType.Trails_Flickery => PostProcessingType.Trails,
+            PostProcessingType.Trails_Spacey => PostProcessingType.Trails,
+            PostProcessingType.Trails_Desaturated => PostProcessingType.Trails,
+            PostProcessingType.Grainy_ChromaticAbberation => PostProcessingType.Grainy_Film,
+            PostProcessingType.Scanlines_Security => PostProcessingType.Scanlines,
+            PostProcessingType.Bright => PostProcessingType.Bloom,
+            PostProcessingType.SepiaTone => PostProcessingType.Bloom,
+            PostProcessingType.Scanlines_Blue => PostProcessingType.Scanlines,
+            PostProcessingType.Desaturated_Red => PostProcessingType.Bloom,
+            PostProcessingType.Desaturated_Blue => PostProcessingType.Bloom,
+            PostProcessingType.Contrast_Red => PostProcessingType.Contrast,
+            PostProcessingType.Contrast_Green => PostProcessingType.Contrast,
+            PostProcessingType.Contrast_Blue => PostProcessingType.Contrast,
+            _ => null,
+        };
+
+        private void ApplyEffect(PostProcessingEvent effect, PostProcessingEvent previousEffect)
+        {
+            PreviousEffect = previousEffect;
+            CurrentEffect = effect;
+            NextEffect = _currentEventIndex < _postProcessingEvents.Count ? _postProcessingEvents[_currentEventIndex] : null;
+            SetCameraPostProcessing(effect);
+        }
+
+        private void SetCameraPostProcessing(PostProcessingEvent newEffect)
         {
             var found = true;
             float duration = 0.0f;
@@ -140,8 +230,6 @@ namespace YARG.Venue.VenueCamera
                     SetInvertedColors(true);
                     break;
                 case PostProcessingType.Mirror:
-                    // TODO: This is supposed to also have a "psychadelic coloring" effect
-                    // "Polarizes everything to green/orange with some blue and purple here and there"
                     SetMirror(true);
                     break;
                 case PostProcessingType.BlackAndWhite:
@@ -151,7 +239,6 @@ namespace YARG.Venue.VenueCamera
                     SetLowFrameRate(true);
                     SetBlackAndWhite(true);
                     SetGrainy(true);
-                    // SetBadCopier(true);
                     SetContrast(true);
                     break;
                 case PostProcessingType.Scanlines_BlackAndWhite:
@@ -161,7 +248,6 @@ namespace YARG.Venue.VenueCamera
                 case PostProcessingType.Polarized_BlackAndWhite:
                     SetBlackAndWhite(true);
                     SetContrast(true);
-                    // SetPosterize(true);
                     break;
                 case PostProcessingType.SepiaTone:
                     SetSepiaTone(true);
@@ -210,19 +296,18 @@ namespace YARG.Venue.VenueCamera
                 case PostProcessingType.Trails_Desaturated:
                     SetPosterize(true, 10);
                     SetTrail(true, 0.67f);
-                    SetDesaturation(true);
+                    SetTrailsDesaturation(true);
                     break;
                 case PostProcessingType.Trails_Long:
                     SetTrail(true, 0.67f);
                     break;
                 case PostProcessingType.Trails_Spacey:
                     SetTrail(true, 0.9f);
-                    // SetDesaturation(true, 20f);
                     SetBrightness(true);
                     SetBloom(true);
                     SetChromaticAberration(true);
                     break;
-                case PostProcessingType.Desaturated_Red: // TODO: This almost certainly needs drastic adjustment
+                case PostProcessingType.Desaturated_Red:
                     SetDesaturatedRed(true);
                     break;
                 case PostProcessingType.Desaturated_Blue:
@@ -292,8 +377,6 @@ namespace YARG.Venue.VenueCamera
                     SetInvertedColors(false);
                     break;
                 case PostProcessingType.Mirror:
-                    // TODO: This is supposed to also have a "psychadelic coloring" effect
-                    // "Polarizes everything to green/orange with some blue and purple here and there"
                     SetMirror(false);
                     break;
                 case PostProcessingType.BlackAndWhite:
@@ -311,7 +394,6 @@ namespace YARG.Venue.VenueCamera
                     break;
                 case PostProcessingType.Polarized_BlackAndWhite:
                     SetBlackAndWhite(false);
-                    // SetPosterize(false);
                     SetContrast(false);
                     break;
                 case PostProcessingType.SepiaTone:
@@ -361,7 +443,7 @@ namespace YARG.Venue.VenueCamera
                 case PostProcessingType.Trails_Desaturated:
                     SetPosterize(false);
                     SetTrail(false);
-                    SetDesaturation(false);
+                    SetTrailsDesaturation(false);
                     break;
                 case PostProcessingType.Trails_Long:
                     SetTrail(false);
@@ -372,7 +454,7 @@ namespace YARG.Venue.VenueCamera
 					SetBloom(false);
                     SetChromaticAberration(false);
                     break;
-                case PostProcessingType.Desaturated_Red: // TODO: This almost certainly needs drastic adjustment
+                case PostProcessingType.Desaturated_Red:
                     SetDesaturatedRed(false);
                     break;
                 case PostProcessingType.Desaturated_Blue:
@@ -425,6 +507,7 @@ namespace YARG.Venue.VenueCamera
             SetExposure(false);
             SetChromaticAberration(false);
             SetDesaturation(false);
+			SetTrailsDesaturation(false);
             SetDesaturatedRed(false);
             SetDesaturatedBlue(false);
             SetTrail(false);
@@ -492,6 +575,11 @@ namespace YARG.Venue.VenueCamera
 
         public void SetLowFrameRate(bool enabled, int divisor = 5)
         {
+            if (ReducedFlashing)
+            {
+                return;
+            }
+
             if (!_profile.TryGet<SlowFPSComponent>(out var slowFPS))
             {
                 return;
@@ -559,12 +647,13 @@ namespace YARG.Venue.VenueCamera
 
         private void SetPosterize(bool enabled, int steps = 4)
         {
-            if (!_profile.TryGet<PosterizeComponent>(out var posterize))
+			if (!_profile.TryGet<ColorCurves>(out var colorCurves))
             {
                 return;
             }
 
-            SetAnimation(posterize.Steps, enabled ? steps : posterize.Steps.max, 0.01f, enabled);
+			SetAnimation(colorCurves.master, enabled ? _posterMasterCurve : _defaultCurve, 0.01f, enabled);
+			SetAnimation(colorCurves.lumVsSat, enabled ? _posterLumSatCurve : _defaultLumSatCurve, 0.01f, enabled);
         }
 
         private void SetContrast(bool enabled)
@@ -623,6 +712,15 @@ namespace YARG.Venue.VenueCamera
 
             mirror.enabled.value = enabled;
             mirror.enabled.overrideState = enabled;
+
+            if (!_profile.TryGet<ColorCurves>(out var colorCurves))
+            {
+                return;
+            }
+
+			SetAnimation(colorCurves.red, enabled ? _mirrorRCurve : _defaultCurve, 0.01f, enabled);
+			SetAnimation(colorCurves.green, enabled ? _mirrorGCurve : _defaultCurve, 0.01f, enabled);
+			SetAnimation(colorCurves.blue, enabled ? _mirrorBCurve : _defaultCurve, 0.01f, enabled);
         }
 
         private void SetDesaturation(bool enabled, float strength = -50.0f)
@@ -633,6 +731,17 @@ namespace YARG.Venue.VenueCamera
             }
 
             SetAnimation(colorAdjustments.saturation, (float)(enabled ? strength : 0.0f), 0.01f, enabled);
+        }
+
+		private void SetTrailsDesaturation(bool enabled, float strength = -85.0f, float contrast = 100f)
+        {
+            if (!_profile.TryGet<ColorAdjustments>(out var colorAdjustments))
+            {
+                return;
+            }
+
+            SetAnimation(colorAdjustments.saturation, (float)(enabled ? strength : 0.0f), 0.01f, enabled);
+            SetAnimation(colorAdjustments.contrast, (float)(enabled ? contrast : 0.0f), 0.01f, enabled);
         }
 
         private void SetBlackAndWhite(bool enabled)
@@ -1009,29 +1118,17 @@ namespace YARG.Venue.VenueCamera
             UpdateAnimations();
 
             // Check for a change in post processing type, if we have a volume to work with in the first place
-            if (_volumeSet)
+            if (!_volumeSet)
             {
-                while (_currentEventIndex < _postProcessingEvents.Count &&
-                    _postProcessingEvents[_currentEventIndex].Time <= GameManager.VisualTime)
-                {
-                    var effect = _postProcessingEvents[_currentEventIndex];
+                return;
+            }
 
-                    // Yes, we do need all of these for full compatibility
-                    PreviousEffect = CurrentEffect;
-                    CurrentEffect = effect;
-
-                    if (_currentEventIndex < _postProcessingEvents.Count - 1)
-                    {
-                        NextEffect = _postProcessingEvents[_currentEventIndex + 1];
-                    }
-                    else
-                    {
-                        NextEffect = null;
-                    }
-
-                    _currentEventIndex++;
-                    SetCameraPostProcessing(effect);
-                }
+            while (_currentEventIndex < _postProcessingEvents.Count &&
+                _postProcessingEvents[_currentEventIndex].Time <= GameManager.VisualTime)
+            {
+                var effect = _postProcessingEvents[_currentEventIndex];
+                _currentEventIndex++;
+                ApplyEffect(effect, CurrentEffect);
             }
         }
 
@@ -1318,9 +1415,8 @@ namespace YARG.Venue.VenueCamera
 
             // We are between start and end, so we need to normalize the time span so we can lerp
             // Starts at (almost) 0 and increases to 1 at EndTime
-            var normalizedTime = (float) (_elapsedTime / _duration);
+            var normalizedTime = Mathf.Clamp01((float) (_elapsedTime / _duration));
             _param.Interp(_startValue, _endValue, normalizedTime);
-            // _param.value = Mathf.Lerp(_startValue, _endValue, (float) normalizedTime);
 
             return false;
         }
@@ -1395,9 +1491,8 @@ namespace YARG.Venue.VenueCamera
 
             // We are between start and end, so we need to normalize the time span so we can lerp
             // Starts at (almost) 0 and increases to 1 at EndTime
-            var normalizedTime = (float) (_elapsedTime / _duration);
+            var normalizedTime = Mathf.Clamp01((float) (_elapsedTime / _duration));
             _param.Interp(_startValue, _endValue, normalizedTime);
-            // _param.value = Mathf.Lerp(_startValue, _endValue, (float) normalizedTime);
             return false;
         }
     }
@@ -1470,7 +1565,7 @@ namespace YARG.Venue.VenueCamera
 
             // We are between start and end, so we need to normalize the time span so we can lerp
             // Starts at (almost) 0 and increases to 1 at EndTime
-            var normalizedTime = (float) (_elapsedTime / _duration);
+            var normalizedTime = Mathf.Clamp01((float) (_elapsedTime / _duration));
             _param.Interp(_startValue.value, _endValue, normalizedTime);
             return false;
         }

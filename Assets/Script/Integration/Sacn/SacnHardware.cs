@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using Haukcode.sACN;
 using UnityEngine;
@@ -10,9 +10,8 @@ namespace YARG.Integration.Sacn
 {
     public class SacnHardware : MonoSingleton<SacnHardware>
     {
-        // DMX spec says 44 updates per second is the max
-        private const float TARGET_FPS = 44f;
-        private const float TIME_BETWEEN_CALLS = 1f / TARGET_FPS;
+        private float TIME_BETWEEN_CALLS => 1f / SettingsManager.Settings.DMXTargetFPS.Value;
+        private float PulseDuration => SettingsManager.Settings.DMXPulseDuration.Value / 1000f;
 
         // Each universe supports up to 512 channels
         private const int UNIVERSE_SIZE = 512;
@@ -20,16 +19,15 @@ namespace YARG.Integration.Sacn
         private const string ACN_SOURCE_NAME = "YARG";
 
         // A 128-bit (16 byte) UUID that translates to "KEEP PLAYING YARG!"
-        private readonly Guid _acnSourceId = new Guid("{4B454550-504C-4159-494E-475941524721}");
+        private readonly Guid _acnSourceId = new("{4B454550-504C-4159-494E-475941524721}");
 
         private SACNClient _sendClient;
 
-        private readonly byte[] _dataPacket = new byte[UNIVERSE_SIZE];
+        private readonly byte[]                 _dataPacket      = new byte[UNIVERSE_SIZE];
+        private readonly Dictionary<int, float> _channelOffTimes = new();
+        private readonly List<int>              _expiredChannels = new();
 
-        Queue<byte> _keysQueue = new Queue<byte>();
-        Queue<byte> _guitarQueue = new Queue<byte>();
-        Queue<byte> _bassQueue = new Queue<byte>();
-        Queue<byte> _drumsQueue = new Queue<byte>();
+        private float _timer;
 
         private bool _toastShown;
 
@@ -57,12 +55,10 @@ namespace YARG.Integration.Sacn
 
                 SacnInterpreter.OnChannelSet += HandleChannelEvent;
 
-
                 _sendClient = new SACNClient(senderId: _acnSourceId, senderName: ACN_SOURCE_NAME,
                     localAddress: IPAddress);
 
-                InvokeRepeating(nameof(Sender), 0, TIME_BETWEEN_CALLS);
-
+                _timer = 0f;
             }
             else
             {
@@ -70,28 +66,46 @@ namespace YARG.Integration.Sacn
             }
         }
 
+        private void Update()
+        {
+            if (_sendClient == null) return;
+
+            _timer += Time.deltaTime;
+            if (_timer >= TIME_BETWEEN_CALLS)
+            {
+                _timer -= TIME_BETWEEN_CALLS;
+                Sender();
+            }
+        }
+
         private void HandleChannelEvent(int channel, byte value)
         {
-            //only the instrument channels need to be queued as they are the only ones who end at note off.
-            if (channel == SettingsManager.Settings.DMXBassChannel.Value)
+            int bass = SettingsManager.Settings.DMXBassChannel.Value;
+            int drums = SettingsManager.Settings.DMXDrumsChannel.Value;
+            int guitar = SettingsManager.Settings.DMXGuitarChannel.Value;
+            int keys = SettingsManager.Settings.DMXKeysChannel.Value;
+
+            if (channel == bass || channel == drums || channel == guitar || channel == keys)
             {
-                _bassQueue.Enqueue(value);
-            }
-            else if (channel == SettingsManager.Settings.DMXDrumsChannel.Value)
-            {
-                _drumsQueue.Enqueue(value);
-            }
-            else if (channel == SettingsManager.Settings.DMXGuitarChannel.Value)
-            {
-                _guitarQueue.Enqueue(value);
-            }
-            else if (channel == SettingsManager.Settings.DMXKeysChannel.Value)
-            {
-                _keysQueue.Enqueue(value);
+                if (value <= 0) return;
+                _dataPacket[channel - 1] = value;
+                if (PulseDuration > 0f)
+                    _channelOffTimes[channel] = Time.time + PulseDuration;
+                else
+                    _channelOffTimes[channel] = Time.time + TIME_BETWEEN_CALLS;
             }
             else
             {
                 _dataPacket[channel - 1] = value;
+                if (value <= 0) return;
+
+                int keyframe = SettingsManager.Settings.DMXKeyframeChannel.Value;
+                int bonusEffect = SettingsManager.Settings.DMXBonusEffectChannel.Value;
+                int beatline = SettingsManager.Settings.DMXBeatlineChannel.Value;
+
+                if (channel != keyframe && channel != bonusEffect && channel != beatline) return;
+
+                if (PulseDuration > 0f) _channelOffTimes[channel] = Time.time + PulseDuration;
             }
         }
 
@@ -101,23 +115,19 @@ namespace YARG.Integration.Sacn
 
             YargLogger.LogInfo("Killing sACN Controller...");
 
-            CancelInvoke(nameof(Sender));
+            SacnInterpreter.OnChannelSet -= HandleChannelEvent;
 
             // Clear the command queue
-            _bassQueue.Clear();
-            _drumsQueue.Clear();
-            _guitarQueue.Clear();
-            _keysQueue.Clear();
+            _channelOffTimes.Clear();
 
             // A good controller will also turn everything off after not receiving a packet after 2.5 seconds.
             // But this doesn't hurt to do.
             for (int i = 0; i < _dataPacket.Length; i++)
             {
-                //turn everything off directly
                 _dataPacket[i] = 0;
             }
 
-            //force send final packet.
+            // Force send final packet.
             _sendClient.SendMulticast((ushort) SettingsManager.Settings.DMXUniverseChannel.Value, _dataPacket);
 
             _sendClient.Dispose();
@@ -131,34 +141,27 @@ namespace YARG.Integration.Sacn
 
         private void Sender()
         {
-            if (_bassQueue.Count > 0)
-            {
-                _dataPacket[SettingsManager.Settings.DMXBassChannel.Value - 1] = _bassQueue.Dequeue();
-            }
+            float pulseDuration = PulseDuration;
 
-            if (_drumsQueue.Count > 0)
+            _expiredChannels.Clear();
+            foreach (var kvp in _channelOffTimes)
             {
-                _dataPacket[SettingsManager.Settings.DMXDrumsChannel.Value - 1] = _drumsQueue.Dequeue();
+                if (Time.time >= kvp.Value)
+                {
+                    _dataPacket[kvp.Key - 1] = 0;
+                    _expiredChannels.Add(kvp.Key);
+                }
             }
+            foreach (var ch in _expiredChannels) _channelOffTimes.Remove(ch);
 
-            if (_guitarQueue.Count > 0)
-            {
-                _dataPacket[SettingsManager.Settings.DMXGuitarChannel.Value - 1] = _guitarQueue.Dequeue();
-            }
-
-            if (_keysQueue.Count > 0)
-            {
-                _dataPacket[SettingsManager.Settings.DMXKeysChannel.Value - 1] = _keysQueue.Dequeue();
-            }
-
-            //Sacn spec says multicast is the correct default way to go but singlecast can be used if needed.
             _sendClient.SendMulticast((ushort) SettingsManager.Settings.DMXUniverseChannel.Value, _dataPacket);
 
-            //These channels are only on for 1 frame so they need to be turned off after sending.
-            _dataPacket[SettingsManager.Settings.DMXKeyframeChannel.Value - 1] = 0;
-            _dataPacket[SettingsManager.Settings.DMXBonusEffectChannel.Value - 1] = 0;
-            _dataPacket[SettingsManager.Settings.DMXBeatlineChannel.Value - 1] = 0;
-
+            if (pulseDuration <= 0f)
+            {
+                _dataPacket[SettingsManager.Settings.DMXKeyframeChannel.Value - 1] = 0;
+                _dataPacket[SettingsManager.Settings.DMXBonusEffectChannel.Value - 1] = 0;
+                _dataPacket[SettingsManager.Settings.DMXBeatlineChannel.Value - 1] = 0;
+            }
         }
     }
 }

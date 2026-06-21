@@ -2188,7 +2188,7 @@
                 },
                 "EnableLanes": {
                     "Name": "Abilita Linee Trillo/Tremolo",
-                    "Description": "If enabled, the game honors charted trill/tremolo lanes."
+                    "Description": "Se abilitato, il gioco rispetta le corsie tracciate trill/tremolo."
                 }
             },
             "HighwayPreset": {

@@ -5,6 +5,7 @@ using YARG.Core.Chart;
 using YARG.Core.Engine;
 using YARG.Core.Parsing;
 using YARG.Gameplay;
+using YARG.Gameplay.HUD;
 using YARG.Settings;
 
 namespace YARG.Playback
@@ -34,15 +35,13 @@ namespace YARG.Playback
 
         private SfxSample _selectedOpenSample;
         private SfxSample _selectedStartSample;
-        // Only one for now, but more will come
-        private SfxSample _selectedEndSample = SfxSample.CrowdEnd1;
+        private SfxSample _selectedEndSample;
 
         private int _eventIndex;
 
         // This is true if we have music start and music end, otherwise we just start with the crowd roar
         private readonly bool _startWithMurmur;
 
-        private bool _openSamplePlayed;
         private bool _startSamplePlayed;
         private bool _endSamplePlayed;
         private bool _disposed;
@@ -95,7 +94,6 @@ namespace YARG.Playback
                 if (_startWithMurmur)
                 {
                     GlobalAudioHandler.PlaySoundEffect(_selectedOpenSample, 1.0);
-                    _openSamplePlayed = true;
                 }
                 else
                 {
@@ -104,7 +102,7 @@ namespace YARG.Playback
                 }
             }
 
-            if (SettingsManager.Settings.NoFailMode.Value || GlobalVariables.State.IsPractice)
+            if (SettingsManager.Settings.NoFail.Value == NoFailMode.NoMeter || GlobalVariables.State.IsPractice)
             {
                 return;
             }
@@ -147,7 +145,6 @@ namespace YARG.Playback
                 {
                     if (_startWithMurmur)
                     {
-                        _openSamplePlayed = true;
                         // GlobalAudioHandler.StopSoundEffect(_selectedOpenSample, 1.0);
                     }
 
@@ -224,6 +221,13 @@ namespace YARG.Playback
             }
         }
 
+        public void StopAllCrowdSounds()
+        {
+            GlobalAudioHandler.StopSoundEffect(_selectedOpenSample, 2.5);
+            GlobalAudioHandler.StopSoundEffect(_selectedStartSample);
+            GlobalAudioHandler.StopSoundEffect(_selectedEndSample, 1.5);
+        }
+
         public void Dispose()
         {
             Dispose(true);
@@ -239,9 +243,7 @@ namespace YARG.Playback
                 _engineManager.OnSongFailed -= OnSongFailed;
                 _gameManager?.BeatEventHandler?.Audio.Unsubscribe(Clap);
 
-                GlobalAudioHandler.StopSoundEffect(_selectedOpenSample, 2.5);
-                GlobalAudioHandler.StopSoundEffect(_selectedStartSample);
-                GlobalAudioHandler.StopSoundEffect(_selectedEndSample, 0.5);
+                StopAllCrowdSounds();
             }
 
             _disposed = true;

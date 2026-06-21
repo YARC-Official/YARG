@@ -344,22 +344,50 @@ namespace YARG.Settings.Metadata
                 foreach (var windowField in _hitWindowFields)
                 {
                     // Every field should not be added if it is not a dynamic window (except for the ratio)
-                    if (!hitWindow.IsDynamic &&
-                        windowField.Field.Name != nameof(EnginePreset.HitWindowPreset.FrontToBackRatio))
+                    if (!hitWindow.IsDynamic)
                     {
-                        continue;
-                    }
-
-                    if (windowField.Type != SettingType.Slider)
-                    {
-                        throw new Exception("Non-slider types are not supported within the hit window preset.");
-                    }
-
-                    var setting = new SliderSetting((float) windowField.GetValue<double>(hitWindow),
-                        windowField.Min, windowField.Max, (value) =>
+                        bool dynamicOnlyField;
+                        switch(windowField.Field.Name)
                         {
-                            windowField.SetValue(hitWindow, (double) value);
-                        });
+                            case nameof(EnginePreset.HitWindowPreset.FrontToBackRatio):
+                            case nameof(EnginePreset.HitWindowPreset.LaneAutohitWindow):
+                            case nameof(EnginePreset.HitWindowPreset.LaneProximityProtectionWindow):
+                                dynamicOnlyField = false;
+                                break;
+
+                            default:
+                                dynamicOnlyField = true;
+                                break;
+                        }
+
+                        if (dynamicOnlyField)
+                        {
+                            continue;
+                        }
+                    }
+
+                    ISettingType setting = null;
+
+                    switch (windowField.Type)
+                    {
+                        case SettingType.Slider:
+                            setting = new SliderSetting((float) windowField.GetValue<double>(hitWindow),
+                                windowField.Min, windowField.Max, (value) =>
+                                {
+                                    windowField.SetValue(hitWindow, (double) value);
+                                });
+                            break;
+                        case SettingType.MillisecondInput:
+                            setting = new DurationSetting(windowField.GetValue<double>(hitWindow),
+                                DurationInputField.Unit.Milliseconds, windowField.Max, (value) =>
+                                {
+                                    windowField.SetValue(hitWindow, value);
+                                });
+                            break;
+                        default:
+                            throw new Exception("Unsupported setting type in hit window preset.");
+                    }
+
                     CreateField(container, navGroup, typeof(T).Name, windowField.Field.Name, setting);
                 }
             }

@@ -34,7 +34,8 @@ namespace YARG.Helpers
             // Create render texture
             var descriptor = new RenderTextureDescriptor(
                 Screen.width, Screen.height,
-                RenderTextureFormat.ARGBHalf
+                RenderTextureFormat.ARGBHalf,
+                32
             );
             descriptor.mipCount = 0;
             PreviewTexture = new RenderTexture(descriptor);

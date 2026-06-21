@@ -21,6 +21,8 @@ namespace YARG.Gameplay
         [Range(0.0f, 0.95f)]
         public float WaveSmoothingFactor = 0.5f;
 
+        public Texture2D DefaultAlbumCover;
+
         private Texture2D _sourceIcon = null;
         private Texture2D _albumCover = null;
         private Texture2D _soundTexture = null;
@@ -73,7 +75,11 @@ namespace YARG.Gameplay
         {
             if (_albumCover == null)
             {
-                var image = GameManager.Song.LoadAlbumData();
+                using var image = GameManager.Song.LoadAlbumData();
+                if (image == null)
+                {
+                    return DefaultAlbumCover;
+                }
                 _albumCover = image.LoadTexture(false);
             }
             return _albumCover;
@@ -95,27 +101,24 @@ namespace YARG.Gameplay
             return _soundTexture;
         }
 
-        public RenderTexture GetVideoTexture(int width, int height)
+        public RenderTexture GetVideoTexture(int? width, int? height)
         {
             if (_videoTexture == null)
             {
                 _videoTexture = new RenderTexture(VIDEO_TEX_WIDTH, VIDEO_TEX_HEIGHT, 0);
             }
-            if (width > _videoTexture.width)
+            if (width is { } checkedWidth && checkedWidth > _videoTexture.width)
             {
-                _videoTexture.width = width;
+                _videoTexture.width = checkedWidth;
             }
-            if (height > _videoTexture.height)
+            if (height is { } checkedHeight && checkedHeight > _videoTexture.height)
             {
-                _videoTexture.height = height;
+                _videoTexture.height = checkedHeight;
             }
             return _videoTexture;
         }
 
-        public bool VideoTexFound()
-        {
-            return _videoTexFound;
-        }
+        public bool VideoTexFound() => _videoTexFound;
 
         public void CreateVideoTexture()
         {
@@ -142,20 +145,32 @@ namespace YARG.Gameplay
             if (m.HasTexture(_videoTexId) && songBackgroundType is BackgroundType.Video)
             {
                 var matTex = m.GetTexture(_videoTexId);
-                m.SetTexture(_videoTexId, GetVideoTexture(matTex.width, matTex.height));
-                _videoTexFound = true;
+
+                if (matTex != null)
+                {
+                    m.SetTexture(_videoTexId, GetVideoTexture(matTex.width, matTex.height));
+                    _videoTexFound = true;
+                }
             }
             if (m.HasTexture(_imageTexId) && songBackgroundType is BackgroundType.Image)
             {
                 var matTex = m.GetTexture(_imageTexId);
-                m.SetTexture(_imageTexId, GetVideoTexture(matTex.width, matTex.height));
-                _videoTexFound = true;
+
+                if (matTex != null)
+                {
+                    m.SetTexture(_imageTexId, GetVideoTexture(matTex.width, matTex.height));
+                    _videoTexFound = true;
+                }
             }
             if (m.HasTexture(_backgroundTexId) && songBackgroundType is BackgroundType.Image or BackgroundType.Video)
             {
                 var matTex = m.GetTexture(_backgroundTexId);
-                m.SetTexture(_backgroundTexId, GetVideoTexture(matTex.width, matTex.height));
-                _videoTexFound = true;
+
+                if (matTex != null)
+                {
+                    m.SetTexture(_backgroundTexId, GetVideoTexture(matTex.width, matTex.height));
+                    _videoTexFound = true;
+                }
             }
         }
 

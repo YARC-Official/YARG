@@ -4,7 +4,6 @@ using DG.Tweening;
 using UnityEngine;
 using UnityEngine.UI;
 using System;
-using Cysharp.Text;
 
 namespace YARG.Gameplay.HUD
 {
@@ -36,6 +35,7 @@ namespace YARG.Gameplay.HUD
         private Coroutine _currentCoroutine;
 
         private bool _displayActive;
+        private int _displayedCountdownValue = int.MinValue;
 
         public void UpdateCountdown(double countdownLength, double endTime)
         {
@@ -74,7 +74,7 @@ namespace YARG.Gameplay.HUD
             {
                 case CountdownDisplayMode.Seconds:
                 {
-                    _countdownText.SetText((int) Math.Ceiling(timeRemaining));
+                    SetCountdownValue((int) Math.Ceiling(timeRemaining));
                     break;
                 }
                 case CountdownDisplayMode.Measures:
@@ -84,7 +84,7 @@ namespace YARG.Gameplay.HUD
                     double endMeasure = Math.Floor(syncTrack.GetMeasurePosition(endTime));
                     double currentMeasure = syncTrack.GetMeasurePosition(currentTime);
                     int remainingMeasures = (int) Math.Ceiling(endMeasure - currentMeasure);
-                    _countdownText.SetText(remainingMeasures);
+                    SetCountdownValue(remainingMeasures);
                     break;
                 }
             }
@@ -99,6 +99,18 @@ namespace YARG.Gameplay.HUD
             _canvasGroup.alpha = 0f;
             gameObject.SetActive(true);
             _displayActive = false;
+            _displayedCountdownValue = int.MinValue;
+        }
+
+        private void SetCountdownValue(int value)
+        {
+            if (_displayedCountdownValue == value)
+            {
+                return;
+            }
+
+            _displayedCountdownValue = value;
+            _countdownText.SetText(value.ToString());
         }
 
         private void ToggleDisplay(bool isActive)

@@ -13,6 +13,7 @@ namespace YARG.Gameplay.Visuals
         DrumFill,
         SoloAndDrumFill,
         DrumFillAndUnison,
+        BigRockEnding
     }
 
     // Small warning, TrackEffects are equal if their Time and TimeEnd values
@@ -49,7 +50,7 @@ namespace YARG.Gameplay.Visuals
         public float Visibility { get; set; } = 1.0f;
 
         // For drum fill lead-up positioning
-        public int FillLane   { get; set; } = 0;
+        public float FillLanePosition   { get; set; } = 0f;
         public int TotalLanes { get; set; } = 1;
 
         public bool Equals(TrackEffect other) => other is not null && Time.Equals(other.Time) && TimeEnd.Equals(other.TimeEnd);
@@ -275,9 +276,7 @@ namespace YARG.Gameplay.Visuals
             {
                 combo = inner.EffectType switch
                 {
-                    // By request of the art department, unison phrases in drum fills are
-                    // rendered as if there was no unison
-                    TrackEffectType.Unison => TrackEffectType.DrumFill,
+                    TrackEffectType.Unison => TrackEffectType.DrumFillAndUnison,
                     _                      => null
                 };
             }

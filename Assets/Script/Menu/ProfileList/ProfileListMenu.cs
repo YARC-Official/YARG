@@ -4,15 +4,21 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using YARG.Core;
+using YARG.Core.Audio;
 using YARG.Core.Game;
 using YARG.Core.Input;
 using YARG.Gameplay.Visuals;
 using YARG.Helpers.Extensions;
 using YARG.Input;
 using YARG.Localization;
+using YARG.Menu.HighwayConfiguration;
+using YARG.Menu.MusicLibrary;
 using YARG.Menu.Navigation;
 using YARG.Menu.Persistent;
 using YARG.Player;
+using YARG.Settings.Customization;
+using static YARG.Core.Game.ColorProfile;
+using static YARG.Menu.HighwayConfiguration.DrumsHighwayConfigurationMenu;
 
 namespace YARG.Menu.ProfileList
 {
@@ -43,7 +49,7 @@ namespace YARG.Menu.ProfileList
 
             Navigator.Instance.PushScheme(new NavigationScheme(new()
             {
-                new NavigationScheme.Entry(MenuAction.Red, "Menu.Common.Back", () => MenuManager.Instance.PopMenu()),
+                new NavigationScheme.Entry(MenuAction.Red, "Menu.Common.Back", () => MenuManager.Instance.PopMenu(), hide: true),
             }, true));
 
             PlayerContainer.PlayerAdded += OnPlayerAdded;
@@ -106,11 +112,32 @@ namespace YARG.Menu.ProfileList
             }
         }
 
+        // TODO: Since we're using this outside of ProfileListMenu, we should probably find a better home for it
+        public static string GetUniqueProfileName(string profileName)
+        {
+            var existingNames = PlayerContainer.Profiles.Select(p => p.Name);
+
+            if (!existingNames.Contains(profileName))
+            {
+                return profileName;
+            }
+
+            int count = 1;
+            string newName;
+            do
+            {
+                newName = $"{profileName} {count}";
+                count++;
+            } while (existingNames.Contains(newName));
+
+            return newName;
+        }
+
         public void AddProfile()
         {
             PlayerContainer.AddProfile(new YargProfile
             {
-                Name = "New Profile",
+                Name = GetUniqueProfileName("New Profile"),
                 NoteSpeed = 5,
                 HighwayLength = 1,
                 GameMode = GameMode.FiveFretGuitar
@@ -123,7 +150,7 @@ namespace YARG.Menu.ProfileList
         {
             PlayerContainer.AddProfile(new YargProfile
             {
-                Name = "Bot",
+                Name = GetUniqueProfileName("Bot"),
                 NoteSpeed = 5,
                 HighwayLength = 1,
                 GameMode = GameMode.FiveFretGuitar,
@@ -173,6 +200,87 @@ namespace YARG.Menu.ProfileList
         public void OnPlayerAdded(YargPlayer player)
         {
             RefreshList(GetSelectedProfile());
+        }
+
+        private void OpenDrumsHighwayConfigurationMenu(
+            Dictionary<DrumsHighwayItem, HighwayOrderingItemSpec> specs,
+            IFretColorProvider colorProvider,
+            List<DrumsHighwayItem> defaultList,
+            string header,
+            SetOrdering setOrderingInProfile,
+            Instrument instrument,
+            YargProfile profile
+        ) {
+            var menu = DrumsHighwayConfigurationMenu.Instance;
+            if (menu == null)
+                return;
+
+
+            menu.Initialize(
+                specs,
+                colorProvider,
+                defaultList,
+                Localize.Key("Menu.HighwayOrdering", header),
+                setOrderingInProfile,
+                instrument,
+                profile
+            );
+
+            menu.gameObject.SetActive(true);
+        }
+        public void CloseDrumsHighwayConfigurationMenu()
+        {
+            var menu = DrumsHighwayConfigurationMenu.Instance;
+            if (menu == null)
+                return;
+
+            menu.gameObject.SetActive(false);
+        }
+
+        public void OpenFourLaneDrumsHighwayConfigurationMenu()
+        {
+            var profile = GetSelectedProfile();
+            var colorProvider = CustomContentManager.ColorProfiles.GetPresetById(profile.ColorProfile).FourLaneDrums;
+            OpenDrumsHighwayConfigurationMenu(
+                DrumsHighwaySpecs.FOUR_LANE_SPECS,
+                colorProvider,
+                profile.FourLaneDrumsHighwayOrdering.ToList(),
+                "4LaneHeader",
+                (newOrdering) => { profile.FourLaneDrumsHighwayOrdering = newOrdering.ToArray(); },
+                Instrument.FourLaneDrums,
+                profile
+            );
+        }
+
+
+        public void OpenProDrumsHighwayConfigurationMenu()
+        {
+            var profile = GetSelectedProfile();
+            var colorProvider = CustomContentManager.ColorProfiles.GetPresetById(profile.ColorProfile).FourLaneDrums;
+            OpenDrumsHighwayConfigurationMenu(
+                DrumsHighwaySpecs.PRO_DRUMS_SPECS,
+                colorProvider,
+                profile.ProDrumsHighwayOrdering.ToList(),
+                "ProHeader",
+                (newOrdering) => { profile.ProDrumsHighwayOrdering = newOrdering.ToArray(); },
+                Instrument.ProDrums,
+                profile
+            );
+        }
+
+        public void OpenFiveLaneDrumsHighwayConfigurationMenu()
+        {
+            var profile = GetSelectedProfile();
+            var colorProvider = CustomContentManager.ColorProfiles.GetPresetById(profile.ColorProfile).FiveLaneDrums;
+            OpenDrumsHighwayConfigurationMenu(
+                DrumsHighwaySpecs.FIVE_LANE_SPECS,
+                colorProvider,
+                profile.FiveLaneDrumsHighwayOrdering.ToList(),
+                "5LaneHeader",
+                (newOrdering) => { profile.FiveLaneDrumsHighwayOrdering = newOrdering.ToArray(); },
+                Instrument.FiveLaneDrums,
+                profile
+            );
         }
     }
 }

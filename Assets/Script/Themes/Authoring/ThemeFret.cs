@@ -59,5 +59,10 @@ namespace YARG.Themes
         {
             return _innerMaterials.Select(i => i.Mesh.materials[i.MaterialIndex]);
         }
+
+        public void SetBreMode(bool breMode)
+        {
+            HitEffect.SetBreMode(breMode);
+        }
     }
 }

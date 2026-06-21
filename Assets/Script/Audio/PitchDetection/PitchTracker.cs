@@ -50,7 +50,7 @@ namespace YARG.Audio.PitchDetection
 
         private readonly FilterInfo[] _filters;
 
-        public PitchTracker(float detectLevelThreshold = 0.01f, float sampleRate = 44100f)
+        public PitchTracker(float sampleRate, float detectLevelThreshold = 0.01f)
         {
             _dsp = new PitchProcessor(sampleRate, MIN_FREQUENCY, MAX_FREQUENCY, detectLevelThreshold);
 

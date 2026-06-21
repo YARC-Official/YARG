@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using TMPro;
@@ -26,6 +26,7 @@ namespace YARG.Menu
             }
         };
 
+#pragma warning disable CS0649
         [Serializable]
         private struct SocialInfo
         {
@@ -33,6 +34,7 @@ namespace YARG.Menu
             public string Social;
             public GameObject Button;
         }
+#pragma warning restore CS0649
 
         [SerializeField]
         private TextMeshProUGUI _nameText;

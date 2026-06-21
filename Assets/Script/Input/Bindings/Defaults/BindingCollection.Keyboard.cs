@@ -15,6 +15,7 @@ namespace YARG.Input
 
                 GameMode.FourLaneDrums => SetDefaultFourLaneBindings(keyboard),
                 GameMode.FiveLaneDrums => SetDefaultFiveLaneBindings(keyboard),
+                GameMode.EliteDrums => SetDefaultEliteDrumsBindings(keyboard),
 
                 GameMode.ProGuitar => SetDefaultProGuitarBindings(keyboard),
                 GameMode.ProKeys => SetDefaultProKeysBindings(keyboard),
@@ -104,6 +105,34 @@ namespace YARG.Input
             return true;
         }
 
+        private bool SetDefaultEliteDrumsBindings(Keyboard keyboard)
+        {
+            if (Mode != GameMode.EliteDrums)
+                return false;
+
+            AddBinding(EliteDrumsAction.Kick, keyboard.spaceKey);
+
+            /* 
+             * Actual ED-specific bindings go here
+             */
+
+            AddBinding(EliteDrumsAction.FourLaneRedDrum, keyboard.zKey);
+            AddBinding(EliteDrumsAction.FourLaneYellowDrum, keyboard.xKey);
+            AddBinding(EliteDrumsAction.FourLaneBlueDrum, keyboard.cKey);
+            AddBinding(EliteDrumsAction.FourLaneGreenDrum, keyboard.vKey);
+            AddBinding(EliteDrumsAction.FourLaneYellowCymbal, keyboard.sKey);
+            AddBinding(EliteDrumsAction.FourLaneBlueCymbal, keyboard.dKey);
+            AddBinding(EliteDrumsAction.FourLaneGreenCymbal, keyboard.fKey);
+
+            AddBinding(EliteDrumsAction.FiveLaneRedDrum, keyboard.zKey);
+            AddBinding(EliteDrumsAction.FiveLaneBlueDrum, keyboard.cKey);
+            AddBinding(EliteDrumsAction.FiveLaneGreenDrum, keyboard.bKey);
+            AddBinding(EliteDrumsAction.FiveLaneYellowCymbal, keyboard.xKey);
+            AddBinding(EliteDrumsAction.FiveLaneOrangeCymbal, keyboard.vKey);
+
+            return true;
+        }
+
         private bool SetDefaultProGuitarBindings(Keyboard keyboard)
         {
             if (Mode != GameMode.ProGuitar)
@@ -169,6 +198,14 @@ namespace YARG.Input
             AddBinding(ProKeysAction.StarPower, keyboard.backspaceKey);
 
             AddBinding(ProKeysAction.TouchEffects, keyboard.quoteKey);
+
+            AddBinding(ProKeysAction.OpenNote, keyboard.backquoteKey); // The left-of-green option for Dedicated Open Lane users
+            AddBinding(ProKeysAction.OpenNote, keyboard.spaceKey); // By analogy to the guitar-on-keyboard bindings
+            AddBinding(ProKeysAction.GreenKey, keyboard.digit1Key);
+            AddBinding(ProKeysAction.RedKey, keyboard.digit2Key);
+            AddBinding(ProKeysAction.YellowKey, keyboard.digit3Key);
+            AddBinding(ProKeysAction.BlueKey, keyboard.digit4Key);
+            AddBinding(ProKeysAction.OrangeKey, keyboard.digit5Key);
 
             return true;
         }

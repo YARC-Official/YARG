@@ -16,6 +16,7 @@ using YARG.Helpers.Extensions;
 using YARG.Localization;
 using YARG.Menu.Navigation;
 using YARG.Menu.Persistent;
+using YARG.Menu.Filters;
 using YARG.Player;
 using YARG.Song;
 
@@ -95,6 +96,8 @@ namespace YARG.Menu.DifficultySelect
 
         private YargPlayer CurrentPlayer => PlayerContainer.Players[_playerIndex];
 
+        private Scrollbar _scrollbar;
+
         private void OnEnable()
         {
             string subHeaderKey = GlobalVariables.State.IsPractice ? "Practice" : "Quickplay";
@@ -150,6 +153,37 @@ namespace YARG.Menu.DifficultySelect
 
             _sourceIcon.sprite = SongSources.SourceToIcon(GlobalVariables.State.CurrentSong.Source);
             _sourceIcon.gameObject.SetActive(_sourceIcon.sprite != null);
+
+
+            _scrollbar = GetComponentInChildren<Scrollbar>();
+            _navGroup.SelectionChanged += UpdateForSelectionChanged;
+        }
+
+        private void UpdateForSelectionChanged(NavigatableBehaviour navigatableBehaviour,
+            SelectionOrigin selectionOrigin)
+        {
+            if (!_scrollbar)
+            {
+                return;
+            }
+
+            int? index = _navGroup.SelectedIndex;
+            if (index is { } i)
+            {
+                int count = _navGroup.Count;
+                float highScrollBound = _scrollbar.size + (1 - _scrollbar.size) * _scrollbar.value;
+                float lowScrollBound = (1 - _scrollbar.size) * _scrollbar.value;
+                float indexHighBound = 1 - (1 / (float) count) * i;
+                float indexLowBound = 1 - (1 / (float) count) * (i + 1);
+                if (highScrollBound < indexHighBound)
+                {
+                    _scrollbar.value = (indexHighBound - _scrollbar.size) / (1 - _scrollbar.size);
+                }
+                else if (lowScrollBound > indexLowBound)
+                {
+                    _scrollbar.value = indexLowBound / (1 - _scrollbar.size);
+                }
+            }
         }
 
         private void UpdateForPlayer()
@@ -348,6 +382,7 @@ namespace YARG.Menu.DifficultySelect
                         CurrentPlayer.Profile.PreferredInstrument = instrument;
                     }
 
+                    FiltersMenu.ResetIntensityFiltersForProfile(CurrentPlayer.Profile);
                     UpdatePossibleDifficulties();
                     UpdatePossibleModifiers();
 
@@ -407,6 +442,8 @@ namespace YARG.Menu.DifficultySelect
                 _menuState = State.Main;
                 UpdateForPlayer();
             });
+
+            _navGroup.SelectFirst();
         }
 
         private void CreateHarmonyMenu()
@@ -719,7 +756,13 @@ namespace YARG.Menu.DifficultySelect
             // For vocals, insert special difficulties
             if (instrument is Instrument.Vocals or Instrument.Harmony)
             {
-                return difficulty is not (Difficulty.Beginner or Difficulty.ExpertPlus);
+                return difficulty is not Difficulty.ExpertPlus;
+            }
+
+            // For PK, disallow beginner
+            if (instrument is Instrument.ProKeys && difficulty is Difficulty.Beginner)
+            {
+                return false;
             }
 
             // Otherwise, we can do this

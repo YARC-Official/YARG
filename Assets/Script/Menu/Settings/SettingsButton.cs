@@ -23,6 +23,40 @@ namespace YARG.Menu.Settings
 
         private bool _focused;
 
+        public readonly struct CustomButton
+        {
+            public readonly string Label;
+            public readonly Action Action;
+
+            public CustomButton(string label, Action action)
+            {
+                Label = label;
+                Action = action;
+            }
+        }
+
+        public void SetCustomButtons(IEnumerable<CustomButton> buttons, bool localize = false, string localizationKey = "Settings.Button")
+        {
+            foreach (var buttonInfo in buttons)
+            {
+                var button = Instantiate(_buttonTemplate, _container);
+
+                var labelText = localize
+                    ? Localize.Key(localizationKey, buttonInfo.Label)
+                    : buttonInfo.Label;
+
+                button.GetComponentInChildren<TextMeshProUGUI>().text = labelText;
+
+                var capture = buttonInfo.Action;
+                button.GetComponentInChildren<Button>()
+                    .onClick.AddListener(() => InvokeFocusedAction(capture));
+
+                _navGroup.AddNavigatable(button.GetComponentInChildren<NavigatableUnityButton>());
+            }
+
+            Destroy(_buttonTemplate);
+        }
+
         public void SetInfo(IEnumerable<string> buttons)
         {
             // Spawn button(s)
@@ -37,7 +71,7 @@ namespace YARG.Menu.Settings
                 // Set button action
                 var capture = buttonName;
                 button.GetComponentInChildren<Button>()
-                    .onClick.AddListener(() => SettingsManager.InvokeButton(capture));
+                    .onClick.AddListener(() => InvokeFocusedAction(() => SettingsManager.InvokeButton(capture)));
 
                 // Add to nav group
                 _navGroup.AddNavigatable(button.GetComponentInChildren<NavigatableUnityButton>());
@@ -51,7 +85,7 @@ namespace YARG.Menu.Settings
         {
             _buttonTemplate.GetComponentInChildren<TextMeshProUGUI>().text = Localize.Key(localizationKey);
 
-            _buttonTemplate.GetComponentInChildren<Button>().onClick.AddListener(() => action?.Invoke());
+            _buttonTemplate.GetComponentInChildren<Button>().onClick.AddListener(() => InvokeFocusedAction(action));
         }
 
         public override void Confirm()
@@ -61,7 +95,7 @@ namespace YARG.Menu.Settings
                 NavigationScheme.Entry.NavigateSelect,
                 new NavigationScheme.Entry(MenuAction.Red, "Menu.Common.Back", () =>
                 {
-                    Navigator.Instance.PopScheme();
+                    CloseFocusedNavigation();
                 }),
                 NavigationScheme.Entry.NavigateUp,
                 NavigationScheme.Entry.NavigateDown
@@ -80,6 +114,20 @@ namespace YARG.Menu.Settings
             _navGroup.SelectFirst();
         }
 
+        private void InvokeFocusedAction(Action action)
+        {
+            CloseFocusedNavigation();
+            action?.Invoke();
+        }
+
+        private void CloseFocusedNavigation()
+        {
+            if (_focused)
+            {
+                Navigator.Instance.PopScheme();
+            }
+        }
+
         protected override void OnSelectionChanged(bool selected)
         {
             base.OnSelectionChanged(selected);
@@ -91,7 +139,7 @@ namespace YARG.Menu.Settings
             // If the visual's nav scheme is still in the stack, make sure to pop it.
             if (_focused)
             {
-                Navigator.Instance.PopScheme();
+                CloseFocusedNavigation();
             }
         }
     }

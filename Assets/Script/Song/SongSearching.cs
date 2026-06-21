@@ -208,10 +208,15 @@ namespace YARG.Song
                     attribute = SortAttribute.Genre;
                     argument = argument[6..];
                 }
-                else if (argument.StartsWith("playlist:"))
+                else if (argument.StartsWith("subgenre:"))
                 {
-                    attribute = SortAttribute.Playlist;
+                    attribute = SortAttribute.Subgenre;
                     argument = argument[9..];
+                }
+                else if (argument.StartsWith("folder:"))
+                {
+                    attribute = SortAttribute.Folder;
+                    argument = argument[7..];
                 }
                 else if (argument.StartsWith("name:"))
                 {
@@ -310,9 +315,10 @@ namespace YARG.Song
                     SortAttribute.Artist => entry => IsAboveFuzzyThreshold(entry.Artist.SearchStr, filter.Argument),
                     SortAttribute.Album => entry => IsAboveFuzzyThreshold(entry.Album.SearchStr, filter.Argument),
                     SortAttribute.Genre => entry => IsAboveFuzzyThreshold(entry.Genre.SearchStr, filter.Argument),
+                    SortAttribute.Subgenre => entry => IsAboveFuzzyThreshold(entry.Subgenre.SearchStr, filter.Argument),
                     SortAttribute.Year => entry => entry.UnmodifiedYear.Contains(filter.Argument),
                     SortAttribute.Charter => entry => IsAboveFuzzyThreshold(entry.Charter.SearchStr, filter.Argument),
-                    SortAttribute.Playlist => entry => IsAboveFuzzyThreshold(entry.Playlist.SearchStr, filter.Argument),
+                    SortAttribute.Folder => entry => MatchesAnyPlaylist(entry, filter.Argument, true),
                     SortAttribute.Source => entry => IsAboveFuzzyThreshold(entry.Source.SearchStr, filter.Argument),
                     _ => throw new Exception("Unhandled seacrh filter")
                 },
@@ -322,14 +328,52 @@ namespace YARG.Song
                     SortAttribute.Artist => entry => entry.Artist.SearchStr == filter.Argument,
                     SortAttribute.Album => entry => entry.Album.SearchStr == filter.Argument,
                     SortAttribute.Genre => entry => entry.Genre.SearchStr == filter.Argument,
+                    SortAttribute.Subgenre => entry => entry.Subgenre.SearchStr == filter.Argument,
                     SortAttribute.Year => entry => entry.ParsedYear == filter.Argument || entry.UnmodifiedYear == filter.Argument,
                     SortAttribute.Charter => entry => entry.Charter.SearchStr == filter.Argument,
-                    SortAttribute.Playlist => entry => entry.Playlist.SearchStr == filter.Argument,
+                    SortAttribute.Folder => entry => MatchesAnyPlaylist(entry, filter.Argument, false),
                     SortAttribute.Source => entry => entry.Source.SearchStr == filter.Argument,
                     _ => throw new Exception("Unhandled seacrh filter")
                 },
                 _ => throw new Exception("Unused Mode type"),
             };
+        }
+
+        private static bool MatchesAnyPlaylist(SongEntry entry, string playlistArgument, bool fuzzy)
+        {
+            // Support multiple playlists separated by commas
+            var playlistNames = playlistArgument.Split(',');
+
+            foreach (var playlistName in playlistNames)
+            {
+                var trimmed = playlistName.Trim();
+                if (string.IsNullOrEmpty(trimmed))
+                {
+                    continue;
+                }
+
+                // Check Favorites playlist
+                if (YARG.Playlists.PlaylistContainer.FavoritesPlaylist != null &&
+                    string.Equals(YARG.Playlists.PlaylistContainer.FavoritesPlaylist.Name, trimmed, System.StringComparison.OrdinalIgnoreCase))
+                {
+                    if (YARG.Playlists.PlaylistContainer.FavoritesPlaylist.ContainsSong(entry))
+                    {
+                        return true;
+                    }
+                }
+
+                // Check regular playlists
+                foreach (var playlist in YARG.Playlists.PlaylistContainer.Playlists)
+                {
+                    if (string.Equals(playlist.Name, trimmed, System.StringComparison.OrdinalIgnoreCase) &&
+                        playlist.ContainsSong(entry))
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
         }
 
         private readonly struct UnspecifiedSortNode : IComparable<UnspecifiedSortNode>

@@ -20,9 +20,12 @@ namespace YARG.Venue.Characters
         private GameObject _venue;
 
         private readonly Dictionary<VenueCharacter.CharacterType, VenueCharacter> _characters = new();
+        public Dictionary<VenueCharacter.CharacterType, VenueCharacter> Characters => _characters;
+
+        private DrumCharacterHelper _drumCharacterHelper = new();
 
         // Ugh, the different note types ruin me again
-        private List<VocalsPhrase> _vocalNotes;
+        private List<VocalNote>    _vocalNotes;
         private List<DrumNote>     _drumNotes;
         private List<GuitarNote>   _guitarNotes;
         private List<GuitarNote>   _bassNotes;
@@ -32,6 +35,8 @@ namespace YARG.Venue.Characters
         private List<AnimationEvent> _guitarAnimationEvents;
         private List<AnimationEvent> _bassAnimationEvents;
         private List<AnimationEvent> _drumAnimationEvents;
+
+        public List<LipsyncEvent> LipsyncEvents;
 
         private int _guitarNoteIndex;
         private int _bassNoteIndex;
@@ -68,24 +73,17 @@ namespace YARG.Venue.Characters
 
         private bool _songHasDrumAnimations;
 
+        public double SongTime => GameManager.SongTime;
+
         protected override void OnChartLoaded(SongChart chart)
         {
-            // Find all the VenueCharacters in the venue
-
-            var venueCharacters = _venue.GetComponentsInChildren<VenueCharacter>(true);
-
-            foreach (var character in venueCharacters)
-            {
-                _characters.Add(character.Type, character);
-            }
-
             // Get the expert notes for each track
             // TODO: This should get the highest available difficulty, in case Expert doesn't exist
             var guitarId = chart.FiveFretGuitar.GetDifficulty(Difficulty.Expert);
             var bassId = chart.FiveFretBass.GetDifficulty(Difficulty.Expert);
             var keysId = chart.Keys.GetDifficulty(Difficulty.Expert);
             var proKeysId = chart.ProKeys.GetDifficulty(Difficulty.Expert);
-            var vocalsId = chart.Vocals.Parts[0];
+            var vocalsId = chart.Vocals.Parts[0].CloneAsInstrumentDifficulty();
             var drumsId = chart.ProDrums.GetDifficulty(Difficulty.Expert);
 
             var guitarTrack = chart.GetFiveFretTrack(Instrument.FiveFretGuitar);
@@ -99,8 +97,19 @@ namespace YARG.Venue.Characters
             _bassNotes = bassId.Notes;
             _keysNotes = keysId.Notes;
             _proKeysNotes = proKeysId.Notes;
-            _vocalNotes = vocalsId.NotePhrases;
             _drumNotes = drumsId.Notes;
+
+            _vocalNotes = new List<VocalNote>();
+            foreach (var note in vocalsId.Notes)
+            {
+                var phraseClone = note.Clone();
+                phraseClone.RemovePercussionChildNotes();
+
+                foreach (var phraseNote in phraseClone.ChildNotes)
+                {
+                    _vocalNotes.Add(phraseNote);
+                }
+            }
 
             _guitarAnimationEvents = guitarTrack.Animations.AnimationEvents;
             _bassAnimationEvents = bassTrack.Animations.AnimationEvents;
@@ -111,6 +120,8 @@ namespace YARG.Venue.Characters
             {
                 GenerateDrumsAnimations();
             }
+
+            LipsyncEvents = chart.LipsyncEvents;
 
             // This will eventually be combined into the animation events stuff, but for now the text events from the
             // individual instrument difficulties are separate
@@ -145,6 +156,26 @@ namespace YARG.Venue.Characters
             }
 
             // Register self with GameManager
+            GameManager.SetVenueCharacterManager(this);
+        }
+
+        public void Initialize()
+        {
+            // Find all the characters in the venue, done here because OnChartLoaded can get called before any
+            // replacement characters are loaded.
+            _characters.Clear();
+            var venueCharacters = _venue.GetComponentsInChildren<VenueCharacter>(false);
+
+            foreach (var character in venueCharacters)
+            {
+                if (!character.isActiveAndEnabled)
+                {
+                    continue;
+                }
+                character.Initialize(this);
+                _characters.Add(character.Type, character);
+            }
+
             GameManager.SetVenueCharacterManager(this);
         }
 
@@ -412,6 +443,20 @@ namespace YARG.Venue.Characters
 
                 character.OnGuitarAnimation(mapEvent);
             }
+
+            while (_vocalNotes.Count > 0 && _vocalNoteIndex < _vocalNotes.Count &&
+                _vocalNotes[_vocalNoteIndex].Time - character.TimeToFirstHit <= GameManager.SongTime)
+            {
+                if (_vocalNoteIndex >= _vocalNotes.Count)
+                {
+                    break;
+                }
+
+                var note = _vocalNotes[_vocalNoteIndex];
+                _vocalNoteIndex++;
+
+                character.OnNote(note);
+            }
         }
 
         private void ProcessDrums(VenueCharacter character)
@@ -440,7 +485,7 @@ namespace YARG.Venue.Characters
                 if (!character.IsAnimating())
                 {
                     character.StartAnimation(_currentTempo.SecondsPerBeat);
-                    return;
+                    break;
                 }
 
                 // If next note is more than secondsPerBeat away, stop animating
@@ -448,20 +493,29 @@ namespace YARG.Venue.Characters
                 {
                     character.StopAnimation();
                 }
+            }
 
-                while (_drumAnimationEvents.Count > 0 && _drumAnimationIndex < _drumAnimationEvents.Count &&
-                    _drumAnimationEvents[_drumAnimationIndex].Time - character.TimeToFirstHit <= GameManager.SongTime)
+            // Process animation events separately so they don't get skipped when StartAnimation exits early
+            var hasAnimationEvents = _drumAnimationIndex < _drumAnimationEvents.Count;
+            while (hasAnimationEvents)
+            {
+                var animEvent = _drumAnimationEvents[_drumAnimationIndex];
+                var animationIsReady = animEvent.Time - character.TimeToFirstHit <= GameManager.SongTime;
+                if (!animationIsReady)
                 {
-                    var animEvent = _drumAnimationEvents[_drumAnimationIndex];
-                    _drumAnimationIndex++;
-
-                    character.OnDrumAnimation(animEvent.Type);
-
-                    if (animEvent.Type == AnimationEvent.AnimationType.OpenHiHat)
-                    {
-                        _hatTimer = animEvent.TimeLength;
-                    }
+                    break;
                 }
+
+                _drumAnimationIndex++;
+
+                character.OnDrumAnimation(animEvent.Type);
+
+                if (animEvent.Type == AnimationEvent.AnimationType.OpenHiHat)
+                {
+                    _hatTimer = animEvent.TimeLength;
+                }
+
+                hasAnimationEvents = _drumAnimationIndex < _drumAnimationEvents.Count;
             }
         }
 
@@ -469,17 +523,8 @@ namespace YARG.Venue.Characters
         {
             YargLogger.LogDebug("Auto-generating missing drum animations");
             _drumAnimationEvents.Clear();
-
-            // Create a drum animation event for each note, using GetDrumAnimationForNote
-            foreach (var parent in _drumNotes)
-            {
-                foreach (var note in parent.AllNotes)
-                {
-                    var anim = GetDrumAnimationForNote(note);
-
-                    _drumAnimationEvents.Add(new AnimationEvent(anim, note.Time, note.TimeLength, note.Tick, note.TickLength));
-                }
-            }
+            var animationEvents = _drumCharacterHelper.GetDrumAnimations(_drumNotes);
+            _drumAnimationEvents.AddRange(animationEvents);
         }
 
         private static List<AnimationTrigger> GenerateMap<T>(List<T> notes) where T : Note<T>
@@ -588,23 +633,6 @@ namespace YARG.Venue.Characters
             triggers.Sort((a, b) => a.Time.CompareTo(b.Time));
 
             return triggers;
-        }
-
-        public static AnimationEvent.AnimationType GetDrumAnimationForNote(DrumNote child)
-        {
-            var pad = (FourLaneDrumPad) child.Pad;
-            return pad switch
-            {
-                FourLaneDrumPad.Kick => AnimationEvent.AnimationType.Kick,
-                FourLaneDrumPad.YellowCymbal => AnimationEvent.AnimationType.HihatRightHand,
-                FourLaneDrumPad.BlueCymbal => AnimationEvent.AnimationType.RideRh,
-                FourLaneDrumPad.GreenCymbal => AnimationEvent.AnimationType.Crash1RhHard,
-                FourLaneDrumPad.GreenDrum => AnimationEvent.AnimationType.FloorTomRightHand,
-                FourLaneDrumPad.BlueDrum => AnimationEvent.AnimationType.Tom2RightHand,
-                FourLaneDrumPad.YellowDrum => AnimationEvent.AnimationType.Tom1RightHand,
-                FourLaneDrumPad.RedDrum => AnimationEvent.AnimationType.SnareLhHard,
-                _ => throw new ArgumentOutOfRangeException(nameof(pad), pad, "Bad drum pad how?")
-            };
         }
 
         public enum TriggerType

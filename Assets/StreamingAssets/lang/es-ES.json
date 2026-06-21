@@ -1594,6 +1594,10 @@
                 "Name": "Duración de Pulso DMX (MS)",
                 "Description": "Cuánto tiempo permanece un canal DMX después de recibir un activador, en milisegundos. Aumente este valor si las luces no están iluminando de forma fiable. Establezca en 0 para desactivar completamente el estiramiento de pulsos."
             },
+            "EnablePlaybackBuffer": {
+                "Name": "Usar Buffer de Reproducción de Audio",
+                "Description": "Almacena los datos de audio en el Búfer de forma anticipada. Mejora la estabilidad de audio en dispositivos de bajo rendimiento, a costa de añadir latencia en los efectos de sonido."
+            },
             "PlaybackBufferLength": {
                 "Name": "Duración del Búfer de Reproducción",
                 "Description": "The size of the playback buffer, in milliseconds. Set to 0 to disable. Larger buffers provide more stability, but increase the latency of sound effects."
@@ -2188,7 +2192,7 @@
                 },
                 "EnableLanes": {
                     "Name": "Habilitar Líneas de Trino/Tremolo",
-                    "Description": "If enabled, the game honors charted trill/tremolo lanes."
+                    "Description": "Si se habilita, el juego respetará las líneas de Trino/Tremolo."
                 }
             },
             "HighwayPreset": {

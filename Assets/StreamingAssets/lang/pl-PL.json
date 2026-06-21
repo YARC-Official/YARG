@@ -2188,7 +2188,7 @@
                 },
                 "EnableLanes": {
                     "Name": "Włącz ścieżki trylu/tremolo",
-                    "Description": "If enabled, the game honors charted trill/tremolo lanes."
+                    "Description": "Jeżeli włączone, gra będzie wczytywać ścieżki trylu/tremolo z utworów."
                 }
             },
             "HighwayPreset": {

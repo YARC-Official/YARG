@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using YARG.Core.Game;
 using YARG.Core.Input;
 using YARG.Localization;
 using YARG.Menu.Navigation;
@@ -15,6 +16,7 @@ namespace YARG.Menu.MusicLibrary
     public partial class MusicLibraryMenu
     {
         public Playlist       ShowPlaylist   { get; set; }         = new(true);
+        private Playlist      _lastPlaylistSelectPlaylist;
 
         private List<ViewType> CreatePlaylistSelectViewList()
         {
@@ -22,30 +24,8 @@ namespace YARG.Menu.MusicLibrary
             int id = BACK_ID + 1;
             var list = new List<ViewType>
             {
-                new ButtonViewType(Localize.Key("Menu.MusicLibrary.Back"),
-                    "MusicLibraryIcons[Back]", () =>
-                    {
-                        SelectedPlaylist = null;
-                        MenuState = MenuState.Library;
-                        Refresh();
-                    }, BACK_ID)
+                new ButtonViewType("YARG", "MusicLibraryIcons[Playlists]", () => { })
             };
-
-            list.Add(new ButtonViewType("YARG", "MusicLibraryIcons[Playlists]", () => { }));
-
-            // Favorites is always on top
-            list.Add(new PlaylistViewType(
-                Localize.Key("Menu.MusicLibrary.Favorites"),
-                PlaylistContainer.FavoritesPlaylist,
-                () =>
-                {
-                    SelectedPlaylist = PlaylistContainer.FavoritesPlaylist;
-                    MenuState = MenuState.Playlist;
-                    Refresh();
-                }, PLAYLIST_ID));
-
-            list.Add(new ButtonViewType(Localize.Key("Menu.MusicLibrary.YourPlaylists"),
-                "MusicLibraryIcons[Playlists]", () => { }));
 
             // Add the setlist "playlist" if there are any songs currently in it
             if (ShowPlaylist.Count > 0)
@@ -53,64 +33,204 @@ namespace YARG.Menu.MusicLibrary
                 list.Add(new PlaylistViewType(Localize.Key("Menu.MusicLibrary.CurrentSetlist"), ShowPlaylist,
                     () =>
                     {
-                        SelectedPlaylist = ShowPlaylist;
-                        MenuState = MenuState.Playlist;
-                        Refresh();
+                        EnterPlaylistView(ShowPlaylist);
                     }, id));
                 id++;
             }
+
+            // Favorites is always on top (within the YARG section)
+            list.Add(new PlaylistViewType(
+                Localize.Key("Menu.MusicLibrary.Favorites"),
+                PlaylistContainer.FavoritesPlaylist,
+                () =>
+                {
+                    EnterPlaylistView(PlaylistContainer.FavoritesPlaylist);
+                }, PLAYLIST_ID));
+
+            list.Add(new ButtonViewType(Localize.Key("Menu.MusicLibrary.YourPlaylists"),
+                "MusicLibraryIcons[Playlists]", () => { }));
 
             // Add any other user defined playlists
             foreach (var playlist in PlaylistContainer.Playlists)
             {
                 list.Add(new PlaylistViewType(playlist.Name, playlist, () =>
                 {
-                    SelectedPlaylist = playlist;
-                    MenuState = MenuState.Playlist;
-                    Refresh();
+                    EnterPlaylistView(playlist);
                 }, id));
                 id++;
             }
 
+            // Add "Create New Playlist" button
+            list.Add(new ButtonViewType(
+                Localize.Key("Menu.MusicLibrary.Popup.Item.CreateNewPlaylist"),
+                "MusicLibraryIcons[Playlists]", () =>
+            {
+                DialogManager.Instance.ShowRenameDialog("New Playlist Name", playlistName =>
+                {
+                    var playlist = PlaylistContainer.CreatePlaylist(playlistName);
+                    ToastManager.ToastSuccess($"Created '{playlistName}'");
+                    RefreshAndSelectPlaylist(playlist);
+                });
+            }, CREATE_NEW_PLAYLIST_ID));
+
             return list;
+        }
+
+        private void ExitPlaylistSelect()
+        {
+            MenuState = MenuState.Library;
+            Refresh();
+
+            SetIndexTo(i => i is ButtonViewType { ID: PLAYLIST_ID });
+        }
+
+        private void EnterPlaylistView(Playlist playlist)
+        {
+            _lastPlaylistSelectPlaylist = playlist;
+            SelectedPlaylist = playlist;
+            MenuState = MenuState.Playlist;
+            Refresh();
+
+            if (!SetIndexTo(i => i is SongViewType))
+                SelectedIndex = 0;
         }
 
         private List<ViewType> CreatePlaylistViewList()
         {
             SetNavigationScheme(true);
-            var list = new List<ViewType>
+            var list = new List<ViewType>{};
+
+            // Only allow rename if not Favorites or Current Setlist
+            if (SelectedPlaylist != PlaylistContainer.FavoritesPlaylist && !SelectedPlaylist.Ephemeral)
             {
-                new ButtonViewType(Localize.Key("Menu.MusicLibrary.Back"),
-                    "MusicLibraryIcons[Back]", ExitPlaylistView, BACK_ID)
-            };
+                list.Add(new ButtonViewType(
+                    Localize.Key("Menu.MusicLibrary.Popup.Item.RenamePlaylist"),
+                    "MusicLibraryIcons[Playlists]", RenamePlaylist)
+                );
+            }
+
+            // Only allow delete if not Favorites
+            if (SelectedPlaylist != PlaylistContainer.FavoritesPlaylist)
+            {
+                var deleteLabel = SelectedPlaylist == ShowPlaylist
+                    ? Localize.Key("Menu.MusicLibrary.Popup.Item.DeleteSetlist")
+                    : Localize.Key("Menu.MusicLibrary.Popup.Item.DeletePlaylist");
+                list.Add(new ButtonViewType(
+                    deleteLabel,
+                    "MusicLibraryIcons[Playlists]", DeletePlaylist)
+                );
+            }
 
             // If `_sortedSongs` is null, then this function is being called during very first initialization,
             // which means the song list hasn't been constructed yet.
-            if (_sortedSongs is null || SongContainer.Count <= 0 ||
-                !_sortedSongs.Any(section => section.Songs.Length > 0))
+            if (_sortedSongs is null || SongContainer.Count <= 0)
             {
                 return list;
             }
 
             bool allowdupes = SettingsManager.Settings.AllowDuplicateSongs.Value;
+            _totalSongCount = 0;
+            _totalStarCount = 0;
+
+            // Add songs in the playlist
             foreach (var section in _sortedSongs)
             {
-                list.Add(new SortHeaderViewType(
-                    section.Category.ToUpperInvariant(),
-                    section.Songs.Length,
-                    section.CategoryGroup));
-
                 foreach (var song in section.Songs)
                 {
                     if (allowdupes || !song.IsDuplicate)
                     {
-                        list.Add(new SongViewType(this, song));
+                        var songView = new SongViewType(this, song);
+                        list.Add(songView);
+
+                        _totalSongCount++;
+                        var starAmount = songView.GetStarAmount();
+                        _totalStarCount += starAmount is null ? 0 : StarAmountHelper.GetStarCount(starAmount.Value);
                     }
                 }
             }
 
-            CalculateCategoryHeaderIndices(list);
             return list;
+        }
+
+        private void RenamePlaylist()
+        {
+            if (SelectedPlaylist == null) return;
+
+            // Don't allow renaming Favorites
+            if (SelectedPlaylist == PlaylistContainer.FavoritesPlaylist)
+            {
+                ToastManager.ToastError("Cannot rename Favorites playlist");
+                return;
+            }
+
+            DialogManager.Instance.ShowRenameDialog(SelectedPlaylist.Name, newName =>
+            {
+                PlaylistContainer.RenamePlaylist(SelectedPlaylist, newName);
+                ToastManager.ToastSuccess($"Renamed to '{newName}'");
+                RefreshAndReselect();
+            });
+        }
+
+        private void SortPlaylistAscending()
+        {
+            if (SelectedPlaylist == null) return;
+
+            SelectedPlaylist.SortByName(ascending: true);
+            ToastManager.ToastSuccess("Sorted A-Z");
+            RefreshAndReselect();
+        }
+
+        private void SortPlaylistDescending()
+        {
+            if (SelectedPlaylist == null) return;
+
+            SelectedPlaylist.SortByName(ascending: false);
+            ToastManager.ToastSuccess("Sorted Z-A");
+            RefreshAndReselect();
+        }
+
+        private void SortPlaylistByArtistAscending()
+        {
+            if (SelectedPlaylist == null) return;
+
+            SelectedPlaylist.SortByArtist(ascending: true);
+            ToastManager.ToastSuccess("Sorted by Artist A-Z");
+            RefreshAndReselect();
+        }
+
+        private void SortPlaylistByArtistDescending()
+        {
+            if (SelectedPlaylist == null) return;
+
+            SelectedPlaylist.SortByArtist(ascending: false);
+            ToastManager.ToastSuccess("Sorted by Artist Z-A");
+            RefreshAndReselect();
+        }
+
+        private void DeletePlaylist()
+        {
+            if (SelectedPlaylist == null) return;
+
+            // Don't allow deleting Favorites
+            if (SelectedPlaylist == PlaylistContainer.FavoritesPlaylist)
+            {
+                ToastManager.ToastError("Cannot delete this playlist");
+                return;
+            }
+
+            if (SelectedPlaylist.Ephemeral)
+            {
+                SelectedPlaylist.Clear();
+            }
+            else
+            {
+                PlaylistContainer.DeletePlaylist(SelectedPlaylist);
+            }
+
+            ToastManager.ToastSuccess($"Deleted '{SelectedPlaylist.Name}'");
+
+            // Exit back to library
+            ExitPlaylistView();
         }
 
         private List<ViewType> CreateShowViewList()
@@ -171,28 +291,27 @@ namespace YARG.Menu.MusicLibrary
                 new NavigationScheme.Entry(MenuAction.Blue, "Menu.MusicLibrary.StartShow",
                     OnPlayShowHit),
                 new NavigationScheme.Entry(MenuAction.Orange, "Menu.MusicLibrary.MoreOptions",
-                    OnButtonHit, OnButtonRelease),
+                    OnOrangeHit, OnOrangeRelease),
             }, false));
         }
 
         private void ExitPlaylistView()
         {
+            var lastPlaylist = _lastPlaylistSelectPlaylist;
             SelectedPlaylist = null;
             MenuState = MenuState.PlaylistSelect;
             SetNavigationScheme(true);
+            ClearPreview();
+            // Prevent an out-of-range song index from rendering an empty list while we rebuild.
+            SelectedIndex = 0;
             Refresh();
 
-            // Select playlist button
-            // TODO: Fix this to select the playlist we entered from, not favorites
-            SetIndexTo(i => i is ButtonViewType { ID: PLAYLIST_ID });
-        }
-
-        private void ExitPlaylistSelect()
-        {
-            MenuState = MenuState.Library;
-            Refresh();
-
-            SetIndexTo(i => i is ButtonViewType { ID: PLAYLIST_ID });
+            if (!SetIndexTo(i => i is PlaylistViewType pv && pv.Playlist == lastPlaylist))
+            {
+                // Select playlist button
+                SetIndexTo(i => i is ButtonViewType { ID: PLAYLIST_ID });
+            }
+            _sidebar.UpdateSidebar(true);
         }
 
         private void EnterShowMode()
@@ -207,7 +326,6 @@ namespace YARG.Menu.MusicLibrary
             SetShowNavigationScheme();
 
             // Display the show screen
-			SelectedPlaylist = ShowPlaylist;
             MenuState = MenuState.Show;
             Refresh();
 
@@ -216,7 +334,6 @@ namespace YARG.Menu.MusicLibrary
 
         private void LeaveShowMode()
         {
-            SelectedPlaylist = null;
             ShowPlaylist.Clear();
 
             // Pop the navigation scheme
@@ -298,11 +415,8 @@ namespace YARG.Menu.MusicLibrary
                     SetNavigationScheme(true);
                 }
 
-                // If we are in the playlist view, we need to refresh the view
-                if (MenuState == MenuState.PlaylistSelect)
-                {
-                    RefreshAndReselect();
-                }
+                // Refresh view if needed
+                RefreshAndReselect();
 
                 return;
             }
@@ -338,19 +452,37 @@ namespace YARG.Menu.MusicLibrary
 
         private void MovePlaylistEntryUp()
         {
+            if (SelectedPlaylist == null) return;
+
             if (CurrentSelection is SongViewType selection)
             {
-                SelectedPlaylist.MoveSongUp(selection.SongEntry);
+                var song = selection.SongEntry;
+                int previousIndex = SelectedIndex;
+                SelectedPlaylist.MoveSongUp(song);
                 Refresh();
+                if (!SetIndexTo(i => i is SongViewType view && view.SongEntry == song))
+                {
+                    SelectedIndex = previousIndex < 0 ? 0 :
+                        previousIndex >= ViewList.Count ? ViewList.Count - 1 : previousIndex;
+                }
             }
         }
 
         private void MovePlaylistEntryDown()
         {
+            if (SelectedPlaylist == null) return;
+
             if (CurrentSelection is SongViewType selection)
             {
-                SelectedPlaylist.MoveSongDown(selection.SongEntry);
+                var song = selection.SongEntry;
+                int previousIndex = SelectedIndex;
+                SelectedPlaylist.MoveSongDown(song);
                 Refresh();
+                if (!SetIndexTo(i => i is SongViewType view && view.SongEntry == song))
+                {
+                    SelectedIndex = previousIndex < 0 ? 0 :
+                        previousIndex >= ViewList.Count ? ViewList.Count - 1 : previousIndex;
+                }
             }
         }
     }

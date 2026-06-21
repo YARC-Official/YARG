@@ -15,12 +15,19 @@ namespace YARG.Gameplay.Visuals
 
             public static MaterialInfo From(MeshEmissionMaterialIndex a)
             {
-                return new MaterialInfo
+                try
                 {
-                    MaterialCache      = a.Mesh.materials[a.MaterialIndex],
-                    EmissionMultiplier = a.EmissionMultiplier,
-                    EmissionAddition   = a.EmissionAddition,
-                };
+                    return new MaterialInfo
+                    {
+                        MaterialCache = a.Mesh.materials[a.MaterialIndex],
+                        EmissionMultiplier = a.EmissionMultiplier,
+                        EmissionAddition = a.EmissionAddition,
+                    };
+                }
+                catch (System.Exception x)
+                {
+                    throw x;
+                }
             }
         }
 
