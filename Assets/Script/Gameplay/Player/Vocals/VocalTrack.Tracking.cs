@@ -13,6 +13,7 @@ namespace YARG.Gameplay.Player
         public enum StaticLyricShiftType
         {
             None,
+            WithinPhrase,
             PhraseToPhrase,
             PhraseToGap,
             GapToPhrase,
@@ -24,7 +25,7 @@ namespace YARG.Gameplay.Player
         {
             private const double IMMINENCE_THRESHOLD = .3d;
 
-            public List<VocalPhrasePair> PhrasePairs { get; }
+            public List<VocalsPhrase> Phrases { get; }
 
             // Index of the the phrase that should be leftmost in the static lyrics display. This updates as soon as the last note
             // of a phrase ends, not when the phrase itself ends
@@ -35,18 +36,18 @@ namespace YARG.Gameplay.Player
             // Returns true if it's time to shift
             public StaticLyricShiftType UpdateCurrentPhrase(double time)
             {
-                if (PhrasePairs.Count == 0)
+                if (Phrases.Count == 0)
                 {
                     return StaticLyricShiftType.NoPhrases;
                 }
 
-                var currentLeftmostPhrasePair = PhrasePairs[_leftmostPhraseIndex];
+                var currentLeftmostPhrase = Phrases[_leftmostPhraseIndex];
 
                 // We haven't passed the last note of the leftmost phrase. If we're in a gap, we need to check if the leftmost phrase
                 // is now imminent
                 if (_inGap)
                 {
-                    if (currentLeftmostPhrasePair.GetFirstNoteStartTime() < time + IMMINENCE_THRESHOLD)
+                    if (currentLeftmostPhrase.Time < time + IMMINENCE_THRESHOLD)
                     {
                         _inGap = false;
                         return StaticLyricShiftType.GapToPhrase;
@@ -54,19 +55,19 @@ namespace YARG.Gameplay.Player
                 }
 
                 // We've passed the last note of the leftmost phrase, so it's time to shift
-                else if (time >= currentLeftmostPhrasePair.GetLastNoteTotalEndTime())
+                else if (time >= currentLeftmostPhrase.TimeEnd)
                 {
-                    if (_leftmostPhraseIndex + 1 >= PhrasePairs.Count)
+                    if (_leftmostPhraseIndex + 1 >= Phrases.Count)
                     {
                         return StaticLyricShiftType.FinalPhraseComplete;
                     }
 
                     _leftmostPhraseIndex++;
 
-                    var newLeftmostPhrase = PhrasePairs[_leftmostPhraseIndex];
+                    var newLeftmostPhrase = Phrases[_leftmostPhraseIndex];
 
                     // Factor in the shift duration here, so that we don't go from gap to phrase in the middle of a phrase-to-gap shift
-                    if (newLeftmostPhrase.GetFirstNoteStartTime() > time + IMMINENCE_THRESHOLD + STATIC_LYRIC_SHIFT_DURATION)
+                    if (newLeftmostPhrase.Time > time + IMMINENCE_THRESHOLD + STATIC_LYRIC_SHIFT_DURATION)
                     {
                         _inGap = true;
 
@@ -75,22 +76,22 @@ namespace YARG.Gameplay.Player
                     }
 
                     // The next phrase is imminent, so shift straight to it
-                    return StaticLyricShiftType.PhraseToPhrase;
+                    return currentLeftmostPhrase.JoinWithNext ? StaticLyricShiftType.WithinPhrase : StaticLyricShiftType.PhraseToPhrase;
                 }
 
-                
+
 
                 return StaticLyricShiftType.None;
             }
 
-            public StaticPhraseTracker(List<VocalPhrasePair> phrasePairs)
+            public StaticPhraseTracker(List<VocalsPhrase> phrases)
             {
-                PhrasePairs = new();
-                foreach (var phrasePair in phrasePairs)
+                Phrases = new();
+                foreach (var phrase in phrases)
                 {
-                    if (!phrasePair.IsPercussion && phrasePair.HasNotes)
+                    if (!phrase.IsPercussion && phrase.Lyrics.Count > 0)
                     {
-                        PhrasePairs.Add(phrasePair);
+                        Phrases.Add(phrase);
                     }
                 }
             }

@@ -23,26 +23,26 @@ namespace YARG.Gameplay.Visuals
 
         public sealed class PreparedPhrase
         {
-            public readonly VocalPhrasePair PhrasePair;
+            public readonly VocalsPhrase Phrase;
             public readonly List<StaticLyricSyllable> Syllables;
             public readonly string FutureText;
             public readonly float Width;
             public readonly double Duration;
 
-            public PreparedPhrase(VocalPhrasePair phrasePair, List<VocalsPhrase> scoringPhrases,
+            public PreparedPhrase(VocalsPhrase phrase, List<VocalsPhrase> scoringPhrases,
                 bool allowHiding, float width)
             {
-                PhrasePair = phrasePair;
-                Duration = phrasePair.Duration;
-                Syllables = BuildSyllables(phrasePair, scoringPhrases, allowHiding);
+                Phrase = phrase;
+                Duration = phrase.TimeLength;
+                Syllables = BuildSyllables(phrase, scoringPhrases, allowHiding);
                 FutureText = BuildFutureText(Syllables);
                 Width = width;
             }
 
-            private PreparedPhrase(VocalPhrasePair phrasePair, double duration,
+            private PreparedPhrase(VocalsPhrase phrase, double duration,
                 List<StaticLyricSyllable> syllables, string futureText, float width)
             {
-                PhrasePair = phrasePair;
+                Phrase = phrase;
                 Duration = duration;
                 Syllables = syllables;
                 FutureText = futureText;
@@ -51,7 +51,7 @@ namespace YARG.Gameplay.Visuals
 
             public PreparedPhrase WithWidth(float width)
             {
-                return new PreparedPhrase(PhrasePair, Duration, Syllables, FutureText, width);
+                return new PreparedPhrase(Phrase, Duration, Syllables, FutureText, width);
             }
         }
 
@@ -107,7 +107,7 @@ namespace YARG.Gameplay.Visuals
 
         private Utf16ValueStringBuilder _builder;
 
-        public override double ElementTime => _preparedPhrase.PhrasePair.Time;
+        public override double ElementTime => _preparedPhrase.Phrase.Time;
 
         [SerializeField]
         private TextMeshPro _phraseText;
@@ -193,28 +193,20 @@ namespace YARG.Gameplay.Visuals
         {
             var hash = new HashCode();
 
-            for (int i = 0; i < _preparedPhrase.Syllables.Count; i++)
+            foreach (var syllable in _preparedPhrase.Syllables)
             {
-                var syllable = _preparedPhrase.Syllables[i];
-                int state = 2; // syllable is already hit (gray)
+                int state = 2;
 
                 if (GameManager.VisualTime < syllable.Time)
                 {
-                    state = 0; // syllable is in current phrase (active/white)
+                    state = 0;
                 }
                 else if (GameManager.VisualTime < syllable.TimeEnd)
                 {
-                    state = 1; // syllable is being hit (cyan)
+                    state = 1;
                 }
 
                 hash.Add(state);
-
-                if (state == 0)
-                {
-                    // We can reasonably assume if we run into a syllable that has not yet been hit,
-                    // there is no change after that syllable.
-                    break;
-                }
             }
 
             return hash.ToHashCode();
@@ -227,131 +219,21 @@ namespace YARG.Gameplay.Visuals
             _builder.Append(CLOSE_COLOR_TAG);
         }
 
-        private static List<StaticLyricSyllable> BuildSyllables(VocalPhrasePair phrasePair,
+        private static List<StaticLyricSyllable> BuildSyllables(VocalsPhrase phrase,
             List<VocalsPhrase> scoringPhrases, bool allowHiding)
         {
             var syllables = new List<StaticLyricSyllable>();
             var mergedLyricIdx = 0;
 
-            var mainPhrase = phrasePair.MainPhrase;
-            var mergedPhrase = phrasePair.MergedPhrase;
-
             // Handle HARM3-only phrases
-            if (mainPhrase is null)
+            while (mergedLyricIdx < phrase.Lyrics.Count)
             {
-                while (mergedLyricIdx < mergedPhrase.Lyrics.Count)
-                {
-                    var isLastLyricOfMergedPhrase = mergedLyricIdx == mergedPhrase.Lyrics.Count - 1;
+                var isLastLyricOfMergedPhrase = mergedLyricIdx == phrase.Lyrics.Count - 1;
 
-                    var mergedLyric = mergedPhrase.Lyrics[mergedLyricIdx++];
-                    var probableMergedLyricEnd = GetProbableNoteEndOfLyric(mergedPhrase, mergedLyric);
+                var mergedLyric = phrase.Lyrics[mergedLyricIdx++];
 
-                    if (probableMergedLyricEnd is null)
-                    {
-                        continue;
-                    }
-
-                    MakeStaticLyricSyllable(syllables, scoringPhrases, allowHiding, mergedLyric.Text,
-                        mergedLyric.Time, probableMergedLyricEnd.Value, mergedLyric.Flags, isLastLyricOfMergedPhrase);
-                }
-            }
-            else
-            {
-                for (var mainLyricIdx = 0; mainLyricIdx < mainPhrase.Lyrics.Count; mainLyricIdx++)
-                {
-                    var mainLyric = mainPhrase.Lyrics[mainLyricIdx];
-                    var probableMainLyricEnd = GetProbableNoteEndOfLyric(mainPhrase, mainLyric);
-                    if (probableMainLyricEnd is null)
-                    {
-                        continue;
-                    }
-
-                    var isLastLyricOfMainPhrase = mainLyricIdx == mainPhrase.Lyrics.Count - 1;
-
-                    if (mergedPhrase is not null)
-                    {
-                        // Handle any merged lyrics that happened before the current lyric
-                        while (mergedLyricIdx < mergedPhrase.Lyrics.Count)
-                        {
-                            if (mergedPhrase.Lyrics[mergedLyricIdx].Time >= mainPhrase.Lyrics[mainLyricIdx].Time)
-                            {
-                                break;
-                            }
-
-                            var mergedLyric = mergedPhrase.Lyrics[mergedLyricIdx++];
-                            var probableMergedLyricEnd = GetProbableNoteEndOfLyric(mergedPhrase, mergedLyric);
-                            if (probableMergedLyricEnd is null)
-                            {
-                                continue;
-                            }
-
-                            // isLastLyricOfPhrase is definitely false, because we still have at least one main phrase lyric to add
-                            MakeStaticLyricSyllable(syllables, scoringPhrases, allowHiding, mergedLyric.Text,
-                                mergedLyric.Time, probableMergedLyricEnd.Value, mergedLyric.Flags, false);
-                        }
-                    }
-
-                    bool mainLyricIsLastLyricOfEntirePhrase; // Including both the main and merged lyrics
-                    if (isLastLyricOfMainPhrase)
-                    {
-                        // This is the last lyric of the main phrase, but what about the merged phrase?
-                        mainLyricIsLastLyricOfEntirePhrase = mergedPhrase is not null && mergedLyricIdx < mergedPhrase.Lyrics.Count - 1;
-                    } else
-                    {
-                        // This isn't even the last lyric of the main phrase, so it's definitely not the last one overall
-                        mainLyricIsLastLyricOfEntirePhrase = false;
-                    }
-
-                    MakeStaticLyricSyllable(syllables, scoringPhrases, allowHiding, mainLyric.Text,
-                        mainLyric.Time, probableMainLyricEnd.Value, mainLyric.Flags, mainLyricIsLastLyricOfEntirePhrase);
-
-                    // If there's a simultaneous syllable in the merged part...
-                    if (mergedPhrase is not null && mergedLyricIdx < mergedPhrase.Lyrics.Count && mergedPhrase.Lyrics[mergedLyricIdx].Time == mainLyric.Time)
-                    {
-                        var simultaneousMergedLyric = mergedPhrase.Lyrics[mergedLyricIdx++];
-
-                        // ...and its text isn't an exact match to the main syllable...
-                        if (simultaneousMergedLyric.Text != mainLyric.Text)
-                        {
-                            var probableSimultaneousMergedLyricEnd = GetProbableNoteEndOfLyric(mergedPhrase, simultaneousMergedLyric);
-
-                            if (probableSimultaneousMergedLyricEnd is not null)
-                            {
-                                var isLastLyricOfMergedPhrase = mergedLyricIdx == mergedPhrase.Lyrics.Count - 1;
-
-                                // ...add it after the main syllable
-                                MakeStaticLyricSyllable(
-                                    syllables,
-                                    scoringPhrases,
-                                    allowHiding,
-                                    simultaneousMergedLyric.Text,
-                                    simultaneousMergedLyric.Time,
-                                    probableSimultaneousMergedLyricEnd.Value,
-                                    simultaneousMergedLyric.Flags,
-                                    mainLyricIsLastLyricOfEntirePhrase && mergedLyricIdx == mergedPhrase.Lyrics.Count - 1
-                                );
-                            }
-                        }
-                    }
-                }
-
-                // Handle any remaining merged lyrics after the last main phrase lyric
-                if (mergedPhrase is not null)
-                {
-                    while (mergedLyricIdx < mergedPhrase.Lyrics.Count)
-                    {
-                        var mergedLyric = mergedPhrase.Lyrics[mergedLyricIdx++];
-                        var probableMergedLyricEnd = GetProbableNoteEndOfLyric(mergedPhrase, mergedLyric);
-                        if (probableMergedLyricEnd is null)
-                        {
-                            continue;
-                        }
-
-                        var isLastLyricOfMergedPhrase = mergedLyricIdx == mergedPhrase.Lyrics.Count - 1;
-                        MakeStaticLyricSyllable(syllables, scoringPhrases, allowHiding, mergedLyric.Text,
-                            mergedLyric.Time, probableMergedLyricEnd.Value, mergedLyric.Flags, isLastLyricOfMergedPhrase);
-                    }
-                }
+                MakeStaticLyricSyllable(syllables, scoringPhrases, allowHiding, mergedLyric.Text,
+                    mergedLyric.Time, mergedLyric.TimeEnd, mergedLyric.Flags, isLastLyricOfMergedPhrase);
             }
 
             return syllables;

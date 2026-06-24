@@ -20,6 +20,7 @@ namespace YARG.Gameplay.Player
 
         public const float LYRIC_SPACING = 0.25f;
         public const float STATIC_PHRASE_SPACING = .5f;
+        public const float SHIFT_PHRASE_SPACING =  .08f;
 
         [Header("Index 0 should be bottom, 2 should be top.")]
         [SerializeField]
@@ -89,12 +90,12 @@ namespace YARG.Gameplay.Player
         }
 
         public VocalStaticLyricPhraseElement.PreparedPhrase PrepareStaticLyricPhrase(
-            VocalPhrasePair phrasePair, List<VocalsPhrase> scoringPhrases, int totalHarms, int harmIndex)
+            VocalsPhrase phrase, List<VocalsPhrase> scoringPhrases, int totalHarms, int harmIndex)
         {
             var combineHarmonyLyrics = !SettingsManager.Settings.UseThreeLaneLyricsInHarmony.Value;
             bool allowHiding = harmIndex != 0 && combineHarmonyLyrics;
             var preparedPhrase = new VocalStaticLyricPhraseElement.PreparedPhrase(
-                phrasePair, scoringPhrases, allowHiding, 0f);
+                phrase, scoringPhrases, allowHiding, 0f);
 
             var tester = GetStaticWidthTester(GetLaneIndex(totalHarms, harmIndex));
             tester.fontStyle = FontStyles.Normal;
