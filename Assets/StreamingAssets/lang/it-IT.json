@@ -1,4 +1,4 @@
-﻿{
+{
     "Language": {
         "Name": "Italiano",
         "Region": "Stati uniti",
@@ -161,7 +161,7 @@
             "Repos": {
                 "Community": "Comunità",
                 "OpenSource": "OpenSource",
-                "YARC-Charters": "La Setlist Ufficiale di YARG",
+                "YARC-Charters": "La Scaletta Ufficiale di YARG",
                 "YARC-Launcher": "YARC Launcher",
                 "YARG": "YARG"
             },
@@ -182,7 +182,7 @@
                 "Maintainers": "Manutentori",
                 "ProjectManager": "Manager del progetto",
                 "SpecialThanks": "Ringraziamenti Speciali",
-                "SetlistManager": "Gestore Setlist",
+                "SetlistManager": "Gestore Scalette",
                 "Songs": "Brani",
                 "Supporters": "Sostenitori"
             },
@@ -265,7 +265,7 @@
             "WarningVocalistNoMicrophone": "Questo cantante non ha microfono assegnato! Assegnane uno dal menu Profili."
         },
         "History": {
-            "Name": "Storico",
+            "Name": "Cronologia",
             "Time": {
                 "Today": "Oggi",
                 "Yesterday": "Ieri",
@@ -276,7 +276,7 @@
                 "MoreThanYear": "Più Di Un Anno"
             },
             "Analyze": "Analizza",
-            "PlayWithReplay": "Riproduci Con Replay"
+            "PlayWithReplay": "Riproduci con Replay"
         },
         "Main": {
             "MessageOfTheDay": "<align=center><size=32><b>Benvenuto nella v0.15 notti!</b></size></align>\n\nv0.15 ora ha il supporto per corsie tremolo/trill, sfondi di traccia personalizzabili (compresa la trasparenza), caratteri vocali personalizzati per le ambientazioni, il monitoraggio avanzato delle prestazioni del giocatore, tastiere riposizionabili, aggiunge nuovi strumenti di calibrazione del gioco, e altro ancora! Oh, e la nuova e migliorata libreria musicale è finalmente qui, inclusi i filtri di canzoni avanzati, quindi anche la più grande biblioteca non può impedirti di trovare quello che stai cercando! :D\n\n<b>Se hai qualche feedback o trovi qualche bug, facci sapere su Discord o GitHub.</b>\n\nFelice YARGin'!",
@@ -284,7 +284,7 @@
                 "Quickplay": "Partita Veloce",
                 "Practice": "Pratica",
                 "Profiles": "Profili",
-                "History": "Storico",
+                "History": "Cronologia",
                 "Settings": "Impostazioni",
                 "Credits": "Crediti",
                 "Exit": "Esci dal gioco"
@@ -300,7 +300,7 @@
                 "Singular": "BRANO RACCOMANDATO",
                 "Plural": "BRANI RACCOMANDATI"
             },
-            "RecommendedSongsHelp": "Aggiorna la lista dei brani consigliati",
+            "RecommendedSongsHelp": "Aggiorna Lista Brani Consigliati",
             "PlayableSongs": "BRANI GIOCABILI",
             "RandomSong": "BRANO CASUALE",
             "Playlists": "GESTORE PLAYLIST",
@@ -323,11 +323,11 @@
                     "RemoveFromFavorites": "Rimuovi Dai Preferiti",
                     "AddToPlaylist": "Aggiungi alla Playlist...",
                     "RemoveFromPlaylist": "Rimuovi dalla Playlist",
-                    "RemoveFromSetlist": "Rimuovi dalla Setlist",
+                    "RemoveFromSetlist": "Rimuovi da Scaletta",
                     "CreateNewPlaylist": "Crea nuovo...",
                     "RenamePlaylist": "Rinomina Playlist",
                     "DeletePlaylist": "Elimina Playlist",
-                    "DeleteSetlist": "Elimina Setlist",
+                    "DeleteSetlist": "Elimina Scaletta",
                     "ViewSongFolder": "Visualizza La Cartella Del Brano",
                     "CopySongChecksum": "Copia Il Checksum Del Brano",
                     "CollapseAll": "Comprimi tutto",
@@ -337,28 +337,28 @@
             "Back": "INDIETRO",
             "NoPlayersConnected": "Nessun giocatore connesso! Vai al menù dei profili per connettere un giocatore",
             "Play": "Suona Brano",
-            "PlayHoldAddToSet": "<align=left>Riproduci Canzone<br><size=67%>(Attesa) Aggiungi Alla Setlist</size></align>",
-            "AddHoldStartSet": "<align=left>Aggiungi alla Setlist<br><size=67%>(Tieni premuto) Avvia il Set</size></align>",
+            "PlayHoldAddToSet": "<align=left>Riproduci Brano<br><size=67%>(Tieni) Agg. a Scaletta</size></align>",
+            "AddHoldStartSet": "<align=left>Agg. a Scaletta<br><size=67%>(Tieni) Avvia Scaletta</size></align>",
             "ExpandHeaderHoldAddToSet": "<align=left>Espandi Intestazione</align>",
             "CollapseHeaderHoldAddToSet": "<align=left>Comprimi Intestazione</align>",
-            "ExpandHeaderHoldStartSet": "<align=left>Espandi Intestazione<br><size=67%>(Tieni premuto) Inizia Il Set</size></align>",
-            "CollapseHeaderHoldStartSet": "<align=left>Comprimi Intestazione<br><size=67%>(Tieni premuto) Inizia Il Set</size></align>",
+            "ExpandHeaderHoldStartSet": "<align=left>Espandi Intestazione<br><size=67%>(Tieni ) Inizia Scaletta</size></align>",
+            "CollapseHeaderHoldStartSet": "<align=left>Comprimi Intestazione<br><size=67%>(Tieni) Inizia Scaletta</size></align>",
             "Search": "Cerca",
             "SkipSection": "<align=left>Naviga Sezioni</align>",
             "MoveInPlaylist": "Muovi Brano",
             "CurrentSetlist": "Scaletta Corrente",
-            "AddToSet": "Aggiungi Alla Scaletta",
-            "AddedToSet": "Aggiunto Alla Scaletta",
-            "PlaylistAddedToSet": "Aggiunte {0:N0} canzoni dalla playlist alla scaletta",
+            "AddToSet": "Aggiungi a Scaletta",
+            "AddedToSet": "Aggiunto alla Scaletta",
+            "PlaylistAddedToSet": "Aggiunti {0:N0} brani dalla Playlist alla Scaletta",
             "StartSet": "Avvia Il Set",
-            "PlayShow": "Riproduci Uno Show",
+            "PlayShow": "Inizia a suonare",
             "Filters": "Filtri",
             "NoSongsInPlaylist": "Nessun Brano In Playlist",
             "CannotAddToSelf": "No, non creerò un ouroboros per te. Bel tentativo, Jaden.",
             "AddToShow": "Aggiungi Allo Show",
             "AddedToShow": "Aggiunto Allo Show",
             "StartShow": "Avvia Lo Show",
-            "MoreOptions": "<align=left><size=80%>Più opzioni<br>(Tieni Premuto) Naviga tra le sezioni</size></align>",
+            "MoreOptions": "<align=left><size=80%>Più Opzioni<br>(Tieni) Naviga tra le sezioni</size></align>",
             "PlayAShow": {
                 "LongSong": "Un Brano Lungo",
                 "RandomSong": "Brano Casuale",
@@ -508,7 +508,7 @@
             "ShowAnyOfHeader": "Mostra qualunque",
             "SortedBy": "Ordinato per",
             "ShowRecommendations": "Mostra consigli",
-            "ResetAllFilters": "(Tieni premuto) Resetta tutti i filtri",
+            "ResetAllFilters": "(Tieni) Resetta tutti i filtri",
             "SelectAll": "Seleziona tutti",
             "DeselectAll": "Deseleziona tutti",
             "None": "Nessuno",
@@ -548,6 +548,32 @@
                 "Epic": "Epico (Oltre 7 min)"
             },
             "Playlists": "Playlist"
+        },
+        "HighwayOrdering": {
+            "Red": "Rosso",
+            "RedCymbal": "Piatto Rosso",
+            "RedDrum": "Tamburo Rosso",
+            "Yellow": "Giallo",
+            "YellowCymbal": "Piatto Giallo",
+            "YellowDrum": "Tamburo Giallo",
+            "Blue": "Blu",
+            "BlueCymbal": "Piatto Blu",
+            "BlueDrum": "Tamburo Blu",
+            "Green": "Verde",
+            "GreenCymbal": "Piatto Verde",
+            "GreenDrum": "Tamburo Verde",
+            "Orange": "Arancione",
+            "CreateDedicatedLane": "Crea Corsia Dedicata",
+            "RemoveDedicatedLane": "Rimuovi Corsia Dedicata",
+            "RemoveDedicatedLanes": "Rimuovi Corsie Dedicate",
+            "Kick": "Pedale",
+            "RightKick": "Pedale Destro*",
+            "LeftKick": "Pedale Sinistro*",
+            "SplitKicksWarning": "* I pedali divisi possono ancora essere colpiti con entrambi i pedali e potrebbero non corrispondere al piede più comodo per modelli a doppio pedale.",
+            "ExpertPlusOnly": "Solo Esperto+",
+            "4LaneHeader": "Configurazione Tastiera Batteria 4 Corsie",
+            "ProHeader": "Configurazione Tastiera Batteria Pro",
+            "5LaneHeader": "Configurazione Tastiera Batteria 5 Corsie"
         }
     },
     "Gameplay": {
@@ -913,7 +939,7 @@
             "ExportSongs": "Esporta lista Brani",
             "PathsAndFolders": "Percorsi e Cartelle",
             "MusicLibrary": "Libreria Musicale",
-            "PlayAShow": "Riproduci Uno Show",
+            "PlayAShow": "Inizia a suonare",
             "ScanningOptions": "Opzioni di Scansione",
             "RB3E": "Impostazioni RB3E",
             "Customization": "Personalizzazione Buffer",
@@ -1139,10 +1165,12 @@
             },
             "HighScoreHistory": {
                 "Name": "Cronologia record",
-                "Description": "Cambia il modo in cui la cronologia dei punteggi viene usata per le informazioni sui record visualizzate nella Libreria Musica.",
+                "Description": "Changes which score or percentage record is used for high score information displayed in the Music Library.",
                 "Dropdown": {
-                    "HighestOverall": "Più alto tra tutte le difficoltà",
-                    "HighestDifficulty": "Solo difficoltà giocata più alta"
+                    "HighestPercentageOverall": "Best percentage across all difficulties",
+                    "HighestPercentageDifficulty": "Best percentage on highest-played difficulty",
+                    "HighestScoreOverall": "Highest score across all difficulties",
+                    "HighestScoreDifficulty": "Highest score on highest-played difficulty"
                 }
             },
             "HighwayTiltMultiplier": {
@@ -1436,6 +1464,10 @@
                 "Name": "Post-Elaborazione Ambientazione",
                 "Description": "Determina se gli effetti post-elaborazione sono applicati agli sfondi dell'ambientazione."
             },
+            "ReduceFlashingLights": {
+                "Name": "Riduci Luci Lampeggianti",
+                "Description": "Riduce gli effetti lampeggianti e stroboscopici nelle location."
+            },
             "VenueRenderingQuality": {
                 "Name": "Qualità Rendering Ambientazione",
                 "Description": "La qualità/risoluzione da usare per gli sfondi dell'ambientazione.",
@@ -1498,6 +1530,10 @@
                 "Name": "Pausa in Perdita di Focus",
                 "Description": "Mette in pausa il gioco se esso viene ridotto il focus o si smette di giocare durante un brano."
             },
+            "MuteOnFocusLoss": {
+                "Name": "Mute On Focus Loss",
+                "Description": "Mutes all game audio when the game is tabbed out/loses focus, including menu music. Audio is restored when focus returns."
+            },
             "ApplyVolumesInMusicLibrary": {
                 "Name": "Applica l'impostazione del volume nelle anteprime della libreria musicale",
                 "Description": "Le impostazioni del volume per strumenti specifici saranno applicate anche nella Libreria Musicale."
@@ -1558,13 +1594,9 @@
                 "Name": "Durata Impulso DMX (MS)",
                 "Description": "Per quanto tempo un canale DMX rimane acceso dopo aver ricevuto un innesco, in millisecondi. Aumenta questo valore se le luci non si accendono in modo affidabile. Impostare a 0 per disabilitare completamente l'allungamento dell'impulso."
             },
-            "EnablePlaybackBuffer": {
-                "Name": "Usa Buffer di Riproduzione Audio",
-                "Description": "Utilizza il Pre-Buffer per i dati audio decodificandoli in anticipo a blocchi. Migliora la stabilità dell'audio su dispositivi a basse prestazioni, al costo di una latenza aggiuntiva sugli effetti sonori."
-            },
             "PlaybackBufferLength": {
                 "Name": "Lunghezza Buffer di Riproduzione",
-                "Description": "La dimensione del buffer di riproduzione, in millisecondi. Buffer più grandi garantiscono maggiore stabilità, ma aumentano ulteriormente la latenza degli effetti sonori."
+                "Description": "The size of the playback buffer, in milliseconds. Set to 0 to disable. Larger buffers provide more stability, but increase the latency of sound effects."
             },
             "ShowTime": {
                 "Name": "Mostra Orario",
@@ -1753,6 +1785,24 @@
                 },
                 "BlueStarpower": {
                     "Name": "Blu Star Power"
+                },
+                "DoubleKickFret": {
+                    "Name": "Tasto Doppio Pedale\n(solo corsia dedicata)"
+                },
+                "DoubleKickFretInner": {
+                    "Name": "Interno Tasto Doppio Pedale\n(solo corsia dedicata)"
+                },
+                "DoubleKickNote": {
+                    "Name": "Nota Doppio Pedale\n(solo corsia dedicata)"
+                },
+                "DoubleKickParticles": {
+                    "Name": "Particelle Doppio Pedale\n(solo corsia dedicata)"
+                },
+                "DoubleKickStarpower": {
+                    "Name": "Star Power Doppio Pedale\n(solo corsia dedicata)"
+                },
+                "DoubleKickActivationNote": {
+                    "Name": "Attivazione\nStar Power Doppio Pedale\n(solo corsia dedicata)"
                 },
                 "GreenCymbal": {
                     "Name": "Piatto Batteria Verde"
@@ -2032,9 +2082,13 @@
                     "Name": "Rapporto Hit Window",
                     "Description": "Il rapporto tra la parte anteriore e posteriore della Hit Window. \"0\" porterà la finestra completamente all'indietro, \"1\" la terrà al centro, e \"2\" la sposterà davanti."
                 },
-                "TremoloWindow": {
-                    "Name": "Hit Window Tremolo",
-                    "Description": "Questo determina la frequenza degli input di corsia necessari per mantenere il comportamento della corsia."
+                "LaneAutohitWindow": {
+                    "Name": "Lane Autohit Window",
+                    "Description": "This determines the minimum input speed that guarantees autohitting behavior in a lane, regardless of the speed of the notes within the lane."
+                },
+                "LaneProximityProtectionWindow": {
+                    "Name": "Lane Proximity Protection\nWindow",
+                    "Description": "This determines the window of time before and after a lane where overhitting is forgiven."
                 },
                 "HitPercentE": {
                     "Name": "Percentuale di colpo (Facile)",

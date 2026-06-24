@@ -69,6 +69,8 @@ namespace YARG.Menu.MusicLibrary
         [SerializeField]
         private GameObject _genreContainer;
         [SerializeField]
+        private GameObject _genreSpacer;
+        [SerializeField]
         private Image _contentRatingImage;
         [SerializeField]
         private Sprite[] _contentRatingIcons;
@@ -179,6 +181,7 @@ namespace YARG.Menu.MusicLibrary
 
         private void ShowCategoryInfo(CategoryViewType categoryViewType)
         {
+            _genreSpacer.SetActive(true);
             SetText(_sourceContainer, _source, categoryViewType.SourceCountText);
             SetText(_charterContainer, _charter, categoryViewType.CharterCountText);
             SetText(_genreContainer, _genre, categoryViewType.GenreCountText + ",");
@@ -187,6 +190,7 @@ namespace YARG.Menu.MusicLibrary
 
         private void ShowCategoryInfo(SortHeaderViewType sortHeaderViewType)
         {
+            _genreSpacer.SetActive(true);
             SetText(_sourceContainer, _source, sortHeaderViewType.SourceCountText);
             SetText(_charterContainer, _charter, sortHeaderViewType.CharterCountText);
             SetText(_genreContainer, _genre, sortHeaderViewType.GenreCountText + ",");
@@ -228,6 +232,7 @@ namespace YARG.Menu.MusicLibrary
             SetWrappedText(_charterContainer, _charter, songEntry.Charter, ref _charterBaseFontSize);
 
             _genreContainer.SetActive(true); // Empty genres are rendered as "Unknown Genre", so this should always be active
+            _genreSpacer.SetActive(songEntry.Subgenre != string.Empty); // 10px space between genre and subgenre
             _genre.text = CurrentCulture.TextInfo.ToTitleCase(songEntry.Genre) + (songEntry.Subgenre == string.Empty ? "" : ",");
             _subgenre.text = songEntry.Subgenre;
 

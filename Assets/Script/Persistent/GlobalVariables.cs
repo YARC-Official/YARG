@@ -43,7 +43,7 @@ namespace YARG
 
         public SceneIndex CurrentScene { get; private set; } = SceneIndex.Persistent;
 
-        public string CurrentVersion { get; private set; } = "v0.14";
+        public string CurrentVersion { get; private set; } = "v0.15";
 
         protected override void SingletonAwake()
         {
@@ -100,6 +100,27 @@ namespace YARG
             InputManager.Initialize();
 
             LoadScene(SceneIndex.Menu);
+        }
+
+        // Tracks whether audio was muted because the window lost focus,
+        // so it can be restored when focus returns.
+        private bool _mutedFromFocusLoss;
+
+        private void OnApplicationFocus(bool hasFocus)
+        {
+            if (!hasFocus)
+            {
+                if (SettingsManager.Settings.MuteOnFocusLoss.Value && !_mutedFromFocusLoss)
+                {
+                    GlobalAudioHandler.SetMasterVolume(0);
+                    _mutedFromFocusLoss = true;
+                }
+            }
+            else if (_mutedFromFocusLoss)
+            {
+                GlobalAudioHandler.SetMasterVolume(SettingsManager.Settings.MasterMusicVolume.Value);
+                _mutedFromFocusLoss = false;
+            }
         }
 
 #if UNITY_EDITOR

@@ -81,7 +81,7 @@ namespace YARG.Menu.ScoreScreen
         [SerializeField]
         private TextMeshProUGUI _bandBonusScore;
         [SerializeField]
-        private TextMeshProUGUI _averageOffset;
+        protected TextMeshProUGUI _averageOffset;
         [SerializeField]
         private TextMeshProUGUI _starPowerActivations;
         [SerializeField]
@@ -609,7 +609,7 @@ namespace YARG.Menu.ScoreScreen
             _statsRect.verticalNormalizedPosition = 1f;
         }
 
-        public void SetAdvancedStatsShown(bool showAdvanced)
+        public virtual void SetAdvancedStatsShown(bool showAdvanced)
         {
             _advancedStatsRect.gameObject.SetActive(showAdvanced);
             _basicStatsRect.gameObject.SetActive(!showAdvanced);

@@ -1,4 +1,4 @@
-﻿{
+{
     "Language": {
         "Name": "polski",
         "Region": "Polska",
@@ -10,7 +10,7 @@
     },
     "Enum": {
         "Difficulty": {
-            "Beginner": "Beginner",
+            "Beginner": "Początkujący",
             "Easy": "Łatwy",
             "Hard": "Trudny",
             "Expert": "Ekspert",
@@ -548,6 +548,32 @@
                 "Epic": "Epickie (ponad 7 minut)"
             },
             "Playlists": "Playlists"
+        },
+        "HighwayOrdering": {
+            "Red": "Red",
+            "RedCymbal": "Red Cymbal",
+            "RedDrum": "Red Drum",
+            "Yellow": "Yellow",
+            "YellowCymbal": "Yellow Cymbal",
+            "YellowDrum": "Yellow Drum",
+            "Blue": "Blue",
+            "BlueCymbal": "Blue Cymbal",
+            "BlueDrum": "Blue Drum",
+            "Green": "Green",
+            "GreenCymbal": "Green Cymbal",
+            "GreenDrum": "Green Drum",
+            "Orange": "Orange",
+            "CreateDedicatedLane": "Create Dedicated Lane",
+            "RemoveDedicatedLane": "Remove Dedicated Lane",
+            "RemoveDedicatedLanes": "Remove Dedicated Lanes",
+            "Kick": "Kick",
+            "RightKick": "Right Kick*",
+            "LeftKick": "Left Kick*",
+            "SplitKicksWarning": "* Split kicks can still be hit with either pedal and may not correspond to the most comfortable footing for double-kick patterns.",
+            "ExpertPlusOnly": "Expert+ Only",
+            "4LaneHeader": "4-Lane Drums Highway Configuration",
+            "ProHeader": "Pro Drums Highway Configuration",
+            "5LaneHeader": "5-Lane Drums Highway Configuration"
         }
     },
     "Gameplay": {
@@ -1139,10 +1165,12 @@
             },
             "HighScoreHistory": {
                 "Name": "Najlepsze wyniki",
-                "Description": "Zmienia sposób, w jaki historia wyników jest używana do wyświetlania najlepszego wyniku w bibliotece.",
+                "Description": "Changes which score or percentage record is used for high score information displayed in the Music Library.",
                 "Dropdown": {
-                    "HighestOverall": "Najwyższy wynik z dowolnego poziomu trudności",
-                    "HighestDifficulty": "Tylko najwyższy poziom trudności"
+                    "HighestPercentageOverall": "Best percentage across all difficulties",
+                    "HighestPercentageDifficulty": "Best percentage on highest-played difficulty",
+                    "HighestScoreOverall": "Highest score across all difficulties",
+                    "HighestScoreDifficulty": "Highest score on highest-played difficulty"
                 }
             },
             "HighwayTiltMultiplier": {
@@ -1436,6 +1464,10 @@
                 "Name": "Postprocessing sceny",
                 "Description": "Określa, czy efekty wizualne postprocessing są stosowane do scen w tle."
             },
+            "ReduceFlashingLights": {
+                "Name": "Reduce Flashing Lights",
+                "Description": "Reduces rapid flashing and strobing effects in venues."
+            },
             "VenueRenderingQuality": {
                 "Name": "Jakość renderowania sceny",
                 "Description": "Jakość/rozdzielczość używana przy renderowaniu trójwymiarowych scen w tle.",
@@ -1498,6 +1530,10 @@
                 "Name": "Pauza po zmianie okna",
                 "Description": "Pauzuje grę, gdy okno gry przestanie być aktywne podczas gry."
             },
+            "MuteOnFocusLoss": {
+                "Name": "Mute On Focus Loss",
+                "Description": "Mutes all game audio when the game is tabbed out/loses focus, including menu music. Audio is restored when focus returns."
+            },
             "ApplyVolumesInMusicLibrary": {
                 "Name": "Zastosuj ustawienia głośności do podglądów w bibliotece",
                 "Description": "Ustawienia głośności poszczególnych instrumentów będą zastosowane również do odtwarzanych podglądów w Bibliotece."
@@ -1558,13 +1594,9 @@
                 "Name": "DMX Pulse Duration (MS)",
                 "Description": "How long a DMX channel stays on after receiving a trigger, in milliseconds. Increase this value if lights are not firing reliably. Set to 0 to disable pulse stretching entirely."
             },
-            "EnablePlaybackBuffer": {
-                "Name": "Bufor odtwarzania audio",
-                "Description": "Buforuje dane audio poprzez dekodowanie przed czasem, w kawałkach. Poprawia stabilność audio dla urządzeń z niską wydajnością, ale dodaje opóźnienie do efektów dźwiękowych."
-            },
             "PlaybackBufferLength": {
                 "Name": "Długość bufora (ms)",
-                "Description": "Rozmiar bufora odtwarzania, w milisekundach. Większe bufory zapewniają większą stabilność, ale również zwiększają opóźnienie efektów dźwiękowych."
+                "Description": "The size of the playback buffer, in milliseconds. Set to 0 to disable. Larger buffers provide more stability, but increase the latency of sound effects."
             },
             "ShowTime": {
                 "Name": "Pokaż zegar",
@@ -1753,6 +1785,24 @@
                 },
                 "BlueStarpower": {
                     "Name": "Niebieski (Star Power)"
+                },
+                "DoubleKickFret": {
+                    "Name": "Double Kick Fret\n(dedicated lane only)"
+                },
+                "DoubleKickFretInner": {
+                    "Name": "Double Kick Fret Inner\n(dedicated lane only)"
+                },
+                "DoubleKickNote": {
+                    "Name": "Double Kick Note\n(dedicated lane only)"
+                },
+                "DoubleKickParticles": {
+                    "Name": "Double Kick Particles\n(dedicated lane only)"
+                },
+                "DoubleKickStarpower": {
+                    "Name": "Double Kick Star Power\n(dedicated lane only)"
+                },
+                "DoubleKickActivationNote": {
+                    "Name": "Double Kick Star Power\nActivation\n(dedicated lane only)"
                 },
                 "GreenCymbal": {
                     "Name": "Zielony talerz"
@@ -2032,9 +2082,13 @@
                     "Name": "Proporcja okna trafienia",
                     "Description": "Proporcja przedniej części do tylnej części okna trafienia. \"0\" spowoduje, że okno będzie w tyle, \"1\" sprawi, że będzie na środku, a \"2\" spowoduje, że będzie z przodu."
                 },
-                "TremoloWindow": {
-                    "Name": "Tremolo Hit Window",
-                    "Description": "This determines the frequency of lane inputs required to maintain lane behavior."
+                "LaneAutohitWindow": {
+                    "Name": "Lane Autohit Window",
+                    "Description": "This determines the minimum input speed that guarantees autohitting behavior in a lane, regardless of the speed of the notes within the lane."
+                },
+                "LaneProximityProtectionWindow": {
+                    "Name": "Lane Proximity Protection\nWindow",
+                    "Description": "This determines the window of time before and after a lane where overhitting is forgiven."
                 },
                 "HitPercentE": {
                     "Name": "Procent wypełnienia (Łatwy)",

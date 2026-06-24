@@ -92,8 +92,6 @@ namespace YARG.Menu.ScoreScreen
         {
             var song = GlobalVariables.State.CurrentSong;
 
-            SetNavigationScheme();
-
             if (GlobalVariables.State.ScoreScreenStats is null)
             {
                 YargLogger.LogError("Score screen stats was null!");
@@ -156,6 +154,8 @@ namespace YARG.Menu.ScoreScreen
 
             // Put the scores in!
             CreateScoreCards(scoreScreenStats);
+
+            SetNavigationScheme();
 
             _sourceIcon.sprite = SongSources.SourceToIcon(song.Source);
 
@@ -591,7 +591,10 @@ namespace YARG.Menu.ScoreScreen
                 buttons.Add(_addFavoriteButtonEntry);
             }
 
-            buttons.Add(_showAdvancedButtonEntry);
+            if (_scoreCards.Any(card => card is not ScoreCard<VocalsStats>))
+            {
+                buttons.Add(_showAdvancedButtonEntry);
+            }
 
             if (GlobalVariables.State.PlayingAShow &&
                 GlobalVariables.State.ShowIndex + 1 < GlobalVariables.State.ShowSongs.Count)

@@ -17,6 +17,7 @@ namespace YARG.Input
                 GamepadBindingMode.Gamepad => SetDefaultGameplayBindings_Gamepad(gamepad),
 
                 GamepadBindingMode.CrkdGuitar_Mode1 => SetDefaultGameplayBindings_CrkdGuitar(gamepad),
+                GamepadBindingMode.CrkdGuitar_Mode1_Fw30 => SetDefaultGameplayBindings_CrkdGuitarFw300(gamepad),
 
                 GamepadBindingMode.WiitarThing_Guitar => SetDefaultGameplayBindings_Guitar(gamepad),
                 GamepadBindingMode.WiitarThing_Drums => SetDefaultGameplayBindings_WiitarThing_Drums(gamepad),
@@ -39,6 +40,7 @@ namespace YARG.Input
                 GamepadBindingMode.Gamepad => SetDefaultMenuBindings_Gamepad(gamepad),
 
                 GamepadBindingMode.CrkdGuitar_Mode1 => SetDefaultMenuBindings_CrkdGuitar(gamepad),
+                GamepadBindingMode.CrkdGuitar_Mode1_Fw30 => SetDefaultMenuBindings_CrkdGuitar(gamepad),
 
                 GamepadBindingMode.WiitarThing_Guitar => SetDefaultMenuBindings_Guitar(gamepad),
                 GamepadBindingMode.WiitarThing_Drums => SetDefaultMenuBindings_WiitarThing_Drums(gamepad),
@@ -206,6 +208,29 @@ namespace YARG.Input
             AddBinding(GuitarAction.StrumDown, gamepad.dpad.down);
 
             AddBinding(GuitarAction.StarPower, gamepad.selectButton);
+            // CRKD mode 1 doesn't have a dedicated tilt axis
+            // AddBinding(GuitarAction.StarPower, gamepad.rightStick.y, _tiltSettings);
+
+            AddBinding(GuitarAction.Whammy, gamepad.leftTrigger);
+
+            return true;
+        }
+
+        private bool SetDefaultGameplayBindings_CrkdGuitarFw300(Gamepad gamepad)
+        {
+            if (Mode != GameMode.FiveFretGuitar)
+                return false;
+
+            AddBinding(GuitarAction.GreenFret, gamepad.aButton);
+            AddBinding(GuitarAction.RedFret, gamepad.bButton);
+            AddBinding(GuitarAction.YellowFret, gamepad.yButton);
+            AddBinding(GuitarAction.BlueFret, gamepad.xButton);
+            AddBinding(GuitarAction.OrangeFret, gamepad.leftShoulder);
+
+            AddBinding(GuitarAction.StrumUp, gamepad.dpad.up);
+            AddBinding(GuitarAction.StrumDown, gamepad.dpad.down);
+
+            AddBinding(GuitarAction.StarPower, gamepad.dpad.left);
             // CRKD mode 1 doesn't have a dedicated tilt axis
             // AddBinding(GuitarAction.StarPower, gamepad.rightStick.y, _tiltSettings);
 

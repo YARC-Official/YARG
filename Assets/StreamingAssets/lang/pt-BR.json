@@ -1,4 +1,4 @@
-﻿{
+{
     "Language": {
         "Name": "Português (Brasil)",
         "Region": "Brasil",
@@ -210,7 +210,7 @@
         "Toast": {
             "AutoCalibrationScore": "Salvamento de pontuação desativado: Calibração automática ativada.",
             "NoFailScore": "Salvamento de pontuação desativado: O modo sem falha precisou reiniciar o medidor de falha.",
-            "ResumeAfterFailInvalidate": "Score saving disabled: Resuming after failure invalidated score.",
+            "ResumeAfterFailInvalidate": "Salvamento de pontuação desativado; Continuando após falha em pontuação invalidada.",
             "ProfileCreated": "Perfil criado para novo controle: {0}\nHora de um YARGzinho!",
             "TooManyPauses": "Salvamento de pontuação desativado: Jogo pausado muitas vezes",
             "UnsupportedDevice": "Criação automática de perfil não suportada para {0}!"
@@ -522,23 +522,23 @@
             "VocalParts": {
                 "Name": "Número de Partes de Vocal",
                 "Solo": "Solo",
-                "Duet": "Duet / 2-Part Harmony",
-                "Trio": "Trio / 3-Part Harmony",
+                "Duet": "Dueto/Harmonia de 2 Partes",
+                "Trio": "Dueto/Harmonia de 3 Partes",
                 "Instrumental": "Instrumental"
             },
             "Sources": "Origens das Músicas",
             "Charters": "Criadores",
             "Intensities": {
-                "Name": "Intensities",
-                "WarmUp": "Warm Up",
-                "Apprentice": "Apprentice",
-                "Solid": "Solid",
-                "Moderate": "Moderate",
-                "Challenging": "Challenging",
-                "Nightmare": "Nightmare",
-                "Impossible": "Impossible",
-                "Unknown": "Unknown",
-                "NoPart": "No Part"
+                "Name": "Intensidades",
+                "WarmUp": "Aquecimento",
+                "Apprentice": "Aprendiz",
+                "Solid": "Sólido",
+                "Moderate": "Moderado",
+                "Challenging": "Desafiador",
+                "Nightmare": "Pesadelo",
+                "Impossible": "Impossível",
+                "Unknown": "Desconhecido",
+                "NoPart": "Sem Parte"
             },
             "Length": {
                 "Name": "Comprimento das Músicas",
@@ -547,7 +547,33 @@
                 "Long": "Longa (5-7 Min)",
                 "Epic": "Épica (> 7 Min)"
             },
-            "Playlists": "Listas de Reprodução"
+            "Playlists": "Playlists"
+        },
+        "HighwayOrdering": {
+            "Red": "Vermelho",
+            "RedCymbal": "Chimbal Vermelho",
+            "RedDrum": "Tom Vermelho",
+            "Yellow": "Amarelo",
+            "YellowCymbal": "Chimbal Amarelo",
+            "YellowDrum": "Tom Amarelo",
+            "Blue": "Azul",
+            "BlueCymbal": "Chimbal Azul",
+            "BlueDrum": "Tom Azul",
+            "Green": "Verde",
+            "GreenCymbal": "Chimbal Verde",
+            "GreenDrum": "Tom Verde",
+            "Orange": "Laranja",
+            "CreateDedicatedLane": "Criar Faixa Dedidcada",
+            "RemoveDedicatedLane": "Remover Faixa Dedicada",
+            "RemoveDedicatedLanes": "Remover Faixas Dedicadas",
+            "Kick": "Pedal do Bumbo",
+            "RightKick": "Pedal do Bumbo Esquerdo*",
+            "LeftKick": "Pedal do Bumbo Direito*",
+            "SplitKicksWarning": "*Pedais separados ainda podem ser acertados com qualquer um dos pedais e pode não corresponder ao modo mais confortável em padrões de pedal duplo.",
+            "ExpertPlusOnly": "Apenas Especialista+",
+            "4LaneHeader": "Configuração de Pista para Bateria de 4 Faixas",
+            "ProHeader": "Configuração de Pista para Bateria Pro",
+            "5LaneHeader": "Configuração de Pista para Bateria de 5 Faixas"
         }
     },
     "Gameplay": {
@@ -833,7 +859,7 @@
         },
         "Vocals": {
             "StarPower": "Ativar Especial",
-            "Hit": "Percussion Hit"
+            "Hit": "Acerto de Percussão"
         },
         "FiveDrums": {
             "RedPad": "Pad Vermelho (Primeiro)",
@@ -1139,10 +1165,12 @@
             },
             "HighScoreHistory": {
                 "Name": "Mostrar Recorde",
-                "Description": "Define qual pontuação recorde é usada na biblioteca de música.",
+                "Description": "Muda qual pontuação ou porcentagtem é utilizada na informação de maior pontuação exibida na Biblioteca de Músicas.",
                 "Dropdown": {
-                    "HighestOverall": "Maior entre todas as dificuldades",
-                    "HighestDifficulty": "Apenas maior dificuldade"
+                    "HighestPercentageOverall": "Melhor porcentagem entre todas as dificuldades",
+                    "HighestPercentageDifficulty": "Melhor porcentagem na maior dificuldade tocada",
+                    "HighestScoreOverall": "Maior pontuação entre todas as dificuldades",
+                    "HighestScoreDifficulty": "Maior pontuação na maior dificuldade jogada"
                 }
             },
             "HighwayTiltMultiplier": {
@@ -1436,6 +1464,10 @@
                 "Name": "Pós-processamento do cenário",
                 "Description": "Determina se os efeitos de pós-processamento são aplicados aos planos de fundo do cenário."
             },
+            "ReduceFlashingLights": {
+                "Name": "Diminuir Luzes Piscantes",
+                "Description": "Reduz efeitos de luz piscando rapidamente nos palcos."
+            },
             "VenueRenderingQuality": {
                 "Name": "Qualidade de Cenários",
                 "Description": "Define a qualidade/resolução usada em cenários.",
@@ -1498,6 +1530,10 @@
                 "Name": "Pausar Em Perda de Foco",
                 "Description": "Pausa o jogo caso tenha desviado/perdido o foco da janela no meio da música."
             },
+            "MuteOnFocusLoss": {
+                "Name": "Mute On Focus Loss",
+                "Description": "Mutes all game audio when the game is tabbed out/loses focus, including menu music. Audio is restored when focus returns."
+            },
             "ApplyVolumesInMusicLibrary": {
                 "Name": "Aplicar configuração de volume na prévia da música",
                 "Description": "Se as configurações de volume por instrumento também serão aplicadas na biblioteca de música."
@@ -1558,13 +1594,9 @@
                 "Name": "Duração do Pulso do DMX (ms)",
                 "Description": "Determina por quanto tempo o canal DMX se mantém aberto após receber um gatilho, em milissegundos. Configure para 0 se quiser desabilitar completamente."
             },
-            "EnablePlaybackBuffer": {
-                "Name": "Ativar Buffer de Playback",
-                "Description": "Define se carrega e decodifica o áudio com antecedência, em blocos. Melhora a estabilidade de áudio em dispositivos de menor desempenho, mas com o custo de maior latência dos efeitos sonoros."
-            },
             "PlaybackBufferLength": {
                 "Name": "Buffer do Playback",
-                "Description": "Define o tamanho do buffer de playback, em milissegundos. Um buffer maior pode melhorar a estabilidade do áudio, mas também aumenta a latência dos efeitos sonoros."
+                "Description": "O tamanho do buffer de reprodução, em milissegundos. Defina como 0 para desativar. Buffers maiores dão maior estabilidade, mas aumentam a latência dos efeitos sonoros."
             },
             "ShowTime": {
                 "Name": "Exibir Horário",
@@ -1753,6 +1785,24 @@
                 },
                 "BlueStarpower": {
                     "Name": "Especial Azul"
+                },
+                "DoubleKickFret": {
+                    "Name": "Traste do Pedal Duplo (apenas faixa dedicada)"
+                },
+                "DoubleKickFretInner": {
+                    "Name": "Traste do Pedal Duplo Interno (apenas faixa dedicada)"
+                },
+                "DoubleKickNote": {
+                    "Name": "Nota do Pedal Duplo (apenas faixa dedicada)"
+                },
+                "DoubleKickParticles": {
+                    "Name": "Partículas do Pedal Duplo (apenas faixa dedicada)"
+                },
+                "DoubleKickStarpower": {
+                    "Name": "Especial do Pedal Duplo (apenas faixa dedicada)"
+                },
+                "DoubleKickActivationNote": {
+                    "Name": "Ativação do Especial do Pedal Duplo (apenas faixa dedicada)"
                 },
                 "GreenCymbal": {
                     "Name": "Prato Verde"
@@ -2032,9 +2082,13 @@
                     "Name": "Proporção da Janela de Acerto",
                     "Description": "A posição da janela de acerto de notas. \"0\" vai deixar a janela completamente atrás das notas, \"1\" vai deixar ela no centro, e \"2\" vai deixar ela na frente."
                 },
-                "TremoloWindow": {
-                    "Name": "Janela de Acerto do Trêmolo",
-                    "Description": "Determina a frequência de entrada na faixa para que ela seja mantida."
+                "LaneAutohitWindow": {
+                    "Name": "Janela de Auto Acerto da Faixa",
+                    "Description": "Esta opção determina a velocidade mínima de entrada que garante o comportamento de auto acerto numa faixa, independente da velocidade das notas dentro da faixa."
+                },
+                "LaneProximityProtectionWindow": {
+                    "Name": "Janela de Proteção da Proximidade de Faixa",
+                    "Description": "Esta opção determina a janela de tempo antes e depois de uma faixa onde acertos em excesso não são considerados."
                 },
                 "HitPercentE": {
                     "Name": "Porcentagem de Acerto (Fácil)",
@@ -2134,7 +2188,7 @@
                 },
                 "EnableLanes": {
                     "Name": "Ativar tremolos e vibrantes",
-                    "Description": "Se ativado, o jogo honra as partes tremolo e vibrantes."
+                    "Description": "Se ativado, o jogo respeitará as faixas de trêmolo."
                 }
             },
             "HighwayPreset": {
