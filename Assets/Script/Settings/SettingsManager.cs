@@ -135,6 +135,7 @@ namespace YARG.Settings
                 nameof(Settings.VSync),
                 new FieldMetadata(nameof(Settings.FpsCap)),
                 new FieldMetadata(nameof(Settings.VenueFpsCap), isAdvanced: true),
+                nameof(Settings.BackgroundFpsCap),
                 nameof(Settings.FullscreenMode),
                 nameof(Settings.Resolution),
                 new FieldMetadata(nameof(Settings.FpsStats), isAdvanced: true),
