@@ -405,7 +405,7 @@ namespace YARG.Menu.ProfileList
         {
             if (float.TryParse(_highwayLengthField.text, out var speed))
             {
-                _profile.HighwayLength = Mathf.Clamp(speed, 0.1f, 10f);
+                _profile.HighwayLength = Mathf.Clamp(speed, 0.001f, 10f);
             }
 
             // Always format it after
