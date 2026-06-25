@@ -193,20 +193,28 @@ namespace YARG.Gameplay.Visuals
         {
             var hash = new HashCode();
 
-            foreach (var syllable in _preparedPhrase.Syllables)
+            for (int i = 0; i < _preparedPhrase.Syllables.Count; i++)
             {
-                int state = 2;
+                var syllable = _preparedPhrase.Syllables[i];
+                int state = 2; // syllable is already hit (gray)
 
                 if (GameManager.VisualTime < syllable.Time)
                 {
-                    state = 0;
+                    state = 0; // syllable is in current phrase (active/white)
                 }
                 else if (GameManager.VisualTime < syllable.TimeEnd)
                 {
-                    state = 1;
+                    state = 1; // syllable is being hit (cyan)
                 }
 
                 hash.Add(state);
+
+                if (state == 0)
+                {
+                    // We can reasonably assume if we run into a syllable that has not yet been hit,
+                    // there is no change after that syllable.
+                    break;
+                }
             }
 
             return hash.ToHashCode();

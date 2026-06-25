@@ -179,7 +179,7 @@ namespace YARG.Gameplay.Player
                     }
 
                     var shiftAmount = change == StaticLyricShiftType.WithinPhrase ? VocalLyricContainer.SHIFT_PHRASE_SPACING : VocalLyricContainer.STATIC_PHRASE_SPACING;
-                    var shiftDuration = change == StaticLyricShiftType.WithinPhrase ? STATIC_LYRIC_SHIFT_DURATION / 2 : STATIC_LYRIC_SHIFT_DURATION;
+                    //var shiftDuration = change == StaticLyricShiftType.WithinPhrase ? STATIC_LYRIC_SHIFT_DURATION / 2 : STATIC_LYRIC_SHIFT_DURATION;
                     var leftmostPhraseElement = queue.Dequeue();
                     var leftShift = leftmostPhraseElement.Width + shiftAmount;
                     queue.Peek().Activate();
@@ -187,7 +187,7 @@ namespace YARG.Gameplay.Player
                     foreach (var remainingPhrase in queue)
                     {
                         remainingPhrase.transform.DOLocalMoveX(remainingPhrase.transform.localPosition.x - leftShift,
-                            Mathf.Min(shiftDuration, (float)leftmostPhraseElement.Duration));
+                            Mathf.Min(STATIC_LYRIC_SHIFT_DURATION, (float)leftmostPhraseElement.Duration));
 
                     }
                     _rightEdges[harmonyIndex] -= leftShift;
