@@ -310,9 +310,13 @@ namespace YARG.Gameplay
         {
             try
             {
-                Chart = Song.LoadChart(SettingsManager.Settings.CensorMatureContent.Value);
+                Chart = Song.LoadChart();
                 if (Chart != null)
                 {
+                    if (SettingsManager.Settings.CensorMatureContent.Value)
+                    {
+                        Chart.ApplyCensorship();
+                    }
                     GenerateVenueTrack();
                     GenerateLipsyncTrack();
                 }

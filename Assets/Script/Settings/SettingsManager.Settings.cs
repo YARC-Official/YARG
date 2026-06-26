@@ -183,6 +183,8 @@ namespace YARG.Settings
 
             public ToggleSetting CensorMatureContent { get; } = new(false, _ =>
             {
+                // If MaxSongRating is set to anything other than Family_Friendly,
+                // this setting could change the available songs, so we need to force an update
                 SongContainer.RequestContainerRefresh();
                 MusicLibraryMenu.SetReload(MusicLibraryReloadState.Full);
                 HistoryMenu.ForceUpdate = true;

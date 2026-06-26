@@ -352,7 +352,7 @@ namespace YARG.Menu.ScoreScreen
         {
             _analyzingReplay = true;
 
-            var chart = songEntry.LoadChart(SettingsManager.Settings.CensorMatureContent.Value);
+            var chart = songEntry.LoadChart();
             if (chart == null)
             {
                 YargLogger.LogError("Chart did not load");
@@ -372,6 +372,11 @@ namespace YARG.Menu.ScoreScreen
                 YargLogger.LogError("ReplayEntry is null");
                 _analyzingReplay = false;
                 return true;
+            }
+
+            if (replayEntry.CensorshipEnabled)
+            {
+                chart.ApplyCensorship();
             }
 
             var replayOptions = new ReplayReadOptions

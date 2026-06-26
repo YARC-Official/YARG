@@ -93,7 +93,8 @@ namespace YARG.Song
                 int seconds = totalSeconds % 60;
                 string songLength = $"{minutes}:{seconds:D2}";
 
-                string songRating = song.GetSongRating(SettingsManager.Settings.CensorMatureContent.Value) switch
+                // Always false, as song export should not be affected by a user's settings
+                string songRating = song.GetSongRating(false) switch
                 {
                     SongRating.Family_Friendly         => "Family Friendly",
                     SongRating.Supervision_Recommended => "Supervision Recommended",

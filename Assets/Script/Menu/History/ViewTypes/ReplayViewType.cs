@@ -125,11 +125,16 @@ namespace YARG.Menu.History
                 return;
             }
 
-            var chart = _songEntry.LoadChart(SettingsManager.Settings.CensorMatureContent.Value);
+            var chart = _songEntry.LoadChart();
             if (chart == null)
             {
                 YargLogger.LogError("Failed to load chart");
                 return;
+            }
+
+            if (_entry.CensorshipEnabled)
+            {
+                chart.ApplyCensorship();
             }
 
             var replayOptions = new ReplayReadOptions { KeepFrameTimes = GlobalVariables.VerboseReplays };
