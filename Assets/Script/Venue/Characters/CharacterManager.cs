@@ -19,6 +19,10 @@ namespace YARG.Venue.Characters
         [SerializeField]
         private GameObject _venue;
 
+        [SerializeField]
+        private Vector3 _wind;
+        private Vector3 _lastUpdatedWind = Vector3.zero;
+
         private readonly Dictionary<VenueCharacter.CharacterType, VenueCharacter> _characters = new();
         public Dictionary<VenueCharacter.CharacterType, VenueCharacter> Characters => _characters;
 
@@ -236,7 +240,14 @@ namespace YARG.Venue.Characters
                         ProcessDrums(character);
                         break;
                 }
+
+                if (_wind != _lastUpdatedWind && character is VRMCharacter)
+                {
+                    ((VRMCharacter) character).SetWind(_wind);
+                }
             }
+
+            _lastUpdatedWind = _wind;
         }
 
         public void ResetTime(double time)

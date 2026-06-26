@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using DG.Tweening;
+using UniGLTF.SpringBoneJobs.Blittables;
 using UnityEngine;
 using UniVRM10;
 using YARG.Core.Chart;
@@ -157,6 +158,15 @@ namespace YARG.Venue.Characters
             }
 
             _expression.SetWeight(_lipsyncKey, lipsyncEvent.Value);
+        }
+
+        public void SetWind(Vector3 wind)
+        {
+            if (!_hasVrmInstance)
+            {
+                return;
+            }
+            VrmInstance.Runtime.SpringBone.SetModelLevel(VrmInstance.transform, new BlittableModelLevel(externalForce: wind));
         }
 
         public override void OnChartEvent(ChartEvent e)
