@@ -161,6 +161,7 @@
             "Repos": {
                 "Community": "Comunidad",
                 "OpenSource": "Código abierto",
+                "YALCY": "YALCY",
                 "YARC-Charters": "La Setlist Oficial de YARG",
                 "YARC-Launcher": "El Launcher de YARC",
                 "YARG": "YARG"
@@ -193,6 +194,7 @@
                 "AlbumCover": "Portada Por: {0}",
                 "ChartedBy": "Creado por: {0}",
                 "License": "Licencia de la Canción: {0}",
+                "Background": "Background Visual Media By: {0}",
                 "Written": "Escrito",
                 "Composed": "Compuesto",
                 "Arranged": "Organizado",
@@ -279,7 +281,7 @@
             "PlayWithReplay": "Jugar con Repetición"
         },
         "Main": {
-            "MessageOfTheDay": "<align=center><size=32><b>¡Bienvenidos a la v0.15 nightlies!</b></size></align>\n\nLa v0.15 ahora tiene soporte para líneas de Trino/Tremolo, fondos de pistas personalizados (incluyendo transparente), personajes de voz personalizados para escenarios, seguimiento avanzado de rendimiento de jugador, pistas reposicionables, integración de nuevas herramientas de calibración y más! Oh, también la nueva y mejorada biblioteca de música finalmente esta aquí, incluyendo filtros avanzados para canciones, así que incluso la biblioteca de música más grande no puede impedirte encontrar lo que buscas! :D\n\n<b>Si tienes algún comentario o encuentras algún error, déjanos saberlo en nuestro servidor de Discord o Github.</b>\n\nFeliz YARGin'!",
+            "MessageOfTheDay": "<align=center><size=32><b>Welcome to v0.15!</b></size></align>\n\nv0.15 is a major update that adds many highly requested and necessary gameplay features such as roll/trill lanes and Big \"YARG\" endings, as well as revamped user interface in the song selection and results screen, drum lane customization, automatic genre categorization, experimental custom vocalist characters in venues, and more.\n\n<b>If you have any feedback or find any bugs, please let us know on Discord or GitHub.</b>\n\nHappy YARGin'!",
             "Options": {
                 "Quickplay": "Partida Rápida",
                 "Practice": "Práctica",
@@ -1594,10 +1596,6 @@
                 "Name": "Duración de Pulso DMX (MS)",
                 "Description": "Cuánto tiempo permanece un canal DMX después de recibir un activador, en milisegundos. Aumente este valor si las luces no están iluminando de forma fiable. Establezca en 0 para desactivar completamente el estiramiento de pulsos."
             },
-            "EnablePlaybackBuffer": {
-                "Name": "Usar Buffer de Reproducción de Audio",
-                "Description": "Almacena los datos de audio en el Búfer de forma anticipada. Mejora la estabilidad de audio en dispositivos de bajo rendimiento, a costa de añadir latencia en los efectos de sonido."
-            },
             "PlaybackBufferLength": {
                 "Name": "Duración del Búfer de Reproducción",
                 "Description": "The size of the playback buffer, in milliseconds. Set to 0 to disable. Larger buffers provide more stability, but increase the latency of sound effects."
@@ -2192,7 +2190,7 @@
                 },
                 "EnableLanes": {
                     "Name": "Habilitar Líneas de Trino/Tremolo",
-                    "Description": "Si se habilita, el juego respetará las líneas de Trino/Tremolo."
+                    "Description": "If enabled, the game honors charted trill/tremolo lanes."
                 }
             },
             "HighwayPreset": {

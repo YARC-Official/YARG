@@ -161,6 +161,7 @@
             "Repos": {
                 "Community": "Społeczność",
                 "OpenSource": "OpenSource",
+                "YALCY": "YALCY",
                 "YARC-Charters": "Oficjalna Setlista YARG",
                 "YARC-Launcher": "Launcher YARC",
                 "YARG": "YARG"
@@ -193,6 +194,7 @@
                 "AlbumCover": "Okładka albumu: {0}",
                 "ChartedBy": "Chartowane przez: {0}",
                 "License": "Licencja: {0}",
+                "Background": "Background Visual Media By: {0}",
                 "Written": "Autor",
                 "Composed": "Kompozytor",
                 "Arranged": "Aranż",
@@ -279,7 +281,7 @@
             "PlayWithReplay": "Graj z powtórką"
         },
         "Main": {
-            "MessageOfTheDay": "<align=center><size=32><b>Witaj w v0.15 nightly!</b></size></align>\n\nv0.15 dodaje wsparcie do ścieżek tremolo/tryli, dostosowywalne tło toru (oraz wsparcie dla przezroczystych teł), możliwość zmiany wokalisty na scenie, zaawansowane śledzenie wykonania utworu przez gracza, możliwość zmieniania pozycji torów na ekranie, nowe narzędzia do kalibracji, i więcej! Poza tym, jest tu też nowa odsłona biblioteki muzyki, wraz z zaawansowanymi filtrami, więc możesz teraz szybko przeszukiwać nawet największe biblioteki! :D\n\n<b>Jeśli masz jakieś sugestie lub znajdziesz jakieś błędy, daj nam znać na Discordzie lub na GitHubie.</b>\n\nMiłego YARGowania!",
+            "MessageOfTheDay": "<align=center><size=32><b>Welcome to v0.15!</b></size></align>\n\nv0.15 is a major update that adds many highly requested and necessary gameplay features such as roll/trill lanes and Big \"YARG\" endings, as well as revamped user interface in the song selection and results screen, drum lane customization, automatic genre categorization, experimental custom vocalist characters in venues, and more.\n\n<b>If you have any feedback or find any bugs, please let us know on Discord or GitHub.</b>\n\nHappy YARGin'!",
             "Options": {
                 "Quickplay": "Szybka gra",
                 "Practice": "Ćwicz",
@@ -2188,7 +2190,7 @@
                 },
                 "EnableLanes": {
                     "Name": "Włącz ścieżki trylu/tremolo",
-                    "Description": "Jeżeli włączone, gra będzie wczytywać ścieżki trylu/tremolo z utworów."
+                    "Description": "If enabled, the game honors charted trill/tremolo lanes."
                 }
             },
             "HighwayPreset": {
