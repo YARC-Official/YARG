@@ -92,34 +92,19 @@ namespace YARG.Playlists
             SavePlaylist(FavoritesPlaylist, _favoritesPath);
         }
 
-        public static int RemoveDeadHashes(IReadOnlyDictionary<HashWrapper, List<SongEntry>> songsByHash)
+        public static int RemoveDeadHashes(Playlist playlist, IReadOnlyDictionary<HashWrapper, List<SongEntry>> songsByHash)
         {
-            if (songsByHash == null)
+            if (playlist == null || songsByHash == null)
             {
                 return 0;
             }
 
             int removed = 0;
-
-            if (FavoritesPlaylist != null)
-            {
-                if (RemoveDeadHashesFromPlaylist(FavoritesPlaylist, songsByHash, ref removed))
-                {
-                    SavePlaylist(FavoritesPlaylist, _favoritesPath);
-                }
-            }
-
-            foreach (var playlist in _playlists)
-            {
-                if (RemoveDeadHashesFromPlaylist(playlist, songsByHash, ref removed))
-                {
-                    SavePlaylist(playlist);
-                }
-            }
+            RemoveDeadHashesFromPlaylist(playlist, songsByHash, ref removed);
 
             if (removed > 0)
             {
-                YargLogger.LogFormatInfo("Removed {0} dead song hashes from playlists", removed);
+                YargLogger.LogInfo($"Removed {removed} dead song hashes from playlist '{playlist.Name}'");
             }
 
             return removed;

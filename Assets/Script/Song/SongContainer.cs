@@ -14,7 +14,6 @@ using YARG.Helpers.Extensions;
 using YARG.Localization;
 using YARG.Menu.MusicLibrary;
 using YARG.Player;
-using YARG.Playlists;
 using YARG.Scores;
 using YARG.Settings;
 
@@ -182,7 +181,6 @@ namespace YARG.Song
             }
             SongSorting.SortEntries(_songCache, _sortedSongs);
             FillContainers();
-            PlaylistContainer.RemoveDeadHashes(SongsByHash);
             stopwatch.Stop();
 
             YargLogger.LogFormatInfo("Scan time: {0}s", stopwatch.Elapsed.TotalSeconds);
