@@ -41,6 +41,29 @@ namespace YARG.Menu.MusicLibrary
 
         public bool HasSortHeaders { get; private set; }
 
+        public void GetSortHeaderCollapseState(out bool hasCollapsed, out bool hasExpanded)
+        {
+            hasCollapsed = false;
+            hasExpanded = false;
+
+            if (_sortedSongs is null) return;
+
+            var collapsedHeaders = _collapsedHeaders[SettingsManager.Settings.LibrarySort];
+            foreach (var section in _sortedSongs)
+            {
+                if (collapsedHeaders.Contains(section))
+                {
+                    hasCollapsed = true;
+                }
+                else
+                {
+                    hasExpanded = true;
+                }
+
+                if (hasCollapsed && hasExpanded) return;
+            }
+        }
+
         private SongCategory[] _sortedSongs;
         private SortAttribute _playlistSort = SortAttribute.Name;
         private bool _playlistSortAscending = true;
