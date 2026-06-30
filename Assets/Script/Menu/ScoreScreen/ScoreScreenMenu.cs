@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Linq;
 using System.Collections.Generic;
 using System.Threading;
@@ -14,6 +15,7 @@ using YARG.Core.Engine.Guitar;
 using YARG.Core.Engine.Keys;
 using YARG.Core.Engine.Vocals;
 using YARG.Core.Input;
+using YARG.Core.IO.Ini;
 using YARG.Core.Logging;
 using YARG.Core.Replays;
 using YARG.Core.Replays.Analyzer;
@@ -401,6 +403,7 @@ namespace YARG.Menu.ScoreScreen
         private NavigationScheme.Entry _showAdvancedButtonEntry;
         private NavigationScheme.Entry _removeFavoriteButtonEntry;
         private NavigationScheme.Entry _addFavoriteButtonEntry;
+        private NavigationScheme.Entry _applyCalibrationEntry;
         private NavigationScheme.Entry _scrollLeftEntry;
         private NavigationScheme.Entry _scrollRightEntry;
         private NavigationScheme.Entry _scrollUpEntry;
@@ -458,6 +461,29 @@ namespace YARG.Menu.ScoreScreen
                 });
 
             UpdateShowAdvancedButton();
+
+            _applyOffsetEntry = new NavigationScheme.Entry(MenuAction.Select, "Apply Song Offset", () =>
+            {
+                var offset = GlobalVariables.State.ScoreScreenStats.Value.AverageOffset;
+                var song = GlobalVariables.State.CurrentSong;
+
+                if (song == null)
+                {
+                    return;
+                }
+
+                if (song.SubType != EntryType.Ini)
+                {
+                    return;
+                }
+
+                string iniPath = Path.Combine(song.ActualLocation, "song.ini");
+
+                if (File.Exists(iniPath))
+                {
+                    SongIniWriter.WriteSongOffset(iniPath, (long)offset);
+                }
+            });
 
             _scrollLeftEntry = new NavigationScheme.Entry(MenuAction.Left, "Menu.Common.Scroll", context =>
                 {
@@ -554,7 +580,8 @@ namespace YARG.Menu.ScoreScreen
             List<NavigationScheme.Entry> buttons = new()
             {
                 _continueButtonEntry,
-                _restartButtonEntry
+                _restartButtonEntry,
+                _applyOffsetEntry
             };
 
             var song = GlobalVariables.State.CurrentSong;

@@ -628,6 +628,13 @@ namespace YARG.Gameplay
                 }).ToArray(),
                 BandScore = BandScore,
                 BandStars = (int) BandStars,
+
+                AverageOffset = _players
+                    .Where(player => !player.Player.Profile.IsBot)
+                    .Select(player => player.BaseStats.GetAverageOffset())
+                    .DefaultIfEmpty(0)
+                    .Average(),
+
                 ReplayInfo = replayInfo,
             };
 
