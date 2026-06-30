@@ -82,6 +82,7 @@ namespace YARG.Menu.ScoreScreen
         private bool _analyzingReplay;
         private bool _restartingSong;
         private bool _showAdvancedStats;
+        private bool _offsetModified;
 
         private float                   _horizontalScrollStep;
         private Tween                   _horizontalScrollTween;
@@ -403,7 +404,8 @@ namespace YARG.Menu.ScoreScreen
         private NavigationScheme.Entry _showAdvancedButtonEntry;
         private NavigationScheme.Entry _removeFavoriteButtonEntry;
         private NavigationScheme.Entry _addFavoriteButtonEntry;
-        private NavigationScheme.Entry _applyCalibrationEntry;
+        private NavigationScheme.Entry _addOffsetEntry;
+        private NavigationScheme.Entry _removeOffsetEntry;
         private NavigationScheme.Entry _scrollLeftEntry;
         private NavigationScheme.Entry _scrollRightEntry;
         private NavigationScheme.Entry _scrollUpEntry;
@@ -462,27 +464,14 @@ namespace YARG.Menu.ScoreScreen
 
             UpdateShowAdvancedButton();
 
-            _applyOffsetEntry = new NavigationScheme.Entry(MenuAction.Select, "Apply Song Offset", () =>
+            _addOffsetEntry = new NavigationScheme.Entry(MenuAction.Select, "Add Song Offset", () =>
             {
-                var offset = GlobalVariables.State.ScoreScreenStats.Value.AverageOffset;
-                var song = GlobalVariables.State.CurrentSong;
+                AddOffsetToIni();
+            });
 
-                if (song == null)
-                {
-                    return;
-                }
-
-                if (song.SubType != EntryType.Ini)
-                {
-                    return;
-                }
-
-                string iniPath = Path.Combine(song.ActualLocation, "song.ini");
-
-                if (File.Exists(iniPath))
-                {
-                    SongIniWriter.WriteSongOffset(iniPath, (long)offset);
-                }
+            _removeOffsetEntry = new NavigationScheme.Entry(MenuAction.Select, "Remove Song Offset", () =>
+            {
+                AddOffsetToIni();
             });
 
             _scrollLeftEntry = new NavigationScheme.Entry(MenuAction.Left, "Menu.Common.Scroll", context =>
@@ -564,6 +553,30 @@ namespace YARG.Menu.ScoreScreen
             UpdateNavigationScheme(true);
         }
 
+        private void AddOffsetToIni()
+        {
+            var song = GlobalVariables.State.CurrentSong;
+            var offset = GlobalVariables.State.ScoreScreenStats.Value.AverageOffset;
+            if (song == null) {return;}
+            if (song.SubType != EntryType.Ini) {return;}
+
+            string iniPath = Path.Combine(song.ActualLocation, "song.ini");
+            if (File.Exists(iniPath)) {
+                if (_offsetModified)
+                {
+                    YargLogger.LogInfo("Removed offset from delay in .ini file");
+                    offset = -offset;
+                }
+                else
+                {
+                    YargLogger.LogInfo("Added offset to delay in .ini file");
+                }
+                _offsetModified = !_offsetModified;
+                SongIniWriter.AddSongOffset(iniPath, (long)(offset * 1000));
+                UpdateNavigationScheme(true);
+            }
+        }
+
         private void UpdateShowAdvancedButton()
         {
             var key = _showAdvancedStats ? "Menu.ScoreScreen.HideAdvanced" : "Menu.ScoreScreen.ShowAdvanced";
@@ -581,7 +594,6 @@ namespace YARG.Menu.ScoreScreen
             {
                 _continueButtonEntry,
                 _restartButtonEntry,
-                _applyOffsetEntry
             };
 
             var song = GlobalVariables.State.CurrentSong;
@@ -605,6 +617,15 @@ namespace YARG.Menu.ScoreScreen
                 GlobalVariables.State.ShowIndex + 1 < GlobalVariables.State.ShowSongs.Count)
             {
                 buttons.Insert(1, _endEarlyButtonEntry);
+            }
+
+            if (_offsetModified)
+            {
+                buttons.Add(_removeOffsetEntry);
+            }
+            else
+            {
+                buttons.Add(_addOffsetEntry);
             }
 
             buttons.Add(_scrollLeftEntry);
