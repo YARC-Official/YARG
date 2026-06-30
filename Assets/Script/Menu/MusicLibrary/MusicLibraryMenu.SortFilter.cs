@@ -65,8 +65,6 @@ namespace YARG.Menu.MusicLibrary
         }
 
         private SongCategory[] _sortedSongs;
-        private SortAttribute _playlistSort = SortAttribute.Name;
-        private bool _playlistSortAscending = true;
         private static readonly Dictionary<SortAttribute, HashSet<SongCategory>> _collapsedHeaders = new();
 
         private List<int> _sectionHeaderIndices = new();
@@ -359,29 +357,11 @@ namespace YARG.Menu.MusicLibrary
                         return;
                 }
 
-                _playlistSort = sort;
-                _playlistSortAscending = ascending;
                 RefreshAndReselect();
                 return;
             }
 
             ChangeSort(sort);
-        }
-
-        public SortAttribute GetPopupSortAttribute()
-        {
-            return MenuState == MenuState.Playlist ? _playlistSort : SettingsManager.Settings.LibrarySort;
-        }
-
-        public string GetPopupSortLabel()
-        {
-            var sort = GetPopupSortAttribute().ToLocalizedName();
-            if (MenuState != MenuState.Playlist)
-            {
-                return sort;
-            }
-
-            return _playlistSortAscending ? $"{sort} (A-Z)" : $"{sort} (Z-A)";
         }
 
         private void UpdateSortInformationHeader()

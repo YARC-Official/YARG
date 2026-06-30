@@ -130,7 +130,7 @@ namespace YARG.Menu.MusicLibrary
 
             if (_musicLibrary.MenuState != MenuState.PlaylistSelect)
             {
-                CreateItem("SortBy", _musicLibrary.GetPopupSortLabel(), () =>
+                CreateItem("SortBy", () =>
                 {
                     _menuState = State.SortSelect;
                     UpdateForState();
