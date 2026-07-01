@@ -67,7 +67,7 @@ namespace YARG.Localization
             await LoadUpdates();
         }
 
-        private static async UniTask LoadUpdates()
+        public static async UniTask LoadUpdates()
         {
             if (GlobalVariables.OfflineMode)
             {
