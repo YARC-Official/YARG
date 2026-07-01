@@ -246,5 +246,11 @@ namespace YARG
             return $"{branch} b{commitCount} ({commit})";
 #endif
         }
+
+        // Maybe there is a better place for this?
+        public LocalizeText[] GetLocalizedTexts()
+        {
+            return FindObjectsByType<LocalizeText>(FindObjectsSortMode.None);
+        }
     }
 }

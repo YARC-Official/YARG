@@ -74,6 +74,8 @@ namespace YARG.Localization
                 return;
             }
 
+            var updated = false;
+
             try
             {
                 using var request = UnityWebRequest.Get(MESSAGES_URL);
@@ -82,6 +84,7 @@ namespace YARG.Localization
                 if (request.result == UnityWebRequest.Result.Success)
                 {
                     UpdateLocalizations(request.downloadHandler.text);
+                    updated = true;
                 }
                 else
                 {
@@ -91,6 +94,15 @@ namespace YARG.Localization
             catch (Exception e)
             {
                 YargLogger.LogException(e, "Failed to get message updates. Skipping.");
+            }
+
+            if (updated)
+            {
+                var texts = GlobalVariables.Instance.GetLocalizedTexts();
+                foreach (var text in texts)
+                {
+                    text.UpdateText();
+                }
             }
         }
 
