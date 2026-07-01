@@ -21,7 +21,7 @@ namespace YARG.Menu.ScoreScreen
         public int BandStars;
         public int BandScore;
 
-        public double AverageOffset;
+        public double MeanAverageOffset;
 
 #nullable enable
         public ReplayInfo? ReplayInfo;

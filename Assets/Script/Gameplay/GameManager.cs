@@ -629,7 +629,7 @@ namespace YARG.Gameplay
                 BandScore = BandScore,
                 BandStars = (int) BandStars,
 
-                AverageOffset = _players
+                MeanAverageOffset = _players
                     .Where(player => !player.Player.Profile.IsBot)
                     .Select(player => player.BaseStats.GetAverageOffset())
                     .DefaultIfEmpty(0)

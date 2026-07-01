@@ -565,7 +565,7 @@ namespace YARG.Menu.ScoreScreen
             var song = GlobalVariables.State.CurrentSong;
             if (!HasIniFile(song)) {return;}
 
-            var offset = GlobalVariables.State.ScoreScreenStats.Value.AverageOffset;
+            var offset = GlobalVariables.State.ScoreScreenStats.Value.MeanAverageOffset;
             string iniPath = Path.Combine(song.ActualLocation, "song.ini");
 
             if (_offsetModified)
