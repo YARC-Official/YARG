@@ -407,8 +407,7 @@ namespace YARG.Menu.ScoreScreen
         private NavigationScheme.Entry _showAdvancedButtonEntry;
         private NavigationScheme.Entry _removeFavoriteButtonEntry;
         private NavigationScheme.Entry _addFavoriteButtonEntry;
-        private NavigationScheme.Entry _addOffsetEntry;
-        private NavigationScheme.Entry _removeOffsetEntry;
+        private NavigationScheme.Entry _toggleOffsetEntry;
         private NavigationScheme.Entry _scrollLeftEntry;
         private NavigationScheme.Entry _scrollRightEntry;
         private NavigationScheme.Entry _scrollUpEntry;
@@ -467,15 +466,7 @@ namespace YARG.Menu.ScoreScreen
 
             UpdateShowAdvancedButton();
 
-            _addOffsetEntry = new NavigationScheme.Entry(MenuAction.Select, "Add Song Offset", () =>
-            {
-                AddOffsetToIni();
-            });
-
-            _removeOffsetEntry = new NavigationScheme.Entry(MenuAction.Select, "Remove Song Offset", () =>
-            {
-                AddOffsetToIni();
-            });
+            UpdateAddOffsetButton();
 
             _scrollLeftEntry = new NavigationScheme.Entry(MenuAction.Left, "Menu.Common.Scroll", context =>
                 {
@@ -556,6 +547,12 @@ namespace YARG.Menu.ScoreScreen
             UpdateNavigationScheme(true);
         }
 
+        private void UpdateShowAdvancedButton()
+        {
+            var key = _showAdvancedStats ? "Menu.ScoreScreen.HideAdvanced" : "Menu.ScoreScreen.ShowAdvanced";
+            _showAdvancedButtonEntry = new NavigationScheme.Entry(MenuAction.Orange, key, ToggleAdvancedStats);
+        }
+
         private static bool HasIniFile(SongEntry song)
         {
             return song != null &&
@@ -581,14 +578,15 @@ namespace YARG.Menu.ScoreScreen
                 YargLogger.LogInfo("Added offset to delay in .ini file");
             }
             _offsetModified = !_offsetModified;
+            UpdateAddOffsetButton();
             SongIniWriter.AddSongOffset(iniPath, (long)(offset * 1000));
             UpdateNavigationScheme(true);
         }
 
-        private void UpdateShowAdvancedButton()
+        private void UpdateAddOffsetButton()
         {
-            var key = _showAdvancedStats ? "Menu.ScoreScreen.HideAdvanced" : "Menu.ScoreScreen.ShowAdvanced";
-            _showAdvancedButtonEntry = new NavigationScheme.Entry(MenuAction.Orange, key, ToggleAdvancedStats);
+            var key = _offsetModified ? "Remove Song Offset" : "Modify Song Offset";
+            _toggleOffsetEntry = new NavigationScheme.Entry(MenuAction.Select, key, AddOffsetToIni);
         }
 
         private void UpdateNavigationScheme(bool reset = false)
@@ -627,16 +625,11 @@ namespace YARG.Menu.ScoreScreen
                 buttons.Insert(1, _endEarlyButtonEntry);
             }
 
-            if (_humanPlayerCount == 1 && HasIniFile(song))
+            // Now doesn't look so great when changing quickly between advanced stats
+            // But I don't want to move it behind the scrolling controls, it feels weird?...
+            if (_humanPlayerCount == 1 && HasIniFile(song) && _showAdvancedStats)
             {
-                if (_offsetModified)
-                {
-                    buttons.Add(_removeOffsetEntry);
-                }
-                else
-                {
-                    buttons.Add(_addOffsetEntry);
-                }
+                buttons.Add(_toggleOffsetEntry);
             }
 
             buttons.Add(_scrollLeftEntry);
