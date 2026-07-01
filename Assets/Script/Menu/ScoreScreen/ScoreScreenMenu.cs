@@ -599,7 +599,7 @@ namespace YARG.Menu.ScoreScreen
             List<NavigationScheme.Entry> buttons = new()
             {
                 _continueButtonEntry,
-                _restartButtonEntry,
+                _restartButtonEntry
             };
 
             var song = GlobalVariables.State.CurrentSong;
