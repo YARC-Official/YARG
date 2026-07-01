@@ -83,6 +83,7 @@ namespace YARG.Menu.ScoreScreen
         private bool _restartingSong;
         private bool _showAdvancedStats;
         private bool _offsetModified;
+        private int _humanPlayerCount;
 
         private float                   _horizontalScrollStep;
         private Tween                   _horizontalScrollTween;
@@ -104,6 +105,8 @@ namespace YARG.Menu.ScoreScreen
             var scoreScreenStats = GlobalVariables.State.ScoreScreenStats.Value;
 
             ShowReplayAnalysis(song, scoreScreenStats);
+
+            _humanPlayerCount = scoreScreenStats.PlayerScores.Count(p => !p.Player.Profile.IsBot);
 
             // Play audience chatter
             if (SettingsManager.Settings.UseCrowdFx.Value == CrowdFxMode.Enabled)
@@ -553,28 +556,33 @@ namespace YARG.Menu.ScoreScreen
             UpdateNavigationScheme(true);
         }
 
+        private static bool HasIniFile(SongEntry song)
+        {
+            return song != null &&
+                song.SubType == EntryType.Ini &&
+                File.Exists(Path.Combine(song.ActualLocation, "song.ini"));
+        }
+
         private void AddOffsetToIni()
         {
             var song = GlobalVariables.State.CurrentSong;
-            var offset = GlobalVariables.State.ScoreScreenStats.Value.AverageOffset;
-            if (song == null) {return;}
-            if (song.SubType != EntryType.Ini) {return;}
+            if (!HasIniFile(song)) {return;}
 
+            var offset = GlobalVariables.State.ScoreScreenStats.Value.AverageOffset;
             string iniPath = Path.Combine(song.ActualLocation, "song.ini");
-            if (File.Exists(iniPath)) {
-                if (_offsetModified)
-                {
-                    YargLogger.LogInfo("Removed offset from delay in .ini file");
-                    offset = -offset;
-                }
-                else
-                {
-                    YargLogger.LogInfo("Added offset to delay in .ini file");
-                }
-                _offsetModified = !_offsetModified;
-                SongIniWriter.AddSongOffset(iniPath, (long)(offset * 1000));
-                UpdateNavigationScheme(true);
+
+            if (_offsetModified)
+            {
+                YargLogger.LogInfo("Removed offset from delay in .ini file");
+                offset = -offset;
             }
+            else
+            {
+                YargLogger.LogInfo("Added offset to delay in .ini file");
+            }
+            _offsetModified = !_offsetModified;
+            SongIniWriter.AddSongOffset(iniPath, (long)(offset * 1000));
+            UpdateNavigationScheme(true);
         }
 
         private void UpdateShowAdvancedButton()
@@ -619,13 +627,16 @@ namespace YARG.Menu.ScoreScreen
                 buttons.Insert(1, _endEarlyButtonEntry);
             }
 
-            if (_offsetModified)
+            if (_humanPlayerCount == 1 && HasIniFile(song))
             {
-                buttons.Add(_removeOffsetEntry);
-            }
-            else
-            {
-                buttons.Add(_addOffsetEntry);
+                if (_offsetModified)
+                {
+                    buttons.Add(_removeOffsetEntry);
+                }
+                else
+                {
+                    buttons.Add(_addOffsetEntry);
+                }
             }
 
             buttons.Add(_scrollLeftEntry);
