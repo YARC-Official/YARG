@@ -4,6 +4,7 @@ using System.IO;
 using Cysharp.Text;
 using Cysharp.Threading.Tasks;
 using Newtonsoft.Json.Linq;
+using UnityEngine.Networking;
 using YARG.Core.Logging;
 using YARG.Helpers;
 
@@ -12,6 +13,8 @@ namespace YARG.Localization
     public static class LocalizationManager
     {
         private const string DEFAULT_CULTURE = "en-US";
+
+        private const string MESSAGES_URL = "https://raw.githubusercontent.com/YARC-Official/News/master/messages/index.json";
 
         public static string CultureCode { get; private set; }
 
@@ -60,6 +63,35 @@ namespace YARG.Localization
                     }
                 }
             });
+
+            await LoadUpdates();
+        }
+
+        private static async UniTask LoadUpdates()
+        {
+            if (GlobalVariables.OfflineMode)
+            {
+                return;
+            }
+
+            try
+            {
+                using var request = UnityWebRequest.Get(MESSAGES_URL);
+                request.SetRequestHeader("User-Agent", "YARG");
+                await request.SendWebRequest();
+                if (request.result == UnityWebRequest.Result.Success)
+                {
+                    UpdateLocalizations(request.downloadHandler.text);
+                }
+                else
+                {
+                    throw new Exception($"Download failed: {request.error}");
+                }
+            }
+            catch (Exception e)
+            {
+                YargLogger.LogException(e, "Failed to get message updates. Skipping.");
+            }
         }
 
         private static bool TryParseAndLoadLanguage(string cultureCode)
@@ -135,6 +167,55 @@ namespace YARG.Localization
                     default:
                         YargLogger.LogFormatWarning("Found `{0}` token while parsing language. Skipping", token.Type);
                         break;
+                }
+            }
+        }
+
+        public static void UpdateLocalizations(string remoteJson)
+        {
+            // Parse remote_json and update localization for any keys found
+            var version_key = string.Empty;
+#if UNITY_EDITOR || YARG_TEST_BUILD
+            version_key = "dev";
+#elif YARG_NIGHTLY_BUILD
+            version_key = "nightly";
+#else
+            version_key = "release";
+#endif
+
+            var top = JObject.Parse(remoteJson);
+
+            if (top["messages"] is not JObject messages)
+            {
+                return;
+            }
+
+            if (messages[version_key] is not JObject version)
+            {
+                return;
+            }
+
+            // Top level object should be messages, which contains localization keys that contain
+            // translations for one or more languages.
+            foreach (var (localizationKey, langs) in version)
+            {
+                if (langs is null || langs.Type != JTokenType.Object)
+                {
+                    continue;
+                }
+
+                var langObjects = langs.ToObject<JObject>();
+
+                if (langObjects[CultureCode] is not null)
+                {
+                    _localizationMap[localizationKey] = (string) langObjects[CultureCode];
+                    continue;
+                }
+
+                if (langObjects[DEFAULT_CULTURE] is not null)
+                {
+                    _localizationMap[localizationKey] = (string) langObjects[DEFAULT_CULTURE];
+                    continue;
                 }
             }
         }
