@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using DG.Tweening;
+using Newtonsoft.Json;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -27,10 +28,12 @@ using YARG.Menu.Persistent;
 using YARG.Scores;
 using YARG.Song;
 using YARG.Playlists;
+using YARG.Helpers;
 using YARG.Helpers.Extensions;
 using YARG.Core.Engine;
 using YARG.Playback;
 using YARG.Settings;
+
 
 namespace YARG.Menu.ScoreScreen
 {
@@ -84,6 +87,16 @@ namespace YARG.Menu.ScoreScreen
         private bool _showAdvancedStats;
         private bool _offsetModified;
         private int _humanPlayerCount;
+        private string _songHashKey;
+        private Dictionary<string, long> _offsets;
+        private const string OFFSETS_FILENAME = "song_offsets.json";
+
+        private static readonly string _offsetsPath = Path.Combine(PathHelper.PersistentDataPath, OFFSETS_FILENAME);
+
+        private static readonly JsonSerializerSettings _offsetJsonSettings = new()
+        {
+            Formatting = Formatting.Indented
+        };
 
         private float                   _horizontalScrollStep;
         private Tween                   _horizontalScrollTween;
@@ -107,6 +120,8 @@ namespace YARG.Menu.ScoreScreen
             ShowReplayAnalysis(song, scoreScreenStats);
 
             _humanPlayerCount = scoreScreenStats.PlayerScores.Count(p => !p.Player.Profile.IsBot);
+            _songHashKey = song.Hash.ToString();
+            _offsets = LoadOffsets();
 
             // Play audience chatter
             if (SettingsManager.Settings.UseCrowdFx.Value == CrowdFxMode.Enabled)
@@ -152,6 +167,8 @@ namespace YARG.Menu.ScoreScreen
 
         private void OnDisable()
         {
+            // The offsets will not be saved if a user exits the game while in result screen
+            SaveOffsets(_offsets);
             MusicLibraryMenu.CurrentlyPlaying = GlobalVariables.State.CurrentSong;
             if (!GlobalVariables.State.PlayingAShow && !_restartingSong)
             {
@@ -553,40 +570,88 @@ namespace YARG.Menu.ScoreScreen
             _showAdvancedButtonEntry = new NavigationScheme.Entry(MenuAction.Orange, key, ToggleAdvancedStats);
         }
 
-        private static bool HasIniFile(SongEntry song)
+        private void ToggleOffsetToJson()
         {
-            return song != null &&
-                song.SubType == EntryType.Ini &&
-                File.Exists(Path.Combine(song.ActualLocation, "song.ini"));
-        }
-
-        private void AddOffsetToIni()
-        {
-            var song = GlobalVariables.State.CurrentSong;
-            if (!HasIniFile(song)) {return;}
-
             var offset = GlobalVariables.State.ScoreScreenStats.Value.MeanAverageOffset;
-            string iniPath = Path.Combine(song.ActualLocation, "song.ini");
+
+            var offsetMs = (long)Math.Round(offset * 1000);
 
             if (_offsetModified)
             {
-                YargLogger.LogInfo("Removed offset from delay in .ini file");
-                offset = -offset;
+                YargLogger.LogInfo("offset removed");
+                AddSongOffsetJson(_songHashKey, -offsetMs);
             }
             else
             {
-                YargLogger.LogInfo("Added offset to delay in .ini file");
+                YargLogger.LogInfo("offset added");
+                AddSongOffsetJson(_songHashKey, offsetMs);
             }
             _offsetModified = !_offsetModified;
             UpdateAddOffsetButton();
-            SongIniWriter.AddSongOffset(iniPath, (long)(offset * 1000));
             UpdateNavigationScheme(true);
+        }
+
+        private void AddSongOffsetJson(string hashKey, long offsetMilliseconds)
+        {
+            _offsets.TryGetValue(hashKey, out var existing);
+            var newValue = existing + offsetMilliseconds;
+
+            if (newValue == 0)
+            {
+                _offsets.Remove(hashKey);
+            }
+            else
+            {
+                _offsets[hashKey] = newValue;
+            }
+        }
+
+        private static Dictionary<string, long> LoadOffsets()
+        {
+            if (!File.Exists(_offsetsPath))
+            {
+                return new Dictionary<string, long>();
+            }
+
+            try
+            {
+                var text = File.ReadAllText(_offsetsPath);
+                return ParseOffsets(text);
+            }
+            catch (Exception ex)
+            {
+                YargLogger.LogException(ex, "Failed to load song offsets");
+                return new Dictionary<string, long>();
+            }
+        }
+
+        private static Dictionary<string, long> ParseOffsets(string json)
+        {
+            var data = JsonConvert.DeserializeObject<Dictionary<string, long>>(json, _offsetJsonSettings);
+            return data ?? new Dictionary<string, long>();
+        }
+
+        private static void SaveOffsets(Dictionary<string, long> offsets)
+        {
+            try
+            {
+                File.WriteAllText(_offsetsPath, SerializeOffsets(offsets));
+            }
+            catch (Exception ex)
+            {
+                YargLogger.LogException(ex, "Failed to save song offsets");
+            }
+        }
+
+        private static string SerializeOffsets(Dictionary<string, long> offsets)
+        {
+            return JsonConvert.SerializeObject(offsets, _offsetJsonSettings);
         }
 
         private void UpdateAddOffsetButton()
         {
             var key = _offsetModified ? "Remove Song Offset" : "Modify Song Offset";
-            _toggleOffsetEntry = new NavigationScheme.Entry(MenuAction.Select, key, AddOffsetToIni);
+            _toggleOffsetEntry = new NavigationScheme.Entry(MenuAction.Select, key, ToggleOffsetToJson);
         }
 
         private void UpdateNavigationScheme(bool reset = false)
@@ -627,7 +692,7 @@ namespace YARG.Menu.ScoreScreen
 
             // Now doesn't look so great when changing quickly between advanced stats
             // But I don't want to move it behind the scrolling controls, it feels weird?...
-            if (_humanPlayerCount == 1 && HasIniFile(song) && _showAdvancedStats)
+            if (_humanPlayerCount == 1 && _showAdvancedStats)
             {
                 buttons.Add(_toggleOffsetEntry);
             }
