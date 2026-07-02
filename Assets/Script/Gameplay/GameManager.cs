@@ -64,6 +64,9 @@ namespace YARG.Gameplay
         private FailMeter _failMeter;
 
         [SerializeField]
+        private UnisonDisplay _unisonDisplay;
+
+        [SerializeField]
         private BREBox _breBox;
 
         [field: SerializeField]
