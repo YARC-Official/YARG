@@ -879,7 +879,6 @@ namespace YARG.Menu.MusicLibrary
             if (setListNotEmpty)
             {
                 // same as Yellow: Add to Setlist
-                // Blue is now filters
                 AddToPlaylist();
             }
             else
@@ -901,6 +900,7 @@ namespace YARG.Menu.MusicLibrary
             if (setListNotEmpty)
             {
                 // same as Yellow: Start Setlist
+                // Blue is now used for filters
                 StartSetlist();
             }
             else
