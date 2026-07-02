@@ -608,7 +608,7 @@ namespace YARG.Menu.ScoreScreen
                 key,
                 () => { }, // tap does nothing
                 holdSeconds: 1f,
-                onHoldHandler: _ => ToggleOffsetToJson()
+                onHoldHandler: ToggleOffsetToJson
             );
         }
 
