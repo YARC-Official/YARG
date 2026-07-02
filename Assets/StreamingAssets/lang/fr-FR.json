@@ -1498,6 +1498,10 @@
                 "Name": "Montrer l'option de calibrage de décalage moyen",
                 "Description": "Ajoute un bouton sur l'écran de statistiques avancées pour enregistrer le décalage moyen détecté."
             },
+            "ShowSongOffsetCalibrationOnlyOnePlayer": {
+                "Name": "Seulement montrer avec un joueur",
+                "Description": "Montrer l'option pour enregistrer le décalage moyen détecté seulement s'il n'y a qu'un seul humain connecté."
+            },
             "UseSongOffsetCalibration": {
                 "Name": "Utiliser le calibrage de décalage moyen",
                 "Description": "Utilise la valeur enregistrée pour le décalage moyen d'une chanson pour ajuster le délai de l'audio."
