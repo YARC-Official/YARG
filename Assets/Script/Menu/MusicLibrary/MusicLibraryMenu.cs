@@ -874,11 +874,12 @@ namespace YARG.Menu.MusicLibrary
                 return;
             }
 
-            bool setListNotEmpty = ShowPlaylist.Count > 0; // Is it impossible to add more than one song to a playlist?
+            bool setListNotEmpty = ShowPlaylist.Count > 0;
 
             if (setListNotEmpty)
             {
                 // same as Yellow: Add to Setlist
+                // Blue is now filters
                 AddToPlaylist();
             }
             else
