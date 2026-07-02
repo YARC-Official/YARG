@@ -89,14 +89,6 @@ namespace YARG.Menu.ScoreScreen
         private int _humanPlayerCount;
         private string _songHashKey;
         private Dictionary<string, long> _offsets;
-        private const string OFFSETS_FILENAME = "song_offsets.json";
-
-        private static readonly string _offsetsPath = Path.Combine(PathHelper.PersistentDataPath, OFFSETS_FILENAME);
-
-        private static readonly JsonSerializerSettings _offsetJsonSettings = new()
-        {
-            Formatting = Formatting.Indented
-        };
 
         private float                   _horizontalScrollStep;
         private Tween                   _horizontalScrollTween;
@@ -121,7 +113,7 @@ namespace YARG.Menu.ScoreScreen
 
             _humanPlayerCount = scoreScreenStats.PlayerScores.Count(p => !p.Player.Profile.IsBot);
             _songHashKey = song.Hash.ToString();
-            _offsets = LoadOffsets();
+            _offsets = SongOffsetContainer.LoadOffsets();
 
             // Play audience chatter
             if (SettingsManager.Settings.UseCrowdFx.Value == CrowdFxMode.Enabled)
@@ -168,7 +160,7 @@ namespace YARG.Menu.ScoreScreen
         private void OnDisable()
         {
             // The offsets will not be saved if a user exits the game while in result screen
-            SaveOffsets(_offsets);
+            SongOffsetContainer.SaveOffsets(_offsets);
             MusicLibraryMenu.CurrentlyPlaying = GlobalVariables.State.CurrentSong;
             if (!GlobalVariables.State.PlayingAShow && !_restartingSong)
             {
@@ -606,47 +598,6 @@ namespace YARG.Menu.ScoreScreen
             }
         }
 
-        private static Dictionary<string, long> LoadOffsets()
-        {
-            if (!File.Exists(_offsetsPath))
-            {
-                return new Dictionary<string, long>();
-            }
-
-            try
-            {
-                var text = File.ReadAllText(_offsetsPath);
-                return ParseOffsets(text);
-            }
-            catch (Exception ex)
-            {
-                YargLogger.LogException(ex, "Failed to load song offsets");
-                return new Dictionary<string, long>();
-            }
-        }
-
-        private static Dictionary<string, long> ParseOffsets(string json)
-        {
-            var data = JsonConvert.DeserializeObject<Dictionary<string, long>>(json, _offsetJsonSettings);
-            return data ?? new Dictionary<string, long>();
-        }
-
-        private static void SaveOffsets(Dictionary<string, long> offsets)
-        {
-            try
-            {
-                File.WriteAllText(_offsetsPath, SerializeOffsets(offsets));
-            }
-            catch (Exception ex)
-            {
-                YargLogger.LogException(ex, "Failed to save song offsets");
-            }
-        }
-
-        private static string SerializeOffsets(Dictionary<string, long> offsets)
-        {
-            return JsonConvert.SerializeObject(offsets, _offsetJsonSettings);
-        }
 
         private void UpdateAddOffsetButton()
         {
