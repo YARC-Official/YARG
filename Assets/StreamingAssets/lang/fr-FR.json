@@ -490,7 +490,9 @@
             "RestartSong": "Recommencer",
             "ShowAdvanced": "Afficher Avancé",
             "HideAdvanced": "Cacher Avancé",
-            "EndSetlistEarly": "Terminer la setlist"
+            "EndSetlistEarly": "Terminer la setlist",
+            "AddSongOffset": "Enregistrer le décalage",
+            "RemoveSongOffset": "Annuler l'enregistrement"
         },
         "Settings": {
             "ShowAdvanced": "Afficher Avancé",
@@ -1491,6 +1493,14 @@
                 "Name": "Calibrage automatique de l'audio",
                 "PauseName": "Calibrage automatique de l'audio",
                 "Description": "Ajuste automatiquement la calibration pendant le jeu en fonction de votre timing d'input."
+            },
+            "ShowSongOffsetCalibration": {
+                "Name": "Montrer l'option de calibrage de décalage moyen",
+                "Description": "Ajoute un bouton sur l'écran de statistiques avancées pour enregistrer le décalage moyen détecté."
+            },
+            "UseSongOffsetCalibration": {
+                "Name": "Utiliser le calibrage de décalage moyen",
+                "Description": "Utilise la valeur enregistrée pour le décalage moyen d'une chanson pour ajuster le délai de l'audio."
             },
             "AutoCalibrateVideo": {
                 "Name": "Calibrage automatique de la vidéo",

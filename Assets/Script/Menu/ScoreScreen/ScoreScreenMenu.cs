@@ -601,7 +601,7 @@ namespace YARG.Menu.ScoreScreen
 
         private void UpdateAddOffsetButton()
         {
-            var key = _offsetModified ? "Remove Song Offset" : "Modify Song Offset";
+            var key = _offsetModified ? "Menu.ScoreScreen.RemoveSongOffset" : "Menu.ScoreScreen.AddSongOffset";
             _toggleOffsetEntry = new NavigationScheme.Entry(MenuAction.Select, key, ToggleOffsetToJson);
         }
 
@@ -641,9 +641,8 @@ namespace YARG.Menu.ScoreScreen
                 buttons.Insert(1, _endEarlyButtonEntry);
             }
 
-            // Now doesn't look so great when changing quickly between advanced stats
-            // But I don't want to move it behind the scrolling controls, it feels weird?...
-            if (_humanPlayerCount == 1 && _showAdvancedStats)
+            // Now doesn't look so great when changing quickly quickly between advanced stats
+            if (_humanPlayerCount == 1 && _showAdvancedStats && SettingsManager.Settings.ShowSongOffsetCalibration.Value)
             {
                 buttons.Add(_toggleOffsetEntry);
             }

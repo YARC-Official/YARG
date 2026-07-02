@@ -190,9 +190,13 @@ namespace YARG.Gameplay
 
             FinalizeChart();
 
-            // Add the offset read from the song_offsets.json placed in PathHelper.PersistentDataPath
-            var offsetOverrideMs = SongOffsetContainer.GetOffsetMilliseconds(Song.Hash.ToString());
-            var totalOffsetSeconds = Song.SongOffsetSeconds + offsetOverrideMs / 1000.0;
+            // Add the offset read from the .json file placed in PathHelper.PersistentDataPath
+            var totalOffsetSeconds = Song.SongOffsetSeconds;
+            if (SettingsManager.Settings.UseSongOffsetCalibration.Value)
+            {
+                var offsetOverrideMs = SongOffsetContainer.GetOffsetMilliseconds(Song.Hash.ToString());
+                totalOffsetSeconds += offsetOverrideMs / 1000.0;
+            }
 
             // Initialize song runner
             _songRunner = new SongRunner(

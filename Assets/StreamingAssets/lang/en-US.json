@@ -499,7 +499,9 @@
             "RestartSong" : "Restart Song",
             "ShowAdvanced": "Show Advanced",
             "HideAdvanced": "Hide Advanced",
-            "EndSetlistEarly" : "End Setlist"
+            "EndSetlistEarly" : "End Setlist",
+            "AddSongOffset": "Record song offset",
+            "RemoveSongOffset": "Undo offset record"
         },
         "Settings": {
             "ShowAdvanced": "Show Advanced",
@@ -1547,6 +1549,14 @@
                 "Name": "Auto Calibrate Video",
                 "PauseName": "Auto Calibrate Video",
                 "Description": "Placeholder setting. Currently has no effect."
+            },
+            "ShowSongOffsetCalibration": {
+                "Name": "Show Mean Song Offset Calibration",
+                "Description": "Shows an option on the advanced stats screen to record mean song offset."
+            },
+            "UseSongOffsetCalibration": {
+                "Name": "Use Mean Song Offset Calibration",
+                "Description": "Use the recorded song mean offset to adjust song audio delay."
             },
             "VocalMonitoring": {
                 "Name": "Vocal Monitoring Volume",
