@@ -14,42 +14,6 @@ namespace YARG.Gameplay.HUD
 {
     public class UnisonDisplay : GameplayBehaviour
     {
-        private class EngineUnisonInfo
-        {
-            public readonly List<int> NoteCountInPhrase;
-            public          int       UnisonPhraseNotesHit;
-
-            public EngineUnisonInfo(EngineManager.EngineContainer engineContainer,
-                List<EngineManager.UnisonEvent> unisonPhrases)
-            {
-                NoteCountInPhrase = new List<int>();
-                UnisonPhraseNotesHit = 0;
-                //TODO: This is kinda a bad way to do this, should probably get the chart data directly instead of doing this
-                foreach (var phrase in unisonPhrases)
-                {
-                    if (engineContainer.Engine is BaseEngine<GuitarNote, GuitarEngineParameters, GuitarStats>
-                        guitarEngine)
-                    {
-                        NoteCountInPhrase.Add(guitarEngine.GetNoteCountInTickWindow(phrase.Tick, phrase.TickEnd));
-                    }
-                    else if (engineContainer.Engine is BaseEngine<DrumNote, DrumsEngineParameters, DrumsStats>
-                        drumEngine)
-                    {
-                        NoteCountInPhrase.Add(drumEngine.GetNoteCountInTickWindow(phrase.Tick, phrase.TickEnd));
-                    }
-                    else if (engineContainer.Engine is BaseEngine<ProKeysNote, KeysEngineParameters, KeysStats>
-                        proKeysEngine)
-                    {
-                        NoteCountInPhrase.Add(proKeysEngine.GetNoteCountInTickWindow(phrase.Tick, phrase.TickEnd));
-                    }
-                    else if (engineContainer.Engine is BaseEngine<GuitarNote, KeysEngineParameters, KeysStats>
-                        fiveLaneKeysEngine)
-                    {
-                        NoteCountInPhrase.Add(fiveLaneKeysEngine.GetNoteCountInTickWindow(phrase.Tick, phrase.TickEnd));
-                    }
-                }
-            }
-        }
         [SerializeField]
         private GameObject _parent;
         [SerializeField]
@@ -67,9 +31,10 @@ namespace YARG.Gameplay.HUD
 
         private const float BONUS_DISPLAY_TIME = 2;
 
-        private readonly Dictionary<int, EngineUnisonInfo> _engineIdToUnisonInfo = new();
-        private readonly List<EngineManager.UnisonEvent>   _unisonEvents            = new();
-        private          int                               _unisonEventIndex;
+        private readonly Dictionary<int, int>            _engineIdToNotesInUnisonPhrase = new();
+        private readonly Dictionary<int, int>            _engineIdToNoteHitInUnisonPhrase = new();
+        private readonly List<EngineManager.UnisonEvent> _unisonEvents                  = new();
+        private          int                             _unisonEventIndex;
 
         protected override void OnSongStarted()
         {
@@ -114,7 +79,6 @@ namespace YARG.Gameplay.HUD
                     continue;
                 }
                 InitializeIcon(engineContainer);
-                _engineIdToUnisonInfo[engineContainer.EngineId] = new EngineUnisonInfo(engineContainer, _unisonEvents);
                 SubscribeToEngineEvents(engineContainer);
             }
 
@@ -143,8 +107,15 @@ namespace YARG.Gameplay.HUD
 
                     OnNoteHit(engineContainer.EngineId, note);
                 };
-                guitarEngine.OnNoteMissed += (_, note) => { OnNoteMiss(engineContainer.EngineId, note); };
-                guitarEngine.OnOverstrum += () => { OnOverstrum(engineContainer.EngineId); };
+                guitarEngine.OnStarPowerPhraseStart += (note, noteCount) =>
+                {
+                    OnStarPowerPhraseStart(note, noteCount, engineContainer.EngineId);
+                };
+                guitarEngine.OnStarPowerPhraseMissed += (note) =>
+                {
+                    OnStarPowerPhraseMissed(note, engineContainer.EngineId);
+                };
+
             }
             else if (engineContainer.Engine is DrumsEngine
                 drumEngine)
@@ -158,8 +129,14 @@ namespace YARG.Gameplay.HUD
 
                     OnNoteHit(engineContainer.EngineId, note);
                 };
-                drumEngine.OnNoteMissed += (_, note) => { OnNoteMiss(engineContainer.EngineId, note); };
-                drumEngine.OnOverhit += () => { OnOverstrum(engineContainer.EngineId); };
+                drumEngine.OnStarPowerPhraseStart += (note, noteCount) =>
+                {
+                    OnStarPowerPhraseStart(note, noteCount, engineContainer.EngineId);
+                };
+                drumEngine.OnStarPowerPhraseMissed += (note) =>
+                {
+                    OnStarPowerPhraseMissed(note, engineContainer.EngineId);
+                };
             }
             else if (engineContainer.Engine is KeysEngine<ProKeysNote>
                 proKeysEngine)
@@ -173,8 +150,14 @@ namespace YARG.Gameplay.HUD
 
                     OnNoteHit(engineContainer.EngineId, note);
                 };
-                proKeysEngine.OnNoteMissed += (_, note) => { OnNoteMiss(engineContainer.EngineId, note); };
-                proKeysEngine.OnOverhit += (key) => { OnOverstrum(engineContainer.EngineId); };
+                proKeysEngine.OnStarPowerPhraseStart += (note, noteCount) =>
+                {
+                    OnStarPowerPhraseStart(note, noteCount, engineContainer.EngineId);
+                };
+                proKeysEngine.OnStarPowerPhraseMissed += (note) =>
+                {
+                    OnStarPowerPhraseMissed(note, engineContainer.EngineId);
+                };
             }
             else if (engineContainer.Engine is KeysEngine<GuitarNote>
                 fiveLaneKeysEngine)
@@ -188,42 +171,43 @@ namespace YARG.Gameplay.HUD
 
                     OnNoteHit(engineContainer.EngineId, note);
                 };
-                fiveLaneKeysEngine.OnNoteMissed += (_, note) => { OnNoteMiss(engineContainer.EngineId, note); };
-                fiveLaneKeysEngine.OnOverhit += (key) => { OnOverstrum(engineContainer.EngineId); };
-            }
-        }
-
-        private void OnNoteHit(int engineId, ChartEvent note)
-        {
-            if (_unisonEventIndex >= _unisonEvents.Count)
-            {
-                return;
-            }
-
-            var currentPhrase = _unisonEvents[_unisonEventIndex];
-
-            if (!currentPhrase.ParticipantIds.Contains(engineId) ||
-                !_engineIdToUnisonInfo.TryGetValue(engineId, out var unison) ||
-                unison.NoteCountInPhrase[_unisonEventIndex] == unison.UnisonPhraseNotesHit)
-            {
-                return;
-            }
-
-            if (note.Time >= currentPhrase.Time && note.Time <= currentPhrase.TimeEnd)
-            {
-                unison.UnisonPhraseNotesHit++;
-
-                _instrumentIcons[engineId]
-                    .SetProgress((float) unison.UnisonPhraseNotesHit / unison.NoteCountInPhrase[_unisonEventIndex]);
-                if (currentPhrase.Awarded)
+                fiveLaneKeysEngine.OnStarPowerPhraseStart += (note, noteCount) =>
                 {
-                    _completeSequence.Restart();
-                    _headerText.color = Color.gold;
-                }
+                    OnStarPowerPhraseStart(note, noteCount, engineContainer.EngineId);
+                };
+                fiveLaneKeysEngine.OnStarPowerPhraseMissed += (note) =>
+                {
+                    OnStarPowerPhraseMissed(note, engineContainer.EngineId);
+                };
             }
         }
 
-        private void OnNoteMiss(int engineId, ChartEvent note)
+        private void OnStarPowerPhraseStart(ChartEvent note, int noteCount, int engineId)
+        {
+            if (_unisonEventIndex >= _unisonEvents.Count)
+            {
+                return;
+            }
+
+            var currentPhrase = _unisonEvents[_unisonEventIndex];
+
+            if (!currentPhrase.ParticipantIds.Contains(engineId))
+            {
+                return;
+            }
+
+            _engineIdToNotesInUnisonPhrase[engineId] = noteCount;
+            _engineIdToNoteHitInUnisonPhrase[engineId] = 0;
+
+            var icon = _instrumentIcons[engineId];
+            icon.SetProgress(0f);
+            if (!icon.gameObject.activeSelf)
+            {
+                icon.gameObject.SetActive(true);
+            }
+        }
+
+        private void OnStarPowerPhraseMissed(ChartEvent note, int engineId)
         {
             if (_unisonEventIndex >= _unisonEvents.Count)
             {
@@ -233,8 +217,9 @@ namespace YARG.Gameplay.HUD
             var currentPhrase = _unisonEvents[_unisonEventIndex];
 
             if (!currentPhrase.ParticipantIds.Contains(engineId) ||
-                !_engineIdToUnisonInfo.TryGetValue(engineId, out var unison) ||
-                unison.NoteCountInPhrase[_unisonEventIndex] == unison.UnisonPhraseNotesHit)
+                !_engineIdToNoteHitInUnisonPhrase.TryGetValue(engineId, out var notesHit) ||
+                !_engineIdToNotesInUnisonPhrase.TryGetValue(engineId, out var notesInPhrase) ||
+                notesHit >= notesInPhrase)
             {
                 return;
             }
@@ -247,7 +232,7 @@ namespace YARG.Gameplay.HUD
             }
         }
 
-        private void OnOverstrum(int engineId)
+        private void OnNoteHit(int engineId, ChartEvent note)
         {
             if (_unisonEventIndex >= _unisonEvents.Count)
             {
@@ -256,16 +241,24 @@ namespace YARG.Gameplay.HUD
 
             var currentPhrase = _unisonEvents[_unisonEventIndex];
 
-            if (!currentPhrase.ParticipantIds.Contains(engineId) ||
-                !_engineIdToUnisonInfo.TryGetValue(engineId, out var unison) ||
-                unison.NoteCountInPhrase[_unisonEventIndex] == unison.UnisonPhraseNotesHit)
+            if (note.Time < currentPhrase.Time ||
+                note.Time > currentPhrase.TimeEnd ||
+                !currentPhrase.ParticipantIds.Contains(engineId) ||
+                !_engineIdToNoteHitInUnisonPhrase.TryGetValue(engineId, out var notesHit) ||
+                !_engineIdToNotesInUnisonPhrase.TryGetValue(engineId, out var notesInPhrase) ||
+                notesHit >= notesInPhrase)
             {
                 return;
             }
 
-            if (GameManager.SongTime >= currentPhrase.Time && GameManager.SongTime <= currentPhrase.TimeEnd)
+            _engineIdToNoteHitInUnisonPhrase[engineId]++;
+
+            _instrumentIcons[engineId]
+                .SetProgress((float) _engineIdToNoteHitInUnisonPhrase[engineId] / _engineIdToNotesInUnisonPhrase[engineId]);
+            if (currentPhrase.Awarded)
             {
-                unison.UnisonPhraseNotesHit = 0;
+                _completeSequence.Restart();
+                _headerText.color = Color.gold;
             }
         }
 
@@ -304,13 +297,13 @@ namespace YARG.Gameplay.HUD
                     return;
                 }
 
-                foreach (var engineInfo in _engineIdToUnisonInfo)
+                foreach (var engineIds in  _engineIdToNotesInUnisonPhrase.Keys)
                 {
-                    engineInfo.Value.UnisonPhraseNotesHit = 0;
-                    var icon = _instrumentIcons[engineInfo.Key];
+                    _engineIdToNoteHitInUnisonPhrase[engineIds] = 0;
+                    var icon = _instrumentIcons[engineIds];
                     icon.SetProgress(0f);
                     icon.gameObject.SetActive(false);
-                    if (_unisonEvents[_unisonEventIndex].ParticipantIds.Contains(engineInfo.Key))
+                    if (_unisonEvents[_unisonEventIndex].ParticipantIds.Contains(engineIds))
                     {
                         if (!icon.gameObject.activeSelf)
                         {
