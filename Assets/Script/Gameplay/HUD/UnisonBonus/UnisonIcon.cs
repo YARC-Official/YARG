@@ -16,10 +16,17 @@ namespace YARG.Gameplay.HUD
         private const float PROGRESS_FILL_ALPHA = 0.3f;
         private const float PROGRESS_COMPLETE_ALPHA = 0.5f;
 
-        private readonly Color _completeColor = new(0.988f, 0.835f, 0.282f, 1f);
-        private readonly Color _failColor = new(0.953f, 0.169f, 0.216f, 1f);
+        private float _targetProgress;
+
+
+        [SerializeField]
+        private Color _completeColor;
+        [SerializeField]
+        private Color _failColor;
 
         private Sequence _completeSequence;
+
+        private bool _isFailState;
 
         protected override void GameplayAwake()
         {
@@ -38,27 +45,47 @@ namespace YARG.Gameplay.HUD
         }
         public void SetProgress(float progress)
         {
-            if (progress >= 0)
+            if (_isFailState)
             {
-                _fill.fillAmount = progress;
+                return;
             }
 
+            _targetProgress = progress;
             if (progress >= 1f)
             {
                 _icon.color = Color.white;
                 _fill.color = _completeColor.WithAlpha(PROGRESS_COMPLETE_ALPHA);
                 _completeSequence.Restart();
             }
-            else if (progress < 0)
+            else
+            {
+                _icon.color = Color.gray4;
+                _fill.color = Color.white.WithAlpha(PROGRESS_FILL_ALPHA);
+            }
+        }
+
+        public void SetFailState(bool isFail)
+        {
+            _isFailState = isFail;
+            if (isFail)
             {
                 _icon.color = _failColor;
                 _fill.color = _failColor.WithAlpha(PROGRESS_FILL_ALPHA);
             }
             else
             {
-                _icon.color = Color.gray4;
-                _fill.color = Color.white.WithAlpha(PROGRESS_FILL_ALPHA);
+                SetProgress(_fill.fillAmount);
             }
+        }
+
+        private void Update()
+        {
+            if (_isFailState || Mathf.Approximately(_fill.fillAmount, _targetProgress))
+            {
+                return;
+            }
+            // Lerp to new progress
+            _fill.fillAmount = DOVirtual.EasedValue(_fill.fillAmount, _targetProgress, Time.deltaTime * 5, Ease.OutSine);
         }
     }
 }

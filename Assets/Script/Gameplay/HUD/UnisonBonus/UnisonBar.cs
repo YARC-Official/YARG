@@ -18,16 +18,21 @@ namespace YARG.Gameplay.HUD
         [SerializeField]
         private TextMeshProUGUI _totalCounter;
 
-        private readonly Color _completeColor = new(0.988f, 0.835f, 0.282f, 1f);
-        private readonly Color _failColor     = new(0.953f, 0.169f, 0.216f, 1f);
-        private readonly Color _progressColor = new(0.271f, 0.847f, 0.996f, 1f);
+        [SerializeField]
+        private Color _completeColor;
+        [SerializeField]
+        private Color _failColor;
+        [SerializeField]
+        private Color _progressColor;
 
         private float _targetProgress;
+        private bool  _isFail;
         protected override void GameplayAwake()
         {
             _fill.fillAmount = 0f;
             _successCounter.color = Color.white;
             _totalCounter.color = Color.white;
+            _isFail = false;
         }
 
         public void SetUnisonInfo(int playersHit, int totalPlayers)
@@ -37,9 +42,10 @@ namespace YARG.Gameplay.HUD
         }
         public void SetProgress(float progress)
         {
-            if (progress >= 0)
+            _targetProgress = progress;
+            if (_isFail)
             {
-                _targetProgress = progress;
+                return;
             }
             if (progress >= 1f)
             {
@@ -47,7 +53,17 @@ namespace YARG.Gameplay.HUD
                 _successCounter.color = _completeColor;
                 _totalCounter.color = _completeColor;
             }
-            else if (progress < 0)
+            else
+            {
+                _successCounter.color = Color.white;
+                _totalCounter.color = Color.white;
+                _fill.color = _progressColor;
+            }
+        }
+        public void SetFailState(bool isFail)
+        {
+            _isFail = isFail;
+            if (isFail)
             {
                 _successCounter.color = _failColor;
                 _totalCounter.color = _failColor;
@@ -55,9 +71,7 @@ namespace YARG.Gameplay.HUD
             }
             else
             {
-                _successCounter.color = Color.white;
-                _totalCounter.color = Color.white;
-                _fill.color = _progressColor;
+                SetProgress(_targetProgress);
             }
         }
 
