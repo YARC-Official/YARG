@@ -356,13 +356,18 @@ namespace YARG.Menu.MusicLibrary
             // Give yellow the same behaviour as green: press to add to set, hold to start the set
             if (SettingsManager.Settings.EnablePlayAShow.Value)
             {
-                entries.Add(new NavigationScheme.Entry(MenuAction.Yellow, "Menu.MusicLibrary.PlayShow", EnterShowMode));
+                entries.Add(new NavigationScheme.Entry(
+                        MenuAction.Yellow,
+                        "Menu.MusicLibrary.HoldPlayShow",
+                        () => { }, // tap does nothing
+                        holdSeconds: GREEN_HOLD_SECONDS,
+                        onHoldHandler: EnterShowMode));
             }
             else
             {
                 entries.Add(new NavigationScheme.Entry(
                         MenuAction.Yellow,
-                        "Menu.MusicLibrary.AddHoldPlaySet",
+                        "Menu.MusicLibrary.AddHoldStartSet",
                         _ => AddToPlaylist(),
                         holdSeconds: GREEN_HOLD_SECONDS,
                         onHoldHandler: OnGreenHold // Use existing function
