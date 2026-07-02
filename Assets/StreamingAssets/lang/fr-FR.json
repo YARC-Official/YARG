@@ -491,8 +491,8 @@
             "ShowAdvanced": "Afficher Avancé",
             "HideAdvanced": "Cacher Avancé",
             "EndSetlistEarly": "Terminer la setlist",
-            "AddSongOffset": "Enregistrer le décalage",
-            "RemoveSongOffset": "Annuler l'enregistrement"
+            "AddSongOffset": "(Maintien) Enregistrer le décalage",
+            "RemoveSongOffset": "(Maintien) Annuler l'enregistrement"
         },
         "Settings": {
             "ShowAdvanced": "Afficher Avancé",

@@ -570,12 +570,12 @@ namespace YARG.Menu.ScoreScreen
 
             if (_offsetModified)
             {
-                YargLogger.LogInfo("offset removed");
+                YargLogger.LogFormatInfo("{0}ms offset removed", offsetMs);
                 AddSongOffsetJson(_songHashKey, -offsetMs);
             }
             else
             {
-                YargLogger.LogInfo("offset added");
+                YargLogger.LogFormatInfo("{0}ms offset added", offsetMs);
                 AddSongOffsetJson(_songHashKey, offsetMs);
             }
             _offsetModified = !_offsetModified;
@@ -602,7 +602,14 @@ namespace YARG.Menu.ScoreScreen
         private void UpdateAddOffsetButton()
         {
             var key = _offsetModified ? "Menu.ScoreScreen.RemoveSongOffset" : "Menu.ScoreScreen.AddSongOffset";
-            _toggleOffsetEntry = new NavigationScheme.Entry(MenuAction.Select, key, ToggleOffsetToJson);
+            // Make offset button holdable, 1 second
+            _toggleOffsetEntry = new NavigationScheme.Entry(
+                MenuAction.Select,
+                key,
+                () => { }, // tap does nothing
+                holdSeconds: 1f,
+                onHoldHandler: _ => ToggleOffsetToJson()
+            );
         }
 
         private void UpdateNavigationScheme(bool reset = false)

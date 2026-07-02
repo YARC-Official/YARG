@@ -500,8 +500,8 @@
             "ShowAdvanced": "Show Advanced",
             "HideAdvanced": "Hide Advanced",
             "EndSetlistEarly" : "End Setlist",
-            "AddSongOffset": "Record song offset",
-            "RemoveSongOffset": "Undo offset record"
+            "AddSongOffset": "(Hold) Record song offset",
+            "RemoveSongOffset": "(Hold) Undo offset record"
         },
         "Settings": {
             "ShowAdvanced": "Show Advanced",
