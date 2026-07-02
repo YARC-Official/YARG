@@ -360,6 +360,7 @@
             "CurrentSetlist": "Current Setlist",
             "AddToSet": "Add To Setlist",
             "AddedToSet": "Added To Setlist",
+            "AddHoldPlaySet": "<align=left><size=80%>Add To Setlist<br>(Hold) Start The Set</size></align>",
             "PlaylistAddedToSet": "Added {0:N0} Songs From Playlist To Setlist",
             "StartSet": "Start The Set",
             "PlayShow": "Play A Show",
@@ -1379,6 +1380,10 @@
             "OutputDevice": {
                 "Name": "Output Device",
                 "Description": "The interface to use when playing sounds."
+            },
+            "EnablePlayAShow": {
+                "Name": "Enable Play A Show",
+                "Description": "Enable or disable play a show feature from the library"
             },
             "PlayAShowTimeout": {
                 "Name": "Show Selection Timeout",

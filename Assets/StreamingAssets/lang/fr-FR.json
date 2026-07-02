@@ -351,6 +351,7 @@
             "CurrentSetlist": "Setlist actuelle",
             "AddToSet": "Ajouter à la setlist",
             "AddedToSet": "Ajoutée à la setlist",
+            "AddHoldPlaySet": "<align=left><size=80%>Ajouter à la setlist<br>(Maintien) Commencer le set</size></align>",
             "PlaylistAddedToSet": "{0:N0} musiques de la playlist ajoutées à la setlist",
             "StartSet": "Commencer le set",
             "PlayShow": "Jouer un concert",
@@ -1328,6 +1329,10 @@
             "OutputDevice": {
                 "Name": "Périphérique de sortie",
                 "Description": "L'interface à utiliser lors de la lecture des sons."
+            },
+            "EnablePlayAShow": {
+                "Name": "Activer l'option du mode concert",
+                "Description": "Faire apparaître ou non l'option de jouer un concert à partir de la librarie."
             },
             "PlayAShowTimeout": {
                 "Name": "Temps de sélection du concert",

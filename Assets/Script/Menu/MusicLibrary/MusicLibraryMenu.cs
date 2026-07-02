@@ -300,7 +300,7 @@ namespace YARG.Menu.MusicLibrary
                 ? new NavigationScheme.Entry(MenuAction.Right, "Menu.MusicLibrary.MoveInPlaylist", MovePlaylistEntryDown)
                 : new NavigationScheme.Entry(MenuAction.Right, "Menu.MusicLibrary.SkipSection", GoToNextSection);
 
-            Navigator.Instance.PushScheme(new NavigationScheme(new()
+            var entries = new List<NavigationScheme.Entry>
             {
                 new NavigationScheme.Entry(MenuAction.Up, "Menu.Common.Up",
                     ctx =>
@@ -348,14 +348,27 @@ namespace YARG.Menu.MusicLibrary
                         hide: true
                     ),
                 new NavigationScheme.Entry(MenuAction.Red, "Menu.Common.Back", Back, hide: true),
-                setListNotEmpty ?
-                    new NavigationScheme.Entry(MenuAction.Yellow, "Menu.MusicLibrary.StartSet", StartSetlist) :
-                    new NavigationScheme.Entry(MenuAction.Yellow, "Menu.MusicLibrary.PlayShow", EnterShowMode),
                 new NavigationScheme.Entry(MenuAction.Blue, "Menu.MusicLibrary.Filters", OpenFilters),
                 new NavigationScheme.Entry(MenuAction.Orange, "Menu.MusicLibrary.MoreOptions",
                     OnOrangeHit, OnOrangeRelease),
-            }, false));
+            };
 
+            // Give yellow the same behaviour as green: press to add to set, hold to start the set
+            if (SettingsManager.Settings.EnablePlayAShow.Value)
+            {
+                entries.Add(new NavigationScheme.Entry(MenuAction.Yellow, "Menu.MusicLibrary.PlayShow", EnterShowMode));
+            }
+            else
+            {
+                entries.Add(new NavigationScheme.Entry(
+                        MenuAction.Yellow,
+                        "Menu.MusicLibrary.AddHoldPlaySet",
+                        _ => AddToPlaylist(),
+                        holdSeconds: GREEN_HOLD_SECONDS,
+                        onHoldHandler: OnGreenHold // Use existing function
+                    ));
+            }
+            Navigator.Instance.PushScheme(new NavigationScheme(entries, false));
         }
 
         protected override void OnSelectedIndexChanged()
@@ -861,7 +874,7 @@ namespace YARG.Menu.MusicLibrary
                 return;
             }
 
-            bool setListNotEmpty = ShowPlaylist.Count > 0;
+            bool setListNotEmpty = ShowPlaylist.Count > 0; // Is it impossible to add more than one song to a playlist?
 
             if (setListNotEmpty)
             {
@@ -886,7 +899,7 @@ namespace YARG.Menu.MusicLibrary
 
             if (setListNotEmpty)
             {
-                // same as Blue: Start Setlist
+                // same as Yellow: Start Setlist
                 StartSetlist();
             }
             else
