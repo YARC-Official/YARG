@@ -460,6 +460,11 @@ namespace YARG.Settings
                 SongExport.Export(SongExport.ExportFormat.Csv);
             }
 
+            public void ExportSongsWeb()
+            {
+                SongExport.Export(SongExport.ExportFormat.WebBrowser);
+            }
+
             public void CopyCurrentSongTextFilePath()
             {
                 GUIUtility.systemCopyBuffer = CurrentSongController.TextFilePath;
