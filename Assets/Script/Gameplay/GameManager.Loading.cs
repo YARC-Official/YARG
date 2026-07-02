@@ -261,6 +261,7 @@ namespace YARG.Gameplay
 
             EngineManager.OnCodaStart += StartCoda;
             EngineManager.OnCodaEnd += EndCoda;
+            EngineManager.OnUnisonPhraseSuccess += OnUnisonPhraseSuccess;
 
             // Log constant values
             YargLogger.LogFormatDebug("Audio calibration: {0}, video calibration: {1}, song offset: {2}",

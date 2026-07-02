@@ -13,6 +13,12 @@ namespace YARG.Gameplay.HUD
         [SerializeField]
         private Image _fill;
 
+        private const float PROGRESS_FILL_ALPHA = 0.3f;
+        private const float PROGRESS_COMPLETE_ALPHA = 0.5f;
+
+        private readonly Color _completeColor = new(0.988f, 0.835f, 0.282f, 1f);
+        private readonly Color _failColor = new(0.953f, 0.169f, 0.216f, 1f);
+
         private Sequence _completeSequence;
 
         protected override void GameplayAwake()
@@ -40,18 +46,18 @@ namespace YARG.Gameplay.HUD
             if (progress >= 1f)
             {
                 _icon.color = Color.white;
-                _fill.color = Color.gold.WithAlpha(0.5f);
+                _fill.color = _completeColor.WithAlpha(PROGRESS_COMPLETE_ALPHA);
                 _completeSequence.Restart();
             }
             else if (progress < 0)
             {
-                _icon.color = Color.red;
-                _fill.color = Color.red.WithAlpha(0.3f);
+                _icon.color = _failColor;
+                _fill.color = _failColor.WithAlpha(PROGRESS_FILL_ALPHA);
             }
             else
             {
                 _icon.color = Color.gray4;
-                _fill.color = Color.white.WithAlpha(0.3f);
+                _fill.color = Color.white.WithAlpha(PROGRESS_FILL_ALPHA);
             }
         }
     }

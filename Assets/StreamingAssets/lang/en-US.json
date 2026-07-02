@@ -1051,6 +1051,15 @@
                     "Disabled": "Disabled"
                 }
             },
+            "UnisonDisplay": {
+                "Name": "Unison Display",
+                "Description": "Choose how unison bonuses should be displayed during a song.",
+                "Dropdown": {
+                    "Always": "Always",
+                    "MultiplayerOnly": "Multiplayer Only",
+                    "Disabled": "Disabled"
+                }
+            },
             "OverstrumAndOverhitSoundEffects": {
                 "Name": "Overstrum/Overhit Sound Effects",
                 "Description": "Enables the overstrum/overhit sound effect."

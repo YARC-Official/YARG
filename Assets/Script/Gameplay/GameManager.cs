@@ -237,6 +237,7 @@ namespace YARG.Gameplay
             EngineManager.OnSongFailed -= OnSongFailed;
             EngineManager.OnCodaStart -= StartCoda;
             EngineManager.OnCodaEnd -= EndCoda;
+            EngineManager.OnUnisonPhraseSuccess -= OnUnisonPhraseSuccess;
 
             //Restore stem volumes to their original state
             foreach (var (stem, state) in _stemStates)
@@ -333,6 +334,11 @@ namespace YARG.Gameplay
             if (_lyricBar.gameObject.activeSelf)
             {
                 _lyricBar.SetSongTime(time);
+            }
+
+            if (_unisonDisplay.gameObject.activeSelf)
+            {
+                _unisonDisplay.SetSongTime(time);
             }
         }
 
@@ -1026,6 +1032,14 @@ namespace YARG.Gameplay
             CheckForRewindInvalidation();
 
             return false;
+        }
+
+        private void OnUnisonPhraseSuccess()
+        {
+            if (_unisonDisplay.gameObject.activeSelf)
+            {
+                _unisonDisplay.OnUnisonPhraseSuccess();
+            }
         }
 
         public void StartCoda(CodaSection _)
