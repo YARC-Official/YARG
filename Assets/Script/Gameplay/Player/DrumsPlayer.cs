@@ -35,10 +35,6 @@ namespace YARG.Gameplay.Player
         // indistinguishable from 1x kicks by pad number
         public const int DOUBLE_KICK_FRET_INDEX = int.MaxValue;
 
-        // Number of distinct frets in the fret array.
-        // Derivable, but predetermined by MakeHighwayOrdering() for performance reasons
-        public int LaneCount { get; private set; }
-
         private bool _yellowCymbalHasLane = false;
         private bool _blueCymbalHasLane = false;
         private bool _greenCymbalHasLane = false;

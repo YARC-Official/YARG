@@ -100,29 +100,7 @@ namespace YARG.Menu.ScoreScreen
 
             var scoreScreenStats = GlobalVariables.State.ScoreScreenStats.Value;
 
-#if UNITY_EDITOR || YARG_NIGHTLY_BUILD || YARG_TEST_BUILD
-            // Do analysis of replay before showing any score data
-            // This will make it so that if the analysis takes a while the screen is blank
-            // (kinda like a loading screen)
-            try
-            {
-                if (!AnalyzeReplay(song, scoreScreenStats.ReplayInfo))
-                {
-                    DialogManager.Instance.ShowMessage("Inconsistent Replay Results!",
-                        "The replay analysis for this run produced inconsistent results to the actual gameplay.\n" +
-                        "Please report this issue to the YARG developers on GitHub or Discord.\n\n" +
-                        $"Chart Hash: {song.Hash}");
-                }
-            }
-            catch (Exception ex)
-            {
-                YargLogger.LogException(ex, $"Failed to analyze replay! Song hash: {song.Hash}");
-                DialogManager.Instance.ShowMessage("Failed To Analyze Replay!",
-                    "The replay analysis for this run resulted in an unexpected error.\n" +
-                    "Please report this issue to the YARG developers on GitHub or Discord.\n\n" +
-                    $"Chart Hash: {song.Hash}");
-            }
-#endif
+            ShowReplayAnalysis(song, scoreScreenStats);
 
             // Play audience chatter
             if (SettingsManager.Settings.UseCrowdFx.Value == CrowdFxMode.Enabled)
@@ -607,6 +585,30 @@ namespace YARG.Menu.ScoreScreen
             buttons.Add(_scrollUpEntry);
             buttons.Add(_scrollDownEntry);
             Navigator.Instance.PushScheme(new(buttons, true));
+        }
+
+        private void ShowReplayAnalysis(SongEntry song, ScoreScreenStats scoreScreenStats)
+        {
+#if UNITY_EDITOR || YARG_NIGHTLY_BUILD || YARG_TEST_BUILD
+            try
+            {
+                if (!AnalyzeReplay(song, scoreScreenStats.ReplayInfo))
+                {
+                    var dialog = DialogManager.Instance.ShowMessage("Inconsistent Replay Results!",
+                        "The replay analysis for this run produced inconsistent results to the actual gameplay.\n" +
+                        "Please report this issue to the YARG developers on GitHub or Discord.\n\n" +
+                        $"Chart Hash: {song.Hash}");
+                }
+            }
+            catch (Exception ex)
+            {
+                YargLogger.LogException(ex, $"Failed to analyze replay! Song hash: {song.Hash}");
+                DialogManager.Instance.ShowMessage("Failed To Analyze Replay!",
+                    "The replay analysis for this run resulted in an unexpected error.\n" +
+                    "Please report this issue to the YARG developers on GitHub or Discord.\n\n" +
+                    $"Chart Hash: {song.Hash}");
+            }
+#endif
         }
     }
 }

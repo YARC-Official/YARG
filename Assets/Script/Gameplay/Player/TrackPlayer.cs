@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.Serialization;
 using YARG.Assets.Script.Helpers;
 using YARG.Core;
 using YARG.Core.Audio;
@@ -43,6 +44,8 @@ namespace YARG.Gameplay.Player
         protected HighwayCameraRendering HighwayCameraRendering;
         [SerializeField]
         protected TrackMaterial TrackMaterial;
+        [SerializeField]
+        protected StrikelineAnimator StrikelineAnimator;
         [SerializeField]
         protected ComboMeter ComboMeter;
         [SerializeField]

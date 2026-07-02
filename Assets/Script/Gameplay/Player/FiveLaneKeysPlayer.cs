@@ -572,6 +572,20 @@ public override bool ShouldUpdateInputsOnResume => true;
             {
                 _fretArray.SetSustained((int)GetFretIndex(note.FiveLaneKeysAction), true);
             }
+            else
+            {
+                // Must be an open or wildcard
+                if (note.Fret == (int) FiveFretGuitarFret.Open && !UsingOpenLane)
+                {
+                    StrikelineAnimator.SetParticleColor(Player.ColorProfile.FiveFretGuitar.GetNoteColor(note.Fret).ToUnityColor());
+                }
+                else
+                {
+                    StrikelineAnimator.SetParticleRainbow();
+                }
+
+                StrikelineAnimator.SetSustaining(true);
+            }
 
             _sustainCount++;
         }

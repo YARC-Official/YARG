@@ -606,6 +606,20 @@ namespace YARG.Gameplay.Player
                 {
                     _fretArray.SetSustained(note.Fret, true);
                 }
+                else
+                {
+                    // Must be an open or wildcard
+                    if (note.Fret == (int) FiveFretGuitarFret.Open)
+                    {
+                        StrikelineAnimator.SetParticleColor(Player.ColorProfile.FiveFretGuitar.GetNoteColor(note.Fret).ToUnityColor());
+                    }
+                    else
+                    {
+                        StrikelineAnimator.SetParticleRainbow();
+                    }
+
+                    StrikelineAnimator.SetSustaining(true);
+                }
 
                 _sustainCount++;
             }
@@ -626,6 +640,11 @@ namespace YARG.Gameplay.Player
                 if (note.Fret != (int) FiveFretGuitarFret.Open && note.Fret != (int) FiveFretGuitarFret.Wildcard)
                 {
                     _fretArray.SetSustained(note.Fret, false);
+                }
+                else
+                {
+                    // Must be an open or wildcard
+                    StrikelineAnimator.SetSustaining(false);
                 }
 
                 _sustainCount--;

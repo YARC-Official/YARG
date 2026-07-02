@@ -161,6 +161,7 @@
             "Repos": {
                 "Community": "Comunità",
                 "OpenSource": "OpenSource",
+                "YALCY": "YALCY",
                 "YARC-Charters": "La Scaletta Ufficiale di YARG",
                 "YARC-Launcher": "YARC Launcher",
                 "YARG": "YARG"
@@ -193,6 +194,7 @@
                 "AlbumCover": "Copertina Dell'Album Da: {0}",
                 "ChartedBy": "Tracciato Da: {0}",
                 "License": "Licenza Brano: {0}",
+                "Background": "Background Visual Media By: {0}",
                 "Written": "Scritto",
                 "Composed": "Composto",
                 "Arranged": "Arrangiato",
@@ -279,7 +281,7 @@
             "PlayWithReplay": "Riproduci con Replay"
         },
         "Main": {
-            "MessageOfTheDay": "<align=center><size=32><b>Benvenuto nella v0.15 notti!</b></size></align>\n\nv0.15 ora ha il supporto per corsie tremolo/trill, sfondi di traccia personalizzabili (compresa la trasparenza), caratteri vocali personalizzati per le ambientazioni, il monitoraggio avanzato delle prestazioni del giocatore, tastiere riposizionabili, aggiunge nuovi strumenti di calibrazione del gioco, e altro ancora! Oh, e la nuova e migliorata libreria musicale è finalmente qui, inclusi i filtri di canzoni avanzati, quindi anche la più grande biblioteca non può impedirti di trovare quello che stai cercando! :D\n\n<b>Se hai qualche feedback o trovi qualche bug, facci sapere su Discord o GitHub.</b>\n\nFelice YARGin'!",
+            "MessageOfTheDay": "<align=center><size=32><b>Welcome to v0.15!</b></size></align>\n\nv0.15 is a major update that adds many highly requested and necessary gameplay features such as roll/trill lanes and Big \"YARG\" endings, as well as revamped user interface in the song selection and results screen, drum lane customization, automatic genre categorization, experimental custom vocalist characters in venues, and more.\n\n<b>If you have any feedback or find any bugs, please let us know on Discord or GitHub.</b>\n\nHappy YARGin'!",
             "Options": {
                 "Quickplay": "Partita Veloce",
                 "Practice": "Pratica",
@@ -2188,7 +2190,7 @@
                 },
                 "EnableLanes": {
                     "Name": "Abilita Linee Trillo/Tremolo",
-                    "Description": "Se abilitato, il gioco rispetta le corsie tracciate trill/tremolo."
+                    "Description": "If enabled, the game honors charted trill/tremolo lanes."
                 }
             },
             "HighwayPreset": {

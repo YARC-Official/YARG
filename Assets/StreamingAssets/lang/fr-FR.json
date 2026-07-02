@@ -161,6 +161,7 @@
             "Repos": {
                 "Community": "Communauté",
                 "OpenSource": "OpenSource",
+                "YALCY": "YALCY",
                 "YARC-Charters": "La Setlist Officielle de YARG",
                 "YARC-Launcher": "Le Launcher de YARC",
                 "YARG": "YARG"
@@ -193,6 +194,7 @@
                 "AlbumCover": "Pochette d'album par : {0}",
                 "ChartedBy": "Charté par : {0}",
                 "License": "Licence de la musique : {0}",
+                "Background": "Visuel de l'arrière-plan par : {0}",
                 "Written": "Écrite",
                 "Composed": "Composée",
                 "Arranged": "Arrangée",
@@ -279,7 +281,7 @@
             "PlayWithReplay": "Jouer avec le replay"
         },
         "Main": {
-            "MessageOfTheDay": "<align=center><size=32><b>Bienvenue dans les nightlies v0.15 !</b></size></align></align>\n\nv0.15 a maintenant le support des bandes tremolo/trill, des fonds de piste personnalisables (y compris la transparence), des personnages vocaux personnalisés pour les lieux, le suivi avancé des performances des joueurs, les highways repositionnables, ajoute de nouveaux outils de calibration du jeu, et plus encore ! Oh, et la nouvelle bibliothèque musicale améliorée est enfin là, y compris les filtres de chansons avancées, donc même la plus grande bibliothèque ne peut pas vous empêcher de trouver ce que vous cherchez! :D\n\n<b>Si vous avez des commentaires ou trouvez des bugs, faites-le nous savoir sur Discord ou GitHub.</b>\n\nHappy YARGin !",
+            "MessageOfTheDay": "<align=center><size=32><b>Bienvenue sur la v0.15 !</b></size></align>\n\nLa v0.15 est une mise à jour majeure ajoutant plusieurs fonctionnalités très attendues, tel que les lanes en roll/trill et les Big \"YARG\" Endings, tout en améliorant l'interface de sélection des musiques et des résultats, la customisation des pistes à la batterie, une catégorisation automatique des genres, une expérimentation avec un chanteur personnalisé sur scène, et bien plus.\n\n<b>Si vous souhaitez nous laisser un retour ou si vous trouvez un bug, faites-le nous savoir sur Discord ou GitHub.</b>\n\nC'est l'heure de YARGer !",
             "Options": {
                 "Quickplay": "Partie rapide",
                 "Practice": "Entraînement",
@@ -1119,7 +1121,7 @@
                 "Description": "Affiche le compteur de FPS sur la barre de statut."
             },
             "FontScaling": {
-                "Name": "",
+                "Name": "Échelle de la police",
                 "Description": "Mettre à l'échelle la taille minimale de la police pour être plus visible"
             },
             "FullscreenMode": {
@@ -1165,12 +1167,12 @@
             },
             "HighScoreHistory": {
                 "Name": "Historique de Scores",
-                "Description": "Changes which score or percentage record is used for high score information displayed in the Music Library.",
+                "Description": "Modifie quel record de score ou pourcentage est utilisé sur l'affichage dans la bibliothèque de musiques.",
                 "Dropdown": {
-                    "HighestPercentageOverall": "Best percentage across all difficulties",
-                    "HighestPercentageDifficulty": "Best percentage on highest-played difficulty",
-                    "HighestScoreOverall": "Highest score across all difficulties",
-                    "HighestScoreDifficulty": "Highest score on highest-played difficulty"
+                    "HighestPercentageOverall": "Meilleur pourcentage parmi toutes les difficultés",
+                    "HighestPercentageDifficulty": "Meilleur pourcentage sur la difficulté la plus haute",
+                    "HighestScoreOverall": "Meilleur score parmi toutes les difficultés",
+                    "HighestScoreDifficulty": "Meilleur score sur la difficulté la plus haute"
                 }
             },
             "HighwayTiltMultiplier": {
@@ -1195,7 +1197,7 @@
                 "Description": "Ajuste le volume de la piste du clavier. Agit seulement sur la musique est multipiste."
             },
             "KickBounceMultiplier": {
-                "Name": "Multiplicateur du kick",
+                "Name": "Multiplicateur du rebond du kick",
                 "Description": "Contrôle la force à laquelle la piste doit rebondir en jouant une note kick (batterie seulement). Régler sur \"0\" pour le désactiver."
             },
             "LowQuality": {
@@ -1531,8 +1533,8 @@
                 "Description": "Met le jeu en pause si la fenêtre a été changée ou s'il y a une perte de focus en plein jeu."
             },
             "MuteOnFocusLoss": {
-                "Name": "Mute On Focus Loss",
-                "Description": "Mutes all game audio when the game is tabbed out/loses focus, including menu music. Audio is restored when focus returns."
+                "Name": "Couper le volume en cas de perte de focus",
+                "Description": "Coupe l'audio du jeu lorsque la fenêtre du jeu perd son focus / en cas de changement de fenêtre, y compris la musique du menu. L'audio se réactive si la fenêtre du jeu est focus."
             },
             "ApplyVolumesInMusicLibrary": {
                 "Name": "Appliquer les paramètres de volume aux aperçus de la bibliothèque de musique",
