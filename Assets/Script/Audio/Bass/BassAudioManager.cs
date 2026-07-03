@@ -176,11 +176,10 @@ namespace YARG.Audio.BASS
             YargLogger.LogInfo("BASS Successfully Initialized");
             YargLogger.LogFormatInfo("BASS: {0} - BASS.FX: {1} - BASS.Mix: {2}", Bass.Version, BassFx.Version, BassMix.Version);
             YargLogger.LogFormatInfo(
-                "Update Period: {0}ms. Device Buffer Length: {1}ms. Playback Buffer Length: {2}ms. " +
-                "Device Playback Latency: {3}ms. BASS Latency Components: info.Latency={4}ms, " +
-                "DeviceBufferLength={5}ms, devPeriod={6}ms, MinBuf={7}ms",
-                Bass.UpdatePeriod, deviceBufferLength, Bass.PlaybackBufferLength, PlaybackLatency,
-                info.Latency, deviceBufferLength, devPeriod, info.MinBufferLength);
+                "Update Period: {0}ms | Playback Buffer: {1}ms | Device Buffer: {2}ms | " +
+                "Device Latency: {3}ms (info.Latency={4}ms, devPeriod={5}ms, MinBuf={6}ms)",
+                Bass.UpdatePeriod, Bass.PlaybackBufferLength, deviceBufferLength, PlaybackLatency,
+                info.Latency, devPeriod, info.MinBufferLength);
 
             YargLogger.LogFormatInfo("Current Device: {0}", Bass.GetDeviceInfo(Bass.CurrentDevice).Name);
         }

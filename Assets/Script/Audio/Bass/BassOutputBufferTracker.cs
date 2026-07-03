@@ -6,6 +6,11 @@ using YARG.Core.Logging;
 namespace YARG.Audio.BASS
 {
 #nullable enable
+    /// <summary>
+    /// Tracks the amount of audio data currently queued in a BASS playback channel's output buffer.
+    /// Uses a DSP callback to count bytes decoded/produced into the buffer, comparing it
+    /// with the channel's playback position to know exactly how much of the buffer has been played.
+    /// </summary>
     internal sealed class BassOutputBufferTracker : IDisposable
     {
         private readonly DSPProcedure _dspProcedure;
