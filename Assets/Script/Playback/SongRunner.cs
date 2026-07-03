@@ -558,7 +558,7 @@ namespace YARG.Playback
 
                     if (justResumed)
                     {
-                        double frameStart = InputManager.FrameStartCpuTime;
+                        double frameStart = InputManager.InputUpdateCpuTime;
                         if (frameStart > 0)
                         {
                             double now = (double) System.Diagnostics.Stopwatch.GetTimestamp() / System.Diagnostics.Stopwatch.Frequency;
