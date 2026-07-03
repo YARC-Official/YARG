@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
 using UnityEngine;
@@ -306,6 +306,8 @@ namespace YARG.Settings
             public ToggleSetting UseChipmunkSpeed { get; } = new(false, UseChipmunkSpeedChange);
 
             public ToggleSetting ApplyVolumesInMusicLibrary { get; } = new(true);
+
+            public ToggleSetting ApplyVolumesInMusicPlayer { get; } = new(false, ApplyVolumesInMusicPlayerChange);
 
             public ToggleSetting EnableVoxSamples { get; } = new(true);
 
@@ -834,6 +836,11 @@ namespace YARG.Settings
             private static void UseChipmunkSpeedChange(bool value)
             {
                 GlobalAudioHandler.IsChipmunkSpeedup = value;
+            }
+
+            private static void ApplyVolumesInMusicPlayerChange(bool value)
+            {
+                StemSettings.ApplySettings = value;
             }
 
             private static void InputDeviceLoggingCallback(bool value)

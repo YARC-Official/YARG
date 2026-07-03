@@ -126,6 +126,7 @@ namespace YARG.Settings
                 new HeaderMetadata("Other"),
                 new FieldMetadata(nameof(Settings.UseChipmunkSpeed), isAdvanced: true),
                 new FieldMetadata(nameof(Settings.ApplyVolumesInMusicLibrary), isAdvanced: true),
+                new FieldMetadata(nameof(Settings.ApplyVolumesInMusicPlayer), isAdvanced: true),
                 nameof(Settings.EnableVoxSamples),
                 new FieldMetadata(nameof(Settings.MetronomeSound), isAdvanced: true),
             },

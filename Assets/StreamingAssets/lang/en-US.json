@@ -1,4 +1,4 @@
-{
+﻿{
     "Language": {
         "Name": "English",
         "Region": "United States",
@@ -1581,15 +1581,19 @@
             },
             "PauseOnFocusLoss": {
                 "Name": "Pause On Focus Loss",
-                "Description": "Pauses the game if it tabbed out/loses focus in the middle of a song."
+                "Description": "Pauses the game if it's tabbed out/loses focus in the middle of a song."
             },
             "MuteOnFocusLoss": {
                 "Name": "Mute On Focus Loss",
-                "Description": "Mutes all game audio when the game is tabbed out/loses focus, including menu music. Audio is restored when focus returns."
+                "Description": "Mutes all game audio if the game is tabbed out/loses focus, including menu music. Audio is restored when focus returns."
             },
             "ApplyVolumesInMusicLibrary": {
                 "Name": "Apply Volume Settings to Music Library Previews",
-                "Description": "Volume settings for specific instrumments will be applied in the Music Library as well."
+                "Description": "Volume settings for specific instruments will be applied in the Music Library as well."
+            },
+            "ApplyVolumesInMusicPlayer": {
+                "Name": "Apply Volume Settings to Music Player",
+                "Description": "Volume settings for specific instruments will be applied to the menu music as well. Takes effect on the next song."
             },
             "DataStreamEnable": {
                 "Name": "Enable UDP data stream",
