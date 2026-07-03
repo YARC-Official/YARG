@@ -42,9 +42,11 @@ namespace YARG.Audio.BASS
         private readonly int            _mixerHandle;
         private readonly List<int>      _sourceHandles = new();
         private readonly int            _tempoStreamHandle;
+        private readonly BassOutputBufferTracker _bufferTracker;
         private          double         _positionOffset;
         private          bool           _didSetPosition;
         private          int            _songEndHandle;
+        private          int            _positionFallbackCount;
         private          float          _speed = 1.0f;
         private          Timer          _whammySyncTimer;
         private readonly List<StemData> _stemDatas = new();
@@ -95,6 +97,7 @@ namespace YARG.Audio.BASS
             }
 
             _mixerHandle = handle;
+            _bufferTracker = new BassOutputBufferTracker(_tempoStreamHandle);
             _shouldNormalize = normalize && SettingsManager.Settings.EnableNormalization.Value;
             if (_shouldNormalize)
             {
@@ -138,6 +141,11 @@ namespace YARG.Audio.BASS
                 if (!Bass.ChannelPlay(_tempoStreamHandle, _didSetPosition))
                 {
                     return (int) Bass.LastError;
+                }
+
+                if (_didSetPosition)
+                {
+                    _bufferTracker?.ResetToCurrentPosition();
                 }
                 _didSetPosition = false;
             }
@@ -199,21 +207,130 @@ namespace YARG.Audio.BASS
 
         protected override double GetPosition_Internal()
         {
-            long positionBytes = Bass.ChannelGetPosition(_tempoStreamHandle);
+            return Math.Max(0, GetTempoStreamPosition_Internal());
+        }
+
+        protected override double GetSyncPosition_Internal()
+        {
+            return GetTempoStreamPosition_Internal() - GetAudibleSyncLatency_Internal();
+        }
+
+        private double GetTempoStreamPosition_Internal()
+        {
+            long positionBytes = Bass.ChannelGetPosition(_tempoStreamHandle, PositionFlags.Bytes);
             if (positionBytes < 0)
             {
-                YargLogger.LogFormatError("Failed to get byte position: {0}!", Bass.LastError);
-                return 0.0f;
+                _positionFallbackCount++;
+                if (_positionFallbackCount == 1 || _positionFallbackCount % 1000 == 0)
+                {
+                    YargLogger.LogFormatWarning(
+                        "Failed to get tempo stream playback position. " +
+                        "Falling back to decoding position. Count: {0}, played bytes: {1}, error: {2}",
+                        _positionFallbackCount, positionBytes, Bass.LastError);
+                }
+                return GetDecodingPosition_Internal();
             }
 
             double seconds = Bass.ChannelBytes2Seconds(_tempoStreamHandle, positionBytes);
             if (seconds < 0)
             {
                 YargLogger.LogFormatError("Failed to convert bytes to seconds: {0}!", Bass.LastError);
-                return 0.0f;
+                return GetDecodingPosition_Internal();
             }
 
             return seconds + _positionOffset;
+        }
+
+        protected override double GetEstimatedOutputLatency_Internal()
+        {
+            return GetAudibleSyncLatency_Internal();
+        }
+
+        protected override double GetAudibleSyncLatency_Internal()
+        {
+            return 0;
+        }
+
+        protected override double GetCommandLatency_Internal()
+        {
+            return GetOutputBufferLatency() + GetDeviceOutputLatency();
+        }
+
+        protected override double GetStartLatency_Internal()
+        {
+            // Start/seek commands land anywhere in BASS' update window, so use midpoint.
+            return GetDeviceOutputLatency() + GetCommandUpdateLatency() + GetDeviceBufferLatency();
+        }
+
+        protected override double GetPausedResumeLatency_Internal()
+        {
+            return GetStartLatency_Internal() + GetDevicePeriodMidpointLatency();
+        }
+
+        protected override double GetDecodingPosition_Internal()
+        {
+            long positionBytes = Bass.ChannelGetPosition(_mixerHandle, PositionFlags.Bytes);
+            if (positionBytes < 0)
+            {
+                return _positionOffset;
+            }
+
+            double seconds = Bass.ChannelBytes2Seconds(_mixerHandle, positionBytes);
+            if (seconds < 0)
+            {
+                YargLogger.LogFormatError("Failed to convert bytes to seconds: {0}!", Bass.LastError);
+                return _positionOffset;
+            }
+
+            return seconds + _positionOffset;
+        }
+
+        private double GetOutputBufferLatency()
+        {
+            double staticLatency = GetConfiguredOutputLatency();
+            if (staticLatency <= 0)
+            {
+                return 0;
+            }
+
+            if (_bufferTracker == null || !_bufferTracker.TryGetRemainingSeconds(out double dynamicLatency))
+            {
+                return staticLatency;
+            }
+
+            return Math.Clamp(dynamicLatency, 0, staticLatency);
+        }
+
+        private static double GetDeviceOutputLatency()
+        {
+            return Math.Max(0, GlobalAudioHandler.PlaybackLatency) / 1000.0;
+        }
+
+        private static double GetConfiguredOutputLatency()
+        {
+            int bufferLength = SettingsManager.Settings?.PlaybackBufferLength.Value ?? 0;
+            int minimumLength = GlobalAudioHandler.MinimumBufferLength;
+            if (bufferLength > 0 && minimumLength > 0 && bufferLength < minimumLength)
+            {
+                bufferLength = minimumLength;
+            }
+
+            return Math.Max(0, bufferLength) / 1000.0;
+        }
+
+        private static double GetCommandUpdateLatency()
+        {
+            return Math.Max(0, Bass.UpdatePeriod) / 2000.0;
+        }
+
+        private static double GetDeviceBufferLatency()
+        {
+            return Math.Max(0, Bass.DeviceBufferLength) / 1000.0;
+        }
+
+        private static double GetDevicePeriodMidpointLatency()
+        {
+            return Math.Max(0, Bass.GetConfig(Configuration.DevicePeriod)) / 2000.0;
         }
 
         protected override double GetVolume_Internal()
@@ -229,13 +346,17 @@ namespace YARG.Audio.BASS
         {
             var wasPlaying = IsPlaying;
             Pause_Internal();
+            FlushTempoStreamBuffer();
 
             var channels = BassMix.MixerGetChannels(_mixerHandle);
-            foreach (var channel in channels)
+            if (channels != null)
             {
-                if (!BassMix.MixerRemoveChannel(channel))
+                foreach (var channel in channels)
                 {
-                    YargLogger.LogDebug("Failed to remove channel from mixer");
+                    if (!BassMix.MixerRemoveChannel(channel))
+                    {
+                        YargLogger.LogDebug("Failed to remove channel from mixer");
+                    }
                 }
             }
             AddChannelsToMixer(_stemDatas);
@@ -246,11 +367,35 @@ namespace YARG.Audio.BASS
             }
             _didSetPosition = true;
             _positionOffset = position;
+            _bufferTracker?.ResetToCurrentPosition();
+
+            YargLogger.LogFormatDebug(
+                "Set BASS stem mixer position. Configured buffer: {0:0.000000}, device latency: {1:0.000000}, " +
+                "audible latency: {2:0.000000}, command latency: {3:0.000000}, requested position: {4:0.000000}, " +
+                "raw position: {5:0.000000}, sync position: {6:0.000000}",
+                GetConfiguredOutputLatency(), GetDeviceOutputLatency(), GetAudibleSyncLatency_Internal(),
+                GetCommandLatency_Internal(), position, GetPosition_Internal(), GetSyncPosition_Internal()
+            );
 
             if (wasPlaying)
             {
                 Play_Internal();
             }
+        }
+
+        private void FlushTempoStreamBuffer()
+        {
+            if (_tempoStreamHandle == 0)
+            {
+                return;
+            }
+
+            if (!BassMix.ChannelSetPosition(_tempoStreamHandle, 0, PositionFlags.Bytes))
+            {
+                Bass.ChannelSetPosition(_tempoStreamHandle, 0);
+            }
+
+            _bufferTracker?.ResetToCurrentPosition();
         }
 
         protected override void SetVolume_Internal(double volume)
@@ -550,10 +695,14 @@ namespace YARG.Audio.BASS
                 length = GlobalAudioHandler.MinimumBufferLength;
             }
 
-            if (!Bass.ChannelSetAttribute(_tempoStreamHandle, ChannelAttribute.Buffer, length))
+            float lengthInSeconds = length / 1000f;
+            if (!Bass.ChannelSetAttribute(_tempoStreamHandle, ChannelAttribute.Buffer, lengthInSeconds))
             {
                 YargLogger.LogFormatError("Failed to set playback buffer: {0}!", Bass.LastError);
+                return;
             }
+
+            _bufferTracker?.ResetToCurrentPosition();
         }
 
         protected override void DisposeManagedResources()
@@ -561,6 +710,7 @@ namespace YARG.Audio.BASS
             _whammySyncTimer.Stop();
             _whammySyncTimer = null;
             _stemDatas.Clear();
+            _bufferTracker?.Dispose();
             if (_channels.Count == 0)
             {
                 return;
@@ -569,7 +719,6 @@ namespace YARG.Audio.BASS
             {
                 Bass.ChannelRemoveDSP(_mixerHandle, _gainDspHandle);
             }
-
 
             _normalizer.OnGainAdjusted -= OnGainAdjusted;
             _normalizer.Dispose();

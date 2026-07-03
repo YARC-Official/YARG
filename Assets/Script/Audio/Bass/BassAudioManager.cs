@@ -168,16 +168,31 @@ namespace YARG.Audio.BASS
             }
 
             var info = Bass.Info;
-            PlaybackLatency = info.Latency + Bass.DeviceBufferLength + devPeriod;
+            int deviceBufferLength = Bass.DeviceBufferLength;
+            PlaybackLatency = GetBassPlaybackLatency(info, deviceBufferLength, devPeriod);
             MinimumBufferLength = info.MinBufferLength + Bass.UpdatePeriod;
             MaximumBufferLength = 5000;
 
             YargLogger.LogInfo("BASS Successfully Initialized");
             YargLogger.LogFormatInfo("BASS: {0} - BASS.FX: {1} - BASS.Mix: {2}", Bass.Version, BassFx.Version, BassMix.Version);
-            YargLogger.LogFormatInfo("Update Period: {0}ms. Device Buffer Length: {1}ms. Playback Buffer Length: {2}ms. Device Playback Latency: {3}ms",
-                Bass.UpdatePeriod, Bass.DeviceBufferLength, Bass.PlaybackBufferLength, PlaybackLatency);
+            YargLogger.LogFormatInfo(
+                "Update Period: {0}ms. Device Buffer Length: {1}ms. Playback Buffer Length: {2}ms. " +
+                "Device Playback Latency: {3}ms. BASS Latency Components: info.Latency={4}ms, " +
+                "DeviceBufferLength={5}ms, devPeriod={6}ms, MinBuf={7}ms",
+                Bass.UpdatePeriod, deviceBufferLength, Bass.PlaybackBufferLength, PlaybackLatency,
+                info.Latency, deviceBufferLength, devPeriod, info.MinBufferLength);
 
             YargLogger.LogFormatInfo("Current Device: {0}", Bass.GetDeviceInfo(Bass.CurrentDevice).Name);
+        }
+
+        private static int GetBassPlaybackLatency(BassInfo info, int deviceBufferLength, int devPeriod)
+        {
+            if (info.Latency > 0)
+            {
+                return info.Latency;
+            }
+
+            return Math.Max(0, deviceBufferLength) + Math.Max(0, devPeriod);
         }
 
         protected override bool SetOutputDevice(string name)
