@@ -12,6 +12,7 @@ using YARG.Core.Engine.Drums;
 using YARG.Core.Engine.Guitar;
 using YARG.Core.Engine.Keys;
 using YARG.Core.Logging;
+using YARG.Localization;
 using YARG.Settings;
 
 namespace YARG.Gameplay.HUD
@@ -20,53 +21,21 @@ namespace YARG.Gameplay.HUD
     {
         Always,
         MultiplayerOnly, // Technically not what it does, but simpler to explain than multiple unison participants
-        Disabled
+        Disabled,
     }
 
     public class UnisonDisplay : GameplayBehaviour
     {
-        private readonly struct TransitionTiming
-        {
-            public readonly double Time;
-            public readonly double TimeEnd;
-
-            public TransitionTiming(double time, double timeEnd)
-            {
-                Time = time;
-                TimeEnd = timeEnd;
-            }
-
-            public float Progress(double time)
-            {
-                var length = TimeEnd - Time;
-                if (length <= 0) return 1f;
-                return Mathf.Clamp01((float) ((time - Time) / length));
-            }
-        }
-
-        private class UnisonPhraseData
-        {
-            public EngineManager.UnisonEvent Event;
-            public TransitionTiming          TransitionIn;
-            public TransitionTiming          TransitionOut;
-        }
-
-        private class EngineUnisonState
-        {
-            public UnisonIcon Icon;
-            public int        NotesInCurrentPhrase;
-            public int        NotesHitInCurrentPhrase;
-            public bool       HasFailedCurrentPhrase;
-        }
+        private const double TRANSITION_DURATION = 0.2;
+        private const double DISPLAY_HOLD_TIME   = 1.5;
+        private const double DISPLAY_PRE_TIME    = 0.5;
 
         [SerializeField]
         private GameObject _parent;
         [SerializeField]
-        private GameObject _iconContainer;
-        [SerializeField]
         private TextMeshProUGUI _headerText;
         [SerializeField]
-        private UnisonIcon _instrumentIconPrefab;
+        private UnisonIconGroup _iconContainer;
         [SerializeField]
         private UnisonBar _unisonBar;
         [SerializeField]
@@ -78,24 +47,48 @@ namespace YARG.Gameplay.HUD
         [SerializeField]
         private Sprite _failSprite;
 
-        private double _lastVisualTime = 0;
-
-        private Sequence _completeSequence;
-        private bool     _isEditMode;
-
-        private readonly Dictionary<int, EngineUnisonState> _unisonState = new();
-
-        private readonly List<UnisonPhraseData> _phrases = new();
-        private          int                    _currentPhraseIndex;
-
-        private const double TRANSITION_DURATION = 0.2;
-        private const double DISPLAY_HOLD_TIME   = 1.5;
-        private const double DISPLAY_PRE_TIME    = 0.5;
-
         [SerializeField]
         private Color _completeColor = new(0.988f, 0.835f, 0.282f, 1f);
         [SerializeField]
-        private Color _failColor     = new(0.953f, 0.169f, 0.216f, 1f);
+        private Color _failColor = new(0.953f, 0.169f, 0.216f, 1f);
+
+        private readonly List<UnisonPhraseData> _phrases = new();
+
+        private readonly Dictionary<int, EngineUnisonState> _unisonState = new();
+        private          BaseUnisonObject                   _activeUnisonObject;
+
+        private Sequence _completeSequence;
+        private int      _currentPhraseIndex;
+        private bool     _isEditMode;
+
+        private double _lastVisualTime;
+
+        private void Update()
+        {
+            if (_currentPhraseIndex >= _phrases.Count)
+            {
+                gameObject.SetActive(false);
+                return;
+            }
+
+            var currentPhrase = _phrases[_currentPhraseIndex];
+            double time = GameManager.VisualTime;
+
+            if (_lastVisualTime > time)
+            {
+                return; // Prevent weirdness when rewinding
+            }
+
+            _lastVisualTime = time;
+
+            if (time > currentPhrase.TransitionOut.TimeEnd)
+            {
+                AdvanceToNextPhrase();
+                return;
+            }
+
+            UpdateScale(currentPhrase, time);
+        }
 
         protected override void OnSongStarted()
         {
@@ -104,7 +97,7 @@ namespace YARG.Gameplay.HUD
                 UnisonDisplaySetting.Always          => 1,
                 UnisonDisplaySetting.MultiplayerOnly => 2,
                 UnisonDisplaySetting.Disabled        => int.MaxValue,
-                _                                    => throw new ArgumentOutOfRangeException()
+                _                                    => throw new ArgumentOutOfRangeException(),
             };
 
             if (SettingsManager.Settings.UnisonDisplay.Value == UnisonDisplaySetting.Disabled ||
@@ -123,26 +116,34 @@ namespace YARG.Gameplay.HUD
                 return;
             }
 
+            _headerText.text = Localize.Key("Gameplay.UnisonDisplay.Header");
+
             BuildTransitionTimings(GameManager.SongSpeed);
 
             _parent.SetActive(false);
             SetDisplayType(_phrases[0].Event.PartCount);
-
-            _completeSequence = DOTween.Sequence()
-                .Append(transform.DOScale(1.2f, 0.2f).SetEase(Ease.OutSine))
-                .Append(transform.DOScale(1f, 0.2f).SetEase(Ease.OutSine))
-                .Pause().SetLink(gameObject).SetAutoKill(false);
+            _completeSequence = BuildCompleteSequence(gameObject);
 
             foreach (var engineContainer in GameManager.EngineManager.Engines)
             {
-                if (engineContainer.UnisonPhrases.Count == 0) continue;
+                if (engineContainer.UnisonPhrases.Count == 0)
+                {
+                    continue;
+                }
+
                 _unisonState[engineContainer.EngineId] = new EngineUnisonState();
-                InitializeIcon(engineContainer);
+                _iconContainer.InitializeIcon(engineContainer.EngineId, engineContainer.GetInstrumentSprite());
                 SubscribeToEngineEvents(engineContainer);
             }
 
-            _instrumentIconPrefab.gameObject.SetActive(false);
+            _activeUnisonObject.SetParticipants(_phrases[0].Event.ParticipantIds);
         }
+
+        public static Sequence BuildCompleteSequence(GameObject target) =>
+            DOTween.Sequence()
+                .Append(target.transform.DOScale(1.2f, 0.2f).SetEase(Ease.OutSine))
+                .Append(target.transform.DOScale(1f, 0.2f).SetEase(Ease.OutSine))
+                .Pause().SetLink(target).SetAutoKill(false);
 
         private void InitializePhrases(int minPlayers)
         {
@@ -152,19 +153,31 @@ namespace YARG.Gameplay.HUD
                 .ToList();
 
             double maxTime = 0;
+            EngineManager.UnisonEvent maxTimeEvent = null;
             foreach (var unisonEvent in rawEvents)
             {
                 if (unisonEvent.Time < maxTime)
                 {
-                    YargLogger.LogFormatWarning("Removed overlapping unison event: {2} players from {0} - {1}",
-                        unisonEvent.Time, unisonEvent.TimeEnd, unisonEvent.PartCount);
+                    string eventParticipants = unisonEvent.ParticipantIds
+                        .Aggregate("", (current, id) => current + (id + ", ")).TrimEnd(',', ' ');
+                    string maxEventParticipants = maxTimeEvent!.ParticipantIds
+                        .Aggregate("", (current, id) => current + (id + ", ")).TrimEnd(',', ' ');
+                    YargLogger.LogFormatWarning<double, double, string, double, double, string>(
+                        "Removed overlapping unison event: engines {2} from {0} - {1} overlapped with engines {5} from {3} - {4}",
+                        unisonEvent.Time, unisonEvent.TimeEnd, eventParticipants, maxTimeEvent!.Time,
+                        maxTimeEvent!.TimeEnd, maxEventParticipants);
                 }
                 else
                 {
-                    maxTime = Math.Max(maxTime, unisonEvent.TimeEnd);
+                    if (unisonEvent.Time > maxTime)
+                    {
+                        maxTime = unisonEvent.TimeEnd;
+                        maxTimeEvent = unisonEvent;
+                    }
+
                     _phrases.Add(new UnisonPhraseData
                     {
-                        Event = unisonEvent
+                        Event = unisonEvent,
                     });
                 }
             }
@@ -179,15 +192,15 @@ namespace YARG.Gameplay.HUD
 
                 if (i == 0)
                 {
-                    var startTime = Math.Max(0,
+                    double startTime = Math.Max(0,
                         unisonEvent.Time - (DISPLAY_PRE_TIME + TRANSITION_DURATION) * songSpeedMultiplier);
-                    var endTime = Math.Max(0, unisonEvent.Time - DISPLAY_PRE_TIME * songSpeedMultiplier);
+                    double endTime = Math.Max(0, unisonEvent.Time - DISPLAY_PRE_TIME * songSpeedMultiplier);
                     currentPhrase.TransitionIn = new TransitionTiming(startTime, endTime);
                 }
 
                 if (i == _phrases.Count - 1)
                 {
-                    var endTime = Math.Min(GameManager.SongLength,
+                    double endTime = Math.Min(GameManager.SongLength,
                         unisonEvent.TimeEnd + (DISPLAY_HOLD_TIME + TRANSITION_DURATION) * songSpeedMultiplier);
                     currentPhrase.TransitionOut =
                         new TransitionTiming(endTime - TRANSITION_DURATION * songSpeedMultiplier, endTime);
@@ -200,10 +213,10 @@ namespace YARG.Gameplay.HUD
                     if (nextUnison.Time - unisonEvent.TimeEnd <
                         (2 * TRANSITION_DURATION + DISPLAY_HOLD_TIME + DISPLAY_PRE_TIME) * songSpeedMultiplier)
                     {
-                        var totalTime = nextUnison.Time - unisonEvent.TimeEnd;
-                        var holdTime = totalTime * 0.25;
-                        var preTime = totalTime * 0.25;
-                        var transitionTime = totalTime * 0.25;
+                        double totalTime = nextUnison.Time - unisonEvent.TimeEnd;
+                        double holdTime = totalTime * 0.25;
+                        double preTime = totalTime * 0.25;
+                        double transitionTime = totalTime * 0.25;
 
                         currentPhrase.TransitionOut = new TransitionTiming(
                             unisonEvent.TimeEnd + holdTime,
@@ -236,17 +249,9 @@ namespace YARG.Gameplay.HUD
             }
         }
 
-        private void InitializeIcon(EngineManager.EngineContainer engineContainer)
-        {
-            var icon = Instantiate(_instrumentIconPrefab, _iconContainer.transform, false);
-            icon.gameObject.SetActive(_phrases[0].Event.ParticipantIds.Contains(engineContainer.EngineId));
-            icon.SetIcon(engineContainer.GetInstrumentSprite());
-            _unisonState[engineContainer.EngineId].Icon = icon;
-        }
-
         private void SubscribeToEngineEvents(EngineManager.EngineContainer engineContainer)
         {
-            var engineId = engineContainer.EngineId;
+            int engineId = engineContainer.EngineId;
 
             switch (engineContainer.Engine)
             {
@@ -254,74 +259,76 @@ namespace YARG.Gameplay.HUD
                     guitarEngine.OnNoteHit += (_, note) => OnNoteHit(engineId, note);
                     guitarEngine.OnStarPowerPhraseStart += (note, noteCount) =>
                         OnStarPowerPhraseStart(note, noteCount, engineId);
-                    guitarEngine.OnStarPowerPhraseMissed += (note) => OnStarPowerPhraseMissed(note, engineId);
+                    guitarEngine.OnStarPowerPhraseMissed += note => OnStarPowerPhraseMissed(note, engineId);
                     break;
                 case DrumsEngine drumEngine:
                     drumEngine.OnNoteHit += (_, note) => OnNoteHit(engineId, note);
                     drumEngine.OnStarPowerPhraseStart +=
                         (note, noteCount) => OnStarPowerPhraseStart(note, noteCount, engineId);
-                    drumEngine.OnStarPowerPhraseMissed += (note) => OnStarPowerPhraseMissed(note, engineId);
+                    drumEngine.OnStarPowerPhraseMissed += note => OnStarPowerPhraseMissed(note, engineId);
                     break;
                 case KeysEngine<ProKeysNote> proKeysEngine:
                     proKeysEngine.OnNoteHit += (_, note) => OnNoteHit(engineId, note);
                     proKeysEngine.OnStarPowerPhraseStart += (note, noteCount) =>
                         OnStarPowerPhraseStart(note, noteCount, engineId);
-                    proKeysEngine.OnStarPowerPhraseMissed += (note) => OnStarPowerPhraseMissed(note, engineId);
+                    proKeysEngine.OnStarPowerPhraseMissed += note => OnStarPowerPhraseMissed(note, engineId);
                     break;
                 case KeysEngine<GuitarNote> fiveLaneKeysEngine:
                     fiveLaneKeysEngine.OnNoteHit += (_, note) => OnNoteHit(engineId, note);
                     fiveLaneKeysEngine.OnStarPowerPhraseStart += (note, noteCount) =>
                         OnStarPowerPhraseStart(note, noteCount, engineId);
-                    fiveLaneKeysEngine.OnStarPowerPhraseMissed += (note) => OnStarPowerPhraseMissed(note, engineId);
+                    fiveLaneKeysEngine.OnStarPowerPhraseMissed += note => OnStarPowerPhraseMissed(note, engineId);
                     break;
             }
         }
 
         private void OnStarPowerPhraseStart(ChartEvent note, int noteCount, int engineId)
         {
-            if (_currentPhraseIndex >= _phrases.Count) return;
+            if (_currentPhraseIndex >= _phrases.Count)
+            {
+                return;
+            }
 
             var currentPhrase = _phrases[_currentPhraseIndex].Event;
-            if (!currentPhrase.ParticipantIds.Contains(engineId)) return;
+            if (!currentPhrase.ParticipantIds.Contains(engineId))
+            {
+                return;
+            }
+
             var unisonState = _unisonState[engineId];
 
             unisonState.NotesInCurrentPhrase = noteCount;
             unisonState.NotesHitInCurrentPhrase = 0;
-
-            var icon = unisonState.Icon;
-            icon.SetProgress(0f);
-            if (!icon.gameObject.activeSelf)
-            {
-                icon.gameObject.SetActive(true);
-            }
         }
 
         private void OnStarPowerPhraseMissed(ChartEvent note, int engineId)
         {
-            if (_currentPhraseIndex >= _phrases.Count) return;
+            if (_currentPhraseIndex >= _phrases.Count)
+            {
+                return;
+            }
 
             var currentPhrase = _phrases[_currentPhraseIndex].Event;
-            if (!currentPhrase.ParticipantIds.Contains(engineId)) return;
+            if (!currentPhrase.ParticipantIds.Contains(engineId))
+            {
+                return;
+            }
 
             if (note.Time >= currentPhrase.Time && note.Time <= currentPhrase.TimeEnd)
             {
                 _unisonState[engineId].HasFailedCurrentPhrase = true;
                 _headerText.color = _failColor;
                 _backgroundImage.sprite = _failSprite;
-                if (_phrases[_currentPhraseIndex].Event.PartCount > 8)
-                {
-                    _unisonBar.SetFailState(true);
-                }
-                else
-                {
-                    _unisonState[engineId].Icon.SetFailState(true);
-                }
+                _activeUnisonObject.FailUnison(engineId);
             }
         }
 
         private void OnNoteHit(int engineId, ChartEvent note)
         {
-            if (_currentPhraseIndex >= _phrases.Count) return;
+            if (_currentPhraseIndex >= _phrases.Count)
+            {
+                return;
+            }
 
             var currentPhrase = _phrases[_currentPhraseIndex].Event;
 
@@ -346,43 +353,22 @@ namespace YARG.Gameplay.HUD
             _completeSequence.Restart();
         }
 
-        private void Update()
-        {
-            if (_currentPhraseIndex >= _phrases.Count)
-            {
-                gameObject.SetActive(false);
-                return;
-            }
-
-            var currentPhrase = _phrases[_currentPhraseIndex];
-            var time = GameManager.VisualTime;
-
-            if (_lastVisualTime > time)
-            {
-                return; // Prevent weirdness when rewinding
-            }
-
-            _lastVisualTime = time;
-
-            if (time > currentPhrase.TransitionOut.TimeEnd)
-            {
-                AdvanceToNextPhrase();
-                return;
-            }
-
-            UpdateScale(currentPhrase, time);
-        }
-
         private void UpdateScale(UnisonPhraseData currentPhrase, double time)
         {
-            if (time < currentPhrase.TransitionIn.Time) return;
+            if (time < currentPhrase.TransitionIn.Time)
+            {
+                return;
+            }
 
-            if (!_parent.activeSelf) _parent.SetActive(true);
+            if (!_parent.activeSelf)
+            {
+                _parent.SetActive(true);
+            }
 
             float scale;
             if (time <= currentPhrase.TransitionIn.TimeEnd)
             {
-                var progress = currentPhrase.TransitionIn.Progress(time);
+                float progress = currentPhrase.TransitionIn.Progress(time);
                 scale = DOVirtual.EasedValue(0f, 1f, progress, Ease.OutSine);
             }
             else if (time < currentPhrase.TransitionOut.Time)
@@ -391,7 +377,7 @@ namespace YARG.Gameplay.HUD
             }
             else
             {
-                var progress = currentPhrase.TransitionOut.Progress(time);
+                float progress = currentPhrase.TransitionOut.Progress(time);
                 scale = DOVirtual.EasedValue(1f, 0f, progress, Ease.OutSine);
             }
 
@@ -417,28 +403,13 @@ namespace YARG.Gameplay.HUD
             var nextPhrase = _phrases[_currentPhraseIndex].Event;
 
             SetDisplayType(nextPhrase.PartCount);
+            _activeUnisonObject.SetParticipants(nextPhrase.ParticipantIds);
 
-            foreach (var engineId in _unisonState.Keys.ToList())
+            foreach (int engineId in _unisonState.Keys.ToList())
             {
                 var unisonState = _unisonState[engineId];
                 unisonState.NotesHitInCurrentPhrase = 0;
                 unisonState.HasFailedCurrentPhrase = false;
-                if (nextPhrase.PartCount <= 8)
-                {
-                    var icon = unisonState.Icon;
-                    unisonState.Icon.SetFailState(false);
-                    icon.SetProgress(0f);
-
-                    bool isParticipant = nextPhrase.ParticipantIds.Contains(engineId);
-                    if (isParticipant && !icon.gameObject.activeSelf)
-                    {
-                        icon.gameObject.SetActive(true);
-                    }
-                    else if (!isParticipant && icon.gameObject.activeSelf)
-                    {
-                        icon.gameObject.SetActive(false);
-                    }
-                }
             }
         }
 
@@ -446,57 +417,37 @@ namespace YARG.Gameplay.HUD
         {
             if (participantCount > 8)
             {
-                _iconContainer.SetActive(false);
+                _iconContainer.gameObject.SetActive(false);
                 _unisonBar.gameObject.SetActive(true);
-                _unisonBar.SetFailState(false);
-                _unisonBar.SetProgress(0f);
-                _unisonBar.SetUnisonInfo(0, participantCount);
+                _activeUnisonObject = _unisonBar;
             }
             else
             {
-                _iconContainer.SetActive(true);
+                _iconContainer.gameObject.SetActive(true);
                 _unisonBar.gameObject.SetActive(false);
+                _activeUnisonObject = _iconContainer;
             }
         }
 
         private void SetProgress(int engineId)
         {
-            if (_currentPhraseIndex >= _phrases.Count) return;
+            if (_currentPhraseIndex >= _phrases.Count)
+            {
+                return;
+            }
 
             var currentEvent = _phrases[_currentPhraseIndex].Event;
-            if (!currentEvent.ParticipantIds.Contains(engineId)) return;
-
-            if (currentEvent.PartCount > 8)
+            if (!currentEvent.ParticipantIds.Contains(engineId))
             {
-                _unisonBar.SetUnisonInfo(currentEvent.SuccessCount, currentEvent.PartCount);
-                if (currentEvent.Awarded)
-                {
-                    _unisonBar.SetProgress(1f);
-                }
-                else
-                {
-                    var notesHitInUnison = 0;
-                    float notesInUnison = 0; // This is a float because we will multiply it by a ratio if there are unknown counts
-                    foreach ((int id, var state) in _unisonState)
-                    {
-                        if (!currentEvent.ParticipantIds.Contains(id))
-                        {
-                            continue;
-                        }
-                        notesHitInUnison += state.NotesHitInCurrentPhrase;
+                return;
+            }
 
-                        notesInUnison += state.NotesInCurrentPhrase;
-                    }
-                    var overallProgress = notesHitInUnison / notesInUnison;
-                    _unisonBar.SetProgress(overallProgress);
-                }
-            }
-            else
-            {
-                _unisonState[engineId].Icon.SetProgress(
-                    (float) _unisonState[engineId].NotesHitInCurrentPhrase / _unisonState[engineId].NotesInCurrentPhrase
-                );
-            }
+            var unisonEvent = _unisonState[engineId];
+            float progress = unisonEvent.NotesInCurrentPhrase > 0
+                ? unisonEvent.NotesHitInCurrentPhrase / (float) unisonEvent.NotesInCurrentPhrase
+                : 0f;
+
+            _activeUnisonObject.SetProgress(engineId, progress);
         }
 
         public void OnEditModeChanged()
@@ -505,9 +456,11 @@ namespace YARG.Gameplay.HUD
             if (_isEditMode)
             {
                 SetDisplayType(1);
-                var icon = _unisonState.Values.ElementAt(0).Icon;
-                icon.gameObject.SetActive(true);
-                icon.SetProgress(0f);
+                _activeUnisonObject.SetParticipants(new List<int>
+                {
+                    0, // the first engine *should* always be 0
+                });
+
                 _parent.SetActive(true);
                 _parent.transform.localScale = Vector3.one;
             }
@@ -516,6 +469,43 @@ namespace YARG.Gameplay.HUD
                 _parent.SetActive(false);
                 _parent.transform.localScale = Vector3.zero;
             }
+        }
+
+        private readonly struct TransitionTiming
+        {
+            public readonly double Time;
+            public readonly double TimeEnd;
+
+            public TransitionTiming(double time, double timeEnd)
+            {
+                Time = time;
+                TimeEnd = timeEnd;
+            }
+
+            public float Progress(double time)
+            {
+                double length = TimeEnd - Time;
+                if (length <= 0)
+                {
+                    return 1f;
+                }
+
+                return Mathf.Clamp01((float) ((time - Time) / length));
+            }
+        }
+
+        private class UnisonPhraseData
+        {
+            public EngineManager.UnisonEvent Event;
+            public TransitionTiming          TransitionIn;
+            public TransitionTiming          TransitionOut;
+        }
+
+        private class EngineUnisonState
+        {
+            public bool HasFailedCurrentPhrase;
+            public int  NotesHitInCurrentPhrase;
+            public int  NotesInCurrentPhrase;
         }
     }
 }

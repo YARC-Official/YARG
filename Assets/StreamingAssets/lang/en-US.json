@@ -816,7 +816,10 @@
 				"WithNumber": "{0} {1}",
 				"PercentageBased": "{0}% - {1}%"
 			}
-		}
+		},
+        "UnisonDisplay": {
+            "Header": "Unison Bonus"
+        }
     },
 	"Preview": {
 		"Experimental": {
