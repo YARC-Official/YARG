@@ -22,14 +22,11 @@ namespace YARG.Gameplay.HUD
             base.SetParticipants(participants);
             foreach ((int id, var icon) in _icons)
             {
-                icon.ResetState();
                 if (!participants.Contains(id))
                 {
                     continue;
                 }
-
                 icon.gameObject.SetActive(true);
-                icon.SetProgress(0f);
             }
         }
 
@@ -45,6 +42,15 @@ namespace YARG.Gameplay.HUD
         {
             base.FailUnison(engineId);
             _icons[engineId].SetFailState(true);
+        }
+
+        public override void ResetState()
+        {
+            base.ResetState();
+            foreach ((int _, var icon) in _icons)
+            {
+                icon.ResetState();
+            }
         }
     }
 }

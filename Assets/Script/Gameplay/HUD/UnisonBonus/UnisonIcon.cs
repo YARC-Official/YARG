@@ -96,6 +96,8 @@ namespace YARG.Gameplay.HUD
 
         public void ResetState()
         {
+            _targetProgress = 0f;
+            _hasFailed = false;
             _fill.fillAmount = 0f;
             _fill.color = Color.white.WithAlpha(PROGRESS_FILL_ALPHA);
             _icon.color = Color.gray4;

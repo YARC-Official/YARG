@@ -403,9 +403,10 @@ namespace YARG.Gameplay.HUD
             var nextPhrase = _phrases[_currentPhraseIndex].Event;
 
             SetDisplayType(nextPhrase.PartCount);
+            _activeUnisonObject.ResetState();
             _activeUnisonObject.SetParticipants(nextPhrase.ParticipantIds);
 
-            foreach (int engineId in _unisonState.Keys.ToList())
+            foreach (int engineId in _unisonState.Keys)
             {
                 var unisonState = _unisonState[engineId];
                 unisonState.NotesHitInCurrentPhrase = 0;
@@ -455,11 +456,8 @@ namespace YARG.Gameplay.HUD
             _isEditMode = !_isEditMode;
             if (_isEditMode)
             {
-                SetDisplayType(1);
-                _activeUnisonObject.SetParticipants(new List<int>
-                {
-                    0, // the first engine *should* always be 0
-                });
+                SetDisplayType(_unisonState.Count);
+                _activeUnisonObject.SetParticipants(_unisonState.Keys.ToList());
 
                 _parent.SetActive(true);
                 _parent.transform.localScale = Vector3.one;

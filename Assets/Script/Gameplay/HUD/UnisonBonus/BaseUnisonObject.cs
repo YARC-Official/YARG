@@ -8,7 +8,7 @@ namespace YARG.Gameplay.HUD
 
         protected Dictionary<int, float> ParticipantProgress = new();
 
-        public virtual void Reset()
+        public virtual void ResetState()
         {
             ParticipantProgress.Clear();
             ParticipantFailState.Clear();

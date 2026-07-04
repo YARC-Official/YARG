@@ -74,7 +74,6 @@ namespace YARG.Gameplay.HUD
         {
             base.SetParticipants(participants);
             _totalCounter.text = participants.Count.ToString();
-            ResetState();
         }
 
         public override void SetProgress(int engineId, float progress)
@@ -103,7 +102,7 @@ namespace YARG.Gameplay.HUD
             _fill.color = _failColor;
         }
 
-        private void ResetState()
+        public override void ResetState()
         {
             _successCounter.text = "0";
             _targetProgress = 0f;
