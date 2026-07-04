@@ -256,25 +256,25 @@ namespace YARG.Gameplay.HUD
             switch (engineContainer.Engine)
             {
                 case GuitarEngine guitarEngine:
-                    guitarEngine.OnNoteHit += (_, note) => OnNoteHit(engineId, note);
+                    guitarEngine.OnNoteHit += (_, note) => OnNoteHit(engineId, note, guitarEngine.GetNumberOfNotes(note));
                     guitarEngine.OnStarPowerPhraseStart += (note, noteCount) =>
                         OnStarPowerPhraseStart(note, noteCount, engineId);
                     guitarEngine.OnStarPowerPhraseMissed += note => OnStarPowerPhraseMissed(note, engineId);
                     break;
                 case DrumsEngine drumEngine:
-                    drumEngine.OnNoteHit += (_, note) => OnNoteHit(engineId, note);
+                    drumEngine.OnNoteHit += (_, note) => OnNoteHit(engineId, note, drumEngine.GetNumberOfNotes(note));
                     drumEngine.OnStarPowerPhraseStart +=
                         (note, noteCount) => OnStarPowerPhraseStart(note, noteCount, engineId);
                     drumEngine.OnStarPowerPhraseMissed += note => OnStarPowerPhraseMissed(note, engineId);
                     break;
                 case KeysEngine<ProKeysNote> proKeysEngine:
-                    proKeysEngine.OnNoteHit += (_, note) => OnNoteHit(engineId, note);
+                    proKeysEngine.OnNoteHit += (_, note) => OnNoteHit(engineId, note, proKeysEngine.GetNumberOfNotes(note));
                     proKeysEngine.OnStarPowerPhraseStart += (note, noteCount) =>
                         OnStarPowerPhraseStart(note, noteCount, engineId);
                     proKeysEngine.OnStarPowerPhraseMissed += note => OnStarPowerPhraseMissed(note, engineId);
                     break;
                 case KeysEngine<GuitarNote> fiveLaneKeysEngine:
-                    fiveLaneKeysEngine.OnNoteHit += (_, note) => OnNoteHit(engineId, note);
+                    fiveLaneKeysEngine.OnNoteHit += (_, note) => OnNoteHit(engineId, note, fiveLaneKeysEngine.GetNumberOfNotes(note));
                     fiveLaneKeysEngine.OnStarPowerPhraseStart += (note, noteCount) =>
                         OnStarPowerPhraseStart(note, noteCount, engineId);
                     fiveLaneKeysEngine.OnStarPowerPhraseMissed += note => OnStarPowerPhraseMissed(note, engineId);
@@ -323,7 +323,7 @@ namespace YARG.Gameplay.HUD
             }
         }
 
-        private void OnNoteHit(int engineId, ChartEvent note)
+        private void OnNoteHit(int engineId, ChartEvent note, int notesPerNote)
         {
             if (_currentPhraseIndex >= _phrases.Count)
             {
@@ -342,7 +342,7 @@ namespace YARG.Gameplay.HUD
                 return;
             }
 
-            unisonState.NotesHitInCurrentPhrase++;
+            unisonState.NotesHitInCurrentPhrase += notesPerNote;
             SetProgress(engineId);
         }
 
