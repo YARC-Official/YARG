@@ -46,11 +46,16 @@ namespace YARG.Gameplay.HUD
         private Sprite _successSprite;
         [SerializeField]
         private Sprite _failSprite;
+        [SerializeField]
+        private Color _failColor;
 
+        [Tooltip("Positions for the display based on the number of tracks in the song. Index 0 is ignored as the display is draggable in singleplayer.")]
         [SerializeField]
-        private Color _completeColor = new(0.988f, 0.835f, 0.282f, 1f);
+        private List<Vector2> _trackCountToPositionOffset;
+
+        [Tooltip("Positions for the display based on the number of tracks in the song, when a vocals player is present.")]
         [SerializeField]
-        private Color _failColor = new(0.953f, 0.169f, 0.216f, 1f);
+        private List<Vector2> _trackCountToPositionOffsetWithVocals;
 
         private readonly List<UnisonPhraseData> _phrases = new();
 
@@ -116,6 +121,8 @@ namespace YARG.Gameplay.HUD
                 return;
             }
 
+            PositionDisplay();
+
             _headerText.text = Localize.Key("Gameplay.UnisonDisplay.Header");
 
             BuildTransitionTimings(GameManager.SongSpeed);
@@ -137,6 +144,32 @@ namespace YARG.Gameplay.HUD
             }
 
             _activeUnisonObject.SetParticipants(_phrases[0].Event.ParticipantIds);
+        }
+
+        private void PositionDisplay()
+        {
+            if (GameManager.Players.Count < 2)
+            {
+                return;
+            }
+
+            int trackCount = 0;
+            bool vocalsPresent = false;
+            foreach (var engineContainer in GameManager.EngineManager.Engines)
+            {
+                if (engineContainer.Instrument is Instrument.Vocals or Instrument.Harmony)
+                {
+                    vocalsPresent = true;
+                }
+                else
+                {
+                    trackCount++;
+                }
+            }
+            transform.localPosition += (Vector3)(vocalsPresent
+                ? _trackCountToPositionOffsetWithVocals[
+                    Mathf.Clamp(trackCount - 1, 0, _trackCountToPositionOffsetWithVocals.Count - 1)]
+                : _trackCountToPositionOffset[Mathf.Clamp(trackCount - 1, 0, _trackCountToPositionOffset.Count - 1)]);
         }
 
         public static Sequence BuildCompleteSequence(GameObject target) =>
@@ -348,7 +381,6 @@ namespace YARG.Gameplay.HUD
 
         public void OnUnisonPhraseSuccess()
         {
-            _headerText.color = _completeColor;
             _backgroundImage.sprite = _successSprite;
             _completeSequence.Restart();
         }
