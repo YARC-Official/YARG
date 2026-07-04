@@ -1,4 +1,4 @@
-﻿{
+{
     "Language": {
         "Name": "English",
         "Region": "United States",
@@ -170,6 +170,7 @@
             "Repos": {
                 "Community": "Community",
                 "OpenSource": "OpenSource",
+                "YALCY": "YALCY",
                 "YARC-Charters": "The Official YARG Setlist",
                 "YARC-Launcher": "The YARC Launcher",
                 "YARG": "YARG"
@@ -202,6 +203,7 @@
                 "AlbumCover": "Album Cover By: {0}",
                 "ChartedBy": "Charted By: {0}",
                 "License": "Song License: {0}",
+                "Background": "Background Visual Media By: {0}",
                 "Written": "Written",
                 "Composed": "Composed",
                 "Arranged": "Arranged",
@@ -290,7 +292,7 @@
             "PlayWithReplay": "Play With Replay"
         },
         "Main": {
-            "MessageOfTheDay": "<align=center><size=32><b>Welcome to the v0.15 nightlies!</b></size></align>\n\nv0.15 now has support for tremolo/trill lanes, customizable track backgrounds (including transparency), custom vocal characters for venues, advanced player performance tracking, repositionable highways, adds new in game calibration tools, and more! Oh, and the new and improved music library is finally here, including advanced song filters so even the largest library can't keep you from finding what you're looking for! :D\n\n<b>If you have any feedback or find any bugs, please let us know on Discord or GitHub.</b>\n\nHappy YARGin'!",
+            "MessageOfTheDay": "<align=center><size=32><b>Welcome to v0.15!</b></size></align>\n\nv0.15 is a major update that adds many highly requested and necessary gameplay features such as roll/trill lanes and Big \"YARG\" endings, as well as revamped user interface in the song selection and results screen, drum lane customization, automatic genre categorization, experimental custom vocalist characters in venues, and more.\n\n<b>If you have any feedback or find any bugs, please let us know on Discord or GitHub.</b>\n\nHappy YARGin'!",
             "Options": {
                 "Quickplay": "Quickplay",
                 "Practice": "Practice",
@@ -328,7 +330,7 @@
                     "RandomSong": "Random Song",
                     "BackToTop": "Back to Top",
                     "ScanSongs": "Scan Songs",
-                    "SortBy": "Sort By: {0}",
+                    "SortBy": "Sort By...",
                     "GoToSection": "Go To Section...",
                     "AddToFavorites": "Add To Favorites",
                     "RemoveFromFavorites": "Remove From Favorites",
@@ -593,7 +595,8 @@
                 "Medium": "Medium (3-5 Min)",
                 "Long": "Long (5-7 Min)",
                 "Epic": "Epic (Over 7 Min)"
-            }
+            },
+            "Playlists": "Playlists"
         },
 		"HighwayOrdering": {
 			"Red": "Red",
@@ -621,7 +624,48 @@
 			"ProHeader": "Pro Drums Highway Configuration",
 			"5LaneHeader": "5-Lane Drums Highway Configuration"
 		},
-        "Playlists": "Playlists"
+        "Pause": {
+            "Generic": {
+                "Resume": "Resume",
+                "Restart": "Restart",
+                "BackToLibrary": "Back To Library",
+                "Settings": "Settings",
+                "Practice": "Practice"
+            },
+            "Fail": {
+                "EnableNoFailandResume": "Enable No Fail and Resume",
+                "EnableNoFailandRestart": "Enable No Fail and Restart"
+            },
+            "Practice": {
+                "SetAPosition": "Set A Position",
+                "SetBPosition": "Set B Position",
+                "ClearAB": "Clear A/B",
+                "SelectNewSections": "Select New Sections",
+                "Quickplay": "Quickplay"
+            },
+            "Quickplay": {
+                "SaveReplay": "Save Replay"
+            },
+            "Replay": {
+                "SaveColorProfile": "Save Color Profile"
+            },
+            "Setlist": {
+                "Skip": "Skip"
+            },
+            "QuickSettings": {
+                "AudioSettings": "Audio Settings",
+                "EditHud": "Edit HUD",
+                "NoFail": {
+                    "Enable": "Enable No Fail",
+                    "Disable": "Disable No Fail"
+                },
+                "VenuePP": {
+                    "Enable": "Enable Venue Post Processing",
+                    "Disable": "Disable Venue Post Processing"
+                },
+                "Calibration": "Calibration Settings"
+            }
+        }
     },
     "Gameplay": {
         "Notifications": {
@@ -1212,10 +1256,12 @@
             },
             "HighScoreHistory": {
                 "Name": "High Score History",
-                "Description": "Changes how score history gets used for high score information displayed in the Music Library.",
+                "Description": "Changes which score or percentage record is used for high score information displayed in the Music Library.",
                 "Dropdown": {
-                    "HighestOverall": "Highest across all difficulties",
-                    "HighestDifficulty": "Highest-played difficulty only"
+                    "HighestPercentageOverall": "Best percentage across all difficulties",
+                    "HighestPercentageDifficulty": "Best percentage on highest-played difficulty",
+                    "HighestScoreOverall": "Highest score across all difficulties",
+                    "HighestScoreDifficulty": "Highest score on highest-played difficulty"
                 }
             },
             "HighwayTiltMultiplier": {
@@ -1509,6 +1555,10 @@
                 "Name": "Venue Post-Processing",
                 "Description": "Determines if post-processing effects are applied to venue backgrounds."
             },
+            "ReduceFlashingLights": {
+                "Name": "Reduce Flashing Lights",
+                "Description": "Reduces rapid flashing and strobing effects in venues."
+            },
             "VenueRenderingQuality": {
                 "Name": "Venue Rendering Quality",
                 "Description": "The quality/resolution to use for venue backgrounds.",
@@ -1571,6 +1621,10 @@
                 "Name": "Pause On Focus Loss",
                 "Description": "Pauses the game if it tabbed out/loses focus in the middle of a song."
             },
+            "MuteOnFocusLoss": {
+                "Name": "Mute On Focus Loss",
+                "Description": "Mutes all game audio when the game is tabbed out/loses focus, including menu music. Audio is restored when focus returns."
+            },
             "ApplyVolumesInMusicLibrary": {
                 "Name": "Apply Volume Settings to Music Library Previews",
                 "Description": "Volume settings for specific instrumments will be applied in the Music Library as well."
@@ -1631,13 +1685,9 @@
                 "Name": "DMX Pulse Duration (MS)",
                 "Description": "How long a DMX channel stays on after receiving a trigger, in milliseconds. Increase this value if lights are not firing reliably. Set to 0 to disable pulse stretching entirely."
             },
-            "EnablePlaybackBuffer": {
-                "Name": "Use Audio Playback Buffer",
-                "Description": "Buffers audio data by decoding ahead-of-time in chunks. Improves audio stability on low-performance devices, at the cost of added latency on sound effects."
-            },
             "PlaybackBufferLength": {
                 "Name": "Playback Buffer Length",
-                "Description": "The size of the playback buffer, in milliseconds. Larger buffers provide more stability, but further increase the latency of sound effects."
+                "Description": "The size of the playback buffer, in milliseconds. Set to 0 to disable. Larger buffers provide more stability, but increase the latency of sound effects."
             },
             "ShowTime": {
                 "Name": "Show Time",
@@ -2123,9 +2173,13 @@
                     "Name": "Hit Window Ratio",
                     "Description": "The hit window's front to back ratio. \"0\" will bring the hit window fully backwards, \"1\" will keep it in the center, and \"2\" will move it to the front."
                 },
-                "TremoloWindow": {
-                    "Name": "Tremolo Hit Window",
-                    "Description": "This determines the frequency of lane inputs required to maintain lane behavior."
+                "LaneAutohitWindow": {
+                    "Name": "Lane Autohit Window",
+                    "Description": "This determines the minimum input speed that guarantees autohitting behavior in a lane, regardless of the speed of the notes within the lane."
+                },
+				"LaneProximityProtectionWindow": {
+                    "Name": "Lane Proximity Protection\nWindow",
+                    "Description": "This determines the window of time before and after a lane where overhitting is forgiven."
                 },
                 "HitPercentE": {
                     "Name": "Hit Percent (Easy)",
@@ -2225,7 +2279,7 @@
                 },
                 "EnableLanes": {
                     "Name": "Enable Trill/Tremolo Lanes",
-                    "Description": "If enabled, the game honor charted trill/tremolo lanes."
+                    "Description": "If enabled, the game honors charted trill/tremolo lanes."
                 }
             },
             "HighwayPreset": {

@@ -130,7 +130,7 @@ namespace YARG.Menu.MusicLibrary
 
             if (_musicLibrary.MenuState != MenuState.PlaylistSelect)
             {
-                CreateItem("SortBy", _musicLibrary.GetPopupSortLabel(), () =>
+                CreateItem("SortBy", () =>
                 {
                     _menuState = State.SortSelect;
                     UpdateForState();
@@ -150,21 +150,7 @@ namespace YARG.Menu.MusicLibrary
 
             if (_musicLibrary.MenuState == MenuState.Library && !_musicLibrary.PlaylistMode)
             {
-                bool hasCollapsed = false;
-                bool hasExpanded = false;
-                foreach (var section in _musicLibrary.SortedSongs)
-                {
-                    if (section.Collapsed)
-                    {
-                        hasCollapsed = true;
-                    }
-                    else
-                    {
-                        hasExpanded = true;
-                    }
-
-                    if (hasCollapsed && hasExpanded) break;
-                }
+                _musicLibrary.GetSortHeaderCollapseState(out bool hasCollapsed, out bool hasExpanded);
 
                 if (hasCollapsed)
                 {

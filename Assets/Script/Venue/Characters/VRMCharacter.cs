@@ -32,6 +32,9 @@ namespace YARG.Venue.Characters
         [SerializeField]
         [Tooltip("Set to true if you have the full set of RB expressions implemented.\n\nOtherwise, lipsync will only use the selected VRM default expression key.")]
         private bool _useFullLipsync;
+        [SerializeField]
+        [Tooltip("Set to true if you want to use custom animations instead of the default ones.")]
+        public bool UseCustomAnimations;
 
         private ExpressionKey _lipsyncKey;
         private bool          _hasVrmInstance;
@@ -50,6 +53,18 @@ namespace YARG.Venue.Characters
         private static Material _invisibleMaterial;
 
         private bool HasLipsyncEvents => _lipsyncEvents != null && _lipsyncEvents.Count > 0;
+
+        public int ActionsPerAnimationCycle
+        {
+            get => _actionsPerAnimationCycle;
+            set => _actionsPerAnimationCycle = value;
+        }
+
+        public int FramesToFirstHit
+        {
+            get => _framesToFirstHit;
+            set => _framesToFirstHit = value;
+        }
 
         private CameraManager _cameraManager;
 

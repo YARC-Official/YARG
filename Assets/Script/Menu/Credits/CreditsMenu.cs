@@ -176,7 +176,7 @@ namespace YARG.Menu.Credits
             {
                 foreach (var song in SongContainer.Artists[artist])
                 {
-                    if (song.Source.ToString() is not ("yarg" or "yargdlc" or "yarn"))
+                    if (song.Source.ToString() is not ("yarg" or "yargdlc" or "yarn" or "creativech"))
                     {
                         continue;
                     }

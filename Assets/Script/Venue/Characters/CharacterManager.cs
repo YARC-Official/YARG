@@ -20,6 +20,7 @@ namespace YARG.Venue.Characters
         private GameObject _venue;
 
         private readonly Dictionary<VenueCharacter.CharacterType, VenueCharacter> _characters = new();
+        public Dictionary<VenueCharacter.CharacterType, VenueCharacter> Characters => _characters;
 
         private DrumCharacterHelper _drumCharacterHelper = new();
 
@@ -174,6 +175,8 @@ namespace YARG.Venue.Characters
                 character.Initialize(this);
                 _characters.Add(character.Type, character);
             }
+
+            GameManager.SetVenueCharacterManager(this);
         }
 
         private void Update()

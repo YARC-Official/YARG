@@ -4,6 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using Cinemachine;
 using Cysharp.Threading.Tasks;
+using Newtonsoft.Json;
 using UniHumanoid;
 using UnityEngine;
 using UnityEngine.Animations;
@@ -33,7 +34,9 @@ namespace YARG.Gameplay
     public class BackgroundManager : GameplayBehaviour, IDisposable
     {
         // e.g. DefaultController.Vocals.Rock.controller
-        private const string DEFAULT_ANIMATION_CONTROLLER_PATH = "DefaultAnimations/DefaultController.{0}.{1}.controller";
+        private const string DEFAULT_ANIMATION_CONTROLLER_PATH     = "Animations/{0}/{1}/";
+        private const string DEFAULT_ANIMATION_CONTROLLER_FILENAME = "DefaultController";
+        private const string DEFAULT_ANIMATION_PARAMETERS_FILENAME = "AnimatorParameters";
 
         private string VIDEO_PATH;
 
@@ -136,7 +139,7 @@ namespace YARG.Gameplay
 
                 // Song specific textures
                 var tm = GetComponent<TextureManager>();
-                var songBg = GameManager.Song.LoadBackground();
+                var songBg = GameManager.Song.LoadBackground(true);
 
                 foreach (var renderer in editorRenderers)
                 {
@@ -159,6 +162,14 @@ namespace YARG.Gameplay
                 }
 
                 _type = BackgroundType.Yarground;
+
+                // Initialize CharacterManager, if it exists
+                var characterManager = editorBg.GetComponentInChildren<CharacterManager>();
+                if (characterManager != null)
+                {
+                    characterManager.Initialize();
+                }
+
                 return;
             }
 #endif
@@ -208,7 +219,7 @@ namespace YARG.Gameplay
             // Hookup song-specific textures
             var textureManager = GetComponent<TextureManager>();
             // Load SongBackground here to determine if textures need to be replaced
-            var songBackground = GameManager.Song.LoadBackground();
+            var songBackground = GameManager.Song.LoadBackground(true);
             foreach (var renderer in renderers)
             {
                 foreach (var material in renderer.sharedMaterials)
@@ -521,27 +532,8 @@ namespace YARG.Gameplay
                 _bundleBackgroundManager.ShaderBundles.Add(shaderBundle);
             }
 
-            // Check for an existing animation controller and use default if none is found
-            var animator = character.GetComponent<Animator>();
-            if (animator != null)
-            {
-                var controller = animator.runtimeAnimatorController;
-                if (controller == null)
-                {
-                    var genre = GetDefaultGenre(GameManager.Song.Genre);
-                    var charType = character.GetComponent<VenueCharacter>().Type;
-                    var path = string.Format(DEFAULT_ANIMATION_CONTROLLER_PATH, charType.ToString(), genre);
-                    var newController = Resources.Load<RuntimeAnimatorController>(path);
-                    if (newController != null)
-                    {
-                        animator.runtimeAnimatorController = newController;
-                    }
-                    else
-                    {
-                        YargLogger.LogFormatError("Failed to load default animation controller for {0}", charType);
-                    }
-                }
-            }
+            // Load default animation controller and parameters if necessary
+            LoadAnimationDefaults(character);
 
             var newType = character.GetComponent<VenueCharacter>().Type;
             // Find a character of the same type in venueRoot
@@ -571,9 +563,104 @@ namespace YARG.Gameplay
             existingCharacter.SetActive(false);
             Destroy(existingCharacter);
 
+            AddMicrophoneToCharacter(newCharacter);
+
             // Lastly, make sure the new character and all its children are in the Venue layer
             var layerIndex = LayerMask.NameToLayer("Venue");
             SetLayer(newCharacter, layerIndex);
+        }
+
+        private void AddMicrophoneToCharacter(GameObject character)
+        {
+            var vrmCharacter = character.GetComponent<VRMCharacter>();
+            if (vrmCharacter == null || vrmCharacter.Type != VenueCharacter.CharacterType.Vocals ||
+                vrmCharacter.UseCustomAnimations)
+            {
+                return;
+            }
+
+            var animator = vrmCharacter.GetComponent<Animator>();
+
+            if (animator == null)
+            {
+                return;
+            }
+
+            // TODO: Come up with a better means of doing this, because this is both cursed and barely adequate
+
+            // Make sure the animator has taken the character out of t-pose
+            animator.Update(0f);
+
+            // Needed to calculate position and rotation
+            var rightHand = animator.GetBoneTransform(HumanBodyBones.RightHand);
+            var rightLittleDistal = animator.GetBoneTransform(HumanBodyBones.RightLittleDistal);
+            var rightLittleIntermediate = animator.GetBoneTransform(HumanBodyBones.RightLittleIntermediate);
+            var rightLittleProximal = animator.GetBoneTransform(HumanBodyBones.RightLittleProximal);
+            var rightRingIntermediate = animator.GetBoneTransform(HumanBodyBones.RightRingIntermediate);
+            var rightMiddleIntermediate = animator.GetBoneTransform(HumanBodyBones.RightMiddleIntermediate);
+            var rightIndexDistal = animator.GetBoneTransform(HumanBodyBones.RightIndexDistal);
+            var rightIndexIntermediate = animator.GetBoneTransform(HumanBodyBones.RightIndexIntermediate);
+            var rightIndexProximal = animator.GetBoneTransform(HumanBodyBones.RightIndexProximal);
+            var rightThumbDistal = animator.GetBoneTransform(HumanBodyBones.RightThumbDistal);
+
+            // Parent microphone to right hand
+            var mic = Instantiate(Resources.Load<GameObject>("Animations/Vocals/Microphone"), rightHand);
+
+            var indexGripCenter = Vector3.Lerp(rightThumbDistal.position, rightIndexIntermediate.position, 0.25f);
+            var yuiIndexGripCenter = Vector3.Lerp(rightThumbDistal.position, rightIndexProximal.position, 0.25f);
+            var littleGripCenter = Vector3.Lerp(rightLittleDistal.position, rightLittleProximal.position, 0.5f);
+
+            mic.transform.position = yuiIndexGripCenter;
+        }
+
+        private void LoadAnimationDefaults(GameObject character)
+        {
+            // Check for an existing animation controller and use default if none is found
+            var animator = character.GetComponent<Animator>();
+            var vrmCharacter = character.GetComponent<VRMCharacter>();
+            if (!vrmCharacter.UseCustomAnimations && animator != null)
+            {
+                var controller = animator.runtimeAnimatorController;
+                if (controller == null || !vrmCharacter.UseCustomAnimations)
+                {
+                    var genre = GetDefaultGenre(GameManager.Song.Genre);
+                    var charType = character.GetComponent<VenueCharacter>().Type;
+                    var basePath = string.Format(DEFAULT_ANIMATION_CONTROLLER_PATH, charType.ToString(), genre);
+                    var controllerPath = Path.Combine(basePath, DEFAULT_ANIMATION_CONTROLLER_FILENAME);
+                    var newController = Resources.Load<RuntimeAnimatorController>(controllerPath);
+                    if (newController != null)
+                    {
+                        animator.runtimeAnimatorController = newController;
+                        animator.Rebind();
+
+                        // We swapped controllers, so we need to clear the character's animation dicts
+                        vrmCharacter.AnimationStates.Clear();
+                        vrmCharacter.LayerStates.Clear();
+                    }
+                    else
+                    {
+                        YargLogger.LogFormatError("Failed to load default animation controller for {0}", charType);
+                    }
+
+                    // Read AnimatorParameters json and set _actionsPerAnimationCycle and _framesToFirstHit
+                    var parametersPath = Path.Combine(basePath, DEFAULT_ANIMATION_PARAMETERS_FILENAME);
+                    var jsonAsset = Resources.Load<TextAsset>(parametersPath);
+                    if (jsonAsset != null)
+                    {
+                        var props =
+                            JsonConvert.DeserializeObject<Dictionary<string, int>>(jsonAsset.text);
+                        if (props != null)
+                        {
+                            vrmCharacter.ActionsPerAnimationCycle = props["ActionsPerAnimationCycle"];
+                            vrmCharacter.FramesToFirstHit = props["FramesToFirstHit"];
+                        }
+                    }
+                    else
+                    {
+                        YargLogger.LogFormatError("Failed to load default animation parameters for {0}", charType);
+                    }
+                }
+            }
         }
 
 #pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
@@ -705,7 +792,7 @@ namespace YARG.Gameplay
         // TODO: Move this to Genrelizer or sth and implement
         public static string GetDefaultGenre(string realGenre)
         {
-            return "Generic";
+            return "Default";
         }
 
         public void Dispose()

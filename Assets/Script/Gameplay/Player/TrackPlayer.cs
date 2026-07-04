@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.Serialization;
 using YARG.Assets.Script.Helpers;
 using YARG.Core;
 using YARG.Core.Audio;
@@ -43,6 +44,8 @@ namespace YARG.Gameplay.Player
         protected HighwayCameraRendering HighwayCameraRendering;
         [SerializeField]
         protected TrackMaterial TrackMaterial;
+        [SerializeField]
+        protected StrikelineAnimator StrikelineAnimator;
         [SerializeField]
         protected ComboMeter ComboMeter;
         [SerializeField]
@@ -392,7 +395,14 @@ namespace YARG.Gameplay.Player
 
         public override void Rewind(double visualTime)
         {
-
+            for (int index = NotePool.AllSpawned.Count - 1; index >= 0; index--)
+            {
+                var poolable = NotePool.AllSpawned[index];
+                if (poolable is INoteElement note)
+                {
+                    note.OnRewind();
+                }
+            }
         }
 
         public override void PostRewind(double visualTime)
@@ -462,11 +472,6 @@ namespace YARG.Gameplay.Player
             }
 
             _previousBassGrooveState = currentBassGrooveState;
-
-            if (!stats.IsStarPowerActive && _previousStarPowerAmount < 0.5 && currentStarPowerAmount >= 0.5)
-            {
-                TrackView.ShowStarPowerReady();
-            }
 
             if (stats.IsStarPowerActive && !_wasStarPowerActive && !_didLowerTrack)
             {
@@ -824,14 +829,12 @@ namespace YARG.Gameplay.Player
 
                         if (childNote.IsLane)
                         {
-                            if (laneStartNotes.ContainsKey(childNote.LaneNote))
-                            {
-                                laneEndTimes[childNote.LaneNote] = noteRef.Time;
-                            }
-                            else
+                            if (!laneStartNotes.ContainsKey(childNote.LaneNote))
                             {
                                 laneStartNotes[childNote.LaneNote] = childNote;
                             }
+
+                            laneEndTimes[childNote.LaneNote] = noteRef.Time;
                         }
                     }
 
@@ -1125,6 +1128,12 @@ namespace YARG.Gameplay.Player
             }
 
             OnStarPowerPhraseHit();
+        }
+
+        protected override void OnStarPowerReady()
+        {
+            base.OnStarPowerReady();
+            TrackView.ShowStarPowerReady();
         }
 
         public override void GameplayUpdate()

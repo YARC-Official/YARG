@@ -133,11 +133,22 @@ namespace YARG.Gameplay
             }
 
             var descriptor = new RenderTextureDescriptor(outputWidth, outputHeight, RenderTextureFormat.DefaultHDR, 16, 0);
-            _venueTexture = new RenderTexture(descriptor);
-            _venueTexture.Create();
+
             if (_venueOutput != null)
             {
+                // Don't actually create the texture unless _venueOutput is set
+                _venueTexture = new RenderTexture(descriptor);
+                _venueTexture.Create();
                 _venueOutput.texture = _venueTexture;
+            }
+            else
+            {
+                // We check again because it is possible for venue to load before the rest of the gameplay scene
+                var venueOutputObject = GameObject.Find("Venue Output");
+                if (venueOutputObject != null)
+                {
+                    _venueOutput = venueOutputObject.GetComponent<RawImage>();
+                }
             }
 
             descriptor.depthBufferBits = 0;

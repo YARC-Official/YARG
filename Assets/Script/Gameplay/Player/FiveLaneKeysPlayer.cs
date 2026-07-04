@@ -205,6 +205,7 @@ public override bool ShouldUpdateInputsOnResume => true;
             engine.OnStarPowerPhraseHit += OnStarPowerPhraseHit;
             engine.OnStarPowerPhraseMissed += OnStarPowerPhraseMissed;
             engine.OnStarPowerStatus += OnStarPowerStatus;
+            engine.OnStarPowerReady += OnStarPowerReady;
 
             engine.OnCountdownChange += OnCountdownChange;
 
@@ -571,6 +572,20 @@ public override bool ShouldUpdateInputsOnResume => true;
             {
                 _fretArray.SetSustained((int)GetFretIndex(note.FiveLaneKeysAction), true);
             }
+            else
+            {
+                // Must be an open or wildcard
+                if (note.Fret == (int) FiveFretGuitarFret.Open && !UsingOpenLane)
+                {
+                    StrikelineAnimator.SetParticleColor(Player.ColorProfile.FiveFretGuitar.GetNoteColor(note.Fret).ToUnityColor());
+                }
+                else
+                {
+                    StrikelineAnimator.SetParticleRainbow();
+                }
+
+                StrikelineAnimator.SetSustaining(true);
+            }
 
             _sustainCount++;
         }
@@ -613,7 +628,7 @@ public override bool ShouldUpdateInputsOnResume => true;
         public override (ReplayFrame Frame, ReplayStats Stats) ConstructReplayData()
         {
             var frame = new ReplayFrame(Player.Profile, EngineParams, Engine.EngineStats, ReplayInputs.ToArray());
-            return (frame, Engine.EngineStats.ConstructReplayStats(Player.Profile.Name));
+            return (frame, Engine.EngineStats.ConstructReplayStats(Player.Profile.Name, Player.IsReplay));
         }
 
         public override void SetStemMuteState(bool muted)

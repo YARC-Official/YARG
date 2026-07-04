@@ -35,15 +35,25 @@ namespace YARG.Gameplay.HUD
             string finalText = "";
             foreach (var line in lines)
             {
+                // Get correct alpha tag for the given style
+                string alpha = line.Style switch
+                {
+                    SongToText.Style.Header => "",
+                    SongToText.Style.SubHeader => "<alpha=#90>",
+                    _ => "<alpha=#66>"
+                };
+
+                string text = AddAlphaReset(line.Text, alpha);
+
                 // Add styles to each styling
                 finalText += line.Style switch
                 {
                     SongToText.Style.Header =>
-                        $"<size=100%><font-weight=800>{line.Text}</font-weight></size>",
+                        $"<size=100%>{alpha}<font-weight=800>{text}</font-weight></size>",
                     SongToText.Style.SubHeader =>
-                        $"<size=90%><alpha=#90><i><font-weight=600>{line.Text}</font-weight></i></size>",
+                        $"<size=90%>{alpha}<i><font-weight=600>{text}</font-weight></i></size>",
                     _ =>
-                        $"<size=80%><alpha=#66><i><font-weight=600>{line.Text}</font-weight></i></size>"
+                        $"<size=80%>{alpha}<i><font-weight=600>{text}</font-weight></i></size>"
                 } + "\n";
             }
 
@@ -59,6 +69,16 @@ namespace YARG.Gameplay.HUD
 
             // Then fade to 0 in a second
             yield return _canvasGroup.DOFade(0f, 1f).WaitForCompletion();
+        }
+
+        private static string AddAlphaReset(string text, string alpha)
+        {
+            if (string.IsNullOrEmpty(alpha))
+            {
+                return text;
+            }
+
+            return text.Replace("</color>", $"</color>{alpha}");
         }
     }
 }

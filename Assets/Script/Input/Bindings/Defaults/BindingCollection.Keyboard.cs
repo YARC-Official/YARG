@@ -199,6 +199,14 @@ namespace YARG.Input
 
             AddBinding(ProKeysAction.TouchEffects, keyboard.quoteKey);
 
+            AddBinding(ProKeysAction.OpenNote, keyboard.backquoteKey); // The left-of-green option for Dedicated Open Lane users
+            AddBinding(ProKeysAction.OpenNote, keyboard.spaceKey); // By analogy to the guitar-on-keyboard bindings
+            AddBinding(ProKeysAction.GreenKey, keyboard.digit1Key);
+            AddBinding(ProKeysAction.RedKey, keyboard.digit2Key);
+            AddBinding(ProKeysAction.YellowKey, keyboard.digit3Key);
+            AddBinding(ProKeysAction.BlueKey, keyboard.digit4Key);
+            AddBinding(ProKeysAction.OrangeKey, keyboard.digit5Key);
+
             return true;
         }
 

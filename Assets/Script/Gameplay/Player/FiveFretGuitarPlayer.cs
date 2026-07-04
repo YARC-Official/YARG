@@ -216,6 +216,7 @@ namespace YARG.Gameplay.Player
             engine.OnStarPowerPhraseHit += OnStarPowerPhraseHit;
             engine.OnStarPowerPhraseMissed += OnStarPowerPhraseMissed;
             engine.OnStarPowerStatus += OnStarPowerStatus;
+            engine.OnStarPowerReady += OnStarPowerReady;
 
             engine.OnCountdownChange += OnCountdownChange;
 
@@ -605,6 +606,20 @@ namespace YARG.Gameplay.Player
                 {
                     _fretArray.SetSustained(note.Fret, true);
                 }
+                else
+                {
+                    // Must be an open or wildcard
+                    if (note.Fret == (int) FiveFretGuitarFret.Open)
+                    {
+                        StrikelineAnimator.SetParticleColor(Player.ColorProfile.FiveFretGuitar.GetNoteColor(note.Fret).ToUnityColor());
+                    }
+                    else
+                    {
+                        StrikelineAnimator.SetParticleRainbow();
+                    }
+
+                    StrikelineAnimator.SetSustaining(true);
+                }
 
                 _sustainCount++;
             }
@@ -625,6 +640,11 @@ namespace YARG.Gameplay.Player
                 if (note.Fret != (int) FiveFretGuitarFret.Open && note.Fret != (int) FiveFretGuitarFret.Wildcard)
                 {
                     _fretArray.SetSustained(note.Fret, false);
+                }
+                else
+                {
+                    // Must be an open or wildcard
+                    StrikelineAnimator.SetSustaining(false);
                 }
 
                 _sustainCount--;
@@ -679,7 +699,7 @@ namespace YARG.Gameplay.Player
         public override (ReplayFrame Frame, ReplayStats Stats) ConstructReplayData()
         {
             var frame = new ReplayFrame(Player.Profile, EngineParams, Engine.EngineStats, ReplayInputs.ToArray());
-            return (frame, Engine.EngineStats.ConstructReplayStats(Player.Profile.Name));
+            return (frame, Engine.EngineStats.ConstructReplayStats(Player.Profile.Name, Player.IsReplay));
         }
 
 

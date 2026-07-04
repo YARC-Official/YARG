@@ -392,18 +392,10 @@ namespace YARG.Input
             MenuBindings.UpdateBindingsForFrame(updateTime);
         }
 
-        public bool AddMicrophone(MicDevice microphone)
+        public void AddMicrophone(MicDevice microphone)
         {
-            if (Microphone is not null)
-            {
-                microphone.Dispose();
-                return false;
-            }
-
             Microphone = microphone;
             _unresolvedMic = microphone.Serialize();
-
-            return true;
         }
 
         public void RemoveMicrophone()

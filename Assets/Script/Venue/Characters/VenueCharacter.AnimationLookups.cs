@@ -712,10 +712,17 @@ namespace YARG.Venue.Characters
                     {
                         hasTrigger = true;
                         hash = info.Hash;
-                        continue;
+                        // continue;
                     }
 
-                    _animator.Play(info.Hash, info.Layer, 0f);
+                    // As a temporary measure, the continue above was commented out so that venue animations
+                    // are forced to play even when there is a corresponding trigger. Once we figure out why
+                    // triggers aren't always causing the correct animator state machine transitions to happen
+                    // we should restore the continue above.
+                    //
+                    // Note that the trigger is *also* set, but since it happens on the same frame as this crossfade
+                    // it should in theory take over if it is actually working, so this is in a way just a fallback
+                    _animator.CrossFadeInFixedTime(info.Hash, 0.05f);
                 }
 
                 if (hasTrigger)
@@ -725,30 +732,47 @@ namespace YARG.Venue.Characters
                     {
                         YargLogger.LogFormatDebug("Setting trigger for generic state {0} on {1}", state, Type);
                         // First, reset the bools to false (if they exist)
+                        SetBool("isIdle", false);
+                        SetBool("isIdleRealtime", false);
+                        SetBool("isPlaying", false);
                         SetBool("isMellow", false);
                         SetBool("isIntense", false);
 
                         // Also clear any outstanding triggers
                         ResetGenericTriggers();
 
+                        // Update the current generic state (for debug)
+                        CurrentGenericState = state;
+
                         // Now reset them if necessary so that transitions can use them to select the correct variety
                         if (IsLayeredState(state))
                         {
                             switch (state)
                             {
+                                case AnimationStateType.Idle:
+                                    SetBool("isIdle", true);
+                                    break;
+                                case AnimationStateType.IdleRealtime:
+                                    SetBool("isIdleRealtime", true);
+                                    break;
+                                case AnimationStateType.Playing:
+                                    SetBool("isPlaying", true);
+                                    break;
                                 case AnimationStateType.Mellow:
                                     SetBool("isMellow", true);
                                     break;
                                 case AnimationStateType.Intense:
                                     SetBool("isIntense", true);
                                     break;
-                            };
+                            }
                         }
                     }
+                    else if (IsLeftHandPositionState(state))
+                    {
+                        CurrentHandPosition = state;
+                    }
 
-                    // Seems like it could be expensive to reset all triggers every time we set a trigger, so leaving it
-                    // commented out until it proves necessary
-                    // ResetAllTriggers();
+                    ResetAllTriggers();
 
                     _animator.SetTrigger(hash);
                 }
@@ -908,13 +932,19 @@ namespace YARG.Venue.Characters
 
         private static bool IsLayeredState(AnimationStateType state)
         {
-            return state is AnimationStateType.Mellow or AnimationStateType.Intense;
+            // All generic states are layered states now
+            return IsGenericState(state);
         }
 
         private static bool IsGenericState(AnimationStateType state)
         {
             return state is AnimationStateType.Idle or AnimationStateType.Playing or AnimationStateType.IdleRealtime
                 or AnimationStateType.Mellow or AnimationStateType.Intense;
+        }
+
+        private static bool IsLeftHandPositionState(AnimationStateType state)
+        {
+            return state is >= AnimationStateType.LeftHandPosition1 and <= AnimationStateType.LeftHandPosition20;
         }
 
         // TODO: Extend this to more than just what happens to be needed for the test venue

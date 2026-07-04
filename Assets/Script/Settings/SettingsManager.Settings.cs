@@ -148,6 +148,7 @@ namespace YARG.Settings
 
             public ToggleSetting PauseOnDeviceDisconnect { get; } = new(true);
             public ToggleSetting PauseOnFocusLoss { get; } = new(true);
+            public ToggleSetting MuteOnFocusLoss { get; } = new(false);
 
             public ToggleSetting WrapAroundNavigation { get; } = new(true);
 
@@ -213,10 +214,12 @@ namespace YARG.Settings
                 };
 
             public DropdownSetting<HighScoreHistoryMode> HighScoreHistory { get; }
-                = new(HighScoreHistoryMode.HighestDifficulty, _ => ScoreContainer.InvalidateScoreCache())
+                = new(HighScoreHistoryMode.HighestPercentageDifficulty, _ => ScoreContainer.InvalidateScoreCache())
                 {
-                    HighScoreHistoryMode.HighestOverall,
-                    HighScoreHistoryMode.HighestDifficulty,
+                    HighScoreHistoryMode.HighestPercentageOverall,
+                    HighScoreHistoryMode.HighestPercentageDifficulty,
+                    HighScoreHistoryMode.HighestScoreOverall,
+                    HighScoreHistoryMode.HighestScoreDifficulty,
                 };
 
             public ToggleSetting ShowPercentDecimals { get; } = new(false);
@@ -265,10 +268,8 @@ namespace YARG.Settings
             public VolumeSetting MusicPlayerVolume { get; } = new(0.15f, MusicPlayerVolumeCallback);
             public VolumeSetting VocalMonitoring { get; } = new(0.7f, VocalMonitoringCallback);
 
-            public ToggleSetting EnablePlaybackBuffer { get; } = new(true, GlobalAudioHandler.TogglePlaybackBuffer);
-
             public IntSetting PlaybackBufferLength { get; }
-                = new(75, GlobalAudioHandler.MinimumBufferLength, GlobalAudioHandler.MaximumBufferLength,
+                = new(75, 0, GlobalAudioHandler.MaximumBufferLength,
                     GlobalAudioHandler.SetBufferLength);
 
             public SliderSetting MicrophoneSensitivity { get; } = new(2f, -50f, 50f);
@@ -362,6 +363,7 @@ namespace YARG.Settings
                  };
 
             public ToggleSetting VenuePostProcessing { get; } = new(true);
+            public ToggleSetting ReduceFlashingLights { get; } = new(false);
             public ResolutionSetting Resolution { get; } = new(ResolutionCallback);
             public ToggleSetting FpsStats { get; } = new(false, FpsCounterCallback);
 

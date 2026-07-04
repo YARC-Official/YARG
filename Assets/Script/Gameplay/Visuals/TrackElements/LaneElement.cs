@@ -19,7 +19,6 @@ namespace YARG.Gameplay.Visuals
         private const float LANE_LENGTH_RATIO = 0.02f;
 
         private const float OPEN_LANE_SCALE = 0.5f;
-        private const float OPEN_LANE_START_TIME_OFFSET = 0.05f;
 
         private static readonly int EmissionColor = Shader.PropertyToID("_EmissionColor");
 
@@ -259,8 +258,6 @@ namespace YARG.Gameplay.Visuals
             if (_isOpen == true)
             {
                 SetXPosition(0);
-
-                SetTimeRange(_startTime - OPEN_LANE_START_TIME_OFFSET, EndTime);
 
                 _scale = OPEN_LANE_SCALE;
 

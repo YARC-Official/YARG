@@ -52,7 +52,7 @@ namespace YARG.Gameplay.Visuals
         private bool                       _needsCameraReset;
         private float                      _horizontalOffsetPx;
         private float                      _scaleMultiplier = 1f;
-        private int _vocalTrackCount = 0;
+        private VocalTrack _vocalTrack;
 
         private readonly float[] _curveFactors = new float[MAX_MATRICES];
         private readonly float[] _zeroFadePositions = new float[MAX_MATRICES];
@@ -188,7 +188,7 @@ namespace YARG.Gameplay.Visuals
 
         public int HighwayCount()
         {
-            return _cameras.Count - _vocalTrackCount;
+            return _cameras.Count - (_vocalTrack != null ? 1 : 0);
         }
 
         public void RecalculateScaleFactors()
@@ -309,7 +309,7 @@ namespace YARG.Gameplay.Visuals
             var camera = vocalTrack.GetTrackCamera();
             var cameraData = camera.GetUniversalAdditionalCameraData();
             cameraData.renderType = CameraRenderType.Overlay;
-            _vocalTrackCount += 1;
+            _vocalTrack = vocalTrack;
             // Vocals have no curve or tilt — use 0 for curveFactor and raisedRotation.
             AddPlayerParams(vocalTrack.transform.position, camera, 0f, float.MaxValue, 0.0f, 0f);
         }
@@ -453,7 +453,12 @@ namespace YARG.Gameplay.Visuals
                 float safeScreenWidth = Mathf.Max(Screen.width, 0.001f);
                 float horizontalOffsetNdc = _horizontalOffsetPx / safeScreenWidth * 2f;
                 var projMatrix = camera.projectionMatrix;
-                if (!camera.orthographic)
+                if (_vocalTrack != null && camera == _vocalTrack.GetTrackCamera())
+                {
+                    projMatrix = GetOrthographicProjectionMatrix(camera, _vocalTrack.GetVocalLayoutRect());
+                    camera.projectionMatrix = projMatrix;
+                }
+                else
                 {
                     projMatrix = GetModifiedProjectionMatrix(camera.projectionMatrix,
                         highwayIndex, HighwayCount(), _laneScales[i], horizontalOffsetNdc);
@@ -462,6 +467,41 @@ namespace YARG.Gameplay.Visuals
                 _camProjMatrices[i] = GL.GetGPUProjectionMatrix(projMatrix, SystemInfo.graphicsUVStartsAtTop);
                 Shader.SetGlobalMatrixArray(YargHighwayCamProjMatricesID, _camProjMatrices);
             }
+        }
+
+        private static Matrix4x4 GetOrthographicProjectionMatrix(Camera camera, Rect layoutRect)
+        {
+            // Calculate the "Actual" screen aspect ratio
+            float screenAspect = (float)Screen.width / Screen.height;
+
+            // Determine the TOTAL world height needed so that the 'heightNormalized'
+            // slice of the screen equals your desired camera framing (orthographicSize * 2).
+            float totalWorldHeight = (camera.orthographicSize * 2.0f) / layoutRect.height;
+
+            // Derive the TOTAL world width based on the SCREEN aspect ratio.
+            // This is the step that prevents horizontal squishing or "too small" rendering.
+            float totalWorldWidth = totalWorldHeight * screenAspect;
+
+            // Calculate the center of the target Rect in 0-1 space
+            float centerX = layoutRect.x + layoutRect.width / 2.0f;
+            float centerY = layoutRect.y + layoutRect.height / 2.0f;
+
+            // Define the planes.
+            // We shift the 'center' of the world (0,0) to align with the center of the UI Rect.
+            float left = -centerX * totalWorldWidth;
+            float right = totalWorldWidth * (1.0f - centerX);
+            float bottom = -centerY * totalWorldHeight;
+            float top = totalWorldHeight * (1.0f - centerY);
+
+            // Apply the matrix
+            return Matrix4x4.Ortho(
+                left,
+                right,
+                bottom,
+                top,
+                camera.nearClipPlane,
+                camera.farClipPlane
+            );
         }
 
         /// <summary>

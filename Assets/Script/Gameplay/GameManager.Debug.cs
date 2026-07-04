@@ -10,6 +10,7 @@ using YARG.Core.Chart;
 using YARG.Core.Extensions;
 using YARG.Gameplay.Player;
 using YARG.Integration;
+using YARG.Venue.Characters;
 
 namespace YARG.Gameplay
 {
@@ -128,6 +129,30 @@ namespace YARG.Gameplay
             };
         }
 
+        // This is done separately because VenueCharacterManager registers itself with GameManager
+        // after GameManager has completed initialization
+        private void InitializeCharacterDebug()
+        {
+            var debugCharacters = new List<string>();
+            if (VenueCharacterManager != null)
+            {
+                foreach (var characterType in VenueCharacterManager.Characters.Keys)
+                {
+                    debugCharacters.Add(characterType.ToString());
+                }
+            }
+
+            _debugCharacters = debugCharacters.ToArray();
+
+            // TODO: Figure out how to not have to reinitialize the whole menu
+            // InitializeDebug();
+        }
+
+        private void InitializeCameraDebug()
+        {
+
+        }
+
         private void DisposeDebug()
         {
             _debugInputEventTrace.Dispose();
@@ -215,9 +240,11 @@ namespace YARG.Gameplay
         }
 
         private string[] _debugPlayers;
-        private int _debugSelectedPlayer = -1;
-        private Vector2 _debugBaseEngineScroll;
-        private Vector2 _debugDerivedEngineScroll;
+        private string[] _debugCharacters;
+        private int      _debugSelectedPlayer    = -1;
+        private int      _debugSelectedCharacter = -1;
+        private Vector2  _debugBaseEngineScroll;
+        private Vector2  _debugDerivedEngineScroll;
 
         private bool _debugProKeysPressTimesToggle;
 
@@ -659,6 +686,22 @@ namespace YARG.Gameplay
         private Vector2 _debugCameraScroll;
         private Vector2 _debugCrowdScroll;
 
+        private bool CharacterDebugSelection()
+        {
+            if (_debugCharacters.Length == 0)
+            {
+                return false;
+            }
+
+            GUILayout.BeginVertical("Character Selection", VerticalGroupStyle);
+            int buttonStride = 50 / _debugCharacters.Max(c => c.ToString().Length);
+            int lastSelected = _debugSelectedCharacter;
+            _debugSelectedCharacter = GUILayout.SelectionGrid(_debugSelectedCharacter, _debugCharacters, buttonStride);
+            GUILayout.EndVertical();
+
+            return _debugSelectedPlayer != lastSelected;
+        }
+
         private void VenueDebug()
         {
             using (DebugScrollView.Begin(ref _debugVenueScroll, GUILayout.Width(150 * _debugGuiScale), GUILayout.Height(250 * _debugGuiScale)))
@@ -738,6 +781,45 @@ namespace YARG.Gameplay
                         using var text = ZString.CreateStringBuilder(true);
                         text.AppendFormat("Clap state: {0}\n", CrowdEventHandler.ClapState);
                         text.AppendFormat("Crowd state: {0}\n", CrowdEventHandler.CrowdState);
+                        GUILayout.Label(text.AsSpan().TrimEnd('\n').ToString());
+                    }
+                }
+
+                if (VenueCharacterManager != null && _debugCharacters.Length > 0)
+                {
+                    using (DebugVerticalArea.Begin("Characters", VerticalGroupStyle))
+                    {
+                        CharacterDebugSelection();
+
+                        if (_debugSelectedCharacter < 0 || _debugSelectedCharacter >= _debugCharacters.Length)
+                        {
+                            return;
+                        }
+
+                        // TODO: Refactor this to not be so stupid with regard to repeated enum->string->enum conversions
+                        var character = VenueCharacterManager.Characters[Enum.Parse<VenueCharacter.CharacterType>(_debugCharacters[_debugSelectedCharacter])];
+
+                        using var text = ZString.CreateStringBuilder(true);
+                        var kind = character is VRMCharacter ? "VRM" : "Built-in";
+                        text.AppendFormat("Character Type: {0}\n", kind);
+                        text.AppendFormat("Character State: {0}\n", character.CurrentGenericState);
+                        if (character.Type is VenueCharacter.CharacterType.Guitar or VenueCharacter.CharacterType.Bass)
+                        {
+                            text.AppendFormat("Hand Position: {0}\n", character.CurrentHandPosition);
+                            text.AppendFormat("Hand Map: {0}\n", character.CurrentHandMap);
+                        }
+
+                        if (character.Type is VenueCharacter.CharacterType.Bass)
+                        {
+                            text.AppendFormat("Strum Map: {0}\n", character.CurrentStrumMap);
+                        }
+
+                        if (character.Type is VenueCharacter.CharacterType.Drums)
+                        {
+                            var hatState = character.HatIsOpen ? "Open" : "Closed";
+                            text.AppendFormat("Hat State: {0}\n", hatState);
+                        }
+
                         GUILayout.Label(text.AsSpan().TrimEnd('\n').ToString());
                     }
                 }

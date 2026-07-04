@@ -97,7 +97,7 @@ namespace YARG.Gameplay.HUD
             _breFullText.text = Localize.KeyFormat("Gameplay.Solo.PointsResult", _manager.TotalCodaBonus);
         }
 
-        public void EndCoda(int breBonus, Action endCallback)
+        public void EndCoda(int breBonus, bool songEnding, Action endCallback)
         {
             if (!gameObject.activeSelf || _codaEnding)
             {
@@ -107,7 +107,7 @@ namespace YARG.Gameplay.HUD
             _codaEnding = true;
             StopCurrentCoroutine();
 
-            _currentCoroutine = StartCoroutine(HideCoroutine(breBonus, endCallback));
+            _currentCoroutine = StartCoroutine(HideCoroutine(breBonus, endCallback, songEnding));
         }
 
         public void ForceReset()
@@ -129,7 +129,7 @@ namespace YARG.Gameplay.HUD
             _codaEnding = false;
         }
 
-        private IEnumerator HideCoroutine(int breBonus, Action endCallback)
+        private IEnumerator HideCoroutine(int breBonus, Action endCallback, bool songEnding)
         {
             // Hide the top and bottom text
             _breTopText.text = string.Empty;
@@ -145,7 +145,11 @@ namespace YARG.Gameplay.HUD
             _breFullText.colorGradientPreset = gradient;
 
             // Move the box so we aren't obscuring strong finish/full combo text
-            _breBoxCanvasGroup.transform.DOMoveY(Screen.height / 2, 0.25f);
+            // unless this is a mid-song BRE, in which case we don't want to obscure the track
+            if (songEnding)
+            {
+                _breBoxCanvasGroup.transform.DOMoveY(Screen.height / 2, 0.25f);
+            }
 
             // Go away sadly if BRE failed or triumphantly engorge if successful
             if (!_manager.CodaSuccess)

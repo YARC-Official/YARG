@@ -256,6 +256,9 @@ namespace YARG.Menu.HighwayConfiguration
                 BreLaneIndex = breLaneIndex;
             }
 
+            // If there are multiple elements (creating a shared fret for multiple note types, like tom+cymbal lanes
+            // on Pro Drums), the first element in the list is the one whose color profile settings will be used for
+            // the resulting fret
             public List<HighwayOrderingElement> Elements{ get; set; }
             public DrumsBreLaneIndex BreLaneIndex { get; set; }
         }
