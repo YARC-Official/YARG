@@ -233,18 +233,17 @@ namespace Editor
                 int devPeriod = Bass.GetConfig(Configuration.DevicePeriod);
                 int updatePeriod = Bass.UpdatePeriod;
                 int minBufferLength = info.MinBufferLength;
+                int configuredBufferLength = SettingsManager.Settings.PlaybackBufferLength.Value;
                 double deviceLatency = GlobalAudioHandler.PlaybackLatency;
                 double playback = mixer.GetPlaybackLatency() * 1000.0;
                 double tempo = mixer.GetTempoLatency() * 1000.0;
-                double expectedSongRunnerSeek = playback;
 
                 Debug.Log($"<b>[Real Seek Latency]</b>\n" +
-                          $"  - Measured Total Elapsed (to {syncTarget * 1000:0.0}ms mark): {totalElapsedMs}ms\n" +
-                          $"  - Calculated Actual Seek Latency: <b>{actualSeekLatencyMs}ms</b>\n" +
-                          $"  - Expected SongRunner Seek Latency: {expectedSongRunnerSeek:0.0}ms\n" +
-                          $"  - Reported Playback Latency: {playback:0.0}ms\n" +
-                          $"  - Reported Tempo Latency: {tempo:0.0}ms\n" +
-                          $"  - Reported Device Latency: {deviceLatency:0.0}ms\n" +
+                          $"  - Actual Seek Latency: <b>{actualSeekLatencyMs}ms</b>\n" +
+                          $"  - SongRunner Seek Latency: {playback:0.0}ms\n" +
+                          $"  - Tempo Latency: {tempo:0.0}ms\n" +
+                          $"  - User Configured Buffer Size: {configuredBufferLength}ms\n" +
+                          $"  - Device Latency: {deviceLatency:0.0}ms\n" +
                           $"  - BASS Latency Components: info.Latency={infoLatency}ms, " +
                           $"DeviceBufferLength={deviceBufferLength}ms, updatePeriod={updatePeriod}ms, " +
                           $"devPeriod={devPeriod}ms, MinBuf={minBufferLength}ms");
@@ -320,7 +319,7 @@ namespace Editor
 
         private static double GetExpectedPlaybackLatency(double deviceLatency)
         {
-            return deviceLatency + Math.Max(0, Bass.DeviceBufferLength) / 1000.0 + GetExpectedCommandUpdateLatency();
+            return deviceLatency + Math.Max(0, Bass.DeviceBufferLength) / 1000.0;
         }
 
         private static double GetExpectedCommandUpdateLatency()

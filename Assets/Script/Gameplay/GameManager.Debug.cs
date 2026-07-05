@@ -64,6 +64,54 @@ namespace YARG.Gameplay
             }
         }
 
+        private struct DebugFontScope : IDisposable
+        {
+            private int _labelFontSize;
+            private int _buttonFontSize;
+            private int _toggleFontSize;
+            private int _windowFontSize;
+            private int _boxFontSize;
+            private int _textAreaFontSize;
+            private int _textFieldFontSize;
+
+            public static DebugFontScope Begin(int fontSize)
+            {
+                var skin = GUI.skin;
+                var scope = new DebugFontScope()
+                {
+                    _labelFontSize = skin.label.fontSize,
+                    _buttonFontSize = skin.button.fontSize,
+                    _toggleFontSize = skin.toggle.fontSize,
+                    _windowFontSize = skin.window.fontSize,
+                    _boxFontSize = skin.box.fontSize,
+                    _textAreaFontSize = skin.textArea.fontSize,
+                    _textFieldFontSize = skin.textField.fontSize,
+                };
+
+                skin.label.fontSize = fontSize;
+                skin.button.fontSize = fontSize;
+                skin.toggle.fontSize = fontSize;
+                skin.window.fontSize = fontSize;
+                skin.box.fontSize = fontSize;
+                skin.textArea.fontSize = fontSize;
+                skin.textField.fontSize = fontSize;
+
+                return scope;
+            }
+
+            public void Dispose()
+            {
+                var skin = GUI.skin;
+                skin.label.fontSize = _labelFontSize;
+                skin.button.fontSize = _buttonFontSize;
+                skin.toggle.fontSize = _toggleFontSize;
+                skin.window.fontSize = _windowFontSize;
+                skin.box.fontSize = _boxFontSize;
+                skin.textArea.fontSize = _textAreaFontSize;
+                skin.textField.fontSize = _textFieldFontSize;
+            }
+        }
+
         private const int DEBUG_WINDOW_ID = 0;
         private const int DEBUG_WINDOW_MARGIN = 25;
 
@@ -77,6 +125,7 @@ namespace YARG.Gameplay
         private const int DEBUG_WINDOW_MAX_WIDTH = 600;
 
         private const int DEBUG_WINDOW_MAX_HEIGHT = DEBUG_WINDOW_DESIGN_HEIGHT - (DEBUG_WINDOW_MARGIN * 2);
+        private const int DEBUG_WINDOW_FONT_SIZE = 14;
 
         private bool _enableDebug;
 
@@ -215,19 +264,25 @@ namespace YARG.Gameplay
             // Reset size so expansions don't persist
             _debugWindowRect.size = new Vector2();
 
-            _debugWindowRect = GUILayout.Window(
-                DEBUG_WINDOW_ID, _debugWindowRect, _debugWindowCallback, "Debug Menu",
-                GUILayout.MinWidth(DEBUG_WINDOW_MIN_WIDTH),
-                GUILayout.MaxWidth(DEBUG_WINDOW_MAX_WIDTH * _debugGuiScale),
-                GUILayout.MaxHeight(DEBUG_WINDOW_MAX_HEIGHT * _debugGuiScale)
-            );
+            int debugFontSize = Mathf.RoundToInt(DEBUG_WINDOW_FONT_SIZE * _debugGuiScale);
+            using (DebugFontScope.Begin(debugFontSize))
+            {
+                _debugWindowRect = GUILayout.Window(
+                    DEBUG_WINDOW_ID, _debugWindowRect, _debugWindowCallback, "Debug Menu",
+                    GUILayout.MinWidth(DEBUG_WINDOW_MIN_WIDTH),
+                    GUILayout.MaxWidth(DEBUG_WINDOW_MAX_WIDTH * _debugGuiScale),
+                    GUILayout.MaxHeight(DEBUG_WINDOW_MAX_HEIGHT * _debugGuiScale)
+                );
+            }
         }
 
         private void WindowCallback(int windowId)
         {
             _debugMenuIndex = GUILayout.Toolbar(_debugMenuIndex, _debugMenuTitles);
             if (_debugMenuIndex >= 0)
+            {
                 _debugMenus[_debugMenuIndex].callback();
+            }
 
             GUI.DragWindow();
         }

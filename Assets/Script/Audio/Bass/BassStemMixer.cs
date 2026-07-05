@@ -158,6 +158,8 @@ namespace YARG.Audio.BASS
                     return (int) Bass.LastError;
                 }
 
+                Bass.ChannelUpdate(_tempoStreamHandle, 0);
+
                 if (_didSetPosition)
                 {
                     _bufferTracker?.ResetToCurrentPosition();
@@ -258,7 +260,7 @@ namespace YARG.Audio.BASS
 
         protected override double GetPlaybackLatency_Internal()
         {
-            return GetDeviceOutputLatency() + GetDeviceBufferLatency() + GetCommandUpdateLatency();
+            return GetDeviceOutputLatency() + GetDeviceBufferLatency();
         }
 
         protected override double GetTempoLatency_Internal()
