@@ -248,9 +248,11 @@ namespace YARG.Playback
         #endregion
 
         #region Simplified Sync state variables
-        private readonly Queue<float> _syncHistory = new();
+        private readonly LinkedList<(double DurationMs, double ContributionMs)> _syncHistory = new();
         private double _syncHistoryRunningSum;
-        private const float SYNC_CLAMP = 0.20f;
+        private double _syncHistoryRunningDurationMs;
+        private const float SYNC_GAIN = 0.5f;
+        private const float SYNC_CLAMP = 0.10f;
         #endregion
 
         private bool _justResumed;
@@ -584,10 +586,15 @@ namespace YARG.Playback
             for (; !_disposed; Thread.Sleep(1))
             {
                 double currentInputTime = GetEstimatedCurrentInputTime();
+                double actualDtMs = 1.0;
 
                 if (!double.IsNaN(lastSampleTime))
                 {
                     double sampleDtMs = (currentInputTime - lastSampleTime) * 1000.0;
+                    if (!double.IsNaN(sampleDtMs) && !double.IsInfinity(sampleDtMs) && sampleDtMs > 0)
+                    {
+                        actualDtMs = Math.Min(sampleDtMs, 100.0);
+                    }
                     if (dtSamples.Count < 1000)
                     {
                         dtSamples.Add(sampleDtMs);
@@ -711,12 +718,8 @@ namespace YARG.Playback
                 }
 
                 double streamDelay = GetTempoLatency();
-                int d = (int)(streamDelay * 1000.0);
-                if (d < 1)
-                {
-                    d = 1;
-                }
-                UpdateSyncHistoryLength(d);
+                double streamDelayMs = Math.Max(1.0, streamDelay * 1000.0);
+                TrimSyncHistory(streamDelayMs);
 
                 double audioInputTime = syncAudioTime + audioOffset;
                 double inputSyncDelta = currentSongTime - audioInputTime;
@@ -729,7 +732,7 @@ namespace YARG.Playback
                 if (currentInputTime >= syncCorrectionSuppressedUntil && !withinDeadband)
                 {
                     err_ms = (inputSyncDelta * 1000.0) - _syncHistoryRunningSum;
-                    float dynamicK = 2.0f / d;
+                    float dynamicK = SYNC_GAIN / (float) streamDelayMs;
                     targetAdjustment = (float)(dynamicK * err_ms);
                     targetAdjustment = Math.Clamp(targetAdjustment, -SYNC_CLAMP, SYNC_CLAMP);
                 }
@@ -737,10 +740,12 @@ namespace YARG.Playback
                 // Update BASS immediately every millisecond
                 _mixer.SetSpeed((float)(songSpeed + targetAdjustment), false);
 
-                // Update the history queue
-                float oldest = _syncHistory.Dequeue();
-                _syncHistoryRunningSum = _syncHistoryRunningSum - oldest + targetAdjustment;
-                _syncHistory.Enqueue(targetAdjustment);
+                // Update the history queue using real sync-loop elapsed time.
+                double contributionMs = targetAdjustment * actualDtMs;
+                _syncHistory.AddLast((actualDtMs, contributionMs));
+                _syncHistoryRunningSum += contributionMs;
+                _syncHistoryRunningDurationMs += actualDtMs;
+                TrimSyncHistory(streamDelayMs);
 
                 int previousSpeedMultiplier = _syncSpeedMultiplier;
                 int speedMultiplier = 0;
@@ -829,17 +834,9 @@ namespace YARG.Playback
                 _pllLastTime = double.NaN;
                 _pllLastRawAudioTime = double.NaN;
 
-                int d = (int)(GetTempoLatency() * 1000.0);
-                if (d < 1)
-                {
-                    d = 1;
-                }
                 _syncHistory.Clear();
-                for (int i = 0; i < d; i++)
-                {
-                    _syncHistory.Enqueue(0f);
-                }
                 _syncHistoryRunningSum = 0.0;
+                _syncHistoryRunningDurationMs = 0.0;
             }
 
             _mixer.SetSpeed(RealSongSpeed, true);
@@ -851,22 +848,29 @@ namespace YARG.Playback
             _syncSmoothedDrift = float.NaN;
         }
 
-        private void UpdateSyncHistoryLength(int targetLength)
+        private void TrimSyncHistory(double targetDurationMs)
         {
-            if (targetLength < 1)
-            {
-                targetLength = 1;
-            }
+            targetDurationMs = Math.Max(1.0, targetDurationMs);
 
-            while (_syncHistory.Count < targetLength)
+            while (_syncHistoryRunningDurationMs > targetDurationMs && _syncHistory.First != null)
             {
-                _syncHistory.Enqueue(0f);
-            }
+                double excessDurationMs = _syncHistoryRunningDurationMs - targetDurationMs;
+                var oldest = _syncHistory.First.Value;
+                if (oldest.DurationMs <= excessDurationMs)
+                {
+                    _syncHistory.RemoveFirst();
+                    _syncHistoryRunningDurationMs -= oldest.DurationMs;
+                    _syncHistoryRunningSum -= oldest.ContributionMs;
+                    continue;
+                }
 
-            while (_syncHistory.Count > targetLength)
-            {
-                float oldest = _syncHistory.Dequeue();
-                _syncHistoryRunningSum -= oldest;
+                double remainingDurationMs = oldest.DurationMs - excessDurationMs;
+                double remainingRatio = remainingDurationMs / oldest.DurationMs;
+                double remainingContributionMs = oldest.ContributionMs * remainingRatio;
+
+                _syncHistory.First.Value = (remainingDurationMs, remainingContributionMs);
+                _syncHistoryRunningDurationMs = targetDurationMs;
+                _syncHistoryRunningSum -= oldest.ContributionMs - remainingContributionMs;
             }
         }
 
