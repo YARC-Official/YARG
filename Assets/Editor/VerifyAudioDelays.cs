@@ -8,7 +8,6 @@ using UnityEngine;
 using YARG.Audio.BASS;
 using YARG.Core.Audio;
 using YARG.Helpers;
-using YARG.Playback;
 using YARG.Settings;
 using YARG.Settings.Types;
 
@@ -132,43 +131,27 @@ namespace Editor
                     : testBufferMs;
                 double configuredLatency = Math.Max(0, effectiveBufferLength) / 1000.0;
 
-                double audibleSyncLatency = mixer.GetAudibleSyncLatency();
-                double commandLatency = mixer.GetCommandLatency();
-                double startLatency = mixer.GetStartLatency();
-                double pausedResumeLatency = mixer.GetPausedResumeLatency();
+                double playbackLatency = mixer.GetPlaybackLatency();
+                double tempoLatency = mixer.GetTempoLatency();
 
                 Debug.Log($"Calculated parameters: Device Latency: {deviceLatency * 1000:0.0}ms, " +
                           $"Configured Buffer Latency: {configuredLatency * 1000:0.0}ms, " +
                           $"Command Update Midpoint: {GetExpectedCommandUpdateLatency() * 1000:0.0}ms, " +
                           $"Device Period Midpoint: {GetExpectedDevicePeriodMidpoint() * 1000:0.0}ms");
-                Debug.Log($"Mixer reported latencies: AudibleSync: {audibleSyncLatency * 1000:0.0}ms, " +
-                          $"Command: {commandLatency * 1000:0.0}ms, Start: {startLatency * 1000:0.0}ms, " +
-                          $"PausedResume: {pausedResumeLatency * 1000:0.0}ms");
+                Debug.Log($"Mixer reported latencies: Playback: {playbackLatency * 1000:0.0}ms, " +
+                          $"Tempo: {tempoLatency * 1000:0.0}ms");
 
-                if (Math.Abs(audibleSyncLatency) > EPSILON)
+                double expectedPlayback = GetExpectedPlaybackLatency(deviceLatency);
+                if (Math.Abs(playbackLatency - expectedPlayback) > EPSILON)
                 {
-                    throw new Exception($"AudibleSyncLatency did not match! Actual: {audibleSyncLatency * 1000:0.0}ms ({audibleSyncLatency}s), Expected: 0.0ms (0s)");
+                    throw new Exception($"PlaybackLatency did not match! Actual: {playbackLatency * 1000:0.0}ms ({playbackLatency}s), Expected: {expectedPlayback * 1000:0.0}ms ({expectedPlayback}s)");
                 }
 
-                double expectedCommand = configuredLatency + deviceLatency;
-                if (Math.Abs(commandLatency - expectedCommand) > EPSILON)
+                double expectedMinimumTempo = configuredLatency + GetExpectedCommandUpdateLatency();
+                if (tempoLatency < expectedMinimumTempo)
                 {
-                    throw new Exception($"CommandLatency did not match! Actual: {commandLatency * 1000:0.0}ms ({commandLatency}s), Expected: {expectedCommand * 1000:0.0}ms ({expectedCommand}s)");
+                    throw new Exception($"TempoLatency did not match! Actual: {tempoLatency * 1000:0.0}ms ({tempoLatency}s), Expected at least: {expectedMinimumTempo * 1000:0.0}ms ({expectedMinimumTempo}s)");
                 }
-
-                double expectedStart = GetExpectedStartLatency(deviceLatency);
-                if (Math.Abs(startLatency - expectedStart) > EPSILON)
-                {
-                    throw new Exception($"StartLatency did not match! Actual: {startLatency * 1000:0.0}ms ({startLatency}s), Expected: {expectedStart * 1000:0.0}ms ({expectedStart}s)");
-                }
-
-                double expectedPausedResume = expectedStart + GetExpectedDevicePeriodMidpoint();
-                if (Math.Abs(pausedResumeLatency - expectedPausedResume) > EPSILON)
-                {
-                    throw new Exception($"PausedResumeLatency did not match! Actual: {pausedResumeLatency * 1000:0.0}ms ({pausedResumeLatency}s), Expected: {expectedPausedResume * 1000:0.0}ms ({expectedPausedResume}s)");
-                }
-
-                VerifySongRunnerResumeLatencyHelpers(0, expectedStart, expectedPausedResume, EPSILON);
             }
             finally
             {
@@ -252,19 +235,17 @@ namespace Editor
                 int updatePeriod = Bass.UpdatePeriod;
                 int minBufferLength = info.MinBufferLength;
                 double deviceLatency = GlobalAudioHandler.PlaybackLatency;
-                double audibleSync = mixer.GetAudibleSyncLatency() * 1000.0;
-                double start = mixer.GetStartLatency() * 1000.0;
-                double pausedResume = mixer.GetPausedResumeLatency() * 1000.0;
-                double expectedSongRunnerSeek = Math.Max(Math.Max(audibleSync, start), pausedResume);
+                double playback = mixer.GetPlaybackLatency() * 1000.0;
+                double tempo = mixer.GetTempoLatency() * 1000.0;
+                double expectedSongRunnerSeek = playback;
 
                 Debug.Log($"<b>[Real Seek Latency]</b>\n" +
                           $"  - Measured Total Elapsed (to {syncTarget * 1000:0.0}ms mark): {totalElapsedMs}ms\n" +
                           $"  - Calculated Actual Seek Latency: <b>{actualSeekLatencyMs}ms</b>\n" +
                           $"  - Expected SongRunner Seek Latency: {expectedSongRunnerSeek:0.0}ms\n" +
-                          $"  - Reported AudibleSync Latency: {audibleSync:0.0}ms\n" +
+                          $"  - Reported Playback Latency: {playback:0.0}ms\n" +
+                          $"  - Reported Tempo Latency: {tempo:0.0}ms\n" +
                           $"  - Reported Device Latency: {deviceLatency:0.0}ms\n" +
-                          $"  - Reported Start Latency: {start:0.0}ms\n" +
-                          $"  - Reported Paused Resume Latency: {pausedResume:0.0}ms\n" +
                           $"  - BASS Latency Components: info.Latency={infoLatency}ms, " +
                           $"DeviceBufferLength={deviceBufferLength}ms, updatePeriod={updatePeriod}ms, " +
                           $"devPeriod={devPeriod}ms, MinBuf={minBufferLength}ms");
@@ -338,9 +319,9 @@ namespace Editor
             }
         }
 
-        private static double GetExpectedStartLatency(double deviceLatency)
+        private static double GetExpectedPlaybackLatency(double deviceLatency)
         {
-            return deviceLatency + GetExpectedCommandUpdateLatency() + Math.Max(0, Bass.DeviceBufferLength) / 1000.0;
+            return deviceLatency + Math.Max(0, Bass.DeviceBufferLength) / 1000.0;
         }
 
         private static double GetExpectedCommandUpdateLatency()
@@ -351,27 +332,6 @@ namespace Editor
         private static double GetExpectedDevicePeriodMidpoint()
         {
             return Math.Max(0, Bass.GetConfig(Configuration.DevicePeriod)) / 2000.0;
-        }
-
-        private static void VerifySongRunnerResumeLatencyHelpers(
-            double audibleSyncLatency,
-            double startLatency,
-            double pausedResumeLatency,
-            double epsilon)
-        {
-            var resumeMethod = typeof(SongRunner).GetMethod("GetResumeLatency", BindingFlags.Static | BindingFlags.NonPublic, null,
-                new[] { typeof(double), typeof(double), typeof(double) }, null);
-            if (resumeMethod == null)
-            {
-                throw new Exception("Could not find SongRunner resume latency helper method");
-            }
-
-            double expected = Math.Max(Math.Max(audibleSyncLatency, startLatency), pausedResumeLatency);
-            double actual = (double) resumeMethod.Invoke(null, new object[] { audibleSyncLatency, startLatency, pausedResumeLatency });
-            if (Math.Abs(actual - expected) > epsilon)
-            {
-                throw new Exception($"GetResumeLatency did not match! Actual: {actual * 1000:0.0}ms ({actual}s), Expected: {expected * 1000:0.0}ms ({expected}s)");
-            }
         }
 
         private static void SetSettingValue<T>(AbstractSetting<T> setting, T value)

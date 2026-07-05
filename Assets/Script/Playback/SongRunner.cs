@@ -267,8 +267,8 @@ namespace YARG.Playback
         public float SyncWorstDelta => _syncWorstDelta;
         public string LastSyncLandingOperation { get { lock (_syncThread) return _lastSyncLandingOperation; } }
         public double LastSyncLandingDelta { get { lock (_syncThread) return _lastSyncLandingDelta; } }
-        public double EstimatedOutputLatency => _mixer.GetAudibleSyncLatency();
-        public double CommandLatency => _mixer.GetCommandLatency();
+        public double EstimatedOutputLatency => GetPlaybackLatency();
+        public double CommandLatency => GetTempoLatency();
         public double PllControlError { get { lock (_syncThread) return _pllControlError; } }
         public double PllRawMismatch { get { lock (_syncThread) return _pllRawMismatch; } }
         public double PllFilteredMismatch { get { lock (_syncThread) return _pllFilteredMismatch; } }
@@ -477,39 +477,14 @@ namespace YARG.Playback
             return latency;
         }
 
-        private double GetAudibleSyncLatency()
+        private double GetPlaybackLatency()
         {
-            return SanitizeLatency(_mixer.GetAudibleSyncLatency());
+            return SanitizeLatency(_mixer.GetPlaybackLatency());
         }
 
-        private double GetCommandLatency()
+        private double GetTempoLatency()
         {
-            return SanitizeLatency(_mixer.GetCommandLatency());
-        }
-
-        private double GetStartLatency()
-        {
-            return SanitizeLatency(_mixer.GetStartLatency());
-        }
-
-        private double GetPausedResumeLatency()
-        {
-            return SanitizeLatency(_mixer.GetPausedResumeLatency());
-        }
-
-        private static double GetResumeLatency(double audibleSyncLatency, double startLatency)
-        {
-            return Math.Max(audibleSyncLatency, startLatency);
-        }
-
-        private static double GetResumeLatency(double audibleSyncLatency, double startLatency, double pausedResumeLatency)
-        {
-            return Math.Max(GetResumeLatency(audibleSyncLatency, startLatency), pausedResumeLatency);
-        }
-
-        private double GetEstimatedStreamDelay()
-        {
-            return SanitizeLatency(_mixer.GetStreamCommandLatency());
+            return SanitizeLatency(_mixer.GetTempoLatency());
         }
 
         private static void PruneSpeedHistory(List<(double Time, double Speed)> history, double windowStart)
@@ -665,12 +640,9 @@ namespace YARG.Playback
                 double rawAudioTime = _mixer.GetPosition();
                 double syncAudioTime = _mixer.GetSyncPosition();
                 double syncVisualTime = currentSongTime - audioOffset;
-                double audibleSyncLatency = GetAudibleSyncLatency();
-                double commandLatency = GetCommandLatency();
-                double startLatency = GetStartLatency();
-                double pausedResumeLatency = GetPausedResumeLatency();
-                double resumeLatency = GetResumeLatency(audibleSyncLatency, startLatency, pausedResumeLatency);
-                double preRollSongTime = resumeLatency * songSpeed;
+                double playbackLatency = GetPlaybackLatency();
+                double tempoLatency = GetTempoLatency();
+                double preRollSongTime = playbackLatency * songSpeed;
 
                 lock (_syncThread)
                 {
@@ -703,16 +675,14 @@ namespace YARG.Playback
 
                         double resumeCommandInputTime = GetEstimatedCurrentInputTime();
                         double adjustedSyncVisualTime = ((resumeCommandInputTime - inputTimeOffset) * songSpeed) - audioOffset;
-                        double seekPosition = GetLatencyAlignedSeekPosition(adjustedSyncVisualTime, resumeLatency, songSpeed);
+                        double seekPosition = GetLatencyAlignedSeekPosition(adjustedSyncVisualTime, playbackLatency, songSpeed);
                         landingExpectedSyncAudioTime = seekPosition;
                         _mixer.SetPosition(seekPosition);
 
                         YargLogger.LogFormatDebug(
                             "Aligned resumed audio. Sync visual: {0:0.000000}, adjusted sync visual: {1:0.000000}, seek position: {2:0.000000}, " +
-                            "audible latency: {3:0.000000}, start latency: {4:0.000000}, paused resume latency: {5:0.000000}, " +
-                            "resume latency: {6:0.000000}, command latency: {7:0.000000}, resume command delay: {8:0.000000}",
-                            syncVisualTime, adjustedSyncVisualTime, seekPosition, audibleSyncLatency, startLatency, pausedResumeLatency,
-                            resumeLatency, commandLatency, delay
+                            "playback latency: {3:0.000000}, tempo latency: {4:0.000000}, resume command delay: {5:0.000000}",
+                            syncVisualTime, adjustedSyncVisualTime, seekPosition, playbackLatency, tempoLatency, delay
                         );
                     }
 
@@ -740,7 +710,7 @@ namespace YARG.Playback
                     continue;
                 }
 
-                double streamDelay = GetEstimatedStreamDelay();
+                double streamDelay = GetTempoLatency();
                 int d = (int)(streamDelay * 1000.0);
                 if (d < 1)
                 {
@@ -859,7 +829,7 @@ namespace YARG.Playback
                 _pllLastTime = double.NaN;
                 _pllLastRawAudioTime = double.NaN;
 
-                int d = (int)(GetEstimatedStreamDelay() * 1000.0);
+                int d = (int)(GetTempoLatency() * 1000.0);
                 if (d < 1)
                 {
                     d = 1;
@@ -907,43 +877,39 @@ namespace YARG.Playback
 
         private void PreAlignResumeAudio()
         {
-            double audibleSyncLatency = GetAudibleSyncLatency();
-            double startLatency = GetStartLatency();
-            double pausedResumeLatency = GetPausedResumeLatency();
-            double resumeLatency = GetResumeLatency(audibleSyncLatency, startLatency, pausedResumeLatency);
-            if (resumeLatency <= 0)
+            double playbackLatency = GetPlaybackLatency();
+            if (playbackLatency <= 0)
             {
                 return;
             }
 
             double audioOffset = SongOffset - (AudioCalibration * SongSpeed);
             double syncVisualTime = InputTime - audioOffset;
-            double seekPosition = GetLatencyAlignedSeekPosition(syncVisualTime, resumeLatency, SongSpeed);
+            double seekPosition = GetLatencyAlignedSeekPosition(syncVisualTime, playbackLatency, SongSpeed);
 
             _mixer.SetPosition(seekPosition);
 
             YargLogger.LogFormatDebug(
-                "Pre-aligned resume audio. Resume latency: {0:0.000000}, audible sync latency: {1:0.000000}, " +
-                "start latency: {2:0.000000}, paused resume latency: {3:0.000000}, command latency: {4:0.000000}, " +
-                "sync visual: {5:0.000000}, seek position: {6:0.000000}",
-                resumeLatency, audibleSyncLatency, startLatency, pausedResumeLatency, GetCommandLatency(), syncVisualTime, seekPosition
+                "Pre-aligned resume audio. Playback latency: {0:0.000000}, tempo latency: {1:0.000000}, " +
+                "sync visual: {2:0.000000}, seek position: {3:0.000000}",
+                playbackLatency, GetTempoLatency(), syncVisualTime, seekPosition
             );
         }
 
         private void SuppressSyncCorrection()
         {
             double now = GetEstimatedCurrentInputTime();
-            double commandLatency = GetCommandLatency();
-            double resumeLatency = GetResumeLatency(GetAudibleSyncLatency(), GetStartLatency(), GetPausedResumeLatency());
-            double latency = Math.Max(resumeLatency, commandLatency);
+            double playbackLatency = GetPlaybackLatency();
+            double tempoLatency = GetTempoLatency();
+            double latency = Math.Max(playbackLatency, tempoLatency);
             _syncCorrectionSuppressedUntil = now + latency;
             _nextSyncSpeedChangeTime = Math.Max(_nextSyncSpeedChangeTime, _syncCorrectionSuppressedUntil);
         }
 
         public double GetLatencyAdjustedStartDelay(double requestedDelay)
         {
-            double startLatency = GetStartLatency();
-            return Math.Max(requestedDelay, startLatency + PLAYBACK_START_LATENCY_MARGIN);
+            double playbackLatency = GetPlaybackLatency();
+            return Math.Max(requestedDelay, playbackLatency + PLAYBACK_START_LATENCY_MARGIN);
         }
 
         public double GetLatencyLeadInSongTime(double requestedDelay = 0)
@@ -1107,11 +1073,8 @@ namespace YARG.Playback
 
                 double requestedDelay = delayTime;
                 delayTime = GetLatencyAdjustedStartDelay(delayTime);
-                double audibleSyncLatency = GetAudibleSyncLatency();
-                double commandLatency = GetCommandLatency();
-                double startLatency = GetStartLatency();
-                double pausedResumeLatency = GetPausedResumeLatency();
-                double resumeLatency = GetResumeLatency(audibleSyncLatency, startLatency, pausedResumeLatency);
+                double playbackLatency = GetPlaybackLatency();
+                double tempoLatency = GetTempoLatency();
 
                 // Set input/song time
                 InitializeSongTime(time, delayTime);
@@ -1122,7 +1085,7 @@ namespace YARG.Playback
 
                 _mixer.Pause();
                 // Audio seeking; cannot go negative
-                double seekTime = time - (delayTime - resumeLatency - AudioCalibration) * SongSpeed - SongOffset;
+                double seekTime = time - (delayTime - playbackLatency - AudioCalibration) * SongSpeed - SongOffset;
                 bool canStartAudio = seekTime >= 0;
                 if (seekTime < 0)
                 {
@@ -1146,11 +1109,9 @@ namespace YARG.Playback
 
                 YargLogger.LogFormatDebug(
                     "Set song time with latency budget.\n" +
-                    "Requested delay: {0:0.000000}, effective delay: {1:0.000000}, resume latency: {2:0.000000}, " +
-                    "audible latency: {3:0.000000}, start latency: {4:0.000000}, paused resume latency: {5:0.000000}, " +
-                    "command latency: {6:0.000000}, raw audio: {7:0.000000}, sync audio: {8:0.000000}, seek time: {9:0.000000}",
-                    requestedDelay, delayTime, resumeLatency, audibleSyncLatency, startLatency, pausedResumeLatency,
-                    commandLatency, _mixer.GetPosition(), _mixer.GetSyncPosition(), seekTime
+                    "Requested delay: {0:0.000000}, effective delay: {1:0.000000}, playback latency: {2:0.000000}, " +
+                    "tempo latency: {3:0.000000}, raw audio: {4:0.000000}, sync audio: {5:0.000000}, seek time: {6:0.000000}",
+                    requestedDelay, delayTime, playbackLatency, tempoLatency, _mixer.GetPosition(), _mixer.GetSyncPosition(), seekTime
                 );
             }
         }
@@ -1159,7 +1120,7 @@ namespace YARG.Playback
         {
             speed = ClampSongSpeed(speed);
             double now = GetEstimatedCurrentInputTime();
-            double streamDelay = GetEstimatedStreamDelay();
+            double streamDelay = GetTempoLatency();
             double effectiveTime;
             bool immediate;
             float previousRequested;

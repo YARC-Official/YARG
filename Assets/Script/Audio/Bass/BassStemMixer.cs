@@ -35,6 +35,9 @@ namespace YARG.Audio.BASS
         #nullable disable
 
         private const    float WHAMMY_SYNC_INTERVAL_SECONDS = 1f;
+        private const    double DEFAULT_TEMPO_SEQUENCE_MS = 82.0;
+        private const    double DEFAULT_TEMPO_SEEK_WINDOW_MS = 14.0;
+        private const    double DEFAULT_TEMPO_OVERLAP_MS = 12.0;
 
         private static bool IsWhammyEnabled => SettingsManager.Settings.UseWhammyFx.Value;
         private        bool IsPlaying       => Bass.ChannelIsActive(_tempoStreamHandle) is PlaybackState.Playing or PlaybackState.Stalled;
@@ -51,6 +54,7 @@ namespace YARG.Audio.BASS
         private          Timer          _whammySyncTimer;
         private readonly List<StemData> _stemDatas = new();
         private          int            _longestHandle;
+        private          double         _tempoProcessingLatency = double.NaN;
 
         private readonly BassNormalizer _normalizer = new();
         private          bool           _shouldNormalize;
@@ -212,7 +216,7 @@ namespace YARG.Audio.BASS
 
         protected override double GetSyncPosition_Internal()
         {
-            return GetTempoStreamPosition_Internal() - GetAudibleSyncLatency_Internal();
+            return GetTempoStreamPosition_Internal();
         }
 
         private double GetTempoStreamPosition_Internal()
@@ -241,35 +245,14 @@ namespace YARG.Audio.BASS
             return seconds + _positionOffset;
         }
 
-        protected override double GetEstimatedOutputLatency_Internal()
+        protected override double GetPlaybackLatency_Internal()
         {
-            return GetAudibleSyncLatency_Internal();
+            return GetDeviceOutputLatency() + GetDeviceBufferLatency();
         }
 
-        protected override double GetAudibleSyncLatency_Internal()
+        protected override double GetTempoLatency_Internal()
         {
-            return 0;
-        }
-
-        protected override double GetCommandLatency_Internal()
-        {
-            return GetOutputBufferLatency() + GetDeviceOutputLatency();
-        }
-
-        protected override double GetStreamCommandLatency_Internal()
-        {
-            return GetOutputBufferLatency() + GetCommandUpdateLatency();
-        }
-
-        protected override double GetStartLatency_Internal()
-        {
-            // Start/seek commands land anywhere in BASS' update window, so use midpoint.
-            return GetDeviceOutputLatency() + GetCommandUpdateLatency() + GetDeviceBufferLatency();
-        }
-
-        protected override double GetPausedResumeLatency_Internal()
-        {
-            return GetStartLatency_Internal() + GetDevicePeriodMidpointLatency();
+            return GetOutputBufferLatency() + GetCommandUpdateLatency() + GetTempoProcessingLatency();
         }
 
         protected override double GetDecodingPosition_Internal()
@@ -333,6 +316,36 @@ namespace YARG.Audio.BASS
             return Math.Max(0, Bass.DeviceBufferLength) / 1000.0;
         }
 
+        private double GetTempoProcessingLatency()
+        {
+            if (!double.IsNaN(_tempoProcessingLatency))
+            {
+                return _tempoProcessingLatency;
+            }
+
+            double sequenceMs = GetTempoAttributeMs(ChannelAttribute.TempoSequenceMilliseconds, DEFAULT_TEMPO_SEQUENCE_MS);
+            double seekWindowMs = GetTempoAttributeMs(ChannelAttribute.TempoSeekWindowMilliseconds, DEFAULT_TEMPO_SEEK_WINDOW_MS);
+            double overlapMs = GetTempoAttributeMs(ChannelAttribute.TempoOverlapMilliseconds, DEFAULT_TEMPO_OVERLAP_MS);
+            _tempoProcessingLatency = (sequenceMs + seekWindowMs + overlapMs) / 1000.0;
+
+            return _tempoProcessingLatency;
+        }
+
+        private double GetTempoAttributeMs(ChannelAttribute attribute, double fallbackMs)
+        {
+            if (!Bass.ChannelGetAttribute(_tempoStreamHandle, attribute, out float value))
+            {
+                return fallbackMs;
+            }
+
+            if (float.IsNaN(value) || float.IsInfinity(value) || value < 0)
+            {
+                return fallbackMs;
+            }
+
+            return value;
+        }
+
         private static double GetDevicePeriodMidpointLatency()
         {
             return Math.Max(0, Bass.GetConfig(Configuration.DevicePeriod)) / 2000.0;
@@ -376,10 +389,10 @@ namespace YARG.Audio.BASS
 
             YargLogger.LogFormatDebug(
                 "Set BASS stem mixer position. Configured buffer: {0:0.000000}, device latency: {1:0.000000}, " +
-                "audible latency: {2:0.000000}, command latency: {3:0.000000}, requested position: {4:0.000000}, " +
+                "playback latency: {2:0.000000}, tempo latency: {3:0.000000}, requested position: {4:0.000000}, " +
                 "raw position: {5:0.000000}, sync position: {6:0.000000}",
-                GetConfiguredOutputLatency(), GetDeviceOutputLatency(), GetAudibleSyncLatency_Internal(),
-                GetCommandLatency_Internal(), position, GetPosition_Internal(), GetSyncPosition_Internal()
+                GetConfiguredOutputLatency(), GetDeviceOutputLatency(), GetPlaybackLatency_Internal(),
+                GetTempoLatency_Internal(), position, GetPosition_Internal(), GetSyncPosition_Internal()
             );
 
             if (wasPlaying)
