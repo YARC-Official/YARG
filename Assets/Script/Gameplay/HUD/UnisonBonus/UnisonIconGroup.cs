@@ -26,6 +26,7 @@ namespace YARG.Gameplay.HUD
                 {
                     continue;
                 }
+
                 icon.gameObject.SetActive(true);
             }
         }

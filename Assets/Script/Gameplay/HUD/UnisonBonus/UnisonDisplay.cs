@@ -318,7 +318,7 @@ namespace YARG.Gameplay.HUD
 
                     GuitarEngine.StarPowerPhraseMissEvent
                         guitarStarPowerMissed =
-                            note => OnStarPowerPhraseMissed(note, engineId);
+                            note => OnStarPowerPhraseMissed(note, engineId, false);
                     guitarEngine.OnStarPowerPhraseMissed += guitarStarPowerMissed;
                     _unsubscribeActions.Add(() => guitarEngine.OnStarPowerPhraseMissed -= guitarStarPowerMissed);
                     break;
@@ -337,7 +337,7 @@ namespace YARG.Gameplay.HUD
 
                     DrumsEngine.StarPowerPhraseMissEvent
                         drumsStarPowerMissed =
-                            note => OnStarPowerPhraseMissed(note, engineId);
+                            note => OnStarPowerPhraseMissed(note, engineId, true);
                     drumsEngine.OnStarPowerPhraseMissed += drumsStarPowerMissed;
                     _unsubscribeActions.Add(() => drumsEngine.OnStarPowerPhraseMissed -= drumsStarPowerMissed);
                     break;
@@ -356,7 +356,7 @@ namespace YARG.Gameplay.HUD
 
                     KeysEngine<ProKeysNote>.StarPowerPhraseMissEvent
                         proKeysStarPowerMissed =
-                            note => OnStarPowerPhraseMissed(note, engineId);
+                            note => OnStarPowerPhraseMissed(note, engineId, true);
                     proKeysEngine.OnStarPowerPhraseMissed += proKeysStarPowerMissed;
                     _unsubscribeActions.Add(() => proKeysEngine.OnStarPowerPhraseMissed -= proKeysStarPowerMissed);
                     break;
@@ -376,12 +376,30 @@ namespace YARG.Gameplay.HUD
 
                     KeysEngine<GuitarNote>.StarPowerPhraseMissEvent
                         fiveLaneKeysStarPowerMissed =
-                            note => OnStarPowerPhraseMissed(note, engineId);
+                            note => OnStarPowerPhraseMissed(note, engineId, true);
                     fiveLaneKeysEngine.OnStarPowerPhraseMissed += fiveLaneKeysStarPowerMissed;
                     _unsubscribeActions.Add(() =>
                         fiveLaneKeysEngine.OnStarPowerPhraseMissed -= fiveLaneKeysStarPowerMissed);
                     break;
             }
+        }
+
+        private static int CountNotesInStarPowerPhrase<T>(T note, bool includeChildNotes) where T : Note<T>
+        {
+            int count = 0;
+            var currentNote = note;
+            while (currentNote != null)
+            {
+                count += includeChildNotes ? currentNote.ChildNotes.Count + 1 : 1;
+                if (currentNote.IsStarPowerEnd)
+                {
+                    break;
+                }
+
+                currentNote = currentNote.NextNote;
+            }
+
+            return count;
         }
 
         private void OnStarPowerPhraseStart<T>(T note, int engineId, bool includeChildNotes) where T : Note<T>
@@ -398,27 +416,16 @@ namespace YARG.Gameplay.HUD
                 return;
             }
 
-            int count = 0;
-            var currentNote = note;
-            while (currentNote != null)
-            {
-                count += includeChildNotes ? currentNote.ChildNotes.Count + 1 : 1;
-                if (currentNote.IsStarPowerEnd)
-                {
-                    break;
-                }
+            int noteCount = CountNotesInStarPowerPhrase(note, includeChildNotes);
 
-                currentNote = currentNote.NextNote;
-            }
-
-            YargLogger.LogFormatDebug("Engine {0} started a unison phrase with {1} notes", engineId, count);
+            YargLogger.LogFormatDebug("Engine {0} started a unison phrase with {1} notes", engineId, noteCount);
             var unisonState = _unisonState[engineId];
 
-            unisonState.NotesInCurrentPhrase = count;
+            unisonState.NotesInCurrentPhrase = noteCount;
             unisonState.NotesHitInCurrentPhrase = 0;
         }
 
-        private void OnStarPowerPhraseMissed<T>(T note, int engineId) where T : Note<T>
+        private void OnStarPowerPhraseMissed<T>(T note, int engineId, bool includeChildNotes) where T : Note<T>
         {
             if (_currentPhraseIndex >= _phrases.Count)
             {
@@ -426,19 +433,22 @@ namespace YARG.Gameplay.HUD
             }
 
             var currentPhrase = _phrases[_currentPhraseIndex].Event;
-            if (!currentPhrase.ParticipantIds.Contains(engineId))
+            if (!currentPhrase.ParticipantIds.Contains(engineId) || note.Time < currentPhrase.Time ||
+                note.Time > currentPhrase.TimeEnd)
             {
                 return;
             }
 
-            if (note.Time >= currentPhrase.Time && note.Time <= currentPhrase.TimeEnd)
+            if (note.IsStarPowerStart)
             {
-                YargLogger.LogFormatDebug("Engine {0} failed a unison phrase at time {1}", engineId, note.Time);
-                _unisonState[engineId].HasFailedCurrentPhrase = true;
-                _headerText.color = _failColor;
-                _backgroundImage.sprite = _failSprite;
-                _activeUnisonObject.FailUnison(engineId);
+                OnStarPowerPhraseStart(note, engineId, includeChildNotes);
             }
+
+            YargLogger.LogFormatDebug("Engine {0} failed a unison phrase at time {1}", engineId, note.Time);
+            _unisonState[engineId].HasFailedCurrentPhrase = true;
+            _headerText.color = _failColor;
+            _backgroundImage.sprite = _failSprite;
+            _activeUnisonObject.FailUnison(engineId);
         }
 
         private void OnNoteHit<T>(int engineId, T note) where T : Note<T>
@@ -599,6 +609,7 @@ namespace YARG.Gameplay.HUD
             {
                 unsubAction();
             }
+
             _unsubscribeActions.Clear();
         }
 

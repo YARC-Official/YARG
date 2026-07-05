@@ -20,6 +20,8 @@ namespace YARG.Gameplay.HUD
         private Color _failColor;
         [SerializeField]
         private Color _progressColor;
+        [SerializeField]
+        private Color    _incompleteColor;
         private Sequence _completeSequence;
         private bool     _hasFailed;
         private float    _targetProgress;
@@ -47,7 +49,7 @@ namespace YARG.Gameplay.HUD
             }
             else
             {
-                _icon.color = Color.gray4;
+                _icon.color = _incompleteColor;
                 _fill.color = Color.white.WithAlpha(PROGRESS_FILL_ALPHA);
             }
         }
@@ -57,7 +59,7 @@ namespace YARG.Gameplay.HUD
             _completeSequence = UnisonDisplay.BuildCompleteSequence(gameObject);
             _fill.fillAmount = 0f;
             _fill.color = Color.white.WithAlpha(PROGRESS_FILL_ALPHA);
-            _icon.color = Color.gray4;
+            _icon.color = _incompleteColor;
         }
 
         public void SetIcon(string spritePath)
@@ -100,7 +102,7 @@ namespace YARG.Gameplay.HUD
             _hasFailed = false;
             _fill.fillAmount = 0f;
             _fill.color = Color.white.WithAlpha(PROGRESS_FILL_ALPHA);
-            _icon.color = Color.gray4;
+            _icon.color = _incompleteColor;
             gameObject.SetActive(false);
         }
     }
