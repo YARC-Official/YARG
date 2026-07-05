@@ -258,9 +258,18 @@ namespace YARG.Audio.BASS
             return seconds + _positionOffset;
         }
 
+        // Additional seek overhead on Windows/Linux to account for WASAPI/ALSA
+        // software-side buffering that is not captured by info.Latency or DeviceBufferLength.
+        private const double PLATFORM_SEEK_OVERHEAD_SECONDS = 0.015;
+
         protected override double GetPlaybackLatency_Internal()
         {
-            return GetDeviceOutputLatency() + GetDeviceBufferLatency();
+#if UNITY_STANDALONE_OSX || UNITY_EDITOR_OSX
+            // CoreAudio is pull-based; info.Latency already encapsulates the full hardware pipeline.
+            return GetDeviceOutputLatency();
+#else
+            return GetDeviceOutputLatency() + GetDeviceBufferLatency() + PLATFORM_SEEK_OVERHEAD_SECONDS;
+#endif
         }
 
         protected override double GetTempoLatency_Internal()
@@ -326,7 +335,7 @@ namespace YARG.Audio.BASS
 
         private static double GetDeviceBufferLatency()
         {
-            return Math.Max(0, Bass.DeviceBufferLength) / 1000.0;
+            return Math.Max(0, BassAudioManager.ActualDeviceBufferLength) / 2000.0;
         }
 
         private double GetTempoProcessingLatency()

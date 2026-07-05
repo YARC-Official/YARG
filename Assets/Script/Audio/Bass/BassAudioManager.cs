@@ -96,6 +96,8 @@ namespace YARG.Audio.BASS
 
         protected override ReadOnlySpan<string> SupportedFormats => FORMATS;
 
+        public static int ActualDeviceBufferLength { get; private set; }
+
         private readonly int _opusHandle = 0;
         private BassOutputDevice _currentDevice;
 
@@ -169,6 +171,11 @@ namespace YARG.Audio.BASS
 
             var info = Bass.Info;
             int deviceBufferLength = Bass.DeviceBufferLength;
+#if UNITY_STANDALONE_LINUX || UNITY_EDITOR_LINUX || UNITY_ANDROID
+            deviceBufferLength = info.Latency + info.MinBufferLength / 2;
+#endif
+            ActualDeviceBufferLength = deviceBufferLength;
+
             PlaybackLatency = GetBassPlaybackLatency(info, deviceBufferLength, devPeriod);
             MinimumBufferLength = info.MinBufferLength + Bass.UpdatePeriod;
             MaximumBufferLength = 5000;

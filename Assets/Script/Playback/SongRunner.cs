@@ -252,7 +252,7 @@ namespace YARG.Playback
         private readonly LinkedList<(double DurationMs, double ContributionMs)> _syncHistory = new();
         private double _syncHistoryRunningSum;
         private double _syncHistoryRunningDurationMs;
-        private const float SYNC_GAIN = 0.5f;
+        private const float SYNC_GAIN = 0.15f;
         private const float SYNC_CLAMP = 0.10f;
         #endregion
 
