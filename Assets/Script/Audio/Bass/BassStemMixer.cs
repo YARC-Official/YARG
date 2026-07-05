@@ -131,6 +131,17 @@ namespace YARG.Audio.BASS
         }
 
 
+        protected override void StopPlaybackImmediately_Internal()
+        {
+            if (_tempoStreamHandle == 0)
+            {
+                return;
+            }
+
+            Bass.ChannelPause(_tempoStreamHandle);
+            _whammySyncTimer?.Stop();
+        }
+
         protected override int Play_Internal()
         {
             if (_shouldNormalize)

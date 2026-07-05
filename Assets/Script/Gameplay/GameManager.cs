@@ -228,7 +228,12 @@ namespace YARG.Gameplay
 
         private void OnDisable()
         {
-            Cleanup();
+            // Start() intentionally disables this component while loading.
+            // Only treat OnDisable as teardown after gameplay has actually started.
+            if (IsSongStarted)
+            {
+                Cleanup();
+            }
         }
 
         private void OnDestroy()
@@ -245,6 +250,9 @@ namespace YARG.Gameplay
             _cleanedUp = true;
 
             YargLogger.LogInfo("Exiting song");
+
+            // Stop audio before waiting on sync thread. If shutdown blocks later, audio will not keep playing.
+            _mixer?.StopPlaybackImmediately();
 
             // Stop sync thread first, before any shutdown/domain-reload work can invalidate BASS/logging state.
             _songRunner?.Dispose();
@@ -268,10 +276,16 @@ namespace YARG.Gameplay
             }
 
             // Unsubscribe from other events
-            SettingsManager.Settings.NoFail.OnChange -= OnNoFailModeChanged;
-            EngineManager.OnSongFailed -= OnSongFailed;
-            EngineManager.OnCodaStart -= StartCoda;
-            EngineManager.OnCodaEnd -= EndCoda;
+            if (SettingsManager.Settings?.NoFail != null)
+            {
+                SettingsManager.Settings.NoFail.OnChange -= OnNoFailModeChanged;
+            }
+            if (EngineManager != null)
+            {
+                EngineManager.OnSongFailed -= OnSongFailed;
+                EngineManager.OnCodaStart -= StartCoda;
+                EngineManager.OnCodaEnd -= EndCoda;
+            }
 
             //Restore stem volumes to their original state
             foreach (var (stem, state) in _stemStates)
@@ -280,9 +294,9 @@ namespace YARG.Gameplay
             }
 
             DisposeDebug();
-            _pauseMenu.PopAllMenus();
-            BackgroundManager.Dispose();
-            CrowdEventHandler.Dispose();
+            _pauseMenu?.PopAllMenus();
+            BackgroundManager?.Dispose();
+            CrowdEventHandler?.Dispose();
 
             // Reset the time scale back, as it would be 0 at this point (because of pausing)
             Time.timeScale = 1f;
