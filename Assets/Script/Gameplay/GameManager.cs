@@ -115,6 +115,9 @@ namespace YARG.Gameplay
         /// <inheritdoc cref="SongRunner.SongSpeed"/>
         public float SongSpeed => _songRunner.SongSpeed;
 
+        /// <inheritdoc cref="SongRunner.RequestedSongSpeed"/>
+        public float RequestedSongSpeed => _songRunner.RequestedSongSpeed;
+
         /// <inheritdoc cref="SongRunner.Started"/>
         public bool Started => _songRunner.Started;
 
@@ -169,6 +172,7 @@ namespace YARG.Gameplay
         private List<double> _frameTimes;
 
         private double _pauseTime;
+        private float  _lastObservedEffectiveSongSpeed = float.NaN;
         private double _rewindLimit = double.MinValue;
         private bool   _resumeInProgress;
         private bool   _autoCalibrateVideoOnPause;
@@ -243,8 +247,9 @@ namespace YARG.Gameplay
 
             DisposeDebug();
             _pauseMenu.PopAllMenus();
-            _mixer?.Dispose();
+            // Stop the sync thread before disposing BASS handles it polls/commands.
             _songRunner?.Dispose();
+            _mixer?.Dispose();
             BackgroundManager.Dispose();
             CrowdEventHandler.Dispose();
 
@@ -287,6 +292,7 @@ namespace YARG.Gameplay
 
             // Update handlers
             _songRunner.Update();
+            UpdateEffectiveSongSpeedDependents();
             BeatEventHandler.Update(_songRunner.SongTime, _songRunner.VisualTime);
             CrowdEventHandler.Update(_songRunner.SongTime);
 
@@ -336,8 +342,7 @@ namespace YARG.Gameplay
         public void SetSongSpeed(float speed)
         {
             _songRunner.SetSongSpeed(speed);
-
-            BackgroundManager.SetSpeed(_songRunner.SongSpeed);
+            UpdateEffectiveSongSpeedDependents();
         }
 
         public int GetMixerFFTData(float[] buffer, int fftSize, bool complex)
@@ -353,19 +358,29 @@ namespace YARG.Gameplay
         public void AdjustSongSpeed(float deltaSpeed)
         {
             _songRunner.AdjustSongSpeed(deltaSpeed);
+            UpdateEffectiveSongSpeedDependents();
+        }
 
-            // Only scale the player speed in practice
-            if (IsPractice && _songRunner.SongSpeed >= 1)
+        private void UpdateEffectiveSongSpeedDependents()
+        {
+            float speed = _songRunner.SongSpeed;
+            if (Mathf.Approximately(speed, _lastObservedEffectiveSongSpeed))
             {
-                // Scale only if the speed is greater than 1
-                var speed = _songRunner.SongSpeed >= 1 ? _songRunner.SongSpeed : 1;
+                return;
+            }
+
+            _lastObservedEffectiveSongSpeed = speed;
+
+            if (IsPractice && _players != null)
+            {
+                float engineSpeed = speed >= 1 ? speed : 1;
                 foreach (var player in _players)
                 {
-                    player.BaseEngine.SetSpeed(speed);
+                    player.BaseEngine.SetSpeed(engineSpeed);
                 }
             }
 
-            BackgroundManager.SetSpeed(_songRunner.SongSpeed);
+            BackgroundManager.SetSpeed(speed);
         }
 
         public void Pause(bool showMenu = true)

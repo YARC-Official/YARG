@@ -256,6 +256,11 @@ namespace YARG.Audio.BASS
             return GetOutputBufferLatency() + GetDeviceOutputLatency();
         }
 
+        protected override double GetStreamCommandLatency_Internal()
+        {
+            return GetOutputBufferLatency() + GetCommandUpdateLatency();
+        }
+
         protected override double GetStartLatency_Internal()
         {
             // Start/seek commands land anywhere in BASS' update window, so use midpoint.

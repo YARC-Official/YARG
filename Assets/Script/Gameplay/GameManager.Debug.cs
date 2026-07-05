@@ -562,10 +562,13 @@ namespace YARG.Gameplay
                     using var text = ZString.CreateStringBuilder(true);
 
                     text.AppendFormat("Audio/Input Sync: {0:0.0}ms ({1:0.000000}s)\n", _songRunner.SyncDelta * 1000.0, _songRunner.SyncDelta);
-                    text.AppendFormat("Resync start delta: {0:0.000000}\n", _songRunner.SyncStartDelta);
-                    text.AppendFormat("Resync worst delta: {0:0.000000}\n", _songRunner.SyncWorstDelta);
-                    text.AppendFormat("Speed adjustment: {0:0.00}\n", _songRunner.SyncSpeedAdjustment);
-                    text.AppendFormat("Speed multiplier: {0}\n", _songRunner.SyncSpeedMultiplier);
+                    if (!double.IsNaN(_songRunner.LastSyncLandingDelta))
+                    {
+                        text.AppendFormat("Landing: {0:0.0}ms [{1}]\n",
+                            _songRunner.LastSyncLandingDelta * 1000.0,
+                            _songRunner.LastSyncLandingOperation);
+                    }
+                    text.AppendFormat("Speed adjustment: {0:0.000000}\n", _songRunner.SyncSpeedAdjustment);
 
                     GUILayout.Label(text.AsSpan().TrimEnd('\n').ToString());
                 }
