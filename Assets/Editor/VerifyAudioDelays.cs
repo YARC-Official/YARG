@@ -136,8 +136,7 @@ namespace Editor
 
                 Debug.Log($"Calculated parameters: Device Latency: {deviceLatency * 1000:0.0}ms, " +
                           $"Configured Buffer Latency: {configuredLatency * 1000:0.0}ms, " +
-                          $"Command Update Midpoint: {GetExpectedCommandUpdateLatency() * 1000:0.0}ms, " +
-                          $"Device Period Midpoint: {GetExpectedDevicePeriodMidpoint() * 1000:0.0}ms");
+                          $"Command Update Midpoint: {GetExpectedCommandUpdateLatency() * 1000:0.0}ms");
                 Debug.Log($"Mixer reported latencies: Playback: {playbackLatency * 1000:0.0}ms, " +
                           $"Tempo: {tempoLatency * 1000:0.0}ms");
 
@@ -321,7 +320,7 @@ namespace Editor
 
         private static double GetExpectedPlaybackLatency(double deviceLatency)
         {
-            return deviceLatency + Math.Max(0, Bass.DeviceBufferLength) / 1000.0 + GetExpectedCommandUpdateLatency() + GetExpectedDevicePeriodMidpoint();
+            return deviceLatency + Math.Max(0, Bass.DeviceBufferLength) / 1000.0 + GetExpectedCommandUpdateLatency();
         }
 
         private static double GetExpectedCommandUpdateLatency()
@@ -329,10 +328,7 @@ namespace Editor
             return Math.Max(0, Bass.UpdatePeriod) / 2000.0;
         }
 
-        private static double GetExpectedDevicePeriodMidpoint()
-        {
-            return Math.Max(0, Bass.GetConfig(Configuration.DevicePeriod)) / 2000.0;
-        }
+
 
         private static void SetSettingValue<T>(AbstractSetting<T> setting, T value)
         {

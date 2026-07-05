@@ -247,7 +247,7 @@ namespace YARG.Audio.BASS
 
         protected override double GetPlaybackLatency_Internal()
         {
-            return GetDeviceOutputLatency() + GetDeviceBufferLatency() + GetCommandUpdateLatency() + GetDevicePeriodMidpointLatency();
+            return GetDeviceOutputLatency() + GetDeviceBufferLatency() + GetCommandUpdateLatency();
         }
 
         protected override double GetTempoLatency_Internal()
@@ -346,10 +346,7 @@ namespace YARG.Audio.BASS
             return value;
         }
 
-        private static double GetDevicePeriodMidpointLatency()
-        {
-            return Math.Max(0, Bass.GetConfig(Configuration.DevicePeriod)) / 2000.0;
-        }
+
 
         protected override double GetVolume_Internal()
         {
