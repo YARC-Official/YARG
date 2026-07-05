@@ -247,7 +247,7 @@ namespace YARG.Audio.BASS
 
         protected override double GetPlaybackLatency_Internal()
         {
-            return GetDeviceOutputLatency() + GetDeviceBufferLatency();
+            return GetDeviceOutputLatency() + GetDeviceBufferLatency() + GetCommandUpdateLatency() + GetDevicePeriodMidpointLatency();
         }
 
         protected override double GetTempoLatency_Internal()

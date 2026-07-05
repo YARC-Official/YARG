@@ -321,7 +321,7 @@ namespace Editor
 
         private static double GetExpectedPlaybackLatency(double deviceLatency)
         {
-            return deviceLatency + Math.Max(0, Bass.DeviceBufferLength) / 1000.0;
+            return deviceLatency + Math.Max(0, Bass.DeviceBufferLength) / 1000.0 + GetExpectedCommandUpdateLatency() + GetExpectedDevicePeriodMidpoint();
         }
 
         private static double GetExpectedCommandUpdateLatency()
