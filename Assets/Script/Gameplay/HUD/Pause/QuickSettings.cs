@@ -6,6 +6,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.Serialization;
 using YARG.Core.Logging;
+using YARG.Localization;
 using YARG.Menu.Navigation;
 using YARG.Player;
 using YARG.Settings;
@@ -58,6 +59,10 @@ namespace YARG.Gameplay.HUD
             _failMeter = FindAnyObjectByType<FailMeter>();
             _noFailText = _noFailButton.GetComponentInChildren<TextMeshProUGUI>();
             _venuePostProcessingText = _venuePostProcessingButton.GetComponentInChildren<TextMeshProUGUI>();
+            // Need to do this here instead of in the prefab since the value depends on the user's settings
+            _noFailText.text = Localize.Key("Menu.Pause.QuickSettings.NoFail", SettingsManager.Settings.NoFail.Value != NoFailMode.Off ? "Disable" : "Enable");
+            _venuePostProcessingText.text = Localize.Key("Menu.Pause.QuickSettings.VenuePP", SettingsManager.Settings.VenuePostProcessing.Value ? "Disable" : "Enable");
+
             _editHudButton.gameObject.SetActive(GameManager.Players.Count <= 1);
         }
 
@@ -68,10 +73,8 @@ namespace YARG.Gameplay.HUD
             _quickSettingsContainer.gameObject.SetActive(true);
             _subSettingsObject.SetActive(false);
             // _noFailButton.SetActive(!SettingsManager.Settings.NoFailMode.Value);
-            _noFailText.text = SettingsManager.Settings.NoFail.Value != NoFailMode.Off ? "Disable No Fail" : "Enable No Fail";
-            _venuePostProcessingText.text = SettingsManager.Settings.VenuePostProcessing.Value
-                ? "Disable Venue Post Processing"
-                : "Enable Venue Post Processing";
+            _noFailText.text = Localize.Key("Menu.Pause.QuickSettings.NoFail", SettingsManager.Settings.NoFail.Value != NoFailMode.Off ? "Disable" : "Enable");
+            _venuePostProcessingText.text = Localize.Key("Menu.Pause.QuickSettings.VenuePP", SettingsManager.Settings.VenuePostProcessing.Value ? "Disable" : "Enable");
         }
 
         public override void Back()

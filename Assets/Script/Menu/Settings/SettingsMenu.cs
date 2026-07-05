@@ -453,9 +453,8 @@ namespace YARG.Menu.Settings
                 return;
             }
 
-            //This is a bit of a hack to update the CurrentNavigationGroup again.
-            //ideally the settings menu should work just like every other menu so this isn't needed
-            MenuManager.Instance.ReactivateCurrentMenu();
+            // The settings menu overlays the current menu, so avoid toggling an already-active menu.
+            MenuManager.Instance.ReactivateCurrentMenu(false);
         }
 
         protected override void SingletonDestroy()

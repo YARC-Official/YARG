@@ -29,6 +29,8 @@ namespace YARG.Themes
         Glissando = 13,
 
         Wildcard = 14,
+
+        DedicatedLaneKick = 15
     }
 
     public class ThemeNote : MonoBehaviour

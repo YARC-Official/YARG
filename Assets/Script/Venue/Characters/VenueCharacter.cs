@@ -41,7 +41,7 @@ namespace YARG.Venue.Characters
         public VocalGender CharacterGender = VocalGender.Unspecified;
 
         [SerializeField]
-        private int _actionsPerAnimationCycle;
+        protected int _actionsPerAnimationCycle;
 
         [Space]
 
@@ -52,7 +52,7 @@ namespace YARG.Venue.Characters
         [SerializeField]
         private string _playingAnimationName;
         [SerializeField]
-        private int _framesToFirstHit;
+        protected int _framesToFirstHit;
         [Space]
         [SerializeField]
         private List<string> _strumUpStates = new();
@@ -119,6 +119,18 @@ namespace YARG.Venue.Characters
         private bool _hasAnimationController;
 
         protected Vrm10Instance VrmInstance;
+
+        [NonSerialized]
+        public AnimationStateType CurrentGenericState;
+
+        public HandMapType CurrentHandMap => _handMap;
+        public StrumMapType CurrentStrumMap => _strumMap;
+
+        [NonSerialized]
+        public AnimationStateType CurrentHandPosition;
+
+        [NonSerialized]
+        public bool HatIsOpen;
 
         public virtual void Initialize(CharacterManager characterManager)
         {
@@ -427,7 +439,7 @@ namespace YARG.Venue.Characters
                 return;
             }
 
-            YargLogger.LogDebug($"Animation {animation} not found for character type {Type}");
+            YargLogger.LogTrace($"Animation {animation} not found for character type {Type}");
         }
 
         public void OnDrumAnimation(AnimationType animation)
@@ -461,6 +473,11 @@ namespace YARG.Venue.Characters
                 AnimationType.FloorTomRightHand => AnimationStateType.FloorTomRightHand,
                 _ => null
             };
+
+            if (animation is AnimationType.OpenHiHat or AnimationType.CloseHiHat)
+            {
+                HatIsOpen = animation == AnimationType.OpenHiHat;
+            }
 
             if (animState.HasValue)
             {

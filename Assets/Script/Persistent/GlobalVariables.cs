@@ -43,7 +43,10 @@ namespace YARG
 
         public SceneIndex CurrentScene { get; private set; } = SceneIndex.Persistent;
 
-        public string CurrentVersion { get; private set; } = "v0.14";
+        public string CurrentVersion { get; private set; } = "v0.15";
+
+        private float _nextLocalizationUpdate;
+        private const float LOCALIZATION_UPDATE_INTERVAL = 1800f;
 
         protected override void SingletonAwake()
         {
@@ -78,6 +81,8 @@ namespace YARG
             PlaylistContainer.Initialize();
             CustomContentManager.Initialize();
             LocalizationManager.Initialize(CommandLineArgs.Language);
+
+            _nextLocalizationUpdate = Time.realtimeSinceStartup + LOCALIZATION_UPDATE_INTERVAL + UnityEngine.Random.Range(-30f, 30f);
 
             int profileCount = PlayerContainer.LoadProfiles();
             YargLogger.LogFormatInfo("Loaded {0} profiles", profileCount);
@@ -114,6 +119,13 @@ namespace YARG
             {
                 GlobalAudioHandler.SetMasterVolume(muted ? 0 : SettingsManager.Settings.MasterMusicVolume.Value);
                 _previousMute = muted;
+            }
+
+            if (CurrentScene != SceneIndex.Gameplay && Time.realtimeSinceStartup > _nextLocalizationUpdate)
+            {
+                LocalizationManager.LoadUpdates();
+                _nextLocalizationUpdate = Time.realtimeSinceStartup + LOCALIZATION_UPDATE_INTERVAL + UnityEngine.Random.Range(-30f, 30f);
+                YargLogger.LogFormatDebug("Updating localization at {0}, next update at {1}", Time.realtimeSinceStartup, _nextLocalizationUpdate);
             }
         }
 
@@ -224,6 +236,12 @@ namespace YARG
 #else
             return $"{branch} b{commitCount} ({commit})";
 #endif
+        }
+
+        // Maybe there is a better place for this?
+        public LocalizeText[] GetLocalizedTexts()
+        {
+            return FindObjectsByType<LocalizeText>(FindObjectsSortMode.None);
         }
     }
 }

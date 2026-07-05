@@ -31,6 +31,6 @@ namespace YARG
         public readonly bool    IsReplay => CurrentReplay is not null;
         public          bool    PlayingWithReplay;
         public          double? SavedInputTime;
-
+        public          bool    CrowdSfxVenueOverride;
     }
 }

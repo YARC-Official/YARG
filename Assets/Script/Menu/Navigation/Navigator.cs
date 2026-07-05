@@ -325,8 +325,14 @@ namespace YARG.Menu.Navigation
             }
         }
 
-        public void PushScheme(NavigationScheme scheme)
+        public async UniTaskVoid PushScheme(NavigationScheme scheme)
         {
+            // If there is a dialog open, wait for it to close before pushing the new scheme
+            if (DialogManager.Instance.IsDialogShowing)
+            {
+                await DialogManager.Instance.WaitUntilCurrentClosed();
+            }
+
             _schemeStack.Push(scheme);
             UpdateHelpBar().Forget();
         }

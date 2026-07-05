@@ -66,7 +66,6 @@ namespace YARG.Gameplay
         private static float _frameAccumulator = 0f;
         private static float _fpsWindowStart = 0f;
         private static int _fpsWindowFrames = 0;
-        private bool _needsInitialization = true;
 
         private void Awake()
         {
@@ -134,11 +133,22 @@ namespace YARG.Gameplay
             }
 
             var descriptor = new RenderTextureDescriptor(outputWidth, outputHeight, RenderTextureFormat.DefaultHDR, 16, 0);
-            _venueTexture = new RenderTexture(descriptor);
-            _venueTexture.Create();
+
             if (_venueOutput != null)
             {
+                // Don't actually create the texture unless _venueOutput is set
+                _venueTexture = new RenderTexture(descriptor);
+                _venueTexture.Create();
                 _venueOutput.texture = _venueTexture;
+            }
+            else
+            {
+                // We check again because it is possible for venue to load before the rest of the gameplay scene
+                var venueOutputObject = GameObject.Find("Venue Output");
+                if (venueOutputObject != null)
+                {
+                    _venueOutput = venueOutputObject.GetComponent<RawImage>();
+                }
             }
 
             descriptor.depthBufferBits = 0;
@@ -225,10 +235,9 @@ namespace YARG.Gameplay
 
         private void Update()
         {
-            if (ScreenSizeDetector.HasScreenSizeChanged || _needsInitialization)
+            if (ScreenSizeDetector.HasScreenSizeChanged || _venueTexture == null)
             {
                 RecreateTextures();
-                _needsInitialization = false;
                 // Force a render this frame to avoid flickering when resizing
                 ResetRenderState();
             }
@@ -244,15 +253,11 @@ namespace YARG.Gameplay
 
             if (fpsEffect.IsActive())
             {
-                if (FPS == 0)
+                // Divisor is relative to 60 FPS, so target is always 60/divisor
+                _effectiveFps = Mathf.RoundToInt(60f / fpsEffect.Divisor.value);
+                // Clamp to FPS cap if non-zero (no cap when FPS=0)
+                if (FPS > 0)
                 {
-                    _effectiveFps = Mathf.RoundToInt(60f / fpsEffect.Divisor.value);
-                } else {
-                    // The divisor is relative to 60 fps, so we need to adjust for that if FPS is something other than 60
-                    var fpsRatio = ActualFPS / 60f;
-                    var adjustedDivisor = fpsRatio * fpsEffect.Divisor.value;
-                    _effectiveFps = Mathf.RoundToInt(FPS / adjustedDivisor);
-                    // Don't allow a rate higher than the FPS cap
                     _effectiveFps = Mathf.Min(FPS, _effectiveFps);
                 }
             }

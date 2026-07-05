@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -105,6 +105,8 @@ namespace YARG.Audio.BASS
             SetOutputChannel_Internal(outputChannel);
             SetVolume_Internal(volume);
             SetSpeed_Internal(speed, true);
+
+            _BufferSetter(SettingsManager.Settings.PlaybackBufferLength.Value);
         }
 
 
@@ -534,21 +536,18 @@ namespace YARG.Audio.BASS
             return true;
         }
 
-        protected override void ToggleBuffer_Internal(bool enable)
-        {
-            _BufferSetter(enable, Bass.PlaybackBufferLength);
-        }
-
         protected override void SetBufferLength_Internal(int length)
         {
-            _BufferSetter(SettingsManager.Settings.EnablePlaybackBuffer.Value, length);
+            _BufferSetter(length);
         }
 
-        private void _BufferSetter(bool enable, int length)
+        private void _BufferSetter(int length)
         {
-            if (!enable)
+            // 0 is a special value in BASS that disables buffering. 
+            // Any positive buffer length must be at least the minimum supported limit to prevent errors.
+            if (length > 0 && length < GlobalAudioHandler.MinimumBufferLength)
             {
-                length = 0;
+                length = GlobalAudioHandler.MinimumBufferLength;
             }
 
             if (!Bass.ChannelSetAttribute(_tempoStreamHandle, ChannelAttribute.Buffer, length))

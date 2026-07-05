@@ -10,7 +10,6 @@ namespace YARG.Venue
 {
     public class BundleBackgroundManager : MonoBehaviour
     {
-
         private const string VENUE_LAYER_NAME = "Venue";
 
         private int _venueLayerNumber = -1;
@@ -99,7 +98,6 @@ namespace YARG.Venue
 
 
 #if UNITY_EDITOR
-
         [ContextMenu("Export Vocalist")]
         public void ExportCharacter()
         {

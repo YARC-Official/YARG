@@ -38,6 +38,11 @@
         public static void SetSceneEnabled(bool enabled)
         {
             UnityEditor.EditorPrefs.SetBool(ENABLED_KEY, enabled);
+
+            if (!enabled)
+            {
+                ClearScenePath();
+            }
         }
 
         public static bool IsSceneEnabled()

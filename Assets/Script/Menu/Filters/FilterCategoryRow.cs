@@ -1,15 +1,47 @@
 ﻿using TMPro;
 using UnityEngine;
+using System;
 using YARG.Menu.Navigation;
 
 namespace YARG.Menu.Filters
 {
+    public readonly struct FilterKey : IEquatable<FilterKey>
+    {
+        public readonly FilterGroup Group;
+        public readonly Guid ContextId;
+
+        public FilterKey(FilterGroup group, Guid contextId = default)
+        {
+            Group = group;
+            ContextId = contextId;
+        }
+
+        public bool Equals(FilterKey other)
+        {
+            return Group == other.Group && ContextId.Equals(other.ContextId);
+        }
+
+        public override bool Equals(object obj)
+        {
+            return obj is FilterKey other && Equals(other);
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(Group, ContextId);
+        }
+
+        public static bool operator ==(FilterKey left, FilterKey right) => left.Equals(right);
+        public static bool operator !=(FilterKey left, FilterKey right) => !left.Equals(right);
+    }
+
     public class FilterCategoryRow : NavigatableBehaviour
     {
         [SerializeField] private TMP_Text _label;
         [SerializeField] private TMP_Text _secondaryLabel;
 
-        public FilterGroup Filters { get; private set; }
+        public FilterKey Key { get; private set; }
+        public FilterGroup Group => Key.Group;
 
         private FilterRowBackgroundVisual _backgroundVisual;
 
@@ -22,9 +54,9 @@ namespace YARG.Menu.Filters
                 _backgroundVisual = gameObject.AddComponent<FilterRowBackgroundVisual>();
         }
 
-        public void Init(FilterGroup group, string label, string secondaryLabel = null)
+        public void Init(FilterKey key, string label, string secondaryLabel = null)
         {
-            Filters = group;
+            Key = key;
             _label.text = label;
             SetSecondaryText(secondaryLabel);
         }
@@ -50,10 +82,10 @@ namespace YARG.Menu.Filters
         Decade,
         VocalParts,
         Source,
+        Playlist,
         Charter,
-        Difficulty,
-        Length,
-        Playlist
+        Intensity,
+        Length
     }
 }
 
