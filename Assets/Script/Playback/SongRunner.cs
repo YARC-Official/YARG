@@ -383,6 +383,8 @@ namespace YARG.Playback
             GC.SuppressFinalize(this);
         }
 
+        public bool SyncThreadStopped => _syncThread == null || !_syncThread.IsAlive;
+
         private void Dispose(bool disposing)
         {
             if (!_disposed)

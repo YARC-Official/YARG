@@ -224,9 +224,43 @@ namespace YARG.Gameplay
             _frameTimes = new List<double>();
         }
 
+        private bool _cleanedUp;
+
+        private void OnDisable()
+        {
+            Cleanup();
+        }
+
         private void OnDestroy()
         {
+            Cleanup();
+        }
+
+        private void Cleanup()
+        {
+            if (_cleanedUp)
+            {
+                return;
+            }
+            _cleanedUp = true;
+
             YargLogger.LogInfo("Exiting song");
+
+            // Stop sync thread first, before any shutdown/domain-reload work can invalidate BASS/logging state.
+            _songRunner?.Dispose();
+            bool syncThreadStopped = _songRunner?.SyncThreadStopped ?? true;
+            _songRunner = null;
+
+            // If BASS is stuck in the sync thread while holding the mixer lock, disposing the mixer here deadlocks the editor.
+            if (syncThreadStopped)
+            {
+                _mixer?.Dispose();
+            }
+            else
+            {
+                YargLogger.LogError("Skipping mixer dispose because song sync thread did not stop.");
+            }
+            _mixer = null;
 
             if (Navigator.Instance != null)
             {
@@ -247,9 +281,6 @@ namespace YARG.Gameplay
 
             DisposeDebug();
             _pauseMenu.PopAllMenus();
-            // Stop the sync thread before disposing BASS handles it polls/commands.
-            _songRunner?.Dispose();
-            _mixer?.Dispose();
             BackgroundManager.Dispose();
             CrowdEventHandler.Dispose();
 
