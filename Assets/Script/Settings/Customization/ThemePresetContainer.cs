@@ -18,7 +18,9 @@ namespace YARG.Settings.Customization
 
         public override void Initialize()
         {
-            base.Initialize(); // loads JSON presets from custom/themes/
+            // Create directory but do NOT call base.Initialize() - that loads JSON files
+            // Theme presets are loaded from .yargtheme bundles, not JSON files
+            Directory.CreateDirectory(FullContentDirectory);
 
             if (!Directory.Exists(FullContentDirectory)) return;
 
