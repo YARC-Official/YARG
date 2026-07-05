@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using ManagedBass;
 using UnityEngine;
 using YARG.Core.Audio;
@@ -156,7 +156,7 @@ namespace YARG.Audio.BASS
 
         protected override void Pause_Internal()
         {
-            if (Bass.ChannelIsActive(_channel) is not PlaybackState.Playing)
+            if (Bass.ChannelIsActive(_channel) is not (PlaybackState.Playing or PlaybackState.Stalled))
             {
                 return;
             }

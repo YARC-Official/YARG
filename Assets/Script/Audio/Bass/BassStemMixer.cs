@@ -37,7 +37,7 @@ namespace YARG.Audio.BASS
         private const    float WHAMMY_SYNC_INTERVAL_SECONDS = 1f;
 
         private static bool IsWhammyEnabled => SettingsManager.Settings.UseWhammyFx.Value;
-        private        bool IsPlaying       => Bass.ChannelIsActive(_tempoStreamHandle) == PlaybackState.Playing;
+        private        bool IsPlaying       => Bass.ChannelIsActive(_tempoStreamHandle) is PlaybackState.Playing or PlaybackState.Stalled;
 
         private readonly int            _mixerHandle;
         private readonly List<int>      _sourceHandles = new();

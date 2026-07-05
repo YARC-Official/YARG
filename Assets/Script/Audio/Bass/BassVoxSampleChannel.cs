@@ -1,4 +1,4 @@
-﻿#nullable enable
+#nullable enable
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -137,7 +137,7 @@ namespace YARG.Audio.BASS
 
         protected override bool IsPlaying_Internal()
         {
-            return Bass.ChannelIsActive(_channel) == PlaybackState.Playing;
+            return Bass.ChannelIsActive(_channel) is PlaybackState.Playing or PlaybackState.Stalled;
         }
 
         protected override void DisposeUnmanagedResources()
