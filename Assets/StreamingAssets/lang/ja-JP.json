@@ -161,6 +161,7 @@
             "Repos": {
                 "Community": "コミュニティ",
                 "OpenSource": "オープンソース",
+                "YALCY": "YALCY",
                 "YARC-Charters": "公式YARGセットリスト",
                 "YARC-Launcher": "YARCランチャー",
                 "YARG": "YARG"
@@ -193,6 +194,7 @@
                 "AlbumCover": "{0}制作のアルバムカバー",
                 "ChartedBy": "{0}によって作成しました",
                 "License": "曲ライセンス: {0}",
+                "Background": "Background Visual Media By: {0}",
                 "Written": "書きました",
                 "Composed": "作曲した",
                 "Arranged": "編曲",
@@ -279,7 +281,7 @@
             "PlayWithReplay": "リプレイでプレイ"
         },
         "Main": {
-            "MessageOfTheDay": "<align=center><size=32><b>Welcome to the v0.15 nightlies!</b></size></align>\n\nv0.15 now has support for tremolo/trill lanes, customizable track backgrounds (including transparency), custom vocal characters for venues, advanced player performance tracking, repositionable highways, adds new in game calibration tools, and more! Oh, and the new and improved music library is finally here, including advanced song filters so even the largest library can't keep you from finding what you're looking for! :D\n\n<b>If you have any feedback or find any bugs, please let us know on Discord or GitHub.</b>\n\nHappy YARGin'!",
+            "MessageOfTheDay": "<align=center><size=32><b>Welcome to v0.15!</b></size></align>\n\nv0.15 is a major update that adds many highly requested and necessary gameplay features such as roll/trill lanes and Big \"YARG\" endings, as well as revamped user interface in the song selection and results screen, drum lane customization, automatic genre categorization, experimental custom vocalist characters in venues, and more.\n\n<b>If you have any feedback or find any bugs, please let us know on Discord or GitHub.</b>\n\nHappy YARGin'!",
             "Options": {
                 "Quickplay": "クイックプレイ",
                 "Practice": "練習",
@@ -317,7 +319,7 @@
                     "RandomSong": "ランダムな曲",
                     "BackToTop": "トップへ戻る",
                     "ScanSongs": "曲をスキャン",
-                    "SortBy": "{0}で並び替え",
+                    "SortBy": "Sort By...",
                     "GoToSection": "セクションへ",
                     "AddToFavorites": "お気に入りへ追加",
                     "RemoveFromFavorites": "お気に入りから削除",
@@ -574,6 +576,48 @@
             "4LaneHeader": "4レーンドラムハイウェイ設定",
             "ProHeader": "プロドラムハイウェイ設定",
             "5LaneHeader": "5レーンドラムハイウェイ設定"
+        },
+        "Pause": {
+            "Generic": {
+                "Resume": "Resume",
+                "Restart": "Restart",
+                "BackToLibrary": "Back To Library",
+                "Settings": "Settings",
+                "Practice": "Practice"
+            },
+            "Fail": {
+                "EnableNoFailandResume": "Enable No Fail and Resume",
+                "EnableNoFailandRestart": "Enable No Fail and Restart"
+            },
+            "Practice": {
+                "SetAPosition": "Set A Position",
+                "SetBPosition": "Set B Position",
+                "ClearAB": "Clear A/B",
+                "SelectNewSections": "Select New Sections",
+                "Quickplay": "Quickplay"
+            },
+            "Quickplay": {
+                "SaveReplay": "Save Replay"
+            },
+            "Replay": {
+                "SaveColorProfile": "Save Color Profile"
+            },
+            "Setlist": {
+                "Skip": "Skip"
+            },
+            "QuickSettings": {
+                "AudioSettings": "Audio Settings",
+                "EditHud": "Edit HUD",
+                "NoFail": {
+                    "Enable": "Enable No Fail",
+                    "Disable": "Disable No Fail"
+                },
+                "VenuePP": {
+                    "Enable": "Enable Venue Post Processing",
+                    "Disable": "Disable Venue Post Processing"
+                },
+                "Calibration": "Calibration Settings"
+            }
         }
     },
     "Gameplay": {
@@ -950,7 +994,7 @@
             "Experimental": "実験的",
             "HUD": "HUD",
             "Gameplay": "ゲームプレイ",
-            "OutputConfiguration": "Output Configuration",
+            "OutputConfiguration": "出力設定",
             "Accessibility": "アクセシビリティ"
         },
         "Button": {
@@ -982,7 +1026,7 @@
             },
             "AccountForHardwareLatency": {
                 "Name": "ハードウェア遅延を考慮する",
-                "Description": "Automatically accounts for the detected playback latency of your audio hardware. This latency may be inaccurate, disable this setting if your audio calibration is negative."
+                "Description": "オーディオデバイスのレイテンシーを自動的に考慮します。このレイテンシーは不正確場合があるから、オーディオキャリブレーションが負の場合はこの設定を無効してください。"
             },
             "BassVolume": {
                 "Name": "ベースボリューム",
@@ -1008,7 +1052,7 @@
             },
             "BandComboTypeSetting": {
                 "Name": "バンドコンボ種類",
-                "Description": "Adjusts how Band Streak is calculated, especially in multiplayer sessions. Set this to 'Off' to hide the Band Streak counter.",
+                "Description": "特にマルチプレイヤーでバンドストリークを計算方法を変更します。バンドストリークカウンターを非表示するには、この設定を「オフ」に変更してください。",
                 "Dropdown": {
                     "Off": "オフ",
                     "Lenient": "緩い",
