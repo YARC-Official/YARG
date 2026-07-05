@@ -46,8 +46,13 @@ namespace YARG.Playback
         private bool _endSamplePlayed;
         private bool _disposed;
 
+        private bool _started;
+
         private readonly double _musicStartTime;
         private readonly double _musicEndTime;
+
+        private bool UseCrowdFx => SettingsManager.Settings.UseCrowdFx.Value == CrowdFxMode.Enabled
+            && !GlobalVariables.State.CrowdSfxVenueOverride;
 
         public CrowdEventHandler(SongChart chart, GameManager gameManager)
         {
@@ -84,8 +89,16 @@ namespace YARG.Playback
             {
                 ChangeCrowdMuteState(true);
             }
+        }
 
-            if (SettingsManager.Settings.UseCrowdFx.Value == CrowdFxMode.Enabled)
+        public void Start()
+        {
+            if (_started)
+            {
+                return;
+            }
+
+            if (UseCrowdFx)
             {
                 _selectedOpenSample = _openSamples[UnityEngine.Random.Range(0, _openSamples.Length)];
                 _selectedStartSample = _startSamples[UnityEngine.Random.Range(0, _startSamples.Length)];
@@ -102,6 +115,8 @@ namespace YARG.Playback
                 }
             }
 
+            _started = true;
+
             if (SettingsManager.Settings.NoFail.Value == NoFailMode.NoMeter || GlobalVariables.State.IsPractice)
             {
                 return;
@@ -111,7 +126,7 @@ namespace YARG.Playback
             {
                 _engineManager.OnSongFailed += OnSongFailed;
 
-                if (SettingsManager.Settings.UseCrowdFx.Value == CrowdFxMode.Enabled)
+                if (UseCrowdFx)
                 {
                     _engineManager.OnHappinessUnderThreshold += OnHappinessUnderThreshold;
                     _engineManager.OnHappinessOverThreshold += OnHappinessOverThreshold;
@@ -121,6 +136,11 @@ namespace YARG.Playback
 
         public void Update(double time)
         {
+            if (!_started)
+            {
+                return;
+            }
+
             while (_eventIndex < _events.Count && _events[_eventIndex].Time <= time)
             {
                 var ev = _events[_eventIndex];
@@ -167,7 +187,7 @@ namespace YARG.Playback
         private void Clap()
         {
             // No clapping when charter has inhibited clapping, even if SP is active
-            if (ClapState == ClapState.NoClap)
+            if (ClapState == ClapState.NoClap || !UseCrowdFx)
             {
                 return;
             }

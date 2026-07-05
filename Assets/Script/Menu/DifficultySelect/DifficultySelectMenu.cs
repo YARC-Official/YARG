@@ -96,6 +96,7 @@ namespace YARG.Menu.DifficultySelect
 
         private YargPlayer CurrentPlayer => PlayerContainer.Players[_playerIndex];
 
+        private ScrollRect _scrollRect;
         private Scrollbar _scrollbar;
 
         private void OnEnable()
@@ -154,7 +155,7 @@ namespace YARG.Menu.DifficultySelect
             _sourceIcon.sprite = SongSources.SourceToIcon(GlobalVariables.State.CurrentSong.Source);
             _sourceIcon.gameObject.SetActive(_sourceIcon.sprite != null);
 
-
+            _scrollRect = GetComponentInChildren<ScrollRect>();
             _scrollbar = GetComponentInChildren<Scrollbar>();
             _navGroup.SelectionChanged += UpdateForSelectionChanged;
         }
@@ -162,27 +163,42 @@ namespace YARG.Menu.DifficultySelect
         private void UpdateForSelectionChanged(NavigatableBehaviour navigatableBehaviour,
             SelectionOrigin selectionOrigin)
         {
+            UpdateScrollbarForSelection();
+        }
+
+        private void UpdateScrollbarForSelection()
+        {
             if (!_scrollbar)
             {
                 return;
             }
 
             int? index = _navGroup.SelectedIndex;
-            if (index is { } i)
+            if (index is not { } i) return;
+
+            int count = _navGroup.Count;
+            if (count <= 0)
             {
-                int count = _navGroup.Count;
-                float highScrollBound = _scrollbar.size + (1 - _scrollbar.size) * _scrollbar.value;
-                float lowScrollBound = (1 - _scrollbar.size) * _scrollbar.value;
-                float indexHighBound = 1 - (1 / (float) count) * i;
-                float indexLowBound = 1 - (1 / (float) count) * (i + 1);
-                if (highScrollBound < indexHighBound)
-                {
-                    _scrollbar.value = (indexHighBound - _scrollbar.size) / (1 - _scrollbar.size);
-                }
-                else if (lowScrollBound > indexLowBound)
-                {
-                    _scrollbar.value = indexLowBound / (1 - _scrollbar.size);
-                }
+                return;
+            }
+
+            if (Mathf.Approximately(_scrollbar.size, 1f))
+            {
+                _scrollbar.value = 1f;
+                return;
+            }
+
+            float highScrollBound = _scrollbar.size + (1 - _scrollbar.size) * _scrollbar.value;
+            float lowScrollBound = (1 - _scrollbar.size) * _scrollbar.value;
+            float indexHighBound = 1 - (1 / (float) count) * i;
+            float indexLowBound = 1 - (1 / (float) count) * (i + 1);
+            if (highScrollBound < indexHighBound)
+            {
+                _scrollbar.value = (indexHighBound - _scrollbar.size) / (1 - _scrollbar.size);
+            }
+            else if (lowScrollBound > indexLowBound)
+            {
+                _scrollbar.value = indexLowBound / (1 - _scrollbar.size);
             }
         }
 
@@ -218,6 +234,27 @@ namespace YARG.Menu.DifficultySelect
             }
 
             _lastMenuState = _menuState;
+            RefreshScrollbar();
+        }
+
+        private void RefreshScrollbar()
+        {
+            if (_scrollRect == null)
+            {
+                UpdateScrollbarForSelection();
+                return;
+            }
+
+            Canvas.ForceUpdateCanvases();
+            _scrollRect.Rebuild(CanvasUpdate.PostLayout);
+
+            if (_scrollRect.ScrollableHeight() <= 0f)
+            {
+                _scrollRect.verticalNormalizedPosition = 1f;
+                return;
+            }
+
+            UpdateScrollbarForSelection();
         }
 
         private void CreateMainMenu()

@@ -18,12 +18,17 @@ namespace YARG.Venue
     public class BundleBackgroundManager : MonoBehaviour
     {
         // DO NOT CHANGE THIS! It will break existing venues
-        public const string BACKGROUND_PREFAB_PATH = "Assets/_Background.prefab";
-        public const string CHARACTER_PREFAB_PATH = "Assets/_Character.prefab";
-        public const string BACKGROUND_SHADER_BUNDLE_NAME = "_metal_shaders.bytes";
-        public const string CHARACTER_SHADER_BUNDLE_NAME = "_character_metal_shaders.bytes";
-        public const string BACKGOUND_OSX_MATERIAL_PREFIX = "_metal_";
-        public const string BUNDLE_OSX_SUFFIX = "_metal.bytes";
+        public const string   BACKGROUND_PREFAB_PATH        = "Assets/_Background.prefab";
+        public const string   CHARACTER_PREFAB_PATH         = "Assets/_Character.prefab";
+        public const string   BACKGROUND_SHADER_BUNDLE_NAME = "_metal_shaders.bytes";
+        public const string   CHARACTER_SHADER_BUNDLE_NAME  = "_character_metal_shaders.bytes";
+        public const string   BACKGOUND_OSX_MATERIAL_PREFIX = "_metal_";
+        public const string   BUNDLE_OSX_SUFFIX             = "_metal.bytes";
+        public const string   AUDIO_PATH                    = "__YARG_AudioBundle";
+        public static readonly string[] AUDIO_FILE_EXTENSIONS =
+        {
+            ".ogg", ".mogg", ".wav", ".mp3", ".aiff", ".opus",
+        };
 
         private const string VENUE_LAYER_NAME = "Venue";
 
@@ -122,6 +127,80 @@ namespace YARG.Venue
 
         private GameObject _backgroundReference;
 
+        private static string GetRootAssetDirectory(GameObject root)
+        {
+            string assetPath = string.Empty;
+
+            if (root.scene.IsValid())
+            {
+                assetPath = root.scene.path;
+            }
+
+            if (string.IsNullOrEmpty(assetPath))
+            {
+                assetPath = PrefabUtility.GetPrefabAssetPathOfNearestInstanceRoot(root);
+            }
+
+            if (string.IsNullOrEmpty(assetPath))
+            {
+                assetPath = AssetDatabase.GetAssetPath(root);
+            }
+
+            return string.IsNullOrEmpty(assetPath) ? null : Path.GetDirectoryName(assetPath);
+        }
+
+        private static string[] BundleAudioAssets(GameObject root)
+        {
+            var directory = GetRootAssetDirectory(root);
+            if (string.IsNullOrEmpty(directory) || !AssetDatabase.IsValidFolder(directory))
+            {
+                return Array.Empty<string>();
+            }
+
+            var tempDirectory = Path.Combine("Assets", "__YARG_AudioBundle");
+            if (AssetDatabase.IsValidFolder(tempDirectory))
+            {
+                AssetDatabase.DeleteAsset(tempDirectory);
+            }
+
+            AssetDatabase.CreateFolder("Assets", "__YARG_AudioBundle");
+
+            var fullRoot = Path.GetFullPath(directory);
+            var fullTemp = Path.GetFullPath(tempDirectory);
+
+            var audioFiles = Directory
+                .EnumerateFiles(directory, "*", SearchOption.AllDirectories)
+                .Where(file => AUDIO_FILE_EXTENSIONS.Contains(Path.GetExtension(file).ToLowerInvariant()))
+                .ToArray();
+
+            var audioAssets = new List<string>();
+            foreach (var audioFile in audioFiles)
+            {
+                var fullAudioPath = Path.GetFullPath(audioFile);
+
+                // Skip files that are in the temp directory
+                if (fullAudioPath.StartsWith(fullTemp, StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
+                var relativePath = Path.GetRelativePath(fullRoot, fullAudioPath);
+                var tempAssetPath = Path.Combine(tempDirectory, relativePath + ".bytes");
+                var tempAssetDirectory = Path.GetDirectoryName(tempAssetPath);
+
+                if (!AssetDatabase.IsValidFolder(tempAssetDirectory))
+                {
+                    Directory.CreateDirectory(tempAssetDirectory);
+                }
+
+                File.Copy(audioFile, tempAssetPath, true);
+                AssetDatabase.ImportAsset(tempAssetPath);
+                audioAssets.Add(tempAssetPath);
+            }
+
+            return audioAssets.ToArray();
+        }
+
         private void Export(GameObject root, BackgroundHelper.ExportType type)
         {
             _backgroundReference = root;
@@ -215,11 +294,18 @@ namespace YARG.Venue
 
                 var backgroundPath = BackgroundHelper.ExportType.Character == type ? CHARACTER_PREFAB_PATH : BACKGROUND_PREFAB_PATH;
 
+                var bundledAudioAssets = Array.Empty<string>();
+
+                if (type == BackgroundHelper.ExportType.Background)
+                {
+                    bundledAudioAssets = BundleAudioAssets(root);
+                }
+
                 var assetPaths = new[]
                 {
                     Path.Combine("Assets/", metalAssetBundleName),
                     backgroundPath
-                };
+                }.Concat(bundledAudioAssets).ToArray();
 
                 AssetBundleBuild assetBundleBuild = default;
                 assetBundleBuild.assetBundleName = fileName;
@@ -274,6 +360,11 @@ namespace YARG.Venue
                     AssetDatabase.DeleteAsset(asset);
                 }
 
+                if (AssetDatabase.IsValidFolder("Assets/__YARG_AudioBundle"))
+                {
+                    AssetDatabase.DeleteAsset("Assets/__YARG_AudioBundle");
+                }
+
                 // If the file exists, delete it (to replace it)
                 if (File.Exists(path))
                 {
@@ -292,6 +383,12 @@ namespace YARG.Venue
             finally
             {
                 AssetDatabase.AllowAutoRefresh();
+
+                if (AssetDatabase.IsValidFolder("Assets/__YARG_AudioBundle"))
+                {
+                    AssetDatabase.DeleteAsset("Assets/__YARG_AudioBundle");
+                }
+
                 if (clonedBackground != null)
                 {
                     DestroyImmediate(clonedBackground);

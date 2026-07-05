@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.Linq;
 using Cinemachine;
 using Cysharp.Threading.Tasks;
 using Newtonsoft.Json;
@@ -185,10 +186,19 @@ namespace YARG.Gameplay
             _backgroundDimmer.color = colorDim;
 
             _type = result.Type;
+
+            // Start crowd event handler now if we aren't waiting on a yarground
+            // TODO: Figure out how to decouple this
+            if (_type != BackgroundType.Yarground)
+            {
+                GameManager.CrowdEventHandler.Start();
+            }
+
             switch (_type)
             {
                 case BackgroundType.Yarground:
                     await LoadYarground(result);
+                    GameManager.CrowdEventHandler.Start();
                     break;
                 case BackgroundType.Video:
                     LoadVideoBackground(result);
@@ -215,6 +225,9 @@ namespace YARG.Gameplay
 
             // Load Metal shaders, if necessary
             shaderBundle = await BackgroundHelper.LoadMetalShaders(bundle, bg, BackgroundHelper.ExportType.Background);
+
+            // Load custom audio
+            await LoadCustomAudioAssets(bg, bundle);
 
             // Hookup song-specific textures
             var textureManager = GetComponent<TextureManager>();
@@ -255,6 +268,43 @@ namespace YARG.Gameplay
             if (characterManager != null)
             {
                 characterManager.Initialize();
+            }
+        }
+
+        private static async UniTask LoadCustomAudioAssets(GameObject bg, AssetBundle bundle)
+        {
+            if (!SettingsManager.Settings.UseVenueSfx.Value)
+            {
+                return;
+            }
+
+            var customSfx = bg.GetComponentInChildren<CustomSFX>();
+            if (customSfx != null)
+            {
+                var assetPaths = bundle.GetAllAssetNames();
+                var sfxAssets = new Dictionary<string, byte[]>();
+                foreach (var assetPath in assetPaths)
+                {
+                    if (!assetPath.Contains(BundleBackgroundManager.AUDIO_PATH.ToLowerInvariant()))
+                    {
+                        continue;
+                    }
+
+                    if (BundleBackgroundManager.AUDIO_FILE_EXTENSIONS.Any(s => assetPath.EndsWith(s + ".bytes", StringComparison.OrdinalIgnoreCase)))
+                    {
+                        var sampleName = Path.GetFileNameWithoutExtension(assetPath);
+                        if (!sfxAssets.ContainsKey(assetPath))
+                        {
+                            var audioAsset = (TextAsset) await bundle.LoadAssetAsync<TextAsset>(assetPath);
+                            sfxAssets.Add(sampleName, audioAsset.bytes);
+                        }
+                    }
+                }
+
+                if (sfxAssets.Count > 0)
+                {
+                    CustomSFX.AddClips(sfxAssets);
+                }
             }
         }
 
