@@ -116,6 +116,7 @@ namespace YARG.Gameplay
         public float SongSpeed => _songRunner.SongSpeed;
 
         /// <inheritdoc cref="SongRunner.RequestedSongSpeed"/>
+        // Use for UI/control intent; SongSpeed may lag during live playback to stay synced with buffered audio.
         public float RequestedSongSpeed => _songRunner.RequestedSongSpeed;
 
         /// <inheritdoc cref="SongRunner.Started"/>
@@ -251,16 +252,9 @@ namespace YARG.Gameplay
 
             YargLogger.LogInfo("Exiting song");
 
-            // Stop audio before waiting on sync thread. If shutdown blocks later, audio will not keep playing.
-            _mixer?.Pause();
-
-            // Stop sync thread first, before any shutdown/domain-reload work can invalidate BASS/logging state.
             _songRunner?.Dispose();
-            bool syncThreadStopped = _songRunner?.SyncThreadStopped ?? true;
-            _songRunner = null;
 
-            // If BASS is stuck in the sync thread while holding the mixer lock, disposing the mixer here deadlocks the editor.
-            if (syncThreadStopped)
+            if (_songRunner?.SyncThreadStopped ?? true)
             {
                 _mixer?.Dispose();
             }
@@ -268,6 +262,8 @@ namespace YARG.Gameplay
             {
                 YargLogger.LogError("Skipping mixer dispose because song sync thread did not stop.");
             }
+
+            _songRunner = null;
             _mixer = null;
 
             if (Navigator.Instance != null)
@@ -276,16 +272,10 @@ namespace YARG.Gameplay
             }
 
             // Unsubscribe from other events
-            if (SettingsManager.Settings?.NoFail != null)
-            {
-                SettingsManager.Settings.NoFail.OnChange -= OnNoFailModeChanged;
-            }
-            if (EngineManager != null)
-            {
-                EngineManager.OnSongFailed -= OnSongFailed;
-                EngineManager.OnCodaStart -= StartCoda;
-                EngineManager.OnCodaEnd -= EndCoda;
-            }
+            SettingsManager.Settings.NoFail.OnChange -= OnNoFailModeChanged;
+            EngineManager.OnSongFailed -= OnSongFailed;
+            EngineManager.OnCodaStart -= StartCoda;
+            EngineManager.OnCodaEnd -= EndCoda;
 
             //Restore stem volumes to their original state
             foreach (var (stem, state) in _stemStates)
