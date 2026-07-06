@@ -1,15 +1,19 @@
-﻿using DG.Tweening;
+﻿using System;
+using Cysharp.Threading.Tasks;
+using DG.Tweening;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.UI;
+using YARG.Core.Logging;
 using YARG.Helpers.Extensions;
 
 namespace YARG.Gameplay.HUD
 {
     public class UnisonIcon : GameplayBehaviour
     {
-        private const float PROGRESS_FILL_ALPHA     = 0.3f;
-        private const float PROGRESS_COMPLETE_ALPHA = 0.5f;
+        private const float PROGRESS_FILL_ALPHA     = 0.5f;
+        private const float PROGRESS_COMPLETE_ALPHA = 0.7f;
+        private const float LERP_SPEED              = 15f;
         [SerializeField]
         private Image _icon;
         [SerializeField]
@@ -35,7 +39,7 @@ namespace YARG.Gameplay.HUD
 
             // Lerp to new progress
             _fill.fillAmount =
-                DOVirtual.EasedValue(_fill.fillAmount, _targetProgress, Time.deltaTime * 15, Ease.OutSine);
+                DOVirtual.EasedValue(_fill.fillAmount, _targetProgress, Time.deltaTime * LERP_SPEED, Ease.Linear);
 
             if (_hasFailed)
             {
@@ -62,9 +66,16 @@ namespace YARG.Gameplay.HUD
             _icon.color = _incompleteColor;
         }
 
-        public void SetIcon(string spritePath)
+        public async void SetIcon(string spritePath)
         {
-            _icon.sprite = Addressables.LoadAssetAsync<Sprite>(spritePath).WaitForCompletion();
+            try
+            {
+                _icon.sprite = await Addressables.LoadAssetAsync<Sprite>(spritePath);
+            }
+            catch (Exception e)
+            {
+                YargLogger.LogFormatError("Failed to load unison icon sprite at path: {0}. Exception: {1}", spritePath, e);
+            }
         }
 
         public void SetProgress(float progress)

@@ -1,33 +1,36 @@
 ﻿using System.Collections.Generic;
+using YARG.Core;
 
 namespace YARG.Gameplay.HUD
 {
     public abstract class BaseUnisonObject : GameplayBehaviour
     {
-        protected Dictionary<int, bool> ParticipantFailState = new();
+        protected Dictionary<int, bool> ParticipantFailState  = new();
+        protected Dictionary<int, int>  ParticipantTotalNotes = new();
+        protected Dictionary<int, int>  ParticipantNotesHit   = new();
 
-        protected Dictionary<int, float> ParticipantProgress = new();
+        protected float ParticipantProgress(int engineId) =>
+            YargMath.InverseLerpF(0f, ParticipantTotalNotes[engineId], ParticipantNotesHit[engineId]);
 
         public virtual void ResetState()
         {
-            ParticipantProgress.Clear();
+            ParticipantTotalNotes.Clear();
+            ParticipantNotesHit.Clear();
             ParticipantFailState.Clear();
         }
 
-        public virtual void SetParticipants(List<int> participants)
+        public virtual void AddParticipant(int participantId, int totalNotes)
         {
-            foreach (int participant in participants)
-            {
-                ParticipantProgress[participant] = 0f;
-                ParticipantFailState[participant] = false;
-            }
+            ParticipantTotalNotes[participantId] = totalNotes;
+            ParticipantNotesHit[participantId] = 0;
+            ParticipantFailState[participantId] = false;
         }
 
-        public virtual void SetProgress(int engineId, float progress)
+        public virtual void SetNotesHit(int engineId, int notesHit)
         {
             if (!ParticipantFailState[engineId])
             {
-                ParticipantProgress[engineId] = progress;
+                ParticipantNotesHit[engineId] = notesHit;
             }
         }
 

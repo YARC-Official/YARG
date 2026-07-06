@@ -30,8 +30,24 @@ namespace YARG.Gameplay.HUD
         private const double DISPLAY_HOLD_TIME   = 1.5;
         private const double DISPLAY_PRE_TIME    = 0.2;
 
+        private readonly List<UnisonPhraseData> _phrases = new();
+
+        private readonly Dictionary<int, EngineUnisonState> _unisonState        = new();
+        private readonly List<Action>                       _unsubscribeActions = new();
+        private          BaseUnisonObject                   _activeUnisonObject;
+        private          Sequence                           _completeSequence;
+        private          int                                _currentPhraseIndex;
+        private          bool                               _isEditMode;
+        private          double                             _lastVisualTime;
+
         [SerializeField]
-        private GameObject _parent;
+        private Image _backgroundImage;
+        [SerializeField]
+        private Sprite _defaultSprite;
+        [SerializeField]
+        private Sprite _failSprite;
+        [SerializeField]
+        private Color _failColor;
         [SerializeField]
         private TextMeshProUGUI _headerText;
         [SerializeField]
@@ -39,16 +55,10 @@ namespace YARG.Gameplay.HUD
         [SerializeField]
         private UnisonBar _unisonBar;
         [SerializeField]
-        private Image _backgroundImage;
-        [SerializeField]
-        private Sprite _defaultSprite;
+        private GameObject _parent;
         [SerializeField]
         private Sprite _successSprite;
-        [SerializeField]
-        private Sprite _failSprite;
-        [SerializeField]
-        private Color _failColor;
-
+        [Header("Position Offsets")]
         [Tooltip(
             "Positions for the display based on the number of tracks in the song. Index 0 is ignored as the display is draggable in singleplayer.")]
         [SerializeField]
@@ -58,18 +68,6 @@ namespace YARG.Gameplay.HUD
             "Positions for the display based on the number of tracks in the song, when a vocals player is present.")]
         [SerializeField]
         private List<Vector2> _trackCountToPositionOffsetWithVocals;
-
-        private readonly List<UnisonPhraseData> _phrases = new();
-
-        private readonly Dictionary<int, EngineUnisonState> _unisonState        = new();
-        private readonly List<Action>                       _unsubscribeActions = new();
-        private          BaseUnisonObject                   _activeUnisonObject;
-
-        private Sequence _completeSequence;
-        private int      _currentPhraseIndex;
-        private bool     _isEditMode;
-
-        private double _lastVisualTime;
 
         private void Update()
         {
@@ -91,7 +89,9 @@ namespace YARG.Gameplay.HUD
 
             if (time > currentPhrase.TransitionOut.TimeEnd)
             {
-                AdvanceToNextPhrase();
+                _currentPhraseIndex++;
+                YargLogger.LogFormatTrace("Advancing to unison phrase {0}", _currentPhraseIndex);
+                ResetState();
                 return;
             }
 
@@ -132,6 +132,7 @@ namespace YARG.Gameplay.HUD
 
             _parent.SetActive(false);
             SetDisplayType(_phrases[0].Event.PartCount);
+            _activeUnisonObject.ResetState();
             _completeSequence = BuildCompleteSequence(gameObject);
 
             foreach (var engineContainer in GameManager.EngineManager.Engines)
@@ -144,9 +145,13 @@ namespace YARG.Gameplay.HUD
                 _unisonState[engineContainer.EngineId] = new EngineUnisonState();
                 _iconContainer.InitializeIcon(engineContainer.EngineId, engineContainer.GetInstrumentSprite());
                 SubscribeToEngineEvents(engineContainer);
-            }
+                if (!_phrases[0].Event.ParticipantToPhrase.TryGetValue(engineContainer.EngineId, out var phrase))
+                {
+                    continue;
+                }
 
-            _activeUnisonObject.SetParticipants(_phrases[0].Event.ParticipantIds);
+                _activeUnisonObject.AddParticipant(engineContainer.EngineId, phrase.NoteCount);
+            }
         }
 
         private void PositionDisplay()
@@ -195,9 +200,9 @@ namespace YARG.Gameplay.HUD
             {
                 if (unisonEvent.Time < maxTime)
                 {
-                    string eventParticipants = unisonEvent.ParticipantIds
+                    string eventParticipants = unisonEvent.ParticipantToPhrase.Keys
                         .Aggregate("", (current, id) => current + (id + ", ")).TrimEnd(',', ' ');
-                    string maxEventParticipants = maxTimeEvent!.ParticipantIds
+                    string maxEventParticipants = maxTimeEvent!.ParticipantToPhrase.Keys
                         .Aggregate("", (current, id) => current + (id + ", ")).TrimEnd(',', ' ');
                     YargLogger.LogFormatWarning<double, double, string, double, double, string>(
                         "Removed overlapping unison event: engines {2} from {0} - {1} overlapped with engines {5} from {3} - {4}",
@@ -288,75 +293,60 @@ namespace YARG.Gameplay.HUD
             gameObject.SetActive(true);
             _currentPhraseIndex = 0;
             _lastVisualTime = time;
-            while (_currentPhraseIndex < _phrases.Count && time < _phrases[_currentPhraseIndex].TransitionIn.Time)
+            while (_currentPhraseIndex < _phrases.Count && time > _phrases[_currentPhraseIndex].Event.TimeEnd)
             {
                 _currentPhraseIndex++;
             }
 
-            AdvanceToNextPhrase();
+            ResetState();
         }
 
         private void SubscribeToEngineEvents(EngineManager.EngineContainer engineContainer)
         {
             int engineId = engineContainer.EngineId;
 
-            switch (engineContainer.Engine)
+                        switch (engineContainer.Engine)
             {
                 case GuitarEngine guitarEngine:
                     GuitarEngine.NoteHitEvent guitarNoteHit =
                         (_, note) =>
                         {
-                            if (note.IsStarPowerStart)
-                            {
-                                OnStarPowerPhraseStart(note, engineId, false);
-                            }
-
-                            OnNoteHit(engineId, note);
+                            OnNoteHit(engineId, note, false);
                         };
                     guitarEngine.OnNoteHit += guitarNoteHit;
                     _unsubscribeActions.Add(() => guitarEngine.OnNoteHit -= guitarNoteHit);
 
                     GuitarEngine.StarPowerPhraseMissEvent
                         guitarStarPowerMissed =
-                            note => OnStarPowerPhraseMissed(note, engineId, false);
+                            note => OnStarPowerPhraseMissed(note, engineId);
                     guitarEngine.OnStarPowerPhraseMissed += guitarStarPowerMissed;
                     _unsubscribeActions.Add(() => guitarEngine.OnStarPowerPhraseMissed -= guitarStarPowerMissed);
                     break;
                 case DrumsEngine drumsEngine:
                     DrumsEngine.NoteHitEvent drumsNoteHit = (_, note) =>
                     {
-                        if (note.IsStarPowerStart)
-                        {
-                            OnStarPowerPhraseStart(note, engineId, true);
-                        }
-
-                        OnNoteHit(engineId, note);
+                        OnNoteHit(engineId, note, true);
                     };
                     drumsEngine.OnNoteHit += drumsNoteHit;
                     _unsubscribeActions.Add(() => drumsEngine.OnNoteHit -= drumsNoteHit);
 
                     DrumsEngine.StarPowerPhraseMissEvent
                         drumsStarPowerMissed =
-                            note => OnStarPowerPhraseMissed(note, engineId, true);
+                            note => OnStarPowerPhraseMissed(note, engineId);
                     drumsEngine.OnStarPowerPhraseMissed += drumsStarPowerMissed;
                     _unsubscribeActions.Add(() => drumsEngine.OnStarPowerPhraseMissed -= drumsStarPowerMissed);
                     break;
                 case KeysEngine<ProKeysNote> proKeysEngine:
                     KeysEngine<ProKeysNote>.NoteHitEvent proKeysNoteHit = (_, note) =>
                     {
-                        if (note.IsStarPowerStart)
-                        {
-                            OnStarPowerPhraseStart(note, engineId, true);
-                        }
-
-                        OnNoteHit(engineId, note);
+                        OnNoteHit(engineId, note, false);
                     };
                     proKeysEngine.OnNoteHit += proKeysNoteHit;
                     _unsubscribeActions.Add(() => proKeysEngine.OnNoteHit -= proKeysNoteHit);
 
                     KeysEngine<ProKeysNote>.StarPowerPhraseMissEvent
                         proKeysStarPowerMissed =
-                            note => OnStarPowerPhraseMissed(note, engineId, true);
+                            note => OnStarPowerPhraseMissed(note, engineId);
                     proKeysEngine.OnStarPowerPhraseMissed += proKeysStarPowerMissed;
                     _unsubscribeActions.Add(() => proKeysEngine.OnStarPowerPhraseMissed -= proKeysStarPowerMissed);
                     break;
@@ -364,19 +354,14 @@ namespace YARG.Gameplay.HUD
                     KeysEngine<GuitarNote>.NoteHitEvent fiveLaneKeysNoteHit =
                         (_, note) =>
                         {
-                            if (note.IsStarPowerStart)
-                            {
-                                OnStarPowerPhraseStart(note, engineId, true);
-                            }
-
-                            OnNoteHit(engineId, note);
+                            OnNoteHit(engineId, note, false);
                         };
                     fiveLaneKeysEngine.OnNoteHit += fiveLaneKeysNoteHit;
                     _unsubscribeActions.Add(() => fiveLaneKeysEngine.OnNoteHit -= fiveLaneKeysNoteHit);
 
                     KeysEngine<GuitarNote>.StarPowerPhraseMissEvent
                         fiveLaneKeysStarPowerMissed =
-                            note => OnStarPowerPhraseMissed(note, engineId, true);
+                            note => OnStarPowerPhraseMissed(note, engineId);
                     fiveLaneKeysEngine.OnStarPowerPhraseMissed += fiveLaneKeysStarPowerMissed;
                     _unsubscribeActions.Add(() =>
                         fiveLaneKeysEngine.OnStarPowerPhraseMissed -= fiveLaneKeysStarPowerMissed);
@@ -384,25 +369,7 @@ namespace YARG.Gameplay.HUD
             }
         }
 
-        private static int CountNotesInStarPowerPhrase<T>(T note, bool includeChildNotes) where T : Note<T>
-        {
-            int count = 0;
-            var currentNote = note;
-            while (currentNote != null)
-            {
-                count += includeChildNotes ? currentNote.ChildNotes.Count + 1 : 1;
-                if (currentNote.IsStarPowerEnd)
-                {
-                    break;
-                }
-
-                currentNote = currentNote.NextNote;
-            }
-
-            return count;
-        }
-
-        private void OnStarPowerPhraseStart<T>(T note, int engineId, bool includeChildNotes) where T : Note<T>
+        private void OnStarPowerPhraseMissed<T>(T note, int engineId) where T : Note<T>
         {
             if (_currentPhraseIndex >= _phrases.Count)
             {
@@ -410,74 +377,46 @@ namespace YARG.Gameplay.HUD
             }
 
             var currentPhrase = _phrases[_currentPhraseIndex].Event;
-            if (note.Time < currentPhrase.Time || note.Time > currentPhrase.TimeEnd ||
-                !currentPhrase.ParticipantIds.Contains(engineId))
-            {
-                return;
-            }
-
-            int noteCount = CountNotesInStarPowerPhrase(note, includeChildNotes);
-
-            YargLogger.LogFormatDebug("Engine {0} started a unison phrase with {1} notes", engineId, noteCount);
-            var unisonState = _unisonState[engineId];
-
-            unisonState.NotesInCurrentPhrase = noteCount;
-            unisonState.NotesHitInCurrentPhrase = 0;
-        }
-
-        private void OnStarPowerPhraseMissed<T>(T note, int engineId, bool includeChildNotes) where T : Note<T>
-        {
-            if (_currentPhraseIndex >= _phrases.Count)
-            {
-                return;
-            }
-
-            var currentPhrase = _phrases[_currentPhraseIndex].Event;
-            if (!currentPhrase.ParticipantIds.Contains(engineId) || note.Time < currentPhrase.Time ||
+            if (!currentPhrase.ParticipantToPhrase.ContainsKey(engineId) || note.Time < currentPhrase.Time ||
                 note.Time > currentPhrase.TimeEnd)
             {
                 return;
             }
 
-            if (note.IsStarPowerStart)
-            {
-                OnStarPowerPhraseStart(note, engineId, includeChildNotes);
-            }
-
-            YargLogger.LogFormatDebug("Engine {0} failed a unison phrase at time {1}", engineId, note.Time);
+            YargLogger.LogFormatTrace("Engine {0} failed a unison phrase at time {1}", engineId, note.Time);
             _unisonState[engineId].HasFailedCurrentPhrase = true;
             _headerText.color = _failColor;
             _backgroundImage.sprite = _failSprite;
             _activeUnisonObject.FailUnison(engineId);
         }
 
-        private void OnNoteHit<T>(int engineId, T note) where T : Note<T>
+        private void OnNoteHit<T>(int engineId, T note, bool includeChildNotes) where T : Note<T>
         {
             if (_currentPhraseIndex >= _phrases.Count)
             {
                 return;
             }
 
-            var currentPhrase = _phrases[_currentPhraseIndex].Event;
-
-            if (note.Time < currentPhrase.Time ||
+            if (!_phrases[_currentPhraseIndex].Event.ParticipantToPhrase.TryGetValue(engineId, out var currentPhrase) ||
+                note.Time < currentPhrase.Time ||
                 note.Time > currentPhrase.TimeEnd ||
+                (note.IsChild && !includeChildNotes) ||
                 !note.IsStarPower ||
-                !currentPhrase.ParticipantIds.Contains(engineId) ||
                 !_unisonState.TryGetValue(engineId, out var unisonState) ||
                 unisonState.HasFailedCurrentPhrase)
             {
                 return;
             }
 
-            YargLogger.LogFormatDebug("Engine {0} hit a note in a unison phrase at time {1}", engineId, note.Time);
+            YargLogger.LogFormatTrace("Engine {0} hit a note in a unison phrase at time {1}", engineId, note.Time);
+
             unisonState.NotesHitInCurrentPhrase++;
             SetProgress(engineId);
         }
 
         public void OnUnisonPhraseSuccess()
         {
-            YargLogger.LogDebug("Unison phrase completed successfully");
+            YargLogger.LogTrace("Unison phrase completed successfully");
             _backgroundImage.sprite = _successSprite;
             _completeSequence.Restart();
         }
@@ -518,16 +457,14 @@ namespace YARG.Gameplay.HUD
             }
         }
 
-        private void AdvanceToNextPhrase()
+        private void ResetState()
         {
-            _currentPhraseIndex++;
+
             if (_currentPhraseIndex >= _phrases.Count)
             {
                 gameObject.SetActive(false);
                 return;
             }
-
-            YargLogger.LogFormatDebug("Advancing to unison phrase {0}", _currentPhraseIndex);
 
             _headerText.color = Color.white;
             _backgroundImage.sprite = _defaultSprite;
@@ -535,11 +472,14 @@ namespace YARG.Gameplay.HUD
 
             SetDisplayType(nextPhrase.PartCount);
             _activeUnisonObject.ResetState();
-            _activeUnisonObject.SetParticipants(nextPhrase.ParticipantIds);
-
-            foreach (int engineId in _unisonState.Keys)
+            foreach ((int participantId, var phrase) in nextPhrase.ParticipantToPhrase)
             {
-                var unisonState = _unisonState[engineId];
+                _activeUnisonObject.AddParticipant(participantId, phrase.NoteCount);
+                if (!_unisonState.TryGetValue(participantId, out var unisonState))
+                {
+                    return;
+                }
+
                 unisonState.NotesHitInCurrentPhrase = 0;
                 unisonState.HasFailedCurrentPhrase = false;
             }
@@ -549,14 +489,14 @@ namespace YARG.Gameplay.HUD
         {
             if (participantCount > 8)
             {
-                YargLogger.LogDebug("Unison icons do not support more than 8 participants. Using unison bar instead.");
+                YargLogger.LogTrace("Setting display mode to bar");
                 _iconContainer.gameObject.SetActive(false);
                 _unisonBar.gameObject.SetActive(true);
                 _activeUnisonObject = _unisonBar;
             }
             else
             {
-                YargLogger.LogDebug("Using unison icons for display.");
+                YargLogger.LogTrace("Setting display mode to icons");
                 _iconContainer.gameObject.SetActive(true);
                 _unisonBar.gameObject.SetActive(false);
                 _activeUnisonObject = _iconContainer;
@@ -571,28 +511,31 @@ namespace YARG.Gameplay.HUD
             }
 
             var currentEvent = _phrases[_currentPhraseIndex].Event;
-            if (!currentEvent.ParticipantIds.Contains(engineId))
+            if (!currentEvent.ParticipantToPhrase.TryGetValue(engineId, out var participant))
             {
                 return;
             }
 
             var unisonEvent = _unisonState[engineId];
-            float progress = unisonEvent.NotesInCurrentPhrase > 0
-                ? unisonEvent.NotesHitInCurrentPhrase / (float) unisonEvent.NotesInCurrentPhrase
-                : 0f;
-            YargLogger.LogFormatDebug("Engine {0} progress in unison phrase: {1}/{2} ({3:P})", engineId,
-                unisonEvent.NotesHitInCurrentPhrase, unisonEvent.NotesInCurrentPhrase, progress);
-            _activeUnisonObject.SetProgress(engineId, progress);
+            YargLogger.LogFormatTrace("Engine {0} progress in unison phrase: {1}/{2}", engineId,
+                unisonEvent.NotesHitInCurrentPhrase, participant.NoteCount);
+            _activeUnisonObject.SetNotesHit(engineId, unisonEvent.NotesHitInCurrentPhrase);
         }
 
         public void OnEditModeChanged()
         {
             _isEditMode = !_isEditMode;
+            var unisonPhrase = _phrases[_currentPhraseIndex];
+            if (unisonPhrase.TransitionIn.Time <= GameManager.VisualTime && GameManager.VisualTime <= unisonPhrase.TransitionOut.TimeEnd)
+            {
+                // There's already an active unison phrase, don't do anything.
+                return;
+            }
             if (_isEditMode)
             {
-                SetDisplayType(_unisonState.Count);
-                _activeUnisonObject.SetParticipants(_unisonState.Keys.ToList());
-
+                SetDisplayType(1);
+                _activeUnisonObject.ResetState();
+                _activeUnisonObject.AddParticipant(0, 69); // Add a dummy participant for edit mode
                 _parent.SetActive(true);
                 _parent.transform.localScale = Vector3.one;
             }
@@ -600,6 +543,7 @@ namespace YARG.Gameplay.HUD
             {
                 _parent.SetActive(false);
                 _parent.transform.localScale = Vector3.zero;
+                ResetState();
             }
         }
 
@@ -647,7 +591,6 @@ namespace YARG.Gameplay.HUD
         {
             public bool HasFailedCurrentPhrase;
             public int  NotesHitInCurrentPhrase;
-            public int  NotesInCurrentPhrase;
         }
     }
 }

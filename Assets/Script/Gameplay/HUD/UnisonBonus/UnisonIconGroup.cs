@@ -17,25 +17,24 @@ namespace YARG.Gameplay.HUD
             newIcon.gameObject.SetActive(false);
         }
 
-        public override void SetParticipants(List<int> participants)
+        public override void AddParticipant(int participantId, int totalNotes)
         {
-            base.SetParticipants(participants);
-            foreach ((int id, var icon) in _icons)
+            base.AddParticipant(participantId, totalNotes);
+            if (!_icons.TryGetValue(participantId, out var icon))
             {
-                if (!participants.Contains(id))
-                {
-                    continue;
-                }
-
-                icon.gameObject.SetActive(true);
+                return;
             }
+
+            icon.gameObject.SetActive(true);
+            icon.SetProgress(0f);
         }
 
-        public override void SetProgress(int engineId, float progress)
+        public override void SetNotesHit(int engineId, int notesHit)
         {
+            base.SetNotesHit(engineId, notesHit);
             if (!ParticipantFailState[engineId])
             {
-                _icons[engineId].SetProgress(progress);
+                _icons[engineId].SetProgress(ParticipantProgress(engineId));
             }
         }
 

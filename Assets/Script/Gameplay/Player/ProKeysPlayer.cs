@@ -149,7 +149,7 @@ namespace YARG.Gameplay.Player
             }
 
             var engine = new YargProKeysEngine(NoteTrack, SyncTrack, EngineParams, Player.Profile.IsBot);
-            EngineContainer = GameManager.EngineManager.Register(engine, NoteTrack.Instrument, Chart, Player.RockMeterPreset);
+            EngineContainer = GameManager.EngineManager.Register(engine, NoteTrack.Instrument, NoteTrack.Difficulty, Chart, Player.RockMeterPreset);
 
             HitWindow = EngineParams.HitWindow;
 
