@@ -352,7 +352,7 @@ namespace YARG.Gameplay
         }
 
 
-        public void SetSongTime(double time, double delayTime = SONG_START_DELAY)
+        public void SetSongTime(double time, double delayTime)
         {
             _songRunner.SetSongTime(time, delayTime);
 
@@ -1033,8 +1033,8 @@ namespace YARG.Gameplay
         {
             YargLogger.LogFormatDebug("Rewinding {0} seconds at VisualTime {1}", seconds, VisualTime);
 
-            double rewindVisualTime = VisualTime - seconds - _songRunner.GetLatencyLeadInSongTime();
-            float rewindDuration = _songRunner.GetLatencyAdjustedRewindDuration(0.5f);
+            double rewindVisualTime = VisualTime - seconds - _songRunner.GetPlaybackLatencySongTime();
+            float rewindDuration = SongRunner.REWIND_DURATION;
 
             if (_lyricBar.gameObject.activeSelf)
             {

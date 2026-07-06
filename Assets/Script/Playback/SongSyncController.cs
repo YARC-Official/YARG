@@ -16,7 +16,7 @@ namespace YARG.Playback
         private readonly StemMixer _mixer;
         private readonly ISongSyncStateProvider _stateProvider;
         private readonly object _stateLock = new();
-        private readonly Action<double, bool> _activateScheduledSongSpeeds;
+        private readonly Action<double> _activateScheduledSongSpeeds;
         private readonly Thread _syncThread;
 
         private volatile bool _disposed;
@@ -62,7 +62,7 @@ namespace YARG.Playback
         public SongSyncController(
             StemMixer mixer,
             ISongSyncStateProvider stateProvider,
-            Action<double, bool> activateScheduledSongSpeeds)
+            Action<double> activateScheduledSongSpeeds)
         {
             _mixer = mixer;
             _stateProvider = stateProvider;
@@ -155,12 +155,6 @@ namespace YARG.Playback
             double seekPosition = GetLatencyAlignedSeekPosition(syncVisualTime, playbackLatency, songSpeed);
 
             _mixer.SetPosition(seekPosition);
-
-            YargLogger.LogFormatDebug(
-                "Pre-aligned resume audio. Playback stream latency: {0:0.000000}, tempo stream latency: {1:0.000000}, " +
-                "sync visual: {2:0.000000}, seek position: {3:0.000000}",
-                playbackLatency, GetTempoStreamLatency(), syncVisualTime, seekPosition
-            );
         }
 
         private void SyncThread()
@@ -170,7 +164,7 @@ namespace YARG.Playback
             for (; !_disposed; Thread.Sleep(1))
             {
                 var sample = CreateSyncTimingSample(ref lastSampleTime);
-                _activateScheduledSongSpeeds(sample.InputSystemTime, false);
+                _activateScheduledSongSpeeds(sample.InputSystemTime);
 
                 var snapshot = _stateProvider.ReadSongSyncState();
                 var timeline = BuildSyncTimeline(sample.InputSystemTime, snapshot);
@@ -433,25 +427,8 @@ namespace YARG.Playback
             return Math.Clamp(syncVisualTime + (syncLatency * songSpeed), 0, _mixer.Length);
         }
 
-        private static double SanitizeLatency(double latency)
-        {
-            if (double.IsNaN(latency) || double.IsInfinity(latency) || latency < 0)
-            {
-                return 0;
-            }
-
-            return latency;
-        }
-
-        private double GetPlaybackStreamLatency()
-        {
-            return SanitizeLatency(_mixer.GetPlaybackStreamLatency());
-        }
-
-        private double GetTempoStreamLatency()
-        {
-            return SanitizeLatency(_mixer.GetTempoStreamLatency());
-        }
+        private double GetPlaybackStreamLatency() => _mixer.GetPlaybackStreamLatency();
+        private double GetTempoStreamLatency()    => _mixer.GetTempoStreamLatency();
 
         private static double GetCurrentCpuTime()
         {

@@ -71,7 +71,11 @@ namespace YARG.Playback
     {
         #region Times
         public const double SONG_START_DELAY = 2;
-        private const double PLAYBACK_START_LATENCY_MARGIN = 0.025;
+
+        /// <summary>
+        /// The duration to use for rewind animations, in seconds.
+        /// </summary>
+        public const float REWIND_DURATION = 0.5f;
 
         /// <summary>
         /// The time into the song, accounting for song speed and audio calibration.<br/>
@@ -120,7 +124,7 @@ namespace YARG.Playback
         /// as opposed to the gameplay song position.
         /// In general, <see cref="SongTime"/> should be used instead where possible.
         /// </remarks>
-        public double AudioPlaybackTime { get; private set; }
+        private double AudioPlaybackTime { get; set; }
         #endregion
 
         #region Offsets
@@ -161,25 +165,14 @@ namespace YARG.Playback
         /// <summary>
         /// The requested playback speed of the song. Updated immediately by user speed changes.
         /// </summary>
-        public float RequestedSongSpeed => _requestedSongSpeed;
+        public float RequestedSongSpeed { get; private set; }
 
         /// <summary>
-        /// The effective gameplay/reference speed of the song.
+        /// The effective gameplay/reference speed of the song. There is an estimated delay between when song speed is requested
+        /// and when it becomes effective. Note that while this is mathematically exact for input timeline calculations,
+        /// the heard audio sync may be slightly off due to inaccurate latency estimation.
         /// </summary>
-        public float SongSpeed => _effectiveSongSpeed;
-
-        /// <summary>
-        /// The actual current playback speed of the song around the effective reference speed.
-        /// </summary>
-        /// <remarks>
-        /// The audio may be sped up or slowed down in order to re-synchronize.
-        /// This value takes that speed adjustment into account.
-        /// </remarks>
-        public float RealSongSpeed => _effectiveSongSpeed + SyncSpeedAdjustment;
-
-        private float _requestedSongSpeed;
-        private float _effectiveSongSpeed;
-        private readonly Queue<(double EffectiveTime, float Speed)> _songSpeedSchedule = new();
+        public float SongSpeed { get; private set; }
 
         /// <summary>
         /// Whether or not the runner has been started.
@@ -196,12 +189,14 @@ namespace YARG.Playback
         /// </summary>
         public bool PauseOverridden => _pauseOverrides > 0;
 
+        private readonly Queue<(double EffectiveTime, float Speed)> _songSpeedSchedule = new();
+
         private int _pauseOverrides;
         private bool _resumeAfterOverride;
 
-        private bool _pausedForFrameDebugger;
+        private bool _wasFrameDebuggerEnabled;
 
-        private double _forceStartTime = double.NaN;
+        private double? _startDeadline;
         private double _minimumUpdateInputSystemTime = double.NegativeInfinity;
         #endregion
 
@@ -218,18 +213,6 @@ namespace YARG.Playback
         private readonly SongSyncController _syncController;
 
         public float SyncSpeedAdjustment => _syncController.SyncSpeedAdjustment;
-
-        /// <summary>
-        /// The audio time used by audio synchronization.<br/>
-        /// Accounts for song speed, audio calibration, and song offset.
-        /// </summary>
-        public double SyncAudioTime => _syncController.SyncAudioTime;
-
-        /// <summary>
-        /// The visual time used by audio synchronization.<br/>
-        /// Accounts for song speed, but <b>not</b> video calibration.
-        /// </summary>
-        public double SyncVisualTime => _syncController.SyncVisualTime;
 
         /// <summary>
         /// The difference between the visual and audio times used by audio synchronization.
@@ -270,17 +253,17 @@ namespace YARG.Playback
         )
         {
             _mixer = mixer;
-            _requestedSongSpeed = ClampSongSpeed(songSpeed);
-            _effectiveSongSpeed = _requestedSongSpeed;
+            RequestedSongSpeed = ClampSongSpeed(songSpeed);
+            SongSpeed = RequestedSongSpeed;
             SongOffset = -songOffset;
 
             _syncController = new SongSyncController(
                 _mixer,
                 this,
-                (inputSystemTime, updateTimes) => ActivateScheduledSongSpeeds(inputSystemTime, updateTimes)
+                inputSystemTime => ApplyScheduledSpeedChanges(inputSystemTime)
             );
 
-            InitializeSongTime(startTime + SongOffset, GetLatencyAdjustedStartDelay(startDelay));
+            SetTimelinePosition(targetInputTime: startTime + SongOffset, startDelaySeconds: startDelay);
             UpdateCalibration();
         }
 
@@ -289,6 +272,9 @@ namespace YARG.Playback
             Dispose(false);
         }
 
+        /// <summary>
+        /// Releases resources used by the song runner and stops audio synchronization.
+        /// </summary>
         public void Dispose()
         {
             Dispose(true);
@@ -314,73 +300,82 @@ namespace YARG.Playback
         private void Start()
         {
             YargLogger.LogDebug("Starting song runner");
- 
-            // Re-initialize song times to avoid lag issues
-            InitializeSongTime(InputTime, 0);
- 
+            SetTimelinePosition(InputTime, 0);
             _syncController.Start();
             Started = true;
         }
 
+        /// <summary>
+        /// Updates the runner state for the current frame.
+        /// </summary>
+        /// <remarks>
+        /// Starts playback when loading lag has settled, applies scheduled speed changes,
+        /// handles frame debugger pause overrides, and advances all timeline values while unpaused.
+        /// </remarks>
         public void Update()
         {
-            if (!TryStartAfterLoadingLag())
+            //Start on the first non-lagging frame.  Early frames tend to lag because of all the objects being created
+            if (!Started)
             {
-                return;
+                if (IsFrameLagging())
+                {
+                    return;
+                }
+                Start();
             }
 
-            UpdateFrameDebuggerPauseOverride();
+            HandleFrameDebugger();
 
-            double updateInputSystemTime = GetUpdateInputSystemTime();
-            ActivateScheduledSongSpeeds(updateInputSystemTime, true);
+            double updateInputTime = GetResumeSafeInputUpdateTime();
+
+            //Adjusts track speed to match when audio speed changes take effect
+            ApplyScheduledSpeedChanges(updateInputTime);
 
             if (Paused)
             {
                 return;
             }
 
-            UpdateTimes(updateInputSystemTime);
+            UpdateTimes(updateInputTime);
             AssertTimeDidNotJumpBackwards();
         }
 
-        private bool TryStartAfterLoadingLag()
+        private bool IsFrameLagging()
         {
-            if (Started)
+            if (!_startDeadline.HasValue)
             {
-                return true;
-            }
-
-            // Lazy start avoids anchoring song time to a frame that stalled during loading.
-            // Force start after one second so pathological load spikes cannot block forever.
-            if (double.IsNaN(_forceStartTime))
-            {
-                _forceStartTime = InputManager.CurrentInputTime + 1;
+                const double maxWaitTimeSeconds = 1.0;
+                _startDeadline = InputManager.CurrentInputTime + maxWaitTimeSeconds;
             }
 
             double currentTime = InputManager.CurrentInputTime;
             double currentFrameLength = currentTime - InputManager.InputUpdateTime;
             bool startingFrameLagged = currentFrameLength >= 0.1f;
-            if (startingFrameLagged && currentTime < _forceStartTime)
-            {
-                return false;
-            }
 
-            Start();
-            return true;
+            // Wait for lag to settle, but only until our start deadline is reached
+            return startingFrameLagged && currentTime < _startDeadline.Value;
         }
 
-        private void UpdateFrameDebuggerPauseOverride()
+        /// <summary>
+        /// Automatically pauses or resumes the song runner when the Unity Frame Debugger is toggled.
+        /// </summary>
+        private void HandleFrameDebugger()
         {
-            // Unity frame debugger halts rendering while input time keeps advancing.
-            // Pause through normal override path so resume restores prior pause intent.
-            if (_pausedForFrameDebugger == FrameDebugger.enabled)
+            bool isDebuggerEnabled = FrameDebugger.enabled;
+            if (_wasFrameDebuggerEnabled == isDebuggerEnabled)
             {
                 return;
             }
+            _wasFrameDebuggerEnabled = isDebuggerEnabled;
 
-            _pausedForFrameDebugger = FrameDebugger.enabled;
-            if (_pausedForFrameDebugger)
+            if (isDebuggerEnabled)
             {
+                // When Unity's Frame Debugger is enabled, rendering freezes but system/input time
+                // keeps advancing. If we didn't pause, the song time would suddenly jump forward
+                // by several seconds when the debugger is closed.
+                //
+                // We use OverridePause() instead of Pause() so that we don't overwrite the user's
+                // actual pause intent (e.g., if the user already had the game paused, it should stay paused).
                 OverridePause();
             }
             else
@@ -400,54 +395,37 @@ namespace YARG.Playback
             _seeked = false;
         }
 
-        private static double SanitizeLatency(double latency)
+        private double GetPlaybackStreamLatency() => _mixer.GetPlaybackStreamLatency();
+        private double GetTempoStreamLatency()    => _mixer.GetTempoStreamLatency();
+
+        /// <summary>
+        /// Activates scheduled speed changes for the track, gameplay, and inputs once their predicted latency delay
+        /// has passed.  This syncs up track speed changes with heard audio speed changes
+        /// </summary>
+        private void ApplyScheduledSpeedChanges(double nowInputSystemTime)
         {
-            if (double.IsNaN(latency) || double.IsInfinity(latency) || latency < 0)
-            {
-                return 0;
-            }
-
-            return latency;
-        }
-
-        private double GetPlaybackStreamLatency()
-        {
-            return SanitizeLatency(_mixer.GetPlaybackStreamLatency());
-        }
-
-        private double GetTempoStreamLatency()
-        {
-            return SanitizeLatency(_mixer.GetTempoStreamLatency());
-        }
-
-        private bool ActivateScheduledSongSpeeds(double nowInputSystemTime, bool updateTimes)
-        {
-            bool changed = false;
-
             lock (_timingStateLock)
             {
                 while (_songSpeedSchedule.Count > 0 && _songSpeedSchedule.Peek().EffectiveTime <= nowInputSystemTime)
                 {
                     var command = _songSpeedSchedule.Dequeue();
-                    float nextSpeed = ClampSongSpeed(command.Speed);
-                    PreserveInputTimeAcrossSpeedChange(command.EffectiveTime, nextSpeed);
-                    changed = true;
+                    ApplySongSpeedChange(command.Speed, command.EffectiveTime);
                 }
             }
-
-            if (changed && updateTimes)
-            {
-                UpdateTimes(nowInputSystemTime);
-            }
-
-            return changed;
         }
 
-        private void PreserveInputTimeAcrossSpeedChange(double inputSystemTime, float newSpeed)
+        /// <summary>
+        /// Updates the active song speed and shifts the input offset to keep the input timeline
+        /// perfectly continuous. While mathematically exact, heard audio sync might be slightly off
+        /// due to inaccurate latency estimate
+        /// </summary>
+        private void ApplySongSpeedChange(float newSpeed, double inputSystemTime)
         {
-            double currentInputAtChange = (inputSystemTime - InputTimeOffset) * _effectiveSongSpeed;
-            _effectiveSongSpeed = newSpeed;
-            InputTimeOffset = inputSystemTime - (currentInputAtChange / _effectiveSongSpeed);
+            // Use the scheduled/effective time rather than the current system time
+            // to ensure the transition is jitter-free, regardless of when this frame executes.
+            double currentInputAtChange = (inputSystemTime - InputTimeOffset) * SongSpeed;
+            SongSpeed = newSpeed;
+            InputTimeOffset = inputSystemTime - (currentInputAtChange / SongSpeed);
         }
 
         SongSyncState ISongSyncStateProvider.ReadSongSyncState()
@@ -455,7 +433,7 @@ namespace YARG.Playback
             lock (_timingStateLock)
             {
                 return new SongSyncState(
-                    _effectiveSongSpeed,
+                    SongSpeed,
                     SongOffset,
                     AudioCalibration,
                     InputTimeOffset,
@@ -474,27 +452,20 @@ namespace YARG.Playback
             _syncController.PreAlignResumeAudio(InputTime, AudioCalibration, SongSpeed, SongOffset);
         }
 
-        private void SuppressSyncCorrection()
+        /// <summary>
+        /// Gets the playback stream latency converted to song-time.
+        /// </summary>
+        /// <returns>The playback stream latency in song-time (accounting for song speed).</returns>
+        public double GetPlaybackLatencySongTime()
         {
-            _syncController.SuppressCorrection();
+            return GetPlaybackStreamLatency() * SongSpeed;
         }
 
-        private double GetLatencyAdjustedStartDelay(double requestedDelay)
-        {
-            double playbackLatency = GetPlaybackStreamLatency();
-            return Math.Max(requestedDelay, playbackLatency + PLAYBACK_START_LATENCY_MARGIN);
-        }
-
-        public double GetLatencyLeadInSongTime(double requestedDelay = 0)
-        {
-            return GetLatencyAdjustedStartDelay(requestedDelay) * SongSpeed;
-        }
-
-        public float GetLatencyAdjustedRewindDuration(float minimumDuration)
-        {
-            return (float) Math.Max(minimumDuration, GetLatencyAdjustedStartDelay(0));
-        }
-
+        /// <summary>
+        /// Converts an input-system timestamp to song-relative input time.
+        /// </summary>
+        /// <param name="timeFromInputSystem">The absolute timestamp from the input system, in seconds.</param>
+        /// <returns>The corresponding input time relative to the song timeline.</returns>
         public double GetRelativeInputTime(double timeFromInputSystem)
         {
             lock (_timingStateLock)
@@ -532,7 +503,11 @@ namespace YARG.Playback
             return inputUpdateTime + elapsed;
         }
 
-        private double GetUpdateInputSystemTime()
+        /// <summary>
+        /// Returns input-update time, clamped after resume because the cached input update
+        /// timestamp can be older than the resume anchor until the next input tick.
+        /// </summary>
+        private double GetResumeSafeInputUpdateTime()
         {
             double inputUpdateTime = InputManager.InputUpdateTime;
             if (inputUpdateTime >= _minimumUpdateInputSystemTime)
@@ -546,7 +521,7 @@ namespace YARG.Playback
 
         private void UpdateTimes()
         {
-            UpdateTimes(GetUpdateInputSystemTime());
+            UpdateTimes(GetResumeSafeInputUpdateTime());
         }
 
         private void UpdateTimes(double inputSystemTime)
@@ -561,12 +536,12 @@ namespace YARG.Playback
             AudioPlaybackTime = Math.Max(0, _mixer.GetPosition());
         }
 
-        private void SetInputBase(double songTime)
+        private void AnchorInputTimelineAtCurrentUpdate(double inputTime)
         {
-            SetInputBase(songTime, InputManager.InputUpdateTime);
+            AnchorInputTimeline(inputTime, InputManager.InputUpdateTime);
         }
 
-        private void SetInputBase(double songTime, double inputSystemTime)
+        private void AnchorInputTimeline(double inputTime, double inputSystemTime)
         {
             // InputTime = (inputSystemTime - InputTimeOffset) * SongSpeed.
             // Song/visual times add calibration after the shared input timeline is established.
@@ -586,7 +561,7 @@ namespace YARG.Playback
                 previousSongTime = SongTime;
                 previousVisualTime = VisualTime;
 
-                InputTimeOffset = inputSystemTime - (songTime / SongSpeed);
+                InputTimeOffset = inputSystemTime - (inputTime / SongSpeed);
                 InputTime = (inputSystemTime - InputTimeOffset) * SongSpeed;
                 SongTime = InputTime + (AudioCalibration * SongSpeed);
                 VisualTime = InputTime + (VideoCalibration * SongSpeed);
@@ -600,8 +575,8 @@ namespace YARG.Playback
             AudioPlaybackTime = Math.Max(0, _mixer.GetPosition());
 
             YargLogger.LogFormatDebug(
-                "Set input time base.\n" +
-                "Clock time: {0:0.000000}\n" +
+                "Anchored input timeline.\n" +
+                "Input-system time: {0:0.000000}\n" +
                 "Offset {1:0.000000} -> {2:0.000000}\n" +
                 "Input time {3:0.000000} -> {4:0.000000}\n" +
                 "Song time {5:0.000000} -> {6:0.000000}\n" +
@@ -614,17 +589,12 @@ namespace YARG.Playback
             );
         }
 
-        private void SetInputBaseChecked(double inputBase)
-        {
-            SetInputBaseChecked(inputBase, InputManager.InputUpdateTime);
-        }
-
-        private void SetInputBaseChecked(double inputBase, double inputSystemTime)
+        private void ReanchorTimelinePreservingCurrentTimes(double inputSystemTime)
         {
             double previousVisualTime = VisualTime;
             double previousInputTime = InputTime;
 
-            SetInputBase(inputBase, inputSystemTime);
+            AnchorInputTimeline(previousInputTime, inputSystemTime);
 
             // Speeds above 200% or so can cause inaccuracies greater than 1 ms
             double threshold = Math.Max(0.001 * SongSpeed, 0.0005);
@@ -636,46 +606,55 @@ namespace YARG.Playback
                 previousInputTime, InputTime, threshold);
         }
 
-        private void SetResumeInputBase()
+        private void ReanchorTimelineForResume()
         {
             double resumeInputSystemTime = GetEstimatedCurrentInputTime();
             _minimumUpdateInputSystemTime = Math.Max(_minimumUpdateInputSystemTime, resumeInputSystemTime);
-            SetInputBaseChecked(InputTime, resumeInputSystemTime);
+            ReanchorTimelinePreservingCurrentTimes(resumeInputSystemTime);
         }
 
-        private void InitializeSongTime(double time, double delayTime)
+        private void SetTimelinePosition(double targetInputTime, double startDelaySeconds)
         {
-            // Account for song speed
-            delayTime *= SongSpeed;
+            // Account for song speed.
+            double leadInSongTime = startDelaySeconds * SongSpeed;
 
-            // Seek time
-            // Doesn't account for audio calibration for better audio syncing
-            // since seeking is slightly delayed
-            double seekTime = time - delayTime;
+            // Seek anchors shared input timeline. Audio calibration is not subtracted here
+            // for better audio syncing since seeking is slightly delayed.
+            double anchoredInputTime = targetInputTime - leadInSongTime;
 
-            // Set input offsets
-            SetInputBase(seekTime);
+            AnchorInputTimelineAtCurrentUpdate(anchoredInputTime);
 
-            YargLogger.LogFormatDebug("Set song time to {0:0.000000} (delay: {1:0.000000}).\n" +
-                "Seek time: {2:0.000000}, resulting song time: {3:0.000000}", time, delayTime, seekTime, SongTime);
+            YargLogger.LogFormatDebug("Set timeline target to {0:0.000000} (lead-in: {1:0.000000}).\n" +
+                "Anchored input time: {2:0.000000}, resulting song time: {3:0.000000}",
+                targetInputTime, leadInSongTime, anchoredInputTime, SongTime);
         }
 
-        public void SetSongTime(double time, double delayTime = SONG_START_DELAY)
+        /// <summary>
+        /// Seeks the song timeline and audio playback to the specified song time.
+        /// </summary>
+        /// <param name="time">The target song time, in seconds.</param>
+        /// <param name="delayTime">The requested lead-in delay, in seconds.</param>
+        /// <remarks>
+        /// Clamped to a minimum of the playback latency to preserve audio sync.
+        /// </remarks>
+        public void SetSongTime(double time, double delayTime)
         {
             double requestedDelay = delayTime;
-            delayTime = GetLatencyAdjustedStartDelay(delayTime);
             double playbackLatency = GetPlaybackStreamLatency();
             double tempoLatency = GetTempoStreamLatency();
+            double effectiveDelay = Math.Max(delayTime, playbackLatency);
 
-            ResetEffectiveSpeedToRequestedForSeek();
-            InitializeSongTime(time, delayTime);
+            //Apply last song speed change immediately
+            lock (_timingStateLock)
+            {
+                SongSpeed = RequestedSongSpeed;
+                _songSpeedSchedule.Clear();
+            }
 
-            double seekTime = CalculateSeekAudioFileTime(time, delayTime, playbackLatency);
-            bool canStartAudio = seekTime >= 0;
-            seekTime = Math.Max(0, seekTime);
+            SetTimelinePosition(time, effectiveDelay);
 
-            SeekMixerForSongTime(seekTime, canStartAudio);
-
+            double seekTime = CalculateSeekAudioFileTime(time, effectiveDelay, playbackLatency);
+            SeekMixer(seekTime);
             UpdateTimes();
             _seeked = true;
 
@@ -683,50 +662,43 @@ namespace YARG.Playback
                 "Set song time with latency budget.\n" +
                 "Requested delay: {0:0.000000}, effective delay: {1:0.000000}, playback latency: {2:0.000000}, " +
                 "tempo latency: {3:0.000000}, raw audio: {4:0.000000}, seek time: {5:0.000000}",
-                requestedDelay, delayTime, playbackLatency, tempoLatency, _mixer.GetPosition(), seekTime
+                requestedDelay, effectiveDelay, playbackLatency, tempoLatency, _mixer.GetPosition(), seekTime
             );
-        }
-
-        private void ResetEffectiveSpeedToRequestedForSeek()
-        {
-            lock (_timingStateLock)
-            {
-                if (!Mathf.Approximately(_effectiveSongSpeed, _requestedSongSpeed))
-                {
-                    _effectiveSongSpeed = _requestedSongSpeed;
-                    _songSpeedSchedule.Clear();
-                }
-            }
         }
 
         private double CalculateSeekAudioFileTime(double songTime, double delayTime, double playbackLatency)
         {
             // Input/song timeline may be negative during lead-in. Mixer file position cannot, so caller
             // clamps negative result to zero and waits until timeline reaches audible range before playing.
-            return songTime - (delayTime - playbackLatency - AudioCalibration) * SongSpeed - SongOffset;
+            double leadIn = delayTime * SongSpeed;
+            double latencyOffset = playbackLatency * SongSpeed;
+            double calibrationOffset = AudioCalibration * SongSpeed;
+            return songTime - SongOffset - leadIn + latencyOffset + calibrationOffset;
         }
 
-        private void SeekMixerForSongTime(double seekTime, bool canStartAudio)
+        private void SeekMixer(double seekTime)
         {
             ResetSync();
+            bool canStartAudio = seekTime >= 0;
 
-            _mixer.Pause();
-            _mixer.SetPosition(seekTime);
-
-            if (ShouldPlayAfterSeek(canStartAudio))
-            {
-                _mixer.Play();
-            }
-        }
-
-        private bool ShouldPlayAfterSeek(bool canStartAudio)
-        {
+            bool playAfterSeek;
             lock (_timingStateLock)
             {
-                return !Paused && canStartAudio;
+                playAfterSeek = !Paused && canStartAudio;
             }
+
+            var postSeekState = playAfterSeek ? PostSeekState.Play : PostSeekState.Pause;
+            _mixer.Seek(Math.Max(0, seekTime), postSeekState);
         }
 
+        /// <summary>
+        /// Sets the requested song playback speed.
+        /// </summary>
+        /// <param name="speed">The requested speed multiplier, where 1f is 100% speed.</param>
+        /// <remarks>
+        /// The value is clamped by <see cref="ClampSongSpeed"/>. While running, the effective gameplay
+        /// speed may be delayed to align with audio tempo stream latency.
+        /// </remarks>
         public void SetSongSpeed(float speed)
         {
             speed = ClampSongSpeed(speed);
@@ -739,15 +711,15 @@ namespace YARG.Playback
 
             lock (_timingStateLock)
             {
-                previousRequested = _requestedSongSpeed;
-                previousEffective = _effectiveSongSpeed;
+                previousRequested = RequestedSongSpeed;
+                previousEffective = SongSpeed;
 
-                if (Mathf.Approximately(speed, _requestedSongSpeed) && _songSpeedSchedule.Count == 0)
+                if (Mathf.Approximately(speed, RequestedSongSpeed) && _songSpeedSchedule.Count == 0)
                 {
                     return;
                 }
 
-                _requestedSongSpeed = speed;
+                RequestedSongSpeed = speed;
 
                 immediate = ShouldApplySpeedChangeImmediately(streamDelay);
                 if (immediate)
@@ -787,7 +759,7 @@ namespace YARG.Playback
         private void ApplyImmediateSongSpeedChange(double inputSystemTime, float speed)
         {
             _songSpeedSchedule.Clear();
-            PreserveInputTimeAcrossSpeedChange(inputSystemTime, speed);
+            ApplySongSpeedChange(speed, inputSystemTime);
         }
 
         private double ScheduleSongSpeedChange(double inputSystemTime, double streamDelay, float speed)
@@ -799,8 +771,15 @@ namespace YARG.Playback
             return effectiveTime;
         }
 
+        /// <summary>
+        /// Adjusts the requested song playback speed by the specified delta.
+        /// </summary>
+        /// <param name="deltaSpeed">The speed multiplier delta to add to <see cref="RequestedSongSpeed"/>.</param>
         public void AdjustSongSpeed(float deltaSpeed) => SetSongSpeed(RequestedSongSpeed + deltaSpeed);
 
+        /// <summary>
+        /// Reloads audio and video calibration from settings and preserves current input time.
+        /// </summary>
         public void UpdateCalibration()
         {
             int videoCalibrationMs = SettingsManager.Settings.VideoCalibration.Value;
@@ -818,7 +797,7 @@ namespace YARG.Playback
                 inputTime = InputTime;
             }
 
-            SetInputBase(inputTime);
+            AnchorInputTimelineAtCurrentUpdate(inputTime);
         }
 
         /// <summary>
@@ -876,7 +855,7 @@ namespace YARG.Playback
             }
 
             UpdateCalibration();
-            SetResumeInputBase();
+            ReanchorTimelineForResume();
             ResetSync();
             PreAlignResumeAudio();
 
@@ -891,18 +870,6 @@ namespace YARG.Playback
                 "Resumed at song time {0:0.000000}, visual time {1:0.000000}, input time {2:0.000000}.",
                 SongTime, VisualTime, InputTime
             );
-        }
-
-        public void SetPaused(bool paused)
-        {
-            if (paused)
-            {
-                Pause();
-            }
-            else
-            {
-                Resume();
-            }
         }
 
         /// <summary>
@@ -943,6 +910,14 @@ namespace YARG.Playback
             return !Paused;
         }
 
+        /// <summary>
+        /// Rewinds visual playback while paused, seeks backwards, resumes, and waits until the original target time is reached.
+        /// </summary>
+        /// <param name="seconds">The number of seconds to rewind from the current song time.</param>
+        /// <param name="overrideTargetTime">Optional song time to wait for instead of the current song time.</param>
+        /// <returns>
+        /// <c>true</c> if the rewind was canceled or could not complete; <c>false</c> if playback resumed and reached the target time.
+        /// </returns>
         public async UniTask<bool> RewindAndResume(double seconds, double? overrideTargetTime = null)
         {
             // We can only do this when paused
@@ -956,12 +931,12 @@ namespace YARG.Playback
             _rewindSource = new CancellationTokenSource();
             var token = _rewindSource.Token;
 
-            double resumeDelay = GetLatencyAdjustedStartDelay(0);
+            double resumeDelay = GetPlaybackStreamLatency();
             double leadInSongTime = resumeDelay * SongSpeed;
             var targetRewindTime = SongTime - seconds;
             var targetVisualTime = targetRewindTime + (VideoCalibration - AudioCalibration) * SongSpeed - leadInSongTime;
             var targetResumeTime = overrideTargetTime ?? SongTime;
-            float rewindDuration = GetLatencyAdjustedRewindDuration(0.5f);
+            float rewindDuration = REWIND_DURATION;
 
             _rewindTween = DOTween.To(() => VisualTime, x => VisualTime = x, targetVisualTime, rewindDuration);
 
@@ -978,7 +953,7 @@ namespace YARG.Playback
                 return true;
             }
 
-            SetSongTime(targetRewindTime - (AudioCalibration * SongSpeed), resumeDelay);
+            SetSongTime(targetRewindTime - (AudioCalibration * SongSpeed), 0);
             Resume();
 
 
@@ -993,6 +968,11 @@ namespace YARG.Playback
             return false;
         }
 
+        /// <summary>
+        /// Clamps a song speed multiplier to the supported playback range.
+        /// </summary>
+        /// <param name="speed">The requested speed multiplier, where 1f is 100% speed.</param>
+        /// <returns>The clamped speed multiplier.</returns>
         public static float ClampSongSpeed(float speed)
         {
             // 10% - 5000%, we reserve 5% at the bottom so that audio syncing can still function.

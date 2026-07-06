@@ -44,15 +44,16 @@ namespace YARG.Audio.BASS
         {
 #if UNITY_STANDALONE_OSX || UNITY_EDITOR_OSX
             // CoreAudio is pull-based; info.Latency already encapsulates the full hardware pipeline.
-            return DeviceOutputLatency;
+            double latency = DeviceOutputLatency;
 #else
-            return DeviceOutputLatency + DeviceBufferLatency + PLATFORM_SEEK_OVERHEAD_SECONDS;
+            double latency = DeviceOutputLatency + DeviceBufferLatency + PLATFORM_SEEK_OVERHEAD_SECONDS;
 #endif
+            return SanitizeLatency(latency);
         }
 
         public double GetTempoStreamLatency()
         {
-            return GetOutputBufferLatency() + CommandUpdateLatency + _tempoFxLatency;
+            return SanitizeLatency(GetOutputBufferLatency() + CommandUpdateLatency + _tempoFxLatency);
         }
 
         private double GetOutputBufferLatency()
@@ -76,6 +77,16 @@ namespace YARG.Audio.BASS
             }
 
             return bufferLatency;
+        }
+
+        private static double SanitizeLatency(double latency)
+        {
+            if (double.IsNaN(latency) || double.IsInfinity(latency) || latency < 0)
+            {
+                return 0;
+            }
+
+            return latency;
         }
 
         private static int ClampBufferLength(int length)

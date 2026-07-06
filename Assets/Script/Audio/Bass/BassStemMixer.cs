@@ -245,8 +245,6 @@ namespace YARG.Audio.BASS
 
         protected override void SetPosition_Internal(double position)
         {
-            var wasPlaying = IsPlaying;
-            Pause_Internal();
             FlushTempoStreamBuffer();
 
             var channels = BassMix.MixerGetChannels(_mixerHandle) ?? Array.Empty<int>();
@@ -265,11 +263,6 @@ namespace YARG.Audio.BASS
             }
             _didSetPosition = true;
             _positionOffset = position;
-
-            if (wasPlaying)
-            {
-                Play_Internal();
-            }
         }
 
         private void FlushTempoStreamBuffer()
