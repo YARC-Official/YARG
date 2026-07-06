@@ -13,7 +13,7 @@ namespace YARG.Gameplay.HUD
     {
         private const float PROGRESS_FILL_ALPHA     = 0.5f;
         private const float PROGRESS_COMPLETE_ALPHA = 0.7f;
-        private const float LERP_SPEED              = 15f;
+        private const float TWEEN_LENGTH              = 0.15f;
         [SerializeField]
         private Image _icon;
         [SerializeField]
@@ -27,43 +27,33 @@ namespace YARG.Gameplay.HUD
         [SerializeField]
         private Color    _incompleteColor;
         private Sequence _completeSequence;
+        private Tweener _seekTween;
         private bool     _hasFailed;
-        private float    _targetProgress;
-
-        private void Update()
-        {
-            if (Mathf.Approximately(_fill.fillAmount, _targetProgress))
-            {
-                return;
-            }
-
-            // Lerp to new progress
-            _fill.fillAmount =
-                DOVirtual.EasedValue(_fill.fillAmount, _targetProgress, Time.deltaTime * LERP_SPEED, Ease.Linear);
-
-            if (_hasFailed)
-            {
-                return;
-            }
-
-            if (_fill.fillAmount >= 0.99f)
-            {
-                _icon.color = Color.white;
-                _fill.color = _completeColor.WithAlpha(PROGRESS_COMPLETE_ALPHA);
-            }
-            else
-            {
-                _icon.color = _incompleteColor;
-                _fill.color = Color.white.WithAlpha(PROGRESS_FILL_ALPHA);
-            }
-        }
+        private float    _progress;
 
         protected override void GameplayAwake()
         {
             _completeSequence = UnisonDisplay.BuildCompleteSequence(gameObject);
+            _seekTween = _fill.DOFillAmount(_progress, TWEEN_LENGTH)
+                .SetEase(Ease.OutCubic)
+                .OnComplete(OnTweenComplete)
+                .Pause()
+                .SetAutoKill(false)
+                .SetLink(gameObject);
             _fill.fillAmount = 0f;
             _fill.color = Color.white.WithAlpha(PROGRESS_FILL_ALPHA);
             _icon.color = _incompleteColor;
+        }
+
+        private void OnTweenComplete()
+        {
+            if (_progress < 1f)
+            {
+                return;
+            }
+            _completeSequence.Restart();
+            _icon.color = Color.white;
+            _fill.color = _completeColor.WithAlpha(PROGRESS_COMPLETE_ALPHA);
         }
 
         public async void SetIcon(string spritePath)
@@ -80,17 +70,20 @@ namespace YARG.Gameplay.HUD
 
         public void SetProgress(float progress)
         {
-            if (_hasFailed)
+            if (_hasFailed || Mathf.Approximately(_progress, progress))
             {
                 return;
             }
 
-            _targetProgress = progress;
+            _progress = progress;
+            SetTween();
+        }
 
-            if (progress >= 1f)
-            {
-                _completeSequence.Restart();
-            }
+        private void SetTween()
+        {
+            // Lerp to new progress
+            _seekTween.ChangeEndValue(_progress, true);
+            _seekTween.Play();
         }
 
         public void SetFailState(bool isFail)
@@ -109,7 +102,7 @@ namespace YARG.Gameplay.HUD
 
         public void ResetState()
         {
-            _targetProgress = 0f;
+            _progress = 0f;
             _hasFailed = false;
             _fill.fillAmount = 0f;
             _fill.color = Color.white.WithAlpha(PROGRESS_FILL_ALPHA);

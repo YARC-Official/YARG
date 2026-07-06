@@ -29,39 +29,37 @@ namespace YARG.Gameplay.HUD
         private int _hitNotes;
         private int _totalNotes;
 
+        private Tweener _seekTween;
+
+        private const float TWEEN_LENGTH = 0.1f;
+
         private float Progress => YargMath.InverseLerpF(0f, _totalNotes, _hitNotes);
 
-        private bool _isFailed;
-
-        private void Update()
+        protected override void GameplayAwake()
         {
-            if (Mathf.Approximately(_fill.fillAmount, Progress))
+            _seekTween = _fill.DOFillAmount(Progress, TWEEN_LENGTH)
+                .SetEase(Ease.OutCubic)
+                .OnComplete(OnTweenComplete)
+                .Pause()
+                .SetAutoKill(false)
+                .SetLink(gameObject);
+        }
+
+        private void SetTweenEnd()
+        {
+            _seekTween.ChangeEndValue(Progress, true);
+            _seekTween.Play();
+        }
+
+        private void OnTweenComplete()
+        {
+            if (_hitNotes < _totalNotes)
             {
                 return;
             }
-
-            // Lerp to new progress
-            _fill.fillAmount =
-                DOVirtual.EasedValue(_fill.fillAmount, Progress, Time.deltaTime * 15, Ease.OutCubic);
-
-            if (_isFailed)
-            {
-                return;
-            }
-
-            if (_fill.fillAmount >= 0.99f)
-            {
-                _fill.fillAmount = 1f;
-                _fill.color = _completeColor;
-                _successCounter.color = _completeColor;
-                _totalCounter.color = _completeColor;
-            }
-            else
-            {
-                _successCounter.color = Color.white;
-                _totalCounter.color = Color.white;
-                _fill.color = _progressColor;
-            }
+            _fill.color = _completeColor;
+            _successCounter.color = _completeColor;
+            _totalCounter.color = _completeColor;
         }
 
         public override void AddParticipant(int participantId, int totalNotes)
@@ -78,6 +76,13 @@ namespace YARG.Gameplay.HUD
                 return;
             }
 
+            var delta = notesHit - ParticipantNotesHit[engineId];
+
+            if (delta == 0)
+            {
+                // Not sure how this would happen, but in case it does...
+                return;
+            }
 
             if (notesHit == ParticipantTotalNotes[engineId] && notesHit > ParticipantNotesHit[engineId])
             {
@@ -85,8 +90,9 @@ namespace YARG.Gameplay.HUD
                 _successCounter.text = _successCount.ToString();
             }
 
-            var delta = notesHit - ParticipantNotesHit[engineId];
             _hitNotes += delta;
+
+            SetTweenEnd();
 
             base.SetNotesHit(engineId, notesHit);
         }
@@ -97,7 +103,6 @@ namespace YARG.Gameplay.HUD
             _successCounter.color = _failColor;
             _totalCounter.color = _failColor;
             _fill.color = _failColor;
-            _isFailed = true;
         }
 
         public override void ResetState()
@@ -106,7 +111,6 @@ namespace YARG.Gameplay.HUD
             _successCounter.text = "0";
             _hitNotes = 0;
             _totalNotes = 0;
-            _isFailed = false;
             _successCount = 0;
             _fill.fillAmount = 0f;
             _successCounter.color = Color.white;
