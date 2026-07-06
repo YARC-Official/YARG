@@ -52,6 +52,10 @@ namespace YARG.Input
         /// <summary>
         /// The high-precision CPU timestamp when <see cref="InputUpdateTime"/> was last sampled.
         /// </summary>
+        /// <remarks>
+        /// Input updates happen once per frame, so <see cref="InputUpdateTime"/> can be stale between frames.
+        /// This timestamp lets other code add the elapsed CPU time to estimate the current input time for audio sync.
+        /// </remarks>
         public static double InputUpdateCpuTime { get; private set; }
 
         private static HashSet<InputDevice> _seenDevices = new();

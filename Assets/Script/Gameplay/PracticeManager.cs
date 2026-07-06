@@ -237,6 +237,7 @@ namespace YARG.Gameplay
         {
             _practiceHud.ResetPractice();
 
+            // Pause during reset so seeking and state resets happen atomically before resume.
             if (!GameManager.Paused)
             {
                 GameManager.Pause(showMenu: false);

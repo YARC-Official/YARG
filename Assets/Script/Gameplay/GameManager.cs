@@ -173,7 +173,7 @@ namespace YARG.Gameplay
         private List<double> _frameTimes;
 
         private double _pauseTime;
-        private float  _lastObservedEffectiveSongSpeed = float.NaN;
+        private float  _lastSongSpeed = float.NaN;
         private double _rewindLimit = double.MinValue;
         private bool   _resumeInProgress;
         private bool   _autoCalibrateVideoOnPause;
@@ -327,7 +327,7 @@ namespace YARG.Gameplay
 
             // Update handlers
             _songRunner.Update();
-            UpdateEffectiveSongSpeedDependents();
+            ApplySongSpeed();
             BeatEventHandler.Update(_songRunner.SongTime, _songRunner.VisualTime);
             CrowdEventHandler.Update(_songRunner.SongTime);
 
@@ -377,7 +377,7 @@ namespace YARG.Gameplay
         public void SetSongSpeed(float speed)
         {
             _songRunner.SetSongSpeed(speed);
-            UpdateEffectiveSongSpeedDependents();
+            ApplySongSpeed();
         }
 
         public int GetMixerFFTData(float[] buffer, int fftSize, bool complex)
@@ -393,18 +393,18 @@ namespace YARG.Gameplay
         public void AdjustSongSpeed(float deltaSpeed)
         {
             _songRunner.AdjustSongSpeed(deltaSpeed);
-            UpdateEffectiveSongSpeedDependents();
+            ApplySongSpeed();
         }
 
-        private void UpdateEffectiveSongSpeedDependents()
+        private void ApplySongSpeed()
         {
             float speed = _songRunner.SongSpeed;
-            if (Mathf.Approximately(speed, _lastObservedEffectiveSongSpeed))
+            if (Mathf.Approximately(speed, _lastSongSpeed))
             {
                 return;
             }
 
-            _lastObservedEffectiveSongSpeed = speed;
+            _lastSongSpeed = speed;
 
             if (IsPractice && _players != null)
             {
@@ -486,7 +486,7 @@ namespace YARG.Gameplay
 
         public async void Resume(double? rewindDuration = null)
         {
-            // Practice/replay skip rewind.
+            // Practice mode and replay do not rewind.
             if (IsPractice || IsReplay)
             {
                 _pauseMenu.PopAllMenus();
