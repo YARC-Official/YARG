@@ -253,15 +253,7 @@ namespace YARG.Gameplay
             YargLogger.LogInfo("Exiting song");
 
             _songRunner?.Dispose();
-
-            if (_songRunner?.SyncThreadStopped ?? true)
-            {
-                _mixer?.Dispose();
-            }
-            else
-            {
-                YargLogger.LogError("Skipping mixer dispose because song sync thread did not stop.");
-            }
+            _mixer?.Dispose();
 
             _songRunner = null;
             _mixer = null;

@@ -516,9 +516,6 @@ namespace YARG.Gameplay
                     text.AppendFormat("Video calibration: {0}ms\n", _songRunner.VideoCalibration);
                     text.AppendFormat("Song offset: {0}ms\n", _songRunner.SongOffset);
                     text.AppendFormat("Device audio latency: {0}ms\n", GlobalAudioHandler.PlaybackLatency);
-                    text.AppendFormat("Audible sync latency: {0:0.000000}s\n", _songRunner.EstimatedOutputLatency);
-                    text.AppendFormat("Command latency: {0:0.000000}s\n", _songRunner.CommandLatency);
-                    text.AppendFormat("Playback lead-in: {0:0.000000}s\n", _songRunner.GetLatencyAdjustedStartDelay(0));
 
                     GUILayout.Label(text.AsSpan().TrimEnd('\n').ToString());
                 }
