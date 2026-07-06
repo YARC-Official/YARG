@@ -14,8 +14,8 @@ namespace YARG.Playback
         private const float SYNC_CLAMP = 0.10f;
 
         private readonly StemMixer _mixer;
-        private readonly object _syncLock;
-        private readonly Func<StateSnapshot> _captureState;
+        private readonly ISongSyncStateProvider _stateProvider;
+        private readonly object _stateLock = new();
         private readonly Action<double, bool> _activateScheduledSongSpeeds;
         private readonly Thread _syncThread;
 
@@ -39,7 +39,7 @@ namespace YARG.Playback
         {
             get
             {
-                lock (_syncLock)
+                lock (_stateLock)
                 {
                     return _syncAudioTime;
                 }
@@ -50,7 +50,7 @@ namespace YARG.Playback
         {
             get
             {
-                lock (_syncLock)
+                lock (_stateLock)
                 {
                     return _syncVisualTime;
                 }
@@ -61,13 +61,11 @@ namespace YARG.Playback
 
         public SongSyncController(
             StemMixer mixer,
-            object syncLock,
-            Func<StateSnapshot> captureState,
+            ISongSyncStateProvider stateProvider,
             Action<double, bool> activateScheduledSongSpeeds)
         {
             _mixer = mixer;
-            _syncLock = syncLock;
-            _captureState = captureState;
+            _stateProvider = stateProvider;
             _activateScheduledSongSpeeds = activateScheduledSongSpeeds;
             _syncThread = new Thread(SyncThread) { IsBackground = true };
         }
@@ -99,7 +97,7 @@ namespace YARG.Playback
 
         public void Reset(float songSpeed)
         {
-            lock (_syncLock)
+            lock (_stateLock)
             {
                 _syncSpeedAdjustment = 0f;
                 _justResumed = false;
@@ -112,7 +110,7 @@ namespace YARG.Playback
 
         public void ClearSpeedAdjustment()
         {
-            lock (_syncLock)
+            lock (_stateLock)
             {
                 _syncSpeedAdjustment = 0f;
             }
@@ -120,7 +118,7 @@ namespace YARG.Playback
 
         public void NotifyResumed()
         {
-            lock (_syncLock)
+            lock (_stateLock)
             {
                 _justResumed = true;
             }
@@ -137,7 +135,7 @@ namespace YARG.Playback
 
         public void SuppressUntil(double inputSystemTime)
         {
-            lock (_syncLock)
+            lock (_stateLock)
             {
                 _syncCorrectionSuppressedUntil = Math.Max(_syncCorrectionSuppressedUntil, inputSystemTime);
                 _nextSyncSpeedChangeTime = Math.Max(_nextSyncSpeedChangeTime, inputSystemTime);
@@ -174,7 +172,7 @@ namespace YARG.Playback
                 var sample = CreateSyncTimingSample(ref lastSampleTime);
                 _activateScheduledSongSpeeds(sample.InputSystemTime, false);
 
-                var snapshot = CaptureSyncState();
+                var snapshot = _stateProvider.ReadSongSyncState();
                 var timeline = BuildSyncTimeline(sample.InputSystemTime, snapshot);
                 if (_disposed)
                 {
@@ -223,15 +221,7 @@ namespace YARG.Playback
             return new SyncTimingSample(inputSystemTime, elapsedMs);
         }
 
-        private StateSnapshot CaptureSyncState()
-        {
-            lock (_syncLock)
-            {
-                return _captureState();
-            }
-        }
-
-        private SyncTimeline BuildSyncTimeline(double inputSystemTime, StateSnapshot snapshot)
+        private SyncTimeline BuildSyncTimeline(double inputSystemTime, SongSyncState snapshot)
         {
             double audioOffset = snapshot.SongOffset - (snapshot.AudioCalibration * snapshot.SongSpeed);
             double currentSongTime = (inputSystemTime - snapshot.InputTimeOffset) * snapshot.SongSpeed;
@@ -254,7 +244,7 @@ namespace YARG.Playback
 
         private void ClearStaleResumeStateBeforePreroll(SyncTimeline timeline)
         {
-            lock (_syncLock)
+            lock (_stateLock)
             {
                 if (_justResumed && timeline.SyncVisualTime < -timeline.PreRollSongTime)
                 {
@@ -265,7 +255,7 @@ namespace YARG.Playback
 
         private void TryStartOrAlignAudioAfterResume(
             ref SyncTimingSample sample,
-            StateSnapshot snapshot,
+            SongSyncState snapshot,
             ref SyncTimeline timeline)
         {
             bool audioShouldStart = !snapshot.Paused && _mixer.IsPaused &&
@@ -277,7 +267,7 @@ namespace YARG.Playback
             }
 
             bool justResumed;
-            lock (_syncLock)
+            lock (_stateLock)
             {
                 justResumed = _justResumed;
                 _justResumed = false;
@@ -301,7 +291,7 @@ namespace YARG.Playback
             timeline = BuildSyncTimeline(inputSystemTime, snapshot);
         }
 
-        private void AlignAudioForResume(StateSnapshot snapshot, SyncTimeline timeline)
+        private void AlignAudioForResume(SongSyncState snapshot, SyncTimeline timeline)
         {
             double resumeCommandDelay = GetResumeCommandDelay();
             double resumeCommandInputTime = GetEstimatedCurrentInputTime();
@@ -334,7 +324,7 @@ namespace YARG.Playback
             return Math.Max(0, GetCurrentCpuTime() - frameStart);
         }
 
-        private bool ShouldApplySyncCorrection(StateSnapshot snapshot, SyncTimeline timeline)
+        private bool ShouldApplySyncCorrection(SongSyncState snapshot, SyncTimeline timeline)
         {
             return !snapshot.Paused &&
                 timeline.SyncVisualTime >= 0 &&
@@ -344,7 +334,7 @@ namespace YARG.Playback
 
         private void PublishSyncTimes(SyncTimeline timeline)
         {
-            lock (_syncLock)
+            lock (_stateLock)
             {
                 _syncAudioTime = timeline.SyncAudioTime;
                 _syncVisualTime = timeline.SyncVisualTime;
@@ -357,7 +347,7 @@ namespace YARG.Playback
             double inputSyncDelta = timeline.CurrentSongTime - audioInputTime;
             bool correctionIsSuppressed;
 
-            lock (_syncLock)
+            lock (_stateLock)
             {
                 correctionIsSuppressed = sample.InputSystemTime < _syncCorrectionSuppressedUntil;
             }
@@ -369,7 +359,7 @@ namespace YARG.Playback
             }
 
             double historyContributionMs;
-            lock (_syncLock)
+            lock (_stateLock)
             {
                 TrimSyncHistory(streamDelayMs);
                 historyContributionMs = _syncHistoryRunningSum;
@@ -385,7 +375,7 @@ namespace YARG.Playback
         {
             double contributionMs = targetAdjustment * elapsedMs;
 
-            lock (_syncLock)
+            lock (_stateLock)
             {
                 _syncHistory.AddLast((elapsedMs, contributionMs));
                 _syncHistoryRunningSum += contributionMs;
@@ -396,7 +386,7 @@ namespace YARG.Playback
 
         private void PublishSyncThreadState(SyncTimeline timeline, float targetAdjustment, double inputSystemTime)
         {
-            lock (_syncLock)
+            lock (_stateLock)
             {
                 _syncAudioTime = timeline.SyncAudioTime;
                 _syncVisualTime = timeline.SyncVisualTime;
@@ -501,29 +491,6 @@ namespace YARG.Playback
             {
                 InputSystemTime = inputSystemTime;
                 ElapsedMs = elapsedMs;
-            }
-        }
-
-        public readonly struct StateSnapshot
-        {
-            public readonly float SongSpeed;
-            public readonly double SongOffset;
-            public readonly double AudioCalibration;
-            public readonly double InputTimeOffset;
-            public readonly bool Paused;
-
-            public StateSnapshot(
-                float songSpeed,
-                double songOffset,
-                double audioCalibration,
-                double inputTimeOffset,
-                bool paused)
-            {
-                SongSpeed = songSpeed;
-                SongOffset = songOffset;
-                AudioCalibration = audioCalibration;
-                InputTimeOffset = inputTimeOffset;
-                Paused = paused;
             }
         }
 
