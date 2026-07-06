@@ -167,11 +167,6 @@ namespace YARG.Playback
         /// <summary>
         /// The effective gameplay/reference speed of the song.
         /// </summary>
-        public float EffectiveSongSpeed => _effectiveSongSpeed;
-
-        /// <summary>
-        /// The effective gameplay/reference speed of the song.
-        /// </summary>
         public float SongSpeed => _effectiveSongSpeed;
 
         /// <summary>
@@ -185,7 +180,6 @@ namespace YARG.Playback
 
         private float _requestedSongSpeed;
         private float _effectiveSongSpeed;
-        private float _commandedAudioBaseSpeed;
         private readonly Queue<(double EffectiveTime, float Speed)> _songSpeedSchedule = new();
 
         /// <summary>
@@ -224,28 +218,14 @@ namespace YARG.Playback
         private volatile bool _disposed;
 
         private volatile float _syncSpeedAdjustment;
-        private volatile float _syncCommandedSpeedAdjustment;
         private volatile int   _syncSpeedMultiplier;
         private volatile float _syncStartDelta;
         private volatile float _syncWorstDelta;
-        private volatile float _syncSmoothedDrift = float.NaN;
-        private bool _syncRecoveryActive;
         private double _syncCorrectionSuppressedUntil = double.NegativeInfinity;
         private double _nextSyncSpeedChangeTime = double.NegativeInfinity;
 
         #region PLL state variables
-        private double _pllModelPosition;
-
         private double _pllFilteredMismatch;
-        private double _pllControlError;
-        private double _pllRawMismatch;
-        private double _pllStreamDelay;
-        private double _pllAudioDelayDistance;
-        private double _pllReferenceLeadDistance;
-        private readonly List<(double Time, double Speed)> _pllSpeedHistory = new();
-        private bool _pllInitialized;
-        private double _pllLastTime = double.NaN;
-        private double _pllLastRawAudioTime = double.NaN;
         #endregion
 
         #region Simplified Sync state variables
@@ -264,32 +244,10 @@ namespace YARG.Playback
         private double _lastSyncLandingDelta = double.NaN;
 
         public float SyncSpeedAdjustment => _syncSpeedAdjustment;
-        public float SyncCommandedSpeedAdjustment => _syncCommandedSpeedAdjustment;
-        public int SyncSpeedMultiplier => _syncSpeedMultiplier;
-        public float SyncStartDelta => _syncStartDelta;
-        public float SyncWorstDelta => _syncWorstDelta;
         public string LastSyncLandingOperation { get { lock (_syncLock) return _lastSyncLandingOperation; } }
         public double LastSyncLandingDelta { get { lock (_syncLock) return _lastSyncLandingDelta; } }
         public double EstimatedOutputLatency => GetPlaybackStreamLatency();
         public double CommandLatency => GetTempoStreamLatency();
-        public double PllControlError { get { lock (_syncLock) return _pllControlError; } }
-        public double PllRawMismatch { get { lock (_syncLock) return _pllRawMismatch; } }
-        public double PllFilteredMismatch { get { lock (_syncLock) return _pllFilteredMismatch; } }
-        public double PllStreamDelay { get { lock (_syncLock) return _pllStreamDelay; } }
-        public double PllAudioDelayDistance { get { lock (_syncLock) return _pllAudioDelayDistance; } }
-        public double PllReferenceLeadDistance { get { lock (_syncLock) return _pllReferenceLeadDistance; } }
-        public double SyncSuppressionRemaining
-        {
-            get
-            {
-                double suppressedUntil;
-                lock (_syncLock)
-                {
-                    suppressedUntil = _syncCorrectionSuppressedUntil;
-                }
-                return Math.Max(0.0, suppressedUntil - GetEstimatedCurrentInputTime());
-            }
-        }
 
         /// <summary>
         /// The audio time used by audio synchronization.<br/>
@@ -302,16 +260,6 @@ namespace YARG.Playback
         /// Accounts for song speed, but <b>not</b> video calibration.
         /// </summary>
         public double SyncVisualTime { get; private set; }
-
-        /// <summary>
-        /// The difference between the visual and audio times shown in the debug panel.
-        /// </summary>
-        public double AudioVisualDelta => VisualTime - AudioTime;
-
-        /// <summary>
-        /// The difference between the song/input clock and actual audio playback.
-        /// </summary>
-        public double AudioSyncDelta => SongTime - AudioTime;
 
         /// <summary>
         /// The difference between the visual and audio times used by audio synchronization.
@@ -363,7 +311,6 @@ namespace YARG.Playback
             _mixer = mixer;
             _requestedSongSpeed = ClampSongSpeed(songSpeed);
             _effectiveSongSpeed = _requestedSongSpeed;
-            _commandedAudioBaseSpeed = _effectiveSongSpeed;
             SongOffset = -songOffset;
 
             _syncThread = new Thread(SyncThread) { IsBackground = true };
@@ -409,7 +356,6 @@ namespace YARG.Playback
  
             // Re-initialize song times to avoid lag issues
             InitializeSongTime(InputTime, 0);
-            ResetSyncEstimate();
  
             _syncThread.Start();
             Started = true;
@@ -490,68 +436,6 @@ namespace YARG.Playback
         private double GetTempoStreamLatency()
         {
             return SanitizeLatency(_mixer.GetTempoStreamLatency());
-        }
-
-        private static void PruneSpeedHistory(List<(double Time, double Speed)> history, double windowStart)
-        {
-            int removeCount = 0;
-            while (removeCount + 1 < history.Count && history[removeCount + 1].Time <= windowStart)
-            {
-                removeCount++;
-            }
-
-            if (removeCount > 0)
-            {
-                history.RemoveRange(0, removeCount);
-            }
-        }
-
-        private static double IntegrateSpeedHistory(
-            List<(double Time, double Speed)> history,
-            double fallbackSpeed,
-            double startTime,
-            double endTime)
-        {
-            if (endTime <= startTime)
-            {
-                return 0.0;
-            }
-
-            if (history.Count == 0)
-            {
-                return (endTime - startTime) * fallbackSpeed;
-            }
-
-            double total = 0.0;
-            double currentTime = startTime;
-            double currentSpeed = fallbackSpeed;
-            int index = 0;
-
-            while (index < history.Count && history[index].Time <= startTime)
-            {
-                currentSpeed = history[index].Speed;
-                index++;
-            }
-
-            while (index < history.Count && history[index].Time < endTime)
-            {
-                var sample = history[index];
-                if (sample.Time > currentTime)
-                {
-                    total += (sample.Time - currentTime) * currentSpeed;
-                    currentTime = sample.Time;
-                }
-
-                currentSpeed = sample.Speed;
-                index++;
-            }
-
-            if (endTime > currentTime)
-            {
-                total += (endTime - currentTime) * currentSpeed;
-            }
-
-            return total;
         }
 
         private bool ActivateScheduledSongSpeeds(double nowInputSystemTime, bool updateTimes)
@@ -794,21 +678,12 @@ namespace YARG.Playback
                 {
                     SyncAudioTime = syncAudioTime;
                     SyncVisualTime = syncVisualTime;
-                    _syncSmoothedDrift = (float) _pllFilteredMismatch;
                     _syncSpeedAdjustment = targetAdjustment;
-                    _syncCommandedSpeedAdjustment = targetAdjustment;
-                    _commandedAudioBaseSpeed = (float) songSpeed;
                     _syncSpeedMultiplier = speedMultiplier;
                     _syncStartDelta = startDelta;
                     _syncWorstDelta = worstDelta;
-                    _syncRecoveryActive = speedMultiplier != 0;
                     _syncCorrectionSuppressedUntil = syncCorrectionSuppressedUntil;
                     _nextSyncSpeedChangeTime = currentInputTime;
-                    _pllControlError = err_ms / 1000.0;
-                    _pllRawMismatch = inputSyncDelta;
-                    _pllStreamDelay = streamDelay;
-                    _pllAudioDelayDistance = _syncHistoryRunningSum / 1000.0;
-                    _pllReferenceLeadDistance = songSpeed * streamDelay;
                 }
             }
         }
@@ -828,23 +703,9 @@ namespace YARG.Playback
             {
                 _syncSpeedMultiplier = 0;
                 _syncSpeedAdjustment = 0f;
-                _syncCommandedSpeedAdjustment = 0f;
-                _commandedAudioBaseSpeed = _effectiveSongSpeed;
-                _syncSmoothedDrift = float.NaN;
-                _syncRecoveryActive = false;
                 _justResumed = false;
 
-                _pllInitialized = false;
-
                 _pllFilteredMismatch = 0.0;
-                _pllControlError = 0.0;
-                _pllRawMismatch = 0.0;
-                _pllStreamDelay = 0.0;
-                _pllAudioDelayDistance = 0.0;
-                _pllReferenceLeadDistance = 0.0;
-                _pllSpeedHistory.Clear();
-                _pllLastTime = double.NaN;
-                _pllLastRawAudioTime = double.NaN;
 
                 _syncHistory.Clear();
                 _syncHistoryRunningSum = 0.0;
@@ -853,11 +714,6 @@ namespace YARG.Playback
 
             _mixer.SetSpeed(RealSongSpeed, true);
             SuppressSyncCorrection();
-        }
-
-        private void ResetSyncEstimate()
-        {
-            _syncSmoothedDrift = float.NaN;
         }
 
         private void TrimSyncHistory(double targetDurationMs)
@@ -1090,14 +946,12 @@ namespace YARG.Playback
                 if (!Mathf.Approximately(_effectiveSongSpeed, _requestedSongSpeed))
                 {
                     _effectiveSongSpeed = _requestedSongSpeed;
-                    _commandedAudioBaseSpeed = _effectiveSongSpeed;
                     _songSpeedSchedule.Clear();
                 }
             }
 
             // Set input/song time
             InitializeSongTime(time, delayTime);
-            ResetSyncEstimate();
 
             // Audio seeking; cannot go negative
             seekTime = time - (delayTime - playbackLatency - AudioCalibration) * SongSpeed - SongOffset;
@@ -1161,8 +1015,6 @@ namespace YARG.Playback
 
                 _requestedSongSpeed = speed;
                 _syncSpeedAdjustment = 0f;
-                _syncCommandedSpeedAdjustment = 0f;
-                _commandedAudioBaseSpeed = speed;
 
                 immediate = !Started || Paused || streamDelay <= 0.0;
                 if (immediate)
@@ -1240,7 +1092,6 @@ namespace YARG.Playback
 
             _mixer.Pause();
             ResetSync();
-            ResetSyncEstimate();
 
             YargLogger.LogFormatDebug(
                 "Paused at song time {0:0.000000}, visual time {1:0.000000}, input time {2:0.000000}.",
@@ -1270,7 +1121,6 @@ namespace YARG.Playback
             UpdateCalibration();
             SetResumeInputBase();
             ResetSync();
-            ResetSyncEstimate();
             PreAlignResumeAudio();
 
             lock (_syncLock)
