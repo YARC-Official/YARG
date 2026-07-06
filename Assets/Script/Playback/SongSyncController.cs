@@ -225,7 +225,7 @@ namespace YARG.Playback
         {
             double audioOffset = snapshot.SongOffset - (snapshot.AudioCalibration * snapshot.SongSpeed);
             double currentSongTime = (inputSystemTime - snapshot.InputTimeOffset) * snapshot.SongSpeed;
-            double syncAudioTime = _mixer.GetSyncPosition();
+            double syncAudioTime = _mixer.GetPosition();
             double syncVisualTime = currentSongTime - audioOffset;
             double playbackLatency = GetPlaybackStreamLatency();
             double tempoLatency = GetTempoStreamLatency();

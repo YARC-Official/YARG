@@ -36,19 +36,11 @@ namespace YARG.Audio.BASS
 
         private const    float WHAMMY_SYNC_INTERVAL_SECONDS = 1f;
 
-        // Additional seek overhead on Windows/Linux to account for WASAPI/ALSA
-        // software-side buffering that is not captured by info.Latency or DeviceBufferLength.
-        private const double PLATFORM_SEEK_OVERHEAD_SECONDS = 0.015;
-
         private static bool IsWhammyEnabled => SettingsManager.Settings.UseWhammyFx.Value;
         private static int PlaybackBufferLength => ClampBufferLength(SettingsManager.Settings?.PlaybackBufferLength.Value ?? 0);
         private        bool IsPlaying       => Bass.ChannelIsActive(_tempoStreamHandle) is PlaybackState.Playing or PlaybackState.Stalled;
 
-        private static double DeviceOutputLatency => Math.Max(0, GlobalAudioHandler.PlaybackLatency) / 1000.0;
-        private static double ConfiguredOutputLatency => Math.Max(0, PlaybackBufferLength) / 1000.0;
-        private static double CommandUpdateLatency => Math.Max(0, Bass.UpdatePeriod) / 2000.0;
-        private static double DeviceBufferLatency => Math.Max(0, Bass.DeviceBufferLength) / 2000.0;
-        private        double TempoFxLatency => _tempoFxLatency;
+        private readonly BassLatencyProvider _latencyProvider;
 
         private readonly int            _mixerHandle;
         private readonly List<int>      _sourceHandles = new();
@@ -60,9 +52,6 @@ namespace YARG.Audio.BASS
         private          Timer          _whammySyncTimer;
         private readonly List<StemData> _stemDatas = new();
         private          int            _longestHandle;
-        // Default tempo FX latency in seconds, calculated from documented BASS_FX defaults:
-        // Sequence (82ms) + Seek Window (14ms) + Overlap (12ms) = 108ms (0.108s)
-        private          double         _tempoFxLatency = 0.108;
 
         private readonly BassNormalizer _normalizer = new();
         private          bool           _shouldNormalize;
@@ -108,12 +97,7 @@ namespace YARG.Audio.BASS
                 return;
             }
 
-            if (Bass.ChannelGetAttribute(_tempoStreamHandle, ChannelAttribute.TempoSequenceMilliseconds, out float sequenceMs) &&
-                Bass.ChannelGetAttribute(_tempoStreamHandle, ChannelAttribute.TempoSeekWindowMilliseconds, out float seekWindowMs) &&
-                Bass.ChannelGetAttribute(_tempoStreamHandle, ChannelAttribute.TempoOverlapMilliseconds, out float overlapMs))
-            {
-                _tempoFxLatency = (sequenceMs + seekWindowMs + overlapMs) / 1000.0;
-            }
+            _latencyProvider = new BassLatencyProvider(_tempoStreamHandle);
 
             _mixerHandle = handle;
             _shouldNormalize = normalize && SettingsManager.Settings.EnableNormalization.Value;
@@ -225,11 +209,6 @@ namespace YARG.Audio.BASS
 
         protected override double GetPosition_Internal()
         {
-            return Math.Max(0, GetTempoStreamPosition_Internal());
-        }
-
-        protected override double GetSyncPosition_Internal()
-        {
             return GetTempoStreamPosition_Internal();
         }
 
@@ -245,51 +224,14 @@ namespace YARG.Audio.BASS
             return Math.Max(0.0, seconds) + _positionOffset;
         }
 
-        /// <summary>
-        /// Calculates the total latency of the main playback audio stream.
-        /// </summary>
-        /// <returns>The playback stream latency in seconds.</returns>
         protected override double GetPlaybackStreamLatency_Internal()
         {
-#if UNITY_STANDALONE_OSX || UNITY_EDITOR_OSX
-            // CoreAudio is pull-based; info.Latency already encapsulates the full hardware pipeline.
-            return DeviceOutputLatency;
-#else
-            return DeviceOutputLatency + DeviceBufferLatency + PLATFORM_SEEK_OVERHEAD_SECONDS;
-#endif
+            return _latencyProvider.GetPlaybackStreamLatency();
         }
 
-        /// <summary>
-        /// Calculates the total latency of the tempo-controlled audio stream.
-        /// </summary>
-        /// <returns>The tempo stream latency in seconds.</returns>
         protected override double GetTempoStreamLatency_Internal()
         {
-            return GetOutputBufferLatency() + CommandUpdateLatency + TempoFxLatency;
-        }
-
-
-        private double GetOutputBufferLatency()
-        {
-            double maxBufferLatency = ConfiguredOutputLatency;
-            if (maxBufferLatency <= 0)
-            {
-                return 0;
-            }
-
-            int availableBytes = Bass.ChannelGetData(_tempoStreamHandle, IntPtr.Zero, (int) DataFlags.Available);
-            if (availableBytes < 0)
-            {
-                return maxBufferLatency;
-            }
-
-            double bufferLatency = Bass.ChannelBytes2Seconds(_tempoStreamHandle, availableBytes);
-            if (bufferLatency < 0)
-            {
-                return maxBufferLatency;
-            }
-
-            return bufferLatency;
+            return _latencyProvider.GetTempoStreamLatency();
         }
 
         protected override double GetVolume_Internal()
@@ -336,12 +278,7 @@ namespace YARG.Audio.BASS
             {
                 return;
             }
-
-            if (!BassMix.ChannelSetPosition(_tempoStreamHandle, 0))
-            {
-                Bass.ChannelSetPosition(_tempoStreamHandle, 0);
-            }
-
+            Bass.ChannelSetPosition(_tempoStreamHandle, 0);
         }
 
         protected override void SetVolume_Internal(double volume)

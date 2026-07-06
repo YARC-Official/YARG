@@ -558,7 +558,7 @@ namespace YARG.Playback
                 VisualTime = InputTime + (VideoCalibration * SongSpeed);
             }
 
-            AudioPlaybackTime = Math.Max(0, _mixer.GetSyncPosition());
+            AudioPlaybackTime = Math.Max(0, _mixer.GetPosition());
         }
 
         private void SetInputBase(double songTime)
@@ -597,7 +597,7 @@ namespace YARG.Playback
                 newVisualTime = VisualTime;
             }
 
-            AudioPlaybackTime = Math.Max(0, _mixer.GetSyncPosition());
+            AudioPlaybackTime = Math.Max(0, _mixer.GetPosition());
 
             YargLogger.LogFormatDebug(
                 "Set input time base.\n" +
@@ -682,8 +682,8 @@ namespace YARG.Playback
             YargLogger.LogFormatDebug(
                 "Set song time with latency budget.\n" +
                 "Requested delay: {0:0.000000}, effective delay: {1:0.000000}, playback latency: {2:0.000000}, " +
-                "tempo latency: {3:0.000000}, raw audio: {4:0.000000}, sync audio: {5:0.000000}, seek time: {6:0.000000}",
-                requestedDelay, delayTime, playbackLatency, tempoLatency, _mixer.GetPosition(), _mixer.GetSyncPosition(), seekTime
+                "tempo latency: {3:0.000000}, raw audio: {4:0.000000}, seek time: {5:0.000000}",
+                requestedDelay, delayTime, playbackLatency, tempoLatency, _mixer.GetPosition(), seekTime
             );
         }
 
