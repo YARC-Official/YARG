@@ -300,7 +300,31 @@ namespace YARG.Menu.MusicLibrary
                 ? new NavigationScheme.Entry(MenuAction.Right, "Menu.MusicLibrary.MoveInPlaylist", MovePlaylistEntryDown)
                 : new NavigationScheme.Entry(MenuAction.Right, "Menu.MusicLibrary.SkipSection", GoToNextSection);
 
-            Navigator.Instance.PushScheme(new NavigationScheme(new()
+            // Give yellow the same behaviour as green: press to add to set, hold to start the set
+            NavigationScheme.Entry yellowEntry;
+
+            if (SettingsManager.Settings.EnablePlayAShow.Value)
+            {
+                yellowEntry = new NavigationScheme.Entry(
+                        MenuAction.Yellow,
+                        "Menu.MusicLibrary.HoldPlayShow",
+                        () => { }, // tap does nothing
+                        holdSeconds: GREEN_HOLD_SECONDS,
+                        onHoldHandler: EnterShowMode
+                    );
+            }
+            else
+            {
+                yellowEntry = new NavigationScheme.Entry(
+                        MenuAction.Yellow,
+                        "Menu.MusicLibrary.AddHoldStartSet",
+                        _ => AddToPlaylist(),
+                        holdSeconds: GREEN_HOLD_SECONDS,
+                        onHoldHandler: OnGreenHold // Use existing function
+                    );
+            }
+
+            var entries = new List<NavigationScheme.Entry>
             {
                 new NavigationScheme.Entry(MenuAction.Up, "Menu.Common.Up",
                     ctx =>
@@ -348,14 +372,13 @@ namespace YARG.Menu.MusicLibrary
                         hide: true
                     ),
                 new NavigationScheme.Entry(MenuAction.Red, "Menu.Common.Back", Back, hide: true),
-                setListNotEmpty ?
-                    new NavigationScheme.Entry(MenuAction.Yellow, "Menu.MusicLibrary.StartSet", StartSetlist) :
-                    new NavigationScheme.Entry(MenuAction.Yellow, "Menu.MusicLibrary.PlayShow", EnterShowMode),
+                yellowEntry,
                 new NavigationScheme.Entry(MenuAction.Blue, "Menu.MusicLibrary.Filters", OpenFilters),
                 new NavigationScheme.Entry(MenuAction.Orange, "Menu.MusicLibrary.MoreOptions",
                     OnOrangeHit, OnOrangeRelease),
-            }, false));
+            };
 
+            Navigator.Instance.PushScheme(new NavigationScheme(entries, false));
         }
 
         protected override void OnSelectedIndexChanged()
@@ -886,7 +909,8 @@ namespace YARG.Menu.MusicLibrary
 
             if (setListNotEmpty)
             {
-                // same as Blue: Start Setlist
+                // same as Yellow: Start Setlist
+                // Blue is now used for filters
                 StartSetlist();
             }
             else

@@ -9,11 +9,24 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using YARG.Core.Chart;
 using YARG.Core.Logging;
+using YARG.Gameplay.Player;
 
 namespace YARG.Integration
 {
     public class DataStreamController :  MonoSingleton<DataStreamController>
     {
+        public readonly struct PlayerStarPowerState
+        {
+            public byte Amount { get; }
+            public bool IsActive { get; }
+
+            public PlayerStarPowerState(byte amount, bool isActive)
+            {
+                Amount = amount;
+                IsActive = isActive;
+            }
+        }
+
         // Queues for instrument notes to prevent missed notes between timer ticks
         // 1/20 being a blink of an eye. It should never lag more than that, and if so shows a larger problem elsewhere.
         private static readonly int        _defaultSize =  (int)Math.Ceiling(TARGET_FPS * (1f / 20f)) + 1;
@@ -22,6 +35,9 @@ namespace YARG.Integration
         private static readonly Queue<int> _bassQueue   = new(_defaultSize);
         private static readonly Queue<int> _keysQueue   = new(_defaultSize);
         private static readonly object     _queueLock   = new();
+        private static readonly object     _playerStarPowerLock = new();
+        private static PlayerStarPowerState[] _playerStarPowerSnapshot = Array.Empty<PlayerStarPowerState>();
+
         [Serializable]
         public struct DataMessage
         {
@@ -58,6 +74,7 @@ namespace YARG.Integration
             public CameraCutEvent.CameraCutConstraint CameraCutConstraint;
             public CameraCutEvent.CameraCutPriority   CameraCutPriority;
             public CameraCutEvent.CameraCutSubject    CameraCutSubject;
+            public PlayerStarPowerState[]             PlayerStarPower;
         }
 
         public enum PlatformByte
@@ -96,6 +113,7 @@ namespace YARG.Integration
         private static UdpClient _sendClient = new();
 
         //Has to be at least 44 because of DMX, 88 should be enough... for now...
+        private const  byte          DATAGRAM_VERSION   = 4;
         private const  float         TARGET_FPS         = 88f;
         private const  float         TIME_BETWEEN_CALLS = 1f / TARGET_FPS;
         private        Thread        _sendThread;
@@ -196,16 +214,73 @@ namespace YARG.Integration
             }
         }
 
+        public static void UpdatePlayerStarPowerSnapshot(IReadOnlyList<BasePlayer> players)
+        {
+            if (players == null || players.Count <= 0)
+            {
+                ClearPlayerStarPowerSnapshot();
+                return;
+            }
+
+            var snapshot = new PlayerStarPowerState[players.Count];
+            for (int i = 0; i < players.Count; i++)
+            {
+                var player = players[i];
+                if (player == null)
+                {
+                    continue;
+                }
+
+                var engine = player.BaseEngine;
+                snapshot[i] = new PlayerStarPowerState(
+                    EncodeStarPowerAmount(engine.GetStarPowerBarAmount()),
+                    engine.BaseStats.IsStarPowerActive);
+            }
+
+            lock (_playerStarPowerLock)
+            {
+                _playerStarPowerSnapshot = snapshot;
+            }
+        }
+
+        public static void ClearPlayerStarPowerSnapshot()
+        {
+            lock (_playerStarPowerLock)
+            {
+                _playerStarPowerSnapshot = Array.Empty<PlayerStarPowerState>();
+            }
+        }
+
+        private static PlayerStarPowerState[] GetPlayerStarPowerSnapshot()
+        {
+            lock (_playerStarPowerLock)
+            {
+                return _playerStarPowerSnapshot;
+            }
+        }
+
+        private static byte EncodeStarPowerAmount(double amount)
+        {
+            float normalized = (float) amount;
+            if (float.IsNaN(normalized) || float.IsInfinity(normalized))
+            {
+                return 0;
+            }
+
+            return (byte) Mathf.RoundToInt(Mathf.Clamp01(normalized) * byte.MaxValue);
+        }
+
         // Datagram version history
         // v0 - inital release
         // v1 - added "HasVenueTrack?" byte. renamed 'venue' to 'venueSize'.
         // v2 - added Practice to scene, fixed pause
         // v3 - added CameraCut
+        // v4 - added per-player Star Power amount and active state
         public static void Sender(DataMessage message)
         {
             message.Header = 0x59415247; // Y A R G
 
-            message.DatagramVersion = 3;                          // version 0 currently
+            message.DatagramVersion = DATAGRAM_VERSION;
             message.Platform = MLCPlatform;                       // Set by the Preprocessor Directive above.
             message.CurrentScene = MLCSceneIndex;                 // gets set by the initializer.
             message.Paused = MLCPaused;                           // gets set by the GameplayMonitor.
@@ -274,6 +349,7 @@ namespace YARG.Integration
             message.CameraCutConstraint = MLCCameraCutConstraint; // gets set by the GameplayMonitor.
             message.CameraCutPriority = MLCCameraCutPriority;     // gets set by the GameplayMonitor.
             message.CameraCutSubject = MLCCameraCutSubject;       // gets set by the GameplayMonitor.
+            message.PlayerStarPower = GetPlayerStarPowerSnapshot();
 
             SerializeAndSend(message);
 
@@ -306,6 +382,7 @@ namespace YARG.Integration
                 StopSendThread();
                 _sendClient?.Dispose();
                 ClearInstrumentQueues();
+                ClearPlayerStarPowerSnapshot();
             }
         }
         public static void Initializer(Scene scene)
@@ -315,6 +392,7 @@ namespace YARG.Integration
 
             // Clear instrument queues on scene change
             ClearInstrumentQueues();
+            ClearPlayerStarPowerSnapshot();
 
             MLCPaused = PauseStateType.AtMenu;
             MLCVenueSize = VenueType.None;
@@ -377,6 +455,7 @@ namespace YARG.Integration
 
             StopSendThread();
             ClearInstrumentQueues();
+            ClearPlayerStarPowerSnapshot();
 
             if (_sendClient == null) return;
 
@@ -385,6 +464,8 @@ namespace YARG.Integration
             _message = new DataMessage
             {
                 Header = 0x59415247, // Y A R G
+                DatagramVersion = DATAGRAM_VERSION,
+                PlayerStarPower = Array.Empty<PlayerStarPowerState>(),
                 // Everything else is 0 or off
             };
 
@@ -465,7 +546,10 @@ namespace YARG.Integration
         {
             try
             {
-                using var _ms = new MemoryStream(64);
+                var playerStarPower = message.PlayerStarPower ?? Array.Empty<PlayerStarPowerState>();
+                ushort playerStarPowerCount = (ushort) Math.Min(playerStarPower.Length, ushort.MaxValue);
+
+                using var _ms = new MemoryStream(64 + (playerStarPowerCount * 2));
                 using var _writer = new BinaryWriter(_ms);
 
                 // Reset the MemoryStream's position to the beginning
@@ -505,6 +589,13 @@ namespace YARG.Integration
                 _writer.Write((byte) message.CameraCutConstraint);
                 _writer.Write((byte) message.CameraCutPriority);
                 _writer.Write((byte) message.CameraCutSubject);
+                _writer.Write(playerStarPowerCount);
+
+                for (int i = 0; i < playerStarPowerCount; i++)
+                {
+                    _writer.Write(playerStarPower[i].Amount);
+                    _writer.Write((byte) (playerStarPower[i].IsActive ? 1 : 0));
+                }
 
                 _sendClient.Send(_ms.GetBuffer(), (int) _ms.Position);
             }

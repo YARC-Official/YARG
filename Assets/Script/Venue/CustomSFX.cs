@@ -1,15 +1,22 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 using YARG.Core.Audio;
 using YARG.Core.Logging;
+using YARG.Settings;
 
 namespace YARG.Venue
 {
     public class CustomSFX : MonoSingleton<CustomSFX>
     {
-        private static readonly HashSet<string> ClipNames = new();
+        private static readonly HashSet<string> ClipNames              = new();
+        [SerializeField]
+        private                 bool            disableBuiltinCrowdSfx = false;
+
+        protected override void SingletonAwake()
+        {
+            GlobalVariables.State.CrowdSfxVenueOverride = disableBuiltinCrowdSfx;
+        }
 
         public void PlayClip(string clipName)
         {
@@ -50,6 +57,7 @@ namespace YARG.Venue
         {
             ClipNames.Clear();
             GlobalAudioHandler.ClearVenueSamples();
+            GlobalVariables.State.CrowdSfxVenueOverride = false;
         }
     }
 }

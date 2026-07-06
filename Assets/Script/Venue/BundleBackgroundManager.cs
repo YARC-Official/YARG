@@ -1,35 +1,15 @@
-using System;
 using System.Collections.Generic;
-using System.IO;
 using UnityEngine;
 using YARG.Gameplay;
 using YARG.Helpers;
 using YARG.Venue.VenueCamera;
 using YARG.Venue.Characters;
 
-#if UNITY_EDITOR
-using System.Linq;
-using UnityEditor;
-using UnityEditor.Animations;
-#endif
 
 namespace YARG.Venue
 {
     public class BundleBackgroundManager : MonoBehaviour
     {
-        // DO NOT CHANGE THIS! It will break existing venues
-        public const string   BACKGROUND_PREFAB_PATH        = "Assets/_Background.prefab";
-        public const string   CHARACTER_PREFAB_PATH         = "Assets/_Character.prefab";
-        public const string   BACKGROUND_SHADER_BUNDLE_NAME = "_metal_shaders.bytes";
-        public const string   CHARACTER_SHADER_BUNDLE_NAME  = "_character_metal_shaders.bytes";
-        public const string   BACKGOUND_OSX_MATERIAL_PREFIX = "_metal_";
-        public const string   BUNDLE_OSX_SUFFIX             = "_metal.bytes";
-        public const string   AUDIO_PATH                    = "__YARG_AudioBundle";
-        public static readonly string[] AUDIO_FILE_EXTENSIONS =
-        {
-            ".ogg", ".mogg", ".wav", ".mp3", ".aiff", ".opus",
-        };
-
         private const string VENUE_LAYER_NAME = "Venue";
 
         private int _venueLayerNumber = -1;
@@ -116,298 +96,20 @@ namespace YARG.Venue
             }
         }
 
+
 #if UNITY_EDITOR
-
-        //
-        // HUGE thanks to the people over at Trombone Champ and NyxTheShield for giving us this code.
-        // This could not be done without them.
-        //
-        // Code to export a background from the editor.
-        //
-
-        private GameObject _backgroundReference;
-
-        private static string GetRootAssetDirectory(GameObject root)
-        {
-            string assetPath = string.Empty;
-
-            if (root.scene.IsValid())
-            {
-                assetPath = root.scene.path;
-            }
-
-            if (string.IsNullOrEmpty(assetPath))
-            {
-                assetPath = PrefabUtility.GetPrefabAssetPathOfNearestInstanceRoot(root);
-            }
-
-            if (string.IsNullOrEmpty(assetPath))
-            {
-                assetPath = AssetDatabase.GetAssetPath(root);
-            }
-
-            return string.IsNullOrEmpty(assetPath) ? null : Path.GetDirectoryName(assetPath);
-        }
-
-        private static string[] BundleAudioAssets(GameObject root)
-        {
-            var directory = GetRootAssetDirectory(root);
-            if (string.IsNullOrEmpty(directory) || !AssetDatabase.IsValidFolder(directory))
-            {
-                return Array.Empty<string>();
-            }
-
-            var tempDirectory = Path.Combine("Assets", "__YARG_AudioBundle");
-            if (AssetDatabase.IsValidFolder(tempDirectory))
-            {
-                AssetDatabase.DeleteAsset(tempDirectory);
-            }
-
-            AssetDatabase.CreateFolder("Assets", "__YARG_AudioBundle");
-
-            var fullRoot = Path.GetFullPath(directory);
-            var fullTemp = Path.GetFullPath(tempDirectory);
-
-            var audioFiles = Directory
-                .EnumerateFiles(directory, "*", SearchOption.AllDirectories)
-                .Where(file => AUDIO_FILE_EXTENSIONS.Contains(Path.GetExtension(file).ToLowerInvariant()))
-                .ToArray();
-
-            var audioAssets = new List<string>();
-            foreach (var audioFile in audioFiles)
-            {
-                var fullAudioPath = Path.GetFullPath(audioFile);
-
-                // Skip files that are in the temp directory
-                if (fullAudioPath.StartsWith(fullTemp, StringComparison.OrdinalIgnoreCase))
-                {
-                    continue;
-                }
-
-                var relativePath = Path.GetRelativePath(fullRoot, fullAudioPath);
-                var tempAssetPath = Path.Combine(tempDirectory, relativePath + ".bytes");
-                var tempAssetDirectory = Path.GetDirectoryName(tempAssetPath);
-
-                if (!AssetDatabase.IsValidFolder(tempAssetDirectory))
-                {
-                    Directory.CreateDirectory(tempAssetDirectory);
-                }
-
-                File.Copy(audioFile, tempAssetPath, true);
-                AssetDatabase.ImportAsset(tempAssetPath);
-                audioAssets.Add(tempAssetPath);
-            }
-
-            return audioAssets.ToArray();
-        }
-
-        private void Export(GameObject root, BackgroundHelper.ExportType type)
-        {
-            _backgroundReference = root;
-            string defaultName = type == BackgroundHelper.ExportType.Character ? "character" : "bg";
-            string extension = type == BackgroundHelper.ExportType.Character ? "yargchar" : "yarground";
-            string title = type == BackgroundHelper.ExportType.Character ? "Export Character" : "Export Background";
-            string path = EditorUtility.SaveFilePanel(title, string.Empty, defaultName, extension);
-
-            GameObject clonedBackground = null;
-
-            AssetDatabase.DisallowAutoRefresh();
-
-            try
-            {
-                if (string.IsNullOrEmpty(path))
-                {
-                    return;
-                }
-                string fileName = Path.GetFileName(path);
-                string folderPath = Path.GetDirectoryName(path);
-
-                // First we'll collect all shaders and build a separate bundle out of them
-                // for Mac as no other build target will include Metal shaders
-                // And we want our background to work everywhere
-
-                // We use materials as "anchors" to make sure all required
-                // shader variants are included
-                var metalAssetBundleName = fileName + BUNDLE_OSX_SUFFIX;
-                var materialAssets = EditorUtility.CollectDependencies(new[] { gameObject })
-                    .OfType<Material>() // Only material dependencices
-                    .Select((mat, i) =>
-                    {
-                        // Create a clone
-                        var matClone = new Material(mat);
-                        // Avoid name collision
-                        matClone.name = BACKGOUND_OSX_MATERIAL_PREFIX + i.ToString() + mat.name;
-                        // Drop all textures to not double resulting yarground in size
-                        if (matClone.mainTexture != null)
-                        {
-                            matClone.mainTexture = Texture2D.whiteTexture;
-                        }
-                        foreach (var id in matClone.GetTexturePropertyNameIDs())
-                        {
-                            if (matClone.GetTexture(id) != null)
-                            {
-                                matClone.SetTexture(id, Texture2D.whiteTexture);
-                            }
-                        }
-                        var assetPath = Path.Combine("Assets", matClone.name + ".mat");
-                        AssetDatabase.CreateAsset(matClone, assetPath);
-
-                        return assetPath;
-                    })
-                    .ToArray();
-
-                var shaderAssets = EditorUtility.CollectDependencies(new[] { gameObject })
-                    .OfType<Shader>().Select(AssetDatabase.GetAssetPath);
-
-                if (materialAssets.Length > 0)
-                {
-                    var metalAssetBundleBuild = default(AssetBundleBuild);
-                    metalAssetBundleBuild.assetBundleName = metalAssetBundleName;
-                    metalAssetBundleBuild.assetNames = materialAssets.Concat(shaderAssets).ToArray();
-
-                    BuildPipeline.BuildAssetBundles(Application.temporaryCachePath,
-                        new[]
-                        {
-                            metalAssetBundleBuild
-                        }, BuildAssetBundleOptions.ForceRebuildAssetBundle,
-                        BuildTarget.StandaloneOSX);
-
-                    var filePath = Path.Combine(Application.temporaryCachePath, metalAssetBundleName);
-
-                    if (!File.Exists(filePath))
-                    {
-                        EditorUtility.DisplayDialog("Export Unsuccessful", "Failed to build MacOS Shader bundle. See console for more info.", "OK");
-                        throw new FileNotFoundException("MacOS Shader bundle failed to build. <a href=\"https://wiki.yarg.in/wiki/Venue_Creation\">Please ensure you have the \"MacOS Build Support (Mono)\" module installed.</a>");
-                    }
-
-                    var assetPath = Path.Combine(Application.dataPath, metalAssetBundleName);
-                    File.Move(filePath, assetPath);
-                    AssetDatabase.ImportAsset(Path.Combine("Assets", metalAssetBundleName));
-                }
-                // Now delete our material clones
-                foreach (var assetPath in materialAssets)
-                {
-                    AssetDatabase.DeleteAsset(assetPath);
-                }
-
-                clonedBackground = Instantiate(_backgroundReference.gameObject);
-
-                var backgroundPath = BackgroundHelper.ExportType.Character == type ? CHARACTER_PREFAB_PATH : BACKGROUND_PREFAB_PATH;
-
-                var bundledAudioAssets = Array.Empty<string>();
-
-                if (type == BackgroundHelper.ExportType.Background)
-                {
-                    bundledAudioAssets = BundleAudioAssets(root);
-                }
-
-                var assetPaths = new[]
-                {
-                    Path.Combine("Assets/", metalAssetBundleName),
-                    backgroundPath
-                }.Concat(bundledAudioAssets).ToArray();
-
-                AssetBundleBuild assetBundleBuild = default;
-                assetBundleBuild.assetBundleName = fileName;
-                assetBundleBuild.assetNames = assetPaths;
-
-                // We must examine anything that has the VenueCharacter component so we can deal with animations
-                // properly. First we find them, then check for an AnimatorController and extract the layers and
-                // animation states contained within. Then we assign them to a SerializedField on the VenueCharacter,
-                // which will hopefully end up on the character when the AssetBundle is built.
-
-                var characterComponents = clonedBackground.GetComponentsInChildren<VenueCharacter>();
-
-                foreach (var character in characterComponents)
-                {
-                    var animator = character.GetComponent<Animator>();
-                    if (animator == null)
-                    {
-                        continue;
-                    }
-
-                    // This should work since we're in the editor
-                    var controller = animator.runtimeAnimatorController as AnimatorController;
-                    if (controller == null)
-                    {
-                        continue;
-                    }
-
-                    var layerStates = new AnimationDictionary();
-                    foreach (var layer in controller.layers)
-                    {
-                        var layerName = layer.name;
-                        foreach (var state in layer.stateMachine.states)
-                        {
-                            layerStates.Add(layerName, state.state.name);
-                        }
-                    }
-
-                    character.LayerStates = layerStates;
-                }
-
-                PrefabUtility.SaveAsPrefabAsset(clonedBackground.gameObject, backgroundPath);
-
-                BuildPipeline.BuildAssetBundles(Application.temporaryCachePath,
-                    new[]
-                    {
-                        assetBundleBuild
-                    }, BuildAssetBundleOptions.ForceRebuildAssetBundle,
-                    BuildTarget.StandaloneWindows);
-
-                foreach (var asset in assetPaths)
-                {
-                    AssetDatabase.DeleteAsset(asset);
-                }
-
-                if (AssetDatabase.IsValidFolder("Assets/__YARG_AudioBundle"))
-                {
-                    AssetDatabase.DeleteAsset("Assets/__YARG_AudioBundle");
-                }
-
-                // If the file exists, delete it (to replace it)
-                if (File.Exists(path))
-                {
-                    File.Delete(path);
-                }
-
-                // Unity seems to save the file in lower case, which is a problem on Linux, as file systems are case sensitive there
-                File.Move(Path.Combine(Application.temporaryCachePath, fileName.ToLowerInvariant()), path);
-
-                EditorUtility.DisplayDialog("Export Successful!", "Export Successful!", "OK");
-            }
-            catch (Exception e)
-            {
-                Debug.LogException(e);
-            }
-            finally
-            {
-                AssetDatabase.AllowAutoRefresh();
-
-                if (AssetDatabase.IsValidFolder("Assets/__YARG_AudioBundle"))
-                {
-                    AssetDatabase.DeleteAsset("Assets/__YARG_AudioBundle");
-                }
-
-                if (clonedBackground != null)
-                {
-                    DestroyImmediate(clonedBackground);
-                }
-            }
-        }
-
         [ContextMenu("Export Vocalist")]
         public void ExportCharacter()
         {
             var vocalist = _replaceableVocalist.gameObject;
 
-            Export(vocalist, BackgroundHelper.ExportType.Character);
+            BackgroundHelper.Export(vocalist, BackgroundHelper.ExportType.Character, new string[] {});
         }
 
         [ContextMenu("Export Background")]
         public void ExportBackground()
         {
-            Export(gameObject, BackgroundHelper.ExportType.Background);
+            BackgroundHelper.Export(gameObject, BackgroundHelper.ExportType.Background, new string[] {});
         }
 #endif
     }

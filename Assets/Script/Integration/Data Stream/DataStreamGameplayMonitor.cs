@@ -236,6 +236,8 @@ namespace YARG.Integration
             }
 
             // Let's get the current state of the game
+            // star power
+            DataStreamController.UpdatePlayerStarPowerSnapshot(GameManager.Players);
 
             // Pause state
             //this is uglier than a simple != because the pause state type has 3 states. AtMenu, pause, unpaused.

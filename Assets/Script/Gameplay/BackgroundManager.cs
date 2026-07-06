@@ -26,10 +26,6 @@ using UnityEditor.SceneManagement;
 using UnityEngine.SceneManagement;
 #endif
 
-#if UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX
-using System.Collections.Generic;
-#endif
-
 namespace YARG.Gameplay
 {
     public class BackgroundManager : GameplayBehaviour, IDisposable
@@ -186,10 +182,19 @@ namespace YARG.Gameplay
             _backgroundDimmer.color = colorDim;
 
             _type = result.Type;
+
+            // Start crowd event handler now if we aren't waiting on a yarground
+            // TODO: Figure out how to decouple this
+            if (_type != BackgroundType.Yarground)
+            {
+                GameManager.CrowdEventHandler.Start();
+            }
+
             switch (_type)
             {
                 case BackgroundType.Yarground:
                     await LoadYarground(result);
+                    GameManager.CrowdEventHandler.Start();
                     break;
                 case BackgroundType.Video:
                     LoadVideoBackground(result);
@@ -211,11 +216,11 @@ namespace YARG.Gameplay
             // KEEP THIS PATH LOWERCASE
             // Breaks things for other platforms, because Unity
             var bg = (GameObject) await bundle.LoadAssetAsync<GameObject>(
-                BundleBackgroundManager.BACKGROUND_PREFAB_PATH.ToLowerInvariant());
+                BackgroundHelper.BACKGROUND_PREFAB_PATH.ToLowerInvariant());
             var renderers = bg.GetComponentsInChildren<Renderer>(true);
 
             // Load Metal shaders, if necessary
-            shaderBundle = await BackgroundHelper.LoadMetalShaders(bundle, bg, BackgroundHelper.ExportType.Background);
+            shaderBundle = BackgroundHelper.LoadMetalShaders(bundle, bg, BackgroundHelper.ExportType.Background);
 
             // Load custom audio
             await LoadCustomAudioAssets(bg, bundle);
@@ -276,12 +281,12 @@ namespace YARG.Gameplay
                 var sfxAssets = new Dictionary<string, byte[]>();
                 foreach (var assetPath in assetPaths)
                 {
-                    if (!assetPath.Contains(BundleBackgroundManager.AUDIO_PATH.ToLowerInvariant()))
+                    if (!assetPath.Contains(BackgroundHelper.AUDIO_PATH.ToLowerInvariant()))
                     {
                         continue;
                     }
 
-                    if (BundleBackgroundManager.AUDIO_FILE_EXTENSIONS.Any(s => assetPath.EndsWith(s + ".bytes", StringComparison.OrdinalIgnoreCase)))
+                    if (BackgroundHelper.AUDIO_FILE_EXTENSIONS.Any(s => assetPath.EndsWith(s + ".bytes", StringComparison.OrdinalIgnoreCase)))
                     {
                         var sampleName = Path.GetFileNameWithoutExtension(assetPath);
                         if (!sfxAssets.ContainsKey(assetPath))
@@ -559,7 +564,7 @@ namespace YARG.Gameplay
 
             _bundleBackgroundManager.CharacterBundles.Add(bundle);
 
-            var character = bundle.LoadAsset<GameObject>(BundleBackgroundManager.CHARACTER_PREFAB_PATH.ToLowerInvariant());
+            var character = bundle.LoadAsset<GameObject>(BackgroundHelper.CHARACTER_PREFAB_PATH.ToLowerInvariant());
             if (character == null)
             {
                 YargLogger.LogFormatError("Failed to load character from {0}", characterPath);
@@ -567,7 +572,7 @@ namespace YARG.Gameplay
             }
 
             // Load Metal shaders
-            var shaderBundle = await BackgroundHelper.LoadMetalShaders(bundle, character, BackgroundHelper.ExportType.Character);
+            var shaderBundle = BackgroundHelper.LoadMetalShaders(bundle, character, BackgroundHelper.ExportType.Character);
             if (shaderBundle != null)
             {
                 _bundleBackgroundManager.ShaderBundles.Add(shaderBundle);
