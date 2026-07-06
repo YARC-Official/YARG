@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.Linq;
 using Cinemachine;
 using Cysharp.Threading.Tasks;
 using Newtonsoft.Json;
@@ -23,10 +24,6 @@ using YARG.Helpers;
 #if UNITY_EDITOR
 using UnityEditor.SceneManagement;
 using UnityEngine.SceneManagement;
-#endif
-
-#if UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX
-using System.Collections.Generic;
 #endif
 
 namespace YARG.Gameplay
@@ -185,10 +182,19 @@ namespace YARG.Gameplay
             _backgroundDimmer.color = colorDim;
 
             _type = result.Type;
+
+            // Start crowd event handler now if we aren't waiting on a yarground
+            // TODO: Figure out how to decouple this
+            if (_type != BackgroundType.Yarground)
+            {
+                GameManager.CrowdEventHandler.Start();
+            }
+
             switch (_type)
             {
                 case BackgroundType.Yarground:
                     await LoadYarground(result);
+                    GameManager.CrowdEventHandler.Start();
                     break;
                 case BackgroundType.Video:
                     LoadVideoBackground(result);
@@ -210,11 +216,14 @@ namespace YARG.Gameplay
             // KEEP THIS PATH LOWERCASE
             // Breaks things for other platforms, because Unity
             var bg = (GameObject) await bundle.LoadAssetAsync<GameObject>(
-                BundleBackgroundManager.BACKGROUND_PREFAB_PATH.ToLowerInvariant());
+                BackgroundHelper.BACKGROUND_PREFAB_PATH.ToLowerInvariant());
             var renderers = bg.GetComponentsInChildren<Renderer>(true);
 
             // Load Metal shaders, if necessary
-            shaderBundle = await BackgroundHelper.LoadMetalShaders(bundle, bg, BackgroundHelper.ExportType.Background);
+            shaderBundle = BackgroundHelper.LoadMetalShaders(bundle, bg, BackgroundHelper.ExportType.Background);
+
+            // Load custom audio
+            await LoadCustomAudioAssets(bg, bundle);
 
             // Hookup song-specific textures
             var textureManager = GetComponent<TextureManager>();
@@ -255,6 +264,43 @@ namespace YARG.Gameplay
             if (characterManager != null)
             {
                 characterManager.Initialize();
+            }
+        }
+
+        private static async UniTask LoadCustomAudioAssets(GameObject bg, AssetBundle bundle)
+        {
+            if (!SettingsManager.Settings.UseVenueSfx.Value)
+            {
+                return;
+            }
+
+            var customSfx = bg.GetComponentInChildren<CustomSFX>();
+            if (customSfx != null)
+            {
+                var assetPaths = bundle.GetAllAssetNames();
+                var sfxAssets = new Dictionary<string, byte[]>();
+                foreach (var assetPath in assetPaths)
+                {
+                    if (!assetPath.Contains(BackgroundHelper.AUDIO_PATH.ToLowerInvariant()))
+                    {
+                        continue;
+                    }
+
+                    if (BackgroundHelper.AUDIO_FILE_EXTENSIONS.Any(s => assetPath.EndsWith(s + ".bytes", StringComparison.OrdinalIgnoreCase)))
+                    {
+                        var sampleName = Path.GetFileNameWithoutExtension(assetPath);
+                        if (!sfxAssets.ContainsKey(assetPath))
+                        {
+                            var audioAsset = (TextAsset) await bundle.LoadAssetAsync<TextAsset>(assetPath);
+                            sfxAssets.Add(sampleName, audioAsset.bytes);
+                        }
+                    }
+                }
+
+                if (sfxAssets.Count > 0)
+                {
+                    CustomSFX.AddClips(sfxAssets);
+                }
             }
         }
 
@@ -518,7 +564,7 @@ namespace YARG.Gameplay
 
             _bundleBackgroundManager.CharacterBundles.Add(bundle);
 
-            var character = bundle.LoadAsset<GameObject>(BundleBackgroundManager.CHARACTER_PREFAB_PATH.ToLowerInvariant());
+            var character = bundle.LoadAsset<GameObject>(BackgroundHelper.CHARACTER_PREFAB_PATH.ToLowerInvariant());
             if (character == null)
             {
                 YargLogger.LogFormatError("Failed to load character from {0}", characterPath);
@@ -526,7 +572,7 @@ namespace YARG.Gameplay
             }
 
             // Load Metal shaders
-            var shaderBundle = await BackgroundHelper.LoadMetalShaders(bundle, character, BackgroundHelper.ExportType.Character);
+            var shaderBundle = BackgroundHelper.LoadMetalShaders(bundle, character, BackgroundHelper.ExportType.Character);
             if (shaderBundle != null)
             {
                 _bundleBackgroundManager.ShaderBundles.Add(shaderBundle);

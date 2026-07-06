@@ -187,6 +187,7 @@ namespace YARG.Settings
             public ToggleSetting ShowFavoriteButton { get; } = new(true);
             public ToggleSetting ShowRecommendedSongs { get; } = new(true, ShowRecommendedSongsCallback);
 
+            public ToggleSetting EnablePlayAShow { get; } = new(true);
             public SliderSetting PlayAShowTimeout { get; } = new (10.0f, 1.0f, 30.0f);
             public ToggleSetting RequireAllDifficulties { get; } = new(true);
 
@@ -258,6 +259,9 @@ namespace YARG.Settings
             public VolumeSetting SfxVolume { get; } =
                 new(0.8f, v => GlobalAudioHandler.SetVolumeSetting(SongStem.Sfx, v));
 
+            public VolumeSetting VenueSfxVolume { get; } =
+                new(0.8f, v => GlobalAudioHandler.SetVolumeSetting(SongStem.VenueSample, v));
+
             public VolumeSetting DrumSfxVolume { get; } =
                 new(0.8f, v => GlobalAudioHandler.SetVolumeSetting(SongStem.DrumSfx, v));
 
@@ -295,6 +299,8 @@ namespace YARG.Settings
                 CrowdFxMode.Enabled
             };
 
+            public ToggleSetting UseVenueSfx { get; } = new(true);
+
             public ToggleSetting OverstrumAndOverhitSoundEffects { get; } = new(true);
 
             public ToggleSetting AlwaysOnDrumSFX { get; } = new(false);
@@ -306,6 +312,8 @@ namespace YARG.Settings
             public ToggleSetting UseChipmunkSpeed { get; } = new(false, UseChipmunkSpeedChange);
 
             public ToggleSetting ApplyVolumesInMusicLibrary { get; } = new(true);
+
+            public ToggleSetting ApplyVolumesInMusicPlayer { get; } = new(false, ApplyVolumesInMusicPlayerChange);
 
             public ToggleSetting EnableVoxSamples { get; } = new(true);
 
@@ -326,9 +334,10 @@ namespace YARG.Settings
 
             #region Graphics
 
-            public ToggleSetting VSync       { get; } = new(true, VSyncCallback);
-            public IntSetting    FpsCap      { get; } = new(60, 0, onChange: FpsCapCallback);
-            public IntSetting    VenueFpsCap { get; } = new(60, 0);
+            public ToggleSetting VSync            { get; } = new(true, VSyncCallback);
+            public IntSetting    FpsCap           { get; } = new(60, 0, onChange: FpsCapCallback);
+            public IntSetting    VenueFpsCap      { get; } = new(60, 0);
+            public IntSetting    BackgroundFpsCap { get; } = new(10, 0);
 
             public DropdownSetting<FullScreenMode> FullscreenMode { get; }
                 = new(FullScreenMode.FullScreenWindow, FullscreenModeCallback)
@@ -840,6 +849,11 @@ namespace YARG.Settings
             private static void UseChipmunkSpeedChange(bool value)
             {
                 GlobalAudioHandler.IsChipmunkSpeedup = value;
+            }
+
+            private static void ApplyVolumesInMusicPlayerChange(bool value)
+            {
+                StemSettings.ApplySettings = value;
             }
 
             private static void InputDeviceLoggingCallback(bool value)

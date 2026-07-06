@@ -1,4 +1,5 @@
-﻿using Cysharp.Text;
+﻿using System;
+using Cysharp.Text;
 using System.Collections.Generic;
 using System.Linq;
 using TMPro;
@@ -190,21 +191,33 @@ namespace YARG.Gameplay.Visuals
 
         private int GetRenderState()
         {
+            var hash = new HashCode();
+
             for (int i = 0; i < _preparedPhrase.Syllables.Count; i++)
             {
                 var syllable = _preparedPhrase.Syllables[i];
+                int state = 2; // syllable is already hit (gray)
+
                 if (GameManager.VisualTime < syllable.Time)
                 {
-                    return i * 2;
+                    state = 0; // syllable is in current phrase (active/white)
+                }
+                else if (GameManager.VisualTime < syllable.TimeEnd)
+                {
+                    state = 1; // syllable is being hit (cyan)
                 }
 
-                if (GameManager.VisualTime < syllable.TimeEnd)
+                hash.Add(state);
+
+                if (state == 0)
                 {
-                    return i * 2 + 1;
+                    // We can reasonably assume if we run into a syllable that has not yet been hit,
+                    // there is no change after that syllable.
+                    break;
                 }
             }
 
-            return _preparedPhrase.Syllables.Count * 2;
+            return hash.ToHashCode();
         }
 
         private void BuilderAppendWithColorTag(string text, string colorTag)

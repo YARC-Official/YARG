@@ -354,6 +354,7 @@
             "PlaylistAddedToSet": "{0:N0} musiques de la playlist ajoutées à la setlist",
             "StartSet": "Commencer le set",
             "PlayShow": "Jouer un concert",
+            "HoldPlayShow": "(Maintien) Jouer un concert",
             "Filters": "Filtres",
             "NoSongsInPlaylist": "Aucune musique dans la playlist",
             "CannotAddToSelf": "Non, je ne vais pas créer un ouroboros pour toi. Bien tenté, Jaden.",
@@ -1328,6 +1329,10 @@
             "OutputDevice": {
                 "Name": "Périphérique de sortie",
                 "Description": "L'interface à utiliser lors de la lecture des sons."
+            },
+            "EnablePlayAShow": {
+                "Name": "Activer l'option du mode concert",
+                "Description": "Faire apparaître ou non l'option de jouer un concert à partir de la librarie."
             },
             "PlayAShowTimeout": {
                 "Name": "Temps de sélection du concert",

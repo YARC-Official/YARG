@@ -550,6 +550,23 @@ namespace YARG.Audio.BASS
             YargLogger.LogInfo("Finished loading Metronome");
         }
 
+        public override void LoadVenueSample(string name, byte[] sampleData, OutputChannel? outputChannel = null)
+        {
+            VenueSamples[name] = BassVenueSampleChannel.Create(name, sampleData, outputChannel);
+        }
+
+        public override void ClearVenueSamples()
+        {
+            foreach(var sample in VenueSamples.Values)
+            {
+                sample.Stop();
+                sample.Dispose();
+            }
+
+            VenueSamples.Clear();
+        }
+
+
         protected override void SetMasterVolume(double volume)
         {
 #if UNITY_EDITOR
