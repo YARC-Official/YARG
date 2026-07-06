@@ -96,8 +96,6 @@ namespace YARG.Audio.BASS
 
         protected override ReadOnlySpan<string> SupportedFormats => FORMATS;
 
-        public static int ActualDeviceBufferLength { get; private set; }
-
         private readonly int _opusHandle = 0;
         private BassOutputDevice _currentDevice;
 
@@ -170,7 +168,6 @@ namespace YARG.Audio.BASS
             }
 
             var info = Bass.Info;
-            ActualDeviceBufferLength = Bass.DeviceBufferLength;
 
             PlaybackLatency = info.Latency;
             MinimumBufferLength = info.MinBufferLength + Bass.UpdatePeriod;
@@ -181,7 +178,7 @@ namespace YARG.Audio.BASS
             YargLogger.LogFormatInfo(
                 "Update Period: {0}ms | Playback Buffer: {1}ms | Device Buffer: {2}ms | " +
                 "Device Latency: {3}ms (info.Latency={4}ms, devPeriod={5}ms, MinBuf={6}ms)",
-                Bass.UpdatePeriod, Bass.PlaybackBufferLength, ActualDeviceBufferLength, PlaybackLatency,
+                Bass.UpdatePeriod, Bass.PlaybackBufferLength, Bass.DeviceBufferLength, PlaybackLatency,
                 info.Latency, devPeriod, info.MinBufferLength);
 
             YargLogger.LogFormatInfo("Current Device: {0}", Bass.GetDeviceInfo(Bass.CurrentDevice).Name);

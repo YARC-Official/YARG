@@ -48,7 +48,6 @@ namespace YARG.Audio.BASS
         private          double         _positionOffset;
         private          bool           _didSetPosition;
         private          int            _songEndHandle;
-        private          int            _positionFallbackCount;
         private          float          _speed = 1.0f;
         private          Timer          _whammySyncTimer;
         private readonly List<StemData> _stemDatas = new();
@@ -228,35 +227,21 @@ namespace YARG.Audio.BASS
 
         private double GetTempoStreamPosition_Internal()
         {
-            long positionBytes = Bass.ChannelGetPosition(_tempoStreamHandle, PositionFlags.Bytes);
+            long positionBytes = Bass.ChannelGetPosition(_tempoStreamHandle);
             if (positionBytes < 0)
             {
-                _positionFallbackCount++;
-                if (_positionFallbackCount == 1 || _positionFallbackCount % 1000 == 0)
-                {
-                    YargLogger.LogFormatWarning(
-                        "Failed to get tempo stream playback position. " +
-                        "Falling back to decoding position. Count: {0}, played bytes: {1}, error: {2}",
-                        _positionFallbackCount, positionBytes, Bass.LastError);
-                }
-                return GetDecodingPosition_Internal();
+                return _positionOffset;
             }
 
             double seconds = Bass.ChannelBytes2Seconds(_tempoStreamHandle, positionBytes);
-            if (seconds < 0)
-            {
-                YargLogger.LogFormatError("Failed to convert bytes to seconds: {0}!", Bass.LastError);
-                return GetDecodingPosition_Internal();
-            }
-
-            return seconds + _positionOffset;
+            return Math.Max(0.0, seconds) + _positionOffset;
         }
 
         // Additional seek overhead on Windows/Linux to account for WASAPI/ALSA
         // software-side buffering that is not captured by info.Latency or DeviceBufferLength.
         private const double PLATFORM_SEEK_OVERHEAD_SECONDS = 0.015;
 
-        protected override double GetPlaybackLatency_Internal()
+        protected override double GetPlaybackStreamLatency_Internal()
         {
 #if UNITY_STANDALONE_OSX || UNITY_EDITOR_OSX
             // CoreAudio is pull-based; info.Latency already encapsulates the full hardware pipeline.
@@ -266,7 +251,7 @@ namespace YARG.Audio.BASS
 #endif
         }
 
-        protected override double GetTempoLatency_Internal()
+        protected override double GetTempoStreamLatency_Internal()
         {
             return GetOutputBufferLatency() + GetCommandUpdateLatency() + GetTempoProcessingLatency();
         }
@@ -280,13 +265,7 @@ namespace YARG.Audio.BASS
             }
 
             double seconds = Bass.ChannelBytes2Seconds(_mixerHandle, positionBytes);
-            if (seconds < 0)
-            {
-                YargLogger.LogFormatError("Failed to convert bytes to seconds: {0}!", Bass.LastError);
-                return _positionOffset;
-            }
-
-            return seconds + _positionOffset;
+            return Math.Max(0.0, seconds) + _positionOffset;
         }
 
         private double GetOutputBufferLatency()
@@ -337,7 +316,7 @@ namespace YARG.Audio.BASS
 
         private static double GetDeviceBufferLatency()
         {
-            return Math.Max(0, BassAudioManager.ActualDeviceBufferLength) / 2000.0;
+            return Math.Max(0, Bass.DeviceBufferLength) / 2000.0;
         }
 
         private double GetTempoProcessingLatency()
@@ -361,12 +340,6 @@ namespace YARG.Audio.BASS
             {
                 return fallbackMs;
             }
-
-            if (float.IsNaN(value) || float.IsInfinity(value) || value < 0)
-            {
-                return fallbackMs;
-            }
-
             return value;
         }
 
@@ -409,10 +382,10 @@ namespace YARG.Audio.BASS
 
             YargLogger.LogFormatDebug(
                 "Set BASS stem mixer position. Configured buffer: {0:0.000000}, device latency: {1:0.000000}, " +
-                "playback latency: {2:0.000000}, tempo latency: {3:0.000000}, requested position: {4:0.000000}, " +
+                "playback stream latency: {2:0.000000}, tempo stream latency: {3:0.000000}, requested position: {4:0.000000}, " +
                 "raw position: {5:0.000000}, sync position: {6:0.000000}",
-                GetConfiguredOutputLatency(), GetDeviceOutputLatency(), GetPlaybackLatency_Internal(),
-                GetTempoLatency_Internal(), position, GetPosition_Internal(), GetSyncPosition_Internal()
+                GetConfiguredOutputLatency(), GetDeviceOutputLatency(), GetPlaybackStreamLatency_Internal(),
+                GetTempoStreamLatency_Internal(), position, GetPosition_Internal(), GetSyncPosition_Internal()
             );
 
             if (wasPlaying)
@@ -428,7 +401,7 @@ namespace YARG.Audio.BASS
                 return;
             }
 
-            if (!BassMix.ChannelSetPosition(_tempoStreamHandle, 0, PositionFlags.Bytes))
+            if (!BassMix.ChannelSetPosition(_tempoStreamHandle, 0))
             {
                 Bass.ChannelSetPosition(_tempoStreamHandle, 0);
             }
@@ -725,7 +698,7 @@ namespace YARG.Audio.BASS
 
         private void _BufferSetter(int length)
         {
-            // 0 is a special value in BASS that disables buffering. 
+            // 0 is a special value in BASS that disables buffering.
             // Any positive buffer length must be at least the minimum supported limit to prevent errors.
             if (length > 0 && length < GlobalAudioHandler.MinimumBufferLength)
             {
