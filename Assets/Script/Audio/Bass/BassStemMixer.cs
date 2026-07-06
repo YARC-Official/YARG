@@ -39,6 +39,10 @@ namespace YARG.Audio.BASS
         private const    double DEFAULT_TEMPO_SEEK_WINDOW_MS = 14.0;
         private const    double DEFAULT_TEMPO_OVERLAP_MS = 12.0;
 
+        // Additional seek overhead on Windows/Linux to account for WASAPI/ALSA
+        // software-side buffering that is not captured by info.Latency or DeviceBufferLength.
+        private const double PLATFORM_SEEK_OVERHEAD_SECONDS = 0.015;
+
         private static bool IsWhammyEnabled => SettingsManager.Settings.UseWhammyFx.Value;
         private        bool IsPlaying       => Bass.ChannelIsActive(_tempoStreamHandle) is PlaybackState.Playing or PlaybackState.Stalled;
 
@@ -52,7 +56,7 @@ namespace YARG.Audio.BASS
         private          Timer          _whammySyncTimer;
         private readonly List<StemData> _stemDatas = new();
         private          int            _longestHandle;
-        private          double         _tempoProcessingLatency = double.NaN;
+        private          double         _tempoFxLatency = double.NaN;
 
         private readonly BassNormalizer _normalizer = new();
         private          bool           _shouldNormalize;
@@ -128,16 +132,6 @@ namespace YARG.Audio.BASS
         }
 
 
-        protected override void StopPlaybackImmediately_Internal()
-        {
-            if (_tempoStreamHandle == 0)
-            {
-                return;
-            }
-
-            Bass.ChannelPause(_tempoStreamHandle);
-            _whammySyncTimer?.Stop();
-        }
 
         protected override int Play_Internal()
         {
@@ -155,6 +149,7 @@ namespace YARG.Audio.BASS
                     return (int) Bass.LastError;
                 }
 
+                // Immediately update the channel buffer instead of waiting for the next update period, which has unpredictable latency.
                 Bass.ChannelUpdate(_tempoStreamHandle, 0);
 
                 _didSetPosition = false;
@@ -237,10 +232,6 @@ namespace YARG.Audio.BASS
             return Math.Max(0.0, seconds) + _positionOffset;
         }
 
-        // Additional seek overhead on Windows/Linux to account for WASAPI/ALSA
-        // software-side buffering that is not captured by info.Latency or DeviceBufferLength.
-        private const double PLATFORM_SEEK_OVERHEAD_SECONDS = 0.015;
-
         protected override double GetPlaybackStreamLatency_Internal()
         {
 #if UNITY_STANDALONE_OSX || UNITY_EDITOR_OSX
@@ -253,20 +244,9 @@ namespace YARG.Audio.BASS
 
         protected override double GetTempoStreamLatency_Internal()
         {
-            return GetOutputBufferLatency() + GetCommandUpdateLatency() + GetTempoProcessingLatency();
+            return GetOutputBufferLatency() + GetCommandUpdateLatency() + GetTempoFxLatency();
         }
 
-        protected override double GetDecodingPosition_Internal()
-        {
-            long positionBytes = Bass.ChannelGetPosition(_mixerHandle, PositionFlags.Bytes);
-            if (positionBytes < 0)
-            {
-                return _positionOffset;
-            }
-
-            double seconds = Bass.ChannelBytes2Seconds(_mixerHandle, positionBytes);
-            return Math.Max(0.0, seconds) + _positionOffset;
-        }
 
         private double GetOutputBufferLatency()
         {
@@ -319,19 +299,19 @@ namespace YARG.Audio.BASS
             return Math.Max(0, Bass.DeviceBufferLength) / 2000.0;
         }
 
-        private double GetTempoProcessingLatency()
+        private double GetTempoFxLatency()
         {
-            if (!double.IsNaN(_tempoProcessingLatency))
+            if (!double.IsNaN(_tempoFxLatency))
             {
-                return _tempoProcessingLatency;
+                return _tempoFxLatency;
             }
 
-            double sequenceMs = GetTempoAttributeMs(ChannelAttribute.TempoSequenceMilliseconds, DEFAULT_TEMPO_SEQUENCE_MS);
-            double seekWindowMs = GetTempoAttributeMs(ChannelAttribute.TempoSeekWindowMilliseconds, DEFAULT_TEMPO_SEEK_WINDOW_MS);
-            double overlapMs = GetTempoAttributeMs(ChannelAttribute.TempoOverlapMilliseconds, DEFAULT_TEMPO_OVERLAP_MS);
-            _tempoProcessingLatency = (sequenceMs + seekWindowMs + overlapMs) / 1000.0;
+            var sequenceMs = GetTempoAttributeMs(ChannelAttribute.TempoSequenceMilliseconds, DEFAULT_TEMPO_SEQUENCE_MS);
+            var seekWindowMs = GetTempoAttributeMs(ChannelAttribute.TempoSeekWindowMilliseconds, DEFAULT_TEMPO_SEEK_WINDOW_MS);
+            var overlapMs = GetTempoAttributeMs(ChannelAttribute.TempoOverlapMilliseconds, DEFAULT_TEMPO_OVERLAP_MS);
+            _tempoFxLatency = (sequenceMs + seekWindowMs + overlapMs) / 1000.0;
 
-            return _tempoProcessingLatency;
+            return _tempoFxLatency;
         }
 
         private double GetTempoAttributeMs(ChannelAttribute attribute, double fallbackMs)

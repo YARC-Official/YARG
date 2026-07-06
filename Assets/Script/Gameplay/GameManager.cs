@@ -252,7 +252,7 @@ namespace YARG.Gameplay
             YargLogger.LogInfo("Exiting song");
 
             // Stop audio before waiting on sync thread. If shutdown blocks later, audio will not keep playing.
-            _mixer?.StopPlaybackImmediately();
+            _mixer?.Pause();
 
             // Stop sync thread first, before any shutdown/domain-reload work can invalidate BASS/logging state.
             _songRunner?.Dispose();
