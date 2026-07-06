@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using Cysharp.Text;
@@ -67,14 +67,24 @@ namespace YARG.Gameplay
         private const int DEBUG_WINDOW_ID = 0;
         private const int DEBUG_WINDOW_MARGIN = 25;
 
+        // The values used for everything were designed under a height of
+        // 550 pixels (using the Unity editor viewport).
+        // Decided to round it down to 500 since it gives a little more room
+        // after scaling calculation is applied
+        private const int DEBUG_WINDOW_DESIGN_HEIGHT = 500;
+
         private const int DEBUG_WINDOW_MIN_WIDTH = 300;
         private const int DEBUG_WINDOW_MAX_WIDTH = 600;
-        private const int DEBUG_WINDOW_MAX_HEIGHT = 450;
+
+        private const int DEBUG_WINDOW_MAX_HEIGHT = DEBUG_WINDOW_DESIGN_HEIGHT - (DEBUG_WINDOW_MARGIN * 2);
 
         private bool _enableDebug;
 
         // Box style doesn't account for the title text, so window style it is
         private GUIStyle VerticalGroupStyle => GUI.skin.window;
+
+        private int _debugLastScreenHeight;
+        private float _debugGuiScale;
 
         private GUI.WindowFunction _debugWindowCallback;
         private Rect _debugWindowRect = new(DEBUG_WINDOW_MARGIN, DEBUG_WINDOW_MARGIN, 0, 0);
@@ -177,6 +187,19 @@ namespace YARG.Gameplay
                 return;
             }
 
+            // Update GUI scale as needed
+            if (Screen.height != _debugLastScreenHeight)
+            {
+                _debugLastScreenHeight = Screen.height;
+
+                float oldScale = _debugGuiScale;
+                _debugGuiScale = (float) Screen.height / DEBUG_WINDOW_DESIGN_HEIGHT;
+
+                // Adjust window rect to prevent errors in the clamping code below
+                _debugWindowRect.width = (_debugWindowRect.width / oldScale) * _debugGuiScale;
+                _debugWindowRect.height = (_debugWindowRect.height / oldScale) * _debugGuiScale;
+            }
+
             // Clamp position to screen bounds
             _debugWindowRect.x = Math.Clamp(
                 _debugWindowRect.x,
@@ -195,8 +218,8 @@ namespace YARG.Gameplay
             _debugWindowRect = GUILayout.Window(
                 DEBUG_WINDOW_ID, _debugWindowRect, _debugWindowCallback, "Debug Menu",
                 GUILayout.MinWidth(DEBUG_WINDOW_MIN_WIDTH),
-                GUILayout.MaxWidth(DEBUG_WINDOW_MAX_WIDTH),
-                GUILayout.MaxHeight(DEBUG_WINDOW_MAX_HEIGHT)
+                GUILayout.MaxWidth(DEBUG_WINDOW_MAX_WIDTH * _debugGuiScale),
+                GUILayout.MaxHeight(DEBUG_WINDOW_MAX_HEIGHT * _debugGuiScale)
             );
         }
 
@@ -204,9 +227,7 @@ namespace YARG.Gameplay
         {
             _debugMenuIndex = GUILayout.Toolbar(_debugMenuIndex, _debugMenuTitles);
             if (_debugMenuIndex >= 0)
-            {
                 _debugMenus[_debugMenuIndex].callback();
-            }
 
             GUI.DragWindow();
         }
@@ -248,7 +269,7 @@ namespace YARG.Gameplay
             var player = _players[_debugSelectedPlayer];
 
             using (DebugScrollView.Begin("Base Engine", VerticalGroupStyle,
-                ref _debugBaseEngineScroll, GUILayout.Height(125)))
+                ref _debugBaseEngineScroll, GUILayout.Height(125 * _debugGuiScale)))
             {
                 using var text = ZString.CreateStringBuilder(true);
 
@@ -349,7 +370,7 @@ namespace YARG.Gameplay
             };
 
             using (DebugScrollView.Begin(playerType, VerticalGroupStyle,
-                ref _debugDerivedEngineScroll, GUILayout.Height(125)))
+                ref _debugDerivedEngineScroll, GUILayout.Height(125 * _debugGuiScale)))
             {
                 switch (player)
                 {
@@ -506,7 +527,7 @@ namespace YARG.Gameplay
 
         private void TimingDebug()
         {
-            using (DebugScrollView.Begin(ref _debugCalibrationScroll, GUILayout.Height(300)))
+            using (DebugScrollView.Begin(ref _debugCalibrationScroll, GUILayout.Height(300 * _debugGuiScale)))
             {
                 using (DebugVerticalArea.Begin("Calibration", VerticalGroupStyle))
                 {
@@ -595,7 +616,7 @@ namespace YARG.Gameplay
                 }
 
                 _debugInputLogScroll = GUILayout.BeginScrollView(_debugInputLogScroll,
-                    GUILayout.Width(300), GUILayout.Height(250));
+                    GUILayout.Width(300 * _debugGuiScale), GUILayout.Height(250 * _debugGuiScale));
                 {
                     using var text = ZString.CreateStringBuilder(true);
                     foreach (var inputEvent in _debugInputEventTrace)
@@ -680,7 +701,7 @@ namespace YARG.Gameplay
 
         private void VenueDebug()
         {
-            using (DebugScrollView.Begin(ref _debugVenueScroll, GUILayout.Width(150), GUILayout.Height(250)))
+            using (DebugScrollView.Begin(ref _debugVenueScroll, GUILayout.Width(150 * _debugGuiScale), GUILayout.Height(250 * _debugGuiScale)))
             {
                 using (DebugVerticalArea.Begin("Rendering", VerticalGroupStyle))
                 {
