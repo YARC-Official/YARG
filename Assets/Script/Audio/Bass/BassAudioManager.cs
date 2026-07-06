@@ -170,13 +170,9 @@ namespace YARG.Audio.BASS
             }
 
             var info = Bass.Info;
-            int deviceBufferLength = Bass.DeviceBufferLength;
-#if UNITY_STANDALONE_LINUX || UNITY_EDITOR_LINUX || UNITY_ANDROID
-            deviceBufferLength = info.Latency + info.MinBufferLength / 2;
-#endif
-            ActualDeviceBufferLength = deviceBufferLength;
+            ActualDeviceBufferLength = Bass.DeviceBufferLength;
 
-            PlaybackLatency = GetBassPlaybackLatency(info, deviceBufferLength, devPeriod);
+            PlaybackLatency = info.Latency;
             MinimumBufferLength = info.MinBufferLength + Bass.UpdatePeriod;
             MaximumBufferLength = 5000;
 
@@ -185,20 +181,10 @@ namespace YARG.Audio.BASS
             YargLogger.LogFormatInfo(
                 "Update Period: {0}ms | Playback Buffer: {1}ms | Device Buffer: {2}ms | " +
                 "Device Latency: {3}ms (info.Latency={4}ms, devPeriod={5}ms, MinBuf={6}ms)",
-                Bass.UpdatePeriod, Bass.PlaybackBufferLength, deviceBufferLength, PlaybackLatency,
+                Bass.UpdatePeriod, Bass.PlaybackBufferLength, ActualDeviceBufferLength, PlaybackLatency,
                 info.Latency, devPeriod, info.MinBufferLength);
 
             YargLogger.LogFormatInfo("Current Device: {0}", Bass.GetDeviceInfo(Bass.CurrentDevice).Name);
-        }
-
-        private static int GetBassPlaybackLatency(BassInfo info, int deviceBufferLength, int devPeriod)
-        {
-            if (info.Latency > 0)
-            {
-                return info.Latency;
-            }
-
-            return Math.Max(0, deviceBufferLength) + Math.Max(0, devPeriod);
         }
 
         protected override bool SetOutputDevice(string name)

@@ -45,7 +45,6 @@ namespace YARG.Audio.BASS
         private readonly int            _mixerHandle;
         private readonly List<int>      _sourceHandles = new();
         private readonly int            _tempoStreamHandle;
-        private readonly BassOutputBufferTracker _bufferTracker;
         private          double         _positionOffset;
         private          bool           _didSetPosition;
         private          int            _songEndHandle;
@@ -101,7 +100,6 @@ namespace YARG.Audio.BASS
             }
 
             _mixerHandle = handle;
-            _bufferTracker = new BassOutputBufferTracker(_tempoStreamHandle);
             _shouldNormalize = normalize && SettingsManager.Settings.EnableNormalization.Value;
             if (_shouldNormalize)
             {
@@ -160,10 +158,6 @@ namespace YARG.Audio.BASS
 
                 Bass.ChannelUpdate(_tempoStreamHandle, 0);
 
-                if (_didSetPosition)
-                {
-                    _bufferTracker?.ResetToCurrentPosition();
-                }
                 _didSetPosition = false;
             }
 
@@ -303,7 +297,15 @@ namespace YARG.Audio.BASS
                 return 0;
             }
 
-            if (_bufferTracker == null || !_bufferTracker.TryGetRemainingSeconds(out double dynamicLatency))
+            int availableBytes = Bass.ChannelGetData(_tempoStreamHandle, IntPtr.Zero, (int) DataFlags.Available);
+            if (availableBytes < 0)
+            {
+                return staticLatency;
+            }
+
+            double dynamicLatency = Bass.ChannelBytes2Seconds(_tempoStreamHandle, availableBytes);
+            bool conversionFailed = dynamicLatency < 0 || double.IsNaN(dynamicLatency) || double.IsInfinity(dynamicLatency);
+            if (conversionFailed)
             {
                 return staticLatency;
             }
@@ -404,7 +406,6 @@ namespace YARG.Audio.BASS
             }
             _didSetPosition = true;
             _positionOffset = position;
-            _bufferTracker?.ResetToCurrentPosition();
 
             YargLogger.LogFormatDebug(
                 "Set BASS stem mixer position. Configured buffer: {0:0.000000}, device latency: {1:0.000000}, " +
@@ -432,7 +433,6 @@ namespace YARG.Audio.BASS
                 Bass.ChannelSetPosition(_tempoStreamHandle, 0);
             }
 
-            _bufferTracker?.ResetToCurrentPosition();
         }
 
         protected override void SetVolume_Internal(double volume)
@@ -739,7 +739,6 @@ namespace YARG.Audio.BASS
                 return;
             }
 
-            _bufferTracker?.ResetToCurrentPosition();
         }
 
         protected override void DisposeManagedResources()
@@ -747,7 +746,6 @@ namespace YARG.Audio.BASS
             _whammySyncTimer.Stop();
             _whammySyncTimer = null;
             _stemDatas.Clear();
-            _bufferTracker?.Dispose();
             if (_channels.Count == 0)
             {
                 return;
