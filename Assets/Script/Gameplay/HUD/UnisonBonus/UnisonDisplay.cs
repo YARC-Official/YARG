@@ -26,9 +26,10 @@ namespace YARG.Gameplay.HUD
 
     public class UnisonDisplay : GameplayBehaviour
     {
-        private const double TRANSITION_DURATION = 0.2;
-        private const double DISPLAY_HOLD_TIME   = 1.5;
-        private const double DISPLAY_PRE_TIME    = 0.2;
+        private const double TRANSITION_DURATION               = 0.2;
+        private const double DISPLAY_HOLD_TIME                 = 1.5;
+        private const double DISPLAY_PRE_TIME                  = 0.2;
+        private const int    MAX_PARTICIPANTS_FOR_ICON_DISPLAY = 8;
 
         private readonly List<UnisonPhraseData> _phrases = new();
 
@@ -131,6 +132,14 @@ namespace YARG.Gameplay.HUD
             BuildTransitionTimings(GameManager.SongSpeed);
 
             _parent.SetActive(false);
+
+            int engineCount = GameManager.EngineManager.Engines.Count;
+            if (engineCount > MAX_PARTICIPANTS_FOR_ICON_DISPLAY)
+            {
+                _unisonBar.Initialize(engineCount);
+            }
+            _iconContainer.Initialize(engineCount);
+
             SetDisplayType(_phrases[0].Event.PartCount);
             _activeUnisonObject.ResetState();
             _completeSequence = BuildCompleteSequence(gameObject);
@@ -487,7 +496,7 @@ namespace YARG.Gameplay.HUD
 
         private void SetDisplayType(int participantCount)
         {
-            if (participantCount > 8)
+            if (participantCount > MAX_PARTICIPANTS_FOR_ICON_DISPLAY)
             {
                 YargLogger.LogTrace("Setting display mode to bar");
                 _iconContainer.gameObject.SetActive(false);

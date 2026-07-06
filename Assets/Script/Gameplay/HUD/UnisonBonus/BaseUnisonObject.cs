@@ -7,25 +7,35 @@ namespace YARG.Gameplay.HUD
 {
     public abstract class BaseUnisonObject : GameplayBehaviour
     {
-        protected List<bool> ParticipantFailState = new();
-        protected List<int> ParticipantTotalNotes = new();
-        protected List<int> ParticipantNotesHit  = new();
+        protected bool[] ParticipantFailState;
+        protected int[]  ParticipantTotalNotes;
+        protected int[]  ParticipantNotesHit;
+        protected int    ParticipantCount;
 
         protected float ParticipantProgress(int engineId) =>
             YargMath.InverseLerpF(0f, ParticipantTotalNotes[engineId], ParticipantNotesHit[engineId]);
 
+        public void Initialize(int playerCount)
+        {
+            ParticipantFailState = new bool[playerCount];
+            ParticipantTotalNotes = new int[playerCount];
+            ParticipantNotesHit = new int[playerCount];
+        }
+
         public virtual void ResetState()
         {
-            ParticipantFailState.Clear();
-            ParticipantTotalNotes.Clear();
-            ParticipantNotesHit.Clear();
+            Array.Clear(ParticipantFailState, 0, ParticipantCount);
+            Array.Clear(ParticipantTotalNotes, 0, ParticipantCount);
+            Array.Clear(ParticipantNotesHit, 0, ParticipantCount);
+            ParticipantCount = 0;
         }
 
         public virtual void AddParticipant(int participantId, int totalNotes)
         {
-            ParticipantTotalNotes.Insert(participantId, totalNotes);
-            ParticipantNotesHit.Insert(participantId, 0);
-            ParticipantFailState.Insert(participantId, false);
+            ParticipantTotalNotes[participantId] = totalNotes;
+            ParticipantNotesHit[participantId] = 0;
+            ParticipantFailState[participantId] = false;
+            ParticipantCount++;
         }
 
         public virtual void SetNotesHit(int engineId, int notesHit)

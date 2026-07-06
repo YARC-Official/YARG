@@ -66,7 +66,7 @@ namespace YARG.Gameplay.HUD
         {
             base.AddParticipant(participantId, totalNotes);
             _totalNotes += totalNotes;
-            _totalCounter.text = ParticipantTotalNotes.Count.ToString();
+            _totalCounter.text = ParticipantCount.ToString();
         }
 
         public override void SetNotesHit(int engineId, int notesHit)
