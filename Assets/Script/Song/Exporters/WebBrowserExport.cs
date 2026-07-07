@@ -4,7 +4,7 @@ using System.Text;
 using Newtonsoft.Json;
 using YARG.Core.Song;
 
-namespace YARG.Song
+namespace YARG.Song.Exporters
 {
     /// <summary>
     /// Web song browser export generator.

@@ -24,6 +24,7 @@ using YARG.Scores;
 using YARG.Settings.Metadata;
 using YARG.Settings.Types;
 using YARG.Song;
+using YARG.Song.Exporters;
 using YARG.Venue;
 using YARG.Venue.Characters;
 

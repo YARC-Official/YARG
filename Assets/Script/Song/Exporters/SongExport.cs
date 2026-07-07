@@ -7,7 +7,7 @@ using YARG.Core.Song;
 using YARG.Core.Utility;
 using YARG.Helpers;
 
-namespace YARG.Song
+namespace YARG.Song.Exporters
 {
     public static class SongExport
     {

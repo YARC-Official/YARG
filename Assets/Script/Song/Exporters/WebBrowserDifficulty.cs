@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace YARG.Song
+namespace YARG.Song.Exporters
 {
     /// <summary>
     /// Pure difficulty encoder for the web song browser export.

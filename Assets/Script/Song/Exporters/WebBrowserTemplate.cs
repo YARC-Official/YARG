@@ -1,6 +1,6 @@
 using System;
 
-namespace YARG.Song
+namespace YARG.Song.Exporters
 {
     /// <summary>
     /// The self-contained HTML template for the web song browser export. Split at
