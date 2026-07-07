@@ -234,8 +234,7 @@ namespace YARG.Playback
             _syncController = new SongSyncController(
                 _mixer,
                 this,
-                _inputClock,
-                inputSystemTime => ApplyScheduledSpeedChanges(inputSystemTime)
+                _inputClock
             );
 
             SetTimelinePosition(targetInputTime: startTime + SongOffset, startDelaySeconds: startDelay);
@@ -333,11 +332,16 @@ namespace YARG.Playback
         {
             lock (_timingStateLock)
             {
-                while (_speedChanges.Count > 0 && _speedChanges.Peek().EffectiveTime <= nowInputSystemTime)
-                {
-                    var command = _speedChanges.Dequeue();
-                    _timeline.ApplySpeedChange(command.Speed, command.EffectiveTime);
-                }
+                ApplyScheduledSpeedChangesLocked(nowInputSystemTime);
+            }
+        }
+
+        private void ApplyScheduledSpeedChangesLocked(double nowInputSystemTime)
+        {
+            while (_speedChanges.Count > 0 && _speedChanges.Peek().EffectiveTime <= nowInputSystemTime)
+            {
+                var command = _speedChanges.Dequeue();
+                _timeline.ApplySpeedChange(command.Speed, command.EffectiveTime);
             }
         }
 
@@ -345,6 +349,8 @@ namespace YARG.Playback
         {
             lock (_timingStateLock)
             {
+                ApplyScheduledSpeedChangesLocked(inputSystemTime);
+
                 var snapshot = _timeline.GetSnapshotAt(inputSystemTime);
                 double targetAudioPosition = CalculateAudioFilePosition(snapshot.InputTime, snapshot);
                 return new SongSyncState(

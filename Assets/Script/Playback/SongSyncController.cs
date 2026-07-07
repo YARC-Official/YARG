@@ -11,7 +11,6 @@ namespace YARG.Playback
         private readonly ISongSyncStateProvider _stateProvider;
         private readonly IInputClock _inputClock;
         private readonly object _stateLock = new();
-        private readonly Action<double> _activateScheduledSongSpeeds;
         private readonly Thread _syncThread;
         private readonly SyncCorrectionCalculator _syncCalculator = new();
 
@@ -52,13 +51,11 @@ namespace YARG.Playback
         public SongSyncController(
             StemMixer mixer,
             ISongSyncStateProvider stateProvider,
-            IInputClock inputClock,
-            Action<double> activateScheduledSongSpeeds)
+            IInputClock inputClock)
         {
             _mixer = mixer;
             _stateProvider = stateProvider;
             _inputClock = inputClock;
-            _activateScheduledSongSpeeds = activateScheduledSongSpeeds;
             _syncThread = new Thread(SyncThread) { IsBackground = true };
         }
 
@@ -131,8 +128,6 @@ namespace YARG.Playback
             for (; !_disposed; Thread.Sleep(1))
             {
                 var sample = CreateSyncTimingSample(ref lastSampleTime);
-                _activateScheduledSongSpeeds(sample.InputSystemTime);
-
                 var snapshot = _stateProvider.ReadSongSyncState(sample.InputSystemTime);
                 var timeline = BuildSyncTimeline(snapshot);
                 if (_disposed)
