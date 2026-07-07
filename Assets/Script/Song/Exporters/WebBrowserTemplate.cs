@@ -194,7 +194,7 @@ namespace YARG.Song.Exporters
 
         .row {
             display: grid;
-            grid-template-columns: 1fr 1.5fr 50px 50px 1fr 110px;
+            grid-template-columns: 1fr 1.5fr 62px 44px 1fr 110px;
             gap: 0.5rem;
             padding: 0.75rem;
             border-bottom: 1px solid var(--border);
@@ -222,9 +222,15 @@ namespace YARG.Song.Exporters
             color: var(--subtle-text);
         }
 
+        .cell-length {
+            text-align: right;
+            font-variant-numeric: tabular-nums;
+            padding-right: 1ch;
+        }
+
         .col-header {
             display: grid;
-            grid-template-columns: 1fr 1.5fr 50px 50px 1fr 110px;
+            grid-template-columns: 1fr 1.5fr 62px 44px 1fr 110px;
             gap: 0.5rem;
             padding: 0.5rem 0.75rem;
             border-bottom: 2px solid var(--border);
@@ -444,17 +450,17 @@ namespace YARG.Song.Exporters
         .chip-short { display: none; }
 
         @media (max-width: 900px) {
-            .row, .col-header { grid-template-columns: 1fr 1.5fr 50px 50px 1fr; }
+            .row, .col-header { grid-template-columns: 1fr 1.5fr 62px 44px 1fr; }
             .cell-instruments { display: none; }
         }
         @media (max-width: 720px) {
-            .row, .col-header { grid-template-columns: 1fr 1.5fr 50px 50px; }
+            .row, .col-header { grid-template-columns: 1fr 1.5fr 62px 44px; }
             .cell-album { display: none; }
             .chip-long { display: none; }
             .chip-short { display: inline; }
         }
         @media (max-width: 540px) {
-            .row, .col-header { grid-template-columns: 1fr 1.5fr 50px; }
+            .row, .col-header { grid-template-columns: 1fr 1.5fr 62px; }
             .cell-year { display: none; }
         }
     </style>
@@ -812,7 +818,7 @@ namespace YARG.Song.Exporters
                     html += `<div class=""row"" style=""top:${top}px"" data-index=""${i}"" tabindex=""0"" role=""button"" aria-label=""${esc(ariaLabel)}"">`;
                     html += `<div class=""cell"">${esc(r.a)}</div>`;
                     html += `<div class=""cell"">${esc(r.t)}</div>`;
-                    html += `<div class=""cell"">${fmtLen(r.l)}</div>`;
+                    html += `<div class=""cell cell-length"">${fmtLen(r.l)}</div>`;
                     html += `<div class=""cell cell-year"">${esc(r.y || '')}</div>`;
                     html += `<div class=""cell cell-album"">${esc(r.al || '')}</div>`;
                     html += `<div class=""cell cell-instruments"">${partsBadges(r)}</div>`;
