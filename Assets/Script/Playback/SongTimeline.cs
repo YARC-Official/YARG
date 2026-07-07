@@ -172,7 +172,7 @@ namespace YARG.Playback
         {
             lock (_lock)
             {
-                double inputSystemTime = _inputClock.FrameTime;
+                double inputSystemTime = Math.Max(_lastInputSystemTime, _inputClock.FrameTime);
                 _audioCalibration = audioCalibration;
                 _videoCalibration = videoCalibration;
                 double inputTimeOffset = inputSystemTime - (targetInputTime / _current.SongSpeed);

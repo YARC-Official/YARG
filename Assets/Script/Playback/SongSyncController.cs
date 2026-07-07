@@ -127,8 +127,8 @@ namespace YARG.Playback
         public void SuppressCorrection()
         {
             double now = InputManager.EstimatedCurrentInputTime;
-            double playbackLatency = GetPlaybackStreamLatency();
-            double tempoLatency = GetTempoStreamLatency();
+            double playbackLatency = _mixer.GetPlaybackStreamLatency();
+            double tempoLatency = _mixer.GetTempoStreamLatency();
             double latency = Math.Max(playbackLatency, tempoLatency);
             SuppressUntil(now + latency);
         }
@@ -144,7 +144,7 @@ namespace YARG.Playback
 
         public void PreAlignResumeAudio(double inputTime, double audioCalibration, float songSpeed, double songOffset)
         {
-            double playbackLatency = GetPlaybackStreamLatency();
+            double playbackLatency = _mixer.GetPlaybackStreamLatency();
             if (playbackLatency <= 0)
             {
                 return;
@@ -221,8 +221,8 @@ namespace YARG.Playback
             double currentSongTime = (inputSystemTime - snapshot.InputTimeOffset) * snapshot.SongSpeed;
             double syncAudioTime = _mixer.GetPosition();
             double syncVisualTime = currentSongTime - audioOffset;
-            double playbackLatency = GetPlaybackStreamLatency();
-            double tempoLatency = GetTempoStreamLatency();
+            double playbackLatency = _mixer.GetPlaybackStreamLatency();
+            double tempoLatency = _mixer.GetTempoStreamLatency();
             double preRollSongTime = playbackLatency * snapshot.SongSpeed;
 
             return new SyncTimeline(
@@ -426,9 +426,6 @@ namespace YARG.Playback
         {
             return Math.Clamp(syncVisualTime + (syncLatency * songSpeed), 0, _mixer.Length);
         }
-
-        private double GetPlaybackStreamLatency() => _mixer.GetPlaybackStreamLatency();
-        private double GetTempoStreamLatency()    => _mixer.GetTempoStreamLatency();
 
         private static double GetCurrentCpuTime()
         {

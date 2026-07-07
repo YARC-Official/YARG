@@ -91,7 +91,7 @@ namespace YARG.Playback
         /// The current visual time, accounting for song speed and video calibration.<br/>
         /// This is updated every frame while not paused.
         /// </summary>
-        public double VisualTime => _visualTimeOverride ?? _timeline.Current.VisualTime;
+        public double VisualTime => _rewindVisualTimeOverride ?? _timeline.Current.VisualTime;
 
         /// <summary>
         /// The current gameplay input time, accounting for song speed.<br/>
@@ -187,7 +187,9 @@ namespace YARG.Playback
         #region Rewind State
         private CancellationTokenSource _rewindSource;
         private Tween                   _rewindTween;
-        private double?                 _visualTimeOverride;
+
+        // Visual-only clock used while animating paused rewind. Song and input timelines stay unchanged.
+        private double?                 _rewindVisualTimeOverride;
         #endregion
 
         #region Audio syncing
@@ -361,9 +363,6 @@ namespace YARG.Playback
             }
         }
 
-        private double GetPlaybackStreamLatency() => _mixer.GetPlaybackStreamLatency();
-        private double GetTempoStreamLatency()    => _mixer.GetTempoStreamLatency();
-
         /// <summary>
         /// Activates scheduled speed changes for the track, gameplay, and inputs once their predicted latency delay
         /// has passed.  This syncs up track speed changes with heard audio speed changes
@@ -424,7 +423,7 @@ namespace YARG.Playback
         /// <returns>The latency-adjusted visual rewind target.</returns>
         public double GetRewindVisualTime(double seconds)
         {
-            return VisualTime - seconds - (GetPlaybackStreamLatency() * SongSpeed);
+            return VisualTime - seconds - (_mixer.GetPlaybackStreamLatency() * SongSpeed);
         }
 
         /// <summary>
@@ -439,7 +438,7 @@ namespace YARG.Playback
 
         private void SetTimelinePosition(double targetInputTime, double startDelaySeconds)
         {
-            _visualTimeOverride = null;
+            _rewindVisualTimeOverride = null;
             double leadInSongTime = startDelaySeconds * SongSpeed;
             double anchoredInputTime = targetInputTime - leadInSongTime;
             _timeline.AnchorAtFrame(anchoredInputTime);
@@ -455,7 +454,7 @@ namespace YARG.Playback
         /// </remarks>
         public void SetSongTime(double time, double delayTime)
         {
-            double playbackLatency = GetPlaybackStreamLatency();
+            double playbackLatency = _mixer.GetPlaybackStreamLatency();
             double effectiveDelay = Math.Max(delayTime, playbackLatency);
 
             //Apply last song speed change immediately
@@ -502,7 +501,7 @@ namespace YARG.Playback
             double nowInputSystemTime = _inputClock.InstantTime;
 
             //If we are paused, buffers will be flushed, so no latency
-            double latency = IsPlaying ? GetTempoStreamLatency() : 0.0;
+            double latency = IsPlaying ? _mixer.GetTempoStreamLatency() : 0.0;
             double effectiveTime;
 
             lock (_timingStateLock)
@@ -577,7 +576,7 @@ namespace YARG.Playback
             _rewindSource?.Cancel();
             _rewindTween?.Kill();
             _rewindTween = null;
-            _visualTimeOverride = null;
+            _rewindVisualTimeOverride = null;
 
             if (PauseOverridden)
             {
@@ -702,46 +701,45 @@ namespace YARG.Playback
 
             var targetRewindTime = SongTime - seconds;
             var targetVisualTime = GetRewindVisualTime(seconds);
-            var targetResumeTime = overrideTargetTime ?? SongTime;
-            float rewindDuration = REWIND_DURATION;
+            var targetResumeSongTime = overrideTargetTime ?? SongTime;
+            var targetResumeInputTime = targetResumeSongTime - (AudioCalibration * SongSpeed);
 
-            _visualTimeOverride = VisualTime;
-            _rewindTween = DOTween.To(
-                () => _visualTimeOverride ?? VisualTime,
-                x => _visualTimeOverride = x,
-                targetVisualTime,
-                rewindDuration
-            );
+            _rewindVisualTimeOverride = VisualTime;
 
-            var rewindCanceled = await _rewindTween
-                .AsyncWaitForCompletion()
-                .AsUniTask()
-                .AttachExternalCancellation(token)
-                .SuppressCancellationThrow();
-
-            if (rewindCanceled || token.IsCancellationRequested)
+            try
             {
-                _rewindTween?.Kill();
-                _rewindTween = null;
-                _visualTimeOverride = null;
-                return true;
+                _rewindTween = DOTween.To(
+                    () => _rewindVisualTimeOverride ?? VisualTime,
+                    x => _rewindVisualTimeOverride = x,
+                    targetVisualTime,
+                    REWIND_DURATION
+                );
+
+                var rewindCanceled = await _rewindTween
+                    .AsyncWaitForCompletion()
+                    .AsUniTask()
+                    .AttachExternalCancellation(token)
+                    .SuppressCancellationThrow();
+
+                if (rewindCanceled || token.IsCancellationRequested)
+                {
+                    _rewindTween?.Kill();
+                    _rewindTween = null;
+                    return true;
+                }
+
+                SetSongTime(targetRewindTime - (AudioCalibration * SongSpeed), 0);
+                Resume();
+
+                var waitCanceled = await UniTask.WaitUntil(() => InputTime > targetResumeInputTime, cancellationToken: token)
+                    .SuppressCancellationThrow();
+
+                return waitCanceled || token.IsCancellationRequested;
             }
-
-            SetSongTime(targetRewindTime - (AudioCalibration * SongSpeed), 0);
-            Resume();
-
-
-            var waitCanceled = await UniTask.WaitUntil(() => SongTime > targetResumeTime, cancellationToken: token)
-                .SuppressCancellationThrow();
-
-            if (waitCanceled || token.IsCancellationRequested)
+            finally
             {
-                _visualTimeOverride = null;
-                return true;
+                _rewindVisualTimeOverride = null;
             }
-
-            _visualTimeOverride = null;
-            return false;
         }
 
         /// <summary>
