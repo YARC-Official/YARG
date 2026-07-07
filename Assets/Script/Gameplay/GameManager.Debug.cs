@@ -546,7 +546,6 @@ namespace YARG.Gameplay
                     using var text = ZString.CreateStringBuilder(true);
 
                     text.AppendFormat("Song time: {0:0.000000}\n", _songRunner.SongTime);
-                    text.AppendFormat("Audio time: {0:0.000000}\n", _songRunner.AudioTime);
                     text.AppendFormat("Visual time: {0:0.000000}\n", _songRunner.VisualTime);
                     text.AppendFormat("Input time: {0:0.000000}\n", _songRunner.InputTime);
                     text.AppendFormat("Input offset: {0:0.000000}\n", _songRunner.InputTimeOffset);
