@@ -494,20 +494,15 @@ namespace YARG.Playback
             return _minimumUpdateInputSystemTime;
         }
 
-        private void UpdateTimes()
+        private void UpdateTimes(double? inputSystemTime = null)
         {
-            UpdateTimes(GetResumeSafeInputUpdateTime());
-        }
-
-        private void UpdateTimes(double inputSystemTime)
-        {
+            double updateInputSystemTime = inputSystemTime ?? GetResumeSafeInputUpdateTime();
             lock (_timingStateLock)
             {
-                InputTime = (inputSystemTime - InputTimeOffset) * SongSpeed;
-                SongTime = InputTime + (AudioCalibration * SongSpeed);
-                VisualTime = InputTime + (VideoCalibration * SongSpeed);
+                InputTime = (updateInputSystemTime - InputTimeOffset) * SongSpeed;
+                SongTime = InputTime + AudioCalibration * SongSpeed;
+                VisualTime = InputTime + VideoCalibration * SongSpeed;
             }
-
             AudioPlaybackTime = Math.Max(0, _mixer.GetPosition());
         }
 
