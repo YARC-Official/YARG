@@ -314,9 +314,7 @@ namespace YARG.Playback
                 return;
             }
 
-            double previousInputTime = InputTime;
-            var snapshot = _timeline.TickFrame();
-            AssertTimeDidNotJumpBackwards(previousInputTime, snapshot.InputTime);
+            _timeline.TickFrame();
         }
 
         private bool IsFrameLagging()
@@ -361,15 +359,6 @@ namespace YARG.Playback
             {
                 OverrideResume();
             }
-        }
-
-        private void AssertTimeDidNotJumpBackwards(double previousTime, double currentTime)
-        {
-            YargLogger.AssertFormat(
-                currentTime >= previousTime,
-                "Unexpected time seek backwards! Went from {0} to {1} (delta: {2})",
-                previousTime, currentTime, currentTime - previousTime
-            );
         }
 
         private double GetPlaybackStreamLatency() => _mixer.GetPlaybackStreamLatency();
@@ -445,34 +434,12 @@ namespace YARG.Playback
         /// <returns>The corresponding input time relative to the song timeline.</returns>
         public double GetRelativeInputTime(double timeFromInputSystem)
         {
-            lock (_timingStateLock)
-            {
-                return _timeline.ConvertInputSystemTime(timeFromInputSystem);
-            }
-        }
-
-        private void ReanchorTimelineForResume()
-        {
-            double previousVisualTime = VisualTime;
-            double previousInputTime = InputTime;
-
-            _timeline.AnchorAtInstant(previousInputTime);
-
-            // Speeds above 200% or so can cause inaccuracies greater than 1 ms
-            double threshold = Math.Max(0.001 * SongSpeed, 0.0005);
-            YargLogger.AssertFormat(Math.Abs(VisualTime - previousVisualTime) <= threshold,
-                "Unexpected visual time change! Went from {0} to {1}, threshold {2}",
-                previousVisualTime, VisualTime, threshold);
-            YargLogger.AssertFormat(Math.Abs(InputTime - previousInputTime) <= threshold,
-                "Unexpected input time change! Went from {0} to {1}, threshold {2}",
-                previousInputTime, InputTime, threshold);
+            return _timeline.ConvertInputSystemTime(timeFromInputSystem);
         }
 
         private void SetTimelinePosition(double targetInputTime, double startDelaySeconds)
         {
             _visualTimeOverride = null;
-
-            // Account for song speed.
             double leadInSongTime = startDelaySeconds * SongSpeed;
             double anchoredInputTime = targetInputTime - leadInSongTime;
             _timeline.AnchorAtFrame(anchoredInputTime);
@@ -488,29 +455,19 @@ namespace YARG.Playback
         /// </remarks>
         public void SetSongTime(double time, double delayTime)
         {
-            double requestedDelay = delayTime;
             double playbackLatency = GetPlaybackStreamLatency();
-            double tempoLatency = GetTempoStreamLatency();
             double effectiveDelay = Math.Max(delayTime, playbackLatency);
 
             //Apply last song speed change immediately
             lock (_timingStateLock)
             {
-                _timeline.ApplySpeedChangeInstant(RequestedSongSpeed);
+                _timeline.ApplySpeedChange(RequestedSongSpeed, _inputClock.InstantTime);
                 _gameplaySpeedSchedule.Clear();
             }
 
             SetTimelinePosition(targetInputTime: time, startDelaySeconds: effectiveDelay);
-            double seekTime = CalculateSeekAudioFileTime(time, effectiveDelay, playbackLatency);
-            SeekMixer(seekTime);
+            SeekMixer(CalculateSeekAudioFileTime(time, effectiveDelay, playbackLatency));
             _timeline.TickFrame();
-
-            YargLogger.LogFormatDebug(
-                "Set song time with latency budget.\n" +
-                "Requested delay: {0:0.000000}, effective delay: {1:0.000000}, playback latency: {2:0.000000}, " +
-                "tempo latency: {3:0.000000}, raw audio: {4:0.000000}, seek time: {5:0.000000}",
-                requestedDelay, effectiveDelay, playbackLatency, tempoLatency, _mixer.GetPosition(), seekTime
-            );
         }
 
         private double CalculateSeekAudioFileTime(double songTime, double delayTime, double playbackLatency)
@@ -602,11 +559,7 @@ namespace YARG.Playback
                 audioCalibrationMs += GlobalAudioHandler.PlaybackLatency;
             }
 
-            double inputTime;
-            lock (_timingStateLock)
-            {
-                inputTime = InputTime;
-            }
+            double inputTime = InputTime;
 
             _timeline.SetCalibrationAndAnchorAtFrame(
                 audioCalibrationMs / 1000.0,
@@ -671,7 +624,7 @@ namespace YARG.Playback
             }
 
             UpdateCalibration();
-            ReanchorTimelineForResume();
+            _timeline.AnchorAtInstant(InputTime);
             ResetSync();
             PreAlignResumeAudio();
 

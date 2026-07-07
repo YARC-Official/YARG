@@ -48,6 +48,9 @@ namespace YARG.Playback
             _current = BuildSnapshot(0.0, 0.0, songSpeed);
         }
 
+        /// <summary>
+        /// Latest timeline snapshot.
+        /// </summary>
         public SongTimelineSnapshot Current
         {
             get
@@ -59,6 +62,9 @@ namespace YARG.Playback
             }
         }
 
+        /// <summary>
+        /// Audio calibration applied to input time when calculating song time.
+        /// </summary>
         public double AudioCalibration
         {
             get
@@ -70,6 +76,9 @@ namespace YARG.Playback
             }
         }
 
+        /// <summary>
+        /// Video calibration applied to input time when calculating visual time.
+        /// </summary>
         public double VideoCalibration
         {
             get
@@ -81,108 +90,101 @@ namespace YARG.Playback
             }
         }
 
-        public SongTimelineSnapshot TickFrame()
+        /// <summary>
+        /// Updates the snapshot using the current frame input time without changing the timeline mapping.
+        /// </summary>
+        public void TickFrame()
         {
-            return TickAt(_inputClock.FrameTime);
+            TickAt(_inputClock.FrameTime);
         }
 
-        public SongTimelineSnapshot TickAt(double inputSystemTime)
+        /// <summary>
+        /// Updates the snapshot at the given input system time without changing the timeline mapping.
+        /// </summary>
+        public void TickAt(double inputSystemTime)
         {
             lock (_lock)
             {
                 _lastInputSystemTime = inputSystemTime;
                 _current = BuildSnapshot(inputSystemTime, _current.InputTimeOffset, _current.SongSpeed);
-                return _current;
             }
         }
 
-        public SongTimelineSnapshot AnchorAtFrame(double targetInputTime)
+        /// <summary>
+        /// Rebases the timeline so the current frame input time maps to the target input time.
+        /// </summary>
+        public void AnchorAtFrame(double targetInputTime)
         {
-            return AnchorAt(targetInputTime, _inputClock.FrameTime);
+            AnchorAt(targetInputTime, _inputClock.FrameTime);
         }
 
-        public SongTimelineSnapshot AnchorAtInstant(double targetInputTime)
+        /// <summary>
+        /// Rebases the timeline so the current instant input time maps to the target input time.
+        /// </summary>
+        public void AnchorAtInstant(double targetInputTime)
         {
             double inputSystemTime = _inputClock.ClampFrameTimeToInstant();
-            return AnchorAt(targetInputTime, inputSystemTime);
+            AnchorAt(targetInputTime, inputSystemTime);
         }
 
-        public SongTimelineSnapshot AnchorAt(double targetInputTime, double inputSystemTime)
+        private void AnchorAt(double targetInputTime, double inputSystemTime)
         {
             lock (_lock)
             {
                 double inputTimeOffset = inputSystemTime - (targetInputTime / _current.SongSpeed);
                 _lastInputSystemTime = inputSystemTime;
                 _current = BuildSnapshot(inputSystemTime, inputTimeOffset, _current.SongSpeed);
-                return _current;
             }
         }
 
+        /// <summary>
+        /// Converts an input system timestamp to timeline input time using the current mapping.
+        /// </summary>
         public double ConvertInputSystemTime(double inputSystemTime)
         {
             lock (_lock)
             {
-                return ConvertInputSystemTimeLocked(inputSystemTime);
+                return CalculateInputTime(inputSystemTime);
             }
         }
 
-        public SongTimelineSnapshot ApplySpeedChangeInstant(float newSpeed)
-        {
-            return ApplySpeedChange(newSpeed, _inputClock.InstantTime);
-        }
-
-        public SongTimelineSnapshot ApplySpeedChange(float newSpeed, double inputSystemTime)
+        /// <summary>
+        /// Changes song speed while preserving the input time at the given input system time.
+        /// </summary>
+        public void ApplySpeedChange(float newSpeed, double inputSystemTime)
         {
             lock (_lock)
             {
-                double currentInputAtChange = ConvertInputSystemTimeLocked(inputSystemTime);
+                double currentInputAtChange = CalculateInputTime(inputSystemTime);
                 double inputTimeOffset = inputSystemTime - (currentInputAtChange / newSpeed);
                 double snapshotInputSystemTime = Math.Max(_lastInputSystemTime, inputSystemTime);
                 _lastInputSystemTime = snapshotInputSystemTime;
                 _current = BuildSnapshot(snapshotInputSystemTime, inputTimeOffset, newSpeed);
-                return _current;
             }
         }
 
-        public SongTimelineSnapshot SetCalibration(double audioCalibration, double videoCalibration)
-        {
-            lock (_lock)
-            {
-                _audioCalibration = audioCalibration;
-                _videoCalibration = videoCalibration;
-                _current = BuildSnapshot(_lastInputSystemTime, _current.InputTimeOffset, _current.SongSpeed);
-                return _current;
-            }
-        }
-
-        public SongTimelineSnapshot SetCalibrationAndAnchorAtFrame(
-            double audioCalibration,
+        /// <summary>
+        /// Updates calibration values and rebases the timeline at the current frame input time.
+        /// </summary>
+        public void SetCalibrationAndAnchorAtFrame(double audioCalibration,
             double videoCalibration,
             double targetInputTime)
         {
-            return SetCalibrationAndAnchorAt(audioCalibration, videoCalibration, targetInputTime, _inputClock.FrameTime);
-        }
-
-        public SongTimelineSnapshot SetCalibrationAndAnchorAt(
-            double audioCalibration,
-            double videoCalibration,
-            double targetInputTime,
-            double inputSystemTime)
-        {
             lock (_lock)
             {
+                double inputSystemTime = _inputClock.FrameTime;
                 _audioCalibration = audioCalibration;
                 _videoCalibration = videoCalibration;
                 double inputTimeOffset = inputSystemTime - (targetInputTime / _current.SongSpeed);
                 _lastInputSystemTime = inputSystemTime;
                 _current = BuildSnapshot(inputSystemTime, inputTimeOffset, _current.SongSpeed);
-                return _current;
             }
         }
 
-        private double ConvertInputSystemTimeLocked(double inputSystemTime)
+
+        private double CalculateInputTime(double systemTime)
         {
-            return (inputSystemTime - _current.InputTimeOffset) * _current.SongSpeed;
+            return (systemTime - _current.InputTimeOffset) * _current.SongSpeed;
         }
 
         private SongTimelineSnapshot BuildSnapshot(double inputSystemTime, double inputTimeOffset, float songSpeed)
