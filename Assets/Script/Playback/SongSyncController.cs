@@ -126,7 +126,7 @@ namespace YARG.Playback
 
         public void SuppressCorrection()
         {
-            double now = GetEstimatedCurrentInputTime();
+            double now = InputManager.EstimatedCurrentInputTime;
             double playbackLatency = GetPlaybackStreamLatency();
             double tempoLatency = GetTempoStreamLatency();
             double latency = Math.Max(playbackLatency, tempoLatency);
@@ -197,7 +197,7 @@ namespace YARG.Playback
 
         private static SyncTimingSample CreateSyncTimingSample(ref double lastSampleTime)
         {
-            double inputSystemTime = GetEstimatedCurrentInputTime();
+            double inputSystemTime = InputManager.EstimatedCurrentInputTime;
             double elapsedMs = 1.0;
 
             if (!double.IsNaN(lastSampleTime))
@@ -280,7 +280,7 @@ namespace YARG.Playback
                 return;
             }
 
-            double inputSystemTime = GetEstimatedCurrentInputTime();
+            double inputSystemTime = InputManager.EstimatedCurrentInputTime;
             sample = new SyncTimingSample(inputSystemTime, sample.ElapsedMs);
             timeline = BuildSyncTimeline(inputSystemTime, snapshot);
         }
@@ -288,7 +288,7 @@ namespace YARG.Playback
         private void AlignAudioForResume(SongSyncState snapshot, SyncTimeline timeline)
         {
             double resumeCommandDelay = GetResumeCommandDelay();
-            double resumeCommandInputTime = GetEstimatedCurrentInputTime();
+            double resumeCommandInputTime = InputManager.EstimatedCurrentInputTime;
             double adjustedSyncVisualTime =
                 ((resumeCommandInputTime - snapshot.InputTimeOffset) * snapshot.SongSpeed) - timeline.AudioOffset;
             double seekPosition = GetLatencyAlignedSeekPosition(
@@ -433,30 +433,6 @@ namespace YARG.Playback
         private static double GetCurrentCpuTime()
         {
             return (double) System.Diagnostics.Stopwatch.GetTimestamp() / System.Diagnostics.Stopwatch.Frequency;
-        }
-
-        private static double GetEstimatedCurrentInputTime()
-        {
-            double inputUpdateTime;
-            double inputUpdateCpuTime;
-            double inputUpdateCpuTimeCheck;
-
-            int retries = 0;
-            do
-            {
-                inputUpdateCpuTime = InputManager.InputUpdateCpuTime;
-                inputUpdateTime = InputManager.InputUpdateTime;
-                inputUpdateCpuTimeCheck = InputManager.InputUpdateCpuTime;
-                retries++;
-            } while (inputUpdateCpuTime != inputUpdateCpuTimeCheck && retries < 10);
-
-            if (inputUpdateCpuTime <= 0)
-            {
-                return inputUpdateTime;
-            }
-
-            double elapsed = Math.Max(0, GetCurrentCpuTime() - inputUpdateCpuTime);
-            return inputUpdateTime + elapsed;
         }
 
         private readonly struct SyncTimingSample

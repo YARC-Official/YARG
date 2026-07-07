@@ -34,6 +34,20 @@ namespace YARG.Input
 
         private static double _latestInputTime;
 
+        public sealed class InputTimeSnapshot
+        {
+            public readonly double UpdateTime;
+            public readonly double UpdateCpuTime;
+
+            public InputTimeSnapshot(double updateTime, double updateCpuTime)
+            {
+                UpdateTime = updateTime;
+                UpdateCpuTime = updateCpuTime;
+            }
+        }
+
+        private static InputTimeSnapshot _inputTimeSnapshot = new(0, 0);
+
         /// <summary>
         /// The time to be used for gameplay input updates.
         /// </summary>
@@ -42,7 +56,7 @@ namespace YARG.Input
         /// and the time of the most recent input event, such that any input events that happen after an
         /// update starts are factored into input updates.
         /// </remarks>
-        public static double InputUpdateTime { get; private set; }
+        public static double InputUpdateTime => CurrentInputTimeSnapshot.UpdateTime;
 
         /// <summary>
         /// The instantaneous current time of the input system.
@@ -56,7 +70,24 @@ namespace YARG.Input
         /// Input updates happen once per frame, so <see cref="InputUpdateTime"/> can be stale between frames.
         /// This timestamp lets other code add the elapsed CPU time to estimate the current input time for audio sync.
         /// </remarks>
-        public static double InputUpdateCpuTime { get; private set; }
+        public static double InputUpdateCpuTime => CurrentInputTimeSnapshot.UpdateCpuTime;
+
+        public static InputTimeSnapshot CurrentInputTimeSnapshot => System.Threading.Volatile.Read(ref _inputTimeSnapshot);
+
+        public static double EstimatedCurrentInputTime
+        {
+            get
+            {
+                var snapshot = CurrentInputTimeSnapshot;
+                if (snapshot.UpdateCpuTime <= 0)
+                {
+                    return snapshot.UpdateTime;
+                }
+
+                double elapsed = Math.Max(0, GetCurrentCpuTime() - snapshot.UpdateCpuTime);
+                return snapshot.UpdateTime + elapsed;
+            }
+        }
 
         private static HashSet<InputDevice> _seenDevices = new();
         private static HashSet<InputDevice> _disabledDevices = new();
@@ -198,16 +229,25 @@ namespace YARG.Input
             MenuInput?.Invoke(player, ref input);
         }
 
+        private static double GetCurrentCpuTime()
+        {
+            return (double) System.Diagnostics.Stopwatch.GetTimestamp() / System.Diagnostics.Stopwatch.Frequency;
+        }
+
+        private static void UpdateInputTimeSnapshot()
+        {
+            System.Threading.Volatile.Write(ref _inputTimeSnapshot,
+                new InputTimeSnapshot(CurrentInputTime, GetCurrentCpuTime()));
+        }
+
         private static void OnBeforeUpdate()
         {
-            InputUpdateTime = CurrentInputTime;
-            InputUpdateCpuTime = (double) System.Diagnostics.Stopwatch.GetTimestamp() / System.Diagnostics.Stopwatch.Frequency;
+            UpdateInputTimeSnapshot();
         }
 
         private static void OnAfterUpdate()
         {
-            InputUpdateTime = CurrentInputTime;
-            InputUpdateCpuTime = (double) System.Diagnostics.Stopwatch.GetTimestamp() / System.Diagnostics.Stopwatch.Frequency;
+            UpdateInputTimeSnapshot();
 
             if (InputUpdateTime < _latestInputTime)
             {

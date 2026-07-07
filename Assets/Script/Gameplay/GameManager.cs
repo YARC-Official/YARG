@@ -1033,12 +1033,11 @@ namespace YARG.Gameplay
         {
             YargLogger.LogFormatDebug("Rewinding {0} seconds at VisualTime {1}", seconds, VisualTime);
 
-            double rewindVisualTime = VisualTime - seconds - _songRunner.GetPlaybackLatencySongTime();
-            float rewindDuration = SongRunner.REWIND_DURATION;
+            double rewindVisualTime = _songRunner.GetRewindVisualTime(seconds);
 
             if (_lyricBar.gameObject.activeSelf)
             {
-                _lyricBar.Rewind(rewindVisualTime, rewindDuration);
+                _lyricBar.Rewind(rewindVisualTime, SongRunner.REWIND_DURATION);
             }
 
             // Rewind players
