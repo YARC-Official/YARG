@@ -2,6 +2,6 @@ namespace YARG.Playback
 {
     public interface ISongSyncStateProvider
     {
-        SongSyncState ReadSongSyncState();
+        SongSyncState ReadSongSyncState(double inputSystemTime);
     }
 }

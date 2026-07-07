@@ -32,6 +32,13 @@ using YARG.Venue.VenueCamera;
 
 namespace YARG.Gameplay
 {
+    public enum PauseReason
+    {
+        UserRequest,
+        VideoSync,
+        FrameDebugger
+    }
+
     [DefaultExecutionOrder(-1)]
     public partial class GameManager : MonoBehaviour
     {
@@ -169,10 +176,13 @@ namespace YARG.Gameplay
 
         private List<double> _frameTimes;
 
+        private readonly HashSet<PauseReason> _pauseReasons = new();
+
         private double _pauseTime;
         private float  _lastSongSpeed = float.NaN;
         private double _rewindLimit = double.MinValue;
         private bool   _resumeInProgress;
+        private bool   _wasFrameDebuggerEnabled;
         private bool   _autoCalibrateVideoOnPause;
         private double _preFadeOutVolume = DEFAULT_VOLUME;
 
@@ -308,6 +318,11 @@ namespace YARG.Gameplay
                 ToggleDebugEnabled();
             }
 
+            HandleFrameDebugger();
+
+            // Update song runner before pause check so system pause blockers can resume.
+            _songRunner.Update();
+
             // Skip the rest if paused
             if (_songRunner.Paused)
             {
@@ -315,7 +330,6 @@ namespace YARG.Gameplay
             }
 
             // Update handlers
-            _songRunner.Update();
             ApplySongSpeed();
             BeatEventHandler.Update(_songRunner.SongTime, _songRunner.VisualTime);
             CrowdEventHandler.Update(_songRunner.SongTime);
@@ -408,9 +422,76 @@ namespace YARG.Gameplay
         }
 
         public void Pause(bool showMenu = true)
+            => Pause(PauseReason.UserRequest, showMenu);
+
+        public void Pause(PauseReason reason, bool showMenu)
         {
+            bool wasPaused = _pauseReasons.Count > 0;
+            if (!_pauseReasons.Add(reason))
+            {
+                return;
+            }
+
+            if (wasPaused)
+            {
+                if (showMenu)
+                {
+                    PauseCore(showMenu: true);
+                }
+
+                return;
+            }
+
             _songRunner.Pause();
             PauseCore(showMenu);
+        }
+
+        public bool Resume(PauseReason reason)
+        {
+            bool resumed = ResumePlayback(reason);
+            if (resumed)
+            {
+                ResumeCore();
+            }
+
+            return resumed;
+        }
+
+        private bool ResumePlayback(PauseReason reason)
+        {
+            if (!_pauseReasons.Remove(reason))
+            {
+                return false;
+            }
+
+            if (_pauseReasons.Count > 0)
+            {
+                return false;
+            }
+
+            return _songRunner.Resume();
+        }
+
+        private void HandleFrameDebugger()
+        {
+            bool isDebuggerEnabled = FrameDebugger.enabled;
+            if (_wasFrameDebuggerEnabled == isDebuggerEnabled)
+            {
+                return;
+            }
+            _wasFrameDebuggerEnabled = isDebuggerEnabled;
+
+            if (isDebuggerEnabled)
+            {
+                // When Unity's Frame Debugger is enabled, rendering freezes but system/input time
+                // keeps advancing. If we didn't pause, the song time would suddenly jump forward
+                // by several seconds when the debugger is closed.
+                Pause(PauseReason.FrameDebugger, showMenu: false);
+            }
+            else
+            {
+                Resume(PauseReason.FrameDebugger);
+            }
         }
 
         private void PauseCore(bool showMenu)
@@ -474,13 +555,21 @@ namespace YARG.Gameplay
         public bool PlayerHasFailed { get; set; } = false;
 
         public async void Resume(double? rewindDuration = null)
+            => await ResumeUserAsync(rewindDuration);
+
+        private async UniTask ResumeUserAsync(double? rewindDuration = null)
         {
+            if (_pauseReasons.Count > 1)
+            {
+                Resume(PauseReason.UserRequest);
+                return;
+            }
+
             // Practice mode and replay do not rewind.
             if (IsPractice || IsReplay)
             {
                 _pauseMenu.PopAllMenus();
-                _songRunner.Resume();
-                ResumeCore();
+                Resume(PauseReason.UserRequest);
                 return;
             }
 
@@ -596,23 +685,6 @@ namespace YARG.Gameplay
             {
                 Resume();
             }
-        }
-
-        public void OverridePause()
-        {
-            _songRunner.OverridePause();
-            PauseCore(showMenu: false);
-        }
-
-        public bool OverrideResume()
-        {
-            bool resumed = _songRunner.OverrideResume();
-            if (resumed)
-            {
-                ResumeCore();
-            }
-
-            return resumed;
         }
 
         public double GetRelativeInputTime(double timeFromInputSystem)
@@ -896,7 +968,7 @@ namespace YARG.Gameplay
 
                     if ((!IsPractice || PracticeManager.HasSelectedSection) && !DialogManager.Instance.IsDialogShowing && !PlayerHasFailed)
                     {
-                        SetPaused(!_songRunner.Paused);
+                        SetPaused(!_pauseMenu.IsOpen);
                     }
                     break;
             }
@@ -946,11 +1018,11 @@ namespace YARG.Gameplay
                 }
 
                 // Pause gameplay immediately, but don't show the menu until the highways have lowered
-                _songRunner.Pause();
+                Pause(PauseReason.UserRequest, showMenu: false);
                 _mixer.FadeOut(SONG_END_DELAY);
                 await UniTask.Delay(TimeSpan.FromSeconds(SONG_END_DELAY));
                 GlobalAudioHandler.PlayVoxSample(VoxSample.FailSound);
-                Pause();
+                PauseCore(showMenu: true);
             }
         }
 
@@ -1049,11 +1121,24 @@ namespace YARG.Gameplay
                 targetTime = PauseInfo[^1].PauseTime;
             }
 
-            var canceled = await _songRunner.RewindAndResume(seconds, targetTime);
-
-            if (canceled)
+            var rewindOperation = await _songRunner.Rewind(seconds, targetTime);
+            if (rewindOperation == null)
             {
                 return true;
+            }
+
+            using (rewindOperation)
+            {
+                if (!ResumePlayback(PauseReason.UserRequest))
+                {
+                    return true;
+                }
+
+                var canceled = await rewindOperation.WaitForTarget();
+                if (canceled)
+                {
+                    return true;
+                }
             }
 
             foreach (var player in _players)

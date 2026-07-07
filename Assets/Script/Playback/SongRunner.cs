@@ -91,7 +91,7 @@ namespace YARG.Playback
         /// The current visual time, accounting for song speed and video calibration.<br/>
         /// This is updated every frame while not paused.
         /// </summary>
-        public double VisualTime => _rewindVisualTimeOverride ?? _timeline.Current.VisualTime;
+        public double VisualTime => _visualTimeOverride ?? _timeline.Current.VisualTime;
 
         /// <summary>
         /// The current gameplay input time, accounting for song speed.<br/>
@@ -113,7 +113,7 @@ namespace YARG.Playback
         /// Positive calibration settings are stored as positive seconds.
         /// Song time is calculated as input time plus this value scaled by song speed.
         /// </remarks>
-        public double AudioCalibration => _timeline.AudioCalibration;
+        public double AudioCalibration => _timeline.Current.AudioCalibration;
 
         /// <summary>
         /// The video calibration, in seconds.
@@ -122,7 +122,7 @@ namespace YARG.Playback
         /// Positive calibration settings are stored as positive seconds.
         /// Visual time is calculated as input time plus this value scaled by song speed.
         /// </remarks>
-        public double VideoCalibration => _timeline.VideoCalibration;
+        public double VideoCalibration => _timeline.Current.VideoCalibration;
 
         /// <summary>
         /// The song offset, in seconds.
@@ -167,19 +167,9 @@ namespace YARG.Playback
         /// </summary>
         private bool IsPlaying => Started && !Paused;
 
-        /// <summary>
-        /// Whether or not the song's pause state is currently overridden.
-        /// </summary>
-        private bool PauseOverridden => _pauseOverrides > 0;
-
-        private readonly Queue<(double EffectiveTime, float Speed)> _gameplaySpeedSchedule = new();
+        private readonly Queue<(double EffectiveTime, float Speed)> _speedChanges = new();
         private readonly IInputClock _inputClock;
         private readonly SongTimeline _timeline;
-
-        private int _pauseOverrides;
-        private bool _resumeAfterOverride;
-
-        private bool _wasFrameDebuggerEnabled;
 
         private double? _startDeadline;
         #endregion
@@ -189,7 +179,7 @@ namespace YARG.Playback
         private Tween                   _rewindTween;
 
         // Visual-only clock used while animating paused rewind. Song and input timelines stay unchanged.
-        private double?                 _rewindVisualTimeOverride;
+        private double?                 _visualTimeOverride;
         #endregion
 
         #region Audio syncing
@@ -244,6 +234,7 @@ namespace YARG.Playback
             _syncController = new SongSyncController(
                 _mixer,
                 this,
+                _inputClock,
                 inputSystemTime => ApplyScheduledSpeedChanges(inputSystemTime)
             );
 
@@ -308,7 +299,6 @@ namespace YARG.Playback
                 Start();
             }
 
-            HandleFrameDebugger();
             ApplyScheduledSpeedChanges(_inputClock.FrameTime);
 
             if (Paused)
@@ -336,34 +326,6 @@ namespace YARG.Playback
         }
 
         /// <summary>
-        /// Automatically pauses or resumes the song runner when the Unity Frame Debugger is toggled.
-        /// </summary>
-        private void HandleFrameDebugger()
-        {
-            bool isDebuggerEnabled = FrameDebugger.enabled;
-            if (_wasFrameDebuggerEnabled == isDebuggerEnabled)
-            {
-                return;
-            }
-            _wasFrameDebuggerEnabled = isDebuggerEnabled;
-
-            if (isDebuggerEnabled)
-            {
-                // When Unity's Frame Debugger is enabled, rendering freezes but system/input time
-                // keeps advancing. If we didn't pause, the song time would suddenly jump forward
-                // by several seconds when the debugger is closed.
-                //
-                // We use OverridePause() instead of Pause() so that we don't overwrite the user's
-                // actual pause intent (e.g., if the user already had the game paused, it should stay paused).
-                OverridePause();
-            }
-            else
-            {
-                OverrideResume();
-            }
-        }
-
-        /// <summary>
         /// Activates scheduled speed changes for the track, gameplay, and inputs once their predicted latency delay
         /// has passed.  This syncs up track speed changes with heard audio speed changes
         /// </summary>
@@ -371,49 +333,26 @@ namespace YARG.Playback
         {
             lock (_timingStateLock)
             {
-                while (_gameplaySpeedSchedule.Count > 0 && _gameplaySpeedSchedule.Peek().EffectiveTime <= nowInputSystemTime)
+                while (_speedChanges.Count > 0 && _speedChanges.Peek().EffectiveTime <= nowInputSystemTime)
                 {
-                    var command = _gameplaySpeedSchedule.Dequeue();
-                    ApplyGameplaySpeedChange(command.Speed, command.EffectiveTime);
+                    var command = _speedChanges.Dequeue();
+                    _timeline.ApplySpeedChange(command.Speed, command.EffectiveTime);
                 }
             }
         }
 
-        /// <summary>
-        /// Updates the active gameplay speed and shifts the input offset to keep the input timeline
-        /// perfectly continuous. While mathematically exact, heard audio sync might be slightly off
-        /// due to inaccurate latency estimate
-        /// </summary>
-        private void ApplyGameplaySpeedChange(float newSpeed, double inputSystemTime)
-        {
-            // Use the scheduled/effective time rather than the current system time
-            // to ensure the transition is jitter-free, regardless of when this frame executes.
-            _timeline.ApplySpeedChange(newSpeed, inputSystemTime);
-        }
-
-        SongSyncState ISongSyncStateProvider.ReadSongSyncState()
+        SongSyncState ISongSyncStateProvider.ReadSongSyncState(double inputSystemTime)
         {
             lock (_timingStateLock)
             {
-                var snapshot = _timeline.Current;
+                var snapshot = _timeline.GetSnapshotAt(inputSystemTime);
+                double targetAudioPosition = CalculateAudioFilePosition(snapshot.InputTime, snapshot);
                 return new SongSyncState(
                     snapshot.SongSpeed,
-                    SongOffset,
-                    AudioCalibration,
-                    snapshot.InputTimeOffset,
+                    targetAudioPosition,
                     Paused
                 );
             }
-        }
-
-        private void ResetSync()
-        {
-            _syncController.Reset(SongSpeed);
-        }
-
-        private void PreAlignResumeAudio()
-        {
-            _syncController.PreAlignResumeAudio(InputTime, AudioCalibration, SongSpeed, SongOffset);
         }
 
         /// <summary>
@@ -438,7 +377,7 @@ namespace YARG.Playback
 
         private void SetTimelinePosition(double targetInputTime, double startDelaySeconds)
         {
-            _rewindVisualTimeOverride = null;
+            ClearVisualTimeOverride();
             double leadInSongTime = startDelaySeconds * SongSpeed;
             double anchoredInputTime = targetInputTime - leadInSongTime;
             _timeline.AnchorAtFrame(anchoredInputTime);
@@ -461,7 +400,7 @@ namespace YARG.Playback
             lock (_timingStateLock)
             {
                 _timeline.ApplySpeedChange(RequestedSongSpeed, _inputClock.InstantTime);
-                _gameplaySpeedSchedule.Clear();
+                _speedChanges.Clear();
             }
 
             SetTimelinePosition(targetInputTime: time, startDelaySeconds: effectiveDelay);
@@ -475,13 +414,23 @@ namespace YARG.Playback
             // clamps negative result to zero and waits until timeline reaches audible range before playing.
             double leadIn = delayTime * SongSpeed;
             double latencyOffset = playbackLatency * SongSpeed;
-            double calibrationOffset = AudioCalibration * SongSpeed;
-            return songTime - SongOffset - leadIn + latencyOffset + calibrationOffset;
+            double audioOffset = CalculateAudioOffset(SongSpeed, AudioCalibration);
+            return songTime - audioOffset - leadIn + latencyOffset;
+        }
+
+        private double CalculateAudioFilePosition(double inputTime, SongTimelineSnapshot snapshot)
+        {
+            return inputTime - CalculateAudioOffset(snapshot.SongSpeed, snapshot.AudioCalibration);
+        }
+
+        private double CalculateAudioOffset(float songSpeed, double audioCalibration)
+        {
+            return SongOffset - (audioCalibration * songSpeed);
         }
 
         private void SeekMixer(double seekTime)
         {
-            ResetSync();
+            _syncController.Reset(SongSpeed);
             bool canStartAudio = seekTime >= 0;
             var postSeekState = !Paused && canStartAudio ? PostSeekState.Play : PostSeekState.Pause;
             _mixer.Seek(Math.Max(0, seekTime), postSeekState);
@@ -500,19 +449,16 @@ namespace YARG.Playback
             speed = ClampSongSpeed(speed);
             double nowInputSystemTime = _inputClock.InstantTime;
 
-            //If we are paused, buffers will be flushed, so no latency
-            double latency = IsPlaying ? _mixer.GetTempoStreamLatency() : 0.0;
             double effectiveTime;
-
             lock (_timingStateLock)
             {
-                if (Mathf.Approximately(speed, RequestedSongSpeed) && _gameplaySpeedSchedule.Count == 0)
+                if (Mathf.Approximately(speed, RequestedSongSpeed) && _speedChanges.Count == 0)
                 {
                     return;
                 }
 
                 RequestedSongSpeed = speed;
-                effectiveTime = ScheduleGameplaySpeedChange(nowInputSystemTime, latency, speed);
+                effectiveTime = ScheduleGameplaySpeedChange(nowInputSystemTime, speed);
             }
 
             _syncController.ClearSpeedAdjustment();
@@ -524,19 +470,22 @@ namespace YARG.Playback
             }
         }
 
-        private double ScheduleGameplaySpeedChange(double inputSystemTime, double streamDelay, float speed)
+        private double ScheduleGameplaySpeedChange(double inputSystemTime, float speed)
         {
-            if (streamDelay <= 0.0)
+            // If we are paused, buffers will be flushed, so no latency
+            double latency = IsPlaying ? _mixer.GetTempoStreamLatency() : 0.0;
+
+            if (latency <= 0.0)
             {
-                _gameplaySpeedSchedule.Clear();
-                ApplyGameplaySpeedChange(speed, inputSystemTime);
+                _speedChanges.Clear();
+                _timeline.ApplySpeedChange(speed, inputSystemTime);
                 return inputSystemTime;
             }
 
             // Effective gameplay speed waits for the tempo stream latency so gameplay timeline and
             // audible BASS tempo shift cross at the same perceived time.
-            double effectiveTime = inputSystemTime + streamDelay;
-            _gameplaySpeedSchedule.Enqueue((effectiveTime, speed));
+            double effectiveTime = inputSystemTime + latency;
+            _speedChanges.Enqueue((effectiveTime, speed));
             return effectiveTime;
         }
 
@@ -560,7 +509,7 @@ namespace YARG.Playback
 
             double inputTime = InputTime;
 
-            _timeline.SetCalibrationAndAnchorAtFrame(
+            _timeline.UpdateCalibrationAndAnchor(
                 audioCalibrationMs / 1000.0,
                 videoCalibrationMs / 1000.0,
                 inputTime
@@ -570,19 +519,11 @@ namespace YARG.Playback
         /// <summary>
         /// Pauses the song.
         /// </summary>
+        /// <returns>Whether or not playback actually paused.</returns>
         public void Pause()
         {
             // Ensure previous rewind tasks are dead
-            _rewindSource?.Cancel();
-            _rewindTween?.Kill();
-            _rewindTween = null;
-            _rewindVisualTimeOverride = null;
-
-            if (PauseOverridden)
-            {
-                _resumeAfterOverride = false;
-                return;
-            }
+            CancelActiveRewind();
 
             lock (_timingStateLock)
             {
@@ -595,7 +536,6 @@ namespace YARG.Playback
             }
 
             _mixer.Pause();
-            ResetSync();
 
             YargLogger.LogFormatDebug(
                 "Paused at song time {0:0.000000}, visual time {1:0.000000}, input time {2:0.000000}.",
@@ -606,92 +546,95 @@ namespace YARG.Playback
         /// <summary>
         /// Resumes the song.
         /// </summary>
-        public void Resume()
+        /// <returns>Whether or not playback actually resumed.</returns>
+        public bool Resume()
         {
-            if (PauseOverridden)
-            {
-                _resumeAfterOverride = true;
-                return;
-            }
-
             lock (_timingStateLock)
             {
                 if (!Paused)
                 {
-                    return;
+                    return false;
                 }
             }
 
             UpdateCalibration();
             _timeline.AnchorAtInstant(InputTime);
-            ResetSync();
-            PreAlignResumeAudio();
-
-            _syncController.NotifyResumed();
+            _syncController.Reset(SongSpeed);
+            AlignMixerForResume();
 
             lock (_timingStateLock)
             {
                 Paused = false;
             }
 
-            YargLogger.LogFormatDebug(
-                "Resumed at song time {0:0.000000}, visual time {1:0.000000}, input time {2:0.000000}.",
-                SongTime, VisualTime, InputTime
-            );
+            return true;
         }
 
-        /// <summary>
-        /// Forces the song to be paused until <see cref="OverrideResume"/> is called,
-        /// for long-running operations that must be completed before resuming.
-        /// </summary>
-        public void OverridePause()
+        private void AlignMixerForResume()
         {
-            if (!PauseOverridden)
+            SongTimelineSnapshot snapshot;
+            double targetAudioPosition;
+            double inputSystemTime = _inputClock.InstantTime;
+
+            lock (_timingStateLock)
             {
-                Pause();
-                _resumeAfterOverride = true;
+                snapshot = _timeline.GetSnapshotAt(inputSystemTime);
+                targetAudioPosition = CalculateAudioFilePosition(snapshot.InputTime, snapshot);
             }
 
-            _pauseOverrides++;
+            double playbackLatency = _mixer.GetPlaybackStreamLatency();
+            double preRollSongTime = playbackLatency * snapshot.SongSpeed;
+            double seekPosition = targetAudioPosition + preRollSongTime;
+            _mixer.SetPosition(Math.Clamp(seekPosition, 0, _mixer.Length));
+
+            bool audioCanStart = targetAudioPosition >= -preRollSongTime &&
+                targetAudioPosition < _mixer.Length;
+            if (audioCanStart)
+            {
+                _mixer.Play();
+            }
         }
 
-        /// <summary>
-        /// Removes the forced pause set by an <see cref="OverridePause"/> call.
-        /// </summary>
-        /// <returns>
-        /// Whether or not the song was resumed. A pause that occurs during the override
-        /// will take precedence, and prevent a resume from occurring here.
-        /// </returns>
-        public bool OverrideResume()
+        public sealed class RewindOperation : IDisposable
         {
-            _pauseOverrides--;
-            if (PauseOverridden)
+            private readonly SongRunner _songRunner;
+            private readonly CancellationToken _token;
+            private readonly double _targetResumeInputTime;
+
+            internal RewindOperation(SongRunner songRunner, CancellationToken token, double targetResumeInputTime)
             {
-                return false;
+                _songRunner = songRunner;
+                _token = token;
+                _targetResumeInputTime = targetResumeInputTime;
             }
 
-            if (_resumeAfterOverride)
+            public async UniTask<bool> WaitForTarget()
             {
-                Resume();
+                return await UniTask.WaitUntil(
+                        () => _songRunner.InputTime > _targetResumeInputTime,
+                        cancellationToken: _token
+                    )
+                    .SuppressCancellationThrow();
             }
 
-            return !Paused;
+            public void Dispose()
+            {
+                _songRunner.ClearVisualTimeOverride();
+            }
         }
 
         /// <summary>
-        /// Rewinds visual playback while paused, seeks backwards, resumes, and waits until the original target time is reached.
+        /// Rewinds visual playback while paused and seeks backwards.
         /// </summary>
         /// <param name="seconds">The number of seconds to rewind from the current song time.</param>
-        /// <param name="overrideTargetTime">Optional song time to wait for instead of the current song time.</param>
-        /// <returns>
-        /// <c>true</c> if the rewind was canceled or could not complete; <c>false</c> if playback resumed and reached the target time.
-        /// </returns>
-        public async UniTask<bool> RewindAndResume(double seconds, double? overrideTargetTime = null)
+        /// <param name="overrideTargetTime">Optional song time to wait for after resuming instead of the current song time.</param>
+        /// <returns>The rewind operation, or <c>null</c> if the rewind was canceled or could not complete.</returns>
+        public async UniTask<RewindOperation> Rewind(double seconds, double? overrideTargetTime = null)
         {
             // We can only do this when paused
             if (!Paused)
             {
-                return false;
+                return null;
             }
 
             _rewindSource?.Cancel();
@@ -702,44 +645,50 @@ namespace YARG.Playback
             var targetRewindTime = SongTime - seconds;
             var targetVisualTime = GetRewindVisualTime(seconds);
             var targetResumeSongTime = overrideTargetTime ?? SongTime;
-            var targetResumeInputTime = targetResumeSongTime - (AudioCalibration * SongSpeed);
+            var audioCalibrationOffset = AudioCalibration * SongSpeed;
+            var targetResumeInputTime = targetResumeSongTime - audioCalibrationOffset;
 
-            _rewindVisualTimeOverride = VisualTime;
+            _visualTimeOverride = VisualTime;
+            _rewindTween = DOTween.To(
+                () => _visualTimeOverride ?? VisualTime,
+                x => _visualTimeOverride = x,
+                targetVisualTime,
+                REWIND_DURATION
+            );
 
-            try
+            var rewindCanceled = await _rewindTween
+                .AsyncWaitForCompletion()
+                .AsUniTask()
+                .AttachExternalCancellation(token)
+                .SuppressCancellationThrow();
+
+            if (rewindCanceled)
             {
-                _rewindTween = DOTween.To(
-                    () => _rewindVisualTimeOverride ?? VisualTime,
-                    x => _rewindVisualTimeOverride = x,
-                    targetVisualTime,
-                    REWIND_DURATION
-                );
-
-                var rewindCanceled = await _rewindTween
-                    .AsyncWaitForCompletion()
-                    .AsUniTask()
-                    .AttachExternalCancellation(token)
-                    .SuppressCancellationThrow();
-
-                if (rewindCanceled || token.IsCancellationRequested)
-                {
-                    _rewindTween?.Kill();
-                    _rewindTween = null;
-                    return true;
-                }
-
-                SetSongTime(targetRewindTime - (AudioCalibration * SongSpeed), 0);
-                Resume();
-
-                var waitCanceled = await UniTask.WaitUntil(() => InputTime > targetResumeInputTime, cancellationToken: token)
-                    .SuppressCancellationThrow();
-
-                return waitCanceled || token.IsCancellationRequested;
+                CancelRewindTween();
+                ClearVisualTimeOverride();
+                return null;
             }
-            finally
-            {
-                _rewindVisualTimeOverride = null;
-            }
+
+            SetSongTime(targetRewindTime - audioCalibrationOffset, 0);
+            return new RewindOperation(this, token, targetResumeInputTime);
+        }
+
+        private void CancelActiveRewind()
+        {
+            _rewindSource?.Cancel();
+            CancelRewindTween();
+            ClearVisualTimeOverride();
+        }
+
+        private void CancelRewindTween()
+        {
+            _rewindTween?.Kill();
+            _rewindTween = null;
+        }
+
+        private void ClearVisualTimeOverride()
+        {
+            _visualTimeOverride = null;
         }
 
         /// <summary>
