@@ -188,7 +188,6 @@ namespace YARG.Player
                 MusicLibraryMenu.SetReload(MusicLibraryReloadState.Full);
             }
 
-            FiltersMenu.RefreshActiveFilterPredicate();
             MusicLibraryMenu.NeedsReload();
 
             StatsManager.Instance?.UpdateActivePlayers();
