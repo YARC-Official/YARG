@@ -293,7 +293,7 @@ namespace YARG.Gameplay.HUD
 
         public void SetSongTime(double time)
         {
-            if (time > _phrases.Last().Event.TimeEnd)
+            if (_phrases.Count == 0 || time > _phrases.Last().Event.TimeEnd)
             {
                 gameObject.SetActive(false);
                 return;

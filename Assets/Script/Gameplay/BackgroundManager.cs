@@ -283,56 +283,10 @@ namespace YARG.Gameplay
                 return false;
             }
 
-            ShowVenue();
             var bg = handle.Result;
-            var renderers = bg.GetComponentsInChildren<Renderer>(true);
-
-            var textureManager = GetComponent<TextureManager>();
-            var songBackground = GameManager.Song.LoadBackground(true);
-            foreach (var renderer in renderers)
-            {
-                foreach (var material in renderer.sharedMaterials)
-                {
-                    textureManager.ProcessMaterial(material, songBackground?.Type);
-                }
-            }
 
             await LoadCustomAudioAssetsAddressable(key);
-
-            var bgInstance = Instantiate(bg);
-            var bundleBackgroundManager = bgInstance.GetComponent<BundleBackgroundManager>();
-            bundleBackgroundManager.SetupVenueCamera(bgInstance);
-            bundleBackgroundManager.LimitVenueLights(bgInstance);
-
-            _bundleBackgroundManager = bundleBackgroundManager;
-
-            // Position venue as close to origin as is conveniently possible without wrecking scene view
-            SetYargroundOrigin(bgInstance);
-
-            // Destroy the default camera (venue has its own)
-            Destroy(_videoPlayer.targetCamera.gameObject);
-
-            if (textureManager.VideoTexFound())
-            {
-                SetUpVideoTexture(songBackground);
-            }
-
-            var hint = GameManager.Song.VocalCharacterHint;
-            if (string.IsNullOrWhiteSpace(hint))
-            {
-                await LoadCustomCharacter(bgInstance, gender);
-            }
-            else
-            {
-                await LoadCustomCharacter(bgInstance, hint, gender);
-            }
-
-            // Initialize CharacterManager, if it exists
-            var characterManager = bgInstance.GetComponentInChildren<CharacterManager>();
-            if (characterManager != null)
-            {
-                characterManager.Initialize();
-            }
+            await LoadYargroundPrefab(bg, gender);
 
             return true;
         }
@@ -342,12 +296,10 @@ namespace YARG.Gameplay
             var bundle = AssetBundle.LoadFromStream(result.Stream);
             AssetBundle shaderBundle = null;
 
-            ShowVenue();
             // KEEP THIS PATH LOWERCASE
             // Breaks things for other platforms, because Unity
             var bg = (GameObject) await bundle.LoadAssetAsync<GameObject>(
                 BackgroundHelper.BACKGROUND_PREFAB_PATH.ToLowerInvariant());
-            var renderers = bg.GetComponentsInChildren<Renderer>(true);
 
             // Load Metal shaders, if necessary
             shaderBundle = BackgroundHelper.LoadMetalShaders(bundle, bg, BackgroundHelper.ExportType.Background);
@@ -355,10 +307,24 @@ namespace YARG.Gameplay
             // Load custom audio
             await LoadCustomAudioAssets(bg, bundle);
 
-            // Hookup song-specific textures
+            var gender = GameManager.Song.VocalGender;
+            await LoadYargroundPrefab(bg, gender, manager =>
+            {
+                manager.Bundle = bundle;
+                manager.ShaderBundles.Add(shaderBundle);
+            });
+        }
+
+        private async UniTask LoadYargroundPrefab(GameObject bg, VocalGender gender,
+            Action<BundleBackgroundManager> callback = null)
+        {
+            ShowVenue();
+
+            var renderers = bg.GetComponentsInChildren<Renderer>(true);
+
             var textureManager = GetComponent<TextureManager>();
-            // Load SongBackground here to determine if textures need to be replaced
-            var songBackground = GameManager.Song.LoadBackground(true);
+            var songBackground = GameManager.Song.LoadBackground();
+
             foreach (var renderer in renderers)
             {
                 foreach (var material in renderer.sharedMaterials)
@@ -369,17 +335,18 @@ namespace YARG.Gameplay
 
             var bgInstance = Instantiate(bg);
             var bundleBackgroundManager = bgInstance.GetComponent<BundleBackgroundManager>();
-            bundleBackgroundManager.Bundle = bundle;
-            bundleBackgroundManager.ShaderBundles.Add(shaderBundle);
+
+            callback?.Invoke(bundleBackgroundManager);
+
             bundleBackgroundManager.SetupVenueCamera(bgInstance);
             bundleBackgroundManager.LimitVenueLights(bgInstance);
 
             _bundleBackgroundManager = bundleBackgroundManager;
 
-            // Position venue as close to origin as is conveniently possible without wrecking scene view
+            // Position venue as close to origin as conveniently possible
             SetYargroundOrigin(bgInstance);
 
-            // Destroy the default camera (venue has its own)
+            // Destroy default camera (venue has its own)
             Destroy(_videoPlayer.targetCamera.gameObject);
 
             if (textureManager.VideoTexFound())
@@ -388,7 +355,6 @@ namespace YARG.Gameplay
             }
 
             var hint = GameManager.Song.VocalCharacterHint;
-            var gender = GameManager.Song.VocalGender;
             if (string.IsNullOrWhiteSpace(hint))
             {
                 await LoadCustomCharacter(bgInstance, gender);
@@ -399,7 +365,7 @@ namespace YARG.Gameplay
             }
 
             // Initialize CharacterManager, if it exists
-            var characterManager = bgInstance.GetComponentInChildren<CharacterManager>();
+            var characterManager = bgInstance.GetComponent<CharacterManager>();
             if (characterManager != null)
             {
                 characterManager.Initialize();
