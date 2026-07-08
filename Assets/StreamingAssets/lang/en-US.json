@@ -817,7 +817,10 @@
 				"WithNumber": "{0} {1}",
 				"PercentageBased": "{0}% - {1}%"
 			}
-		}
+		},
+        "UnisonDisplay": {
+            "Header": "Unison Bonus"
+        }
     },
 	"Preview": {
 		"Experimental": {
@@ -1013,6 +1016,7 @@
             "ExportSongsJson": "Ouvert (JSON)",
             "ExportSongsText": "Plain Text",
             "ExportSongsCsv": "CSV",
+            "ExportSongsWeb": "Web Page",
             "OpenCalibrator": "Open Calibrator",
             "OpenVenueFolder": "Open Backgrounds/Venue Folder",
             "AddFolder": "Add Folder",
@@ -1049,6 +1053,15 @@
                 "Dropdown": {
                     "Measures": "In Measures",
                     "Seconds": "In Seconds",
+                    "Disabled": "Disabled"
+                }
+            },
+            "UnisonDisplay": {
+                "Name": "Unison Display",
+                "Description": "Choose how unison bonuses should be displayed during a song.",
+                "Dropdown": {
+                    "Always": "Always",
+                    "MultiplayerOnly": "Multiplayer Only",
                     "Disabled": "Disabled"
                 }
             },

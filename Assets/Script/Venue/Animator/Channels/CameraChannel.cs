@@ -56,6 +56,63 @@ namespace YARG.Venue
                 .ToList();
             subjects.Remove(CameraCutEvent.CameraCutSubject.Random);
 
+            // Handle case where chart has no camera cuts
+            if (chart.VenueTrack.CameraCuts.Count == 0)
+            {
+                // Switch to a random subject every 3-6 seconds for the duration of the chart, starting at the first note
+                // At the last note, switch to the stage subject
+                var firstNote = chart.GetFirstNoteStartTime();
+                var lastNote = chart.GetLastNoteEndTime();
+
+                var beatlines = chart.SyncTrack.Beatlines;
+
+                var subject = GetRandomSubject(CameraCutEvent.CameraCutConstraint.None, subjects);
+                queue.Add(AnimatorCommand.Randomize(firstNote, _animator));
+                queue.Add(AnimatorCommand.Trigger(firstNote, _animator, _hashes.CameraSubjectHashes[(int) subject]));
+
+                // Generate a list of times
+                var beatIndex = 0;
+                var times = new List<double>();
+                var time = firstNote;
+                while (time < lastNote)
+                {
+                    time += UnityEngine.Random.Range(3, 6);
+                    // Use the next beatline as the actual time (unless there is no next beatline)
+                    double nextBeatTime = 0;
+                    while (time < beatlines[beatIndex].Time)
+                    {
+                        if (beatIndex >= beatlines.Count)
+                        {
+                            break;
+                        }
+                        nextBeatTime = beatlines[beatIndex].Time;
+                        beatIndex++;
+                    }
+
+                    if (time <= nextBeatTime)
+                    {
+                        time = nextBeatTime;
+                    }
+
+                    times.Add(time - _leadingFrames / 60.0f);
+                }
+
+                // Switch at each time
+                foreach (var t in times)
+                {
+                    subject = GetRandomSubject(CameraCutEvent.CameraCutConstraint.None, subjects);
+                    queue.Add(AnimatorCommand.Randomize(t, _animator));
+                    queue.Add(AnimatorCommand.Trigger(t, _animator, _hashes.CameraSubjectHashes[(int) subject]));
+                }
+
+                // Final switch
+                queue.Add(AnimatorCommand.Randomize(lastNote, _animator));
+                queue.Add(AnimatorCommand.Trigger(lastNote, _animator,
+                    _hashes.CameraSubjectHashes[(int) CameraCutEvent.CameraCutSubject.Stage]));
+
+                return;
+            }
+
             foreach (var cam in chart.VenueTrack.CameraCuts)
             {
                 double t = cam.Time - _leadingFrames / 60.0;

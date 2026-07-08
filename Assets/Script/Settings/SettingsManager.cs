@@ -169,6 +169,7 @@ namespace YARG.Settings
                 nameof(Settings.NoteStreakFrequency),
                 new FieldMetadata(nameof(Settings.VocalStreakFrequency), isAdvanced: true),
                 nameof(Settings.CountdownDisplay),
+                nameof(Settings.UnisonDisplay),
                 nameof(Settings.ShowPlayerNameWhenStartingSong),
                 nameof(Settings.LyricDisplay),
                 nameof(Settings.SongTimeOnScoreBox),
@@ -189,7 +190,8 @@ namespace YARG.Settings
                 new ButtonRowMetadata(
                     nameof(Settings.ExportSongsJson),
                     nameof(Settings.ExportSongsText),
-                    nameof(Settings.ExportSongsCsv)
+                    nameof(Settings.ExportSongsCsv),
+                    nameof(Settings.ExportSongsWeb)
                 ),
                 new HeaderMetadata("PathsAndFolders"),
                 new ButtonRowMetadata(

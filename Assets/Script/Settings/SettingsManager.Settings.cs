@@ -24,6 +24,7 @@ using YARG.Scores;
 using YARG.Settings.Metadata;
 using YARG.Settings.Types;
 using YARG.Song;
+using YARG.Song.Exporters;
 using YARG.Venue;
 using YARG.Venue.Characters;
 
@@ -423,6 +424,14 @@ namespace YARG.Settings
                     CountdownDisplayMode.Disabled
                 };
 
+            public DropdownSetting<UnisonDisplaySetting> UnisonDisplay { get; }
+                = new(UnisonDisplaySetting.MultiplayerOnly)
+                {
+                    UnisonDisplaySetting.Always,
+                    UnisonDisplaySetting.MultiplayerOnly,
+                    UnisonDisplaySetting.Disabled
+                };
+
             public ToggleSetting ShowPlayerNameWhenStartingSong { get; } = new(true);
 
             public DropdownSetting<LyricDisplayMode> LyricDisplay { get; }
@@ -467,6 +476,11 @@ namespace YARG.Settings
             public void ExportSongsCsv()
             {
                 SongExport.Export(SongExport.ExportFormat.Csv);
+            }
+
+            public void ExportSongsWeb()
+            {
+                SongExport.Export(SongExport.ExportFormat.WebBrowser);
             }
 
             public void CopyCurrentSongTextFilePath()
