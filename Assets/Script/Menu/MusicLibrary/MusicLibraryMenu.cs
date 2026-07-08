@@ -261,13 +261,20 @@ namespace YARG.Menu.MusicLibrary
             }
             Instrument currentInstrument = profile?.CurrentInstrument ?? Instrument.FiveFretGuitar;
             Difficulty currentDifficulty = profile?.CurrentDifficulty ?? Difficulty.Expert;
-            if (_needsReload ||
+            bool profileSortContextChanged =
                 currentInstrument != _lastInstrument ||
-                currentDifficulty != _lastDifficulty)
+                currentDifficulty != _lastDifficulty;
+
+            if (_needsReload || profileSortContextChanged)
             {
                 _lastInstrument = currentInstrument;
                 _lastDifficulty = currentDifficulty;
                 _needsReload = false;
+
+                if (profileSortContextChanged && SettingsManager.Settings.LibrarySort == SortAttribute.Stars)
+                {
+                    _searchField.Reset();
+                }
 
                 if (_reloadState != MusicLibraryReloadState.Full)
                 {
