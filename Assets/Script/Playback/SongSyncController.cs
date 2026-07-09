@@ -107,10 +107,8 @@ namespace YARG.Playback
         public void SuppressCorrection()
         {
             double now = _inputClock.InstantTime;
-            double playbackLatency = _mixer.GetPlaybackStreamLatency();
-            double tempoLatency = _mixer.GetTempoStreamLatency();
-            double latency = Math.Max(playbackLatency, tempoLatency);
-            SuppressUntil(now + latency);
+            var latency = _mixer.GetStreamLatency();
+            SuppressUntil(now + latency.TempoStream);
         }
 
         public void SuppressUntil(double inputSystemTime)
@@ -178,14 +176,13 @@ namespace YARG.Playback
         private SyncTimeline BuildSyncTimeline(SongSyncState snapshot)
         {
             double syncAudioTime = _mixer.GetPosition();
-            double playbackLatency = _mixer.GetPlaybackStreamLatency();
-            double tempoLatency = _mixer.GetTempoStreamLatency();
-            double preRollSongTime = playbackLatency * snapshot.SongSpeed;
+            var latency = _mixer.GetStreamLatency();
+            double preRollSongTime = latency.PlaybackStream * snapshot.SongSpeed;
 
             return new SyncTimeline(
                 syncAudioTime,
                 snapshot.TargetAudioPosition,
-                tempoLatency,
+                latency.TempoStream,
                 preRollSongTime
             );
         }

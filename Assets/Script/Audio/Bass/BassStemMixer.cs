@@ -40,8 +40,6 @@ namespace YARG.Audio.BASS
         private static int PlaybackBufferLength => ClampBufferLength(SettingsManager.Settings?.PlaybackBufferLength.Value ?? 0);
         private        bool IsPlaying       => Bass.ChannelIsActive(_tempoStreamHandle) is PlaybackState.Playing or PlaybackState.Stalled;
 
-        private readonly BassLatencyProvider _latencyProvider;
-
         private readonly int            _mixerHandle;
         private readonly List<int>      _sourceHandles = new();
         private readonly int            _tempoStreamHandle;
@@ -96,8 +94,6 @@ namespace YARG.Audio.BASS
                 YargLogger.LogFormatError("Failed to create tempo stream: {0}", Bass.LastError);
                 return;
             }
-
-            _latencyProvider = new BassLatencyProvider(_tempoStreamHandle);
 
             _mixerHandle = handle;
             _shouldNormalize = normalize && SettingsManager.Settings.EnableNormalization.Value;
@@ -226,12 +222,20 @@ namespace YARG.Audio.BASS
 
         protected override double GetPlaybackStreamLatency_Internal()
         {
-            return _latencyProvider.GetPlaybackStreamLatency();
+            return BassLatencyProvider.GetPlaybackStreamLatency();
         }
 
         protected override double GetTempoStreamLatency_Internal()
         {
-            return _latencyProvider.GetTempoStreamLatency();
+            return BassLatencyProvider.GetTempoStreamLatency(_tempoStreamHandle);
+        }
+
+        protected override StemMixerLatency GetStreamLatency_Internal()
+        {
+            return new StemMixerLatency(
+                BassLatencyProvider.GetPlaybackStreamLatency(),
+                BassLatencyProvider.GetTempoStreamLatency(_tempoStreamHandle)
+            );
         }
 
         protected override double GetVolume_Internal()
