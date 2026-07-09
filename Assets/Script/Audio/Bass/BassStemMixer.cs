@@ -231,14 +231,6 @@ namespace YARG.Audio.BASS
             return BassLatencyProvider.GetTempoStreamLatency(_tempoStreamHandle);
         }
 
-        protected override StemMixerLatency GetStreamLatency_Internal()
-        {
-            return new StemMixerLatency(
-                BassLatencyProvider.GetPlaybackStreamLatency(),
-                BassLatencyProvider.GetTempoStreamLatency(_tempoStreamHandle)
-            );
-        }
-
         protected override double GetVolume_Internal()
         {
             if (!Bass.ChannelGetAttribute(_tempoStreamHandle, ChannelAttribute.Volume, out float volume))
