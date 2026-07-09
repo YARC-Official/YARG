@@ -466,6 +466,40 @@ namespace YARG.Playback
             }
         }
 
+        /// <summary>
+        /// Sets the requested song playback speed and applies it immediately by reseeking audio.
+        /// </summary>
+        /// <param name="speed">The requested speed multiplier, where 1f is 100% speed.</param>
+        public void SetSongSpeedImmediate(float speed)
+        {
+            speed = ClampSongSpeed(speed);
+            double nowInputSystemTime = _inputClock.InstantTime;
+
+            lock (_timingStateLock)
+            {
+                if (Mathf.Approximately(speed, RequestedSongSpeed) && _speedChanges.Count == 0)
+                {
+                    return;
+                }
+
+                RequestedSongSpeed = speed;
+                _speedChanges.Clear();
+                _timeline.ApplySpeedChange(speed, nowInputSystemTime);
+            }
+
+            _syncController.ClearDebugSpeedAdjustment();
+            _syncController.Reset(speed);
+            _mixer.SetSpeed(speed, true);
+            if (IsPlaying)
+            {
+                ResumeMixer();
+            }
+            else
+            {
+                _timeline.TickAt(nowInputSystemTime);
+            }
+        }
+
         private double ScheduleGameplaySpeedChange(double inputSystemTime, float speed)
         {
             // If we are paused, buffers will be flushed, so no latency
