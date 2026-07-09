@@ -52,6 +52,7 @@ namespace YARG.Audio.BASS
         private          int            _longestHandle;
 
         private readonly BassNormalizer _normalizer = new();
+        private          BassGapCover   _seekGapCover;
         private          bool           _shouldNormalize;
         private          int            _gainDspHandle;
         private          float          _gain = 1.0f;
@@ -96,6 +97,7 @@ namespace YARG.Audio.BASS
             }
 
             _mixerHandle = handle;
+            _seekGapCover = BassGapCover.CreateForChannel(_tempoStreamHandle);
             _shouldNormalize = normalize && SettingsManager.Settings.EnableNormalization.Value;
             if (_shouldNormalize)
             {
@@ -244,6 +246,24 @@ namespace YARG.Audio.BASS
                 YargLogger.LogFormatError("Failed to get volume: {0}", Bass.LastError);
             }
             return BassAudioManager.LogarithmicVolume(volume);
+        }
+
+        protected override int Seek_Internal(double position, PostSeekState postSeekState)
+        {
+            bool shouldPlay = postSeekState switch
+            {
+                PostSeekState.Play => true,
+                PostSeekState.Pause => false,
+                PostSeekState.Preserve => !IsPaused,
+                _ => false,
+            };
+
+            if (!shouldPlay || IsPaused)
+            {
+                return base.Seek_Internal(position, postSeekState);
+            }
+
+            return _seekGapCover.Cover(() => base.Seek_Internal(position, postSeekState), actionRestartsPlayback: true);
         }
 
         protected override void SetPosition_Internal(double position)
@@ -581,6 +601,8 @@ namespace YARG.Audio.BASS
         {
             _whammySyncTimer.Stop();
             _whammySyncTimer = null;
+            _seekGapCover.Dispose();
+            _seekGapCover = null;
             _stemDatas.Clear();
             if (_channels.Count == 0)
             {
