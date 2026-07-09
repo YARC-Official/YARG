@@ -365,7 +365,7 @@ namespace YARG.Gameplay
             }
 
             // Initialize CharacterManager, if it exists
-            var characterManager = bgInstance.GetComponent<CharacterManager>();
+            var characterManager = bgInstance.GetComponentInChildren<CharacterManager>();
             if (characterManager != null)
             {
                 characterManager.Initialize();

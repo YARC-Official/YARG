@@ -306,12 +306,14 @@ namespace YARG.Gameplay.Player
 
         private void OnSustainStart(ProKeysNote parent)
         {
-
+            _keysArray.SetSustained(parent.Key, true);
         }
 
         private void OnSustainEnd(ProKeysNote parent, double timeEnded, bool finished)
         {
             (NotePool.GetByKey(parent) as ProKeysNoteElement)?.SustainEnd(finished);
+
+            _keysArray.SetSustained(parent.Key, false);
 
             // Mute the stem if you let go of the sustain too early.
             // Leniency is handled by the engine's sustain burst threshold.
