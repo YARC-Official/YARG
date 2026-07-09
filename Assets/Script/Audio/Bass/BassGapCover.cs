@@ -16,8 +16,8 @@ namespace YARG.Audio.BASS
     {
         // Three perceptual tuning values. Other timings derive from these so they cannot drift apart.
         private const int HISTORY_MS = 500;
-        private const int COVER_SOURCE_MS = 120;
-        private const int CROSSFADE_MS = 10;
+        private const int COVER_SOURCE_MS = 300;
+        private const int CROSSFADE_MS = 20;
 
         private sealed class CoverState
         {
@@ -184,7 +184,7 @@ namespace YARG.Audio.BASS
             }
 
             // 4. Crossfade back to main stream
-            int primeMs = Math.Max(1, COVER_SOURCE_MS / 4);
+            int primeMs = Math.Max(1, COVER_SOURCE_MS / 2);
             Bass.ChannelUpdate(_mainStream, primeMs);
 
             StartFadeBack(coverVersion, oldVolume);
