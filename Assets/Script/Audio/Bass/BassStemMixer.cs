@@ -52,7 +52,7 @@ namespace YARG.Audio.BASS
         private          int            _longestHandle;
 
         private readonly BassNormalizer _normalizer = new();
-        private          BassGapCover   _audioGapCover;
+        private          BassPlaybackGapCover   _playbackGapCover;
         private          bool           _shouldNormalize;
         private          int            _gainDspHandle;
         private          float          _gain = 1.0f;
@@ -97,7 +97,7 @@ namespace YARG.Audio.BASS
             }
 
             _mixerHandle = handle;
-            _audioGapCover = BassGapCover.CreateForChannel(_tempoStreamHandle);
+            _playbackGapCover = BassPlaybackGapCover.CreateForChannel(_tempoStreamHandle);
             _shouldNormalize = normalize && SettingsManager.Settings.EnableNormalization.Value;
             if (_shouldNormalize)
             {
@@ -264,7 +264,7 @@ namespace YARG.Audio.BASS
             }
 
             // Flushing the tempo stream buffer during playback causes an audible gap until BASS refills it.
-            return _audioGapCover.Cover(() => base.Seek_Internal(position, postSeekState));
+            return _playbackGapCover.CoverPlaybackGap(() => base.Seek_Internal(position, postSeekState));
         }
 
         protected override void SetPosition_Internal(double position)
@@ -602,8 +602,8 @@ namespace YARG.Audio.BASS
         {
             _whammySyncTimer.Stop();
             _whammySyncTimer = null;
-            _audioGapCover.Dispose();
-            _audioGapCover = null;
+            _playbackGapCover.Dispose();
+            _playbackGapCover = null;
             _stemDatas.Clear();
             if (_channels.Count == 0)
             {
