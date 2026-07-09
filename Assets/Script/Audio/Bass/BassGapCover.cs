@@ -8,31 +8,26 @@ namespace YARG.Audio.BASS
     /// <summary>
     /// Covers short BASS playback gaps while an action updates the main stream.
     /// A DSP callback continuously stores recent float samples in a circular history buffer. <see cref="Cover(Func{int})"/>
-    /// freezes and snapshots that history, then plays it through a temporary BASS stream while the main stream is muted.
-    /// Overlapping windowed grains from snapshot form a short pad.
+    /// freezes and snapshots that history, then replays its recent tail through a temporary BASS stream while the main stream is muted.
     /// After the action completes, the main stream is primed and crossfaded back in before the temporary stream is freed.
     /// Starting another covered operation during a crossfade cancels current cover and runs new action uncovered.
     /// </summary>
     public sealed class BassGapCover : IDisposable
     {
-        // Four perceptual tuning values. Other timings derive from these so they cannot drift apart.
+        // Three perceptual tuning values. Other timings derive from these so they cannot drift apart.
         private const int HISTORY_MS = 500;
         private const int COVER_SOURCE_MS = 120;
-        private const int GRAIN_MS = 28;
         private const int CROSSFADE_MS = 10;
 
         private sealed class CoverState
         {
             public readonly float[] Source;
-            public readonly float[] GrainEnvelope;
-            public readonly int GrainSeed;
-            public int GranularFramePos;
+            public int SourceSamplePos;
 
-            public CoverState(float[] source, float[] grainEnvelope, int grainSeed)
+            public CoverState(float[] source, int sourceSamplePos)
             {
                 Source = source;
-                GrainEnvelope = grainEnvelope;
-                GrainSeed = grainSeed;
+                SourceSamplePos = sourceSamplePos;
             }
         }
 
@@ -135,10 +130,11 @@ namespace YARG.Audio.BASS
             {
                 coverVersion = ++_coverVersion;
                 _capturing = false;
-                System.Threading.Volatile.Write(ref _coverState, new CoverState(
-                    SnapshotHistory(),
-                    BuildGrainEnvelope(),
-                    unchecked(Environment.TickCount * 397) ^ _coverVersion));
+                float[] source = SnapshotHistory();
+                int sourceFrames = source.Length / _channels;
+                int tailFrames = Math.Max(1, _sampleRate * COVER_SOURCE_MS * 2 / 3_000);
+                int sourceSamplePos = Math.Max(0, sourceFrames - tailFrames) * _channels;
+                System.Threading.Volatile.Write(ref _coverState, new CoverState(source, sourceSamplePos));
             }
 
             // 2. Start cover stream to fill the gap
@@ -414,97 +410,22 @@ namespace YARG.Audio.BASS
                 return length;
             }
 
-            FillGranularCover(dst, coverState);
+            FillCover(dst, coverState);
             return length;
         }
 
-        private void FillGranularCover(Span<float> dst, CoverState coverState)
+        private static void FillCover(Span<float> dst, CoverState coverState)
         {
-            int channels = Math.Max(1, _channels);
-            int sourceFrames = coverState.Source.Length / channels;
-            int grainFrames = coverState.GrainEnvelope.Length;
-            if (sourceFrames == 0 || grainFrames == 0)
+            int sourceSamplePos = coverState.SourceSamplePos;
+            int availableSamples = coverState.Source.Length - sourceSamplePos;
+            if (availableSamples <= 0)
             {
                 return;
             }
 
-            int hopFrames = Math.Max(1, _sampleRate * GRAIN_MS / 3_000);
-            int jitterFrames = Math.Max(0, _sampleRate * COVER_SOURCE_MS / 2_000);
-            int frameCount = dst.Length / channels;
-            for (int frame = 0; frame < frameCount; ++frame)
-            {
-                int absoluteFrame = coverState.GranularFramePos + frame;
-                int grainIndex = absoluteFrame / hopFrames;
-                for (int grain = grainIndex - 3; grain <= grainIndex; ++grain)
-                {
-                    if (grain < 0)
-                    {
-                        continue;
-                    }
-
-                    int localFrame = absoluteFrame - grain * hopFrames;
-                    if ((uint) localFrame >= (uint) grainFrames)
-                    {
-                        continue;
-                    }
-
-                    int sourceFrame = GetGrainSourceFrame(grain, localFrame, sourceFrames, grainFrames, jitterFrames, coverState.GrainSeed);
-                    float gain = coverState.GrainEnvelope[localFrame] / MathF.Sqrt(3f);
-                    int dstOffset = frame * channels;
-                    int sourceOffset = sourceFrame * channels;
-                    for (int channel = 0; channel < channels; ++channel)
-                    {
-                        dst[dstOffset + channel] += coverState.Source[sourceOffset + channel] * gain;
-                    }
-                }
-            }
-
-            coverState.GranularFramePos += frameCount;
-        }
-
-        private int GetGrainSourceFrame(int grain, int localFrame, int sourceFrames, int grainFrames, int jitterFrames, int grainSeed)
-        {
-            int latestStart = Math.Max(0, sourceFrames - grainFrames);
-            int earliestStart = Math.Max(0, latestStart - jitterFrames);
-            int startRange = latestStart - earliestStart + 1;
-            int start = earliestStart;
-            if (startRange > 1)
-            {
-                start += PositiveHash(grainSeed + grain * 1103515245) % startRange;
-            }
-
-            return Math.Min(sourceFrames - 1, start + localFrame);
-        }
-
-        private float[] BuildGrainEnvelope()
-        {
-            int grainFrames = Math.Max(1, _sampleRate * GRAIN_MS / 1000);
-            var envelope = new float[grainFrames];
-            if (grainFrames == 1)
-            {
-                envelope[0] = 1f;
-                return envelope;
-            }
-
-            for (int i = 0; i < envelope.Length; ++i)
-            {
-                envelope[i] = (float) (0.5 - 0.5 * Math.Cos(2.0 * Math.PI * i / (grainFrames - 1)));
-            }
-
-            return envelope;
-        }
-
-        private static int PositiveHash(int value)
-        {
-            unchecked
-            {
-                value ^= value >> 16;
-                value *= 0x7feb352d;
-                value ^= value >> 15;
-                value *= unchecked((int) 0x846ca68b);
-                value ^= value >> 16;
-                return value & 0x7fffffff;
-            }
+            int copyCount = Math.Min(dst.Length, availableSamples);
+            coverState.Source.AsSpan(sourceSamplePos, copyCount).CopyTo(dst);
+            coverState.SourceSamplePos += copyCount;
         }
 
         private float[] SnapshotHistory()
