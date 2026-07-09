@@ -190,6 +190,10 @@ namespace YARG.Gameplay.Player
         private List<Phrase> _brePhrases = new();
         private int _breIndex;
 
+        private List<EngineManager.UnisonPhrase> _unisonPhrases = new();
+        private int                              _unisonStartIndex;
+        private int                              _unisonEndIndex;
+
         protected SongChart Chart;
 
         private AutoCalibrator _autoCalibrator;
@@ -257,6 +261,7 @@ namespace YARG.Gameplay.Player
             GameManager.BeatEventHandler.Visual.Subscribe(SunburstEffects.PulseSunburst, BeatEventType.StrongBeat);
             InitializeTrackEffects();
             InitializeCodaEvents();
+            InitializeUnisonEvents();
 
             ResetNoteCounters();
 
@@ -287,6 +292,13 @@ namespace YARG.Gameplay.Player
                     _brePhrases.Add(phrase);
                 }
             }
+        }
+
+        private void InitializeUnisonEvents()
+        {
+            _unisonStartIndex = 0;
+            _unisonEndIndex = 0;
+            _unisonPhrases = EngineContainer.UnisonPhrases;
         }
 
         private void InitializeTrackEffects()
@@ -382,6 +394,8 @@ namespace YARG.Gameplay.Player
 
             CurrentCoda = null;
             _breIndex = 0;
+            _unisonStartIndex = 0;
+            _unisonEndIndex = 0;
 
             ResetLastHitTimes();
 
@@ -419,6 +433,7 @@ namespace YARG.Gameplay.Player
             UpdateBeatlines(visualTime);
             UpdateTrackEffects(visualTime);
             UpdateCodaEvents(visualTime);
+            UpdateUnisonEvents(visualTime);
 
             var stats = Engine.BaseStats;
 
@@ -582,6 +597,21 @@ namespace YARG.Gameplay.Player
                 _breIndex++;
 
                 StartBRE(phrase.Time, phrase.TimeEnd);
+            }
+        }
+
+        private void UpdateUnisonEvents(double time)
+        {
+            if (_unisonStartIndex < _unisonPhrases.Count && _unisonPhrases[_unisonStartIndex].Time <= time)
+            {
+                OnUnisonStart();
+                _unisonStartIndex++;
+            }
+
+            if (_unisonEndIndex < _unisonPhrases.Count && _unisonPhrases[_unisonEndIndex].TimeEnd <= time)
+            {
+                OnUnisonEnd();
+                _unisonEndIndex++;
             }
         }
 
@@ -1105,11 +1135,22 @@ namespace YARG.Gameplay.Player
         {
             CurrentCoda = coda;
             SetStemMuteState(false);
+            TrackView.StartCoda();
         }
 
         protected virtual void OnCodaEnd(CodaSection coda)
         {
+            TrackView.EndCoda();
+        }
 
+        private void OnUnisonStart()
+        {
+            TrackView.StartUnison();
+        }
+
+        private void OnUnisonEnd()
+        {
+            TrackView.EndUnison();
         }
 
         protected virtual void OnCountdownChange(double countdownLength, double endTime)
