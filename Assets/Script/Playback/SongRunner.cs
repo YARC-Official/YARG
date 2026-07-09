@@ -188,13 +188,6 @@ namespace YARG.Playback
 
         private readonly StemMixer _mixer;
         private readonly SongSyncController _syncController;
-
-        public float SyncSpeedAdjustment => _syncController.SyncSpeedAdjustment;
-
-        /// <summary>
-        /// The difference between the visual and audio times used by audio synchronization.
-        /// </summary>
-        public double SyncDelta => _syncController.SyncDelta;
         #endregion
 
         /// <summary>
@@ -239,6 +232,12 @@ namespace YARG.Playback
 
             SetTimelinePosition(targetInputTime: startTime + SongOffset, startDelaySeconds: startDelay);
             UpdateCalibration();
+        }
+
+        // Debug menu only. Keeps sync telemetry out of the public API.
+        internal void GetSyncDebugState(out double syncDelta, out float speedAdjustment)
+        {
+            _syncController.GetDebugState(out syncDelta, out speedAdjustment);
         }
 
         ~SongRunner()
@@ -297,14 +296,14 @@ namespace YARG.Playback
                 }
                 Start();
             }
-
-            ApplyScheduledSpeedChanges(_inputClock.FrameTime);
-
+            lock (_timingStateLock)
+            {
+                ApplyScheduledSpeedChanges(_inputClock.FrameTime);
+            }
             if (Paused)
             {
                 return;
             }
-
             _timeline.TickFrame();
         }
 
@@ -315,7 +314,6 @@ namespace YARG.Playback
                 const double maxWaitTimeSeconds = 1.0;
                 _startDeadline = InputManager.CurrentInputTime + maxWaitTimeSeconds;
             }
-
             double currentTime = InputManager.CurrentInputTime;
             double currentFrameLength = currentTime - _inputClock.FrameTime;
             bool startingFrameLagged = currentFrameLength >= 0.1f;
@@ -330,14 +328,6 @@ namespace YARG.Playback
         /// </summary>
         private void ApplyScheduledSpeedChanges(double nowInputSystemTime)
         {
-            lock (_timingStateLock)
-            {
-                ApplyScheduledSpeedChangesLocked(nowInputSystemTime);
-            }
-        }
-
-        private void ApplyScheduledSpeedChangesLocked(double nowInputSystemTime)
-        {
             while (_speedChanges.Count > 0 && _speedChanges.Peek().EffectiveTime <= nowInputSystemTime)
             {
                 var command = _speedChanges.Dequeue();
@@ -349,7 +339,7 @@ namespace YARG.Playback
         {
             lock (_timingStateLock)
             {
-                ApplyScheduledSpeedChangesLocked(inputSystemTime);
+                ApplyScheduledSpeedChanges(inputSystemTime);
 
                 var snapshot = _timeline.GetSnapshotAt(inputSystemTime);
                 double targetAudioPosition = CalculateAudioFilePosition(snapshot.InputTime, snapshot);
@@ -467,7 +457,7 @@ namespace YARG.Playback
                 effectiveTime = ScheduleGameplaySpeedChange(nowInputSystemTime, speed);
             }
 
-            _syncController.ClearSpeedAdjustment();
+            _syncController.ClearDebugSpeedAdjustment();
             _syncController.SuppressUntil(effectiveTime);
             _mixer.SetSpeed(speed, true);
             if (!IsPlaying)
@@ -528,25 +518,12 @@ namespace YARG.Playback
         /// <returns>Whether or not playback actually paused.</returns>
         public void Pause()
         {
-            // Ensure previous rewind tasks are dead
             CancelActiveRewind();
-
             lock (_timingStateLock)
             {
-                if (Paused)
-                {
-                    return;
-                }
-
                 Paused = true;
             }
-
             _mixer.Pause();
-
-            YargLogger.LogFormatDebug(
-                "Paused at song time {0:0.000000}, visual time {1:0.000000}, input time {2:0.000000}.",
-                SongTime, VisualTime, InputTime
-            );
         }
 
         /// <summary>
@@ -566,17 +543,16 @@ namespace YARG.Playback
             UpdateCalibration();
             _timeline.AnchorAtInstant(InputTime);
             _syncController.Reset(SongSpeed);
-            AlignMixerForResume();
+            ResumeMixer();
 
             lock (_timingStateLock)
             {
                 Paused = false;
             }
-
             return true;
         }
 
-        private void AlignMixerForResume()
+        private void ResumeMixer()
         {
             SongTimelineSnapshot snapshot;
             double targetAudioPosition;

@@ -5,6 +5,7 @@ using ManagedBass.Fx;
 using UnityEngine;
 using YARG.Core.Audio;
 using YARG.Core.Logging;
+using YARG.Settings;
 
 namespace YARG.Audio.BASS
 {
@@ -16,6 +17,9 @@ namespace YARG.Audio.BASS
         public const float REVERB_VOLUME_MULTIPLIER = 0.80f;
 
         public const int FADE_TIME_MILLISECONDS = 1000;
+
+        public static int ConfiguredPlaybackBufferLength => ClampPlaybackBufferLength(
+            SettingsManager.Settings?.PlaybackBufferLength.Value ?? 0);
 
         public const int REVERB_SLIDE_IN_MILLISECONDS = 300;
         public const int REVERB_SLIDE_OUT_MILLISECONDS = 500;
@@ -64,6 +68,17 @@ namespace YARG.Audio.BASS
         {
             fDryMix = 0.5f, fWetMix = 1.0f, fRoomSize = 0.8f, fDamp = 0.5f, fWidth = 1.0f, lMode = 0
         };
+
+        public static int ClampPlaybackBufferLength(int length)
+        {
+            int minimumLength = GlobalAudioHandler.MinimumBufferLength;
+            if (length > 0 && minimumLength > 0 && length < minimumLength)
+            {
+                return minimumLength;
+            }
+
+            return length;
+        }
 
         public static int FXAddParameters(int streamHandle, EffectType type, IEffectParameter parameters,
             int priority = 0)

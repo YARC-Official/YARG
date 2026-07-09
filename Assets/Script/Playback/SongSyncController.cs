@@ -7,6 +7,8 @@ namespace YARG.Playback
 {
     internal sealed class SongSyncController : IDisposable
     {
+        private const int SYNC_TICK_MS = 4;
+
         private readonly StemMixer _mixer;
         private readonly ISongSyncStateProvider _stateProvider;
         private readonly IInputClock _inputClock;
@@ -14,39 +16,14 @@ namespace YARG.Playback
         private readonly Thread _syncThread;
         private readonly SyncCorrectionCalculator _syncCalculator = new();
 
-        private volatile bool _disposed;
-        private volatile float _syncSpeedAdjustment;
+        private readonly ManualResetEventSlim _stopRequested = new();
+
+        private volatile float _debugSyncSpeedAdjustment;
         private double _syncCorrectionSuppressedUntil = double.NegativeInfinity;
 
         private bool _started;
-        private double _syncAudioTime;
-        private double _targetAudioPosition;
-
-        public float SyncSpeedAdjustment => _syncSpeedAdjustment;
-
-        public double SyncAudioTime
-        {
-            get
-            {
-                lock (_stateLock)
-                {
-                    return _syncAudioTime;
-                }
-            }
-        }
-
-        public double TargetAudioPosition
-        {
-            get
-            {
-                lock (_stateLock)
-                {
-                    return _targetAudioPosition;
-                }
-            }
-        }
-
-        public double SyncDelta => TargetAudioPosition - SyncAudioTime;
+        private double _debugSyncAudioTime;
+        private double _debugTargetAudioPosition;
 
         public SongSyncController(
             StemMixer mixer,
@@ -77,18 +54,20 @@ namespace YARG.Playback
             {
                 YargLogger.LogError("Timed out waiting for song sync thread to stop.");
             }
+
+            _stopRequested.Dispose();
         }
 
         public void RequestStop()
         {
-            _disposed = true;
+            _stopRequested.Set();
         }
 
         public void Reset(float songSpeed)
         {
             lock (_stateLock)
             {
-                _syncSpeedAdjustment = 0f;
+                _debugSyncSpeedAdjustment = 0f;
                 _syncCalculator.Reset();
             }
 
@@ -96,15 +75,24 @@ namespace YARG.Playback
             SuppressCorrection();
         }
 
-        public void ClearSpeedAdjustment()
+        public void ClearDebugSpeedAdjustment()
         {
             lock (_stateLock)
             {
-                _syncSpeedAdjustment = 0f;
+                _debugSyncSpeedAdjustment = 0f;
             }
         }
 
-        public void SuppressCorrection()
+        internal void GetDebugState(out double syncDelta, out float speedAdjustment)
+        {
+            lock (_stateLock)
+            {
+                syncDelta = _debugTargetAudioPosition - _debugSyncAudioTime;
+                speedAdjustment = _debugSyncSpeedAdjustment;
+            }
+        }
+
+        private void SuppressCorrection()
         {
             double now = _inputClock.InstantTime;
             var latency = _mixer.GetStreamLatency();
@@ -121,164 +109,136 @@ namespace YARG.Playback
 
         private void SyncThread()
         {
-            double lastSampleTime = double.NaN;
-
-            for (; !_disposed; Thread.Sleep(1))
+            double lastSampleTime = _inputClock.InstantTime;
+            while (!_stopRequested.Wait(SYNC_TICK_MS))
             {
-                var sample = CreateSyncTimingSample(ref lastSampleTime);
-                var snapshot = _stateProvider.ReadSongSyncState(sample.InputSystemTime);
-                var timeline = BuildSyncTimeline(snapshot);
-                if (_disposed)
+                var frame = ReadSyncFrame(lastSampleTime);
+                if (TryStartAudio(frame))
                 {
-                    break;
+                    frame = ReadSyncFrame(lastSampleTime);
                 }
 
-                TryStartAudio(ref sample, ref snapshot, ref timeline);
-
-                if (!ShouldApplySyncCorrection(snapshot, timeline))
+                lastSampleTime = frame.InputSystemTime;
+                if (!ShouldApplySyncCorrection(frame))
                 {
-                    PublishSyncTimes(timeline);
+                    PublishDebugSyncState(frame, 0f);
                     continue;
                 }
 
-                double streamDelayMs = Math.Max(1.0, timeline.TempoLatency * 1000.0);
-                float targetAdjustment = CalculateSyncSpeedAdjustment(sample, timeline, streamDelayMs);
-                if (_disposed)
-                {
-                    break;
-                }
+                double streamDelayMs = Math.Max(1.0, frame.TempoLatency * 1000.0);
+                float targetAdjustment = CalculateSyncSpeedAdjustment(frame, streamDelayMs);
 
-                _mixer.SetSpeed(snapshot.SongSpeed + targetAdjustment, false);
-                PublishSyncThreadState(timeline, targetAdjustment);
+                _mixer.SetSpeed(frame.SongSpeed + targetAdjustment, false);
+                PublishDebugSyncState(frame, targetAdjustment);
             }
         }
 
-        private SyncTimingSample CreateSyncTimingSample(ref double lastSampleTime)
+        private double CalculateElapsedMs(double lastSampleTime, double inputSystemTime)
+        {
+            double sampleElapsedMs = (inputSystemTime - lastSampleTime) * 1000.0;
+            return sampleElapsedMs > 0.0 ? Math.Min(sampleElapsedMs, 100.0) : 1.0;
+        }
+
+        private SyncFrame ReadSyncFrame(double lastSampleTime)
         {
             double inputSystemTime = _inputClock.InstantTime;
-            double elapsedMs = 1.0;
-
-            if (!double.IsNaN(lastSampleTime))
-            {
-                double sampleElapsedMs = (inputSystemTime - lastSampleTime) * 1000.0;
-                bool sampleElapsedTimeIsValid = !double.IsNaN(sampleElapsedMs) &&
-                    !double.IsInfinity(sampleElapsedMs) && sampleElapsedMs > 0;
-                if (sampleElapsedTimeIsValid)
-                {
-                    elapsedMs = Math.Min(sampleElapsedMs, 100.0);
-                }
-            }
-
-            lastSampleTime = inputSystemTime;
-            return new SyncTimingSample(inputSystemTime, elapsedMs);
-        }
-
-        private SyncTimeline BuildSyncTimeline(SongSyncState snapshot)
-        {
+            double elapsedMs = CalculateElapsedMs(lastSampleTime, inputSystemTime);
+            var state = _stateProvider.ReadSongSyncState(inputSystemTime);
             double syncAudioTime = _mixer.GetPosition();
             var latency = _mixer.GetStreamLatency();
-            double preRollSongTime = latency.PlaybackStream * snapshot.SongSpeed;
+            double playbackLatencySongTime = latency.PlaybackStream * state.SongSpeed;
 
-            return new SyncTimeline(
+            return new SyncFrame(
+                inputSystemTime,
+                elapsedMs,
+                state.SongSpeed,
+                state.TargetAudioPosition,
+                state.Paused,
                 syncAudioTime,
-                snapshot.TargetAudioPosition,
                 latency.TempoStream,
-                preRollSongTime
+                playbackLatencySongTime
             );
         }
 
-        private void TryStartAudio(
-            ref SyncTimingSample sample,
-            ref SongSyncState snapshot,
-            ref SyncTimeline timeline)
+        private bool TryStartAudio(SyncFrame frame)
         {
-            bool audioShouldStart = !snapshot.Paused && _mixer.IsPaused &&
-                timeline.TargetAudioPosition >= -timeline.PreRollSongTime &&
-                timeline.TargetAudioPosition < _mixer.Length;
+            bool audioShouldStart = !frame.Paused && _mixer.IsPaused &&
+                frame.TargetAudioPosition >= -frame.PlaybackLatencySongTime &&
+                frame.TargetAudioPosition < _mixer.Length;
             if (!audioShouldStart)
             {
-                return;
+                return false;
             }
 
             _mixer.Play();
-
-            double inputSystemTime = _inputClock.InstantTime;
-            sample = new SyncTimingSample(inputSystemTime, sample.ElapsedMs);
-            snapshot = _stateProvider.ReadSongSyncState(inputSystemTime);
-            timeline = BuildSyncTimeline(snapshot);
+            return true;
         }
 
-        private bool ShouldApplySyncCorrection(SongSyncState snapshot, SyncTimeline timeline)
+        private bool ShouldApplySyncCorrection(SyncFrame frame)
         {
-            return !snapshot.Paused &&
-                timeline.TargetAudioPosition >= 0 &&
-                timeline.TargetAudioPosition < _mixer.Length &&
-                timeline.SyncAudioTime < _mixer.Length;
+            return !frame.Paused &&
+                frame.TargetAudioPosition >= 0 &&
+                frame.TargetAudioPosition < _mixer.Length &&
+                frame.SyncAudioTime < _mixer.Length;
         }
 
-        private void PublishSyncTimes(SyncTimeline timeline)
+        private float CalculateSyncSpeedAdjustment(SyncFrame frame, double streamDelayMs)
         {
             lock (_stateLock)
             {
-                _syncAudioTime = timeline.SyncAudioTime;
-                _targetAudioPosition = timeline.TargetAudioPosition;
-            }
-        }
+                bool suppressCorrection = frame.InputSystemTime < _syncCorrectionSuppressedUntil;
+                if (suppressCorrection)
+                {
+                    return _syncCalculator.SuppressAdjustment(frame.ElapsedMs, streamDelayMs);
+                }
 
-        private float CalculateSyncSpeedAdjustment(SyncTimingSample sample, SyncTimeline timeline, double streamDelayMs)
-        {
-            lock (_stateLock)
-            {
-                bool correctionIsSuppressed = sample.InputSystemTime < _syncCorrectionSuppressedUntil;
-                double syncDeltaSeconds = timeline.TargetAudioPosition - timeline.SyncAudioTime;
-
+                double syncDeltaSeconds = frame.TargetAudioPosition - frame.SyncAudioTime;
                 return _syncCalculator.CalculateAdjustment(
                     syncDeltaSeconds,
-                    sample.ElapsedMs,
-                    streamDelayMs,
-                    correctionIsSuppressed);
+                    frame.ElapsedMs,
+                    streamDelayMs);
             }
         }
 
-        private void PublishSyncThreadState(SyncTimeline timeline, float targetAdjustment)
+        private void PublishDebugSyncState(SyncFrame frame, float speedAdjustment)
         {
             lock (_stateLock)
             {
-                _syncAudioTime = timeline.SyncAudioTime;
-                _targetAudioPosition = timeline.TargetAudioPosition;
-                _syncSpeedAdjustment = targetAdjustment;
+                _debugSyncAudioTime = frame.SyncAudioTime;
+                _debugTargetAudioPosition = frame.TargetAudioPosition;
+                _debugSyncSpeedAdjustment = speedAdjustment;
             }
         }
 
-        private readonly struct SyncTimingSample
+        private readonly struct SyncFrame
         {
             public readonly double InputSystemTime;
             public readonly double ElapsedMs;
+            public readonly float SongSpeed;
+            public readonly double TargetAudioPosition;
+            public readonly bool Paused;
+            public readonly double SyncAudioTime;
+            public readonly double TempoLatency;
+            public readonly double PlaybackLatencySongTime;
 
-            public SyncTimingSample(double inputSystemTime, double elapsedMs)
+            public SyncFrame(
+                double inputSystemTime,
+                double elapsedMs,
+                float songSpeed,
+                double targetAudioPosition,
+                bool paused,
+                double syncAudioTime,
+                double tempoLatency,
+                double playbackLatencySongTime)
             {
                 InputSystemTime = inputSystemTime;
                 ElapsedMs = elapsedMs;
-            }
-        }
-
-        private readonly struct SyncTimeline
-        {
-            public readonly double SyncAudioTime;
-            public readonly double TargetAudioPosition;
-            public readonly double TempoLatency;
-            public readonly double PreRollSongTime;
-
-            public SyncTimeline(
-                double syncAudioTime,
-                double targetAudioPosition,
-                double tempoLatency,
-                double preRollSongTime)
-            {
-                SyncAudioTime = syncAudioTime;
+                SongSpeed = songSpeed;
                 TargetAudioPosition = targetAudioPosition;
+                Paused = paused;
+                SyncAudioTime = syncAudioTime;
                 TempoLatency = tempoLatency;
-                PreRollSongTime = preRollSongTime;
+                PlaybackLatencySongTime = playbackLatencySongTime;
             }
         }
     }

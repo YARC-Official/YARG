@@ -557,8 +557,10 @@ namespace YARG.Gameplay
                 {
                     using var text = ZString.CreateStringBuilder(true);
 
-                    text.AppendFormat("Audio/Input Sync: {0:0.0}ms ({1:0.000000}s)\n", _songRunner.SyncDelta * 1000.0, _songRunner.SyncDelta);
-                    text.AppendFormat("Speed adjustment: {0:0.000000}\n", _songRunner.SyncSpeedAdjustment);
+                    _songRunner.GetSyncDebugState(out double syncDelta, out float speedAdjustment);
+
+                    text.AppendFormat("Audio/Input Sync: {0:0.0}ms ({1:0.000000}s)\n", syncDelta * 1000.0, syncDelta);
+                    text.AppendFormat("Speed adjustment: {0:0.000000}\n", speedAdjustment);
 
                     GUILayout.Label(text.AsSpan().TrimEnd('\n').ToString());
                 }

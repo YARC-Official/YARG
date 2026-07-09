@@ -1,8 +1,5 @@
 using System;
 using ManagedBass;
-using YARG.Core.Audio;
-using YARG.Settings;
-
 namespace YARG.Audio.BASS
 {
     /// <summary>
@@ -20,7 +17,7 @@ namespace YARG.Audio.BASS
         private const double TEMPO_FX_LATENCY_SECONDS = 0.108;
 
         // User-configured playback buffer length in ms, clamped to BASS minimum buffer requirements.
-        private static int PlaybackBufferLengthMs => ClampBufferLength(SettingsManager.Settings?.PlaybackBufferLength.Value ?? 0);
+        private static int PlaybackBufferLengthMs => BassHelpers.ConfiguredPlaybackBufferLength;
 
         // Device-reported output latency in seconds.
         private static double DeviceOutputLatency     => Math.Max(0, Bass.Info.Latency) / 1000.0;
@@ -81,16 +78,5 @@ namespace YARG.Audio.BASS
             return bufferLatency;
         }
 
-
-        private static int ClampBufferLength(int length)
-        {
-            int minimumLength = GlobalAudioHandler.MinimumBufferLength;
-            if (length > 0 && minimumLength > 0 && length < minimumLength)
-            {
-                return minimumLength;
-            }
-
-            return length;
-        }
     }
 }

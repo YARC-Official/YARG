@@ -37,7 +37,7 @@ namespace YARG.Audio.BASS
         private const    float WHAMMY_SYNC_INTERVAL_SECONDS = 1f;
 
         private static bool IsWhammyEnabled => SettingsManager.Settings.UseWhammyFx.Value;
-        private static int PlaybackBufferLength => ClampBufferLength(SettingsManager.Settings?.PlaybackBufferLength.Value ?? 0);
+        private static int PlaybackBufferLength => BassHelpers.ConfiguredPlaybackBufferLength;
         private        bool IsPlaying       => Bass.ChannelIsActive(_tempoStreamHandle) is PlaybackState.Playing or PlaybackState.Stalled;
 
         private readonly int            _mixerHandle;
@@ -106,7 +106,6 @@ namespace YARG.Audio.BASS
             SetOutputChannel_Internal(outputChannel);
             SetVolume_Internal(volume);
             SetSpeed_Internal(speed, true);
-
             _BufferSetter(PlaybackBufferLength);
         }
 
@@ -570,22 +569,12 @@ namespace YARG.Audio.BASS
         {
             // 0 is a special value in BASS that disables buffering.
             // Any positive buffer length must be at least the minimum supported limit to prevent errors.
-            length = ClampBufferLength(length);
+            length = BassHelpers.ClampPlaybackBufferLength(length);
             float lengthInSeconds = length / 1000f;
             if (!Bass.ChannelSetAttribute(_tempoStreamHandle, ChannelAttribute.Buffer, lengthInSeconds))
             {
                 YargLogger.LogFormatError("Failed to set playback buffer: {0}!", Bass.LastError);
             }
-        }
-
-        private static int ClampBufferLength(int length)
-        {
-            int minimumLength = GlobalAudioHandler.MinimumBufferLength;
-            if (length > 0 && length < minimumLength)
-            {
-                return minimumLength;
-            }
-            return length;
         }
 
         protected override void DisposeManagedResources()
