@@ -6,7 +6,12 @@ using YARG.Core.Logging;
 namespace YARG.Audio.BASS
 {
     /// <summary>
-    /// Covers short BASS playback gaps by replaying recent audio history while an action updates the main stream.
+    /// Covers short BASS playback gaps while an action updates the main stream.
+    /// A DSP callback continuously stores recent float samples in a circular history buffer. <see cref="Cover(Func{int})"/>
+    /// freezes and snapshots that history, then plays it through a temporary BASS stream while the main stream is muted.
+    /// By default, overlapping windowed grains from the snapshot form a short pad; direct history replay is also available.
+    /// After the action completes, the main stream is primed and crossfaded back in before the temporary stream is freed.
+    /// Starting another covered operation during a crossfade cancels current cover and runs new action uncovered.
     /// </summary>
     public sealed class BassGapCover : IDisposable
     {
@@ -97,30 +102,43 @@ namespace YARG.Audio.BASS
 
         }
 
+        private sealed class CoverState
+        {
+            public readonly float[] Source;
+            public readonly float[] GrainEnvelope;
+            public readonly int GrainSeed;
+            public int CoverPos;
+            public int GranularFramePos;
+
+            public CoverState(float[] source, float[] grainEnvelope, int grainSeed)
+            {
+                Source = source;
+                GrainEnvelope = grainEnvelope;
+                GrainSeed = grainSeed;
+            }
+        }
+
         private readonly int     _mainStream;
         private readonly Options _opt;
         private readonly object  _lock = new();
+        private readonly object  _coverOperationLock = new();
         private readonly float[] _history;
 
         private readonly StreamProcedure _coverCallback;
-        private readonly SyncProcedure   _slideEndCallback;
 
-        private int     _writePos;
-        private int     _filled;
-        private float[] _coverSource = Array.Empty<float>();
-        private float[] _grainEnvelope = Array.Empty<float>();
-        private int     _coverPos;
-        private int     _granularFramePos;
-        private int     _grainSeed;
+        // DSP writes samples before publishing these positions. Snapshot reads may include a
+        // partially updated sample only; that is preferable to blocking BASS's audio thread.
+        private int _writePos;
+        private int _filled;
+        private CoverState _coverState;
 
         private          int  _dspHandle;
         private          int  _coverStream;
-        private          int   _slideSyncHandle;
         private          int   _coverVersion;
         private          bool  _hasMainRestoreVolume;
         private          float _mainRestoreVolume;
         private volatile bool  _capturing = true;
-        private          bool  _disposed;
+        private volatile bool  _disposed;
 
         /// <summary>
         /// Gets or sets whether cover playback is used when running covered actions.
@@ -137,7 +155,6 @@ namespace YARG.Audio.BASS
 
             DSPProcedure dspCallback = OnDsp;
             _coverCallback = OnCoverStream;
-            _slideEndCallback = OnSlideEnded;
 
             _dspHandle = Bass.ChannelSetDSP(_mainStream, dspCallback, IntPtr.Zero);
             if (_dspHandle == 0)
@@ -190,6 +207,14 @@ namespace YARG.Audio.BASS
         /// <returns>Function result, or a BASS error code if cover playback could not start.</returns>
         public int Cover(Func<int> action)
         {
+            lock (_coverOperationLock)
+            {
+                return CoverLocked(action);
+            }
+        }
+
+        private int CoverLocked(Func<int> action)
+        {
             if (action == null)
             {
                 throw new ArgumentNullException(nameof(action));
@@ -217,11 +242,10 @@ namespace YARG.Audio.BASS
 
             lock (_lock)
             {
-                _coverSource = SnapshotHistoryLocked();
-                _grainEnvelope = BuildGrainEnvelope();
-                _coverPos = 0;
-                _granularFramePos = 0;
-                _grainSeed = unchecked(Environment.TickCount * 397) ^ _coverVersion;
+                System.Threading.Volatile.Write(ref _coverState, new CoverState(
+                    SnapshotHistory(),
+                    BuildGrainEnvelope(),
+                    unchecked(Environment.TickCount * 397) ^ _coverVersion));
             }
 
             // 2. Start cover stream to fill the gap
@@ -240,7 +264,17 @@ namespace YARG.Audio.BASS
 
             Bass.ChannelUpdate(_coverStream, 0);
 
-            Bass.ChannelSetAttribute(_mainStream, ChannelAttribute.Volume, 0f);
+            if (!Bass.ChannelSetAttribute(_mainStream, ChannelAttribute.Volume, 0f))
+            {
+                error = (int) Bass.LastError;
+                YargLogger.LogFormatError("Failed to mute main stream for gap cover: {0}", Bass.LastError);
+                ClearMainRestoreVolume();
+                FreeCoverStream();
+                _capturing = true;
+                action();
+                return error;
+            }
+
             if (_opt.CoverFadeInMs > 0)
             {
                 Bass.ChannelSlideAttribute(_coverStream, ChannelAttribute.Volume, oldVolume, _opt.CoverFadeInMs);
@@ -279,31 +313,28 @@ namespace YARG.Audio.BASS
         /// </summary>
         public void Dispose()
         {
-            if (_disposed)
+            lock (_coverOperationLock)
             {
-                return;
-            }
-            _disposed = true;
+                if (_disposed)
+                {
+                    return;
+                }
+                _disposed = true;
 
-            _capturing = false;
-            CancelCoverIfActive();
+                _capturing = false;
+                CancelCoverIfActive();
 
-            if (_dspHandle!= 0)
-            {
-                Bass.ChannelRemoveDSP(_mainStream, _dspHandle);
-                _dspHandle = 0;
+                if (_dspHandle != 0)
+                {
+                    Bass.ChannelRemoveDSP(_mainStream, _dspHandle);
+                    _dspHandle = 0;
+                }
             }
         }
 
-        private void OnSlideEnded(int handle, int channel, int data, IntPtr user)
-        {
-            FinishCover(user.ToInt32(), deferFree: true);
-        }
-
-        private void FinishCover(int coverVersion, bool deferFree = false)
+        private void FinishCover(int coverVersion)
         {
             int coverStream;
-            int slideSyncHandle;
             bool restoreMainVolume;
             float mainRestoreVolume;
             lock (_lock)
@@ -314,15 +345,10 @@ namespace YARG.Audio.BASS
                 }
 
                 coverStream = _coverStream;
-                slideSyncHandle = _slideSyncHandle;
                 restoreMainVolume = _hasMainRestoreVolume;
                 mainRestoreVolume = _mainRestoreVolume;
                 _coverStream = 0;
-                _slideSyncHandle = 0;
-                _coverSource = Array.Empty<float>();
-                _grainEnvelope = Array.Empty<float>();
-                _coverPos = 0;
-                _granularFramePos = 0;
+                System.Threading.Volatile.Write(ref _coverState, null);
                 _hasMainRestoreVolume = false;
                 _capturing = true;
             }
@@ -334,20 +360,17 @@ namespace YARG.Audio.BASS
                 Bass.ChannelSetAttribute(_mainStream, ChannelAttribute.Volume, mainRestoreVolume);
             }
 
-            if (deferFree)
-            {
-                // Do not stop/free a BASS stream from its own sync callback. Some drivers wait for
-                // the callback to exit, which can deadlock when seeks restart cover playback quickly.
-                System.Threading.ThreadPool.QueueUserWorkItem(_ => FreeCoverStream(coverStream, slideSyncHandle));
-                return;
-            }
-
-            FreeCoverStream(coverStream, slideSyncHandle);
+            FreeCoverStream(coverStream);
         }
 
         private void StartEqualPowerFadeBack(int coverVersion, float targetVolume)
         {
-            int coverStream = _coverStream;
+            int coverStream;
+            lock (_lock)
+            {
+                coverStream = _coverStream;
+            }
+
             int fadeMs = Math.Max(1, _opt.CrossfadeMs);
             int steps = Math.Max(1, _opt.CrossfadeSteps);
 
@@ -492,7 +515,14 @@ namespace YARG.Audio.BASS
             _coverStream = CreateCoverStream();
             if (_coverStream != 0)
             {
-                Bass.ChannelSetAttribute(_coverStream, ChannelAttribute.Volume, 0f);
+                if (!Bass.ChannelSetAttribute(_coverStream, ChannelAttribute.Volume, 0f))
+                {
+                    error = (int) Bass.LastError;
+                    YargLogger.LogFormatError("Failed to initialize gap cover volume: {0}", Bass.LastError);
+                    FreeCoverStream();
+                    return false;
+                }
+
                 if (Bass.ChannelPlay(_coverStream))
                 {
                     error = 0;
@@ -549,19 +579,26 @@ namespace YARG.Audio.BASS
 
             var src = new ReadOnlySpan<float>((void*)buffer, samples);
 
-            lock (_lock)
+            int capacity = _history.Length;
+            if (samples >= capacity)
             {
-                int first = Math.Min(samples, _history.Length - _writePos);
-                src[..first].CopyTo(_history.AsSpan(_writePos, first));
-
-                if (first < samples)
-                {
-                    src[first..].CopyTo(_history.AsSpan(0, samples - first));
-                }
-
-                _writePos = (_writePos + samples) % _history.Length;
-                _filled = Math.Min(_history.Length, _filled + samples);
+                src[^capacity..].CopyTo(_history);
+                System.Threading.Volatile.Write(ref _writePos, 0);
+                System.Threading.Volatile.Write(ref _filled, capacity);
+                return;
             }
+
+            int writePos = System.Threading.Volatile.Read(ref _writePos);
+            int first = Math.Min(samples, capacity - writePos);
+            src[..first].CopyTo(_history.AsSpan(writePos, first));
+            if (first < samples)
+            {
+                src[first..].CopyTo(_history.AsSpan(0, samples - first));
+            }
+
+            System.Threading.Volatile.Write(ref _writePos, (writePos + samples) % capacity);
+            int filled = System.Threading.Volatile.Read(ref _filled);
+            System.Threading.Volatile.Write(ref _filled, Math.Min(capacity, filled + samples));
         }
 
         private unsafe int OnCoverStream(int handle, IntPtr buffer, int length, IntPtr user)
@@ -570,31 +607,34 @@ namespace YARG.Audio.BASS
             var dst = new Span<float>((void*)buffer, samples);
             dst.Clear();
 
-            lock (_lock)
+            CoverState coverState = System.Threading.Volatile.Read(ref _coverState);
+            if (coverState == null)
             {
-                if (_opt.UseGranularCover)
+                return length;
+            }
+
+            if (_opt.UseGranularCover)
+            {
+                FillGranularCover(dst, coverState);
+            }
+            else
+            {
+                int available = coverState.Source.Length - coverState.CoverPos;
+                if (available > 0)
                 {
-                    FillGranularCoverLocked(dst);
-                }
-                else
-                {
-                    int available = _coverSource.Length - _coverPos;
-                    if (available > 0)
-                    {
-                        int copy = Math.Min(samples, available);
-                        _coverSource.AsSpan(_coverPos, copy).CopyTo(dst);
-                        _coverPos += copy;
-                    }
+                    int copy = Math.Min(samples, available);
+                    coverState.Source.AsSpan(coverState.CoverPos, copy).CopyTo(dst);
+                    coverState.CoverPos += copy;
                 }
             }
             return length;
         }
 
-        private void FillGranularCoverLocked(Span<float> dst)
+        private void FillGranularCover(Span<float> dst, CoverState coverState)
         {
             int channels = Math.Max(1, _opt.Channels);
-            int sourceFrames = _coverSource.Length / channels;
-            int grainFrames = _grainEnvelope.Length;
+            int sourceFrames = coverState.Source.Length / channels;
+            int grainFrames = coverState.GrainEnvelope.Length;
             if (sourceFrames == 0 || grainFrames == 0)
             {
                 return;
@@ -605,7 +645,7 @@ namespace YARG.Audio.BASS
             int frameCount = dst.Length / channels;
             for (int frame = 0; frame < frameCount; ++frame)
             {
-                int absoluteFrame = _granularFramePos + frame;
+                int absoluteFrame = coverState.GranularFramePos + frame;
                 int grainIndex = absoluteFrame / hopFrames;
                 for (int grain = grainIndex - 3; grain <= grainIndex; ++grain)
                 {
@@ -620,21 +660,21 @@ namespace YARG.Audio.BASS
                         continue;
                     }
 
-                    int sourceFrame = GetGrainSourceFrame(grain, localFrame, sourceFrames, grainFrames, jitterFrames);
-                    float gain = _grainEnvelope[localFrame] * _opt.GrainGain;
+                    int sourceFrame = GetGrainSourceFrame(grain, localFrame, sourceFrames, grainFrames, jitterFrames, coverState.GrainSeed);
+                    float gain = coverState.GrainEnvelope[localFrame] * _opt.GrainGain;
                     int dstOffset = frame * channels;
                     int sourceOffset = sourceFrame * channels;
                     for (int channel = 0; channel < channels; ++channel)
                     {
-                        dst[dstOffset + channel] += _coverSource[sourceOffset + channel] * gain;
+                        dst[dstOffset + channel] += coverState.Source[sourceOffset + channel] * gain;
                     }
                 }
             }
 
-            _granularFramePos += frameCount;
+            coverState.GranularFramePos += frameCount;
         }
 
-        private int GetGrainSourceFrame(int grain, int localFrame, int sourceFrames, int grainFrames, int jitterFrames)
+        private int GetGrainSourceFrame(int grain, int localFrame, int sourceFrames, int grainFrames, int jitterFrames, int grainSeed)
         {
             int latestStart = Math.Max(0, sourceFrames - grainFrames);
             int earliestStart = Math.Max(0, latestStart - jitterFrames);
@@ -642,7 +682,7 @@ namespace YARG.Audio.BASS
             int start = earliestStart;
             if (startRange > 1)
             {
-                start += PositiveHash(_grainSeed + grain * 1103515245) % startRange;
+                start += PositiveHash(grainSeed + grain * 1103515245) % startRange;
             }
 
             return Math.Min(sourceFrames - 1, start + localFrame);
@@ -679,9 +719,9 @@ namespace YARG.Audio.BASS
             }
         }
 
-        private float[] SnapshotHistoryLocked()
+        private float[] SnapshotHistory()
         {
-            int count = Math.Min(_history.Length, _filled);
+            int count = Math.Min(_history.Length, System.Threading.Volatile.Read(ref _filled));
             int coverSamples = Math.Max(1, _opt.SampleRate * _opt.Channels * _opt.CoverSourceMs / 1000);
             count = Math.Min(count, coverSamples);
             if (count == 0)
@@ -690,7 +730,8 @@ namespace YARG.Audio.BASS
             }
 
             var snap = new float[count];
-            int start = (_writePos - count + _history.Length) % _history.Length;
+            int writePos = System.Threading.Volatile.Read(ref _writePos);
+            int start = (writePos - count + _history.Length) % _history.Length;
 
             int first = Math.Min(count, _history.Length - start);
             Array.Copy(_history, start, snap, 0, first);
@@ -705,7 +746,6 @@ namespace YARG.Audio.BASS
         private bool CancelCoverIfActive()
         {
             int coverStream;
-            int slideSyncHandle;
             float volume;
             lock (_lock)
             {
@@ -716,20 +756,15 @@ namespace YARG.Audio.BASS
 
                 ++_coverVersion;
                 coverStream = _coverStream;
-                slideSyncHandle = _slideSyncHandle;
                 volume = _mainRestoreVolume;
                 _coverStream = 0;
-                _slideSyncHandle = 0;
-                _coverSource = Array.Empty<float>();
-                _grainEnvelope = Array.Empty<float>();
-                _coverPos = 0;
-                _granularFramePos = 0;
+                System.Threading.Volatile.Write(ref _coverState, null);
                 _hasMainRestoreVolume = false;
                 _capturing = true;
             }
 
             Bass.ChannelSetAttribute(_mainStream, ChannelAttribute.Volume, volume);
-            FreeCoverStream(coverStream, slideSyncHandle);
+            FreeCoverStream(coverStream);
             return true;
         }
 
@@ -744,32 +779,21 @@ namespace YARG.Audio.BASS
         private void FreeCoverStream()
         {
             int coverStream;
-            int slideSyncHandle;
             lock (_lock)
             {
                 coverStream = _coverStream;
-                slideSyncHandle = _slideSyncHandle;
                 _coverStream = 0;
-                _slideSyncHandle = 0;
-                _coverSource = Array.Empty<float>();
-                _grainEnvelope = Array.Empty<float>();
-                _coverPos = 0;
-                _granularFramePos = 0;
+                System.Threading.Volatile.Write(ref _coverState, null);
             }
 
-            FreeCoverStream(coverStream, slideSyncHandle);
+            FreeCoverStream(coverStream);
         }
 
-        private static void FreeCoverStream(int coverStream, int slideSyncHandle)
+        private static void FreeCoverStream(int coverStream)
         {
             if (coverStream == 0)
             {
                 return;
-            }
-
-            if (slideSyncHandle != 0)
-            {
-                Bass.ChannelRemoveSync(coverStream, slideSyncHandle);
             }
 
             Bass.ChannelStop(coverStream);
