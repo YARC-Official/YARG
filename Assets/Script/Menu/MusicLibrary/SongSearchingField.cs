@@ -174,6 +174,11 @@ namespace YARG.Menu.MusicLibrary
 
         private void Update()
         {
+            if (Keyboard.current.ctrlKey.isPressed && Keyboard.current.lKey.wasPressedThisFrame)
+            {
+                Focus();
+            }
+
             if (Keyboard.current.escapeKey.wasPressedThisFrame)
             {
                 ClearFilterQueries();
