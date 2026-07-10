@@ -2,14 +2,47 @@ using System;
 
 namespace YARG.Playback
 {
+    /// <summary>
+    /// Immutable view of song timeline at one point in time.
+    /// Use <see cref="InputTime"/> for gameplay: input handling, note judgments, engines, and replays.
+    /// Use <see cref="SongTime"/> for audio-relative work, such as audio playback and audio-synced events.
+    /// Use <see cref="VisualTime"/> for rendering, animations, and other video-synced work.
+    /// </summary>
     internal readonly struct SongTimelineSnapshot
     {
+        /// <summary>
+        /// Gameplay time in seconds. Use for input handling, note judgments, engines, and replays.
+        /// </summary>
         public readonly double InputTime;
+
+        /// <summary>
+        /// Audio-relative time in seconds. Use for audio playback and audio-synced events. Includes audio calibration.
+        /// </summary>
         public readonly double SongTime;
+
+        /// <summary>
+        /// Render-relative time in seconds. Use for rendering, animations, and video-synced events. Includes video calibration.
+        /// </summary>
         public readonly double VisualTime;
+
+        /// <summary>
+        /// Input system timestamp that maps to zero gameplay input time.
+        /// </summary>
         public readonly double InputTimeOffset;
+
+        /// <summary>
+        /// Current playback speed, where 1.0 is normal speed.
+        /// </summary>
         public readonly float SongSpeed;
+
+        /// <summary>
+        /// Audio calibration in seconds before speed scaling.
+        /// </summary>
         public readonly double AudioCalibration;
+
+        /// <summary>
+        /// Video calibration in seconds before speed scaling.
+        /// </summary>
         public readonly double VideoCalibration;
 
         public SongTimelineSnapshot(

@@ -5,9 +5,14 @@ using YARG.Core.Logging;
 
 namespace YARG.Playback
 {
+    /// <summary>
+    /// Runs a background control loop that keeps mixer playback aligned with input-clock song time.
+    /// It starts audio at the scheduled time, then makes small temporary speed changes to correct drift.
+    /// </summary>
     internal sealed class SongSyncController : IDisposable
     {
-        private const int SYNC_TICK_MS = 4;
+        // Check often enough to respond to drift without busy-spinning a CPU core.
+        private const int SYNC_TICK_MS = 1;
 
         private readonly StemMixer _mixer;
         private readonly ISongSyncStateProvider _stateProvider;
@@ -36,6 +41,9 @@ namespace YARG.Playback
             _syncThread = new Thread(SyncThread) { IsBackground = true };
         }
 
+        /// <summary>
+        /// Starts sync loop. Safe to call more than once; only first call creates thread work.
+        /// </summary>
         public void Start()
         {
             if (_started)
@@ -47,6 +55,9 @@ namespace YARG.Playback
             _syncThread.Start();
         }
 
+        /// <summary>
+        /// Stops sync loop and waits up to two seconds for background thread to exit.
+        /// </summary>
         public void Dispose()
         {
             RequestStop();
@@ -58,11 +69,18 @@ namespace YARG.Playback
             _stopRequested.Dispose();
         }
 
+        /// <summary>
+        /// Requests sync loop stop without waiting for it. Use <see cref="Dispose"/> to wait for shutdown.
+        /// </summary>
         public void RequestStop()
         {
             _stopRequested.Set();
         }
 
+        /// <summary>
+        /// Resets correction history after a timeline discontinuity, such as a seek or song restart.
+        /// Restores requested song speed, then waits for current mixer latency to clear before correcting again.
+        /// </summary>
         public void Reset(float songSpeed)
         {
             lock (_stateLock)
@@ -75,6 +93,9 @@ namespace YARG.Playback
             SuppressCorrection();
         }
 
+        /// <summary>
+        /// Clears speed adjustment reported to debug UI. Does not alter mixer playback speed.
+        /// </summary>
         public void ClearDebugSpeedAdjustment()
         {
             lock (_stateLock)
@@ -83,6 +104,9 @@ namespace YARG.Playback
             }
         }
 
+        /// <summary>
+        /// Gets latest target-minus-mixer position delta and temporary speed adjustment for debug display.
+        /// </summary>
         internal void GetDebugState(out double syncDelta, out float speedAdjustment)
         {
             lock (_stateLock)
@@ -99,6 +123,10 @@ namespace YARG.Playback
             SuppressUntil(now + latency.TempoStream);
         }
 
+        /// <summary>
+        /// Disables new speed corrections until given input-clock time while stale mixer state catches up.
+        /// Existing suppression is never shortened.
+        /// </summary>
         public void SuppressUntil(double inputSystemTime)
         {
             lock (_stateLock)
@@ -107,6 +135,8 @@ namespace YARG.Playback
             }
         }
 
+        // Mixer position lags speed changes by its stream latency. The calculator tracks that pending
+        // effect, so this loop does not react to its own corrections as though they were fresh drift.
         private void SyncThread()
         {
             double lastSampleTime = _inputClock.InstantTime;
@@ -160,6 +190,7 @@ namespace YARG.Playback
             );
         }
 
+        // Playback may begin slightly before song time zero: output latency delays audible audio until zero.
         private bool TryStartAudio(SyncFrame frame)
         {
             bool audioShouldStart = !frame.Paused && _mixer.IsPaused &&
@@ -210,6 +241,9 @@ namespace YARG.Playback
             }
         }
 
+        /// <summary>
+        /// Immutable snapshot collected once per sync tick, keeping mixer and timeline reads consistent within it.
+        /// </summary>
         private readonly struct SyncFrame
         {
             public readonly double InputSystemTime;
