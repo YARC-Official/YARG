@@ -379,12 +379,6 @@ namespace YARG.Gameplay
             ApplySongSpeed();
         }
 
-        public void SetSongSpeedImmediate(float speed)
-        {
-            _songRunner.SetSongSpeedImmediate(speed);
-            ApplySongSpeed();
-        }
-
         public int GetMixerFFTData(float[] buffer, int fftSize, bool complex)
         {
             return _mixer.GetFFTData(buffer, fftSize, complex);
