@@ -43,7 +43,8 @@ namespace YARG.Audio.BASS
         private          int                     _mixer;
         private readonly List<Stream>            _streams = new();
         private readonly List<int>               _handles = new();
-        private          CancellationTokenSource _gainCalcCts = new();
+        private          CancellationTokenSource _gainCalcCts;
+        private          Task                    _gainCalcTask = Task.CompletedTask;
         public float               Gain { get; private set; } = INITIAL_GAIN;
         public event Action<float> OnGainAdjusted;
 
@@ -54,6 +55,8 @@ namespace YARG.Audio.BASS
         /// </summary>
         public bool AddStream(Stream stream, params StemMixer.StemInfo[] stemInfos)
         {
+            StopGainCalculation();
+
             if (_mixer == 0)
             {
                 if (!CreateMixer(out _mixer))
@@ -166,16 +169,39 @@ namespace YARG.Audio.BASS
 
         private void StartGainCalculation()
         {
-            _gainCalcCts.Cancel();
-            _gainCalcCts.Dispose();
             _gainCalcCts = new CancellationTokenSource();
+            var token = _gainCalcCts.Token;
 
             var progress = new Progress<double>(gain =>
             {
                 OnGainAdjusted?.Invoke((float) gain);
             });
 
-            Task.Run(() => CalculateRms(progress, _gainCalcCts.Token), _gainCalcCts.Token);
+            _gainCalcTask = Task.Run(() => CalculateRms(progress, token), token);
+        }
+
+        private void StopGainCalculation()
+        {
+            if (_gainCalcCts == null)
+            {
+                return;
+            }
+
+            _gainCalcCts.Cancel();
+            try
+            {
+                _gainCalcTask.GetAwaiter().GetResult();
+            }
+            catch (OperationCanceledException)
+            {
+                // Cancellation before the worker starts is expected.
+            }
+            finally
+            {
+                _gainCalcCts.Dispose();
+                _gainCalcCts = null;
+                _gainCalcTask = Task.CompletedTask;
+            }
         }
 
         private void CalculateRms(IProgress<double> progress, CancellationToken token)
@@ -221,13 +247,9 @@ namespace YARG.Audio.BASS
 
         public void Dispose()
         {
-            _gainCalcCts.Cancel();
-            _gainCalcCts.Dispose();
+            // BASS calls cannot be interrupted mid-call. Wait before freeing handles used by the worker.
+            StopGainCalculation();
 
-            foreach (var stream in _streams)
-            {
-                stream.Dispose();
-            }
             foreach (var handle in _handles)
             {
                 if (!Bass.StreamFree(handle))
@@ -238,6 +260,10 @@ namespace YARG.Audio.BASS
                             Bass.LastError);
                     }
                 }
+            }
+            foreach (var stream in _streams)
+            {
+                stream.Dispose();
             }
             _mixer = 0;
             _streams.Clear();
