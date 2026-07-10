@@ -50,8 +50,9 @@ namespace YARG.Audio.BASS
         private readonly List<StemData> _stemDatas = new();
         private          int            _longestHandle;
 
-        private readonly BassNormalizer _normalizer = new();
-        private          bool           _shouldNormalize;
+        private readonly BassNormalizer       _normalizer = new();
+        private          BassPlaybackGapCover _gapCover;
+        private          bool                 _shouldNormalize;
         private          int            _gainDspHandle;
         private          float          _gain = 1.0f;
 
@@ -95,6 +96,7 @@ namespace YARG.Audio.BASS
             }
 
             _mixerHandle = handle;
+            _gapCover = BassPlaybackGapCover.CreateForChannel(_tempoStreamHandle);
             _shouldNormalize = normalize && SettingsManager.Settings.EnableNormalization.Value;
             if (_shouldNormalize)
             {
@@ -227,7 +229,23 @@ namespace YARG.Audio.BASS
 
         protected override void SetPosition_Internal(double position)
         {
-            var wasPlaying = IsPlaying;
+            bool wasPlaying = IsPlaying;
+            if (!wasPlaying)
+            {
+                SetPositionCore(position, false);
+                return;
+            }
+
+            // Rebuilding the mixer while playing causes an audible gap until BASS refills its buffer.
+            _gapCover.Cover(() =>
+            {
+                SetPositionCore(position, true);
+                return 0;
+            });
+        }
+
+        private void SetPositionCore(double position, bool resumePlayback)
+        {
             Pause_Internal();
 
             var channels = BassMix.MixerGetChannels(_mixerHandle);
@@ -247,7 +265,7 @@ namespace YARG.Audio.BASS
             _didSetPosition = true;
             _positionOffset = position;
 
-            if (wasPlaying)
+            if (resumePlayback)
             {
                 Play_Internal();
             }
@@ -560,6 +578,8 @@ namespace YARG.Audio.BASS
         {
             _whammySyncTimer.Stop();
             _whammySyncTimer = null;
+            _gapCover.Dispose();
+            _gapCover = null;
             _stemDatas.Clear();
             if (_channels.Count == 0)
             {

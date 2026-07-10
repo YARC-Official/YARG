@@ -596,6 +596,32 @@ namespace YARG.Playback
                 SongTime, VisualTime, InputTime);
         }
 
+        /// <summary>
+        /// Changes playback speed immediately and reseeks audio to current gameplay time.
+        /// </summary>
+        public void SetSongSpeedImmediate(float speed)
+        {
+            lock (_syncThread)
+            {
+                speed = ClampSongSpeed(speed);
+                if (Mathf.Approximately(speed, SongSpeed))
+                {
+                    return;
+                }
+
+                double inputTime = InputTime;
+                SongSpeed = speed;
+                ResetSync();
+                SetInputBaseChecked(inputTime);
+
+                double audioPosition = Math.Max(0, SongTime - SongOffset);
+                _mixer.SetPosition(audioPosition);
+                UpdateTimes();
+            }
+
+            YargLogger.LogFormatDebug("Immediately set song speed to {0:0.00}.", speed);
+        }
+
         public void AdjustSongSpeed(float deltaSpeed) => SetSongSpeed(SongSpeed + deltaSpeed);
 
         public void UpdateCalibration()
