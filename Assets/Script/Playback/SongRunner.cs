@@ -379,6 +379,14 @@ namespace YARG.Playback
             _timeline.AnchorAtFrame(anchoredInputTime);
         }
 
+        private void SetTimelinePositionAtInstant(double targetInputTime, double startDelaySeconds)
+        {
+            ClearVisualTimeOverride();
+            double leadInSongTime = startDelaySeconds * SongSpeed;
+            double anchoredInputTime = targetInputTime - leadInSongTime;
+            _timeline.AnchorAtInstant(anchoredInputTime);
+        }
+
         /// <summary>
         /// Seeks the song timeline and audio playback to the specified song time.
         /// </summary>
@@ -399,8 +407,13 @@ namespace YARG.Playback
                 _speedChanges.Clear();
             }
 
-            SetTimelinePosition(targetInputTime: time, startDelaySeconds: effectiveDelay);
-            SeekMixer(CalculateSeekAudioFileTime(time, effectiveDelay, playbackLatency));
+            double seekTime = CalculateSeekAudioFileTime(time, effectiveDelay, playbackLatency);
+            _syncController.Reset(SongSpeed);
+
+            // Seek command runs mid-frame. Anchor to its instant instead of stale frame input time,
+            // otherwise audio starts up to one frame behind the song timeline.
+            SetTimelinePositionAtInstant(targetInputTime: time, startDelaySeconds: effectiveDelay);
+            SeekMixer(seekTime);
             _timeline.TickFrame();
         }
 
@@ -426,7 +439,6 @@ namespace YARG.Playback
 
         private void SeekMixer(double seekTime)
         {
-            _syncController.Reset(SongSpeed);
             bool canStartAudio = seekTime >= 0;
             var postSeekState = !Paused && canStartAudio ? PostSeekState.Play : PostSeekState.Pause;
             _mixer.Seek(Math.Max(0, seekTime), postSeekState);
