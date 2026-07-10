@@ -119,10 +119,6 @@ namespace YARG.Gameplay
         /// <inheritdoc cref="SongRunner.SongSpeed"/>
         public float SongSpeed => _songRunner.SongSpeed;
 
-        /// <inheritdoc cref="SongRunner.RequestedSongSpeed"/>
-        // Use for UI/control intent; SongSpeed may lag during live playback to stay synced with buffered audio.
-        public float RequestedSongSpeed => _songRunner.RequestedSongSpeed;
-
         /// <inheritdoc cref="SongRunner.Started"/>
         public bool Started => _songRunner.Started;
 

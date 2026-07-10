@@ -9,7 +9,7 @@ namespace YARG.Audio.BASS
     /// <summary>
     /// Hides brief audio dropouts when changing a playing BASS stream, such as seeking.
     /// <para>
-    /// While audio plays, this keeps a short recording of what was heard. <see cref="CoverPlaybackGap(Func{int})"/>
+    /// While audio plays, this keeps a short recording of what was heard. <see cref="Cover(Func{int})"/>
     /// plays that recent audio from a temporary stream while the action, such as a seek, changes the main stream.
     /// It then fades back to the main stream.
     /// </para>
@@ -121,7 +121,7 @@ namespace YARG.Audio.BASS
         /// </summary>
         /// <param name="action">Function that may interrupt and update main stream.</param>
         /// <returns>Function result, or a BASS error code if cover playback could not start.</returns>
-        public int CoverPlaybackGap(Func<int> action)
+        public int Cover(Func<int> action)
         {
             if (action == null)
             {

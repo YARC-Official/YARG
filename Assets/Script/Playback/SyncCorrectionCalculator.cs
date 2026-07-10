@@ -100,6 +100,11 @@ namespace YARG.Playback
             _syncHistory.TrimToDuration(streamDelayMs);
         }
 
+        /// <summary>
+        /// Stores recent playback-rate corrections inside mixer latency window. Each entry records elapsed time
+        /// and timing gained or lost during that time, allowing pending corrections to be excluded from new drift.
+        /// Uses fixed-size circular buffer and trims partial oldest entries when latency window expires.
+        /// </summary>
         private sealed class SyncHistoryBuffer
         {
             private const int SYNC_HISTORY_CAPACITY = 4096;

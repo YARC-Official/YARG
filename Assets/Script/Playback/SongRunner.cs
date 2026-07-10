@@ -457,7 +457,6 @@ namespace YARG.Playback
                 effectiveTime = ScheduleGameplaySpeedChange(nowInputSystemTime, speed);
             }
 
-            _syncController.ClearDebugSpeedAdjustment();
             _syncController.SuppressUntil(effectiveTime);
             _mixer.SetSpeed(speed, true);
             if (!IsPlaying)
@@ -487,7 +486,6 @@ namespace YARG.Playback
                 _timeline.ApplySpeedChange(speed, nowInputSystemTime);
             }
 
-            _syncController.ClearDebugSpeedAdjustment();
             _syncController.Reset(speed);
             _mixer.SetSpeed(speed, true);
             if (IsPlaying)

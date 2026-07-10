@@ -23,7 +23,7 @@ namespace YARG.Playback
 
         private readonly ManualResetEventSlim _stopRequested = new();
 
-        private volatile float _debugSyncSpeedAdjustment;
+        private float _debugSyncSpeedAdjustment;
         private double _syncCorrectionSuppressedUntil = double.NegativeInfinity;
 
         private bool _started;
@@ -85,23 +85,12 @@ namespace YARG.Playback
         {
             lock (_stateLock)
             {
-                _debugSyncSpeedAdjustment = 0f;
                 _syncCalculator.Reset();
             }
 
+            Volatile.Write(ref _debugSyncSpeedAdjustment, 0f);
             _mixer.SetSpeed(songSpeed, true);
             SuppressCorrection();
-        }
-
-        /// <summary>
-        /// Clears speed adjustment reported to debug UI. Does not alter mixer playback speed.
-        /// </summary>
-        public void ClearDebugSpeedAdjustment()
-        {
-            lock (_stateLock)
-            {
-                _debugSyncSpeedAdjustment = 0f;
-            }
         }
 
         /// <summary>
@@ -109,11 +98,11 @@ namespace YARG.Playback
         /// </summary>
         internal void GetDebugState(out double syncDelta, out float speedAdjustment)
         {
-            lock (_stateLock)
-            {
-                syncDelta = _debugTargetAudioPosition - _debugSyncAudioTime;
-                speedAdjustment = _debugSyncSpeedAdjustment;
-            }
+            double targetAudioPosition = Volatile.Read(ref _debugTargetAudioPosition);
+            double syncAudioTime = Volatile.Read(ref _debugSyncAudioTime);
+
+            syncDelta = targetAudioPosition - syncAudioTime;
+            speedAdjustment = Volatile.Read(ref _debugSyncSpeedAdjustment);
         }
 
         private void SuppressCorrection()
@@ -233,12 +222,9 @@ namespace YARG.Playback
 
         private void PublishDebugSyncState(SyncFrame frame, float speedAdjustment)
         {
-            lock (_stateLock)
-            {
-                _debugSyncAudioTime = frame.SyncAudioTime;
-                _debugTargetAudioPosition = frame.TargetAudioPosition;
-                _debugSyncSpeedAdjustment = speedAdjustment;
-            }
+            Volatile.Write(ref _debugSyncAudioTime, frame.SyncAudioTime);
+            Volatile.Write(ref _debugTargetAudioPosition, frame.TargetAudioPosition);
+            Volatile.Write(ref _debugSyncSpeedAdjustment, speedAdjustment);
         }
 
         /// <summary>
