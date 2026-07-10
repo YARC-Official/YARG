@@ -7,11 +7,6 @@ namespace YARG.Audio.BASS
     /// </summary>
     internal static class BassLatencyProvider
     {
-        // Additional seek overhead on Windows/Linux to account for WASAPI/ALSA
-        // buffering that is not captured by info.Latency or DeviceBufferLength.  Determined by
-        // measuring the actual latency of a seek call
-        private const double EXTRA_LATENCY_SECONDS = 0.015;
-
         // Default BASS_FX tempo latency in seconds, calculated from documented defaults:
         // Sequence (82ms) + Seek Window (14ms) + Overlap (12ms) = 108ms.
         private const double TEMPO_FX_LATENCY_SECONDS = 0.108;
@@ -29,7 +24,7 @@ namespace YARG.Audio.BASS
         private static double CommandLatency    => Math.Max(0, Bass.UpdatePeriod) / 2000.0;
 
         // BASS device buffer latency in seconds; / 2000 gives statistically best guess at uncertain latency.
-        private static double DeviceBufferLatency     => Math.Max(0, Bass.DeviceBufferLength) / 2000.0;
+        private static double DeviceBufferLatency     => Math.Max(0, Bass.DeviceBufferLength) / 1000.0;
 
         /// <summary>
         /// Gets the estimated playback stream output latency in seconds.
@@ -40,7 +35,7 @@ namespace YARG.Audio.BASS
             // CoreAudio is pull-based; info.Latency already encapsulates the full hardware pipeline.
             double latency = DeviceOutputLatency;
 #else
-            double latency = DeviceOutputLatency + DeviceBufferLatency + EXTRA_LATENCY_SECONDS;
+            double latency = DeviceOutputLatency + DeviceBufferLatency;
 #endif
             return latency;
         }

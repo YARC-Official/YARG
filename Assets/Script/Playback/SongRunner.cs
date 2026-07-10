@@ -342,7 +342,11 @@ namespace YARG.Playback
                 ApplyScheduledSpeedChanges(inputSystemTime);
 
                 var snapshot = _timeline.GetSnapshotAt(inputSystemTime);
-                double targetAudioPosition = CalculateAudioFilePosition(snapshot.InputTime, snapshot);
+                double targetAudioPosition = CalculateAudioFilePosition(
+                    snapshot.InputTime,
+                    snapshot.SongSpeed,
+                    snapshot.AudioCalibration
+                );
                 return new SongSyncState(
                     snapshot.SongSpeed,
                     targetAudioPosition,
@@ -371,19 +375,28 @@ namespace YARG.Playback
             return _timeline.ConvertInputSystemTime(timeFromInputSystem);
         }
 
+        private static double CalculateAnchoredInputTime(
+            double targetInputTime,
+            double startDelaySeconds,
+            float songSpeed)
+        {
+            return targetInputTime - (startDelaySeconds * songSpeed);
+        }
+
         private void SetTimelinePosition(double targetInputTime, double startDelaySeconds)
         {
             ClearVisualTimeOverride();
-            double leadInSongTime = startDelaySeconds * SongSpeed;
-            double anchoredInputTime = targetInputTime - leadInSongTime;
+            double anchoredInputTime = CalculateAnchoredInputTime(
+                targetInputTime,
+                startDelaySeconds,
+                SongSpeed
+            );
             _timeline.AnchorAtFrame(anchoredInputTime);
         }
 
-        private void SetTimelinePositionAtInstant(double targetInputTime, double startDelaySeconds)
+        private void SetTimelinePositionAtInstant(double anchoredInputTime)
         {
             ClearVisualTimeOverride();
-            double leadInSongTime = startDelaySeconds * SongSpeed;
-            double anchoredInputTime = targetInputTime - leadInSongTime;
             _timeline.AnchorAtInstant(anchoredInputTime);
         }
 
@@ -407,34 +420,32 @@ namespace YARG.Playback
                 _speedChanges.Clear();
             }
 
-            double seekTime = CalculateSeekAudioFileTime(time, effectiveDelay, playbackLatency);
-            _syncController.Reset(SongSpeed);
+            float songSpeed = SongSpeed;
+            double anchoredInputTime = CalculateAnchoredInputTime(time, effectiveDelay, songSpeed);
+            double targetAudioPosition = CalculateAudioFilePosition(
+                anchoredInputTime,
+                songSpeed,
+                AudioCalibration
+            );
+            double seekTime = targetAudioPosition + (playbackLatency * songSpeed);
+            _syncController.Reset(songSpeed);
 
             // Seek command runs mid-frame. Anchor to its instant instead of stale frame input time,
             // otherwise audio starts up to one frame behind the song timeline.
-            SetTimelinePositionAtInstant(targetInputTime: time, startDelaySeconds: effectiveDelay);
+            SetTimelinePositionAtInstant(anchoredInputTime);
             SeekMixer(seekTime);
             _timeline.TickFrame();
         }
 
-        private double CalculateSeekAudioFileTime(double songTime, double delayTime, double playbackLatency)
+        private double CalculateAudioFilePosition(
+            double inputTime,
+            float songSpeed,
+            double audioCalibration)
         {
-            // Input/song timeline may be negative during lead-in. Mixer file position cannot, so caller
-            // clamps negative result to zero and waits until timeline reaches audible range before playing.
-            double leadIn = delayTime * SongSpeed;
-            double latencyOffset = playbackLatency * SongSpeed;
-            double audioOffset = CalculateAudioOffset(SongSpeed, AudioCalibration);
-            return songTime - audioOffset - leadIn + latencyOffset;
-        }
-
-        private double CalculateAudioFilePosition(double inputTime, SongTimelineSnapshot snapshot)
-        {
-            return inputTime - CalculateAudioOffset(snapshot.SongSpeed, snapshot.AudioCalibration);
-        }
-
-        private double CalculateAudioOffset(float songSpeed, double audioCalibration)
-        {
-            return SongOffset - (audioCalibration * songSpeed);
+            // Input/song timeline may be negative during lead-in. Mixer file position cannot, so callers
+            // clamp negative results and wait until the timeline reaches audible range before playing.
+            double audioOffset = SongOffset - (audioCalibration * songSpeed);
+            return inputTime - audioOffset;
         }
 
         private void SeekMixer(double seekTime)
@@ -552,9 +563,8 @@ namespace YARG.Playback
             }
 
             UpdateCalibration();
-            _timeline.AnchorAtInstant(InputTime);
-            _syncController.Reset(SongSpeed);
-            ResumeMixer();
+            double resumeInputTime = InputTime;
+            ResumeMixer(resumeInputTime);
 
             lock (_timingStateLock)
             {
@@ -563,22 +573,30 @@ namespace YARG.Playback
             return true;
         }
 
-        private void ResumeMixer()
+        private void ResumeMixer(double resumeInputTime)
         {
             SongTimelineSnapshot snapshot;
             double targetAudioPosition;
-            double inputSystemTime = _inputClock.InstantTime;
 
             lock (_timingStateLock)
             {
-                snapshot = _timeline.GetSnapshotAt(inputSystemTime);
-                targetAudioPosition = CalculateAudioFilePosition(snapshot.InputTime, snapshot);
+                snapshot = _timeline.Current;
+                targetAudioPosition = CalculateAudioFilePosition(
+                    resumeInputTime,
+                    snapshot.SongSpeed,
+                    snapshot.AudioCalibration
+                );
             }
 
             double playbackLatency = _mixer.GetPlaybackStreamLatency();
             double preRollSongTime = playbackLatency * snapshot.SongSpeed;
             double seekPosition = targetAudioPosition + preRollSongTime;
             _mixer.SetPosition(Math.Clamp(seekPosition, 0, _mixer.Length));
+
+            // Seeking can take multiple milliseconds. Start the timeline only after it completes so
+            // that seek time does not become resume desync.
+            _syncController.Reset(snapshot.SongSpeed);
+            _timeline.AnchorAtInstant(resumeInputTime);
 
             bool audioCanStart = targetAudioPosition >= -preRollSongTime &&
                 targetAudioPosition < _mixer.Length;
