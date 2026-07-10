@@ -51,11 +51,11 @@ namespace YARG.Audio.BASS
         private readonly List<StemData> _stemDatas = new();
         private          int            _longestHandle;
 
-        private readonly BassNormalizer _normalizer = new();
-        private          BassPlaybackGapCover   _playbackGapCover;
-        private          bool           _shouldNormalize;
-        private          int            _gainDspHandle;
-        private          float          _gain = 1.0f;
+        private readonly BassNormalizer       _normalizer = new();
+        private          BassPlaybackGapCover _playbackGapCover;
+        private          bool                 _shouldNormalize;
+        private          int                  _gainDspHandle;
+        private          float                _gain = 1.0f;
 
         public override event Action SongEnd
         {
@@ -63,7 +63,7 @@ namespace YARG.Audio.BASS
             {
                 if (_songEndHandle == 0)
                 {
-                    void sync(int _, int __, int ___, IntPtr _____)
+                    void Sync(int _, int __, int ___, IntPtr _____)
                     {
                         // Prevent potential race conditions by caching the value as a local
                         var end = _songEnd;
@@ -72,15 +72,12 @@ namespace YARG.Audio.BASS
                             UnityMainThreadCallback.QueueEvent(end.Invoke);
                         }
                     }
-                    _songEndHandle = BassMix.ChannelSetSync(_longestHandle, SyncFlags.End, 0, sync);
+                    _songEndHandle = BassMix.ChannelSetSync(_longestHandle, SyncFlags.End, 0, Sync);
                 }
 
                 _songEnd += value;
             }
-            remove
-            {
-                _songEnd -= value;
-            }
+            remove => _songEnd -= value;
         }
 
 #nullable enable
@@ -114,7 +111,7 @@ namespace YARG.Audio.BASS
 
         private void AddGainDSP()
         {
-            _gainDspHandle = Bass.ChannelSetDSP(_mixerHandle, (handle, channel, buffer, length, user) =>
+            _gainDspHandle = Bass.ChannelSetDSP(_mixerHandle, (_, _, buffer, length, _) =>
             {
                 BassHelpers.ApplyGain(_gain, buffer, length);
             });
@@ -360,7 +357,7 @@ namespace YARG.Audio.BASS
         protected override void SetSpeed_Internal(float speed, bool shiftPitch)
         {
             speed = (float) Math.Clamp(speed, 0.05, 50);
-            if (_speed == speed)
+            if (Mathf.Approximately(_speed, speed))
             {
                 return;
             }

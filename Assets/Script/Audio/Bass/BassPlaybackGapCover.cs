@@ -1,16 +1,22 @@
-using System;
+﻿using System;
 using System.Diagnostics;
+using System.Threading;
 using ManagedBass;
 using YARG.Core.Logging;
 
 namespace YARG.Audio.BASS
 {
     /// <summary>
-    /// Covers short BASS playback gaps while an action updates the main stream.
-    /// A DSP callback continuously stores recent float samples in a circular history buffer. <see cref="CoverPlaybackGap(Func{int})"/>
-    /// freezes and snapshots that history, then replays its recent tail through a temporary BASS stream while the main stream is muted.
-    /// After the action completes, the main stream is primed and crossfaded back in before the temporary stream is freed.
-    /// Starting another covered operation during a crossfade cancels current cover and runs new action uncovered.
+    /// Hides brief audio dropouts when changing a playing BASS stream, such as seeking.
+    /// <para>
+    /// While audio plays, this keeps a short recording of what was heard. <see cref="CoverPlaybackGap(Func{int})"/>
+    /// plays that recent audio from a temporary stream while the action, such as a seek, changes the main stream.
+    /// It then fades back to the main stream.
+    /// </para>
+    /// <para>
+    /// Only one cover can run at once. A newer request stops current cover and changes stream normally, so latest stream
+    /// change always wins.
+    /// </para>
     /// </summary>
     public sealed class BassPlaybackGapCover : IDisposable
     {
@@ -19,9 +25,19 @@ namespace YARG.Audio.BASS
         private const int COVER_SOURCE_MS = 300;
         private const int CROSSFADE_MS = 20;
 
+        private enum CoverState
+        {
+            CAPTURING,
+            COVERING,
+            CROSSFADING,
+            DISPOSED,
+        }
+
         private sealed class FrozenAudio
         {
             public readonly float[] Samples;
+
+            // Only BASS cover callback advances this after session publication.
             public int ReadSamplePosition;
 
             public FrozenAudio(float[] samples, int readSamplePosition)
@@ -31,28 +47,36 @@ namespace YARG.Audio.BASS
             }
         }
 
+        private sealed class PlaybackCover
+        {
+            public readonly int Generation;
+            public readonly int Stream;
+            public readonly float MainRestoreVolume;
+            public readonly FrozenAudio Audio;
+
+            public PlaybackCover(int generation, int stream, float mainRestoreVolume, FrozenAudio audio)
+            {
+                Generation = generation;
+                Stream = stream;
+                MainRestoreVolume = mainRestoreVolume;
+                Audio = audio;
+            }
+        }
+
         private readonly int     _mainStream;
         private readonly int     _sampleRate;
         private readonly int     _channels;
-        private readonly object  _lock = new();
-        private readonly object  _coverOperationLock = new();
-        private readonly float[] _history;
+        private readonly object             _lock = new();
+        private readonly object             _coverOperationLock = new();
+        private readonly AudioHistoryBuffer _audioHistory;
+        private readonly StreamProcedure    _coverCallback;
 
-        private readonly StreamProcedure _coverCallback;
-
-        // DSP writes samples before publishing these positions. Snapshot reads may include a
-        // partially updated sample only; that is preferable to blocking BASS's audio thread.
-        private int _historyWritePosition;
-        private int _recordedSampleCount;
-        private FrozenAudio _frozenAudio;
-
-        private          int  _dspHandle;
-        private          int  _coverStream;
-        private          int  _coverGeneration;
-        private          bool _hasMainRestoreVolume;
-        private          float _mainRestoreVolume;
-        private volatile bool  _capturing = true;
-        private volatile bool  _disposed;
+        // Protected by _lock. Callback reads use Volatile.Read and never take this lock.
+        private PlaybackCover _activeCover;
+        private int _coverGeneration;
+        private int _state = (int) CoverState.CAPTURING;
+        private int _dspHandle;
+        private volatile bool _capturing = true;
 
         /// <summary>
         /// Gets or sets whether cover playback is used when running covered actions.
@@ -66,7 +90,7 @@ namespace YARG.Audio.BASS
             _channels = channels;
 
             int capacity = Math.Max(1, sampleRate * channels * HISTORY_MS / 1000);
-            _history = new float[capacity];
+            _audioHistory = new AudioHistoryBuffer(capacity);
 
             DSPProcedure dspCallback = OnDsp;
             _coverCallback = OnCoverStream;
@@ -82,7 +106,7 @@ namespace YARG.Audio.BASS
         /// Creates a gap cover for a BASS stream and derives its stream format from that channel.
         /// </summary>
         /// <param name="stream">BASS stream handle to monitor and cover.</param>
-        /// <returns>Gap cover bound to the supplied stream.</returns>
+        /// <returns>Gap cover bound to supplied stream.</returns>
         public static BassPlaybackGapCover CreateForChannel(int stream)
         {
             var info = Bass.ChannelGetInfo(stream);
@@ -93,132 +117,240 @@ namespace YARG.Audio.BASS
 
         /// <summary>
         /// Runs an action while replaying recent audio to cover any short playback gap it causes.
-        /// The action must leave the main stream in the desired playback state.
+        /// Action must leave main stream in desired playback state.
         /// </summary>
-        /// <param name="action">Function that may interrupt and update the main stream.</param>
+        /// <param name="action">Function that may interrupt and update main stream.</param>
         /// <returns>Function result, or a BASS error code if cover playback could not start.</returns>
         public int CoverPlaybackGap(Func<int> action)
-        {
-            lock (_coverOperationLock)
-            {
-                return CoverPlaybackGapLocked(action);
-            }
-        }
-
-        private int CoverPlaybackGapLocked(Func<int> action)
         {
             if (action == null)
             {
                 throw new ArgumentNullException(nameof(action));
             }
 
-            if (!Enabled || _disposed || _dspHandle == 0)
+            lock (_coverOperationLock)
             {
-                return action();
-            }
+                if (!Enabled || IsDisposed || _dspHandle == 0)
+                {
+                    return action();
+                }
 
-            // Freeze recent audio → play it while main stream updates → crossfade main stream back in.
-            // A new operation during an active crossfade cancels cover and runs uncovered.
-            if (CancelActivePlaybackCover())
-            {
-                return action();
-            }
+                // Do not stack stale delayed audio. Latest operation runs uncovered after cancellation.
+                if (CancelActiveCover())
+                {
+                    return action();
+                }
 
-            if (!TryBeginPlaybackCover(out int coverGeneration, out float mainStreamVolume, out int error))
-            {
-                action();
-                return error;
-            }
+                if (!TryStartCover(out PlaybackCover cover, out int error))
+                {
+                    action();
+                    return error;
+                }
 
-            return RunCoveredAction(action, coverGeneration, mainStreamVolume);
+                return RunCoveredAction(action, cover);
+            }
         }
 
-        private bool TryBeginPlaybackCover(out int coverGeneration, out float mainStreamVolume, out int error)
+        // Cover lifecycle
+
+        private bool TryStartCover(out PlaybackCover cover, out int error)
         {
-            coverGeneration = FreezeRecentAudioForCover();
-            if (!TryStartCoverStream(out mainStreamVolume, out error))
+            FrozenAudio audio = CreateFrozenCoverAudio();
+            Bass.ChannelGetAttribute(_mainStream, ChannelAttribute.Volume, out float mainStreamVolume);
+
+            int coverStream = CreateCoverStreamOnMainDevice();
+            if (coverStream == 0)
             {
-                _capturing = true;
+                error = (int) Bass.LastError;
+                YargLogger.LogFormatError("Failed to create/play cover stream: {0}", Bass.LastError);
+                ResumeCapture();
+                cover = null;
                 return false;
             }
 
-            lock (_lock)
+            if (!Bass.ChannelSetAttribute(coverStream, ChannelAttribute.Volume, 0f))
             {
-                _mainRestoreVolume = mainStreamVolume;
-                _hasMainRestoreVolume = true;
+                error = (int) Bass.LastError;
+                YargLogger.LogFormatError("Failed to initialize gap cover volume: {0}", Bass.LastError);
+                FreeCoverStream(coverStream);
+                ResumeCapture();
+                cover = null;
+                return false;
             }
 
-            Bass.ChannelUpdate(_coverStream, 0);
+            cover = PublishCover(coverStream, mainStreamVolume, audio);
+            // Publish before play: BASS may invoke cover callback immediately after ChannelPlay.
+            if (!Bass.ChannelPlay(coverStream))
+            {
+                error = (int) Bass.LastError;
+                YargLogger.LogFormatError("Failed to create/play cover stream: {0}", Bass.LastError);
+                RestoreMainStreamAndFreeCover(DetachActiveCover(CoverState.CAPTURING, cover.Generation, true));
+                cover = null;
+                return false;
+            }
+
+            Bass.ChannelUpdate(coverStream, 0);
             if (!Bass.ChannelSetAttribute(_mainStream, ChannelAttribute.Volume, 0f))
             {
                 error = (int) Bass.LastError;
                 YargLogger.LogFormatError("Failed to mute main stream for gap cover: {0}", Bass.LastError);
-                ClearMainStreamRestoreVolume();
-                FreePlaybackCoverStream();
-                _capturing = true;
+                RestoreMainStreamAndFreeCover(DetachActiveCover(CoverState.CAPTURING, cover.Generation, true));
+                cover = null;
                 return false;
             }
 
             int coverFadeInMs = Math.Max(1, CROSSFADE_MS / 3);
-            Bass.ChannelSlideAttribute(_coverStream, ChannelAttribute.Volume, mainStreamVolume, coverFadeInMs);
+            Bass.ChannelSlideAttribute(coverStream, ChannelAttribute.Volume, mainStreamVolume, coverFadeInMs);
+            error = 0;
             return true;
         }
 
-        private int RunCoveredAction(Func<int> action, int coverGeneration, float mainStreamVolume)
-        {
-            try
-            {
-                int result = action();
-                PrimeMainStreamAndStartCrossfade(coverGeneration, mainStreamVolume);
-                return result;
-            }
-            catch
-            {
-                Bass.ChannelSetAttribute(_mainStream, ChannelAttribute.Volume, mainStreamVolume);
-                ClearMainStreamRestoreVolume();
-                FreePlaybackCoverStream();
-                _capturing = true;
-                throw;
-            }
-        }
-
-        private int FreezeRecentAudioForCover()
+        private FrozenAudio CreateFrozenCoverAudio()
         {
             lock (_lock)
             {
-                int coverGeneration = ++_coverGeneration;
-                _capturing = false;
+                // DSP callback must not lock. Stop capture before taking lock-free history snapshot.
+                SetStateLocked(CoverState.COVERING);
                 float[] audioSamples = FreezeRecentAudio();
                 int audioFrames = audioSamples.Length / _channels;
                 int tailFrames = Math.Max(1, _sampleRate * COVER_SOURCE_MS * 2 / 3_000);
                 int readSamplePosition = Math.Max(0, audioFrames - tailFrames) * _channels;
-                System.Threading.Volatile.Write(ref _frozenAudio, new FrozenAudio(audioSamples, readSamplePosition));
-                return coverGeneration;
+                return new FrozenAudio(audioSamples, readSamplePosition);
             }
         }
 
-        private void PrimeMainStreamAndStartCrossfade(int coverGeneration, float mainStreamVolume)
+        private PlaybackCover PublishCover(int coverStream, float mainStreamVolume, FrozenAudio audio)
+        {
+            lock (_lock)
+            {
+                int generation = ++_coverGeneration;
+                var cover = new PlaybackCover(generation, coverStream, mainStreamVolume, audio);
+                Volatile.Write(ref _activeCover, cover);
+                SetStateLocked(CoverState.COVERING);
+                return cover;
+            }
+        }
+
+        private int RunCoveredAction(Func<int> action, PlaybackCover cover)
+        {
+            try
+            {
+                int result = action();
+                StartCrossfadeToMainStream(cover);
+                return result;
+            }
+            catch
+            {
+                RestoreMainStreamAndFreeCover(DetachActiveCover(CoverState.CAPTURING, cover.Generation, true));
+                throw;
+            }
+        }
+
+        // Crossfade lifecycle
+
+        private void StartCrossfadeToMainStream(PlaybackCover cover)
         {
             int primeMs = Math.Max(1, COVER_SOURCE_MS / 2);
             Bass.ChannelUpdate(_mainStream, primeMs);
-            StartCrossfadeToMainStream(coverGeneration, mainStreamVolume);
+
+            lock (_lock)
+            {
+                if (!IsCurrentCoverLocked(cover.Generation))
+                {
+                    return;
+                }
+
+                SetStateLocked(CoverState.CROSSFADING);
+            }
+
+            ThreadPool.QueueUserWorkItem(_ =>
+            {
+                CrossfadeToMainStream(cover);
+                FinishPlaybackCover(cover);
+            });
+        }
+
+        private void CrossfadeToMainStream(PlaybackCover cover)
+        {
+            int fadeMs = Math.Max(1, CROSSFADE_MS);
+            int steps = Math.Min(8, fadeMs);
+            var watch = Stopwatch.StartNew();
+            for (int i = 1; i <= steps; ++i)
+            {
+                if (!IsCurrentCrossfade(cover.Generation))
+                {
+                    return;
+                }
+
+                int targetMs = i * fadeMs / steps;
+                int sleepMs = targetMs - (int) watch.ElapsedMilliseconds;
+                if (sleepMs > 0)
+                {
+                    Thread.Sleep(sleepMs);
+                }
+
+                if (!IsCurrentCrossfade(cover.Generation))
+                {
+                    return;
+                }
+
+                double t = Math.Min(1.0, watch.Elapsed.TotalMilliseconds / fadeMs);
+                double fadeAngle = t * Math.PI / 2.0;
+                float mainVolume = (float) (cover.MainRestoreVolume * Math.Sin(fadeAngle));
+                float coverVolume = (float) (cover.MainRestoreVolume * Math.Cos(fadeAngle));
+                Bass.ChannelSetAttribute(_mainStream, ChannelAttribute.Volume, mainVolume);
+                Bass.ChannelSetAttribute(cover.Stream, ChannelAttribute.Volume, coverVolume);
+            }
+        }
+
+        private void FinishPlaybackCover(PlaybackCover cover)
+        {
+            PlaybackCover detachedCover = DetachActiveCover(CoverState.CAPTURING, cover.Generation);
+            if (detachedCover == null)
+            {
+                return;
+            }
+
+            // Snap volume: BASS may otherwise leave it mid-slide after rapid cancellation/restart.
+            RestoreMainStreamAndFreeCover(detachedCover);
+        }
+
+        private bool IsCurrentCrossfade(int generation)
+        {
+            lock (_lock)
+            {
+                return (CoverState) _state == CoverState.CROSSFADING && IsCurrentCoverLocked(generation);
+            }
+        }
+
+        // Cancellation and disposal
+
+        private bool CancelActiveCover()
+        {
+            CoverState nextState = IsDisposed ? CoverState.DISPOSED : CoverState.CAPTURING;
+            PlaybackCover cover = DetachActiveCover(nextState, invalidate: true);
+            if (cover == null)
+            {
+                return false;
+            }
+
+            RestoreMainStreamAndFreeCover(cover);
+            return true;
         }
 
         /// <summary>
-        /// Stops cover playback and removes DSP hooks from the main stream.
+        /// Stops cover playback and removes DSP hooks from main stream.
         /// </summary>
         public void Dispose()
         {
             lock (_coverOperationLock)
             {
-                if (_disposed)
+                if (IsDisposed)
                 {
                     return;
                 }
-                _disposed = true;
 
-                _capturing = false;
-                CancelActivePlaybackCover();
+                RestoreMainStreamAndFreeCover(DetachActiveCover(CoverState.DISPOSED, invalidate: true));
 
                 if (_dspHandle != 0)
                 {
@@ -228,127 +360,70 @@ namespace YARG.Audio.BASS
             }
         }
 
-        private void FinishPlaybackCover(int coverGeneration)
-        {
-            int coverStream;
-            bool restoreMainVolume;
-            float mainRestoreVolume;
-            lock (_lock)
-            {
-                if (_disposed || coverGeneration != _coverGeneration)
-                {
-                    return;
-                }
-
-                coverStream = _coverStream;
-                restoreMainVolume = _hasMainRestoreVolume;
-                mainRestoreVolume = _mainRestoreVolume;
-                _coverStream = 0;
-                System.Threading.Volatile.Write(ref _frozenAudio, null);
-                _hasMainRestoreVolume = false;
-                _capturing = true;
-            }
-
-            // Snap main stream to its pre-cover volume when cover fade completes. Otherwise BASS
-            // may leave it mid-slide when repeated covered ops cancel/restart fades quickly.
-            if (restoreMainVolume)
-            {
-                Bass.ChannelSetAttribute(_mainStream, ChannelAttribute.Volume, mainRestoreVolume);
-            }
-
-            FreePlaybackCoverStream(coverStream);
-        }
-
-        private void StartCrossfadeToMainStream(int coverGeneration, float targetVolume)
-        {
-            int coverStream;
-            lock (_lock)
-            {
-                coverStream = _coverStream;
-            }
-
-            System.Threading.ThreadPool.QueueUserWorkItem(_ =>
-            {
-                CrossfadeToMainStream(coverGeneration, coverStream, targetVolume);
-                if (!IsCoverGenerationCurrent(coverGeneration))
-                {
-                    return;
-                }
-
-                Bass.ChannelSetAttribute(_mainStream, ChannelAttribute.Volume, targetVolume);
-                Bass.ChannelSetAttribute(coverStream, ChannelAttribute.Volume, 0f);
-                FinishPlaybackCover(coverGeneration);
-            });
-        }
-
-        private void CrossfadeToMainStream(int coverGeneration, int coverStream, float targetVolume)
-        {
-            int fadeMs = Math.Max(1, CROSSFADE_MS);
-            int steps = Math.Min(8, fadeMs);
-            var watch = Stopwatch.StartNew();
-            for (int i = 1; i <= steps; ++i)
-            {
-                if (!IsCoverGenerationCurrent(coverGeneration))
-                {
-                    return;
-                }
-
-                int targetMs = i * fadeMs / steps;
-                int sleepMs = targetMs - (int) watch.ElapsedMilliseconds;
-                if (sleepMs > 0)
-                {
-                    System.Threading.Thread.Sleep(sleepMs);
-                }
-
-                if (!IsCoverGenerationCurrent(coverGeneration))
-                {
-                    return;
-                }
-
-                double t = Math.Min(1.0, watch.Elapsed.TotalMilliseconds / fadeMs);
-                double fadeAngle = t * Math.PI / 2.0;
-                float mainVolume = (float) (targetVolume * Math.Sin(fadeAngle));
-                float coverVolume = (float) (targetVolume * Math.Cos(fadeAngle));
-                Bass.ChannelSetAttribute(_mainStream, ChannelAttribute.Volume, mainVolume);
-                Bass.ChannelSetAttribute(coverStream, ChannelAttribute.Volume, coverVolume);
-            }
-        }
-
-        private bool IsCoverGenerationCurrent(int coverGeneration)
+        // Detaches managed ownership before any BASS call; BASS callbacks may block or re-enter.
+        private PlaybackCover DetachActiveCover(CoverState nextState, int expectedGeneration = -1, bool invalidate = false)
         {
             lock (_lock)
             {
-                return !_disposed && coverGeneration == _coverGeneration && _hasMainRestoreVolume;
+                PlaybackCover cover = _activeCover;
+                if (cover == null || (expectedGeneration >= 0 && cover.Generation != expectedGeneration))
+                {
+                    if (nextState == CoverState.DISPOSED)
+                    {
+                        SetStateLocked(CoverState.DISPOSED);
+                    }
+
+                    return null;
+                }
+
+                Volatile.Write(ref _activeCover, null);
+                if (invalidate)
+                {
+                    ++_coverGeneration;
+                }
+
+                SetStateLocked(nextState);
+                return cover;
             }
         }
 
-        private bool TryStartCoverStream(out float mainStreamVolume, out int error)
+        private void RestoreMainStreamAndFreeCover(PlaybackCover cover)
         {
-            Bass.ChannelGetAttribute(_mainStream, ChannelAttribute.Volume, out mainStreamVolume);
-
-            _coverStream = CreateCoverStreamOnMainDevice();
-            if (_coverStream != 0)
+            if (cover == null)
             {
-                if (!Bass.ChannelSetAttribute(_coverStream, ChannelAttribute.Volume, 0f))
-                {
-                    error = (int) Bass.LastError;
-                    YargLogger.LogFormatError("Failed to initialize gap cover volume: {0}", Bass.LastError);
-                    FreePlaybackCoverStream();
-                    return false;
-                }
-
-                if (Bass.ChannelPlay(_coverStream))
-                {
-                    error = 0;
-                    return true;
-                }
+                return;
             }
 
-            error = (int)Bass.LastError;
-            YargLogger.LogFormatError("Failed to create/play cover stream: {0}", Bass.LastError);
-            FreePlaybackCoverStream();
-            return false;
+            Bass.ChannelSetAttribute(_mainStream, ChannelAttribute.Volume, cover.MainRestoreVolume);
+            FreeCoverStream(cover.Stream);
         }
+
+        private void ResumeCapture()
+        {
+            lock (_lock)
+            {
+                if (!IsDisposed)
+                {
+                    SetStateLocked(CoverState.CAPTURING);
+                }
+            }
+        }
+
+        private bool IsDisposed => Volatile.Read(ref _state) == (int) CoverState.DISPOSED;
+
+        private bool IsCurrentCoverLocked(int generation)
+        {
+            PlaybackCover cover = _activeCover;
+            return cover != null && cover.Generation == generation;
+        }
+
+        private void SetStateLocked(CoverState state)
+        {
+            Volatile.Write(ref _state, (int) state);
+            _capturing = state == CoverState.CAPTURING;
+        }
+
+        // BASS stream helpers
 
         private int CreateCoverStreamOnMainDevice()
         {
@@ -373,58 +448,56 @@ namespace YARG.Audio.BASS
             }
         }
 
-        private unsafe void OnDsp(int handle, int channel, IntPtr buffer, int length, IntPtr user)
+        private static void FreeCoverStream(int coverStream)
         {
-            if (!_capturing || _disposed || _history.Length == 0)
+            if (coverStream == 0)
             {
                 return;
             }
 
+            Bass.ChannelStop(coverStream);
+            Bass.StreamFree(coverStream);
+        }
+
+        // BASS callbacks
+
+        /// <summary>
+        /// BASS DSP callback. Copies output float samples into history ring on BASS audio thread.
+        /// Publishes ring positions after writes without locking; snapshots may contain a partially updated sample rather than
+        /// blocking audio playback.
+        /// </summary>
+        private unsafe void OnDsp(int handle, int channel, IntPtr buffer, int length, IntPtr user)
+        {
+            if (!_capturing || IsDisposed)
+            {
+                return;
+            }
+
+            // BASS supplies byte length; history stores interleaved float samples.
             int samples = length / sizeof(float);
             if (samples <= 0)
             {
                 return;
             }
 
-            var src = new ReadOnlySpan<float>((void*)buffer, samples);
-
-            int capacity = _history.Length;
-            if (samples >= capacity)
-            {
-                src[^capacity..].CopyTo(_history);
-                System.Threading.Volatile.Write(ref _historyWritePosition, 0);
-                System.Threading.Volatile.Write(ref _recordedSampleCount, capacity);
-                return;
-            }
-
-            int historyWritePosition = System.Threading.Volatile.Read(ref _historyWritePosition);
-            int firstCopyCount = Math.Min(samples, capacity - historyWritePosition);
-            src[..firstCopyCount].CopyTo(_history.AsSpan(historyWritePosition, firstCopyCount));
-            if (firstCopyCount < samples)
-            {
-                src[firstCopyCount..].CopyTo(_history.AsSpan(0, samples - firstCopyCount));
-            }
-
-            int nextHistoryWritePosition = (historyWritePosition + samples) % capacity;
-            System.Threading.Volatile.Write(ref _historyWritePosition, nextHistoryWritePosition);
-            int recordedSampleCount = System.Threading.Volatile.Read(ref _recordedSampleCount);
-            int newRecordedSampleCount = Math.Min(capacity, recordedSampleCount + samples);
-            System.Threading.Volatile.Write(ref _recordedSampleCount, newRecordedSampleCount);
+            // Wrap BASS-owned buffer without allocating or copying before ring write.
+            var src = new ReadOnlySpan<float>((void*) buffer, samples);
+            _audioHistory.Write(src);
         }
 
         private unsafe int OnCoverStream(int handle, IntPtr buffer, int length, IntPtr user)
         {
             int samples = length / sizeof(float);
-            var dst = new Span<float>((void*)buffer, samples);
+            var dst = new Span<float>((void*) buffer, samples);
             dst.Clear();
 
-            FrozenAudio frozenAudio = System.Threading.Volatile.Read(ref _frozenAudio);
-            if (frozenAudio == null)
+            PlaybackCover cover = Volatile.Read(ref _activeCover);
+            if (cover == null || cover.Stream != handle)
             {
                 return length;
             }
 
-            FillFrozenAudio(dst, frozenAudio);
+            FillFrozenAudio(dst, cover.Audio);
             return length;
         }
 
@@ -444,83 +517,87 @@ namespace YARG.Audio.BASS
 
         private float[] FreezeRecentAudio()
         {
-            int count = Math.Min(_history.Length, System.Threading.Volatile.Read(ref _recordedSampleCount));
             int coverSamples = Math.Max(1, _sampleRate * _channels * COVER_SOURCE_MS / 1000);
-            count = Math.Min(count, coverSamples);
-            if (count == 0)
-            {
-                return Array.Empty<float>();
-            }
-
-            var audioSamples = new float[count];
-            int historyWritePosition = System.Threading.Volatile.Read(ref _historyWritePosition);
-            int startPosition = (historyWritePosition - count + _history.Length) % _history.Length;
-
-            int firstCopyCount = Math.Min(count, _history.Length - startPosition);
-            Array.Copy(_history, startPosition, audioSamples, 0, firstCopyCount);
-            if (firstCopyCount < count)
-            {
-                Array.Copy(_history, 0, audioSamples, firstCopyCount, count - firstCopyCount);
-            }
-
-            return audioSamples;
+            return _audioHistory.CopyLast(coverSamples);
         }
 
-        private bool CancelActivePlaybackCover()
+        /// <summary>
+        /// Stores recent interleaved audio samples in a circular buffer for non-blocking snapshots.
+        /// </summary>
+        private sealed class AudioHistoryBuffer
         {
-            int coverStream;
-            float volume;
-            lock (_lock)
+            private readonly float[] _samples;
+
+            // Writer publishes positions after samples. Readers may include a partially updated sample rather than block audio.
+            private int _writePosition;
+            private int _recordedSampleCount;
+
+            public AudioHistoryBuffer(int capacity)
             {
-                if (!_hasMainRestoreVolume)
+                _samples = new float[capacity];
+            }
+
+            /// <summary>
+            /// Appends samples, retaining only newest samples when input exceeds capacity.
+            /// Called only from BASS DSP callback.
+            /// </summary>
+            public void Write(ReadOnlySpan<float> source)
+            {
+                int capacity = _samples.Length;
+                if (source.Length >= capacity)
                 {
-                    return false;
+                    source[^capacity..].CopyTo(_samples);
+                    Volatile.Write(ref _writePosition, 0);
+                    Volatile.Write(ref _recordedSampleCount, capacity);
+                    return;
                 }
 
-                ++_coverGeneration;
-                coverStream = _coverStream;
-                volume = _mainRestoreVolume;
-                _coverStream = 0;
-                System.Threading.Volatile.Write(ref _frozenAudio, null);
-                _hasMainRestoreVolume = false;
-                _capturing = true;
+                int writePosition = Volatile.Read(ref _writePosition);
+                int firstPartLength = Math.Min(source.Length, capacity - writePosition);
+                source[..firstPartLength].CopyTo(_samples.AsSpan(writePosition, firstPartLength));
+
+                int secondPartLength = source.Length - firstPartLength;
+                if (secondPartLength > 0)
+                {
+                    source[firstPartLength..].CopyTo(_samples.AsSpan(0, secondPartLength));
+                }
+
+                int nextWritePosition = (writePosition + source.Length) % capacity;
+                Volatile.Write(ref _writePosition, nextWritePosition);
+
+                int recordedSampleCount = Volatile.Read(ref _recordedSampleCount);
+                int newRecordedSampleCount = Math.Min(capacity, recordedSampleCount + source.Length);
+                Volatile.Write(ref _recordedSampleCount, newRecordedSampleCount);
             }
 
-            Bass.ChannelSetAttribute(_mainStream, ChannelAttribute.Volume, volume);
-            FreePlaybackCoverStream(coverStream);
-            return true;
-        }
-
-        private void ClearMainStreamRestoreVolume()
-        {
-            lock (_lock)
+            /// <summary>
+            /// Returns up to <paramref name="maximumSampleCount"/> newest samples in playback order.
+            /// Does not block writer; returned data can contain a partially written sample.
+            /// </summary>
+            public float[] CopyLast(int maximumSampleCount)
             {
-                _hasMainRestoreVolume = false;
+                int recordedSampleCount = Volatile.Read(ref _recordedSampleCount);
+                int sampleCount = Math.Min(maximumSampleCount, Math.Min(recordedSampleCount, _samples.Length));
+                if (sampleCount <= 0)
+                {
+                    return Array.Empty<float>();
+                }
+
+                var copiedSamples = new float[sampleCount];
+                int writePosition = Volatile.Read(ref _writePosition);
+                int startPosition = (writePosition - sampleCount + _samples.Length) % _samples.Length;
+
+                int firstPartLength = Math.Min(sampleCount, _samples.Length - startPosition);
+                Array.Copy(_samples, startPosition, copiedSamples, 0, firstPartLength);
+
+                int secondPartLength = sampleCount - firstPartLength;
+                if (secondPartLength > 0)
+                {
+                    Array.Copy(_samples, 0, copiedSamples, firstPartLength, secondPartLength);
+                }
+
+                return copiedSamples;
             }
-        }
-
-        private void FreePlaybackCoverStream()
-        {
-            int coverStream;
-            lock (_lock)
-            {
-                coverStream = _coverStream;
-                _coverStream = 0;
-                System.Threading.Volatile.Write(ref _frozenAudio, null);
-            }
-
-            FreePlaybackCoverStream(coverStream);
-        }
-
-        private static void FreePlaybackCoverStream(int coverStream)
-        {
-            if (coverStream == 0)
-            {
-                return;
-            }
-
-            Bass.ChannelStop(coverStream);
-            Bass.StreamFree(coverStream);
         }
     }
 }
