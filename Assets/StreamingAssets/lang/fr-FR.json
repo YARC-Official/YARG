@@ -319,7 +319,7 @@
                     "RandomSong": "Musique aléatoire",
                     "BackToTop": "Retour au début",
                     "ScanSongs": "Scanner les chansons",
-                    "SortBy": "Trier par : {0}",
+                    "SortBy": "Trier par...",
                     "GoToSection": "Aller à la sélection...",
                     "AddToFavorites": "Ajouter aux favoris",
                     "RemoveFromFavorites": "Retirer des favoris",
@@ -572,11 +572,53 @@
             "Kick": "Kick",
             "RightKick": "Kick Droit",
             "LeftKick": "Kick Gauche",
-            "SplitKicksWarning": "* Les kicks séparés peuvent toujours être frappés avec une pédale et peuvent ne pas correspondre au pied le plus confortable pour les patterns de double kick.",
+            "SplitKicksWarning": "* Les kicks séparés peuvent toujours être frappés avec une pédale et peuvent ne pas correspondre au pied le plus confortable pour les enchaînements de double kick.",
             "ExpertPlusOnly": "Expert+ uniquement",
             "4LaneHeader": "Configuration de la piste à 4 lignes",
             "ProHeader": "Configuration de la piste Batterie Pro",
             "5LaneHeader": "Configuration de la Piste de Batterie 5 lignes"
+        },
+        "Pause": {
+            "Generic": {
+                "Resume": "Reprendre",
+                "Restart": "Relancer",
+                "BackToLibrary": "Retour à la bibliothèque",
+                "Settings": "Réglages",
+                "Practice": "Entraînement"
+            },
+            "Fail": {
+                "EnableNoFailandResume": "Activer sans échec et reprendre",
+                "EnableNoFailandRestart": "Activer Aucun Échec et Redémarrer"
+            },
+            "Practice": {
+                "SetAPosition": "Définir la position A",
+                "SetBPosition": "Définir la position B",
+                "ClearAB": "Vider A/B",
+                "SelectNewSections": "Sélectionner de nouvelles sections",
+                "Quickplay": "Partie rapide"
+            },
+            "Quickplay": {
+                "SaveReplay": "Sauvegarder le Replay"
+            },
+            "Replay": {
+                "SaveColorProfile": "Sauvegarder le profil de couleur"
+            },
+            "Setlist": {
+                "Skip": "Passer"
+            },
+            "QuickSettings": {
+                "AudioSettings": "Paramètres audio",
+                "EditHud": "Modifier le HUD",
+                "NoFail": {
+                    "Enable": "Activer sans échec",
+                    "Disable": "Désactiver sans échec"
+                },
+                "VenuePP": {
+                    "Enable": "Activer le post traitement des lieux",
+                    "Disable": "Désactiver le post traitement des lieux"
+                },
+                "Calibration": "Paramètres de calibrage"
+            }
         }
     },
     "Gameplay": {

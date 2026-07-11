@@ -319,7 +319,7 @@
                     "RandomSong": "ランダムな曲",
                     "BackToTop": "トップへ戻る",
                     "ScanSongs": "曲をスキャン",
-                    "SortBy": "{0}で並び替え",
+                    "SortBy": "Sort By...",
                     "GoToSection": "セクションへ",
                     "AddToFavorites": "お気に入りへ追加",
                     "RemoveFromFavorites": "お気に入りから削除",
@@ -576,6 +576,48 @@
             "4LaneHeader": "4レーンドラムハイウェイ設定",
             "ProHeader": "プロドラムハイウェイ設定",
             "5LaneHeader": "5レーンドラムハイウェイ設定"
+        },
+        "Pause": {
+            "Generic": {
+                "Resume": "Resume",
+                "Restart": "Restart",
+                "BackToLibrary": "Back To Library",
+                "Settings": "Settings",
+                "Practice": "Practice"
+            },
+            "Fail": {
+                "EnableNoFailandResume": "Enable No Fail and Resume",
+                "EnableNoFailandRestart": "Enable No Fail and Restart"
+            },
+            "Practice": {
+                "SetAPosition": "Set A Position",
+                "SetBPosition": "Set B Position",
+                "ClearAB": "Clear A/B",
+                "SelectNewSections": "Select New Sections",
+                "Quickplay": "Quickplay"
+            },
+            "Quickplay": {
+                "SaveReplay": "Save Replay"
+            },
+            "Replay": {
+                "SaveColorProfile": "Save Color Profile"
+            },
+            "Setlist": {
+                "Skip": "Skip"
+            },
+            "QuickSettings": {
+                "AudioSettings": "Audio Settings",
+                "EditHud": "Edit HUD",
+                "NoFail": {
+                    "Enable": "Enable No Fail",
+                    "Disable": "Disable No Fail"
+                },
+                "VenuePP": {
+                    "Enable": "Enable Venue Post Processing",
+                    "Disable": "Disable Venue Post Processing"
+                },
+                "Calibration": "Calibration Settings"
+            }
         }
     },
     "Gameplay": {
