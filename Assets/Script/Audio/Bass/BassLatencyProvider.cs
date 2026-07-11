@@ -8,7 +8,7 @@ namespace YARG.Audio.BASS
     /// </summary>
     internal static class BassLatencyProvider
     {
-        // Half the update period is the best estimate for latency whose exact position in the period is unknown.
+        // Estimate command timing at midpoint of BASS's update period.
         private static double CommandLatency => Math.Max(0, Bass.UpdatePeriod) / 2000.0;
 
         /// <summary>
@@ -17,6 +17,14 @@ namespace YARG.Audio.BASS
         public static double GetTempoStreamLatency(int tempoStreamHandle)
         {
             return GetOutputBufferLatency(tempoStreamHandle) + CommandLatency;
+        }
+
+        /// <summary>
+        /// Gets time needed for newly started audio to cross BASS and device output buffers.
+        /// </summary>
+        public static double GetOutputTransitionLatency()
+        {
+            return Math.Max(0, Bass.Info.Latency + Bass.DeviceBufferLength) / 1000.0;
         }
 
         private static double GetOutputBufferLatency(int tempoStreamHandle)

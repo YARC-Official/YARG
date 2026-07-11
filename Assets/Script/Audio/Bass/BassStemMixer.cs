@@ -143,6 +143,7 @@ namespace YARG.Audio.BASS
                 {
                     return (int) Bass.LastError;
                 }
+                Bass.ChannelUpdate(_tempoStreamHandle, 0);
                 _didSeek = false;
             }
 
@@ -211,6 +212,11 @@ namespace YARG.Audio.BASS
             return BassLatencyProvider.GetTempoStreamLatency(_tempoStreamHandle);
         }
 
+        protected override double GetPlaybackStartLatency_Internal()
+        {
+            return BassLatencyProvider.GetOutputTransitionLatency() + _songPositionTracker.AlignmentDelay;
+        }
+
         protected override double GetVolume_Internal()
         {
             if (!Bass.ChannelGetAttribute(_tempoStreamHandle, ChannelAttribute.Volume, out float volume))
@@ -234,6 +240,10 @@ namespace YARG.Audio.BASS
                 }
                 _didSeek = true;
                 _songPositionTracker.Reset(position, delay);
+                if (!Bass.ChannelSetPosition(_tempoStreamHandle, 0))
+                {
+                    YargLogger.LogFormatError("Failed to reset tempo stream position: {0}!", Bass.LastError);
+                }
             }
 
             if (wasPlaying)
@@ -677,6 +687,8 @@ namespace YARG.Audio.BASS
             private readonly int _tempoStreamHandle;
             private double _songStart;
             private double _delay;
+
+            public double AlignmentDelay => _delay;
 
             public SongPositionTracker(int tempoStreamHandle)
             {

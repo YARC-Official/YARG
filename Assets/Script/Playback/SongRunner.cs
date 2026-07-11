@@ -208,14 +208,19 @@ namespace YARG.Playback
         #endregion
 
         #region Audio syncing
+        private const int SYNC_THREAD_SHUTDOWN_TIMEOUT_MS = 1000;
+
         private Thread _syncThread;
 
-        private bool _disposed;
+        private volatile bool _disposed;
+
+        public bool SyncThreadStopped { get; private set; }
 
         private volatile float _syncSpeedAdjustment;
         private volatile int   _syncSpeedMultiplier;
         private volatile float _syncStartDelta;
         private volatile float _syncWorstDelta;
+        private bool _logNextResumeSyncSample;
 
         private readonly SyncCorrectionCalculator _syncCorrection = new();
         private double _syncCorrectionSuppressedUntil = double.NegativeInfinity;
@@ -315,11 +320,21 @@ namespace YARG.Playback
                 _disposed = true;
                 if (disposing)
                 {
-                    if (_syncThread.IsAlive)
+                    _rewindSource?.Cancel();
+                    _rewindTween?.Kill();
+
+                    SyncThreadStopped = !_syncThread.IsAlive ||
+                        _syncThread.Join(SYNC_THREAD_SHUTDOWN_TIMEOUT_MS);
+                    if (!SyncThreadStopped)
                     {
-                        _syncThread.Join();
+                        YargLogger.LogError("Audio sync thread did not stop during song teardown.");
+                        return;
                     }
+
                     _syncThread = null;
+                    _rewindSource?.Dispose();
+                    _rewindSource = null;
+                    _rewindTween = null;
                 }
             }
         }
@@ -441,6 +456,15 @@ namespace YARG.Playback
                     }
 
                     double delta = SyncVisualTime - SyncAudioTime;
+                    if (_logNextResumeSyncSample)
+                    {
+                        _logNextResumeSyncSample = false;
+                        YargLogger.LogFormatInfo(
+                            "First resume sync sample: mixer position={0:0.000000}, tempo latency={1:0.000000}, " +
+                            "sync audio={2:0.000000}, sync visual={3:0.000000}, delta={4:+0.000000;-0.000000;0.000000}.",
+                            tempoStreamPosition, tempoStreamLatency, SyncAudioTime, SyncVisualTime, delta
+                        );
+                    }
 
                     float adjustment = currentTime < _syncCorrectionSuppressedUntil
                         ? _syncCorrection.SuppressAdjustment(elapsedMs, tempoStreamLatencyMs, _syncSpeedAdjustment)
@@ -480,6 +504,8 @@ namespace YARG.Playback
             _syncCorrection.Reset();
             _syncSpeedMultiplier = 0;
             _syncSpeedAdjustment = 0f;
+            _syncStartDelta = 0f;
+            _syncWorstDelta = 0f;
             _mixer.SetSpeed(RealSongSpeed, true);
         }
 
@@ -528,8 +554,10 @@ namespace YARG.Playback
 
             InputTimeOffset = inputSystemTime - (songTime / SongSpeed);
 
-            // Update input times
-            UpdateTimes();
+            InputTime = GetRelativeInputTime(inputSystemTime);
+            SongTime = InputTime + (AudioCalibration * SongSpeed);
+            VisualTime = InputTime + (VideoCalibration * SongSpeed);
+            AudioPlaybackTime = _mixer.GetPosition();
 
             YargLogger.LogFormatDebug(
                 "Set input time base.\n" +
@@ -596,7 +624,8 @@ namespace YARG.Playback
 
                 _mixer.Pause();
                 // Audio seeking; cannot go negative
-                double seekTime = time - (delayTime - AudioCalibration) * SongSpeed - SongOffset;
+                double playbackPreRoll = _mixer.GetPlaybackStartLatency() * SongSpeed;
+                double seekTime = time - (delayTime - AudioCalibration) * SongSpeed - SongOffset + playbackPreRoll;
                 if (seekTime < 0)
                 {
                     seekTime = 0;
@@ -724,13 +753,41 @@ namespace YARG.Playback
                 return;
 
 
-            // Rebase the timeline before exposing the resumed state to the sync thread. Otherwise,
-            // it can sample the input clock with the pre-pause base and treat the pause duration as desync.
             lock (_syncThread)
             {
                 UpdateCalibration();
-                SetInputBaseChecked(InputTime);
+                double resumeInputTime = InputTime;
+                double playbackPreRoll = _mixer.GetPlaybackStartLatency() * SongSpeed;
+                double targetAudioPosition = resumeInputTime + (AudioCalibration * SongSpeed) - SongOffset;
+                double seekPosition = Math.Clamp(targetAudioPosition + playbackPreRoll, 0, _mixer.Length);
+
+                double mixerPositionBeforeSeek = _mixer.GetPosition();
+                _mixer.SetPosition(seekPosition);
+                double mixerPositionAfterSeek = _mixer.GetPosition();
+                ResetSync();
+
                 Paused = false;
+
+                if (targetAudioPosition >= -playbackPreRoll && targetAudioPosition < _mixer.Length)
+                {
+                    double mixerPositionBeforePlay = _mixer.GetPosition();
+                    _mixer.Play();
+                    double mixerPositionAfterPlay = _mixer.GetPosition();
+                    _logNextResumeSyncSample = true;
+
+                    YargLogger.LogFormatInfo(
+                        "Resume audio setup: target={0:0.000000}, pre-roll={1:0.000000}, requested seek={2:0.000000}, " +
+                        "position before seek={3:0.000000}, after seek={4:0.000000}, before play={5:0.000000}, " +
+                        "after play={6:0.000000}, achieved pre-roll after play={7:+0.000000;-0.000000;0.000000}.",
+                        targetAudioPosition, playbackPreRoll, seekPosition, mixerPositionBeforeSeek,
+                        mixerPositionAfterSeek, mixerPositionBeforePlay, mixerPositionAfterPlay,
+                        mixerPositionAfterPlay - targetAudioPosition
+                    );
+                }
+
+                // Seeking and starting playback can take several milliseconds. Anchor after both
+                // complete so that work does not advance the resumed timeline.
+                SetInputBaseAt(resumeInputTime, InputManager.CurrentInputTime);
             }
 
             YargLogger.LogFormatDebug(
