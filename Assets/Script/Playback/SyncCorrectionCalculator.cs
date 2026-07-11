@@ -18,9 +18,10 @@ namespace YARG.Playback
     //
     // Once pending work is removed, errors below the deadband are ignored to prevent constant
     // speed changes from tiny clock fluctuations. Larger errors are multiplied by a gain based on
-    // stream delay, converted into a playback-rate adjustment, and capped by SYNC_CLAMP. Callers
-    // feed the adjustment applied during each elapsed frame back into the next calculation, which
-    // keeps the pending-correction history aligned with what playback actually received.
+    // stream delay, converted into a playback-rate adjustment, and capped by SYNC_CLAMP. Tiny
+    // changes to the requested adjustment are retained until they cross the update threshold,
+    // avoiding needless tempo-stream updates while keeping pending-correction history aligned with
+    // the adjustment requested from playback.
     internal sealed class SyncCorrectionCalculator
     {
         // Ignore sync errors smaller than 1.5 ms to avoid reacting to tiny clock fluctuations.
@@ -39,7 +40,10 @@ namespace YARG.Playback
         // Never adjust playback speed by more than 50% in either direction.
         private const float SYNC_CLAMP = 0.50f;
 
+        private const float SPEED_UPDATE_THRESHOLD = 0.0005f;
+
         private readonly SyncHistoryBuffer _syncHistory = new();
+        private float _currentAdjustment;
 
         /// <summary>
         /// Calculates the playback-speed change needed to reduce the current sync error.
@@ -47,18 +51,30 @@ namespace YARG.Playback
         /// <param name="syncDeltaSeconds">How far playback is behind or ahead, in seconds.</param>
         /// <param name="elapsedMs">Time since the previous calculation, in milliseconds.</param>
         /// <param name="streamDelayMs">Time before a speed change reaches audio output, in milliseconds.</param>
-        /// <param name="appliedAdjustment">Speed adjustment used during the elapsed time.</param>
         /// <returns>Speed adjustment to apply, where 0.1 means 10% faster.</returns>
-        public float CalculateAdjustment(double syncDeltaSeconds, double elapsedMs, double streamDelayMs,
-            float appliedAdjustment)
+        public float CalculateAdjustment(double syncDeltaSeconds, double elapsedMs, double streamDelayMs)
         {
             streamDelayMs = Math.Max(1.0, streamDelayMs);
             elapsedMs = Math.Clamp(elapsedMs, 1.0, 100.0);
 
-            RecordAdjustment(elapsedMs, appliedAdjustment, streamDelayMs);
+            RecordAdjustment(elapsedMs, streamDelayMs);
 
             double errorMs = syncDeltaSeconds * 1000.0 - _syncHistory.RunningContributionMs;
-            return CalculateRateAdjustment(errorMs, streamDelayMs);
+            float adjustment = 0f;
+            if (Math.Abs(errorMs) >= SYNC_DEADBAND_SECONDS * 1000.0)
+            {
+                float gain = Math.Clamp((float) streamDelayMs / CORRECTION_TIME_MS, MIN_GAIN, MAX_GAIN);
+                float correctionMs = (float) errorMs * gain;
+                adjustment = Math.Clamp(correctionMs / (float) streamDelayMs, -SYNC_CLAMP, SYNC_CLAMP);
+            }
+
+            if (adjustment != 0f && Math.Abs(adjustment - _currentAdjustment) < SPEED_UPDATE_THRESHOLD)
+            {
+                return _currentAdjustment;
+            }
+
+            _currentAdjustment = adjustment;
+            return _currentAdjustment;
         }
 
         /// <summary>
@@ -66,15 +82,15 @@ namespace YARG.Playback
         /// </summary>
         /// <param name="elapsedMs">Time since the previous calculation, in milliseconds.</param>
         /// <param name="streamDelayMs">Time before a speed change reaches audio output, in milliseconds.</param>
-        /// <param name="appliedAdjustment">Speed adjustment used during the elapsed time.</param>
         /// <returns>Zero, to disable sync correction.</returns>
-        public float SuppressAdjustment(double elapsedMs, double streamDelayMs, float appliedAdjustment)
+        public float SuppressAdjustment(double elapsedMs, double streamDelayMs)
         {
             streamDelayMs = Math.Max(1.0, streamDelayMs);
             elapsedMs = Math.Clamp(elapsedMs, 1.0, 100.0);
 
-            RecordAdjustment(elapsedMs, appliedAdjustment, streamDelayMs);
-            return 0f;
+            RecordAdjustment(elapsedMs, streamDelayMs);
+            _currentAdjustment = 0f;
+            return _currentAdjustment;
         }
 
         /// <summary>
@@ -84,24 +100,12 @@ namespace YARG.Playback
         public void Reset()
         {
             _syncHistory.Clear();
+            _currentAdjustment = 0f;
         }
 
-        private static float CalculateRateAdjustment(double errorMs, double streamDelayMs)
+        private void RecordAdjustment(double elapsedMs, double streamDelayMs)
         {
-            if (Math.Abs(errorMs) < SYNC_DEADBAND_SECONDS * 1000.0)
-            {
-                return 0f;
-            }
-
-            float gain = Math.Clamp((float) streamDelayMs / CORRECTION_TIME_MS, MIN_GAIN, MAX_GAIN);
-            float correctionMs = (float) errorMs * gain;
-
-            return Math.Clamp(correctionMs / (float) streamDelayMs, -SYNC_CLAMP, SYNC_CLAMP);
-        }
-
-        private void RecordAdjustment(double elapsedMs, float adjustment, double streamDelayMs)
-        {
-            _syncHistory.Add(elapsedMs, adjustment * elapsedMs);
+            _syncHistory.Add(elapsedMs, _currentAdjustment * elapsedMs);
             _syncHistory.TrimToDuration(streamDelayMs);
         }
 

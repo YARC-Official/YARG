@@ -410,7 +410,6 @@ namespace YARG.Playback
 
         private void SyncThread()
         {
-            const float SPEED_UPDATE_THRESHOLD = 0.0005f;
             double lastSampleTime = InputManager.CurrentInputTime;
 
             for (; !_disposed; Thread.Sleep(1))
@@ -441,7 +440,7 @@ namespace YARG.Playback
 
                     if (Paused || SyncVisualTime < 0 || SyncVisualTime >= _mixer.Length)
                     {
-                        _syncCorrection.SuppressAdjustment(elapsedMs, tempoStreamLatencyMs, _syncSpeedAdjustment);
+                        _syncCorrection.SuppressAdjustment(elapsedMs, tempoStreamLatencyMs);
                         continue;
                     }
 
@@ -452,15 +451,14 @@ namespace YARG.Playback
 
                     if (SyncAudioTime >= _mixer.Length)
                     {
-                        _syncCorrection.SuppressAdjustment(elapsedMs, tempoStreamLatencyMs, _syncSpeedAdjustment);
+                        _syncCorrection.SuppressAdjustment(elapsedMs, tempoStreamLatencyMs);
                         continue;
                     }
 
                     double delta = SyncVisualTime - SyncAudioTime;
                     float adjustment = currentTime < _syncCorrectionSuppressedUntil
-                        ? _syncCorrection.SuppressAdjustment(elapsedMs, tempoStreamLatencyMs, _syncSpeedAdjustment)
-                        : _syncCorrection.CalculateAdjustment(delta, elapsedMs, tempoStreamLatencyMs,
-                            _syncSpeedAdjustment);
+                        ? _syncCorrection.SuppressAdjustment(elapsedMs, tempoStreamLatencyMs)
+                        : _syncCorrection.CalculateAdjustment(delta, elapsedMs, tempoStreamLatencyMs);
 
                     int speedMultiplier = Math.Sign(adjustment);
                     if (speedMultiplier != _syncSpeedMultiplier)
@@ -478,10 +476,7 @@ namespace YARG.Playback
                         _syncSpeedMultiplier = speedMultiplier;
                     }
 
-                    bool shouldUpdateSpeed = adjustment == 0f
-                        ? !Mathf.Approximately(adjustment, _syncSpeedAdjustment)
-                        : Math.Abs(adjustment - _syncSpeedAdjustment) >= SPEED_UPDATE_THRESHOLD;
-                    if (shouldUpdateSpeed)
+                    if (adjustment != _syncSpeedAdjustment)
                     {
                         _syncSpeedAdjustment = adjustment;
                         _mixer.SetSpeed(RealSongSpeed, false);
