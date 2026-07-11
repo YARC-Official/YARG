@@ -558,7 +558,7 @@ namespace YARG.Gameplay
                 {
                     using var text = ZString.CreateStringBuilder(true);
 
-                    text.AppendFormat("Audio/visual difference: {0:0.000000}\n", _songRunner.SyncDelta);
+                    text.AppendFormat("Audio/visual difference: {0:0.000} ms\n", _songRunner.SyncDelta * 1000.0);
                     text.AppendFormat("Resync start delta: {0:0.000000}\n", _songRunner.SyncStartDelta);
                     text.AppendFormat("Resync worst delta: {0:0.000000}\n", _songRunner.SyncWorstDelta);
                     text.AppendFormat("Speed adjustment: {0:0.00}\n", _songRunner.SyncSpeedAdjustment);

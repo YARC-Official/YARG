@@ -84,6 +84,7 @@ namespace YARG.Gameplay
         public bool IsSongStarted { get; private set; } = false;
 
         private SongRunner _songRunner;
+        private float _appliedSongSpeed = float.NaN;
 
         /// <remarks>
         /// This is not initialized on awake, but rather, in
@@ -291,6 +292,7 @@ namespace YARG.Gameplay
 
             // Update handlers
             _songRunner.Update();
+            ApplySongSpeed();
             BeatEventHandler.Update(_songRunner.SongTime, _songRunner.VisualTime);
             CrowdEventHandler.Update(_songRunner.SongTime);
 
@@ -326,6 +328,7 @@ namespace YARG.Gameplay
         public void SetSongTime(double time, double delayTime = SONG_START_DELAY)
         {
             _songRunner.SetSongTime(time, delayTime);
+            ApplySongSpeed();
 
             BeatEventHandler.Reset();
             BackgroundManager.SetTime(_songRunner.SongTime + Song.SongOffsetSeconds);
@@ -345,8 +348,7 @@ namespace YARG.Gameplay
         public void SetSongSpeed(float speed)
         {
             _songRunner.SetSongSpeed(speed);
-
-            BackgroundManager.SetSpeed(_songRunner.SongSpeed);
+            ApplySongSpeed();
         }
 
         public int GetMixerFFTData(float[] buffer, int fftSize, bool complex)
@@ -363,18 +365,30 @@ namespace YARG.Gameplay
         {
             _songRunner.AdjustSongSpeed(deltaSpeed);
 
-            // Only scale the player speed in practice
-            if (IsPractice && _songRunner.SongSpeed >= 1)
+            ApplySongSpeed();
+        }
+
+        private void ApplySongSpeed()
+        {
+            float speed = _songRunner.SongSpeed;
+            if (Mathf.Approximately(speed, _appliedSongSpeed))
             {
-                // Scale only if the speed is greater than 1
-                var speed = _songRunner.SongSpeed >= 1 ? _songRunner.SongSpeed : 1;
+                return;
+            }
+
+            _appliedSongSpeed = speed;
+
+            // Only scale the player speed in practice.
+            if (IsPractice && _players != null)
+            {
+                float engineSpeed = speed >= 1 ? speed : 1;
                 foreach (var player in _players)
                 {
-                    player.BaseEngine.SetSpeed(speed);
+                    player.BaseEngine.SetSpeed(engineSpeed);
                 }
             }
 
-            BackgroundManager.SetSpeed(_songRunner.SongSpeed);
+            BackgroundManager.SetSpeed(speed);
         }
 
         public void Pause(bool showMenu = true)

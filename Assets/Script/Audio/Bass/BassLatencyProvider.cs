@@ -8,19 +8,15 @@ namespace YARG.Audio.BASS
     /// </summary>
     internal static class BassLatencyProvider
     {
-        // Default BASS_FX tempo latency: sequence (82 ms) + seek window (14 ms) + overlap (12 ms).
-        private const double TEMPO_FX_LATENCY_SECONDS = 0.108;
-
         // Half the update period is the best estimate for latency whose exact position in the period is unknown.
         private static double CommandLatency => Math.Max(0, Bass.UpdatePeriod) / 2000.0;
 
         /// <summary>
-        /// Gets estimated tempo stream latency, including buffered audio, BASS command latency,
-        /// and BASS_FX tempo processing latency.
+        /// Gets estimated tempo stream latency, including buffered audio and BASS command latency.
         /// </summary>
         public static double GetTempoStreamLatency(int tempoStreamHandle)
         {
-            return GetOutputBufferLatency(tempoStreamHandle) + CommandLatency + TEMPO_FX_LATENCY_SECONDS;
+            return GetOutputBufferLatency(tempoStreamHandle) + CommandLatency;
         }
 
         private static double GetOutputBufferLatency(int tempoStreamHandle)
