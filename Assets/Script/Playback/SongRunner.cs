@@ -220,7 +220,6 @@ namespace YARG.Playback
         private volatile int   _syncSpeedMultiplier;
         private volatile float _syncStartDelta;
         private volatile float _syncWorstDelta;
-        private bool _logNextResumeSyncSample;
 
         private readonly SyncCorrectionCalculator _syncCorrection = new();
         private double _syncCorrectionSuppressedUntil = double.NegativeInfinity;
@@ -458,16 +457,6 @@ namespace YARG.Playback
                     }
 
                     double delta = SyncVisualTime - SyncAudioTime;
-                    if (_logNextResumeSyncSample)
-                    {
-                        _logNextResumeSyncSample = false;
-                        YargLogger.LogFormatInfo(
-                            "First resume sync sample: mixer position={0:0.000000}, tempo latency={1:0.000000}, " +
-                            "sync audio={2:0.000000}, sync visual={3:0.000000}, delta={4:+0.000000;-0.000000;0.000000}.",
-                            _mixer.GetPosition(), tempoStreamLatency, SyncAudioTime, SyncVisualTime, delta
-                        );
-                    }
-
                     float adjustment = currentTime < _syncCorrectionSuppressedUntil
                         ? _syncCorrection.SuppressAdjustment(elapsedMs, tempoStreamLatencyMs, _syncSpeedAdjustment)
                         : _syncCorrection.CalculateAdjustment(delta, elapsedMs, tempoStreamLatencyMs,
@@ -768,28 +757,14 @@ namespace YARG.Playback
                 double targetAudioPosition = resumeInputTime + (AudioCalibration * SongSpeed) - SongOffset;
                 double seekPosition = Math.Clamp(targetAudioPosition + playbackPreRoll, 0, _mixer.Length);
 
-                double mixerPositionBeforeSeek = _mixer.GetPosition();
                 _mixer.SetPosition(seekPosition);
-                double mixerPositionAfterSeek = _mixer.GetPosition();
                 ResetSync();
 
                 Paused = false;
 
                 if (targetAudioPosition >= -playbackPreRoll && targetAudioPosition < _mixer.Length)
                 {
-                    double mixerPositionBeforePlay = _mixer.GetPosition();
                     _mixer.Play();
-                    double mixerPositionAfterPlay = _mixer.GetPosition();
-                    _logNextResumeSyncSample = true;
-
-                    YargLogger.LogFormatInfo(
-                        "Resume audio setup: target={0:0.000000}, pre-roll={1:0.000000}, requested seek={2:0.000000}, " +
-                        "position before seek={3:0.000000}, after seek={4:0.000000}, before play={5:0.000000}, " +
-                        "after play={6:0.000000}, achieved pre-roll after play={7:+0.000000;-0.000000;0.000000}.",
-                        targetAudioPosition, playbackPreRoll, seekPosition, mixerPositionBeforeSeek,
-                        mixerPositionAfterSeek, mixerPositionBeforePlay, mixerPositionAfterPlay,
-                        mixerPositionAfterPlay - targetAudioPosition
-                    );
                 }
 
                 // Seeking and starting playback can take several milliseconds. Anchor after both
