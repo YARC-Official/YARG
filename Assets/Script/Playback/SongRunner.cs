@@ -432,10 +432,12 @@ namespace YARG.Playback
 
                     double audioOffset = SongOffset - (AudioCalibration * SongSpeed);
 
-                    double tempoStreamPosition = _mixer.GetPosition();
                     double tempoStreamLatency = _mixer.GetTempoStreamLatency();
                     double tempoStreamLatencyMs = Math.Max(1.0, tempoStreamLatency * 1000.0);
-                    SyncAudioTime = tempoStreamPosition - (tempoStreamLatency * RealSongSpeed);
+
+                    // AudioCalibration already accounts for output-device latency. Mixer position must
+                    // stay on the same timeline as dev or latency gets compensated a second time.
+                    SyncAudioTime = _mixer.GetPosition();
                     SyncVisualTime = GetRelativeInputTime(currentTime) - audioOffset;
 
                     if (Paused || SyncVisualTime < 0 || SyncVisualTime >= _mixer.Length)
