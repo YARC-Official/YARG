@@ -724,9 +724,14 @@ namespace YARG.Playback
                 return;
 
 
-            Paused = false;
-            UpdateCalibration();
-            SetInputBaseChecked(InputTime);
+            // Rebase the timeline before exposing the resumed state to the sync thread. Otherwise,
+            // it can sample the input clock with the pre-pause base and treat the pause duration as desync.
+            lock (_syncThread)
+            {
+                UpdateCalibration();
+                SetInputBaseChecked(InputTime);
+                Paused = false;
+            }
 
             YargLogger.LogFormatDebug(
                 "Resumed at song time {0:0.000000}, visual time {1:0.000000}, input time {2:0.000000}.",
