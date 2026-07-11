@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace YARG.Playback
 {
@@ -111,11 +112,7 @@ namespace YARG.Playback
 
         private sealed class SyncHistoryBuffer
         {
-            private const int CAPACITY = 4096;
-
-            private readonly Entry[] _entries = new Entry[CAPACITY];
-            private int _start;
-            private int _count;
+            private readonly List<Entry> _entries = new(512);
             private double _runningDurationMs;
             private double _runningContributionMs;
 
@@ -123,21 +120,14 @@ namespace YARG.Playback
 
             public void Clear()
             {
-                _start = 0;
-                _count = 0;
+                _entries.Clear();
                 _runningDurationMs = 0.0;
                 _runningContributionMs = 0.0;
             }
 
             public void Add(double durationMs, double contributionMs)
             {
-                if (_count == _entries.Length)
-                {
-                    RemoveOldest();
-                }
-
-                _entries[GetIndex(_count)] = new Entry(durationMs, contributionMs);
-                _count++;
+                _entries.Add(new Entry(durationMs, contributionMs));
                 _runningDurationMs += durationMs;
                 _runningContributionMs += contributionMs;
             }
@@ -146,10 +136,10 @@ namespace YARG.Playback
             {
                 targetDurationMs = Math.Max(1.0, targetDurationMs);
 
-                while (_count > 0 && _runningDurationMs > targetDurationMs)
+                while (_entries.Count > 0 && _runningDurationMs > targetDurationMs)
                 {
                     double excessDurationMs = _runningDurationMs - targetDurationMs;
-                    ref Entry oldest = ref _entries[_start];
+                    var oldest = _entries[0];
                     if (oldest.DurationMs <= excessDurationMs)
                     {
                         RemoveOldest();
@@ -164,19 +154,17 @@ namespace YARG.Playback
                     oldest.ContributionMs -= removedContributionMs;
                     _runningDurationMs = targetDurationMs;
                     _runningContributionMs -= removedContributionMs;
+                    _entries[0] = oldest;
                 }
             }
 
             private void RemoveOldest()
             {
-                Entry oldest = _entries[_start];
-                _start = GetIndex(1);
-                _count--;
+                var oldest = _entries[0];
+                _entries.RemoveAt(0);
                 _runningDurationMs -= oldest.DurationMs;
                 _runningContributionMs -= oldest.ContributionMs;
             }
-
-            private int GetIndex(int offset) => (_start + offset) % _entries.Length;
 
             private struct Entry
             {

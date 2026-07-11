@@ -410,9 +410,10 @@ namespace YARG.Playback
 
         private void SyncThread()
         {
+            const int SYNC_INTERVAL_MS = 10;
             double lastSampleTime = InputManager.CurrentInputTime;
 
-            for (; !_disposed; Thread.Sleep(1))
+            for (; !_disposed; Thread.Sleep(SYNC_INTERVAL_MS))
             {
                 lock (_syncThread)
                 {
