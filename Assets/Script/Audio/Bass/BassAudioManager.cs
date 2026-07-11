@@ -168,7 +168,7 @@ namespace YARG.Audio.BASS
             }
 
             var info = Bass.Info;
-            PlaybackLatency = info.Latency + Bass.DeviceBufferLength + devPeriod;
+            UpdatePlaybackLatency();
             MinimumBufferLength = info.MinBufferLength + Bass.UpdatePeriod;
             MaximumBufferLength = 5000;
 
@@ -180,6 +180,12 @@ namespace YARG.Audio.BASS
             YargLogger.LogFormatInfo("Current Device: {0}", Bass.GetDeviceInfo(Bass.CurrentDevice).Name);
 
             Application.quitting += OnApplicationQuitting;
+        }
+
+        private void UpdatePlaybackLatency()
+        {
+            double playbackLatency = BassLatencyProvider.GetPlaybackStreamLatency();
+            PlaybackLatency = (int) Math.Round(playbackLatency * 1000.0);
         }
 
         protected override bool SetOutputDevice(string name)
@@ -198,6 +204,7 @@ namespace YARG.Audio.BASS
 
             _currentDevice?.Dispose();
             _currentDevice = bassDevice.Use();
+            UpdatePlaybackLatency();
 
             YargLogger.LogFormatInfo("Current BASS Device: {0}", Bass.GetDeviceInfo(Bass.CurrentDevice).Name);
 

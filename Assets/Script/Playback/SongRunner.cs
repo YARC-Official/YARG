@@ -464,7 +464,7 @@ namespace YARG.Playback
                         YargLogger.LogFormatInfo(
                             "First resume sync sample: mixer position={0:0.000000}, tempo latency={1:0.000000}, " +
                             "sync audio={2:0.000000}, sync visual={3:0.000000}, delta={4:+0.000000;-0.000000;0.000000}.",
-                            tempoStreamPosition, tempoStreamLatency, SyncAudioTime, SyncVisualTime, delta
+                            _mixer.GetPosition(), tempoStreamLatency, SyncAudioTime, SyncVisualTime, delta
                         );
                     }
 
@@ -620,6 +620,7 @@ namespace YARG.Playback
 
                 // Set input/song time
                 InitializeSongTime(time, delayTime);
+                double seekInputTime = InputTime;
 
                 // Reset syncing before seeking to prevent speed adjustments from causing issues
                 ResetSync();
@@ -637,10 +638,14 @@ namespace YARG.Playback
                 {
                     _mixer.SetPosition(seekTime);
                     if (!Paused)
+                    {
                         _mixer.Play();
+                    }
                 }
 
-                UpdateTimes();
+                // Seeking and restarting playback can take several milliseconds. Anchor after both
+                // complete so that command execution does not advance the gameplay timeline alone.
+                SetInputBaseAt(seekInputTime, InputManager.CurrentInputTime);
                 _seeked = true;
             }
         }
