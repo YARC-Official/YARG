@@ -206,6 +206,11 @@ namespace YARG.Audio.BASS
             return _songPositionTracker.GetSongPosition();
         }
 
+        protected override double GetTempoStreamLatency_Internal()
+        {
+            return BassLatencyProvider.GetTempoStreamLatency(_tempoStreamHandle);
+        }
+
         protected override double GetVolume_Internal()
         {
             if (!Bass.ChannelGetAttribute(_tempoStreamHandle, ChannelAttribute.Volume, out float volume))
@@ -568,14 +573,11 @@ namespace YARG.Audio.BASS
 
         private void _BufferSetter(int length)
         {
-            // 0 is a special value in BASS that disables buffering.
-            // Any positive buffer length must be at least the minimum supported limit to prevent errors.
-            if (length > 0 && length < GlobalAudioHandler.MinimumBufferLength)
-            {
-                length = GlobalAudioHandler.MinimumBufferLength;
-            }
+            // 0 disables buffering. Positive values must meet BASS minimum buffer requirements.
+            length = BassHelpers.ClampPlaybackBufferLength(length);
+            float lengthInSeconds = length / 1000f;
 
-            if (!Bass.ChannelSetAttribute(_tempoStreamHandle, ChannelAttribute.Buffer, length))
+            if (!Bass.ChannelSetAttribute(_tempoStreamHandle, ChannelAttribute.Buffer, lengthInSeconds))
             {
                 YargLogger.LogFormatError("Failed to set playback buffer: {0}!", Bass.LastError);
             }

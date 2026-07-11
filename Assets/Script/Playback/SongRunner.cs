@@ -389,7 +389,9 @@ namespace YARG.Playback
                 {
                     double audioOffset = SongOffset - (AudioCalibration * SongSpeed);
 
-                    SyncAudioTime = _mixer.GetPosition();
+                    double tempoStreamPosition = _mixer.GetPosition();
+                    double tempoStreamLatency = _mixer.GetTempoStreamLatency();
+                    SyncAudioTime = tempoStreamPosition - (tempoStreamLatency * RealSongSpeed);
                     SyncVisualTime = GetRelativeInputTime(InputManager.CurrentInputTime) - audioOffset;
 
                     if (Paused || SyncVisualTime < 0 || SyncVisualTime >= _mixer.Length)
