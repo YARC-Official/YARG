@@ -217,10 +217,9 @@ namespace YARG.Playback
         public bool SyncThreadStopped { get; private set; }
 
         private volatile float _syncSpeedAdjustment;
-        private volatile float _effectiveSyncSpeedAdjustment;
-        private volatile int   _syncSpeedMultiplier;
-        private volatile float _syncStartDelta;
-        private volatile float _syncWorstDelta;
+        private volatile float _debugEffectiveSyncSpeedAdjustment;
+        private volatile float _debugSyncStartDelta;
+        private volatile float _debugSyncWorstDelta;
 
         private readonly SyncCorrectionCalculator _syncCorrection = new();
         private double _syncCorrectionSuppressedUntil = double.NegativeInfinity;
@@ -229,33 +228,14 @@ namespace YARG.Playback
 
         private readonly StemMixer _mixer;
 
-        public float SyncSpeedAdjustment => _syncSpeedAdjustment;
-        public float EffectiveSyncSpeedAdjustment => _effectiveSyncSpeedAdjustment;
-        public int SyncSpeedMultiplier => _syncSpeedMultiplier;
-        public float SyncStartDelta => _syncStartDelta;
-        public float SyncWorstDelta => _syncWorstDelta;
+        public float DebugEffectiveSyncSpeedAdjustment => _debugEffectiveSyncSpeedAdjustment;
+        public float DebugSyncStartDelta => _debugSyncStartDelta;
+        public float DebugSyncWorstDelta => _debugSyncWorstDelta;
 
         /// <summary>
-        /// Estimated song time physically coming out of the speakers.
+        /// The latest sampled difference between the target and actual audio synchronization times.
         /// </summary>
-        public double AudibleSongTime { get; private set; }
-
-        /// <summary>
-        /// The audio time used by audio synchronization.<br/>
-        /// Accounts for song speed, audio calibration, and song offset.
-        /// </summary>
-        public double SyncAudioTime => AudibleSongTime;
-
-        /// <summary>
-        /// The visual time used by audio synchronization.<br/>
-        /// Accounts for song speed, but <b>not</b> video calibration.
-        /// </summary>
-        public double SyncVisualTime { get; private set; }
-
-        /// <summary>
-        /// The difference between the visual and audio times used by audio synchronization.
-        /// </summary>
-        public double SyncDelta => SyncVisualTime - SyncAudioTime;
+        public double SyncError { get; private set; }
         #endregion
 
         #region Seek debugging
@@ -422,70 +402,46 @@ namespace YARG.Playback
         private void SyncThread()
         {
             const int SYNC_INTERVAL_MS = 1;
-            double lastSampleTime = InputManager.CurrentInputTime;
 
             for (; !_disposed; Thread.Sleep(SYNC_INTERVAL_MS))
             {
                 lock (_syncThread)
                 {
                     double currentTime = InputManager.CurrentInputTime;
-                    double elapsedMs = (currentTime - lastSampleTime) * 1000.0;
-                    lastSampleTime = currentTime;
-                    if (elapsedMs <= 0.0)
-                    {
-                        elapsedMs = 1.0;
-                    }
-                    else
-                    {
-                        elapsedMs = Math.Min(elapsedMs, 100.0);
-                    }
-
                     double audioOffset = SongOffset - (AudioCalibration * SongSpeed);
+                    double tempoStreamLatencyMs = _mixer.GetTempoStreamLatency() * 1000.0;
+                    double syncActualTime = _mixer.GetPosition();
+                    double syncTargetTime = GetRelativeInputTime(currentTime) - audioOffset;
+                    double syncError = syncTargetTime - syncActualTime;
+                    SyncError = syncError;
 
-                    double tempoStreamLatency = _mixer.GetTempoStreamLatency();
-                    double tempoStreamLatencyMs = Math.Max(1.0, tempoStreamLatency * 1000.0);
+                    StartPreparedAudio(currentTime, syncTargetTime);
 
-                    // Do not subtract output latency from the mixer position here. AudioCalibration
-                    // shifts SyncVisualTime below, so doing both would apply that latency twice.
-                    AudibleSongTime = _mixer.GetPosition();
-                    SyncVisualTime = GetRelativeInputTime(currentTime) - audioOffset;
+                    bool isWithinSongBounds =
+                        !Paused &&
+                        syncTargetTime >= 0 &&
+                        syncTargetTime < _mixer.Length &&
+                        syncActualTime < _mixer.Length;
+                    bool isSuppressing = currentTime < _syncCorrectionSuppressedUntil;
+                    bool allowCorrection = isWithinSongBounds && !isSuppressing;
 
-                    StartPreparedAudio(currentTime);
-
-                    if (Paused || SyncVisualTime < 0 || SyncVisualTime >= _mixer.Length)
+                    float adjustment = _syncCorrection.Update(
+                        syncError, currentTime, tempoStreamLatencyMs, allowCorrection);
+                    _debugEffectiveSyncSpeedAdjustment = _syncCorrection.EffectiveAdjustment;
+                    if (!isWithinSongBounds)
                     {
-                        _syncCorrection.SuppressAdjustment(elapsedMs, tempoStreamLatencyMs);
-                        _effectiveSyncSpeedAdjustment = _syncCorrection.EffectiveAdjustment;
                         continue;
                     }
 
-                    if (SyncAudioTime >= _mixer.Length)
+                    bool correctionStarting = _syncSpeedAdjustment == 0f && adjustment != 0f;
+                    if (correctionStarting)
                     {
-                        _syncCorrection.SuppressAdjustment(elapsedMs, tempoStreamLatencyMs);
-                        _effectiveSyncSpeedAdjustment = _syncCorrection.EffectiveAdjustment;
-                        continue;
+                        _debugSyncStartDelta = (float) syncError;
+                        _debugSyncWorstDelta = _debugSyncStartDelta;
                     }
-
-                    double delta = SyncVisualTime - SyncAudioTime;
-                    float adjustment = currentTime < _syncCorrectionSuppressedUntil
-                        ? _syncCorrection.SuppressAdjustment(elapsedMs, tempoStreamLatencyMs)
-                        : _syncCorrection.CalculateAdjustment(delta, elapsedMs, tempoStreamLatencyMs);
-                    _effectiveSyncSpeedAdjustment = _syncCorrection.EffectiveAdjustment;
-
-                    int speedMultiplier = Math.Sign(adjustment);
-                    if (speedMultiplier != _syncSpeedMultiplier)
+                    else if (adjustment != 0f && Math.Abs(syncError) > Math.Abs(_debugSyncWorstDelta))
                     {
-                        if (_syncSpeedMultiplier == 0 && speedMultiplier != 0)
-                        {
-                            _syncStartDelta = (float) delta;
-                            _syncWorstDelta = _syncStartDelta;
-                        }
-                        else if (Math.Abs(delta) > Math.Abs(_syncWorstDelta))
-                        {
-                            _syncWorstDelta = (float) delta;
-                        }
-
-                        _syncSpeedMultiplier = speedMultiplier;
+                        _debugSyncWorstDelta = (float) syncError;
                     }
 
                     if (adjustment != _syncSpeedAdjustment)
@@ -496,9 +452,6 @@ namespace YARG.Playback
                 }
             }
         }
-
-        private double CurrentAudioTimelineTime =>
-            InputTime + (AudioCalibration * SongSpeed) - SongOffset;
 
         /// <summary>
         /// Realigns audio after any gameplay timeline discontinuity: playback start, seek, or unpause.
@@ -512,7 +465,9 @@ namespace YARG.Playback
 
             _playbackStartLatency = _mixer.GetPlaybackStartLatency();
             double playbackPreRoll = _playbackStartLatency * SongSpeed;
-            double audioTime = CurrentAudioTimelineTime;
+
+            // Audio-file position corresponding to the current gameplay timeline.
+            double audioTime = InputTime + (AudioCalibration * SongSpeed) - SongOffset;
             double seekPosition = Math.Clamp(audioTime + playbackPreRoll, 0, _mixer.Length);
             _mixer.SetPosition(seekPosition);
 
@@ -522,10 +477,10 @@ namespace YARG.Playback
             _syncCorrectionSuppressedUntil = double.NegativeInfinity;
         }
 
-        private void StartPreparedAudio(double currentTime)
+        private void StartPreparedAudio(double currentTime, double syncTargetTime)
         {
-            bool reachedAudioStart = SyncVisualTime >= _preparedAudioStartTime;
-            bool beforeAudioEnd = SyncVisualTime < _mixer.Length;
+            bool reachedAudioStart = syncTargetTime >= _preparedAudioStartTime;
+            bool beforeAudioEnd = syncTargetTime < _mixer.Length;
             if (Paused || !_mixer.IsPaused || !reachedAudioStart || !beforeAudioEnd)
             {
                 return;
@@ -543,11 +498,10 @@ namespace YARG.Playback
         private void ResetSync()
         {
             _syncCorrection.Reset();
-            _syncSpeedMultiplier = 0;
             _syncSpeedAdjustment = 0f;
-            _effectiveSyncSpeedAdjustment = 0f;
-            _syncStartDelta = 0f;
-            _syncWorstDelta = 0f;
+            _debugEffectiveSyncSpeedAdjustment = 0f;
+            _debugSyncStartDelta = 0f;
+            _debugSyncWorstDelta = 0f;
             _mixer.SetSpeed(RealSongSpeed, true);
         }
 
@@ -695,7 +649,6 @@ namespace YARG.Playback
 
                     _scheduledSpeedChanges.Enqueue((effectiveTime, speed));
                     _syncCorrection.Reset();
-                    _syncSpeedMultiplier = 0;
                     _syncSpeedAdjustment = 0f;
                     _syncCorrectionSuppressedUntil = Math.Max(
                         _syncCorrectionSuppressedUntil,
@@ -712,7 +665,6 @@ namespace YARG.Playback
                 SongSpeed = speed;
                 _scheduledSpeedChanges.Clear();
                 _syncCorrection.Reset();
-                _syncSpeedMultiplier = 0;
                 _syncSpeedAdjustment = 0f;
                 _syncCorrectionSuppressedUntil = double.NegativeInfinity;
 

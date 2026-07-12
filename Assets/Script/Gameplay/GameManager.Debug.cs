@@ -558,11 +558,11 @@ namespace YARG.Gameplay
                 {
                     using var text = ZString.CreateStringBuilder(true);
 
-                    text.AppendFormat("Audio sync error: {0:0.000} ms\n", _songRunner.SyncDelta * 1000.0);
-                    text.AppendFormat("Resync start delta: {0:0.000} ms\n", _songRunner.SyncStartDelta * 1000f);
-                    text.AppendFormat("Resync worst delta: {0:0.000} ms\n", _songRunner.SyncWorstDelta * 1000f);
+                    text.AppendFormat("Audio sync error: {0:0.000} ms\n", _songRunner.SyncError * 1000.0);
+                    text.AppendFormat("Resync start delta: {0:0.000} ms\n", _songRunner.DebugSyncStartDelta * 1000f);
+                    text.AppendFormat("Resync worst delta: {0:0.000} ms\n", _songRunner.DebugSyncWorstDelta * 1000f);
                     text.AppendFormat("Effective speed adjustment: {0:0.000}\n",
-                        _songRunner.EffectiveSyncSpeedAdjustment);
+                        _songRunner.DebugEffectiveSyncSpeedAdjustment);
 
                     GUILayout.Label(text.AsSpan().TrimEnd('\n').ToString());
                 }

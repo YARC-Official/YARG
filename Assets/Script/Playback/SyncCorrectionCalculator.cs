@@ -49,51 +49,41 @@ namespace YARG.Playback
         public float EffectiveAdjustment => _syncHistory.EffectiveAdjustment;
 
         /// <summary>
-        /// Calculates the playback-speed change needed to reduce the current sync error.
+        /// Updates buffered correction history and returns the playback-speed change to request.
         /// </summary>
         /// <param name="syncDeltaSeconds">How far playback is behind or ahead, in seconds.</param>
-        /// <param name="elapsedMs">Time since the previous calculation, in milliseconds.</param>
+        /// <param name="currentTime">Current input-clock time, in seconds.</param>
         /// <param name="streamDelayMs">Time before a speed change reaches audio output, in milliseconds.</param>
+        /// <param name="allowCorrection">Whether a new sync correction may be requested.</param>
         /// <returns>Speed adjustment to apply, where 0.1 means 10% faster.</returns>
-        public float CalculateAdjustment(double syncDeltaSeconds, double elapsedMs, double streamDelayMs)
+        public float Update(double syncDeltaSeconds, double currentTime, double streamDelayMs, bool allowCorrection)
         {
             streamDelayMs = Math.Max(1.0, streamDelayMs);
-            elapsedMs = Math.Clamp(elapsedMs, 1.0, 100.0);
+            _syncHistory.Update(currentTime, streamDelayMs, _currentAdjustment);
 
-            RecordAdjustment(elapsedMs, streamDelayMs);
-
-            double errorMs = syncDeltaSeconds * 1000.0 - _syncHistory.RunningContributionMs;
-            float adjustment = 0f;
-            if (Math.Abs(errorMs) >= SYNC_DEADBAND_SECONDS * 1000.0)
-            {
-                float gain = Math.Clamp((float) streamDelayMs / CORRECTION_TIME_MS, MIN_GAIN, MAX_GAIN);
-                float correctionMs = (float) errorMs * gain;
-                adjustment = Math.Clamp(correctionMs / (float) streamDelayMs, -SYNC_CLAMP, SYNC_CLAMP);
-            }
-
-            if (adjustment != 0f && Math.Abs(adjustment - _currentAdjustment) < SPEED_UPDATE_THRESHOLD)
+            float adjustment = allowCorrection ? CalculateAdjustment(syncDeltaSeconds, streamDelayMs) : 0f;
+            if (allowCorrection && adjustment != 0f &&
+                Math.Abs(adjustment - _currentAdjustment) < SPEED_UPDATE_THRESHOLD)
             {
                 return _currentAdjustment;
             }
 
             _currentAdjustment = adjustment;
+            _syncHistory.RecordChange(currentTime, _currentAdjustment);
             return _currentAdjustment;
         }
 
-        /// <summary>
-        /// Records the current speed adjustment but requests no new sync correction.
-        /// </summary>
-        /// <param name="elapsedMs">Time since the previous calculation, in milliseconds.</param>
-        /// <param name="streamDelayMs">Time before a speed change reaches audio output, in milliseconds.</param>
-        /// <returns>Zero, to disable sync correction.</returns>
-        public float SuppressAdjustment(double elapsedMs, double streamDelayMs)
+        private float CalculateAdjustment(double syncDeltaSeconds, double streamDelayMs)
         {
-            streamDelayMs = Math.Max(1.0, streamDelayMs);
-            elapsedMs = Math.Clamp(elapsedMs, 1.0, 100.0);
+            double errorMs = syncDeltaSeconds * 1000.0 - _syncHistory.RunningContributionMs;
+            if (Math.Abs(errorMs) < SYNC_DEADBAND_SECONDS * 1000.0)
+            {
+                return 0f;
+            }
 
-            RecordAdjustment(elapsedMs, streamDelayMs);
-            _currentAdjustment = 0f;
-            return _currentAdjustment;
+            float gain = Math.Clamp((float) streamDelayMs / CORRECTION_TIME_MS, MIN_GAIN, MAX_GAIN);
+            float correctionMs = (float) errorMs * gain;
+            return Math.Clamp(correctionMs / (float) streamDelayMs, -SYNC_CLAMP, SYNC_CLAMP);
         }
 
         /// <summary>
@@ -106,25 +96,16 @@ namespace YARG.Playback
             _currentAdjustment = 0f;
         }
 
-        private void RecordAdjustment(double elapsedMs, double streamDelayMs)
-        {
-            _syncHistory.Add(elapsedMs, _currentAdjustment * elapsedMs);
-            _syncHistory.TrimToDuration(streamDelayMs);
-        }
-
         /// <summary>
-        /// Remembers recent playback-speed adjustments while they pass through the buffered audio
-        /// stream. Each entry records how long an adjustment was active and how much timing error it
-        /// should correct. The running total represents correction already requested but not yet
-        /// reflected in playback, preventing the sync controller from correcting the same error
-        /// again. History older than the current stream delay is removed, including part of an entry
-        /// when the cutoff falls between updates.
+        /// Remembers when requested playback-speed adjustments change while they pass through the
+        /// buffered audio stream. Pending correction is the integral of those adjustments over the
+        /// stream-delay window. Absolute timestamps make history independent of update cadence.
         /// </summary>
         private sealed class SyncHistoryBuffer
         {
-            // 500 entries cover the maximum 5000 ms delay at the 10 ms update cadence.
+            // Covers five seconds even if the requested adjustment changes every millisecond.
             private readonly RingBuffer<Entry> _entries = new(5012);
-            private double _runningDurationMs;
+            private double _historyStartTime = double.NaN;
 
             public double RunningContributionMs { get; private set; }
             public float EffectiveAdjustment { get; private set; }
@@ -132,62 +113,76 @@ namespace YARG.Playback
             public void Clear()
             {
                 _entries.Clear();
-                _runningDurationMs = 0.0;
+                _historyStartTime = double.NaN;
                 RunningContributionMs = 0.0;
                 EffectiveAdjustment = 0f;
             }
 
-            public void Add(double durationMs, double contributionMs)
+            public void RecordChange(double timestamp, float adjustment)
             {
-                _entries.Add(new Entry(durationMs, contributionMs));
-                _runningDurationMs += durationMs;
-                RunningContributionMs += contributionMs;
-            }
-
-            public void TrimToDuration(double targetDurationMs)
-            {
-                targetDurationMs = Math.Max(1.0, targetDurationMs);
-
-                while (_entries.Count > 0 && _runningDurationMs > targetDurationMs)
+                if (_entries.Count == 0)
                 {
-                    double excessMs = _runningDurationMs - targetDurationMs;
-                    var oldest = _entries[0];
-
-                    if (oldest.DurationMs <= excessMs)
-                    {
-                        _entries.RemoveOldest();
-                        _runningDurationMs -= oldest.DurationMs;
-                        RunningContributionMs -= oldest.ContributionMs;
-                        continue;
-                    }
-
-                    double removedRatio = excessMs / oldest.DurationMs;
-                    double removedContributionMs = oldest.ContributionMs * removedRatio;
-
-                    _entries[0] = new Entry(
-                        oldest.DurationMs - excessMs,
-                        oldest.ContributionMs - removedContributionMs);
-
-                    _runningDurationMs = targetDurationMs;
-                    RunningContributionMs -= removedContributionMs;
+                    _historyStartTime = timestamp;
+                    _entries.Add(new Entry(timestamp, adjustment));
+                    return;
                 }
 
-                // Oldest retained adjustment is reaching output now. Until history spans the
-                // stream delay, requested changes have not reached output yet.
-                EffectiveAdjustment = _entries.Count > 0 && _runningDurationMs >= targetDurationMs
-                    ? (float) (_entries[0].ContributionMs / _entries[0].DurationMs)
-                    : 0f;
+                int latestIndex = _entries.Count - 1;
+                var latest = _entries[latestIndex];
+                if (latest.Timestamp == timestamp)
+                {
+                    _entries[latestIndex] = new Entry(timestamp, adjustment);
+                }
+                else if (latest.Adjustment != adjustment)
+                {
+                    _entries.Add(new Entry(timestamp, adjustment));
+                }
+            }
+
+            public void Update(double currentTime, double streamDelayMs, float currentAdjustment)
+            {
+                if (_entries.Count == 0)
+                {
+                    RecordChange(currentTime, currentAdjustment);
+                }
+
+                double cutoffTime = currentTime - streamDelayMs / 1000.0;
+                while (_entries.Count > 1 && _entries[1].Timestamp <= cutoffTime)
+                {
+                    _entries.RemoveOldest();
+                }
+
+                bool historyReachesCutoff = _historyStartTime <= cutoffTime;
+                EffectiveAdjustment = historyReachesCutoff ? _entries[0].Adjustment : 0f;
+
+                double intervalStart = Math.Max(cutoffTime, _historyStartTime);
+                float adjustment = _entries[0].Adjustment;
+                double contributionSeconds = 0.0;
+                for (int i = 1; i < _entries.Count; i++)
+                {
+                    var entry = _entries[i];
+                    if (entry.Timestamp > intervalStart)
+                    {
+                        contributionSeconds += adjustment * (entry.Timestamp - intervalStart);
+                    }
+
+                    intervalStart = Math.Max(intervalStart, entry.Timestamp);
+                    adjustment = entry.Adjustment;
+                }
+
+                contributionSeconds += adjustment * (currentTime - intervalStart);
+                RunningContributionMs = contributionSeconds * 1000.0;
             }
 
             private readonly struct Entry
             {
-                public readonly double DurationMs;
-                public readonly double ContributionMs;
+                public readonly double Timestamp;
+                public readonly float Adjustment;
 
-                public Entry(double durationMs, double contributionMs)
+                public Entry(double timestamp, float adjustment)
                 {
-                    DurationMs = durationMs;
-                    ContributionMs = contributionMs;
+                    Timestamp = timestamp;
+                    Adjustment = adjustment;
                 }
             }
         }
