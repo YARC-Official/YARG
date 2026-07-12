@@ -1036,7 +1036,7 @@ namespace YARG.Gameplay.Player
         {
             if (!Player.Profile.IsBot)
             {
-                _autoCalibrator.RecordAccuracy(note.Time);
+                _autoCalibrator.RecordAccuracy(Engine.CurrentTime, note.Time);
             }
 
             if (!GameManager.IsSeekingReplay)

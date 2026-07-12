@@ -217,6 +217,7 @@ namespace YARG.Playback
         public bool SyncThreadStopped { get; private set; }
 
         private volatile float _syncSpeedAdjustment;
+        private volatile float _effectiveSyncSpeedAdjustment;
         private volatile int   _syncSpeedMultiplier;
         private volatile float _syncStartDelta;
         private volatile float _syncWorstDelta;
@@ -227,6 +228,7 @@ namespace YARG.Playback
         private readonly StemMixer _mixer;
 
         public float SyncSpeedAdjustment => _syncSpeedAdjustment;
+        public float EffectiveSyncSpeedAdjustment => _effectiveSyncSpeedAdjustment;
         public int SyncSpeedMultiplier => _syncSpeedMultiplier;
         public float SyncStartDelta => _syncStartDelta;
         public float SyncWorstDelta => _syncWorstDelta;
@@ -252,6 +254,7 @@ namespace YARG.Playback
         #region Seek debugging
         private bool _seeked;
         private double _previousInputTime = double.MinValue;
+        private double _inputSystemTimeFloor = double.NegativeInfinity;
         #endregion
 
         /// <summary>
@@ -410,7 +413,7 @@ namespace YARG.Playback
 
         private void SyncThread()
         {
-            const int SYNC_INTERVAL_MS = 10;
+            const int SYNC_INTERVAL_MS = 1;
             double lastSampleTime = InputManager.CurrentInputTime;
 
             for (; !_disposed; Thread.Sleep(SYNC_INTERVAL_MS))
@@ -439,9 +442,12 @@ namespace YARG.Playback
                     SyncAudioTime = _mixer.GetPosition();
                     SyncVisualTime = GetRelativeInputTime(currentTime) - audioOffset;
 
+                    StartAudioBeforeSongBegins(currentTime);
+
                     if (Paused || SyncVisualTime < 0 || SyncVisualTime >= _mixer.Length)
                     {
                         _syncCorrection.SuppressAdjustment(elapsedMs, tempoStreamLatencyMs);
+                        _effectiveSyncSpeedAdjustment = _syncCorrection.EffectiveAdjustment;
                         continue;
                     }
 
@@ -453,6 +459,7 @@ namespace YARG.Playback
                     if (SyncAudioTime >= _mixer.Length)
                     {
                         _syncCorrection.SuppressAdjustment(elapsedMs, tempoStreamLatencyMs);
+                        _effectiveSyncSpeedAdjustment = _syncCorrection.EffectiveAdjustment;
                         continue;
                     }
 
@@ -460,6 +467,7 @@ namespace YARG.Playback
                     float adjustment = currentTime < _syncCorrectionSuppressedUntil
                         ? _syncCorrection.SuppressAdjustment(elapsedMs, tempoStreamLatencyMs)
                         : _syncCorrection.CalculateAdjustment(delta, elapsedMs, tempoStreamLatencyMs);
+                    _effectiveSyncSpeedAdjustment = _syncCorrection.EffectiveAdjustment;
 
                     int speedMultiplier = Math.Sign(adjustment);
                     if (speedMultiplier != _syncSpeedMultiplier)
@@ -486,11 +494,37 @@ namespace YARG.Playback
             }
         }
 
+        private void StartAudioBeforeSongBegins(double currentTime)
+        {
+            if (Paused || !_mixer.IsPaused || SyncVisualTime >= 0)
+            {
+                return;
+            }
+
+            double playbackStartLatency = _mixer.GetPlaybackStartLatency();
+            double playbackPreRoll = playbackStartLatency * SongSpeed;
+            if (SyncVisualTime < -playbackPreRoll)
+            {
+                return;
+            }
+
+            _mixer.Play();
+
+            // Starting at audio position zero cannot seek ahead to compensate for output latency.
+            // Start during the countdown instead, then ignore mixer position until that audio can
+            // reach output.
+            _syncCorrectionSuppressedUntil = Math.Max(
+                _syncCorrectionSuppressedUntil,
+                currentTime + playbackStartLatency
+            );
+        }
+
         private void ResetSync()
         {
             _syncCorrection.Reset();
             _syncSpeedMultiplier = 0;
             _syncSpeedAdjustment = 0f;
+            _effectiveSyncSpeedAdjustment = 0f;
             _syncStartDelta = 0f;
             _syncWorstDelta = 0f;
             _mixer.SetSpeed(RealSongSpeed, true);
@@ -520,7 +554,10 @@ namespace YARG.Playback
 
         private void UpdateTimes()
         {
-            InputTime = GetRelativeInputTime(InputManager.InputUpdateTime);
+            // Re-anchoring can use a newer on-demand input timestamp than this frame's cached
+            // timestamp. Hold the timeline at that anchor until the frame clock catches up.
+            double inputSystemTime = Math.Max(InputManager.InputUpdateTime, _inputSystemTimeFloor);
+            InputTime = GetRelativeInputTime(inputSystemTime);
             SongTime = InputTime + (AudioCalibration * SongSpeed);
             VisualTime = InputTime + (VideoCalibration * SongSpeed);
 
@@ -540,6 +577,7 @@ namespace YARG.Playback
             double previousVisualTime = VisualTime;
 
             InputTimeOffset = inputSystemTime - (songTime / SongSpeed);
+            _inputSystemTimeFloor = Math.Max(_inputSystemTimeFloor, inputSystemTime);
 
             InputTime = GetRelativeInputTime(inputSystemTime);
             SongTime = InputTime + (AudioCalibration * SongSpeed);
@@ -749,7 +787,8 @@ namespace YARG.Playback
             {
                 UpdateCalibration();
                 double resumeInputTime = InputTime;
-                double playbackPreRoll = _mixer.GetPlaybackStartLatency() * SongSpeed;
+                double playbackStartLatency = _mixer.GetPlaybackStartLatency();
+                double playbackPreRoll = playbackStartLatency * SongSpeed;
                 double targetAudioPosition = resumeInputTime + (AudioCalibration * SongSpeed) - SongOffset;
                 double seekPosition = Math.Clamp(targetAudioPosition + playbackPreRoll, 0, _mixer.Length);
 
@@ -757,10 +796,16 @@ namespace YARG.Playback
                 ResetSync();
 
                 Paused = false;
+                _syncCorrectionSuppressedUntil = double.NegativeInfinity;
 
                 if (targetAudioPosition >= -playbackPreRoll && targetAudioPosition < _mixer.Length)
                 {
                     _mixer.Play();
+
+                    // Audio is intentionally pre-rolled so it reaches output at the resumed song
+                    // position. Until then, mixer position is ahead by the pre-roll and is not a
+                    // valid synchronization error.
+                    _syncCorrectionSuppressedUntil = InputManager.CurrentInputTime + playbackStartLatency;
                 }
 
                 // Seeking and starting playback can take several milliseconds. Anchor after both

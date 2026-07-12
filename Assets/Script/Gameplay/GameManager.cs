@@ -267,7 +267,7 @@ namespace YARG.Gameplay
             }
 
             // Crowd teardown stops SFX through GlobalAudioHandler, so it must happen while audio is initialized.
-            CrowdEventHandler.Dispose();
+            CrowdEventHandler?.Dispose();
 
             if (canDisposeMixer)
             {
@@ -628,7 +628,7 @@ namespace YARG.Gameplay
         private bool EndSong()
         {
             // Dispose the crowd handler
-            CrowdEventHandler.Dispose();
+            CrowdEventHandler?.Dispose();
 
             if (IsPractice)
             {

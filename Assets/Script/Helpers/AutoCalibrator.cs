@@ -93,14 +93,14 @@ namespace YARG.Helpers
             }
         }
 
-        public void RecordAccuracy(double noteTime)
+        public void RecordAccuracy(double hitTime, double noteTime)
         {
             if (CalibrationMode == CalibrationType.DISABLED)
             {
                 return;
             }
 
-            double accuracy = (_gameManager.InputTime - noteTime) * 1000;
+            double accuracy = (hitTime - noteTime) * 1000;
             _accuracyList.Add(accuracy);
 
             if (_accuracyList.Count < SAMPLE_SIZE)

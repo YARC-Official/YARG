@@ -561,7 +561,8 @@ namespace YARG.Gameplay
                     text.AppendFormat("Audio sync error: {0:0.000} ms\n", _songRunner.SyncDelta * 1000.0);
                     text.AppendFormat("Resync start delta: {0:0.000} ms\n", _songRunner.SyncStartDelta * 1000f);
                     text.AppendFormat("Resync worst delta: {0:0.000} ms\n", _songRunner.SyncWorstDelta * 1000f);
-                    text.AppendFormat("Speed adjustment: {0:0.00}\n", _songRunner.SyncSpeedAdjustment);
+                    text.AppendFormat("Effective speed adjustment: {0:0.000}\n",
+                        _songRunner.EffectiveSyncSpeedAdjustment);
 
                     GUILayout.Label(text.AsSpan().TrimEnd('\n').ToString());
                 }

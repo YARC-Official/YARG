@@ -46,6 +46,8 @@ namespace YARG.Playback
         private readonly SyncHistoryBuffer _syncHistory = new();
         private float _currentAdjustment;
 
+        public float EffectiveAdjustment => _syncHistory.EffectiveAdjustment;
+
         /// <summary>
         /// Calculates the playback-speed change needed to reduce the current sync error.
         /// </summary>
@@ -121,16 +123,18 @@ namespace YARG.Playback
         private sealed class SyncHistoryBuffer
         {
             // 500 entries cover the maximum 5000 ms delay at the 10 ms update cadence.
-            private readonly RingBuffer<Entry> _entries = new(512);
+            private readonly RingBuffer<Entry> _entries = new(5012);
             private double _runningDurationMs;
 
             public double RunningContributionMs { get; private set; }
+            public float EffectiveAdjustment { get; private set; }
 
             public void Clear()
             {
                 _entries.Clear();
                 _runningDurationMs = 0.0;
                 RunningContributionMs = 0.0;
+                EffectiveAdjustment = 0f;
             }
 
             public void Add(double durationMs, double contributionMs)
@@ -167,6 +171,12 @@ namespace YARG.Playback
                     _runningDurationMs = targetDurationMs;
                     RunningContributionMs -= removedContributionMs;
                 }
+
+                // Oldest retained adjustment is reaching output now. Until history spans the
+                // stream delay, requested changes have not reached output yet.
+                EffectiveAdjustment = _entries.Count > 0 && _runningDurationMs >= targetDurationMs
+                    ? (float) (_entries[0].ContributionMs / _entries[0].DurationMs)
+                    : 0f;
             }
 
             private readonly struct Entry
