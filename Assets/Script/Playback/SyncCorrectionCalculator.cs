@@ -1,5 +1,5 @@
 using System;
-using System.Collections.Generic;
+using YARG.Helpers;
 
 namespace YARG.Playback
 {
@@ -110,26 +110,34 @@ namespace YARG.Playback
             _syncHistory.TrimToDuration(streamDelayMs);
         }
 
+        /// <summary>
+        /// Remembers recent playback-speed adjustments while they pass through the buffered audio
+        /// stream. Each entry records how long an adjustment was active and how much timing error it
+        /// should correct. The running total represents correction already requested but not yet
+        /// reflected in playback, preventing the sync controller from correcting the same error
+        /// again. History older than the current stream delay is removed, including part of an entry
+        /// when the cutoff falls between updates.
+        /// </summary>
         private sealed class SyncHistoryBuffer
         {
-            private readonly List<Entry> _entries = new(512);
+            // 500 entries cover the maximum 5000 ms delay at the 10 ms update cadence.
+            private readonly RingBuffer<Entry> _entries = new(512);
             private double _runningDurationMs;
-            private double _runningContributionMs;
 
-            public double RunningContributionMs => _runningContributionMs;
+            public double RunningContributionMs { get; private set; }
 
             public void Clear()
             {
                 _entries.Clear();
                 _runningDurationMs = 0.0;
-                _runningContributionMs = 0.0;
+                RunningContributionMs = 0.0;
             }
 
             public void Add(double durationMs, double contributionMs)
             {
                 _entries.Add(new Entry(durationMs, contributionMs));
                 _runningDurationMs += durationMs;
-                _runningContributionMs += contributionMs;
+                RunningContributionMs += contributionMs;
             }
 
             public void TrimToDuration(double targetDurationMs)
@@ -138,38 +146,33 @@ namespace YARG.Playback
 
                 while (_entries.Count > 0 && _runningDurationMs > targetDurationMs)
                 {
-                    double excessDurationMs = _runningDurationMs - targetDurationMs;
+                    double excessMs = _runningDurationMs - targetDurationMs;
                     var oldest = _entries[0];
-                    if (oldest.DurationMs <= excessDurationMs)
+
+                    if (oldest.DurationMs <= excessMs)
                     {
-                        RemoveOldest();
+                        _entries.RemoveOldest();
+                        _runningDurationMs -= oldest.DurationMs;
+                        RunningContributionMs -= oldest.ContributionMs;
                         continue;
                     }
 
-                    double retainedDurationMs = oldest.DurationMs - excessDurationMs;
-                    double removedRatio = excessDurationMs / oldest.DurationMs;
+                    double removedRatio = excessMs / oldest.DurationMs;
                     double removedContributionMs = oldest.ContributionMs * removedRatio;
 
-                    oldest.DurationMs = retainedDurationMs;
-                    oldest.ContributionMs -= removedContributionMs;
+                    _entries[0] = new Entry(
+                        oldest.DurationMs - excessMs,
+                        oldest.ContributionMs - removedContributionMs);
+
                     _runningDurationMs = targetDurationMs;
-                    _runningContributionMs -= removedContributionMs;
-                    _entries[0] = oldest;
+                    RunningContributionMs -= removedContributionMs;
                 }
             }
 
-            private void RemoveOldest()
+            private readonly struct Entry
             {
-                var oldest = _entries[0];
-                _entries.RemoveAt(0);
-                _runningDurationMs -= oldest.DurationMs;
-                _runningContributionMs -= oldest.ContributionMs;
-            }
-
-            private struct Entry
-            {
-                public double DurationMs;
-                public double ContributionMs;
+                public readonly double DurationMs;
+                public readonly double ContributionMs;
 
                 public Entry(double durationMs, double contributionMs)
                 {
