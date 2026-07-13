@@ -26,6 +26,7 @@ namespace YARG.Gameplay
         }
 
         private readonly StemMixer _mixer;
+        private readonly OneShotSchedule _schedule;
         private readonly SongRunner _songRunner;
         private readonly List<Hit> _hits = new();
         private readonly double _songOffset;
@@ -34,6 +35,7 @@ namespace YARG.Gameplay
             double songLength, double songOffset)
         {
             _mixer = mixer;
+            _schedule = mixer.CreateOneShotSchedule();
             _songRunner = songRunner;
             _songOffset = songOffset;
 
@@ -69,6 +71,7 @@ namespace YARG.Gameplay
         private void Schedule(double fromAudioTime)
         {
             MetronomeSample sample = SettingsManager.Settings.MetronomeSound.Value;
+            SetVolume(sample);
             foreach (Hit hit in _hits)
             {
                 double audioTime = hit.Time + _songOffset;
@@ -78,7 +81,7 @@ namespace YARG.Gameplay
                 }
 
                 int stream = GlobalAudioHandler.CreateMetronomeStream(sample, hit.Pitch);
-                _mixer.ScheduleOneShot(stream, audioTime);
+                _schedule.Schedule(stream, audioTime);
             }
         }
 
@@ -89,13 +92,20 @@ namespace YARG.Gameplay
 
         private void OnVolumeChanged(float _)
         {
-            Reschedule();
+            SetVolume(SettingsManager.Settings.MetronomeSound.Value);
         }
 
         private void Reschedule()
         {
-            _mixer.ClearScheduledOneShots();
+            _schedule.Clear();
             Schedule(_mixer.GetPosition());
+        }
+
+        private void SetVolume(MetronomeSample sample)
+        {
+            double volume = GlobalAudioHandler.GetTrueVolume(SongStem.Metronome) *
+                AudioHelpers.MetronomeSamples[(int) sample].Volume;
+            _schedule.SetVolume(volume);
         }
 
         public void Dispose()
@@ -103,6 +113,7 @@ namespace YARG.Gameplay
             _songRunner.AudioPrepared -= Schedule;
             SettingsManager.Settings.MetronomeSound.OnChange -= OnSoundChanged;
             SettingsManager.Settings.MetronomeVolume.OnChange -= OnVolumeChanged;
+            _schedule.Dispose();
         }
     }
 }

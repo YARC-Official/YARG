@@ -50,7 +50,6 @@ namespace YARG.Audio.BASS
         private readonly int _hiChannel;
         private readonly int _loHandle;
         private readonly int _loChannel;
-        private double _volumeSetting = 1;
 
 #nullable enable
         private BassMetronomeSampleChannel(MetronomeSample sample, int hiHandle, int hiChannel, string hiPath, int loHandle, int loChannel, string loPath,
@@ -94,21 +93,11 @@ namespace YARG.Audio.BASS
                 return 0;
             }
 
-            double volume = _volumeSetting * AudioHelpers.MetronomeSamples[(int) Sample].Volume;
-            if (!Bass.ChannelSetAttribute(stream, ChannelAttribute.Volume, volume))
-            {
-                YargLogger.LogFormatError("Failed to set {0} {1} stream volume: {2}!", Sample, pitch,
-                    Bass.LastError);
-                Bass.StreamFree(stream);
-                return 0;
-            }
-
             return stream;
         }
 
         protected override void SetVolume_Internal(double volume)
         {
-            _volumeSetting = volume;
             volume *= AudioHelpers.MetronomeSamples[(int) Sample].Volume;
 
             if (!Bass.ChannelSetAttribute(_hiChannel, ChannelAttribute.Volume, volume))
