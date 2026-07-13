@@ -1187,12 +1187,15 @@ namespace YARG.Gameplay.Player
 
         protected void OnHappinessNearFail()
         {
-            TrackMaterial.FailState = 1f;
+            if (SettingsManager.Settings.NoFail.Value == NoFailMode.Off)
+            {
+                TrackMaterial.FailState = 1f;
+            }
         }
 
         protected void OnPlayerFailed(int engineId)
         {
-            if (engineId != EngineContainer.EngineId)
+            if (SettingsManager.Settings.NoFail.Value != NoFailMode.Off || engineId != EngineContainer.EngineId)
             {
                 // Not for us
                 return;
@@ -1235,6 +1238,12 @@ namespace YARG.Gameplay.Player
         public void MetronomeTock()
         {
             GlobalAudioHandler.PlayMetronomeSoundEffect(SettingsManager.Settings.MetronomeSound.Value, MetronomePitch.Lo);
+        }
+
+        protected override void GameplayDestroy()
+        {
+            GameManager.EngineManager.OnPlayerFailed -= OnPlayerFailed;
+            GameManager.EngineManager.OnPlayerRevived -= OnPlayerRevived;
         }
     }
 }
