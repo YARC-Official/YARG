@@ -6,6 +6,7 @@ using Cysharp.Threading.Tasks;
 using DG.Tweening;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Serialization;
 using UnityEngine.UI;
 using YARG.Core;
 using YARG.Core.Audio;
@@ -48,8 +49,9 @@ namespace YARG.Menu.ScoreScreen
         private StarView _bandStarView;
         [SerializeField]
         private TextMeshProUGUI _bandScore;
+        [FormerlySerializedAs("_bandScoreNotSavedPill")]
         [SerializeField]
-        private ColoredPillElement _bandScoreNotSavedPill;
+        private ColoredPillElement _scoreStatusPill;
         [SerializeField]
         private ScrollRect _cardScrollRect;
         [SerializeField]
@@ -111,13 +113,24 @@ namespace YARG.Menu.ScoreScreen
             // Set text
             _songTitle.text = song.Name;
             _artistName.text = song.Artist;
-
-            var scoreNotSavedText = Localize.Key("Menu.ScoreScreen.BandScoreNotSaved");
-            _bandScoreNotSavedPill.SetValues(scoreNotSavedText,
-                ColoredPillElement.ColoredPillPreset.HarderModifier);
-            _bandScoreNotSavedPill.gameObject.SetActive(!GlobalVariables.State.IsReplay &&
-                !ScoreContainer.IsBandScoreValid(PersistentState.Default.SongSpeed));
-
+            if (!GlobalVariables.State.IsReplay && !ScoreContainer.IsBandScoreValid(PersistentState.Default.SongSpeed))
+            {
+                var text = Localize.Key("Menu.ScoreScreen.BandScoreNotSaved");
+                _scoreStatusPill.SetValues(text,
+                    ColoredPillElement.ColoredPillPreset.HarderModifier);
+                _scoreStatusPill.gameObject.SetActive(true);
+            }
+            else if (GlobalVariables.State.IsReplay && GlobalVariables.State.ScoreScreenStats is {ReplayWasConsistent: false})
+            {
+                var text = Localize.Key("Menu.ScoreScreen.InconsistentReplay");
+                _scoreStatusPill.SetValues(text,
+                    ColoredPillElement.ColoredPillPreset.HarderModifier);
+                _scoreStatusPill.gameObject.SetActive(true);
+            }
+            else
+            {
+                _scoreStatusPill.gameObject.SetActive(false);
+            }
             // Set speed text (if not at 100% speed)
             if (!Mathf.Approximately(GlobalVariables.State.SongSpeed, 1f))
             {

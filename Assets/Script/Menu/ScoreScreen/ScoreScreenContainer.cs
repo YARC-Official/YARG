@@ -23,6 +23,7 @@ namespace YARG.Menu.ScoreScreen
 
 #nullable enable
         public ReplayInfo? ReplayInfo;
+        public bool? ReplayWasConsistent;
 #nullable disable
     }
 }
