@@ -633,7 +633,54 @@ namespace YARG.Gameplay
         public double GetInputTime(double inputSystemTime)
             => _songRunner.GetInputTime(inputSystemTime);
 
-        private bool EndSong()
+        public void SkipToScoreScreen()
+        {
+            double endTime = Math.Max(SongLength, LastNoteTime) + SONG_END_DELAY;
+            const double simulationStep = 1.0 / 60.0;
+            double simulationEndTime = LastNoteTime + SONG_END_DELAY;
+            double simulationTime = _players.Count > 0
+                ? Math.Max(_songRunner.InputTime, _players.Max(player => player.BaseEngine.CurrentTime))
+                : _songRunner.InputTime;
+
+            // Advance all engines together so band failure is evaluated the same way as
+            // normal gameplay, while queuing no additional player inputs.
+            while (simulationTime < simulationEndTime && !PlayerHasFailed)
+            {
+                simulationTime = Math.Min(simulationTime + simulationStep, simulationEndTime);
+                EngineManager.UpdateEngines(simulationTime);
+            }
+
+            if (PlayerHasFailed)
+            {
+                SetSongTime(simulationTime, 0);
+                _pauseMenu.PopAllMenus();
+                Time.timeScale = 1f;
+                return;
+            }
+
+            // Resolve any non-note state that extends through a long outro without
+            // simulating every empty frame.
+            if (simulationTime < endTime)
+            {
+                EngineManager.UpdateEngines(endTime);
+            }
+
+            if (PlayerHasFailed)
+            {
+                SetSongTime(endTime, 0);
+                _pauseMenu.PopAllMenus();
+                Time.timeScale = 1f;
+                return;
+            }
+
+            BandScore = _players.Sum(player => player.Score + player.BandBonusScore);
+            EngineManager.UpdateStars();
+
+            _pauseMenu.PopAllMenus();
+            EndSong(endTime);
+        }
+
+        private bool EndSong(double? forcedEndTime = null)
         {
             _crowdClapScheduler?.Dispose();
             // Dispose the crowd handler
@@ -645,7 +692,7 @@ namespace YARG.Gameplay
                 return false;
             }
 
-            if (_songRunner.SongTime < SongLength + SONG_END_DELAY)
+            if (forcedEndTime is null && _songRunner.SongTime < SongLength + SONG_END_DELAY)
             {
                 return false;
             }
@@ -661,7 +708,7 @@ namespace YARG.Gameplay
             try
             {
                 _isReplaySaved = false;
-                replayInfo = SaveReplay(_songRunner.InputTime, ScoreContainer.ScoreReplayDirectory);
+                replayInfo = SaveReplay(forcedEndTime ?? _songRunner.InputTime, ScoreContainer.ScoreReplayDirectory);
             }
             catch (Exception e)
             {

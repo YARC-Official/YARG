@@ -622,6 +622,7 @@
             "Generic": {
                 "Resume": "Resume",
                 "Restart": "Restart",
+                "SkipToScoreScreen": "Skip to Score Screen",
                 "BackToLibrary": "Back To Library",
                 "Settings": "Settings",
                 "Practice": "Practice"
