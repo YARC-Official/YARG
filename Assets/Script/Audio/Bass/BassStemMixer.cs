@@ -46,6 +46,7 @@ namespace YARG.Audio.BASS
         private readonly List<int>           _sourceHandles = new();
         private readonly int                 _tempoStreamHandle;
         private readonly SongPositionTracker _songPositionTracker;
+        private readonly BufferedPlaybackTimeline _playbackTimeline;
         private          bool                _didSeek;
         private          int            _songEndHandle;
         private          float          _speed = 1.0f;
@@ -103,6 +104,7 @@ namespace YARG.Audio.BASS
         {
             _tempoStreamHandle = BassFx.TempoCreate(handle, BassFlags.SampleOverrideLowestVolume);
             _songPositionTracker = new SongPositionTracker(_tempoStreamHandle);
+            _playbackTimeline = new BufferedPlaybackTimeline(speed);
             if (_tempoStreamHandle == 0)
             {
                 YargLogger.LogFormatError("Failed to create tempo stream: {0}", Bass.LastError);
@@ -156,6 +158,7 @@ namespace YARG.Audio.BASS
                 }
                 Bass.ChannelUpdate(_tempoStreamHandle, 0);
                 _didSeek = false;
+                _playbackTimeline.Play();
             }
 
             if (IsWhammyEnabled)
@@ -210,12 +213,21 @@ namespace YARG.Audio.BASS
                 return (int) Bass.LastError;
             }
 
+            _playbackTimeline.Pause();
+
             return 0;
         }
 
         protected override double GetPosition_Internal()
         {
             return _songPositionTracker.GetSongPosition();
+        }
+
+        protected override PlaybackPosition GetPlaybackPosition_Internal()
+        {
+            double rawPosition = _songPositionTracker.GetSongPosition();
+            double tempoLatency = BassLatencyProvider.GetTempoStreamLatency(_tempoStreamHandle);
+            return _playbackTimeline.GetPosition(rawPosition, tempoLatency);
         }
 
         protected override double GetTempoStreamLatency_Internal()
@@ -225,7 +237,7 @@ namespace YARG.Audio.BASS
 
         protected override double GetPlaybackStartLatency_Internal()
         {
-            return BassLatencyProvider.GetOutputTransitionLatency() + _songPositionTracker.AlignmentDelay;
+            return Math.Max(0, _playbackTimeline.OutputLatency) + _songPositionTracker.AlignmentDelay;
         }
 
         protected override double GetVolume_Internal()
@@ -255,6 +267,7 @@ namespace YARG.Audio.BASS
                 {
                     YargLogger.LogFormatError("Failed to reset tempo stream position: {0}!", Bass.LastError);
                 }
+                _playbackTimeline.Reset(_songPositionTracker.GetSongPosition());
             }
 
             if (wasPlaying)
@@ -332,14 +345,26 @@ namespace YARG.Audio.BASS
 
         protected override void SetSpeed_Internal(float speed, bool shiftPitch)
         {
-            speed = (float) Math.Clamp(speed, 0.05, 50);
-            if (_speed == speed)
-            {
-                return;
-            }
-            _speed = speed;
+            SetPlaybackSpeed_Internal(speed, 0f, shiftPitch);
+        }
 
-            BassAudioManager.SetSpeed(speed, _tempoStreamHandle, shiftPitch);
+        protected override void SetPlaybackSpeed_Internal(float songSpeed, float syncAdjustment, bool shiftPitch)
+        {
+            float speed = (float) Math.Clamp(songSpeed + syncAdjustment, 0.05, 50);
+            syncAdjustment = speed - songSpeed;
+            if (_speed != speed)
+            {
+                _speed = speed;
+                BassAudioManager.SetSpeed(speed, _tempoStreamHandle, shiftPitch);
+            }
+
+            double tempoLatency = BassLatencyProvider.GetTempoStreamLatency(_tempoStreamHandle);
+            _playbackTimeline.SetSpeed(songSpeed, syncAdjustment, tempoLatency);
+        }
+
+        protected override void SetOutputLatency_Internal(double latency)
+        {
+            _playbackTimeline.SetOutputLatency(latency);
         }
 
         protected override bool AddChannels_Internal(Stream stream, params StemInfo[] stemInfos)
