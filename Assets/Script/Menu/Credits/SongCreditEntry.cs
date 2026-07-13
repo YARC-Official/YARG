@@ -38,6 +38,8 @@ namespace YARG.Menu.Credits
         private TextMeshProUGUI _masteredBy;
         [SerializeField]
         private TextMeshProUGUI _publishedBy;
+        [SerializeField]
+        private TextMeshProUGUI _backgroundBy;
 
         private List<SongCredit> _songCredits = new();
 
@@ -60,6 +62,7 @@ namespace YARG.Menu.Credits
 
             ShowOrHideCredit(_courtesyOf, "Menu.Credits.Song.CourtesyOf", song.CreditCourtesyOf);
             ShowOrHideCredit(_albumCover, "Menu.Credits.Song.AlbumCover", song.CreditAlbumArtDesignedBy);
+            ShowOrHideCredit(_backgroundBy, "Menu.Credits.Song.BackgroundBy", song.CreditBackground);
             ShowOrHideCredit(_publishedBy, "Menu.Credits.Song.PublishedBy", song.CreditPublishedBy);
             ShowOrHideCredit(_chartedBy, "Menu.Credits.Song.ChartedBy", Localize.List(GetCharterCredits(song)));
             ShowOrHideCredit(_license, "Menu.Credits.Song.License", song.CreditLicense);

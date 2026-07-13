@@ -3,6 +3,7 @@ using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.UI;
 using YARG.Core;
 using YARG.Core.Extensions;
 using YARG.Core.Input;
@@ -44,7 +45,14 @@ namespace YARG.Menu.MusicLibrary
         [SerializeField]
         private NavigationGroup _navGroup;
 
+        private ScrollRect _scrollRect;
+
         private State _menuState;
+
+        private void Awake()
+        {
+            _scrollRect = _navGroup.GetComponent<ScrollRect>();
+        }
 
         private void OnEnable()
         {
@@ -81,7 +89,7 @@ namespace YARG.Menu.MusicLibrary
         {
             // Reset content
             _navGroup.ClearNavigatables();
-            _container.DestroyChildren();
+            ClearItems();
 
             // Create the menu
             switch (_menuState)
@@ -100,7 +108,33 @@ namespace YARG.Menu.MusicLibrary
                     break;
             }
 
+            ResetScroll();
             _navGroup.SelectFirst();
+        }
+
+        private void ResetScroll()
+        {
+            if (_scrollRect == null) return;
+
+            Canvas.ForceUpdateCanvases();
+
+            if (_container is RectTransform containerTransform)
+            {
+                LayoutRebuilder.ForceRebuildLayoutImmediate(containerTransform);
+                containerTransform.anchoredPosition = containerTransform.anchoredPosition.WithY(0f);
+            }
+
+            _scrollRect.verticalNormalizedPosition = 1f;
+        }
+
+        private void ClearItems()
+        {
+            for (int i = _container.childCount - 1; i >= 0; i--)
+            {
+                var child = _container.GetChild(i);
+                child.SetParent(null, false);
+                Destroy(child.gameObject);
+            }
         }
 
         private void CreateMainMenu()
@@ -130,7 +164,7 @@ namespace YARG.Menu.MusicLibrary
 
             if (_musicLibrary.MenuState != MenuState.PlaylistSelect)
             {
-                CreateItem("SortBy", _musicLibrary.GetPopupSortLabel(), () =>
+                CreateItem("SortBy", () =>
                 {
                     _menuState = State.SortSelect;
                     UpdateForState();
@@ -150,21 +184,7 @@ namespace YARG.Menu.MusicLibrary
 
             if (_musicLibrary.MenuState == MenuState.Library && !_musicLibrary.PlaylistMode)
             {
-                bool hasCollapsed = false;
-                bool hasExpanded = false;
-                foreach (var section in _musicLibrary.SortedSongs)
-                {
-                    if (section.Collapsed)
-                    {
-                        hasCollapsed = true;
-                    }
-                    else
-                    {
-                        hasExpanded = true;
-                    }
-
-                    if (hasCollapsed && hasExpanded) break;
-                }
+                _musicLibrary.GetSortHeaderCollapseState(out bool hasCollapsed, out bool hasExpanded);
 
                 if (hasCollapsed)
                 {
@@ -407,7 +427,7 @@ namespace YARG.Menu.MusicLibrary
 
         private void CreateGoToSection()
         {
-            SetLocalizedHeader("GoTo");
+            SetLocalizedHeader("GoToSection");
 
             foreach (var (name, index) in _musicLibrary.Shortcuts)
             {
@@ -421,6 +441,8 @@ namespace YARG.Menu.MusicLibrary
 
         private void CreateAddToPlayList()
         {
+            SetLocalizedHeader("AddToPlaylist");
+
             // Get the list of playlists from PlaylistContainer and create items for each
             foreach (var playlist in PlaylistContainer.Playlists)
             {

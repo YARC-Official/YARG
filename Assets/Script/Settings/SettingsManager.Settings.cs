@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
 using UnityEngine;
@@ -24,6 +24,7 @@ using YARG.Scores;
 using YARG.Settings.Metadata;
 using YARG.Settings.Types;
 using YARG.Song;
+using YARG.Song.Exporters;
 using YARG.Venue;
 using YARG.Venue.Characters;
 
@@ -148,6 +149,7 @@ namespace YARG.Settings
 
             public ToggleSetting PauseOnDeviceDisconnect { get; } = new(true);
             public ToggleSetting PauseOnFocusLoss { get; } = new(true);
+            public ToggleSetting MuteOnFocusLoss { get; } = new(false);
 
             public ToggleSetting WrapAroundNavigation { get; } = new(true);
 
@@ -186,6 +188,7 @@ namespace YARG.Settings
             public ToggleSetting ShowFavoriteButton { get; } = new(true);
             public ToggleSetting ShowRecommendedSongs { get; } = new(true, ShowRecommendedSongsCallback);
 
+            public ToggleSetting EnablePlayAShow { get; } = new(true);
             public SliderSetting PlayAShowTimeout { get; } = new (10.0f, 1.0f, 30.0f);
             public ToggleSetting RequireAllDifficulties { get; } = new(true);
 
@@ -213,10 +216,12 @@ namespace YARG.Settings
                 };
 
             public DropdownSetting<HighScoreHistoryMode> HighScoreHistory { get; }
-                = new(HighScoreHistoryMode.HighestDifficulty, _ => ScoreContainer.InvalidateScoreCache())
+                = new(HighScoreHistoryMode.HighestPercentageDifficulty, _ => ScoreContainer.InvalidateScoreCache())
                 {
-                    HighScoreHistoryMode.HighestOverall,
-                    HighScoreHistoryMode.HighestDifficulty,
+                    HighScoreHistoryMode.HighestPercentageOverall,
+                    HighScoreHistoryMode.HighestPercentageDifficulty,
+                    HighScoreHistoryMode.HighestScoreOverall,
+                    HighScoreHistoryMode.HighestScoreDifficulty,
                 };
 
             public ToggleSetting ShowPercentDecimals { get; } = new(false);
@@ -255,6 +260,9 @@ namespace YARG.Settings
             public VolumeSetting SfxVolume { get; } =
                 new(0.8f, v => GlobalAudioHandler.SetVolumeSetting(SongStem.Sfx, v));
 
+            public VolumeSetting VenueSfxVolume { get; } =
+                new(0.8f, v => GlobalAudioHandler.SetVolumeSetting(SongStem.VenueSample, v));
+
             public VolumeSetting DrumSfxVolume { get; } =
                 new(0.8f, v => GlobalAudioHandler.SetVolumeSetting(SongStem.DrumSfx, v));
 
@@ -265,10 +273,8 @@ namespace YARG.Settings
             public VolumeSetting MusicPlayerVolume { get; } = new(0.15f, MusicPlayerVolumeCallback);
             public VolumeSetting VocalMonitoring { get; } = new(0.7f, VocalMonitoringCallback);
 
-            public ToggleSetting EnablePlaybackBuffer { get; } = new(true, GlobalAudioHandler.TogglePlaybackBuffer);
-
             public IntSetting PlaybackBufferLength { get; }
-                = new(75, GlobalAudioHandler.MinimumBufferLength, GlobalAudioHandler.MaximumBufferLength,
+                = new(75, 0, GlobalAudioHandler.MaximumBufferLength,
                     GlobalAudioHandler.SetBufferLength);
 
             public SliderSetting MicrophoneSensitivity { get; } = new(2f, -50f, 50f);
@@ -294,6 +300,8 @@ namespace YARG.Settings
                 CrowdFxMode.Enabled
             };
 
+            public ToggleSetting UseVenueSfx { get; } = new(true);
+
             public ToggleSetting OverstrumAndOverhitSoundEffects { get; } = new(true);
 
             public ToggleSetting AlwaysOnDrumSFX { get; } = new(false);
@@ -305,6 +313,8 @@ namespace YARG.Settings
             public ToggleSetting UseChipmunkSpeed { get; } = new(false, UseChipmunkSpeedChange);
 
             public ToggleSetting ApplyVolumesInMusicLibrary { get; } = new(true);
+
+            public ToggleSetting ApplyVolumesInMusicPlayer { get; } = new(false, ApplyVolumesInMusicPlayerChange);
 
             public ToggleSetting EnableVoxSamples { get; } = new(true);
 
@@ -325,9 +335,10 @@ namespace YARG.Settings
 
             #region Graphics
 
-            public ToggleSetting VSync       { get; } = new(true, VSyncCallback);
-            public IntSetting    FpsCap      { get; } = new(60, 0, onChange: FpsCapCallback);
-            public IntSetting    VenueFpsCap { get; } = new(60, 0);
+            public ToggleSetting VSync            { get; } = new(true, VSyncCallback);
+            public IntSetting    FpsCap           { get; } = new(60, 0, onChange: FpsCapCallback);
+            public IntSetting    VenueFpsCap      { get; } = new(60, 0);
+            public IntSetting    BackgroundFpsCap { get; } = new(10, 0);
 
             public DropdownSetting<FullScreenMode> FullscreenMode { get; }
                 = new(FullScreenMode.FullScreenWindow, FullscreenModeCallback)
@@ -362,6 +373,7 @@ namespace YARG.Settings
                  };
 
             public ToggleSetting VenuePostProcessing { get; } = new(true);
+            public ToggleSetting ReduceFlashingLights { get; } = new(false);
             public ResolutionSetting Resolution { get; } = new(ResolutionCallback);
             public ToggleSetting FpsStats { get; } = new(false, FpsCounterCallback);
 
@@ -412,6 +424,14 @@ namespace YARG.Settings
                     CountdownDisplayMode.Disabled
                 };
 
+            public DropdownSetting<UnisonDisplaySetting> UnisonDisplay { get; }
+                = new(UnisonDisplaySetting.MultiplayerOnly)
+                {
+                    UnisonDisplaySetting.Always,
+                    UnisonDisplaySetting.MultiplayerOnly,
+                    UnisonDisplaySetting.Disabled
+                };
+
             public ToggleSetting ShowPlayerNameWhenStartingSong { get; } = new(true);
 
             public DropdownSetting<LyricDisplayMode> LyricDisplay { get; }
@@ -456,6 +476,11 @@ namespace YARG.Settings
             public void ExportSongsCsv()
             {
                 SongExport.Export(SongExport.ExportFormat.Csv);
+            }
+
+            public void ExportSongsWeb()
+            {
+                SongExport.Export(SongExport.ExportFormat.WebBrowser);
             }
 
             public void CopyCurrentSongTextFilePath()
@@ -832,6 +857,11 @@ namespace YARG.Settings
             private static void UseChipmunkSpeedChange(bool value)
             {
                 GlobalAudioHandler.IsChipmunkSpeedup = value;
+            }
+
+            private static void ApplyVolumesInMusicPlayerChange(bool value)
+            {
+                StemSettings.ApplySettings = value;
             }
 
             private static void InputDeviceLoggingCallback(bool value)

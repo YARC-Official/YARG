@@ -1,10 +1,7 @@
-using System;
 using System.Collections.Generic;
 using UnityEngine;
 using YARG.Core.Chart;
-using YARG.Core.Engine;
 using YARG.Gameplay;
-using YARG.Helpers.Extensions;
 
 namespace YARG.Venue
 {

@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using YARG.Core;
@@ -55,6 +56,8 @@ namespace YARG.Gameplay.Player
         private VocalsPlayerHUD _hud;
         private VocalPercussionTrack _percussionTrack;
         private bool _shouldHideNeedle;
+        private bool _handlesCountdown;
+        private List<VocalsPart> _allVocalParts;
 
         private int _phraseIndex = -1;
 
@@ -83,6 +86,8 @@ namespace YARG.Gameplay.Player
             // Get the notes from the specific harmony or solo part
 
             var multiTrack = chart.GetVocalsTrack(Player.Profile.CurrentInstrument);
+            _allVocalParts = multiTrack.Parts;
+            _handlesCountdown = vocalIndex == 0;
 
             var track = multiTrack.Parts[Player.Profile.HarmonyIndex];
             player.Profile.ApplyVocalModifiers(track);
@@ -126,26 +131,6 @@ namespace YARG.Gameplay.Player
 
             Engine = CreateEngine();
 
-            Engine.OnComboIncrement += OnComboIncrement;
-            Engine.OnComboReset += OnComboReset;
-
-            if (vocalIndex == 0)
-            {
-                if (Player.Profile.CurrentInstrument == Instrument.Vocals)
-                {
-                    Engine.BuildCountdownsFromSelectedPart();
-                }
-                else
-                {
-                    Engine.BuildCountdownsFromAllParts(multiTrack.Parts);
-                }
-
-                Engine.OnCountdownChange += (countdownLength, endTime) =>
-                {
-                    GameManager.VocalTrack.UpdateCountdown(countdownLength, endTime);
-                };
-            }
-
             if (GameManager.IsPractice)
             {
                 Engine.SetSpeed(GameManager.SongSpeed >= 1 ? GameManager.SongSpeed : 1);
@@ -182,10 +167,14 @@ namespace YARG.Gameplay.Player
             HitWindow = EngineParams.HitWindow;
 
             var engine = new YargVocalsEngine(NoteTrack, SyncTrack, EngineParams, Player.Profile.IsBot);
-            EngineContainer = GameManager.EngineManager.Register(engine, NoteTrack.Instrument, Player.Profile.HarmonyIndex, _chart, Player.RockMeterPreset);
+            EngineContainer = GameManager.EngineManager.Register(engine, NoteTrack.Instrument, NoteTrack.Difficulty, Player.Profile.HarmonyIndex, _chart, Player.RockMeterPreset);
+
+            engine.OnComboIncrement += OnComboIncrement;
+            engine.OnComboReset += OnComboReset;
 
             engine.OnStarPowerPhraseHit += _ => OnStarPowerPhraseHit();
             engine.OnStarPowerStatus += OnStarPowerStatus;
+            engine.OnStarPowerReady += OnStarPowerReady;
 
             engine.OnTargetNoteChanged += (note) =>
             {
@@ -239,6 +228,23 @@ namespace YARG.Gameplay.Player
                     : null;
             };
 
+            if (_handlesCountdown)
+            {
+                if (Player.Profile.CurrentInstrument == Instrument.Vocals)
+                {
+                    engine.BuildCountdownsFromSelectedPart();
+                }
+                else
+                {
+                    engine.BuildCountdownsFromAllParts(_allVocalParts);
+                }
+
+                engine.OnCountdownChange += (countdownLength, endTime) =>
+                {
+                    GameManager.VocalTrack.UpdateCountdown(countdownLength, endTime);
+                };
+            }
+
             return engine;
         }
 
@@ -258,6 +264,7 @@ namespace YARG.Gameplay.Player
             }
 
             _phraseIndex = -1;
+            _percussionTrack.Initialize(NoteTrack.Notes);
 
             base.ResetPracticeSection();
         }
@@ -323,6 +330,12 @@ namespace YARG.Gameplay.Player
                 (float) Engine.GetStarPowerBarAmount(), Engine.EngineStats.IsStarPowerActive);
         }
 
+        protected override void OnStarPowerReady()
+        {
+            base.OnStarPowerReady();
+            _hud.ShowNotification(TextNotificationType.StarPowerReady);
+        }
+
         private void ShowTextNotifications(bool isLastPhrase)
         {
             if (SettingsManager.Settings.DisableTextNotifications.Value)
@@ -331,12 +344,6 @@ namespace YARG.Gameplay.Player
             }
 
             var isStarPowerActive = Engine.EngineStats.IsStarPowerActive;
-            var currentStarPowerPercent = Engine.GetStarPowerBarAmount();
-            if (!isStarPowerActive && _previousStarPowerPercent < 0.5 && currentStarPowerPercent >= 0.5)
-            {
-                _hud.ShowNotification(TextNotificationType.StarPowerReady);
-
-            }
             _previousStarPowerPercent = Engine.GetStarPowerBarAmount();
 
             var isMaxMultiplier = Engine.EngineStats.ScoreMultiplier == (isStarPowerActive ? 8 : 4);
@@ -509,45 +516,75 @@ namespace YARG.Gameplay.Player
                 return;
             }
 
+            while (ShouldAdvancePhraseIndex(time))
+            {
+                _phraseIndex++;
+
+                // We've reached the end. No need to continue.
+                if (_phraseIndex >= NoteTrack.Notes.Count)
+                {
+                    SetPercussionMode(false);
+                    return;
+                }
+
+                var phrase = NoteTrack.Notes[_phraseIndex];
+                SetPercussionMode(HasPercussion(phrase));
+            }
+        }
+
+        private bool ShouldAdvancePhraseIndex(double time)
+        {
             // Since phrases start at the note, and not sometime before it, use
             // the end times of phrases instead (where the phrase lines are). Problem
             // with this is that we still gotta account for the first phrase, so use
             // an index of -1 for that.
-            while (_phraseIndex == -1 ||
-                (_phraseIndex < NoteTrack.Notes.Count && NoteTrack.Notes[_phraseIndex].TimeEnd <= time))
+            bool beforeFirstPhrase = _phraseIndex == -1;
+            if (beforeFirstPhrase)
             {
-                _phraseIndex++;
-
-                // End if that's the last note
-                if (_phraseIndex >= NoteTrack.Notes.Count)
+                // Track has no notes. Bail early.
+                if (NoteTrack.Notes.Count <= 0)
                 {
-                    break;
+                    return false;
                 }
 
-                var phrase = NoteTrack.Notes[_phraseIndex];
-
-                bool hasPercussion = false;
-                uint totalTime = 0;
-                foreach (var note in phrase.ChildNotes)
-                {
-                    if (note.IsPercussion)
-                    {
-                        hasPercussion = true;
-                        continue;
-                    }
-
-                    totalTime += note.TotalTickLength;
-                }
-
-                _hud.SetHUDShowing(!hasPercussion);
-                _percussionTrack.ShowPercussionFret(hasPercussion);
-                _shouldHideNeedle = hasPercussion;
+                var firstPhrase = NoteTrack.Notes[0];
+                var firstPhraseHasStarted = firstPhrase.Time <= time;
+                return firstPhraseHasStarted || HasPercussion(firstPhrase);
             }
+
+            bool atTheEndOfTrack = _phraseIndex >= NoteTrack.Notes.Count;
+            if (atTheEndOfTrack)
+            {
+                return false;
+            }
+
+            var currentPhrase = NoteTrack.Notes[_phraseIndex];
+            return currentPhrase.TimeEnd <= time;
+        }
+
+        private void SetPercussionMode(bool show)
+        {
+            _hud.SetHUDShowing(!show);
+            _percussionTrack.ShowPercussionFret(show);
+            _shouldHideNeedle = show;
+        }
+
+        private static bool HasPercussion(VocalNote phrase)
+        {
+            foreach (var note in phrase.ChildNotes)
+            {
+                if (note.IsPercussion)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         public override void SetPracticeSection(uint start, uint end)
         {
-            var practiceNotes = OriginalNoteTrack.Notes.Where(n => n.Tick >= start && n.Tick < end).ToList();
+            var practiceNotes = OriginalNoteTrack.Notes.Where(n => IsVocalPhraseInPracticeRange(n, start, end)).ToList();
 
             NoteTrack = new InstrumentDifficulty<VocalNote>(
                 OriginalNoteTrack.Instrument,
@@ -559,7 +596,19 @@ namespace YARG.Gameplay.Player
             _phraseIndex = -1;
 
             Engine = CreateEngine();
+            Engine.SetSpeed(GameManager.SongSpeed >= 1 ? GameManager.SongSpeed : 1);
             ResetPracticeSection();
+        }
+
+        private static bool IsVocalPhraseInPracticeRange(VocalNote note, uint start, uint end)
+        {
+            if (note.Tick >= start && note.Tick < end)
+            {
+                return true;
+            }
+
+            return note.ChildNotes.Count > 0 &&
+                note.ChildNotes.All(child => child.Tick >= start && child.TotalTickEnd <= end);
         }
 
         public override void SetStemMuteState(bool muted)

@@ -143,6 +143,8 @@ namespace YARG.Menu.MusicLibrary
         {
             base.OnEnable();
 
+            _heldInputs.Clear();
+
             // Hack to ensure that crowd samples are stopped no matter what
             GlobalAudioHandler.StopAllSfxChannels();
 
@@ -298,7 +300,31 @@ namespace YARG.Menu.MusicLibrary
                 ? new NavigationScheme.Entry(MenuAction.Right, "Menu.MusicLibrary.MoveInPlaylist", MovePlaylistEntryDown)
                 : new NavigationScheme.Entry(MenuAction.Right, "Menu.MusicLibrary.SkipSection", GoToNextSection);
 
-            Navigator.Instance.PushScheme(new NavigationScheme(new()
+            // Give yellow the same behaviour as green: press to add to set, hold to start the set
+            NavigationScheme.Entry yellowEntry;
+
+            if (SettingsManager.Settings.EnablePlayAShow.Value)
+            {
+                yellowEntry = new NavigationScheme.Entry(
+                        MenuAction.Yellow,
+                        "Menu.MusicLibrary.HoldPlayShow",
+                        () => { }, // tap does nothing
+                        holdSeconds: GREEN_HOLD_SECONDS,
+                        onHoldHandler: EnterShowMode
+                    );
+            }
+            else
+            {
+                yellowEntry = new NavigationScheme.Entry(
+                        MenuAction.Yellow,
+                        "Menu.MusicLibrary.AddHoldStartSet",
+                        _ => AddToPlaylist(),
+                        holdSeconds: GREEN_HOLD_SECONDS,
+                        onHoldHandler: OnGreenHold // Use existing function
+                    );
+            }
+
+            var entries = new List<NavigationScheme.Entry>
             {
                 new NavigationScheme.Entry(MenuAction.Up, "Menu.Common.Up",
                     ctx =>
@@ -346,14 +372,13 @@ namespace YARG.Menu.MusicLibrary
                         hide: true
                     ),
                 new NavigationScheme.Entry(MenuAction.Red, "Menu.Common.Back", Back, hide: true),
-                setListNotEmpty ?
-                    new NavigationScheme.Entry(MenuAction.Yellow, "Menu.MusicLibrary.StartSet", StartSetlist) :
-                    new NavigationScheme.Entry(MenuAction.Yellow, "Menu.MusicLibrary.PlayShow", EnterShowMode),
+                yellowEntry,
                 new NavigationScheme.Entry(MenuAction.Blue, "Menu.MusicLibrary.Filters", OpenFilters),
                 new NavigationScheme.Entry(MenuAction.Orange, "Menu.MusicLibrary.MoreOptions",
                     OnOrangeHit, OnOrangeRelease),
-            }, false));
+            };
 
+            Navigator.Instance.PushScheme(new NavigationScheme(entries, false));
         }
 
         protected override void OnSelectedIndexChanged()
@@ -370,7 +395,7 @@ namespace YARG.Menu.MusicLibrary
             if (CurrentSelection is SongViewType song)
             {
                 if (CurrentlyPlaying == null && song.SongEntry == _currentSong &&
-                    (_previewCanceller == null || !_previewCanceller.IsCancellationRequested))
+                    _previewCanceller != null && !_previewCanceller.IsCancellationRequested)
                 {
                     return;
                 }
@@ -572,11 +597,13 @@ namespace YARG.Menu.MusicLibrary
                     }
                     else
                     {
-                        starAmount = GetStarAmountForSong(song);
+                        starAmount = SongViewType.GetStarAmountForSong(song);
                     }
 
                     if (starAmount is not null)
-                        sectionTotalStars += StarAmountHelper.GetStarCount(starAmount.Value);
+                    {
+                        sectionTotalStars += starAmount.Value.GetStarCount();
+                    }
                 }
                 _totalStarCount += sectionTotalStars;
 
@@ -584,27 +611,11 @@ namespace YARG.Menu.MusicLibrary
                 {
                     sortHeader.TotalStarsCount = sectionTotalStars;
                 }
-
             }
 
             _totalSongCount = songCount;
             CalculateCategoryHeaderIndices(list);
             return list;
-        }
-
-        private static StarAmount? GetStarAmountForSong(SongEntry song)
-        {
-            var humanCount = PlayerContainer.Players.Count(p => !p.Profile.IsBot);
-            if (humanCount == 1)
-            {
-                var player = PlayerContainer.Players.First(e => !e.Profile.IsBot);
-                var playerScoreRecord = ScoreContainer.GetHighScore(
-                    song.Hash, player.Profile.Id, player.Profile.CurrentInstrument);
-                return playerScoreRecord?.Stars;
-            }
-
-            var bandScoreRecord = ScoreContainer.GetBandHighScore(song.Hash);
-            return bandScoreRecord?.BandStars;
         }
 
         private void ExitLibrary()
@@ -782,6 +793,7 @@ namespace YARG.Menu.MusicLibrary
         {
             base.OnDisable();
             SetSidebarDifficultiesVisible(false);
+            _heldInputs.Clear();
 
             if (Navigator.Instance == null) return;
 
@@ -897,7 +909,8 @@ namespace YARG.Menu.MusicLibrary
 
             if (setListNotEmpty)
             {
-                // same as Blue: Start Setlist
+                // same as Yellow: Start Setlist
+                // Blue is now used for filters
                 StartSetlist();
             }
             else

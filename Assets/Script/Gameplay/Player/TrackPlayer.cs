@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.Serialization;
 using YARG.Assets.Script.Helpers;
 using YARG.Core;
 using YARG.Core.Audio;
@@ -43,6 +44,8 @@ namespace YARG.Gameplay.Player
         protected HighwayCameraRendering HighwayCameraRendering;
         [SerializeField]
         protected TrackMaterial TrackMaterial;
+        [SerializeField]
+        protected StrikelineAnimator StrikelineAnimator;
         [SerializeField]
         protected ComboMeter ComboMeter;
         [SerializeField]
@@ -187,6 +190,10 @@ namespace YARG.Gameplay.Player
         private List<Phrase> _brePhrases = new();
         private int _breIndex;
 
+        private List<EngineManager.UnisonPhrase> _unisonPhrases = new();
+        private int                              _unisonStartIndex;
+        private int                              _unisonEndIndex;
+
         protected SongChart Chart;
 
         private AutoCalibrator _autoCalibrator;
@@ -254,6 +261,7 @@ namespace YARG.Gameplay.Player
             GameManager.BeatEventHandler.Visual.Subscribe(SunburstEffects.PulseSunburst, BeatEventType.StrongBeat);
             InitializeTrackEffects();
             InitializeCodaEvents();
+            InitializeUnisonEvents();
 
             ResetNoteCounters();
 
@@ -284,6 +292,13 @@ namespace YARG.Gameplay.Player
                     _brePhrases.Add(phrase);
                 }
             }
+        }
+
+        private void InitializeUnisonEvents()
+        {
+            _unisonStartIndex = 0;
+            _unisonEndIndex = 0;
+            _unisonPhrases = EngineContainer.UnisonPhrases;
         }
 
         private void InitializeTrackEffects()
@@ -356,6 +371,9 @@ namespace YARG.Gameplay.Player
             TrackMaterial.Initialize(Player.HighwayPreset);
             CameraPositioner.Initialize(Player.CameraPreset);
             FinalizeTrackEffects();
+
+            GameManager.EngineManager.OnPlayerFailed += OnPlayerFailed;
+            GameManager.EngineManager.OnPlayerRevived += OnPlayerRevived;
         }
 
         protected void ResetNoteCounters()
@@ -379,6 +397,8 @@ namespace YARG.Gameplay.Player
 
             CurrentCoda = null;
             _breIndex = 0;
+            _unisonStartIndex = 0;
+            _unisonEndIndex = 0;
 
             ResetLastHitTimes();
 
@@ -392,7 +412,14 @@ namespace YARG.Gameplay.Player
 
         public override void Rewind(double visualTime)
         {
-
+            for (int index = NotePool.AllSpawned.Count - 1; index >= 0; index--)
+            {
+                var poolable = NotePool.AllSpawned[index];
+                if (poolable is INoteElement note)
+                {
+                    note.OnRewind();
+                }
+            }
         }
 
         public override void PostRewind(double visualTime)
@@ -409,6 +436,7 @@ namespace YARG.Gameplay.Player
             UpdateBeatlines(visualTime);
             UpdateTrackEffects(visualTime);
             UpdateCodaEvents(visualTime);
+            UpdateUnisonEvents(visualTime);
 
             var stats = Engine.BaseStats;
 
@@ -462,11 +490,6 @@ namespace YARG.Gameplay.Player
             }
 
             _previousBassGrooveState = currentBassGrooveState;
-
-            if (!stats.IsStarPowerActive && _previousStarPowerAmount < 0.5 && currentStarPowerAmount >= 0.5)
-            {
-                TrackView.ShowStarPowerReady();
-            }
 
             if (stats.IsStarPowerActive && !_wasStarPowerActive && !_didLowerTrack)
             {
@@ -577,6 +600,21 @@ namespace YARG.Gameplay.Player
                 _breIndex++;
 
                 StartBRE(phrase.Time, phrase.TimeEnd);
+            }
+        }
+
+        private void UpdateUnisonEvents(double time)
+        {
+            if (_unisonStartIndex < _unisonPhrases.Count && _unisonPhrases[_unisonStartIndex].Time <= time)
+            {
+                OnUnisonStart();
+                _unisonStartIndex++;
+            }
+
+            if (_unisonEndIndex < _unisonPhrases.Count && _unisonPhrases[_unisonEndIndex].TimeEnd <= time)
+            {
+                OnUnisonEnd();
+                _unisonEndIndex++;
             }
         }
 
@@ -824,14 +862,12 @@ namespace YARG.Gameplay.Player
 
                         if (childNote.IsLane)
                         {
-                            if (laneStartNotes.ContainsKey(childNote.LaneNote))
-                            {
-                                laneEndTimes[childNote.LaneNote] = noteRef.Time;
-                            }
-                            else
+                            if (!laneStartNotes.ContainsKey(childNote.LaneNote))
                             {
                                 laneStartNotes[childNote.LaneNote] = childNote;
                             }
+
+                            laneEndTimes[childNote.LaneNote] = noteRef.Time;
                         }
                     }
 
@@ -1099,11 +1135,22 @@ namespace YARG.Gameplay.Player
         {
             CurrentCoda = coda;
             SetStemMuteState(false);
+            TrackView.StartCoda();
         }
 
         protected virtual void OnCodaEnd(CodaSection coda)
         {
+            TrackView.EndCoda();
+        }
 
+        private void OnUnisonStart()
+        {
+            TrackView.StartUnison();
+        }
+
+        private void OnUnisonEnd()
+        {
+            TrackView.EndUnison();
         }
 
         protected virtual void OnCountdownChange(double countdownLength, double endTime)
@@ -1127,6 +1174,51 @@ namespace YARG.Gameplay.Player
             OnStarPowerPhraseHit();
         }
 
+        protected override void OnStarPowerReady()
+        {
+            base.OnStarPowerReady();
+            TrackView.ShowStarPowerReady();
+        }
+
+        protected void OnHappinessOverFail()
+        {
+            TrackMaterial.FailState = 0f;
+        }
+
+        protected void OnHappinessNearFail()
+        {
+            if (SettingsManager.Settings.NoFail.Value == NoFailMode.Off)
+            {
+                TrackMaterial.FailState = 1f;
+            }
+        }
+
+        protected void OnPlayerFailed(int engineId)
+        {
+            if (SettingsManager.Settings.NoFail.Value != NoFailMode.Off || engineId != EngineContainer.EngineId)
+            {
+                // Not for us
+                return;
+            }
+
+            // Mark as failed and lower highway
+            PlayerHasFailed = true;
+            CameraPositioner.Lower(false);
+
+        }
+
+        protected void OnPlayerRevived()
+        {
+            if (!PlayerHasFailed)
+            {
+                return;
+            }
+
+            // Unfail and raise highway
+            PlayerHasFailed = false;
+            CameraPositioner.Raise(false);
+        }
+
         public override void GameplayUpdate()
         {
             base.GameplayUpdate();
@@ -1146,6 +1238,12 @@ namespace YARG.Gameplay.Player
         public void MetronomeTock()
         {
             GlobalAudioHandler.PlayMetronomeSoundEffect(SettingsManager.Settings.MetronomeSound.Value, MetronomePitch.Lo);
+        }
+
+        protected override void GameplayDestroy()
+        {
+            GameManager.EngineManager.OnPlayerFailed -= OnPlayerFailed;
+            GameManager.EngineManager.OnPlayerRevived -= OnPlayerRevived;
         }
     }
 }

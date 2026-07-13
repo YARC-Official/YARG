@@ -202,9 +202,19 @@ namespace YARG.Menu.ProfileList
                 dialog.AddListButton(microphone.name, () =>
                 {
                     var device = GlobalAudioHandler.CreateInputDevice(microphone.id, microphone.name);
+                    if (device is null)
+                    {
+                        YargLogger.LogFormatWarning("Failed to initialize microphone `{0}`.", microphone.name);
+                        DialogManager.Instance.ClearDialog();
+                        DialogManager.Instance.ShowMessage("Microphone Error",
+                            $"Failed to initialize microphone:\n\n{microphone.name}\n\nPlease try again or choose a different microphone.");
+                        return;
+                    }
+
                     player.Bindings.AddMicrophone(device);
                     selectedDevice = true;
-                });
+                    DialogManager.Instance.ClearDialog();
+                }, closeOnClick: false);
             }
 
             if (devicesAvailable)
@@ -247,6 +257,7 @@ namespace YARG.Menu.ProfileList
             var dialog = DialogManager.Instance.ShowList("Which kind of controller is this?");
             dialog.AddListButton("Gamepad", () => mode = GamepadBindingMode.Gamepad);
             dialog.AddListButton("CRKD Guitar (Mode 1)", () => mode = GamepadBindingMode.CrkdGuitar_Mode1);
+            dialog.AddListButton("CRKD Guitar (Mode 1, FW3.0+)", () => mode = GamepadBindingMode.CrkdGuitar_Mode1_Fw30);
             dialog.AddListButton("WiitarThing Guitar", () => mode = GamepadBindingMode.WiitarThing_Guitar);
             dialog.AddListButton("WiitarThing Drumkit", () => mode = GamepadBindingMode.WiitarThing_Drums);
             dialog.AddListButton("RB4InstrumentMapper Guitar", () => mode = GamepadBindingMode.RB4InstrumentMapper_Guitar);
@@ -358,6 +369,7 @@ namespace YARG.Menu.ProfileList
                 {
                     // Don't leak player when cancelling
                     PlayerContainer.DisposePlayer(player);
+                    _profileListMenu.RefreshList(Profile);
                     return;
                 }
             }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Cysharp.Threading.Tasks;
 using DG.Tweening;
 using UnityEngine;
 using YARG.Core.Chart;
@@ -188,14 +189,19 @@ namespace YARG.Gameplay.HUD
             // In case we are disabled already
             enabled = true;
 
-            _fadeIndex = 0;
-
             // Tell LyricBarPhrase about the new time
             foreach (var lyricTextObject in _lyricTextObjects)
             {
                 lyricTextObject.gameObject.SetActive(true);
                 lyricTextObject.SetSongTime(time);
             }
+
+            SetFadeTime(time);
+        }
+
+        private void SetFadeTime(double time)
+        {
+            _fadeIndex = 0;
 
             // set the fade start index
             while (_fadeStartTimings.Count > 0 && _fadeIndex < _fadeStartTimings.Count &&
@@ -250,6 +256,21 @@ namespace YARG.Gameplay.HUD
             }
 
             _fadeIndex++;
+        }
+
+        public async void Rewind(double targetVisualTime, float duration)
+        {
+            foreach (var lyricTextObject in _lyricTextObjects)
+            {
+                lyricTextObject.gameObject.SetActive(true);
+                lyricTextObject.RewindTargetTime = targetVisualTime;
+            }
+            await UniTask.Delay(TimeSpan.FromSeconds(duration));
+            foreach (var lyricTextObject in _lyricTextObjects)
+            {
+                lyricTextObject.RewindTargetTime = null;
+            }
+            SetFadeTime(targetVisualTime);
         }
     }
 }

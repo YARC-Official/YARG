@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 using UniVRM10;
+using YARG.Helpers;
 using YARG.Settings.Customization;
-using YARG.Venue;
 using YARG.Venue.Characters;
 
 namespace YARG.Settings.Types
@@ -55,7 +55,7 @@ namespace YARG.Settings.Types
                     continue;
                 }
 
-                var character = bundle.LoadAsset<GameObject>(BundleBackgroundManager.CHARACTER_PREFAB_PATH.ToLowerInvariant());
+                var character = bundle.LoadAsset<GameObject>(BackgroundHelper.CHARACTER_PREFAB_PATH.ToLowerInvariant());
                 if (character == null)
                 {
                     bundle.Unload(true);

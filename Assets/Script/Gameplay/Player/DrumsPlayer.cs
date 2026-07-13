@@ -35,18 +35,15 @@ namespace YARG.Gameplay.Player
         // indistinguishable from 1x kicks by pad number
         public const int DOUBLE_KICK_FRET_INDEX = int.MaxValue;
 
-        // Number of distinct frets in the fret array.
-        // Derivable, but predetermined by MakeHighwayOrdering() for performance reasons
-        public int LaneCount { get; private set; }
-
         private bool _yellowCymbalHasLane = false;
         private bool _blueCymbalHasLane = false;
         private bool _greenCymbalHasLane = false;
 
         public int NumberOfDedicatedKickLanes { get; private set; } = 0;
-
+        public int CenteredPosition => (LaneCount - 1) / 2;
 
         public float NoteScaleFactor = 1f;
+        private float _baselineLaneCount => _fiveLaneMode ? 5f : 4f;
 
         // When an action happens, we'll use this to determine which _actionToMostRecentTime entry to update
         // This is often 1:1, but non-split 4L maps multiple actions to the shared lanes
@@ -75,7 +72,7 @@ namespace YARG.Gameplay.Player
                 };
             }
 
-                return action switch
+            return action switch
                 {
                     DrumsAction.Kick =>         (int) FourLaneDrumPad.Kick,
                     DrumsAction.RedDrum =>      (int) FourLaneDrumPad.RedDrum,
@@ -187,7 +184,7 @@ namespace YARG.Gameplay.Player
             }
 
             var engine = new YargDrumsEngine(NoteTrack, SyncTrack, EngineParams, Player.Profile.IsBot, Player.Profile.GameMode is GameMode.EliteDrums);
-            EngineContainer = GameManager.EngineManager.Register(engine, NoteTrack.Instrument, Chart, Player.RockMeterPreset);
+            EngineContainer = GameManager.EngineManager.Register(engine, NoteTrack.Instrument, NoteTrack.Difficulty, Chart, Player.RockMeterPreset);
 
             HitWindow = EngineParams.HitWindow;
 
@@ -211,10 +208,14 @@ namespace YARG.Gameplay.Player
             engine.OnStarPowerPhraseHit += OnStarPowerPhraseHit;
             engine.OnStarPowerPhraseMissed += OnStarPowerPhraseMissed;
             engine.OnStarPowerStatus += OnStarPowerStatus;
+            engine.OnStarPowerReady += OnStarPowerReady;
 
             engine.OnCountdownChange += OnCountdownChange;
 
             engine.OnPadHit += OnPadHit;
+
+            EngineContainer.OnHappinessNearFail += OnHappinessNearFail;
+            EngineContainer.OnHappinessOverFail += OnHappinessOverFail;
 
             return engine;
         }
@@ -385,7 +386,20 @@ namespace YARG.Gameplay.Player
 
         protected override void InitializeSpawnedLane(LaneElement lane, DrumNote note)
         {
-            var highwayOrderingInfo = _highwayOrdering[note.Pad];
+            HighwayOrderingInfo highwayOrderingInfo;
+
+            if (_fiveLaneMode && note.Pad is (int)FiveLaneDrumPad.Wildcard)
+            {
+                highwayOrderingInfo = new(CenteredPosition, (int) FiveLaneDrumPad.Wildcard);
+            }
+            else if (!_fiveLaneMode && note.Pad is (int) FourLaneDrumPad.Wildcard)
+            {
+                highwayOrderingInfo = new(CenteredPosition, (int) FourLaneDrumPad.Wildcard);
+            }
+            else
+            {
+                highwayOrderingInfo = _highwayOrdering[note.Pad];
+            }
 
             var laneColor = (_fiveLaneMode ?
                 Player.ColorProfile.FiveLaneDrums.GetNoteColor(highwayOrderingInfo.ColorIndex) :
@@ -439,9 +453,12 @@ namespace YARG.Gameplay.Player
 
         protected override void ModifyLaneFromNote(LaneElement lane, DrumNote note)
         {
-            if (note.Pad == 0)
+            if (_fiveLaneMode ?
+                (note.Pad is (int)FiveLaneDrumPad.Kick or (int)FiveLaneDrumPad.Wildcard) :
+                (note.Pad is (int)FourLaneDrumPad.Kick or (int)FourLaneDrumPad.Wildcard)
+            )
             {
-                lane.ToggleOpen(true);
+                lane.ToggleFullWidth(true);
             }
             else
             {
@@ -933,7 +950,7 @@ namespace YARG.Gameplay.Player
             // If the player has a dedicated Double Kick lane that's set to Expert+ Only, and isn't playing on Expert+, then the actual amount of lanes is 1 fewer than the size
             // of the provided ordering because that lane is absent.
             LaneCount = ordering.Length - (ordering.Contains(DrumsHighwayItem.Kick2xConditional) && Player.Profile.CurrentDifficulty is not Difficulty.ExpertPlus ? 1 : 0);
-            NoteScaleFactor = 4f / LaneCount;
+            NoteScaleFactor = _baselineLaneCount / LaneCount;
 
             // Once we've skipped the conditional Double Kick lane (when not present), we'll have an off-by-one relationship between i and the actual intended position
             var skippedPedalAdjustment = 0;

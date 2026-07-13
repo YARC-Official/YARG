@@ -194,7 +194,7 @@ namespace YARG.Gameplay.Player
             }
 
             var engine = new YargFiveFretGuitarEngine(NoteTrack, SyncTrack, EngineParams, Player.Profile.IsBot);
-            EngineContainer = GameManager.EngineManager.Register(engine, NoteTrack.Instrument, Chart, Player.RockMeterPreset);
+            EngineContainer = GameManager.EngineManager.Register(engine, NoteTrack.Instrument, NoteTrack.Difficulty, Chart, Player.RockMeterPreset);
 
             HitWindow = EngineParams.HitWindow;
 
@@ -216,8 +216,12 @@ namespace YARG.Gameplay.Player
             engine.OnStarPowerPhraseHit += OnStarPowerPhraseHit;
             engine.OnStarPowerPhraseMissed += OnStarPowerPhraseMissed;
             engine.OnStarPowerStatus += OnStarPowerStatus;
+            engine.OnStarPowerReady += OnStarPowerReady;
 
             engine.OnCountdownChange += OnCountdownChange;
+
+            EngineContainer.OnHappinessOverFail += OnHappinessOverFail;
+            EngineContainer.OnHappinessNearFail += OnHappinessNearFail;
 
             return engine;
         }
@@ -464,9 +468,9 @@ namespace YARG.Gameplay.Player
 
         protected override void ModifyLaneFromNote(LaneElement lane, GuitarNote note)
         {
-            if (note.Fret == (int) FiveFretGuitarFret.Open)
+            if (note.Fret is (int) FiveFretGuitarFret.Open or (int) FiveFretGuitarFret.Wildcard)
             {
-                lane.ToggleOpen(true);
+                lane.ToggleFullWidth(true);
             }
             else
             {
@@ -605,6 +609,20 @@ namespace YARG.Gameplay.Player
                 {
                     _fretArray.SetSustained(note.Fret, true);
                 }
+                else
+                {
+                    // Must be an open or wildcard
+                    if (note.Fret == (int) FiveFretGuitarFret.Open)
+                    {
+                        StrikelineAnimator.SetParticleColor(Player.ColorProfile.FiveFretGuitar.GetNoteColor(note.Fret).ToUnityColor());
+                    }
+                    else
+                    {
+                        StrikelineAnimator.SetParticleRainbow();
+                    }
+
+                    StrikelineAnimator.SetSustaining(true);
+                }
 
                 _sustainCount++;
             }
@@ -625,6 +643,11 @@ namespace YARG.Gameplay.Player
                 if (note.Fret != (int) FiveFretGuitarFret.Open && note.Fret != (int) FiveFretGuitarFret.Wildcard)
                 {
                     _fretArray.SetSustained(note.Fret, false);
+                }
+                else
+                {
+                    // Must be an open or wildcard
+                    StrikelineAnimator.SetSustaining(false);
                 }
 
                 _sustainCount--;

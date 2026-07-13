@@ -118,15 +118,7 @@ namespace YARG.Playlists
         {
             // Get all songs, sort by name, then rebuild hash list
             var songs = ToList();
-
-            if (ascending)
-            {
-                songs.Sort((a, b) => string.Compare(a.Name, b.Name, System.StringComparison.OrdinalIgnoreCase));
-            }
-            else
-            {
-                songs.Sort((a, b) => string.Compare(b.Name, a.Name, System.StringComparison.OrdinalIgnoreCase));
-            }
+            songs.Sort((a, b) => CompareSongsByName(a, b, ascending));
 
             SongHashes.Clear();
             foreach (var song in songs)
@@ -144,15 +136,7 @@ namespace YARG.Playlists
         {
             // Get all songs, sort by artist, then rebuild hash list
             var songs = ToList();
-
-            if (ascending)
-            {
-                songs.Sort((a, b) => string.Compare(a.Artist, b.Artist, System.StringComparison.OrdinalIgnoreCase));
-            }
-            else
-            {
-                songs.Sort((a, b) => string.Compare(b.Artist, a.Artist, System.StringComparison.OrdinalIgnoreCase));
-            }
+            songs.Sort((a, b) => CompareSongsByArtist(a, b, ascending));
 
             SongHashes.Clear();
             foreach (var song in songs)
@@ -164,6 +148,47 @@ namespace YARG.Playlists
             {
                 PlaylistContainer.SavePlaylist(this);
             }
+        }
+
+        private static int CompareSongsByName(SongEntry lhs, SongEntry rhs, bool ascending)
+        {
+            int result = CompareSortStrings(lhs.Name, rhs.Name);
+            if (result == 0)
+            {
+                result = CompareSortStrings(lhs.Artist, rhs.Artist);
+            }
+            if (result == 0)
+            {
+                result = lhs.SortBasedLocation.CompareTo(rhs.SortBasedLocation);
+            }
+
+            return ascending ? result : -result;
+        }
+
+        private static int CompareSongsByArtist(SongEntry lhs, SongEntry rhs, bool ascending)
+        {
+            int result = CompareSortStrings(lhs.Artist, rhs.Artist);
+            if (result == 0)
+            {
+                result = CompareSortStrings(lhs.Name, rhs.Name);
+            }
+            if (result == 0)
+            {
+                result = lhs.SortBasedLocation.CompareTo(rhs.SortBasedLocation);
+            }
+
+            return ascending ? result : -result;
+        }
+
+        private static int CompareSortStrings(SortString lhs, SortString rhs)
+        {
+            int result = lhs.CompareTo(rhs);
+            if (result == 0)
+            {
+                result = string.Compare(lhs.Original, rhs.Original, StringComparison.OrdinalIgnoreCase);
+            }
+
+            return result;
         }
     }
 }

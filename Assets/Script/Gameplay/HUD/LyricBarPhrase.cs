@@ -49,6 +49,8 @@ namespace YARG.Gameplay.HUD
         private int                     _currentLyricIndex;
         private Utf16ValueStringBuilder _builder;
         private RectTransform           _lyricTextTransform;
+        public double?                    RewindTargetTime;
+        private bool IsRewinding => RewindTargetTime != null;
 
         protected override void GameplayAwake()
         {
@@ -115,7 +117,7 @@ namespace YARG.Gameplay.HUD
             var time = GameManager.VisualTime;
             if (time >= currentPhrase.ExitTransition.Time)
             {
-                if (Mathf.Approximately(_lyricTextTransform.anchoredPosition.y, _finishedPosition.y))
+                if (Mathf.Approximately(_lyricTextTransform.anchoredPosition.y, _finishedPosition.y) && !IsRewinding)
                 {
                     return;
                 }
@@ -129,7 +131,7 @@ namespace YARG.Gameplay.HUD
 
             if (time >= currentPhrase.ActiveTransition.Time)
             {
-                if (Mathf.Approximately(_lyricTextTransform.anchoredPosition.y, _activePosition.y))
+                if (Mathf.Approximately(_lyricTextTransform.anchoredPosition.y, _activePosition.y) && !IsRewinding)
                 {
                     return;
                 }
@@ -145,7 +147,7 @@ namespace YARG.Gameplay.HUD
 
             if (time >= currentPhrase.UpcomingTransition.Time)
             {
-                if (Mathf.Approximately(_lyricTextTransform.anchoredPosition.y, _upcomingPosition.y))
+                if (Mathf.Approximately(_lyricTextTransform.anchoredPosition.y, _upcomingPosition.y) && !IsRewinding)
                 {
                     return;
                 }
@@ -159,13 +161,24 @@ namespace YARG.Gameplay.HUD
 
         private void Update()
         {
+            if (_currentPhraseIndex >= _phrases.Count)
+            {
+                return;
+            }
+
             var currentPhrase = _phrases[_currentPhraseIndex];
             if (currentPhrase == null)
             {
                 return;
             }
 
+            if (IsRewinding)
+            {
+                RewindHandler();
+            }
+
             var time = GameManager.VisualTime;
+
             if (GameManager.VisualTime >= currentPhrase.ExitTransition.TimeEnd)
             {
                 MoveToPhraseAtTime(time);
@@ -182,19 +195,25 @@ namespace YARG.Gameplay.HUD
             }
 
             UpdatePosition();
+
         }
 
         private void UpdateHighlighting()
         {
             var lyrics = _phrases[_currentPhraseIndex].Phrase.Lyrics;
+            var time = GameManager.VisualTime;
+            if (IsRewinding)
+            {
+                _currentLyricIndex = 0;
+            }
             int currentIndex = _currentLyricIndex;
 
-            while (currentIndex < lyrics.Count && lyrics[currentIndex].Time <= GameManager.VisualTime)
+            while (currentIndex < lyrics.Count && lyrics[currentIndex].Time <= time)
             {
                 currentIndex++;
             }
 
-            if (_currentLyricIndex == currentIndex)
+            if (_currentLyricIndex == currentIndex && !IsRewinding)
             {
                 return;
             }
@@ -241,6 +260,15 @@ namespace YARG.Gameplay.HUD
         {
             _currentPhraseIndex = 0;
             MoveToPhraseAtTime(time);
+        }
+
+        private void RewindHandler()
+        {
+            if (!IsRewinding || _phrases[_currentPhraseIndex] == null || _currentPhraseIndex == 0 || _phrases[_currentPhraseIndex - 1].ExitTransition.TimeEnd < RewindTargetTime!.Value)
+            {
+                return;
+            }
+            SetSongTime(GameManager.VisualTime);
         }
     }
 }
