@@ -2,6 +2,7 @@
 using UnityEngine;
 using YARG.Core.Logging;
 using YARG.Gameplay.Visuals;
+using YARG.Settings.Customization;
 
 namespace YARG.Themes
 {
@@ -24,6 +25,23 @@ namespace YARG.Themes
             foreach (var defaultPreset in ThemePreset.Defaults)
             {
                 _themeContainers.Add(defaultPreset, defaultPreset.CreateThemeContainer());
+            }
+
+            // Register custom themes
+            var customContainer = CustomContentManager.ThemePresets;
+            if (customContainer != null)
+            {
+                foreach (var preset in customContainer.CustomPresets)
+                {
+                    if (!_themeContainers.ContainsKey(preset))
+                    {
+                        var container = preset.CreateThemeContainer();
+                        if (container != null)
+                        {
+                            _themeContainers.Add(preset, container);
+                        }
+                    }
+                }
             }
 
             _defaultTheme = _themeContainers[ThemePreset.Default];

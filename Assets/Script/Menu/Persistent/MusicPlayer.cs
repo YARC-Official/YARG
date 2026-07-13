@@ -46,7 +46,7 @@ namespace YARG.Menu.Persistent
                 gameObject.SetActive(false);
                 return;
             }
-            StemSettings.ApplySettings = false; // ensure that MusicPlayer uses the full-volume mix
+            StemSettings.ApplySettings = SettingsManager.Settings.ApplyVolumesInMusicPlayer.Value;
             NextSong();
         }
 

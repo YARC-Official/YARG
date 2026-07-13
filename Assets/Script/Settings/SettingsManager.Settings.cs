@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
 using UnityEngine;
@@ -24,6 +24,7 @@ using YARG.Scores;
 using YARG.Settings.Metadata;
 using YARG.Settings.Types;
 using YARG.Song;
+using YARG.Song.Exporters;
 using YARG.Venue;
 using YARG.Venue.Characters;
 
@@ -196,6 +197,7 @@ namespace YARG.Settings
             public ToggleSetting ShowFavoriteButton { get; } = new(true);
             public ToggleSetting ShowRecommendedSongs { get; } = new(true, ShowRecommendedSongsCallback);
 
+            public ToggleSetting EnablePlayAShow { get; } = new(true);
             public SliderSetting PlayAShowTimeout { get; } = new (10.0f, 1.0f, 30.0f);
             public ToggleSetting RequireAllDifficulties { get; } = new(true);
 
@@ -267,6 +269,9 @@ namespace YARG.Settings
             public VolumeSetting SfxVolume { get; } =
                 new(0.8f, v => GlobalAudioHandler.SetVolumeSetting(SongStem.Sfx, v));
 
+            public VolumeSetting VenueSfxVolume { get; } =
+                new(0.8f, v => GlobalAudioHandler.SetVolumeSetting(SongStem.VenueSample, v));
+
             public VolumeSetting DrumSfxVolume { get; } =
                 new(0.8f, v => GlobalAudioHandler.SetVolumeSetting(SongStem.DrumSfx, v));
 
@@ -304,6 +309,8 @@ namespace YARG.Settings
                 CrowdFxMode.Enabled
             };
 
+            public ToggleSetting UseVenueSfx { get; } = new(true);
+
             public ToggleSetting OverstrumAndOverhitSoundEffects { get; } = new(true);
 
             public ToggleSetting AlwaysOnDrumSFX { get; } = new(false);
@@ -315,6 +322,8 @@ namespace YARG.Settings
             public ToggleSetting UseChipmunkSpeed { get; } = new(false, UseChipmunkSpeedChange);
 
             public ToggleSetting ApplyVolumesInMusicLibrary { get; } = new(true);
+
+            public ToggleSetting ApplyVolumesInMusicPlayer { get; } = new(false, ApplyVolumesInMusicPlayerChange);
 
             public ToggleSetting EnableVoxSamples { get; } = new(true);
 
@@ -335,9 +344,10 @@ namespace YARG.Settings
 
             #region Graphics
 
-            public ToggleSetting VSync       { get; } = new(true, VSyncCallback);
-            public IntSetting    FpsCap      { get; } = new(60, 0, onChange: FpsCapCallback);
-            public IntSetting    VenueFpsCap { get; } = new(60, 0);
+            public ToggleSetting VSync            { get; } = new(true, VSyncCallback);
+            public IntSetting    FpsCap           { get; } = new(60, 0, onChange: FpsCapCallback);
+            public IntSetting    VenueFpsCap      { get; } = new(60, 0);
+            public IntSetting    BackgroundFpsCap { get; } = new(10, 0);
 
             public DropdownSetting<FullScreenMode> FullscreenMode { get; }
                 = new(FullScreenMode.FullScreenWindow, FullscreenModeCallback)
@@ -423,6 +433,14 @@ namespace YARG.Settings
                     CountdownDisplayMode.Disabled
                 };
 
+            public DropdownSetting<UnisonDisplaySetting> UnisonDisplay { get; }
+                = new(UnisonDisplaySetting.MultiplayerOnly)
+                {
+                    UnisonDisplaySetting.Always,
+                    UnisonDisplaySetting.MultiplayerOnly,
+                    UnisonDisplaySetting.Disabled
+                };
+
             public ToggleSetting ShowPlayerNameWhenStartingSong { get; } = new(true);
 
             public DropdownSetting<LyricDisplayMode> LyricDisplay { get; }
@@ -467,6 +485,11 @@ namespace YARG.Settings
             public void ExportSongsCsv()
             {
                 SongExport.Export(SongExport.ExportFormat.Csv);
+            }
+
+            public void ExportSongsWeb()
+            {
+                SongExport.Export(SongExport.ExportFormat.WebBrowser);
             }
 
             public void CopyCurrentSongTextFilePath()
@@ -843,6 +866,11 @@ namespace YARG.Settings
             private static void UseChipmunkSpeedChange(bool value)
             {
                 GlobalAudioHandler.IsChipmunkSpeedup = value;
+            }
+
+            private static void ApplyVolumesInMusicPlayerChange(bool value)
+            {
+                StemSettings.ApplySettings = value;
             }
 
             private static void InputDeviceLoggingCallback(bool value)

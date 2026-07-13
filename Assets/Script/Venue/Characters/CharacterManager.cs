@@ -25,12 +25,14 @@ namespace YARG.Venue.Characters
         private DrumCharacterHelper _drumCharacterHelper = new();
 
         // Ugh, the different note types ruin me again
-        private List<VocalNote>    _vocalNotes;
+        private List<ChartEvent>   _vocalEvents;
         private List<DrumNote>     _drumNotes;
         private List<GuitarNote>   _guitarNotes;
         private List<GuitarNote>   _bassNotes;
         private List<GuitarNote>   _keysNotes;
         private List<ProKeysNote>  _proKeysNotes;
+
+        private List<LyricsPhrase> _lyricPhrases;
 
         private List<AnimationEvent> _guitarAnimationEvents;
         private List<AnimationEvent> _bassAnimationEvents;
@@ -43,7 +45,7 @@ namespace YARG.Venue.Characters
         private int _keysNoteIndex;
         private int _proKeysNoteIndex;
         private int _drumNoteIndex;
-        private int _vocalNoteIndex;
+        private int _vocalEventIndex;
 
         private int _guitarAnimationIndex;
         private int _bassAnimationIndex;
@@ -99,17 +101,36 @@ namespace YARG.Venue.Characters
             _proKeysNotes = proKeysId.Notes;
             _drumNotes = drumsId.Notes;
 
-            _vocalNotes = new List<VocalNote>();
-            foreach (var note in vocalsId.Notes)
+            _vocalEvents = new List<ChartEvent>();
+            if (vocalsId.Notes.Count > 0)
             {
-                var phraseClone = note.Clone();
-                phraseClone.RemovePercussionChildNotes();
-
-                foreach (var phraseNote in phraseClone.ChildNotes)
+                foreach (var note in vocalsId.Notes)
                 {
-                    _vocalNotes.Add(phraseNote);
+                    var phraseClone = note.Clone();
+                    phraseClone.RemovePercussionChildNotes();
+
+                    foreach (var phraseNote in phraseClone.ChildNotes)
+                    {
+                        _vocalEvents.Add(phraseNote);
+                    }
                 }
             }
+            else
+            {
+                foreach (var lyric in chart.Lyrics.Phrases)
+                {
+                    var phraseClone = lyric.Clone();
+
+                    foreach (var phraseNote in phraseClone.Lyrics)
+                    {
+                        _vocalEvents.Add(phraseNote);
+                    }
+                }
+            }
+
+            _lyricPhrases = chart.Lyrics.Phrases;
+
+            _vocalMaps = GenerateMap(_vocalEvents);
 
             _guitarAnimationEvents = guitarTrack.Animations.AnimationEvents;
             _bassAnimationEvents = bassTrack.Animations.AnimationEvents;
@@ -152,7 +173,7 @@ namespace YARG.Venue.Characters
 
             if (_vocalMaps.Count < 1)
             {
-                _vocalMaps = GenerateMap(_vocalNotes);
+                _vocalMaps = GenerateMap(_vocalEvents);
             }
 
             // Register self with GameManager
@@ -225,7 +246,7 @@ namespace YARG.Venue.Characters
             _drumNoteIndex = 0;
             _keysNoteIndex = 0;
             _proKeysNoteIndex = 0;
-            _vocalNoteIndex = 0;
+            _vocalEventIndex = 0;
 
             _guitarAnimationIndex = 0;
             _bassAnimationIndex = 0;
@@ -263,9 +284,9 @@ namespace YARG.Venue.Characters
                 _proKeysNoteIndex++;
             }
 
-            while (_vocalNoteIndex < _vocalNotes.Count && _vocalNotes[_vocalNoteIndex].Time < time)
+            while (_vocalEventIndex < _vocalEvents.Count && _vocalEvents[_vocalEventIndex].Time < time)
             {
-                _vocalNoteIndex++;
+                _vocalEventIndex++;
             }
 
             while (_guitarAnimationIndex < _guitarAnimationEvents.Count &&
@@ -345,7 +366,7 @@ namespace YARG.Venue.Characters
                 var mapEvent = _guitarMaps[_guitarTriggerIndex];
                 _guitarTriggerIndex++;
 
-                character.OnGuitarAnimation(mapEvent);
+                character.OnAnimationEvent(mapEvent);
             }
 
             while (_guitarNotes.Count > 0 && _guitarNoteIndex < _guitarNotes.Count && _guitarNotes[_guitarNoteIndex].Time - character.TimeToFirstHit <= GameManager.SongTime + character.TimeToFirstHit)
@@ -377,10 +398,10 @@ namespace YARG.Venue.Characters
                     var animEvent = _guitarAnimationEvents[_guitarAnimationIndex];
                     _guitarAnimationIndex++;
 
-                    character.OnGuitarAnimation(animEvent.Type);
+                    character.OnAnimationEvent(animEvent.Type);
                 }
 
-                character.OnNote(note);
+                character.OnChartEvent(note);
             }
         }
 
@@ -392,7 +413,7 @@ namespace YARG.Venue.Characters
                 var mapEvent = _bassMaps[_bassTriggerIndex];
                 _bassTriggerIndex++;
 
-                character.OnGuitarAnimation(mapEvent);
+                character.OnAnimationEvent(mapEvent);
             }
 
             while (_bassNotes.Count > 0 && _bassNoteIndex < _bassNotes.Count && _bassNotes[_bassNoteIndex].Time - character.TimeToFirstHit <= GameManager.SongTime)
@@ -419,7 +440,7 @@ namespace YARG.Venue.Characters
 
 
                 // Notify the character
-                character.OnNote(note);
+                character.OnChartEvent(note);
             }
 
             while (_bassAnimationEvents.Count > 0 && _bassAnimationIndex < _bassAnimationEvents.Count &&
@@ -428,11 +449,10 @@ namespace YARG.Venue.Characters
                 var animEvent = _bassAnimationEvents[_bassAnimationIndex];
                 _bassAnimationIndex++;
 
-                character.OnGuitarAnimation(animEvent.Type);
+                character.OnAnimationEvent(animEvent.Type);
             }
         }
 
-        // TODO: Figure out something reasonable to do for the vocalist
         private void ProcessVocals(VenueCharacter character)
         {
             while (_vocalMaps.Count > 0 && _vocalTriggerIndex < _vocalMaps.Count &&
@@ -441,21 +461,21 @@ namespace YARG.Venue.Characters
                 var mapEvent = _vocalMaps[_vocalTriggerIndex];
                 _vocalTriggerIndex++;
 
-                character.OnGuitarAnimation(mapEvent);
+                character.OnAnimationEvent(mapEvent);
             }
 
-            while (_vocalNotes.Count > 0 && _vocalNoteIndex < _vocalNotes.Count &&
-                _vocalNotes[_vocalNoteIndex].Time - character.TimeToFirstHit <= GameManager.SongTime)
+            while (_vocalEvents.Count > 0 && _vocalEventIndex < _vocalEvents.Count &&
+                _vocalEvents[_vocalEventIndex].Time - character.TimeToFirstHit <= GameManager.SongTime)
             {
-                if (_vocalNoteIndex >= _vocalNotes.Count)
+                if (_vocalEventIndex >= _vocalEvents.Count)
                 {
                     break;
                 }
 
-                var note = _vocalNotes[_vocalNoteIndex];
-                _vocalNoteIndex++;
+                var note = _vocalEvents[_vocalEventIndex];
+                _vocalEventIndex++;
 
-                character.OnNote(note);
+                character.OnChartEvent(note);
             }
         }
 
@@ -536,6 +556,14 @@ namespace YARG.Venue.Characters
         }
 
         private static List<AnimationTrigger> GenerateMap(List<VocalsPhrase> phrases)
+        {
+            var events = new List<ChartEvent>();
+            events.AddRange(phrases);
+
+            return GenerateMap(events);
+        }
+
+        private static List<AnimationTrigger> GenerateMap(List<LyricsPhrase> phrases)
         {
             var events = new List<ChartEvent>();
             events.AddRange(phrases);

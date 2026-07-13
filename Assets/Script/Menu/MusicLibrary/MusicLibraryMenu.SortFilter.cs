@@ -41,9 +41,30 @@ namespace YARG.Menu.MusicLibrary
 
         public bool HasSortHeaders { get; private set; }
 
+        public void GetSortHeaderCollapseState(out bool hasCollapsed, out bool hasExpanded)
+        {
+            hasCollapsed = false;
+            hasExpanded = false;
+
+            if (_sortedSongs is null) return;
+
+            var collapsedHeaders = _collapsedHeaders[SettingsManager.Settings.LibrarySort];
+            foreach (var section in _sortedSongs)
+            {
+                if (collapsedHeaders.Contains(section))
+                {
+                    hasCollapsed = true;
+                }
+                else
+                {
+                    hasExpanded = true;
+                }
+
+                if (hasCollapsed && hasExpanded) return;
+            }
+        }
+
         private SongCategory[] _sortedSongs;
-        private SortAttribute _playlistSort = SortAttribute.Name;
-        private bool _playlistSortAscending = true;
         private static readonly Dictionary<SortAttribute, HashSet<SongCategory>> _collapsedHeaders = new();
 
         private List<int> _sectionHeaderIndices = new();
@@ -336,29 +357,11 @@ namespace YARG.Menu.MusicLibrary
                         return;
                 }
 
-                _playlistSort = sort;
-                _playlistSortAscending = ascending;
                 RefreshAndReselect();
                 return;
             }
 
             ChangeSort(sort);
-        }
-
-        public SortAttribute GetPopupSortAttribute()
-        {
-            return MenuState == MenuState.Playlist ? _playlistSort : SettingsManager.Settings.LibrarySort;
-        }
-
-        public string GetPopupSortLabel()
-        {
-            var sort = GetPopupSortAttribute().ToLocalizedName();
-            if (MenuState != MenuState.Playlist)
-            {
-                return sort;
-            }
-
-            return _playlistSortAscending ? $"{sort} (A-Z)" : $"{sort} (Z-A)";
         }
 
         private void UpdateSortInformationHeader()

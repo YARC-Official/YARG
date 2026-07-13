@@ -2348,6 +2348,7 @@ GameObject:
   - component: {fileID: 788257161}
   - component: {fileID: 788257162}
   - component: {fileID: 788257167}
+  - component: {fileID: 788257168}
   m_Layer: 0
   m_Name: Global Variables
   m_TagString: Untagged
@@ -2408,6 +2409,18 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _navigationIcons: {fileID: 11400000, guid: a5527a10e86be16408e824bfff6a124d, type: 2}
   _colors: {fileID: 11400000, guid: 8d1613cfd8baba7469ae5fb576fc2691, type: 2}
+--- !u!114 &788257168
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 788257159}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 19ef870a41104f6ba594d5912281e605, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1051339763
 GameObject:
   m_ObjectHideFlags: 0

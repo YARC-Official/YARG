@@ -64,6 +64,9 @@ namespace YARG.Gameplay
         private FailMeter _failMeter;
 
         [SerializeField]
+        private UnisonDisplay _unisonDisplay;
+
+        [SerializeField]
         private BREBox _breBox;
 
         [field: SerializeField]
@@ -234,6 +237,7 @@ namespace YARG.Gameplay
             EngineManager.OnSongFailed -= OnSongFailed;
             EngineManager.OnCodaStart -= StartCoda;
             EngineManager.OnCodaEnd -= EndCoda;
+            EngineManager.OnUnisonPhraseSuccess -= OnUnisonPhraseSuccess;
 
             //Restore stem volumes to their original state
             foreach (var (stem, state) in _stemStates)
@@ -330,6 +334,11 @@ namespace YARG.Gameplay
             if (_lyricBar.gameObject.activeSelf)
             {
                 _lyricBar.SetSongTime(time);
+            }
+
+            if (_unisonDisplay.gameObject.activeSelf)
+            {
+                _unisonDisplay.SetSongTime(time);
             }
         }
 
@@ -919,6 +928,8 @@ namespace YARG.Gameplay
         {
             YargLogger.LogFormatDebug("Unfailing song at SongTime {0}", SongTime);
             PlayerHasFailed = false;
+            EngineManager.RevivePlayer();
+            EngineManager.NoFailChanged(true);
             _mixer.FadeIn(DEFAULT_VOLUME, SONG_START_DELAY);
             InvalidateScores("Menu.Toast.ResumeAfterFailInvalidate");
             // This is an arbitrary value, just want to give players enough time to adjust
@@ -928,13 +939,15 @@ namespace YARG.Gameplay
         // the possibility of an instant fail. Yes, this is cheeseable since toggling no fail resets happiness.
         private void OnNoFailModeChanged(NoFailMode mode)
         {
-            // If we're going from no fail to fail and happiness would result in an insta-fail, reset happiness,
+            // If we're going from no fail to fail and happiness would result in a player being in the red, reset happiness,
             // but also inhibit score saving to avoid cheesing
-            if (mode == NoFailMode.Off && EngineManager.Happiness <= 0f)
+            if (mode == NoFailMode.Off && EngineManager.GetLowestHappiness()?.Happiness <= 0.333f)
             {
                 InvalidateScores("Menu.Toast.NoFailScore");
-                EngineManager.InitializeHappiness();
+                EngineManager.InitializeHappiness(false);
             }
+
+            EngineManager.NoFailChanged(mode != NoFailMode.Off);
             _failMeter.SetActive(mode != NoFailMode.NoMeter);
         }
 
@@ -1023,6 +1036,14 @@ namespace YARG.Gameplay
             CheckForRewindInvalidation();
 
             return false;
+        }
+
+        private void OnUnisonPhraseSuccess()
+        {
+            if (_unisonDisplay.gameObject.activeSelf)
+            {
+                _unisonDisplay.OnUnisonPhraseSuccess();
+            }
         }
 
         public void StartCoda(CodaSection _)

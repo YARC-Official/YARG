@@ -190,48 +190,57 @@ namespace YARG.Song
 
         public static SongCategory[] GetSortedCategory(SortAttribute sort)
         {
-            var proposedSort = sort switch
-            {
-                SortAttribute.Name => _sortTitles,
-                SortAttribute.Artist => _sortArtists,
-                SortAttribute.Album => _sortAlbums,
-                SortAttribute.Genre => _sortGenres,
-                SortAttribute.Subgenre => _sortSubgenres,
-                SortAttribute.Year => _sortYears,
-                SortAttribute.Charter => _sortCharters,
-                SortAttribute.Folder => _sortPlaylists,
-                SortAttribute.Source => _sortSources,
-                SortAttribute.Artist_Album => _sortArtistAlbums,
-                SortAttribute.SongLength => _sortSongLengths,
-                SortAttribute.DateAdded => _sortDatesAdded,
-                SortAttribute.Playcount => GetPlaycounts(),
-                SortAttribute.Playable => GetPlayableSongs(),
-                SortAttribute.Stars => GetStars(),
-                SortAttribute.Random => GetRandomSort(),
+            var proposedSort = Array.Empty<SongCategory>();
 
-                SortAttribute.FiveFretGuitar => _sortInstruments[Instrument.FiveFretGuitar],
-                SortAttribute.FiveFretBass   => _sortInstruments[Instrument.FiveFretBass],
-                SortAttribute.FiveFretRhythm => _sortInstruments[Instrument.FiveFretRhythm],
-                SortAttribute.FiveFretCoop   => _sortInstruments[Instrument.FiveFretCoopGuitar],
-                SortAttribute.Keys           => _sortInstruments[Instrument.Keys],
-                SortAttribute.SixFretGuitar  => _sortInstruments[Instrument.SixFretGuitar],
-                SortAttribute.SixFretBass    => _sortInstruments[Instrument.SixFretBass],
-                SortAttribute.SixFretRhythm  => _sortInstruments[Instrument.SixFretRhythm],
-                SortAttribute.SixFretCoop    => _sortInstruments[Instrument.SixFretCoopGuitar],
-                SortAttribute.FourLaneDrums  => _sortInstruments[Instrument.FourLaneDrums],
-                SortAttribute.ProDrums       => _sortInstruments[Instrument.ProDrums],
-                SortAttribute.FiveLaneDrums  => _sortInstruments[Instrument.FiveLaneDrums],
-                SortAttribute.EliteDrums     => _sortInstruments[Instrument.EliteDrums],
-                SortAttribute.ProGuitar_17   => _sortInstruments[Instrument.ProGuitar_17Fret],
-                SortAttribute.ProGuitar_22   => _sortInstruments[Instrument.ProGuitar_22Fret],
-                SortAttribute.ProBass_17     => _sortInstruments[Instrument.ProBass_17Fret],
-                SortAttribute.ProBass_22     => _sortInstruments[Instrument.ProBass_22Fret],
-                SortAttribute.ProKeys        => _sortInstruments[Instrument.ProKeys],
-                SortAttribute.Vocals         => _sortInstruments[Instrument.Vocals],
-                SortAttribute.Harmony        => _sortInstruments[Instrument.Harmony],
-                SortAttribute.Band           => _sortInstruments[Instrument.Band],
-                _ => null
-            };
+            try
+            {
+                proposedSort = sort switch
+                {
+                    SortAttribute.Name         => _sortTitles,
+                    SortAttribute.Artist       => _sortArtists,
+                    SortAttribute.Album        => _sortAlbums,
+                    SortAttribute.Genre        => _sortGenres,
+                    SortAttribute.Subgenre     => _sortSubgenres,
+                    SortAttribute.Year         => _sortYears,
+                    SortAttribute.Charter      => _sortCharters,
+                    SortAttribute.Folder       => _sortPlaylists,
+                    SortAttribute.Source       => _sortSources,
+                    SortAttribute.Artist_Album => _sortArtistAlbums,
+                    SortAttribute.SongLength   => _sortSongLengths,
+                    SortAttribute.DateAdded    => _sortDatesAdded,
+                    SortAttribute.Playcount    => GetPlaycounts(),
+                    SortAttribute.Playable     => GetPlayableSongs(),
+                    SortAttribute.Stars        => GetStars(),
+                    SortAttribute.Random       => GetRandomSort(),
+
+                    SortAttribute.FiveFretGuitar => _sortInstruments[Instrument.FiveFretGuitar],
+                    SortAttribute.FiveFretBass   => _sortInstruments[Instrument.FiveFretBass],
+                    SortAttribute.FiveFretRhythm => _sortInstruments[Instrument.FiveFretRhythm],
+                    SortAttribute.FiveFretCoop   => _sortInstruments[Instrument.FiveFretCoopGuitar],
+                    SortAttribute.Keys           => _sortInstruments[Instrument.Keys],
+                    SortAttribute.SixFretGuitar  => _sortInstruments[Instrument.SixFretGuitar],
+                    SortAttribute.SixFretBass    => _sortInstruments[Instrument.SixFretBass],
+                    SortAttribute.SixFretRhythm  => _sortInstruments[Instrument.SixFretRhythm],
+                    SortAttribute.SixFretCoop    => _sortInstruments[Instrument.SixFretCoopGuitar],
+                    SortAttribute.FourLaneDrums  => _sortInstruments[Instrument.FourLaneDrums],
+                    SortAttribute.ProDrums       => _sortInstruments[Instrument.ProDrums],
+                    SortAttribute.FiveLaneDrums  => _sortInstruments[Instrument.FiveLaneDrums],
+                    SortAttribute.EliteDrums     => _sortInstruments[Instrument.EliteDrums],
+                    SortAttribute.ProGuitar_17   => _sortInstruments[Instrument.ProGuitar_17Fret],
+                    SortAttribute.ProGuitar_22   => _sortInstruments[Instrument.ProGuitar_22Fret],
+                    SortAttribute.ProBass_17     => _sortInstruments[Instrument.ProBass_17Fret],
+                    SortAttribute.ProBass_22     => _sortInstruments[Instrument.ProBass_22Fret],
+                    SortAttribute.ProKeys        => _sortInstruments[Instrument.ProKeys],
+                    SortAttribute.Vocals         => _sortInstruments[Instrument.Vocals],
+                    SortAttribute.Harmony        => _sortInstruments[Instrument.Harmony],
+                    SortAttribute.Band           => _sortInstruments[Instrument.Band],
+                    _                            => null
+                };
+            }
+            catch (KeyNotFoundException)
+            {
+                YargLogger.LogFormatDebug("Invalid Sort Attribute: {0}", sort);
+            }
 
             // Make life better when people go back a version and we
             // encounter sorts we don't understand by providing a
