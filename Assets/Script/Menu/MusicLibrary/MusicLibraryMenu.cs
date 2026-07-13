@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using TMPro;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using YARG.Core;
 using YARG.Core.Audio;
 using YARG.Core.Game;
@@ -740,6 +741,11 @@ namespace YARG.Menu.MusicLibrary
 
         protected void Update()
         {
+            if (Keyboard.current.ctrlKey.isPressed && Keyboard.current.kKey.wasPressedThisFrame)
+            {
+                CurrentSelection?.SecondaryTextClick();
+            }
+
             foreach (var heldInput in _heldInputs)
                 heldInput.Timer -= Time.unscaledDeltaTime;
 
