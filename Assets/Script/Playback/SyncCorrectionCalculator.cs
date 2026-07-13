@@ -28,9 +28,11 @@ namespace YARG.Playback
         // Ignore sync errors smaller than 1.5 ms to avoid reacting to tiny clock fluctuations.
         private const double SYNC_DEADBAND_SECONDS = 0.0015;
 
-        // Number of milliseconds over which we aim to recover from a timing error.
+        // Number of seconds over which we aim to recover from a timing error.
         // For example, recovering 10 ms over 100 ms requires running 10% faster.
-        private const float CORRECTION_TIME_MS = 100f;
+        private const float CORRECTION_TIME_SECONDS = 0.1f;
+
+        private const double MIN_LATENCY_SECONDS = 0.001;
 
         // Correct at least 40% of the remaining error, even with a short stream delay.
         private const float MIN_GAIN = 0.4f;
@@ -53,15 +55,15 @@ namespace YARG.Playback
         /// </summary>
         /// <param name="syncDeltaSeconds">How far playback is behind or ahead, in seconds.</param>
         /// <param name="currentTime">Current input-clock time, in seconds.</param>
-        /// <param name="streamDelayMs">Time before a speed change reaches audio output, in milliseconds.</param>
+        /// <param name="latency">Time before a speed change reaches audio output, in seconds.</param>
         /// <param name="allowCorrection">Whether a new sync correction may be requested.</param>
         /// <returns>Speed adjustment to apply, where 0.1 means 10% faster.</returns>
-        public float Update(double syncDeltaSeconds, double currentTime, double streamDelayMs, bool allowCorrection)
+        public float Update(double syncDeltaSeconds, double currentTime, double latency, bool allowCorrection)
         {
-            streamDelayMs = Math.Max(1.0, streamDelayMs);
-            _syncHistory.Update(currentTime, streamDelayMs, _currentAdjustment);
+            latency = Math.Max(MIN_LATENCY_SECONDS, latency);
+            _syncHistory.Update(currentTime, latency, _currentAdjustment);
 
-            float adjustment = allowCorrection ? CalculateAdjustment(syncDeltaSeconds, streamDelayMs) : 0f;
+            float adjustment = allowCorrection ? CalculateAdjustment(syncDeltaSeconds, latency) : 0f;
             if (allowCorrection && adjustment != 0f &&
                 Math.Abs(adjustment - _currentAdjustment) < SPEED_UPDATE_THRESHOLD)
             {
@@ -73,17 +75,17 @@ namespace YARG.Playback
             return _currentAdjustment;
         }
 
-        private float CalculateAdjustment(double syncDeltaSeconds, double streamDelayMs)
+        private float CalculateAdjustment(double syncDeltaSeconds, double latency)
         {
-            double errorMs = syncDeltaSeconds * 1000.0 - _syncHistory.RunningContributionMs;
-            if (Math.Abs(errorMs) < SYNC_DEADBAND_SECONDS * 1000.0)
+            double errorSeconds = syncDeltaSeconds - _syncHistory.RunningContributionSeconds;
+            if (Math.Abs(errorSeconds) < SYNC_DEADBAND_SECONDS)
             {
                 return 0f;
             }
 
-            float gain = Math.Clamp((float) streamDelayMs / CORRECTION_TIME_MS, MIN_GAIN, MAX_GAIN);
-            float correctionMs = (float) errorMs * gain;
-            return Math.Clamp(correctionMs / (float) streamDelayMs, -SYNC_CLAMP, SYNC_CLAMP);
+            float gain = Math.Clamp((float) latency / CORRECTION_TIME_SECONDS, MIN_GAIN, MAX_GAIN);
+            float correctionSeconds = (float) errorSeconds * gain;
+            return Math.Clamp(correctionSeconds / (float) latency, -SYNC_CLAMP, SYNC_CLAMP);
         }
 
         /// <summary>
@@ -107,14 +109,14 @@ namespace YARG.Playback
             private readonly RingBuffer<Entry> _entries = new(5012);
             private double _historyStartTime = double.NaN;
 
-            public double RunningContributionMs { get; private set; }
+            public double RunningContributionSeconds { get; private set; }
             public float EffectiveAdjustment { get; private set; }
 
             public void Clear()
             {
                 _entries.Clear();
                 _historyStartTime = double.NaN;
-                RunningContributionMs = 0.0;
+                RunningContributionSeconds = 0.0;
                 EffectiveAdjustment = 0f;
             }
 
@@ -139,14 +141,14 @@ namespace YARG.Playback
                 }
             }
 
-            public void Update(double currentTime, double streamDelayMs, float currentAdjustment)
+            public void Update(double currentTime, double latency, float currentAdjustment)
             {
                 if (_entries.Count == 0)
                 {
                     RecordChange(currentTime, currentAdjustment);
                 }
 
-                double cutoffTime = currentTime - streamDelayMs / 1000.0;
+                double cutoffTime = currentTime - latency;
                 while (_entries.Count > 1 && _entries[1].Timestamp <= cutoffTime)
                 {
                     _entries.RemoveOldest();
@@ -171,7 +173,7 @@ namespace YARG.Playback
                 }
 
                 contributionSeconds += adjustment * (currentTime - intervalStart);
-                RunningContributionMs = contributionSeconds * 1000.0;
+                RunningContributionSeconds = contributionSeconds;
             }
 
             private readonly struct Entry

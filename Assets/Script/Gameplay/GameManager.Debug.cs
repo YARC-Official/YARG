@@ -562,7 +562,7 @@ namespace YARG.Gameplay
                     text.AppendFormat("Resync start delta: {0:0.000} ms\n", _songRunner.DebugSyncStartDelta * 1000f);
                     text.AppendFormat("Resync worst delta: {0:0.000} ms\n", _songRunner.DebugSyncWorstDelta * 1000f);
                     text.AppendFormat("Effective speed adjustment: {0:0.000}\n",
-                        _songRunner.DebugEffectiveSyncSpeedAdjustment);
+                        _songRunner.DebugEffectiveSyncAdjustment);
 
                     GUILayout.Label(text.AsSpan().TrimEnd('\n').ToString());
                 }
