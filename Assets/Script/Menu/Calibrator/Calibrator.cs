@@ -47,6 +47,7 @@ namespace YARG.Menu.Calibrator
         private YargPlayer _player;
 #nullable enable
         private StemMixer? _mixer;
+        private double _audioStartTime;
 #nullable disable
 
         private bool _hasNavigationScheme;
@@ -88,10 +89,7 @@ namespace YARG.Menu.Calibrator
                     _audioCalibrateText.color = Color.green;
                     _audioCalibrateText.text = Localize.Key("Menu.Calibrator.Detected");
 
-                    // GetPosition() is sampled when this callback runs. Move it back to when the
-                    // input event occurred so input processing time does not affect calibration.
-                    double inputAge = InputManager.CurrentInputTime - input.Time;
-                    _calibrationTimes.Add(_mixer.GetPosition() - inputAge);
+                    _calibrationTimes.Add(input.Time - _audioStartTime);
                     break;
             }
         }
@@ -146,7 +144,10 @@ namespace YARG.Menu.Calibrator
 
                     _mixer = GlobalAudioHandler.LoadCustomFile(file, SPEED, VOLUME);
                     _mixer.SongEnd += OnAudioEnd;
+                    double startCallTime = InputManager.CurrentInputTime;
                     _mixer.Play();
+                    double endCallTime = InputManager.CurrentInputTime;
+                    _audioStartTime = (startCallTime + endCallTime) / 2;
                     StartCoroutine(AudioCalibrateCoroutine());
                     break;
                 case State.AudioDone:

@@ -224,7 +224,11 @@ namespace YARG.Playback
         private readonly SyncCorrectionCalculator _syncCorrection = new();
         private double _suppressSyncUntil = double.NegativeInfinity;
         private double _playbackStartLatency;
+        private double _expectedPlaybackLead;
         private double _scheduledAudioStartTime = double.PositiveInfinity;
+
+        private double _lastFrameInputTime;
+        private long _lastFrameTimestamp;
 
         private readonly StemMixer _mixer;
 
@@ -304,18 +308,36 @@ namespace YARG.Playback
         {
             if (!_disposed)
             {
-                _disposed = true;
+                if (_syncThread != null)
+                {
+                    lock (_syncThread)
+                    {
+                        _disposed = true;
+                    }
+                }
+                else
+                {
+                    _disposed = true;
+                }
+
                 if (disposing)
                 {
                     _rewindSource?.Cancel();
                     _rewindTween?.Kill();
 
-                    SyncThreadStopped = !_syncThread.IsAlive ||
-                        _syncThread.Join(SYNC_THREAD_SHUTDOWN_TIMEOUT_MS);
-                    if (!SyncThreadStopped)
+                    if (_syncThread != null)
                     {
-                        YargLogger.LogError("Audio sync thread did not stop during song teardown.");
-                        return;
+                        SyncThreadStopped = !_syncThread.IsAlive ||
+                            _syncThread.Join(SYNC_THREAD_SHUTDOWN_TIMEOUT_MS);
+                        if (!SyncThreadStopped)
+                        {
+                            YargLogger.LogError("Audio sync thread did not stop during song teardown.");
+                            return;
+                        }
+                    }
+                    else
+                    {
+                        SyncThreadStopped = true;
                     }
 
                     _syncThread = null;
@@ -334,12 +356,21 @@ namespace YARG.Playback
             InitializeSongTime(InputTime, 0);
             PrepareAudioPlayback();
 
+            _lastFrameInputTime = InputManager.CurrentInputTime;
+            _lastFrameTimestamp = System.Diagnostics.Stopwatch.GetTimestamp();
+
             _syncThread.Start();
             Started = true;
         }
 
         public void Update()
         {
+            lock (_syncThread)
+            {
+                _lastFrameInputTime = InputManager.CurrentInputTime;
+                _lastFrameTimestamp = System.Diagnostics.Stopwatch.GetTimestamp();
+            }
+
             // Runner is lazy-started to avoid timing issues with lag
             if (!Started)
             {
@@ -404,7 +435,15 @@ namespace YARG.Playback
             {
                 lock (_syncThread)
                 {
-                    double currentTime = InputManager.CurrentInputTime;
+                    if (_disposed)
+                    {
+                        break;
+                    }
+
+                    long currentTimestamp = System.Diagnostics.Stopwatch.GetTimestamp();
+                    double elapsedSeconds = (double) (currentTimestamp - _lastFrameTimestamp) / System.Diagnostics.Stopwatch.Frequency;
+                    double currentTime = _lastFrameInputTime + elapsedSeconds;
+
                     double audioOffset = SongOffset - (AudioCalibration * SongSpeed);
                     double syncActualTime = _mixer.GetPosition();
                     double syncTargetTime = GetRelativeInputTime(currentTime) - audioOffset;

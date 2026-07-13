@@ -256,8 +256,13 @@ namespace YARG.Gameplay.Player
                 Engine.SetSpeed(GameManager.SongSpeed);
             }
 
-            GameManager.BeatEventHandler.Audio.Subscribe(MetronomeTick, BeatEventType.Measure);
-            GameManager.BeatEventHandler.Audio.Subscribe(MetronomeTock, BeatEventType.QuarterNote);
+            // Samples enter the output buffer when played, while song audio is already buffered.
+            // Trigger them early so both reach the output device on the authored beat.
+            double metronomeOffset = -GlobalAudioHandler.PlaybackLatency / 1000.0 * GameManager.SongSpeed;
+            GameManager.BeatEventHandler.Audio.Subscribe(MetronomeTick, BeatEventType.Measure,
+                offset: metronomeOffset);
+            GameManager.BeatEventHandler.Audio.Subscribe(MetronomeTock, BeatEventType.QuarterNote,
+                offset: metronomeOffset);
             GameManager.BeatEventHandler.Visual.Subscribe(SunburstEffects.PulseSunburst, BeatEventType.StrongBeat);
             InitializeTrackEffects();
             InitializeCodaEvents();
