@@ -69,6 +69,11 @@ namespace YARG.Playback
 
     public class SongRunner : IDisposable
     {
+        /// <summary>
+        /// Invoked synchronously after the mixer has been rebuilt and positioned, before playback resumes.
+        /// </summary>
+        public event Action<double> AudioPrepared;
+
         #region Times
         public const double SONG_START_DELAY = 2;
 
@@ -508,6 +513,7 @@ namespace YARG.Playback
             double audioTime = InputTime + (AudioCalibration * SongSpeed) - SongOffset;
             double seekPosition = Math.Clamp(audioTime + playbackPreRoll, 0, _mixer.Length);
             _mixer.SetPosition(seekPosition);
+            AudioPrepared?.Invoke(seekPosition);
 
             // When pre-roll would seek before the file, wait until starting position zero will
             // reach the speakers at the correct song time. Otherwise playback is ready now.

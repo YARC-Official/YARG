@@ -82,6 +82,30 @@ namespace YARG.Audio.BASS
             }
         }
 
+        protected override int CreateStream_Internal(MetronomePitch pitch)
+        {
+            int sampleHandle = pitch == MetronomePitch.Hi ? _hiHandle : _loHandle;
+            int stream = Bass.SampleGetChannel(sampleHandle,
+                BassFlags.SampleChannelStream | BassFlags.SampleChannelNew | BassFlags.Decode);
+            if (stream == 0)
+            {
+                YargLogger.LogFormatError("Failed to create {0} {1} stream: {2}!", Sample, pitch,
+                    Bass.LastError);
+                return 0;
+            }
+
+            double volume = _volumeSetting * AudioHelpers.MetronomeSamples[(int) Sample].Volume;
+            if (!Bass.ChannelSetAttribute(stream, ChannelAttribute.Volume, volume))
+            {
+                YargLogger.LogFormatError("Failed to set {0} {1} stream volume: {2}!", Sample, pitch,
+                    Bass.LastError);
+                Bass.StreamFree(stream);
+                return 0;
+            }
+
+            return stream;
+        }
+
         protected override void SetVolume_Internal(double volume)
         {
             _volumeSetting = volume;

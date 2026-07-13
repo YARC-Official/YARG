@@ -51,12 +51,75 @@ namespace YARG.Audio.BASS
         private          float          _speed = 1.0f;
         private          Timer          _whammySyncTimer;
         private readonly List<StemData> _stemDatas = new();
+        private readonly HashSet<int>   _scheduledOneShots = new();
         private          int            _longestHandle;
 
         private readonly BassNormalizer _normalizer = new();
         private          bool           _shouldNormalize;
         private          int            _gainDspHandle;
         private          float          _gain = 1.0f;
+
+        /// <summary>
+        /// Schedules an owned one-shot stream at an audio-file position. Scheduling consumes the
+        /// stream handle whether it succeeds or fails.
+        /// </summary>
+        public override bool ScheduleOneShot(int streamHandle, double songTime)
+        {
+            lock (this)
+            {
+                if (streamHandle == 0)
+                {
+                    return false;
+                }
+
+                long streamLength = Bass.ChannelGetLength(streamHandle);
+                double lengthSeconds = Bass.ChannelBytes2Seconds(streamHandle, streamLength);
+                long mixerPosition = Bass.ChannelGetPosition(_mixerHandle);
+                double startSeconds = songTime - _songPositionTracker.SongStart +
+                    _songPositionTracker.AlignmentDelay;
+                long start = Bass.ChannelSeconds2Bytes(_mixerHandle, startSeconds);
+                long length = Bass.ChannelSeconds2Bytes(_mixerHandle, lengthSeconds);
+
+                if (streamLength < 0 || lengthSeconds < 0 || mixerPosition < 0 || start < mixerPosition ||
+                    length <= 0)
+                {
+                    Bass.StreamFree(streamHandle);
+                    return false;
+                }
+
+                BassFlags flags = BassFlags.MixerChanNoRampin | BassFlags.AutoFree;
+                if (!BassMix.MixerAddChannel(_mixerHandle, streamHandle, flags, start, length))
+                {
+                    YargLogger.LogFormatError("Failed to schedule one-shot stream: {0}!", Bass.LastError);
+                    Bass.StreamFree(streamHandle);
+                    return false;
+                }
+
+                _scheduledOneShots.Add(streamHandle);
+                Bass.ChannelSetSync(streamHandle, SyncFlags.Free, 0,
+                    (_, channel, _, _) =>
+                    {
+                        lock (this)
+                        {
+                            _scheduledOneShots.Remove(channel);
+                        }
+                    });
+
+                return true;
+            }
+        }
+
+        public override void ClearScheduledOneShots()
+        {
+            lock (this)
+            {
+                foreach (int streamHandle in _scheduledOneShots.ToArray())
+                {
+                    BassMix.MixerRemoveChannel(streamHandle);
+                }
+                _scheduledOneShots.Clear();
+            }
+        }
 
         public override event Action SongEnd
         {
@@ -432,6 +495,7 @@ namespace YARG.Audio.BASS
                     YargLogger.LogDebug("Failed to remove channel from mixer");
                 }
             }
+            _scheduledOneShots.Clear();
         }
 
         private static bool BuildStemData(int sourceStream, IEnumerable<StemInfo> stemInfos,
@@ -689,6 +753,7 @@ namespace YARG.Audio.BASS
             private double _delay;
 
             public double AlignmentDelay => _delay;
+            public double SongStart => _songStart;
 
             public SongPositionTracker(int tempoStreamHandle)
             {

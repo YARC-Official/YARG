@@ -166,6 +166,7 @@ namespace YARG.Gameplay
         private bool _breBoxActive;
 
         private StemMixer _mixer;
+        private MetronomeScheduler _metronomeScheduler;
 
         private List<double> _frameTimes;
 
@@ -238,6 +239,7 @@ namespace YARG.Gameplay
             EngineManager.OnUnisonPhraseSuccess -= OnUnisonPhraseSuccess;
 
             // Stop the audio worker before any teardown callback can touch the mixer or UI.
+            _metronomeScheduler?.Dispose();
             _songRunner?.Dispose();
 
             bool canDisposeMixer = _songRunner == null || _songRunner.SyncThreadStopped;

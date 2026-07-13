@@ -256,13 +256,6 @@ namespace YARG.Gameplay.Player
                 Engine.SetSpeed(GameManager.SongSpeed);
             }
 
-            // Samples enter the output buffer when played, while song audio is already buffered.
-            // Trigger them early so both reach the output device on the authored beat.
-            double metronomeOffset = -GlobalAudioHandler.PlaybackLatency / 1000.0 * GameManager.SongSpeed;
-            GameManager.BeatEventHandler.Audio.Subscribe(MetronomeTick, BeatEventType.Measure,
-                offset: metronomeOffset);
-            GameManager.BeatEventHandler.Audio.Subscribe(MetronomeTock, BeatEventType.QuarterNote,
-                offset: metronomeOffset);
             GameManager.BeatEventHandler.Visual.Subscribe(SunburstEffects.PulseSunburst, BeatEventType.StrongBeat);
             InitializeTrackEffects();
             InitializeCodaEvents();
@@ -279,8 +272,6 @@ namespace YARG.Gameplay.Player
 
         protected override void FinishDestruction()
         {
-            GameManager.BeatEventHandler.Audio.Unsubscribe(MetronomeTick);
-            GameManager.BeatEventHandler.Audio.Unsubscribe(MetronomeTock);
             GameManager.BeatEventHandler.Visual.Unsubscribe(SunburstEffects.PulseSunburst);
 
             _autoCalibrator?.Dispose();
@@ -1233,16 +1224,6 @@ namespace YARG.Gameplay.Player
                 _newHighScoreShown = true;
                 TrackView.ShowNewHighScore();
             }
-        }
-
-        public void MetronomeTick()
-        {
-            GlobalAudioHandler.PlayMetronomeSoundEffect(SettingsManager.Settings.MetronomeSound.Value, MetronomePitch.Hi);
-        }
-
-        public void MetronomeTock()
-        {
-            GlobalAudioHandler.PlayMetronomeSoundEffect(SettingsManager.Settings.MetronomeSound.Value, MetronomePitch.Lo);
         }
 
         protected override void GameplayDestroy()

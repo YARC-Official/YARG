@@ -198,6 +198,9 @@ namespace YARG.Gameplay
                 GlobalVariables.State.SongSpeed,
                 Song.SongOffsetSeconds);
 
+            _metronomeScheduler = new MetronomeScheduler(_mixer, _songRunner, Chart.SyncTrack,
+                SongLength, Song.SongOffsetSeconds);
+
             // Spawn players
             CreatePlayers();
             YargLogger.LogFormatDebug("Calculating star cutoffs for {0} players", _players.Count);
