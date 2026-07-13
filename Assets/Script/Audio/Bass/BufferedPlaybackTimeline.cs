@@ -89,7 +89,7 @@ namespace YARG.Audio.BASS
             _tempoOutput.SetRate(now + Math.Max(0, tempoLatency), rate);
         }
 
-        public void Play()
+        public void Play(double startupLatency)
         {
             if (_isPlaying)
             {
@@ -99,7 +99,7 @@ namespace YARG.Audio.BASS
             _isPlaying = true;
             double now = _getTime();
             _immediate.SetRate(now, CurrentRate);
-            _tempoOutput.SetRate(now, CurrentRate);
+            _tempoOutput.SetRate(now + Math.Max(0, startupLatency), CurrentRate);
         }
 
         public void Pause()
@@ -122,6 +122,14 @@ namespace YARG.Audio.BASS
             double controlPosition = songPosition - _outputLatency * CurrentRate;
             _immediate.Reset(now, controlPosition, rate);
             _tempoOutput.Reset(now, songPosition, rate);
+        }
+
+        public void PreparePlayback(double observedPosition, double requestedPosition)
+        {
+            double now = _getTime();
+            float rate = _isPlaying ? CurrentRate : 0f;
+            _immediate.Reset(now, requestedPosition, rate);
+            _tempoOutput.Reset(now, observedPosition, rate);
         }
 
         private float CurrentRate => _songSpeed + _syncAdjustment;
