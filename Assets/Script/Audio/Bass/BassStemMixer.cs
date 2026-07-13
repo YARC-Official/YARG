@@ -242,9 +242,9 @@ namespace YARG.Audio.BASS
             return BassLatencyProvider.GetTempoStreamLatency(_tempoStreamHandle);
         }
 
-        private double GetPlaybackStartLatency()
+        private double GetPlaybackStartOffset()
         {
-            return Math.Max(0, _playbackTimeline.OutputLatency) + _songPositionTracker.AlignmentDelay;
+            return _playbackTimeline.OutputLatency + _songPositionTracker.AlignmentDelay;
         }
 
         protected override double GetVolume_Internal()
@@ -261,8 +261,8 @@ namespace YARG.Audio.BASS
             var wasPlaying = IsPlaying;
             Pause_Internal();
 
-            double playbackPreRoll = GetPlaybackStartLatency() * _songSpeed;
-            double preparedPosition = position + playbackPreRoll;
+            double playbackOffset = GetPlaybackStartOffset() * _songSpeed;
+            double preparedPosition = position + playbackOffset;
             double seekPosition = Math.Clamp(preparedPosition, 0, _length);
             double playbackDelay = Math.Max(0, -preparedPosition);
             _preparedBeyondEnd = position >= _length;
