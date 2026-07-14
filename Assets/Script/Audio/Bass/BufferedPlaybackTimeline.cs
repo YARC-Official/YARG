@@ -1,74 +1,106 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using YARG.Core.Audio;
 
 namespace YARG.Audio.BASS
 {
     /// <summary>
-    /// Models mixer playback without exposing tempo and output-buffer delay to callers.
+    /// Converts current BASS position into delay-free control position used for gameplay synchronization.
     /// </summary>
+    /// <remarks>
+    /// BASS position is the source of truth. Rate histories track remaining BASS buffer time so
+    /// synchronization can account for commands that have not taken effect yet.
+    ///
+    /// Two histories represent BASS command buffering:
+    /// <list type="bullet">
+    /// <item><see cref="_commandedRateHistory"/> applies commands immediately.</item>
+    /// <item><see cref="_bufferedRateHistory"/> applies commands after their measured BASS latency.</item>
+    /// </list>
+    /// Differences between these histories reveal song progress hidden by the remaining BASS buffer.
+    /// </remarks>
     internal sealed class BufferedPlaybackTimeline
     {
-        private readonly Func<double> _getTime;
-        private readonly PositionModel _immediate = new();
-        private readonly PositionModel _tempoOutput = new();
+        private const double HISTORY_MARGIN_SECONDS = 1.0;
+        private readonly PlaybackRateHistory _commandedRateHistory = new();
+        private readonly PlaybackRateHistory _bufferedRateHistory  = new();
 
-        private double _retainedHistorySeconds;
-        private double _outputLatency;
-        private float _songSpeed;
-        private float _syncAdjustment;
-        private bool _isPlaying;
+        private float  _songSpeed;
+        private float  _syncAdjustment;
+        private bool   _isPlaying;
 
-        public double OutputLatency => _outputLatency;
+        public double OutputLatency { get; private set; }
 
         public BufferedPlaybackTimeline(float speed)
-            : this(speed, GetCurrentTime)
-        {
-        }
-
-        internal BufferedPlaybackTimeline(float speed, Func<double> getTime)
         {
             _songSpeed = speed;
-            _getTime = getTime;
-            Reset(0);
+            double now = GetCurrentTime();
+            _commandedRateHistory.Reset(now, 0, 0f);
+            _bufferedRateHistory.Reset(now, 0, 0f);
         }
 
-        public PlaybackPosition GetPosition(double rawPosition, double tempoLatency)
+        /// <summary>
+        /// Converts current BASS position into delay-free control position used to synchronize playback.
+        /// </summary>
+        /// <param name="bassPosition">Current song position read from BASS.</param>
+        /// <returns>Position with pending BASS command-buffer progress applied.</returns>
+        /// <remarks>
+        /// <para>
+        /// Mathematical relationships:
+        /// <c>Control = Raw BASS Position + (Commanded Integral - Buffered Integral)</c>
+        /// </para>
+        /// <para>
+        /// Playback speed changes do not take effect immediately. Control position accounts for that delay,
+        /// allowing synchronization to calculate error as:
+        /// <c>error = target time - Control</c>
+        /// </para>
+        /// <para>
+        /// We can then use that error to predict a speed adjustment in <c>AudioSynchronizer.Synchronize</c>.
+        /// </para>
+        /// <para>
+        /// BASS position remains the source of truth. Rate histories only account for commands still
+        /// pending in the BASS buffer.
+        /// </para>
+        /// </remarks>
+        public double GetControlPosition(double bassPosition)
         {
-            double now = _getTime();
-            tempoLatency = Math.Max(0, tempoLatency);
-            _retainedHistorySeconds = Math.Max(
-                _retainedHistorySeconds,
-                tempoLatency + Math.Abs(_outputLatency));
+            double now = GetCurrentTime();
 
-            double modeledTempoPosition = _tempoOutput.GetPosition(now);
-            double modeledHeardPosition = _tempoOutput.GetPosition(now - _outputLatency);
+            // Command history changes rate immediately; buffered history changes rate when the remaining
+            // BASS buffer reaches command. Their difference removes that buffer delay from the
+            // synchronization position.
+            double commandBufferingOffset =
+                _commandedRateHistory.GetPositionAt(now) - _bufferedRateHistory.GetPositionAt(now);
+            double controlPosition = bassPosition + commandBufferingOffset;
 
-            // Correct modeled output with observed BASS position. Same correction is applied to
-            // delay-free model, which is Smith-predictor feedback for model/clock drift.
-            double modelError = rawPosition - modeledTempoPosition;
-            double heardPosition = modeledHeardPosition + modelError;
-            double controlPosition = _immediate.GetPosition(now) + modelError;
-
-            double cutoff = now - _retainedHistorySeconds - 1.0;
-            _immediate.PruneBefore(cutoff);
-            _tempoOutput.PruneBefore(cutoff);
-            return new PlaybackPosition(heardPosition, controlPosition);
+            // Re-anchor old history periodically. Pruning preserves all positions from the cutoff onward.
+            double cutoff = now - HISTORY_MARGIN_SECONDS;
+            _commandedRateHistory.PruneBefore(cutoff);
+            _bufferedRateHistory.PruneBefore(cutoff);
+            return controlPosition;
         }
 
+        /// <summary>
+        /// Sets calibrated delay between BASS tempo output and audio heard by player.
+        /// </summary>
+        /// <remarks>
+        /// Moving the command history by the same amount makes synchronization move playback toward the
+        /// newly calibrated target instead of treating calibration as a reporting-only change.
+        /// </remarks>
         public void SetOutputLatency(double latency)
         {
-            double latencyChange = latency - _outputLatency;
+            double latencyChange = latency - OutputLatency;
             if (latencyChange != 0)
             {
-                _immediate.Shift(-latencyChange * CurrentRate);
+                _commandedRateHistory.Shift(-latencyChange * CurrentRate);
             }
 
-            _outputLatency = latency;
-            _retainedHistorySeconds = Math.Max(_retainedHistorySeconds, Math.Abs(_outputLatency));
+            OutputLatency = latency;
         }
 
+        /// <summary>
+        /// Records a speed command. Synchronization uses the new speed immediately, while BASS tempo
+        /// output does not reflect it until audio already buffered by the tempo stream has played.
+        /// </summary>
         public void SetSpeed(float songSpeed, float syncAdjustment, double tempoLatency)
         {
             if (_songSpeed == songSpeed && _syncAdjustment == syncAdjustment)
@@ -83,12 +115,16 @@ namespace YARG.Audio.BASS
                 return;
             }
 
-            double now = _getTime();
+            double now = GetCurrentTime();
             float rate = CurrentRate;
-            _immediate.SetRate(now, rate);
-            _tempoOutput.SetRate(now + Math.Max(0, tempoLatency), rate);
+            _commandedRateHistory.SetRate(now, rate);
+            _bufferedRateHistory.SetRate(now + Math.Max(0, tempoLatency), rate);
         }
 
+        /// <summary>
+        /// Starts position advancement. Commanded playback starts now; BASS output starts after its
+        /// measured startup latency.
+        /// </summary>
         public void Play(double startupLatency)
         {
             if (_isPlaying)
@@ -97,11 +133,15 @@ namespace YARG.Audio.BASS
             }
 
             _isPlaying = true;
-            double now = _getTime();
-            _immediate.SetRate(now, CurrentRate);
-            _tempoOutput.SetRate(now + Math.Max(0, startupLatency), CurrentRate);
+            double now = GetCurrentTime();
+            _commandedRateHistory.SetRate(now, CurrentRate);
+            _bufferedRateHistory.SetRate(now + Math.Max(0, startupLatency), CurrentRate);
         }
 
+        /// <summary>
+        /// Stops both position histories at the current time and removes commands that had not yet
+        /// reached buffered output.
+        /// </summary>
         public void Pause()
         {
             if (!_isPlaying)
@@ -110,26 +150,22 @@ namespace YARG.Audio.BASS
             }
 
             _isPlaying = false;
-            double now = _getTime();
-            _immediate.Stop(now);
-            _tempoOutput.Stop(now);
+            double now = GetCurrentTime();
+            _commandedRateHistory.Stop(now);
+            _bufferedRateHistory.Stop(now);
         }
 
-        public void Reset(double songPosition)
+        /// <summary>
+        /// Re-anchors both histories after the mixer has prepared a seek.
+        /// </summary>
+        /// <param name="observedPosition">Position now reported by the prepared BASS streams.</param>
+        /// <param name="requestedPosition">Position requested by the playback caller.</param>
+        public void ResetAfterSeek(double observedPosition, double requestedPosition)
         {
-            double now = _getTime();
+            double now = GetCurrentTime();
             float rate = _isPlaying ? CurrentRate : 0f;
-            double controlPosition = songPosition - _outputLatency * CurrentRate;
-            _immediate.Reset(now, controlPosition, rate);
-            _tempoOutput.Reset(now, songPosition, rate);
-        }
-
-        public void PreparePlayback(double observedPosition, double requestedPosition)
-        {
-            double now = _getTime();
-            float rate = _isPlaying ? CurrentRate : 0f;
-            _immediate.Reset(now, requestedPosition, rate);
-            _tempoOutput.Reset(now, observedPosition, rate);
+            _commandedRateHistory.Reset(now, requestedPosition, rate);
+            _bufferedRateHistory.Reset(now, observedPosition, rate);
         }
 
         private float CurrentRate => _songSpeed + _syncAdjustment;
@@ -139,7 +175,10 @@ namespace YARG.Audio.BASS
             return (double) Stopwatch.GetTimestamp() / Stopwatch.Frequency;
         }
 
-        private sealed class PositionModel
+        /// <summary>
+        /// Playback-rate history used to calculate song progress between timestamps.
+        /// </summary>
+        private sealed class PlaybackRateHistory
         {
             private readonly List<RateChange> _changes = new();
             private double _startPosition;
@@ -182,7 +221,7 @@ namespace YARG.Audio.BASS
                 _changes.Add(new RateChange(timestamp, rate));
             }
 
-            public double GetPosition(double timestamp)
+            public double GetPositionAt(double timestamp)
             {
                 RateChange first = _changes[0];
                 if (timestamp <= first.Timestamp)
@@ -216,7 +255,7 @@ namespace YARG.Audio.BASS
                     return;
                 }
 
-                double position = GetPosition(timestamp);
+                double position = GetPositionAt(timestamp);
                 float rate = GetRate(timestamp);
                 int removeCount = 0;
                 while (removeCount < _changes.Count && _changes[removeCount].Timestamp <= timestamp)

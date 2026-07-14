@@ -38,6 +38,8 @@ namespace YARG.Audio.BASS
         #nullable disable
 
         private const    float WHAMMY_SYNC_INTERVAL_SECONDS = 1f;
+        private const    float MIN_PLAYBACK_SPEED            = 0.05f;
+        private const    float MAX_PLAYBACK_SPEED            = 51f;
 
         private static bool IsWhammyEnabled => SettingsManager.Settings.UseWhammyFx.Value;
         private        bool IsPlaying       => Bass.ChannelIsActive(_tempoStreamHandle) == PlaybackState.Playing;
@@ -219,11 +221,10 @@ namespace YARG.Audio.BASS
             return _songPositionTracker.GetSongPosition();
         }
 
-        protected override PlaybackPosition GetPlaybackPosition_Internal()
+        protected override double GetControlPosition_Internal()
         {
-            double rawPosition = _songPositionTracker.GetSongPosition();
-            double tempoLatency = BassLatencyProvider.GetTempoStreamLatency(_tempoStreamHandle);
-            return _playbackTimeline.GetPosition(rawPosition, tempoLatency);
+            double bassPosition = _songPositionTracker.GetSongPosition();
+            return _playbackTimeline.GetControlPosition(bassPosition);
         }
 
         // The total delay between playback command and when audio is heard
@@ -265,7 +266,7 @@ namespace YARG.Audio.BASS
                     YargLogger.LogFormatError("Failed to reset tempo stream position: {0}!", Bass.LastError);
                 }
 
-                _playbackTimeline.PreparePlayback(_songPositionTracker.GetSongPosition(), position);
+                _playbackTimeline.ResetAfterSeek(_songPositionTracker.GetSongPosition(), position);
             }
 
             if (wasPlaying)
@@ -343,17 +344,29 @@ namespace YARG.Audio.BASS
 
         protected override void SetPlaybackSpeed_Internal(float songSpeed, float syncAdjustment, bool shiftPitch)
         {
-            float speed = (float) Math.Clamp(songSpeed + syncAdjustment, 0.05, 50);
-            syncAdjustment = speed - songSpeed;
+            // SongRunner clamps requested song speed, but the temporary synchronization adjustment can
+            // push the effective speed outside BASS_FX's supported 5%-5100% tempo range.
+            float effectiveSpeed = Math.Clamp(
+                songSpeed + syncAdjustment,
+                MIN_PLAYBACK_SPEED,
+                MAX_PLAYBACK_SPEED
+            );
+
+            // Model the speed BASS actually receives. This can differ from the requested adjustment
+            // when the effective speed reaches one of the limits above.
+            float appliedAdjustment = effectiveSpeed - songSpeed;
             _songSpeed = songSpeed;
-            if (_speed != speed)
+
+            // Exact comparison is intentional. If BASS receives a new float value, the playback model
+            // must record the same value; an approximate comparison could let the two drift apart.
+            if (_speed != effectiveSpeed)
             {
-                _speed = speed;
-                BassAudioManager.SetSpeed(speed, _tempoStreamHandle, shiftPitch);
+                _speed = effectiveSpeed;
+                BassAudioManager.SetSpeed(effectiveSpeed, _tempoStreamHandle, shiftPitch);
             }
 
             double tempoLatency = BassLatencyProvider.GetTempoStreamLatency(_tempoStreamHandle);
-            _playbackTimeline.SetSpeed(songSpeed, syncAdjustment, tempoLatency);
+            _playbackTimeline.SetSpeed(songSpeed, appliedAdjustment, tempoLatency);
         }
 
         protected override void SetOutputLatency_Internal(double latency)
@@ -380,12 +393,16 @@ namespace YARG.Audio.BASS
 
             _sourceHandles.Add(sourceStream);
 
-            if (!BuildStemData(sourceStream, stemInfos, out List<StemData> stemDatas))
+            if (!BuildStemData(sourceStream, stemInfos, out var stemDatas))
             {
                 return false;
             }
 
             _stemDatas.AddRange(stemDatas);
+
+            // Every stem is padded to match the largest pitch-effect delay in the mixer. A new stem can
+            // increase that delay, so rebuild all mixer channels to keep every stem aligned. Rebuilding
+            // also prevents the existing streams from being added a second time below.
             RemoveChannelsFromMixer();
             if (!AddChannelsToMixer(_stemDatas, 0, out double delay))
             {

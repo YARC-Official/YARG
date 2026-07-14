@@ -26,7 +26,7 @@ namespace YARG.Gameplay
         }
 
         private readonly StemMixer _mixer;
-        private readonly List<Hit> _hits = new();
+        private readonly List<Hit> _hits;
         private OneShotChannel _hiChannel;
         private OneShotChannel _loChannel;
 
@@ -34,7 +34,16 @@ namespace YARG.Gameplay
             double songLength)
         {
             _mixer = mixer;
+            _hits = CreateHits(songRunner, sync, songLength);
 
+            CreateChannels(SettingsManager.Settings.MetronomeSound.Value);
+            SettingsManager.Settings.MetronomeSound.OnChange += OnSoundChanged;
+            SettingsManager.Settings.MetronomeVolume.OnChange += OnVolumeChanged;
+        }
+
+        private static List<Hit> CreateHits(SongRunner songRunner, SyncTrack sync, double songLength)
+        {
+            var hits = new List<Hit>();
             foreach (var beatline in sync.Beatlines)
             {
                 if (beatline.Time > songLength)
@@ -42,23 +51,16 @@ namespace YARG.Gameplay
                     break;
                 }
 
-                var pitch = beatline.Type == BeatlineType.Measure
-                    ? MetronomePitch.Hi
-                    : MetronomePitch.Lo;
-                double audioTime = songRunner.SongTimeToAudioPlaybackTime(beatline.Time);
-                _hits.Add(new Hit(audioTime, pitch));
+                var pitch = beatline.Type == BeatlineType.Measure ? MetronomePitch.Hi : MetronomePitch.Lo;
+                double audioTime = songRunner.GetAudioPlaybackTime(beatline.Time);
+                hits.Add(new Hit(audioTime, pitch));
             }
-
-            CreateChannels(SettingsManager.Settings.MetronomeSound.Value);
-            SettingsManager.Settings.MetronomeSound.OnChange += OnSoundChanged;
-            SettingsManager.Settings.MetronomeVolume.OnChange += OnVolumeChanged;
+            return hits;
         }
 
         private void CreateChannels(MetronomeSample sample)
         {
-            _hiChannel?.Dispose();
-            _loChannel?.Dispose();
-
+            DisposeChannels();
             var hiStream = GlobalAudioHandler.CreateMetronomeStream(sample, MetronomePitch.Hi);
             var loStream = GlobalAudioHandler.CreateMetronomeStream(sample, MetronomePitch.Lo);
             _hiChannel = _mixer.CreateOneShotChannel(hiStream);
@@ -93,8 +95,13 @@ namespace YARG.Gameplay
         {
             SettingsManager.Settings.MetronomeSound.OnChange -= OnSoundChanged;
             SettingsManager.Settings.MetronomeVolume.OnChange -= OnVolumeChanged;
-            _hiChannel.Dispose();
-            _loChannel.Dispose();
+            DisposeChannels();
+        }
+
+        private void DisposeChannels()
+        {
+            _hiChannel?.Dispose();
+            _loChannel?.Dispose();
         }
     }
 }

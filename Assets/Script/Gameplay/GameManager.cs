@@ -611,8 +611,8 @@ namespace YARG.Gameplay
             return resumed;
         }
 
-        public double GetRelativeInputTime(double timeFromInputSystem)
-            => _songRunner.GetRelativeInputTime(timeFromInputSystem);
+        public double GetInputTime(double inputSystemTime)
+            => _songRunner.GetInputTime(inputSystemTime);
 
         private bool EndSong()
         {
