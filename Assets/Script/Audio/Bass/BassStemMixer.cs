@@ -481,7 +481,7 @@ namespace YARG.Audio.BASS
             }
             foreach (var channel in _oneShotChannels)
             {
-                channel.ResetTransport();
+                channel.ResetAfterSeek();
             }
         }
 
@@ -730,25 +730,19 @@ namespace YARG.Audio.BASS
 
         public override OneShotChannel CreateOneShotChannel(int sampleStream)
         {
-            lock (this)
-            {
-                var channel = new BassOneShotChannel(
-                    _tempoStreamHandle,
-                    sampleStream,
-                    _songPositionTracker.GetSongPosition
-                );
-                channel.Disposed += OnOneShotChannelDisposed;
-                _oneShotChannels.Add(channel);
-                return channel;
-            }
+            var channel = new BassOneShotChannel(
+                _tempoStreamHandle,
+                sampleStream,
+                _songPositionTracker.GetSongPosition
+            );
+            channel.Disposed += OnOneShotDisposed;
+            _oneShotChannels.Add(channel);
+            return channel;
         }
 
-        private void OnOneShotChannelDisposed(BassOneShotChannel channel)
+        private void OnOneShotDisposed(BassOneShotChannel channel)
         {
-            lock (this)
-            {
-                _oneShotChannels.Remove(channel);
-            }
+            _oneShotChannels.Remove(channel);
         }
 
         /// <summary>

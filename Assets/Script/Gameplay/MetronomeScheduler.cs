@@ -68,7 +68,7 @@ namespace YARG.Gameplay
             foreach (var hit in _hits)
             {
                 var channel = hit.Pitch == MetronomePitch.Hi ? _hiChannel : _loChannel;
-                channel.Schedule(hit.Time);
+                channel.AddScheduledPlay(hit.Time);
             }
             SetVolume(sample);
         }
