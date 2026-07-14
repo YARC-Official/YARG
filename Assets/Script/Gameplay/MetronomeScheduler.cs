@@ -13,37 +13,48 @@ namespace YARG.Gameplay
     /// </summary>
     public sealed class MetronomeScheduler : IDisposable
     {
-        private readonly struct Hit
-        {
-            public readonly double Time;
-            public readonly MetronomePitch Pitch;
-
-            public Hit(double time, MetronomePitch pitch)
-            {
-                Time = time;
-                Pitch = pitch;
-            }
-        }
-
         private readonly StemMixer _mixer;
-        private readonly List<Hit> _hits;
+        private double[] _hiHits = Array.Empty<double>();
+        private double[] _loHits = Array.Empty<double>();
         private OneShotChannel _hiChannel;
         private OneShotChannel _loChannel;
+        private bool _scheduled;
+        private bool _disposed;
 
-        public MetronomeScheduler(StemMixer mixer, SongRunner songRunner, SyncTrack sync,
-            double songLength)
+        /// <summary>
+        /// Creates a metronome scheduler for the supplied mixer.
+        /// </summary>
+        public MetronomeScheduler(StemMixer mixer)
         {
             _mixer = mixer;
-            _hits = CreateHits(songRunner, sync, songLength);
+        }
 
+        /// <summary>
+        /// Schedules metronome hits for the song and begins responding to metronome settings.
+        /// </summary>
+        public void Schedule(SongRunner songRunner, SyncTrack sync, double songLength)
+        {
+            if (_disposed)
+            {
+                throw new ObjectDisposedException(nameof(MetronomeScheduler));
+            }
+            if (_scheduled)
+            {
+                throw new InvalidOperationException("Metronome has already been scheduled.");
+            }
+
+            CreateSchedule(songRunner, sync, songLength, out _hiHits, out _loHits);
             CreateChannels(SettingsManager.Settings.MetronomeSound.Value);
             SettingsManager.Settings.MetronomeSound.OnChange += OnSoundChanged;
             SettingsManager.Settings.MetronomeVolume.OnChange += OnVolumeChanged;
+            _scheduled = true;
         }
 
-        private static List<Hit> CreateHits(SongRunner songRunner, SyncTrack sync, double songLength)
+        private static void CreateSchedule(SongRunner songRunner, SyncTrack sync, double songLength,
+            out double[] hiHits, out double[] loHits)
         {
-            var hits = new List<Hit>();
+            var hi = new List<double>();
+            var lo = new List<double>();
             foreach (var beatline in sync.Beatlines)
             {
                 if (beatline.Time > songLength)
@@ -51,11 +62,13 @@ namespace YARG.Gameplay
                     break;
                 }
 
-                var pitch = beatline.Type == BeatlineType.Measure ? MetronomePitch.Hi : MetronomePitch.Lo;
                 double audioTime = songRunner.GetAudioPlaybackTime(beatline.Time);
-                hits.Add(new Hit(audioTime, pitch));
+                var hits = beatline.Type == BeatlineType.Measure ? hi : lo;
+                hits.Add(audioTime);
             }
-            return hits;
+
+            hiHits = hi.ToArray();
+            loHits = lo.ToArray();
         }
 
         private void CreateChannels(MetronomeSample sample)
@@ -63,13 +76,8 @@ namespace YARG.Gameplay
             DisposeChannels();
             var hiStream = GlobalAudioHandler.CreateMetronomeStream(sample, MetronomePitch.Hi);
             var loStream = GlobalAudioHandler.CreateMetronomeStream(sample, MetronomePitch.Lo);
-            _hiChannel = _mixer.CreateOneShotChannel(hiStream);
-            _loChannel = _mixer.CreateOneShotChannel(loStream);
-            foreach (var hit in _hits)
-            {
-                var channel = hit.Pitch == MetronomePitch.Hi ? _hiChannel : _loChannel;
-                channel.AddScheduledPlay(hit.Time);
-            }
+            _hiChannel = _mixer.CreateOneShotChannel(hiStream, _hiHits);
+            _loChannel = _mixer.CreateOneShotChannel(loStream, _loHits);
             SetVolume(sample);
         }
 
@@ -93,9 +101,15 @@ namespace YARG.Gameplay
 
         public void Dispose()
         {
+            if (_disposed)
+            {
+                return;
+            }
+
             SettingsManager.Settings.MetronomeSound.OnChange -= OnSoundChanged;
             SettingsManager.Settings.MetronomeVolume.OnChange -= OnVolumeChanged;
             DisposeChannels();
+            _disposed = true;
         }
 
         private void DisposeChannels()

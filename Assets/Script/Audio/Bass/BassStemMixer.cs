@@ -728,11 +728,13 @@ namespace YARG.Audio.BASS
             }
         }
 
-        public override OneShotChannel CreateOneShotChannel(int sampleStream)
+        public override OneShotChannel CreateOneShotChannel(int sampleStream,
+            IReadOnlyList<double> scheduledPlays)
         {
             var channel = new BassOneShotChannel(
                 _tempoStreamHandle,
                 sampleStream,
+                scheduledPlays,
                 _songPositionTracker.GetSongPosition
             );
             channel.Disposed += OnOneShotDisposed;
