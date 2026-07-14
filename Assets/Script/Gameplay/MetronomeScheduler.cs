@@ -1,18 +1,23 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using YARG.Core.Audio;
 using YARG.Core.Chart;
+using YARG.Core.Logging;
 using YARG.Playback;
 using YARG.Settings;
 
 namespace YARG.Gameplay
 {
     /// <summary>
-    /// Owns gameplay metronome scheduling. Hits enter the song mixer and therefore share its
-    /// buffering, tempo processing, and synchronization corrections.
+    /// Builds metronome events on the song timeline. Timed samples are mixed after tempo processing,
+    /// keeping their original pitch and duration at every song speed.
     /// </summary>
     public sealed class MetronomeScheduler : IDisposable
     {
+        private const int HI_SAMPLE = 0;
+        private const int LO_SAMPLE = 1;
+
         private readonly struct Hit
         {
             public readonly double Time;
@@ -26,7 +31,7 @@ namespace YARG.Gameplay
         }
 
         private readonly StemMixer _mixer;
-        private readonly OneShotSchedule _schedule;
+        private readonly TimedSampleSchedule _schedule;
         private readonly SongRunner _songRunner;
         private readonly List<Hit> _hits = new();
         private readonly double _songOffset;
@@ -35,7 +40,7 @@ namespace YARG.Gameplay
             double songLength, double songOffset)
         {
             _mixer = mixer;
-            _schedule = mixer.CreateOneShotSchedule();
+            _schedule = mixer.CreateTimedSampleSchedule();
             _songRunner = songRunner;
             _songOffset = songOffset;
 
@@ -63,42 +68,47 @@ namespace YARG.Gameplay
             }
 
             _hits.Sort((left, right) => left.Time.CompareTo(right.Time));
-            _songRunner.AudioPrepared += Schedule;
+            SetSamples(SettingsManager.Settings.MetronomeSound.Value);
+            _songRunner.AudioPrepared += Prepare;
             SettingsManager.Settings.MetronomeSound.OnChange += OnSoundChanged;
             SettingsManager.Settings.MetronomeVolume.OnChange += OnVolumeChanged;
         }
 
-        private void Schedule(double fromAudioTime)
+        private void Prepare(double fromAudioTime)
         {
-            MetronomeSample sample = SettingsManager.Settings.MetronomeSound.Value;
-            SetVolume(sample);
+            var stopwatch = Stopwatch.StartNew();
+            _schedule.Clear();
+            SetVolume(SettingsManager.Settings.MetronomeSound.Value);
+            int scheduledHits = 0;
             foreach (Hit hit in _hits)
             {
-                double audioTime = hit.Time + _songOffset;
-                if (audioTime < fromAudioTime)
+                double hitAudioTime = hit.Time + _songOffset;
+                if (hitAudioTime < fromAudioTime)
                 {
                     continue;
                 }
 
-                int stream = GlobalAudioHandler.CreateMetronomeStream(sample, hit.Pitch);
-                _schedule.Schedule(stream, audioTime);
+                int sampleId = hit.Pitch == MetronomePitch.Hi ? HI_SAMPLE : LO_SAMPLE;
+                if (_schedule.Schedule(sampleId, hitAudioTime))
+                {
+                    scheduledHits++;
+                }
             }
+            _schedule.Commit();
+            stopwatch.Stop();
+            YargLogger.LogFormatDebug("Scheduled {0} DSP metronome hits in {1:0.00} ms",
+                scheduledHits, stopwatch.Elapsed.TotalMilliseconds);
         }
 
-        private void OnSoundChanged(MetronomeSample _)
+        private void OnSoundChanged(MetronomeSample sample)
         {
-            Reschedule();
+            SetSamples(sample);
+            Prepare(_mixer.GetPosition());
         }
 
         private void OnVolumeChanged(float _)
         {
             SetVolume(SettingsManager.Settings.MetronomeSound.Value);
-        }
-
-        private void Reschedule()
-        {
-            _schedule.Clear();
-            Schedule(_mixer.GetPosition());
         }
 
         private void SetVolume(MetronomeSample sample)
@@ -108,9 +118,17 @@ namespace YARG.Gameplay
             _schedule.SetVolume(volume);
         }
 
+        private void SetSamples(MetronomeSample sample)
+        {
+            _schedule.SetSample(HI_SAMPLE,
+                GlobalAudioHandler.CreateMetronomeStream(sample, MetronomePitch.Hi));
+            _schedule.SetSample(LO_SAMPLE,
+                GlobalAudioHandler.CreateMetronomeStream(sample, MetronomePitch.Lo));
+        }
+
         public void Dispose()
         {
-            _songRunner.AudioPrepared -= Schedule;
+            _songRunner.AudioPrepared -= Prepare;
             SettingsManager.Settings.MetronomeSound.OnChange -= OnSoundChanged;
             SettingsManager.Settings.MetronomeVolume.OnChange -= OnVolumeChanged;
             _schedule.Dispose();

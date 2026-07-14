@@ -441,7 +441,7 @@ namespace YARG.Playback
 
         private void SyncThread()
         {
-            const int syncIntervalMs = 1;
+            const int syncIntervalMs = 10;
             for (; !_disposed; Thread.Sleep(syncIntervalMs))
             {
                 lock (_syncThread)
