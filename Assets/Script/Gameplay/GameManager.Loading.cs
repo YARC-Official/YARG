@@ -198,8 +198,8 @@ namespace YARG.Gameplay
                 GlobalVariables.State.SongSpeed,
                 Song.SongOffsetSeconds);
 
-            _metronomeScheduler = new MetronomeScheduler(_mixer, Chart.SyncTrack,
-                SongLength, Song.SongOffsetSeconds);
+            _metronomeScheduler = new MetronomeScheduler(
+                _mixer, _songRunner, Chart.SyncTrack, SongLength);
 
             // Spawn players
             CreatePlayers();

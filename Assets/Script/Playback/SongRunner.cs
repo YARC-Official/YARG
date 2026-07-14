@@ -529,6 +529,11 @@ namespace YARG.Playback
             return (timeFromInputSystem - InputTimeOffset) * SongSpeed;
         }
 
+        public double SongTimeToAudioPlaybackTime(double songTime)
+        {
+            return songTime - SongOffset;
+        }
+
         private void UpdateTimes()
         {
             // Re-anchoring can use a newer on-demand input timestamp than this frame's cached
@@ -633,9 +638,9 @@ namespace YARG.Playback
 
         public void SetSongSpeed(float speed)
         {
-            speed = ClampSongSpeed(speed);
             lock (_syncThread)
             {
+                speed = ClampSongSpeed(speed);
                 if (Mathf.Approximately(speed, _requestedSongSpeed))
                 {
                     return;
@@ -654,8 +659,24 @@ namespace YARG.Playback
         {
             double inputTime = InputTime;
             SongSpeed = speed;
-            ResetSync();
-            SetInputBaseChecked(inputTime);
+
+            if (!Started || Paused)
+            {
+                ResetSync();
+                SetInputBaseChecked(inputTime);
+                return;
+            }
+
+            // BASS applies tempo changes after samples already buffered in the tempo stream.
+            // Rebuild at the current position so gameplay and audible playback start the new
+            // speed together. The control position predicts through that delay, so sync error
+            // alone cannot detect the audible offset left by changing speed in place.
+            SetInputBaseAt(inputTime, InputManager.CurrentInputTime);
+            PrepareAudioPlayback();
+
+            // Mixer preparation takes time. Keep gameplay fixed at the position being prepared.
+            SetInputBaseAt(inputTime, InputManager.CurrentInputTime);
+            _mixer.Play();
         }
 
         public void AdjustSongSpeed(float deltaSpeed) => SetSongSpeed(_requestedSongSpeed + deltaSpeed);

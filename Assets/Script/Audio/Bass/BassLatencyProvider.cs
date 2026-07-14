@@ -35,14 +35,6 @@ namespace YARG.Audio.BASS
             return GetOutputBufferLatency(tempoStreamHandle) + CommandLatency;
         }
 
-        /// <summary>
-        /// Gets time needed for newly started audio to cross BASS and device output buffers.
-        /// </summary>
-        public static double GetOutputTransitionLatency()
-        {
-            return GetPlaybackStreamLatency();
-        }
-
         private static double GetOutputBufferLatency(int tempoStreamHandle)
         {
             double configuredBufferLatency = BassHelpers.ConfiguredPlaybackBufferLength / 1000.0;
