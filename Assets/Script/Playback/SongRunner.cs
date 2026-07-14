@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using DG.Tweening;
@@ -66,15 +65,12 @@ namespace YARG.Playback
     // in line. This produces little to no audible effect in BASS, its time stretching is well-suited
     // for this purpose. Seeking has also been considered for large desyncs, but is not implemented
     // currently.
+    //
+    // SongRunner and its audio synchronizer run on Unity's main thread. This gives mixer transport
+    // one owner, so synchronization cannot interleave with pause, seek, or speed-change operations.
 
     public class SongRunner : IDisposable
     {
-        /// <summary>
-        /// Invoked synchronously after the mixer has been rebuilt and positioned, before playback resumes.
-        /// Event argument is logical audio position requested from mixer.
-        /// </summary>
-        public event Action<double> AudioPrepared;
-
         #region Times
         public const double SONG_START_DELAY = 2;
 
@@ -175,15 +171,6 @@ namespace YARG.Playback
         private float _requestedSongSpeed;
 
         /// <summary>
-        /// The actual current playback speed of the song.
-        /// </summary>
-        /// <remarks>
-        /// The audio may be sped up or slowed down in order to re-synchronize.
-        /// This value takes that speed adjustment into account.
-        /// </remarks>
-        public float RealSongSpeed => SongSpeed + _syncSpeedAdjustment;
-
-        /// <summary>
         /// Whether or not the runner has been started.
         /// </summary>
         public bool Started { get; private set; }
@@ -196,7 +183,7 @@ namespace YARG.Playback
         /// <summary>
         /// Whether or not the song's pause state is currently overridden.
         /// </summary>
-        public bool PauseOverridden => _pauseOverrides > 0;
+        private bool PauseOverridden => _pauseOverrides > 0;
 
         private int _pauseOverrides;
         private bool _resumeAfterOverride;
@@ -204,6 +191,7 @@ namespace YARG.Playback
         private bool _pausedForFrameDebugger;
 
         private double _forceStartTime = double.NaN;
+        private bool _disposed;
 
         #endregion
 
@@ -213,36 +201,17 @@ namespace YARG.Playback
         #endregion
 
         #region Audio syncing
-        private const int SYNC_THREAD_SHUTDOWN_TIMEOUT_MS = 1000;
-
-        private Thread _syncThread;
-
-        private volatile bool _disposed;
-
-        public bool SyncThreadStopped { get; private set; }
-
-        private volatile float _syncSpeedAdjustment;
-        private volatile float _debugEffectiveSyncAdjustment;
-        private volatile float _debugSyncStartDelta;
-        private volatile float _debugSyncWorstDelta;
-
-        private const double SYNC_DEADBAND_SECONDS = 0.0015;
-        private const float CORRECTION_TIME_SECONDS = 0.1f;
-        private const float SYNC_CLAMP = 0.50f;
-
-        private double _lastFrameInputTime;
-        private long _lastFrameTimestamp;
-
         private readonly StemMixer _mixer;
+        private readonly AudioSynchronizer _audioSynchronizer;
 
-        public float DebugEffectiveSyncAdjustment => _debugEffectiveSyncAdjustment;
-        public float DebugSyncStartDelta => _debugSyncStartDelta;
-        public float DebugSyncWorstDelta => _debugSyncWorstDelta;
+        public float DebugEffectiveSyncAdjustment => _audioSynchronizer.EffectiveAdjustment;
+        public float DebugSyncStartDelta => _audioSynchronizer.StartDelta;
+        public float DebugSyncWorstDelta => _audioSynchronizer.WorstDelta;
 
         /// <summary>
         /// The latest sampled difference between the target and actual audio synchronization times.
         /// </summary>
-        public double SyncError { get; private set; }
+        public double SyncError => _audioSynchronizer.Error;
         #endregion
 
         #region Seek debugging
@@ -252,7 +221,7 @@ namespace YARG.Playback
         #endregion
 
         /// <summary>
-        /// Creates a new song runner with the given speed and calibration values.
+        /// Creates a song runner at the given position and speed.
         /// </summary>
         /// <remarks>
         /// The created song runner will be in an unstarted state. Upon calling <see cref="Update"/>,
@@ -263,21 +232,14 @@ namespace YARG.Playback
         /// Since the runner starts paused, anything that might potentially interact with it before
         /// starting must respect the paused state, otherwise incorrect behavior may happen.
         /// </remarks>
-        /// <param name="songSpeed">
-        /// The percentage song speed, where 1f == 100%.
+        /// <param name="mixer">The mixer used for song playback.</param>
+        /// <param name="startTime">The initial gameplay time, in seconds.</param>
+        /// <param name="startDelay">
+        /// The delay before <paramref name="startTime"/>, in seconds of playback time.
         /// </param>
-        /// <param name="audioCalibrationMs">
-        /// The audio calibration, in milliseconds.<br/>
-        /// This value is negated and normalized to seconds for more intuitive usage in other code.
-        /// <paramref name="videoCalibrationMs"/> is also applied to keep things visually synced.
-        /// </param>
-        /// <param name="videoCalibrationMs">
-        /// The video calibration, in milliseconds.<br/>
-        /// This value is negated and normalized to seconds for more intuitive usage in other code.
-        /// </param>
+        /// <param name="songSpeed">The song speed, where 1f is 100%.</param>
         /// <param name="songOffset">
-        /// The song offset, in seconds.<br/>
-        /// This value is negated for more intuitive usage in other code.
+        /// The chart's audio offset, in seconds. This value is negated for internal use.
         /// </param>
         public SongRunner(
             StemMixer mixer,
@@ -288,76 +250,28 @@ namespace YARG.Playback
         )
         {
             _mixer = mixer;
+            _audioSynchronizer = new AudioSynchronizer(mixer);
             SongSpeed = ClampSongSpeed(songSpeed);
             _requestedSongSpeed = SongSpeed;
             SongOffset = -songOffset;
-            _syncThread = new Thread(SyncThread) { IsBackground = true };
             InitializeSongTime(startTime + SongOffset, startDelay);
             UpdateCalibration();
-
-            Application.quitting += OnApplicationQuitting;
-        }
-
-        ~SongRunner()
-        {
-            Dispose(false);
         }
 
         public void Dispose()
         {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        private void Dispose(bool disposing)
-        {
-            if (!_disposed)
+            if (_disposed)
             {
-                Application.quitting -= OnApplicationQuitting;
-
-                if (_syncThread != null)
-                {
-                    lock (_syncThread)
-                    {
-                        _disposed = true;
-                    }
-                }
-                else
-                {
-                    _disposed = true;
-                }
-
-                if (disposing)
-                {
-                    _rewindSource?.Cancel();
-                    _rewindTween?.Kill();
-
-                    if (_syncThread != null)
-                    {
-                        SyncThreadStopped = !_syncThread.IsAlive ||
-                            _syncThread.Join(SYNC_THREAD_SHUTDOWN_TIMEOUT_MS);
-                        if (!SyncThreadStopped)
-                        {
-                            YargLogger.LogError("Audio sync thread did not stop during song teardown.");
-                            return;
-                        }
-                    }
-                    else
-                    {
-                        SyncThreadStopped = true;
-                    }
-
-                    _syncThread = null;
-                    _rewindSource?.Dispose();
-                    _rewindSource = null;
-                    _rewindTween = null;
-                }
+                return;
             }
-        }
 
-        private void OnApplicationQuitting()
-        {
-            Dispose();
+            _disposed = true;
+
+            _rewindSource?.Cancel();
+            _rewindTween?.Kill();
+            _rewindSource?.Dispose();
+            _rewindSource = null;
+            _rewindTween = null;
         }
 
         private void Start()
@@ -373,20 +287,11 @@ namespace YARG.Playback
             SetInputBaseAt(startInputTime, InputManager.CurrentInputTime);
             _mixer.Play();
 
-            _lastFrameInputTime = InputManager.CurrentInputTime;
-            _lastFrameTimestamp = System.Diagnostics.Stopwatch.GetTimestamp();
-            _syncThread.Start();
             Started = true;
         }
 
         public void Update()
         {
-            lock (_syncThread)
-            {
-                _lastFrameInputTime = InputManager.CurrentInputTime;
-                _lastFrameTimestamp = System.Diagnostics.Stopwatch.GetTimestamp();
-            }
-
             // Runner is lazy-started to avoid timing issues with lag
             if (!Started)
             {
@@ -439,67 +344,7 @@ namespace YARG.Playback
             _seeked = false;
         }
 
-        private void SyncThread()
-        {
-            const int syncIntervalMs = 10;
-            for (; !_disposed; Thread.Sleep(syncIntervalMs))
-            {
-                lock (_syncThread)
-                {
-                    if (_disposed)
-                    {
-                        break;
-                    }
 
-                    long currentTimestamp = System.Diagnostics.Stopwatch.GetTimestamp();
-                    double elapsedSeconds = (double) (currentTimestamp - _lastFrameTimestamp) / System.Diagnostics.Stopwatch.Frequency;
-                    double currentTime = _lastFrameInputTime + elapsedSeconds;
-                    double syncTargetTime = GetRelativeInputTime(currentTime) - SongOffset;
-                    var playbackPosition = _mixer.GetPlaybackPosition();
-                    double syncError = syncTargetTime - playbackPosition.Control;
-                    SyncError = syncError;
-
-                    bool isWithinSongBounds =
-                        !Paused &&
-                        syncTargetTime >= 0 &&
-                        syncTargetTime < _mixer.Length &&
-                        playbackPosition.Heard < _mixer.Length;
-
-                    // Converts delay-free playback error into a temporary speed adjustment.
-                    // Audio pipeline delay is modeled by the mixer and does not belong in this controller.
-                    float adjustment = 0f;
-                    if (isWithinSongBounds && Math.Abs(syncError) >= SYNC_DEADBAND_SECONDS)
-                    {
-                        adjustment = Math.Clamp(
-                            (float) syncError / CORRECTION_TIME_SECONDS,
-                            -SYNC_CLAMP,
-                            SYNC_CLAMP);
-                    }
-                    _debugEffectiveSyncAdjustment = adjustment;
-                    if (!isWithinSongBounds)
-                    {
-                        continue;
-                    }
-
-                    bool correctionStarting = _syncSpeedAdjustment == 0f && adjustment != 0f;
-                    if (correctionStarting)
-                    {
-                        _debugSyncStartDelta = (float) syncError;
-                        _debugSyncWorstDelta = _debugSyncStartDelta;
-                    }
-                    else if (adjustment != 0f && Math.Abs(syncError) > Math.Abs(_debugSyncWorstDelta))
-                    {
-                        _debugSyncWorstDelta = (float) syncError;
-                    }
-
-                    if (adjustment != _syncSpeedAdjustment)
-                    {
-                        _syncSpeedAdjustment = adjustment;
-                        _mixer.SetPlaybackSpeed(SongSpeed, adjustment, false);
-                    }
-                }
-            }
-        }
 
         /// <summary>
         /// Prepares audio after any gameplay timeline discontinuity: playback start, seek, or unpause.
@@ -508,20 +353,10 @@ namespace YARG.Playback
         private void PrepareAudioPlayback()
         {
             _mixer.Pause();
-            ResetSync();
+            _audioSynchronizer.Reset(SongSpeed);
 
             double audioTime = InputTime - SongOffset;
             _mixer.SetPosition(audioTime);
-            AudioPrepared?.Invoke(audioTime);
-        }
-
-        private void ResetSync()
-        {
-            _syncSpeedAdjustment = 0f;
-            _debugEffectiveSyncAdjustment = 0f;
-            _debugSyncStartDelta = 0f;
-            _debugSyncWorstDelta = 0f;
-            _mixer.SetPlaybackSpeed(SongSpeed, 0f, true);
         }
 
         public double GetRelativeInputTime(double timeFromInputSystem)
@@ -543,7 +378,8 @@ namespace YARG.Playback
             SongTime = InputTime + (AudioCalibration * SongSpeed);
             VisualTime = InputTime + (VideoCalibration * SongSpeed);
 
-            AudioPlaybackTime = _mixer.GetPlaybackPosition().Heard;
+            double audioTargetTime = InputTime - SongOffset;
+            AudioPlaybackTime = _audioSynchronizer.Synchronize(audioTargetTime, SongSpeed);
         }
 
         private void SetInputBase(double songTime)
@@ -564,7 +400,7 @@ namespace YARG.Playback
             InputTime = GetRelativeInputTime(inputSystemTime);
             SongTime = InputTime + (AudioCalibration * SongSpeed);
             VisualTime = InputTime + (VideoCalibration * SongSpeed);
-            AudioPlaybackTime = _mixer.GetPlaybackPosition().Heard;
+            AudioPlaybackTime = _audioSynchronizer.SampleHeardTime();
 
             YargLogger.LogFormatDebug(
                 "Set input time base.\n" +
@@ -615,40 +451,34 @@ namespace YARG.Playback
 
         public void SetSongTime(double time, double delayTime = SONG_START_DELAY)
         {
-            lock (_syncThread)
+            SongSpeed = _requestedSongSpeed;
+
+            // Set input/song time
+            InitializeSongTime(time, delayTime);
+            double seekInputTime = InputTime;
+
+            PrepareAudioPlayback();
+
+            // Seeking can take several milliseconds. Anchor after it completes so that command
+            // execution does not advance the gameplay timeline alone.
+            SetInputBaseAt(seekInputTime, InputManager.CurrentInputTime);
+            if (!Paused)
             {
-                SongSpeed = _requestedSongSpeed;
-
-                // Set input/song time
-                InitializeSongTime(time, delayTime);
-                double seekInputTime = InputTime;
-
-                PrepareAudioPlayback();
-
-                // Seeking can take several milliseconds. Anchor after it completes so that command
-                // execution does not advance the gameplay timeline alone.
-                SetInputBaseAt(seekInputTime, InputManager.CurrentInputTime);
-                if (!Paused)
-                {
-                    _mixer.Play();
-                }
-                _seeked = true;
+                _mixer.Play();
             }
+            _seeked = true;
         }
 
         public void SetSongSpeed(float speed)
         {
-            lock (_syncThread)
+            speed = ClampSongSpeed(speed);
+            if (Mathf.Approximately(speed, _requestedSongSpeed))
             {
-                speed = ClampSongSpeed(speed);
-                if (Mathf.Approximately(speed, _requestedSongSpeed))
-                {
-                    return;
-                }
-
-                _requestedSongSpeed = speed;
-                ApplySpeedChange(speed);
+                return;
             }
+
+            _requestedSongSpeed = speed;
+            ApplySpeedChange(speed);
 
             YargLogger.LogFormatDebug("Set song speed to {0:0.00}.\n"
                 + "Song time: {1:0.000000}, visual time: {2:0.000000}, input time: {3:0.000000}",
@@ -662,7 +492,7 @@ namespace YARG.Playback
 
             if (!Started || Paused)
             {
-                ResetSync();
+                _audioSynchronizer.Reset(SongSpeed);
                 SetInputBaseChecked(inputTime);
                 return;
             }
@@ -715,6 +545,7 @@ namespace YARG.Playback
             if (Paused)
                 return;
 
+            _audioSynchronizer.Suspend(SongSpeed);
             Paused = true;
             _mixer.Pause();
 
@@ -738,36 +569,20 @@ namespace YARG.Playback
             if (!Paused)
                 return;
 
+            UpdateCalibration();
+            double resumeInputTime = InputTime;
+            PrepareAudioPlayback();
+            Paused = false;
 
-            lock (_syncThread)
-            {
-                UpdateCalibration();
-                double resumeInputTime = InputTime;
-                PrepareAudioPlayback();
-                Paused = false;
-
-                // Seeking can take several milliseconds. Anchor after it completes so that work
-                // does not advance the resumed timeline.
-                SetInputBaseAt(resumeInputTime, InputManager.CurrentInputTime);
-                _mixer.Play();
-            }
+            // Seeking can take several milliseconds. Anchor after it completes so that work
+            // does not advance the resumed timeline.
+            SetInputBaseAt(resumeInputTime, InputManager.CurrentInputTime);
+            _mixer.Play();
 
             YargLogger.LogFormatDebug(
                 "Resumed at song time {0:0.000000}, visual time {1:0.000000}, input time {2:0.000000}.",
                 SongTime, VisualTime, InputTime
             );
-        }
-
-        public void SetPaused(bool paused)
-        {
-            if (paused)
-            {
-                Pause();
-            }
-            else
-            {
-                Resume();
-            }
         }
 
         /// <summary>
@@ -853,12 +668,112 @@ namespace YARG.Playback
             return false;
         }
 
-        public static float ClampSongSpeed(float speed)
+        private static float ClampSongSpeed(float speed)
         {
             // 10% - 5000%, we reserve 5% at the bottom so that audio syncing can still function.
             // BASS can go up to 5100%, but we round down since 5000% looks nicer (and it gives us a
             // good buffer for audio syncing in the upper extreme).
             return Math.Clamp(speed, 10 / 100f, 5000 / 100f);
+        }
+    }
+
+    /// <summary>
+    /// Keeps mixer playback aligned with gameplay time
+    /// </summary>
+    internal sealed class AudioSynchronizer
+    {
+        private const double SYNC_DEADBAND_SECONDS = 0.0015;
+        private const float CORRECTION_TIME_SECONDS = 0.1f;
+        private const float SYNC_CLAMP = 0.50f;
+
+        private readonly StemMixer _mixer;
+
+        public float Adjustment { get; private set; }
+        public float EffectiveAdjustment { get; private set; }
+        public float StartDelta { get; private set; }
+        public float WorstDelta { get; private set; }
+        public double Error { get; private set; }
+
+        public AudioSynchronizer(StemMixer mixer)
+        {
+            _mixer = mixer;
+        }
+
+        public double Synchronize(double targetTime, float songSpeed)
+        {
+            var position = _mixer.GetPlaybackPosition();
+            Error = targetTime - position.Control;
+
+            bool isWithinSongBounds =
+                targetTime >= 0 &&
+                targetTime < _mixer.Length &&
+                position.Heard < _mixer.Length;
+
+            float adjustment = 0f;
+            if (isWithinSongBounds && Math.Abs(Error) >= SYNC_DEADBAND_SECONDS)
+            {
+                adjustment = Math.Clamp(
+                    (float) Error / CORRECTION_TIME_SECONDS,
+                    -SYNC_CLAMP,
+                    SYNC_CLAMP);
+            }
+
+            EffectiveAdjustment = adjustment;
+            RecordCorrection(adjustment);
+            ApplyAdjustment(songSpeed, adjustment);
+            return position.Heard;
+        }
+
+        public double SampleHeardTime()
+        {
+            return _mixer.GetPlaybackPosition().Heard;
+        }
+
+        /// <summary>
+        /// Restores requested speed and rebuilds mixer speed state after a timeline discontinuity.
+        /// </summary>
+        public void Reset(float songSpeed)
+        {
+            Adjustment = 0f;
+            EffectiveAdjustment = 0f;
+            StartDelta = 0f;
+            WorstDelta = 0f;
+            Error = 0;
+            _mixer.SetPlaybackSpeed(songSpeed);
+        }
+
+        /// <summary>
+        /// Removes active correction while playback synchronization is suspended.
+        /// </summary>
+        public void Suspend(float songSpeed)
+        {
+            EffectiveAdjustment = 0f;
+            ApplyAdjustment(songSpeed, 0f);
+        }
+
+        private void RecordCorrection(float adjustment)
+        {
+            bool correctionStarting = Adjustment == 0f && adjustment != 0f;
+            if (correctionStarting)
+            {
+                StartDelta = (float) Error;
+                WorstDelta = StartDelta;
+            }
+            else if (adjustment != 0f && Math.Abs(Error) > Math.Abs(WorstDelta))
+            {
+                WorstDelta = (float) Error;
+            }
+        }
+
+        private void ApplyAdjustment(float songSpeed, float adjustment)
+        {
+            if (Mathf.Approximately(adjustment, Adjustment))
+            {
+                return;
+            }
+
+            Adjustment = adjustment;
+            _mixer.SetPlaybackSpeed(songSpeed, adjustment, false);
         }
     }
 }

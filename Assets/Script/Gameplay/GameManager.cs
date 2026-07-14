@@ -238,23 +238,14 @@ namespace YARG.Gameplay
             EngineManager.OnCodaEnd -= EndCoda;
             EngineManager.OnUnisonPhraseSuccess -= OnUnisonPhraseSuccess;
 
-            // Stop the audio worker before any teardown callback can touch the mixer or UI.
+            // Stop playback-owned work before teardown callbacks touch the mixer or UI.
             _metronomeScheduler?.Dispose();
             _songRunner?.Dispose();
 
-            bool canDisposeMixer = _songRunner == null || _songRunner.SyncThreadStopped;
-
             // Restore stem volumes to their original state while the mixer is still valid.
-            if (canDisposeMixer)
+            foreach (var (stem, state) in _stemStates)
             {
-                foreach (var (stem, state) in _stemStates)
-                {
-                    GlobalAudioHandler.SetVolumeSetting(stem, state.Volume);
-                }
-            }
-            else
-            {
-                YargLogger.LogError("Skipping mixer-dependent teardown because the audio sync thread is still running.");
+                GlobalAudioHandler.SetVolumeSetting(stem, state.Volume);
             }
 
             DisposeDebug();
@@ -268,10 +259,7 @@ namespace YARG.Gameplay
             // Crowd teardown stops SFX through GlobalAudioHandler, so it must happen while audio is initialized.
             CrowdEventHandler?.Dispose();
 
-            if (canDisposeMixer)
-            {
-                _mixer?.Dispose();
-            }
+            _mixer?.Dispose();
 
             BackgroundManager.Dispose();
 
@@ -284,6 +272,8 @@ namespace YARG.Gameplay
 
         private void Update()
         {
+
+
             // Pause/unpause
             if (Keyboard.current.escapeKey.wasPressedThisFrame)
             {
