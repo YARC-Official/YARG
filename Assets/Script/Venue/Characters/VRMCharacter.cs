@@ -37,8 +37,9 @@ namespace YARG.Venue.Characters
         [Tooltip("Set to true if you want to use custom animations instead of the default ones.")]
         public bool UseCustomAnimations;
 
-        private ExpressionKey _lipsyncKey;
-        private bool          _hasVrmInstance;
+        private ExpressionKey       _lipsyncKey;
+        private bool                _hasVrmInstance;
+        private BlittableModelLevel _modelLevels;
 
         private Vector3 _initialPosition;
 
@@ -82,6 +83,7 @@ namespace YARG.Venue.Characters
             _characterManager = characterManager;
             VrmInstance = GetComponent<Vrm10Instance>();
             _hasVrmInstance = VrmInstance != null;
+            _modelLevels = new BlittableModelLevel();
             _expression = VrmInstance.Runtime.Expression;
 
             if (_characterManager != null)
@@ -166,7 +168,27 @@ namespace YARG.Venue.Characters
             {
                 return;
             }
-            VrmInstance.Runtime.SpringBone.SetModelLevel(VrmInstance.transform, new BlittableModelLevel(externalForce: wind));
+
+            //update external force
+            _modelLevels = new BlittableModelLevel(externalForce: wind,
+                stopSpringBoneWriteback: _modelLevels.StopSpringBoneWriteback,
+                supportsScalingAtRuntime: _modelLevels.SupportsScalingAtRuntime);
+            //push model level changes to VRM runtime
+            VrmInstance.Runtime.SpringBone.SetModelLevel(VrmInstance.transform, _modelLevels);
+        }
+
+        public void SetSpringPause(bool paused)
+        {
+            if (!_hasVrmInstance)
+            {
+                return;
+            }
+            //set spring bone paused state
+            _modelLevels = new BlittableModelLevel(externalForce: _modelLevels.ExternalForce,
+                stopSpringBoneWriteback: paused,
+                supportsScalingAtRuntime: _modelLevels.SupportsScalingAtRuntime);
+            //push model level changes to VRM runtime
+            VrmInstance.Runtime.SpringBone.SetModelLevel(VrmInstance.transform, _modelLevels);
         }
 
         public override void OnChartEvent(ChartEvent e)
