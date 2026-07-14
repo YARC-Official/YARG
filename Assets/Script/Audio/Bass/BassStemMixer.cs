@@ -11,7 +11,6 @@ using YARG.Core.Logging;
 using YARG.Core.Song;
 using YARG.Helpers;
 using YARG.Settings;
-using Volatile = System.Threading.Volatile;
 
 namespace YARG.Audio.BASS
 {
@@ -55,7 +54,7 @@ namespace YARG.Audio.BASS
         private          float          _speed = 1.0f;
         private          Timer          _whammySyncTimer;
         private readonly List<StemData> _stemDatas = new();
-        private readonly HashSet<BassTimedSampleSchedule> _timedSampleSchedules = new();
+        private readonly HashSet<BassOneShotChannel> _oneShotChannels = new();
         private          int            _longestHandle;
 
         private readonly BassNormalizer _normalizer = new();
@@ -63,13 +62,23 @@ namespace YARG.Audio.BASS
         private          int            _gainDspHandle;
         private          float          _gain = 1.0f;
 
-        public override TimedSampleSchedule CreateTimedSampleSchedule()
+        public override OneShotChannel CreateOneShotChannel(int sampleStream)
         {
             lock (this)
             {
-                var schedule = new BassTimedSampleSchedule(this);
-                _timedSampleSchedules.Add(schedule);
-                return schedule;
+                var channel = new BassOneShotChannel(_tempoStreamHandle, sampleStream,
+                    _songPositionTracker.GetSongPosition);
+                channel.Disposed += OnOneShotChannelDisposed;
+                _oneShotChannels.Add(channel);
+                return channel;
+            }
+        }
+
+        private void OnOneShotChannelDisposed(BassOneShotChannel channel)
+        {
+            lock (this)
+            {
+                _oneShotChannels.Remove(channel);
             }
         }
 
@@ -281,9 +290,9 @@ namespace YARG.Audio.BASS
                 {
                     YargLogger.LogFormatError("Failed to reset tempo stream position: {0}!", Bass.LastError);
                 }
-                foreach (var schedule in _timedSampleSchedules)
+                foreach (var channel in _oneShotChannels)
                 {
-                    schedule.TransportReset();
+                    channel.ResetTransport();
                 }
                 _playbackTimeline.PreparePlayback(_songPositionTracker.GetSongPosition(), position);
             }
@@ -487,9 +496,9 @@ namespace YARG.Audio.BASS
                     YargLogger.LogDebug("Failed to remove channel from mixer");
                 }
             }
-            foreach (var schedule in _timedSampleSchedules)
+            foreach (var channel in _oneShotChannels)
             {
-                schedule.TransportReset();
+                channel.ResetTransport();
             }
         }
 
@@ -687,11 +696,11 @@ namespace YARG.Audio.BASS
 
         protected override void DisposeUnmanagedResources()
         {
-            foreach (var schedule in _timedSampleSchedules)
+            foreach (var channel in _oneShotChannels)
             {
-                schedule.MixerDisposed();
+                channel.PlaybackStreamDisposed();
             }
-            _timedSampleSchedules.Clear();
+            _oneShotChannels.Clear();
 
             if (_mixerHandle != 0)
             {
@@ -707,321 +716,6 @@ namespace YARG.Audio.BASS
                 {
                     YargLogger.LogFormatError("Failed to free tempo stream: {0}!", Bass.LastError);
                 }
-            }
-        }
-
-        private sealed class BassTimedSampleSchedule : TimedSampleSchedule
-        {
-            private const int CHANNEL_COUNT = 2;
-            private const int MAX_ACTIVE_SAMPLES = 64;
-
-            private readonly struct TimedSample
-            {
-                public readonly int SampleId;
-                public readonly double SongTime;
-
-                public TimedSample(int sampleId, double songTime)
-                {
-                    SampleId = sampleId;
-                    SongTime = songTime;
-                }
-            }
-
-            private struct ActiveSample
-            {
-                public float[] Data;
-                public int Frame;
-            }
-
-            private sealed class ScheduleState
-            {
-                public static readonly ScheduleState Empty = new(Array.Empty<TimedSample>(),
-                    new Dictionary<int, float[]>());
-
-                public readonly TimedSample[] Events;
-                public readonly Dictionary<int, float[]> Samples;
-
-                public ScheduleState(TimedSample[] events, Dictionary<int, float[]> samples)
-                {
-                    Events = events;
-                    Samples = samples;
-                }
-            }
-
-            private readonly BassStemMixer _mixer;
-            private readonly DSPProcedure _callback;
-            private readonly int _dspHandle;
-            private readonly List<TimedSample> _pendingEvents = new();
-            private readonly Dictionary<int, float[]> _pendingSamples = new();
-            private readonly ActiveSample[] _activeSamples = new ActiveSample[MAX_ACTIVE_SAMPLES];
-
-            private ScheduleState _state = ScheduleState.Empty;
-            private ScheduleState _activeState;
-            private int _transportGeneration;
-            private int _activeTransportGeneration = -1;
-            private long _previousEndPosition;
-            private int _nextEvent;
-            private int _activeSampleCount;
-            private float _volume = 1;
-            private bool _disposed;
-
-            public BassTimedSampleSchedule(BassStemMixer mixer)
-            {
-                _mixer = mixer;
-                _callback = MixSamples;
-                _dspHandle = Bass.ChannelSetDSP(mixer._tempoStreamHandle, _callback);
-                if (_dspHandle == 0)
-                {
-                    YargLogger.LogFormatError("Failed to attach timed sample DSP: {0}!", Bass.LastError);
-                }
-            }
-
-            public override bool SetSample(int sampleId, int streamHandle)
-            {
-                if (_disposed || streamHandle == 0)
-                {
-                    Bass.StreamFree(streamHandle);
-                    return false;
-                }
-
-                float[] sample = DecodeSample(streamHandle);
-                if (sample == null)
-                {
-                    return false;
-                }
-
-                _pendingSamples[sampleId] = sample;
-                return true;
-            }
-
-            public override bool Schedule(int sampleId, double songTime)
-            {
-                if (_disposed || !_pendingSamples.ContainsKey(sampleId))
-                {
-                    return false;
-                }
-
-                _pendingEvents.Add(new TimedSample(sampleId, songTime));
-                return true;
-            }
-
-            public override void Commit()
-            {
-                if (_disposed)
-                {
-                    return;
-                }
-
-                _pendingEvents.Sort((left, right) => left.SongTime.CompareTo(right.SongTime));
-                var state = new ScheduleState(_pendingEvents.ToArray(),
-                    new Dictionary<int, float[]>(_pendingSamples));
-                Volatile.Write(ref _state, state);
-            }
-
-            public override void SetVolume(double volume)
-            {
-                Volatile.Write(ref _volume, (float) volume);
-            }
-
-            public override void Clear()
-            {
-                _pendingEvents.Clear();
-            }
-
-            public void TransportReset()
-            {
-                System.Threading.Interlocked.Increment(ref _transportGeneration);
-            }
-
-            private unsafe void MixSamples(int _, int channel, IntPtr buffer, int length, IntPtr __)
-            {
-                int frameCount = length / (sizeof(float) * CHANNEL_COUNT);
-                if (frameCount <= 0)
-                {
-                    return;
-                }
-
-                long endPosition = Bass.ChannelGetPosition(channel, PositionFlags.Decode);
-                if (endPosition < 0)
-                {
-                    return;
-                }
-
-                int transportGeneration = Volatile.Read(ref _transportGeneration);
-                if (_activeTransportGeneration != transportGeneration)
-                {
-                    _activeTransportGeneration = transportGeneration;
-                    _previousEndPosition = 0;
-                    _activeState = null;
-                    _activeSampleCount = 0;
-                }
-
-                long startPosition = _previousEndPosition;
-                _previousEndPosition = endPosition;
-                if (endPosition <= startPosition)
-                {
-                    return;
-                }
-
-                double songStart = _mixer._songPositionTracker.GetSongPosition(startPosition);
-                double songEnd = _mixer._songPositionTracker.GetSongPosition(endPosition);
-                if (songEnd <= songStart)
-                {
-                    return;
-                }
-
-                ScheduleState state = Volatile.Read(ref _state);
-                if (!ReferenceEquals(state, _activeState))
-                {
-                    _activeState = state;
-                    _activeSampleCount = 0;
-                    _nextEvent = FindFirstEvent(state.Events, songStart);
-                }
-
-                float* output = (float*) buffer;
-                float volume = Volatile.Read(ref _volume);
-                MixActiveSamples(output, frameCount, volume);
-
-                while (_nextEvent < state.Events.Length)
-                {
-                    TimedSample timedSample = state.Events[_nextEvent];
-                    if (timedSample.SongTime >= songEnd)
-                    {
-                        break;
-                    }
-                    _nextEvent++;
-
-                    if (timedSample.SongTime < songStart ||
-                        !state.Samples.TryGetValue(timedSample.SampleId, out float[] sample))
-                    {
-                        continue;
-                    }
-
-                    double progress = (timedSample.SongTime - songStart) / (songEnd - songStart);
-                    int startFrame = Math.Clamp((int) Math.Round(progress * frameCount), 0, frameCount - 1);
-                    var activeSample = new ActiveSample { Data = sample };
-                    MixSample(output, frameCount, startFrame, volume, ref activeSample);
-                    if (activeSample.Frame * CHANNEL_COUNT < sample.Length &&
-                        _activeSampleCount < _activeSamples.Length)
-                    {
-                        _activeSamples[_activeSampleCount++] = activeSample;
-                    }
-                }
-            }
-
-            private unsafe void MixActiveSamples(float* output, int frameCount, float volume)
-            {
-                int writeIndex = 0;
-                for (int i = 0; i < _activeSampleCount; i++)
-                {
-                    ActiveSample activeSample = _activeSamples[i];
-                    MixSample(output, frameCount, 0, volume, ref activeSample);
-                    if (activeSample.Frame * CHANNEL_COUNT < activeSample.Data.Length)
-                    {
-                        _activeSamples[writeIndex++] = activeSample;
-                    }
-                }
-                _activeSampleCount = writeIndex;
-            }
-
-            private static unsafe void MixSample(float* output, int outputFrames, int startFrame,
-                float volume, ref ActiveSample activeSample)
-            {
-                int sampleFrames = activeSample.Data.Length / CHANNEL_COUNT;
-                int framesToMix = Math.Min(outputFrames - startFrame, sampleFrames - activeSample.Frame);
-                int source = activeSample.Frame * CHANNEL_COUNT;
-                int destination = startFrame * CHANNEL_COUNT;
-                for (int frame = 0; frame < framesToMix; frame++)
-                {
-                    output[destination++] += activeSample.Data[source++] * volume;
-                    output[destination++] += activeSample.Data[source++] * volume;
-                }
-                activeSample.Frame += framesToMix;
-            }
-
-            private static int FindFirstEvent(TimedSample[] events, double songTime)
-            {
-                int low = 0;
-                int high = events.Length;
-                while (low < high)
-                {
-                    int middle = low + (high - low) / 2;
-                    if (events[middle].SongTime < songTime)
-                    {
-                        low = middle + 1;
-                    }
-                    else
-                    {
-                        high = middle;
-                    }
-                }
-                return low;
-            }
-
-            private static float[] DecodeSample(int streamHandle)
-            {
-                int converter = BassMix.CreateMixerStream(44100, CHANNEL_COUNT,
-                    BassFlags.Float | BassFlags.Decode | BassFlags.MixerEnd);
-                if (converter == 0)
-                {
-                    YargLogger.LogFormatError("Failed to create timed sample converter: {0}!", Bass.LastError);
-                    Bass.StreamFree(streamHandle);
-                    return null;
-                }
-
-                if (!BassMix.MixerAddChannel(converter, streamHandle, BassFlags.MixerChanNoRampin))
-                {
-                    YargLogger.LogFormatError("Failed to add timed sample to converter: {0}!", Bass.LastError);
-                    Bass.StreamFree(converter);
-                    Bass.StreamFree(streamHandle);
-                    return null;
-                }
-
-                var samples = new List<float>();
-                var buffer = new float[4096];
-                int bytesRead;
-                while ((bytesRead = Bass.ChannelGetData(converter, buffer, buffer.Length * sizeof(float))) > 0)
-                {
-                    int sampleCount = bytesRead / sizeof(float);
-                    for (int i = 0; i < sampleCount; i++)
-                    {
-                        samples.Add(buffer[i]);
-                    }
-                }
-
-                if (bytesRead < 0 && Bass.LastError != Errors.Ended)
-                {
-                    YargLogger.LogFormatError("Failed to decode timed sample: {0}!", Bass.LastError);
-                }
-
-                Bass.StreamFree(converter);
-                Bass.StreamFree(streamHandle);
-                return samples.Count > 0 ? samples.ToArray() : null;
-            }
-
-            public override void Dispose()
-            {
-                lock (_mixer)
-                {
-                    if (_disposed)
-                    {
-                        return;
-                    }
-
-                    if (_dspHandle != 0 &&
-                        !Bass.ChannelRemoveDSP(_mixer._tempoStreamHandle, _dspHandle) &&
-                        Bass.LastError != Errors.Handle)
-                    {
-                        YargLogger.LogFormatError("Failed to remove timed sample DSP: {0}!", Bass.LastError);
-                    }
-                    _mixer._timedSampleSchedules.Remove(this);
-                    _disposed = true;
-                }
-            }
-
-            public void MixerDisposed()
-            {
-                _disposed = true;
             }
         }
 
