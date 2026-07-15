@@ -52,6 +52,8 @@ Audio desynchronization in YARG can occur in five main scenarios:
 4. **Speed Adjustments (Practice Mode D-Pad):** Changing the playback speed is delayed by the **Device Playback Latency** because we flush the buffers to apply the speed change immediately in-place, creating a short audio blip.
 5. **Audio Buffer Underruns:** Stalls in the audio processing thread or OS scheduling can cause BASS to temporarily run out of audio samples, causing sudden timing discrepancies. Note that BASS runs on its own internal audio thread and clock, meaning hardware clock drift relative to the system clock is possible but rare in practice.
 
+We attempt to handle most of these scenarios (such as starting, resuming, seeking, and speed changes) cleanly without relying on active speed corrections by pre-compensating for latency during the transition itself (see [Section 6](#6-how-each-desync-scenario-is-handled)). However, because of inherent uncertainty and fluctuations in hardware/driver latency calculations, minor offsets may still remain, requiring ongoing proportional speed adjustments in the feedback loop to correct the residual errors.
+
 ---
 
 ## 4. The Challenge of Latency for Synchronization
