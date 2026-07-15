@@ -105,7 +105,7 @@ During normal gameplay, small speed adjustments are continuously computed by the
 #### The Control Loop
 1. **Error Sampling:** Every frame, the synchronizer samples the difference between the target position and the predictor's control position:
    \[\text{Error} = \text{targetPosition} - \text{ControlPosition}\]
-2. **Deadband Filter:** If the absolute error is less than `SYNC_DEADBAND_SECONDS` (1.5 milliseconds), no adjustment is applied (`adjustment = 0`). This deadband filters out high-frequency noise and minor floating-point jitter.
+2. **Deadband Filter:** If the absolute error is less than `SYNC_DEADBAND_SECONDS` (1.5 milliseconds), no adjustment is applied (`adjustment = 0`). This deadband filters out high-frequency noise and prevents constant speed changes once the song is synced.
 3. **Proportional Adjustment:** If the error exceeds the deadband, a proportional correction is calculated:
    \[\text{Adjustment} = \frac{\text{Error}}{\text{CORRECTION\_TIME\_SECONDS}}\]
    - `CORRECTION_TIME_SECONDS` is set to `0.1` seconds, meaning the proportional gain is `10`. The controller attempts to eliminate the sync error in 100ms.
