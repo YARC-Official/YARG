@@ -266,12 +266,19 @@ namespace YARG.Settings
                 };
 
             public DropdownSetting<HighScoreHistoryMode> HighScoreHistory { get; }
-                = new(HighScoreHistoryMode.HighestPercentageDifficulty, _ => ScoreContainer.InvalidateScoreCache())
+                = new(HighScoreHistoryMode.HighestPercentageDifficulty, _ =>
+                {
+                    ScoreContainer.InvalidateScoreCache();
+                    SongContainer.InvalidateStarsCache();
+                    MusicLibraryMenu.SetReload(MusicLibraryReloadState.Partial);
+                })
                 {
                     HighScoreHistoryMode.HighestPercentageOverall,
                     HighScoreHistoryMode.HighestPercentageDifficulty,
+                    HighScoreHistoryMode.HighestPercentageCurrentDifficulty,
                     HighScoreHistoryMode.HighestScoreOverall,
                     HighScoreHistoryMode.HighestScoreDifficulty,
+                    HighScoreHistoryMode.HighestScoreCurrentDifficulty,
                 };
 
             public ToggleSetting ShowPercentDecimals { get; } = new(false);

@@ -1275,8 +1275,10 @@
                 "Dropdown": {
                     "HighestPercentageOverall": "Best percentage across all difficulties",
                     "HighestPercentageDifficulty": "Best percentage on highest-played difficulty",
+                    "HighestPercentageCurrentDifficulty": "Best percentage on current difficulty",
                     "HighestScoreOverall": "Highest score across all difficulties",
-                    "HighestScoreDifficulty": "Highest score on highest-played difficulty"
+                    "HighestScoreDifficulty": "Highest score on highest-played difficulty",
+                    "HighestScoreCurrentDifficulty": "Highest score on current difficulty"
                 }
             },
             "HighwayTiltMultiplier": {

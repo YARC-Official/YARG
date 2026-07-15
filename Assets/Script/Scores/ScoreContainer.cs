@@ -18,8 +18,10 @@ namespace YARG.Scores
     {
         HighestPercentageOverall = 0,
         HighestPercentageDifficulty = 1,
-        HighestScoreOverall = 2,
-        HighestScoreDifficulty = 3,
+        HighestPercentageCurrentDifficulty = 2,
+        HighestScoreOverall = 3,
+        HighestScoreDifficulty = 4,
+        HighestScoreCurrentDifficulty = 5,
     }
 
     public static partial class ScoreContainer
@@ -37,6 +39,8 @@ namespace YARG.Scores
 
         private static Instrument _currentInstrument = Instrument.Band;
         private static Guid       _currentPlayerId;
+        private static Difficulty _currentDifficulty = Difficulty.Easy;
+        private static HighScoreHistoryMode _currentHighScoreHistoryMode;
         private static bool       _scoresWereFetched;
 
         private static bool HighestDifficultyOnly
@@ -44,10 +48,16 @@ namespace YARG.Scores
                 HighScoreHistoryMode.HighestPercentageDifficulty or
                 HighScoreHistoryMode.HighestScoreDifficulty;
 
+        private static bool CurrentDifficultyOnly
+            => SettingsManager.Settings.HighScoreHistory.Value is
+                HighScoreHistoryMode.HighestPercentageCurrentDifficulty or
+                HighScoreHistoryMode.HighestScoreCurrentDifficulty;
+
         private static bool UseHighestScore
             => SettingsManager.Settings.HighScoreHistory.Value is
                 HighScoreHistoryMode.HighestScoreOverall or
-                HighScoreHistoryMode.HighestScoreDifficulty;
+                HighScoreHistoryMode.HighestScoreDifficulty or
+                HighScoreHistoryMode.HighestScoreCurrentDifficulty;
 
         private static bool AllowScoresWithBots => SettingsManager.Settings.SaveScoresWithBots.Value;
 
@@ -177,9 +187,9 @@ namespace YARG.Scores
         private static void UpdatePlayerHighScores(HashWrapper songChecksum, PlayerScoreRecord newScore)
         {
             PlayerHighScores[songChecksum] = _db.QueryPlayerSongHighScore(
-                songChecksum, newScore.PlayerId, newScore.Instrument, HighestDifficultyOnly);
+                songChecksum, newScore.PlayerId, newScore.Instrument, HighestDifficultyOnly, CurrentDifficultyOnly, newScore.Difficulty);
             PlayerHighPercentages[songChecksum] = _db.QueryPlayerSongHighestPercentage(
-                songChecksum, newScore.PlayerId, newScore.Instrument, HighestDifficultyOnly);
+                songChecksum, newScore.PlayerId, newScore.Instrument, HighestDifficultyOnly, CurrentDifficultyOnly, newScore.Difficulty);
         }
 
         public static void RecordPlayerInfo(Guid id, string name)
@@ -266,11 +276,35 @@ namespace YARG.Scores
                 : GetBestPercentageScore(songChecksum, playerId, instrument, allowCacheUpdate);
         }
 
+        public static bool UseBandHighScoresForCurrentPlayers
+            => PlayerContainer.Players.Count(player => !player.Profile.IsBot) != 1;
+
+        public static void GetPreferredHighScoresForCurrentPlayers(
+            HashWrapper songChecksum,
+            out PlayerScoreRecord playerScoreRecord,
+            out GameRecord bandScoreRecord)
+        {
+            playerScoreRecord = null;
+            bandScoreRecord = null;
+
+            if (UseBandHighScoresForCurrentPlayers)
+            {
+                bandScoreRecord = GetBandHighScore(songChecksum);
+                return;
+            }
+
+            var player = PlayerContainer.Players.First(entry => !entry.Profile.IsBot);
+            playerScoreRecord = GetPreferredHighScore(
+                songChecksum, player.Profile.Id, player.Profile.CurrentInstrument);
+        }
+
         private static PlayerScoreRecord GetHighScoreFromDatabase(HashWrapper songChecksum, Guid playerId, Instrument instrument)
         {
             try
             {
-                return _db.QueryPlayerSongHighScore(songChecksum, playerId, instrument, HighestDifficultyOnly);
+                return _db.QueryPlayerSongHighScore(
+                    songChecksum, playerId, instrument, HighestDifficultyOnly, CurrentDifficultyOnly,
+                    PlayerContainer.GetProfileById(playerId).CurrentDifficulty);
             }
             catch (Exception e)
             {
@@ -309,7 +343,9 @@ namespace YARG.Scores
         {
             try
             {
-                return _db.QueryPlayerSongHighestPercentage(songChecksum, playerId, instrument, HighestDifficultyOnly);
+                return _db.QueryPlayerSongHighestPercentage(
+                    songChecksum, playerId, instrument, HighestDifficultyOnly, CurrentDifficultyOnly,
+                    PlayerContainer.GetProfileById(playerId).CurrentDifficulty);
             }
             catch (Exception e)
             {
@@ -320,7 +356,15 @@ namespace YARG.Scores
 
         private static void FetchHighScores(Guid playerId, Instrument instrument)
         {
-            if (_currentPlayerId == playerId && _currentInstrument == instrument && _scoresWereFetched)
+            var profile = PlayerContainer.GetProfileById(playerId);
+            var currentDifficulty = profile?.CurrentDifficulty ?? Difficulty.Expert;
+            var currentHighScoreHistoryMode = SettingsManager.Settings.HighScoreHistory.Value;
+
+            if (_currentPlayerId == playerId &&
+                _currentInstrument == instrument &&
+                _currentDifficulty == currentDifficulty &&
+                _currentHighScoreHistoryMode == currentHighScoreHistoryMode &&
+                _scoresWereFetched)
             {
                 // Already cached. No need to fetch again from the database.
                 return;
@@ -333,7 +377,8 @@ namespace YARG.Scores
 
                 var checksums = _db.QuerySongChecksums();
 
-                var highScores = _db.QueryPlayerHighScores(playerId, instrument, HighestDifficultyOnly);
+                var highScores = _db.QueryPlayerHighScores(
+                    playerId, instrument, HighestDifficultyOnly, CurrentDifficultyOnly, currentDifficulty);
                 foreach (var score in highScores)
                 {
                     var (_, checksum) = checksums.FirstOrDefault(x => x.RecordId == score.GameRecordId);
@@ -345,7 +390,8 @@ namespace YARG.Scores
                     PlayerHighScores.Add(HashWrapper.Create(checksum), score);
                 }
 
-                var highPercentages = _db.QueryPlayerHighestPercentages(playerId, instrument, HighestDifficultyOnly);
+                var highPercentages = _db.QueryPlayerHighestPercentages(
+                    playerId, instrument, HighestDifficultyOnly, CurrentDifficultyOnly, currentDifficulty);
                 foreach (var score in highPercentages)
                 {
                     var (_, checksum) = checksums.FirstOrDefault(x => x.RecordId == score.GameRecordId);
@@ -359,6 +405,8 @@ namespace YARG.Scores
 
                 _currentInstrument = instrument;
                 _currentPlayerId = playerId;
+                _currentDifficulty = currentDifficulty;
+                _currentHighScoreHistoryMode = currentHighScoreHistoryMode;
                 _scoresWereFetched = true;
             }
             catch (Exception e)
@@ -371,6 +419,8 @@ namespace YARG.Scores
         {
             _currentPlayerId = Guid.Empty;
             _currentInstrument = Instrument.Band;
+            _currentDifficulty = Difficulty.Easy;
+            _currentHighScoreHistoryMode = default;
             _scoresWereFetched = false;
         }
 
@@ -433,7 +483,8 @@ namespace YARG.Scores
         {
             try
             {
-                List<PlayerScoreWithChecksum> records = _db.QueryPlayerBestStars(profile, false);
+                List<PlayerScoreWithChecksum> records = _db.QueryPlayerBestStars(
+                    profile, SettingsManager.Settings.HighScoreHistory.Value);
                 Dictionary<HashWrapper, StarAmount> result = new Dictionary<HashWrapper, StarAmount>();
 
                 foreach (PlayerScoreWithChecksum record in records)
@@ -449,6 +500,18 @@ namespace YARG.Scores
                 YargLogger.LogException(e, "Failed to fetch best star value from database.");
             }
             return new Dictionary<HashWrapper, StarAmount>();
+        }
+
+        public static Dictionary<HashWrapper, StarAmount> GetBestStarsForCurrentPlayers(YargProfile profile)
+        {
+            if (!UseBandHighScoresForCurrentPlayers)
+            {
+                return GetBestStarsForSong(profile);
+            }
+
+            return BandHighScores.ToDictionary(
+                record => record.Key,
+                record => record.Value.BandStars);
         }
     }
 }

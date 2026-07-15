@@ -112,6 +112,8 @@ namespace YARG.Song
         private static Guid _starsCacheProfileId = Guid.Empty;
         private static Instrument _starsCacheInstrument = Instrument.Band;
         private static Difficulty _starsCacheDifficulty = Difficulty.Easy;
+        private static HighScoreHistoryMode _starsCacheHighScoreHistoryMode;
+        private static bool _starsCacheUsesBandScores;
         private static bool _starsCacheValid;
 
         public static IReadOnlyDictionary<string, List<SongEntry>> Titles => _sortedSongs.Titles;
@@ -484,16 +486,20 @@ namespace YARG.Song
             }
 
             var profile = player.Profile;
+            bool useBandScores = ScoreContainer.UseBandHighScoresForCurrentPlayers;
             if (_starsCacheValid &&
                 _starsCacheProfileId == profile.Id &&
                 _starsCacheInstrument == profile.CurrentInstrument &&
-                _starsCacheDifficulty == profile.CurrentDifficulty)
+                _starsCacheDifficulty == profile.CurrentDifficulty &&
+                _starsCacheHighScoreHistoryMode == SettingsManager.Settings.HighScoreHistory.Value &&
+                _starsCacheUsesBandScores == useBandScores)
             {
                 return _sortStars;
             }
 
             _runtimeStars.Clear();
-            Dictionary<HashWrapper, StarAmount> bestStars = ScoreContainer.GetBestStarsForSong(profile);
+            Dictionary<HashWrapper, StarAmount> bestStars =
+                ScoreContainer.GetBestStarsForCurrentPlayers(profile);
             foreach (var song in _songs)
             {
                 if (!bestStars.TryGetValue(song.Hash, out StarAmount stars))
@@ -543,6 +549,8 @@ namespace YARG.Song
             _starsCacheProfileId = profile.Id;
             _starsCacheInstrument = profile.CurrentInstrument;
             _starsCacheDifficulty = profile.CurrentDifficulty;
+            _starsCacheHighScoreHistoryMode = SettingsManager.Settings.HighScoreHistory.Value;
+            _starsCacheUsesBandScores = useBandScores;
             _starsCacheValid = true;
             return _sortStars;
         }
