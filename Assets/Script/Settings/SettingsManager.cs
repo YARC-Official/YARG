@@ -19,6 +19,7 @@ namespace YARG.Settings
             Formatting = Formatting.Indented,
             Converters = new List<JsonConverter>
             {
+                new JsonUnityColorConverter(),
                 new JsonColorConverter(),
                 new JsonVector2Converter()
             }
