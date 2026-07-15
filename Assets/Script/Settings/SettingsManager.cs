@@ -174,6 +174,7 @@ namespace YARG.Settings
                 nameof(Settings.LyricDisplay),
                 nameof(Settings.SongTimeOnScoreBox),
                 nameof(Settings.GraphicalProgressOnScoreBox),
+                nameof(Settings.GraphicalSongProgressTint),
                 nameof(Settings.KeepSongInfoVisible),
             },
             new PresetsTab("Presets", icon: "Customization"),

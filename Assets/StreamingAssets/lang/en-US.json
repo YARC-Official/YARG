@@ -1216,6 +1216,10 @@
                 "Name": "Graphical Progress On Score Box",
                 "Description": "Enables and disables the graphical blue outline on the score box that displays the song's progress."
             },
+            "GraphicalSongProgressTint": {
+                "Name": "Graphical Progress Tint",
+                "Description": "Adjust the tint on the song progress, if enabled."
+            },
             "GuitarVolume": {
                 "Name": "Guitar Volume",
                 "PauseName": "Guitar",
