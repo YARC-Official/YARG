@@ -161,6 +161,11 @@ namespace YARG.Gameplay.HUD
 
         private void Update()
         {
+            if (_currentPhraseIndex >= _phrases.Count)
+            {
+                return;
+            }
+
             var currentPhrase = _phrases[_currentPhraseIndex];
             if (currentPhrase == null)
             {

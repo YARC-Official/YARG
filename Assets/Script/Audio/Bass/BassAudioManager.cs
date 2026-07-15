@@ -178,6 +178,8 @@ namespace YARG.Audio.BASS
                 Bass.UpdatePeriod, Bass.DeviceBufferLength, Bass.PlaybackBufferLength, PlaybackLatency);
 
             YargLogger.LogFormatInfo("Current Device: {0}", Bass.GetDeviceInfo(Bass.CurrentDevice).Name);
+
+            Application.quitting += OnApplicationQuitting;
         }
 
         protected override bool SetOutputDevice(string name)
@@ -585,9 +587,19 @@ namespace YARG.Audio.BASS
 
         protected override void DisposeUnmanagedResources()
         {
+            Application.quitting -= OnApplicationQuitting;
+
             YargLogger.LogInfo("Unloading BASS plugins");
             Bass.PluginFree(0);
             Bass.Free();
+        }
+
+        private void OnApplicationQuitting()
+        {
+            Application.quitting -= OnApplicationQuitting;
+            YargLogger.LogInfo("Application quitting: starting early BASS shutdown");
+            GlobalAudioHandler.Close();
+            YargLogger.LogInfo("Application quitting: early BASS shutdown complete");
         }
 
         private static string GetBassDirectory()

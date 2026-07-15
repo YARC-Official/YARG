@@ -40,7 +40,7 @@ namespace YARG.Gameplay.Player
         private bool _greenCymbalHasLane = false;
 
         public int NumberOfDedicatedKickLanes { get; private set; } = 0;
-
+        public int CenteredPosition => (LaneCount - 1) / 2;
 
         public float NoteScaleFactor = 1f;
         private float _baselineLaneCount => _fiveLaneMode ? 5f : 4f;
@@ -72,7 +72,7 @@ namespace YARG.Gameplay.Player
                 };
             }
 
-                return action switch
+            return action switch
                 {
                     DrumsAction.Kick =>         (int) FourLaneDrumPad.Kick,
                     DrumsAction.RedDrum =>      (int) FourLaneDrumPad.RedDrum,
@@ -213,6 +213,9 @@ namespace YARG.Gameplay.Player
             engine.OnCountdownChange += OnCountdownChange;
 
             engine.OnPadHit += OnPadHit;
+
+            EngineContainer.OnHappinessNearFail += OnHappinessNearFail;
+            EngineContainer.OnHappinessOverFail += OnHappinessOverFail;
 
             return engine;
         }
@@ -383,7 +386,20 @@ namespace YARG.Gameplay.Player
 
         protected override void InitializeSpawnedLane(LaneElement lane, DrumNote note)
         {
-            var highwayOrderingInfo = _highwayOrdering[note.Pad];
+            HighwayOrderingInfo highwayOrderingInfo;
+
+            if (_fiveLaneMode && note.Pad is (int)FiveLaneDrumPad.Wildcard)
+            {
+                highwayOrderingInfo = new(CenteredPosition, (int) FiveLaneDrumPad.Wildcard);
+            }
+            else if (!_fiveLaneMode && note.Pad is (int) FourLaneDrumPad.Wildcard)
+            {
+                highwayOrderingInfo = new(CenteredPosition, (int) FourLaneDrumPad.Wildcard);
+            }
+            else
+            {
+                highwayOrderingInfo = _highwayOrdering[note.Pad];
+            }
 
             var laneColor = (_fiveLaneMode ?
                 Player.ColorProfile.FiveLaneDrums.GetNoteColor(highwayOrderingInfo.ColorIndex) :
@@ -437,9 +453,12 @@ namespace YARG.Gameplay.Player
 
         protected override void ModifyLaneFromNote(LaneElement lane, DrumNote note)
         {
-            if (note.Pad == 0)
+            if (_fiveLaneMode ?
+                (note.Pad is (int)FiveLaneDrumPad.Kick or (int)FiveLaneDrumPad.Wildcard) :
+                (note.Pad is (int)FourLaneDrumPad.Kick or (int)FourLaneDrumPad.Wildcard)
+            )
             {
-                lane.ToggleOpen(true);
+                lane.ToggleFullWidth(true);
             }
             else
             {

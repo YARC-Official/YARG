@@ -238,6 +238,19 @@ namespace YARG
 #endif
         }
 
+        public static string GetReleaseType()
+        {
+            string kind = null;
+#if UNITY_EDITOR || YARG_TEST_BUILD
+            kind = "dev";
+#elif YARG_NIGHTLY_BUILD
+            kind = "nightly";
+#else
+            kind = "release";
+#endif
+            return kind;
+        }
+
         // Maybe there is a better place for this?
         public LocalizeText[] GetLocalizedTexts()
         {

@@ -230,6 +230,10 @@ namespace YARG.Playback
         private void OnSongFailed()
         {
             // TODO: Play crowd booing sound
+            if (SettingsManager.Settings.NoFail.Value != NoFailMode.Off || _gameManager.IsPractice)
+            {
+                return;
+            }
         }
 
         private void ChangeCrowdMuteState(bool muted)

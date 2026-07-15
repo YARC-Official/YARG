@@ -209,6 +209,9 @@ public override bool ShouldUpdateInputsOnResume => true;
 
             engine.OnCountdownChange += OnCountdownChange;
 
+            EngineContainer.OnHappinessNearFail += OnHappinessNearFail;
+            EngineContainer.OnHappinessOverFail += OnHappinessOverFail;
+
             return engine;
         }
 
@@ -476,9 +479,12 @@ public override bool ShouldUpdateInputsOnResume => true;
 
         protected override void ModifyLaneFromNote(LaneElement lane, GuitarNote note)
         {
-            if (note.Fret == (int) FiveFretGuitarFret.Open && !UsingOpenLane)
+            if (
+                (note.Fret is (int) FiveFretGuitarFret.Open && !UsingOpenLane) ||
+                (note.Fret is (int) FiveFretGuitarFret.Wildcard)
+            )
             {
-                lane.ToggleOpen(true);
+                lane.ToggleFullWidth(true);
             }
             else
             {

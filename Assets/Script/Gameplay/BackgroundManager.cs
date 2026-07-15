@@ -65,8 +65,8 @@ namespace YARG.Gameplay
 
         private float YARGROUND_OFFSET = 50f;
 
-        private AsyncOperationHandle<GameObject> _handle;
-        private bool loadedAddressable;
+        private readonly List<AsyncOperationHandle<GameObject>> _handles = new();
+        private          bool                                   loadedAddressable;
 
         // These values are relative to the video, not to song time!
         // A negative start time will delay when the video starts, a positive one will set the video position
@@ -273,7 +273,7 @@ namespace YARG.Gameplay
             await handle;
             if (handle.IsDone && handle.Status == AsyncOperationStatus.Succeeded)
             {
-                _handle = handle;
+                _handles.Add(handle);
                 loadedAddressable = true;
             }
             else
@@ -709,10 +709,23 @@ namespace YARG.Gameplay
 
             if (validator.Status == AsyncOperationStatus.Succeeded && validator.Result.Count > 0)
             {
-                return await Addressables.LoadAssetAsync<GameObject>(hint);
+                var handle = Addressables.LoadAssetAsync<GameObject>(hint);
+                _handles.Add(handle);
+                return await handle.Task;
             }
 
-            return await GetAddressableCharacter(gender);
+            // If there is a specified vocal gender, get a remote character meeting that criteria
+            if (gender is not VocalGender.Unspecified)
+            {
+                var character = await GetAddressableCharacter(gender);
+                if (character != null)
+                {
+                    return character;
+                }
+            }
+
+            // Hint failed, attempt to load user's custom character
+            return await GetCustomCharacterFromBundle();
         }
 
         private async UniTask<GameObject> GetAddressableCharacter(VocalGender gender)
@@ -734,24 +747,24 @@ namespace YARG.Gameplay
             GameObject character = null;
             var venueKeys = await Addressables.LoadResourceLocationsAsync(labelGroup, Addressables.MergeMode.Intersection);
 
-            // In case we don't find a character, try without gender
+            // If we didn't find a character with the required gender, let the caller deal with it
             if (venueKeys.Count == 0)
             {
-                venueKeys = await Addressables.LoadResourceLocationsAsync(typeLabel);
+                return null;
             }
 
             if (venueKeys.Count > 0)
             {
                 var location = venueKeys[Random.Range(0, venueKeys.Count)];
                 var key = location.PrimaryKey;
-                character = await Addressables.LoadAssetAsync<GameObject>(key);
+                var handle = Addressables.LoadAssetAsync<GameObject>(key);
+                _handles.Add(handle);
+                character = await handle.Task;
             }
             else
             {
                 YargLogger.LogWarning("No addressable venues exist!");
             }
-
-            Addressables.Release(venueKeys);
 
             return character;
         }
@@ -1084,6 +1097,17 @@ namespace YARG.Gameplay
                 VIDEO_PATH = null;
             }
 
+            // In case this somehow doesn't happen in GameplayDestroy
+            if (loadedAddressable)
+            {
+                foreach (var handle in _handles)
+                {
+                    Addressables.Release(handle);
+                }
+                loadedAddressable = false;
+                _handles.Clear();
+            }
+
 #if UNITY_EDITOR
             if (_usingEditorVenue)
             {
@@ -1096,7 +1120,12 @@ namespace YARG.Gameplay
         {
             if (loadedAddressable)
             {
-                Addressables.Release(_handle);
+                foreach (var handle in _handles)
+                {
+                    Addressables.Release(handle);
+                }
+                loadedAddressable = false;
+                _handles.Clear();
             }
         }
 
