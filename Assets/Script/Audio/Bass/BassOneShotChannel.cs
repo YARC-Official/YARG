@@ -16,11 +16,6 @@ namespace YARG.Audio.BASS
     /// </summary>
     /// <remarks>
     /// The complete schedule is copied during construction, before the DSP callback is attached.
-    ///
-    /// Full disclosure: This class was written with assistance from LLMs and has a lot of low level DSP manipulation,
-    /// which is an area that LLMs excel at.  The trade-off is that some of this class is a bit complex.
-    /// However the stakes are low, and this provides a cost-efficient way to get sample-accurate
-    /// playback of oneshot sfx.
     /// </remarks>
     internal sealed class BassOneShotChannel : OneShotChannel
     {
