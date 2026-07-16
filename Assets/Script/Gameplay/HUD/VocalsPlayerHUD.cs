@@ -7,7 +7,9 @@ using YARG.Core.Game;
 using YARG.Helpers.Extensions;
 using YARG.Helpers.UI;
 using YARG.Localization;
+using YARG.Playback;
 using YARG.Player;
+using YARG.Settings;
 
 namespace YARG.Gameplay.HUD
 {
@@ -24,10 +26,27 @@ namespace YARG.Gameplay.HUD
         [SerializeField]
         private TextMeshProUGUI _multiplierText;
         [SerializeField]
+        private GameObject _multiplierTextContainer; // Required as the different multipliers are not the same object.
+        [SerializeField]
         private TextNotifications _textNotifications;
-
         [SerializeField]
         private PlayerNameDisplay _playerNameDisplay;
+        [SerializeField]
+        private Image _multiplierRim;
+        [SerializeField]
+        private VocalSunburstEffects _sunburstEffects;
+        [Header("Combo Rim Sprites")]
+        [SerializeField]
+        private Sprite _defaultRimSprite;
+        [SerializeField]
+        private Sprite _grooveRimSprite;
+        [SerializeField]
+        private Sprite _fcRimSprite;
+
+        private Sequence _multiplierIncreaseSequence;
+        private bool _isFc = true;
+        private bool _isSp;
+        private int  _multiplier = 1;
 
         private float _comboMeterFillTarget;
 
@@ -39,6 +58,15 @@ namespace YARG.Gameplay.HUD
 
         public void Initialize(EnginePreset enginePreset)
         {
+            GameManager.BeatEventHandler.Visual.Subscribe(_sunburstEffects.PulseSunburst, BeatEventType.StrongBeat);
+
+            _multiplierIncreaseSequence = DOTween.Sequence(_multiplierTextContainer)
+                .Append(_multiplierTextContainer.transform.DOScale(2.5f, 0.25f))
+                .Join(_multiplierTextContainer.transform.DOLocalMoveY(30f, 0.25f))
+                .Append(_multiplierTextContainer.transform.DOScale(1f, 0.2f))
+                .Join(_multiplierTextContainer.transform.DOLocalMoveY(0f, 0.2f))
+                .SetAutoKill(false);
+            _sunburstEffects.SetSunburstEffects(false, false, 1);
             _textCache = MultiplierTextHelper.CreateMultiplierTextCache(EnginePreset.DEFAULT_MAX_MULTIPLIER, _multiplierText, GameManager.Players.Count > 1);
 
             if (enginePreset == EnginePreset.Default)
@@ -93,17 +121,45 @@ namespace YARG.Gameplay.HUD
         {
             _comboMeterFillTarget = phrasePercent;
 
-            _multiplierText.enabled = false;
-            if (multiplier > 1)
-            {
-                _multiplierText = _textCache[multiplier - 2];
-                _multiplierText.enabled = true;
-            }
-
             _starPowerFill.fillAmount = starPowerPercent;
             _starPowerPulse.fillAmount = starPowerPercent;
 
             _shouldPulse = isStarPowerActive || starPowerPercent >= 0.5;
+
+            _sunburstEffects.SetSunburstEffects(multiplier == 4, isStarPowerActive, multiplier);
+
+            if (multiplier == _multiplier)
+            {
+                return;
+            }
+
+            _multiplier = multiplier;
+            _multiplierText.enabled = false;
+
+            if (multiplier > 1)
+            {
+                _multiplierText = _textCache[multiplier - 2];
+                _multiplierText.enabled = true;
+                if (isStarPowerActive == _isSp)
+                {
+                    _multiplierIncreaseSequence.Restart();
+                }
+            }
+
+            _isSp = isStarPowerActive;
+
+
+            if (!_isFc)
+            {
+                if (multiplier == 4 || (isStarPowerActive && multiplier == 8))
+                {
+                    _multiplierRim.sprite = _grooveRimSprite;
+                }
+                else
+                {
+                    _multiplierRim.sprite = _defaultRimSprite;
+                }
+            }
         }
 
         public static string GetVocalPerformanceText(double hitPercent)
@@ -174,6 +230,19 @@ namespace YARG.Gameplay.HUD
         public void ShowNotification(TextNotificationType notificationType)
         {
             _textNotifications.ShowNotification(notificationType);
+        }
+
+        public void SetFullCombo(bool isFullCombo)
+        {
+            _isFc = isFullCombo;
+            if (isFullCombo)
+            {
+                _multiplierRim.sprite = _fcRimSprite;
+            }
+            else // I'm going to assume you can't re-FC in a way that isn't restarting
+            {
+                _multiplierRim.sprite = _defaultRimSprite;
+            }
         }
     }
 }
