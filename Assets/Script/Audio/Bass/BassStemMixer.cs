@@ -227,8 +227,13 @@ namespace YARG.Audio.BASS
             return _playbackTimeline.GetControlPosition(bassPosition);
         }
 
+        protected override double GetTempoStreamLatency_Internal()
+        {
+            return BassLatencyProvider.GetTempoStreamLatency(_tempoStreamHandle);
+        }
+
         // The total delay between playback command and when audio is heard
-        private double GetPlaybackStartOffset()
+        public double GetPlaybackStartOffset()
         {
             return _playbackTimeline.OutputLatency + _songPositionTracker.AlignmentDelay;
         }
