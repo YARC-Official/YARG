@@ -26,6 +26,10 @@ namespace Editor
         private const int TEMPO_MATRIX_BASELINE_BUFFER_MS = 150;
         private const int TEMPO_COMMAND_JITTER_MAX_MS = 100;
         private const double TEMPO_TRACE_VALUE_EPSILON_MS = 0.01;
+        private const int POSITION_CLOCK_WARMUP_MS = 3000;
+        private const int POSITION_CLOCK_DURATION_MS = 20000;
+        private const int POSITION_CLOCK_SAMPLE_INTERVAL_MS = 1;
+        private const double POSITION_CLOCK_DISCONTINUITY_MS = 100;
         private static readonly float[] TEMPO_TEST_SPEEDS = { 0.5f, 0.75f, 1.5f, 2.0f };
         private static readonly int[] TEMPO_PIPELINE_UPDATE_PERIODS_MS = { 5, 10, 20 };
         private static readonly int[] TEMPO_PIPELINE_SEEK_WINDOWS_MS = { 10, 20, 28, 40 };
@@ -107,6 +111,18 @@ namespace Editor
                 AvailableBeforeMs = availableBeforeMs;
                 QueueErrorMs = queueErrorMs;
                 BlockDurationMs = blockDurationMs;
+            }
+        }
+
+        private readonly struct PositionClockSample
+        {
+            public readonly double WallTime;
+            public readonly double Position;
+
+            public PositionClockSample(double wallTime, double position)
+            {
+                WallTime = wallTime;
+                Position = position;
             }
         }
 
@@ -295,6 +311,56 @@ namespace Editor
                 if (originalSettings != null)
                 {
                     GlobalAudioHandler.SetBufferLength(originalSettings.PlaybackBufferLength.Value);
+                }
+            }
+        }
+
+        [MenuItem("Tests/Measure BASS Position Clock Stability")]
+        public static async void RunPositionClockStabilityMeasurement()
+        {
+            Debug.Log("<b>[BASS Position Clock Stability]</b> Starting measurement...");
+
+            InitializePaths();
+            GlobalAudioHandler.Initialize<BassAudioManager>();
+
+            var originalSettings = SettingsManager.Settings;
+            var settingsSetter = GetSettingsSetter();
+            bool createdSettings = originalSettings == null;
+            if (createdSettings)
+            {
+                if (settingsSetter == null)
+                {
+                    Debug.LogError("Could not initialize SettingsManager.Settings");
+                    return;
+                }
+
+                settingsSetter.Invoke(null, new object[] { new SettingsManager.SettingContainer() });
+            }
+
+            var audioManager = GetAudioManager();
+            if (audioManager == null)
+            {
+                Debug.LogError("Failed to get active BassAudioManager instance!");
+                if (createdSettings)
+                {
+                    settingsSetter.Invoke(null, new object[] { originalSettings });
+                }
+                return;
+            }
+
+            try
+            {
+                await MeasurePositionClockStability(audioManager);
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"BASS position clock measurement failed: {ex.Message}\n{ex.StackTrace}");
+            }
+            finally
+            {
+                if (createdSettings)
+                {
+                    settingsSetter.Invoke(null, new object[] { originalSettings });
                 }
             }
         }
@@ -1009,9 +1075,8 @@ namespace Editor
             return GetMedianOrNaN(intervals);
         }
 
-        private static MemoryStream CreateTempoTestTrack()
+        private static MemoryStream CreateTempoTestTrack(int durationSeconds = 10)
         {
-            const int durationSeconds = 10;
             int frames = TEMPO_TEST_SAMPLE_RATE * durationSeconds;
             var stream = new MemoryStream(44 + frames * 4);
             using (var writer = new BinaryWriter(stream, Encoding.UTF8, true))
@@ -1054,9 +1119,6 @@ namespace Editor
                 }
 
                 int tempoStreamHandle = GetTempoStreamHandle(mixer);
-                mixer.Play();
-
-                await Task.Delay(500);
 
                 long totalBytes = Bass.ChannelGetLength(tempoStreamHandle);
                 double fileLength = Bass.ChannelBytes2Seconds(tempoStreamHandle, totalBytes);
@@ -1066,7 +1128,7 @@ namespace Editor
                 double playbackDuration = syncTarget - seekTarget;
                 long syncTargetBytes = Bass.ChannelSeconds2Bytes(tempoStreamHandle, syncTarget);
 
-                var tcs = new TaskCompletionSource<long>();
+                var tcs = new TaskCompletionSource<long>(TaskCreationOptions.RunContinuationsAsynchronously);
                 var stopwatch = new System.Diagnostics.Stopwatch();
 
                 SyncProcedure syncCallback = (handle, channel, data, user) =>
@@ -1090,6 +1152,9 @@ namespace Editor
 
                 stopwatch.Start();
                 mixer.SetPosition(seekTarget);
+                // Start explicitly after seeking. The short metronome sample may have already reached EOF
+                // during any prior playback, and EOF state reporting differs between output backends.
+                mixer.Play();
 
                 var timeoutTask = Task.Delay(2000);
                 var completedTask = await Task.WhenAny(tcs.Task, timeoutTask);
@@ -1175,6 +1240,174 @@ namespace Editor
                 mixer.Dispose();
                 fileStream?.Dispose();
             }
+        }
+
+        private static async Task MeasurePositionClockStability(BassAudioManager audioManager)
+        {
+            var mixer = CreateTestMixer(audioManager);
+            var testStream = CreateTempoTestTrack(30);
+
+            try
+            {
+                if (!mixer.AddChannel(testStream, SongStem.Song))
+                {
+                    throw new Exception("Failed to add generated test track to mixer");
+                }
+
+                int tempoStreamHandle = GetTempoStreamHandle(mixer);
+                mixer.Play();
+                await Task.Delay(POSITION_CLOCK_WARMUP_MS);
+
+                var samples = await Task.Run(() =>
+                {
+                    var result = new List<PositionClockSample>(
+                        POSITION_CLOCK_DURATION_MS / POSITION_CLOCK_SAMPLE_INTERVAL_MS);
+                    var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+
+                    while (stopwatch.ElapsedMilliseconds < POSITION_CLOCK_DURATION_MS)
+                    {
+                        double before = stopwatch.Elapsed.TotalSeconds;
+                        double position = GetPositionMs(tempoStreamHandle, PositionFlags.Bytes) / 1000.0;
+                        double after = stopwatch.Elapsed.TotalSeconds;
+                        if (!double.IsNaN(position))
+                        {
+                            result.Add(new PositionClockSample((before + after) * 0.5, position));
+                        }
+
+                        Thread.Sleep(POSITION_CLOCK_SAMPLE_INTERVAL_MS);
+                    }
+
+                    return result;
+                });
+
+                LogPositionClockStability(samples);
+            }
+            finally
+            {
+                mixer.Dispose();
+                testStream.Dispose();
+            }
+        }
+
+        private static void LogPositionClockStability(List<PositionClockSample> samples)
+        {
+            if (samples.Count < 2)
+            {
+                throw new Exception("Not enough valid BASS position samples");
+            }
+
+            int originalSampleCount = samples.Count;
+            int rejectedDiscontinuities = 0;
+            double largestDiscontinuityMs = 0;
+            var filteredSamples = new List<PositionClockSample>(samples.Count) { samples[0] };
+            for (int i = 1; i < samples.Count; i++)
+            {
+                var previous = filteredSamples[^1];
+                double wallDelta = samples[i].WallTime - previous.WallTime;
+                double positionDelta = samples[i].Position - previous.Position;
+                double discontinuityMs = Math.Abs(positionDelta - wallDelta) * 1000.0;
+                if (discontinuityMs > POSITION_CLOCK_DISCONTINUITY_MS)
+                {
+                    rejectedDiscontinuities++;
+                    largestDiscontinuityMs = Math.Max(largestDiscontinuityMs, discontinuityMs);
+                    continue;
+                }
+
+                filteredSamples.Add(samples[i]);
+            }
+
+            samples = filteredSamples;
+            if (samples.Count < 2)
+            {
+                throw new Exception("Not enough BASS position samples after discontinuity filtering");
+            }
+
+            double wallOrigin = samples[0].WallTime;
+            double positionOrigin = samples[0].Position;
+            double sumX = 0;
+            double sumY = 0;
+            double sumXX = 0;
+            double sumXY = 0;
+            var elapsed = new double[samples.Count];
+            var errorsMs = new double[samples.Count];
+
+            for (int i = 0; i < samples.Count; i++)
+            {
+                double x = samples[i].WallTime - wallOrigin;
+                double y = ((samples[i].Position - positionOrigin) - x) * 1000.0;
+                elapsed[i] = x;
+                errorsMs[i] = y;
+                sumX += x;
+                sumY += y;
+                sumXX += x * x;
+                sumXY += x * y;
+            }
+
+            double count = samples.Count;
+            double denominator = count * sumXX - sumX * sumX;
+            double slopeMsPerSecond = denominator == 0
+                ? 0
+                : (count * sumXY - sumX * sumY) / denominator;
+            double interceptMs = (sumY - slopeMsPerSecond * sumX) / count;
+            double driftPpm = slopeMsPerSecond * 1000.0;
+
+            var residuals = new List<double>(samples.Count);
+            var log = new StringBuilder();
+            log.AppendLine("<b>[BASS Position Clock Stability]</b>");
+            log.AppendLine($"Warmup: {POSITION_CLOCK_WARMUP_MS}ms; samples: {samples.Count}/" +
+                           $"{originalSampleCount}; " +
+                           $"duration: {elapsed[^1]:0.000}s; requested interval: " +
+                           $"{POSITION_CLOCK_SAMPLE_INTERVAL_MS}ms");
+            log.AppendLine($"Rejected discontinuities >{POSITION_CLOCK_DISCONTINUITY_MS:0}ms: " +
+                           $"{rejectedDiscontinuities}; largest: {largestDiscontinuityMs:0.000}ms");
+            log.AppendLine($"Long-term slope: {slopeMsPerSecond:+0.000;-0.000;0.000}ms/s " +
+                           $"({driftPpm:+0;-0;0}ppm)");
+            log.AppendLine("Detrended BASS-position error by 1-second window:");
+
+            int windowStart = 0;
+            int window = 0;
+            while (windowStart < samples.Count)
+            {
+                int windowEnd = windowStart;
+                double min = double.PositiveInfinity;
+                double max = double.NegativeInfinity;
+                while (windowEnd < samples.Count && elapsed[windowEnd] < window + 1.0)
+                {
+                    double residual = errorsMs[windowEnd] -
+                        (interceptMs + slopeMsPerSecond * elapsed[windowEnd]);
+                    residuals.Add(residual);
+                    min = Math.Min(min, residual);
+                    max = Math.Max(max, residual);
+                    windowEnd++;
+                }
+
+                if (windowEnd > windowStart)
+                {
+                    log.AppendLine($"  {window,2}-{window + 1,2}s: min/max/span " +
+                                   $"{min:+0.000;-0.000;0.000}/" +
+                                   $"{max:+0.000;-0.000;0.000}/{max - min:0.000}ms");
+                }
+
+                windowStart = windowEnd;
+                window++;
+            }
+
+            residuals.Sort();
+            double residualMin = residuals[0];
+            double residualMax = residuals[^1];
+            double p05 = GetPercentile(residuals, 0.05);
+            double p95 = GetPercentile(residuals, 0.95);
+            log.AppendLine($"Overall detrended min/max/span: {residualMin:+0.000;-0.000;0.000}/" +
+                           $"{residualMax:+0.000;-0.000;0.000}/{residualMax - residualMin:0.000}ms");
+            log.AppendLine($"Central 90% range: {p05:+0.000;-0.000;0.000} to " +
+                           $"{p95:+0.000;-0.000;0.000}ms ({p95 - p05:0.000}ms)");
+            log.AppendLine($"BASS output: {Bass.Info.SampleRate}Hz; device period: " +
+                           $"{Bass.GetConfig(Configuration.DevicePeriod)}ms; update period: " +
+                           $"{Bass.UpdatePeriod}ms");
+            log.AppendLine("Interpretation: slope measures steady clock-rate error; recurring spans measure " +
+                           "short-term position-report modulation.");
+
+            Debug.Log(log.ToString());
         }
 
         private static async Task AppendOutputBufferSamples(StringBuilder log, int tempoStreamHandle,
