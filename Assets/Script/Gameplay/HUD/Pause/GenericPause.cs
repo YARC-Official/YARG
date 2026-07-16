@@ -18,7 +18,7 @@ namespace YARG.Gameplay.HUD
 
         protected virtual void OnEnable()
         {
-            Navigator.Instance.PushScheme(new NavigationScheme(new()
+            _ = Navigator.Instance.PushScheme(new NavigationScheme(new()
             {
                 NavigationScheme.Entry.NavigateSelect,
                 new NavigationScheme.Entry(MenuAction.Red, "Menu.Common.Back", Back),

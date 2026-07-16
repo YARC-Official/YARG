@@ -582,7 +582,7 @@ namespace YARG.Menu.ScoreScreen
             buttons.Add(_scrollRightEntry);
             buttons.Add(_scrollUpEntry);
             buttons.Add(_scrollDownEntry);
-            Navigator.Instance.PushScheme(new(buttons, true));
+            _ = Navigator.Instance.PushScheme(new(buttons, true));
         }
 
         private void ShowReplayAnalysis(SongEntry song, ScoreScreenStats scoreScreenStats)

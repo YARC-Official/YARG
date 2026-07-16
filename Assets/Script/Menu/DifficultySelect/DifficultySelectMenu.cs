@@ -105,7 +105,7 @@ namespace YARG.Menu.DifficultySelect
             _subHeader.text = Localize.Key("Menu.Main.Options", subHeaderKey);
 
             // Set navigation scheme
-            Navigator.Instance.PushScheme(new NavigationScheme(new()
+            _ = Navigator.Instance.PushScheme(new NavigationScheme(new()
             {
                 NavigationScheme.Entry.NavigateUp,
                 NavigationScheme.Entry.NavigateDown,

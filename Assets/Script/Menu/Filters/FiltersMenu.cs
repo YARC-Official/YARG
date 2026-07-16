@@ -201,7 +201,7 @@ namespace YARG.Menu.Filters
             var library = FindFirstObjectByType<MusicLibrary.MusicLibraryMenu>();
             library?.SetSidebarDifficultiesVisible(false);
 
-            Navigator.Instance.PushScheme(new NavigationScheme(new()
+            _ = Navigator.Instance.PushScheme(new NavigationScheme(new()
             {
                 new NavigationScheme.Entry(MenuAction.Green, "Menu.Common.Confirm", HandleConfirm),
                 new NavigationScheme.Entry(MenuAction.Red, "Menu.Common.Back", HandleBack, hide: true),
