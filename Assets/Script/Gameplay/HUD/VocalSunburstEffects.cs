@@ -33,7 +33,9 @@ namespace YARG.Gameplay.HUD
             _sunburstEffect.transform.localScale = _originalScale;
             _sunburstPulseTween = DOTween.Sequence(_sunburstEffect).SetAutoKill(false)
                 .SetLink(_sunburstEffect.gameObject).Pause();
-            _sunburstPulseTween.Append(_sunburstEffect.transform.DOScale(0.85f, 0.25f));
+            _sunburstPulseTween.Append(
+                _sunburstEffect.transform.DOScale(1f, 0.0001f))
+                .Append(_sunburstEffect.transform.DOScale(0.85f, 0.25f));
 
             _grooveToSpSequence = DOTween.Sequence(_sunburstEffect).SetAutoKill(false)
                 .SetLink(_sunburstEffect.gameObject).Pause();
@@ -153,7 +155,6 @@ namespace YARG.Gameplay.HUD
 
             if (_sunburstEffect.gameObject.activeInHierarchy)
             {
-                // Snap to full size and tween to smaller size
                 _sunburstPulseTween?.Restart();
             }
         }
