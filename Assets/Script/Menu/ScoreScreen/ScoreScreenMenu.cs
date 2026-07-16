@@ -53,8 +53,6 @@ namespace YARG.Menu.ScoreScreen
         [SerializeField]
         private ScrollRect _cardScrollRect;
         [SerializeField]
-        private float _horizontalScrollRate = 30f;
-        [SerializeField]
         private float _horizontalScrollDuration = 0.25f;
         [SerializeField]
         private Ease _horizontalScrollEase = Ease.OutCubic;

@@ -913,51 +913,51 @@ namespace Discord
 
         private GCHandle SelfHandle;
 
-        private IntPtr EventsPtr;
+        private IntPtr EventsPtr = IntPtr.Zero;
 
         private FFIEvents Events;
 
-        private IntPtr ApplicationEventsPtr;
+        private IntPtr ApplicationEventsPtr = IntPtr.Zero;
 
-        private IntPtr UserEventsPtr;
+        private IntPtr UserEventsPtr = IntPtr.Zero;
 
         private UserManager.FFIEvents UserEvents;
 
         internal UserManager UserManagerInstance;
 
-        private IntPtr ImageEventsPtr;
+        private IntPtr ImageEventsPtr = IntPtr.Zero;
 
-        private IntPtr ActivityEventsPtr;
+        private IntPtr ActivityEventsPtr = IntPtr.Zero;
 
         private ActivityManager.FFIEvents ActivityEvents;
 
         internal ActivityManager ActivityManagerInstance;
 
-        private IntPtr RelationshipEventsPtr;
+        private IntPtr RelationshipEventsPtr = IntPtr.Zero;
 
         private RelationshipManager.FFIEvents RelationshipEvents;
 
         internal RelationshipManager RelationshipManagerInstance;
 
-        private IntPtr LobbyEventsPtr;
+        private IntPtr LobbyEventsPtr = IntPtr.Zero;
 
-        private IntPtr NetworkEventsPtr;
+        private IntPtr NetworkEventsPtr = IntPtr.Zero;
 
-        private IntPtr OverlayEventsPtr;
+        private IntPtr OverlayEventsPtr = IntPtr.Zero;
 
         private OverlayManager.FFIEvents OverlayEvents;
 
         internal OverlayManager OverlayManagerInstance;
 
-        private IntPtr StorageEventsPtr;
+        private IntPtr StorageEventsPtr = IntPtr.Zero;
 
-        private IntPtr StoreEventsPtr;
+        private IntPtr StoreEventsPtr = IntPtr.Zero;
 
-        private IntPtr VoiceEventsPtr;
+        private IntPtr VoiceEventsPtr = IntPtr.Zero;
 
-        private IntPtr AchievementEventsPtr;
+        private IntPtr AchievementEventsPtr = IntPtr.Zero;
 
-        private IntPtr MethodsPtr;
+        private IntPtr MethodsPtr = IntPtr.Zero;
 
         private Object MethodsStructure;
 
