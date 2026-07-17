@@ -83,9 +83,10 @@ namespace YARG.Audio.BASS
 
         protected override int CreateStream_Internal(MetronomePitch pitch)
         {
-            int sampleHandle = pitch == MetronomePitch.Hi ? _hiHandle : _loHandle;
-            int stream = Bass.SampleGetChannel(sampleHandle,
-                BassFlags.SampleChannelStream | BassFlags.SampleChannelNew | BassFlags.Decode);
+            // Use an independent file-backed stream rather than deriving one from the playback
+            // sample. This keeps the one-shot decoder independent of sample channel state.
+            string path = pitch == MetronomePitch.Hi ? _hiPath : _loPath;
+            int stream = Bass.CreateStream(path, 0, 0, BassFlags.Float | BassFlags.Decode);
             if (stream == 0)
             {
                 YargLogger.LogFormatError("Failed to create {0} {1} stream: {2}!", Sample, pitch,
