@@ -307,6 +307,11 @@ namespace YARG.Gameplay
 
             // Update handlers
             _songRunner.Update();
+            if (_microphonesSuspended && _songRunner.Started)
+            {
+                ResumeMicrophones();
+            }
+
             ApplySongSpeed();
             BeatEventHandler.Update(_songRunner.SongTime, _songRunner.VisualTime);
             CrowdEventHandler.Update(_songRunner.SongTime);

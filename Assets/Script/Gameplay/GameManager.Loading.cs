@@ -107,7 +107,6 @@ namespace YARG.Gameplay
 
         private async void Start()
         {
-            SongStarted += ResumeMicrophones;
             SuspendMicrophones();
 
             // Displays the loading screen
@@ -307,7 +306,6 @@ namespace YARG.Gameplay
 
         private void ResumeMicrophones()
         {
-            SongStarted -= ResumeMicrophones;
             if (!_microphonesSuspended)
             {
                 return;
