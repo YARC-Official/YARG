@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
+using YARG.Audio.BASS;
 using YARG.Core;
 using YARG.Core.Audio;
 using YARG.Core.Chart;
@@ -53,6 +54,7 @@ namespace YARG.Gameplay
 
         private LoadFailureState _loadState;
         private string _loadFailureMessage;
+        private bool _microphonesSuspended;
 
         // All access to chart data must be done through this event,
         // since things are loaded asynchronously
@@ -105,15 +107,8 @@ namespace YARG.Gameplay
 
         private async void Start()
         {
-            // Stop all profile microphones during loading to prevent latency degradation from loading stalls
-            foreach (var profile in PlayerContainer.Profiles)
-            {
-                var bindings = YARG.Input.Bindings.BindingsContainer.GetBindingsForProfile(profile);
-                if (bindings?.Microphone is YARG.Audio.BASS.BassMicDevice bassMic)
-                {
-                    bassMic.StopRecording();
-                }
-            }
+            SongStarted += ResumeMicrophones;
+            SuspendMicrophones();
 
             // Displays the loading screen
             using var context = new LoadingContext();
@@ -284,6 +279,45 @@ namespace YARG.Gameplay
             enabled = true;
             IsSongStarted = true;
             _songStarted?.Invoke();
+        }
+
+        private static HashSet<BassMicDevice> GetProfileMicrophones()
+        {
+            var microphones = new HashSet<BassMicDevice>();
+            foreach (var profile in PlayerContainer.Profiles)
+            {
+                var bindings = YARG.Input.Bindings.BindingsContainer.GetBindingsForProfile(profile);
+                if (bindings?.Microphone is BassMicDevice microphone)
+                {
+                    microphones.Add(microphone);
+                }
+            }
+
+            return microphones;
+        }
+
+        private void SuspendMicrophones()
+        {
+            _microphonesSuspended = true;
+            foreach (var microphone in GetProfileMicrophones())
+            {
+                microphone.StopRecording();
+            }
+        }
+
+        private void ResumeMicrophones()
+        {
+            SongStarted -= ResumeMicrophones;
+            if (!_microphonesSuspended)
+            {
+                return;
+            }
+
+            _microphonesSuspended = false;
+            foreach (var microphone in GetProfileMicrophones())
+            {
+                microphone.StartRecording();
+            }
         }
 
         private void ApplySampleNormalization()
