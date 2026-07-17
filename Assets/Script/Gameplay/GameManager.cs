@@ -302,9 +302,23 @@ namespace YARG.Gameplay
                 return;
             }
 
+            bool runnerWasStarted = _songRunner.Started;
+
             // Update handlers
             _songRunner.Update();
             ApplySongSpeed();
+
+            if (!runnerWasStarted && _songRunner.Started)
+            {
+                // Re-enable microphones now that loading/initialization stalls are finished
+                foreach (var player in _players)
+                {
+                    if (player.Player.Bindings.Microphone is YARG.Audio.BASS.BassMicDevice bassMic)
+                    {
+                        bassMic.StartRecording();
+                    }
+                }
+            }
             BeatEventHandler.Update(_songRunner.SongTime, _songRunner.VisualTime);
             CrowdEventHandler.Update(_songRunner.SongTime);
 

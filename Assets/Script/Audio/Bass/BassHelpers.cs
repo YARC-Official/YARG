@@ -1,8 +1,6 @@
 ﻿using System;
 using ManagedBass;
-using ManagedBass.DirectX8;
 using ManagedBass.Fx;
-using UnityEngine;
 using YARG.Core.Audio;
 using YARG.Core.Logging;
 using YARG.Settings;
@@ -23,8 +21,6 @@ namespace YARG.Audio.BASS
 
         public const int REVERB_SLIDE_IN_MILLISECONDS = 300;
         public const int REVERB_SLIDE_OUT_MILLISECONDS = 500;
-
-        public const EffectType REVERB_TYPE = EffectType.Freeverb;
 
         /*
          * From Bass documentation (http://bass.radio42.com/help/html/4c663bda-2751-c2c3-eaf2-770b846b6652.htm)
@@ -57,16 +53,6 @@ namespace YARG.Audio.BASS
         public static readonly PeakEQParameters HighEqParams = new()
         {
             fBandwidth = 0.75f, fCenter = 6000.0f, fGain = 2.25f
-        };
-
-        public static readonly DXReverbParameters DXReverbParams = new()
-        {
-            fInGain = -5f, fReverbMix = 0f, fReverbTime = 1000.0f, fHighFreqRTRatio = 0.001f
-        };
-
-        public static readonly ReverbParameters FreeverbParams = new()
-        {
-            fDryMix = 0.5f, fWetMix = 1.0f, fRoomSize = 0.8f, fDamp = 0.5f, fWidth = 1.0f, lMode = 0
         };
 
         public static int ClampPlaybackBufferLength(int length)
@@ -129,18 +115,6 @@ namespace YARG.Audio.BASS
         public static int AddCompressorToChannel(int handle)
         {
             return FXAddParameters(handle, EffectType.Compressor, CompressorParams);
-        }
-
-        public static int AddReverbToChannel(int handle)
-        {
-            IEffectParameter reverbParams = REVERB_TYPE switch
-            {
-                EffectType.DXReverb => DXReverbParams,
-                EffectType.Freeverb => FreeverbParams,
-                _ => throw new ArgumentOutOfRangeException()
-            };
-
-            return FXAddParameters(handle, REVERB_TYPE, reverbParams);
         }
 
         public static int AddEqToChannel(int handle, IEffectParameter eqParams)

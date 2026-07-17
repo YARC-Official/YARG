@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using Cysharp.Threading.Tasks;
@@ -105,6 +105,16 @@ namespace YARG.Gameplay
 
         private async void Start()
         {
+            // Stop all profile microphones during loading to prevent latency degradation from loading stalls
+            foreach (var profile in PlayerContainer.Profiles)
+            {
+                var bindings = YARG.Input.Bindings.BindingsContainer.GetBindingsForProfile(profile);
+                if (bindings?.Microphone is YARG.Audio.BASS.BassMicDevice bassMic)
+                {
+                    bassMic.StopRecording();
+                }
+            }
+
             // Displays the loading screen
             using var context = new LoadingContext();
             var global = GlobalVariables.Instance;
