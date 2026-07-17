@@ -61,10 +61,10 @@ namespace YARG.Gameplay.HUD
             GameManager.BeatEventHandler.Visual.Subscribe(_sunburstEffects.PulseSunburst, BeatEventType.StrongBeat);
 
             _multiplierIncreaseSequence = DOTween.Sequence(_multiplierTextContainer)
-                .Append(_multiplierTextContainer.transform.DOScale(2.5f, 0.25f))
-                .Join(_multiplierTextContainer.transform.DOLocalMoveY(30f, 0.25f))
-                .Append(_multiplierTextContainer.transform.DOScale(1f, 0.2f))
-                .Join(_multiplierTextContainer.transform.DOLocalMoveY(0f, 0.2f))
+                .Append(_multiplierTextContainer.transform.DOScale(1.75f, 0.15f))
+                .Join(_multiplierTextContainer.transform.DOLocalMoveX(-30f, 0.15f))
+                .Append(_multiplierTextContainer.transform.DOScale(1f, 0.15f))
+                .Join(_multiplierTextContainer.transform.DOLocalMoveX(0f, 0.15f))
                 .SetAutoKill(false);
             _sunburstEffects.SetSunburstEffects(false, false, 1);
             _textCache = MultiplierTextHelper.CreateMultiplierTextCache(EnginePreset.DEFAULT_MAX_MULTIPLIER, _multiplierText, GameManager.Players.Count > 1);
