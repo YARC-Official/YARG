@@ -226,9 +226,6 @@ namespace YARG.Gameplay
         {
             YargLogger.LogInfo("Exiting song");
 
-            // Restore microphones if loading failed before SongStarted fired.
-            ResumeMicrophones();
-
             if (Navigator.Instance != null)
             {
                 Navigator.Instance.NavigationEvent -= OnNavigationEvent;
@@ -305,11 +302,13 @@ namespace YARG.Gameplay
                 return;
             }
 
+            bool runnerWasStarted = _songRunner.Started;
+
             // Update handlers
             _songRunner.Update();
-            if (_microphonesSuspended && _songRunner.Started)
+            if (!runnerWasStarted && _songRunner.Started)
             {
-                ResumeMicrophones();
+                GlobalVariables.RestartProfileMicrophones();
             }
 
             ApplySongSpeed();
