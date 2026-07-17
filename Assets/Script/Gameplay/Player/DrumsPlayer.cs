@@ -384,17 +384,79 @@ namespace YARG.Gameplay.Player
             ((DrumsNoteElement) poolable).NoteRef = note;
         }
 
+        protected override void SpawnLanesFromNote(DrumNote parentNote)
+        {
+            base.SpawnLanesFromNote(parentNote);
+
+            if (!Engine.BaseParameters.EnableLanes)
+            {
+                return;
+            }
+
+            if (!LanePool.CanSpawnAmount(1))
+            {
+                return;
+            }
+
+            DrumNote kickLaneStart = null;
+            foreach (var childNote in parentNote.AllNotes)
+            {
+                if (childNote.IsKickLaneStart)
+                {
+                    kickLaneStart = childNote;
+                    break;
+                }
+            }
+
+            if (kickLaneStart is not null)
+            {
+                DrumNote kickLaneEnd = kickLaneStart;
+                var noteRef = parentNote.NextNote;
+
+                while (noteRef is not null)
+                {
+                    var containsKickLaneEnd = false;
+
+                    foreach (var childNote in noteRef.AllNotes)
+                    {
+                        if (childNote.IsKickLane)
+                        {
+                            kickLaneEnd = childNote;
+                        }
+
+                        if (childNote.IsKickLaneEnd)
+                        {
+                            containsKickLaneEnd = true;
+                        }
+                    }
+
+                    if (containsKickLaneEnd)
+                    {
+                        break;
+                    }
+
+                    noteRef = noteRef.NextNote;
+                }
+
+                if (kickLaneEnd is not null)
+                {
+                    var newLane = (LaneElement)LanePool.TakeWithoutEnabling();
+                    newLane.SetTimeRange(kickLaneStart.Time, kickLaneEnd.Time);
+                    InitializeSpawnedLane(newLane, kickLaneStart);
+                    ModifyLaneFromNote(newLane, kickLaneStart);
+
+                    newLane.EnableFromPool();
+                }
+            }
+        }
+
         protected override void InitializeSpawnedLane(LaneElement lane, DrumNote note)
         {
             HighwayOrderingInfo highwayOrderingInfo;
 
-            if (_fiveLaneMode && note.Pad is (int)FiveLaneDrumPad.Wildcard)
+            if (!_highwayOrdering.ContainsKey(note.Pad))
             {
-                highwayOrderingInfo = new(CenteredPosition, (int) FiveLaneDrumPad.Wildcard);
-            }
-            else if (!_fiveLaneMode && note.Pad is (int) FourLaneDrumPad.Wildcard)
-            {
-                highwayOrderingInfo = new(CenteredPosition, (int) FourLaneDrumPad.Wildcard);
+                highwayOrderingInfo = new(CenteredPosition, note.Pad);
             }
             else
             {
@@ -448,7 +510,7 @@ namespace YARG.Gameplay.Player
                 highwayOrderingInfo.Position,
                 LaneCount,
                 laneColor
-                );
+            );
         }
 
         protected override void ModifyLaneFromNote(LaneElement lane, DrumNote note)
