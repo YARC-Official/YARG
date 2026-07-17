@@ -62,6 +62,20 @@ namespace YARG.Gameplay.Visuals
             NoteGroup.SetActive(true);
             NoteGroup.Initialize();
 
+            // Override the ghost note's center strip emission from the color
+            // profile. Ghost and cymbal-ghost notes have a dark strip material
+            // with EmissionMultiplier 0 in the prefab; the user can boost it.
+            // Only apply when > 0 to preserve the original darkened appearance
+            // at the default value (cymbal ghosts use EmissionAddition: -0.7).
+            if (NoteRef.IsGhost)
+            {
+                float emission = Player.Player.ColorProfile.FourLaneDrums.GhostStripEmission / 100f;
+                if (emission >= 0f)
+                {
+                    NoteGroup.OverrideZeroEmission(emission);
+                }
+            }
+
             // Set note color
             UpdateColor();
         }
