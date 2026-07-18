@@ -4,6 +4,7 @@ using System.IO;
 using Newtonsoft.Json;
 using YARG.Core.Logging;
 using YARG.Helpers;
+using YARG.Menu.Persistent;
 
 namespace YARG.Song
 {
