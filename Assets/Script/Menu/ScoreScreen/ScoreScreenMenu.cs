@@ -570,12 +570,12 @@ namespace YARG.Menu.ScoreScreen
 
             if (_offsetModified)
             {
-                YargLogger.LogFormatInfo("{0}ms offset removed", offsetMs);
+                ToastManager.ToastSuccess("{0}ms offset removed", offsetMs);
                 AddSongOffsetJson(_songHashKey, -offsetMs);
             }
             else
             {
-                YargLogger.LogFormatInfo("{0}ms offset added", offsetMs);
+                ToastManager.ToastSuccess("{0}ms offset added", offsetMs);
                 AddSongOffsetJson(_songHashKey, offsetMs);
             }
             _offsetModified = !_offsetModified;
