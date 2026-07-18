@@ -88,15 +88,14 @@ namespace YARG.Gameplay.HUD
 
             _lastVisualTime = time;
 
+            UpdateScale(currentPhrase, time);
+
             if (time > currentPhrase.TransitionOut.TimeEnd)
             {
                 _currentPhraseIndex++;
                 YargLogger.LogFormatTrace("Advancing to unison phrase {0}", _currentPhraseIndex);
                 ResetState();
-                return;
             }
-
-            UpdateScale(currentPhrase, time);
         }
 
         protected override void OnSongStarted()
