@@ -25,7 +25,7 @@ namespace YARG.Song
             }
             catch (Exception ex)
             {
-                ToastManager.ToastError(ex, "Failed to load song offsets");
+                YargLogger.LogError(ex, "Failed to load song offsets");
                 return new Dictionary<string, long>();
             }
         }
