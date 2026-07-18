@@ -7,6 +7,7 @@ using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
 using YARG.Core;
+using YARG.Core.Chart;
 using YARG.Core.Extensions;
 using YARG.Core.Game;
 using YARG.Core.Input;
@@ -808,6 +809,15 @@ namespace YARG.Menu.DifficultySelect
             if (instrument is Instrument.ProKeys && difficulty is Difficulty.Beginner)
             {
                 return false;
+            }
+
+            // Missing Easy/Medium/Hard five-fret charts can be generated from Expert when gameplay loads.
+            if (difficulty is (Difficulty.Easy or Difficulty.Medium or Difficulty.Hard) &&
+                instrument is (Instrument.FiveFretGuitar or Instrument.FiveFretBass or
+                    Instrument.FiveFretRhythm or Instrument.FiveFretCoopGuitar or Instrument.Keys) &&
+                entry[instrument][Difficulty.Expert])
+            {
+                return true;
             }
 
             // Otherwise, we can do this

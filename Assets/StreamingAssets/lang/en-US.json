@@ -1784,6 +1784,10 @@
                 "Name": "Reduce Note Speed by Difficulty",
                 "Description": "Reduces the note speed if playing on a lower difficulty than Expert. The specified note speed is applied to Expert, and lower difficulties receive a reduction in speed. This setting does not affect vocal tracks."
             },
+            "UseGeneratedDowncharts": {
+                "Name": "Use Generated Downcharts",
+                "Description": "Replace authored Easy, Medium, and Hard five-fret charts with versions generated from Expert. Disable this setting to use authored charts while still generating any missing difficulties."
+            },
             "LearningGuides": {
                 "Name": "Learning Guides",
                 "Description": "Adds some musical theory guides for Pro Keys to help learn the instrument."

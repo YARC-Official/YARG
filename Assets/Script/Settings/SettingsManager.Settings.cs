@@ -192,6 +192,7 @@ namespace YARG.Settings
             public ToggleSetting AutoCreateProfiles { get; } = new(true);
 
             public ToggleSetting ReduceNoteSpeedByDifficulty { get; } = new(true);
+            public ToggleSetting UseGeneratedDowncharts { get; } = new(false);
 
             public ToggleSetting LearningGuides { get; } = new(false);
 

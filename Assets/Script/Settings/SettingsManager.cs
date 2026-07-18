@@ -53,6 +53,7 @@ namespace YARG.Settings
                 nameof(Settings.NoFail),
                 nameof(Settings.LearningGuides),
                 new FieldMetadata(nameof(Settings.ReduceNoteSpeedByDifficulty)),
+                new FieldMetadata(nameof(Settings.UseGeneratedDowncharts)),
 
                 new HeaderMetadata("StatusBar"),
                 nameof(Settings.ShowBattery),
