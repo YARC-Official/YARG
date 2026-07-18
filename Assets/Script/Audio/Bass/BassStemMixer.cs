@@ -143,18 +143,23 @@ namespace YARG.Audio.BASS
 
             if (!IsPlaying)
             {
-                double startupLatency = BassLatencyProvider.GetPlaybackStreamLatency();
-                _playbackTimeline.Play(startupLatency);
+                // Prime the stream after a seek, before starting playback. BASS documents this order
+                // as the way to avoid initial decode/buffer-fill delay at ChannelPlay.
+                Bass.ChannelUpdate(_tempoStreamHandle, 0);
 
                 // Restart on the tempostream resets position to 0, position here represents time since last play call
-                if (!Bass.ChannelPlay(_tempoStreamHandle, Restart: _didSeek))
+                bool playSucceeded = Bass.ChannelPlay(_tempoStreamHandle, Restart: _didSeek);
+                int playError = playSucceeded ? 0 : (int) Bass.LastError;
+
+                if (!playSucceeded)
                 {
-                    _playbackTimeline.Pause();
-                    return (int) Bass.LastError;
+                    return playError;
                 }
 
-                //Force immediate update to start the playback precisely
-                Bass.ChannelUpdate(_tempoStreamHandle, 0);
+                // Start the control clock after ChannelPlay returns. Until BASS's raw position first
+                // advances, BufferedPlaybackTimeline uses this continuous clock directly.
+                double startupBassPosition = _songPositionTracker.GetSongPosition();
+                _playbackTimeline.Play(startupBassPosition);
                 _didSeek = false;
             }
 

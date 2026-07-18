@@ -191,12 +191,12 @@ namespace YARG.Input
 
         private static void OnBeforeUpdate()
         {
-            InputUpdateTime = CurrentInputTime;
+            CaptureInputUpdateTime();
         }
 
         private static void OnAfterUpdate()
         {
-            InputUpdateTime = CurrentInputTime;
+            CaptureInputUpdateTime();
 
             if (InputUpdateTime < _latestInputTime)
             {
@@ -227,6 +227,11 @@ namespace YARG.Input
             }
 
             _focusChanged = false;
+        }
+
+        private static void CaptureInputUpdateTime()
+        {
+            InputUpdateTime = CurrentInputTime;
         }
 
         // For input time handling/debugging

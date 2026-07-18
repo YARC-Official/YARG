@@ -27,9 +27,10 @@ namespace YARG.Audio.BASS
         private float  _songSpeed;
         private float  _syncAdjustment;
         private bool   _isPlaying;
+        private bool   _awaitingPlaybackPositionAdvance;
+        private double _playStartBassPosition;
 
         public double OutputLatency { get; private set; }
-
         public BufferedPlaybackTimeline(float speed)
         {
             _songSpeed = speed;
@@ -64,6 +65,23 @@ namespace YARG.Audio.BASS
         public double GetControlPosition(double bassPosition)
         {
             double now = GetCurrentTime();
+
+            if (_awaitingPlaybackPositionAdvance)
+            {
+                // BASS reports a stationary position for an unpredictable period after ChannelPlay.
+                // Drive control time from the command clock until the first real playback observation,
+                // then rebase both histories without introducing a position jump.
+                double commandedPosition = _commandedRateHistory.GetPositionAt(now);
+                if (bassPosition == _playStartBassPosition)
+                {
+                    return commandedPosition;
+                }
+
+                _awaitingPlaybackPositionAdvance = false;
+                _commandedRateHistory.Reset(now, commandedPosition, CurrentRate);
+                _bufferedRateHistory.Reset(now, bassPosition, CurrentRate);
+                return commandedPosition;
+            }
 
             // Command history changes rate immediately; buffered history changes rate when the remaining
             // BASS buffer reaches command. Their difference removes that buffer delay from the
@@ -122,10 +140,11 @@ namespace YARG.Audio.BASS
         }
 
         /// <summary>
-        /// Starts position advancement. Commanded playback starts now; BASS output starts after its
-        /// measured startup latency.
+        /// Starts commanded position advancement. Control time follows this clock until BASS first
+        /// reports raw position advancement, avoiding dependency on variable backend startup latency.
         /// </summary>
-        public void Play(double startupLatency)
+        /// <param name="bassPosition">Raw BASS position immediately after ChannelPlay.</param>
+        public void Play(double bassPosition)
         {
             if (_isPlaying)
             {
@@ -135,7 +154,9 @@ namespace YARG.Audio.BASS
             _isPlaying = true;
             double now = GetCurrentTime();
             _commandedRateHistory.SetRate(now, CurrentRate);
-            _bufferedRateHistory.SetRate(now + Math.Max(0, startupLatency), CurrentRate);
+            _bufferedRateHistory.SetRate(now, CurrentRate);
+            _playStartBassPosition = bassPosition;
+            _awaitingPlaybackPositionAdvance = true;
         }
 
         /// <summary>
@@ -150,6 +171,7 @@ namespace YARG.Audio.BASS
             }
 
             _isPlaying = false;
+            _awaitingPlaybackPositionAdvance = false;
             double now = GetCurrentTime();
             _commandedRateHistory.Stop(now);
             _bufferedRateHistory.Stop(now);
@@ -164,6 +186,7 @@ namespace YARG.Audio.BASS
         {
             double now = GetCurrentTime();
             float rate = _isPlaying ? CurrentRate : 0f;
+            _awaitingPlaybackPositionAdvance = false;
             _commandedRateHistory.Reset(now, requestedPosition, rate);
             _bufferedRateHistory.Reset(now, observedPosition, rate);
         }

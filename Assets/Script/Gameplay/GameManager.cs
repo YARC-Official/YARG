@@ -116,6 +116,9 @@ namespace YARG.Gameplay
         /// <inheritdoc cref="SongRunner.SongSpeed"/>
         public float SongSpeed => _songRunner.SongSpeed;
 
+        /// <inheritdoc cref="SongRunner.IsAudioSyncCorrectionActive"/>
+        public bool IsAudioSyncCorrectionActive => _songRunner.IsAudioSyncCorrectionActive;
+
         /// <inheritdoc cref="SongRunner.Started"/>
         public bool Started => _songRunner.Started;
 
