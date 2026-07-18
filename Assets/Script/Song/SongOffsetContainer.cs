@@ -51,7 +51,7 @@ namespace YARG.Song
             }
             catch (Exception ex)
             {
-                ToastManager.ToastError(ex, "Failed to save song offsets");
+                ToastManager.ToastError($"{ex} Failed to save song offsets");
             }
         }
 
