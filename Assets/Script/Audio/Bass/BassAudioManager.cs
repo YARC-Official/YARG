@@ -50,8 +50,6 @@ namespace YARG.Audio.BASS
 #pragma warning disable CS0649
         public int CompressorFX;
         public int PitchFX;
-        public int ReverbFX;
-
         public int LowEQ;
         public int MidEQ;
         public int HighEQ;
@@ -140,7 +138,32 @@ namespace YARG.Audio.BASS
             YargLogger.LogFormatInfo("Devices found: {0}", deviceCount);
 
 #if UNITY_EDITOR
-            // Free BASS if it's already initialized (happens when stopping play mode in editor)
+            // BASS_Free only frees playback devices. Recording devices have a
+            // separate lifecycle and can remain initialized across editor play-mode
+            // sessions, which makes GetAllInputDevices treat them as claimed.
+            // Do this independently of CurrentDevice: playback may already be freed.
+            for (int deviceIndex = 0; Bass.RecordGetDeviceInfo(deviceIndex, out var recordInfo); deviceIndex++)
+            {
+                if (!recordInfo.IsInitialized)
+                {
+                    continue;
+                }
+
+                Bass.CurrentRecordingDevice = deviceIndex;
+                if (Bass.RecordFree())
+                {
+                    YargLogger.LogInfo(
+                        $"Freed stale BASS recording device [{deviceIndex}] '{recordInfo.Name}'");
+                }
+                else
+                {
+                    YargLogger.LogWarning(
+                        $"Failed to free stale BASS recording device [{deviceIndex}] '{recordInfo.Name}': " +
+                        $"{Bass.LastError}");
+                }
+            }
+
+            // Free playback BASS if still initialized from previous play-mode session.
             if (Bass.CurrentDevice != -1)
             {
                 YargLogger.LogInfo("BASS already initialized, cleaning up first");
@@ -265,6 +288,7 @@ namespace YARG.Audio.BASS
         protected override List<(int id, string name)> GetAllInputDevices()
         {
             var mics = new List<(int id, string name)>();
+            int enumeratedCount = 0;
 
             // Ignored for now since it causes issues on Linux, BASS must not report device info correctly there
             // TODO: allow configuring this at runtime?
@@ -280,6 +304,15 @@ namespace YARG.Audio.BASS
 
             for (int deviceIndex = 0; Bass.RecordGetDeviceInfo(deviceIndex, out var info); deviceIndex++)
             {
+                enumeratedCount++;
+                string exclusion = !info.IsEnabled ? "disabled" :
+                    info.IsInitialized ? "already initialized/claimed" :
+                    info.IsLoopback ? "loopback" :
+                    info.Name == "Default" ? "default device" : "none";
+                YargLogger.LogInfo(
+                    $"BASS recording device [{deviceIndex}] '{info.Name}': enabled={info.IsEnabled}, " +
+                    $"initialized={info.IsInitialized}, loopback={info.IsLoopback}, type={info.Type}, exclusion={exclusion}");
+
                 // Ignore disabled/claimed devices
                 if (!info.IsEnabled || info.IsInitialized)
                 {
@@ -302,6 +335,9 @@ namespace YARG.Audio.BASS
 
                 mics.Add((deviceIndex, info.Name));
             }
+
+            YargLogger.LogInfo(
+                $"BASS recording-device enumeration complete: {enumeratedCount} found, {mics.Count} available");
 
             return mics;
         }
@@ -589,7 +625,7 @@ namespace YARG.Audio.BASS
 
         protected override void SetBufferLength_Internal(int length)
         {
-            Bass.PlaybackBufferLength = length;
+            Bass.PlaybackBufferLength = BassHelpers.ClampPlaybackBufferLength(length);
         }
 
         protected override void DisposeUnmanagedResources()

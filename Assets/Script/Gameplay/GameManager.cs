@@ -302,8 +302,15 @@ namespace YARG.Gameplay
                 return;
             }
 
+            bool runnerWasStarted = _songRunner.Started;
+
             // Update handlers
             _songRunner.Update();
+            if (!runnerWasStarted && _songRunner.Started)
+            {
+                GlobalVariables.RestartProfileMicrophones();
+            }
+
             ApplySongSpeed();
             BeatEventHandler.Update(_songRunner.SongTime, _songRunner.VisualTime);
             CrowdEventHandler.Update(_songRunner.SongTime);

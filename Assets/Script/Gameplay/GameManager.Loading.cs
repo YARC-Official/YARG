@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using Cysharp.Threading.Tasks;
@@ -53,7 +53,6 @@ namespace YARG.Gameplay
 
         private LoadFailureState _loadState;
         private string _loadFailureMessage;
-
         // All access to chart data must be done through this event,
         // since things are loaded asynchronously
         // Players are initialized by hand and don't go through this event

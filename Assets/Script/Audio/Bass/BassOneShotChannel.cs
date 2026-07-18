@@ -288,7 +288,10 @@ namespace YARG.Audio.BASS
             int valuesRemaining = framesToMix * _channelCount;
             while (valuesRemaining-- > 0)
             {
-                output[destination++] += _sample[source++] * volume;
+                // Metronome samples peak at 0 dB. Adding one to normalized song output can exceed
+                // full scale and trigger downstream limiting, which sounds like song ducking.
+                float mixed = output[destination] + _sample[source++] * volume;
+                output[destination++] = Math.Clamp(mixed, -1f, 1f);
             }
 
             sampleFrame += framesToMix;
@@ -319,6 +322,11 @@ namespace YARG.Audio.BASS
         /// </remarks>
         private static float[] DecodeSample(int streamHandle, int sampleRate, int channelCount)
         {
+            if (streamHandle == 0)
+            {
+                return null;
+            }
+
             int converter = BassMix.CreateMixerStream(sampleRate, channelCount,
                 BassFlags.Float | BassFlags.Decode | BassFlags.MixerEnd);
 

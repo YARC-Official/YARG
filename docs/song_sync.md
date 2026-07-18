@@ -181,3 +181,6 @@ Changing the playback speed on the fly normally incurs a noticeable delay before
 1. **Instant Rebuild and Flush:** YARG performs a quick "seek-in-place" instead of an in-place speed adjustment. It captures the current gameplay time, pauses the mixer, and resets the synchronizer.
 2. **Re-anchor:** It calls `PrepareAudioAt` at the captured gameplay time with the new speed. This completely destroys and rebuilds the active BASS streams, clearing the old tempo buffer and resetting all pending rate histories.
 3. **Immediate Effect:** When playback resumes, the new speed takes effect immediately. This avoids the buffer-propagation delay, keeping the gameplay clock and audio perfectly in phase at the expense of a brief gap in the audio stream.
+
+> [!IMPORTANT]
+> Running the Unity Editor from the Flatpak build of Unity Hub can make `BASS_ChannelGetPosition` exhibit PipeWire-quantum-sized timing modulation. The same position test is stable when the Editor and standalone BASS test run through the host audio environment. Do not use a Flatpak-launched Unity Editor to evaluate Linux BASS position stability or song-sync behavior; this is an artifact of the Flatpak audio environment and is not representative of a native YARG build.
