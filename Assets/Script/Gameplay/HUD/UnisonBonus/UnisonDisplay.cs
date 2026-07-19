@@ -88,19 +88,24 @@ namespace YARG.Gameplay.HUD
 
             _lastVisualTime = time;
 
+            UpdateScale(currentPhrase, time);
+
             if (time > currentPhrase.TransitionOut.TimeEnd)
             {
                 _currentPhraseIndex++;
                 YargLogger.LogFormatTrace("Advancing to unison phrase {0}", _currentPhraseIndex);
                 ResetState();
-                return;
             }
-
-            UpdateScale(currentPhrase, time);
         }
 
         protected override void OnSongStarted()
         {
+            if (GameManager.IsPractice)
+            {
+                gameObject.SetActive(false);
+                return;
+            }
+
             int minPlayers = SettingsManager.Settings.UnisonDisplay.Value switch
             {
                 UnisonDisplaySetting.Always          => 1,
@@ -108,11 +113,12 @@ namespace YARG.Gameplay.HUD
                 UnisonDisplaySetting.Disabled        => int.MaxValue,
                 _                                    => throw new ArgumentOutOfRangeException(),
             };
+            var maxParticipants = GameManager.EngineManager.UnisonEvents.Max(e => e.PartCount);
 
             if (SettingsManager.Settings.UnisonDisplay.Value == UnisonDisplaySetting.Disabled ||
-                GameManager.EngineManager.Engines.Count(e =>
-                    e.Instrument is not Instrument.Vocals and not Instrument.Harmony) < minPlayers)
+                maxParticipants < minPlayers)
             {
+                // Disable display now if there would never be enough participants to show the display
                 gameObject.SetActive(false);
                 return;
             }
@@ -133,8 +139,11 @@ namespace YARG.Gameplay.HUD
 
             _parent.SetActive(false);
 
+            // We need to use engineCount here since we use lists indexed by engineId,
+            // which *should* be in the range [0, engineCount - 1] in normal gameplay.
             int engineCount = GameManager.EngineManager.Engines.Count;
-            if (engineCount > MAX_PARTICIPANTS_FOR_ICON_DISPLAY)
+
+            if (maxParticipants > MAX_PARTICIPANTS_FOR_ICON_DISPLAY)
             {
                 _unisonBar.Initialize(engineCount);
             }
