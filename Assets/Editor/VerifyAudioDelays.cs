@@ -36,7 +36,7 @@ namespace Editor
         private const int POSITION_CLOCK_SAMPLE_INTERVAL_MS = 1;
         private const int POSITION_CLOCK_UPDATE_PERIOD_MS = 5;
         private const double POSITION_CLOCK_DISCONTINUITY_MS = 100;
-        private const int SEEK_LATENCY_SAMPLE_COUNT = 10;
+        private const int PLAY_POSITION_UPDATE_SAMPLE_COUNT = 100;
         private static readonly float[] TEMPO_TEST_SPEEDS = { 0.5f, 0.75f, 1.5f, 2.0f };
         private static readonly int[] TEMPO_PIPELINE_UPDATE_PERIODS_MS = { 5, 10, 20 };
         private static readonly int[] TEMPO_PIPELINE_SEEK_WINDOWS_MS = { 10, 20, 28, 40 };
@@ -315,14 +315,8 @@ namespace Editor
                 SetSettingValue(SettingsManager.Settings.PlaybackBufferLength, TEST_BUFFER_MS);
                 GlobalAudioHandler.SetBufferLength(TEST_BUFFER_MS);
 
-                Debug.Log("<b>[Real Seek Latency — Measuring Restart: True]</b>");
-                await MeasureMixerSeekLatency(audioManager, restart: true);
-
-                Debug.Log("<b>[Real Seek Latency — Measuring Restart: False]</b>");
-                await MeasureMixerSeekLatency(audioManager, restart: false);
-
-                Debug.Log("<b>[Real Seek Latency — Measuring Restart: True (Sync Callback)]</b>");
-                await MeasureMixerSeekLatencySync(audioManager);
+                Debug.Log("<b>[Plain PCM Stream Position Startup]</b> Starting measurement...");
+                await MeasurePlainStreamPositionStartup();
             }
             catch (Exception ex)
             {
@@ -1651,153 +1645,198 @@ namespace Editor
             return stream;
         }
 
-        private static async Task MeasureMixerSeekLatency(BassAudioManager audioManager, bool restart)
+        private static async Task MeasurePlainStreamPositionStartup()
         {
-            var mixer = CreateTestMixer(audioManager);
-            FileStream fileStream = null;
+            string testFilePath = Path.Combine(Path.GetTempPath(),
+                $"yarg-bass-position-startup-{Guid.NewGuid():N}.wav");
+            int streamHandle = 0;
 
             try
             {
-                string path = Path.Combine(Application.streamingAssetsPath, "metronome", "sine_hi.ogg");
-                if (!File.Exists(path))
+                // Uncompressed PCM filename stream: no OGG decoder, callbacks, mixer, or BASS_FX.
+                using (var testStream = CreateTempoTestTrack(10))
+                using (var testFile = File.Create(testFilePath))
                 {
-                    throw new Exception($"Audio file not found: {path}");
+                    testStream.CopyTo(testFile);
                 }
 
-                fileStream = File.OpenRead(path);
-                if (!mixer.AddChannel(fileStream, SongStem.Song))
+                streamHandle = Bass.CreateStream(testFilePath, 0, 0, BassFlags.Default);
+                if (streamHandle == 0)
                 {
-                    throw new Exception("Failed to add channel to mixer");
+                    throw new Exception($"Failed to create plain PCM stream: {Bass.LastError}");
                 }
 
-                int tempoStreamHandle = GetTempoStreamHandle(mixer);
+                var playCallSamples = new List<double>(PLAY_POSITION_UPDATE_SAMPLE_COUNT);
+                var callToChangeSamples = new List<double>(PLAY_POSITION_UPDATE_SAMPLE_COUNT);
+                var returnToChangeSamples = new List<double>(PLAY_POSITION_UPDATE_SAMPLE_COUNT);
+                var observedPositionSamples = new List<double>(PLAY_POSITION_UPDATE_SAMPLE_COUNT);
+                var primeCallSamples = new List<double>(PLAY_POSITION_UPDATE_SAMPLE_COUNT);
+                var primedBytesSamples = new List<int>(PLAY_POSITION_UPDATE_SAMPLE_COUNT);
 
-                double seekTarget = 0.0;
-                var latencySamples = new List<double>(SEEK_LATENCY_SAMPLE_COUNT);
-                var observedPositionSamples = new List<double>(SEEK_LATENCY_SAMPLE_COUNT);
-
-                for (int sample = 1; sample <= SEEK_LATENCY_SAMPLE_COUNT; sample++)
+                for (int sample = 1; sample <= PLAY_POSITION_UPDATE_SAMPLE_COUNT; sample++)
                 {
                     var tcs = new TaskCompletionSource<(long ticks, long position)>(
                         TaskCreationOptions.RunContinuationsAsynchronously);
-                    var stopwatch = new System.Diagnostics.Stopwatch();
-                    var startPolling = new ManualResetEventSlim(false);
+                    var pollerReady = new ManualResetEventSlim(false);
                     int stopPolling = 0;
+                    int startPolling = 0;
+                    long postPlayPosition = 0;
 
-                    mixer.SetPosition(seekTarget);
-                    if (!restart)
+                    if (!Bass.ChannelSetPosition(streamHandle, 0, PositionFlags.Bytes))
                     {
-                        var didSeekField = typeof(BassStemMixer).GetField("_didSeek",
-                            BindingFlags.Instance | BindingFlags.NonPublic);
-                        if (didSeekField != null)
-                        {
-                            didSeekField.SetValue(mixer, false);
-                        }
-                    }
-                    long initialPosition = Bass.ChannelGetPosition(tempoStreamHandle,
-                        PositionFlags.Bytes);
-                    if (initialPosition < 0)
-                    {
-                        startPolling.Dispose();
-                        throw new Exception($"Failed to read initial BASS position: {Bass.LastError}");
+                        pollerReady.Dispose();
+                        throw new Exception($"Failed to seek plain PCM stream: {Bass.LastError}");
                     }
 
-                    // A position sync at the first sample is unreliable: Play_Internal primes the
-                    // stream with ChannelUpdate before ChannelPlay, which can pass that sync while
-                    // filling the decode buffer. Poll the playback position concurrently instead so
-                    // changes that occur inside mixer.Play() are also observed.
+                    long primeCallTicks = System.Diagnostics.Stopwatch.GetTimestamp();
+                    if (!Bass.ChannelUpdate(streamHandle, 0))
+                    {
+                        pollerReady.Dispose();
+                        throw new Exception($"Failed to prime plain PCM stream: {Bass.LastError}");
+                    }
+                    long primeReturnTicks = System.Diagnostics.Stopwatch.GetTimestamp();
+                    int primedBytes = Bass.ChannelGetData(streamHandle, IntPtr.Zero,
+                        (int) DataFlags.Available);
+                    if (primedBytes < 0)
+                    {
+                        pollerReady.Dispose();
+                        throw new Exception($"Failed to query primed PCM data: {Bass.LastError}");
+                    }
+
+                    // Keep a hot polling thread ready before ChannelPlay. It begins reading as soon as
+                    // the immediate post-ChannelPlay position has been published. This measures the
+                    // reporting stall after ChannelPlay returns, without frame timing or Task.Delay
+                    // resolution in the measurement path.
                     var pollingThread = new Thread(() =>
                     {
-                        startPolling.Wait();
+                        pollerReady.Set();
+                        while (Volatile.Read(ref startPolling) == 0 &&
+                               Volatile.Read(ref stopPolling) == 0)
+                        {
+                            Thread.SpinWait(1);
+                        }
+
                         while (Volatile.Read(ref stopPolling) == 0)
                         {
-                            long position = Bass.ChannelGetPosition(tempoStreamHandle,
+                            long position = Bass.ChannelGetPosition(streamHandle,
                                 PositionFlags.Bytes);
-                            long ticks = stopwatch.ElapsedTicks;
-                            if (position >= 0 && position != initialPosition)
+                            long ticks = System.Diagnostics.Stopwatch.GetTimestamp();
+                            if (position >= 0 && position != Volatile.Read(ref postPlayPosition))
                             {
                                 tcs.TrySetResult((ticks, position));
                                 return;
                             }
-                            Thread.SpinWait(32);
                         }
                     })
                     {
                         IsBackground = true,
-                        Name = $"BASS position measurement {sample}"
+                        Name = $"BASS position measurement {sample}",
+                        // AboveNormal reduces scheduler wake-up error without risking starvation of
+                        // BASS's own real-time update thread, which would distort the result.
+                        Priority = System.Threading.ThreadPriority.AboveNormal
                     };
 
+                    long playCallTicks;
+                    long playReturnTicks;
                     try
                     {
                         pollingThread.Start();
-                        stopwatch.Restart();
-                        startPolling.Set();
-                        int playResult = mixer.Play();
-                        if (playResult != 0)
+                        pollerReady.Wait();
+
+                        playCallTicks = System.Diagnostics.Stopwatch.GetTimestamp();
+                        bool played = Bass.ChannelPlay(streamHandle, false);
+                        playReturnTicks = System.Diagnostics.Stopwatch.GetTimestamp();
+                        if (!played)
                         {
-                            throw new Exception($"Failed to play BASS mixer: {(Errors) playResult}");
+                            throw new Exception($"Failed to play plain PCM stream: {Bass.LastError}");
                         }
+
+                        // This is the same observation production makes immediately after ChannelPlay.
+                        // Publish baseline only after native call returns, matching production timing.
+                        postPlayPosition = Bass.ChannelGetPosition(streamHandle,
+                            PositionFlags.Bytes);
+                        if (postPlayPosition < 0)
+                        {
+                            throw new Exception($"Failed to read post-play BASS position: {Bass.LastError}");
+                        }
+                        Volatile.Write(ref startPolling, 1);
 
                         var timeoutTask = Task.Delay(2000);
                         var completedTask = await Task.WhenAny(tcs.Task, timeoutTask);
                         if (completedTask != tcs.Task)
                         {
-                            long finalPosition = Bass.ChannelGetPosition(tempoStreamHandle,
+                            long finalPosition = Bass.ChannelGetPosition(streamHandle,
                                 PositionFlags.Bytes);
-                            PlaybackState state = Bass.ChannelIsActive(tempoStreamHandle);
+                            PlaybackState state = Bass.ChannelIsActive(streamHandle);
                             throw new Exception($"Sample {sample}: timeout waiting for BASS playback " +
-                                $"position to change (initial={initialPosition}, final={finalPosition}, " +
+                                $"position to change (postPlay={postPlayPosition}, final={finalPosition}, " +
                                 $"state={state})");
                         }
                     }
                     finally
                     {
                         Interlocked.Exchange(ref stopPolling, 1);
-                        startPolling.Set();
                         pollingThread.Join(250);
-                        startPolling.Dispose();
+                        pollerReady.Dispose();
                     }
 
                     var firstChange = await tcs.Task;
-                    stopwatch.Stop();
-                    if (Bass.ChannelIsActive(tempoStreamHandle) == PlaybackState.Playing)
+                    if (Bass.ChannelIsActive(streamHandle) == PlaybackState.Playing)
                     {
-                        int pauseResult = mixer.Pause();
+                        bool paused = Bass.ChannelPause(streamHandle);
                         // Short test file can reach its end between state check and Pause().
-                        if (pauseResult != 0 &&
-                            Bass.ChannelIsActive(tempoStreamHandle) == PlaybackState.Playing)
+                        if (!paused &&
+                            Bass.ChannelIsActive(streamHandle) == PlaybackState.Playing)
                         {
-                            throw new Exception($"Failed to pause BASS mixer after sample {sample}: " +
-                                $"{(Errors) pauseResult}");
+                            throw new Exception($"Failed to pause plain PCM stream after sample {sample}: " +
+                                $"{Bass.LastError}");
                         }
                     }
-                    double latencyMs = firstChange.ticks * 1000.0 /
+                    double playCallMs = (playReturnTicks - playCallTicks) * 1000.0 /
                         System.Diagnostics.Stopwatch.Frequency;
-                    double observedPositionMs = Bass.ChannelBytes2Seconds(tempoStreamHandle,
+                    double callToChangeMs = (firstChange.ticks - playCallTicks) * 1000.0 /
+                        System.Diagnostics.Stopwatch.Frequency;
+                    double returnToChangeMs = (firstChange.ticks - playReturnTicks) * 1000.0 /
+                        System.Diagnostics.Stopwatch.Frequency;
+                    double observedPositionMs = Bass.ChannelBytes2Seconds(streamHandle,
                         firstChange.position) * 1000.0;
-                    latencySamples.Add(latencyMs);
+                    double primeCallMs = (primeReturnTicks - primeCallTicks) * 1000.0 /
+                        System.Diagnostics.Stopwatch.Frequency;
+                    playCallSamples.Add(playCallMs);
+                    callToChangeSamples.Add(callToChangeMs);
+                    returnToChangeSamples.Add(returnToChangeMs);
                     observedPositionSamples.Add(observedPositionMs);
-                    Debug.Log($"[Real Seek Latency] Sample {sample}/{SEEK_LATENCY_SAMPLE_COUNT}: " +
-                        $"{latencyMs:0.000}ms; first position={observedPositionMs:0.000}ms");
+                    primeCallSamples.Add(primeCallMs);
+                    primedBytesSamples.Add(primedBytes);
+                    Debug.Log($"[Plain PCM Stream Position Startup] Sample {sample}/{PLAY_POSITION_UPDATE_SAMPLE_COUNT}: " +
+                        $"prime={primeCallMs:0.000}ms ({primedBytes} bytes available); " +
+                        $"play={playCallMs:0.000}ms; call→change={callToChangeMs:0.000}ms; " +
+                        $"return→change={returnToChangeMs:0.000}ms; " +
+                        $"post-play position={Bass.ChannelBytes2Seconds(streamHandle, postPlayPosition) * 1000.0:0.000}ms; " +
+                        $"first changed position={observedPositionMs:0.000}ms");
                 }
 
-                latencySamples.Sort();
+                playCallSamples.Sort();
+                callToChangeSamples.Sort();
+                returnToChangeSamples.Sort();
                 observedPositionSamples.Sort();
+                primeCallSamples.Sort();
+                primedBytesSamples.Sort();
                 double latencyMean = 0;
-                foreach (double value in latencySamples)
+                foreach (double value in returnToChangeSamples)
                 {
                     latencyMean += value;
                 }
-                latencyMean /= latencySamples.Count;
+                latencyMean /= returnToChangeSamples.Count;
                 double latencyVariance = 0;
-                foreach (double value in latencySamples)
+                foreach (double value in returnToChangeSamples)
                 {
                     double difference = value - latencyMean;
                     latencyVariance += difference * difference;
                 }
-                double latencyJitter = Math.Sqrt(latencyVariance / latencySamples.Count);
-                double latencyMedian = GetPercentile(latencySamples, 0.5);
-                double latencyP95 = GetPercentile(latencySamples, 0.95);
+                double latencyJitter = Math.Sqrt(latencyVariance / returnToChangeSamples.Count);
+                double latencyMedian = GetPercentile(returnToChangeSamples, 0.5);
+                double latencyP95 = GetPercentile(returnToChangeSamples, 0.95);
 
                 var info = Bass.Info;
                 int infoLatency = info.Latency;
@@ -1807,21 +1846,29 @@ namespace Editor
                 int minBufferLength = info.MinBufferLength;
                 int configuredBufferLength = SettingsManager.Settings.PlaybackBufferLength.Value;
                 double deviceLatency = GlobalAudioHandler.PlaybackLatency;
-                double playback = mixer.GetPlaybackStartOffset() * 1000.0;
-                double tempo = mixer.GetTempoStreamLatency() * 1000.0;
 
-                Debug.Log($"<b>[Real Seek Latency]</b>\n" +
-                          $"  - Play → BASS Position Change ({latencySamples.Count} samples):\n" +
+                Debug.Log($"<b>[Plain PCM Stream Position Startup]</b>\n" +
+                          $"  - Pipeline: generated PCM WAV → direct BASS playback stream\n" +
+                          $"  - ChannelPlay Return → BASS Position Change ({returnToChangeSamples.Count} samples):\n" +
                           $"      Mean: <b>{latencyMean:0.000}ms</b>; Median: " +
                           $"<b>{latencyMedian:0.000}ms</b>; P95: {latencyP95:0.000}ms\n" +
-                          $"      Min/Max: {latencySamples[0]:0.000}/{latencySamples[latencySamples.Count - 1]:0.000}ms; " +
+                          $"      Min/Max: {returnToChangeSamples[0]:0.000}/{returnToChangeSamples[returnToChangeSamples.Count - 1]:0.000}ms; " +
                           $"Jitter (stddev): {latencyJitter:0.000}ms\n" +
-                          $"      Samples: {string.Join(", ", latencySamples.ConvertAll(value => $"{value:0.000}"))}ms\n" +
+                          $"      Samples: {string.Join(", ", returnToChangeSamples.ConvertAll(value => $"{value:0.000}"))}ms\n" +
+                          $"  - ChannelPlay Call Duration Min/Median/Max: " +
+                          $"{playCallSamples[0]:0.000}/{GetPercentile(playCallSamples, 0.5):0.000}/" +
+                          $"{playCallSamples[playCallSamples.Count - 1]:0.000}ms\n" +
+                          $"  - ChannelPlay Call → BASS Position Change Min/Median/Max: " +
+                          $"{callToChangeSamples[0]:0.000}/{GetPercentile(callToChangeSamples, 0.5):0.000}/" +
+                          $"{callToChangeSamples[callToChangeSamples.Count - 1]:0.000}ms\n" +
                           $"  - First Observed BASS Position Min/Max: " +
                           $"{observedPositionSamples[0]:0.000}/" +
                           $"{observedPositionSamples[observedPositionSamples.Count - 1]:0.000}ms\n" +
-                          $"  - SongRunner Seek Latency: {playback:0.0}ms\n" +
-                          $"  - Tempo Latency: {tempo:0.0}ms\n" +
+                          $"  - ChannelUpdate Prime Duration Min/Median/Max: " +
+                          $"{primeCallSamples[0]:0.000}/{GetPercentile(primeCallSamples, 0.5):0.000}/" +
+                          $"{primeCallSamples[primeCallSamples.Count - 1]:0.000}ms\n" +
+                          $"  - Buffered Bytes After Prime Min/Max: " +
+                          $"{primedBytesSamples[0]}/{primedBytesSamples[primedBytesSamples.Count - 1]}\n" +
                           $"  - User Configured Buffer Size: {configuredBufferLength}ms\n" +
                           $"  - Device Latency: {deviceLatency:0.0}ms\n" +
                           $"  - BASS Latency Components: info.Latency={infoLatency}ms, " +
@@ -1831,149 +1878,15 @@ namespace Editor
             }
             finally
             {
-                mixer.Dispose();
-                fileStream?.Dispose();
-            }
-        }
-
-        private static async Task MeasureMixerSeekLatencySync(BassAudioManager audioManager)
-        {
-            var mixer = CreateTestMixer(audioManager);
-            FileStream fileStream = null;
-
-            try
-            {
-                string path = Path.Combine(Application.streamingAssetsPath, "metronome", "sine_hi.ogg");
-                if (!File.Exists(path))
+                if (streamHandle != 0)
                 {
-                    throw new Exception($"Audio file not found: {path}");
+                    Bass.StreamFree(streamHandle);
                 }
 
-                fileStream = File.OpenRead(path);
-                if (!mixer.AddChannel(fileStream, SongStem.Song))
+                if (File.Exists(testFilePath))
                 {
-                    throw new Exception("Failed to add channel to mixer");
+                    File.Delete(testFilePath);
                 }
-
-                int tempoStreamHandle = GetTempoStreamHandle(mixer);
-
-                double seekTarget = 0.0;
-                double syncTargetSeconds = 0.05; // 50ms downstream
-                var latencySamples = new List<double>(SEEK_LATENCY_SAMPLE_COUNT);
-
-                for (int sample = 1; sample <= SEEK_LATENCY_SAMPLE_COUNT; sample++)
-                {
-                    var tcs = new TaskCompletionSource<long>(
-                        TaskCreationOptions.RunContinuationsAsynchronously);
-                    var stopwatch = new System.Diagnostics.Stopwatch();
-
-                    mixer.SetPosition(seekTarget);
-
-                    SyncProcedure syncProcedure = (handle, channel, data, user) =>
-                    {
-                        tcs.TrySetResult(stopwatch.ElapsedTicks);
-                    };
-
-                    long syncTargetBytes = Bass.ChannelSeconds2Bytes(tempoStreamHandle, syncTargetSeconds);
-                    int syncHandle = Bass.ChannelSetSync(tempoStreamHandle, SyncFlags.Position, syncTargetBytes,
-                        syncProcedure, IntPtr.Zero);
-
-                    if (syncHandle == 0)
-                    {
-                        throw new Exception($"Failed to set position sync: {Bass.LastError}");
-                    }
-
-                    try
-                    {
-                        stopwatch.Restart();
-                        int playResult = mixer.Play();
-                        if (playResult != 0)
-                        {
-                            throw new Exception($"Failed to play BASS mixer: {(Errors) playResult}");
-                        }
-
-                        var timeoutTask = Task.Delay(2000);
-                        var completedTask = await Task.WhenAny(tcs.Task, timeoutTask);
-                        if (completedTask != tcs.Task)
-                        {
-                            PlaybackState state = Bass.ChannelIsActive(tempoStreamHandle);
-                            throw new Exception($"Sample {sample}: timeout waiting for BASS sync callback to fire (state={state})");
-                        }
-                    }
-                    finally
-                    {
-                        Bass.ChannelRemoveSync(tempoStreamHandle, syncHandle);
-                        GC.KeepAlive(syncProcedure);
-                    }
-
-                    long ticks = await tcs.Task;
-                    stopwatch.Stop();
-                    if (Bass.ChannelIsActive(tempoStreamHandle) == PlaybackState.Playing)
-                    {
-                        int pauseResult = mixer.Pause();
-                        if (pauseResult != 0 &&
-                            Bass.ChannelIsActive(tempoStreamHandle) == PlaybackState.Playing)
-                        {
-                            throw new Exception($"Failed to pause BASS mixer after sample {sample}: " +
-                                $"{(Errors) pauseResult}");
-                        }
-                    }
-
-                    double totalElapsedMs = ticks * 1000.0 / System.Diagnostics.Stopwatch.Frequency;
-                    double latencyMs = totalElapsedMs - (syncTargetSeconds * 1000.0);
-                    latencySamples.Add(latencyMs);
-
-                    Debug.Log($"[Real Seek Latency Sync] Sample {sample}/{SEEK_LATENCY_SAMPLE_COUNT}: " +
-                        $"{latencyMs:0.000}ms (total elapsed={totalElapsedMs:0.000}ms)");
-                }
-
-                latencySamples.Sort();
-                double latencyMean = 0;
-                foreach (double value in latencySamples)
-                {
-                    latencyMean += value;
-                }
-                latencyMean /= latencySamples.Count;
-                double latencyVariance = 0;
-                foreach (double value in latencySamples)
-                {
-                    double difference = value - latencyMean;
-                    latencyVariance += difference * difference;
-                }
-                double latencyJitter = Math.Sqrt(latencyVariance / latencySamples.Count);
-                double latencyMedian = GetPercentile(latencySamples, 0.5);
-                double latencyP95 = GetPercentile(latencySamples, 0.95);
-
-                var info = Bass.Info;
-                int infoLatency = info.Latency;
-                int deviceBufferLength = Bass.DeviceBufferLength;
-                int devPeriod = Bass.GetConfig(Configuration.DevicePeriod);
-                int updatePeriod = Bass.UpdatePeriod;
-                int minBufferLength = info.MinBufferLength;
-                int configuredBufferLength = SettingsManager.Settings.PlaybackBufferLength.Value;
-                double deviceLatency = GlobalAudioHandler.PlaybackLatency;
-                double playback = mixer.GetPlaybackStartOffset() * 1000.0;
-                double tempo = mixer.GetTempoStreamLatency() * 1000.0;
-
-                Debug.Log($"<b>[Real Seek Latency Sync (50ms Target)]</b>\n" +
-                          $"  - Play → BASS Sync Callback ({latencySamples.Count} samples):\n" +
-                          $"      Mean: <b>{latencyMean:0.000}ms</b>; Median: " +
-                          $"<b>{latencyMedian:0.000}ms</b>; P95: {latencyP95:0.000}ms\n" +
-                          $"      Min/Max: {latencySamples[0]:0.000}/{latencySamples[latencySamples.Count - 1]:0.000}ms; " +
-                          $"Jitter (stddev): {latencyJitter:0.000}ms\n" +
-                          $"      Samples: {string.Join(", ", latencySamples.ConvertAll(value => $"{value:0.000}"))}ms\n" +
-                          $"  - SongRunner Seek Latency: {playback:0.0}ms\n" +
-                          $"  - Tempo Latency: {tempo:0.0}ms\n" +
-                          $"  - User Configured Buffer Size: {configuredBufferLength}ms\n" +
-                          $"  - Device Latency: {deviceLatency:0.0}ms\n" +
-                          $"  - BASS Latency Components: info.Latency={infoLatency}ms, " +
-                          $"DeviceBufferLength={deviceBufferLength}ms, updatePeriod={updatePeriod}ms, " +
-                          $"devPeriod={devPeriod}ms, MinBuf={minBufferLength}ms");
-            }
-            finally
-            {
-                mixer.Dispose();
-                fileStream?.Dispose();
             }
         }
 
