@@ -2,10 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using ManagedBass;
+using ManagedBass.Fx;
 using UnityEditor;
 using UnityEngine;
 using YARG.Audio.BASS;
@@ -24,17 +26,30 @@ namespace Editor
         private const int TEMPO_MATRIX_SAMPLE_COUNT = 20;
         private const int TEMPO_MATRIX_UPDATE_PERIOD_MS = 10;
         private const int TEMPO_MATRIX_BASELINE_BUFFER_MS = 150;
+        private const int TEMPO_RESUME_SAMPLE_COUNT = 8;
+        private const int TEMPO_RESUME_PLAY_TIME_MS = 250;
+        private const int TEMPO_RESUME_PAUSE_TIME_MS = 100;
         private const int TEMPO_COMMAND_JITTER_MAX_MS = 100;
         private const double TEMPO_TRACE_VALUE_EPSILON_MS = 0.01;
         private const int POSITION_CLOCK_WARMUP_MS = 3000;
         private const int POSITION_CLOCK_DURATION_MS = 20000;
         private const int POSITION_CLOCK_SAMPLE_INTERVAL_MS = 1;
+        private const int POSITION_CLOCK_UPDATE_PERIOD_MS = 5;
         private const double POSITION_CLOCK_DISCONTINUITY_MS = 100;
+        private const int PLAY_POSITION_UPDATE_SAMPLE_COUNT = 100;
         private static readonly float[] TEMPO_TEST_SPEEDS = { 0.5f, 0.75f, 1.5f, 2.0f };
         private static readonly int[] TEMPO_PIPELINE_UPDATE_PERIODS_MS = { 5, 10, 20 };
         private static readonly int[] TEMPO_PIPELINE_SEEK_WINDOWS_MS = { 10, 20, 28, 40 };
         // 150ms baseline is already covered by the speed sweep.
         private static readonly int[] TEMPO_TEST_BUFFERS_MS = { 50, 100, 250 };
+        private static readonly (float speed, int bufferMs)[] TEMPO_RESUME_CONFIGURATIONS =
+        {
+            (1.0f, 50),
+            (1.0f, 150),
+            (1.0f, 250),
+            (0.5f, 150),
+            (1.5f, 150),
+        };
         private static readonly System.Random TempoTestRandom = new();
 
         private readonly struct TempoLatencyMeasurement
@@ -114,17 +129,108 @@ namespace Editor
             }
         }
 
+        private readonly struct TempoResumeSnapshot
+        {
+            public readonly double Timestamp;
+            public readonly double StreamPosition;
+            public readonly double DecodePosition;
+            public readonly double MixerPosition;
+            public readonly double ControlPosition;
+            public readonly double AvailableMs;
+
+            public TempoResumeSnapshot(double timestamp, double streamPosition, double decodePosition,
+                double mixerPosition, double controlPosition, double availableMs)
+            {
+                Timestamp = timestamp;
+                StreamPosition = streamPosition;
+                DecodePosition = decodePosition;
+                MixerPosition = mixerPosition;
+                ControlPosition = controlPosition;
+                AvailableMs = availableMs;
+            }
+        }
+
+        private readonly struct TempoResumeMeasurement
+        {
+            public readonly double CallDurationMs;
+            public readonly double StreamExcessMs;
+            public readonly double MixerExcessMs;
+            public readonly double ControlExcessMs;
+            public readonly double DecodeAdvanceMs;
+            public readonly double AvailableChangeMs;
+
+            public TempoResumeMeasurement(double callDurationMs, double streamExcessMs,
+                double mixerExcessMs, double controlExcessMs, double decodeAdvanceMs,
+                double availableChangeMs)
+            {
+                CallDurationMs = callDurationMs;
+                StreamExcessMs = streamExcessMs;
+                MixerExcessMs = mixerExcessMs;
+                ControlExcessMs = controlExcessMs;
+                DecodeAdvanceMs = decodeAdvanceMs;
+                AvailableChangeMs = availableChangeMs;
+            }
+        }
+
+        private readonly struct RawPositionSnapshot
+        {
+            public readonly double PlayedMs;
+            public readonly double DecodedMs;
+            public readonly double AvailableMs;
+
+            public RawPositionSnapshot(double playedMs, double decodedMs, double availableMs)
+            {
+                PlayedMs = playedMs;
+                DecodedMs = decodedMs;
+                AvailableMs = availableMs;
+            }
+        }
+
         private readonly struct PositionClockSample
         {
             public readonly double WallTime;
+            public readonly double MonotonicTime;
             public readonly double Position;
+            public readonly double NativePosition;
 
-            public PositionClockSample(double wallTime, double position)
+            public PositionClockSample(double wallTime, double monotonicTime, double position,
+                double nativePosition)
             {
                 WallTime = wallTime;
+                MonotonicTime = monotonicTime;
                 Position = position;
+                NativePosition = nativePosition;
             }
         }
+
+#if UNITY_EDITOR_LINUX
+        [StructLayout(LayoutKind.Sequential)]
+        private struct Timespec
+        {
+            public long Seconds;
+            public long Nanoseconds;
+        }
+
+        private const int CLOCK_MONOTONIC = 1;
+        private const int TIMER_ABSTIME = 1;
+
+        [DllImport("libc", SetLastError = true)]
+        private static extern int clock_gettime(int clockId, out Timespec time);
+
+        [DllImport("libc")]
+        private static extern int clock_nanosleep(int clockId, int flags, ref Timespec request,
+            IntPtr remaining);
+
+        // Bypass ManagedBass while retaining the same loaded BASS instance and channel handle.
+        // These declarations intentionally cover only the two calls needed by this diagnostic.
+        [DllImport("bass", CallingConvention = CallingConvention.Cdecl,
+            EntryPoint = "BASS_ChannelGetPosition")]
+        private static extern ulong NativeBassChannelGetPosition(int handle, uint mode);
+
+        [DllImport("bass", CallingConvention = CallingConvention.Cdecl,
+            EntryPoint = "BASS_ChannelBytes2Seconds")]
+        private static extern double NativeBassChannelBytes2Seconds(int handle, ulong position);
+#endif
 
         [MenuItem("Tests/Verify Audio Delays")]
         public static void RunVerification()
@@ -209,7 +315,8 @@ namespace Editor
                 SetSettingValue(SettingsManager.Settings.PlaybackBufferLength, TEST_BUFFER_MS);
                 GlobalAudioHandler.SetBufferLength(TEST_BUFFER_MS);
 
-                await MeasureMixerSeekLatency(audioManager);
+                Debug.Log("<b>[Plain PCM Stream Position Startup]</b> Starting measurement...");
+                await MeasurePlainStreamPositionStartup();
             }
             catch (Exception ex)
             {
@@ -321,6 +428,7 @@ namespace Editor
             Debug.Log("<b>[BASS Position Clock Stability]</b> Starting measurement...");
 
             InitializePaths();
+            // SettingContainer reads audio buffer limits from GlobalAudioHandler during construction.
             GlobalAudioHandler.Initialize<BassAudioManager>();
 
             var originalSettings = SettingsManager.Settings;
@@ -337,20 +445,37 @@ namespace Editor
                 settingsSetter.Invoke(null, new object[] { new SettingsManager.SettingContainer() });
             }
 
-            var audioManager = GetAudioManager();
-            if (audioManager == null)
-            {
-                Debug.LogError("Failed to get active BassAudioManager instance!");
-                if (createdSettings)
-                {
-                    settingsSetter.Invoke(null, new object[] { originalSettings });
-                }
-                return;
-            }
-
+            int originalUpdatePeriod = POSITION_CLOCK_UPDATE_PERIOD_MS;
+            bool yargInitialized = false;
             try
             {
-                await MeasurePositionClockStability(audioManager);
+                // First reproduce the standalone C program inside the Unity process, without
+                // constructing BassAudioManager or loading YARG's plugins/samples.
+                GlobalAudioHandler.Close();
+                Bass.Free();
+                Bass.UpdatePeriod = POSITION_CLOCK_UPDATE_PERIOD_MS;
+                if (!Bass.Init(-1, 44100, DeviceInitFlags.Default, IntPtr.Zero))
+                {
+                    throw new Exception($"Clean-room BASS_Init failed: {Bass.LastError}");
+                }
+
+                Debug.Log("<b>[BASS Position Clock Stability]</b> Running clean-room BASS_Init baseline.");
+                await MeasureFilePositionClockBaseline("clean-room BASS_Init(-1, 44100)");
+                Bass.Free();
+
+                // Recreate normal YARG audio state, then run exactly the same filename-stream test.
+                GlobalAudioHandler.Initialize<BassAudioManager>();
+                yargInitialized = true;
+                if (GetAudioManager() == null)
+                {
+                    throw new Exception("Failed to get reinitialized BassAudioManager instance");
+                }
+
+                originalUpdatePeriod = Bass.UpdatePeriod;
+                Bass.UpdatePeriod = POSITION_CLOCK_UPDATE_PERIOD_MS;
+                Debug.Log($"<b>[BASS Position Clock Stability]</b> Temporarily set BASS update period " +
+                          $"to {Bass.UpdatePeriod}ms (was {originalUpdatePeriod}ms).");
+                await MeasureFilePositionClockBaseline("normal YARG BassAudioManager initialization");
             }
             catch (Exception ex)
             {
@@ -358,6 +483,19 @@ namespace Editor
             }
             finally
             {
+                if (!yargInitialized)
+                {
+                    // Leave editor with normal audio initialized even when clean-room test fails.
+                    Bass.Free();
+                    GlobalAudioHandler.Initialize<BassAudioManager>();
+                    yargInitialized = true;
+                }
+
+                if (yargInitialized)
+                {
+                    Bass.UpdatePeriod = originalUpdatePeriod;
+                }
+
                 if (createdSettings)
                 {
                     settingsSetter.Invoke(null, new object[] { originalSettings });
@@ -483,6 +621,414 @@ namespace Editor
                     settingsSetter.Invoke(null, new object[] { originalSettings });
                 }
             }
+        }
+
+        [MenuItem("Tests/Measure Tempo Resume Offset")]
+        public static async void RunTempoResumeOffsetMeasurement()
+        {
+            Debug.Log("<b>[Tempo Resume Offset]</b> Starting seek-start and pause/resume measurement...");
+
+            InitializePaths();
+            GlobalAudioHandler.Initialize<BassAudioManager>();
+
+            var originalSettings = SettingsManager.Settings;
+            var settingsSetter = GetSettingsSetter();
+            bool createdSettings = originalSettings == null;
+            if (createdSettings)
+            {
+                if (settingsSetter == null)
+                {
+                    Debug.LogError("Could not initialize SettingsManager.Settings");
+                    return;
+                }
+
+                settingsSetter.Invoke(null, new object[] { new SettingsManager.SettingContainer() });
+            }
+
+            var audioManager = GetAudioManager();
+            if (audioManager == null)
+            {
+                Debug.LogError("Failed to get active BassAudioManager instance!");
+                if (createdSettings)
+                {
+                    settingsSetter.Invoke(null, new object[] { originalSettings });
+                }
+                return;
+            }
+
+            int originalBufferLength = SettingsManager.Settings.PlaybackBufferLength.Value;
+            try
+            {
+                foreach (var configuration in TEMPO_RESUME_CONFIGURATIONS)
+                {
+                    SetTempoTestBuffer(configuration.bufferMs);
+                    await RunTempoResumeOffsetBatch(audioManager, configuration.speed,
+                        configuration.bufferMs);
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"Tempo resume-offset measurement failed: {ex.Message}\n{ex.StackTrace}");
+            }
+            finally
+            {
+                SetTempoTestBuffer(originalBufferLength);
+                if (createdSettings)
+                {
+                    settingsSetter.Invoke(null, new object[] { originalSettings });
+                }
+            }
+        }
+
+        [MenuItem("Tests/Compare Plain vs Tempo Resume Position")]
+        public static async void RunPlainVsTempoResumePositionComparison()
+        {
+            Debug.Log("<b>[Plain vs Tempo Resume Position]</b> Starting raw BASS comparison...");
+
+            InitializePaths();
+            GlobalAudioHandler.Initialize<BassAudioManager>();
+
+            string testFilePath = Path.Combine(Path.GetTempPath(),
+                $"yarg-bass-resume-position-{Guid.NewGuid():N}.wav");
+            int plainHandle = 0;
+            int tempoSourceHandle = 0;
+            int tempoHandle = 0;
+
+            try
+            {
+                using (var testStream = CreateTempoTestTrack(10))
+                using (var testFile = File.Create(testFilePath))
+                {
+                    testStream.CopyTo(testFile);
+                }
+
+                // Both channels read identical files and feed the same output device. Only the
+                // second channel has a decoding source wrapped in BASS_FX TempoCreate.
+                const BassFlags fileFlags = BassFlags.Prescan | BassFlags.AsyncFile;
+                plainHandle = Bass.CreateStream(testFilePath, 0, 0, fileFlags);
+                tempoSourceHandle = Bass.CreateStream(testFilePath, 0, 0,
+                    fileFlags | BassFlags.Decode);
+                if (plainHandle == 0 || tempoSourceHandle == 0)
+                {
+                    throw new Exception($"Failed to create comparison streams: {Bass.LastError}");
+                }
+
+                tempoHandle = BassFx.TempoCreate(tempoSourceHandle, BassFlags.FxFreeSource);
+                if (tempoHandle == 0)
+                {
+                    throw new Exception($"Failed to create comparison tempo stream: {Bass.LastError}");
+                }
+                // Tempo stream owns source from this point.
+                tempoSourceHandle = 0;
+
+                float bufferSeconds = BassHelpers.ClampPlaybackBufferLength(TEST_BUFFER_MS) / 1000f;
+                if (!Bass.ChannelSetAttribute(plainHandle, ChannelAttribute.Buffer, bufferSeconds) ||
+                    !Bass.ChannelSetAttribute(tempoHandle, ChannelAttribute.Buffer, bufferSeconds))
+                {
+                    throw new Exception($"Failed to set comparison stream buffers: {Bass.LastError}");
+                }
+
+                Debug.Log($"<b>[Plain vs Tempo Resume Position]</b> buffer " +
+                          $"{bufferSeconds * 1000:0.0}ms; update period {Bass.UpdatePeriod}ms; " +
+                          $"Tempo FX sequence {GetChannelAttribute(tempoHandle, ChannelAttribute.TempoSequenceMilliseconds):0.00}ms; " +
+                          $"seek {GetChannelAttribute(tempoHandle, ChannelAttribute.TempoSeekWindowMilliseconds):0.00}ms; " +
+                          $"overlap {GetChannelAttribute(tempoHandle, ChannelAttribute.TempoOverlapMilliseconds):0.00}ms");
+
+                for (int sample = 1; sample <= TEMPO_RESUME_SAMPLE_COUNT; sample++)
+                {
+                    await ComparePlainAndTempoResume(sample, plainHandle, tempoHandle);
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"Plain/tempo resume comparison failed: {ex.Message}\n{ex.StackTrace}");
+            }
+            finally
+            {
+                if (tempoHandle != 0)
+                {
+                    Bass.StreamFree(tempoHandle);
+                }
+                if (tempoSourceHandle != 0)
+                {
+                    Bass.StreamFree(tempoSourceHandle);
+                }
+                if (plainHandle != 0)
+                {
+                    Bass.StreamFree(plainHandle);
+                }
+                if (File.Exists(testFilePath))
+                {
+                    File.Delete(testFilePath);
+                }
+            }
+        }
+
+        private static async Task ComparePlainAndTempoResume(int sample, int plainHandle, int tempoHandle)
+        {
+            const double startSeconds = 2.0;
+            long plainStart = Bass.ChannelSeconds2Bytes(plainHandle, startSeconds);
+            long tempoStart = Bass.ChannelSeconds2Bytes(tempoHandle, startSeconds);
+            if (!Bass.ChannelSetPosition(plainHandle, plainStart) ||
+                !Bass.ChannelSetPosition(tempoHandle, tempoStart) ||
+                !Bass.ChannelPlay(plainHandle) || !Bass.ChannelPlay(tempoHandle))
+            {
+                throw new Exception($"Failed to start comparison sample: {Bass.LastError}");
+            }
+
+            await Task.Delay(TEMPO_RESUME_PLAY_TIME_MS);
+            if (!Bass.ChannelPause(plainHandle) || !Bass.ChannelPause(tempoHandle))
+            {
+                throw new Exception($"Failed to pause comparison sample: {Bass.LastError}");
+            }
+
+            RawPositionSnapshot pausedPlain = CaptureRawPosition(plainHandle);
+            RawPositionSnapshot pausedTempo = CaptureRawPosition(tempoHandle);
+            await Task.Delay(TEMPO_RESUME_PAUSE_TIME_MS);
+            RawPositionSnapshot beforePlain = CaptureRawPosition(plainHandle);
+            RawPositionSnapshot beforeTempo = CaptureRawPosition(tempoHandle);
+
+            var log = new StringBuilder();
+            log.AppendLine($"<b>[Plain vs Tempo Resume Position — sample {sample}/{TEMPO_RESUME_SAMPLE_COUNT}]</b>");
+            log.AppendLine($"pause drift: plain {beforePlain.PlayedMs - pausedPlain.PlayedMs:+0.000;-0.000;0.000}ms; " +
+                           $"tempo {beforeTempo.PlayedMs - pausedTempo.PlayedMs:+0.000;-0.000;0.000}ms");
+            log.AppendLine("elapsed | advance plain/tempo | excess plain/tempo | excess delta | decoded plain/tempo | available plain/tempo");
+
+            var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+            double plainCallStartMs = stopwatch.Elapsed.TotalMilliseconds;
+            bool plainPlayed = Bass.ChannelPlay(plainHandle);
+            double plainCallEndMs = stopwatch.Elapsed.TotalMilliseconds;
+            double tempoCallStartMs = stopwatch.Elapsed.TotalMilliseconds;
+            bool tempoPlayed = Bass.ChannelPlay(tempoHandle);
+            double tempoCallEndMs = stopwatch.Elapsed.TotalMilliseconds;
+            if (!plainPlayed || !tempoPlayed)
+            {
+                throw new Exception($"Failed to resume comparison sample: {Bass.LastError}");
+            }
+            double plainResumeMs = (plainCallStartMs + plainCallEndMs) * 0.5;
+            double tempoResumeMs = (tempoCallStartMs + tempoCallEndMs) * 0.5;
+            log.AppendLine($"play calls: plain {plainCallEndMs - plainCallStartMs:0.000}ms; " +
+                           $"tempo {tempoCallEndMs - tempoCallStartMs:0.000}ms");
+
+            AppendRawResumeComparison(log, stopwatch.Elapsed.TotalMilliseconds, plainHandle, tempoHandle,
+                beforePlain, beforeTempo, plainResumeMs, tempoResumeMs);
+            int previousTargetMs = 0;
+            foreach (int targetMs in new[] { 10, 25, 50, 100, 200 })
+            {
+                await Task.Delay(targetMs - previousTargetMs);
+                previousTargetMs = targetMs;
+                AppendRawResumeComparison(log, stopwatch.Elapsed.TotalMilliseconds, plainHandle, tempoHandle,
+                    beforePlain, beforeTempo, plainResumeMs, tempoResumeMs);
+            }
+
+            Bass.ChannelPause(plainHandle);
+            Bass.ChannelPause(tempoHandle);
+            Debug.Log(log.ToString());
+        }
+
+        private static RawPositionSnapshot CaptureRawPosition(int handle) => new(
+            GetPositionMs(handle, PositionFlags.Bytes),
+            GetPositionMs(handle, PositionFlags.Bytes | PositionFlags.Decode),
+            GetAvailableBufferMs(handle));
+
+        private static void AppendRawResumeComparison(StringBuilder log, double elapsedMs,
+            int plainHandle, int tempoHandle, RawPositionSnapshot beforePlain,
+            RawPositionSnapshot beforeTempo, double plainResumeMs, double tempoResumeMs)
+        {
+            RawPositionSnapshot plain = CaptureRawPosition(plainHandle);
+            RawPositionSnapshot tempo = CaptureRawPosition(tempoHandle);
+            double plainAdvance = plain.PlayedMs - beforePlain.PlayedMs;
+            double tempoAdvance = tempo.PlayedMs - beforeTempo.PlayedMs;
+            double plainDecodeAdvance = plain.DecodedMs - beforePlain.DecodedMs;
+            double tempoDecodeAdvance = tempo.DecodedMs - beforeTempo.DecodedMs;
+            double plainExcess = plainAdvance - Math.Max(0, elapsedMs - plainResumeMs);
+            double tempoExcess = tempoAdvance - Math.Max(0, elapsedMs - tempoResumeMs);
+
+            log.AppendLine($"{elapsedMs,7:0.0} | {plainAdvance,8:+0.000;-0.000;0.000}/" +
+                           $"{tempoAdvance,8:+0.000;-0.000;0.000} | " +
+                           $"{plainExcess,8:+0.000;-0.000;0.000}/" +
+                           $"{tempoExcess,8:+0.000;-0.000;0.000} | " +
+                           $"{tempoExcess - plainExcess,11:+0.000;-0.000;0.000} | " +
+                           $"{plainDecodeAdvance,8:+0.000;-0.000;0.000}/" +
+                           $"{tempoDecodeAdvance,8:+0.000;-0.000;0.000} | " +
+                           $"{plain.AvailableMs,7:0.0}/{tempo.AvailableMs,7:0.0}");
+        }
+
+        private static async Task RunTempoResumeOffsetBatch(BassAudioManager audioManager, float speed,
+            int bufferMs)
+        {
+            var seekStartMeasurements = new List<TempoResumeMeasurement>(TEMPO_RESUME_SAMPLE_COUNT);
+            var resumeMeasurements = new List<TempoResumeMeasurement>(TEMPO_RESUME_SAMPLE_COUNT);
+            var probeMixer = CreateTestMixer(audioManager);
+            (float sequenceMs, float seekWindowMs, float overlapMs, bool useQuickAlgorithm,
+                bool useAAFilter, float aaFilterLength) attributes;
+            try
+            {
+                probeMixer.SetPlaybackSpeed(speed);
+                attributes = GetTempoFxAttributes(GetTempoStreamHandle(probeMixer));
+            }
+            finally
+            {
+                probeMixer.Dispose();
+            }
+
+            string label = $"speed {speed:0.##}x; buffer {bufferMs}ms";
+            Debug.Log($"<b>[Tempo Resume Offset]</b> {label}; samples: {TEMPO_RESUME_SAMPLE_COUNT}; " +
+                      $"FX sequence {attributes.sequenceMs:0.00}ms; seek {attributes.seekWindowMs:0.00}ms; " +
+                      $"overlap {attributes.overlapMs:0.00}ms; quick {attributes.useQuickAlgorithm}");
+
+            for (int sample = 1; sample <= TEMPO_RESUME_SAMPLE_COUNT; sample++)
+            {
+                var measurements = await MeasureTempoResumeOffsets(audioManager, speed);
+                seekStartMeasurements.Add(measurements.seekStart);
+                resumeMeasurements.Add(measurements.resume);
+
+                Debug.Log($"<b>[Tempo Resume Offset]</b> {label}; sample " +
+                          $"{sample}/{TEMPO_RESUME_SAMPLE_COUNT}\n" +
+                          FormatTempoResumeMeasurement("seek → play", measurements.seekStart) + "\n" +
+                          FormatTempoResumeMeasurement("pause → play", measurements.resume));
+            }
+
+            LogTempoResumeOffsetSummary(label, "seek → play", seekStartMeasurements);
+            LogTempoResumeOffsetSummary(label, "pause → play", resumeMeasurements);
+        }
+
+        private static async Task<(TempoResumeMeasurement seekStart, TempoResumeMeasurement resume)>
+            MeasureTempoResumeOffsets(BassAudioManager audioManager, float speed)
+        {
+            var mixer = CreateTestMixer(audioManager);
+            var testStream = CreateTempoTestTrack(10);
+
+            try
+            {
+                if (!mixer.AddChannel(testStream, SongStem.Song))
+                {
+                    throw new Exception("Failed to add generated test track to mixer");
+                }
+
+                mixer.SetPlaybackSpeed(speed);
+                mixer.SetPosition(2.0);
+                int tempoHandle = GetTempoStreamHandle(mixer);
+
+                TempoResumeSnapshot beforeSeekStart = CaptureTempoResumeSnapshot(mixer, tempoHandle);
+                long seekStartCall = System.Diagnostics.Stopwatch.GetTimestamp();
+                if (mixer.Play() != 0)
+                {
+                    throw new Exception($"Failed to play tempo stream after seek: {Bass.LastError}");
+                }
+                long seekStartReturn = System.Diagnostics.Stopwatch.GetTimestamp();
+                TempoResumeSnapshot afterSeekStart = CaptureTempoResumeSnapshot(mixer, tempoHandle);
+                var seekStart = CalculateTempoResumeMeasurement(beforeSeekStart, afterSeekStart,
+                    seekStartCall, seekStartReturn, speed);
+
+                await Task.Delay(TEMPO_RESUME_PLAY_TIME_MS);
+                if (mixer.Pause() != 0)
+                {
+                    throw new Exception($"Failed to pause tempo stream: {Bass.LastError}");
+                }
+
+                await Task.Delay(TEMPO_RESUME_PAUSE_TIME_MS);
+                TempoResumeSnapshot beforeResume = CaptureTempoResumeSnapshot(mixer, tempoHandle);
+                long resumeCall = System.Diagnostics.Stopwatch.GetTimestamp();
+                if (mixer.Play() != 0)
+                {
+                    throw new Exception($"Failed to resume tempo stream: {Bass.LastError}");
+                }
+                long resumeReturn = System.Diagnostics.Stopwatch.GetTimestamp();
+                TempoResumeSnapshot afterResume = CaptureTempoResumeSnapshot(mixer, tempoHandle);
+                var resume = CalculateTempoResumeMeasurement(beforeResume, afterResume,
+                    resumeCall, resumeReturn, speed);
+
+                return (seekStart, resume);
+            }
+            finally
+            {
+                mixer.Dispose();
+                testStream.Dispose();
+            }
+        }
+
+        private static TempoResumeSnapshot CaptureTempoResumeSnapshot(BassStemMixer mixer, int tempoHandle)
+        {
+            long before = System.Diagnostics.Stopwatch.GetTimestamp();
+            double streamPosition = GetPositionMs(tempoHandle, PositionFlags.Bytes) / 1000.0;
+            double decodePosition = GetPositionMs(tempoHandle,
+                PositionFlags.Bytes | PositionFlags.Decode) / 1000.0;
+            double mixerPosition = mixer.GetPosition();
+            double controlPosition = mixer.GetControlPosition();
+            double availableMs = GetAvailableBufferMs(tempoHandle);
+            long after = System.Diagnostics.Stopwatch.GetTimestamp();
+            double timestamp = (before + (after - before) * 0.5) /
+                (double) System.Diagnostics.Stopwatch.Frequency;
+            return new TempoResumeSnapshot(timestamp, streamPosition, decodePosition, mixerPosition,
+                controlPosition, availableMs);
+        }
+
+        private static TempoResumeMeasurement CalculateTempoResumeMeasurement(
+            TempoResumeSnapshot before, TempoResumeSnapshot after, long callStart, long callEnd, float speed)
+        {
+            double elapsedSeconds = after.Timestamp - before.Timestamp;
+            double expectedAdvance = elapsedSeconds * speed;
+            double callDurationMs = (callEnd - callStart) * 1000.0 /
+                System.Diagnostics.Stopwatch.Frequency;
+
+            return new TempoResumeMeasurement(
+                callDurationMs,
+                (after.StreamPosition - before.StreamPosition - expectedAdvance) * 1000.0,
+                (after.MixerPosition - before.MixerPosition - expectedAdvance) * 1000.0,
+                (after.ControlPosition - before.ControlPosition - expectedAdvance) * 1000.0,
+                (after.DecodePosition - before.DecodePosition) * 1000.0,
+                after.AvailableMs - before.AvailableMs);
+        }
+
+        private static string FormatTempoResumeMeasurement(string transition,
+            TempoResumeMeasurement measurement)
+        {
+            return $"  {transition}: call {measurement.CallDurationMs:0.000}ms; " +
+                   $"excess stream {measurement.StreamExcessMs:+0.000;-0.000;0.000}ms; " +
+                   $"mixer {measurement.MixerExcessMs:+0.000;-0.000;0.000}ms; " +
+                   $"control <b>{measurement.ControlExcessMs:+0.000;-0.000;0.000}ms</b>; " +
+                   $"decode advance {measurement.DecodeAdvanceMs:+0.000;-0.000;0.000}ms; " +
+                   $"available change {measurement.AvailableChangeMs:+0.000;-0.000;0.000}ms";
+        }
+
+        private static void LogTempoResumeOffsetSummary(string label, string transition,
+            List<TempoResumeMeasurement> measurements)
+        {
+            var callDurations = new List<double>(measurements.Count);
+            var streamOffsets = new List<double>(measurements.Count);
+            var mixerOffsets = new List<double>(measurements.Count);
+            var controlOffsets = new List<double>(measurements.Count);
+            var decodeAdvances = new List<double>(measurements.Count);
+            var availableChanges = new List<double>(measurements.Count);
+            foreach (var measurement in measurements)
+            {
+                AddFiniteValue(callDurations, measurement.CallDurationMs);
+                AddFiniteValue(streamOffsets, measurement.StreamExcessMs);
+                AddFiniteValue(mixerOffsets, measurement.MixerExcessMs);
+                AddFiniteValue(controlOffsets, measurement.ControlExcessMs);
+                AddFiniteValue(decodeAdvances, measurement.DecodeAdvanceMs);
+                AddFiniteValue(availableChanges, measurement.AvailableChangeMs);
+            }
+
+            callDurations.Sort();
+            streamOffsets.Sort();
+            mixerOffsets.Sort();
+            controlOffsets.Sort();
+            decodeAdvances.Sort();
+            availableChanges.Sort();
+
+            Debug.Log($"<b>[Tempo Resume Offset — {transition} Summary]</b> {label}\n" +
+                      $"Play call median/p95: {GetMedianOrNaN(callDurations):0.000}/" +
+                      $"{GetPercentileOrNaN(callDurations, 0.95):0.000}ms\n" +
+                      $"Excess stream median/p95: {GetMedianOrNaN(streamOffsets):+0.000;-0.000;0.000}/" +
+                      $"{GetPercentileOrNaN(streamOffsets, 0.95):+0.000;-0.000;0.000}ms\n" +
+                      $"Excess mixer median/p95: {GetMedianOrNaN(mixerOffsets):+0.000;-0.000;0.000}/" +
+                      $"{GetPercentileOrNaN(mixerOffsets, 0.95):+0.000;-0.000;0.000}ms\n" +
+                      $"Excess control median/p95: <b>{GetMedianOrNaN(controlOffsets):+0.000;-0.000;0.000}/" +
+                      $"{GetPercentileOrNaN(controlOffsets, 0.95):+0.000;-0.000;0.000}ms</b>\n" +
+                      $"Decode advance median: {GetMedianOrNaN(decodeAdvances):+0.000;-0.000;0.000}ms; " +
+                      $"available change median: {GetMedianOrNaN(availableChanges):+0.000;-0.000;0.000}ms");
         }
 
         [MenuItem("Tests/Diagnose Tempo Update Period")]
@@ -1099,74 +1645,198 @@ namespace Editor
             return stream;
         }
 
-        private static async Task MeasureMixerSeekLatency(BassAudioManager audioManager)
+        private static async Task MeasurePlainStreamPositionStartup()
         {
-            var mixer = CreateTestMixer(audioManager);
-            FileStream fileStream = null;
+            string testFilePath = Path.Combine(Path.GetTempPath(),
+                $"yarg-bass-position-startup-{Guid.NewGuid():N}.wav");
+            int streamHandle = 0;
 
             try
             {
-                string path = Path.Combine(Application.streamingAssetsPath, "metronome", "sine_hi.ogg");
-                if (!File.Exists(path))
+                // Uncompressed PCM filename stream: no OGG decoder, callbacks, mixer, or BASS_FX.
+                using (var testStream = CreateTempoTestTrack(10))
+                using (var testFile = File.Create(testFilePath))
                 {
-                    throw new Exception($"Audio file not found: {path}");
+                    testStream.CopyTo(testFile);
                 }
 
-                fileStream = File.OpenRead(path);
-                if (!mixer.AddChannel(fileStream, SongStem.Song))
+                streamHandle = Bass.CreateStream(testFilePath, 0, 0, BassFlags.Default);
+                if (streamHandle == 0)
                 {
-                    throw new Exception("Failed to add channel to mixer");
+                    throw new Exception($"Failed to create plain PCM stream: {Bass.LastError}");
                 }
 
-                int tempoStreamHandle = GetTempoStreamHandle(mixer);
+                var playCallSamples = new List<double>(PLAY_POSITION_UPDATE_SAMPLE_COUNT);
+                var callToChangeSamples = new List<double>(PLAY_POSITION_UPDATE_SAMPLE_COUNT);
+                var returnToChangeSamples = new List<double>(PLAY_POSITION_UPDATE_SAMPLE_COUNT);
+                var observedPositionSamples = new List<double>(PLAY_POSITION_UPDATE_SAMPLE_COUNT);
+                var primeCallSamples = new List<double>(PLAY_POSITION_UPDATE_SAMPLE_COUNT);
+                var primedBytesSamples = new List<int>(PLAY_POSITION_UPDATE_SAMPLE_COUNT);
 
-                long totalBytes = Bass.ChannelGetLength(tempoStreamHandle);
-                double fileLength = Bass.ChannelBytes2Seconds(tempoStreamHandle, totalBytes);
-
-                double seekTarget = 0.0;
-                double syncTarget = Math.Min(0.05, fileLength * 0.5);
-                double playbackDuration = syncTarget - seekTarget;
-                long syncTargetBytes = Bass.ChannelSeconds2Bytes(tempoStreamHandle, syncTarget);
-
-                var tcs = new TaskCompletionSource<long>(TaskCreationOptions.RunContinuationsAsynchronously);
-                var stopwatch = new System.Diagnostics.Stopwatch();
-
-                SyncProcedure syncCallback = (handle, channel, data, user) =>
+                for (int sample = 1; sample <= PLAY_POSITION_UPDATE_SAMPLE_COUNT; sample++)
                 {
-                    stopwatch.Stop();
-                    tcs.TrySetResult(stopwatch.ElapsedMilliseconds);
-                };
+                    var tcs = new TaskCompletionSource<(long ticks, long position)>(
+                        TaskCreationOptions.RunContinuationsAsynchronously);
+                    var pollerReady = new ManualResetEventSlim(false);
+                    int stopPolling = 0;
+                    int startPolling = 0;
+                    long postPlayPosition = 0;
 
-                int syncHandle = Bass.ChannelSetSync(
-                    tempoStreamHandle,
-                    SyncFlags.Position | SyncFlags.Onetime,
-                    syncTargetBytes,
-                    syncCallback,
-                    IntPtr.Zero
-                );
+                    if (!Bass.ChannelSetPosition(streamHandle, 0, PositionFlags.Bytes))
+                    {
+                        pollerReady.Dispose();
+                        throw new Exception($"Failed to seek plain PCM stream: {Bass.LastError}");
+                    }
 
-                if (syncHandle == 0)
-                {
-                    throw new Exception($"Failed to set BASS position sync: {Bass.LastError}");
+                    long primeCallTicks = System.Diagnostics.Stopwatch.GetTimestamp();
+                    if (!Bass.ChannelUpdate(streamHandle, 0))
+                    {
+                        pollerReady.Dispose();
+                        throw new Exception($"Failed to prime plain PCM stream: {Bass.LastError}");
+                    }
+                    long primeReturnTicks = System.Diagnostics.Stopwatch.GetTimestamp();
+                    int primedBytes = Bass.ChannelGetData(streamHandle, IntPtr.Zero,
+                        (int) DataFlags.Available);
+                    if (primedBytes < 0)
+                    {
+                        pollerReady.Dispose();
+                        throw new Exception($"Failed to query primed PCM data: {Bass.LastError}");
+                    }
+
+                    // Keep a hot polling thread ready before ChannelPlay. It begins reading as soon as
+                    // the immediate post-ChannelPlay position has been published. This measures the
+                    // reporting stall after ChannelPlay returns, without frame timing or Task.Delay
+                    // resolution in the measurement path.
+                    var pollingThread = new Thread(() =>
+                    {
+                        pollerReady.Set();
+                        while (Volatile.Read(ref startPolling) == 0 &&
+                               Volatile.Read(ref stopPolling) == 0)
+                        {
+                            Thread.SpinWait(1);
+                        }
+
+                        while (Volatile.Read(ref stopPolling) == 0)
+                        {
+                            long position = Bass.ChannelGetPosition(streamHandle,
+                                PositionFlags.Bytes);
+                            long ticks = System.Diagnostics.Stopwatch.GetTimestamp();
+                            if (position >= 0 && position != Volatile.Read(ref postPlayPosition))
+                            {
+                                tcs.TrySetResult((ticks, position));
+                                return;
+                            }
+                        }
+                    })
+                    {
+                        IsBackground = true,
+                        Name = $"BASS position measurement {sample}",
+                        // AboveNormal reduces scheduler wake-up error without risking starvation of
+                        // BASS's own real-time update thread, which would distort the result.
+                        Priority = System.Threading.ThreadPriority.AboveNormal
+                    };
+
+                    long playCallTicks;
+                    long playReturnTicks;
+                    try
+                    {
+                        pollingThread.Start();
+                        pollerReady.Wait();
+
+                        playCallTicks = System.Diagnostics.Stopwatch.GetTimestamp();
+                        bool played = Bass.ChannelPlay(streamHandle, false);
+                        playReturnTicks = System.Diagnostics.Stopwatch.GetTimestamp();
+                        if (!played)
+                        {
+                            throw new Exception($"Failed to play plain PCM stream: {Bass.LastError}");
+                        }
+
+                        // This is the same observation production makes immediately after ChannelPlay.
+                        // Publish baseline only after native call returns, matching production timing.
+                        postPlayPosition = Bass.ChannelGetPosition(streamHandle,
+                            PositionFlags.Bytes);
+                        if (postPlayPosition < 0)
+                        {
+                            throw new Exception($"Failed to read post-play BASS position: {Bass.LastError}");
+                        }
+                        Volatile.Write(ref startPolling, 1);
+
+                        var timeoutTask = Task.Delay(2000);
+                        var completedTask = await Task.WhenAny(tcs.Task, timeoutTask);
+                        if (completedTask != tcs.Task)
+                        {
+                            long finalPosition = Bass.ChannelGetPosition(streamHandle,
+                                PositionFlags.Bytes);
+                            PlaybackState state = Bass.ChannelIsActive(streamHandle);
+                            throw new Exception($"Sample {sample}: timeout waiting for BASS playback " +
+                                $"position to change (postPlay={postPlayPosition}, final={finalPosition}, " +
+                                $"state={state})");
+                        }
+                    }
+                    finally
+                    {
+                        Interlocked.Exchange(ref stopPolling, 1);
+                        pollingThread.Join(250);
+                        pollerReady.Dispose();
+                    }
+
+                    var firstChange = await tcs.Task;
+                    if (Bass.ChannelIsActive(streamHandle) == PlaybackState.Playing)
+                    {
+                        bool paused = Bass.ChannelPause(streamHandle);
+                        // Short test file can reach its end between state check and Pause().
+                        if (!paused &&
+                            Bass.ChannelIsActive(streamHandle) == PlaybackState.Playing)
+                        {
+                            throw new Exception($"Failed to pause plain PCM stream after sample {sample}: " +
+                                $"{Bass.LastError}");
+                        }
+                    }
+                    double playCallMs = (playReturnTicks - playCallTicks) * 1000.0 /
+                        System.Diagnostics.Stopwatch.Frequency;
+                    double callToChangeMs = (firstChange.ticks - playCallTicks) * 1000.0 /
+                        System.Diagnostics.Stopwatch.Frequency;
+                    double returnToChangeMs = (firstChange.ticks - playReturnTicks) * 1000.0 /
+                        System.Diagnostics.Stopwatch.Frequency;
+                    double observedPositionMs = Bass.ChannelBytes2Seconds(streamHandle,
+                        firstChange.position) * 1000.0;
+                    double primeCallMs = (primeReturnTicks - primeCallTicks) * 1000.0 /
+                        System.Diagnostics.Stopwatch.Frequency;
+                    playCallSamples.Add(playCallMs);
+                    callToChangeSamples.Add(callToChangeMs);
+                    returnToChangeSamples.Add(returnToChangeMs);
+                    observedPositionSamples.Add(observedPositionMs);
+                    primeCallSamples.Add(primeCallMs);
+                    primedBytesSamples.Add(primedBytes);
+                    Debug.Log($"[Plain PCM Stream Position Startup] Sample {sample}/{PLAY_POSITION_UPDATE_SAMPLE_COUNT}: " +
+                        $"prime={primeCallMs:0.000}ms ({primedBytes} bytes available); " +
+                        $"play={playCallMs:0.000}ms; call→change={callToChangeMs:0.000}ms; " +
+                        $"return→change={returnToChangeMs:0.000}ms; " +
+                        $"post-play position={Bass.ChannelBytes2Seconds(streamHandle, postPlayPosition) * 1000.0:0.000}ms; " +
+                        $"first changed position={observedPositionMs:0.000}ms");
                 }
 
-                stopwatch.Start();
-                mixer.SetPosition(seekTarget);
-                // Start explicitly after seeking. The short metronome sample may have already reached EOF
-                // during any prior playback, and EOF state reporting differs between output backends.
-                mixer.Play();
-
-                var timeoutTask = Task.Delay(2000);
-                var completedTask = await Task.WhenAny(tcs.Task, timeoutTask);
-
-                if (completedTask != tcs.Task)
+                playCallSamples.Sort();
+                callToChangeSamples.Sort();
+                returnToChangeSamples.Sort();
+                observedPositionSamples.Sort();
+                primeCallSamples.Sort();
+                primedBytesSamples.Sort();
+                double latencyMean = 0;
+                foreach (double value in returnToChangeSamples)
                 {
-                    Bass.ChannelRemoveSync(tempoStreamHandle, syncHandle);
-                    throw new Exception("Timeout waiting for BASS position sync (audio did not play or seek failed)");
+                    latencyMean += value;
                 }
-
-                long totalElapsedMs = await tcs.Task;
-                long actualSeekLatencyMs = totalElapsedMs - (long) (playbackDuration * 1000);
+                latencyMean /= returnToChangeSamples.Count;
+                double latencyVariance = 0;
+                foreach (double value in returnToChangeSamples)
+                {
+                    double difference = value - latencyMean;
+                    latencyVariance += difference * difference;
+                }
+                double latencyJitter = Math.Sqrt(latencyVariance / returnToChangeSamples.Count);
+                double latencyMedian = GetPercentile(returnToChangeSamples, 0.5);
+                double latencyP95 = GetPercentile(returnToChangeSamples, 0.95);
 
                 var info = Bass.Info;
                 int infoLatency = info.Latency;
@@ -1176,25 +1846,47 @@ namespace Editor
                 int minBufferLength = info.MinBufferLength;
                 int configuredBufferLength = SettingsManager.Settings.PlaybackBufferLength.Value;
                 double deviceLatency = GlobalAudioHandler.PlaybackLatency;
-                double playback = mixer.GetPlaybackStartOffset() * 1000.0;
-                double tempo = mixer.GetTempoStreamLatency() * 1000.0;
 
-                Debug.Log($"<b>[Real Seek Latency]</b>\n" +
-                          $"  - Actual Seek Latency: <b>{actualSeekLatencyMs}ms</b>\n" +
-                          $"  - SongRunner Seek Latency: {playback:0.0}ms\n" +
-                          $"  - Tempo Latency: {tempo:0.0}ms\n" +
+                Debug.Log($"<b>[Plain PCM Stream Position Startup]</b>\n" +
+                          $"  - Pipeline: generated PCM WAV → direct BASS playback stream\n" +
+                          $"  - ChannelPlay Return → BASS Position Change ({returnToChangeSamples.Count} samples):\n" +
+                          $"      Mean: <b>{latencyMean:0.000}ms</b>; Median: " +
+                          $"<b>{latencyMedian:0.000}ms</b>; P95: {latencyP95:0.000}ms\n" +
+                          $"      Min/Max: {returnToChangeSamples[0]:0.000}/{returnToChangeSamples[returnToChangeSamples.Count - 1]:0.000}ms; " +
+                          $"Jitter (stddev): {latencyJitter:0.000}ms\n" +
+                          $"      Samples: {string.Join(", ", returnToChangeSamples.ConvertAll(value => $"{value:0.000}"))}ms\n" +
+                          $"  - ChannelPlay Call Duration Min/Median/Max: " +
+                          $"{playCallSamples[0]:0.000}/{GetPercentile(playCallSamples, 0.5):0.000}/" +
+                          $"{playCallSamples[playCallSamples.Count - 1]:0.000}ms\n" +
+                          $"  - ChannelPlay Call → BASS Position Change Min/Median/Max: " +
+                          $"{callToChangeSamples[0]:0.000}/{GetPercentile(callToChangeSamples, 0.5):0.000}/" +
+                          $"{callToChangeSamples[callToChangeSamples.Count - 1]:0.000}ms\n" +
+                          $"  - First Observed BASS Position Min/Max: " +
+                          $"{observedPositionSamples[0]:0.000}/" +
+                          $"{observedPositionSamples[observedPositionSamples.Count - 1]:0.000}ms\n" +
+                          $"  - ChannelUpdate Prime Duration Min/Median/Max: " +
+                          $"{primeCallSamples[0]:0.000}/{GetPercentile(primeCallSamples, 0.5):0.000}/" +
+                          $"{primeCallSamples[primeCallSamples.Count - 1]:0.000}ms\n" +
+                          $"  - Buffered Bytes After Prime Min/Max: " +
+                          $"{primedBytesSamples[0]}/{primedBytesSamples[primedBytesSamples.Count - 1]}\n" +
                           $"  - User Configured Buffer Size: {configuredBufferLength}ms\n" +
                           $"  - Device Latency: {deviceLatency:0.0}ms\n" +
                           $"  - BASS Latency Components: info.Latency={infoLatency}ms, " +
                           $"DeviceBufferLength={deviceBufferLength}ms, updatePeriod={updatePeriod}ms, " +
                           $"devPeriod={devPeriod}ms, MinBuf={minBufferLength}ms");
 
-                GC.KeepAlive(syncCallback);
             }
             finally
             {
-                mixer.Dispose();
-                fileStream?.Dispose();
+                if (streamHandle != 0)
+                {
+                    Bass.StreamFree(streamHandle);
+                }
+
+                if (File.Exists(testFilePath))
+                {
+                    File.Delete(testFilePath);
+                }
             }
         }
 
@@ -1242,7 +1934,101 @@ namespace Editor
             }
         }
 
-        private static async Task MeasurePositionClockStability(BassAudioManager audioManager)
+        private static async Task MeasureFilePositionClockBaseline(string initialization)
+        {
+            string testFilePath = Path.Combine(Path.GetTempPath(),
+                $"yarg-bass-position-clock-{Guid.NewGuid():N}.wav");
+            int streamHandle = 0;
+
+            try
+            {
+                // Match the standalone C repro's stream setup: a WAV filename, no callbacks,
+                // no stream flags, and no per-stream buffer override.
+                using (var testStream = CreateTempoTestTrack(30))
+                using (var testFile = File.Create(testFilePath))
+                {
+                    testStream.CopyTo(testFile);
+                }
+
+                streamHandle = Bass.CreateStream(testFilePath, 0, 0, BassFlags.Default);
+                if (streamHandle == 0)
+                {
+                    throw new Exception($"Failed to create baseline file stream: {Bass.LastError}");
+                }
+
+                if (!Bass.ChannelPlay(streamHandle))
+                {
+                    throw new Exception($"Failed to play baseline file stream: {Bass.LastError}");
+                }
+
+#if UNITY_EDITOR_LINUX
+                var standaloneResult = StartConcurrentStandaloneBassClock(testFilePath);
+#endif
+                await Task.Delay(POSITION_CLOCK_WARMUP_MS);
+                var samples = await CollectPositionClockSamples(streamHandle);
+                LogPositionClockSamples(samples,
+                    $"Baseline WAV filename stream ({initialization}; no flags or buffer override)");
+#if UNITY_EDITOR_LINUX
+                Debug.Log(await standaloneResult);
+#endif
+            }
+            finally
+            {
+                if (streamHandle != 0)
+                {
+                    Bass.StreamFree(streamHandle);
+                }
+
+                if (File.Exists(testFilePath))
+                {
+                    File.Delete(testFilePath);
+                }
+            }
+        }
+
+        private static async Task MeasurePlainPositionClockStability()
+        {
+            var testStream = CreateTempoTestTrack(30);
+            int streamHandle = 0;
+
+            try
+            {
+                const BassFlags streamFlags =
+                    BassFlags.Prescan | BassFlags.AsyncFile | (BassFlags) 64; // BASS_SAMPLE_NOREORDER
+                streamHandle = Bass.CreateStream(StreamSystem.NoBuffer, streamFlags,
+                    new BassStreamProcedures(testStream));
+                if (streamHandle == 0)
+                {
+                    throw new Exception($"Failed to create plain playback stream: {Bass.LastError}");
+                }
+
+                float bufferSeconds = BassHelpers.ClampPlaybackBufferLength(TEST_BUFFER_MS) / 1000f;
+                if (!Bass.ChannelSetAttribute(streamHandle, ChannelAttribute.Buffer, bufferSeconds))
+                {
+                    throw new Exception($"Failed to set plain playback stream buffer: {Bass.LastError}");
+                }
+
+                if (!Bass.ChannelPlay(streamHandle))
+                {
+                    throw new Exception($"Failed to play plain playback stream: {Bass.LastError}");
+                }
+
+                await Task.Delay(POSITION_CLOCK_WARMUP_MS);
+                var samples = await CollectPositionClockSamples(streamHandle);
+                LogPositionClockSamples(samples, "Plain BASS playback stream (no mixer, no BASS_FX)");
+            }
+            finally
+            {
+                if (streamHandle != 0)
+                {
+                    Bass.StreamFree(streamHandle);
+                }
+
+                testStream.Dispose();
+            }
+        }
+
+        private static async Task MeasureTempoPositionClockStability(BassAudioManager audioManager)
         {
             var mixer = CreateTestMixer(audioManager);
             var testStream = CreateTempoTestTrack(30);
@@ -1257,30 +2043,8 @@ namespace Editor
                 int tempoStreamHandle = GetTempoStreamHandle(mixer);
                 mixer.Play();
                 await Task.Delay(POSITION_CLOCK_WARMUP_MS);
-
-                var samples = await Task.Run(() =>
-                {
-                    var result = new List<PositionClockSample>(
-                        POSITION_CLOCK_DURATION_MS / POSITION_CLOCK_SAMPLE_INTERVAL_MS);
-                    var stopwatch = System.Diagnostics.Stopwatch.StartNew();
-
-                    while (stopwatch.ElapsedMilliseconds < POSITION_CLOCK_DURATION_MS)
-                    {
-                        double before = stopwatch.Elapsed.TotalSeconds;
-                        double position = GetPositionMs(tempoStreamHandle, PositionFlags.Bytes) / 1000.0;
-                        double after = stopwatch.Elapsed.TotalSeconds;
-                        if (!double.IsNaN(position))
-                        {
-                            result.Add(new PositionClockSample((before + after) * 0.5, position));
-                        }
-
-                        Thread.Sleep(POSITION_CLOCK_SAMPLE_INTERVAL_MS);
-                    }
-
-                    return result;
-                });
-
-                LogPositionClockStability(samples);
+                var samples = await CollectPositionClockSamples(tempoStreamHandle);
+                LogPositionClockSamples(samples, "BASS_FX tempo playback stream");
             }
             finally
             {
@@ -1289,7 +2053,221 @@ namespace Editor
             }
         }
 
-        private static void LogPositionClockStability(List<PositionClockSample> samples)
+        private static Task<List<PositionClockSample>> CollectPositionClockSamples(int streamHandle)
+        {
+            return Task.Run(() =>
+            {
+                int sampleCapacity = POSITION_CLOCK_DURATION_MS / POSITION_CLOCK_SAMPLE_INTERVAL_MS;
+                var result = new List<PositionClockSample>(sampleCapacity);
+
+#if UNITY_EDITOR_LINUX
+                // Deliberately mirror bass_position_clock_repro.c: native BASS calls only,
+                // CLOCK_MONOTONIC only, one position query per sample, fixed sample count,
+                // and absolute 1ms sleeps. This removes managed query and collector differences.
+                if (clock_gettime(CLOCK_MONOTONIC, out var next) != 0)
+                {
+                    throw new Exception($"clock_gettime(CLOCK_MONOTONIC) failed: errno " +
+                                        $"{Marshal.GetLastWin32Error()}");
+                }
+
+                const ulong bassError = ulong.MaxValue;
+                const uint bassPositionBytes = 0;
+                for (int i = 0; i < sampleCapacity; i++)
+                {
+                    double before = GetClockMonotonicSeconds();
+                    ulong bytes = NativeBassChannelGetPosition(streamHandle, bassPositionBytes);
+                    double after = GetClockMonotonicSeconds();
+                    if (bytes == bassError)
+                    {
+                        throw new Exception("Native BASS_ChannelGetPosition failed");
+                    }
+
+                    double position = NativeBassChannelBytes2Seconds(streamHandle, bytes);
+                    if (position < 0)
+                    {
+                        throw new Exception("Native BASS_ChannelBytes2Seconds failed");
+                    }
+
+                    double midpoint = (before + after) * 0.5;
+                    result.Add(new PositionClockSample(midpoint, midpoint, position, position));
+
+                    next.Nanoseconds += POSITION_CLOCK_SAMPLE_INTERVAL_MS * 1_000_000L;
+                    while (next.Nanoseconds >= 1_000_000_000L)
+                    {
+                        next.Seconds++;
+                        next.Nanoseconds -= 1_000_000_000L;
+                    }
+
+                    int sleepResult;
+                    do
+                    {
+                        sleepResult = clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, ref next,
+                            IntPtr.Zero);
+                    }
+                    while (sleepResult == 4); // EINTR; absolute deadline remains valid.
+
+                    if (sleepResult != 0)
+                    {
+                        throw new Exception($"clock_nanosleep failed: error {sleepResult}");
+                    }
+                }
+#else
+                long startTimestamp = System.Diagnostics.Stopwatch.GetTimestamp();
+                double stopwatchFrequency = System.Diagnostics.Stopwatch.Frequency;
+
+                while ((System.Diagnostics.Stopwatch.GetTimestamp() - startTimestamp) * 1000.0 /
+                       stopwatchFrequency < POSITION_CLOCK_DURATION_MS)
+                {
+                    long stopwatchBefore = System.Diagnostics.Stopwatch.GetTimestamp();
+                    double monotonicBefore = GetClockMonotonicSeconds();
+                    double position = GetPositionMs(streamHandle, PositionFlags.Bytes) / 1000.0;
+#if UNITY_EDITOR_LINUX
+                    double nativePosition = GetNativePositionSeconds(streamHandle);
+#else
+                    double nativePosition = double.NaN;
+#endif
+                    double monotonicAfter = GetClockMonotonicSeconds();
+                    long stopwatchAfter = System.Diagnostics.Stopwatch.GetTimestamp();
+                    if (!double.IsNaN(position))
+                    {
+                        double stopwatchMidpoint =
+                            ((stopwatchBefore + stopwatchAfter) * 0.5 - startTimestamp) /
+                            stopwatchFrequency;
+                        double monotonicMidpoint = (monotonicBefore + monotonicAfter) * 0.5;
+                        result.Add(new PositionClockSample(stopwatchMidpoint, monotonicMidpoint, position,
+                            nativePosition));
+                    }
+
+                    Thread.Sleep(POSITION_CLOCK_SAMPLE_INTERVAL_MS);
+                }
+#endif
+
+                return result;
+            });
+        }
+
+        private static double GetClockMonotonicSeconds()
+        {
+#if UNITY_EDITOR_LINUX
+            if (clock_gettime(CLOCK_MONOTONIC, out var time) != 0)
+            {
+                throw new Exception($"clock_gettime(CLOCK_MONOTONIC) failed: errno " +
+                                    $"{Marshal.GetLastWin32Error()}");
+            }
+
+            return time.Seconds + time.Nanoseconds / 1_000_000_000.0;
+#else
+            return (double) System.Diagnostics.Stopwatch.GetTimestamp() /
+                System.Diagnostics.Stopwatch.Frequency;
+#endif
+        }
+
+#if UNITY_EDITOR_LINUX
+        private static Task<string> StartConcurrentStandaloneBassClock(string testFilePath)
+        {
+            string executable = Environment.GetEnvironmentVariable("BASSCLOCK_PATH");
+            if (string.IsNullOrEmpty(executable))
+            {
+                string projectExecutable = Path.Combine(Directory.GetParent(Application.dataPath).FullName,
+                    "Tools", "bassclock");
+                executable = File.Exists(projectExecutable) ? projectExecutable : "/tmp/bassclock";
+            }
+
+            if (!File.Exists(executable))
+            {
+                return Task.FromResult("<b>[Concurrent standalone C BASS clock]</b>\n" +
+                    $"Skipped: executable not found at {executable}. Build Tools/bass_position_clock_repro.c " +
+                    "as Tools/bassclock or set BASSCLOCK_PATH before starting Unity.");
+            }
+
+            var startInfo = new System.Diagnostics.ProcessStartInfo
+            {
+                FileName = executable,
+                Arguments = $"\"{testFilePath.Replace("\"", "\\\"")}\"",
+                UseShellExecute = false,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                CreateNoWindow = true,
+            };
+            var process = new System.Diagnostics.Process { StartInfo = startInfo };
+            try
+            {
+                if (!process.Start())
+                {
+                    process.Dispose();
+                    return Task.FromResult("<b>[Concurrent standalone C BASS clock]</b>\n" +
+                        "Failed to start process.");
+                }
+            }
+            catch (Exception ex)
+            {
+                process.Dispose();
+                return Task.FromResult("<b>[Concurrent standalone C BASS clock]</b>\n" +
+                    $"Failed to start {executable}: {ex.Message}");
+            }
+
+            Debug.Log("<b>[Concurrent standalone C BASS clock]</b> Started alongside Unity collector: " +
+                      executable);
+            return Task.Run(() =>
+            {
+                using (process)
+                {
+                    string standardOutput = process.StandardOutput.ReadToEnd();
+                    string standardError = process.StandardError.ReadToEnd();
+                    process.WaitForExit();
+                    string output = string.IsNullOrWhiteSpace(standardError)
+                        ? standardOutput.Trim()
+                        : standardError.Trim();
+                    return "<b>[Concurrent standalone C BASS clock]</b>\n" +
+                           $"Exit code: {process.ExitCode}\n{output}";
+                }
+            });
+        }
+#endif
+
+        private static void LogPositionClockSamples(List<PositionClockSample> samples, string clockName)
+        {
+#if UNITY_EDITOR_LINUX
+            // Collector matches the standalone C repro, so emit only that result.
+            LogPositionClockStability(samples, clockName, true, true);
+#else
+            LogPositionClockStability(samples, clockName, false, false);
+#endif
+        }
+
+#if UNITY_EDITOR_LINUX
+        private static void LogManagedNativePositionDifference(List<PositionClockSample> samples, string clockName)
+        {
+            var differences = new List<double>(samples.Count);
+            double maxAbsoluteDifferenceMs = 0;
+            foreach (var sample in samples)
+            {
+                if (double.IsNaN(sample.NativePosition))
+                {
+                    continue;
+                }
+
+                double differenceMs = (sample.NativePosition - sample.Position) * 1000.0;
+                differences.Add(differenceMs);
+                maxAbsoluteDifferenceMs = Math.Max(maxAbsoluteDifferenceMs, Math.Abs(differenceMs));
+            }
+
+            if (differences.Count == 0)
+            {
+                throw new Exception("No valid direct native BASS position samples");
+            }
+
+            differences.Sort();
+            Debug.Log($"<b>[BASS Managed/Native Position Difference]</b>\n" +
+                      $"Clock: {clockName}\n" +
+                      $"Native minus ManagedBass: p05 {GetPercentile(differences, 0.05):+0.000;-0.000;0.000}ms; " +
+                      $"p95 {GetPercentile(differences, 0.95):+0.000;-0.000;0.000}ms; " +
+                      $"max abs {maxAbsoluteDifferenceMs:0.000}ms");
+        }
+#endif
+
+        private static void LogPositionClockStability(List<PositionClockSample> samples, string clockName,
+            bool useClockMonotonic, bool useNativePosition)
         {
             if (samples.Count < 2)
             {
@@ -1303,8 +2281,10 @@ namespace Editor
             for (int i = 1; i < samples.Count; i++)
             {
                 var previous = filteredSamples[^1];
-                double wallDelta = samples[i].WallTime - previous.WallTime;
-                double positionDelta = samples[i].Position - previous.Position;
+                double wallDelta = GetPositionClockTime(samples[i], useClockMonotonic) -
+                    GetPositionClockTime(previous, useClockMonotonic);
+                double positionDelta = GetPositionClockPosition(samples[i], useNativePosition) -
+                    GetPositionClockPosition(previous, useNativePosition);
                 double discontinuityMs = Math.Abs(positionDelta - wallDelta) * 1000.0;
                 if (discontinuityMs > POSITION_CLOCK_DISCONTINUITY_MS)
                 {
@@ -1322,8 +2302,8 @@ namespace Editor
                 throw new Exception("Not enough BASS position samples after discontinuity filtering");
             }
 
-            double wallOrigin = samples[0].WallTime;
-            double positionOrigin = samples[0].Position;
+            double wallOrigin = GetPositionClockTime(samples[0], useClockMonotonic);
+            double positionOrigin = GetPositionClockPosition(samples[0], useNativePosition);
             double sumX = 0;
             double sumY = 0;
             double sumXX = 0;
@@ -1333,8 +2313,9 @@ namespace Editor
 
             for (int i = 0; i < samples.Count; i++)
             {
-                double x = samples[i].WallTime - wallOrigin;
-                double y = ((samples[i].Position - positionOrigin) - x) * 1000.0;
+                double x = GetPositionClockTime(samples[i], useClockMonotonic) - wallOrigin;
+                double y = ((GetPositionClockPosition(samples[i], useNativePosition) - positionOrigin) - x) *
+                    1000.0;
                 elapsed[i] = x;
                 errorsMs[i] = y;
                 sumX += x;
@@ -1354,6 +2335,9 @@ namespace Editor
             var residuals = new List<double>(samples.Count);
             var log = new StringBuilder();
             log.AppendLine("<b>[BASS Position Clock Stability]</b>");
+            log.AppendLine($"Clock: {clockName}");
+            log.AppendLine($"Position API: {(useNativePosition ? "direct native P/Invoke" : "ManagedBass")}");
+            log.AppendLine($"Reference: {(useClockMonotonic ? "clock_gettime(CLOCK_MONOTONIC)" : ".NET Stopwatch")}");
             log.AppendLine($"Warmup: {POSITION_CLOCK_WARMUP_MS}ms; samples: {samples.Count}/" +
                            $"{originalSampleCount}; " +
                            $"duration: {elapsed[^1]:0.000}s; requested interval: " +
@@ -1409,6 +2393,33 @@ namespace Editor
 
             Debug.Log(log.ToString());
         }
+
+        private static double GetPositionClockTime(PositionClockSample sample, bool useClockMonotonic)
+        {
+            return useClockMonotonic ? sample.MonotonicTime : sample.WallTime;
+        }
+
+        private static double GetPositionClockPosition(PositionClockSample sample, bool useNativePosition)
+        {
+            return useNativePosition ? sample.NativePosition : sample.Position;
+        }
+
+#if UNITY_EDITOR_LINUX
+        private static double GetNativePositionSeconds(int channelHandle)
+        {
+            const ulong bassError = ulong.MaxValue;
+            const uint bassPositionBytes = 0;
+
+            ulong bytes = NativeBassChannelGetPosition(channelHandle, bassPositionBytes);
+            if (bytes == bassError)
+            {
+                return double.NaN;
+            }
+
+            double seconds = NativeBassChannelBytes2Seconds(channelHandle, bytes);
+            return seconds < 0 ? double.NaN : seconds;
+        }
+#endif
 
         private static async Task AppendOutputBufferSamples(StringBuilder log, int tempoStreamHandle,
             int sampleCount, int sampleIntervalMs)
