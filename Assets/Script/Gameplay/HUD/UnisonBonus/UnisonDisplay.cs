@@ -113,6 +113,12 @@ namespace YARG.Gameplay.HUD
                 UnisonDisplaySetting.Disabled        => int.MaxValue,
                 _                                    => throw new ArgumentOutOfRangeException(),
             };
+
+            if (GameManager.EngineManager.UnisonEvents.Count == 0)
+            {
+                return;
+            }
+
             var maxParticipants = GameManager.EngineManager.UnisonEvents.Max(e => e.PartCount);
 
             if (SettingsManager.Settings.UnisonDisplay.Value == UnisonDisplaySetting.Disabled ||
