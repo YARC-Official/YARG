@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using Cinemachine;
 using Cysharp.Threading.Tasks;
+using DG.Tweening;
 using Newtonsoft.Json;
 using UniHumanoid;
 using UnityEngine;
@@ -636,8 +637,7 @@ namespace YARG.Gameplay
                         enabled = false; // Temp disable
                         _videoPlayer.enabled = true;
 
-                        // Hack to ensure the video stays synced to the audio
-                        _videoSeeking = true; // Signaling flag; must come first
+                        _videoSeeking = true;
                         if (SettingsManager.Settings.WaitForSongVideo.Value)
                             GameManager.OverridePause();
 
@@ -657,6 +657,22 @@ namespace YARG.Gameplay
 
             enabled = !double.IsNaN(_videoEndTime);
             _videoSeeking = false;
+        }
+
+        public async UniTask<bool> FadeOut()
+        {
+            _backgroundDimmer.DOKill();
+            _backgroundDimmer.DOFade(1f, 0.25f);
+
+            return true;
+        }
+
+        public async void FadeIn()
+        {
+            await UniTask.Delay(TimeSpan.FromSeconds(0.3f));
+
+            _backgroundDimmer.DOKill();
+            _backgroundDimmer.DOFade(0f, 0.25f);
         }
 
         public void SetSpeed(float speed)

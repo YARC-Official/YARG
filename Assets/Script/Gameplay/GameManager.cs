@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using Cysharp.Threading.Tasks;
@@ -439,6 +439,9 @@ namespace YARG.Gameplay
 
             // Allow sleeping
             Screen.sleepTimeout = _originalSleepTimeout;
+
+            // Fade out background
+            _ = BackgroundManager.FadeOut();
         }
 
         public bool PlayerHasFailed { get; set; } = false;
@@ -535,6 +538,10 @@ namespace YARG.Gameplay
 
             // Unpause the background/venue
             Time.timeScale = 1f;
+
+            // Fade in background
+            BackgroundManager.FadeIn();
+
             BackgroundManager.SetPaused(false);
             GameStateFetcher.SetPaused(false);
 
@@ -1024,6 +1031,8 @@ namespace YARG.Gameplay
             {
                 return true;
             }
+
+            BackgroundManager.SetTime(_songRunner.SongTime + Song.SongOffsetSeconds);
 
             foreach (var player in _players)
             {
