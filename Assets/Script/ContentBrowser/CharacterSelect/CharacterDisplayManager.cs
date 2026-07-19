@@ -1,14 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading;
 using Cysharp.Threading.Tasks;
 using DG.Tweening;
 using TMPro;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
+using UnityEngine.ResourceManagement.ResourceLocations;
 using UniVRM10;
 using YARG.Core.Input;
+using YARG.Core.Logging;
 using YARG.Helpers;
 using YARG.Localization;
 using YARG.Menu.Navigation;
@@ -54,7 +57,6 @@ namespace YARG.ContentBrowser.CharacterSelect
 
         public class CharacterInfo
         {
-            public GameObject Instance;
             public GameObject Prefab;
             public string     Name;
             public string     Author;
@@ -65,6 +67,8 @@ namespace YARG.ContentBrowser.CharacterSelect
 
         private List<CharacterInfo> _characters;
         private int _currentCharacterIndex = 0;
+
+        private bool _loadingFinished = false;
 
         // The character currently at the front of the carousel
         private CharacterInfo _primaryCharacter;
@@ -84,9 +88,15 @@ namespace YARG.ContentBrowser.CharacterSelect
             _characterName.text = string.Empty;
             _characterCredits.text = string.Empty;
 
+            _characters = new List<CharacterInfo>();
             var loading = new LoadingContext();
             loading.SetLoadingText("Loading characters...");
-            _characters = await EnumerateCharacters();
+
+            // Kick off background loading and wait for a minimum of 5 (or all if total < 5)
+            var cts = this.GetCancellationTokenOnDestroy();
+            _ = LoadAllCharacters(loading, cts);
+            // We preload 5 in an effort to avoid weirdness when loading is slow
+            await UniTask.WaitUntil(() => _characters.Count >= 5 || _loadingFinished, cancellationToken: cts);
             loading.Dispose();
 
             // Set a navigation scheme
@@ -209,7 +219,6 @@ namespace YARG.ContentBrowser.CharacterSelect
 
         private CharacterInfo GetCharacterInfo(int offset)
         {
-            // Return the CharacterInfo at _currentCharacterIndex + offset, wrapping if necessary
             var index = WrapCharacterIndex(_currentCharacterIndex + offset);
             if (_characters.Count == 0 || index >= _characters.Count)
             {
@@ -439,154 +448,172 @@ namespace YARG.ContentBrowser.CharacterSelect
             GlobalVariables.Instance.LoadScene(SceneIndex.Menu);
         }
 
-        // TODO: This enumeration stuff should live somewhere else so it can be reused by VenueManager and whatever else
-        private async UniTask<List<CharacterInfo>> EnumerateCharacters()
+        private async UniTask LoadAllCharacters(LoadingContext context, CancellationToken ct)
         {
-            var characters = new List<CharacterInfo>();
-            using var context = new LoadingContext();
-            context.SetLoadingText("Loading characters...");
-            characters.AddRange(await EnumerateLocalCharacters(context));
-            characters.AddRange(await EnumerateRemoteCharacters(context));
-            return characters;
+            try
+            {
+                // Enumerate local files
+                var folder = Path.Combine(CustomContentManager.CustomizationDirectory, "characters");
+                string[] files = Directory.Exists(folder) ? Directory.GetFiles(folder, "*.yargchar") : Array.Empty<string>();
+
+                // Ask addressables if there are any remote characters
+                var locationsHandle = Addressables.LoadResourceLocationsAsync("character");
+                await locationsHandle.Task;
+                var locations = locationsHandle.Status == AsyncOperationStatus.Succeeded ? locationsHandle.Result : null;
+
+                var totalFiles = files.Length;
+                var totalRemote = locations?.Count ?? 0;
+                var totalCount = totalFiles + totalRemote;
+
+                var loadedCount = 0;
+                var tasks = new List<UniTask>();
+
+                async UniTask LoadingTask(UniTask<CharacterInfo> loadTask)
+                {
+                    var info = await loadTask;
+                    if (ct.IsCancellationRequested)
+                    {
+                        return;
+                    }
+
+                    if (info != null)
+                    {
+                        _characters.Add(info);
+                    }
+
+                    int current = Interlocked.Increment(ref loadedCount);
+                    if (!_loadingFinished)
+                    {
+                        context.SetSubText($"Loading characters ({current}/{totalCount})");
+                    }
+                }
+
+                // Kick off all loads concurrently
+                foreach (var file in files)
+                {
+                    tasks.Add(LoadingTask(LoadLocalCharacter(file)));
+                }
+
+                if (locations != null)
+                {
+                    foreach (var location in locations)
+                    {
+                        tasks.Add(LoadingTask(LoadRemoteCharacter(location)));
+                    }
+                }
+
+                await UniTask.WhenAll(tasks);
+            }
+            catch (Exception e)
+            {
+                YargLogger.LogError($"Error loading characters: {e.Message}");
+            }
+            finally
+            {
+                _loadingFinished = true;
+            }
         }
 
-        private static async UniTask<List<CharacterInfo>> EnumerateLocalCharacters(LoadingContext context)
+        private async UniTask<CharacterInfo> LoadLocalCharacter(string file)
         {
-            context.SetSubText("Scanning local characters ");
-            var characters = new List<CharacterInfo>();
-            // This probably needs a rework to not load every single character at once
-            var folder = Path.Combine(CustomContentManager.CustomizationDirectory, "characters");
+            var bundle = await AssetBundle.LoadFromFileAsync(file);
+            if (bundle == null) return null;
 
-            string[] files = Directory.Exists(folder) ? Directory.GetFiles(folder, "*.yargchar") : Array.Empty<string>();
-            var fileCount = files.Length;
+            var request = bundle.LoadAssetAsync<GameObject>(BackgroundHelper.CHARACTER_PREFAB_PATH.ToLowerInvariant());
+            var prefab = await request as GameObject;
 
-            for (var i = 0; i < files.Length; i++)
+            if (prefab == null)
             {
-                var file = files[i];
-                context.SetSubText($"Scanning local characters ({i + 1}/{fileCount})");
-                var bundle = await AssetBundle.LoadFromFileAsync(file);
-                if (bundle == null)
-                {
-                    continue;
-                }
-
-                var request = bundle.LoadAssetAsync<GameObject>(BackgroundHelper.CHARACTER_PREFAB_PATH.ToLowerInvariant());
-                var prefab = await request as GameObject;
-
-                if (prefab == null)
-                {
-                    bundle.Unload(true);
-                    continue;
-                }
-
-                var instance = Instantiate(prefab);
-                instance.gameObject.SetActive(false);
-
-                string name;
-                string author;
-
-                var vrmInstance = instance.GetComponent<Vrm10Instance>();
-                if (vrmInstance != null && vrmInstance.Vrm != null && vrmInstance.Vrm.Meta != null)
-                {
-                    name = string.IsNullOrWhiteSpace(vrmInstance.Vrm.Meta.Name)
-                        ? Path.GetFileNameWithoutExtension(file)
-                        : vrmInstance.Vrm.Meta.Name;
-                    var authors = vrmInstance.Vrm.Meta.Authors;
-
-                    author = authors.Count switch
-                    {
-                        0 => Localize.Key("Menu.Content.CharacterSelect.UnspecifiedAuthor"),
-                        1 => authors[0],
-                        _ => string.Join(", ", authors)
-                    };
-                }
-                else
-                {
-                    name = Path.GetFileNameWithoutExtension(file);
-                    author = Localize.Key("Menu.Content.CharacterSelect.UnspecifiedAuthor");
-                }
-
-                characters.Add(new CharacterInfo {
-                    Instance = instance,
-                    Prefab = prefab,
-                    Identifier = file,
-                    Name = name,
-                    Author = author,
-                    IsAddressable = false
-                });
-
-                bundle.Unload(false);
+                bundle.Unload(true);
+                return null;
             }
 
-            return characters;
+            var instance = Instantiate(prefab);
+            instance.gameObject.SetActive(false);
+
+            string name;
+            string author;
+            var vrmInstance = instance.GetComponent<Vrm10Instance>();
+
+            if (vrmInstance != null && vrmInstance.Vrm != null && vrmInstance.Vrm.Meta != null)
+            {
+                name = string.IsNullOrWhiteSpace(vrmInstance.Vrm.Meta.Name)
+                    ? Path.GetFileNameWithoutExtension(file)
+                    : vrmInstance.Vrm.Meta.Name;
+                var authors = vrmInstance.Vrm.Meta.Authors;
+                author = authors.Count switch
+                {
+                    0 => Localize.Key("Menu.Content.CharacterSelect.UnspecifiedAuthor"),
+                    1 => authors[0],
+                    _ => string.Join(", ", authors)
+                };
+            }
+            else
+            {
+                name = Path.GetFileNameWithoutExtension(file);
+                author = Localize.Key("Menu.Content.CharacterSelect.UnspecifiedAuthor");
+            }
+
+            Destroy(instance);
+            bundle.Unload(false);
+
+            return new CharacterInfo
+            {
+                Prefab = prefab,
+                Identifier = file,
+                Name = name,
+                Author = author,
+                IsAddressable = false
+            };
         }
 
-        private async UniTask<List<CharacterInfo>> EnumerateRemoteCharacters(LoadingContext context)
+        private async UniTask<CharacterInfo> LoadRemoteCharacter(IResourceLocation result)
         {
-            var characters = new List<CharacterInfo>();
-            context.SetSubText("Loading remote characters...");
-
-            // Get the catalog
-            var locations = Addressables.LoadResourceLocationsAsync("character");
-            await locations.Task;
-
-            if (locations.Status != AsyncOperationStatus.Succeeded || locations.Result.Count <= 0)
+            var key = result.PrimaryKey;
+            var handle = Addressables.LoadAssetAsync<GameObject>(result);
+            var prefab = await handle.Task;
+            if (handle.Status != AsyncOperationStatus.Succeeded)
             {
-                return characters;
+                return null;
             }
 
-            var count = locations.Result.Count;
-            for (var i = 0; i < count; i++)
+            var instance = await Addressables.InstantiateAsync(key);
+            instance.gameObject.SetActive(false);
+
+            string name;
+            string author;
+
+            var vrmInstance = instance.GetComponent<Vrm10Instance>();
+            if (vrmInstance != null && vrmInstance.Vrm != null && vrmInstance.Vrm.Meta != null)
             {
-                var result = locations.Result[i];
-                context.SetSubText($"Loading remote characters ({i + 1}/{count})");
-                var key = result.PrimaryKey;
-                var handle = Addressables.LoadAssetAsync<GameObject>(result);
-                var prefab = await handle.Task;
-                if (handle.Status != AsyncOperationStatus.Succeeded)
+                name = vrmInstance.Vrm.Meta.Name;
+                var authors = vrmInstance.Vrm.Meta.Authors;
+
+                author = authors.Count switch
                 {
-                    continue;
-                }
-
-                var instance = Instantiate(prefab);
-                instance.gameObject.SetActive(false);
-
-                string name;
-                string author;
-
-                var vrmInstance = instance.GetComponent<Vrm10Instance>();
-                if (vrmInstance.Vrm != null && vrmInstance.Vrm.Meta != null)
-                {
-                    name = vrmInstance.Vrm.Meta.Name;
-                    var authors = vrmInstance.Vrm.Meta.Authors;
-
-                    author = authors.Count switch
-                    {
-                        0 => "",
-                        1 => authors[0],
-                        _ => string.Join(", ", authors)
-                    };
-                }
-                else
-                {
-                    // Name fallback is the last component
-                    var index = key.LastIndexOf('/');
-                    name = key[(index + 1)..];
-                    author = string.Empty;
-                }
-
-                characters.Add(new CharacterInfo {
-                    Instance = instance,
-                    Prefab = prefab,
-                    Identifier = key,
-                    Name = name,
-                    Author = author,
-                    IsAddressable = true,
-                    Handle = handle
-                });
+                    0 => "",
+                    1 => authors[0],
+                    _ => string.Join(", ", authors)
+                };
+            }
+            else
+            {
+                // Name fallback is the last component
+                var index = key.LastIndexOf('/');
+                name = key[(index + 1)..];
+                author = string.Empty;
             }
 
-            return characters;
+            Addressables.ReleaseInstance(instance);
+
+            return new CharacterInfo {
+                Prefab = prefab,
+                Identifier = key,
+                Name = name,
+                Author = author,
+                IsAddressable = true,
+                Handle = handle
+            };
         }
 
         private void Rotate(bool clockwise, CharacterInfo nextPrimary, Action onRotationComplete)
@@ -689,12 +716,6 @@ namespace YARG.ContentBrowser.CharacterSelect
             _rotationTween?.Kill();
             foreach (var character in _characters)
             {
-                if (character.Instance != null)
-                {
-                    Destroy(character.Instance);
-                    character.Instance = null;
-                }
-
                 if (character.IsAddressable && character.Handle.IsValid())
                 {
                     Addressables.Release(character.Handle);

@@ -13,7 +13,6 @@ namespace YARG.ContentBrowser.CharacterSelect
         private GameObject _characterInstance;
 
         private GameObject _podiumPrefab;
-        private GameObject _podiumInstance;
 
         private bool     _isAddressable;
         private bool     _hasAttract;
@@ -34,10 +33,6 @@ namespace YARG.ContentBrowser.CharacterSelect
         [NonSerialized]
         public CharacterInfo CharacterInfo;
 
-        private void Awake()
-        {
-            _podiumInstance = gameObject;
-        }
 
         private void OnEnable()
         {
@@ -63,15 +58,10 @@ namespace YARG.ContentBrowser.CharacterSelect
 
             _isAddressable = characterInfo.IsAddressable;
 
-            if (characterInfo.Instance == null)
-            {
-                var instance = Instantiate(characterInfo.Prefab, CharacterLocation);
-                characterInfo.Instance = instance;
-            }
-
-            _characterInstance = characterInfo.Instance;
+            _characterInstance = Instantiate(characterInfo.Prefab, CharacterLocation);
             _characterInstance.transform.SetParent(CharacterLocation, false);
             _characterInstance.transform.localPosition = Vector3.zero;
+
             if (isActiveAndEnabled)
             {
                 _characterInstance.SetActive(true);
@@ -145,7 +135,6 @@ namespace YARG.ContentBrowser.CharacterSelect
             Destroy(_characterInstance);
 
             _characterInstance = null;
-            CharacterInfo.Instance = null;
             _animator = null;
         }
 
@@ -160,11 +149,6 @@ namespace YARG.ContentBrowser.CharacterSelect
         private void OnDestroy()
         {
             DestroyCharacter();
-
-            if (_podiumInstance != null)
-            {
-                Destroy(_podiumInstance);
-            }
         }
     }
 }
