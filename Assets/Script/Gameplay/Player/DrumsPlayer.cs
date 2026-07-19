@@ -362,14 +362,14 @@ namespace YARG.Gameplay.Player
         {
             if (IsStemMuted != muted)
             {
-                GameManager.ChangeStemMuteState(SongStem.Drums, muted);
+                GameManager.ChangeStemMuteState(SongStem.DrumsElse, muted);
                 IsStemMuted = muted;
             }
         }
 
         public override void SetStarPowerFX(bool active)
         {
-            GameManager.ChangeStemReverbState(SongStem.Drums, active);
+            GameManager.ChangeStemReverbState(SongStem.DrumsElse, active);
         }
 
         protected override void ResetVisuals()
