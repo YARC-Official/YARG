@@ -41,7 +41,7 @@ namespace YARG.Menu.Navigation
         {
             if (!_navPushed)
             {
-                Navigator.Instance.PushScheme(NavigationScheme.Empty);
+                _ = Navigator.Instance.PushScheme(NavigationScheme.Empty);
                 _navPushed = true;
             }
         }

@@ -24,7 +24,7 @@ namespace YARG.Menu.Dialogs
 
         private void OnEnable()
         {
-            Navigator.Instance.PushScheme(GetNavigationScheme());
+            _ = Navigator.Instance.PushScheme(GetNavigationScheme());
         }
 
         protected virtual NavigationScheme GetNavigationScheme()

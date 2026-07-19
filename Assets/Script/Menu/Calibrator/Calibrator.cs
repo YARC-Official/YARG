@@ -200,7 +200,7 @@ namespace YARG.Menu.Calibrator
         private void SetNavigation(NavigationScheme scheme)
         {
             ClearNavigation();
-            Navigator.Instance.PushScheme(scheme);
+            _ = Navigator.Instance.PushScheme(scheme);
             _hasNavigationScheme = true;
         }
 

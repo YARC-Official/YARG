@@ -56,7 +56,7 @@ namespace YARG.Menu.MusicLibrary
 
         private void OnEnable()
         {
-            Navigator.Instance.PushScheme(new NavigationScheme(new()
+            _ = Navigator.Instance.PushScheme(new NavigationScheme(new()
             {
                 NavigationScheme.Entry.NavigateUp,
                 NavigationScheme.Entry.NavigateDown,

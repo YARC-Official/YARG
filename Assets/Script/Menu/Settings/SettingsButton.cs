@@ -107,7 +107,7 @@ namespace YARG.Menu.Settings
                 _navGroup.SelectLastNavGroup();
             };
 
-            Navigator.Instance.PushScheme(scheme);
+            _ = Navigator.Instance.PushScheme(scheme);
 
             _focused = true;
             _navGroup.PushNavGroupToStack();

@@ -56,7 +56,7 @@ namespace Haukcode.sACN
         private readonly HashSet<ushort> dmxUniverses = new();
         private readonly Memory<byte> receiveBufferMem;
         private readonly Stopwatch clock = new();
-        private readonly Task receiveTask;
+        private readonly Task receiveTask = null!;
         private readonly Task sendTask;
         private readonly CancellationTokenSource shutdownCTS = new();
         private readonly Dictionary<IPAddress, IPEndPoint> endPointCache = new();

@@ -53,8 +53,6 @@ namespace YARG.Menu.ScoreScreen
         [SerializeField]
         private ScrollRect _cardScrollRect;
         [SerializeField]
-        private float _horizontalScrollRate = 30f;
-        [SerializeField]
         private float _horizontalScrollDuration = 0.25f;
         [SerializeField]
         private Ease _horizontalScrollEase = Ease.OutCubic;
@@ -584,7 +582,7 @@ namespace YARG.Menu.ScoreScreen
             buttons.Add(_scrollRightEntry);
             buttons.Add(_scrollUpEntry);
             buttons.Add(_scrollDownEntry);
-            Navigator.Instance.PushScheme(new(buttons, true));
+            _ = Navigator.Instance.PushScheme(new(buttons, true));
         }
 
         private void ShowReplayAnalysis(SongEntry song, ScoreScreenStats scoreScreenStats)
