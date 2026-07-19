@@ -18,13 +18,7 @@ namespace YARG.Audio.BASS
         /// </summary>
         public static double GetPlaybackStreamLatency()
         {
-#if UNITY_STANDALONE_OSX || UNITY_EDITOR_OSX
-            // CoreAudio is pull-based; info.Latency already encapsulates the full hardware pipeline.
             return DeviceOutputLatency;
-#else
-            double deviceBufferLatency = Math.Max(0, Bass.DeviceBufferLength) / 1000.0;
-            return DeviceOutputLatency + deviceBufferLatency;
-#endif
         }
 
         /// <summary>
