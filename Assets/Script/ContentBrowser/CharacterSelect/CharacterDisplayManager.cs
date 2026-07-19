@@ -486,7 +486,7 @@ namespace YARG.ContentBrowser.CharacterSelect
                 string author;
 
                 var vrmInstance = instance.GetComponent<Vrm10Instance>();
-                if (vrmInstance.Vrm != null && vrmInstance.Vrm.Meta != null)
+                if (vrmInstance != null && vrmInstance.Vrm != null && vrmInstance.Vrm.Meta != null)
                 {
                     name = string.IsNullOrWhiteSpace(vrmInstance.Vrm.Meta.Name)
                         ? Path.GetFileNameWithoutExtension(file)
