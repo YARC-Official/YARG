@@ -363,23 +363,6 @@ namespace YARG.Playback
         }
 
         /// <summary>
-        /// Rebuilds mixer playback at the given gameplay time and anchors the gameplay clock after
-        /// the seek completes.
-        /// </summary>
-        private void PrepareAudioAt(double inputTime)
-        {
-            _mixer.Pause();
-            _audioSynchronizer.Reset(SongSpeed);
-            double audioTime = inputTime - SongOffset;
-            _mixer.SetPosition(audioTime);
-
-            // Mixer preparation can take several milliseconds. Keep gameplay fixed at the
-            // position being prepared.
-            double anchorSystemTime = InputManager.CurrentInputTime;
-            AnchorTimeline(inputTime, anchorSystemTime);
-        }
-
-        /// <summary>
         /// Starts prepared mixer playback and anchors gameplay when playback is armed.
         /// </summary>
         private void PlayPreparedAudioAt(double inputTime)
@@ -421,7 +404,7 @@ namespace YARG.Playback
             // mixer control timeline. This avoids measuring frame age as audio drift.
             double syncSystemTime = InputManager.CurrentInputTime;
             double syncInputTime = GetInputTime(syncSystemTime);
-            double audioTargetTime = syncInputTime - SongOffset;
+            double audioTargetTime = GetAudioPlaybackTime(syncInputTime);
             _audioSynchronizer.Synchronize(audioTargetTime, SongSpeed);
         }
 
@@ -627,13 +610,25 @@ namespace YARG.Playback
             double resumeInputTime = InputTime;
             PrepareAudioAt(resumeInputTime);
             Paused = false;
-
             PlayPreparedAudioAt(resumeInputTime);
 
             YargLogger.LogFormatDebug(
                 "Resumed at song time {0:0.000000}, visual time {1:0.000000}, input time {2:0.000000}.",
                 SongTime, VisualTime, InputTime
             );
+        }
+
+        /// <summary>
+        /// Sets mixer playback at the given gameplay time and anchors the gameplay clock after
+        /// the seek completes.
+        /// </summary>
+        private void PrepareAudioAt(double inputTime)
+        {
+            _mixer.Pause();
+            _audioSynchronizer.Reset(SongSpeed);
+            double audioTime = GetAudioPlaybackTime(inputTime);
+            _mixer.SetPosition(audioTime);
+            AnchorTimeline(inputTime, InputManager.CurrentInputTime);
         }
 
         /// <summary>

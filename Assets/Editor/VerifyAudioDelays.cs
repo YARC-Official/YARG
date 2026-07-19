@@ -37,6 +37,7 @@ namespace Editor
         private const int POSITION_CLOCK_UPDATE_PERIOD_MS = 5;
         private const double POSITION_CLOCK_DISCONTINUITY_MS = 100;
         private const int PLAY_POSITION_UPDATE_SAMPLE_COUNT = 100;
+        private static readonly int[] DEVICE_BUFFER_TEST_PERIOD_MULTIPLIERS = { 2, 4, 8, 16 };
         private static readonly float[] TEMPO_TEST_SPEEDS = { 0.5f, 0.75f, 1.5f, 2.0f };
         private static readonly int[] TEMPO_PIPELINE_UPDATE_PERIODS_MS = { 5, 10, 20 };
         private static readonly int[] TEMPO_PIPELINE_SEEK_WINDOWS_MS = { 10, 20, 28, 40 };
@@ -302,21 +303,49 @@ namespace Editor
 
             settingsSetter.Invoke(null, new object[] { new SettingsManager.SettingContainer() });
 
-            var audioManager = GetAudioManager();
-            if (audioManager == null)
+            if (GetAudioManager() == null)
             {
                 Debug.LogError("Failed to get active BassAudioManager instance!");
                 settingsSetter.Invoke(null, new object[] { originalSettings });
                 return;
             }
 
+            bool audioClosed = false;
             try
             {
-                SetSettingValue(SettingsManager.Settings.PlaybackBufferLength, TEST_BUFFER_MS);
-                GlobalAudioHandler.SetBufferLength(TEST_BUFFER_MS);
+                // BASS_CONFIG_DEV_BUFFER only takes effect before BASS_Init. Recreate a clean
+                // default device for every value so no previous device state affects the result.
+                GlobalAudioHandler.Close();
+                audioClosed = true;
 
-                Debug.Log("<b>[Plain PCM Stream Position Startup]</b> Starting measurement...");
-                await MeasurePlainStreamPositionStartup();
+                int devicePeriod = Bass.GetConfig(Configuration.DevicePeriod);
+                if (devicePeriod <= 0)
+                {
+                    throw new Exception($"Invalid BASS device update period: {devicePeriod}ms");
+                }
+
+                foreach (int periodMultiplier in DEVICE_BUFFER_TEST_PERIOD_MULTIPLIERS)
+                {
+                    // DEV_BUFFER must be a multiple of DEV_PERIOD and at least twice its size.
+                    int requestedBufferLength = devicePeriod * periodMultiplier;
+                    Bass.Free();
+                    Bass.UpdatePeriod = 5;
+                    Bass.DeviceNonStop = true;
+                    Bass.DeviceBufferLength = requestedBufferLength;
+
+                    if (!Bass.Init(-1, 44100,
+                            DeviceInitFlags.Default | DeviceInitFlags.Latency, IntPtr.Zero))
+                    {
+                        throw new Exception($"BASS_Init failed with requested device buffer " +
+                            $"{requestedBufferLength}ms: {Bass.LastError}");
+                    }
+
+                    Debug.Log($"<b>[Plain PCM Stream Position Startup]</b> Starting measurement " +
+                              $"with requested device buffer {requestedBufferLength}ms " +
+                              $"(actual {Bass.DeviceBufferLength}ms)...");
+                    await MeasurePlainStreamPositionStartup(requestedBufferLength);
+                    Bass.Free();
+                }
             }
             catch (Exception ex)
             {
@@ -325,11 +354,17 @@ namespace Editor
             }
             finally
             {
+                Bass.Free();
                 settingsSetter.Invoke(null, new object[] { originalSettings });
 
-                if (originalSettings != null)
+                if (audioClosed)
                 {
-                    GlobalAudioHandler.SetBufferLength(originalSettings.PlaybackBufferLength.Value);
+                    // Restore normal YARG configuration and device ownership after clean-room runs.
+                    GlobalAudioHandler.Initialize<BassAudioManager>();
+                    if (originalSettings != null)
+                    {
+                        GlobalAudioHandler.SetBufferLength(originalSettings.PlaybackBufferLength.Value);
+                    }
                 }
             }
         }
@@ -1645,7 +1680,7 @@ namespace Editor
             return stream;
         }
 
-        private static async Task MeasurePlainStreamPositionStartup()
+        private static async Task MeasurePlainStreamPositionStartup(int requestedDeviceBufferLength)
         {
             string testFilePath = Path.Combine(Path.GetTempPath(),
                 $"yarg-bass-position-startup-{Guid.NewGuid():N}.wav");
@@ -1844,11 +1879,11 @@ namespace Editor
                 int devPeriod = Bass.GetConfig(Configuration.DevicePeriod);
                 int updatePeriod = Bass.UpdatePeriod;
                 int minBufferLength = info.MinBufferLength;
-                int configuredBufferLength = SettingsManager.Settings.PlaybackBufferLength.Value;
-                double deviceLatency = GlobalAudioHandler.PlaybackLatency;
 
                 Debug.Log($"<b>[Plain PCM Stream Position Startup]</b>\n" +
                           $"  - Pipeline: generated PCM WAV → direct BASS playback stream\n" +
+                          $"  - Requested/Actual Device Buffer: " +
+                          $"{requestedDeviceBufferLength}/{deviceBufferLength}ms\n" +
                           $"  - ChannelPlay Return → BASS Position Change ({returnToChangeSamples.Count} samples):\n" +
                           $"      Mean: <b>{latencyMean:0.000}ms</b>; Median: " +
                           $"<b>{latencyMedian:0.000}ms</b>; P95: {latencyP95:0.000}ms\n" +
@@ -1869,8 +1904,6 @@ namespace Editor
                           $"{primeCallSamples[primeCallSamples.Count - 1]:0.000}ms\n" +
                           $"  - Buffered Bytes After Prime Min/Max: " +
                           $"{primedBytesSamples[0]}/{primedBytesSamples[primedBytesSamples.Count - 1]}\n" +
-                          $"  - User Configured Buffer Size: {configuredBufferLength}ms\n" +
-                          $"  - Device Latency: {deviceLatency:0.0}ms\n" +
                           $"  - BASS Latency Components: info.Latency={infoLatency}ms, " +
                           $"DeviceBufferLength={deviceBufferLength}ms, updatePeriod={updatePeriod}ms, " +
                           $"devPeriod={devPeriod}ms, MinBuf={minBufferLength}ms");
