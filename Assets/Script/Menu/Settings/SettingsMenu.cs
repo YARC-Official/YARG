@@ -387,7 +387,7 @@ namespace YARG.Menu.Settings
                 ? "Menu.Settings.HideAdvanced"
                 : "Menu.Settings.ShowAdvanced";
 
-            Navigator.Instance.PushScheme(new NavigationScheme(new()
+            _ = Navigator.Instance.PushScheme(new NavigationScheme(new()
             {
                 NavigationScheme.Entry.NavigateSelect,
                 new NavigationScheme.Entry(MenuAction.Red, "Menu.Common.Back", () =>

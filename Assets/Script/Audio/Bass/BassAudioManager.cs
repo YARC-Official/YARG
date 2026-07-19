@@ -178,6 +178,8 @@ namespace YARG.Audio.BASS
                 Bass.UpdatePeriod, Bass.DeviceBufferLength, Bass.PlaybackBufferLength, PlaybackLatency);
 
             YargLogger.LogFormatInfo("Current Device: {0}", Bass.GetDeviceInfo(Bass.CurrentDevice).Name);
+
+            Application.quitting += OnApplicationQuitting;
         }
 
         protected override bool SetOutputDevice(string name)
@@ -550,6 +552,25 @@ namespace YARG.Audio.BASS
             YargLogger.LogInfo("Finished loading Metronome");
         }
 
+#nullable enable
+        public override void LoadVenueSample(string name, byte[] sampleData, OutputChannel? outputChannel = null)
+#nullable disable
+        {
+            VenueSamples[name] = BassVenueSampleChannel.Create(name, sampleData, outputChannel);
+        }
+
+        public override void ClearVenueSamples()
+        {
+            foreach(var sample in VenueSamples.Values)
+            {
+                sample.Stop();
+                sample.Dispose();
+            }
+
+            VenueSamples.Clear();
+        }
+
+
         protected override void SetMasterVolume(double volume)
         {
 #if UNITY_EDITOR
@@ -568,9 +589,19 @@ namespace YARG.Audio.BASS
 
         protected override void DisposeUnmanagedResources()
         {
+            Application.quitting -= OnApplicationQuitting;
+
             YargLogger.LogInfo("Unloading BASS plugins");
             Bass.PluginFree(0);
             Bass.Free();
+        }
+
+        private void OnApplicationQuitting()
+        {
+            Application.quitting -= OnApplicationQuitting;
+            YargLogger.LogInfo("Application quitting: starting early BASS shutdown");
+            GlobalAudioHandler.Close();
+            YargLogger.LogInfo("Application quitting: early BASS shutdown complete");
         }
 
         private static string GetBassDirectory()

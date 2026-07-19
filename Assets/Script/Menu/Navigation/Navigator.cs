@@ -4,6 +4,7 @@ using System.Linq;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using YARG.Core.Input;
+using YARG.Core.Logging;
 using YARG.Input;
 using YARG.Menu.Persistent;
 using YARG.Player;
@@ -339,8 +340,16 @@ namespace YARG.Menu.Navigation
 
         public void PopScheme()
         {
-            var scheme = _schemeStack.Pop();
-            scheme.PopCallback?.Invoke();
+            if (_schemeStack.Count == 0)
+            {
+                YargLogger.LogFormatWarning("Tried to pop a NavigationScheme when none were present. Stack Trace: {0}", Environment.StackTrace);
+            }
+            else
+            {
+                var scheme = _schemeStack.Pop();
+                scheme.PopCallback?.Invoke();
+            }
+
             UpdateHelpBar().Forget();
         }
 

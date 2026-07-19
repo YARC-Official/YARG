@@ -18,7 +18,7 @@ namespace YARG.Gameplay.Visuals
         // Conversion rate from end cap bone movement units to 1 TrackElement.GetZPositionAtTime unit
         private const float LANE_LENGTH_RATIO = 0.02f;
 
-        private const float OPEN_LANE_SCALE = 0.5f;
+        private const float FULL_WIDTH_LANE_SCALE = 0.5f;
 
         private static readonly int EmissionColor = Shader.PropertyToID("_EmissionColor");
 
@@ -83,7 +83,7 @@ namespace YARG.Gameplay.Visuals
 
         private Color _color;
 
-        private bool _isOpen = false;
+        private bool _isFullWidth = false;
 
         public void SetAppearance(Instrument instrument, int index, float lateralPosition, int subdivisions, Color color)
         {
@@ -194,27 +194,27 @@ namespace YARG.Gameplay.Visuals
             }
         }
 
-        public void ToggleOpen(bool state)
+        public void ToggleFullWidth(bool state)
         {
-            if (state == _isOpen)
+            if (state == _isFullWidth)
             {
                 return;
             }
 
-            _isOpen = state;
+            _isFullWidth = state;
 
-            //_meshRenderer.sortingOrder += _isOpen ? -50 : 50;
-            _meshTransform.localPosition = _meshTransform.localPosition.WithY(_isOpen ? -0.01f : 0);
+            //_meshRenderer.sortingOrder += _isFullWidth ? -50 : 50;
+            _meshTransform.localPosition = _meshTransform.localPosition.WithY(_isFullWidth ? -0.01f : 0);
 
             if (Initialized)
             {
-                RenderOpen();
+                RenderFullWidth();
             }
         }
 
         protected override void InitializeElement()
         {
-            RenderOpen();
+            RenderFullWidth();
             RenderScale();
 
             // Set position
@@ -233,7 +233,7 @@ namespace YARG.Gameplay.Visuals
 
         protected override void HideElement()
         {
-            ToggleOpen(false);
+            ToggleFullWidth(false);
         }
 
         private void RenderLength()
@@ -250,16 +250,16 @@ namespace YARG.Gameplay.Visuals
             RenderLength();
         }
 
-        private void RenderOpen()
+        private void RenderFullWidth()
         {
             // This is the only shape key on the mesh, has an index of 0
-            _meshRenderer.SetBlendShapeWeight(0, _isOpen ? 100 : 0);
+            _meshRenderer.SetBlendShapeWeight(0, _isFullWidth ? 100 : 0);
 
-            if (_isOpen == true)
+            if (_isFullWidth == true)
             {
                 SetXPosition(0);
 
-                _scale = OPEN_LANE_SCALE;
+                _scale = FULL_WIDTH_LANE_SCALE;
 
                 if (Initialized)
                 {

@@ -872,7 +872,19 @@ PlayerSettings:
   webWasm2023: 0
   webEnableSubmoduleStrippingCompatibility: 0
   scriptingDefineSymbols:
-    Standalone: ZSTRING_TEXTMESHPRO_SUPPORT
+    Android: ENABLE_JSON_CATALOG
+    EmbeddedLinux: ENABLE_JSON_CATALOG
+    LinuxHeadlessSimulation: ENABLE_JSON_CATALOG
+    Nintendo Switch: ENABLE_JSON_CATALOG
+    PS4: ENABLE_JSON_CATALOG
+    QNX: ENABLE_JSON_CATALOG
+    Server: ENABLE_JSON_CATALOG
+    Standalone: ENABLE_JSON_CATALOG;ZSTRING_TEXTMESHPRO_SUPPORT
+    WebGL: ENABLE_JSON_CATALOG
+    Windows Store Apps: ENABLE_JSON_CATALOG
+    XboxOne: ENABLE_JSON_CATALOG
+    iPhone: ENABLE_JSON_CATALOG
+    tvOS: ENABLE_JSON_CATALOG
   additionalCompilerArguments: {}
   platformArchitecture: {}
   scriptingBackend:

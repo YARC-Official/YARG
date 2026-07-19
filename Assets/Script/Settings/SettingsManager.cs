@@ -19,6 +19,7 @@ namespace YARG.Settings
             Formatting = Formatting.Indented,
             Converters = new List<JsonConverter>
             {
+                new JsonUnityColorConverter(),
                 new JsonColorConverter(),
                 new JsonVector2Converter()
             }
@@ -46,6 +47,7 @@ namespace YARG.Settings
                 new FieldMetadata(nameof(Settings.DisableGlobalBackgrounds), isAdvanced: true),
                 nameof(Settings.DisablePerSongBackgrounds),
                 new FieldMetadata(nameof(Settings.WaitForSongVideo), isAdvanced: true),
+                nameof(Settings.AllowRemoteContent),
 
                 new HeaderMetadata("Gameplay"),
                 new FieldMetadata(nameof(Settings.InputPollingFrequency), isAdvanced: true),
@@ -89,6 +91,7 @@ namespace YARG.Settings
                 new FieldMetadata(nameof(Settings.ShowPercentDecimals), isAdvanced: true),
                 nameof(Settings.HighScoreHistory),
                 new HeaderMetadata("PlayAShow"),
+                nameof(Settings.EnablePlayAShow),
                 nameof(Settings.PlayAShowTimeout),
                 nameof(Settings.RequireAllDifficulties),
             },
@@ -107,6 +110,7 @@ namespace YARG.Settings
                 new FieldMetadata(nameof(Settings.CrowdVolume), isAdvanced: true),
                 nameof(Settings.SfxVolume),
                 new FieldMetadata(nameof(Settings.DrumSfxVolume), isAdvanced: true),
+                new FieldMetadata(nameof(Settings.VenueSfxVolume), isAdvanced: true),
                 new FieldMetadata(nameof(Settings.PreviewVolume), isAdvanced: true),
                 nameof(Settings.MusicPlayerVolume),
                 new FieldMetadata(nameof(Settings.VocalMonitoring)),
@@ -122,6 +126,7 @@ namespace YARG.Settings
                 nameof(Settings.MuteOnMiss),
                 nameof(Settings.UseStarpowerFx),
                 nameof(Settings.UseCrowdFx),
+                nameof(Settings.UseVenueSfx),
                 nameof(Settings.OverstrumAndOverhitSoundEffects),
                 new FieldMetadata(nameof(Settings.AlwaysOnDrumSFX), isAdvanced: true),
                 new FieldMetadata(nameof(Settings.UseWhammyFx), isAdvanced: true),
@@ -130,6 +135,7 @@ namespace YARG.Settings
                 new HeaderMetadata("Other"),
                 new FieldMetadata(nameof(Settings.UseChipmunkSpeed), isAdvanced: true),
                 new FieldMetadata(nameof(Settings.ApplyVolumesInMusicLibrary), isAdvanced: true),
+                new FieldMetadata(nameof(Settings.ApplyVolumesInMusicPlayer), isAdvanced: true),
                 nameof(Settings.EnableVoxSamples),
                 new FieldMetadata(nameof(Settings.MetronomeSound), isAdvanced: true),
             },
@@ -139,6 +145,7 @@ namespace YARG.Settings
                 nameof(Settings.VSync),
                 new FieldMetadata(nameof(Settings.FpsCap)),
                 new FieldMetadata(nameof(Settings.VenueFpsCap), isAdvanced: true),
+                nameof(Settings.BackgroundFpsCap),
                 nameof(Settings.FullscreenMode),
                 nameof(Settings.Resolution),
                 new FieldMetadata(nameof(Settings.FpsStats), isAdvanced: true),
@@ -168,10 +175,12 @@ namespace YARG.Settings
                 nameof(Settings.NoteStreakFrequency),
                 new FieldMetadata(nameof(Settings.VocalStreakFrequency), isAdvanced: true),
                 nameof(Settings.CountdownDisplay),
+                nameof(Settings.UnisonDisplay),
                 nameof(Settings.ShowPlayerNameWhenStartingSong),
                 nameof(Settings.LyricDisplay),
                 nameof(Settings.SongTimeOnScoreBox),
                 nameof(Settings.GraphicalProgressOnScoreBox),
+                nameof(Settings.GraphicalSongProgressTint),
                 nameof(Settings.KeepSongInfoVisible),
             },
             new PresetsTab("Presets", icon: "Customization"),
@@ -188,7 +197,8 @@ namespace YARG.Settings
                 new ButtonRowMetadata(
                     nameof(Settings.ExportSongsJson),
                     nameof(Settings.ExportSongsText),
-                    nameof(Settings.ExportSongsCsv)
+                    nameof(Settings.ExportSongsCsv),
+                    nameof(Settings.ExportSongsWeb)
                 ),
                 new HeaderMetadata("PathsAndFolders"),
                 new ButtonRowMetadata(
@@ -196,6 +206,8 @@ namespace YARG.Settings
                     nameof(Settings.CopyCurrentSongJsonFilePath)),
                 new ButtonRowMetadata(nameof(Settings.OpenPersistentDataPath)),
                 new ButtonRowMetadata(nameof(Settings.OpenExecutablePath)),
+                new HeaderMetadata("CacheManagement"),
+                new ButtonRowMetadata(nameof(Settings.RemoveRemoteContent)),
             },
             new MetadataTab("LightingPeripherals", icon: "Lighting", new DMXInformationPanelBuilder())
             {
@@ -239,12 +251,10 @@ namespace YARG.Settings
                 nameof(Settings.ShowAdvancedMusicLibraryOptions),
                 nameof(Settings.MinimumLogLevel),
             },
-            // new MetadataTab("Experimental", icon: "Beaker", new ExperimentalPreviewBuilder())
             new MetadataTab("Experimental", icon: "Beaker", new CharacterPreviewBuilder())
             {
                 new HeaderMetadata("Other"),
                 nameof(Settings.BandComboTypeSetting),
-                nameof(Settings.CustomVocalsCharacter),
                 nameof(Settings.DataStreamEnable),
                 nameof(Settings.SaveScoresWithBots),
                 new HeaderMetadata("Accessibility"),

@@ -19,8 +19,7 @@ namespace YARG.Menu.HighwayConfiguration
     {
         public Dictionary<DrumsHighwayItem, HighwayOrderingItemSpec> Specs { get; private set; }
 
-        // Workaround to avoid errors when deactivating menu during startup
-        private bool _ready;
+
 
         public IFretColorProvider ColorProvider { get; private set; }
 
@@ -65,7 +64,6 @@ namespace YARG.Menu.HighwayConfiguration
         {
             // Match SettingsMenu behavior: initialized at startup, then hidden.
             gameObject.SetActive(false);
-            _ready = true;
         }
 
         public void Initialize(

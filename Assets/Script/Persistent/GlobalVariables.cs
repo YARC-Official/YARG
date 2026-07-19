@@ -26,7 +26,8 @@ namespace YARG
         Menu,
         Gameplay,
         Calibration,
-        Score
+        Score,
+        Content
     }
 
     [DefaultExecutionOrder(-5000)]
@@ -107,27 +108,6 @@ namespace YARG
             LoadScene(SceneIndex.Menu);
         }
 
-        // Tracks whether audio was muted because the window lost focus,
-        // so it can be restored when focus returns.
-        private bool _mutedFromFocusLoss;
-
-        private void OnApplicationFocus(bool hasFocus)
-        {
-            if (!hasFocus)
-            {
-                if (SettingsManager.Settings.MuteOnFocusLoss.Value && !_mutedFromFocusLoss)
-                {
-                    GlobalAudioHandler.SetMasterVolume(0);
-                    _mutedFromFocusLoss = true;
-                }
-            }
-            else if (_mutedFromFocusLoss)
-            {
-                GlobalAudioHandler.SetMasterVolume(SettingsManager.Settings.MasterMusicVolume.Value);
-                _mutedFromFocusLoss = false;
-            }
-        }
-
 #if UNITY_EDITOR
 
         // For respecting the editor's mute button
@@ -144,7 +124,7 @@ namespace YARG
 
             if (CurrentScene != SceneIndex.Gameplay && Time.realtimeSinceStartup > _nextLocalizationUpdate)
             {
-                LocalizationManager.LoadUpdates();
+                _ = LocalizationManager.LoadUpdates();
                 _nextLocalizationUpdate = Time.realtimeSinceStartup + LOCALIZATION_UPDATE_INTERVAL + UnityEngine.Random.Range(-30f, 30f);
                 YargLogger.LogFormatDebug("Updating localization at {0}, next update at {1}", Time.realtimeSinceStartup, _nextLocalizationUpdate);
             }
@@ -257,6 +237,19 @@ namespace YARG
 #else
             return $"{branch} b{commitCount} ({commit})";
 #endif
+        }
+
+        public static string GetReleaseType()
+        {
+            string kind = null;
+#if UNITY_EDITOR || YARG_TEST_BUILD
+            kind = "dev";
+#elif YARG_NIGHTLY_BUILD
+            kind = "nightly";
+#else
+            kind = "release";
+#endif
+            return kind;
         }
 
         // Maybe there is a better place for this?

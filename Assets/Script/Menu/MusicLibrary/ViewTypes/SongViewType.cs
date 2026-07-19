@@ -119,9 +119,11 @@ namespace YARG.Menu.MusicLibrary
             return GetStarAmount(playerScoreRecord, bandScoreRecord);
         }
 
+#nullable enable
         private static StarAmount? GetStarAmount(
             PlayerScoreRecord? playerScoreRecord,
             GameRecord? bandScoreRecord)
+#nullable disable
         {
             if (bandScoreRecord is not null)
             {

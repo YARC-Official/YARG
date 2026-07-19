@@ -8,6 +8,7 @@ using DG.Tweening;
 using Newtonsoft.Json;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Serialization;
 using UnityEngine.UI;
 using YARG.Core;
 using YARG.Core.Audio;
@@ -53,12 +54,11 @@ namespace YARG.Menu.ScoreScreen
         private StarView _bandStarView;
         [SerializeField]
         private TextMeshProUGUI _bandScore;
+        [FormerlySerializedAs("_bandScoreNotSavedPill")]
         [SerializeField]
-        private ColoredPillElement _bandScoreNotSavedPill;
+        private ColoredPillElement _scoreStatusPill;
         [SerializeField]
         private ScrollRect _cardScrollRect;
-        [SerializeField]
-        private float _horizontalScrollRate = 30f;
         [SerializeField]
         private float _horizontalScrollDuration = 0.25f;
         [SerializeField]
@@ -115,8 +115,8 @@ namespace YARG.Menu.ScoreScreen
             _songHashKey = song.Hash.ToString();
             _offsets = SongOffsetContainer.LoadOffsets();
 
-            // Play audience chatter
-            if (SettingsManager.Settings.UseCrowdFx.Value == CrowdFxMode.Enabled)
+            // Play audience chatter, unless we are viewing a replay score
+            if (SettingsManager.Settings.UseCrowdFx.Value == CrowdFxMode.Enabled && !GlobalVariables.State.IsReplay)
             {
                 GlobalAudioHandler.PlaySoundEffect(SfxSample.Chatter, 1.0);
             }
@@ -124,13 +124,24 @@ namespace YARG.Menu.ScoreScreen
             // Set text
             _songTitle.text = song.Name;
             _artistName.text = song.Artist;
-
-            var scoreNotSavedText = Localize.Key("Menu.ScoreScreen.BandScoreNotSaved");
-            _bandScoreNotSavedPill.SetValues(scoreNotSavedText,
-                ColoredPillElement.ColoredPillPreset.HarderModifier);
-            _bandScoreNotSavedPill.gameObject.SetActive(
-                !ScoreContainer.IsBandScoreValid(PersistentState.Default.SongSpeed));
-
+            if (!GlobalVariables.State.IsReplay && !ScoreContainer.IsBandScoreValid(PersistentState.Default.SongSpeed))
+            {
+                var text = Localize.Key("Menu.ScoreScreen.BandScoreNotSaved");
+                _scoreStatusPill.SetValues(text,
+                    ColoredPillElement.ColoredPillPreset.HarderModifier);
+                _scoreStatusPill.gameObject.SetActive(true);
+            }
+            else if (GlobalVariables.State.IsReplay && GlobalVariables.State.ScoreScreenStats is {ReplayWasConsistent: false})
+            {
+                var text = Localize.Key("Menu.ScoreScreen.InconsistentReplay");
+                _scoreStatusPill.SetValues(text,
+                    ColoredPillElement.ColoredPillPreset.HarderModifier);
+                _scoreStatusPill.gameObject.SetActive(true);
+            }
+            else
+            {
+                _scoreStatusPill.gameObject.SetActive(false);
+            }
             // Set speed text (if not at 100% speed)
             if (!Mathf.Approximately(GlobalVariables.State.SongSpeed, 1f))
             {
@@ -207,7 +218,7 @@ namespace YARG.Menu.ScoreScreen
                     case GameMode.FiveFretGuitar:
                     {
                         card = Instantiate(_guitarCardPrefab, _cardContainer);
-                        ((ScoreCard<GuitarStats>)card).Initialize(score.IsHighScore, score.Player, score.Stats as GuitarStats, score.AverageMultiplier);
+                        ((ScoreCard<GuitarStats>)card).Initialize(score.IsHighScore, score.Player, score.Stats as GuitarStats, score.IsReplay);
                         break;
                     }
                     case GameMode.FourLaneDrums:
@@ -215,19 +226,19 @@ namespace YARG.Menu.ScoreScreen
                     case GameMode.EliteDrums:
                     {
                         card = Instantiate(_drumsCardPrefab, _cardContainer);
-                        ((ScoreCard<DrumsStats>)card).Initialize(score.IsHighScore, score.Player, score.Stats as DrumsStats, score.AverageMultiplier);
+                        ((ScoreCard<DrumsStats>)card).Initialize(score.IsHighScore, score.Player, score.Stats as DrumsStats, score.IsReplay);
                         break;
                     }
                     case GameMode.Vocals:
                     {
                         card = Instantiate(_vocalsCardPrefab, _cardContainer);
-                        ((ScoreCard<VocalsStats>)card).Initialize(score.IsHighScore, score.Player, score.Stats as VocalsStats, score.AverageMultiplier);
+                        ((ScoreCard<VocalsStats>)card).Initialize(score.IsHighScore, score.Player, score.Stats as VocalsStats, score.IsReplay);
                         break;
                     }
                     case GameMode.ProKeys:
                     {
                         card = Instantiate(_keysCardPrefab, _cardContainer);
-                        ((ScoreCard<KeysStats>) card).Initialize(score.IsHighScore, score.Player, score.Stats as KeysStats, score.AverageMultiplier);
+                        ((ScoreCard<KeysStats>) card).Initialize(score.IsHighScore, score.Player, score.Stats as KeysStats, score.IsReplay);
                         break;
                     }
                 }
@@ -249,8 +260,11 @@ namespace YARG.Menu.ScoreScreen
             // If the scroll bar is active, make it all the way to the left
             InitializeScrollRect();
 
-            // As a final bonus, play the appropriate full combo/high score vox samples
-            PlayScoreVox(fcCount, highScoreCount);
+            // As a final bonus, play the appropriate full combo/high score vox samples, if we are not in a replay
+            if (!GlobalVariables.State.IsReplay)
+            {
+                PlayScoreVox(fcCount, highScoreCount);
+            }
         }
 
         private void KillScrollTween()
@@ -413,6 +427,7 @@ namespace YARG.Menu.ScoreScreen
         private NavigationScheme.Entry _continueButtonEntry;
         private NavigationScheme.Entry _endEarlyButtonEntry;
         private NavigationScheme.Entry _restartButtonEntry;
+        private NavigationScheme.Entry _viewReplayButtonEntry;
         private NavigationScheme.Entry _showAdvancedButtonEntry;
         private NavigationScheme.Entry _removeFavoriteButtonEntry;
         private NavigationScheme.Entry _addFavoriteButtonEntry;
@@ -425,7 +440,6 @@ namespace YARG.Menu.ScoreScreen
         private void SetNavigationScheme()
         {
             var song = GlobalVariables.State.CurrentSong;
-
             _continueButtonEntry = new NavigationScheme.Entry(MenuAction.Green, "Menu.Common.Continue", () =>
                 {
                     if (!_analyzingReplay)
@@ -441,6 +455,11 @@ namespace YARG.Menu.ScoreScreen
                         }
                         else
                         {
+                            if (GlobalVariables.State.IsReplay)
+                            {
+                                GlobalVariables.State.CurrentReplay = null;
+                            }
+
                             GlobalVariables.State.PlayingAShow = false;
                             GlobalVariables.Instance.LoadScene(SceneIndex.Menu);
                         }
@@ -451,6 +470,14 @@ namespace YARG.Menu.ScoreScreen
             {
                 GlobalVariables.State.PlayingAShow = false;
                 GlobalVariables.Instance.LoadScene(SceneIndex.Menu);
+            });
+
+            _viewReplayButtonEntry = new NavigationScheme.Entry(MenuAction.Yellow, "Menu.ScoreScreen.ViewReplay", () =>
+            {
+                        _restartingSong = true;
+                        // Not null, isReplay is only true if CurrentReplay is defined.
+                        GlobalVariables.State.SongSpeed = GlobalVariables.State.CurrentReplay!.SongSpeed;
+                        GlobalVariables.Instance.LoadScene(SceneIndex.Gameplay);
             });
 
             _restartButtonEntry = new NavigationScheme.Entry(MenuAction.Yellow, "Menu.ScoreScreen.RestartSong", () =>
@@ -622,11 +649,20 @@ namespace YARG.Menu.ScoreScreen
             List<NavigationScheme.Entry> buttons = new()
             {
                 _continueButtonEntry,
-                _restartButtonEntry
             };
 
+            var isReplay = GlobalVariables.State.IsReplay;
             var song = GlobalVariables.State.CurrentSong;
             var isFavorited = PlaylistContainer.FavoritesPlaylist.ContainsSong(song);
+
+            if (isReplay)
+            {
+                buttons.Add(_viewReplayButtonEntry);
+            }
+            else
+            {
+                buttons.Add(_restartButtonEntry);
+            }
 
             if (isFavorited)
             {
@@ -659,12 +695,16 @@ namespace YARG.Menu.ScoreScreen
             buttons.Add(_scrollRightEntry);
             buttons.Add(_scrollUpEntry);
             buttons.Add(_scrollDownEntry);
-            Navigator.Instance.PushScheme(new(buttons, true));
+            _ = Navigator.Instance.PushScheme(new(buttons, true));
         }
 
         private void ShowReplayAnalysis(SongEntry song, ScoreScreenStats scoreScreenStats)
         {
 #if UNITY_EDITOR || YARG_NIGHTLY_BUILD || YARG_TEST_BUILD
+            if (GlobalVariables.State.IsReplay)
+            {
+                return;
+            }
             try
             {
                 if (!AnalyzeReplay(song, scoreScreenStats.ReplayInfo))
