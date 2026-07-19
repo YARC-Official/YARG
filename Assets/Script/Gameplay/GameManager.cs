@@ -630,10 +630,7 @@ namespace YARG.Gameplay
                     IsHighScore = player.Score > player.LastHighScore,
                     Player = player.Player,
                     Stats = player.BaseStats,
-                    AverageMultiplier = player.BaseEngine.BaseNoteScore == 0 ?
-                        0 :
-                        // PendingScore should be 0 at this point, so no reason to add it
-                        (float) player.BaseStats.CommittedScore / player.BaseEngine.BaseNoteScore,
+                    IsReplay = player.Player.IsReplay
                 }).ToArray(),
                 BandScore = BandScore,
                 BandStars = (int) BandStars,
