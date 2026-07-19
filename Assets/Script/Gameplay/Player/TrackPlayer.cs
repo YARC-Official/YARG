@@ -1037,7 +1037,6 @@ namespace YARG.Gameplay.Player
 
             if (!GameManager.IsSeekingReplay)
             {
-                SetStemMuteState(false);
                 if (_currentMultiplier != _previousMultiplier)
                 {
                     _previousMultiplier = _currentMultiplier;
@@ -1074,8 +1073,6 @@ namespace YARG.Gameplay.Player
 
             if (!GameManager.IsSeekingReplay)
             {
-                SetStemMuteState(true);
-
                 if (LastCombo >= 10)
                 {
                     GlobalAudioHandler.PlaySoundEffect(SfxSample.NoteMiss);

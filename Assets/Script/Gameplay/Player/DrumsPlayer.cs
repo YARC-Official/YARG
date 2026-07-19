@@ -480,6 +480,11 @@ namespace YARG.Gameplay.Player
         {
             base.OnNoteHit(index, note);
 
+            if (!GameManager.IsSeekingReplay)
+            {
+                SetStemMuteState(false);
+            }
+
             // Remember that drums treat each note separately
 
             (NotePool.GetByKey(note) as DrumsNoteElement)?.HitNote();
@@ -503,6 +508,11 @@ namespace YARG.Gameplay.Player
         protected override void OnNoteMissed(int index, DrumNote note)
         {
             base.OnNoteMissed(index, note);
+
+            if (!GameManager.IsSeekingReplay)
+            {
+                SetStemMuteState(true);
+            }
 
             // Remember that drums treat each note separately
 

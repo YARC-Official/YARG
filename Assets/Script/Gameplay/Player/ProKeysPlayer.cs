@@ -283,6 +283,11 @@ namespace YARG.Gameplay.Player
         {
             base.OnNoteHit(index, note);
 
+            if (!GameManager.IsSeekingReplay)
+            {
+                SetStemMuteState(false);
+            }
+
             if (GameManager.Paused) return;
 
             (NotePool.GetByKey(note) as ProKeysNoteElement)?.HitNote();
@@ -296,6 +301,11 @@ namespace YARG.Gameplay.Player
         protected override void OnNoteMissed(int index, ProKeysNote chordParent)
         {
             base.OnNoteMissed(index, chordParent);
+
+            if (!GameManager.IsSeekingReplay)
+            {
+                SetStemMuteState(true);
+            }
 
             (NotePool.GetByKey(chordParent) as ProKeysNoteElement)?.MissNote();
         }
