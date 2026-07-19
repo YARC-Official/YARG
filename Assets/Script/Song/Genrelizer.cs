@@ -185,14 +185,13 @@ namespace YARG.Song
         public static readonly string GenresFolder = Path.Combine(PathHelper.StreamingAssetsPath, "genres");
 #endif
 
-        public static async UniTask LoadGenreMappings(LoadingContext context)
+        public static async UniTask LoadGenreMappings()
         {
             if (!GlobalVariables.OfflineMode)
             {
-                await _downloadGenreMappings(context);
+                await _downloadGenreMappings();
             }
 
-            context.SetSubText("Loading genre mappings...");
             _readGenreMappings();
         }
 
@@ -319,14 +318,11 @@ namespace YARG.Song
 
 
 
-        private static async UniTask _downloadGenreMappings(LoadingContext context)
+        private static async UniTask _downloadGenreMappings()
         {
-            context.SetLoadingText("Downloading genre mappings...");
-
             // Create the sources folder if it doesn't exist
             Directory.CreateDirectory(GenresFolder);
 
-            context.SetSubText("Checking version...");
             string genreVersionPath = Path.Combine(GenresFolder, "version.txt");
             string currentVersion = null;
             try
@@ -342,7 +338,6 @@ namespace YARG.Song
             }
 
             // Look for new version
-            context.SetSubText("Looking for new version...");
             string newestVersion = null;
             try
             {
@@ -384,7 +379,6 @@ namespace YARG.Song
             try
             {
                 // Download
-                context.SetSubText("Downloading new version...");
                 string zipPath = Path.Combine(GenresFolder, "update.zip");
                 using (var request = new UnityWebRequest(GENRE_ZIP_URL, UnityWebRequest.kHttpVerbGET))
                 {
@@ -404,7 +398,6 @@ namespace YARG.Song
                 }
 
                 // Extract the base and extras folder
-                context.SetSubText("Extracting new version...");
                 ZipFile.ExtractToDirectory(zipPath, GenresFolder);
 
                 // Delete the random folders

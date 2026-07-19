@@ -55,25 +55,8 @@ namespace YARG
                 YargLogger.LogException(e);
             }
 
-            // Load song sources and icons
-            try
-            {
-                await SongSources.LoadSources(context);
-            }
-            catch (Exception ex)
-            {
-                YargLogger.LogException(ex);
-            }
-
-            // Load (sub)genre mappings
-            try
-            {
-                await Genrelizer.LoadGenreMappings(context);
-            }
-            catch (Exception ex)
-            {
-                YargLogger.LogException(ex);
-            }
+            // Load sources and genre mappings concurrently
+            await UpdateSourcesAndGenres(context);
 
             // Auto connect profiles, using the same order that they were previously connected.
             if (SettingsManager.Settings.ReconnectProfiles.Value)
@@ -103,6 +86,49 @@ namespace YARG
 
             // Fast scan (cache read) on startup
             await SongContainer.RunRefresh(true, context);
+        }
+
+        private static async UniTask UpdateSourcesAndGenres(LoadingContext context)
+        {
+            var tasks = new List<string> { "Song Sources", "Genres" };
+            context.SetLoadingText("Updating Song Sources and Genres...");
+
+            RefreshText();
+
+            try
+            {
+                await UniTask.WhenAll(
+                    TaskWrapper(SongSources.LoadSources(), "Song Sources"),
+                    TaskWrapper(Genrelizer.LoadGenreMappings(), "Genres")
+                    );
+            }
+            catch (Exception ex)
+            {
+                YargLogger.LogException(ex);
+            }
+
+            return;
+
+            async UniTask TaskWrapper(UniTask task, string name)
+            {
+                try
+                {
+                    await task;
+                }
+                finally
+                {
+                    tasks.Remove(name);
+                    RefreshText();
+                }
+            }
+
+            void RefreshText()
+            {
+                if (tasks.Count > 0)
+                {
+                    context.SetSubText(string.Join(", ", tasks));
+                }
+            }
         }
 
         private void Quit()
