@@ -3086,6 +3086,7 @@ namespace Editor
                 {
                     runner.Start();
                     EditorUtility.DisplayDialog("Metronome Playing", "Playing metronome at 120 BPM (sine_hi.ogg / sine_lo.ogg).\n\nClick OK to stop.", "OK");
+                    runner.ThrowIfFailed();
                 }
                 Debug.Log("Metronome Sync Callback Prototype stopped and cleaned up successfully.");
             }
@@ -3097,107 +3098,160 @@ namespace Editor
 
         private class MetronomeRunner : IDisposable
         {
+            private const double BEAT_INTERVAL = 0.5;
+            private const double SCHEDULE_LENGTH = 60 * 60;
+
+            private readonly object _syncLock = new();
             private readonly int _mixer;
-            private readonly int _hiSample;
-            private readonly int _loSample;
-            private readonly int _hiChannel;
-            private readonly int _loChannel;
-            private readonly long _beatStep;
-            private long _beatPos;
-            private int _beatCount;
-            private int _syncHandle;
+            private readonly int _hiStream;
+            private readonly int _loStream;
+            private readonly double[] _beatTimes;
             private readonly SyncProcedure _syncProcedure;
+
+            private int _nextBeat;
+            private int _syncHandle;
+            private int _generation;
+            private bool _disposed;
+            private string _failure;
 
             public MetronomeRunner(string hiPath, string loPath)
             {
                 int sampleRate = Bass.Info.SampleRate > 0 ? Bass.Info.SampleRate : 48000;
-                // Create a stereo float non-stop mixer stream.
                 _mixer = BassMix.CreateMixerStream(sampleRate, 2, BassFlags.Float | BassFlags.MixerNonStop);
                 if (_mixer == 0)
                 {
                     throw new Exception($"Failed to create mixer stream: {Bass.LastError}");
                 }
 
-                _hiSample = Bass.SampleLoad(hiPath, 0, 0, 3, BassFlags.Default);
-                _loSample = Bass.SampleLoad(loPath, 0, 0, 3, BassFlags.Default);
-                if (_hiSample == 0 || _loSample == 0)
+                _hiStream = Bass.CreateStream(hiPath, 0, 0, BassFlags.Decode | BassFlags.Float);
+                _loStream = Bass.CreateStream(loPath, 0, 0, BassFlags.Decode | BassFlags.Float);
+                if (_hiStream == 0 || _loStream == 0)
                 {
+                    if (_hiStream != 0)
+                    {
+                        Bass.StreamFree(_hiStream);
+                    }
+                    if (_loStream != 0)
+                    {
+                        Bass.StreamFree(_loStream);
+                    }
                     Bass.StreamFree(_mixer);
-                    throw new Exception($"Failed to load click samples. Hi error: {Bass.LastError}");
+                    throw new Exception($"Failed to create click streams: {Bass.LastError}");
                 }
 
-                _hiChannel = Bass.SampleGetChannel(_hiSample);
-                _loChannel = Bass.SampleGetChannel(_loSample);
-                if (_hiChannel == 0 || _loChannel == 0)
+                int beatCount = (int) (SCHEDULE_LENGTH / BEAT_INTERVAL);
+                _beatTimes = new double[beatCount];
+                for (int i = 0; i < _beatTimes.Length; i++)
                 {
-                    Bass.SampleFree(_hiSample);
-                    Bass.SampleFree(_loSample);
-                    Bass.StreamFree(_mixer);
-                    throw new Exception($"Failed to get click channels: {Bass.LastError}");
+                    _beatTimes[i] = (i + 1) * BEAT_INTERVAL;
                 }
-
-                // 120 BPM -> 0.5 seconds per beat
-                _beatStep = Bass.ChannelSeconds2Bytes(_mixer, 0.5);
-                _beatPos = _beatStep;
-                _beatCount = 0;
 
                 _syncProcedure = BeatCallback;
             }
 
             public void Start()
             {
-                ArmNextBeat();
-                if (!Bass.ChannelPlay(_mixer, false))
+                lock (_syncLock)
                 {
-                    throw new Exception($"Failed to play mixer stream: {Bass.LastError}");
+                    ArmNextBeat();
+                    if (!Bass.ChannelPlay(_mixer, false))
+                    {
+                        throw new Exception($"Failed to play mixer stream: {Bass.LastError}");
+                    }
                 }
             }
 
             private void ArmNextBeat()
             {
+                if (_disposed || _nextBeat >= _beatTimes.Length)
+                {
+                    return;
+                }
+
+                long beatPosition = Bass.ChannelSeconds2Bytes(_mixer, _beatTimes[_nextBeat]);
                 _syncHandle = Bass.ChannelSetSync(
                     _mixer,
                     SyncFlags.Position | SyncFlags.Mixtime | SyncFlags.Onetime,
-                    _beatPos,
+                    beatPosition,
                     _syncProcedure,
-                    IntPtr.Zero);
+                    new IntPtr(_generation));
                 if (_syncHandle == 0)
                 {
-                    // Safe logging of setting sync error
+                    _failure = $"Failed to schedule beat {_nextBeat}: {Bass.LastError}";
                 }
             }
 
             private void BeatCallback(int handle, int channel, int data, IntPtr user)
             {
-                _beatCount++;
+                lock (_syncLock)
+                {
+                    if (_disposed || user.ToInt32() != _generation ||
+                        _nextBeat >= _beatTimes.Length)
+                    {
+                        return;
+                    }
 
-                int targetChannel = (_beatCount % 4 == 1) ? _hiChannel : _loChannel;
-                Bass.ChannelPlay(targetChannel, true);
+                    long expectedPosition = Bass.ChannelSeconds2Bytes(_mixer, _beatTimes[_nextBeat]);
+                    long callbackPosition = Bass.ChannelGetPosition(channel, PositionFlags.Bytes);
+                    if (callbackPosition != expectedPosition)
+                    {
+                        _failure = $"Beat {_nextBeat} fired at {callbackPosition}; " +
+                            $"expected {expectedPosition}";
+                        return;
+                    }
 
-                _beatPos += _beatStep;
-                ArmNextBeat();
+                    int clickStream = _nextBeat % 4 == 0 ? _hiStream : _loStream;
+                    BassMix.MixerRemoveChannel(clickStream);
+                    if (!Bass.ChannelSetPosition(clickStream, 0, PositionFlags.Bytes) ||
+                        !BassMix.MixerAddChannel(channel, clickStream, BassFlags.MixerChanNoRampin))
+                    {
+                        _failure = $"Failed to play beat {_nextBeat}: {Bass.LastError}";
+                        return;
+                    }
+
+                    _nextBeat++;
+                    ArmNextBeat();
+                }
+            }
+
+            public void ThrowIfFailed()
+            {
+                lock (_syncLock)
+                {
+                    if (_failure != null)
+                    {
+                        throw new Exception(_failure);
+                    }
+                }
             }
 
             public void Dispose()
             {
-                if (_syncHandle != 0)
+                int syncHandle;
+                lock (_syncLock)
                 {
-                    Bass.ChannelRemoveSync(_mixer, _syncHandle);
+                    if (_disposed)
+                    {
+                        return;
+                    }
+                    _disposed = true;
+                    _generation++;
+                    syncHandle = _syncHandle;
                     _syncHandle = 0;
                 }
-                if (_mixer != 0)
+
+                // Do not stop/free the mixer while holding _syncLock. BASS may wait for an active
+                // callback, and that callback may be waiting to enter the lock.
+                if (syncHandle != 0)
                 {
-                    Bass.ChannelStop(_mixer);
-                    Bass.StreamFree(_mixer);
+                    Bass.ChannelRemoveSync(_mixer, syncHandle);
                 }
-                if (_hiSample != 0)
-                {
-                    Bass.SampleFree(_hiSample);
-                }
-                if (_loSample != 0)
-                {
-                    Bass.SampleFree(_loSample);
-                }
+                BassMix.MixerRemoveChannel(_hiStream);
+                BassMix.MixerRemoveChannel(_loStream);
+                Bass.StreamFree(_hiStream);
+                Bass.StreamFree(_loStream);
+                Bass.ChannelStop(_mixer);
+                Bass.StreamFree(_mixer);
             }
         }
 

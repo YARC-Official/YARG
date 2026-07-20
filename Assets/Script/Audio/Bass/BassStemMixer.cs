@@ -572,7 +572,10 @@ namespace YARG.Audio.BASS
                         return false;
                     }
 
-                    pitchFxDelay = GlobalAudioHandler.WHAMMY_FFT_DEFAULT / (2.0 * frequency);
+                    // BASS_FX pitch shift buffers one full FFT frame. Use source stream frequency:
+                    // low-rate stems otherwise receive only half required compensation and drift
+                    // ahead of stems without pitch FX.
+                    pitchFxDelay = GlobalAudioHandler.WHAMMY_FFT_DEFAULT / frequency;
                 }
 
                 float[,] volumeMatrix = BuildVolumeMatrix(group, allIndices.Length);
