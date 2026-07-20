@@ -42,9 +42,9 @@ namespace YARG.Gameplay.Player
 
         private readonly Dictionary<SongStem, bool> _stemMuteStates = new()
         {
-            { SongStem.DrumsKick, false },
-            { SongStem.DrumsSnare, false },
-            { SongStem.DrumsElse, false }
+            { SongStem.Drums1, false },
+            { SongStem.Drums2, false },
+            { SongStem.Drums3, false }
         };
 
         public int NumberOfDedicatedKickLanes { get; private set; } = 0;
@@ -368,9 +368,9 @@ namespace YARG.Gameplay.Player
 
         public override void SetStemMuteState(bool muted)
         {
-            SetDrumStemMuteState(SongStem.DrumsKick, muted);
-            SetDrumStemMuteState(SongStem.DrumsSnare, muted);
-            SetDrumStemMuteState(SongStem.DrumsElse, muted);
+            SetDrumStemMuteState(SongStem.Drums1, muted);
+            SetDrumStemMuteState(SongStem.Drums2, muted);
+            SetDrumStemMuteState(SongStem.Drums3, muted);
         }
 
         private void SetDrumStemMuteState(SongStem stem, bool muted)
@@ -388,17 +388,17 @@ namespace YARG.Gameplay.Player
             // todo: handle fallback to `Else` stem if expected stem audio is missing
             return note.Stem switch
             {
-                DrumStem.Kick  => SongStem.DrumsKick,
-                DrumStem.Snare => SongStem.DrumsSnare,
-                DrumStem.Else  => SongStem.DrumsElse,
+                DrumStem.Kick  => SongStem.Drums1,
+                DrumStem.Snare => SongStem.Drums2,
+                DrumStem.Else  => SongStem.Drums3,
                 _              => throw new ArgumentOutOfRangeException()
             };
         }
         public override void SetStarPowerFX(bool active)
         {
-            GameManager.ChangeStemReverbState(SongStem.DrumsKick, active);
-            GameManager.ChangeStemReverbState(SongStem.DrumsSnare, active);
-            GameManager.ChangeStemReverbState(SongStem.DrumsElse, active);
+            GameManager.ChangeStemReverbState(SongStem.Drums1, active);
+            GameManager.ChangeStemReverbState(SongStem.Drums2, active);
+            GameManager.ChangeStemReverbState(SongStem.Drums3, active);
         }
 
         protected override void ResetVisuals()
