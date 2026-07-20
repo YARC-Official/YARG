@@ -42,7 +42,8 @@ $$ \text{Tempo Latency} = \text{Remaining Buffer Time} + \text{Command Latency} 
 ### 3. Startup Position Advance Latency (variable start lag)
 This is the delay between `ChannelPlay` and the first observed advance of the BASS channel position. It is separate from physical speaker/output latency.
 
-The best estimate is:
+#### Other Platforms (Windows, Linux, etc.)
+On most platforms, the best estimate is based on the configured device buffer length:
 $$
 \text{Startup Latency} = \text{DeviceBufferLength}
                        = \text{DevicePeriod} \times \text{BufferMultiplier}
@@ -58,7 +59,14 @@ For example, with a 10ms device period:
 - 20ms device buffer: best estimate 20ms, approximately 15–25ms
 - 40ms device buffer: best estimate 40ms, approximately 35–45ms
 
-The device buffer length is therefore the best single latency estimate. The device period determines the expected uncertainty. `Bass.Info.Latency` should not be used to estimate this specific `ChannelPlay`-to-position-advance delay.
+On these platforms, the device buffer length is the best single latency estimate. The device period determines the expected uncertainty. `Bass.Info.Latency` should not be used to estimate this specific `ChannelPlay`-to-position-advance delay.
+
+#### macOS Platform Differences
+On macOS, `Bass.DeviceBufferLength` is unavailable. Instead, macOS uses the device's output latency directly:
+$$
+\text{Startup Latency} = \text{DeviceOutputLatency}
+$$
+Where `DeviceOutputLatency` is retrieved from `Bass.Info.Latency`.
 
 ---
 
@@ -195,6 +203,11 @@ Since we cannot seek to a negative position in BASS, we clamp the seek position 
 #### Pause / Resume
 * **Pause:** We stop playback immediately. The timeline stops tracking and discards any pending speed change commands that had not yet taken effect.
 * **Resume:** The system updates the audio calibration, measures the current device latency, and calls `PrepareAudioAt` using the current gameplay time. If the position is positive (middle of the song), it triggers **Case A** (seeking BASS forward to pre-compensate for latency). If it is within the pre-roll, it triggers **Case B**.
+
+##### Play/Pause Delay Differences
+When resuming, the delay before the audio starts is dictated by the platform-specific `StartupLatency`:
+- **macOS:** Determined by `Bass.Info.Latency` (`DeviceOutputLatency`).
+- **Other Platforms:** Determined by the configured `Bass.DeviceBufferLength`.
 
 #### Speed Changes (Practice Mode Slider)
 Changing the playback speed on the fly normally incurs a noticeable delay before the speed shift is actually heard. This delay is determined by BASS's tempo stream buffer (which is bounded by the user-configured buffer size setting). To make speed adjustments feel instantaneous at the cost of a minor audio gap (or brief blip):
