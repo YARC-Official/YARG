@@ -407,7 +407,12 @@ namespace YARG.Gameplay.Player
             {
                 return SongStem.Drums1;
             }
-            return note.Stem switch
+            return GetStem(note.Stem);
+        }
+
+        private SongStem GetStem(DrumStem drumStem)
+        {
+            return drumStem switch
             {
                 DrumStem.Kick  => SongStem.Drums1,
                 DrumStem.Snare => SongStem.Drums2,
@@ -415,6 +420,7 @@ namespace YARG.Gameplay.Player
                 _              => throw new ArgumentOutOfRangeException()
             };
         }
+
         public override void SetStarPowerFX(bool active)
         {
             GameManager.ChangeStemReverbState(SongStem.Drums1, active);
@@ -525,10 +531,18 @@ namespace YARG.Gameplay.Player
         protected override void OnNoteHit(int index, DrumNote note)
         {
             base.OnNoteHit(index, note);
+            OnNoteHitOrMissed(note);
 
             if (!GameManager.IsSeekingReplay)
             {
-                SetDrumStemMuteState(GetStem(note), false);
+                if (Player.Profile.CurrentDifficulty == Difficulty.Beginner)
+                {
+                    SetStemMuteState(false);
+                }
+                else
+                {
+                    SetDrumStemMuteState(GetStem(note), false);
+                }
             }
 
             // Remember that drums treat each note separately
@@ -554,15 +568,45 @@ namespace YARG.Gameplay.Player
         protected override void OnNoteMissed(int index, DrumNote note)
         {
             base.OnNoteMissed(index, note);
+            OnNoteHitOrMissed(note);
 
             if (!GameManager.IsSeekingReplay)
             {
-                SetDrumStemMuteState(GetStem(note), true);
+                if (Player.Profile.CurrentDifficulty == Difficulty.Beginner)
+                {
+                    SetStemMuteState(true);
+                }
+                else
+                {
+                    SetDrumStemMuteState(GetStem(note), true);
+                }
             }
 
             // Remember that drums treat each note separately
 
             (NotePool.GetByKey(note) as DrumsNoteElement)?.MissNote();
+        }
+
+        private void OnNoteHitOrMissed(DrumNote note)
+        {
+            if (Player.Profile.CurrentDifficulty == Difficulty.Easy)
+            {
+                // easy charts don't have kick + 'else' notes together, so unmute the kick when we see an 'else' note and vice versa
+                var kickStem = GetStem(DrumStem.Kick);
+                var elseStem = GetStem(DrumStem.Else);
+                if (kickStem != elseStem)
+                {
+                    switch (note.Stem)
+                    {
+                        case DrumStem.Kick:
+                            SetDrumStemMuteState(elseStem, false);
+                            break;
+                        case DrumStem.Else:
+                            SetDrumStemMuteState(kickStem, false);
+                            break;
+                    }
+                }
+            }
         }
 
         protected override void OnStarPowerPhraseHit()
