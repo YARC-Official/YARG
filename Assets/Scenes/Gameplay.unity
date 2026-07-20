@@ -6045,6 +6045,7 @@ MonoBehaviour:
   _transparentBackground: {fileID: 658438231}
   _phrasePrefab: {fileID: 4412832065551153811, guid: b0bc5cdea31af4c188dd572f5efa4a1a, type: 3}
   _canvas: {fileID: 1858185586}
+  _vocalPlayerHudContainer: {fileID: 1338572397}
 --- !u!114 &1047079483
 MonoBehaviour:
   m_ObjectHideFlags: 0

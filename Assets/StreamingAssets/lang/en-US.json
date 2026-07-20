@@ -1324,6 +1324,10 @@
                     "Transparent": "Translucent Background"
                 }
             },
+            "KeepLyricBar": {
+                "Name": "Keep Lyric Bar",
+                "Description": "Displays the karaoke lyric bar below the vocal track while singers are playing."
+            },
             "MasterMusicVolume": {
                 "Name": "Master Music Volume",
                 "PauseName": "Master",
