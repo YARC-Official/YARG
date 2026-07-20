@@ -66,18 +66,20 @@ namespace YARG.Gameplay
             {
                 return _stem switch
                 {
-                    SongStem.Guitar    => SettingsManager.Settings.GuitarVolume.Value,
-                    SongStem.Rhythm    => SettingsManager.Settings.RhythmVolume.Value,
-                    SongStem.Bass      => SettingsManager.Settings.BassVolume.Value,
-                    SongStem.Keys      => SettingsManager.Settings.KeysVolume.Value,
-                    SongStem.DrumsElse => SettingsManager.Settings.DrumsVolume.Value,
-                    SongStem.Vocals    => SettingsManager.Settings.VocalsVolume.Value,
-                    SongStem.Song      => SettingsManager.Settings.SongVolume.Value,
-                    SongStem.Crowd     => SettingsManager.Settings.CrowdVolume.Value,
-                    SongStem.Sfx       => SettingsManager.Settings.SfxVolume.Value,
-                    SongStem.DrumSfx   => SettingsManager.Settings.DrumSfxVolume.Value,
-                    SongStem.Metronome => SettingsManager.Settings.MetronomeVolume.Value,
-                    _                  => DEFAULT_VOLUME
+                    SongStem.Guitar     => SettingsManager.Settings.GuitarVolume.Value,
+                    SongStem.Rhythm     => SettingsManager.Settings.RhythmVolume.Value,
+                    SongStem.Bass       => SettingsManager.Settings.BassVolume.Value,
+                    SongStem.Keys       => SettingsManager.Settings.KeysVolume.Value,
+                    SongStem.DrumsKick  => SettingsManager.Settings.DrumsVolume.Value,
+                    SongStem.DrumsSnare => SettingsManager.Settings.DrumsVolume.Value,
+                    SongStem.DrumsElse  => SettingsManager.Settings.DrumsVolume.Value,
+                    SongStem.Vocals     => SettingsManager.Settings.VocalsVolume.Value,
+                    SongStem.Song       => SettingsManager.Settings.SongVolume.Value,
+                    SongStem.Crowd      => SettingsManager.Settings.CrowdVolume.Value,
+                    SongStem.Sfx        => SettingsManager.Settings.SfxVolume.Value,
+                    SongStem.DrumSfx    => SettingsManager.Settings.DrumSfxVolume.Value,
+                    SongStem.Metronome  => SettingsManager.Settings.MetronomeVolume.Value,
+                    _                   => DEFAULT_VOLUME
                 };
             }
         }

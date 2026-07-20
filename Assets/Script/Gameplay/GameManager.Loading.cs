@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using YARG.Core;
@@ -512,22 +513,31 @@ namespace YARG.Gameplay
                     }
 
                     // Add (or increase total of) the stem state
-                    var stem = player.Profile.CurrentInstrument.ToSongStem();
-                    if (stem == SongStem.Bass && !_stemStates.ContainsKey(SongStem.Bass))
+                    var instrument = player.Profile.CurrentInstrument;
+                    var stems = instrument.ToSongStems().Select(stem =>
                     {
-                        stem = SongStem.Rhythm;
-                    }
+                        if (stem == SongStem.Bass && !_stemStates.ContainsKey(SongStem.Bass))
+                        {
+                            return SongStem.Rhythm;
+                        }
 
-                    if (stem != _backgroundStem && _stemStates.TryGetValue(stem, out var state))
+                        return stem;
+                    });
+
+                    foreach (var stem in stems)
                     {
-                        ++state.Total;
-                        ++state.Audible;
-                    }
-                    else if (_stemStates.TryGetValue(_backgroundStem, out state))
-                    {
-                        // Ensures the stem will still play at a minimum of 50%, even if all players mute
-                        state.Total += 2;
-                        state.Audible += 2;
+                        if (stem != _backgroundStem && _stemStates.TryGetValue(stem, out var state))
+                        {
+                            ++state.Total;
+                            ++state.Audible;
+                        }
+                        else if (_stemStates.TryGetValue(_backgroundStem, out state))
+                        {
+                            // Ensures the stem will still play at a minimum of 50%, even if all players mute
+                            // (Only apply this once per player if they fall back to the background stem)
+                            state.Total += 2;
+                            state.Audible += 2;
+                        }
                     }
                 }
             }
