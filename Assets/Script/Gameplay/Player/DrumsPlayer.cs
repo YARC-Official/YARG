@@ -10,6 +10,7 @@ using YARG.Core.Engine.Drums;
 using YARG.Core.Engine.Drums.Engines;
 using YARG.Core.Input;
 using YARG.Core.Logging;
+using YARG.Core.Parsing;
 using YARG.Core.Replays;
 using YARG.Gameplay.HUD;
 using YARG.Gameplay.Visuals;
@@ -384,12 +385,13 @@ namespace YARG.Gameplay.Player
 
         private static SongStem GetStem(DrumNote note)
         {
-            // todo: move this info into the drum note?
-            return note.Pad switch
+            // todo: handle fallback to `Else` stem if expected stem audio is missing
+            return note.Stem switch
             {
-                0 => SongStem.DrumsKick,
-                1 => SongStem.DrumsSnare,
-                _ => SongStem.DrumsElse
+                DrumStem.Kick  => SongStem.DrumsKick,
+                DrumStem.Snare => SongStem.DrumsSnare,
+                DrumStem.Else  => SongStem.DrumsElse,
+                _              => throw new ArgumentOutOfRangeException()
             };
         }
         public override void SetStarPowerFX(bool active)
