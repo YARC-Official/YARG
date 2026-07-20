@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using ManagedBass;
 using ManagedBass.Fx;
 using YARG.Core.Audio;
@@ -12,7 +12,7 @@ namespace YARG.Audio.BASS
         public const int PLAYBACK_BUFFER_LENGTH = 75;
         public const double PLAYBACK_BUFFER_DESYNC = PLAYBACK_BUFFER_LENGTH / 1000.0;
 
-        public const float REVERB_VOLUME_MULTIPLIER = 0.80f;
+        public const float REVERB_VOLUME_MULTIPLIER = 0.35f;
 
         public const int FADE_TIME_MILLISECONDS = 1000;
 

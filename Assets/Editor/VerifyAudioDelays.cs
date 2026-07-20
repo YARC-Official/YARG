@@ -288,33 +288,6 @@ namespace Editor
             }
         }
 
-        [MenuItem("Tests/Prototype Continuous Master Transport")]
-        public static void RunContinuousMasterTransportPrototype()
-        {
-            InitializePaths();
-            ContinuousMasterTransportPrototype.Run();
-        }
-
-        [MenuItem("Tests/Prototype Tempo Decode Position Mapping")]
-        public static void RunTempoDecodePositionMappingPrototype()
-        {
-            InitializePaths();
-            ContinuousMasterTransportPrototype.RunTempoPositionMappingProbe();
-        }
-
-        [MenuItem("Tests/Prototype Continuous Master Mapped Position")]
-        public static void RunContinuousMasterMappedPositionPrototype()
-        {
-            InitializePaths();
-            ContinuousMasterTransportPrototype.RunMappedMasterPositionProbe();
-        }
-
-        [MenuItem("Tests/Prototype Continuous Master Direct Position")]
-        public static void RunContinuousMasterDirectPositionPrototype()
-        {
-            InitializePaths();
-            ContinuousMasterTransportPrototype.RunDirectMixerPositionProbe();
-        }
 
         [MenuItem("Tests/Measure Real Seek Latency")]
         public static async void RunRealSeekLatencyMeasurement()

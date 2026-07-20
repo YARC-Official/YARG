@@ -127,32 +127,32 @@ namespace YARG.Audio.BASS
             _isReverbing = reverb;
             if (reverb)
             {
-                // Reverb already applied
-                if (_reverbDsp != null) return;
-
                 // Set reverb FX
-                _reverbHandles.LowEQ = BassHelpers.AddEqToChannel(_reverbHandles.Stream, BassHelpers.LowEqParams);
-                _reverbHandles.MidEQ = BassHelpers.AddEqToChannel(_reverbHandles.Stream, BassHelpers.MidEqParams);
-                _reverbHandles.HighEQ = BassHelpers.AddEqToChannel(_reverbHandles.Stream, BassHelpers.HighEqParams);
-                if (_reverbHandles.LowEQ == 0 || _reverbHandles.MidEQ == 0 ||
-                    _reverbHandles.HighEQ == 0)
-                {
-                    _isReverbing = false;
-                    RemoveReverbEq();
-                    return;
-                }
-
-                _reverbDsp = BassFreeverbDsp.Create(_reverbHandles.Stream,
-                    dryMix: 0.5f,
-                    wetMix: 1.0f,
-                    roomSize: 0.8f,
-                    damp: 0.5f,
-                    width: 1.0f);
                 if (_reverbDsp == null)
                 {
-                    _isReverbing = false;
-                    RemoveReverbEq();
-                    return;
+                    _reverbHandles.LowEQ = BassHelpers.AddEqToChannel(_reverbHandles.Stream, BassHelpers.LowEqParams);
+                    _reverbHandles.MidEQ = BassHelpers.AddEqToChannel(_reverbHandles.Stream, BassHelpers.MidEqParams);
+                    _reverbHandles.HighEQ = BassHelpers.AddEqToChannel(_reverbHandles.Stream, BassHelpers.HighEqParams);
+                    if (_reverbHandles.LowEQ == 0 || _reverbHandles.MidEQ == 0 ||
+                        _reverbHandles.HighEQ == 0)
+                    {
+                        _isReverbing = false;
+                        RemoveReverbEq();
+                        return;
+                    }
+
+                    _reverbDsp = BassFreeverbDsp.Create(_reverbHandles.Stream,
+                        dryMix: 0.0f,
+                        wetMix: 1.0f,
+                        roomSize: 0.8f,
+                        damp: 0.5f,
+                        width: 1.0f);
+                    if (_reverbDsp == null)
+                    {
+                        _isReverbing = false;
+                        RemoveReverbEq();
+                        return;
+                    }
                 }
 
                 float volume = (float) (_volume * BassHelpers.REVERB_VOLUME_MULTIPLIER);
@@ -160,27 +160,13 @@ namespace YARG.Audio.BASS
                 {
                     YargLogger.LogFormatError("Failed to set reverb volume: {0}!", Bass.LastError);
                 }
-
-                if (!Bass.ChannelSlideAttribute(_streamHandles.Stream, ChannelAttribute.Volume, volume, BassHelpers.REVERB_SLIDE_IN_MILLISECONDS))
-                {
-                    YargLogger.LogFormatError("Failed to set reverb volume: {0}!", Bass.LastError);
-                }
             }
             else
             {
-                // No reverb is applied
+                // No reverb is applied, but let the reverb stream slide out/fade out naturally
                 if (_reverbDsp == null) return;
 
-                _reverbDsp.Dispose();
-                _reverbDsp = null;
-                RemoveReverbEq();
-
                 if (!Bass.ChannelSlideAttribute(_reverbHandles.Stream, ChannelAttribute.Volume, 0, BassHelpers.REVERB_SLIDE_OUT_MILLISECONDS))
-                {
-                    YargLogger.LogFormatError("Failed to set reverb volume: {0}!", Bass.LastError);
-                }
-
-                if (!Bass.ChannelSlideAttribute(_streamHandles.Stream, ChannelAttribute.Volume, (float)_volume, BassHelpers.REVERB_SLIDE_OUT_MILLISECONDS))
                 {
                     YargLogger.LogFormatError("Failed to set reverb volume: {0}!", Bass.LastError);
                 }
