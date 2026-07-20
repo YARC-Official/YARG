@@ -14,6 +14,11 @@ namespace YARG.Audio.BASS
         private static double CommandLatency => Math.Max(0, Bass.UpdatePeriod) / 2000.0;
 
         /// <summary>
+        /// Gets estimated startup latency before BASS position first advances.
+        /// </summary>
+        public static double StartupLatency => Math.Max(0, Bass.DeviceBufferLength) / 1000.0;
+
+        /// <summary>
         /// Gets estimated playback stream output latency.
         /// </summary>
         public static double GetPlaybackStreamLatency()
