@@ -24,9 +24,10 @@ namespace YARG.Audio.BASS
         private readonly PlaybackRateHistory _commandedRateHistory = new();
         private readonly PlaybackRateHistory _bufferedRateHistory  = new();
 
-        private float  _songSpeed;
-        private float  _syncAdjustment;
-        private bool   _isPlaying;
+        private float   _songSpeed;
+        private float   _syncAdjustment;
+        private bool    _isPlaying;
+        private double? _preparedControlPosition;
 
         public double OutputLatency { get; private set; }
         public BufferedPlaybackTimeline(float speed)
@@ -121,10 +122,8 @@ namespace YARG.Audio.BASS
         }
 
         /// <summary>
-        /// Starts commanded position advancement. Control time follows this clock until BASS first
-        /// reports raw position advancement, avoiding dependency on variable backend startup latency.
+        /// Starts commanded and buffered position advancement.
         /// </summary>
-        /// <param name="bassPosition">Raw BASS position immediately after ChannelPlay.</param>
         public void Play(double bassPosition)
         {
             if (_isPlaying)
@@ -134,8 +133,24 @@ namespace YARG.Audio.BASS
 
             _isPlaying = true;
             double now = GetCurrentTime();
-            _commandedRateHistory.SetRate(now, CurrentRate);
-            _bufferedRateHistory.SetRate(now + BassLatencyProvider.StartupLatency, CurrentRate);
+            float rate = CurrentRate;
+            if (_preparedControlPosition.HasValue)
+            {
+                // ChannelPlay can let one device/update quantum advance before it returns. Gameplay is
+                // anchored after that call, so make the position observed here represent the prepared
+                // control position instead of exposing that backend startup advancement as sync error.
+                // The compensated BASS position then remains still until the device buffer begins
+                // playing, so advance only the commanded history during that startup interval.
+                double controlPosition = _preparedControlPosition.Value;
+                _commandedRateHistory.Reset(now, controlPosition, rate);
+                _bufferedRateHistory.Reset(now, bassPosition, 0f);
+                _bufferedRateHistory.SetRate(now + BassLatencyProvider.StartupLatency, rate);
+                _preparedControlPosition = null;
+                return;
+            }
+
+            _commandedRateHistory.SetRate(now, rate);
+            _bufferedRateHistory.SetRate(now + BassLatencyProvider.StartupLatency, rate);
         }
 
         /// <summary>
@@ -166,6 +181,7 @@ namespace YARG.Audio.BASS
             float rate = _isPlaying ? CurrentRate : 0f;
             _commandedRateHistory.Reset(now, requestedPosition, rate);
             _bufferedRateHistory.Reset(now, observedPosition, rate);
+            _preparedControlPosition = requestedPosition;
         }
 
         private float CurrentRate => _songSpeed + _syncAdjustment;

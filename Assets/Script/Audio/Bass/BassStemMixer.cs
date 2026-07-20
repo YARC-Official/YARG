@@ -42,11 +42,12 @@ namespace YARG.Audio.BASS
         private const    float MAX_PLAYBACK_SPEED            = 51f;
 
         private static bool IsWhammyEnabled => SettingsManager.Settings.UseWhammyFx.Value;
-        private        bool IsPlaying       => Bass.ChannelIsActive(_tempoStreamHandle) == PlaybackState.Playing;
+        private        bool IsPlaying       => Bass.ChannelIsActive(_outputMixerHandle) == PlaybackState.Playing;
 
         private readonly int                         _mixerHandle;
         private readonly List<int>                   _sourceHandles = new();
         private readonly int                         _tempoStreamHandle;
+        private readonly int                         _outputMixerHandle;
         private readonly SongPositionTracker         _songPositionTracker;
         private readonly BufferedPlaybackTimeline    _playbackTimeline;
         private          bool                        _didSeek;
@@ -95,16 +96,33 @@ namespace YARG.Audio.BASS
             : base(name, manager, clampStemVolume)
 #nullable disable
         {
-            _tempoStreamHandle = BassFx.TempoCreate(handle, BassFlags.SampleOverrideLowestVolume);
-            _songPositionTracker = new SongPositionTracker(_tempoStreamHandle);
-            _playbackTimeline = new BufferedPlaybackTimeline(speed);
+            _mixerHandle = handle;
+            _tempoStreamHandle = BassFx.TempoCreate(handle,
+                BassFlags.Decode | BassFlags.FxFreeSource);
             if (_tempoStreamHandle == 0)
             {
                 YargLogger.LogFormatError("Failed to create tempo stream: {0}", Bass.LastError);
                 return;
             }
 
-            _mixerHandle = handle;
+            var tempoInfo = Bass.ChannelGetInfo(_tempoStreamHandle);
+            _outputMixerHandle = BassMix.CreateMixerStream(tempoInfo.Frequency, tempoInfo.Channels,
+                BassFlags.Float | BassFlags.MixerNonStop);
+            if (_outputMixerHandle == 0)
+            {
+                YargLogger.LogFormatError("Failed to create output mixer: {0}", Bass.LastError);
+                return;
+            }
+
+            if (!BassMix.MixerAddChannel(_outputMixerHandle, _tempoStreamHandle,
+                BassFlags.MixerChanNoRampin))
+            {
+                YargLogger.LogFormatError("Failed to add tempo stream to output mixer: {0}", Bass.LastError);
+                return;
+            }
+
+            _songPositionTracker = new SongPositionTracker(_tempoStreamHandle);
+            _playbackTimeline = new BufferedPlaybackTimeline(speed);
             _shouldNormalize = normalize && SettingsManager.Settings.EnableNormalization.Value;
             if (_shouldNormalize)
             {
@@ -145,10 +163,11 @@ namespace YARG.Audio.BASS
             {
                 // Prime the stream after a seek, before starting playback. BASS documents this order
                 // as the way to avoid initial decode/buffer-fill delay at ChannelPlay.
-                Bass.ChannelUpdate(_tempoStreamHandle, 0);
+                Bass.ChannelUpdate(_outputMixerHandle, 0);
 
-                // Restart on the tempostream resets position to 0, position here represents time since last play call
-                bool playSucceeded = Bass.ChannelPlay(_tempoStreamHandle, Restart: _didSeek);
+                // Restart flushes the output mixer's playback buffer after a seek. The tempo source
+                // position is reset separately by SetPosition_Internal.
+                bool playSucceeded = Bass.ChannelPlay(_outputMixerHandle, Restart: _didSeek);
                 int playError = playSucceeded ? 0 : (int) Bass.LastError;
 
                 if (!playSucceeded)
@@ -156,10 +175,9 @@ namespace YARG.Audio.BASS
                     return playError;
                 }
 
-                // Start the control clock after ChannelPlay returns. Until BASS's raw position first
-                // advances, BufferedPlaybackTimeline uses this continuous clock directly.
-                double startupBassPosition = _songPositionTracker.GetSongPosition();
-                _playbackTimeline.Play(startupBassPosition);
+                // Start control-rate tracking after ChannelPlay returns so mixer startup work is not
+                // counted as song progress.
+                _playbackTimeline.Play(_songPositionTracker.GetSongPosition());
                 _didSeek = false;
             }
 
@@ -195,12 +213,12 @@ namespace YARG.Audio.BASS
         protected override void FadeIn_Internal(double maxVolume, double duration)
         {
             float scaled = (float) BassAudioManager.ExponentialVolume(maxVolume);
-            Bass.ChannelSlideAttribute(_tempoStreamHandle, ChannelAttribute.Volume, scaled, (int) (duration * SongMetadata.MILLISECOND_FACTOR));
+            Bass.ChannelSlideAttribute(_outputMixerHandle, ChannelAttribute.Volume, scaled, (int) (duration * SongMetadata.MILLISECOND_FACTOR));
         }
 
         protected override void FadeOut_Internal(double duration)
         {
-            Bass.ChannelSlideAttribute(_tempoStreamHandle, ChannelAttribute.Volume, 0, (int) (duration * SongMetadata.MILLISECOND_FACTOR));
+            Bass.ChannelSlideAttribute(_outputMixerHandle, ChannelAttribute.Volume, 0, (int) (duration * SongMetadata.MILLISECOND_FACTOR));
         }
 
         protected override int Pause_Internal()
@@ -211,7 +229,7 @@ namespace YARG.Audio.BASS
                 return 0;
             }
 
-            if (!Bass.ChannelPause(_tempoStreamHandle))
+            if (!Bass.ChannelPause(_outputMixerHandle))
             {
                 return (int) Bass.LastError;
             }
@@ -234,7 +252,7 @@ namespace YARG.Audio.BASS
 
         protected override double GetTempoStreamLatency_Internal()
         {
-            return BassLatencyProvider.GetTempoStreamLatency(_tempoStreamHandle);
+            return BassLatencyProvider.GetTempoStreamLatency(_outputMixerHandle);
         }
 
         // The total delay between playback command and when audio is heard
@@ -245,7 +263,7 @@ namespace YARG.Audio.BASS
 
         protected override double GetVolume_Internal()
         {
-            if (!Bass.ChannelGetAttribute(_tempoStreamHandle, ChannelAttribute.Volume, out float volume))
+            if (!Bass.ChannelGetAttribute(_outputMixerHandle, ChannelAttribute.Volume, out float volume))
             {
                 YargLogger.LogFormatError("Failed to get volume: {0}", Bass.LastError);
             }
@@ -271,9 +289,17 @@ namespace YARG.Audio.BASS
                 }
                 _didSeek = true;
                 _songPositionTracker.Reset(seekPosition, alignmentDelay, playbackDelay);
-                if (!Bass.ChannelSetPosition(_tempoStreamHandle, 0))
+                if (!BassMix.ChannelSetPosition(_tempoStreamHandle, 0, PositionFlags.Bytes))
                 {
                     YargLogger.LogFormatError("Failed to reset tempo stream position: {0}!", Bass.LastError);
+                }
+
+                // Reset the playback mixer before sampling the prepared position below. Resetting its
+                // source does not reliably clear BASSmix's buffered source-position history, so without
+                // this the old pre-pause position can be added to the new song start on resume.
+                if (!Bass.ChannelSetPosition(_outputMixerHandle, 0, PositionFlags.Bytes))
+                {
+                    YargLogger.LogFormatError("Failed to reset output mixer position: {0}!", Bass.LastError);
                 }
 
                 _playbackTimeline.ResetAfterSeek(_songPositionTracker.GetSongPosition(), position);
@@ -288,9 +314,9 @@ namespace YARG.Audio.BASS
         protected override void SetVolume_Internal(double volume)
         {
             volume = BassAudioManager.ExponentialVolume(volume);
-            if (!Bass.ChannelSetAttribute(_tempoStreamHandle, ChannelAttribute.Volume, volume))
+            if (!Bass.ChannelSetAttribute(_outputMixerHandle, ChannelAttribute.Volume, volume))
             {
-                YargLogger.LogFormatError("Failed to set tempo stream volume: {0}", Bass.LastError);
+                YargLogger.LogFormatError("Failed to set output mixer volume: {0}", Bass.LastError);
             }
         }
 
@@ -323,7 +349,7 @@ namespace YARG.Audio.BASS
                 flags |= (int) DataFlags.FFTComplex;
             }
 
-            int data = Bass.ChannelGetData(_tempoStreamHandle, buffer, flags);
+            int data = Bass.ChannelGetData(_outputMixerHandle, buffer, flags);
             if (data < 0)
             {
                 return (int) Bass.LastError;
@@ -333,7 +359,7 @@ namespace YARG.Audio.BASS
 
         protected override int GetSampleData_Internal(float[] buffer)
         {
-            int data = Bass.ChannelGetData(_tempoStreamHandle, buffer, (buffer.Length * 4) | (int) (DataFlags.Float));
+            int data = Bass.ChannelGetData(_outputMixerHandle, buffer, (buffer.Length * 4) | (int) (DataFlags.Float));
             if (data < 0)
             {
                 return (int) Bass.LastError;
@@ -343,7 +369,7 @@ namespace YARG.Audio.BASS
 
         protected override int GetLevel_Internal(float[] level)
         {
-            bool status = Bass.ChannelGetLevel(_tempoStreamHandle, level, 0.2f, LevelRetrievalFlags.Mono | LevelRetrievalFlags.RMS);
+            bool status = Bass.ChannelGetLevel(_outputMixerHandle, level, 0.2f, LevelRetrievalFlags.Mono | LevelRetrievalFlags.RMS);
             if (!status)
             {
                 return (int) Bass.LastError;
@@ -375,7 +401,7 @@ namespace YARG.Audio.BASS
                 BassAudioManager.SetSpeed(effectiveSpeed, _tempoStreamHandle, shiftPitch);
             }
 
-            double tempoLatency = BassLatencyProvider.GetTempoStreamLatency(_tempoStreamHandle);
+            double tempoLatency = BassLatencyProvider.GetTempoStreamLatency(_outputMixerHandle);
             _playbackTimeline.SetSpeed(songSpeed, appliedAdjustment, tempoLatency);
         }
 
@@ -438,7 +464,7 @@ namespace YARG.Audio.BASS
         protected override void SetOutputChannel_Internal(OutputChannel? channel)
 #nullable disable
         {
-            BassHelpers.UpdateOutputChannels(_tempoStreamHandle, channel);
+            BassHelpers.UpdateOutputChannels(_outputMixerHandle, channel);
         }
 
         protected override void SetOutputDevice_Internal(OutputDevice device)
@@ -477,6 +503,11 @@ namespace YARG.Audio.BASS
             if (_tempoStreamHandle != 0 && !Bass.ChannelSetDevice(_tempoStreamHandle, bassDevice.DeviceId))
             {
                 YargLogger.LogFormatError("Failed to change device for tempo stream handle: {0}", Bass.LastError);
+            }
+
+            if (_outputMixerHandle != 0 && !Bass.ChannelSetDevice(_outputMixerHandle, bassDevice.DeviceId))
+            {
+                YargLogger.LogFormatError("Failed to change device for output mixer handle: {0}", Bass.LastError);
             }
         }
 
@@ -648,7 +679,7 @@ namespace YARG.Audio.BASS
             // 0 disables buffering. Positive values must meet BASS minimum buffer requirements.
             length = BassHelpers.ClampPlaybackBufferLength(length);
             float lengthInSeconds = length / 1000f;
-            if (!Bass.ChannelSetAttribute(_tempoStreamHandle, ChannelAttribute.Buffer, lengthInSeconds))
+            if (!Bass.ChannelSetAttribute(_outputMixerHandle, ChannelAttribute.Buffer, lengthInSeconds))
             {
                 YargLogger.LogFormatError("Failed to set playback buffer: {0}!", Bass.LastError);
             }
@@ -694,14 +725,15 @@ namespace YARG.Audio.BASS
             }
             _oneShotChannels.Clear();
 
-            if (_mixerHandle != 0)
+            if (_outputMixerHandle != 0)
             {
-                if (!Bass.StreamFree(_mixerHandle))
+                if (!Bass.StreamFree(_outputMixerHandle))
                 {
-                    YargLogger.LogFormatError("Failed to free mixer stream (THIS WILL LEAK MEMORY!): {0}!", Bass.LastError);
+                    YargLogger.LogFormatError("Failed to free output mixer stream (THIS WILL LEAK MEMORY!): {0}!", Bass.LastError);
                 }
             }
 
+            // Tempo stream owns and frees its source mixer via BassFlags.FxFreeSource.
             if (_tempoStreamHandle != 0)
             {
                 if (!Bass.StreamFree(_tempoStreamHandle))
@@ -818,7 +850,7 @@ namespace YARG.Audio.BASS
 
             private double GetTempoStreamPosition()
             {
-                long positionBytes = Bass.ChannelGetPosition(_tempoStreamHandle);
+                long positionBytes = BassMix.ChannelGetPosition(_tempoStreamHandle, PositionFlags.Bytes);
                 if (positionBytes < 0)
                 {
                     YargLogger.LogFormatError("Failed to get byte position: {0}!", Bass.LastError);

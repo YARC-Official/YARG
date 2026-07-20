@@ -2592,6 +2592,302 @@ namespace Editor
         {
             return Math.Max(0, Bass.UpdatePeriod) / 2000.0;
         }
+
+        private readonly struct TempoOutputMixerMetronomeResult
+        {
+            public readonly float Speed;
+            public readonly float[] Output;
+            public readonly long TargetFrame;
+            public readonly long FirstSoundFrame;
+            public readonly double SourceSecondsConsumed;
+
+            public TempoOutputMixerMetronomeResult(float speed, float[] output, long targetFrame,
+                long firstSoundFrame, double sourceSecondsConsumed)
+            {
+                Speed = speed;
+                Output = output;
+                TargetFrame = targetFrame;
+                FirstSoundFrame = firstSoundFrame;
+                SourceSecondsConsumed = sourceSecondsConsumed;
+            }
+        }
+
+        [MenuItem("Tests/Verify Tempo Output Mixer Metronome")]
+        public static void VerifyTempoOutputMixerMetronome()
+        {
+            InitializePaths();
+            GlobalAudioHandler.Initialize<BassAudioManager>();
+
+            string clickPath = Path.Combine(Application.streamingAssetsPath, "metronome", "sine_hi.ogg");
+            if (!File.Exists(clickPath))
+            {
+                Debug.LogError($"Metronome click file not found: {clickPath}");
+                return;
+            }
+
+            Debug.Log("<b>[Tempo Output Mixer Metronome Verification]</b> Starting test...");
+
+            try
+            {
+                float[] speeds = { 0.5f, 1.0f, 2.0f };
+                var results = new TempoOutputMixerMetronomeResult[speeds.Length];
+                for (int i = 0; i < speeds.Length; i++)
+                {
+                    results[i] = RunTempoOutputMixerMetronome(clickPath, speeds[i]);
+                }
+
+                // The tempo source must consume more input as speed increases. This verifies that
+                // the final mixer really is pulling a live decoding tempo stream, rather than only
+                // exercising an otherwise disconnected output mixer.
+                for (int i = 1; i < results.Length; i++)
+                {
+                    if (results[i - 1].SourceSecondsConsumed >= results[i].SourceSecondsConsumed)
+                    {
+                        throw new Exception(
+                            $"Tempo source consumption did not increase with speed: " +
+                            $"{results[i - 1].Speed:0.00}x consumed " +
+                            $"{results[i - 1].SourceSecondsConsumed:0.000}s; " +
+                            $"{results[i].Speed:0.00}x consumed " +
+                            $"{results[i].SourceSecondsConsumed:0.000}s");
+                    }
+                }
+
+                // Only the tempo source's silent output varies with speed. Clicks bypass it, so
+                // every final-mixer PCM buffer should be identical at every tested speed.
+                float[] baseline = results[1].Output;
+                for (int resultIndex = 0; resultIndex < results.Length; resultIndex++)
+                {
+                    float maxDifference = 0;
+                    int firstDifferentSample = -1;
+                    float[] output = results[resultIndex].Output;
+                    for (int sample = 0; sample < baseline.Length; sample++)
+                    {
+                        float difference = Math.Abs(output[sample] - baseline[sample]);
+                        if (difference > maxDifference)
+                        {
+                            maxDifference = difference;
+                        }
+                        if (firstDifferentSample < 0 && difference > 0.000001f)
+                        {
+                            firstDifferentSample = sample;
+                        }
+                    }
+
+                    if (firstDifferentSample >= 0)
+                    {
+                        throw new Exception(
+                            $"Click PCM changed at {results[resultIndex].Speed:0.00}x. " +
+                            $"First differing sample: {firstDifferentSample}; " +
+                            $"maximum difference: {maxDifference:R}");
+                    }
+                }
+
+                var summary = new StringBuilder();
+                foreach (var result in results)
+                {
+                    summary.AppendLine(
+                        $"  - {result.Speed:0.00}x: click frame {result.FirstSoundFrame}, " +
+                        $"target {result.TargetFrame}, source consumed " +
+                        $"{result.SourceSecondsConsumed:0.000}s");
+                }
+
+                Debug.Log($"<b>SUCCESS: Tempo → output mixer metronome verified!</b>\n" +
+                          "  - Tempo stream is a decoding source of the final mixer\n" +
+                          "  - Mixtime callbacks add clicks at the exact target frame\n" +
+                          "  - Click PCM is identical at 0.5x, 1x, and 2x\n" + summary);
+                EditorUtility.DisplayDialog(
+                    "Verification Successful",
+                    "Tempo → output mixer metronome passed.\n\n" +
+                    "Clicks entered the final mixer at the exact scheduled frame and their PCM " +
+                    "was identical at 0.5x, 1x, and 2x.",
+                    "OK");
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"Tempo output mixer metronome verification failed: " +
+                               $"{ex.Message}\n{ex.StackTrace}");
+            }
+        }
+
+        private static TempoOutputMixerMetronomeResult RunTempoOutputMixerMetronome(
+            string clickPath, float speed)
+        {
+            const int sampleRate = TEMPO_TEST_SAMPLE_RATE;
+            const int channels = 2;
+            const int bytesPerFrame = channels * sizeof(float);
+            const double targetTime = 0.5;
+            const double decodeDuration = 2.0;
+
+            int sourceMixer = 0;
+            int tempoStream = 0;
+            int outputMixer = 0;
+            int clickStream = 0;
+            int syncHandle = 0;
+
+            try
+            {
+                sourceMixer = BassMix.CreateMixerStream(sampleRate, channels,
+                    BassFlags.Decode | BassFlags.Float | BassFlags.MixerNonStop);
+                if (sourceMixer == 0)
+                {
+                    throw new Exception($"Failed to create source mixer: {Bass.LastError}");
+                }
+
+                tempoStream = BassFx.TempoCreate(sourceMixer,
+                    BassFlags.Decode | BassFlags.SampleOverrideLowestVolume);
+                if (tempoStream == 0)
+                {
+                    throw new Exception($"Failed to create decoding tempo stream: {Bass.LastError}");
+                }
+
+                float relativeTempo = speed * 100 - 100;
+                if (!Bass.ChannelSetAttribute(tempoStream, ChannelAttribute.Tempo, relativeTempo))
+                {
+                    throw new Exception($"Failed to set tempo to {speed:0.00}x: {Bass.LastError}");
+                }
+
+                outputMixer = BassMix.CreateMixerStream(sampleRate, channels,
+                    BassFlags.Decode | BassFlags.Float | BassFlags.MixerNonStop);
+                if (outputMixer == 0)
+                {
+                    throw new Exception($"Failed to create final output mixer: {Bass.LastError}");
+                }
+                if (!BassMix.MixerAddChannel(outputMixer, tempoStream, BassFlags.MixerChanNoRampin))
+                {
+                    throw new Exception($"Failed to route tempo stream into output mixer: {Bass.LastError}");
+                }
+
+                clickStream = Bass.CreateStream(clickPath, 0, 0, BassFlags.Decode | BassFlags.Float);
+                if (clickStream == 0)
+                {
+                    throw new Exception($"Failed to create click decoder: {Bass.LastError}");
+                }
+
+                long targetPosition = Bass.ChannelSeconds2Bytes(outputMixer, targetTime);
+                long callbackPosition = -1;
+                int callbackCount = 0;
+                bool clickAdded = false;
+                Errors clickAddError = Errors.OK;
+
+                SyncProcedure syncProcedure = (handle, channel, data, user) =>
+                {
+                    callbackCount++;
+                    callbackPosition = Bass.ChannelGetPosition(channel, PositionFlags.Bytes);
+                    bool rewound = Bass.ChannelSetPosition(clickStream, 0, PositionFlags.Bytes);
+                    clickAdded = rewound && BassMix.MixerAddChannel(
+                        channel, clickStream, BassFlags.MixerChanNoRampin);
+                    if (!clickAdded)
+                    {
+                        clickAddError = Bass.LastError;
+                    }
+                };
+
+                // Register before any rendering. No sync mutation occurs inside the mixtime callback.
+                syncHandle = Bass.ChannelSetSync(
+                    outputMixer,
+                    SyncFlags.Position | SyncFlags.Mixtime | SyncFlags.Onetime,
+                    targetPosition,
+                    syncProcedure,
+                    IntPtr.Zero);
+                if (syncHandle == 0)
+                {
+                    throw new Exception($"Failed to register output mixer sync: {Bass.LastError}");
+                }
+
+                int frameCount = (int) (sampleRate * decodeDuration);
+                var output = new float[frameCount * channels];
+                int requestedBytes = output.Length * sizeof(float);
+                int bytesRead = Bass.ChannelGetData(outputMixer, output, requestedBytes);
+                if (bytesRead != requestedBytes)
+                {
+                    throw new Exception(
+                        $"Final mixer returned {bytesRead} of {requestedBytes} requested bytes: " +
+                        $"{Bass.LastError}");
+                }
+                if (callbackCount != 1)
+                {
+                    throw new Exception($"Expected one sync callback; received {callbackCount}");
+                }
+                if (callbackPosition != targetPosition)
+                {
+                    throw new Exception(
+                        $"Sync callback position was {callbackPosition}; expected {targetPosition}");
+                }
+                if (!clickAdded)
+                {
+                    throw new Exception($"Failed to add click from sync callback: {clickAddError}");
+                }
+
+                long targetFrame = targetPosition / bytesPerFrame;
+                int targetSample = checked((int) targetFrame * channels);
+                for (int sample = 0; sample < targetSample; sample++)
+                {
+                    if (output[sample] != 0)
+                    {
+                        throw new Exception(
+                            $"Non-silent sample found before target at sample {sample} " +
+                            $"({speed:0.00}x)");
+                    }
+                }
+
+                int firstSoundSample = -1;
+                for (int sample = targetSample; sample < output.Length; sample++)
+                {
+                    if (Math.Abs(output[sample]) > 0.0001f)
+                    {
+                        firstSoundSample = sample;
+                        break;
+                    }
+                }
+                if (firstSoundSample < 0)
+                {
+                    throw new Exception($"No click PCM found at {speed:0.00}x");
+                }
+
+                long sourcePosition = Bass.ChannelGetPosition(sourceMixer, PositionFlags.Bytes);
+                if (sourcePosition < 0)
+                {
+                    throw new Exception($"Failed to read source mixer position: {Bass.LastError}");
+                }
+                double sourceSeconds = Bass.ChannelBytes2Seconds(sourceMixer, sourcePosition);
+                if (sourceSeconds < 0)
+                {
+                    throw new Exception($"Failed to convert source mixer position: {Bass.LastError}");
+                }
+
+                long firstSoundFrame = firstSoundSample / channels;
+                Debug.Log($"[Tempo Output Mixer] {speed:0.00}x: callback " +
+                          $"{callbackPosition / bytesPerFrame}, target {targetFrame}, " +
+                          $"first sound {firstSoundFrame}, source consumed {sourceSeconds:0.000}s");
+
+                return new TempoOutputMixerMetronomeResult(
+                    speed, output, targetFrame, firstSoundFrame, sourceSeconds);
+            }
+            finally
+            {
+                if (syncHandle != 0 && outputMixer != 0)
+                {
+                    Bass.ChannelRemoveSync(outputMixer, syncHandle);
+                }
+                if (outputMixer != 0)
+                {
+                    Bass.StreamFree(outputMixer);
+                }
+                if (clickStream != 0)
+                {
+                    Bass.StreamFree(clickStream);
+                }
+                if (tempoStream != 0)
+                {
+                    Bass.StreamFree(tempoStream);
+                }
+                if (sourceMixer != 0)
+                {
+                    Bass.StreamFree(sourceMixer);
+                }
+            }
+        }
+
         [MenuItem("Tests/Verify Metronome Sample Accuracy")]
         public static void VerifyMetronomeSampleAccuracy()
         {

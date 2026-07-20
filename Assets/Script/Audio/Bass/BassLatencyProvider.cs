@@ -14,7 +14,7 @@ namespace YARG.Audio.BASS
         private static double CommandLatency => Math.Max(0, Bass.UpdatePeriod) / 2000.0;
 
         /// <summary>
-        /// Gets estimated startup latency before BASS position first advances.
+        /// Gets delay before a newly played stream's compensated position begins advancing.
         /// </summary>
         public static double StartupLatency => Math.Max(0, Bass.DeviceBufferLength) / 1000.0;
 
@@ -27,14 +27,15 @@ namespace YARG.Audio.BASS
         }
 
         /// <summary>
-        /// Gets estimated tempo stream latency, including buffered audio and BASS command latency.
+        /// Gets estimated buffered playback latency, including BASS command latency.
+        /// Method name is retained for the existing StemMixer API.
         /// </summary>
-        public static double GetTempoStreamLatency(int tempoStreamHandle)
+        public static double GetTempoStreamLatency(int playbackStreamHandle)
         {
-            return GetOutputBufferLatency(tempoStreamHandle) + CommandLatency;
+            return GetOutputBufferLatency(playbackStreamHandle) + CommandLatency;
         }
 
-        private static double GetOutputBufferLatency(int tempoStreamHandle)
+        private static double GetOutputBufferLatency(int playbackStreamHandle)
         {
             double configuredBufferLatency = BassHelpers.ConfiguredPlaybackBufferLength / 1000.0;
             if (configuredBufferLatency <= 0)
@@ -42,13 +43,13 @@ namespace YARG.Audio.BASS
                 return 0;
             }
 
-            int availableBytes = Bass.ChannelGetData(tempoStreamHandle, IntPtr.Zero, (int) DataFlags.Available);
+            int availableBytes = Bass.ChannelGetData(playbackStreamHandle, IntPtr.Zero, (int) DataFlags.Available);
             if (availableBytes < 0)
             {
                 return configuredBufferLatency;
             }
 
-            double bufferLatency = Bass.ChannelBytes2Seconds(tempoStreamHandle, availableBytes);
+            double bufferLatency = Bass.ChannelBytes2Seconds(playbackStreamHandle, availableBytes);
             return bufferLatency >= 0 ? bufferLatency : configuredBufferLatency;
         }
     }
