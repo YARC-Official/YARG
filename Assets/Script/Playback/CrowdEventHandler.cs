@@ -82,6 +82,7 @@ namespace YARG.Playback
 
             if (SettingsManager.Settings.UseCrowdFx.Value == CrowdFxMode.StarpowerClapsOnly)
             {
+                StopAllCrowdSounds();
                 ChangeCrowdMuteState(true);
             }
         }
@@ -190,14 +191,18 @@ namespace YARG.Playback
 
         private void UpdateClapEnabled()
         {
-            var mode = SettingsManager.Settings.UseCrowdFx.Value;
+            var crowdFxMode = SettingsManager.Settings.UseCrowdFx.Value;
+
+            bool crowdFxEnabled = crowdFxMode != CrowdFxMode.Disabled;
+            bool venueAllowsCrowdSfx = !GlobalVariables.State.CrowdSfxVenueOverride;
             bool starPowerActive = _gameManager.StarPowerActivations > 0;
-            bool performanceAllowsClaps = mode == CrowdFxMode.StarpowerClapsOnly
-                ? starPowerActive
-                : _gameManager.EngineManager.Happiness >= 1.0f || starPowerActive;
-            bool enabled = _started && mode != CrowdFxMode.Disabled &&
-                !GlobalVariables.State.CrowdSfxVenueOverride && performanceAllowsClaps;
-            _clapScheduler?.SetEnabled(enabled);
+            bool crowdIsHappy = _engineManager.Happiness >= 1.0f;
+            bool clapsOnlyDuringStarPower = crowdFxMode == CrowdFxMode.StarpowerClapsOnly;
+
+            bool clapTriggerActive = starPowerActive || (!clapsOnlyDuringStarPower && crowdIsHappy);
+            bool shouldEnableClaps = _started && crowdFxEnabled && venueAllowsCrowdSfx && clapTriggerActive;
+
+            _clapScheduler?.SetEnabled(shouldEnableClaps);
         }
 
         private void OnHappinessUnderThreshold()
@@ -240,9 +245,22 @@ namespace YARG.Playback
 
         public void StopAllCrowdSounds()
         {
-            GlobalAudioHandler.StopSoundEffect(_selectedOpenSample, 2.5);
-            GlobalAudioHandler.StopSoundEffect(_selectedStartSample);
-            GlobalAudioHandler.StopSoundEffect(_selectedEndSample, 1.5);
+            foreach (var sample in _openSamples)
+            {
+                GlobalAudioHandler.StopSoundEffect(sample, 2.5);
+            }
+
+            foreach (var sample in _startSamples)
+            {
+                GlobalAudioHandler.StopSoundEffect(sample);
+            }
+
+            foreach (var sample in _endSamples)
+            {
+                GlobalAudioHandler.StopSoundEffect(sample, 1.5);
+            }
+
+            GlobalAudioHandler.StopSoundEffect(SfxSample.Chatter);
         }
 
         public void Dispose()
