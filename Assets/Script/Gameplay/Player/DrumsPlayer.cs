@@ -35,6 +35,11 @@ namespace YARG.Gameplay.Player
         // indistinguishable from 1x kicks by pad number
         public const int DOUBLE_KICK_FRET_INDEX = int.MaxValue;
 
+        private const float FRET_ARRAY_PADDING_CORRECTION = 0.97f;
+
+        private int _kick;
+        private int _wildcard;
+
         private bool _yellowCymbalHasLane = false;
         private bool _blueCymbalHasLane = false;
         private bool _greenCymbalHasLane = false;
@@ -146,6 +151,8 @@ namespace YARG.Gameplay.Player
         {
             // Before we do anything, see if we're in five lane mode or not
             _fiveLaneMode = player.Profile.CurrentInstrument == Instrument.FiveLaneDrums;
+            _kick = _fiveLaneMode ? (int) FiveLaneDrumPad.Kick : (int) FourLaneDrumPad.Kick;
+            _wildcard = _fiveLaneMode ? (int) FiveLaneDrumPad.Wildcard : (int) FourLaneDrumPad.Wildcard;
             base.Initialize(index, player, chart, trackView, mixer, currentHighScore);
         }
 
@@ -386,6 +393,7 @@ namespace YARG.Gameplay.Player
 
         protected override void SpawnLanesFromNote(DrumNote parentNote)
         {
+            // Handle hand lanes; the rest of this override is specifically for kick lanes
             base.SpawnLanesFromNote(parentNote);
 
             if (!Engine.BaseParameters.EnableLanes)
@@ -393,7 +401,7 @@ namespace YARG.Gameplay.Player
                 return;
             }
 
-            if (!LanePool.CanSpawnAmount(1))
+            if (!LanePool.CanSpawnAmount(NumberOfDedicatedKickLanes))
             {
                 return;
             }
@@ -444,6 +452,30 @@ namespace YARG.Gameplay.Player
                     newLane.SetTimeRange(kickLaneStart.Time, kickLaneEnd.Time);
                     InitializeSpawnedLane(newLane, kickLaneStart);
                     ModifyLaneFromNote(newLane, kickLaneStart);
+
+                    if (NumberOfDedicatedKickLanes == 2)
+                    {
+                        var newDoubleKickLane = (LaneElement) LanePool.TakeWithoutEnabling();
+                        newDoubleKickLane.SetTimeRange(kickLaneStart.Time, kickLaneEnd.Time);
+
+                        var doubleKickHighwayOrderingInfo = _highwayOrdering[DOUBLE_KICK_FRET_INDEX];
+                        var doubleKickPosition = doubleKickHighwayOrderingInfo.Position;
+                        var doubleKickColor = (_fiveLaneMode ?
+                            Player.ColorProfile.FiveLaneDrums.GetNoteColor(doubleKickHighwayOrderingInfo.ColorIndex) :
+                            Player.ColorProfile.FourLaneDrums.GetNoteColor(doubleKickHighwayOrderingInfo.ColorIndex)
+                        ).ToUnityColor();
+
+                        newDoubleKickLane.SetAppearance(
+                            Player.Profile.CurrentInstrument,
+                            DOUBLE_KICK_FRET_INDEX,
+                            doubleKickPosition,
+                            LaneCount,
+                            doubleKickColor
+                        );
+
+                        newDoubleKickLane.MultiplyScale(FRET_ARRAY_PADDING_CORRECTION);
+                        newDoubleKickLane.EnableFromPool();
+                    }
 
                     newLane.EnableFromPool();
                 }
@@ -515,17 +547,19 @@ namespace YARG.Gameplay.Player
 
         protected override void ModifyLaneFromNote(LaneElement lane, DrumNote note)
         {
-            if (_fiveLaneMode ?
-                (note.Pad is (int)FiveLaneDrumPad.Kick or (int)FiveLaneDrumPad.Wildcard) :
-                (note.Pad is (int)FourLaneDrumPad.Kick or (int)FourLaneDrumPad.Wildcard)
-            )
+            
+            if (note.Pad == _wildcard)
+            {
+                lane.ToggleFullWidth(true);
+            }
+            else if (note.Pad == _kick && NumberOfDedicatedKickLanes == 0)
             {
                 lane.ToggleFullWidth(true);
             }
             else
             {
                 // Correct size of lane slightly for padding in fret array
-                lane.MultiplyScale(0.97f);
+                lane.MultiplyScale(FRET_ARRAY_PADDING_CORRECTION);
             }
         }
 
