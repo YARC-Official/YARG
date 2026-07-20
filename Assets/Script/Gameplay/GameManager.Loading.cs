@@ -524,19 +524,21 @@ namespace YARG.Gameplay
                         return stem;
                     });
 
+                    var hasStem = false;
                     foreach (var stem in stems)
                     {
                         if (stem != _backgroundStem && _stemStates.TryGetValue(stem, out var state))
                         {
+                            hasStem = true;
                             ++state.Total;
                             ++state.Audible;
                         }
-                        else if (_stemStates.TryGetValue(_backgroundStem, out state))
-                        {
-                            // Ensures the stem will still play at a minimum of 50%, even if all players mute
-                            state.Total += 2;
-                            state.Audible += 2;
-                        }
+                    }
+                    if (!hasStem && _stemStates.TryGetValue(_backgroundStem, out var bgState))
+                    {
+                        // Ensures the stem will still play at a minimum of 50%, even if all players mute
+                        bgState.Total += 2;
+                        bgState.Audible += 2;
                     }
                 }
             }
