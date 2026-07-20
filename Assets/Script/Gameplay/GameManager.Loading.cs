@@ -534,7 +534,6 @@ namespace YARG.Gameplay
                         else if (_stemStates.TryGetValue(_backgroundStem, out state))
                         {
                             // Ensures the stem will still play at a minimum of 50%, even if all players mute
-                            // (Only apply this once per player if they fall back to the background stem)
                             state.Total += 2;
                             state.Audible += 2;
                         }
