@@ -21,13 +21,11 @@ namespace YARG.Audio.BASS
             get
             {
 #if UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX
-                // BASS_CONFIG_DEV_BUFFER cannot be queried on macOS. BassAudioManager configures
-                // it to twice the device period during initialization.
-                int deviceBufferLength = 2 * Bass.GetConfig(Configuration.DevicePeriod);
+                return DeviceOutputLatency;
 #else
                 int deviceBufferLength = Bass.DeviceBufferLength;
-#endif
                 return Math.Max(0, deviceBufferLength) / 1000.0;
+#endif
             }
         }
 
