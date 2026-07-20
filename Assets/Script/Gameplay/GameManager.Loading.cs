@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using YARG.Core;
@@ -513,27 +512,22 @@ namespace YARG.Gameplay
                     }
 
                     // Add (or increase total of) the stem state
-                    var instrument = player.Profile.CurrentInstrument;
-                    var stems = instrument.ToSongStems().Select(stem =>
+                    var hasStem = false;
+                    foreach (var stem in player.Profile.CurrentInstrument.ToSongStems())
                     {
+                        var transformedStem = stem;
                         if (stem == SongStem.Bass && !_stemStates.ContainsKey(SongStem.Bass))
                         {
-                            return SongStem.Rhythm;
+                            transformedStem = SongStem.Rhythm;
                         }
-
-                        return stem;
-                    });
-
-                    var hasStem = false;
-                    foreach (var stem in stems)
-                    {
-                        if (stem != _backgroundStem && _stemStates.TryGetValue(stem, out var state))
+                        if (transformedStem != _backgroundStem && _stemStates.TryGetValue(transformedStem, out var state))
                         {
                             hasStem = true;
                             ++state.Total;
                             ++state.Audible;
                         }
                     }
+
                     if (!hasStem && _stemStates.TryGetValue(_backgroundStem, out var bgState))
                     {
                         // Ensures the stem will still play at a minimum of 50%, even if all players mute
