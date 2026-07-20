@@ -40,6 +40,8 @@ namespace YARG.Gameplay.Player
         private bool _blueCymbalHasLane = false;
         private bool _greenCymbalHasLane = false;
 
+        private int _stemCount = 0;
+
         private readonly Dictionary<SongStem, bool> _stemMuteStates = new()
         {
             { SongStem.Drums1, false },
@@ -155,6 +157,22 @@ namespace YARG.Gameplay.Player
             // Before we do anything, see if we're in five lane mode or not
             _fiveLaneMode = player.Profile.CurrentInstrument == Instrument.FiveLaneDrums;
             base.Initialize(index, player, chart, trackView, mixer, currentHighScore);
+            if (mixer[SongStem.Drums3] != null)
+            {
+                _stemCount = 3;
+            }
+            else if (mixer[SongStem.Drums2] != null)
+            {
+                _stemCount = 2;
+            }
+            else if (mixer[SongStem.Drums1] != null)
+            {
+                _stemCount = 1;
+            }
+            else
+            {
+                _stemCount = 0;
+            }
         }
 
         protected override InstrumentDifficulty<DrumNote> GetNotes(SongChart chart)
@@ -383,14 +401,17 @@ namespace YARG.Gameplay.Player
             }
         }
 
-        private static SongStem GetStem(DrumNote note)
+        private SongStem GetStem(DrumNote note)
         {
-            // todo: handle fallback to `Else` stem if expected stem audio is missing
+            if (_stemCount < 2)
+            {
+                return SongStem.Drums1;
+            }
             return note.Stem switch
             {
                 DrumStem.Kick  => SongStem.Drums1,
                 DrumStem.Snare => SongStem.Drums2,
-                DrumStem.Else  => SongStem.Drums3,
+                DrumStem.Else  => _stemCount < 3 ? SongStem.Drums2 : SongStem.Drums3,
                 _              => throw new ArgumentOutOfRangeException()
             };
         }
