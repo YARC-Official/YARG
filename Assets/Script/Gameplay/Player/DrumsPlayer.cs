@@ -39,6 +39,13 @@ namespace YARG.Gameplay.Player
         private bool _blueCymbalHasLane = false;
         private bool _greenCymbalHasLane = false;
 
+        private readonly Dictionary<SongStem, bool> _stemMuteStates = new()
+        {
+            { SongStem.DrumsKick, false },
+            { SongStem.DrumsSnare, false },
+            { SongStem.DrumsElse, false }
+        };
+
         public int NumberOfDedicatedKickLanes { get; private set; } = 0;
         public int CenteredPosition => (LaneCount - 1) / 2;
 
@@ -360,15 +367,31 @@ namespace YARG.Gameplay.Player
 
         public override void SetStemMuteState(bool muted)
         {
-            if (IsStemMuted != muted)
+            SetDrumStemMuteState(SongStem.DrumsKick, muted);
+            SetDrumStemMuteState(SongStem.DrumsSnare, muted);
+            SetDrumStemMuteState(SongStem.DrumsElse, muted);
+        }
+
+        private void SetDrumStemMuteState(SongStem stem, bool muted)
+        {
+            if (_stemMuteStates.TryGetValue(stem, out var isMuted) && isMuted != muted)
             {
-                GameManager.ChangeStemMuteState(SongStem.DrumsKick, muted);
-                GameManager.ChangeStemMuteState(SongStem.DrumsSnare, muted);
-                GameManager.ChangeStemMuteState(SongStem.DrumsElse, muted);
-                IsStemMuted = muted;
+                GameManager.ChangeStemMuteState(stem, muted);
+                _stemMuteStates[stem] = muted;
+                IsStemMuted = _stemMuteStates.All(state => state.Value);
             }
         }
 
+        private static SongStem GetStem(DrumNote note)
+        {
+            // todo: move this info into the drum note?
+            return note.Pad switch
+            {
+                0 => SongStem.DrumsKick,
+                1 => SongStem.DrumsSnare,
+                _ => SongStem.DrumsElse
+            };
+        }
         public override void SetStarPowerFX(bool active)
         {
             GameManager.ChangeStemReverbState(SongStem.DrumsKick, active);
@@ -482,7 +505,7 @@ namespace YARG.Gameplay.Player
 
             if (!GameManager.IsSeekingReplay)
             {
-                SetStemMuteState(false);
+                SetDrumStemMuteState(GetStem(note), false);
             }
 
             // Remember that drums treat each note separately
@@ -511,7 +534,7 @@ namespace YARG.Gameplay.Player
 
             if (!GameManager.IsSeekingReplay)
             {
-                SetStemMuteState(true);
+                SetDrumStemMuteState(GetStem(note), true);
             }
 
             // Remember that drums treat each note separately
