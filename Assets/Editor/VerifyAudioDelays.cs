@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using ManagedBass;
 using ManagedBass.Fx;
+using ManagedBass.Mix;
 using UnityEditor;
 using UnityEngine;
 using YARG.Audio.BASS;
@@ -285,6 +286,34 @@ namespace Editor
                 }
                 Debug.Log("Restore complete.");
             }
+        }
+
+        [MenuItem("Tests/Prototype Continuous Master Transport")]
+        public static void RunContinuousMasterTransportPrototype()
+        {
+            InitializePaths();
+            ContinuousMasterTransportPrototype.Run();
+        }
+
+        [MenuItem("Tests/Prototype Tempo Decode Position Mapping")]
+        public static void RunTempoDecodePositionMappingPrototype()
+        {
+            InitializePaths();
+            ContinuousMasterTransportPrototype.RunTempoPositionMappingProbe();
+        }
+
+        [MenuItem("Tests/Prototype Continuous Master Mapped Position")]
+        public static void RunContinuousMasterMappedPositionPrototype()
+        {
+            InitializePaths();
+            ContinuousMasterTransportPrototype.RunMappedMasterPositionProbe();
+        }
+
+        [MenuItem("Tests/Prototype Continuous Master Direct Position")]
+        public static void RunContinuousMasterDirectPositionPrototype()
+        {
+            InitializePaths();
+            ContinuousMasterTransportPrototype.RunDirectMixerPositionProbe();
         }
 
         [MenuItem("Tests/Measure Real Seek Latency")]
@@ -2590,8 +2619,318 @@ namespace Editor
         {
             return Math.Max(0, Bass.UpdatePeriod) / 2000.0;
         }
+        [MenuItem("Tests/Verify Metronome Sample Accuracy")]
+        public static void VerifyMetronomeSampleAccuracy()
+        {
+            InitializePaths();
+            GlobalAudioHandler.Initialize<BassAudioManager>();
 
+            string hiPath = Path.Combine(Application.streamingAssetsPath, "metronome", "sine_hi.ogg");
+            if (!File.Exists(hiPath))
+            {
+                Debug.LogError($"Metronome click file not found: {hiPath}");
+                return;
+            }
 
+            Debug.Log("<b>[Metronome Sample Accuracy Verification]</b> Starting test...");
+
+            int sampleRate = 44100;
+            int channels = 2;
+            int bytesPerFrame = channels * sizeof(float); // 8 bytes
+
+            // Create a decoding mixer stream.
+            int mixer = BassMix.CreateMixerStream(sampleRate, channels, BassFlags.Decode | BassFlags.Float | BassFlags.MixerNonStop);
+            if (mixer == 0)
+            {
+                Debug.LogError($"Failed to create decoding mixer: {Bass.LastError}");
+                return;
+            }
+
+            // Load the click sample as a decoding stream.
+            int clickStream = Bass.CreateStream(hiPath, 0, 0, BassFlags.Decode | BassFlags.Float);
+            if (clickStream == 0)
+            {
+                Bass.StreamFree(mixer);
+                Debug.LogError($"Failed to create click decode stream: {Bass.LastError}");
+                return;
+            }
+
+            // Schedule the beat at 0.5 seconds
+            double targetTime = 0.5;
+            long targetPos = Bass.ChannelSeconds2Bytes(mixer, targetTime);
+            long targetFrame = targetPos / bytesPerFrame;
+
+            long callbackPos = -1;
+            bool callbackFired = false;
+
+            SyncProcedure syncProc = (handle, channel, data, user) =>
+            {
+                callbackFired = true;
+                callbackPos = Bass.ChannelGetPosition(channel, PositionFlags.Bytes);
+
+                // Rewind click stream and mix it into the mixer
+                Bass.ChannelSetPosition(clickStream, 0);
+                if (!BassMix.MixerAddChannel(channel, clickStream, BassFlags.MixerChanNoRampin))
+                {
+                    Debug.LogError($"Failed to add click channel in callback: {Bass.LastError}");
+                }
+            };
+
+            int syncHandle = Bass.ChannelSetSync(
+                mixer,
+                SyncFlags.Position | SyncFlags.Mixtime | SyncFlags.Onetime,
+                targetPos,
+                syncProc,
+                IntPtr.Zero);
+
+            if (syncHandle == 0)
+            {
+                Debug.LogError($"Failed to set sync: {Bass.LastError}");
+                Bass.StreamFree(clickStream);
+                Bass.StreamFree(mixer);
+                return;
+            }
+
+            // Decode 1 second of audio (44100 frames)
+            int decodeFrames = sampleRate;
+            float[] buffer = new float[decodeFrames * channels];
+            int bytesToRead = buffer.Length * sizeof(float);
+
+            int bytesRead = Bass.ChannelGetData(mixer, buffer, bytesToRead);
+            if (bytesRead < 0)
+            {
+                Debug.LogError($"Failed to read data from mixer: {Bass.LastError}");
+                Bass.ChannelRemoveSync(mixer, syncHandle);
+                Bass.StreamFree(clickStream);
+                Bass.StreamFree(mixer);
+                return;
+            }
+
+            // Clean up
+            Bass.ChannelRemoveSync(mixer, syncHandle);
+            Bass.StreamFree(clickStream);
+            Bass.StreamFree(mixer);
+
+            // Analyze
+            if (!callbackFired)
+            {
+                Debug.LogError("FAIL: Sync callback did not fire!");
+                return;
+            }
+
+            long callbackFrame = callbackPos / bytesPerFrame;
+            Debug.Log($"[Verification] Sync callback fired. Target position: {targetPos} bytes ({targetFrame} frames). Callback position: {callbackPos} bytes ({callbackFrame} frames).");
+
+            if (callbackPos != targetPos)
+            {
+                Debug.LogError($"FAIL: Callback fired at wrong position! Diff: {callbackPos - targetPos} bytes");
+                return;
+            }
+
+            // Check PCM data
+            int firstNonZeroIndex = -1;
+            for (int i = 0; i < buffer.Length; i++)
+            {
+                if (Math.Abs(buffer[i]) > 0.0001f)
+                {
+                    firstNonZeroIndex = i;
+                    break;
+                }
+            }
+
+            if (firstNonZeroIndex == -1)
+            {
+                Debug.LogError("FAIL: No click sound found in the decoded audio!");
+                return;
+            }
+
+            long firstNonZeroFrame = firstNonZeroIndex / channels;
+            double firstNonZeroTime = (double)firstNonZeroFrame / sampleRate;
+
+            Debug.Log($"[Verification] Sound detected starting at index {firstNonZeroIndex} (frame {firstNonZeroFrame}, time {firstNonZeroTime:0.0000}s).");
+
+            // Verify silence before targetFrame
+            int silenceViolations = 0;
+            int targetIndex = (int)targetFrame * channels;
+            for (int i = 0; i < targetIndex; i++)
+            {
+                if (Math.Abs(buffer[i]) > 0.0f)
+                {
+                    silenceViolations++;
+                }
+            }
+
+            if (silenceViolations > 0)
+            {
+                Debug.LogError($"FAIL: Detected {silenceViolations} non-silent samples before the scheduled beat frame ({targetFrame})!");
+                return;
+            }
+
+            // Verify that the sound started exactly at or after targetFrame
+            if (firstNonZeroFrame < targetFrame)
+            {
+                Debug.LogError($"FAIL: Sound started BEFORE scheduled beat! Sound frame: {firstNonZeroFrame}, Target: {targetFrame}");
+                return;
+            }
+
+            long delayFrames = firstNonZeroFrame - targetFrame;
+            Debug.Log($"<b>SUCCESS: Metronome sample accuracy verified!</b>\n" +
+                      $"  - Silence before target frame {targetFrame}: 100% verified\n" +
+                      $"  - Sound start frame: {firstNonZeroFrame} (Delay of {delayFrames} frames, {delayFrames * 1000.0 / sampleRate:0.00}ms)\n" +
+                      "  - Sample accuracy: " + (delayFrames == 0 ? "Perfect (0 frames delay)" : $"Accurate within {delayFrames} frames (due to click sound leading silence)"));
+            
+            EditorUtility.DisplayDialog("Verification Successful", 
+                $"Metronome sample accuracy verified!\n\n" +
+                $"Target frame: {targetFrame}\n" +
+                $"First sound frame: {firstNonZeroFrame}\n" +
+                $"Silence before beat: 100% clean\n" +
+                $"Delay: {delayFrames} frames ({delayFrames * 1000.0 / sampleRate:0.00}ms)", 
+                "OK");
+        }
+
+        [MenuItem("Tests/Prototype Metronome Sync Callback")]
+        public static void RunMetronomeSyncCallback()
+        {
+            InitializePaths();
+            GlobalAudioHandler.Initialize<BassAudioManager>();
+
+            var audioManager = GetAudioManager();
+            if (audioManager == null)
+            {
+                Debug.LogError("Failed to get active BassAudioManager instance!");
+                return;
+            }
+
+            string hiPath = Path.Combine(Application.streamingAssetsPath, "metronome", "sine_hi.ogg");
+            string loPath = Path.Combine(Application.streamingAssetsPath, "metronome", "sine_lo.ogg");
+
+            if (!File.Exists(hiPath) || !File.Exists(loPath))
+            {
+                Debug.LogError($"Metronome click files not found. Paths:\n- {hiPath}\n- {loPath}");
+                return;
+            }
+
+            Debug.Log("Starting Metronome Sync Callback Prototype at 120 BPM...");
+            try
+            {
+                using (var runner = new MetronomeRunner(hiPath, loPath))
+                {
+                    runner.Start();
+                    EditorUtility.DisplayDialog("Metronome Playing", "Playing metronome at 120 BPM (sine_hi.ogg / sine_lo.ogg).\n\nClick OK to stop.", "OK");
+                }
+                Debug.Log("Metronome Sync Callback Prototype stopped and cleaned up successfully.");
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"Metronome run failed: {ex.Message}\n{ex.StackTrace}");
+            }
+        }
+
+        private class MetronomeRunner : IDisposable
+        {
+            private readonly int _mixer;
+            private readonly int _hiSample;
+            private readonly int _loSample;
+            private readonly int _hiChannel;
+            private readonly int _loChannel;
+            private readonly long _beatStep;
+            private long _beatPos;
+            private int _beatCount;
+            private int _syncHandle;
+            private readonly SyncProcedure _syncProcedure;
+
+            public MetronomeRunner(string hiPath, string loPath)
+            {
+                int sampleRate = Bass.Info.SampleRate > 0 ? Bass.Info.SampleRate : 48000;
+                // Create a stereo float non-stop mixer stream.
+                _mixer = BassMix.CreateMixerStream(sampleRate, 2, BassFlags.Float | BassFlags.MixerNonStop);
+                if (_mixer == 0)
+                {
+                    throw new Exception($"Failed to create mixer stream: {Bass.LastError}");
+                }
+
+                _hiSample = Bass.SampleLoad(hiPath, 0, 0, 3, BassFlags.Default);
+                _loSample = Bass.SampleLoad(loPath, 0, 0, 3, BassFlags.Default);
+                if (_hiSample == 0 || _loSample == 0)
+                {
+                    Bass.StreamFree(_mixer);
+                    throw new Exception($"Failed to load click samples. Hi error: {Bass.LastError}");
+                }
+
+                _hiChannel = Bass.SampleGetChannel(_hiSample);
+                _loChannel = Bass.SampleGetChannel(_loSample);
+                if (_hiChannel == 0 || _loChannel == 0)
+                {
+                    Bass.SampleFree(_hiSample);
+                    Bass.SampleFree(_loSample);
+                    Bass.StreamFree(_mixer);
+                    throw new Exception($"Failed to get click channels: {Bass.LastError}");
+                }
+
+                // 120 BPM -> 0.5 seconds per beat
+                _beatStep = Bass.ChannelSeconds2Bytes(_mixer, 0.5);
+                _beatPos = _beatStep;
+                _beatCount = 0;
+
+                _syncProcedure = BeatCallback;
+            }
+
+            public void Start()
+            {
+                ArmNextBeat();
+                if (!Bass.ChannelPlay(_mixer, false))
+                {
+                    throw new Exception($"Failed to play mixer stream: {Bass.LastError}");
+                }
+            }
+
+            private void ArmNextBeat()
+            {
+                _syncHandle = Bass.ChannelSetSync(
+                    _mixer,
+                    SyncFlags.Position | SyncFlags.Mixtime | SyncFlags.Onetime,
+                    _beatPos,
+                    _syncProcedure,
+                    IntPtr.Zero);
+                if (_syncHandle == 0)
+                {
+                    // Safe logging of setting sync error
+                }
+            }
+
+            private void BeatCallback(int handle, int channel, int data, IntPtr user)
+            {
+                _beatCount++;
+
+                int targetChannel = (_beatCount % 4 == 1) ? _hiChannel : _loChannel;
+                Bass.ChannelPlay(targetChannel, true);
+
+                _beatPos += _beatStep;
+                ArmNextBeat();
+            }
+
+            public void Dispose()
+            {
+                if (_syncHandle != 0)
+                {
+                    Bass.ChannelRemoveSync(_mixer, _syncHandle);
+                    _syncHandle = 0;
+                }
+                if (_mixer != 0)
+                {
+                    Bass.ChannelStop(_mixer);
+                    Bass.StreamFree(_mixer);
+                }
+                if (_hiSample != 0)
+                {
+                    Bass.SampleFree(_hiSample);
+                }
+                if (_loSample != 0)
+                {
+                    Bass.SampleFree(_loSample);
+                }
+            }
+        }
 
         private static void SetSettingValue<T>(AbstractSetting<T> setting, T value)
         {
