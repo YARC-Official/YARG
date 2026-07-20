@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using System.Threading;
 using ManagedBass;
 using ManagedBass.Mix;
@@ -9,292 +10,246 @@ using YARG.Core.Logging;
 namespace YARG.Audio.BASS
 {
     /// <summary>
-    /// Mixes scheduled instances of a decoded sample directly into a BASS float playback stream using a DSP.
-    ///
-    /// With this class we can play sfx with sample-accurate timing. This is useful for metronome, claps,
-    /// or anything that should play to the beat of the song.
+    /// Schedules one-shot decode streams directly in the final BASS playback mixer.
     /// </summary>
-    /// <remarks>
-    /// The complete schedule is copied during construction, before the DSP callback is attached.
-    /// </remarks>
     internal sealed class BassOneShotChannel : OneShotChannel
     {
-        private const int MAX_ACTIVE_SAMPLES = 64;
+        // Matches previous DSP implementation's overlap limit. Slots share one PCM array, so
+        // increasing overlap capacity does not duplicate decoded sample memory.
+        private const int DECODER_POOL_SIZE = 64;
         private const int DECODE_BUFFER_SIZE = 4096;
 
-        private readonly int _playbackStreamHandle;
-        private readonly int _channelCount;
-        private readonly int _sampleFrameCount;
-
-        private readonly PlaybackTimeResolver _getPlaybackTime;
-        private readonly float[]              _sample;
-        private readonly double[]             _scheduledPlays;
-        private readonly int                  _dspHandle;
-
-        private readonly int[] _activeSampleFrames = new int[MAX_ACTIVE_SAMPLES];
-
-        // A negative index means the schedule must be positioned from the next callback's
-        // playback time. This is also the initial state because channels may be created mid-song.
-        private int _nextScheduledEvent = -1;
-
-        private int  _seekGeneration;
-        private int  _callbackSeekGeneration = -1;
-        private long _previousEndPosition;
-
-        private int   _activeSampleCount;
-        private float _volume = 1;
-        private bool  _disposed;
-        internal event Action<BassOneShotChannel> Disposed;
-        internal delegate double PlaybackTimeResolver(long streamPosition);
-
-        /// <summary>
-        /// Creates a channel that decodes and mixes one sample at the supplied playback times.
-        /// </summary>
-        /// <param name="playbackStreamHandle">BASS float stream that receives the mixed sample.</param>
-        /// <param name="sampleStream">
-        /// Owned BASS stream containing the sample. The channel frees it after decoding.
-        /// </param>
-        /// <param name="scheduledPlays">
-        /// Playback times in seconds. The values are copied and sorted before playback begins.
-        /// </param>
-        /// <param name="getPlaybackTime">
-        /// Resolves a byte position in the playback stream to its song time.
-        /// </param>
-        public BassOneShotChannel(
-            int playbackStreamHandle,
-            int sampleStream,
-            IReadOnlyList<double> scheduledPlays,
-            PlaybackTimeResolver getPlaybackTime)
+        private sealed class DecoderSlot
         {
-            _playbackStreamHandle = playbackStreamHandle;
-            _getPlaybackTime = getPlaybackTime ?? throw new ArgumentNullException(nameof(getPlaybackTime));
-            _scheduledPlays = CopyAndSort(scheduledPlays);
+            private readonly float[] _sample;
+            private int _sampleIndex;
 
-            var info = Bass.ChannelGetInfo(playbackStreamHandle);
-            bool usesFloatSamples = (info.Flags & BassFlags.Float) != 0;
-            if (!usesFloatSamples)
+            public readonly StreamProcedure Procedure;
+            public int Handle;
+            public int EndSyncHandle;
+            public int Active;
+
+            public DecoderSlot(float[] sample)
             {
-                Bass.StreamFree(sampleStream);
-                throw new ArgumentException("Playback stream must use float sample data.",
-                    nameof(playbackStreamHandle));
+                _sample = sample;
+                Procedure = ReadSample;
             }
 
-            _channelCount = info.Channels;
-            _sample = DecodeSample(sampleStream, info.Frequency, info.Channels) ?? Array.Empty<float>();
-            _sampleFrameCount = _sample.Length / _channelCount;
-            if (_sampleFrameCount == 0)
+            public void Rewind()
             {
+                _sampleIndex = 0;
+            }
+
+            private int ReadSample(int handle, IntPtr buffer, int length, IntPtr user)
+            {
+                int requestedSamples = length / sizeof(float);
+                int remainingSamples = _sample.Length - _sampleIndex;
+                int copiedSamples = Math.Min(requestedSamples, remainingSamples);
+                if (copiedSamples > 0)
+                {
+                    Marshal.Copy(_sample, _sampleIndex, buffer, copiedSamples);
+                    _sampleIndex += copiedSamples;
+                }
+
+                int copiedBytes = copiedSamples * sizeof(float);
+                if (_sampleIndex >= _sample.Length)
+                {
+                    return copiedBytes | unchecked((int) StreamProcedureType.End);
+                }
+                return copiedBytes;
+            }
+        }
+
+        private readonly int _outputMixerHandle;
+        private readonly int _tempoStreamHandle;
+        private readonly double[] _scheduledPlays;
+        private readonly DecoderSlot[] _decoderPool;
+        private readonly List<int> _syncHandles = new();
+        private readonly List<SyncProcedure> _syncProcedures = new();
+        private readonly List<SyncProcedure> _decoderEndProcedures = new();
+        private readonly Func<long, double> _getSongPosition;
+        private readonly Func<float> _getSpeed;
+
+        private float _volume = 1;
+        private int _generation;
+        private bool _disposed;
+
+        internal event Action<BassOneShotChannel> Disposed;
+
+        public BassOneShotChannel(int outputMixerHandle, int tempoStreamHandle,
+            int sampleStream, IReadOnlyList<double> scheduledPlays,
+            Func<long, double> getSongPosition, Func<float> getSpeed)
+        {
+            _outputMixerHandle = outputMixerHandle;
+            _tempoStreamHandle = tempoStreamHandle;
+            _getSongPosition = getSongPosition ?? throw new ArgumentNullException(nameof(getSongPosition));
+            _getSpeed = getSpeed ?? throw new ArgumentNullException(nameof(getSpeed));
+            _scheduledPlays = CopyAndSort(scheduledPlays);
+
+            var outputInfo = Bass.ChannelGetInfo(outputMixerHandle);
+            float[] sample = DecodeSample(sampleStream, outputInfo.Frequency, outputInfo.Channels);
+            if (sample == null || sample.Length == 0)
+            {
+                _decoderPool = Array.Empty<DecoderSlot>();
                 return;
             }
 
-            DSPProcedure dspCallback = ProcessAudio;
-            _previousEndPosition = Math.Max(0, Bass.ChannelGetPosition(playbackStreamHandle, PositionFlags.Decode));
-            _dspHandle = Bass.ChannelSetDSP(playbackStreamHandle, dspCallback);
-            if (_dspHandle == 0)
+            _decoderPool = new DecoderSlot[DECODER_POOL_SIZE];
+            for (int i = 0; i < _decoderPool.Length; i++)
             {
-                LogBassError("Failed to attach one-shot DSP: {0}!");
+                var slot = new DecoderSlot(sample);
+                slot.Handle = Bass.CreateStream(outputInfo.Frequency, outputInfo.Channels,
+                    BassFlags.Decode | BassFlags.Float, slot.Procedure, IntPtr.Zero);
+                if (slot.Handle == 0)
+                {
+                    LogBassError("Failed to create one-shot decoder: {0}!");
+                    _decoderPool[i] = slot;
+                    continue;
+                }
+
+                SyncProcedure endProcedure = (handle, channel, data, user) =>
+                    Volatile.Write(ref slot.Active, 0);
+                slot.EndSyncHandle = Bass.ChannelSetSync(slot.Handle,
+                    SyncFlags.End | SyncFlags.Mixtime, 0, endProcedure, IntPtr.Zero);
+                if (slot.EndSyncHandle == 0)
+                {
+                    LogBassError("Failed to create one-shot decoder end sync: {0}!");
+                    Bass.StreamFree(slot.Handle);
+                    slot.Handle = 0;
+                    _decoderPool[i] = slot;
+                    continue;
+                }
+                // Keep callback rooted for the stream lifetime.
+                _decoderEndProcedures.Add(endProcedure);
+                Bass.ChannelSetAttribute(slot.Handle, ChannelAttribute.Volume, _volume);
+                _decoderPool[i] = slot;
+            }
+
+            RebuildPendingSyncs();
+        }
+
+        public override void SetVolume(double volume)
+        {
+            _volume = (float) volume;
+            foreach (var slot in _decoderPool)
+            {
+                if (slot?.Handle != 0)
+                {
+                    Bass.ChannelSetAttribute(slot.Handle, ChannelAttribute.Volume, _volume);
+                }
             }
         }
 
         /// <summary>
-        /// Sets volume applied to future mixing, including samples already in progress.
+        /// Invalidates callbacks and removes click sources before playback graph reset.
         /// </summary>
-        /// <param name="volume">Linear volume multiplier.</param>
-        public override void SetVolume(double volume)
+        internal void PrepareForSeek()
         {
-            Volatile.Write(ref _volume, (float) volume);
+            Interlocked.Increment(ref _generation);
+            RemovePendingSyncs();
+            foreach (var slot in _decoderPool)
+            {
+                if (slot?.Handle == 0)
+                {
+                    continue;
+                }
+                BassMix.MixerRemoveChannel(slot.Handle);
+                Volatile.Write(ref slot.Active, 0);
+            }
         }
 
         internal void ResetAfterSeek()
         {
-            Interlocked.Increment(ref _seekGeneration);
+            RebuildPendingSyncs();
         }
 
-        /// <summary>
-        /// Mixes active and newly scheduled sample instances into one DSP output buffer.
-        /// </summary>
-        /// <remarks>
-        /// BASS invokes this method on its audio thread. Callback-owned playback state must only be
-        /// changed here, except for seek and volume signals published through atomic operations.
-        /// </remarks>
-        private unsafe void ProcessAudio(int _, int channel, IntPtr buffer, int length, IntPtr __)
+        internal void ResetAfterSpeedChange()
         {
-            int frameCount = length / (sizeof(float) * _channelCount);
-            if (frameCount <= 0 || !GetPlaybackWindow(channel, out double startTime, out double endTime))
-            {
-                return;
-            }
-            float* output = (float*) buffer;
-            float volume = Volatile.Read(ref _volume);
-            MixActiveSamples(output, frameCount, volume);
-            PositionSchedule(startTime);
-            MixScheduledSamples(output, frameCount, volume, startTime, endTime);
+            Interlocked.Increment(ref _generation);
+            RemovePendingSyncs();
+            RebuildPendingSyncs();
         }
 
-        /// <summary>
-        /// Resolves the song-time interval represented by the current callback and applies pending
-        /// seek resets before exposing that interval to the mixer.
-        /// </summary>
-        /// <remarks>
-        /// Stream positions delimit adjacent callback buffers. A non-advancing position is ignored
-        /// because it cannot describe a valid forward playback interval.
-        /// </remarks>
-        private bool GetPlaybackWindow(
-            int channel,
-            out double startTime,
-            out double endTime)
+        private void RebuildPendingSyncs()
         {
-            startTime = 0;
-            endTime = 0;
-            long endPosition =
-                Bass.ChannelGetPosition(channel, PositionFlags.Decode);
-            if (endPosition < 0)
-            {
-                return false;
-            }
-            int generation = Volatile.Read(ref _seekGeneration);
-            if (_callbackSeekGeneration != generation)
-            {
-                ResetCallbackState(generation);
-            }
-            long startPosition = _previousEndPosition;
-            _previousEndPosition = endPosition;
-            if (endPosition <= startPosition)
-            {
-                return false;
-            }
-            startTime = _getPlaybackTime(startPosition);
-            endTime = _getPlaybackTime(endPosition);
-            return endTime > startTime;
-        }
-
-        /// <summary>
-        /// Clears callback-owned progress after a seek so schedule and active samples can be rebuilt
-        /// from the new playback position.
-        /// </summary>
-        private void ResetCallbackState(int generation)
-        {
-            _callbackSeekGeneration = generation;
-            _previousEndPosition = 0;
-            _nextScheduledEvent = -1;
-            _activeSampleCount = 0;
-        }
-
-        /// <summary>
-        /// Positions the schedule at its first event at or after the current playback time.
-        /// </summary>
-        private void PositionSchedule(double playbackStart)
-        {
-            if (_nextScheduledEvent >= 0)
+            if (_disposed || _decoderPool.Length == 0)
             {
                 return;
             }
 
-            _nextScheduledEvent = FindFirstScheduledPlay(playbackStart);
-        }
-
-        /// <summary>
-        /// Finds the first scheduled play at or after the supplied playback time. Unlike
-        /// <see cref="Array.BinarySearch(Array, object)"/>, this preserves duplicate events.
-        /// </summary>
-        private int FindFirstScheduledPlay(double playbackTime)
-        {
-            int start = 0;
-            int end = _scheduledPlays.Length;
-            while (start < end)
+            long outputPosition = Bass.ChannelGetPosition(_outputMixerHandle, PositionFlags.Decode);
+            long tempoPosition = Bass.ChannelGetPosition(_tempoStreamHandle, PositionFlags.Decode);
+            if (outputPosition < 0 || tempoPosition < 0)
             {
-                int middle = start + (end - start) / 2;
-                if (_scheduledPlays[middle] < playbackTime)
-                {
-                    start = middle + 1;
-                }
-                else
-                {
-                    end = middle;
-                }
+                LogBassError("Failed to read one-shot scheduling position: {0}!");
+                return;
             }
 
-            return start;
-        }
+            double songPosition = _getSongPosition(tempoPosition);
+            float speed = Math.Max(0.0001f, _getSpeed());
+            int generation = Volatile.Read(ref _generation);
 
-        /// <summary>
-        /// Starts each event in the current playback interval at its corresponding output frame.
-        /// Samples extending beyond this buffer are retained for subsequent callbacks.
-        /// </summary>
-        private unsafe void MixScheduledSamples(
-            float* output,
-            int frameCount,
-            float volume,
-            double playbackStart,
-            double playbackEnd)
-        {
-            double duration = playbackEnd - playbackStart;
-            while (_nextScheduledEvent < _scheduledPlays.Length)
+            foreach (double scheduledPlay in _scheduledPlays)
             {
-                double eventTime = _scheduledPlays[_nextScheduledEvent];
-                if (eventTime >= playbackEnd)
-                {
-                    return;
-                }
-                _nextScheduledEvent++;
-
-                if (eventTime < playbackStart)
+                if (scheduledPlay < songPosition)
                 {
                     continue;
                 }
 
-                double progress = (eventTime - playbackStart) / duration;
-                int startFrame = Math.Clamp((int) Math.Round(progress * frameCount), 0, frameCount - 1);
-                StartSample(output, frameCount, startFrame, volume);
-            }
-        }
+                double outputDelay = (scheduledPlay - songPosition) / speed;
+                long targetPosition = outputPosition +
+                    Bass.ChannelSeconds2Bytes(_outputMixerHandle, outputDelay);
 
-        /// <summary>
-        /// Continues sample instances started by earlier callbacks and compacts unfinished instances
-        /// in place.
-        /// </summary>
-        private unsafe void MixActiveSamples(float* output, int frameCount, float volume)
-        {
-            int writeIndex = 0;
-            for (int i = 0; i < _activeSampleCount; i++)
-            {
-                int sampleFrame = _activeSampleFrames[i];
-                MixSample(output, frameCount, startFrame: 0, volume, ref sampleFrame);
-                if (sampleFrame < _sampleFrameCount)
+                SyncProcedure procedure = (handle, channel, data, user) =>
                 {
-                    _activeSampleFrames[writeIndex++] = sampleFrame;
+                    if (generation == Volatile.Read(ref _generation))
+                    {
+                        StartDecoder();
+                    }
+                };
+                int syncHandle = Bass.ChannelSetSync(_outputMixerHandle,
+                    SyncFlags.Position | SyncFlags.Mixtime | SyncFlags.Onetime,
+                    targetPosition, procedure, IntPtr.Zero);
+                if (syncHandle == 0)
+                {
+                    LogBassError("Failed to schedule one-shot sync: {0}!");
+                    continue;
                 }
-            }
-
-            _activeSampleCount = writeIndex;
-        }
-
-        private unsafe void StartSample(float* output, int frameCount, int startFrame, float volume)
-        {
-            int sampleFrame = 0;
-            MixSample(output, frameCount, startFrame, volume, ref sampleFrame);
-            if (sampleFrame < _sampleFrameCount && _activeSampleCount < MAX_ACTIVE_SAMPLES)
-            {
-                _activeSampleFrames[_activeSampleCount++] = sampleFrame;
+                _syncProcedures.Add(procedure);
+                _syncHandles.Add(syncHandle);
             }
         }
 
-        private unsafe void MixSample(float* output, int outputFrames, int startFrame, float volume,
-            ref int sampleFrame)
+        private void StartDecoder()
         {
-            int framesToMix = Math.Min(outputFrames - startFrame, _sampleFrameCount - sampleFrame);
-            int source = sampleFrame * _channelCount;
-            int destination = startFrame * _channelCount;
-            int valuesRemaining = framesToMix * _channelCount;
-            while (valuesRemaining-- > 0)
+            foreach (var slot in _decoderPool)
             {
-                // Metronome samples peak at 0 dB. Adding one to normalized song output can exceed
-                // full scale and trigger downstream limiting, which sounds like song ducking.
-                float mixed = output[destination] + _sample[source++] * volume;
-                output[destination++] = Math.Clamp(mixed, -1f, 1f);
-            }
+                if (slot?.Handle == 0 ||
+                    Interlocked.CompareExchange(ref slot.Active, 1, 0) != 0)
+                {
+                    continue;
+                }
 
-            sampleFrame += framesToMix;
+                BassMix.MixerRemoveChannel(slot.Handle);
+                slot.Rewind();
+                if (!Bass.ChannelSetPosition(slot.Handle, 0, PositionFlags.Bytes) ||
+                    !BassMix.MixerAddChannel(_outputMixerHandle, slot.Handle,
+                        BassFlags.MixerChanNoRampin))
+                {
+                    Volatile.Write(ref slot.Active, 0);
+                }
+                return;
+            }
+        }
+
+        private void RemovePendingSyncs()
+        {
+            foreach (int handle in _syncHandles)
+            {
+                Bass.ChannelRemoveSync(_outputMixerHandle, handle);
+            }
+            _syncHandles.Clear();
+            _syncProcedures.Clear();
         }
 
         private static double[] CopyAndSort(IReadOnlyList<double> scheduledPlays)
@@ -303,7 +258,6 @@ namespace YARG.Audio.BASS
             {
                 throw new ArgumentNullException(nameof(scheduledPlays));
             }
-
             var copy = new double[scheduledPlays.Count];
             for (int i = 0; i < copy.Length; i++)
             {
@@ -314,12 +268,8 @@ namespace YARG.Audio.BASS
         }
 
         /// <summary>
-        /// Decodes and converts an owned sample stream to float data matching the playback stream.
+        /// Decodes and converts an owned sample stream to float data matching the playback mixer.
         /// </summary>
-        /// <remarks>
-        /// Both the source stream and temporary mixer are released before this method returns,
-        /// including all failure paths.
-        /// </remarks>
         private static float[] DecodeSample(int streamHandle, int sampleRate, int channelCount)
         {
             if (streamHandle == 0)
@@ -329,7 +279,6 @@ namespace YARG.Audio.BASS
 
             int converter = BassMix.CreateMixerStream(sampleRate, channelCount,
                 BassFlags.Float | BassFlags.Decode | BassFlags.MixerEnd);
-
             if (converter == 0)
             {
                 LogBassError("Failed to create one-shot sample converter: {0}!");
@@ -341,15 +290,15 @@ namespace YARG.Audio.BASS
             {
                 if (!BassMix.MixerAddChannel(converter, streamHandle, BassFlags.MixerChanNoRampin))
                 {
-                    LogBassError(
-                        "Failed to add one-shot sample to converter: {0}!");
+                    LogBassError("Failed to add one-shot sample to converter: {0}!");
                     return null;
                 }
 
                 var samples = new List<float>();
                 var buffer = new float[DECODE_BUFFER_SIZE];
                 int bytesRead;
-                while ((bytesRead = Bass.ChannelGetData(converter, buffer, buffer.Length * sizeof(float))) > 0)
+                while ((bytesRead = Bass.ChannelGetData(
+                    converter, buffer, buffer.Length * sizeof(float))) > 0)
                 {
                     int sampleCount = bytesRead / sizeof(float);
                     for (int i = 0; i < sampleCount; i++)
@@ -371,45 +320,38 @@ namespace YARG.Audio.BASS
             }
         }
 
-        /// <summary>
-        /// Detaches DSP callback and releases this channel.
-        /// </summary>
         public override void Dispose()
         {
             if (_disposed)
             {
                 return;
             }
-
-            RemoveDsp();
             _disposed = true;
+            Interlocked.Increment(ref _generation);
+            RemovePendingSyncs();
+            foreach (var slot in _decoderPool)
+            {
+                if (slot?.Handle == 0)
+                {
+                    continue;
+                }
+                BassMix.MixerRemoveChannel(slot.Handle);
+                if (slot.EndSyncHandle != 0)
+                {
+                    Bass.ChannelRemoveSync(slot.Handle, slot.EndSyncHandle);
+                }
+                Bass.StreamFree(slot.Handle);
+            }
+            _syncProcedures.Clear();
+            _decoderEndProcedures.Clear();
             var disposed = Disposed;
             Disposed = null;
             disposed?.Invoke(this);
-        }
-
-        private void RemoveDsp()
-        {
-            if (_dspHandle == 0 ||
-                Bass.ChannelRemoveDSP(_playbackStreamHandle, _dspHandle) ||
-                Bass.LastError == Errors.Handle)
-            {
-                return;
-            }
-
-            LogBassError("Failed to remove one-shot DSP: {0}!");
-        }
-
-        internal void PlaybackStreamDisposed()
-        {
-            _disposed = true;
-            Disposed = null;
         }
 
         private static void LogBassError(string format)
         {
             YargLogger.LogFormatError(format, Bass.LastError);
         }
-
     }
 }

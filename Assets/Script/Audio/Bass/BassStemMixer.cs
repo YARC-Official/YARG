@@ -303,6 +303,10 @@ namespace YARG.Audio.BASS
                 }
 
                 _playbackTimeline.ResetAfterSeek(_songPositionTracker.GetSongPosition(), position);
+                foreach (var channel in _oneShotChannels)
+                {
+                    channel.ResetAfterSeek();
+                }
             }
 
             if (wasPlaying)
@@ -395,7 +399,8 @@ namespace YARG.Audio.BASS
 
             // Exact comparison is intentional. If BASS receives a new float value, the playback model
             // must record the same value; an approximate comparison could let the two drift apart.
-            if (_speed != effectiveSpeed)
+            bool speedChanged = _speed != effectiveSpeed;
+            if (speedChanged)
             {
                 _speed = effectiveSpeed;
                 BassAudioManager.SetSpeed(effectiveSpeed, _tempoStreamHandle, shiftPitch);
@@ -403,6 +408,14 @@ namespace YARG.Audio.BASS
 
             double tempoLatency = BassLatencyProvider.GetTempoStreamLatency(_outputMixerHandle);
             _playbackTimeline.SetSpeed(songSpeed, appliedAdjustment, tempoLatency);
+            if (!speedChanged)
+            {
+                return;
+            }
+            foreach (var channel in _oneShotChannels)
+            {
+                channel.ResetAfterSpeedChange();
+            }
         }
 
         protected override void SetOutputLatency_Internal(double latency)
@@ -522,7 +535,7 @@ namespace YARG.Audio.BASS
             }
             foreach (var channel in _oneShotChannels)
             {
-                channel.ResetAfterSeek();
+                channel.PrepareForSeek();
             }
         }
 
@@ -719,9 +732,10 @@ namespace YARG.Audio.BASS
 
         protected override void DisposeUnmanagedResources()
         {
-            foreach (var channel in _oneShotChannels)
+            // One-shot decoders are independent streams and must be freed before their mixer.
+            foreach (var channel in _oneShotChannels.ToArray())
             {
-                channel.PlaybackStreamDisposed();
+                channel.Dispose();
             }
             _oneShotChannels.Clear();
 
@@ -774,10 +788,12 @@ namespace YARG.Audio.BASS
             IReadOnlyList<double> scheduledPlays)
         {
             var channel = new BassOneShotChannel(
+                _outputMixerHandle,
                 _tempoStreamHandle,
                 sampleStream,
                 scheduledPlays,
-                _songPositionTracker.GetSongPosition
+                _songPositionTracker.GetSongPosition,
+                () => _speed
             );
             channel.Disposed += OnOneShotDisposed;
             _oneShotChannels.Add(channel);
