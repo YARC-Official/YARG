@@ -392,6 +392,13 @@ namespace YARG.Gameplay
             ApplySongSpeed();
         }
 
+        public void AdjustSongSpeedInPlace(float deltaSpeed)
+        {
+            _songRunner.AdjustSongSpeedInPlace(deltaSpeed);
+
+            ApplySongSpeed();
+        }
+
         private void ApplySongSpeed()
         {
             float speed = _songRunner.SongSpeed;

@@ -499,20 +499,25 @@ namespace YARG.Playback
 
         public void SetSongSpeed(float speed)
         {
+            SetSongSpeed(speed, rebuildPlayback: true);
+        }
+
+        private void SetSongSpeed(float speed, bool rebuildPlayback)
+        {
             speed = ClampSongSpeed(speed);
             if (Mathf.Approximately(speed, _requestedSongSpeed))
             {
                 return;
             }
 
-            ApplySpeedChange(speed);
+            ApplySpeedChange(speed, rebuildPlayback);
 
             YargLogger.LogFormatDebug("Set song speed to {0:0.00}.\n"
                 + "Song time: {1:0.000000}, visual time: {2:0.000000}, input time: {3:0.000000}",
                 speed, SongTime, VisualTime, InputTime);
         }
 
-        private void ApplySpeedChange(float speed)
+        private void ApplySpeedChange(float speed, bool rebuildPlayback)
         {
             double inputTime = InputTime;
             _requestedSongSpeed = speed;
@@ -521,6 +526,13 @@ namespace YARG.Playback
             if (!Started || Paused)
             {
                 _audioSynchronizer.Reset(SongSpeed);
+                AnchorTimelineChecked(inputTime);
+                return;
+            }
+
+            if (!rebuildPlayback)
+            {
+                _audioSynchronizer.ChangeSongSpeed(SongSpeed);
                 AnchorTimelineChecked(inputTime);
                 return;
             }
@@ -537,6 +549,12 @@ namespace YARG.Playback
         /// Changes requested playback speed by the given amount, where 1f is 100%.
         /// </summary>
         public void AdjustSongSpeed(float deltaSpeed) => SetSongSpeed(_requestedSongSpeed + deltaSpeed);
+
+        /// <summary>
+        /// Changes requested playback speed without rebuilding active playback.
+        /// </summary>
+        public void AdjustSongSpeedInPlace(float deltaSpeed) =>
+            SetSongSpeed(_requestedSongSpeed + deltaSpeed, rebuildPlayback: false);
 
         /// <summary>
         /// Reloads audio and video calibration settings while preserving current gameplay time.
@@ -797,6 +815,14 @@ namespace YARG.Playback
         {
             EffectiveAdjustment = 0f;
             ApplyAdjustment(songSpeed, 0f);
+        }
+
+        /// <summary>
+        /// Changes requested song speed while preserving active synchronization correction.
+        /// </summary>
+        public void ChangeSongSpeed(float songSpeed)
+        {
+            _mixer.SetPlaybackSpeed(songSpeed, Adjustment, true);
         }
 
         private void RecordCorrection(float adjustment)
