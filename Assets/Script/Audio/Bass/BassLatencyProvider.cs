@@ -16,7 +16,20 @@ namespace YARG.Audio.BASS
         /// <summary>
         /// Gets delay before a newly played stream's compensated position begins advancing.
         /// </summary>
-        public static double StartupLatency => Math.Max(0, Bass.DeviceBufferLength) / 1000.0;
+        public static double StartupLatency
+        {
+            get
+            {
+#if UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX
+                // BASS_CONFIG_DEV_BUFFER cannot be queried on macOS. BassAudioManager configures
+                // it to twice the device period during initialization.
+                int deviceBufferLength = 2 * Bass.GetConfig(Configuration.DevicePeriod);
+#else
+                int deviceBufferLength = Bass.DeviceBufferLength;
+#endif
+                return Math.Max(0, deviceBufferLength) / 1000.0;
+            }
+        }
 
         /// <summary>
         /// Gets estimated playback stream output latency.
