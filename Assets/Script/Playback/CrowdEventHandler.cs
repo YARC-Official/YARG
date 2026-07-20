@@ -47,6 +47,7 @@ namespace YARG.Playback
         private bool _disposed;
 
         private bool _started;
+        private CrowdClapScheduler _clapScheduler;
 
         private readonly double _musicStartTime;
         private readonly double _musicEndTime;
@@ -79,16 +80,16 @@ namespace YARG.Playback
                 _musicEndTime = musicEnd.Time;
             }
 
-            // If crowd fx is disabled, don't bother subscribing to beat events
-            if (SettingsManager.Settings.UseCrowdFx.Value != CrowdFxMode.Disabled)
-            {
-                // Clap sample takes 20ms to actually hit (not sure if this should actually be measure or strongbeat)
-                _gameManager.BeatEventHandler?.Audio.Subscribe(Clap, BeatEventType.StrongBeat, offset: -0.02);
-            }
-            else if (SettingsManager.Settings.UseCrowdFx.Value == CrowdFxMode.StarpowerClapsOnly)
+            if (SettingsManager.Settings.UseCrowdFx.Value == CrowdFxMode.StarpowerClapsOnly)
             {
                 ChangeCrowdMuteState(true);
             }
+        }
+
+        public void SetClapScheduler(CrowdClapScheduler scheduler)
+        {
+            _clapScheduler = scheduler;
+            UpdateClapEnabled();
         }
 
         public void Start()
@@ -116,6 +117,7 @@ namespace YARG.Playback
             }
 
             _started = true;
+            UpdateClapEnabled();
 
             if (SettingsManager.Settings.NoFail.Value == NoFailMode.NoMeter || GlobalVariables.State.IsPractice)
             {
@@ -182,29 +184,20 @@ namespace YARG.Playback
                     GlobalAudioHandler.PlaySoundEffect(_selectedEndSample, 0.5);
                 }
             }
+
+            UpdateClapEnabled();
         }
 
-        private void Clap()
+        private void UpdateClapEnabled()
         {
-            // No clapping when charter has inhibited clapping, even if SP is active
-            if (ClapState == ClapState.NoClap || !UseCrowdFx)
-            {
-                return;
-            }
-
-            // No clapping before first note or after last note (in case charter forgot to put crowd back in realtime)
-            if (_gameManager.SongTime < _gameManager.FirstNoteTime || _gameManager.SongTime > _gameManager.LastNoteTime)
-            {
-                return;
-            }
-
-            // Only clap when happiness meter is full or SP is active
-            if (_gameManager.EngineManager.Happiness < 1.0f && _gameManager.StarPowerActivations < 1)
-            {
-                return;
-            }
-
-            GlobalAudioHandler.PlaySoundEffect(SfxSample.Clap);
+            var mode = SettingsManager.Settings.UseCrowdFx.Value;
+            bool starPowerActive = _gameManager.StarPowerActivations > 0;
+            bool performanceAllowsClaps = mode == CrowdFxMode.StarpowerClapsOnly
+                ? starPowerActive
+                : _gameManager.EngineManager.Happiness >= 1.0f || starPowerActive;
+            bool enabled = _started && mode != CrowdFxMode.Disabled &&
+                !GlobalVariables.State.CrowdSfxVenueOverride && performanceAllowsClaps;
+            _clapScheduler?.SetEnabled(enabled);
         }
 
         private void OnHappinessUnderThreshold()
@@ -265,7 +258,7 @@ namespace YARG.Playback
                 _engineManager.OnHappinessUnderThreshold -= OnHappinessUnderThreshold;
                 _engineManager.OnHappinessOverThreshold -= OnHappinessOverThreshold;
                 _engineManager.OnSongFailed -= OnSongFailed;
-                _gameManager?.BeatEventHandler?.Audio.Unsubscribe(Clap);
+                _clapScheduler?.SetEnabled(false);
 
                 StopAllCrowdSounds();
             }

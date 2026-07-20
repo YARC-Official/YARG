@@ -170,6 +170,7 @@ namespace YARG.Gameplay
 
         private StemMixer _mixer;
         private MetronomeScheduler _metronomeScheduler;
+        private CrowdClapScheduler _crowdClapScheduler;
 
         private List<double> _frameTimes;
 
@@ -243,6 +244,7 @@ namespace YARG.Gameplay
 
             // Stop playback-owned work before teardown callbacks touch the mixer or UI.
             _metronomeScheduler?.Dispose();
+            _crowdClapScheduler?.Dispose();
             _songRunner?.Dispose();
 
             // Restore stem volumes to their original state while the mixer is still valid.
@@ -626,6 +628,7 @@ namespace YARG.Gameplay
 
         private bool EndSong()
         {
+            _crowdClapScheduler?.Dispose();
             // Dispose the crowd handler
             CrowdEventHandler?.Dispose();
 

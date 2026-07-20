@@ -788,7 +788,7 @@ namespace YARG.Audio.BASS
         }
 
         public override OneShotChannel CreateOneShotChannel(int sampleStream,
-            IReadOnlyList<double> scheduledPlays)
+            IReadOnlyList<double> scheduledPlays, double outputLeadTime = 0)
         {
             var channel = new BassOneShotChannel(
                 _outputMixerHandle,
@@ -796,7 +796,8 @@ namespace YARG.Audio.BASS
                 sampleStream,
                 scheduledPlays,
                 _songPositionTracker.GetSongPosition,
-                () => _speed
+                () => _speed,
+                outputLeadTime
             );
             channel.Disposed += OnOneShotDisposed;
             _oneShotChannels.Add(channel);

@@ -8,10 +8,10 @@ using YARG.Core.Logging;
 namespace YARG.Audio.BASS
 {
     /// <summary>
-    /// Schedules a metronome sample directly in the final BASS playback mixer.
+    /// Schedules a one-shot sample directly in the final BASS playback mixer.
     /// </summary>
     /// <remarks>
-    /// Metronome hits do not need independent overlapping voices. Retriggering rewinds the single
+    /// Scheduled hits do not need independent overlapping voices. Retriggering rewinds the single
     /// sample stream, keeping this channel small while retaining sample-accurate BASS syncs.
     /// </remarks>
     internal sealed class BassOneShotChannel : OneShotChannel
@@ -24,6 +24,7 @@ namespace YARG.Audio.BASS
         private readonly SyncProcedure _playSampleSync;
         private readonly Func<long, double> _getSongPosition;
         private readonly Func<float> _getSpeed;
+        private readonly double _outputLeadTime;
 
         private int _syncHandle;
         private int _nextScheduledPlay;
@@ -31,19 +32,21 @@ namespace YARG.Audio.BASS
         private long _scheduleStartOutputPosition;
         private double _scheduleStartSongPosition;
         private float _scheduleSpeed;
+        private bool _enabled = true;
         private bool _disposed;
 
         internal event Action<BassOneShotChannel> Disposed;
 
         public BassOneShotChannel(int outputMixerHandle, int tempoStreamHandle,
             int sampleStream, IReadOnlyList<double> scheduledPlays,
-            Func<long, double> getSongPosition, Func<float> getSpeed)
+            Func<long, double> getSongPosition, Func<float> getSpeed, double outputLeadTime)
         {
             _outputMixerHandle = outputMixerHandle;
             _tempoStreamHandle = tempoStreamHandle;
             _sampleStreamHandle = sampleStream;
             _getSongPosition = getSongPosition ?? throw new ArgumentNullException(nameof(getSongPosition));
             _getSpeed = getSpeed ?? throw new ArgumentNullException(nameof(getSpeed));
+            _outputLeadTime = Math.Max(0, outputLeadTime);
             _scheduledPlays = CopyAndSort(scheduledPlays);
             _playSampleSync = OnPlaySampleSync;
 
@@ -57,7 +60,18 @@ namespace YARG.Audio.BASS
                 if (!_disposed && _sampleStreamHandle != 0 &&
                     !Bass.ChannelSetAttribute(_sampleStreamHandle, ChannelAttribute.Volume, volume))
                 {
-                    LogBassError("Failed to set metronome sample volume: {0}!");
+                    LogBassError("Failed to set one-shot sample volume: {0}!");
+                }
+            }
+        }
+
+        public override void SetEnabled(bool enabled)
+        {
+            lock (_syncLock)
+            {
+                if (!_disposed)
+                {
+                    _enabled = enabled;
                 }
             }
         }
@@ -98,7 +112,7 @@ namespace YARG.Audio.BASS
                 long tempoPosition = Bass.ChannelGetPosition(_tempoStreamHandle, PositionFlags.Decode);
                 if (outputPosition < 0 || tempoPosition < 0)
                 {
-                    LogBassError("Failed to read metronome scheduling position: {0}!");
+                    LogBassError("Failed to read one-shot scheduling position: {0}!");
                     return;
                 }
 
@@ -118,7 +132,14 @@ namespace YARG.Audio.BASS
             }
 
             double outputDelay =
-                (_scheduledPlays[_nextScheduledPlay] - _scheduleStartSongPosition) / _scheduleSpeed;
+                (_scheduledPlays[_nextScheduledPlay] - _scheduleStartSongPosition) / _scheduleSpeed -
+                _outputLeadTime;
+            if (_outputLeadTime > 0 && outputDelay <= 0)
+            {
+                _nextScheduledPlay++;
+                ArmNextSync();
+                return;
+            }
             long targetPosition = _scheduleStartOutputPosition +
                 Bass.ChannelSeconds2Bytes(_outputMixerHandle, outputDelay);
 
@@ -127,7 +148,7 @@ namespace YARG.Audio.BASS
                 targetPosition, _playSampleSync, new IntPtr(_generation));
             if (_syncHandle == 0)
             {
-                LogBassError("Failed to schedule metronome sync: {0}!");
+                LogBassError("Failed to schedule one-shot sync: {0}!");
             }
         }
 
@@ -142,7 +163,10 @@ namespace YARG.Audio.BASS
 
                 // Current sync is one-shot and BASS removes it after this callback.
                 _syncHandle = 0;
-                PlaySample();
+                if (_enabled)
+                {
+                    PlaySample();
+                }
                 _nextScheduledPlay++;
                 ArmNextSync();
             }
@@ -155,7 +179,7 @@ namespace YARG.Audio.BASS
                 !BassMix.MixerAddChannel(_outputMixerHandle, _sampleStreamHandle,
                     BassFlags.MixerChanNoRampin))
             {
-                LogBassError("Failed to play metronome sample: {0}!");
+                LogBassError("Failed to play one-shot sample: {0}!");
             }
         }
 

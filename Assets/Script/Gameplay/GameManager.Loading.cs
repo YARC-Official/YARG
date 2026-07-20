@@ -200,6 +200,11 @@ namespace YARG.Gameplay
             _metronomeScheduler = new MetronomeScheduler(_mixer);
             _metronomeScheduler.Schedule(_songRunner, Chart.SyncTrack, SongLength);
 
+            _crowdClapScheduler = new CrowdClapScheduler(_mixer);
+            _crowdClapScheduler.Schedule(_songRunner, Chart.SyncTrack, Chart.CrowdEvents,
+                FirstNoteTime, LastNoteTime, SongLength);
+            CrowdEventHandler.SetClapScheduler(_crowdClapScheduler);
+
             // Spawn players
             CreatePlayers();
             YargLogger.LogFormatDebug("Calculating star cutoffs for {0} players", _players.Count);
