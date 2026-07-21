@@ -375,8 +375,10 @@ namespace YARG.Menu.MusicLibrary
                 new NavigationScheme.Entry(MenuAction.Red, "Menu.Common.Back", Back, hide: true),
                 yellowEntry,
                 new NavigationScheme.Entry(MenuAction.Blue, "Menu.MusicLibrary.Filters", OpenFilters),
+                new NavigationScheme.Entry(MenuAction.Orange, "Menu.MusicLibrary.MoreOptions",
+                    OnOrangeHit, OnOrangeRelease),
                 new NavigationScheme.Entry(MenuAction.Search, "Menu.MusicLibrary.Search",
-                    _searchField.Focus),
+                    _searchField.Focus, hide: true),
             };
 
             _ = Navigator.Instance.PushScheme(new NavigationScheme(entries, false));
