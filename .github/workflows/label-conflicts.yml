@@ -1,0 +1,22 @@
+name: Auto Label Merge Conflicts
+
+on:
+  push:
+    branches:
+      - dev
+  pull_request_target:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  label-conflicts:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: eps1lon/actions-label-merge-conflict@204c3e8006e8b4e768e146743b5936bc93297a78 # v3.0.2
+        with:
+          dirtyLabel: "Needs Rebase"
+          repoToken: "${{ secrets.GITHUB_TOKEN }}"
+          retryAfterMinutes: 1
+          retryMaxIterations: 5
