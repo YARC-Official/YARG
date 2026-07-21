@@ -411,6 +411,11 @@ namespace YARG.Menu.DifficultySelect
                     var preferredInstrument = CurrentPlayer.Profile.PreferredInstrument;
                     CurrentPlayer.Profile.CurrentInstrument = instrument;
 
+                    // Re-resolve after an instrument switch in case the raw harmony index is out
+                    // of range for this song (ChangePlayer's check can be masked by the
+                    // HarmonyIndex getter returning 0 when not on Harmony).
+                    CurrentPlayer.Profile.ResolveHarmonyIndex(_maxHarmonyIndex);
+
                     // What we are doing here is resetting preferred instrument only if the current preferred instrument
                     // was an option for this chart. This ensures that preferred instrument does not change when the
                     // player is forced to use a different instrument.
@@ -643,11 +648,14 @@ namespace YARG.Menu.DifficultySelect
                 _maxHarmonyIndex = Mathf.Min(_maxHarmonyIndex, showsong.VocalsCount);
             }
 
-            // Set the harmony index to a valid one
-            if (profile.HarmonyIndex >= _maxHarmonyIndex)
-            {
-                profile.HarmonyIndex = 0;
-            }
+            // Resolve the effective harmony index for this song from the player's last
+            // explicit selection (clamped to the available parts). Uses ResolveHarmonyIndex
+            // so the raw backing field is checked regardless of CurrentInstrument
+            // (HarmonyIndex getter returns 0 when not on Harmony, which would mask an
+            // out-of-range value from a direct comparison), and so a song with fewer
+            // parts doesn't permanently erase the selection — like DifficultyFallback
+            // preserves Expert+ across songs that lack it.
+            profile.ResolveHarmonyIndex(_maxHarmonyIndex);
 
             UpdatePossibleModifiers();
 
