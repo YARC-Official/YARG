@@ -301,8 +301,11 @@ namespace YARG.Scores
             }
 
             var player = PlayerContainer.Players.First(entry => !entry.Profile.IsBot);
-            playerScoreRecord = GetPreferredHighScore(
-                songChecksum, player.Profile.Id, player.Profile.CurrentInstrument);
+            playerScoreRecord = player.Profile.GameMode == GameMode.EliteDrums
+                ? GetPreferredHighScoreForInstruments(
+                    songChecksum, player.Profile.Id, MidiDrumkitHelper.Instruments)
+                : GetPreferredHighScore(
+                    songChecksum, player.Profile.Id, player.Profile.CurrentInstrument);
         }
 
         private static PlayerScoreRecord GetHighScoreFromDatabase(HashWrapper songChecksum, Guid playerId, Instrument instrument)
@@ -563,7 +566,8 @@ namespace YARG.Scores
             try
             {
                 List<PlayerScoreWithChecksum> records = profile.GameMode == GameMode.EliteDrums
-                    ? _db.QueryPlayerBestStarsForInstruments(profile, MidiDrumkitHelper.Instruments, false)
+                    ? _db.QueryPlayerBestStarsForInstruments(
+                        profile, MidiDrumkitHelper.Instruments, SettingsManager.Settings.HighScoreHistory.Value)
                     : _db.QueryPlayerBestStars(profile, SettingsManager.Settings.HighScoreHistory.Value);
                 Dictionary<HashWrapper, StarAmount> result = new Dictionary<HashWrapper, StarAmount>();
 

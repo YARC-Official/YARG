@@ -587,31 +587,53 @@ namespace YARG.Scores
         public List<PlayerScoreWithChecksum> QueryPlayerBestStarsForInstruments(
             YargProfile profile,
             IReadOnlyList<Instrument> instruments,
-            bool highestDifficultyOnly)
+            HighScoreHistoryMode mode)
         {
+            bool currentDifficultyOnly = mode is
+                HighScoreHistoryMode.HighestPercentageCurrentDifficulty or
+                HighScoreHistoryMode.HighestScoreCurrentDifficulty;
+
             string inClause = BuildInstrumentInClause(instruments);
-            string difficultyFilter = highestDifficultyOnly ? "" : " AND ps.Difficulty = ?";
-            string subDifficultyFilter = highestDifficultyOnly ? "" : " AND ps2.Difficulty = ps.Difficulty";
+            string difficultyFilter = currentDifficultyOnly ? " AND ps.Difficulty = ?" : "";
+            string subDifficultyFilter = currentDifficultyOnly ? " AND ps2.Difficulty = ps.Difficulty" : "";
+            string orderBy = mode switch
+            {
+                HighScoreHistoryMode.HighestPercentageOverall =>
+                    "ps2.Percent DESC, ps2.IsFc DESC",
+                HighScoreHistoryMode.HighestPercentageDifficulty =>
+                    "ps2.Difficulty DESC, ps2.Percent DESC, ps2.IsFc DESC",
+                HighScoreHistoryMode.HighestScoreOverall =>
+                    "ps2.Score DESC",
+                HighScoreHistoryMode.HighestScoreDifficulty =>
+                    "ps2.Difficulty DESC, ps2.Score DESC",
+                HighScoreHistoryMode.HighestPercentageCurrentDifficulty =>
+                    "ps2.Percent DESC, ps2.IsFc DESC",
+                HighScoreHistoryMode.HighestScoreCurrentDifficulty =>
+                    "ps2.Score DESC",
+                _ => throw new ArgumentOutOfRangeException(nameof(mode), mode, null)
+            };
 
             string query = $@"SELECT ps.*, gr.SongChecksum FROM PlayerScores ps
                 INNER JOIN GameRecords gr
                     ON ps.GameRecordId = gr.Id
                 WHERE ps.PlayerId = ?
                     AND ps.Instrument {inClause}{difficultyFilter}
+                    AND ps.IsReplay = 0
                     AND ps.Id = (
                         SELECT ps2.Id FROM PlayerScores ps2
                             INNER JOIN GameRecords gr2
                                 ON ps2.GameRecordId = gr2.Id
                         WHERE ps2.PlayerId = ps.PlayerId
                             AND ps2.Instrument {inClause}{subDifficultyFilter}
+                            AND ps2.IsReplay = 0
                             AND gr2.SongChecksum = gr.SongChecksum
-                        ORDER BY ps2.Stars DESC
+                        ORDER BY {orderBy}
                         LIMIT 1
                     )";
 
             var parameters = new List<object> { profile.Id };
             parameters.AddRange(BuildInstrumentParams(instruments));
-            if (!highestDifficultyOnly)
+            if (currentDifficultyOnly)
             {
                 parameters.Add((int) profile.CurrentDifficulty);
             }
