@@ -17,6 +17,12 @@ namespace YARG.Menu.Navigation
                 onHoldHandler: () => EventSystem.current.SetSelectedGameObject(null),
                 holdSeconds: 0.5f,
                 hide: false
+            ),
+            new(
+                MenuAction.Search,
+                "Menu.MusicLibrary.Search",
+                () => EventSystem.current.SetSelectedGameObject(null),
+                hide: true
             )
         }, allowsMusicPlayer: null);
 
