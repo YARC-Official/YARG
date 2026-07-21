@@ -40,13 +40,14 @@ namespace YARG.Gameplay.Player
         private bool _blueCymbalHasLane = false;
         private bool _greenCymbalHasLane = false;
 
-        private int _stemCount = 0;
+        private SongStem _lastStem = SongStem.Drums1;
 
         private readonly Dictionary<SongStem, bool> _stemMuteStates = new()
         {
             { SongStem.Drums1, false },
             { SongStem.Drums2, false },
-            { SongStem.Drums3, false }
+            { SongStem.Drums3, false },
+            { SongStem.Drums4, false },
         };
 
         public int NumberOfDedicatedKickLanes { get; private set; } = 0;
@@ -157,22 +158,27 @@ namespace YARG.Gameplay.Player
             // Before we do anything, see if we're in five lane mode or not
             _fiveLaneMode = player.Profile.CurrentInstrument == Instrument.FiveLaneDrums;
             base.Initialize(index, player, chart, trackView, mixer, currentHighScore);
+            _lastStem = GetLastAvailableDrumStem(mixer);
+        }
+
+        private static SongStem GetLastAvailableDrumStem(StemMixer mixer)
+        {
+            if (mixer[SongStem.Drums4] != null)
+            {
+                return SongStem.Drums4;
+            }
+
             if (mixer[SongStem.Drums3] != null)
             {
-                _stemCount = 3;
+                return SongStem.Drums3;
             }
-            else if (mixer[SongStem.Drums2] != null)
+
+            if (mixer[SongStem.Drums2] != null)
             {
-                _stemCount = 2;
+                return SongStem.Drums2;
             }
-            else if (mixer[SongStem.Drums1] != null)
-            {
-                _stemCount = 1;
-            }
-            else
-            {
-                _stemCount = 0;
-            }
+
+            return SongStem.Drums1;
         }
 
         protected override InstrumentDifficulty<DrumNote> GetNotes(SongChart chart)
@@ -389,6 +395,7 @@ namespace YARG.Gameplay.Player
             SetDrumStemMuteState(SongStem.Drums1, muted);
             SetDrumStemMuteState(SongStem.Drums2, muted);
             SetDrumStemMuteState(SongStem.Drums3, muted);
+            SetDrumStemMuteState(SongStem.Drums4, muted);
         }
 
         private void SetDrumStemMuteState(SongStem stem, bool muted)
@@ -401,24 +408,17 @@ namespace YARG.Gameplay.Player
             }
         }
 
-        private SongStem GetStem(DrumNote note)
-        {
-            if (_stemCount < 2)
-            {
-                return SongStem.Drums1;
-            }
-            return GetStem(note.Stem);
-        }
-
         private SongStem GetStem(DrumStem drumStem)
         {
-            return drumStem switch
+            var songStem = drumStem switch
             {
                 DrumStem.Kick  => SongStem.Drums1,
                 DrumStem.Snare => SongStem.Drums2,
-                DrumStem.Else  => _stemCount < 3 ? SongStem.Drums2 : SongStem.Drums3,
+                DrumStem.Toms => SongStem.Drums3,
+                DrumStem.Else  => SongStem.Drums4,
                 _              => throw new ArgumentOutOfRangeException()
             };
+            return songStem > _lastStem ? _lastStem : songStem;
         }
 
         public override void SetStarPowerFX(bool active)
@@ -426,6 +426,7 @@ namespace YARG.Gameplay.Player
             GameManager.ChangeStemReverbState(SongStem.Drums1, active);
             GameManager.ChangeStemReverbState(SongStem.Drums2, active);
             GameManager.ChangeStemReverbState(SongStem.Drums3, active);
+            GameManager.ChangeStemReverbState(SongStem.Drums4, active);
         }
 
         protected override void ResetVisuals()
@@ -541,7 +542,7 @@ namespace YARG.Gameplay.Player
                 }
                 else
                 {
-                    SetDrumStemMuteState(GetStem(note), false);
+                    SetDrumStemMuteState(GetStem(note.Stem), false);
                 }
             }
 
@@ -578,7 +579,7 @@ namespace YARG.Gameplay.Player
                 }
                 else
                 {
-                    SetDrumStemMuteState(GetStem(note), true);
+                    SetDrumStemMuteState(GetStem(note.Stem), true);
                 }
             }
 
