@@ -113,11 +113,7 @@ namespace YARG.Audio.BASS
 
         public int ResetBuffer()
         {
-            int queuedBytes = Bass.StreamPutData(Handle, IntPtr.Zero, 0);
-            if (queuedBytes > 0)
-            {
-                YargLogger.LogFormatDebug("Discarding {0} queued bytes from microphone monitor stream.", queuedBytes);
-            }
+            Bass.StreamPutData(Handle, IntPtr.Zero, 0);
 
             // Restarting a push stream flushes both its playback buffer and unbounded
             // queue. Resetting position alone does not reliably clear both on all backends.
@@ -227,8 +223,6 @@ namespace YARG.Audio.BASS
         internal static BassMicDevice? Create(int deviceId, string name)
 #nullable disable
         {
-            YargLogger.LogInfo($"Initializing BASS recording device [{deviceId}] '{name}'");
-
             // Must initialise device before recording
             if (!Bass.RecordInit(deviceId))
             {
@@ -522,7 +516,6 @@ namespace YARG.Audio.BASS
                 _recordHandle = null;
                 recordHandle.Dispose();
                 ResetProcessingState();
-                YargLogger.LogDebug($"Stopped BASS recording stream for mic '{DisplayName}'.");
             }
         }
 
@@ -567,7 +560,6 @@ namespace YARG.Audio.BASS
                     StopRecording();
                     return;
                 }
-                YargLogger.LogDebug($"Started BASS recording stream for mic '{DisplayName}'.");
             }
         }
 
@@ -616,8 +608,6 @@ namespace YARG.Audio.BASS
                     DisplayName, Bass.LastError);
                 return;
             }
-
-            YargLogger.LogDebug($"Restarted BASS recording stream for mic '{DisplayName}'.");
         }
 
         protected override void DisposeUnmanagedResources()
@@ -625,11 +615,7 @@ namespace YARG.Audio.BASS
             _monitorHandle.Dispose();
             StopRecording();
             Bass.CurrentRecordingDevice = _deviceId;
-            if (Bass.RecordFree())
-            {
-                YargLogger.LogInfo($"Freed BASS recording device [{_deviceId}] '{DisplayName}'");
-            }
-            else
+            if (!Bass.RecordFree())
             {
                 YargLogger.LogWarning(
                     $"Failed to free BASS recording device [{_deviceId}] '{DisplayName}': {Bass.LastError}");

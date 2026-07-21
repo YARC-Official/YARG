@@ -150,12 +150,7 @@ namespace YARG.Audio.BASS
                 }
 
                 Bass.CurrentRecordingDevice = deviceIndex;
-                if (Bass.RecordFree())
-                {
-                    YargLogger.LogInfo(
-                        $"Freed stale BASS recording device [{deviceIndex}] '{recordInfo.Name}'");
-                }
-                else
+                if (!Bass.RecordFree())
                 {
                     YargLogger.LogWarning(
                         $"Failed to free stale BASS recording device [{deviceIndex}] '{recordInfo.Name}': " +
@@ -288,7 +283,6 @@ namespace YARG.Audio.BASS
         protected override List<(int id, string name)> GetAllInputDevices()
         {
             var mics = new List<(int id, string name)>();
-            int enumeratedCount = 0;
 
             // Ignored for now since it causes issues on Linux, BASS must not report device info correctly there
             // TODO: allow configuring this at runtime?
@@ -304,15 +298,6 @@ namespace YARG.Audio.BASS
 
             for (int deviceIndex = 0; Bass.RecordGetDeviceInfo(deviceIndex, out var info); deviceIndex++)
             {
-                enumeratedCount++;
-                string exclusion = !info.IsEnabled ? "disabled" :
-                    info.IsInitialized ? "already initialized/claimed" :
-                    info.IsLoopback ? "loopback" :
-                    info.Name == "Default" ? "default device" : "none";
-                YargLogger.LogInfo(
-                    $"BASS recording device [{deviceIndex}] '{info.Name}': enabled={info.IsEnabled}, " +
-                    $"initialized={info.IsInitialized}, loopback={info.IsLoopback}, type={info.Type}, exclusion={exclusion}");
-
                 // Ignore disabled/claimed devices
                 if (!info.IsEnabled || info.IsInitialized)
                 {
@@ -335,9 +320,6 @@ namespace YARG.Audio.BASS
 
                 mics.Add((deviceIndex, info.Name));
             }
-
-            YargLogger.LogInfo(
-                $"BASS recording-device enumeration complete: {enumeratedCount} found, {mics.Count} available");
 
             return mics;
         }
