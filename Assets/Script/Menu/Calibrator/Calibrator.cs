@@ -47,16 +47,10 @@ namespace YARG.Menu.Calibrator
         private YargPlayer _player;
 #nullable enable
         private StemMixer? _mixer;
-        private double _time;
+        private double _audioStartTime;
 #nullable disable
 
-        private bool _wasWhammyEnabled;
         private bool _hasNavigationScheme;
-
-        private void Awake()
-        {
-            _wasWhammyEnabled = SettingsManager.Settings.UseWhammyFx.Value;
-        }
 
         private void Start()
         {
@@ -95,7 +89,7 @@ namespace YARG.Menu.Calibrator
                     _audioCalibrateText.color = Color.green;
                     _audioCalibrateText.text = Localize.Key("Menu.Calibrator.Detected");
 
-                    _calibrationTimes.Add(Time.realtimeSinceStartupAsDouble - _time);
+                    _calibrationTimes.Add(input.Time - _audioStartTime);
                     break;
             }
         }
@@ -148,19 +142,15 @@ namespace YARG.Menu.Calibrator
                     const double VOLUME = 1.0;
                     var file = Path.Combine(Application.streamingAssetsPath, "calibration_music.ogg");
 
-                    //Temporarily disable whammy so we don't have to deal with pitch shift delay
-                    SettingsManager.Settings.UseWhammyFx.Value = false;
-
                     _mixer = GlobalAudioHandler.LoadCustomFile(file, SPEED, VOLUME);
                     _mixer.SongEnd += OnAudioEnd;
+                    double startCallTime = InputManager.CurrentInputTime;
                     _mixer.Play();
-                    _time = Time.realtimeSinceStartupAsDouble;
+                    double endCallTime = InputManager.CurrentInputTime;
+                    _audioStartTime = (startCallTime + endCallTime) / 2;
                     StartCoroutine(AudioCalibrateCoroutine());
                     break;
                 case State.AudioDone:
-                    //Restore whammy settings
-                    SettingsManager.Settings.UseWhammyFx.Value = _wasWhammyEnabled;
-
                     _audioCalibrateContainer.SetActive(true);
                     CalculateAudioLatency();
                     SetBackNavigation();
@@ -234,42 +224,12 @@ namespace YARG.Menu.Calibrator
                 return;
             }
 
-            // Get the deviations
+            // Get each input's signed deviation from the nearest beat.
             var diffs = new List<double>();
             for (int i = 0; i < _calibrationTimes.Count; i++)
             {
-                // Our goal is to get as close to 0 as possible
-                double diff = Math.Abs(_calibrationTimes[i] - SECONDS_PER_BEAT * i);
-
-                // Look forwards
-                for (int j = 1;; j++)
-                {
-                    double newDiff = Math.Abs(_calibrationTimes[i] - SECONDS_PER_BEAT * (i + j));
-                    if (newDiff < diff)
-                    {
-                        diff = newDiff;
-                    }
-                    else
-                    {
-                        break;
-                    }
-                }
-
-                // Look backwards
-                for (int j = 1;; j++)
-                {
-                    double newDiff = Math.Abs(_calibrationTimes[i] - SECONDS_PER_BEAT * (i - j));
-                    if (newDiff < diff)
-                    {
-                        diff = newDiff;
-                    }
-                    else
-                    {
-                        break;
-                    }
-                }
-
-                diffs.Add(diff);
+                double nearestBeat = Math.Round(_calibrationTimes[i] / SECONDS_PER_BEAT) * SECONDS_PER_BEAT;
+                diffs.Add(_calibrationTimes[i] - nearestBeat);
             }
 
             // Get the median

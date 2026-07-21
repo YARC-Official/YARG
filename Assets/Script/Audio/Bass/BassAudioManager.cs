@@ -50,8 +50,6 @@ namespace YARG.Audio.BASS
 #pragma warning disable CS0649
         public int CompressorFX;
         public int PitchFX;
-        public int ReverbFX;
-
         public int LowEQ;
         public int MidEQ;
         public int HighEQ;
@@ -140,7 +138,27 @@ namespace YARG.Audio.BASS
             YargLogger.LogFormatInfo("Devices found: {0}", deviceCount);
 
 #if UNITY_EDITOR
-            // Free BASS if it's already initialized (happens when stopping play mode in editor)
+            // BASS_Free only frees playback devices. Recording devices have a
+            // separate lifecycle and can remain initialized across editor play-mode
+            // sessions, which makes GetAllInputDevices treat them as claimed.
+            // Do this independently of CurrentDevice: playback may already be freed.
+            for (int deviceIndex = 0; Bass.RecordGetDeviceInfo(deviceIndex, out var recordInfo); deviceIndex++)
+            {
+                if (!recordInfo.IsInitialized)
+                {
+                    continue;
+                }
+
+                Bass.CurrentRecordingDevice = deviceIndex;
+                if (!Bass.RecordFree())
+                {
+                    YargLogger.LogWarning(
+                        $"Failed to free stale BASS recording device [{deviceIndex}] '{recordInfo.Name}': " +
+                        $"{Bass.LastError}");
+                }
+            }
+
+            // Free playback BASS if still initialized from previous play-mode session.
             if (Bass.CurrentDevice != -1)
             {
                 YargLogger.LogInfo("BASS already initialized, cleaning up first");
@@ -168,7 +186,7 @@ namespace YARG.Audio.BASS
             }
 
             var info = Bass.Info;
-            PlaybackLatency = info.Latency + Bass.DeviceBufferLength + devPeriod;
+            UpdatePlaybackLatency();
             MinimumBufferLength = info.MinBufferLength + Bass.UpdatePeriod;
             MaximumBufferLength = 5000;
 
@@ -178,8 +196,12 @@ namespace YARG.Audio.BASS
                 Bass.UpdatePeriod, Bass.DeviceBufferLength, Bass.PlaybackBufferLength, PlaybackLatency);
 
             YargLogger.LogFormatInfo("Current Device: {0}", Bass.GetDeviceInfo(Bass.CurrentDevice).Name);
+        }
 
-            Application.quitting += OnApplicationQuitting;
+        private void UpdatePlaybackLatency()
+        {
+            double playbackLatency = BassLatencyProvider.GetPlaybackStreamLatency();
+            PlaybackLatency = (int) Math.Round(playbackLatency * 1000.0);
         }
 
         protected override bool SetOutputDevice(string name)
@@ -198,6 +220,7 @@ namespace YARG.Audio.BASS
 
             _currentDevice?.Dispose();
             _currentDevice = bassDevice.Use();
+            UpdatePlaybackLatency();
 
             YargLogger.LogFormatInfo("Current BASS Device: {0}", Bass.GetDeviceInfo(Bass.CurrentDevice).Name);
 
@@ -584,24 +607,14 @@ namespace YARG.Audio.BASS
 
         protected override void SetBufferLength_Internal(int length)
         {
-            Bass.PlaybackBufferLength = length;
+            Bass.PlaybackBufferLength = BassHelpers.ClampPlaybackBufferLength(length);
         }
 
         protected override void DisposeUnmanagedResources()
         {
-            Application.quitting -= OnApplicationQuitting;
-
             YargLogger.LogInfo("Unloading BASS plugins");
             Bass.PluginFree(0);
             Bass.Free();
-        }
-
-        private void OnApplicationQuitting()
-        {
-            Application.quitting -= OnApplicationQuitting;
-            YargLogger.LogInfo("Application quitting: starting early BASS shutdown");
-            GlobalAudioHandler.Close();
-            YargLogger.LogInfo("Application quitting: early BASS shutdown complete");
         }
 
         private static string GetBassDirectory()

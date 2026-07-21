@@ -115,6 +115,16 @@ namespace YARG.Audio.BASS
             _lastPlaybackTime = InputManager.CurrentInputTime;
         }
 
+        protected override int CreateStream_Internal()
+        {
+            int stream = Bass.CreateStream(_path, 0, 0, BassFlags.Float | BassFlags.Decode);
+            if (stream == 0)
+            {
+                YargLogger.LogFormatError("Failed to create {0} decode stream: {1}!", Sample, Bass.LastError);
+            }
+            return stream;
+        }
+
         protected override void Stop_Internal(double duration)
         {
             // Check if the channel is playing

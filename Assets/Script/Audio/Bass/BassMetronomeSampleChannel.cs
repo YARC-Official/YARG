@@ -50,7 +50,6 @@ namespace YARG.Audio.BASS
         private readonly int _hiChannel;
         private readonly int _loHandle;
         private readonly int _loChannel;
-        private double _volumeSetting = 1;
 
 #nullable enable
         private BassMetronomeSampleChannel(MetronomeSample sample, int hiHandle, int hiChannel, string hiPath, int loHandle, int loChannel, string loPath,
@@ -82,9 +81,24 @@ namespace YARG.Audio.BASS
             }
         }
 
+        protected override int CreateStream_Internal(MetronomePitch pitch)
+        {
+            // Use an independent file-backed stream rather than deriving one from the playback
+            // sample. This keeps the one-shot decoder independent of sample channel state.
+            string path = pitch == MetronomePitch.Hi ? _hiPath : _loPath;
+            int stream = Bass.CreateStream(path, 0, 0, BassFlags.Float | BassFlags.Decode);
+            if (stream == 0)
+            {
+                YargLogger.LogFormatError("Failed to create {0} {1} stream: {2}!", Sample, pitch,
+                    Bass.LastError);
+                return 0;
+            }
+
+            return stream;
+        }
+
         protected override void SetVolume_Internal(double volume)
         {
-            _volumeSetting = volume;
             volume *= AudioHelpers.MetronomeSamples[(int) Sample].Volume;
 
             if (!Bass.ChannelSetAttribute(_hiChannel, ChannelAttribute.Volume, volume))
