@@ -1037,7 +1037,7 @@ namespace YARG.Gameplay.Player
 
             if (!GameManager.IsSeekingReplay)
             {
-                OnUpdateMuteState(note, false);
+                UpdateMuteState(note, false);
                 if (_currentMultiplier != _previousMultiplier)
                 {
                     _previousMultiplier = _currentMultiplier;
@@ -1074,7 +1074,7 @@ namespace YARG.Gameplay.Player
 
             if (!GameManager.IsSeekingReplay)
             {
-                OnUpdateMuteState(note, true);
+                UpdateMuteState(note, true);
 
                 if (LastCombo >= 10)
                 {
@@ -1107,7 +1107,7 @@ namespace YARG.Gameplay.Player
             LastCombo = Combo;
         }
 
-        protected virtual void OnUpdateMuteState(TNote note, bool isMuted)
+        protected virtual void UpdateMuteState(TNote note, bool isMuted)
         {
             SetStemMuteState(isMuted);
         }

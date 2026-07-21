@@ -568,8 +568,9 @@ namespace YARG.Gameplay.Player
         {
             if (Player.Profile.CurrentDifficulty == Difficulty.Easy)
             {
-                // easy charts don't have kick + 'else' notes together, so unmute the kick when we see an 'else' note and vice versa
+                // easy charts typically don't have kick + 'else' notes together, so unmute the kick when we see an 'else' note and vice versa
                 var kickStem = GetStem(DrumStem.Kick);
+                var tomsStem = GetStem(DrumStem.Toms);
                 var elseStem = GetStem(DrumStem.Else);
                 if (kickStem != elseStem)
                 {
@@ -577,7 +578,9 @@ namespace YARG.Gameplay.Player
                     {
                         case DrumStem.Kick:
                             SetDrumStemMuteState(elseStem, false);
+                            SetDrumStemMuteState(tomsStem, false);
                             break;
+                        case DrumStem.Toms:
                         case DrumStem.Else:
                             SetDrumStemMuteState(kickStem, false);
                             break;
@@ -586,11 +589,11 @@ namespace YARG.Gameplay.Player
             }
         }
 
-        protected override void OnUpdateMuteState(DrumNote note, bool isMuted)
+        protected override void UpdateMuteState(DrumNote note, bool isMuted)
         {
             if (Player.Profile.CurrentDifficulty == Difficulty.Beginner)
             {
-                SetStemMuteState(false);
+                SetStemMuteState(isMuted);
             }
             else
             {
