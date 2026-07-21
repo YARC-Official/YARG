@@ -7,6 +7,10 @@ on:
   pull_request_target:
     types: [opened, synchronize, reopened]
 
+concurrency:
+  group: label-conflicts-${{ github.repository }}
+  cancel-in-progress: true
+
 jobs:
   label-conflicts:
     runs-on: ubuntu-latest
@@ -26,7 +30,14 @@ jobs:
                 repository(owner: $owner, name: $repo) {
                   pullRequests(states: OPEN, first: 100) {
                     totalCount
-                    nodes { number title mergeable }
+                    nodes {
+                      number
+                      title
+                      mergeable
+                      labels(first: 100) {
+                        nodes { name }
+                      }
+                    }
                   }
                 }
               }' -F owner="${GH_REPO%/*}" -F repo="${GH_REPO#*/}")
@@ -53,13 +64,18 @@ jobs:
             NUMBER=$(echo "$pr" | jq -r '.number')
             TITLE=$(echo "$pr" | jq -r '.title')
             MERGEABLE=$(echo "$pr" | jq -r '.mergeable')
+            HAS_LABEL=$(echo "$pr" | jq -r 'any(.labels.nodes[]; .name == "Needs Rebase")')
 
-            if [ "$MERGEABLE" = "CONFLICTING" ]; then
+            if [ "$MERGEABLE" = "CONFLICTING" ] && [ "$HAS_LABEL" = "false" ]; then
               echo "PR #$NUMBER ($TITLE) has conflicts -> Adding 'Needs Rebase' label"
-              gh pr edit "$NUMBER" --add-label "Needs Rebase" || true
-            elif [ "$MERGEABLE" = "MERGEABLE" ]; then
+              gh pr edit "$NUMBER" --add-label "Needs Rebase"
+            elif [ "$MERGEABLE" = "MERGEABLE" ] && [ "$HAS_LABEL" = "true" ]; then
               echo "PR #$NUMBER ($TITLE) is clean -> Removing 'Needs Rebase' label"
-              gh pr edit "$NUMBER" --remove-label "Needs Rebase" || true
+              gh pr edit "$NUMBER" --remove-label "Needs Rebase"
+            elif [ "$MERGEABLE" = "CONFLICTING" ]; then
+              echo "PR #$NUMBER ($TITLE) still has conflicts -> Label unchanged"
+            elif [ "$MERGEABLE" = "MERGEABLE" ]; then
+              echo "PR #$NUMBER ($TITLE) is still clean -> Label unchanged"
             else
               echo "PR #$NUMBER ($TITLE) status is $MERGEABLE -> Skipping"
             fi
