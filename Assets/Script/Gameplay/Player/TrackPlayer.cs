@@ -1037,6 +1037,7 @@ namespace YARG.Gameplay.Player
 
             if (!GameManager.IsSeekingReplay)
             {
+                OnUpdateMuteState(note, false);
                 if (_currentMultiplier != _previousMultiplier)
                 {
                     _previousMultiplier = _currentMultiplier;
@@ -1073,6 +1074,8 @@ namespace YARG.Gameplay.Player
 
             if (!GameManager.IsSeekingReplay)
             {
+                OnUpdateMuteState(note, true);
+
                 if (LastCombo >= 10)
                 {
                     GlobalAudioHandler.PlaySoundEffect(SfxSample.NoteMiss);
@@ -1102,6 +1105,11 @@ namespace YARG.Gameplay.Player
             }
 
             LastCombo = Combo;
+        }
+
+        protected virtual void OnUpdateMuteState(TNote note, bool isMuted)
+        {
+            SetStemMuteState(isMuted);
         }
 
         protected virtual void OnSoloStart(SoloSection solo)

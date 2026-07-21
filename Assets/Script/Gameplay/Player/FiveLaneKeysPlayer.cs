@@ -537,11 +537,6 @@ public override bool ShouldUpdateInputsOnResume => true;
         {
             base.OnNoteHit(index, note);
 
-            if (!GameManager.IsSeekingReplay)
-            {
-                SetStemMuteState(false);
-            }
-
             if (GameManager.Paused) return;
 
             (NotePool.GetByKey(note) as FiveLaneKeysNoteElement)?.HitNote();
@@ -559,11 +554,6 @@ public override bool ShouldUpdateInputsOnResume => true;
         protected override void OnNoteMissed(int index, GuitarNote chordParent)
         {
             base.OnNoteMissed(index, chordParent);
-
-            if (!GameManager.IsSeekingReplay)
-            {
-                SetStemMuteState(true);
-            }
 
             (NotePool.GetByKey(chordParent) as FiveLaneKeysNoteElement)?.MissNote();
         }

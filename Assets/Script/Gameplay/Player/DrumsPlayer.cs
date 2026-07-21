@@ -534,18 +534,6 @@ namespace YARG.Gameplay.Player
             base.OnNoteHit(index, note);
             OnNoteHitOrMissed(note);
 
-            if (!GameManager.IsSeekingReplay)
-            {
-                if (Player.Profile.CurrentDifficulty == Difficulty.Beginner)
-                {
-                    SetStemMuteState(false);
-                }
-                else
-                {
-                    SetDrumStemMuteState(GetStem(note.Stem), false);
-                }
-            }
-
             // Remember that drums treat each note separately
 
             (NotePool.GetByKey(note) as DrumsNoteElement)?.HitNote();
@@ -571,18 +559,6 @@ namespace YARG.Gameplay.Player
             base.OnNoteMissed(index, note);
             OnNoteHitOrMissed(note);
 
-            if (!GameManager.IsSeekingReplay)
-            {
-                if (Player.Profile.CurrentDifficulty == Difficulty.Beginner)
-                {
-                    SetStemMuteState(true);
-                }
-                else
-                {
-                    SetDrumStemMuteState(GetStem(note.Stem), true);
-                }
-            }
-
             // Remember that drums treat each note separately
 
             (NotePool.GetByKey(note) as DrumsNoteElement)?.MissNote();
@@ -607,6 +583,18 @@ namespace YARG.Gameplay.Player
                             break;
                     }
                 }
+            }
+        }
+
+        protected override void OnUpdateMuteState(DrumNote note, bool isMuted)
+        {
+            if (Player.Profile.CurrentDifficulty == Difficulty.Beginner)
+            {
+                SetStemMuteState(false);
+            }
+            else
+            {
+                SetDrumStemMuteState(GetStem(note.Stem), isMuted);
             }
         }
 

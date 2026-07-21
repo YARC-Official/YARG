@@ -511,11 +511,6 @@ namespace YARG.Gameplay.Player
         {
             base.OnNoteHit(index, chordParent);
 
-            if (!GameManager.IsSeekingReplay)
-            {
-                SetStemMuteState(false);
-            }
-
             if (GameManager.Paused) return;
 
             foreach (var note in chordParent.AllNotes)
@@ -536,11 +531,6 @@ namespace YARG.Gameplay.Player
         protected override void OnNoteMissed(int index, GuitarNote chordParent)
         {
             base.OnNoteMissed(index, chordParent);
-
-            if (!GameManager.IsSeekingReplay)
-            {
-                SetStemMuteState(true);
-            }
 
             foreach (var note in chordParent.AllNotes)
             {
