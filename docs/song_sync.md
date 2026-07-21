@@ -16,7 +16,7 @@ This ensures that:
 - Audio, visuals, and chart events are all synced to this common clock.
 - Inputs are independent of frame rate.
 
-Three main clocks are maintained in [SongRunner.cs](file:///c:/Users/Phil/Development/YARG/Assets/Script/Playback/SongRunner.cs):
+Three main clocks are maintained in [SongRunner.cs](../Assets/Script/Playback/SongRunner.cs):
 1. **InputTime:** `(inputSystemTime - InputTimeOffset) * SongSpeed`
    - **InputTimeOffset:** The offset used so that `InputTime` is 0 at the start of the song (the first note of the chart). This offset is established during initialization (`InitializeSongTime`) by recording the input system time when playback starts and subtracting the starting delay (`SONG_START_DELAY` scaled by `SongSpeed`). This anchors the beginning of the song's chart timeline at exactly `0`.
 2. **SongTime:** `InputTime + (AudioCalibration * SongSpeed)`
@@ -29,12 +29,14 @@ Three main clocks are maintained in [SongRunner.cs](file:///c:/Users/Phil/Develo
 There are two main sources of latency when playing audio:
 
 ### 1. Device Playback Latency (used for startup/resume positioning)
-This latency represents the physical delay between when audio is decoded/written to the stream and when it is actually heard from the speakers. It is calculated in [BassLatencyProvider.GetPlaybackStreamLatency](file:///c:/Users/Phil/Development/YARG/Assets/Script/Audio/Bass/BassLatencyProvider.cs#L19):
+This latency represents the physical delay between when audio is decoded/written to the stream and when it is actually heard from the speakers. It is calculated in [BassLatencyProvider.GetPlaybackStreamLatency](../Assets/Script/Audio/Bass/BassLatencyProvider.cs):
 - All Platforms: `DeviceOutputLatency`
 
 ### 2. Tempo Stream Latency (used for speed changes)
-This latency represents the delay before a speed change command takes effect in BASS. It is calculated in [BassLatencyProvider.GetTempoStreamLatency](file:///c:/Users/Phil/Development/YARG/Assets/Script/Audio/Bass/BassLatencyProvider.cs#L33) as:
-$$ \text{Tempo Latency} = \text{Remaining Buffer Time} + \text{Command Latency} $$
+This latency represents the delay before a speed change command takes effect in BASS. It is calculated in [BassLatencyProvider.GetTempoStreamLatency](../Assets/Script/Audio/Bass/BassLatencyProvider.cs) as:
+$$
+\mathrm{TempoLatency} = \mathrm{RemainingBufferTime} + \mathrm{CommandLatency}
+$$
 
 - **Remaining Buffer Time:** The tempo channel buffers decoded audio (bounded by the user-configured buffer length in the settings). We query BASS for the available bytes remaining in the tempo channel's internal buffer (`Bass.ChannelGetData`) and convert them to seconds (`Bass.ChannelBytes2Seconds`).
 - **Command Latency:** BASS operates on an asynchronous update thread that only checks for new commands periodically (every 5ms in YARG). We estimate this command delay as half of BASS's update period (`Bass.UpdatePeriod / 2000.0` seconds).
@@ -45,7 +47,7 @@ This is the delay between `ChannelPlay` and the first observed advance of the BA
 #### Windows
 On Windows, measurements show that startup latency tracks the device buffer plus one device period and one BASS update period:
 $$
-\text{Startup Latency} = \text{DeviceBufferLength} + \text{DevicePeriod} + \text{UpdatePeriod}
+\mathrm{StartupLatency} = \mathrm{DeviceBufferLength} + \mathrm{DevicePeriod} + \mathrm{UpdatePeriod}
 $$
 
 Each component is clamped to a non-negative value. With YARG's typical 20ms device buffer, 10ms device period, and 5ms update period, this estimates 35ms of startup latency.
@@ -55,14 +57,14 @@ Each component is clamped to a non-negative value. With YARG's typical 20ms devi
 #### Other Platforms
 On other platforms with an available device buffer length, the best estimate is based on the configured device buffer length:
 $$
-\text{Startup Latency} = \text{DeviceBufferLength}
-                       = \text{DevicePeriod} \times \text{BufferMultiplier}
+\mathrm{StartupLatency} = \mathrm{DeviceBufferLength}
+                       = \mathrm{DevicePeriod} \times \mathrm{BufferMultiplier}
 $$
 
 `ChannelPlay` can occur at any point within the device's callback period, so the exact delay varies by approximately half a device period around this estimate:
 $$
-\text{Startup Latency} \approx \text{DeviceBufferLength}
-                            \mathbin{\pm} \frac{\text{DevicePeriod}}{2}
+\mathrm{StartupLatency} \approx \mathrm{DeviceBufferLength}
+                            \mathbin{\pm} \frac{\mathrm{DevicePeriod}}{2}
 $$
 
 For example, with a 10ms device period:
@@ -74,7 +76,7 @@ On these platforms, the device buffer length is the best single latency estimate
 #### macOS Platform Differences
 On macOS, `Bass.DeviceBufferLength` is unavailable. Instead, macOS uses the device's output latency directly:
 $$
-\text{Startup Latency} = \text{DeviceOutputLatency}
+\mathrm{StartupLatency} = \mathrm{DeviceOutputLatency}
 $$
 Where `DeviceOutputLatency` is retrieved from `Bass.Info.Latency`.
 
@@ -87,10 +89,10 @@ Audio desynchronization in YARG can occur in five main scenarios:
 1. **Song Start:** Starting playback is delayed by the **Device Playback Latency**.
 2. **Resume after Pause:** Resuming playback is delayed by the **Device Playback Latency**.
 3. **Seeking (Practice Mode Section Restarts):** Jumping to a new position is delayed by the **Device Playback Latency**.
-4. **Speed Adjustments (Practice Mode D-Pad):** Changing the playback speed is delayed by the **Device Playback Latency** because we flush the buffers to apply the speed change immediately in-place, creating a short audio blip.
+4. **Speed Adjustments (Practice Mode D-Pad):** The gameplay clock changes speed immediately, while BASS continues consuming audio already queued at the old speed until the command passes through the **Tempo Stream Latency**. Practice Mode changes speed in place; it does not flush or rebuild the streams.
 5. **Audio Buffer Underruns:** Stalls in the audio processing thread or OS scheduling can cause BASS to temporarily run out of audio samples, causing sudden timing discrepancies. Note that BASS runs on its own internal audio thread and clock, meaning hardware clock drift relative to the system clock is possible but rare in practice.
 
-We attempt to handle most of these scenarios (such as starting, resuming, seeking, and speed changes) cleanly without relying on active speed corrections by pre-compensating for latency during the transition itself (see [Section 6](#6-how-each-desync-scenario-is-handled)). However, because of inherent uncertainty in hardware/driver latency calculations, minor offsets may still remain, requiring ongoing proportional speed adjustments in the feedback loop to correct the residual errors.
+We handle starting, resuming, and seeking by pre-compensating their positions for latency. In-place Practice Mode speed changes instead use the predictive timeline to model the buffered transition. See [Section 6](#6-how-each-desync-scenario-is-handled). Because hardware/driver latency estimates are not exact, minor offsets may remain and require ongoing proportional correction.
 
 ---
 
@@ -103,7 +105,9 @@ Speed changes take effect after the **BASS Tempo Stream Buffer** latency (i.e., 
 
 ### Why Compensating for Latency is Necessary
 In a naive control loop, the error is calculated as:
-$$ \text{Error} = \text{targetPosition} - \text{CurrentPosition} $$
+$$
+\mathrm{Error} = \mathrm{targetPosition} - \mathrm{CurrentPosition}
+$$
 Where `CurrentPosition` is the currently playing position of the song reported by BASS.
 
 A speed correction is then applied for some amount of time to correct this error. However, because of the tempo buffer delay (**dead time**), a speed change commanded now **will not take effect** immediately in the reported BASS position.
@@ -114,12 +118,14 @@ During this delay, the controller sees that the error remains uncorrected. On th
 
 ## 5. How the Model Works
 
-To eliminate these oscillations, YARG implements a predictive control structure in [BufferedPlaybackTimeline.cs](file:///c:/Users/Phil/Development/YARG/Assets/Script/Audio/Bass/BufferedPlaybackTimeline.cs).
+To eliminate these oscillations, YARG implements a predictive control structure in [BufferedPlaybackTimeline.cs](../Assets/Script/Audio/Bass/BufferedPlaybackTimeline.cs).
 
 Instead of using the raw position from BASS directly, it calculates a delay-free **Control Position**:
-$$ \text{ControlPosition} = \text{Raw BASS Position} + (\text{Commanded Integral} - \text{Buffered Integral}) $$
+$$
+\mathrm{ControlPosition} = \mathrm{RawBassPosition} + (\mathrm{CommandedIntegral} - \mathrm{BufferedIntegral})
+$$
 
-The [BufferedPlaybackTimeline](file:///c:/Users/Phil/Development/YARG/Assets/Script/Audio/Bass/BufferedPlaybackTimeline.cs) stores a history of speed changes and calculates two positions by integrating the speed rates over time:
+The [BufferedPlaybackTimeline](../Assets/Script/Audio/Bass/BufferedPlaybackTimeline.cs) stores a history of speed changes and calculates two positions by integrating the speed rates over time:
 1. **`_commandedRateHistory` (Commanded Integral):** Integrates the commanded speed rates assuming they take effect **immediately**.
 2. **`_bufferedRateHistory` (Buffered Integral):** Integrates the commanded speed rates assuming they take effect **after the dead time delay** (e.g., `now + tempoLatency` for speed changes, or `now + startupLatency` when starting/resuming).
 
@@ -127,10 +133,14 @@ The difference `(Commanded Integral - Buffered Integral)` represents the accumul
 
 ### How Error is Calculated
 Every frame, the feedback loop calculates the true, delay-free error using the predictive `ControlPosition`:
-$$ \text{Error} = \text{targetPosition} - \text{ControlPosition} $$
+$$
+\mathrm{Error} = \mathrm{targetPosition} - \mathrm{ControlPosition}
+$$
 
 ### How Error is Converted to a Speed Change
-$$ \text{Adjustment} = \frac{\text{Error}}{0.1} $$
+$$
+\mathrm{Adjustment} = \frac{\mathrm{Error}}{0.1}
+$$
 
 Since playback speed is in units of song seconds per real-world second, we cannot directly convert a time offset (`Error` in seconds) to a speed adjustment without a time-scaling factor. YARG chooses a target correction window of 0.1 seconds (100ms) because we want the error correction to be rapid, but we do not want the resulting speed adjustment to be so high that the audio warps audibly.
 
@@ -140,17 +150,21 @@ This adjustment is immediately added to the `Commanded Integral` history. Becaus
 
 ### The Full Control Loop
 
-During normal gameplay, small speed adjustments are continuously computed by the [AudioSynchronizer](file:///c:/Users/Phil/Development/YARG/Assets/Script/Playback/SongRunner.cs#L701):
+During normal gameplay, small speed adjustments are continuously computed by the [AudioSynchronizer](../Assets/Script/Playback/SongRunner.cs):
 
 #### The Control Loop
 1. **Error Sampling:** Every frame, the synchronizer samples the difference between the target position and the predictor's control position:
-   $$ \text{Error} = \text{targetPosition} - \text{ControlPosition} $$
+   $$
+   \mathrm{Error} = \mathrm{targetPosition} - \mathrm{ControlPosition}
+   $$
 2. **Deadband Filter:** If the absolute error is less than `SYNC_DEADBAND_SECONDS` (1.5 milliseconds), no adjustment is applied (`adjustment = 0`). This deadband filters out high-frequency noise and prevents constant speed changes once the song is synced.
 3. **Proportional Adjustment:** If the error exceeds the deadband, a proportional correction is calculated:
-   $$ \text{Adjustment} = \frac{\text{Error}}{\text{CORRECTION\_TIME\_SECONDS}} $$
+   $$
+   \mathrm{Adjustment} = \frac{\mathrm{Error}}{\mathrm{CORRECTION\_TIME\_SECONDS}}
+   $$
    - `CORRECTION_TIME_SECONDS` is set to `0.1` seconds, meaning the proportional gain is `10`. The controller attempts to eliminate the sync error in 100ms.
-4. **Clamping:** The speed correction is clamped to `±SYNC_CLAMP` (±50% of the requested speed) to prevent radical audio warping in extreme drift cases.
-5. **Pitch-Preserving Tempo Speed:** The adjustment is applied to the mixer using `_mixer.SetPlaybackSpeed(songSpeed, adjustment, shiftPitch: false)`. By passing `false` to pitch shifting, BASS changes the tempo without altering the audio pitch, keeping the synchronization adjustments transparent to the player.
+4. **Clamping:** The speed correction is clamped to `±SYNC_CLAMP` (`±0.5` playback-rate units, or ±50 percentage points) to prevent radical audio warping in extreme drift cases.
+5. **Pitch-Preserving Tempo Speed:** The adjustment is applied to the mixer using `_mixer.SetPlaybackSpeed(songSpeed, adjustment, shiftPitch: false)`. This changes tempo without applying the optional chipmunk pitch shift to the temporary synchronization correction, keeping the correction transparent to the player.
 6. **Timeline Update:** The adjustment is sent to the `BufferedPlaybackTimeline`, which schedules the speed change on the commanded and buffered histories, maintaining the predictive playback timeline model.
 
 ---
@@ -159,8 +173,10 @@ During normal gameplay, small speed adjustments are continuously computed by the
 
 This section outlines how the system uses the predictive timeline model and BASS stream positioning to seamlessly handle each playback transition.
 
-All positioning operations (starting, resuming, seeking, or changing speed in-place) delegate to the internal `SetPosition_Internal` method in [BassStemMixer.cs](file:///c:/Users/Phil/Development/YARG/Assets/Script/Audio/Bass/BassStemMixer.cs#L245). This method calculates a target audio-channel position by pre-compensating for the total latency delay:
-$$ \text{PreparedPosition} = \text{TargetPosition} + (\text{PlaybackStartOffset} \times \text{SongSpeed}) $$
+All positioning operations (starting, resuming, and seeking) delegate to the internal `SetPosition_Internal` method in [BassStemMixer.cs](../Assets/Script/Audio/Bass/BassStemMixer.cs). Requested speed changes outside active Practice Mode may also rebuild playback through this path. Practice Mode D-Pad speed changes do not; they update the active tempo stream in place. `SetPosition_Internal` calculates a target audio-channel position by pre-compensating for the total latency delay:
+$$
+\mathrm{PreparedPosition} = \mathrm{TargetPosition} + (\mathrm{PlaybackStartOffset} \times \mathrm{SongSpeed})
+$$
 Where:
 - `TargetPosition` (passed as `position` to the method) is the desired audio playback time (relative to the audio file).
 - `PlaybackStartOffset` is the total delay before audio is heard: `OutputLatency` + `AlignmentDelay`.
@@ -178,19 +194,23 @@ Depending on whether the resulting `PreparedPosition` is positive or negative, t
 This occurs when resuming or seeking in the middle of a song where the target position is far enough along that `TargetPosition` + (`PlaybackStartOffset` * `SongSpeed`) >= 0. In this case, latency is compensated for by seeking ahead in the audio streams.
 
 1. **Seek Forward:** We seek all underlying BASS audio streams forward in the audio file to:
-   $$ \text{SeekPosition} = \text{PreparedPosition} $$
+   $$
+   \mathrm{SeekPosition} = \mathrm{PreparedPosition}
+   $$
 2. **Mixer Delay:** The streams are added to the mixer with a start delay of zero (`playbackDelay = 0`).
 3. **Timing Alignment:** When playback starts, BASS begins playing from `PreparedPosition`. However, due to hardware and DSP latency, this audio takes exactly `PlaybackStartOffset` real-world seconds to be heard. In those `PlaybackStartOffset` seconds, the gameplay clock (running at `SongSpeed`) advances by exactly:
-   $$ \text{PlaybackStartOffset} \times \text{SongSpeed} $$
+   $$
+   \mathrm{PlaybackStartOffset} \times \mathrm{SongSpeed}
+   $$
    Consequently, when the audio finally exits the speakers, the gameplay clock has caught up and matches the heard audio position perfectly.
 
 ---
 
 ### Case B: Negative Prepared Position (`PreparedPosition` < 0)
-This occurs when the latency-compensated position is negative (e.g., during a countdown or pre-roll period). It means we need to start playing the audio *earlier* than the beginning of the file (time 0), or earlier than our target restart point.
+This occurs when the latency-compensated position is before the beginning of the audio file (for example, during the initial countdown or a Practice Mode restart near the beginning of a song).
 
 Since we cannot seek to a negative position in BASS, we clamp the seek position and schedule the playback to start later using the BASS mixer instead:
-1. **Clamp Seek Position:** The physical stream seek position is clamped to the target start point (e.g., `0` for song start, or `TimeStart` for a Practice Mode restart).
+1. **Clamp Seek Position:** The physical stream seek position is clamped to `0`.
 2. **Mixer Start Delay:** We calculate a start delay (`PlaybackDelay = -PreparedPosition` in song seconds) and add the stems to the BASS mixer with a scheduled delay. The mixer outputs silence during the pre-roll countdown, starting the audio playback at the exact moment the gameplay clock hits the target start time.
 
 ---
@@ -204,11 +224,11 @@ Since we cannot seek to a negative position in BASS, we clamp the seek position 
 
 #### Restart Section / Seek (Practice Mode)
 1. **Gameplay Clock Start:** The gameplay clock starts at `TimeStart - (PracticeRestartDelay * SongSpeed)`.
-2. **Audio Setup (Case B):** The mixer is prepared at this negative pre-roll time relative to the target. BASS streams are clamped to start at `TimeStart`, but we schedule playback slightly early using the BASS mixer start delay. We subtract the playback latency from the pre-roll delay so that BASS starts playing the streams early enough to compensate for the latency.
-3. **Smooth Countdown:** The gameplay track starts scrolling immediately from the pre-roll start time. As the clock reaches `TimeStart`, the first sound waves exit the speakers because we scheduled playback precisely to account for the latency, aligning perfectly with the track.
+2. **Audio Setup:** The mixer prepares that absolute audio-file position plus the playback-latency advance. Most section restarts are therefore **Case A**: BASS seeks into the lead-in before `TimeStart`, and that lead-in audio plays during the countdown. If the requested lead-in reaches before the beginning of the file, the mixer uses **Case B**, clamps the stream to `0`, and schedules its start after the necessary silence.
+3. **Smooth Countdown:** The gameplay track starts scrolling from the pre-roll position. At `TimeStart`, heard audio and the gameplay clock are aligned at the selected section boundary.
 
 > [!NOTE]
-> If `PracticeRestartDelay` is set to `0`, the prepared position becomes positive (`PreparedPosition >= TimeStart`). In this scenario, the system automatically switches from **Case B** to **Case A**, seeking the BASS streams forward by the latency offset. The audio and visuals remain perfectly synchronized immediately upon restart, though the first few milliseconds of audio (equal to the latency) are skipped to compensate for the hardware delay.
+> If `PracticeRestartDelay` is set to `0`, the mixer uses **Case A** for a section inside the song and seeks forward by the latency offset. Audio and visuals are synchronized immediately upon restart, though the first few milliseconds after `TimeStart` are skipped to compensate for playback latency.
 
 #### Pause / Resume
 * **Pause:** We stop playback immediately. The timeline stops tracking and discards any pending speed change commands that had not yet taken effect.
@@ -220,11 +240,14 @@ When resuming, the delay before the audio starts is dictated by the platform-spe
 - **Windows:** Device buffer length plus one device period and one BASS update period.
 - **Other Platforms:** Determined by the configured `Bass.DeviceBufferLength`.
 
-#### Speed Changes (Practice Mode Slider)
-Changing the playback speed on the fly normally incurs a noticeable delay before the speed shift is actually heard. This delay is determined by BASS's tempo stream buffer (which is bounded by the user-configured buffer size setting). To make speed adjustments feel instantaneous at the cost of a minor audio gap (or brief blip):
-1. **Instant Rebuild and Flush:** YARG performs a quick "seek-in-place" instead of an in-place speed adjustment. It captures the current gameplay time, pauses the mixer, and resets the synchronizer.
-2. **Re-anchor:** It calls `PrepareAudioAt` at the captured gameplay time with the new speed. This completely destroys and rebuilds the active BASS streams, clearing the old tempo buffer and resetting all pending rate histories.
-3. **Immediate Effect:** When playback resumes, the new speed takes effect immediately. This avoids the buffer-propagation delay, keeping the gameplay clock and audio perfectly in phase at the expense of a brief gap in the audio stream.
+#### Speed Changes (Practice Mode D-Pad)
+Practice Mode deliberately changes speed without seeking, pausing, flushing, or rebuilding playback:
+1. **Preserve Position and Correction:** YARG captures the current gameplay time, updates `SongSpeed`, and sends the new requested speed to the mixer while preserving the synchronizer's active correction.
+2. **Re-anchor Gameplay:** The gameplay timeline is re-anchored at the captured time, so changing the clock rate does not jump `InputTime` or `VisualTime`.
+3. **Model Buffered Transition:** BASS continues outputting samples already buffered at the old rate. `BufferedPlaybackTimeline.SetSpeed` applies the new rate to commanded history immediately and schedules it in buffered history after the measured **Tempo Stream Latency**.
+4. **Continue Playback:** The predictive control position accounts for the old-rate audio still in flight, preventing the synchronizer from misreading the expected transition as drift. Result: no seek gap or flush blip; the audible rate changes after the existing buffer reaches the command.
+
+Other callers of `SetSongSpeed` use the rebuild path while playback is active. That path pauses and prepares audio again at the current gameplay position so requested speed and audible playback restart together. Practice Mode uses `AdjustSongSpeedInPlace` specifically to avoid that interruption.
 
 > [!IMPORTANT]
 > Running the Unity Editor from the Flatpak build of Unity Hub can make `BASS_ChannelGetPosition` exhibit PipeWire-quantum-sized timing modulation. The same position test is stable when the Editor and standalone BASS test run through the host audio environment. Do not use a Flatpak-launched Unity Editor to evaluate Linux BASS position stability or song-sync behavior; this is an artifact of the Flatpak audio environment and is not representative of a native YARG build.
