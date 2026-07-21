@@ -414,7 +414,7 @@ namespace YARG.Gameplay.Player
             {
                 DrumStem.Kick  => SongStem.Drums1,
                 DrumStem.Snare => SongStem.Drums2,
-                DrumStem.Toms => SongStem.Drums3,
+                DrumStem.Toms  => SongStem.Drums3,
                 DrumStem.Else  => SongStem.Drums4,
                 _              => throw new ArgumentOutOfRangeException()
             };

@@ -308,6 +308,7 @@ namespace YARG.Settings
                     GlobalAudioHandler.SetVolumeSetting(SongStem.Drums1, v);
                     GlobalAudioHandler.SetVolumeSetting(SongStem.Drums2, v);
                     GlobalAudioHandler.SetVolumeSetting(SongStem.Drums3, v);
+                    GlobalAudioHandler.SetVolumeSetting(SongStem.Drums4, v);
                 });
 
             public VolumeSetting VocalsVolume { get; } =
