@@ -1,4 +1,4 @@
-﻿{
+{
     "Language": {
         "Name": "English",
         "Region": "United States",
@@ -367,6 +367,7 @@
             "ExpandHeaderHoldStartSet": "<align=left>Expand Header<br><size=67%>(Hold) Start The Set</size></align>",
             "CollapseHeaderHoldStartSet": "<align=left>Collapse Header<br><size=67%>(Hold) Start The Set</size></align>",
             "Search": "Search",
+            "ExitSearchHold": "(Hold) Exit Search",
             "SkipSection": "<align=left>Navigate Sections</align>",
             "MoveInPlaylist": "Move Song",
             "CurrentSetlist": "Current Setlist",
@@ -884,7 +885,8 @@
             "Left": "Left",
             "Right": "Right",
             "Start": "Start (Pause)",
-            "Select": "Select"
+            "Select": "Select",
+            "Search": "Search"
         },
         "FiveFret": {
             "Green": "Green Fret (First)",

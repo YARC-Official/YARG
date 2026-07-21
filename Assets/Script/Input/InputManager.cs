@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Cysharp.Text;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -63,13 +62,6 @@ namespace YARG.Input
         private static bool _focusChanged;
         private static HashSet<InputDevice> _backgroundDisabledDevices = new();
 
-        private static bool HasProfileWithKeyboard =>
-            PlayerContainer.Players
-                .Where(p => p.InputsEnabled)
-                .SelectMany(p => p.Bindings.InputDevices)
-                .OfType<Keyboard>()
-                .Any();
-
         public static void Initialize()
         {
             InputSystem.pollingFrequency = SettingsManager.Settings.InputPollingFrequency.Value;
@@ -125,8 +117,6 @@ namespace YARG.Input
         public static void RegisterPlayer(YargPlayer player)
         {
             player.MenuInput += OnMenuInput;
-            player.Bindings.DeviceAdded += OnPlayerBindingDeviceAdded;
-            player.Bindings.DeviceRemoved += OnPlayerBindingDeviceRemoved;
 
             foreach (var device in player.Bindings.InputDevices)
             {
@@ -134,19 +124,12 @@ namespace YARG.Input
                 {
                     YargLogger.LogFormatError("Player already registered with device: {0}", device);
                 }
-
-                if (device is Keyboard)
-                {
-                    _defaultKeyboardMenuBindings.Disable();
-                }
             }
         }
 
         public static void UnregisterPlayer(YargPlayer player)
         {
             player.MenuInput -= OnMenuInput;
-            player.Bindings.DeviceAdded -= OnPlayerBindingDeviceAdded;
-            player.Bindings.DeviceRemoved -= OnPlayerBindingDeviceRemoved;
 
             foreach (var device in player.Bindings.InputDevices)
             {
@@ -154,27 +137,6 @@ namespace YARG.Input
                 {
                     YargLogger.LogFormatError("Player not registered with device: {0}", device);
                 }
-            }
-
-            if (!HasProfileWithKeyboard)
-            {
-                _defaultKeyboardMenuBindings?.Enable();
-            }
-        }
-
-        private static void OnPlayerBindingDeviceAdded(InputDevice device)
-        {
-            if (HasProfileWithKeyboard)
-            {
-                _defaultKeyboardMenuBindings.Disable();
-            }
-        }
-
-        private static void OnPlayerBindingDeviceRemoved(InputDevice device)
-        {
-            if (!HasProfileWithKeyboard)
-            {
-                _defaultKeyboardMenuBindings.Enable();
             }
         }
 

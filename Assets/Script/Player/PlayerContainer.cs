@@ -495,6 +495,25 @@ namespace YARG.Player
             }
         }
 
+        public static bool HasConnectedKeyboardProfile()
+        {
+            var keyboard = Keyboard.current;
+            if (keyboard == null)
+            {
+                return false;
+            }
+
+            foreach (var player in _players)
+            {
+                if (player.InputsEnabled && player.Bindings.ContainsDevice(keyboard))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         public static bool OnlyHasBotsActive()
         {
             foreach (var player in _players)

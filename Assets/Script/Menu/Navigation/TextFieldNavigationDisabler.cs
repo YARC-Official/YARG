@@ -1,11 +1,31 @@
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using YARG.Core.Input;
 
 namespace YARG.Menu.Navigation
 {
     public class TextFieldNavigationDisabler : MonoBehaviour
     {
+        private static readonly NavigationScheme TextFieldScheme = new(new List<NavigationScheme.Entry>
+        {
+            new(
+                MenuAction.Red,
+                "Menu.MusicLibrary.ExitSearchHold",
+                handler: null,
+                onHoldHandler: () => EventSystem.current.SetSelectedGameObject(null),
+                holdSeconds: 0.5f,
+                hide: false
+            ),
+            new(
+                MenuAction.Search,
+                "Menu.MusicLibrary.Search",
+                () => EventSystem.current.SetSelectedGameObject(null),
+                hide: true
+            )
+        }, allowsMusicPlayer: null);
+
         [SerializeField]
         private TMP_InputField _textField;
 
@@ -41,7 +61,7 @@ namespace YARG.Menu.Navigation
         {
             if (!_navPushed)
             {
-                _ = Navigator.Instance.PushScheme(NavigationScheme.Empty);
+                _ = Navigator.Instance.PushScheme(TextFieldScheme);
                 _navPushed = true;
             }
         }
