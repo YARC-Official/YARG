@@ -188,7 +188,6 @@ namespace YARG.Player
                 MusicLibraryMenu.SetReload(MusicLibraryReloadState.Full);
             }
 
-            FiltersMenu.RefreshActiveFilterPredicate();
             MusicLibraryMenu.NeedsReload();
 
             StatsManager.Instance?.UpdateActivePlayers();
@@ -494,6 +493,25 @@ namespace YARG.Player
             {
                 profile.EnsureValidInstrument();
             }
+        }
+
+        public static bool HasConnectedKeyboardProfile()
+        {
+            var keyboard = Keyboard.current;
+            if (keyboard == null)
+            {
+                return false;
+            }
+
+            foreach (var player in _players)
+            {
+                if (player.InputsEnabled && player.Bindings.ContainsDevice(keyboard))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         public static bool OnlyHasBotsActive()

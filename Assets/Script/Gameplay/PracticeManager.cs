@@ -91,11 +91,11 @@ namespace YARG.Gameplay
             {
                 // Song speed
                 case MenuAction.Left:
-                    GameManager.AdjustSongSpeed(-0.05f);
+                    GameManager.AdjustSongSpeedInPlace(-0.05f);
                     _practiceHud.ResetStats();
                     break;
                 case MenuAction.Right:
-                    GameManager.AdjustSongSpeed(0.05f);
+                    GameManager.AdjustSongSpeedInPlace(0.05f);
                     _practiceHud.ResetStats();
                     break;
                 // Reset

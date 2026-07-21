@@ -19,7 +19,8 @@ namespace YARG.Audio.BASS
                 {
                     if (Bass.LastError != Errors.Already)
                     {
-                        YargLogger.LogFormatError("Failed to initialize BASS device: {0}!", Bass.LastError);
+                        YargLogger.LogFormatError("Failed to initialize BASS device '{0}': {1}!", name,
+                            Bass.LastError);
 
                         return null;
                     }
