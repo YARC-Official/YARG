@@ -404,8 +404,21 @@ namespace YARG.Gameplay.Player
             {
                 GameManager.ChangeStemMuteState(stem, muted);
                 _stemMuteStates[stem] = muted;
-                IsStemMuted = _stemMuteStates.All(state => state.Value);
+                IsStemMuted = AreAllStemsMuted();
             }
+        }
+
+        private bool AreAllStemsMuted()
+        {
+            foreach (var muteState in _stemMuteStates)
+            {
+                if (!muteState.Value)
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         private SongStem GetStem(DrumStem drumStem)
