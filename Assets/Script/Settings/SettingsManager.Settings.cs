@@ -630,6 +630,8 @@ namespace YARG.Settings
 
             public IntSetting DMXKeysChannel { get; } = new(32, 1, 512, v => SacnInterpreter.Instance.KeysChannel = v);
 
+            public IPv4Setting DMXLocalIP { get; } = new(defaultValue: string.Empty, allowEmpty: true);
+
             public IntSetting DMXUniverseChannel { get; } = new(1, 1, 65535);
 
             public IntSetting DMXTargetFPS { get; } = new(44, 10, 60);
