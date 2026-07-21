@@ -5,6 +5,7 @@ using System.Text.RegularExpressions;
 using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.UI;
 using YARG.Core;
 using YARG.Core.Extensions;
 using YARG.Helpers.Extensions;
@@ -38,7 +39,7 @@ namespace YARG.Menu.MusicLibrary
         [SerializeField]
         private TMP_InputField _searchField;
         [SerializeField]
-        private GameObject _focusBorder;
+        private Image _focusBorder;
         [SerializeField]
         private TextMeshProUGUI _searchPlaceholderText;
         [SerializeField]
@@ -60,7 +61,7 @@ namespace YARG.Menu.MusicLibrary
             _searchField.onSelect.AddListener(OnSearchFieldSelected);
             _searchField.onDeselect.AddListener(OnSearchFieldDeselected);
 
-            _focusBorder.SetActive(_searchField.isFocused);
+            _focusBorder.enabled = _searchField.isFocused;
         }
 
         public void Focus()
@@ -295,12 +296,12 @@ namespace YARG.Menu.MusicLibrary
 
         private void OnSearchFieldSelected(string _)
         {
-            _focusBorder.SetActive(true);
+            _focusBorder.enabled = true;
         }
 
         private void OnSearchFieldDeselected(string _)
         {
-            _focusBorder.SetActive(false);
+            _focusBorder.enabled = false;
         }
 
         public bool HasInstrumentFilter(Instrument instrument)
