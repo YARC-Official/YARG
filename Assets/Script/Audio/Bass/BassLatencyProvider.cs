@@ -20,11 +20,19 @@ namespace YARG.Audio.BASS
         {
             get
             {
-#if UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX
+#if UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN
+                int deviceBufferLength = Math.Max(0, Bass.DeviceBufferLength);
+                int devicePeriod = Math.Max(0, Bass.GetConfig(Configuration.DevicePeriod));
+                int updatePeriod = Math.Max(0, Bass.UpdatePeriod);
+                return (deviceBufferLength + devicePeriod + updatePeriod) / 1000.0;
+#elif UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX
                 return DeviceOutputLatency;
+#elif UNITY_EDITOR_LINUX || UNITY_STANDALONE_LINUX
+                int deviceBufferLength = Math.Max(0, Bass.DeviceBufferLength);
+                return deviceBufferLength / 1000.0;
 #else
-                int deviceBufferLength = Bass.DeviceBufferLength;
-                return Math.Max(0, deviceBufferLength) / 1000.0;
+                int deviceBufferLength = Math.Max(0, Bass.DeviceBufferLength);
+                return deviceBufferLength / 1000.0;
 #endif
             }
         }

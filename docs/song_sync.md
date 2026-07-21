@@ -42,8 +42,18 @@ $$ \text{Tempo Latency} = \text{Remaining Buffer Time} + \text{Command Latency} 
 ### 3. Startup Position Advance Latency (variable start lag)
 This is the delay between `ChannelPlay` and the first observed advance of the BASS channel position. It is separate from physical speaker/output latency.
 
-#### Other Platforms (Windows, Linux, etc.)
-On most platforms, the best estimate is based on the configured device buffer length:
+#### Windows
+On Windows, measurements show that startup latency tracks the device buffer plus one device period and one BASS update period:
+$$
+\text{Startup Latency} = \text{DeviceBufferLength} + \text{DevicePeriod} + \text{UpdatePeriod}
+$$
+
+Each component is clamped to a non-negative value. With YARG's typical 20ms device buffer, 10ms device period, and 5ms update period, this estimates 35ms of startup latency.
+
+`Bass.Info.Latency` changes with the configured device buffer on Windows, so it must not be added to `DeviceBufferLength`; doing so counts the buffer growth twice.
+
+#### Other Platforms
+On other platforms with an available device buffer length, the best estimate is based on the configured device buffer length:
 $$
 \text{Startup Latency} = \text{DeviceBufferLength}
                        = \text{DevicePeriod} \times \text{BufferMultiplier}
@@ -59,7 +69,7 @@ For example, with a 10ms device period:
 - 20ms device buffer: best estimate 20ms, approximately 15–25ms
 - 40ms device buffer: best estimate 40ms, approximately 35–45ms
 
-On these platforms, the device buffer length is the best single latency estimate. The device period determines the expected uncertainty. `Bass.Info.Latency` should not be used to estimate this specific `ChannelPlay`-to-position-advance delay.
+On these platforms, the device buffer length is the best single latency estimate. The device period determines the expected uncertainty.
 
 #### macOS Platform Differences
 On macOS, `Bass.DeviceBufferLength` is unavailable. Instead, macOS uses the device's output latency directly:
@@ -207,6 +217,7 @@ Since we cannot seek to a negative position in BASS, we clamp the seek position 
 ##### Play/Pause Delay Differences
 When resuming, the delay before the audio starts is dictated by the platform-specific `StartupLatency`:
 - **macOS:** Determined by `Bass.Info.Latency` (`DeviceOutputLatency`).
+- **Windows:** Device buffer length plus one device period and one BASS update period.
 - **Other Platforms:** Determined by the configured `Bass.DeviceBufferLength`.
 
 #### Speed Changes (Practice Mode Slider)
