@@ -14,9 +14,31 @@ jobs:
       contents: read
       pull-requests: write
     steps:
-      - uses: eps1lon/actions-label-merge-conflict@0273be72a0bbd58fcd71d0d6c02c209b50d1e5e1 # v3.1.0
-        with:
-          dirtyLabel: "Needs Rebase"
-          repoToken: "${{ secrets.GITHUB_TOKEN }}"
-          retryAfterMinutes: 1
-          retryMaxIterations: 5
+      - name: Check and Label Conflicting PRs
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          # Fetch open PRs and their mergeable status via GraphQL
+          DATA=$(gh api graphql -f query='
+            query($owner: String!, $repo: String!) {
+              repository(owner: $owner, name: $repo) {
+                pullRequests(states: OPEN, first: 100) {
+                  nodes { number mergeable }
+                }
+              }
+            }' -F owner="${GH_REPO%/*}" -F repo="${GH_REPO#*/}")
+
+          # Iterate through open PRs and toggle label
+          echo "$DATA" | jq -c '.data.repository.pullRequests.nodes[]' | while read -r pr; do
+            NUMBER=$(echo "$pr" | jq -r '.number')
+            MERGEABLE=$(echo "$pr" | jq -r '.mergeable')
+
+            if [ "$MERGEABLE" = "CONFLICTING" ]; then
+              echo "PR #$NUMBER has conflicts. Adding 'Needs Rebase' label..."
+              gh pr edit "$NUMBER" --add-label "Needs Rebase" || true
+            elif [ "$MERGEABLE" = "MERGEABLE" ]; then
+              echo "PR #$NUMBER is clean. Removing 'Needs Rebase' label if present..."
+              gh pr edit "$NUMBER" --remove-label "Needs Rebase" || true
+            fi
+          done
