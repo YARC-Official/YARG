@@ -64,14 +64,14 @@ jobs:
             NUMBER=$(echo "$pr" | jq -r '.number')
             TITLE=$(echo "$pr" | jq -r '.title')
             MERGEABLE=$(echo "$pr" | jq -r '.mergeable')
-            HAS_LABEL=$(echo "$pr" | jq -r 'any(.labels.nodes[]; .name == "Needs Rebase")')
+            HAS_LABEL=$(echo "$pr" | jq -r 'any(.labels.nodes[]; .name == "Has Conflicts")')
 
             if [ "$MERGEABLE" = "CONFLICTING" ] && [ "$HAS_LABEL" = "false" ]; then
-              echo "PR #$NUMBER ($TITLE) has conflicts -> Adding 'Needs Rebase' label"
-              gh pr edit "$NUMBER" --add-label "Needs Rebase"
+              echo "PR #$NUMBER ($TITLE) has conflicts -> Adding 'Has Conflicts' label"
+              gh pr edit "$NUMBER" --add-label "Has Conflicts"
             elif [ "$MERGEABLE" = "MERGEABLE" ] && [ "$HAS_LABEL" = "true" ]; then
-              echo "PR #$NUMBER ($TITLE) is clean -> Removing 'Needs Rebase' label"
-              gh pr edit "$NUMBER" --remove-label "Needs Rebase"
+              echo "PR #$NUMBER ($TITLE) is clean -> Removing 'Has Conflicts' label"
+              gh pr edit "$NUMBER" --remove-label "Has Conflicts"
             elif [ "$MERGEABLE" = "CONFLICTING" ]; then
               echo "PR #$NUMBER ($TITLE) still has conflicts -> Label unchanged"
             elif [ "$MERGEABLE" = "MERGEABLE" ]; then
