@@ -24,21 +24,32 @@ jobs:
             query($owner: String!, $repo: String!) {
               repository(owner: $owner, name: $repo) {
                 pullRequests(states: OPEN, first: 100) {
-                  nodes { number mergeable }
+                  totalCount
+                  nodes { number title mergeable }
                 }
               }
             }' -F owner="${GH_REPO%/*}" -F repo="${GH_REPO#*/}")
 
-          # Iterate through open PRs and toggle label
+          TOTAL=$(echo "$DATA" | jq -r '.data.repository.pullRequests.totalCount // 0')
+          echo "Found $TOTAL open pull requests."
+
+          if [ "$TOTAL" -eq 0 ]; then
+            echo "No open PRs to process."
+            exit 0
+          fi
+
           echo "$DATA" | jq -c '.data.repository.pullRequests.nodes[]' | while read -r pr; do
             NUMBER=$(echo "$pr" | jq -r '.number')
+            TITLE=$(echo "$pr" | jq -r '.title')
             MERGEABLE=$(echo "$pr" | jq -r '.mergeable')
 
             if [ "$MERGEABLE" = "CONFLICTING" ]; then
-              echo "PR #$NUMBER has conflicts. Adding 'Needs Rebase' label..."
+              echo "PR #$NUMBER ($TITLE) has conflicts -> Adding 'Needs Rebase' label"
               gh pr edit "$NUMBER" --add-label "Needs Rebase" || true
             elif [ "$MERGEABLE" = "MERGEABLE" ]; then
-              echo "PR #$NUMBER is clean. Removing 'Needs Rebase' label if present..."
+              echo "PR #$NUMBER ($TITLE) is clean -> Removing 'Needs Rebase' label"
               gh pr edit "$NUMBER" --remove-label "Needs Rebase" || true
+            else
+              echo "PR #$NUMBER ($TITLE) status is $MERGEABLE -> Skipping"
             fi
           done
