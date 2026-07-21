@@ -115,6 +115,9 @@ namespace YARG.Menu.MusicLibrary
 
         private static Instrument _lastInstrument;
         private static Difficulty _lastDifficulty;
+        private static Guid _lastProfileId;
+        private static int _lastHumanPlayerCount;
+        private static HighScoreHistoryMode _lastHighScoreHistoryMode;
 
         private static bool _needsReload = false;
         private bool _needsNavigationSchemeRefresh = false;
@@ -261,13 +264,29 @@ namespace YARG.Menu.MusicLibrary
             }
             Instrument currentInstrument = profile?.CurrentInstrument ?? Instrument.FiveFretGuitar;
             Difficulty currentDifficulty = profile?.CurrentDifficulty ?? Difficulty.Expert;
-            if (_needsReload ||
+            Guid currentProfileId = profile?.Id ?? Guid.Empty;
+            int currentHumanPlayerCount = PlayerContainer.Players.Count(player => !player.Profile.IsBot);
+            HighScoreHistoryMode currentHighScoreHistoryMode = SettingsManager.Settings.HighScoreHistory.Value;
+            bool scoreSortContextChanged =
+                currentProfileId != _lastProfileId ||
+                currentHumanPlayerCount != _lastHumanPlayerCount ||
                 currentInstrument != _lastInstrument ||
-                currentDifficulty != _lastDifficulty)
+                currentDifficulty != _lastDifficulty ||
+                currentHighScoreHistoryMode != _lastHighScoreHistoryMode;
+
+            if (_needsReload || scoreSortContextChanged)
             {
+                _lastProfileId = currentProfileId;
+                _lastHumanPlayerCount = currentHumanPlayerCount;
                 _lastInstrument = currentInstrument;
                 _lastDifficulty = currentDifficulty;
+                _lastHighScoreHistoryMode = currentHighScoreHistoryMode;
                 _needsReload = false;
+
+                if (scoreSortContextChanged && SettingsManager.Settings.LibrarySort == SortAttribute.Stars)
+                {
+                    _searchField.Reset();
+                }
 
                 if (_reloadState != MusicLibraryReloadState.Full)
                 {
@@ -1272,11 +1291,13 @@ namespace YARG.Menu.MusicLibrary
         private void OnPlayerAdded(YargPlayer player)
         {
             _noPlayerWarning.SetActive(PlayerContainer.Players.Count <= 0);
+            _needsReload = true;
         }
 
         private void OnPlayerRemoved(YargPlayer player)
         {
             _noPlayerWarning.SetActive(PlayerContainer.Players.Count <= 0);
+            _needsReload = true;
         }
 
         public static void ResetMainLibraryIndex()
