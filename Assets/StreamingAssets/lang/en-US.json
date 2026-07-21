@@ -1,4 +1,4 @@
-﻿{
+{
     "Language": {
         "Name": "English",
         "Region": "United States",
@@ -885,7 +885,8 @@
             "Left": "Left",
             "Right": "Right",
             "Start": "Start (Pause)",
-            "Select": "Select"
+            "Select": "Select",
+            "Search": "Search"
         },
         "FiveFret": {
             "Green": "Green Fret (First)",

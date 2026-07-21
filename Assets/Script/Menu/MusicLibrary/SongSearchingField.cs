@@ -38,6 +38,8 @@ namespace YARG.Menu.MusicLibrary
         [SerializeField]
         private TMP_InputField _searchField;
         [SerializeField]
+        private GameObject _focusBorder;
+        [SerializeField]
         private TextMeshProUGUI _searchPlaceholderText;
         [SerializeField]
         private ColoredButtonGroup _searchFilters;
@@ -55,6 +57,10 @@ namespace YARG.Menu.MusicLibrary
         private void OnEnable()
         {
             _searchFilters.ClickedButton += OnClickedSearchFilter;
+            _searchField.onSelect.AddListener(OnSearchFieldSelected);
+            _searchField.onDeselect.AddListener(OnSearchFieldDeselected);
+
+            _focusBorder.SetActive(_searchField.isFocused);
         }
 
         public void Focus()
@@ -283,6 +289,18 @@ namespace YARG.Menu.MusicLibrary
         private void OnDisable()
         {
             _searchFilters.ClickedButton -= OnClickedSearchFilter;
+            _searchField.onSelect.RemoveListener(OnSearchFieldSelected);
+            _searchField.onDeselect.RemoveListener(OnSearchFieldDeselected);
+        }
+
+        private void OnSearchFieldSelected(string _)
+        {
+            _focusBorder.SetActive(true);
+        }
+
+        private void OnSearchFieldDeselected(string _)
+        {
+            _focusBorder.SetActive(false);
         }
 
         public bool HasInstrumentFilter(Instrument instrument)
