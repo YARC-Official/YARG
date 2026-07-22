@@ -462,8 +462,8 @@ namespace YARG.Gameplay.Player
             }
             else
             {
-                // Correct size of lane slightly for padding in fret array
-                lane.MultiplyScale(0.97f);
+                // Adjust width of lane, correcting slightly for padding in fret array
+                lane.MultiplyScale(0.97f * 5 / LaneCount);
             }
         }
 
