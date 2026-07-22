@@ -35,7 +35,7 @@ namespace YARG.Gameplay.Player
         // indistinguishable from 1x kicks by pad number
         public const int DOUBLE_KICK_FRET_INDEX = int.MaxValue;
 
-        private const float FRET_ARRAY_PADDING_CORRECTION = 0.97f;
+        private float FRET_ARRAY_PADDING_CORRECTION => 0.97f * 4 / LaneCount;
 
         private int _kick;
         private int _wildcard;
