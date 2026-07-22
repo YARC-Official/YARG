@@ -219,8 +219,8 @@ namespace YARG.Song
             { (COUNTRY, "contemporary"),                (COUNTRY, "Contemporary Country") },
             //(COUNTRY, "honky tonk")                   unchanged
             { (COUNTRY, "outlaw"),                      (COUNTRY, "Outlaw Country") },
-            { (COUNTRY, "traditional folk"),            (FOLK, "Traditional Folk") },
-            { (COUNTRY, "traditionalfolk"),             (FOLK, "Traditional Folk") },
+            { (COUNTRY, "traditional folk"),            (TRADITIONAL, "Traditional Folk") },
+            { (COUNTRY, "traditionalfolk"),             (TRADITIONAL, "Traditional Folk") },
             { (COUNTRY, "other"),                       (COUNTRY, null) },
 
             //(GLAM, "goth")                            unchanged

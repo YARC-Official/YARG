@@ -47,20 +47,14 @@ namespace YARG.Playlists
             if (!ContainsSong(song))
             {
                 SongHashes.Add(song.Hash);
-                if (!Ephemeral)
-                {
-                    PlaylistContainer.SavePlaylist(this);
-                }
+                SaveAfterManualEdit();
             }
         }
 
         public void RemoveSong(SongEntry song)
         {
             SongHashes.Remove(song.Hash);
-            if (!Ephemeral)
-            {
-                PlaylistContainer.SavePlaylist(this);
-            }
+            SaveAfterManualEdit();
         }
 
         public bool ContainsSong(SongEntry song)
@@ -92,7 +86,7 @@ namespace YARG.Playlists
             if (index > 0)
             {
                 (SongHashes[index - 1], SongHashes[index]) = (SongHashes[index], SongHashes[index - 1]);
-                PlaylistContainer.SavePlaylist(this);
+                SaveAfterManualEdit();
             }
         }
 
@@ -105,7 +99,7 @@ namespace YARG.Playlists
             if (index < SongHashes.Count - 1)
             {
                 (SongHashes[index + 1], SongHashes[index]) = (SongHashes[index], SongHashes[index + 1]);
-                PlaylistContainer.SavePlaylist(this);
+                SaveAfterManualEdit();
             }
         }
 
@@ -126,10 +120,7 @@ namespace YARG.Playlists
                 SongHashes.Add(song.Hash);
             }
 
-            if (!Ephemeral)
-            {
-                PlaylistContainer.SavePlaylist(this);
-            }
+            SaveAfterManualEdit();
         }
 
         public void SortByArtist(bool ascending = true)
@@ -144,10 +135,18 @@ namespace YARG.Playlists
                 SongHashes.Add(song.Hash);
             }
 
-            if (!Ephemeral)
+            SaveAfterManualEdit();
+        }
+
+        private void SaveAfterManualEdit()
+        {
+            if (Ephemeral)
             {
-                PlaylistContainer.SavePlaylist(this);
+                return;
             }
+
+            PlaylistContainer.RemoveDeadHashes(this, SongContainer.SongsByHash);
+            PlaylistContainer.SavePlaylist(this);
         }
 
         private static int CompareSongsByName(SongEntry lhs, SongEntry rhs, bool ascending)

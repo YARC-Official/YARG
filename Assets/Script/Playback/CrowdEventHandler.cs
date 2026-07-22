@@ -47,6 +47,7 @@ namespace YARG.Playback
         private bool _disposed;
 
         private bool _started;
+        private CrowdClapScheduler _clapScheduler;
 
         private readonly double _musicStartTime;
         private readonly double _musicEndTime;
@@ -79,16 +80,17 @@ namespace YARG.Playback
                 _musicEndTime = musicEnd.Time;
             }
 
-            // If crowd fx is disabled, don't bother subscribing to beat events
-            if (SettingsManager.Settings.UseCrowdFx.Value != CrowdFxMode.Disabled)
+            if (SettingsManager.Settings.UseCrowdFx.Value == CrowdFxMode.StarpowerClapsOnly)
             {
-                // Clap sample takes 20ms to actually hit (not sure if this should actually be measure or strongbeat)
-                _gameManager.BeatEventHandler?.Audio.Subscribe(Clap, BeatEventType.StrongBeat, offset: -0.02);
-            }
-            else if (SettingsManager.Settings.UseCrowdFx.Value == CrowdFxMode.StarpowerClapsOnly)
-            {
+                StopAllCrowdSounds();
                 ChangeCrowdMuteState(true);
             }
+        }
+
+        public void SetClapScheduler(CrowdClapScheduler scheduler)
+        {
+            _clapScheduler = scheduler;
+            UpdateClapEnabled();
         }
 
         public void Start()
@@ -116,6 +118,7 @@ namespace YARG.Playback
             }
 
             _started = true;
+            UpdateClapEnabled();
 
             if (SettingsManager.Settings.NoFail.Value == NoFailMode.NoMeter || GlobalVariables.State.IsPractice)
             {
@@ -182,29 +185,24 @@ namespace YARG.Playback
                     GlobalAudioHandler.PlaySoundEffect(_selectedEndSample, 0.5);
                 }
             }
+
+            UpdateClapEnabled();
         }
 
-        private void Clap()
+        private void UpdateClapEnabled()
         {
-            // No clapping when charter has inhibited clapping, even if SP is active
-            if (ClapState == ClapState.NoClap || !UseCrowdFx)
-            {
-                return;
-            }
+            var crowdFxMode = SettingsManager.Settings.UseCrowdFx.Value;
 
-            // No clapping before first note or after last note (in case charter forgot to put crowd back in realtime)
-            if (_gameManager.SongTime < _gameManager.FirstNoteTime || _gameManager.SongTime > _gameManager.LastNoteTime)
-            {
-                return;
-            }
+            bool crowdFxEnabled = crowdFxMode != CrowdFxMode.Disabled;
+            bool venueAllowsCrowdSfx = !GlobalVariables.State.CrowdSfxVenueOverride;
+            bool starPowerActive = _gameManager.StarPowerActivations > 0;
+            bool crowdIsHappy = _engineManager.Happiness >= 1.0f;
+            bool clapsOnlyDuringStarPower = crowdFxMode == CrowdFxMode.StarpowerClapsOnly;
 
-            // Only clap when happiness meter is full or SP is active
-            if (_gameManager.EngineManager.Happiness < 1.0f && _gameManager.StarPowerActivations < 1)
-            {
-                return;
-            }
+            bool clapTriggerActive = starPowerActive || (!clapsOnlyDuringStarPower && crowdIsHappy);
+            bool shouldEnableClaps = _started && crowdFxEnabled && venueAllowsCrowdSfx && clapTriggerActive;
 
-            GlobalAudioHandler.PlaySoundEffect(SfxSample.Clap);
+            _clapScheduler?.SetEnabled(shouldEnableClaps);
         }
 
         private void OnHappinessUnderThreshold()
@@ -247,9 +245,22 @@ namespace YARG.Playback
 
         public void StopAllCrowdSounds()
         {
-            GlobalAudioHandler.StopSoundEffect(_selectedOpenSample, 2.5);
-            GlobalAudioHandler.StopSoundEffect(_selectedStartSample);
-            GlobalAudioHandler.StopSoundEffect(_selectedEndSample, 1.5);
+            foreach (var sample in _openSamples)
+            {
+                GlobalAudioHandler.StopSoundEffect(sample, 2.5);
+            }
+
+            foreach (var sample in _startSamples)
+            {
+                GlobalAudioHandler.StopSoundEffect(sample);
+            }
+
+            foreach (var sample in _endSamples)
+            {
+                GlobalAudioHandler.StopSoundEffect(sample, 1.5);
+            }
+
+            GlobalAudioHandler.StopSoundEffect(SfxSample.Chatter);
         }
 
         public void Dispose()
@@ -265,7 +276,7 @@ namespace YARG.Playback
                 _engineManager.OnHappinessUnderThreshold -= OnHappinessUnderThreshold;
                 _engineManager.OnHappinessOverThreshold -= OnHappinessOverThreshold;
                 _engineManager.OnSongFailed -= OnSongFailed;
-                _gameManager?.BeatEventHandler?.Audio.Unsubscribe(Clap);
+                _clapScheduler?.SetEnabled(false);
 
                 StopAllCrowdSounds();
             }

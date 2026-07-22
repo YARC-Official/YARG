@@ -24,7 +24,7 @@ namespace YARG.Menu.ProfileInfo
             _tabs.TabChanged += OnTabChanged;
             _tabs.SelectFirstTab();
 
-            Navigator.Instance.PushScheme(NavigationScheme.EmptyWithMusicPlayer);
+            _ = Navigator.Instance.PushScheme(NavigationScheme.EmptyWithMusicPlayer);
         }
 
         private void OnDisable()

@@ -1,4 +1,6 @@
-﻿using System;
+﻿#nullable enable
+
+using System;
 using ManagedBass;
 using YARG.Core.Audio;
 using YARG.Core.Logging;
@@ -125,7 +127,7 @@ namespace YARG.Audio.BASS
             }
         }
 
-        protected override void SetOutputChannel_Internal(OutputChannel channel)
+        protected override void SetOutputChannel_Internal(OutputChannel? channel)
         {
             BassHelpers.UpdateOutputChannels(_channel, channel);
         }

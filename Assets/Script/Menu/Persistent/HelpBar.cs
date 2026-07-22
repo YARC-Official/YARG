@@ -61,7 +61,7 @@ namespace YARG.Menu.Persistent
             ResetHelpBar();
 
             // Show/hide music player
-            if (GlobalVariables.Instance.CurrentScene == SceneIndex.Menu)
+            if (GlobalVariables.Instance.CurrentScene is SceneIndex.Menu or SceneIndex.Content)
             {
                 // Preserve music player state if value is not set
                 if (scheme.AllowsMusicPlayer is {} allowed)

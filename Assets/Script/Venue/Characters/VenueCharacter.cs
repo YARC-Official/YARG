@@ -87,7 +87,7 @@ namespace YARG.Venue.Characters
 
         private bool _isAnimating;
 
-        private string _currentLeftHandPosition;
+        private string _currentLeftHandPosition = "";
 
         private List<int> _strumUpHashes = new();
 

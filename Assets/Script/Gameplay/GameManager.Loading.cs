@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using Cysharp.Threading.Tasks;
@@ -53,7 +53,6 @@ namespace YARG.Gameplay
 
         private LoadFailureState _loadState;
         private string _loadFailureMessage;
-
         // All access to chart data must be done through this event,
         // since things are loaded asynchronously
         // Players are initialized by hand and don't go through this event
@@ -197,6 +196,14 @@ namespace YARG.Gameplay
                 SONG_START_DELAY,
                 GlobalVariables.State.SongSpeed,
                 Song.SongOffsetSeconds);
+
+            _metronomeScheduler = new MetronomeScheduler(_mixer);
+            _metronomeScheduler.Schedule(_songRunner, Chart.SyncTrack, SongLength);
+
+            _crowdClapScheduler = new CrowdClapScheduler(_mixer);
+            _crowdClapScheduler.Schedule(_songRunner, Chart.SyncTrack, Chart.CrowdEvents,
+                FirstNoteTime, LastNoteTime, SongLength);
+            CrowdEventHandler.SetClapScheduler(_crowdClapScheduler);
 
             // Spawn players
             CreatePlayers();

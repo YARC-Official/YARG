@@ -1,12 +1,16 @@
 ﻿using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using UnityEngine;
 using YARG.Core.Logging;
 using YARG.Core.Replays;
 using YARG.Core.Replays.Analyzer;
 using YARG.Core.Song;
 using YARG.Helpers;
+using YARG.Localization;
 using YARG.Menu.Persistent;
+using YARG.Menu.ScoreScreen;
+using YARG.Player;
 using YARG.Replays;
 using YARG.Scores;
 using YARG.Settings;
@@ -18,6 +22,8 @@ namespace YARG.Menu.History
     public class ReplayViewType : ViewType
     {
         public override BackgroundType Background => BackgroundType.Normal;
+        private const   string         BASE_LOCALIZATION_KEY = "Menu.Dialog.ReplayMenu";
+
 
         public override bool UseFullContainer => true;
 
@@ -83,7 +89,9 @@ namespace YARG.Menu.History
         {
             if (_songEntry == null)
             {
-                DialogManager.Instance.ShowMessage("Unavailable Song", "A song compatible with the selected play is not present in your library! Most likely deleted!");
+                var title = Localize.Key(BASE_LOCALIZATION_KEY, "UnavailableSong.Title");
+                var desc = Localize.Key(BASE_LOCALIZATION_KEY, "UnavailableSong.Description");
+                DialogManager.Instance.ShowMessage(title, desc);
                 return;
             }
 
@@ -97,7 +105,7 @@ namespace YARG.Menu.History
             if (SettingsManager.Settings.ShowEngineInconsistencyDialog)
             {
                 var dialog = DialogManager.Instance.ShowOneTimeMessage(
-                    "Menu.Dialog.EngineInconsistency",
+                    "Menu.Dialog.ReplayMenu.EngineInconsistency",
                     () =>
                     {
                         SettingsManager.Settings.ShowEngineInconsistencyDialog = false;
@@ -111,11 +119,13 @@ namespace YARG.Menu.History
         }
 
         // Analyze Replay Button
-        public override void Shortcut1()
+        public override void AnalyzeReplayClick()
         {
             if (_songEntry == null)
             {
-                DialogManager.Instance.ShowMessage("Unavailable Song", "A song compatible with the selected play is not present in your library! Most likely deleted!");
+                var title = Localize.Key(BASE_LOCALIZATION_KEY, "UnavailableSong.Title");
+                var desc = Localize.Key(BASE_LOCALIZATION_KEY, "UnavailableSong.Description");
+                DialogManager.Instance.ShowMessage(title, desc);
                 return;
             }
 
@@ -158,6 +168,93 @@ namespace YARG.Menu.History
             }
         }
 
+        public override void ViewScoreCardClick()
+        {
+            _entry ??= LoadReplay("Cannot load replay.");
+            if (_entry == null)
+            {
+                return;
+            }
+
+            if (_songEntry == null)
+            {
+                var title = Localize.Key(BASE_LOCALIZATION_KEY, "UnavailableSong.Title");
+                var desc = Localize.Key(BASE_LOCALIZATION_KEY, "UnavailableSong.Description");
+                DialogManager.Instance.ShowMessage(title, desc);
+                return;
+            }
+
+            GlobalVariables.State.CurrentSong = _songEntry;
+            GlobalVariables.State.CurrentReplay = _entry;
+            var chart = _songEntry.LoadChart();
+            if (chart == null)
+            {
+                YargLogger.LogError("Failed to load chart");
+                return;
+            }
+
+            var replayOptions = new ReplayReadOptions
+            {
+                KeepFrameTimes = GlobalVariables.VerboseReplays
+            };
+            var (result, data) = ReplayIO.TryLoadData(_entry, replayOptions);
+            if (result != ReplayReadResult.Valid)
+            {
+                YargLogger.LogFormatError("Failed to load replay data: {0}", result);
+                DialogManager.Instance.ShowMessage(Localize.Key(BASE_LOCALIZATION_KEY, "ReplayLoadFail.Title"), Localize.Key(BASE_LOCALIZATION_KEY, "ReplayLoadFail.Description"));
+                return;
+            }
+
+            var results = ReplayAnalyzer.AnalyzeReplay(chart, _entry, data);
+            bool replayConsistent = results.All(r => r.Passed);
+            if (!replayConsistent)
+            {
+                YargLogger.LogInfo("Replay did not pass verification!");
+            }
+
+            var playerScoreCards = new PlayerScoreCard[results.Length];
+            for (int i = 0; i < _entry.Stats.Length; i++)
+            {
+                var playerResult = results[i];
+                var playerEntry = _entry.Stats[i];
+                bool isHighScore;
+                if (_gameInfo.PlayerScoreRecords == null)
+                {
+                    // Imported replays do not have PlayerScoreRecords
+                    isHighScore = false;
+                }
+                else
+                {
+                    var playerScoreRecord = _gameInfo.PlayerScoreRecords[i];
+                    var currentHighScore = ScoreContainer.GetHighScore(_entry.SongChecksum, playerScoreRecord.PlayerId,
+                        playerResult.Frame.Profile.CurrentInstrument, false);
+                    isHighScore = currentHighScore != null &&
+                        playerScoreRecord.GameRecordId == currentHighScore.GameRecordId;
+                }
+
+                playerScoreCards[i] = new PlayerScoreCard
+                {
+                    // If it's null, technically it is a high score but who knows what the hell happened so don't show that
+                    // This compares ids, so imported replays should never be the high score.
+                    IsHighScore = isHighScore,
+                    Player = new YargPlayer(playerResult.Frame, data),
+                    Stats = playerResult.ResultStats,
+                    IsReplay = playerEntry.IsReplayPlayer
+                };
+            }
+
+            GlobalVariables.State.ScoreScreenStats = new ScoreScreenStats
+            {
+                PlayerScores = playerScoreCards,
+                BandScore = _entry.BandScore,
+                BandStars = (int) _entry.BandStars,
+                ReplayInfo = _entry,
+                ReplayWasConsistent = results.All(r => r.Passed),
+            };
+            // Go to the score screen
+            GlobalVariables.Instance.LoadScene(SceneIndex.Score);
+        }
+
         public void ExportReplay()
         {
             _entry ??= LoadReplay("Cannot Export Replay");
@@ -191,7 +288,7 @@ namespace YARG.Menu.History
         {
             return _gameInfo;
         }
-
+        //TODO: This method needs to be localized
         private ReplayInfo? LoadReplay(string messageBoxTitle)
         {
             if (_record == null)

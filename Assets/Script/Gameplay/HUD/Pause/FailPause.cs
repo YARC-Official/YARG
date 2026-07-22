@@ -18,7 +18,7 @@ namespace YARG.Gameplay.HUD
         private async void HandleNavigationScheme()
         {
             await UniTask.WaitForSeconds(0.5f, true);
-            Navigator.Instance.PushScheme(new NavigationScheme(new()
+            _ = Navigator.Instance.PushScheme(new NavigationScheme(new()
             {
                 NavigationScheme.Entry.NavigateSelect,
                 NavigationScheme.Entry.NavigateUp,

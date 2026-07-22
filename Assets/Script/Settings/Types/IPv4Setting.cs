@@ -8,17 +8,28 @@ namespace YARG.Settings.Types
     {
         public override string AddressableName => "Setting/IPv4";
 
-        public IPv4Setting(string value, Action<string> onChange = null) : base(onChange)
+        private readonly string _defaultValue;
+
+        public bool AllowEmpty { get; }
+
+        public IPv4Setting(string defaultValue, Action<string> onChange = null, bool allowEmpty = false) : base(onChange)
         {
-            _value = value;
+            _defaultValue = defaultValue;
+            AllowEmpty = allowEmpty;
+            _value = defaultValue;
         }
 
         protected override void SetValue(string value)
         {
+            if (AllowEmpty && string.IsNullOrEmpty(value))
+            {
+                _value = string.Empty;
+                return;
+            }
+
             if (!IsValidIPv4(value))
             {
-                // If it's invalid, just default to this
-                _value = "255.255.255.255";
+                _value = _defaultValue;
             }
             else
             {

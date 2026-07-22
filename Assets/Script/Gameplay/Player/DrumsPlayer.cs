@@ -191,7 +191,7 @@ namespace YARG.Gameplay.Player
             }
 
             var engine = new YargDrumsEngine(NoteTrack, SyncTrack, EngineParams, Player.Profile.IsBot, Player.Profile.GameMode is GameMode.EliteDrums);
-            EngineContainer = GameManager.EngineManager.Register(engine, NoteTrack.Instrument, NoteTrack.Difficulty, Chart, Player.RockMeterPreset);
+            EngineContainer = GameManager.EngineManager.Register(engine, NoteTrack, Chart, Player.RockMeterPreset);
 
             HitWindow = EngineParams.HitWindow;
 
@@ -558,7 +558,7 @@ namespace YARG.Gameplay.Player
             }
             else
             {
-                // Correct size of lane slightly for padding in fret array
+                // Adjust width of lane, correcting slightly for padding in fret array
                 lane.MultiplyScale(FRET_ARRAY_PADDING_CORRECTION);
             }
         }

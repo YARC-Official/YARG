@@ -183,7 +183,7 @@ public override bool ShouldUpdateInputsOnResume => true;
             }
 
             var engine = new YargFiveLaneKeysEngine(NoteTrack, SyncTrack, EngineParams, Player.Profile.IsBot);
-            EngineContainer = GameManager.EngineManager.Register(engine, NoteTrack.Instrument, NoteTrack.Difficulty, Chart, Player.RockMeterPreset);
+            EngineContainer = GameManager.EngineManager.Register(engine, NoteTrack, Chart, Player.RockMeterPreset);
 
             HitWindow = EngineParams.HitWindow;
 
@@ -488,7 +488,7 @@ public override bool ShouldUpdateInputsOnResume => true;
             }
             else
             {
-                lane.MultiplyScale(0.85f);
+                lane.MultiplyScale(0.85f * 5 / LaneCount);
             }
         }
 
