@@ -620,6 +620,7 @@ namespace YARG.Song
             {
                 buckets[i] = new List<SongEntry>();
             }
+            var percentageRecords = new Dictionary<SongEntry, PlayerScoreRecord>();
 
             // Prime the cache once. Its validity criteria include the profile,
             // instrument, difficulty, and High Score History mode.
@@ -631,36 +632,48 @@ namespace YARG.Song
 
             foreach (SongEntry song in _songs)
             {
-                int bucketIndex;
                 if (!song[instrument].IsActive())
                 {
-                    bucketIndex = bucketKeys.Length - 1;
-                }
-                else
-                {
-                    PlayerScoreRecord record = ScoreContainer.GetBestPercentageScore(
-                        song.Hash, profile.Id, instrument, allowCacheUpdate: false);
-                    if (record == null || record.GetPercent() <= 0f)
-                    {
-                        bucketIndex = bucketKeys.Length - 2;
-                    }
-                    else
-                    {
-                        float percent = record.GetPercent() * 100f;
-                        bucketIndex = percent switch
-                        {
-                            >= 100f => 0,
-                            >= 90f  => 1,
-                            >= 80f  => 2,
-                            >= 70f  => 3,
-                            >= 60f  => 4,
-                            >= 50f  => 5,
-                            _       => 6,
-                        };
-                    }
+                    InsertSorted(buckets[^1], song, comparer);
+                    continue;
                 }
 
-                InsertSorted(buckets[bucketIndex], song, comparer);
+                PlayerScoreRecord record = ScoreContainer.GetBestPercentageScore(
+                    song.Hash, profile.Id, instrument, allowCacheUpdate: false);
+                if (record == null || record.GetPercent() <= 0f)
+                {
+                    InsertSorted(buckets[^2], song, comparer);
+                    continue;
+                }
+
+                float percent = record.GetPercent() * 100f;
+                int bucketIndex = percent switch
+                {
+                    >= 100f => 0,
+                    >= 90f  => 1,
+                    >= 80f  => 2,
+                    >= 70f  => 3,
+                    >= 60f  => 4,
+                    >= 50f  => 5,
+                    _       => 6,
+                };
+                percentageRecords[song] = record;
+                buckets[bucketIndex].Add(song);
+            }
+
+            for (int i = 0; i < buckets.Length - 2; i++)
+            {
+                buckets[i].Sort((x, y) =>
+                {
+                    PlayerScoreRecord xRecord = percentageRecords[x];
+                    PlayerScoreRecord yRecord = percentageRecords[y];
+                    int comparison = yRecord.GetPercent().CompareTo(xRecord.GetPercent());
+                    if (comparison == 0)
+                    {
+                        comparison = yRecord.Score.CompareTo(xRecord.Score);
+                    }
+                    return comparison != 0 ? comparison : comparer.Compare(x, y);
+                });
             }
 
             return CreateScoreCategories(bucketKeys, buckets);
@@ -691,6 +704,7 @@ namespace YARG.Song
 
             var unplayed = new List<SongEntry>();
             var noPart = new List<SongEntry>();
+            var scoreRecords = new Dictionary<SongEntry, PlayerScoreRecord>();
 
             if (_songs.Length > 0)
             {
@@ -724,7 +738,8 @@ namespace YARG.Song
                     }
                 }
 
-                InsertSorted(categorySongs[bucketIndex], song, comparer);
+                scoreRecords[song] = record;
+                categorySongs[bucketIndex].Add(song);
             }
 
             var result = new List<SongCategory>();
@@ -732,6 +747,11 @@ namespace YARG.Song
             {
                 if (categorySongs[i].Count > 0)
                 {
+                    categorySongs[i].Sort((x, y) =>
+                    {
+                        int comparison = scoreRecords[y].Score.CompareTo(scoreRecords[x].Score);
+                        return comparison != 0 ? comparison : comparer.Compare(x, y);
+                    });
                     string label = Localize.Key($"Menu.MusicLibrary.Sort.Score.{thresholds[i]}");
                     result.Add(new SongCategory(label, categorySongs[i].ToArray(), label));
                 }
