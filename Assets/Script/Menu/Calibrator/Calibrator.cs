@@ -5,6 +5,7 @@ using System.IO;
 using TMPro;
 using UnityEngine;
 using YARG.Audio;
+using YARG.Audio.BASS;
 using YARG.Core.Audio;
 using YARG.Core.Input;
 using YARG.Input;
@@ -144,10 +145,8 @@ namespace YARG.Menu.Calibrator
 
                     _mixer = GlobalAudioHandler.LoadCustomFile(file, SPEED, VOLUME);
                     _mixer.SongEnd += OnAudioEnd;
-                    double startCallTime = InputManager.CurrentInputTime;
                     _mixer.Play();
-                    double endCallTime = InputManager.CurrentInputTime;
-                    _audioStartTime = (startCallTime + endCallTime) / 2;
+                    _audioStartTime = InputManager.CurrentInputTime + BassLatencyProvider.StartupLatency;
                     StartCoroutine(AudioCalibrateCoroutine());
                     break;
                 case State.AudioDone:
