@@ -7,6 +7,7 @@ using YARG.Core;
 using YARG.Core.Game;
 using YARG.Core.Logging;
 using YARG.Core.Song;
+using YARG.Helpers;
 
 namespace YARG.Scores
 {
@@ -504,8 +505,14 @@ namespace YARG.Scores
                     AND PlayerScores.PlayerId = ?
                     AND PlayerScores.IsReplay = 0";
 
+            bool useAggregateDrums = profile.GameMode == GameMode.EliteDrums;
+
+            if (useAggregateDrums)
+            {
+                query += $" AND PlayerScores.Instrument {BuildInstrumentInClause(MidiDrumkitHelper.Instruments)} ";
+            }
             // If the profile instrument is bad, we can still return all scores for the profile
-            if (profile.HasValidInstrument && profile.GameMode != GameMode.EliteDrums)
+            else if (profile.HasValidInstrument)
             {
                 query += " AND PlayerScores.Instrument = ? ";
             }
@@ -514,7 +521,14 @@ namespace YARG.Scores
                 $@"GROUP BY GameRecords.SongChecksum
                 ORDER BY Count {ordering.ToQueryString()}";
 
-            if (profile.HasValidInstrument && profile.GameMode != GameMode.EliteDrums)
+            if (useAggregateDrums)
+            {
+                var parameters = new List<object> { profile.Id };
+                parameters.AddRange(BuildInstrumentParams(MidiDrumkitHelper.Instruments));
+                return _db.Query<PlayCountRecord>(query, parameters.ToArray());
+            }
+
+            if (profile.HasValidInstrument)
             {
                 return _db.Query<PlayCountRecord>(
                     query,
