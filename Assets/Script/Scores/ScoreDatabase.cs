@@ -328,8 +328,8 @@ namespace YARG.Scores
         )
         {
             string orderBy = highestDifficultyOnly
-                ? "ps2.Difficulty DESC, ps2.Percent DESC, ps2.IsFc DESC"
-                : "ps2.Percent DESC, ps2.IsFc DESC";
+                ? "ps2.Difficulty DESC, ps2.Percent DESC, ps2.Score DESC, ps2.IsFc DESC"
+                : "ps2.Percent DESC, ps2.Score DESC, ps2.IsFc DESC";
             string difficultyFilter = currentDifficultyOnly ? " AND ps.Difficulty = ?" : "";
             string subDifficultyFilter = currentDifficultyOnly ? " AND ps2.Difficulty = ps.Difficulty" : "";
 
@@ -439,11 +439,11 @@ namespace YARG.Scores
 
             if (highestDifficultyOnly)
             {
-                query += " ORDER BY PlayerScores.Difficulty DESC, PlayerScores.Percent DESC, IsFc DESC";
+                query += " ORDER BY PlayerScores.Difficulty DESC, PlayerScores.Percent DESC, PlayerScores.Score DESC, IsFc DESC";
             }
             else
             {
-                query += " ORDER BY PlayerScores.Percent DESC, IsFc DESC";
+                query += " ORDER BY PlayerScores.Percent DESC, PlayerScores.Score DESC, IsFc DESC";
             }
 
             query += " LIMIT 1";
@@ -512,15 +512,15 @@ namespace YARG.Scores
             string orderBy = mode switch
             {
                 HighScoreHistoryMode.HighestPercentageOverall =>
-                    "ps2.Percent DESC, ps2.IsFc DESC",
+                    "ps2.Percent DESC, ps2.Score DESC, ps2.IsFc DESC",
                 HighScoreHistoryMode.HighestPercentageDifficulty =>
-                    "ps2.Difficulty DESC, ps2.Percent DESC, ps2.IsFc DESC",
+                    "ps2.Difficulty DESC, ps2.Percent DESC, ps2.Score DESC, ps2.IsFc DESC",
                 HighScoreHistoryMode.HighestScoreOverall =>
                     "ps2.Score DESC",
                 HighScoreHistoryMode.HighestScoreDifficulty =>
                     "ps2.Difficulty DESC, ps2.Score DESC",
                 HighScoreHistoryMode.HighestPercentageCurrentDifficulty =>
-                    "ps2.Percent DESC, ps2.IsFc DESC",
+                    "ps2.Percent DESC, ps2.Score DESC, ps2.IsFc DESC",
                 HighScoreHistoryMode.HighestScoreCurrentDifficulty =>
                     "ps2.Score DESC",
                 _ => throw new ArgumentOutOfRangeException(nameof(mode), mode, null)
