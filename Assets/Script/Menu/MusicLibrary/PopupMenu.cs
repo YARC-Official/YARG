@@ -422,6 +422,15 @@ namespace YARG.Menu.MusicLibrary
                         gameObject.SetActive(false);
                     });
                 }
+
+                if (instrument == Instrument.EliteDrums && MidiDrumkitHelper.Instruments.Any(SongContainer.HasInstrument))
+                {
+                    CreateItemUnlocalized(SortAttribute.AggregateDrums.ToLocalizedName(), () =>
+                    {
+                        _musicLibrary.ChangeSort(SortAttribute.AggregateDrums);
+                        gameObject.SetActive(false);
+                    });
+                }
             }
         }
 
