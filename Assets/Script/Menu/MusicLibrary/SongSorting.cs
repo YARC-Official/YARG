@@ -503,6 +503,11 @@ namespace YARG.Menu.MusicLibrary
                 {
                     foreach (var entry in list.Value)
                     {
+                        if (DisallowedByRating(entry.SongRating))
+                        {
+                            continue;
+                        }
+
                         int intensity;
                         var part = entry[instrument];
 
@@ -526,7 +531,7 @@ namespace YARG.Menu.MusicLibrary
                         IComparer<SongEntry> comparer = new InstrumentComparer(instrument, intensity);
 
                         int index = category.BinarySearch(entry, comparer);
-                        category.Insert(~index, entry);
+                        category.SafeInsert(~index, entry);
                     }
                 }
             });
@@ -534,30 +539,27 @@ namespace YARG.Menu.MusicLibrary
 
         private static void SortByAggregateDrums(SongCache cache, SortedSongs sorted)
         {
-            SortedDictionary<int, List<SongEntry>>? intensities = null;
+            var intensities = sorted.AggregateDrums;
             foreach (var list in cache.Entries)
             {
                 foreach (var entry in list.Value)
                 {
+                    if (DisallowedByRating(entry.SongRating))
+                    {
+                        continue;
+                    }
+
                     var preferredInstrument = MidiDrumkitHelper.GetPreferredInstrumentForSong(entry);
                     if (!preferredInstrument.HasValue) continue;
 
                     int intensity = entry[preferredInstrument.Value].Intensity;
-                    if (intensities == null)
-                    {
-                        lock (sorted.AggregateDrums)
-                        {
-                            sorted.AggregateDrums.Clear();
-                            intensities = sorted.AggregateDrums;
-                        }
-                    }
 
                     if (!intensities.TryGetValue(intensity, out var category))
                         intensities.Add(intensity, category = new List<SongEntry>());
 
                     IComparer<SongEntry> comparer = new AggregateDrumsComparer(intensity);
                     int index = category.BinarySearch(entry, comparer);
-                    category.Insert(~index, entry);
+                    category.SafeInsert(~index, entry);
                 }
             }
         }
