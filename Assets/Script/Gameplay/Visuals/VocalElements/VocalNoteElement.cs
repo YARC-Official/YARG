@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Serialization;
 using YARG.Core.Chart;
 using YARG.Core.Logging;
 
@@ -7,9 +8,10 @@ namespace YARG.Gameplay.Visuals
 {
     public class VocalNoteElement : VocalElement
     {
-        private static readonly int   Dimensions         = Shader.PropertyToID("_Dimensions");
-        private static readonly int   BaseColor          = Shader.PropertyToID("_BaseColor");
-        private const           float NOTE_POINT_PADDING = 1f / 15f;
+        private static readonly int Dimensions = Shader.PropertyToID("_Dimensions");
+        private static readonly int BaseColor = Shader.PropertyToID("_BaseColor");
+        private static readonly int GlowColor = Shader.PropertyToID("_GlowColor");
+        private const float NOTE_POINT_PADDING = 1f / 15f;
 
         public VocalNote NoteRef { get; set; }
 
@@ -23,13 +25,12 @@ namespace YARG.Gameplay.Visuals
         private float[] _lineWidthMultipliers;
 
         [SerializeField]
-        private LineRenderer _spLineRenderer;
+        private LineRenderer _glowLineRenderer;
         [SerializeField]
-        private float _spLineWidthMultiplier;
+        private float _glowWidthMultiplier;
 
-        private readonly List<Vector3> _points   = new();
-        private readonly List<Vector3> _spPoints = new();
-        private          bool          _isSp;
+        private readonly List<Vector3> _points = new();
+        private readonly List<Vector3> _glowPoints = new();
 
         protected override void InitializeElement()
         {
@@ -48,18 +49,27 @@ namespace YARG.Gameplay.Visuals
             UpdateLinePoints();
         }
 
-        public void SetSpGlow(bool enableGlow)
+        public void SetSpGlow(bool isSp)
         {
-            _spLineRenderer.enabled = enableGlow;
-            _isSp = enableGlow;
+            var color = Player.VocalTrack.Colors[NoteRef.HarmonyPart];
+            if (isSp)
+            {
+                MaterialPropertyInstance.Instance.SetColor(GlowColor, Color.gold);
+            }
+            else
+            {
+                MaterialPropertyInstance.Instance.SetColor(GlowColor, color);
+            }
+            _glowLineRenderer.SetPropertyBlock(MaterialPropertyInstance.Instance);
         }
 
         public void UpdateLinePoints()
         {
             // Create points
             _points.Clear();
-            _spPoints.Clear();
+            _glowPoints.Clear();
             var length = 0f;
+            Vector3? lastPoint = null;
             foreach (var note in NoteRef.AllNotes)
             {
                 var z = VocalTrack.GetPosForPitch(note.Pitch);
@@ -67,9 +77,14 @@ namespace YARG.Gameplay.Visuals
                 var p2 = new Vector3(VocalTrack.GetPosForTime(note.TimeEnd - NoteRef.Time), 0f, z);
                 _points.Add(p1);
                 _points.Add(p2);
-                _spPoints.Add(p1);
-                _spPoints.Add(p2);
+                _glowPoints.Add(p1);
+                _glowPoints.Add(p2);
+                if (lastPoint.HasValue)
+                {
+                    length += Vector3.Distance(lastPoint.Value, p1);
+                }
                 length += Vector3.Distance(p1, p2);
+                lastPoint = p2;
             }
 
             // Add padding on the note (start and end)
@@ -78,8 +93,8 @@ namespace YARG.Gameplay.Visuals
                 _points[0] = _points[0].AddX(NOTE_POINT_PADDING);
                 _points[^1] = _points[^1].AddX(-NOTE_POINT_PADDING);
 
-                _spPoints[0] = _spPoints[0].AddX(-NOTE_POINT_PADDING);
-                _spPoints[^1] = _spPoints[^1].AddX(NOTE_POINT_PADDING);
+                _glowPoints[0] = _glowPoints[0].AddX(-NOTE_POINT_PADDING);
+                _glowPoints[^1] = _glowPoints[^1].AddX(NOTE_POINT_PADDING);
 
                 // Add the padding to our tracked total length
                 length += NOTE_POINT_PADDING * 2f;
@@ -104,23 +119,16 @@ namespace YARG.Gameplay.Visuals
                 }
             }
 
-            if (_isSp)
+            var glowLineWidth = width * _glowWidthMultiplier;
+            _glowLineRenderer.startWidth = glowLineWidth;
+            _glowLineRenderer.endWidth = glowLineWidth;
+            _glowLineRenderer.positionCount = _glowPoints.Count;
+            for (int pointIndex = 0; pointIndex < _glowPoints.Count; pointIndex++)
             {
-                YargLogger.LogFormatDebug("Updating SP line renderer for note at time {0}", NoteRef.Time);
-                float lineWidth = width * _spLineWidthMultiplier;
-                _spLineRenderer.startWidth = lineWidth;
-                _spLineRenderer.endWidth = lineWidth;
-                _spLineRenderer.positionCount = _spPoints.Count;
-                for (int pointIndex = 0; pointIndex < _spPoints.Count; pointIndex++)
-                {
-                    _spLineRenderer.SetPosition(pointIndex, _spPoints[pointIndex]);
-                }
-
-                // Fetch the active block, add our dimensions, and re-apply
-                _spLineRenderer.GetPropertyBlock(MaterialPropertyInstance.Instance);
-                MaterialPropertyInstance.Instance.SetVector(Dimensions, new Vector2(length, lineWidth));
-                _spLineRenderer.SetPropertyBlock(MaterialPropertyInstance.Instance);
+                _glowLineRenderer.SetPosition(pointIndex, _glowPoints[pointIndex]);
             }
+            MaterialPropertyInstance.Instance.SetVector(Dimensions, new Vector2(length, glowLineWidth));
+            _glowLineRenderer.SetPropertyBlock(MaterialPropertyInstance.Instance);
         }
 
         protected override void UpdateElement()

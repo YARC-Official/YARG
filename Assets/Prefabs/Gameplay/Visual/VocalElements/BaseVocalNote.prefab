@@ -275,7 +275,7 @@ LineRenderer:
       m_NumColorKeys: 2
       m_NumAlphaKeys: 2
     numCornerVertices: 0
-    numCapVertices: 1
+    numCapVertices: 0
     alignment: 0
     textureMode: 0
     textureScale: {x: 1, y: 1}
@@ -330,8 +330,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 253b40b0f3514ce6934d85d7029fcb5a, type: 3}
-  m_Name:
-  m_EditorClassIdentifier:
+  m_Name: 
+  m_EditorClassIdentifier: 
   _lineRenderers:
   - {fileID: 4302007297606639045}
   - {fileID: 4944235696632696688}
@@ -340,8 +340,8 @@ MonoBehaviour:
   - 1
   - 0.625
   - 0.3125
-  _spLineRenderer: {fileID: 3391176054005008391}
-  _spLineWidthMultiplier: 2.5
+  _glowLineRenderer: {fileID: 3391176054005008391}
+  _glowWidthMultiplier: 3
 --- !u!1 &6000084519217476783
 GameObject:
   m_ObjectHideFlags: 0

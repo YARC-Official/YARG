@@ -97,9 +97,8 @@ namespace YARG.Gameplay.Player
                     var noteObj = pool.TakeWithoutEnabling();
                     var vocalNote = (VocalNoteElement) noteObj;
                     vocalNote.NoteRef = note;
-                    vocalNote.SetSpGlow(tracker.CurrentPhrase.IsStarPower && AllowStarPower);
-
                     noteObj.EnableFromPool();
+                    vocalNote.SetSpGlow(tracker.CurrentPhrase.IsStarPower && AllowStarPower);
                 }
 
                 tracker.NextNote();
