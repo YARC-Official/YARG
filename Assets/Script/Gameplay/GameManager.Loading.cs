@@ -318,10 +318,7 @@ namespace YARG.Gameplay
         {
             try
             {
-                var downchartMode = SettingsManager.Settings.UseGeneratedDowncharts.Value
-                    ? DownchartGenerationMode.ReplaceExistingDifficulties
-                    : DownchartGenerationMode.MissingDifficulties;
-                Chart = Song.LoadChart(downchartMode);
+                Chart = Song.LoadChart(DownchartGenerationMode.MissingDifficulties);
                 if (Chart != null)
                 {
                     GenerateVenueTrack();

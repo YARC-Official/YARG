@@ -275,6 +275,7 @@
         "DifficultySelect": {
             "Instrument": "Instrument",
             "Difficulty": "Difficulty",
+            "Generated": "Generated",
             "Harmony": "Harmony",
             "Modifiers": "Modifiers",
             "Ready": "Ready",
@@ -1785,8 +1786,8 @@
                 "Description": "Reduces the note speed if playing on a lower difficulty than Expert. The specified note speed is applied to Expert, and lower difficulties receive a reduction in speed. This setting does not affect vocal tracks."
             },
             "UseGeneratedDowncharts": {
-                "Name": "Use Generated Downcharts",
-                "Description": "Replace authored Easy, Medium, and Hard five-fret charts with versions generated from Expert. Disable this setting to use authored charts while still generating any missing difficulties."
+                "Name": "Show Generated Downcharts",
+                "Description": "Shows generated Easy, Medium, and Hard five-fret charts alongside authored difficulties in the difficulty select menu."
             },
             "LearningGuides": {
                 "Name": "Learning Guides",

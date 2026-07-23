@@ -19,6 +19,7 @@ using YARG.Menu.Navigation;
 using YARG.Menu.Persistent;
 using YARG.Menu.Filters;
 using YARG.Player;
+using YARG.Settings;
 using YARG.Song;
 
 namespace YARG.Menu.DifficultySelect
@@ -300,7 +301,7 @@ namespace YARG.Menu.DifficultySelect
                 });
 
                 CreateItem(LocalizeHeader("Difficulty"),
-                    player.Profile.CurrentDifficulty.ToLocalizedName(),
+                    GetDifficultyName(player.Profile.CurrentDifficulty, player.UseGeneratedChart),
                     _lastMenuState == State.Difficulty, () =>
                 {
                     _menuState = State.Difficulty;
@@ -411,6 +412,7 @@ namespace YARG.Menu.DifficultySelect
                 {
                     var preferredInstrument = CurrentPlayer.Profile.PreferredInstrument;
                     CurrentPlayer.Profile.CurrentInstrument = instrument;
+                    CurrentPlayer.UseGeneratedChart = false;
 
                     // Re-resolve after an instrument switch in case the raw harmony index is out
                     // of range for this song (ChangePlayer's check can be masked by the
@@ -439,16 +441,34 @@ namespace YARG.Menu.DifficultySelect
         {
             foreach (var difficulty in _possibleDifficulties)
             {
-                bool selected = CurrentPlayer.Profile.CurrentDifficulty == difficulty;
+                bool selected = CurrentPlayer.Profile.CurrentDifficulty == difficulty &&
+                    !CurrentPlayer.UseGeneratedChart;
                 CreateItem(difficulty.ToLocalizedName(), selected, () =>
                 {
                     CurrentPlayer.Profile.CurrentDifficulty
                         = CurrentPlayer.Profile.DifficultyFallback
                         = difficulty;
+                    CurrentPlayer.UseGeneratedChart = false;
 
                     _menuState = State.Main;
                     UpdateForPlayer();
                 });
+
+                if (CanUseGeneratedDifficulty(CurrentPlayer.Profile.CurrentInstrument, difficulty))
+                {
+                    bool generatedSelected = CurrentPlayer.Profile.CurrentDifficulty == difficulty &&
+                        CurrentPlayer.UseGeneratedChart;
+                    CreateItem(GetDifficultyName(difficulty, true), generatedSelected, () =>
+                    {
+                        CurrentPlayer.Profile.CurrentDifficulty
+                            = CurrentPlayer.Profile.DifficultyFallback
+                            = difficulty;
+                        CurrentPlayer.UseGeneratedChart = true;
+
+                        _menuState = State.Main;
+                        UpdateForPlayer();
+                    });
+                }
             }
         }
 
@@ -715,6 +735,10 @@ namespace YARG.Menu.DifficultySelect
                 }
             }
             profile.CurrentDifficulty = (Difficulty) diff;
+            if (!CanUseGeneratedDifficulty(profile.CurrentInstrument, profile.CurrentDifficulty))
+            {
+                CurrentPlayer.UseGeneratedChart = false;
+            }
         }
 
         private void OnDisable()
@@ -813,8 +837,7 @@ namespace YARG.Menu.DifficultySelect
 
             // Missing Easy/Medium/Hard five-fret charts can be generated from Expert when gameplay loads.
             if (difficulty is (Difficulty.Easy or Difficulty.Medium or Difficulty.Hard) &&
-                instrument is (Instrument.FiveFretGuitar or Instrument.FiveFretBass or
-                    Instrument.FiveFretRhythm or Instrument.FiveFretCoopGuitar or Instrument.Keys) &&
+                instrument.ToNativeGameMode() == GameMode.FiveFretGuitar &&
                 entry[instrument][Difficulty.Expert])
             {
                 return true;
@@ -830,6 +853,25 @@ namespace YARG.Menu.DifficultySelect
                 Instrument.FiveLaneDrums => entry[Instrument.ProDrums][difficulty],
                 _ => false
             };
+        }
+
+        private bool CanUseGeneratedDifficulty(Instrument instrument, Difficulty difficulty)
+        {
+            if (!SettingsManager.Settings.UseGeneratedDowncharts.Value ||
+                difficulty is not (Difficulty.Easy or Difficulty.Medium or Difficulty.Hard) ||
+                instrument.ToNativeGameMode() != GameMode.FiveFretGuitar)
+            {
+                return false;
+            }
+
+            return _songList.All(entry =>
+                entry[instrument][difficulty] && entry[instrument][Difficulty.Expert]);
+        }
+
+        private string GetDifficultyName(Difficulty difficulty, bool generated)
+        {
+            string name = difficulty.ToLocalizedName();
+            return generated ? $"{name} ({LocalizeHeader("Generated")})" : name;
         }
 
         public void SongSpeedEndEdit(string text)

@@ -53,7 +53,6 @@ namespace YARG.Settings
                 nameof(Settings.NoFail),
                 nameof(Settings.LearningGuides),
                 new FieldMetadata(nameof(Settings.ReduceNoteSpeedByDifficulty)),
-                new FieldMetadata(nameof(Settings.UseGeneratedDowncharts)),
 
                 new HeaderMetadata("StatusBar"),
                 nameof(Settings.ShowBattery),
@@ -252,6 +251,7 @@ namespace YARG.Settings
             new MetadataTab("Experimental", icon: "Beaker", new CharacterPreviewBuilder())
             {
                 new HeaderMetadata("Other"),
+                nameof(Settings.UseGeneratedDowncharts),
                 nameof(Settings.BandComboTypeSetting),
                 nameof(Settings.DataStreamEnable),
                 nameof(Settings.SaveScoresWithBots),

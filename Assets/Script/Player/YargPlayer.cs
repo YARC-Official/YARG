@@ -22,6 +22,8 @@ namespace YARG.Player
         /// </summary>
         public bool SittingOut;
 
+        public bool UseGeneratedChart { get; set; }
+
         public bool InputsEnabled { get; private set; }
         public ProfileBindings Bindings { get; private set; }
 
@@ -54,6 +56,7 @@ namespace YARG.Player
         {
             Profile = profile;
             Bindings = bindings;
+            UseGeneratedChart = false;
             IsReplay = false;
         }
 
@@ -92,6 +95,7 @@ namespace YARG.Player
             Bindings?.Dispose();
             Profile = profile;
             Bindings = bindings;
+            UseGeneratedChart = false;
 
             // Resolve bindings
             if (resolveDevices)
