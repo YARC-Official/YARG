@@ -1,7 +1,7 @@
 using System;
 using System.Linq;
 using UnityEngine;
-using YARG.Audio.BASS;
+using YARG.Audio.Effects;
 using YARG.Core.Chart;
 using YARG.Core.Input;
 using YARG.Gameplay.HUD;
@@ -66,13 +66,9 @@ namespace YARG.Gameplay
             if (vocalsTrack == null)
                 return;
 
-            int          outputHandle      = GameManager.Mixer.GetOutputMixerHandle();
-            Func<double> getSongPosition   = GameManager.Mixer.GetSongPositionDelegate();
-            var          dsp               = GuidePitchSynthDsp.Create(outputHandle, getSongPosition);
-            if (dsp == null)
-                return;
-
-            _guidePitchManager = new GuidePitchManager(dsp, vocalsTrack);
+            var dsp       = new GuidePitchSynthDsp();
+            var dspHandle = GameManager.Mixer.AttachOutputDsp(dsp);
+            _guidePitchManager = new GuidePitchManager(dsp, dspHandle, vocalsTrack);
         }
 
         protected override void GameplayDestroy()

@@ -809,14 +809,40 @@ namespace YARG.Audio.BASS
             _oneShotChannels.Remove(channel);
         }
 
-        public override int GetOutputMixerHandle()
+        public override IDisposable AttachOutputDsp(IMixerDspProcessor processor, int priority = 0)
         {
-            return _outputMixerHandle;
-        }
+            var info = Bass.ChannelGetInfo(_outputMixerHandle);
+            if (info.Frequency <= 0 || info.Channels <= 0)
+            {
+                YargLogger.LogFormatError("AttachOutputDsp: failed to query output mixer info: {0}",
+                    Bass.LastError);
+                return null;
+            }
 
-        public override Func<double> GetSongPositionDelegate()
-        {
-            return _songPositionTracker.GetRenderPosition;
+            int sampleRate = info.Frequency;
+            int channels = info.Channels;
+            var positionDelegate = new Func<double>(_songPositionTracker.GetRenderPosition);
+
+            DSPProcedure callback = null;
+            callback = (int handle, int channel, IntPtr buffer, int length, IntPtr user) =>
+            {
+                unsafe
+                {
+                    float* floatBuffer = (float*) buffer;
+                    int frames = length / (sizeof(float) * channels);
+                    double songTimeEnd = positionDelegate();
+                    processor.ProcessAudio(floatBuffer, frames, channels, sampleRate, songTimeEnd);
+                }
+            };
+
+            int dspHandle = Bass.ChannelSetDSP(_outputMixerHandle, callback, IntPtr.Zero, priority);
+            if (dspHandle == 0)
+            {
+                YargLogger.LogFormatError("AttachOutputDsp: failed to attach DSP: {0}", Bass.LastError);
+                return null;
+            }
+
+            return new BassDspHandle(_outputMixerHandle, dspHandle, callback);
         }
 
         /// <summary>
@@ -928,4 +954,34 @@ namespace YARG.Audio.BASS
         }
     }
 
+    /// <summary>
+    /// Disposable handle that removes a BASS DSP callback when disposed.
+    /// Prevents GC collection of the managed callback delegate while active.
+    /// </summary>
+    internal sealed class BassDspHandle : IDisposable
+    {
+        private readonly int _streamHandle;
+        private readonly DSPProcedure _callback; // prevent GC
+        private int _dspHandle;
+        private bool _disposed;
+
+        public BassDspHandle(int streamHandle, int dspHandle, DSPProcedure callback)
+        {
+            _streamHandle = streamHandle;
+            _dspHandle = dspHandle;
+            _callback = callback;
+        }
+
+        public void Dispose()
+        {
+            if (_disposed) return;
+            _disposed = true;
+
+            if (_dspHandle != 0 && !Bass.ChannelRemoveDSP(_streamHandle, _dspHandle))
+            {
+                YargLogger.LogFormatError("BassDspHandle: failed to remove DSP: {0}", Bass.LastError);
+            }
+            _dspHandle = 0;
+        }
+    }
 }

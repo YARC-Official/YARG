@@ -1,5 +1,5 @@
 using System;
-using YARG.Audio.BASS;
+using YARG.Audio.Effects;
 using YARG.Core;
 using YARG.Core.Chart;
 
@@ -11,7 +11,7 @@ namespace YARG.Gameplay.Player
     /// <para>
     /// Toggle state (which harmony part is active) lives here on the game thread.
     /// All audio work — note scanning and sine-wave synthesis — is delegated to
-    /// <see cref="GuidePitchSynthDsp"/>, which runs on the BASS audio thread and
+    /// <see cref="GuidePitchSynthDsp"/>, which runs on the audio thread and
     /// queries the render-ahead song position directly so it is sample-accurate
     /// with the mixed stems.
     /// </para>
@@ -27,16 +27,19 @@ namespace YARG.Gameplay.Player
         private int _enabledHarmonyIndex = -1;
 
         private readonly GuidePitchSynthDsp _dsp;
+        private readonly IDisposable        _dspHandle;
         private          VocalsTrack        _vocalsTrack;
 
         // ── Construction ─────────────────────────────────────────────────────────
 
-        /// <param name="dsp">The DSP effect that produces the audio.</param>
+        /// <param name="dsp">The DSP processor that produces the audio.</param>
+        /// <param name="dspHandle">The disposable handle returned by <c>AttachOutputDsp</c>.</param>
         /// <param name="vocalsTrack">The original (full-song) vocals track.</param>
-        public GuidePitchManager(GuidePitchSynthDsp dsp, VocalsTrack vocalsTrack)
+        public GuidePitchManager(GuidePitchSynthDsp dsp, IDisposable dspHandle, VocalsTrack vocalsTrack)
         {
             _dsp         = dsp         ?? throw new ArgumentNullException(nameof(dsp));
-            _vocalsTrack = vocalsTrack  ?? throw new ArgumentNullException(nameof(vocalsTrack));
+            _dspHandle   = dspHandle   ?? throw new ArgumentNullException(nameof(dspHandle));
+            _vocalsTrack = vocalsTrack ?? throw new ArgumentNullException(nameof(vocalsTrack));
         }
 
         // ── Public API (game thread) ──────────────────────────────────────────────
@@ -96,7 +99,7 @@ namespace YARG.Gameplay.Player
             _dsp.SetPart(GetEnabledPart());
         }
 
-        public void Dispose() => _dsp.Dispose();
+        public void Dispose() => _dspHandle.Dispose();
 
         // ── Helpers ───────────────────────────────────────────────────────────────
 
