@@ -24,9 +24,23 @@ namespace YARG.Audio.Effects
         /// </summary>
         private const double BACKWARD_SEEK_THRESHOLD = 0.5;
 
+        /// <summary>
+        /// Stores the cross-thread state. Should be updated atomically.
+        /// </summary>
+        private class PartState
+        {
+            public readonly VocalsPart Part;
+            public readonly int Generation;
+
+            public PartState(VocalsPart part, int generation)
+            {
+                Part = part;
+                Generation = generation;
+            }
+        }
+
         // Written by game thread; read by DSP (audio) thread.
-        private volatile VocalsPart _targetPart;
-        private volatile int _resetGeneration;
+        private volatile PartState _targetState = new(null, 0);
 
         // DSP-thread-only state
         private int    _lastSeenGeneration;
@@ -41,22 +55,27 @@ namespace YARG.Audio.Effects
         /// </summary>
         public void SetPart(VocalsPart part)
         {
-            _targetPart = part;
-            Interlocked.Increment(ref _resetGeneration);
+            PartState current;
+            PartState next;
+            do
+            {
+                current = _targetState;
+                next = new PartState(part, current.Generation + 1);
+            } while (Interlocked.CompareExchange(ref _targetState, next, current) != current);
         }
 
         // IMixerDspProcessor implementation
         public unsafe void ProcessAudio(float* buffer, int frames, int channels, int sampleRate, double songTimeEnd)
         {
-            int gen = _resetGeneration;
-            if (gen != _lastSeenGeneration)
+            PartState state = _targetState;
+            if (state.Generation != _lastSeenGeneration)
             {
-                _lastSeenGeneration = gen;
+                _lastSeenGeneration = state.Generation;
                 _phraseIndex        = 0;
                 _noteIndex          = 0;
             }
 
-            VocalsPart part = _targetPart;
+            VocalsPart part = state.Part;
             bool shouldSilence = part == null;
             if (shouldSilence && _currentVolume <= 0f)
             {
@@ -86,6 +105,11 @@ namespace YARG.Audio.Effects
                     _currentVolume = Math.Min(_currentVolume + RAMP_RATE, effectiveTarget);
                 else if (_currentVolume > effectiveTarget)
                     _currentVolume = Math.Max(_currentVolume - RAMP_RATE, effectiveTarget);
+
+                if (_currentVolume <= 0f)
+                {
+                    _phase = 0.0;
+                }
 
                 double phaseStep = targetFrequency > 0f ? (double) targetFrequency / sampleRate : 0.0;
                 float sample = _currentVolume * (float) Math.Sin(_phase * 2.0 * Math.PI);
@@ -124,7 +148,7 @@ namespace YARG.Audio.Effects
             {
                 backwardSeek = phrases[_phraseIndex].PhraseParentNote.Time > songTime + BACKWARD_SEEK_THRESHOLD;
             }
-            else if (phrases.Count > 0)
+            else
             {
                 backwardSeek = phrases[^1].PhraseParentNote.TotalTimeEnd > songTime;
             }
