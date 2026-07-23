@@ -8,8 +8,7 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: DrumSPActivationEffectTransitionRailRight
-  m_Shader: {fileID: -6465566751694194690, guid: 2d0cf1e9084960a4b97aa8946af15b27,
-    type: 3}
+  m_Shader: {fileID: -6465566751694194690, guid: 2d0cf1e9084960a4b97aa8946af15b27, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords:
@@ -19,7 +18,7 @@ Material:
   m_LightmapFlags: 2
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
-  m_CustomRenderQueue: 1979
+  m_CustomRenderQueue: 2979
   stringTagMap: {}
   disabledShaderPasses:
   - MOTIONVECTORS

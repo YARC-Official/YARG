@@ -1062,7 +1062,10 @@ namespace YARG.Gameplay.Player
             }
 
             LastCombo = Combo;
+            
         }
+
+
 
         protected virtual void OnNoteMissed(int index, TNote note)
         {

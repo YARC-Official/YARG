@@ -101,8 +101,23 @@ PrefabInstance:
       value: Effect Pool
       objectReference: {fileID: 0}
     m_RemovedComponents: []
-    m_RemovedGameObjects: []
-    m_AddedGameObjects: []
+    m_RemovedGameObjects:
+    - {fileID: 4591405020840648400, guid: 14dfc37fcbd6e0c4ba41507437a52fea, type: 3}
+    - {fileID: 1546670636521993588, guid: 14dfc37fcbd6e0c4ba41507437a52fea, type: 3}
+    - {fileID: 3014449543482484422, guid: 14dfc37fcbd6e0c4ba41507437a52fea, type: 3}
+    m_AddedGameObjects:
+    - targetCorrespondingSourceObject: {fileID: 5322959960680211244, guid: 14dfc37fcbd6e0c4ba41507437a52fea, type: 3}
+      insertIndex: 2
+      addedObject: {fileID: 5790849094173062553}
+    - targetCorrespondingSourceObject: {fileID: 5322959960680211244, guid: 14dfc37fcbd6e0c4ba41507437a52fea, type: 3}
+      insertIndex: 3
+      addedObject: {fileID: 8966039239759344527}
+    - targetCorrespondingSourceObject: {fileID: 5322959960680211244, guid: 14dfc37fcbd6e0c4ba41507437a52fea, type: 3}
+      insertIndex: 4
+      addedObject: {fileID: 1796767584524402400}
+    - targetCorrespondingSourceObject: {fileID: 5322959960680211244, guid: 14dfc37fcbd6e0c4ba41507437a52fea, type: 3}
+      insertIndex: 5
+      addedObject: {fileID: 2420547215609133051}
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 14dfc37fcbd6e0c4ba41507437a52fea, type: 3}
 --- !u!114 &679127719091478763 stripped

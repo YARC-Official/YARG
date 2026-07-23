@@ -2,6 +2,7 @@
 using UnityEngine;
 using YARG.Core.Game;
 using YARG.Helpers.UI;
+using YARG.Settings;
 
 namespace YARG.Gameplay.Visuals
 {
@@ -14,6 +15,14 @@ namespace YARG.Gameplay.Visuals
         private TextMeshPro _multiplierText;
         [SerializeField]
         private MeshRenderer _comboMesh;
+
+        [Header("ComboNumber")]
+        [SerializeField]
+        private TextMeshPro _comboText;
+        [SerializeField]
+        private Color _noFcColor;
+        [SerializeField]
+        private Color _FcColor;
 
         [Header("FC Ring")]
         [SerializeField]
@@ -34,12 +43,14 @@ namespace YARG.Gameplay.Visuals
 
         private TextMeshPro[] _textCache;
 
+        private static bool StreakCounterEnabled => SettingsManager.Settings.StreakCounter.Value;
+
         public void Initialize(EnginePreset preset, int maxMultiplier, bool isMultiplayer)
         {
             _multiplierText.enabled = false;
             _multiplierText.text = string.Empty;
             _textCache = MultiplierTextHelper.CreateMultiplierTextCache(maxMultiplier, _multiplierText, isMultiplayer);
-
+			
             Color color;
 
             // Right now Solo Taps is the only default preset that has a different color. Add more here if needed.
@@ -56,6 +67,15 @@ namespace YARG.Gameplay.Visuals
                 color = _customPresetColor;
             }
 
+            if (StreakCounterEnabled)
+            {
+                _comboText.enabled = true;
+            }
+            else
+            {
+                _comboText.enabled = false;
+            }
+
             _comboMesh.material.SetColor(_multiplierColorProperty, color);
         }
 
@@ -69,7 +89,7 @@ namespace YARG.Gameplay.Visuals
                 _comboMesh.material.SetFloat(_spriteIndexProperty, 0);
                 return;
             }
-
+			
             if (displayMultiplier > 1)
             {
                 _multiplierText = _textCache[displayMultiplier - 2];
@@ -86,12 +106,15 @@ namespace YARG.Gameplay.Visuals
                 index = 10;
             }
 
+            // Update the combo text everytime.
+            _comboText.SetText("{0}", combo);
             _comboMesh.material.SetFloat(_spriteIndexProperty, index);
         }
 
         public void SetFullCombo(bool isFc)
         {
             _ringMesh.sharedMaterial = isFc ? _fcRingMaterial : _noFcRingMaterial;
+            _comboText.color = isFc ? _FcColor : _noFcColor;
         }
     }
 }

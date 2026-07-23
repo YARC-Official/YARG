@@ -45,3 +45,5 @@ ShaderVariantCollection:
       variants:
       - keywords: SOFTMASKABLE
         passType: 0
+      - keywords: SOFTMASKABLE UNDERLAY_ON
+        passType: 0
