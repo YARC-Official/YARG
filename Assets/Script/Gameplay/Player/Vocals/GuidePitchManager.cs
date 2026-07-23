@@ -19,7 +19,6 @@ namespace YARG.Gameplay.Player
     /// </summary>
     public sealed class GuidePitchManager : IDisposable
     {
-        // ── State (game thread only) ─────────────────────────────────────────────
 
         /// <summary>
         /// Which harmony part (0-based) has guide pitch enabled.
@@ -33,8 +32,6 @@ namespace YARG.Gameplay.Player
 
         public event Action<string, Color> OnGuidePitchChanged;
 
-        // ── Construction ─────────────────────────────────────────────────────────
-
         /// <param name="dsp">The DSP processor that produces the audio.</param>
         /// <param name="dspHandle">The disposable handle returned by <c>AttachOutputDsp</c>.</param>
         /// <param name="vocalsTrack">The original (full-song) vocals track.</param>
@@ -44,8 +41,6 @@ namespace YARG.Gameplay.Player
             _dspHandle   = dspHandle   ?? throw new ArgumentNullException(nameof(dspHandle));
             _vocalsTrack = vocalsTrack ?? throw new ArgumentNullException(nameof(vocalsTrack));
         }
-
-        // ── Public API (game thread) ──────────────────────────────────────────────
 
         /// <summary>
         /// Cycles the guide pitch to the next state.
@@ -81,7 +76,10 @@ namespace YARG.Gameplay.Player
                         break;
                     }
                 }
-                if (!found) _enabledHarmonyIndex = -1;
+                if (!found)
+                {
+                    _enabledHarmonyIndex = -1;
+                }
             }
 
             _dsp.SetPart(GetEnabledPart());
@@ -97,7 +95,9 @@ namespace YARG.Gameplay.Player
 
             // Clamp enabled index in case the new section has fewer parts
             if (_enabledHarmonyIndex >= _vocalsTrack.Parts.Count)
+            {
                 _enabledHarmonyIndex = -1;
+            }
 
             // Re-push the current part (or null). SetPart() signals a scan reset in the DSP.
             _dsp.SetPart(GetEnabledPart());
@@ -138,12 +138,13 @@ namespace YARG.Gameplay.Player
 
         public void Dispose() => _dspHandle.Dispose();
 
-        // ── Helpers ───────────────────────────────────────────────────────────────
-
         private VocalsPart GetEnabledPart()
         {
             if (_enabledHarmonyIndex < 0 || _enabledHarmonyIndex >= _vocalsTrack.Parts.Count)
+            {
                 return null;
+            }
+
             return _vocalsTrack.Parts[_enabledHarmonyIndex];
         }
     }
