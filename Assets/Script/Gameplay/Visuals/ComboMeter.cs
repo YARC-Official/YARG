@@ -2,6 +2,7 @@
 using UnityEngine;
 using YARG.Core.Game;
 using YARG.Helpers.UI;
+using YARG.Settings;
 
 namespace YARG.Gameplay.Visuals
 {
@@ -18,11 +19,20 @@ namespace YARG.Gameplay.Visuals
         [Header("FC Ring")]
         [SerializeField]
         private MeshRenderer _ringMesh;
-
         [SerializeField]
         private Material _fcRingMaterial;
         [SerializeField]
         private Material _noFcRingMaterial;
+
+        [Header("ComboNumber")]
+        [SerializeField]
+        private TextMeshPro _comboText;
+        [SerializeField]
+        private Color _noFcColor;
+        [SerializeField]
+        private Color _FcColor;
+
+        private static bool StreakCounterEnabled => SettingsManager.Settings.StreakCounter.Value;
 
         [Header("Preset Colors")]
         [SerializeField]
@@ -56,6 +66,16 @@ namespace YARG.Gameplay.Visuals
                 color = _customPresetColor;
             }
 
+            if (StreakCounterEnabled)
+            {
+                _comboText.enabled = true;
+            }
+            else
+            {
+                _comboText.enabled = false;
+            }
+
+            _comboText.color = _FcColor;
             _comboMesh.material.SetColor(_multiplierColorProperty, color);
         }
 
@@ -86,12 +106,16 @@ namespace YARG.Gameplay.Visuals
                 index = 10;
             }
 
+            // Update the combo text everytime.
+            _comboText.SetText("{0}", combo);
             _comboMesh.material.SetFloat(_spriteIndexProperty, index);
+
         }
 
         public void SetFullCombo(bool isFc)
         {
             _ringMesh.sharedMaterial = isFc ? _fcRingMaterial : _noFcRingMaterial;
+            _comboText.color = isFc ? _FcColor : _noFcColor;
         }
     }
 }
