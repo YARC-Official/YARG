@@ -1,5 +1,7 @@
+using System.Linq;
 using YARG.Core.Extensions;
 using YARG.Core;
+using YARG.Helpers;
 using YARG.Helpers.Extensions;
 using YARG.Localization;
 using YARG.Player;
@@ -37,6 +39,9 @@ namespace YARG.Menu.Filters
             {
                 if (SongContainer.HasInstrument(instrument))
                     _possibleValues.Add(instrument.ToSortAttribute());
+
+                if (instrument == Instrument.EliteDrums && MidiDrumkitHelper.Instruments.Any(SongContainer.HasInstrument))
+                    _possibleValues.Add(SortAttribute.AggregateDrums);
             }
         }
 

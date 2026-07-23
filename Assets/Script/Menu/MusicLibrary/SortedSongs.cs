@@ -39,6 +39,8 @@ namespace YARG.Menu.MusicLibrary
 
         [NonSerialized]
         public readonly SortedDictionary<Instrument, SortedDictionary<int, List<SongEntry>>> Instruments = new();
+        [NonSerialized]
+        public readonly SortedDictionary<int, List<SongEntry>> AggregateDrums = new();
 
         public void Clear()
         {
@@ -55,6 +57,7 @@ namespace YARG.Menu.MusicLibrary
             DatesAdded.Clear();
             ArtistAlbums.Clear();
             Instruments.Clear();
+            AggregateDrums.Clear();
         }
     }
 }

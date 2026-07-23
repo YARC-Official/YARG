@@ -5,6 +5,7 @@ using UnityEngine;
 using YARG.Core;
 using YARG.Core.Game;
 using YARG.Core.Song;
+using YARG.Helpers;
 using YARG.Player;
 using YARG.Playlists;
 using YARG.Scores;
