@@ -67,7 +67,7 @@ namespace YARG.Audio.Effects
         // IMixerDspProcessor implementation
         public unsafe void ProcessAudio(float* buffer, int frames, int channels, int sampleRate, double songTimeEnd)
         {
-            PartState state = _targetState;
+            var state = _targetState;
             if (state.Generation != _lastSeenGeneration)
             {
                 _lastSeenGeneration = state.Generation;
@@ -75,7 +75,7 @@ namespace YARG.Audio.Effects
                 _noteIndex          = 0;
             }
 
-            VocalsPart part = state.Part;
+            var part = state.Part;
             bool shouldSilence = part == null;
             if (shouldSilence && _currentVolume <= 0f)
             {
@@ -95,7 +95,7 @@ namespace YARG.Audio.Effects
                 float targetFrequency = 0f;
                 if (!shouldSilence)
                 {
-                    VocalNote note = FindActiveNote(part, currentSongTime);
+                    var note = FindActiveNote(part, currentSongTime);
                     if (note is { IsNonPitched: false, IsPercussion: false })
                     {
                         targetFrequency = MidiPitchToHz(note.PitchAtSongTime(currentSongTime));
@@ -104,9 +104,13 @@ namespace YARG.Audio.Effects
 
                 float effectiveTarget = (shouldSilence || targetFrequency <= 0f) ? 0f : DEFAULT_VOLUME;
                 if (_currentVolume < effectiveTarget)
+                {
                     _currentVolume = Math.Min(_currentVolume + rampRate, effectiveTarget);
+                }
                 else if (_currentVolume > effectiveTarget)
+                {
                     _currentVolume = Math.Max(_currentVolume - rampRate, effectiveTarget);
+                }
 
                 if (_currentVolume <= 0f)
                 {
@@ -119,7 +123,7 @@ namespace YARG.Audio.Effects
                 int frameBase = i * channels;
                 for (int ch = 0; ch < channels; ch++)
                 {
-                    buffer[frameBase + ch] = Math.Clamp(buffer[frameBase + ch] + sample, -1f, 1f);
+                    buffer[frameBase + ch] = sample;
                 }
 
                 _phase += phaseStep;
@@ -142,7 +146,10 @@ namespace YARG.Audio.Effects
         private VocalNote FindActiveNote(VocalsPart part, double songTime)
         {
             var phrases = part.NotePhrases;
-            if (phrases.Count == 0) return null;
+            if (phrases.Count == 0)
+            {
+                return null;
+            }
 
             // Detect backward seek (section loop restart)
             bool backwardSeek = false;
@@ -200,7 +207,11 @@ namespace YARG.Audio.Effects
         /// </summary>
         public static float MidiPitchToHz(float midiPitch)
         {
-            if (midiPitch < 0f) return 0f;
+            if (midiPitch < 0f)
+            {
+                return 0f;
+            }
+
             return 440f * MathF.Pow(2f, (midiPitch - 69f) / 12f);
         }
     }
