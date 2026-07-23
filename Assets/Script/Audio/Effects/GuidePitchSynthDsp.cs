@@ -12,8 +12,8 @@ namespace YARG.Audio.Effects
     /// </summary>
     public sealed class GuidePitchSynthDsp : IMixerDspProcessor
     {
-        /// <summary>Volume ramp rate per sample — ~1.4 ms fade at 44 100 Hz.</summary>
-        private const float RAMP_RATE = 1f / 64f;
+        /// <summary>Target duration for a full volume fade (0 to 1) in seconds.</summary>
+        private const float FADE_DURATION_SECONDS = 0.00145f;
 
         /// <summary>Volume of the guide pitch relative to the master mix.</summary>
         public const float DEFAULT_VOLUME = 0.35f;
@@ -83,6 +83,8 @@ namespace YARG.Audio.Effects
                 return;
             }
 
+            float rampRate = 1f / (FADE_DURATION_SECONDS * sampleRate);
+
             double bufferDuration = (double)frames / sampleRate;
             double songTimeStart = songTimeEnd - bufferDuration;
             double songTimeStep = bufferDuration / frames;
@@ -102,9 +104,9 @@ namespace YARG.Audio.Effects
 
                 float effectiveTarget = (shouldSilence || targetFrequency <= 0f) ? 0f : DEFAULT_VOLUME;
                 if (_currentVolume < effectiveTarget)
-                    _currentVolume = Math.Min(_currentVolume + RAMP_RATE, effectiveTarget);
+                    _currentVolume = Math.Min(_currentVolume + rampRate, effectiveTarget);
                 else if (_currentVolume > effectiveTarget)
-                    _currentVolume = Math.Max(_currentVolume - RAMP_RATE, effectiveTarget);
+                    _currentVolume = Math.Max(_currentVolume - rampRate, effectiveTarget);
 
                 if (_currentVolume <= 0f)
                 {
