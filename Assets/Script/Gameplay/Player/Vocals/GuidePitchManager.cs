@@ -30,6 +30,8 @@ namespace YARG.Gameplay.Player
         private readonly IDisposable        _dspHandle;
         private          VocalsTrack        _vocalsTrack;
 
+        public event Action<string> OnGuidePitchChanged;
+
         // ── Construction ─────────────────────────────────────────────────────────
 
         /// <param name="dsp">The DSP processor that produces the audio.</param>
@@ -82,6 +84,7 @@ namespace YARG.Gameplay.Player
             }
 
             _dsp.SetPart(GetEnabledPart());
+            OnGuidePitchChanged?.Invoke(GetStatusString());
         }
 
         /// <summary>
@@ -97,6 +100,23 @@ namespace YARG.Gameplay.Player
 
             // Re-push the current part (or null). SetPart() signals a scan reset in the DSP.
             _dsp.SetPart(GetEnabledPart());
+            OnGuidePitchChanged?.Invoke(GetStatusString());
+        }
+
+        public string GetStatusString()
+        {
+            // TODO: Localize?
+            if (_enabledHarmonyIndex < 0)
+            {
+                return "OFF";
+            }
+
+            if (_vocalsTrack.Instrument != Instrument.Harmony)
+            {
+                return "ON";
+            }
+
+            return $"HARM{_enabledHarmonyIndex + 1}";
         }
 
         public void Dispose() => _dspHandle.Dispose();

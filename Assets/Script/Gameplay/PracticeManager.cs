@@ -69,13 +69,20 @@ namespace YARG.Gameplay
             var dsp       = new GuidePitchSynthDsp();
             var dspHandle = GameManager.Mixer.AttachOutputDsp(dsp);
             _guidePitchManager = new GuidePitchManager(dsp, dspHandle, vocalsTrack);
+            _guidePitchManager.OnGuidePitchChanged += _practiceHud.SetGuidePitchPartText;
+
+            _practiceHud.SetGuidePitchPartText(_guidePitchManager.GetStatusString());
         }
 
         protected override void GameplayDestroy()
         {
             Navigator.Instance.NavigationEvent -= OnNavigationEvent;
-            _guidePitchManager?.Dispose();
-            _guidePitchManager = null;
+            if (_guidePitchManager != null)
+            {
+                _guidePitchManager.OnGuidePitchChanged -= _practiceHud.SetGuidePitchPartText;
+                _guidePitchManager.Dispose();
+                _guidePitchManager = null;
+            }
         }
 
         private void Update()

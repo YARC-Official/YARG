@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Cysharp.Text;
 using TMPro;
 using UnityEngine;
@@ -24,6 +24,8 @@ namespace YARG.Gameplay.HUD
 
         [SerializeField]
         private TextMeshProUGUI _notesHitTotalText;
+        [SerializeField]
+        private TextMeshProUGUI _guidePitchPartText;
 
         private float _speed;
         private float _percentHit;
@@ -145,6 +147,11 @@ namespace YARG.Gameplay.HUD
 
             _bestPercentText.text = "0%";
             _sectionText.text = _sections[_currentSectionIndex].Name;
+        }
+
+        public void SetGuidePitchPartText(string status)
+        {
+            _guidePitchPartText.text = status;
         }
     }
 }
