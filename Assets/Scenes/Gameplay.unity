@@ -119,6 +119,43 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
+--- !u!84 &10224492
+RenderTexture:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: 
+  m_ImageContentsHash:
+    serializedVersion: 2
+    Hash: 00000000000000000000000000000000
+  m_IsAlphaChannelOptional: 0
+  serializedVersion: 6
+  m_Width: 640
+  m_Height: 480
+  m_AntiAliasing: 1
+  m_MipCount: -1
+  m_DepthStencilFormat: 94
+  m_ColorFormat: 48
+  m_MipMap: 0
+  m_GenerateMips: 1
+  m_SRGB: 0
+  m_UseDynamicScale: 0
+  m_UseDynamicScaleExplicit: 0
+  m_BindMS: 0
+  m_EnableCompatibleFormat: 1
+  m_EnableRandomWrite: 0
+  m_TextureSettings:
+    serializedVersion: 2
+    m_FilterMode: 1
+    m_Aniso: 1
+    m_MipBias: 0
+    m_WrapU: 1
+    m_WrapV: 1
+    m_WrapW: 1
+  m_Dimension: 2
+  m_VolumeDepth: 1
+  m_ShadowSamplingMode: 2
 --- !u!1 &62529479
 GameObject:
   m_ObjectHideFlags: 0
@@ -3660,7 +3697,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Texture: {fileID: 925284447}
+  m_Texture: {fileID: 10224492}
   m_UVRect:
     serializedVersion: 2
     x: 0
@@ -5853,43 +5890,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0b8f1c89e02545aaa55cf9a7e097e9dd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!84 &925284447
-RenderTexture:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_Name: 
-  m_ImageContentsHash:
-    serializedVersion: 2
-    Hash: 00000000000000000000000000000000
-  m_IsAlphaChannelOptional: 0
-  serializedVersion: 6
-  m_Width: 640
-  m_Height: 480
-  m_AntiAliasing: 1
-  m_MipCount: -1
-  m_DepthStencilFormat: 94
-  m_ColorFormat: 48
-  m_MipMap: 0
-  m_GenerateMips: 1
-  m_SRGB: 0
-  m_UseDynamicScale: 0
-  m_UseDynamicScaleExplicit: 0
-  m_BindMS: 0
-  m_EnableCompatibleFormat: 1
-  m_EnableRandomWrite: 0
-  m_TextureSettings:
-    serializedVersion: 2
-    m_FilterMode: 1
-    m_Aniso: 1
-    m_MipBias: 0
-    m_WrapU: 1
-    m_WrapV: 1
-    m_WrapW: 1
-  m_Dimension: 2
-  m_VolumeDepth: 1
-  m_ShadowSamplingMode: 2
 --- !u!1001 &943800968
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -7180,6 +7180,7 @@ MonoBehaviour:
   _percentHitText: {fileID: 477816503}
   _bestPercentText: {fileID: 1085040318}
   _notesHitTotalText: {fileID: 124424926}
+  _guidePitchPartGroup: {fileID: 716686267}
   _guidePitchPartText: {fileID: 877781246}
 --- !u!1 &1323155440
 GameObject:
@@ -8175,7 +8176,7 @@ Camera:
     serializedVersion: 2
     m_Bits: 511
   m_RenderingPath: -1
-  m_TargetTexture: {fileID: 925284447}
+  m_TargetTexture: {fileID: 10224492}
   m_TargetDisplay: 0
   m_TargetEye: 3
   m_HDR: 1

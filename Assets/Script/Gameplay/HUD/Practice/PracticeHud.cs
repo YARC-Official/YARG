@@ -2,6 +2,8 @@ using System;
 using Cysharp.Text;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
+using YARG.Core;
 using YARG.Core.Chart;
 
 namespace YARG.Gameplay.HUD
@@ -24,6 +26,8 @@ namespace YARG.Gameplay.HUD
 
         [SerializeField]
         private TextMeshProUGUI _notesHitTotalText;
+        [SerializeField]
+        private LayoutGroup _guidePitchPartGroup;
         [SerializeField]
         private TextMeshProUGUI _guidePitchPartText;
 
@@ -51,7 +55,9 @@ namespace YARG.Gameplay.HUD
             if (!GameManager.IsPractice)
             {
                 Destroy(gameObject);
+                return;
             }
+            _guidePitchPartGroup.gameObject.SetActive(HasVocalsPlayer());
         }
 
         private void Update()
@@ -156,6 +162,20 @@ namespace YARG.Gameplay.HUD
                 _guidePitchPartText.text = status;
                 _guidePitchPartText.color = color;
             }
+        }
+
+        private bool HasVocalsPlayer()
+        {
+            foreach (var player in GameManager.Players)
+            {
+                var instrument = player.Player.Profile.CurrentInstrument;
+                if (instrument is Instrument.Vocals or Instrument.Harmony)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
     }
 }
