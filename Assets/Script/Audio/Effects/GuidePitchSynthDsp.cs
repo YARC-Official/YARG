@@ -65,7 +65,7 @@ namespace YARG.Audio.Effects
         }
 
         // IMixerDspProcessor implementation
-        public unsafe void ProcessAudio(float* buffer, int frames, int channels, int sampleRate, double songTimeEnd)
+        public void ProcessAudio(Span<float> buffer, int frames, int channels, int sampleRate, double songTimeEnd)
         {
             var state = _targetState;
             if (state.Generation != _lastSeenGeneration)
@@ -123,7 +123,7 @@ namespace YARG.Audio.Effects
                 int frameBase = i * channels;
                 for (int ch = 0; ch < channels; ch++)
                 {
-                    buffer[frameBase + ch] = sample;
+                    buffer[frameBase + ch] += sample;
                 }
 
                 _phase += phaseStep;

@@ -824,14 +824,14 @@ namespace YARG.Audio.BASS
             var positionDelegate = new Func<double>(_songPositionTracker.GetRenderPosition);
 
             DSPProcedure callback = null;
-            callback = (int handle, int channel, IntPtr buffer, int length, IntPtr user) =>
+            callback = (_, _, buffer, length, _) =>
             {
                 unsafe
                 {
-                    float* floatBuffer = (float*) buffer;
                     int frames = length / (sizeof(float) * channels);
                     double songTimeEnd = positionDelegate();
-                    processor.ProcessAudio(floatBuffer, frames, channels, sampleRate, songTimeEnd);
+                    var span = new Span<float>((void*) buffer, length / sizeof(float));
+                    processor.ProcessAudio(span, frames, channels, sampleRate, songTimeEnd);
                 }
             };
 
