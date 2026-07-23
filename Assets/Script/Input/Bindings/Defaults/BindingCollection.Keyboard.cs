@@ -240,6 +240,8 @@ namespace YARG.Input
             AddBinding(MenuAction.Left, keyboard.leftArrowKey);
             AddBinding(MenuAction.Right, keyboard.rightArrowKey);
 
+            AddBinding(MenuAction.Search, keyboard.tabKey);
+
             return true;
         }
     }

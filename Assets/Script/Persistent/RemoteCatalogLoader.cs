@@ -2,8 +2,10 @@
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
+using UnityEngine.AddressableAssets.ResourceLocators;
 using UnityEngine.ResourceManagement.AsyncOperations;
 using YARG.Core.Logging;
+using YARG.Settings;
 
 namespace YARG
 {
@@ -17,9 +19,11 @@ namespace YARG
         private const string CATALOG_BASE_URL = "https://yarg-assets-{0}.ulna.net/unity-assets/{1}/";
         private const string CATALOG_JSON_FILE = "catalog_0.1.0.json";
 
-        protected override void SingletonAwake()
+        AsyncOperationHandle<IResourceLocator> _catalogHandle = default;
+
+        private void Start()
         {
-            if (GlobalVariables.OfflineMode)
+            if (GlobalVariables.OfflineMode || !SettingsManager.Settings.AllowRemoteContent.Value)
             {
                 return;
             }
@@ -39,13 +43,18 @@ namespace YARG
 
             try
             {
-                var handle = Addressables.LoadContentCatalogAsync(url, true);
-                await handle.Task;
+                _catalogHandle = Addressables.LoadContentCatalogAsync(url, false);
+                await _catalogHandle.Task;
 
-                if (handle.Status == AsyncOperationStatus.Succeeded)
+                if (_catalogHandle.Status == AsyncOperationStatus.Succeeded)
                 {
                     YargLogger.LogFormatDebug("Loaded remote content catalog: {0}", url);
-                    Addressables.Release(handle);
+                    Addressables.Release(_catalogHandle);
+
+                    // Remove any no-longer-referenced bundles
+                    var cleanerHandle = Addressables.CleanBundleCache();
+                    await cleanerHandle.Task;
+                    Addressables.Release(cleanerHandle);
                     return true;
                 }
             }

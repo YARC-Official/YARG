@@ -10,6 +10,7 @@ using YARG.Core.Engine.Drums;
 using YARG.Core.Engine.Drums.Engines;
 using YARG.Core.Input;
 using YARG.Core.Logging;
+using YARG.Core.Parsing;
 using YARG.Core.Replays;
 using YARG.Gameplay.HUD;
 using YARG.Gameplay.Visuals;
@@ -38,6 +39,16 @@ namespace YARG.Gameplay.Player
         private bool _yellowCymbalHasLane = false;
         private bool _blueCymbalHasLane = false;
         private bool _greenCymbalHasLane = false;
+
+        private SongStem _lastStem = SongStem.Drums1;
+
+        private readonly Dictionary<SongStem, bool> _stemMuteStates = new()
+        {
+            { SongStem.Drums1, false },
+            { SongStem.Drums2, false },
+            { SongStem.Drums3, false },
+            { SongStem.Drums4, false },
+        };
 
         public int NumberOfDedicatedKickLanes { get; private set; } = 0;
         public int CenteredPosition => (LaneCount - 1) / 2;
@@ -147,6 +158,27 @@ namespace YARG.Gameplay.Player
             // Before we do anything, see if we're in five lane mode or not
             _fiveLaneMode = player.Profile.CurrentInstrument == Instrument.FiveLaneDrums;
             base.Initialize(index, player, chart, trackView, mixer, currentHighScore);
+            _lastStem = GetLastAvailableDrumStem(mixer);
+        }
+
+        private static SongStem GetLastAvailableDrumStem(StemMixer mixer)
+        {
+            if (mixer[SongStem.Drums4] != null)
+            {
+                return SongStem.Drums4;
+            }
+
+            if (mixer[SongStem.Drums3] != null)
+            {
+                return SongStem.Drums3;
+            }
+
+            if (mixer[SongStem.Drums2] != null)
+            {
+                return SongStem.Drums2;
+            }
+
+            return SongStem.Drums1;
         }
 
         protected override InstrumentDifficulty<DrumNote> GetNotes(SongChart chart)
@@ -184,7 +216,7 @@ namespace YARG.Gameplay.Player
             }
 
             var engine = new YargDrumsEngine(NoteTrack, SyncTrack, EngineParams, Player.Profile.IsBot, Player.Profile.GameMode is GameMode.EliteDrums);
-            EngineContainer = GameManager.EngineManager.Register(engine, NoteTrack.Instrument, NoteTrack.Difficulty, Chart, Player.RockMeterPreset);
+            EngineContainer = GameManager.EngineManager.Register(engine, NoteTrack, Chart, Player.RockMeterPreset);
 
             HitWindow = EngineParams.HitWindow;
 
@@ -360,16 +392,54 @@ namespace YARG.Gameplay.Player
 
         public override void SetStemMuteState(bool muted)
         {
-            if (IsStemMuted != muted)
+            SetDrumStemMuteState(SongStem.Drums1, muted);
+            SetDrumStemMuteState(SongStem.Drums2, muted);
+            SetDrumStemMuteState(SongStem.Drums3, muted);
+            SetDrumStemMuteState(SongStem.Drums4, muted);
+        }
+
+        private void SetDrumStemMuteState(SongStem stem, bool muted)
+        {
+            if (_stemMuteStates.TryGetValue(stem, out var isMuted) && isMuted != muted)
             {
-                GameManager.ChangeStemMuteState(SongStem.Drums, muted);
-                IsStemMuted = muted;
+                GameManager.ChangeStemMuteState(stem, muted);
+                _stemMuteStates[stem] = muted;
+                IsStemMuted = AreAllStemsMuted();
             }
+        }
+
+        private bool AreAllStemsMuted()
+        {
+            foreach (var muteState in _stemMuteStates)
+            {
+                if (!muteState.Value)
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        private SongStem GetStem(DrumStem drumStem)
+        {
+            var songStem = drumStem switch
+            {
+                DrumStem.Kick  => SongStem.Drums1,
+                DrumStem.Snare => SongStem.Drums2,
+                DrumStem.Toms  => SongStem.Drums3,
+                DrumStem.Else  => SongStem.Drums4,
+                _              => throw new ArgumentOutOfRangeException()
+            };
+            return songStem > _lastStem ? _lastStem : songStem;
         }
 
         public override void SetStarPowerFX(bool active)
         {
-            GameManager.ChangeStemReverbState(SongStem.Drums, active);
+            GameManager.ChangeStemReverbState(SongStem.Drums1, active);
+            GameManager.ChangeStemReverbState(SongStem.Drums2, active);
+            GameManager.ChangeStemReverbState(SongStem.Drums3, active);
+            GameManager.ChangeStemReverbState(SongStem.Drums4, active);
         }
 
         protected override void ResetVisuals()
@@ -462,8 +532,8 @@ namespace YARG.Gameplay.Player
             }
             else
             {
-                // Correct size of lane slightly for padding in fret array
-                lane.MultiplyScale(0.97f);
+                // Adjust width of lane, correcting slightly for padding in fret array
+                lane.MultiplyScale(0.97f * 5 / LaneCount);
             }
         }
 
@@ -475,6 +545,7 @@ namespace YARG.Gameplay.Player
         protected override void OnNoteHit(int index, DrumNote note)
         {
             base.OnNoteHit(index, note);
+            OnNoteHitOrMissed(note);
 
             // Remember that drums treat each note separately
 
@@ -499,10 +570,48 @@ namespace YARG.Gameplay.Player
         protected override void OnNoteMissed(int index, DrumNote note)
         {
             base.OnNoteMissed(index, note);
+            OnNoteHitOrMissed(note);
 
             // Remember that drums treat each note separately
 
             (NotePool.GetByKey(note) as DrumsNoteElement)?.MissNote();
+        }
+
+        private void OnNoteHitOrMissed(DrumNote note)
+        {
+            if (Player.Profile.CurrentDifficulty == Difficulty.Easy)
+            {
+                // easy charts typically don't have kick + 'else' notes together, so unmute the kick when we see an 'else' note and vice versa
+                var kickStem = GetStem(DrumStem.Kick);
+                var tomsStem = GetStem(DrumStem.Toms);
+                var elseStem = GetStem(DrumStem.Else);
+                if (kickStem != elseStem)
+                {
+                    switch (note.Stem)
+                    {
+                        case DrumStem.Kick:
+                            SetDrumStemMuteState(elseStem, false);
+                            SetDrumStemMuteState(tomsStem, false);
+                            break;
+                        case DrumStem.Toms:
+                        case DrumStem.Else:
+                            SetDrumStemMuteState(kickStem, false);
+                            break;
+                    }
+                }
+            }
+        }
+
+        protected override void UpdateMuteState(DrumNote note, bool isMuted)
+        {
+            if (Player.Profile.CurrentDifficulty == Difficulty.Beginner)
+            {
+                SetStemMuteState(isMuted);
+            }
+            else
+            {
+                SetDrumStemMuteState(GetStem(note.Stem), isMuted);
+            }
         }
 
         protected override void OnStarPowerPhraseHit()

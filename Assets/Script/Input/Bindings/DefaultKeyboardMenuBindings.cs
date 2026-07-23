@@ -19,6 +19,7 @@ namespace YARG.Input
             (MenuAction.Orange, Key.Digit5),
             (MenuAction.Start,  Key.Space),
             (MenuAction.Select, Key.Backspace),
+            (MenuAction.Search, Key.Tab),
             (MenuAction.Up,     Key.UpArrow),
             (MenuAction.Down,   Key.DownArrow),
             (MenuAction.Left,   Key.LeftArrow),
@@ -27,10 +28,11 @@ namespace YARG.Input
 
         private readonly InputAction[] _inputActions = new InputAction[DefaultBindings.Length];
 
+        private static bool HasConnectedKeyboardProfile => PlayerContainer.HasConnectedKeyboardProfile();
+
         public DefaultKeyboardMenuBindings()
         {
             SetupBinds();
-            Enable();
         }
 
         private void SetupBinds()
@@ -38,18 +40,38 @@ namespace YARG.Input
             for (int i = 0; i < DefaultBindings.Length; i++)
             {
                 var (menuAction, key) = DefaultBindings[i];
-                var keyPath = key.ToString().Replace("Digit", "");
+                var action = GetInputAction(menuAction, key);
+                action.performed += _ =>
+                {
+                    if (HasConnectedKeyboardProfile)
+                    {
+                        return;
+                    }
 
-                var action = new InputAction(
-                    name: $"Menu_{menuAction}_{key}",
-                    type: InputActionType.Button,
-                    binding: $"<Keyboard>/{keyPath}"
-                );
+                    InputManager.OnMenuAction(menuAction, true);
+                };
+                action.canceled += _ =>
+                {
+                    if (HasConnectedKeyboardProfile)
+                    {
+                        return;
+                    }
 
-                action.performed += _ => InputManager.OnMenuAction(menuAction, true);
-                action.canceled += _ => InputManager.OnMenuAction(menuAction, false);
+                    InputManager.OnMenuAction(menuAction, false);
+                };
+                action.Enable();
                 _inputActions[i] = action;
             }
+        }
+
+        private static InputAction GetInputAction(MenuAction menuAction, Key key)
+        {
+            var keyPath = key.ToString().Replace("Digit", "");
+            return new InputAction(
+                name: $"Menu_{menuAction}_{key}",
+                type: InputActionType.Button,
+                binding: $"<Keyboard>/{keyPath}"
+            );
         }
 
         public void Dispose()
@@ -58,22 +80,6 @@ namespace YARG.Input
             {
                 action.Disable();
                 action.Dispose();
-            }
-        }
-
-        public void Enable()
-        {
-            foreach (var action in _inputActions)
-            {
-                action.Enable();
-            }
-        }
-
-        public void Disable()
-        {
-            foreach (var action in _inputActions)
-            {
-                action.Disable();
             }
         }
     }

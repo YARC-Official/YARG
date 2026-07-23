@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Net;
 using Haukcode.sACN;
 using UnityEngine;
 using YARG.Core.Logging;
@@ -37,9 +38,12 @@ namespace YARG.Integration.Sacn
             {
                 if (_sendClient != null) return;
 
-                var IPAddress = SACNCommon.GetFirstBindAddress().IPAddress;
+                string configuredAddress = SettingsManager.Settings.DMXLocalIP.Value;
+                IPAddress ipAddress = string.IsNullOrEmpty(configuredAddress)
+                    ? SACNCommon.GetFirstBindAddress().IPAddress
+                    : IPAddress.Parse(configuredAddress);
 
-                if (IPAddress == null)
+                if (ipAddress == null)
                 {
                     if (!_toastShown)
                     {
@@ -56,7 +60,7 @@ namespace YARG.Integration.Sacn
                 SacnInterpreter.OnChannelSet += HandleChannelEvent;
 
                 _sendClient = new SACNClient(senderId: _acnSourceId, senderName: ACN_SOURCE_NAME,
-                    localAddress: IPAddress);
+                    localAddress: ipAddress);
 
                 _timer = 0f;
             }

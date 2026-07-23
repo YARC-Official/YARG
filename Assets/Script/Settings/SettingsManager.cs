@@ -43,6 +43,7 @@ namespace YARG.Settings
                 new FieldMetadata(nameof(Settings.DisableGlobalBackgrounds), isAdvanced: true),
                 nameof(Settings.DisablePerSongBackgrounds),
                 new FieldMetadata(nameof(Settings.WaitForSongVideo), isAdvanced: true),
+                nameof(Settings.AllowRemoteContent),
 
                 new HeaderMetadata("Gameplay"),
                 new FieldMetadata(nameof(Settings.InputPollingFrequency), isAdvanced: true),
@@ -201,6 +202,8 @@ namespace YARG.Settings
                     nameof(Settings.CopyCurrentSongJsonFilePath)),
                 new ButtonRowMetadata(nameof(Settings.OpenPersistentDataPath)),
                 new ButtonRowMetadata(nameof(Settings.OpenExecutablePath)),
+                new HeaderMetadata("CacheManagement"),
+                new ButtonRowMetadata(nameof(Settings.RemoveRemoteContent)),
             },
             new MetadataTab("LightingPeripherals", icon: "Lighting", new DMXInformationPanelBuilder())
             {
@@ -227,6 +230,7 @@ namespace YARG.Settings
                 nameof(Settings.DMXBassChannel),
                 nameof(Settings.DMXKeysChannel),
                 new HeaderMetadata("AdvancedDMXSettings"),
+                nameof(Settings.DMXLocalIP),
                 nameof(Settings.DMXUniverseChannel),
                 nameof(Settings.DMXDimmerValues),
                 nameof(Settings.DMXTargetFPS),
@@ -244,13 +248,10 @@ namespace YARG.Settings
                 nameof(Settings.ShowAdvancedMusicLibraryOptions),
                 nameof(Settings.MinimumLogLevel),
             },
-            // new MetadataTab("Experimental", icon: "Beaker", new ExperimentalPreviewBuilder())
             new MetadataTab("Experimental", icon: "Beaker", new CharacterPreviewBuilder())
             {
                 new HeaderMetadata("Other"),
                 nameof(Settings.BandComboTypeSetting),
-                nameof(Settings.StreakCounter),
-                nameof(Settings.CustomVocalsCharacter),
                 nameof(Settings.DataStreamEnable),
                 nameof(Settings.SaveScoresWithBots),
                 new HeaderMetadata("Accessibility"),

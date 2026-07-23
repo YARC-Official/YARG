@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -60,7 +60,7 @@ namespace YARG.Gameplay.HUD
 
         public void RemoveDraggableElement(DraggableHudElement elem)
         {
-            _draggableElements.Remove(elem);
+            _draggableElements?.Remove(elem);
         }
 
         public void SetEditHUD(bool on)
@@ -158,7 +158,7 @@ namespace YARG.Gameplay.HUD
                 return;
             }
 
-            Navigator.Instance.PushScheme(new NavigationScheme(new()
+            _ = Navigator.Instance.PushScheme(new NavigationScheme(new()
             {
                 new NavigationScheme.Entry(MenuAction.Red, "Menu.Common.Back", () =>
                 {

@@ -52,7 +52,7 @@ namespace YARG.Menu.History
             base.OnEnable();
 
             // Set navigation scheme
-            Navigator.Instance.PushScheme(new NavigationScheme(new()
+            _ = Navigator.Instance.PushScheme(new NavigationScheme(new()
             {
                 new NavigationScheme.Entry(MenuAction.Up, "Menu.Common.Up",
                     ctx => {
@@ -68,8 +68,12 @@ namespace YARG.Menu.History
                     () => CurrentSelection?.ViewClick()),
                 new NavigationScheme.Entry(MenuAction.Red, "Menu.Common.Back",
                     Back, hide: true),
-                new NavigationScheme.Entry(MenuAction.Yellow, "Menu.History.Analyze",
-                    () => CurrentSelection?.Shortcut1()),
+                new NavigationScheme.Entry(MenuAction.Yellow, "Menu.History.ViewScoreCard",
+                    () => CurrentSelection?.ViewScoreCardClick()),
+#if UNITY_EDITOR || YARG_TEST_BUILD // This is the replay analyze, which isn't really useful if you are not a dev
+                new NavigationScheme.Entry(MenuAction.Blue, "Menu.History.Analyze",
+                    () => CurrentSelection?.AnalyzeReplayClick()),
+#endif
                 new NavigationScheme.Entry(MenuAction.Orange, "Menu.History.PlayWithReplay",
                     () => CurrentSelection?.PlayWithReplayClick())
             }, false));
