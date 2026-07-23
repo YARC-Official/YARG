@@ -846,7 +846,8 @@
 				"LetterSection": "{0} section",
 				"WithNumber": "{0} {1}",
 				"PercentageBased": "{0}% - {1}%"
-			}
+			},
+            "GuidePitch": "Guide Pitch"
 		},
         "UnisonDisplay": {
             "Header": "Unison Bonus"

@@ -3,6 +3,7 @@ using UnityEngine;
 using YARG.Audio.Effects;
 using YARG.Core;
 using YARG.Core.Chart;
+using YARG.Localization;
 
 namespace YARG.Gameplay.Player
 {
@@ -106,15 +107,14 @@ namespace YARG.Gameplay.Player
 
         public string GetStatusString()
         {
-            // TODO: Localize?
             if (_enabledHarmonyIndex < 0)
             {
-                return "OFF";
+                return Localize.Key("Menu.Common.Off");
             }
 
             if (_vocalsTrack.Instrument != Instrument.Harmony)
             {
-                return "ON";
+                return Localize.Key("Menu.Common.On");
             }
 
             return $"HARM{_enabledHarmonyIndex + 1}";
