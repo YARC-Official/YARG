@@ -809,6 +809,16 @@ namespace YARG.Audio.BASS
             _oneShotChannels.Remove(channel);
         }
 
+        public override int GetOutputMixerHandle()
+        {
+            return _outputMixerHandle;
+        }
+
+        public override Func<double> GetSongPositionDelegate()
+        {
+            return _songPositionTracker.GetRenderPosition;
+        }
+
         /// <summary>
         /// Gets actual song position from tempo stream.
         /// <para>
@@ -868,6 +878,16 @@ namespace YARG.Audio.BASS
                 AlignmentDelay = delay;
             }
 
+            public double GetRenderPosition()
+            {
+                double position = GetTempoStreamDecodePosition();
+                if (position < 0)
+                {
+                    return 0;
+                }
+                return position - TotalDelay + _songStart;
+            }
+
             private double GetTempoStreamPosition()
             {
                 long positionBytes = BassMix.ChannelGetPosition(_tempoStreamHandle, PositionFlags.Bytes);
@@ -881,6 +901,25 @@ namespace YARG.Audio.BASS
                 if (position < 0)
                 {
                     YargLogger.LogFormatError("Failed to convert bytes to seconds: {0}!", Bass.LastError);
+                    return -1;
+                }
+
+                return position;
+            }
+
+            private double GetTempoStreamDecodePosition()
+            {
+                long positionBytes = Bass.ChannelGetPosition(_tempoStreamHandle, PositionFlags.Bytes | PositionFlags.Decode);
+                if (positionBytes < 0)
+                {
+                    YargLogger.LogFormatError("Failed to get decode byte position: {0}!", Bass.LastError);
+                    return -1;
+                }
+
+                double position = Bass.ChannelBytes2Seconds(_tempoStreamHandle, positionBytes);
+                if (position < 0)
+                {
+                    YargLogger.LogFormatError("Failed to convert decode bytes to seconds: {0}!", Bass.LastError);
                     return -1;
                 }
 

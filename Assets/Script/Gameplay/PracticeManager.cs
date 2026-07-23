@@ -1,9 +1,11 @@
-﻿using System;
+using System;
 using System.Linq;
 using UnityEngine;
+using YARG.Audio.BASS;
 using YARG.Core.Chart;
 using YARG.Core.Input;
 using YARG.Gameplay.HUD;
+using YARG.Gameplay.Player;
 using YARG.Menu.Navigation;
 using YARG.Settings;
 
@@ -23,6 +25,8 @@ namespace YARG.Gameplay
         private GameObject _scoreDisplayObject;
 
         private SongChart _chart;
+
+        private GuidePitchManager _guidePitchManager;
 
         public double TimeStart { get; private set; }
         public double TimeEnd   { get; private set; }
@@ -53,9 +57,29 @@ namespace YARG.Gameplay
             _scoreDisplayObject.SetActive(false);
         }
 
+        protected override void OnSongStarted()
+        {
+            if (!GameManager.VocalTrack.gameObject.activeSelf)
+                return;
+
+            var vocalsTrack = GameManager.VocalTrack.OriginalVocalsTrack;
+            if (vocalsTrack == null)
+                return;
+
+            int          outputHandle      = GameManager.Mixer.GetOutputMixerHandle();
+            Func<double> getSongPosition   = GameManager.Mixer.GetSongPositionDelegate();
+            var          dsp               = GuidePitchSynthDsp.Create(outputHandle, getSongPosition);
+            if (dsp == null)
+                return;
+
+            _guidePitchManager = new GuidePitchManager(dsp, vocalsTrack);
+        }
+
         protected override void GameplayDestroy()
         {
             Navigator.Instance.NavigationEvent -= OnNavigationEvent;
+            _guidePitchManager?.Dispose();
+            _guidePitchManager = null;
         }
 
         private void Update()
@@ -101,6 +125,10 @@ namespace YARG.Gameplay
                 // Reset
                 case MenuAction.Select:
                     ResetPractice();
+                    break;
+                // Guide pitch toggle
+                case MenuAction.Up:
+                    _guidePitchManager?.ToggleGuidePitch();
                     break;
             }
         }
@@ -179,6 +207,13 @@ namespace YARG.Gameplay
 
             GameManager.VocalTrack.AllowStarPower = allowPracticeSP;
             GameManager.VocalTrack.SetPracticeSection(tickStart, tickEnd);
+
+            // Notify guide pitch manager so it resets note tracking for the new section
+            if (_guidePitchManager != null)
+            {
+                _guidePitchManager.OnPracticeSectionChanged(
+                    GameManager.VocalTrack.OriginalVocalsTrack);
+            }
 
             GameManager.SetSongTime(timeStart, SettingsManager.Settings.PracticeRestartDelay.Value);
 

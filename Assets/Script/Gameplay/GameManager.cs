@@ -169,6 +169,8 @@ namespace YARG.Gameplay
         private bool _breBoxActive;
 
         private StemMixer _mixer;
+        public  StemMixer  Mixer => _mixer;
+
         private MetronomeScheduler _metronomeScheduler;
         private CrowdClapScheduler _crowdClapScheduler;
 

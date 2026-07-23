@@ -198,6 +198,13 @@ namespace YARG.Gameplay.Player
         [HideInInspector]
         public bool AllowStarPower;
 
+        /// <summary>
+        /// The original (full-song) vocals track, before any practice section clipping.
+        /// Used by systems such as <see cref="Gameplay.Player.GuidePitchManager"/> that
+        /// need access to the complete note data.
+        /// </summary>
+        public VocalsTrack OriginalVocalsTrack => _originalVocalsTrack;
+
         public float CurrentNoteWidth =>
             ((_currentTrackTop - TRACK_BOTTOM) / (_viewRange.Max - _viewRange.Min)) * NOTE_WIDTH_MULTIPLIER;
 
