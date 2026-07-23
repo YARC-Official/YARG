@@ -35,8 +35,6 @@ namespace YARG.Audio.Effects
         private double _phase;
         private float  _currentVolume;
 
-        public GuidePitchSynthDsp() { }
-
         /// <summary>
         /// Sets the vocal part whose notes should be sonified, or <c>null</c> to silence.
         /// Thread-safe: may be called from any thread.
@@ -77,9 +75,9 @@ namespace YARG.Audio.Effects
                 if (!shouldSilence)
                 {
                     VocalNote note = FindActiveNote(part, currentSongTime);
-                    if (note != null && !note.IsNonPitched && !note.IsPercussion)
+                    if (note is { IsNonPitched: false, IsPercussion: false })
                     {
-                        targetFrequency = MidiPitchToHz((float) note.PitchAtSongTime(currentSongTime));
+                        targetFrequency = MidiPitchToHz(note.PitchAtSongTime(currentSongTime));
                     }
                 }
 
@@ -94,10 +92,15 @@ namespace YARG.Audio.Effects
 
                 int frameBase = i * channels;
                 for (int ch = 0; ch < channels; ch++)
+                {
                     buffer[frameBase + ch] = Math.Clamp(buffer[frameBase + ch] + sample, -1f, 1f);
+                }
 
                 _phase += phaseStep;
-                if (_phase >= 1.0) _phase -= 1.0;
+                if (_phase >= 1.0)
+                {
+                    _phase -= 1.0;
+                }
 
                 currentSongTime += songTimeStep;
             }
