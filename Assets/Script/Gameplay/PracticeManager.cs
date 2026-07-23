@@ -71,7 +71,7 @@ namespace YARG.Gameplay
             _guidePitchManager = new GuidePitchManager(dsp, dspHandle, vocalsTrack);
             _guidePitchManager.OnGuidePitchChanged += _practiceHud.SetGuidePitchPartText;
 
-            _practiceHud.SetGuidePitchPartText(_guidePitchManager.GetStatusString());
+            _practiceHud.SetGuidePitchPartText(_guidePitchManager.GetStatusString(), _guidePitchManager.GetStatusColor());
         }
 
         protected override void GameplayDestroy()

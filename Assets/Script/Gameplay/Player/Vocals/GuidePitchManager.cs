@@ -1,4 +1,5 @@
 using System;
+using UnityEngine;
 using YARG.Audio.Effects;
 using YARG.Core;
 using YARG.Core.Chart;
@@ -30,7 +31,7 @@ namespace YARG.Gameplay.Player
         private readonly IDisposable        _dspHandle;
         private          VocalsTrack        _vocalsTrack;
 
-        public event Action<string> OnGuidePitchChanged;
+        public event Action<string, Color> OnGuidePitchChanged;
 
         // ── Construction ─────────────────────────────────────────────────────────
 
@@ -84,7 +85,7 @@ namespace YARG.Gameplay.Player
             }
 
             _dsp.SetPart(GetEnabledPart());
-            OnGuidePitchChanged?.Invoke(GetStatusString());
+            OnGuidePitchChanged?.Invoke(GetStatusString(), GetStatusColor());
         }
 
         /// <summary>
@@ -100,7 +101,7 @@ namespace YARG.Gameplay.Player
 
             // Re-push the current part (or null). SetPart() signals a scan reset in the DSP.
             _dsp.SetPart(GetEnabledPart());
-            OnGuidePitchChanged?.Invoke(GetStatusString());
+            OnGuidePitchChanged?.Invoke(GetStatusString(), GetStatusColor());
         }
 
         public string GetStatusString()
@@ -117,6 +118,22 @@ namespace YARG.Gameplay.Player
             }
 
             return $"HARM{_enabledHarmonyIndex + 1}";
+        }
+
+        public Color GetStatusColor()
+        {
+            if (_enabledHarmonyIndex < 0 || _vocalsTrack.Instrument != Instrument.Harmony)
+            {
+                return Color.white;
+            }
+
+            int index = _enabledHarmonyIndex;
+            if (index < 0 || index >= VocalTrack.Colors.Length)
+            {
+                return Color.white;
+            }
+
+            return VocalTrack.Colors[index];
         }
 
         public void Dispose() => _dspHandle.Dispose();

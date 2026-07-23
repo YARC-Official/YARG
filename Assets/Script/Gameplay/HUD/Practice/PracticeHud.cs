@@ -149,9 +149,13 @@ namespace YARG.Gameplay.HUD
             _sectionText.text = _sections[_currentSectionIndex].Name;
         }
 
-        public void SetGuidePitchPartText(string status)
+        public void SetGuidePitchPartText(string status, Color color)
         {
-            _guidePitchPartText.text = status;
+            if (_guidePitchPartText != null)
+            {
+                _guidePitchPartText.text = status;
+                _guidePitchPartText.color = color;
+            }
         }
     }
 }
