@@ -398,6 +398,8 @@ namespace YARG.Menu.MusicLibrary
                     OnOrangeHit, OnOrangeRelease),
                 new NavigationScheme.Entry(MenuAction.Search, "Menu.MusicLibrary.Search",
                     _searchField.Focus, hide: true),
+                new NavigationScheme.Entry(MenuAction.SelectArtist, "Menu.MusicLibrary.SelectArtist",
+                    () => CurrentSelection?.SecondaryTextClick(), hide: true),
             };
 
             _ = Navigator.Instance.PushScheme(new NavigationScheme(entries, false));

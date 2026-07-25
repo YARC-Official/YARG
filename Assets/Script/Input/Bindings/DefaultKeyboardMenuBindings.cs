@@ -20,6 +20,7 @@ namespace YARG.Input
             (MenuAction.Start,  Key.Space),
             (MenuAction.Select, Key.Backspace),
             (MenuAction.Search, Key.Tab),
+            (MenuAction.SelectArtist, Key.F1),
             (MenuAction.Up,     Key.UpArrow),
             (MenuAction.Down,   Key.DownArrow),
             (MenuAction.Left,   Key.LeftArrow),
