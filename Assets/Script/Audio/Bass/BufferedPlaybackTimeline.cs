@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using YARG.Core.Audio;
 
 namespace YARG.Audio.BASS
 {
@@ -39,13 +40,16 @@ namespace YARG.Audio.BASS
         }
 
         /// <summary>
-        /// Converts current BASS position into delay-free control position used to synchronize playback.
+        /// Derives heard and delay-free control positions from one BASS sample.
         /// </summary>
         /// <param name="bassPosition">Current song position read from BASS.</param>
-        /// <returns>Position with pending BASS command-buffer progress applied.</returns>
+        /// <returns>Heard and control positions sampled at same monotonic timestamp.</returns>
         /// <remarks>
         /// <para>
         /// Mathematical relationships:
+        /// <c>Heard = Raw BASS Position</c>
+        /// </para>
+        /// <para>
         /// <c>Control = Raw BASS Position + (Commanded Integral - Buffered Integral)</c>
         /// </para>
         /// <para>
@@ -61,7 +65,7 @@ namespace YARG.Audio.BASS
         /// pending in the BASS buffer.
         /// </para>
         /// </remarks>
-        public double GetControlPosition(double bassPosition)
+        public SyncPosition GetSyncPosition(double bassPosition)
         {
             double now = GetCurrentTime();
 
@@ -76,7 +80,7 @@ namespace YARG.Audio.BASS
             double cutoff = now - HISTORY_MARGIN_SECONDS;
             _commandedRateHistory.PruneBefore(cutoff);
             _bufferedRateHistory.PruneBefore(cutoff);
-            return controlPosition;
+            return new SyncPosition(bassPosition, controlPosition);
         }
 
         /// <summary>
@@ -136,13 +140,11 @@ namespace YARG.Audio.BASS
             float rate = CurrentRate;
             if (_preparedControlPosition.HasValue)
             {
-                // ChannelPlay can let one device/update quantum advance before it returns. Gameplay is
-                // anchored after that call, so make the position observed here represent the prepared
-                // control position instead of exposing that backend startup advancement as sync error.
-                // The compensated BASS position then remains still until the device buffer begins
-                // playing, so advance only the commanded history during that startup interval.
-                double controlPosition = _preparedControlPosition.Value;
-                _commandedRateHistory.Reset(now, controlPosition, rate);
+                // Playback was prepared by seeking to this position. BASS may move past it before
+                // Play returns, but gameplay must still start from the requested seek position.
+                // Control time starts now; audible playback starts after the estimated startup delay.
+                double requestedPosition = _preparedControlPosition.Value;
+                _commandedRateHistory.Reset(now, requestedPosition, rate);
                 _bufferedRateHistory.Reset(now, bassPosition, 0f);
                 _bufferedRateHistory.SetRate(now + BassLatencyProvider.StartupLatency, rate);
                 _preparedControlPosition = null;
