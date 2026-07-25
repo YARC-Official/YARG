@@ -668,10 +668,14 @@ namespace YARG.Song
                     PlayerScoreRecord xRecord = percentageRecords[x];
                     PlayerScoreRecord yRecord = percentageRecords[y];
                     int comparison = yRecord.GetPercent().CompareTo(xRecord.GetPercent());
+
+                    // For equal percentages, show full combos first. Then break
+                    // remaining ties by instrument intensity and title.
                     if (comparison == 0)
                     {
-                        comparison = yRecord.Score.CompareTo(xRecord.Score);
+                        comparison = yRecord.IsFc.CompareTo(xRecord.IsFc);
                     }
+
                     return comparison != 0 ? comparison : comparer.Compare(x, y);
                 });
             }
@@ -750,6 +754,8 @@ namespace YARG.Song
                     categorySongs[i].Sort((x, y) =>
                     {
                         int comparison = scoreRecords[y].Score.CompareTo(scoreRecords[x].Score);
+
+                        // Break equal scores by instrument intensity, then title.
                         return comparison != 0 ? comparison : comparer.Compare(x, y);
                     });
                     string label = Localize.Key($"Menu.MusicLibrary.Sort.Score.{thresholds[i]}");
@@ -1078,6 +1084,8 @@ namespace YARG.Song
 
                 if (intensityX == intensityY)
                 {
+                    // MetadataComparer sorts by title first, with the remaining
+                    // metadata providing a deterministic fallback for duplicate titles.
                     return SongEntrySorting.MetadataComparer.Instance.Compare(x, y);
                 }
                 else if (intensityX == -1)
