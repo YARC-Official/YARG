@@ -72,7 +72,7 @@ namespace YARG.Gameplay.Visuals
 
         protected virtual bool CalcStarPowerVisible()
         {
-            return NoteRef.IsStarPower;
+            return Player.BaseParameters.StarPowerEnabled && NoteRef.IsStarPower;
         }
 
         /// <summary>
