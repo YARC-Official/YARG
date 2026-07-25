@@ -271,8 +271,7 @@ namespace YARG.Gameplay.Player
                         timeBetweenLyrics = next.Phrase.Lyrics[0].Time - phrase.Phrase.Lyrics[^1].Time;
                     }
                 }
-                const double imminenceThreshold = .3d; //TODO: sucks
-                var shiftAmount = phrase.Phrase.JoinWithNext || timeBetweenLyrics < imminenceThreshold ? VocalLyricContainer.SHIFT_PHRASE_SPACING : VocalLyricContainer.STATIC_PHRASE_SPACING;
+                var shiftAmount = phrase.Phrase.JoinWithNext || timeBetweenLyrics < StaticPhraseHelpers.IMMINENCE_THRESHOLD ? VocalLyricContainer.SHIFT_PHRASE_SPACING : VocalLyricContainer.STATIC_PHRASE_SPACING;
 
                 var newPhraseElement = _lyricContainer.TrySpawnStaticLyricPhrase(
                     phrase, _totalHarms, harmonyIndex, _rightEdges[harmonyIndex]);

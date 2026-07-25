@@ -23,7 +23,6 @@ namespace YARG.Gameplay.Player
 
         private class StaticPhraseTracker
         {
-            private const double IMMINENCE_THRESHOLD = .3d;
 
             public List<VocalsPhrase> Phrases { get; }
 
@@ -58,7 +57,7 @@ namespace YARG.Gameplay.Player
                 // is now imminent
                 if (_inGap)
                 {
-                    if (currentLeftmostPhrase.Time < time + IMMINENCE_THRESHOLD)
+                    if (currentLeftmostPhrase.Time < time + StaticPhraseHelpers.IMMINENCE_THRESHOLD)
                     {
                         _inGap = false;
                         return StaticLyricShiftType.GapToPhrase;
@@ -77,7 +76,7 @@ namespace YARG.Gameplay.Player
                     var newLeftmostPhrase = Phrases[_leftmostPhraseIndex];
 
                     // Factor in the shift duration here, so that we don't go from gap to phrase in the middle of a phrase-to-gap shift
-                    if (newLeftmostPhrase.Time > time + IMMINENCE_THRESHOLD + STATIC_LYRIC_SHIFT_DURATION)
+                    if (newLeftmostPhrase.Time > time + StaticPhraseHelpers.IMMINENCE_THRESHOLD + STATIC_LYRIC_SHIFT_DURATION)
                     {
                         _inGap = true;
 
@@ -86,7 +85,7 @@ namespace YARG.Gameplay.Player
                     }
                     var timeBetweenLyrics = newLeftmostPhrase.Lyrics[0].Time - currentLeftmostPhrase.Lyrics[^1].Time;
                     // The next phrase is imminent, so shift straight to it
-                    return (currentLeftmostPhrase.JoinWithNext || timeBetweenLyrics < IMMINENCE_THRESHOLD) ? StaticLyricShiftType.WithinPhrase : StaticLyricShiftType.PhraseToPhrase;
+                    return (currentLeftmostPhrase.JoinWithNext || timeBetweenLyrics < StaticPhraseHelpers.IMMINENCE_THRESHOLD) ? StaticLyricShiftType.WithinPhrase : StaticLyricShiftType.PhraseToPhrase;
                 }
 
 
@@ -185,12 +184,6 @@ namespace YARG.Gameplay.Player
                     _phraseIndex++;
                     _noteOrLyricIndex = 0;
                 } while (CurrentPhraseInBounds && !CurrentLyricInBounds);
-            }
-
-            public VocalNote GetProbableNoteAtLyric()
-            {
-                return CurrentPhrase.PhraseParentNote.ChildNotes
-                    .FirstOrDefault(note => note.Tick == CurrentLyric.Tick);
             }
         }
     }
