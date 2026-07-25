@@ -276,8 +276,7 @@ namespace YARG.Menu.MusicLibrary
 
             // Make sure sort is not by play count if there are only bots
             if (PlayerContainer.OnlyHasBotsActive() &&
-                (SettingsManager.Settings.LibrarySort == SortAttribute.Playcount ||
-                    SettingsManager.Settings.LibrarySort == SortAttribute.Stars))
+                IsDynamicScoreSort(SettingsManager.Settings.LibrarySort))
             {
                 // Name makes a good fallback?
                 ChangeSort(SortAttribute.Name);
@@ -303,7 +302,7 @@ namespace YARG.Menu.MusicLibrary
                 _lastScoreContext = scoreContext;
                 _needsReload = false;
 
-                if (scoreSortContextChanged && SettingsManager.Settings.LibrarySort == SortAttribute.Stars)
+                if (scoreSortContextChanged && IsDynamicScoreSort(SettingsManager.Settings.LibrarySort))
                 {
                     _searchField.Reset();
                 }
@@ -844,8 +843,7 @@ namespace YARG.Menu.MusicLibrary
             _savedPlaylist = SelectedPlaylist;
             if (MenuState == MenuState.Library && !PlaylistMode)
             {
-                bool preserveIndexOnDynamicSort = SettingsManager.Settings.LibrarySort == SortAttribute.Playcount ||
-                    SettingsManager.Settings.LibrarySort == SortAttribute.Stars;
+                bool preserveIndexOnDynamicSort = IsDynamicScoreSort(SettingsManager.Settings.LibrarySort);
                 _savedSelectionSnapshot = CaptureSelectionSnapshot(preserveIndexOnDynamicSort);
                 _hasSavedSelectionSnapshot = true;
             }
@@ -1183,14 +1181,13 @@ namespace YARG.Menu.MusicLibrary
 
         private void RestoreSelectionSnapshot(SelectionSnapshot snapshot)
         {
-            bool scoreSortContextChanged =
-                SettingsManager.Settings.LibrarySort == SortAttribute.Stars &&
+            bool dynamicSortContextChanged =
+                IsDynamicScoreSort(SettingsManager.Settings.LibrarySort) &&
                 !snapshot.ScoreContext.Equals(ScoreContext.Capture());
 
             if (snapshot.PreserveIndexOnDynamicSort &&
-                !scoreSortContextChanged &&
-                (SettingsManager.Settings.LibrarySort == SortAttribute.Playcount ||
-                    SettingsManager.Settings.LibrarySort == SortAttribute.Stars))
+                !dynamicSortContextChanged &&
+                IsDynamicScoreSort(SettingsManager.Settings.LibrarySort))
             {
                 if (ViewList.Count == 0) return;
 
@@ -1235,6 +1232,11 @@ namespace YARG.Menu.MusicLibrary
             }
 
             SelectedIndex = snapshot.SelectedIndex;
+        }
+
+        private static bool IsDynamicScoreSort(SortAttribute sort)
+        {
+            return sort is SortAttribute.Playcount or SortAttribute.Stars;
         }
 
         private bool SetIndexToStableId(string stableId, int searchStartIndex = 0)
