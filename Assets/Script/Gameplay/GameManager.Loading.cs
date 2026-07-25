@@ -259,12 +259,13 @@ namespace YARG.Gameplay
             {
                 EngineManager.OnSongFailed += OnSongFailed;
 
-                EngineManager.InitializeHappiness(SettingsManager.Settings.NoFail.Value != NoFailMode.Off);
-
                 SettingsManager.Settings.NoFail.OnChange += OnNoFailModeChanged;
                 SettingsManager.Settings.AutoCalibrateAudio.Value = false;
                 SettingsManager.Settings.AutoCalibrateVideo.Value = false;
             }
+
+            var noFail = ReplayData?.NoFail ?? SettingsManager.Settings.NoFail.Value != NoFailMode.Off;
+            EngineManager.InitializeHappiness(noFail);
 
             EngineManager.OnCodaStart += StartCoda;
             EngineManager.OnCodaEnd += EndCoda;

@@ -850,6 +850,7 @@ namespace YARG.Gameplay
             var replayStats = new List<ReplayStats>(_players.Count);
             var colorProfiles = new Dictionary<Guid, ColorProfile>();
             var cameraPresets = new Dictionary<Guid, CameraPreset>();
+            var rockMeterPresets = new Dictionary<Guid, RockMeterPreset>();
 
             int bandScore = 0;
             float bandStars = EngineManager.Stars;
@@ -875,6 +876,11 @@ namespace YARG.Gameplay
                 {
                     cameraPresets.TryAdd(player.Player.CameraPreset.Id, player.Player.CameraPreset);
                 }
+
+                if (!player.Player.RockMeterPreset.DefaultPreset)
+                {
+                    rockMeterPresets.TryAdd(player.Player.RockMeterPreset.Id, player.Player.RockMeterPreset);
+                }
             }
 
             if (frames.Count == 0)
@@ -882,8 +888,9 @@ namespace YARG.Gameplay
                 return null;
             }
 
+            var noFail = SettingsManager.Settings.NoFail.Value == NoFailMode.On;
             var stars = StarAmountHelper.GetStarsFromInt(Mathf.FloorToInt(bandStars));
-            ReplayData = new ReplayData(colorProfiles, cameraPresets, frames.ToArray(), _frameTimes.ToArray());
+            ReplayData = new ReplayData(colorProfiles, cameraPresets, rockMeterPresets, noFail, frames.ToArray(), _frameTimes.ToArray());
 
             (bool success, var replayInfo) = ReplayIO.TrySerialize(directory, Song, SongSpeed, length, bandScore, stars, PauseInfo.ToArray(), replayStats.ToArray(), ReplayData);
             if (!success)
@@ -982,13 +989,13 @@ namespace YARG.Gameplay
         // the possibility of an instant fail. Yes, this is cheeseable since toggling no fail resets happiness.
         private void OnNoFailModeChanged(NoFailMode mode)
         {
-            // If we're going from no fail to fail and happiness would result in a player being in the red, reset happiness,
-            // but also inhibit score saving to avoid cheesing
+            // If we're going from no fail to fail and happiness would result in a player being in the red, reset happiness
             if (mode == NoFailMode.Off && EngineManager.GetLowestHappiness()?.Happiness <= 0.333f)
             {
-                InvalidateScores("Menu.Toast.NoFailScore");
                 EngineManager.InitializeHappiness(false);
             }
+
+            InvalidateScores("Menu.Toast.NoFailScore");
 
             EngineManager.NoFailChanged(mode != NoFailMode.Off);
             _failMeter.SetActive(mode != NoFailMode.NoMeter);
