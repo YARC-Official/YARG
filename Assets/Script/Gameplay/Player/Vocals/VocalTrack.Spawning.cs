@@ -26,6 +26,8 @@ namespace YARG.Gameplay.Player
         private ScrollingPhraseNoteTracker[] _scrollingNoteTrackers;
         private ScrollingPhraseNoteTracker[] _scrollingLyricTrackers;
         private StaticPhraseTracker[] _staticPhraseTrackers;
+        [SerializeField]
+        private HeldStaticPhraseElement[] _staticLyricHoldText;
         private Queue<VocalStaticLyricPhraseElement>[] _staticPhraseQueues;
 
         private Dictionary<LyricEvent, VocalScrollingLyricSyllableElement.PreparedLyric> _preparedScrollingLyrics;
@@ -162,7 +164,7 @@ namespace YARG.Gameplay.Player
 
                     }
                     _rightEdges[harmonyIndex] -= leftShift;
-                    leftmostPhraseElement.Dismiss();
+                    _staticLyricHoldText[harmonyIndex].AddSyllables(leftmostPhraseElement.Dismiss());
                     break;
                 }
                 case StaticLyricShiftType.WithinPhrase:
@@ -191,7 +193,7 @@ namespace YARG.Gameplay.Player
 
                     }
                     _rightEdges[harmonyIndex] -= leftShift;
-                    leftmostPhraseElement.Dismiss();
+                    _staticLyricHoldText[harmonyIndex].AddSyllables(leftmostPhraseElement.Dismiss());
                     break;
                 }
                 case StaticLyricShiftType.GapToPhrase:
@@ -259,7 +261,18 @@ namespace YARG.Gameplay.Player
                 {
                     continue;
                 }
-                var shiftAmount = phrase.Phrase.JoinWithNext ? VocalLyricContainer.SHIFT_PHRASE_SPACING : VocalLyricContainer.STATIC_PHRASE_SPACING;
+
+                double timeBetweenLyrics = double.MaxValue;
+                if (phraseIdx + 1 < preparedPhrases.Count && phrase.Phrase.Lyrics.Count > 0)
+                {
+                    var next = preparedPhrases[phraseIdx + 1];
+                    if (next.Phrase.Lyrics.Count > 0)
+                    {
+                        timeBetweenLyrics = next.Phrase.Lyrics[0].Time - phrase.Phrase.Lyrics[^1].Time;
+                    }
+                }
+                const double imminenceThreshold = .3d; //TODO: sucks
+                var shiftAmount = phrase.Phrase.JoinWithNext || timeBetweenLyrics < imminenceThreshold ? VocalLyricContainer.SHIFT_PHRASE_SPACING : VocalLyricContainer.STATIC_PHRASE_SPACING;
 
                 var newPhraseElement = _lyricContainer.TrySpawnStaticLyricPhrase(
                     phrase, _totalHarms, harmonyIndex, _rightEdges[harmonyIndex]);

@@ -43,6 +43,17 @@ namespace YARG.Gameplay.Player
 
                 var currentLeftmostPhrase = Phrases[_leftmostPhraseIndex];
 
+                double shiftTime = currentLeftmostPhrase.TimeEnd;
+                if (_leftmostPhraseIndex + 1 < Phrases.Count)
+                {
+                    const double shiftLeadTime = 0.15;
+                    var nextPhrase = Phrases[_leftmostPhraseIndex + 1];
+                    if (nextPhrase.Lyrics.Count > 0)
+                    {
+                        shiftTime = Math.Min(shiftTime, nextPhrase.Lyrics[0].Time - shiftLeadTime);
+                    }
+                }
+
                 // We haven't passed the last note of the leftmost phrase. If we're in a gap, we need to check if the leftmost phrase
                 // is now imminent
                 if (_inGap)
@@ -53,9 +64,8 @@ namespace YARG.Gameplay.Player
                         return StaticLyricShiftType.GapToPhrase;
                     }
                 }
-
                 // We've passed the last note of the leftmost phrase, so it's time to shift
-                else if (time >= currentLeftmostPhrase.TimeEnd)
+                else if (time >= shiftTime)
                 {
                     if (_leftmostPhraseIndex + 1 >= Phrases.Count)
                     {
@@ -74,9 +84,9 @@ namespace YARG.Gameplay.Player
                         // The next phrase isn't very soon, so shift to a gap
                         return StaticLyricShiftType.PhraseToGap;
                     }
-
+                    var timeBetweenLyrics = newLeftmostPhrase.Lyrics[0].Time - currentLeftmostPhrase.Lyrics[^1].Time;
                     // The next phrase is imminent, so shift straight to it
-                    return currentLeftmostPhrase.JoinWithNext ? StaticLyricShiftType.WithinPhrase : StaticLyricShiftType.PhraseToPhrase;
+                    return (currentLeftmostPhrase.JoinWithNext || timeBetweenLyrics < IMMINENCE_THRESHOLD) ? StaticLyricShiftType.WithinPhrase : StaticLyricShiftType.PhraseToPhrase;
                 }
 
 

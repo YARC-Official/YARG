@@ -60,7 +60,7 @@ namespace YARG.Gameplay.Visuals
             public readonly string Text;
             public readonly double Time;
             public readonly double TimeEnd;
-            public readonly bool IsStarpower;
+            public readonly bool   IsStarpower;
 
             public StaticLyricSyllable(string text, double time, double timeEnd, bool isStarpower,
                 LyricSymbolFlags flags, bool isLastLyricOfPhrase)
@@ -137,13 +137,22 @@ namespace YARG.Gameplay.Visuals
             _lastRenderState = int.MinValue;
         }
 
-        public void Dismiss()
+        public List<StaticLyricSyllable> Dismiss()
         {
+            var result = new List<StaticLyricSyllable>();
+            foreach (var syllable in _preparedPhrase.Syllables)
+            {
+                if (GameManager.VisualTime < syllable.TimeEnd)
+                {
+                    result.Add(syllable);
+                }
+            }
             _isFuture = true;
             _lastRenderState = int.MinValue;
             _builder.Clear();
             DisableIntoPool();
             ParentPool.Return(this);
+            return result;
         }
 
         protected override void UpdateElement()

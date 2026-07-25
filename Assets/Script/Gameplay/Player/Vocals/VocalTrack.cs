@@ -368,6 +368,21 @@ namespace YARG.Gameplay.Player
                 _ => throw new Exception("Unreachable.")
             };
 
+            foreach (var heldPhraseEl in _staticLyricHoldText)
+            {
+                heldPhraseEl.Initialize();
+            }
+            switch (LyricLaneCount)
+            {
+                case 1:
+                    _staticLyricHoldText[1].gameObject.SetActive(false);
+                    _staticLyricHoldText[2].gameObject.SetActive(false);
+                    break;
+                case 2:
+                    _staticLyricHoldText[2].gameObject.SetActive(false);
+                    break;
+            }
+
             // this should never happen, yell in the logs if it does
             if (_vocalsTrack.RangeShifts.Count < 1)
             {
