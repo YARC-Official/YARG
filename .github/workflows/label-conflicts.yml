@@ -8,7 +8,7 @@ on:
     types: [opened, synchronize, reopened]
 
 concurrency:
-  group: label-conflicts-${{ github.repository }}
+  group: label-conflicts-${{ github.repository }}-${{ github.event.pull_request.number || 'all' }}
   cancel-in-progress: true
 
 jobs:
@@ -22,15 +22,14 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GH_REPO: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
-          # Fetch open PRs via GraphQL, retrying if GitHub is calculating UNKNOWN statuses
-          for attempt in {1..4}; do
-            DATA=$(gh api graphql -f query='
-              query($owner: String!, $repo: String!) {
-                repository(owner: $owner, name: $repo) {
-                  pullRequests(states: OPEN, first: 100) {
-                    totalCount
-                    nodes {
+          fetch_prs() {
+            if [ -n "$PR_NUMBER" ]; then
+              gh api graphql -f query='
+                query($owner: String!, $repo: String!, $number: Int!) {
+                  repository(owner: $owner, name: $repo) {
+                    pullRequest(number: $number) {
                       number
                       title
                       mergeable
@@ -39,10 +38,32 @@ jobs:
                       }
                     }
                   }
-                }
-              }' -F owner="${GH_REPO%/*}" -F repo="${GH_REPO#*/}")
+                }' -F owner="${GH_REPO%/*}" -F repo="${GH_REPO#*/}" -F number="$PR_NUMBER" \
+                | jq -c '[.data.repository.pullRequest] | map(select(. != null))'
+            else
+              gh api graphql -f query='
+                query($owner: String!, $repo: String!) {
+                  repository(owner: $owner, name: $repo) {
+                    pullRequests(states: OPEN, first: 100) {
+                      nodes {
+                        number
+                        title
+                        mergeable
+                        labels(first: 100) {
+                          nodes { name }
+                        }
+                      }
+                    }
+                  }
+                }' -F owner="${GH_REPO%/*}" -F repo="${GH_REPO#*/}" \
+                | jq -c '.data.repository.pullRequests.nodes'
+            fi
+          }
 
-            UNKNOWN_COUNT=$(echo "$DATA" | jq -r '[.data.repository.pullRequests.nodes[] | select(.mergeable == "UNKNOWN")] | length')
+          # GitHub may still be calculating mergeability immediately after a push.
+          for attempt in {1..4}; do
+            PRS=$(fetch_prs)
+            UNKNOWN_COUNT=$(echo "$PRS" | jq -r '[.[] | select(.mergeable == "UNKNOWN")] | length')
 
             if [ "$UNKNOWN_COUNT" -eq 0 ] || [ "$attempt" -eq 4 ]; then
               break
@@ -52,15 +73,15 @@ jobs:
             sleep 10
           done
 
-          TOTAL=$(echo "$DATA" | jq -r '.data.repository.pullRequests.totalCount // 0')
-          echo "Found $TOTAL open pull requests."
+          TOTAL=$(echo "$PRS" | jq -r 'length')
+          echo "Checking $TOTAL pull request(s)."
 
           if [ "$TOTAL" -eq 0 ]; then
             echo "No open PRs to process."
             exit 0
           fi
 
-          echo "$DATA" | jq -c '.data.repository.pullRequests.nodes[]' | while read -r pr; do
+          echo "$PRS" | jq -c '.[]' | while read -r pr; do
             NUMBER=$(echo "$pr" | jq -r '.number')
             TITLE=$(echo "$pr" | jq -r '.title')
             MERGEABLE=$(echo "$pr" | jq -r '.mergeable')
