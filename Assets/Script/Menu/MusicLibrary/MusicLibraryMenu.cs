@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -25,6 +25,52 @@ using Random = UnityEngine.Random;
 
 namespace YARG.Menu.MusicLibrary
 {
+    internal readonly struct ScoreContext : IEquatable<ScoreContext>
+    {
+        public readonly Guid ProfileId;
+        public readonly Instrument Instrument;
+        public readonly Difficulty Difficulty;
+        public readonly int HumanPlayerCount;
+        public readonly HighScoreHistoryMode HighScoreHistoryMode;
+
+        private ScoreContext(
+            Guid profileId,
+            Instrument instrument,
+            Difficulty difficulty,
+            int humanPlayerCount,
+            HighScoreHistoryMode highScoreHistoryMode)
+        {
+            ProfileId = profileId;
+            Instrument = instrument;
+            Difficulty = difficulty;
+            HumanPlayerCount = humanPlayerCount;
+            HighScoreHistoryMode = highScoreHistoryMode;
+        }
+
+        public static ScoreContext Capture()
+        {
+            YargProfile profile = PlayerContainer.Players
+                .Select(player => player.Profile)
+                .FirstOrDefault(profile => !profile.IsBot);
+
+            return new ScoreContext(
+                profile?.Id ?? Guid.Empty,
+                profile?.CurrentInstrument ?? Instrument.FiveFretGuitar,
+                profile?.CurrentDifficulty ?? Difficulty.Expert,
+                PlayerContainer.Players.Count(player => !player.Profile.IsBot),
+                SettingsManager.Settings.HighScoreHistory.Value);
+        }
+
+        public bool Equals(ScoreContext other)
+        {
+            return ProfileId == other.ProfileId &&
+                Instrument == other.Instrument &&
+                Difficulty == other.Difficulty &&
+                HumanPlayerCount == other.HumanPlayerCount &&
+                HighScoreHistoryMode == other.HighScoreHistoryMode;
+        }
+    }
+
     public enum MusicLibraryMode
     {
         QuickPlay,
@@ -113,11 +159,7 @@ namespace YARG.Menu.MusicLibrary
 
         // Doesn't go through PlaylistContainer because it is ephemeral
 
-        private static Instrument _lastInstrument;
-        private static Difficulty _lastDifficulty;
-        private static Guid _lastProfileId;
-        private static int _lastHumanPlayerCount;
-        private static HighScoreHistoryMode _lastHighScoreHistoryMode;
+        private static ScoreContext _lastScoreContext;
 
         private static bool _needsReload = false;
         private bool _needsNavigationSchemeRefresh = false;
@@ -253,34 +295,12 @@ namespace YARG.Menu.MusicLibrary
 
         private void SetRefreshIfNeeded()
         {
-            YargProfile profile = null;
-            foreach (YargPlayer p in PlayerContainer.Players)
-            {
-                if (!p.Profile.IsBot)
-                {
-                    profile = p.Profile;
-                    break;
-                }
-            }
-            Instrument currentInstrument = profile?.CurrentInstrument ?? Instrument.FiveFretGuitar;
-            Difficulty currentDifficulty = profile?.CurrentDifficulty ?? Difficulty.Expert;
-            Guid currentProfileId = profile?.Id ?? Guid.Empty;
-            int currentHumanPlayerCount = PlayerContainer.Players.Count(player => !player.Profile.IsBot);
-            HighScoreHistoryMode currentHighScoreHistoryMode = SettingsManager.Settings.HighScoreHistory.Value;
-            bool scoreSortContextChanged =
-                currentProfileId != _lastProfileId ||
-                currentHumanPlayerCount != _lastHumanPlayerCount ||
-                currentInstrument != _lastInstrument ||
-                currentDifficulty != _lastDifficulty ||
-                currentHighScoreHistoryMode != _lastHighScoreHistoryMode;
+            var scoreContext = ScoreContext.Capture();
+            bool scoreSortContextChanged = !scoreContext.Equals(_lastScoreContext);
 
             if (_needsReload || scoreSortContextChanged)
             {
-                _lastProfileId = currentProfileId;
-                _lastHumanPlayerCount = currentHumanPlayerCount;
-                _lastInstrument = currentInstrument;
-                _lastDifficulty = currentDifficulty;
-                _lastHighScoreHistoryMode = currentHighScoreHistoryMode;
+                _lastScoreContext = scoreContext;
                 _needsReload = false;
 
                 if (scoreSortContextChanged && SettingsManager.Settings.LibrarySort == SortAttribute.Stars)
@@ -1072,6 +1092,7 @@ namespace YARG.Menu.MusicLibrary
             public readonly string HeaderFirstSongContentStableId;
             public readonly string HeaderPreviousSongContentStableId;
             public readonly bool PreserveIndexOnDynamicSort; // Sorted by Playcount or Stars
+            public readonly ScoreContext ScoreContext;
 
             public SelectionSnapshot(
                 int selectedIndex,
@@ -1080,7 +1101,8 @@ namespace YARG.Menu.MusicLibrary
                 string headerStableId,
                 string headerFirstSongContentStableId,
                 string headerPreviousSongContentStableId,
-                bool preserveIndexOnDynamicSort)
+                bool preserveIndexOnDynamicSort,
+                ScoreContext scoreContext)
             {
                 SelectedIndex = selectedIndex;
                 SelectedStableId = selectedStableId;
@@ -1089,6 +1111,7 @@ namespace YARG.Menu.MusicLibrary
                 HeaderFirstSongContentStableId = headerFirstSongContentStableId;
                 HeaderPreviousSongContentStableId = headerPreviousSongContentStableId;
                 PreserveIndexOnDynamicSort = preserveIndexOnDynamicSort;
+                ScoreContext = scoreContext;
             }
         }
 
@@ -1154,12 +1177,18 @@ namespace YARG.Menu.MusicLibrary
                 headerStableId,
                 headerFirstSongContentStableId,
                 headerPreviousSongContentStableId,
-                preserveIndexOnDynamicSort);
+                preserveIndexOnDynamicSort,
+                ScoreContext.Capture());
         }
 
         private void RestoreSelectionSnapshot(SelectionSnapshot snapshot)
         {
+            bool scoreSortContextChanged =
+                SettingsManager.Settings.LibrarySort == SortAttribute.Stars &&
+                !snapshot.ScoreContext.Equals(ScoreContext.Capture());
+
             if (snapshot.PreserveIndexOnDynamicSort &&
+                !scoreSortContextChanged &&
                 (SettingsManager.Settings.LibrarySort == SortAttribute.Playcount ||
                     SettingsManager.Settings.LibrarySort == SortAttribute.Stars))
             {
