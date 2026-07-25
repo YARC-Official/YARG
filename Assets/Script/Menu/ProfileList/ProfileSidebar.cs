@@ -201,11 +201,16 @@ namespace YARG.Menu.ProfileList
                 RemoveDropdownOption(_engineDropdown, _enginePresetsByIndex, EnginePreset.Casual.Id);
             }
 
-            // Pro keys isn't changed by anything, apparently
+            // Precision does not change Pro Keys, but Tournament changes shared scoring and Star Power behavior.
             if (profile.GameMode is GameMode.ProKeys)
             {
-                // We will have necessarily already removed SoloTaps and Casual, so removing Precision removes all but Default
                 RemoveDropdownOption(_engineDropdown, _enginePresetsByIndex, EnginePreset.Precision.Id);
+            }
+
+            // Tournament has no meaningful vocals behavior.
+            if (profile.GameMode is GameMode.Vocals)
+            {
+                RemoveDropdownOption(_engineDropdown, _enginePresetsByIndex, EnginePreset.Tournament.Id);
             }
         }
 

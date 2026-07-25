@@ -86,6 +86,8 @@ namespace YARG.Menu.ScoreScreen
         private TextMeshProUGUI _starPowerActivations;
         [SerializeField]
         private TextMeshProUGUI _timeInStarPower;
+        [SerializeField]
+        private GameObject _starPowerStatsSeparator;
 
         [SerializeField]
         private RectTransform _advancedStatsRect;
@@ -117,6 +119,8 @@ namespace YARG.Menu.ScoreScreen
         protected bool  IsHighScore;
         protected T     Stats;
         protected bool  IsReplay;
+        protected float Percent;
+        protected bool  ShowBandBonusScore;
 
         public YargPlayer Player { get; private set; }
 
@@ -125,12 +129,15 @@ namespace YARG.Menu.ScoreScreen
             _colorizer = GetComponent<ScoreCardColorizer>();
         }
 
-        public void Initialize(bool isHighScore, YargPlayer player, T stats, bool isReplay)
+        public void Initialize(bool isHighScore, YargPlayer player, T stats, bool isReplay, float percent,
+            bool showBandBonusScore)
         {
             IsHighScore = isHighScore;
             Player = player;
             Stats = stats;
             IsReplay  = isReplay;
+            Percent = percent;
+            ShowBandBonusScore = showBandBonusScore;
         }
 
         public virtual void SetCardContents()
@@ -150,12 +157,12 @@ namespace YARG.Menu.ScoreScreen
             // Set percent
             if (SettingsManager.Settings.ShowPercentDecimals.Value)
             {
-                var percent = Mathf.Floor(Stats.Percent * 1000f) / 10f;
+                var percent = Mathf.Floor(Percent * 1000f) / 10f;
                 _accuracyPercent.text = $"{percent:0.0}%";
             }
             else
             {
-                _accuracyPercent.text = $"{Mathf.FloorToInt(Stats.Percent * 100f)}%";
+                _accuracyPercent.text = $"{Mathf.FloorToInt(Percent * 100f)}%";
             }
 
             // Set background and foreground colors
@@ -213,6 +220,9 @@ namespace YARG.Menu.ScoreScreen
             _starPowerActivations.text = ColorizePrimary(Stats.StarPowerActivationCount);
             string timeInStarPower = TimeSpan.FromSeconds(Stats.TimeInStarPower).ToString(@"m\:ss");
             _timeInStarPower.text = ColorizePrimary(timeInStarPower);
+            SetStarPowerStatsShown(Stats.TotalStarPowerPhrases > 0);
+            SetStatRowShown(_bandBonusScore, ShowBandBonusScore);
+            SetStatSectionShownIfNotEmpty(_starPowerActivations, _starPowerStatsSeparator);
             BuildOffsetHistogram();
 
             // Set engine preset tag
@@ -231,6 +241,11 @@ namespace YARG.Menu.ScoreScreen
             {
                 _enginePresetTag.SetValues(Localize.Key("Settings.PresetSetting.EnginePreset.DefaultEngines.PrecisionEngine"),
                     ColoredPillElement.ColoredPillPreset.PrecisionEngine);
+            }
+            else if (enginePresetId == EnginePreset.Tournament.Id)
+            {
+                _enginePresetTag.SetValues(Localize.Key("Settings.PresetSetting.EnginePreset.DefaultEngines.TournamentEngine"),
+                    ColoredPillElement.ColoredPillPreset.TournamentEngine);
             }
             else if (enginePresetId == EnginePreset.SoloTaps.Id)
             {
@@ -265,6 +280,48 @@ namespace YARG.Menu.ScoreScreen
             _modifiersUsedTag.gameObject.SetActive(nonEngineModifiersUsed);
             _modifiersUsedContainer.gameObject.SetActive(anyModifiersUsed);
             _modifiersUsedSeparator.gameObject.SetActive(anyModifiersUsed);
+        }
+
+        private void SetStarPowerStatsShown(bool shown)
+        {
+            SetStatRowShown(_starpowerPhrases, shown);
+            SetStatRowShown(_starPowerActivations, shown);
+            SetStatRowShown(_timeInStarPower, shown);
+        }
+
+        private static void SetStatRowShown(TextMeshProUGUI statValue, bool shown)
+        {
+            if (statValue == null || statValue.transform.parent == null)
+            {
+                return;
+            }
+
+            statValue.transform.parent.gameObject.SetActive(shown);
+        }
+
+        private static void SetStatSectionShownIfNotEmpty(TextMeshProUGUI statValue, GameObject separator)
+        {
+            var section = statValue?.transform.parent?.parent;
+            if (section == null)
+            {
+                return;
+            }
+
+            var shown = false;
+            foreach (Transform child in section)
+            {
+                if (child.gameObject.activeSelf && child.GetComponent<StatInfo>() != null)
+                {
+                    shown = true;
+                    break;
+                }
+            }
+
+            section.gameObject.SetActive(shown);
+            if (separator != null)
+            {
+                separator.SetActive(shown);
+            }
         }
 
         private void BuildOffsetHistogram()

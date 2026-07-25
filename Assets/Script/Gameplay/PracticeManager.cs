@@ -213,7 +213,8 @@ namespace YARG.Gameplay
                 player.BaseEngine.AllowStarPower(allowPracticeSP);
             }
 
-            GameManager.VocalTrack.AllowStarPower = allowPracticeSP;
+            GameManager.VocalTrack.AllowStarPower = allowPracticeSP && GameManager.Players.Any(player =>
+                player.Player.Profile.GameMode == GameMode.Vocals && player.BaseParameters.StarPowerEnabled);
             GameManager.VocalTrack.SetPracticeSection(tickStart, tickEnd);
 
             GameManager.SetSongTime(timeStart, SettingsManager.Settings.PracticeRestartDelay.Value);

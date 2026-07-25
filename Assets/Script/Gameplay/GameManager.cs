@@ -682,7 +682,8 @@ namespace YARG.Gameplay
                     IsHighScore = player.Score > player.LastHighScore,
                     Player = player.Player,
                     Stats = player.BaseStats,
-                    IsReplay = player.Player.IsReplay
+                    IsReplay = player.Player.IsReplay,
+                    Percent = GetScorePercent(player),
                 }).ToArray(),
                 BandScore = BandScore,
                 BandStars = (int) BandStars,
@@ -744,7 +745,7 @@ namespace YARG.Gameplay
                     IsFc = player.IsFc,
                     IsReplay = player.Player.IsReplay,
 
-                    Percent = player.BaseStats.Percent
+                    Percent = GetScorePercent(player)
                 });
 
                 starScoreCutoffsList.Add(player.BaseEngine.StarScoreThresholds);
@@ -820,6 +821,25 @@ namespace YARG.Gameplay
                 PlayedWithReplay = GlobalVariables.State.PlayingWithReplay,
                 HasBots = HasBots,
             }, playerEntries);
+        }
+
+        private static float GetScorePercent(BasePlayer player)
+        {
+            return GetScorePercent(player.BaseStats, player.BaseParameters,
+                player.BaseEngine.MaxScoreWithoutStarPower);
+        }
+
+        internal static float GetScorePercent(BaseStats stats, BaseEngineParameters engineParameters,
+            int maxScoreWithoutStarPower)
+        {
+            if (!engineParameters.NoteScoreScalesWithAccuracy || engineParameters.StarPowerEnabled)
+            {
+                return stats.Percent;
+            }
+
+            return maxScoreWithoutStarPower <= 0
+                ? 1f
+                : Mathf.Clamp01(stats.TotalScore / (float) maxScoreWithoutStarPower);
         }
 
         public void ForceQuitSong()
