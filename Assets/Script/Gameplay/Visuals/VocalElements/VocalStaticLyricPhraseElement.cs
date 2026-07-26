@@ -49,7 +49,6 @@ namespace YARG.Gameplay.Visuals
 
         private PreparedPhrase _preparedPhrase;
         private float _x;
-        private bool _isFuture = true;
         private int _lastRenderState = int.MinValue;
 
         private Utf16ValueStringBuilder _builder;
@@ -67,7 +66,6 @@ namespace YARG.Gameplay.Visuals
         {
             _preparedPhrase = preparedPhrase;
             _x = x;
-            _isFuture = true;
             _builder = ZString.CreateStringBuilder(false);
             _lastRenderState = int.MinValue;
         }
@@ -76,11 +74,6 @@ namespace YARG.Gameplay.Visuals
         {
             transform.localPosition = transform.localPosition.WithX(_x);
             _phraseText.text = _preparedPhrase.FutureText;
-        }
-
-        public void Activate()
-        {
-            _isFuture = false;
             _lastRenderState = int.MinValue;
         }
 
@@ -94,7 +87,6 @@ namespace YARG.Gameplay.Visuals
                     result.Add(syllable);
                 }
             }
-            _isFuture = true;
             _lastRenderState = int.MinValue;
             _builder.Clear();
             DisableIntoPool();
@@ -104,11 +96,10 @@ namespace YARG.Gameplay.Visuals
 
         protected override void UpdateElement()
         {
-            if (_isFuture)
+            if (GameManager.VisualTime < ElementTime - 0.5d)
             {
                 return;
             }
-
             var renderState = GetRenderState();
             if (renderState == _lastRenderState)
             {

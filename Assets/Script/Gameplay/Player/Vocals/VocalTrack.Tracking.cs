@@ -83,9 +83,9 @@ namespace YARG.Gameplay.Player
                         // The next phrase isn't very soon, so shift to a gap
                         return StaticLyricShiftType.PhraseToGap;
                     }
-                    var timeBetweenLyrics = newLeftmostPhrase.Lyrics[0].Time - currentLeftmostPhrase.Lyrics[^1].Time;
+                    var timeBetweenLyrics = newLeftmostPhrase.Lyrics[0].Time - currentLeftmostPhrase.Lyrics[^1].TimeEnd;
                     // The next phrase is imminent, so shift straight to it
-                    return (currentLeftmostPhrase.JoinWithNext || timeBetweenLyrics < StaticPhraseHelpers.IMMINENCE_THRESHOLD) ? StaticLyricShiftType.WithinPhrase : StaticLyricShiftType.PhraseToPhrase;
+                    return timeBetweenLyrics < StaticPhraseHelpers.IMMINENCE_THRESHOLD ? StaticLyricShiftType.WithinPhrase : StaticLyricShiftType.PhraseToPhrase;
                 }
 
 
