@@ -244,10 +244,19 @@ namespace YARG.Audio.BASS
             return _songPositionTracker.GetSongPosition();
         }
 
-        protected override double GetControlPosition_Internal()
+        /// <summary>
+        /// Samples BASS playback once, then derives heard and predictive control positions from that
+        /// same sample. BASSmix already compensates this position for mixer playback buffering.
+        /// </summary>
+        protected override SyncPosition GetSyncPosition_Internal()
         {
             double bassPosition = _songPositionTracker.GetSongPosition();
-            return _playbackTimeline.GetControlPosition(bassPosition);
+            return _playbackTimeline.GetSyncPosition(bassPosition);
+        }
+
+        protected override double GetControlPosition_Internal()
+        {
+            return GetSyncPosition_Internal().Control;
         }
 
         protected override double GetTempoStreamLatency_Internal()
