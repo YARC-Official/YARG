@@ -70,6 +70,7 @@ MonoBehaviour:
   _ringRainbowMaterial: {fileID: 2100000, guid: 38b352628af319449b76ad71b1dea81a,
     type: 2}
   _partSelectedColor: {r: 0.18039216, g: 0.8509804, b: 1, a: 0}
+  _selectionBackdropSprite: {fileID: 21300000, guid: 9cb16eda6bfc31f4fb4ad264387e59cd, type: 3}
 --- !u!1 &431087603098892755
 GameObject:
   m_ObjectHideFlags: 0

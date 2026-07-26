@@ -109,6 +109,7 @@ GameObject:
   - component: {fileID: 2335544872904412327}
   - component: {fileID: 7078011472145303745}
   - component: {fileID: 7218480041909641848}
+  - component: {fileID: 5820147392658104736}
   m_Layer: 5
   m_Name: DifficultyItem
   m_TagString: Untagged
@@ -431,6 +432,19 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!225 &5820147392658104736
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2176243544762969456}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Alpha: 1
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 0
 --- !u!1 &8088143024879394538
 GameObject:
   m_ObjectHideFlags: 0
