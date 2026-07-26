@@ -421,6 +421,7 @@ namespace YARG.Gameplay.Player
             // Not sure if I need to set this every time, but it was being weird if I didn't
             MaterialPropertyInstance.Instance.SetColor(OutlineColorID, VocalTrack.Colors[Player.Profile.HarmonyIndex]);
             _needleRenderer.SetPropertyBlock(MaterialPropertyInstance.Instance);
+            _outlineEnabled = enableOutline;
         }
 
         private void UpdateSingNeedle()
