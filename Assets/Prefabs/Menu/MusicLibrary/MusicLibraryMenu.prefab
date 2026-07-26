@@ -3738,6 +3738,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f644969860af1cf4aaeaf4d71293368f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  TextFieldType: 0
   _textField: {fileID: 4030813025972567531}
 --- !u!114 &1820866446119341536
 MonoBehaviour:
@@ -9747,7 +9748,7 @@ Canvas:
   m_AdditionalShaderChannelsFlag: 25
   m_UpdateRectTransformForStandalone: 0
   m_SortingLayerID: 0
-  m_SortingOrder: 102
+  m_SortingOrder: 104
   m_TargetDisplay: 0
 --- !u!114 &5928414925792076050
 MonoBehaviour:
