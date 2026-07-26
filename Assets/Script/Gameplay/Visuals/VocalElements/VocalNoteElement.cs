@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Serialization;
 using YARG.Core.Chart;
@@ -87,21 +88,22 @@ namespace YARG.Gameplay.Visuals
                 lastPoint = p2;
             }
 
+            float width = VocalTrack.CurrentNoteWidth;
+
             // Add padding on the note (start and end)
             if (_points.Count >= 2)
             {
                 _points[0] = _points[0].AddX(NOTE_POINT_PADDING);
                 _points[^1] = _points[^1].AddX(-NOTE_POINT_PADDING);
 
-                _glowPoints[0] = _glowPoints[0].AddX(-NOTE_POINT_PADDING);
-                _glowPoints[^1] = _glowPoints[^1].AddX(NOTE_POINT_PADDING);
+                _glowPoints[0] = _glowPoints[0].AddX(-width);
+                _glowPoints[^1] = _glowPoints[^1].AddX(width);
 
                 // Add the padding to our tracked total length
-                length += NOTE_POINT_PADDING * 2f;
+                length += 2 * width;
             }
 
             // Set line info
-            float width = VocalTrack.CurrentNoteWidth;
             for (int lineIndex = 0; lineIndex < _lineRenderers.Length; lineIndex++)
             {
                 var line = _lineRenderers[lineIndex];
