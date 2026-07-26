@@ -703,7 +703,7 @@ namespace YARG.Gameplay.Player
             return index switch
             {
                 // In 2-lane mode, HARM2 gets HARM3 as a merged part.
-                1 => new StaticPhraseTracker(parts[1].MergedPhrases),
+                1 => new StaticPhraseTracker(parts[1].MergedStaticLyricPhrases),
                 // HARM3 is handled by HARM2 in 2-lane mode.
                 _ => null
             };
