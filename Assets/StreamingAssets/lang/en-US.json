@@ -96,6 +96,7 @@
             "ProDrums": "Pro Drums",
             "FiveLaneDrums": "Drums (5-Lane)",
             "EliteDrums": "Elite Drums",
+            "AggregateDrums": "Aggregate Drums",
             "ProGuitar_17": "Pro Guitar (17-Fret)",
             "ProGuitar_22": "Pro Guitar (22-Fret)",
             "ProBass_17": "Pro Bass (17-Fret)",
@@ -218,7 +219,7 @@
         },
         "Toast": {
             "AutoCalibrationScore": "Score saving disabled: Automatic calibration active.",
-            "NoFailScore": "Score saving disabled: No fail toggle had to reset fail meter.",
+            "NoFailScore": "Score saving disabled: No fail was toggled.",
             "ResumeAfterFailInvalidate": "Score saving disabled: Resuming after failure invalidated score.",
             "ProfileCreated": "Profile created for new device: {0}\nTime to do some YARGin!",
             "TooManyPauses": "Score saving disabled: Too many pauses.",
