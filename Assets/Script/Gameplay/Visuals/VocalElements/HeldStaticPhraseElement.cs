@@ -135,5 +135,13 @@ namespace YARG.Gameplay.Visuals
 
             return hash.ToHashCode();
         }
+
+        public void Reset()
+        {
+            _heldPhrases.Clear();
+            _lastRenderState = int.MinValue;
+            _builder.Clear();
+            _phraseText.text = string.Empty;
+        }
     }
 }

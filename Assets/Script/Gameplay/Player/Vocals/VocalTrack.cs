@@ -580,6 +580,7 @@ namespace YARG.Gameplay.Player
                 _highestEnqueuedPhrasePairIndices[i] = -1;
                 _rightEdges[i] = DEFAULT_STATIC_LYRICS_RIGHT_EDGE;
                 _noMoreStaticPhrases[i] = false;
+                _staticLyricHoldText[i].Reset();
             }
 
 

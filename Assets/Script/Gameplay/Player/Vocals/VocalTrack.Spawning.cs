@@ -148,7 +148,7 @@ namespace YARG.Gameplay.Player
             {
                 case StaticLyricShiftType.None:
                     break;
-                case StaticLyricShiftType.PhraseToGap:
+                case StaticLyricShiftType.PhraseToLargeGap:
                 {
                     if (queue.Count == 0)
                     {
@@ -167,8 +167,8 @@ namespace YARG.Gameplay.Player
                     _staticLyricHoldText[harmonyIndex].AddSyllables(leftmostPhraseElement.Dismiss());
                     break;
                 }
-                case StaticLyricShiftType.WithinPhrase:
-                case StaticLyricShiftType.PhraseToPhrase:
+                case StaticLyricShiftType.NoGap:
+                case StaticLyricShiftType.SmallGap:
                 {
                     if (queue.Count < 2)
                     {
@@ -180,7 +180,7 @@ namespace YARG.Gameplay.Player
                         return;
                     }
 
-                    var shiftAmount = change == StaticLyricShiftType.WithinPhrase ? VocalLyricContainer.SHIFT_PHRASE_SPACING : VocalLyricContainer.STATIC_PHRASE_SPACING;
+                    var shiftAmount = change == StaticLyricShiftType.NoGap ? VocalLyricContainer.SHIFT_PHRASE_SPACING : VocalLyricContainer.STATIC_PHRASE_SPACING;
                     //var shiftDuration = change == StaticLyricShiftType.WithinPhrase ? STATIC_LYRIC_SHIFT_DURATION / 2 : STATIC_LYRIC_SHIFT_DURATION;
                     var leftmostPhraseElement = queue.Dequeue();
                     var leftShift = leftmostPhraseElement.Width + shiftAmount;
@@ -195,7 +195,7 @@ namespace YARG.Gameplay.Player
                     _staticLyricHoldText[harmonyIndex].AddSyllables(leftmostPhraseElement.Dismiss());
                     break;
                 }
-                case StaticLyricShiftType.GapToPhrase:
+                case StaticLyricShiftType.LargeGapToPhrase:
                 {
                     if (queue.Count < 1)
                     {

@@ -13,10 +13,10 @@ namespace YARG.Gameplay.Player
         public enum StaticLyricShiftType
         {
             None,
-            WithinPhrase,
-            PhraseToPhrase,
-            PhraseToGap,
-            GapToPhrase,
+            NoGap, // Intended for when there is almost no gap between lyrics in the two phrases.
+            SmallGap, // Intended for when there is small gap between lyrics in the two phrases, but the phrases are adjacent.
+            PhraseToLargeGap,
+            LargeGapToPhrase,
             FinalPhraseComplete,
             NoPhrases
         }
@@ -26,7 +26,7 @@ namespace YARG.Gameplay.Player
 
             public List<VocalsPhrase> Phrases { get; }
 
-            // Index of the the phrase that should be leftmost in the static lyrics display. This updates as soon as the last note
+            // Index of the phrase that should be leftmost in the static lyrics display. This updates as soon as the last note
             // of a phrase ends, not when the phrase itself ends
             private int _leftmostPhraseIndex = 0;
 
@@ -60,7 +60,7 @@ namespace YARG.Gameplay.Player
                     if (currentLeftmostPhrase.Time < time + StaticPhraseHelpers.IMMINENCE_THRESHOLD)
                     {
                         _inGap = false;
-                        return StaticLyricShiftType.GapToPhrase;
+                        return StaticLyricShiftType.LargeGapToPhrase;
                     }
                 }
                 // We've passed the last note of the leftmost phrase, so it's time to shift
@@ -81,11 +81,11 @@ namespace YARG.Gameplay.Player
                         _inGap = true;
 
                         // The next phrase isn't very soon, so shift to a gap
-                        return StaticLyricShiftType.PhraseToGap;
+                        return StaticLyricShiftType.PhraseToLargeGap;
                     }
                     var timeBetweenLyrics = newLeftmostPhrase.Lyrics[0].Time - currentLeftmostPhrase.Lyrics[^1].TimeEnd;
                     // The next phrase is imminent, so shift straight to it
-                    return timeBetweenLyrics < StaticPhraseHelpers.IMMINENCE_THRESHOLD ? StaticLyricShiftType.WithinPhrase : StaticLyricShiftType.PhraseToPhrase;
+                    return timeBetweenLyrics < StaticPhraseHelpers.IMMINENCE_THRESHOLD ? StaticLyricShiftType.NoGap : StaticLyricShiftType.SmallGap;
                 }
 
 
