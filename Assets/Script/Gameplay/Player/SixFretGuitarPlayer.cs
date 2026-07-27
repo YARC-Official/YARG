@@ -182,7 +182,7 @@ namespace YARG.Gameplay.Player
         {
             if (note.Fret == (int)SixFretGuitarFret.Open)
             {
-                lane.ToggleOpen(true);
+                lane.ToggleFullWidth(true);
             }
             else
             {

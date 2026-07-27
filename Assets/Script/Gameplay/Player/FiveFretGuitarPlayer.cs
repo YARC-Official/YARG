@@ -143,7 +143,7 @@ namespace YARG.Gameplay.Player
 
         public override void Initialize(int index, YargPlayer player, SongChart chart, TrackView trackView, StemMixer mixer, int? currentHighScore)
         {
-            _stem = player.Profile.CurrentInstrument.ToSongStem();
+            _stem = player.Profile.CurrentInstrument.ToSongStems().First();
             if (_stem == SongStem.Bass && mixer[SongStem.Bass] == null)
             {
                 _stem = SongStem.Rhythm;
@@ -196,7 +196,7 @@ namespace YARG.Gameplay.Player
             }
 
             var engine = BuildEngine(EngineParams);
-            EngineContainer = GameManager.EngineManager.Register(engine, NoteTrack.Instrument, Chart, Player.RockMeterPreset);
+            EngineContainer = GameManager.EngineManager.Register(engine, NoteTrack, Chart, Player.RockMeterPreset);
 
             HitWindow = EngineParams.HitWindow;
 
@@ -478,7 +478,7 @@ namespace YARG.Gameplay.Player
         {
             if (note.Fret == (int) FiveFretGuitarFret.Open)
             {
-                lane.ToggleOpen(true);
+                lane.ToggleFullWidth(true);
             }
             else
             {
@@ -681,7 +681,7 @@ namespace YARG.Gameplay.Player
         public override (ReplayFrame Frame, ReplayStats Stats) ConstructReplayData()
         {
             var frame = new ReplayFrame(Player.Profile, EngineParams, Engine.EngineStats, ReplayInputs.ToArray());
-            return (frame, Engine.EngineStats.ConstructReplayStats(Player.Profile.Name));
+            return (frame, Engine.EngineStats.ConstructReplayStats(Player.Profile.Name, Player.IsReplay));
         }
 
 
