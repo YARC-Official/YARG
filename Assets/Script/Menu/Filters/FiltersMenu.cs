@@ -11,6 +11,7 @@ using YARG.Core.Game;
 using YARG.Core.Input;
 using YARG.Core.Song;
 using YARG.Core.Utility;
+using YARG.Helpers;
 using YARG.Localization;
 using YARG.Menu.Navigation;
 using YARG.Menu.MusicLibrary;
@@ -22,7 +23,6 @@ using YARG.Player;
 using YARG.Playlists;
 using YARG.Song;
 using YARG.Settings;
-using YARG.Helpers;
 
 namespace YARG.Menu.Filters
 {
@@ -201,7 +201,7 @@ namespace YARG.Menu.Filters
             var library = FindFirstObjectByType<MusicLibrary.MusicLibraryMenu>();
             library?.SetSidebarDifficultiesVisible(false);
 
-            Navigator.Instance.PushScheme(new NavigationScheme(new()
+            _ = Navigator.Instance.PushScheme(new NavigationScheme(new()
             {
                 new NavigationScheme.Entry(MenuAction.Green, "Menu.Common.Confirm", HandleConfirm),
                 new NavigationScheme.Entry(MenuAction.Red, "Menu.Common.Back", HandleBack, hide: true),
@@ -1648,6 +1648,25 @@ namespace YARG.Menu.Filters
 
         private static string GetIntensityLabel(SongEntry entry, Instrument instrument)
         {
+            if (instrument == Instrument.EliteDrums)
+            {
+                var preferredInstrument = MidiDrumkitHelper.GetPreferredInstrumentForSong(entry);
+                if (!preferredInstrument.HasValue)
+                    return Localize.Key(IntensityLabelNoPartKey);
+
+                var preferredPart = entry[preferredInstrument.Value];
+                if (!preferredPart.IsActive())
+                    return Localize.Key(IntensityLabelNoPartKey);
+
+                int preferredIntensity = preferredPart.Intensity;
+                if (preferredIntensity < 0) return Localize.Key(IntensityLabelUnknownKey);
+
+                if (preferredIntensity >= IntensityLabelKeys.Length)
+                    return GetIntensityLabelByIndex(IntensityLabelKeys.Length - 1);
+
+                return GetIntensityLabelByIndex(preferredIntensity);
+            }
+
             var part = entry[instrument];
             if (!part.IsActive()) return Localize.Key(IntensityLabelNoPartKey);
 

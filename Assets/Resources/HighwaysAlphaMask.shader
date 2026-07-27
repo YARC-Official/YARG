@@ -45,7 +45,8 @@ Shader "HighwaysAlphaMask"
                 float fadeEndPos   = _YargFadeParams[index * 2 + 1];
                 // Euclidean distance from camera to this fragment
                 float3 camPos = YargWorldSpaceCameraPos(IN.positionWS);
-                float dist = distance(camPos, IN.positionWS);
+                // float dist = distance(camPos, IN.positionWS);
+                float dist = IN.positionWS.z - camPos.z;
                 float alpha = 0.0;
 
                 if (dist < fadeStartPos)

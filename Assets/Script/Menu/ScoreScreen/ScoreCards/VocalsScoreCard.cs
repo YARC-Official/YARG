@@ -16,5 +16,10 @@ namespace YARG.Menu.ScoreScreen
                 .LoadAssetAsync<Sprite>($"InstrumentIcons[{Player.Profile.CurrentInstrument.ToResourceName()}]")
                 .WaitForCompletion();
         }
+
+        // Vocals has no advanced stats
+        public override void SetAdvancedStatsShown(bool showAdvanced)
+        {
+        }
     }
 }

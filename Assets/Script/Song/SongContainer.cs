@@ -53,6 +53,7 @@ namespace YARG.Song
         ProDrums,
         FiveLaneDrums,
         EliteDrums,
+        AggregateDrums,
         ProGuitar_17,
         ProGuitar_22,
         ProBass_17,
@@ -105,6 +106,7 @@ namespace YARG.Song
         private static SongCategory[] _sortSongLengths = Array.Empty<SongCategory>();
         private static SongCategory[] _sortDatesAdded = Array.Empty<SongCategory>();
         private static Dictionary<Instrument, SongCategory[]> _sortInstruments = new();
+        private static SongCategory[] _sortAggregateDrums = Array.Empty<SongCategory>();
 
         private static SongCategory[] _playables = null;
         private static SongCategory[] _sortStars = Array.Empty<SongCategory>();
@@ -112,6 +114,8 @@ namespace YARG.Song
         private static Guid _starsCacheProfileId = Guid.Empty;
         private static Instrument _starsCacheInstrument = Instrument.Band;
         private static Difficulty _starsCacheDifficulty = Difficulty.Easy;
+        private static HighScoreHistoryMode _starsCacheHighScoreHistoryMode;
+        private static bool _starsCacheUsesBandScores;
         private static bool _starsCacheValid;
 
         public static IReadOnlyDictionary<string, List<SongEntry>> Titles => _sortedSongs.Titles;
@@ -127,6 +131,7 @@ namespace YARG.Song
         public static IReadOnlyDictionary<SortString, List<SongEntry>> Sources => _sortedSongs.Sources;
         public static IReadOnlyDictionary<SortString, SortedDictionary<SortString, List<SongEntry>>> ArtistAlbums => _sortedSongs.ArtistAlbums;
         public static IReadOnlyDictionary<Instrument, SortedDictionary<int, List<SongEntry>>> Instruments => _sortedSongs.Instruments;
+        public static IReadOnlyDictionary<int, List<SongEntry>> AggregateDrums => _sortedSongs.AggregateDrums;
 
         public static int Count => _songs.Length;
         // public static IReadOnlyDictionary<HashWrapper, List<SongEntry>> SongsByHash => _songCache.Entries;
@@ -190,48 +195,58 @@ namespace YARG.Song
 
         public static SongCategory[] GetSortedCategory(SortAttribute sort)
         {
-            var proposedSort = sort switch
-            {
-                SortAttribute.Name => _sortTitles,
-                SortAttribute.Artist => _sortArtists,
-                SortAttribute.Album => _sortAlbums,
-                SortAttribute.Genre => _sortGenres,
-                SortAttribute.Subgenre => _sortSubgenres,
-                SortAttribute.Year => _sortYears,
-                SortAttribute.Charter => _sortCharters,
-                SortAttribute.Folder => _sortPlaylists,
-                SortAttribute.Source => _sortSources,
-                SortAttribute.Artist_Album => _sortArtistAlbums,
-                SortAttribute.SongLength => _sortSongLengths,
-                SortAttribute.DateAdded => _sortDatesAdded,
-                SortAttribute.Playcount => GetPlaycounts(),
-                SortAttribute.Playable => GetPlayableSongs(),
-                SortAttribute.Stars => GetStars(),
-                SortAttribute.Random => GetRandomSort(),
+            var proposedSort = Array.Empty<SongCategory>();
 
-                SortAttribute.FiveFretGuitar => _sortInstruments[Instrument.FiveFretGuitar],
-                SortAttribute.FiveFretBass   => _sortInstruments[Instrument.FiveFretBass],
-                SortAttribute.FiveFretRhythm => _sortInstruments[Instrument.FiveFretRhythm],
-                SortAttribute.FiveFretCoop   => _sortInstruments[Instrument.FiveFretCoopGuitar],
-                SortAttribute.Keys           => _sortInstruments[Instrument.Keys],
-                SortAttribute.SixFretGuitar  => _sortInstruments[Instrument.SixFretGuitar],
-                SortAttribute.SixFretBass    => _sortInstruments[Instrument.SixFretBass],
-                SortAttribute.SixFretRhythm  => _sortInstruments[Instrument.SixFretRhythm],
-                SortAttribute.SixFretCoop    => _sortInstruments[Instrument.SixFretCoopGuitar],
-                SortAttribute.FourLaneDrums  => _sortInstruments[Instrument.FourLaneDrums],
-                SortAttribute.ProDrums       => _sortInstruments[Instrument.ProDrums],
-                SortAttribute.FiveLaneDrums  => _sortInstruments[Instrument.FiveLaneDrums],
-                SortAttribute.EliteDrums     => _sortInstruments[Instrument.EliteDrums],
-                SortAttribute.ProGuitar_17   => _sortInstruments[Instrument.ProGuitar_17Fret],
-                SortAttribute.ProGuitar_22   => _sortInstruments[Instrument.ProGuitar_22Fret],
-                SortAttribute.ProBass_17     => _sortInstruments[Instrument.ProBass_17Fret],
-                SortAttribute.ProBass_22     => _sortInstruments[Instrument.ProBass_22Fret],
-                SortAttribute.ProKeys        => _sortInstruments[Instrument.ProKeys],
-                SortAttribute.Vocals         => _sortInstruments[Instrument.Vocals],
-                SortAttribute.Harmony        => _sortInstruments[Instrument.Harmony],
-                SortAttribute.Band           => _sortInstruments[Instrument.Band],
-                _ => null
-            };
+            try
+            {
+                proposedSort = sort switch
+                {
+                    SortAttribute.Name         => _sortTitles,
+                    SortAttribute.Artist       => _sortArtists,
+                    SortAttribute.Album        => _sortAlbums,
+                    SortAttribute.Genre        => _sortGenres,
+                    SortAttribute.Subgenre     => _sortSubgenres,
+                    SortAttribute.Year         => _sortYears,
+                    SortAttribute.Charter      => _sortCharters,
+                    SortAttribute.Folder       => _sortPlaylists,
+                    SortAttribute.Source       => _sortSources,
+                    SortAttribute.Artist_Album => _sortArtistAlbums,
+                    SortAttribute.SongLength   => _sortSongLengths,
+                    SortAttribute.DateAdded    => _sortDatesAdded,
+                    SortAttribute.Playcount    => GetPlaycounts(),
+                    SortAttribute.Playable     => GetPlayableSongs(),
+                    SortAttribute.Stars        => GetStars(),
+                    SortAttribute.Random       => GetRandomSort(),
+
+                    SortAttribute.FiveFretGuitar => _sortInstruments[Instrument.FiveFretGuitar],
+                    SortAttribute.FiveFretBass   => _sortInstruments[Instrument.FiveFretBass],
+                    SortAttribute.FiveFretRhythm => _sortInstruments[Instrument.FiveFretRhythm],
+                    SortAttribute.FiveFretCoop   => _sortInstruments[Instrument.FiveFretCoopGuitar],
+                    SortAttribute.Keys           => _sortInstruments[Instrument.Keys],
+                    SortAttribute.SixFretGuitar  => _sortInstruments[Instrument.SixFretGuitar],
+                    SortAttribute.SixFretBass    => _sortInstruments[Instrument.SixFretBass],
+                    SortAttribute.SixFretRhythm  => _sortInstruments[Instrument.SixFretRhythm],
+                    SortAttribute.SixFretCoop    => _sortInstruments[Instrument.SixFretCoopGuitar],
+                    SortAttribute.FourLaneDrums  => _sortInstruments[Instrument.FourLaneDrums],
+                    SortAttribute.ProDrums       => _sortInstruments[Instrument.ProDrums],
+                    SortAttribute.FiveLaneDrums  => _sortInstruments[Instrument.FiveLaneDrums],
+                    SortAttribute.EliteDrums     => _sortInstruments[Instrument.EliteDrums],
+                	SortAttribute.AggregateDrums => _sortAggregateDrums,
+                    SortAttribute.ProGuitar_17   => _sortInstruments[Instrument.ProGuitar_17Fret],
+                    SortAttribute.ProGuitar_22   => _sortInstruments[Instrument.ProGuitar_22Fret],
+                    SortAttribute.ProBass_17     => _sortInstruments[Instrument.ProBass_17Fret],
+                    SortAttribute.ProBass_22     => _sortInstruments[Instrument.ProBass_22Fret],
+                    SortAttribute.ProKeys        => _sortInstruments[Instrument.ProKeys],
+                    SortAttribute.Vocals         => _sortInstruments[Instrument.Vocals],
+                    SortAttribute.Harmony        => _sortInstruments[Instrument.Harmony],
+                    SortAttribute.Band           => _sortInstruments[Instrument.Band],
+                    _                            => null
+                };
+            }
+            catch (KeyNotFoundException)
+            {
+                YargLogger.LogFormatDebug("Invalid Sort Attribute: {0}", sort);
+            }
 
             // Make life better when people go back a version and we
             // encounter sorts we don't understand by providing a
@@ -475,16 +490,23 @@ namespace YARG.Song
             }
 
             var profile = player.Profile;
+            bool useBandScores = ScoreContainer.UseBandHighScoresForCurrentPlayers;
+            var cacheInstrument = profile.GameMode == GameMode.EliteDrums
+                ? Instrument.EliteDrums
+                : profile.CurrentInstrument;
             if (_starsCacheValid &&
                 _starsCacheProfileId == profile.Id &&
-                _starsCacheInstrument == profile.CurrentInstrument &&
-                _starsCacheDifficulty == profile.CurrentDifficulty)
+                _starsCacheInstrument == cacheInstrument &&
+                _starsCacheDifficulty == profile.CurrentDifficulty &&
+                _starsCacheHighScoreHistoryMode == SettingsManager.Settings.HighScoreHistory.Value &&
+                _starsCacheUsesBandScores == useBandScores)
             {
                 return _sortStars;
             }
 
             _runtimeStars.Clear();
-            Dictionary<HashWrapper, StarAmount> bestStars = ScoreContainer.GetBestStarsForSong(profile);
+            Dictionary<HashWrapper, StarAmount> bestStars =
+                ScoreContainer.GetBestStarsForCurrentPlayers(profile);
             foreach (var song in _songs)
             {
                 if (!bestStars.TryGetValue(song.Hash, out StarAmount stars))
@@ -495,7 +517,10 @@ namespace YARG.Song
             }
 
             Instrument instrument = player.Profile.CurrentInstrument;
-            IntensityComparer comparer = new IntensityComparer(instrument);
+            bool useAggregateDrums = profile.GameMode == GameMode.EliteDrums;
+            IComparer<SongEntry> comparer = useAggregateDrums
+                ? new AggregateDrumsIntensityComparer()
+                : new IntensityComparer(instrument);
 
             // Use Dictionary instead of array due to complex enum values
             Dictionary<StarAmount, List<SongEntry>> grouped = new Dictionary<StarAmount, List<SongEntry>>();
@@ -503,7 +528,18 @@ namespace YARG.Song
             foreach (var song in _songs)
             {
                 StarAmount key = StarAmount.NoPart;
-                if (song[instrument].IsActive() && !_runtimeStars.TryGetValue(song, out key))
+                if (useAggregateDrums)
+                {
+                    var preferredInstrument = MidiDrumkitHelper.GetPreferredInstrumentForSong(song);
+                    if (preferredInstrument.HasValue && song[preferredInstrument.Value].IsActive())
+                    {
+                        if (!_runtimeStars.TryGetValue(song, out key))
+                        {
+                            key = StarAmount.None;
+                        }
+                    }
+                }
+                else if (song[instrument].IsActive() && !_runtimeStars.TryGetValue(song, out key))
                 {
                     key = StarAmount.None;
                 }
@@ -532,8 +568,10 @@ namespace YARG.Song
 
             _sortStars = starCategories;
             _starsCacheProfileId = profile.Id;
-            _starsCacheInstrument = profile.CurrentInstrument;
+            _starsCacheInstrument = cacheInstrument;
             _starsCacheDifficulty = profile.CurrentDifficulty;
+            _starsCacheHighScoreHistoryMode = SettingsManager.Settings.HighScoreHistory.Value;
+            _starsCacheUsesBandScores = useBandScores;
             _starsCacheValid = true;
             return _sortStars;
         }
@@ -626,6 +664,16 @@ namespace YARG.Song
                 catch (Exception ex)
                 {
                     YargLogger.LogException(ex);
+                }
+            }
+
+            _sortAggregateDrums = new SongCategory[_sortedSongs.AggregateDrums.Count];
+            {
+                int index = 0;
+                foreach (var difficulty in _sortedSongs.AggregateDrums)
+                {
+                    string categoryName = $"{SortAttribute.AggregateDrums.ToLocalizedName()} [{difficulty.Key}]";
+                    _sortAggregateDrums[index++] = new SongCategory(categoryName, difficulty.Value.ToArray(), categoryName);
                 }
             }
 
@@ -826,6 +874,36 @@ namespace YARG.Song
                 }
 
                 return intensityX.CompareTo(intensityY);
+            }
+        }
+
+        readonly struct AggregateDrumsIntensityComparer : IComparer<SongEntry>
+        {
+            public int Compare(SongEntry x, SongEntry y)
+            {
+                int intensityX = GetPreferredIntensity(x);
+                int intensityY = GetPreferredIntensity(y);
+
+                if (intensityX == intensityY)
+                {
+                    return SongEntrySorting.MetadataComparer.Instance.Compare(x, y);
+                }
+                else if (intensityX == -1)
+                {
+                    return 1;
+                }
+                else if (intensityY == -1)
+                {
+                    return -1;
+                }
+
+                return intensityX.CompareTo(intensityY);
+            }
+
+            private static int GetPreferredIntensity(SongEntry entry)
+            {
+                var instrument = MidiDrumkitHelper.GetPreferredInstrumentForSong(entry);
+                return instrument.HasValue ? entry[instrument.Value].Intensity : -1;
             }
         }
     }

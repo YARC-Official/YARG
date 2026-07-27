@@ -119,6 +119,11 @@ namespace YARG.Gameplay.Visuals
             _keys[index].PlayMissParticles();
         }
 
+        public void SetSustained(int index, bool sustained)
+        {
+            _keys[index].SetSustained(sustained);
+        }
+
         public void SetBreMode(bool breMode)
         {
             foreach (var fret in _keys)

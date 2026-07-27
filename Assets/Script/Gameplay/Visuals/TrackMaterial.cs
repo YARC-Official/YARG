@@ -16,6 +16,7 @@ namespace YARG.Gameplay.Visuals
         private static readonly int _scrollProperty         = Shader.PropertyToID("_Scroll");
         private static readonly int _starpowerStateProperty = Shader.PropertyToID("_Starpower_State");
         private static readonly int _starpowerTimeProperty  = Shader.PropertyToID("_Starpower_Start_Time");
+        private static readonly int _failStateProperty      = Shader.PropertyToID("_Fail_State");
         private static readonly int _wavinessProperty       = Shader.PropertyToID("_Waviness");
 
         private static readonly int _layer1ColorProperty = Shader.PropertyToID("_Layer_1_Color");
@@ -131,6 +132,12 @@ namespace YARG.Gameplay.Visuals
             set => _material.SetFloat(_starpowerStateProperty, value);
         }
 
+        public float FailState
+        {
+            get => _material.GetFloat(_failStateProperty);
+            set => _material.SetFloat(_failStateProperty, value);
+        }
+
         [SerializeField]
         private MeshRenderer _trackMesh;
 
@@ -192,6 +199,8 @@ namespace YARG.Gameplay.Visuals
             // Waviness applies whether or not custom textures are used
             _material.SetFloat(_baseWavinessProperty, _normalPreset.BaseWaviness);
             _material.SetFloat(_sideWavinessProperty, _normalPreset.SideWaviness);
+
+            _material.SetFloat(_failStateProperty, 0f);
 
             SetTextures();
         }

@@ -32,6 +32,9 @@ namespace YARG.Venue.Characters
         [SerializeField]
         [Tooltip("Set to true if you have the full set of RB expressions implemented.\n\nOtherwise, lipsync will only use the selected VRM default expression key.")]
         private bool _useFullLipsync;
+        [SerializeField]
+        [Tooltip("Set to true if you want to use custom animations instead of the default ones.")]
+        public bool UseCustomAnimations;
 
         private ExpressionKey _lipsyncKey;
         private bool          _hasVrmInstance;
@@ -50,6 +53,18 @@ namespace YARG.Venue.Characters
         private static Material _invisibleMaterial;
 
         private bool HasLipsyncEvents => _lipsyncEvents != null && _lipsyncEvents.Count > 0;
+
+        public int ActionsPerAnimationCycle
+        {
+            get => _actionsPerAnimationCycle;
+            set => _actionsPerAnimationCycle = value;
+        }
+
+        public int FramesToFirstHit
+        {
+            get => _framesToFirstHit;
+            set => _framesToFirstHit = value;
+        }
 
         private CameraManager _cameraManager;
 
@@ -138,40 +153,15 @@ namespace YARG.Venue.Characters
             if (TryGetExpressionKey(lipsyncEvent.Type.ToString(), out key))
             {
                 _expression.SetWeight(key, lipsyncEvent.Value);
-            }
-        }
-
-        public override void OnNote<T>(Note<T> note)
-        {
-            // If _useFullLipsync is set, we don't use the default expression or the note-based trigger
-            // ...unless the chart doesn't have lipsync events
-            if (!_hasVrmInstance || (_useFullLipsync && HasLipsyncEvents))
-            {
                 return;
             }
 
-            if (note is VocalNote vocalNote)
-            {
-                // Animate in/out of expression for animLength time
-                float animLength = (float) vocalNote.TotalTimeLength * 0.1f;
-                float offDelay = (float) vocalNote.TotalTimeLength * 0.9f;
-
-                var currentWeight = _expression.GetWeight(_lipsyncKey);
-                DOVirtual.Float(currentWeight, 1f, animLength, x => _expression.SetWeight(_lipsyncKey, x))
-                    .SetAutoKill(true);
-                DOVirtual.DelayedCall(offDelay, () => ExpressionOff(_lipsyncKey, animLength));
-            }
+            _expression.SetWeight(_lipsyncKey, lipsyncEvent.Value);
         }
 
-        private void ExpressionOff(ExpressionKey key, float length)
+        public override void OnChartEvent(ChartEvent e)
         {
-            if (length > 0)
-            {
-                DOVirtual.Float(_expression.GetWeight(key), 0f, length, x => _expression.SetWeight(key, x)).SetAutoKill(true);
-                return;
-            }
 
-            _expression.SetWeight(key, 0f);
         }
 
         private void SetupBoundsCheck()

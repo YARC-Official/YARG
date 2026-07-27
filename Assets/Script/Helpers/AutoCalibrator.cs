@@ -25,6 +25,7 @@ namespace YARG.Helpers
         private readonly GameManager _gameManager;
 
         private int _calibration;
+        private bool _isApplyingAdjustment;
 
         private bool IsCalibratingAudio => CalibrationMode == CalibrationType.AUDIO;
         private bool IsCalibratingVideo => CalibrationMode == CalibrationType.VIDEO;
@@ -50,6 +51,9 @@ namespace YARG.Helpers
             _gameManager = gameManager;
             AutoAudioSetting.OnChange += OnAutoCalibrateAudioChanged;
             AutoVideoSetting.OnChange += OnAutoCalibrateVideoChanged;
+            AudioCalibrationSetting.OnChange += OnAudioCalibrationChanged;
+            VideoCalibrationSetting.OnChange += OnVideoCalibrationChanged;
+            Reset();
         }
 
         private void OnAutoCalibrateAudioChanged(bool enabled)
@@ -74,10 +78,30 @@ namespace YARG.Helpers
             Reset();
         }
 
+        private void OnAudioCalibrationChanged(int calibration)
+        {
+            if (IsCalibratingAudio && !_isApplyingAdjustment)
+            {
+                _accuracyList.Clear();
+                _calibration = calibration;
+            }
+        }
+
+        private void OnVideoCalibrationChanged(int calibration)
+        {
+            if (IsCalibratingVideo && !_isApplyingAdjustment)
+            {
+                _accuracyList.Clear();
+                _calibration = calibration;
+            }
+        }
+
         public void Dispose()
         {
             AutoAudioSetting.OnChange -= OnAutoCalibrateAudioChanged;
             AutoVideoSetting.OnChange -= OnAutoCalibrateVideoChanged;
+            AudioCalibrationSetting.OnChange -= OnAudioCalibrationChanged;
+            VideoCalibrationSetting.OnChange -= OnVideoCalibrationChanged;
         }
 
         private void Reset()
@@ -93,14 +117,14 @@ namespace YARG.Helpers
             }
         }
 
-        public void RecordAccuracy(double noteTime)
+        public void RecordAccuracy(double hitTime, double noteTime)
         {
-            if (CalibrationMode == CalibrationType.DISABLED)
+            if (CalibrationMode == CalibrationType.DISABLED || _gameManager.IsAudioSyncCorrectionActive)
             {
                 return;
             }
 
-            double accuracy = (_gameManager.InputTime - noteTime) * 1000;
+            double accuracy = (hitTime - noteTime) * 1000;
             _accuracyList.Add(accuracy);
 
             if (_accuracyList.Count < SAMPLE_SIZE)
@@ -128,13 +152,25 @@ namespace YARG.Helpers
         private void ApplyAdjustment(int adjustment)
         {
             _calibration += adjustment;
-            if (CalibrationMode == CalibrationType.AUDIO)
+            _isApplyingAdjustment = true;
+            try
             {
-                AudioCalibrationSetting.Value = _calibration;
-            } else if (CalibrationMode == CalibrationType.VIDEO)
-            {
-                VideoCalibrationSetting.Value = _calibration;
+                if (CalibrationMode == CalibrationType.AUDIO)
+                {
+                    AudioCalibrationSetting.Value = _calibration;
+                    _calibration = AudioCalibrationSetting.Value;
+                }
+                else if (CalibrationMode == CalibrationType.VIDEO)
+                {
+                    VideoCalibrationSetting.Value = _calibration;
+                    _calibration = VideoCalibrationSetting.Value;
+                }
             }
+            finally
+            {
+                _isApplyingAdjustment = false;
+            }
+
             _gameManager.UpdateCalibration();
         }
 

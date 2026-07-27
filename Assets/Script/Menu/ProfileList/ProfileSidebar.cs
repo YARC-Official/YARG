@@ -252,7 +252,7 @@ namespace YARG.Menu.ProfileList
             _rangeDisabledToggle.isOn = profile.RangeEnabled;
             _openLaneDisplayTypeDropdown.value = _openLaneDisplayTypesByIndex.IndexOf(profile.OpenLaneDisplayType);
             _useCymbalModelsToggle.isOn = profile.UseCymbalModels;
-            
+
             // Update preset dropdowns
             _engineDropdown.SetValueWithoutNotify(
                 _enginePresetsByIndex.IndexOf(profile.EnginePreset));
@@ -270,6 +270,12 @@ namespace YARG.Menu.ProfileList
                 _starPowerActivationTypesByIndex.IndexOf(profile.StarPowerActivationType));
             _rockMeterPresetDropdown.SetValueWithoutNotify(
                 _rockmeterPresetsByIndex.IndexOf(profile.RockMeterPreset));
+
+            // Not all game modes support all engine presets.
+            // If the current engine doesn't exist for the selected instrument, the above _engineDropdown
+            // will be silently set to index 0, but the engine itself will not have been set, so we need
+            // to explicitly set it.
+            ChangeEngine();
 
             // Show the proper name container (hide the editing version)
             _nameContainer.SetActive(true);
@@ -408,7 +414,7 @@ namespace YARG.Menu.ProfileList
         {
             if (float.TryParse(_highwayLengthField.text, out var speed))
             {
-                _profile.HighwayLength = Mathf.Clamp(speed, 0.1f, 10f);
+                _profile.HighwayLength = Mathf.Clamp(speed, 0.001f, 10f);
             }
 
             // Always format it after

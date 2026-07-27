@@ -21,6 +21,8 @@ namespace YARG.Gameplay
         [Range(0.0f, 0.95f)]
         public float WaveSmoothingFactor = 0.5f;
 
+        public Texture2D DefaultAlbumCover;
+
         private Texture2D _sourceIcon = null;
         private Texture2D _albumCover = null;
         private Texture2D _soundTexture = null;
@@ -74,6 +76,10 @@ namespace YARG.Gameplay
             if (_albumCover == null)
             {
                 using var image = GameManager.Song.LoadAlbumData();
+                if (image == null)
+                {
+                    return DefaultAlbumCover;
+                }
                 _albumCover = image.LoadTexture(false);
             }
             return _albumCover;

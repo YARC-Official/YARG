@@ -41,7 +41,7 @@ namespace YARG.Venue.Characters
         public VocalGender CharacterGender = VocalGender.Unspecified;
 
         [SerializeField]
-        private int _actionsPerAnimationCycle;
+        protected int _actionsPerAnimationCycle;
 
         [Space]
 
@@ -52,7 +52,7 @@ namespace YARG.Venue.Characters
         [SerializeField]
         private string _playingAnimationName;
         [SerializeField]
-        private int _framesToFirstHit;
+        protected int _framesToFirstHit;
         [Space]
         [SerializeField]
         private List<string> _strumUpStates = new();
@@ -87,7 +87,7 @@ namespace YARG.Venue.Characters
 
         private bool _isAnimating;
 
-        private string _currentLeftHandPosition;
+        private string _currentLeftHandPosition = "";
 
         private List<int> _strumUpHashes = new();
 
@@ -119,6 +119,18 @@ namespace YARG.Venue.Characters
         private bool _hasAnimationController;
 
         protected Vrm10Instance VrmInstance;
+
+        [NonSerialized]
+        public AnimationStateType CurrentGenericState;
+
+        public HandMapType CurrentHandMap => _handMap;
+        public StrumMapType CurrentStrumMap => _strumMap;
+
+        [NonSerialized]
+        public AnimationStateType CurrentHandPosition;
+
+        [NonSerialized]
+        public bool HatIsOpen;
 
         public virtual void Initialize(CharacterManager characterManager)
         {
@@ -402,7 +414,7 @@ namespace YARG.Venue.Characters
             }
         }
 
-        public void OnGuitarAnimation(AnimationTrigger animation)
+        public void OnAnimationEvent(AnimationTrigger animation)
         {
             switch (animation.Type)
             {
@@ -418,7 +430,7 @@ namespace YARG.Venue.Characters
             }
         }
 
-        public void OnGuitarAnimation(AnimationType animation)
+        public void OnAnimationEvent(AnimationType animation)
         {
             if (_animationEvents.TryGet(animation, out var animInfo))
             {
@@ -427,7 +439,7 @@ namespace YARG.Venue.Characters
                 return;
             }
 
-            YargLogger.LogDebug($"Animation {animation} not found for character type {Type}");
+            YargLogger.LogTrace($"Animation {animation} not found for character type {Type}");
         }
 
         public void OnDrumAnimation(AnimationType animation)
@@ -462,6 +474,11 @@ namespace YARG.Venue.Characters
                 _ => null
             };
 
+            if (animation is AnimationType.OpenHiHat or AnimationType.CloseHiHat)
+            {
+                HatIsOpen = animation == AnimationType.OpenHiHat;
+            }
+
             if (animState.HasValue)
             {
                 SetTrigger(animState.Value);
@@ -469,10 +486,9 @@ namespace YARG.Venue.Characters
 
         }
 
-        public virtual void OnNote<T>(Note<T> note) where T : Note<T>
+        public virtual void OnChartEvent(ChartEvent e)
         {
-
-            if (note is GuitarNote gNote)
+            if (e is GuitarNote gNote)
             {
                 // Handle alternate strums for bass
                 if (Type == CharacterType.Bass && _hasSlap && _strumMap == StrumMapType.SlapBass)
@@ -521,7 +537,7 @@ namespace YARG.Venue.Characters
                 SetHandAnimationForNote(gNote);
             }
 
-            if (note is Note<VocalNote> vocalNote)
+            if (e is Note<VocalNote> or LyricEvent)
             {
                 if (VrmInstance != null)
                 {
@@ -529,7 +545,7 @@ namespace YARG.Venue.Characters
 
                     expression.SetWeight(ExpressionKey.Oh, 1.0f);
 
-                    DOTween.Sequence().AppendInterval((float) vocalNote.TimeLength).AppendCallback(() =>
+                    DOTween.Sequence().AppendInterval((float) e.TimeLength).AppendCallback(() =>
                     {
                         expression.SetWeight(ExpressionKey.Oh, 0.0f);
                         expression.SetWeight(ExpressionKey.Happy, 1.0f);
@@ -537,7 +553,7 @@ namespace YARG.Venue.Characters
                 }
             }
 
-            if (note is Note<ProKeysNote>)
+            if (e is Note<ProKeysNote>)
             {
 
             }

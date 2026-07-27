@@ -59,6 +59,7 @@ namespace YARG.Input
         public void Stop()
         {
             Device.IsRecordingOutput = false;
+            Device.Reset();
         }
     }
 }

@@ -169,6 +169,8 @@ namespace YARG.Gameplay.Player
 
         private readonly List<VocalsPlayer> _vocalPlayers = new();
 
+        private RectTransform _vocalsImage;
+
         private float _currentTrackTop;
         private Material _starpowerMaterial;
 
@@ -217,7 +219,20 @@ namespace YARG.Gameplay.Player
 
         public void InitializeCamera(RectTransform vocalsImage)
         {
-            var vocalsSize = vocalsImage.ToScreenSpace();
+            _vocalsImage = vocalsImage;
+
+            // Reset the Rect to full screen. HighwayCameraRendering applies the vocal layout
+            // through the orthographic projection matrix.
+            _trackCamera.rect = new Rect(0, 0, 1, 1);
+
+            // Disable standalone rendering. HighwayCameraRendering still uses this camera
+            // as a matrix/config source for shared highway rendering.
+            _trackCamera.enabled = false;
+        }
+
+        public Rect GetVocalLayoutRect()
+        {
+            var vocalsSize = _vocalsImage.ToScreenSpace();
             var imageAspectRatio = vocalsSize.width / vocalsSize.height;
             var clampedAspectRatio = Math.Clamp(imageAspectRatio, MIN_ASPECT_RATIO, MAX_ASPECT_RATIO);
 
@@ -233,47 +248,7 @@ namespace YARG.Gameplay.Player
             var statsHeightNormalized = StatsManager.Instance.GetComponent<RectTransform>().ToScreenSpace().height / Screen.height;
             float yPos = 1.0f - heightNormalized - statsHeightNormalized;
 
-            // var currentFrustrum = _trackCamera.projectionMatrix.decomposeProjection;
-            // currentFrustrum.bottom += 1.0f;
-            // _trackCamera.projectionMatrix = Matrix4x4.Frustum(currentFrustrum);
-
-            // 2. Reset the Rect to full screen
-            _trackCamera.rect = new Rect(0, 0, 1, 1);
-
-            // 3. Calculate the "Actual" screen aspect ratio
-            float screenAspect = (float)Screen.width / Screen.height;
-
-            // 4. Determine the TOTAL world height needed so that the 'heightNormalized' 
-            // slice of the screen equals your desired camera framing (orthographicSize * 2).
-            float totalWorldHeight = (_trackCamera.orthographicSize * 2.0f) / heightNormalized;
-
-            // 5. Derive the TOTAL world width based on the SCREEN aspect ratio.
-            // This is the step that prevents horizontal squishing or "too small" rendering.
-            float totalWorldWidth = totalWorldHeight * screenAspect;
-
-            // 6. Calculate the center of your target Rect in 0-1 space
-            float centerX = xPos + (widthNormalized / 2.0f);
-            float centerY = yPos + (heightNormalized / 2.0f);
-
-            // 7. Define the planes. 
-            // We shift the 'center' of the world (0,0) to align with the center of your UI Rect.
-            float left = -centerX * totalWorldWidth;
-            float right = totalWorldWidth * (1.0f - centerX);
-            float bottom = -centerY * totalWorldHeight;
-            float top = totalWorldHeight * (1.0f - centerY);
-
-            // 8. Apply the matrix
-            _trackCamera.projectionMatrix = Matrix4x4.Ortho(
-                left,
-                right,
-                bottom,
-                top,
-                _trackCamera.nearClipPlane,
-                _trackCamera.farClipPlane
-            );
-
-            // Disable standalone rendering — HighwayCameraRendering will drive this camera.
-            _trackCamera.enabled = false;
+            return new Rect(xPos, yPos, widthNormalized, heightNormalized);
         }
 
         public void Initialize(VocalsTrack vocalsTrack, YargPlayer primaryPlayer, float? trackSpeed)
@@ -355,28 +330,7 @@ namespace YARG.Gameplay.Player
             {
                 _scrollingNoteTrackers[i] = new ScrollingPhraseNoteTracker(parts[i], false);
                 _scrollingLyricTrackers[i] = new ScrollingPhraseNoteTracker(parts[i], true);
-
-                if (SettingsManager.Settings.UseThreeLaneLyricsInHarmony.Value)
-                {
-                    // If we're in 3-lane mode, just give each lane its own tracker with no merging
-                    _staticPhraseTrackers[i] = new StaticPhraseTracker(GetVocalPhrasePairs(parts[i], null));
-                }
-                else
-                {
-                    // If we're in 2-lane mode...
-                    switch (i)
-                    {
-                        case 0:
-                            // ...HARM1 gets its own tracker with no merging...
-                            _staticPhraseTrackers[i] = new StaticPhraseTracker(GetVocalPhrasePairs(parts[i], null));
-                            break;
-                        case 1:
-                            // ...but HARM2 gets HARM3 as a merged part
-                            _staticPhraseTrackers[i] = new StaticPhraseTracker(GetVocalPhrasePairs(parts[i], parts[i + 1]));
-                            break;
-                            // Do nothing for HARM3, because it's being handled by HARM2
-                    }
-                }
+                _staticPhraseTrackers[i] = CreateStaticPhraseTracker(parts, i);
                 _staticPhraseQueues[i] = new Queue<VocalStaticLyricPhraseElement>();
             }
 
@@ -638,31 +592,16 @@ namespace YARG.Gameplay.Player
                 return;
             }
 
-            _vocalsTrack = _originalVocalsTrack.Clone();
-
-            // Remove all events not in the section
-            for (int i = 0; i < _vocalsTrack.Parts.Count; i++)
+            _vocalsTrack = _originalVocalsTrack.CloneInTickRange(start, end);
+            var parts = _vocalsTrack.Parts;
+            for (int i = 0; i < parts.Count; i++)
             {
-                var part = _vocalsTrack.Parts[i];
-                part.NotePhrases.RemoveAll(n => n.Tick < start || n.Tick >= end);
-                part.TextEvents.RemoveAll(n => n.Tick < start || n.Tick >= end);
-
-                _scrollingNoteTrackers[i] = new(part, false);
-                _scrollingLyricTrackers[i] = new(part, true);
-            }
-
-            for (int i = 0; i < LyricLaneCount; i++)
-            {
-                var phrasePairs = _staticPhraseTrackers[i].PhrasePairs;
-                phrasePairs.RemoveAll(n => n.Tick < start || n.Tick >= end);
-
-                _staticPhraseTrackers[i] = new(phrasePairs);
+                var part = parts[i];
+                _scrollingNoteTrackers[i] = new ScrollingPhraseNoteTracker(part, false);
+                _scrollingLyricTrackers[i] = new ScrollingPhraseNoteTracker(part, true);
+                _staticPhraseTrackers[i] = CreateStaticPhraseTracker(parts, i);
                 _staticPhraseQueues[i].Clear();
             }
-
-            // The most recent range shift before the start tick should still be preserved
-            uint rangesStart = _vocalsTrack.RangeShifts.LowerBoundElement(start).Tick;
-            _vocalsTrack.RangeShifts.RemoveAll(n => n.Tick < rangesStart || n.Tick >= end);
 
             PrepareLyricSpawns();
             PrewarmVocalPools();
@@ -734,6 +673,25 @@ namespace YARG.Gameplay.Player
             int severity = (((int)greatestOffset - THRESHOLD) / 200) + 1;
 
             return 1f + (severity * 0.2f);
+        }
+
+        private StaticPhraseTracker CreateStaticPhraseTracker(List<VocalsPart> parts, int index)
+        {
+            if (SettingsManager.Settings.UseThreeLaneLyricsInHarmony.Value || index == 0)
+            {
+                // In 3-lane mode, each lane gets its own tracker with no merging.
+                // In 2-lane mode, HARM1 still gets its own tracker with no merging.
+                return new StaticPhraseTracker(GetVocalPhrasePairs(parts[index], null));
+            }
+
+            return index switch
+            {
+                // In 2-lane mode, HARM2 gets HARM3 as a merged part.
+                1 => new StaticPhraseTracker(GetVocalPhrasePairs(parts[index],
+                    index + 1 < parts.Count ? parts[index + 1] : null)),
+                // HARM3 is handled by HARM2 in 2-lane mode.
+                _ => null
+            };
         }
 
         // Necessary for combining HARM2 and HARM3 in two-lane view

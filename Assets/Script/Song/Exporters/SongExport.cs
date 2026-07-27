@@ -7,7 +7,7 @@ using YARG.Core.Song;
 using YARG.Core.Utility;
 using YARG.Helpers;
 
-namespace YARG.Song
+namespace YARG.Song.Exporters
 {
     public static class SongExport
     {
@@ -15,7 +15,8 @@ namespace YARG.Song
         {
             Json,
             Text,
-            Csv
+            Csv,
+            WebBrowser
         }
 
         public static void Export(ExportFormat format)
@@ -30,6 +31,9 @@ namespace YARG.Song
                     break;
                 case ExportFormat.Csv:
                     FileExplorerHelper.OpenSaveFile(null, "songs", "csv", ExportCsv);
+                    break;
+                case ExportFormat.WebBrowser:
+                    FileExplorerHelper.OpenSaveFile(null, "songs", "html", ExportWebBrowser);
                     break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(format), format, null);
@@ -175,5 +179,7 @@ namespace YARG.Song
                 return field;
             }
         }
+
+        private static void ExportWebBrowser(string path) => WebBrowserExport.Export(path);
     }
 }

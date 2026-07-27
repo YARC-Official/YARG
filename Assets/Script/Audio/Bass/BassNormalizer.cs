@@ -39,11 +39,13 @@ namespace YARG.Audio.BASS
 
         // Undocumented BASS attribute to set max processing threads for a mixer
         private const int   MAX_THREADS_ATTRIB = 86017;
+        private const int   GAIN_CALC_SHUTDOWN_TIMEOUT_MS = 1000;
 
         private          int                     _mixer;
         private readonly List<Stream>            _streams = new();
         private readonly List<int>               _handles = new();
-        private          CancellationTokenSource _gainCalcCts = new();
+        private          CancellationTokenSource _gainCalcCts;
+        private          Task                    _gainCalcTask = Task.CompletedTask;
         public float               Gain { get; private set; } = INITIAL_GAIN;
         public event Action<float> OnGainAdjusted;
 
@@ -54,6 +56,12 @@ namespace YARG.Audio.BASS
         /// </summary>
         public bool AddStream(Stream stream, params StemMixer.StemInfo[] stemInfos)
         {
+            if (!StopGainCalculation())
+            {
+                YargLogger.LogError("Previous gain calculation did not stop; refusing to start another one.");
+                return false;
+            }
+
             if (_mixer == 0)
             {
                 if (!CreateMixer(out _mixer))
@@ -166,19 +174,57 @@ namespace YARG.Audio.BASS
 
         private void StartGainCalculation()
         {
-            _gainCalcCts.Cancel();
-            _gainCalcCts.Dispose();
             _gainCalcCts = new CancellationTokenSource();
+            var token = _gainCalcCts.Token;
 
-            var progress = new Progress<double>(gain =>
+            Action<double> progress = gain =>
             {
                 OnGainAdjusted?.Invoke((float) gain);
-            });
+            };
 
-            Task.Run(() => CalculateRms(progress, _gainCalcCts.Token), _gainCalcCts.Token);
+            _gainCalcTask = Task.Run(() => CalculateRms(progress, token), token);
         }
 
-        private void CalculateRms(IProgress<double> progress, CancellationToken token)
+        private bool StopGainCalculation()
+        {
+            if (_gainCalcCts == null)
+            {
+                return true;
+            }
+
+            var cts = _gainCalcCts;
+            var task = _gainCalcTask;
+            cts.Cancel();
+
+            bool stopped = false;
+            try
+            {
+                stopped = task.Wait(GAIN_CALC_SHUTDOWN_TIMEOUT_MS);
+            }
+            catch (AggregateException)
+            {
+                // The worker has stopped; its exception must not abort Unity teardown.
+                stopped = true;
+            }
+            finally
+            {
+                if (stopped || task.IsCompleted)
+                {
+                    cts.Dispose();
+                    _gainCalcCts = null;
+                    _gainCalcTask = Task.CompletedTask;
+                }
+            }
+
+            if (!stopped)
+            {
+                YargLogger.LogError("Gain calculation did not stop during audio teardown; leaving its BASS handles intact.");
+            }
+
+            return stopped;
+        }
+
+        private void CalculateRms(Action<double> progress, CancellationToken token)
         {
             double cumulativeSumSquares = 0.0;
             long totalSamples = 0;
@@ -214,20 +260,19 @@ namespace YARG.Audio.BASS
                     float targetGain = (float) Math.Min(MAX_GAIN, TARGET_RMS / rms);
                     float delta = Math.Clamp(targetGain - Gain, -MAX_GAIN_STEP, MAX_GAIN_STEP);
                     Gain += delta;
-                    progress?.Report(Gain);
+                    progress?.Invoke(Gain);
                 }
             }
         }
 
         public void Dispose()
         {
-            _gainCalcCts.Cancel();
-            _gainCalcCts.Dispose();
-
-            foreach (var stream in _streams)
+            // BASS calls cannot be interrupted mid-call. Do not free handles while the worker is still using them.
+            if (!StopGainCalculation())
             {
-                stream.Dispose();
+                return;
             }
+
             foreach (var handle in _handles)
             {
                 if (!Bass.StreamFree(handle))
@@ -238,6 +283,10 @@ namespace YARG.Audio.BASS
                             Bass.LastError);
                     }
                 }
+            }
+            foreach (var stream in _streams)
+            {
+                stream.Dispose();
             }
             _mixer = 0;
             _streams.Clear();

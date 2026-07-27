@@ -48,7 +48,6 @@ namespace YARG.Gameplay.Visuals
             {
                 _coroutine = StartCoroutine(RaiseStrikeline(true));
             }
-
         }
 
         private IEnumerator RaiseStrikeline(bool isGameplayStart)

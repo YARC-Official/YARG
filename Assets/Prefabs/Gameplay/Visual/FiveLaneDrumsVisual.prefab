@@ -10,15 +10,15 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 4797150999688012940, guid: 14dfc37fcbd6e0c4ba41507437a52fea, type: 3}
       propertyPath: _prefab
-      value: 
+      value:
       objectReference: {fileID: 861361446070616044, guid: 071d88dd5de7b7c4990c37721d2a7bcd, type: 3}
     - target: {fileID: 4797150999688012940, guid: 14dfc37fcbd6e0c4ba41507437a52fea, type: 3}
       propertyPath: <Prefab>k__BackingField
-      value: 
+      value:
       objectReference: {fileID: 861361446070616044, guid: 071d88dd5de7b7c4990c37721d2a7bcd, type: 3}
     - target: {fileID: 5494856007075818134, guid: 14dfc37fcbd6e0c4ba41507437a52fea, type: 3}
       propertyPath: LanePool
-      value: 
+      value:
       objectReference: {fileID: 2262256386907472415}
     - target: {fileID: 5494856007075818134, guid: 14dfc37fcbd6e0c4ba41507437a52fea, type: 3}
       propertyPath: _fiveLaneMode
@@ -26,15 +26,23 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5494856007075818134, guid: 14dfc37fcbd6e0c4ba41507437a52fea, type: 3}
       propertyPath: StarPowerEffect
-      value: 
+      value:
       objectReference: {fileID: 8201278768269515987}
     - target: {fileID: 5494856007075818134, guid: 14dfc37fcbd6e0c4ba41507437a52fea, type: 3}
       propertyPath: HitWindowDisplay
-      value: 
+      value:
       objectReference: {fileID: 8022842290628306130}
     - target: {fileID: 5494856007075818134, guid: 14dfc37fcbd6e0c4ba41507437a52fea, type: 3}
+      propertyPath: StrikelineAnimator
+      value:
+      objectReference: {fileID: 679127719091478763}
+    - target: {fileID: 5494856007075818134, guid: 14dfc37fcbd6e0c4ba41507437a52fea, type: 3}
+      propertyPath: StrikelinePositioner
+      value:
+      objectReference: {fileID: 5033710389779100764}
+    - target: {fileID: 5494856007075818134, guid: 14dfc37fcbd6e0c4ba41507437a52fea, type: 3}
       propertyPath: HighwayCameraRendering
-      value: 
+      value:
       objectReference: {fileID: 0}
     - target: {fileID: 7353099902729507025, guid: 14dfc37fcbd6e0c4ba41507437a52fea, type: 3}
       propertyPath: FretCount
@@ -97,6 +105,17 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 14dfc37fcbd6e0c4ba41507437a52fea, type: 3}
+--- !u!114 &679127719091478763 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 905733242812112350, guid: 14dfc37fcbd6e0c4ba41507437a52fea, type: 3}
+  m_PrefabInstance: {fileID: 431624946335464757}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9c3ed2ef465f43efac61ee559c9312cf, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::YARG.Gameplay.Visuals.StrikelineAnimator
 --- !u!114 &2262256386907472415 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 1916376924205039402, guid: 14dfc37fcbd6e0c4ba41507437a52fea, type: 3}
@@ -106,8 +125,19 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c24a6ee95ca2444fa768766e48b11579, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: Assembly-CSharp::YARG.Gameplay.KeyedPool
+--- !u!114 &5033710389779100764 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 4622422148554443113, guid: 14dfc37fcbd6e0c4ba41507437a52fea, type: 3}
+  m_PrefabInstance: {fileID: 431624946335464757}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 456de9da9402485898933258ffa9558a, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
 --- !u!114 &8022842290628306130 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 7686426392671820263, guid: 14dfc37fcbd6e0c4ba41507437a52fea, type: 3}
@@ -117,8 +147,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 607b14b5c54636e40a8ff8db36f0d4f4, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
+  m_Name:
+  m_EditorClassIdentifier:
 --- !u!114 &8201278768269515987 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 8371552944514785766, guid: 14dfc37fcbd6e0c4ba41507437a52fea, type: 3}
@@ -128,5 +158,5 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: eee94c690d422439aa719adb6383e957, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
+  m_Name:
+  m_EditorClassIdentifier:
