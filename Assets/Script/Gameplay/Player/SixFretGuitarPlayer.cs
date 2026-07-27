@@ -98,7 +98,8 @@ namespace YARG.Gameplay.Player
                 null,
                 Player.ColorProfile.SixFretGuitar,
                 Player.ThemePreset,
-                VisualStyle.SixFretGuitar
+                VisualStyle.SixFretGuitar,
+                true  // dualHalfFrets: black/white pairs share a fret object
             );
         }
 

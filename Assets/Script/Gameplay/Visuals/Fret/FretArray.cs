@@ -54,7 +54,7 @@ namespace YARG.Gameplay.Visuals
          */
         #nullable enable
         public void Initialize(Dictionary<int, int> highwayOrdering, int laneCount, GameObject? kickFretPrefab,
-            IFretColorProvider fretColorProvider, ThemePreset themePreset, VisualStyle style)
+            IFretColorProvider fretColorProvider, ThemePreset themePreset, VisualStyle style, bool dualHalfFrets = false)
         {
             var derivedDictionary = new Dictionary<int, HighwayOrderingInfo>();
 
@@ -63,7 +63,7 @@ namespace YARG.Gameplay.Visuals
                 derivedDictionary.Add(noteType, new(position, noteType));
             }
 
-            Initialize(derivedDictionary, laneCount, kickFretPrefab, fretColorProvider, themePreset, style);
+            Initialize(derivedDictionary, laneCount, kickFretPrefab, fretColorProvider, themePreset, style, dualHalfFrets);
         }
 
         public void Initialize(Dictionary<int, HighwayOrderingInfo> highwayOrdering, int laneCount,

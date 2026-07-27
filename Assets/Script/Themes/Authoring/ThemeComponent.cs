@@ -130,6 +130,7 @@ namespace YARG.Themes
                 supportedStyles.Add(VisualStyle.FiveFretGuitar);
                 supportedStyles.Add(VisualStyle.FiveLaneKeys);
             }
+            if (_sixFretNotes != null) supportedStyles.Add(VisualStyle.SixFretGuitar);
             if (_fourLaneNotes != null) supportedStyles.Add(VisualStyle.FourLaneDrums);
             if (_fiveLaneNotes != null) supportedStyles.Add(VisualStyle.FiveLaneDrums);
             if (_proKeysNotes != null) supportedStyles.Add(VisualStyle.ProKeys);
