@@ -57,7 +57,8 @@ namespace YARG.Gameplay.Player
                 // is now imminent
                 if (_inGap)
                 {
-                    if (currentLeftmostPhrase.Time < time + StaticPhraseHelpers.IMMINENCE_THRESHOLD)
+                    var startTime = currentLeftmostPhrase.Lyrics.Count > 0 ? currentLeftmostPhrase.Lyrics[0].Time : currentLeftmostPhrase.Time;
+                    if (startTime < time + StaticPhraseHelpers.IMMINENCE_THRESHOLD * 3)
                     {
                         _inGap = false;
                         return StaticLyricShiftType.LargeGapToPhrase;
@@ -75,15 +76,17 @@ namespace YARG.Gameplay.Player
 
                     var newLeftmostPhrase = Phrases[_leftmostPhraseIndex];
 
+                    var timeBetweenLyrics = newLeftmostPhrase.Lyrics[0].Time - Math.Min(currentLeftmostPhrase.Lyrics[^1].TimeEnd, currentLeftmostPhrase.TimeEnd);
+
                     // Factor in the shift duration here, so that we don't go from gap to phrase in the middle of a phrase-to-gap shift
-                    if (newLeftmostPhrase.Time > time + StaticPhraseHelpers.IMMINENCE_THRESHOLD + STATIC_LYRIC_SHIFT_DURATION)
+                    if (newLeftmostPhrase.Time > time + StaticPhraseHelpers.IMMINENCE_THRESHOLD * 3 + STATIC_LYRIC_SHIFT_DURATION)
                     {
                         _inGap = true;
 
                         // The next phrase isn't very soon, so shift to a gap
                         return StaticLyricShiftType.PhraseToLargeGap;
                     }
-                    var timeBetweenLyrics = newLeftmostPhrase.Lyrics[0].Time - currentLeftmostPhrase.Lyrics[^1].TimeEnd;
+
                     // The next phrase is imminent, so shift straight to it
                     return timeBetweenLyrics < StaticPhraseHelpers.IMMINENCE_THRESHOLD ? StaticLyricShiftType.NoGap : StaticLyricShiftType.SmallGap;
                 }

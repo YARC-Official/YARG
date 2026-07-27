@@ -266,7 +266,7 @@ namespace YARG.Gameplay.Player
                     var next = preparedPhrases[phraseIdx + 1];
                     if (next.Phrase.Lyrics.Count > 0)
                     {
-                        timeBetweenLyrics = next.Phrase.Lyrics[0].Time - phrase.Phrase.Lyrics[^1].TimeEnd;
+                        timeBetweenLyrics = next.Phrase.Lyrics[0].Time - Math.Min(phrase.Phrase.Lyrics[^1].TimeEnd, phrase.Phrase.TimeEnd);
                     }
                 }
                 var shiftAmount = timeBetweenLyrics < StaticPhraseHelpers.IMMINENCE_THRESHOLD ? VocalLyricContainer.SHIFT_PHRASE_SPACING : VocalLyricContainer.STATIC_PHRASE_SPACING;
