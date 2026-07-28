@@ -1456,6 +1456,7 @@ GameObject:
   - component: {fileID: 318454377}
   - component: {fileID: 318454379}
   - component: {fileID: 318454378}
+  - component: {fileID: 318454380}
   m_Layer: 0
   m_Name: Game Manager
   m_TagString: Untagged
@@ -1475,6 +1476,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5f9d6d58525b4d22961cb5f7264164de, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _fiveFretGuitarPrefab: {fileID: 7381119128095886790, guid: 0f7a37c9e4abcad4da73b7603d4b7596, type: 3}
+  _sixFretGuitarPrefab: {fileID: 0}
+  _fourLaneDrumsPrefab: {fileID: 7508612376246159914, guid: 14dfc37fcbd6e0c4ba41507437a52fea, type: 3}
+  _fiveLaneDrumsPrefab: {fileID: 7912406415472637727, guid: b98748e11cf38534c814f11da4eaa863, type: 3}
+  _proKeysPrefab: {fileID: 7381119128095886790, guid: 52322b4e39d4f9349a65c60a07fc1b3a, type: 3}
+  _fiveLaneKeysPrefab: {fileID: 7381119128095886790, guid: 6117371a3e2df654494387fa6a3fd64a, type: 3}
+  _proGuitarPrefab: {fileID: 0}
   IsSeekingReplay: 0
   _trackViewManager: {fileID: 1330928978}
   _replayController: {fileID: 922548498}
@@ -1486,13 +1494,6 @@ MonoBehaviour:
   _breBox: {fileID: 1485334878}
   <VocalTrack>k__BackingField: {fileID: 1312797156}
   ShowIndex: 0
-  _fiveFretGuitarPrefab: {fileID: 7381119128095886790, guid: 0f7a37c9e4abcad4da73b7603d4b7596, type: 3}
-  _sixFretGuitarPrefab: {fileID: 0}
-  _fourLaneDrumsPrefab: {fileID: 7508612376246159914, guid: 14dfc37fcbd6e0c4ba41507437a52fea, type: 3}
-  _fiveLaneDrumsPrefab: {fileID: 7912406415472637727, guid: b98748e11cf38534c814f11da4eaa863, type: 3}
-  _proKeysPrefab: {fileID: 7381119128095886790, guid: 52322b4e39d4f9349a65c60a07fc1b3a, type: 3}
-  _fiveLaneKeysPrefab: {fileID: 7381119128095886790, guid: 6117371a3e2df654494387fa6a3fd64a, type: 3}
-  _proGuitarPrefab: {fileID: 0}
 --- !u!4 &318454372
 Transform:
   m_ObjectHideFlags: 0
@@ -1547,7 +1548,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 790199f1ac28455ca9536a5df8d11f40, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _videoPlayer: {fileID: 218824352}
+  _videoPlayer: {fileID: 318454380}
   _backgroundImage: {fileID: 1773048783}
   _backgroundDimmer: {fileID: 1038164713}
   _venueOutput: {fileID: 879254558}
@@ -1591,6 +1592,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 51c694cbcf0967e498788ca5708560e6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &318454380
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 318454370}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8b86cfaca6377a7eaab56ab28d038930, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::YargVideoPlayer
+  _unityVideoPlayer: {fileID: 218824352}
 --- !u!1001 &329669831
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1789,7 +1803,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2517693471320601084, guid: 039fee0ec42345d4f88c0625255415d4, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: -157.1503
+      value: 142.36191
       objectReference: {fileID: 0}
     - target: {fileID: 2640522790579517911, guid: 039fee0ec42345d4f88c0625255415d4, type: 3}
       propertyPath: m_AnchorMax.y
@@ -3452,7 +3466,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Texture: {fileID: 1881340494}
+  m_Texture: {fileID: 1237591972}
   m_UVRect:
     serializedVersion: 2
     x: 0
@@ -6252,15 +6266,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3a868e9a2b1f4e01834956d57fb2763e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::YARG.Gameplay.HUD.UnisonDisplay
-  _parent: {fileID: 2044355436}
+  _backgroundImage: {fileID: 2070051285}
+  _defaultSprite: {fileID: 1163767304, guid: 1d22b7c60d56c1c4e8a213cf3b098af9, type: 3}
+  _failSprite: {fileID: -1426596008, guid: 1d22b7c60d56c1c4e8a213cf3b098af9, type: 3}
+  _failColor: {r: 0.7686275, g: 0.19215688, b: 0.1137255, a: 1}
   _headerText: {fileID: 651940416}
   _iconContainer: {fileID: 258647514}
   _unisonBar: {fileID: 189712602}
-  _backgroundImage: {fileID: 2070051285}
-  _defaultSprite: {fileID: 1163767304, guid: 1d22b7c60d56c1c4e8a213cf3b098af9, type: 3}
+  _parent: {fileID: 2044355436}
   _successSprite: {fileID: -1518087258, guid: 1d22b7c60d56c1c4e8a213cf3b098af9, type: 3}
-  _failSprite: {fileID: -1426596008, guid: 1d22b7c60d56c1c4e8a213cf3b098af9, type: 3}
-  _failColor: {r: 0.7686275, g: 0.19215688, b: 0.1137255, a: 1}
   _trackCountToPositionOffset:
   - {x: 0, y: 0}
   - {x: 0, y: -100}
@@ -6666,6 +6680,43 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8a3fa9892ec94f35bb93485c9fff8343, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!84 &1237591972
+RenderTexture:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: 
+  m_ImageContentsHash:
+    serializedVersion: 2
+    Hash: 00000000000000000000000000000000
+  m_IsAlphaChannelOptional: 0
+  serializedVersion: 6
+  m_Width: 2560
+  m_Height: 1440
+  m_AntiAliasing: 1
+  m_MipCount: -1
+  m_DepthStencilFormat: 94
+  m_ColorFormat: 48
+  m_MipMap: 0
+  m_GenerateMips: 1
+  m_SRGB: 0
+  m_UseDynamicScale: 0
+  m_UseDynamicScaleExplicit: 0
+  m_BindMS: 0
+  m_EnableCompatibleFormat: 1
+  m_EnableRandomWrite: 0
+  m_TextureSettings:
+    serializedVersion: 2
+    m_FilterMode: 1
+    m_Aniso: 1
+    m_MipBias: 0
+    m_WrapU: 1
+    m_WrapV: 1
+    m_WrapW: 1
+  m_Dimension: 2
+  m_VolumeDepth: 1
+  m_ShadowSamplingMode: 2
 --- !u!114 &1312797156 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 5801866611232935394, guid: f09d7030713b2e34dbc210e5e014add2, type: 3}
@@ -7664,7 +7715,7 @@ Camera:
     serializedVersion: 2
     m_Bits: 511
   m_RenderingPath: -1
-  m_TargetTexture: {fileID: 1881340494}
+  m_TargetTexture: {fileID: 1237591972}
   m_TargetDisplay: 0
   m_TargetEye: 3
   m_HDR: 1
@@ -9048,43 +9099,6 @@ CanvasGroup:
   m_Interactable: 0
   m_BlocksRaycasts: 0
   m_IgnoreParentGroups: 0
---- !u!84 &1881340494
-RenderTexture:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_Name: 
-  m_ImageContentsHash:
-    serializedVersion: 2
-    Hash: 00000000000000000000000000000000
-  m_IsAlphaChannelOptional: 0
-  serializedVersion: 6
-  m_Width: 640
-  m_Height: 480
-  m_AntiAliasing: 1
-  m_MipCount: -1
-  m_DepthStencilFormat: 94
-  m_ColorFormat: 48
-  m_MipMap: 0
-  m_GenerateMips: 1
-  m_SRGB: 0
-  m_UseDynamicScale: 0
-  m_UseDynamicScaleExplicit: 0
-  m_BindMS: 0
-  m_EnableCompatibleFormat: 1
-  m_EnableRandomWrite: 0
-  m_TextureSettings:
-    serializedVersion: 2
-    m_FilterMode: 1
-    m_Aniso: 1
-    m_MipBias: 0
-    m_WrapU: 1
-    m_WrapV: 1
-    m_WrapW: 1
-  m_Dimension: 2
-  m_VolumeDepth: 1
-  m_ShadowSamplingMode: 2
 --- !u!1 &1886693830
 GameObject:
   m_ObjectHideFlags: 0

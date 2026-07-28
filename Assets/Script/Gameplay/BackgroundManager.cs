@@ -32,6 +32,7 @@ using UnityEngine.SceneManagement;
 
 namespace YARG.Gameplay
 {
+    [RequireComponent(typeof(YargVideoPlayer))]
     public class BackgroundManager : GameplayBehaviour, IDisposable
     {
         // e.g. DefaultController.Vocals.Rock.controller
@@ -42,7 +43,7 @@ namespace YARG.Gameplay
         private string VIDEO_PATH;
 
         [SerializeField]
-        private VideoPlayer _videoPlayer;
+        private YargVideoPlayer _videoPlayer;
 
         [SerializeField]
         private RawImage _backgroundImage;
@@ -85,6 +86,13 @@ namespace YARG.Gameplay
         private          string           _editorVenuePath;
         private          Scene            _editorVenueScene;
 #endif
+        protected new void Awake()
+        {
+            base.Awake();
+            if (_videoPlayer == null)
+                _videoPlayer = GetComponent<YargVideoPlayer>();
+        }
+
         // "The Unity message 'Start' has an incorrect signature."
         [SuppressMessage("Type Safety", "UNT0006", Justification = "UniTaskVoid is a compatible return type.")]
         private async UniTaskVoid Start()
@@ -495,6 +503,15 @@ namespace YARG.Gameplay
 
         private void LoadVideoBackground(BackgroundResult bg)
         {
+            if (_videoPlayer == null)
+                _videoPlayer = GetComponent<YargVideoPlayer>();
+
+            if (_videoPlayer == null)
+            {
+                Debug.LogError("YargVideoPlayer component not found on BackgroundManager");
+                return;
+            }
+
             switch (bg.Stream)
             {
                 case FileStream fs:
@@ -516,7 +533,7 @@ namespace YARG.Gameplay
                 }
             }
 
-            _videoPlayer.enabled = true;
+            _videoPlayer.playerEnabled = true;
             _videoPlayer.prepareCompleted += OnVideoPrepared;
             _videoPlayer.seekCompleted += OnVideoSeeked;
             _videoPlayer.Prepare();
@@ -559,14 +576,14 @@ namespace YARG.Gameplay
             if (time + _videoStartTime >= _videoEndTime)
             {
                 _videoPlayer.Stop();
-                _videoPlayer.enabled = false;
+                _videoPlayer.playerEnabled = false;
                 enabled = false;
             }
         }
 
         // Some video player properties don't work correctly until
         // it's finished preparing, such as the length
-        private void OnVideoPrepared(VideoPlayer player)
+        private void OnVideoPrepared(YargVideoPlayer player)
         {
             // Start time is considered set if it is greater than 25 ms in either direction
             // End time is only set if it is greater than 0
@@ -621,20 +638,20 @@ namespace YARG.Gameplay
                     if (videoTime < 0f) // Seeking before video start
                     {
                         enabled = true;
-                        _videoPlayer.enabled = true;
+                        _videoPlayer.playerEnabled = true;
                         _videoStarted = false;
                         _videoPlayer.Stop();
                     }
                     else if (videoTime >= _videoPlayer.length) // Seeking after video end
                     {
                         enabled = false;
-                        _videoPlayer.enabled = false;
+                        _videoPlayer.playerEnabled = false;
                         _videoPlayer.Stop();
                     }
                     else
                     {
                         enabled = false; // Temp disable
-                        _videoPlayer.enabled = true;
+                        _videoPlayer.playerEnabled = true;
 
                         // Hack to ensure the video stays synced to the audio
                         _videoSeeking = true; // Signaling flag; must come first
@@ -647,7 +664,7 @@ namespace YARG.Gameplay
             }
         }
 
-        private void OnVideoSeeked(VideoPlayer player)
+        private void OnVideoSeeked(YargVideoPlayer player)
         {
             if (!_videoSeeking)
                 return;
@@ -672,7 +689,7 @@ namespace YARG.Gameplay
         public void SetPaused(bool paused)
         {
             // Pause/unpause video
-            if (_videoPlayer.enabled && _videoStarted && !_videoSeeking)
+            if (_videoPlayer.playerEnabled && _videoStarted && !_videoSeeking)
             {
                 if (paused)
                 {
