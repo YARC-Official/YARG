@@ -368,20 +368,32 @@ namespace YARG.Gameplay.Player
                 _ => throw new Exception("Unreachable.")
             };
 
-            foreach (var heldPhraseEl in _staticLyricHoldText)
+            if (SettingsManager.Settings.StaticVocalsMode.Value)
             {
-                heldPhraseEl.Initialize();
+                foreach (var heldPhraseEl in _staticLyricHoldText)
+                {
+                    heldPhraseEl.Initialize();
+                }
+
+                switch (LyricLaneCount)
+                {
+                    case 1:
+                        _staticLyricHoldText[1].gameObject.SetActive(false);
+                        _staticLyricHoldText[2].gameObject.SetActive(false);
+                        break;
+                    case 2:
+                        _staticLyricHoldText[2].gameObject.SetActive(false);
+                        _staticLyricHoldText[1].transform.localPosition =
+                            _staticLyricHoldText[2].transform.localPosition;
+                        break;
+                }
             }
-            switch (LyricLaneCount)
+            else
             {
-                case 1:
-                    _staticLyricHoldText[1].gameObject.SetActive(false);
-                    _staticLyricHoldText[2].gameObject.SetActive(false);
-                    break;
-                case 2:
-                    _staticLyricHoldText[2].gameObject.SetActive(false);
-                    _staticLyricHoldText[1].transform.localPosition = _staticLyricHoldText[2].transform.localPosition;
-                    break;
+                foreach (var heldPhraseEl in _staticLyricHoldText)
+                {
+                    heldPhraseEl.gameObject.SetActive(false);
+                }
             }
 
             // this should never happen, yell in the logs if it does
