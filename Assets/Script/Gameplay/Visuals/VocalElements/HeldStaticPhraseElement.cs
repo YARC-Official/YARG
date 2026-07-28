@@ -74,8 +74,13 @@ namespace YARG.Gameplay.Visuals
 
         public void AddSyllables(List<StaticLyricSyllable> syllables)
         {
+            var phrase = new HeldPhrase(syllables, GameManager.VisualTime);
+            if (phrase.Syllables.Count == 0)
+            {
+                return;
+            }
+            _heldPhrases.Add(phrase);
             _lastRenderState = int.MinValue;
-            _heldPhrases.Add(new HeldPhrase(syllables, GameManager.VisualTime));
             _builder.Clear();
         }
 
