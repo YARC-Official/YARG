@@ -71,7 +71,7 @@ namespace YARG.Gameplay.Player
         }
 
         public VocalScrollingLyricSyllableElement.PreparedLyric PrepareScrollingLyric(
-            LyricEvent lyric, VocalNote probableNote, int totalHarms, int harmIndex)
+            LyricEvent lyric, int totalHarms, int harmIndex)
         {
             var combineHarmonyLyrics = !SettingsManager.Settings.UseThreeLaneLyricsInHarmony.Value;
             bool allowHiding = harmIndex != 0 && combineHarmonyLyrics;
@@ -86,7 +86,7 @@ namespace YARG.Gameplay.Player
                 width = tester.GetPreferredValues().x;
             }
 
-            return new VocalScrollingLyricSyllableElement.PreparedLyric(lyric, probableNote, allowHiding, width);
+            return new VocalScrollingLyricSyllableElement.PreparedLyric(lyric, allowHiding, width);
         }
 
         public VocalStaticLyricPhraseElement.PreparedPhrase PrepareStaticLyricPhrase(
@@ -141,7 +141,7 @@ namespace YARG.Gameplay.Player
             // Spawn the vocal lyric
             bool allowHiding = harmIndex != 0 && combineHarmonyLyrics;
             var obj = (VocalScrollingLyricSyllableElement) _scrollingPools[laneIndex].TakeWithoutEnabling();
-            obj.Initialize(preparedLyric, _lastLyricEdgeTime[laneIndex], preparedLyric.NoteLength, isStarpower, harmIndex, allowHiding);
+            obj.Initialize(preparedLyric, _lastLyricEdgeTime[laneIndex], isStarpower, harmIndex, allowHiding);
             obj.EnableFromPool();
 
             // Set the edge time

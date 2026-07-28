@@ -318,10 +318,8 @@ namespace YARG.Gameplay.Player
                 {
                     foreach (var lyric in phrase.Lyrics)
                     {
-                        var probableNote = phrase.PhraseParentNote.ChildNotes
-                            .FirstOrDefault(note => note.Tick == lyric.Tick);
                         _preparedScrollingLyrics[lyric] =
-                            _lyricContainer.PrepareScrollingLyric(lyric, probableNote, _totalHarms, partIndex);
+                            _lyricContainer.PrepareScrollingLyric(lyric, _totalHarms, partIndex);
                     }
                 }
             }
