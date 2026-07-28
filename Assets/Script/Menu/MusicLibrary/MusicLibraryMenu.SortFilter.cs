@@ -331,7 +331,7 @@ namespace YARG.Menu.MusicLibrary
 
             // Keep the previous sort attribute, too, so it can be used to
             // sort the list of unplayed songs and possibly for other things
-            if (sort != SortAttribute.Playcount && sort != SortAttribute.Stars)
+            if (!IsDynamicScoreSort(sort))
             {
                 SettingsManager.Settings.PreviousLibrarySort = sort;
             }
