@@ -16,7 +16,13 @@ namespace YARG.Gameplay.Visuals
         public const  string FUTURE_STAR_POWER_PHRASE_COLOR_TAG = "<color=#757519>";
         public const  string CLOSE_COLOR_TAG                    = "</color>";
 
-        public const double IMMINENCE_THRESHOLD = .3d;
+        public const double SMALL_GAP_THRESHOLD = .3d; // time > this = small gap
+        public const double LARGE_GAP_THRESHOLD = 3 * SMALL_GAP_THRESHOLD; // time > this = large gap
+
+        public static double GetTimeBetweenLyrics(VocalsPhrase next, VocalsPhrase curr)
+        {
+            return next.Lyrics[0].Time - Math.Min(curr.Lyrics[^1].TimeEnd, curr.TimeEnd);
+        }
         public readonly struct StaticLyricSyllable
         {
             public readonly string Text;
@@ -40,7 +46,7 @@ namespace YARG.Gameplay.Visuals
 
                 if ((flags & LyricSymbolFlags.JoinWithNext) != 0)
                 {
-                    builder.Append(text[0..^1]);
+                    builder.Append(text[..^1]);
                 }
                 else
                 {
@@ -91,6 +97,34 @@ namespace YARG.Gameplay.Visuals
                     // We can reasonably assume if we run into a syllable that has not yet been hit,
                     // there is no change after that syllable.
                     break;
+                }
+            }
+        }
+
+        public static void AddSyllablesToBuilder(List<StaticLyricSyllable> syllables, double visualTime,
+            ref Utf16ValueStringBuilder builder)
+        {
+            for (int i = 0; i < syllables.Count; i++)
+            {
+                var syllable = syllables[i];
+                if (visualTime < syllable.Time)
+                {
+                    BuilderAppendWithColorTag(syllable.Text,
+                        syllable.IsStarpower
+                            ? FUTURE_STAR_POWER_LYRIC_COLOR_TAG
+                            : FUTURE_LYRIC_COLOR_TAG, ref builder);
+                }
+                else if (syllable.Time <= visualTime && visualTime < syllable.TimeEnd)
+                {
+                    BuilderAppendWithColorTag(syllable.Text,
+                        PRESENT_LYRIC_COLOR_TAG, ref builder);
+                }
+                else
+                {
+                    BuilderAppendWithColorTag(syllable.Text,
+                        syllable.IsStarpower
+                            ? PAST_STAR_POWER_LYRIC_COLOR_TAG
+                            : PAST_LYRIC_COLOR_TAG, ref builder);
                 }
             }
         }

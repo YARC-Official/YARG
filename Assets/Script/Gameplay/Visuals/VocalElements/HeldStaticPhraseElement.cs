@@ -1,9 +1,9 @@
 ﻿using System;
 using Cysharp.Text;
 using System.Collections.Generic;
-using JetBrains.Annotations;
 using TMPro;
 using UnityEngine;
+using static YARG.Gameplay.Visuals.StaticPhraseHelpers;
 
 namespace YARG.Gameplay.Visuals
 {
@@ -11,13 +11,22 @@ namespace YARG.Gameplay.Visuals
     {
         private readonly struct HeldPhrase
         {
-            public          double                                        Time    { get; }
-            public          double                                        TimeEnd { get; }
-            public readonly List<StaticPhraseHelpers.StaticLyricSyllable> Syllables;
+            public          double                    Time    { get; }
+            public          double                    TimeEnd { get; }
+            public readonly List<StaticLyricSyllable> Syllables;
 
-            public HeldPhrase(List<StaticPhraseHelpers.StaticLyricSyllable> syllables)
+            public HeldPhrase(List<StaticLyricSyllable> syllables, double visualTime)
             {
                 Syllables = syllables;
+                for (int i = Syllables.Count - 1; i >= 0; i--)
+                {
+                    var syllable = Syllables[i];
+                    if (syllable.TimeEnd < visualTime)
+                    {
+                        Syllables.RemoveAt(i);
+                    }
+                }
+
                 if (Syllables.Count == 0)
                 {
                     Time = 0;
@@ -48,9 +57,8 @@ namespace YARG.Gameplay.Visuals
             }
         }
 
-        [NotNull]
-        private readonly List<HeldPhrase> _heldPhrases = new();
-        private int _lastRenderState = int.MinValue;
+        private readonly List<HeldPhrase> _heldPhrases     = new();
+        private          int              _lastRenderState = int.MinValue;
 
         private Utf16ValueStringBuilder _builder;
 
@@ -64,10 +72,10 @@ namespace YARG.Gameplay.Visuals
             _lastRenderState = int.MinValue;
         }
 
-        public void AddSyllables(List<StaticPhraseHelpers.StaticLyricSyllable> syllables)
+        public void AddSyllables(List<StaticLyricSyllable> syllables)
         {
             _lastRenderState = int.MinValue;
-            _heldPhrases.Add(new HeldPhrase(syllables));
+            _heldPhrases.Add(new HeldPhrase(syllables, GameManager.VisualTime));
             _builder.Clear();
         }
 
@@ -91,29 +99,7 @@ namespace YARG.Gameplay.Visuals
             for (int i = 0; i < _heldPhrases.Count; i++)
             {
                 var phrase = _heldPhrases[i];
-                for (int j = 0; j < phrase.Syllables.Count; j++)
-                {
-                    var syllable = phrase.Syllables[j];
-                    if (GameManager.VisualTime < syllable.Time)
-                    {
-                        StaticPhraseHelpers.BuilderAppendWithColorTag(syllable.Text,
-                            syllable.IsStarpower
-                                ? StaticPhraseHelpers.FUTURE_STAR_POWER_LYRIC_COLOR_TAG
-                                : StaticPhraseHelpers.FUTURE_LYRIC_COLOR_TAG, ref _builder);
-                    }
-                    else if (syllable.Time <= GameManager.VisualTime && GameManager.VisualTime < syllable.TimeEnd)
-                    {
-                        StaticPhraseHelpers.BuilderAppendWithColorTag(syllable.Text,
-                            StaticPhraseHelpers.PRESENT_LYRIC_COLOR_TAG, ref _builder);
-                    }
-                    else
-                    {
-                        StaticPhraseHelpers.BuilderAppendWithColorTag(syllable.Text,
-                            syllable.IsStarpower
-                                ? StaticPhraseHelpers.PAST_STAR_POWER_LYRIC_COLOR_TAG
-                                : StaticPhraseHelpers.PAST_LYRIC_COLOR_TAG, ref _builder);
-                    }
-                }
+                AddSyllablesToBuilder(phrase.Syllables, GameManager.VisualTime, ref _builder);
 
                 if (i < _heldPhrases.Count - 1)
                 {
@@ -130,7 +116,7 @@ namespace YARG.Gameplay.Visuals
             for (int i = 0; i < _heldPhrases.Count; i++)
             {
                 var phrase = _heldPhrases[i];
-                StaticPhraseHelpers.AddToRenderState(phrase.Syllables, GameManager.VisualTime, ref hash);
+                AddToRenderState(phrase.Syllables, GameManager.VisualTime, ref hash);
             }
 
             return hash.ToHashCode();

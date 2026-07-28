@@ -1,22 +1,21 @@
 ﻿using System;
 using Cysharp.Text;
 using System.Collections.Generic;
-using System.Linq;
 using TMPro;
 using UnityEngine;
 using YARG.Core.Chart;
-using YARG.Gameplay.Player;
-using static YARG.Gameplay.Player.VocalTrack;
+using static YARG.Gameplay.Visuals.StaticPhraseHelpers;
 
 namespace YARG.Gameplay.Visuals
 {
     public class VocalStaticLyricPhraseElement : BaseElement // not a VocalElement because it doesn't scroll along the highway
     {
+        private const double EARLY_HIGHLIGHT_DURATION = 0.5d;
 
         public sealed class PreparedPhrase
         {
             public readonly VocalsPhrase                                  Phrase;
-            public readonly List<StaticPhraseHelpers.StaticLyricSyllable> Syllables;
+            public readonly List<StaticLyricSyllable> Syllables;
             public readonly string                                        FutureText;
             public readonly float                                         Width;
             public readonly double                                        Duration;
@@ -32,7 +31,7 @@ namespace YARG.Gameplay.Visuals
             }
 
             private PreparedPhrase(VocalsPhrase phrase, double duration,
-                List<StaticPhraseHelpers.StaticLyricSyllable> syllables, string futureText, float width)
+                List<StaticLyricSyllable> syllables, string futureText, float width)
             {
                 Phrase = phrase;
                 Duration = duration;
@@ -77,26 +76,18 @@ namespace YARG.Gameplay.Visuals
             _lastRenderState = int.MinValue;
         }
 
-        public List<StaticPhraseHelpers.StaticLyricSyllable> Dismiss()
+        public List<StaticLyricSyllable> Dismiss()
         {
-            var result = new List<StaticPhraseHelpers.StaticLyricSyllable>();
-            foreach (var syllable in _preparedPhrase.Syllables)
-            {
-                if (GameManager.VisualTime < syllable.TimeEnd)
-                {
-                    result.Add(syllable);
-                }
-            }
             _lastRenderState = int.MinValue;
             _builder.Clear();
             DisableIntoPool();
             ParentPool.Return(this);
-            return result;
+            return _preparedPhrase.Syllables;
         }
 
         protected override void UpdateElement()
         {
-            if (GameManager.VisualTime < ElementTime - 0.5d)
+            if (GameManager.VisualTime < ElementTime - EARLY_HIGHLIGHT_DURATION)
             {
                 return;
             }
@@ -113,14 +104,14 @@ namespace YARG.Gameplay.Visuals
             {
                 if (GameManager.VisualTime < syllable.Time)
                 {
-                    StaticPhraseHelpers.BuilderAppendWithColorTag(syllable.Text, syllable.IsStarpower ? StaticPhraseHelpers.FUTURE_STAR_POWER_LYRIC_COLOR_TAG : StaticPhraseHelpers.FUTURE_LYRIC_COLOR_TAG, ref _builder);
+                    BuilderAppendWithColorTag(syllable.Text, syllable.IsStarpower ? FUTURE_STAR_POWER_LYRIC_COLOR_TAG : FUTURE_LYRIC_COLOR_TAG, ref _builder);
                 }
                 else if (syllable.Time <= GameManager.VisualTime && GameManager.VisualTime < syllable.TimeEnd)
                 {
-                    StaticPhraseHelpers.BuilderAppendWithColorTag(syllable.Text, StaticPhraseHelpers.PRESENT_LYRIC_COLOR_TAG, ref _builder);
+                    BuilderAppendWithColorTag(syllable.Text, PRESENT_LYRIC_COLOR_TAG, ref _builder);
                 }
                 else {
-                    StaticPhraseHelpers.BuilderAppendWithColorTag(syllable.Text, syllable.IsStarpower ? StaticPhraseHelpers.PAST_STAR_POWER_LYRIC_COLOR_TAG : StaticPhraseHelpers.PAST_LYRIC_COLOR_TAG, ref _builder);
+                    BuilderAppendWithColorTag(syllable.Text, syllable.IsStarpower ? PAST_STAR_POWER_LYRIC_COLOR_TAG : PAST_LYRIC_COLOR_TAG, ref _builder);
                 }
             }
 
@@ -139,14 +130,14 @@ namespace YARG.Gameplay.Visuals
         private int GetRenderState()
         {
             var hash = new HashCode();
-            StaticPhraseHelpers.AddToRenderState(_preparedPhrase.Syllables, GameManager.VisualTime, ref hash);
+            AddToRenderState(_preparedPhrase.Syllables, GameManager.VisualTime, ref hash);
             return hash.ToHashCode();
         }
 
-        private static List<StaticPhraseHelpers.StaticLyricSyllable> BuildSyllables(VocalsPhrase phrase,
+        private static List<StaticLyricSyllable> BuildSyllables(VocalsPhrase phrase,
             List<VocalsPhrase> scoringPhrases, bool allowHiding)
         {
-            var syllables = new List<StaticPhraseHelpers.StaticLyricSyllable>();
+            var syllables = new List<StaticLyricSyllable>();
             var mergedLyricIdx = 0;
 
             // Handle HARM3-only phrases
@@ -163,7 +154,7 @@ namespace YARG.Gameplay.Visuals
             return syllables;
         }
 
-        private static void MakeStaticLyricSyllable(List<StaticPhraseHelpers.StaticLyricSyllable> syllables,
+        private static void MakeStaticLyricSyllable(List<StaticLyricSyllable> syllables,
             List<VocalsPhrase> scoringPhrases, bool allowHiding, string text, double time, double timeEnd,
             LyricSymbolFlags flags, bool isLastLyricOfPhrase)
         {
@@ -196,14 +187,14 @@ namespace YARG.Gameplay.Visuals
             syllables.Add(new(text, time, timeEnd, isStarpower, flags, isLastLyricOfPhrase));
         }
 
-        private static string BuildFutureText(List<StaticPhraseHelpers.StaticLyricSyllable> syllables)
+        private static string BuildFutureText(List<StaticLyricSyllable> syllables)
         {
             var builder = ZString.CreateStringBuilder(false);
             foreach (var syllable in syllables)
             {
-                builder.Append(syllable.IsStarpower ? StaticPhraseHelpers.FUTURE_STAR_POWER_PHRASE_COLOR_TAG : StaticPhraseHelpers.FUTURE_PHRASE_COLOR_TAG);
+                builder.Append(syllable.IsStarpower ? FUTURE_STAR_POWER_PHRASE_COLOR_TAG : FUTURE_PHRASE_COLOR_TAG);
                 builder.Append(syllable.Text);
-                builder.Append(StaticPhraseHelpers.CLOSE_COLOR_TAG);
+                builder.Append(CLOSE_COLOR_TAG);
             }
 
             return builder.ToString();

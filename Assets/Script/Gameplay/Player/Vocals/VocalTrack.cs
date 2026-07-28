@@ -380,6 +380,7 @@ namespace YARG.Gameplay.Player
                     break;
                 case 2:
                     _staticLyricHoldText[2].gameObject.SetActive(false);
+                    _staticLyricHoldText[1].transform.localPosition = _staticLyricHoldText[2].transform.localPosition;
                     break;
             }
 

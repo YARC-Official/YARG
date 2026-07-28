@@ -18,9 +18,9 @@ namespace YARG.Gameplay.Player
             PoolUnavailable
         }
 
-        public const float LYRIC_SPACING = 0.25f;
-        public const float STATIC_PHRASE_SPACING = .5f;
-        public const float SHIFT_PHRASE_SPACING =  .08f;
+        public const float LYRIC_SPACING            = 0.25f;
+        public const float SMALL_GAP_PHRASE_SPACING = .5f;
+        public const float NO_GAP_PHRASE_SPACING    = .08f;
 
         [Header("Index 0 should be bottom, 2 should be top.")]
         [SerializeField]

@@ -1359,8 +1359,8 @@ MonoBehaviour:
   AllowStarPower: 0
   _staticLyricHoldText:
   - {fileID: 7637164470296446743}
-  - {fileID: 4501719976259915394}
   - {fileID: 4412227699501653748}
+  - {fileID: 4501719976259915394}
 --- !u!1 &5801866611287065174
 GameObject:
   m_ObjectHideFlags: 0

@@ -17,7 +17,7 @@ namespace YARG.Gameplay.Player
         // Static vocals-related constants
         private const float STATIC_LYRICS_SPACING_FROM_SING_LINE = .25f;
         private const float STATIC_LYRICS_LEFT_EDGE = VocalElement.SING_LINE_POS + STATIC_LYRICS_SPACING_FROM_SING_LINE;
-        private const float DEFAULT_STATIC_LYRICS_RIGHT_EDGE = STATIC_LYRICS_LEFT_EDGE + VocalLyricContainer.STATIC_PHRASE_SPACING;
+        private const float DEFAULT_STATIC_LYRICS_RIGHT_EDGE = STATIC_LYRICS_LEFT_EDGE + VocalLyricContainer.SMALL_GAP_PHRASE_SPACING;
         private const int MAXIMUM_STATIC_PHRASE_QUEUE_SIZE = 10;
         private const float STATIC_LYRIC_SHIFT_DURATION = .1f;
         private const int SCROLLING_LYRIC_SPAWN_BUDGET = 4;
@@ -180,7 +180,7 @@ namespace YARG.Gameplay.Player
                         return;
                     }
 
-                    var shiftAmount = change == StaticLyricShiftType.NoGap ? VocalLyricContainer.SHIFT_PHRASE_SPACING : VocalLyricContainer.STATIC_PHRASE_SPACING;
+                    var shiftAmount = change == StaticLyricShiftType.NoGap ? VocalLyricContainer.NO_GAP_PHRASE_SPACING : VocalLyricContainer.SMALL_GAP_PHRASE_SPACING;
                     //var shiftDuration = change == StaticLyricShiftType.WithinPhrase ? STATIC_LYRIC_SHIFT_DURATION / 2 : STATIC_LYRIC_SHIFT_DURATION;
                     var leftmostPhraseElement = queue.Dequeue();
                     var leftShift = leftmostPhraseElement.Width + shiftAmount;
@@ -209,11 +209,11 @@ namespace YARG.Gameplay.Player
 
                     var leftmostPhraseElement = queue.Peek();
 
-                    _rightEdges[harmonyIndex] -= VocalLyricContainer.STATIC_PHRASE_SPACING;
+                    _rightEdges[harmonyIndex] -= VocalLyricContainer.SMALL_GAP_PHRASE_SPACING;
                     foreach (var remainingPhrase in queue)
                     {
                         remainingPhrase.transform.DOLocalMoveX(
-                            remainingPhrase.transform.localPosition.x - VocalLyricContainer.STATIC_PHRASE_SPACING,
+                            remainingPhrase.transform.localPosition.x - VocalLyricContainer.SMALL_GAP_PHRASE_SPACING,
                             Mathf.Min(STATIC_LYRIC_SHIFT_DURATION, (float)leftmostPhraseElement.Duration));
 
                     }
@@ -266,10 +266,10 @@ namespace YARG.Gameplay.Player
                     var next = preparedPhrases[phraseIdx + 1];
                     if (next.Phrase.Lyrics.Count > 0)
                     {
-                        timeBetweenLyrics = next.Phrase.Lyrics[0].Time - Math.Min(phrase.Phrase.Lyrics[^1].TimeEnd, phrase.Phrase.TimeEnd);
+                        timeBetweenLyrics = StaticPhraseHelpers.GetTimeBetweenLyrics(next.Phrase, phrase.Phrase);
                     }
                 }
-                var shiftAmount = timeBetweenLyrics < StaticPhraseHelpers.IMMINENCE_THRESHOLD ? VocalLyricContainer.SHIFT_PHRASE_SPACING : VocalLyricContainer.STATIC_PHRASE_SPACING;
+                var shiftAmount = timeBetweenLyrics < StaticPhraseHelpers.SMALL_GAP_THRESHOLD ? VocalLyricContainer.NO_GAP_PHRASE_SPACING : VocalLyricContainer.SMALL_GAP_PHRASE_SPACING;
 
                 var newPhraseElement = _lyricContainer.TrySpawnStaticLyricPhrase(
                     phrase, _totalHarms, harmonyIndex, _rightEdges[harmonyIndex]);
