@@ -595,6 +595,9 @@ namespace YARG.Gameplay.Player
 
             _phraseIndex = -1;
 
+            // Removed by EngineManager
+            EngineContainer = null;
+
             Engine = CreateEngine();
             Engine.SetSpeed(GameManager.SongSpeed >= 1 ? GameManager.SongSpeed : 1);
             ResetPracticeSection();

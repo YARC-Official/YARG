@@ -201,6 +201,9 @@ namespace YARG.Gameplay
             TimeStart = timeStart;
             TimeEnd = timeEnd;
 
+            // Engines are all recreated, so reset everything here
+            GameManager.EngineManager.Reset();
+
             bool allowPracticeSP = SettingsManager.Settings.EnablePracticeSP.Value;
             foreach (var player in GameManager.Players)
             {
@@ -282,6 +285,8 @@ namespace YARG.Gameplay
                 HasUpdatedAbPositions = false;
                 return;
             }
+
+            GameManager.EngineManager.ResetState();
 
             foreach (var player in GameManager.Players)
             {
