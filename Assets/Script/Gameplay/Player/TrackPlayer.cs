@@ -391,6 +391,8 @@ namespace YARG.Gameplay.Player
             BeatlineIndex = 0;
             ResetNoteCounters();
 
+            ResetTrackEffectOverlay(0);
+
             CurrentCoda = null;
             _breIndex = 0;
             _unisonStartIndex = 0;
@@ -959,6 +961,9 @@ namespace YARG.Gameplay.Player
             ResetNoteCounters();
 
             BeatlineIndex = 0;
+
+            // Removed by EngineManager
+            EngineContainer = null;
 
             Engine = CreateEngine();
 
