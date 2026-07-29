@@ -194,9 +194,7 @@ public class YargVideoPlayer : MonoBehaviour
             }
             else if (!_vlcPrepared && Time.time - _prepareStartTime > VLC_PREPARE_TIMEOUT)
             {
-                // VLC texture never created (GetTexture stub returns IntPtr.Zero),
-                // fall back to Unity VideoPlayer
-                Debug.LogWarning("[YargVideoPlayer] VLC texture not available after timeout, falling back to VideoPlayer");
+                Debug.LogWarning($"[YargVideoPlayer] VLC texture not available after timeout (OutputTexture={_vlcPlayer.OutputTexture}, targetTexture={_targetTexture}), falling back to VideoPlayer");
                 SwitchToVideoPlayerFallback();
             }
         }

@@ -154,6 +154,7 @@ namespace LibVLCSharp
             }
             else
             {
+                UnityEngine.Debug.LogWarning($"[VLC-Unity] CreateNativeTexture failed: width={width}, height={height}, updated={updated}, texptr={texptr}");
                 return default;
             }
         }

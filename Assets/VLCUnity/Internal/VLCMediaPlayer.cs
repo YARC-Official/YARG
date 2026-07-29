@@ -122,6 +122,7 @@ namespace LibVLCSharp
             }
 
             CreateMediaPlayer();
+            Debug.Log($"[VLC] VLCMediaPlayer Awake complete, NativeReference={MediaPlayer.NativeReference}");
         }
 
         private async void Start()
@@ -483,6 +484,7 @@ namespace LibVLCSharp
 
             if (_vlcTexture != null)
             {
+                Debug.Log($"[VLC] Texture created: {_vlcTexture.width}x{_vlcTexture.height}");
                 OutputTexture = new RenderTexture(_vlcTexture.width, _vlcTexture.height, 0, RenderTextureFormat.ARGB32);
                 OutputTexture.Create();
 
