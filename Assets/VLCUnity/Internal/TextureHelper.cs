@@ -25,9 +25,6 @@ namespace LibVLCSharp
         [DllImport(UnityPlugin, CallingConvention = CallingConvention.Cdecl, EntryPoint = "GetRenderEventFunc")]
         static extern IntPtr GetRenderEventFunc();
 
-        [DllImport(UnityPlugin, CallingConvention = CallingConvention.Cdecl, EntryPoint = "libvlc_unity_get_texture")]
-        static extern IntPtr GetTexture(IntPtr mediaplayer, uint width, uint height, out bool updated);
-
 #if UNITY_ANDROID && !UNITY_EDITOR
         // Track if we're using the Vulkan approach (Unity-owned texture)
         private static bool isVulkanMode = false;
@@ -48,7 +45,7 @@ namespace LibVLCSharp
             if (isVulkanMode)
             {
                 // Check if there's an update
-                var texptr = GetTexture(player.NativeReference, (uint)texture.width, (uint)texture.height, out bool updated);
+                var texptr = player.GetTexture((uint)texture.width, (uint)texture.height, out bool updated);
 
                 if (updated && texptr != System.IntPtr.Zero)
                 {
@@ -68,7 +65,7 @@ namespace LibVLCSharp
 #endif
 
             // Standard approach for non-Vulkan
-            var ptr = GetTexture(player.NativeReference, (uint)texture.width, (uint)texture.height, out bool updatedd);
+            var ptr = player.GetTexture((uint)texture.width, (uint)texture.height, out bool updatedd);
             if (updatedd && ptr != System.IntPtr.Zero)
             {
                 texture.UpdateExternalTexture(ptr);
@@ -144,7 +141,7 @@ namespace LibVLCSharp
 #endif
 
             // Standard approach for non-Vulkan or non-Android
-            var texptr = GetTexture(player.NativeReference, width, height, out bool updated);
+            var texptr = player.GetTexture(width, height, out bool updated);
 
             if (width != 0 && height != 0 && updated && texptr != IntPtr.Zero)
             {

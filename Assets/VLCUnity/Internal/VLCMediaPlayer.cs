@@ -2,7 +2,6 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using UnityEngine;
 
@@ -85,17 +84,6 @@ namespace LibVLCSharp
         private VLCAudioSource _vlcAudioSource;
 
         private readonly ConcurrentQueue<Action> _mainThreadActions = new();
-
-#if !UNITY_EDITOR_WIN && (UNITY_ANDROID || UNITY_STANDALONE_OSX || UNITY_EDITOR_OSX || UNITY_STANDALONE_LINUX || UNITY_EDITOR_LINUX)
-        private const string UnityPlugin = "libVLCUnityPlugin";
-#elif UNITY_IOS
-        private const string UnityPlugin = "@rpath/VLCUnityPlugin.framework/VLCUnityPlugin";
-#else
-        private const string UnityPlugin = "VLCUnityPlugin";
-#endif
-
-        [DllImport(UnityPlugin, CallingConvention = CallingConvention.Cdecl, EntryPoint = "libvlc_unity_media_player_new")]
-        private static extern IntPtr LibVLCUnityMediaPlayerNew(IntPtr libvlc, IntPtr callbacks, IntPtr callbacks_opaque);
 
         #region unity
         private void Awake()
@@ -444,13 +432,6 @@ namespace LibVLCSharp
                 DestroyMediaPlayer();
 
             MediaPlayer = new MediaPlayer(LibVLC);
-            var mpPtr = LibVLCUnityMediaPlayerNew(LibVLC.NativeReference, IntPtr.Zero, IntPtr.Zero);
-            
-            // NativeReference is read-only, use reflection to replace the native pointer
-            // with the one registered in the VLCUnityPlugin's contexts map
-            var field = typeof(MediaPlayer).GetField("<NativeReference>k__BackingField",
-                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            field?.SetValue(MediaPlayer, mpPtr);
 
             if (_vlcAudioSource != null)
                 _vlcAudioSource.Attach(MediaPlayer);
