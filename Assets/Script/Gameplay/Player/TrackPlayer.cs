@@ -1193,7 +1193,7 @@ namespace YARG.Gameplay.Player
 
         protected void OnHappinessNearFail()
         {
-            if (SettingsManager.Settings.NoFail.Value == NoFailMode.Off)
+            if (SettingsManager.Settings.NoFail.Value == NoFailMode.Off && !GameManager.IsPractice)
             {
                 TrackMaterial.FailState = 1f;
             }
@@ -1201,7 +1201,9 @@ namespace YARG.Gameplay.Player
 
         protected void OnPlayerFailed(int engineId)
         {
-            if (SettingsManager.Settings.NoFail.Value != NoFailMode.Off || engineId != EngineContainer.EngineId)
+            if (SettingsManager.Settings.NoFail.Value != NoFailMode.Off
+                || engineId != EngineContainer.EngineId
+                || GameManager.IsPractice)
             {
                 // Not for us
                 return;
@@ -1210,7 +1212,6 @@ namespace YARG.Gameplay.Player
             // Mark as failed and lower highway
             PlayerHasFailed = true;
             CameraPositioner.Lower(false);
-
         }
 
         protected void OnPlayerRevived()
