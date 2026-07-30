@@ -273,6 +273,19 @@ public class YargVideoPlayer : MonoBehaviour
     private void OnVLCTextureResized(RenderTexture texture)
     {
         _vlcPrepared = true;
+        
+        // Resize the external output texture to match VLC's video dimensions
+        if (_targetTexture != null && texture != null)
+        {
+            if (texture.width > _targetTexture.width || texture.height > _targetTexture.height)
+            {
+                _targetTexture.width = texture.width;
+                _targetTexture.height = texture.height;
+                _targetTexture.Create();
+                Debug.Log($"[YargVideoPlayer] Resized target texture to {texture.width}x{texture.height}");
+            }
+        }
+        
         prepareCompleted?.Invoke(this);
     }
 
