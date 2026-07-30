@@ -49,8 +49,15 @@ namespace LibVLCSharp
 #if UNITY_STANDALONE_LINUX || UNITY_EDITOR_LINUX
             var libDir = LibVLCDirectory;
             var pluginPath = libDir + "/vlc/plugins";
-            System.Environment.SetEnvironmentVariable("VLC_PLUGIN_PATH", pluginPath);
-            Debug.Log("[VLC] Set VLC_PLUGIN_PATH to " + pluginPath);
+            if (System.IO.Directory.Exists(pluginPath))
+            {
+                System.Environment.SetEnvironmentVariable("VLC_PLUGIN_PATH", pluginPath);
+                Debug.Log("[VLC] Set VLC_PLUGIN_PATH to " + pluginPath);
+            }
+            else
+            {
+                Debug.Log("[VLC] VLC plugins directory not found at " + pluginPath + ", using system plugins");
+            }
 #endif
           //  Debug.Log("UnityEngine.QualitySettings.activeColorSpace: " + PlayerColorSpace);
             SetColorSpace(PlayerColorSpace);

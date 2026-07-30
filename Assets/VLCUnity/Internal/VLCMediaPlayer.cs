@@ -28,6 +28,13 @@ namespace LibVLCSharp
         public MediaPlayer MediaPlayer { get; private set;  }
         public override RenderTexture OutputTexture { get; protected set; }
 
+        private RenderTexture _externalOutputTexture;
+
+        public void SetExternalOutputTexture(RenderTexture texture)
+        {
+            _externalOutputTexture = texture;
+        }
+
         [Tooltip("The URL or local file path to the media you want to play.")]
         public string mediaPath = "https://archive.org/download/BigBuckBunny_328/BigBuckBunny.avi";
 
@@ -143,17 +150,27 @@ namespace LibVLCSharp
             MediaPlayer.Size(0, ref width, ref height);
 
             if (width == 0 || height == 0)
+            {
+                Debug.Log($"[VLC] Update: video size is 0x0, waiting for video track event");
                 return;
+            }
 
             if (_vlcTexture == null || _vlcTexture.width != width || _vlcTexture.height != height)
+            {
+                Debug.Log($"[VLC] Update: resizing to {width}x{height}");
                 ResizeOutputTextures(width, height);
+            }
 
             if (_vlcTexture != null)
             {
                 if (TextureHelper.UpdateTexture(_vlcTexture, MediaPlayer))
                 {
                     var flip = new Vector2(flipTextureX ? -1 : 1, flipTextureY ? -1 : 1);
-                    Graphics.Blit(_vlcTexture, OutputTexture, flip, Vector2.zero); // If you wanted to do post processing outside of VLC you could use a shader here.
+                    var target = _externalOutputTexture != null ? _externalOutputTexture : OutputTexture;
+                    if (target != null)
+                    {
+                        Graphics.Blit(_vlcTexture, target, flip, Vector2.zero);
+                    }
                 }
             }
         }
@@ -180,13 +197,16 @@ namespace LibVLCSharp
 
         public async Task OpenAsync(string path = null, params string[] options)
         {
+            Debug.Log($"[VLC] OpenAsync called with path={path ?? mediaPath}");
             PrepareForNewMedia(path);
 
             var finalOptions = options?.Length > 0 ? options : mediaOptions;
             var media = await CreateAndParseMediaAsync(mediaPath, false, finalOptions);
 
+            Debug.Log($"[VLC] Media created, setting MediaPlayer.Media");
             MediaPlayer.Media = media.SubItems.FirstOrDefault() ?? media;
             Play();
+            Debug.Log($"[VLC] Play() called");
         }
 
         public async Task PreloadAsync(string path, params string[] options)

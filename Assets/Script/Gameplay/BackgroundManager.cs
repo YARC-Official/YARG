@@ -512,6 +512,25 @@ namespace YARG.Gameplay
                 return;
             }
 
+            var textureManager = GetComponent<TextureManager>();
+            textureManager.CreateVideoTexture();
+
+            var videoTexture = textureManager.GetVideoTexture(0, 0);
+
+            // Set up video texture so both VLC and Unity VideoPlayer render to the same
+            // RenderTexture that the venue material samples from via _Yarg_VideoTex
+            _videoPlayer.renderMode = VideoRenderMode.RenderTexture;
+            _videoPlayer.targetTexture = videoTexture;
+
+            // When there's no venue (BackgroundType.Video), display the video fullscreen
+            // via the _venueOutput RawImage
+            if (_venueOutput != null)
+            {
+                _venueOutput.texture = videoTexture;
+                _venueOutput.gameObject.SetActive(true);
+                _venueFadeOverlay.CrossFadeAlpha(0f, FADE_DURATION, true);
+            }
+
             switch (bg.Stream)
             {
                 case FileStream fs:

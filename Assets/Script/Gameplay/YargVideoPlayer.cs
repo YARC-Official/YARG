@@ -18,6 +18,7 @@ public class YargVideoPlayer : MonoBehaviour
     private VLCMediaPlayer _vlcPlayer;
     private bool _usingVLC = false;
     private bool _vlcPrepared = false;
+    private bool _prepareCalled = false;
     private float _prepareStartTime = 0f;
     private const float VLC_PREPARE_TIMEOUT = 5f;
 
@@ -55,8 +56,15 @@ public class YargVideoPlayer : MonoBehaviour
         set
         {
             _targetTexture = value;
-            if (!_usingVLC && _unityVideoPlayer != null)
+            Debug.Log($"[YargVideoPlayer] targetTexture set to {value}");
+            if (_usingVLC && _vlcPlayer != null && value != null)
+            {
+                _vlcPlayer.SetExternalOutputTexture(value);
+            }
+            else if (!_usingVLC && _unityVideoPlayer != null)
+            {
                 _unityVideoPlayer.targetTexture = value;
+            }
         }
     }
 
@@ -134,10 +142,11 @@ public class YargVideoPlayer : MonoBehaviour
 
     public void Prepare()
     {
+        _prepareCalled = true;
+        _prepareStartTime = Time.time;
         if (_usingVLC && _vlcPlayer != null)
         {
             _vlcPrepared = false;
-            _prepareStartTime = Time.time;
             _ = _vlcPlayer.OpenAsync(_url);
         }
         else
@@ -188,11 +197,7 @@ public class YargVideoPlayer : MonoBehaviour
     {
         if (_usingVLC && _vlcPlayer != null)
         {
-            if (_vlcPlayer.OutputTexture != null && _targetTexture != null)
-            {
-                Graphics.Blit(_vlcPlayer.OutputTexture, _targetTexture);
-            }
-            else if (!_vlcPrepared && Time.time - _prepareStartTime > VLC_PREPARE_TIMEOUT)
+            if (!_vlcPrepared && _prepareCalled && Time.time - _prepareStartTime > VLC_PREPARE_TIMEOUT)
             {
                 Debug.LogWarning($"[YargVideoPlayer] VLC texture not available after timeout (OutputTexture={_vlcPlayer.OutputTexture}, targetTexture={_targetTexture}), falling back to VideoPlayer");
                 SwitchToVideoPlayerFallback();
@@ -244,6 +249,12 @@ public class YargVideoPlayer : MonoBehaviour
 
             _usingVLC = true;
             Debug.Log("[YargVideoPlayer] VLC initialized successfully");
+            
+            // If targetTexture was set before VLC was available, pass it now
+            if (_targetTexture != null)
+            {
+                _vlcPlayer.SetExternalOutputTexture(_targetTexture);
+            }
         }
         catch (Exception ex)
         {
@@ -267,6 +278,10 @@ public class YargVideoPlayer : MonoBehaviour
     {
         _usingVLC = false;
         _vlcPrepared = false;
+        if (_vlcPlayer != null)
+        {
+            _vlcPlayer.SetExternalOutputTexture(null);
+        }
         _unityVideoPlayer.enabled = true;
         _unityVideoPlayer.url = _url;
         _unityVideoPlayer.renderMode = _renderMode;
