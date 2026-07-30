@@ -239,7 +239,8 @@ public class YargVideoPlayer : MonoBehaviour
             _vlcPlayer = go.AddComponent<VLCMediaPlayer>();
             _vlcPlayer.playOnAwake = false;
             _vlcPlayer.useUnityAudio = false;
-            _vlcPlayer.flipTextureY = true; // OpenGL textures are flipped vertically
+            _vlcPlayer.flipTextureX = true;
+            _vlcPlayer.flipTextureY = true;
             _vlcPlayer.OnTextureResized += OnVLCTextureResized;
 
             if (!_vlcPlayer.enabled)
