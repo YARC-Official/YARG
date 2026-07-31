@@ -153,6 +153,7 @@ namespace YARG.Settings
             public IntSetting VideoCalibration { get; } = new(0);
             public ToggleSetting AutoCalibrateAudio { get; } = new(false);
             public ToggleSetting AutoCalibrateVideo { get; } = new(false);
+            public ToggleSetting AutoCalibrateOffset { get; } = new(false);
             public ToggleSetting ShowSongOffsetCalibration { get; } = new(true);
             public ToggleSetting ShowSongOffsetCalibrationOnlyOnePlayer { get; } = new(true);
             public ToggleSetting UseSongOffsetCalibration { get; } = new(true);
