@@ -27,6 +27,7 @@ using YARG.Player;
 using YARG.Replays;
 using YARG.Scores;
 using YARG.Settings;
+using YARG.Settings.Types;
 using YARG.Venue.Characters;
 using YARG.Venue.VenueCamera;
 
@@ -123,6 +124,12 @@ namespace YARG.Gameplay
 
         /// <inheritdoc cref="SongRunner.Paused"/>
         public bool Paused => _songRunner.Paused;
+
+        /// <summary>
+        /// The current song's specific offset (in milliseconds), editable from the pause menu
+        /// and by <see cref="Helpers.AutoCalibrator"/>. Backed by <see cref="Song.SongOffsetContainer"/>.
+        /// </summary>
+        public IntSetting SongOffsetOverride { get; private set; }
 
         /// <summary>
         /// Set when we are in the middle of resuming, but have not yet fully resumed
