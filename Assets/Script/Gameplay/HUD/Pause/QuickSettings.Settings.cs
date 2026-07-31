@@ -26,7 +26,8 @@ namespace YARG.Gameplay.HUD
             nameof(SettingsManager.Settings.AudioCalibration),
             nameof(SettingsManager.Settings.VideoCalibration),
             nameof(SettingsManager.Settings.AutoCalibrateAudio),
-            nameof(SettingsManager.Settings.AutoCalibrateVideo)
+            nameof(SettingsManager.Settings.AutoCalibrateVideo),
+            nameof(SettingsManager.Settings.AutoCalibrateOffset)
         };
     }
 }
