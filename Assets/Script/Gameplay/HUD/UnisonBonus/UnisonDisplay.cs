@@ -329,7 +329,7 @@ namespace YARG.Gameplay.HUD
         {
             int engineId = engineContainer.EngineId;
 
-            switch (engineContainer.Engine)
+            switch (engineContainer.BaseEngine)
             {
                 case GuitarEngine guitarEngine:
                     GuitarEngine.NoteHitEvent guitarNoteHit =

@@ -92,6 +92,53 @@ namespace YARG.Playlists
             SavePlaylist(FavoritesPlaylist, _favoritesPath);
         }
 
+        public static int RemoveDeadHashes(Playlist playlist, IReadOnlyDictionary<HashWrapper, List<SongEntry>> songsByHash)
+        {
+            if (playlist == null || songsByHash == null)
+            {
+                return 0;
+            }
+
+            int removed = 0;
+            RemoveDeadHashesFromPlaylist(playlist, songsByHash, ref removed);
+
+            if (removed > 0)
+            {
+                YargLogger.LogInfo($"Removed {removed} dead song hashes from playlist '{playlist.Name}'");
+            }
+
+            return removed;
+        }
+
+        private static bool RemoveDeadHashesFromPlaylist(Playlist playlist, IReadOnlyDictionary<HashWrapper, List<SongEntry>> songsByHash, ref int removed)
+        {
+            if (playlist.SongHashes == null || playlist.SongHashes.Count == 0)
+            {
+                return false;
+            }
+
+            int originalCount = playlist.SongHashes.Count;
+            var kept = new List<HashWrapper>(originalCount);
+
+            foreach (var hash in playlist.SongHashes)
+            {
+                if (songsByHash.ContainsKey(hash))
+                {
+                    kept.Add(hash);
+                }
+            }
+
+            if (kept.Count == originalCount)
+            {
+                return false;
+            }
+
+            removed += originalCount - kept.Count;
+            playlist.SongHashes.Clear();
+            playlist.SongHashes.AddRange(kept);
+            return true;
+        }
+
         public static void SavePlaylist(Playlist playlist)
         {
             var path = Path.Join(PlaylistDirectory, GetFileNameForPlaylist(playlist));
@@ -192,7 +239,16 @@ namespace YARG.Playlists
 
         private static void SortPlaylistsByName()
         {
-            _playlists.Sort((a, b) => string.Compare(a.Name, b.Name, StringComparison.OrdinalIgnoreCase));
+            _playlists.Sort((a, b) =>
+            {
+                string nameA = a?.Name ?? string.Empty;
+                string nameB = b?.Name ?? string.Empty;
+                string sortA = RichTextUtils.StripRichTextTags(nameA);
+                string sortB = RichTextUtils.StripRichTextTags(nameB);
+
+                int result = string.Compare(sortA, sortB, StringComparison.OrdinalIgnoreCase);
+                return result != 0 ? result : string.Compare(nameA, nameB, StringComparison.OrdinalIgnoreCase);
+            });
         }
     }
 }

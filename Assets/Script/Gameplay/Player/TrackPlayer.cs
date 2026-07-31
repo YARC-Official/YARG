@@ -256,8 +256,6 @@ namespace YARG.Gameplay.Player
                 Engine.SetSpeed(GameManager.SongSpeed);
             }
 
-            GameManager.BeatEventHandler.Audio.Subscribe(MetronomeTick, BeatEventType.Measure);
-            GameManager.BeatEventHandler.Audio.Subscribe(MetronomeTock, BeatEventType.QuarterNote);
             GameManager.BeatEventHandler.Visual.Subscribe(SunburstEffects.PulseSunburst, BeatEventType.StrongBeat);
             InitializeTrackEffects();
             InitializeCodaEvents();
@@ -274,8 +272,6 @@ namespace YARG.Gameplay.Player
 
         protected override void FinishDestruction()
         {
-            GameManager.BeatEventHandler.Audio.Unsubscribe(MetronomeTick);
-            GameManager.BeatEventHandler.Audio.Unsubscribe(MetronomeTock);
             GameManager.BeatEventHandler.Visual.Unsubscribe(SunburstEffects.PulseSunburst);
 
             _autoCalibrator?.Dispose();
@@ -394,6 +390,8 @@ namespace YARG.Gameplay.Player
 
             BeatlineIndex = 0;
             ResetNoteCounters();
+
+            ResetTrackEffectOverlay(0);
 
             CurrentCoda = null;
             _breIndex = 0;
@@ -964,6 +962,9 @@ namespace YARG.Gameplay.Player
 
             BeatlineIndex = 0;
 
+            // Removed by EngineManager
+            EngineContainer = null;
+
             Engine = CreateEngine();
 
             if (GameManager.IsPractice)
@@ -1036,12 +1037,12 @@ namespace YARG.Gameplay.Player
         {
             if (!Player.Profile.IsBot)
             {
-                _autoCalibrator.RecordAccuracy(note.Time);
+                _autoCalibrator.RecordAccuracy(Engine.CurrentTime, note.Time);
             }
 
             if (!GameManager.IsSeekingReplay)
             {
-                SetStemMuteState(false);
+                UpdateMuteState(note, false);
                 if (_currentMultiplier != _previousMultiplier)
                 {
                     _previousMultiplier = _currentMultiplier;
@@ -1078,7 +1079,7 @@ namespace YARG.Gameplay.Player
 
             if (!GameManager.IsSeekingReplay)
             {
-                SetStemMuteState(true);
+                UpdateMuteState(note, true);
 
                 if (LastCombo >= 10)
                 {
@@ -1109,6 +1110,11 @@ namespace YARG.Gameplay.Player
             }
 
             LastCombo = Combo;
+        }
+
+        protected virtual void UpdateMuteState(TNote note, bool isMuted)
+        {
+            SetStemMuteState(isMuted);
         }
 
         protected virtual void OnSoloStart(SoloSection solo)
@@ -1187,7 +1193,7 @@ namespace YARG.Gameplay.Player
 
         protected void OnHappinessNearFail()
         {
-            if (SettingsManager.Settings.NoFail.Value == NoFailMode.Off)
+            if (SettingsManager.Settings.NoFail.Value == NoFailMode.Off && !GameManager.IsPractice)
             {
                 TrackMaterial.FailState = 1f;
             }
@@ -1195,7 +1201,9 @@ namespace YARG.Gameplay.Player
 
         protected void OnPlayerFailed(int engineId)
         {
-            if (SettingsManager.Settings.NoFail.Value != NoFailMode.Off || engineId != EngineContainer.EngineId)
+            if (SettingsManager.Settings.NoFail.Value != NoFailMode.Off
+                || engineId != EngineContainer.EngineId
+                || GameManager.IsPractice)
             {
                 // Not for us
                 return;
@@ -1204,7 +1212,6 @@ namespace YARG.Gameplay.Player
             // Mark as failed and lower highway
             PlayerHasFailed = true;
             CameraPositioner.Lower(false);
-
         }
 
         protected void OnPlayerRevived()
@@ -1230,18 +1237,10 @@ namespace YARG.Gameplay.Player
             }
         }
 
-        public void MetronomeTick()
-        {
-            GlobalAudioHandler.PlayMetronomeSoundEffect(SettingsManager.Settings.MetronomeSound.Value, MetronomePitch.Hi);
-        }
-
-        public void MetronomeTock()
-        {
-            GlobalAudioHandler.PlayMetronomeSoundEffect(SettingsManager.Settings.MetronomeSound.Value, MetronomePitch.Lo);
-        }
-
         protected override void GameplayDestroy()
         {
+            base.GameplayDestroy();
+
             GameManager.EngineManager.OnPlayerFailed -= OnPlayerFailed;
             GameManager.EngineManager.OnPlayerRevived -= OnPlayerRevived;
         }

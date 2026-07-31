@@ -234,6 +234,7 @@ namespace YARG.Settings
                 nameof(Settings.DMXBassChannel),
                 nameof(Settings.DMXKeysChannel),
                 new HeaderMetadata("AdvancedDMXSettings"),
+                nameof(Settings.DMXLocalIP),
                 nameof(Settings.DMXUniverseChannel),
                 nameof(Settings.DMXDimmerValues),
                 nameof(Settings.DMXTargetFPS),

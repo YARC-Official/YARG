@@ -39,6 +39,7 @@ namespace YARG.Audio.BASS
 
         // Undocumented BASS attribute to set max processing threads for a mixer
         private const int   MAX_THREADS_ATTRIB = 86017;
+        private const int   GAIN_CALC_SHUTDOWN_TIMEOUT_MS = 1000;
 
         private          int                     _mixer;
         private readonly List<Stream>            _streams = new();
@@ -55,7 +56,11 @@ namespace YARG.Audio.BASS
         /// </summary>
         public bool AddStream(Stream stream, params StemMixer.StemInfo[] stemInfos)
         {
-            StopGainCalculation();
+            if (!StopGainCalculation())
+            {
+                YargLogger.LogError("Previous gain calculation did not stop; refusing to start another one.");
+                return false;
+            }
 
             if (_mixer == 0)
             {
@@ -172,39 +177,54 @@ namespace YARG.Audio.BASS
             _gainCalcCts = new CancellationTokenSource();
             var token = _gainCalcCts.Token;
 
-            var progress = new Progress<double>(gain =>
+            Action<double> progress = gain =>
             {
                 OnGainAdjusted?.Invoke((float) gain);
-            });
+            };
 
             _gainCalcTask = Task.Run(() => CalculateRms(progress, token), token);
         }
 
-        private void StopGainCalculation()
+        private bool StopGainCalculation()
         {
             if (_gainCalcCts == null)
             {
-                return;
+                return true;
             }
 
-            _gainCalcCts.Cancel();
+            var cts = _gainCalcCts;
+            var task = _gainCalcTask;
+            cts.Cancel();
+
+            bool stopped = false;
             try
             {
-                _gainCalcTask.GetAwaiter().GetResult();
+                stopped = task.Wait(GAIN_CALC_SHUTDOWN_TIMEOUT_MS);
             }
-            catch (OperationCanceledException)
+            catch (AggregateException)
             {
-                // Cancellation before the worker starts is expected.
+                // The worker has stopped; its exception must not abort Unity teardown.
+                stopped = true;
             }
             finally
             {
-                _gainCalcCts.Dispose();
-                _gainCalcCts = null;
-                _gainCalcTask = Task.CompletedTask;
+                if (stopped || task.IsCompleted)
+                {
+                    cts.Dispose();
+                    _gainCalcCts = null;
+                    _gainCalcTask = Task.CompletedTask;
+                }
             }
+
+            if (!stopped)
+            {
+                YargLogger.LogError("Gain calculation did not stop during audio teardown; leaving its BASS handles intact.");
+            }
+
+            return stopped;
         }
 
-        private void CalculateRms(IProgress<double> progress, CancellationToken token)
+        private void CalculateRms(Action<double> progress, CancellationToken token)
         {
             double cumulativeSumSquares = 0.0;
             long totalSamples = 0;
@@ -240,15 +260,18 @@ namespace YARG.Audio.BASS
                     float targetGain = (float) Math.Min(MAX_GAIN, TARGET_RMS / rms);
                     float delta = Math.Clamp(targetGain - Gain, -MAX_GAIN_STEP, MAX_GAIN_STEP);
                     Gain += delta;
-                    progress?.Report(Gain);
+                    progress?.Invoke(Gain);
                 }
             }
         }
 
         public void Dispose()
         {
-            // BASS calls cannot be interrupted mid-call. Wait before freeing handles used by the worker.
-            StopGainCalculation();
+            // BASS calls cannot be interrupted mid-call. Do not free handles while the worker is still using them.
+            if (!StopGainCalculation())
+            {
+                return;
+            }
 
             foreach (var handle in _handles)
             {

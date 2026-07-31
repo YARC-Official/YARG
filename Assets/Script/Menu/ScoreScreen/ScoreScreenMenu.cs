@@ -178,10 +178,7 @@ namespace YARG.Menu.ScoreScreen
                 GlobalVariables.State = PersistentState.Default;
             }
 
-            if (SettingsManager.Settings.UseCrowdFx.Value == CrowdFxMode.Enabled)
-            {
-                GlobalAudioHandler.StopSoundEffect(SfxSample.Chatter, 1.0);
-            }
+            GlobalAudioHandler.StopSoundEffect(SfxSample.Chatter, 1.0);
 
             KillScrollTween();
 

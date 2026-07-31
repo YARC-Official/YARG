@@ -1,4 +1,4 @@
-﻿{
+{
     "Language": {
         "Name": "English",
         "Region": "United States",
@@ -96,6 +96,7 @@
             "ProDrums": "Pro Drums",
             "FiveLaneDrums": "Drums (5-Lane)",
             "EliteDrums": "Elite Drums",
+            "AggregateDrums": "Aggregate Drums",
             "ProGuitar_17": "Pro Guitar (17-Fret)",
             "ProGuitar_22": "Pro Guitar (22-Fret)",
             "ProBass_17": "Pro Bass (17-Fret)",
@@ -218,7 +219,7 @@
         },
         "Toast": {
             "AutoCalibrationScore": "Score saving disabled: Automatic calibration active.",
-            "NoFailScore": "Score saving disabled: No fail toggle had to reset fail meter.",
+            "NoFailScore": "Score saving disabled: No fail was toggled.",
             "ResumeAfterFailInvalidate": "Score saving disabled: Resuming after failure invalidated score.",
             "ProfileCreated": "Profile created for new device: {0}\nTime to do some YARGin!",
             "TooManyPauses": "Score saving disabled: Too many pauses.",
@@ -367,6 +368,7 @@
             "ExpandHeaderHoldStartSet": "<align=left>Expand Header<br><size=67%>(Hold) Start The Set</size></align>",
             "CollapseHeaderHoldStartSet": "<align=left>Collapse Header<br><size=67%>(Hold) Start The Set</size></align>",
             "Search": "Search",
+            "ExitSearchHold": "(Hold) Exit Search",
             "SkipSection": "<align=left>Navigate Sections</align>",
             "MoveInPlaylist": "Move Song",
             "CurrentSetlist": "Current Setlist",
@@ -886,7 +888,8 @@
             "Left": "Left",
             "Right": "Right",
             "Start": "Start (Pause)",
-            "Select": "Select"
+            "Select": "Select",
+            "Search": "Search"
         },
         "FiveFret": {
             "Green": "Green Fret (First)",
@@ -1277,8 +1280,10 @@
                 "Dropdown": {
                     "HighestPercentageOverall": "Best percentage across all difficulties",
                     "HighestPercentageDifficulty": "Best percentage on highest-played difficulty",
+                    "HighestPercentageCurrentDifficulty": "Best percentage on current difficulty",
                     "HighestScoreOverall": "Highest score across all difficulties",
-                    "HighestScoreDifficulty": "Highest score on highest-played difficulty"
+                    "HighestScoreDifficulty": "Highest score on highest-played difficulty",
+                    "HighestScoreCurrentDifficulty": "Highest score on current difficulty"
                 }
             },
             "HighwayTiltMultiplier": {
@@ -1767,6 +1772,10 @@
             "DMXUniverseChannel": {
                 "Name": "DMX Broadcast Universe",
                 "Description": "This is the universe that YARG will send the sACN packet to. Default is \"1\". Maximum is \"65535\"."
+            },
+            "DMXLocalIP": {
+                "Name": "sACN Local IP",
+                "Description": "The local IPv4 address used to send sACN packets. Leave blank to automatically select the first available Ethernet or Wi-Fi address."
             },
             "ReconnectProfiles": {
                 "Name": "Reconnect Profiles",

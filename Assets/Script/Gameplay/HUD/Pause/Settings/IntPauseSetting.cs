@@ -19,6 +19,7 @@ namespace YARG.Gameplay.HUD
 
             _inputField.text = setting.Value.ToString(CultureInfo.InvariantCulture);
             _inputField.onValueChanged.AddListener(OnValueChange);
+            _inputField.onEndEdit.AddListener(OnEndEdit);
         }
 
         protected override NavigationScheme GetNavigationScheme()
@@ -41,17 +42,18 @@ namespace YARG.Gameplay.HUD
 
         private void OnValueChange(string text)
         {
-            try
+            // Keep incomplete input such as a leading minus sign while the user is typing.
+            if (!int.TryParse(text, NumberStyles.Integer, CultureInfo.InvariantCulture, out int value))
             {
-                int value = int.Parse(text, CultureInfo.InvariantCulture);
-                value = Mathf.Clamp(value, Setting.Min, Setting.Max);
-                Setting.Value = value;
-            }
-            catch
-            {
-                // Ignore error
+                return;
             }
 
+            Setting.Value = value;
+        }
+
+        private void OnEndEdit(string _)
+        {
+            // Restore invalid input and show any clamping performed by the setting.
             RefreshVisual();
         }
 
