@@ -101,8 +101,18 @@ namespace YARG.Gameplay.HUD
             {
                 settings.Remove(nameof(SettingsManager.Settings.AutoCalibrateAudio));
                 settings.Remove(nameof(SettingsManager.Settings.AutoCalibrateVideo));
+                settings.Remove(nameof(SettingsManager.Settings.AutoCalibrateOffset));
             }
-            OpenSubSettings(settings);
+
+            // The specific song offset (and its auto-calibration) only matter if song offset
+            // calibration is actually applied during gameplay.
+            var showSongOffset = SettingsManager.Settings.UseSongOffsetCalibration.Value;
+            if (!showSongOffset)
+            {
+                settings.Remove(nameof(SettingsManager.Settings.AutoCalibrateOffset));
+            }
+
+            OpenSubSettings(settings, showSongOffset ? GameManager.SongOffsetOverride : null);
         }
 
         public void ToggleNoFail()
@@ -126,7 +136,7 @@ namespace YARG.Gameplay.HUD
                 : "Enable Venue Post Processing";
         }
 
-        private void OpenSubSettings(List<string> settings)
+        private void OpenSubSettings(List<string> settings, IntSetting extraIntSetting = null)
         {
             // Destroy all of the options (except for the back button)
             foreach (Transform child in _subSettingsContainer)
@@ -142,8 +152,20 @@ namespace YARG.Gameplay.HUD
             _subSettingsNavGroup.ClearNavigatables();
             _subSettingsNavGroup.AddNavigatable(_subSettingsBackButton.GetComponent<NavigatableBehaviour>());
 
+            int index = 0;
             foreach (var settingName in settings)
             {
+                // Per-song settings (e.g. the specific song offset) aren't registered with
+                // SettingsManager, so they can't be looked up by name like the rest of the list.
+                // Instead, we just add it manually at the 3rd position.
+                if (index == 2 && extraIntSetting != null)
+                {
+                    var songOffset = Instantiate(_intPauseSettingPrefab, _subSettingsContainer);
+                    songOffset.Initialize("SongOffset", extraIntSetting);
+                    _subSettingsNavGroup.AddNavigatable(songOffset.gameObject);
+                }
+                index++;
+
                 var setting = SettingsManager.GetSettingByName(settingName);
 
                 switch (setting)
