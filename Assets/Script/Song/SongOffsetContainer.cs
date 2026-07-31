@@ -44,6 +44,22 @@ namespace YARG.Song
             return data ?? new Dictionary<string, long>();
         }
 
+        public static void SetOffsetMilliseconds(string hashKey, long offsetMilliseconds)
+        {
+            var offsets = LoadOffsets();
+
+            if (offsetMilliseconds == 0)
+            {
+                offsets.Remove(hashKey);
+            }
+            else
+            {
+                offsets[hashKey] = offsetMilliseconds;
+            }
+
+            SaveOffsets(offsets);
+        }
+
         public static void SaveOffsets(Dictionary<string, long> offsets)
         {
             try
