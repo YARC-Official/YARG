@@ -32,7 +32,6 @@ using UnityEngine.SceneManagement;
 
 namespace YARG.Gameplay
 {
-    [RequireComponent(typeof(YargVideoPlayer))]
     public class BackgroundManager : GameplayBehaviour, IDisposable
     {
         // e.g. DefaultController.Vocals.Rock.controller
@@ -86,14 +85,6 @@ namespace YARG.Gameplay
         private          string           _editorVenuePath;
         private          Scene            _editorVenueScene;
 #endif
-        protected new void Awake()
-        {
-            base.Awake();
-            if (_videoPlayer == null)
-                _videoPlayer = GetComponent<YargVideoPlayer>();
-        }
-
-        // "The Unity message 'Start' has an incorrect signature."
         [SuppressMessage("Type Safety", "UNT0006", Justification = "UniTaskVoid is a compatible return type.")]
         private async UniTaskVoid Start()
         {
@@ -503,15 +494,6 @@ namespace YARG.Gameplay
 
         private void LoadVideoBackground(BackgroundResult bg)
         {
-            if (_videoPlayer == null)
-                _videoPlayer = GetComponent<YargVideoPlayer>();
-
-            if (_videoPlayer == null)
-            {
-                Debug.LogError("YargVideoPlayer component not found on BackgroundManager");
-                return;
-            }
-
             var textureManager = GetComponent<TextureManager>();
             textureManager.CreateVideoTexture();
 

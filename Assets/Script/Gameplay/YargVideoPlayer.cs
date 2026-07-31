@@ -59,7 +59,9 @@ public class YargVideoPlayer : MonoBehaviour
             Debug.Log($"[YargVideoPlayer] targetTexture set to {value}");
             if (_usingVLC && _vlcPlayer != null && value != null)
             {
-                _vlcPlayer.SetExternalOutputTexture(value);
+                // TODO
+                //_vlcPlayer.SetExternalOutputTexture(value);
+                // _vlcPlayer.OutputTexture
             }
             else if (!_usingVLC && _unityVideoPlayer != null)
             {
@@ -225,13 +227,6 @@ public class YargVideoPlayer : MonoBehaviour
 
     private void TryInitializeVLC()
     {
-        if (!VLCMediaPlayer.IsVLCAvailable)
-        {
-            _usingVLC = false;
-            Debug.Log("[YargVideoPlayer] VLC not available, using Unity VideoPlayer");
-            return;
-        }
-
         try
         {
             var go = new GameObject("VLCPlayer");
@@ -241,6 +236,7 @@ public class YargVideoPlayer : MonoBehaviour
             _vlcPlayer.useUnityAudio = false;
             _vlcPlayer.flipTextureX = true;
             _vlcPlayer.flipTextureY = true;
+            _vlcPlayer.logPlayerActivity = false;
             _vlcPlayer.OnTextureResized += OnVLCTextureResized;
 
             if (!_vlcPlayer.enabled)
@@ -249,13 +245,21 @@ public class YargVideoPlayer : MonoBehaviour
                 throw new InvalidOperationException("VLC player was disabled during initialization");
             }
 
+            if (VLCMediaPlayer.LibVLC == null)
+            {
+                _usingVLC = false;
+                Debug.Log("[YargVideoPlayer] VLC not available, using Unity VideoPlayer");
+                return;
+            }
+
             _usingVLC = true;
             Debug.Log("[YargVideoPlayer] VLC initialized successfully");
             
             // If targetTexture was set before VLC was available, pass it now
             if (_targetTexture != null)
             {
-                _vlcPlayer.SetExternalOutputTexture(_targetTexture);
+                // TODO
+                //_vlcPlayer.SetExternalOutputTexture(_targetTexture);
             }
         }
         catch (Exception ex)
@@ -295,7 +299,8 @@ public class YargVideoPlayer : MonoBehaviour
         _vlcPrepared = false;
         if (_vlcPlayer != null)
         {
-            _vlcPlayer.SetExternalOutputTexture(null);
+            // TODO
+            //_vlcPlayer.SetExternalOutputTexture(null);
         }
         _unityVideoPlayer.enabled = true;
         _unityVideoPlayer.url = _url;
