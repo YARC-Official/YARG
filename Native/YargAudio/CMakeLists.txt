@@ -13,8 +13,11 @@ find_package(Threads REQUIRED)
 
 set(YARG_AUDIO_SOURCES
     src/BassCoreBindings.cpp
+    src/BassMixBindings.cpp
     src/dsp/GainDsp.cpp
     src/dsp/FreeverbDsp.cpp
+    src/one_shot/ScheduledSampleSource.cpp
+    src/one_shot/NativeOneShotStream.cpp
     src/PlatformDynamicLibrary.cpp
     src/yarg_audio_c_api.cpp
 )
@@ -56,10 +59,15 @@ if(YARG_AUDIO_BUILD_TESTS)
     add_executable(yarg_audio_tests
         tests/GainDspTests.cpp
         tests/FreeverbDspTests.cpp
+        tests/ScheduledSampleSourceTests.cpp
+        tests/NativeOneShotStreamTests.cpp
         tests/main.cpp
         src/BassCoreBindings.cpp
+        src/BassMixBindings.cpp
         src/dsp/GainDsp.cpp
         src/dsp/FreeverbDsp.cpp
+        src/one_shot/ScheduledSampleSource.cpp
+        src/one_shot/NativeOneShotStream.cpp
         src/PlatformDynamicLibrary.cpp
     )
     target_compile_features(yarg_audio_tests PRIVATE cxx_std_20)

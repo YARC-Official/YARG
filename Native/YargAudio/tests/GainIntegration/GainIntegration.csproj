@@ -15,6 +15,7 @@
 
   <ItemGroup Condition="'$(YargAudioPlatform)' == 'Windows'">
     <NativeDependency Include="../../../../Assets/Plugins/BassNative/Windows/x86_64/bass.dll" />
+    <NativeDependency Include="../../../../Assets/Plugins/BassNative/Windows/x86_64/bassmix.dll" />
   </ItemGroup>
   <ItemGroup Condition="'$(YargAudioPlatform)' == 'Linux'">
     <NativeDependency Include="../../../../Assets/Plugins/BassNative/Linux/x86_64/libbass.so" />

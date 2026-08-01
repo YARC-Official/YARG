@@ -32,6 +32,8 @@ bool BassCoreBindings::load() noexcept {
     (void) bind(module_, "BASS_ChannelLock", functions_.channelLock);
     (void) bind(module_, "BASS_ChannelGetInfo", functions_.channelGetInfo);
     (void) bind(module_, "BASS_GetConfig", functions_.getConfig);
+    (void) bind(module_, "BASS_StreamCreate", functions_.streamCreate);
+    (void) bind(module_, "BASS_StreamFree", functions_.streamFree);
     return valid();
 }
 
@@ -69,6 +71,23 @@ bool BassCoreBindings::getChannelInfo(std::uint32_t channel,
 
 std::uint32_t BassCoreBindings::getConfig(std::uint32_t option) const noexcept {
     return functions_.getConfig ? functions_.getConfig(option) : 0;
+}
+
+bool BassCoreBindings::oneShotValid() const noexcept {
+    return functions_.errorGetCode && functions_.channelLock &&
+        functions_.channelGetInfo && functions_.streamCreate &&
+        functions_.streamFree;
+}
+
+std::uint32_t BassCoreBindings::createStream(std::uint32_t frequency,
+    std::uint32_t channels, std::uint32_t flags, BassStreamProc proc,
+    void* user) const noexcept {
+    return functions_.streamCreate
+        ? functions_.streamCreate(frequency, channels, flags, proc, user) : 0;
+}
+
+bool BassCoreBindings::freeStream(std::uint32_t stream) const noexcept {
+    return functions_.streamFree && functions_.streamFree(stream) != 0;
 }
 
 } // namespace yarg::audio
