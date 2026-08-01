@@ -6,6 +6,7 @@ using ManagedBass;
 using ManagedBass.Fx;
 using ManagedBass.Mix;
 using UnityEngine;
+using YARG.Audio.BASS.Effects;
 using YARG.Core.Audio;
 using YARG.Core.Logging;
 using YARG.Core.Song;
@@ -61,8 +62,7 @@ namespace YARG.Audio.BASS
 
         private readonly BassNormalizer _normalizer = new();
         private          bool           _shouldNormalize;
-        private          int            _gainDspHandle;
-        private          float          _gain = 1.0f;
+        private          BassGainDsp   _gainDsp;
 
         public override event Action SongEnd
         {
@@ -138,14 +138,11 @@ namespace YARG.Audio.BASS
 
         private void AddGainDSP()
         {
-            _gainDspHandle = Bass.ChannelSetDSP(_mixerHandle, (handle, channel, buffer, length, user) =>
+            _gainDsp = BassGainDsp.Attach(_mixerHandle, 1f);
+            if (_gainDsp == null)
             {
-                BassHelpers.ApplyGain(_gain, buffer, length);
-            });
-
-            if (_gainDspHandle == 0)
-            {
-                YargLogger.LogFormatError("Failed to add gain DSP: {0}!", Bass.LastError);
+                // Native attach logs diagnostics. Do not restore GC-sensitive managed DSP.
+                _shouldNormalize = false;
             }
         }
 
@@ -154,7 +151,7 @@ namespace YARG.Audio.BASS
         {
             if (_shouldNormalize)
             {
-                _gain = _normalizer.Gain;
+                _gainDsp?.SetGain(_normalizer.Gain);
                 _normalizer.OnGainAdjusted -= OnGainAdjusted;
                 _normalizer.OnGainAdjusted += OnGainAdjusted;
             }
@@ -207,7 +204,7 @@ namespace YARG.Audio.BASS
 
         private void OnGainAdjusted(float adjustedGain)
         {
-            _gain = adjustedGain;
+            _gainDsp?.SetGain(adjustedGain);
         }
 
         protected override void FadeIn_Internal(double maxVolume, double duration)
@@ -715,15 +712,8 @@ namespace YARG.Audio.BASS
             _whammySyncTimer.Stop();
             _whammySyncTimer = null;
             _stemDatas.Clear();
-            if (_channels.Count == 0)
-            {
-                return;
-            }
-            if (_gainDspHandle != 0)
-            {
-                Bass.ChannelRemoveDSP(_mixerHandle, _gainDspHandle);
-            }
-
+            _gainDsp?.Dispose();
+            _gainDsp = null;
 
             _normalizer.OnGainAdjusted -= OnGainAdjusted;
             _normalizer.Dispose();
