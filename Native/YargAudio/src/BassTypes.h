@@ -26,6 +26,8 @@ struct BassChannelInfo {
 
 using BassDspProc = void(YARG_BASS_CALLBACK*)(std::uint32_t dsp,
     std::uint32_t channel, void* buffer, std::uint32_t length, void* user);
+using BassStreamProc = std::uint32_t(YARG_BASS_CALLBACK*)(
+    std::uint32_t stream, void* buffer, std::uint32_t length, void* user);
 static_assert(sizeof(BassChannelInfo) == (sizeof(void*) == 8 ? 40 : 32));
 
 } // namespace yarg::audio

@@ -176,6 +176,10 @@ namespace YARG.Audio.BASS
                 // counted as song progress.
                 _playbackTimeline.Play(_songPositionTracker.GetSongPosition());
                 _didSeek = false;
+                foreach (var channel in _oneShotChannels)
+                {
+                    channel.SetPlaybackPaused(false);
+                }
             }
 
             if (IsWhammyEnabled)
@@ -222,6 +226,10 @@ namespace YARG.Audio.BASS
         {
             if (!IsPlaying)
             {
+                foreach (var channel in _oneShotChannels)
+                {
+                    channel.SetPlaybackPaused(true);
+                }
                 _playbackTimeline.Pause();
                 return 0;
             }
@@ -232,6 +240,10 @@ namespace YARG.Audio.BASS
             }
 
             _playbackTimeline.Pause();
+            foreach (var channel in _oneShotChannels)
+            {
+                channel.SetPlaybackPaused(true);
+            }
 
             return 0;
         }
@@ -796,7 +808,8 @@ namespace YARG.Audio.BASS
                 scheduledPlays,
                 _songPositionTracker.GetSongPosition,
                 () => _speed,
-                outputLeadTime
+                outputLeadTime,
+                playbackPaused: !IsPlaying
             );
             channel.Disposed += OnOneShotDisposed;
             _oneShotChannels.Add(channel);

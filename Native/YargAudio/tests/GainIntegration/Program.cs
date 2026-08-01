@@ -20,6 +20,7 @@ internal static class Program
             TestDspPriority();
             TestRepeatedLifecycle();
             TestFreeverbImpulseAndReset();
+            TestOneShotRealBassLifecycle();
         }
         finally
         {
@@ -168,6 +169,108 @@ internal static class Program
         }
     }
 
+    private static void TestOneShotRealBassLifecycle()
+    {
+        const int sampleRate = 48_000;
+        const int channels = 2;
+        float[] pcm = { 1, -1, 0.5f, -0.5f };
+        double[] schedule = { 0 };
+
+        uint mixer = CreateMixer(sampleRate, channels);
+        try
+        {
+            using OneShotStream stream = CreateOneShot(sampleRate, channels, pcm, schedule);
+            Check(stream.Attach(mixer, 0, 1, paused: false), "one-shot attach");
+            AssertOutput(Pull(mixer, 4), pcm, "one-shot initial render");
+
+            Check(stream.SetGain(0), "one-shot mute");
+            Check(stream.Resync(mixer, 0, 1), "one-shot resync while muted");
+            AssertSilence(Pull(mixer, 4), "one-shot muted render");
+
+            Check(stream.SetGain(1), "one-shot unity gain");
+            Check(stream.SetPaused(mixer, true), "one-shot pause");
+            Check(stream.Resync(mixer, 0, 1), "one-shot resync while paused");
+            AssertSilence(Pull(mixer, 4), "one-shot paused render");
+            Check(stream.SetPaused(mixer, false), "one-shot resume");
+            AssertOutput(Pull(mixer, 4), pcm, "one-shot resumed render");
+
+            uint replacement = CreateMixer(sampleRate, channels);
+            try
+            {
+                Check(stream.Detach(), "one-shot detach");
+                Check(stream.Attach(replacement, 0, 1, paused: false), "one-shot reattach");
+                AssertOutput(Pull(replacement, 4), pcm, "one-shot replacement render");
+                Check(stream.Detach(), "one-shot replacement detach");
+            }
+            finally
+            {
+                Check(Bass.StreamFree(replacement), "BASS_StreamFree replacement mixer");
+            }
+        }
+        finally
+        {
+            Check(Bass.StreamFree(mixer), "BASS_StreamFree one-shot mixer");
+        }
+    }
+
+    private static uint CreateMixer(int sampleRate, int channels)
+    {
+        uint mixer = Bass.MixerStreamCreate((uint) sampleRate, (uint) channels,
+            BassSampleFloat | BassStreamDecode);
+        Check(mixer != 0, "BASS_Mixer_StreamCreate");
+        return mixer;
+    }
+
+    private static OneShotStream CreateOneShot(int sampleRate, int channels,
+        float[] pcm, double[] schedule)
+    {
+        var config = new OneShotConfig
+        {
+            Size = (uint) Marshal.SizeOf<OneShotConfig>(),
+            SampleRate = (uint) sampleRate,
+            Channels = (uint) channels,
+            LeadTime = 0,
+        };
+
+        int result = OneShotStream.Create(ref config, pcm, (ulong) pcm.LongLength,
+            schedule, (ulong) schedule.LongLength, out OneShotStream stream,
+            out int bassError);
+        Check(result == 0 && stream != null && !stream.IsInvalid,
+            $"one-shot create failed: result={result}, BASS={bassError}.");
+        return stream!;
+    }
+
+    private static float[] Pull(uint mixer, int frames)
+    {
+        float[] output = new float[frames * 2];
+        int bytes = output.Length * sizeof(float);
+        Check(Bass.ChannelGetData(mixer, output, bytes) == bytes,
+            "BASS_ChannelGetData one-shot mixer");
+        return output;
+    }
+
+    private static void AssertOutput(float[] actual, float[] expected, string operation)
+    {
+        for (int i = 0; i < expected.Length; i++)
+        {
+            Check(actual[i] == expected[i],
+                $"{operation}: sample {i}, expected {expected[i]}, actual {actual[i]}.");
+        }
+
+        for (int i = expected.Length; i < actual.Length; i++)
+        {
+            Check(actual[i] == 0, $"{operation}: trailing sample {i} was {actual[i]}.");
+        }
+    }
+
+    private static void AssertSilence(float[] actual, string operation)
+    {
+        for (int i = 0; i < actual.Length; i++)
+        {
+            Check(actual[i] == 0, $"{operation}: sample {i} was {actual[i]}.");
+        }
+    }
+
     private static uint CreatePushStream()
     {
         uint stream = Bass.StreamCreate(48_000, 2, BassSampleFloat | BassStreamDecode,
@@ -301,6 +404,10 @@ internal static class Program
         [DllImport("bass", EntryPoint = "BASS_ChannelGetData")]
         internal static extern int ChannelGetData(uint channel, float[] buffer, int length);
 
+        [DllImport("bassmix", EntryPoint = "BASS_Mixer_StreamCreate")]
+        internal static extern uint MixerStreamCreate(uint frequency, uint channels,
+            uint flags);
+
         [DllImport("bass", EntryPoint = "BASS_ChannelSetDSP")]
         internal static extern uint ChannelSetDsp(uint channel, DspProcedure procedure,
             IntPtr user, int priority);
@@ -312,6 +419,69 @@ internal static class Program
         [DllImport("bass", EntryPoint = "BASS_StreamFree")]
         [return: MarshalAs(UnmanagedType.Bool)]
         internal static extern bool StreamFree(uint stream);
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct OneShotConfig
+    {
+        internal uint Size;
+        internal uint SampleRate;
+        internal uint Channels;
+        internal uint Reserved;
+        internal double LeadTime;
+    }
+
+    private sealed class OneShotStream : SafeHandleZeroOrMinusOneIsInvalid
+    {
+        private OneShotStream() : base(true) { }
+
+        protected override bool ReleaseHandle() => Destroy(handle, out _) == 0;
+
+        internal bool Attach(uint mixer, double anchorSongPosition,
+            float playbackSpeed, bool paused) => AttachNative(this, mixer,
+            anchorSongPosition, playbackSpeed, paused ? 1 : 0, out _) == 0;
+
+        internal bool Resync(uint mixer, double anchorSongPosition, float playbackSpeed) =>
+            ResyncNative(this, mixer, anchorSongPosition, playbackSpeed, out _) == 0;
+
+        internal bool SetPaused(uint mixer, bool paused) =>
+            SetPausedNative(this, mixer, paused ? 1 : 0, out _) == 0;
+
+        internal bool SetGain(float gain) => SetGainNative(this, gain) == 0;
+        internal bool Detach() => DetachNative(this, out _) == 0;
+
+        [DllImport("yarg_audio", EntryPoint = "yarg_one_shot_stream_create",
+            CallingConvention = CallingConvention.Cdecl)]
+        internal static extern int Create(ref OneShotConfig config, [In] float[] pcm,
+            ulong pcmSampleCount, [In] double[] schedule, ulong scheduleCount,
+            out OneShotStream stream, out int bassError);
+
+        [DllImport("yarg_audio", EntryPoint = "yarg_one_shot_stream_attach",
+            CallingConvention = CallingConvention.Cdecl)]
+        private static extern int AttachNative(OneShotStream stream, uint mixer,
+            double anchorSongPosition, float playbackSpeed, int paused, out int bassError);
+
+        [DllImport("yarg_audio", EntryPoint = "yarg_one_shot_stream_resync",
+            CallingConvention = CallingConvention.Cdecl)]
+        private static extern int ResyncNative(OneShotStream stream, uint mixer,
+            double anchorSongPosition, float playbackSpeed, out int bassError);
+
+        [DllImport("yarg_audio", EntryPoint = "yarg_one_shot_stream_set_paused",
+            CallingConvention = CallingConvention.Cdecl)]
+        private static extern int SetPausedNative(OneShotStream stream, uint mixer,
+            int paused, out int bassError);
+
+        [DllImport("yarg_audio", EntryPoint = "yarg_one_shot_stream_set_gain",
+            CallingConvention = CallingConvention.Cdecl)]
+        private static extern int SetGainNative(OneShotStream stream, float gain);
+
+        [DllImport("yarg_audio", EntryPoint = "yarg_one_shot_stream_detach",
+            CallingConvention = CallingConvention.Cdecl)]
+        private static extern int DetachNative(OneShotStream stream, out int bassError);
+
+        [DllImport("yarg_audio", EntryPoint = "yarg_one_shot_stream_destroy",
+            CallingConvention = CallingConvention.Cdecl)]
+        private static extern int Destroy(IntPtr stream, out int bassError);
     }
 
 }

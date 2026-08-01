@@ -5,6 +5,8 @@
 int main() {
     runGainDspTests();
     runFreeverbDspTests();
-    std::cout << "YargAudio native DSP tests passed\n";
+    runScheduledSampleSourceTests();
+    runNativeOneShotStreamTests();
+    std::cout << "YargAudio native DSP/one-shot tests passed\n";
     return 0;
 }

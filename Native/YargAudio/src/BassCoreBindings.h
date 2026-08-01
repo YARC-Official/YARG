@@ -15,6 +15,9 @@ struct BassCoreFunctions {
     int (YARG_BASS_CALL* channelLock)(std::uint32_t, int) = nullptr;
     int (YARG_BASS_CALL* channelGetInfo)(std::uint32_t, BassChannelInfo*) = nullptr;
     std::uint32_t (YARG_BASS_CALL* getConfig)(std::uint32_t) = nullptr;
+    std::uint32_t (YARG_BASS_CALL* streamCreate)(
+        std::uint32_t, std::uint32_t, std::uint32_t, BassStreamProc, void*) = nullptr;
+    int (YARG_BASS_CALL* streamFree)(std::uint32_t) = nullptr;
 };
 
 class BassCoreBindings {
@@ -33,6 +36,10 @@ public:
     bool lockChannel(std::uint32_t channel, bool lock) const noexcept;
     bool getChannelInfo(std::uint32_t channel, BassChannelInfo& info) const noexcept;
     std::uint32_t getConfig(std::uint32_t option) const noexcept;
+    bool oneShotValid() const noexcept;
+    std::uint32_t createStream(std::uint32_t frequency, std::uint32_t channels,
+        std::uint32_t flags, BassStreamProc proc, void* user) const noexcept;
+    bool freeStream(std::uint32_t stream) const noexcept;
 
 private:
     PlatformDynamicLibrary module_;

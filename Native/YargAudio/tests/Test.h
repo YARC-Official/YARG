@@ -13,3 +13,5 @@
 
 void runGainDspTests();
 void runFreeverbDspTests();
+void runScheduledSampleSourceTests();
+void runNativeOneShotStreamTests();

@@ -1,6 +1,7 @@
 # YargAudio native DSP library
 
-YargAudio hosts allocation-free native Gain and Freeverb BASS DSP callbacks.
+YargAudio hosts allocation-free native Gain and Freeverb BASS DSP callbacks plus
+native scheduled one-shot BASS mixer sources.
 Managed code reaches them through the C ABI and `SafeHandle` wrappers.
 
 Core BASS symbols resolve from already-loaded `bass.dll`, `libbass.so`, or
