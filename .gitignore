@@ -43,6 +43,8 @@ ExportedObj/
 .consulo/
 *.csproj
 !/Native/YargAudio/tests/GainIntegration/GainIntegration.csproj
+/Native/YargAudio/tests/GainIntegration/[Bb]in/
+/Native/YargAudio/tests/GainIntegration/[Oo]bj/
 *.unityproj
 *.sln
 *.slnx
