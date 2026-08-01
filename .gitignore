@@ -7,6 +7,7 @@
 /[Oo]bj/
 /[Bb]uild/
 /[Bb]uilds/
+/Native/YargAudio/build/
 /[Ll]ogs/
 /[Uu]ser[Ss]ettings/
 /UIElementsSchema/
@@ -41,6 +42,7 @@
 ExportedObj/
 .consulo/
 *.csproj
+!/Native/YargAudio/tests/GainIntegration/GainIntegration.csproj
 *.unityproj
 *.sln
 *.slnx

@@ -127,18 +127,6 @@ namespace YARG.Audio.BASS
             return FXAddParameters(handle, EffectType.PitchShift, pitchParams);
         }
 
-        public static unsafe bool ApplyGain(float gain, IntPtr buffer, int length)
-        {
-            var sampleBuffer = new Span<float>((void*) buffer, length / sizeof(float));
-
-            foreach (ref float sample in sampleBuffer)
-            {
-                sample *= gain;
-            }
-
-            return true;
-        }
-
         public static int GetOutputChannelCount()
         {
             Bass.GetInfo(out BassInfo info);
