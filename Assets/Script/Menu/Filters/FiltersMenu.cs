@@ -183,6 +183,7 @@ namespace YARG.Menu.Filters
         private FilterHelpBarState _lastHelpBarState;
         private bool _pendingHelpBarRefresh;
         private bool _showRecommendationsOnOpen;
+        private readonly List<(Canvas Canvas, int SortingOrder)> _elevatedCanvases = new();
 
         protected override void SingletonAwake()
         {
@@ -194,6 +195,8 @@ namespace YARG.Menu.Filters
         private void OnEnable()
         {
             if (!_ready) return;
+
+            SetPersistentUiElevated(true);
 
             _leftNavGroup.SelectionChanged += OnSelectionChanged;
                 _rightNavGroup.SelectionChanged += OnRightSelectionChanged;
@@ -217,6 +220,32 @@ namespace YARG.Menu.Filters
             SaveFilters();
             _showRecommendationsOnOpen = SettingsManager.Settings.ShowRecommendedSongs.Value;
             RefreshHelpBar();
+        }
+
+        private void SetPersistentUiElevated(bool elevated)
+        {
+            if (!elevated)
+            {
+                foreach (var (canvas, originalOrder) in _elevatedCanvases)
+                    canvas.sortingOrder = originalOrder;
+
+                _elevatedCanvases.Clear();
+                return;
+            }
+
+            int sortingOrder = GetComponent<Canvas>().sortingOrder + 1;
+            var statsCanvas = Resources.FindObjectsOfTypeAll<Canvas>()
+                .FirstOrDefault(canvas => canvas.gameObject.name == "Stat Canvas" &&
+                    canvas.gameObject.scene.IsValid());
+
+            foreach (var canvas in new[] { HelpBar.Instance.GetComponentInParent<Canvas>(), statsCanvas })
+            {
+                if (canvas == null)
+                    continue;
+
+                _elevatedCanvases.Add((canvas, canvas.sortingOrder));
+                canvas.sortingOrder = sortingOrder;
+            }
         }
 
         private void HandleConfirm()
@@ -1831,6 +1860,8 @@ namespace YARG.Menu.Filters
         private void OnDisable()
         {
             if (!_ready) return;
+
+            SetPersistentUiElevated(false);
 
             bool showRecommendationsChanged = _showRecommendationsOnOpen !=
                 SettingsManager.Settings.ShowRecommendedSongs.Value;
