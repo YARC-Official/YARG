@@ -1,0 +1,100 @@
+name: Native audio
+
+on:
+  pull_request:
+    paths:
+      - "Native/YargAudio/**"
+      - "Assets/Plugins/YargAudio/**"
+      - "scripts/NativeBuild/**"
+      - ".github/workflows/native-audio.yml"
+      - ".github/workflows/native-audio-package.yml"
+  push:
+    branches: [dev]
+    paths:
+      - "Native/YargAudio/**"
+      - "Assets/Plugins/YargAudio/**"
+      - "scripts/NativeBuild/**"
+      - ".github/workflows/native-audio.yml"
+      - ".github/workflows/native-audio-package.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  windows:
+    name: Windows x64
+    runs-on: windows-2022
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+          submodules: recursive
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.x
+      - name: Build, test, and package plugin
+        run: >
+          dotnet run --project scripts/NativeBuild --
+          build --output "$env:RUNNER_TEMP/yarg-audio-package"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: yarg-audio-windows-x64
+          path: ${{ runner.temp }}/yarg-audio-package
+          if-no-files-found: error
+      - name: Verify committed plugin
+        run: dotnet run --project scripts/NativeBuild -- build --verify-committed-plugin
+
+  linux:
+    name: Linux x64
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+          submodules: recursive
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.x
+      - name: Build, test, and package plugin
+        run: >
+          dotnet run --project scripts/NativeBuild --
+          build --output "$RUNNER_TEMP/yarg-audio-package"
+      - name: Verify architecture and exports
+        run: |
+          file Native/YargAudio/build/linux-x64/libyarg_audio.so | grep 'ELF 64-bit.*x86-64'
+          nm -D --defined-only Native/YargAudio/build/linux-x64/libyarg_audio.so | grep ' yarg_gain_dsp_attach$'
+      - uses: actions/upload-artifact@v4
+        with:
+          name: yarg-audio-linux-x64
+          path: ${{ runner.temp }}/yarg-audio-package
+          if-no-files-found: error
+      - name: Verify committed plugin
+        run: dotnet run --project scripts/NativeBuild -- build --verify-committed-plugin
+
+  macos:
+    name: macOS universal
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+          submodules: recursive
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.x
+      - name: Build, test, and package plugin
+        run: >
+          dotnet run --project scripts/NativeBuild --
+          build --output "$RUNNER_TEMP/yarg-audio-package"
+      - name: Verify architectures and exports
+        run: |
+          lipo Native/YargAudio/build/macos-universal/libyarg_audio.dylib -verify_arch x86_64 arm64
+          nm -gU Native/YargAudio/build/macos-universal/libyarg_audio.dylib | grep ' _yarg_gain_dsp_attach$'
+      - uses: actions/upload-artifact@v4
+        with:
+          name: yarg-audio-macos-universal
+          path: ${{ runner.temp }}/yarg-audio-package
+          if-no-files-found: error
+      - name: Verify committed plugin
+        run: dotnet run --project scripts/NativeBuild -- build --verify-committed-plugin

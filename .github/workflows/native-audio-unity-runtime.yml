@@ -1,0 +1,99 @@
+name: Native audio Unity runtime
+
+on:
+  workflow_dispatch:
+
+jobs:
+  linux:
+    name: Linux x64 / ${{ matrix.backend }}
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        backend: [Mono, IL2CPP]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+          submodules: recursive
+      - name: Build Unity smoke player
+        uses: game-ci/unity-builder@v4
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          unityVersion: 6000.3.5f2
+          targetPlatform: StandaloneLinux64
+          buildMethod: Editor.Build.NativeGainRuntimeSmokeBuild.Build
+          customParameters: >-
+            -nativeGainSmokeBackend ${{ matrix.backend }}
+            -nativeGainSmokeOutput ${{ github.workspace }}/Build/native-gain-linux-${{ matrix.backend }}/YargNativeGainSmoke
+      - name: Run Unity smoke player
+        run: |
+          player="Build/native-gain-linux-${{ matrix.backend }}/YargNativeGainSmoke"
+          result="$RUNNER_TEMP/native-gain-linux-${{ matrix.backend }}.txt"
+          chmod +x "$player"
+          timeout 120s "$player" -batchmode -nographics -logFile player.log \
+            -nativeGainSmokeResult "$result"
+          grep '^PASS ' "$result"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: native-gain-unity-linux-${{ matrix.backend }}
+          path: |
+            player.log
+            ${{ runner.temp }}/native-gain-linux-${{ matrix.backend }}.txt
+
+  macos:
+    name: macOS ${{ matrix.architecture }} / ${{ matrix.backend }}
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - backend: Mono
+            architecture: x64
+            runner: macos-13
+          - backend: IL2CPP
+            architecture: x64
+            runner: macos-13
+          - backend: Mono
+            architecture: ARM64
+            runner: macos-14
+          - backend: IL2CPP
+            architecture: ARM64
+            runner: macos-14
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+          submodules: recursive
+      - name: Build Unity smoke player
+        uses: game-ci/unity-builder@v4
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          unityVersion: 6000.3.5f2
+          targetPlatform: StandaloneOSX
+          buildMethod: Editor.Build.NativeGainRuntimeSmokeBuild.Build
+          customParameters: >-
+            -nativeGainSmokeBackend ${{ matrix.backend }}
+            -nativeGainSmokeArchitecture ${{ matrix.architecture }}
+            -nativeGainSmokeOutput ${{ github.workspace }}/Build/native-gain-macos-${{ matrix.architecture }}-${{ matrix.backend }}/YargNativeGainSmoke.app
+      - name: Run Unity smoke player
+        run: |
+          player="Build/native-gain-macos-${{ matrix.architecture }}-${{ matrix.backend }}/YargNativeGainSmoke.app/Contents/MacOS/YargNativeGainSmoke"
+          result="$RUNNER_TEMP/native-gain-macos-${{ matrix.architecture }}-${{ matrix.backend }}.txt"
+          "$player" -batchmode -nographics -logFile player.log \
+            -nativeGainSmokeResult "$result"
+          grep '^PASS ' "$result"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: native-gain-unity-macos-${{ matrix.architecture }}-${{ matrix.backend }}
+          path: |
+            player.log
+            ${{ runner.temp }}/native-gain-macos-${{ matrix.architecture }}-${{ matrix.backend }}.txt
