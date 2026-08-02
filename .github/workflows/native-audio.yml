@@ -97,7 +97,10 @@ jobs:
 
   macos:
     name: macOS universal
-    runs-on: macos-14
+    # macos-15 (not -14): its dyld4 enforces the LC_UUID requirement that
+    # macOS 15+ dylib loading depends on; older runners silently accept
+    # broken dylibs and let regressions ship.
+    runs-on: macos-15
     steps:
       - uses: actions/checkout@v4
         with:
@@ -110,10 +113,16 @@ jobs:
         run: >
           dotnet run --project scripts/NativeBuild --
           build --output "$RUNNER_TEMP/yarg-audio-package"
-      - name: Verify architectures and exports
+      - name: Verify architectures, load commands, and signature
         run: |
           lipo Native/YargAudio/build/macos-universal/libyarg_audio.dylib -verify_arch x86_64 arm64
           nm -gU Native/YargAudio/build/macos-universal/libyarg_audio.dylib | grep ' _yarg_gain_dsp_attach$'
+          # dyld4 (macOS 15+) refuses UUID-less dylibs; guard against linker
+          # flags that strip LC_UUID for reproducibility.
+          otool -l Native/YargAudio/build/macos-universal/libyarg_audio.dylib | grep -c 'cmd LC_UUID' | grep -q '^2$'
+          codesign --verify --strict Native/YargAudio/build/macos-universal/libyarg_audio.dylib
+      - name: Verify Intel (x86_64) slice under Rosetta
+        run: arch -x86_64 Native/YargAudio/build/macos-universal/yarg_audio_tests
       - uses: actions/upload-artifact@v4
         with:
           name: yarg-audio-macos-universal

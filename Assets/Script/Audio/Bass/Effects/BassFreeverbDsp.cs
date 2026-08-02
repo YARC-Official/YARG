@@ -2,7 +2,6 @@
 using System;
 using System.Runtime.InteropServices;
 using Microsoft.Win32.SafeHandles;
-using UnityEngine;
 using YARG.Core.Logging;
 
 namespace YARG.Audio.BASS.Effects
@@ -112,8 +111,10 @@ namespace YARG.Audio.BASS.Effects
         private static bool IsFinite(float value) =>
             !float.IsNaN(value) && !float.IsInfinity(value);
 
+        // Thread-safe .NET equivalents of Unity's Application.platform/SystemInfo.processorType.
+        // Attach runs from background threads (e.g. music player audio load), where Unity APIs throw.
         private static string PlatformDescription =>
-            $"{Application.platform}/{SystemInfo.processorType}/{IntPtr.Size * 8}-bit";
+            $"{RuntimeInformation.OSDescription}/{RuntimeInformation.ProcessArchitecture}/{IntPtr.Size * 8}-bit";
 
         private static class Native
         {
