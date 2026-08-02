@@ -9,7 +9,7 @@ namespace YARG.Gameplay.Visuals
     {
         public const  string PAST_LYRIC_COLOR_TAG               = "<color=#595959>";
         public const  string PAST_STAR_POWER_LYRIC_COLOR_TAG    = "<color=#757519>";
-        public const  string PRESENT_LYRIC_COLOR_TAG            = "<color=#13f0a6>";
+        public const  string PRESENT_LYRIC_COLOR_TAG            = "<color=#0ea3f9>";
         public const  string FUTURE_LYRIC_COLOR_TAG             = "<color=#FFFFFF>";
         public const  string FUTURE_STAR_POWER_LYRIC_COLOR_TAG  = "<color=#FFEB04>";
         public const  string FUTURE_PHRASE_COLOR_TAG            = "<color=#595959>";

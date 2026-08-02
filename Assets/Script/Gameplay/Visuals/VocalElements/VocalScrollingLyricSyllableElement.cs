@@ -34,6 +34,9 @@ namespace YARG.Gameplay.Visuals
         private int _harmonyIndex;
         private bool _allowHiding;
 
+        private readonly Color _highlightColor = new Color(0.0549f, 0.6431f, 0.9765f);
+        private readonly Color _pastColor      = new Color(0.349f, 0.349f, 0.349f);
+
         public override double ElementTime => Math.Max(_lyricRef.Time, _minimumTime);
 
         [SerializeField]
@@ -74,11 +77,11 @@ namespace YARG.Gameplay.Visuals
             }
             else if (GameManager.VisualTime > _lyricRef.Time && GameManager.VisualTime < _lyricRef.TimeEnd)
             {
-                _lyricText.color = new Color(0.0549f, 0.6431f, 0.9765f);
+                _lyricText.color = _highlightColor;
             }
             else
             {
-                _lyricText.color = new Color(0.349f, 0.349f, 0.349f);
+                _lyricText.color = _pastColor;
             }
         }
 
