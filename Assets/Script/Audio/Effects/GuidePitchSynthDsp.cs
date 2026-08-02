@@ -12,8 +12,12 @@ namespace YARG.Audio.Effects
     /// </summary>
     public sealed class GuidePitchSynthDsp : IMixerDspProcessor
     {
-        /// <summary>Target duration for a full volume fade (0 to 1) in seconds.</summary>
-        private const float FADE_DURATION_SECONDS = 0.00145f;
+        /// <summary>
+        /// Target duration for a full volume fade (0 to 1) in seconds. Long enough to
+        /// avoid an audible click at note on/off boundaries, short enough to stay tight
+        /// against the vocal note onset.
+        /// </summary>
+        private const float FADE_DURATION_SECONDS = 0.015f;
 
         /// <summary>Volume of the guide pitch relative to the master mix.</summary>
         public const float DEFAULT_VOLUME = 0.35f;
