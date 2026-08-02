@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using UnityEngine;
 using YARG.Audio.Effects;
+using YARG.Core;
 using YARG.Core.Chart;
 using YARG.Core.Input;
 using YARG.Gameplay.HUD;
@@ -129,9 +130,12 @@ namespace YARG.Gameplay
                 case MenuAction.Select:
                     ResetPractice();
                     break;
-                // Guide pitch toggle
-                case MenuAction.Up:
-                    _guidePitchManager?.ToggleGuidePitch();
+                // Guide pitch toggle (Vocalist only)
+                case MenuAction.Orange:
+                    if (ctx.Player?.Profile.CurrentInstrument is Instrument.Vocals or Instrument.Harmony)
+                    {
+                        _guidePitchManager?.ToggleGuidePitch();
+                    }
                     break;
             }
         }
