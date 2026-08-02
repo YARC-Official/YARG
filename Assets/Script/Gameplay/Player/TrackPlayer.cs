@@ -336,7 +336,7 @@ namespace YARG.Gameplay.Player
 
             phrases.AddRange(EngineContainer.UnisonPhrases);
 
-            var effects = TrackEffect.PhrasesToEffects(phrases);
+            var effects = TrackEffect.PhrasesToEffects(Notes, phrases);
             _trackEffects.AddRange(effects);
         }
 
