@@ -45,6 +45,8 @@ ExportedObj/
 !/Native/YargAudio/tests/GainIntegration/GainIntegration.csproj
 /Native/YargAudio/tests/GainIntegration/[Bb]in/
 /Native/YargAudio/tests/GainIntegration/[Oo]bj/
+/scripts/NativeBuild/[Bb]in/
+/scripts/NativeBuild/[Oo]bj/
 *.unityproj
 *.sln
 *.slnx
