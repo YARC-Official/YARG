@@ -150,11 +150,19 @@ int32_t YARG_AUDIO_CALL yarg_one_shot_stream_attach(
 int32_t YARG_AUDIO_CALL yarg_one_shot_stream_resync(
     yarg_one_shot_stream* stream, uint32_t mixer,
     double anchorSongPosition, float playbackSpeed, int32_t* bassError) {
+    return yarg_one_shot_stream_resync_ex(stream, mixer, anchorSongPosition,
+        playbackSpeed, 1, bassError);
+}
+
+int32_t YARG_AUDIO_CALL yarg_one_shot_stream_resync_ex(
+    yarg_one_shot_stream* stream, uint32_t mixer,
+    double anchorSongPosition, float playbackSpeed, int32_t clearActiveVoices,
+    int32_t* bassError) {
     if (bassError) *bassError = 0;
     if (!stream || !stream->value) return YARG_AUDIO_ERROR_INVALID_ARGUMENT;
     int error = 0;
     const int result = stream->value->resync(mixer, anchorSongPosition,
-        playbackSpeed, &error);
+        playbackSpeed, clearActiveVoices != 0, &error);
     storeBassError(bassError, error);
     return result;
 }

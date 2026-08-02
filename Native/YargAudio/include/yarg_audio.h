@@ -69,6 +69,10 @@ YARG_AUDIO_API int32_t YARG_AUDIO_CALL yarg_one_shot_stream_attach(
 YARG_AUDIO_API int32_t YARG_AUDIO_CALL yarg_one_shot_stream_resync(
     yarg_one_shot_stream* stream, uint32_t mixer,
     double anchor_song_position, float playback_speed, int32_t* bass_error);
+YARG_AUDIO_API int32_t YARG_AUDIO_CALL yarg_one_shot_stream_resync_ex(
+    yarg_one_shot_stream* stream, uint32_t mixer,
+    double anchor_song_position, float playback_speed,
+    int32_t clear_active_voices, int32_t* bass_error);
 YARG_AUDIO_API int32_t YARG_AUDIO_CALL yarg_one_shot_stream_set_paused(
     yarg_one_shot_stream* stream, uint32_t mixer, int32_t paused,
     int32_t* bass_error);
