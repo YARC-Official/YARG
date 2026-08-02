@@ -97,10 +97,11 @@ jobs:
 
   macos:
     name: macOS universal
-    # macos-15 (not -14): its dyld4 enforces the LC_UUID requirement that
-    # macOS 15+ dylib loading depends on; older runners silently accept
-    # broken dylibs and let regressions ship.
-    runs-on: macos-15
+    # macos-26, not -14/-15: dyld4 on macOS 26 rejects ad-hoc signatures
+    # produced by older codesign versions (Xcode 16) with SIGKILL at dlopen,
+    # and enforces the LC_UUID requirement. This runner matches what users
+    # run, so the integration test exercises the real load path.
+    runs-on: macos-26
     steps:
       - uses: actions/checkout@v4
         with:
