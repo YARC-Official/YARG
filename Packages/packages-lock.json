@@ -51,6 +51,13 @@
       "dependencies": {},
       "url": "https://package.openupm.com"
     },
+    "com.nobi.roundedcorners": {
+      "version": "https://github.com/kirevdokimov/Unity-UI-Rounded-Corners.git",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {},
+      "hash": "33135342e868201eb0d4cef821ecab90caca373e"
+    },
     "com.starasgames.tmpro-dynamic-data-cleaner": {
       "version": "1.0.0",
       "depth": 0,

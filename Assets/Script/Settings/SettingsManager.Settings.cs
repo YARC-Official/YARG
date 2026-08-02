@@ -275,12 +275,19 @@ namespace YARG.Settings
                 };
 
             public DropdownSetting<HighScoreHistoryMode> HighScoreHistory { get; }
-                = new(HighScoreHistoryMode.HighestPercentageDifficulty, _ => ScoreContainer.InvalidateScoreCache())
+                = new(HighScoreHistoryMode.HighestPercentageDifficulty, _ =>
+                {
+                    ScoreContainer.InvalidateScoreCache();
+                    SongContainer.InvalidateStarsCache();
+                    MusicLibraryMenu.SetReload(MusicLibraryReloadState.Partial);
+                })
                 {
                     HighScoreHistoryMode.HighestPercentageOverall,
                     HighScoreHistoryMode.HighestPercentageDifficulty,
+                    HighScoreHistoryMode.HighestPercentageCurrentDifficulty,
                     HighScoreHistoryMode.HighestScoreOverall,
                     HighScoreHistoryMode.HighestScoreDifficulty,
+                    HighScoreHistoryMode.HighestScoreCurrentDifficulty,
                 };
 
             public ToggleSetting ShowPercentDecimals { get; } = new(false);
@@ -305,7 +312,13 @@ namespace YARG.Settings
                 new(1f, v => GlobalAudioHandler.SetVolumeSetting(SongStem.Keys, v));
 
             public VolumeSetting DrumsVolume { get; } =
-                new(1f, v => GlobalAudioHandler.SetVolumeSetting(SongStem.Drums, v));
+                new(1f, v =>
+                {
+                    GlobalAudioHandler.SetVolumeSetting(SongStem.Drums1, v);
+                    GlobalAudioHandler.SetVolumeSetting(SongStem.Drums2, v);
+                    GlobalAudioHandler.SetVolumeSetting(SongStem.Drums3, v);
+                    GlobalAudioHandler.SetVolumeSetting(SongStem.Drums4, v);
+                });
 
             public VolumeSetting VocalsVolume { get; } =
                 new(1f, v => GlobalAudioHandler.SetVolumeSetting(SongStem.Vocals, v));

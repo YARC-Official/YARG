@@ -148,7 +148,7 @@ namespace YARG.Gameplay.Player
 
         public override void Initialize(int index, YargPlayer player, SongChart chart, TrackView trackView, StemMixer mixer, int? currentHighScore)
         {
-            _stem = player.Profile.CurrentInstrument.ToSongStem();
+            _stem = player.Profile.CurrentInstrument.ToSongStems().First();
             if (_stem == SongStem.Bass && mixer[SongStem.Bass] == null)
             {
                 _stem = SongStem.Rhythm;

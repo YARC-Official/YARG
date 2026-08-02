@@ -204,9 +204,10 @@ namespace YARG.Playback
         public float DebugSyncAdjustment => _audioSynchronizer.EffectiveAdjustment;
         public float DebugSyncStartDelta => _audioSynchronizer.StartDelta;
         public float DebugSyncWorstDelta => _audioSynchronizer.WorstDelta;
+        public double DebugControlSyncError => _audioSynchronizer.ControlError;
 
         /// <summary>
-        /// The latest sampled difference between the target and actual audio synchronization times.
+        /// Latest sampled difference between target time and mixer position currently being heard.
         /// </summary>
         public double SyncError => _audioSynchronizer.Error;
 
@@ -404,8 +405,9 @@ namespace YARG.Playback
             // mixer control timeline. This avoids measuring frame age as audio drift.
             double syncSystemTime = InputManager.CurrentInputTime;
             double syncInputTime = GetInputTime(syncSystemTime);
-            double audioTargetTime = GetAudioPlaybackTime(syncInputTime);
-            _audioSynchronizer.Synchronize(audioTargetTime, SongSpeed);
+            double controlTargetTime = GetAudioPlaybackTime(syncInputTime);
+            double heardTargetTime = controlTargetTime + (AudioCalibration * SongSpeed);
+            _audioSynchronizer.Synchronize(controlTargetTime, heardTargetTime, SongSpeed);
         }
 
         /// <summary>
@@ -744,21 +746,41 @@ namespace YARG.Playback
 
     /// <summary>
     /// Keeps mixer playback aligned with gameplay time by applying bounded speed corrections.
-    /// Corrections stop near song boundaries and while error remains within a small deadband.
+    /// Corrections stop near song boundaries and use hysteresis to avoid speed-command chatter.
     /// </summary>
     internal sealed class AudioSynchronizer
     {
-        private const double SYNC_DEADBAND_SECONDS   = 0.0015;
+        private enum SyncState
+        {
+            Idle,
+            Correcting,
+            Settling,
+        }
+
+        private const double SYNC_START_SECONDS      = 0.005;
+        private const double SYNC_STOP_SECONDS       = 0.0015;
+        private const double SETTLE_MARGIN_SECONDS   = 0.025;
         private const float  CORRECTION_TIME_SECONDS = 0.1f;
         private const float  SYNC_CLAMP              = 0.50f;
 
         private readonly StemMixer _mixer;
 
-        private float  Adjustment          { get; set; }
+        private float     Adjustment          { get; set; }
+        private double    _controlErrorOffset;
+        private SyncState _state;
+        private double    _settleUntil         = double.NegativeInfinity;
         public  float  EffectiveAdjustment { get; private set; }
         public  float  StartDelta          { get; private set; }
         public  float  WorstDelta          { get; private set; }
+        /// <summary>
+        /// Latest difference between calibrated target time and mixer position currently being heard.
+        /// </summary>
         public  double Error               { get; private set; }
+        /// <summary>
+        /// Latest difference between target time and delay-free control position.
+        /// This value drives corrections because it accounts for commands still buffered for output.
+        /// </summary>
+        public  double ControlError        { get; private set; }
 
         public AudioSynchronizer(StemMixer mixer)
         {
@@ -768,25 +790,52 @@ namespace YARG.Playback
         /// <summary>
         /// Samples mixer position and corrects its control-time error.
         /// </summary>
-        /// <param name="targetTime">Required audio-file position on the gameplay clock.</param>
+        /// <param name="controlTargetTime">Required audio-file position on the input clock.</param>
+        /// <param name="heardTargetTime">
+        /// Required heard audio-file position after applying audio calibration.
+        /// </param>
         /// <param name="songSpeed">Requested playback speed before synchronization correction.</param>
-        public void Synchronize(double targetTime, float songSpeed)
+        public void Synchronize(double controlTargetTime, double heardTargetTime, float songSpeed)
         {
-            double controlPosition = _mixer.GetControlPosition();
-            Error = targetTime - controlPosition;
+            SyncPosition position = _mixer.GetSyncPosition();
+            Error = heardTargetTime - position.Heard;
+            double rawControlError = controlTargetTime - position.Control;
+            double now = InputManager.CurrentInputTime;
+
+            if (_state == SyncState.Settling && now >= _settleUntil)
+            {
+                // Both errors now describe the same settled output. Their difference is predictor
+                // bias, so retain it in future control errors instead of trusting the latency model.
+                _controlErrorOffset = Error - rawControlError;
+                _state = SyncState.Idle;
+            }
+
+            ControlError = rawControlError + _controlErrorOffset;
+
+            // Startup can land with an already-small predicted error and therefore never have a
+            // correction-ending transition. Validate that state against heard output as well.
+            if (_state == SyncState.Idle &&
+                Math.Abs(ControlError) < SYNC_START_SECONDS &&
+                Math.Abs(Error) >= SYNC_START_SECONDS)
+            {
+                BeginSettling(now);
+            }
 
             float adjustment = 0f;
 
             bool isWithinSongBounds =
-                targetTime >= 0 &&
-                targetTime < _mixer.Length &&
-                controlPosition < _mixer.Length;
+                controlTargetTime >= 0 &&
+                controlTargetTime < _mixer.Length &&
+                position.Control < _mixer.Length;
 
-            bool needsAdjustment = Math.Abs(Error) >= SYNC_DEADBAND_SECONDS;
+            double correctionThreshold = _state == SyncState.Correcting
+                ? SYNC_STOP_SECONDS
+                : SYNC_START_SECONDS;
+            bool needsAdjustment = Math.Abs(ControlError) >= correctionThreshold;
 
-            if (isWithinSongBounds && needsAdjustment)
+            if (isWithinSongBounds && needsAdjustment && _state != SyncState.Settling)
             {
-                adjustment = (float) Error / CORRECTION_TIME_SECONDS;
+                adjustment = (float) ControlError / CORRECTION_TIME_SECONDS;
                 adjustment = Math.Clamp(adjustment, -SYNC_CLAMP, SYNC_CLAMP);
             }
 
@@ -805,6 +854,10 @@ namespace YARG.Playback
             StartDelta = 0f;
             WorstDelta = 0f;
             Error = 0;
+            ControlError = 0;
+            _controlErrorOffset = 0;
+            _state = SyncState.Idle;
+            _settleUntil = double.NegativeInfinity;
             _mixer.SetPlaybackSpeed(songSpeed);
         }
 
@@ -822,20 +875,23 @@ namespace YARG.Playback
         /// </summary>
         public void ChangeSongSpeed(float songSpeed)
         {
+            _controlErrorOffset = 0;
+            _state = Adjustment == 0f ? SyncState.Idle : SyncState.Correcting;
+            _settleUntil = double.NegativeInfinity;
             _mixer.SetPlaybackSpeed(songSpeed, Adjustment, true);
         }
 
         private void RecordCorrection(float adjustment)
         {
-            bool correctionStarting = Adjustment == 0f && adjustment != 0f;
+            bool correctionStarting = _state == SyncState.Idle && adjustment != 0f;
             if (correctionStarting)
             {
-                StartDelta = (float) Error;
+                StartDelta = (float) ControlError;
                 WorstDelta = StartDelta;
             }
-            else if (adjustment != 0f && Math.Abs(Error) > Math.Abs(WorstDelta))
+            else if (adjustment != 0f && Math.Abs(ControlError) > Math.Abs(WorstDelta))
             {
-                WorstDelta = (float) Error;
+                WorstDelta = (float) ControlError;
             }
         }
 
@@ -846,8 +902,27 @@ namespace YARG.Playback
                 return;
             }
 
+            bool correctionEnding = _state == SyncState.Correcting && adjustment == 0f;
             Adjustment = adjustment;
             _mixer.SetPlaybackSpeed(songSpeed, adjustment, false);
+
+            if (correctionEnding)
+            {
+                // Do not react to control error while the final base-speed command is still
+                // buffered. BufferedPlaybackTimeline reconciles against heard output during this
+                // hold, after which any remaining error is safe to correct again.
+                BeginSettling(InputManager.CurrentInputTime);
+            }
+            else if (adjustment != 0f)
+            {
+                _state = SyncState.Correcting;
+            }
+        }
+
+        private void BeginSettling(double now)
+        {
+            _state = SyncState.Settling;
+            _settleUntil = now + _mixer.GetTempoStreamLatency() + SETTLE_MARGIN_SECONDS;
         }
     }
 }
