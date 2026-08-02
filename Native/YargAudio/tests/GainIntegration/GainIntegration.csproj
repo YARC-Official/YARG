@@ -19,9 +19,11 @@
   </ItemGroup>
   <ItemGroup Condition="'$(YargAudioPlatform)' == 'Linux'">
     <NativeDependency Include="../../../../Assets/Plugins/BassNative/Linux/x86_64/libbass.so" />
+    <NativeDependency Include="../../../../Assets/Plugins/BassNative/Linux/x86_64/libbassmix.so" />
   </ItemGroup>
   <ItemGroup Condition="'$(YargAudioPlatform)' == 'MacOS'">
     <NativeDependency Include="../../../../Assets/Plugins/BassNative/Mac/libbass.dylib" />
+    <NativeDependency Include="../../../../Assets/Plugins/BassNative/Mac/libbassmix.dylib" />
   </ItemGroup>
   <ItemGroup>
     <NativeDependency Include="$(YargAudioLibraryPath)" />
