@@ -986,7 +986,9 @@ namespace YARG.Audio.BASS
             if (_disposed) return;
             _disposed = true;
 
-            if (_dspHandle != 0 && !Bass.ChannelRemoveDSP(_streamHandle, _dspHandle))
+            if (_dspHandle != 0 &&
+                !Bass.ChannelRemoveDSP(_streamHandle, _dspHandle) &&
+                Bass.LastError != Errors.Handle)
             {
                 YargLogger.LogFormatError("BassDspHandle: failed to remove DSP: {0}", Bass.LastError);
             }
