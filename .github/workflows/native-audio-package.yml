@@ -1,0 +1,76 @@
+name: Native audio package
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Windows x64
+            platform: Windows
+            runner: windows-2022
+            artifact: yarg-audio-windows-x64
+          - name: Linux x64
+            platform: Linux
+            runner: ubuntu-24.04
+            artifact: yarg-audio-linux-x64
+          - name: macOS universal
+            platform: MacOS
+            runner: macos-14
+            artifact: yarg-audio-macos-universal
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+          submodules: recursive
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.x
+
+      - name: Build native plugin
+        if: runner.os != 'Windows'
+        shell: bash
+        run: >
+          dotnet run --project scripts/NativeBuild --
+          build --output "$RUNNER_TEMP/yarg-audio-package"
+
+      - name: Build native plugin
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: >
+          dotnet run --project scripts/NativeBuild --
+          build --output "$env:RUNNER_TEMP/yarg-audio-package"
+
+      - name: Verify Linux architecture and exports
+        if: matrix.platform == 'Linux'
+        shell: bash
+        run: |
+          file Native/YargAudio/build/linux-x64/libyarg_audio.so |
+            grep 'ELF 64-bit.*x86-64'
+          nm -D --defined-only Native/YargAudio/build/linux-x64/libyarg_audio.so |
+            grep ' yarg_gain_dsp_attach$'
+
+      - name: Verify macOS architectures and exports
+        if: matrix.platform == 'MacOS'
+        shell: bash
+        run: |
+          lipo Native/YargAudio/build/macos-universal/libyarg_audio.dylib \
+            -verify_arch x86_64 arm64
+          nm -gU Native/YargAudio/build/macos-universal/libyarg_audio.dylib |
+            grep ' _yarg_gain_dsp_attach$'
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          path: ${{ runner.temp }}/yarg-audio-package
+          if-no-files-found: error
