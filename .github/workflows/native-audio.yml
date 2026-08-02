@@ -107,6 +107,11 @@ jobs:
         with:
           lfs: true
           submodules: recursive
+      # Pin Xcode 26.0.1: ad-hoc signatures from newer Xcode codesign
+      # (26.5+/26.6) are rejected with SIGKILL at dlopen by dyld on macOS
+      # 26.0-26.4. This also matches the clang the maintainers build with.
+      - name: Select Xcode 26.0.1
+        run: sudo xcode-select -s /Applications/Xcode_26.0.1.app
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 8.x
