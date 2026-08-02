@@ -43,7 +43,7 @@ void testInputValidation() {
 void testScheduledMixingAndControls() {
     auto source = create(4, 1, {1, -0.5f}, {0});
     REQUIRE(source);
-    REQUIRE(source->reset(0, 1, false));
+    REQUIRE(source->reset(0, 1, false, true));
 
     float output[4] = {9, 9, 9, 9};
     source->render(output, 4);
@@ -52,25 +52,25 @@ void testScheduledMixingAndControls() {
     REQUIRE(source->cursorFrame() == 4);
 
     REQUIRE(source->setGain(0));
-    REQUIRE(source->reset(0, 1, false));
+    REQUIRE(source->reset(0, 1, false, true));
     output[0] = output[1] = output[2] = output[3] = 9;
     source->render(output, 4);
     REQUIRE(output[0] == 0 && output[1] == 0 && output[2] == 0 && output[3] == 0);
 
     REQUIRE(source->setGain(1));
-    REQUIRE(source->reset(0, 1, true));
+    REQUIRE(source->reset(0, 1, true, true));
     source->render(output, 4);
     REQUIRE(output[0] == 0 && source->cursorFrame() == 0);
     source->setPaused(false);
     source->render(output, 2);
     REQUIRE(output[0] == 1 && output[1] == -0.5f);
     REQUIRE(!source->setGain(std::numeric_limits<float>::quiet_NaN()));
-    REQUIRE(!source->reset(0, 0, false));
+    REQUIRE(!source->reset(0, 0, false, true));
 }
 
 void testBoundariesSpeedAndSeek() {
     auto source = create(10, 1, {1}, {0.3, 0.8}, 0);
-    REQUIRE(source->reset(0, 1, false));
+    REQUIRE(source->reset(0, 1, false, true));
     float output[4]{};
     source->render(output, 4);
     REQUIRE(output[0] == 0 && output[1] == 0 && output[2] == 0 && output[3] == 1);
@@ -80,37 +80,73 @@ void testBoundariesSpeedAndSeek() {
     REQUIRE(second[0] == 0 && second[3] == 0 && second[4] == 1);
 
     auto leadSource = create(10, 1, {1}, {0.1, 0.4}, 0.1);
-    REQUIRE(leadSource->reset(0, 1, false));
+    REQUIRE(leadSource->reset(0, 1, false, true));
     float leadOutput[4]{};
     leadSource->render(leadOutput, 4);
     REQUIRE(leadOutput[2] == 0 && leadOutput[3] == 1);
 
     auto speedSource = create(10, 1, {1}, {0.6}, 0.1);
-    REQUIRE(speedSource->reset(0, 2, false));
+    REQUIRE(speedSource->reset(0, 2, false, true));
     float speedOutput[3]{};
     speedSource->render(speedOutput, 3);
     REQUIRE(speedOutput[0] == 0 && speedOutput[1] == 0 && speedOutput[2] == 1);
 
     auto midpointSource = create(2, 1, {1}, {0.25});
-    REQUIRE(midpointSource->reset(0, 1, false));
+    REQUIRE(midpointSource->reset(0, 1, false, true));
     float midpointOutput[1]{};
     midpointSource->render(midpointOutput, 1);
     REQUIRE(midpointOutput[0] == 1);
 
     auto seekSource = create(10, 1, {1, 2}, {0, 1, 1.2});
-    REQUIRE(seekSource->reset(0, 1, false));
+    REQUIRE(seekSource->reset(0, 1, false, true));
     float seekOutput[2]{};
     seekSource->render(seekOutput, 2);
     REQUIRE(seekOutput[0] == 1 && seekOutput[1] == 2);
-    REQUIRE(seekSource->reset(1.2, 1, false));
+    REQUIRE(seekSource->reset(1.2, 1, false, true));
     seekOutput[0] = seekOutput[1] = 0;
     seekSource->render(seekOutput, 2);
     REQUIRE(seekOutput[0] == 1 && seekOutput[1] == 2);
 }
 
+void testResetActiveVoiceBehavior() {
+    auto source = create(10, 1, {1, 2, 3, 4}, {0, 1});
+    REQUIRE(source->reset(0, 1, false, true));
+
+    float first[2]{};
+    source->render(first, 2);
+    REQUIRE(first[0] == 1 && first[1] == 2);
+    REQUIRE(source->activeVoiceCount() == 1);
+
+    // Speed changes re-anchor future events without cutting an active sample.
+    REQUIRE(source->reset(0.2, 2, false, false));
+    REQUIRE(source->activeVoiceCount() == 1);
+    float tail[2]{};
+    source->render(tail, 2);
+    REQUIRE(tail[0] == 3 && tail[1] == 4);
+    REQUIRE(source->activeVoiceCount() == 0);
+
+    // Future events use the new speed and anchor exactly once.
+    float future[3]{};
+    source->render(future, 3);
+    REQUIRE(future[0] == 0 && future[1] == 0 && future[2] == 1);
+    float futureTail[3]{};
+    source->render(futureTail, 3);
+    REQUIRE(futureTail[0] == 2 && futureTail[1] == 3 && futureTail[2] == 4);
+
+    // Seeks re-anchor future events and discard an active sample.
+    REQUIRE(source->reset(0, 1, false, true));
+    source->render(first, 2);
+    REQUIRE(source->activeVoiceCount() == 1);
+    REQUIRE(source->reset(0.2, 2, false, true));
+    REQUIRE(source->activeVoiceCount() == 0);
+    tail[0] = tail[1] = 9;
+    source->render(tail, 2);
+    REQUIRE(tail[0] == 0 && tail[1] == 0);
+}
+
 void testChannelsOverlapAndSaturation() {
     auto stereo = create(4, 2, {1, 10, 2, 20}, {0});
-    REQUIRE(stereo->reset(0, 1, false));
+    REQUIRE(stereo->reset(0, 1, false, true));
     float stereoOutput[4]{};
     stereo->render(stereoOutput, 2);
     REQUIRE(stereoOutput[0] == 1 && stereoOutput[1] == 10);
@@ -118,7 +154,7 @@ void testChannelsOverlapAndSaturation() {
 
     std::vector<double> schedule(ScheduledSampleSource::MaxActiveVoices + 1, 0);
     auto saturated = create(1, 1, {0.5f, 0.5f}, schedule);
-    REQUIRE(saturated->reset(0, 1, false));
+    REQUIRE(saturated->reset(0, 1, false, true));
     float output[1]{};
     saturated->render(output, 1);
     REQUIRE(output[0] == 32);
@@ -136,5 +172,6 @@ void runScheduledSampleSourceTests() {
     testInputValidation();
     testScheduledMixingAndControls();
     testBoundariesSpeedAndSeek();
+    testResetActiveVoiceBehavior();
     testChannelsOverlapAndSaturation();
 }

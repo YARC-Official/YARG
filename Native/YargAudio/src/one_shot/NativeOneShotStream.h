@@ -28,7 +28,7 @@ public:
     int attach(std::uint32_t mixer, double anchorSongPosition,
         float playbackSpeed, bool paused, int* bassError) noexcept;
     int resync(std::uint32_t mixer, double anchorSongPosition,
-        float playbackSpeed, int* bassError) noexcept;
+        float playbackSpeed, bool clearActiveVoices, int* bassError) noexcept;
     int setPaused(std::uint32_t mixer, bool paused, int* bassError) noexcept;
     int setGain(float gain) noexcept;
     int detach(int* bassError) noexcept;

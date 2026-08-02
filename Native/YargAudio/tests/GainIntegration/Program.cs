@@ -184,12 +184,14 @@ internal static class Program
             AssertOutput(Pull(mixer, 4), pcm, "one-shot initial render");
 
             Check(stream.SetGain(0), "one-shot mute");
-            Check(stream.Resync(mixer, 0, 1), "one-shot resync while muted");
+            Check(stream.Resync(mixer, 0, 1, clearActiveVoices: true),
+                "one-shot resync while muted");
             AssertSilence(Pull(mixer, 4), "one-shot muted render");
 
             Check(stream.SetGain(1), "one-shot unity gain");
             Check(stream.SetPaused(mixer, true), "one-shot pause");
-            Check(stream.Resync(mixer, 0, 1), "one-shot resync while paused");
+            Check(stream.Resync(mixer, 0, 1, clearActiveVoices: true),
+                "one-shot resync while paused");
             AssertSilence(Pull(mixer, 4), "one-shot paused render");
             Check(stream.SetPaused(mixer, false), "one-shot resume");
             AssertOutput(Pull(mixer, 4), pcm, "one-shot resumed render");
@@ -441,8 +443,9 @@ internal static class Program
             float playbackSpeed, bool paused) => AttachNative(this, mixer,
             anchorSongPosition, playbackSpeed, paused ? 1 : 0, out _) == 0;
 
-        internal bool Resync(uint mixer, double anchorSongPosition, float playbackSpeed) =>
-            ResyncNative(this, mixer, anchorSongPosition, playbackSpeed, out _) == 0;
+        internal bool Resync(uint mixer, double anchorSongPosition, float playbackSpeed,
+            bool clearActiveVoices) => ResyncNative(this, mixer, anchorSongPosition,
+            playbackSpeed, clearActiveVoices ? 1 : 0, out _) == 0;
 
         internal bool SetPaused(uint mixer, bool paused) =>
             SetPausedNative(this, mixer, paused ? 1 : 0, out _) == 0;
@@ -461,10 +464,11 @@ internal static class Program
         private static extern int AttachNative(OneShotStream stream, uint mixer,
             double anchorSongPosition, float playbackSpeed, int paused, out int bassError);
 
-        [DllImport("yarg_audio", EntryPoint = "yarg_one_shot_stream_resync",
+        [DllImport("yarg_audio", EntryPoint = "yarg_one_shot_stream_resync_ex",
             CallingConvention = CallingConvention.Cdecl)]
         private static extern int ResyncNative(OneShotStream stream, uint mixer,
-            double anchorSongPosition, float playbackSpeed, out int bassError);
+            double anchorSongPosition, float playbackSpeed, int clearActiveVoices,
+            out int bassError);
 
         [DllImport("yarg_audio", EntryPoint = "yarg_one_shot_stream_set_paused",
             CallingConvention = CallingConvention.Cdecl)]

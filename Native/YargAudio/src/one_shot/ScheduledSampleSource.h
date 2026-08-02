@@ -28,7 +28,8 @@ public:
 
     // Control operations must not run concurrently with render/reset state changes.
     // The BASS mixer lock provides that exclusion in the native integration.
-    bool reset(double anchorSongPosition, float playbackSpeed, bool paused) noexcept;
+    bool reset(double anchorSongPosition, float playbackSpeed, bool paused,
+        bool clearActiveVoices) noexcept;
     void setPaused(bool paused) noexcept;
     bool setGain(float gain) noexcept;
 

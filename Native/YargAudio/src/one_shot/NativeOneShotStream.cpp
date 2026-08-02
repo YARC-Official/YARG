@@ -71,7 +71,7 @@ int NativeOneShotStream::attach(std::uint32_t mixer,
 
     const int result = [&] {
         if (!validMixer(mixer, bassError)) return YARG_AUDIO_ERROR_UNSUPPORTED;
-        if (!source_->reset(anchorSongPosition, playbackSpeed, paused)) {
+        if (!source_->reset(anchorSongPosition, playbackSpeed, paused, true)) {
             return YARG_AUDIO_ERROR_INVALID_ARGUMENT;
         }
         if (!mix_.addChannel(mixer, stream_, BassMixerChannelNoRampIn)) {
@@ -88,7 +88,8 @@ int NativeOneShotStream::attach(std::uint32_t mixer,
 }
 
 int NativeOneShotStream::resync(std::uint32_t mixer,
-    double anchorSongPosition, float playbackSpeed, int* bassError) noexcept {
+    double anchorSongPosition, float playbackSpeed, bool clearActiveVoices,
+    int* bassError) noexcept {
     if (bassError) *bassError = 0;
     if (mixer == 0 || !std::isfinite(anchorSongPosition) ||
         !std::isfinite(playbackSpeed) || playbackSpeed <= 0) {
@@ -102,7 +103,8 @@ int NativeOneShotStream::resync(std::uint32_t mixer,
         setBassError(bassError, core_);
         return YARG_AUDIO_ERROR_BASS;
     }
-    const bool reset = source_->reset(anchorSongPosition, playbackSpeed, paused_);
+    const bool reset = source_->reset(anchorSongPosition, playbackSpeed, paused_,
+        clearActiveVoices);
     core_.lockChannel(mixer_, false);
     return reset ? YARG_AUDIO_OK : YARG_AUDIO_ERROR_INVALID_ARGUMENT;
 }

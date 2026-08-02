@@ -95,19 +95,30 @@ namespace YARG.Audio.BASS.Effects
             }
         }
 
-        internal bool Resync(double anchorSongPosition, float playbackSpeed)
+        internal bool Resync(double anchorSongPosition, float playbackSpeed,
+            bool clearActiveVoices)
         {
             lock (_lifecycleLock)
             {
                 if (!IsUsable || _mixerHandle == 0) return false;
-                int result = Native.Resync(this, unchecked((uint) _mixerHandle),
-                    anchorSongPosition, playbackSpeed, out int bassError);
-                if (result != 0)
+                try
                 {
-                    LogFailure("resync", result, bassError);
+                    int result = Native.Resync(this, unchecked((uint) _mixerHandle),
+                        anchorSongPosition, playbackSpeed, clearActiveVoices ? 1 : 0,
+                        out int bassError);
+                    if (result != 0)
+                    {
+                        LogFailure("resync", result, bassError);
+                        return false;
+                    }
+                    return true;
+                }
+                catch (Exception exception) when (exception is DllNotFoundException or
+                    EntryPointNotFoundException or BadImageFormatException)
+                {
+                    YargLogger.LogException(exception, $"Failed to resync {EffectName}");
                     return false;
                 }
-                return true;
             }
         }
 
@@ -224,10 +235,11 @@ namespace YARG.Audio.BASS.Effects
                 double anchorSongPosition, float playbackSpeed, int paused,
                 out int bassError);
 
-            [DllImport(Library, EntryPoint = "yarg_one_shot_stream_resync",
+            [DllImport(Library, EntryPoint = "yarg_one_shot_stream_resync_ex",
                 CallingConvention = CallingConvention.Cdecl)]
             internal static extern int Resync(BassNativeOneShotStream stream, uint mixer,
-                double anchorSongPosition, float playbackSpeed, out int bassError);
+                double anchorSongPosition, float playbackSpeed, int clearActiveVoices,
+                out int bassError);
 
             [DllImport(Library, EntryPoint = "yarg_one_shot_stream_set_paused",
                 CallingConvention = CallingConvention.Cdecl)]

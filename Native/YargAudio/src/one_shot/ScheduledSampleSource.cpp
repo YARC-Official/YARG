@@ -74,7 +74,7 @@ ScheduledSampleSource::ScheduledSampleSource(std::uint32_t sampleRate,
       gainBits_(std::bit_cast<std::uint32_t>(1.0f)) {}
 
 bool ScheduledSampleSource::reset(double anchorSongPosition,
-    float playbackSpeed, bool paused) noexcept {
+    float playbackSpeed, bool paused, bool clearActiveVoices) noexcept {
     if (!std::isfinite(anchorSongPosition) || !std::isfinite(playbackSpeed) ||
         playbackSpeed <= 0) {
         return false;
@@ -83,7 +83,7 @@ bool ScheduledSampleSource::reset(double anchorSongPosition,
     anchorSongPosition_ = anchorSongPosition;
     playbackSpeed_ = playbackSpeed;
     cursorFrame_ = 0;
-    activeVoiceCount_ = 0;
+    if (clearActiveVoices) activeVoiceCount_ = 0;
     nextScheduledVoice_ = findNextSchedule();
     droppedVoiceCount_ = 0;
     pausedBits_.store(paused ? 1u : 0u, std::memory_order_relaxed);

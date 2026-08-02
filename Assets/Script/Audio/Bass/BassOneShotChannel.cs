@@ -94,20 +94,20 @@ namespace YARG.Audio.BASS
             {
                 // Parent mixer can continue while song is paused. Re-anchor before rendering
                 // again so the one-shot cursor excludes paused time.
-                if (Reanchor()) _nativeStream.SetPaused(false);
+                if (Reanchor(clearActiveVoices: false)) _nativeStream.SetPaused(false);
             }
         }
 
         internal void PrepareForSeek() { }
-        internal void ResetAfterSeek() => Reanchor();
-        internal void ResetAfterSpeedChange() => Reanchor();
+        internal void ResetAfterSeek() => Reanchor(clearActiveVoices: true);
+        internal void ResetAfterSpeedChange() => Reanchor(clearActiveVoices: false);
 
-        private bool Reanchor()
+        private bool Reanchor(bool clearActiveVoices)
         {
             if (_disposed || _nativeStream == null || _outputMixerHandle == 0) return false;
             if (!TryGetCurrentSongPosition(_outputMixerHandle,
                 out double songPosition, out float speed)) return false;
-            return _nativeStream.Resync(songPosition, speed);
+            return _nativeStream.Resync(songPosition, speed, clearActiveVoices);
         }
 
         private bool TryGetCurrentSongPosition(int outputMixerHandle,

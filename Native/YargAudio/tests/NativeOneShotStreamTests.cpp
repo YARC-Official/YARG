@@ -155,10 +155,35 @@ void testReattachAfterDetach() {
     REQUIRE(stream->destroy(nullptr));
 }
 
+void testResyncActiveVoiceBehavior() {
+    MockBass state;
+    auto core = makeCore(state);
+    auto mix = makeMix();
+    const float pcm[] = {1, 2, 3};
+    const double schedule[] = {0};
+    auto stream = NativeOneShotStream::create(core, mix, 1, 1, pcm, 3,
+        schedule, 1, 0, nullptr);
+    REQUIRE(stream);
+    REQUIRE(stream->attach(7, 0, 1, false, nullptr) == YARG_AUDIO_OK);
+    REQUIRE(state.callbackFirstSample == 1);
+
+    REQUIRE(stream->resync(7, 0.1, 2, false, nullptr) == YARG_AUDIO_OK);
+    float output = 0;
+    state.callback(19, &output, sizeof(output), state.callbackUser);
+    REQUIRE(output == 2);
+
+    REQUIRE(stream->resync(7, 0.2, 2, true, nullptr) == YARG_AUDIO_OK);
+    output = 9;
+    state.callback(19, &output, sizeof(output), state.callbackUser);
+    REQUIRE(output == 0);
+    REQUIRE(stream->destroy(nullptr));
+}
+
 } // namespace
 
 void runNativeOneShotStreamTests() {
     testAttachPublishesBeforeAddAndDestroysInOrder();
     testFailuresRetainState();
     testReattachAfterDetach();
+    testResyncActiveVoiceBehavior();
 }
