@@ -818,7 +818,7 @@ namespace YARG.Audio.BASS
             _oneShotChannels.Remove(channel);
         }
 
-        public override IDisposable AttachOutputDsp(IMixerDspProcessor processor, int priority = 0)
+        public override IDisposable? AttachOutputDsp(IMixerDspProcessor processor, int priority = 0)
         {
             var info = Bass.ChannelGetInfo(_outputMixerHandle);
             if (info.Frequency <= 0 || info.Channels <= 0)

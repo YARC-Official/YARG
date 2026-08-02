@@ -69,6 +69,11 @@ namespace YARG.Gameplay
 
             var dsp       = new GuidePitchSynthDsp();
             var dspHandle = GameManager.Mixer.AttachOutputDsp(dsp);
+            if (dspHandle == null)
+            {
+                return;
+            }
+
             _guidePitchManager = new GuidePitchManager(dsp, dspHandle, vocalsTrack);
             _guidePitchManager.OnGuidePitchChanged += _practiceHud.SetGuidePitchPartText;
 
