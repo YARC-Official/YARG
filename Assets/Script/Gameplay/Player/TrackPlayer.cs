@@ -816,9 +816,9 @@ namespace YARG.Gameplay.Player
             SpawnLanesFromNote(parentNote);
         }
 
-        private void SpawnLanesFromNote(TNote parentNote)
+        protected virtual void SpawnLanesFromNote(TNote parentNote)
         {
-            if (!Engine.LanesExist || !Engine.BaseParameters.EnableLanes)
+            if (!Engine.BaseParameters.EnableLanes)
             {
                 return;
             }
