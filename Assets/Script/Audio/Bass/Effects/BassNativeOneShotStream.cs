@@ -158,22 +158,6 @@ namespace YARG.Audio.BASS.Effects
             }
         }
 
-        internal bool Detach()
-        {
-            lock (_lifecycleLock)
-            {
-                if (!IsUsable || _mixerHandle == 0) return true;
-                int result = Native.Detach(this, out int bassError);
-                if (result != 0)
-                {
-                    LogFailure("detach", result, bassError);
-                    return false;
-                }
-                _mixerHandle = 0;
-                return true;
-            }
-        }
-
         protected override bool ReleaseHandle()
         {
             try
@@ -249,11 +233,6 @@ namespace YARG.Audio.BASS.Effects
             [DllImport(Library, EntryPoint = "yarg_one_shot_stream_set_gain",
                 CallingConvention = CallingConvention.Cdecl)]
             internal static extern int SetGain(BassNativeOneShotStream stream, float gain);
-
-            [DllImport(Library, EntryPoint = "yarg_one_shot_stream_detach",
-                CallingConvention = CallingConvention.Cdecl)]
-            internal static extern int Detach(BassNativeOneShotStream stream,
-                out int bassError);
 
             [DllImport(Library, EntryPoint = "yarg_one_shot_stream_destroy",
                 CallingConvention = CallingConvention.Cdecl)]

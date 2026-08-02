@@ -23,3 +23,12 @@ ctest --preset linux-x64-release
 ```
 
 Use `windows-x64-release` or `macos-universal-release` on those platforms.
+
+## Compatibility
+
+Linux binaries are built inside an Ubuntu 20.04 container (glibc 2.31,
+gcc 10) to keep the glibc floor at 2.31, matching Unity 6's Ubuntu 20.04
+support. Toolchains linked against glibc >= 2.34 emit `dlopen@GLIBC_2.34`
+and produce a plugin that fails to load on Ubuntu 20.04, Debian 11, and
+RHEL 8. CI must not move to newer containers or runners without re-evaluating
+this.

@@ -1,5 +1,7 @@
 #include "dsp/GainDsp.h"
 
+#include "BitCastCompat.h"
+
 #include <bit>
 #include <cmath>
 #include <cstddef>
@@ -10,7 +12,7 @@ static_assert(std::atomic<std::uint32_t>::is_always_lock_free);
 yarg_gain_dsp::yarg_gain_dsp(const yarg::audio::BassCoreBindings& bindings,
     std::uint32_t channelHandle, float initialGain) noexcept
     : bass(bindings), channel(channelHandle),
-      gainBits(std::bit_cast<std::uint32_t>(initialGain)) {}
+      gainBits(yarg::audio::bitCast<std::uint32_t>(initialGain)) {}
 
 namespace yarg::audio {
 namespace {
@@ -25,7 +27,7 @@ void YARG_BASS_CALLBACK gainDspProc(std::uint32_t, std::uint32_t,
     if (!buffer || !user || length == 0 || length % sizeof(float) != 0) return;
 
     auto* state = static_cast<yarg_gain_dsp*>(user);
-    const float gain = std::bit_cast<float>(
+    const float gain = yarg::audio::bitCast<float>(
         state->gainBits.load(std::memory_order_relaxed));
     auto* samples = static_cast<float*>(buffer);
     const auto sampleCount = static_cast<std::size_t>(length) / sizeof(float);
@@ -66,7 +68,7 @@ int gainDspAttach(const BassCoreBindings& bass, std::uint32_t channel,
 
 int gainDspSetGain(yarg_gain_dsp* dsp, float gain) noexcept {
     if (!dsp || !std::isfinite(gain)) return YARG_AUDIO_ERROR_INVALID_ARGUMENT;
-    dsp->gainBits.store(std::bit_cast<std::uint32_t>(gain), std::memory_order_relaxed);
+    dsp->gainBits.store(yarg::audio::bitCast<std::uint32_t>(gain), std::memory_order_relaxed);
     return YARG_AUDIO_OK;
 }
 

@@ -45,8 +45,33 @@ jobs:
 
   linux:
     name: Linux x64
-    runs-on: ubuntu-24.04
+    # Build inside an Ubuntu 20.04 container (glibc 2.31, gcc 11) to keep the
+    # glibc floor at 2.31, matching Unity 6's Ubuntu 20.04 support. Toolchains
+    # linked against glibc >= 2.34 emit dlopen@GLIBC_2.34 and fail to load on
+    # Ubuntu 20.04, Debian 11, and RHEL 8. Do not bump this container without
+    # re-evaluating the floor (see Native/YargAudio/README.md).
+    runs-on: ubuntu-22.04
+    container: ubuntu:20.04
+    env:
+      # apt can hang on debconf prompts (e.g. tzdata) in bare containers.
+      DEBIAN_FRONTEND: noninteractive
     steps:
+      - name: Install toolchain (gcc 10, cmake, git-lfs)
+        timeout-minutes: 10
+        run: |
+          apt-get update
+          # gcc-10 ships in focal universe and supports C++20 (designated
+          # initializers, etc.); avoids the launchpad PPA keyserver.
+          apt-get install -y --no-install-recommends \
+            g++-10 git-lfs python3-pip curl ca-certificates libicu66 make \
+            file binutils
+          update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-10 100
+          update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-10 100
+          # Ubuntu 20.04 ships cmake 3.16; YargAudio requires >= 3.25.
+          # py3-none wheel bundles a fresh cmake; pinned <4 for preset compat.
+          pip3 install --no-cache-dir "cmake<4"
+          cmake --version
+          gcc --version | head -1
       - uses: actions/checkout@v4
         with:
           lfs: true

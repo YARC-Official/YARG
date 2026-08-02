@@ -1,5 +1,7 @@
 #include "one_shot/ScheduledSampleSource.h"
 
+#include "BitCastCompat.h"
+
 #include <algorithm>
 #include <bit>
 #include <cmath>
@@ -71,7 +73,7 @@ ScheduledSampleSource::ScheduledSampleSource(std::uint32_t sampleRate,
     : sampleRate_(sampleRate), channels_(channels),
       sampleFrameCount_(pcm.size() / channels), leadTime_(leadTime),
       pcm_(std::move(pcm)), schedule_(std::move(schedule)),
-      gainBits_(std::bit_cast<std::uint32_t>(1.0f)) {}
+      gainBits_(yarg::audio::bitCast<std::uint32_t>(1.0f)) {}
 
 bool ScheduledSampleSource::reset(double anchorSongPosition,
     float playbackSpeed, bool paused, bool clearActiveVoices) noexcept {
@@ -96,7 +98,7 @@ void ScheduledSampleSource::setPaused(bool paused) noexcept {
 
 bool ScheduledSampleSource::setGain(float gain) noexcept {
     if (!std::isfinite(gain)) return false;
-    gainBits_.store(std::bit_cast<std::uint32_t>(gain), std::memory_order_relaxed);
+    gainBits_.store(yarg::audio::bitCast<std::uint32_t>(gain), std::memory_order_relaxed);
     return true;
 }
 
@@ -114,7 +116,7 @@ void ScheduledSampleSource::render(float* output, std::size_t outputFrames) noex
         ? maximum : cursorFrame_ + frameCount;
     cursorFrame_ = bufferEndFrame;
 
-    const float gain = std::bit_cast<float>(gainBits_.load(std::memory_order_relaxed));
+    const float gain = yarg::audio::bitCast<float>(gainBits_.load(std::memory_order_relaxed));
     mixActiveVoices(output, outputFrames, gain);
     startScheduledVoices(output, outputFrames, bufferStartFrame, bufferEndFrame, gain);
 }

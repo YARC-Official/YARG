@@ -24,7 +24,9 @@ namespace YARG.Audio.BASS
         private readonly double _outputLeadTime;
         private readonly double[] _scheduledPlays;
         private BassNativeOneShotStream _nativeStream;
+        private readonly int _targetMixerHandle;
         private int _outputMixerHandle;
+        private bool _playbackPaused;
         private bool _disposed;
 
         internal event Action<BassOneShotChannel> Disposed;
@@ -34,6 +36,8 @@ namespace YARG.Audio.BASS
             Func<float> getSpeed, double outputLeadTime, bool playbackPaused)
         {
             _outputMixerHandle = outputMixerHandle;
+            _targetMixerHandle = outputMixerHandle;
+            _playbackPaused = playbackPaused;
             _tempoStreamHandle = tempoStreamHandle;
             _getSongPosition = getSongPosition ?? throw new ArgumentNullException(nameof(getSongPosition));
             _getSpeed = getSpeed ?? throw new ArgumentNullException(nameof(getSpeed));
@@ -67,12 +71,6 @@ namespace YARG.Audio.BASS
             _nativeStream?.SetEnabled(enabled);
         }
 
-        internal void DetachOutput()
-        {
-            bool detached = _nativeStream?.Detach() ?? true;
-            if (detached) _outputMixerHandle = 0;
-        }
-
         internal void AttachOutput(int outputMixerHandle, bool playbackPaused)
         {
             if (_disposed || _nativeStream == null) return;
@@ -85,6 +83,7 @@ namespace YARG.Audio.BASS
         internal void SetPlaybackPaused(bool paused)
         {
             if (_nativeStream == null) return;
+            _playbackPaused = paused;
 
             if (paused)
             {
@@ -104,7 +103,14 @@ namespace YARG.Audio.BASS
 
         private bool Reanchor(bool clearActiveVoices)
         {
-            if (_disposed || _nativeStream == null || _outputMixerHandle == 0) return false;
+            if (_disposed || _nativeStream == null) return false;
+            if (_outputMixerHandle == 0)
+            {
+                // Initial attach can fail (e.g. transient position read error). Retry on the
+                // next re-anchor instead of leaving the one-shot dead for the whole song.
+                AttachOutput(_targetMixerHandle, _playbackPaused);
+                if (_outputMixerHandle == 0) return false;
+            }
             if (!TryGetCurrentSongPosition(_outputMixerHandle,
                 out double songPosition, out float speed)) return false;
             return _nativeStream.Resync(songPosition, speed, clearActiveVoices);
