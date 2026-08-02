@@ -16,8 +16,7 @@ internal sealed record NativePlugin(
     string BinaryName,
     string PluginDirectory,
     string BuiltDirectory,
-    string ArtifactName,
-    string? MetadataTemplate)
+    string ArtifactName)
 {
     public string PluginBinaryPath(RepositoryLayout repository) =>
         Path.Combine(repository.Root, PluginDirectory, BinaryName);
@@ -26,9 +25,7 @@ internal sealed record NativePlugin(
         PluginBinaryPath(repository) + ".meta";
 
     public string MetadataSourcePath(RepositoryLayout repository) =>
-        MetadataTemplate is null
-            ? PluginMetadataPath(repository)
-            : Path.Combine(repository.Root, MetadataTemplate);
+        PluginMetadataPath(repository);
 
     public string BuiltBinaryPath(
         RepositoryLayout repository, string configuration) =>
@@ -52,8 +49,7 @@ internal static class NativePlugins
             "yarg_audio.dll",
             "Assets/Plugins/YargAudio/Windows/x86_64",
             "build/windows-x64",
-            "yarg-audio-windows-x64",
-            MetadataTemplate: null),
+            "yarg-audio-windows-x64"),
         new(
             NativePlatform.Linux,
             "Linux",
@@ -63,8 +59,7 @@ internal static class NativePlugins
             "libyarg_audio.so",
             "Assets/Plugins/YargAudio/Linux/x86_64",
             "build/linux-x64",
-            "yarg-audio-linux-x64",
-            "Native/YargAudio/packaging/Linux/x86_64/libyarg_audio.so.meta"),
+            "yarg-audio-linux-x64"),
         new(
             NativePlatform.MacOS,
             "MacOS",
@@ -74,8 +69,7 @@ internal static class NativePlugins
             "libyarg_audio.dylib",
             "Assets/Plugins/YargAudio/Mac",
             "build/macos-universal",
-            "yarg-audio-macos-universal",
-            "Native/YargAudio/packaging/Mac/libyarg_audio.dylib.meta"),
+            "yarg-audio-macos-universal"),
     ];
 
     public static NativePlugin ForCurrentHost()
