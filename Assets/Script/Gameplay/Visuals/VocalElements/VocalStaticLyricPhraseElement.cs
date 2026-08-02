@@ -100,20 +100,7 @@ namespace YARG.Gameplay.Visuals
             _lastRenderState = renderState;
             _builder.Clear();
 
-            foreach (var syllable in _preparedPhrase.Syllables)
-            {
-                if (GameManager.VisualTime < syllable.Time)
-                {
-                    BuilderAppendWithColorTag(syllable.Text, syllable.IsStarpower ? FUTURE_STAR_POWER_LYRIC_COLOR_TAG : FUTURE_LYRIC_COLOR_TAG, ref _builder);
-                }
-                else if (syllable.Time <= GameManager.VisualTime && GameManager.VisualTime < syllable.TimeEnd)
-                {
-                    BuilderAppendWithColorTag(syllable.Text, PRESENT_LYRIC_COLOR_TAG, ref _builder);
-                }
-                else {
-                    BuilderAppendWithColorTag(syllable.Text, syllable.IsStarpower ? PAST_STAR_POWER_LYRIC_COLOR_TAG : PAST_LYRIC_COLOR_TAG, ref _builder);
-                }
-            }
+            AddSyllablesToBuilder(_preparedPhrase.Syllables, GameManager.VisualTime, ref _builder);
 
             _phraseText.SetText(_builder);
         }
