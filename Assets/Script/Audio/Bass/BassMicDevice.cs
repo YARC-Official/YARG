@@ -4,6 +4,7 @@ using System.Runtime.InteropServices;
 using ManagedBass;
 using ManagedBass.Fx;
 using UnityEngine;
+using YARG.Audio.BASS.Effects;
 using YARG.Audio.PitchDetection;
 using YARG.Core.Logging;
 using YARG.Core.Audio;
@@ -44,10 +45,10 @@ namespace YARG.Audio.BASS
             }
 
             // Apply gain to the playback
-            int applyGain = Bass.ChannelSetDSP(monitorPlaybackHandle, ApplyGain);
-            if (applyGain == 0)
+            var gain = BassGainDsp.Attach(monitorPlaybackHandle, 1.3f);
+            if (gain == null)
             {
-                YargLogger.LogFormatError("Failed to add gain to monitor stream: {0}!", Bass.LastError);
+                YargLogger.LogError("Failed to add native gain to monitor stream!");
                 reverb.Dispose();
                 Bass.StreamFree(monitorPlaybackHandle);
                 return null;
@@ -57,31 +58,26 @@ namespace YARG.Audio.BASS
             if (!Bass.ChannelPlay(monitorPlaybackHandle))
             {
                 YargLogger.LogFormatError("Failed to start monitor stream: {0}!", Bass.LastError);
-                Bass.ChannelRemoveDSP(monitorPlaybackHandle, applyGain);
+                gain.Dispose();
                 reverb.Dispose();
                 Bass.StreamFree(monitorPlaybackHandle);
                 return null;
             }
 
-            return new MonitorPlaybackHandle(monitorPlaybackHandle, reverb, applyGain);
+            return new MonitorPlaybackHandle(monitorPlaybackHandle, reverb, gain);
         }
 
         public readonly int Handle;
         private readonly BassFreeverbDsp _reverb;
-        private readonly int _applyGain;
+        private readonly BassGainDsp _gain;
 
         private bool _disposed;
 
-        private MonitorPlaybackHandle(int handle, BassFreeverbDsp reverb, int applyGain)
+        private MonitorPlaybackHandle(int handle, BassFreeverbDsp reverb, BassGainDsp gain)
         {
             Handle = handle;
             _reverb = reverb;
-            _applyGain = applyGain;
-        }
-
-        private static void ApplyGain(int handle, int channel, IntPtr buffer, int length, IntPtr user)
-        {
-            BassHelpers.ApplyGain(1.3f, buffer, length);
+            _gain = gain;
         }
 
         private void Dispose(bool disposing)
@@ -89,7 +85,7 @@ namespace YARG.Audio.BASS
             if (!_disposed)
             {
                 _reverb.Dispose();
-                Bass.ChannelRemoveDSP(Handle, _applyGain);
+                _gain.Dispose();
                 Bass.StreamFree(Handle);
                 _disposed = true;
             }
