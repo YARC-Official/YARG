@@ -1,6 +1,5 @@
 using System;
 using UnityEngine;
-using YARG.Audio.Effects;
 using YARG.Core;
 using YARG.Core.Chart;
 using YARG.Localization;
@@ -11,11 +10,10 @@ namespace YARG.Gameplay.Player
     /// Manages the guide pitch feature for vocals practice mode.
     ///
     /// <para>
-    /// Toggle state (which harmony part is active) lives here on the game thread.
-    /// All audio work — note scanning and sine-wave synthesis — is delegated to
-    /// <see cref="GuidePitchSynthDsp"/>, which runs on the audio thread and
-    /// queries the render-ahead song position directly so it is sample-accurate
-    /// with the mixed stems.
+    /// Toggle state (which harmony part is active) lives here on the game thread. The
+    /// selection is published to a <see cref="VocalNotePitchSource"/>, which is scanned
+    /// on the audio thread by whichever synth was attached to the mixer, at the
+    /// render-ahead song position so it is sample-accurate with the mixed stems.
     /// </para>
     /// </summary>
     public sealed class GuidePitchManager : IDisposable
@@ -27,18 +25,18 @@ namespace YARG.Gameplay.Player
         /// </summary>
         private int _enabledHarmonyIndex = -1;
 
-        private readonly GuidePitchSynthDsp _dsp;
-        private readonly IDisposable        _dspHandle;
-        private          VocalsTrack        _vocalsTrack;
+        private readonly VocalNotePitchSource _pitchSource;
+        private readonly IDisposable          _dspHandle;
+        private          VocalsTrack          _vocalsTrack;
 
         public event Action<string, Color> OnGuidePitchChanged;
 
-        /// <param name="dsp">The DSP processor that produces the audio.</param>
+        /// <param name="pitchSource">The pitch source driving the synth.</param>
         /// <param name="dspHandle">The disposable handle returned by <c>AttachOutputDsp</c>.</param>
         /// <param name="vocalsTrack">The original (full-song) vocals track.</param>
-        public GuidePitchManager(GuidePitchSynthDsp dsp, IDisposable dspHandle, VocalsTrack vocalsTrack)
+        public GuidePitchManager(VocalNotePitchSource pitchSource, IDisposable dspHandle, VocalsTrack vocalsTrack)
         {
-            _dsp         = dsp         ?? throw new ArgumentNullException(nameof(dsp));
+            _pitchSource = pitchSource ?? throw new ArgumentNullException(nameof(pitchSource));
             _dspHandle   = dspHandle   ?? throw new ArgumentNullException(nameof(dspHandle));
             _vocalsTrack = vocalsTrack ?? throw new ArgumentNullException(nameof(vocalsTrack));
         }
@@ -83,12 +81,12 @@ namespace YARG.Gameplay.Player
                 }
             }
 
-            _dsp.SetPart(GetEnabledPart());
+            _pitchSource.SetPart(GetEnabledPart());
             OnGuidePitchChanged?.Invoke(GetStatusString(), GetStatusColor());
         }
 
         /// <summary>
-        /// Call when the practice section changes so the DSP resets its note scan.
+        /// Call when the practice section changes so the pitch source resets its note scan.
         /// </summary>
         public void OnPracticeSectionChanged(VocalsTrack sectionTrack)
         {
@@ -100,8 +98,8 @@ namespace YARG.Gameplay.Player
                 _enabledHarmonyIndex = -1;
             }
 
-            // Re-push the current part (or null). SetPart() signals a scan reset in the DSP.
-            _dsp.SetPart(GetEnabledPart());
+            // Re-push the current part (or null). SetPart() also resets the note scan.
+            _pitchSource.SetPart(GetEnabledPart());
             OnGuidePitchChanged?.Invoke(GetStatusString(), GetStatusColor());
         }
 

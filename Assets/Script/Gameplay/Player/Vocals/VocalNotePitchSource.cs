@@ -1,30 +1,19 @@
 using System;
 using System.Threading;
-using YARG.Core.Audio;
+using YARG.Audio.Effects;
 using YARG.Core.Chart;
 
-namespace YARG.Audio.Effects
+namespace YARG.Gameplay.Player
 {
     /// <summary>
-    /// A mixer DSP processor that generates a sine wave at the pitch of the currently
-    /// active vocal note. Implements <see cref="IMixerDspProcessor"/> so it can be
-    /// attached to any <see cref="StemMixer"/> without knowledge of the audio backend.
+    /// An <see cref="IPitchSource"/> that reports the pitch of the vocal note active
+    /// at a given song time, for a <see cref="VocalsPart"/> selected on the game thread.
     /// </summary>
-    public sealed class GuidePitchSynthDsp : IMixerDspProcessor
+    public sealed class VocalNotePitchSource : IPitchSource
     {
         /// <summary>
-        /// Target duration for a full volume fade (0 to 1) in seconds. Long enough to
-        /// avoid an audible click at note on/off boundaries, short enough to stay tight
-        /// against the vocal note onset.
-        /// </summary>
-        private const float FADE_DURATION_SECONDS = 0.015f;
-
-        /// <summary>Volume of the guide pitch relative to the master mix.</summary>
-        public const float DEFAULT_VOLUME = 0.35f;
-
-        /// <summary>
-        /// If the current scan position is this many seconds ahead of <c>songTime</c>,
-        /// treat it as a backward seek (section loop) and reset the scan from the start.
+        /// If the current scan position is this many seconds ahead of the queried song
+        /// time, treat it as a backward seek (section loop) and reset the scan from the start.
         /// </summary>
         private const double BACKWARD_SEEK_THRESHOLD = 0.5;
 
@@ -34,7 +23,7 @@ namespace YARG.Audio.Effects
         private class PartState
         {
             public readonly VocalsPart Part;
-            public readonly int Generation;
+            public readonly int        Generation;
 
             public PartState(VocalsPart part, int generation)
             {
@@ -43,18 +32,18 @@ namespace YARG.Audio.Effects
             }
         }
 
-        // Written by game thread; read by DSP (audio) thread.
+        // Written by game thread; read by the audio thread.
         private volatile PartState _targetState = new(null, 0);
 
-        // DSP-thread-only state
-        private int    _lastSeenGeneration;
-        private int    _phraseIndex;
-        private int    _noteIndex;
-        private double _phase;
-        private float  _currentVolume;
+        // Audio-thread-only state
+        private int _lastSeenGeneration;
+        private int _phraseIndex;
+        private int _noteIndex;
 
         /// <summary>
         /// Sets the vocal part whose notes should be sonified, or <c>null</c> to silence.
+        /// Also resets the note scan, so it must be called again whenever the notes of the
+        /// current part change (such as on a practice section change).
         /// Thread-safe: may be called from any thread.
         /// </summary>
         public void SetPart(VocalsPart part)
@@ -68,8 +57,8 @@ namespace YARG.Audio.Effects
             } while (Interlocked.CompareExchange(ref _targetState, next, current) != current);
         }
 
-        // IMixerDspProcessor implementation
-        public void ProcessAudio(Span<float> buffer, int frames, int channels, int sampleRate, double songTimeEnd)
+        // IPitchSource implementation (audio thread)
+        public float GetFrequency(double songTime)
         {
             var state = _targetState;
             if (state.Generation != _lastSeenGeneration)
@@ -80,67 +69,21 @@ namespace YARG.Audio.Effects
             }
 
             var part = state.Part;
-            bool shouldSilence = part == null;
-            if (shouldSilence && _currentVolume <= 0f)
+            if (part == null)
             {
-                _phase = 0.0;
-                return;
+                return 0f;
             }
 
-            float rampRate = 1f / (FADE_DURATION_SECONDS * sampleRate);
-
-            double bufferDuration = (double)frames / sampleRate;
-            double songTimeStart = songTimeEnd - bufferDuration;
-            double songTimeStep = bufferDuration / frames;
-            double currentSongTime = songTimeStart;
-
-            for (int i = 0; i < frames; i++)
+            var note = FindActiveNote(part, songTime);
+            if (note is not { IsNonPitched: false, IsPercussion: false })
             {
-                float targetFrequency = 0f;
-                if (!shouldSilence)
-                {
-                    var note = FindActiveNote(part, currentSongTime);
-                    if (note is { IsNonPitched: false, IsPercussion: false })
-                    {
-                        targetFrequency = MidiPitchToHz(note.PitchAtSongTime(currentSongTime));
-                    }
-                }
-
-                float effectiveTarget = (shouldSilence || targetFrequency <= 0f) ? 0f : DEFAULT_VOLUME;
-                if (_currentVolume < effectiveTarget)
-                {
-                    _currentVolume = Math.Min(_currentVolume + rampRate, effectiveTarget);
-                }
-                else if (_currentVolume > effectiveTarget)
-                {
-                    _currentVolume = Math.Max(_currentVolume - rampRate, effectiveTarget);
-                }
-
-                if (_currentVolume <= 0f)
-                {
-                    _phase = 0.0;
-                }
-
-                double phaseStep = targetFrequency > 0f ? (double) targetFrequency / sampleRate : 0.0;
-                float sample = _currentVolume * (float) Math.Sin(_phase * 2.0 * Math.PI);
-
-                int frameBase = i * channels;
-                for (int ch = 0; ch < channels; ch++)
-                {
-                    buffer[frameBase + ch] += sample;
-                }
-
-                _phase += phaseStep;
-                if (_phase >= 1.0)
-                {
-                    _phase -= 1.0;
-                }
-
-                currentSongTime += songTimeStep;
+                return 0f;
             }
+
+            return MidiPitchToHz(note.PitchAtSongTime(songTime));
         }
 
-        // Note scanning (DSP thread only)
+        // Note scanning (audio thread only)
 
         /// <summary>
         /// Returns the <see cref="VocalNote"/> (lyric type) active at <paramref name="songTime"/>,
@@ -156,7 +99,7 @@ namespace YARG.Audio.Effects
             }
 
             // Detect backward seek (section loop restart)
-            bool backwardSeek = false;
+            bool backwardSeek;
             if (_phraseIndex < phrases.Count)
             {
                 backwardSeek = phrases[_phraseIndex].PhraseParentNote.Time > songTime + BACKWARD_SEEK_THRESHOLD;

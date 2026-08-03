@@ -67,14 +67,14 @@ namespace YARG.Gameplay
             if (vocalsTrack == null)
                 return;
 
-            var dsp       = new GuidePitchSynthDsp();
-            var dspHandle = GameManager.Mixer.AttachOutputDsp(dsp);
+            var pitchSource = new VocalNotePitchSource();
+            var dspHandle   = GameManager.Mixer.AttachOutputDsp(new SineSynthDsp(pitchSource));
             if (dspHandle == null)
             {
                 return;
             }
 
-            _guidePitchManager = new GuidePitchManager(dsp, dspHandle, vocalsTrack);
+            _guidePitchManager = new GuidePitchManager(pitchSource, dspHandle, vocalsTrack);
             _guidePitchManager.OnGuidePitchChanged += _practiceHud.SetGuidePitchPartText;
 
             _practiceHud.SetGuidePitchPartText(_guidePitchManager.GetStatusString(), _guidePitchManager.GetStatusColor());
