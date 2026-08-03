@@ -103,16 +103,20 @@ jobs:
     # run, so the integration test exercises the real load path.
     runs-on: macos-26
     env:
-      # xcode-select alone does not redirect the codesign shim when the image
-      # also ships newer Command Line Tools; DEVELOPER_DIR does. Signatures
-      # from newer codesign are SIGKILLed at dlopen by dyld on macOS 26.0-26.4.
+      # Pin Xcode 26.0.1: its clang (17.0.0.17000319) matches what the
+      # maintainers build with, keeping the byte-identical plugin gate
+      # meaningful. Also: never ad-hoc re-sign with codesign here — dyld on
+      # macOS 26.0-26.4 SIGKILLs codesign-made signatures at dlopen; the
+      # linker's own ad-hoc signature (linker-signed) loads everywhere.
       DEVELOPER_DIR: /Applications/Xcode_26.0.1.app/Contents/Developer
     steps:
       - uses: actions/checkout@v4
         with:
           lfs: true
           submodules: recursive
-      # Pin Xcode 26.0.1: matches the clang maintainers build with; see env note.
+      # xcode-select alone does not redirect the codesign shim when the image
+      # also ships newer Command Line Tools; DEVELOPER_DIR does. Kept for the
+      # clang toolchain selection even though the plugin is no longer re-signed.
       - name: Pin Xcode 26.0.1
         run: |
           sudo xcode-select -s /Applications/Xcode_26.0.1.app
@@ -133,7 +137,8 @@ jobs:
           # flags that strip LC_UUID for reproducibility.
           otool -l Native/YargAudio/build/macos-universal/libyarg_audio.dylib | grep -c 'cmd LC_UUID' | grep -q '^2$'
           # CD size identifies the codesign generation; 26.0-era is ~358,
-          # newer is ~367 and SIGKILLs at dlopen on macOS 26.0-26.4.
+          # newer is ~367 and SIGKILLs at dlopen on macOS 26.0-26.4. A
+          # linker-signed (0x20002) signature is the expected good state.
           codesign -dv --verbose=4 Native/YargAudio/build/macos-universal/libyarg_audio.dylib 2>&1 | grep CodeDirectory
           codesign --verify --strict Native/YargAudio/build/macos-universal/libyarg_audio.dylib
       - name: Verify Intel (x86_64) slice under Rosetta

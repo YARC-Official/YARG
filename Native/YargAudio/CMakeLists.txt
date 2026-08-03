@@ -48,19 +48,12 @@ else()
             BUILD_WITH_INSTALL_RPATH YES
             INSTALL_NAME_DIR "@rpath"
         )
-        # dyld4 (macOS 15+) refuses to load dylibs without an LC_UUID, so do
-        # NOT pass -Wl,-no_uuid. But the linker's random UUID breaks the
-        # byte-reproducible builds CI uses to verify the committed plugin.
-        # Patch a fixed UUID post-link to get both determinism and loadability.
-        # The modern linker ad-hoc signs its output, so the patch invalidates
-        # the signature; re-sign ad-hoc afterwards to keep dlopen happy.
-        add_custom_command(TARGET yarg_audio POST_BUILD
-            COMMAND python3
-                ${CMAKE_CURRENT_SOURCE_DIR}/cmake/patch_fixed_uuid.py
-                $<TARGET_FILE:yarg_audio>
-            COMMAND codesign --force --sign - $<TARGET_FILE:yarg_audio>
-            COMMENT "Patching fixed LC_UUID and re-signing"
-            VERBATIM)
+        # Ship the linker's natural ad-hoc signature (linker-signed, like the
+        # shipped BASS dylibs). Do NOT re-sign with codesign or patch load
+        # commands post-link: dyld on macOS 26.0-26.4 SIGKILLs codesign-made
+        # ad-hoc signatures at dlopen, and patching breaks the linker's own
+        # signature hash. The CI verify gate normalizes the resulting random
+        # LC_UUID instead of requiring byte-identical output.
     elseif(UNIX)
         target_link_options(yarg_audio PRIVATE -Wl,--build-id=none)
     endif()
@@ -93,10 +86,7 @@ if(YARG_AUDIO_BUILD_TESTS)
             "MultiThreaded$<$<CONFIG:Debug>:Debug>")
     else()
         target_compile_options(yarg_audio_tests PRIVATE -Wall -Wextra -Wpedantic)
-        if(APPLE)
-            # Fixed UUID only (see yarg_audio target above); tests are not
-            # committed, so they need no reproducibility constraint.
-        elseif(UNIX)
+        if(UNIX AND NOT APPLE)
             target_link_options(yarg_audio_tests PRIVATE -Wl,--build-id=none)
         endif()
     endif()
