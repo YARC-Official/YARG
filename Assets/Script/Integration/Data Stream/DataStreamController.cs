@@ -27,15 +27,48 @@ namespace YARG.Integration
             }
         }
 
+        private readonly struct CameraCutState
+        {
+            public CameraCutEvent.CameraCutConstraint Constraint { get; }
+            public CameraCutEvent.CameraCutPriority Priority { get; }
+            public CameraCutEvent.CameraCutSubject Subject { get; }
+
+            public CameraCutState(CameraCutEvent.CameraCutConstraint constraint,
+                CameraCutEvent.CameraCutPriority priority, CameraCutEvent.CameraCutSubject subject)
+            {
+                Constraint = constraint;
+                Priority = priority;
+                Subject = subject;
+            }
+        }
+
         // Queues for instrument notes to prevent missed notes between timer ticks
         // 1/20 being a blink of an eye. It should never lag more than that, and if so shows a larger problem elsewhere.
-        private static readonly int        _defaultSize =  (int)Math.Ceiling(TARGET_FPS * (1f / 20f)) + 1;
-        private static readonly Queue<int> _drumQueue   = new(_defaultSize);
-        private static readonly Queue<int> _guitarQueue = new(_defaultSize);
-        private static readonly Queue<int> _bassQueue   = new(_defaultSize);
-        private static readonly Queue<int> _keysQueue   = new(_defaultSize);
-        private static readonly object     _queueLock   = new();
-        private static readonly object     _playerStarPowerLock = new();
+        private static readonly int        _defaultSize   =  (int)Math.Ceiling(TARGET_FPS * (1f / 20f)) + 1;
+        private static readonly Queue<int> _drumQueue     = new(_defaultSize);
+        private static readonly Queue<int> _guitarQueue   = new(_defaultSize);
+        private static readonly Queue<int> _bassQueue     = new(_defaultSize);
+        private static readonly Queue<int> _keysQueue     = new(_defaultSize);
+        private static readonly object     _queueLock     = new();
+        private static readonly object     _byteQueueLock = new();
+
+        private static readonly Queue<SceneIndexByte>    _sceneQueue              = new(_defaultSize);
+        private static readonly Queue<PauseStateType>    _pauseQueue              = new(_defaultSize);
+        private static readonly Queue<VenueType>         _venueQueue              = new(_defaultSize);
+        private static readonly Queue<LightingType>      _songSectionQueue        = new(_defaultSize);
+        private static readonly Queue<LightingType>      _lightingCueQueue        = new(_defaultSize);
+        private static readonly Queue<PostProcessingType> _postProcessingQueue    = new(_defaultSize);
+        private static readonly Queue<bool>              _fogStateQueue           = new(_defaultSize);
+        private static readonly Queue<LightingType>      _strobeStateQueue        = new(_defaultSize);
+        private static readonly Queue<byte>              _beatQueue               = new(_defaultSize);
+        private static readonly Queue<LightingType>      _keyframeQueue           = new(_defaultSize);
+        private static readonly Queue<bool>              _bonusEffectQueue        = new(_defaultSize);
+        private static readonly Queue<bool>              _autoGenVenueTrackQueue  = new(_defaultSize);
+        private static readonly Queue<Performer>         _spotlightQueue          = new(_defaultSize);
+        private static readonly Queue<Performer>         _singalongQueue          = new(_defaultSize);
+        private static readonly Queue<CameraCutState>    _cameraCutQueue          = new(_defaultSize);
+
+        private static readonly object _playerStarPowerLock = new();
         private static PlayerStarPowerState[] _playerStarPowerSnapshot = Array.Empty<PlayerStarPowerState>();
 
         [Serializable]
@@ -63,6 +96,7 @@ namespace YARG.Integration
             public LightingType                       LightingCue;
             public PostProcessingType                 PostProcessing;
             public bool                               FogState;
+            public ushort                             FogRemainingCentiseconds;
             public LightingType                       StrobeState;
             public byte                               Performer;
             public byte                               Beat;
@@ -113,7 +147,7 @@ namespace YARG.Integration
         private static UdpClient _sendClient = new();
 
         //Has to be at least 44 because of DMX, 88 should be enough... for now...
-        private const  byte          DATAGRAM_VERSION   = 4;
+        private const  byte          DATAGRAM_VERSION   = 5;
         private const  float         TARGET_FPS         = 88f;
         private const  float         TIME_BETWEEN_CALLS = 1f / TARGET_FPS;
         private        Thread        _sendThread;
@@ -141,6 +175,7 @@ namespace YARG.Integration
         public static bool               MLCBonusFX;
         public static LightingType       MLCCurrentSongSection;
         public static bool               MLCFogState;
+        public static ushort             MLCFogRemainingCentiseconds;
         public static LightingType       MLCStrobeState;
         public static float              MLCCurrentBPM;
         public static byte               MLCCurrentBeat;
@@ -171,18 +206,18 @@ namespace YARG.Integration
                 //Keyframes are indicators and not really lighting cues themselves, also chorus and verse act more as modifiers and section labels and also not really lighting cues, they can be stacked under a lighting cue.
                 if (value.Type is not (LightingType.KeyframeNext or LightingType.KeyframePrevious or LightingType.KeyframeFirst or LightingType.Chorus or LightingType.Verse))
                 {
-                    MLCCurrentLightingCue = value.Type;
+                    EnqueueLightingCue(value.Type);
                     // might need a null check here = NoCue, testing needed
                 }
                 else if (value.Type is LightingType.KeyframeNext or LightingType.KeyframePrevious
                     or LightingType.KeyframeFirst)
                 {
-                    MLCKeyframe = value.Type;
+                    EnqueueKeyframe(value.Type);
                     //might need an else here to keep keyframe at current value, testing needed
                 }
                 else if (value.Type is LightingType.Verse or LightingType.Chorus)
                 {
-                    MLCCurrentSongSection = value.Type;
+                    EnqueueCurrentSongSection(value.Type);
                     //might need an else here to keep the section at current value, testing needed
                 }
             }
@@ -203,6 +238,145 @@ namespace YARG.Integration
             }
         }
 
+        public static void EnqueueSceneIndex(SceneIndexByte sceneIndex)
+        {
+            lock (_byteQueueLock)
+            {
+                _sceneQueue.Enqueue(sceneIndex);
+            }
+            MLCSceneIndex = sceneIndex;
+        }
+
+        public static void EnqueuePauseState(PauseStateType pauseState)
+        {
+            lock (_byteQueueLock)
+            {
+                _pauseQueue.Enqueue(pauseState);
+            }
+            MLCPaused = pauseState;
+        }
+
+        public static void EnqueueVenueSize(VenueType venueSize)
+        {
+            lock (_byteQueueLock)
+            {
+                _venueQueue.Enqueue(venueSize);
+            }
+            MLCVenueSize = venueSize;
+        }
+
+        public static void EnqueueCurrentSongSection(LightingType songSection)
+        {
+            lock (_byteQueueLock)
+            {
+                _songSectionQueue.Enqueue(songSection);
+            }
+            MLCCurrentSongSection = songSection;
+        }
+
+        public static void EnqueueLightingCue(LightingType lightingCue)
+        {
+            lock (_byteQueueLock)
+            {
+                _lightingCueQueue.Enqueue(lightingCue);
+            }
+            MLCCurrentLightingCue = lightingCue;
+        }
+
+        public static void EnqueuePostProcessing(PostProcessingType postProcessing)
+        {
+            lock (_byteQueueLock)
+            {
+                _postProcessingQueue.Enqueue(postProcessing);
+            }
+            MLCPostProcessing = postProcessing;
+        }
+
+        public static void EnqueueFogState(bool fogState)
+        {
+            lock (_byteQueueLock)
+            {
+                _fogStateQueue.Enqueue(fogState);
+            }
+            MLCFogState = fogState;
+        }
+
+        public static void EnqueueStrobeState(LightingType strobeState)
+        {
+            lock (_byteQueueLock)
+            {
+                _strobeStateQueue.Enqueue(strobeState);
+            }
+            MLCStrobeState = strobeState;
+        }
+
+        public static void EnqueueBeat(byte beat)
+        {
+            lock (_byteQueueLock)
+            {
+                _beatQueue.Enqueue(beat);
+            }
+            MLCCurrentBeat = beat;
+        }
+
+        public static void EnqueueKeyframe(LightingType keyframe)
+        {
+            lock (_byteQueueLock)
+            {
+                _keyframeQueue.Enqueue(keyframe);
+            }
+            MLCKeyframe = keyframe;
+        }
+
+        public static void EnqueueBonusEffect()
+        {
+            lock (_byteQueueLock)
+            {
+                _bonusEffectQueue.Enqueue(true);
+            }
+            MLCBonusFX = true;
+        }
+
+        public static void EnqueueAutoGenVenueTrack(bool autoGenVenueTrack)
+        {
+            lock (_byteQueueLock)
+            {
+                _autoGenVenueTrackQueue.Enqueue(autoGenVenueTrack);
+            }
+            MLCAutoGenVenueTrack = autoGenVenueTrack;
+        }
+
+        public static void EnqueueSpotlight(Performer spotlight)
+        {
+            lock (_byteQueueLock)
+            {
+                _spotlightQueue.Enqueue(spotlight);
+            }
+            MLCSpotlight = spotlight;
+        }
+
+        public static void EnqueueSingalong(Performer singalong)
+        {
+            lock (_byteQueueLock)
+            {
+                _singalongQueue.Enqueue(singalong);
+            }
+            MLCSingalong = singalong;
+        }
+
+        public static void EnqueueCameraCutState(CameraCutEvent.CameraCutConstraint constraint,
+            CameraCutEvent.CameraCutPriority priority, CameraCutEvent.CameraCutSubject subject)
+        {
+            lock (_byteQueueLock)
+            {
+                _cameraCutQueue.Enqueue(new CameraCutState(constraint, priority, subject));
+            }
+
+            MLCCameraCutConstraint = constraint;
+            MLCCameraCutPriority = priority;
+            MLCCameraCutSubject = subject;
+        }
+
         private static void ClearInstrumentQueues()
         {
             lock (_queueLock)
@@ -212,6 +386,41 @@ namespace YARG.Integration
                 _bassQueue.Clear();
                 _keysQueue.Clear();
             }
+        }
+
+        private static void ClearByteQueues()
+        {
+            lock (_byteQueueLock)
+            {
+                _sceneQueue.Clear();
+                _pauseQueue.Clear();
+                _venueQueue.Clear();
+                _songSectionQueue.Clear();
+                _lightingCueQueue.Clear();
+                _postProcessingQueue.Clear();
+                _fogStateQueue.Clear();
+                _strobeStateQueue.Clear();
+                _beatQueue.Clear();
+                _keyframeQueue.Clear();
+                _bonusEffectQueue.Clear();
+                _autoGenVenueTrackQueue.Clear();
+                _spotlightQueue.Clear();
+                _singalongQueue.Clear();
+                _cameraCutQueue.Clear();
+            }
+        }
+
+        private static T DequeueByteValue<T>(Queue<T> queue, T fallback)
+        {
+            lock (_byteQueueLock)
+            {
+                if (queue.Count > 0)
+                {
+                    return queue.Dequeue();
+                }
+            }
+
+            return fallback;
         }
 
         public static void UpdatePlayerStarPowerSnapshot(IReadOnlyList<BasePlayer> players)
@@ -276,17 +485,18 @@ namespace YARG.Integration
         // v2 - added Practice to scene, fixed pause
         // v3 - added CameraCut
         // v4 - added per-player Star Power amount and active state
+        // v5 - added Fog remaining duration before the player Star Power table
         public static void Sender(DataMessage message)
         {
             message.Header = 0x59415247; // Y A R G
 
             message.DatagramVersion = DATAGRAM_VERSION;
-            message.Platform = MLCPlatform;                       // Set by the Preprocessor Directive above.
-            message.CurrentScene = MLCSceneIndex;                 // gets set by the initializer.
-            message.Paused = MLCPaused;                           // gets set by the GameplayMonitor.
-            message.VenueSize = MLCVenueSize;                     // gets set on chart load by the GameplayMonitor.
+            message.Platform = MLCPlatform;                                      // Set by the Preprocessor Directive above.
+            message.CurrentScene = DequeueByteValue(_sceneQueue, MLCSceneIndex); // gets set by the initializer.
+            message.Paused = DequeueByteValue(_pauseQueue, MLCPaused);           // gets set by the GameplayMonitor.
+            message.VenueSize = DequeueByteValue(_venueQueue, MLCVenueSize);     // gets set on chart load by the GameplayMonitor.
             message.BeatsPerMinute = MLCCurrentBPM;               // gets set by the GameplayMonitor.
-            message.CurrentSongSection = MLCCurrentSongSection;   // gets set on lighting cue change.
+            message.CurrentSongSection = DequeueByteValue(_songSectionQueue, MLCCurrentSongSection); // gets set on lighting cue change.
 
             // Drain all queued instrument notes and OR them together (notes are bitmasks)
             // This prevents queue buildup when notes enqueue faster than send rate
@@ -335,20 +545,24 @@ namespace YARG.Integration
             message.CurrentHarmony1Note = MLCCurrentHarmony1Note; // gets set by the GameplayMonitor.
             message.CurrentHarmony2Note = MLCCurrentHarmony2Note; // gets set by the GameplayMonitor.
 
-            message.LightingCue = MLCCurrentLightingCue;        // setter triggered by the GameplayMonitor.
-            message.PostProcessing = MLCPostProcessing;         // setter triggered by the GameplayMonitor.
-            message.FogState = MLCFogState;                     // gets set by the GameplayMonitor.
-            message.StrobeState = MLCStrobeState;               // gets set by the GameplayMonitor.
-            message.Beat = MLCCurrentBeat;                      // gets set by the GameplayMonitor.
-            message.Keyframe = MLCKeyframe;                     // gets set on lighting cue change.
-            message.BonusEffect = MLCBonusFX;                   // gets set by the GameplayMonitor.
+            message.LightingCue = DequeueByteValue(_lightingCueQueue, MLCCurrentLightingCue); // setter triggered by the GameplayMonitor.
+            message.PostProcessing = DequeueByteValue(_postProcessingQueue, MLCPostProcessing); // setter triggered by the GameplayMonitor.
+            message.FogState = DequeueByteValue(_fogStateQueue, MLCFogState); // gets set by the GameplayMonitor.
+            message.FogRemainingCentiseconds = MLCFogRemainingCentiseconds; // gets set by the GameplayMonitor.
+            message.StrobeState = DequeueByteValue(_strobeStateQueue, MLCStrobeState); // gets set by the GameplayMonitor.
+            message.Beat = DequeueByteValue(_beatQueue, (byte) 3); // gets set by the GameplayMonitor.
+            message.Keyframe = DequeueByteValue(_keyframeQueue, default(LightingType)); // gets set on lighting cue change.
+            message.BonusEffect = DequeueByteValue(_bonusEffectQueue, false); // gets set by the GameplayMonitor.
 
-            message.AutoGenVenueTrack = MLCAutoGenVenueTrack;     // gets set on chart load by the GameplayMonitor.
-            message.Spotlight = MLCSpotlight;                     // gets set by the GameplayMonitor.
-            message.Singalong = MLCSingalong;                     // gets set by the GameplayMonitor.
-            message.CameraCutConstraint = MLCCameraCutConstraint; // gets set by the GameplayMonitor.
-            message.CameraCutPriority = MLCCameraCutPriority;     // gets set by the GameplayMonitor.
-            message.CameraCutSubject = MLCCameraCutSubject;       // gets set by the GameplayMonitor.
+            message.AutoGenVenueTrack = DequeueByteValue(_autoGenVenueTrackQueue, MLCAutoGenVenueTrack); // gets set on chart load by the GameplayMonitor.
+            message.Spotlight = DequeueByteValue(_spotlightQueue, MLCSpotlight); // gets set by the GameplayMonitor.
+            message.Singalong = DequeueByteValue(_singalongQueue, MLCSingalong); // gets set by the GameplayMonitor.
+
+            var cameraCut = DequeueByteValue(_cameraCutQueue,
+                new CameraCutState(MLCCameraCutConstraint, MLCCameraCutPriority, MLCCameraCutSubject));
+            message.CameraCutConstraint = cameraCut.Constraint; // gets set by the GameplayMonitor.
+            message.CameraCutPriority = cameraCut.Priority;     // gets set by the GameplayMonitor.
+            message.CameraCutSubject = cameraCut.Subject;       // gets set by the GameplayMonitor.
             message.PlayerStarPower = GetPlayerStarPowerSnapshot();
 
             SerializeAndSend(message);
@@ -382,6 +596,7 @@ namespace YARG.Integration
                 StopSendThread();
                 _sendClient?.Dispose();
                 ClearInstrumentQueues();
+                ClearByteQueues();
                 ClearPlayerStarPowerSnapshot();
             }
         }
@@ -392,6 +607,7 @@ namespace YARG.Integration
 
             // Clear instrument queues on scene change
             ClearInstrumentQueues();
+            ClearByteQueues();
             ClearPlayerStarPowerSnapshot();
 
             MLCPaused = PauseStateType.AtMenu;
@@ -411,11 +627,12 @@ namespace YARG.Integration
 
             MLCPostProcessing = 0;
             MLCFogState = false;
+            MLCFogRemainingCentiseconds = 0;
             MLCStrobeState = LightingType.StrobeOff;
-            MLCCurrentBeat = 0;
+            MLCCurrentBeat = 3;
             MLCKeyframe = 0;
             MLCBonusFX = false;
-            //MLCAutoGenVenueTrack set on chart load by the GameplayMonitor.
+            MLCAutoGenVenueTrack = false;
             MLCSpotlight = Performer.None;
             MLCSingalong = Performer.None;
             MLCCameraCutPriority = CameraCutEvent.CameraCutPriority.Normal;
@@ -425,26 +642,26 @@ namespace YARG.Integration
             switch ((SceneIndex) scene.buildIndex)
             {
                 case SceneIndex.Gameplay:
-                    MLCSceneIndex = SceneIndexByte.Gameplay;
+                    EnqueueSceneIndex(SceneIndexByte.Gameplay);
                     break;
 
                 case SceneIndex.Menu:
                     CurrentLightingCue = new LightingEvent(LightingType.Menu, 0, 0);
-                    MLCSceneIndex = SceneIndexByte.Menu;
+                    EnqueueSceneIndex(SceneIndexByte.Menu);
                     break;
 
                 case SceneIndex.Calibration:
-                    MLCSceneIndex = SceneIndexByte.Calibration;
+                    EnqueueSceneIndex(SceneIndexByte.Calibration);
                     break;
 
                 case SceneIndex.Score:
                     CurrentLightingCue = new LightingEvent(LightingType.Score, 0, 0);
-                    MLCSceneIndex = SceneIndexByte.Score;
+                    EnqueueSceneIndex(SceneIndexByte.Score);
                     break;
 
                 default:
                     YargLogger.LogWarning("Unknown Scene loaded!");
-                    MLCSceneIndex = SceneIndexByte.Unknown;
+                    EnqueueSceneIndex(SceneIndexByte.Unknown);
                     break;
             }
         }
@@ -455,6 +672,7 @@ namespace YARG.Integration
 
             StopSendThread();
             ClearInstrumentQueues();
+            ClearByteQueues();
             ClearPlayerStarPowerSnapshot();
 
             if (_sendClient == null) return;
@@ -549,7 +767,7 @@ namespace YARG.Integration
                 var playerStarPower = message.PlayerStarPower ?? Array.Empty<PlayerStarPowerState>();
                 ushort playerStarPowerCount = (ushort) Math.Min(playerStarPower.Length, ushort.MaxValue);
 
-                using var _ms = new MemoryStream(64 + (playerStarPowerCount * 2));
+                using var _ms = new MemoryStream(66 + (playerStarPowerCount * 2));
                 using var _writer = new BinaryWriter(_ms);
 
                 // Reset the MemoryStream's position to the beginning
@@ -579,6 +797,7 @@ namespace YARG.Integration
                 _writer.Write((byte) message.LightingCue);
                 _writer.Write((byte) message.PostProcessing);
                 _writer.Write(message.FogState); //bool
+                _writer.Write(message.FogRemainingCentiseconds);
                 _writer.Write((byte) message.StrobeState);
                 _writer.Write(message.Beat); //byte
                 _writer.Write((byte) message.Keyframe);

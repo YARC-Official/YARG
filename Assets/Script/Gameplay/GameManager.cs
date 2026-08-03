@@ -166,7 +166,6 @@ namespace YARG.Gameplay
 
         private bool _isReplaySaved;
         private int _originalSleepTimeout;
-        private bool _breBoxActive;
 
         private StemMixer _mixer;
         private MetronomeScheduler _metronomeScheduler;
@@ -1098,25 +1097,18 @@ namespace YARG.Gameplay
 
         public void StartCoda(CodaSection _)
         {
-            if (_breBoxActive)
-            {
-                return;
-            }
-
-            _breBoxActive = true;
             _breBox.StartCoda(EngineManager);
         }
 
         public void EndCoda(CodaSection coda)
         {
             var songEnding = SongTime >= LastNoteTime;
-            _breBox.EndCoda(EngineManager.TotalCodaBonus, songEnding, () => { _breBoxActive = false; });
+            _breBox.EndCoda(EngineManager.TotalCodaBonus, songEnding, null);
         }
 
         public void ResetCoda()
         {
             _breBox.ForceReset();
-            _breBoxActive = false;
         }
     }
 }

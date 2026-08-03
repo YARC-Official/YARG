@@ -8,6 +8,14 @@ namespace YARG.Menu.Navigation
 {
     public class TextFieldNavigationDisabler : MonoBehaviour
     {
+        public enum TextFieldTypeEnum
+        {
+            MusicLibrarySearch,
+            Other
+        }
+
+        public TextFieldTypeEnum TextFieldType = TextFieldTypeEnum.Other;
+
         private static readonly NavigationScheme TextFieldScheme = new(new List<NavigationScheme.Entry>
         {
             new(
@@ -61,7 +69,14 @@ namespace YARG.Menu.Navigation
         {
             if (!_navPushed)
             {
-                _ = Navigator.Instance.PushScheme(TextFieldScheme);
+                if (TextFieldType == TextFieldTypeEnum.MusicLibrarySearch)
+                {
+                    _ = Navigator.Instance.PushScheme(TextFieldScheme);
+                }
+                else
+                {
+                    _ = Navigator.Instance.PushScheme(NavigationScheme.Empty);
+                }
                 _navPushed = true;
             }
         }
