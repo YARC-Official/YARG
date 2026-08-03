@@ -12,6 +12,11 @@ namespace YARG.Gameplay.Visuals
         private static readonly int Dimensions = Shader.PropertyToID("_Dimensions");
         private static readonly int BaseColor = Shader.PropertyToID("_BaseColor");
         private static readonly int GlowColor = Shader.PropertyToID("_GlowColor");
+        private static readonly int GlowIntensity = Shader.PropertyToID("_GlowIntensity");
+
+        private const float SP_GLOW_INTENSITY     = 1f;
+        private const float NORMAL_GLOW_INTENSITY = 0.33f;
+
         private const float NOTE_POINT_PADDING = 1f / 15f;
 
         public VocalNote NoteRef { get; set; }
@@ -56,10 +61,12 @@ namespace YARG.Gameplay.Visuals
             if (isSp)
             {
                 MaterialPropertyInstance.Instance.SetColor(GlowColor, Color.gold);
+                MaterialPropertyInstance.Instance.SetFloat(GlowIntensity, SP_GLOW_INTENSITY);
             }
             else
             {
                 MaterialPropertyInstance.Instance.SetColor(GlowColor, color);
+                MaterialPropertyInstance.Instance.SetFloat(GlowIntensity, NORMAL_GLOW_INTENSITY);
             }
             _glowLineRenderer.SetPropertyBlock(MaterialPropertyInstance.Instance);
         }
