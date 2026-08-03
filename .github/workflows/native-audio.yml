@@ -139,8 +139,10 @@ jobs:
           # CD size identifies the codesign generation; 26.0-era is ~358,
           # newer is ~367 and SIGKILLs at dlopen on macOS 26.0-26.4. A
           # linker-signed (0x20002) signature is the expected good state.
+          # Note: codesign --verify cannot validate linker-signed binaries
+          # (reports "not signed at all"); the integration test's dlopen is
+          # the real load proof.
           codesign -dv --verbose=4 Native/YargAudio/build/macos-universal/libyarg_audio.dylib 2>&1 | grep CodeDirectory
-          codesign --verify --strict Native/YargAudio/build/macos-universal/libyarg_audio.dylib
       - name: Verify Intel (x86_64) slice under Rosetta
         run: arch -x86_64 Native/YargAudio/build/macos-universal/yarg_audio_tests
       - uses: actions/upload-artifact@v4
