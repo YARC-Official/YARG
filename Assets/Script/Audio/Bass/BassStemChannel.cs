@@ -1,6 +1,7 @@
 using ManagedBass;
 using ManagedBass.Mix;
 using UnityEngine;
+using YARG.Audio.BASS.Effects;
 using YARG.Core.Audio;
 using YARG.Core.Logging;
 
