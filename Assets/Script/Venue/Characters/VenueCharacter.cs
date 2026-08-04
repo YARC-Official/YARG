@@ -7,6 +7,7 @@ using UniVRM10;
 using YARG.Core.Chart;
 using YARG.Core.Logging;
 using YARG.Core.Song;
+using YARG.Core.Venue;
 using AnimationTrigger = YARG.Venue.Characters.CharacterManager.AnimationTrigger;
 using CharacterStateType = YARG.Core.Chart.Events.CharacterState.CharacterStateType;
 using AnimationType = YARG.Core.Chart.AnimationEvent.AnimationType;
@@ -22,21 +23,13 @@ namespace YARG.Venue.Characters
     [RequireComponent(typeof(Animator))]
     public partial class VenueCharacter : MonoBehaviour
     {
-        public enum CharacterType
-        {
-            Bass,
-            Guitar,
-            Drums,
-            Vocals,
-            Keys,
-        }
 
         [Tooltip("This only needs to be set if you are building the character into a venue.\n\nIt is handled automatically for .yargchar exports.")]
         [SerializeField]
         protected CharacterManager _characterManager;
 
         [SerializeField]
-        public CharacterType Type;
+        public VenueCharacterHelpers.CharacterType Type;
         [SerializeField]
         public VocalGender CharacterGender = VocalGender.Unspecified;
 
@@ -213,7 +206,7 @@ namespace YARG.Venue.Characters
 
             // For guitar/bass, we require strumup/strumdown and some hand positions
             // TODO: Make this check for animations and not just states
-            if (Type == CharacterType.Guitar || Type == CharacterType.Bass)
+            if (Type == VenueCharacterHelpers.CharacterType.Guitar || Type == VenueCharacterHelpers.CharacterType.Bass)
             {
                 foreach (var name in requiredGuitar)
                 {
@@ -244,7 +237,7 @@ namespace YARG.Venue.Characters
             };
 
             // For drums, we require the full suite, minus soft/hard variants (but we don't actually check the ones with variants)
-            if (Type == CharacterType.Drums)
+            if (Type == VenueCharacterHelpers.CharacterType.Drums)
             {
                 foreach (var name in requiredDrums)
                 {
@@ -281,10 +274,10 @@ namespace YARG.Venue.Characters
         {
             switch (Type)
             {
-                case CharacterType.Guitar:
+                case VenueCharacterHelpers.CharacterType.Guitar:
                     GetGuitarIKTargets();
                     break;
-                case CharacterType.Drums:
+                case VenueCharacterHelpers.CharacterType.Drums:
                     GetDrumsIKTargets();
                     break;
             }
@@ -362,7 +355,7 @@ namespace YARG.Venue.Characters
         private void HandleStrumMap(StrumMapType strumMap)
         {
             // Strum map is only valid for bass
-            if (Type != CharacterType.Bass)
+            if (Type != VenueCharacterHelpers.CharacterType.Bass)
             {
                 return;
             }
@@ -380,7 +373,7 @@ namespace YARG.Venue.Characters
         private void HandleHandMap(HandMapType handMap)
         {
             // Hand map is only valid for guitar and bass
-            if (Type is not (CharacterType.Guitar or CharacterType.Bass))
+            if (Type is not (VenueCharacterHelpers.CharacterType.Guitar or VenueCharacterHelpers.CharacterType.Bass))
             {
                 return;
             }
@@ -491,7 +484,7 @@ namespace YARG.Venue.Characters
             if (e is GuitarNote gNote)
             {
                 // Handle alternate strums for bass
-                if (Type == CharacterType.Bass && _hasSlap && _strumMap == StrumMapType.SlapBass)
+                if (Type == VenueCharacterHelpers.CharacterType.Bass && _hasSlap && _strumMap == StrumMapType.SlapBass)
                 {
                     // Just trigger slap and return
                     SetTrigger(AnimationStateType.Slap);
@@ -564,12 +557,12 @@ namespace YARG.Venue.Characters
             int lowestFret = 5;
             bool openGreen = _handMap is HandMapType.DropD or HandMapType.DropD2;
             bool useChordShape =
-                (gNote.IsChord && (!_inhibitHandShape || Type != CharacterType.Guitar || Type != CharacterType.Bass) &&
+                (gNote.IsChord && (!_inhibitHandShape || Type != VenueCharacterHelpers.CharacterType.Guitar || Type != VenueCharacterHelpers.CharacterType.Bass) &&
                     _handMap != HandMapType.NoChords) || _handMap == HandMapType.AllChords;
             bool isSustain = gNote.IsSustain;
             float sustainLength = (float) gNote.TimeLength;
 
-            if (_inhibitHandShape && (Type == CharacterType.Guitar || Type == CharacterType.Bass) && (_handMap != HandMapType.DropD && _handMap != HandMapType.DropD2))
+            if (_inhibitHandShape && (Type == VenueCharacterHelpers.CharacterType.Guitar || Type == VenueCharacterHelpers.CharacterType.Bass) && (_handMap != HandMapType.DropD && _handMap != HandMapType.DropD2))
             {
                 return;
             }
@@ -581,7 +574,7 @@ namespace YARG.Venue.Characters
             }
 
             // Just for testing
-            if (Type == CharacterType.Vocals || Type == CharacterType.Drums || Type == CharacterType.Keys)
+            if (Type == VenueCharacterHelpers.CharacterType.Vocals || Type == VenueCharacterHelpers.CharacterType.Drums || Type == VenueCharacterHelpers.CharacterType.Keys)
             {
                 return;
             }

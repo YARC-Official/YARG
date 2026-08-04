@@ -826,7 +826,7 @@ namespace YARG.Gameplay
         // gender is a fallback in case the user's specified character fails to load
         private async UniTask<GameObject> GetCustomVocalsCharacter()
         {
-            if (SettingsManager.Settings.CustomCharacters.TryGetValue(VenueCharacter.CharacterType.Vocals,
+            if (SettingsManager.Settings.CustomCharacters.TryGetValue(VenueCharacterHelpers.CharacterType.Vocals,
                 out var characterInfo))
             {
                 if (characterInfo.Source == CustomCharacterSource.None)
@@ -916,7 +916,7 @@ namespace YARG.Gameplay
         private void AddMicrophoneToCharacter(GameObject character)
         {
             var vrmCharacter = character.GetComponent<VRMCharacter>();
-            if (vrmCharacter == null || vrmCharacter.Type != VenueCharacter.CharacterType.Vocals ||
+            if (vrmCharacter == null || vrmCharacter.Type != VenueCharacterHelpers.CharacterType.Vocals ||
                 vrmCharacter.UseCustomAnimations)
             {
                 return;

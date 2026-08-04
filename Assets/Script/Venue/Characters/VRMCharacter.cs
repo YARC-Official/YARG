@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using DG.Tweening;
+using JetBrains.Annotations;
 using UniGLTF.SpringBoneJobs.Blittables;
 using UnityEngine;
 using UniVRM10;
@@ -15,7 +16,11 @@ namespace YARG.Venue.Characters
     public class VRMCharacter : VenueCharacter
     {
         private Vrm10RuntimeExpression _expression;
-        private List<LipsyncEvent>     _lipsyncEvents;
+        private List<LipsyncEvent>     _assignedlipsyncEvents;
+        private int                    _lipsyncIndex;
+        private List<LipsyncEvent>     _singalongLipsyncEvents;
+        private int                    _singalongLipsyncIndex;
+        public  bool                   HasLipsyncAssigned;
 
         private ExpressionKey _browAggressive;
         private ExpressionKey _browDown;
@@ -24,7 +29,7 @@ namespace YARG.Venue.Characters
 
         private readonly Dictionary<string, ExpressionKey> _customExpressions = new();
 
-        private int _lipsyncIndex;
+
 
         [Header("Lipsync Settings")]
         [SerializeField]
@@ -55,7 +60,7 @@ namespace YARG.Venue.Characters
         private static Mesh     _unitCubeMesh;
         private static Material _invisibleMaterial;
 
-        private bool HasLipsyncEvents => _lipsyncEvents != null && _lipsyncEvents.Count > 0;
+        private bool HasLipsyncEvents => _assignedlipsyncEvents != null && _assignedlipsyncEvents.Count > 0;
 
         public int ActionsPerAnimationCycle
         {
@@ -98,10 +103,13 @@ namespace YARG.Venue.Characters
             base.Initialize(characterManager);
         }
 
-        public void InitializeLipsync(List<LipsyncEvent> lipsyncEvents)
+        public void InitializeLipsync(List<LipsyncEvent> lipsyncEvents, List<LipsyncEvent> singalongEvents)
         {
-            _lipsyncEvents = lipsyncEvents;
+            _assignedlipsyncEvents = lipsyncEvents;
             _lipsyncIndex = 0;
+            _singalongLipsyncEvents = singalongEvents;
+            _singalongLipsyncIndex = 0;
+            HasLipsyncAssigned = true;
         }
 
         protected override void Update()
@@ -127,14 +135,14 @@ namespace YARG.Venue.Characters
         private void ProcessLipsync(double time)
         {
             // We may have initialized too early, so we need to protect against null reference and hope it fixes itself later
-            if (_lipsyncEvents == null)
+            if (_assignedlipsyncEvents == null || !HasLipsyncAssigned)
             {
                 return;
             }
 
-            while (_lipsyncIndex < _lipsyncEvents.Count && _lipsyncEvents[_lipsyncIndex].Time <= time)
+            while (_lipsyncIndex < _assignedlipsyncEvents.Count && _assignedlipsyncEvents[_lipsyncIndex].Time <= time)
             {
-                var lipsyncEvent = _lipsyncEvents[_lipsyncIndex];
+                var lipsyncEvent = _assignedlipsyncEvents[_lipsyncIndex];
 
                 SetExpression(lipsyncEvent);
 
