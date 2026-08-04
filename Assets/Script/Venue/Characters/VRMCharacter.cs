@@ -88,11 +88,6 @@ namespace YARG.Venue.Characters
             _modelLevels = new BlittableModelLevel();
             _expression = VrmInstance.Runtime.Expression;
 
-            if (_characterManager != null)
-            {
-                _lipsyncEvents = _characterManager.LipsyncEvents;
-            }
-
             var clips = VrmInstance.Vrm.Expression.CustomClips;
 
             foreach (var clip in clips)
@@ -101,6 +96,12 @@ namespace YARG.Venue.Characters
             }
 
             base.Initialize(characterManager);
+        }
+
+        public void InitializeLipsync(List<LipsyncEvent> lipsyncEvents)
+        {
+            _lipsyncEvents = lipsyncEvents;
+            _lipsyncIndex = 0;
         }
 
         protected override void Update()
@@ -126,14 +127,14 @@ namespace YARG.Venue.Characters
         private void ProcessLipsync(double time)
         {
             // We may have initialized too early, so we need to protect against null reference and hope it fixes itself later
-            if (_characterManager.LipsyncEvents == null)
+            if (_lipsyncEvents == null)
             {
                 return;
             }
 
-            while (_lipsyncIndex < _characterManager.LipsyncEvents.Count && _characterManager.LipsyncEvents[_lipsyncIndex].Time <= time)
+            while (_lipsyncIndex < _lipsyncEvents.Count && _lipsyncEvents[_lipsyncIndex].Time <= time)
             {
-                var lipsyncEvent = _characterManager.LipsyncEvents[_lipsyncIndex];
+                var lipsyncEvent = _lipsyncEvents[_lipsyncIndex];
 
                 SetExpression(lipsyncEvent);
 

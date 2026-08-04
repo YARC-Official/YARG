@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using YARG.Core;
 using YARG.Core.Chart;
 using YARG.Core.Chart.Events;
+using YARG.Core.Extensions;
 using YARG.Core.Logging;
 using YARG.Gameplay;
 using AnimationEvent = YARG.Core.Chart.AnimationEvent;
@@ -43,7 +45,7 @@ namespace YARG.Venue.Characters
         private List<AnimationEvent> _bassAnimationEvents;
         private List<AnimationEvent> _drumAnimationEvents;
 
-        public List<LipsyncEvent> LipsyncEvents;
+        public List<LipsyncEvent>[] LipsyncEvents;
 
         private int _guitarNoteIndex;
         private int _bassNoteIndex;
@@ -200,6 +202,31 @@ namespace YARG.Venue.Characters
                 }
                 character.Initialize(this);
                 _characters.Add(character.Type, character);
+            }
+
+            VenueCharacter.CharacterType[] harmonyPriority =
+            {
+                VenueCharacter.CharacterType.Vocals,
+                VenueCharacter.CharacterType.Guitar,
+                VenueCharacter.CharacterType.Bass,
+                VenueCharacter.CharacterType.Keys,
+                VenueCharacter.CharacterType.Drums
+            };
+            var harmonyPriorityIndex = 0;
+
+            for (int i = 0; i < 3; i++)
+            {
+                for (int j = harmonyPriorityIndex; j < harmonyPriority.Length; j++)
+                {
+                    var character = _characters.FirstOrDefault(x => x.Key == harmonyPriority[j] && x.Value is VRMCharacter).Value;
+                    if (character is VRMCharacter vrmCharacter)
+                    {
+                        YargLogger.LogFormatDebug("Initializing lipsync for {0} with harmony index {1}", character.Type, i);
+                        vrmCharacter.InitializeLipsync(LipsyncEvents[i]);
+                        harmonyPriorityIndex++;
+                        break;
+                    }
+                }
             }
 
             GameManager.SetVenueCharacterManager(this);

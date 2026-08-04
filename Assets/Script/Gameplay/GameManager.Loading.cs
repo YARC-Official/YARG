@@ -367,7 +367,7 @@ namespace YARG.Gameplay
         {
             SongChart.LoadLipsyncFromMilo(Chart, Song);
 
-            YargLogger.LogFormatDebug("Loaded {0} lipsync events from milo", Chart.LipsyncEvents.Count);
+            YargLogger.LogFormatDebug("Loaded {0} lipsync events from milo", Chart.LipsyncEvents[0].Count);
         }
 
         private void FinalizeChart()
