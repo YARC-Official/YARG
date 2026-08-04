@@ -887,7 +887,7 @@ namespace YARG.Gameplay
                 return null;
             }
 
-            var noFail = SettingsManager.Settings.NoFail.Value == NoFailMode.On;
+            var noFail = SettingsManager.Settings.NoFail.Value != NoFailMode.Off;
             var stars = StarAmountHelper.GetStarsFromInt(Mathf.FloorToInt(bandStars));
             ReplayData = new ReplayData(colorProfiles, cameraPresets, rockMeterPresets, noFail, frames.ToArray(), _frameTimes.ToArray());
 
