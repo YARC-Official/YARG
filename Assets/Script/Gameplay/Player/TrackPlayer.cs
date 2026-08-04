@@ -336,7 +336,7 @@ namespace YARG.Gameplay.Player
 
             phrases.AddRange(EngineContainer.UnisonPhrases);
 
-            var effects = TrackEffect.PhrasesToEffects(phrases);
+            var effects = TrackEffect.PhrasesToEffects(Notes, phrases);
             _trackEffects.AddRange(effects);
         }
 
@@ -390,6 +390,8 @@ namespace YARG.Gameplay.Player
 
             BeatlineIndex = 0;
             ResetNoteCounters();
+
+            ResetTrackEffectOverlay(0);
 
             CurrentCoda = null;
             _breIndex = 0;
@@ -814,9 +816,9 @@ namespace YARG.Gameplay.Player
             SpawnLanesFromNote(parentNote);
         }
 
-        private void SpawnLanesFromNote(TNote parentNote)
+        protected virtual void SpawnLanesFromNote(TNote parentNote)
         {
-            if (!Engine.LanesExist || !Engine.BaseParameters.EnableLanes)
+            if (!Engine.BaseParameters.EnableLanes)
             {
                 return;
             }
@@ -959,6 +961,9 @@ namespace YARG.Gameplay.Player
             ResetNoteCounters();
 
             BeatlineIndex = 0;
+
+            // Removed by EngineManager
+            EngineContainer = null;
 
             Engine = CreateEngine();
 
@@ -1188,7 +1193,7 @@ namespace YARG.Gameplay.Player
 
         protected void OnHappinessNearFail()
         {
-            if (SettingsManager.Settings.NoFail.Value == NoFailMode.Off)
+            if (SettingsManager.Settings.NoFail.Value == NoFailMode.Off && !GameManager.IsPractice)
             {
                 TrackMaterial.FailState = 1f;
             }
@@ -1196,7 +1201,9 @@ namespace YARG.Gameplay.Player
 
         protected void OnPlayerFailed(int engineId)
         {
-            if (SettingsManager.Settings.NoFail.Value != NoFailMode.Off || engineId != EngineContainer.EngineId)
+            if (SettingsManager.Settings.NoFail.Value != NoFailMode.Off
+                || engineId != EngineContainer.EngineId
+                || GameManager.IsPractice)
             {
                 // Not for us
                 return;
@@ -1205,7 +1212,6 @@ namespace YARG.Gameplay.Player
             // Mark as failed and lower highway
             PlayerHasFailed = true;
             CameraPositioner.Lower(false);
-
         }
 
         protected void OnPlayerRevived()
