@@ -187,6 +187,7 @@ namespace YARG.Menu.MusicLibrary
         protected override void OnEnable()
         {
             base.OnEnable();
+            SetSidebarDifficultiesVisible(true);
 
             _heldInputs.Clear();
 
