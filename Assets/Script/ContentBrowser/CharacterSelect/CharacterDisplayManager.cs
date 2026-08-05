@@ -10,6 +10,7 @@ using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
 using UnityEngine.ResourceManagement.ResourceLocations;
 using UniVRM10;
+using YARG.Core.Chart;
 using YARG.Core.Input;
 using YARG.Core.Logging;
 using YARG.Core.Venue;
@@ -292,7 +293,7 @@ namespace YARG.ContentBrowser.CharacterSelect
                 SettingsManager.Settings.HiddenCharacters.Remove(characterInfo);
             }
 
-            SettingsManager.Settings.CustomCharacters[VenueCharacterHelpers.CharacterType.Vocals] = characterInfo;
+            SettingsManager.Settings.CustomCharacters[Performer.Vocals] = characterInfo;
 
             // Turn the spotlight gold or something
             _spotlight.DOColor(Color.gold, MOVE_DURATION * 0.333f);
@@ -312,7 +313,7 @@ namespace YARG.ContentBrowser.CharacterSelect
 
         private void Unselect()
         {
-            SettingsManager.Settings.CustomCharacters.Remove(VenueCharacterHelpers.CharacterType.Vocals);
+            SettingsManager.Settings.CustomCharacters.Remove(Performer.Vocals);
 
             _spotlight.DOColor(Color.white, MOVE_DURATION * 0.333f);
             _podiums[1].SetLightColor(Color.white, MOVE_DURATION * 0.333f);
@@ -697,7 +698,7 @@ namespace YARG.ContentBrowser.CharacterSelect
 
         public static bool IsSelected(CharacterInfo characterInfo)
         {
-            return SettingsManager.Settings.CustomCharacters.TryGetValue(VenueCharacterHelpers.CharacterType.Vocals, out var customInfo)
+            return SettingsManager.Settings.CustomCharacters.TryGetValue(Performer.Vocals, out var customInfo)
                 && customInfo.Identifier == characterInfo.Identifier;
         }
 

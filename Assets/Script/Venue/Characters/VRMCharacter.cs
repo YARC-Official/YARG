@@ -20,6 +20,8 @@ namespace YARG.Venue.Characters
         private int                    _lipsyncIndex;
         private List<LipsyncEvent>     _singalongLipsyncEvents;
         private int                    _singalongLipsyncIndex;
+        private List<PerformerEvent>   _singalongEvents;
+        private int                    _singalongEventIndex;
         public  bool                   HasLipsyncAssigned;
 
         private ExpressionKey _browAggressive;
@@ -92,6 +94,9 @@ namespace YARG.Venue.Characters
             _hasVrmInstance = VrmInstance != null;
             _modelLevels = new BlittableModelLevel();
             _expression = VrmInstance.Runtime.Expression;
+            _assignedlipsyncEvents = new List<LipsyncEvent>();
+            _singalongLipsyncEvents = new List<LipsyncEvent>();
+            _singalongEvents = new List<PerformerEvent>();
 
             var clips = VrmInstance.Vrm.Expression.CustomClips;
 
@@ -103,13 +108,23 @@ namespace YARG.Venue.Characters
             base.Initialize(characterManager);
         }
 
-        public void InitializeLipsync(List<LipsyncEvent> lipsyncEvents, List<LipsyncEvent> singalongEvents)
+        public void InitializeLipsync(List<LipsyncEvent> lipsyncEvents)
         {
             _assignedlipsyncEvents = lipsyncEvents;
             _lipsyncIndex = 0;
-            _singalongLipsyncEvents = singalongEvents;
-            _singalongLipsyncIndex = 0;
             HasLipsyncAssigned = true;
+        }
+
+        public void InitializeSingalongLipsync(List<LipsyncEvent> singalongLipsyncEvents, List<PerformerEvent> singalongEvents)
+        {
+            _singalongLipsyncEvents = singalongLipsyncEvents;
+            _singalongLipsyncIndex = 0;
+            _singalongEvents = singalongEvents;
+            _singalongEventIndex = 0;
+            if (_singalongLipsyncEvents.Count > 0 && _singalongEvents.Count > 0)
+            {
+                HasLipsyncAssigned = true;
+            }
         }
 
         protected override void Update()
@@ -134,19 +149,32 @@ namespace YARG.Venue.Characters
 
         private void ProcessLipsync(double time)
         {
-            // We may have initialized too early, so we need to protect against null reference and hope it fixes itself later
-            if (_assignedlipsyncEvents == null || !HasLipsyncAssigned)
+            if (!HasLipsyncAssigned)
             {
                 return;
             }
 
-            while (_lipsyncIndex < _assignedlipsyncEvents.Count && _assignedlipsyncEvents[_lipsyncIndex].Time <= time)
+            while (_singalongEventIndex < _singalongEvents.Count - 1 && _singalongEvents[_singalongEventIndex].TimeEnd <= time)
             {
-                var lipsyncEvent = _assignedlipsyncEvents[_lipsyncIndex];
+                YargLogger.LogFormatDebug("Processing singalong event at time {0}, timeEnd {1} (index {2})", _singalongEvents[_singalongEventIndex].Time, _singalongEvents[_singalongEventIndex].TimeEnd, _singalongEventIndex);
+                _singalongEventIndex++;
+            }
+
+            ref int index = ref _lipsyncIndex;
+            var list = _assignedlipsyncEvents;
+            if (_singalongEventIndex < _singalongEvents.Count && _singalongEvents[_singalongEventIndex].Time <= time && _singalongEvents[_singalongEventIndex].TimeEnd >= time)
+            {
+                index = ref _singalongLipsyncIndex;
+                list = _singalongLipsyncEvents;
+            }
+
+            while (index < list.Count && list[index].Time <= time)
+            {
+                var lipsyncEvent = list[index];
 
                 SetExpression(lipsyncEvent);
 
-                _lipsyncIndex++;
+                index++;
             }
         }
 

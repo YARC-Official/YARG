@@ -802,24 +802,24 @@ namespace YARG.Gameplay
                         }
 
                         // TODO: Refactor this to not be so stupid with regard to repeated enum->string->enum conversions
-                        var character = VenueCharacterManager.Characters[Enum.Parse<VenueCharacterHelpers.CharacterType>(_debugCharacters[_debugSelectedCharacter])];
+                        var character = VenueCharacterManager.Characters[Enum.Parse<Performer>(_debugCharacters[_debugSelectedCharacter])];
 
                         using var text = ZString.CreateStringBuilder(true);
                         var kind = character is VRMCharacter ? "VRM" : "Built-in";
                         text.AppendFormat("Character Type: {0}\n", kind);
                         text.AppendFormat("Character State: {0}\n", character.CurrentGenericState);
-                        if (character.Type is VenueCharacterHelpers.CharacterType.Guitar or VenueCharacterHelpers.CharacterType.Bass)
+                        if (character.Type is Performer.Guitar or Performer.Bass)
                         {
                             text.AppendFormat("Hand Position: {0}\n", character.CurrentHandPosition);
                             text.AppendFormat("Hand Map: {0}\n", character.CurrentHandMap);
                         }
 
-                        if (character.Type is VenueCharacterHelpers.CharacterType.Bass)
+                        if (character.Type is Performer.Bass)
                         {
                             text.AppendFormat("Strum Map: {0}\n", character.CurrentStrumMap);
                         }
 
-                        if (character.Type is VenueCharacterHelpers.CharacterType.Drums)
+                        if (character.Type is Performer.Drums)
                         {
                             var hatState = character.HatIsOpen ? "Open" : "Closed";
                             text.AppendFormat("Hat State: {0}\n", hatState);

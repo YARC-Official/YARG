@@ -29,7 +29,7 @@ namespace YARG.Venue.Characters
         protected CharacterManager _characterManager;
 
         [SerializeField]
-        public VenueCharacterHelpers.CharacterType Type;
+        public Performer Type;
         [SerializeField]
         public VocalGender CharacterGender = VocalGender.Unspecified;
 
@@ -206,7 +206,7 @@ namespace YARG.Venue.Characters
 
             // For guitar/bass, we require strumup/strumdown and some hand positions
             // TODO: Make this check for animations and not just states
-            if (Type == VenueCharacterHelpers.CharacterType.Guitar || Type == VenueCharacterHelpers.CharacterType.Bass)
+            if (Type is Performer.Guitar or Performer.Bass)
             {
                 foreach (var name in requiredGuitar)
                 {
@@ -237,7 +237,7 @@ namespace YARG.Venue.Characters
             };
 
             // For drums, we require the full suite, minus soft/hard variants (but we don't actually check the ones with variants)
-            if (Type == VenueCharacterHelpers.CharacterType.Drums)
+            if (Type == Performer.Drums)
             {
                 foreach (var name in requiredDrums)
                 {
@@ -274,10 +274,10 @@ namespace YARG.Venue.Characters
         {
             switch (Type)
             {
-                case VenueCharacterHelpers.CharacterType.Guitar:
+                case Performer.Guitar:
                     GetGuitarIKTargets();
                     break;
-                case VenueCharacterHelpers.CharacterType.Drums:
+                case Performer.Drums:
                     GetDrumsIKTargets();
                     break;
             }
@@ -355,7 +355,7 @@ namespace YARG.Venue.Characters
         private void HandleStrumMap(StrumMapType strumMap)
         {
             // Strum map is only valid for bass
-            if (Type != VenueCharacterHelpers.CharacterType.Bass)
+            if (Type != Performer.Bass)
             {
                 return;
             }
@@ -373,7 +373,7 @@ namespace YARG.Venue.Characters
         private void HandleHandMap(HandMapType handMap)
         {
             // Hand map is only valid for guitar and bass
-            if (Type is not (VenueCharacterHelpers.CharacterType.Guitar or VenueCharacterHelpers.CharacterType.Bass))
+            if (Type is not (Performer.Guitar or Performer.Bass))
             {
                 return;
             }
@@ -484,7 +484,7 @@ namespace YARG.Venue.Characters
             if (e is GuitarNote gNote)
             {
                 // Handle alternate strums for bass
-                if (Type == VenueCharacterHelpers.CharacterType.Bass && _hasSlap && _strumMap == StrumMapType.SlapBass)
+                if (Type == Performer.Bass && _hasSlap && _strumMap == StrumMapType.SlapBass)
                 {
                     // Just trigger slap and return
                     SetTrigger(AnimationStateType.Slap);
@@ -557,12 +557,12 @@ namespace YARG.Venue.Characters
             int lowestFret = 5;
             bool openGreen = _handMap is HandMapType.DropD or HandMapType.DropD2;
             bool useChordShape =
-                (gNote.IsChord && (!_inhibitHandShape || Type != VenueCharacterHelpers.CharacterType.Guitar || Type != VenueCharacterHelpers.CharacterType.Bass) &&
+                (gNote.IsChord && (!_inhibitHandShape || Type != Performer.Guitar || Type != Performer.Bass) &&
                     _handMap != HandMapType.NoChords) || _handMap == HandMapType.AllChords;
             bool isSustain = gNote.IsSustain;
             float sustainLength = (float) gNote.TimeLength;
 
-            if (_inhibitHandShape && (Type == VenueCharacterHelpers.CharacterType.Guitar || Type == VenueCharacterHelpers.CharacterType.Bass) && (_handMap != HandMapType.DropD && _handMap != HandMapType.DropD2))
+            if (_inhibitHandShape && (Type == Performer.Guitar || Type == Performer.Bass) && (_handMap != HandMapType.DropD && _handMap != HandMapType.DropD2))
             {
                 return;
             }
@@ -574,7 +574,7 @@ namespace YARG.Venue.Characters
             }
 
             // Just for testing
-            if (Type == VenueCharacterHelpers.CharacterType.Vocals || Type == VenueCharacterHelpers.CharacterType.Drums || Type == VenueCharacterHelpers.CharacterType.Keys)
+            if (Type == Performer.Vocals || Type == Performer.Drums || Type == Performer.Keyboard)
             {
                 return;
             }
