@@ -1,16 +1,24 @@
 #include "BassCoreBindings.h"
 #include "BassMixBindings.h"
+#include "PipeWireSourceLister.h"
 #include "dsp/FreeverbDsp.h"
 #include "dsp/GainDsp.h"
 #include "one_shot/NativeOneShotStream.h"
 #include "yarg_audio.h"
 
+#include <algorithm>
 #include <cmath>
+#include <cstring>
 #include <limits>
 #include <memory>
 #include <cstdint>
 
 static_assert(sizeof(yarg_one_shot_config) == 24);
+static_assert(sizeof(yarg_input_source) ==
+    sizeof(uint32_t) + 5 * sizeof(int32_t) +
+    YARG_AUDIO_NODE_NAME_MAX + YARG_AUDIO_DESCRIPTION_MAX + YARG_AUDIO_ALSA_PATH_MAX);
+static_assert(sizeof(yarg_input_snapshot) ==
+    sizeof(uint32_t) * 2 + YARG_AUDIO_MAX_INPUT_SOURCES * sizeof(yarg_input_source));
 
 struct yarg_one_shot_stream {
     std::unique_ptr<yarg::audio::NativeOneShotStream> value;
@@ -205,5 +213,50 @@ int32_t YARG_AUDIO_CALL yarg_one_shot_stream_destroy(
     }
     storeBassError(bassError, error);
     delete stream;
+    return YARG_AUDIO_OK;
+}
+
+namespace {
+
+void copySourceString(char* destination, std::size_t capacity,
+    const std::string& value) noexcept {
+    if (value.empty()) {
+        destination[0] = '\0';
+        return;
+    }
+    std::strncpy(destination, value.c_str(), capacity - 1);
+    destination[capacity - 1] = '\0';
+}
+
+} // namespace
+
+int32_t YARG_AUDIO_CALL yarg_audio_list_input_sources(yarg_input_snapshot* snapshot) {
+    if (!snapshot || snapshot->size < sizeof(yarg_input_snapshot)) {
+        return YARG_AUDIO_ERROR_INVALID_ARGUMENT;
+    }
+    snapshot->source_count = 0;
+
+    std::vector<yarg::audio::InputSourceInfo> sources;
+    const int result = yarg::audio::PipeWireSourceLister{}.list(sources);
+    if (result != 0) {
+        return result;
+    }
+
+    const std::size_t count = std::min<std::size_t>(
+        sources.size(), YARG_AUDIO_MAX_INPUT_SOURCES);
+    for (std::size_t i = 0; i < count; ++i) {
+        yarg_input_source& out = snapshot->sources[i];
+        std::memset(&out, 0, sizeof out);
+        out.size = sizeof out;
+        out.alsa_card = sources[i].alsaCard;
+        out.alsa_device = sources[i].alsaDevice;
+        out.alsa_subdevice = sources[i].alsaSubdevice;
+        out.capture_channel = sources[i].captureChannel;
+        out.capture_channels = sources[i].captureChannels;
+        copySourceString(out.node_name, sizeof out.node_name, sources[i].nodeName);
+        copySourceString(out.description, sizeof out.description, sources[i].description);
+        copySourceString(out.alsa_path, sizeof out.alsa_path, sources[i].alsaPath);
+    }
+    snapshot->source_count = static_cast<uint32_t>(count);
     return YARG_AUDIO_OK;
 }

@@ -14,6 +14,7 @@ find_package(Threads REQUIRED)
 set(YARG_AUDIO_SOURCES
     src/BassCoreBindings.cpp
     src/BassMixBindings.cpp
+    src/PipeWireSourceLister.cpp
     src/dsp/GainDsp.cpp
     src/dsp/FreeverbDsp.cpp
     src/one_shot/ScheduledSampleSource.cpp
@@ -66,9 +67,11 @@ if(YARG_AUDIO_BUILD_TESTS)
         tests/FreeverbDspTests.cpp
         tests/ScheduledSampleSourceTests.cpp
         tests/NativeOneShotStreamTests.cpp
+        tests/PipeWireSourceListerTests.cpp
         tests/main.cpp
         src/BassCoreBindings.cpp
         src/BassMixBindings.cpp
+        src/PipeWireSourceLister.cpp
         src/dsp/GainDsp.cpp
         src/dsp/FreeverbDsp.cpp
         src/one_shot/ScheduledSampleSource.cpp
