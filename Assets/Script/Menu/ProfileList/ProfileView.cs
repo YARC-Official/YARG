@@ -199,15 +199,15 @@ namespace YARG.Menu.ProfileList
             foreach (var microphone in GlobalAudioHandler.GetAllInputDevices())
             {
                 devicesAvailable = true;
-                dialog.AddListButton(microphone.name, () =>
+                dialog.AddListButton(microphone.DisplayName, () =>
                 {
-                    var device = GlobalAudioHandler.CreateInputDevice(microphone.id, microphone.name);
+                    var device = GlobalAudioHandler.CreateInputDevice(microphone);
                     if (device is null)
                     {
-                        YargLogger.LogFormatWarning("Failed to initialize microphone `{0}`.", microphone.name);
+                        YargLogger.LogFormatWarning("Failed to initialize microphone `{0}`.", microphone.DisplayName);
                         DialogManager.Instance.ClearDialog();
                         DialogManager.Instance.ShowMessage("Microphone Error",
-                            $"Failed to initialize microphone:\n\n{microphone.name}\n\nPlease try again or choose a different microphone.");
+                            $"Failed to initialize microphone:\n\n{microphone.DisplayName}\n\nPlease try again or choose a different microphone.");
                         return;
                     }
 

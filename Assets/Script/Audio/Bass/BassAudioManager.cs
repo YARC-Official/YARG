@@ -251,51 +251,56 @@ namespace YARG.Audio.BASS
 
         protected override MicDevice? GetInputDevice(string name)
         {
-            for (int deviceIndex = 0; Bass.RecordGetDeviceInfo(deviceIndex, out var info); deviceIndex++)
+            foreach (var device in GetInputDevices())
             {
-                // Ignore disabled/claimed devices
-                if (!info.IsEnabled || info.IsInitialized)
+                // Resolve the saved name against both the PipeWire display name
+                // and the underlying BASS name (profiles saved before
+                // PipeWire-enriched names existed).
+                if (device.DisplayName != name && device.BassName != name)
                 {
                     continue;
                 }
 
-                // Ignore loopback devices, they're potentially confusing and can cause feedback loops
-                if (info.IsLoopback)
-                {
-                    continue;
-                }
-
-                // Check if type is in whitelist
-                // The "Default" device is also excluded here since we want the user to explicitly pick which microphone to use
-                // if (!typeWhitelist.Contains(info.Type) || info.Name == "Default") continue;
-                if (info.Name == "Default" || info.Name != name)
-                {
-                    continue;
-                }
-
-                return CreateInputDevice(deviceIndex, name);
+                return CreateInputDevice(device);
             }
 
             return null;
         }
 #nullable disable
 
-        protected override List<(int id, string name)> GetAllInputDevices()
+        protected override List<InputDeviceInfo> GetAllInputDevices() => GetInputDevices();
+
+        /// <summary>
+        /// Enumerates input devices, enriching the BASS list with PipeWire
+        /// source names and channel-split entries on Linux. Falls back to plain
+        /// BASS enumeration when PipeWire is unavailable.
+        /// </summary>
+        private List<InputDeviceInfo> GetInputDevices()
         {
-            var mics = new List<(int id, string name)>();
+            var bassDevices = EnumerateBassRecordDevices();
+            var devices = new List<InputDeviceInfo>(bassDevices.Count);
 
-            // Ignored for now since it causes issues on Linux, BASS must not report device info correctly there
-            // TODO: allow configuring this at runtime?
-            // Also put into a static variable instead of instantiating every time
-            // var typeWhitelist = new List<DeviceType>()
-            // {
-            //     DeviceType.Headset,
-            //     DeviceType.Digital,
-            //     DeviceType.Line,
-            //     DeviceType.Headphones,
-            //     DeviceType.Microphone,
-            // };
+#if UNITY_STANDALONE_LINUX || UNITY_EDITOR_LINUX
+            var sources = PipeWireInputDeviceSource.GetSources();
+            var cards = sources != null ? ReadAlsaCards() : null;
+            if (sources != null && cards != null && cards.Count > 0)
+            {
+                AppendPipeWireDevices(devices, bassDevices, sources, cards);
+                return devices;
+            }
+#endif
 
+            // Fallback: plain BASS enumeration, exactly the pre-PipeWire list.
+            foreach (var bass in bassDevices)
+            {
+                devices.Add(new InputDeviceInfo(bass.Index, bass.Name, bass.Name, -1, false));
+            }
+            return devices;
+        }
+
+        private static List<(int Index, string Name)> EnumerateBassRecordDevices()
+        {
+            var devices = new List<(int Index, string Name)>();
             for (int deviceIndex = 0; Bass.RecordGetDeviceInfo(deviceIndex, out var info); deviceIndex++)
             {
                 // Ignore disabled/claimed devices
@@ -310,27 +315,185 @@ namespace YARG.Audio.BASS
                     continue;
                 }
 
-                // Check if type is in whitelist
                 // The "Default" device is also excluded here since we want the user to explicitly pick which microphone to use
-                // if (!typeWhitelist.Contains(info.Type) || info.Name == "Default") continue;
                 if (info.Name == "Default")
                 {
                     continue;
                 }
 
-                mics.Add((deviceIndex, info.Name));
+                devices.Add((deviceIndex, info.Name));
             }
-
-            return mics;
+            return devices;
         }
 
+#if UNITY_STANDALONE_LINUX || UNITY_EDITOR_LINUX
+        private readonly struct AlsaCardInfo
+        {
+            public readonly int Index;
+            public readonly string Id;
+            public readonly string LongName;
+
+            public AlsaCardInfo(int index, string id, string longName)
+            {
+                Index = index;
+                Id = id;
+                LongName = longName;
+            }
+        }
+
+        /// <summary>
+        /// Parses /proc/asound/cards (" 0 [UR22mkII       ]: USB-Audio - Steinberg UR22mkII")
+        /// into per-card index, id and long name. BASS device names embed these
+        /// strings, which is the join key back to PipeWire's alsa.card index.
+        /// </summary>
+        private static List<AlsaCardInfo> ReadAlsaCards()
+        {
+            var cards = new List<AlsaCardInfo>();
+            try
+            {
+                foreach (string line in File.ReadLines("/proc/asound/cards"))
+                {
+                    var parts = line.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                    if (parts.Length < 2 || !int.TryParse(parts[0], out int index))
+                    {
+                        continue;
+                    }
+
+                    int open = line.IndexOf('[');
+                    int close = line.IndexOf(']', open + 1);
+                    if (open < 0 || close < 0)
+                    {
+                        continue;
+                    }
+
+                    string id = line.Substring(open + 1, close - open - 1).Trim();
+                    int dash = line.IndexOf(" - ", close, StringComparison.Ordinal);
+                    string longName = dash >= 0 ? line.Substring(dash + 3).Trim() : string.Empty;
+                    cards.Add(new AlsaCardInfo(index, id, longName));
+                }
+            }
+            catch (Exception e)
+            {
+                YargLogger.LogException(e, "Failed to read /proc/asound/cards");
+            }
+            return cards;
+        }
+
+        private static bool ContainsIgnoreCase(string haystack, string needle)
+        {
+            return haystack.IndexOf(needle, StringComparison.OrdinalIgnoreCase) >= 0;
+        }
+
+        /// <summary>
+        /// Joins the PipeWire source snapshot with the BASS device list by ALSA
+        /// card: BASS names embed the card id/long name, PipeWire sources carry
+        /// the numeric card index. Channel-split sources (e.g. a USB interface's
+        /// "Input 1"/"Input 2") replace the raw stereo entry; unmatched devices
+        /// stay as plain BASS entries.
+        /// </summary>
+        private static void AppendPipeWireDevices(List<InputDeviceInfo> devices,
+            List<(int Index, string Name)> bassDevices,
+            List<PipeWireSourceInfo> sources,
+            List<AlsaCardInfo> cards)
+        {
+            // Assign each ALSA card to the first BASS device whose name contains
+            // the card id or long name. Later matches (e.g. the "Alt Analog"
+            // subdevice entry) stay unenriched.
+            var cardToBass = new Dictionary<int, int>();
+            foreach (var bass in bassDevices)
+            {
+                foreach (var card in cards)
+                {
+                    if (cardToBass.ContainsKey(card.Index))
+                    {
+                        continue;
+                    }
+
+                    if (ContainsIgnoreCase(bass.Name, card.Id) ||
+                        (card.LongName.Length > 0 && ContainsIgnoreCase(bass.Name, card.LongName)))
+                    {
+                        cardToBass.Add(card.Index, bass.Index);
+                        break;
+                    }
+                }
+            }
+
+            // Group PipeWire sources by ALSA card, skipping sources whose card
+            // BASS cannot open (Bluetooth, virtual).
+            var sourcesByCard = new Dictionary<int, List<PipeWireSourceInfo>>();
+            foreach (var source in sources)
+            {
+                if (!cardToBass.ContainsKey(source.AlsaCard))
+                {
+                    continue;
+                }
+
+                if (!sourcesByCard.TryGetValue(source.AlsaCard, out var list))
+                {
+                    list = new List<PipeWireSourceInfo>();
+                    sourcesByCard.Add(source.AlsaCard, list);
+                }
+                list.Add(source);
+            }
+
+            var bassToCard = new Dictionary<int, int>();
+            foreach (var pair in cardToBass)
+            {
+                bassToCard[pair.Value] = pair.Key;
+            }
+
+            // Walk the BASS enumeration order so the list stays stable.
+            foreach (var bass in bassDevices)
+            {
+                if (bassToCard.TryGetValue(bass.Index, out int card) &&
+                    sourcesByCard.TryGetValue(card, out var cardSources) && cardSources.Count > 0)
+                {
+                    var splits = cardSources.FindAll(source => source.CaptureChannel >= 0);
+                    if (splits.Count > 0)
+                    {
+                        // Split sources ("Input 1"/"Input 2"): hide the raw
+                        // stereo device and list each input separately, sorted
+                        // by channel.
+                        splits.Sort((a, b) => a.CaptureChannel.CompareTo(b.CaptureChannel));
+                        foreach (var split in splits)
+                        {
+                            devices.Add(new InputDeviceInfo(bass.Index, split.Description,
+                                bass.Name, split.CaptureChannel, true));
+                        }
+                    }
+                    else
+                    {
+                        var source = cardSources[0];
+                        devices.Add(new InputDeviceInfo(bass.Index, source.Description,
+                            bass.Name, -1, false));
+                    }
+                    continue;
+                }
+
+                // With PipeWire present, the "Default Audio Device"/"PipeWire
+                // Sound Server" entries are PipeWire's own ALSA bridges, not
+                // hardware: recording them via BASS would double-capture.
+                if (bass.Name == "Default Audio Device" || bass.Name == "PipeWire Sound Server")
+                {
+                    continue;
+                }
+
+                devices.Add(new InputDeviceInfo(bass.Index, bass.Name, bass.Name, -1, false));
+            }
+        }
+#endif
+
 #nullable enable
-        protected override MicDevice? CreateInputDevice(int deviceId, string name)
+        protected override MicDevice? CreateInputDevice(InputDeviceInfo device)
 #nullable disable
         {
-            var device = BassMicDevice.Create(deviceId, name);
-            device?.SetMonitoringLevel(SettingsManager.Settings.VocalMonitoring.Value);
-            return device;
+            // Split sources record the parent hw PCM stereo and extract the
+            // selected channel; everything else records mono as before.
+            int captureChannels = device.IsSplit ? 2 : 1;
+            var mic = BassMicDevice.Create(device.BassDeviceId, device.DisplayName,
+                captureChannels, device.CaptureChannel);
+            mic?.SetMonitoringLevel(SettingsManager.Settings.VocalMonitoring.Value);
+            return mic;
         }
 
 #nullable enable

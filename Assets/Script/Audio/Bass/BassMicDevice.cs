@@ -216,7 +216,7 @@ namespace YARG.Audio.BASS
         private const float MIC_HIT_INPUT_THRESHOLD = 25f;
 
 #nullable enable
-        internal static BassMicDevice? Create(int deviceId, string name)
+        internal static BassMicDevice? Create(int deviceId, string name, int captureChannels = 1, int captureChannel = 0)
 #nullable disable
         {
             // Must initialise device before recording
@@ -227,7 +227,7 @@ namespace YARG.Audio.BASS
                 return null;
             }
 
-            var device = new BassMicDevice(deviceId, name);
+            var device = new BassMicDevice(deviceId, name, captureChannels, captureChannel);
             device._recordHandle = RecordingHandle.CreateRecordingHandle(device.ProcessRecordData);
             if (device._recordHandle == null)
             {
@@ -295,6 +295,8 @@ namespace YARG.Audio.BASS
         private MonitorPlaybackHandle _monitorHandle;
 
         private readonly int _deviceId;
+        private readonly int _captureChannels;
+        private readonly int _captureChannel;
 
         private RecordingHandle _recordHandle;
 
@@ -383,10 +385,12 @@ namespace YARG.Audio.BASS
             return new SerializedMic(DisplayName);
         }
 
-        private BassMicDevice(int deviceId, string name)
+        private BassMicDevice(int deviceId, string name, int captureChannels, int captureChannel)
             : base(name)
         {
             _deviceId = deviceId;
+            _captureChannels = captureChannels;
+            _captureChannel = captureChannel;
         }
 
         private bool ProcessRecordData(int handle, IntPtr buffer, int length, IntPtr user)
