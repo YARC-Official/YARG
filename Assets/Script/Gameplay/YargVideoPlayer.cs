@@ -230,11 +230,9 @@ public class YargVideoPlayer : MonoBehaviour
     {
         try
         {
-            var go = new GameObject("VLCPlayer");
-            go.transform.SetParent(transform, false);
-            _vlcPlayer = go.AddComponent<LibVLCSharp.VLCMediaPlayer>();
+            _vlcPlayer = GetComponent<LibVLCSharp.VLCMediaPlayer>();
             _vlcPlayer.playOnAwake = false;
-            _vlcPlayer.useUnityAudio = false;
+            _vlcPlayer.libVLCArguments = new string[] { "no-audio" };
             _vlcPlayer.flipTextureX = true;
             _vlcPlayer.flipTextureY = true;
             _vlcPlayer.logPlayerActivity = false;
