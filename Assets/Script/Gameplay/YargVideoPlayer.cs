@@ -93,7 +93,14 @@ public class YargVideoPlayer : MonoBehaviour
         {
             YargLogger.LogFormatDebug("YargVideoPlayer::SetTime {0}", value);
             if (_usingVLC && _vlcPlayer != null)
+            {
                 _vlcPlayer.SetTime((long)(value * 1000));
+                // LibVLC's SetTime (SeekTo) is synchronous, so the seek has already
+                // completed. VLC exposes no async seek-completion callback, so fire
+                // seekCompleted here so BackgroundManager.OnVideoSeeked can resume
+                // playback, reset _videoSeeking and (optionally) unpause the game.
+                seekCompleted?.Invoke(this);
+            }
             else
                 _unityVideoPlayer.time = value;
         }
@@ -306,6 +313,10 @@ public class YargVideoPlayer : MonoBehaviour
         _unityVideoPlayer.renderMode = VideoRenderMode.RenderTexture;
         _unityVideoPlayer.targetTexture = _targetTexture;
         _unityVideoPlayer.prepareCompleted += OnUnityVideoPrepared;
+        // Bridge Unity's native seekCompleted (fires when a seek via .time finishes)
+        // to our wrapper event so BackgroundManager.OnVideoSeeked resumes playback
+        // the same way as the VLC path.
+        _unityVideoPlayer.seekCompleted += OnUnitySeekCompleted;
         _unityVideoPlayer.Prepare();
     }
 
@@ -313,5 +324,10 @@ public class YargVideoPlayer : MonoBehaviour
     {
         _unityVideoPlayer.prepareCompleted -= OnUnityVideoPrepared;
         prepareCompleted?.Invoke(this);
+    }
+
+    private void OnUnitySeekCompleted(VideoPlayer vp)
+    {
+        seekCompleted?.Invoke(this);
     }
 }
