@@ -129,31 +129,43 @@ namespace YARG.Audio.BASS
         private static readonly int[] _sampleRates = { 48000, 44100, 96000, 16000 };
 
 #nullable enable
-        public static RecordingHandle? CreateRecordingHandle(RecordProcedure procedure)
+        public static RecordingHandle? CreateRecordingHandle(RecordProcedure procedure, int channels = 1)
 #nullable disable
         {
             var devPeriod = Bass.GetConfig(Configuration.DevicePeriod);
-            foreach (int sampleRate in _sampleRates)
+            // Prefer the requested channel count; fall back to mono when the
+            // device rejects it (ALSA plug conversion makes a mono capture
+            // succeed on every device).
+            for (int attempt = 0; attempt < (channels == 1 ? 1 : 2); ++attempt)
             {
-                // Keep callbacks from running until the owner has installed this handle and
-                // finished creating the monitor/processing streams.
-                int handle = Bass.RecordStart(sampleRate, 1, BassFlags.RecordPause, devPeriod, procedure, IntPtr.Zero);
-                if (handle == 0)
+                int attemptChannels = attempt == 0 ? channels : 1;
+                foreach (int sampleRate in _sampleRates)
                 {
-                    YargLogger.LogFormatTrace("Failed to start clean recording at {0} Hz: {1}!", sampleRate, Bass.LastError);
-                    continue;
-                }
+                    // Keep callbacks from running until the owner has installed this handle and
+                    // finished creating the monitor/processing streams.
+                    int handle = Bass.RecordStart(sampleRate, attemptChannels, BassFlags.RecordPause, devPeriod, procedure, IntPtr.Zero);
+                    if (handle == 0)
+                    {
+                        YargLogger.LogFormatTrace("Failed to start clean recording at {0} Hz / {1} ch: {2}!", sampleRate, attemptChannels, Bass.LastError);
+                        continue;
+                    }
 
-                int processedHandle = Bass.CreateStream(sampleRate, 1, BassFlags.Decode, StreamProcedureType.Push);
-                if (processedHandle == 0)
-                {
-                    YargLogger.LogFormatError("Failed to create processed recording stream at {0} Hz: {1}!", sampleRate, Bass.LastError);
-                    Bass.ChannelStop(handle);
-                    Bass.StreamFree(handle);
-                    continue;
-                }
+                    int processedHandle = Bass.CreateStream(sampleRate, 1, BassFlags.Decode, StreamProcedureType.Push);
+                    if (processedHandle == 0)
+                    {
+                        YargLogger.LogFormatError("Failed to create processed recording stream at {0} Hz: {1}!", sampleRate, Bass.LastError);
+                        Bass.ChannelStop(handle);
+                        Bass.StreamFree(handle);
+                        continue;
+                    }
 
-                return new RecordingHandle(handle, processedHandle, devPeriod, sampleRate);
+                    if (attemptChannels != channels)
+                    {
+                        YargLogger.LogFormatWarning(
+                            "Recording at {0} ch instead of requested {1} ch (device rejected the request).", attemptChannels, channels);
+                    }
+                    return new RecordingHandle(handle, processedHandle, devPeriod, sampleRate, attemptChannels);
+                }
             }
 
             YargLogger.LogError("Failed to start recording at any supported sample rate!");
@@ -165,15 +177,17 @@ namespace YARG.Audio.BASS
 
         public readonly int RecordPeriod;
         public readonly int SampleRate;
+        public readonly int Channels;
 
         private bool _disposed;
 
-        private RecordingHandle(int handle, int processedHandle, int period, int sampleRate)
+        private RecordingHandle(int handle, int processedHandle, int period, int sampleRate, int channels)
         {
             Handle = handle;
             ProcessedHandle = processedHandle;
             RecordPeriod = period;
             SampleRate = sampleRate;
+            Channels = channels;
         }
 
         public bool Start()
@@ -395,9 +409,36 @@ namespace YARG.Audio.BASS
 
         private bool ProcessRecordData(int handle, IntPtr buffer, int length, IntPtr user)
         {
+            var recordHandle = _recordHandle;
+            int channels = recordHandle?.Channels ?? 1;
+
+            IntPtr monoBuffer = buffer;
+            int monoLength = length;
+
+            // Channel-split sources record the parent hw PCM stereo and extract
+            // the selected channel here; both downstream streams are 1-ch mono.
+            if (channels > 1)
+            {
+                unsafe
+                {
+                    int frames = length / (channels * sizeof(short));
+                    if (frames > 0)
+                    {
+                        int captureChannel = Math.Clamp(_captureChannel, 0, channels - 1);
+                        short* src = (short*) buffer;
+                        short* mono = stackalloc short[frames];
+                        for (int i = 0; i < frames; ++i)
+                        {
+                            mono[i] = src[i * channels + captureChannel];
+                        }
+                        monoBuffer = (IntPtr) mono;
+                        monoLength = frames * sizeof(short);
+                    }
+                }
+            }
 
             // Copies the data from the recording buffer to the monitor playback buffer.
-            if (Bass.StreamPutData(_monitorHandle.Handle, buffer, length) == -1)
+            if (Bass.StreamPutData(_monitorHandle.Handle, monoBuffer, monoLength) == -1)
             {
                 YargLogger.LogFormatError("Error pushing data to monitor stream: {0}", Bass.LastError);
             }
@@ -409,18 +450,17 @@ namespace YARG.Audio.BASS
                 return true;
             }
 
-            var recordHandle = _recordHandle;
             if (recordHandle == null)
             {
                 return true;
             }
 
             // Copy the data to the batch handle to apply FX
-            Bass.StreamPutData(recordHandle.ProcessedHandle, buffer, length);
+            Bass.StreamPutData(recordHandle.ProcessedHandle, monoBuffer, monoLength);
 
             _timeAccumulated += _recordPeriod;
 
-            _processedBufferLength += length;
+            _processedBufferLength += monoLength;
 
             // Enough time has passed for pitch detection
             if(_timeAccumulated >= RECORD_PERIOD_MS)
@@ -527,7 +567,7 @@ namespace YARG.Audio.BASS
                 // are not guaranteed to run in the same device context.
                 Bass.CurrentRecordingDevice = _deviceId;
 
-                var recordHandle = RecordingHandle.CreateRecordingHandle(ProcessRecordData);
+                var recordHandle = RecordingHandle.CreateRecordingHandle(ProcessRecordData, _captureChannels);
                 if (recordHandle == null)
                 {
                     YargLogger.LogError($"Failed to start BASS recording stream for mic '{DisplayName}'!");
