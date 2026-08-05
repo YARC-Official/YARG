@@ -1,6 +1,7 @@
 using System;
 using UnityEngine;
 using UnityEngine.Video;
+using YARG.Core.Logging;
 
 /// <summary>
 /// Video player wrapper that tries VLC (via vlc-unity) first,
@@ -90,6 +91,7 @@ public class YargVideoPlayer : MonoBehaviour
         get => _usingVLC && _vlcPlayer != null ? _vlcPlayer.Time / 1000.0 : _unityVideoPlayer.time;
         set
         {
+            YargLogger.LogFormatDebug("YargVideoPlayer::SetTime {0}", value);
             if (_usingVLC && _vlcPlayer != null)
                 _vlcPlayer.SetTime((long)(value * 1000));
             else
