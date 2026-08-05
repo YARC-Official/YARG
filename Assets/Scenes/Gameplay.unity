@@ -1235,6 +1235,7 @@ GameObject:
   m_Component:
   - component: {fileID: 218824353}
   - component: {fileID: 218824352}
+  - component: {fileID: 218824354}
   m_Layer: 9
   m_Name: Video Player
   m_TagString: Untagged
@@ -1258,7 +1259,7 @@ VideoPlayer:
   m_TimeReference: 0
   m_TargetMaterialRenderer: {fileID: 0}
   m_TargetMaterialProperty: <noninit>
-  m_RenderMode: 0
+  m_RenderMode: 2
   m_AspectRatio: 2
   m_DataSource: 1
   m_TimeUpdateMode: 2
@@ -1293,6 +1294,32 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &218824354
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 218824351}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9ef65a94acfb75647aa43c726385570b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: VLCUnity::LibVLCSharp.VLCMediaPlayer
+  mediaPath: https://streams.videolan.org/misc/unity-samples/BigBuckBunny.avi
+  mediaOptions: []
+  playOnAwake: 0
+  useUnityAudio: 0
+  targetAudioSource: {fileID: 0}
+  flipTextureX: 1
+  flipTextureY: 1
+  logPlayerActivity: 0
+  Configuration: {fileID: 0}
+  libVLCArguments:
+  - --no-audio
+  OnPlayerStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!1 &232742144
 GameObject:
   m_ObjectHideFlags: 0
@@ -1440,6 +1467,43 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::YARG.Gameplay.HUD.UnisonIconGroup
   _instrumentIconPrefab: {fileID: 3124433016418008786, guid: a364839b412bef0498da60b1913cc735, type: 3}
+--- !u!84 &283189095
+RenderTexture:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: 
+  m_ImageContentsHash:
+    serializedVersion: 2
+    Hash: 00000000000000000000000000000000
+  m_IsAlphaChannelOptional: 0
+  serializedVersion: 6
+  m_Width: 2560
+  m_Height: 1440
+  m_AntiAliasing: 1
+  m_MipCount: -1
+  m_DepthStencilFormat: 94
+  m_ColorFormat: 48
+  m_MipMap: 0
+  m_GenerateMips: 1
+  m_SRGB: 0
+  m_UseDynamicScale: 0
+  m_UseDynamicScaleExplicit: 0
+  m_BindMS: 0
+  m_EnableCompatibleFormat: 1
+  m_EnableRandomWrite: 0
+  m_TextureSettings:
+    serializedVersion: 2
+    m_FilterMode: 1
+    m_Aniso: 1
+    m_MipBias: 0
+    m_WrapU: 1
+    m_WrapV: 1
+    m_WrapW: 1
+  m_Dimension: 2
+  m_VolumeDepth: 1
+  m_ShadowSamplingMode: 2
 --- !u!1 &318454370
 GameObject:
   m_ObjectHideFlags: 0
@@ -1457,7 +1521,6 @@ GameObject:
   - component: {fileID: 318454379}
   - component: {fileID: 318454378}
   - component: {fileID: 318454380}
-  - component: {fileID: 318454381}
   m_Layer: 0
   m_Name: Game Manager
   m_TagString: Untagged
@@ -1606,32 +1669,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::YargVideoPlayer
   _unityVideoPlayer: {fileID: 218824352}
---- !u!114 &318454381
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 318454370}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9ef65a94acfb75647aa43c726385570b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: VLCUnity::LibVLCSharp.VLCMediaPlayer
-  mediaPath: https://streams.videolan.org/misc/unity-samples/BigBuckBunny.avi
-  mediaOptions: []
-  playOnAwake: 0
-  useUnityAudio: 0
-  targetAudioSource: {fileID: 0}
-  flipTextureX: 1
-  flipTextureY: 1
-  logPlayerActivity: 0
-  Configuration: {fileID: 0}
-  libVLCArguments:
-  - --no-audio
-  OnPlayerStateChanged:
-    m_PersistentCalls:
-      m_Calls: []
+  _vlcPlayer: {fileID: 218824354}
 --- !u!1001 &329669831
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -3493,7 +3531,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Texture: {fileID: 1852160153}
+  m_Texture: {fileID: 283189095}
   m_UVRect:
     serializedVersion: 2
     x: 0
@@ -7705,7 +7743,7 @@ Camera:
     serializedVersion: 2
     m_Bits: 511
   m_RenderingPath: -1
-  m_TargetTexture: {fileID: 1852160153}
+  m_TargetTexture: {fileID: 283189095}
   m_TargetDisplay: 0
   m_TargetEye: 3
   m_HDR: 1
@@ -9017,43 +9055,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1826277785}
   m_CullTransparentMesh: 1
---- !u!84 &1852160153
-RenderTexture:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_Name: 
-  m_ImageContentsHash:
-    serializedVersion: 2
-    Hash: 00000000000000000000000000000000
-  m_IsAlphaChannelOptional: 0
-  serializedVersion: 6
-  m_Width: 2560
-  m_Height: 1440
-  m_AntiAliasing: 1
-  m_MipCount: -1
-  m_DepthStencilFormat: 94
-  m_ColorFormat: 48
-  m_MipMap: 0
-  m_GenerateMips: 1
-  m_SRGB: 0
-  m_UseDynamicScale: 0
-  m_UseDynamicScaleExplicit: 0
-  m_BindMS: 0
-  m_EnableCompatibleFormat: 1
-  m_EnableRandomWrite: 0
-  m_TextureSettings:
-    serializedVersion: 2
-    m_FilterMode: 1
-    m_Aniso: 1
-    m_MipBias: 0
-    m_WrapU: 1
-    m_WrapV: 1
-    m_WrapW: 1
-  m_Dimension: 2
-  m_VolumeDepth: 1
-  m_ShadowSamplingMode: 2
 --- !u!1 &1858185582
 GameObject:
   m_ObjectHideFlags: 0
