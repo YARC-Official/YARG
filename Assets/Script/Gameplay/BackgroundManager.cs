@@ -13,7 +13,6 @@ using UnityEngine.Animations;
 using UnityEngine.ResourceManagement.AsyncOperations;
 using UnityEngine.ResourceManagement.ResourceLocations;
 using UnityEngine.UI;
-using UnityEngine.Video;
 using YARG.Core.IO;
 using YARG.Core.Song;
 using YARG.Core.Venue;
@@ -458,7 +457,7 @@ namespace YARG.Gameplay
                     //set venue source to song to enable video seeking/pausing features
                     _source = VenueSource.Song;
                     //set up videoPlayer to render to venue texture
-                    _videoPlayer.renderMode = VideoRenderMode.RenderTexture;
+                    //_videoPlayer.renderMode = VideoRenderMode.RenderTexture;
                     _videoPlayer.targetTexture = textureManager.GetVideoTexture(0, 0);
 
                     LoadVideoBackground(songBackGround);
@@ -495,23 +494,10 @@ namespace YARG.Gameplay
         private void LoadVideoBackground(BackgroundResult bg)
         {
             var textureManager = GetComponent<TextureManager>();
+
+            var videoTexture = textureManager.GetVideoTexture(Screen.width, Screen.height);
             textureManager.CreateVideoTexture();
-
-            var videoTexture = textureManager.GetVideoTexture(0, 0);
-
-            // Set up video texture so both VLC and Unity VideoPlayer render to the same
-            // RenderTexture that the venue material samples from via _Yarg_VideoTex
-            _videoPlayer.renderMode = VideoRenderMode.RenderTexture;
             _videoPlayer.targetTexture = videoTexture;
-
-            // When there's no venue (BackgroundType.Video), display the video fullscreen
-            // via the _venueOutput RawImage
-            if (_venueOutput != null)
-            {
-                _venueOutput.texture = videoTexture;
-                _venueOutput.gameObject.SetActive(true);
-                _venueFadeOverlay.CrossFadeAlpha(0f, FADE_DURATION, true);
-            }
 
             switch (bg.Stream)
             {
@@ -623,6 +609,14 @@ namespace YARG.Gameplay
                 _videoStartTime = 0;
                 _videoEndTime = double.NaN;
                 player.isLooping = true;
+            }
+
+            GetComponent<TextureManager>().SetVideoTexture(_videoPlayer.targetTexture);
+            if (_type == BackgroundType.Video)
+            {
+                _venueOutput.texture = _videoPlayer.targetTexture;
+                _venueOutput.gameObject.SetActive(true);
+                _venueFadeOverlay.CrossFadeAlpha(0f, FADE_DURATION, true);
             }
         }
 

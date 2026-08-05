@@ -1,9 +1,6 @@
 using System;
-using Cysharp.Threading.Tasks;
-using LibVLCSharp;
 using UnityEngine;
 using UnityEngine.Video;
-using YARG.Core.Logging;
 
 /// <summary>
 /// Video player wrapper that tries VLC (via vlc-unity) first,
@@ -15,14 +12,13 @@ public class YargVideoPlayer : MonoBehaviour
     [Header("Fallback")]
     [SerializeField] private VideoPlayer _unityVideoPlayer;
 
-    private VLCMediaPlayer _vlcPlayer;
+    private LibVLCSharp.VLCMediaPlayer _vlcPlayer;
     private bool _usingVLC = false;
     private bool _vlcPrepared = false;
     private bool _prepareCalled = false;
     private float _prepareStartTime = 0f;
     private const float VLC_PREPARE_TIMEOUT = 5f;
 
-    // Stored values for VLC path (VideoPlayer reads these directly from its component)
     private RenderTexture _targetTexture;
     private string _url = "";
     private VideoRenderMode _renderMode;
@@ -39,32 +35,28 @@ public class YargVideoPlayer : MonoBehaviour
         set => _url = value;
     }
 
-    public VideoRenderMode renderMode
-    {
-        get => _renderMode;
-        set
-        {
-            _renderMode = value;
-            if (!_usingVLC && _unityVideoPlayer != null)
-                _unityVideoPlayer.renderMode = value;
-        }
-    }
-
     public RenderTexture targetTexture
     {
-        get => _targetTexture;
+        get
+        {
+            if (_usingVLC && _vlcPlayer != null)
+            {
+                return _vlcPlayer.OutputTexture;
+            }
+            else 
+            {
+                return _unityVideoPlayer.targetTexture;
+            }
+        }
         set
         {
-            _targetTexture = value;
-            Debug.Log($"[YargVideoPlayer] targetTexture set to {value}");
             if (_usingVLC && _vlcPlayer != null && value != null)
             {
-                // TODO
-                //_vlcPlayer.SetExternalOutputTexture(value);
-                // _vlcPlayer.OutputTexture
+                Debug.Log($"[YargVideoPlayer] Ignoring external output texture in vlc mode");
             }
             else if (!_usingVLC && _unityVideoPlayer != null)
             {
+                Debug.Log($"[YargVideoPlayer] targetTexture set to {value}");
                 _unityVideoPlayer.targetTexture = value;
             }
         }
@@ -201,7 +193,7 @@ public class YargVideoPlayer : MonoBehaviour
         {
             if (!_vlcPrepared && _prepareCalled && Time.time - _prepareStartTime > VLC_PREPARE_TIMEOUT)
             {
-                Debug.LogWarning($"[YargVideoPlayer] VLC texture not available after timeout (OutputTexture={_vlcPlayer.OutputTexture}, targetTexture={_targetTexture}), falling back to VideoPlayer");
+                Debug.LogWarning($"[YargVideoPlayer] VLC texture not available after timeout (OutputTexture={_vlcPlayer.OutputTexture}), falling back to VideoPlayer");
                 SwitchToVideoPlayerFallback();
             }
         }
@@ -231,7 +223,7 @@ public class YargVideoPlayer : MonoBehaviour
         {
             var go = new GameObject("VLCPlayer");
             go.transform.SetParent(transform, false);
-            _vlcPlayer = go.AddComponent<VLCMediaPlayer>();
+            _vlcPlayer = go.AddComponent<LibVLCSharp.VLCMediaPlayer>();
             _vlcPlayer.playOnAwake = false;
             _vlcPlayer.useUnityAudio = false;
             _vlcPlayer.flipTextureX = true;
@@ -245,7 +237,7 @@ public class YargVideoPlayer : MonoBehaviour
                 throw new InvalidOperationException("VLC player was disabled during initialization");
             }
 
-            if (VLCMediaPlayer.LibVLC == null)
+            if (LibVLCSharp.VLCMediaPlayer.LibVLC == null)
             {
                 _usingVLC = false;
                 Debug.Log("[YargVideoPlayer] VLC not available, using Unity VideoPlayer");
@@ -276,6 +268,11 @@ public class YargVideoPlayer : MonoBehaviour
 
     private void OnVLCTextureResized(RenderTexture texture)
     {
+        if (texture.height == 0)
+        {
+            return;
+        }
+
         _vlcPrepared = true;
         
         // Resize the external output texture to match VLC's video dimensions
@@ -304,7 +301,7 @@ public class YargVideoPlayer : MonoBehaviour
         }
         _unityVideoPlayer.enabled = true;
         _unityVideoPlayer.url = _url;
-        _unityVideoPlayer.renderMode = _renderMode;
+        _unityVideoPlayer.renderMode = VideoRenderMode.RenderTexture;
         _unityVideoPlayer.targetTexture = _targetTexture;
         _unityVideoPlayer.prepareCompleted += OnUnityVideoPrepared;
         _unityVideoPlayer.Prepare();
