@@ -1,7 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Serialization;
 using YARG.Core.Chart;
 using YARG.Core.Logging;
 
@@ -9,9 +7,9 @@ namespace YARG.Gameplay.Visuals
 {
     public class VocalNoteElement : VocalElement
     {
-        private static readonly int Dimensions = Shader.PropertyToID("_Dimensions");
-        private static readonly int BaseColor = Shader.PropertyToID("_BaseColor");
-        private static readonly int GlowColor = Shader.PropertyToID("_GlowColor");
+        private static readonly int Dimensions    = Shader.PropertyToID("_Dimensions");
+        private static readonly int BaseColor     = Shader.PropertyToID("_BaseColor");
+        private static readonly int GlowColor     = Shader.PropertyToID("_GlowColor");
         private static readonly int GlowIntensity = Shader.PropertyToID("_GlowIntensity");
 
         private const float SP_GLOW_INTENSITY     = 1f;
@@ -36,7 +34,6 @@ namespace YARG.Gameplay.Visuals
         private float _glowWidthMultiplier;
 
         private readonly List<Vector3> _points = new();
-        private readonly List<Vector3> _glowPoints = new();
 
         protected override void InitializeElement()
         {
@@ -52,6 +49,7 @@ namespace YARG.Gameplay.Visuals
 
             YargLogger.Assert(_lineRenderers.Length == _lineWidthMultipliers.Length,
                 "Line renderer count does not match width multiplier count!");
+            YargLogger.Assert(_glowLineRenderer, "Glow line renderer is null!");
             UpdateLinePoints();
         }
 
@@ -75,8 +73,7 @@ namespace YARG.Gameplay.Visuals
         {
             // Create points
             _points.Clear();
-            _glowPoints.Clear();
-            var length = 0f;
+            var glowLength = 0f;
             Vector3? lastPoint = null;
             foreach (var note in NoteRef.AllNotes)
             {
@@ -85,13 +82,12 @@ namespace YARG.Gameplay.Visuals
                 var p2 = new Vector3(VocalTrack.GetPosForTime(note.TimeEnd - NoteRef.Time), 0f, z);
                 _points.Add(p1);
                 _points.Add(p2);
-                _glowPoints.Add(p1);
-                _glowPoints.Add(p2);
                 if (lastPoint.HasValue)
                 {
-                    length += Vector3.Distance(lastPoint.Value, p1);
+                    glowLength += Vector3.Distance(lastPoint.Value, p1);
                 }
-                length += Vector3.Distance(p1, p2);
+
+                glowLength += (p2.x - p1.x);
                 lastPoint = p2;
             }
 
@@ -103,11 +99,7 @@ namespace YARG.Gameplay.Visuals
                 _points[0] = _points[0].AddX(NOTE_POINT_PADDING);
                 _points[^1] = _points[^1].AddX(-NOTE_POINT_PADDING);
 
-                _glowPoints[0] = _glowPoints[0].AddX(-width);
-                _glowPoints[^1] = _glowPoints[^1].AddX(width);
-
-                // Add the padding to our tracked total length
-                length += 2 * width;
+                glowLength += 2 * width;
             }
 
             // Set line info
@@ -117,26 +109,25 @@ namespace YARG.Gameplay.Visuals
 
                 // Would have liked to just use widthMultiplier here, but
                 // that doesn't seem to work correctly for some reason
-                float lineWidth = width * _lineWidthMultipliers[lineIndex];
-                line.startWidth = lineWidth;
-                line.endWidth = lineWidth;
+                line.widthMultiplier = width * _lineWidthMultipliers[lineIndex];
+
 
                 line.positionCount = _points.Count;
-                for (int pointIndex = 0; pointIndex < _points.Count; pointIndex++)
-                {
-                    line.SetPosition(pointIndex, _points[pointIndex]);
-                }
+                line.SetPositions(_points.ToArray());
             }
 
             var glowLineWidth = width * _glowWidthMultiplier;
-            _glowLineRenderer.startWidth = glowLineWidth;
-            _glowLineRenderer.endWidth = glowLineWidth;
-            _glowLineRenderer.positionCount = _glowPoints.Count;
-            for (int pointIndex = 0; pointIndex < _glowPoints.Count; pointIndex++)
+            _glowLineRenderer.widthMultiplier = glowLineWidth;
+            _glowLineRenderer.positionCount = _points.Count;
+            var endPadding = (width * 0.75f) + NOTE_POINT_PADDING;
+            _glowLineRenderer.SetPosition(0, _points[0].AddX(-endPadding));
+            for (int pointIndex = 1; pointIndex < _points.Count - 1; pointIndex++)
             {
-                _glowLineRenderer.SetPosition(pointIndex, _glowPoints[pointIndex]);
+                _glowLineRenderer.SetPosition(pointIndex, _points[pointIndex]);
             }
-            MaterialPropertyInstance.Instance.SetVector(Dimensions, new Vector2(length, glowLineWidth));
+            _glowLineRenderer.SetPosition(_points.Count - 1, _points[^1].AddX(endPadding));
+
+            MaterialPropertyInstance.Instance.SetVector(Dimensions, new Vector2(glowLength, glowLineWidth));
             _glowLineRenderer.SetPropertyBlock(MaterialPropertyInstance.Instance);
         }
 
