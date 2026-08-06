@@ -46,7 +46,7 @@ namespace YARG.Venue.Characters
 
         private int GetSingalongIndex(CharacterType characterType)
         {
-            var maxIndex = LipsyncEvents.Length - 1;
+            var maxIndex = GameManager.Chart.LipsyncEventsByPart.Length - 1;
             var pref = characterType switch
             {
                 CharacterType.Guitar => 1,
@@ -178,7 +178,7 @@ namespace YARG.Venue.Characters
                 GenerateDrumsAnimations();
             }
 
-            LipsyncEvents = chart.LipsyncEvents;
+            LipsyncEvents = chart.LipsyncEventsByPart;
 
             // This will eventually be combined into the animation events stuff, but for now the text events from the
             // individual instrument difficulties are separate
