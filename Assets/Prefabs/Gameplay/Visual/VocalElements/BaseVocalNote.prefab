@@ -153,7 +153,7 @@ GameObject:
   - component: {fileID: 1306016832595173460}
   - component: {fileID: 3391176054005008391}
   m_Layer: 0
-  m_Name: SP
+  m_Name: Glow
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
