@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using UnityEngine;
@@ -8,6 +8,7 @@ using YARG.Core.Logging;
 using YARG.Core.Audio;
 using YARG.Helpers;
 using YARG.Input;
+using YARG.Input.Bindings;
 using YARG.Integration;
 using YARG.Localization;
 using YARG.Menu.Navigation;
@@ -26,7 +27,8 @@ namespace YARG
         Menu,
         Gameplay,
         Calibration,
-        Score
+        Score,
+        Content
     }
 
     [DefaultExecutionOrder(-5000)]
@@ -123,7 +125,7 @@ namespace YARG
 
             if (CurrentScene != SceneIndex.Gameplay && Time.realtimeSinceStartup > _nextLocalizationUpdate)
             {
-                LocalizationManager.LoadUpdates();
+                _ = LocalizationManager.LoadUpdates();
                 _nextLocalizationUpdate = Time.realtimeSinceStartup + LOCALIZATION_UPDATE_INTERVAL + UnityEngine.Random.Range(-30f, 30f);
                 YargLogger.LogFormatDebug("Updating localization at {0}, next update at {1}", Time.realtimeSinceStartup, _nextLocalizationUpdate);
             }
@@ -150,7 +152,7 @@ namespace YARG
 #endif
         }
 
-        private async void LoadSceneAdditive(SceneIndex scene)
+        private async void LoadSceneAdditive(SceneIndex scene, bool restartMicrophones)
         {
             CurrentScene = scene;
 
@@ -164,11 +166,18 @@ namespace YARG
 
             await Resources.UnloadUnusedAssets();
             GC.Collect();
+
+            if (restartMicrophones)
+            {
+                RestartProfileMicrophones();
+            }
         }
 
         public void LoadScene(SceneIndex scene)
         {
             Navigator.Instance.DisableMenuInputs = true;
+            bool restartMicrophones = CurrentScene == SceneIndex.Gameplay && scene != SceneIndex.Gameplay;
+
             // Unload the current scene and load in the new one, or just load in the new one
             if (CurrentScene != SceneIndex.Persistent)
             {
@@ -176,11 +185,29 @@ namespace YARG
                 var asyncOp = SceneManager.UnloadSceneAsync((int) CurrentScene);
 
                 // The load the new scene
-                asyncOp.completed += _ => LoadSceneAdditive(scene);
+                asyncOp.completed += _ => LoadSceneAdditive(scene, restartMicrophones);
             }
             else
             {
-                LoadSceneAdditive(scene);
+                LoadSceneAdditive(scene, restartMicrophones);
+            }
+        }
+
+        public static void RestartProfileMicrophones()
+        {
+            var microphones = new HashSet<BassMicDevice>();
+            foreach (var profile in PlayerContainer.Profiles)
+            {
+                var bindings = BindingsContainer.GetBindingsForProfile(profile);
+                if (bindings?.Microphone is BassMicDevice microphone)
+                {
+                    microphones.Add(microphone);
+                }
+            }
+
+            foreach (var microphone in microphones)
+            {
+                microphone.RestartRecording();
             }
         }
 

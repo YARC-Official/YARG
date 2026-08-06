@@ -11,6 +11,7 @@ using YARG.Core.Engine.Vocals.Engines;
 using YARG.Core.Input;
 using YARG.Core.Replays;
 using YARG.Gameplay.HUD;
+using YARG.Gameplay.Visuals;
 using YARG.Helpers;
 using YARG.Input;
 using YARG.Player;
@@ -34,6 +35,10 @@ namespace YARG.Gameplay.Player
         [SerializeField]
         private ParticleGroup _hittingParticleGroup;
 
+        private static readonly int OutlineWidthID = Shader.PropertyToID("_OutlineWidth");
+        private static readonly int OutlineColorID = Shader.PropertyToID("_OutlineColor");
+        private const float OUTLINE_WIDTH = 7f;
+
         public override bool ShouldUpdateInputsOnResume => false;
 
         protected override float[] StarMultiplierThresholds { get; set; } =
@@ -52,6 +57,8 @@ namespace YARG.Gameplay.Player
         private double    _previousStarPowerPercent;
         private bool      _hotStartChecked;
         private bool      _newHighScoreShown;
+        private bool      _outlineEnabled;
+        private MaterialPropertyBlock _needleMaterialPropertyBlock;
 
         private VocalsPlayerHUD _hud;
         private VocalPercussionTrack _percussionTrack;
@@ -82,6 +89,11 @@ namespace YARG.Gameplay.Player
             var needleIndex = (vocalIndex % NEEDLES_COUNT) + 1;
             var materialPath = $"VocalNeedle/{needleIndex}";
             _needleRenderer.material = Addressables.LoadAssetAsync<Material>(materialPath).WaitForCompletion();
+
+            MaterialPropertyInstance.Instance.SetColor(OutlineColorID, VocalTrack.Colors[Player.Profile.HarmonyIndex]);
+            MaterialPropertyInstance.Instance.SetFloat(OutlineWidthID, 0f);
+            _needleRenderer.SetPropertyBlock(MaterialPropertyInstance.Instance);
+            _outlineEnabled = false;
 
             // Get the notes from the specific harmony or solo part
 
@@ -167,7 +179,7 @@ namespace YARG.Gameplay.Player
             HitWindow = EngineParams.HitWindow;
 
             var engine = new YargVocalsEngine(NoteTrack, SyncTrack, EngineParams, Player.Profile.IsBot);
-            EngineContainer = GameManager.EngineManager.Register(engine, NoteTrack.Instrument, NoteTrack.Difficulty, Player.Profile.HarmonyIndex, _chart, Player.RockMeterPreset);
+            EngineContainer = GameManager.EngineManager.Register(engine, NoteTrack, Player.Profile.HarmonyIndex, _chart, Player.RockMeterPreset);
 
             engine.OnComboIncrement += OnComboIncrement;
             engine.OnComboReset += OnComboReset;
@@ -402,6 +414,19 @@ namespace YARG.Gameplay.Player
             return Mathf.Min(0.0f, pitchDist + deadZoneInSemitones);
         }
 
+        private void SetOutline(bool enableOutline)
+        {
+            if (_outlineEnabled == enableOutline)
+            {
+                return;
+            }
+            MaterialPropertyInstance.Instance.SetFloat(OutlineWidthID, enableOutline ? OUTLINE_WIDTH : 0f);
+            // Not sure if I need to set this every time, but it was being weird if I didn't
+            MaterialPropertyInstance.Instance.SetColor(OutlineColorID, VocalTrack.Colors[Player.Profile.HarmonyIndex]);
+            _needleRenderer.SetPropertyBlock(MaterialPropertyInstance.Instance);
+            _outlineEnabled = enableOutline;
+        }
+
         private void UpdateSingNeedle()
         {
             const float NEEDLE_POS_LERP = 30f;
@@ -447,6 +472,7 @@ namespace YARG.Gameplay.Player
                     {
                         _hittingParticleGroup.Play();
                     }
+                    SetOutline(!GameManager.Rewinding);
 
                     float pitch;
                     float targetRotation = 0f;
@@ -478,6 +504,7 @@ namespace YARG.Gameplay.Player
                 {
                     // Stop particles if not hitting
                     _hittingParticleGroup.Stop();
+                    SetOutline(false);
 
                     // Since the player is not hitting the note here, we need to offset it correctly.
                     // Get the pitch, and move to the correct octave.
@@ -597,6 +624,9 @@ namespace YARG.Gameplay.Player
                 OriginalNoteTrack.TextEvents);
 
             _phraseIndex = -1;
+
+            // Removed by EngineManager
+            EngineContainer = null;
 
             Engine = CreateEngine();
             Engine.SetSpeed(GameManager.SongSpeed >= 1 ? GameManager.SongSpeed : 1);

@@ -81,6 +81,10 @@ namespace YARG.Gameplay.HUD
 
         private void SetTween()
         {
+            if (_seekTween == null)
+            {
+                return;
+            }
             // Lerp to new progress
             _seekTween.ChangeEndValue(_progress, true);
             _seekTween.Play();

@@ -1,4 +1,4 @@
-﻿using Cysharp.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -138,13 +138,25 @@ namespace YARG.Gameplay.HUD
 
         public void PopAllMenus()
         {
+            if (this == null)
+            {
+                return;
+            }
+
             foreach (var menu in _openMenus)
             {
-                _menus[menu].gameObject.SetActive(false);
+                if (_menus.TryGetValue(menu, out var menuObject) && menuObject != null)
+                {
+                    menuObject.gameObject.SetActive(false);
+                }
             }
 
             _openMenus.Clear();
-            gameObject.SetActive(false);
+
+            if (this != null)
+            {
+                gameObject.SetActive(false);
+            }
         }
 
         public void Quit()

@@ -47,7 +47,7 @@ namespace YARG.Menu.ProfileList
         {
             RefreshList();
 
-            Navigator.Instance.PushScheme(new NavigationScheme(new()
+            _ = Navigator.Instance.PushScheme(new NavigationScheme(new()
             {
                 new NavigationScheme.Entry(MenuAction.Red, "Menu.Common.Back", () => MenuManager.Instance.PopMenu(), hide: true),
             }, true));
@@ -61,9 +61,10 @@ namespace YARG.Menu.ProfileList
             PlayerContainer.SaveProfiles();
 
             // Update player icons if a profile has changed its GameMode.
-            StatsManager.Instance.UpdateActivePlayers();
+            // Persistent singletons may already be destroyed when Unity exits play mode.
+            StatsManager.Instance?.UpdateActivePlayers();
 
-            Navigator.Instance.PopScheme();
+            Navigator.Instance?.PopScheme();
 
             PlayerContainer.PlayerAdded -= OnPlayerAdded;
         }

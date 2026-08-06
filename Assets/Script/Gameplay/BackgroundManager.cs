@@ -11,6 +11,7 @@ using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.Animations;
 using UnityEngine.ResourceManagement.AsyncOperations;
+using UnityEngine.ResourceManagement.ResourceLocations;
 using UnityEngine.UI;
 using UnityEngine.Video;
 using YARG.Core.IO;
@@ -355,14 +356,8 @@ namespace YARG.Gameplay
             }
 
             var hint = GameManager.Song.VocalCharacterHint;
-            if (string.IsNullOrWhiteSpace(hint))
-            {
-                await LoadCustomCharacter(bgInstance, gender);
-            }
-            else
-            {
-                await LoadCustomCharacter(bgInstance, hint, gender);
-            }
+            await LoadCharacter(bgInstance, hint, gender);
+
 
             // Initialize CharacterManager, if it exists
             var characterManager = bgInstance.GetComponentInChildren<CharacterManager>();
@@ -692,40 +687,38 @@ namespace YARG.Gameplay
             // The venue is dealt with in the GameManager via Time.timeScale
         }
 
-        private async UniTask<GameObject> GetAddressableCharacter(string hint, VocalGender gender)
+        private async UniTask<GameObject> GetAddressableCharacter(string hint)
         {
-            const string typeLabel = "character";
-
             if (string.IsNullOrWhiteSpace(hint))
             {
-                // If there is no hint, try to load user-specified custom character
-                return await GetCustomCharacterFromBundle();
+                return null;
             }
+
+            const string typeLabel = "character";
 
             var keys = new[] {typeLabel, hint};
 
             var validator = Addressables.LoadResourceLocationsAsync(keys, Addressables.MergeMode.Intersection);
-            await validator.Task;
+            var characterKeys = await validator.Task;
 
-            if (validator.Status == AsyncOperationStatus.Succeeded && validator.Result.Count > 0)
+            if (validator.Status == AsyncOperationStatus.Succeeded && characterKeys.Count > 0)
             {
+                var filteredKeys = RemoveHiddenCharacters(characterKeys);
+
+                if (filteredKeys.Count == 0)
+                {
+                    Addressables.Release(validator);
+                    return null;
+                }
+
+                Addressables.Release(validator);
+
                 var handle = Addressables.LoadAssetAsync<GameObject>(hint);
                 _handles.Add(handle);
                 return await handle.Task;
             }
 
-            // If there is a specified vocal gender, get a remote character meeting that criteria
-            if (gender is not VocalGender.Unspecified)
-            {
-                var character = await GetAddressableCharacter(gender);
-                if (character != null)
-                {
-                    return character;
-                }
-            }
-
-            // Hint failed, attempt to load user's custom character
-            return await GetCustomCharacterFromBundle();
+            return null;
         }
 
         private async UniTask<GameObject> GetAddressableCharacter(VocalGender gender)
@@ -735,43 +728,74 @@ namespace YARG.Gameplay
             {
                 VocalGender.Male => "male",
                 VocalGender.Female => "female",
+                VocalGender.Nonbinary => "nonbinary",
+                VocalGender.Other => "other",
                 _ => null
             };
 
-            var labelGroup = new List<string>() { typeLabel };
-            if (genderString != null)
-            {
-                labelGroup.Add(genderString);
-            }
-
-            GameObject character = null;
-            var venueKeys = await Addressables.LoadResourceLocationsAsync(labelGroup, Addressables.MergeMode.Intersection);
-
-            // If we didn't find a character with the required gender, let the caller deal with it
-            if (venueKeys.Count == 0)
+            // Unspecified gender means we should fall back to defaults
+            if (genderString == null)
             {
                 return null;
             }
 
-            if (venueKeys.Count > 0)
+            var labelGroup = new List<string>() { typeLabel };
+            labelGroup.Add(genderString);
+
+
+            GameObject character = null;
+            var locationHandle = Addressables.LoadResourceLocationsAsync(labelGroup, Addressables.MergeMode.Intersection);
+            var characterKeys = await locationHandle.Task;
+
+            // If we didn't find a character with the required gender, let the caller deal with it
+            if (characterKeys.Count == 0)
             {
-                var location = venueKeys[Random.Range(0, venueKeys.Count)];
+                return null;
+            }
+
+            if (characterKeys.Count > 0)
+            {
+                var filteredKeys = RemoveHiddenCharacters(characterKeys);
+
+                var location = filteredKeys[Random.Range(0, filteredKeys.Count)];
                 var key = location.PrimaryKey;
+                Addressables.Release(locationHandle);
                 var handle = Addressables.LoadAssetAsync<GameObject>(key);
                 _handles.Add(handle);
                 character = await handle.Task;
             }
             else
             {
-                YargLogger.LogWarning("No addressable venues exist!");
+                YargLogger.LogWarning("No addressable characters with the specified gender exist!");
             }
 
             return character;
         }
 
-        private async UniTask<GameObject> GetCustomCharacterFromBundle()
+        private static List<IResourceLocation> RemoveHiddenCharacters(IList<IResourceLocation> locations)
         {
-            string characterPath = SettingsManager.Settings.CustomVocalsCharacter.Value;
+            var filteredLocations = locations.ToList();
+            for (var i = 0; i < filteredLocations.Count; i++)
+            {
+                var characterInfo = new CustomCharacterInfo
+                {
+                    Identifier = filteredLocations[i].PrimaryKey,
+                    Source = CustomCharacterSource.Addressable
+                };
+
+                if (SettingsManager.Settings.HiddenCharacters.Contains(characterInfo))
+                {
+                    filteredLocations.RemoveAt(i);
+                    i--;
+                }
+            }
+
+            return filteredLocations;
+        }
+
+        private async UniTask<GameObject> GetCustomCharacterFromBundle(string characterPath)
+        {
+            // string characterPath = SettingsManager.Settings.CustomVocalsCharacter.Value;
 
             if (string.IsNullOrEmpty(characterPath))
             {
@@ -799,30 +823,55 @@ namespace YARG.Gameplay
             return character;
         }
 
-        private async UniTask LoadCustomCharacter(GameObject venueRoot, string hint, VocalGender gender)
+        // gender is a fallback in case the user's specified character fails to load
+        private async UniTask<GameObject> GetCustomVocalsCharacter()
         {
-            var character = await GetAddressableCharacter(hint, gender);
-            await LoadCustomCharacter(venueRoot, character);
-        }
-
-        private async UniTask LoadCustomCharacter(GameObject venueRoot, VocalGender gender)
-        {
-            var character = await GetAddressableCharacter("", gender);
-            await LoadCustomCharacter(venueRoot, character);
-        }
-
-        private async UniTask LoadCustomCharacter(GameObject venueRoot, GameObject character)
-        {
-            if (character == null)
+            if (SettingsManager.Settings.CustomCharacters.TryGetValue(VenueCharacter.CharacterType.Vocals,
+                out var characterInfo))
             {
-                // Load local character, if exists
-                YargLogger.LogWarning("Failed to load custom character from Addressables, falling back to local bundle");
-                character = await GetCustomCharacterFromBundle();
+                if (characterInfo.Source == CustomCharacterSource.None)
+                {
+                    return null;
+                }
+
+                if (characterInfo.Source == CustomCharacterSource.File)
+                {
+                    return await GetCustomCharacterFromBundle(characterInfo.Identifier);
+                }
+
+                if (characterInfo.Source == CustomCharacterSource.Addressable)
+                {
+                    return await GetAddressableCharacter(characterInfo.Identifier);
+                }
             }
 
+            return null;
+        }
+
+        private async UniTask LoadCharacter(GameObject venueRoot, string hint, VocalGender gender)
+        {
+            var character = await GetAddressableCharacter(hint);
+
+            // Hint failed, try user's custom character
             if (character == null)
             {
-                YargLogger.LogWarning("Failed to load custom character from local bundle");
+                character = await GetCustomVocalsCharacter();
+            }
+
+            // Couldn't get a custom character, try gender
+            if (character == null)
+            {
+                character = await GetAddressableCharacter(gender);
+            }
+
+            await LoadCharacter(venueRoot, character);
+        }
+
+        private async UniTask LoadCharacter(GameObject venueRoot, GameObject character)
+        {
+            if (character == null)
+            {
+                YargLogger.LogWarning("Failed to load custom character");
                 return;
             }
 

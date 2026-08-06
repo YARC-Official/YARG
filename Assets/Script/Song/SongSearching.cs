@@ -286,6 +286,11 @@ namespace YARG.Song
                 return new SongCategory[] { new("Search Results", UnspecifiedSearch(filter, entriesToSearch), null)};
             }
 
+            if (filter.Attribute == SortAttribute.AggregateDrums)
+            {
+                return SearchAggregateDrums(filter, searchList);
+            }
+
             if (filter.Attribute >= SortAttribute.FiveFretGuitar)
             {
                 return SearchInstrument(filter, searchList);
@@ -541,6 +546,30 @@ namespace YARG.Song
                 {
                     result[count++] = new SongCategory(node.Category, songs, node.CategoryGroup);
                 }
+            }
+            return result[..count];
+        }
+
+        private static SongCategory[] SearchAggregateDrums(FilterNode filter, SongCategory[] searchList)
+        {
+            var songsToMatch = SongContainer.AggregateDrums
+                .Where(node =>
+                {
+                    string key = node.Key.ToString();
+                    if (!key.StartsWith(filter.Argument))
+                        return false;
+                        
+                    return key.Length == filter.Argument.Length || filter.Mode != SearchMode.Exact;
+                })
+                .SelectMany(node => node.Value);
+
+            var result = new SongCategory[searchList.Length];
+            int count = 0;
+            foreach (var node in searchList)
+            {
+                var songs = node.Songs.Intersect(songsToMatch).ToArray();
+                if (songs.Length > 0)
+                    result[count++] = new SongCategory(node.Category, songs, node.CategoryGroup);
             }
             return result[..count];
         }
