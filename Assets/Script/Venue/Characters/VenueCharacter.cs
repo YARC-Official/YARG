@@ -7,7 +7,6 @@ using UniVRM10;
 using YARG.Core.Chart;
 using YARG.Core.Logging;
 using YARG.Core.Song;
-using YARG.Core.Venue;
 using AnimationTrigger = YARG.Venue.Characters.CharacterManager.AnimationTrigger;
 using CharacterStateType = YARG.Core.Chart.Events.CharacterState.CharacterStateType;
 using AnimationType = YARG.Core.Chart.AnimationEvent.AnimationType;
@@ -23,13 +22,52 @@ namespace YARG.Venue.Characters
     [RequireComponent(typeof(Animator))]
     public partial class VenueCharacter : MonoBehaviour
     {
+        public enum CharacterType
+        {
+            Bass,
+            Guitar,
+            Drums,
+            Vocals,
+            Keys,
+        }
+
+        public static CharacterType? CharacterTypeFromPerformer(Performer performer)
+        {
+            return performer switch
+            {
+                Performer.Bass     => CharacterType.Bass,
+                Performer.Guitar   => CharacterType.Guitar,
+                Performer.Drums    => CharacterType.Drums,
+                Performer.Vocals   => CharacterType.Vocals,
+                Performer.Keyboard => CharacterType.Keys,
+                _                  => null
+            };
+        }
+
+        public static Performer PerformerFromCharacterType(CharacterType characterType)
+        {
+            return characterType switch
+            {
+                CharacterType.Bass   => Performer.Bass,
+                CharacterType.Guitar => Performer.Guitar,
+                CharacterType.Drums  => Performer.Drums,
+                CharacterType.Vocals => Performer.Vocals,
+                CharacterType.Keys   => Performer.Keyboard,
+                _                    => throw new ArgumentOutOfRangeException(nameof(characterType), characterType, null)
+            };
+        }
+
+        public static CharacterType? CharacterTypeFromPerformer(Performer? performer)
+        {
+            return performer.HasValue ? CharacterTypeFromPerformer(performer.Value) : null;
+        }
 
         [Tooltip("This only needs to be set if you are building the character into a venue.\n\nIt is handled automatically for .yargchar exports.")]
         [SerializeField]
         protected CharacterManager _characterManager;
 
         [SerializeField]
-        public Performer Type;
+        public CharacterType Type;
         [SerializeField]
         public VocalGender CharacterGender = VocalGender.Unspecified;
 
@@ -206,7 +244,7 @@ namespace YARG.Venue.Characters
 
             // For guitar/bass, we require strumup/strumdown and some hand positions
             // TODO: Make this check for animations and not just states
-            if (Type is Performer.Guitar or Performer.Bass)
+            if (Type == CharacterType.Guitar || Type == CharacterType.Bass)
             {
                 foreach (var name in requiredGuitar)
                 {
@@ -237,7 +275,7 @@ namespace YARG.Venue.Characters
             };
 
             // For drums, we require the full suite, minus soft/hard variants (but we don't actually check the ones with variants)
-            if (Type == Performer.Drums)
+            if (Type == CharacterType.Drums)
             {
                 foreach (var name in requiredDrums)
                 {
@@ -274,10 +312,10 @@ namespace YARG.Venue.Characters
         {
             switch (Type)
             {
-                case Performer.Guitar:
+                case CharacterType.Guitar:
                     GetGuitarIKTargets();
                     break;
-                case Performer.Drums:
+                case CharacterType.Drums:
                     GetDrumsIKTargets();
                     break;
             }
@@ -355,7 +393,7 @@ namespace YARG.Venue.Characters
         private void HandleStrumMap(StrumMapType strumMap)
         {
             // Strum map is only valid for bass
-            if (Type != Performer.Bass)
+            if (Type != CharacterType.Bass)
             {
                 return;
             }
@@ -373,7 +411,7 @@ namespace YARG.Venue.Characters
         private void HandleHandMap(HandMapType handMap)
         {
             // Hand map is only valid for guitar and bass
-            if (Type is not (Performer.Guitar or Performer.Bass))
+            if (Type is not (CharacterType.Guitar or CharacterType.Bass))
             {
                 return;
             }
@@ -484,7 +522,7 @@ namespace YARG.Venue.Characters
             if (e is GuitarNote gNote)
             {
                 // Handle alternate strums for bass
-                if (Type == Performer.Bass && _hasSlap && _strumMap == StrumMapType.SlapBass)
+                if (Type == CharacterType.Bass && _hasSlap && _strumMap == StrumMapType.SlapBass)
                 {
                     // Just trigger slap and return
                     SetTrigger(AnimationStateType.Slap);
@@ -557,12 +595,12 @@ namespace YARG.Venue.Characters
             int lowestFret = 5;
             bool openGreen = _handMap is HandMapType.DropD or HandMapType.DropD2;
             bool useChordShape =
-                (gNote.IsChord && (!_inhibitHandShape || Type != Performer.Guitar || Type != Performer.Bass) &&
+                (gNote.IsChord && (!_inhibitHandShape || Type != CharacterType.Guitar || Type != CharacterType.Bass) &&
                     _handMap != HandMapType.NoChords) || _handMap == HandMapType.AllChords;
             bool isSustain = gNote.IsSustain;
             float sustainLength = (float) gNote.TimeLength;
 
-            if (_inhibitHandShape && (Type == Performer.Guitar || Type == Performer.Bass) && (_handMap != HandMapType.DropD && _handMap != HandMapType.DropD2))
+            if (_inhibitHandShape && (Type == CharacterType.Guitar || Type == CharacterType.Bass) && (_handMap != HandMapType.DropD && _handMap != HandMapType.DropD2))
             {
                 return;
             }
@@ -574,7 +612,7 @@ namespace YARG.Venue.Characters
             }
 
             // Just for testing
-            if (Type == Performer.Vocals || Type == Performer.Drums || Type == Performer.Keyboard)
+            if (Type == CharacterType.Vocals || Type == CharacterType.Drums || Type == CharacterType.Keys)
             {
                 return;
             }

@@ -14,7 +14,6 @@ using UnityEngine.ResourceManagement.AsyncOperations;
 using UnityEngine.ResourceManagement.ResourceLocations;
 using UnityEngine.UI;
 using UnityEngine.Video;
-using YARG.Core.Chart;
 using YARG.Core.IO;
 using YARG.Core.Song;
 using YARG.Core.Venue;
@@ -827,7 +826,7 @@ namespace YARG.Gameplay
         // gender is a fallback in case the user's specified character fails to load
         private async UniTask<GameObject> GetCustomVocalsCharacter()
         {
-            if (SettingsManager.Settings.CustomCharacters.TryGetValue(Performer.Vocals,
+            if (SettingsManager.Settings.CustomCharacters.TryGetValue(VenueCharacter.CharacterType.Vocals,
                 out var characterInfo))
             {
                 if (characterInfo.Source == CustomCharacterSource.None)
@@ -917,7 +916,7 @@ namespace YARG.Gameplay
         private void AddMicrophoneToCharacter(GameObject character)
         {
             var vrmCharacter = character.GetComponent<VRMCharacter>();
-            if (vrmCharacter == null || vrmCharacter.Type != Performer.Vocals ||
+            if (vrmCharacter == null || vrmCharacter.Type != VenueCharacter.CharacterType.Vocals ||
                 vrmCharacter.UseCustomAnimations)
             {
                 return;

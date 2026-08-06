@@ -1,19 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using JetBrains.Annotations;
 using UnityEngine;
 using YARG.Core;
 using YARG.Core.Chart;
 using YARG.Core.Chart.Events;
-using YARG.Core.Extensions;
 using YARG.Core.Logging;
-using YARG.Core.Venue;
 using YARG.Gameplay;
 using AnimationEvent = YARG.Core.Chart.AnimationEvent;
 using CharacterStateType = YARG.Core.Chart.Events.CharacterState.CharacterStateType;
 using HandMapType = YARG.Core.Chart.Events.HandMap.HandMapType;
 using StrumMapType = YARG.Core.Chart.Events.StrumMap.StrumMapType;
+using CharacterType = YARG.Venue.Characters.VenueCharacter.CharacterType;
 
 namespace YARG.Venue.Characters
 {
@@ -27,33 +25,34 @@ namespace YARG.Venue.Characters
         private Vector3 _wind;
         private Vector3 _lastUpdatedWind     = Vector3.zero;
         private bool    _lastKnownPausedState = false;
+        /// <summary>
+        /// Used for lipsync ordering. If there is no BandSongPref file present in the milo, lipsync will be assigned in this order.
+        /// </summary>
+        private readonly CharacterType[] _preferredCharacterOrder = {CharacterType.Vocals, CharacterType.Guitar, CharacterType.Bass, CharacterType.Drums, CharacterType.Keys};
 
-        private readonly Dictionary<Performer, VenueCharacter> _characters = new();
-        public           Dictionary<Performer, VenueCharacter> Characters => _characters;
 
-        private Performer? GetInstrumentPreference(int lipsyncIndex)
+        private readonly Dictionary<CharacterType, VenueCharacter> _characters = new();
+        public           Dictionary<CharacterType, VenueCharacter> Characters => _characters;
+
+        private CharacterType? GetInstrumentPreference(int lipsyncIndex)
         {
-            return lipsyncIndex switch
+            if (GameManager.Chart.SingerPreference.Length < lipsyncIndex)
             {
-                0 => Performer.Vocals,
-                1 => GameManager.Chart.BandSongPref?.Part2Instrument,
-                2 => GameManager.Chart.BandSongPref?.Part3Instrument,
-                3 => GameManager.Chart.BandSongPref?.Part4Instrument,
-                4 => Performer.Keyboard, // I guess?
+                return null;
+            }
 
-                _ => null
-            };
+            return VenueCharacter.CharacterTypeFromPerformer(GameManager.Chart.SingerPreference[lipsyncIndex]);
         }
 
-        private int GetSingalongIndex(Performer characterType)
+        private int GetSingalongIndex(CharacterType characterType)
         {
             var maxIndex = LipsyncEvents.Length - 1;
             var pref = characterType switch
             {
-                Performer.Guitar => 1,
-                Performer.Bass => 2,
-                Performer.Drums => 0,
-                Performer.Keyboard => 3, // Keys doesn't really work like this
+                CharacterType.Guitar => 1,
+                CharacterType.Bass => 2,
+                CharacterType.Drums => 0,
+                CharacterType.Keys => 3, // Keys doesn't really work like this in RB, it just replaces guitar/bass
                 _ => -1
             };
             return Math.Min(pref, maxIndex);
@@ -232,15 +231,16 @@ namespace YARG.Venue.Characters
                 }
 
                 character.Initialize(this);
-                if (character is VRMCharacter vrmCharacter && character.Type is not Performer.Vocals)
+                if (character is VRMCharacter vrmCharacter && character.Type is not CharacterType.Vocals)
                 {
-                    var singalongEvents = GameManager.Chart.VenueTrack.Performer.Where(x => x.Type is PerformerEventType.Singalong && x.Performers.HasFlag(character.Type)).ToList();
+                    var performerType = VenueCharacter.PerformerFromCharacterType(character.Type);
+                    var singalongEvents = GameManager.Chart.VenueTrack.Performer.Where(x => x.Type is PerformerEventType.Singalong && x.Performers.HasFlag(performerType)).ToList();
                     YargLogger.LogFormatDebug("Found {0} singalong events for character type {1}", singalongEvents.Count, character.Type);
                     vrmCharacter.InitializeSingalongLipsync(LipsyncEvents[GetSingalongIndex(character.Type)], singalongEvents);
                 }
                 _characters.Add(character.Type, character);
             }
-
+            bool[] assignedLipsync = new bool[LipsyncEvents.Length];
             for (int i = 0; i < LipsyncEvents.Length; i++)
             {
                 var lipsyncEvents = LipsyncEvents[i];
@@ -249,9 +249,15 @@ namespace YARG.Venue.Characters
                 {
                     YargLogger.LogFormatDebug("Assigning lipsync part {0} to preferred character type {1}", i, preferredCharacter.Value);
                     vrmCharacter.InitializeLipsync(lipsyncEvents);
+                    assignedLipsync[i] = true;
                 }
-                else
+            }
+
+            for (int i = 0; i < LipsyncEvents.Length; i++)
+            {
+                if (!assignedLipsync[i])
                 {
+                    var lipsyncEvents = LipsyncEvents[i];
                     var firstCharacterWithoutLipsync = GetFirstCharacterWithoutLipsync();
                     if (firstCharacterWithoutLipsync != null)
                     {
@@ -265,8 +271,7 @@ namespace YARG.Venue.Characters
         }
         private VRMCharacter GetFirstCharacterWithoutLipsync()
         {
-            var preferredOrder = new []{Performer.Vocals, Performer.Guitar, Performer.Bass, Performer.Drums, Performer.Keyboard};
-            foreach (var type in preferredOrder)
+            foreach (var type in _preferredCharacterOrder)
             {
                 if (!_characters.TryGetValue(type, out var character) || character is not VRMCharacter vrmCharacter || vrmCharacter.HasLipsyncAssigned)
                 {
@@ -302,16 +307,16 @@ namespace YARG.Venue.Characters
                 }
                 switch (key)
                 {
-                    case Performer.Guitar:
+                    case CharacterType.Guitar:
                         ProcessGuitar(character);
                         break;
-                    case Performer.Bass:
+                    case CharacterType.Bass:
                         ProcessBass(character);
                         break;
-                    case Performer.Vocals:
+                    case CharacterType.Vocals:
                         ProcessVocals(character);
                         break;
-                    case Performer.Drums:
+                    case CharacterType.Drums:
                         ProcessDrums(character);
                         break;
                 }

@@ -5,11 +5,9 @@ using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using YARG.Core.Audio;
-using YARG.Core.Chart;
 using YARG.Core.Engine;
 using YARG.Core.Logging;
 using YARG.Core.Song;
-using YARG.Core.Venue;
 using YARG.Gameplay.HUD;
 using YARG.Helpers;
 using YARG.Integration;
@@ -29,6 +27,7 @@ using YARG.Settings.Types;
 using YARG.Song;
 using YARG.Song.Exporters;
 using YARG.Venue;
+using CharacterType = YARG.Venue.Characters.VenueCharacter.CharacterType;
 using Object = UnityEngine.Object;
 
 namespace YARG.Settings
@@ -122,8 +121,8 @@ namespace YARG.Settings
             // This is user-controllable, but hidden because it is not exposed in the settings menu.
             // it is a dictionary because in the future we will allow multiple band members to be customized
             // and we want to enforce the constraint that kind be unique
-            public Dictionary<Performer,CustomCharacterInfo> CustomCharacters = new();
-            public List<CustomCharacterInfo>                 HiddenCharacters = new();
+            public Dictionary<CharacterType,CustomCharacterInfo> CustomCharacters = new();
+            public List<CustomCharacterInfo> HiddenCharacters = new();
 
             #endregion
 
@@ -705,7 +704,7 @@ namespace YARG.Settings
             public OutputChannelSetting OutputChannelVox { get; } = new(-1, OutputChannelVoxCallback);
             public OutputChannelSetting OutputChannelMetronome { get; } = new(-1, OutputChannelMetronomeCallback);
 
-            public CustomCharacterSetting CustomVocalsCharacter { get; } = new(string.Empty, Performer.Vocals, CustomCharacterCallback);
+            public CustomCharacterSetting CustomVocalsCharacter { get; } = new(string.Empty, CharacterType.Vocals, CustomCharacterCallback);
             #endregion
 
             #region Helpers

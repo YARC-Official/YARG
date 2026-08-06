@@ -154,9 +154,8 @@ namespace YARG.Venue.Characters
                 return;
             }
 
-            while (_singalongEventIndex < _singalongEvents.Count - 1 && _singalongEvents[_singalongEventIndex].TimeEnd <= time)
+            while (_singalongEventIndex < _singalongEvents.Count && _singalongEvents[_singalongEventIndex].TimeEnd <= time)
             {
-                YargLogger.LogFormatDebug("Processing singalong event at time {0}, timeEnd {1} (index {2})", _singalongEvents[_singalongEventIndex].Time, _singalongEvents[_singalongEventIndex].TimeEnd, _singalongEventIndex);
                 _singalongEventIndex++;
             }
 
