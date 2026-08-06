@@ -2,8 +2,10 @@
 using DG.Tweening;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Serialization;
 using UnityEngine.UI;
 using YARG.Core.Game;
+using YARG.Core.Logging;
 using YARG.Helpers.Extensions;
 using YARG.Helpers.UI;
 using YARG.Localization;
@@ -35,18 +37,18 @@ namespace YARG.Gameplay.HUD
         private Image _multiplierRim;
         [SerializeField]
         private VocalSunburstEffects _sunburstEffects;
-        [Header("Combo Rim Sprites")]
         [SerializeField]
-        private Sprite _defaultRimSprite;
+        private Image _fcRing;
+        [Header("Combo Rim Images")]
         [SerializeField]
-        private Sprite _grooveRimSprite;
+        private Image _grooveRim;
         [SerializeField]
-        private Sprite _fcRimSprite;
+        private Image _starPowerRim;
 
         private Sequence _multiplierIncreaseSequence;
-        private bool _isFc = true;
-        private bool _isSp;
-        private int  _multiplier = 1;
+        private bool     _isSp;
+        private bool     _isFc = true;
+        private int      _multiplier = 1;
 
         private float _comboMeterFillTarget;
 
@@ -114,6 +116,15 @@ namespace YARG.Gameplay.HUD
             {
                 _starPowerPulse.color = Color.white.WithAlpha(0);
             }
+
+            if (!_isFc)
+            {
+                var spRimAlpha = Mathf.Clamp01(_starPowerRim.color.a + (_isSp ? 1 : -1) * 3f * Time.deltaTime);
+                var grooveRimAlpha = Mathf.Clamp01(_grooveRim.color.a + (_multiplier == 4 ? 1 : -1) * 3f * Time.deltaTime);
+
+                _grooveRim.color = Color.white.WithAlpha(grooveRimAlpha);
+                _starPowerRim.color = Color.white.WithAlpha(spRimAlpha);
+            }
         }
 
         public void UpdateInfo(float phrasePercent, int multiplier,
@@ -132,7 +143,6 @@ namespace YARG.Gameplay.HUD
             {
                 return;
             }
-
             _multiplier = multiplier;
             _multiplierText.enabled = false;
 
@@ -147,19 +157,6 @@ namespace YARG.Gameplay.HUD
             }
 
             _isSp = isStarPowerActive;
-
-
-            if (!_isFc)
-            {
-                if (multiplier == 4 || (isStarPowerActive && multiplier == 8))
-                {
-                    _multiplierRim.sprite = _grooveRimSprite;
-                }
-                else
-                {
-                    _multiplierRim.sprite = _defaultRimSprite;
-                }
-            }
         }
 
         public static string GetVocalPerformanceText(double hitPercent)
@@ -237,11 +234,11 @@ namespace YARG.Gameplay.HUD
             _isFc = isFullCombo;
             if (isFullCombo)
             {
-                _multiplierRim.sprite = _fcRimSprite;
+                _fcRing.gameObject.SetActive(true);
             }
-            else // I'm going to assume you can't re-FC in a way that isn't restarting
+            else
             {
-                _multiplierRim.sprite = _defaultRimSprite;
+                _fcRing.gameObject.SetActive(false);
             }
         }
     }
