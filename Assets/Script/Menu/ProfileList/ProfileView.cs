@@ -341,14 +341,13 @@ namespace YARG.Menu.ProfileList
                 });
             }
 
-            // Add the microphone (there should be only one or zero)
-            var mic = player.Bindings.Microphone;
-            if (mic is not null)
+            // Add the microphones
+            foreach (var mic in player.Bindings.Microphones)
             {
                 devicesAvailable = true;
                 dialog.AddListButton(mic.DisplayName, () =>
                 {
-                    player.Bindings.RemoveMicrophone();
+                    player.Bindings.RemoveMicrophone(mic);
                     selectedDevice = true;
                 });
             }
