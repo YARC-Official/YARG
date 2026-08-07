@@ -97,6 +97,8 @@ namespace YARG.Audio.BASS
         private readonly int _opusHandle = 0;
         private BassOutputDevice _currentDevice;
 
+        private readonly BassMicManager _micManager = new();
+
         public BassAudioManager()
         {
             YargLogger.LogInfo("Initializing BASS...");
@@ -251,86 +253,25 @@ namespace YARG.Audio.BASS
 
         protected override MicDevice? GetInputDevice(string name)
         {
-            for (int deviceIndex = 0; Bass.RecordGetDeviceInfo(deviceIndex, out var info); deviceIndex++)
+            if (!InputDeviceInfo.TryParseDisplayName(name, out var parsed))
             {
-                // Ignore disabled/claimed devices
-                if (!info.IsEnabled || info.IsInitialized)
-                {
-                    continue;
-                }
-
-                // Ignore loopback devices, they're potentially confusing and can cause feedback loops
-                if (info.IsLoopback)
-                {
-                    continue;
-                }
-
-                // Check if type is in whitelist
-                // The "Default" device is also excluded here since we want the user to explicitly pick which microphone to use
-                // if (!typeWhitelist.Contains(info.Type) || info.Name == "Default") continue;
-                if (info.Name == "Default" || info.Name != name)
-                {
-                    continue;
-                }
-
-                return CreateInputDevice(deviceIndex, name);
+                return null;
             }
 
-            return null;
+            return _micManager.CreateMic(parsed);
         }
 #nullable disable
 
-        protected override List<(int id, string name)> GetAllInputDevices()
+        protected override List<InputDeviceInfo> GetAllInputDevices()
         {
-            var mics = new List<(int id, string name)>();
-
-            // Ignored for now since it causes issues on Linux, BASS must not report device info correctly there
-            // TODO: allow configuring this at runtime?
-            // Also put into a static variable instead of instantiating every time
-            // var typeWhitelist = new List<DeviceType>()
-            // {
-            //     DeviceType.Headset,
-            //     DeviceType.Digital,
-            //     DeviceType.Line,
-            //     DeviceType.Headphones,
-            //     DeviceType.Microphone,
-            // };
-
-            for (int deviceIndex = 0; Bass.RecordGetDeviceInfo(deviceIndex, out var info); deviceIndex++)
-            {
-                // Ignore disabled/claimed devices
-                if (!info.IsEnabled || info.IsInitialized)
-                {
-                    continue;
-                }
-
-                // Ignore loopback devices, they're potentially confusing and can cause feedback loops
-                if (info.IsLoopback)
-                {
-                    continue;
-                }
-
-                // Check if type is in whitelist
-                // The "Default" device is also excluded here since we want the user to explicitly pick which microphone to use
-                // if (!typeWhitelist.Contains(info.Type) || info.Name == "Default") continue;
-                if (info.Name == "Default")
-                {
-                    continue;
-                }
-
-                mics.Add((deviceIndex, info.Name));
-            }
-
-            return mics;
+            return _micManager.GetAllDevices();
         }
 
 #nullable enable
-        protected override MicDevice? CreateInputDevice(int deviceId, string name)
+        protected override MicDevice? CreateInputDevice(InputDeviceInfo device)
 #nullable disable
         {
-            var device = BassMicDevice.Create(deviceId, name);
-            device?.SetMonitoringLevel(SettingsManager.Settings.VocalMonitoring.Value);
-            return device;
+            return _micManager.CreateMic(device);
         }
 
 #nullable enable
