@@ -34,7 +34,6 @@ namespace YARG.Audio.BASS
         {
             if (device.DeviceId < 0)
             {
-                // Id from saved settings can be stale; resolve by name instead.
                 int resolved = FindDeviceIndexByName(device.Name);
                 if (resolved < 0)
                 {
@@ -52,8 +51,6 @@ namespace YARG.Audio.BASS
 
             lock (_lock)
             {
-                // Check inside the lock: the claim happens in BassMicDevice.Create
-                // (session.AddMic), so checking earlier would be a TOCTOU race.
                 if (IsChannelClaimed(device.DeviceId, device.Channel))
                 {
                     return null;
@@ -209,10 +206,6 @@ namespace YARG.Audio.BASS
                 channels = ChannelProbe.Probe(deviceId, name);
                 if (channels == null)
                 {
-                    // Assume one channel so the device stays usable. Cache the
-                    // failure too: re-probing every time the mic menu opens
-                    // stalls the UI for ~1.5 s per dead device. A device list
-                    // change (RefreshCache) re-probes after a replug.
                     _channelCache[name] = 1;
                     return 1;
                 }
@@ -225,8 +218,6 @@ namespace YARG.Audio.BASS
 
         private void ProbeChannels(List<DeviceEntry> devices)
         {
-            // GetChannelCount locks per device; a probe can block for ~1.5s, so
-            // don't hold the lock across the whole sweep.
             foreach (var device in devices)
             {
                 GetChannelCount(device.Id, device.Info.Name);
@@ -326,17 +317,6 @@ namespace YARG.Audio.BASS
         {
             private const int TIMEOUT_MS = 400;
 
-            // Driver-reported channel counts are unreliable, and RecordStart
-            // success proves nothing on Linux (ALSA plug converts to whatever
-            // you ask for). So probe the actual frame layout instead:
-            //   - 8ch: catches true multi-input devices (>2). Only trusted
-            //     when it finds 3+ distinct channels; on a stereo device the
-            //     plug upmix just repeats L/R, so smaller results are
-            //     ambiguous and fall through to the 2ch probe.
-            //   - 2ch: ground truth for mono vs stereo. A mono source is
-            //     upmixed to identical L/R, while a real stereo stream has
-            //     distinct channels -- even when one input is silent.
-            //   - 1ch: last resort for devices that refuse 2ch.
             private static readonly (int Channels, int Rate)[] PROBE_CONFIGS =
             {
                 (8, 48000),
@@ -389,23 +369,15 @@ namespace YARG.Audio.BASS
                         }
                         finally
                         {
-                            // Stop the handle before disposing the waiter: the device may
-                            // already be initialized by a live session, in which case
-                            // RecordFree below is skipped and the recording would otherwise
-                            // keep firing callbacks into a disposed probe.
                             Bass.ChannelStop(handle);
                             probe.Dispose();
                         }
 
                         if (channelCount == 0)
                         {
-                            // No frame within the timeout; try the next config.
                             continue;
                         }
 
-                        // The 8ch upmix of a stereo device just repeats L/R, so
-                        // a small count there only means "stereo". Trust the 2ch
-                        // probe for anything below 3 channels.
                         if (channels == 8 && channelCount < 3)
                         {
                             continue;
@@ -422,9 +394,6 @@ namespace YARG.Audio.BASS
                     }
                 }
 
-                // Expected for devices with no active input (e.g. a motherboard
-                // codec subdevice with nothing plugged in). They still fall back
-                // to a single mono channel, so this is diagnostic, not an error.
                 YargLogger.LogTrace($"Channel probe: no usable frame from [{deviceId}] '{name}'");
                 return null;
             }
@@ -461,8 +430,6 @@ namespace YARG.Audio.BASS
 
                     short[][] deinterleaved = Deinterleave(_frame, _reportedChannels, frameCount);
 
-                    // If input 1 is zeroes and input 2 has stuff → 2ch, extend to all:
-                    // silent before last active counts, tail silence does not.
                     int lastActive = -1;
                     for (int ch = 0; ch < _reportedChannels; ch++)
                     {
@@ -530,13 +497,33 @@ namespace YARG.Audio.BASS
             {
                 for (int i = 0; i < channel; i++)
                 {
-                    if (bufs[channel].AsSpan().SequenceEqual(bufs[i]))
+                    if (ChannelsEquivalent(bufs[channel], bufs[i]))
                     {
                         return true;
                     }
                 }
 
                 return false;
+            }
+
+            /// <summary>
+            ///     Checks whether two channels carry the same signal, tolerating a few
+            ///     glitched samples. Mono devices are upmixed to identical channels,
+            ///     but USB capture can corrupt a handful of samples per stream.
+            /// </summary>
+            private static bool ChannelsEquivalent(short[] a, short[] b)
+            {
+                int maxDiffering = a.Length / 100;
+                int differing = 0;
+                for (int i = 0; i < a.Length; i++)
+                {
+                    if (a[i] != b[i] && ++differing > maxDiffering)
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
             }
         }
     }
