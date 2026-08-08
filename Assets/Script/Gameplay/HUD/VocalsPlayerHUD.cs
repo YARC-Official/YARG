@@ -2,12 +2,16 @@
 using DG.Tweening;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Serialization;
 using UnityEngine.UI;
 using YARG.Core.Game;
+using YARG.Core.Logging;
 using YARG.Helpers.Extensions;
 using YARG.Helpers.UI;
 using YARG.Localization;
+using YARG.Playback;
 using YARG.Player;
+using YARG.Settings;
 
 namespace YARG.Gameplay.HUD
 {
@@ -24,10 +28,27 @@ namespace YARG.Gameplay.HUD
         [SerializeField]
         private TextMeshProUGUI _multiplierText;
         [SerializeField]
+        private GameObject _multiplierTextContainer; // Required as the different multipliers are not the same object.
+        [SerializeField]
         private TextNotifications _textNotifications;
-
         [SerializeField]
         private PlayerNameDisplay _playerNameDisplay;
+        [SerializeField]
+        private Image _multiplierRim;
+        [SerializeField]
+        private VocalSunburstEffects _sunburstEffects;
+        [SerializeField]
+        private Image _fcRing;
+        [Header("Combo Rim Images")]
+        [SerializeField]
+        private Image _grooveRim;
+        [SerializeField]
+        private Image _starPowerRim;
+
+        private Sequence _multiplierIncreaseSequence;
+        private bool     _isSp;
+        private bool     _isFc = true;
+        private int      _multiplier = 1;
 
         private float _comboMeterFillTarget;
 
@@ -39,6 +60,15 @@ namespace YARG.Gameplay.HUD
 
         public void Initialize(EnginePreset enginePreset)
         {
+            GameManager.BeatEventHandler.Visual.Subscribe(_sunburstEffects.PulseSunburst, BeatEventType.StrongBeat);
+
+            _multiplierIncreaseSequence = DOTween.Sequence(_multiplierTextContainer)
+                .Append(_multiplierTextContainer.transform.DOScale(1.75f, 0.15f))
+                .Join(_multiplierTextContainer.transform.DOLocalMoveX(-30f, 0.15f))
+                .Append(_multiplierTextContainer.transform.DOScale(1f, 0.15f))
+                .Join(_multiplierTextContainer.transform.DOLocalMoveX(0f, 0.15f))
+                .SetAutoKill(false);
+            _sunburstEffects.SetSunburstEffects(false, false, 1);
             _textCache = MultiplierTextHelper.CreateMultiplierTextCache(EnginePreset.DEFAULT_MAX_MULTIPLIER, _multiplierText, GameManager.Players.Count > 1);
 
             if (enginePreset == EnginePreset.Default)
@@ -86,6 +116,15 @@ namespace YARG.Gameplay.HUD
             {
                 _starPowerPulse.color = Color.white.WithAlpha(0);
             }
+
+            if (!_isFc)
+            {
+                var spRimAlpha = Mathf.Clamp01(_starPowerRim.color.a + (_isSp ? 1 : -1) * 3f * Time.deltaTime);
+                var grooveRimAlpha = Mathf.Clamp01(_grooveRim.color.a + (_multiplier == 4 ? 1 : -1) * 3f * Time.deltaTime);
+
+                _grooveRim.color = Color.white.WithAlpha(grooveRimAlpha);
+                _starPowerRim.color = Color.white.WithAlpha(spRimAlpha);
+            }
         }
 
         public void UpdateInfo(float phrasePercent, int multiplier,
@@ -93,17 +132,30 @@ namespace YARG.Gameplay.HUD
         {
             _comboMeterFillTarget = phrasePercent;
 
-            _multiplierText.enabled = false;
-            if (multiplier > 1)
-            {
-                _multiplierText = _textCache[multiplier - 2];
-                _multiplierText.enabled = true;
-            }
-
             _starPowerFill.fillAmount = starPowerPercent;
             _starPowerPulse.fillAmount = starPowerPercent;
 
             _shouldPulse = isStarPowerActive || starPowerPercent >= 0.5;
+
+            _sunburstEffects.SetSunburstEffects(multiplier == 4, isStarPowerActive, multiplier);
+
+            if (multiplier == _multiplier)
+            {
+                return;
+            }
+            _multiplierText.enabled = false;
+
+            if (multiplier > 1)
+            {
+                _multiplierText = _textCache[multiplier - 2];
+                _multiplierText.enabled = true;
+                if (isStarPowerActive == _isSp && multiplier > _multiplier)
+                {
+                    _multiplierIncreaseSequence.Restart();
+                }
+            }
+            _multiplier = multiplier;
+            _isSp = isStarPowerActive;
         }
 
         public static string GetVocalPerformanceText(double hitPercent)
@@ -174,6 +226,28 @@ namespace YARG.Gameplay.HUD
         public void ShowNotification(TextNotificationType notificationType)
         {
             _textNotifications.ShowNotification(notificationType);
+        }
+
+        public void SetFullCombo(bool isFullCombo)
+        {
+            _isFc = isFullCombo;
+            if (isFullCombo)
+            {
+                _fcRing.gameObject.SetActive(true);
+            }
+            else
+            {
+                // Instantly show the correct rim type
+                if (_isSp)
+                {
+                    _starPowerRim.color = Color.white.WithAlpha(1f);
+                }
+                else if (_multiplier == 4)
+                {
+                    _grooveRim.color = Color.white.WithAlpha(1f);
+                }
+                _fcRing.gameObject.SetActive(false);
+            }
         }
     }
 }

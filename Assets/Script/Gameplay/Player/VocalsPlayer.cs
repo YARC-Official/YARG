@@ -224,6 +224,8 @@ namespace YARG.Gameplay.Player
                 }
 
                 LastCombo = Combo;
+
+                _hud.SetFullCombo(false);
             };
 
             engine.OnSing += (singing) =>
@@ -263,6 +265,7 @@ namespace YARG.Gameplay.Player
         protected override void ResetVisuals()
         {
             _lastTargetNote = null;
+            _hud.SetFullCombo(IsFc);
         }
 
         public override void ResetPracticeSection()
