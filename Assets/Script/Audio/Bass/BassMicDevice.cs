@@ -206,18 +206,19 @@ namespace YARG.Audio.BASS
         private const float MIC_HIT_INPUT_THRESHOLD = 25f;
 
 #nullable enable
-        internal static BassMicDevice? Create(int deviceId, string name, RecordingSession session,
+        internal static BassMicDevice? Create(int deviceId, string baseName, RecordingSession session,
             int captureChannel = 0)
 #nullable disable
         {
-            var device = new BassMicDevice(deviceId, name, session, captureChannel);
+            string displayName = session.Channels > 1 ? $"{baseName} - Channel {captureChannel + 1}" : baseName;
+            var device = new BassMicDevice(deviceId, baseName, displayName, session, captureChannel);
 
             device._processedHandle =
                 Bass.CreateStream(session.SampleRate, 1, BassFlags.Decode, StreamProcedureType.Push);
             if (device._processedHandle == 0)
             {
                 YargLogger.LogFormatError("Failed to create processed recording stream for mic '{0}': {1}!",
-                    name, Bass.LastError);
+                    displayName, Bass.LastError);
                 return null;
             }
 
@@ -270,6 +271,7 @@ namespace YARG.Audio.BASS
 
         private MonitorPlaybackHandle _monitorHandle;
 
+        private readonly string           _baseName;
         private readonly int              _deviceId;
         private readonly int              _captureChannel;
         private readonly RecordingSession _session;
@@ -342,12 +344,13 @@ namespace YARG.Audio.BASS
 
         public override SerializedMic Serialize()
         {
-            return new SerializedMic(DisplayName);
+            return new SerializedMic(_baseName, _captureChannel);
         }
 
-        private BassMicDevice(int deviceId, string name, RecordingSession session, int captureChannel)
-            : base(name)
+        private BassMicDevice(int deviceId, string baseName, string displayName, RecordingSession session, int captureChannel)
+            : base(displayName)
         {
+            _baseName = baseName;
             _deviceId = deviceId;
             _captureChannel = captureChannel;
             _session = session;

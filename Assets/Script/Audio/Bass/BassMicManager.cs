@@ -63,7 +63,7 @@ namespace YARG.Audio.BASS
                     return null;
                 }
 
-                var mic = BassMicDevice.Create(device.DeviceId, device.DisplayName, session, device.Channel);
+                var mic = BassMicDevice.Create(device.DeviceId, device.Name, session, device.Channel);
                 if (mic == null)
                 {
                     if (FindActive(device.DeviceId) == null)

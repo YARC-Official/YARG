@@ -5,6 +5,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
 using YARG.Core;
+using YARG.Core.Audio;
 using YARG.Core.Logging;
 
 #nullable enable
@@ -15,7 +16,6 @@ namespace YARG.Input.Serialization
 
     // Unchanged data types
     using SerializedInputDeviceV3 = SerializedInputDeviceV0;
-    using SerializedMicV3 = SerializedMicV0;
 
     public class SerializedBindingsV3
     {
@@ -229,6 +229,51 @@ namespace YARG.Input.Serialization
         public bool ShouldSerializeDeviceIndex() => DeviceIndex >= 0;
         public bool ShouldSerializeDevice() => !ShouldSerializeDeviceIndex();
         public bool ShouldSerializeParameters() => Parameters.Count > 0;
+    }
+
+    public class SerializedMicV3
+    {
+        public string BaseName;
+        public int Channel;
+
+        public string DisplayName;
+
+        [JsonConstructor]
+        public SerializedMicV3()
+        {
+            BaseName = string.Empty;
+            DisplayName = string.Empty;
+        }
+
+        public SerializedMicV3(SerializedMic serialized)
+        {
+            BaseName = serialized.BaseName;
+            Channel = serialized.Channel;
+        }
+
+        public SerializedMic Deserialize()
+        {
+            if (!string.IsNullOrEmpty(BaseName))
+            {
+                return new SerializedMic(BaseName, Channel);
+            }
+
+            if (!string.IsNullOrEmpty(DisplayName))
+            {
+                if (InputDeviceInfo.TryParseDisplayName(DisplayName, out var b, out var c))
+                {
+                    return new SerializedMic(b, c);
+                }
+
+                return new SerializedMic(DisplayName, 0);
+            }
+
+            return new SerializedMic(BaseName ?? string.Empty, Channel);
+        }
+
+        public bool ShouldSerializeDisplayName() => string.IsNullOrEmpty(BaseName);
+        public bool ShouldSerializeBaseName() => !string.IsNullOrEmpty(BaseName);
+        public bool ShouldSerializeChannel() => !string.IsNullOrEmpty(BaseName);
     }
 
     public static partial class BindingSerialization

@@ -196,7 +196,8 @@ namespace YARG.Input
 
             for (int i = _unresolvedMics.Count - 1; i >= 0; i--)
             {
-                var device = GlobalAudioHandler.GetInputDevice(_unresolvedMics[i].Name);
+                var mic = _unresolvedMics[i];
+                var device = GlobalAudioHandler.GetInputDevice(mic.BaseName, mic.Channel);
                 if (device != null)
                 {
                     _unresolvedMics.RemoveAt(i);
@@ -435,10 +436,10 @@ namespace YARG.Input
 
             _microphones.Add(microphone);
 
-            // Remove corresponding serialized entry, if any
+            var serialized = microphone.Serialize();
             for (int i = _unresolvedMics.Count - 1; i >= 0; i--)
             {
-                if (_unresolvedMics[i].Name == microphone.DisplayName)
+                if (_unresolvedMics[i].BaseName == serialized.BaseName && _unresolvedMics[i].Channel == serialized.Channel)
                 {
                     _unresolvedMics.RemoveAt(i);
                 }

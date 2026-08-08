@@ -255,12 +255,18 @@ namespace YARG.Audio.BASS
 
         protected override MicDevice? GetInputDevice(string name)
         {
-            if (!InputDeviceInfo.TryParseDisplayName(name, out var parsed))
+            if (!InputDeviceInfo.TryParseDisplayName(name, out var baseName, out var channel))
             {
                 return null;
             }
 
-            return _micManager.CreateMic(parsed);
+            return GetInputDevice(baseName, channel);
+        }
+
+        protected override MicDevice? GetInputDevice(string baseName, int channel)
+        {
+            var info = new InputDeviceInfo(-1, baseName, channel, channel + 1);
+            return _micManager.CreateMic(info);
         }
 #nullable disable
 
