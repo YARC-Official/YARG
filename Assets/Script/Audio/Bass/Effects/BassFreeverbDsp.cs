@@ -12,7 +12,6 @@ namespace YARG.Audio.BASS.Effects
     /// </summary>
     public sealed class BassFreeverbDsp : SafeHandleZeroOrMinusOneIsInvalid
     {
-        private const uint ABI_VERSION = 1;
         private const string EFFECT_NAME = "native Freeverb DSP";
 
         private BassFreeverbDsp() : base(true)
@@ -45,10 +44,10 @@ namespace YARG.Audio.BASS.Effects
             try
             {
                 uint nativeVersion = Native.GetAbiVersion();
-                if (nativeVersion != ABI_VERSION)
+                if (nativeVersion != BassHelpers.YARG_AUDIO_ABI_VERSION)
                 {
                     YargLogger.LogError(
-                        $"Cannot attach {EFFECT_NAME}: ABI mismatch managed={ABI_VERSION}, " +
+                        $"Cannot attach {EFFECT_NAME}: ABI mismatch managed={BassHelpers.YARG_AUDIO_ABI_VERSION}, " +
                         $"native={nativeVersion}, channel={streamHandle}, " +
                         $"platform={PlatformDescription}.");
                     return null;
