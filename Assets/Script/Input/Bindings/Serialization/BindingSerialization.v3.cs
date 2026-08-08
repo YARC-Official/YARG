@@ -260,9 +260,9 @@ namespace YARG.Input.Serialization
 
             if (!string.IsNullOrEmpty(DisplayName))
             {
-                if (InputDeviceInfo.TryParseDisplayName(DisplayName, out var b, out var c))
+                if (InputDeviceInfo.TryParseDisplayName(DisplayName, out var parsedBaseName, out var parsedChannel))
                 {
-                    return new SerializedMic(b, c);
+                    return new SerializedMic(parsedBaseName, parsedChannel);
                 }
 
                 return new SerializedMic(DisplayName, 0);
