@@ -101,9 +101,11 @@ namespace YARG.Menu.Dialogs
         {
         }
 
+        public bool IsOpen => this != null && gameObject.activeSelf;
+
         public UniTask WaitUntilClosed()
         {
-            return UniTask.WaitUntil(() => this == null || !gameObject.activeSelf);
+            return UniTask.WaitUntil(() => !IsOpen);
         }
     }
 }

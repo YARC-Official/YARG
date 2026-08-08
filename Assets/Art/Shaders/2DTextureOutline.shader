@@ -48,6 +48,10 @@
 
             #pragma multi_compile_instancing
 
+            #if SHADER_API_METAL
+            #pragma dynamic_branch _ _FOVEATED_RENDERING_NON_UNIFORM_RASTER
+            #endif
+
             #include "Assets/Art/Shaders/YargParticlesUnlitInput.hlsl"
 
             CBUFFER_START(OutlineProperties)

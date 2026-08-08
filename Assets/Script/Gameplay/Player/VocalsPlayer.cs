@@ -134,10 +134,10 @@ namespace YARG.Gameplay.Player
 
             _hud.ShowPlayerName(player, needleIndex);
 
-            // Create and start an input context for the mic
-            if (!Player.IsReplay && player.Bindings.Microphone != null)
+            // Create and start an input context for the mics
+            if (!Player.IsReplay && player.Bindings.Microphones.Count > 0)
             {
-                _inputContext = new MicInputContext(player.Bindings.Microphone, GameManager);
+                _inputContext = new MicInputContext(player.Bindings.Microphones, GameManager);
                 _inputContext.Start();
             }
 

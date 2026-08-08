@@ -923,7 +923,10 @@ namespace YARG.Settings
             {
                 foreach (var player in PlayerContainer.Players)
                 {
-                    player.Bindings.Microphone?.SetMonitoringLevel(volume);
+                    foreach (var mic in player.Bindings.Microphones)
+                    {
+                        mic.SetMonitoringLevel(volume);
+                    }
                 }
             }
 

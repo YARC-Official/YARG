@@ -425,9 +425,12 @@ namespace YARG.Gameplay
 
                     if (!player.IsReplay)
                     {
-                        // Reset microphone (resets channel buffers)
+                        // Reset microphones (resets channel buffers)
                         // We probably wanna do this no matter what, so put it up here
-                        player.Bindings.Microphone?.Reset();
+                        foreach (var mic in player.Bindings.Microphones)
+                        {
+                            mic.Reset();
+                        }
                     }
 
                     // Skip if the player is sitting out
