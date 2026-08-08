@@ -143,19 +143,18 @@ namespace YARG.Gameplay.HUD
             {
                 return;
             }
-            _multiplier = multiplier;
             _multiplierText.enabled = false;
 
             if (multiplier > 1)
             {
                 _multiplierText = _textCache[multiplier - 2];
                 _multiplierText.enabled = true;
-                if (isStarPowerActive == _isSp)
+                if (isStarPowerActive == _isSp && multiplier > _multiplier)
                 {
                     _multiplierIncreaseSequence.Restart();
                 }
             }
-
+            _multiplier = multiplier;
             _isSp = isStarPowerActive;
         }
 
