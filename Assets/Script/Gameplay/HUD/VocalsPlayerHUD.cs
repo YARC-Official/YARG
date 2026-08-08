@@ -237,6 +237,15 @@ namespace YARG.Gameplay.HUD
             }
             else
             {
+                // Instantly show the correct rim type
+                if (_isSp)
+                {
+                    _starPowerRim.color = Color.white.WithAlpha(1f);
+                }
+                else if (_multiplier == 4)
+                {
+                    _grooveRim.color = Color.white.WithAlpha(1f);
+                }
                 _fcRing.gameObject.SetActive(false);
             }
         }
