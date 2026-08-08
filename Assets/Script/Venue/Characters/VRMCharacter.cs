@@ -42,6 +42,7 @@ namespace YARG.Venue.Characters
         private BlittableModelLevel _modelLevels;
 
         private Vector3 _initialPosition;
+        private Quaternion _initialRotation;
 
         // For checking visibility
         private MeshRenderer _visibilityRenderer;
@@ -73,6 +74,7 @@ namespace YARG.Venue.Characters
         public override void Initialize(CharacterManager characterManager = null)
         {
             _initialPosition = transform.position;
+            _initialRotation = transform.rotation;
 
             // Find camera manager
             _cameraManager = FindFirstObjectByType<CameraManager>();
@@ -331,6 +333,7 @@ namespace YARG.Venue.Characters
 
             // Reset X and Z pos to their initial values
             transform.position = destination;
+            transform.rotation = _initialRotation;
         }
 
         private static bool WouldBeVisible(Camera cam, Bounds bounds)
