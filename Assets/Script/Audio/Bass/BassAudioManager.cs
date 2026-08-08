@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading;
+using Cysharp.Threading.Tasks;
 using ManagedBass;
 using ManagedBass.Fx;
 using ManagedBass.Mix;
@@ -265,6 +267,11 @@ namespace YARG.Audio.BASS
         protected override List<InputDeviceInfo> GetAllInputDevices()
         {
             return _micManager.GetAllDevices();
+        }
+
+        public UniTask<List<InputDeviceInfo>> GetAllInputDevicesAsync(CancellationToken cancellationToken = default)
+        {
+            return _micManager.GetAllDevicesAsync(cancellationToken);
         }
 
 #nullable enable

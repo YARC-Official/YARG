@@ -242,15 +242,19 @@ namespace YARG.Menu.ProfileList
             List<InputDeviceInfo> mics;
             try
             {
-                mics = await GlobalAudioHandler.GetAllInputDevicesAsync(ct);
+                mics = await UniTask.RunOnThreadPool(() => GlobalAudioHandler.GetAllInputDevices(),
+                    cancellationToken: ct);
+                await UniTask.SwitchToMainThread(cancellationToken: ct);
             }
             catch (OperationCanceledException)
             {
                 return;
             }
 
-            await UniTask.SwitchToMainThread();
-            Destroy(placeholderButton.gameObject);
+            if (placeholderButton != null)
+            {
+                Destroy(placeholderButton.gameObject);
+            }
 
             // Dialog may have been closed while microphones were being probed
             if (!dialog.IsOpen)

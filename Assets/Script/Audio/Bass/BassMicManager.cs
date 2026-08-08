@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
+using Cysharp.Threading.Tasks;
 using ManagedBass;
 using YARG.Core.Audio;
 using YARG.Core.Logging;
@@ -80,6 +81,11 @@ namespace YARG.Audio.BASS
                 mic.SetMonitoringLevel(SettingsManager.Settings.VocalMonitoring.Value);
                 return mic;
             }
+        }
+
+        public UniTask<List<InputDeviceInfo>> GetAllDevicesAsync(CancellationToken cancellationToken = default)
+        {
+            return UniTask.RunOnThreadPool(() => GetAllDevices(), cancellationToken: cancellationToken);
         }
 
         /// <summary>
