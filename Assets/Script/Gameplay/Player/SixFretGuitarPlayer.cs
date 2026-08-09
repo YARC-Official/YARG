@@ -203,8 +203,8 @@ namespace YARG.Gameplay.Player
             {
                 var blackFret = (SixFretGuitarFret)(pair + 1); // Black1=1, Black2=2, Black3=3
                 var whiteFret = (SixFretGuitarFret)(pair + 4); // White1=4, White2=5, White3=6
-                var blackHeld = Engine.IsFretHeld((GuitarAction)(int)blackFret);
-                var whiteHeld = Engine.IsFretHeld((GuitarAction)(int)whiteFret);
+                var blackHeld = Engine.IsFretHeld((GuitarAction)((int)blackFret - 1));
+                var whiteHeld = Engine.IsFretHeld((GuitarAction)((int)whiteFret - 1));
                 var fretIndex = (int)blackFret; // Matches _frets dict key (Black1=1)
 
                 if (blackHeld && whiteHeld)
