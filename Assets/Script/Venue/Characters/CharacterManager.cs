@@ -25,28 +25,13 @@ namespace YARG.Venue.Characters
         private Vector3 _wind;
         private Vector3 _lastUpdatedWind     = Vector3.zero;
         private bool    _lastKnownPausedState = false;
-        /// <summary>
-        /// Used for lipsync ordering. If there is no BandSongPref file present in the milo, lipsync will be assigned in this order.
-        /// </summary>
-        private readonly CharacterType[] _preferredCharacterOrder = {CharacterType.Vocals, CharacterType.Guitar, CharacterType.Bass, CharacterType.Drums, CharacterType.Keys};
-
 
         private readonly Dictionary<CharacterType, VenueCharacter> _characters = new();
         public           Dictionary<CharacterType, VenueCharacter> Characters => _characters;
 
-        private CharacterType? GetInstrumentPreference(int lipsyncIndex)
-        {
-            if (GameManager.Chart.SingerPreference.Length < lipsyncIndex)
-            {
-                return null;
-            }
-
-            return VenueCharacter.CharacterTypeFromPerformer(GameManager.Chart.SingerPreference[lipsyncIndex]);
-        }
-
         private int GetSingalongIndex(CharacterType characterType)
         {
-            var maxIndex = GameManager.Chart.LipsyncEventsByPart.Length - 1;
+            var maxIndex = GameManager.Chart.LipsyncEventsByPart.Count - 1;
             var pref = characterType switch
             {
                 CharacterType.Guitar => 1,
@@ -74,7 +59,7 @@ namespace YARG.Venue.Characters
         private List<AnimationEvent> _bassAnimationEvents;
         private List<AnimationEvent> _drumAnimationEvents;
 
-        public List<LipsyncEvent>[] LipsyncEvents;
+        private List<List<LipsyncEvent>> LipsyncEventsByPart { get; } = new();
 
         private int _guitarNoteIndex;
         private int _bassNoteIndex;
@@ -178,7 +163,7 @@ namespace YARG.Venue.Characters
                 GenerateDrumsAnimations();
             }
 
-            LipsyncEvents = chart.LipsyncEventsByPart;
+            LipsyncEventsByPart.AddRange(chart.LipsyncEventsByPart);
 
             // This will eventually be combined into the animation events stuff, but for now the text events from the
             // individual instrument difficulties are separate
@@ -236,52 +221,25 @@ namespace YARG.Venue.Characters
                     var performerType = VenueCharacter.PerformerFromCharacterType(character.Type);
                     var singalongEvents = GameManager.Chart.VenueTrack.Performer.Where(x => x.Type is PerformerEventType.Singalong && x.Performers.HasFlag(performerType)).ToList();
                     YargLogger.LogFormatDebug("Found {0} singalong events for character type {1}", singalongEvents.Count, character.Type);
-                    vrmCharacter.InitializeSingalongLipsync(LipsyncEvents[GetSingalongIndex(character.Type)], singalongEvents);
+                    vrmCharacter.InitializeSingalongLipsync(LipsyncEventsByPart[GetSingalongIndex(character.Type)], singalongEvents);
                 }
                 _characters.Add(character.Type, character);
             }
-            bool[] assignedLipsync = new bool[LipsyncEvents.Length];
-            for (int i = 0; i < LipsyncEvents.Length; i++)
-            {
-                var lipsyncEvents = LipsyncEvents[i];
-                var preferredCharacter = GetInstrumentPreference(i);
-                if (preferredCharacter != null && _characters.TryGetValue(preferredCharacter.Value, out var character) && character is VRMCharacter { HasLipsyncAssigned: false } vrmCharacter)
-                {
-                    YargLogger.LogFormatDebug("Assigning lipsync part {0} to preferred character type {1}", i, preferredCharacter.Value);
-                    vrmCharacter.InitializeLipsync(lipsyncEvents);
-                    assignedLipsync[i] = true;
-                }
-            }
 
-            for (int i = 0; i < LipsyncEvents.Length; i++)
+            for (int i = 0; i < LipsyncEventsByPart.Count; i++)
             {
-                if (!assignedLipsync[i])
+                var lipsyncEvents = LipsyncEventsByPart[i];
+                var characterType = VenueCharacter.CharacterTypeFromPerformer(GameManager.Chart.SingerPreference[i]);
+                if (characterType != null && _characters.TryGetValue(characterType.Value, out var character) &&
+                    character is VRMCharacter { HasLipsyncAssigned: false } vrmCharacter)
                 {
-                    var lipsyncEvents = LipsyncEvents[i];
-                    var firstCharacterWithoutLipsync = GetFirstCharacterWithoutLipsync();
-                    if (firstCharacterWithoutLipsync != null)
-                    {
-                        YargLogger.LogFormatDebug("Assigning lipsync part {0} to first character without lipsync: {1}", i, firstCharacterWithoutLipsync.Type);
-                        firstCharacterWithoutLipsync.InitializeLipsync(lipsyncEvents);
-                    }
+                    YargLogger.LogFormatDebug("Assigning lipsync part {0} to character type {1}", i,
+                        characterType.Value);
+                    vrmCharacter.InitializeLipsync(lipsyncEvents);
                 }
             }
 
             GameManager.SetVenueCharacterManager(this);
-        }
-        private VRMCharacter GetFirstCharacterWithoutLipsync()
-        {
-            foreach (var type in _preferredCharacterOrder)
-            {
-                if (!_characters.TryGetValue(type, out var character) || character is not VRMCharacter vrmCharacter || vrmCharacter.HasLipsyncAssigned)
-                {
-                    continue;
-                }
-
-                return vrmCharacter;
-
-            }
-            return null;
         }
 
         private void Update()

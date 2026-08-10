@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using DG.Tweening;
-using JetBrains.Annotations;
 using UniGLTF.SpringBoneJobs.Blittables;
 using UnityEngine;
 using UniVRM10;
@@ -157,6 +156,7 @@ namespace YARG.Venue.Characters
             while (_singalongEventIndex < _singalongEvents.Count && _singalongEvents[_singalongEventIndex].TimeEnd <= time)
             {
                 _singalongEventIndex++;
+                SetExpression(LipsyncType.Neutral_hi, 1f);
             }
 
             ref int index = ref _lipsyncIndex;
@@ -177,27 +177,29 @@ namespace YARG.Venue.Characters
             }
         }
 
-        private void SetExpression(LipsyncEvent lipsyncEvent)
+        private void SetExpression(LipsyncEvent lipsyncEvent) => SetExpression(lipsyncEvent.Type, lipsyncEvent.Value);
+
+        private void SetExpression(LipsyncType type, float value)
         {
             if (!_hasVrmInstance)
             {
                 return;
             }
 
-            if (TryGetExpressionKey(lipsyncEvent.Type, out var key))
+            if (TryGetExpressionKey(type, out var key))
             {
-                _expression.SetWeight(key, lipsyncEvent.Value);
+                _expression.SetWeight(key, value);
                 return;
             }
 
             // Couldn't find a default expression, so look for customs
-            if (TryGetExpressionKey(lipsyncEvent.Type.ToString(), out key))
+            if (TryGetExpressionKey(type.ToString(), out key))
             {
-                _expression.SetWeight(key, lipsyncEvent.Value);
+                _expression.SetWeight(key, value);
                 return;
             }
 
-            _expression.SetWeight(_lipsyncKey, lipsyncEvent.Value);
+            _expression.SetWeight(_lipsyncKey, value);
         }
 
         public void SetWind(Vector3 wind)

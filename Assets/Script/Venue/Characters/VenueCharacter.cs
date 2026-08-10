@@ -53,13 +53,8 @@ namespace YARG.Venue.Characters
                 CharacterType.Drums  => Performer.Drums,
                 CharacterType.Vocals => Performer.Vocals,
                 CharacterType.Keys   => Performer.Keyboard,
-                _                    => throw new ArgumentOutOfRangeException(nameof(characterType), characterType, null)
+                _                    => Performer.None
             };
-        }
-
-        public static CharacterType? CharacterTypeFromPerformer(Performer? performer)
-        {
-            return performer.HasValue ? CharacterTypeFromPerformer(performer.Value) : null;
         }
 
         [Tooltip("This only needs to be set if you are building the character into a venue.\n\nIt is handled automatically for .yargchar exports.")]
