@@ -128,7 +128,7 @@ namespace YARG.Venue.Characters
 
         protected override void Update()
         {
-            if (_characterManager != null)
+            if (_characterManager)
             {
                 ProcessLipsync(_characterManager.SongTime);
             }
@@ -153,10 +153,12 @@ namespace YARG.Venue.Characters
                 return;
             }
 
+            bool advanceWithoutSetting = false;
             while (_singalongEventIndex < _singalongEvents.Count && _singalongEvents[_singalongEventIndex].TimeEnd <= time)
             {
                 _singalongEventIndex++;
-                SetExpression(LipsyncType.Neutral_hi, 1f);
+                ResetExpressions();
+                advanceWithoutSetting = true;
             }
 
             ref int index = ref _lipsyncIndex;
@@ -170,36 +172,44 @@ namespace YARG.Venue.Characters
             while (index < list.Count && list[index].Time <= time)
             {
                 var lipsyncEvent = list[index];
-
-                SetExpression(lipsyncEvent);
-
+                if (!advanceWithoutSetting)
+                {
+                    SetExpression(lipsyncEvent);
+                }
                 index++;
             }
         }
 
-        private void SetExpression(LipsyncEvent lipsyncEvent) => SetExpression(lipsyncEvent.Type, lipsyncEvent.Value);
-
-        private void SetExpression(LipsyncType type, float value)
+        private void SetExpression(LipsyncEvent lipsyncEvent)
         {
             if (!_hasVrmInstance)
             {
                 return;
             }
 
-            if (TryGetExpressionKey(type, out var key))
+            if (TryGetExpressionKey(lipsyncEvent.Type, out var key))
             {
-                _expression.SetWeight(key, value);
+                _expression.SetWeight(key, lipsyncEvent.Value);
                 return;
             }
 
             // Couldn't find a default expression, so look for customs
-            if (TryGetExpressionKey(type.ToString(), out key))
+            if (TryGetExpressionKey(lipsyncEvent.Type.ToString(), out key))
             {
-                _expression.SetWeight(key, value);
+                _expression.SetWeight(key, lipsyncEvent.Value);
                 return;
             }
 
-            _expression.SetWeight(_lipsyncKey, value);
+            _expression.SetWeight(_lipsyncKey, lipsyncEvent.Value);
+        }
+
+        private void ResetExpressions()
+        {
+            foreach (var key in _customExpressions.Values)
+            {
+                _expression.SetWeight(key, 0f);
+            }
+            _expression.SetWeight(_lipsyncKey, 0f);
         }
 
         public void SetWind(Vector3 wind)
