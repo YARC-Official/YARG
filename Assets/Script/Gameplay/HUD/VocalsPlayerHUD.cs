@@ -2,10 +2,8 @@
 using DG.Tweening;
 using TMPro;
 using UnityEngine;
-using UnityEngine.Serialization;
 using UnityEngine.UI;
 using YARG.Core.Game;
-using YARG.Core.Logging;
 using YARG.Helpers.Extensions;
 using YARG.Helpers.UI;
 using YARG.Localization;
@@ -120,7 +118,7 @@ namespace YARG.Gameplay.HUD
             if (!_isFc)
             {
                 var spRimAlpha = Mathf.Clamp01(_starPowerRim.color.a + (_isSp ? 1 : -1) * 3f * Time.deltaTime);
-                var grooveRimAlpha = Mathf.Clamp01(_grooveRim.color.a + (_multiplier == 4 ? 1 : -1) * 3f * Time.deltaTime);
+                var grooveRimAlpha = Mathf.Clamp01(_grooveRim.color.a + (!_isSp && _multiplier == 4 ? 1 : -1) * 3f * Time.deltaTime);
 
                 _grooveRim.color = Color.white.WithAlpha(grooveRimAlpha);
                 _starPowerRim.color = Color.white.WithAlpha(spRimAlpha);
@@ -137,9 +135,10 @@ namespace YARG.Gameplay.HUD
 
             _shouldPulse = isStarPowerActive || starPowerPercent >= 0.5;
 
-            _sunburstEffects.SetSunburstEffects(multiplier == 4, isStarPowerActive, multiplier);
 
-            if (multiplier == _multiplier)
+            _sunburstEffects.SetSunburstEffects(multiplier == 4 && !isStarPowerActive, isStarPowerActive, multiplier);
+
+            if (multiplier == _multiplier && isStarPowerActive == _isSp)
             {
                 return;
             }
@@ -215,7 +214,7 @@ namespace YARG.Gameplay.HUD
 
         public void ShowPhraseHit(double hitPercent, int combo)
         {
-            if (!Settings.SettingsManager.Settings.DisableTextNotifications.Value)
+            if (!SettingsManager.Settings.DisableTextNotifications.Value)
             {
                 _textNotifications.UpdateNoteStreak(combo);
             }
@@ -237,14 +236,10 @@ namespace YARG.Gameplay.HUD
             }
             else
             {
-                // Instantly show the correct rim type
+                // Instantly show the SP rim if in star power
                 if (_isSp)
                 {
                     _starPowerRim.color = Color.white.WithAlpha(1f);
-                }
-                else if (_multiplier == 4)
-                {
-                    _grooveRim.color = Color.white.WithAlpha(1f);
                 }
                 _fcRing.gameObject.SetActive(false);
             }
