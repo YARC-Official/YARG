@@ -38,7 +38,7 @@ namespace YARG.Venue.Characters
                 CharacterType.Bass => 2,
                 CharacterType.Drums => 0,
                 CharacterType.Keys => 3, // Keys doesn't really work like this in RB, it just replaces guitar/bass
-                _ => -1
+                _ => 0
             };
             return Math.Min(pref, maxIndex);
         }
@@ -229,7 +229,7 @@ namespace YARG.Venue.Characters
             for (int i = 0; i < LipsyncEventsByPart.Count; i++)
             {
                 var lipsyncEvents = LipsyncEventsByPart[i];
-                var characterType = VenueCharacter.CharacterTypeFromPerformer(GameManager.Chart.SingerPreference[i]);
+                var characterType = i < GameManager.Chart.SingerPreference.Length ? VenueCharacter.CharacterTypeFromPerformer(GameManager.Chart.SingerPreference[i]) : null;
                 if (characterType != null && _characters.TryGetValue(characterType.Value, out var character) &&
                     character is VRMCharacter { HasLipsyncAssigned: false } vrmCharacter)
                 {
@@ -239,7 +239,42 @@ namespace YARG.Venue.Characters
                 }
             }
 
+            if (GameManager.Chart.SingerPreference.Length < LipsyncEventsByPart.Count)
+            {
+                // There are some unassigned harmonies
+                for (int i = GameManager.Chart.SingerPreference.Length; i < LipsyncEventsByPart.Count; i++)
+                {
+                    var character = GetFirstCharacterWithoutLipsync();
+                    if (character != null)
+                    {
+                        YargLogger.LogFormatDebug("Assigning lipsync part {0} to character type {1}", i,
+                            character.Type);
+                        character.InitializeLipsync(LipsyncEventsByPart[i]);
+                    }
+                    else
+                    {
+                        YargLogger.LogFormatWarning(
+                            "No available characters to assign lipsync part {0} to, skipping assignment", i);
+                    }
+                }
+            }
+
             GameManager.SetVenueCharacterManager(this);
+        }
+
+        private VRMCharacter GetFirstCharacterWithoutLipsync()
+        {
+            foreach (var character in _characters.Values)
+            {
+                if (character is not VRMCharacter vrmCharacter || vrmCharacter.HasLipsyncAssigned)
+                {
+                    continue;
+                }
+
+                return vrmCharacter;
+
+            }
+            return null;
         }
 
         private void Update()
