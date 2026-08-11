@@ -928,14 +928,9 @@ namespace YARG.Gameplay
                 return;
             }
 
-            if (characterManager.SingalongDataByCharacter.TryGetValue(character.Type, out var singalongData))
-            {
-                character.InitializeSingalongLipsync(singalongData);
-            }
-
             if (characterManager.LipsyncDataByCharacter.TryGetValue(character.Type, out var lipsyncData))
             {
-                character.InitializeLipsync(lipsyncData);
+                character.InitializeLipsync(lipsyncData, characterManager.SingalongEventsByCharacter[character.Type]);
             }
         }
 

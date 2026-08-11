@@ -15,10 +15,8 @@ namespace YARG.Venue.Characters
     public class VRMCharacter : VenueCharacter
     {
         private Vrm10RuntimeExpression _expression;
-        private List<LipsyncEvent>     _assignedlipsyncEvents;
+        private List<LipsyncEvent>     _lipsyncEvents;
         private int                    _lipsyncIndex;
-        private List<LipsyncEvent>     _singalongLipsyncEvents;
-        private int                    _singalongLipsyncIndex;
         private List<PerformerEvent>   _singalongEvents;
         private int                    _singalongEventIndex;
         public  bool                   HasLipsyncAssigned;
@@ -61,7 +59,7 @@ namespace YARG.Venue.Characters
         private static Mesh     _unitCubeMesh;
         private static Material _invisibleMaterial;
 
-        private bool HasLipsyncEvents => _assignedlipsyncEvents != null && _assignedlipsyncEvents.Count > 0;
+        private bool HasLipsyncEvents => _lipsyncEvents != null && _lipsyncEvents.Count > 0;
 
         public int ActionsPerAnimationCycle
         {
@@ -93,8 +91,7 @@ namespace YARG.Venue.Characters
             _hasVrmInstance = VrmInstance != null;
             _modelLevels = new BlittableModelLevel();
             _expression = VrmInstance.Runtime.Expression;
-            _assignedlipsyncEvents = new List<LipsyncEvent>();
-            _singalongLipsyncEvents = new List<LipsyncEvent>();
+            _lipsyncEvents = new List<LipsyncEvent>();
             _singalongEvents = new List<PerformerEvent>();
 
             var clips = VrmInstance.Vrm.Expression.CustomClips;
@@ -107,23 +104,13 @@ namespace YARG.Venue.Characters
             base.Initialize(characterManager);
         }
 
-        public void InitializeLipsync(List<LipsyncEvent> lipsyncEvents)
+        public void InitializeLipsync(List<LipsyncEvent> lipsyncEvents, List<PerformerEvent> singalongEvents)
         {
-            _assignedlipsyncEvents = lipsyncEvents;
+            _lipsyncEvents = lipsyncEvents;
+            _singalongEvents = singalongEvents;
+            _singalongEventIndex = 0;
             _lipsyncIndex = 0;
             HasLipsyncAssigned = true;
-        }
-
-        public void InitializeSingalongLipsync(CharacterManager.SingalongData singalongData)
-        {
-            _singalongLipsyncEvents = singalongData.SingalongLipsyncEvents;
-            _singalongLipsyncIndex = 0;
-            _singalongEvents = singalongData.SingalongEvents;
-            _singalongEventIndex = 0;
-            if (_singalongLipsyncEvents.Count > 0 && _singalongEvents.Count > 0)
-            {
-                HasLipsyncAssigned = true;
-            }
         }
 
         protected override void Update()
@@ -153,30 +140,25 @@ namespace YARG.Venue.Characters
                 return;
             }
 
-            bool advanceWithoutSetting = false;
             while (_singalongEventIndex < _singalongEvents.Count && _singalongEvents[_singalongEventIndex].TimeEnd <= time)
             {
                 _singalongEventIndex++;
                 ResetExpressions();
-                advanceWithoutSetting = true;
             }
 
-            ref int index = ref _lipsyncIndex;
-            var list = _assignedlipsyncEvents;
-            if (_singalongEventIndex < _singalongEvents.Count && _singalongEvents[_singalongEventIndex].Time <= time && _singalongEvents[_singalongEventIndex].TimeEnd >= time)
+            bool shouldSing = _singalongEvents.Count == 0 || (_singalongEventIndex < _singalongEvents.Count && _singalongEvents[_singalongEventIndex].Time <= time && time <= _singalongEvents[_singalongEventIndex].TimeEnd);
+            if (Type is CharacterType.Vocals)
             {
-                index = ref _singalongLipsyncIndex;
-                list = _singalongLipsyncEvents;
+                YargLogger.LogFormatDebug("ShouldSing: {0}", shouldSing);
             }
-
-            while (index < list.Count && list[index].Time <= time)
+            while (_lipsyncIndex < _lipsyncEvents.Count && _lipsyncEvents[_lipsyncIndex].Time <= time)
             {
-                var lipsyncEvent = list[index];
-                if (!advanceWithoutSetting)
+                var lipsyncEvent = _lipsyncEvents[_lipsyncIndex];
+                if (shouldSing)
                 {
                     SetExpression(lipsyncEvent);
                 }
-                index++;
+                _lipsyncIndex++;
             }
         }
 
