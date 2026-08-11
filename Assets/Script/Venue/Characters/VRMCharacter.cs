@@ -128,7 +128,7 @@ namespace YARG.Venue.Characters
 
         protected override void Update()
         {
-            if (_characterManager)
+            if (_characterManager != null)
             {
                 ProcessLipsync(_characterManager.SongTime);
             }
