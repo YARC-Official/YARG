@@ -147,10 +147,6 @@ namespace YARG.Venue.Characters
             }
 
             bool shouldSing = _singalongEvents.Count == 0 || (_singalongEventIndex < _singalongEvents.Count && _singalongEvents[_singalongEventIndex].Time <= time && time <= _singalongEvents[_singalongEventIndex].TimeEnd);
-            if (Type is CharacterType.Vocals)
-            {
-                YargLogger.LogFormatDebug("ShouldSing: {0}", shouldSing);
-            }
             while (_lipsyncIndex < _lipsyncEvents.Count && _lipsyncEvents[_lipsyncIndex].Time <= time)
             {
                 var lipsyncEvent = _lipsyncEvents[_lipsyncIndex];
