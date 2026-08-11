@@ -114,11 +114,11 @@ namespace YARG.Venue.Characters
             HasLipsyncAssigned = true;
         }
 
-        public void InitializeSingalongLipsync(List<LipsyncEvent> singalongLipsyncEvents, List<PerformerEvent> singalongEvents)
+        public void InitializeSingalongLipsync(CharacterManager.SingalongData singalongData)
         {
-            _singalongLipsyncEvents = singalongLipsyncEvents;
+            _singalongLipsyncEvents = singalongData.SingalongLipsyncEvents;
             _singalongLipsyncIndex = 0;
-            _singalongEvents = singalongEvents;
+            _singalongEvents = singalongData.SingalongEvents;
             _singalongEventIndex = 0;
             if (_singalongLipsyncEvents.Count > 0 && _singalongEvents.Count > 0)
             {

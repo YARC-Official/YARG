@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using JetBrains.Annotations;
 using UnityEngine;
+using UnityEngine.TextCore.Text;
 using YARG.Core;
 using YARG.Core.Chart;
 using YARG.Core.Chart.Events;
@@ -17,6 +19,11 @@ namespace YARG.Venue.Characters
 {
     public class CharacterManager : GameplayBehaviour
     {
+        public struct SingalongData
+        {
+            public List<LipsyncEvent> SingalongLipsyncEvents;
+            public List<PerformerEvent> SingalongEvents;
+        }
 
         [SerializeField]
         private GameObject _venue;
@@ -28,6 +35,9 @@ namespace YARG.Venue.Characters
 
         private readonly Dictionary<CharacterType, VenueCharacter> _characters = new();
         public           Dictionary<CharacterType, VenueCharacter> Characters => _characters;
+
+        public Dictionary<CharacterType, SingalongData>      SingalongDataByCharacter { get; } = new();
+        public Dictionary<CharacterType, List<LipsyncEvent>> LipsyncDataByCharacter   { get; } = new();
 
         private int GetSingalongIndex(CharacterType characterType)
         {
@@ -214,64 +224,86 @@ namespace YARG.Venue.Characters
                 {
                     continue;
                 }
-
                 character.Initialize(this);
-                if (character is VRMCharacter vrmCharacter && character.Type is not CharacterType.Vocals)
-                {
-                    var performerType = VenueCharacter.PerformerFromCharacterType(character.Type);
-                    var singalongEvents = GameManager.Chart.VenueTrack.Performer.Where(x => x.Type is PerformerEventType.Singalong && x.Performers.HasFlag(performerType)).ToList();
-                    YargLogger.LogFormatDebug("Found {0} singalong events for character type {1}", singalongEvents.Count, character.Type);
-                    vrmCharacter.InitializeSingalongLipsync(LipsyncEventsByPart[GetSingalongIndex(character.Type)], singalongEvents);
-                }
                 _characters.Add(character.Type, character);
             }
-
-            for (int i = 0; i < LipsyncEventsByPart.Count; i++)
-            {
-                var lipsyncEvents = LipsyncEventsByPart[i];
-                var characterType = i < GameManager.Chart.SingerPreference.Length ? VenueCharacter.CharacterTypeFromPerformer(GameManager.Chart.SingerPreference[i]) : null;
-                if (characterType != null && _characters.TryGetValue(characterType.Value, out var character) &&
-                    character is VRMCharacter { HasLipsyncAssigned: false } vrmCharacter)
-                {
-                    YargLogger.LogFormatDebug("Assigning lipsync part {0} to character type {1}", i,
-                        characterType.Value);
-                    vrmCharacter.InitializeLipsync(lipsyncEvents);
-                }
-            }
-
-            if (GameManager.Chart.SingerPreference.Length < LipsyncEventsByPart.Count)
-            {
-                // There are some unassigned harmonies
-                for (int i = GameManager.Chart.SingerPreference.Length; i < LipsyncEventsByPart.Count; i++)
-                {
-                    var character = GetFirstCharacterWithoutLipsync();
-                    if (character != null)
-                    {
-                        YargLogger.LogFormatDebug("Assigning lipsync part {0} to character type {1}", i,
-                            character.Type);
-                        character.InitializeLipsync(LipsyncEventsByPart[i]);
-                    }
-                    else
-                    {
-                        YargLogger.LogFormatWarning(
-                            "No available characters to assign lipsync part {0} to, skipping assignment", i);
-                    }
-                }
-            }
-
+            InitializeLipsync();
             GameManager.SetVenueCharacterManager(this);
         }
 
-        private VRMCharacter GetFirstCharacterWithoutLipsync()
+        private void InitializeLipsync()
         {
-            foreach (var character in _characters.Values)
+            var unassignedLipsyncEventIndices = new List<int>();
+            for (int i = 0; i < LipsyncEventsByPart.Count; i++)
             {
-                if (character is not VRMCharacter vrmCharacter || vrmCharacter.HasLipsyncAssigned)
+                if (i > GameManager.Chart.SingerPreference.Length - 1)
+                {
+                    unassignedLipsyncEventIndices.Add(i);
+                    continue;
+                }
+
+                var singerPreference = GameManager.Chart.SingerPreference[i];
+                if (singerPreference is Performer.None)
+                {
+                    unassignedLipsyncEventIndices.Add(i);
+                    continue;
+                }
+
+                var characterType = VenueCharacter.CharacterTypeFromPerformer(singerPreference)!.Value;
+                var lipsyncEvents = LipsyncEventsByPart[i];
+                YargLogger.LogFormatDebug("Assigning lipsync events for part {0} to preferred character {1}", i, characterType);
+                LipsyncDataByCharacter[characterType] = lipsyncEvents;
+            }
+
+            foreach (var lipsyncEventIndex in unassignedLipsyncEventIndices)
+            {
+                var lipsyncEvents = LipsyncEventsByPart[lipsyncEventIndex];
+                var characterType = GetFirstCharacterTypeWithoutLipsync();
+                if (characterType is null)
+                {
+                    YargLogger.LogWarning("No available character to assign unassigned lipsync events to");
+                    return;
+                }
+                YargLogger.LogFormatDebug("Assigning unassigned lipsync events for part {0} to character {1}", lipsyncEventIndex, characterType);
+                LipsyncDataByCharacter[characterType.Value] = lipsyncEvents;
+            }
+
+            foreach (var (characterType, character) in _characters)
+            {
+                SingalongDataByCharacter[characterType] = new SingalongData
+                {
+                    SingalongLipsyncEvents = LipsyncEventsByPart[GetSingalongIndex(characterType)],
+                    SingalongEvents = GameManager.Chart.VenueTrack.Performer.Where(x =>
+                        x.Type is PerformerEventType.Singalong &&
+                        x.Performers.HasFlag(VenueCharacter.PerformerFromCharacterType(characterType))).ToList()
+                };
+                if (character is VRMCharacter vrmCharacter)
+                {
+                    if (characterType is not CharacterType.Vocals)
+                    {
+                        YargLogger.LogFormatDebug("Initializing singalong lipsync for character {0} with {1} events", characterType, SingalongDataByCharacter[characterType].SingalongLipsyncEvents.Count);
+                        vrmCharacter.InitializeSingalongLipsync(SingalongDataByCharacter[characterType]);
+                    }
+
+                    if (LipsyncDataByCharacter.TryGetValue(characterType, out var lipsyncEvents))
+                    {
+                        YargLogger.LogFormatDebug("Initializing lipsync for character {0} with {1} events", characterType, lipsyncEvents.Count);
+                        vrmCharacter.InitializeLipsync(lipsyncEvents);
+                    }
+                }
+            }
+        }
+
+        private CharacterType? GetFirstCharacterTypeWithoutLipsync()
+        {
+            foreach (var character in _characters.Keys)
+            {
+                if (!LipsyncDataByCharacter.ContainsKey(character))
                 {
                     continue;
                 }
 
-                return vrmCharacter;
+                return character;
 
             }
             return null;
