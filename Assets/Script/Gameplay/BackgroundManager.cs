@@ -928,10 +928,7 @@ namespace YARG.Gameplay
                 return;
             }
 
-            if (characterManager.LipsyncDataByCharacter.TryGetValue(character.Type, out var lipsyncData))
-            {
-                character.InitializeLipsync(lipsyncData, characterManager.SingalongEventsByCharacter[character.Type]);
-            }
+            characterManager.AssignLipsyncToCharacter(character);
         }
 
         private void AddMicrophoneToCharacter(GameObject character)

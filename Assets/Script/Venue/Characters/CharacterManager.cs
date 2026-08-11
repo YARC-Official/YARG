@@ -31,8 +31,8 @@ namespace YARG.Venue.Characters
         private readonly Dictionary<CharacterType, VenueCharacter> _characters = new();
         public           Dictionary<CharacterType, VenueCharacter> Characters => _characters;
 
-        public Dictionary<CharacterType, List<PerformerEvent>>      SingalongEventsByCharacter { get; } = new();
-        public Dictionary<CharacterType, List<LipsyncEvent>> LipsyncDataByCharacter   { get; } = new();
+        private Dictionary<CharacterType, List<PerformerEvent>> SingalongEventsByCharacter { get; } = new();
+        private Dictionary<CharacterType, List<LipsyncEvent>>   LipsyncDataByCharacter     { get; } = new();
 
         private List<PerformerEvent> GetSingalongEventsForCharacterType(CharacterType characterType)
         {
@@ -285,25 +285,30 @@ namespace YARG.Venue.Characters
             foreach (var (characterType, character) in _characters)
             {
                 SingalongEventsByCharacter[characterType] = GetSingalongEventsForCharacterType(characterType);
-                YargLogger.LogFormatDebug("Assigning {0} singalong events to character {1}",
-                    SingalongEventsByCharacter[characterType].Count, characterType);
-                if (character is VRMCharacter vrmCharacter)
-                {
-                    if (LipsyncDataByCharacter.TryGetValue(characterType, out var lipsyncEvents))
-                    {
-                        YargLogger.LogFormatDebug("Initializing lipsync for character {0} with {1} events",
-                            characterType, lipsyncEvents.Count);
-                        vrmCharacter.InitializeLipsync(lipsyncEvents, SingalongEventsByCharacter[characterType]);
-                    }
-                    else if (LipsyncEventsByPart.Count == 1 && SingalongEventsByCharacter[characterType].Count > 0)
-                    {
-                        YargLogger.LogFormatDebug(
-                            "Initializing singalong lipsync for character {0} with {1} events from Vocalist",
-                            characterType, LipsyncEventsByPart[0].Count);
-                        vrmCharacter.InitializeLipsync(LipsyncEventsByPart[0],
-                            SingalongEventsByCharacter[characterType]);
-                    }
-                }
+                AssignLipsyncToCharacter(character);
+            }
+        }
+
+        public void AssignLipsyncToCharacter(VenueCharacter character)
+        {
+            if (character is not VRMCharacter vrmCharacter)
+            {
+                return;
+            }
+
+            if (LipsyncDataByCharacter.TryGetValue(character.Type, out var lipsyncEvents))
+            {
+                YargLogger.LogFormatDebug("Assigning {1} lipsync events to character {0}",
+                    character.Type, lipsyncEvents.Count);
+                vrmCharacter.InitializeLipsync(lipsyncEvents, SingalongEventsByCharacter[character.Type]);
+            }
+            else if (LipsyncEventsByPart.Count == 1 && SingalongEventsByCharacter[character.Type].Count > 0)
+            {
+                YargLogger.LogFormatDebug(
+                    "Assigning {1} singalong lipsync events from Vocals to character {0}",
+                    character.Type, LipsyncEventsByPart[0].Count);
+                vrmCharacter.InitializeLipsync(LipsyncEventsByPart[0],
+                    SingalongEventsByCharacter[character.Type]);
             }
         }
 
