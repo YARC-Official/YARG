@@ -807,6 +807,8 @@ namespace YARG.Gameplay
                         var kind = character is VRMCharacter ? "VRM" : "Built-in";
                         text.AppendFormat("Character Type: {0}\n", kind);
                         text.AppendFormat("Character State: {0}\n", character.CurrentGenericState);
+                        text.AppendFormat("RNG: {0}\n", character.CurrentRng);
+                        text.AppendFormat("RNG at state change: {0}\n", character.RngAtLastTransition);
                         if (character.Type is VenueCharacter.CharacterType.Guitar or VenueCharacter.CharacterType.Bass)
                         {
                             text.AppendFormat("Hand Position: {0}\n", character.CurrentHandPosition);

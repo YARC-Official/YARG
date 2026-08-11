@@ -24,7 +24,7 @@ namespace YARG.Venue.Characters
         private readonly List<int>       _triggerHashes = new();
         private readonly HashSet<int>    _floatHashes = new();
         private readonly HashSet<int>    _boolHashes = new();
-        private readonly HashSet<int>    _intHashes = new();
+        protected readonly HashSet<int>    _intHashes = new();
 
         private readonly Dictionary<string, int> _hashCache = new();
 
@@ -743,6 +743,7 @@ namespace YARG.Venue.Characters
 
                         // Update the current generic state (for debug)
                         CurrentGenericState = state;
+                        RngAtLastTransition = CurrentRng;
 
                         // Now reset them if necessary so that transitions can use them to select the correct variety
                         if (IsLayeredState(state))

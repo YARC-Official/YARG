@@ -1,13 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using DG.Tweening;
 using UniGLTF.SpringBoneJobs.Blittables;
 using UnityEngine;
 using UniVRM10;
 using YARG.Core.Chart;
-using YARG.Core.Logging;
 using LipsyncType = YARG.Core.Chart.LipsyncEvent.LipsyncType;
-using YARG.Gameplay;
 using YARG.Venue.VenueCamera;
 
 namespace YARG.Venue.Characters
@@ -101,6 +98,9 @@ namespace YARG.Venue.Characters
             }
 
             base.Initialize(characterManager);
+
+            _rngHash = Animator.StringToHash("RNG");
+            HasRng = _intHashes.Contains(_rngHash);
         }
 
         protected override void Update()
@@ -108,6 +108,13 @@ namespace YARG.Venue.Characters
             if (_characterManager != null)
             {
                 ProcessLipsync(_characterManager.SongTime);
+            }
+
+            if (HasRng)
+            {
+                var random = UnityEngine.Random.Range(0, 9);
+                _animator.SetInteger(_rngHash, random);
+                CurrentRng = random;
             }
 
             base.Update();
@@ -324,7 +331,7 @@ namespace YARG.Venue.Characters
                 return;
             }
 
-            Vector3 destination = new Vector3(_initialPosition.x, transform.position.y, _initialPosition.z);
+            // Vector3 destination = new Vector3(_initialPosition.x, transform.position.y, _initialPosition.z);
 
             if (WouldBeVisible(cam, _visibilityBounds))
             {
@@ -332,7 +339,7 @@ namespace YARG.Venue.Characters
             }
 
             // Reset X and Z pos to their initial values
-            transform.position = destination;
+            transform.position = _initialPosition;
             transform.rotation = _initialRotation;
         }
 
