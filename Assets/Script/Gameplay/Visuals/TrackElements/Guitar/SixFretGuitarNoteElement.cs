@@ -123,7 +123,6 @@ namespace YARG.Gameplay.Visuals
 
                 _sustainLine = _normalSustainLine;
             }
-            YargLogger.LogFormatDebug("AAA {0} {1} {2}", modelIndex, NoteRef.Type, LaneType);
 
             NoteGroup = noteGroups[modelIndex];
             NoteGroup.SetActive(true);
