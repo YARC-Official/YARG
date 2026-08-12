@@ -1340,6 +1340,10 @@
                     "None": "None"
                 }
             },
+            "CensorMatureContent": {
+                "Name": "Censor Mature Content",
+                "Description": "On supported songs, mutes and censors mature content in lyrics and vocals, and downgrades the song's rating to \"Supervision Recommended\"."
+            },
             "MetronomeVolume": {
                 "Name": "Metronome Volume",
                 "PauseName": "Metronome",
