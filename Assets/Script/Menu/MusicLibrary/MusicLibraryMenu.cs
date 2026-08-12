@@ -187,6 +187,7 @@ namespace YARG.Menu.MusicLibrary
         protected override void OnEnable()
         {
             base.OnEnable();
+            SetSidebarDifficultiesVisible(true);
 
             _heldInputs.Clear();
 
@@ -1315,6 +1316,7 @@ namespace YARG.Menu.MusicLibrary
             {
                 // Ensure difficulty rings are restored even if the scan fails or is canceled
                 _sidebar.gameObject.SetActive(true);
+                SetSidebarDifficultiesVisible(true);
                 _sidebar.UpdateSidebar(true);
             }
         }

@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading;
+using Cysharp.Threading.Tasks;
 using ManagedBass;
 using ManagedBass.Fx;
 using ManagedBass.Mix;
@@ -96,6 +98,8 @@ namespace YARG.Audio.BASS
 
         private readonly int _opusHandle = 0;
         private BassOutputDevice _currentDevice;
+
+        private readonly BassMicManager _micManager = new();
 
         public BassAudioManager()
         {
@@ -251,86 +255,36 @@ namespace YARG.Audio.BASS
 
         protected override MicDevice? GetInputDevice(string name)
         {
-            for (int deviceIndex = 0; Bass.RecordGetDeviceInfo(deviceIndex, out var info); deviceIndex++)
+            if (!InputDeviceInfo.TryParseDisplayName(name, out var baseName, out var channel))
             {
-                // Ignore disabled/claimed devices
-                if (!info.IsEnabled || info.IsInitialized)
-                {
-                    continue;
-                }
-
-                // Ignore loopback devices, they're potentially confusing and can cause feedback loops
-                if (info.IsLoopback)
-                {
-                    continue;
-                }
-
-                // Check if type is in whitelist
-                // The "Default" device is also excluded here since we want the user to explicitly pick which microphone to use
-                // if (!typeWhitelist.Contains(info.Type) || info.Name == "Default") continue;
-                if (info.Name == "Default" || info.Name != name)
-                {
-                    continue;
-                }
-
-                return CreateInputDevice(deviceIndex, name);
+                return null;
             }
 
-            return null;
+            return GetInputDevice(baseName, channel);
+        }
+
+        protected override MicDevice? GetInputDevice(string baseName, int channel)
+        {
+            var info = new InputDeviceInfo(-1, baseName, channel, channel + 1);
+            return _micManager.CreateMic(info);
         }
 #nullable disable
 
-        protected override List<(int id, string name)> GetAllInputDevices()
+        protected override List<InputDeviceInfo> GetAllInputDevices()
         {
-            var mics = new List<(int id, string name)>();
+            return _micManager.GetAllDevices();
+        }
 
-            // Ignored for now since it causes issues on Linux, BASS must not report device info correctly there
-            // TODO: allow configuring this at runtime?
-            // Also put into a static variable instead of instantiating every time
-            // var typeWhitelist = new List<DeviceType>()
-            // {
-            //     DeviceType.Headset,
-            //     DeviceType.Digital,
-            //     DeviceType.Line,
-            //     DeviceType.Headphones,
-            //     DeviceType.Microphone,
-            // };
-
-            for (int deviceIndex = 0; Bass.RecordGetDeviceInfo(deviceIndex, out var info); deviceIndex++)
-            {
-                // Ignore disabled/claimed devices
-                if (!info.IsEnabled || info.IsInitialized)
-                {
-                    continue;
-                }
-
-                // Ignore loopback devices, they're potentially confusing and can cause feedback loops
-                if (info.IsLoopback)
-                {
-                    continue;
-                }
-
-                // Check if type is in whitelist
-                // The "Default" device is also excluded here since we want the user to explicitly pick which microphone to use
-                // if (!typeWhitelist.Contains(info.Type) || info.Name == "Default") continue;
-                if (info.Name == "Default")
-                {
-                    continue;
-                }
-
-                mics.Add((deviceIndex, info.Name));
-            }
-
-            return mics;
+        public UniTask<List<InputDeviceInfo>> GetAllInputDevicesAsync(CancellationToken cancellationToken = default)
+        {
+            return _micManager.GetAllDevicesAsync(cancellationToken);
         }
 
 #nullable enable
-        protected override MicDevice? CreateInputDevice(int deviceId, string name)
+        protected override MicDevice? CreateInputDevice(InputDeviceInfo device)
 #nullable disable
         {
-            var device = BassMicDevice.Create(deviceId, name);
-            device?.SetMonitoringLevel(SettingsManager.Settings.VocalMonitoring.Value);
-            return device;
+            return _micManager.CreateMic(device);
         }
 
 #nullable enable

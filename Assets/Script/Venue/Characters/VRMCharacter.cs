@@ -1,12 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using DG.Tweening;
+using UniGLTF.SpringBoneJobs.Blittables;
 using UnityEngine;
 using UniVRM10;
 using YARG.Core.Chart;
-using YARG.Core.Logging;
 using LipsyncType = YARG.Core.Chart.LipsyncEvent.LipsyncType;
-using YARG.Gameplay;
 using YARG.Venue.VenueCamera;
 
 namespace YARG.Venue.Characters
@@ -36,10 +34,12 @@ namespace YARG.Venue.Characters
         [Tooltip("Set to true if you want to use custom animations instead of the default ones.")]
         public bool UseCustomAnimations;
 
-        private ExpressionKey _lipsyncKey;
-        private bool          _hasVrmInstance;
+        private ExpressionKey       _lipsyncKey;
+        private bool                _hasVrmInstance;
+        private BlittableModelLevel _modelLevels;
 
         private Vector3 _initialPosition;
+        private Quaternion _initialRotation;
 
         // For checking visibility
         private MeshRenderer _visibilityRenderer;
@@ -71,6 +71,7 @@ namespace YARG.Venue.Characters
         public override void Initialize(CharacterManager characterManager = null)
         {
             _initialPosition = transform.position;
+            _initialRotation = transform.rotation;
 
             // Find camera manager
             _cameraManager = FindFirstObjectByType<CameraManager>();
@@ -81,6 +82,7 @@ namespace YARG.Venue.Characters
             _characterManager = characterManager;
             VrmInstance = GetComponent<Vrm10Instance>();
             _hasVrmInstance = VrmInstance != null;
+            _modelLevels = new BlittableModelLevel();
             _expression = VrmInstance.Runtime.Expression;
 
             if (_characterManager != null)
@@ -96,6 +98,9 @@ namespace YARG.Venue.Characters
             }
 
             base.Initialize(characterManager);
+
+            _rngHash = Animator.StringToHash("RNG");
+            HasRng = _intHashes.Contains(_rngHash);
         }
 
         protected override void Update()
@@ -103,6 +108,13 @@ namespace YARG.Venue.Characters
             if (_characterManager != null)
             {
                 ProcessLipsync(_characterManager.SongTime);
+            }
+
+            if (HasRng)
+            {
+                var random = UnityEngine.Random.Range(0, 9);
+                _animator.SetInteger(_rngHash, random);
+                CurrentRng = random;
             }
 
             base.Update();
@@ -157,6 +169,35 @@ namespace YARG.Venue.Characters
             }
 
             _expression.SetWeight(_lipsyncKey, lipsyncEvent.Value);
+        }
+
+        public void SetWind(Vector3 wind)
+        {
+            if (!_hasVrmInstance)
+            {
+                return;
+            }
+
+            //update external force
+            _modelLevels = new BlittableModelLevel(externalForce: wind,
+                stopSpringBoneWriteback: _modelLevels.StopSpringBoneWriteback,
+                supportsScalingAtRuntime: _modelLevels.SupportsScalingAtRuntime);
+            //push model level changes to VRM runtime
+            VrmInstance.Runtime.SpringBone.SetModelLevel(VrmInstance.transform, _modelLevels);
+        }
+
+        public void SetSpringPause(bool paused)
+        {
+            if (!_hasVrmInstance)
+            {
+                return;
+            }
+            //set spring bone paused state
+            _modelLevels = new BlittableModelLevel(externalForce: _modelLevels.ExternalForce,
+                stopSpringBoneWriteback: paused,
+                supportsScalingAtRuntime: _modelLevels.SupportsScalingAtRuntime);
+            //push model level changes to VRM runtime
+            VrmInstance.Runtime.SpringBone.SetModelLevel(VrmInstance.transform, _modelLevels);
         }
 
         public override void OnChartEvent(ChartEvent e)
@@ -290,7 +331,7 @@ namespace YARG.Venue.Characters
                 return;
             }
 
-            Vector3 destination = new Vector3(_initialPosition.x, transform.position.y, _initialPosition.z);
+            // Vector3 destination = new Vector3(_initialPosition.x, transform.position.y, _initialPosition.z);
 
             if (WouldBeVisible(cam, _visibilityBounds))
             {
@@ -298,7 +339,8 @@ namespace YARG.Venue.Characters
             }
 
             // Reset X and Z pos to their initial values
-            transform.position = destination;
+            transform.position = _initialPosition;
+            transform.rotation = _initialRotation;
         }
 
         private static bool WouldBeVisible(Camera cam, Bounds bounds)

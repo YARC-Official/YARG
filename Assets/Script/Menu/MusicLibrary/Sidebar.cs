@@ -57,6 +57,8 @@ namespace YARG.Menu.MusicLibrary
         [SerializeField]
         private GameObject _sidebarContents;
         [SerializeField]
+        private GameObject _difficultiesContainer;
+        [SerializeField]
         private GameObject _difficultiesDisplay;
         [SerializeField]
         private GameObject _albumTitleContainer;
@@ -83,7 +85,7 @@ namespace YARG.Menu.MusicLibrary
 
         public void SetDifficultiesVisible(bool visible)
         {
-            _difficultiesDisplay.SetActive(visible);
+            _difficultiesContainer.SetActive(visible);
         }
 
         private readonly List<DifficultyRing> _difficultyRings = new();
