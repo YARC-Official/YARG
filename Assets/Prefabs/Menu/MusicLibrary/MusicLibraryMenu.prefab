@@ -997,7 +997,7 @@ Canvas:
   m_AdditionalShaderChannelsFlag: 25
   m_UpdateRectTransformForStandalone: 0
   m_SortingLayerID: 0
-  m_SortingOrder: 101
+  m_SortingOrder: 106
   m_TargetDisplay: 0
 --- !u!114 &6708243923115141855
 MonoBehaviour:
@@ -5822,6 +5822,7 @@ MonoBehaviour:
   _favoriteButton: {fileID: 7245200975423601239}
   _favoriteButtonImage: {fileID: 2342133780687937856}
   _sidebarContents: {fileID: 5958352450756398038}
+  _difficultiesContainer: {fileID: 1075743806509257609}
   _difficultiesDisplay: {fileID: 5958352450117307646}
   _albumTitleContainer: {fileID: 5180982014109557589}
   _timeContainer: {fileID: 5958352449830330596}
