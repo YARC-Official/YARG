@@ -217,13 +217,15 @@ namespace YARG.Settings
 
             #region Songs
 
+            private static void RefreshSongs()
+            {
+                SongContainer.RequestContainerRefresh();
+                MusicLibraryMenu.SetReload(MusicLibraryReloadState.Full);
+                HistoryMenu.ForceUpdate = true;
+            }
+
             public DropdownSetting<SongRating> MaxSongRating { get; }
-                = new(SongRating.None, _ =>
-                {
-                    SongContainer.RequestContainerRefresh();
-                    MusicLibraryMenu.SetReload(MusicLibraryReloadState.Full);
-                    HistoryMenu.ForceUpdate = true;
-                })
+                = new(SongRating.None, _ => RefreshSongs())
             {
                 SongRating.Family_Friendly,
                 SongRating.Supervision_Recommended,
@@ -232,14 +234,9 @@ namespace YARG.Settings
                 SongRating.None,
             };
 
-            public ToggleSetting CensorMatureContent { get; } = new(false, _ =>
-            {
-                // If MaxSongRating is set to anything other than Family_Friendly,
-                // this setting could change the available songs, so we need to force an update
-                SongContainer.RequestContainerRefresh();
-                MusicLibraryMenu.SetReload(MusicLibraryReloadState.Full);
-                HistoryMenu.ForceUpdate = true;
-            });
+            // If MaxSongRating is set to anything other than Family_Friendly,
+            // this setting could change the available songs, so we need to refresh the song list
+            public ToggleSetting CensorMatureContent { get; } = new(false, _ => RefreshSongs());
 
             public ToggleSetting AllowDuplicateSongs { get; } = new(true, _ => MusicLibraryMenu.SetReload(MusicLibraryReloadState.Partial));
             public ToggleSetting UseFullDirectoryForPlaylists { get; } = new(false);
