@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using YARG.Core.Chart;
 using YARG.Core.Engine.Guitar;
+using YARG.Core.Logging;
 using YARG.Gameplay.Player;
 using YARG.Helpers.Extensions;
 using YARG.Themes;
@@ -20,8 +21,8 @@ namespace YARG.Gameplay.Visuals
             Barre   // Both rows in same lane pair
         }
 
-        // Theme model mapping count (Up/Down/Barre × Strum/HOPO/Tap + Open + Wildcard)
-        private const int THEME_MODEL_COUNT = 3 * 3 + 2; // 11 total
+        // Theme model mapping count (Up/Down/Barre × Strum/HOPO/Tap + Open + OpenHopo + Wildcard)
+        private const int THEME_MODEL_COUNT = 3 * 3 + 3; // 12 total
 
         [Space]
         [SerializeField]
@@ -46,23 +47,18 @@ namespace YARG.Gameplay.Visuals
         {
             CreateNoteGroupArrays(THEME_MODEL_COUNT);
 
+
+
+            var offset = (int) ThemeNoteType.SixFretDown;
             // Map (LaneType, GuitarNoteType) to ThemeNoteType
-            // Up notes
-            AssignNoteGroup(models, starPowerModels, 0, ThemeNoteType.SixFretUp);
-            AssignNoteGroup(models, starPowerModels, 1, ThemeNoteType.SixFretUpHOPO);
-            AssignNoteGroup(models, starPowerModels, 2, ThemeNoteType.SixFretUpTap);
-            // Down notes
-            AssignNoteGroup(models, starPowerModels, 3, ThemeNoteType.SixFretDown);
-            AssignNoteGroup(models, starPowerModels, 4, ThemeNoteType.SixFretDownHOPO);
-            AssignNoteGroup(models, starPowerModels, 5, ThemeNoteType.SixFretDownTap);
-            // Barre notes (only strum)
-            AssignNoteGroup(models, starPowerModels, 6, ThemeNoteType.SixFretBarre);
-            // Open notes
-            AssignNoteGroup(models, starPowerModels, 7, ThemeNoteType.Open);
-            AssignNoteGroup(models, starPowerModels, 8, ThemeNoteType.OpenHOPO);
-            // Wildcard
-            AssignNoteGroup(models, starPowerModels, 9, ThemeNoteType.Wildcard);
-            // Unused slot (10) for alignment
+            for (var i = ThemeNoteType.SixFretDown; i <= ThemeNoteType.SixFretBarreHopo; ++i)
+            {
+                AssignNoteGroup(models, starPowerModels, (int) i - offset, i);
+            }
+
+            AssignNoteGroup(models, starPowerModels, THEME_MODEL_COUNT - 3, ThemeNoteType.Open);
+            AssignNoteGroup(models, starPowerModels, THEME_MODEL_COUNT - 2, ThemeNoteType.OpenHOPO);
+            AssignNoteGroup(models, starPowerModels, THEME_MODEL_COUNT - 1, ThemeNoteType.Wildcard);
         }
 
         protected override void InitializeElement()
@@ -79,8 +75,8 @@ namespace YARG.Gameplay.Visuals
 
                 modelIndex = NoteRef.Type switch
                 {
-                    GuitarNoteType.Strum => 7, // Open
-                    GuitarNoteType.Hopo or GuitarNoteType.Tap => 8, // OpenHOPO
+                    GuitarNoteType.Strum => THEME_MODEL_COUNT - 3, // Open
+                    GuitarNoteType.Hopo or GuitarNoteType.Tap => THEME_MODEL_COUNT - 2, // OpenHOPO
                     _ => throw new ArgumentOutOfRangeException(nameof(NoteRef.Type))
                 };
 
@@ -89,7 +85,7 @@ namespace YARG.Gameplay.Visuals
             else if (NoteRef.Fret == (int) SixFretGuitarFret.Wildcard)
             {
                 transform.localPosition = Vector3.zero;
-                modelIndex = 9; // Wildcard
+                modelIndex = THEME_MODEL_COUNT - 1; // Wildcard
                 _sustainLine = _wildcardSustainLine;
             }
             else
@@ -99,28 +95,35 @@ namespace YARG.Gameplay.Visuals
                 transform.localPosition = new Vector3(GetElementX(laneIndex, 3), 0f, 0f);
 
                 // Map LaneType + NoteType to model index
-                modelIndex = LaneType switch
+                modelIndex = (int) (LaneType switch
                 {
                     LaneNoteType.Up => NoteRef.Type switch
                     {
-                        GuitarNoteType.Strum => 0, // SixFretUp
-                        GuitarNoteType.Hopo => 1, // SixFretUpHOPO
-                        GuitarNoteType.Tap => 2,  // SixFretUpTap
+                        GuitarNoteType.Strum => ThemeNoteType.SixFretUp,
+                        GuitarNoteType.Hopo => ThemeNoteType.SixFretUpHOPO,
+                        GuitarNoteType.Tap => ThemeNoteType.SixFretUpTap,
                         _ => throw new ArgumentOutOfRangeException()
                     },
                     LaneNoteType.Down => NoteRef.Type switch
                     {
-                        GuitarNoteType.Strum => 3, // SixFretDown
-                        GuitarNoteType.Hopo => 4, // SixFretDownHOPO
-                        GuitarNoteType.Tap => 5,  // SixFretDownTap
+                        GuitarNoteType.Strum => ThemeNoteType.SixFretDown,
+                        GuitarNoteType.Hopo => ThemeNoteType.SixFretDownHOPO,
+                        GuitarNoteType.Tap => ThemeNoteType.SixFretDownTap,
                         _ => throw new ArgumentOutOfRangeException()
                     },
-                    LaneNoteType.Barre => 6, // SixFretBarre (only strum)
+                    LaneNoteType.Barre => NoteRef.Type switch
+                    {
+                        GuitarNoteType.Strum => ThemeNoteType.SixFretBarre,
+                        GuitarNoteType.Hopo => ThemeNoteType.SixFretBarreHopo,
+                        GuitarNoteType.Tap => ThemeNoteType.SixFretBarreTap,
+                        _ => throw new ArgumentOutOfRangeException()
+                    },
                     _ => throw new ArgumentOutOfRangeException()
-                };
+                }) - (int) ThemeNoteType.SixFretDown;
 
                 _sustainLine = _normalSustainLine;
             }
+            YargLogger.LogFormatDebug("AAA {0} {1} {2}", modelIndex, NoteRef.Type, LaneType);
 
             NoteGroup = noteGroups[modelIndex];
             NoteGroup.SetActive(true);
@@ -134,6 +137,12 @@ namespace YARG.Gameplay.Visuals
             }
 
             UpdateColor();
+
+            if (LaneType == LaneNoteType.Barre && NoteRef.Fret % 2 == 1)
+            {
+                // In a barre we're converting one of the elements into barre note and hiding a sibling
+                HideElement();
+            }
         }
 
         public override void HitNote()
@@ -215,7 +224,7 @@ namespace YARG.Gameplay.Visuals
                 {
                     colorType = LaneNoteType.Down;
                 }
-                else if (colorType == LaneNoteType.Down && LeftyFlip) 
+                else if (colorType == LaneNoteType.Down && LeftyFlip)
                 {
                     colorType = LaneNoteType.Up;
                 }

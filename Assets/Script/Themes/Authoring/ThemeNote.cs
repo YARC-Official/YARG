@@ -4,6 +4,7 @@ using UnityEngine;
 namespace YARG.Themes
 {
     // WARNING: Changing this could break themes or venues!
+    // WARNING: Changing this will break code!
     //
     // Changing the serialized fields (or the enum) in this file will result
     // in older themes not working properly. Only change if you need to.
@@ -33,13 +34,15 @@ namespace YARG.Themes
         DedicatedLaneKick = 15,
          
         // 6-fret guitar specific types
-        SixFretDown     = 16,
-        SixFretBarre    = 17,
-        SixFretUpHOPO   = 18,
-        SixFretDownHOPO = 19,
-        SixFretUpTap    = 20,
-        SixFretDownTap  = 21,
-        SixFretUp       = 22,
+        SixFretDown      = 16,
+        SixFretDownHOPO  = 17,
+        SixFretDownTap   = 18,
+        SixFretUpHOPO    = 19,
+        SixFretUpTap     = 20,
+        SixFretUp        = 21,
+        SixFretBarre     = 22,
+        SixFretBarreTap  = 23,
+        SixFretBarreHopo = 24,
     }
 
     public class ThemeNote : MonoBehaviour
