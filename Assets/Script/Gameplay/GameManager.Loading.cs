@@ -322,7 +322,9 @@ namespace YARG.Gameplay
                 Chart = Song.LoadChart();
                 if (Chart != null)
                 {
-                    if (SettingsManager.Settings.CensorMatureContent.Value)
+                    var isReplay = GlobalVariables.State.IsReplay || GlobalVariables.State.PlayingWithReplay;
+                    if ((isReplay && ReplayInfo!.CensorshipEnabled) ||
+                        (!isReplay && SettingsManager.Settings.CensorMatureContent.Value))
                     {
                         Chart.ApplyCensorship();
                     }
