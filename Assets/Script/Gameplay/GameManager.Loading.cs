@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using Cysharp.Threading.Tasks;
@@ -53,7 +53,6 @@ namespace YARG.Gameplay
 
         private LoadFailureState _loadState;
         private string _loadFailureMessage;
-
         // All access to chart data must be done through this event,
         // since things are loaded asynchronously
         // Players are initialized by hand and don't go through this event
@@ -191,20 +190,36 @@ namespace YARG.Gameplay
             FinalizeChart();
 
             // Add the offset read from the .json file placed in PathHelper.PersistentDataPath
-            var totalOffsetSeconds = Song.SongOffsetSeconds;
+            double offsetOverrideSeconds = 0;
             if (SettingsManager.Settings.UseSongOffsetCalibration.Value)
             {
                 var offsetOverrideMs = SongOffsetContainer.GetOffsetMilliseconds(Song.Hash.ToString());
-                totalOffsetSeconds += offsetOverrideMs / 1000.0;
+                offsetOverrideSeconds = offsetOverrideMs / 1000.0;
             }
 
             // Initialize song runner
             _songRunner = new SongRunner(
                 _mixer,
                 startTime: 0,
-                SONG_START_DELAY,
+                startDelay: SONG_START_DELAY,
                 GlobalVariables.State.SongSpeed,
-                totalOffsetSeconds);
+                chartSongOffset: Song.SongOffsetSeconds,
+                songOffsetOverride: offsetOverrideSeconds);
+
+            // Lets the pause menu display/edit this song's specific offset, and persists
+            // changes (manual or auto-calibrated) to the song offsets JSON file.
+            SongOffsetOverride = new SongOffsetSetting(Song.Hash.ToString(), onChange: offsetMs =>
+            {
+                _songRunner.SetSongOffsetOverride(offsetMs / 1000.0);
+            });
+
+            _metronomeScheduler = new MetronomeScheduler(_mixer);
+            _metronomeScheduler.Schedule(_songRunner, Chart.SyncTrack, SongLength);
+
+            _crowdClapScheduler = new CrowdClapScheduler(_mixer);
+            _crowdClapScheduler.Schedule(_songRunner, Chart.SyncTrack, Chart.CrowdEvents,
+                FirstNoteTime, LastNoteTime, SongLength);
+            CrowdEventHandler.SetClapScheduler(_crowdClapScheduler);
 
             // Spawn players
             CreatePlayers();
@@ -260,15 +275,18 @@ namespace YARG.Gameplay
             {
                 EngineManager.OnSongFailed += OnSongFailed;
 
-                EngineManager.InitializeHappiness();
-
                 SettingsManager.Settings.NoFail.OnChange += OnNoFailModeChanged;
                 SettingsManager.Settings.AutoCalibrateAudio.Value = false;
                 SettingsManager.Settings.AutoCalibrateVideo.Value = false;
+                SettingsManager.Settings.AutoCalibrateOffset.Value = false;
             }
+
+            var noFail = ReplayData?.NoFail ?? SettingsManager.Settings.NoFail.Value != NoFailMode.Off;
+            EngineManager.InitializeHappiness(noFail);
 
             EngineManager.OnCodaStart += StartCoda;
             EngineManager.OnCodaEnd += EndCoda;
+            EngineManager.OnUnisonPhraseSuccess += OnUnisonPhraseSuccess;
 
             // Log constant values
             YargLogger.LogFormatDebug("Audio calibration: {0}, video calibration: {1}, song offset: {2}",
@@ -512,22 +530,27 @@ namespace YARG.Gameplay
                     }
 
                     // Add (or increase total of) the stem state
-                    var stem = player.Profile.CurrentInstrument.ToSongStem();
-                    if (stem == SongStem.Bass && !_stemStates.ContainsKey(SongStem.Bass))
+                    var hasStem = false;
+                    foreach (var stem in player.Profile.CurrentInstrument.ToSongStems())
                     {
-                        stem = SongStem.Rhythm;
+                        var transformedStem = stem;
+                        if (stem == SongStem.Bass && !_stemStates.ContainsKey(SongStem.Bass))
+                        {
+                            transformedStem = SongStem.Rhythm;
+                        }
+                        if (transformedStem != _backgroundStem && _stemStates.TryGetValue(transformedStem, out var state))
+                        {
+                            hasStem = true;
+                            ++state.Total;
+                            ++state.Audible;
+                        }
                     }
 
-                    if (stem != _backgroundStem && _stemStates.TryGetValue(stem, out var state))
-                    {
-                        ++state.Total;
-                        ++state.Audible;
-                    }
-                    else if (_stemStates.TryGetValue(_backgroundStem, out state))
+                    if (!hasStem && _stemStates.TryGetValue(_backgroundStem, out var bgState))
                     {
                         // Ensures the stem will still play at a minimum of 50%, even if all players mute
-                        state.Total += 2;
-                        state.Audible += 2;
+                        bgState.Total += 2;
+                        bgState.Audible += 2;
                     }
                 }
             }

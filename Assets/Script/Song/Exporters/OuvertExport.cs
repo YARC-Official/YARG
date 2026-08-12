@@ -5,7 +5,7 @@ using YARG.Core;
 using YARG.Core.Song;
 using YARG.Core.Utility;
 
-namespace YARG.Song
+namespace YARG.Song.Exporters
 {
     public static class OuvertExport
     {

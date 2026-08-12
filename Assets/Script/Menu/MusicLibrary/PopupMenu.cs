@@ -56,7 +56,7 @@ namespace YARG.Menu.MusicLibrary
 
         private void OnEnable()
         {
-            Navigator.Instance.PushScheme(new NavigationScheme(new()
+            _ = Navigator.Instance.PushScheme(new NavigationScheme(new()
             {
                 NavigationScheme.Entry.NavigateUp,
                 NavigationScheme.Entry.NavigateDown,
@@ -419,6 +419,15 @@ namespace YARG.Menu.MusicLibrary
                     CreateItemUnlocalized(attribute.ToLocalizedName(), () =>
                     {
                         _musicLibrary.ChangeSort(attribute);
+                        gameObject.SetActive(false);
+                    });
+                }
+
+                if (instrument == Instrument.EliteDrums && MidiDrumkitHelper.Instruments.Any(SongContainer.HasInstrument))
+                {
+                    CreateItemUnlocalized(SortAttribute.AggregateDrums.ToLocalizedName(), () =>
+                    {
+                        _musicLibrary.ChangeSort(SortAttribute.AggregateDrums);
                         gameObject.SetActive(false);
                     });
                 }

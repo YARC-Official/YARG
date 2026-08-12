@@ -19,6 +19,7 @@ namespace YARG.Settings
             Formatting = Formatting.Indented,
             Converters = new List<JsonConverter>
             {
+                new JsonUnityColorConverter(),
                 new JsonColorConverter(),
                 new JsonVector2Converter()
             }
@@ -46,6 +47,7 @@ namespace YARG.Settings
                 new FieldMetadata(nameof(Settings.DisableGlobalBackgrounds), isAdvanced: true),
                 nameof(Settings.DisablePerSongBackgrounds),
                 new FieldMetadata(nameof(Settings.WaitForSongVideo), isAdvanced: true),
+                nameof(Settings.AllowRemoteContent),
 
                 new HeaderMetadata("Gameplay"),
                 new FieldMetadata(nameof(Settings.InputPollingFrequency), isAdvanced: true),
@@ -173,10 +175,12 @@ namespace YARG.Settings
                 nameof(Settings.NoteStreakFrequency),
                 new FieldMetadata(nameof(Settings.VocalStreakFrequency), isAdvanced: true),
                 nameof(Settings.CountdownDisplay),
+                nameof(Settings.UnisonDisplay),
                 nameof(Settings.ShowPlayerNameWhenStartingSong),
                 nameof(Settings.LyricDisplay),
                 nameof(Settings.SongTimeOnScoreBox),
                 nameof(Settings.GraphicalProgressOnScoreBox),
+                nameof(Settings.GraphicalSongProgressTint),
                 nameof(Settings.KeepSongInfoVisible),
             },
             new PresetsTab("Presets", icon: "Customization"),
@@ -193,7 +197,8 @@ namespace YARG.Settings
                 new ButtonRowMetadata(
                     nameof(Settings.ExportSongsJson),
                     nameof(Settings.ExportSongsText),
-                    nameof(Settings.ExportSongsCsv)
+                    nameof(Settings.ExportSongsCsv),
+                    nameof(Settings.ExportSongsWeb)
                 ),
                 new HeaderMetadata("PathsAndFolders"),
                 new ButtonRowMetadata(
@@ -201,6 +206,8 @@ namespace YARG.Settings
                     nameof(Settings.CopyCurrentSongJsonFilePath)),
                 new ButtonRowMetadata(nameof(Settings.OpenPersistentDataPath)),
                 new ButtonRowMetadata(nameof(Settings.OpenExecutablePath)),
+                new HeaderMetadata("CacheManagement"),
+                new ButtonRowMetadata(nameof(Settings.RemoveRemoteContent)),
             },
             new MetadataTab("LightingPeripherals", icon: "Lighting", new DMXInformationPanelBuilder())
             {
@@ -227,6 +234,7 @@ namespace YARG.Settings
                 nameof(Settings.DMXBassChannel),
                 nameof(Settings.DMXKeysChannel),
                 new HeaderMetadata("AdvancedDMXSettings"),
+                nameof(Settings.DMXLocalIP),
                 nameof(Settings.DMXUniverseChannel),
                 nameof(Settings.DMXDimmerValues),
                 nameof(Settings.DMXTargetFPS),
@@ -244,12 +252,10 @@ namespace YARG.Settings
                 nameof(Settings.ShowAdvancedMusicLibraryOptions),
                 nameof(Settings.MinimumLogLevel),
             },
-            // new MetadataTab("Experimental", icon: "Beaker", new ExperimentalPreviewBuilder())
             new MetadataTab("Experimental", icon: "Beaker", new CharacterPreviewBuilder())
             {
                 new HeaderMetadata("Other"),
                 nameof(Settings.BandComboTypeSetting),
-                nameof(Settings.CustomVocalsCharacter),
                 nameof(Settings.DataStreamEnable),
                 nameof(Settings.SaveScoresWithBots),
                 new HeaderMetadata("Accessibility"),

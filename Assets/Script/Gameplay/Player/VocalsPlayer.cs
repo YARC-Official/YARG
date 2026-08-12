@@ -167,7 +167,7 @@ namespace YARG.Gameplay.Player
             HitWindow = EngineParams.HitWindow;
 
             var engine = new YargVocalsEngine(NoteTrack, SyncTrack, EngineParams, Player.Profile.IsBot);
-            EngineContainer = GameManager.EngineManager.Register(engine, NoteTrack.Instrument, Player.Profile.HarmonyIndex, _chart, Player.RockMeterPreset);
+            EngineContainer = GameManager.EngineManager.Register(engine, NoteTrack, Player.Profile.HarmonyIndex, _chart, Player.RockMeterPreset);
 
             engine.OnComboIncrement += OnComboIncrement;
             engine.OnComboReset += OnComboReset;
@@ -594,6 +594,9 @@ namespace YARG.Gameplay.Player
                 OriginalNoteTrack.TextEvents);
 
             _phraseIndex = -1;
+
+            // Removed by EngineManager
+            EngineContainer = null;
 
             Engine = CreateEngine();
             Engine.SetSpeed(GameManager.SongSpeed >= 1 ? GameManager.SongSpeed : 1);

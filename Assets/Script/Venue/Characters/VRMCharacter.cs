@@ -153,40 +153,15 @@ namespace YARG.Venue.Characters
             if (TryGetExpressionKey(lipsyncEvent.Type.ToString(), out key))
             {
                 _expression.SetWeight(key, lipsyncEvent.Value);
-            }
-        }
-
-        public override void OnNote<T>(Note<T> note)
-        {
-            // If _useFullLipsync is set, we don't use the default expression or the note-based trigger
-            // ...unless the chart doesn't have lipsync events
-            if (!_hasVrmInstance || (_useFullLipsync && HasLipsyncEvents))
-            {
                 return;
             }
 
-            if (note is VocalNote vocalNote)
-            {
-                // Animate in/out of expression for animLength time
-                float animLength = (float) vocalNote.TotalTimeLength * 0.1f;
-                float offDelay = (float) vocalNote.TotalTimeLength * 0.9f;
-
-                var currentWeight = _expression.GetWeight(_lipsyncKey);
-                DOVirtual.Float(currentWeight, 1f, animLength, x => _expression.SetWeight(_lipsyncKey, x))
-                    .SetAutoKill(true);
-                DOVirtual.DelayedCall(offDelay, () => ExpressionOff(_lipsyncKey, animLength));
-            }
+            _expression.SetWeight(_lipsyncKey, lipsyncEvent.Value);
         }
 
-        private void ExpressionOff(ExpressionKey key, float length)
+        public override void OnChartEvent(ChartEvent e)
         {
-            if (length > 0)
-            {
-                DOVirtual.Float(_expression.GetWeight(key), 0f, length, x => _expression.SetWeight(key, x)).SetAutoKill(true);
-                return;
-            }
 
-            _expression.SetWeight(key, 0f);
         }
 
         private void SetupBoundsCheck()

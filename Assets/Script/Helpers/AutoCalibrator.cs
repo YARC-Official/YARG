@@ -25,31 +25,50 @@ namespace YARG.Helpers
         private readonly GameManager _gameManager;
 
         private int _calibration;
+        private bool _isApplyingAdjustment;
 
         private bool IsCalibratingAudio => CalibrationMode == CalibrationType.AUDIO;
         private bool IsCalibratingVideo => CalibrationMode == CalibrationType.VIDEO;
+        private bool IsCalibratingOffset => CalibrationMode == CalibrationType.OFFSET;
         private IntSetting AudioCalibrationSetting => SettingsManager.Settings.AudioCalibration;
         private IntSetting VideoCalibrationSetting => SettingsManager.Settings.VideoCalibration;
         private ToggleSetting AutoAudioSetting => SettingsManager.Settings.AutoCalibrateAudio;
         private ToggleSetting AutoVideoSetting => SettingsManager.Settings.AutoCalibrateVideo;
+        private ToggleSetting AutoOffsetSetting => SettingsManager.Settings.AutoCalibrateOffset;
+
+        // The current song's specific offset. Set once per song load, before players (and
+        // therefore this calibrator) are created.
+        private readonly IntSetting _songOffsetSetting;
 
         private enum CalibrationType
         {
             DISABLED,
             AUDIO,
-            VIDEO
+            VIDEO,
+            OFFSET
         }
 
         private CalibrationType CalibrationMode =>
-            AutoAudioSetting.Value   ? CalibrationType.AUDIO
-            : AutoVideoSetting.Value ? CalibrationType.VIDEO
+            AutoAudioSetting.Value    ? CalibrationType.AUDIO
+            : AutoVideoSetting.Value  ? CalibrationType.VIDEO
+            : AutoOffsetSetting.Value ? CalibrationType.OFFSET
                                        : CalibrationType.DISABLED;
 
         public AutoCalibrator(GameManager gameManager)
         {
             _gameManager = gameManager;
+            _songOffsetSetting = gameManager.SongOffsetOverride;
+
             AutoAudioSetting.OnChange += OnAutoCalibrateAudioChanged;
             AutoVideoSetting.OnChange += OnAutoCalibrateVideoChanged;
+            AutoOffsetSetting.OnChange += OnAutoCalibrateOffsetChanged;
+            AudioCalibrationSetting.OnChange += OnAudioCalibrationChanged;
+            VideoCalibrationSetting.OnChange += OnVideoCalibrationChanged;
+            if (_songOffsetSetting != null)
+            {
+                _songOffsetSetting.OnChange += OnSongOffsetChanged;
+            }
+            Reset();
         }
 
         private void OnAutoCalibrateAudioChanged(bool enabled)
@@ -58,6 +77,7 @@ namespace YARG.Helpers
             {
                 _gameManager.InvalidateScores("Menu.Toast.AutoCalibrationScore");
                 AutoVideoSetting.Value = false;
+                AutoOffsetSetting.Value = false;
             }
 
             Reset();
@@ -69,15 +89,62 @@ namespace YARG.Helpers
             {
                 _gameManager.InvalidateScores("Menu.Toast.AutoCalibrationScore");
                 AutoAudioSetting.Value = false;
+                AutoOffsetSetting.Value = false;
             }
 
             Reset();
+        }
+
+        private void OnAutoCalibrateOffsetChanged(bool enabled)
+        {
+            if (enabled)
+            {
+                _gameManager.InvalidateScores("Menu.Toast.AutoCalibrationScore");
+                AutoAudioSetting.Value = false;
+                AutoVideoSetting.Value = false;
+            }
+
+            Reset();
+        }
+
+        private void OnAudioCalibrationChanged(int calibration)
+        {
+            if (IsCalibratingAudio && !_isApplyingAdjustment)
+            {
+                _accuracyList.Clear();
+                _calibration = calibration;
+            }
+        }
+
+        private void OnVideoCalibrationChanged(int calibration)
+        {
+            if (IsCalibratingVideo && !_isApplyingAdjustment)
+            {
+                _accuracyList.Clear();
+                _calibration = calibration;
+            }
+        }
+
+        private void OnSongOffsetChanged(int calibration)
+        {
+            if (IsCalibratingOffset && !_isApplyingAdjustment)
+            {
+                _accuracyList.Clear();
+                _calibration = calibration;
+            }
         }
 
         public void Dispose()
         {
             AutoAudioSetting.OnChange -= OnAutoCalibrateAudioChanged;
             AutoVideoSetting.OnChange -= OnAutoCalibrateVideoChanged;
+            AutoOffsetSetting.OnChange -= OnAutoCalibrateOffsetChanged;
+            AudioCalibrationSetting.OnChange -= OnAudioCalibrationChanged;
+            VideoCalibrationSetting.OnChange -= OnVideoCalibrationChanged;
+            if (_songOffsetSetting != null)
+            {
+                _songOffsetSetting.OnChange -= OnSongOffsetChanged;
+            }
         }
 
         private void Reset()
@@ -91,16 +158,25 @@ namespace YARG.Helpers
             {
                 _calibration = VideoCalibrationSetting.Value;
             }
+            else if (IsCalibratingOffset && _songOffsetSetting != null)
+            {
+                _calibration = _songOffsetSetting.Value;
+            }
         }
 
-        public void RecordAccuracy(double noteTime)
+        public void RecordAccuracy(double hitTime, double noteTime)
         {
-            if (CalibrationMode == CalibrationType.DISABLED)
+            if (CalibrationMode == CalibrationType.DISABLED || _gameManager.IsAudioSyncCorrectionActive)
             {
                 return;
             }
 
-            double accuracy = (_gameManager.InputTime - noteTime) * 1000;
+            if (IsCalibratingOffset && _songOffsetSetting == null)
+            {
+                return;
+            }
+
+            double accuracy = (hitTime - noteTime) * 1000;
             _accuracyList.Add(accuracy);
 
             if (_accuracyList.Count < SAMPLE_SIZE)
@@ -128,25 +204,50 @@ namespace YARG.Helpers
         private void ApplyAdjustment(int adjustment)
         {
             _calibration += adjustment;
-            if (CalibrationMode == CalibrationType.AUDIO)
+            _isApplyingAdjustment = true;
+            try
             {
-                AudioCalibrationSetting.Value = _calibration;
-            } else if (CalibrationMode == CalibrationType.VIDEO)
-            {
-                VideoCalibrationSetting.Value = _calibration;
+                if (CalibrationMode == CalibrationType.AUDIO)
+                {
+                    AudioCalibrationSetting.Value = _calibration;
+                    _calibration = AudioCalibrationSetting.Value;
+                }
+                else if (CalibrationMode == CalibrationType.VIDEO)
+                {
+                    VideoCalibrationSetting.Value = _calibration;
+                    _calibration = VideoCalibrationSetting.Value;
+                }
+                else if (CalibrationMode == CalibrationType.OFFSET && _songOffsetSetting != null)
+                {
+                    _songOffsetSetting.Value = _calibration;
+                    _calibration = _songOffsetSetting.Value;
+                }
             }
+            finally
+            {
+                _isApplyingAdjustment = false;
+            }
+
             _gameManager.UpdateCalibration();
         }
 
+        private static string CalibrationTypeName(CalibrationType type) => type switch
+        {
+            CalibrationType.AUDIO  => "Audio",
+            CalibrationType.VIDEO  => "Video",
+            CalibrationType.OFFSET => "Song offset",
+            _                      => "Calibration"
+        };
+
         private void NotifyCalibrationUpdated()
         {
-            var type = IsCalibratingAudio ? "Audio" : "Video";
+            var type = CalibrationTypeName(CalibrationMode);
             ToastManager.ToastMessage($"{type} calibration updated: {_calibration} ms");
         }
 
         private void NotifyCalibrationStable()
         {
-            var type = IsCalibratingAudio ? "Audio" : "Video";
+            var type = CalibrationTypeName(CalibrationMode);
             ToastManager.ToastSuccess($"{type} calibration stable ({_calibration} ms)");
         }
 

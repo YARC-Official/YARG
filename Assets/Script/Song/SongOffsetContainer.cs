@@ -4,6 +4,7 @@ using System.IO;
 using Newtonsoft.Json;
 using YARG.Core.Logging;
 using YARG.Helpers;
+using YARG.Menu.Persistent;
 
 namespace YARG.Song
 {
@@ -43,6 +44,22 @@ namespace YARG.Song
             return data ?? new Dictionary<string, long>();
         }
 
+        public static void SetOffsetMilliseconds(string hashKey, long offsetMilliseconds)
+        {
+            var offsets = LoadOffsets();
+
+            if (offsetMilliseconds == 0)
+            {
+                offsets.Remove(hashKey);
+            }
+            else
+            {
+                offsets[hashKey] = offsetMilliseconds;
+            }
+
+            SaveOffsets(offsets);
+        }
+
         public static void SaveOffsets(Dictionary<string, long> offsets)
         {
             try
@@ -51,7 +68,7 @@ namespace YARG.Song
             }
             catch (Exception ex)
             {
-                YargLogger.LogException(ex, "Failed to save song offsets");
+                ToastManager.ToastError($"{ex} Failed to save song offsets");
             }
         }
 

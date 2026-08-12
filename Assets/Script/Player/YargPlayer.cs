@@ -78,8 +78,9 @@ namespace YARG.Player
             HighwayPreset = CustomContentManager.HighwayPresets.GetPresetById(Profile.HighwayPreset)
                 ?? HighwayPreset.Default;
 
-            RockMeterPreset = CustomContentManager.RockMeterPresets.GetPresetById(Profile.RockMeterPreset) ??
-                YARG.Core.Game.RockMeterPreset.Normal;
+            RockMeterPreset = replay.GetRockMeterPreset(Profile.RockMeterPreset)
+                ?? CustomContentManager.RockMeterPresets.GetPresetById(Profile.RockMeterPreset)
+                ?? RockMeterPreset.Normal;
         }
 
         public void SwapToProfile(YargProfile profile, ProfileBindings bindings, bool resolveDevices)

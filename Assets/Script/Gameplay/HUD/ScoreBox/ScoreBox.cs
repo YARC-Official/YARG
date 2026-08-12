@@ -111,6 +111,7 @@ namespace YARG.Gameplay.HUD
             _displayedCountDownSeconds = -1;
 
             _songProgressBar.SetProgress(0f);
+            _overlayImage.color = SettingsManager.Settings.GraphicalSongProgressTint.Value;
         }
 
         protected override void OnChartLoaded(SongChart chart)

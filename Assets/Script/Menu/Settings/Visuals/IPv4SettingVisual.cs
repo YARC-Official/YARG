@@ -28,7 +28,11 @@ namespace YARG.Menu.Settings.Visuals
         {
             try
             {
-                if (IPAddress.TryParse(_inputField.text, out var ipAddress))
+                if (Setting.AllowEmpty && string.IsNullOrEmpty(_inputField.text))
+                {
+                    Setting.Value = string.Empty;
+                }
+                else if (IPAddress.TryParse(_inputField.text, out var ipAddress))
                 {
                     if (IPv4Setting.IsValidIPv4(ipAddress))
                     {
