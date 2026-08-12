@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using Cysharp.Threading.Tasks;
@@ -19,6 +19,7 @@ using YARG.Playback;
 using YARG.Player;
 using YARG.Scores;
 using YARG.Settings;
+using YARG.Settings.Types;
 using YARG.Song;
 
 namespace YARG.Gameplay
