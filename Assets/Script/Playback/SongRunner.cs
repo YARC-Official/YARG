@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using DG.Tweening;
@@ -301,7 +301,7 @@ namespace YARG.Playback
 
         ~SongRunner()
         {
-            Dispose(false);
+            Dispose();
         }
 
         public void Dispose()
