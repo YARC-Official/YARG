@@ -9,6 +9,8 @@ namespace YARG.Audio.BASS
 {
     public static class BassHelpers
     {
+        public const uint YARG_AUDIO_ABI_VERSION = 1;
+
         public const int PLAYBACK_BUFFER_LENGTH = 75;
         public const double PLAYBACK_BUFFER_DESYNC = PLAYBACK_BUFFER_LENGTH / 1000.0;
 
@@ -125,18 +127,6 @@ namespace YARG.Audio.BASS
         public static int AddPitchShiftToChannel(int handle, IEffectParameter pitchParams)
         {
             return FXAddParameters(handle, EffectType.PitchShift, pitchParams);
-        }
-
-        public static unsafe bool ApplyGain(float gain, IntPtr buffer, int length)
-        {
-            var sampleBuffer = new Span<float>((void*) buffer, length / sizeof(float));
-
-            foreach (ref float sample in sampleBuffer)
-            {
-                sample *= gain;
-            }
-
-            return true;
         }
 
         public static int GetOutputChannelCount()

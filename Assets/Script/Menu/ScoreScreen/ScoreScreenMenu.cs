@@ -364,6 +364,11 @@ namespace YARG.Menu.ScoreScreen
                 return true;
             }
 
+            if (replayEntry.CensorshipEnabled)
+            {
+                chart.ApplyCensorship();
+            }
+
             var replayOptions = new ReplayReadOptions
             {
                 KeepFrameTimes = GlobalVariables.VerboseReplays

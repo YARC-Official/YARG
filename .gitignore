@@ -7,6 +7,7 @@
 /[Oo]bj/
 /[Bb]uild/
 /[Bb]uilds/
+/Native/YargAudio/build/
 /[Ll]ogs/
 /[Uu]ser[Ss]ettings/
 /UIElementsSchema/
@@ -41,6 +42,11 @@
 ExportedObj/
 .consulo/
 *.csproj
+!/Native/YargAudio/tests/GainIntegration/GainIntegration.csproj
+/Native/YargAudio/tests/GainIntegration/[Bb]in/
+/Native/YargAudio/tests/GainIntegration/[Oo]bj/
+/scripts/NativeBuild/[Bb]in/
+/scripts/NativeBuild/[Oo]bj/
 *.unityproj
 *.sln
 *.slnx
@@ -131,3 +137,7 @@ reload_lock~.meta
 
 # Unity crash dumps
 mono_crash.mem.*.blob
+
+# dotnet tool build output
+Tools/**/[Bb]in/
+Tools/**/[Oo]bj/

@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Threading;
 using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
@@ -9,6 +11,8 @@ using YARG.Core.Audio;
 using YARG.Core.Game;
 using YARG.Core.Logging;
 using YARG.Input;
+using YARG.Menu;
+using YARG.Menu.Dialogs;
 using YARG.Menu.Navigation;
 using YARG.Menu.Persistent;
 using YARG.Player;
@@ -47,8 +51,7 @@ namespace YARG.Menu.ProfileList
         public YargProfile Profile { get; private set; }
 
         private ProfileListMenu _profileListMenu;
-        private ProfileSidebar _profileSidebar;
-
+        private ProfileSidebar  _profileSidebar;
 
         public void Init(ProfileListMenu menu, YargProfile profile, ProfileSidebar sidebar)
         {
@@ -118,10 +121,7 @@ namespace YARG.Menu.ProfileList
             {
                 var dialog = DialogManager.Instance.ShowConfirmDeleteDialog(
                     "Deleting this profile is permanent and you will lose all stats and binds. Play history will " +
-                    "remain and can be accessed in the <b>History</b> tab.", () =>
-                    {
-                        remove = true;
-                    }, Profile.Name);
+                    "remain and can be accessed in the <b>History</b> tab.", () => { remove = true; }, Profile.Name);
 
                 // Wait...
                 await dialog.WaitUntilClosed();
@@ -153,30 +153,27 @@ namespace YARG.Menu.ProfileList
                 "it first, and then retry.</size>");
             var player = PlayerContainer.GetPlayerFromProfile(Profile);
 
-            bool devicesAvailable = false;
             bool selectedDevice = false;
             bool xinputDialogShowing = false;
+            int inputDeviceCount = 0;
 
-            // Add available devices
+            // Add InputSystem devices immediately — fast, no probe
             foreach (var device in InputSystem.devices)
             {
                 if (!device.enabled) continue;
                 if (PlayerContainer.IsDeviceTaken(device)) continue;
 
-                devicesAvailable = true;
+                inputDeviceCount++;
                 dialog.AddListButton(device.displayName, async () =>
                 {
                     player.Bindings.AddDevice(device);
                     if (!player.Bindings.ContainsBindingsForDevice(device))
                     {
 #if UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN
-                        // Some remappers and non-gamepad devices show up as XInput gamepads
                         if (device is XInputController xinput)
                         {
                             xinputDialogShowing = true;
-                            // Prompt user for what kind of device this is
                             var mode = await PromptGamepadMode(xinput);
-                            // Skip if the gamepad is no longer present
                             if (!mode.HasValue || !xinput.added)
                             {
                                 return;
@@ -195,51 +192,87 @@ namespace YARG.Menu.ProfileList
                 });
             }
 
-            // Add available microphones
-            foreach (var microphone in GlobalAudioHandler.GetAllInputDevices())
+            bool TryAddMicrophone(InputDeviceInfo device)
             {
-                devicesAvailable = true;
-                dialog.AddListButton(microphone.name, () =>
+                var created = GlobalAudioHandler.CreateInputDevice(device);
+                if (created is null)
                 {
-                    var device = GlobalAudioHandler.CreateInputDevice(microphone.id, microphone.name);
-                    if (device is null)
-                    {
-                        YargLogger.LogFormatWarning("Failed to initialize microphone `{0}`.", microphone.name);
-                        DialogManager.Instance.ClearDialog();
-                        DialogManager.Instance.ShowMessage("Microphone Error",
-                            $"Failed to initialize microphone:\n\n{microphone.name}\n\nPlease try again or choose a different microphone.");
-                        return;
-                    }
-
-                    player.Bindings.AddMicrophone(device);
-                    selectedDevice = true;
+                    YargLogger.LogFormatWarning("Failed to initialize microphone `{0}`.", device.DisplayName);
                     DialogManager.Instance.ClearDialog();
-                }, closeOnClick: false);
-            }
-
-            if (devicesAvailable)
-            {
-                await dialog.WaitUntilClosed();
-                // We may be showing the xinput selection dialog, in which case we need to wait for that, too
-
-                if (xinputDialogShowing)
-                {
-                    // The dialog isn't actually showing yet, so we yield for a frame
-                    await UniTask.Yield();
-                    await DialogManager.Instance.WaitUntilCurrentClosed();
-                    // And we have to wait one more frame after it closed so that selectedDevice will actually be set
-                    await UniTask.Yield();
+                    DialogManager.Instance.ShowMessage("Microphone Error",
+                        $"Failed to initialize microphone:\n\n{device.DisplayName}\n\nPlease try again or choose a different microphone.");
+                    return false;
                 }
 
-                // Update active players to hide the "No input device" icons if appropriate.
-                StatsManager.Instance.UpdateActivePlayers();
-            }
-            else
-            {
-                DialogManager.Instance.ClearDialog();
+                player.Bindings.AddMicrophone(created);
+                return true;
             }
 
+            PopulateMicsAsync(dialog, inputDeviceCount, mic =>
+            {
+                if (TryAddMicrophone(mic))
+                {
+                    selectedDevice = true;
+                }
+            }).Forget();
+
+            await dialog.WaitUntilClosed();
+
+            if (xinputDialogShowing)
+            {
+                await UniTask.Yield();
+                await DialogManager.Instance.WaitUntilCurrentClosed();
+                await UniTask.Yield();
+            }
+
+            StatsManager.Instance.UpdateActivePlayers();
+
             return selectedDevice;
+        }
+
+        private static async UniTask PopulateMicsAsync(
+            ListDialog dialog,
+            int inputDeviceCount,
+            Action<InputDeviceInfo> onMicSelected)
+        {
+            var placeholderButton = dialog.AddListButton("Scanning microphones...", () => { }, false);
+            placeholderButton.DisableButton();
+            var ct = dialog.GetCancellationTokenOnDestroy();
+
+            List<InputDeviceInfo> mics;
+            try
+            {
+                mics = await UniTask.RunOnThreadPool(() => GlobalAudioHandler.GetAllInputDevices(),
+                    cancellationToken: ct);
+                await UniTask.SwitchToMainThread(cancellationToken: ct);
+            }
+            catch (OperationCanceledException)
+            {
+                return;
+            }
+
+            if (placeholderButton != null)
+            {
+                Destroy(placeholderButton.gameObject);
+            }
+
+            // Dialog may have been closed while microphones were being probed
+            if (!dialog.IsOpen)
+            {
+                return;
+            }
+
+            foreach (var mic in mics)
+            {
+                var localMic = mic;
+                dialog.AddListButton(localMic.DisplayName, () => onMicSelected(localMic));
+            }
+
+            if (inputDeviceCount == 0 && mics.Count == 0)
+            {
+                var btn = dialog.AddListButton("No devices found", () => { }, false);
+                btn.DisableButton();
+            }
         }
 
         private static async UniTask<GamepadBindingMode?> PromptGamepadMode(XInputController xinput)
@@ -260,9 +293,12 @@ namespace YARG.Menu.ProfileList
             dialog.AddListButton("CRKD Guitar (Mode 1, FW3.0+)", () => mode = GamepadBindingMode.CrkdGuitar_Mode1_Fw30);
             dialog.AddListButton("WiitarThing Guitar", () => mode = GamepadBindingMode.WiitarThing_Guitar);
             dialog.AddListButton("WiitarThing Drumkit", () => mode = GamepadBindingMode.WiitarThing_Drums);
-            dialog.AddListButton("RB4InstrumentMapper Guitar", () => mode = GamepadBindingMode.RB4InstrumentMapper_Guitar);
-            dialog.AddListButton("RB4InstrumentMapper GHL Guitar", () => mode = GamepadBindingMode.RB4InstrumentMapper_GHLGuitar);
-            dialog.AddListButton("RB4InstrumentMapper Drumkit", () => mode = GamepadBindingMode.RB4InstrumentMapper_Drums);
+            dialog.AddListButton("RB4InstrumentMapper Guitar",
+                () => mode = GamepadBindingMode.RB4InstrumentMapper_Guitar);
+            dialog.AddListButton("RB4InstrumentMapper GHL Guitar",
+                () => mode = GamepadBindingMode.RB4InstrumentMapper_GHLGuitar);
+            dialog.AddListButton("RB4InstrumentMapper Drumkit",
+                () => mode = GamepadBindingMode.RB4InstrumentMapper_Drums);
             await dialog.WaitUntilClosed();
 
             if (mode.HasValue)
@@ -309,14 +345,13 @@ namespace YARG.Menu.ProfileList
                 });
             }
 
-            // Add the microphone (there should be only one or zero)
-            var mic = player.Bindings.Microphone;
-            if (mic is not null)
+            // Add the microphones
+            foreach (var mic in player.Bindings.Microphones)
             {
                 devicesAvailable = true;
                 dialog.AddListButton(mic.DisplayName, () =>
                 {
-                    player.Bindings.RemoveMicrophone();
+                    player.Bindings.RemoveMicrophone(mic);
                     selectedDevice = true;
                 });
             }

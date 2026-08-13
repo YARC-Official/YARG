@@ -322,6 +322,12 @@ namespace YARG.Gameplay
                 Chart = Song.LoadChart();
                 if (Chart != null)
                 {
+                    var isReplay = GlobalVariables.State.IsReplay || GlobalVariables.State.PlayingWithReplay;
+                    if ((isReplay && ReplayInfo!.CensorshipEnabled) ||
+                        (!isReplay && SettingsManager.Settings.CensorMatureContent.Value))
+                    {
+                        Chart.ApplyCensorship();
+                    }
                     GenerateVenueTrack();
                     GenerateLipsyncTrack();
                 }
@@ -425,9 +431,12 @@ namespace YARG.Gameplay
 
                     if (!player.IsReplay)
                     {
-                        // Reset microphone (resets channel buffers)
+                        // Reset microphones (resets channel buffers)
                         // We probably wanna do this no matter what, so put it up here
-                        player.Bindings.Microphone?.Reset();
+                        foreach (var mic in player.Bindings.Microphones)
+                        {
+                            mic.Reset();
+                        }
                     }
 
                     // Skip if the player is sitting out

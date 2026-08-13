@@ -81,6 +81,7 @@ namespace YARG.Settings
                 nameof(Settings.Genrelizer),
                 new HeaderMetadata("MusicLibrary"),
                 nameof(Settings.MaxSongRating),
+                nameof(Settings.CensorMatureContent),
                 nameof(Settings.ShowFavoriteButton),
                 nameof(Settings.DifficultyRings),
                 nameof(Settings.HighScoreInfo),

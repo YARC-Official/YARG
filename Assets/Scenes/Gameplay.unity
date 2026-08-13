@@ -1835,6 +1835,10 @@ PrefabInstance:
       propertyPath: m_AspectRatio
       value: 1.6326531
       objectReference: {fileID: 0}
+    - target: {fileID: 4228396685661071210, guid: 039fee0ec42345d4f88c0625255415d4, type: 3}
+      propertyPath: useCustomPosition
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4345241489645973008, guid: 039fee0ec42345d4f88c0625255415d4, type: 3}
       propertyPath: m_LocalScale.x
       value: 0

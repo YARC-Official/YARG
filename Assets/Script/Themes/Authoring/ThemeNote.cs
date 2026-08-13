@@ -32,16 +32,18 @@ namespace YARG.Themes
         Wildcard = 14,
 
         DedicatedLaneKick = 15,
-         
+
+        BlackGlissando = 16,
+        
         // 6-fret guitar specific types
-        SixFretDown      = 16,
-        SixFretDownHOPO  = 17,
-        SixFretDownTap   = 18,
-        SixFretUpHOPO    = 19,
-        SixFretUpTap     = 20,
-        SixFretUp        = 21,
-        SixFretBarre     = 22,
-        SixFretBarreTap  = 23,
+        SixFretDown      = 17,
+        SixFretDownHOPO  = 18,
+        SixFretDownTap   = 19,
+        SixFretUpHOPO    = 20,
+        SixFretUpTap     = 21,
+        SixFretUp        = 22,
+        SixFretBarre     = 23,
+        SixFretBarreTap  = 24,
     }
 
     public class ThemeNote : MonoBehaviour

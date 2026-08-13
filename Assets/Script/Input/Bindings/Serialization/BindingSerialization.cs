@@ -37,6 +37,9 @@ namespace YARG.Input.Serialization
     public class SerializedProfileBindings
     {
         public List<SerializedInputDevice> Devices = new();
+        public List<SerializedMic> Microphones = new();
+
+        // Legacy single microphone, only filled when loading v0-v2 files
         public SerializedMic? Microphone;
 
         public Dictionary<GameMode, SerializedBindingCollection> ModeMappings = new();
@@ -129,7 +132,7 @@ namespace YARG.Input.Serialization
         {
             try
             {
-                var serialized = SerializeBindingsV2(bindings);
+                var serialized = SerializeBindingsV3(bindings);
                 string bindingsJson = JsonConvert.SerializeObject(serialized, Formatting.Indented);
                 File.WriteAllText(bindingsPath, bindingsJson);
             }
@@ -161,6 +164,7 @@ namespace YARG.Input.Serialization
                     0 => DeserializeBindingsV0(jObject),
                     1 => DeserializeBindingsV1(jObject),
                     2 => DeserializeBindingsV2(jObject),
+                    3 => DeserializeBindingsV3(jObject),
                     _ => throw new NotImplementedException($"Unhandled bindings version {version}!")
                 };
 
