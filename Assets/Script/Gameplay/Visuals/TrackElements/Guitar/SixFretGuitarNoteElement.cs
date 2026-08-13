@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using YARG.Core.Chart;
 using YARG.Core.Engine.Guitar;
-using YARG.Core.Logging;
 using YARG.Gameplay.Player;
 using YARG.Helpers.Extensions;
 using YARG.Themes;
@@ -21,8 +20,8 @@ namespace YARG.Gameplay.Visuals
             Barre   // Both rows in same lane pair
         }
 
-        // Theme model mapping count (Up/Down/Barre × Strum/HOPO/Tap + Open + OpenHopo + Wildcard)
-        private const int THEME_MODEL_COUNT = 3 * 3 + 3; // 12 total
+        // Theme model mapping count (Up/Down × Strum/HOPO/Tap + Bar * Strum/Tap + Open + OpenHopo + Wildcard)
+        private const int THEME_MODEL_COUNT = 3 * 2 + 2 + 3;
 
         [Space]
         [SerializeField]
@@ -51,7 +50,7 @@ namespace YARG.Gameplay.Visuals
 
             var offset = (int) ThemeNoteType.SixFretDown;
             // Map (LaneType, GuitarNoteType) to ThemeNoteType
-            for (var i = ThemeNoteType.SixFretDown; i <= ThemeNoteType.SixFretBarreHopo; ++i)
+            for (var i = ThemeNoteType.SixFretDown; i <= ThemeNoteType.SixFretBarreTap; ++i)
             {
                 AssignNoteGroup(models, starPowerModels, (int) i - offset, i);
             }
@@ -114,7 +113,6 @@ namespace YARG.Gameplay.Visuals
                     LaneNoteType.Barre => NoteRef.Type switch
                     {
                         GuitarNoteType.Strum => ThemeNoteType.SixFretBarre,
-                        GuitarNoteType.Hopo => ThemeNoteType.SixFretBarreHopo,
                         GuitarNoteType.Tap => ThemeNoteType.SixFretBarreTap,
                         _ => throw new ArgumentOutOfRangeException()
                     },

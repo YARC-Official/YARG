@@ -42,7 +42,6 @@ namespace YARG.Themes
         SixFretUp        = 21,
         SixFretBarre     = 22,
         SixFretBarreTap  = 23,
-        SixFretBarreHopo = 24,
     }
 
     public class ThemeNote : MonoBehaviour
