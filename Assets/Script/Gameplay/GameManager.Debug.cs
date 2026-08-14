@@ -559,6 +559,8 @@ namespace YARG.Gameplay
                     using var text = ZString.CreateStringBuilder(true);
 
                     text.AppendFormat("Heard sync error: {0:0.000} ms\n", _songRunner.SyncError * 1000.0);
+                    text.AppendFormat("Raw control sync error: {0:0.000} ms\n",
+                        _songRunner.DebugRawControlSyncError * 1000.0);
                     text.AppendFormat("Control sync error: {0:0.000} ms\n",
                         _songRunner.DebugControlSyncError * 1000.0);
                     text.AppendFormat("Control correction start: {0:0.000} ms\n",

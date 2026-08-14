@@ -30,7 +30,7 @@ namespace YARG.Menu.Settings.Visuals
             base.OnSettingInit();
         }
 
-        protected override void RefreshVisual()
+        public override void RefreshVisual()
         {
             if (Setting.Value.IsDynamic)
             {

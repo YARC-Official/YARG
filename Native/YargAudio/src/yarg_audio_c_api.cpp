@@ -1,19 +1,28 @@
 #include "BassCoreBindings.h"
 #include "BassMixBindings.h"
+#include "ReadAheadStream.h"
 #include "dsp/FreeverbDsp.h"
 #include "dsp/GainDsp.h"
 #include "one_shot/NativeOneShotStream.h"
 #include "yarg_audio.h"
 
 #include <cmath>
+#include <cstdint>
 #include <limits>
 #include <memory>
-#include <cstdint>
 
+static_assert(sizeof(yarg_read_ahead_config) == 28);
+static_assert(sizeof(yarg_read_ahead_stats) == 104);
+static_assert(sizeof(yarg_read_ahead_position_snapshot) == 24);
 static_assert(sizeof(yarg_one_shot_config) == 24);
+static_assert(sizeof(int32_t) == sizeof(int));
 
 struct yarg_one_shot_stream {
     std::unique_ptr<yarg::audio::NativeOneShotStream> value;
+};
+
+struct yarg_read_ahead_stream {
+    std::unique_ptr<yarg::audio::ReadAheadStream> value;
 };
 
 namespace {
@@ -36,6 +45,12 @@ bool validOneShotConfig(const yarg_one_shot_config* config) noexcept {
     return config && config->size >= sizeof(yarg_one_shot_config) &&
         config->sample_rate > 0 && config->channels > 0 &&
         std::isfinite(config->lead_time) && config->lead_time >= 0;
+}
+
+bool validReadAheadConfig(const yarg_read_ahead_config* config) noexcept {
+    return config && config->size >= sizeof(yarg_read_ahead_config) &&
+        config->source_mixer != 0 && config->sample_rate > 0 &&
+        config->channels > 0 && config->minimum_block_frames > 0;
 }
 
 bool validOneShotCounts(std::uint64_t pcmSampleCount,
@@ -147,13 +162,6 @@ int32_t YARG_AUDIO_CALL yarg_one_shot_stream_attach(
     return result;
 }
 
-int32_t YARG_AUDIO_CALL yarg_one_shot_stream_resync(
-    yarg_one_shot_stream* stream, uint32_t mixer,
-    double anchorSongPosition, float playbackSpeed, int32_t* bassError) {
-    return yarg_one_shot_stream_resync_ex(stream, mixer, anchorSongPosition,
-        playbackSpeed, 1, bassError);
-}
-
 int32_t YARG_AUDIO_CALL yarg_one_shot_stream_resync_ex(
     yarg_one_shot_stream* stream, uint32_t mixer,
     double anchorSongPosition, float playbackSpeed, int32_t clearActiveVoices,
@@ -204,6 +212,101 @@ int32_t YARG_AUDIO_CALL yarg_one_shot_stream_destroy(
         return error != 0 ? YARG_AUDIO_ERROR_BASS : YARG_AUDIO_ERROR_INVALID_STATE;
     }
     storeBassError(bassError, error);
+    delete stream;
+    return YARG_AUDIO_OK;
+}
+
+int32_t YARG_AUDIO_CALL yarg_read_ahead_stream_create(
+    const yarg_read_ahead_config* config, yarg_read_ahead_stream** stream,
+    uint32_t* streamHandle, int32_t* bassError) {
+    if (stream) *stream = nullptr;
+    if (streamHandle) *streamHandle = 0;
+    if (bassError) *bassError = 0;
+    if (!stream || !streamHandle || !validReadAheadConfig(config))
+        return YARG_AUDIO_ERROR_INVALID_ARGUMENT;
+
+    auto& core = coreBassBindings();
+    auto& mix = mixBassBindings();
+    if (!core.readAheadValid() || !mix.valid()) return YARG_AUDIO_ERROR_DEPENDENCY;
+
+    int error = 0;
+    auto value = yarg::audio::ReadAheadStream::create(core, mix, *config, &error);
+    if (!value) {
+        storeBassError(bassError, error);
+        return error != 0 ? YARG_AUDIO_ERROR_BASS : YARG_AUDIO_ERROR_INTERNAL;
+    }
+
+    try {
+        auto result = std::make_unique<yarg_read_ahead_stream>();
+        *streamHandle = value->streamHandle();
+        result->value = std::move(value);
+        *stream = result.release();
+        return YARG_AUDIO_OK;
+    } catch (...) {
+        return YARG_AUDIO_ERROR_INTERNAL;
+    }
+}
+
+int32_t YARG_AUDIO_CALL yarg_read_ahead_stream_prefill(
+    yarg_read_ahead_stream* stream, uint32_t timeoutMilliseconds) {
+    return stream && stream->value
+        ? stream->value->prefill(timeoutMilliseconds)
+        : YARG_AUDIO_ERROR_INVALID_ARGUMENT;
+}
+
+int32_t YARG_AUDIO_CALL yarg_read_ahead_stream_flush(
+    yarg_read_ahead_stream* stream) {
+    return stream && stream->value
+        ? stream->value->flush() : YARG_AUDIO_ERROR_INVALID_ARGUMENT;
+}
+
+int32_t YARG_AUDIO_CALL yarg_read_ahead_stream_set_buffer_length(
+    yarg_read_ahead_stream* stream, uint32_t bufferMilliseconds) {
+    return stream && stream->value
+        ? stream->value->setBufferLength(bufferMilliseconds)
+        : YARG_AUDIO_ERROR_INVALID_ARGUMENT;
+}
+
+int64_t YARG_AUDIO_CALL yarg_read_ahead_stream_get_source_position(
+    yarg_read_ahead_stream* stream, uint32_t source,
+    uint32_t endpointDelayFrames, int32_t* error) {
+    if (!stream || !stream->value || !error) return -1;
+    int result = YARG_AUDIO_OK;
+    const auto position = stream->value->getSourcePosition(
+        source, endpointDelayFrames, result);
+    *error = result;
+    return position;
+}
+
+int32_t YARG_AUDIO_CALL yarg_read_ahead_stream_get_position_snapshot(
+    yarg_read_ahead_stream* stream, uint32_t source,
+    uint32_t endpointDelayFrames, yarg_read_ahead_position_snapshot* snapshot) {
+    if (!stream || !stream->value || !snapshot ||
+        snapshot->size < sizeof(yarg_read_ahead_position_snapshot)) {
+        return YARG_AUDIO_ERROR_INVALID_ARGUMENT;
+    }
+    return stream->value->getPositionSnapshot(
+        source, endpointDelayFrames, *snapshot);
+}
+
+int32_t YARG_AUDIO_CALL yarg_read_ahead_stream_get_stats(
+    yarg_read_ahead_stream* stream, yarg_read_ahead_stats* stats) {
+    if (!stream || !stream->value || !stats ||
+        stats->size < sizeof(yarg_read_ahead_stats)) {
+        return YARG_AUDIO_ERROR_INVALID_ARGUMENT;
+    }
+    return stream->value->getStats(*stats);
+}
+
+int32_t YARG_AUDIO_CALL yarg_read_ahead_stream_destroy(
+    yarg_read_ahead_stream* stream, int32_t* bassError) {
+    if (bassError) *bassError = 0;
+    if (!stream || !stream->value) return YARG_AUDIO_ERROR_INVALID_ARGUMENT;
+    int error = 0;
+    if (!stream->value->destroy(&error)) {
+        storeBassError(bassError, error);
+        return error != 0 ? YARG_AUDIO_ERROR_BASS : YARG_AUDIO_ERROR_INVALID_STATE;
+    }
     delete stream;
     return YARG_AUDIO_OK;
 }

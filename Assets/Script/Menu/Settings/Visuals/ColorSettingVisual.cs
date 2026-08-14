@@ -18,7 +18,7 @@ namespace YARG.Menu.Settings.Visuals
         [SerializeField]
         private TMP_InputField _opacityField;
 
-        protected override void RefreshVisual()
+        public override void RefreshVisual()
         {
             _colorRectangle.color = Setting.Value;
             _inputField.text = ColorUtility.ToHtmlStringRGB(Setting.Value);
