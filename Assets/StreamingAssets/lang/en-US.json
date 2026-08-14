@@ -1021,6 +1021,7 @@
             "Cache": "Cache",
             "Venues": "Venues/Backgrounds",
             "Calibration": "Calibration",
+            "OffsetCalibration": "Offset Calibration",
             "Input": "Input",
             "PresetSettings": "Preset Settings",
             "Debug": "Debug",
