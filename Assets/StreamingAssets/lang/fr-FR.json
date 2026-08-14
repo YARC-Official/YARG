@@ -935,6 +935,7 @@
             "Cache": "Cache",
             "Venues": "Scènes/Arrière-plans",
             "Calibration": "Calibration",
+            "OffsetCalibration": "Calibration du décalage moyen",
             "Input": "Saisie",
             "PresetSettings": "Paramètre du preset",
             "Debug": "Débug",
