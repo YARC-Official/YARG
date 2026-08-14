@@ -516,8 +516,8 @@
             "ShowAdvanced": "Show Advanced",
             "HideAdvanced": "Hide Advanced",
             "EndSetlistEarly" : "End Setlist",
-            "AddSongOffset": "(Hold) Record song offset",
-            "RemoveSongOffset": "(Hold) Undo offset record",
+            "AddSongOffset": "(Hold) Save song offset",
+            "RemoveSongOffset": "(Hold) Undo offset save",
             "ViewReplay": "View Replay"
         },
         "Settings": {
@@ -1632,15 +1632,15 @@
             },
             "ShowSongOffsetCalibration": {
                 "Name": "Show Mean Song Offset Calibration",
-                "Description": "Shows an option on the advanced stats screen to record mean song offset."
+                "Description": "Shows an option on the advanced stats screen to save average song offset."
             },
             "ShowSongOffsetCalibrationOnlyOnePlayer": {
                 "Name": "Only Show With One Player",
-                "Description": "Only shows the option to record mean song offset when there is one human player."
+                "Description": "Only shows the option to average mean song offset when there is one human player."
             },
             "UseSongOffsetCalibration": {
                 "Name": "Use Mean Song Offset Calibration",
-                "Description": "Use the recorded song mean offset to adjust song audio delay."
+                "Description": "Use the saved song mean offset to adjust song audio delay."
             },
             "VocalMonitoring": {
                 "Name": "Vocal Monitoring Volume",
