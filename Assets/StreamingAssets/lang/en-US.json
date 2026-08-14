@@ -517,7 +517,7 @@
             "HideAdvanced": "Hide Advanced",
             "EndSetlistEarly" : "End Setlist",
             "AddSongOffset": "(Hold) Record song offset",
-            "RemoveSongOffset": "(Hold) Undo offset record"
+            "RemoveSongOffset": "(Hold) Undo offset record",
             "ViewReplay": "View Replay"
         },
         "Settings": {
