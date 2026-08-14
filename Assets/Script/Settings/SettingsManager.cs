@@ -37,7 +37,7 @@ namespace YARG.Settings
                 nameof(Settings.VideoCalibration),
                 new FieldMetadata(nameof(Settings.AccountForHardwareLatency), true, isAdvanced: true),
                 // Not sure how to use nameof?
-                new HeaderMetadata("End of song offset calibration"),
+                new HeaderMetadata("OffsetCalibration"),
                 nameof(Settings.ShowSongOffsetCalibration),
                 nameof(Settings.ShowSongOffsetCalibrationOnlyOnePlayer),
                 nameof(Settings.UseSongOffsetCalibration),
