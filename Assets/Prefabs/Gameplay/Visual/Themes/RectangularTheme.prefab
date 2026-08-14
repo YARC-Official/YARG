@@ -170,6 +170,7 @@ Transform:
   - {fileID: 6787859722296056190}
   - {fileID: 2431635785390195220}
   - {fileID: 4601662932000167060}
+  - {fileID: 1766368489983572321}
   - {fileID: 2781870284586889919}
   - {fileID: 7186335865743424943}
   - {fileID: 402095313306837402}
@@ -194,7 +195,7 @@ MonoBehaviour:
   _fiveLaneNotes: {fileID: 6012213803221084217}
   _proKeysNotes: {fileID: 5137040662578859982}
   _fiveFretFret: {fileID: 4601662932000167061}
-  _sixFretFret: {fileID: 4601662932000167061}
+  _sixFretFret: {fileID: 1766368489983572320}
   _fourLaneFret: {fileID: 2781870284586889918}
   _fiveLaneFret: {fileID: 2781870284586889918}
   _whiteKey: {fileID: 1125168594388541253}
@@ -72731,6 +72732,229 @@ MeshRenderer:
   m_CorrespondingSourceObject: {fileID: -7511558181221131132, guid: 3d87184571563894b90138a046c56d8a, type: 3}
   m_PrefabInstance: {fileID: 35101450919023400}
   m_PrefabAsset: {fileID: 0}
+--- !u!1001 &63816349775333242
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 4500990497932702555}
+    m_Modifications:
+    - target: {fileID: 155803174232394698, guid: e04222ae8a4f0c542926dc9ce20a58e0, type: 3}
+      propertyPath: m_Name
+      value: 6F Fret Hit Effects
+      objectReference: {fileID: 0}
+    - target: {fileID: 155803174232394698, guid: e04222ae8a4f0c542926dc9ce20a58e0, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 223115557659606238, guid: e04222ae8a4f0c542926dc9ce20a58e0, type: 3}
+      propertyPath: m_Enabled
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1756929875304873498, guid: e04222ae8a4f0c542926dc9ce20a58e0, type: 3}
+      propertyPath: m_Name
+      value: 6F Guitar Fret
+      objectReference: {fileID: 0}
+    - target: {fileID: 1756929875304873499, guid: e04222ae8a4f0c542926dc9ce20a58e0, type: 3}
+      propertyPath: m_RootOrder
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 1756929875304873499, guid: e04222ae8a4f0c542926dc9ce20a58e0, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -3.05
+      objectReference: {fileID: 0}
+    - target: {fileID: 1756929875304873499, guid: e04222ae8a4f0c542926dc9ce20a58e0, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1756929875304873499, guid: e04222ae8a4f0c542926dc9ce20a58e0, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0.998
+      objectReference: {fileID: 0}
+    - target: {fileID: 1756929875304873499, guid: e04222ae8a4f0c542926dc9ce20a58e0, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1756929875304873499, guid: e04222ae8a4f0c542926dc9ce20a58e0, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1756929875304873499, guid: e04222ae8a4f0c542926dc9ce20a58e0, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1756929875304873499, guid: e04222ae8a4f0c542926dc9ce20a58e0, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1756929875304873499, guid: e04222ae8a4f0c542926dc9ce20a58e0, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1756929875304873499, guid: e04222ae8a4f0c542926dc9ce20a58e0, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1756929875304873499, guid: e04222ae8a4f0c542926dc9ce20a58e0, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1897114193844750814, guid: e04222ae8a4f0c542926dc9ce20a58e0, type: 3}
+      propertyPath: m_Enabled
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1897114193844750814, guid: e04222ae8a4f0c542926dc9ce20a58e0, type: 3}
+      propertyPath: 'm_Materials.Array.data[1]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 69398f7d86a6d5aaeacfbb9c4d47a607, type: 2}
+    - target: {fileID: 2076112123222311851, guid: e04222ae8a4f0c542926dc9ce20a58e0, type: 3}
+      propertyPath: m_Name
+      value: 6F Fret Open Miss Effects
+      objectReference: {fileID: 0}
+    - target: {fileID: 2076112123222311851, guid: e04222ae8a4f0c542926dc9ce20a58e0, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2546153628872567235, guid: e04222ae8a4f0c542926dc9ce20a58e0, type: 3}
+      propertyPath: _mode
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2546153628872567235, guid: e04222ae8a4f0c542926dc9ce20a58e0, type: 3}
+      propertyPath: _fadeOutRate
+      value: 100
+      objectReference: {fileID: 0}
+    - target: {fileID: 3611622445092449340, guid: e04222ae8a4f0c542926dc9ce20a58e0, type: 3}
+      propertyPath: m_Name
+      value: 6F Fret Pressed Effects
+      objectReference: {fileID: 0}
+    - target: {fileID: 3611622445092449340, guid: e04222ae8a4f0c542926dc9ce20a58e0, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3780683828698714266, guid: e04222ae8a4f0c542926dc9ce20a58e0, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: -106.4
+      objectReference: {fileID: 0}
+    - target: {fileID: 3976812072215679014, guid: e04222ae8a4f0c542926dc9ce20a58e0, type: 3}
+      propertyPath: m_Name
+      value: 6F Fret Miss Effects
+      objectReference: {fileID: 0}
+    - target: {fileID: 3976812072215679014, guid: e04222ae8a4f0c542926dc9ce20a58e0, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4271423219651323142, guid: e04222ae8a4f0c542926dc9ce20a58e0, type: 3}
+      propertyPath: m_Name
+      value: 6F Fret Open Hit Effects
+      objectReference: {fileID: 0}
+    - target: {fileID: 4271423219651323142, guid: e04222ae8a4f0c542926dc9ce20a58e0, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6000496383647664972, guid: e04222ae8a4f0c542926dc9ce20a58e0, type: 3}
+      propertyPath: _mode
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6000496383647664972, guid: e04222ae8a4f0c542926dc9ce20a58e0, type: 3}
+      propertyPath: _fadeOutRate
+      value: 100
+      objectReference: {fileID: 0}
+    - target: {fileID: 6500175386639609726, guid: e04222ae8a4f0c542926dc9ce20a58e0, type: 3}
+      propertyPath: _mode
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6500175386639609726, guid: e04222ae8a4f0c542926dc9ce20a58e0, type: 3}
+      propertyPath: _fadeOutRate
+      value: 100
+      objectReference: {fileID: 0}
+    - target: {fileID: 7164710917201413868, guid: e04222ae8a4f0c542926dc9ce20a58e0, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7541549595879022386, guid: e04222ae8a4f0c542926dc9ce20a58e0, type: 3}
+      propertyPath: _mode
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7541549595879022386, guid: e04222ae8a4f0c542926dc9ce20a58e0, type: 3}
+      propertyPath: _fadeOutRate
+      value: 100
+      objectReference: {fileID: 0}
+    - target: {fileID: 7658291897936751210, guid: e04222ae8a4f0c542926dc9ce20a58e0, type: 3}
+      propertyPath: <HitEffect>k__BackingField
+      value: 
+      objectReference: {fileID: 8908213678026668123}
+    - target: {fileID: 7658291897936751210, guid: e04222ae8a4f0c542926dc9ce20a58e0, type: 3}
+      propertyPath: _secondaryInnerMaterials.Array.size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7658291897936751210, guid: e04222ae8a4f0c542926dc9ce20a58e0, type: 3}
+      propertyPath: _secondaryColoredMaterials.Array.size
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7658291897936751210, guid: e04222ae8a4f0c542926dc9ce20a58e0, type: 3}
+      propertyPath: _secondaryInnerMaterials.Array.data[0].Mesh
+      value: 
+      objectReference: {fileID: 1923423996457471652}
+    - target: {fileID: 7658291897936751210, guid: e04222ae8a4f0c542926dc9ce20a58e0, type: 3}
+      propertyPath: _secondaryColoredMaterials.Array.data[0].Mesh
+      value: 
+      objectReference: {fileID: 1923423996457471652}
+    - target: {fileID: 7658291897936751210, guid: e04222ae8a4f0c542926dc9ce20a58e0, type: 3}
+      propertyPath: _secondaryInnerMaterials.Array.data[0].MaterialIndex
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7747270839096973213, guid: e04222ae8a4f0c542926dc9ce20a58e0, type: 3}
+      propertyPath: m_Name
+      value: 6F Fret Sustain Effects
+      objectReference: {fileID: 0}
+    - target: {fileID: 7747270839096973213, guid: e04222ae8a4f0c542926dc9ce20a58e0, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8678109850829907769, guid: e04222ae8a4f0c542926dc9ce20a58e0, type: 3}
+      propertyPath: m_Enabled
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8678109850829907769, guid: e04222ae8a4f0c542926dc9ce20a58e0, type: 3}
+      propertyPath: m_CastShadows
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8678109850829907769, guid: e04222ae8a4f0c542926dc9ce20a58e0, type: 3}
+      propertyPath: m_LightProbeUsage
+      value: 1
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: e04222ae8a4f0c542926dc9ce20a58e0, type: 3}
+--- !u!1 &1766368489983572320 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 1756929875304873498, guid: e04222ae8a4f0c542926dc9ce20a58e0, type: 3}
+  m_PrefabInstance: {fileID: 63816349775333242}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &1766368489983572321 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 1756929875304873499, guid: e04222ae8a4f0c542926dc9ce20a58e0, type: 3}
+  m_PrefabInstance: {fileID: 63816349775333242}
+  m_PrefabAsset: {fileID: 0}
+--- !u!23 &1923423996457471652 stripped
+MeshRenderer:
+  m_CorrespondingSourceObject: {fileID: 1897114193844750814, guid: e04222ae8a4f0c542926dc9ce20a58e0, type: 3}
+  m_PrefabInstance: {fileID: 63816349775333242}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &8908213678026668123 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 8881922573788954401, guid: e04222ae8a4f0c542926dc9ce20a58e0, type: 3}
+  m_PrefabInstance: {fileID: 63816349775333242}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: faddd484b7894e0788b12f145d49f469, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1001 &270779860331376705
 PrefabInstance:
   m_ObjectHideFlags: 0

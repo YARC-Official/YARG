@@ -9,6 +9,7 @@ namespace YARG.Gameplay.Visuals
     public class Fret : MonoBehaviour, IThemeBindable<ThemeFret>
     {
         private static readonly int _fade          = Shader.PropertyToID("Fade");
+        private static readonly int _secondaryFade = Shader.PropertyToID("SecondaryFade");
         private static readonly int _emissionColor = Shader.PropertyToID("_EmissionColor");
         private static readonly int _secondaryColor = Shader.PropertyToID("_SecondaryColor");
         private static readonly int _secondaryEmissionColor = Shader.PropertyToID("_SecondaryEmissionColor");
@@ -128,7 +129,7 @@ namespace YARG.Gameplay.Visuals
             // Set secondary inner materials
             foreach (var material in ThemeBind.GetSecondaryInnerColoredMaterials())
             {
-                material.color = _secondaryOriginalUnityInnerColor;
+                material.SetColor(_secondaryColor, _secondaryOriginalUnityInnerColor);
                 _secondaryInnerMaterials.Add(material);
             }
 
@@ -265,7 +266,7 @@ namespace YARG.Gameplay.Visuals
         {
             foreach (var material in _secondaryInnerMaterials)
             {
-                material.SetFloat(_fade, value);
+                material.SetFloat(_secondaryFade, value);
             }
 
             if (_hasSecondaryPressedParam)
@@ -280,20 +281,6 @@ namespace YARG.Gameplay.Visuals
             else if (ThemeBind.SecondaryPressedEffect != null)
             {
                 ThemeBind.SecondaryPressedEffect.Stop();
-            }
-        }
-
-        // Set secondary half color (for Star Power transitions)
-        public void SetSecondaryColor(Color top, Color inner)
-        {
-            foreach (var mat in _secondaryTopMaterials)
-            {
-                mat.SetColor(_secondaryColor, top.ToUnityColor());
-                mat.SetColor(_secondaryEmissionColor, top.ToUnityColor() * 11.5f);
-            }
-            foreach (var mat in _secondaryInnerMaterials)
-            {
-                mat.SetColor(_secondaryColor, inner.ToUnityColor());
             }
         }
 

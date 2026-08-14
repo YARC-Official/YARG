@@ -218,30 +218,8 @@ namespace YARG.Gameplay.Player
                 var whiteHeld = Engine.IsFretHeld((GuitarAction)((int)whiteFret - 1));
                 var fretIndex = (int)blackFret; // Matches _frets dict key (Black1=1)
 
-                if (blackHeld && whiteHeld)
-                {
-                    // Both pressed — light both halves
-                    _fretArray.SetPressed(fretIndex, true);
-                    _fretArray.SetPressedSecondary(fretIndex, true);
-                }
-                else if (blackHeld)
-                {
-                    // Black only — primary half
-                    _fretArray.SetPressed(fretIndex, true);
-                    _fretArray.SetPressedSecondary(fretIndex, false);
-                }
-                else if (whiteHeld)
-                {
-                    // White only — secondary half
-                    _fretArray.SetPressed(fretIndex, false);
-                    _fretArray.SetPressedSecondary(fretIndex, true);
-                }
-                else
-                {
-                    // Neither — both off
-                    _fretArray.SetPressed(fretIndex, false);
-                    _fretArray.SetPressedSecondary(fretIndex, false);
-                }
+                _fretArray.SetPressed(fretIndex, blackHeld);
+                _fretArray.SetPressedSecondary(fretIndex, whiteHeld);
             }
         }
 
