@@ -3394,7 +3394,7 @@ namespace YARG.Editor
             EnsureAudioInitialized();
             DisposeSong();
 
-            var mixer = entry.LoadAudio(_playbackSpeed, _volume);
+            var mixer = entry.LoadAudio(_playbackSpeed, _volume, SettingsManager.Settings?.CensorMatureContent.Value ?? false);
             _bassSong = mixer as BassSong;
 
             if (_bassSong != null)
