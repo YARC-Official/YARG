@@ -125,58 +125,90 @@ namespace YARG.Menu.Navigation
             _navigatables.Clear();
         }
 
-        public void SelectFirst()
+        public void SelectFirst(SelectionOrigin selectionOrigin = SelectionOrigin.Programmatically)
         {
-            SelectAt(0);
+            for (int i = 0; i < _navigatables.Count; i++)
+            {
+                if (_navigatables[i].gameObject.activeInHierarchy)
+                {
+                    SelectAt(i, selectionOrigin);
+                    return;
+                }
+            }
         }
 
-        public void SelectLast()
+        public void SelectLast(SelectionOrigin selectionOrigin = SelectionOrigin.Programmatically)
         {
-            SelectAt(_navigatables.Count - 1);
+            for (int i = _navigatables.Count - 1; i >= 0; i--)
+            {
+                if (_navigatables[i].gameObject.activeInHierarchy)
+                {
+                    SelectAt(i, selectionOrigin);
+                    return;
+                }
+            }
         }
 
         public void SelectNext(bool isHeld = false)
         {
-            // Allows the user to quickly select an option without needing mouse
+            // Allows the user to quickly select an option without needing mouse.
+            // This is a genuine navigation input, so scroll the selection into view.
             if (SelectedIndex is null)
             {
-                SelectFirst();
+                SelectFirst(SelectionOrigin.Navigation);
                 return;
             }
 
-            // If the selection will go out of range...
-            if (SelectedIndex is not { } selected || selected < 0 || selected >= _navigatables.Count - 1)
+            if (SelectedIndex is not { } selected)
+                return;
+
+            // Search forward for the next active navigatable
+            for (int i = selected + 1; i < _navigatables.Count; i++)
             {
-                if (!isHeld && SettingsManager.Settings.WrapAroundNavigation.Value)
+                if (_navigatables[i].gameObject.activeInHierarchy)
                 {
-                    SelectAt(0, SelectionOrigin.Navigation);
+                    SelectAt(i, SelectionOrigin.Navigation);
+                    return;
                 }
-                return;
             }
 
-            SelectAt(selected + 1, SelectionOrigin.Navigation);
+            // Wrap around if enabled. Pass Navigation so ScrollViewNavigationUpdater
+            // scrolls the wrapped selection into view (it early-returns on other origins).
+            if (!isHeld && SettingsManager.Settings.WrapAroundNavigation.Value)
+            {
+                SelectFirst(SelectionOrigin.Navigation);
+            }
         }
 
         public void SelectPrevious(bool isHeld = false)
         {
-            // Allows the user to quickly select an option without needing mouse
+            // Allows the user to quickly select an option without needing mouse.
+            // This is a genuine navigation input, so scroll the selection into view.
             if (SelectedIndex is null)
             {
-                SelectLast();
+                SelectLast(SelectionOrigin.Navigation);
                 return;
             }
 
-            // If the selection is invalid...
-            if (SelectedIndex is not { } selected || selected <= 0)
+            if (SelectedIndex is not { } selected)
+                return;
+
+            // Search backward for the previous active navigatable
+            for (int i = selected - 1; i >= 0; i--)
             {
-                if (!isHeld && SettingsManager.Settings.WrapAroundNavigation.Value)
+                if (_navigatables[i].gameObject.activeInHierarchy)
                 {
-                    SelectAt(_navigatables.Count - 1, SelectionOrigin.Navigation);
+                    SelectAt(i, SelectionOrigin.Navigation);
+                    return;
                 }
-                return;
             }
 
-            SelectAt(selected - 1, SelectionOrigin.Navigation);
+            // Wrap around if enabled. Pass Navigation so ScrollViewNavigationUpdater
+            // scrolls the wrapped selection into view (it early-returns on other origins).
+            if (!isHeld && SettingsManager.Settings.WrapAroundNavigation.Value)
+            {
+                SelectLast(SelectionOrigin.Navigation);
+            }
         }
 
         public void SelectAt(int? index, SelectionOrigin selectionOrigin = SelectionOrigin.Programmatically)
@@ -208,7 +240,12 @@ namespace YARG.Menu.Navigation
 
                 index = _navigatables.IndexOf(navigatableBehaviour);
                 if (index < 0)
-                    throw new ArgumentException("The navigation item being selected is not present in the list!");
+                {
+                    // Can happen during tab rebuilds: an old button's onClick
+                    // fires before the old navigatable is fully destroyed.
+                    // Just ignore rather than crashing the EventSystem.
+                    return;
+                }
             }
             else
             {

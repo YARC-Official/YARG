@@ -18,6 +18,13 @@ namespace YARG.Menu.Settings.Visuals
             _ignoreCallback = true;
             _slider.MinimumValue = Setting.Min;
             _slider.MaximumValue = Setting.Max;
+
+            // Show integers for whole-number ranges (e.g. 0–100 percentage sliders)
+            if (Setting.Min == Mathf.Floor(Setting.Min) && Setting.Max == Mathf.Floor(Setting.Max))
+            {
+                _slider.FormatString = "F0";
+            }
+
             _ignoreCallback = false;
 
             base.OnSettingInit();

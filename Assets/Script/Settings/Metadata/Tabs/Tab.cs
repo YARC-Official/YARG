@@ -68,6 +68,15 @@ namespace YARG.Settings.Metadata
         {
         }
 
+        /// <summary>
+        /// Called when the user's selection moves to a setting row.
+        /// <paramref name="unlocalizedName"/> is the visual's unlocalized name
+        /// (e.g. "ColorProfile.GreenNote").
+        /// </summary>
+        public virtual void OnSettingSelected(string unlocalizedName)
+        {
+        }
+
         protected static BaseSettingVisual SpawnSettingVisual(ISettingType setting, Transform container)
         {
             // Spawn the setting

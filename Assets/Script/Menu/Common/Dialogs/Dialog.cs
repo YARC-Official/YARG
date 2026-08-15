@@ -1,7 +1,10 @@
+// pattern: Imperative Shell
+
 using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
+using YARG.Core.Input;
 using YARG.Helpers.Extensions;
 using YARG.Localization;
 using YARG.Menu.Data;
@@ -22,18 +25,26 @@ namespace YARG.Menu.Dialogs
         [field: SerializeField]
         public TextMeshProUGUI Title { get; private set; }
 
+        protected NavigationGroup NavigationGroup => _navigationGroup;
+        protected Transform DialogButtonContainer => _dialogButtonContainer;
+
         private void OnEnable()
         {
-            _ = Navigator.Instance.PushScheme(GetNavigationScheme());
+            // The dialog owns this scheme and must register it before input can
+            // reach the underlying menu.
+            Navigator.Instance.PushSchemeImmediate(GetNavigationScheme());
         }
 
         protected virtual NavigationScheme GetNavigationScheme()
         {
             return new NavigationScheme(new()
             {
-                NavigationScheme.Entry.NavigateSelect,
-                NavigationScheme.Entry.NavigateUp,
-                NavigationScheme.Entry.NavigateDown
+                new NavigationScheme.Entry(MenuAction.Up, "Menu.Common.Up",
+                    ctx => NavigationGroup.SelectPrevious(ctx.IsRepeat)),
+                new NavigationScheme.Entry(MenuAction.Down, "Menu.Common.Down",
+                    ctx => NavigationGroup.SelectNext(ctx.IsRepeat)),
+                new NavigationScheme.Entry(MenuAction.Green, "Menu.Common.Confirm",
+                    () => NavigationGroup.ConfirmSelection()),
             }, null);
         }
 
