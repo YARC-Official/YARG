@@ -27,6 +27,45 @@ namespace YARG.Audio.BASS
             fCenter = 10_000f,
             fGain = -10f,
         };
+
+        private static readonly BQFParameters MonitorHighPassParams = new()
+        {
+            lFilter = BQFType.HighPass,
+            fCenter = 90f,
+            fQ = 0.707f,
+            lChannel = FXChannelFlags.All,
+        };
+
+        private static readonly DampParameters MonitorLevelerParams = new()
+        {
+            fTarget = 0.20f,
+            fQuiet = 0.02f,
+            fRate = 0.02f,
+            fGain = 3.0f,
+            fDelay = 0.2f,
+            lChannel = FXChannelFlags.All,
+        };
+
+        private static readonly CompressorParameters MonitorCompressorParams = new()
+        {
+            fThreshold = -18.0f,
+            fRatio = 3.0f,
+            fAttack = 10.0f,
+            fRelease = 100.0f,
+            fGain = 0.0f,
+            lChannel = FXChannelFlags.All,
+        };
+
+        private static readonly CompressorParameters MonitorLimiterParams = new()
+        {
+            fThreshold = -1.0f,
+            fRatio = 20.0f,
+            fAttack = 0.1f,
+            fRelease = 30.0f,
+            fGain = 0.0f,
+            lChannel = FXChannelFlags.All,
+        };
+
         private readonly string          _name;
         private readonly BassFreeverbDsp _reverb;
 
@@ -146,7 +185,14 @@ namespace YARG.Audio.BASS
                     return null;
                 }
 
-                reverb = BassFreeverbDsp.Create(monitorHandle, 0.3f, 1f, 0.4f, 0.7f, 0f, 1);
+                if (!AddMonitoringEffects(monitorHandle))
+                {
+                    YargLogger.LogFormatError("Failed to add dynamics to mic '{0}' monitor split: {1}", name,
+                        Bass.LastError);
+                    return null;
+                }
+
+                reverb = BassFreeverbDsp.Create(monitorHandle, 0.3f, 1f, 0.4f, 0.7f, 0f);
                 if (reverb == null)
                 {
                     YargLogger.LogError($"Failed to add reverb to mic '{name}' monitor split");
@@ -193,6 +239,26 @@ namespace YARG.Audio.BASS
         }
 
         public void SetMonitoringLevel(double volume) => _monitor?.SetVolume(volume);
+
+        private static bool AddMonitoringEffects(int handle)
+        {
+            if (BassHelpers.FXAddParameters(handle, EffectType.BQF, MonitorHighPassParams, priority: 4) == 0)
+            {
+                return false;
+            }
+
+            if (BassHelpers.FXAddParameters(handle, EffectType.Damp, MonitorLevelerParams, priority: 3) == 0)
+            {
+                return false;
+            }
+
+            if (BassHelpers.FXAddParameters(handle, EffectType.Compressor, MonitorCompressorParams, priority: 2) == 0)
+            {
+                return false;
+            }
+
+            return BassHelpers.FXAddParameters(handle, EffectType.Compressor, MonitorLimiterParams, priority: 1) != 0;
+        }
 
         private static void FreeStream(ref int handle)
         {

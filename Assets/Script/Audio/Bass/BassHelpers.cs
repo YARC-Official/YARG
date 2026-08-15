@@ -28,9 +28,6 @@ namespace YARG.Audio.BASS
 #pragma warning disable CS0649
         public int CompressorFX;
         public int PitchFX;
-        public int LowEQ;
-        public int MidEQ;
-        public int HighEQ;
 #pragma warning restore CS0649
     }
 

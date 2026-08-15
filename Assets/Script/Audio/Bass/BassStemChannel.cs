@@ -1,7 +1,6 @@
 using ManagedBass;
 using ManagedBass.Mix;
 using UnityEngine;
-using YARG.Audio.BASS.Effects;
 using YARG.Core.Audio;
 using YARG.Core.Logging;
 
@@ -9,11 +8,10 @@ namespace YARG.Audio.BASS
 {
     public sealed class BassStemChannel : StemChannel
     {
-        private readonly int                        _sourceHandle;
-        private          StreamHandle               _streamHandles;
-        private          StreamHandle               _reverbHandles;
-        private          PitchShiftParametersStruct _pitchParams;
-        private          BassFreeverbDsp             _reverbDsp;
+        private readonly int                         _sourceHandle;
+        private readonly StreamHandle                _streamHandles;
+        private readonly StreamHandle                _reverbHandles;
+        private          PitchShiftParametersStruct  _pitchParams;
 
         private          double _volume;
         private          bool   _isReverbing;
@@ -101,7 +99,6 @@ namespace YARG.Audio.BASS
             }
 
             // Publish after the mixer seek so the next DSP callback cannot retain pre-seek tail.
-            _reverbDsp?.RequestReset();
         }
 
         protected override void SetVolume_Internal(double volume)
@@ -129,33 +126,6 @@ namespace YARG.Audio.BASS
             if (reverb)
             {
                 // Set reverb FX
-                if (_reverbDsp == null)
-                {
-                    _reverbHandles.LowEQ = BassHelpers.AddEqToChannel(_reverbHandles.Stream, BassHelpers.LowEqParams);
-                    _reverbHandles.MidEQ = BassHelpers.AddEqToChannel(_reverbHandles.Stream, BassHelpers.MidEqParams);
-                    _reverbHandles.HighEQ = BassHelpers.AddEqToChannel(_reverbHandles.Stream, BassHelpers.HighEqParams);
-                    if (_reverbHandles.LowEQ == 0 || _reverbHandles.MidEQ == 0 ||
-                        _reverbHandles.HighEQ == 0)
-                    {
-                        _isReverbing = false;
-                        RemoveReverbEq();
-                        return;
-                    }
-
-                    _reverbDsp = BassFreeverbDsp.Create(_reverbHandles.Stream,
-                        dryMix: 0.0f,
-                        wetMix: 1.0f,
-                        roomSize: 0.8f,
-                        damp: 0.5f,
-                        width: 1.0f);
-                    if (_reverbDsp == null)
-                    {
-                        _isReverbing = false;
-                        RemoveReverbEq();
-                        return;
-                    }
-                }
-
                 float volume = (float) (_volume * BassHelpers.REVERB_VOLUME_MULTIPLIER);
                 if (!Bass.ChannelSlideAttribute(_reverbHandles.Stream, ChannelAttribute.Volume, volume, BassHelpers.REVERB_SLIDE_IN_MILLISECONDS))
                 {
@@ -164,9 +134,7 @@ namespace YARG.Audio.BASS
             }
             else
             {
-                // No reverb is applied, but let the reverb stream slide out/fade out naturally
-                if (_reverbDsp == null) return;
-
+                // No new reverb is sent, but let the reverb stream slide out/fade out naturally
                 if (!Bass.ChannelSlideAttribute(_reverbHandles.Stream, ChannelAttribute.Volume, 0, BassHelpers.REVERB_SLIDE_OUT_MILLISECONDS))
                 {
                     YargLogger.LogFormatError("Failed to set reverb volume: {0}!", Bass.LastError);
@@ -174,31 +142,5 @@ namespace YARG.Audio.BASS
             }
         }
 
-        protected override void DisposeUnmanagedResources()
-        {
-            _reverbDsp?.Dispose();
-            _reverbDsp = null;
-        }
-
-        private void RemoveReverbEq()
-        {
-            RemoveFx(ref _reverbHandles.LowEQ);
-            RemoveFx(ref _reverbHandles.MidEQ);
-            RemoveFx(ref _reverbHandles.HighEQ);
-        }
-
-        private void RemoveFx(ref int fxHandle)
-        {
-            if (fxHandle == 0)
-            {
-                return;
-            }
-
-            if (!Bass.ChannelRemoveFX(_reverbHandles.Stream, fxHandle))
-            {
-                YargLogger.LogFormatError("Failed to remove reverb EQ effect: {0}!", Bass.LastError);
-            }
-            fxHandle = 0;
-        }
     }
 }
