@@ -651,6 +651,12 @@ namespace YARG.Gameplay.Player
 
         protected override bool InterceptInput(ref GameInput input)
         {
+            var minimumTime = System.Math.Max(BaseEngine.LastQueuedInputTime, BaseEngine.CurrentTime);
+            if (input.Time < minimumTime)
+            {
+                input = new GameInput(minimumTime, input.Action, input.Integer);
+            }
+
             return false;
         }
 

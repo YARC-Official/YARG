@@ -69,12 +69,12 @@ int YARG_BASS_CALL removeChannel(std::uint32_t) {
 BassCoreBindings makeCore(MockBass& state) {
     mock = &state;
     return BassCoreBindings(BassCoreFunctions{
-        &error, &setDsp, &removeDsp, &lockChannel, &getInfo, &getConfig,
-        &streamCreate, &streamFree});
+        &setDevice, &getData, &error, &setDsp, &removeDsp, &lockChannel,
+        &getInfo, &getConfig, &streamCreate, &streamFree});
 }
 
 BassMixBindings makeMix() {
-    return BassMixBindings(BassMixFunctions{&addChannel, &removeChannel});
+    return BassMixBindings(BassMixFunctions{nullptr, &addChannel, &removeChannel});
 }
 
 std::unique_ptr<NativeOneShotStream> createStream(

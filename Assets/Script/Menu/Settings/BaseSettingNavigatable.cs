@@ -23,6 +23,11 @@ namespace YARG.Menu.Settings
 
         public override void Confirm()
         {
+            if (!BaseSettingVisual.IsEditable)
+            {
+                return;
+            }
+
             var scheme = BaseSettingVisual.GetNavigationScheme();
             scheme.PopCallback = () =>
             {

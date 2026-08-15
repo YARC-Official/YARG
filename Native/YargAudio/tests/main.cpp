@@ -3,10 +3,14 @@
 #include <iostream>
 
 int main() {
+    runAudioRingBufferTests();
+    runBassBindingTests();
     runGainDspTests();
     runFreeverbDspTests();
     runScheduledSampleSourceTests();
     runNativeOneShotStreamTests();
-    std::cout << "YargAudio native DSP/one-shot tests passed\n";
+    runRenderAheadMixerTests();
+    runReadAheadStreamTests();
+    std::cout << "YargAudio native tests passed\n";
     return 0;
 }
