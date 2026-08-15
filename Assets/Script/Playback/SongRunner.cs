@@ -746,7 +746,7 @@ namespace YARG.Playback
 
     /// <summary>
     /// Keeps mixer playback aligned with gameplay time by applying bounded speed corrections.
-    /// Corrections stop near song boundaries and use a 3-sample median filter to reject transient jitter.
+    /// Corrections stop near song boundaries.
     /// </summary>
     public sealed class AudioSynchronizer
     {

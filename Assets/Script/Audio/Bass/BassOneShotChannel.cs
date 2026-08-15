@@ -70,10 +70,6 @@ namespace YARG.Audio.BASS
 
         internal event Action<BassOneShotChannel>? Disposed;
 
-        public override void Play()
-        {
-        }
-
         public override void SetVolume(double volume)
         {
             _nativeStream?.SetVolume(volume);

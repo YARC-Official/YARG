@@ -6,8 +6,6 @@ using ManagedBass.Mix;
 using UnityEngine;
 using YARG.Core.Audio;
 using YARG.Core.Logging;
-#if UNITY_EDITOR
-#endif
 
 namespace YARG.Audio.BASS
 {

@@ -302,6 +302,8 @@ namespace YARG.Audio.BASS
             if (!previous.Start())
             {
                 YargLogger.LogFormatError("Failed to reactivate audio output '{0}'", previous.Name);
+                previous.RestartRequested -= OnOutputRestartRequested;
+                previous.Dispose();
                 _output = null;
                 return;
             }
@@ -311,6 +313,10 @@ namespace YARG.Audio.BASS
             if (!_router.Connect(previous, previous.Device.DeviceId))
             {
                 YargLogger.LogFormatError("Failed to restore audio output '{0}'", previous.Name);
+                previous.RestartRequested -= OnOutputRestartRequested;
+                previous.Dispose();
+                _output = null;
+                return;
             }
 
             UpdatePlaybackLatency();
