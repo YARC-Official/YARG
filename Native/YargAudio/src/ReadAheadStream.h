@@ -6,6 +6,7 @@
 #include "yarg_audio.h"
 
 #include <atomic>
+#include <cstddef>
 #include <cstdint>
 #include <memory>
 
@@ -49,7 +50,10 @@ private:
     std::uint32_t read(void* buffer, std::uint32_t length) noexcept;
     bool createRenderer(std::uint32_t bufferMilliseconds) noexcept;
     void closeConsumer() noexcept;
-    void resetConsumerClock() noexcept;
+    void resetPlaybackState() noexcept;
+    void updatePlaybackClock(std::size_t consumed,
+        std::int64_t timestamp) noexcept;
+    void recordConsumption(std::size_t consumed, std::size_t requested) noexcept;
     void recordCallbackTiming(std::uint32_t frames, std::int64_t timestamp,
         std::int64_t previousTimestamp) noexcept;
     void setPlaybackClockRate(std::int64_t ratePpm,
