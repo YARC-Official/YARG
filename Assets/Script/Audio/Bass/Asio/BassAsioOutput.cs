@@ -41,6 +41,8 @@ namespace YARG.Audio.BASS.Asio
 
         internal override double SongPlaybackStartDelay => SampleRate > 0 ? _latencyFrames / (double) SampleRate : 0;
 
+        internal override bool UsesIndependentClock => true;
+
         internal string DriverId => _driver.DriverId;
 
         public static BassAsioOutput? Find(string name, BassAudioRouter router, BassAsioMics microphones)

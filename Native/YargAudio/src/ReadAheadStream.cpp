@@ -12,6 +12,11 @@ namespace {
 constexpr std::uint32_t BassSampleFloat = 0x100;
 constexpr std::uint32_t BassStreamDecode = 0x200000;
 constexpr std::int64_t NanosecondsPerSecond = 1'000'000'000;
+constexpr std::int64_t RATE_MEASUREMENT_MINIMUM_NANOSECONDS = NanosecondsPerSecond;
+constexpr std::int64_t MAXIMUM_CLOCK_RATE_ERROR_PPM = 10'000;
+constexpr unsigned PLAYBACK_CLOCK_FRACTION_BITS = 32;
+constexpr std::uint64_t PLAYBACK_CLOCK_SCALE =
+    std::uint64_t{1} << PLAYBACK_CLOCK_FRACTION_BITS;
 
 std::uint64_t packCallbackTiming(std::uint32_t frames,
     std::uint32_t elapsedFrames) noexcept {
@@ -66,13 +71,15 @@ private:
 
 std::unique_ptr<ReadAheadStream> ReadAheadStream::create(
     BassCoreBindings& bass, BassMixBindings& bassMix,
-    const yarg_read_ahead_config& config, int* bassError) noexcept {
+    const yarg_read_ahead_config& config, int* bassError,
+    TimestampProvider timestampProvider) noexcept {
     if (bassError) *bassError = 0;
     if (!bass.readAheadValid() || !bassMix.valid()) return nullptr;
 
     try {
         auto stream = std::unique_ptr<ReadAheadStream>(
-            new ReadAheadStream(bass, bassMix, config));
+            new ReadAheadStream(bass, bassMix, config,
+                timestampProvider ? timestampProvider : &currentTimestamp));
         if (!stream->createRenderer(config.buffer_milliseconds)) return nullptr;
         stream->streamHandle_ = bass.createStream(config.sample_rate,
             config.channels, BassSampleFloat | BassStreamDecode,
@@ -88,12 +95,20 @@ std::unique_ptr<ReadAheadStream> ReadAheadStream::create(
 }
 
 ReadAheadStream::ReadAheadStream(BassCoreBindings& bass,
-    BassMixBindings& bassMix, const yarg_read_ahead_config& config) noexcept
-    : bass_(bass), bassMix_(bassMix), config_(config) {}
+    BassMixBindings& bassMix, const yarg_read_ahead_config& config,
+    TimestampProvider timestampProvider) noexcept
+    : bass_(bass), bassMix_(bassMix), config_(config),
+      timestampProvider_(timestampProvider) {}
 
 ReadAheadStream::~ReadAheadStream() {
     int error = 0;
     if (!destroy(&error) && renderer_) renderer_->stop();
+}
+
+int ReadAheadStream::setCallbackClockEnabled(bool enabled) noexcept {
+    callbackClockEnabled_.store(enabled, std::memory_order_release);
+    playbackClockRatePpm_.store(0, std::memory_order_relaxed);
+    return YARG_AUDIO_OK;
 }
 
 int ReadAheadStream::prefill(std::uint32_t timeoutMilliseconds) noexcept {
@@ -159,7 +174,7 @@ int ReadAheadStream::getPositionSnapshot(std::uint32_t source,
         const auto succeeded = renderer_->sourcePositionSnapshotAfterLock(
             source, position, [this, endpointDelayFrames] {
                 return remainingPlaybackDelayFrames(
-                    endpointDelayFrames, currentTimestamp());
+                    endpointDelayFrames, timestampProvider_());
             });
         if (!succeeded) {
             return YARG_AUDIO_ERROR_BASS;
@@ -240,21 +255,22 @@ std::uint32_t ReadAheadStream::read(void* buffer, std::uint32_t length) noexcept
 
     consumerSequence_.fetch_add(1, std::memory_order_acq_rel);
     const auto consumed = renderer_->consume(static_cast<float*>(buffer), frames);
-    const auto timestamp = currentTimestamp();
+    const auto timestamp = timestampProvider_();
     const auto previousTimestamp = consumerTimestamp_.load(std::memory_order_relaxed);
     const auto submittedFrames = generationConsumedFrames_.load(std::memory_order_relaxed);
     const auto expired = playbackClockExpired(
         submittedFrames, static_cast<std::uint32_t>(consumed), timestamp);
     if (playbackClockTimestamp_.load(std::memory_order_relaxed) == 0 || expired) {
-        if (expired) lastHeardFrame_.store(submittedFrames, std::memory_order_relaxed);
-        playbackClockFrames_.store(submittedFrames + consumed, std::memory_order_relaxed);
+        playbackClockFixedFrames_.store(
+            (submittedFrames + consumed) * PLAYBACK_CLOCK_SCALE,
+            std::memory_order_relaxed);
         playbackClockTimestamp_.store(timestamp, std::memory_order_relaxed);
     }
     generationConsumedFrames_.store(submittedFrames + consumed, std::memory_order_relaxed);
     consumerTimestamp_.store(timestamp, std::memory_order_relaxed);
-    consumerSequence_.fetch_add(1, std::memory_order_release);
     recordCallbackTiming(static_cast<std::uint32_t>(consumed), timestamp,
         previousTimestamp);
+    consumerSequence_.fetch_add(1, std::memory_order_release);
     consumedFrames_.fetch_add(consumed, std::memory_order_relaxed);
     const auto queued = static_cast<std::uint32_t>(renderer_->queuedFrames());
     updateMinimum(queued);
@@ -300,9 +316,10 @@ void ReadAheadStream::resetConsumerClock() noexcept {
     consumerSequence_.fetch_add(1, std::memory_order_acq_rel);
     consumerTimestamp_.store(0, std::memory_order_relaxed);
     playbackClockTimestamp_.store(0, std::memory_order_relaxed);
-    playbackClockFrames_.store(0, std::memory_order_relaxed);
+    playbackClockFixedFrames_.store(0, std::memory_order_relaxed);
     generationConsumedFrames_.store(0, std::memory_order_relaxed);
     lastHeardFrame_.store(0, std::memory_order_relaxed);
+    playbackClockRatePpm_.store(0, std::memory_order_relaxed);
     endpointDelayFrames_.store(UINT32_MAX, std::memory_order_relaxed);
     consumerSequence_.fetch_add(1, std::memory_order_release);
     callbackTiming_.store(0, std::memory_order_relaxed);
@@ -333,13 +350,48 @@ void ReadAheadStream::recordCallbackTiming(std::uint32_t frames,
 
     const auto originFrames = callbackClockOriginFrames_.load(std::memory_order_relaxed);
     const auto consumedFrames = consumedFrames_.load(std::memory_order_relaxed) + frames;
-    const auto clockElapsed = static_cast<std::uint64_t>(timestamp - originTimestamp) *
+    const auto elapsedNanoseconds = std::max<std::int64_t>(0, timestamp - originTimestamp);
+    const auto clockElapsed = static_cast<std::uint64_t>(elapsedNanoseconds) *
         config_.sample_rate / NanosecondsPerSecond;
     const auto actualElapsed = consumedFrames - originFrames;
     const auto clockOffset = actualElapsed >= clockElapsed
         ? static_cast<std::int64_t>(actualElapsed - clockElapsed)
         : -static_cast<std::int64_t>(clockElapsed - actualElapsed);
     callbackClockOffsetFrames_.store(clockOffset, std::memory_order_relaxed);
+
+    const auto nominalElapsedFrames = static_cast<double>(elapsedNanoseconds) *
+        config_.sample_rate / NanosecondsPerSecond;
+    if (!callbackClockEnabled_.load(std::memory_order_acquire)) return;
+    if (elapsedNanoseconds < RATE_MEASUREMENT_MINIMUM_NANOSECONDS ||
+        actualElapsed == 0 || nominalElapsedFrames <= 0) return;
+
+    const auto measuredPpm = (static_cast<double>(actualElapsed) /
+        nominalElapsedFrames - 1.0) * 1'000'000.0;
+    if (measuredPpm < -MAXIMUM_CLOCK_RATE_ERROR_PPM ||
+        measuredPpm > MAXIMUM_CLOCK_RATE_ERROR_PPM) {
+        callbackClockOriginFrames_.store(consumedFrames, std::memory_order_relaxed);
+        callbackClockOriginTimestamp_.store(timestamp, std::memory_order_relaxed);
+        setPlaybackClockRate(0, timestamp);
+        return;
+    }
+
+    setPlaybackClockRate(static_cast<std::int64_t>(measuredPpm), timestamp);
+}
+
+void ReadAheadStream::setPlaybackClockRate(std::int64_t ratePpm,
+    std::int64_t timestamp) noexcept {
+    const auto clockTimestamp = playbackClockTimestamp_.load(
+        std::memory_order_relaxed);
+    if (clockTimestamp != 0 && timestamp >= clockTimestamp) {
+        const auto clockFrames = playbackClockFixedFrames_.load(
+            std::memory_order_relaxed);
+        const auto elapsedFrames = playbackClockElapsedFrames(timestamp,
+            clockTimestamp);
+        playbackClockFixedFrames_.store(clockFrames + elapsedFrames,
+            std::memory_order_relaxed);
+        playbackClockTimestamp_.store(timestamp, std::memory_order_relaxed);
+    }
+    playbackClockRatePpm_.store(ratePpm, std::memory_order_relaxed);
 }
 
 std::uint32_t ReadAheadStream::remainingPlaybackDelayFrames(
@@ -350,28 +402,44 @@ std::uint32_t ReadAheadStream::remainingPlaybackDelayFrames(
     const auto clockTimestamp = playbackClockTimestamp_.load(std::memory_order_relaxed);
     if (clockTimestamp == 0 || config_.sample_rate == 0) return endpointDelayFrames;
 
-    const auto elapsed = std::max<std::int64_t>(0, timestamp - clockTimestamp);
-    const auto elapsedFrames = static_cast<std::uint64_t>(elapsed) * config_.sample_rate /
-        NanosecondsPerSecond;
-    const auto clockFrames = playbackClockFrames_.load(std::memory_order_relaxed);
+    const auto elapsedFrames = playbackClockElapsedFrames(timestamp, clockTimestamp);
+    const auto clockFrames = playbackClockFixedFrames_.load(
+        std::memory_order_relaxed);
     const auto advancedFrames = clockFrames + elapsedFrames;
-    const auto delayedSubmittedFrames = submittedFrames + endpointDelayFrames;
-    const auto remaining = delayedSubmittedFrames > advancedFrames
+    const auto submittedFixedFrames = submittedFrames * PLAYBACK_CLOCK_SCALE;
+    const auto delayedSubmittedFrames = submittedFixedFrames +
+        static_cast<std::uint64_t>(endpointDelayFrames) * PLAYBACK_CLOCK_SCALE;
+    const auto remainingFixedFrames = delayedSubmittedFrames > advancedFrames
         ? delayedSubmittedFrames - advancedFrames : 0;
-    const auto candidate = remaining < submittedFrames
-        ? submittedFrames - remaining : 0;
-    const auto bounded = std::min(candidate, submittedFrames);
+    const auto candidateFixedFrames = remainingFixedFrames < submittedFixedFrames
+        ? submittedFixedFrames - remainingFixedFrames : 0;
+    const auto bounded = std::min(candidateFixedFrames, submittedFixedFrames) /
+        PLAYBACK_CLOCK_SCALE;
 
     auto previous = lastHeardFrame_.load(std::memory_order_relaxed);
     while (previous < bounded && !lastHeardFrame_.compare_exchange_weak(
         previous, bounded, std::memory_order_relaxed)) {
     }
     const auto heard = std::min(std::max(previous, bounded), submittedFrames);
-    if (heard > 0 || remaining <= submittedFrames) {
+    if (heard > 0 || remainingFixedFrames <= submittedFixedFrames) {
         return static_cast<std::uint32_t>(std::min<std::uint64_t>(
             submittedFrames - heard, UINT32_MAX));
     }
-    return static_cast<std::uint32_t>(std::min<std::uint64_t>(remaining, UINT32_MAX));
+    const auto remainingFrames = (remainingFixedFrames + PLAYBACK_CLOCK_SCALE - 1) /
+        PLAYBACK_CLOCK_SCALE;
+    return static_cast<std::uint32_t>(std::min<std::uint64_t>(
+        remainingFrames, UINT32_MAX));
+}
+
+std::uint64_t ReadAheadStream::playbackClockElapsedFrames(
+    std::int64_t timestamp, std::int64_t clockTimestamp) const noexcept {
+    const auto elapsed = std::max<std::int64_t>(0, timestamp - clockTimestamp);
+    const auto ratePpm = playbackClockRatePpm_.load(std::memory_order_relaxed);
+    const auto rateScale = 1'000'000 + ratePpm;
+    const auto nominalElapsedFrames = static_cast<double>(elapsed) *
+        config_.sample_rate / NanosecondsPerSecond;
+    return static_cast<std::uint64_t>(nominalElapsedFrames * rateScale *
+        PLAYBACK_CLOCK_SCALE / 1'000'000);
 }
 
 bool ReadAheadStream::playbackClockExpired(std::uint64_t submittedFrames,
@@ -382,14 +450,17 @@ bool ReadAheadStream::playbackClockExpired(std::uint64_t submittedFrames,
         return false;
     }
 
-    const auto elapsed = std::max<std::int64_t>(0, timestamp - clockTimestamp);
-    const auto elapsedFrames = static_cast<std::uint64_t>(elapsed) * config_.sample_rate /
-        NanosecondsPerSecond;
-    const auto clockFrames = playbackClockFrames_.load(std::memory_order_relaxed);
+    const auto elapsedFrames = playbackClockElapsedFrames(timestamp, clockTimestamp);
+    const auto clockFrames = playbackClockFixedFrames_.load(
+        std::memory_order_relaxed);
     const auto advancedFrames = clockFrames + elapsedFrames;
-    const auto candidate = advancedFrames > endpointDelay
-        ? advancedFrames - endpointDelay : 0;
-    return candidate > submittedFrames + callbackFrames;
+    const auto endpointFixedFrames = static_cast<std::uint64_t>(endpointDelay) *
+        PLAYBACK_CLOCK_SCALE;
+    const auto candidate = advancedFrames > endpointFixedFrames
+        ? advancedFrames - endpointFixedFrames : 0;
+    const auto submittedLimit = (submittedFrames + callbackFrames) *
+        PLAYBACK_CLOCK_SCALE;
+    return candidate > submittedLimit;
 }
 
 void ReadAheadStream::updateMinimum(std::uint32_t queued) noexcept {

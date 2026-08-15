@@ -1,8 +1,11 @@
 #nullable enable
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Text;
 using ManagedBass;
 using UnityEditor;
 using UnityEngine;
@@ -21,6 +24,7 @@ namespace YARG.Editor
     {
         private const double SAMPLE_INTERVAL = 1.0 / 60.0;
         private const int MAX_SAMPLES = 1800;
+        private const int MAX_DRIFT_MEASUREMENTS = 36000;
         private const int DEFAULT_BUFFER_MS = 100;
         private const string RECENT_PATHS_KEY = "YARG_AudioDebug_RecentPaths";
         private const int MAX_RECENT_PATHS = 8;
@@ -37,9 +41,11 @@ namespace YARG.Editor
             PositionMappingStep,
             CallbackTimingStep,
             ControlHeardDelta,
+            ClockDrift,
             AbsolutePosition,
             MicPitchAndHits,
-            FrequencySpectrum
+            FrequencySpectrum,
+            Oscilloscope
         }
 
         private enum FftDisplayStyle
@@ -72,6 +78,9 @@ namespace YARG.Editor
         private float[]? _fftBuffer;
         private float[]? _smoothedFft;
         private float[]? _peakFft;
+        private float[]? _scopePcmBuffer;
+        private float _scopeTimebase = 0.020f;
+        private float _scopeGain = 1f;
         private float _fftSmoothingFactor = 0.75f;
         private float _fftMinDb = -96f;
         private float _fftMaxDb = 0f;
@@ -109,6 +118,7 @@ namespace YARG.Editor
             public double CallbackClockOffsetMs;
             public double HeardErrorMs;
             public double ControlErrorMs;
+            public double DriftErrorMs;
             public float Adjustment;
             public AudioSynchronizer.SyncState SyncState;
             public bool IsPlaying;
@@ -121,6 +131,24 @@ namespace YARG.Editor
             public float VolumeDb;
             public bool IsHit;
             public bool IsVoiced;
+        }
+
+        private struct DriftMeasurement
+        {
+            public double HostSeconds;
+            public double SongPositionSeconds;
+            public double DriftMs;
+            public double PositionStepResidualMs;
+            public ulong ConsumedFrames;
+            public ulong RequestedFrames;
+            public uint QueuedFrames;
+            public ulong PositionOutputFrame;
+            public uint CallbackFrames;
+            public uint CallbackElapsedFrames;
+            public long CallbackCorrectionFrames;
+            public long CallbackClockOffsetFrames;
+            public ulong UnderrunFrames;
+            public ulong UnderrunEvents;
         }
 
         private static readonly string[] NOTE_NAMES = { "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B" };
@@ -184,6 +212,27 @@ namespace YARG.Editor
         private int _fpsFrameCount;
         private float _currentFps;
 
+        private bool _isDriftTestRunning;
+        private bool _driftBaselineEstablished;
+        private double _driftTestStartTime;
+        private long _driftTestQpcStart;
+        private double _driftInitialAudioStart;
+        private double _driftElapsedHostSeconds;
+        private double _driftElapsedAudioSeconds;
+        private double _driftCumulativeMs;
+        private double _driftRatePpm;
+        private double _driftMsPerMin;
+        private double _calibrationTrackLength;
+        private int _driftAudioLoopCount;
+        private readonly List<DriftMeasurement> _driftMeasurements = new(MAX_DRIFT_MEASUREMENTS);
+        private ulong _driftStartRequestedFrames;
+        private double _driftCallbackRatePpm;
+        private double _driftMaxPositionStepMs;
+        private int _driftLargePositionStepCount;
+        private double _driftPreviousSampleTime;
+        private double _driftPreviousSongPosition;
+        private bool _driftPreviousPositionValid;
+
         private GraphMode _graphMode = GraphMode.PositionJitter;
         private float _graphTimeWindow = 2f;
         private float _jitterScaleMs = 10f;
@@ -238,12 +287,14 @@ namespace YARG.Editor
         private void OnDisable()
         {
             EditorApplication.update -= OnEditorUpdate;
+            StopDriftTest();
             DisposeSong();
             DisconnectMicrophone();
         }
 
         private void OnDestroy()
         {
+            StopDriftTest();
             DisposeSong();
             DisconnectMicrophone();
         }
@@ -305,6 +356,12 @@ namespace YARG.Editor
 
         private void OnSongEnd()
         {
+            if (_isDriftTestRunning && _bassSong != null)
+            {
+                _driftAudioLoopCount++;
+                _bassSong.SetPosition(0);
+                PlaySong();
+            }
             Repaint();
         }
 
@@ -318,6 +375,7 @@ namespace YARG.Editor
 
             UpdateMicrophone(now, dt);
             UpdateSongPlayback(now, dt);
+            UpdateDriftTest(now, dt);
             UpdateFft(now, dt);
         }
 
@@ -448,7 +506,7 @@ namespace YARG.Editor
             double audioCalibrationSeconds = _audioCalibrationMs / 1000.0;
             double heardTargetTime = controlTargetTime + (audioCalibrationSeconds * _playbackSpeed);
 
-            if (_modelSongSync && _audioSynchronizer != null)
+            if (_modelSongSync && _audioSynchronizer != null && !_isDriftTestRunning)
             {
                 _audioSynchronizer.Synchronize(controlTargetTime, heardTargetTime, _playbackSpeed,
                     currentInputSystemTime);
@@ -506,6 +564,7 @@ namespace YARG.Editor
                         : 0,
                     HeardErrorMs = heardErrMs,
                     ControlErrorMs = ctrlErrMs,
+                    DriftErrorMs = _driftCumulativeMs,
                     Adjustment = adjustment,
                     SyncState = syncState,
                     IsPlaying = true
@@ -659,7 +718,7 @@ namespace YARG.Editor
                 }
             }
 
-            if (_graphMode == GraphMode.FrequencySpectrum || _selectedBottomTab == 4)
+            if (_graphMode == GraphMode.FrequencySpectrum || _graphMode == GraphMode.Oscilloscope || _selectedBottomTab == 4)
             {
                 Repaint();
             }
@@ -1371,6 +1430,22 @@ namespace YARG.Editor
                         DrawFftScalePill(FftScaleMode.Logarithmic, "Log");
                         DrawFftScalePill(FftScaleMode.Linear, "Lin");
                     }
+                    else if (_graphMode == GraphMode.Oscilloscope)
+                    {
+                        GUILayout.Space(6);
+                        EditorGUILayout.LabelField("Timebase:", GUILayout.Width(58));
+                        DrawScopeTimebasePill(0.002f, "2ms");
+                        DrawScopeTimebasePill(0.005f, "5ms");
+                        DrawScopeTimebasePill(0.010f, "10ms");
+                        DrawScopeTimebasePill(0.020f, "20ms");
+                        DrawScopeTimebasePill(0.050f, "50ms");
+
+                        GUILayout.Space(6);
+                        EditorGUILayout.LabelField("Gain:", GUILayout.Width(35));
+                        DrawScopeGainPill(1f, "1x");
+                        DrawScopeGainPill(2f, "2x");
+                        DrawScopeGainPill(5f, "5x");
+                    }
                     else if (_graphMode == GraphMode.MicPitchAndHits)
                     {
                         GUILayout.Space(6);
@@ -1561,6 +1636,59 @@ namespace YARG.Editor
             GUI.backgroundColor = prevBg;
         }
 
+        private void DrawScopeTimebasePill(float timebase, string label)
+        {
+            bool isSelected = Mathf.Approximately(_scopeTimebase, timebase);
+            var prevBg = GUI.backgroundColor;
+            if (isSelected)
+            {
+                GUI.backgroundColor = new Color(0.2f, 0.8f, 1f, 1f);
+            }
+            if (GUILayout.Button(label, EditorStyles.miniButton, GUILayout.Width(36)))
+            {
+                _scopeTimebase = timebase;
+            }
+            GUI.backgroundColor = prevBg;
+        }
+
+        private void DrawScopeGainPill(float gain, string label)
+        {
+            bool isSelected = Mathf.Approximately(_scopeGain, gain);
+            var prevBg = GUI.backgroundColor;
+            if (isSelected)
+            {
+                GUI.backgroundColor = new Color(0.2f, 0.8f, 1f, 1f);
+            }
+            if (GUILayout.Button(label, EditorStyles.miniButton, GUILayout.Width(28)))
+            {
+                _scopeGain = gain;
+            }
+            GUI.backgroundColor = prevBg;
+        }
+
+        private static void BuildPositionJitterValues(IReadOnlyList<PositionSample> samples,
+            List<double> heardValues, List<double>? controlValues = null)
+        {
+            heardValues.Add(0.0);
+            controlValues?.Add(0.0);
+
+            for (int i = 1; i < samples.Count; i++)
+            {
+                var previous = samples[i - 1];
+                var current = samples[i];
+                double elapsed = current.RealTime - previous.RealTime;
+                if (elapsed <= 0)
+                {
+                    heardValues.Add(0.0);
+                    controlValues?.Add(0.0);
+                    continue;
+                }
+
+                heardValues.Add(((current.HeardPosition - previous.HeardPosition) - elapsed) * 1000.0);
+                controlValues?.Add(((current.ControlPosition - previous.ControlPosition) - elapsed) * 1000.0);
+            }
+        }
+
         private void DrawGraphArea(Rect rect)
         {
             if (rect.width < 10 || rect.height < 10)
@@ -1576,6 +1704,12 @@ namespace YARG.Editor
             float plotWidth = rect.width - paddingLeft - paddingRight;
             float plotHeight = rect.height - paddingTop - paddingBottom;
             var plotRect = new Rect(rect.x + paddingLeft, rect.y + paddingTop, plotWidth, plotHeight);
+
+            if (_graphMode == GraphMode.Oscilloscope)
+            {
+                DrawMainOscilloscopeGraph(rect, plotRect, paddingLeft, paddingTop, paddingRight, paddingBottom, plotWidth, plotHeight);
+                return;
+            }
 
             if (_graphMode == GraphMode.MicPitchAndHits)
             {
@@ -1675,38 +1809,7 @@ namespace YARG.Editor
 
                 case GraphMode.PositionJitter:
                 {
-                    double meanTime = windowSamples.Average(s => s.RealTime);
-                    double meanHeard = windowSamples.Average(s => s.HeardPosition);
-                    double meanControl = windowSamples.Average(s => s.ControlPosition);
-
-                    double numHeard = 0;
-                    double numControl = 0;
-                    double denom = 0;
-
-                    for (int i = 0; i < windowSamples.Count; i++)
-                    {
-                        double dt = windowSamples[i].RealTime - meanTime;
-                        numHeard += dt * (windowSamples[i].HeardPosition - meanHeard);
-                        numControl += dt * (windowSamples[i].ControlPosition - meanControl);
-                        denom += dt * dt;
-                    }
-
-                    double slopeHeard = denom > 0.00001 ? numHeard / denom : 1.0;
-                    double slopeControl = denom > 0.00001 ? numControl / denom : 1.0;
-
-                    double interceptHeard = meanHeard - (slopeHeard * meanTime);
-                    double interceptControl = meanControl - (slopeControl * meanTime);
-
-                    for (int i = 0; i < windowSamples.Count; i++)
-                    {
-                        double expectedHeard = interceptHeard + (slopeHeard * windowSamples[i].RealTime);
-                        double residualHeardMs = (windowSamples[i].HeardPosition - expectedHeard) * 1000.0;
-                        heardValues.Add(residualHeardMs);
-
-                        double expectedControl = interceptControl + (slopeControl * windowSamples[i].RealTime);
-                        double residualControlMs = (windowSamples[i].ControlPosition - expectedControl) * 1000.0;
-                        controlValues.Add(residualControlMs);
-                    }
+                    BuildPositionJitterValues(windowSamples, heardValues, controlValues);
                     break;
                 }
 
@@ -1757,6 +1860,16 @@ namespace YARG.Editor
                         double deltaMs = (windowSamples[i].ControlPosition - windowSamples[i].HeardPosition) * 1000.0;
                         heardValues.Add(0.0);
                         controlValues.Add(deltaMs);
+                    }
+                    break;
+                }
+
+                case GraphMode.ClockDrift:
+                {
+                    for (int i = 0; i < windowSamples.Count; i++)
+                    {
+                        heardValues.Add(0.0);
+                        controlValues.Add(windowSamples[i].DriftErrorMs);
                     }
                     break;
                 }
@@ -1832,12 +1945,19 @@ namespace YARG.Editor
                 minY = Math.Min(minY, 0);
                 maxY = Math.Max(maxY, 25);
             }
-            else if (_graphMode == GraphMode.ControlHeardDelta)
+            else if (_graphMode == GraphMode.ControlHeardDelta || _graphMode == GraphMode.ClockDrift)
             {
                 if (_jitterScaleMs > 0)
                 {
                     minY = -_jitterScaleMs;
                     maxY = _jitterScaleMs;
+                }
+                else
+                {
+                    double absMax = Math.Max(Math.Abs(minY), Math.Abs(maxY));
+                    absMax = Math.Max(absMax, 5.0);
+                    minY = -absMax;
+                    maxY = absMax;
                 }
             }
 
@@ -1851,7 +1971,7 @@ namespace YARG.Editor
 
             DrawGrid(rect, minTime, maxTime, minY, maxY, _graphMode);
 
-            if (_graphMode == GraphMode.PositionJitter || _graphMode == GraphMode.ControlHeardDelta || _graphMode == GraphMode.SyncConvergence)
+            if (_graphMode == GraphMode.PositionJitter || _graphMode == GraphMode.ControlHeardDelta || _graphMode == GraphMode.SyncConvergence || _graphMode == GraphMode.ClockDrift)
             {
                 float normZeroY = (float) ((0.0 - minY) / yRange);
                 if (normZeroY >= 0f && normZeroY <= 1f)
@@ -2045,12 +2165,13 @@ namespace YARG.Editor
 
             string tooltip = _graphMode switch
             {
-                GraphMode.PositionJitter => $"Time: {sample.RealTime:F2}s\nHeard: {heardVal:+0.00;-0.00;0.00} ms\nCtrl: {controlVal:+0.00;-0.00;0.00} ms",
+                GraphMode.PositionJitter => $"Time: {sample.RealTime:F2}s\nHeard Jitter: {heardVal:+0.00;-0.00;0.00} ms\nCtrl Jitter: {controlVal:+0.00;-0.00;0.00} ms",
                 GraphMode.SyncConvergence => $"Time: {sample.RealTime:F2}s\nHeard Err: {sample.HeardErrorMs:+0.00;-0.00;0.00} ms\nCtrl Err: {sample.ControlErrorMs:+0.00;-0.00;0.00} ms\nState: {sample.SyncState} ({sample.Adjustment * 100:+0.00;-0.00;0.00}%)",
                 GraphMode.FrameStepDelta => $"Time: {sample.RealTime:F2}s\nHeard Step: {heardVal:F2} ms\nCtrl Step: {controlVal:F2} ms",
                 GraphMode.PositionMappingStep => $"Time: {sample.RealTime:F2}s\nHeard Step: {heardVal:F2} ms\nOutput Step: {controlVal:F2} ms",
                 GraphMode.CallbackTimingStep => $"Time: {sample.RealTime:F2}s\nCallback: {heardVal:F2} ms\nElapsed: {controlVal:F2} ms\nCorrection: {sample.CallbackCorrectionMs:+0.00;-0.00;0.00} ms\nClock Offset: {sample.CallbackClockOffsetMs:+0.00;-0.00;0.00} ms",
                 GraphMode.ControlHeardDelta => $"Time: {sample.RealTime:F2}s\nDelta: {controlVal:+0.00;-0.00;0.00} ms",
+                GraphMode.ClockDrift => $"Time: {sample.RealTime:F2}s\nDrift: {sample.DriftErrorMs:+0.00;-0.00;0.00} ms\nRate: {_driftRatePpm:+0.0;-0.0;0.0} ppm ({_driftMsPerMin:+0.00;-0.00;0.00} ms/min)",
                 _ => $"Time: {sample.RealTime:F2}s\nTarget: {sample.TargetTime:F3}s\nHeard: {sample.HeardPosition:F3}s\nCtrl: {sample.ControlPosition:F3}s"
             };
 
@@ -2074,9 +2195,12 @@ namespace YARG.Editor
 
         private void DrawGraphTimelineMiniBar()
         {
-            if (_graphMode == GraphMode.FrequencySpectrum)
+            if (_graphMode == GraphMode.FrequencySpectrum || _graphMode == GraphMode.Oscilloscope)
             {
-                DrawFftTimelineMiniBar();
+                if (_graphMode == GraphMode.FrequencySpectrum)
+                {
+                    DrawFftTimelineMiniBar();
+                }
                 return;
             }
 
@@ -2176,6 +2300,7 @@ namespace YARG.Editor
                     GraphMode.FrameStepDelta => $"{yValue:F1}ms",
                     GraphMode.PositionMappingStep => $"{yValue:F1}ms",
                     GraphMode.ControlHeardDelta => $"{yValue:+0.0;-0.0;0.0}ms",
+                    GraphMode.ClockDrift => $"{yValue:+0.0;-0.0;0.0}ms",
                     _ => $"{yValue:F1}"
                 };
 
@@ -2202,9 +2327,12 @@ namespace YARG.Editor
                 return;
             }
 
-            if (_graphMode == GraphMode.FrequencySpectrum)
+            if (_graphMode == GraphMode.FrequencySpectrum || _graphMode == GraphMode.Oscilloscope)
             {
-                DrawFftHudRibbon();
+                if (_graphMode == GraphMode.FrequencySpectrum)
+                {
+                    DrawFftHudRibbon();
+                }
                 return;
             }
 
@@ -2223,19 +2351,9 @@ namespace YARG.Editor
 
                 if (window.Count >= 4)
                 {
-                    double meanT = window.Average(s => s.RealTime);
-                    double meanP = window.Average(s => s.HeardPosition);
-                    double num = 0, den = 0;
-                    foreach (var s in window)
-                    {
-                        double dt = s.RealTime - meanT;
-                        num += dt * (s.HeardPosition - meanP);
-                        den += dt * dt;
-                    }
-                    double slope = den > 0.00001 ? num / den : 1.0;
-                    double intercept = meanP - (slope * meanT);
-
-                    var residuals = window.Select(s => (s.HeardPosition - (intercept + (slope * s.RealTime))) * 1000.0).ToList();
+                    var heardJitterValues = new List<double>(window.Count);
+                    BuildPositionJitterValues(window, heardJitterValues);
+                    var residuals = heardJitterValues.Skip(1).ToList();
                     peakToPeakJitter = residuals.Max() - residuals.Min();
                     double meanRes = residuals.Average();
                     stdDevJitter = Math.Sqrt(residuals.Average(r => (r - meanRes) * (r - meanRes)));
@@ -2244,7 +2362,17 @@ namespace YARG.Editor
 
             using (new EditorGUILayout.HorizontalScope())
             {
-                if (_graphMode == GraphMode.SyncConvergence)
+                if (_graphMode == GraphMode.ClockDrift)
+                {
+                    double latestDrift = _samples.Count > 0 ? _samples[_samples.Count - 1].DriftErrorMs : _driftCumulativeMs;
+                    Color driftColor = Math.Abs(latestDrift) > 10.0 ? new Color(1f, 0.35f, 0.35f) : (Math.Abs(latestDrift) > 3.0 ? new Color(1f, 0.75f, 0.2f) : new Color(0.25f, 0.95f, 0.45f));
+
+                    DrawMetricTile("CUMULATIVE DRIFT", $"{latestDrift:+0.00;-0.00;0.00} ms", driftColor);
+                    DrawMetricTile("ESTIMATED RATE", $"{_driftRatePpm:+0.0;-0.0;0.0} ppm", new Color(0.3f, 0.8f, 1f));
+                    DrawMetricTile("DRIFT SPEED", $"{_driftMsPerMin:+0.00;-0.00;0.00} ms/min", new Color(0.85f, 0.65f, 1f));
+                    DrawMetricTile("FRAME RATE", $"{_currentFps:F0} FPS", Color.white);
+                }
+                else if (_graphMode == GraphMode.SyncConvergence)
                 {
                     double latestHeardErr = _samples.Count > 0 ? _samples[_samples.Count - 1].HeardErrorMs : 0;
                     double latestCtrlErr = _samples.Count > 0 ? _samples[_samples.Count - 1].ControlErrorMs : 0;
@@ -2610,54 +2738,108 @@ namespace YARG.Editor
 
         private void DrawBottomDashboard()
         {
-            int channelCount = _bassSong?.Channels?.Count ?? 0;
-            string mixerTabLabel = channelCount > 0 ? $"Stem Mixer ({channelCount})" : "Stem Mixer";
-            string micTabLabel = _activeMicDevice != null ? "🎤 Input (Active)" : "🎤 Microphone & Input";
-
-            using (new EditorGUILayout.VerticalScope(EditorStyles.helpBox))
+            using (new EditorGUILayout.HorizontalScope())
             {
-                using (new EditorGUILayout.HorizontalScope())
+                DrawBottomLeftSidebar();
+
+                GUILayout.Space(6);
+
+                using (new EditorGUILayout.VerticalScope(GUILayout.ExpandWidth(true)))
                 {
-                    string[] tabLabels = { $"🎚️ {mixerTabLabel}", "⏱️ Sync & Simulation", "🔊 Output & Engine Health", micTabLabel, "📊 FFT & Spectrum" };
-                    int newTab = GUILayout.Toolbar(_selectedBottomTab, tabLabels, GUILayout.Height(24));
-                    if (newTab != _selectedBottomTab)
+                    switch (_selectedBottomTab)
                     {
-                        _selectedBottomTab = newTab;
-                        _graphMode = _selectedBottomTab switch
-                        {
-                            0 => GraphMode.SyncConvergence,
-                            1 => GraphMode.SyncConvergence,
-                            2 => GraphMode.PositionJitter,
-                            3 => GraphMode.MicPitchAndHits,
-                            4 => GraphMode.FrequencySpectrum,
-                            _ => _graphMode
-                        };
+                        case 0:
+                            DrawStemMixerCard();
+                            break;
+                        case 1:
+                            DrawSongSyncCard();
+                            break;
+                        case 2:
+                            DrawOutputRoutingCard();
+                            EditorGUILayout.Space(6);
+                            DrawBufferDiagnosticsCard();
+                            break;
+                        case 3:
+                            DrawMicrophoneStudioDashboard();
+                            break;
+                        case 4:
+                            DrawFftDashboardCard();
+                            break;
                     }
                 }
-
-                EditorGUILayout.Space(6);
-
-                switch (_selectedBottomTab)
-                {
-                    case 0:
-                        DrawStemMixerCard();
-                        break;
-                    case 1:
-                        DrawSongSyncCard();
-                        break;
-                    case 2:
-                        DrawOutputRoutingCard();
-                        EditorGUILayout.Space(6);
-                        DrawBufferDiagnosticsCard();
-                        break;
-                    case 3:
-                        DrawMicrophoneStudioDashboard();
-                        break;
-                    case 4:
-                        DrawFftDashboardCard();
-                        break;
-                }
             }
+        }
+
+        private void DrawBottomLeftSidebar()
+        {
+            int channelCount = _bassSong?.Channels?.Count ?? 0;
+            string stemBadge = channelCount > 0 ? $"({channelCount})" : "";
+            string micBadge = _activeMicDevice != null ? "● Active" : "";
+
+            using (new EditorGUILayout.VerticalScope(EditorStyles.helpBox, GUILayout.Width(165)))
+            {
+                EditorGUILayout.LabelField("STUDIO TOOLS", EditorStyles.miniBoldLabel);
+                EditorGUILayout.Space(4);
+
+                DrawSidebarTab(0, "🎚️ Stem Mixer", stemBadge, GraphMode.SyncConvergence);
+                DrawSidebarTab(1, "⏱️ Sync & Sim", "", _graphMode == GraphMode.ClockDrift ? GraphMode.ClockDrift : GraphMode.SyncConvergence);
+                DrawSidebarTab(2, "🔊 Output Health", "", GraphMode.PositionJitter);
+                DrawSidebarTab(3, "🎤 Microphone", micBadge, GraphMode.MicPitchAndHits);
+                DrawSidebarTab(4, "📊 FFT Spectrum", "", GraphMode.FrequencySpectrum);
+
+                GUILayout.FlexibleSpace();
+            }
+        }
+
+        private void DrawSidebarTab(int index, string label, string badge, GraphMode graphMode)
+        {
+            bool isSelected = _selectedBottomTab == index;
+            Rect itemRect = GUILayoutUtility.GetRect(10, 1000, 28, 28, GUILayout.ExpandWidth(true));
+
+            bool isHovered = itemRect.Contains(Event.current.mousePosition);
+
+            if (isSelected)
+            {
+                EditorGUI.DrawRect(itemRect, new Color(0.18f, 0.38f, 0.65f, 1f));
+                EditorGUI.DrawRect(new Rect(itemRect.x, itemRect.y, 3, itemRect.height), new Color(0.35f, 0.75f, 1f, 1f));
+            }
+            else if (isHovered)
+            {
+                EditorGUI.DrawRect(itemRect, new Color(1f, 1f, 1f, 0.06f));
+            }
+
+            var labelStyle = new GUIStyle(EditorStyles.label)
+            {
+                fontSize = 11,
+                fontStyle = isSelected ? FontStyle.Bold : FontStyle.Normal,
+                alignment = TextAnchor.MiddleLeft,
+                normal = { textColor = isSelected ? Color.white : new Color(0.85f, 0.88f, 0.92f) }
+            };
+
+            GUI.Label(new Rect(itemRect.x + 8, itemRect.y, itemRect.width - (string.IsNullOrEmpty(badge) ? 12 : 55), itemRect.height), label, labelStyle);
+
+            if (!string.IsNullOrEmpty(badge))
+            {
+                var badgeStyle = new GUIStyle(EditorStyles.miniLabel)
+                {
+                    alignment = TextAnchor.MiddleRight,
+                    normal = { textColor = isSelected ? new Color(0.85f, 0.95f, 1f) : new Color(0.6f, 0.65f, 0.7f) }
+                };
+                GUI.Label(new Rect(itemRect.x + itemRect.width - 50, itemRect.y, 44, itemRect.height), badge, badgeStyle);
+            }
+
+            if (Event.current.type == EventType.MouseDown && itemRect.Contains(Event.current.mousePosition))
+            {
+                if (_selectedBottomTab != index)
+                {
+                    _selectedBottomTab = index;
+                    _graphMode = graphMode;
+                    Repaint();
+                }
+                Event.current.Use();
+            }
+
+            EditorGUILayout.Space(2);
         }
 
         private void DrawMicrophoneStudioDashboard()
@@ -3284,6 +3466,9 @@ namespace YARG.Editor
                     EditorGUILayout.LabelField("Load a song to model input clock synchronization.", EditorStyles.centeredGreyMiniLabel);
                 }
             }
+
+            EditorGUILayout.Space(6);
+            DrawClockDriftTestCard();
         }
 
         private void DrawStemMixerCard()
@@ -4142,23 +4327,6 @@ namespace YARG.Editor
 
                     DrawFftControlsColumn();
                 }
-
-                EditorGUILayout.Space(6);
-
-                Rect graphRect = GUILayoutUtility.GetRect(100, 10000, 180, 240, GUILayout.ExpandWidth(true));
-                if (graphRect.width > 50 && graphRect.height > 50)
-                {
-                    float paddingLeft = 52f;
-                    float paddingBottom = 20f;
-                    float paddingTop = 10f;
-                    float paddingRight = 10f;
-
-                    float plotWidth = graphRect.width - paddingLeft - paddingRight;
-                    float plotHeight = graphRect.height - paddingTop - paddingBottom;
-                    var plotRect = new Rect(graphRect.x + paddingLeft, graphRect.y + paddingTop, plotWidth, plotHeight);
-
-                    DrawFftSpectrumGraph(graphRect, plotRect, paddingLeft, paddingTop, paddingRight, paddingBottom, plotWidth, plotHeight);
-                }
             }
         }
 
@@ -4483,6 +4651,476 @@ namespace YARG.Editor
             int wholeSecs = (int) secs;
             int frac = (int) ((secs - wholeSecs) * 100);
             return $"{mins:00}:{wholeSecs:00}.{frac:02}";
+        }
+
+        private void DrawClockDriftTestCard()
+        {
+            using (new EditorGUILayout.VerticalScope(EditorStyles.helpBox))
+            {
+                using (new EditorGUILayout.HorizontalScope(EditorStyles.toolbar))
+                {
+                    var prevBg = GUI.backgroundColor;
+                    GUI.backgroundColor = _isDriftTestRunning ? new Color(0.2f, 0.85f, 0.4f, 1f) : new Color(0.45f, 0.5f, 0.55f, 1f);
+                    GUILayout.Label(_isDriftTestRunning ? " ● DRIFT TEST RUNNING " : " ⏹ DRIFT TEST STOPPED ", EditorStyles.miniButton, GUILayout.Width(150), GUILayout.Height(18));
+                    GUI.backgroundColor = prevBg;
+
+                    GUILayout.Space(8);
+                    var titleStyle = new GUIStyle(EditorStyles.boldLabel) { alignment = TextAnchor.MiddleLeft, fontSize = 11 };
+                    GUILayout.Label("🧪 Long-Term Audio Clock Drift Test", titleStyle, GUILayout.Height(18));
+
+                    GUILayout.FlexibleSpace();
+
+                    if (_isDriftTestRunning)
+                    {
+                        var stopBg = GUI.backgroundColor;
+                        GUI.backgroundColor = new Color(1f, 0.35f, 0.35f, 1f);
+                        if (GUILayout.Button("Stop Test", EditorStyles.toolbarButton, GUILayout.Width(80)))
+                        {
+                            StopDriftTest();
+                        }
+                        GUI.backgroundColor = stopBg;
+                    }
+                    else
+                    {
+                        var startBg = GUI.backgroundColor;
+                        GUI.backgroundColor = new Color(0.3f, 0.85f, 0.45f, 1f);
+                        if (GUILayout.Button("Start Test", EditorStyles.toolbarButton, GUILayout.Width(80)))
+                        {
+                            StartDriftTest();
+                        }
+                        GUI.backgroundColor = startBg;
+                    }
+                }
+
+                EditorGUILayout.Space(6);
+
+                using (new EditorGUILayout.HorizontalScope())
+                {
+                    string durationStr = FormatTime(_driftElapsedHostSeconds);
+                    Color driftColor = Math.Abs(_driftCumulativeMs) > 10.0 ? new Color(1f, 0.4f, 0.4f) : (Math.Abs(_driftCumulativeMs) > 3.0 ? new Color(1f, 0.75f, 0.2f) : new Color(0.25f, 0.95f, 0.45f));
+                    string driftStr = !_driftBaselineEstablished ? "STARTING..." : $"{_driftCumulativeMs:+0.00;-0.00;0.00} ms";
+                    string rateStr = !_driftBaselineEstablished || _driftElapsedHostSeconds < 1.0 ? "CALCULATING..." : $"{_driftRatePpm:+0.0;-0.0;0.0} ppm ({_driftMsPerMin:+0.00;-0.00;0.00} ms/min)";
+
+                    DrawMetricTile("TEST DURATION", durationStr, Color.white);
+                    DrawMetricTile("CUMULATIVE DRIFT", driftStr, driftColor);
+                    DrawMetricTile("ESTIMATED RATE", rateStr, new Color(0.3f, 0.8f, 1f));
+                }
+
+                EditorGUILayout.Space(4);
+
+                using (new EditorGUILayout.HorizontalScope())
+                {
+                    string outputRate = !_driftBaselineEstablished || _driftElapsedHostSeconds < 1.0
+                        ? "CALCULATING..."
+                        : $"{_driftCallbackRatePpm:+0.0;-0.0;0.0} ppm";
+                    string largestStep = _driftMaxPositionStepMs > 0
+                        ? $"{_driftMaxPositionStepMs:0.00} ms"
+                        : "--";
+
+                    DrawMetricTile("CALLBACK REQUEST RATE", outputRate, new Color(0.7f, 0.85f, 1f));
+                    DrawMetricTile("LARGEST POSITION STEP", largestStep, new Color(1f, 0.75f, 0.35f));
+                    DrawMetricTile("STEPS > 1 MS", _driftLargePositionStepCount.ToString(CultureInfo.InvariantCulture), Color.white);
+                }
+
+                EditorGUILayout.Space(6);
+
+                DrawDriftPhaseGauge();
+            }
+        }
+
+        private void DrawMainOscilloscopeGraph(Rect rect, Rect plotRect, float paddingLeft, float paddingTop, float paddingRight, float paddingBottom, float plotWidth, float plotHeight)
+        {
+            if (Event.current.type != EventType.Repaint)
+            {
+                return;
+            }
+
+            EditorGUI.DrawRect(plotRect, new Color(0.06f, 0.07f, 0.09f, 1f));
+
+            float centerY = plotRect.y + (plotHeight * 0.5f);
+
+            float[] levels = { 1.0f, 0.5f, 0.0f, -0.5f, -1.0f };
+            var labelStyle = new GUIStyle(EditorStyles.miniLabel)
+            {
+                normal = { textColor = new Color(0.55f, 0.55f, 0.6f, 0.6f) },
+                fontSize = 9,
+            };
+
+            foreach (float lvl in levels)
+            {
+                float y = centerY - (lvl * (plotHeight * 0.45f));
+                Color lineCol = lvl == 0f ? new Color(0.2f, 0.85f, 0.4f, 0.4f) : new Color(1f, 1f, 1f, 0.06f);
+                EditorGUI.DrawRect(new Rect(plotRect.x, y, plotWidth, 1), lineCol);
+                GUI.Label(new Rect(rect.x + 4, y - 8, paddingLeft - 6, 16), $"{lvl:+0.0;-0.0;0.0}", labelStyle);
+            }
+
+            int divCount = 10;
+            float divWidth = plotWidth / divCount;
+            float msPerDiv = (_scopeTimebase * 1000f) / divCount;
+            for (int d = 0; d <= divCount; d++)
+            {
+                float x = plotRect.x + (d * divWidth);
+                EditorGUI.DrawRect(new Rect(x, plotRect.y, 1, plotHeight), new Color(1f, 1f, 1f, 0.04f));
+                if (d % 2 == 0)
+                {
+                    GUI.Label(new Rect(x - 15, plotRect.yMax + 2, 30, 16), $"{d * msPerDiv:0.#}ms", labelStyle);
+                }
+            }
+
+            if (_scopePcmBuffer == null || _scopePcmBuffer.Length < 2048)
+            {
+                _scopePcmBuffer = new float[4096];
+            }
+
+            bool isPlaying = _bassSong != null && !_bassSong.IsPaused;
+            int samplesRead = 0;
+            if (isPlaying)
+            {
+                samplesRead = _bassSong!.GetSampleData(_scopePcmBuffer);
+            }
+
+            if (samplesRead <= 0 || !isPlaying)
+            {
+                Handles.color = new Color(0.2f, 0.85f, 1f, 0.4f);
+                Handles.DrawLine(new Vector3(plotRect.x, centerY, 0), new Vector3(plotRect.xMax, centerY, 0));
+
+                var emptyStyle = new GUIStyle(EditorStyles.boldLabel)
+                {
+                    normal = { textColor = new Color(0.5f, 0.5f, 0.55f, 0.5f) },
+                    alignment = TextAnchor.MiddleCenter,
+                };
+                GUI.Label(plotRect, isPlaying ? "Buffering audio stream..." : "Paused / Stopped", emptyStyle);
+                return;
+            }
+
+            int sampleRate = Bass.Info.SampleRate > 0 ? Bass.Info.SampleRate : 44100;
+            int windowSamples = Math.Min(samplesRead, (int) (sampleRate * _scopeTimebase));
+            if (windowSamples < 10)
+            {
+                windowSamples = 10;
+            }
+
+            int triggerIdx = 0;
+            for (int i = 0; i < Math.Min(samplesRead - windowSamples, 1024); i++)
+            {
+                if (_scopePcmBuffer[i] <= 0f && _scopePcmBuffer[i + 1] > 0f)
+                {
+                    triggerIdx = i;
+                    break;
+                }
+            }
+
+            int renderCount = Math.Min(windowSamples, samplesRead - triggerIdx);
+            if (renderCount < 2)
+            {
+                return;
+            }
+
+            var points = new Vector3[renderCount];
+            float peak = 0f;
+            double sumSq = 0;
+
+            for (int i = 0; i < renderCount; i++)
+            {
+                float s = _scopePcmBuffer[triggerIdx + i] * _scopeGain;
+                float absVal = Math.Abs(s);
+                if (absVal > peak)
+                {
+                    peak = absVal;
+                }
+                sumSq += s * s;
+
+                float normX = i / (float) (renderCount - 1);
+                float px = plotRect.x + (normX * plotWidth);
+                float py = centerY - (Mathf.Clamp(s, -1.2f, 1.2f) * (plotHeight * 0.45f));
+                points[i] = new Vector3(px, py, 0);
+            }
+
+            float rms = (float) Math.Sqrt(sumSq / renderCount);
+            float peakDb = 20f * Mathf.Log10(Mathf.Max(peak / _scopeGain, 1e-5f));
+            float rmsDb = 20f * Mathf.Log10(Mathf.Max(rms / _scopeGain, 1e-5f));
+
+            Handles.color = new Color(0.15f, 0.95f, 0.65f, 0.25f);
+            Handles.DrawAAPolyLine(4.5f, points);
+
+            Handles.color = new Color(0.25f, 1f, 0.75f, 0.95f);
+            Handles.DrawAAPolyLine(2.0f, points);
+
+            var hudStyle = new GUIStyle(EditorStyles.miniBoldLabel)
+            {
+                normal = { textColor = new Color(0.85f, 0.85f, 0.9f, 0.9f) },
+            };
+            string hudText = $"Timebase: {_scopeTimebase * 1000f:0}ms | Gain: {_scopeGain:0}x | Peak: {peak / _scopeGain:0.00} ({peakDb:+0.0;-0.0;0.0} dBFS) | RMS: {rms / _scopeGain:0.00} ({rmsDb:+0.0;-0.0;0.0} dBFS)";
+            GUI.Label(new Rect(plotRect.x + 8, plotRect.y + 4, plotWidth - 16, 16), hudText, hudStyle);
+        }
+
+        private void DrawDriftPhaseGauge()
+        {
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                EditorGUILayout.LabelField("Live Phase Alignment:", EditorStyles.miniBoldLabel, GUILayout.Width(130));
+
+                Rect gaugeRect = GUILayoutUtility.GetRect(GUIContent.none, GUIStyle.none, GUILayout.ExpandWidth(true), GUILayout.Height(18));
+                if (Event.current.type == EventType.Repaint)
+                {
+                    EditorGUI.DrawRect(gaugeRect, new Color(0.08f, 0.09f, 0.12f, 1f));
+
+                    float centerX = gaugeRect.x + (gaugeRect.width * 0.5f);
+
+                    EditorGUI.DrawRect(new Rect(centerX - 1, gaugeRect.y, 2, gaugeRect.height), new Color(1f, 1f, 1f, 0.35f));
+
+                    float maxRangeMs = 25f;
+                    float normOffset = Mathf.Clamp((float) (_driftCumulativeMs / maxRangeMs), -1f, 1f);
+                    float markerX = centerX + (normOffset * ((gaugeRect.width * 0.5f) - 8));
+
+                    Color markerColor = Math.Abs(_driftCumulativeMs) > 10.0 ? new Color(1f, 0.35f, 0.35f) : (Math.Abs(_driftCumulativeMs) > 3.0 ? new Color(1f, 0.75f, 0.2f) : new Color(0.25f, 0.95f, 0.45f));
+                    EditorGUI.DrawRect(new Rect(markerX - 4, gaugeRect.y + 2, 8, gaugeRect.height - 4), markerColor);
+
+                    var leftStyle = new GUIStyle(EditorStyles.miniLabel) { normal = { textColor = new Color(0.7f, 0.7f, 0.7f, 0.6f) }, alignment = TextAnchor.MiddleLeft };
+                    var rightStyle = new GUIStyle(EditorStyles.miniLabel) { normal = { textColor = new Color(0.7f, 0.7f, 0.7f, 0.6f) }, alignment = TextAnchor.MiddleRight };
+                    GUI.Label(new Rect(gaugeRect.x + 4, gaugeRect.y, 100, gaugeRect.height), "◄ Audio Lag", leftStyle);
+                    GUI.Label(new Rect(gaugeRect.xMax - 104, gaugeRect.y, 100, gaugeRect.height), "Audio Lead ►", rightStyle);
+                }
+
+                string offsetText = $"{_driftCumulativeMs:+0.00;-0.00;0.00} ms";
+                EditorGUILayout.LabelField(offsetText, EditorStyles.miniBoldLabel, GUILayout.Width(65));
+            }
+        }
+
+        private void StartDriftTest()
+        {
+            if (!Mathf.Approximately(_playbackSpeed, 1f))
+            {
+                EditorUtility.DisplayDialog("Drift Test Requires 1x", "Set playback speed to 1.0x before starting this test.", "OK");
+                return;
+            }
+
+            EnsureAudioInitialized();
+            DisposeSong();
+            _isDriftTestRunning = true;
+            _driftBaselineEstablished = false;
+            _driftTestStartTime = EditorApplication.timeSinceStartup;
+            _driftTestQpcStart = Stopwatch.GetTimestamp();
+            _driftInitialAudioStart = 0;
+            _driftElapsedHostSeconds = 0;
+            _driftElapsedAudioSeconds = 0;
+            _driftCumulativeMs = 0;
+            _driftRatePpm = 0;
+            _driftMsPerMin = 0;
+            _driftAudioLoopCount = 0;
+            _driftMeasurements.Clear();
+            _driftStartRequestedFrames = 0;
+            _driftCallbackRatePpm = 0;
+            _driftMaxPositionStepMs = 0;
+            _driftLargePositionStepCount = 0;
+            _driftPreviousSampleTime = 0;
+            _driftPreviousSongPosition = 0;
+            _driftPreviousPositionValid = false;
+
+            string audioPath = GetDriftAudioFilePath();
+            if (File.Exists(audioPath))
+            {
+                LoadAudioFile(audioPath);
+                if (_bassSong != null)
+                {
+                    _bassSong.SetVolume(0f);
+                    _calibrationTrackLength = _bassSong.Length;
+                    _bassSong.SetPosition(0);
+                    PlaySong();
+                }
+            }
+            else
+            {
+                EditorUtility.DisplayDialog("Audio File Missing", $"Could not find {audioPath}", "OK");
+                _isDriftTestRunning = false;
+            }
+        }
+
+        private void StopDriftTest()
+        {
+            _isDriftTestRunning = false;
+            if (_bassSong != null && !_bassSong.IsPaused)
+            {
+                _bassSong.Pause();
+            }
+        }
+
+        private void UpdateDriftTest(double now, double dt)
+        {
+            if (!_isDriftTestRunning)
+            {
+                return;
+            }
+
+            double songPos = _bassSong != null ? _bassSong.GetPosition() : 0;
+            var readAheadStats = _bassSong?.GetReadAheadStats() ?? default;
+            int sampleRate = Bass.Info.SampleRate;
+
+            if (!_driftBaselineEstablished)
+            {
+                if (_bassSong != null && !_bassSong.IsPaused && songPos >= 0.1)
+                {
+                    _driftTestQpcStart = Stopwatch.GetTimestamp();
+                    _driftInitialAudioStart = songPos;
+                    _driftStartRequestedFrames = readAheadStats.RequestedFrames;
+                    _driftBaselineEstablished = true;
+                    _driftPreviousSampleTime = 0;
+                    _driftPreviousSongPosition = songPos;
+                    _driftPreviousPositionValid = true;
+                }
+                else
+                {
+                    return;
+                }
+            }
+
+            if (_bassSong != null)
+            {
+                _bassSong.SetVolume(0f);
+            }
+
+            long nowTicks = Stopwatch.GetTimestamp();
+            _driftElapsedHostSeconds = (double) (nowTicks - _driftTestQpcStart) / Stopwatch.Frequency;
+            _driftElapsedAudioSeconds = (_driftAudioLoopCount * _calibrationTrackLength) + (songPos - _driftInitialAudioStart);
+            _driftCumulativeMs = (_driftElapsedHostSeconds - _driftElapsedAudioSeconds) * 1000.0;
+
+            double positionStepResidualMs = 0;
+            if (_driftPreviousPositionValid)
+            {
+                double elapsedDelta = _driftElapsedHostSeconds - _driftPreviousSampleTime;
+                double positionDelta = songPos - _driftPreviousSongPosition;
+                if (positionDelta < -0.5)
+                {
+                    _driftPreviousSampleTime = _driftElapsedHostSeconds;
+                    _driftPreviousSongPosition = songPos;
+                }
+                else if (elapsedDelta > 0)
+                {
+                    positionStepResidualMs = (positionDelta - elapsedDelta) * 1000.0;
+                    double absoluteResidual = Math.Abs(positionStepResidualMs);
+                    _driftMaxPositionStepMs = Math.Max(_driftMaxPositionStepMs, absoluteResidual);
+                    if (absoluteResidual > 1.0)
+                    {
+                        _driftLargePositionStepCount++;
+                    }
+
+                    _driftPreviousSampleTime = _driftElapsedHostSeconds;
+                    _driftPreviousSongPosition = songPos;
+                }
+            }
+
+            if (sampleRate > 0 && _driftElapsedHostSeconds >= 1.0 &&
+                readAheadStats.RequestedFrames >= _driftStartRequestedFrames)
+            {
+                double outputElapsed = (readAheadStats.RequestedFrames - _driftStartRequestedFrames) / (double) sampleRate;
+                _driftCallbackRatePpm = ((outputElapsed / _driftElapsedHostSeconds) - 1.0) * 1_000_000.0;
+            }
+            else
+            {
+                _driftCallbackRatePpm = 0;
+            }
+
+            _driftMeasurements.Add(new DriftMeasurement
+            {
+                HostSeconds = _driftElapsedHostSeconds,
+                SongPositionSeconds = songPos,
+                DriftMs = _driftCumulativeMs,
+                PositionStepResidualMs = positionStepResidualMs,
+                ConsumedFrames = readAheadStats.ConsumedFrames,
+                RequestedFrames = readAheadStats.RequestedFrames,
+                QueuedFrames = readAheadStats.QueuedFrames,
+                PositionOutputFrame = readAheadStats.PositionOutputFrame,
+                CallbackFrames = readAheadStats.CallbackFrames,
+                CallbackElapsedFrames = readAheadStats.CallbackElapsedFrames,
+                CallbackCorrectionFrames = readAheadStats.CallbackCorrectionFrames,
+                CallbackClockOffsetFrames = readAheadStats.CallbackClockOffsetFrames,
+                UnderrunFrames = readAheadStats.UnderrunFrames,
+                UnderrunEvents = readAheadStats.UnderrunEvents
+            });
+            if (_driftMeasurements.Count > MAX_DRIFT_MEASUREMENTS)
+            {
+                _driftMeasurements.RemoveAt(0);
+            }
+
+            if (_driftElapsedHostSeconds >= 1.0 && _driftMeasurements.Count >= 5)
+            {
+                double sumT = 0;
+                double sumD = 0;
+                for (int i = 0; i < _driftMeasurements.Count; i++)
+                {
+                    sumT += _driftMeasurements[i].HostSeconds;
+                    sumD += _driftMeasurements[i].DriftMs;
+                }
+                double meanT = sumT / _driftMeasurements.Count;
+                double meanD = sumD / _driftMeasurements.Count;
+
+                double num = 0;
+                double denom = 0;
+                for (int i = 0; i < _driftMeasurements.Count; i++)
+                {
+                    double dtSample = _driftMeasurements[i].HostSeconds - meanT;
+                    num += dtSample * (_driftMeasurements[i].DriftMs - meanD);
+                    denom += dtSample * dtSample;
+                }
+
+                double slopeMsPerSec = denom > 1e-6 ? num / denom : 0.0;
+                _driftRatePpm = slopeMsPerSec * 1000.0;
+                _driftMsPerMin = slopeMsPerSec * 60.0;
+            }
+            else
+            {
+                _driftRatePpm = 0;
+                _driftMsPerMin = 0;
+            }
+
+            Repaint();
+        }
+
+        private string GetDriftAudioFilePath()
+        {
+            string tempFolder = Path.Combine(Application.temporaryCachePath, "YARG_DriftTest");
+            Directory.CreateDirectory(tempFolder);
+
+            string path = Path.Combine(tempFolder, "drift_test_silent_v5.wav");
+            if (!File.Exists(path) || new FileInfo(path).Length < 10000000)
+            {
+                CreateSilenceWavFile(path, 1800f, 44100);
+            }
+            return path;
+        }
+
+        private static void CreateSilenceWavFile(string path, float durationSec, int sampleRate)
+        {
+            int numSamples = (int) (sampleRate * durationSec);
+            int subChunk2Size = numSamples * sizeof(short);
+
+            using var fs = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.None, 65536);
+            using var writer = new BinaryWriter(fs);
+
+            writer.Write(new[] { 'R', 'I', 'F', 'F' });
+            writer.Write(36 + subChunk2Size);
+            writer.Write(new[] { 'W', 'A', 'V', 'E' });
+            writer.Write(new[] { 'f', 'm', 't', ' ' });
+            writer.Write(16);
+            writer.Write((short) 1);
+            writer.Write((short) 1);
+            writer.Write(sampleRate);
+            writer.Write(sampleRate * sizeof(short));
+            writer.Write((short) 2);
+            writer.Write((short) 16);
+            writer.Write(new[] { 'd', 'a', 't', 'a' });
+            writer.Write(subChunk2Size);
+
+            const int BUFFER_SIZE = 8192;
+            byte[] byteBuffer = new byte[BUFFER_SIZE * sizeof(short)];
+            int samplesWritten = 0;
+
+            while (samplesWritten < numSamples)
+            {
+                int count = Math.Min(BUFFER_SIZE, numSamples - samplesWritten);
+                writer.Write(byteBuffer, 0, count * sizeof(short));
+                samplesWritten += count;
+            }
         }
     }
 }

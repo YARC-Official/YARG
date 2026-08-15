@@ -39,6 +39,7 @@ namespace YARG.Audio.BASS
         public abstract   int    HeardLatencyMilliseconds { get; }
         internal abstract int    EndpointDelayFrames      { get; }
         internal abstract double SongPlaybackStartDelay   { get; }
+        internal virtual bool UsesIndependentClock => false;
 
         public void Dispose()
         {

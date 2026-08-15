@@ -13,15 +13,19 @@ namespace yarg::audio {
 
 class ReadAheadStream final {
 public:
+    using TimestampProvider = std::int64_t (*)() noexcept;
+
     static std::unique_ptr<ReadAheadStream> create(
         BassCoreBindings& bass, BassMixBindings& bassMix,
-        const yarg_read_ahead_config& config, int* bassError) noexcept;
+        const yarg_read_ahead_config& config, int* bassError,
+        TimestampProvider timestampProvider = nullptr) noexcept;
 
     ~ReadAheadStream();
     ReadAheadStream(const ReadAheadStream&) = delete;
     ReadAheadStream& operator=(const ReadAheadStream&) = delete;
 
     std::uint32_t streamHandle() const noexcept { return streamHandle_; }
+    int setCallbackClockEnabled(bool enabled) noexcept;
     int prefill(std::uint32_t timeoutMilliseconds) noexcept;
     int flush() noexcept;
     int setBufferLength(std::uint32_t bufferMilliseconds) noexcept;
@@ -37,7 +41,8 @@ private:
     class BassAudioSource;
 
     ReadAheadStream(BassCoreBindings& bass, BassMixBindings& bassMix,
-        const yarg_read_ahead_config& config) noexcept;
+        const yarg_read_ahead_config& config,
+        TimestampProvider timestampProvider) noexcept;
     static std::uint32_t YARG_BASS_CALLBACK streamCallback(
         std::uint32_t stream, void* buffer, std::uint32_t length,
         void* user) noexcept;
@@ -47,6 +52,10 @@ private:
     void resetConsumerClock() noexcept;
     void recordCallbackTiming(std::uint32_t frames, std::int64_t timestamp,
         std::int64_t previousTimestamp) noexcept;
+    void setPlaybackClockRate(std::int64_t ratePpm,
+        std::int64_t timestamp) noexcept;
+    std::uint64_t playbackClockElapsedFrames(std::int64_t timestamp,
+        std::int64_t clockTimestamp) const noexcept;
     std::uint32_t remainingPlaybackDelayFrames(std::uint32_t endpointDelayFrames,
         std::int64_t timestamp) noexcept;
     bool playbackClockExpired(std::uint64_t submittedFrames,
@@ -56,6 +65,7 @@ private:
     BassCoreBindings& bass_;
     BassMixBindings& bassMix_;
     const yarg_read_ahead_config config_;
+    const TimestampProvider timestampProvider_;
     std::unique_ptr<RenderAheadMixer> renderer_;
     std::uint32_t streamHandle_ = 0;
     std::atomic<std::uint32_t> state_{YARG_READ_AHEAD_CREATED};
@@ -65,9 +75,11 @@ private:
     std::atomic<std::uint64_t> consumerSequence_{0};
     std::atomic<std::int64_t> consumerTimestamp_{0};
     std::atomic<std::int64_t> playbackClockTimestamp_{0};
-    std::atomic<std::uint64_t> playbackClockFrames_{0};
+    std::atomic<std::uint64_t> playbackClockFixedFrames_{0};
     std::atomic<std::uint64_t> generationConsumedFrames_{0};
     std::atomic<std::uint64_t> lastHeardFrame_{0};
+    std::atomic<bool> callbackClockEnabled_{true};
+    std::atomic<std::int64_t> playbackClockRatePpm_{0};
     std::atomic<std::uint32_t> endpointDelayFrames_{UINT32_MAX};
     std::atomic<std::uint64_t> callbackTiming_{0};
     std::atomic<std::int64_t> callbackClockOriginTimestamp_{0};
