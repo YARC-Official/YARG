@@ -40,13 +40,13 @@ namespace YARG.Audio.Effects
             _fadeDurationSeconds = fadeDurationSeconds;
         }
 
-        public void ProcessAudio(Span<float> buffer, int frames, int channels, int sampleRate, double songTimeEnd)
+        public void ProcessAudio(Span<float> buffer, int frames, int channels, int sampleRate,
+            double songTimeStart, double songTimeEnd)
         {
             float rampRate = 1f / (_fadeDurationSeconds * sampleRate);
 
-            double bufferDuration  = (double) frames / sampleRate;
-            double songTimeStep    = bufferDuration / frames;
-            double currentSongTime = songTimeEnd - bufferDuration;
+            double songTimeStep    = (songTimeEnd - songTimeStart) / frames;
+            double currentSongTime = songTimeStart;
 
             for (int i = 0; i < frames; i++)
             {

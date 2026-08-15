@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using ManagedBass;
 using ManagedBass.Mix;
+using YARG.Audio.BASS.Effects;
 using YARG.Core.Audio;
 using YARG.Core.Logging;
 
@@ -85,7 +86,8 @@ namespace YARG.Audio.BASS
         }
 
         public static BassSongConnection? Create(BassOutput output, int tempoStreamHandle, int bufferLengthMilliseconds,
-            double volume, OutputChannel? outputChannel, IReadOnlyCollection<BassOneShotChannel> oneShots)
+            double volume, OutputChannel? outputChannel, IReadOnlyCollection<BassOneShotChannel> oneShots,
+            IReadOnlyCollection<BassMixerDsp> dsps)
         {
             output.Device.Use();
             var songFlags = BassFlags.Float | BassFlags.Decode | BassFlags.MixerNonStop | BassFlags.MixerPositionEx;
@@ -145,6 +147,11 @@ namespace YARG.Audio.BASS
             foreach (var oneShot in oneShots)
             {
                 connection.AttachOneShot(oneShot);
+            }
+
+            foreach (var dsp in dsps)
+            {
+                connection.AttachDsp(dsp);
             }
 
             return connection;
@@ -306,6 +313,8 @@ namespace YARG.Audio.BASS
                 !IsPlaying);
 
         public void AttachOneShot(BassOneShotChannel oneShot) => oneShot.AttachOutput(_songMixer.Handle, !IsPlaying);
+
+        public bool AttachDsp(BassMixerDsp dsp) => dsp.AttachOutput(_songMixer.Handle, TempoStreamHandle);
 
         public ReadAheadStats GetReadAheadStats() => _readAhead.GetStats();
 

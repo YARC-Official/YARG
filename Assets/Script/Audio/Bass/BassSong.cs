@@ -6,6 +6,7 @@ using System.Linq;
 using ManagedBass;
 using ManagedBass.Mix;
 using UnityEngine;
+using YARG.Audio.BASS.Effects;
 using YARG.Core.Audio;
 using YARG.Core.Logging;
 using YARG.Core.Song;
@@ -26,6 +27,7 @@ namespace YARG.Audio.BASS
 
         private readonly BassStemPipeline            _stemPipeline;
         private readonly HashSet<BassOneShotChannel> _oneShots = new();
+        private readonly HashSet<BassMixerDsp>       _dsps     = new();
 
         private readonly Timer _whammySyncTimer;
         private          int   _bufferLength;
@@ -113,7 +115,7 @@ namespace YARG.Audio.BASS
         internal bool TryAttachOutput(BassOutput output)
         {
             var connection = BassSongConnection.Create(output, _stemPipeline.OutputHandle, _bufferLength,
-                BassHelpers.ExponentialVolume(_volume), _outputChannel, _oneShots);
+                BassHelpers.ExponentialVolume(_volume), _outputChannel, _oneShots, _dsps);
             if (connection == null)
             {
                 return false;
@@ -150,6 +152,11 @@ namespace YARG.Audio.BASS
             foreach (var oneShot in _oneShots)
             {
                 oneShot.DetachOutput();
+            }
+
+            foreach (var dsp in _dsps)
+            {
+                dsp.DetachOutput();
             }
 
             _connection?.Dispose();
@@ -473,6 +480,27 @@ namespace YARG.Audio.BASS
 
         private void RemoveOneShot(BassOneShotChannel oneShot) => _oneShots.Remove(oneShot);
 
+        public override IDisposable? AttachOutputDsp(IMixerDspProcessor processor, int priority = 0)
+        {
+            // Attaching to the song mixer puts the processor inside the buffered song branch: it is
+            // post-tempo (so its audio is never speed- or pitch-shifted), it travels through the
+            // read-ahead buffer alongside the music it is mixed into, and it follows song volume and
+            // fades. The song mixer is recreated on every output device change, so the DSP is tracked
+            // here and re-attached by BassSongConnection.Create the same way one-shots are.
+            var dsp = new BassMixerDsp(processor, ConvertTempoBytesToSongPosition, () => _speed, priority);
+            if (_connection != null && !_connection.AttachDsp(dsp))
+            {
+                dsp.Dispose();
+                return null;
+            }
+
+            dsp.Disposed += RemoveDsp;
+            _dsps.Add(dsp);
+            return dsp;
+        }
+
+        private void RemoveDsp(BassMixerDsp dsp) => _dsps.Remove(dsp);
+
         protected override void DisposeManagedResources()
         {
             _whammySyncTimer.Stop();
@@ -496,6 +524,13 @@ namespace YARG.Audio.BASS
             }
 
             _oneShots.Clear();
+
+            foreach (var dsp in _dsps.ToArray())
+            {
+                dsp.Dispose();
+            }
+
+            _dsps.Clear();
             _stemPipeline.Dispose();
         }
 
