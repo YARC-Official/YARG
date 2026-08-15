@@ -38,8 +38,63 @@ namespace YARG.Editor
             CallbackTimingStep,
             ControlHeardDelta,
             AbsolutePosition,
-            MicPitchAndHits
+            MicPitchAndHits,
+            FrequencySpectrum
         }
+
+        private enum FftDisplayStyle
+        {
+            FilledCurve,
+            RtaBars,
+            Both
+        }
+
+        private enum FftScaleMode
+        {
+            Logarithmic,
+            Linear
+        }
+
+        private struct FftBandInfo
+        {
+            public string Name;
+            public float MinFreq;
+            public float MaxFreq;
+            public float CurrentDb;
+            public float PeakDb;
+            public Color BandColor;
+        }
+
+        private const float FFT_MIN_FREQ = 20f;
+        private const float FFT_MAX_FREQ = 20000f;
+
+        private int _fftSizeLog = 11; // 2048 samples (1024 bins)
+        private float[]? _fftBuffer;
+        private float[]? _smoothedFft;
+        private float[]? _peakFft;
+        private float _fftSmoothingFactor = 0.75f;
+        private float _fftMinDb = -96f;
+        private float _fftMaxDb = 0f;
+        private FftDisplayStyle _fftDisplayStyle = FftDisplayStyle.Both;
+        private FftScaleMode _fftScaleMode = FftScaleMode.Logarithmic;
+        private bool _fftPeakHoldEnabled = true;
+        private float _fftPeakDecayRate = 25f;
+        private float _dominantFrequencyHz;
+        private float _dominantDb = -160f;
+        private string _dominantNoteName = "--";
+        private float _dominantCents;
+        private float _spectralCentroidHz;
+        private int _lastFftBytesRead;
+        private readonly FftBandInfo[] _fftBands =
+        {
+            new() { Name = "Sub Bass", MinFreq = 20f, MaxFreq = 60f, CurrentDb = -96f, PeakDb = -96f, BandColor = new Color(0.75f, 0.35f, 0.95f) },
+            new() { Name = "Bass", MinFreq = 60f, MaxFreq = 250f, CurrentDb = -96f, PeakDb = -96f, BandColor = new Color(0.25f, 0.60f, 0.95f) },
+            new() { Name = "Low Mid", MinFreq = 250f, MaxFreq = 500f, CurrentDb = -96f, PeakDb = -96f, BandColor = new Color(0.20f, 0.85f, 0.80f) },
+            new() { Name = "Mids", MinFreq = 500f, MaxFreq = 2000f, CurrentDb = -96f, PeakDb = -96f, BandColor = new Color(0.35f, 0.85f, 0.40f) },
+            new() { Name = "High Mid", MinFreq = 2000f, MaxFreq = 4000f, CurrentDb = -96f, PeakDb = -96f, BandColor = new Color(0.90f, 0.80f, 0.25f) },
+            new() { Name = "Presence", MinFreq = 4000f, MaxFreq = 6000f, CurrentDb = -96f, PeakDb = -96f, BandColor = new Color(0.95f, 0.55f, 0.20f) },
+            new() { Name = "Brilliance", MinFreq = 6000f, MaxFreq = 20000f, CurrentDb = -96f, PeakDb = -96f, BandColor = new Color(0.95f, 0.30f, 0.35f) }
+        };
 
         private struct PositionSample
         {
@@ -227,6 +282,25 @@ namespace YARG.Editor
                 GlobalAudioHandler.SetReverbSetting(stem, false);
             }
             _stemReverbs.Clear();
+
+            if (_smoothedFft != null && _peakFft != null)
+            {
+                Array.Clear(_smoothedFft, 0, _smoothedFft.Length);
+                for (int i = 0; i < _peakFft.Length; i++)
+                {
+                    _peakFft[i] = _fftMinDb;
+                }
+            }
+            for (int b = 0; b < _fftBands.Length; b++)
+            {
+                _fftBands[b].CurrentDb = _fftMinDb;
+                _fftBands[b].PeakDb = _fftMinDb;
+            }
+            _dominantFrequencyHz = 0f;
+            _dominantDb = _fftMinDb;
+            _dominantNoteName = "--";
+            _dominantCents = 0f;
+            _spectralCentroidHz = 0f;
         }
 
         private void OnSongEnd()
@@ -244,6 +318,7 @@ namespace YARG.Editor
 
             UpdateMicrophone(now, dt);
             UpdateSongPlayback(now, dt);
+            UpdateFft(now, dt);
         }
 
         private void UpdateMicrophone(double now, double dt)
@@ -441,6 +516,151 @@ namespace YARG.Editor
                     _samples.RemoveAt(0);
                 }
 
+                Repaint();
+            }
+        }
+
+        private void UpdateFft(double now, double dt)
+        {
+            int fftSize = 1 << _fftSizeLog;
+            int binCount = fftSize / 2;
+
+            if (_fftBuffer == null || _fftBuffer.Length != binCount)
+            {
+                _fftBuffer = new float[binCount];
+                _smoothedFft = new float[binCount];
+                _peakFft = new float[binCount];
+                for (int i = 0; i < binCount; i++)
+                {
+                    _peakFft[i] = _fftMinDb;
+                }
+            }
+
+            bool isPlaying = _bassSong != null && !_bassSong.IsPaused;
+
+            if (isPlaying && !_freezeGraph)
+            {
+                int bytesRead = _bassSong!.GetFFTData(_fftBuffer, _fftSizeLog, false);
+                _lastFftBytesRead = bytesRead;
+                if (bytesRead > 0)
+                {
+                    int sampleRate = Bass.Info.SampleRate > 0 ? Bass.Info.SampleRate : 44100;
+                    float nyquist = sampleRate * 0.5f;
+                    float freqPerBin = nyquist / binCount;
+
+                    float maxMag = 0f;
+                    int maxBin = 0;
+                    double weightedFreqSum = 0;
+                    double totalMagSum = 0;
+
+                    float smooth = Mathf.Clamp01(_fftSmoothingFactor);
+                    float peakDecay = _fftPeakDecayRate * (float) dt;
+
+                    for (int i = 0; i < binCount; i++)
+                    {
+                        float rawMag = _fftBuffer[i];
+                        _smoothedFft![i] = (_smoothedFft[i] * smooth) + (rawMag * (1f - smooth));
+                        float curMag = _smoothedFft[i];
+
+                        float db = 20f * Mathf.Log10(Mathf.Max(curMag, 1e-6f));
+
+                        if (db > _peakFft![i])
+                        {
+                            _peakFft[i] = db;
+                        }
+                        else
+                        {
+                            _peakFft[i] = Mathf.Max(_fftMinDb, _peakFft[i] - peakDecay);
+                        }
+
+                        if (curMag > maxMag)
+                        {
+                            maxMag = curMag;
+                            maxBin = i;
+                        }
+
+                        float freq = i * freqPerBin;
+                        weightedFreqSum += freq * curMag;
+                        totalMagSum += curMag;
+                    }
+
+                    if (maxMag > 1e-4f)
+                    {
+                        _dominantFrequencyHz = maxBin * freqPerBin;
+                        _dominantDb = 20f * Mathf.Log10(Mathf.Max(maxMag, 1e-6f));
+
+                        if (_dominantFrequencyHz >= 20f)
+                        {
+                            float midi = FreqToMidi(_dominantFrequencyHz);
+                            int roundedMidi = (int) MathF.Round(midi);
+                            int noteIndex = ((roundedMidi % 12) + 12) % 12;
+                            int octave = (roundedMidi / 12) - 1;
+                            _dominantNoteName = $"{NOTE_NAMES[noteIndex]}{octave}";
+                            _dominantCents = (midi - roundedMidi) * 100f;
+                        }
+                        else
+                        {
+                            _dominantNoteName = "--";
+                            _dominantCents = 0f;
+                        }
+                    }
+                    else
+                    {
+                        _dominantFrequencyHz = 0f;
+                        _dominantDb = _fftMinDb;
+                        _dominantNoteName = "--";
+                        _dominantCents = 0f;
+                    }
+
+                    _spectralCentroidHz = totalMagSum > 1e-5 ? (float) (weightedFreqSum / totalMagSum) : 0f;
+
+                    for (int b = 0; b < _fftBands.Length; b++)
+                    {
+                        float minF = _fftBands[b].MinFreq;
+                        float maxF = _fftBands[b].MaxFreq;
+                        int startBin = Math.Clamp((int) (minF / freqPerBin), 0, binCount - 1);
+                        int endBin = Math.Clamp((int) (maxF / freqPerBin), startBin, binCount - 1);
+
+                        float bandMax = 0f;
+                        for (int i = startBin; i <= endBin; i++)
+                        {
+                            if (_smoothedFft![i] > bandMax)
+                            {
+                                bandMax = _smoothedFft[i];
+                            }
+                        }
+
+                        float bandDb = 20f * Mathf.Log10(Mathf.Max(bandMax, 1e-6f));
+                        _fftBands[b].CurrentDb = bandDb;
+                        if (bandDb > _fftBands[b].PeakDb)
+                        {
+                            _fftBands[b].PeakDb = bandDb;
+                        }
+                        else
+                        {
+                            _fftBands[b].PeakDb = Mathf.Max(_fftMinDb, _fftBands[b].PeakDb - peakDecay);
+                        }
+                    }
+                }
+            }
+            else if (!isPlaying && _smoothedFft != null && _peakFft != null)
+            {
+                float decay = (float) (dt * 15f);
+                float peakDecay = _fftPeakDecayRate * (float) dt;
+                for (int i = 0; i < _smoothedFft.Length; i++)
+                {
+                    _smoothedFft[i] = Mathf.Max(0f, _smoothedFft[i] - decay);
+                    _peakFft[i] = Mathf.Max(_fftMinDb, _peakFft[i] - peakDecay);
+                }
+                for (int b = 0; b < _fftBands.Length; b++)
+                {
+                    _fftBands[b].CurrentDb = Mathf.Max(_fftMinDb, _fftBands[b].CurrentDb - peakDecay);
+                    _fftBands[b].PeakDb = Mathf.Max(_fftMinDb, _fftBands[b].PeakDb - peakDecay);
+                }
+            }
+
+            if (_graphMode == GraphMode.FrequencySpectrum || _selectedBottomTab == 4)
+            {
                 Repaint();
             }
         }
@@ -1130,30 +1350,59 @@ namespace YARG.Editor
 
                     GUILayout.FlexibleSpace();
 
-                    _graphMode = (GraphMode) EditorGUILayout.EnumPopup(_graphMode, GUILayout.Width(135));
+                    _graphMode = (GraphMode) EditorGUILayout.EnumPopup(_graphMode, GUILayout.Width(145));
 
-                    GUILayout.Space(6);
-
-                    EditorGUILayout.LabelField("Win:", GUILayout.Width(28));
-                    DrawWindowPill(1f, "1s");
-                    DrawWindowPill(2f, "2s");
-                    DrawWindowPill(3f, "3s");
-                    DrawWindowPill(5f, "5s");
-                    DrawWindowPill(10f, "10s");
-
-                    if (_graphMode == GraphMode.MicPitchAndHits)
+                    if (_graphMode == GraphMode.FrequencySpectrum)
                     {
+                        GUILayout.Space(6);
+                        EditorGUILayout.LabelField("FFT:", GUILayout.Width(28));
+                        DrawFftSizePill(8, "256");
+                        DrawFftSizePill(9, "512");
+                        DrawFftSizePill(10, "1k");
+                        DrawFftSizePill(11, "2k");
+                        DrawFftSizePill(12, "4k");
+
+                        GUILayout.Space(6);
+                        DrawFftStylePill(FftDisplayStyle.FilledCurve, "Curve");
+                        DrawFftStylePill(FftDisplayStyle.RtaBars, "Bars");
+                        DrawFftStylePill(FftDisplayStyle.Both, "Both");
+
+                        GUILayout.Space(6);
+                        DrawFftScalePill(FftScaleMode.Logarithmic, "Log");
+                        DrawFftScalePill(FftScaleMode.Linear, "Lin");
+                    }
+                    else if (_graphMode == GraphMode.MicPitchAndHits)
+                    {
+                        GUILayout.Space(6);
+                        EditorGUILayout.LabelField("Win:", GUILayout.Width(28));
+                        DrawWindowPill(1f, "1s");
+                        DrawWindowPill(2f, "2s");
+                        DrawWindowPill(3f, "3s");
+                        DrawWindowPill(5f, "5s");
+                        DrawWindowPill(10f, "10s");
+
                         GUILayout.Space(6);
                         EditorGUILayout.LabelField("Range: C2–C6", EditorStyles.miniLabel, GUILayout.Width(85));
                     }
-                    else if (_graphMode != GraphMode.AbsolutePosition)
+                    else
                     {
                         GUILayout.Space(6);
-                        EditorGUILayout.LabelField("Y:", GUILayout.Width(16));
-                        DrawYScalePill(0f, "Auto");
-                        DrawYScalePill(5f, "±5");
-                        DrawYScalePill(10f, "±10");
-                        DrawYScalePill(25f, "±25");
+                        EditorGUILayout.LabelField("Win:", GUILayout.Width(28));
+                        DrawWindowPill(1f, "1s");
+                        DrawWindowPill(2f, "2s");
+                        DrawWindowPill(3f, "3s");
+                        DrawWindowPill(5f, "5s");
+                        DrawWindowPill(10f, "10s");
+
+                        if (_graphMode != GraphMode.AbsolutePosition)
+                        {
+                            GUILayout.Space(6);
+                            EditorGUILayout.LabelField("Y:", GUILayout.Width(16));
+                            DrawYScalePill(0f, "Auto");
+                            DrawYScalePill(5f, "±5");
+                            DrawYScalePill(10f, "±10");
+                            DrawYScalePill(25f, "±25");
+                        }
                     }
 
                     GUILayout.Space(6);
@@ -1195,6 +1444,19 @@ namespace YARG.Editor
                         _samples.Clear();
                         _micSamples.Clear();
                         _viewEndTime = -1;
+                        if (_smoothedFft != null && _peakFft != null)
+                        {
+                            Array.Clear(_smoothedFft, 0, _smoothedFft.Length);
+                            for (int i = 0; i < _peakFft.Length; i++)
+                            {
+                                _peakFft[i] = _fftMinDb;
+                            }
+                        }
+                        for (int b = 0; b < _fftBands.Length; b++)
+                        {
+                            _fftBands[b].CurrentDb = _fftMinDb;
+                            _fftBands[b].PeakDb = _fftMinDb;
+                        }
                     }
                 }
 
@@ -1245,6 +1507,60 @@ namespace YARG.Editor
             GUI.backgroundColor = prevBg;
         }
 
+        private void DrawFftSizePill(int logSize, string label)
+        {
+            bool isActive = _fftSizeLog == logSize;
+            var prevBg = GUI.backgroundColor;
+            if (isActive)
+            {
+                GUI.backgroundColor = new Color(0.2f, 0.6f, 0.95f, 1f);
+            }
+
+            if (GUILayout.Button(label, EditorStyles.miniButton, GUILayout.Width(32), GUILayout.Height(18)))
+            {
+                _fftSizeLog = logSize;
+                _fftBuffer = null;
+                _smoothedFft = null;
+                _peakFft = null;
+            }
+
+            GUI.backgroundColor = prevBg;
+        }
+
+        private void DrawFftStylePill(FftDisplayStyle style, string label)
+        {
+            bool isActive = _fftDisplayStyle == style;
+            var prevBg = GUI.backgroundColor;
+            if (isActive)
+            {
+                GUI.backgroundColor = new Color(0.2f, 0.6f, 0.95f, 1f);
+            }
+
+            if (GUILayout.Button(label, EditorStyles.miniButton, GUILayout.Width(42), GUILayout.Height(18)))
+            {
+                _fftDisplayStyle = style;
+            }
+
+            GUI.backgroundColor = prevBg;
+        }
+
+        private void DrawFftScalePill(FftScaleMode mode, string label)
+        {
+            bool isActive = _fftScaleMode == mode;
+            var prevBg = GUI.backgroundColor;
+            if (isActive)
+            {
+                GUI.backgroundColor = new Color(0.2f, 0.6f, 0.95f, 1f);
+            }
+
+            if (GUILayout.Button(label, EditorStyles.miniButton, GUILayout.Width(34), GUILayout.Height(18)))
+            {
+                _fftScaleMode = mode;
+            }
+
+            GUI.backgroundColor = prevBg;
+        }
+
         private void DrawGraphArea(Rect rect)
         {
             if (rect.width < 10 || rect.height < 10)
@@ -1264,6 +1580,12 @@ namespace YARG.Editor
             if (_graphMode == GraphMode.MicPitchAndHits)
             {
                 DrawMicGraph(rect, plotRect, paddingLeft, paddingTop, paddingRight, paddingBottom, plotWidth, plotHeight);
+                return;
+            }
+
+            if (_graphMode == GraphMode.FrequencySpectrum)
+            {
+                DrawFftSpectrumGraph(rect, plotRect, paddingLeft, paddingTop, paddingRight, paddingBottom, plotWidth, plotHeight);
                 return;
             }
 
@@ -1752,6 +2074,12 @@ namespace YARG.Editor
 
         private void DrawGraphTimelineMiniBar()
         {
+            if (_graphMode == GraphMode.FrequencySpectrum)
+            {
+                DrawFftTimelineMiniBar();
+                return;
+            }
+
             double firstTime;
             double latestTime;
 
@@ -1871,6 +2199,12 @@ namespace YARG.Editor
             if (_graphMode == GraphMode.MicPitchAndHits)
             {
                 DrawMicHudRibbon();
+                return;
+            }
+
+            if (_graphMode == GraphMode.FrequencySpectrum)
+            {
+                DrawFftHudRibbon();
                 return;
             }
 
@@ -2284,7 +2618,7 @@ namespace YARG.Editor
             {
                 using (new EditorGUILayout.HorizontalScope())
                 {
-                    string[] tabLabels = { $"🎚️ {mixerTabLabel}", "⏱️ Sync & Simulation", "🔊 Output & Engine Health", micTabLabel };
+                    string[] tabLabels = { $"🎚️ {mixerTabLabel}", "⏱️ Sync & Simulation", "🔊 Output & Engine Health", micTabLabel, "📊 FFT & Spectrum" };
                     int newTab = GUILayout.Toolbar(_selectedBottomTab, tabLabels, GUILayout.Height(24));
                     if (newTab != _selectedBottomTab)
                     {
@@ -2295,6 +2629,7 @@ namespace YARG.Editor
                             1 => GraphMode.SyncConvergence,
                             2 => GraphMode.PositionJitter,
                             3 => GraphMode.MicPitchAndHits,
+                            4 => GraphMode.FrequencySpectrum,
                             _ => _graphMode
                         };
                     }
@@ -2317,6 +2652,9 @@ namespace YARG.Editor
                         break;
                     case 3:
                         DrawMicrophoneStudioDashboard();
+                        break;
+                    case 4:
+                        DrawFftDashboardCard();
                         break;
                 }
             }
@@ -3430,6 +3768,707 @@ namespace YARG.Editor
             }
 
             EditorPrefs.SetString(RECENT_PATHS_KEY, string.Join("|", _recentPaths));
+        }
+
+        private void DrawFftTimelineMiniBar()
+        {
+            double songLength = _bassSong?.Length ?? 0;
+            double currentPos = _bassSong?.GetPosition() ?? 0;
+
+            if (songLength <= 0.05)
+            {
+                return;
+            }
+
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                Rect barRect = GUILayoutUtility.GetRect(100, 1000, 14, 14);
+                EditorGUI.DrawRect(barRect, new Color(0.12f, 0.13f, 0.16f, 1f));
+
+                float normPos = (float) Math.Clamp(currentPos / songLength, 0.0, 1.0);
+                float barW = normPos * barRect.width;
+
+                EditorGUI.DrawRect(new Rect(barRect.x, barRect.y + 1, barW, barRect.height - 2), new Color(0.15f, 0.85f, 0.95f, 0.5f));
+                EditorGUI.DrawRect(new Rect(barRect.x + barW - 1, barRect.y, 2, barRect.height), new Color(0.4f, 1f, 1f, 1f));
+
+                var evt = Event.current;
+                if ((evt.type == EventType.MouseDown || evt.type == EventType.MouseDrag) && barRect.Contains(evt.mousePosition))
+                {
+                    float clickedNorm = (evt.mousePosition.x - barRect.x) / barRect.width;
+                    double targetPos = clickedNorm * songLength;
+                    _bassSong?.SetPosition(targetPos);
+                    evt.Use();
+                    Repaint();
+                }
+
+                GUILayout.Space(6);
+                string timeStr = $"{FormatTime(currentPos)} / {FormatTime(songLength)}";
+                GUILayout.Label(timeStr, EditorStyles.miniLabel, GUILayout.Width(90), GUILayout.Height(14));
+            }
+        }
+
+        private void DrawFftHudRibbon()
+        {
+            int sampleRate = Bass.Info.SampleRate > 0 ? Bass.Info.SampleRate : 44100;
+            int fftPoints = 1 << _fftSizeLog;
+            float binWidth = (sampleRate * 0.5f) / (fftPoints / 2f);
+
+            string dominantPitch = _dominantFrequencyHz >= 20f
+                ? $"{_dominantNoteName} ({_dominantFrequencyHz:F0} Hz)"
+                : "--";
+            Color peakColor = _dominantDb > -12f ? new Color(1f, 0.35f, 0.35f) : (_dominantDb > -30f ? new Color(0.25f, 0.95f, 0.45f) : new Color(0.2f, 0.75f, 1f));
+
+            string dbText = _dominantDb > -150f ? $"{_dominantDb:+0.0;-0.0;0.0} dBFS" : "-∞ dB";
+            string centroidText = _spectralCentroidHz > 10f ? $"{_spectralCentroidHz:F0} Hz" : "--";
+            string resText = $"{fftPoints} pts ({binWidth:F1} Hz/bin)";
+
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                DrawMetricTile("DOMINANT PEAK", dominantPitch, new Color(0.15f, 0.9f, 1f));
+                DrawMetricTile("PEAK LEVEL", dbText, peakColor);
+                DrawMetricTile("CENTROID (BRIGHTNESS)", centroidText, new Color(0.85f, 0.65f, 1f));
+                DrawMetricTile("FFT RESOLUTION", resText, Color.white);
+                DrawMetricTile("FRAME RATE", $"{_currentFps:F0} FPS", Color.white);
+
+                GUILayout.Space(6);
+                using (new EditorGUILayout.VerticalScope(GUILayout.Width(80), GUILayout.Height(36)))
+                {
+                    GUILayout.FlexibleSpace();
+                    if (GUILayout.Button("Reset Peaks", EditorStyles.miniButton, GUILayout.Width(80), GUILayout.Height(22)))
+                    {
+                        if (_peakFft != null)
+                        {
+                            for (int i = 0; i < _peakFft.Length; i++)
+                            {
+                                _peakFft[i] = _fftMinDb;
+                            }
+                        }
+                        for (int b = 0; b < _fftBands.Length; b++)
+                        {
+                            _fftBands[b].PeakDb = _fftMinDb;
+                        }
+                    }
+                    GUILayout.FlexibleSpace();
+                }
+            }
+        }
+
+        private void DrawFftSpectrumGraph(Rect rect, Rect plotRect, float paddingLeft, float paddingTop, float paddingRight, float paddingBottom, float plotWidth, float plotHeight)
+        {
+            var evt = Event.current;
+            if (evt.type != EventType.Repaint)
+            {
+                return;
+            }
+
+            EditorGUI.DrawRect(rect, new Color(0.06f, 0.07f, 0.09f, 1f));
+
+            int sampleRate = Bass.Info.SampleRate > 0 ? Bass.Info.SampleRate : 44100;
+            int fftPoints = 1 << _fftSizeLog;
+            int binCount = fftPoints / 2;
+
+            if (_fftBuffer == null || _fftBuffer.Length != binCount || _smoothedFft == null || _smoothedFft.Length != binCount || _peakFft == null || _peakFft.Length != binCount)
+            {
+                _fftBuffer = new float[binCount];
+                _smoothedFft = new float[binCount];
+                _peakFft = new float[binCount];
+                for (int i = 0; i < binCount; i++)
+                {
+                    _peakFft[i] = _fftMinDb;
+                }
+            }
+
+            for (int b = 0; b < _fftBands.Length; b++)
+            {
+                var band = _fftBands[b];
+                float normX1 = GetFreqNorm(band.MinFreq);
+                float normX2 = GetFreqNorm(band.MaxFreq);
+                float x1 = plotRect.x + (normX1 * plotWidth);
+                float x2 = plotRect.x + (normX2 * plotWidth);
+                float bandW = Mathf.Max(1f, x2 - x1);
+
+                Color zoneBg = band.BandColor;
+                zoneBg.a = (b % 2 == 0) ? 0.045f : 0.025f;
+                EditorGUI.DrawRect(new Rect(x1, plotRect.y, bandW, plotHeight), zoneBg);
+
+                var bandTagStyle = new GUIStyle(EditorStyles.miniLabel)
+                {
+                    fontSize = 8,
+                    alignment = TextAnchor.UpperLeft,
+                    normal = { textColor = new Color(band.BandColor.r, band.BandColor.g, band.BandColor.b, 0.45f) }
+                };
+                GUI.Label(new Rect(x1 + 3, plotRect.y + 2, bandW - 4, 12), band.Name.ToUpperInvariant(), bandTagStyle);
+            }
+
+            float[] dbSteps = { 0f, -12f, -24f, -36f, -48f, -60f, -72f, -84f, -96f };
+            for (int i = 0; i < dbSteps.Length; i++)
+            {
+                float db = dbSteps[i];
+                if (db < _fftMinDb || db > _fftMaxDb)
+                {
+                    continue;
+                }
+
+                float normY = Mathf.Clamp01((db - _fftMinDb) / (_fftMaxDb - _fftMinDb));
+                float y = plotRect.y + plotHeight - (normY * plotHeight);
+
+                Color lineCol = Mathf.Approximately(db, 0f)
+                    ? new Color(0.40f, 0.45f, 0.55f, 0.7f)
+                    : new Color(0.18f, 0.20f, 0.25f, 0.5f);
+                EditorGUI.DrawRect(new Rect(plotRect.x, y, plotWidth, 1), lineCol);
+
+                var dbLabelStyle = new GUIStyle(EditorStyles.miniLabel)
+                {
+                    alignment = TextAnchor.MiddleRight,
+                    fontSize = 9,
+                    normal = { textColor = new Color(0.55f, 0.60f, 0.70f, 0.8f) }
+                };
+                GUI.Label(new Rect(rect.x, y - 8, paddingLeft - 4, 16), $"{db:0} dB", dbLabelStyle);
+            }
+
+            float[] freqSteps = { 30f, 60f, 125f, 250f, 500f, 1000f, 2000f, 4000f, 8000f, 16000f, 20000f };
+            string[] freqLabels = { "30", "60", "125", "250", "500", "1k", "2k", "4k", "8k", "16k", "20k" };
+            for (int i = 0; i < freqSteps.Length; i++)
+            {
+                float f = freqSteps[i];
+                float normX = GetFreqNorm(f);
+                float x = plotRect.x + (normX * plotWidth);
+
+                EditorGUI.DrawRect(new Rect(x, plotRect.y, 1, plotHeight), new Color(0.18f, 0.20f, 0.25f, 0.5f));
+
+                var fLabelStyle = new GUIStyle(EditorStyles.centeredGreyMiniLabel)
+                {
+                    fontSize = 8
+                };
+                GUI.Label(new Rect(x - 18, plotRect.y + plotHeight + 3, 36, 16), freqLabels[i], fLabelStyle);
+            }
+
+            if (_fftDisplayStyle == FftDisplayStyle.RtaBars || _fftDisplayStyle == FftDisplayStyle.Both)
+            {
+                int numBars = 48;
+                float barSpacing = 1.5f;
+                float totalSlotWidth = plotWidth / numBars;
+                float barWidth = Mathf.Max(1f, totalSlotWidth - barSpacing);
+
+                for (int b = 0; b < numBars; b++)
+                {
+                    float u1 = b / (float) numBars;
+                    float u2 = (b + 1) / (float) numBars;
+                    float f1 = GetNormFreq(u1);
+                    float f2 = GetNormFreq(u2);
+                    float fCenter = Mathf.Sqrt(f1 * f2);
+
+                    float mag = SampleFftMagnitude(fCenter, sampleRate, binCount);
+                    float db = 20f * Mathf.Log10(Mathf.Max(mag, 1e-6f));
+                    float normY = Mathf.Clamp01((db - _fftMinDb) / (_fftMaxDb - _fftMinDb));
+
+                    float barH = normY * plotHeight;
+                    float barX = plotRect.x + (b * totalSlotWidth) + (barSpacing * 0.5f);
+                    float barY = plotRect.y + plotHeight - barH;
+
+                    Color barColor = GetBandColorForFreq(fCenter);
+                    if (_fftDisplayStyle == FftDisplayStyle.Both)
+                    {
+                        barColor.a = 0.35f;
+                    }
+
+                    EditorGUI.DrawRect(new Rect(barX, barY, barWidth, barH), barColor);
+
+                    if (_fftPeakHoldEnabled && _peakFft != null)
+                    {
+                        float peakDb = SamplePeakFftDb(fCenter, sampleRate, binCount);
+                        float peakNormY = Mathf.Clamp01((peakDb - _fftMinDb) / (_fftMaxDb - _fftMinDb));
+                        float peakY = plotRect.y + plotHeight - (peakNormY * plotHeight);
+                        EditorGUI.DrawRect(new Rect(barX, peakY - 1, barWidth, 2), new Color(1f, 0.85f, 0.3f, 0.85f));
+                    }
+                }
+            }
+
+            if (_fftDisplayStyle == FftDisplayStyle.FilledCurve || _fftDisplayStyle == FftDisplayStyle.Both)
+            {
+                int steps = Mathf.Clamp((int) (plotWidth / 2.5f), 100, 400);
+                var curvePoints = new List<Vector3>(steps + 1);
+                var peakPoints = new List<Vector3>(steps + 1);
+
+                for (int s = 0; s <= steps; s++)
+                {
+                    float u = s / (float) steps;
+                    float screenX = plotRect.x + (u * plotWidth);
+                    float f = GetNormFreq(u);
+
+                    float mag = SampleFftMagnitude(f, sampleRate, binCount);
+                    float db = 20f * Mathf.Log10(Mathf.Max(mag, 1e-6f));
+                    float normY = Mathf.Clamp01((db - _fftMinDb) / (_fftMaxDb - _fftMinDb));
+                    float screenY = plotRect.y + plotHeight - (normY * plotHeight);
+
+                    curvePoints.Add(new Vector3(screenX, screenY, 0));
+
+                    float sliceH = (plotRect.y + plotHeight) - screenY;
+                    if (sliceH > 1f && _fftDisplayStyle == FftDisplayStyle.FilledCurve)
+                    {
+                        float sliceW = (plotWidth / steps) + 0.5f;
+                        Color fillCol = new Color(0.12f, 0.65f, 0.95f, (normY * 0.28f) + 0.03f);
+                        EditorGUI.DrawRect(new Rect(screenX, screenY, sliceW, sliceH), fillCol);
+                    }
+
+                    if (_fftPeakHoldEnabled && _peakFft != null)
+                    {
+                        float peakDb = SamplePeakFftDb(f, sampleRate, binCount);
+                        float peakNormY = Mathf.Clamp01((peakDb - _fftMinDb) / (_fftMaxDb - _fftMinDb));
+                        float peakScreenY = plotRect.y + plotHeight - (peakNormY * plotHeight);
+                        peakPoints.Add(new Vector3(screenX, peakScreenY, 0));
+                    }
+                }
+
+                if (_fftPeakHoldEnabled && peakPoints.Count > 1)
+                {
+                    Handles.color = new Color(1f, 0.8f, 0.25f, 0.7f);
+                    Handles.DrawAAPolyLine(1.5f, peakPoints.ToArray());
+                }
+
+                if (curvePoints.Count > 1)
+                {
+                    Handles.color = new Color(0.1f, 0.85f, 1f, 0.35f);
+                    Handles.DrawAAPolyLine(4.5f, curvePoints.ToArray());
+                    Handles.color = new Color(0.35f, 0.95f, 1f, 1f);
+                    Handles.DrawAAPolyLine(2.0f, curvePoints.ToArray());
+                }
+            }
+
+            Handles.color = new Color(0.25f, 0.28f, 0.35f, 1f);
+            Handles.DrawPolyLine(
+                new Vector3(plotRect.x, plotRect.y, 0),
+                new Vector3(plotRect.x, plotRect.y + plotHeight, 0),
+                new Vector3(plotRect.x + plotWidth, plotRect.y + plotHeight, 0)
+            );
+
+            if (_bassSong == null)
+            {
+                var hintStyle = new GUIStyle(EditorStyles.centeredGreyMiniLabel)
+                {
+                    fontSize = 11,
+                    normal = { textColor = new Color(0.6f, 0.65f, 0.75f, 0.6f) }
+                };
+                GUI.Label(new Rect(plotRect.x, plotRect.y + (plotHeight * 0.35f), plotWidth, 24), "Load an audio file or song folder above and press Play to visualize spectrum", hintStyle);
+            }
+            else if (_bassSong.IsPaused && _dominantDb <= _fftMinDb + 1f)
+            {
+                var hintStyle = new GUIStyle(EditorStyles.centeredGreyMiniLabel)
+                {
+                    fontSize = 11,
+                    normal = { textColor = new Color(0.6f, 0.65f, 0.75f, 0.6f) }
+                };
+                GUI.Label(new Rect(plotRect.x, plotRect.y + (plotHeight * 0.35f), plotWidth, 24), "Playback paused. Press Play to start live FFT analysis", hintStyle);
+            }
+
+            DrawFftHoverCrosshair(rect, plotRect, paddingLeft, paddingTop, plotWidth, plotHeight, sampleRate, binCount);
+        }
+
+        private void DrawFftHoverCrosshair(Rect rect, Rect plotRect, float paddingLeft, float paddingTop, float plotWidth, float plotHeight, int sampleRate, int binCount)
+        {
+            Vector2 mousePos = Event.current.mousePosition;
+            if (!plotRect.Contains(mousePos))
+            {
+                return;
+            }
+
+            float plotX = mousePos.x - plotRect.x;
+            float normX = Mathf.Clamp01(plotX / plotWidth);
+            float freq = GetNormFreq(normX);
+
+            float mag = SampleFftMagnitude(freq, sampleRate, binCount);
+            float db = 20f * Mathf.Log10(Mathf.Max(mag, 1e-6f));
+            float normY = Mathf.Clamp01((db - _fftMinDb) / (_fftMaxDb - _fftMinDb));
+            float curY = plotRect.y + plotHeight - (normY * plotHeight);
+
+            Handles.color = new Color(1f, 1f, 1f, 0.4f);
+            Handles.DrawLine(new Vector3(mousePos.x, plotRect.y, 0), new Vector3(mousePos.x, plotRect.y + plotHeight, 0));
+            Handles.color = new Color(1f, 1f, 1f, 0.2f);
+            Handles.DrawLine(new Vector3(plotRect.x, curY, 0), new Vector3(plotRect.x + plotWidth, curY, 0));
+
+            EditorGUI.DrawRect(new Rect(mousePos.x - 3f, curY - 3f, 6f, 6f), new Color(0.15f, 0.95f, 1f, 0.4f));
+            EditorGUI.DrawRect(new Rect(mousePos.x - 1.5f, curY - 1.5f, 3f, 3f), new Color(0.5f, 1f, 1f, 1f));
+
+            string noteText = "--";
+            if (freq >= 20f)
+            {
+                float midi = FreqToMidi(freq);
+                int roundedMidi = (int) MathF.Round(midi);
+                int noteIndex = ((roundedMidi % 12) + 12) % 12;
+                int octave = (roundedMidi / 12) - 1;
+                float cents = (midi - roundedMidi) * 100f;
+                noteText = $"{NOTE_NAMES[noteIndex]}{octave} ({cents:+0;-0;0}c)";
+            }
+
+            string bandName = GetBandNameForFreq(freq);
+            string freqStr = freq >= 1000f ? $"{freq / 1000f:F2} kHz" : $"{freq:F0} Hz";
+            string tooltip = $"Freq: {freqStr}\nNote: {noteText}\nLevel: {db:F1} dBFS\nBand: {bandName}";
+
+            var tooltipContent = new GUIContent(tooltip);
+            var tooltipStyle = new GUIStyle(EditorStyles.helpBox)
+            {
+                fontSize = 11,
+                alignment = TextAnchor.MiddleLeft
+            };
+
+            Vector2 tooltipSize = tooltipStyle.CalcSize(tooltipContent) + new Vector2(10, 6);
+            float tooltipX = mousePos.x + 12;
+            if (tooltipX + tooltipSize.x > rect.x + rect.width - 6)
+            {
+                tooltipX = mousePos.x - tooltipSize.x - 12;
+            }
+
+            float tooltipY = Mathf.Clamp(mousePos.y - (tooltipSize.y / 2), plotRect.y, plotRect.y + plotHeight - tooltipSize.y);
+            GUI.Box(new Rect(tooltipX, tooltipY, tooltipSize.x, tooltipSize.y), tooltipContent, tooltipStyle);
+        }
+
+        private void DrawFftDashboardCard()
+        {
+            using (new EditorGUILayout.VerticalScope(EditorStyles.helpBox))
+            {
+                DrawFftTopStatusBar();
+
+                EditorGUILayout.Space(6);
+
+                using (new EditorGUILayout.HorizontalScope())
+                {
+                    DrawFftBandsStageColumn();
+
+                    GUILayout.Space(6);
+
+                    DrawFftAcousticsColumn();
+
+                    GUILayout.Space(6);
+
+                    DrawFftControlsColumn();
+                }
+
+                EditorGUILayout.Space(6);
+
+                Rect graphRect = GUILayoutUtility.GetRect(100, 10000, 180, 240, GUILayout.ExpandWidth(true));
+                if (graphRect.width > 50 && graphRect.height > 50)
+                {
+                    float paddingLeft = 52f;
+                    float paddingBottom = 20f;
+                    float paddingTop = 10f;
+                    float paddingRight = 10f;
+
+                    float plotWidth = graphRect.width - paddingLeft - paddingRight;
+                    float plotHeight = graphRect.height - paddingTop - paddingBottom;
+                    var plotRect = new Rect(graphRect.x + paddingLeft, graphRect.y + paddingTop, plotWidth, plotHeight);
+
+                    DrawFftSpectrumGraph(graphRect, plotRect, paddingLeft, paddingTop, paddingRight, paddingBottom, plotWidth, plotHeight);
+                }
+            }
+        }
+
+        private void DrawFftTopStatusBar()
+        {
+            bool isPlaying = _bassSong != null && !_bassSong.IsPaused;
+            int sampleRate = Bass.Info.SampleRate > 0 ? Bass.Info.SampleRate : 44100;
+            int fftPoints = 1 << _fftSizeLog;
+            int binCount = fftPoints / 2;
+            float binResolution = (sampleRate * 0.5f) / binCount;
+
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                var dotColor = isPlaying ? new Color(0.2f, 0.9f, 0.4f) : Color.gray;
+                var dotStyle = new GUIStyle(EditorStyles.boldLabel)
+                {
+                    normal = { textColor = dotColor }
+                };
+                GUILayout.Label(isPlaying ? "● LIVE FFT SPECTRUM" : "○ FFT IDLE", dotStyle, GUILayout.Width(160));
+
+                GUILayout.FlexibleSpace();
+
+                var metaStyle = new GUIStyle(EditorStyles.miniLabel)
+                {
+                    normal = { textColor = new Color(0.7f, 0.75f, 0.85f) }
+                };
+                string songState = _bassSong == null ? "No Song Loaded" : (_bassSong.IsPaused ? "Paused" : "Playing");
+                GUILayout.Label($"State: {songState}  |  Read: {_lastFftBytesRead} B  |  Sample Rate: {sampleRate / 1000f:0.1} kHz  |  Bins: {binCount} ({binResolution:0.1} Hz/bin)  |  Scale: {_fftScaleMode}", metaStyle);
+            }
+        }
+
+        private void DrawFftBandsStageColumn()
+        {
+            using (new EditorGUILayout.VerticalScope(EditorStyles.helpBox, GUILayout.Width(270)))
+            {
+                EditorGUILayout.LabelField("7-Band Acoustic Level Meters", EditorStyles.boldLabel);
+                EditorGUILayout.Space(4);
+
+                for (int b = 0; b < _fftBands.Length; b++)
+                {
+                    var band = _fftBands[b];
+                    float normCur = Mathf.Clamp01((band.CurrentDb - _fftMinDb) / (_fftMaxDb - _fftMinDb));
+                    float normPeak = Mathf.Clamp01((band.PeakDb - _fftMinDb) / (_fftMaxDb - _fftMinDb));
+
+                    using (new EditorGUILayout.HorizontalScope())
+                    {
+                        var nameStyle = new GUIStyle(EditorStyles.miniLabel)
+                        {
+                            normal = { textColor = band.BandColor },
+                            fontStyle = FontStyle.Bold
+                        };
+                        GUILayout.Label(band.Name, nameStyle, GUILayout.Width(62));
+
+                        Rect meterRect = GUILayoutUtility.GetRect(80, 140, 14, 14);
+                        EditorGUI.DrawRect(meterRect, new Color(0.10f, 0.11f, 0.14f, 1f));
+
+                        if (normCur > 0.01f)
+                        {
+                            float fillW = normCur * meterRect.width;
+                            EditorGUI.DrawRect(new Rect(meterRect.x, meterRect.y + 1, fillW, meterRect.height - 2), band.BandColor * 0.85f);
+                        }
+
+                        if (normPeak > 0.01f)
+                        {
+                            float peakX = meterRect.x + (normPeak * meterRect.width);
+                            EditorGUI.DrawRect(new Rect(peakX - 1, meterRect.y, 2, meterRect.height), new Color(1f, 0.85f, 0.3f, 1f));
+                        }
+
+                        string dbStr = band.CurrentDb > -140f ? $"{band.CurrentDb:F1} dB" : "-∞ dB";
+                        var dbStyle = new GUIStyle(EditorStyles.miniLabel)
+                        {
+                            alignment = TextAnchor.MiddleRight,
+                            normal = { textColor = new Color(0.8f, 0.85f, 0.9f) }
+                        };
+                        GUILayout.Label(dbStr, dbStyle, GUILayout.Width(52));
+                    }
+                    EditorGUILayout.Space(2);
+                }
+            }
+        }
+
+        private void DrawFftAcousticsColumn()
+        {
+            using (new EditorGUILayout.VerticalScope(EditorStyles.helpBox, GUILayout.ExpandWidth(true)))
+            {
+                EditorGUILayout.LabelField("Spectral Pitch & Acoustics", EditorStyles.boldLabel);
+                EditorGUILayout.Space(4);
+
+                using (new EditorGUILayout.HorizontalScope())
+                {
+                    using (new EditorGUILayout.VerticalScope(EditorStyles.helpBox, GUILayout.Width(110), GUILayout.Height(72)))
+                    {
+                        var pitchTitleStyle = new GUIStyle(EditorStyles.miniLabel)
+                        {
+                            alignment = TextAnchor.MiddleCenter,
+                            normal = { textColor = new Color(0.65f, 0.7f, 0.8f) }
+                        };
+                        GUILayout.Label("DOMINANT NOTE", pitchTitleStyle);
+
+                        var bigNoteStyle = new GUIStyle(EditorStyles.boldLabel)
+                        {
+                            fontSize = 22,
+                            alignment = TextAnchor.MiddleCenter,
+                            normal = { textColor = _dominantFrequencyHz >= 20f ? new Color(0.2f, 0.95f, 1f) : Color.gray }
+                        };
+                        GUILayout.Label(_dominantNoteName, bigNoteStyle);
+
+                        string hzLabel = _dominantFrequencyHz >= 20f ? $"{_dominantFrequencyHz:F1} Hz" : "-- Hz";
+                        var hzStyle = new GUIStyle(EditorStyles.miniLabel)
+                        {
+                            alignment = TextAnchor.MiddleCenter,
+                            normal = { textColor = new Color(0.8f, 0.85f, 0.9f) }
+                        };
+                        GUILayout.Label(hzLabel, hzStyle);
+                    }
+
+                    GUILayout.Space(6);
+
+                    using (new EditorGUILayout.VerticalScope())
+                    {
+                        string timbreDesc = _spectralCentroidHz switch
+                        {
+                            < 250f => "Deep / Sub-Heavy",
+                            < 600f => "Warm / Bass-Rich",
+                            < 1500f => "Full / Balanced Low-Mid",
+                            < 3500f => "Clear / Mid-Forward",
+                            < 6000f => "Bright / Present",
+                            _ => "Crisp / Airy Highs"
+                        };
+
+                        EditorGUILayout.LabelField($"Spectral Centroid: {_spectralCentroidHz:F0} Hz", EditorStyles.boldLabel);
+                        EditorGUILayout.LabelField($"Perceived Timbre: {timbreDesc}", EditorStyles.miniLabel);
+
+                        EditorGUILayout.Space(4);
+
+                        EditorGUILayout.LabelField($"Pitch Offset: {_dominantCents:+0.0;-0.0;0.0} cents", EditorStyles.miniLabel);
+                        Rect centsRect = GUILayoutUtility.GetRect(100, 200, 10, 10);
+                        EditorGUI.DrawRect(centsRect, new Color(0.12f, 0.13f, 0.16f, 1f));
+                        EditorGUI.DrawRect(new Rect(centsRect.x + (centsRect.width * 0.5f) - 1, centsRect.y, 2, centsRect.height), new Color(0.4f, 0.45f, 0.55f, 1f));
+
+                        if (_dominantFrequencyHz >= 20f)
+                        {
+                            float normCents = Mathf.Clamp(_dominantCents / 50f, -1f, 1f);
+                            float midX = centsRect.x + (centsRect.width * 0.5f);
+                            float barX = normCents >= 0 ? midX : midX + (normCents * (centsRect.width * 0.5f));
+                            float barW = Mathf.Abs(normCents) * (centsRect.width * 0.5f);
+                            Color centsColor = MathF.Abs(_dominantCents) < 10f ? new Color(0.25f, 0.95f, 0.45f) : new Color(1f, 0.65f, 0.15f);
+                            EditorGUI.DrawRect(new Rect(barX, centsRect.y + 1, Mathf.Max(2f, barW), centsRect.height - 2), centsColor);
+                        }
+                    }
+                }
+            }
+        }
+
+        private void DrawFftControlsColumn()
+        {
+            using (new EditorGUILayout.VerticalScope(EditorStyles.helpBox, GUILayout.Width(260)))
+            {
+                EditorGUILayout.LabelField("FFT & Visualizer Configuration", EditorStyles.boldLabel);
+                EditorGUILayout.Space(4);
+
+                using (new EditorGUILayout.HorizontalScope())
+                {
+                    EditorGUILayout.LabelField("Resolution:", GUILayout.Width(75));
+                    DrawFftSizePill(8, "256");
+                    DrawFftSizePill(9, "512");
+                    DrawFftSizePill(10, "1k");
+                    DrawFftSizePill(11, "2k");
+                    DrawFftSizePill(12, "4k");
+                }
+
+                EditorGUILayout.Space(2);
+
+                using (new EditorGUILayout.HorizontalScope())
+                {
+                    EditorGUILayout.LabelField("Style:", GUILayout.Width(75));
+                    DrawFftStylePill(FftDisplayStyle.FilledCurve, "Curve");
+                    DrawFftStylePill(FftDisplayStyle.RtaBars, "Bars");
+                    DrawFftStylePill(FftDisplayStyle.Both, "Both");
+                }
+
+                EditorGUILayout.Space(2);
+
+                using (new EditorGUILayout.HorizontalScope())
+                {
+                    EditorGUILayout.LabelField("Freq Scale:", GUILayout.Width(75));
+                    DrawFftScalePill(FftScaleMode.Logarithmic, "Log");
+                    DrawFftScalePill(FftScaleMode.Linear, "Linear");
+                }
+
+                EditorGUILayout.Space(2);
+
+                _fftSmoothingFactor = EditorGUILayout.Slider("Smoothing", _fftSmoothingFactor, 0f, 0.95f);
+                _fftMinDb = EditorGUILayout.Slider("Floor (dB)", _fftMinDb, -120f, -40f);
+
+                using (new EditorGUILayout.HorizontalScope())
+                {
+                    _fftPeakHoldEnabled = EditorGUILayout.ToggleLeft("Peak Hold", _fftPeakHoldEnabled, GUILayout.Width(90));
+                    if (_fftPeakHoldEnabled)
+                    {
+                        _fftPeakDecayRate = EditorGUILayout.Slider(_fftPeakDecayRate, 5f, 60f);
+                    }
+                }
+            }
+        }
+
+        private float SampleFftMagnitude(float freq, int sampleRate, int binCount)
+        {
+            if (_smoothedFft == null || _smoothedFft.Length == 0 || binCount <= 0)
+            {
+                return 0f;
+            }
+
+            float nyquist = sampleRate * 0.5f;
+            float freqPerBin = nyquist / binCount;
+            float binFloat = freq / freqPerBin;
+
+            int binIndex = (int) binFloat;
+            if (binIndex < 0)
+            {
+                return _smoothedFft[0];
+            }
+            if (binIndex >= _smoothedFft.Length - 1)
+            {
+                return _smoothedFft[_smoothedFft.Length - 1];
+            }
+
+            float frac = binFloat - binIndex;
+            return Mathf.Lerp(_smoothedFft[binIndex], _smoothedFft[binIndex + 1], frac);
+        }
+
+        private float SamplePeakFftDb(float freq, int sampleRate, int binCount)
+        {
+            if (_peakFft == null || _peakFft.Length == 0 || binCount <= 0)
+            {
+                return _fftMinDb;
+            }
+
+            float nyquist = sampleRate * 0.5f;
+            float freqPerBin = nyquist / binCount;
+            float binFloat = freq / freqPerBin;
+
+            int binIndex = (int) binFloat;
+            if (binIndex < 0)
+            {
+                return _peakFft[0];
+            }
+            if (binIndex >= _peakFft.Length - 1)
+            {
+                return _peakFft[_peakFft.Length - 1];
+            }
+
+            float frac = binFloat - binIndex;
+            return Mathf.Lerp(_peakFft[binIndex], _peakFft[binIndex + 1], frac);
+        }
+
+        private float GetFreqNorm(float freq)
+        {
+            if (_fftScaleMode == FftScaleMode.Linear)
+            {
+                return Mathf.Clamp01((freq - FFT_MIN_FREQ) / (FFT_MAX_FREQ - FFT_MIN_FREQ));
+            }
+
+            float clampedFreq = Mathf.Clamp(freq, FFT_MIN_FREQ, FFT_MAX_FREQ);
+            return Mathf.Clamp01(Mathf.Log10(clampedFreq / FFT_MIN_FREQ) / Mathf.Log10(FFT_MAX_FREQ / FFT_MIN_FREQ));
+        }
+
+        private float GetNormFreq(float normX)
+        {
+            float clampedNorm = Mathf.Clamp01(normX);
+            if (_fftScaleMode == FftScaleMode.Linear)
+            {
+                return FFT_MIN_FREQ + (clampedNorm * (FFT_MAX_FREQ - FFT_MIN_FREQ));
+            }
+
+            return FFT_MIN_FREQ * Mathf.Pow(FFT_MAX_FREQ / FFT_MIN_FREQ, clampedNorm);
+        }
+
+        private Color GetBandColorForFreq(float freq)
+        {
+            for (int i = 0; i < _fftBands.Length; i++)
+            {
+                if (freq >= _fftBands[i].MinFreq && freq < _fftBands[i].MaxFreq)
+                {
+                    return _fftBands[i].BandColor;
+                }
+            }
+            return new Color(0.2f, 0.85f, 0.95f);
+        }
+
+        private string GetBandNameForFreq(float freq)
+        {
+            for (int i = 0; i < _fftBands.Length; i++)
+            {
+                if (freq >= _fftBands[i].MinFreq && freq < _fftBands[i].MaxFreq)
+                {
+                    return _fftBands[i].Name;
+                }
+            }
+            return "Audio Band";
+        }
+
+        private static float FreqToMidi(float freq)
+        {
+            if (freq < 1e-4f)
+            {
+                return 0f;
+            }
+
+            return 69f + (12f * (float) (Math.Log(freq / 440.0) / 0.6931471805599453));
         }
 
         private static string FormatTime(double seconds)

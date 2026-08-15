@@ -426,41 +426,38 @@ namespace YARG.Audio.BASS
 
         protected override int GetFFTData_Internal(float[] buffer, int fftSize, bool complex)
         {
-            int flags = GetFFTDataFlags(fftSize);
-            if (flags < 0)
+            DataFlags? fftFlags = GetFFTDataFlags(fftSize);
+            if (!fftFlags.HasValue)
             {
                 return -1;
             }
 
+            DataFlags flags = fftFlags.Value;
             if (complex)
             {
-                flags |= (int) DataFlags.FFTComplex;
+                flags |= DataFlags.FFTComplex;
             }
 
-            return GetData(buffer, flags);
+            return GetData(buffer, (int) flags);
         }
 
-        private static int GetFFTDataFlags(int fftSize)
+        private static DataFlags? GetFFTDataFlags(int fftSize)
         {
             return fftSize switch
             {
-                8  => (int) DataFlags.FFT256,
-                9  => (int) DataFlags.FFT512,
-                10 => (int) DataFlags.FFT1024,
-                11 => (int) DataFlags.FFT2048,
-                12 => (int) DataFlags.FFT4096,
-                _  => -1,
+                8  => DataFlags.FFT256,
+                9  => DataFlags.FFT512,
+                10 => DataFlags.FFT1024,
+                11 => DataFlags.FFT2048,
+                12 => DataFlags.FFT4096,
+                _  => null,
             };
         }
 
         protected override int GetSampleData_Internal(float[] buffer) =>
             GetData(buffer, (buffer.Length * sizeof(float)) | (int) DataFlags.Float);
 
-        private int GetData(float[] buffer, int flags)
-        {
-            int result = _connection?.GetData(buffer, flags) ?? -1;
-            return result < 0 ? (int) Bass.LastError : result;
-        }
+        private int GetData(float[] buffer, int flags) => _connection?.GetData(buffer, flags) ?? -1;
 
         protected override int GetLevel_Internal(float[] level) => _connection?.GetLevel(level) ?? -1;
 
