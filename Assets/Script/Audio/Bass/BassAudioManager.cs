@@ -90,8 +90,6 @@ namespace YARG.Audio.BASS
                 return;
             }
 
-            YargLogger.LogFormatWarning("Audio buffer underrun detected ({0} event(s))", underruns);
-
             if (!SettingsManager.SettingContainer.IsInitialized ||
                 !SettingsManager.Settings.AutomaticPlaybackBuffer.Value)
             {

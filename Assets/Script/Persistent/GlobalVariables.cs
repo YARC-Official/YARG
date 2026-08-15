@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using UnityEngine;
-using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 using YARG.Audio.BASS;
 using YARG.Core.Logging;
@@ -127,15 +126,7 @@ namespace YARG
                 GlobalAudioHandler.SetMasterVolume(muted ? 0 : SettingsManager.Settings.MasterMusicVolume.Value);
                 _previousMute = muted;
             }
-#endif
 
-            if (Keyboard.current != null && Keyboard.current.f8Key.wasPressedThisFrame)
-            {
-                YargLogger.LogInfo("Triggered Garbage Collection");
-                GC.Collect();
-            }
-
-#if UNITY_EDITOR
             if (CurrentScene != SceneIndex.Gameplay && Time.realtimeSinceStartup > _nextLocalizationUpdate)
             {
                 _ = LocalizationManager.LoadUpdates();
