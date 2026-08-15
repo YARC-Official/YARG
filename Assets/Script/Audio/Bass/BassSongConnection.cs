@@ -103,7 +103,8 @@ namespace YARG.Audio.BASS
             }
 
             var readAhead = BassReadAheadStream.Create(output.Device.DeviceId, songMixer.Handle, output.SampleRate,
-                output.ChannelCount, output.MinimumBlockFrames, bufferLengthMilliseconds);
+                output.ChannelCount, output.MinimumBlockFrames, bufferLengthMilliseconds,
+                output.UsesIndependentClock);
             if (readAhead == null)
             {
                 songMixer.Dispose();

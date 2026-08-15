@@ -75,7 +75,7 @@ namespace YARG.Audio.BASS
         public int StreamHandle { get; private set; }
 
         public static BassReadAheadStream? Create(int bassDeviceId, int sourceMixer, int sampleRate, int channels,
-            int minimumBlockFrames, int bufferMilliseconds)
+            int minimumBlockFrames, int bufferMilliseconds, bool useIndependentClock = false)
         {
             if (sourceMixer == 0 || sampleRate <= 0 || channels <= 0 || minimumBlockFrames <= 0 ||
                 bufferMilliseconds < 0)
@@ -110,6 +110,12 @@ namespace YARG.Audio.BASS
                     stream?.Dispose();
                     YargLogger.LogFormatError("Failed to create native read-ahead stream: result={0}, BASS={1}", result,
                         bassError);
+                    return null;
+                }
+
+                if (Native.SetCallbackClock(stream, useIndependentClock ? 1 : 0) != 0)
+                {
+                    stream.Dispose();
                     return null;
                 }
 
@@ -207,6 +213,10 @@ namespace YARG.Audio.BASS
             [DllImport(LIBRARY, EntryPoint = "yarg_read_ahead_stream_prefill",
                 CallingConvention = CallingConvention.Cdecl)]
             internal static extern int Prefill(BassReadAheadStream stream, uint timeoutMilliseconds);
+
+            [DllImport(LIBRARY, EntryPoint = "yarg_read_ahead_stream_set_callback_clock",
+                CallingConvention = CallingConvention.Cdecl)]
+            internal static extern int SetCallbackClock(BassReadAheadStream stream, int enabled);
 
             [DllImport(LIBRARY, EntryPoint = "yarg_read_ahead_stream_flush",
                 CallingConvention = CallingConvention.Cdecl)]

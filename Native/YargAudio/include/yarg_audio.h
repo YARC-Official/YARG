@@ -133,6 +133,8 @@ YARG_AUDIO_API int32_t YARG_AUDIO_CALL yarg_one_shot_stream_destroy(
 YARG_AUDIO_API int32_t YARG_AUDIO_CALL yarg_read_ahead_stream_create(
     const yarg_read_ahead_config* config, yarg_read_ahead_stream** stream,
     uint32_t* stream_handle, int32_t* bass_error);
+YARG_AUDIO_API int32_t YARG_AUDIO_CALL yarg_read_ahead_stream_set_callback_clock(
+    yarg_read_ahead_stream* stream, int32_t enabled);
 YARG_AUDIO_API int32_t YARG_AUDIO_CALL yarg_read_ahead_stream_prefill(
     yarg_read_ahead_stream* stream, uint32_t timeout_milliseconds);
 YARG_AUDIO_API int32_t YARG_AUDIO_CALL yarg_read_ahead_stream_flush(

@@ -32,6 +32,7 @@ jobs:
           dotnet run --project scripts/NativeBuild --
           build --output "$env:RUNNER_TEMP/yarg-audio-package" --verify-committed-plugin
       - uses: actions/upload-artifact@v4
+        if: always()
         with:
           name: yarg-audio-windows-x64
           path: ${{ runner.temp }}/yarg-audio-package
@@ -81,6 +82,7 @@ jobs:
           file Native/YargAudio/build/linux-x64/libyarg_audio.so | grep 'ELF 64-bit.*x86-64'
           nm -D --defined-only Native/YargAudio/build/linux-x64/libyarg_audio.so | grep ' yarg_gain_dsp_attach$'
       - uses: actions/upload-artifact@v4
+        if: always()
         with:
           name: yarg-audio-linux-x64
           path: ${{ runner.temp }}/yarg-audio-package
@@ -136,6 +138,7 @@ jobs:
       - name: Verify Intel (x86_64) slice under Rosetta
         run: arch -x86_64 Native/YargAudio/build/macos-universal/yarg_audio_tests
       - uses: actions/upload-artifact@v4
+        if: always()
         with:
           name: yarg-audio-macos-universal
           path: ${{ runner.temp }}/yarg-audio-package

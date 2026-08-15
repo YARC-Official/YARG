@@ -254,6 +254,13 @@ int32_t YARG_AUDIO_CALL yarg_read_ahead_stream_prefill(
         : YARG_AUDIO_ERROR_INVALID_ARGUMENT;
 }
 
+int32_t YARG_AUDIO_CALL yarg_read_ahead_stream_set_callback_clock(
+    yarg_read_ahead_stream* stream, int32_t enabled) {
+    return stream && stream->value
+        ? stream->value->setCallbackClockEnabled(enabled != 0)
+        : YARG_AUDIO_ERROR_INVALID_ARGUMENT;
+}
+
 int32_t YARG_AUDIO_CALL yarg_read_ahead_stream_flush(
     yarg_read_ahead_stream* stream) {
     return stream && stream->value
