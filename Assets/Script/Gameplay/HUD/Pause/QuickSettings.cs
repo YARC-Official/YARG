@@ -152,22 +152,10 @@ namespace YARG.Gameplay.HUD
             _subSettingsNavGroup.ClearNavigatables();
             _subSettingsNavGroup.AddNavigatable(_subSettingsBackButton.GetComponent<NavigatableBehaviour>());
 
-            int index = 0;
             foreach (var settingName in settings)
             {
-                // Per-song settings (e.g. the specific song offset) aren't registered with
-                // SettingsManager, so they can't be looked up by name like the rest of the list.
-                // Instead, we just add it manually at the 3rd position.
-                if (index == 2 && extraIntSetting != null)
-                {
-                    var songOffset = Instantiate(_intPauseSettingPrefab, _subSettingsContainer);
-                    songOffset.Initialize("SongOffset", extraIntSetting);
-                    _subSettingsNavGroup.AddNavigatable(songOffset.gameObject);
-                }
-                index++;
-
                 var setting = SettingsManager.GetSettingByName(settingName);
-
+            
                 switch (setting)
                 {
                     case VolumeSetting volumeSetting:
@@ -197,6 +185,16 @@ namespace YARG.Gameplay.HUD
                     default:
                         YargLogger.LogError("Didn't implement setting prefab for this setting type.");
                         break;
+                }
+
+                // Per-song settings (e.g. the specific song offset) aren't registered with
+                // SettingsManager, so they can't be looked up by name like the rest of the list.
+                // Instead, we just add it manually right after VideoCalibration.
+                if (settingName == nameof(SettingsManager.Settings.VideoCalibration) && extraIntSetting != null)
+                {
+                    var songOffset = Instantiate(_intPauseSettingPrefab, _subSettingsContainer);
+                    songOffset.Initialize("SongOffset", extraIntSetting);
+                    _subSettingsNavGroup.AddNavigatable(songOffset.gameObject);
                 }
             }
 
