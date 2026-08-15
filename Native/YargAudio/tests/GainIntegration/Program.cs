@@ -11,7 +11,7 @@ internal static class Program
     private static int Main()
     {
         Check(Environment.Is64BitProcess, "Integration probe requires a 64-bit process.");
-        Check(GainDsp.GetAbiVersion() == 1, "Unexpected YargAudio ABI version.");
+        Check(GainDsp.GetAbiVersion() == 2, "Unexpected YargAudio ABI version.");
         Check(Bass.Init(0, 48_000, 0, IntPtr.Zero, IntPtr.Zero), "BASS_Init");
 
         try
@@ -21,6 +21,7 @@ internal static class Program
             TestRepeatedLifecycle();
             TestFreeverbImpulseAndReset();
             TestOneShotRealBassLifecycle();
+            TestReadAheadRealBassGraph();
         }
         finally
         {
@@ -223,6 +224,59 @@ internal static class Program
         return mixer;
     }
 
+    private static void TestReadAheadRealBassGraph()
+    {
+        const int sampleRate = 48_000;
+        const int channels = 2;
+        uint source = CreatePushStream();
+        uint mixer = CreateMixer(sampleRate, channels);
+        try
+        {
+            Check(Bass.MixerStreamAddChannel(mixer, source, 0x800000),
+                "BASS_Mixer_StreamAddChannel read-ahead source");
+            float[] input = new float[512 * channels];
+            Array.Fill(input, 0.25f);
+            Check(Bass.StreamPutData(source, input, input.Length * sizeof(float)) ==
+                input.Length * sizeof(float), "BASS_StreamPutData read-ahead source");
+
+            var config = new ReadAheadConfig
+            {
+                Size = (uint) Marshal.SizeOf<ReadAheadConfig>(),
+                BassDeviceId = 0,
+                SourceMixer = mixer,
+                SampleRate = sampleRate,
+                Channels = channels,
+                MinimumBlockFrames = 64,
+                BufferMilliseconds = 2,
+            };
+            using ReadAheadStream stream = ReadAheadStream.Create(config);
+            uint finalMixer = CreateMixer(sampleRate, channels);
+            try
+            {
+                Check(Bass.MixerStreamAddChannel(finalMixer, stream.StreamHandle, 0x800000),
+                    "BASS_Mixer_StreamAddChannel read-ahead stream");
+                Check(stream.Prefill(2000), "read-ahead prefill");
+                float[] output = Pull(finalMixer, 96);
+                foreach (float sample in output)
+                {
+                    Check(sample == 0.25f, "read-ahead PCM mismatch");
+                }
+                Check(stream.Flush(), "read-ahead flush");
+                Check(stream.SetBufferLength(4), "read-ahead resize");
+                Check(stream.Prefill(2000), "read-ahead refill");
+            }
+            finally
+            {
+                Check(Bass.StreamFree(finalMixer), "BASS_StreamFree final read-ahead mixer");
+            }
+        }
+        finally
+        {
+            Check(Bass.StreamFree(mixer), "BASS_StreamFree read-ahead mixer");
+            Check(Bass.StreamFree(source), "BASS_StreamFree read-ahead source");
+        }
+    }
+
     private static OneShotStream CreateOneShot(int sampleRate, int channels,
         float[] pcm, double[] schedule)
     {
@@ -410,6 +464,11 @@ internal static class Program
         internal static extern uint MixerStreamCreate(uint frequency, uint channels,
             uint flags);
 
+        [DllImport("bassmix", EntryPoint = "BASS_Mixer_StreamAddChannel")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        internal static extern bool MixerStreamAddChannel(uint mixer, uint channel,
+            uint flags);
+
         [DllImport("bass", EntryPoint = "BASS_ChannelSetDSP")]
         internal static extern uint ChannelSetDsp(uint channel, DspProcedure procedure,
             IntPtr user, int priority);
@@ -431,6 +490,68 @@ internal static class Program
         internal uint Channels;
         internal uint Reserved;
         internal double LeadTime;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct ReadAheadConfig
+    {
+        internal uint Size;
+        internal int BassDeviceId;
+        internal uint SourceMixer;
+        internal uint SampleRate;
+        internal uint Channels;
+        internal uint MinimumBlockFrames;
+        internal uint BufferMilliseconds;
+    }
+
+    private sealed class ReadAheadStream : SafeHandleZeroOrMinusOneIsInvalid
+    {
+        internal uint StreamHandle { get; private set; }
+
+        private ReadAheadStream() : base(true) { }
+
+        internal static ReadAheadStream Create(ReadAheadConfig config)
+        {
+            int result = CreateNative(in config, out ReadAheadStream stream,
+                out uint streamHandle, out int bassError);
+            Check(result == 0 && stream != null && !stream.IsInvalid && streamHandle != 0,
+                $"read-ahead create failed: result={result}, BASS={bassError}.");
+            stream!.StreamHandle = streamHandle;
+            return stream;
+        }
+
+        internal bool Prefill(uint timeoutMilliseconds) =>
+            PrefillNative(this, timeoutMilliseconds) == 0;
+
+        internal bool Flush() => FlushNative(this) == 0;
+
+        internal bool SetBufferLength(uint milliseconds) =>
+            SetBufferLengthNative(this, milliseconds) == 0;
+
+        protected override bool ReleaseHandle() => Destroy(handle, out _) == 0;
+
+        [DllImport("yarg_audio", EntryPoint = "yarg_read_ahead_stream_create",
+            CallingConvention = CallingConvention.Cdecl)]
+        private static extern int CreateNative(in ReadAheadConfig config,
+            out ReadAheadStream stream, out uint streamHandle, out int bassError);
+
+        [DllImport("yarg_audio", EntryPoint = "yarg_read_ahead_stream_prefill",
+            CallingConvention = CallingConvention.Cdecl)]
+        private static extern int PrefillNative(ReadAheadStream stream,
+            uint timeoutMilliseconds);
+
+        [DllImport("yarg_audio", EntryPoint = "yarg_read_ahead_stream_flush",
+            CallingConvention = CallingConvention.Cdecl)]
+        private static extern int FlushNative(ReadAheadStream stream);
+
+        [DllImport("yarg_audio", EntryPoint = "yarg_read_ahead_stream_set_buffer_length",
+            CallingConvention = CallingConvention.Cdecl)]
+        private static extern int SetBufferLengthNative(ReadAheadStream stream,
+            uint milliseconds);
+
+        [DllImport("yarg_audio", EntryPoint = "yarg_read_ahead_stream_destroy",
+            CallingConvention = CallingConvention.Cdecl)]
+        private static extern int Destroy(IntPtr stream, out int bassError);
     }
 
     private sealed class OneShotStream : SafeHandleZeroOrMinusOneIsInvalid

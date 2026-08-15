@@ -1057,7 +1057,8 @@
             "RefreshCache": "Scan Songs",
             "OpenExecutablePath": "Open Executable Path",
             "OpenPersistentDataPath": "Open Persistent Data Path",
-            "RemoveRemoteContent": "Remove Cached Content"
+            "RemoveRemoteContent": "Remove Cached Content",
+            "OpenAsioControlPanel": "Open ASIO Control Panel"
         },
         "Setting": {
             "AllowDuplicateSongs": {
@@ -1341,6 +1342,10 @@
                     "None": "None"
                 }
             },
+            "CensorMatureContent": {
+                "Name": "Censor Mature Content",
+                "Description": "On supported songs, mutes and censors mature content in lyrics and vocals, and downgrades the song's rating to \"Supervision Recommended\"."
+            },
             "MetronomeVolume": {
                 "Name": "Metronome Volume",
                 "PauseName": "Metronome",
@@ -1434,6 +1439,23 @@
                 "Default": "Use Default Channel(s)",
                 "Mono": "{0}",
                 "Stereo": "{0} & {1}"
+            },
+            "OutputMode": {
+                "Name": "Output Mode",
+                "Description": "Select standard system audio or an ASIO driver.",
+                "Dropdown": {
+                    "Shared": "Shared Audio",
+                    "Asio": "ASIO"
+                }
+            },
+            "AsioBufferSize": {
+                "Name": "ASIO Buffer Size",
+                "Description": "Smaller buffers reduce output latency but require more reliable audio processing.",
+                "DriverDefault": "Driver Default",
+                "DriverDefaultWithSize": "Driver Default ({0} samples)",
+                "DriverControlledWithSize": "Driver controlled ({0} samples)",
+                "Samples": "{0} samples",
+                "SamplesWithDuration": "{0} samples (~{1} ms)"
             },
             "OutputDevice": {
                 "Name": "Output Device",
@@ -1622,7 +1644,7 @@
             "VocalMonitoring": {
                 "Name": "Vocal Monitoring Volume",
                 "PauseName": "Monitoring",
-                "Description": "Adjusts the feedback you hear when singing."
+                "Description": "Adjusts the feedback you hear when singing. Values above 1 add extra gain for quiet microphones."
             },
 			"VocalStreakFrequency": {
                 "Name": "Vocal Streak Frequency",
@@ -1722,9 +1744,13 @@
                 "Name": "DMX Pulse Duration (MS)",
                 "Description": "How long a DMX channel stays on after receiving a trigger, in milliseconds. Increase this value if lights are not firing reliably. Set to 0 to disable pulse stretching entirely."
             },
+            "AutomaticPlaybackBuffer": {
+                "Name": "Automatic Buffer Setting",
+                "Description": "Automatically increases the playback buffer by 1 millisecond for each audio underrun."
+            },
             "PlaybackBufferLength": {
                 "Name": "Playback Buffer Length",
-                "Description": "The size of the playback buffer, in milliseconds. Set to 0 to disable. Larger buffers provide more stability, but increase the latency of sound effects."
+                "Description": "The size of the song playback read-ahead buffer, in milliseconds. Set to 0 to use the minimum size. Larger buffers provide more stability, but increase latency."
             },
             "ShowTime": {
                 "Name": "Show Time",

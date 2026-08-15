@@ -3,6 +3,7 @@ using Cysharp.Text;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using YARG.Assets.Script.Helpers;
 using YARG.Core;
 using YARG.Core.Chart;
 
@@ -38,6 +39,7 @@ namespace YARG.Gameplay.HUD
         private int _notesHit;
 
         private Section[] _sections;
+        private string[]  _sectionNames;
 
         private int _currentSectionIndex;
 
@@ -100,7 +102,7 @@ namespace YARG.Gameplay.HUD
 
                 if(_currentSectionIndex < _sections.Length)
                 {
-                    _sectionText.text = _sections[_currentSectionIndex].Name;
+                    _sectionText.text = _sectionNames[_currentSectionIndex];
                 }
             }
         }
@@ -120,7 +122,7 @@ namespace YARG.Gameplay.HUD
 
             if (_sections.Length > 0)
             {
-                _sectionText.text = _sections[_currentSectionIndex].Name;
+                _sectionText.text = _sectionNames[_currentSectionIndex];
             }
         }
 
@@ -144,6 +146,11 @@ namespace YARG.Gameplay.HUD
         public void SetSections(Section[] sections)
         {
             _sections = sections;
+            _sectionNames = new string[sections.Length];
+            for (int i = 0; i < sections.Length; i++)
+            {
+                _sectionNames[i] = PracticeSectionHelper.ParseSectionName(sections[i].Name);
+            }
             _currentSectionIndex = 0;
 
             _percentHit = 0f;
@@ -152,7 +159,7 @@ namespace YARG.Gameplay.HUD
             _speedChanged = false;
 
             _bestPercentText.text = "0%";
-            _sectionText.text = _sections[_currentSectionIndex].Name;
+            _sectionText.text = _sectionNames[_currentSectionIndex];
         }
 
         public void SetGuidePitchPartText(string status, Color color)

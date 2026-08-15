@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using Newtonsoft.Json;
 using UnityEngine;
+using YARG.Core.Audio;
 using YARG.Core.Logging;
 using YARG.Core.Utility;
 using YARG.Helpers;
@@ -24,6 +25,18 @@ namespace YARG.Settings
                 new JsonVector2Converter()
             }
         };
+
+        /// <summary>
+        /// Holds settings needed before the full settings list has been loaded.
+        /// </summary>
+        private sealed class StartupSettingValues
+        {
+            public string OutputDevice { get; set; }
+        }
+
+        private static string _serializedSettings;
+
+        public static string OutputDeviceAtStartup { get; private set; } = "Default";
 
         public static SettingContainer Settings { get; private set; }
 
@@ -81,6 +94,7 @@ namespace YARG.Settings
                 nameof(Settings.Genrelizer),
                 new HeaderMetadata("MusicLibrary"),
                 nameof(Settings.MaxSongRating),
+                nameof(Settings.CensorMatureContent),
                 nameof(Settings.ShowFavoriteButton),
                 nameof(Settings.DifficultyRings),
                 nameof(Settings.HighScoreInfo),
@@ -113,6 +127,7 @@ namespace YARG.Settings
                 new FieldMetadata(nameof(Settings.MetronomeVolume), isAdvanced: true),
 
                 new HeaderMetadata("Customization", isAdvanced: true),
+                new FieldMetadata(nameof(Settings.AutomaticPlaybackBuffer), isAdvanced: true),
                 new FieldMetadata(nameof(Settings.PlaybackBufferLength), isAdvanced: true),
 
                 new HeaderMetadata("Input"),
@@ -257,7 +272,10 @@ namespace YARG.Settings
                 new HeaderMetadata("Accessibility"),
                 nameof(Settings.FontScaling),
                 new HeaderMetadata("OutputConfiguration"),
+                new FieldMetadata(nameof(Settings.OutputMode), visibleWhen: IsWindows),
                 nameof(Settings.OutputDevice),
+                new FieldMetadata(nameof(Settings.AsioBufferSize), visibleWhen: IsAsioVisible),
+                new ButtonRowMetadata(nameof(Settings.OpenAsioControlPanel), IsAsioVisible),
                 nameof(Settings.OutputChannelDefault),
                 nameof(Settings.OutputChannelDrumSfx),
                 nameof(Settings.OutputChannelMetronome),
@@ -273,12 +291,33 @@ namespace YARG.Settings
 
         private static string SettingsFile => Path.Combine(PathHelper.PersistentDataPath, "settings.json");
 
+        public static void LoadStartupSettings()
+        {
+            try
+            {
+                _serializedSettings = File.ReadAllText(SettingsFile);
+                var startupSettings = JsonConvert.DeserializeObject<StartupSettingValues>(_serializedSettings);
+                OutputDeviceAtStartup = startupSettings?.OutputDevice ?? "Default";
+            }
+            catch
+            {
+                // Full settings load reports file and JSON errors during normal startup.
+                OutputDeviceAtStartup = "Default";
+            }
+        }
+
+        private static bool IsWindows() => Application.platform is RuntimePlatform.WindowsPlayer or
+            RuntimePlatform.WindowsEditor;
+
+        private static bool IsAsioVisible() => IsWindows() && Settings?.OutputMode.Value == AudioOutputMode.Asio;
+
         public static void LoadSettings()
         {
             // Create settings container
             try
             {
-                string text = File.ReadAllText(SettingsFile);
+                string text = _serializedSettings ?? File.ReadAllText(SettingsFile);
+                _serializedSettings = null;
                 Settings = JsonConvert.DeserializeObject<SettingContainer>(text, JsonSettings);
             }
             catch (Exception e)
@@ -288,6 +327,13 @@ namespace YARG.Settings
 
             // If null, recreate
             Settings ??= new SettingContainer();
+
+            AudioOutputMode outputMode = GlobalAudioHandler.GetOutputMode(Settings.OutputDevice.Value);
+            Settings.OutputMode.SetValueWithoutNotify(outputMode);
+            Settings.RememberOutputDevice(outputMode, Settings.OutputDevice.Value);
+            Settings.OutputDevice.UpdateValues(outputMode);
+            Settings.AsioBufferSize.UpdateValues();
+
             SettingContainer.IsInitialized = true;
 
             // Now that we're done loading, call all of the callbacks

@@ -32,7 +32,7 @@ namespace YARG.Menu.Filters
         {
         }
 
-        protected override void RefreshVisual()
+        public override void RefreshVisual()
         {
         }
 

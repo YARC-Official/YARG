@@ -11,18 +11,25 @@ namespace YARG
 
         private void Update()
         {
-            lock (CallbackQueue)
+            while (true)
             {
-                while (CallbackQueue.Count > 0)
+                Action action;
+                lock (CallbackQueue)
                 {
-                    try
+                    if (CallbackQueue.Count == 0)
                     {
-                        CallbackQueue.Dequeue().Invoke();
+                        return;
                     }
-                    catch (Exception e)
-                    {
-                        YargLogger.LogException(e, "Failed to run main thread callbacks");
-                    }
+                    action = CallbackQueue.Dequeue();
+                }
+
+                try
+                {
+                    action.Invoke();
+                }
+                catch (Exception e)
+                {
+                    YargLogger.LogException(e, "Failed to run main thread callbacks");
                 }
             }
         }

@@ -12,9 +12,10 @@ namespace YARG.Gameplay.Visuals
     {
         private enum NoteType
         {
-            White     = 0,
-            Black     = 1,
-            Glissando = 2,
+            White          = 0,
+            Black          = 1,
+            Glissando      = 2,
+            BlackGlissando = 3,
 
             Count
         }
@@ -31,9 +32,10 @@ namespace YARG.Gameplay.Visuals
             Dictionary<ThemeNoteType, GameObject> starPowerModels)
         {
             CreateNoteGroupArrays((int) NoteType.Count);
-            AssignNoteGroup(models, starPowerModels, (int) NoteType.White,     ThemeNoteType.White);
-            AssignNoteGroup(models, starPowerModels, (int) NoteType.Black,     ThemeNoteType.Black);
-            AssignNoteGroup(models, starPowerModels, (int) NoteType.Glissando, ThemeNoteType.Glissando);
+            AssignNoteGroup(models, starPowerModels, (int) NoteType.White,          ThemeNoteType.White);
+            AssignNoteGroup(models, starPowerModels, (int) NoteType.Black,          ThemeNoteType.Black);
+            AssignNoteGroup(models, starPowerModels, (int) NoteType.Glissando,      ThemeNoteType.Glissando);
+            AssignNoteGroup(models, starPowerModels, (int) NoteType.BlackGlissando, ThemeNoteType.BlackGlissando);
         }
 
         protected override void InitializeElement()
@@ -41,6 +43,7 @@ namespace YARG.Gameplay.Visuals
             base.InitializeElement();
 
             var noteGroups = IsStarPowerVisible ? StarPowerNoteGroups : NoteGroups;
+            var isGlissando = (NoteRef.ProKeysFlags & ProKeysNoteFlags.Glissando) != 0;
 
             // Set the position
             transform.localPosition = Vector3.zero;
@@ -50,18 +53,12 @@ namespace YARG.Gameplay.Visuals
             NoteType noteType;
             if (ProKeysUtilities.IsWhiteKey(NoteRef.Key % 12))
             {
-                if ((NoteRef.ProKeysFlags & ProKeysNoteFlags.Glissando) != 0)
-                {
-                    noteType = NoteType.Glissando;
-                }
-                else
-                {
-                    noteType = NoteType.White;
-                }
+                noteType = isGlissando ? NoteType.Glissando : NoteType.White;
+             
             }
             else
             {
-                noteType = NoteType.Black;
+                noteType = isGlissando ? NoteType.BlackGlissando : NoteType.Black;
             }
 
             // Initialize the note group

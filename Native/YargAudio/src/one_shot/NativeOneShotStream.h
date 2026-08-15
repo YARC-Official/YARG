@@ -8,7 +8,6 @@
 #include <cstddef>
 #include <cstdint>
 #include <memory>
-#include <mutex>
 
 namespace yarg::audio {
 
@@ -44,12 +43,10 @@ private:
         std::uint32_t stream, void* buffer, std::uint32_t length,
         void* user) noexcept;
     bool validMixer(std::uint32_t mixer, int* bassError) const noexcept;
-    int detachLocked(int* bassError) noexcept;
 
     BassCoreBindings& core_;
     BassMixBindings& mix_;
     std::unique_ptr<ScheduledSampleSource> source_;
-    std::mutex lifecycleMutex_;
     std::uint32_t stream_ = 0;
     std::uint32_t mixer_ = 0;
     bool paused_ = false;

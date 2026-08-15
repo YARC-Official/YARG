@@ -1,7 +1,8 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using YARG.Core.Audio;
@@ -14,6 +15,7 @@ using YARG.Integration;
 using YARG.Integration.RB3E;
 using YARG.Integration.Sacn;
 using YARG.Integration.StageKit;
+using YARG.Input.Bindings;
 using YARG.Menu.Filters;
 using YARG.Menu.History;
 using YARG.Menu.MusicLibrary;
@@ -71,7 +73,9 @@ namespace YARG.Settings
             return Source == other.Source && Identifier == other.Identifier;
         }
 
+#nullable enable
         public override bool Equals(object? obj)
+#nullable disable
         {
             return obj is CustomCharacterInfo other && Equals(other);
         }
@@ -108,6 +112,10 @@ namespace YARG.Settings
             public bool ShowAntiPiracyDialog = true;
             public bool ShowEngineInconsistencyDialog = true;
             public bool ShowExperimentalWarningDialog = true;
+
+            [JsonProperty("LastWindowsAudioDevice")]
+            public string LastSharedAudioDevice = "Default";
+            public string LastAsioDevice = string.Empty;
 
             public SortAttribute LibrarySort = SortAttribute.Name;
             public SortAttribute PreviousLibrarySort = SortAttribute.Name;
@@ -217,13 +225,15 @@ namespace YARG.Settings
 
             #region Songs
 
+            private static void RefreshSongs()
+            {
+                SongContainer.RequestContainerRefresh();
+                MusicLibraryMenu.SetReload(MusicLibraryReloadState.Full);
+                HistoryMenu.ForceUpdate = true;
+            }
+
             public DropdownSetting<SongRating> MaxSongRating { get; }
-                = new(SongRating.None, _ =>
-                {
-                    SongContainer.RequestContainerRefresh();
-                    MusicLibraryMenu.SetReload(MusicLibraryReloadState.Full);
-                    HistoryMenu.ForceUpdate = true;
-                })
+                = new(SongRating.None, _ => RefreshSongs())
             {
                 SongRating.Family_Friendly,
                 SongRating.Supervision_Recommended,
@@ -231,6 +241,10 @@ namespace YARG.Settings
                 SongRating.Sensitive_Content,
                 SongRating.None,
             };
+
+            // If MaxSongRating is set to anything other than Family_Friendly,
+            // this setting could change the available songs, so we need to refresh the song list
+            public ToggleSetting CensorMatureContent { get; } = new(false, _ => RefreshSongs());
 
             public ToggleSetting AllowDuplicateSongs { get; } = new(true, _ => MusicLibraryMenu.SetReload(MusicLibraryReloadState.Partial));
             public ToggleSetting UseFullDirectoryForPlaylists { get; } = new(false);
@@ -334,11 +348,22 @@ namespace YARG.Settings
 
             public VolumeSetting PreviewVolume { get; } = new(0.25f);
             public VolumeSetting MusicPlayerVolume { get; } = new(0.15f, MusicPlayerVolumeCallback);
-            public VolumeSetting VocalMonitoring { get; } = new(0.7f, VocalMonitoringCallback);
+            public VolumeSetting VocalMonitoring { get; } =
+                new(0.7f, 2f, VocalMonitoringCallback);
+
+            private bool _automaticPlaybackBufferWasEnabled = true;
+
+            public ToggleSetting AutomaticPlaybackBuffer { get; }
 
             public IntSetting PlaybackBufferLength { get; }
                 = new(75, 0, GlobalAudioHandler.MaximumBufferLength,
                     GlobalAudioHandler.SetBufferLength);
+
+            public SettingContainer()
+            {
+                AutomaticPlaybackBuffer = new(true, AutomaticPlaybackBufferChanged);
+                PlaybackBufferLength.EditableWhen = () => !AutomaticPlaybackBuffer.Value;
+            }
 
             public SliderSetting MicrophoneSensitivity { get; } = new(2f, -50f, 50f);
 
@@ -697,7 +722,14 @@ namespace YARG.Settings
             public ToggleSetting SaveScoresWithBots { get; } = new(false);
             public SliderSetting FontScaling { get; } = new(0f, 0f, 100f, FontScalingCallback);
 
+            public DropdownSetting<AudioOutputMode> OutputMode { get; } = new(AudioOutputMode.Shared,
+                OutputModeCallback)
+            {
+                AudioOutputMode.Shared,
+                AudioOutputMode.Asio
+            };
             public OutputDeviceSetting OutputDevice { get; } = new("Default", OutputDeviceCallback);
+            public OutputBufferSizeSetting AsioBufferSize { get; } = new(0);
             public OutputChannelDefaultSetting OutputChannelDefault { get; } = new(1, OutputChannelDefaultCallback);
             public OutputChannelSetting OutputChannelDrumSfx { get; } = new(-1, OutputChannelDrumSfxCallback);
             public OutputChannelSetting OutputChannelSfx { get; } = new(-1, OutputChannelSfxCallback);
@@ -705,6 +737,15 @@ namespace YARG.Settings
             public OutputChannelSetting OutputChannelMetronome { get; } = new(-1, OutputChannelMetronomeCallback);
 
             public CustomCharacterSetting CustomVocalsCharacter { get; } = new(string.Empty, CharacterType.Vocals, CustomCharacterCallback);
+
+            public void RefreshAsioBufferSize()
+            {
+                AsioBufferSize.UpdateValues();
+                if (SettingsMenu.Instance?.gameObject.activeInHierarchy == true)
+                {
+                    SettingsMenu.Instance.RefreshAndKeepPosition();
+                }
+            }
             #endregion
 
             #region Helpers
@@ -720,7 +761,6 @@ namespace YARG.Settings
                     SetOutputChannel(channelSetting, stem);
                 }
 
-                SettingsMenu.Instance.RefreshAndKeepPosition();
             }
 
             private static void SetOutputChannel(OutputChannelSetting channelSetting, SongStem stem)
@@ -730,6 +770,16 @@ namespace YARG.Settings
             #endregion
 
             #region Callbacks
+
+            private void AutomaticPlaybackBufferChanged(bool enabled)
+            {
+                var wasEnabled = _automaticPlaybackBufferWasEnabled;
+                _automaticPlaybackBufferWasEnabled = enabled;
+                if (IsInitialized && enabled && !wasEnabled)
+                {
+                    PlaybackBufferLength.Value = 0;
+                }
+            }
 
             private static void SetLogLevelCallback(LogLevel level)
             {
@@ -896,7 +946,7 @@ namespace YARG.Settings
                 ScreenHelper.SetResolution(resolution);
 
                 // Make sure to refresh the preview since it'll look stretched if we don't
-                SettingsMenu.Instance.RefreshPreview(true);
+                SettingsMenu.Instance?.RefreshPreview(true);
             }
 
             private static void LowQualityCallback(bool value)
@@ -916,7 +966,7 @@ namespace YARG.Settings
 
             private static void ShowHitWindowCallback(bool value)
             {
-                SettingsMenu.Instance.RefreshPreview();
+                SettingsMenu.Instance?.RefreshPreview();
             }
 
             private static void VocalMonitoringCallback(float volume)
@@ -969,13 +1019,99 @@ namespace YARG.Settings
                     return;
                 }
 
-                GlobalAudioHandler.SetOutputDevice(name);
+                BindingsContainer.ReleaseMicrophones();
+                try
+                {
+                    GlobalAudioHandler.SetOutputDevice(name);
+                }
+                finally
+                {
+                    BindingsContainer.ResolveMicrophones();
+                }
+
+                string activeDevice = Settings.OutputDevice.Value;
+                AudioOutputMode mode = GlobalAudioHandler.GetOutputMode(activeDevice);
+                Settings.OutputMode.SetValueWithoutNotify(mode);
+                Settings.RememberOutputDevice(mode, activeDevice);
+
+                Settings.AsioBufferSize.UpdateValues();
 
                 ResetChannelSetting(Settings.OutputChannelDefault, SongStem.Master, 1);
                 ResetChannelSetting(Settings.OutputChannelDrumSfx, SongStem.DrumSfx);
                 ResetChannelSetting(Settings.OutputChannelSfx, SongStem.Sfx);
                 ResetChannelSetting(Settings.OutputChannelVox, SongStem.VoxSample);
                 ResetChannelSetting(Settings.OutputChannelMetronome, SongStem.Metronome);
+                SettingsMenu.Instance?.RefreshAndKeepPosition();
+            }
+
+            private static void OutputModeCallback(AudioOutputMode mode)
+            {
+                if (!IsInitialized)
+                {
+                    return;
+                }
+
+                string currentDevice = Settings.OutputDevice.Value;
+                AudioOutputMode currentMode = GlobalAudioHandler.GetOutputMode(currentDevice);
+                Settings.RememberOutputDevice(currentMode, currentDevice);
+                Settings.OutputDevice.UpdateValues(mode);
+
+                if (currentMode == mode && Settings.OutputDevice.FindAvailable(currentDevice) == currentDevice)
+                {
+                    SettingsMenu.Instance?.RefreshAndKeepPosition();
+                    return;
+                }
+
+                string preferred = mode == AudioOutputMode.Asio
+                    ? Settings.LastAsioDevice
+                    : Settings.LastSharedAudioDevice;
+                string target = Settings.OutputDevice.FindAvailable(preferred);
+
+                if (string.IsNullOrEmpty(target))
+                {
+                    Settings.OutputMode.SetValueWithoutNotify(currentMode);
+                    Settings.OutputDevice.UpdateValues(currentMode);
+                    ToastManager.ToastError("No ASIO output devices were found.");
+                    SettingsMenu.Instance?.RefreshAndKeepPosition();
+                    return;
+                }
+
+                Settings.OutputDevice.Value = target;
+            }
+
+            public void OpenAsioControlPanel()
+            {
+                if (!IsInitialized || GlobalAudioHandler.GetOutputMode(Settings.OutputDevice.Value) !=
+                    AudioOutputMode.Asio)
+                {
+                    return;
+                }
+
+                if (!GlobalAudioHandler.OpenOutputControlPanel())
+                {
+                    ToastManager.ToastError("Failed to open ASIO control panel.");
+                    return;
+                }
+
+                if (!GlobalAudioHandler.ReinitializeOutput())
+                {
+                    ToastManager.ToastError("Failed to reinitialize audio after closing ASIO control panel.");
+                    return;
+                }
+
+                RefreshAsioBufferSize();
+            }
+
+            internal void RememberOutputDevice(AudioOutputMode mode, string name)
+            {
+                if (mode == AudioOutputMode.Asio)
+                {
+                    Settings.LastAsioDevice = name;
+                }
+                else
+                {
+                    Settings.LastSharedAudioDevice = name;
+                }
             }
 
             private static void OutputChannelDefaultCallback(int channelId)
