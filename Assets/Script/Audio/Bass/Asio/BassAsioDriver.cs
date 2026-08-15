@@ -14,6 +14,8 @@ namespace YARG.Audio.BASS.Asio
     {
         private const int FIRST_OUTPUT_CHANNEL = 0;
         private const int MASTER_CHANNEL       = -1;
+        // BASS speaker pair flags support up to 15 stereo pairs (SpeakerPair15 = channels 29/30).
+        private const int MAX_OUTPUT_CHANNELS  = 30;
         private const int PROCESSING_THREADS   = 1;
 
         private readonly int                 _deviceId;
@@ -33,6 +35,7 @@ namespace YARG.Audio.BASS.Asio
         public  int         SampleRate     { get; private set; }
         public  int         CallbackFrames { get; private set; }
         public  int         InputCount     { get; private set; }
+        public  int         OutputCount    { get; private set; }
         public  string      DriverId       { get; private set; } = string.Empty;
         public  string      DriverName     { get; private set; } = string.Empty;
         public  bool        IsStarted      => State == DriverState.Started;
@@ -87,6 +90,7 @@ namespace YARG.Audio.BASS.Asio
             SampleRate = sampleRate;
             CallbackFrames = Math.Max(1, driverInfo.PreferredBufferLength);
             InputCount = Math.Max(0, driverInfo.Inputs);
+            OutputCount = Math.Min(MAX_OUTPUT_CHANNELS, driverInfo.Outputs);
             return true;
         }
 

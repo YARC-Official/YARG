@@ -142,7 +142,7 @@ namespace YARG.Audio.BASS
 
         protected override OutputChannel? CreateOutputChannel(int channelId) => BassOutputChannel.Create(channelId);
 
-        protected override int GetOutputChannelCount() => BassHelpers.GetOutputChannelCount();
+        protected override int GetOutputChannelCount() => _output?.ChannelCount ?? BassHelpers.GetOutputChannelCount();
 
         protected override void SetMasterVolume(double volume)
         {

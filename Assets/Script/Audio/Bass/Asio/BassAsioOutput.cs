@@ -16,7 +16,6 @@ namespace YARG.Audio.BASS.Asio
     {
         internal const string DEVICE_PREFIX   = "ASIO: ";
         private const  int    NO_DEVICE_ID    = -1;
-        private const  int    OUTPUT_CHANNELS = 2;
 
         private readonly int                 _asioDeviceIndex;
         private readonly List<BassAsioInput> _inputs = new();
@@ -239,7 +238,7 @@ namespace YARG.Audio.BASS.Asio
 
         private bool CreateOutput()
         {
-            if (!CreateOutputGraph(_driver.SampleRate, OUTPUT_CHANNELS, BassFlags.Decode, _driver.CallbackFrames))
+            if (!CreateOutputGraph(_driver.SampleRate, _driver.OutputCount, BassFlags.Decode, _driver.CallbackFrames))
             {
                 return false;
             }
