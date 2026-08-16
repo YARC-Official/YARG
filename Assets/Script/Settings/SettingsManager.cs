@@ -189,6 +189,7 @@ namespace YARG.Settings
                 nameof(Settings.UnisonDisplay),
                 nameof(Settings.ShowPlayerNameWhenStartingSong),
                 nameof(Settings.LyricDisplay),
+                nameof(Settings.KeepLyricBar),
                 nameof(Settings.SongTimeOnScoreBox),
                 nameof(Settings.GraphicalProgressOnScoreBox),
                 nameof(Settings.GraphicalSongProgressTint),

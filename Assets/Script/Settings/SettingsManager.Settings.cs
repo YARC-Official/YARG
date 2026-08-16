@@ -531,6 +531,8 @@ namespace YARG.Settings
                     LyricDisplayMode.Disabled
                 };
 
+            public ToggleSetting KeepLyricBar { get; } = new(false);
+
             public DropdownSetting<SongProgressMode> SongTimeOnScoreBox { get; }
                 = new(SongProgressMode.CountUpAndTotal)
                 {

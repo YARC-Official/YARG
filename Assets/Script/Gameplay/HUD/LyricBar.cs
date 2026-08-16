@@ -6,6 +6,7 @@ using DG.Tweening;
 using UnityEngine;
 using YARG.Core.Chart;
 using YARG.Core.Logging;
+using YARG.Helpers.Extensions;
 using YARG.Settings;
 
 namespace YARG.Gameplay.HUD
@@ -28,6 +29,8 @@ namespace YARG.Gameplay.HUD
         private LyricBarPhrase _phrasePrefab;
         [SerializeField]
         private CanvasGroup _canvas;
+        [SerializeField]
+        private RectTransform _vocalPlayerHudContainer;
 
         private readonly List<double>     _fadeStartTimings = new();
         private          int              _fadeIndex;
@@ -67,6 +70,13 @@ namespace YARG.Gameplay.HUD
                     _transparentBackground.SetActive(false);
                     break;
             }
+        }
+
+        public void SetVocalPlayerLayout()
+        {
+            var corners = new Vector3[4];
+            _vocalPlayerHudContainer.GetWorldCorners(corners);
+            transform.position = transform.position.WithY(corners[0].y);
         }
 
         protected override void OnChartLoaded(SongChart chart)
