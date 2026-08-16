@@ -36,6 +36,8 @@ bool BassCoreBindings::load() noexcept {
     (void) bind(module_, "BASS_GetConfig", functions_.getConfig);
     (void) bind(module_, "BASS_StreamCreate", functions_.streamCreate);
     (void) bind(module_, "BASS_StreamFree", functions_.streamFree);
+    (void) bind(module_, "BASS_ChannelGetPosition", functions_.channelGetPosition);
+    (void) bind(module_, "BASS_ChannelBytes2Seconds", functions_.channelBytes2Seconds);
     return valid();
 }
 
@@ -98,6 +100,23 @@ bool BassCoreBindings::readAheadValid() const noexcept {
     return functions_.setDevice && functions_.channelGetData &&
         functions_.errorGetCode && functions_.streamCreate &&
         functions_.streamFree;
+}
+
+bool BassCoreBindings::positionValid() const noexcept {
+    return functions_.channelGetPosition && functions_.channelBytes2Seconds;
+}
+
+std::int64_t BassCoreBindings::getPosition(std::uint32_t channel,
+    std::uint32_t mode) const noexcept {
+    if (!functions_.channelGetPosition) return -1;
+    const std::uint64_t position = functions_.channelGetPosition(channel, mode);
+    return position == UINT64_MAX ? -1 : static_cast<std::int64_t>(position);
+}
+
+double BassCoreBindings::bytesToSeconds(std::uint32_t channel,
+    std::int64_t bytes) const noexcept {
+    if (!functions_.channelBytes2Seconds || bytes < 0) return -1;
+    return functions_.channelBytes2Seconds(channel, static_cast<std::uint64_t>(bytes));
 }
 
 std::uint32_t BassCoreBindings::createStream(std::uint32_t frequency,

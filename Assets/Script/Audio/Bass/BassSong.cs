@@ -26,8 +26,8 @@ namespace YARG.Audio.BASS
         private const float MAX_PLAYBACK_SPEED           = 51f;
 
         private readonly BassStemPipeline            _stemPipeline;
-        private readonly HashSet<BassOneShotChannel> _oneShots = new();
-        private readonly HashSet<BassMixerDsp>       _dsps     = new();
+        private readonly HashSet<BassOneShotChannel> _oneShots     = new();
+        private readonly HashSet<BassToneChannel>    _toneChannels = new();
 
         private readonly Timer _whammySyncTimer;
         private          int   _bufferLength;
@@ -115,7 +115,7 @@ namespace YARG.Audio.BASS
         internal bool TryAttachOutput(BassOutput output)
         {
             var connection = BassSongConnection.Create(output, _stemPipeline.OutputHandle, _bufferLength,
-                BassHelpers.ExponentialVolume(_volume), _outputChannel, _oneShots, _dsps);
+                BassHelpers.ExponentialVolume(_volume), _outputChannel, _oneShots, _toneChannels);
             if (connection == null)
             {
                 return false;
@@ -154,9 +154,9 @@ namespace YARG.Audio.BASS
                 oneShot.DetachOutput();
             }
 
-            foreach (var dsp in _dsps)
+            foreach (var channel in _toneChannels)
             {
-                dsp.DetachOutput();
+                channel.DetachOutput();
             }
 
             _connection?.Dispose();
@@ -307,6 +307,8 @@ namespace YARG.Audio.BASS
                 return;
             }
 
+            RefreshToneChannels();
+
             foreach (var oneShot in _oneShots)
             {
                 oneShot.ResetAfterSpeedChange();
@@ -345,7 +347,7 @@ namespace YARG.Audio.BASS
                 oneShot.ResetAfterSeek();
             }
 
-            RetryDetachedDsps();
+            RefreshToneChannels();
 
             if (wasPlaying)
             {
@@ -482,47 +484,57 @@ namespace YARG.Audio.BASS
 
         private void RemoveOneShot(BassOneShotChannel oneShot) => _oneShots.Remove(oneShot);
 
-        public override IDisposable? AttachOutputDsp(IMixerDspProcessor processor, int priority = 0)
+        public override ToneChannel? CreateToneChannel(double volume, double fadeDuration)
         {
-            // Attaching to the song mixer puts the processor inside the buffered song branch: it
-            // travels through the read-ahead buffer alongside the music it is mixed into, and it
-            // follows song volume and fades. It also keeps the processor out of the data behind
+            // The tone is rendered onto the song mixer, which puts it inside the buffered song
+            // branch: it travels through the read-ahead buffer alongside the music it is mixed into,
+            // and it follows song volume and fades. It also stays out of the data behind
             // GetFFTData, which is read from the tempo stream upstream of this point and drives the
-            // venue visuals. The song mixer is recreated on every output device change, so the DSP
-            // is tracked here and re-attached by BassSongConnection.Create as one-shots are.
-            var dsp = new BassMixerDsp(processor, ConvertTempoBytesToSongPositionRealtime, () => _speed, priority);
-            if (_connection != null && !_connection.AttachDsp(dsp))
+            // venue visuals. Song position comes from the tempo stream, so the offset below is the
+            // same mapping ConvertTempoBytesToSongPosition applies on the game thread.
+            var channel = BassToneChannel.Create(_stemPipeline.OutputHandle, volume, fadeDuration);
+            if (channel == null)
             {
-                dsp.Dispose();
                 return null;
             }
 
-            // With no connection yet the DSP stays registered and unattached; it is picked up by the
-            // next TryAttachOutput, so the caller still gets a usable handle rather than losing the
-            // feature for the rest of the song.
-            dsp.Disposed += RemoveDsp;
-            _dsps.Add(dsp);
-            return dsp;
-        }
+            channel.SetTiming(SongTimeOffset, _speed);
 
-        private void RemoveDsp(BassMixerDsp dsp) => _dsps.Remove(dsp);
-
-        /// <summary>
-        /// Retries any DSP that is registered but not attached, so that a failed attach during an
-        /// output device change does not silently disable the effect for the rest of the song.
-        /// </summary>
-        private void RetryDetachedDsps()
-        {
-            if (_connection == null)
+            // The song mixer is recreated on every output device change, so the channel is tracked
+            // here and re-attached by BassSongConnection.Create as one-shots are. With no connection
+            // yet it stays registered and unattached, and the next TryAttachOutput picks it up.
+            if (_connection != null && !_connection.AttachTone(channel))
             {
-                return;
+                channel.Dispose();
+                return null;
             }
 
-            foreach (var dsp in _dsps)
+            channel.Disposed += RemoveToneChannel;
+            _toneChannels.Add(channel);
+            return channel;
+        }
+
+        private void RemoveToneChannel(BassToneChannel channel) => _toneChannels.Remove(channel);
+
+        /// <summary>
+        /// Maps a tempo stream position in seconds onto a song position. Published to the native
+        /// tone DSP, which reads the tempo stream directly on the render thread.
+        /// </summary>
+        private double SongTimeOffset => _seekPosition - TotalStreamDelay;
+
+        /// <summary>
+        /// Republishes timing to the tone channels, and retries any that are registered but not
+        /// attached, so a failed attach during an output device change does not silently disable
+        /// the tone for the rest of the song.
+        /// </summary>
+        private void RefreshToneChannels()
+        {
+            foreach (var channel in _toneChannels)
             {
-                if (!dsp.IsAttached)
+                channel.SetTiming(SongTimeOffset, _speed);
+                if (_connection != null)
                 {
-                    _connection.AttachDsp(dsp);
+                    channel.Reattach();
                 }
             }
         }
@@ -551,12 +563,12 @@ namespace YARG.Audio.BASS
 
             _oneShots.Clear();
 
-            foreach (var dsp in _dsps.ToArray())
+            foreach (var channel in _toneChannels.ToArray())
             {
-                dsp.Dispose();
+                channel.Dispose();
             }
 
-            _dsps.Clear();
+            _toneChannels.Clear();
             _stemPipeline.Dispose();
         }
 
@@ -608,17 +620,6 @@ namespace YARG.Audio.BASS
             return position;
         }
 
-        /// <summary>
-        /// Converts tempo stream bytes to a song position without logging, for callers on the audio
-        /// render thread. <see cref="TryConvertTempoBytesToSongPosition"/> logs on failure, and
-        /// YargLogger takes a lock and can block on file I/O. Returns NaN if the position is invalid.
-        /// </summary>
-        private double ConvertTempoBytesToSongPositionRealtime(long tempoBytes)
-        {
-            double seconds = Bass.ChannelBytes2Seconds(_stemPipeline.OutputHandle, tempoBytes);
-            return seconds >= 0 ? seconds - TotalStreamDelay + _seekPosition : double.NaN;
-        }
-
         private bool TryConvertTempoBytesToSongPosition(long tempoBytes, out double position)
         {
             bool succeeded = _stemPipeline.TryGetPositionSeconds(tempoBytes, out double seconds);
@@ -639,12 +640,14 @@ namespace YARG.Audio.BASS
             AlignmentDelay = alignmentDelay;
             _playbackDelay = playbackDelay;
             _lastSongPosition = seekPosition - TotalStreamDelay;
+            RefreshToneChannels();
         }
 
         private void SetAlignmentDelay(double delay)
         {
             _lastSongPosition -= delay - AlignmentDelay;
             AlignmentDelay = delay;
+            RefreshToneChannels();
         }
     }
 }

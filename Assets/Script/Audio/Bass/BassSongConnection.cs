@@ -3,7 +3,6 @@ using System;
 using System.Collections.Generic;
 using ManagedBass;
 using ManagedBass.Mix;
-using YARG.Audio.BASS.Effects;
 using YARG.Core.Audio;
 using YARG.Core.Logging;
 
@@ -87,7 +86,7 @@ namespace YARG.Audio.BASS
 
         public static BassSongConnection? Create(BassOutput output, int tempoStreamHandle, int bufferLengthMilliseconds,
             double volume, OutputChannel? outputChannel, IReadOnlyCollection<BassOneShotChannel> oneShots,
-            IReadOnlyCollection<BassMixerDsp> dsps)
+            IReadOnlyCollection<BassToneChannel> toneChannels)
         {
             output.Device.Use();
             var songFlags = BassFlags.Float | BassFlags.Decode | BassFlags.MixerNonStop | BassFlags.MixerPositionEx;
@@ -149,12 +148,12 @@ namespace YARG.Audio.BASS
                 connection.AttachOneShot(oneShot);
             }
 
-            // A DSP that fails to attach is left registered rather than failing the connection: losing
-            // an optional effect is preferable to losing all audio on a device change, and BassSong
-            // retries it on the next seek. AttachOutput logs the reason.
-            foreach (var dsp in dsps)
+            // A tone that fails to attach is left registered rather than failing the connection:
+            // losing an optional effect is preferable to losing all audio on a device change, and
+            // BassSong retries it on the next seek. The attach logs its own reason.
+            foreach (var toneChannel in toneChannels)
             {
-                _ = connection.AttachDsp(dsp);
+                _ = connection.AttachTone(toneChannel);
             }
 
             return connection;
@@ -317,7 +316,7 @@ namespace YARG.Audio.BASS
 
         public void AttachOneShot(BassOneShotChannel oneShot) => oneShot.AttachOutput(_songMixer.Handle, !IsPlaying);
 
-        public bool AttachDsp(BassMixerDsp dsp) => dsp.AttachOutput(_songMixer.Handle, TempoStreamHandle);
+        public bool AttachTone(BassToneChannel toneChannel) => toneChannel.AttachOutput(_songMixer.Handle);
 
         public ReadAheadStats GetReadAheadStats() => _readAhead.GetStats();
 

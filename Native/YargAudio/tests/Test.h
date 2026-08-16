@@ -17,5 +17,6 @@ void runAudioRingBufferTests();
 void runBassBindingTests();
 void runGainDspTests();
 void runFreeverbDspTests();
+void runSineSynthDspTests();
 void runScheduledSampleSourceTests();
 void runNativeOneShotStreamTests();

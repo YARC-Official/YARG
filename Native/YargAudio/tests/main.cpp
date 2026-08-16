@@ -7,6 +7,7 @@ int main() {
     runBassBindingTests();
     runGainDspTests();
     runFreeverbDspTests();
+    runSineSynthDspTests();
     runScheduledSampleSourceTests();
     runNativeOneShotStreamTests();
     runRenderAheadMixerTests();

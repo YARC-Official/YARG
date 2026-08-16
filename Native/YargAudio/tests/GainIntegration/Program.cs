@@ -11,7 +11,7 @@ internal static class Program
     private static int Main()
     {
         Check(Environment.Is64BitProcess, "Integration probe requires a 64-bit process.");
-        Check(GainDsp.GetAbiVersion() == 2, "Unexpected YargAudio ABI version.");
+        Check(GainDsp.GetAbiVersion() == 3, "Unexpected YargAudio ABI version.");
         Check(Bass.Init(0, 48_000, 0, IntPtr.Zero, IntPtr.Zero), "BASS_Init");
 
         try
