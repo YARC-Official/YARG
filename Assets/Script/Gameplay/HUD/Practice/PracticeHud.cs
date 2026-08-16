@@ -57,8 +57,12 @@ namespace YARG.Gameplay.HUD
             if (!GameManager.IsPractice)
             {
                 Destroy(gameObject);
-                return;
             }
+        }
+
+        protected override void OnSongLoaded()
+        {
+            // Deferred from Start(): the players are not spawned until the song finishes loading.
             _guidePitchPartGroup.gameObject.SetActive(HasVocalsPlayer());
         }
 
@@ -173,6 +177,11 @@ namespace YARG.Gameplay.HUD
 
         private bool HasVocalsPlayer()
         {
+            if (GameManager.Players is null)
+            {
+                return false;
+            }
+
             foreach (var player in GameManager.Players)
             {
                 var instrument = player.Player.Profile.CurrentInstrument;

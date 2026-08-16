@@ -149,9 +149,12 @@ namespace YARG.Audio.BASS
                 connection.AttachOneShot(oneShot);
             }
 
+            // A DSP that fails to attach is left registered rather than failing the connection: losing
+            // an optional effect is preferable to losing all audio on a device change, and BassSong
+            // retries it on the next seek. AttachOutput logs the reason.
             foreach (var dsp in dsps)
             {
-                connection.AttachDsp(dsp);
+                _ = connection.AttachDsp(dsp);
             }
 
             return connection;

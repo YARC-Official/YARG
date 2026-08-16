@@ -18,17 +18,24 @@ namespace YARG.Audio.BASS.Effects
     /// </remarks>
     internal sealed class BassMixerDsp : IDisposable
     {
+        private const string EFFECT_NAME = "guide mixer DSP";
+
         private readonly IMixerDspProcessor _processor;
         private readonly int                _priority;
         private readonly Func<long, double> _getSongPosition;
         private readonly Func<float>        _getSpeed;
 
-        // Held only to pin the delegate against garbage collection while BASS holds a pointer to it.
+        // ManagedBass already roots the delegate for the lifetime of the attachment (ChannelSetDSP
+        // registers it and ChannelRemoveDSP releases it), so this reference is belt and braces: it
+        // keeps the delegate reachable even if that implementation detail ever changes.
         private DSPProcedure? _callback;
 
         private int  _mixerHandle;
         private int  _dspHandle;
         private bool _disposed;
+
+        // Set on the audio thread if the processor throws; stops it being called again.
+        private volatile bool _faulted;
 
         /// <param name="processor">Receives each block of mixed audio on the audio thread.</param>
         /// <param name="getSongPosition">Converts tempo stream decode bytes to a song position in seconds.</param>
@@ -44,6 +51,12 @@ namespace YARG.Audio.BASS.Effects
         }
 
         internal event Action<BassMixerDsp>? Disposed;
+
+        /// <summary>
+        /// Whether the DSP is currently attached to a mixer. False after <see cref="DetachOutput"/>,
+        /// or if an attach attempt failed, in which case it can be retried.
+        /// </summary>
+        internal bool IsAttached => _dspHandle != 0;
 
         /// <summary>
         /// Attaches to <paramref name="mixerHandle"/>, deriving song positions from
@@ -63,18 +76,21 @@ namespace YARG.Audio.BASS.Effects
             if (info.Frequency <= 0 || info.Channels <= 0 || (info.Flags & BassFlags.Float) == 0)
             {
                 YargLogger.LogFormatError(
-                    "Cannot attach mixer DSP: mixer {0} must use float sample data (frequency={1}, channels={2}).",
-                    mixerHandle, info.Frequency, info.Channels);
+                    "Cannot attach {0}: mixer {1} must use float sample data " +
+                    "(frequency={2}, channels={3}, flags={4}).",
+                    EFFECT_NAME, mixerHandle, info.Frequency, info.Channels, info.Flags);
                 return false;
             }
 
             int sampleRate = info.Frequency;
             int channels = info.Channels;
 
+            // Runs on the read-ahead render thread. Every guard below drops the block silently rather
+            // than logging: this is the audio path, and YargLogger takes a lock and allocates.
             var callback = new DSPProcedure((_, _, buffer, length, _) =>
             {
                 int frames = length / (sizeof(float) * channels);
-                if (frames <= 0)
+                if (frames <= 0 || _faulted)
                 {
                     return;
                 }
@@ -100,23 +116,34 @@ namespace YARG.Audio.BASS.Effects
                     return;
                 }
 
-                // The block spans fewer song seconds than real seconds when practicing below
-                // normal speed, so the processor must be told both ends rather than deriving
-                // the span from the sample rate alone.
-                double songTimeStart = songTimeEnd - (frames / (double) sampleRate) * Math.Max(0.0001f, speed);
+                // Song time advances at the playback speed relative to real time. The processor is
+                // given both ends of the block because it has no access to the speed to scale by.
+                double songTimeStart =
+                    songTimeEnd - (frames / (double) sampleRate) * Math.Max(BassHelpers.MINIMUM_SPEED, speed);
 
-                unsafe
+                // An exception unwinding into BASS's native caller would abort the process, so the
+                // processor is latched off instead. Reported once, from off the audio thread.
+                try
                 {
-                    var span = new Span<float>((void*) buffer, length / sizeof(float));
-                    _processor.ProcessAudio(span, frames, channels, sampleRate, songTimeStart, songTimeEnd);
+                    unsafe
+                    {
+                        var span = new Span<float>((void*) buffer, length / sizeof(float));
+                        _processor.ProcessAudio(span, frames, channels, sampleRate, songTimeStart, songTimeEnd);
+                    }
+                }
+                catch (Exception exception)
+                {
+                    _faulted = true;
+                    UnityMainThreadCallback.QueueEvent(() => YargLogger.LogException(exception,
+                        $"Disabled {EFFECT_NAME} after the processor threw on the audio thread"));
                 }
             });
 
             int dspHandle = Bass.ChannelSetDSP(mixerHandle, callback, IntPtr.Zero, _priority);
             if (dspHandle == 0)
             {
-                YargLogger.LogFormatError("Failed to attach mixer DSP to mixer {0}: {1}",
-                    mixerHandle, Bass.LastError);
+                YargLogger.LogFormatError("Failed to attach {0} to mixer {1}: {2}",
+                    EFFECT_NAME, mixerHandle, Bass.LastError);
                 return false;
             }
 
@@ -133,20 +160,29 @@ namespace YARG.Audio.BASS.Effects
         {
             int mixerHandle = _mixerHandle;
             int dspHandle = _dspHandle;
+            if (dspHandle == 0)
+            {
+                _callback = null;
+                return;
+            }
+
+            // ChannelRemoveDSP reports Errors.Handle if the mixer has already been freed. Unity does
+            // not guarantee the destruction order of components sharing a GameObject, so the owner of
+            // this DSP may be torn down after the mixer; a stale handle is possible, not an error.
+            if (!Bass.ChannelRemoveDSP(mixerHandle, dspHandle) && Bass.LastError != Errors.Handle)
+            {
+                // Keep the handles. The DSP is still attached to a live mixer, so forgetting it here
+                // would orphan it and let a later attach add a second copy to the same mixer.
+                YargLogger.LogFormatError("Failed to remove {0} from mixer {1}: {2}",
+                    EFFECT_NAME, mixerHandle, Bass.LastError);
+                return;
+            }
+
             _mixerHandle = 0;
             _dspHandle = 0;
-            _callback = null;
 
-            // The mixer is routinely freed before this runs: GameManager.OnDestroy disposes the song
-            // mixer before GameplayBehaviour.OnDestroy tears down the practice manager that owns this
-            // DSP. A stale handle is therefore the normal teardown path, not an error.
-            if (dspHandle != 0 &&
-                !Bass.ChannelRemoveDSP(mixerHandle, dspHandle) &&
-                Bass.LastError != Errors.Handle)
-            {
-                YargLogger.LogFormatError("Failed to remove mixer DSP from mixer {0}: {1}",
-                    mixerHandle, Bass.LastError);
-            }
+            // Released only once BASS can no longer invoke the callback.
+            _callback = null;
         }
 
         public void Dispose()

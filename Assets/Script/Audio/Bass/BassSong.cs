@@ -345,6 +345,8 @@ namespace YARG.Audio.BASS
                 oneShot.ResetAfterSeek();
             }
 
+            RetryDetachedDsps();
+
             if (wasPlaying)
             {
                 Play_Internal();
@@ -482,24 +484,48 @@ namespace YARG.Audio.BASS
 
         public override IDisposable? AttachOutputDsp(IMixerDspProcessor processor, int priority = 0)
         {
-            // Attaching to the song mixer puts the processor inside the buffered song branch: it is
-            // post-tempo (so its audio is never speed- or pitch-shifted), it travels through the
-            // read-ahead buffer alongside the music it is mixed into, and it follows song volume and
-            // fades. The song mixer is recreated on every output device change, so the DSP is tracked
-            // here and re-attached by BassSongConnection.Create the same way one-shots are.
-            var dsp = new BassMixerDsp(processor, ConvertTempoBytesToSongPosition, () => _speed, priority);
+            // Attaching to the song mixer puts the processor inside the buffered song branch: it
+            // travels through the read-ahead buffer alongside the music it is mixed into, and it
+            // follows song volume and fades. It also keeps the processor out of the data behind
+            // GetFFTData, which is read from the tempo stream upstream of this point and drives the
+            // venue visuals. The song mixer is recreated on every output device change, so the DSP
+            // is tracked here and re-attached by BassSongConnection.Create as one-shots are.
+            var dsp = new BassMixerDsp(processor, ConvertTempoBytesToSongPositionRealtime, () => _speed, priority);
             if (_connection != null && !_connection.AttachDsp(dsp))
             {
                 dsp.Dispose();
                 return null;
             }
 
+            // With no connection yet the DSP stays registered and unattached; it is picked up by the
+            // next TryAttachOutput, so the caller still gets a usable handle rather than losing the
+            // feature for the rest of the song.
             dsp.Disposed += RemoveDsp;
             _dsps.Add(dsp);
             return dsp;
         }
 
         private void RemoveDsp(BassMixerDsp dsp) => _dsps.Remove(dsp);
+
+        /// <summary>
+        /// Retries any DSP that is registered but not attached, so that a failed attach during an
+        /// output device change does not silently disable the effect for the rest of the song.
+        /// </summary>
+        private void RetryDetachedDsps()
+        {
+            if (_connection == null)
+            {
+                return;
+            }
+
+            foreach (var dsp in _dsps)
+            {
+                if (!dsp.IsAttached)
+                {
+                    _connection.AttachDsp(dsp);
+                }
+            }
+        }
 
         protected override void DisposeManagedResources()
         {
@@ -580,6 +606,17 @@ namespace YARG.Audio.BASS
         {
             TryConvertTempoBytesToSongPosition(tempoBytes, out double position);
             return position;
+        }
+
+        /// <summary>
+        /// Converts tempo stream bytes to a song position without logging, for callers on the audio
+        /// render thread. <see cref="TryConvertTempoBytesToSongPosition"/> logs on failure, and
+        /// YargLogger takes a lock and can block on file I/O. Returns NaN if the position is invalid.
+        /// </summary>
+        private double ConvertTempoBytesToSongPositionRealtime(long tempoBytes)
+        {
+            double seconds = Bass.ChannelBytes2Seconds(_stemPipeline.OutputHandle, tempoBytes);
+            return seconds >= 0 ? seconds - TotalStreamDelay + _seekPosition : double.NaN;
         }
 
         private bool TryConvertTempoBytesToSongPosition(long tempoBytes, out double position)

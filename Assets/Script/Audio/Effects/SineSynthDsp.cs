@@ -73,6 +73,9 @@ namespace YARG.Audio.Effects
 
                 float sample = _currentVolume * (float) Math.Sin(_phase * 2.0 * Math.PI);
 
+                // Written to every channel. On a multi-channel device with a specific output channel
+                // selected the song is routed to one speaker pair while this tone is not, matching
+                // how one-shot samples already behave.
                 int frameBase = i * channels;
                 for (int ch = 0; ch < channels; ch++)
                 {

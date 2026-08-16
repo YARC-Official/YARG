@@ -12,7 +12,7 @@ namespace YARG.Gameplay.Player
     public sealed class VocalNotePitchSource : IPitchSource
     {
         /// <summary>
-        /// If the current scan position is this many seconds ahead of the queried song
+        /// If the queried song time jumps this many seconds behind the previously queried
         /// time, treat it as a backward seek (section loop) and reset the scan from the start.
         /// </summary>
         private const double BACKWARD_SEEK_THRESHOLD = 0.5;
@@ -36,9 +36,10 @@ namespace YARG.Gameplay.Player
         private volatile PartState _targetState = new(null, 0);
 
         // Audio-thread-only state
-        private int _lastSeenGeneration;
-        private int _phraseIndex;
-        private int _noteIndex;
+        private int    _lastSeenGeneration;
+        private int    _phraseIndex;
+        private int    _noteIndex;
+        private double _lastSongTime = double.NegativeInfinity;
 
         /// <summary>
         /// Sets the vocal part whose notes should be sonified, or <c>null</c> to silence.
@@ -66,6 +67,7 @@ namespace YARG.Gameplay.Player
                 _lastSeenGeneration = state.Generation;
                 _phraseIndex        = 0;
                 _noteIndex          = 0;
+                _lastSongTime       = double.NegativeInfinity;
             }
 
             var part = state.Part;
@@ -98,16 +100,12 @@ namespace YARG.Gameplay.Player
                 return null;
             }
 
-            // Detect backward seek (section loop restart)
-            bool backwardSeek;
-            if (_phraseIndex < phrases.Count)
-            {
-                backwardSeek = phrases[_phraseIndex].PhraseParentNote.Time > songTime + BACKWARD_SEEK_THRESHOLD;
-            }
-            else
-            {
-                backwardSeek = phrases[^1].PhraseParentNote.TotalTimeEnd > songTime;
-            }
+            // Detect a backward seek (section loop restart) by comparing against the time we last
+            // serviced, not against the upcoming phrase: the scan indices sit on the *next* phrase
+            // while we are in a gap, so testing that phrase's start time treats every gap longer
+            // than the threshold as a seek and rescans the whole part on every sample.
+            bool backwardSeek = songTime < _lastSongTime - BACKWARD_SEEK_THRESHOLD;
+            _lastSongTime = songTime;
 
             if (backwardSeek)
             {
