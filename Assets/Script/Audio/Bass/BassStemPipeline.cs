@@ -40,24 +40,18 @@ namespace YARG.Audio.BASS
         private readonly BassNormalizer?  _normalizer;
         private readonly BassMixer        _reverbMixer;
         private readonly BassFreeverbDsp  _reverbDsp;
-        private readonly int              _reverbHighEq;
-        private readonly int              _reverbLowEq;
-        private readonly int              _reverbMidEq;
         private readonly List<StemData>   _stemDatas = new();
         private readonly BassTempoStream  _tempoStream;
         private          bool             _disposed;
         private          bool             _normalizationEnabled;
 
         private BassStemPipeline(BassMixer mixer, BassMixer reverbMixer, BassFreeverbDsp reverbDsp,
-            int reverbLowEq, int reverbMidEq, int reverbHighEq, BassTempoStream tempoStream,
+            BassTempoStream tempoStream,
             BassNormalizer? normalizer, BassGainDsp? gainDsp)
         {
             _mixer = mixer;
             _reverbMixer = reverbMixer;
             _reverbDsp = reverbDsp;
-            _reverbLowEq = reverbLowEq;
-            _reverbMidEq = reverbMidEq;
-            _reverbHighEq = reverbHighEq;
             _tempoStream = tempoStream;
             _normalizer = normalizer;
             _gainDsp = gainDsp;
@@ -94,7 +88,7 @@ namespace YARG.Audio.BASS
             int reverbHighEq = BassHelpers.AddEqToChannel(reverbMixer.Handle, BassHelpers.HighEqParams);
             if (reverbLowEq == 0 || reverbMidEq == 0 || reverbHighEq == 0)
             {
-                DisposeReverbBus(reverbMixer, null, reverbLowEq, reverbMidEq, reverbHighEq);
+                DisposeReverbBus(reverbMixer, null);
                 mixer.Dispose();
                 return null;
             }
@@ -107,14 +101,14 @@ namespace YARG.Audio.BASS
                 width: 1.0f);
             if (reverbDsp == null)
             {
-                DisposeReverbBus(reverbMixer, null, reverbLowEq, reverbMidEq, reverbHighEq);
+                DisposeReverbBus(reverbMixer, null);
                 mixer.Dispose();
                 return null;
             }
 
             if (!mixer.AddChannel(reverbMixer.Handle))
             {
-                DisposeReverbBus(reverbMixer, reverbDsp, reverbLowEq, reverbMidEq, reverbHighEq);
+                DisposeReverbBus(reverbMixer, reverbDsp);
                 mixer.Dispose();
                 return null;
             }
@@ -129,7 +123,7 @@ namespace YARG.Audio.BASS
             {
                 YargLogger.LogError(exception.Message);
                 mixer.RemoveChannel(reverbMixer.Handle);
-                DisposeReverbBus(reverbMixer, reverbDsp, reverbLowEq, reverbMidEq, reverbHighEq);
+                DisposeReverbBus(reverbMixer, reverbDsp);
                 mixer.Dispose();
                 return null;
             }
@@ -145,8 +139,7 @@ namespace YARG.Audio.BASS
                 }
             }
 
-            return new BassStemPipeline(mixer, reverbMixer, reverbDsp, reverbLowEq, reverbMidEq, reverbHighEq,
-                tempoStream, normalizer, gainDsp);
+            return new BassStemPipeline(mixer, reverbMixer, reverbDsp, tempoStream, normalizer, gainDsp);
         }
 
         public bool AddStems(Stream stream, IEnumerable<StemMixer.StemInfo> stemInfos,
@@ -204,22 +197,21 @@ namespace YARG.Audio.BASS
             _mixer.RemoveAllChannels();
             _reverbMixer.RemoveAllChannels();
 
-            double requiredAlignment = 0;
+            alignmentDelay = 0;
             foreach (var data in _stemDatas)
             {
-                if (data.PitchFxDelay > requiredAlignment)
+                if (data.PitchFxDelay > alignmentDelay)
                 {
-                    requiredAlignment = data.PitchFxDelay;
+                    alignmentDelay = data.PitchFxDelay;
                 }
             }
 
-            alignmentDelay = requiredAlignment;
             var dryChannels = new List<BassMixerChannel>(_stemDatas.Count);
             var reverbChannels = new List<BassMixerChannel>(_stemDatas.Count);
 
             foreach (var data in _stemDatas)
             {
-                double delay = playbackDelay + requiredAlignment - data.PitchFxDelay;
+                double delay = playbackDelay + alignmentDelay - data.PitchFxDelay;
                 dryChannels.Add(new BassMixerChannel(data.StreamHandles.Stream, data.VolumeMatrix, delay));
                 reverbChannels.Add(new BassMixerChannel(data.ReverbHandles.Stream, data.VolumeMatrix, delay));
             }
@@ -304,31 +296,14 @@ namespace YARG.Audio.BASS
             _tempoStream.Dispose();
             _mixer.RemoveChannel(_reverbMixer.Handle);
             _reverbMixer.RemoveAllChannels();
-            DisposeReverbBus(_reverbMixer, _reverbDsp, _reverbLowEq, _reverbMidEq, _reverbHighEq);
+            DisposeReverbBus(_reverbMixer, _reverbDsp);
             _mixer.Dispose();
         }
 
-        private static void DisposeReverbBus(BassMixer mixer, BassFreeverbDsp? reverbDsp,
-            int lowEq, int midEq, int highEq)
+        private static void DisposeReverbBus(BassMixer mixer, BassFreeverbDsp? reverbDsp)
         {
             reverbDsp?.Dispose();
-            RemoveEffect(mixer.Handle, lowEq);
-            RemoveEffect(mixer.Handle, midEq);
-            RemoveEffect(mixer.Handle, highEq);
             mixer.Dispose();
-        }
-
-        private static void RemoveEffect(int streamHandle, int effectHandle)
-        {
-            if (effectHandle == 0)
-            {
-                return;
-            }
-
-            if (!Bass.ChannelRemoveFX(streamHandle, effectHandle) && Bass.LastError != Errors.Handle)
-            {
-                YargLogger.LogFormatError("Failed to remove reverb effect: {0}", Bass.LastError);
-            }
         }
 
         private static bool BuildStemData(BassMixerSource source, IEnumerable<StemMixer.StemInfo> stemInfos,
