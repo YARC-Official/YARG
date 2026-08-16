@@ -21,10 +21,6 @@ public class YargVideoPlayer : MonoBehaviour
 #if VLC_SUPPORTED
     [SerializeField] private LibVLCSharp.VLCMediaPlayer _vlcPlayer;
     private bool _usingVLC = false;
-    private bool _vlcPrepared = false;
-    private bool _prepareCalled = false;
-    private float _prepareStartTime = 0f;
-    private const float VLC_PREPARE_TIMEOUT = 5f;
 #endif
 
     private string _url = "";
@@ -178,11 +174,8 @@ public class YargVideoPlayer : MonoBehaviour
     public void Prepare()
     {
 #if VLC_SUPPORTED
-        _prepareCalled = true;
-        _prepareStartTime = Time.time;
         if (_usingVLC && _vlcPlayer != null)
         {
-            _vlcPrepared = false;
             _ = _vlcPlayer.OpenAsync(_url);
             return;
         }
@@ -317,7 +310,6 @@ public class YargVideoPlayer : MonoBehaviour
             return;
         }
 
-        _vlcPrepared = true;
 
         prepareCompleted?.Invoke(this);
     }
@@ -325,7 +317,6 @@ public class YargVideoPlayer : MonoBehaviour
     private void SwitchToVideoPlayerFallback()
     {
         _usingVLC = false;
-        _vlcPrepared = false;
         _unityVideoPlayer.enabled = true;
         _unityVideoPlayer.url = _url;
         _unityVideoPlayer.renderMode = VideoRenderMode.RenderTexture;

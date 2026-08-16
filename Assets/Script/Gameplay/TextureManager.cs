@@ -168,6 +168,7 @@ namespace YARG.Gameplay
                 {
                     m.SetTexture(_videoTexId, GetVideoTexture(matTex.width, matTex.height));
                     _videoTexFound = true;
+                    _videoMaterials.Add(m);
                 }
             }
             if (m.HasTexture(_imageTexId) && songBackgroundType is BackgroundType.Image)
