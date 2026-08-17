@@ -134,10 +134,10 @@ namespace YARG.Gameplay.Player
 
             _hud.ShowPlayerName(player, needleIndex);
 
-            // Create and start an input context for the mic
-            if (!Player.IsReplay && player.Bindings.Microphone != null)
+            // Create and start an input context for the mics
+            if (!Player.IsReplay && player.Bindings.Microphones.Count > 0)
             {
-                _inputContext = new MicInputContext(player.Bindings.Microphone, GameManager);
+                _inputContext = new MicInputContext(player.Bindings.Microphones, GameManager);
                 _inputContext.Start();
             }
 
@@ -224,6 +224,8 @@ namespace YARG.Gameplay.Player
                 }
 
                 LastCombo = Combo;
+
+                _hud.SetFullCombo(false);
             };
 
             engine.OnSing += (singing) =>
@@ -263,6 +265,7 @@ namespace YARG.Gameplay.Player
         protected override void ResetVisuals()
         {
             _lastTargetNote = null;
+            _hud.SetFullCombo(IsFc);
         }
 
         public override void ResetPracticeSection()
@@ -648,6 +651,12 @@ namespace YARG.Gameplay.Player
 
         protected override bool InterceptInput(ref GameInput input)
         {
+            var minimumTime = System.Math.Max(BaseEngine.LastQueuedInputTime, BaseEngine.CurrentTime);
+            if (input.Time < minimumTime)
+            {
+                input = new GameInput(minimumTime, input.Action, input.Integer);
+            }
+
             return false;
         }
 

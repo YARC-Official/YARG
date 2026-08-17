@@ -32,7 +32,9 @@ namespace YARG.Menu.Filters
         {
         }
 
-        protected override void RefreshVisual()
+        protected override bool HasSettingAssigned => true;
+
+        public override void RefreshVisual()
         {
         }
 

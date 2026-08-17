@@ -20,6 +20,8 @@ namespace YARG.Gameplay.HUD
         {
             base.Initialize(settingName, setting);
 
+            _slider.minValue = setting.Min;
+            _slider.maxValue = setting.Max;
             _slider.SetValueWithoutNotify(setting.Value);
             _value.text = Localize.Percent(setting.Value);
         }
@@ -31,13 +33,13 @@ namespace YARG.Gameplay.HUD
                 NavigateFinish,
                 new NavigationScheme.Entry(MenuAction.Up, "Menu.Common.Increase", () =>
                 {
-                    Setting.Value += 1f / 20f;
+                    Setting.Value += (Setting.Max - Setting.Min) / 20f;
 
                     RefreshVisual();
                 }),
                 new NavigationScheme.Entry(MenuAction.Down, "Menu.Common.Decrease", () =>
                 {
-                    Setting.Value -= 1f / 20f;
+                    Setting.Value -= (Setting.Max - Setting.Min) / 20f;
 
                     RefreshVisual();
                 })

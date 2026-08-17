@@ -13,6 +13,7 @@ using YARG.Core.Utility;
 using YARG.Helpers.Extensions;
 using YARG.Menu.Navigation;
 using YARG.Menu.Persistent;
+using YARG.Settings;
 using YARG.Song;
 using static System.Globalization.CultureInfo;
 
@@ -247,7 +248,7 @@ namespace YARG.Menu.MusicLibrary
                 _year.text = songEntry.ParsedYear;
             }
 
-            _contentRatingImage.sprite = songEntry.SongRating switch
+            _contentRatingImage.sprite = songEntry.GetSongRating(SettingsManager.Settings.CensorMatureContent.Value) switch
             {
                 SongRating.Unspecified             => _contentRatingIcons[0],
                 SongRating.Family_Friendly         => _contentRatingIcons[1],

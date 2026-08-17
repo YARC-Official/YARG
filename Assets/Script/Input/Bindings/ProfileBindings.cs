@@ -18,8 +18,19 @@ namespace YARG.Input
     {
         public YargProfile Profile { get; }
 
-        private SerializedMic _unresolvedMic;
-        public MicDevice Microphone { get; private set; }
+        private readonly List<SerializedMic> _unresolvedMics = new();
+        private readonly List<MicDevice> _microphones = new();
+
+        /// <summary>
+        ///     The first microphone, for gameplay that only supports one at a time.
+        /// </summary>
+        public MicDevice Microphone => _microphones.Count > 0 ? _microphones[0] : null;
+
+        /// <summary>
+        ///     Every microphone assigned to this profile.
+        /// </summary>
+        public List<MicDevice> Microphones => _microphones;
+
         public List<InputDevice> InputDevices => _devices;
 
         private readonly List<SerializedInputDevice> _unresolvedDevices = new();
@@ -29,7 +40,7 @@ namespace YARG.Input
         public readonly BindingCollection MenuBindings;
 
         public bool HasDeviceAssigned => _devices.Count > 0;
-        public bool Empty => !HasDeviceAssigned && Microphone is null;
+        public bool Empty => !HasDeviceAssigned && _microphones.Count == 0;
 
         public BindingCollection this[GameMode mode] => _bindsByGameMode[mode];
 
@@ -98,7 +109,21 @@ namespace YARG.Input
                 }
             }
 
-            _unresolvedMic = bindings.Microphone;
+            if (bindings.Microphones.Count > 0)
+            {
+                foreach (var mic in bindings.Microphones)
+                {
+                    if (mic is not null)
+                    {
+                        _unresolvedMics.Add(mic);
+                    }
+                }
+            }
+            else if (bindings.Microphone is not null)
+            {
+                // Legacy files (v0-v2) only had a single microphone
+                _unresolvedMics.Add(bindings.Microphone);
+            }
 
             if (bindings.ModeMappings is not null)
             {
@@ -131,7 +156,15 @@ namespace YARG.Input
                 serialized.Devices.Add(device);
             }
 
-            serialized.Microphone = _unresolvedMic;
+            foreach (var mic in _microphones)
+            {
+                serialized.Microphones.Add(mic.Serialize());
+            }
+
+            foreach (var mic in _unresolvedMics)
+            {
+                serialized.Microphones.Add(mic);
+            }
 
             foreach (var (mode, bindings) in _bindsByGameMode)
             {
@@ -161,14 +194,32 @@ namespace YARG.Input
                     OnDeviceAdded(device);
             }
 
-            if (_unresolvedMic is not null)
+            ResolveMicrophones();
+        }
+
+        public void ResolveMicrophones()
+        {
+            for (int i = _unresolvedMics.Count - 1; i >= 0; i--)
             {
-                var device = GlobalAudioHandler.GetInputDevice(_unresolvedMic.Name);
+                var mic = _unresolvedMics[i];
+                var device = GlobalAudioHandler.GetInputDevice(mic.BaseName, mic.Channel);
                 if (device != null)
                 {
+                    _unresolvedMics.RemoveAt(i);
                     AddMicrophone(device);
                 }
             }
+        }
+
+        public void ReleaseMicrophones()
+        {
+            foreach (var mic in _microphones)
+            {
+                _unresolvedMics.Add(mic.Serialize());
+                mic.Dispose();
+            }
+
+            _microphones.Clear();
         }
 
         public void EnableInputs()
@@ -394,15 +445,42 @@ namespace YARG.Input
 
         public void AddMicrophone(MicDevice microphone)
         {
-            Microphone = microphone;
-            _unresolvedMic = microphone.Serialize();
+            if (_microphones.Contains(microphone))
+            {
+                return;
+            }
+
+            _microphones.Add(microphone);
+
+            var serialized = microphone.Serialize();
+            for (int i = _unresolvedMics.Count - 1; i >= 0; i--)
+            {
+                if (_unresolvedMics[i].BaseName == serialized.BaseName && _unresolvedMics[i].Channel == serialized.Channel)
+                {
+                    _unresolvedMics.RemoveAt(i);
+                }
+            }
         }
 
-        public void RemoveMicrophone()
+        public void RemoveMicrophone(MicDevice microphone)
         {
-            Microphone?.Dispose();
-            Microphone = null;
-            _unresolvedMic = null;
+            if (!_microphones.Remove(microphone))
+            {
+                return;
+            }
+
+            microphone.Dispose();
+        }
+
+        public void RemoveAllMicrophones()
+        {
+            foreach (var mic in _microphones)
+            {
+                mic.Dispose();
+            }
+
+            _microphones.Clear();
+            _unresolvedMics.Clear();
         }
 
         public void Dispose()
@@ -412,7 +490,7 @@ namespace YARG.Input
                 OnDeviceRemoved(device);
             }
 
-            RemoveMicrophone();
+            ReleaseMicrophones();
         }
     }
 }

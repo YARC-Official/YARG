@@ -6,6 +6,7 @@ using YARG.Core;
 using YARG.Core.Song;
 using YARG.Core.Utility;
 using YARG.Helpers;
+using YARG.Settings;
 
 namespace YARG.Song.Exporters
 {
@@ -96,7 +97,8 @@ namespace YARG.Song.Exporters
                 int seconds = totalSeconds % 60;
                 string songLength = $"{minutes}:{seconds:D2}";
 
-                string songRating = song.SongRating switch
+                // Always false, as song export should not be affected by a user's settings
+                string songRating = song.GetSongRating(false) switch
                 {
                     SongRating.Family_Friendly         => "Family Friendly",
                     SongRating.Supervision_Recommended => "Supervision Recommended",

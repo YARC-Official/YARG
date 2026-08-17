@@ -13,9 +13,9 @@ namespace YARG.Gameplay
     /// </summary>
     public sealed class CrowdClapScheduler : IDisposable
     {
-        // Built-in clap reaches its transient roughly 20 ms after the sample starts. This lead is
-        // measured on the output timeline, so it remains fixed when song speed changes.
-        private const double OUTPUT_LEAD_TIME = 0.02;
+        // Built-in crowd clap's dominant transient lands roughly 85 ms after sample start.
+        // Start it early so that transient, rather than its quiet attack, lands on the beat.
+        private const double OUTPUT_LEAD_TIME = 0.020;
 
         private readonly StemMixer _mixer;
         private OneShotChannel _channel;

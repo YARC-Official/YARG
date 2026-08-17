@@ -817,6 +817,7 @@ namespace YARG.Menu.MusicLibrary
                 GlobalVariables.State.SongSpeed,
                 delay,
                 FADE_DURATION,
+                SettingsManager.Settings.CensorMatureContent.Value,
                 canceller.Token);
             if (context != null)
             {
@@ -1316,6 +1317,7 @@ namespace YARG.Menu.MusicLibrary
             {
                 // Ensure difficulty rings are restored even if the scan fails or is canceled
                 _sidebar.gameObject.SetActive(true);
+                SetSidebarDifficultiesVisible(true);
                 _sidebar.UpdateSidebar(true);
             }
         }
