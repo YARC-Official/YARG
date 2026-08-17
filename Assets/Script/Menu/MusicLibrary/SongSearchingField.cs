@@ -66,6 +66,7 @@ namespace YARG.Menu.MusicLibrary
             _searchFilters.ClickedButton += OnClickedSearchFilter;
             _searchField.onSelect.AddListener(OnSearchFieldSelected);
             _searchField.onDeselect.AddListener(OnSearchFieldDeselected);
+            _searchField.onSubmit.AddListener(_ => ClearSearchFocus());
 
             _focusBorder.SetActive(_searchField.isFocused);
             _focusBackground.enabled = _searchField.isFocused;
@@ -299,6 +300,7 @@ namespace YARG.Menu.MusicLibrary
             _searchFilters.ClickedButton -= OnClickedSearchFilter;
             _searchField.onSelect.RemoveListener(OnSearchFieldSelected);
             _searchField.onDeselect.RemoveListener(OnSearchFieldDeselected);
+            _searchField.onSubmit.RemoveListener(_ => ClearSearchFocus());
             DisableSearchNavigation();
         }
 
@@ -316,8 +318,6 @@ namespace YARG.Menu.MusicLibrary
             {
                 new NavigationScheme.Entry(MenuAction.Red, "Menu.MusicLibrary.ExitSearchHold",
                     handler: null, onHoldHandler: ClearSearchFocus, holdSeconds: 0.5f, hide: false),
-                new NavigationScheme.Entry(MenuAction.Search, "Menu.MusicLibrary.Search",
-                    ClearSearchFocus, hide: true),
             }, allowsMusicPlayer: null, popCallback: () => _searchNavigationActive = false);
 
             _searchNavigationActive = true;
