@@ -19,10 +19,9 @@ namespace YARG.Settings.Metadata
 {
     public abstract class PresetSubTab : Tab
     {
-        // When true, BuildSettingTab shows the dropdown and preview toggles but
-        // hides the color/preset editing fields. Used for default/built-in profiles
-        // so the user can still switch instrument previews.
-        public bool HideFields { get; set; }
+        // Keeps default preset fields inspectable without allowing edits; preview
+        // controls remain interactive.
+        public bool ReadOnlyFields { get; set; }
 
         // Shared preview visual state across all preset type tabs (Camera, Color,
         // Engine, Highway, RockMeter). Bundled into one object (rather than a
