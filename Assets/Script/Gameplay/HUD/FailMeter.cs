@@ -35,6 +35,8 @@ namespace YARG.Gameplay.HUD
         private Slider _needlePrefab;
         [SerializeField]
         private RectTransform _sliderContainer;
+        [SerializeField]
+        private Image _meterSpGlow;
 
         private Slider[]  _playerSliders;
         private Slider[]  _needleSliders;
@@ -46,8 +48,11 @@ namespace YARG.Gameplay.HUD
         private Tweener   _meterGreenTweener;
         private Tweener   _bandFillTweener;
         private Tweener   _meterPositionTweener;
+        private Tweener   _meterGlowFillTweener;
+        private Sequence  _meterGlowPulseSequence;
         private float[]   _previousPlayerHappiness;
         private float     _previousBandHappiness;
+        private bool      _sp;
 
         private MeterColor _previousMeterColor;
 
@@ -121,6 +126,18 @@ namespace YARG.Gameplay.HUD
                 Pause().
                 SetLink(_meterContainer);
 
+            // These values are unimportant, since they get changed in Update anyway
+            _meterGlowFillTweener = _meterSpGlow.DOFillAmount(1f, 0.8f)
+                .Pause()
+                .SetLink(_meterSpGlow.gameObject)
+                .SetAutoKill(false);
+
+            _meterGlowPulseSequence = DOTween.Sequence()
+                .Append(_meterSpGlow.transform.DOScaleX(0.9f, 0.7f))
+                .SetEase(Ease.InOutSine)
+                .SetLoops(-1, LoopType.Yoyo)
+                .SetLink(_meterSpGlow.gameObject)
+                .SetAutoKill(false);
 
             // attach the slider instances to the scene and apply the correct icon
             for (int i = _players.Count - 1; i >= 0; i--)
@@ -175,8 +192,13 @@ namespace YARG.Gameplay.HUD
                 UpdateMeterFill();
             }
 
+            bool anyPlayerInSp = false;
             for (var i = _players.Count - 1; i >= 0; i--)
             {
+                if (_players[i].BaseEngine.BaseStats.IsStarPowerActive)
+                {
+                    anyPlayerInSp = true;
+                }
                 int overlap = 0;
                 // Check if we will overlap another icon
                 for (var j = i; j >= 0; j--)
@@ -228,8 +250,9 @@ namespace YARG.Gameplay.HUD
                 }
 
                 _previousPlayerHappiness[i] = _players[i].Happiness;
-
             }
+
+            UpdateMeterGlow(anyPlayerInSp);
         }
 
         private void UpdateMeterFill()
@@ -246,6 +269,37 @@ namespace YARG.Gameplay.HUD
             _bandFillTweener.ChangeValues(_fillImage.fillAmount, happiness).Play();
 
             _previousBandHappiness = _engineManager.Happiness;
+        }
+
+        private void UpdateMeterGlow(bool anyPlayerInSp)
+        {
+            // Happiness 0 = Glow Fill 0.05
+            // Happiness 1 = Glow Fill 0.95
+            // Everything else needs to be scaled between those two.
+            float glowHeight = _engineManager.Happiness switch
+            {
+                < 0 => 0f,
+                > 1 => 1f,
+                _   => Mathf.Lerp(0.05f, 0.95f, _engineManager.Happiness)
+            };
+
+            if (anyPlayerInSp && !_sp)
+            {
+                _meterGlowFillTweener.ChangeValues(_meterSpGlow.fillAmount, glowHeight, (0.8f * _engineManager.Happiness));
+                _meterGlowFillTweener.Restart();
+            }
+            else if (!anyPlayerInSp && _sp)
+            {
+                _meterGlowFillTweener.ChangeValues(_meterSpGlow.fillAmount, 0f, (0.8f * _engineManager.Happiness));
+                _meterGlowFillTweener.Restart();
+            }
+            else if (anyPlayerInSp && !_meterGlowFillTweener.IsPlaying())
+            {
+                var delta = Mathf.Max(Math.Abs(glowHeight - _meterSpGlow.fillAmount), 0.05f);
+                _meterGlowFillTweener.ChangeValues(_meterSpGlow.fillAmount, glowHeight, 0.8f * delta);
+                _meterGlowFillTweener.Restart();
+            }
+            _sp = anyPlayerInSp;
         }
 
         private void ApplyColor(MeterColor color)
