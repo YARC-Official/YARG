@@ -16,7 +16,7 @@ namespace YARG.Venue.Characters
         private int                    _lipsyncIndex;
         private List<PerformerEvent>   _singalongEvents;
         private int                    _singalongEventIndex;
-        public  bool                   HasLipsyncAssigned;
+        private bool                   _hasLipsyncAssigned;
 
         private ExpressionKey _browAggressive;
         private ExpressionKey _browDown;
@@ -110,7 +110,7 @@ namespace YARG.Venue.Characters
             _singalongEvents = singalongEvents;
             _singalongEventIndex = 0;
             _lipsyncIndex = 0;
-            HasLipsyncAssigned = true;
+            _hasLipsyncAssigned = true;
         }
 
         protected override void Update()
@@ -142,15 +142,9 @@ namespace YARG.Venue.Characters
 
         private void ProcessLipsync(double time)
         {
-            if (!HasLipsyncAssigned)
+            if (!_hasLipsyncAssigned)
             {
                 return;
-            }
-
-            while (_singalongEventIndex < _singalongEvents.Count && _singalongEvents[_singalongEventIndex].TimeEnd <= time)
-            {
-                _singalongEventIndex++;
-                ResetExpressions();
             }
 
             bool shouldSing = _singalongEvents.Count == 0 || (_singalongEventIndex < _singalongEvents.Count && _singalongEvents[_singalongEventIndex].Time <= time && time <= _singalongEvents[_singalongEventIndex].TimeEnd);
@@ -162,6 +156,12 @@ namespace YARG.Venue.Characters
                     SetExpression(lipsyncEvent);
                 }
                 _lipsyncIndex++;
+            }
+
+            while (_singalongEventIndex < _singalongEvents.Count && _singalongEvents[_singalongEventIndex].TimeEnd <= time)
+            {
+                _singalongEventIndex++;
+                ResetExpressions();
             }
         }
 

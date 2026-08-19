@@ -33,36 +33,13 @@ namespace YARG.Venue.Characters
 
         private Dictionary<CharacterType, List<PerformerEvent>> SingalongEventsByCharacter { get; } = new();
         private Dictionary<CharacterType, List<LipsyncEvent>>   LipsyncDataByCharacter     { get; } = new();
-
-        private List<PerformerEvent> GetSingalongEventsForCharacterType(CharacterType characterType)
-        {
-            if (characterType is CharacterType.Vocals || GameManager.Chart.VenueTrack.Performer.Count == 0)
-            {
-                return new List<PerformerEvent>();
-            }
-            // Performer is not in BandSongPref, just give them their events
-            if (!GameManager.Chart.SingerPreference.Contains(VenueCharacter.PerformerFromCharacterType(characterType)))
-            {
-                return GameManager.Chart.VenueTrack.Performer.Where(x =>
-                    x.Type is PerformerEventType.Singalong &&
-                    x.Performers.HasFlag(VenueCharacter.PerformerFromCharacterType(characterType))).ToList();
-            }
-            int prefIndex = GameManager.Chart.SingerPreference.ToList().IndexOf(VenueCharacter.PerformerFromCharacterType(characterType));
-            var performerToFetch = prefIndex switch
-            {
-                1 => Performer.Guitar,
-                2 => Performer.Bass,
-                3 => Performer.Drums,
-                _ => Performer.None
-            };
-            if (performerToFetch is Performer.None)
-            {
-                return new List<PerformerEvent>();
-            }
-            return GameManager.Chart.VenueTrack.Performer.Where(x =>
-                x.Type is PerformerEventType.Singalong &&
-                x.Performers.HasFlag(performerToFetch)).ToList();
-        }
+        private readonly CharacterType[] _lipsyncAssignmentPriority = {
+            CharacterType.Vocals,
+            CharacterType.Guitar,
+            CharacterType.Bass,
+            CharacterType.Drums,
+            CharacterType.Keys // In RB, keys just replaces either guitar or bass, so we'll just assign it last if no other characters are available
+        };
 
         private DrumCharacterHelper _drumCharacterHelper = new();
 
@@ -244,6 +221,8 @@ namespace YARG.Venue.Characters
 
         private void InitializeLipsync()
         {
+            YargLogger.LogFormatDebug("Initializing lipsync for {0} characters and {1} parts", _characters.Count, LipsyncEventsByPart.Count);
+            YargLogger.LogFormatDebug("Singer Preference: {0}", string.Join(", ", GameManager.Chart.SingerPreference.Select(x => x.ToString())));
             var unassignedLipsyncEventIndices = new List<int>();
             for (int i = 0; i < LipsyncEventsByPart.Count; i++)
             {
@@ -269,6 +248,7 @@ namespace YARG.Venue.Characters
 
             foreach (var lipsyncEventIndex in unassignedLipsyncEventIndices)
             {
+                YargLogger.LogFormatDebug("Assigning unassigned lipsync events for part {0}", lipsyncEventIndex);
                 var lipsyncEvents = LipsyncEventsByPart[lipsyncEventIndex];
                 var characterType = GetFirstCharacterTypeWithoutLipsync();
                 if (characterType is null)
@@ -285,10 +265,56 @@ namespace YARG.Venue.Characters
             foreach (var (characterType, character) in _characters)
             {
                 SingalongEventsByCharacter[characterType] = GetSingalongEventsForCharacterType(characterType);
+                if (SingalongEventsByCharacter[characterType].Count > 0)
+                {
+                    YargLogger.LogFormatDebug("Assigning {1} singalong events to character {0}",
+                        characterType, SingalongEventsByCharacter[characterType].Count);
+                }
                 AssignLipsyncToCharacter(character);
             }
         }
 
+        /// <summary>
+        /// Gets the singalong events for a given character type, taking into account the singer preference and the performer events in the chart.
+        /// </summary>
+        /// <param name="characterType"> The type of the character for which to get singalong events. </param>
+        /// <returns> A list of singalong events (PerformerEvent) for the specified character type. </returns>
+        private List<PerformerEvent> GetSingalongEventsForCharacterType(CharacterType characterType)
+        {
+            if (characterType is CharacterType.Vocals || GameManager.Chart.VenueTrack.Performer.Count == 0)
+            {
+                return new List<PerformerEvent>();
+            }
+            // Performer is not in BandSongPref, just give them their events
+            if (!GameManager.Chart.SingerPreference.Contains(VenueCharacter.PerformerFromCharacterType(characterType)))
+            {
+                return GameManager.Chart.VenueTrack.Performer.Where(x =>
+                    x.Type is PerformerEventType.Singalong &&
+                    x.Performers.HasFlag(VenueCharacter.PerformerFromCharacterType(characterType))).ToList();
+            }
+            int prefIndex = GameManager.Chart.SingerPreference.ToList().IndexOf(VenueCharacter.PerformerFromCharacterType(characterType));
+            var performerToFetch = prefIndex switch
+            {
+                1 => Performer.Guitar,
+                2 => Performer.Bass,
+                3 => Performer.Drums,
+                _ => Performer.None
+            };
+            if (performerToFetch is Performer.None)
+            {
+                return new List<PerformerEvent>();
+            }
+            return GameManager.Chart.VenueTrack.Performer.Where(x =>
+                x.Type is PerformerEventType.Singalong &&
+                x.Performers.HasFlag(performerToFetch)).ToList();
+        }
+        /// <summary>
+        /// <p> Assigns lipsync and singalong events to a given character based on their type and the available lipsync data. </p>
+        /// <p> If the character is not a <see cref="VRMCharacter"/>, nothing happens. </p>
+        /// <p> If lipsync events are found for the character's type, they are assigned to the character along with any singalong events. </p>
+        /// <p> If no specific lipsync events are found for the character's type, but there are lipsync events available from the Vocals part, those events are assigned instead. </p>
+        /// </summary>
+        /// <param name="character"> The character to which to assign lipsync events. </param>
         public void AssignLipsyncToCharacter(VenueCharacter character)
         {
             if (character is not VRMCharacter vrmCharacter)
@@ -302,7 +328,7 @@ namespace YARG.Venue.Characters
                     character.Type, lipsyncEvents.Count);
                 vrmCharacter.InitializeLipsync(lipsyncEvents, SingalongEventsByCharacter[character.Type]);
             }
-            else if (LipsyncEventsByPart.Count == 1 && SingalongEventsByCharacter[character.Type].Count > 0)
+            else if (LipsyncEventsByPart.Count >= 1 && SingalongEventsByCharacter.TryGetValue(character.Type, out var singalongEvents) && singalongEvents.Count > 0)
             {
                 YargLogger.LogFormatDebug(
                     "Assigning {1} singalong lipsync events from Vocals to character {0}",
@@ -314,15 +340,12 @@ namespace YARG.Venue.Characters
 
         private CharacterType? GetFirstCharacterTypeWithoutLipsync()
         {
-            foreach (var character in _characters.Keys)
+            foreach (var characterType in _lipsyncAssignmentPriority)
             {
-                if (!LipsyncDataByCharacter.ContainsKey(character))
+                if (!LipsyncDataByCharacter.ContainsKey(characterType))
                 {
-                    continue;
+                    return characterType;
                 }
-
-                return character;
-
             }
             return null;
         }
