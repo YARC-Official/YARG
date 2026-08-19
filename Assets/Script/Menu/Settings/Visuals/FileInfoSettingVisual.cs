@@ -28,7 +28,7 @@ namespace YARG.Menu.Settings.Visuals
             RefreshVisual();
         }
 
-        protected override void RefreshVisual()
+        public override void RefreshVisual()
         {
             _removeButton.color = Setting.Value != null ? _enabledButtonColor : _disabledButtonColor;
             var key = Setting.Value == null ? "Menu.Common.Disabled" : "Menu.Common.Enabled";

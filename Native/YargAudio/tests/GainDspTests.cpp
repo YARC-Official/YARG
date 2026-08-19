@@ -27,6 +27,10 @@ struct MockBass {
 
 MockBass* mock = nullptr;
 
+int YARG_BASS_CALL mockSetDevice(std::uint32_t) { return 1; }
+std::uint32_t YARG_BASS_CALL mockGetData(std::uint32_t, void*, std::uint32_t length) {
+    return length;
+}
 int YARG_BASS_CALL mockError() { return mock->error; }
 std::uint32_t YARG_BASS_CALL mockSetDsp(
     std::uint32_t, BassDspProc callback, void* user, int) {
@@ -52,8 +56,8 @@ std::uint32_t YARG_BASS_CALL mockGetConfig(std::uint32_t) {
 }
 
 BassCoreFunctions completeFunctions() {
-    return {&mockError, &mockSetDsp, &mockRemoveDsp, &mockChannelLock,
-        &mockGetInfo, &mockGetConfig};
+    return {&mockSetDevice, &mockGetData, &mockError, &mockSetDsp,
+        &mockRemoveDsp, &mockChannelLock, &mockGetInfo, &mockGetConfig};
 }
 
 yarg_gain_dsp* attach(BassCoreBindings& bass, MockBass& state, float gain = 1.0f) {

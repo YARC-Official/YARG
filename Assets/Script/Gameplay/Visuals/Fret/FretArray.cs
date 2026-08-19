@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 using YARG.Core.Chart;
 using YARG.Themes;
@@ -148,6 +149,24 @@ namespace YARG.Gameplay.Visuals
             }
         }
         #nullable restore
+
+        /// <summary>
+        /// Re-applies colors to the already-created frets, optionally remapping which
+        /// color index each fret uses. Used by the settings preview to reverse the fret
+        /// color order for lefty flip without rebuilding the fret array.
+        /// </summary>
+        public void RecolorFrets(IFretColorProvider fretColorProvider, Func<int, int> colorIndexRemap)
+        {
+            foreach (var (noteType, fret) in _frets)
+            {
+                int colorIndex = colorIndexRemap(noteType);
+                fret.Initialize(
+                    fretColorProvider.GetFretColor(colorIndex),
+                    fretColorProvider.GetFretInnerColor(colorIndex),
+                    fretColorProvider.GetParticleColor(colorIndex),
+                    fretColorProvider.GetParticleColor((int) FiveFretGuitarFret.Open));
+            }
+        }
 
         public void SetPressed(int index, bool pressed)
         {

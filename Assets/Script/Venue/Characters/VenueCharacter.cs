@@ -104,7 +104,7 @@ namespace YARG.Venue.Characters
         private int _kickAnimationHash;
 
         private RuntimeAnimatorController _animatorController;
-        private Animator _animator;
+        protected Animator _animator;
 
         private float _animationLength;
         private float _animationSpeed;
@@ -157,6 +157,14 @@ namespace YARG.Venue.Characters
 
         [NonSerialized]
         public bool HatIsOpen;
+
+        [NonSerialized]
+        public  bool HasRng = false;
+        [NonSerialized]
+        public int CurrentRng;
+        [NonSerialized]
+        public int RngAtLastTransition;
+        protected int  _rngHash;
 
         public virtual void Initialize(CharacterManager characterManager)
         {

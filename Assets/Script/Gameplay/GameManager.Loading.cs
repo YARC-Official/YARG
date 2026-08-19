@@ -322,6 +322,12 @@ namespace YARG.Gameplay
                 Chart = Song.LoadChart();
                 if (Chart != null)
                 {
+                    var isReplay = GlobalVariables.State.IsReplay || GlobalVariables.State.PlayingWithReplay;
+                    if ((isReplay && ReplayInfo!.CensorshipEnabled) ||
+                        (!isReplay && SettingsManager.Settings.CensorMatureContent.Value))
+                    {
+                        Chart.ApplyCensorship();
+                    }
                     GenerateVenueTrack();
                     GenerateLipsyncTrack();
                 }
@@ -496,7 +502,15 @@ namespace YARG.Gameplay
                                 : Chart.Harmony;
                             VocalTrack.Initialize(chart, player, Song.VocalScrollSpeedScalingFactor);
 
-                            _lyricBar.gameObject.SetActive(false);
+                            if (SettingsManager.Settings.KeepLyricBar.Value &&
+                                SettingsManager.Settings.LyricDisplay.Value != LyricDisplayMode.Disabled)
+                            {
+                                _lyricBar.SetVocalPlayerLayout();
+                            }
+                            else
+                            {
+                                _lyricBar.gameObject.SetActive(false);
+                            }
                             vocalTrackInitialized = true;
                         }
 

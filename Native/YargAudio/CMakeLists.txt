@@ -12,15 +12,19 @@ option(YARG_AUDIO_BUILD_TESTS "Build native unit tests" ON)
 find_package(Threads REQUIRED)
 
 set(YARG_AUDIO_SOURCES
+    src/AudioRingBuffer.cpp
     src/BassCoreBindings.cpp
-    src/BassMixBindings.cpp
     src/dsp/GainDsp.cpp
     src/dsp/FreeverbDsp.cpp
     src/one_shot/ScheduledSampleSource.cpp
     src/one_shot/NativeOneShotStream.cpp
     src/PlatformDynamicLibrary.cpp
+    src/ReadAheadStream.cpp
+    src/RenderAheadMixer.cpp
     src/yarg_audio_c_api.cpp
 )
+
+list(APPEND YARG_AUDIO_SOURCES src/BassMixBindings.cpp)
 
 add_library(yarg_audio SHARED ${YARG_AUDIO_SOURCES})
 target_compile_features(yarg_audio PRIVATE cxx_std_20)
@@ -62,11 +66,16 @@ endif()
 if(YARG_AUDIO_BUILD_TESTS)
     enable_testing()
     add_executable(yarg_audio_tests
+        tests/main.cpp
+        tests/AudioRingBufferTests.cpp
+        tests/BassBindingTests.cpp
         tests/GainDspTests.cpp
         tests/FreeverbDspTests.cpp
+        tests/RenderAheadMixerTests.cpp
         tests/ScheduledSampleSourceTests.cpp
         tests/NativeOneShotStreamTests.cpp
-        tests/main.cpp
+        tests/ReadAheadStreamTests.cpp
+        src/AudioRingBuffer.cpp
         src/BassCoreBindings.cpp
         src/BassMixBindings.cpp
         src/dsp/GainDsp.cpp
@@ -74,6 +83,8 @@ if(YARG_AUDIO_BUILD_TESTS)
         src/one_shot/ScheduledSampleSource.cpp
         src/one_shot/NativeOneShotStream.cpp
         src/PlatformDynamicLibrary.cpp
+        src/ReadAheadStream.cpp
+        src/RenderAheadMixer.cpp
     )
     target_compile_features(yarg_audio_tests PRIVATE cxx_std_20)
     target_include_directories(yarg_audio_tests PRIVATE include src)

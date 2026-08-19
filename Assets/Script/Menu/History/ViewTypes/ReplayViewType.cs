@@ -142,6 +142,11 @@ namespace YARG.Menu.History
                 return;
             }
 
+            if (_entry.CensorshipEnabled)
+            {
+                chart.ApplyCensorship();
+            }
+
             var replayOptions = new ReplayReadOptions { KeepFrameTimes = GlobalVariables.VerboseReplays };
             var (result, data) = ReplayIO.TryLoadData(_entry, replayOptions);
             if (result != ReplayReadResult.Valid)

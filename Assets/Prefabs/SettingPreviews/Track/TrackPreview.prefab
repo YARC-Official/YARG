@@ -413,3 +413,4 @@ MonoBehaviour:
   _fretArray: {fileID: 2238655681509252365}
   _notePool: {fileID: 6730988211634240432}
   _hitWindow: {fileID: 2495264194525179181}
+  _proKeysEdgeTexture: {fileID: 2800000, guid: 595196557d07f334785b6f9e842d1ad6, type: 3}
