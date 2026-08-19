@@ -13,6 +13,10 @@ namespace YARG.Venue.Characters
     {
         private Vrm10RuntimeExpression _expression;
         private List<LipsyncEvent>     _lipsyncEvents;
+        private int                    _lipsyncIndex;
+        private List<PerformerEvent>   _singalongEvents;
+        private int                    _singalongEventIndex;
+        private bool                   _hasLipsyncAssigned;
 
         private ExpressionKey _browAggressive;
         private ExpressionKey _browDown;
@@ -21,7 +25,7 @@ namespace YARG.Venue.Characters
 
         private readonly Dictionary<string, ExpressionKey> _customExpressions = new();
 
-        private int _lipsyncIndex;
+
 
         [Header("Lipsync Settings")]
         [SerializeField]
@@ -84,11 +88,8 @@ namespace YARG.Venue.Characters
             _hasVrmInstance = VrmInstance != null;
             _modelLevels = new BlittableModelLevel();
             _expression = VrmInstance.Runtime.Expression;
-
-            if (_characterManager != null)
-            {
-                _lipsyncEvents = _characterManager.LipsyncEvents;
-            }
+            _lipsyncEvents = new List<LipsyncEvent>();
+            _singalongEvents = new List<PerformerEvent>();
 
             var clips = VrmInstance.Vrm.Expression.CustomClips;
 
@@ -101,6 +102,15 @@ namespace YARG.Venue.Characters
 
             _rngHash = Animator.StringToHash("RNG");
             HasRng = _intHashes.Contains(_rngHash);
+        }
+
+        public void InitializeLipsync(List<LipsyncEvent> lipsyncEvents, List<PerformerEvent> singalongEvents)
+        {
+            _lipsyncEvents = lipsyncEvents;
+            _singalongEvents = singalongEvents;
+            _singalongEventIndex = 0;
+            _lipsyncIndex = 0;
+            _hasLipsyncAssigned = true;
         }
 
         protected override void Update()
@@ -132,19 +142,26 @@ namespace YARG.Venue.Characters
 
         private void ProcessLipsync(double time)
         {
-            // We may have initialized too early, so we need to protect against null reference and hope it fixes itself later
-            if (_characterManager.LipsyncEvents == null)
+            if (!_hasLipsyncAssigned)
             {
                 return;
             }
 
-            while (_lipsyncIndex < _characterManager.LipsyncEvents.Count && _characterManager.LipsyncEvents[_lipsyncIndex].Time <= time)
+            bool shouldSing = _singalongEvents.Count == 0 || (_singalongEventIndex < _singalongEvents.Count && _singalongEvents[_singalongEventIndex].Time <= time && time <= _singalongEvents[_singalongEventIndex].TimeEnd);
+            while (_lipsyncIndex < _lipsyncEvents.Count && _lipsyncEvents[_lipsyncIndex].Time <= time)
             {
-                var lipsyncEvent = _characterManager.LipsyncEvents[_lipsyncIndex];
-
-                SetExpression(lipsyncEvent);
-
+                var lipsyncEvent = _lipsyncEvents[_lipsyncIndex];
+                if (shouldSing)
+                {
+                    SetExpression(lipsyncEvent);
+                }
                 _lipsyncIndex++;
+            }
+
+            while (_singalongEventIndex < _singalongEvents.Count && _singalongEvents[_singalongEventIndex].TimeEnd <= time)
+            {
+                _singalongEventIndex++;
+                ResetExpressions();
             }
         }
 
@@ -169,6 +186,15 @@ namespace YARG.Venue.Characters
             }
 
             _expression.SetWeight(_lipsyncKey, lipsyncEvent.Value);
+        }
+
+        private void ResetExpressions()
+        {
+            foreach (var key in _customExpressions.Values)
+            {
+                _expression.SetWeight(key, 0f);
+            }
+            _expression.SetWeight(_lipsyncKey, 0f);
         }
 
         public void SetWind(Vector3 wind)
