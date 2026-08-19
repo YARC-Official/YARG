@@ -1,3 +1,4 @@
+#nullable enable
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,39 +11,37 @@ using YARG.Core.Logging;
 namespace YARG.Audio.BASS
 {
     /// <summary>
-    /// Managed coordinator for a native BASS mixer source.
-    /// Sample scheduling and mixing never enter managed code.
+    ///     Managed coordinator for a native BASS mixer source.
+    ///     Sample scheduling and mixing never enter managed code.
     /// </summary>
     internal sealed class BassOneShotChannel : OneShotChannel
     {
-        private const int DecodeBufferSize = 4096;
-
-        private readonly int _tempoStreamHandle;
-        private readonly int _sampleRate;
+        private const    int                DECODE_BUFFER_SIZE = 4096;
         private readonly Func<long, double> _getSongPosition;
-        private readonly Func<float> _getSpeed;
-        private readonly double _outputLeadTime;
-        private readonly double[] _scheduledPlays;
-        private BassNativeOneShotStream _nativeStream;
-        private readonly int _targetMixerHandle;
-        private int _outputMixerHandle;
-        private bool _playbackPaused;
-        private bool _disposed;
+        private readonly Func<float>        _getSpeed;
+        private readonly double             _outputLeadTime;
+        private readonly int                _sampleRate;
+        private readonly double[]           _scheduledPlays;
 
-        internal event Action<BassOneShotChannel> Disposed;
+        private readonly int                      _tempoStreamHandle;
+        private          bool                     _disposed;
+        private          BassNativeOneShotStream? _nativeStream;
+        private          int                      _outputMixerHandle;
+        private          bool                     _playbackPaused;
+        private          int                      _targetMixerHandle;
 
         public BassOneShotChannel(int outputMixerHandle, int tempoStreamHandle, int sampleStream,
-            IReadOnlyList<double> scheduledPlays, Func<long, double> getSongPosition,
-            Func<float> getSpeed, double outputLeadTime, bool playbackPaused)
+            IReadOnlyList<double> scheduledPlays, Func<long, double> getSongPosition, Func<float> getSpeed,
+            double outputLeadTime, bool playbackPaused)
         {
             _outputMixerHandle = outputMixerHandle;
             _targetMixerHandle = outputMixerHandle;
             _playbackPaused = playbackPaused;
             _tempoStreamHandle = tempoStreamHandle;
-            _getSongPosition = getSongPosition ?? throw new ArgumentNullException(nameof(getSongPosition));
-            _getSpeed = getSpeed ?? throw new ArgumentNullException(nameof(getSpeed));
+            _getSongPosition = getSongPosition;
+            _getSpeed = getSpeed;
             _outputLeadTime = Math.Max(0, outputLeadTime);
-            _scheduledPlays = scheduledPlays?.ToArray() ?? throw new ArgumentNullException(nameof(scheduledPlays));
+            _scheduledPlays = scheduledPlays.ToArray();
             Array.Sort(_scheduledPlays);
 
             var info = Bass.ChannelGetInfo(outputMixerHandle);
@@ -51,15 +50,25 @@ namespace YARG.Audio.BASS
                 Bass.StreamFree(sampleStream);
                 throw new ArgumentException("Playback mixer must use float sample data.", nameof(outputMixerHandle));
             }
+
             _sampleRate = info.Frequency;
-            float[] sample = DecodeSample(sampleStream, _sampleRate, info.Channels);
-            if (sample == null || sample.Length == 0) return;
+            float[]? sample = DecodeSample(sampleStream, _sampleRate, info.Channels);
+            if (sample == null || sample.Length == 0)
+            {
+                return;
+            }
 
             _nativeStream = BassNativeOneShotStream.Create(
                 _sampleRate, info.Channels, sample, _scheduledPlays, _outputLeadTime);
-            if (_nativeStream == null) return;
+            if (_nativeStream == null)
+            {
+                return;
+            }
+
             AttachOutput(outputMixerHandle, playbackPaused);
         }
+
+        internal event Action<BassOneShotChannel>? Disposed;
 
         public override void SetVolume(double volume)
         {
@@ -71,18 +80,41 @@ namespace YARG.Audio.BASS
             _nativeStream?.SetEnabled(enabled);
         }
 
+        internal void DetachOutput()
+        {
+            bool detached = _nativeStream?.Detach() ?? true;
+            if (detached)
+            {
+                _outputMixerHandle = 0;
+            }
+        }
+
         internal void AttachOutput(int outputMixerHandle, bool playbackPaused)
         {
-            if (_disposed || _nativeStream == null) return;
-            if (!TryGetCurrentSongPosition(outputMixerHandle,
-                out double songPosition, out float speed)) return;
+            _targetMixerHandle = outputMixerHandle;
+            if (_disposed || _nativeStream == null)
+            {
+                return;
+            }
+
+            if (!TryGetCurrentSongPosition(outputMixerHandle, out double songPosition, out float speed))
+            {
+                return;
+            }
+
             if (_nativeStream.Attach(outputMixerHandle, songPosition, speed, playbackPaused))
+            {
                 _outputMixerHandle = outputMixerHandle;
+            }
         }
 
         internal void SetPlaybackPaused(bool paused)
         {
-            if (_nativeStream == null) return;
+            if (_nativeStream == null)
+            {
+                return;
+            }
+
             _playbackPaused = paused;
 
             if (paused)
@@ -91,33 +123,41 @@ namespace YARG.Audio.BASS
             }
             else
             {
-                // Parent mixer can continue while song is paused. Re-anchor before rendering
-                // again so the one-shot cursor excludes paused time.
-                if (Reanchor(clearActiveVoices: false)) _nativeStream.SetPaused(false);
+                if (Reanchor(false))
+                {
+                    _nativeStream.SetPaused(false);
+                }
             }
         }
 
-        internal void PrepareForSeek() { }
-        internal void ResetAfterSeek() => Reanchor(clearActiveVoices: true);
-        internal void ResetAfterSpeedChange() => Reanchor(clearActiveVoices: false);
+        internal void ResetAfterSeek() => Reanchor(true);
+        internal void ResetAfterSpeedChange() => Reanchor(false);
 
         private bool Reanchor(bool clearActiveVoices)
         {
-            if (_disposed || _nativeStream == null) return false;
+            if (_disposed || _nativeStream == null)
+            {
+                return false;
+            }
+
             if (_outputMixerHandle == 0)
             {
-                // Initial attach can fail (e.g. transient position read error). Retry on the
-                // next re-anchor instead of leaving the one-shot dead for the whole song.
                 AttachOutput(_targetMixerHandle, _playbackPaused);
-                if (_outputMixerHandle == 0) return false;
+                if (_outputMixerHandle == 0)
+                {
+                    return false;
+                }
             }
-            if (!TryGetCurrentSongPosition(_outputMixerHandle,
-                out double songPosition, out float speed)) return false;
+
+            if (!TryGetCurrentSongPosition(_outputMixerHandle, out double songPosition, out float speed))
+            {
+                return false;
+            }
+
             return _nativeStream.Resync(songPosition, speed, clearActiveVoices);
         }
 
-        private bool TryGetCurrentSongPosition(int outputMixerHandle,
-            out double songPosition, out float speed)
+        private bool TryGetCurrentSongPosition(int outputMixerHandle, out double songPosition, out float speed)
         {
             songPosition = 0;
             speed = 0;
@@ -134,26 +174,49 @@ namespace YARG.Audio.BASS
                 YargLogger.LogFormatError("Failed to read one-shot playback speed: {0}", speed);
                 return false;
             }
+
             songPosition = _getSongPosition(tempo);
             return !double.IsNaN(songPosition) && !double.IsInfinity(songPosition);
         }
 
-        private static float[] DecodeSample(int streamHandle, int sampleRate, int channelCount)
+        private static float[]? DecodeSample(int streamHandle, int sampleRate, int channelCount)
         {
-            if (streamHandle == 0) return null;
+            if (streamHandle == 0)
+            {
+                return null;
+            }
+
             int converter = BassMix.CreateMixerStream(sampleRate, channelCount,
                 BassFlags.Float | BassFlags.Decode | BassFlags.MixerEnd);
-            if (converter == 0) { Bass.StreamFree(streamHandle); return null; }
+            if (converter == 0)
+            {
+                Bass.StreamFree(streamHandle);
+                return null;
+            }
+
             try
             {
-                if (!BassMix.MixerAddChannel(converter, streamHandle, BassFlags.MixerChanNoRampin)) return null;
+                if (!BassMix.MixerAddChannel(converter, streamHandle, BassFlags.MixerChanNoRampin))
+                {
+                    return null;
+                }
+
                 var result = new List<float>();
-                var buffer = new float[DecodeBufferSize];
+                float[] buffer = new float[DECODE_BUFFER_SIZE];
                 int bytesRead;
                 while ((bytesRead = Bass.ChannelGetData(converter, buffer, buffer.Length * sizeof(float))) > 0)
-                    for (int i = 0; i < bytesRead / sizeof(float); i++) result.Add(buffer[i]);
+                {
+                    for (int i = 0; i < bytesRead / sizeof(float); i++)
+                    {
+                        result.Add(buffer[i]);
+                    }
+                }
+
                 if (bytesRead < 0 && Bass.LastError != Errors.Ended)
+                {
                     YargLogger.LogFormatError("Failed to decode one-shot sample: {0}", Bass.LastError);
+                }
+
                 return result.Count == 0 ? null : result.ToArray();
             }
             finally
@@ -165,7 +228,11 @@ namespace YARG.Audio.BASS
 
         public override void Dispose()
         {
-            if (_disposed) return;
+            if (_disposed)
+            {
+                return;
+            }
+
             _disposed = true;
             _nativeStream?.Dispose();
             _nativeStream = null;

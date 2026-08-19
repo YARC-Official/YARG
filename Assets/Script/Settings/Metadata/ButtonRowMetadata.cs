@@ -1,3 +1,5 @@
+using System;
+
 namespace YARG.Settings.Metadata
 {
     public sealed class ButtonRowMetadata : AbstractMetadata
@@ -7,7 +9,12 @@ namespace YARG.Settings.Metadata
         public string[] Buttons { get; private set; }
 
         public ButtonRowMetadata(string button, bool isAdvanced = false)
-            : base(isAdvanced)
+            : this(button, null, isAdvanced)
+        {
+        }
+
+        public ButtonRowMetadata(string button, Func<bool> visibleWhen, bool isAdvanced = false)
+            : base(isAdvanced, visibleWhen)
         {
             UnlocalizedSearchNames = new[] { $"Button.{button}" };
             Buttons = new[] { button };

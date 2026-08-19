@@ -92,6 +92,7 @@ namespace YARG
             int savedCount = PlayerContainer.SaveProfiles(false);
             YargLogger.LogFormatInfo("Saved {0} profiles", savedCount);
 
+            SettingsManager.LoadStartupSettings();
             GlobalAudioHandler.Initialize<BassAudioManager>();
 
             Players = new List<YargPlayer>();
@@ -110,12 +111,15 @@ namespace YARG
         }
 
 #if UNITY_EDITOR
-
         // For respecting the editor's mute button
         private bool _previousMute;
+#endif
 
         private void Update()
         {
+            GlobalAudioHandler.Update();
+
+#if UNITY_EDITOR
             bool muted = UnityEditor.EditorUtility.audioMasterMute;
             if (muted != _previousMute)
             {
@@ -129,9 +133,8 @@ namespace YARG
                 _nextLocalizationUpdate = Time.realtimeSinceStartup + LOCALIZATION_UPDATE_INTERVAL + UnityEngine.Random.Range(-30f, 30f);
                 YargLogger.LogFormatDebug("Updating localization at {0}, next update at {1}", Time.realtimeSinceStartup, _nextLocalizationUpdate);
             }
-        }
-
 #endif
+        }
 
         protected override void SingletonDestroy()
         {
@@ -152,7 +155,7 @@ namespace YARG
 #endif
         }
 
-        private async void LoadSceneAdditive(SceneIndex scene, bool restartMicrophones)
+        private async void LoadSceneAdditive(SceneIndex scene)
         {
             CurrentScene = scene;
 
@@ -166,17 +169,11 @@ namespace YARG
 
             await Resources.UnloadUnusedAssets();
             GC.Collect();
-
-            if (restartMicrophones)
-            {
-                RestartProfileMicrophones();
-            }
         }
 
         public void LoadScene(SceneIndex scene)
         {
             Navigator.Instance.DisableMenuInputs = true;
-            bool restartMicrophones = CurrentScene == SceneIndex.Gameplay && scene != SceneIndex.Gameplay;
 
             // Unload the current scene and load in the new one, or just load in the new one
             if (CurrentScene != SceneIndex.Persistent)
@@ -185,35 +182,11 @@ namespace YARG
                 var asyncOp = SceneManager.UnloadSceneAsync((int) CurrentScene);
 
                 // The load the new scene
-                asyncOp.completed += _ => LoadSceneAdditive(scene, restartMicrophones);
+                asyncOp.completed += _ => LoadSceneAdditive(scene);
             }
             else
             {
-                LoadSceneAdditive(scene, restartMicrophones);
-            }
-        }
-
-        public static void RestartProfileMicrophones()
-        {
-            var microphones = new HashSet<BassMicDevice>();
-            foreach (var profile in PlayerContainer.Profiles)
-            {
-                var bindings = BindingsContainer.GetBindingsForProfile(profile);
-                if (bindings is not null)
-                {
-                    foreach (var mic in bindings.Microphones)
-                    {
-                        if (mic is BassMicDevice microphone)
-                        {
-                            microphones.Add(microphone);
-                        }
-                    }
-                }
-            }
-
-            foreach (var microphone in microphones)
-            {
-                microphone.RestartRecording();
+                LoadSceneAdditive(scene);
             }
         }
 

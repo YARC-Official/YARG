@@ -178,8 +178,6 @@ namespace YARG.Audio.BASS
         {
             _reverbDsp?.Dispose();
             _reverbDsp = null;
-            _streamHandles.Dispose();
-            _reverbHandles.Dispose();
         }
 
         private void RemoveReverbEq()

@@ -11,6 +11,10 @@
     } \
 } while (false)
 
+void runRenderAheadMixerTests();
+void runReadAheadStreamTests();
+void runAudioRingBufferTests();
+void runBassBindingTests();
 void runGainDspTests();
 void runFreeverbDspTests();
 void runScheduledSampleSourceTests();

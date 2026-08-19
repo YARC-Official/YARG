@@ -68,6 +68,19 @@ namespace YARG.Gameplay.Visuals
             NoteGroup.SetActive(true);
             NoteGroup.Initialize();
 
+            // Override the ghost note's center strip emission from the color
+            // profile. Ghost notes have a dark strip material with
+            // EmissionMultiplier 0 in the prefab; the user can boost it.
+            // Always call OverrideZeroEmission (even at 0) so pooled notes reset.
+            if (NoteRef.IsGhost)
+            {
+                float emission = Player.Player.ColorProfile.FiveLaneDrums.GhostStripEmission / 100f;
+                if (emission >= 0f)
+                {
+                    NoteGroup.OverrideZeroEmission(emission);
+                }
+            }
+
             // Set note color
             UpdateColor();
         }

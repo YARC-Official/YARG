@@ -107,6 +107,28 @@ namespace YARG.Gameplay.Visuals
             NoteGroup.SetActive(true);
             NoteGroup.Initialize();
 
+            // Override the tap note's center strip emission from the color
+            // profile. The strip's material has EmissionMultiplier 0 in the
+            // prefab; the user can boost it via TapStripEmission (0–100).
+            if (NoteRef.Type == GuitarNoteType.Tap &&
+                NoteRef.Fret != (int) FiveFretGuitarFret.Open)
+            {
+                float emission = Player.Player.ColorProfile.FiveFretGuitar.TapStripEmission / 100f;
+                if (emission >= 0f)
+                {
+                    NoteGroup.OverrideZeroEmission(emission);
+                }
+            }
+
+            // Open HOPO notes have EmissionAddition: 1 in the prefab, which
+            // washes the note color to white. Reset it so the dedicated
+            // OpenHopoNote color field is visible.
+            if (NoteRef.Fret == (int) FiveFretGuitarFret.Open &&
+                NoteRef.Type is GuitarNoteType.Hopo or GuitarNoteType.Tap)
+            {
+                NoteGroup.ResetEmissionAddition();
+            }
+
             // Set line length
             if (NoteRef.IsSustain)
             {
@@ -182,10 +204,24 @@ namespace YARG.Gameplay.Visuals
             var colors = Player.Player.ColorProfile.FiveFretGuitar;
 
             // Get which note color to use
-            var colorNoStarPower = colors.GetNoteColor(NoteRef.Fret);
-            var color = IsStarPowerVisible
-                ? colors.GetNoteStarPowerColor(NoteRef.Fret)
-                : colorNoStarPower;
+            System.Drawing.Color colorNoStarPower;
+            System.Drawing.Color color;
+
+            // Open HOPO/Tap notes use a dedicated color (the prefab's
+            // EmissionAddition: 1 washes to white by default)
+            if (NoteRef.Fret == (int) FiveFretGuitarFret.Open &&
+                NoteRef.Type is GuitarNoteType.Hopo or GuitarNoteType.Tap)
+            {
+                colorNoStarPower = colors.OpenHopoNote;
+                color = IsStarPowerVisible ? colors.OpenHopoNoteStarPower : colorNoStarPower;
+            }
+            else
+            {
+                colorNoStarPower = colors.GetNoteColor(NoteRef.Fret);
+                color = IsStarPowerVisible
+                    ? colors.GetNoteStarPowerColor(NoteRef.Fret)
+                    : colorNoStarPower;
+            }
 
             if (NoteRef.WasMissed)
             {

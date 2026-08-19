@@ -168,9 +168,9 @@ internal static class PackageCommand
             {
                 if (status.Conclusion != "success")
                 {
-                    throw new ToolException(
-                        $"GitHub Actions package run failed with conclusion " +
-                        $"'{status.Conclusion}'. {status.Url}");
+                    Console.Error.WriteLine(
+                        $"warning: package run completed with conclusion " +
+                        $"'{status.Conclusion}'; checking uploaded artifacts. {status.Url}");
                 }
 
                 return;

@@ -129,6 +129,7 @@
             "Apply": "Apply",
             "Back": "Back",
             "Cancel": "Cancel",
+            "DontApply": "Don't Apply",
             "Close": "Close",
             "Confirm": "Confirm",
             "Continue": "Continue",
@@ -1064,7 +1065,8 @@
             "RefreshCache": "Scan Songs",
             "OpenExecutablePath": "Open Executable Path",
             "OpenPersistentDataPath": "Open Persistent Data Path",
-            "RemoveRemoteContent": "Remove Cached Content"
+            "RemoveRemoteContent": "Remove Cached Content",
+            "OpenAsioControlPanel": "Open ASIO Control Panel"
         },
         "Setting": {
             "AllowDuplicateSongs": {
@@ -1332,6 +1334,10 @@
                     "Transparent": "Translucent Background"
                 }
             },
+            "KeepLyricBar": {
+                "Name": "Keep Lyric Bar",
+                "Description": "Displays the karaoke lyric bar below the vocal track while singers are playing."
+            },
             "MasterMusicVolume": {
                 "Name": "Master Music Volume",
                 "PauseName": "Master",
@@ -1445,6 +1451,23 @@
                 "Default": "Use Default Channel(s)",
                 "Mono": "{0}",
                 "Stereo": "{0} & {1}"
+            },
+            "OutputMode": {
+                "Name": "Output Mode",
+                "Description": "Select standard system audio or an ASIO driver.",
+                "Dropdown": {
+                    "Shared": "Shared Audio",
+                    "Asio": "ASIO"
+                }
+            },
+            "AsioBufferSize": {
+                "Name": "ASIO Buffer Size",
+                "Description": "Smaller buffers reduce output latency but require more reliable audio processing.",
+                "DriverDefault": "Driver Default",
+                "DriverDefaultWithSize": "Driver Default ({0} samples)",
+                "DriverControlledWithSize": "Driver controlled ({0} samples)",
+                "Samples": "{0} samples",
+                "SamplesWithDuration": "{0} samples (~{1} ms)"
             },
             "OutputDevice": {
                 "Name": "Output Device",
@@ -1633,7 +1656,7 @@
             "VocalMonitoring": {
                 "Name": "Vocal Monitoring Volume",
                 "PauseName": "Monitoring",
-                "Description": "Adjusts the feedback you hear when singing."
+                "Description": "Adjusts the feedback you hear when singing. Values above 1 add extra gain for quiet microphones."
             },
 			"VocalStreakFrequency": {
                 "Name": "Vocal Streak Frequency",
@@ -1733,9 +1756,13 @@
                 "Name": "DMX Pulse Duration (MS)",
                 "Description": "How long a DMX channel stays on after receiving a trigger, in milliseconds. Increase this value if lights are not firing reliably. Set to 0 to disable pulse stretching entirely."
             },
+            "AutomaticPlaybackBuffer": {
+                "Name": "Automatic Buffer Setting",
+                "Description": "Automatically increases the playback buffer by 1 millisecond for each audio underrun."
+            },
             "PlaybackBufferLength": {
                 "Name": "Playback Buffer Length",
-                "Description": "The size of the playback buffer, in milliseconds. Set to 0 to disable. Larger buffers provide more stability, but increase the latency of sound effects."
+                "Description": "The size of the song playback read-ahead buffer, in milliseconds. Set to 0 to use the minimum size. Larger buffers provide more stability, but increase latency."
             },
             "ShowTime": {
                 "Name": "Show Time",
@@ -1842,6 +1869,50 @@
 			"RockMeterPresetContainer" : "Rock Meter Presets"
         },
         "PresetSetting": {
+            "PreviewVisuals": {
+                "Instrument": {
+                    "Name": "Instrument"
+                },
+                "Visuals": {
+                    "Name": "Preview Options"
+                },
+                "StarPowerNotes": {
+                    "Name": "Star Power Notes"
+                },
+                "StarPowerActive": {
+                    "Name": "Star Power Active"
+                },
+                "Groove": {
+                    "Name": "Groove"
+                },
+                "LeftyFlip": {
+                    "Name": "Lefty Flip"
+                }
+            },
+            "ColorGroups": {
+                "Green": "Green",
+                "Red": "Red",
+                "Yellow": "Yellow",
+                "Blue": "Blue",
+                "Orange": "Orange",
+                "Open": "Open",
+                "Kick": "Kick",
+                "General": "General",
+                "Notes": "Notes",
+                "Fret": "Fret",
+                "Lane": "{0} Lane"
+            },
+            "Dialog": {
+                "CopyFromNote": {
+                    "Button": "Copy from note",
+                    "Title": "Copy From Note",
+                    "Message": "Apply base note color to all fret and particle fields?"
+                },
+                "DeletePreset": {
+                    "Title": "Delete Preset",
+                    "Message": "Delete preset \"{0}\"?"
+                }
+            },
             "CameraPreset": {
                 "CurveFactor": {
                     "Name": "Curve Factor",
@@ -1882,6 +1953,9 @@
                         "FourLaneDrums": "Drums (4-Lane)",
                         "ProKeys": "Pro Keys"
                     }
+                },
+                "FiveLaneKeys": {
+                    "Name": "5 Lane Keys"
                 },
                 "ActivationNote": {
                     "Name": "Activation Note"
@@ -2221,6 +2295,20 @@
                 },
                 "WhiteParticles": {
                     "Name": "White Particles"
+                },
+                "TapStripEmission": {
+                    "Name": "Tap Strip Emission",
+                    "Description": "Controls the brightness of the center strip on tap notes. At 0, the strip appears dark; at 100, it glows with the note color."
+                },
+                "GhostStripEmission": {
+                    "Name": "Ghost Strip Emission",
+                    "Description": "Controls the brightness of the center strip on ghost/grace notes. At 0, the strip appears dark; at 100, it glows with the note color."
+                },
+                "OpenHopoNote": {
+                    "Name": "Open HOPO Note"
+                },
+                "OpenHopoNoteStarPower": {
+                    "Name": "Open HOPO Note Star Power"
                 }
             },
             "EnginePreset": {

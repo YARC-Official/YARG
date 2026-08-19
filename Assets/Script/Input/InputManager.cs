@@ -48,6 +48,10 @@ namespace YARG.Input
         /// </summary>
         public static double CurrentInputTime => InputState.currentTime;
 
+        internal static bool IsEditorUpdate => InputState.currentUpdateType == InputUpdateType.Editor;
+
+        internal static double ClampInputTime(double time) => Math.Min(time, CurrentInputTime);
+
         private static HashSet<InputDevice> _seenDevices = new();
         private static HashSet<InputDevice> _disabledDevices = new();
 
@@ -153,11 +157,21 @@ namespace YARG.Input
 
         private static void OnBeforeUpdate()
         {
+            if (IsEditorUpdate)
+            {
+                return;
+            }
+
             CaptureInputUpdateTime();
         }
 
         private static void OnAfterUpdate()
         {
+            if (IsEditorUpdate)
+            {
+                return;
+            }
+
             CaptureInputUpdateTime();
 
             if (InputUpdateTime < _latestInputTime)
@@ -199,6 +213,11 @@ namespace YARG.Input
         // For input time handling/debugging
         private static void OnEvent(InputEventPtr eventPtr, InputDevice device)
         {
+            if (IsEditorUpdate)
+            {
+                return;
+            }
+
             double currentTime = CurrentInputTime;
 
             // Only check state events
@@ -207,18 +226,19 @@ namespace YARG.Input
                 return;
             }
 
-            // Keep track of the latest input event
-            if (eventPtr.time > _latestInputTime)
-            {
-                _latestInputTime = eventPtr.time;
-            }
-
             // Rare edge-case, but the input system very much allows this
             if (eventPtr.time > currentTime)
             {
                 YargLogger.LogFormatError(
                     "An input event is in the future!\nCurrent time: {0}, event time: {1}, device: {2}",
                     currentTime, eventPtr.time, device);
+            }
+
+            // Keep track of the latest input event
+            double inputTime = ClampInputTime(eventPtr.time);
+            if (inputTime > _latestInputTime)
+            {
+                _latestInputTime = inputTime;
             }
 
             // TODO: It would be nice to suppress the following for keyboard/mouse when there is no

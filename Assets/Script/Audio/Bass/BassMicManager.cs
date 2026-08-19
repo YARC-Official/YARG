@@ -1,145 +1,244 @@
 #nullable enable
 using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading;
-using Cysharp.Threading.Tasks;
 using ManagedBass;
 using YARG.Core.Audio;
 using YARG.Core.Logging;
-using YARG.Settings;
 
 namespace YARG.Audio.BASS
 {
-    // Manages all recording devices and the mics opened on them. Each physical device
-    // is captured once and shared by every mic on it, so multi-input devices (e.g. a
-    // USB audio interface with several inputs) only open the device a single time.
-    // The manager probes devices to discover their real channel count, caches the
-    // results, tracks which channels are already claimed, and handles
-    // RecordingSession instances as mics are added and removed. BASS recording
-    // calls act on the current recording device; _lock serializes all of them.
     internal sealed class BassMicManager
     {
-        private readonly List<ActiveMic>         _activeMics   = new();
-        private readonly Dictionary<string, int> _channelCache = new(StringComparer.Ordinal);
-        private readonly object                  _lock         = new();
-        private          List<string>            _deviceNames  = new();
+        private readonly Dictionary<int, BassMicrophoneCapture> _captures             = new();
+        private readonly Dictionary<(int Id, string Name), int> _channelCountByDevice = new();
+        private readonly object                                 _lock                 = new();
+        private readonly BassAudioRouter                        _router;
 
-        /// <summary>
-        ///     Opens a mic on a physical device and claims its capture channel. All mics on
-        ///     the same device share one <see cref="RecordingSession" />. Returns null if the
-        ///     channel is already claimed or the device can't be opened.
-        /// </summary>
-        public MicDevice? CreateMic(InputDeviceInfo device)
+        public BassMicManager(BassAudioRouter router)
         {
-            if (device.DeviceId < 0)
-            {
-                int resolved = FindDeviceIndexByName(device.Name);
-                if (resolved < 0)
-                {
-                    return null;
-                }
+            _router = router;
+        }
 
-                device = new InputDeviceInfo(resolved, device.Name, device.Channel, device.ChannelCount);
-            }
-
-            int captureChannels = GetChannelCount(device.DeviceId, device.Name);
-            if (device.Channel >= captureChannels)
+        public MicDevice? CreateMic(InputDeviceInfo requestedDevice)
+        {
+            if (!TryResolveRequestedDevice(requestedDevice, out var device))
             {
                 return null;
             }
 
-            lock (_lock)
+            int channelCount = GetChannelCount(device.DeviceId, device.Name);
+
+            if (!IsChannelInRange(device, channelCount))
             {
-                if (IsChannelClaimed(device.DeviceId, device.Channel))
-                {
-                    return null;
-                }
-
-                var session = GetOrCreateSession(device.DeviceId, device.Name, captureChannels);
-                if (session == null)
-                {
-                    return null;
-                }
-
-                var mic = BassMicDevice.Create(device.DeviceId, device.Name, session, device.Channel);
-                if (mic == null)
-                {
-                    if (FindActive(device.DeviceId) == null)
-                    {
-                        session.Dispose();
-                        FreeDevice(device.DeviceId);
-                    }
-
-                    return null;
-                }
-
-                var entry = new ActiveMic(device.DeviceId, session);
-                _activeMics.Add(entry);
-                mic.Disposed += () => ReleaseMic(entry);
-                mic.SetMonitoringLevel(SettingsManager.Settings.VocalMonitoring.Value);
-                return mic;
+                return null;
             }
+
+            return TryCreateClaimedMic(device, channelCount);
         }
 
-        public UniTask<List<InputDeviceInfo>> GetAllDevicesAsync(CancellationToken cancellationToken = default)
-        {
-            return UniTask.RunOnThreadPool(() => GetAllDevices(), cancellationToken: cancellationToken);
-        }
-
-        /// <summary>
-        ///     Returns every usable input device and the unclaimed channels on each
-        /// </summary>
         public List<InputDeviceInfo> GetAllDevices()
         {
-            var usable = GetDevices()
-                .Where(d => IsUsable(d.Info))
-                .ToList();
+            var devices = FindUsableDevices();
 
-            RefreshCache(usable);
+            RemoveMissingDevices(devices);
+            WarmChannelCounts(devices);
+            SnapshotState(out var channelCounts, out var claimedChannels);
 
-            ProbeChannels(usable);
-
-            var result = new List<InputDeviceInfo>();
-            foreach (var device in usable)
-            {
-                result.AddRange(GetUnclaimedInputs(device.Id, device.Info.Name));
-            }
-
-            return result;
+            return BuildAvailableInputs(devices, channelCounts, claimedChannels);
         }
 
-        private void RefreshCache(List<DeviceEntry> devices)
+        private MicDevice? TryCreateClaimedMic(InputDeviceInfo device, int channelCount)
         {
-            var names = new List<string>(devices.Count);
+            BassMicrophoneCapture? capture;
+
+            lock (_lock)
+            {
+                capture = FindOrCreateCapture(device.DeviceId, channelCount);
+                if (capture == null)
+                {
+                    return null;
+                }
+
+                if (!capture.TryClaimChannel(device.Channel))
+                {
+                    YargLogger.LogFormatWarning("Mic '{0}' channel {1} is already claimed", device.Name,
+                        device.Channel);
+                    return null;
+                }
+            }
+
+            var mic = BassMicDevice.Create(capture, device.Name, device.Channel, _router);
+            if (mic != null)
+            {
+                mic.Disposed += () => ReleaseMic(device.DeviceId, device.Channel, capture);
+                return mic;
+            }
+
+            ReleaseMic(device.DeviceId, device.Channel, capture);
+            return null;
+        }
+
+        private BassMicrophoneCapture? FindOrCreateCapture(int deviceId, int channels)
+        {
+            if (_captures.TryGetValue(deviceId, out var existing))
+            {
+                return existing;
+            }
+
+            var capture = BassMicrophoneCapture.Create(deviceId, channels);
+            if (capture != null)
+            {
+                _captures.Add(deviceId, capture);
+            }
+
+            return capture;
+        }
+
+        private void ReleaseMic(int deviceId, int channel, BassMicrophoneCapture capture)
+        {
+            lock (_lock)
+            {
+                if (!_captures.TryGetValue(deviceId, out var current) || !ReferenceEquals(current, capture))
+                {
+                    return;
+                }
+
+                capture.ReleaseChannel(channel);
+
+                if (capture.HasClaimedChannel)
+                {
+                    return;
+                }
+
+                _captures.Remove(deviceId);
+                capture.Dispose();
+            }
+        }
+
+        private void RemoveMissingDevices(List<(int Id, DeviceInfo Info)> devices)
+        {
+            var present = new HashSet<(int Id, string Name)>();
+
             foreach (var device in devices)
             {
-                names.Add(device.Info.Name);
+                present.Add((device.Id, device.Info.Name));
             }
 
             lock (_lock)
             {
-                if (!names.SequenceEqual(_deviceNames))
+                var keys = new List<(int Id, string Name)>(_channelCountByDevice.Keys);
+
+                foreach (var key in keys)
                 {
-                    _channelCache.Clear();
-                    _deviceNames = names;
+                    if (!present.Contains(key))
+                    {
+                        _channelCountByDevice.Remove(key);
+                    }
                 }
             }
         }
 
-        private static List<DeviceEntry> GetDevices()
+        private int GetChannelCount(int deviceId, string name)
         {
-            var devices = new List<DeviceEntry>();
-            for (int i = 0; Bass.RecordGetDeviceInfo(i, out var info); i++)
-            {
-                devices.Add(new DeviceEntry(i, info));
-            }
+            var key = (deviceId, name);
 
-            return devices;
+            lock (_lock)
+            {
+                if (_captures.TryGetValue(deviceId, out var activeGraph))
+                {
+                    return activeGraph.Channels;
+                }
+
+                if (_channelCountByDevice.TryGetValue(key, out int cached))
+                {
+                    return cached;
+                }
+
+                return BassMicrophoneCapture.WithSystemLock(() =>
+                {
+                    int detected = BassMicChannelProbe.DetectChannelCount(deviceId, name) ?? 1;
+                    _channelCountByDevice[key] = detected;
+                    return detected;
+                });
+            }
         }
 
-        private static bool IsUsable(DeviceInfo info)
+        private void WarmChannelCounts(List<(int Id, DeviceInfo Info)> devices)
+        {
+            foreach (var device in devices)
+            {
+                GetChannelCount(device.Id, device.Info.Name);
+            }
+        }
+
+        private void SnapshotState(out Dictionary<(int Id, string Name), int> channelCounts,
+            out HashSet<(int DeviceId, int Channel)> claimedChannels)
+        {
+            lock (_lock)
+            {
+                channelCounts = new Dictionary<(int Id, string Name), int>(_channelCountByDevice);
+                claimedChannels = new HashSet<(int DeviceId, int Channel)>();
+
+                foreach (var entry in _captures)
+                {
+                    for (int channel = 0; channel < entry.Value.Channels; channel++)
+                    {
+                        if (entry.Value.IsChannelClaimed(channel))
+                        {
+                            claimedChannels.Add((entry.Key, channel));
+                        }
+                    }
+                }
+            }
+        }
+
+        private static bool TryResolveRequestedDevice(InputDeviceInfo requested, out InputDeviceInfo resolved)
+        {
+            if (requested.DeviceId >= 0)
+            {
+                resolved = requested;
+                return true;
+            }
+
+            int foundId = FindDeviceIdByName(requested.Name);
+            if (foundId < 0)
+            {
+                resolved = default;
+                return false;
+            }
+
+            resolved = new InputDeviceInfo(foundId, requested.Name, requested.Channel, requested.ChannelCount);
+            return true;
+        }
+
+        private static bool IsChannelInRange(InputDeviceInfo device, int channelCount)
+        {
+            if (device.Channel >= 0 && device.Channel < channelCount)
+            {
+                return true;
+            }
+
+            YargLogger.LogFormatWarning("Mic '{0}' channel {1} is out of range (device has {2} channels)", device.Name,
+                device.Channel, channelCount);
+            return false;
+        }
+
+        private static List<(int Id, DeviceInfo Info)> FindUsableDevices()
+        {
+            var list = new List<(int Id, DeviceInfo Info)>();
+
+            for (int i = 0; Bass.RecordGetDeviceInfo(i, out var info); i++)
+            {
+                if (IsUsableDevice(info))
+                {
+                    list.Add((i, info));
+                }
+            }
+
+            return list;
+        }
+
+        private static bool IsUsableDevice(DeviceInfo info)
         {
             if (!info.IsEnabled || info.IsLoopback)
             {
@@ -159,11 +258,11 @@ namespace YARG.Audio.BASS
             return true;
         }
 
-        private static int FindDeviceIndexByName(string name)
+        private static int FindDeviceIdByName(string name)
         {
-            foreach (var device in GetDevices())
+            foreach (var device in FindUsableDevices())
             {
-                if (IsUsable(device.Info) && device.Info.Name == name)
+                if (device.Info.Name == name)
                 {
                     return device.Id;
                 }
@@ -172,366 +271,30 @@ namespace YARG.Audio.BASS
             return -1;
         }
 
-        private List<InputDeviceInfo> GetUnclaimedInputs(int deviceId, string name)
+        private static List<InputDeviceInfo> BuildAvailableInputs(List<(int Id, DeviceInfo Info)> devices,
+            Dictionary<(int Id, string Name), int> channelCounts, HashSet<(int DeviceId, int Channel)> claimedChannels)
         {
-            int channels = GetChannelCount(deviceId, name);
-            var list = new List<InputDeviceInfo>(channels);
+            var available = new List<InputDeviceInfo>();
 
-            for (int ch = 0; ch < channels; ch++)
+            foreach (var device in devices)
             {
-                if (IsChannelClaimed(deviceId, ch))
+                if (!channelCounts.TryGetValue((device.Id, device.Info.Name), out int channels))
                 {
                     continue;
                 }
 
-                list.Add(new InputDeviceInfo(deviceId, name, ch, channels));
-            }
-
-            return list;
-        }
-
-        private int GetChannelCount(int deviceId, string name)
-        {
-            lock (_lock)
-            {
-                var active = FindActive(deviceId);
-                if (active != null)
+                for (int channel = 0; channel < channels; channel++)
                 {
-                    return active.Session.Channels;
-                }
-
-                if (_channelCache.TryGetValue(name, out int cached))
-                {
-                    return cached;
-                }
-            }
-
-            int? channels;
-            lock (_lock)
-            {
-                channels = ChannelProbe.Probe(deviceId, name);
-                if (channels == null)
-                {
-                    _channelCache[name] = 1;
-                    return 1;
-                }
-
-                _channelCache[name] = channels.Value;
-            }
-
-            return channels.Value;
-        }
-
-        private void ProbeChannels(List<DeviceEntry> devices)
-        {
-            foreach (var device in devices)
-            {
-                GetChannelCount(device.Id, device.Info.Name);
-            }
-        }
-
-        private bool IsChannelClaimed(int deviceId, int channel)
-        {
-            lock (_lock)
-            {
-                return FindActive(deviceId)?.Session.IsChannelClaimed(channel) ?? false;
-            }
-        }
-
-        private RecordingSession? GetOrCreateSession(int deviceId, string name, int channels)
-        {
-            var active = FindActive(deviceId);
-            if (active != null)
-            {
-                return active.Session;
-            }
-
-            if (!Bass.RecordInit(deviceId) && Bass.LastError != Errors.Already)
-            {
-                YargLogger.LogFormatError("Failed to init recording device [{0}] '{1}': {2}", deviceId, name,
-                    Bass.LastError);
-                return null;
-            }
-
-            Bass.CurrentRecordingDevice = deviceId;
-            var session = RecordingSession.Create(deviceId, channels);
-            if (session == null)
-            {
-                FreeDevice(deviceId);
-                return null;
-            }
-
-            return session;
-        }
-
-        private void ReleaseMic(ActiveMic mic)
-        {
-            lock (_lock)
-            {
-                _activeMics.Remove(mic);
-                if (FindActive(mic.DeviceId) != null)
-                {
-                    return;
-                }
-
-                mic.Session.Dispose();
-                FreeDevice(mic.DeviceId);
-            }
-        }
-
-        private static void FreeDevice(int deviceId)
-        {
-            if (!Bass.RecordGetDeviceInfo(deviceId, out var info) || !info.IsInitialized)
-            {
-                return;
-            }
-
-            Bass.CurrentRecordingDevice = deviceId;
-            if (!Bass.RecordFree())
-            {
-                YargLogger.LogFormatWarning("Failed to free recording device [{0}]: {1}", deviceId, Bass.LastError);
-            }
-        }
-
-        private ActiveMic? FindActive(int deviceId) => _activeMics.FirstOrDefault(m => m.DeviceId == deviceId);
-
-        private readonly struct DeviceEntry
-        {
-            public readonly int        Id;
-            public readonly DeviceInfo Info;
-
-            public DeviceEntry(int id, DeviceInfo info)
-            {
-                Id = id;
-                Info = info;
-            }
-        }
-
-        private sealed class ActiveMic
-        {
-            public ActiveMic(int deviceId, RecordingSession session)
-            {
-                DeviceId = deviceId;
-                Session = session;
-            }
-
-            public int              DeviceId { get; }
-            public RecordingSession Session  { get; }
-        }
-
-        private sealed class ChannelProbe : IDisposable
-        {
-            private const int TIMEOUT_MS = 400;
-
-            private static readonly (int Channels, int Rate)[] PROBE_CONFIGS =
-            {
-                (8, 48000),
-                (8, 44100),
-                (2, 48000),
-                (2, 44100),
-                (1, 48000),
-                (1, 44100),
-            };
-
-            private readonly ManualResetEventSlim _gotFrame = new(false);
-            private readonly int                  _reportedChannels;
-            private          short[]              _frame = Array.Empty<short>();
-
-            private ChannelProbe(int reportedChannels)
-            {
-                _reportedChannels = reportedChannels;
-            }
-
-            public void Dispose() => _gotFrame.Dispose();
-
-            public static int? Probe(int deviceId, string name)
-            {
-                bool initialized = Bass.RecordInit(deviceId);
-                if (!initialized && Bass.LastError != Errors.Already)
-                {
-                    return null;
-                }
-
-                Bass.CurrentRecordingDevice = deviceId;
-                int devicePeriod = Bass.GetConfig(Configuration.DevicePeriod);
-                try
-                {
-                    foreach ((int channels, int rate) in PROBE_CONFIGS)
-                    {
-                        var probe = new ChannelProbe(channels);
-                        int handle = Bass.RecordStart(rate, channels, BassFlags.Default,
-                            devicePeriod, probe.Callback, IntPtr.Zero);
-
-                        if (handle == 0)
-                        {
-                            probe.Dispose();
-                            continue;
-                        }
-
-                        int channelCount;
-                        try
-                        {
-                            channelCount = probe.CountChannels();
-                        }
-                        finally
-                        {
-                            Bass.ChannelStop(handle);
-                            probe.Dispose();
-                        }
-
-                        if (channelCount == 0)
-                        {
-                            continue;
-                        }
-
-                        if (channels == 8 && channelCount < 3)
-                        {
-                            continue;
-                        }
-
-                        return channelCount;
-                    }
-                }
-                finally
-                {
-                    if (initialized)
-                    {
-                        Bass.RecordFree();
-                    }
-                }
-
-                YargLogger.LogTrace($"Channel probe: no usable frame from [{deviceId}] '{name}'");
-                return null;
-            }
-
-            private int CountChannels()
-            {
-                int deadline = Environment.TickCount + TIMEOUT_MS;
-                while (true)
-                {
-                    int remaining = deadline - Environment.TickCount;
-                    if (remaining <= 0)
-                    {
-                        return 0;
-                    }
-
-                    bool received = _gotFrame.Wait(remaining);
-                    if (!received)
-                    {
-                        return 0;
-                    }
-
-                    _gotFrame.Reset();
-
-                    if (_frame.Length == 0 || IsFrameSilent(_frame))
+                    if (claimedChannels.Contains((device.Id, channel)))
                     {
                         continue;
                     }
 
-                    int frameCount = _frame.Length / _reportedChannels;
-                    if (frameCount == 0)
-                    {
-                        return 0;
-                    }
-
-                    short[][] deinterleaved = Deinterleave(_frame, _reportedChannels, frameCount);
-
-                    int lastActive = -1;
-                    for (int ch = 0; ch < _reportedChannels; ch++)
-                    {
-                        if (IsSilent(deinterleaved[ch]))
-                        {
-                            continue;
-                        }
-
-                        if (IsDuplicate(deinterleaved, ch))
-                        {
-                            continue;
-                        }
-
-                        lastActive = ch;
-                    }
-
-                    if (lastActive < 0)
-                    {
-                        return 0;
-                    }
-
-                    return lastActive + 1;
+                    available.Add(new InputDeviceInfo(device.Id, device.Info.Name, channel, channels));
                 }
             }
 
-            private bool Callback(int handle, IntPtr buffer, int length, IntPtr user)
-            {
-                if (length <= 0)
-                {
-                    return true;
-                }
-
-                unsafe
-                {
-                    var span = new Span<short>((short*) buffer, length / sizeof(short));
-                    _frame = span.ToArray();
-                    _gotFrame.Set();
-                }
-
-                return true;
-            }
-
-            private static short[][] Deinterleave(short[] interleaved, int channels, int frameCount)
-            {
-                short[][] outBufs = new short[channels][];
-                for (int ch = 0; ch < channels; ch++)
-                {
-                    short[] buf = new short[frameCount];
-                    for (int i = 0; i < frameCount; i++)
-                    {
-                        buf[i] = interleaved[i * channels + ch];
-                    }
-
-                    outBufs[ch] = buf;
-                }
-
-                return outBufs;
-            }
-
-            private static bool IsSilent(short[] samples) => Array.TrueForAll(samples, s => s == 0);
-
-            private static bool IsFrameSilent(short[] samples) => Array.TrueForAll(samples, s => s == 0);
-
-            private static bool IsDuplicate(short[][] bufs, int channel)
-            {
-                for (int i = 0; i < channel; i++)
-                {
-                    if (ChannelsEquivalent(bufs[channel], bufs[i]))
-                    {
-                        return true;
-                    }
-                }
-
-                return false;
-            }
-
-            /// <summary>
-            ///     Checks whether two channels carry the same signal, tolerating a few
-            ///     glitched samples. Mono devices are upmixed to identical channels,
-            ///     but USB capture can corrupt a handful of samples per stream.
-            /// </summary>
-            private static bool ChannelsEquivalent(short[] a, short[] b)
-            {
-                int maxDiffering = a.Length / 100;
-                int differing = 0;
-                for (int i = 0; i < a.Length; i++)
-                {
-                    if (a[i] != b[i] && ++differing > maxDiffering)
-                    {
-                        return false;
-                    }
-                }
-
-                return true;
-            }
+            return available;
         }
     }
 }
-

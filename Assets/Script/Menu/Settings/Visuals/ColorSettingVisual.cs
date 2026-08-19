@@ -18,8 +18,23 @@ namespace YARG.Menu.Settings.Visuals
         [SerializeField]
         private TMP_InputField _opacityField;
 
-        protected override void RefreshVisual()
+        // Nullable so the first render is always unconditional: a real value of
+        // transparent black (possible when AllowTransparency is true) would otherwise
+        // compare equal to a default(Color) sentinel and skip the initial render.
+        private Color? _lastRenderedValue;
+
+        public override void RefreshVisual()
         {
+            // Early-exit: if the value hasn't changed since our last render,
+            // skip redundant UI writes. This prevents O(N) text-rebuild work
+            // when sibling visuals fire SettingChanged for unrelated fields.
+            if (_lastRenderedValue is { } lastValue && Setting.ValueEquals(lastValue))
+            {
+                return;
+            }
+
+            _lastRenderedValue = Setting.Value;
+
             _colorRectangle.color = Setting.Value;
             _inputField.text = ColorUtility.ToHtmlStringRGB(Setting.Value);
 
@@ -80,7 +95,7 @@ namespace YARG.Menu.Settings.Visuals
             {
                 Setting.Value = color;
                 RefreshVisual();
-            });
+            }, Setting.AllowTransparency);
         }
     }
 }
