@@ -114,7 +114,7 @@ namespace YARG.Gameplay.Visuals
                     {
                         GuitarNoteType.Strum => ThemeNoteType.SixFretBarre,
                         GuitarNoteType.Tap => ThemeNoteType.SixFretBarreTap,
-                        _ => throw new ArgumentOutOfRangeException()
+                        _ => throw new ArgumentOutOfRangeException(String.Format("Invalid note type {0}",NoteRef.Type))
                     },
                     _ => throw new ArgumentOutOfRangeException()
                 }) - (int) ThemeNoteType.SixFretDown;
