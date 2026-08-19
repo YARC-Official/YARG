@@ -72805,6 +72805,10 @@ PrefabInstance:
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 1897114193844750814, guid: e04222ae8a4f0c542926dc9ce20a58e0, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: ca25bdb13a7a11ac9890ee42e51b499d, type: 2}
+    - target: {fileID: 1897114193844750814, guid: e04222ae8a4f0c542926dc9ce20a58e0, type: 3}
       propertyPath: 'm_Materials.Array.data[1]'
       value: 
       objectReference: {fileID: 2100000, guid: 69398f7d86a6d5aaeacfbb9c4d47a607, type: 2}
@@ -72890,7 +72894,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7658291897936751210, guid: e04222ae8a4f0c542926dc9ce20a58e0, type: 3}
       propertyPath: _secondaryColoredMaterials.Array.size
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7658291897936751210, guid: e04222ae8a4f0c542926dc9ce20a58e0, type: 3}
       propertyPath: _secondaryInnerMaterials.Array.data[0].Mesh
