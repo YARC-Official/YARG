@@ -20,8 +20,8 @@ namespace YARG.Gameplay.Visuals
             Barre   // Both rows in same lane pair
         }
 
-        // Theme model mapping count (Up/Down × Strum/HOPO/Tap + Bar * Strum/Tap + Open + OpenHopo + Wildcard)
-        private const int THEME_MODEL_COUNT = 3 * 2 + 2 + 3;
+        // Theme model mapping count (Up/Down/Bar × Strum/HOPO/Tap + Open + OpenHopo + Wildcard)
+        private const int THEME_MODEL_COUNT = 3 * 3 + 3;
 
         [Space]
         [SerializeField]
@@ -50,7 +50,7 @@ namespace YARG.Gameplay.Visuals
 
             var offset = (int) ThemeNoteType.SixFretDown;
             // Map (LaneType, GuitarNoteType) to ThemeNoteType
-            for (var i = ThemeNoteType.SixFretDown; i <= ThemeNoteType.SixFretBarreTap; ++i)
+            for (var i = ThemeNoteType.SixFretDown; i <= ThemeNoteType.SixFretBarreHOPO; ++i)
             {
                 AssignNoteGroup(models, starPowerModels, (int) i - offset, i);
             }
@@ -101,19 +101,20 @@ namespace YARG.Gameplay.Visuals
                         GuitarNoteType.Strum => ThemeNoteType.SixFretUp,
                         GuitarNoteType.Hopo => ThemeNoteType.SixFretUpHOPO,
                         GuitarNoteType.Tap => ThemeNoteType.SixFretUpTap,
-                        _ => throw new ArgumentOutOfRangeException()
+                        _ => throw new ArgumentOutOfRangeException(String.Format("Invalid note type {0}",NoteRef.Type))
                     },
                     LaneNoteType.Down => NoteRef.Type switch
                     {
                         GuitarNoteType.Strum => ThemeNoteType.SixFretDown,
                         GuitarNoteType.Hopo => ThemeNoteType.SixFretDownHOPO,
                         GuitarNoteType.Tap => ThemeNoteType.SixFretDownTap,
-                        _ => throw new ArgumentOutOfRangeException()
+                        _ => throw new ArgumentOutOfRangeException(String.Format("Invalid note type {0}",NoteRef.Type))
                     },
                     LaneNoteType.Barre => NoteRef.Type switch
                     {
                         GuitarNoteType.Strum => ThemeNoteType.SixFretBarre,
                         GuitarNoteType.Tap => ThemeNoteType.SixFretBarreTap,
+                        GuitarNoteType.Hopo => ThemeNoteType.SixFretBarreHOPO,
                         _ => throw new ArgumentOutOfRangeException(String.Format("Invalid note type {0}",NoteRef.Type))
                     },
                     _ => throw new ArgumentOutOfRangeException()
