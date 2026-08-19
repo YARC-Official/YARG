@@ -14,6 +14,7 @@ using YARG.Helpers.Extensions;
 using YARG.Localization;
 using YARG.Menu.MusicLibrary;
 using YARG.Player;
+using YARG.Playlists;
 using YARG.Scores;
 using YARG.Settings;
 
@@ -154,9 +155,11 @@ namespace YARG.Song
             }
 
             var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+            var previousSongCache = _songCache;
+            SongCache refreshedSongCache = null;
             var task = UniTask.RunOnThreadPool(() =>
             {
-                _songCache =  CacheHandler.RunScan(quick,
+                refreshedSongCache = CacheHandler.RunScan(quick,
                     PathHelper.SongCachePath,
                     PathHelper.BadSongsPath,
                     SettingsManager.Settings.UseFullDirectoryForPlaylists.Value,
@@ -171,6 +174,10 @@ namespace YARG.Song
                 }
                 await UniTask.NextFrame();
             }
+
+            PlaylistContainer.ReplaceUpdatedSongHashes(
+                FindUpdatedSongHashes(previousSongCache, refreshedSongCache));
+            _songCache = refreshedSongCache;
 
             if (SettingsManager.Settings.Genrelizer.Value is GenrelizerMode.Genrelize && !GlobalVariables.OfflineMode)
             {
@@ -191,6 +198,66 @@ namespace YARG.Song
             YargLogger.LogFormatInfo("Scan time: {0}s", stopwatch.Elapsed.TotalSeconds);
             MusicLibraryMenu.SetReload(MusicLibraryReloadState.Full);
             SongSources.LoadSprites(context);
+        }
+
+        private static Dictionary<HashWrapper, HashWrapper> FindUpdatedSongHashes(
+            SongCache previousCache, SongCache refreshedCache)
+        {
+            var previousByLocation = GetSongsByUniqueLocation(previousCache);
+            var refreshedByLocation = GetSongsByUniqueLocation(refreshedCache);
+            var replacements = new Dictionary<HashWrapper, HashWrapper>();
+            var ambiguousHashes = new HashSet<HashWrapper>();
+
+            foreach (var (location, previousSong) in previousByLocation)
+            {
+                if (!refreshedByLocation.TryGetValue(location, out var refreshedSong) ||
+                    previousSong.Hash.Equals(refreshedSong.Hash) ||
+                    refreshedCache.Entries.ContainsKey(previousSong.Hash) ||
+                    ambiguousHashes.Contains(previousSong.Hash))
+                {
+                    continue;
+                }
+
+                // A hash can represent duplicate copies in different directories. If those
+                // copies changed to different hashes, there is no unambiguous replacement.
+                if (replacements.TryGetValue(previousSong.Hash, out var replacement))
+                {
+                    if (!replacement.Equals(refreshedSong.Hash))
+                    {
+                        replacements.Remove(previousSong.Hash);
+                        ambiguousHashes.Add(previousSong.Hash);
+                    }
+                }
+                else
+                {
+                    replacements.Add(previousSong.Hash, refreshedSong.Hash);
+                }
+            }
+
+            return replacements;
+        }
+
+        private static Dictionary<string, SongEntry> GetSongsByUniqueLocation(SongCache songCache)
+        {
+            var songsByLocation = new Dictionary<string, SongEntry>(StringComparer.OrdinalIgnoreCase);
+            var duplicateLocations = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+            foreach (var song in songCache.Entries.Values.SelectMany(entries => entries))
+            {
+                string location = song.ActualLocation;
+                if (duplicateLocations.Contains(location))
+                {
+                    continue;
+                }
+
+                if (!songsByLocation.TryAdd(location, song))
+                {
+                    songsByLocation.Remove(location);
+                    duplicateLocations.Add(location);
+                }
+            }
+
+            return songsByLocation;
         }
 
         public static SongCategory[] GetSortedCategory(SortAttribute sort)
