@@ -34,6 +34,12 @@ using Object = UnityEngine.Object;
 
 namespace YARG.Settings
 {
+    public enum SongLengthLabelMode
+    {
+        RangeLabels,
+        LegacyLabels,
+    }
+
     public enum QualityMode
     {
         NativeAA = 0,
@@ -251,6 +257,13 @@ namespace YARG.Settings
 
             public ToggleSetting ShowFavoriteButton { get; } = new(true);
             public ToggleSetting ShowRecommendedSongs { get; } = new(true, ShowRecommendedSongsCallback);
+
+            public DropdownSetting<SongLengthLabelMode> SongLengthLabels { get; }
+                = new(SongLengthLabelMode.RangeLabels, _ => RefreshSongs())
+                {
+                    SongLengthLabelMode.RangeLabels,
+                    SongLengthLabelMode.LegacyLabels,
+                };
 
             public ToggleSetting EnablePlayAShow { get; } = new(true);
             public SliderSetting PlayAShowTimeout { get; } = new (10.0f, 1.0f, 30.0f);
