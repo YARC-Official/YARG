@@ -172,6 +172,7 @@ namespace YARG.Menu.MusicLibrary
             }
 
             if (_musicLibrary.MenuState != MenuState.Playlist &&
+                _musicLibrary.MenuState != MenuState.Show &&
                 _musicLibrary.MenuState != MenuState.PlaylistSelect &&
                 _musicLibrary.HasSortHeaders)
             {
@@ -243,17 +244,21 @@ namespace YARG.Menu.MusicLibrary
                     bool isInPlaylist = _musicLibrary.MenuState == MenuState.Playlist &&
                         _musicLibrary.SelectedPlaylist != null &&
                         _musicLibrary.SelectedPlaylist != PlaylistContainer.FavoritesPlaylist;
-                    bool isSetlist = isInPlaylist && _musicLibrary.SelectedPlaylist.Ephemeral;
+                    bool isInShow = _musicLibrary.MenuState == MenuState.Show;
+                    var removalPlaylist = isInShow
+                        ? _musicLibrary.ShowPlaylist
+                        : _musicLibrary.SelectedPlaylist;
+                    bool isSetlist = (isInPlaylist || isInShow) && removalPlaylist.Ephemeral;
 
                     void AddRemoveFromPlaylistItem()
                     {
-                        var removeKey = _musicLibrary.SelectedPlaylist.Ephemeral
+                        var removeKey = removalPlaylist.Ephemeral
                             ? "RemoveFromSetlist"
                             : "RemoveFromPlaylist";
                         CreateItem(removeKey, () =>
                         {
                             var songView = viewType as SongViewType;
-                            _musicLibrary.SelectedPlaylist.RemoveSong(songView.SongEntry);
+                            removalPlaylist.RemoveSong(songView.SongEntry);
                             _musicLibrary.RefreshAndReselect();
                             gameObject.SetActive(false);
                             ToastManager.ToastSuccess("Removed from playlist");
@@ -356,7 +361,8 @@ namespace YARG.Menu.MusicLibrary
         {
             SetLocalizedHeader("SortBy");
 
-            if (_musicLibrary.MenuState == MenuState.Playlist)
+            if (_musicLibrary.MenuState == MenuState.Playlist ||
+                _musicLibrary.MenuState == MenuState.Show)
             {
                 CreateItemUnlocalized($"{SortAttribute.Name.ToLocalizedName()} (A-Z)", () =>
                 {
