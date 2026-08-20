@@ -1,7 +1,9 @@
+using System;
 using System.Collections.Generic;
 using YARG.Core;
 using YARG.Core.Chart;
 using YARG.Core.Game;
+using YARG.Core.Engine;
 using YARG.Core.Engine.Guitar;
 using YARG.Core.Engine.Guitar.Engines;
 using YARG.Core.Input;
@@ -24,7 +26,9 @@ namespace YARG.Gameplay.Player
             { (int)SixFretGuitarFret.White3, 2 },
         };
 
-        public new int LaneCount => 3;
+        // Override (not hide) so virtual calls from FiveFretGuitarPlayer (BRE lane count,
+        // lane scales, centered lane position) resolve to 3 lanes for six-fret
+        public override int LaneCount => 3;
 
         // Determine if fret is "up" row (black normal, white lefty flip)
         protected bool IsUpFret(SixFretGuitarFret fret)
@@ -205,6 +209,46 @@ namespace YARG.Gameplay.Player
         protected override void RescaleLanesForBRE()
         {
             LaneElement.DefineLaneScale(Player.Profile.CurrentInstrument, 3, true);
+        }
+
+        /// <summary>
+        /// Six-fret BRE lanes cover a black/white fret pair, so the lane is lit by the
+        /// most recent press of either fret and glows with the white preset color.
+        /// </summary>
+        protected override void UpdateBreLaneEmissions(double visualTime)
+        {
+            var emissionColor = Player.ColorProfile.SixFretGuitar.GetNoteColor((int)SixFretGuitarFret.White1).ToUnityColor();
+
+            for (int laneIndex = 0; laneIndex < LaneCount; laneIndex++)
+            {
+                double mostRecentTime = 0;
+                foreach (var (fret, lanePosition) in _lanePositions)
+                {
+                    if (lanePosition == laneIndex)
+                    {
+                        mostRecentTime = Math.Max(mostRecentTime, _fretToMostRecentTime[fret]);
+                    }
+                }
+
+                var normalizedTimeSinceLastHit = CodaSection.GetNormalizedTimeSinceLastHit(visualTime, mostRecentTime);
+                BRELanes[laneIndex].SetEmissionColor(emissionColor, normalizedTimeSinceLastHit);
+            }
+        }
+
+        protected override void OnCodaStart(CodaSection coda)
+        {
+            base.OnCodaStart(coda);
+
+            // 6-fret condenses its 6 fret buttons into 3 BRE lanes (one per fret number)
+            CurrentCoda.SetLaneIndexes(new()
+            {
+                { 0, 0 }, // B1
+                { 1, 1 }, // B2
+                { 2, 2 }, // B3
+                { 3, 0 }, // W1
+                { 4, 1 }, // W2
+                { 5, 2 }, // W3
+            });
         }
 
         protected override void UpdateFretArray()

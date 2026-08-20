@@ -297,18 +297,26 @@ namespace YARG.Gameplay.Player
             // Update coda lane emissions if necessary
             if (Engine.IsCodaActive)
             {
-                // Set emission color of BRE lanes depending on currently available score value
-                foreach (var (breLaneIndex, highwayOrderingIndex) in _lanePositions)
-                {
-                    var mostRecentTime = _fretToMostRecentTime[breLaneIndex];
-                    var normalizedTimeSinceLastHit = CodaSection.GetNormalizedTimeSinceLastHit(visualTime, mostRecentTime);
-                    BRELanes[highwayOrderingIndex].SetEmissionColor(normalizedTimeSinceLastHit);
-                }
+                UpdateBreLaneEmissions(visualTime);
             }
 
             base.UpdateVisuals(visualTime);
             UpdateRangeShift(visualTime);
             UpdateFretArray();
+        }
+
+        /// <summary>
+        /// Sets the emission color of BRE lanes depending on the currently available score value.
+        /// One BRE lane per fret, lit by the most recent time that fret was pressed.
+        /// </summary>
+        protected virtual void UpdateBreLaneEmissions(double visualTime)
+        {
+            foreach (var (breLaneIndex, highwayOrderingIndex) in _lanePositions)
+            {
+                var mostRecentTime = _fretToMostRecentTime[breLaneIndex];
+                var normalizedTimeSinceLastHit = CodaSection.GetNormalizedTimeSinceLastHit(visualTime, mostRecentTime);
+                BRELanes[highwayOrderingIndex].SetEmissionColor(normalizedTimeSinceLastHit);
+            }
         }
 
         public void UpdateRangeShift(double visualTime)
