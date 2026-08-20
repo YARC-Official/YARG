@@ -295,13 +295,6 @@ jobs:
           git push mirror mirror-temp:master
           git branch -D mirror-temp
 ```
-* **`fetch-depth: 0`**: This line says "download the whole commit history".
-* **`paths: ['YARG.Core/**']`**: This line tells GitHub "only run the workflow when a file inside the `YARG.Core/` folder changed" **`workflow_dispatch`** adds a "run now" button on the Actions tab so anyone can force a re-sync.
-* **`concurrency.group: mirror-yarg-core`**: If two pushes to `dev` arrive back-to-back, GitHub would start two copies of the workflow at once, and both would try to update the mirror's history at the same time. This line forces them to run one at a time.
-* **`git subtree split` + `git push`: The sync does two things: rebuild Core's history from YARG's commits (split), then send it to the mirror (push). Git has a one-command version that does both, but it hides the error messages when something fails. Doing it in two explicit steps makes failures visible.
-* **The repository parameter on the split command is required**: The tool rebuilds Core's history by replaying YARG's commits that touched `YARG.Core/` on top of Core's original history. But YARG's repo only contains the imported files, not Core's original commits - only the mirror has those. So the command must point at the mirror: "fetch the original history from there first". Without that it can't find the starting point and crashes.
-* **Commit hashes don't carry across the mirror**: Only Core's original commits keep their hash.  After the merge, the same change has a different ID in each repo.
-* **`git config --unset-all http.https://github.com/.extraheader`**: The step that checks out the repo stores a temporary login in git's settings so later git commands can talk to GitHub. That temporary login is only allowed in the repo the workflow runs in (YARG), not in the mirror. The mirror app's login is embedded in the push URL instead.  This line deletes the stashed login so the URL one gets used.
 
 ### 3. Lock the mirror repo.
 
@@ -317,8 +310,15 @@ After the workflow lands on `dev` and the monorepo merge lands, push a trivial c
 
 **If you need to undo the whole monorepo merge:** the revert is not enough on its own.
 
-* `git revert -m 1 <merge commit>` (a merge commit needs `-m`). If any post-merge commit touched `YARG.Core/`, revert those first or the revert conflicts.
-* The mirror does **not** follow the revert.  An admin must force-push the mirror's `master` back to its pre-merge commit once.
+The monorepo merge is one merge commit on `dev` that brought `YARG.Core/` in. It has two parents: parent 1 is `dev` as it was before the merge, parent 2 is the imported Core history. Undoing it takes two steps:
+
+1. **Revert the post-merge commits first.** If anything landed on `dev` after the merge and touched `YARG.Core/`, revert those commits first (newest first). A revert of the merge deletes the whole `YARG.Core/` folder; if a later commit changed files in it, the deletion conflicts with those changes.
+2. **Revert the merge commit itself:** `git revert -m 1 <merge commit>`. Git refuses to revert a merge commit without `-m` because it has two parents and git needs to know which side to keep. `-m 1` means "keep parent 1" — the pre-merge state of `dev` — and undo everything the merge introduced. After this, `dev` is back to its pre-merge state and `YARG.Core` is a gitlink again.
+
+That only fixes YARG. The mirror does **not** follow the revert:
+
+* The workflow run after that push skips (the guard sees the gitlink again), and even if a run pushed, pushing a deletion commit would only delete files — the monorepo-era commits would stay in the mirror's history. The workflow can never delete history.
+* So an admin must force-push the mirror's `master` back to its last pre-merge commit exactly once — the tip of Core's original history, i.e. the commit `master` pointed at before the workflow pushed the merge. Any clone of Core from before the merge still has it (in the dry run: `tmp-core-mirror` from step 1): `git -C ./tmp-core-mirror push --force <mirror-url> master`.
 
 
 <a id="appendix-dry-run-on-a-fork--real-ci-without-touching-your-fork-12h-zero-risk-to-yarc-official"></a>
@@ -527,24 +527,3 @@ These copies are plain repos created with gh repo create, not GitHub Forks (gh r
 16. Clean up. Delete both `*-dryrun` repos and the test App installation. Also delete local `./tmp-yarg-mirror`, `./tmp-core-mirror`, `./guard-test`, `./yarg-old-recursive`, `./yarg-old-plain`, `./yarg-fork`, `./yarg-single`, `./core-fork`, and `./p.patch` folders. If all checks pass, repeat steps 2-15 on `YARC-Official`.
 
 </details>
-
-
-
-<a id="dry-run-status"></a>
-## Dry run status (executed 2026-08-19)
-
-A full dry run of this plan was executed and verified on private throwaway repos (`YARG-dryrun`, `YARG.Core-dryrun`) before touching YARC-Official.
-
-**Verified end to end:**
-
-* Mirror workflow: guard, App token (`create-github-app-token` action), `subtree split`, fast-forward push to the mirror with original core hashes (split tip == core tip exactly)
-* Monorepo branch: Unity 6003.5 compiles with 0 errors (after NuGet restore - needed for any fresh clone, pre-existing); YARG.Core's real test suite (`dotnet test`) passes 463/0
-* Trigger behavior: the `YARG.Core/**` paths filter does **not** match bare gitlink pointer changes - the pre-merge window is inherently safe; the guard only matters for manual `workflow_dispatch` runs
-* Undo path (appendix step 15): revert conflicts exactly as warned, the mirror does not follow the revert, the run stays green via the guard, force-push recovery restores the mirror
-* Contributor clone + deinit flow, and the single-PR `git am` flow (recipe verified in local mini-repos; branches created in the dry run)
-
-**Bugs found and fixed by the dry run** (each documented at its location above): subtree-add prefix conflict; trailer collision (`cache for <hash> already exists!`); split recursion death on trailer-less merges; missing split hash (fixed by the split's repository parameter); `actions/checkout` extraheader overriding the App token; LFS objects not transferred by `push --mirror`; NuGet restore requirement; manifest `file:` path semantics (no change needed); `refs/pull` making `push --mirror` exit non-zero; branch protection being Pro-only on private repos.
-
-**Not covered by the dry run:** branch protection on a public repo (could not be enabled on private repos - assumed working, standard feature); GitHub App creation (manual browser step); a full Unity GUI session; the paired-PR flow on GitHub itself (recipe verified locally only); community coordination.
-
-**If repeating on YARC-Official:** follow the main plan; the dry-run appendix steps map 1:1; use the exact trailer-bearing merge procedure in main plan step 6 and run the local pre-merge verification (mirror automation step 4) before pushing anything.
