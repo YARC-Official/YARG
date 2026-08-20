@@ -1,5 +1,7 @@
 #include "dsp/FreeverbDsp.h"
 
+#include "BitCastCompat.h"
+
 #include <cmath>
 #include <cstddef>
 #include <cstdint>
@@ -48,6 +50,26 @@ float clamp(float value, float minimum, float maximum) noexcept {
 
 float clamp01(float value) noexcept {
     return clamp(value, 0.0f, 1.0f);
+}
+
+float computeRoomFeedback(float roomSize) noexcept {
+    return clamp01(roomSize) * ScaleRoom + OffsetRoom;
+}
+
+float computeDamping(float damp) noexcept {
+    return clamp01(damp) * ScaleDamp;
+}
+
+float clampWet(float wet) noexcept {
+    return clamp(wet, 0.0f, 3.0f);
+}
+
+float computeSameChannelWet(float wet, float width) noexcept {
+    return clampWet(wet) * (clamp01(width) * 0.5f + 0.5f);
+}
+
+float computeCrossChannelWet(float wet, float width) noexcept {
+    return clampWet(wet) * ((1.0f - clamp01(width)) * 0.5f);
 }
 
 // Match Math.Round(double) used by the managed implementation: nearest,
@@ -207,14 +229,14 @@ inline float processAllPass(FreeverbFilterState& state, float* delaySamples,
     return output;
 }
 
-inline float processChannel(yarg_freeverb_dsp* state, std::uint32_t channel,
-    float input, FreeverbFilterState* combStates,
-    FreeverbFilterState* allPassStates, float* delaySamples) noexcept {
+inline float processChannel(float input, std::uint32_t channel,
+    FreeverbFilterState* combStates, FreeverbFilterState* allPassStates,
+    float* delaySamples, float roomFeedback, float damping) noexcept {
     float output = 0.0f;
     const std::uint32_t combOffset = channel * CombFilterCount;
     for (int i = 0; i < CombFilterCount; ++i) {
         output += processComb(combStates[combOffset + i], delaySamples, input,
-            state->roomFeedback, state->damping);
+            roomFeedback, damping);
     }
 
     const std::uint32_t allPassOffset = channel * AllPassFilterCount;
@@ -231,10 +253,21 @@ void process(yarg_freeverb_dsp* state, float* samples, std::size_t sampleCount) 
     auto* allPassStates = getAllPassStates(state);
     float* delaySamples = getDelaySamples(state);
 
+    const float roomFeedback = yarg::audio::bitCast<float>(
+        state->roomFeedbackBits.load(std::memory_order_relaxed));
+    const float damping = yarg::audio::bitCast<float>(
+        state->dampingBits.load(std::memory_order_relaxed));
+    const float wetMix = yarg::audio::bitCast<float>(
+        state->wetMixBits.load(std::memory_order_relaxed));
+    const float sameChannelWetMix = yarg::audio::bitCast<float>(
+        state->sameChannelWetMixBits.load(std::memory_order_relaxed));
+    const float crossChannelWetMix = yarg::audio::bitCast<float>(
+        state->crossChannelWetMixBits.load(std::memory_order_relaxed));
+    const float dryMix = yarg::audio::bitCast<float>(
+        state->dryMixBits.load(std::memory_order_relaxed));
+
     for (std::size_t frame = 0; frame < frameCount; ++frame) {
         const std::size_t frameOffset = frame * channelCount;
-        // Process adjacent channels as independent stereo pairs. An unpaired final
-        // channel is processed as mono.
         for (std::uint32_t channel = 0; channel < channelCount; channel += 2) {
             const std::uint32_t rightChannel = channel + 1;
             const bool hasRightChannel = rightChannel < channelCount;
@@ -244,24 +277,24 @@ void process(yarg_freeverb_dsp* state, float* samples, std::size_t sampleCount) 
                 : leftInput;
             const float input = (hasRightChannel ? leftInput + rightInput : leftInput) * FixedGain;
 
-            const float leftWet = processChannel(state, channel, input,
-                combStates, allPassStates, delaySamples);
+            const float leftWet = processChannel(input, channel,
+                combStates, allPassStates, delaySamples, roomFeedback, damping);
             float leftOutput;
             if (hasRightChannel) {
-                const float rightWet = processChannel(state, rightChannel, input,
-                    combStates, allPassStates, delaySamples);
-                leftOutput = leftWet * state->sameChannelWetMix +
-                    rightWet * state->crossChannelWetMix;
-                const float rightOutput = rightWet * state->sameChannelWetMix +
-                    leftWet * state->crossChannelWetMix;
+                const float rightWet = processChannel(input, rightChannel,
+                    combStates, allPassStates, delaySamples, roomFeedback, damping);
+                leftOutput = leftWet * sameChannelWetMix +
+                    rightWet * crossChannelWetMix;
+                const float rightOutput = rightWet * sameChannelWetMix +
+                    leftWet * crossChannelWetMix;
                 samples[frameOffset + rightChannel] =
-                    rightOutput + rightInput * state->dryMix;
+                    rightOutput + rightInput * dryMix;
             }
             else {
-                leftOutput = leftWet * state->wetMix;
+                leftOutput = leftWet * wetMix;
             }
 
-            samples[frameOffset + channel] = leftOutput + leftInput * state->dryMix;
+            samples[frameOffset + channel] = leftOutput + leftInput * dryMix;
         }
     }
 }
@@ -309,14 +342,13 @@ yarg_freeverb_dsp::yarg_freeverb_dsp(
     std::uint32_t channels, float dryMix, float wetMix, float roomSize,
     float damp, float width) noexcept
     : bass(bindings), channel(channelHandle), channelCount(channels), resetRequested(0),
-      roomFeedback(clamp01(roomSize) * ScaleRoom + OffsetRoom),
-      damping(clamp01(damp) * ScaleDamp),
-      wetMix(clamp(wetMix, 0.0f, 3.0f)),
-      sameChannelWetMix(clamp(wetMix, 0.0f, 3.0f) *
-          (clamp01(width) * 0.5f + 0.5f)),
-      crossChannelWetMix(clamp(wetMix, 0.0f, 3.0f) *
-          ((1.0f - clamp01(width)) * 0.5f)),
-      dryMix(clamp(dryMix, 0.0f, 1.0f)) {}
+      roomFeedbackBits(yarg::audio::bitCast<std::uint32_t>(computeRoomFeedback(roomSize))),
+      dampingBits(yarg::audio::bitCast<std::uint32_t>(computeDamping(damp))),
+      wetMixBits(yarg::audio::bitCast<std::uint32_t>(clampWet(wetMix))),
+      sameChannelWetMixBits(yarg::audio::bitCast<std::uint32_t>(computeSameChannelWet(wetMix, width))),
+      crossChannelWetMixBits(yarg::audio::bitCast<std::uint32_t>(computeCrossChannelWet(wetMix, width))),
+      dryMixBits(yarg::audio::bitCast<std::uint32_t>(clamp(dryMix, 0.0f, 1.0f))),
+      widthBits(yarg::audio::bitCast<std::uint32_t>(clamp01(width))) {}
 
 namespace yarg::audio {
 
@@ -372,6 +404,41 @@ int freeverbDspAttach(const BassCoreBindings& bass, std::uint32_t channel,
 int freeverbDspRequestReset(yarg_freeverb_dsp* dsp) noexcept {
     if (!dsp) return YARG_AUDIO_ERROR_INVALID_ARGUMENT;
     dsp->resetRequested.store(1, std::memory_order_relaxed);
+    return YARG_AUDIO_OK;
+}
+
+int freeverbDspSetParams(yarg_freeverb_dsp* dsp, const yarg_freeverb_params* params) noexcept {
+    if (!dsp || !params || params->size < sizeof(yarg_freeverb_params)) {
+        return YARG_AUDIO_ERROR_INVALID_ARGUMENT;
+    }
+    const float dryMix = params->dry_mix;
+    const float wetMix = params->wet_mix;
+    const float roomSize = params->room_size;
+    const float damp = params->damp;
+    const float width = params->width;
+    if (!std::isfinite(dryMix) || !std::isfinite(wetMix) ||
+        !std::isfinite(roomSize) || !std::isfinite(damp) || !std::isfinite(width)) {
+        return YARG_AUDIO_ERROR_INVALID_ARGUMENT;
+    }
+    const float clampedWet = clampWet(wetMix);
+    const float clampedWidth = clamp01(width);
+    dsp->dryMixBits.store(
+        yarg::audio::bitCast<std::uint32_t>(clamp(dryMix, 0.0f, 1.0f)),
+        std::memory_order_relaxed);
+    dsp->wetMixBits.store(yarg::audio::bitCast<std::uint32_t>(clampedWet), std::memory_order_relaxed);
+    dsp->widthBits.store(yarg::audio::bitCast<std::uint32_t>(clampedWidth), std::memory_order_relaxed);
+    dsp->sameChannelWetMixBits.store(
+        yarg::audio::bitCast<std::uint32_t>(computeSameChannelWet(clampedWet, clampedWidth)),
+        std::memory_order_relaxed);
+    dsp->crossChannelWetMixBits.store(
+        yarg::audio::bitCast<std::uint32_t>(computeCrossChannelWet(clampedWet, clampedWidth)),
+        std::memory_order_relaxed);
+    dsp->roomFeedbackBits.store(
+        yarg::audio::bitCast<std::uint32_t>(computeRoomFeedback(roomSize)),
+        std::memory_order_relaxed);
+    dsp->dampingBits.store(
+        yarg::audio::bitCast<std::uint32_t>(computeDamping(damp)),
+        std::memory_order_relaxed);
     return YARG_AUDIO_OK;
 }
 

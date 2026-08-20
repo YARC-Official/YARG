@@ -18,11 +18,13 @@
 extern "C" {
 #endif
 
-#define YARG_AUDIO_ABI_VERSION 2u
+#define YARG_AUDIO_ABI_VERSION 6u
 
 typedef struct yarg_read_ahead_stream yarg_read_ahead_stream;
 typedef struct yarg_gain_dsp yarg_gain_dsp;
 typedef struct yarg_freeverb_dsp yarg_freeverb_dsp;
+typedef struct yarg_dattorro_reverb_dsp yarg_dattorro_reverb_dsp;
+typedef struct yarg_noise_gate_dsp yarg_noise_gate_dsp;
 typedef struct yarg_one_shot_stream yarg_one_shot_stream;
 
 typedef enum yarg_audio_result {
@@ -104,9 +106,56 @@ YARG_AUDIO_API int32_t YARG_AUDIO_CALL yarg_freeverb_dsp_attach(
     uint32_t channel, float dry_mix, float wet_mix, float room_size,
     float damp, float width, int32_t priority,
     yarg_freeverb_dsp** dsp, int32_t* bass_error);
+typedef struct yarg_freeverb_params {
+    uint32_t size;
+    float dry_mix;
+    float wet_mix;
+    float room_size;
+    float damp;
+    float width;
+} yarg_freeverb_params;
+
+typedef struct yarg_dattorro_reverb_params {
+    uint32_t size;
+    float dry_mix;
+    float wet_mix;
+    float room_size;
+    float damp;
+    float width;
+} yarg_dattorro_reverb_params;
+
+typedef struct yarg_noise_gate_params {
+    uint32_t size;
+    float threshold;
+    float floor_gain;
+    float attack_ms;
+    float hold_ms;
+    float release_ms;
+} yarg_noise_gate_params;
+
 YARG_AUDIO_API int32_t YARG_AUDIO_CALL yarg_freeverb_dsp_reset(
     yarg_freeverb_dsp* dsp);
+YARG_AUDIO_API int32_t YARG_AUDIO_CALL yarg_freeverb_dsp_set_params(
+    yarg_freeverb_dsp* dsp, const yarg_freeverb_params* params);
 YARG_AUDIO_API void YARG_AUDIO_CALL yarg_freeverb_dsp_destroy(yarg_freeverb_dsp* dsp);
+YARG_AUDIO_API int32_t YARG_AUDIO_CALL yarg_dattorro_reverb_dsp_attach(
+    uint32_t channel, float dry_mix, float wet_mix, float room_size,
+    float damp, float width, int32_t priority,
+    yarg_dattorro_reverb_dsp** dsp, int32_t* bass_error);
+YARG_AUDIO_API int32_t YARG_AUDIO_CALL yarg_dattorro_reverb_dsp_reset(
+    yarg_dattorro_reverb_dsp* dsp);
+YARG_AUDIO_API int32_t YARG_AUDIO_CALL yarg_dattorro_reverb_dsp_set_params(
+    yarg_dattorro_reverb_dsp* dsp, const yarg_dattorro_reverb_params* params);
+YARG_AUDIO_API void YARG_AUDIO_CALL yarg_dattorro_reverb_dsp_destroy(yarg_dattorro_reverb_dsp* dsp);
+YARG_AUDIO_API int32_t YARG_AUDIO_CALL yarg_noise_gate_dsp_attach(
+    uint32_t channel, float threshold, float floor_gain, float attack_ms,
+    float hold_ms, float release_ms, int32_t priority,
+    yarg_noise_gate_dsp** dsp, int32_t* bass_error);
+YARG_AUDIO_API int32_t YARG_AUDIO_CALL yarg_noise_gate_dsp_reset(
+    yarg_noise_gate_dsp* dsp);
+YARG_AUDIO_API int32_t YARG_AUDIO_CALL yarg_noise_gate_dsp_set_params(
+    yarg_noise_gate_dsp* dsp, const yarg_noise_gate_params* params);
+YARG_AUDIO_API void YARG_AUDIO_CALL yarg_noise_gate_dsp_destroy(yarg_noise_gate_dsp* dsp);
 YARG_AUDIO_API int32_t YARG_AUDIO_CALL yarg_one_shot_stream_create(
     const yarg_one_shot_config* config,
     const float* pcm, uint64_t pcm_sample_count,

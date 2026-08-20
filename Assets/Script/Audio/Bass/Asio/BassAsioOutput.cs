@@ -247,7 +247,8 @@ namespace YARG.Audio.BASS.Asio
 
             for (int channel = 0; channel < _driver.InputCount; channel++)
             {
-                var input = BassAsioInput.Create(_driver.DriverId, _driver.DriverName, channel, SampleRate);
+                var input = BassAsioInput.Create(_driver.DriverId, _driver.DriverName, channel, SampleRate,
+                    _driver.CallbackFrames);
                 if (input == null)
                 {
                     YargLogger.LogFormatError("Failed to create ASIO input {0}: {1}", channel, Bass.LastError);

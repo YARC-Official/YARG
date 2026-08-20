@@ -12,15 +12,15 @@ namespace YARG.Audio.BASS.Asio
     /// </summary>
     internal sealed class BassAsioMics
     {
-        private readonly List<BassAsioMicDevice> _devices = new();
+        private readonly List<BassAsioMicSource> _sources = new();
         private          BassAsioOutput?         _output;
 
         public void Attach(BassAsioOutput output)
         {
             _output = output;
-            foreach (var device in _devices)
+            foreach (var source in _sources)
             {
-                Resume(device);
+                Resume(source);
             }
         }
 
@@ -31,9 +31,9 @@ namespace YARG.Audio.BASS.Asio
                 return;
             }
 
-            foreach (var device in _devices)
+            foreach (var source in _sources)
             {
-                device.Suspend();
+                source.Suspend();
             }
 
             _output = null;
@@ -41,9 +41,9 @@ namespace YARG.Audio.BASS.Asio
 
         public bool IsClaimed(string driverId, int channelIndex)
         {
-            foreach (var device in _devices)
+            foreach (var source in _sources)
             {
-                if (device.Matches(driverId, channelIndex))
+                if (source.Matches(driverId, channelIndex))
                 {
                     return true;
                 }
@@ -52,7 +52,7 @@ namespace YARG.Audio.BASS.Asio
             return false;
         }
 
-        public BassAsioMicDevice? Create(BassAsioInput asioInput, InputDeviceInfo info)
+        public BassMicDevice? Create(BassAsioInput asioInput, InputDeviceInfo info)
         {
             if (IsClaimed(asioInput.DriverId, asioInput.ChannelIndex))
             {
@@ -66,37 +66,37 @@ namespace YARG.Audio.BASS.Asio
                 return null;
             }
 
-            var device = new BassAsioMicDevice(this, asioInput.DriverId, claimedInput, info);
-            _devices.Add(device);
-            return device;
+            var source = new BassAsioMicSource(this, asioInput.DriverId, claimedInput, info);
+            _sources.Add(source);
+            return BassMicDevice.Create(source);
         }
 
-        internal void Release(BassAsioMicDevice device) => _devices.Remove(device);
+        internal void Release(BassAsioMicSource source) => _sources.Remove(source);
 
-        private void Resume(BassAsioMicDevice device)
+        private void Resume(BassAsioMicSource source)
         {
             var output = _output;
-            if (output == null || !string.Equals(device.DriverId, output.DriverId, StringComparison.OrdinalIgnoreCase))
+            if (output == null || !string.Equals(source.DriverId, output.DriverId, StringComparison.OrdinalIgnoreCase))
             {
                 return;
             }
 
-            var input = output.ClaimInput(device.DriverId, device.ChannelIndex);
+            var input = output.ClaimInput(source.DriverId, source.Channel);
             if (input != null)
             {
                 try
                 {
-                    device.Resume(input);
+                    source.Rebind(input);
                 }
                 catch (Exception exception)
                 {
-                    YargLogger.LogException(exception, $"Failed to restore ASIO microphone '{device.DisplayName}'");
+                    YargLogger.LogException(exception, $"Failed to restore ASIO microphone '{source.DisplayName}'");
                 }
 
                 return;
             }
 
-            YargLogger.LogWarning($"Failed to restore ASIO microphone '{device.DisplayName}'");
+            YargLogger.LogWarning($"Failed to restore ASIO microphone '{source.DisplayName}'");
         }
     }
 }

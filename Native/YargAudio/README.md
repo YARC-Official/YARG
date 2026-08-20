@@ -1,7 +1,7 @@
 # YargAudio native audio library
 
-Portable 64-bit desktop native Gain, Freeverb, scheduled one-shot source, and
-song read-ahead stream.
+Portable 64-bit desktop native Gain, Freeverb, noise gate, scheduled one-shot
+source, and song read-ahead stream.
 
 Managed code reaches them through the C ABI and `SafeHandle` wrappers.
 Scheduled one-shots keep their PCM, schedule, BASS stream callback, and
@@ -17,6 +17,8 @@ BASS instance. Missing required symbols fail attachment.
 
 Gain state uses atomic bit storage. Freeverb preserves managed topology:
 sample-rate-scaled comb/all-pass delay lines, stereo spread, wet/dry mixing,
+callback-safe reset, channel locking, and safe DSP removal.
+Noise gate uses channel-linked envelope detection, smooth gain transitions,
 callback-safe reset, channel locking, and safe DSP removal.
 
 Audio structure, native DSP boundary, scheduled one-shot source, and output split

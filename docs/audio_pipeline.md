@@ -16,7 +16,8 @@ This document provides a high-level guide to how audio playback, low-latency ASI
 | **Outputs (Endpoints)** | [`BassOutput`](../Assets/Script/Audio/Bass/BassOutput.cs)<br>[`BassSharedOutput`](../Assets/Script/Audio/Bass/BassSharedOutput.cs)<br>[`BassAsioOutput`](../Assets/Script/Audio/Bass/Asio/BassAsioOutput.cs) | Base output class and its two endpoints: standard cross-platform playback (`Shared`) and low-latency [`BassAsioOutput`](../Assets/Script/Audio/Bass/Asio/BassAsioOutput.cs) (Windows only). |
 | **ASIO Driver Control** | [`BassAsioDriver`](../Assets/Script/Audio/Bass/Asio/BassAsioDriver.cs) | Wraps BASSASIO initialization, channel binding, hardware buffer querying, and driver notifications. |
 | **Microphone Signal** | [`BassMicSignal`](../Assets/Script/Audio/Bass/BassMicSignal.cs)<br>[`BassMicAnalyzer`](../Assets/Script/Audio/Bass/BassMicAnalyzer.cs) | Splits incoming mic audio into dual paths: pitch analysis (with EQ) and live vocal monitoring (with reverb). |
-| **ASIO Mic Handling** | [`BassAsioInput`](../Assets/Script/Audio/Bass/Asio/BassAsioInput.cs)<br>[`BassAsioMics`](../Assets/Script/Audio/Bass/Asio/BassAsioMics.cs)<br>[`BassAsioMicDevice`](../Assets/Script/Audio/Bass/Asio/BassAsioMicDevice.cs) | Exposes individual hardware input channels as distinct microphone choices and manages driver claiming. |
+| **ASIO Mic Handling** | [`BassAsioInput`](../Assets/Script/Audio/Bass/Asio/BassAsioInput.cs)<br>[`BassAsioMics`](../Assets/Script/Audio/Bass/Asio/BassAsioMics.cs)<br>[`BassAsioMicSource`](../Assets/Script/Audio/Bass/Asio/BassAsioMicSource.cs) | Exposes individual hardware input channels as distinct microphone choices and manages driver claiming. |
+| **Microphone Devices** | [`BassMicDevice`](../Assets/Script/Audio/Bass/BassMicDevice.cs)<br>[`IBassMicSource`](../Assets/Script/Audio/Bass/IBassMicSource.cs)<br>[`BassSharedMicSource`](../Assets/Script/Audio/Bass/BassSharedMicSource.cs) | Unified player microphone device and input source abstractions across ASIO and Shared Audio backends. |
 | **Live Sound Effects** | [`BassSamplePlayer`](../Assets/Script/Audio/Bass/BassSamplePlayer.cs)<br>[`BassSampleChannel`](../Assets/Script/Audio/Bass/BassSampleChannel.cs) | Plays menu SFX, metronomes, and drum hit sounds directly into the output mixer with zero buffer delay. |
 
 ---
@@ -122,25 +123,30 @@ Because audio frames sit in the read-ahead buffer before reaching the speakers, 
 
 ## 6. Audio Input: How Microphones Work
 
-### Push Model & BASS Push Streams
-ASIO input works on a **push model**: the driver delivers incoming mic data at regular intervals. In [`BassAsioInput`](../Assets/Script/Audio/Bass/Asio/BassAsioInput.cs), we create a BASS **push stream** for each physical input channel. BASS ASIO automatically pushes raw microphone data directly into that stream.
+### Recording Sources
+Both ASIO and Non-ASIO (Shared Audio) input use native BASS recording sources:
+- **ASIO** ([`BassAsioInput`](../Assets/Script/Audio/Bass/Asio/BassAsioInput.cs)): The ASIO hardware driver delivers incoming mic samples at hardware buffer rates and pushes them directly into a BASS push stream.
+- **Shared Audio** ([`BassMicrophoneCapture`](../Assets/Script/Audio/Bass/BassMicrophoneCapture.cs)): A callback-free BASS recording channel receives incoming OS audio so managed GC cannot pause capture delivery.
 
 ### The Split-Stream Design
 A microphone must feed two independent consumers simultaneously:
-1. **Pitch Analyzer** ([`BassMicAnalyzer`](../Assets/Script/Audio/Bass/BassMicAnalyzer.cs)): Needs raw audio data to calculate pitch and score vocal gameplay.
-2. **Live Monitor**: The singer needs to hear their voice through the speakers in real-time.
+1. **Pitch Analyzer** ([`BassMicAnalyzer`](../Assets/Script/Audio/Bass/BassMicAnalyzer.cs)): Receives live audio immediately with **0 ms additional buffering** to calculate pitch and score vocal gameplay with minimal input lag.
+2. **Live Vocal Monitor**: Feeds live singing through DSP effects (high-pass filters, boxiness scoop, bite, de-esser, noise gate, auto-leveler, compressor, and stage reverb) into the final output mixer.
 
-Because reading from a stream consumes the data, [`BassMicSignal`](../Assets/Script/Audio/Bass/BassMicSignal.cs) splits the push stream into two separate decode streams:
+Because reading from a stream consumes the data, [`BassMicSignal`](../Assets/Script/Audio/Bass/BassMicSignal.cs) splits each source into two separate decode streams:
 
 ```text
-Incoming Audio (ASIO Push Stream or Standard OS Recording)
+Incoming Audio (ASIO or Shared Push Stream)
   │
-  ├──> Analysis Split ──> Bandpass EQ Filter ──> Pitch Analyzer (Scoring)
+  ├──> Analysis Split (Slave)  ──► Bandpass EQ Filter ──► Pitch Analyzer (Scoring - 0 ms delay)
   │
-  └──> Monitor Split  ──> Reverb DSP Effect  ──> Final Mixer (Instant Live Playback)
+  └──> Monitor Split  (Master) ──► FX Chain & Reverb  ──► Final Mixer (Live Playback)
 ```
 
-- **Multi-channel interfaces**: Multi-input interfaces (like a 2-channel Focusrite interface) expose each input as an independent microphone device in the settings menu via [`BassAsioMics`](../Assets/Script/Audio/Bass/Asio/BassAsioMics.cs).
+### Shared Audio Recording Buffer
+Shared recording uses BASS's native recording buffer. Monitor playback pulls from the recording channel directly, so managed GC does not stop capture delivery or monitor refills.
+
+- **Multi-channel interfaces**: Multi-input interfaces (like a 2-channel Focusrite interface) expose each input as an independent microphone device in the settings menu via [`BassAsioMics`](../Assets/Script/Audio/Bass/Asio/BassAsioMics.cs) or [`BassMicManager`](../Assets/Script/Audio/Bass/BassMicManager.cs).
 
 ---
 
