@@ -14,17 +14,26 @@
   - [Make the PR](#2-make-the-pr)
   - [Update your clone (after merge)](#3-update-your-clone-after-merge)
   - [Handle open PRs (after merge)](#after-the-monorepo--open-prs)
+- [If you need to undo the whole monorepo merge](#undo-the-monorepo-merge)
 - [Appendix: One-shot migration script](#appendix-one-shot-migration-script)
 - [Mirror automation details](#mirror-automation-details)
 - [Appendix: Dry run on a fork - real CI without touching your fork](#appendix-dry-run-on-a-fork--real-ci-without-touching-your-fork-12h-zero-risk-to-yarc-official)
 
 ## Summary
 
-Right now YARG and YARG.Core are two separate repos. YARG includes Core as a git submodule which is actually a link to a commit in the YARG.Core repo.
+First, we set up the YARG.Core mirroring.
 
-This causes a lot of developer friction.  Any feature that touches both repos needs two pull requests, two reviews, and an extra commit just to update the pointer. Git history is split across two places. We also need special code just to make the submodule work with Unity and Visual Studio.
+Next, create a single PR to `dev` that does the following:
 
-This proposal is to move all of YARG.Core's files and history into the main YARG repo, so everything lives in one place.  The existing YARG.Core repo will still exist, but as a read-only mirror.
+* Import Core's files into `YARG/YARG.Core` (one commit; Core's history lives on in the mirror)
+* Point Unity at the new folder
+* Delete the submodule hacks
+* Update the docs
+
+Once the PR merges, two steps remain:
+
+* Move open Core PRs into YARG
+* Inform contributors how to update their clone
 
 ---
 
@@ -91,9 +100,6 @@ If you only need Core, you can still clone the small mirror, not the whole Unity
 
 ## Migration plan
 
-<details>
-<summary>Summary</summary>
-
 First, we set up the YARG.Core mirroring.
 
 Next, create a single PR to `dev` that does the following:
@@ -105,8 +111,6 @@ Next, create a single PR to `dev` that does the following:
 Once the PR merges, two steps remain:
 1. Move open Core PRs into `YARG`
 2. Inform contributors how to update their clone.
-
-</details>
 
 ### Risk assessment
 
@@ -211,17 +215,34 @@ git push
 ```bash
 # switch to your existing YARG PR branch
 git checkout existing-yarg-pr-branch
-# clear the submodule worktree first: merging dev replaces the gitlink with a
-# folder, and the checked-out submodule files block the merge
-# ("untracked working tree files would be overwritten")
+# clear the submodule worktree first
 git submodule deinit -f YARG.Core
-# merge the new dev in first: the branch still has the old submodule link, and
-# git am refuses to add files under it ("appears as both a file and as a directory")
+# merge the new dev in
 git merge dev
-# resolve conflicts by keeping dev's versions (.gitmodules is deleted, YARG.Core becomes a normal folder)
+# resolve conflicts by keeping dev's versions
 # replay commits keeping original author
 git am --directory=YARG.Core/ ~/my-core-pr.patch
 git push
+```
+
+<a id="undo-the-monorepo-merge"></a>
+
+## If you need to undo the whole monorepo merge
+
+The full sequence, commands first:
+
+```bash
+# 1. Revert any commits that landed after the merge and touched YARG.Core,
+#    newest first
+git revert <post-merge commit>
+
+# 2. Revert the merge commit itself
+git revert -m 1 <merge commit>
+git push origin dev
+
+# 3. Restore the mirror. An admin
+#    force-pushes master back to the last pre-merge commit
+git -C ./tmp-core-mirror push --force <mirror-url> master
 ```
 
 
@@ -300,26 +321,44 @@ jobs:
 
 In `YARC-Official/YARG.Core` > Settings > Branches > Add branch protection rule for `master`: enable **Restrict who can push to matching branches** and allow only the GitHub App (`YARG Core Mirror`) and admins. This is what makes the mirror read-only. Direct pushes will fail and the Merge button on old Core PRs shows *Merging is blocked*.
 
-### 4. Test before merging the monorepo PR.
-Verify the merge-then-split locally before pushing anything. The merge script's `merge` phase does this automatically on a throwaway branch (so `dev` stays clean if it fails): it runs the trailer-bearing test merge, splits `YARG.Core/`, and aborts if the split tip does not equal the core tip.
-Do not merge without the trailers - the split dies (`Maximum function recursion depth (1000) reached` on the runner's dash, a segfault in Git Bash), and the same happens if the import commit also carries trailer lines (`fatal: cache for <hash> already exists!`).
+### 4. Test locally before merging the monorepo PR.
+The merge push triggers the mirror workflow on the real `dev`, so run the exact same sequence locally before pushing anything — on a throwaway branch, so `dev` stays clean if the test fails.
 
-After the workflow lands on `dev` and the monorepo merge lands, push a trivial commit touching `YARG.Core/README.md` and verify https://github.com/YARC-Official/YARG.Core/commits/master shows it within ~1 min.
+**1. Recreate the merge commit exactly as in step 6**, with the three `git-subtree-*` trailers:
 
-<a id="undo-the-monorepo-merge"></a>
+```bash
+git checkout -b mirror-test dev
+git merge --no-ff monorepo-merge -m "Merge pull request #N from YARG/monorepo-merge
 
-**If you need to undo the whole monorepo merge:** the revert is not enough on its own.
+git-subtree-dir: YARG.Core
+git-subtree-mainline: $(git rev-parse dev)
+git-subtree-split: $(git rev-parse yarg-core/master)"
+```
 
-The monorepo merge is one merge commit on `dev` that brought `YARG.Core/` in. It has two parents: parent 1 is `dev` as it was before the merge, parent 2 is the imported Core history. Undoing it takes two steps:
+`git-subtree-split` is the core tip: the hash of `yarg-core/master` at merge time. The test merge must carry the trailers, because they are what make the split work.
 
-1. **Revert the post-merge commits first.** If anything landed on `dev` after the merge and touched `YARG.Core/`, revert those commits first (newest first). A revert of the merge deletes the whole `YARG.Core/` folder; if a later commit changed files in it, the deletion conflicts with those changes.
-2. **Revert the merge commit itself:** `git revert -m 1 <merge commit>`. Git refuses to revert a merge commit without `-m` because it has two parents and git needs to know which side to keep. `-m 1` means "keep parent 1" — the pre-merge state of `dev` — and undo everything the merge introduced. After this, `dev` is back to its pre-merge state and `YARG.Core` is a gitlink again.
+**2. Run the same split the workflow runs:**
 
-That only fixes YARG. The mirror does **not** follow the revert:
+```bash
+git subtree split --prefix=YARG.Core -b mirror-temp HEAD <mirror URL>
+```
 
-* The workflow run after that push skips (the guard sees the gitlink again), and even if a run pushed, pushing a deletion commit would only delete files — the monorepo-era commits would stay in the mirror's history. The workflow can never delete history.
-* So an admin must force-push the mirror's `master` back to its last pre-merge commit exactly once — the tip of Core's original history, i.e. the commit `master` pointed at before the workflow pushed the merge. Any clone of Core from before the merge still has it (in the dry run: `tmp-core-mirror` from step 1): `git -C ./tmp-core-mirror push --force <mirror-url> master`.
+The URL is always needed. YARG's repo only has the imported files, not Core's original commits; the split command fetches those from the mirror and grafts the replayed commits onto them.
 
+**3. Check the split reproduced Core's history exactly:**
+
+```bash
+git rev-parse mirror-temp
+git rev-parse yarg-core/master
+```
+
+If the two hashes match, the mirror push will fast-forward cleanly. If they differ, do not merge.
+
+```bash
+git branch -D mirror-temp mirror-test   # clean up
+```
+
+After this is all done, smoke-test the live sync by pushing a trivial commit touching `YARG.Core/README.md` and verify it shows up on https://github.com/YARC-Official/YARG.Core/commits/master after a few minutes.
 
 <a id="appendix-dry-run-on-a-fork--real-ci-without-touching-your-fork-12h-zero-risk-to-yarc-official"></a>
 ## Appendix: Dry run plan
