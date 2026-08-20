@@ -1286,6 +1286,14 @@
                     "HighestScoreCurrentDifficulty": "Highest score on current difficulty"
                 }
             },
+            "SongLengthLabels": {
+                "Name": "Song Duration Labels",
+                "Description": "Choose how song durations are grouped in the music library and filters menu.",
+                "Dropdown": {
+                    "RangeLabels": "2:00, 5:00, 10:00, 15:00, 20:00",
+                    "LegacyLabels": "Short, Medium, Long, Epic"
+                }
+            },
             "HighwayTiltMultiplier": {
                 "Name": "Highway Tilt Multiplier",
                 "Description": "Controls the amount that the tracks should tilt inward during multiplayer gameplay only."
