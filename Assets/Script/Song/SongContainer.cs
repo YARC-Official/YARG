@@ -807,10 +807,7 @@ namespace YARG.Song
                     return Cast(_sortedSongs.SongLengths);
                 }
 
-                var groups = new List<SongEntry>[4]
-                {
-                    new(), new(), new(), new(),
-                };
+                var groups = new SortedDictionary<int, List<SongEntry>>();
 
                 // The range categories and their contents are already ordered by duration.
                 foreach (var range in _sortedSongs.SongLengths.Values)
@@ -824,7 +821,12 @@ namespace YARG.Song
                             < 420000 => 2,
                             _        => 3,
                         };
-                        groups[groupIndex].Add(song);
+
+                        if (!groups.TryGetValue(groupIndex, out var group))
+                        {
+                            groups.Add(groupIndex, group = new List<SongEntry>());
+                        }
+                        group.Add(song);
                     }
                 }
 
@@ -836,18 +838,14 @@ namespace YARG.Song
                     "Menu.Filters.Length.Epic",
                 };
 
-                var sections = new List<SongCategory>(groups.Length);
-                for (int i = 0; i < groups.Length; i++)
+                var sections = new SongCategory[groups.Count];
+                int index = 0;
+                foreach (var (groupIndex, songs) in groups)
                 {
-                    if (groups[i].Count == 0)
-                    {
-                        continue;
-                    }
-
-                    string label = Localize.Key(labelKeys[i]);
-                    sections.Add(new SongCategory(label, groups[i].ToArray(), label));
+                    string label = Localize.Key(labelKeys[groupIndex]);
+                    sections[index++] = new SongCategory(label, songs.ToArray(), label);
                 }
-                return sections.ToArray();
+                return sections;
             }
 
             static SongCategory[] Cast(SortedDictionary<string, List<SongEntry>> list)
