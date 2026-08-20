@@ -28,7 +28,7 @@ namespace YARG.Gameplay.HUD
                 return $"NoInstrumentIcons[{instrument.ToResourceName()}]";
             }
 
-            if (instrument == Instrument.Harmony)
+            if (instrument == Instrument.Harmony || instrument == Instrument.PartyVocals)
             {
                 return $"HarmonyVocalsIcons[{harmonyIndex + 1}]";
             }
@@ -57,7 +57,7 @@ namespace YARG.Gameplay.HUD
             {
                 return Color.gray;
             }
-            if (instrument != Instrument.Harmony)
+            if (instrument != Instrument.Harmony && instrument != Instrument.PartyVocals)
             {
                 return Color.white;
             }
