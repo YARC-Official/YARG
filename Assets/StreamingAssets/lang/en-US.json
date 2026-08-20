@@ -1498,6 +1498,14 @@
                 "Description": "Choose the resolution of your screen. \"Default\" is recommended.",
                 "Default": "<i>Default ({0})</i>"
             },
+            "ReverbImplementation": {
+                "Name": "Reverb Implementation",
+                "Description": "Selects the reverb trade-off. Performance uses a lighter Freeverb, Quality uses a fuller Dattorro plate.",
+                "Dropdown": {
+                    "Performance": "Performance",
+                    "Quality": "Quality"
+                }
+            },
             "RhythmVolume": {
                 "Name": "Rhythm Volume",
                 "PauseName": "Rhythm",
@@ -1657,6 +1665,11 @@
                 "Name": "Vocal Monitoring Volume",
                 "PauseName": "Monitoring",
                 "Description": "Adjusts the feedback you hear when singing. Values above 1 add extra gain for quiet microphones."
+            },
+            "VocalReverb": {
+                "Name": "Vocal Reverb",
+                "PauseName": "Reverb",
+                "Description": "Adjusts the amount of reverb applied to vocal monitoring. 0 is dry, 1.0 is maximum."
             },
 			"VocalStreakFrequency": {
                 "Name": "Vocal Streak Frequency",

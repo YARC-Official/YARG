@@ -2,6 +2,7 @@
 using System;
 using System.Runtime.InteropServices;
 using Microsoft.Win32.SafeHandles;
+using YARG.Audio.BASS.Native;
 using YARG.Core.Logging;
 
 namespace YARG.Audio.BASS
@@ -85,11 +86,8 @@ namespace YARG.Audio.BASS
 
             try
             {
-                uint nativeVersion = Native.GetAbiVersion();
-                if (nativeVersion != BassHelpers.YARG_AUDIO_ABI_VERSION)
+                if (!YargAudioNative.CheckAbi())
                 {
-                    YargLogger.LogFormatError("YargAudio ABI mismatch: managed={0}, native={1}",
-                        BassHelpers.YARG_AUDIO_ABI_VERSION, nativeVersion);
                     return null;
                 }
 
@@ -201,9 +199,6 @@ namespace YARG.Audio.BASS
         private static class Native
         {
             private const string LIBRARY = "yarg_audio";
-
-            [DllImport(LIBRARY, EntryPoint = "yarg_audio_get_abi_version", CallingConvention = CallingConvention.Cdecl)]
-            internal static extern uint GetAbiVersion();
 
             [DllImport(LIBRARY, EntryPoint = "yarg_read_ahead_stream_create",
                 CallingConvention = CallingConvention.Cdecl)]

@@ -22,12 +22,13 @@ struct yarg_freeverb_dsp {
     int delaySampleCount = 0;
     std::atomic<std::uint32_t> resetRequested;
 
-    float roomFeedback;
-    float damping;
-    float wetMix;
-    float sameChannelWetMix;
-    float crossChannelWetMix;
-    float dryMix;
+    std::atomic<std::uint32_t> roomFeedbackBits;
+    std::atomic<std::uint32_t> dampingBits;
+    std::atomic<std::uint32_t> wetMixBits;
+    std::atomic<std::uint32_t> sameChannelWetMixBits;
+    std::atomic<std::uint32_t> crossChannelWetMixBits;
+    std::atomic<std::uint32_t> dryMixBits;
+    std::atomic<std::uint32_t> widthBits;
 };
 
 namespace yarg::audio {
@@ -39,6 +40,7 @@ int freeverbDspAttach(const BassCoreBindings& bass, std::uint32_t channel,
     float dryMix, float wetMix, float roomSize, float damp, float width,
     int priority, yarg_freeverb_dsp** dsp, int* bassError) noexcept;
 int freeverbDspRequestReset(yarg_freeverb_dsp* dsp) noexcept;
+int freeverbDspSetParams(yarg_freeverb_dsp* dsp, const yarg_freeverb_params* params) noexcept;
 
 // Returns false when state must remain allocated because detach was not safe.
 bool freeverbDspDestroy(yarg_freeverb_dsp* dsp) noexcept;
