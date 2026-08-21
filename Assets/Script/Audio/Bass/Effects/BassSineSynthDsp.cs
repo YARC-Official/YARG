@@ -155,7 +155,16 @@ namespace YARG.Audio.BASS.Effects
                 return false;
             }
 
-            fixed (ToneSegment* pointer = segments)
+            // Copied into the native layout rather than pinning the Core type directly. ToneSegment
+            // is backend-agnostic and has to stay free to change shape; only this struct is pinned
+            // to the plugin ABI, the same way NativeConfig is.
+            var native = new NativeSegment[segments.Length];
+            for (int i = 0; i < segments.Length; i++)
+            {
+                native[i] = new NativeSegment(segments[i]);
+            }
+
+            fixed (NativeSegment* pointer = native)
             {
                 int result = Native.SetNotes(this, (IntPtr) pointer, (ulong) segments.Length,
                     out int bassError);
@@ -192,6 +201,26 @@ namespace YARG.Audio.BASS.Effects
         private static bool IsFinite(float value)
         {
             return !float.IsNaN(value) && !float.IsInfinity(value);
+        }
+
+        /// <summary>
+        /// Mirrors yarg_sine_note. Field order and types are fixed by the plugin ABI.
+        /// </summary>
+        [StructLayout(LayoutKind.Sequential)]
+        private struct NativeSegment
+        {
+            public double StartTime;
+            public double EndTime;
+            public float  StartPitch;
+            public float  EndPitch;
+
+            public NativeSegment(in ToneSegment segment)
+            {
+                StartTime = segment.StartTime;
+                EndTime = segment.EndTime;
+                StartPitch = segment.StartPitch;
+                EndPitch = segment.EndPitch;
+            }
         }
 
         [StructLayout(LayoutKind.Sequential)]
