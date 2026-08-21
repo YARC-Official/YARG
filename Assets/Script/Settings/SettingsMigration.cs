@@ -146,7 +146,7 @@ namespace YARG.Settings
                 return;
             }
 
-            settings[REVERB_IMPLEMENTATION_SETTING] = (int) ReverbMode.Quality;
+            settings[REVERB_IMPLEMENTATION_SETTING] = (int) ReverbMode.Performance;
         }
 
         private static bool TryGetInteger(JToken token, out long value)
