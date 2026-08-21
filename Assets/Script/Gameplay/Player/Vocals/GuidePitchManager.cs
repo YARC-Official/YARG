@@ -85,17 +85,30 @@ namespace YARG.Gameplay.Player
         }
 
         /// <summary>
-        /// Call when the practice section changes so the schedule follows the new section.
+        /// Call when the practice section changes. Republishes only if that actually changed which
+        /// notes the tone should follow.
         /// </summary>
         public void OnPracticeSectionChanged(VocalsTrack sectionTrack)
         {
-            _vocalsTrack = sectionTrack ?? throw new ArgumentNullException(nameof(sectionTrack));
+            if (sectionTrack == null)
+            {
+                throw new ArgumentNullException(nameof(sectionTrack));
+            }
 
             // Clamp enabled index in case the new section has fewer parts
-            if (_enabledHarmonyIndex >= _vocalsTrack.Parts.Count)
+            int index = _enabledHarmonyIndex >= sectionTrack.Parts.Count ? -1 : _enabledHarmonyIndex;
+
+            // Callers pass the full-song track, which is the same object for every section. The
+            // schedule is in absolute song time, so the notes already published serve the new
+            // section as well; rebuilding would allocate a fresh table, re-take the mixer lock and
+            // reposition the render thread's scan, all to arrive at an identical schedule.
+            if (ReferenceEquals(sectionTrack, _vocalsTrack) && index == _enabledHarmonyIndex)
             {
-                _enabledHarmonyIndex = -1;
+                return;
             }
+
+            _vocalsTrack = sectionTrack;
+            _enabledHarmonyIndex = index;
 
             PublishSchedule();
             OnGuidePitchChanged?.Invoke(GetStatusString(), GetStatusColor());
