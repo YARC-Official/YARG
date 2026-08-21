@@ -30,8 +30,9 @@ struct yarg_sine_synth_dsp {
 
     // Render-thread-only scan and oscillator state.
     std::size_t noteIndex = 0;
-    double lastSongTime = 0;
-    bool hasLastSongTime = false;
+    // Forces the next lookup to reposition the index instead of walking forward to it. Set
+    // whenever the table is replaced, so a new schedule does not scan from the start.
+    bool rescan = true;
     double phase = 0;
     float currentVolume = 0;
 };

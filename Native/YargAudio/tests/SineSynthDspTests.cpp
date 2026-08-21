@@ -263,8 +263,11 @@ void testDspProcReadsSongPosition() {
     BassCoreBindings bass(completeFunctions());
     auto* dsp = create(bass, state);
 
-    const yarg_sine_note notes[] = {note(0.0, 100.0, 69.0f, 69.0f)};
-    REQUIRE(sineSynthDspSetNotes(dsp, notes, 1) == YARG_AUDIO_OK);
+    const yarg_sine_note notes[] = {
+        note(0.0, 1.0, 69.0f, 69.0f),
+        note(5.0, 6.0, 69.0f, 69.0f),
+    };
+    REQUIRE(sineSynthDspSetNotes(dsp, notes, 2) == YARG_AUDIO_OK);
 
     int bassError = -1;
     REQUIRE(sineSynthDspAttach(dsp, 11, 3, &bassError) == YARG_AUDIO_OK);
@@ -276,8 +279,8 @@ void testDspProcReadsSongPosition() {
     std::vector<float> buffer(256, 0.0f);
     state.callback(21, 11, buffer.data(), 256 * sizeof(float), state.callbackUser);
 
-    // songTimeEnd = seconds + offset, so the scan ran around 5.5 s.
-    REQUIRE(dsp->lastSongTime > 5.0 && dsp->lastSongTime <= 5.5);
+    // songTimeEnd = seconds + offset = 5.5, which lands inside the second segment.
+    REQUIRE(dsp->noteIndex == 1);
     bool audible = false;
     for (float sample : buffer) {
         if (sample != 0.0f) audible = true;
@@ -553,6 +556,37 @@ void testScheduleValidation() {
     REQUIRE(sineSynthDspDestroy(dsp));
 }
 
+// A rewind shorter than the old fixed threshold still has to replay the notes it moved back
+// over, and a replaced table must not make the render thread walk the whole song to catch up.
+void testShortRewindReplaysNotes() {
+    MockBass state;
+    BassCoreBindings bass(completeFunctions());
+    auto* dsp = create(bass, state);
+
+    const yarg_sine_note notes[] = {
+        note(10.0, 10.2, 69.0f, 69.0f),
+        note(11.0, 11.2, 71.0f, 71.0f),
+    };
+    REQUIRE(sineSynthDspSetNotes(dsp, notes, 2) == YARG_AUDIO_OK);
+
+    // Play past the first note, so the index has advanced beyond it.
+    REQUIRE(approx(sineSynthDspFrequencyAt(*dsp, 10.1), 440.0));
+    REQUIRE(sineSynthDspFrequencyAt(*dsp, 10.4) == 0.0f);
+    REQUIRE(dsp->noteIndex == 1);
+
+    // Rewind 0.3 s -- less than the 0.5 s threshold this used to require. The note has to
+    // sound again rather than be skipped as silence.
+    REQUIRE(approx(sineSynthDspFrequencyAt(*dsp, 10.1), 440.0));
+    REQUIRE(dsp->noteIndex == 0);
+
+    // Replacing the table repositions rather than rescanning from the start.
+    REQUIRE(sineSynthDspSetNotes(dsp, notes, 2) == YARG_AUDIO_OK);
+    REQUIRE(approx(sineSynthDspFrequencyAt(*dsp, 11.1), 493.883, 0.01));
+    REQUIRE(dsp->noteIndex == 1);
+
+    REQUIRE(sineSynthDspDestroy(dsp));
+}
+
 } // namespace
 
 void runSineSynthDspTests() {
@@ -569,4 +603,5 @@ void runSineSynthDspTests() {
     testDestroyFailurePolicy();
     testDetachLocksAndKeepsHandlesOnFailure();
     testScheduleValidation();
+    testShortRewindReplaysNotes();
 }

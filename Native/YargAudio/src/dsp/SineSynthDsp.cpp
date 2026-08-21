@@ -28,10 +28,6 @@ constexpr std::uint32_t BassPositionDecode = 0x10000000;
 // failing this way means the DSP is already gone rather than still installed.
 constexpr int BassErrorHandle = 5;
 
-// A backward jump larger than this is a seek (a practice section loop) rather than ordinary
-// forward progress, and restarts the scan.
-constexpr double BackwardSeekThreshold = 0.5;
-
 constexpr float MinimumSpeed = 0.0001f;
 constexpr double Tau = 6.283185307179586476925286766559;
 
@@ -64,13 +60,23 @@ float sineSynthDspFrequencyAt(yarg_sine_synth_dsp& state, double songTime) noexc
     const auto& notes = state.notes;
     if (notes.empty()) return 0.0f;
 
-    // Restart the scan only on a genuine backward jump. The index sits on the next note while
-    // in a gap, so testing that note's start time would rescan on every ordinary gap.
-    if (state.hasLastSongTime && songTime < state.lastSongTime - BackwardSeekThreshold) {
-        state.noteIndex = 0;
+    // The index only ever advances, so it is stale exactly when the song has moved back before
+    // a segment it already passed -- which is what the previous segment's end time tests.
+    // Testing the upcoming segment's start time instead would rescan on every ordinary gap,
+    // and a fixed backward-jump threshold silently missed any rewind shorter than it, leaving
+    // the replayed notes silent.
+    const bool movedBack = state.noteIndex > 0 &&
+        state.noteIndex <= notes.size() &&
+        songTime < notes[state.noteIndex - 1].end_time;
+
+    if (state.rescan || movedBack) {
+        // Reposition rather than restart: rescanning from zero walks the whole song's
+        // schedule on the render thread every time a practice section loops.
+        const auto target = std::lower_bound(notes.begin(), notes.end(), songTime,
+            [](const yarg_sine_note& note, double time) { return note.end_time <= time; });
+        state.noteIndex = static_cast<std::size_t>(target - notes.begin());
+        state.rescan = false;
     }
-    state.lastSongTime = songTime;
-    state.hasLastSongTime = true;
 
     while (state.noteIndex < notes.size() && notes[state.noteIndex].end_time <= songTime) {
         ++state.noteIndex;
@@ -282,7 +288,7 @@ int sineSynthDspSetNotes(yarg_sine_synth_dsp* dsp, const yarg_sine_note* notes,
 
     dsp->notes.swap(replacement);
     dsp->noteIndex = 0;
-    dsp->hasLastSongTime = false;
+    dsp->rescan = true;
 
     if (attached) dsp->bass.lockChannel(dsp->channel, false);
     return YARG_AUDIO_OK;
