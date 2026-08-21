@@ -297,14 +297,14 @@ namespace YARG.Audio.BASS
             var flags = outputChannel is BassOutputChannel bassOutputChannel
                 ? bassOutputChannel.Flags
                 : BassFlags.Default;
-            _volumeMixer.SetFlags(flags, BassFlags.SpeakerFront);
             BassMix.ChannelFlags(TempoStreamHandle, flags, BassFlags.SpeakerFront);
         }
 
         public BassOneShotChannel CreateOneShot(int sampleStream, IReadOnlyList<double> scheduledPlays,
-            Func<long, double> getPosition, Func<float> getSpeed, double outputLeadTime) =>
+            Func<long, double> getPosition, Func<float> getSpeed, double outputLeadTime,
+            OutputChannel? outputChannel = null) =>
             new(_songMixer.Handle, TempoStreamHandle, sampleStream, scheduledPlays, getPosition, getSpeed, outputLeadTime,
-                !IsPlaying);
+                !IsPlaying, outputChannel);
 
         public void AttachOneShot(BassOneShotChannel oneShot) => oneShot.AttachOutput(_songMixer.Handle, !IsPlaying);
 

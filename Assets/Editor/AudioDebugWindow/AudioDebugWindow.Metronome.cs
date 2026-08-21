@@ -91,6 +91,7 @@ namespace YARG.Editor
 
                 if (_headphoneAuditionMode && targetPair != 0)
                 {
+                    GlobalAudioHandler.PlayMetronomeSoundEffectToChannel(_testMetronomeSound, pitch, 1);
                     _channelPairPeaks[0] = Mathf.Max(_channelPairPeaks[0], -4f);
                 }
             }

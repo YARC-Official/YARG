@@ -56,6 +56,7 @@ namespace YARG.Editor
                     _testMetronomeSound = SettingsManager.Settings.MetronomeSound.Value;
                 }
                 _metronomeTargetChannel = SettingsManager.Settings.OutputChannelMetronome.Value;
+                _metronomeVolume = (float) SettingsManager.Settings.MetronomeVolume.Value;
             }
         }
 
