@@ -24,38 +24,20 @@ namespace YARG.Editor
 #if UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN
             try
             {
-                for (int asioIndex = 0; asioIndex < BassAsio.DeviceCount; asioIndex++)
+                for (int i = 0; i < BassAsio.DeviceCount; i++)
                 {
-                    try
-                    {
-                        BassAsio.CurrentDevice = asioIndex;
-                        BassAsio.Stop();
-                        BassAsio.Free();
-                    }
-                    catch
-                    {
-                    }
+                    BassAsio.CurrentDevice = i;
+                    BassAsio.Stop();
+                    BassAsio.Free();
                 }
-            }
-            catch
-            {
-            }
 
-            try
-            {
-                for (int wasapiIndex = 0; BassWasapi.GetDeviceInfo(wasapiIndex, out var wasapiInfo); wasapiIndex++)
+                for (int i = 0; BassWasapi.GetDeviceInfo(i, out var wasapiInfo); i++)
                 {
                     if (wasapiInfo.IsInitialized)
                     {
-                        try
-                        {
-                            BassWasapi.CurrentDevice = wasapiIndex;
-                            BassWasapi.Stop(true);
-                            BassWasapi.Free();
-                        }
-                        catch
-                        {
-                        }
+                        BassWasapi.CurrentDevice = i;
+                        BassWasapi.Stop(true);
+                        BassWasapi.Free();
                     }
                 }
             }

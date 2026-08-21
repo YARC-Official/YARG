@@ -9,10 +9,6 @@ using YARG.Core.Logging;
 
 namespace YARG.Audio.BASS.Wasapi
 {
-    /// <summary>
-    ///     Outputs audio using WASAPI Exclusive mode for low-latency playback.
-    ///     The master audio stream is combined into a single decode mixer that BASSWASAPI pulls from directly.
-    /// </summary>
     internal sealed class BassWasapiOutput : BassOutput
     {
         internal const string DEVICE_PREFIX = "WASAPI: ";
@@ -144,7 +140,7 @@ namespace YARG.Audio.BASS.Wasapi
                 {
                     YargLogger.LogFormatError("Failed to initialize WASAPI device [{0}]: {1}",
                         Name, Bass.LastError);
-                    FreeOutputGraph();
+                    StopOutput();
                     return false;
                 }
 
@@ -160,8 +156,7 @@ namespace YARG.Audio.BASS.Wasapi
                 if (!BassWasapi.Start())
                 {
                     YargLogger.LogFormatError("Failed to start WASAPI output: {0}", Bass.LastError);
-                    BassWasapi.Free();
-                    FreeOutputGraph();
+                    StopOutput();
                     return false;
                 }
 
@@ -173,6 +168,7 @@ namespace YARG.Audio.BASS.Wasapi
             catch (Exception exception)
             {
                 YargLogger.LogException(exception, "Failed to start WASAPI Exclusive output");
+                StopOutput();
                 return false;
             }
         }
@@ -192,8 +188,8 @@ namespace YARG.Audio.BASS.Wasapi
                     return null;
                 }
 
-                int frames = (info.Channels > 0 && SampleRate > 0)
-                    ? (info.BufferLength / (info.Channels * sizeof(float)))
+                int frames = info.Channels > 0 && SampleRate > 0
+                    ? info.BufferLength / (info.Channels * sizeof(float))
                     : 0;
 
                 return new OutputBufferInfo(Array.Empty<int>(), frames, info.Frequency, true);
@@ -254,35 +250,23 @@ namespace YARG.Audio.BASS.Wasapi
 
         private void OnWasapiNotify(WasapiNotificationType notify, int device, IntPtr user)
         {
-            if (device != _wasapiDeviceIndex && device != -1)
+            if ((device == _wasapiDeviceIndex || device == -1) && notify is WasapiNotificationType.Disabled)
             {
-                return;
-            }
-
-            if (notify is WasapiNotificationType.Disabled)
-            {
-                QueueRestart();
-            }
-        }
-
-        private void QueueRestart()
-        {
-            if (Interlocked.Exchange(ref _restartQueued, 1) == 0)
-            {
-                UnityMainThreadCallback.QueueEvent(RestartOutput);
+                if (Interlocked.Exchange(ref _restartQueued, 1) == 0)
+                {
+                    UnityMainThreadCallback.QueueEvent(RestartOutput);
+                }
             }
         }
 
         private void RestartOutput()
         {
             Interlocked.Exchange(ref _restartQueued, 0);
-            if (IsDisposed)
+            if (!IsDisposed)
             {
-                return;
+                YargLogger.LogInfo("Reinitializing WASAPI Exclusive output");
+                RequestRestart();
             }
-
-            YargLogger.LogInfo("Reinitializing WASAPI Exclusive output");
-            RequestRestart();
         }
 
         private static int FindDevice(string rawName)

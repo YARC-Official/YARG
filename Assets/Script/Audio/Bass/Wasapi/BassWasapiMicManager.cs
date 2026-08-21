@@ -7,9 +7,6 @@ using YARG.Core.Logging;
 
 namespace YARG.Audio.BASS.Wasapi
 {
-    /// <summary>
-    ///     Discovers and manages WASAPI Exclusive recording devices and input channels.
-    /// </summary>
     internal sealed class BassWasapiMicManager : IDisposable
     {
         private readonly Dictionary<int, BassWasapiMicrophoneCapture> _captures = new();
@@ -19,22 +16,6 @@ namespace YARG.Audio.BASS.Wasapi
         public BassWasapiMicManager(BassAudioRouter router)
         {
             _router = router;
-        }
-
-        public MicDevice? CreateMic(InputDeviceInfo requestedDevice)
-        {
-            if (!TryResolveRequestedDevice(requestedDevice, out var device))
-            {
-                return null;
-            }
-
-            int channelCount = GetChannelCount(device.DeviceId);
-            if (!IsChannelInRange(device, channelCount))
-            {
-                return null;
-            }
-
-            return TryCreateClaimedMic(device, channelCount);
         }
 
         public List<InputDeviceInfo> GetAllDevices()
@@ -64,57 +45,57 @@ namespace YARG.Audio.BASS.Wasapi
             return result;
         }
 
-        public void Dispose()
+        public MicDevice? CreateMic(InputDeviceInfo requested)
         {
-            lock (_lock)
+            int deviceId = requested.DeviceId >= 0 ? requested.DeviceId : FindDeviceIdByName(requested.Name);
+            if (deviceId < 0 || !BassWasapi.GetDeviceInfo(deviceId, out var info))
             {
-                foreach (var capture in _captures.Values)
-                {
-                    capture.Dispose();
-                }
-
-                _captures.Clear();
+                return null;
             }
-        }
 
-        private MicDevice? TryCreateClaimedMic(InputDeviceInfo device, int channelCount)
-        {
+            int channelCount = Math.Max(1, info.MixChannels);
+            if (requested.Channel < 0 || requested.Channel >= channelCount)
+            {
+                YargLogger.LogFormatWarning("WASAPI mic '{0}' channel {1} is out of range (device has {2} channels)",
+                    requested.Name, requested.Channel, channelCount);
+                return null;
+            }
+
             BassWasapiMicrophoneCapture? capture;
-
             lock (_lock)
             {
-                capture = FindOrCreateCapture(device.DeviceId, channelCount);
-                if (capture == null)
+                if (!_captures.TryGetValue(deviceId, out capture))
                 {
-                    return null;
+                    capture = BassWasapiMicrophoneCapture.Create(deviceId, channelCount);
+                    if (capture == null)
+                    {
+                        return null;
+                    }
+
+                    _captures.Add(deviceId, capture);
                 }
 
-                if (!capture.TryClaimChannel(device.Channel))
+                if (!capture.TryClaimChannel(requested.Channel))
                 {
-                    YargLogger.LogFormatWarning("WASAPI Mic '{0}' channel {1} is already claimed",
-                        device.Name, device.Channel);
+                    YargLogger.LogFormatWarning("WASAPI mic '{0}' channel {1} is already claimed",
+                        requested.Name, requested.Channel);
                     return null;
                 }
             }
 
             string displayName = channelCount > 1
-                ? $"{device.Name} - Channel {device.Channel + 1}"
-                : device.Name;
+                ? $"{requested.Name} - Channel {requested.Channel + 1}"
+                : requested.Name;
 
-            BassWasapiMicSource? source = null;
-            try
+            var source = BassWasapiMicSource.Create(capture, requested.Name, displayName, requested.Channel, _router,
+                () => ReleaseMic(deviceId, requested.Channel, capture));
+            if (source == null)
             {
-                source = new BassWasapiMicSource(capture, device.Name, displayName, device.Channel, _router,
-                    () => ReleaseMic(device.DeviceId, device.Channel, capture));
-            }
-            catch (Exception exception)
-            {
-                YargLogger.LogException(exception, $"Failed to create WASAPI mic '{displayName}'");
-                ReleaseMic(device.DeviceId, device.Channel, capture);
+                ReleaseMic(deviceId, requested.Channel, capture);
                 return null;
             }
 
-            if (!source.IsValid || !capture.Start())
+            if (!capture.Start())
             {
                 source.Dispose();
                 return null;
@@ -129,20 +110,17 @@ namespace YARG.Audio.BASS.Wasapi
             return mic;
         }
 
-        private BassWasapiMicrophoneCapture? FindOrCreateCapture(int deviceId, int channels)
+        public void Dispose()
         {
-            if (_captures.TryGetValue(deviceId, out var existing))
+            lock (_lock)
             {
-                return existing;
-            }
+                foreach (var capture in _captures.Values)
+                {
+                    capture.Dispose();
+                }
 
-            var capture = BassWasapiMicrophoneCapture.Create(deviceId, channels);
-            if (capture != null)
-            {
-                _captures.Add(deviceId, capture);
+                _captures.Clear();
             }
-
-            return capture;
         }
 
         private void ReleaseMic(int deviceId, int channel, BassWasapiMicrophoneCapture capture)
@@ -155,45 +133,12 @@ namespace YARG.Audio.BASS.Wasapi
                 }
 
                 capture.ReleaseChannel(channel);
-
-                if (capture.HasClaimedChannel)
+                if (!capture.HasClaimedChannel)
                 {
-                    return;
+                    _captures.Remove(deviceId);
+                    capture.Dispose();
                 }
-
-                _captures.Remove(deviceId);
-                capture.Dispose();
             }
-        }
-
-        private static int GetChannelCount(int deviceId)
-        {
-            if (BassWasapi.GetDeviceInfo(deviceId, out var info) && info.MixChannels > 0)
-            {
-                return info.MixChannels;
-            }
-
-            return 1;
-        }
-
-        private static bool TryResolveRequestedDevice(InputDeviceInfo requested, out InputDeviceInfo resolved)
-        {
-            if (requested.DeviceId >= 0)
-            {
-                resolved = requested;
-                return true;
-            }
-
-            int foundId = FindDeviceIdByName(requested.Name);
-            if (foundId < 0)
-            {
-                resolved = default;
-                return false;
-            }
-
-            int channelCount = GetChannelCount(foundId);
-            resolved = new InputDeviceInfo(foundId, requested.Name, requested.Channel, channelCount);
-            return true;
         }
 
         private static int FindDeviceIdByName(string name)
@@ -212,18 +157,6 @@ namespace YARG.Audio.BASS.Wasapi
             }
 
             return -1;
-        }
-
-        private static bool IsChannelInRange(InputDeviceInfo device, int channelCount)
-        {
-            if (device.Channel >= 0 && device.Channel < channelCount)
-            {
-                return true;
-            }
-
-            YargLogger.LogFormatWarning("WASAPI Mic '{0}' channel {1} is out of range (device has {2} channels)",
-                device.Name, device.Channel, channelCount);
-            return false;
         }
     }
 }
