@@ -259,7 +259,7 @@ namespace YARG.Audio.BASS.Wasapi
                 return;
             }
 
-            if (notify is WasapiNotificationType.Fail or WasapiNotificationType.Disabled)
+            if (notify is WasapiNotificationType.Disabled)
             {
                 QueueRestart();
             }

@@ -227,8 +227,13 @@ namespace YARG.Editor
                 return;
             }
 
-            var sharedMics = _availableMicDevices.Where(d => !d.DisplayName.StartsWith("ASIO: ", StringComparison.OrdinalIgnoreCase)).ToList();
-            var asioMics = _availableMicDevices.Where(d => d.DisplayName.StartsWith("ASIO: ", StringComparison.OrdinalIgnoreCase)).ToList();
+            var sharedMics = _availableMicDevices.Where(d =>
+                !d.DisplayName.StartsWith("ASIO: ", StringComparison.OrdinalIgnoreCase) &&
+                !d.DisplayName.StartsWith("WASAPI: ", StringComparison.OrdinalIgnoreCase)).ToList();
+            var wasapiMics = _availableMicDevices.Where(d =>
+                d.DisplayName.StartsWith("WASAPI: ", StringComparison.OrdinalIgnoreCase)).ToList();
+            var asioMics = _availableMicDevices.Where(d =>
+                d.DisplayName.StartsWith("ASIO: ", StringComparison.OrdinalIgnoreCase)).ToList();
 
             foreach (var device in sharedMics)
             {
@@ -236,7 +241,20 @@ namespace YARG.Editor
                 bool alreadyUsed = _micSlots.Any(s => s.SelectedDevice?.DisplayName == devName && s.ActiveDevice != null);
                 string suffix = alreadyUsed ? " (In use)" : "";
                 var captured = device;
-                menu.AddItem(new GUIContent($"Shared (WASAPI\\/DirectSound)/{devName}{suffix}"), false, () =>
+                menu.AddItem(new GUIContent($"Shared (DirectSound\\/WASAPI)/{devName}{suffix}"), false, () =>
+                {
+                    AddMicSlot(captured);
+                });
+            }
+
+            foreach (var device in wasapiMics)
+            {
+                string devName = device.DisplayName;
+                string displayName = devName.StartsWith("WASAPI: ", StringComparison.OrdinalIgnoreCase) ? devName.Substring(8) : devName;
+                bool alreadyUsed = _micSlots.Any(s => s.SelectedDevice?.DisplayName == devName && s.ActiveDevice != null);
+                string suffix = alreadyUsed ? " (In use)" : "";
+                var captured = device;
+                menu.AddItem(new GUIContent($"WASAPI Exclusive (Low Latency)/{displayName}{suffix}"), false, () =>
                 {
                     AddMicSlot(captured);
                 });
@@ -270,15 +288,32 @@ namespace YARG.Editor
                 return;
             }
 
-            var sharedMics = _availableMicDevices.Where(d => !d.DisplayName.StartsWith("ASIO: ", StringComparison.OrdinalIgnoreCase)).ToList();
-            var asioMics = _availableMicDevices.Where(d => d.DisplayName.StartsWith("ASIO: ", StringComparison.OrdinalIgnoreCase)).ToList();
+            var sharedMics = _availableMicDevices.Where(d =>
+                !d.DisplayName.StartsWith("ASIO: ", StringComparison.OrdinalIgnoreCase) &&
+                !d.DisplayName.StartsWith("WASAPI: ", StringComparison.OrdinalIgnoreCase)).ToList();
+            var wasapiMics = _availableMicDevices.Where(d =>
+                d.DisplayName.StartsWith("WASAPI: ", StringComparison.OrdinalIgnoreCase)).ToList();
+            var asioMics = _availableMicDevices.Where(d =>
+                d.DisplayName.StartsWith("ASIO: ", StringComparison.OrdinalIgnoreCase)).ToList();
 
             foreach (var device in sharedMics)
             {
                 string devName = device.DisplayName;
                 bool isCurrent = slot.ActiveDevice != null && slot.SelectedDevice?.DisplayName == devName;
                 var captured = device;
-                menu.AddItem(new GUIContent($"Shared (WASAPI\\/DirectSound)/{devName}"), isCurrent, () =>
+                menu.AddItem(new GUIContent($"Shared (DirectSound\\/WASAPI)/{devName}"), isCurrent, () =>
+                {
+                    ConnectMicSlot(slot, captured);
+                });
+            }
+
+            foreach (var device in wasapiMics)
+            {
+                string devName = device.DisplayName;
+                string displayName = devName.StartsWith("WASAPI: ", StringComparison.OrdinalIgnoreCase) ? devName.Substring(8) : devName;
+                bool isCurrent = slot.ActiveDevice != null && slot.SelectedDevice?.DisplayName == devName;
+                var captured = device;
+                menu.AddItem(new GUIContent($"WASAPI Exclusive (Low Latency)/{displayName}"), isCurrent, () =>
                 {
                     ConnectMicSlot(slot, captured);
                 });

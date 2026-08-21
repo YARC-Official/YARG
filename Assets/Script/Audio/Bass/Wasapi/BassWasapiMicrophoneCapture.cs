@@ -22,7 +22,6 @@ namespace YARG.Audio.BASS.Wasapi
         private readonly int                    _sampleRate;
         private readonly int                    _channels;
         private readonly int                    _pushStreamHandle;
-        private readonly WasapiProcedure        _wasapiProcedure;
         private readonly WasapiNotifyProcedure  _notifyProcedure;
         private readonly HashSet<int>           _claimedChannels = new();
         private readonly object                 _stateLock       = new();
@@ -39,7 +38,6 @@ namespace YARG.Audio.BASS.Wasapi
             _channels = channels;
             _sampleRate = sampleRate;
             _pushStreamHandle = pushStreamHandle;
-            _wasapiProcedure = OnWasapiProcess;
             _notifyProcedure = OnWasapiNotify;
         }
 
@@ -113,9 +111,10 @@ namespace YARG.Audio.BASS.Wasapi
             var exclusiveFlags = WasapiInitFlags.Exclusive | WasapiInitFlags.EventDriven |
                                  WasapiInitFlags.AutoFormat | WasapiInitFlags.Buffer;
 
-            BassWasapi.CurrentDevice = _deviceId;
-            if (BassWasapi.Init(_deviceId, _sampleRate, _channels, exclusiveFlags, bufferLength, 0,
-                    _wasapiProcedure, IntPtr.Zero))
+            bool initialized = BassWasapi.InitEx(_deviceId, _sampleRate, _channels, exclusiveFlags, bufferLength, 0,
+                BassWasapi.WasapiProc_Bass, (IntPtr) _pushStreamHandle);
+
+            if (initialized)
             {
                 BassWasapi.CurrentDevice = _deviceId;
                 BassWasapi.SetNotify(_notifyProcedure, IntPtr.Zero);
@@ -135,9 +134,8 @@ namespace YARG.Audio.BASS.Wasapi
             var sharedFlags = WasapiInitFlags.Shared | WasapiInitFlags.EventDriven |
                               WasapiInitFlags.AutoFormat | WasapiInitFlags.Buffer;
 
-            BassWasapi.CurrentDevice = _deviceId;
-            if (BassWasapi.Init(_deviceId, _sampleRate, _channels, sharedFlags, bufferLength, 0,
-                    _wasapiProcedure, IntPtr.Zero))
+            if (BassWasapi.InitEx(_deviceId, _sampleRate, _channels, sharedFlags, bufferLength, 0,
+                    BassWasapi.WasapiProc_Bass, (IntPtr) _pushStreamHandle))
             {
                 BassWasapi.CurrentDevice = _deviceId;
                 BassWasapi.SetNotify(_notifyProcedure, IntPtr.Zero);
@@ -252,13 +250,16 @@ namespace YARG.Audio.BASS.Wasapi
             {
                 try
                 {
-                    BassWasapi.CurrentDevice = _deviceId;
-                    if (BassWasapi.GetInfo(out var info))
+                    if (BassWasapi.GetDeviceInfo(_deviceId, out var devInfo) && devInfo.IsInitialized)
                     {
-                        bufferFrames = (info.Channels > 0 && info.Frequency > 0)
-                            ? (info.BufferLength / (info.Channels * sizeof(float)))
-                            : 0;
-                        bufferMs = info.Frequency > 0 ? (bufferFrames * 1000.0 / info.Frequency) : 0;
+                        BassWasapi.CurrentDevice = _deviceId;
+                        if (BassWasapi.GetInfo(out var info))
+                        {
+                            bufferFrames = (info.Channels > 0 && info.Frequency > 0)
+                                ? (info.BufferLength / (info.Channels * sizeof(float)))
+                                : 0;
+                            bufferMs = info.Frequency > 0 ? (bufferFrames * 1000.0 / info.Frequency) : 0;
+                        }
                     }
                 }
                 catch
@@ -300,10 +301,13 @@ namespace YARG.Audio.BASS.Wasapi
             {
                 try
                 {
-                    BassWasapi.CurrentDevice = _deviceId;
-                    BassWasapi.SetNotify(null, IntPtr.Zero);
-                    BassWasapi.Stop(true);
-                    BassWasapi.Free();
+                    if (BassWasapi.GetDeviceInfo(_deviceId, out var devInfo) && devInfo.IsInitialized)
+                    {
+                        BassWasapi.CurrentDevice = _deviceId;
+                        BassWasapi.SetNotify(null, IntPtr.Zero);
+                        BassWasapi.Stop(true);
+                        BassWasapi.Free();
+                    }
                 }
                 catch (Exception exception)
                 {
@@ -368,21 +372,6 @@ namespace YARG.Audio.BASS.Wasapi
             });
         }
 
-        private int OnWasapiProcess(IntPtr buffer, int length, IntPtr user)
-        {
-            if (_disposed || !_running)
-            {
-                return 1;
-            }
-
-            if (buffer != IntPtr.Zero && length > 0 && _pushStreamHandle != 0)
-            {
-                Bass.StreamPutData(_pushStreamHandle, buffer, length);
-            }
-
-            return 1;
-        }
-
         private void OnWasapiNotify(WasapiNotificationType notify, int device, IntPtr user)
         {
             if (device != _deviceId && device != -1)
@@ -390,9 +379,24 @@ namespace YARG.Audio.BASS.Wasapi
                 return;
             }
 
-            if (notify is WasapiNotificationType.Fail or WasapiNotificationType.Disabled)
+            if (notify is WasapiNotificationType.Disabled)
             {
-                YargLogger.LogFormatWarning("WASAPI input device [{0}] received notification: {1}", _deviceId, notify);
+                YargLogger.LogFormatWarning("WASAPI input device [{0}] disabled or disconnected", _deviceId);
+                if (_running && !_disposed)
+                {
+                    WithSystemLock(() =>
+                    {
+                        try
+                        {
+                            BassWasapi.CurrentDevice = _deviceId;
+                            BassWasapi.Stop(true);
+                            BassWasapi.Start();
+                        }
+                        catch
+                        {
+                        }
+                    });
+                }
             }
         }
 
