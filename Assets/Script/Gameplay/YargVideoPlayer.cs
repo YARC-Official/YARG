@@ -24,9 +24,6 @@ public class YargVideoPlayer : MonoBehaviour
 #endif
 
     private string _url = "";
-    private VideoRenderMode _renderMode;
-    private double _time;
-    private float _playbackSpeed = 1.0f;
     private bool _isLooping = false;
     private bool _playerEnabled = true;
 
@@ -133,7 +130,6 @@ public class YargVideoPlayer : MonoBehaviour
 #endif
         set
         {
-            _playbackSpeed = value;
 #if VLC_SUPPORTED
             if (_usingVLC && _vlcPlayer != null)
                 _vlcPlayer.MediaPlayer.SetRate(value);
