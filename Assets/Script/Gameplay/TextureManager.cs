@@ -1,6 +1,7 @@
 using System;
 using Cysharp.Threading.Tasks;
 using Unity.Collections;
+using Unity.Mathematics;
 using UnityEngine;
 using YARG.Core.Venue;
 using YARG.Helpers.Extensions;
@@ -26,12 +27,14 @@ namespace YARG.Gameplay
         private Texture2D _sourceIcon = null;
         private Texture2D _albumCover = null;
         private Texture2D _soundTexture = null;
+        private Texture2D _gameStateTexture = null;
         private RenderTexture _videoTexture = null;
         private float[] _fft = new float[FFT_SIZE / 2];
         private float[] _wave = new float[FFT_TEXTURE_WIDTH];
         private float[] _prevFft = new float[FFT_SIZE / 2];
         private float[] _rawFft = new float[FFT_SIZE * 2];
         private float[] _rawWave = new float[FFT_SIZE];
+        private readonly ushort[] _gameStateData = new ushort[GAME_STATE_TEX_WIDTH];
 
         private bool _videoTexFound = false;
 
@@ -39,6 +42,7 @@ namespace YARG.Gameplay
         private NativeArray<byte> _pixelData;
 
         private static int _soundTexId = Shader.PropertyToID("_Yarg_SoundTex");
+        private static int _gameStateTexId = Shader.PropertyToID("_Yarg_GameStateTex");
         private static int _sourceIconId = Shader.PropertyToID("_Yarg_SourceIcon");
         private static int _albumCoverId = Shader.PropertyToID("_Yarg_AlbumCover");
         private static int _videoTexId = Shader.PropertyToID("_Yarg_VideoTex");
@@ -51,6 +55,7 @@ namespace YARG.Gameplay
         private const int FFT_SIZE_LOG = 11 /* aka log2(2048) */;
         private const int FFT_SIZE = 1 << FFT_SIZE_LOG;
         private const int FFT_TEXTURE_WIDTH = 512;
+        private const int GAME_STATE_TEX_WIDTH = 3;
         private const int VIDEO_TEX_WIDTH = 256;
         private const int VIDEO_TEX_HEIGHT = 144;
 
@@ -64,7 +69,8 @@ namespace YARG.Gameplay
 
         protected override void GameplayAwake()
         {
-            var _ = GetSoundTexture();
+            _ = GetSoundTexture();
+            _ = GetGameStateTexture();
         }
 
         private Texture2D GetSourceIcon()
@@ -105,6 +111,24 @@ namespace YARG.Gameplay
                 Shader.SetGlobalTexture(_soundTexId, _soundTexture);
             }
             return _soundTexture;
+        }
+
+        protected Texture2D GetGameStateTexture()
+        {
+            if (_gameStateTexture == null)
+            {
+                // Single f16 channel
+                // x: song length (seconds)
+                // y: song position (seconds)
+                // z: fail meter value (0.0-1.0)
+                _gameStateTexture = new Texture2D(GAME_STATE_TEX_WIDTH, 1, TextureFormat.R16, false, true)
+                {
+                    wrapMode = TextureWrapMode.Clamp,
+                    filterMode = FilterMode.Point,
+                };
+                Shader.SetGlobalTexture(_gameStateTexId, _gameStateTexture);
+            }
+            return _gameStateTexture;
         }
 
         public RenderTexture GetVideoTexture(int? width, int? height)
@@ -224,6 +248,8 @@ namespace YARG.Gameplay
 
         public void Update()
         {
+            UpdateGameState();
+
             if (_soundTexture != null && _updateTask.Status.IsCompleted())
             {
                 if (_pixelData.IsCreated)
@@ -240,6 +266,20 @@ namespace YARG.Gameplay
         private void UpdateFFT_Threaded()
         {
             UpdateFFT(_pixelData);
+        }
+
+        private void UpdateGameState()
+        {
+            var tex = GetGameStateTexture();
+
+            _gameStateData[0] = (ushort) math.f32tof16((float) GameManager.SongLength);
+            _gameStateData[1] = (ushort) math.f32tof16((float) GameManager.SongTime);
+
+            var failMeter = GameManager.EngineManager?.Happiness ?? 1f;
+            _gameStateData[2] = (ushort) math.f32tof16(math.clamp(failMeter, 0f, 1f));
+
+            tex.SetPixelData(_gameStateData, 0);
+            tex.Apply(false, false);
         }
 
         protected override void GameplayDestroy()
@@ -270,6 +310,9 @@ namespace YARG.Gameplay
 
             Destroy(_soundTexture);
             _soundTexture = null;
+
+            Destroy(_gameStateTexture);
+            _gameStateTexture = null;
         }
     }
 }
