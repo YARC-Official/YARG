@@ -31,22 +31,25 @@ namespace YARG.Input.Serialization
 
     public class SerializedBindings
     {
-        public Dictionary<Guid, SerializedProfileBindings> Profiles = new();
+        public Dictionary<Guid, SerializedProfileDeviceInfo> Profiles = new();
+        public Dictionary<string, Guid> ControllerDefaults = new();
+        public Dictionary<Guid, SerializedReusableBindingSet> ReusableBindingSets = new();
     }
 
-    public class SerializedProfileBindings
+    public class SerializedProfileDeviceInfo
     {
-        public List<SerializedInputDevice> Devices = new();
+        public List<SerializedInputDevice> Controllers = new();
         public List<SerializedMic> Microphones = new();
 
         // Legacy single microphone, only filled when loading v0-v2 files
         public SerializedMic? Microphone;
 
-        public Dictionary<GameMode, SerializedBindingCollection> ModeMappings = new();
-        public SerializedBindingCollection? MenuMappings;
+        public Dictionary<GameMode, Guid> ModeMappings = new();
+        public Dictionary<string, Guid> ControllerMappings = new();
+        public Guid? MenuMappings;
     }
 
-    public class SerializedBindingCollection
+    public class SerializedReusableBindingSet
     {
         public Dictionary<string, SerializedControlBinding> Bindings = new();
     }
@@ -82,13 +85,11 @@ namespace YARG.Input.Serialization
 
     public class SerializedInputControl
     {
-        public SerializedInputDevice Device;
         public string ControlPath;
         public Dictionary<string, string> Parameters = new();
 
-        public SerializedInputControl(SerializedInputDevice device, string path)
+        public SerializedInputControl(string path)
         {
-            Device = device;
             ControlPath = path;
         }
     }
@@ -132,7 +133,7 @@ namespace YARG.Input.Serialization
         {
             try
             {
-                var serialized = SerializeBindingsV3(bindings);
+                var serialized = SerializeBindingsV4(bindings);
                 string bindingsJson = JsonConvert.SerializeObject(serialized, Formatting.Indented);
                 File.WriteAllText(bindingsPath, bindingsJson);
             }
@@ -165,6 +166,7 @@ namespace YARG.Input.Serialization
                     1 => DeserializeBindingsV1(jObject),
                     2 => DeserializeBindingsV2(jObject),
                     3 => DeserializeBindingsV3(jObject),
+                    4 => DeserializeBindingsV4(jObject),
                     _ => throw new NotImplementedException($"Unhandled bindings version {version}!")
                 };
 

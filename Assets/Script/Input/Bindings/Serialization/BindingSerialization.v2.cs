@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using Newtonsoft.Json;
@@ -58,9 +58,9 @@ namespace YARG.Input.Serialization
         [JsonConstructor]
         public SerializedProfileBindingsV2() { }
 
-        public SerializedProfileBindingsV2(SerializedProfileBindings serialized)
+        public SerializedProfileBindingsV2(SerializedProfileDeviceInfo serialized)
         {
-            Devices.AddRange(serialized.Devices.Select((device) => new SerializedInputDeviceV2(device)));
+            Devices.AddRange(serialized.Controllers.Select((device) => new SerializedInputDeviceV2(device)));
 
             if (serialized.Microphone is not null)
                 Microphone = new SerializedMicV2(serialized.Microphone);
@@ -74,14 +74,14 @@ namespace YARG.Input.Serialization
                 MenuMappings = new SerializedBindingCollectionV2(this, serialized.MenuMappings);
         }
 
-        public SerializedProfileBindings Deserialize()
+        public SerializedProfileDeviceInfo Deserialize()
         {
-            var deserialized = new SerializedProfileBindings()
+            var deserialized = new SerializedProfileDeviceInfo()
             {
                 Microphone = Microphone?.Deserialize(),
             };
 
-            deserialized.Devices.AddRange(Devices.Select((device) => device.Deserialize()));
+            deserialized.Controllers.AddRange(Devices.Select((device) => device.Deserialize()));
 
             foreach (var (gameMode, bindings) in ModeMappings)
             {
@@ -102,7 +102,7 @@ namespace YARG.Input.Serialization
         [JsonConstructor]
         public SerializedBindingCollectionV2() { }
 
-        public SerializedBindingCollectionV2(SerializedProfileBindingsV2 binds, SerializedBindingCollection serialized)
+        public SerializedBindingCollectionV2(SerializedProfileBindingsV2 binds, SerializedReusableBindingSet serialized)
         {
             foreach (var (id, serializedBinds) in serialized.Bindings)
             {
@@ -110,9 +110,9 @@ namespace YARG.Input.Serialization
             }
         }
 
-        public SerializedBindingCollection Deserialize(SerializedProfileBindingsV2 binds)
+        public SerializedReusableBindingSet Deserialize(SerializedProfileBindingsV2 binds)
         {
-            var converted = new SerializedBindingCollection();
+            var converted = new SerializedReusableBindingSet();
             foreach (var (id, serializedBinds) in Bindings)
             {
                 converted.Bindings[id] = serializedBinds.Deserialize(binds);
