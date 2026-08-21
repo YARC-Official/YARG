@@ -48,7 +48,7 @@ public:
     bool oneShotValid() const noexcept;
     bool readAheadValid() const noexcept;
 
-    // Song position support, required by the guide tone DSP.
+    // Song position support, required by the sine synth DSP.
     bool positionValid() const noexcept;
     std::int64_t getPosition(std::uint32_t channel, std::uint32_t mode) const noexcept;
     double bytesToSeconds(std::uint32_t channel, std::int64_t bytes) const noexcept;

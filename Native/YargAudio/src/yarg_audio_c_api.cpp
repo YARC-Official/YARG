@@ -16,7 +16,7 @@ static_assert(sizeof(yarg_read_ahead_config) == 28);
 static_assert(sizeof(yarg_read_ahead_stats) == 104);
 static_assert(sizeof(yarg_read_ahead_position_snapshot) == 24);
 static_assert(sizeof(yarg_one_shot_config) == 24);
-static_assert(sizeof(yarg_sine_note) == 24);
+static_assert(sizeof(yarg_tone_segment) == 24);
 static_assert(sizeof(yarg_sine_synth_config) == 16);
 static_assert(sizeof(int32_t) == sizeof(int));
 
@@ -112,14 +112,14 @@ int32_t YARG_AUDIO_CALL yarg_sine_synth_dsp_detach(yarg_sine_synth_dsp* dsp,
     return yarg::audio::sineSynthDspDetach(dsp, bass_error);
 }
 
-int32_t YARG_AUDIO_CALL yarg_sine_synth_dsp_set_notes(yarg_sine_synth_dsp* dsp,
-    const yarg_sine_note* notes, uint64_t note_count, int32_t* bass_error) {
+int32_t YARG_AUDIO_CALL yarg_sine_synth_dsp_set_schedule(yarg_sine_synth_dsp* dsp,
+    const yarg_tone_segment* notes, uint64_t segment_count, int32_t* bass_error) {
     if (bass_error) *bass_error = 0;
     constexpr auto maximum = std::numeric_limits<std::size_t>::max();
-    if (note_count > maximum / sizeof(yarg_sine_note))
+    if (segment_count > maximum / sizeof(yarg_tone_segment))
         return YARG_AUDIO_ERROR_INVALID_ARGUMENT;
-    return yarg::audio::sineSynthDspSetNotes(dsp, notes,
-        static_cast<std::size_t>(note_count), bass_error);
+    return yarg::audio::sineSynthDspSetSchedule(dsp, notes,
+        static_cast<std::size_t>(segment_count), bass_error);
 }
 
 int32_t YARG_AUDIO_CALL yarg_sine_synth_dsp_set_timing(yarg_sine_synth_dsp* dsp,

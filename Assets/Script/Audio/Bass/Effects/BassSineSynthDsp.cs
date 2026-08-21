@@ -166,7 +166,7 @@ namespace YARG.Audio.BASS.Effects
 
             fixed (NativeSegment* pointer = native)
             {
-                int result = Native.SetNotes(this, (IntPtr) pointer, (ulong) segments.Length,
+                int result = Native.SetSchedule(this, (IntPtr) pointer, (ulong) segments.Length,
                     out int bassError);
                 if (result == 0)
                 {
@@ -204,7 +204,7 @@ namespace YARG.Audio.BASS.Effects
         }
 
         /// <summary>
-        /// Mirrors yarg_sine_note. Field order and types are fixed by the plugin ABI.
+        /// Mirrors yarg_tone_segment. Field order and types are fixed by the plugin ABI.
         /// </summary>
         [StructLayout(LayoutKind.Sequential)]
         private struct NativeSegment
@@ -253,9 +253,9 @@ namespace YARG.Audio.BASS.Effects
                 CallingConvention = CallingConvention.Cdecl)]
             internal static extern int Detach(BassSineSynthDsp dsp, out int bassError);
 
-            [DllImport(LIBRARY, EntryPoint = "yarg_sine_synth_dsp_set_notes",
+            [DllImport(LIBRARY, EntryPoint = "yarg_sine_synth_dsp_set_schedule",
                 CallingConvention = CallingConvention.Cdecl)]
-            internal static extern int SetNotes(BassSineSynthDsp dsp, IntPtr notes, ulong noteCount,
+            internal static extern int SetSchedule(BassSineSynthDsp dsp, IntPtr segments, ulong segmentCount,
                 out int bassError);
 
             [DllImport(LIBRARY, EntryPoint = "yarg_sine_synth_dsp_set_timing",

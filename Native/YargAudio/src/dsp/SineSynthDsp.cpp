@@ -43,9 +43,9 @@ float midiPitchToHz(float midiPitch) noexcept {
 // would be skipped silently rather than reported. Non-finite values are worse: they reach the
 // phase accumulator and turn every subsequent sample into NaN, which propagates into the song
 // mixer. Reject the whole table instead, as validOneShotSchedule does for its own payload.
-bool validSchedule(const yarg_sine_note* notes, std::size_t count) noexcept {
+bool validSchedule(const yarg_tone_segment* notes, std::size_t count) noexcept {
     for (std::size_t i = 0; i < count; ++i) {
-        const yarg_sine_note& note = notes[i];
+        const yarg_tone_segment& note = notes[i];
         if (!std::isfinite(note.start_time) || !std::isfinite(note.end_time)) return false;
         if (!std::isfinite(note.start_pitch) || !std::isfinite(note.end_pitch)) return false;
         if (note.end_time < note.start_time) return false;
@@ -73,7 +73,7 @@ float sineSynthDspFrequencyAt(yarg_sine_synth_dsp& state, double songTime) noexc
         // Reposition rather than restart: rescanning from zero walks the whole song's
         // schedule on the render thread every time a practice section loops.
         const auto target = std::lower_bound(notes.begin(), notes.end(), songTime,
-            [](const yarg_sine_note& note, double time) { return note.end_time <= time; });
+            [](const yarg_tone_segment& note, double time) { return note.end_time <= time; });
         state.noteIndex = static_cast<std::size_t>(target - notes.begin());
         state.rescan = false;
     }
@@ -84,7 +84,7 @@ float sineSynthDspFrequencyAt(yarg_sine_synth_dsp& state, double songTime) noexc
 
     if (state.noteIndex >= notes.size()) return 0.0f;
 
-    const yarg_sine_note& note = notes[state.noteIndex];
+    const yarg_tone_segment& note = notes[state.noteIndex];
     if (songTime < note.start_time) return 0.0f;
 
     float pitch = note.start_pitch;
@@ -261,7 +261,7 @@ int sineSynthDspDetach(yarg_sine_synth_dsp* dsp, int* bassError) noexcept {
     dsp->bass.lockChannel(channel, false);
 
     // Keep the handles when removal genuinely failed. The proc is still installed, and
-    // clearing them would make the next sineSynthDspSetNotes swap the table without the
+    // clearing them would make the next sineSynthDspSetSchedule swap the table without the
     // lock -- freeing the vector under the render thread.
     if (!removed && error != BassErrorHandle) {
         if (bassError) *bassError = error;
@@ -273,15 +273,15 @@ int sineSynthDspDetach(yarg_sine_synth_dsp* dsp, int* bassError) noexcept {
     return YARG_AUDIO_OK;
 }
 
-int sineSynthDspSetNotes(yarg_sine_synth_dsp* dsp, const yarg_sine_note* notes,
-    std::size_t noteCount, int* bassError) noexcept {
+int sineSynthDspSetSchedule(yarg_sine_synth_dsp* dsp, const yarg_tone_segment* notes,
+    std::size_t segmentCount, int* bassError) noexcept {
     if (bassError) *bassError = 0;
-    if (!dsp || (noteCount > 0 && !notes)) return YARG_AUDIO_ERROR_INVALID_ARGUMENT;
-    if (!validSchedule(notes, noteCount)) return YARG_AUDIO_ERROR_INVALID_ARGUMENT;
+    if (!dsp || (segmentCount > 0 && !notes)) return YARG_AUDIO_ERROR_INVALID_ARGUMENT;
+    if (!validSchedule(notes, segmentCount)) return YARG_AUDIO_ERROR_INVALID_ARGUMENT;
 
-    std::vector<yarg_sine_note> replacement;
+    std::vector<yarg_tone_segment> replacement;
     try {
-        replacement.assign(notes, notes + noteCount);
+        replacement.assign(notes, notes + segmentCount);
     } catch (...) {
         return YARG_AUDIO_ERROR_INTERNAL;
     }

@@ -45,14 +45,14 @@ typedef struct yarg_one_shot_config {
     uint32_t reserved;
     double lead_time;
 } yarg_one_shot_config;
-/* One segment of the guide melody, in song seconds and MIDI pitch. A segment with equal start
+/* One segment of a tone schedule, in song seconds and MIDI pitch. A segment with equal start
    and end pitch is held; unequal pitches are interpolated linearly across the segment. */
-typedef struct yarg_sine_note {
+typedef struct yarg_tone_segment {
     double start_time;
     double end_time;
     float start_pitch;
     float end_pitch;
-} yarg_sine_note;
+} yarg_tone_segment;
 
 typedef struct yarg_sine_synth_config {
     uint32_t size;
@@ -153,8 +153,8 @@ YARG_AUDIO_API int32_t YARG_AUDIO_CALL yarg_sine_synth_dsp_attach(
     yarg_sine_synth_dsp* dsp, uint32_t channel, int32_t priority, int32_t* bass_error);
 YARG_AUDIO_API int32_t YARG_AUDIO_CALL yarg_sine_synth_dsp_detach(
     yarg_sine_synth_dsp* dsp, int32_t* bass_error);
-YARG_AUDIO_API int32_t YARG_AUDIO_CALL yarg_sine_synth_dsp_set_notes(
-    yarg_sine_synth_dsp* dsp, const yarg_sine_note* notes, uint64_t note_count,
+YARG_AUDIO_API int32_t YARG_AUDIO_CALL yarg_sine_synth_dsp_set_schedule(
+    yarg_sine_synth_dsp* dsp, const yarg_tone_segment* notes, uint64_t segment_count,
     int32_t* bass_error);
 YARG_AUDIO_API int32_t YARG_AUDIO_CALL yarg_sine_synth_dsp_set_timing(
     yarg_sine_synth_dsp* dsp, double song_time_offset, float playback_speed);

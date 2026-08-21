@@ -101,8 +101,8 @@ yarg_sine_synth_dsp* create(BassCoreBindings& bass, MockBass& state,
     return dsp;
 }
 
-yarg_sine_note note(double start, double end, float startPitch, float endPitch) {
-    yarg_sine_note value{};
+yarg_tone_segment note(double start, double end, float startPitch, float endPitch) {
+    yarg_tone_segment value{};
     value.start_time = start;
     value.end_time = end;
     value.start_pitch = startPitch;
@@ -120,11 +120,11 @@ void testFrequencyLookup() {
     auto* dsp = create(bass, state);
 
     // A4 = MIDI 69 = 440 Hz, held; then a gap; then an octave slide.
-    const yarg_sine_note notes[] = {
+    const yarg_tone_segment notes[] = {
         note(1.0, 2.0, 69.0f, 69.0f),
         note(5.0, 6.0, 69.0f, 81.0f),
     };
-    REQUIRE(sineSynthDspSetNotes(dsp, notes, 2, nullptr) == YARG_AUDIO_OK);
+    REQUIRE(sineSynthDspSetSchedule(dsp, notes, 2, nullptr) == YARG_AUDIO_OK);
 
     REQUIRE(sineSynthDspFrequencyAt(*dsp, 0.5) == 0.0f);       // before the first note
     REQUIRE(approx(sineSynthDspFrequencyAt(*dsp, 1.0), 440.0));  // onset
@@ -146,11 +146,11 @@ void testForwardGapDoesNotRestartScan() {
     BassCoreBindings bass(completeFunctions());
     auto* dsp = create(bass, state);
 
-    const yarg_sine_note notes[] = {
+    const yarg_tone_segment notes[] = {
         note(0.0, 1.0, 60.0f, 60.0f),
         note(10.0, 11.0, 62.0f, 62.0f),
     };
-    REQUIRE(sineSynthDspSetNotes(dsp, notes, 2, nullptr) == YARG_AUDIO_OK);
+    REQUIRE(sineSynthDspSetSchedule(dsp, notes, 2, nullptr) == YARG_AUDIO_OK);
 
     REQUIRE(sineSynthDspFrequencyAt(*dsp, 0.5) != 0.0f);
     REQUIRE(dsp->noteIndex == 0);
@@ -175,8 +175,8 @@ void testRenderFadesAndMixesAdditively() {
     BassCoreBindings bass(completeFunctions());
     auto* dsp = create(bass, state);
 
-    const yarg_sine_note notes[] = {note(0.0, 10.0, 69.0f, 69.0f)};
-    REQUIRE(sineSynthDspSetNotes(dsp, notes, 1, nullptr) == YARG_AUDIO_OK);
+    const yarg_tone_segment notes[] = {note(0.0, 10.0, 69.0f, 69.0f)};
+    REQUIRE(sineSynthDspSetSchedule(dsp, notes, 1, nullptr) == YARG_AUDIO_OK);
 
     constexpr std::size_t frames = 512;
     std::vector<float> buffer(frames * 2, 0.0f);
@@ -212,8 +212,8 @@ void testSilenceResetsPhase() {
     BassCoreBindings bass(completeFunctions());
     auto* dsp = create(bass, state);
 
-    const yarg_sine_note notes[] = {note(0.0, 0.001, 69.0f, 69.0f)};
-    REQUIRE(sineSynthDspSetNotes(dsp, notes, 1, nullptr) == YARG_AUDIO_OK);
+    const yarg_tone_segment notes[] = {note(0.0, 0.001, 69.0f, 69.0f)};
+    REQUIRE(sineSynthDspSetSchedule(dsp, notes, 1, nullptr) == YARG_AUDIO_OK);
 
     constexpr std::size_t frames = 4096;
     std::vector<float> buffer(frames, 0.0f);
@@ -231,20 +231,20 @@ void testSilenceResetsPhase() {
 void testPlaybackSpeedDoesNotShiftPitch() {
     MockBass state;
     BassCoreBindings bass(completeFunctions());
-    const yarg_sine_note notes[] = {note(0.0, 100.0, 69.0f, 69.0f)};
+    const yarg_tone_segment notes[] = {note(0.0, 100.0, 69.0f, 69.0f)};
 
     constexpr std::size_t frames = 256;
     std::vector<float> full(frames, 0.0f);
     std::vector<float> half(frames, 0.0f);
 
     auto* normal = create(bass, state);
-    REQUIRE(sineSynthDspSetNotes(normal, notes, 1, nullptr) == YARG_AUDIO_OK);
+    REQUIRE(sineSynthDspSetSchedule(normal, notes, 1, nullptr) == YARG_AUDIO_OK);
     normal->currentVolume = 1.0f; // skip the fade so the waveforms are directly comparable
     sineSynthDspRender(*normal, full.data(), frames, 1, 48000, 10.0,
         10.0 + frames / 48000.0);
 
     auto* slow = create(bass, state);
-    REQUIRE(sineSynthDspSetNotes(slow, notes, 1, nullptr) == YARG_AUDIO_OK);
+    REQUIRE(sineSynthDspSetSchedule(slow, notes, 1, nullptr) == YARG_AUDIO_OK);
     slow->currentVolume = 1.0f;
     // Same real duration, half the song time span.
     sineSynthDspRender(*slow, half.data(), frames, 1, 48000, 10.0,
@@ -263,11 +263,11 @@ void testDspProcReadsSongPosition() {
     BassCoreBindings bass(completeFunctions());
     auto* dsp = create(bass, state);
 
-    const yarg_sine_note notes[] = {
+    const yarg_tone_segment notes[] = {
         note(0.0, 1.0, 69.0f, 69.0f),
         note(5.0, 6.0, 69.0f, 69.0f),
     };
-    REQUIRE(sineSynthDspSetNotes(dsp, notes, 2, nullptr) == YARG_AUDIO_OK);
+    REQUIRE(sineSynthDspSetSchedule(dsp, notes, 2, nullptr) == YARG_AUDIO_OK);
 
     int bassError = -1;
     REQUIRE(sineSynthDspAttach(dsp, 11, 3, &bassError) == YARG_AUDIO_OK);
@@ -328,8 +328,8 @@ void testClearingScheduleFadesOutInsteadOfCuttingOff() {
     int bassError = -1;
     REQUIRE(sineSynthDspAttach(dsp, 11, 0, &bassError) == YARG_AUDIO_OK);
 
-    const yarg_sine_note notes[] = {note(0.0, 10.0, 69.0f, 69.0f)};
-    REQUIRE(sineSynthDspSetNotes(dsp, notes, 1, nullptr) == YARG_AUDIO_OK);
+    const yarg_tone_segment notes[] = {note(0.0, 10.0, 69.0f, 69.0f)};
+    REQUIRE(sineSynthDspSetSchedule(dsp, notes, 1, nullptr) == YARG_AUDIO_OK);
 
     // 128 frames of a held note: the tone reaches full volume.
     std::vector<float> buffer(256, 0.0f);
@@ -337,7 +337,7 @@ void testClearingScheduleFadesOutInsteadOfCuttingOff() {
     state.callback(21, 11, buffer.data(), 256 * sizeof(float), state.callbackUser);
     REQUIRE(approx(dsp->currentVolume, 1.0));
 
-    REQUIRE(sineSynthDspSetNotes(dsp, nullptr, 0, nullptr) == YARG_AUDIO_OK);
+    REQUIRE(sineSynthDspSetSchedule(dsp, nullptr, 0, nullptr) == YARG_AUDIO_OK);
 
     buffer.assign(256, 0.0f);
     state.seconds = 1.005;
@@ -423,14 +423,14 @@ void testCreateAndAttachValidation() {
     REQUIRE(sineSynthDspDestroy(nullptr));
 }
 
-void testSetNotesAndTimingValidation() {
+void testSetScheduleAndTimingValidation() {
     MockBass state;
     BassCoreBindings bass(completeFunctions());
     auto* dsp = create(bass, state);
 
-    REQUIRE(sineSynthDspSetNotes(nullptr, nullptr, 0, nullptr) == YARG_AUDIO_ERROR_INVALID_ARGUMENT);
-    REQUIRE(sineSynthDspSetNotes(dsp, nullptr, 4, nullptr) == YARG_AUDIO_ERROR_INVALID_ARGUMENT);
-    REQUIRE(sineSynthDspSetNotes(dsp, nullptr, 0, nullptr) == YARG_AUDIO_OK);
+    REQUIRE(sineSynthDspSetSchedule(nullptr, nullptr, 0, nullptr) == YARG_AUDIO_ERROR_INVALID_ARGUMENT);
+    REQUIRE(sineSynthDspSetSchedule(dsp, nullptr, 4, nullptr) == YARG_AUDIO_ERROR_INVALID_ARGUMENT);
+    REQUIRE(sineSynthDspSetSchedule(dsp, nullptr, 0, nullptr) == YARG_AUDIO_OK);
 
     REQUIRE(sineSynthDspSetTiming(nullptr, 0, 1) == YARG_AUDIO_ERROR_INVALID_ARGUMENT);
     REQUIRE(sineSynthDspSetTiming(dsp, std::numeric_limits<double>::quiet_NaN(), 1) ==
@@ -443,13 +443,13 @@ void testSetNotesAndTimingValidation() {
     int bassError = -1;
     REQUIRE(sineSynthDspAttach(dsp, 11, 0, &bassError) == YARG_AUDIO_OK);
     state.events.clear();
-    const yarg_sine_note notes[] = {note(0.0, 1.0, 60.0f, 60.0f)};
-    REQUIRE(sineSynthDspSetNotes(dsp, notes, 1, nullptr) == YARG_AUDIO_OK);
+    const yarg_tone_segment notes[] = {note(0.0, 1.0, 60.0f, 60.0f)};
+    REQUIRE(sineSynthDspSetSchedule(dsp, notes, 1, nullptr) == YARG_AUDIO_OK);
     REQUIRE(state.events == std::vector<std::string>({"lock", "unlock"}));
     REQUIRE(dsp->noteIndex == 0);
 
     state.lockSucceeds = false;
-    REQUIRE(sineSynthDspSetNotes(dsp, notes, 1, nullptr) == YARG_AUDIO_ERROR_BASS);
+    REQUIRE(sineSynthDspSetSchedule(dsp, notes, 1, nullptr) == YARG_AUDIO_ERROR_BASS);
     state.lockSucceeds = true;
 
     REQUIRE(sineSynthDspDestroy(dsp));
@@ -480,7 +480,7 @@ void testDestroyFailurePolicy() {
 }
 
 // Detach must exclude the render thread while removing the proc, and must keep its handles
-// when removal genuinely fails: clearing them would make the next set_notes swap the table
+// when removal genuinely fails: clearing them would make the next set_schedule swap the table
 // unlocked while the still-installed proc reads it.
 void testDetachLocksAndKeepsHandlesOnFailure() {
     MockBass state;
@@ -528,29 +528,29 @@ void testScheduleValidation() {
     BassCoreBindings bass(completeFunctions());
     auto* dsp = create(bass, state);
 
-    const yarg_sine_note good[] = {note(0.0, 1.0, 60.0f, 60.0f), note(2.0, 3.0, 62.0f, 62.0f)};
-    REQUIRE(sineSynthDspSetNotes(dsp, good, 2, nullptr) == YARG_AUDIO_OK);
+    const yarg_tone_segment good[] = {note(0.0, 1.0, 60.0f, 60.0f), note(2.0, 3.0, 62.0f, 62.0f)};
+    REQUIRE(sineSynthDspSetSchedule(dsp, good, 2, nullptr) == YARG_AUDIO_OK);
 
-    const yarg_sine_note unsorted[] = {note(2.0, 3.0, 60.0f, 60.0f), note(0.0, 1.0, 62.0f, 62.0f)};
-    REQUIRE(sineSynthDspSetNotes(dsp, unsorted, 2, nullptr) == YARG_AUDIO_ERROR_INVALID_ARGUMENT);
+    const yarg_tone_segment unsorted[] = {note(2.0, 3.0, 60.0f, 60.0f), note(0.0, 1.0, 62.0f, 62.0f)};
+    REQUIRE(sineSynthDspSetSchedule(dsp, unsorted, 2, nullptr) == YARG_AUDIO_ERROR_INVALID_ARGUMENT);
 
-    const yarg_sine_note inverted[] = {note(3.0, 2.0, 60.0f, 60.0f)};
-    REQUIRE(sineSynthDspSetNotes(dsp, inverted, 1, nullptr) == YARG_AUDIO_ERROR_INVALID_ARGUMENT);
+    const yarg_tone_segment inverted[] = {note(3.0, 2.0, 60.0f, 60.0f)};
+    REQUIRE(sineSynthDspSetSchedule(dsp, inverted, 1, nullptr) == YARG_AUDIO_ERROR_INVALID_ARGUMENT);
 
     const double nan = std::numeric_limits<double>::quiet_NaN();
     const float infinity = std::numeric_limits<float>::infinity();
-    const yarg_sine_note badTime[] = {note(nan, 1.0, 60.0f, 60.0f)};
-    REQUIRE(sineSynthDspSetNotes(dsp, badTime, 1, nullptr) == YARG_AUDIO_ERROR_INVALID_ARGUMENT);
+    const yarg_tone_segment badTime[] = {note(nan, 1.0, 60.0f, 60.0f)};
+    REQUIRE(sineSynthDspSetSchedule(dsp, badTime, 1, nullptr) == YARG_AUDIO_ERROR_INVALID_ARGUMENT);
 
-    const yarg_sine_note badPitch[] = {note(0.0, 1.0, infinity, 60.0f)};
-    REQUIRE(sineSynthDspSetNotes(dsp, badPitch, 1, nullptr) == YARG_AUDIO_ERROR_INVALID_ARGUMENT);
+    const yarg_tone_segment badPitch[] = {note(0.0, 1.0, infinity, 60.0f)};
+    REQUIRE(sineSynthDspSetSchedule(dsp, badPitch, 1, nullptr) == YARG_AUDIO_ERROR_INVALID_ARGUMENT);
 
     // A rejected table leaves the previous one in place rather than clearing it.
     REQUIRE(approx(sineSynthDspFrequencyAt(*dsp, 0.5), 261.626, 0.01));
 
     // Non-pitched notes are silence, not a 7.7 Hz rumble.
-    const yarg_sine_note nonPitched[] = {note(0.0, 1.0, -1.0f, -1.0f)};
-    REQUIRE(sineSynthDspSetNotes(dsp, nonPitched, 1, nullptr) == YARG_AUDIO_OK);
+    const yarg_tone_segment nonPitched[] = {note(0.0, 1.0, -1.0f, -1.0f)};
+    REQUIRE(sineSynthDspSetSchedule(dsp, nonPitched, 1, nullptr) == YARG_AUDIO_OK);
     REQUIRE(sineSynthDspFrequencyAt(*dsp, 0.5) == 0.0f);
 
     REQUIRE(sineSynthDspDestroy(dsp));
@@ -563,11 +563,11 @@ void testShortRewindReplaysNotes() {
     BassCoreBindings bass(completeFunctions());
     auto* dsp = create(bass, state);
 
-    const yarg_sine_note notes[] = {
+    const yarg_tone_segment notes[] = {
         note(10.0, 10.2, 69.0f, 69.0f),
         note(11.0, 11.2, 71.0f, 71.0f),
     };
-    REQUIRE(sineSynthDspSetNotes(dsp, notes, 2, nullptr) == YARG_AUDIO_OK);
+    REQUIRE(sineSynthDspSetSchedule(dsp, notes, 2, nullptr) == YARG_AUDIO_OK);
 
     // Play past the first note, so the index has advanced beyond it.
     REQUIRE(approx(sineSynthDspFrequencyAt(*dsp, 10.1), 440.0));
@@ -580,7 +580,7 @@ void testShortRewindReplaysNotes() {
     REQUIRE(dsp->noteIndex == 0);
 
     // Replacing the table repositions rather than rescanning from the start.
-    REQUIRE(sineSynthDspSetNotes(dsp, notes, 2, nullptr) == YARG_AUDIO_OK);
+    REQUIRE(sineSynthDspSetSchedule(dsp, notes, 2, nullptr) == YARG_AUDIO_OK);
     REQUIRE(approx(sineSynthDspFrequencyAt(*dsp, 11.1), 493.883, 0.01));
     REQUIRE(dsp->noteIndex == 1);
 
@@ -599,7 +599,7 @@ void runSineSynthDspTests() {
     testEmptyNoteTableIsSilent();
     testClearingScheduleFadesOutInsteadOfCuttingOff();
     testCreateAndAttachValidation();
-    testSetNotesAndTimingValidation();
+    testSetScheduleAndTimingValidation();
     testDestroyFailurePolicy();
     testDetachLocksAndKeepsHandlesOnFailure();
     testScheduleValidation();

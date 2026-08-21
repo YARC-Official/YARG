@@ -24,9 +24,9 @@ struct yarg_sine_synth_dsp {
     std::atomic<std::uint64_t> songTimeOffsetBits;
     std::atomic<std::uint32_t> speedBits;
 
-    // Guide melody, sorted by start time. Replaced under the channel lock while attached, so
+    // Tone schedule, sorted by start time. Replaced under the channel lock while attached, so
     // the render thread never observes a partially written table.
-    std::vector<yarg_sine_note> notes;
+    std::vector<yarg_tone_segment> notes;
 
     // Render-thread-only scan and oscillator state.
     std::size_t noteIndex = 0;
@@ -47,8 +47,8 @@ int sineSynthDspCreate(const BassCoreBindings& bass,
 int sineSynthDspAttach(yarg_sine_synth_dsp* dsp, std::uint32_t channel,
     int priority, int* bassError) noexcept;
 int sineSynthDspDetach(yarg_sine_synth_dsp* dsp, int* bassError) noexcept;
-int sineSynthDspSetNotes(yarg_sine_synth_dsp* dsp, const yarg_sine_note* notes,
-    std::size_t noteCount, int* bassError) noexcept;
+int sineSynthDspSetSchedule(yarg_sine_synth_dsp* dsp, const yarg_tone_segment* notes,
+    std::size_t segmentCount, int* bassError) noexcept;
 int sineSynthDspSetTiming(yarg_sine_synth_dsp* dsp, double songTimeOffset,
     float playbackSpeed) noexcept;
 
@@ -60,7 +60,7 @@ void sineSynthDspRender(yarg_sine_synth_dsp& state, float* buffer, std::size_t f
     std::uint32_t channels, std::uint32_t sampleRate, double songTimeStart,
     double songTimeEnd) noexcept;
 
-// Exposed for tests: frequency in Hz of the guide melody at a song time, or 0 in a gap.
+// Exposed for tests: frequency in Hz of the schedule at a song time, or 0 in a gap.
 float sineSynthDspFrequencyAt(yarg_sine_synth_dsp& state, double songTime) noexcept;
 
 } // namespace yarg::audio
