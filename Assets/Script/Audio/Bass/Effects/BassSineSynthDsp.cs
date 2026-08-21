@@ -157,13 +157,15 @@ namespace YARG.Audio.BASS.Effects
 
             fixed (ToneSegment* pointer = segments)
             {
-                int result = Native.SetNotes(this, (IntPtr) pointer, (ulong) segments.Length);
+                int result = Native.SetNotes(this, (IntPtr) pointer, (ulong) segments.Length,
+                    out int bassError);
                 if (result == 0)
                 {
                     return true;
                 }
 
-                YargLogger.LogFormatError("Failed to set {0} schedule: result={1}.", EFFECT_NAME, result);
+                YargLogger.LogFormatError("Failed to set {0} schedule: result={1}, BASS={2}.",
+                    EFFECT_NAME, result, bassError);
                 return false;
             }
         }
@@ -224,7 +226,8 @@ namespace YARG.Audio.BASS.Effects
 
             [DllImport(LIBRARY, EntryPoint = "yarg_sine_synth_dsp_set_notes",
                 CallingConvention = CallingConvention.Cdecl)]
-            internal static extern int SetNotes(BassSineSynthDsp dsp, IntPtr notes, ulong noteCount);
+            internal static extern int SetNotes(BassSineSynthDsp dsp, IntPtr notes, ulong noteCount,
+                out int bassError);
 
             [DllImport(LIBRARY, EntryPoint = "yarg_sine_synth_dsp_set_timing",
                 CallingConvention = CallingConvention.Cdecl)]

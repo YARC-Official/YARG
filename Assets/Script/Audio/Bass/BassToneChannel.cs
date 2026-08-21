@@ -32,14 +32,14 @@ namespace YARG.Audio.BASS
             return dsp == null ? null : new BassToneChannel(dsp);
         }
 
-        public override void SetSchedule(ReadOnlySpan<ToneSegment> segments)
+        public override bool SetSchedule(ReadOnlySpan<ToneSegment> segments)
         {
             if (_disposed)
             {
-                return;
+                return false;
             }
 
-            _dsp.SetSchedule(segments);
+            return _dsp.SetSchedule(segments);
         }
 
         /// <summary>

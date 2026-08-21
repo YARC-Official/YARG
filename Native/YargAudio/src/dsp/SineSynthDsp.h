@@ -48,7 +48,7 @@ int sineSynthDspAttach(yarg_sine_synth_dsp* dsp, std::uint32_t channel,
     int priority, int* bassError) noexcept;
 int sineSynthDspDetach(yarg_sine_synth_dsp* dsp, int* bassError) noexcept;
 int sineSynthDspSetNotes(yarg_sine_synth_dsp* dsp, const yarg_sine_note* notes,
-    std::size_t noteCount) noexcept;
+    std::size_t noteCount, int* bassError) noexcept;
 int sineSynthDspSetTiming(yarg_sine_synth_dsp* dsp, double songTimeOffset,
     float playbackSpeed) noexcept;
 

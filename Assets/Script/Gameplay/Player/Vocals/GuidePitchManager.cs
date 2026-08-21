@@ -3,6 +3,7 @@ using UnityEngine;
 using YARG.Core;
 using YARG.Core.Audio;
 using YARG.Core.Chart;
+using YARG.Core.Logging;
 using YARG.Localization;
 
 namespace YARG.Gameplay.Player
@@ -133,7 +134,22 @@ namespace YARG.Gameplay.Player
 
         public void Dispose() => _toneChannel.Dispose();
 
-        private void PublishSchedule() => _toneChannel.SetSchedule(VocalToneSchedule.Build(GetEnabledPart()));
+        /// <summary>
+        /// Pushes the current part's schedule to the backend. A rejected schedule leaves the previous
+        /// one playing, which in practice mode means the tone keeps following the section the player
+        /// just left, so drop back to off rather than let it contradict the notes on screen.
+        /// </summary>
+        private void PublishSchedule()
+        {
+            if (_toneChannel.SetSchedule(VocalToneSchedule.Build(GetEnabledPart())))
+            {
+                return;
+            }
+
+            YargLogger.LogWarning("Could not update the guide pitch schedule; disabling it.");
+            _enabledHarmonyIndex = -1;
+            _toneChannel.SetSchedule(ReadOnlySpan<ToneSegment>.Empty);
+        }
 
         private VocalsPart GetEnabledPart()
         {

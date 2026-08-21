@@ -274,7 +274,8 @@ int sineSynthDspDetach(yarg_sine_synth_dsp* dsp, int* bassError) noexcept {
 }
 
 int sineSynthDspSetNotes(yarg_sine_synth_dsp* dsp, const yarg_sine_note* notes,
-    std::size_t noteCount) noexcept {
+    std::size_t noteCount, int* bassError) noexcept {
+    if (bassError) *bassError = 0;
     if (!dsp || (noteCount > 0 && !notes)) return YARG_AUDIO_ERROR_INVALID_ARGUMENT;
     if (!validSchedule(notes, noteCount)) return YARG_AUDIO_ERROR_INVALID_ARGUMENT;
 
@@ -287,8 +288,10 @@ int sineSynthDspSetNotes(yarg_sine_synth_dsp* dsp, const yarg_sine_note* notes,
 
     // The render thread reads the table without synchronization, so exclude it while swapping.
     const bool attached = dsp->dsp != 0 && dsp->channel != 0;
-    if (attached && !dsp->bass.lockChannel(dsp->channel, true))
+    if (attached && !dsp->bass.lockChannel(dsp->channel, true)) {
+        if (bassError) *bassError = dsp->bass.error();
         return YARG_AUDIO_ERROR_BASS;
+    }
 
     dsp->notes.swap(replacement);
     dsp->noteIndex = 0;

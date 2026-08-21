@@ -113,12 +113,13 @@ int32_t YARG_AUDIO_CALL yarg_sine_synth_dsp_detach(yarg_sine_synth_dsp* dsp,
 }
 
 int32_t YARG_AUDIO_CALL yarg_sine_synth_dsp_set_notes(yarg_sine_synth_dsp* dsp,
-    const yarg_sine_note* notes, uint64_t note_count) {
+    const yarg_sine_note* notes, uint64_t note_count, int32_t* bass_error) {
+    if (bass_error) *bass_error = 0;
     constexpr auto maximum = std::numeric_limits<std::size_t>::max();
     if (note_count > maximum / sizeof(yarg_sine_note))
         return YARG_AUDIO_ERROR_INVALID_ARGUMENT;
     return yarg::audio::sineSynthDspSetNotes(dsp, notes,
-        static_cast<std::size_t>(note_count));
+        static_cast<std::size_t>(note_count), bass_error);
 }
 
 int32_t YARG_AUDIO_CALL yarg_sine_synth_dsp_set_timing(yarg_sine_synth_dsp* dsp,
