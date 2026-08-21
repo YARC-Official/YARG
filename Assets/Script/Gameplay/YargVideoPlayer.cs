@@ -55,11 +55,11 @@ public class YargVideoPlayer : MonoBehaviour
 #if VLC_SUPPORTED
             if (_usingVLC && _vlcPlayer != null && value != null)
             {
-                Debug.Log($"[YargVideoPlayer] Ignoring external output texture in vlc mode");
+                YargLogger.LogInfo("[YargVideoPlayer] Ignoring external output texture in vlc mode");
             }
 #endif
             // Always set on the built-in player too, so we can fall back to it.
-            Debug.Log($"[YargVideoPlayer/UnityPlayer] targetTexture set to {value}");
+            YargLogger.LogFormatDebug("[YargVideoPlayer/UnityPlayer] targetTexture set to {0}", value);
             _unityVideoPlayer.targetTexture = value;
         }
     }
@@ -254,7 +254,7 @@ public class YargVideoPlayer : MonoBehaviour
             }
             catch (Exception ex)
             {
-                Debug.LogWarning("[YargVideoPlayer] Error stopping VLC player: " + ex.Message);
+                YargLogger.LogWarning("[YargVideoPlayer] Error stopping VLC player: " + ex.Message);
             }
             Destroy(_vlcPlayer.gameObject);
         }
@@ -283,17 +283,17 @@ public class YargVideoPlayer : MonoBehaviour
             if (LibVLCSharp.VLCMediaPlayer.LibVLC == null)
             {
                 _usingVLC = false;
-                Debug.Log("[YargVideoPlayer] VLC not available, using Unity VideoPlayer");
+                YargLogger.LogInfo("[YargVideoPlayer] VLC not available, using Unity VideoPlayer");
                 SwitchToVideoPlayerFallback();
                 return;
             }
 
             _usingVLC = true;
-            Debug.Log("[YargVideoPlayer] VLC initialized successfully");
+            YargLogger.LogInfo("[YargVideoPlayer] VLC initialized successfully");
         }
         catch (Exception ex)
         {
-            Debug.LogWarning("[YargVideoPlayer] VLC initialization failed, falling back to Unity VideoPlayer: " + ex.Message);
+            YargLogger.LogWarning("[YargVideoPlayer] VLC initialization failed, falling back to Unity VideoPlayer: " + ex.Message);
             _usingVLC = false;
             if (_vlcPlayer != null)
             {
