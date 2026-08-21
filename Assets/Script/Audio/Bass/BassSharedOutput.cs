@@ -80,13 +80,6 @@ namespace YARG.Audio.BASS
                 return false;
             }
 
-            if (!Bass.ChannelSetAttribute(OutputMixerHandle, ChannelAttribute.Buffer, 0))
-            {
-                YargLogger.LogFormatError("Failed to disable output mixer buffering: {0}", Bass.LastError);
-                FreeOutputGraph();
-                return false;
-            }
-
             if (!Bass.ChannelPlay(OutputMixerHandle))
             {
                 YargLogger.LogFormatError("Failed to start output mixer: {0}", Bass.LastError);

@@ -462,10 +462,10 @@ namespace YARG.Audio.BASS
         protected override int GetLevel_Internal(float[] level) => _connection?.GetLevel(level) ?? -1;
 
         public override OneShotChannel CreateOneShotChannel(int sampleStream, IReadOnlyList<double> scheduledPlays,
-            double outputLeadTime = 0)
+            double outputLeadTime = 0, OutputChannel? outputChannel = null)
         {
             var oneShot = _connection!.CreateOneShot(sampleStream, scheduledPlays, ConvertTempoBytesToSongPosition,
-                () => _speed, outputLeadTime);
+                () => _speed, outputLeadTime, outputChannel);
             oneShot.Disposed += RemoveOneShot;
             _oneShots.Add(oneShot);
             return oneShot;

@@ -178,6 +178,38 @@ namespace YARG.Audio.BASS
 
         public override void ClearVenueSamples() => UnloadVenueSamples();
 
+        protected override void PlayMetronomeSoundEffectToChannel(MetronomeSample sample, MetronomePitch pitch, int channelId)
+        {
+            if ((int) sample < 0 || (int) sample >= MetronomeSamples.Length)
+            {
+                return;
+            }
+
+            var metronomeChannel = MetronomeSamples[(int) sample];
+            if (metronomeChannel == null)
+            {
+                return;
+            }
+
+            int voice = metronomeChannel.CreateStream(pitch);
+            if (voice == 0)
+            {
+                return;
+            }
+
+            double volume = GlobalAudioHandler.GetTrueVolume(SongStem.Metronome) * AudioHelpers.MetronomeSamples[(int) sample].Volume;
+            if (!Bass.ChannelSetAttribute(voice, ChannelAttribute.Volume, volume))
+            {
+                YargLogger.LogFormatError("Failed to set audition metronome sample volume: {0}!", Bass.LastError);
+            }
+
+            var outputChannel = CreateOutputChannel(channelId);
+            if (!_router.PlaySample(voice, outputChannel))
+            {
+                Bass.StreamFree(voice);
+            }
+        }
+
         protected override void DisposeUnmanagedResources()
         {
             _router.Dispose();
