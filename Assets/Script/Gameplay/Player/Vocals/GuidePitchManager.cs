@@ -5,6 +5,7 @@ using YARG.Core.Audio;
 using YARG.Core.Chart;
 using YARG.Core.Logging;
 using YARG.Localization;
+using YARG.Player;
 
 namespace YARG.Gameplay.Player
 {
@@ -20,6 +21,14 @@ namespace YARG.Gameplay.Player
     /// </summary>
     public sealed class GuidePitchManager : IDisposable
     {
+        /// <summary>Volume of the guide pitch tone relative to the master mix.</summary>
+        private const double VOLUME = 0.35;
+
+        /// <summary>
+        /// Target duration for a full volume fade of the guide pitch tone, in seconds. Long enough
+        /// to avoid an audible click at note boundaries, short enough to stay tight against onsets.
+        /// </summary>
+        private const double FADE_SECONDS = 0.015;
 
         /// <summary>
         /// Which harmony part (0-based) has guide pitch enabled.
@@ -27,25 +36,73 @@ namespace YARG.Gameplay.Player
         /// </summary>
         private int _enabledHarmonyIndex = -1;
 
-        private readonly ToneChannel _toneChannel;
-        private          VocalsTrack _vocalsTrack;
+        private readonly ToneChannel           _toneChannel;
+        private readonly VocalsTrack           _vocalsTrack;
+        private readonly Action<string, Color> _statusChanged;
 
-        public event Action<string, Color> OnGuidePitchChanged;
-
-        /// <param name="toneChannel">The tone channel that renders the guide pitch.</param>
-        /// <param name="vocalsTrack">The original (full-song) vocals track.</param>
-        public GuidePitchManager(ToneChannel toneChannel, VocalsTrack vocalsTrack)
+        /// <summary>
+        /// Creates the guide pitch for the song being practiced, or returns <see langword="null"/>
+        /// when it does not apply: the chart has no vocals, or the audio backend cannot supply a
+        /// tone channel. Guide pitch is optional, so a null result is an ordinary outcome and
+        /// leaves the rest of practice mode untouched.
+        /// </summary>
+        /// <param name="mixer">Mixer for the song being practiced.</param>
+        /// <param name="vocalTrack">Vocal track being practiced against.</param>
+        /// <param name="statusChanged">
+        /// Invoked with the status text and color whenever the selected part changes, and once up
+        /// front with the initial state.
+        /// </param>
+        public static GuidePitchManager Create(StemMixer mixer, VocalTrack vocalTrack,
+            Action<string, Color> statusChanged)
         {
-            _toneChannel = toneChannel ?? throw new ArgumentNullException(nameof(toneChannel));
-            _vocalsTrack = vocalsTrack ?? throw new ArgumentNullException(nameof(vocalsTrack));
+            // The vocal track object is left inactive for charts without vocals.
+            if (!vocalTrack.gameObject.activeSelf || vocalTrack.OriginalVocalsTrack == null)
+            {
+                return null;
+            }
+
+            var toneChannel = mixer.CreateToneChannel(VOLUME, FADE_SECONDS);
+            if (toneChannel == null)
+            {
+                return null;
+            }
+
+            var manager = new GuidePitchManager(toneChannel, vocalTrack.OriginalVocalsTrack,
+                statusChanged);
+            manager.NotifyStatusChanged();
+            return manager;
         }
+
+        private GuidePitchManager(ToneChannel toneChannel, VocalsTrack vocalsTrack,
+            Action<string, Color> statusChanged)
+        {
+            _toneChannel = toneChannel;
+            _vocalsTrack = vocalsTrack;
+            _statusChanged = statusChanged;
+        }
+
+        /// <summary>
+        /// Handles a guide pitch toggle input. Ignored unless it came from a singer, so that
+        /// another player's orange fret does not change what the vocalist hears.
+        /// </summary>
+        public void OnToggleRequested(YargPlayer player)
+        {
+            if (player?.Profile.CurrentInstrument is not (Instrument.Vocals or Instrument.Harmony))
+            {
+                return;
+            }
+
+            ToggleGuidePitch();
+        }
+
+        public void Dispose() => _toneChannel.Dispose();
 
         /// <summary>
         /// Cycles the guide pitch to the next state.
         /// Solo vocals: Off → On → Off.
         /// Harmonies:   Off → HARM1 → HARM2 → HARM3 → Off (skipping empty parts).
         /// </summary>
-        public void ToggleGuidePitch()
+        private void ToggleGuidePitch()
         {
             bool isHarmony = _vocalsTrack.Instrument == Instrument.Harmony;
             var  parts     = _vocalsTrack.Parts;
@@ -81,71 +138,8 @@ namespace YARG.Gameplay.Player
             }
 
             PublishSchedule();
-            OnGuidePitchChanged?.Invoke(GetStatusString(), GetStatusColor());
+            NotifyStatusChanged();
         }
-
-        /// <summary>
-        /// Call when the practice section changes. Republishes only if that actually changed which
-        /// notes the tone should follow.
-        /// </summary>
-        public void OnPracticeSectionChanged(VocalsTrack sectionTrack)
-        {
-            if (sectionTrack == null)
-            {
-                throw new ArgumentNullException(nameof(sectionTrack));
-            }
-
-            // Clamp enabled index in case the new section has fewer parts
-            int index = _enabledHarmonyIndex >= sectionTrack.Parts.Count ? -1 : _enabledHarmonyIndex;
-
-            // Callers pass the full-song track, which is the same object for every section. The
-            // schedule is in absolute song time, so the notes already published serve the new
-            // section as well; rebuilding would allocate a fresh table, re-take the mixer lock and
-            // reposition the render thread's scan, all to arrive at an identical schedule.
-            if (ReferenceEquals(sectionTrack, _vocalsTrack) && index == _enabledHarmonyIndex)
-            {
-                return;
-            }
-
-            _vocalsTrack = sectionTrack;
-            _enabledHarmonyIndex = index;
-
-            PublishSchedule();
-            OnGuidePitchChanged?.Invoke(GetStatusString(), GetStatusColor());
-        }
-
-        public string GetStatusString()
-        {
-            if (_enabledHarmonyIndex < 0)
-            {
-                return Localize.Key("Menu.Common.Off");
-            }
-
-            if (_vocalsTrack.Instrument != Instrument.Harmony)
-            {
-                return Localize.Key("Menu.Common.On");
-            }
-
-            return $"HARM{_enabledHarmonyIndex + 1}";
-        }
-
-        public Color GetStatusColor()
-        {
-            if (_enabledHarmonyIndex < 0 || _vocalsTrack.Instrument != Instrument.Harmony)
-            {
-                return Color.white;
-            }
-
-            int index = _enabledHarmonyIndex;
-            if (index < 0 || index >= VocalTrack.Colors.Length)
-            {
-                return Color.white;
-            }
-
-            return VocalTrack.Colors[index];
-        }
-
-        public void Dispose() => _toneChannel.Dispose();
 
         /// <summary>
         /// Pushes the current part's schedule to the backend. A rejected schedule leaves the previous
@@ -162,6 +156,39 @@ namespace YARG.Gameplay.Player
             YargLogger.LogWarning("Could not update the guide pitch schedule; disabling it.");
             _enabledHarmonyIndex = -1;
             _toneChannel.SetSchedule(ReadOnlySpan<ToneSegment>.Empty);
+        }
+
+        private void NotifyStatusChanged() => _statusChanged?.Invoke(GetStatusString(), GetStatusColor());
+
+        private string GetStatusString()
+        {
+            if (_enabledHarmonyIndex < 0)
+            {
+                return Localize.Key("Menu.Common.Off");
+            }
+
+            if (_vocalsTrack.Instrument != Instrument.Harmony)
+            {
+                return Localize.Key("Menu.Common.On");
+            }
+
+            return $"HARM{_enabledHarmonyIndex + 1}";
+        }
+
+        private Color GetStatusColor()
+        {
+            if (_enabledHarmonyIndex < 0 || _vocalsTrack.Instrument != Instrument.Harmony)
+            {
+                return Color.white;
+            }
+
+            int index = _enabledHarmonyIndex;
+            if (index < 0 || index >= VocalTrack.Colors.Length)
+            {
+                return Color.white;
+            }
+
+            return VocalTrack.Colors[index];
         }
 
         private VocalsPart GetEnabledPart()

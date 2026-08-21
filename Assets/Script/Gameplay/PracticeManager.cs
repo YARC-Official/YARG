@@ -1,7 +1,6 @@
-using System;
+﻿using System;
 using System.Linq;
 using UnityEngine;
-using YARG.Core;
 using YARG.Core.Chart;
 using YARG.Core.Input;
 using YARG.Gameplay.HUD;
@@ -15,15 +14,6 @@ namespace YARG.Gameplay
     {
         private const double SECTION_RESTART_DELAY = 2;
         private const double PRACTICE_ENTRY_LOOKBACK = 10; // seconds
-
-        /// <summary>Volume of the guide pitch tone relative to the master mix.</summary>
-        private const double GUIDE_PITCH_VOLUME = 0.35;
-
-        /// <summary>
-        /// Target duration for a full volume fade of the guide pitch tone, in seconds. Long enough
-        /// to avoid an audible click at note boundaries, short enough to stay tight against onsets.
-        /// </summary>
-        private const double GUIDE_PITCH_FADE_SECONDS = 0.015;
 
         [Header("References")]
         [SerializeField]
@@ -68,35 +58,14 @@ namespace YARG.Gameplay
 
         protected override void OnSongStarted()
         {
-            if (!GameManager.VocalTrack.gameObject.activeSelf)
-                return;
-
-            var vocalsTrack = GameManager.VocalTrack.OriginalVocalsTrack;
-            if (vocalsTrack == null)
-                return;
-
-            var toneChannel = GameManager.Mixer.CreateToneChannel(GUIDE_PITCH_VOLUME,
-                GUIDE_PITCH_FADE_SECONDS);
-            if (toneChannel == null)
-            {
-                return;
-            }
-
-            _guidePitchManager = new GuidePitchManager(toneChannel, vocalsTrack);
-            _guidePitchManager.OnGuidePitchChanged += _practiceHud.SetGuidePitchPartText;
-
-            _practiceHud.SetGuidePitchPartText(_guidePitchManager.GetStatusString(), _guidePitchManager.GetStatusColor());
+            _guidePitchManager = GuidePitchManager.Create(GameManager.Mixer, GameManager.VocalTrack,
+                _practiceHud.SetGuidePitchPartText);
         }
 
         protected override void GameplayDestroy()
         {
             Navigator.Instance.NavigationEvent -= OnNavigationEvent;
-            if (_guidePitchManager != null)
-            {
-                _guidePitchManager.OnGuidePitchChanged -= _practiceHud.SetGuidePitchPartText;
-                _guidePitchManager.Dispose();
-                _guidePitchManager = null;
-            }
+            _guidePitchManager?.Dispose();
         }
 
         private void Update()
@@ -143,12 +112,8 @@ namespace YARG.Gameplay
                 case MenuAction.Select:
                     ResetPractice();
                     break;
-                // Guide pitch toggle (Vocalist only)
                 case MenuAction.Orange:
-                    if (ctx.Player?.Profile.CurrentInstrument is Instrument.Vocals or Instrument.Harmony)
-                    {
-                        _guidePitchManager?.ToggleGuidePitch();
-                    }
+                    _guidePitchManager?.OnToggleRequested(ctx.Player);
                     break;
             }
         }
@@ -230,13 +195,6 @@ namespace YARG.Gameplay
 
             GameManager.VocalTrack.AllowStarPower = allowPracticeSP;
             GameManager.VocalTrack.SetPracticeSection(tickStart, tickEnd);
-
-            // Notify guide pitch manager so it resets note tracking for the new section
-            if (_guidePitchManager != null)
-            {
-                _guidePitchManager.OnPracticeSectionChanged(
-                    GameManager.VocalTrack.OriginalVocalsTrack);
-            }
 
             GameManager.SetSongTime(timeStart, SettingsManager.Settings.PracticeRestartDelay.Value);
 
