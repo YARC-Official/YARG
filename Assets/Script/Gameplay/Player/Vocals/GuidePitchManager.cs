@@ -5,7 +5,6 @@ using YARG.Core.Audio;
 using YARG.Core.Chart;
 using YARG.Core.Logging;
 using YARG.Localization;
-using YARG.Player;
 
 namespace YARG.Gameplay.Player
 {
@@ -82,27 +81,11 @@ namespace YARG.Gameplay.Player
         }
 
         /// <summary>
-        /// Handles a guide pitch toggle input. Ignored unless it came from a singer, so that
-        /// another player's orange fret does not change what the vocalist hears.
-        /// </summary>
-        public void OnToggleRequested(YargPlayer player)
-        {
-            if (player?.Profile.CurrentInstrument is not (Instrument.Vocals or Instrument.Harmony))
-            {
-                return;
-            }
-
-            ToggleGuidePitch();
-        }
-
-        public void Dispose() => _toneChannel.Dispose();
-
-        /// <summary>
         /// Cycles the guide pitch to the next state.
         /// Solo vocals: Off → On → Off.
         /// Harmonies:   Off → HARM1 → HARM2 → HARM3 → Off (skipping empty parts).
         /// </summary>
-        private void ToggleGuidePitch()
+        public void ToggleGuidePitch()
         {
             bool isHarmony = _vocalsTrack.Instrument == Instrument.Harmony;
             var  parts     = _vocalsTrack.Parts;
@@ -140,6 +123,8 @@ namespace YARG.Gameplay.Player
             PublishSchedule();
             NotifyStatusChanged();
         }
+
+        public void Dispose() => _toneChannel.Dispose();
 
         /// <summary>
         /// Pushes the current part's schedule to the backend. A rejected schedule leaves the previous
