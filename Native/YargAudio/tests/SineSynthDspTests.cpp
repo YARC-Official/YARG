@@ -314,6 +314,45 @@ void testEmptyNoteTableIsSilent() {
     REQUIRE(sineSynthDspDestroy(dsp));
 }
 
+// Clearing the schedule while a tone sounds must fade it out rather than cut it off. This is
+// the path taken when the player toggles the guide pitch off mid-note.
+void testClearingScheduleFadesOutInsteadOfCuttingOff() {
+    MockBass state;
+    BassCoreBindings bass(completeFunctions());
+    // A 1 ms fade ramps in 48 frames, so a single 128-frame block covers a full ramp.
+    auto* dsp = create(bass, state, 1.0f, 0.001f);
+
+    int bassError = -1;
+    REQUIRE(sineSynthDspAttach(dsp, 11, 0, &bassError) == YARG_AUDIO_OK);
+
+    const yarg_sine_note notes[] = {note(0.0, 10.0, 69.0f, 69.0f)};
+    REQUIRE(sineSynthDspSetNotes(dsp, notes, 1) == YARG_AUDIO_OK);
+
+    // 128 frames of a held note: the tone reaches full volume.
+    std::vector<float> buffer(256, 0.0f);
+    state.seconds = 1.0;
+    state.callback(21, 11, buffer.data(), 256 * sizeof(float), state.callbackUser);
+    REQUIRE(approx(dsp->currentVolume, 1.0));
+
+    REQUIRE(sineSynthDspSetNotes(dsp, nullptr, 0) == YARG_AUDIO_OK);
+
+    buffer.assign(256, 0.0f);
+    state.seconds = 1.005;
+    state.callback(21, 11, buffer.data(), 256 * sizeof(float), state.callbackUser);
+
+    // The ramp down has to be audible in the block, and must land on silence at zero phase so
+    // the next tone starts on a zero crossing.
+    bool rendered = false;
+    for (float sample : buffer) {
+        if (sample != 0.0f) rendered = true;
+    }
+    REQUIRE(rendered);
+    REQUIRE(dsp->currentVolume == 0.0f);
+    REQUIRE(dsp->phase == 0.0);
+
+    REQUIRE(sineSynthDspDestroy(dsp));
+}
+
 void testCreateAndAttachValidation() {
     MockBass state;
     mock = &state;
@@ -447,6 +486,7 @@ void runSineSynthDspTests() {
     testPlaybackSpeedDoesNotShiftPitch();
     testDspProcReadsSongPosition();
     testEmptyNoteTableIsSilent();
+    testClearingScheduleFadesOutInsteadOfCuttingOff();
     testCreateAndAttachValidation();
     testSetNotesAndTimingValidation();
     testDestroyFailurePolicy();

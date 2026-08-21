@@ -117,7 +117,10 @@ void YARG_BASS_CALLBACK sineSynthDspProc(std::uint32_t, std::uint32_t,
     if (!buffer || !user || length == 0 || length % sizeof(float) != 0) return;
 
     auto* state = static_cast<yarg_sine_synth_dsp*>(user);
-    if (state->notes.empty()) return;
+
+    // An empty table is not a reason to skip the block. A tone that was sounding when the
+    // schedule was cleared still has to ramp down, or it cuts off mid-cycle and clicks.
+    // sineSynthDspFrequencyAt reports 0 Hz for an empty table, which drives the fade to zero.
 
     BassChannelInfo info{};
     if (!state->bass.getChannelInfo(state->channel, info)) return;
