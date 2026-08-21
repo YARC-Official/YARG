@@ -88,15 +88,15 @@ namespace YARG.Input
         }
 
 #nullable enable
-        public ProfileBindings(YargProfile profile, SerializedProfileBindings? bindings)
+        public ProfileBindings(YargProfile profile, SerializedProfileDeviceInfo? bindings)
             : this(profile)
         {
             if (bindings is null)
                 return;
 
-            if (bindings.Devices is not null)
+            if (bindings.Controllers is not null)
             {
-                foreach (var device in bindings.Devices)
+                foreach (var device in bindings.Controllers)
                 {
                     if (device is null || string.IsNullOrEmpty(device.Layout) || string.IsNullOrEmpty(device.Hash))
                     {
@@ -142,18 +142,18 @@ namespace YARG.Input
             MenuBindings.Deserialize(bindings.MenuMappings);
         }
 
-        public SerializedProfileBindings Serialize()
+        public SerializedProfileDeviceInfo Serialize()
         {
-            var serialized = new SerializedProfileBindings();
+            var serialized = new SerializedProfileDeviceInfo();
 
             foreach (var device in _devices)
             {
-                serialized.Devices.Add(device.Serialize());
+                serialized.Controllers.Add(device.Serialize());
             }
 
             foreach (var device in _unresolvedDevices)
             {
-                serialized.Devices.Add(device);
+                serialized.Controllers.Add(device);
             }
 
             foreach (var mic in _microphones)
@@ -180,7 +180,7 @@ namespace YARG.Input
             return serialized;
         }
 
-        public static ProfileBindings Deserialize(YargProfile profile, SerializedProfileBindings? serialized)
+        public static ProfileBindings Deserialize(YargProfile profile, SerializedProfileDeviceInfo? serialized)
         {
             return new(profile, serialized);
         }

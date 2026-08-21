@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -53,9 +53,9 @@ namespace YARG.Input
         }
 
 #nullable enable
-        public SerializedBindingCollection? Serialize()
+        public SerializedReusableBindingSet? Serialize()
         {
-            var serialized = new SerializedBindingCollection();
+            var serialized = new SerializedReusableBindingSet();
             foreach (var binding in _bindings)
             {
                 var serializedBind = binding.Serialize();
@@ -71,7 +71,7 @@ namespace YARG.Input
             return serialized;
         }
 
-        public void Deserialize(SerializedBindingCollection? serialized)
+        public void Deserialize(SerializedReusableBindingSet? serialized)
         {
             if (serialized is null || serialized.Bindings is null)
                 return;

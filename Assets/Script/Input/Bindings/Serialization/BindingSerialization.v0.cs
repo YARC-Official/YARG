@@ -30,9 +30,9 @@ namespace YARG.Input.Serialization
         [JsonConstructor]
         public SerializedProfileBindingsV0() { }
 
-        public SerializedProfileBindingsV0(SerializedProfileBindings serialized)
+        public SerializedProfileBindingsV0(SerializedProfileDeviceInfo serialized)
         {
-            Devices.AddRange(serialized.Devices.Select((device) => new SerializedInputDeviceV0(device)));
+            Devices.AddRange(serialized.Controllers.Select((device) => new SerializedInputDeviceV0(device)));
 
             if (serialized.Microphone is not null)
                 Microphone = new SerializedMicV0(serialized.Microphone);
@@ -46,14 +46,14 @@ namespace YARG.Input.Serialization
                 MenuBindings = BindingSerialization.Serialize(serialized.MenuMappings);
         }
 
-        public SerializedProfileBindings Deserialize()
+        public SerializedProfileDeviceInfo Deserialize()
         {
-            var converted = new SerializedProfileBindings()
+            var converted = new SerializedProfileDeviceInfo()
             {
                 Microphone = Microphone?.Deserialize(),
             };
 
-            converted.Devices.AddRange(Devices.Select((device) => device.Deserialize()));
+            converted.Controllers.AddRange(Devices.Select((device) => device.Deserialize()));
 
             foreach (var (gameMode, bindings) in Bindings)
             {
@@ -170,7 +170,7 @@ namespace YARG.Input.Serialization
             return converted;
         }
 
-        public static SerializedBindingCollectionV0 Serialize(SerializedBindingCollection serialized)
+        public static SerializedBindingCollectionV0 Serialize(SerializedReusableBindingSet serialized)
         {
             var converted = new SerializedBindingCollectionV0();
             foreach (var (id, serializedBinds) in serialized.Bindings)
@@ -181,9 +181,9 @@ namespace YARG.Input.Serialization
             return converted;
         }
 
-        public static SerializedBindingCollection Deserialize(this SerializedBindingCollectionV0 serialized)
+        public static SerializedReusableBindingSet Deserialize(this SerializedBindingCollectionV0 serialized)
         {
-            var converted = new SerializedBindingCollection();
+            var converted = new SerializedReusableBindingSet();
             foreach (var (id, serializedBinds) in serialized)
             {
                 converted.Bindings[id] = serializedBinds.Deserialize();
