@@ -18,6 +18,7 @@ namespace YARG.Menu.Settings.Visuals
             _ignoreCallback = true;
             _slider.MinimumValue = Setting.Min;
             _slider.MaximumValue = Setting.Max;
+
             _ignoreCallback = false;
 
             base.OnSettingInit();

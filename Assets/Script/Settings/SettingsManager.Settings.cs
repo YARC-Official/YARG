@@ -21,7 +21,6 @@ using YARG.Menu.History;
 using YARG.Menu.MusicLibrary;
 using YARG.Menu.Persistent;
 using YARG.Menu.Settings;
-using YARG.Playback;
 using YARG.Player;
 using YARG.Scores;
 using YARG.Settings.Metadata;
@@ -34,6 +33,12 @@ using Object = UnityEngine.Object;
 
 namespace YARG.Settings
 {
+    public enum SongLengthLabelMode
+    {
+        RangeLabels,
+        LegacyLabels,
+    }
+
     public enum QualityMode
     {
         NativeAA = 0,
@@ -61,6 +66,12 @@ namespace YARG.Settings
         None,
         File,
         Addressable
+    }
+
+    public enum ReverbMode
+    {
+        Performance = 0,
+        Quality = 1
     }
 
     public struct CustomCharacterInfo : IEquatable<CustomCharacterInfo>
@@ -252,6 +263,13 @@ namespace YARG.Settings
             public ToggleSetting ShowFavoriteButton { get; } = new(true);
             public ToggleSetting ShowRecommendedSongs { get; } = new(true, ShowRecommendedSongsCallback);
 
+            public DropdownSetting<SongLengthLabelMode> SongLengthLabels { get; }
+                = new(SongLengthLabelMode.RangeLabels, _ => RefreshSongs())
+                {
+                    SongLengthLabelMode.RangeLabels,
+                    SongLengthLabelMode.LegacyLabels,
+                };
+
             public ToggleSetting EnablePlayAShow { get; } = new(true);
             public SliderSetting PlayAShowTimeout { get; } = new (10.0f, 1.0f, 30.0f);
             public ToggleSetting RequireAllDifficulties { get; } = new(true);
@@ -349,7 +367,10 @@ namespace YARG.Settings
             public VolumeSetting PreviewVolume { get; } = new(0.25f);
             public VolumeSetting MusicPlayerVolume { get; } = new(0.15f, MusicPlayerVolumeCallback);
             public VolumeSetting VocalMonitoring { get; } =
-                new(0.7f, 2f, VocalMonitoringCallback);
+                new(0.7f, 1f, VocalMonitoringCallback);
+
+            public VolumeSetting VocalReverb { get; } =
+                new(0.25f, 1f, VocalReverbCallback);
 
             private bool _automaticPlaybackBufferWasEnabled = true;
 
@@ -381,12 +402,13 @@ namespace YARG.Settings
                 AudioFxMode.On
             };
 
-            public DropdownSetting<CrowdFxMode> UseCrowdFx { get; } = new(CrowdFxMode.Enabled)
-            {
-                CrowdFxMode.Disabled,
-                CrowdFxMode.StarpowerClapsOnly,
-                CrowdFxMode.Enabled
-            };
+            public ToggleSetting UseCrowdCheering { get; } = new(true);
+
+            public ToggleSetting UseCrowdIdle { get; } = new(true);
+
+            public ToggleSetting UseStarPowerClaps { get; } = new(true);
+
+            public ToggleSetting UsePerformanceClaps { get; } = new(true);
 
             public ToggleSetting UseVenueSfx { get; } = new(true);
 
@@ -531,6 +553,8 @@ namespace YARG.Settings
                     LyricDisplayMode.Disabled
                 };
 
+            public ToggleSetting KeepLyricBar { get; } = new(false);
+
             public DropdownSetting<SongProgressMode> SongTimeOnScoreBox { get; }
                 = new(SongProgressMode.CountUpAndTotal)
                 {
@@ -617,56 +641,56 @@ namespace YARG.Settings
             public ToggleSetting RB3EEnabled      { get; } = new(false, RB3EEnabledCallback);
 
             public DMXChannelsSetting DMXDimmerChannels { get; } = new(
-                new[] { 01, 09, 17, 25, 33, 41, 49, 57 }, v => SacnInterpreter.Instance.DimmerChannels = v);
+                new[] { 01, 09, 17, 25, 33, 41, 49, 57 }, v => { if (SacnInterpreter.Instance != null) SacnInterpreter.Instance.DimmerChannels = v; });
 
             public DMXChannelsSetting DMXRedChannels { get; } = new(
-                new[] { 02, 10, 18, 26, 34, 42, 50, 58 }, v => SacnInterpreter.Instance.RedChannels = v);
+                new[] { 02, 10, 18, 26, 34, 42, 50, 58 }, v => { if (SacnInterpreter.Instance != null) SacnInterpreter.Instance.RedChannels = v; });
 
             public DMXChannelsSetting DMXGreenChannels { get; } = new(
-                new[] { 03, 11, 19, 27, 35, 43, 51, 59 }, v => SacnInterpreter.Instance.GreenChannels = v);
+                new[] { 03, 11, 19, 27, 35, 43, 51, 59 }, v => { if (SacnInterpreter.Instance != null) SacnInterpreter.Instance.GreenChannels = v; });
 
             public DMXChannelsSetting DMXBlueChannels { get; } = new(
-                new[] { 04, 12, 20, 28, 36, 44, 52, 60 }, v => SacnInterpreter.Instance.BlueChannels = v);
+                new[] { 04, 12, 20, 28, 36, 44, 52, 60 }, v => { if (SacnInterpreter.Instance != null) SacnInterpreter.Instance.BlueChannels = v; });
 
             public DMXChannelsSetting DMXYellowChannels { get; } = new(
-                new[] { 05, 13, 21, 29, 37, 45, 53, 61 }, v => SacnInterpreter.Instance.YellowChannels = v);
+                new[] { 05, 13, 21, 29, 37, 45, 53, 61 }, v => { if (SacnInterpreter.Instance != null) SacnInterpreter.Instance.YellowChannels = v; });
 
             public DMXChannelsSetting DMXFogChannels { get; } = new(
-                new[] { 06, 14, 22, 30, 38, 46, 54, 62 }, v => SacnInterpreter.Instance.FogChannels = v);
+                new[] { 06, 14, 22, 30, 38, 46, 54, 62 }, v => { if (SacnInterpreter.Instance != null) SacnInterpreter.Instance.FogChannels = v; });
 
             public DMXChannelsSetting DMXStrobeChannels { get; } = new(
-                new[] { 07, 15, 23, 31, 39, 47, 55, 63 }, v => SacnInterpreter.Instance.StrobeChannels = v);
+                new[] { 07, 15, 23, 31, 39, 47, 55, 63 }, v => { if (SacnInterpreter.Instance != null) SacnInterpreter.Instance.StrobeChannels = v; });
 
             public IntSetting DMXCueChangeChannel { get; } =
-                new(8, 1, 512, v => SacnInterpreter.Instance.CueChangeChannel = v);
+                new(8, 1, 512, v => { if (SacnInterpreter.Instance != null) SacnInterpreter.Instance.CueChangeChannel = v; });
 
             public IPv4Setting RB3EBroadcastIP { get; } =
-                new("255.255.255.255", ip => RB3EHardware.Instance.IPAddress = IPAddress.Parse(ip));
+                new("255.255.255.255", ip => { if (RB3EHardware.Instance != null) RB3EHardware.Instance.IPAddress = IPAddress.Parse(ip); });
 
             public IntSetting DMXBeatlineChannel { get; } =
-                new(14, 1, 512, v => SacnInterpreter.Instance.BeatlineChannel = v);
+                new(14, 1, 512, v => { if (SacnInterpreter.Instance != null) SacnInterpreter.Instance.BeatlineChannel = v; });
 
             public IntSetting DMXBonusEffectChannel { get; } =
-                new(15, 1, 512, v => SacnInterpreter.Instance.BonusEffectChannel = v);
+                new(15, 1, 512, v => { if (SacnInterpreter.Instance != null) SacnInterpreter.Instance.BonusEffectChannel = v; });
 
             public IntSetting DMXKeyframeChannel { get; } =
-                new(16, 1, 512, v => SacnInterpreter.Instance.KeyframeChannel = v);
+                new(16, 1, 512, v => { if (SacnInterpreter.Instance != null) SacnInterpreter.Instance.KeyframeChannel = v; });
 
             public IntSetting DMXDrumsChannel { get; } =
-                new(22, 1, 512, v => SacnInterpreter.Instance.DrumChannel = v);
+                new(22, 1, 512, v => { if (SacnInterpreter.Instance != null) SacnInterpreter.Instance.DrumChannel = v; });
 
             public IntSetting DMXPostProcessingChannel { get; } =
-                new(23, 1, 512, v => SacnInterpreter.Instance.PostProcessingChannel = v);
+                new(23, 1, 512, v => { if (SacnInterpreter.Instance != null) SacnInterpreter.Instance.PostProcessingChannel = v; });
 
             public IntSetting DMXGuitarChannel { get; } =
-                new(24, 1, 512, v => SacnInterpreter.Instance.GuitarChannel = v);
+                new(24, 1, 512, v => { if (SacnInterpreter.Instance != null) SacnInterpreter.Instance.GuitarChannel = v; });
 
-            public IntSetting DMXBassChannel { get; } = new(30, 1, 512, v => SacnInterpreter.Instance.BassChannel = v);
+            public IntSetting DMXBassChannel { get; } = new(30, 1, 512, v => { if (SacnInterpreter.Instance != null) SacnInterpreter.Instance.BassChannel = v; });
 
             //NYI
             //public IntSetting DMXPerformerChannel { get; } = new(31, 1, 512);
 
-            public IntSetting DMXKeysChannel { get; } = new(32, 1, 512, v => SacnInterpreter.Instance.KeysChannel = v);
+            public IntSetting DMXKeysChannel { get; } = new(32, 1, 512, v => { if (SacnInterpreter.Instance != null) SacnInterpreter.Instance.KeysChannel = v; });
 
             public IPv4Setting DMXLocalIP { get; } = new(defaultValue: string.Empty, allowEmpty: true);
 
@@ -718,6 +742,12 @@ namespace YARG.Settings
                 BandComboType.Off,
                 BandComboType.Lenient,
                 BandComboType.Strict
+            };
+            public DropdownSetting<ReverbMode> ReverbImplementation { get; } = new(ReverbMode.Performance,
+                ReverbImplementationCallback)
+            {
+                ReverbMode.Performance,
+                ReverbMode.Quality
             };
             public ToggleSetting SaveScoresWithBots { get; } = new(false);
             public SliderSetting FontScaling { get; } = new(0f, 0f, 100f, FontScalingCallback);
@@ -791,11 +821,11 @@ namespace YARG.Settings
                 // Dispose Discord instance if rich presence is turned off, otherwise try initializing it again
                 if (mode == DiscordRichPresenceMode.Hide)
                 {
-                    DiscordController.Instance.TryDispose();
+                    DiscordController.Instance?.TryDispose();
                 }
                 else
                 {
-                    DiscordController.Instance.CreateInstance();
+                    DiscordController.Instance?.CreateInstance();
                 }
             }
 
@@ -804,12 +834,12 @@ namespace YARG.Settings
                 // Only show if battery status is reported and has a valid value
                 value &= SystemInfo.batteryStatus != BatteryStatus.Unknown &&
                     SystemInfo.batteryLevel is >= 0 and <= 1;
-                StatsManager.Instance.SetShowing(StatsManager.Stat.Battery, value);
+                StatsManager.Instance?.SetShowing(StatsManager.Stat.Battery, value);
             }
 
             private static void ShowTimeCallback(bool value)
             {
-                StatsManager.Instance.SetShowing(StatsManager.Stat.Time, value);
+                StatsManager.Instance?.SetShowing(StatsManager.Stat.Time, value);
             }
 
             private static void MemoryStatsCallback(bool value)
@@ -819,17 +849,17 @@ namespace YARG.Settings
                 value = true;
 #endif
 
-                StatsManager.Instance.SetShowing(StatsManager.Stat.Memory, value);
+                StatsManager.Instance?.SetShowing(StatsManager.Stat.Memory, value);
             }
 
             private static void ShowActivePlayersCallback(bool value)
             {
-                StatsManager.Instance.SetShowing(StatsManager.Stat.ActivePlayers, value);
+                StatsManager.Instance?.SetShowing(StatsManager.Stat.ActivePlayers, value);
             }
 
             private static void ShowActiveBotsCallback(bool value)
             {
-                StatsManager.Instance.SetShowing(StatsManager.Stat.ActiveBots, value);
+                StatsManager.Instance?.SetShowing(StatsManager.Stat.ActiveBots, value);
             }
 
             private static void ShowRecommendedSongsCallback(bool value)
@@ -859,17 +889,17 @@ namespace YARG.Settings
                 {
                     return;
                 }
-                DataStreamController.Instance.HandleEnabledChanged(value);
+                DataStreamController.Instance?.HandleEnabledChanged(value);
             }
 
             private static void FontScalingCallback(float value)
             {
-                MenuFontScaler.Instance.SetFontScalePercent(value);
+                MenuFontScaler.Instance?.SetFontScalePercent(value);
             }
 
             private static void RB3EEnabledCallback(bool value)
             {
-                RB3EHardware.Instance.HandleEnabledChanged(value);
+                RB3EHardware.Instance?.HandleEnabledChanged(value);
             }
 
             private static void StageKitEnabledCallback(bool value)
@@ -879,12 +909,12 @@ namespace YARG.Settings
                 {
                     return;
                 }
-                StageKitHardware.Instance.HandleEnabledChanged(value);
+                StageKitHardware.Instance?.HandleEnabledChanged(value);
             }
 
             private static void DMXEnabledCallback(bool value)
             {
-                SacnHardware.Instance.HandleEnabledChanged(value);
+                SacnHardware.Instance?.HandleEnabledChanged(value);
             }
 
             private static void VSyncCallback(bool value)
@@ -899,12 +929,15 @@ namespace YARG.Settings
                 value = true;
 #endif
 
-                StatsManager.Instance.SetShowing(StatsManager.Stat.FPS, value);
+                StatsManager.Instance?.SetShowing(StatsManager.Stat.FPS, value);
             }
 
             private static void VenueAACallback(VenueAntiAliasingMethod value)
             {
-                GraphicsManager.Instance.VenueAntiAliasing = value;
+                if (GraphicsManager.Instance != null)
+                {
+                    GraphicsManager.Instance.VenueAntiAliasing = value;
+                }
             }
 
             private static void FpsCapCallback(int value)
@@ -931,7 +964,10 @@ namespace YARG.Settings
                     return;
                 }
 
-                GraphicsManager.Instance.VenueRenderScale = 1.0f / GetUpscaleRatioFromQualityMode(value);
+                if (GraphicsManager.Instance != null)
+                {
+                    GraphicsManager.Instance.VenueRenderScale = 1.0f / GetUpscaleRatioFromQualityMode(value);
+                }
             }
 
             private static void ResolutionCallback(Resolution? value)
@@ -951,17 +987,26 @@ namespace YARG.Settings
 
             private static void LowQualityCallback(bool value)
             {
-                GraphicsManager.Instance.LowQuality = value;
+                if (GraphicsManager.Instance != null)
+                {
+                    GraphicsManager.Instance.LowQuality = value;
+                }
             }
 
             private static void DisableBloomCallback(bool value)
             {
-                GraphicsManager.Instance.BloomEnabled = !value;
+                if (GraphicsManager.Instance != null)
+                {
+                    GraphicsManager.Instance.BloomEnabled = !value;
+                }
             }
 
             private static void DisableFilmGrainCallback(bool value)
             {
-                GraphicsManager.Instance.FilmGrainEnabled = !value;
+                if (GraphicsManager.Instance != null)
+                {
+                    GraphicsManager.Instance.FilmGrainEnabled = !value;
+                }
             }
 
             private static void ShowHitWindowCallback(bool value)
@@ -980,9 +1025,42 @@ namespace YARG.Settings
                 }
             }
 
+            private static void VocalReverbCallback(float wet)
+            {
+                foreach (var player in PlayerContainer.Players)
+                {
+                    foreach (var mic in player.Bindings.Microphones)
+                    {
+                        mic.SetReverbLevel(wet);
+                    }
+                }
+            }
+
+            private static void ReverbImplementationCallback(ReverbMode mode)
+            {
+                if (!IsInitialized)
+                {
+                    return;
+                }
+
+                BindingsContainer.ReleaseMicrophones();
+                try
+                {
+                    if (!GlobalAudioHandler.ReinitializeOutput())
+                    {
+                        YargLogger.LogError("Failed to reinitialize audio output after reverb implementation change");
+                        ToastManager.ToastError("Failed to reinitialize audio output after reverb change.");
+                    }
+                }
+                finally
+                {
+                    BindingsContainer.ResolveMicrophones();
+                }
+            }
+
             private static void MusicPlayerVolumeCallback(float volume)
             {
-                HelpBar.Instance.MusicPlayer.UpdateVolume(volume);
+                HelpBar.Instance?.MusicPlayer.UpdateVolume(volume);
             }
 
             // private static void WhammyOversampleFactorChange(int value)

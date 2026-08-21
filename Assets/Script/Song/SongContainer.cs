@@ -635,7 +635,7 @@ namespace YARG.Song
 
             _sortTitles       = Cast(_sortedSongs.Titles);
             _sortYears        = Cast(_sortedSongs.Years);
-            _sortSongLengths  = Cast(_sortedSongs.SongLengths);
+            _sortSongLengths  = GetSongLengthSort();
             _playables = null;
 
             _sortDatesAdded = new SongCategory[_sortedSongs.DatesAdded.Count];
@@ -796,6 +796,54 @@ namespace YARG.Song
                         _ => key,
                     };
                     sections[index++] = new SongCategory(key, node.Value.ToArray(), categoryGroupName);
+                }
+                return sections;
+            }
+
+            static SongCategory[] GetSongLengthSort()
+            {
+                if (SettingsManager.Settings.SongLengthLabels.Value == SongLengthLabelMode.RangeLabels)
+                {
+                    return Cast(_sortedSongs.SongLengths);
+                }
+
+                var groups = new SortedDictionary<int, List<SongEntry>>();
+
+                // The range categories and their contents are already ordered by duration.
+                foreach (var range in _sortedSongs.SongLengths.Values)
+                {
+                    foreach (var song in range)
+                    {
+                        int groupIndex = song.SongLengthMilliseconds switch
+                        {
+                            < 180000 => 0,
+                            < 300000 => 1,
+                            < 420000 => 2,
+                            _        => 3,
+                        };
+
+                        if (!groups.TryGetValue(groupIndex, out var group))
+                        {
+                            groups.Add(groupIndex, group = new List<SongEntry>());
+                        }
+                        group.Add(song);
+                    }
+                }
+
+                string[] labelKeys =
+                {
+                    "Menu.Filters.Length.Short",
+                    "Menu.Filters.Length.Medium",
+                    "Menu.Filters.Length.Long",
+                    "Menu.Filters.Length.Epic",
+                };
+
+                var sections = new SongCategory[groups.Count];
+                int index = 0;
+                foreach (var (groupIndex, songs) in groups)
+                {
+                    string label = Localize.Key(labelKeys[groupIndex]);
+                    sections[index++] = new SongCategory(label, songs.ToArray(), label);
                 }
                 return sections;
             }

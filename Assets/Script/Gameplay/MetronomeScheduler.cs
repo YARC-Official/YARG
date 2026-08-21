@@ -47,6 +47,8 @@ namespace YARG.Gameplay
             CreateChannels(SettingsManager.Settings.MetronomeSound.Value);
             SettingsManager.Settings.MetronomeSound.OnChange += OnSoundChanged;
             SettingsManager.Settings.MetronomeVolume.OnChange += OnVolumeChanged;
+            SettingsManager.Settings.OutputChannelMetronome.OnChange += OnOutputChannelChanged;
+            SettingsManager.Settings.OutputChannelDefault.OnChange += OnOutputChannelChanged;
             _scheduled = true;
         }
 
@@ -76,8 +78,16 @@ namespace YARG.Gameplay
             DisposeChannels();
             var hiStream = GlobalAudioHandler.CreateMetronomeStream(sample, MetronomePitch.Hi);
             var loStream = GlobalAudioHandler.CreateMetronomeStream(sample, MetronomePitch.Lo);
-            _hiChannel = _mixer.CreateOneShotChannel(hiStream, _hiHits);
-            _loChannel = _mixer.CreateOneShotChannel(loStream, _loHits);
+
+            int channelId = SettingsManager.Settings.OutputChannelMetronome.Value;
+            if (channelId == -1)
+            {
+                channelId = SettingsManager.Settings.OutputChannelDefault.Value;
+            }
+
+            var outputChannel = GlobalAudioHandler.CreateOutputChannel(channelId);
+            _hiChannel = _mixer.CreateOneShotChannel(hiStream, _hiHits, outputChannel: outputChannel);
+            _loChannel = _mixer.CreateOneShotChannel(loStream, _loHits, outputChannel: outputChannel);
             SetVolume(sample);
         }
 
@@ -89,6 +99,11 @@ namespace YARG.Gameplay
         private void OnVolumeChanged(float _)
         {
             SetVolume(SettingsManager.Settings.MetronomeSound.Value);
+        }
+
+        private void OnOutputChannelChanged(int _)
+        {
+            CreateChannels(SettingsManager.Settings.MetronomeSound.Value);
         }
 
         private void SetVolume(MetronomeSample sample)
@@ -108,6 +123,8 @@ namespace YARG.Gameplay
 
             SettingsManager.Settings.MetronomeSound.OnChange -= OnSoundChanged;
             SettingsManager.Settings.MetronomeVolume.OnChange -= OnVolumeChanged;
+            SettingsManager.Settings.OutputChannelMetronome.OnChange -= OnOutputChannelChanged;
+            SettingsManager.Settings.OutputChannelDefault.OnChange -= OnOutputChannelChanged;
             DisposeChannels();
             _disposed = true;
         }

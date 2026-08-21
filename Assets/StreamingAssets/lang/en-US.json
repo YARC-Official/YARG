@@ -129,6 +129,7 @@
             "Apply": "Apply",
             "Back": "Back",
             "Cancel": "Cancel",
+            "DontApply": "Don't Apply",
             "Close": "Close",
             "Confirm": "Confirm",
             "Continue": "Continue",
@@ -1041,6 +1042,7 @@
             "Experimental": "Experimental",
             "HUD": "HUD",
             "Gameplay": "Gameplay",
+            "CrowdFX": "Crowd FX",
             "OutputConfiguration": "Output Configuration",
             "Accessibility": "Accessibility"
         },
@@ -1286,6 +1288,14 @@
                     "HighestScoreCurrentDifficulty": "Highest score on current difficulty"
                 }
             },
+            "SongLengthLabels": {
+                "Name": "Song Duration Labels",
+                "Description": "Choose how song durations are grouped in the music library and filters menu.",
+                "Dropdown": {
+                    "RangeLabels": "2:00, 5:00, 10:00, 15:00, 20:00",
+                    "LegacyLabels": "Short, Medium, Long, Epic"
+                }
+            },
             "HighwayTiltMultiplier": {
                 "Name": "Highway Tilt Multiplier",
                 "Description": "Controls the amount that the tracks should tilt inward during multiplayer gameplay only."
@@ -1325,6 +1335,10 @@
                     "Normal": "Normal",
                     "Transparent": "Translucent Background"
                 }
+            },
+            "KeepLyricBar": {
+                "Name": "Keep Lyric Bar",
+                "Description": "Displays the karaoke lyric bar below the vocal track while singers are playing."
             },
             "MasterMusicVolume": {
                 "Name": "Master Music Volume",
@@ -1486,6 +1500,14 @@
                 "Description": "Choose the resolution of your screen. \"Default\" is recommended.",
                 "Default": "<i>Default ({0})</i>"
             },
+            "ReverbImplementation": {
+                "Name": "Reverb Implementation",
+                "Description": "Selects the reverb trade-off. Performance uses a lighter Freeverb, Quality uses a fuller Dattorro plate.",
+                "Dropdown": {
+                    "Performance": "Performance",
+                    "Quality": "Quality"
+                }
+            },
             "RhythmVolume": {
                 "Name": "Rhythm Volume",
                 "PauseName": "Rhythm",
@@ -1567,14 +1589,21 @@
                     "On": "On"
                 }
             },
-            "UseCrowdFx": {
-                "Name": "Use Crowd SFX",
-                "Description": "If enabled, crowd sounds will be played.\nIf set to Starpower Claps Only, crowd sounds will only be played during Starpower.",
-                "Dropdown": {
-                    "Disabled": "Disabled",
-                    "StarpowerClapsOnly": "Starpower Claps Only",
-                    "Enabled": "Enabled"
-                }
+            "UseCrowdCheering": {
+                "Name": "Crowd Cheering",
+                "Description": "Play crowd cheering sound effects at the start, during Star Power, at the end of songs, and on score screens."
+            },
+            "UseCrowdIdle": {
+                "Name": "Crowd Idle",
+                "Description": "Play the crowd's idle background noise during the song."
+            },
+            "UseStarPowerClaps": {
+                "Name": "Star Power Claps",
+                "Description": "Play crowd claps along to the beat while Star Power is active."
+            },
+            "UsePerformanceClaps": {
+                "Name": "Performance Claps",
+                "Description": "Play crowd claps along to the beat when performing well."
             },
             "UseVenueSfx": {
                 "Name": "Use Venue SFX",
@@ -1645,6 +1674,11 @@
                 "Name": "Vocal Monitoring Volume",
                 "PauseName": "Monitoring",
                 "Description": "Adjusts the feedback you hear when singing. Values above 1 add extra gain for quiet microphones."
+            },
+            "VocalReverb": {
+                "Name": "Vocal Reverb",
+                "PauseName": "Reverb",
+                "Description": "Adjusts the amount of reverb applied to vocal monitoring. 0 is dry, 1.0 is maximum."
             },
 			"VocalStreakFrequency": {
                 "Name": "Vocal Streak Frequency",
@@ -1857,6 +1891,50 @@
 			"RockMeterPresetContainer" : "Rock Meter Presets"
         },
         "PresetSetting": {
+            "PreviewVisuals": {
+                "Instrument": {
+                    "Name": "Instrument"
+                },
+                "Visuals": {
+                    "Name": "Preview Options"
+                },
+                "StarPowerNotes": {
+                    "Name": "Star Power Notes"
+                },
+                "StarPowerActive": {
+                    "Name": "Star Power Active"
+                },
+                "Groove": {
+                    "Name": "Groove"
+                },
+                "LeftyFlip": {
+                    "Name": "Lefty Flip"
+                }
+            },
+            "ColorGroups": {
+                "Green": "Green",
+                "Red": "Red",
+                "Yellow": "Yellow",
+                "Blue": "Blue",
+                "Orange": "Orange",
+                "Open": "Open",
+                "Kick": "Kick",
+                "General": "General",
+                "Notes": "Notes",
+                "Fret": "Fret",
+                "Lane": "{0} Lane"
+            },
+            "Dialog": {
+                "CopyFromNote": {
+                    "Button": "Copy from note",
+                    "Title": "Copy From Note",
+                    "Message": "Apply base note color to all fret and particle fields?"
+                },
+                "DeletePreset": {
+                    "Title": "Delete Preset",
+                    "Message": "Delete preset \"{0}\"?"
+                }
+            },
             "CameraPreset": {
                 "CurveFactor": {
                     "Name": "Curve Factor",
@@ -1896,6 +1974,9 @@
                         "FourLaneDrums": "Drums (4-Lane)",
                         "ProKeys": "Pro Keys"
                     }
+                },
+                "FiveLaneKeys": {
+                    "Name": "5 Lane Keys"
                 },
                 "ActivationNote": {
                     "Name": "Activation Note"
@@ -2217,6 +2298,20 @@
                 },
                 "BlackNoteStarPower": {
                     "Name": "Black Note Star Power"
+                },
+                "TapStripEmission": {
+                    "Name": "Tap Strip Emission",
+                    "Description": "Controls the brightness of the center strip on tap notes. At 0, the strip appears dark; at 100, it glows with the note color."
+                },
+                "GhostStripEmission": {
+                    "Name": "Ghost Strip Emission",
+                    "Description": "Controls the brightness of the center strip on ghost/grace notes. At 0, the strip appears dark; at 100, it glows with the note color."
+                },
+                "OpenHopoNote": {
+                    "Name": "Open HOPO Note"
+                },
+                "OpenHopoNoteStarPower": {
+                    "Name": "Open HOPO Note Star Power"
                 }
             },
             "EnginePreset": {

@@ -2,14 +2,13 @@
 using System;
 using System.Collections.Generic;
 using ManagedBass;
-using ManagedBass.Mix;
+using YARG.Core.Audio;
 using YARG.Core.Logging;
 
 namespace YARG.Audio.BASS
 {
     /// <summary>
-    ///     Captures audio from a standard BASS recording device and splits multi-channel recording inputs
-    ///     so each channel can be independently assigned and read as a separate microphone.
+    ///     Captures audio from a standard BASS recording channel without a managed recording callback.
     /// </summary>
     internal sealed class BassMicrophoneCapture : IDisposable
     {
@@ -23,44 +22,48 @@ namespace YARG.Audio.BASS
 
         private static readonly object SystemLock = new();
 
-        private readonly int _microphoneHandle;
-        private readonly int _deviceId;
-        private readonly HashSet<int> _claimedChannels = new();
-        private readonly object _stateLock = new();
-        private readonly bool _ownsDevice;
-        private bool _disposed;
-        private bool _running;
-        private int _listenerCount;
-        private bool _recordingRequested;
+        private readonly int              _microphoneHandle;
+        private readonly int              _deviceId;
+        private readonly HashSet<int>     _claimedChannels = new();
+        private readonly object           _stateLock       = new();
+        private readonly bool             _ownsDevice;
 
-        private BassMicrophoneCapture(int deviceId, int channels, int microphoneHandle, int readHandle,
+        private volatile bool _disposed;
+        private volatile bool _running;
+        private int           _listenerCount;
+        private bool          _recordingRequested;
+
+        private BassMicrophoneCapture(int deviceId, int channels, int microphoneHandle,
             bool ownsDevice, int sampleRate)
         {
             _deviceId = deviceId;
             Channels = channels;
             _microphoneHandle = microphoneHandle;
-            ReadHandle = readHandle;
             _ownsDevice = ownsDevice;
             SampleRate = sampleRate;
         }
 
         public int SampleRate { get; }
-        public int Channels { get; }
-        public int ReadHandle { get; }
+        public int Channels   { get; }
+        public int ReadHandle => _microphoneHandle;
+
+        public MicBufferInfo GetBufferInfo()
+        {
+            int devicePeriod = Math.Max(0, Bass.GetConfig(Configuration.DevicePeriod));
+            int bufferFrames = (int) Math.Round(SampleRate * (devicePeriod / 1000.0));
+            int waitingBytes = GetAvailableRecordBytes();
+
+            return new MicBufferInfo(
+                bufferFrames: bufferFrames,
+                bufferMilliseconds: devicePeriod,
+                sampleRate: SampleRate,
+                channels: Channels,
+                isAsio: false,
+                cushionMilliseconds: 0,
+                waitingBytes: waitingBytes);
+        }
 
         private bool ShouldRun => _recordingRequested && _listenerCount > 0 && !_disposed;
-        private bool HasMixer => ReadHandle != _microphoneHandle;
-
-        public bool IsRunning
-        {
-            get
-            {
-                lock (_stateLock)
-                {
-                    return !_disposed && IsCaptureRunning();
-                }
-            }
-        }
 
         internal bool HasClaimedChannel
         {
@@ -90,11 +93,6 @@ namespace YARG.Audio.BASS
             WithSystemLock(() =>
             {
                 Bass.ChannelStop(_microphoneHandle);
-                if (HasMixer)
-                {
-                    Bass.StreamFree(ReadHandle);
-                }
-
                 Bass.StreamFree(_microphoneHandle);
                 if (_ownsDevice)
                 {
@@ -175,44 +173,24 @@ namespace YARG.Audio.BASS
         private static BassMicrophoneCapture? CreateAtRate(int deviceId, int channels, int sampleRate,
             int devicePeriod, BassFlags captureFlags, bool ownsDevice)
         {
+            bool isFloatCapture = captureFlags.HasFlag(BassFlags.Float);
             int microphoneHandle = Bass.RecordStart(sampleRate, channels, captureFlags | BassFlags.RecordPause,
                 devicePeriod, null, IntPtr.Zero);
             if (microphoneHandle == 0)
             {
                 YargLogger.LogFormatTrace("Failed to create recording at {0} Hz / {1} ch ({2}): {3}",
-                    sampleRate, channels, captureFlags.HasFlag(BassFlags.Float) ? "float" : "native format",
+                    sampleRate, channels, isFloatCapture ? "float" : "native format",
                     Bass.LastError);
                 return null;
             }
 
-            int readHandle = microphoneHandle;
-            var recordInfo = Bass.ChannelGetInfo(microphoneHandle);
-            bool isFloat = (recordInfo.Flags & BassFlags.Float) != 0;
-            bool isDecode = (recordInfo.Flags & BassFlags.Decode) != 0;
-            bool needsMixer = !isFloat || !isDecode;
-            if (needsMixer)
-            {
-                readHandle = BassMix.CreateMixerStream(sampleRate, channels, BassFlags.Float | BassFlags.Decode);
-                if (readHandle == 0)
-                {
-                    YargLogger.LogFormatError("Failed to create float recording mixer at {0} Hz: {1}",
-                        sampleRate, Bass.LastError);
-                    Bass.StreamFree(microphoneHandle);
-                    return null;
-                }
+            return new BassMicrophoneCapture(deviceId, channels, microphoneHandle, ownsDevice, sampleRate);
+        }
 
-                if (!BassMix.MixerAddChannel(readHandle, microphoneHandle, BassFlags.MixerChanNoRampin))
-                {
-                    YargLogger.LogFormatError("Failed to add recording source to mixer: {0}",
-                        Bass.LastError);
-                    Bass.StreamFree(readHandle);
-                    Bass.StreamFree(microphoneHandle);
-                    return null;
-                }
-            }
-
-            return new BassMicrophoneCapture(deviceId, channels, microphoneHandle, readHandle, ownsDevice,
-                sampleRate);
+        private int GetAvailableRecordBytes()
+        {
+            int waitingBytes = Bass.ChannelGetData(_microphoneHandle, IntPtr.Zero, (int) DataFlags.Available);
+            return Math.Max(0, waitingBytes);
         }
 
         public bool Start()
@@ -226,33 +204,6 @@ namespace YARG.Audio.BASS
 
                 _recordingRequested = true;
                 return StartIfNeeded();
-            }
-        }
-
-        public bool Pause()
-        {
-            lock (_stateLock)
-            {
-                if (_disposed || !IsCaptureRunning())
-                {
-                    return !_disposed;
-                }
-
-                return PauseCapture();
-            }
-        }
-
-        public bool Stop()
-        {
-            lock (_stateLock)
-            {
-                _recordingRequested = false;
-                if (!IsCaptureRunning())
-                {
-                    return !_disposed;
-                }
-
-                return PauseCapture();
             }
         }
 
@@ -298,7 +249,7 @@ namespace YARG.Audio.BASS
             return true;
         }
 
-        public bool PauseAndDiscardBufferedAudio()
+        internal bool PauseAndDiscardBufferedAudio()
         {
             lock (_stateLock)
             {
@@ -311,7 +262,7 @@ namespace YARG.Audio.BASS
             }
         }
 
-        public bool Resume()
+        internal bool Resume()
         {
             lock (_stateLock)
             {
@@ -321,39 +272,20 @@ namespace YARG.Audio.BASS
 
         private bool PauseAndDiscardCapture()
         {
-            if (!IsCaptureRunning())
-            {
-                return true;
-            }
-
-            bool discarded = DiscardAudioLocked();
             bool paused = PauseCapture();
+            bool discarded = DiscardAudioLocked();
             return discarded && paused;
         }
 
         private bool DiscardAudioLocked()
         {
-            if (_disposed)
+            int waitingBytes = GetAvailableRecordBytes();
+            if (waitingBytes == 0)
             {
-                return false;
+                return true;
             }
 
-            int bytesWaiting = Bass.ChannelGetData(_microphoneHandle, IntPtr.Zero, (int) DataFlags.Available);
-            if (bytesWaiting < 0)
-            {
-                YargLogger.LogFormatError("Failed to query recording buffer for device [{0}]: {1}", _deviceId,
-                    Bass.LastError);
-                return false;
-            }
-
-            if (bytesWaiting > 0 && Bass.ChannelGetData(_microphoneHandle, IntPtr.Zero, bytesWaiting) < 0)
-            {
-                YargLogger.LogFormatError("Failed to discard recording buffer for device [{0}]: {1}", _deviceId,
-                    Bass.LastError);
-                return false;
-            }
-
-            return true;
+            return Bass.ChannelGetData(_microphoneHandle, IntPtr.Zero, waitingBytes) >= 0;
         }
 
         internal void AddListener()

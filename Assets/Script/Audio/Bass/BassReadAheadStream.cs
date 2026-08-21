@@ -2,6 +2,7 @@
 using System;
 using System.Runtime.InteropServices;
 using Microsoft.Win32.SafeHandles;
+using YARG.Audio.BASS.Native;
 using YARG.Core.Logging;
 
 namespace YARG.Audio.BASS
@@ -75,7 +76,7 @@ namespace YARG.Audio.BASS
         public int StreamHandle { get; private set; }
 
         public static BassReadAheadStream? Create(int bassDeviceId, int sourceMixer, int sampleRate, int channels,
-            int minimumBlockFrames, int bufferMilliseconds)
+            int minimumBlockFrames, int bufferMilliseconds, bool useIndependentClock = false)
         {
             if (sourceMixer == 0 || sampleRate <= 0 || channels <= 0 || minimumBlockFrames <= 0 ||
                 bufferMilliseconds < 0)
@@ -85,11 +86,8 @@ namespace YARG.Audio.BASS
 
             try
             {
-                uint nativeVersion = Native.GetAbiVersion();
-                if (nativeVersion != BassHelpers.YARG_AUDIO_ABI_VERSION)
+                if (!YargAudioNative.CheckAbi())
                 {
-                    YargLogger.LogFormatError("YargAudio ABI mismatch: managed={0}, native={1}",
-                        BassHelpers.YARG_AUDIO_ABI_VERSION, nativeVersion);
                     return null;
                 }
 
@@ -110,6 +108,12 @@ namespace YARG.Audio.BASS
                     stream?.Dispose();
                     YargLogger.LogFormatError("Failed to create native read-ahead stream: result={0}, BASS={1}", result,
                         bassError);
+                    return null;
+                }
+
+                if (Native.SetCallbackClock(stream, useIndependentClock ? 1 : 0) != 0)
+                {
+                    stream.Dispose();
                     return null;
                 }
 
@@ -196,9 +200,6 @@ namespace YARG.Audio.BASS
         {
             private const string LIBRARY = "yarg_audio";
 
-            [DllImport(LIBRARY, EntryPoint = "yarg_audio_get_abi_version", CallingConvention = CallingConvention.Cdecl)]
-            internal static extern uint GetAbiVersion();
-
             [DllImport(LIBRARY, EntryPoint = "yarg_read_ahead_stream_create",
                 CallingConvention = CallingConvention.Cdecl)]
             internal static extern int Create(in ReadAheadConfig config, out BassReadAheadStream stream,
@@ -207,6 +208,10 @@ namespace YARG.Audio.BASS
             [DllImport(LIBRARY, EntryPoint = "yarg_read_ahead_stream_prefill",
                 CallingConvention = CallingConvention.Cdecl)]
             internal static extern int Prefill(BassReadAheadStream stream, uint timeoutMilliseconds);
+
+            [DllImport(LIBRARY, EntryPoint = "yarg_read_ahead_stream_set_callback_clock",
+                CallingConvention = CallingConvention.Cdecl)]
+            internal static extern int SetCallbackClock(BassReadAheadStream stream, int enabled);
 
             [DllImport(LIBRARY, EntryPoint = "yarg_read_ahead_stream_flush",
                 CallingConvention = CallingConvention.Cdecl)]

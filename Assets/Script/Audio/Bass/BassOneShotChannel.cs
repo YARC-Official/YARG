@@ -32,7 +32,7 @@ namespace YARG.Audio.BASS
 
         public BassOneShotChannel(int outputMixerHandle, int tempoStreamHandle, int sampleStream,
             IReadOnlyList<double> scheduledPlays, Func<long, double> getSongPosition, Func<float> getSpeed,
-            double outputLeadTime, bool playbackPaused)
+            double outputLeadTime, bool playbackPaused, OutputChannel? outputChannel = null)
         {
             _outputMixerHandle = outputMixerHandle;
             _targetMixerHandle = outputMixerHandle;
@@ -51,8 +51,12 @@ namespace YARG.Audio.BASS
                 throw new ArgumentException("Playback mixer must use float sample data.", nameof(outputMixerHandle));
             }
 
+            var speakerFlags = outputChannel is BassOutputChannel bassOutputChannel
+                ? bassOutputChannel.Flags
+                : BassFlags.Default;
+
             _sampleRate = info.Frequency;
-            float[]? sample = DecodeSample(sampleStream, _sampleRate, info.Channels);
+            float[]? sample = DecodeSample(sampleStream, _sampleRate, info.Channels, speakerFlags);
             if (sample == null || sample.Length == 0)
             {
                 return;
@@ -179,7 +183,8 @@ namespace YARG.Audio.BASS
             return !double.IsNaN(songPosition) && !double.IsInfinity(songPosition);
         }
 
-        private static float[]? DecodeSample(int streamHandle, int sampleRate, int channelCount)
+        private static float[]? DecodeSample(int streamHandle, int sampleRate, int channelCount,
+            BassFlags speakerFlags)
         {
             if (streamHandle == 0)
             {
@@ -196,9 +201,14 @@ namespace YARG.Audio.BASS
 
             try
             {
-                if (!BassMix.MixerAddChannel(converter, streamHandle, BassFlags.MixerChanNoRampin))
+                var flags = BassFlags.MixerChanNoRampin | speakerFlags;
+                if (!BassMix.MixerAddChannel(converter, streamHandle, flags))
                 {
-                    return null;
+                    if (speakerFlags != BassFlags.Default &&
+                        !BassMix.MixerAddChannel(converter, streamHandle, BassFlags.MixerChanNoRampin))
+                    {
+                        return null;
+                    }
                 }
 
                 var result = new List<float>();

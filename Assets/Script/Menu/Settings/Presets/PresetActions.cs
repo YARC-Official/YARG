@@ -1,6 +1,9 @@
 ﻿using System.IO;
+using Cysharp.Threading.Tasks;
 using UnityEngine;
 using YARG.Helpers;
+using YARG.Localization;
+using YARG.Menu.Data;
 using YARG.Menu.Persistent;
 using YARG.Settings.Metadata;
 
@@ -13,6 +16,24 @@ namespace YARG.Menu.Settings
         public void Initialize(PresetsTab tab)
         {
             _tab = tab;
+
+            // Disable the delete button for default (OOTB) presets — they
+            // can't be deleted, so the button should look and act disabled.
+            var preset = tab.SelectedPreset;
+            if (preset is { DefaultPreset: true })
+            {
+                foreach (var button in GetComponentsInChildren<ColoredButton>())
+                {
+                    for (int i = 0; i < button.OnClick.GetPersistentEventCount(); i++)
+                    {
+                        if (button.OnClick.GetPersistentMethodName(i) == nameof(DeletePreset))
+                        {
+                            button.DisableButton();
+                            break;
+                        }
+                    }
+                }
+            }
         }
 
         public void RenamePreset()
@@ -46,10 +67,47 @@ namespace YARG.Menu.Settings
 
             if (preset.DefaultPreset) return;
 
-            _tab.SelectedContent.DeletePreset(preset);
-            _tab.ResetSelectedPreset();
+            // Deleting is irreversible, so confirm first (same compact dialog
+            // as "Copy from note"). The delete button starts disabled/grey for
+            // a moment so it can't be hit by accidental mashing.
+            bool armed = false;
 
-            SettingsMenu.Instance.Refresh();
+            void Delete()
+            {
+                if (!armed) return;
+
+                DialogManager.Instance.ClearDialog();
+
+                _tab.SelectedContent.DeletePreset(preset);
+                _tab.ResetSelectedPreset();
+
+                SettingsMenu.Instance.Refresh();
+            }
+
+            // The cancel button keeps its brighter "safe" color here (delete is
+            // the destructive action, so it stays the red default).
+            var deleteButton = PresetSubTab.ShowCompactConfirmation(
+                Localize.Key("Settings.PresetSetting.Dialog.DeletePreset.Title"),
+                Localize.KeyFormat("Settings.PresetSetting.Dialog.DeletePreset.Message", preset.Name),
+                "Menu.Common.Delete", MenuData.Colors.CancelButton, Delete,
+                cancelColor: MenuData.Colors.BrightButton);
+
+            deleteButton.DisableButton();
+            ArmDeleteButton(deleteButton).Forget();
+
+            async UniTaskVoid ArmDeleteButton(ColoredButton button)
+            {
+                await UniTask.Delay(2000, cancellationToken: button.GetCancellationTokenOnDestroy());
+
+                // The dialog may have been cancelled in the meantime
+                if (button == null) return;
+
+                armed = true;
+                button.EnableButton();
+                // EnableButton restores the prefab's original color, not the
+                // red this button was given
+                button.SetBackgroundAndTextColor(MenuData.Colors.CancelButton);
+            }
         }
 
         public void ImportPreset()

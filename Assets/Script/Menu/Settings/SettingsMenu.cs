@@ -12,6 +12,7 @@ using YARG.Helpers;
 using YARG.Helpers.Extensions;
 using YARG.Localization;
 using YARG.Menu.Navigation;
+using YARG.Menu.Settings.Visuals;
 using YARG.Settings;
 using YARG.Settings.Customization;
 using YARG.Settings.Metadata;
@@ -43,6 +44,12 @@ namespace YARG.Menu.Settings
         private Transform _previewContainerWorld;
         [SerializeField]
         private Transform _previewContainerUI;
+
+        /// <summary>
+        /// Public access so tabs (e.g. PresetSubTab) can locate the preview
+        /// sidebar and add controls to its header area.
+        /// </summary>
+        public Transform PreviewContainerUI => _previewContainerUI;
 
         [Space]
         [SerializeField]
@@ -121,6 +128,18 @@ namespace YARG.Menu.Settings
 
         private void Start()
         {
+            // Long setting names (e.g. preset activation-note colors) can exceed
+            // the sidebar width; shrink-to-fit on one line instead of wrapping,
+            // with an ellipsis as the last resort below the minimum size.
+            // TODO: bake these five properties into the SettingsMenu prefab's
+            // Setting Name TMP text and delete this block. They're set in code
+            // only because prefab edits happen in the Unity runtime tree, not here.
+            _settingName.textWrappingMode = TextWrappingModes.NoWrap;
+            _settingName.overflowMode = TextOverflowModes.Ellipsis;
+            _settingName.fontSizeMax = _settingName.fontSize;
+            _settingName.fontSizeMin = 18f;
+            _settingName.enableAutoSizing = true;
+
             var tabs = new List<HeaderTabs.TabInfo>();
 
             // Add the main tabs
@@ -243,10 +262,17 @@ namespace YARG.Menu.Settings
                 return;
             }
 
+            // Most setting rows carry a BaseSettingNavigatable, but some (e.g. the
+            // preset color rows, whose confirm opens a color picker instead of the
+            // stock edit scheme) swap in a RuntimeNavigatable. Either way the
+            // BaseSettingVisual lives on the same GameObject, so fall back to it.
             var settingNav = selected.GetComponent<BaseSettingNavigatable>();
+            var settingVisual = settingNav != null
+                ? settingNav.BaseSettingVisual
+                : selected.GetComponent<BaseSettingVisual>();
 
-            // If we're not selecting a setting (for example, buttons) then skip
-            if (settingNav == null)
+            // If we're not selecting a setting (for example, buttons or headers) skip
+            if (settingVisual == null)
             {
                 _settingName.text = string.Empty;
                 _settingDescription.text = string.Empty;
@@ -254,16 +280,21 @@ namespace YARG.Menu.Settings
             }
 
             // Set the setting name and description
-            var unlocalized = settingNav.BaseSettingVisual.UnlocalizedName;
-            string baseKey = !settingNav.BaseSettingVisual.IsPresetSetting
+            var unlocalized = settingVisual.UnlocalizedName;
+            string baseKey = !settingVisual.IsPresetSetting
                 ? "Settings.Setting"
                 : "Settings.PresetSetting";
 
-            _settingName.text = Localize.Key(baseKey, unlocalized, "Name");
-            _settingDescription.text = settingNav.BaseSettingVisual.HasDescription
+            // Some preset names carry manual line breaks for the narrow editor
+            // column labels; the sidebar header is one auto-sized line.
+            _settingName.text = Localize.Key(baseKey, unlocalized, "Name").Replace('\n', ' ');
+            _settingDescription.text = settingVisual.HasDescription
                 ? Localize.Key(baseKey, unlocalized, "Description")
                 : string.Empty;
 
+            // Let the tab react to the selection (e.g. the preset color editor
+            // spotlights the lane whose color field was just selected).
+            CurrentTab?.OnSettingSelected(unlocalized);
         }
 
         public void RefreshPreview(bool waitForResolution = false)
@@ -289,6 +320,20 @@ namespace YARG.Menu.Settings
             RefreshPreview();
 
             // Restore selection
+            _settingsNavGroup.SelectAt(beforeIndex);
+        }
+
+        /// <summary>
+        /// Rebuilds only the settings list (not the preview). Use for UI-only
+        /// changes like collapsing/expanding group headers where the 3D preview
+        /// doesn't need to restart.
+        /// </summary>
+        public void RefreshSettingsKeepPosition()
+        {
+            int? beforeIndex = _settingsNavGroup.SelectedIndex;
+
+            UpdateSettings(false);
+
             _settingsNavGroup.SelectAt(beforeIndex);
         }
 

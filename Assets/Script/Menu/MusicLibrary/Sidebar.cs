@@ -74,6 +74,10 @@ namespace YARG.Menu.MusicLibrary
         [SerializeField]
         private GameObject _genreSpacer;
         [SerializeField]
+        private GameObject _genreVerticalLayoutGroup;
+        [SerializeField]
+        private GameObject _genreHorizontalLayoutGroup;
+        [SerializeField]
         private Image _contentRatingImage;
         [SerializeField]
         private Sprite[] _contentRatingIcons;
@@ -234,10 +238,7 @@ namespace YARG.Menu.MusicLibrary
             SetWrappedText(_sourceContainer, _source, SongSources.SourceToGameName(songEntry.Source), ref _sourceBaseFontSize);
             SetWrappedText(_charterContainer, _charter, songEntry.Charter, ref _charterBaseFontSize);
 
-            _genreContainer.SetActive(true); // Empty genres are rendered as "Unknown Genre", so this should always be active
-            _genreSpacer.SetActive(songEntry.Subgenre != string.Empty); // 10px space between genre and subgenre
-            _genre.text = CurrentCulture.TextInfo.ToTitleCase(songEntry.Genre) + (songEntry.Subgenre == string.Empty ? "" : ",");
-            _subgenre.text = songEntry.Subgenre;
+            SetWrappedGenreText(CurrentCulture.TextInfo.ToTitleCase(songEntry.Genre), songEntry.Subgenre);
 
             if (!string.IsNullOrEmpty(songEntry.YearSecondary))
             {
@@ -316,11 +317,7 @@ namespace YARG.Menu.MusicLibrary
             var measureText = RichTextUtils.StripRichTextTags(text);
             var displayText = text;
 
-            label.enableAutoSizing = false;
-            label.textWrappingMode = TextWrappingModes.Normal;
-            label.overflowMode = TextOverflowModes.Overflow;
-            label.verticalAlignment = VerticalAlignmentOptions.Middle;
-            label.fontSize = baseFontSize;
+            SetLabelSettings(label, baseFontSize);
 
             if (measureText.Length > maxCharsBeforeShrink)
                 label.fontSize = baseFontSize * shrinkFactor;
@@ -335,6 +332,64 @@ namespace YARG.Menu.MusicLibrary
             }
 
             label.text = displayText;
+        }
+
+        private void SetWrappedGenreText(string genreText, string subgenreText)
+        {
+            const int maxCharsBeforeShrink = 36; // number of characters before we shrink the text
+            const int maxCharsBeforeWrap = 45;   // number of characters before we wrap the text
+            const int baseFontSize = 24;         // base font size for genre/subgenre labels
+            const float shrinkFactor = 0.8f;     // percentage to shrink the font by after shrink threshold
+
+            _genreContainer.SetActive(true);
+
+            var text = genreText.Trim() + (string.IsNullOrEmpty(subgenreText) ? string.Empty : ", " + subgenreText.Trim());
+
+            if (string.IsNullOrEmpty(text))
+            {
+                return;
+            }
+
+            var measureText = RichTextUtils.StripRichTextTags(text);
+
+            SetLabelSettings(_genre, baseFontSize);
+            SetLabelSettings(_subgenre, baseFontSize);
+
+            if (measureText.Length > maxCharsBeforeShrink)
+            {
+                _genre.fontSize = baseFontSize * shrinkFactor;
+                _subgenre.fontSize = baseFontSize * shrinkFactor;
+            }
+
+            if (measureText.Length > maxCharsBeforeWrap && !string.IsNullOrEmpty(subgenreText))
+            {
+                _genreVerticalLayoutGroup.SetActive(true);
+                _genreHorizontalLayoutGroup.SetActive(false);
+                _genre.transform.SetParent(_genreVerticalLayoutGroup.transform, false);
+                _genreSpacer.SetActive(false);
+                _subgenre.transform.SetParent(_genreVerticalLayoutGroup.transform, false);
+            }
+            else
+            {
+                _genreVerticalLayoutGroup.SetActive(false);
+                _genreHorizontalLayoutGroup.SetActive(true);
+                _genre.transform.SetParent(_genreHorizontalLayoutGroup.transform, false);
+                _genreSpacer.SetActive(true);
+                _subgenre.transform.SetParent(_genreHorizontalLayoutGroup.transform, false);
+            }
+            _genre.transform.SetAsFirstSibling();
+            _subgenre.transform.SetAsLastSibling();
+            _genre.text = genreText.Trim() + (string.IsNullOrEmpty(subgenreText) ? string.Empty : ", ");
+            _subgenre.text = subgenreText is null ? string.Empty : subgenreText.Trim();
+        }
+
+        private static void SetLabelSettings(TextMeshProUGUI label, float baseFontSize)
+        {
+            label.enableAutoSizing = false;
+            label.textWrappingMode = TextWrappingModes.Normal;
+            label.overflowMode = TextOverflowModes.Overflow;
+            label.verticalAlignment = VerticalAlignmentOptions.Middle;
+            label.fontSize = baseFontSize;
         }
 
         private void UpdateDifficulties(SongEntry entry)

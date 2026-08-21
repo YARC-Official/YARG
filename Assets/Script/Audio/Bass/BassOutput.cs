@@ -39,6 +39,7 @@ namespace YARG.Audio.BASS
         public abstract   int    HeardLatencyMilliseconds { get; }
         internal abstract int    EndpointDelayFrames      { get; }
         internal abstract double SongPlaybackStartDelay   { get; }
+        internal virtual bool UsesIndependentClock => false;
 
         public void Dispose()
         {
@@ -162,7 +163,8 @@ namespace YARG.Audio.BASS
 
         public bool SetMonitorVolume(int sourceHandle, double volume)
         {
-            if (Bass.ChannelSetAttribute(sourceHandle, ChannelAttribute.Volume, volume))
+            double effective = volume * 1.0;
+            if (Bass.ChannelSetAttribute(sourceHandle, ChannelAttribute.Volume, effective))
             {
                 return true;
             }

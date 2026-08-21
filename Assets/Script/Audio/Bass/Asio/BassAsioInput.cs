@@ -1,6 +1,7 @@
 #nullable enable
 using System;
 using ManagedBass;
+using YARG.Core.Audio;
 
 namespace YARG.Audio.BASS.Asio
 {
@@ -13,12 +14,14 @@ namespace YARG.Audio.BASS.Asio
         private bool           _claimed;
         private BassMicSignal? _signal;
 
-        private BassAsioInput(string driverId, string driverName, int channelIndex, int sampleRate, int rootHandle)
+        private BassAsioInput(string driverId, string driverName, int channelIndex, int sampleRate, int bufferFrames,
+            int rootHandle)
         {
             DriverId = driverId;
             DriverName = driverName;
             ChannelIndex = channelIndex;
             SampleRate = sampleRate;
+            BufferFrames = bufferFrames;
             RootHandle = rootHandle;
         }
 
@@ -29,7 +32,8 @@ namespace YARG.Audio.BASS.Asio
         internal int RootHandle { get; }
 
         internal bool IsActivated { get; private set; }
-        public   int  SampleRate  { get; }
+        public   int  SampleRate   { get; }
+        public   int  BufferFrames { get; }
 
         public bool IsValid => _claimed && _signal?.IsValid == true;
 
@@ -37,17 +41,51 @@ namespace YARG.Audio.BASS.Asio
 
         public int GetBacklogBytes() => _claimed ? _signal?.GetBacklogBytes() ?? -1 : -1;
 
+        internal bool TryCreateRecordingChannel(bool withEffects, out int handle)
+        {
+            if (!_claimed || _signal == null)
+            {
+                handle = 0;
+                return false;
+            }
+
+            return _signal.TryCreateRecordingChannel(withEffects, out handle);
+        }
+
+        internal void ReleaseRecordingChannel(int handle) => _signal?.ReleaseRecordingChannel(handle);
+
         public bool ResetToLive() => _claimed && _signal?.ResetToLive() == true;
+
+        public MicBufferInfo? GetBufferInfo()
+        {
+            if (!_claimed)
+            {
+                return null;
+            }
+
+            int bufferMs = SampleRate > 0 ? (int) Math.Round(BufferFrames * 1000.0 / SampleRate) : 0;
+            int waitingBytes = _signal?.GetBacklogBytes() ?? 0;
+
+            return new MicBufferInfo(
+                bufferFrames: BufferFrames,
+                bufferMilliseconds: bufferMs,
+                sampleRate: SampleRate,
+                channels: 1,
+                isAsio: true,
+                cushionMilliseconds: 0,
+                waitingBytes: Math.Max(0, waitingBytes));
+        }
 
         internal void MarkActivated() => IsActivated = true;
 
-        public static BassAsioInput? Create(string driverId, string driverName, int channelIndex, int sampleRate)
+        public static BassAsioInput? Create(string driverId, string driverName, int channelIndex, int sampleRate,
+            int bufferFrames)
         {
             int rootHandle = Bass.CreateStream(sampleRate, 1, BassFlags.Float | BassFlags.Decode,
                 StreamProcedureType.Push);
             return rootHandle == 0
                 ? null
-                : new BassAsioInput(driverId, driverName, channelIndex, sampleRate, rootHandle);
+                : new BassAsioInput(driverId, driverName, channelIndex, sampleRate, bufferFrames, rootHandle);
         }
 
         internal bool Attach(BassAudioRouter router)
@@ -58,7 +96,7 @@ namespace YARG.Audio.BASS.Asio
             }
 
             string name = $"{BassAsioOutput.DEVICE_PREFIX}{DriverName} - Channel {ChannelIndex + 1}";
-            _signal = BassMicSignal.Create(RootHandle, null, SampleRate, name, router, 0, false);
+            _signal = BassMicSignal.Create(RootHandle, null, SampleRate, name, router, 0, true);
             return _signal != null;
         }
 
@@ -83,6 +121,17 @@ namespace YARG.Audio.BASS.Asio
             }
 
             _signal.SetMonitoringLevel(volume);
+            return true;
+        }
+
+        internal bool SetReverbLevel(float wet)
+        {
+            if (!_claimed || _signal == null)
+            {
+                return false;
+            }
+
+            _signal.SetReverbLevel(wet);
             return true;
         }
 
