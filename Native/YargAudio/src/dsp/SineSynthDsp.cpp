@@ -187,7 +187,11 @@ void YARG_BASS_CALLBACK sineSynthDspProc(std::uint32_t, std::uint32_t,
 int sineSynthDspCreate(const BassCoreBindings& bass, const yarg_sine_synth_config* config,
     yarg_sine_synth_dsp** dsp) noexcept {
     if (dsp) *dsp = nullptr;
-    if (!dsp || !config || config->size != sizeof(yarg_sine_synth_config))
+    // >=, not ==: the size field exists so a caller built against a newer header with an
+    // appended field still works against an older plugin. validOneShotConfig and
+    // validReadAheadConfig both compare this way; == would make any future addition to
+    // yarg_sine_synth_config a hard break instead of an additive one.
+    if (!dsp || !config || config->size < sizeof(yarg_sine_synth_config))
         return YARG_AUDIO_ERROR_INVALID_ARGUMENT;
     if (config->tempo_stream == 0 || !std::isfinite(config->volume) ||
         !std::isfinite(config->fade_seconds) || config->fade_seconds <= 0 ||
