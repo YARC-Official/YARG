@@ -62,6 +62,11 @@ namespace YARG.Gameplay
         // to be understood reason
         private const float PER_CHANNEL_MULTIPLIER = 0.6f;
 
+        protected override void GameplayAwake()
+        {
+            var _ = GetSoundTexture();
+        }
+
         private Texture2D GetSourceIcon()
         {
             if (_sourceIcon == null)
@@ -97,6 +102,7 @@ namespace YARG.Gameplay
                     wrapMode = TextureWrapMode.Clamp,
                     filterMode = FilterMode.Point,
                 };
+                Shader.SetGlobalTexture(_soundTexId, _soundTexture);
             }
             return _soundTexture;
         }
