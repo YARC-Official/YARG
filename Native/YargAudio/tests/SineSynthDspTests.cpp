@@ -518,6 +518,41 @@ void testDetachLocksAndKeepsHandlesOnFailure() {
     REQUIRE(sineSynthDspDestroy(dsp));
 }
 
+// A schedule the render thread cannot scan correctly must be rejected outright rather than
+// silently mis-rendered, and non-finite values must never reach the phase accumulator.
+void testScheduleValidation() {
+    MockBass state;
+    BassCoreBindings bass(completeFunctions());
+    auto* dsp = create(bass, state);
+
+    const yarg_sine_note good[] = {note(0.0, 1.0, 60.0f, 60.0f), note(2.0, 3.0, 62.0f, 62.0f)};
+    REQUIRE(sineSynthDspSetNotes(dsp, good, 2) == YARG_AUDIO_OK);
+
+    const yarg_sine_note unsorted[] = {note(2.0, 3.0, 60.0f, 60.0f), note(0.0, 1.0, 62.0f, 62.0f)};
+    REQUIRE(sineSynthDspSetNotes(dsp, unsorted, 2) == YARG_AUDIO_ERROR_INVALID_ARGUMENT);
+
+    const yarg_sine_note inverted[] = {note(3.0, 2.0, 60.0f, 60.0f)};
+    REQUIRE(sineSynthDspSetNotes(dsp, inverted, 1) == YARG_AUDIO_ERROR_INVALID_ARGUMENT);
+
+    const double nan = std::numeric_limits<double>::quiet_NaN();
+    const float infinity = std::numeric_limits<float>::infinity();
+    const yarg_sine_note badTime[] = {note(nan, 1.0, 60.0f, 60.0f)};
+    REQUIRE(sineSynthDspSetNotes(dsp, badTime, 1) == YARG_AUDIO_ERROR_INVALID_ARGUMENT);
+
+    const yarg_sine_note badPitch[] = {note(0.0, 1.0, infinity, 60.0f)};
+    REQUIRE(sineSynthDspSetNotes(dsp, badPitch, 1) == YARG_AUDIO_ERROR_INVALID_ARGUMENT);
+
+    // A rejected table leaves the previous one in place rather than clearing it.
+    REQUIRE(approx(sineSynthDspFrequencyAt(*dsp, 0.5), 261.626, 0.01));
+
+    // Non-pitched notes are silence, not a 7.7 Hz rumble.
+    const yarg_sine_note nonPitched[] = {note(0.0, 1.0, -1.0f, -1.0f)};
+    REQUIRE(sineSynthDspSetNotes(dsp, nonPitched, 1) == YARG_AUDIO_OK);
+    REQUIRE(sineSynthDspFrequencyAt(*dsp, 0.5) == 0.0f);
+
+    REQUIRE(sineSynthDspDestroy(dsp));
+}
+
 } // namespace
 
 void runSineSynthDspTests() {
@@ -533,4 +568,5 @@ void runSineSynthDspTests() {
     testSetNotesAndTimingValidation();
     testDestroyFailurePolicy();
     testDetachLocksAndKeepsHandlesOnFailure();
+    testScheduleValidation();
 }

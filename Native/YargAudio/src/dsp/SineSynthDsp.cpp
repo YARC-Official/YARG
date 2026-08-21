@@ -36,7 +36,26 @@ constexpr float MinimumSpeed = 0.0001f;
 constexpr double Tau = 6.283185307179586476925286766559;
 
 float midiPitchToHz(float midiPitch) noexcept {
+    // Negative pitch is the non-pitched sentinel (talkies, percussion). It has to be silence
+    // rather than a sub-audible rumble the fade never returns from; the managed implementation
+    // this replaced carried the same guard.
+    if (!(midiPitch >= 0.0f)) return 0.0f;
     return 440.0f * std::pow(2.0f, (midiPitch - 69.0f) / 12.0f);
+}
+
+// The render thread scans segments with a forward-only index, so an out-of-order segment
+// would be skipped silently rather than reported. Non-finite values are worse: they reach the
+// phase accumulator and turn every subsequent sample into NaN, which propagates into the song
+// mixer. Reject the whole table instead, as validOneShotSchedule does for its own payload.
+bool validSchedule(const yarg_sine_note* notes, std::size_t count) noexcept {
+    for (std::size_t i = 0; i < count; ++i) {
+        const yarg_sine_note& note = notes[i];
+        if (!std::isfinite(note.start_time) || !std::isfinite(note.end_time)) return false;
+        if (!std::isfinite(note.start_pitch) || !std::isfinite(note.end_pitch)) return false;
+        if (note.end_time < note.start_time) return false;
+        if (i > 0 && note.start_time < notes[i - 1].start_time) return false;
+    }
+    return true;
 }
 
 } // namespace
@@ -111,7 +130,10 @@ void sineSynthDspRender(yarg_sine_synth_dsp& state, float* buffer, std::size_t f
         // real output time, so the tone keeps its written pitch at any playback speed.
         if (frequency > 0.0f) {
             state.phase += static_cast<double>(frequency) / sampleRate;
-            if (state.phase >= 1.0) state.phase -= 1.0;
+            // Subtracting 1.0 only re-normalizes while the increment stays below a full cycle.
+            // Above sampleRate it does not, and the accumulator grows without bound, losing
+            // precision in sin() as it goes.
+            state.phase -= std::floor(state.phase);
         }
     }
 }
@@ -244,6 +266,7 @@ int sineSynthDspDetach(yarg_sine_synth_dsp* dsp, int* bassError) noexcept {
 int sineSynthDspSetNotes(yarg_sine_synth_dsp* dsp, const yarg_sine_note* notes,
     std::size_t noteCount) noexcept {
     if (!dsp || (noteCount > 0 && !notes)) return YARG_AUDIO_ERROR_INVALID_ARGUMENT;
+    if (!validSchedule(notes, noteCount)) return YARG_AUDIO_ERROR_INVALID_ARGUMENT;
 
     std::vector<yarg_sine_note> replacement;
     try {
