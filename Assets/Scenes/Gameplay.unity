@@ -1789,7 +1789,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2517693471320601084, guid: 039fee0ec42345d4f88c0625255415d4, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 0
+      value: -157.1503
       objectReference: {fileID: 0}
     - target: {fileID: 2640522790579517911, guid: 039fee0ec42345d4f88c0625255415d4, type: 3}
       propertyPath: m_AnchorMax.y
@@ -3452,7 +3452,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Texture: {fileID: 1757749434}
+  m_Texture: {fileID: 1881340494}
   m_UVRect:
     serializedVersion: 2
     x: 0
@@ -6497,15 +6497,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3a868e9a2b1f4e01834956d57fb2763e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::YARG.Gameplay.HUD.UnisonDisplay
-  _backgroundImage: {fileID: 2070051285}
-  _defaultSprite: {fileID: 1163767304, guid: 1d22b7c60d56c1c4e8a213cf3b098af9, type: 3}
-  _failSprite: {fileID: -1426596008, guid: 1d22b7c60d56c1c4e8a213cf3b098af9, type: 3}
-  _failColor: {r: 0.7686275, g: 0.19215688, b: 0.1137255, a: 1}
+  _parent: {fileID: 2044355436}
   _headerText: {fileID: 651940416}
   _iconContainer: {fileID: 258647514}
   _unisonBar: {fileID: 189712602}
-  _parent: {fileID: 2044355436}
+  _backgroundImage: {fileID: 2070051285}
+  _defaultSprite: {fileID: 1163767304, guid: 1d22b7c60d56c1c4e8a213cf3b098af9, type: 3}
   _successSprite: {fileID: -1518087258, guid: 1d22b7c60d56c1c4e8a213cf3b098af9, type: 3}
+  _failSprite: {fileID: -1426596008, guid: 1d22b7c60d56c1c4e8a213cf3b098af9, type: 3}
+  _failColor: {r: 0.7686275, g: 0.19215688, b: 0.1137255, a: 1}
   _trackCountToPositionOffset:
   - {x: 0, y: 0}
   - {x: 0, y: -100}
@@ -7911,7 +7911,7 @@ Camera:
     serializedVersion: 2
     m_Bits: 511
   m_RenderingPath: -1
-  m_TargetTexture: {fileID: 1757749434}
+  m_TargetTexture: {fileID: 1881340494}
   m_TargetDisplay: 0
   m_TargetEye: 3
   m_HDR: 1
@@ -8866,43 +8866,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 50, y: -30, z: 0}
---- !u!84 &1757749434
-RenderTexture:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_Name: 
-  m_ImageContentsHash:
-    serializedVersion: 2
-    Hash: 00000000000000000000000000000000
-  m_IsAlphaChannelOptional: 0
-  serializedVersion: 6
-  m_Width: 1469
-  m_Height: 760
-  m_AntiAliasing: 1
-  m_MipCount: -1
-  m_DepthStencilFormat: 94
-  m_ColorFormat: 48
-  m_MipMap: 0
-  m_GenerateMips: 1
-  m_SRGB: 0
-  m_UseDynamicScale: 0
-  m_UseDynamicScaleExplicit: 0
-  m_BindMS: 0
-  m_EnableCompatibleFormat: 1
-  m_EnableRandomWrite: 0
-  m_TextureSettings:
-    serializedVersion: 2
-    m_FilterMode: 1
-    m_Aniso: 1
-    m_MipBias: 0
-    m_WrapU: 1
-    m_WrapV: 1
-    m_WrapW: 1
-  m_Dimension: 2
-  m_VolumeDepth: 1
-  m_ShadowSamplingMode: 2
 --- !u!1 &1757985208
 GameObject:
   m_ObjectHideFlags: 0
@@ -9484,6 +9447,43 @@ CanvasGroup:
   m_Interactable: 0
   m_BlocksRaycasts: 0
   m_IgnoreParentGroups: 0
+--- !u!84 &1881340494
+RenderTexture:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: 
+  m_ImageContentsHash:
+    serializedVersion: 2
+    Hash: 00000000000000000000000000000000
+  m_IsAlphaChannelOptional: 0
+  serializedVersion: 6
+  m_Width: 640
+  m_Height: 480
+  m_AntiAliasing: 1
+  m_MipCount: -1
+  m_DepthStencilFormat: 94
+  m_ColorFormat: 48
+  m_MipMap: 0
+  m_GenerateMips: 1
+  m_SRGB: 0
+  m_UseDynamicScale: 0
+  m_UseDynamicScaleExplicit: 0
+  m_BindMS: 0
+  m_EnableCompatibleFormat: 1
+  m_EnableRandomWrite: 0
+  m_TextureSettings:
+    serializedVersion: 2
+    m_FilterMode: 1
+    m_Aniso: 1
+    m_MipBias: 0
+    m_WrapU: 1
+    m_WrapV: 1
+    m_WrapW: 1
+  m_Dimension: 2
+  m_VolumeDepth: 1
+  m_ShadowSamplingMode: 2
 --- !u!1 &1886693830
 GameObject:
   m_ObjectHideFlags: 0
