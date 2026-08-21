@@ -20,7 +20,7 @@ namespace YARG.Audio.BASS.Wasapi
         private const int DEFAULT_SAMPLE_RATE = 48_000;
         private const int DEFAULT_CHANNEL_COUNT = 2;
         private const int MINIMUM_READ_BLOCK_FRAMES = 128;
-        private const float DEFAULT_BUFFER_LENGTH_SECONDS = 0.05f; // 50 ms buffer
+        private const float DEFAULT_BUFFER_LENGTH_SECONDS = 0.05f;
 
         private readonly int                   _wasapiDeviceIndex;
         private readonly BassAudioRouter       _router;
@@ -56,7 +56,7 @@ namespace YARG.Audio.BASS.Wasapi
                 {
                     BassWasapi.CurrentDevice = _wasapiDeviceIndex;
                     int availableBytes = BassWasapi.GetData(IntPtr.Zero, (int) DataFlags.Available);
-                    return availableBytes > 0 ? (availableBytes / (ChannelCount * sizeof(float))) : 0;
+                    return availableBytes > 0 ? availableBytes / (ChannelCount * sizeof(float)) : 0;
                 }
                 catch
                 {

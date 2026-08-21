@@ -16,7 +16,7 @@ namespace YARG.Audio.BASS.Wasapi
     {
         private const float DEFAULT_BUFFER_LENGTH_SECONDS = 0.05f;
 
-        private static readonly object SystemLock = new();
+        private static readonly object _systemLock = new();
 
         private readonly int                    _deviceId;
         private readonly int                    _sampleRate;
@@ -62,7 +62,7 @@ namespace YARG.Audio.BASS.Wasapi
 
         public static BassWasapiMicrophoneCapture? Create(int deviceId, int channels)
         {
-            return WithSystemLock(() =>
+            lock (_systemLock)
             {
                 try
                 {
@@ -98,7 +98,7 @@ namespace YARG.Audio.BASS.Wasapi
                     YargLogger.LogException(exception, $"Failed to create WASAPI microphone capture for device {deviceId}");
                     return null;
                 }
-            });
+            }
         }
 
         private bool InitializeDevice(WasapiDeviceInfo deviceInfo)
@@ -107,7 +107,6 @@ namespace YARG.Audio.BASS.Wasapi
                 ? (float) deviceInfo.DefaultUpdatePeriod
                 : DEFAULT_BUFFER_LENGTH_SECONDS;
 
-            // Try Exclusive mode first for lowest latency
             var exclusiveFlags = WasapiInitFlags.Exclusive | WasapiInitFlags.EventDriven |
                                  WasapiInitFlags.AutoFormat | WasapiInitFlags.Buffer;
 
@@ -130,7 +129,6 @@ namespace YARG.Audio.BASS.Wasapi
                 "Failed to initialize WASAPI input device [{0}] in Exclusive mode ({1}), attempting Shared mode fallback...",
                 _deviceId, exclusiveError);
 
-            // Fallback to Shared mode if Exclusive is unavailable or locked
             var sharedFlags = WasapiInitFlags.Shared | WasapiInitFlags.EventDriven |
                               WasapiInitFlags.AutoFormat | WasapiInitFlags.Buffer;
 
@@ -244,9 +242,8 @@ namespace YARG.Audio.BASS.Wasapi
         {
             int bufferFrames = 0;
             double bufferMs = 0;
-            int waitingBytes = 0;
 
-            WithSystemLock(() =>
+            lock (_systemLock)
             {
                 try
                 {
@@ -265,8 +262,9 @@ namespace YARG.Audio.BASS.Wasapi
                 catch
                 {
                 }
-            });
+            }
 
+            int waitingBytes = 0;
             if (_pushStreamHandle != 0)
             {
                 waitingBytes = Math.Max(0, Bass.ChannelGetData(_pushStreamHandle, IntPtr.Zero, (int) DataFlags.Available));
@@ -297,7 +295,7 @@ namespace YARG.Audio.BASS.Wasapi
                 _claimedChannels.Clear();
             }
 
-            WithSystemLock(() =>
+            lock (_systemLock)
             {
                 try
                 {
@@ -318,7 +316,7 @@ namespace YARG.Audio.BASS.Wasapi
                 {
                     Bass.StreamFree(_pushStreamHandle);
                 }
-            });
+            }
         }
 
         private bool StartIfNeeded()
@@ -328,7 +326,7 @@ namespace YARG.Audio.BASS.Wasapi
                 return true;
             }
 
-            return WithSystemLock(() =>
+            lock (_systemLock)
             {
                 BassWasapi.CurrentDevice = _deviceId;
                 if (!BassWasapi.Start())
@@ -340,7 +338,7 @@ namespace YARG.Audio.BASS.Wasapi
 
                 _running = true;
                 return true;
-            });
+            }
         }
 
         private bool PauseCapture()
@@ -350,7 +348,7 @@ namespace YARG.Audio.BASS.Wasapi
                 return true;
             }
 
-            return WithSystemLock(() =>
+            lock (_systemLock)
             {
                 BassWasapi.CurrentDevice = _deviceId;
                 if (!BassWasapi.Stop(false))
@@ -369,7 +367,7 @@ namespace YARG.Audio.BASS.Wasapi
 
                 _running = false;
                 return true;
-            });
+            }
         }
 
         private void OnWasapiNotify(WasapiNotificationType notify, int device, IntPtr user)
@@ -384,7 +382,7 @@ namespace YARG.Audio.BASS.Wasapi
                 YargLogger.LogFormatWarning("WASAPI input device [{0}] disabled or disconnected", _deviceId);
                 if (_running && !_disposed)
                 {
-                    WithSystemLock(() =>
+                    lock (_systemLock)
                     {
                         try
                         {
@@ -395,24 +393,8 @@ namespace YARG.Audio.BASS.Wasapi
                         catch
                         {
                         }
-                    });
+                    }
                 }
-            }
-        }
-
-        private static void WithSystemLock(Action action)
-        {
-            lock (SystemLock)
-            {
-                action();
-            }
-        }
-
-        private static T WithSystemLock<T>(Func<T> func)
-        {
-            lock (SystemLock)
-            {
-                return func();
             }
         }
     }

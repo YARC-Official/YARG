@@ -323,9 +323,7 @@ namespace YARG.Editor
                 foreach (var device in wasapiDevices)
                 {
                     string devName = device.name;
-                    string displayName = devName.StartsWith("WASAPI: ", StringComparison.OrdinalIgnoreCase)
-                        ? devName.Substring(8)
-                        : devName;
+                    string displayName = CleanDeviceName(devName);
                     bool isCurrent = devName == currentDevice;
                     menu.AddItem(new GUIContent($"WASAPI Exclusive (Low Latency)/{displayName}"), isCurrent, () =>
                     {
@@ -343,9 +341,7 @@ namespace YARG.Editor
                 foreach (var device in asioDevices)
                 {
                     string devName = device.name;
-                    string displayName = devName.StartsWith("ASIO: ", StringComparison.OrdinalIgnoreCase)
-                        ? devName.Substring(6)
-                        : devName;
+                    string displayName = CleanDeviceName(devName);
                     bool isCurrent = devName == currentDevice;
                     menu.AddItem(new GUIContent($"ASIO (Low Latency)/{displayName}"), isCurrent, () =>
                     {

@@ -113,14 +113,6 @@ namespace YARG.Audio.BASS
 
             if (Bass.Init(deviceId, DEFAULT_SAMPLE_RATE, flags, IntPtr.Zero))
             {
-                if (deviceId != NO_SOUND_DEVICE)
-                {
-                    int devPeriod = Math.Max(1, Bass.GetConfig(Configuration.DevicePeriod));
-                    if (Bass.DeviceBufferLength <= 0)
-                    {
-                        Bass.DeviceBufferLength = 2 * devPeriod;
-                    }
-                }
                 return true;
             }
 

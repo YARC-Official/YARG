@@ -18,7 +18,7 @@ namespace YARG.Settings.Types
         {
             _possibleValues.Clear();
 
-            foreach ((int, string name) device in GlobalAudioHandler.GetAllOutputDevices())
+            foreach (var device in GlobalAudioHandler.GetAllOutputDevices())
             {
                 if (GlobalAudioHandler.GetOutputMode(device.name) == mode)
                 {

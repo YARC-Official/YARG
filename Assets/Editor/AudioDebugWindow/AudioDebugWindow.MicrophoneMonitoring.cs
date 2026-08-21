@@ -250,7 +250,7 @@ namespace YARG.Editor
             foreach (var device in wasapiMics)
             {
                 string devName = device.DisplayName;
-                string displayName = devName.StartsWith("WASAPI: ", StringComparison.OrdinalIgnoreCase) ? devName.Substring(8) : devName;
+                string displayName = CleanDeviceName(devName);
                 bool alreadyUsed = _micSlots.Any(s => s.SelectedDevice?.DisplayName == devName && s.ActiveDevice != null);
                 string suffix = alreadyUsed ? " (In use)" : "";
                 var captured = device;
@@ -263,7 +263,7 @@ namespace YARG.Editor
             foreach (var device in asioMics)
             {
                 string devName = device.DisplayName;
-                string displayName = devName.StartsWith("ASIO: ", StringComparison.OrdinalIgnoreCase) ? devName.Substring(6) : devName;
+                string displayName = CleanDeviceName(devName);
                 bool alreadyUsed = _micSlots.Any(s => s.SelectedDevice?.DisplayName == devName && s.ActiveDevice != null);
                 string suffix = alreadyUsed ? " (In use)" : "";
                 var captured = device;
@@ -310,7 +310,7 @@ namespace YARG.Editor
             foreach (var device in wasapiMics)
             {
                 string devName = device.DisplayName;
-                string displayName = devName.StartsWith("WASAPI: ", StringComparison.OrdinalIgnoreCase) ? devName.Substring(8) : devName;
+                string displayName = CleanDeviceName(devName);
                 bool isCurrent = slot.ActiveDevice != null && slot.SelectedDevice?.DisplayName == devName;
                 var captured = device;
                 menu.AddItem(new GUIContent($"WASAPI Exclusive (Low Latency)/{displayName}"), isCurrent, () =>
@@ -322,7 +322,7 @@ namespace YARG.Editor
             foreach (var device in asioMics)
             {
                 string devName = device.DisplayName;
-                string displayName = devName.StartsWith("ASIO: ", StringComparison.OrdinalIgnoreCase) ? devName.Substring(6) : devName;
+                string displayName = CleanDeviceName(devName);
                 bool isCurrent = slot.ActiveDevice != null && slot.SelectedDevice?.DisplayName == devName;
                 var captured = device;
                 menu.AddItem(new GUIContent($"ASIO (Low Latency)/{displayName}"), isCurrent, () =>
