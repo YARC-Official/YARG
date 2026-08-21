@@ -5,7 +5,6 @@ using DG.Tweening.Core;
 using DG.Tweening.Plugins.Options;
 using UnityEngine;
 using YARG.Core.Audio;
-using YARG.Playback;
 using YARG.Settings;
 
 namespace YARG.Gameplay
@@ -115,9 +114,6 @@ namespace YARG.Gameplay
 
         public void ChangeStarPowerStatus(bool active)
         {
-            if (SettingsManager.Settings.UseCrowdFx.Value == CrowdFxMode.Disabled)
-                return;
-
             StarPowerActivations += active ? 1 : -1;
             if (StarPowerActivations < 0)
                 StarPowerActivations = 0;
