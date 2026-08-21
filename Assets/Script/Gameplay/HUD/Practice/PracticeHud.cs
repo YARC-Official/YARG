@@ -60,9 +60,12 @@ namespace YARG.Gameplay.HUD
             }
         }
 
-        protected override void OnSongLoaded()
+        protected override void OnSongStarted()
         {
-            // Deferred from Start(): the players are not spawned until the song finishes loading.
+            // Not OnSongLoaded: SongLoaded is fired from FinalizeChart, which runs before
+            // CreatePlayers, so the player list is still empty there and HasVocalsPlayer always
+            // reported false. SongStarted is raised after the players are spawned, and is the
+            // same hook PracticeManager uses to build the guide pitch manager.
             _guidePitchPartGroup.gameObject.SetActive(HasVocalsPlayer());
         }
 
