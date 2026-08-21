@@ -33,11 +33,9 @@ Shader "YARG/SongTimer"
 
             #include "UnityCG.cginc"
 
-            // Global texture set by TextureManager (3x1 R16/f16):
-            // texel 0 = song length (seconds)
-            // texel 1 = song position (seconds)
-            // texel 2 = fail meter value (0-1)
-            texture2D _Yarg_GameStateTex;
+            // Game state global texture accessors (append-only layout,
+            // see file header)
+            #include "Assets/Art/Shaders/gamestate.hlsl"
 
             fixed4 _GlyphColor;
             fixed4 _TotalColor;
@@ -241,8 +239,8 @@ Shader "YARG/SongTimer"
 
             float4 mainImage(float2 quadUv)
             {
-                float songLength   = _Yarg_GameStateTex.Load(int3(0, 0, 0)).x;
-                float songPosition = _Yarg_GameStateTex.Load(int3(1, 0, 0)).x;
+                float songLength   = YargGameStateSongLength();
+                float songPosition = YargGameStateSongPosition();
 
                 // Centered coordinates in layout units
                 float2 uv = (quadUv - 0.5) / GLYPH_SCALE;

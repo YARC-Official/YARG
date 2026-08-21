@@ -55,6 +55,15 @@ namespace YARG.Gameplay
         private const int FFT_SIZE_LOG = 11 /* aka log2(2048) */;
         private const int FFT_SIZE = 1 << FFT_SIZE_LOG;
         private const int FFT_TEXTURE_WIDTH = 512;
+        // IMPORTANT: the game state texture is APPEND-ONLY. When adding new
+        // fields, always append them after the existing ones - never reorder
+        // or remove entries. Shaders access the texels by index through
+        // Assets/Art/Shaders/gamestate.hlsl, so appending keeps existing
+        // shaders working unchanged.
+        // Current layout:
+        //   0: song length (seconds)
+        //   1: song position (seconds)
+        //   2: fail meter value (0.0-1.0)
         private const int GAME_STATE_TEX_WIDTH = 3;
         private const int VIDEO_TEX_WIDTH = 256;
         private const int VIDEO_TEX_HEIGHT = 144;
@@ -277,6 +286,7 @@ namespace YARG.Gameplay
 
             var failMeter = GameManager.EngineManager?.Happiness ?? 1f;
             _gameStateData[2] = (ushort) math.f32tof16(math.clamp(failMeter, 0f, 1f));
+            // New fields go here, appended after the existing ones
 
             tex.SetPixelData(_gameStateData, 0);
             tex.Apply(false, false);
