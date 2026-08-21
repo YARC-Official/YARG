@@ -39,11 +39,20 @@ namespace YARG.Settings.Types
 
         public override string ValueToString(string value)
         {
-            return value.StartsWith(ASIO_PREFIX, StringComparison.Ordinal)
-                ? value.Substring(ASIO_PREFIX.Length)
-                : value;
+            if (value.StartsWith(ASIO_PREFIX, StringComparison.Ordinal))
+            {
+                return value.Substring(ASIO_PREFIX.Length);
+            }
+
+            if (value.StartsWith(WASAPI_PREFIX, StringComparison.Ordinal))
+            {
+                return value.Substring(WASAPI_PREFIX.Length);
+            }
+
+            return value;
         }
 
         private const string ASIO_PREFIX = "ASIO: ";
+        private const string WASAPI_PREFIX = "WASAPI: ";
     }
 }

@@ -119,10 +119,9 @@ namespace YARG.Audio.BASS.Asio
 
         public override OutputBufferInfo? GetBufferInfo()
         {
-            int previous = BassAsio.CurrentDevice;
-            BassAsio.CurrentDevice = _asioDeviceIndex;
             try
             {
+                BassAsio.CurrentDevice = _asioDeviceIndex;
                 var info = BassAsio.Info;
                 return new OutputBufferInfo(Array.Empty<int>(), info.PreferredBufferLength, _driver.SampleRate, true);
             }
@@ -131,18 +130,13 @@ namespace YARG.Audio.BASS.Asio
                 YargLogger.LogException(exception, "Failed to read ASIO buffer sizes");
                 return null;
             }
-            finally
-            {
-                BassAsio.CurrentDevice = previous;
-            }
         }
 
         public override bool OpenControlPanel()
         {
-            int previous = BassAsio.CurrentDevice;
-            BassAsio.CurrentDevice = _asioDeviceIndex;
             try
             {
+                BassAsio.CurrentDevice = _asioDeviceIndex;
                 if (BassAsio.ControlPanel())
                 {
                     return true;
@@ -153,10 +147,6 @@ namespace YARG.Audio.BASS.Asio
             catch (Exception exception)
             {
                 YargLogger.LogException(exception, "Failed to open ASIO control panel");
-            }
-            finally
-            {
-                BassAsio.CurrentDevice = previous;
             }
 
             return false;

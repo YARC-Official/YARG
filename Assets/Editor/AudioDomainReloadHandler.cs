@@ -1,6 +1,7 @@
 using System;
 using ManagedBass;
 using ManagedBass.Asio;
+using ManagedBass.Wasapi;
 using UnityEditor;
 using YARG.Audio.BASS;
 using YARG.Core.Audio;
@@ -25,9 +26,37 @@ namespace YARG.Editor
             {
                 for (int asioIndex = 0; asioIndex < BassAsio.DeviceCount; asioIndex++)
                 {
-                    BassAsio.CurrentDevice = asioIndex;
-                    BassAsio.Stop();
-                    BassAsio.Free();
+                    try
+                    {
+                        BassAsio.CurrentDevice = asioIndex;
+                        BassAsio.Stop();
+                        BassAsio.Free();
+                    }
+                    catch
+                    {
+                    }
+                }
+            }
+            catch
+            {
+            }
+
+            try
+            {
+                for (int wasapiIndex = 0; BassWasapi.GetDeviceInfo(wasapiIndex, out var wasapiInfo); wasapiIndex++)
+                {
+                    if (wasapiInfo.IsInitialized)
+                    {
+                        try
+                        {
+                            BassWasapi.CurrentDevice = wasapiIndex;
+                            BassWasapi.Stop(true);
+                            BassWasapi.Free();
+                        }
+                        catch
+                        {
+                        }
+                    }
                 }
             }
             catch

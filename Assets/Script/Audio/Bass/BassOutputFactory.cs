@@ -2,12 +2,13 @@
 using System;
 using System.Collections.Generic;
 using YARG.Audio.BASS.Asio;
+using YARG.Audio.BASS.Wasapi;
 using YARG.Core.Audio;
 
 namespace YARG.Audio.BASS
 {
     /// <summary>
-    ///     Creates shared or ASIO outputs from the device name selected in settings.
+    ///     Creates shared, ASIO, or WASAPI Exclusive outputs from the device name selected in settings.
     /// </summary>
     internal sealed class BassOutputFactory
     {
@@ -20,7 +21,7 @@ namespace YARG.Audio.BASS
             _router = router;
         }
 
-        private static bool IsAsioSupported
+        private static bool IsWindowsSupported
         {
             get
             {
@@ -34,9 +35,17 @@ namespace YARG.Audio.BASS
 
         public BassOutput? Create(string name)
         {
-            if (IsAsioSupported && name.StartsWith(BassAsioOutput.DEVICE_PREFIX, StringComparison.Ordinal))
+            if (IsWindowsSupported)
             {
-                return BassAsioOutput.Find(name, _router, _asioMics);
+                if (name.StartsWith(BassWasapiOutput.DEVICE_PREFIX, StringComparison.Ordinal))
+                {
+                    return BassWasapiOutput.Find(name, _router);
+                }
+
+                if (name.StartsWith(BassAsioOutput.DEVICE_PREFIX, StringComparison.Ordinal))
+                {
+                    return BassAsioOutput.Find(name, _router, _asioMics);
+                }
             }
 
             return BassSharedOutput.Find(name, _router);
@@ -45,9 +54,10 @@ namespace YARG.Audio.BASS
         public List<(int id, string name)> GetAllDevices()
         {
             var devices = BassSharedOutput.GetDevices();
-            if (IsAsioSupported)
+            if (IsWindowsSupported)
             {
                 devices.AddRange(BassAsioOutput.GetDevices());
+                devices.AddRange(BassWasapiOutput.GetDevices());
             }
 
             return devices;
@@ -55,6 +65,11 @@ namespace YARG.Audio.BASS
 
         public AudioOutputMode ModeFor(string name)
         {
+            if (name.StartsWith(BassWasapiOutput.DEVICE_PREFIX, StringComparison.Ordinal))
+            {
+                return AudioOutputMode.WasapiExclusive;
+            }
+
             if (name.StartsWith(BassAsioOutput.DEVICE_PREFIX, StringComparison.Ordinal))
             {
                 return AudioOutputMode.Asio;

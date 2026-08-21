@@ -1455,10 +1455,11 @@
             },
             "OutputMode": {
                 "Name": "Output Mode",
-                "Description": "Select standard system audio or an ASIO driver.",
+                "Description": "Select standard system audio, ASIO, or WASAPI Exclusive.",
                 "Dropdown": {
                     "Shared": "Shared Audio",
-                    "Asio": "ASIO"
+                    "Asio": "ASIO",
+                    "WasapiExclusive": "WASAPI Exclusive"
                 }
             },
             "AsioBufferSize": {

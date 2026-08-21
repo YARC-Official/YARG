@@ -3,6 +3,7 @@ using System.IO;
 using ManagedBass;
 using ManagedBass.Asio;
 using ManagedBass.Mix;
+using ManagedBass.Wasapi;
 using UnityEngine;
 using YARG.Core.Audio;
 using YARG.Core.Logging;
@@ -99,6 +100,27 @@ namespace YARG.Audio.BASS
                     }
                     catch
                     {
+                    }
+                }
+            }
+            catch
+            {
+            }
+
+            try
+            {
+                for (int wasapiIndex = 0; BassWasapi.GetDeviceInfo(wasapiIndex, out var wasapiInfo); wasapiIndex++)
+                {
+                    if (wasapiInfo.IsInitialized)
+                    {
+                        try
+                        {
+                            BassWasapi.CurrentDevice = wasapiIndex;
+                            BassWasapi.Free();
+                        }
+                        catch
+                        {
+                        }
                     }
                 }
             }
