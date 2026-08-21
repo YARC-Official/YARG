@@ -107,8 +107,9 @@ int32_t YARG_AUDIO_CALL yarg_sine_synth_dsp_attach(yarg_sine_synth_dsp* dsp,
     return yarg::audio::sineSynthDspAttach(dsp, channel, priority, bass_error);
 }
 
-int32_t YARG_AUDIO_CALL yarg_sine_synth_dsp_detach(yarg_sine_synth_dsp* dsp) {
-    return yarg::audio::sineSynthDspDetach(dsp);
+int32_t YARG_AUDIO_CALL yarg_sine_synth_dsp_detach(yarg_sine_synth_dsp* dsp,
+    int32_t* bass_error) {
+    return yarg::audio::sineSynthDspDetach(dsp, bass_error);
 }
 
 int32_t YARG_AUDIO_CALL yarg_sine_synth_dsp_set_notes(yarg_sine_synth_dsp* dsp,

@@ -24,6 +24,10 @@ constexpr std::uint32_t BassConfigFloatDsp = 9;
 constexpr std::uint32_t BassPositionByte = 0;
 constexpr std::uint32_t BassPositionDecode = 0x10000000;
 
+// BASS_ERROR_HANDLE. A channel that no longer exists cannot be running the proc, so removal
+// failing this way means the DSP is already gone rather than still installed.
+constexpr int BassErrorHandle = 5;
+
 // A backward jump larger than this is a seek (a practice section loop) rather than ordinary
 // forward progress, and restarts the scan.
 constexpr double BackwardSeekThreshold = 0.5;
@@ -197,14 +201,41 @@ int sineSynthDspAttach(yarg_sine_synth_dsp* dsp, std::uint32_t channel, int prio
     return YARG_AUDIO_OK;
 }
 
-int sineSynthDspDetach(yarg_sine_synth_dsp* dsp) noexcept {
+int sineSynthDspDetach(yarg_sine_synth_dsp* dsp, int* bassError) noexcept {
+    if (bassError) *bassError = 0;
     if (!dsp) return YARG_AUDIO_ERROR_INVALID_ARGUMENT;
     if (dsp->dsp == 0) return YARG_AUDIO_OK;
 
-    // Removal can fail if the channel is already gone, which is expected during teardown. Drop
-    // the handles either way: the channel cannot outlive this call in a state where the DSP is
-    // still reachable, and keeping a stale handle would block a later attach.
-    dsp->bass.removeDsp(dsp->channel, dsp->dsp);
+    const std::uint32_t channel = dsp->channel;
+
+    // Removal has to be serialized against the render thread, as sineSynthDspDestroy does:
+    // without the lock a callback can still be in flight when the caller goes on to replace
+    // the schedule or delete this object.
+    if (!dsp->bass.lockChannel(channel, true)) {
+        const int error = dsp->bass.error();
+        if (error != BassErrorHandle) {
+            if (bassError) *bassError = error;
+            return YARG_AUDIO_ERROR_BASS;
+        }
+        // The channel is gone, so the proc cannot run again. This is the ordinary teardown
+        // path, where the mixer is freed before the tone channel is disposed.
+        dsp->dsp = 0;
+        dsp->channel = 0;
+        return YARG_AUDIO_OK;
+    }
+
+    const bool removed = dsp->bass.removeDsp(channel, dsp->dsp);
+    const int error = removed ? 0 : dsp->bass.error();
+    dsp->bass.lockChannel(channel, false);
+
+    // Keep the handles when removal genuinely failed. The proc is still installed, and
+    // clearing them would make the next sineSynthDspSetNotes swap the table without the
+    // lock -- freeing the vector under the render thread.
+    if (!removed && error != BassErrorHandle) {
+        if (bassError) *bassError = error;
+        return YARG_AUDIO_ERROR_BASS;
+    }
+
     dsp->dsp = 0;
     dsp->channel = 0;
     return YARG_AUDIO_OK;
@@ -248,16 +279,10 @@ int sineSynthDspSetTiming(yarg_sine_synth_dsp* dsp, double songTimeOffset,
 bool sineSynthDspDestroy(yarg_sine_synth_dsp* dsp) noexcept {
     if (!dsp) return true;
 
-    if (dsp->dsp != 0) {
-        if (!dsp->bass.lockChannel(dsp->channel, true)) return false;
-
-        const bool removed = dsp->bass.removeDsp(dsp->channel, dsp->dsp);
-        dsp->bass.lockChannel(dsp->channel, false);
-        if (!removed) return false;
-
-        dsp->dsp = 0;
-        dsp->channel = 0;
-    }
+    // Detach owns the lock/remove/verify sequence; destroying is that plus the delete. Sharing
+    // it means a channel that has already been freed tears down cleanly here too, instead of
+    // reporting failure and leaking the object with its proc still registered.
+    if (sineSynthDspDetach(dsp, nullptr) != YARG_AUDIO_OK) return false;
 
     delete dsp;
     return true;

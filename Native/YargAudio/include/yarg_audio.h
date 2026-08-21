@@ -152,7 +152,7 @@ YARG_AUDIO_API int32_t YARG_AUDIO_CALL yarg_sine_synth_dsp_create(
 YARG_AUDIO_API int32_t YARG_AUDIO_CALL yarg_sine_synth_dsp_attach(
     yarg_sine_synth_dsp* dsp, uint32_t channel, int32_t priority, int32_t* bass_error);
 YARG_AUDIO_API int32_t YARG_AUDIO_CALL yarg_sine_synth_dsp_detach(
-    yarg_sine_synth_dsp* dsp);
+    yarg_sine_synth_dsp* dsp, int32_t* bass_error);
 YARG_AUDIO_API int32_t YARG_AUDIO_CALL yarg_sine_synth_dsp_set_notes(
     yarg_sine_synth_dsp* dsp, const yarg_sine_note* notes, uint64_t note_count);
 YARG_AUDIO_API int32_t YARG_AUDIO_CALL yarg_sine_synth_dsp_set_timing(

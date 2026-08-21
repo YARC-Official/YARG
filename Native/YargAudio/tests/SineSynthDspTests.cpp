@@ -407,8 +407,8 @@ void testCreateAndAttachValidation() {
     REQUIRE(sineSynthDspAttach(valid, 11, 0, &bassError) == YARG_AUDIO_OK);
     // Attaching twice without detaching is a state error, not a silent second DSP.
     REQUIRE(sineSynthDspAttach(valid, 11, 0, &bassError) == YARG_AUDIO_ERROR_INVALID_STATE);
-    REQUIRE(sineSynthDspDetach(valid) == YARG_AUDIO_OK);
-    REQUIRE(sineSynthDspDetach(valid) == YARG_AUDIO_OK);
+    REQUIRE(sineSynthDspDetach(valid, nullptr) == YARG_AUDIO_OK);
+    REQUIRE(sineSynthDspDetach(valid, nullptr) == YARG_AUDIO_OK);
     state.channelFlags = 0x100;
     state.floatDspConfig = 0;
 
@@ -476,6 +476,48 @@ void testDestroyFailurePolicy() {
     REQUIRE(state.events == std::vector<std::string>({"lock", "remove", "unlock"}));
 }
 
+// Detach must exclude the render thread while removing the proc, and must keep its handles
+// when removal genuinely fails: clearing them would make the next set_notes swap the table
+// unlocked while the still-installed proc reads it.
+void testDetachLocksAndKeepsHandlesOnFailure() {
+    MockBass state;
+    BassCoreBindings bass(completeFunctions());
+    auto* dsp = create(bass, state);
+
+    int bassError = -1;
+    REQUIRE(sineSynthDspAttach(dsp, 11, 0, &bassError) == YARG_AUDIO_OK);
+
+    state.events.clear();
+    REQUIRE(sineSynthDspDetach(dsp, &bassError) == YARG_AUDIO_OK);
+    REQUIRE(state.events == std::vector<std::string>({"lock", "remove", "unlock"}));
+    REQUIRE(dsp->dsp == 0);
+
+    // Removal failing for anything other than a freed channel leaves the DSP installed.
+    REQUIRE(sineSynthDspAttach(dsp, 11, 0, &bassError) == YARG_AUDIO_OK);
+    state.events.clear();
+    state.removeSucceeds = false;
+    state.error = 7;
+    REQUIRE(sineSynthDspDetach(dsp, &bassError) == YARG_AUDIO_ERROR_BASS);
+    REQUIRE(bassError == 7);
+    REQUIRE(state.events == std::vector<std::string>({"lock", "remove", "unlock"}));
+    REQUIRE(dsp->dsp != 0);
+
+    // A channel that is already gone cannot be running the proc, so that is a clean detach.
+    state.error = 5; // BASS_ERROR_HANDLE
+    REQUIRE(sineSynthDspDetach(dsp, &bassError) == YARG_AUDIO_OK);
+    REQUIRE(dsp->dsp == 0);
+
+    // The same applies when it is the lock that reports the channel is gone.
+    state.removeSucceeds = true;
+    REQUIRE(sineSynthDspAttach(dsp, 11, 0, &bassError) == YARG_AUDIO_OK);
+    state.lockSucceeds = false;
+    REQUIRE(sineSynthDspDetach(dsp, &bassError) == YARG_AUDIO_OK);
+    REQUIRE(dsp->dsp == 0);
+
+    state.lockSucceeds = true;
+    REQUIRE(sineSynthDspDestroy(dsp));
+}
+
 } // namespace
 
 void runSineSynthDspTests() {
@@ -490,4 +532,5 @@ void runSineSynthDspTests() {
     testCreateAndAttachValidation();
     testSetNotesAndTimingValidation();
     testDestroyFailurePolicy();
+    testDetachLocksAndKeepsHandlesOnFailure();
 }

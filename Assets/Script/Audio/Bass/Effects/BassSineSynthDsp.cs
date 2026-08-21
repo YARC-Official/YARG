@@ -131,7 +131,16 @@ namespace YARG.Audio.BASS.Effects
             }
 
             // Native tolerates the channel already being freed, which is the teardown case.
-            Native.Detach(this);
+            // Anything else means the DSP is still installed on a live mixer, so keep the
+            // handle: clearing it would let Reattach install a second DSP on the same mixer.
+            int result = Native.Detach(this, out int bassError);
+            if (result != 0)
+            {
+                YargLogger.LogFormatError("Failed to detach {0} from mixer {1}: result={2}, BASS={3}.",
+                    EFFECT_NAME, _channelHandle, result, bassError);
+                return;
+            }
+
             _channelHandle = 0;
         }
 
@@ -211,7 +220,7 @@ namespace YARG.Audio.BASS.Effects
 
             [DllImport(LIBRARY, EntryPoint = "yarg_sine_synth_dsp_detach",
                 CallingConvention = CallingConvention.Cdecl)]
-            internal static extern int Detach(BassSineSynthDsp dsp);
+            internal static extern int Detach(BassSineSynthDsp dsp, out int bassError);
 
             [DllImport(LIBRARY, EntryPoint = "yarg_sine_synth_dsp_set_notes",
                 CallingConvention = CallingConvention.Cdecl)]
