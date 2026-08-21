@@ -163,7 +163,8 @@ namespace YARG.Audio.BASS
 
         public bool SetMonitorVolume(int sourceHandle, double volume)
         {
-            if (Bass.ChannelSetAttribute(sourceHandle, ChannelAttribute.Volume, volume))
+            double effective = volume * 1.0;
+            if (Bass.ChannelSetAttribute(sourceHandle, ChannelAttribute.Volume, effective))
             {
                 return true;
             }

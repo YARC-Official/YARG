@@ -1286,6 +1286,14 @@
                     "HighestScoreCurrentDifficulty": "Highest score on current difficulty"
                 }
             },
+            "SongLengthLabels": {
+                "Name": "Song Duration Labels",
+                "Description": "Choose how song durations are grouped in the music library and filters menu.",
+                "Dropdown": {
+                    "RangeLabels": "2:00, 5:00, 10:00, 15:00, 20:00",
+                    "LegacyLabels": "Short, Medium, Long, Epic"
+                }
+            },
             "HighwayTiltMultiplier": {
                 "Name": "Highway Tilt Multiplier",
                 "Description": "Controls the amount that the tracks should tilt inward during multiplayer gameplay only."
@@ -1490,6 +1498,14 @@
                 "Description": "Choose the resolution of your screen. \"Default\" is recommended.",
                 "Default": "<i>Default ({0})</i>"
             },
+            "ReverbImplementation": {
+                "Name": "Reverb Implementation",
+                "Description": "Selects the reverb trade-off. Performance uses a lighter Freeverb, Quality uses a fuller Dattorro plate.",
+                "Dropdown": {
+                    "Performance": "Performance",
+                    "Quality": "Quality"
+                }
+            },
             "RhythmVolume": {
                 "Name": "Rhythm Volume",
                 "PauseName": "Rhythm",
@@ -1649,6 +1665,11 @@
                 "Name": "Vocal Monitoring Volume",
                 "PauseName": "Monitoring",
                 "Description": "Adjusts the feedback you hear when singing. Values above 1 add extra gain for quiet microphones."
+            },
+            "VocalReverb": {
+                "Name": "Vocal Reverb",
+                "PauseName": "Reverb",
+                "Description": "Adjusts the amount of reverb applied to vocal monitoring. 0 is dry, 1.0 is maximum."
             },
 			"VocalStreakFrequency": {
                 "Name": "Vocal Streak Frequency",

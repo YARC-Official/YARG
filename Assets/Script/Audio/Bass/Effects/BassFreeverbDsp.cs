@@ -1,7 +1,6 @@
 #nullable enable
-using System;
 using System.Runtime.InteropServices;
-using Microsoft.Win32.SafeHandles;
+using YARG.Audio.BASS.Native;
 using YARG.Core.Logging;
 
 namespace YARG.Audio.BASS.Effects
@@ -10,11 +9,11 @@ namespace YARG.Audio.BASS.Effects
     /// Owns a Freeverb DSP implemented and attached entirely by the YargAudio native plugin.
     /// The BASS channel passed to <see cref="Create"/> must outlive this handle.
     /// </summary>
-    public sealed class BassFreeverbDsp : SafeHandleZeroOrMinusOneIsInvalid
+    public sealed class BassFreeverbDsp : NativeReverbDspHandle<BassFreeverbDsp.FreeverbParams>
     {
         private const string EFFECT_NAME = "native Freeverb DSP";
 
-        private BassFreeverbDsp() : base(true)
+        private BassFreeverbDsp() : base()
         {
         }
 
@@ -32,8 +31,7 @@ namespace YARG.Audio.BASS.Effects
         public static BassFreeverbDsp? Create(int streamHandle, float dryMix, float wetMix,
             float roomSize, float damp, float width = 1, int priority = 0)
         {
-            if (streamHandle == 0 || !IsFinite(dryMix) || !IsFinite(wetMix) ||
-                !IsFinite(roomSize) || !IsFinite(damp) || !IsFinite(width))
+            if (streamHandle == 0 || !YargAudioNative.AreFinite(dryMix, wetMix, roomSize, damp, width))
             {
                 YargLogger.LogFormatError(
                     "Cannot attach {0}: channel={1}, dry={2}, wet={3}, room={4}, damp={5}, width={6}, priority={7}.",
@@ -41,87 +39,67 @@ namespace YARG.Audio.BASS.Effects
                 return null;
             }
 
-            try
-            {
-                uint nativeVersion = Native.GetAbiVersion();
-                if (nativeVersion != BassHelpers.YARG_AUDIO_ABI_VERSION)
-                {
-                    YargLogger.LogError(
-                        $"Cannot attach {EFFECT_NAME}: ABI mismatch managed={BassHelpers.YARG_AUDIO_ABI_VERSION}, " +
-                        $"native={nativeVersion}, channel={streamHandle}, " +
-                        $"platform={PlatformDescription}.");
-                    return null;
-                }
-
-                int result = Native.Attach(unchecked((uint) streamHandle), dryMix, wetMix,
-                    roomSize, damp, width, priority, out BassFreeverbDsp dsp,
-                    out int bassError);
-                if (result == 0 && dsp != null && !dsp.IsInvalid)
-                {
-                    return dsp;
-                }
-
-                // Native initializes output to null on failure. Dispose unexpected handle so
-                // partial success cannot leak through this path.
-                dsp?.Dispose();
-                YargLogger.LogError(
-                    $"Failed to attach {EFFECT_NAME}: result={result}, BASS={bassError}, " +
-                    $"channel={streamHandle}, dry={dryMix}, wet={wetMix}, room={roomSize}, " +
-                    $"damp={damp}, width={width}, priority={priority}, " +
-                    $"platform={PlatformDescription}.");
-                return null;
-            }
-            catch (Exception exception) when (exception is DllNotFoundException or
-                EntryPointNotFoundException or BadImageFormatException)
-            {
-                YargLogger.LogException(exception,
-                    $"Failed to load {EFFECT_NAME} for channel {streamHandle} " +
-                    $"on {PlatformDescription}");
-                return null;
-            }
+            return YargAudioNative.Attach(EFFECT_NAME, streamHandle,
+                (out BassFreeverbDsp handle, out int bassError) =>
+                    Native.Attach(unchecked((uint) streamHandle), dryMix, wetMix,
+                        roomSize, damp, width, priority, out handle, out bassError));
         }
 
-        /// <summary>
-        /// Clears delay and filter state during next native BASS DSP callback.
-        /// </summary>
-        public void RequestReset()
+        [StructLayout(LayoutKind.Sequential)]
+        public struct FreeverbParams
         {
-            if (IsClosed || IsInvalid)
-            {
-                return;
-            }
+            public uint Size;
+            public float DryMix;
+            public float WetMix;
+            public float RoomSize;
+            public float Damp;
+            public float Width;
 
-            try
+            public FreeverbParams(float dryMix, float wetMix, float roomSize, float damp, float width)
             {
-                Native.Reset(this);
-            }
-            catch (ObjectDisposedException)
-            {
-                // Disposal won race with reset request.
+                Size = (uint) Marshal.SizeOf<FreeverbParams>();
+                DryMix = dryMix;
+                WetMix = wetMix;
+                RoomSize = roomSize;
+                Damp = damp;
+                Width = width;
             }
         }
 
-        protected override bool ReleaseHandle()
+        protected override void Destroy(System.IntPtr handle)
         {
             Native.Destroy(handle);
-            return true;
         }
 
-        private static bool IsFinite(float value) =>
-            !float.IsNaN(value) && !float.IsInfinity(value);
+        protected override int NativeReset()
+        {
+            return Native.Reset(this);
+        }
 
-        // Thread-safe .NET equivalents of Unity's Application.platform/SystemInfo.processorType.
-        // Attach runs from background threads (e.g. music player audio load), where Unity APIs throw.
-        private static string PlatformDescription =>
-            $"{RuntimeInformation.OSDescription}/{RuntimeInformation.ProcessArchitecture}/{IntPtr.Size * 8}-bit";
+        protected override int NativeSetParams(in FreeverbParams parms)
+        {
+            return Native.SetParams(this, in parms);
+        }
+
+        protected override FreeverbParams CreateParams(float dryMix, float wetMix, float roomSize, float damp, float width)
+        {
+            return new FreeverbParams(dryMix, wetMix, roomSize, damp, width);
+        }
+
+        protected override bool AreFinite(in FreeverbParams parms)
+        {
+            if (!YargAudioNative.AreFinite(parms.DryMix, parms.WetMix, parms.RoomSize, parms.Damp, parms.Width))
+            {
+                YargLogger.LogFormatError("Ignoring non-finite Freeverb params for {0}: dry={1}, wet={2}, room={3}, damp={4}, width={5}.", EFFECT_NAME, parms.DryMix, parms.WetMix, parms.RoomSize, parms.Damp, parms.Width);
+                return false;
+            }
+
+            return true;
+        }
 
         private static class Native
         {
             private const string LIBRARY = "yarg_audio";
-
-            [DllImport(LIBRARY, EntryPoint = "yarg_audio_get_abi_version",
-                CallingConvention = CallingConvention.Cdecl)]
-            internal static extern uint GetAbiVersion();
 
             [DllImport(LIBRARY, EntryPoint = "yarg_freeverb_dsp_attach",
                 CallingConvention = CallingConvention.Cdecl)]
@@ -133,9 +111,13 @@ namespace YARG.Audio.BASS.Effects
                 CallingConvention = CallingConvention.Cdecl)]
             internal static extern int Reset(BassFreeverbDsp dsp);
 
+            [DllImport(LIBRARY, EntryPoint = "yarg_freeverb_dsp_set_params",
+                CallingConvention = CallingConvention.Cdecl)]
+            internal static extern int SetParams(BassFreeverbDsp dsp, in FreeverbParams parms);
+
             [DllImport(LIBRARY, EntryPoint = "yarg_freeverb_dsp_destroy",
                 CallingConvention = CallingConvention.Cdecl)]
-            internal static extern void Destroy(IntPtr dsp);
+            internal static extern void Destroy(System.IntPtr dsp);
         }
     }
 }

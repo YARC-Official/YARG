@@ -878,14 +878,14 @@ namespace YARG.Gameplay
             // Load default animation controller and parameters if necessary
             LoadAnimationDefaults(character);
 
-            var newType = character.GetComponent<VenueCharacter>().Type;
+            var venueCharacter = character.GetComponent<VenueCharacter>();
             // Find a character of the same type in venueRoot
             GameObject existingCharacter = null;
 
             var characters = venueRoot.GetComponentsInChildren<VenueCharacter>();
             foreach (var c in characters)
             {
-                if (c.Type == newType)
+                if (c.Type == venueCharacter.Type)
                 {
                     existingCharacter = c.gameObject;
                     break;
@@ -894,7 +894,7 @@ namespace YARG.Gameplay
 
             if (existingCharacter == null)
             {
-                YargLogger.LogFormatError("Failed to find character of type {0} in venue root", newType);
+                YargLogger.LogFormatError("Failed to find character of type {0} in venue root", venueCharacter.Type);
                 return;
             }
 
@@ -906,11 +906,29 @@ namespace YARG.Gameplay
             existingCharacter.SetActive(false);
             Destroy(existingCharacter);
 
+            if (venueCharacter is VRMCharacter vrmCharacter)
+            {
+                _ = CopyLipsyncToNewCharacter(venueRoot, vrmCharacter);
+            }
+
             AddMicrophoneToCharacter(newCharacter);
 
             // Lastly, make sure the new character and all its children are in the Venue layer
             var layerIndex = LayerMask.NameToLayer("Venue");
             SetLayer(newCharacter, layerIndex);
+        }
+
+        private static async UniTask CopyLipsyncToNewCharacter(GameObject venueRoot, VRMCharacter character)
+        {
+            // Find CharacterManager
+            var characterManager = venueRoot.GetComponentInChildren<CharacterManager>();
+
+            if (characterManager == null)
+            {
+                return;
+            }
+
+            characterManager.AssignLipsyncToCharacter(character);
         }
 
         private void AddMicrophoneToCharacter(GameObject character)

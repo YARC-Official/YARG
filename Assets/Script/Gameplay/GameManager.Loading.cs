@@ -371,9 +371,7 @@ namespace YARG.Gameplay
 
         private void GenerateLipsyncTrack()
         {
-            SongChart.LoadLipsyncFromMilo(Chart, Song);
-
-            YargLogger.LogFormatDebug("Loaded {0} lipsync events from milo", Chart.LipsyncEvents.Count);
+            SongChart.LoadLipsync(Chart, Song);
         }
 
         private void FinalizeChart()

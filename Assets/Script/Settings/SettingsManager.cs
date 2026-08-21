@@ -100,6 +100,7 @@ namespace YARG.Settings
                 nameof(Settings.HighScoreInfo),
                 new FieldMetadata(nameof(Settings.ShowPercentDecimals), isAdvanced: true),
                 nameof(Settings.HighScoreHistory),
+                new FieldMetadata(nameof(Settings.SongLengthLabels), isAdvanced: true),
                 new HeaderMetadata("PlayAShow"),
                 nameof(Settings.EnablePlayAShow),
                 nameof(Settings.PlayAShowTimeout),
@@ -124,6 +125,7 @@ namespace YARG.Settings
                 new FieldMetadata(nameof(Settings.PreviewVolume), isAdvanced: true),
                 nameof(Settings.MusicPlayerVolume),
                 new FieldMetadata(nameof(Settings.VocalMonitoring)),
+                nameof(Settings.VocalReverb),
                 new FieldMetadata(nameof(Settings.MetronomeVolume), isAdvanced: true),
 
                 new HeaderMetadata("Customization", isAdvanced: true),
@@ -271,6 +273,7 @@ namespace YARG.Settings
                 nameof(Settings.DataStreamEnable),
                 nameof(Settings.StreakCounter),
                 nameof(Settings.SaveScoresWithBots),
+                nameof(Settings.ReverbImplementation),
                 new HeaderMetadata("Accessibility"),
                 nameof(Settings.FontScaling),
                 new HeaderMetadata("OutputConfiguration"),
@@ -329,6 +332,14 @@ namespace YARG.Settings
 
             // If null, recreate
             Settings ??= new SettingContainer();
+
+            if (Settings.ReverbImplementation != null &&
+                !Enum.IsDefined(typeof(ReverbMode), Settings.ReverbImplementation.Value))
+            {
+                int raw = (int)(object)Settings.ReverbImplementation.Value;
+                ReverbMode migrated = raw == 0 ? ReverbMode.Performance : ReverbMode.Quality;
+                Settings.ReverbImplementation.SetValueWithoutNotify(migrated);
+            }
 
             AudioOutputMode outputMode = GlobalAudioHandler.GetOutputMode(Settings.OutputDevice.Value);
             Settings.OutputMode.SetValueWithoutNotify(outputMode);
