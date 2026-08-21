@@ -23,8 +23,6 @@ namespace YARG.Audio.BASS
 
         internal event Action<BassToneChannel>? Disposed;
 
-        internal bool IsAttached => _dsp.IsAttached;
-
         internal static BassToneChannel? Create(int tempoStreamHandle, double volume,
             double fadeDuration)
         {
