@@ -7,9 +7,6 @@ using YARG.Core.Audio;
 
 namespace YARG.Audio.BASS
 {
-    /// <summary>
-    ///     Creates shared, ASIO, or WASAPI Exclusive outputs from the device name selected in settings.
-    /// </summary>
     internal sealed class BassOutputFactory
     {
         private readonly BassAsioMics _asioMics = new();
@@ -21,7 +18,7 @@ namespace YARG.Audio.BASS
             _router = router;
         }
 
-        private static bool IsWindowsSupported
+        private static bool IsWindows
         {
             get
             {
@@ -35,7 +32,7 @@ namespace YARG.Audio.BASS
 
         public BassOutput? Create(string name)
         {
-            if (IsWindowsSupported)
+            if (IsWindows)
             {
                 if (name.StartsWith(BassWasapiOutput.DEVICE_PREFIX, StringComparison.Ordinal))
                 {
@@ -54,7 +51,7 @@ namespace YARG.Audio.BASS
         public List<(int id, string name)> GetAllDevices()
         {
             var devices = BassSharedOutput.GetDevices();
-            if (IsWindowsSupported)
+            if (IsWindows)
             {
                 devices.AddRange(BassAsioOutput.GetDevices());
                 devices.AddRange(BassWasapiOutput.GetDevices());

@@ -25,6 +25,7 @@ namespace YARG.Audio.BASS.Wasapi
 
         private double _volume = 1;
         private int    _restartQueued;
+        private int    _latencyFrames;
         private bool   _isStarted;
 
         private BassWasapiOutput(string name, BassOutputDevice device, int wasapiDeviceIndex, BassAudioRouter router)
@@ -37,51 +38,27 @@ namespace YARG.Audio.BASS.Wasapi
         }
 
         public override int HeardLatencyMilliseconds =>
-            (int) Math.Round(SongPlaybackStartDelay * 1000.0);
+            SampleRate > 0 ? (int) Math.Round(_latencyFrames * 1000.0 / SampleRate) : 0;
 
-        internal override int EndpointDelayFrames
-        {
-            get
-            {
-                if (!_isStarted || ChannelCount <= 0)
-                {
-                    return 0;
-                }
-
-                try
-                {
-                    BassWasapi.CurrentDevice = _wasapiDeviceIndex;
-                    int availableBytes = BassWasapi.GetData(IntPtr.Zero, (int) DataFlags.Available);
-                    return availableBytes > 0 ? availableBytes / (ChannelCount * sizeof(float)) : 0;
-                }
-                catch
-                {
-                    return 0;
-                }
-            }
-        }
+        internal override int EndpointDelayFrames => _latencyFrames;
 
         internal override double SongPlaybackStartDelay =>
-            SampleRate > 0 ? EndpointDelayFrames / (double) SampleRate : 0;
+            SampleRate > 0 ? _latencyFrames / (double) SampleRate : 0;
 
         internal override bool UsesIndependentClock => true;
 
         public static BassWasapiOutput? Find(string name, BassAudioRouter router)
         {
-            if (!name.StartsWith(DEVICE_PREFIX, StringComparison.Ordinal))
+            foreach (var (id, devName) in GetDevices())
             {
-                return null;
+                if (string.Equals(devName, name, StringComparison.Ordinal))
+                {
+                    var device = BassOutputDevice.CreateWasapi(name);
+                    return device == null ? null : new BassWasapiOutput(name, device, id, router);
+                }
             }
 
-            string rawName = name.Substring(DEVICE_PREFIX.Length);
-            int deviceIndex = FindDevice(rawName);
-            if (deviceIndex < 0)
-            {
-                return null;
-            }
-
-            var device = BassOutputDevice.CreateWasapi(name);
-            return device == null ? null : new BassWasapiOutput(name, device, deviceIndex, router);
+            return null;
         }
 
         public static List<(int id, string name)> GetDevices()
@@ -138,8 +115,7 @@ namespace YARG.Audio.BASS.Wasapi
                 if (!BassWasapi.InitEx(_wasapiDeviceIndex, sampleRate, channelCount, flags, bufferLength, 0,
                         BassWasapi.WasapiProc_Bass, (IntPtr) OutputMixerHandle))
                 {
-                    YargLogger.LogFormatError("Failed to initialize WASAPI device [{0}]: {1}",
-                        Name, Bass.LastError);
+                    YargLogger.LogFormatError("Failed to initialize WASAPI device [{0}]: {1}", Name, Bass.LastError);
                     StopOutput();
                     return false;
                 }
@@ -148,6 +124,7 @@ namespace YARG.Audio.BASS.Wasapi
 
                 if (BassWasapi.GetInfo(out var wasapiInfo))
                 {
+                    _latencyFrames = wasapiInfo.Channels > 0 ? wasapiInfo.BufferLength / (wasapiInfo.Channels * sizeof(float)) : 0;
                     YargLogger.LogFormatInfo(
                         "WASAPI Exclusive output initialized: {0} Hz, {1} ch, buffer {2} bytes ({3} format)",
                         wasapiInfo.Frequency, wasapiInfo.Channels, wasapiInfo.BufferLength, wasapiInfo.Format);
@@ -173,33 +150,8 @@ namespace YARG.Audio.BASS.Wasapi
             }
         }
 
-        public override OutputBufferInfo? GetBufferInfo()
-        {
-            if (!_isStarted)
-            {
-                return null;
-            }
-
-            try
-            {
-                BassWasapi.CurrentDevice = _wasapiDeviceIndex;
-                if (!BassWasapi.GetInfo(out var info))
-                {
-                    return null;
-                }
-
-                int frames = info.Channels > 0 && SampleRate > 0
-                    ? info.BufferLength / (info.Channels * sizeof(float))
-                    : 0;
-
-                return new OutputBufferInfo(Array.Empty<int>(), frames, info.Frequency, true);
-            }
-            catch (Exception exception)
-            {
-                YargLogger.LogException(exception, "Failed to read WASAPI buffer info");
-                return null;
-            }
-        }
+        public override OutputBufferInfo? GetBufferInfo() =>
+            _isStarted ? new OutputBufferInfo(Array.Empty<int>(), _latencyFrames, SampleRate, true) : null;
 
         public override IReadOnlyList<InputDeviceInfo> GetInputs() => _microphones.GetAllDevices();
 
@@ -227,6 +179,7 @@ namespace YARG.Audio.BASS.Wasapi
         protected override void StopOutput()
         {
             _isStarted = false;
+            _latencyFrames = 0;
             try
             {
                 BassWasapi.CurrentDevice = _wasapiDeviceIndex;
@@ -267,27 +220,6 @@ namespace YARG.Audio.BASS.Wasapi
                 YargLogger.LogInfo("Reinitializing WASAPI Exclusive output");
                 RequestRestart();
             }
-        }
-
-        private static int FindDevice(string rawName)
-        {
-            try
-            {
-                for (int i = 0; BassWasapi.GetDeviceInfo(i, out var info); i++)
-                {
-                    if (info.IsEnabled && !info.IsInput && !info.IsLoopback &&
-                        string.Equals(info.Name, rawName, StringComparison.Ordinal))
-                    {
-                        return i;
-                    }
-                }
-            }
-            catch (Exception exception)
-            {
-                YargLogger.LogException(exception, "Failed to search WASAPI devices");
-            }
-
-            return -1;
         }
     }
 }

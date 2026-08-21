@@ -61,6 +61,8 @@ namespace YARG.Audio.BASS.Wasapi
                 return null;
             }
 
+            var device = new InputDeviceInfo(deviceId, requested.Name, requested.Channel, channelCount);
+
             BassWasapiMicrophoneCapture? capture;
             lock (_lock)
             {
@@ -75,23 +77,19 @@ namespace YARG.Audio.BASS.Wasapi
                     _captures.Add(deviceId, capture);
                 }
 
-                if (!capture.TryClaimChannel(requested.Channel))
+                if (!capture.TryClaimChannel(device.Channel))
                 {
                     YargLogger.LogFormatWarning("WASAPI mic '{0}' channel {1} is already claimed",
-                        requested.Name, requested.Channel);
+                        device.Name, device.Channel);
                     return null;
                 }
             }
 
-            string displayName = channelCount > 1
-                ? $"{requested.Name} - Channel {requested.Channel + 1}"
-                : requested.Name;
-
-            var source = BassWasapiMicSource.Create(capture, requested.Name, displayName, requested.Channel, _router,
-                () => ReleaseMic(deviceId, requested.Channel, capture));
+            var source = BassWasapiMicSource.Create(capture, device, _router,
+                () => ReleaseMic(deviceId, device.Channel, capture));
             if (source == null)
             {
-                ReleaseMic(deviceId, requested.Channel, capture);
+                ReleaseMic(deviceId, device.Channel, capture);
                 return null;
             }
 
@@ -127,32 +125,25 @@ namespace YARG.Audio.BASS.Wasapi
         {
             lock (_lock)
             {
-                if (!_captures.TryGetValue(deviceId, out var current) || !ReferenceEquals(current, capture))
+                if (_captures.TryGetValue(deviceId, out var current) && ReferenceEquals(current, capture))
                 {
-                    return;
-                }
-
-                capture.ReleaseChannel(channel);
-                if (!capture.HasClaimedChannel)
-                {
-                    _captures.Remove(deviceId);
-                    capture.Dispose();
+                    capture.ReleaseChannel(channel);
+                    if (!capture.HasClaimedChannel)
+                    {
+                        _captures.Remove(deviceId);
+                        capture.Dispose();
+                    }
                 }
             }
         }
 
-        private static int FindDeviceIdByName(string name)
+        private int FindDeviceIdByName(string name)
         {
-            string searchName = name.StartsWith(BassWasapiOutput.DEVICE_PREFIX, StringComparison.Ordinal)
-                ? name.Substring(BassWasapiOutput.DEVICE_PREFIX.Length)
-                : name;
-
-            for (int i = 0; BassWasapi.GetDeviceInfo(i, out var info); i++)
+            foreach (var device in GetAllDevices())
             {
-                if (info.IsEnabled && info.IsInput && !info.IsLoopback &&
-                    string.Equals(info.Name, searchName, StringComparison.OrdinalIgnoreCase))
+                if (string.Equals(device.Name, name, StringComparison.OrdinalIgnoreCase))
                 {
-                    return i;
+                    return device.DeviceId;
                 }
             }
 
