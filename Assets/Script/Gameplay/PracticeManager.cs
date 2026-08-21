@@ -1,7 +1,6 @@
 using System;
 using System.Linq;
 using UnityEngine;
-using YARG.Audio.Effects;
 using YARG.Core;
 using YARG.Core.Chart;
 using YARG.Core.Input;
@@ -16,6 +15,15 @@ namespace YARG.Gameplay
     {
         private const double SECTION_RESTART_DELAY = 2;
         private const double PRACTICE_ENTRY_LOOKBACK = 10; // seconds
+
+        /// <summary>Volume of the guide pitch tone relative to the master mix.</summary>
+        private const double GUIDE_PITCH_VOLUME = 0.35;
+
+        /// <summary>
+        /// Target duration for a full volume fade of the guide pitch tone, in seconds. Long enough
+        /// to avoid an audible click at note boundaries, short enough to stay tight against onsets.
+        /// </summary>
+        private const double GUIDE_PITCH_FADE_SECONDS = 0.015;
 
         [Header("References")]
         [SerializeField]
@@ -67,14 +75,14 @@ namespace YARG.Gameplay
             if (vocalsTrack == null)
                 return;
 
-            var pitchSource = new VocalNotePitchSource();
-            var dspHandle   = GameManager.Mixer.AttachOutputDsp(new SineSynthDsp(pitchSource));
-            if (dspHandle == null)
+            var toneChannel = GameManager.Mixer.CreateToneChannel(GUIDE_PITCH_VOLUME,
+                GUIDE_PITCH_FADE_SECONDS);
+            if (toneChannel == null)
             {
                 return;
             }
 
-            _guidePitchManager = new GuidePitchManager(pitchSource, dspHandle, vocalsTrack);
+            _guidePitchManager = new GuidePitchManager(toneChannel, vocalsTrack);
             _guidePitchManager.OnGuidePitchChanged += _practiceHud.SetGuidePitchPartText;
 
             _practiceHud.SetGuidePitchPartText(_guidePitchManager.GetStatusString(), _guidePitchManager.GetStatusColor());

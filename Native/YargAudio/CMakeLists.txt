@@ -16,6 +16,7 @@ set(YARG_AUDIO_SOURCES
     src/BassCoreBindings.cpp
     src/dsp/GainDsp.cpp
     src/dsp/FreeverbDsp.cpp
+    src/dsp/SineSynthDsp.cpp
     src/one_shot/ScheduledSampleSource.cpp
     src/one_shot/NativeOneShotStream.cpp
     src/PlatformDynamicLibrary.cpp
@@ -71,6 +72,7 @@ if(YARG_AUDIO_BUILD_TESTS)
         tests/BassBindingTests.cpp
         tests/GainDspTests.cpp
         tests/FreeverbDspTests.cpp
+        tests/SineSynthDspTests.cpp
         tests/RenderAheadMixerTests.cpp
         tests/ScheduledSampleSourceTests.cpp
         tests/NativeOneShotStreamTests.cpp
@@ -80,6 +82,7 @@ if(YARG_AUDIO_BUILD_TESTS)
         src/BassMixBindings.cpp
         src/dsp/GainDsp.cpp
         src/dsp/FreeverbDsp.cpp
+        src/dsp/SineSynthDsp.cpp
         src/one_shot/ScheduledSampleSource.cpp
         src/one_shot/NativeOneShotStream.cpp
         src/PlatformDynamicLibrary.cpp

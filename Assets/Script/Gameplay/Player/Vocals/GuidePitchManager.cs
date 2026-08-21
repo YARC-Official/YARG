@@ -1,7 +1,9 @@
 using System;
 using UnityEngine;
 using YARG.Core;
+using YARG.Core.Audio;
 using YARG.Core.Chart;
+using YARG.Core.Logging;
 using YARG.Localization;
 
 namespace YARG.Gameplay.Player
@@ -10,10 +12,10 @@ namespace YARG.Gameplay.Player
     /// Manages the guide pitch feature for vocals practice mode.
     ///
     /// <para>
-    /// Toggle state (which harmony part is active) lives here on the game thread. The
-    /// selection is published to a <see cref="VocalNotePitchSource"/>, which is scanned
-    /// on the audio thread by whichever synth was attached to the mixer, at the
-    /// render-ahead song position so it is sample-accurate with the mixed stems.
+    /// Toggle state (which harmony part is active) lives here on the game thread. Selecting a part
+    /// publishes its pitch schedule to a <see cref="ToneChannel"/>; the audio backend renders the
+    /// tone against the song position, so it stays sample-accurate with the mixed stems without
+    /// any per-sample work here.
     /// </para>
     /// </summary>
     public sealed class GuidePitchManager : IDisposable
@@ -25,19 +27,16 @@ namespace YARG.Gameplay.Player
         /// </summary>
         private int _enabledHarmonyIndex = -1;
 
-        private readonly VocalNotePitchSource _pitchSource;
-        private readonly IDisposable          _dspHandle;
-        private          VocalsTrack          _vocalsTrack;
+        private readonly ToneChannel _toneChannel;
+        private          VocalsTrack _vocalsTrack;
 
         public event Action<string, Color> OnGuidePitchChanged;
 
-        /// <param name="pitchSource">The pitch source driving the synth.</param>
-        /// <param name="dspHandle">The disposable handle returned by <c>AttachOutputDsp</c>.</param>
+        /// <param name="toneChannel">The tone channel that renders the guide pitch.</param>
         /// <param name="vocalsTrack">The original (full-song) vocals track.</param>
-        public GuidePitchManager(VocalNotePitchSource pitchSource, IDisposable dspHandle, VocalsTrack vocalsTrack)
+        public GuidePitchManager(ToneChannel toneChannel, VocalsTrack vocalsTrack)
         {
-            _pitchSource = pitchSource ?? throw new ArgumentNullException(nameof(pitchSource));
-            _dspHandle   = dspHandle   ?? throw new ArgumentNullException(nameof(dspHandle));
+            _toneChannel = toneChannel ?? throw new ArgumentNullException(nameof(toneChannel));
             _vocalsTrack = vocalsTrack ?? throw new ArgumentNullException(nameof(vocalsTrack));
         }
 
@@ -81,25 +80,37 @@ namespace YARG.Gameplay.Player
                 }
             }
 
-            _pitchSource.SetPart(GetEnabledPart());
+            PublishSchedule();
             OnGuidePitchChanged?.Invoke(GetStatusString(), GetStatusColor());
         }
 
         /// <summary>
-        /// Call when the practice section changes so the pitch source resets its note scan.
+        /// Call when the practice section changes. Republishes only if that actually changed which
+        /// notes the tone should follow.
         /// </summary>
         public void OnPracticeSectionChanged(VocalsTrack sectionTrack)
         {
-            _vocalsTrack = sectionTrack ?? throw new ArgumentNullException(nameof(sectionTrack));
-
-            // Clamp enabled index in case the new section has fewer parts
-            if (_enabledHarmonyIndex >= _vocalsTrack.Parts.Count)
+            if (sectionTrack == null)
             {
-                _enabledHarmonyIndex = -1;
+                throw new ArgumentNullException(nameof(sectionTrack));
             }
 
-            // Re-push the current part (or null). SetPart() also resets the note scan.
-            _pitchSource.SetPart(GetEnabledPart());
+            // Clamp enabled index in case the new section has fewer parts
+            int index = _enabledHarmonyIndex >= sectionTrack.Parts.Count ? -1 : _enabledHarmonyIndex;
+
+            // Callers pass the full-song track, which is the same object for every section. The
+            // schedule is in absolute song time, so the notes already published serve the new
+            // section as well; rebuilding would allocate a fresh table, re-take the mixer lock and
+            // reposition the render thread's scan, all to arrive at an identical schedule.
+            if (ReferenceEquals(sectionTrack, _vocalsTrack) && index == _enabledHarmonyIndex)
+            {
+                return;
+            }
+
+            _vocalsTrack = sectionTrack;
+            _enabledHarmonyIndex = index;
+
+            PublishSchedule();
             OnGuidePitchChanged?.Invoke(GetStatusString(), GetStatusColor());
         }
 
@@ -134,7 +145,24 @@ namespace YARG.Gameplay.Player
             return VocalTrack.Colors[index];
         }
 
-        public void Dispose() => _dspHandle.Dispose();
+        public void Dispose() => _toneChannel.Dispose();
+
+        /// <summary>
+        /// Pushes the current part's schedule to the backend. A rejected schedule leaves the previous
+        /// one playing, which in practice mode means the tone keeps following the section the player
+        /// just left, so drop back to off rather than let it contradict the notes on screen.
+        /// </summary>
+        private void PublishSchedule()
+        {
+            if (_toneChannel.SetSchedule(VocalToneSchedule.Build(GetEnabledPart())))
+            {
+                return;
+            }
+
+            YargLogger.LogWarning("Could not update the guide pitch schedule; disabling it.");
+            _enabledHarmonyIndex = -1;
+            _toneChannel.SetSchedule(ReadOnlySpan<ToneSegment>.Empty);
+        }
 
         private VocalsPart GetEnabledPart()
         {
