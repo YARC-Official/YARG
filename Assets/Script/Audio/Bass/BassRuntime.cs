@@ -89,26 +89,51 @@ namespace YARG.Audio.BASS
 #endif
 
 #if UNITY_EDITOR_WIN
+            int asioDeviceCount = 0;
             try
             {
-                for (int i = 0; i < BassAsio.DeviceCount; i++)
+                asioDeviceCount = BassAsio.DeviceCount;
+            }
+            catch (Exception ex)
+            {
+                YargLogger.LogWarning($"Exception reading ASIO devices during cleanup: {ex.Message}");
+            }
+
+            for (int i = 0; i < asioDeviceCount; i++)
+            {
+                try
                 {
                     BassAsio.CurrentDevice = i;
                     BassAsio.Free();
                 }
-
-                for (int i = 0; BassWasapi.GetDeviceInfo(i, out var wasapiInfo); i++)
+                catch (Exception ex)
                 {
+                    YargLogger.LogWarning($"Exception freeing ASIO device {i}: {ex.Message}");
+                }
+            }
+
+            for (int i = 0; ; i++)
+            {
+                bool found;
+                try
+                {
+                    found = BassWasapi.GetDeviceInfo(i, out var wasapiInfo);
+                    if (!found)
+                    {
+                        break;
+                    }
+
                     if (wasapiInfo.IsInitialized)
                     {
                         BassWasapi.CurrentDevice = i;
                         BassWasapi.Free();
                     }
                 }
-            }
-            catch (Exception ex)
-            {
-                YargLogger.LogWarning($"Exception freeing native audio drivers: {ex.Message}");
+                catch (Exception ex)
+                {
+                    YargLogger.LogWarning($"Exception freeing WASAPI device {i}: {ex.Message}");
+                    break;
+                }
             }
 #endif
         }

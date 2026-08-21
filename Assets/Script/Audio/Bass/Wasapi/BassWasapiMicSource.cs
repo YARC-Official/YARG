@@ -11,28 +11,43 @@ namespace YARG.Audio.BASS.Wasapi
         private readonly BassMicSignal               _signal;
         private readonly Action                      _onDisposed;
 
-        private BassWasapiMicSource(BassWasapiMicrophoneCapture capture, InputDeviceInfo device,
-            BassAudioRouter router, Action onDisposed)
+        private BassWasapiMicSource(BassWasapiMicrophoneCapture capture, BassMicSignal signal,
+            InputDeviceInfo device, Action onDisposed)
             : base(device.Name, device.DisplayName, device.Channel)
         {
             _capture = capture;
+            _signal = signal;
             _onDisposed = onDisposed;
-
-            int[]? channelMap = capture.Channels > 1 ? new[] { device.Channel, -1 } : null;
-            _signal = BassMicSignal.Create(capture.ReadHandle, channelMap, capture.SampleRate, device.DisplayName,
-                router, SettingsManager.Settings.VocalMonitoring.Value, true, OnMonitorAttached, OnMonitorDetached)!;
         }
 
         public static BassWasapiMicSource? Create(BassWasapiMicrophoneCapture capture, InputDeviceInfo device,
             BassAudioRouter router, Action onDisposed)
         {
-            var source = new BassWasapiMicSource(capture, device, router, onDisposed);
-            if (source._signal == null || !source.IsValid)
+            int[]? channelMap = capture.Channels > 1 ? new[] { device.Channel, -1 } : null;
+            float monitoringLevel = SettingsManager.Settings.VocalMonitoring.Value;
+            BassWasapiMicSource? source = null;
+
+            var signal = BassMicSignal.Create(
+                sourceHandle: capture.ReadHandle,
+                channelMap: channelMap,
+                sampleRate: capture.SampleRate,
+                name: device.DisplayName,
+                router: router,
+                monitoringLevel: monitoringLevel,
+                applyAnalysisEq: true,
+                attached: () => capture.AddListener(),
+                detached: () =>
+                {
+                    capture.RemoveListener();
+                    source?.RaiseInputChanged();
+                });
+
+            if (signal == null)
             {
-                source.Dispose();
                 return null;
             }
 
+            source = new BassWasapiMicSource(capture, signal, device, onDisposed);
             return source;
         }
 
@@ -83,19 +98,8 @@ namespace YARG.Audio.BASS.Wasapi
 
         protected override void DisposeCore()
         {
-            _signal?.Dispose();
+            _signal.Dispose();
             _onDisposed();
-        }
-
-        private void OnMonitorAttached()
-        {
-            _capture.AddListener();
-        }
-
-        private void OnMonitorDetached()
-        {
-            _capture.RemoveListener();
-            RaiseInputChanged();
         }
     }
 }

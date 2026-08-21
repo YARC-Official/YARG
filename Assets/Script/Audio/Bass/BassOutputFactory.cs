@@ -7,15 +7,20 @@ using YARG.Core.Audio;
 
 namespace YARG.Audio.BASS
 {
+    /// <summary>
+    ///     Creates shared, WASAPI, or ASIO outputs from the device name selected in settings.
+    /// </summary>
     internal sealed class BassOutputFactory
     {
-        private readonly BassAsioMics _asioMics = new();
+        private readonly BassAsioMics         _asioMics = new();
+        private readonly BassWasapiMicManager _wasapiMics;
 
         private readonly BassAudioRouter _router;
 
         public BassOutputFactory(BassAudioRouter router)
         {
             _router = router;
+            _wasapiMics = new BassWasapiMicManager(router);
         }
 
         private static bool IsWindows
@@ -36,7 +41,7 @@ namespace YARG.Audio.BASS
             {
                 if (name.StartsWith(BassWasapiOutput.DEVICE_PREFIX, StringComparison.Ordinal))
                 {
-                    return BassWasapiOutput.Find(name, _router);
+                    return BassWasapiOutput.Find(name, _wasapiMics);
                 }
 
                 if (name.StartsWith(BassAsioOutput.DEVICE_PREFIX, StringComparison.Ordinal))
@@ -74,5 +79,7 @@ namespace YARG.Audio.BASS
 
             return AudioOutputMode.Shared;
         }
+
+        public void Dispose() => _wasapiMics.Dispose();
     }
 }

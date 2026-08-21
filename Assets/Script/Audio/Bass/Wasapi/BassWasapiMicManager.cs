@@ -1,6 +1,7 @@
 #nullable enable
 using System;
 using System.Collections.Generic;
+using ManagedBass;
 using ManagedBass.Wasapi;
 using YARG.Core.Audio;
 using YARG.Core.Logging;
@@ -12,10 +13,51 @@ namespace YARG.Audio.BASS.Wasapi
         private readonly Dictionary<int, BassWasapiMicrophoneCapture> _captures = new();
         private readonly object                                       _lock     = new();
         private readonly BassAudioRouter                              _router;
+        private readonly WasapiNotifyProcedure                         _notifyProcedure;
+        private          BassWasapiOutput?                             _output;
+        private          bool                                           _notificationsRegistered;
 
         public BassWasapiMicManager(BassAudioRouter router)
         {
             _router = router;
+            _notifyProcedure = OnWasapiNotify;
+        }
+
+        public bool AttachOutput(BassWasapiOutput output)
+        {
+            lock (_lock)
+            {
+                _output = output;
+                if (BassWasapiMicrophoneCapture.SetNotification(_notifyProcedure))
+                {
+                    _notificationsRegistered = true;
+                    return true;
+                }
+
+                _output = null;
+                YargLogger.LogFormatError("Failed to register WASAPI device notifications: {0}", Bass.LastError);
+                return false;
+            }
+        }
+
+        public void DetachOutput(BassWasapiOutput output)
+        {
+            lock (_lock)
+            {
+                if (!ReferenceEquals(_output, output))
+                {
+                    return;
+                }
+
+                _output = null;
+                if (_captures.Count == 0 && _notificationsRegistered)
+                {
+                    if (BassWasapiMicrophoneCapture.SetNotification(null))
+                    {
+                        _notificationsRegistered = false;
+                    }
+                }
+            }
         }
 
         public List<InputDeviceInfo> GetAllDevices()
@@ -25,7 +67,7 @@ namespace YARG.Audio.BASS.Wasapi
             {
                 for (int i = 0; BassWasapi.GetDeviceInfo(i, out var info); i++)
                 {
-                    if (info.IsEnabled && info.IsInput && !info.IsLoopback)
+                    if (info.IsUsableInput())
                     {
                         string baseName = $"{BassWasapiOutput.DEVICE_PREFIX}{info.Name}";
                         int channelCount = Math.Max(1, info.MixChannels);
@@ -47,34 +89,35 @@ namespace YARG.Audio.BASS.Wasapi
 
         public MicDevice? CreateMic(InputDeviceInfo requested)
         {
-            int deviceId = requested.DeviceId >= 0 ? requested.DeviceId : FindDeviceIdByName(requested.Name);
-            if (deviceId < 0 || !BassWasapi.GetDeviceInfo(deviceId, out var info))
+            InputDeviceInfo device = default;
+            bool found = false;
+            foreach (var available in GetAllDevices())
+            {
+                if (available.Matches(requested))
+                {
+                    device = available;
+                    found = true;
+                    break;
+                }
+            }
+
+            if (!found)
             {
                 return null;
             }
-
-            int channelCount = Math.Max(1, info.MixChannels);
-            if (requested.Channel < 0 || requested.Channel >= channelCount)
-            {
-                YargLogger.LogFormatWarning("WASAPI mic '{0}' channel {1} is out of range (device has {2} channels)",
-                    requested.Name, requested.Channel, channelCount);
-                return null;
-            }
-
-            var device = new InputDeviceInfo(deviceId, requested.Name, requested.Channel, channelCount);
 
             BassWasapiMicrophoneCapture? capture;
             lock (_lock)
             {
-                if (!_captures.TryGetValue(deviceId, out capture))
+                if (!_captures.TryGetValue(device.DeviceId, out capture))
                 {
-                    capture = BassWasapiMicrophoneCapture.Create(deviceId, channelCount);
+                    capture = BassWasapiMicrophoneCapture.Create(device.DeviceId, device.ChannelCount);
                     if (capture == null)
                     {
                         return null;
                     }
 
-                    _captures.Add(deviceId, capture);
+                    _captures.Add(device.DeviceId, capture);
                 }
 
                 if (!capture.TryClaimChannel(device.Channel))
@@ -86,10 +129,10 @@ namespace YARG.Audio.BASS.Wasapi
             }
 
             var source = BassWasapiMicSource.Create(capture, device, _router,
-                () => ReleaseMic(deviceId, device.Channel, capture));
+                () => ReleaseMic(device.DeviceId, device.Channel, capture));
             if (source == null)
             {
-                ReleaseMic(deviceId, device.Channel, capture);
+                ReleaseMic(device.DeviceId, device.Channel, capture);
                 return null;
             }
 
@@ -112,12 +155,38 @@ namespace YARG.Audio.BASS.Wasapi
         {
             lock (_lock)
             {
+                _output = null;
+                if (_notificationsRegistered)
+                {
+                    if (BassWasapiMicrophoneCapture.SetNotification(null))
+                    {
+                        _notificationsRegistered = false;
+                    }
+                }
                 foreach (var capture in _captures.Values)
                 {
                     capture.Dispose();
                 }
 
                 _captures.Clear();
+            }
+        }
+
+        private void OnWasapiNotify(WasapiNotificationType notify, int device, IntPtr user)
+        {
+            BassWasapiOutput? output;
+            BassWasapiMicrophoneCapture[] captures;
+            lock (_lock)
+            {
+                output = _output;
+                captures = new BassWasapiMicrophoneCapture[_captures.Count];
+                _captures.Values.CopyTo(captures, 0);
+            }
+
+            output?.OnWasapiNotify(notify, device);
+            foreach (var capture in captures)
+            {
+                capture.OnWasapiNotify(notify, device);
             }
         }
 
@@ -132,22 +201,28 @@ namespace YARG.Audio.BASS.Wasapi
                     {
                         _captures.Remove(deviceId);
                         capture.Dispose();
+                        if (_output == null && _notificationsRegistered)
+                        {
+                            if (BassWasapiMicrophoneCapture.SetNotification(null))
+                            {
+                                _notificationsRegistered = false;
+                            }
+                        }
                     }
                 }
             }
         }
+    }
 
-        private int FindDeviceIdByName(string name)
-        {
-            foreach (var device in GetAllDevices())
-            {
-                if (string.Equals(device.Name, name, StringComparison.OrdinalIgnoreCase))
-                {
-                    return device.DeviceId;
-                }
-            }
+    internal static class BassWasapiMicManagerExtensions
+    {
+        public static bool IsUsableInput(this WasapiDeviceInfo info) =>
+            info.IsEnabled && info.IsInput && !info.IsLoopback;
 
-            return -1;
-        }
+        public static bool Matches(this InputDeviceInfo available, InputDeviceInfo requested) =>
+            (requested.DeviceId >= 0
+                ? available.DeviceId == requested.DeviceId
+                : string.Equals(available.Name, requested.Name, StringComparison.OrdinalIgnoreCase)) &&
+            available.Channel == requested.Channel;
     }
 }

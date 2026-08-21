@@ -227,13 +227,7 @@ namespace YARG.Editor
                 return;
             }
 
-            var sharedMics = _availableMicDevices.Where(d =>
-                !d.DisplayName.StartsWith("ASIO: ", StringComparison.OrdinalIgnoreCase) &&
-                !d.DisplayName.StartsWith("WASAPI: ", StringComparison.OrdinalIgnoreCase)).ToList();
-            var wasapiMics = _availableMicDevices.Where(d =>
-                d.DisplayName.StartsWith("WASAPI: ", StringComparison.OrdinalIgnoreCase)).ToList();
-            var asioMics = _availableMicDevices.Where(d =>
-                d.DisplayName.StartsWith("ASIO: ", StringComparison.OrdinalIgnoreCase)).ToList();
+            var (sharedMics, wasapiMics, asioMics) = GroupMicrophones();
 
             foreach (var device in sharedMics)
             {
@@ -288,13 +282,7 @@ namespace YARG.Editor
                 return;
             }
 
-            var sharedMics = _availableMicDevices.Where(d =>
-                !d.DisplayName.StartsWith("ASIO: ", StringComparison.OrdinalIgnoreCase) &&
-                !d.DisplayName.StartsWith("WASAPI: ", StringComparison.OrdinalIgnoreCase)).ToList();
-            var wasapiMics = _availableMicDevices.Where(d =>
-                d.DisplayName.StartsWith("WASAPI: ", StringComparison.OrdinalIgnoreCase)).ToList();
-            var asioMics = _availableMicDevices.Where(d =>
-                d.DisplayName.StartsWith("ASIO: ", StringComparison.OrdinalIgnoreCase)).ToList();
+            var (sharedMics, wasapiMics, asioMics) = GroupMicrophones();
 
             foreach (var device in sharedMics)
             {
@@ -332,6 +320,32 @@ namespace YARG.Editor
             }
 
             menu.ShowAsContext();
+        }
+
+        private (List<InputDeviceInfo> Shared, List<InputDeviceInfo> Wasapi, List<InputDeviceInfo> Asio)
+            GroupMicrophones()
+        {
+            var shared = new List<InputDeviceInfo>();
+            var wasapi = new List<InputDeviceInfo>();
+            var asio = new List<InputDeviceInfo>();
+
+            foreach (var device in _availableMicDevices)
+            {
+                if (device.DisplayName.StartsWith("WASAPI: ", StringComparison.OrdinalIgnoreCase))
+                {
+                    wasapi.Add(device);
+                }
+                else if (device.DisplayName.StartsWith("ASIO: ", StringComparison.OrdinalIgnoreCase))
+                {
+                    asio.Add(device);
+                }
+                else
+                {
+                    shared.Add(device);
+                }
+            }
+
+            return (shared, wasapi, asio);
         }
 
         private void RefreshAvailableMicrophones()

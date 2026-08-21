@@ -19,22 +19,19 @@ namespace YARG.Audio.BASS.Wasapi
         private const float DEFAULT_BUFFER_LENGTH_SECONDS = 0.05f;
 
         private readonly int                   _wasapiDeviceIndex;
-        private readonly BassAudioRouter       _router;
         private readonly BassWasapiMicManager  _microphones;
-        private readonly WasapiNotifyProcedure _notifyProcedure;
 
         private double _volume = 1;
         private int    _restartQueued;
         private int    _latencyFrames;
         private bool   _isStarted;
 
-        private BassWasapiOutput(string name, BassOutputDevice device, int wasapiDeviceIndex, BassAudioRouter router)
+        private BassWasapiOutput(string name, BassOutputDevice device, int wasapiDeviceIndex,
+            BassWasapiMicManager microphones)
             : base(name, device)
         {
             _wasapiDeviceIndex = wasapiDeviceIndex;
-            _router = router;
-            _microphones = new BassWasapiMicManager(router);
-            _notifyProcedure = OnWasapiNotify;
+            _microphones = microphones;
         }
 
         public override int HeardLatencyMilliseconds =>
@@ -47,14 +44,14 @@ namespace YARG.Audio.BASS.Wasapi
 
         internal override bool UsesIndependentClock => true;
 
-        public static BassWasapiOutput? Find(string name, BassAudioRouter router)
+        public static BassWasapiOutput? Find(string name, BassWasapiMicManager microphones)
         {
             foreach (var (id, devName) in GetDevices())
             {
                 if (string.Equals(devName, name, StringComparison.Ordinal))
                 {
                     var device = BassOutputDevice.CreateWasapi(name);
-                    return device == null ? null : new BassWasapiOutput(name, device, id, router);
+                    return device == null ? null : new BassWasapiOutput(name, device, id, microphones);
                 }
             }
 
@@ -68,7 +65,7 @@ namespace YARG.Audio.BASS.Wasapi
             {
                 for (int i = 0; BassWasapi.GetDeviceInfo(i, out var info); i++)
                 {
-                    if (info.IsEnabled && !info.IsInput && !info.IsLoopback)
+                    if (info.IsUsableOutput())
                     {
                         devices.Add((i, $"{DEVICE_PREFIX}{info.Name}"));
                     }
@@ -139,7 +136,12 @@ namespace YARG.Audio.BASS.Wasapi
 
                 _isStarted = true;
                 SetVolume(_volume);
-                BassWasapi.SetNotify(_notifyProcedure, IntPtr.Zero);
+                if (!_microphones.AttachOutput(this))
+                {
+                    StopOutput();
+                    return false;
+                }
+
                 return true;
             }
             catch (Exception exception)
@@ -180,10 +182,10 @@ namespace YARG.Audio.BASS.Wasapi
         {
             _isStarted = false;
             _latencyFrames = 0;
+            _microphones.DetachOutput(this);
             try
             {
                 BassWasapi.CurrentDevice = _wasapiDeviceIndex;
-                BassWasapi.SetNotify(null, IntPtr.Zero);
                 BassWasapi.Stop(true);
                 BassWasapi.Free();
             }
@@ -195,13 +197,7 @@ namespace YARG.Audio.BASS.Wasapi
             FreeOutputGraph();
         }
 
-        protected override void DisposeResources()
-        {
-            base.DisposeResources();
-            _microphones.Dispose();
-        }
-
-        private void OnWasapiNotify(WasapiNotificationType notify, int device, IntPtr user)
+        internal void OnWasapiNotify(WasapiNotificationType notify, int device)
         {
             if ((device == _wasapiDeviceIndex || device == -1) && notify is WasapiNotificationType.Disabled)
             {
@@ -221,5 +217,11 @@ namespace YARG.Audio.BASS.Wasapi
                 RequestRestart();
             }
         }
+    }
+
+    internal static class BassWasapiOutputExtensions
+    {
+        public static bool IsUsableOutput(this WasapiDeviceInfo info) =>
+            info.IsEnabled && !info.IsInput && !info.IsLoopback;
     }
 }

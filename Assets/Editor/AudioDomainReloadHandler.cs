@@ -22,17 +22,37 @@ namespace YARG.Editor
             GlobalAudioHandler.Close();
 
 #if UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN
+            int asioDeviceCount = 0;
             try
             {
-                for (int i = 0; i < BassAsio.DeviceCount; i++)
+                asioDeviceCount = BassAsio.DeviceCount;
+            }
+            catch
+            {
+            }
+
+            for (int i = 0; i < asioDeviceCount; i++)
+            {
+                try
                 {
                     BassAsio.CurrentDevice = i;
                     BassAsio.Stop();
                     BassAsio.Free();
                 }
-
-                for (int i = 0; BassWasapi.GetDeviceInfo(i, out var wasapiInfo); i++)
+                catch
                 {
+                }
+            }
+
+            for (int i = 0; ; i++)
+            {
+                try
+                {
+                    if (!BassWasapi.GetDeviceInfo(i, out var wasapiInfo))
+                    {
+                        break;
+                    }
+
                     if (wasapiInfo.IsInitialized)
                     {
                         BassWasapi.CurrentDevice = i;
@@ -40,9 +60,10 @@ namespace YARG.Editor
                         BassWasapi.Free();
                     }
                 }
-            }
-            catch
-            {
+                catch
+                {
+                    break;
+                }
             }
 #endif
 

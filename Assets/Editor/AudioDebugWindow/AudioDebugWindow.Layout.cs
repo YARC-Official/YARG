@@ -224,7 +224,11 @@ namespace YARG.Editor
 
         private static string CleanDeviceName(string? rawName)
         {
-            if (string.IsNullOrEmpty(rawName)) return "Default";
+            if (string.IsNullOrEmpty(rawName))
+            {
+                return "Default";
+            }
+
             string name = rawName!.Trim();
             while (name.StartsWith("ASIO: ", StringComparison.OrdinalIgnoreCase) ||
                    name.StartsWith("ASIO:", StringComparison.OrdinalIgnoreCase) ||
@@ -233,6 +237,7 @@ namespace YARG.Editor
             {
                 name = name.Substring(name.IndexOf(':') + 1).Trim();
             }
+
             return name;
         }
 

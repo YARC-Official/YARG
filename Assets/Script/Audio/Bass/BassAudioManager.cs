@@ -215,6 +215,7 @@ namespace YARG.Audio.BASS
             _router.Dispose();
             _output?.Dispose();
             _output = null;
+            _outputFactory.Dispose();
             _runtime.Dispose();
         }
 
