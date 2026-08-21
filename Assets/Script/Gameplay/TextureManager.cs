@@ -117,11 +117,11 @@ namespace YARG.Gameplay
         {
             if (_gameStateTexture == null)
             {
-                // Single f16 channel
+                // Single f16 channel (RHalf = 16-bit float)
                 // x: song length (seconds)
                 // y: song position (seconds)
                 // z: fail meter value (0.0-1.0)
-                _gameStateTexture = new Texture2D(GAME_STATE_TEX_WIDTH, 1, TextureFormat.R16, false, true)
+                _gameStateTexture = new Texture2D(GAME_STATE_TEX_WIDTH, 1, TextureFormat.RHalf, false, true)
                 {
                     wrapMode = TextureWrapMode.Clamp,
                     filterMode = FilterMode.Point,
