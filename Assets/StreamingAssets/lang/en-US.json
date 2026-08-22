@@ -509,7 +509,12 @@
             "AddBot": "Add Bot",
             "AddProfile": "Add Profile",
             "Bots" : "Bots",
-            "Players" : "Players"
+            "Players" : "Players",
+            "CouldNotLoad": "Couldn't Load",
+            "UnloadedEntry": "{0} <alpha=#66>— could not be loaded by this version of YARG",
+            "UnloadedDeleteTitle": "Delete Profile?",
+            "UnloadedDelete": "Deleting it is permanent.",
+            "BotDelete": "Deleting this bot is permanent."
         },
         "ScoreScreen" : {
             "BandScoreNotSaved" : "Score not saved",

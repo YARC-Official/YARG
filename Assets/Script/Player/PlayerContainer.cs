@@ -453,8 +453,10 @@ namespace YARG.Player
 
             if (rejectedByThisVersion > 0)
             {
-                var message = Localize.KeyFormat("Toast.ProfileLoadWarning", rejectedByThisVersion);
-                ToastManager.ToastWarning(message);
+                // Deferred text: the toast is queued during startup, before
+                // localization has loaded, so resolve the key when shown
+                ToastManager.ToastWarning(() =>
+                    Localize.KeyFormat("Menu.Toast.ProfileLoadWarning", rejectedByThisVersion));
             }
 
             return _profiles.Count;
