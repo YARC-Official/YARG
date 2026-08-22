@@ -41,6 +41,60 @@ namespace YARG.Gameplay
                 throw new InvalidOperationException("Crowd claps have already been scheduled.");
             }
 
+            var plays = BuildPlayTimes(songRunner, sync, crowdEvents, firstNoteTime, lastNoteTime, songLength);
+
+            int stream = GlobalAudioHandler.CreateSoundEffectStream(SfxSample.Clap);
+            int channelId = SettingsManager.Settings.OutputChannelSfx.Value;
+            if (channelId == -1)
+            {
+                channelId = SettingsManager.Settings.OutputChannelDefault.Value;
+            }
+
+            var outputChannel = GlobalAudioHandler.CreateOutputChannel(channelId);
+            _channel = _mixer.CreateOneShotChannel(stream, plays, OUTPUT_LEAD_TIME, outputChannel);
+            _channel.SetEnabled(_enabled);
+            SettingsManager.Settings.SfxVolume.OnChange += OnVolumeChanged;
+            ApplyVolume();
+            _scheduled = true;
+        }
+
+        /// <summary>
+        /// Recomputes crowd clap hit times (e.g. after a live song offset change) and rebuilds
+        /// the scheduled playback channel to match.
+        /// </summary>
+        public void Reschedule(SongRunner songRunner, SyncTrack sync,
+            IReadOnlyList<CrowdEvent> crowdEvents, double firstNoteTime, double lastNoteTime,
+            double songLength)
+        {
+            if (_disposed)
+            {
+                throw new ObjectDisposedException(nameof(CrowdClapScheduler));
+            }
+            if (!_scheduled)
+            {
+                throw new InvalidOperationException("Crowd claps have not been scheduled yet.");
+            }
+
+            var plays = BuildPlayTimes(songRunner, sync, crowdEvents, firstNoteTime, lastNoteTime, songLength);
+
+            int stream = GlobalAudioHandler.CreateSoundEffectStream(SfxSample.Clap);
+            int channelId = SettingsManager.Settings.OutputChannelSfx.Value;
+            if (channelId == -1)
+            {
+                channelId = SettingsManager.Settings.OutputChannelDefault.Value;
+            }
+
+            var outputChannel = GlobalAudioHandler.CreateOutputChannel(channelId);
+            _channel?.Dispose();
+            _channel = _mixer.CreateOneShotChannel(stream, plays, OUTPUT_LEAD_TIME, outputChannel);
+            _channel.SetEnabled(_enabled);
+            ApplyVolume();
+        }
+
+        private static List<double> BuildPlayTimes(SongRunner songRunner, SyncTrack sync,
+            IReadOnlyList<CrowdEvent> crowdEvents, double firstNoteTime, double lastNoteTime,
+            double songLength)
+        {
             var events = new List<CrowdEvent>(crowdEvents);
             events.Sort((a, b) => a.Time.CompareTo(b.Time));
 
@@ -73,19 +127,7 @@ namespace YARG.Gameplay
                 plays.Add(songRunner.GetAudioPlaybackTime(beatline.Time));
             }
 
-            int stream = GlobalAudioHandler.CreateSoundEffectStream(SfxSample.Clap);
-            int channelId = SettingsManager.Settings.OutputChannelSfx.Value;
-            if (channelId == -1)
-            {
-                channelId = SettingsManager.Settings.OutputChannelDefault.Value;
-            }
-
-            var outputChannel = GlobalAudioHandler.CreateOutputChannel(channelId);
-            _channel = _mixer.CreateOneShotChannel(stream, plays, OUTPUT_LEAD_TIME, outputChannel);
-            _channel.SetEnabled(_enabled);
-            SettingsManager.Settings.SfxVolume.OnChange += OnVolumeChanged;
-            ApplyVolume();
-            _scheduled = true;
+            return plays;
         }
 
         public void SetEnabled(bool enabled)

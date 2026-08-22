@@ -52,6 +52,25 @@ namespace YARG.Gameplay
             _scheduled = true;
         }
 
+        /// <summary>
+        /// Recomputes metronome hit times (e.g. after a live song offset change) and rebuilds
+        /// the scheduled playback channels to match.
+        /// </summary>
+        public void Reschedule(SongRunner songRunner, SyncTrack sync, double songLength)
+        {
+            if (_disposed)
+            {
+                throw new ObjectDisposedException(nameof(MetronomeScheduler));
+            }
+            if (!_scheduled)
+            {
+                throw new InvalidOperationException("Metronome has not been scheduled yet.");
+            }
+
+            CreateSchedule(songRunner, sync, songLength, out _hiHits, out _loHits);
+            CreateChannels(SettingsManager.Settings.MetronomeSound.Value);
+        }
+
         private static void CreateSchedule(SongRunner songRunner, SyncTrack sync, double songLength,
             out double[] hiHits, out double[] loHits)
         {
