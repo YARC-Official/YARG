@@ -1041,6 +1041,7 @@
             "Experimental": "Experimental",
             "HUD": "HUD",
             "Gameplay": "Gameplay",
+            "CrowdFX": "Crowd FX",
             "OutputConfiguration": "Output Configuration",
             "Accessibility": "Accessibility"
         },
@@ -1587,14 +1588,21 @@
                     "On": "On"
                 }
             },
-            "UseCrowdFx": {
-                "Name": "Use Crowd SFX",
-                "Description": "If enabled, crowd sounds will be played.\nIf set to Starpower Claps Only, crowd sounds will only be played during Starpower.",
-                "Dropdown": {
-                    "Disabled": "Disabled",
-                    "StarpowerClapsOnly": "Starpower Claps Only",
-                    "Enabled": "Enabled"
-                }
+            "UseCrowdCheering": {
+                "Name": "Crowd Cheering",
+                "Description": "Play crowd cheering sound effects at the start, during Star Power, at the end of songs, and on score screens."
+            },
+            "UseCrowdIdle": {
+                "Name": "Crowd Idle",
+                "Description": "Play the crowd's idle background noise during the song."
+            },
+            "UseStarPowerClaps": {
+                "Name": "Star Power Claps",
+                "Description": "Play crowd claps along to the beat while Star Power is active."
+            },
+            "UsePerformanceClaps": {
+                "Name": "Performance Claps",
+                "Description": "Play crowd claps along to the beat when performing well."
             },
             "UseVenueSfx": {
                 "Name": "Use Venue SFX",

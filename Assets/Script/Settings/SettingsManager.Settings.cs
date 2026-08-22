@@ -21,7 +21,6 @@ using YARG.Menu.History;
 using YARG.Menu.MusicLibrary;
 using YARG.Menu.Persistent;
 using YARG.Menu.Settings;
-using YARG.Playback;
 using YARG.Player;
 using YARG.Scores;
 using YARG.Settings.Metadata;
@@ -403,12 +402,13 @@ namespace YARG.Settings
                 AudioFxMode.On
             };
 
-            public DropdownSetting<CrowdFxMode> UseCrowdFx { get; } = new(CrowdFxMode.Enabled)
-            {
-                CrowdFxMode.Disabled,
-                CrowdFxMode.StarpowerClapsOnly,
-                CrowdFxMode.Enabled
-            };
+            public ToggleSetting UseCrowdCheering { get; } = new(true);
+
+            public ToggleSetting UseCrowdIdle { get; } = new(true);
+
+            public ToggleSetting UseStarPowerClaps { get; } = new(true);
+
+            public ToggleSetting UsePerformanceClaps { get; } = new(true);
 
             public ToggleSetting UseVenueSfx { get; } = new(true);
 

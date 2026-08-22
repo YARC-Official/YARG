@@ -266,6 +266,7 @@ namespace YARG.Gameplay
 
             var noFail = ReplayData?.NoFail ?? SettingsManager.Settings.NoFail.Value != NoFailMode.Off;
             EngineManager.InitializeHappiness(noFail);
+            CrowdEventHandler.UpdateCrowdMuteState(force: true);
 
             EngineManager.OnCodaStart += StartCoda;
             EngineManager.OnCodaEnd += EndCoda;
