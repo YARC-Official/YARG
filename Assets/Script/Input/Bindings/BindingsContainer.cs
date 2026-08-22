@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
@@ -68,7 +68,7 @@ namespace YARG.Input.Bindings
                 if (profile.IsBot)
                     continue;
 
-                var deserialized = ProfileBindings.Deserialize(profile, serialized);
+                var deserialized = ProfileBindings.Deserialize(profile, serialized, bindings);
                 _bindings.Add(id, deserialized);
             }
 

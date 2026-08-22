@@ -16,7 +16,7 @@ namespace YARG.Input.Serialization
 
     // Unchanged data types
     using SerializedInputDeviceV3 = SerializedInputDeviceV0;
-
+/*
     public class SerializedBindingsV3
     {
         public const int VERSION = 3;
@@ -229,7 +229,7 @@ namespace YARG.Input.Serialization
         public bool ShouldSerializeDeviceIndex() => DeviceIndex >= 0;
         public bool ShouldSerializeDevice() => !ShouldSerializeDeviceIndex();
         public bool ShouldSerializeParameters() => Parameters.Count > 0;
-    }
+    }*/
 
     public class SerializedMicV3
     {
@@ -275,7 +275,7 @@ namespace YARG.Input.Serialization
         public bool ShouldSerializeDisplayName() => string.IsNullOrEmpty(BaseName);
         public bool ShouldSerializeBaseName() => !string.IsNullOrEmpty(BaseName);
         public bool ShouldSerializeChannel() => !string.IsNullOrEmpty(BaseName);
-    }
+    }/*
 
     public static partial class BindingSerialization
     {
@@ -292,5 +292,5 @@ namespace YARG.Input.Serialization
 
             return serialized.Deserialize();
         }
-    }
+    }*/
 }

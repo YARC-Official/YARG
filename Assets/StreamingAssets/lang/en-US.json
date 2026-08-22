@@ -307,7 +307,7 @@
             "Options": {
                 "Quickplay": "Quickplay",
                 "Practice": "Practice",
-                "Profiles": "Profiles",
+                "Profiles": "Profiles & Devices",
                 "History": "History",
                 "Content": "Content",
                 "Settings": "Settings",
@@ -503,7 +503,7 @@
             }
         },
         "ProfileList": {
-            "Name": "Profiles",
+            "Name": "Profiles\n& Devices",
             "ActiveProfiles" : "Active Profiles",
             "AddBot": "Add Bot",
             "AddProfile": "Add Profile",

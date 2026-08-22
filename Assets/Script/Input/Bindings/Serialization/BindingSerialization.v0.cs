@@ -10,7 +10,7 @@ using YARG.Core.Audio;
 #nullable enable
 
 namespace YARG.Input.Serialization
-{
+{/*
     // Version 0: Initial version of the bindings format.
     // v0 instead of v1 for easier handling of the case where the version field isn't present,
     // which this version doesn't contain.
@@ -66,7 +66,7 @@ namespace YARG.Input.Serialization
             return converted;
         }
     }
-
+    */
     public class SerializedInputDeviceV0
     {
         public string Layout;
@@ -87,7 +87,7 @@ namespace YARG.Input.Serialization
 
         public SerializedInputDevice Deserialize() => new(Layout, Hash);
     }
-
+/*
     public class SerializedInputControlV0
     {
         public SerializedInputDeviceV0 Device;
@@ -205,5 +205,5 @@ namespace YARG.Input.Serialization
             control.Controls.AddRange(serialized.Select((bind) => bind.Deserialize()));
             return control;
         }
-    }
+    }*/
 }

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine.InputSystem;
@@ -99,8 +99,8 @@ namespace YARG.Input
         public abstract bool RemoveControl(InputControl control);
         public abstract bool ContainsControl(InputControl control);
 
-        public abstract bool ContainsBindingsForDevice(InputDevice device);
-        public abstract void ClearBindingsForDevice(InputDevice device);
+        // public abstract bool ContainsBindingsForDevice(InputDevice device); TODO: Delete?
+        // public abstract void ClearBindingsForDevice(InputDevice device); TODO: Delete?
         public abstract void ClearAllBindings();
 
         public virtual void Enable()
@@ -211,7 +211,7 @@ namespace YARG.Input
             // (e.g. XInputGuitarHeroGuitar1 in one session could be just XInputGuitarHeroGuitar in another)
             // Swap that out for the device layout instead, indicated by <angle brackets>
             string path = Control.path.Replace(Control.device.name, $"<{Control.device.layout}>");
-            return new(Control.device.Serialize(), path);
+            return new(path);
         }
     }
 
@@ -268,8 +268,7 @@ namespace YARG.Input
 
             foreach (var binding in serialized.Controls)
             {
-                if (binding is null || string.IsNullOrEmpty(binding.ControlPath) || binding.Device is null ||
-                    string.IsNullOrEmpty(binding.Device.Layout) || string.IsNullOrEmpty(binding.Device.Hash))
+                if (binding is null || string.IsNullOrEmpty(binding.ControlPath))
                 {
                     YargLogger.LogFormatWarning("Encountered invalid control for binding {0}!", Key);
                     return;
@@ -375,6 +374,7 @@ namespace YARG.Input
             return false;
         }
 
+        /* TODO: Delete?
         public override bool ContainsBindingsForDevice(InputDevice device)
         {
             foreach (var binding in _bindings)
@@ -406,6 +406,7 @@ namespace YARG.Input
                 }
             }
         }
+        */
 
         public override void ClearAllBindings()
         {
@@ -470,7 +471,7 @@ namespace YARG.Input
             for (int i = 0; i < _unresolvedBindings.Count; i++)
             {
                 var binding = _unresolvedBindings[i];
-                if (!binding.Device.MatchesDevice(device)) continue;
+                // if (!binding.Device.MatchesDevice(device)) continue;
 
                 // Remove regardless of if deserialization fails, no point keeping broken bindings around
                 _unresolvedBindings.RemoveAt(i);
