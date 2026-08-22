@@ -33,20 +33,20 @@ namespace YARG.Input.Serialization
     {
         public Dictionary<Guid, SerializedProfileDeviceInfo> Profiles = new();
         public Dictionary<string, Guid> ControllerDefaults = new();
-        public List<SerializedReusableBindingSet> ReusableBindingSets = new();
+        public List<SerializedBindingCollection> BindingCollections = new();
 
-        public SerializedReusableBindingSet? GetBindingSetByGuid(Guid? guid)
+        public SerializedBindingCollection? GetBindingSetByGuid(Guid? guid)
         {
             if (guid is null)
             {
                 return null;
             }
 
-            foreach (var reusableBindingSet in ReusableBindingSets)
+            foreach (var bindingCollection in BindingCollections)
             {
-                if (reusableBindingSet.Guid == guid)
+                if (bindingCollection.Guid == guid)
                 {
-                    return reusableBindingSet;
+                    return bindingCollection;
                 }
             }
 
@@ -67,10 +67,11 @@ namespace YARG.Input.Serialization
         public Guid? MenuMapping;
     }
 
-    public class SerializedReusableBindingSet
+    public class SerializedBindingCollection
     {
         public Guid Guid;
         public GameMode GameMode;
+        public bool Reusable;
         public Dictionary<string, SerializedControlBinding> Bindings = new();
     }
 

@@ -170,7 +170,7 @@ namespace YARG.Input.Serialization
             return converted;
         }
 
-        public static SerializedBindingCollectionV0 Serialize(SerializedReusableBindingSet serialized)
+        public static SerializedBindingCollectionV0 Serialize(SerializedBindingCollection serialized)
         {
             var converted = new SerializedBindingCollectionV0();
             foreach (var (id, serializedBinds) in serialized.Bindings)
@@ -181,9 +181,9 @@ namespace YARG.Input.Serialization
             return converted;
         }
 
-        public static SerializedReusableBindingSet Deserialize(this SerializedBindingCollectionV0 serialized)
+        public static SerializedBindingCollection Deserialize(this SerializedBindingCollectionV0 serialized)
         {
-            var converted = new SerializedReusableBindingSet();
+            var converted = new SerializedBindingCollection();
             foreach (var (id, serializedBinds) in serialized)
             {
                 converted.Bindings[id] = serializedBinds.Deserialize();

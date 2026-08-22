@@ -21,7 +21,7 @@ namespace YARG.Input.Serialization
         public int Version = VERSION;
         public Dictionary<Guid, SerializedProfileDeviceInfoV4> Profiles = new();
         public Dictionary<string, Guid> ControllerDefaults = new();
-        public List<SerializedReusableBindingSetV4> ReusableBindingSets = new();
+        public List<SerializedBindingCollectionV4> BindingCollections = new();
 
         [JsonConstructor]
         public SerializedBindingsV4() { }
@@ -39,9 +39,9 @@ namespace YARG.Input.Serialization
                 ControllerDefaults[controllerHash] = bindingSetGuid;
             }
 
-            foreach (var bind in serialized.ReusableBindingSets)
+            foreach (var bind in serialized.BindingCollections)
             {
-                ReusableBindingSets.Add(new SerializedReusableBindingSetV4(bind));
+                BindingCollections.Add(new SerializedBindingCollectionV4(bind));
             }
         }
 
@@ -49,9 +49,9 @@ namespace YARG.Input.Serialization
         {
             var deserialized = new SerializedBindings();
 
-            foreach (var bind in ReusableBindingSets)
+            foreach (var bind in BindingCollections)
             {
-                deserialized.ReusableBindingSets.Add(bind.Deserialize());
+                deserialized.BindingCollections.Add(bind.Deserialize());
             }
 
             foreach (var (id, profile) in Profiles)
@@ -73,16 +73,16 @@ namespace YARG.Input.Serialization
             public List<SerializedMicV4> Microphones = new();
 
 
-            // Stores the GUIDs of ReusableBindingSets that this profile likes to use by default for certain GameModes
+            // Stores the GUIDs of BindingCollections that this profile likes to use by default for certain GameModes
             // Can be overridden by this profile's ControllerBindings or a controller's user-specified default bindings
             public Dictionary<GameMode, Guid> ModeMappings = new();
 
             // Key is a controller layout hash
-            // Stores the GUIDs of ReusableBindingSets that this profile has assigned to specific controllers
+            // Stores the GUIDs of BindingCollections that this profile has assigned to specific controllers
             // This overrides this profile's ModeMappings as well as the device's user-specified default bindings
             public Dictionary<string, Guid> ControllerMappings = new();
 
-            // GUID of the ReusableBindingSet that this profile uses for menu bindings
+            // GUID of the BindingCollection that this profile uses for menu bindings
             public Guid? MenuMappings;
 
             [JsonConstructor]
@@ -149,17 +149,19 @@ namespace YARG.Input.Serialization
             }
         }
 
-        public class SerializedReusableBindingSetV4
+        public class SerializedBindingCollectionV4
         {
             public Dictionary<string, SerializedControlBindingV4> Bindings = new();
             public GameMode GameMode;
+            public bool Reusable;
 
             [JsonConstructor]
-            public SerializedReusableBindingSetV4() { }
+            public SerializedBindingCollectionV4() { }
 
-            public SerializedReusableBindingSetV4(SerializedReusableBindingSet serialized)
+            public SerializedBindingCollectionV4(SerializedBindingCollection serialized)
             {
                 GameMode = serialized.GameMode;
+                Reusable = serialized.Reusable;
 
                 foreach (var (id, serializedBindings) in serialized.Bindings)
                 {
@@ -167,9 +169,13 @@ namespace YARG.Input.Serialization
                 }
             }
 
-            public SerializedReusableBindingSet Deserialize()
+            public SerializedBindingCollection Deserialize()
             {
-                var converted = new SerializedReusableBindingSet() { GameMode = GameMode };
+                var converted = new SerializedBindingCollection() {
+                    GameMode = GameMode,
+                    Reusable = Reusable
+                };
+
                 foreach (var (id, serializedBinds) in Bindings)
                 {
                     converted.Bindings[id] = serializedBinds.Deserialize();
