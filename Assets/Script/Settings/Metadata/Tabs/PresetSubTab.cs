@@ -1,8 +1,11 @@
 ﻿using System;
+using System.Threading;
+using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 using Object = UnityEngine.Object;
 using UnityEngine.AddressableAssets;
+using UnityEngine.UI;
 using YARG.Core;
 using YARG.Core.Input;
 using YARG.Localization;
@@ -134,7 +137,7 @@ namespace YARG.Settings.Metadata
         /// the shared <see cref="MakeDialogCompact"/> sizing and the color-picker's
         /// nav convention: Green/confirm runs <paramref name="onConfirm"/>,
         /// Red/back cancels. Returns the confirm <see cref="ColoredButton"/> so the
-        /// caller can further tweak it (e.g. the delete dialog's arm delay).
+        /// caller can further tweak it.
         /// </summary>
         /// <remarks>
         /// The base Dialog pushes a navigate-only scheme in OnEnable; this swaps it
@@ -142,8 +145,14 @@ namespace YARG.Settings.Metadata
         /// so the pop/push stays balanced — this is the one place that convention
         /// lives now that both confirmations share it.
         /// </remarks>
+        /// <param name="armDelaySeconds">
+        /// If greater than zero, the confirm button starts disabled and arms after
+        /// this many seconds. Use for destructive actions (e.g. deletes) so they
+        /// can't be confirmed by accidental mashing.
+        /// </param>
         public static ColoredButton ShowCompactConfirmation(string title, string message,
-            string confirmKey, Color confirmColor, Action onConfirm, Color? cancelColor = null)
+            string confirmKey, Color confirmColor, Action onConfirm, Color? cancelColor = null,
+            float armDelaySeconds = 0f)
         {
             void Cancel() => DialogManager.Instance.ClearDialog();
 
@@ -155,16 +164,76 @@ namespace YARG.Settings.Metadata
             // same delegate can also feed the NavigationScheme.Entry (Action) below.
             var confirmButton = dialog.AddDialogButton(confirmKey, confirmColor, () => onConfirm());
 
+            // The delayed arm only guards the button itself; the armed flag also
+            // gates the controller/keyboard Green entry below so it can't bypass
+            // the delay through the navigation scheme
+            bool armed = armDelaySeconds <= 0f;
+
+            if (armDelaySeconds > 0f)
+            {
+                ArmButtonAfterDelay(confirmButton, confirmColor, armDelaySeconds,
+                    () => armed = true).Forget();
+            }
+
             MakeDialogCompact(dialog);
 
             Navigator.Instance.PopScheme();
             Navigator.Instance.PushSchemeImmediate(new NavigationScheme(new()
             {
-                new NavigationScheme.Entry(MenuAction.Green, "Menu.Common.Confirm", onConfirm),
+                new NavigationScheme.Entry(MenuAction.Green, "Menu.Common.Confirm", () =>
+                {
+                    if (!armed) return;
+                    onConfirm();
+                }),
                 new NavigationScheme.Entry(MenuAction.Red, "Menu.Common.Cancel", Cancel),
             }, null));
 
             return confirmButton;
+        }
+
+        /// <summary>
+        /// Disables the confirm button immediately — fade-free, so it never renders a
+        /// frame in its enabled color — and re-enables it, with its color restored,
+        /// after the given delay. Guards destructive actions against accidental mashing.
+        /// </summary>
+        private static async UniTaskVoid ArmButtonAfterDelay(ColoredButton button,
+            Color confirmColor, float delaySeconds, Action onArmed)
+        {
+            // The button's color-tint transition lerps from the enabled color to
+            // the disabled one over its fade duration, which flashes the enabled
+            // color for a frame; zero the fade while switching
+            var uiButton = button.GetComponentInChildren<Button>();
+            ColorBlock originalColors = default;
+            if (uiButton != null)
+            {
+                originalColors = uiButton.colors;
+                var noFade = originalColors;
+                noFade.fadeDuration = 0f;
+                uiButton.colors = noFade;
+            }
+
+            button.DisableButton();
+
+            await UniTask.Delay((int) (delaySeconds * 1000),
+                cancellationToken: button.GetCancellationTokenOnDestroy());
+
+            // The dialog may have been cancelled in the meantime
+            if (button == null)
+            {
+                return;
+            }
+
+            button.EnableButton();
+            // EnableButton restores the prefab's original color, not the one
+            // this button was given
+            button.SetBackgroundAndTextColor(confirmColor);
+
+            if (uiButton != null)
+            {
+                uiButton.colors = originalColors;
+            }
+
+            onArmed?.Invoke();
         }
 
         // Smaller, dimmer header for sub-sections (Notes, Fret, etc.) within an
