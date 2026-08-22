@@ -85,11 +85,11 @@ namespace YARG.Input.Bindings
                 usedBackup = true;
             }
 
-            foreach (var reusableBindingSet in bindings.ReusableBindingSets)
+            foreach (var serializedBindingCollection in bindings.BindingCollections)
             {
-                var bindingCollection = new BindingCollection(reusableBindingSet.GameMode);
-                bindingCollection.Deserialize(reusableBindingSet);
-                _bindingCollections.Add(reusableBindingSet.Guid, bindingCollection);
+                var bindingCollection = new BindingCollection(serializedBindingCollection.GameMode);
+                bindingCollection.Deserialize(serializedBindingCollection);
+                _bindingCollections.Add(serializedBindingCollection.Guid, bindingCollection);
             }
 
             foreach (var (id, serialized) in bindings.Profiles)

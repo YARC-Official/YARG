@@ -55,9 +55,9 @@ namespace YARG.Input
         }
 
 #nullable enable
-        public SerializedReusableBindingSet? Serialize()
+        public SerializedBindingCollection? Serialize()
         {
-            var serialized = new SerializedReusableBindingSet() { Guid = Guid };
+            var serialized = new SerializedBindingCollection() { Guid = Guid };
             foreach (var binding in _bindings)
             {
                 var serializedBind = binding.Serialize();
@@ -73,7 +73,7 @@ namespace YARG.Input
             return serialized;
         }
 
-        public void Deserialize(SerializedReusableBindingSet? serialized)
+        public void Deserialize(SerializedBindingCollection? serialized)
         {
             if (serialized is null || serialized.Bindings is null)
                 return;

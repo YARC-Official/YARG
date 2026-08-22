@@ -103,7 +103,7 @@ namespace YARG.Input.Serialization
         [JsonConstructor]
         public SerializedBindingCollectionV1() { }
 
-        public SerializedBindingCollectionV1(SerializedProfileBindingsV1 binds, SerializedReusableBindingSet serialized)
+        public SerializedBindingCollectionV1(SerializedProfileBindingsV1 binds, SerializedBindingCollection serialized)
         {
             foreach (var (id, serializedBinds) in serialized.Bindings)
             {
@@ -111,9 +111,9 @@ namespace YARG.Input.Serialization
             }
         }
 
-        public SerializedReusableBindingSet Deserialize(SerializedProfileBindingsV1 binds)
+        public SerializedBindingCollection Deserialize(SerializedProfileBindingsV1 binds)
         {
-            var converted = new SerializedReusableBindingSet();
+            var converted = new SerializedBindingCollection();
             foreach (var (id, serializedBinds) in Bindings)
             {
                 converted.Bindings[id] = serializedBinds.Deserialize(binds);
