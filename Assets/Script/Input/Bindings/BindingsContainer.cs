@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using UnityEditor.Build.Content;
 using UnityEngine;
 using YARG.Core.Game;
 using YARG.Core.Logging;
@@ -10,36 +11,58 @@ using YARG.Player;
 namespace YARG.Input.Bindings
 {
     /// <summary>
-    /// Manages all of the <see cref="ProfileBindings"/> for <see cref="YargProfile"/>/<see cref="YargPlayer"/>s.
+    /// Manages all of the <see cref="ProfileDeviceInfo"/> for <see cref="YargProfile"/>/<see cref="YargPlayer"/>s.
     /// </summary>
     public static class BindingsContainer
     {
         private static string BindingsPath => Path.Combine(PlayerContainer.ProfilesDirectory, "bindings.json");
         private static string BindingsBackupPath => Path.Combine(PlayerContainer.ProfilesDirectory, "bindings.json.bak");
 
-        private static readonly Dictionary<Guid, ProfileBindings> _bindings = new();
+        private static readonly Dictionary<Guid, ProfileDeviceInfo> _profileBindings = new();
 
-        public static ProfileBindings GetBindingsForProfile(YargProfile profile)
+        private static readonly Dictionary<string, BindingCollection> _controllerDefaultBindings = new();
+
+        private static readonly Dictionary<Guid, BindingCollection> _bindingCollections = new();
+
+        public static ProfileDeviceInfo GetBindingsForProfile(YargProfile profile)
         {
-            if (!_bindings.TryGetValue(profile.Id, out var bindings))
+            if (!_profileBindings.TryGetValue(profile.Id, out var bindings))
             {
                 // Bindings must always be provided
                 bindings = new(profile);
-                _bindings.Add(profile.Id, bindings);
+                _profileBindings.Add(profile.Id, bindings);
             }
 
             return bindings;
         }
 
-        public static int LoadBindings()
+        public static BindingCollection GetBindingCollectionById(Guid guid)
+        {
+            return _bindingCollections[guid];
+        }
+
+        public static bool TryGetDefaultBindingCollectionForControllerHash(string hash, out BindingCollection controllerDefaultBindings)
+        {
+            if (_controllerDefaultBindings.ContainsKey(hash))
+            {
+                controllerDefaultBindings = _controllerDefaultBindings[hash];
+                return true;
+            }
+
+            controllerDefaultBindings = null;
+            return false;
+        }
+
+        public static void LoadBindings()
         {
             bool usedBackup = false;
 
-            _bindings.Clear();
+            _profileBindings.Clear();
+            _controllerDefaultBindings.Clear();
 
             string bindingsPath = BindingsPath;
             if (!File.Exists(bindingsPath))
-                return 0;
+                return;
 
             var bindings = BindingSerialization.DeserializeBindings(bindingsPath);
             if (bindings is null)
@@ -50,9 +73,16 @@ namespace YARG.Input.Bindings
                 if (bindings is null)
                 {
                     YargLogger.LogWarning("Failed to load bindings from backup!");
-                    return 0;
+                    return;
                 }
                 usedBackup = true;
+            }
+
+            foreach (var reusableBindingSet in bindings.ReusableBindingSets)
+            {
+                var bindingCollection = new BindingCollection(reusableBindingSet.GameMode);
+                bindingCollection.Deserialize(reusableBindingSet);
+                _bindingCollections.Add(reusableBindingSet.Guid, bindingCollection);
             }
 
             foreach (var (id, serialized) in bindings.Profiles)
@@ -68,8 +98,13 @@ namespace YARG.Input.Bindings
                 if (profile.IsBot)
                     continue;
 
-                var deserialized = ProfileBindings.Deserialize(profile, serialized, bindings);
-                _bindings.Add(id, deserialized);
+                var deserialized = ProfileDeviceInfo.Deserialize(profile, serialized);
+                _profileBindings.Add(id, deserialized);
+            }
+
+            foreach (var (hash, guid) in bindings.ControllerDefaults)
+            {
+                _controllerDefaultBindings.Add(hash, GetBindingCollectionById(guid));
             }
 
             // If we used the backup save the backup data to the main path, otherwise save main to backup
@@ -81,8 +116,6 @@ namespace YARG.Input.Bindings
             {
                 SaveBindings(BindingsBackupPath);
             }
-
-            return _bindings.Count;
         }
 
         public static int SaveBindings(string path = null)
@@ -90,7 +123,7 @@ namespace YARG.Input.Bindings
             path ??= BindingsPath;
 
             var serialized = new SerializedBindings();
-            foreach (var (id, binds) in _bindings)
+            foreach (var (id, binds) in _profileBindings)
             {
                 var profile = PlayerContainer.GetProfileById(id);
                 if (profile is null || profile.IsBot) // Don't save bindings for bots
@@ -100,14 +133,14 @@ namespace YARG.Input.Bindings
             }
 
             BindingSerialization.SerializeBindings(serialized, path);
-            return _bindings.Count;
+            return _profileBindings.Count;
         }
 
         public static void ReleaseMicrophones()
         {
             foreach (var player in PlayerContainer.Players)
             {
-                player.Bindings.ReleaseMicrophones();
+                player.DeviceInfo.ReleaseMicrophones();
             }
         }
 
@@ -115,7 +148,7 @@ namespace YARG.Input.Bindings
         {
             foreach (var player in PlayerContainer.Players)
             {
-                player.Bindings.ResolveMicrophones();
+                player.DeviceInfo.ResolveMicrophones();
             }
         }
     }

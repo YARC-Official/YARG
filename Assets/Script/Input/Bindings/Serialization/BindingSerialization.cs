@@ -70,6 +70,7 @@ namespace YARG.Input.Serialization
     public class SerializedReusableBindingSet
     {
         public Guid Guid;
+        public GameMode GameMode;
         public Dictionary<string, SerializedControlBinding> Bindings = new();
     }
 

@@ -68,7 +68,7 @@ namespace YARG.Menu.Dialogs
         {
             _device = parameters.device;
             _player = parameters.player;
-            _bindingCollection = _player.Bindings[_player.Profile.GameMode];
+            _bindingCollection = _player.DeviceInfo[_player.Profile.GameMode];
             _mode = parameters.mode;
         }
 
@@ -88,7 +88,7 @@ namespace YARG.Menu.Dialogs
             button.interactable = false;
             button.image.color = Color.gray;
 
-            _player.Bindings.ClearBindingsForDevice(_device, false);
+            _player.DeviceInfo.ClearBindingsForDevice(_device, false);
 
             _cancelButton.Text.text = Localize.Key("Menu.Dialog.FriendlyBindingDialog.Skip");
             _cancellationTokenSource = new CancellationTokenSource();

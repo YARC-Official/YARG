@@ -158,19 +158,19 @@ namespace YARG.Menu.ProfileList
             int inputDeviceCount = 0;
 
             // Add InputSystem devices immediately — fast, no probe
-            foreach (var device in InputSystem.devices)
+            foreach (var controller in InputSystem.devices)
             {
-                if (!device.enabled) continue;
-                if (PlayerContainer.IsDeviceTaken(device)) continue;
+                if (!controller.enabled) continue;
+                if (PlayerContainer.IsDeviceTaken(controller)) continue;
 
                 inputDeviceCount++;
-                dialog.AddListButton(device.displayName, async () =>
+                dialog.AddListButton(controller.displayName, async () =>
                 {
-                    player.Bindings.AddDevice(device);
-                    if (!player.Bindings.ContainsBindingsForDevice(device))
+                    player.DeviceInfo.AddDevice(controller);
+                    if (!player.DeviceInfo.ContainsBindingsForDevice(controller))
                     {
 #if UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN
-                        if (device is XInputController xinput)
+                        if (controller is XInputController xinput)
                         {
                             xinputDialogShowing = true;
                             var mode = await PromptGamepadMode(xinput);
@@ -179,12 +179,12 @@ namespace YARG.Menu.ProfileList
                                 return;
                             }
 
-                            player.Bindings.SetDefaultBinds(xinput, mode.Value);
+                            player.DeviceInfo.SetDefaultBinds(xinput, mode.Value);
                         }
                         else
 #endif
                         {
-                            player.Bindings.SetDefaultBinds(device);
+                            player.DeviceInfo.SetDefaultBinds(controller);
                         }
                     }
 
@@ -204,7 +204,7 @@ namespace YARG.Menu.ProfileList
                     return false;
                 }
 
-                player.Bindings.AddMicrophone(created);
+                player.DeviceInfo.AddMicrophone(created);
                 return true;
             }
 
@@ -324,14 +324,14 @@ namespace YARG.Menu.ProfileList
             // Add available devices
             foreach (var device in InputSystem.devices)
             {
-                if (!player.Bindings.ContainsDevice(device)) continue;
+                if (!player.DeviceInfo.ContainsDevice(device)) continue;
 
                 devicesAvailable = true;
                 dialog.AddListButton(device.displayName, () =>
                 {
                     if (clearBinds)
                     {
-                        player.Bindings.ClearBindingsForDevice(device);
+                        player.DeviceInfo.ClearBindingsForDevice(device);
 
                         // Remove cleared XInput devices from prompt cache
                         if (device is XInputController xinput)
@@ -340,18 +340,18 @@ namespace YARG.Menu.ProfileList
                         }
                     }
 
-                    player.Bindings.RemoveDevice(device);
+                    player.DeviceInfo.RemoveDevice(device);
                     selectedDevice = true;
                 });
             }
 
             // Add the microphones
-            foreach (var mic in player.Bindings.Microphones)
+            foreach (var mic in player.DeviceInfo.Microphones)
             {
                 devicesAvailable = true;
                 dialog.AddListButton(mic.DisplayName, () =>
                 {
-                    player.Bindings.RemoveMicrophone(mic);
+                    player.DeviceInfo.RemoveMicrophone(mic);
                     selectedDevice = true;
                 });
             }
@@ -397,7 +397,7 @@ namespace YARG.Menu.ProfileList
                 return;
             }
 
-            if (!Profile.IsBot && player.Bindings.Empty)
+            if (!Profile.IsBot && player.DeviceInfo.HasNoDevices)
             {
                 // Prompt the user to select a device
                 if (!await PromptAddDevice())

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
@@ -1018,7 +1018,7 @@ namespace YARG.Settings
             {
                 foreach (var player in PlayerContainer.Players)
                 {
-                    foreach (var mic in player.Bindings.Microphones)
+                    foreach (var mic in player.DeviceInfo.Microphones)
                     {
                         mic.SetMonitoringLevel(volume);
                     }
@@ -1029,7 +1029,7 @@ namespace YARG.Settings
             {
                 foreach (var player in PlayerContainer.Players)
                 {
-                    foreach (var mic in player.Bindings.Microphones)
+                    foreach (var mic in player.DeviceInfo.Microphones)
                     {
                         mic.SetReverbLevel(wet);
                     }

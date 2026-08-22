@@ -11,10 +11,11 @@ using YARG.Core.Game;
 using YARG.Core.Logging;
 using YARG.Input.Serialization;
 using YARG.Player;
+using YARG.Input.Bindings;
 
 namespace YARG.Input
 {
-    public class ProfileBindings : IDisposable
+    public class ProfileDeviceInfo : IDisposable
     {
         public YargProfile Profile { get; }
 
@@ -31,22 +32,23 @@ namespace YARG.Input
         /// </summary>
         public List<MicDevice> Microphones => _microphones;
 
-        public List<InputDevice> InputDevices => _devices;
+        public List<InputDevice> Controllers => _controllers;
 
-        private readonly List<SerializedInputDevice> _unresolvedDevices = new();
-        private readonly List<InputDevice> _devices = new();
+        private readonly List<SerializedInputDevice> _unresolvedControllers = new();
+        private readonly List<InputDevice> _controllers = new();
 
         private readonly Dictionary<GameMode, BindingCollection> _bindsByGameMode = new();
         private readonly Dictionary<string, BindingCollection> _bindsByDeviceHash = new();
         public readonly BindingCollection MenuBindings;
 
-        public bool HasDeviceAssigned => _devices.Count > 0;
-        public bool Empty => !HasDeviceAssigned && _microphones.Count == 0;
+        public bool HasDeviceAssigned => _controllers.Count > 0;
+        public bool HasMicrophoneAssigned => _microphones.Count == 0;
+        public bool HasNoDevices => !HasDeviceAssigned && !HasMicrophoneAssigned;
 
         public BindingCollection this[GameMode mode] => _bindsByGameMode[mode];
 
-        public event Action<InputDevice> DeviceAdded;
-        public event Action<InputDevice> DeviceRemoved;
+        public event Action<InputDevice> ControllerAdded;
+        public event Action<InputDevice> ControllerRemoved;
 
         public event Action BindingsChanged
         {
@@ -76,7 +78,7 @@ namespace YARG.Input
             remove => MenuBindings.InputProcessed -= value;
         }
 
-        public ProfileBindings(YargProfile profile)
+        public ProfileDeviceInfo(YargProfile profile)
         {
             Profile = profile;
 
@@ -89,7 +91,7 @@ namespace YARG.Input
         }
 
 #nullable enable
-        public ProfileBindings(YargProfile profile, SerializedProfileDeviceInfo? profileBindings, SerializedBindings allBindings)
+        public ProfileDeviceInfo(YargProfile profile, SerializedProfileDeviceInfo? profileBindings)
             : this(profile)
         {
             if (profileBindings is null)
@@ -106,7 +108,7 @@ namespace YARG.Input
                     }
 
                     // Devices will be resolved later
-                    _unresolvedDevices.Add(device);
+                    _unresolvedControllers.Add(device);
                 }
             }
 
@@ -136,15 +138,24 @@ namespace YARG.Input
                         continue;
                     }
 
-                    var serializedBinds = allBindings.GetBindingSetByGuid(bindingSetGuid);
-                    modeBindings.Deserialize(serializedBinds);
+                    var serializedBinds = BindingsContainer.GetBindingCollectionById(bindingSetGuid);
                 }
             }
 
-            var serializedMenuMappings = allBindings.GetBindingSetByGuid(profileBindings.MenuMappings);
-            if (serializedMenuMappings is not null)
+            if (profileBindings.ControllerMappings is not null)
             {
-                MenuBindings.Deserialize(serializedMenuMappings);
+                foreach (var (controllerHash, bindingSetGuid) in profileBindings.ControllerMappings)
+                {
+                    if (_bindsByDeviceHash.TryGetValue(controllerHash, out var controllerBindings))
+                    {
+                        var serializedBinds = BindingsContainer.GetBindingCollectionById(bindingSetGuid);
+                    }
+                }
+            }
+
+            if (profileBindings.MenuMappings is not null)
+            {
+                var serializedMenuMappings = BindingsContainer.GetBindingCollectionById(profileBindings.MenuMappings.Value);
             }
         }
 
@@ -152,12 +163,12 @@ namespace YARG.Input
         {
             var serialized = new SerializedProfileDeviceInfo();
 
-            foreach (var device in _devices)
+            foreach (var device in _controllers)
             {
                 serialized.Controllers.Add(device.Serialize());
             }
 
-            foreach (var device in _unresolvedDevices)
+            foreach (var device in _unresolvedControllers)
             {
                 serialized.Controllers.Add(device);
             }
@@ -186,9 +197,9 @@ namespace YARG.Input
             return serialized;
         }
 
-        public static ProfileBindings Deserialize(YargProfile profile, SerializedProfileDeviceInfo? serialized, SerializedBindings allBindings)
+        public static ProfileDeviceInfo Deserialize(YargProfile profile, SerializedProfileDeviceInfo? serialized)
         {
-            return new(profile, serialized, allBindings);
+            return new(profile, serialized);
         }
 #nullable disable
 
@@ -267,10 +278,10 @@ namespace YARG.Input
             // Remove corresponding serialized entry
             int index = FindSerializedIndex(device);
             if (index >= 0)
-                _unresolvedDevices.RemoveAt(index);
+                _unresolvedControllers.RemoveAt(index);
 
             // Add device to bindings
-            _devices.Add(device);
+            _controllers.Add(device);
             NotifyDeviceAdded(device);
 
             return true;
@@ -279,7 +290,7 @@ namespace YARG.Input
         public bool RemoveDevice(InputDevice device)
         {
             // Remove without serializing
-            if (!_devices.Remove(device))
+            if (!_controllers.Remove(device))
                 return false;
 
             NotifyDeviceRemoved(device);
@@ -288,13 +299,13 @@ namespace YARG.Input
 
         public bool ContainsDevice(InputDevice device)
         {
-            return _devices.Contains(device);
+            return _controllers.Contains(device);
         }
 
         public List<T> GetDevicesByType<T>()
         {
             var interfaces = new List<T>();
-            foreach (var device in _devices)
+            foreach (var device in _controllers)
             {
                 if (device is T iface)
                 {
@@ -307,12 +318,12 @@ namespace YARG.Input
 
         private int FindSerializedIndex(InputDevice device)
         {
-            return _unresolvedDevices.FindIndex((dev) => dev.MatchesDevice(device));
+            return _unresolvedControllers.FindIndex((dev) => dev.MatchesDevice(device));
         }
 
         public bool MatchesDevice(InputDevice device)
         {
-            return _unresolvedDevices.Any(dev => dev.MatchesDevice(device));
+            return _unresolvedControllers.Any(dev => dev.MatchesDevice(device));
         }
         public bool ContainsBindingsForDevice(InputDevice device)
         {
@@ -386,8 +397,8 @@ namespace YARG.Input
             if (serializedIndex < 0)
                 return;
 
-            _unresolvedDevices.RemoveAt(serializedIndex);
-            _devices.Add(device);
+            _unresolvedControllers.RemoveAt(serializedIndex);
+            _controllers.Add(device);
             NotifyDeviceAdded(device);
         }
 
@@ -402,21 +413,34 @@ namespace YARG.Input
             if (serializedIndex >= 0)
                 return;
 
-            _devices.Remove(device);
-            _unresolvedDevices.Add(device.Serialize());
+            _controllers.Remove(device);
+            _unresolvedControllers.Add(device.Serialize());
             NotifyDeviceRemoved(device);
         }
 
-        private void NotifyDeviceAdded(InputDevice device)
+        private void NotifyDeviceAdded(InputDevice controller)
         {
-            foreach (var bindings in _bindsByGameMode.Values)
+            var controllerHash = controller.GetHash();
+
+            if (_bindsByDeviceHash.TryGetValue(controller.GetHash(), out var deviceSpecificBindings))
             {
-                bindings.OnDeviceAdded(device);
+                deviceSpecificBindings.OnDeviceAdded(controller);
+            }
+            else if (BindingsContainer.TryGetDefaultBindingCollectionForControllerHash(controllerHash, out var deviceDefaultBindings))
+            {
+                deviceDefaultBindings.OnDeviceAdded(controller);
+            }
+            else
+            {
+                foreach (var bindings in _bindsByGameMode.Values)
+                {
+                    bindings.OnDeviceAdded(controller);
+                }
             }
 
-            MenuBindings.OnDeviceAdded(device);
+            MenuBindings.OnDeviceAdded(controller);
 
-            DeviceAdded?.Invoke(device);
+            ControllerAdded?.Invoke(controller);
         }
 
         private void NotifyDeviceRemoved(InputDevice device)
@@ -428,7 +452,7 @@ namespace YARG.Input
 
             MenuBindings.OnDeviceRemoved(device);
 
-            DeviceRemoved?.Invoke(device);
+            ControllerRemoved?.Invoke(device);
         }
 
         public void UpdateBindingsForFrame(double updateTime)

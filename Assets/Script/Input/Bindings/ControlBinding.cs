@@ -471,7 +471,7 @@ namespace YARG.Input
             for (int i = 0; i < _unresolvedBindings.Count; i++)
             {
                 var binding = _unresolvedBindings[i];
-                // if (!binding.Device.MatchesDevice(device)) continue;
+                //if (!binding.Device.MatchesDevice(device)) continue;
 
                 // Remove regardless of if deserialization fails, no point keeping broken bindings around
                 _unresolvedBindings.RemoveAt(i);
