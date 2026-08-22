@@ -1,4 +1,4 @@
-﻿using System;
+﻿/*using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -224,4 +224,4 @@ namespace YARG.Input.Serialization
             return serialized.Deserialize();
         }
     }
-}
+}*/

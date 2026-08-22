@@ -1,4 +1,4 @@
-using Cysharp.Threading.Tasks;
+﻿using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.UI;
 using YARG.Core;
@@ -86,14 +86,14 @@ namespace YARG.Menu.ProfileInfo
             SelectedGameMode = gameMode;
             SelectingMenuBinds = false;
 
-            RefreshFromBindingCollection(_currentPlayer.Bindings[gameMode]);
+            RefreshFromBindingCollection(_currentPlayer.DeviceInfo[gameMode]);
         }
 
         public void RefreshMenuBindings()
         {
             SelectingMenuBinds = true;
 
-            RefreshFromBindingCollection(_currentPlayer.Bindings.MenuBindings);
+            RefreshFromBindingCollection(_currentPlayer.DeviceInfo.MenuBindings);
         }
 
         private void RefreshFromBindingCollection(BindingCollection collection)

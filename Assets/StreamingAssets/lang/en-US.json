@@ -348,7 +348,7 @@
             "Options": {
                 "Quickplay": "Quickplay",
                 "GameModes": "Game Modes",
-                "Profiles": "Profiles",
+                "Profiles": "Profiles & Devices",
                 "Content": "Content",
                 "Settings": "Settings",
                 "Credits": "Credits",
@@ -586,7 +586,7 @@
             }
         },
         "ProfileList": {
-            "Name": "Profiles",
+            "Name": "Profiles\n& Devices",
             "ActiveProfiles" : "Active Profiles",
             "AddBot": "Add Bot",
             "AddProfile": "Add Profile",

@@ -33,7 +33,25 @@ namespace YARG.Input.Serialization
     {
         public Dictionary<Guid, SerializedProfileDeviceInfo> Profiles = new();
         public Dictionary<string, Guid> ControllerDefaults = new();
-        public Dictionary<Guid, SerializedReusableBindingSet> ReusableBindingSets = new();
+        public List<SerializedReusableBindingSet> ReusableBindingSets = new();
+
+        public SerializedReusableBindingSet? GetBindingSetByGuid(Guid? guid)
+        {
+            if (guid is null)
+            {
+                return null;
+            }
+
+            foreach (var reusableBindingSet in ReusableBindingSets)
+            {
+                if (reusableBindingSet.Guid == guid)
+                {
+                    return reusableBindingSet;
+                }
+            }
+
+            return null;
+        }
     }
 
     public class SerializedProfileDeviceInfo
@@ -46,11 +64,13 @@ namespace YARG.Input.Serialization
 
         public Dictionary<GameMode, Guid> ModeMappings = new();
         public Dictionary<string, Guid> ControllerMappings = new();
-        public Guid? MenuMappings;
+        public Guid? MenuMapping;
     }
 
     public class SerializedReusableBindingSet
     {
+        public Guid Guid;
+        public GameMode GameMode;
         public Dictionary<string, SerializedControlBinding> Bindings = new();
     }
 
@@ -162,10 +182,10 @@ namespace YARG.Input.Serialization
 
                 var bindings = version switch
                 {
-                    0 => DeserializeBindingsV0(jObject),
-                    1 => DeserializeBindingsV1(jObject),
-                    2 => DeserializeBindingsV2(jObject),
-                    3 => DeserializeBindingsV3(jObject),
+                    //0 => DeserializeBindingsV0(jObject),
+                    //1 => DeserializeBindingsV1(jObject),
+                    //2 => DeserializeBindingsV2(jObject),
+                    //3 => DeserializeBindingsV3(jObject),
                     4 => DeserializeBindingsV4(jObject),
                     _ => throw new NotImplementedException($"Unhandled bindings version {version}!")
                 };

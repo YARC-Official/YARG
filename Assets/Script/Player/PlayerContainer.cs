@@ -266,7 +266,7 @@ namespace YARG.Player
         {
             foreach (var player in _players)
             {
-                if (player.Bindings.ContainsDevice(device))
+                if (player.DeviceInfo.ContainsDevice(device))
                 {
                     return true;
                 }
@@ -279,7 +279,7 @@ namespace YARG.Player
         {
             foreach (var player in _players)
             {
-                player.Bindings.OnDeviceAdded(device);
+                player.DeviceInfo.OnDeviceAdded(device);
             }
 
             if (!SettingsManager.Settings.AutoCreateProfiles.Value)
@@ -294,7 +294,7 @@ namespace YARG.Player
         {
             foreach (var player in _players)
             {
-                player.Bindings.OnDeviceRemoved(device);
+                player.DeviceInfo.OnDeviceRemoved(device);
             }
         }
 
@@ -867,7 +867,7 @@ namespace YARG.Player
 
             foreach (var player in _players)
             {
-                if (player.InputsEnabled && player.Bindings.ContainsDevice(keyboard))
+                if (player.InputsEnabled && player.DeviceInfo.ContainsDevice(keyboard))
                 {
                     return true;
                 }
@@ -1017,11 +1017,11 @@ namespace YARG.Player
                 return false;
             }
 
-            player.Bindings.AddDevice(device);
+            player.DeviceInfo.AddDevice(device);
 
-            if (!player.Bindings.ContainsBindingsForDevice(device))
+            if (!player.DeviceInfo.ContainsBindingsForDevice(device))
             {
-                player.Bindings.SetDefaultBinds(device);
+                player.DeviceInfo.SetDefaultBinds(device);
             }
 
             var successMessage = Localize.KeyFormat("Menu.Toast.ProfileCreated", device.displayName);

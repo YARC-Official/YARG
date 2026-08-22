@@ -12,6 +12,8 @@ namespace YARG.Input
 {
     public partial class BindingCollection : IEnumerable<ControlBinding>
     {
+        public Guid Guid { get; private set; }
+
         private readonly List<ControlBinding> _bindings = new();
 
         public event Action BindingsChanged
@@ -55,7 +57,7 @@ namespace YARG.Input
 #nullable enable
         public SerializedReusableBindingSet? Serialize()
         {
-            var serialized = new SerializedReusableBindingSet();
+            var serialized = new SerializedReusableBindingSet() { Guid = Guid };
             foreach (var binding in _bindings)
             {
                 var serializedBind = binding.Serialize();
@@ -142,6 +144,7 @@ namespace YARG.Input
             return false;
         }
 
+        /* TODO: Delete?
         public bool ContainsBindingsForDevice(InputDevice device)
         {
             foreach (var binding in _bindings)
@@ -159,7 +162,7 @@ namespace YARG.Input
             {
                 binding.ClearBindingsForDevice(device);
             }
-        }
+        }*/
 
         public void ClearAllBindings()
         {

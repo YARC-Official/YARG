@@ -21,32 +21,38 @@ namespace YARG.Input.Serialization
         public int Version = VERSION;
         public Dictionary<Guid, SerializedProfileDeviceInfoV4> Profiles = new();
         public Dictionary<string, Guid> ControllerDefaults = new();
-        public Dictionary<Guid, SerializedReusableBindingSetV4> ReusableBindingSets = new();
+        public List<SerializedReusableBindingSetV4> ReusableBindingSets = new();
 
         [JsonConstructor]
         public SerializedBindingsV4() { }
 
         public SerializedBindingsV4(SerializedBindings serialized)
         {
+
             foreach (var (id, profile) in serialized.Profiles)
             {
                 Profiles[id] = new SerializedProfileDeviceInfoV4(profile);
             }
 
-            foreach (var (id, controllerGuid) in serialized.ControllerDefaults)
+            foreach (var (controllerHash, bindingSetGuid) in serialized.ControllerDefaults)
             {
-                ControllerDefaults[id] = controllerGuid;
+                ControllerDefaults[controllerHash] = bindingSetGuid;
             }
 
-            foreach (var (id, bind) in serialized.ReusableBindingSets)
+            foreach (var bind in serialized.ReusableBindingSets)
             {
-                ReusableBindingSets[id] = new SerializedReusableBindingSetV4(bind);
+                ReusableBindingSets.Add(new SerializedReusableBindingSetV4(bind));
             }
         }
 
         public SerializedBindings Deserialize()
         {
             var deserialized = new SerializedBindings();
+
+            foreach (var bind in ReusableBindingSets)
+            {
+                deserialized.ReusableBindingSets.Add(bind.Deserialize());
+            }
 
             foreach (var (id, profile) in Profiles)
             {
@@ -58,11 +64,6 @@ namespace YARG.Input.Serialization
                 deserialized.ControllerDefaults[controllerHash] = bindingSetGuid;
             }
 
-            foreach (var (id, bind) in ReusableBindingSets)
-            {
-                deserialized.ReusableBindingSets[id] = bind.Deserialize();
-            }
-
             return deserialized;
         }
 
@@ -71,7 +72,7 @@ namespace YARG.Input.Serialization
             public List<SerializedControllerV4> Controllers = new();
             public List<SerializedMicV4> Microphones = new();
 
-            
+
             // Stores the GUIDs of ReusableBindingSets that this profile likes to use by default for certain GameModes
             // Can be overridden by this profile's ControllerBindings or a controller's user-specified default bindings
             public Dictionary<GameMode, Guid> ModeMappings = new();
@@ -109,9 +110,9 @@ namespace YARG.Input.Serialization
                     ControllerMappings[controllerHash] = bindingSetGuid;
                 }
 
-                if (serialized.MenuMappings is not null)
+                if (serialized.MenuMapping is not null)
                 {
-                    MenuMappings = serialized.MenuMappings;
+                    MenuMappings = serialized.MenuMapping;
                 }
             }
 
@@ -129,19 +130,19 @@ namespace YARG.Input.Serialization
 
                 deserialized.Controllers.AddRange(Controllers.Select((controller) => controller.Deserialize()));
 
-                foreach (var (gameMode, bindings) in ModeMappings)
+                foreach (var (gameMode, bindingSetGuid) in ModeMappings)
                 {
-                    deserialized.ModeMappings[gameMode] = ModeMappings[gameMode];
+                    deserialized.ModeMappings[gameMode] = bindingSetGuid;
                 }
 
                 foreach (var (controllerHash, bindingSetGuid) in ControllerMappings)
                 {
-                    deserialized.ControllerMappings[controllerHash] = ControllerMappings[controllerHash];
+                    deserialized.ControllerMappings[controllerHash] = bindingSetGuid;
                 }
 
                 if (MenuMappings is not null)
                 {
-                    deserialized.MenuMappings = MenuMappings;
+                    deserialized.MenuMapping = MenuMappings;
                 }
 
                 return deserialized;
@@ -151,12 +152,15 @@ namespace YARG.Input.Serialization
         public class SerializedReusableBindingSetV4
         {
             public Dictionary<string, SerializedControlBindingV4> Bindings = new();
+            public GameMode GameMode;
 
             [JsonConstructor]
             public SerializedReusableBindingSetV4() { }
 
             public SerializedReusableBindingSetV4(SerializedReusableBindingSet serialized)
             {
+                GameMode = serialized.GameMode;
+
                 foreach (var (id, serializedBindings) in serialized.Bindings)
                 {
                     Bindings[id] = new SerializedControlBindingV4(serializedBindings);
@@ -165,7 +169,7 @@ namespace YARG.Input.Serialization
 
             public SerializedReusableBindingSet Deserialize()
             {
-                var converted = new SerializedReusableBindingSet();
+                var converted = new SerializedReusableBindingSet() { GameMode = GameMode };
                 foreach (var (id, serializedBinds) in Bindings)
                 {
                     converted.Bindings[id] = serializedBinds.Deserialize();
@@ -246,23 +250,23 @@ namespace YARG.Input.Serialization
             public bool ShouldSerializeParameters() => Parameters.Count > 0;
         }
 
-        public static partial class BindingSerialization
+    }
+    public static partial class BindingSerialization
+    {
+        private static SerializedBindingsV4 SerializeBindingsV4(SerializedBindings serialized)
         {
-            private static SerializedBindingsV4 SerializeBindingsV4(SerializedBindings serialized)
+            return new SerializedBindingsV4(serialized);
+        }
+
+        private static SerializedBindings? DeserializeBindingsV4(JObject obj)
+        {
+            var serialized = obj.ToObject<SerializedBindingsV4>();
+            if (serialized is null || serialized.Version != SerializedBindingsV4.VERSION)
             {
-                return new SerializedBindingsV4(serialized);
+                return null;
             }
 
-            private static SerializedBindings? DeserializeBindingsV4(JObject obj)
-            {
-                var serialized = obj.ToObject<SerializedBindingsV4>();
-                if (serialized is null || serialized.Version != SerializedBindingsV4.VERSION)
-                {
-                    return null;
-                }
-
-                return serialized.Deserialize();
-            }
+            return serialized.Deserialize();
         }
     }
 }

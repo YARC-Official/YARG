@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using Cysharp.Text;
 using UnityEngine;
@@ -122,7 +122,7 @@ namespace YARG.Input
         {
             player.MenuInput += OnMenuInput;
 
-            foreach (var device in player.Bindings.InputDevices)
+            foreach (var device in player.DeviceInfo.Controllers)
             {
                 if (!_registeredDevices.Add(device))
                 {
@@ -135,7 +135,7 @@ namespace YARG.Input
         {
             player.MenuInput -= OnMenuInput;
 
-            foreach (var device in player.Bindings.InputDevices)
+            foreach (var device in player.DeviceInfo.Controllers)
             {
                 if (!_registeredDevices.Remove(device))
                 {
@@ -187,7 +187,7 @@ namespace YARG.Input
             {
                 while (players.MoveNext())
                 {
-                    players.Current.Bindings.UpdateBindingsForFrame(InputUpdateTime);
+                    players.Current.DeviceInfo.UpdateBindingsForFrame(InputUpdateTime);
                 }
             }
 
