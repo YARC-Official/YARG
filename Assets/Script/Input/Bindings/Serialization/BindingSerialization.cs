@@ -64,7 +64,7 @@ namespace YARG.Input.Serialization
 
         public Dictionary<GameMode, Guid> ModeMappings = new();
         public Dictionary<string, Guid> ControllerMappings = new();
-        public Guid? MenuMappings;
+        public Guid? MenuMapping;
     }
 
     public class SerializedReusableBindingSet

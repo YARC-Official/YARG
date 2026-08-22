@@ -36,9 +36,16 @@ namespace YARG.Input.Bindings
             return bindings;
         }
 
-        public static BindingCollection GetBindingCollectionById(Guid guid)
+        public static bool TryGetBindingCollectionById(Guid guid, out BindingCollection bindingCollection)
         {
-            return _bindingCollections[guid];
+            if (_bindingCollections.ContainsKey(guid))
+            {
+                bindingCollection = _bindingCollections[guid];
+                return true;
+            }
+
+            bindingCollection = null;
+            return false;
         }
 
         public static bool TryGetDefaultBindingCollectionForControllerHash(string hash, out BindingCollection controllerDefaultBindings)
@@ -104,7 +111,15 @@ namespace YARG.Input.Bindings
 
             foreach (var (hash, guid) in bindings.ControllerDefaults)
             {
-                _controllerDefaultBindings.Add(hash, GetBindingCollectionById(guid));
+                if (TryGetBindingCollectionById(guid, out var controllerDefaultMapping))
+                {
+                    _controllerDefaultBindings[hash] = controllerDefaultMapping;
+                }
+                else
+                {
+                    YargLogger.LogWarning($"Referenced nonexistent binding collection GUID {guid}; removing it");
+                    bindings.ControllerDefaults.Remove(hash);
+                }
             }
 
             // If we used the backup save the backup data to the main path, otherwise save main to backup

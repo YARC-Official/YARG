@@ -110,9 +110,9 @@ namespace YARG.Input.Serialization
                     ControllerMappings[controllerHash] = bindingSetGuid;
                 }
 
-                if (serialized.MenuMappings is not null)
+                if (serialized.MenuMapping is not null)
                 {
-                    MenuMappings = serialized.MenuMappings;
+                    MenuMappings = serialized.MenuMapping;
                 }
             }
 
@@ -142,7 +142,7 @@ namespace YARG.Input.Serialization
 
                 if (MenuMappings is not null)
                 {
-                    deserialized.MenuMappings = MenuMappings;
+                    deserialized.MenuMapping = MenuMappings;
                 }
 
                 return deserialized;

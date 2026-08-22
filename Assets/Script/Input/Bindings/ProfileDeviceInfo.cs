@@ -128,6 +128,9 @@ namespace YARG.Input
                 _unresolvedMics.Add(profileBindings.Microphone);
             }
 
+            // _bindsByGameMode should currently be populated with the default bindings for each GameMode.
+            // If this profile has defined its own GameMode-level binding preferences, we'll overwrite the corresponding
+            // entry for each defined mode
             if (profileBindings.ModeMappings is not null)
             {
                 foreach (var (mode, bindingSetGuid) in profileBindings.ModeMappings)
@@ -138,24 +141,48 @@ namespace YARG.Input
                         continue;
                     }
 
-                    var serializedBinds = BindingsContainer.GetBindingCollectionById(bindingSetGuid);
-                }
-            }
-
-            if (profileBindings.ControllerMappings is not null)
-            {
-                foreach (var (controllerHash, bindingSetGuid) in profileBindings.ControllerMappings)
-                {
-                    if (_bindsByDeviceHash.TryGetValue(controllerHash, out var controllerBindings))
+                    if (BindingsContainer.TryGetBindingCollectionById(bindingSetGuid, out var modeMapping))
                     {
-                        var serializedBinds = BindingsContainer.GetBindingCollectionById(bindingSetGuid);
+                        _bindsByGameMode[mode] = modeMapping;
+                    }
+                    else
+                    {
+                        YargLogger.LogWarning($"Referenced nonexistent binding collection GUID {bindingSetGuid}; removing it");
+                        profileBindings.ModeMappings.Remove(mode);
                     }
                 }
             }
 
-            if (profileBindings.MenuMappings is not null)
+            // Profiles can also define preferred binding sets for individual controllers, which supersede GameMode-level preferences.
+            // Populate _bindsByDeviceHash with each of those binding sets, regardless of whether the relevant device is currently attached
+            // to this profile; if the player attaches it later, we'll want to retrieve their preferred binding set
+            if (profileBindings.ControllerMappings is not null)
             {
-                var serializedMenuMappings = BindingsContainer.GetBindingCollectionById(profileBindings.MenuMappings.Value);
+                foreach (var (controllerHash, bindingSetGuid) in profileBindings.ControllerMappings)
+                {
+                    if (BindingsContainer.TryGetBindingCollectionById(bindingSetGuid, out var controllerMapping))
+                    {
+                        _bindsByDeviceHash[controllerHash] = controllerMapping;
+                    }
+                    else
+                    {
+                        YargLogger.LogWarning($"Referenced nonexistent binding collection GUID {bindingSetGuid}; removing it");
+                        profileBindings.ControllerMappings.Remove(controllerHash);
+                    }
+                }
+            }
+
+            if (profileBindings.MenuMapping is not null)
+            {
+                if (BindingsContainer.TryGetBindingCollectionById(profileBindings.MenuMapping.Value, out var menuMapping))
+                {
+                    MenuBindings = menuMapping;
+                }
+                else
+                {
+                    YargLogger.LogWarning($"Referenced nonexistent binding collection GUID {profileBindings.MenuMapping}; removing it");
+                    profileBindings.MenuMapping = null;
+                }
             }
         }
 
@@ -192,7 +219,7 @@ namespace YARG.Input
                 serialized.ModeMappings.Add(mode, serializedBinds.Guid);
             }
 
-            serialized.MenuMappings = MenuBindings.Guid;
+            serialized.MenuMapping = MenuBindings.Guid;
 
             return serialized;
         }
