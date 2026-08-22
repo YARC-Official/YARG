@@ -83,6 +83,10 @@ namespace YARG.Settings.Customization
             }
 
             Directory.Move(tempExtraContentFolder, extraContentFolder);
+
+            // Rewrite background and side texture FileInfos to match new path
+            highwayPreset.BackgroundImage = new FileInfo(Path.Join(extraContentFolder, "background.png"));
+            highwayPreset.SideImage = new FileInfo(Path.Join(extraContentFolder, "side.png"));
         }
 
         protected override void AddAdditionalFilesToExport(BasePreset preset, ZipArchive archive)

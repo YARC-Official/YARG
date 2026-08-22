@@ -8,6 +8,9 @@
 namespace yarg::audio {
 
 struct BassCoreFunctions {
+    int (YARG_BASS_CALL* setDevice)(std::uint32_t) = nullptr;
+    std::uint32_t (YARG_BASS_CALL* channelGetData)(
+        std::uint32_t, void*, std::uint32_t) = nullptr;
     int (YARG_BASS_CALL* errorGetCode)() = nullptr;
     std::uint32_t (YARG_BASS_CALL* channelSetDsp)(
         std::uint32_t, BassDspProc, void*, int) = nullptr;
@@ -29,6 +32,8 @@ public:
     bool load() noexcept;
     bool valid() const noexcept;
 
+    bool setDevice(int device) const noexcept;
+    int getData(std::uint32_t channel, void* buffer, std::uint32_t bytes) const noexcept;
     int error() const noexcept;
     std::uint32_t setDsp(std::uint32_t channel, BassDspProc proc,
         void* user, int priority) const noexcept;
@@ -37,6 +42,7 @@ public:
     bool getChannelInfo(std::uint32_t channel, BassChannelInfo& info) const noexcept;
     std::uint32_t getConfig(std::uint32_t option) const noexcept;
     bool oneShotValid() const noexcept;
+    bool readAheadValid() const noexcept;
     std::uint32_t createStream(std::uint32_t frequency, std::uint32_t channels,
         std::uint32_t flags, BassStreamProc proc, void* user) const noexcept;
     bool freeStream(std::uint32_t stream) const noexcept;

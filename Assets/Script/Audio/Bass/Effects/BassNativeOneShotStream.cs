@@ -9,7 +9,7 @@ namespace YARG.Audio.BASS.Effects
     /// <summary>Owns one native scheduled one-shot source and its BASS stream.</summary>
     internal sealed class BassNativeOneShotStream : SafeHandleZeroOrMinusOneIsInvalid
     {
-        private const string EffectName = "native one-shot stream";
+        private const string EFFECT_NAME = "native one-shot stream";
 
         private readonly object _lifecycleLock = new object();
         private int _mixerHandle;
@@ -67,7 +67,7 @@ namespace YARG.Audio.BASS.Effects
             catch (Exception exception) when (exception is DllNotFoundException or
                 EntryPointNotFoundException or BadImageFormatException)
             {
-                YargLogger.LogException(exception, $"Failed to load {EffectName}");
+                YargLogger.LogException(exception, $"Failed to load {EFFECT_NAME}");
                 return null;
             }
             finally
@@ -116,9 +116,25 @@ namespace YARG.Audio.BASS.Effects
                 catch (Exception exception) when (exception is DllNotFoundException or
                     EntryPointNotFoundException or BadImageFormatException)
                 {
-                    YargLogger.LogException(exception, $"Failed to resync {EffectName}");
+                    YargLogger.LogException(exception, $"Failed to resync {EFFECT_NAME}");
                     return false;
                 }
+            }
+        }
+
+        internal bool Detach()
+        {
+            lock (_lifecycleLock)
+            {
+                if (!IsUsable || _mixerHandle == 0) return true;
+                int result = Native.Detach(this, out int bassError);
+                if (result != 0)
+                {
+                    LogFailure("detach", result, bassError);
+                    return false;
+                }
+                _mixerHandle = 0;
+                return true;
             }
         }
 
@@ -190,7 +206,7 @@ namespace YARG.Audio.BASS.Effects
         private static void LogFailure(string operation, int result, int bassError)
         {
             YargLogger.LogError(
-                $"Failed to {operation} {EffectName}: result={result}, BASS={bassError}.");
+                $"Failed to {operation} {EFFECT_NAME}: result={result}, BASS={bassError}.");
         }
 
         [StructLayout(LayoutKind.Sequential)]
@@ -205,36 +221,41 @@ namespace YARG.Audio.BASS.Effects
 
         private static class Native
         {
-            private const string Library = "yarg_audio";
+            private const string LIBRARY = "yarg_audio";
 
-            [DllImport(Library, EntryPoint = "yarg_one_shot_stream_create",
+            [DllImport(LIBRARY, EntryPoint = "yarg_one_shot_stream_create",
                 CallingConvention = CallingConvention.Cdecl)]
             internal static extern int Create(ref NativeConfig config, IntPtr pcm,
                 ulong pcmSampleCount, IntPtr schedule, ulong scheduleCount,
                 out BassNativeOneShotStream stream, out int bassError);
 
-            [DllImport(Library, EntryPoint = "yarg_one_shot_stream_attach",
+            [DllImport(LIBRARY, EntryPoint = "yarg_one_shot_stream_attach",
                 CallingConvention = CallingConvention.Cdecl)]
             internal static extern int Attach(BassNativeOneShotStream stream, uint mixer,
                 double anchorSongPosition, float playbackSpeed, int paused,
                 out int bassError);
 
-            [DllImport(Library, EntryPoint = "yarg_one_shot_stream_resync_ex",
+            [DllImport(LIBRARY, EntryPoint = "yarg_one_shot_stream_resync_ex",
                 CallingConvention = CallingConvention.Cdecl)]
             internal static extern int Resync(BassNativeOneShotStream stream, uint mixer,
                 double anchorSongPosition, float playbackSpeed, int clearActiveVoices,
                 out int bassError);
 
-            [DllImport(Library, EntryPoint = "yarg_one_shot_stream_set_paused",
+            [DllImport(LIBRARY, EntryPoint = "yarg_one_shot_stream_set_paused",
                 CallingConvention = CallingConvention.Cdecl)]
             internal static extern int SetPaused(BassNativeOneShotStream stream, uint mixer,
                 int paused, out int bassError);
 
-            [DllImport(Library, EntryPoint = "yarg_one_shot_stream_set_gain",
+            [DllImport(LIBRARY, EntryPoint = "yarg_one_shot_stream_set_gain",
                 CallingConvention = CallingConvention.Cdecl)]
             internal static extern int SetGain(BassNativeOneShotStream stream, float gain);
 
-            [DllImport(Library, EntryPoint = "yarg_one_shot_stream_destroy",
+            [DllImport(LIBRARY, EntryPoint = "yarg_one_shot_stream_detach",
+                CallingConvention = CallingConvention.Cdecl)]
+            internal static extern int Detach(BassNativeOneShotStream stream,
+                out int bassError);
+
+            [DllImport(LIBRARY, EntryPoint = "yarg_one_shot_stream_destroy",
                 CallingConvention = CallingConvention.Cdecl)]
             internal static extern int Destroy(IntPtr stream, out int bassError);
         }

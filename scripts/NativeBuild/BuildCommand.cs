@@ -115,6 +115,7 @@ internal static class BuildCommand
             "--build",
             "--preset",
             plugin.BuildPreset,
+            "--parallel",
         ];
         if (plugin.Platform == NativePlatform.Windows)
         {
@@ -152,16 +153,20 @@ internal static class BuildCommand
         await RunIntegrationAsync(
             repository, plugin, options.Configuration, builtBinary);
 
+        if (options.OutputDirectory is not null)
+        {
+            string destination = Path.GetFullPath(options.OutputDirectory, repository.Root);
+            CopyPlugin(repository, plugin, builtBinary, destination);
+        }
+
         if (options.VerifyCommittedPlugin)
         {
             await VerifyCommittedPluginAsync(
                 repository, plugin, options.Configuration, builtBinary);
         }
-        else if (!options.NoCopy)
+        else if (options.OutputDirectory is null && !options.NoCopy)
         {
-            string destination = options.OutputDirectory is null
-                ? Path.GetDirectoryName(plugin.PluginBinaryPath(repository))!
-                : Path.GetFullPath(options.OutputDirectory, repository.Root);
+            string destination = Path.GetDirectoryName(plugin.PluginBinaryPath(repository))!;
             CopyPlugin(repository, plugin, builtBinary, destination);
         }
 

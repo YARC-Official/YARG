@@ -61,7 +61,6 @@ int NativeOneShotStream::attach(std::uint32_t mixer,
         return YARG_AUDIO_ERROR_INVALID_ARGUMENT;
     }
 
-    std::lock_guard lock(lifecycleMutex_);
     if (!source_ || stream_ == 0) return YARG_AUDIO_ERROR_INVALID_STATE;
     if (mixer_ != 0) return YARG_AUDIO_ERROR_INVALID_STATE;
     if (!core_.lockChannel(mixer, true)) {
@@ -96,7 +95,6 @@ int NativeOneShotStream::resync(std::uint32_t mixer,
         return YARG_AUDIO_ERROR_INVALID_ARGUMENT;
     }
 
-    std::lock_guard lock(lifecycleMutex_);
     if (!source_ || stream_ == 0 || mixer_ != mixer)
         return YARG_AUDIO_ERROR_INVALID_STATE;
     if (!core_.lockChannel(mixer_, true)) {
@@ -112,7 +110,6 @@ int NativeOneShotStream::resync(std::uint32_t mixer,
 int NativeOneShotStream::setPaused(std::uint32_t mixer, bool paused,
     int* bassError) noexcept {
     if (bassError) *bassError = 0;
-    std::lock_guard lock(lifecycleMutex_);
     if (!source_ || stream_ == 0) return YARG_AUDIO_ERROR_INVALID_STATE;
     if (mixer_ != 0 && mixer != mixer_) return YARG_AUDIO_ERROR_INVALID_STATE;
 
@@ -132,18 +129,12 @@ int NativeOneShotStream::setPaused(std::uint32_t mixer, bool paused,
 }
 
 int NativeOneShotStream::setGain(float gain) noexcept {
-    std::lock_guard lock(lifecycleMutex_);
     if (!source_ || stream_ == 0) return YARG_AUDIO_ERROR_INVALID_STATE;
     return source_->setGain(gain) ? YARG_AUDIO_OK : YARG_AUDIO_ERROR_INVALID_ARGUMENT;
 }
 
 int NativeOneShotStream::detach(int* bassError) noexcept {
     if (bassError) *bassError = 0;
-    std::lock_guard lock(lifecycleMutex_);
-    return detachLocked(bassError);
-}
-
-int NativeOneShotStream::detachLocked(int* bassError) noexcept {
     if (mixer_ == 0) return YARG_AUDIO_OK;
     const std::uint32_t mixer = mixer_;
     if (!core_.lockChannel(mixer, true)) {
@@ -162,10 +153,9 @@ int NativeOneShotStream::detachLocked(int* bassError) noexcept {
 
 bool NativeOneShotStream::destroy(int* bassError) noexcept {
     if (bassError) *bassError = 0;
-    std::lock_guard lock(lifecycleMutex_);
     if (!source_ && stream_ == 0) return true;
 
-    if (mixer_ != 0 && detachLocked(bassError) != YARG_AUDIO_OK) return false;
+    if (mixer_ != 0 && detach(bassError) != YARG_AUDIO_OK) return false;
     if (stream_ != 0) {
         if (!core_.freeStream(stream_)) {
             setBassError(bassError, core_);

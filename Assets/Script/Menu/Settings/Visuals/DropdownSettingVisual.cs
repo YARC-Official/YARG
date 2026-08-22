@@ -12,7 +12,7 @@ namespace YARG.Menu.Settings.Visuals
         [SerializeField]
         private TMP_Dropdown _dropdown;
 
-        protected override void RefreshVisual()
+        public override void RefreshVisual()
         {
             // Add the options (in order)
             _dropdown.options.Clear();

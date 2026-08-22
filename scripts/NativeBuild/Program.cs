@@ -80,10 +80,10 @@ internal static class Program
             throw new ToolException("--no-copy and --output cannot be used together.");
         }
 
-        if (verifyCommittedPlugin && (noCopy || outputDirectory is not null))
+        if (verifyCommittedPlugin && noCopy)
         {
             throw new ToolException(
-                "--verify-committed-plugin cannot be combined with --no-copy or --output.");
+                "--verify-committed-plugin cannot be combined with --no-copy.");
         }
 
         return new BuildOptions(

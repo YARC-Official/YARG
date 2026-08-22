@@ -26,22 +26,17 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          lfs: true
-          submodules: recursive
-      - uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: 8.x
+          fetch-depth: 1
       - name: Build, test, and package plugin
         run: >
           dotnet run --project scripts/NativeBuild --
-          build --output "$env:RUNNER_TEMP/yarg-audio-package"
+          build --output "$env:RUNNER_TEMP/yarg-audio-package" --verify-committed-plugin
       - uses: actions/upload-artifact@v4
+        if: always()
         with:
           name: yarg-audio-windows-x64
           path: ${{ runner.temp }}/yarg-audio-package
           if-no-files-found: error
-      - name: Verify committed plugin
-        run: dotnet run --project scripts/NativeBuild -- build --verify-committed-plugin
 
   linux:
     name: Linux x64
@@ -56,14 +51,14 @@ jobs:
       # apt can hang on debconf prompts (e.g. tzdata) in bare containers.
       DEBIAN_FRONTEND: noninteractive
     steps:
-      - name: Install toolchain (gcc 10, cmake, git-lfs)
+      - name: Install toolchain (gcc 10, cmake)
         timeout-minutes: 10
         run: |
           apt-get update
           # gcc-10 ships in focal universe and supports C++20 (designated
           # initializers, etc.); avoids the launchpad PPA keyserver.
           apt-get install -y --no-install-recommends \
-            g++-10 git-lfs python3-pip curl ca-certificates libicu66 make \
+            g++-10 git python3-pip curl ca-certificates libicu66 make \
             file binutils
           update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-10 100
           update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-10 100
@@ -74,26 +69,24 @@ jobs:
           gcc --version | head -1
       - uses: actions/checkout@v4
         with:
-          lfs: true
-          submodules: recursive
+          fetch-depth: 1
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 8.x
       - name: Build, test, and package plugin
         run: >
           dotnet run --project scripts/NativeBuild --
-          build --output "$RUNNER_TEMP/yarg-audio-package"
+          build --output "$RUNNER_TEMP/yarg-audio-package" --verify-committed-plugin
       - name: Verify architecture and exports
         run: |
           file Native/YargAudio/build/linux-x64/libyarg_audio.so | grep 'ELF 64-bit.*x86-64'
           nm -D --defined-only Native/YargAudio/build/linux-x64/libyarg_audio.so | grep ' yarg_gain_dsp_attach$'
       - uses: actions/upload-artifact@v4
+        if: always()
         with:
           name: yarg-audio-linux-x64
           path: ${{ runner.temp }}/yarg-audio-package
           if-no-files-found: error
-      - name: Verify committed plugin
-        run: dotnet run --project scripts/NativeBuild -- build --verify-committed-plugin
 
   macos:
     name: macOS universal
@@ -112,8 +105,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          lfs: true
-          submodules: recursive
+          fetch-depth: 1
       # xcode-select alone does not redirect the codesign shim when the image
       # also ships newer Command Line Tools; DEVELOPER_DIR does. Kept for the
       # clang toolchain selection even though the plugin is no longer re-signed.
@@ -128,7 +120,7 @@ jobs:
       - name: Build, test, and package plugin
         run: >
           dotnet run --project scripts/NativeBuild --
-          build --output "$RUNNER_TEMP/yarg-audio-package"
+          build --output "$RUNNER_TEMP/yarg-audio-package" --verify-committed-plugin
       - name: Verify architectures, load commands, and signature
         run: |
           lipo Native/YargAudio/build/macos-universal/libyarg_audio.dylib -verify_arch x86_64 arm64
@@ -146,9 +138,8 @@ jobs:
       - name: Verify Intel (x86_64) slice under Rosetta
         run: arch -x86_64 Native/YargAudio/build/macos-universal/yarg_audio_tests
       - uses: actions/upload-artifact@v4
+        if: always()
         with:
           name: yarg-audio-macos-universal
           path: ${{ runner.temp }}/yarg-audio-package
           if-no-files-found: error
-      - name: Verify committed plugin
-        run: dotnet run --project scripts/NativeBuild -- build --verify-committed-plugin

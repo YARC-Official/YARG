@@ -194,6 +194,11 @@ namespace YARG.Input
                     OnDeviceAdded(device);
             }
 
+            ResolveMicrophones();
+        }
+
+        public void ResolveMicrophones()
+        {
             for (int i = _unresolvedMics.Count - 1; i >= 0; i--)
             {
                 var mic = _unresolvedMics[i];
@@ -204,6 +209,17 @@ namespace YARG.Input
                     AddMicrophone(device);
                 }
             }
+        }
+
+        public void ReleaseMicrophones()
+        {
+            foreach (var mic in _microphones)
+            {
+                _unresolvedMics.Add(mic.Serialize());
+                mic.Dispose();
+            }
+
+            _microphones.Clear();
         }
 
         public void EnableInputs()
@@ -474,7 +490,7 @@ namespace YARG.Input
                 OnDeviceRemoved(device);
             }
 
-            RemoveAllMicrophones();
+            ReleaseMicrophones();
         }
     }
 }

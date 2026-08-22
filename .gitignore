@@ -141,3 +141,5 @@ mono_crash.mem.*.blob
 # dotnet tool build output
 Tools/**/[Bb]in/
 Tools/**/[Oo]bj/
+
+qodana.yaml

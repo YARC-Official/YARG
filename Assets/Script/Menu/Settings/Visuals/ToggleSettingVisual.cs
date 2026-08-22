@@ -11,7 +11,7 @@ namespace YARG.Menu.Settings.Visuals
         [SerializeField]
         private Toggle _toggle;
 
-        protected override void RefreshVisual()
+        public override void RefreshVisual()
         {
             _toggle.SetIsOnWithoutNotify(Setting.Value);
         }

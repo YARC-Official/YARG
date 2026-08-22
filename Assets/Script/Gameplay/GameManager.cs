@@ -121,10 +121,10 @@ namespace YARG.Gameplay
         public bool IsAudioSyncCorrectionActive => _songRunner.IsAudioSyncCorrectionActive;
 
         /// <inheritdoc cref="SongRunner.Started"/>
-        public bool Started => _songRunner.Started;
+        public bool Started => _songRunner?.Started ?? false;
 
         /// <inheritdoc cref="SongRunner.Paused"/>
-        public bool Paused => _songRunner.Paused;
+        public bool Paused => _songRunner?.Paused ?? true;
 
         /// <summary>
         /// The current song's specific offset (in milliseconds), editable from the pause menu
@@ -313,14 +313,8 @@ namespace YARG.Gameplay
                 return;
             }
 
-            bool runnerWasStarted = _songRunner.Started;
-
             // Update handlers
             _songRunner.Update();
-            if (!runnerWasStarted && _songRunner.Started)
-            {
-                GlobalVariables.RestartProfileMicrophones();
-            }
 
             ApplySongSpeed();
             BeatEventHandler.Update(_songRunner.SongTime, _songRunner.VisualTime);
@@ -909,7 +903,7 @@ namespace YARG.Gameplay
             var stars = StarAmountHelper.GetStarsFromInt(Mathf.FloorToInt(bandStars));
             ReplayData = new ReplayData(colorProfiles, cameraPresets, rockMeterPresets, noFail, frames.ToArray(), _frameTimes.ToArray());
 
-            (bool success, var replayInfo) = ReplayIO.TrySerialize(directory, Song, SongSpeed, length, bandScore, stars, PauseInfo.ToArray(), replayStats.ToArray(), ReplayData);
+            (bool success, var replayInfo) = ReplayIO.TrySerialize(directory, Song, SongSpeed, length, bandScore, stars, PauseInfo.ToArray(), SettingsManager.Settings.CensorMatureContent.Value, replayStats.ToArray(), ReplayData);
             if (!success)
             {
                 return null;

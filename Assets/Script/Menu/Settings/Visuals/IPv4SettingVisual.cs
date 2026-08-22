@@ -11,7 +11,7 @@ namespace YARG.Menu.Settings.Visuals
         [SerializeField]
         private TMP_InputField _inputField;
 
-        protected override void RefreshVisual()
+        public override void RefreshVisual()
         {
             _inputField.text = Setting.Value;
         }

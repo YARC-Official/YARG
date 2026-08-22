@@ -284,6 +284,7 @@ namespace YARG.Gameplay
 
             var noFail = ReplayData?.NoFail ?? SettingsManager.Settings.NoFail.Value != NoFailMode.Off;
             EngineManager.InitializeHappiness(noFail);
+            CrowdEventHandler.UpdateCrowdMuteState(force: true);
 
             EngineManager.OnCodaStart += StartCoda;
             EngineManager.OnCodaEnd += EndCoda;
@@ -340,6 +341,12 @@ namespace YARG.Gameplay
                 Chart = Song.LoadChart();
                 if (Chart != null)
                 {
+                    var isReplay = GlobalVariables.State.IsReplay || GlobalVariables.State.PlayingWithReplay;
+                    if ((isReplay && ReplayInfo!.CensorshipEnabled) ||
+                        (!isReplay && SettingsManager.Settings.CensorMatureContent.Value))
+                    {
+                        Chart.ApplyCensorship();
+                    }
                     GenerateVenueTrack();
                     GenerateLipsyncTrack();
                 }
@@ -383,9 +390,7 @@ namespace YARG.Gameplay
 
         private void GenerateLipsyncTrack()
         {
-            SongChart.LoadLipsyncFromMilo(Chart, Song);
-
-            YargLogger.LogFormatDebug("Loaded {0} lipsync events from milo", Chart.LipsyncEvents.Count);
+            SongChart.LoadLipsync(Chart, Song);
         }
 
         private void FinalizeChart()
@@ -516,7 +521,15 @@ namespace YARG.Gameplay
                                 : Chart.Harmony;
                             VocalTrack.Initialize(chart, player, Song.VocalScrollSpeedScalingFactor);
 
-                            _lyricBar.gameObject.SetActive(false);
+                            if (SettingsManager.Settings.KeepLyricBar.Value &&
+                                SettingsManager.Settings.LyricDisplay.Value != LyricDisplayMode.Disabled)
+                            {
+                                _lyricBar.SetVocalPlayerLayout();
+                            }
+                            else
+                            {
+                                _lyricBar.gameObject.SetActive(false);
+                            }
                             vocalTrackInitialized = true;
                         }
 

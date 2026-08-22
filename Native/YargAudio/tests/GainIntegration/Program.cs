@@ -11,7 +11,7 @@ internal static class Program
     private static int Main()
     {
         Check(Environment.Is64BitProcess, "Integration probe requires a 64-bit process.");
-        Check(GainDsp.GetAbiVersion() == 1, "Unexpected YargAudio ABI version.");
+        Check(GainDsp.GetAbiVersion() == 6, "Unexpected YargAudio ABI version.");
         Check(Bass.Init(0, 48_000, 0, IntPtr.Zero, IntPtr.Zero), "BASS_Init");
 
         try
@@ -19,15 +19,18 @@ internal static class Program
             TestParityAndLiveUpdates();
             TestDspPriority();
             TestRepeatedLifecycle();
+            TestNoiseGateAndReset();
             TestFreeverbImpulseAndReset();
+            TestDattorroImpulseAndReset();
             TestOneShotRealBassLifecycle();
+            TestReadAheadRealBassGraph();
         }
         finally
         {
             Check(Bass.Free(), "BASS_Free");
         }
 
-        Console.WriteLine($"Native Gain/Freeverb integration passed on {RuntimeInformation.OSDescription} " +
+        Console.WriteLine($"Native DSP integration passed on {RuntimeInformation.OSDescription} " +
             $"({RuntimeInformation.ProcessArchitecture}).");
         return 0;
     }
@@ -169,6 +172,66 @@ internal static class Program
         }
     }
 
+    private static void TestDattorroImpulseAndReset()
+    {
+        uint stream = CreatePushStream();
+        try
+        {
+            using DattorroDsp dsp = AttachDattorro(stream, 0, 1, 0.8f, 0.5f, 1);
+            float[] impulse = new float[2_000 * 2];
+            impulse[0] = 1;
+            float[] output = Process(stream, impulse);
+            bool producedWetSignal = false;
+            foreach (float sample in output)
+            {
+                if (sample != 0)
+                {
+                    producedWetSignal = true;
+                    break;
+                }
+            }
+            Check(producedWetSignal, "Dattorro impulse response");
+
+            Check(DattorroDsp.Reset(dsp) == 0, "Dattorro reset");
+            float[] silence = new float[64 * 2];
+            output = Process(stream, silence);
+            foreach (float sample in output)
+            {
+                Check(sample == 0, "Dattorro reset left tail");
+            }
+        }
+        finally
+        {
+            Check(Bass.StreamFree(stream), "BASS_StreamFree after Dattorro test");
+        }
+    }
+
+    private static void TestNoiseGateAndReset()
+    {
+        uint stream = CreatePushStream();
+        try
+        {
+            using NoiseGateDsp gate = AttachNoiseGate(stream, 0.05f, 0, 0, 0, 0, priority: 5);
+
+            float[] output = Process(stream, new float[] { 0, 0, 0, 0 });
+            AssertSilence(output, "noise gate silence");
+
+            output = Process(stream, new float[] { 1, 1 });
+            Check(output[0] == 1 && output[1] == 1, "noise gate loud signal");
+
+            output = Process(stream, new float[] { 0.01f, 0.01f });
+            AssertSilence(output, "noise gate quiet signal");
+
+            Check(NoiseGateDsp.Reset(gate) == 0, "noise gate reset");
+            output = Process(stream, new float[] { 0, 0, 0, 0 });
+            AssertSilence(output, "noise gate reset silence");
+        }
+        finally
+        {
+            Check(Bass.StreamFree(stream), "BASS_StreamFree after dynamics test");
+        }
+    }
+
     private static void TestOneShotRealBassLifecycle()
     {
         const int sampleRate = 48_000;
@@ -221,6 +284,59 @@ internal static class Program
             BassSampleFloat | BassStreamDecode);
         Check(mixer != 0, "BASS_Mixer_StreamCreate");
         return mixer;
+    }
+
+    private static void TestReadAheadRealBassGraph()
+    {
+        const int sampleRate = 48_000;
+        const int channels = 2;
+        uint source = CreatePushStream();
+        uint mixer = CreateMixer(sampleRate, channels);
+        try
+        {
+            Check(Bass.MixerStreamAddChannel(mixer, source, 0x800000),
+                "BASS_Mixer_StreamAddChannel read-ahead source");
+            float[] input = new float[512 * channels];
+            Array.Fill(input, 0.25f);
+            Check(Bass.StreamPutData(source, input, input.Length * sizeof(float)) ==
+                input.Length * sizeof(float), "BASS_StreamPutData read-ahead source");
+
+            var config = new ReadAheadConfig
+            {
+                Size = (uint) Marshal.SizeOf<ReadAheadConfig>(),
+                BassDeviceId = 0,
+                SourceMixer = mixer,
+                SampleRate = sampleRate,
+                Channels = channels,
+                MinimumBlockFrames = 64,
+                BufferMilliseconds = 2,
+            };
+            using ReadAheadStream stream = ReadAheadStream.Create(config);
+            uint finalMixer = CreateMixer(sampleRate, channels);
+            try
+            {
+                Check(Bass.MixerStreamAddChannel(finalMixer, stream.StreamHandle, 0x800000),
+                    "BASS_Mixer_StreamAddChannel read-ahead stream");
+                Check(stream.Prefill(2000), "read-ahead prefill");
+                float[] output = Pull(finalMixer, 96);
+                foreach (float sample in output)
+                {
+                    Check(sample == 0.25f, "read-ahead PCM mismatch");
+                }
+                Check(stream.Flush(), "read-ahead flush");
+                Check(stream.SetBufferLength(4), "read-ahead resize");
+                Check(stream.Prefill(2000), "read-ahead refill");
+            }
+            finally
+            {
+                Check(Bass.StreamFree(finalMixer), "BASS_StreamFree final read-ahead mixer");
+            }
+        }
+        finally
+        {
+            Check(Bass.StreamFree(mixer), "BASS_StreamFree read-ahead mixer");
+            Check(Bass.StreamFree(source), "BASS_StreamFree read-ahead source");
+        }
     }
 
     private static OneShotStream CreateOneShot(int sampleRate, int channels,
@@ -297,6 +413,26 @@ internal static class Program
             priority, out FreeverbDsp dsp, out int bassError);
         Check(result == 0 && dsp != null && !dsp.IsInvalid,
             $"Freeverb attach failed: result={result}, BASS={bassError}.");
+        return dsp!;
+    }
+
+    private static DattorroDsp AttachDattorro(uint stream, float dryMix, float wetMix,
+        float roomSize, float damp, float width, int priority = 0)
+    {
+        int result = DattorroDsp.Attach(stream, dryMix, wetMix, roomSize, damp, width,
+            priority, out DattorroDsp dsp, out int bassError);
+        Check(result == 0 && dsp != null && !dsp.IsInvalid,
+            $"Dattorro attach failed: result={result}, BASS={bassError}.");
+        return dsp!;
+    }
+
+    private static NoiseGateDsp AttachNoiseGate(uint stream, float threshold,
+        float floorGain, float attackMs, float holdMs, float releaseMs, int priority = 0)
+    {
+        int result = NoiseGateDsp.Attach(stream, threshold, floorGain, attackMs, holdMs,
+            releaseMs, priority, out NoiseGateDsp dsp, out int bassError);
+        Check(result == 0 && dsp != null && !dsp.IsInvalid,
+            $"Noise gate attach failed: result={result}, BASS={bassError}.");
         return dsp!;
     }
 
@@ -378,6 +514,60 @@ internal static class Program
         private static extern void Destroy(IntPtr dsp);
     }
 
+    private sealed class DattorroDsp : SafeHandleZeroOrMinusOneIsInvalid
+    {
+        private DattorroDsp() : base(true)
+        {
+        }
+
+        protected override bool ReleaseHandle()
+        {
+            Destroy(handle);
+            return true;
+        }
+
+        [DllImport("yarg_audio", EntryPoint = "yarg_dattorro_reverb_dsp_attach",
+            CallingConvention = CallingConvention.Cdecl)]
+        internal static extern int Attach(uint channel, float dryMix, float wetMix,
+            float roomSize, float damp, float width, int priority,
+            out DattorroDsp dsp, out int bassError);
+
+        [DllImport("yarg_audio", EntryPoint = "yarg_dattorro_reverb_dsp_reset",
+            CallingConvention = CallingConvention.Cdecl)]
+        internal static extern int Reset(DattorroDsp dsp);
+
+        [DllImport("yarg_audio", EntryPoint = "yarg_dattorro_reverb_dsp_destroy",
+            CallingConvention = CallingConvention.Cdecl)]
+        private static extern void Destroy(IntPtr dsp);
+    }
+
+    private sealed class NoiseGateDsp : SafeHandleZeroOrMinusOneIsInvalid
+    {
+        private NoiseGateDsp() : base(true)
+        {
+        }
+
+        protected override bool ReleaseHandle()
+        {
+            Destroy(handle);
+            return true;
+        }
+
+        [DllImport("yarg_audio", EntryPoint = "yarg_noise_gate_dsp_attach",
+            CallingConvention = CallingConvention.Cdecl)]
+        internal static extern int Attach(uint channel, float threshold, float floorGain,
+            float attackMs, float holdMs, float releaseMs, int priority,
+            out NoiseGateDsp dsp, out int bassError);
+
+        [DllImport("yarg_audio", EntryPoint = "yarg_noise_gate_dsp_reset",
+            CallingConvention = CallingConvention.Cdecl)]
+        internal static extern int Reset(NoiseGateDsp dsp);
+
+        [DllImport("yarg_audio", EntryPoint = "yarg_noise_gate_dsp_destroy",
+            CallingConvention = CallingConvention.Cdecl)]
+        private static extern void Destroy(IntPtr dsp);
+    }
+
     private static class Bass
     {
         [UnmanagedFunctionPointer(CallingConvention.Winapi)]
@@ -410,6 +600,11 @@ internal static class Program
         internal static extern uint MixerStreamCreate(uint frequency, uint channels,
             uint flags);
 
+        [DllImport("bassmix", EntryPoint = "BASS_Mixer_StreamAddChannel")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        internal static extern bool MixerStreamAddChannel(uint mixer, uint channel,
+            uint flags);
+
         [DllImport("bass", EntryPoint = "BASS_ChannelSetDSP")]
         internal static extern uint ChannelSetDsp(uint channel, DspProcedure procedure,
             IntPtr user, int priority);
@@ -431,6 +626,68 @@ internal static class Program
         internal uint Channels;
         internal uint Reserved;
         internal double LeadTime;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct ReadAheadConfig
+    {
+        internal uint Size;
+        internal int BassDeviceId;
+        internal uint SourceMixer;
+        internal uint SampleRate;
+        internal uint Channels;
+        internal uint MinimumBlockFrames;
+        internal uint BufferMilliseconds;
+    }
+
+    private sealed class ReadAheadStream : SafeHandleZeroOrMinusOneIsInvalid
+    {
+        internal uint StreamHandle { get; private set; }
+
+        private ReadAheadStream() : base(true) { }
+
+        internal static ReadAheadStream Create(ReadAheadConfig config)
+        {
+            int result = CreateNative(in config, out ReadAheadStream stream,
+                out uint streamHandle, out int bassError);
+            Check(result == 0 && stream != null && !stream.IsInvalid && streamHandle != 0,
+                $"read-ahead create failed: result={result}, BASS={bassError}.");
+            stream!.StreamHandle = streamHandle;
+            return stream;
+        }
+
+        internal bool Prefill(uint timeoutMilliseconds) =>
+            PrefillNative(this, timeoutMilliseconds) == 0;
+
+        internal bool Flush() => FlushNative(this) == 0;
+
+        internal bool SetBufferLength(uint milliseconds) =>
+            SetBufferLengthNative(this, milliseconds) == 0;
+
+        protected override bool ReleaseHandle() => Destroy(handle, out _) == 0;
+
+        [DllImport("yarg_audio", EntryPoint = "yarg_read_ahead_stream_create",
+            CallingConvention = CallingConvention.Cdecl)]
+        private static extern int CreateNative(in ReadAheadConfig config,
+            out ReadAheadStream stream, out uint streamHandle, out int bassError);
+
+        [DllImport("yarg_audio", EntryPoint = "yarg_read_ahead_stream_prefill",
+            CallingConvention = CallingConvention.Cdecl)]
+        private static extern int PrefillNative(ReadAheadStream stream,
+            uint timeoutMilliseconds);
+
+        [DllImport("yarg_audio", EntryPoint = "yarg_read_ahead_stream_flush",
+            CallingConvention = CallingConvention.Cdecl)]
+        private static extern int FlushNative(ReadAheadStream stream);
+
+        [DllImport("yarg_audio", EntryPoint = "yarg_read_ahead_stream_set_buffer_length",
+            CallingConvention = CallingConvention.Cdecl)]
+        private static extern int SetBufferLengthNative(ReadAheadStream stream,
+            uint milliseconds);
+
+        [DllImport("yarg_audio", EntryPoint = "yarg_read_ahead_stream_destroy",
+            CallingConvention = CallingConvention.Cdecl)]
+        private static extern int Destroy(IntPtr stream, out int bassError);
     }
 
     private sealed class OneShotStream : SafeHandleZeroOrMinusOneIsInvalid

@@ -153,6 +153,7 @@ namespace YARG.Menu.Filters
         private static int _cachedPlaylistCountsSignature = -1;
         private static int _cachedCharterSongCount = -1;
         private static int _cachedLengthSongCount = -1;
+        private static SongLengthLabelMode? _cachedLengthLabelMode;
         private static int _cachedIntensitySongCount = -1;
 
 
@@ -1477,17 +1478,26 @@ namespace YARG.Menu.Filters
 #region Song Lengths
         private static IReadOnlyList<string> GetAllLengthsCached()
         {
-            return GetAllCached(ref _cachedLengths, ref _cachedLengthSongCount, () =>
+            var labelMode = SettingsManager.Settings.SongLengthLabels.Value;
+            if (_cachedLengths != null &&
+                _cachedLengthSongCount == SongContainer.Count &&
+                _cachedLengthLabelMode == labelMode)
             {
-                var counts = GetLengthCounts();
-                var ordered = new List<string>(LengthLabels.Count);
-                foreach (var label in LengthLabels)
-                {
-                    if (counts.TryGetValue(label, out int count) && count > 0)
-                        ordered.Add(label);
-                }
-                return ordered;
-            });
+                return _cachedLengths;
+            }
+
+            _cachedLengthSongCount = SongContainer.Count;
+            _cachedLengthLabelMode = labelMode;
+
+            var counts = GetLengthCounts();
+            var ordered = new List<string>(LengthLabels.Count);
+            foreach (var label in LengthLabels)
+            {
+                if (counts.TryGetValue(label, out int count) && count > 0)
+                    ordered.Add(label);
+            }
+
+            return _cachedLengths = ordered;
         }
 
         private static Dictionary<string, int> GetLengthCounts()
@@ -1506,11 +1516,6 @@ namespace YARG.Menu.Filters
             return dict;
         }
 
-        // Toggle which length buckets to use by switching this flag.
-        // - true  -> Legacy labels (Short/Medium/Long/Epic)
-        // - false -> Range labels (0-2, 2-5, 5-10, 10-15, 15-20, 20+)
-        private const bool UseLegacyLengthLabels = true;
-
         private static readonly string[] LegacyLengthLabelKeys =
         {
             "Menu.Filters.Length.Short",
@@ -1528,6 +1533,9 @@ namespace YARG.Menu.Filters
             "15:00 - 20:00",
             "20:00+",
         };
+
+        private static bool UseLegacyLengthLabels =>
+            SettingsManager.Settings.SongLengthLabels.Value == SongLengthLabelMode.LegacyLabels;
 
         private static IReadOnlyList<string> LengthLabels =>
             UseLegacyLengthLabels ? GetLegacyLengthLabels() : RangeLengthLabels;
@@ -1560,8 +1568,6 @@ namespace YARG.Menu.Filters
                 };
             }
 
-            // Left for possible future use
-#pragma warning disable CS0162 // Unreachable code detected
             return lengthMilliseconds switch
             {
                 < 120000  => RangeLengthLabels[0],
@@ -1571,7 +1577,6 @@ namespace YARG.Menu.Filters
                 < 1200000 => RangeLengthLabels[4],
                 _         => RangeLengthLabels[5],
             };
-#pragma warning restore CS0162 // Unreachable code detected
         }
 #endregion
 

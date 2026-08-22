@@ -5,7 +5,6 @@ using DG.Tweening.Core;
 using DG.Tweening.Plugins.Options;
 using UnityEngine;
 using YARG.Core.Audio;
-using YARG.Playback;
 using YARG.Settings;
 
 namespace YARG.Gameplay
@@ -91,8 +90,12 @@ namespace YARG.Gameplay
 
         private void LoadAudio()
         {
+            bool isReplay = GlobalVariables.State.IsReplay || GlobalVariables.State.PlayingWithReplay;
+            bool censorAudio = (isReplay && ReplayInfo.CensorshipEnabled) ||
+                (!isReplay && SettingsManager.Settings.CensorMatureContent.Value);
+
             _stemStates.Clear();
-            _mixer = Song.LoadAudio(GlobalVariables.State.SongSpeed, DEFAULT_VOLUME);
+            _mixer = Song.LoadAudio(GlobalVariables.State.SongSpeed, DEFAULT_VOLUME, censorAudio);
             if (_mixer == null)
             {
                 _loadState = LoadFailureState.Error;
@@ -111,9 +114,6 @@ namespace YARG.Gameplay
 
         public void ChangeStarPowerStatus(bool active)
         {
-            if (SettingsManager.Settings.UseCrowdFx.Value == CrowdFxMode.Disabled)
-                return;
-
             StarPowerActivations += active ? 1 : -1;
             if (StarPowerActivations < 0)
                 StarPowerActivations = 0;

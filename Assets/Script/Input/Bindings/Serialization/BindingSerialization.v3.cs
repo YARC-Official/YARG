@@ -249,6 +249,7 @@ namespace YARG.Input.Serialization
         {
             BaseName = serialized.BaseName;
             Channel = serialized.Channel;
+            DisplayName = string.Empty;
         }
 
         public SerializedMic Deserialize()

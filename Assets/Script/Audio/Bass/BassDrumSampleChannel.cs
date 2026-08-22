@@ -1,74 +1,56 @@
-﻿using ManagedBass;
-using UnityEngine;
+using ManagedBass;
 using YARG.Core.Audio;
 using YARG.Core.Logging;
-using YARG.Input;
 
 namespace YARG.Audio.BASS
 {
     public sealed class BassDrumSampleChannel : DrumSampleChannel
     {
+        private readonly BassOneShotSamplePlayer _samplePlayer;
+
 #nullable enable
-        public static BassDrumSampleChannel? Create(DrumSfxSample sample, string path, int playbackCount, OutputChannel? outputChannel)
+        private BassDrumSampleChannel(int handle, DrumSfxSample sample, string path, BassAudioRouter router,
+            OutputChannel? outputChannel) : base(sample, path)
 #nullable disable
         {
-            int handle = Bass.SampleLoad(path, 0, 0, playbackCount, BassFlags.Decode);
+            _samplePlayer = new BassOneShotSamplePlayer(router, handle, sample.ToString());
+            SetOutputChannel_Internal(outputChannel);
+        }
+#nullable enable
+        internal static BassDrumSampleChannel? Create(DrumSfxSample sample, string path, BassAudioRouter router,
+            OutputChannel? outputChannel)
+#nullable disable
+        {
+            int handle = Bass.SampleLoad(path, 0, 0, 1, BassFlags.Default);
             if (handle == 0)
             {
                 YargLogger.LogFormatError("Failed to load {0} {1}: {2}!", sample, path, Bass.LastError);
                 return null;
             }
 
-            int channel = Bass.SampleGetChannel(handle);
-            if (channel == 0)
-            {
-                Bass.SampleFree(handle);
-                YargLogger.LogFormatError("Failed to create {0} channel: {1}!", sample, Bass.LastError);
-                return null;
-            }
-
-            return new BassDrumSampleChannel(handle, channel, sample, path, playbackCount, outputChannel);
-        }
-
-        private readonly int _sfxHandle;
-        private readonly int _channel;
-
-#nullable enable
-        private BassDrumSampleChannel(int handle, int channel, DrumSfxSample sample, string path, int playbackCount, OutputChannel? outputChannel)
-            : base(sample, path, playbackCount)
-#nullable disable
-        {
-            _sfxHandle = handle;
-            _channel = channel;
-            SetOutputChannel_Internal(outputChannel);
+            return new BassDrumSampleChannel(handle, sample, path, router, outputChannel);
         }
 
         protected override void Play_Internal()
         {
-            if (!Bass.ChannelPlay(_channel, true))
-            {
-                YargLogger.LogFormatError("Failed to play {0} channel: {1}!", Sample, Bass.LastError);
-            }
+            _samplePlayer.Play();
         }
 
         protected override void SetVolume_Internal(double volume)
         {
-            if (!Bass.ChannelSetAttribute(_channel, ChannelAttribute.Volume, volume))
-            {
-                YargLogger.LogFormatError("Failed to set {0} volume: {1}!", Sample, Bass.LastError);
-            }
+            _samplePlayer.Volume = volume;
         }
 
 #nullable enable
         protected override void SetOutputChannel_Internal(OutputChannel? channel)
 #nullable disable
         {
-            BassHelpers.UpdateOutputChannels(_channel, channel);
+            _samplePlayer.OutputChannel = channel;
         }
 
         protected override void DisposeUnmanagedResources()
         {
-            Bass.SampleFree(_sfxHandle);
+            _samplePlayer.Dispose();
         }
     }
 }
