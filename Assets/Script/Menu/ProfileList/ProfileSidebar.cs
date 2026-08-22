@@ -1,8 +1,8 @@
-﻿using System;
+﻿using Cysharp.Threading.Tasks;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -19,6 +19,7 @@ using YARG.Menu.ProfileInfo;
 using YARG.Player;
 using YARG.Scores;
 using YARG.Settings.Customization;
+using static UnityEditor.AddressableAssets.Build.Layout.BuildLayout;
 
 namespace YARG.Menu.ProfileList
 {
@@ -68,6 +69,8 @@ namespace YARG.Menu.ProfileList
         [SerializeField]
         private TMP_Dropdown _gameModeDropdown;
         [SerializeField]
+        private GameObject _controllersList;
+        [SerializeField]
         private TMP_InputField _noteSpeedField;
         [SerializeField]
         private TMP_InputField _highwayLengthField;
@@ -105,6 +108,10 @@ namespace YARG.Menu.ProfileList
         [Space]
         [SerializeField]
         private ProfileListMenu _profileListMenu;
+
+        [Space]
+        [SerializeField]
+        private ControllerEntryView _controllerEntryViewPrefab;
 
         [Space]
         [SerializeField]
@@ -251,6 +258,7 @@ namespace YARG.Menu.ProfileList
             _rangeDisabledToggle.isOn = profile.RangeEnabled;
             _openLaneDisplayTypeDropdown.value = _openLaneDisplayTypesByIndex.IndexOf(profile.OpenLaneDisplayType);
             _useCymbalModelsToggle.isOn = profile.UseCymbalModels;
+            RefreshControllers();
 
             // Update preset dropdowns
             _engineDropdown.SetValueWithoutNotify(
@@ -269,6 +277,7 @@ namespace YARG.Menu.ProfileList
                 _starPowerActivationTypesByIndex.IndexOf(profile.StarPowerActivationType));
             _rockMeterPresetDropdown.SetValueWithoutNotify(
                 _rockmeterPresetsByIndex.IndexOf(profile.RockMeterPreset));
+
 
             // Not all game modes support all engine presets.
             // If the current engine doesn't exist for the selected instrument, the above _engineDropdown
@@ -375,11 +384,24 @@ namespace YARG.Menu.ProfileList
         public void AddDevice()
         {
             _profileView.PromptAddDevice().Forget();
+            RefreshControllers();
         }
 
         public void RemoveDevice()
         {
             _profileView.PromptRemoveDevice().Forget();
+            RefreshControllers();
+        }
+
+        public void RefreshControllers()
+        {
+            var player = PlayerContainer.GetPlayerFromProfile(_profile);
+            _controllersList.transform.DestroyChildren();
+            foreach (var controller in player.DeviceInfo.Controllers)
+            {
+                var entry = Instantiate(_controllerEntryViewPrefab, _controllersList.transform);
+                entry.Initialize(controller.displayName);
+            }
         }
 
         public void ChangeGameMode()

@@ -133,6 +133,7 @@ namespace YARG.Input
             // entry for each defined mode
             if (profileBindings.ModeMappings is not null)
             {
+                List<GameMode> modesToRemove = new();
                 foreach (var (mode, bindingSetGuid) in profileBindings.ModeMappings)
                 {
                     if (!_bindsByGameMode.TryGetValue(mode, out var modeBindings))
@@ -147,9 +148,14 @@ namespace YARG.Input
                     }
                     else
                     {
-                        YargLogger.LogWarning($"Referenced nonexistent binding collection GUID {bindingSetGuid}; removing it");
-                        profileBindings.ModeMappings.Remove(mode);
+                        YargLogger.LogWarning($"Referenced nonexistent binding collection GUID {bindingSetGuid}; it will be removed");
+                        modesToRemove.Add(mode);
                     }
+                }
+
+                foreach (var mode in modesToRemove)
+                {
+                    profileBindings.ModeMappings.Remove(mode);
                 }
             }
 
@@ -158,6 +164,8 @@ namespace YARG.Input
             // to this profile; if the player attaches it later, we'll want to retrieve their preferred binding set
             if (profileBindings.ControllerMappings is not null)
             {
+                List<string> hashesToRemove = new();
+
                 foreach (var (controllerHash, bindingSetGuid) in profileBindings.ControllerMappings)
                 {
                     if (BindingsContainer.TryGetBindingCollectionById(bindingSetGuid, out var controllerMapping))
@@ -166,9 +174,14 @@ namespace YARG.Input
                     }
                     else
                     {
-                        YargLogger.LogWarning($"Referenced nonexistent binding collection GUID {bindingSetGuid}; removing it");
-                        profileBindings.ControllerMappings.Remove(controllerHash);
+                        YargLogger.LogWarning($"Referenced nonexistent binding collection GUID {bindingSetGuid}; it will be removed");
+                        hashesToRemove.Add(controllerHash);
                     }
+                }
+
+                foreach (var hash in hashesToRemove)
+                {
+                    profileBindings.ControllerMappings.Remove(hash);
                 }
             }
 

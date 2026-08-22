@@ -5033,6 +5033,7 @@ MonoBehaviour:
   - {fileID: 8310750777457472825}
   _sidebarContent: {fileID: 7752893529202704783}
   _gameModeDropdown: {fileID: 3079297505774109153}
+  _controllersList: {fileID: 2568722981258572811}
   _noteSpeedField: {fileID: 130507743044141034}
   _highwayLengthField: {fileID: 2016696336961956848}
   _inputCalibrationField: {fileID: 9092729631521478473}
@@ -5050,6 +5051,7 @@ MonoBehaviour:
   _nameContainer: {fileID: 2901502984568389593}
   _editNameContainer: {fileID: 1767616266085646112}
   _profileListMenu: {fileID: 0}
+  _controllerEntryViewPrefab: {fileID: 3692162781744761990, guid: 5399a703c8aec4342b9506430c99966f, type: 3}
   _profileGenericSprite: {fileID: 21300000, guid: 6c06aca89bc095245ba69514188d3fce, type: 3}
   _profileBotSprite: {fileID: 21300000, guid: 2a0312c2e46460a4dbce351a4b20985f, type: 3}
 --- !u!1 &4839666824420714536
@@ -9918,7 +9920,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6644935322093698912, guid: a3b2677e603872648a647475adee140f, type: 3}
       propertyPath: m_Value
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7471163247741345243, guid: a3b2677e603872648a647475adee140f, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
@@ -10543,7 +10545,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6232041351873830570, guid: 81863a63e0d96cf459c263ee0ea6f98e, type: 3}
       propertyPath: m_Size
-      value: 0.35944176
+      value: 0.35900816
       objectReference: {fileID: 0}
     - target: {fileID: 6232041351873830570, guid: 81863a63e0d96cf459c263ee0ea6f98e, type: 3}
       propertyPath: m_Value
