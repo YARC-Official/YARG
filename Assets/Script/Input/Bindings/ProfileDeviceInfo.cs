@@ -133,6 +133,7 @@ namespace YARG.Input
             // entry for each defined mode
             if (profileBindings.ModeMappings is not null)
             {
+                List<GameMode> modesToRemove = new();
                 foreach (var (mode, bindingSetGuid) in profileBindings.ModeMappings)
                 {
                     if (!_bindsByGameMode.TryGetValue(mode, out var modeBindings))
@@ -147,9 +148,14 @@ namespace YARG.Input
                     }
                     else
                     {
-                        YargLogger.LogWarning($"Referenced nonexistent binding collection GUID {bindingSetGuid}; removing it");
-                        profileBindings.ModeMappings.Remove(mode);
+                        YargLogger.LogWarning($"Referenced nonexistent binding collection GUID {bindingSetGuid}; it will be removed");
+                        modesToRemove.Add(mode);
                     }
+                }
+
+                foreach (var mode in modesToRemove)
+                {
+                    profileBindings.ModeMappings.Remove(mode);
                 }
             }
 
@@ -158,6 +164,8 @@ namespace YARG.Input
             // to this profile; if the player attaches it later, we'll want to retrieve their preferred binding set
             if (profileBindings.ControllerMappings is not null)
             {
+                List<string> hashesToRemove = new();
+
                 foreach (var (controllerHash, bindingSetGuid) in profileBindings.ControllerMappings)
                 {
                     if (BindingsContainer.TryGetBindingCollectionById(bindingSetGuid, out var controllerMapping))
@@ -166,9 +174,14 @@ namespace YARG.Input
                     }
                     else
                     {
-                        YargLogger.LogWarning($"Referenced nonexistent binding collection GUID {bindingSetGuid}; removing it");
-                        profileBindings.ControllerMappings.Remove(controllerHash);
+                        YargLogger.LogWarning($"Referenced nonexistent binding collection GUID {bindingSetGuid}; it will be removed");
+                        hashesToRemove.Add(controllerHash);
                     }
+                }
+
+                foreach (var hash in hashesToRemove)
+                {
+                    profileBindings.ControllerMappings.Remove(hash);
                 }
             }
 
@@ -235,7 +248,7 @@ namespace YARG.Input
             foreach (var device in InputSystem.devices)
             {
                 if (!PlayerContainer.IsDeviceTaken(device))
-                    OnDeviceAdded(device);
+                    OnControllerAdded(device);
             }
 
             ResolveMicrophones();
@@ -296,45 +309,45 @@ namespace YARG.Input
             _bindsByGameMode[mode].InputProcessed -= onInputProcessed;
         }
 
-        public bool AddDevice(InputDevice device)
+        public bool AddController(InputDevice controller)
         {
             // Ignore already-added devices
-            if (ContainsDevice(device))
+            if (ContainsController(controller))
                 return false;
 
             // Remove corresponding serialized entry
-            int index = FindSerializedIndex(device);
+            int index = FindSerializedIndex(controller);
             if (index >= 0)
                 _unresolvedControllers.RemoveAt(index);
 
             // Add device to bindings
-            _controllers.Add(device);
-            NotifyDeviceAdded(device);
+            _controllers.Add(controller);
+            NotifyControllerAdded(controller);
 
             return true;
         }
 
-        public bool RemoveDevice(InputDevice device)
+        public bool RemoveController(InputDevice controller)
         {
             // Remove without serializing
-            if (!_controllers.Remove(device))
+            if (!_controllers.Remove(controller))
                 return false;
 
-            NotifyDeviceRemoved(device);
+            NotifyControllerRemoved(controller);
             return true;
         }
 
-        public bool ContainsDevice(InputDevice device)
+        public bool ContainsController(InputDevice controller)
         {
-            return _controllers.Contains(device);
+            return _controllers.Contains(controller);
         }
 
         public List<T> GetDevicesByType<T>()
         {
             var interfaces = new List<T>();
-            foreach (var device in _controllers)
+            foreach (var controller in _controllers)
             {
-                if (device is T iface)
+                if (controller is T iface)
                 {
                     interfaces.Add(iface);
                 }
@@ -343,25 +356,25 @@ namespace YARG.Input
             return interfaces;
         }
 
-        private int FindSerializedIndex(InputDevice device)
+        private int FindSerializedIndex(InputDevice controller)
         {
-            return _unresolvedControllers.FindIndex((dev) => dev.MatchesDevice(device));
+            return _unresolvedControllers.FindIndex((dev) => dev.MatchesDevice(controller));
         }
 
-        public bool MatchesDevice(InputDevice device)
+        public bool MatchesController(InputDevice controller)
         {
-            return _unresolvedControllers.Any(dev => dev.MatchesDevice(device));
+            return _unresolvedControllers.Any(dev => dev.MatchesDevice(controller));
         }
-        public bool ContainsBindingsForDevice(InputDevice device)
+        public bool ContainsBindingsForController(InputDevice controller)
         {
-            return _bindsByDeviceHash.ContainsKey(device.GetHash());
+            return _bindsByDeviceHash.ContainsKey(controller.GetHash());
 
             // return MenuBindings.ContainsBindingsForDevice(device); TODO: Delete?
         }
 
-        public void ClearBindingsForDevice(InputDevice device, bool clearMenuBindings = true)
+        public void ClearBindingsForController(InputDevice controller, bool clearMenuBindings = true)
         {
-            _bindsByDeviceHash.Remove(device.GetHash());
+            _bindsByDeviceHash.Remove(controller.GetHash());
 
             if (clearMenuBindings)
             {
@@ -379,26 +392,26 @@ namespace YARG.Input
             MenuBindings.ClearAllBindings();
         }
 
-        public bool SetDefaultBinds(InputDevice device)
+        public bool SetDefaultBinds(InputDevice controller)
         {
-            if (!ContainsDevice(device))
+            if (!ContainsController(controller))
             {
                 return false;
             }
 
             foreach (var bindings in _bindsByGameMode.Values)
             {
-                bindings.SetDefaultBindings(device);
+                bindings.SetDefaultBindings(controller);
             }
 
-            MenuBindings.SetDefaultBindings(device);
+            MenuBindings.SetDefaultBindings(controller);
 
             return true;
         }
 
         public bool SetDefaultBinds(Gamepad gamepad, GamepadBindingMode mode)
         {
-            if (!ContainsDevice(gamepad))
+            if (!ContainsController(gamepad))
             {
                 return false;
             }
@@ -413,39 +426,39 @@ namespace YARG.Input
             return true;
         }
 
-        public void OnDeviceAdded(InputDevice device)
+        public void OnControllerAdded(InputDevice controller)
         {
             // Ignore already-added devices
-            if (ContainsDevice(device))
+            if (ContainsController(controller))
                 return;
 
             // Ignore devices not registered to this profile
-            int serializedIndex = FindSerializedIndex(device);
+            int serializedIndex = FindSerializedIndex(controller);
             if (serializedIndex < 0)
                 return;
 
             _unresolvedControllers.RemoveAt(serializedIndex);
-            _controllers.Add(device);
-            NotifyDeviceAdded(device);
+            _controllers.Add(controller);
+            NotifyControllerAdded(controller);
         }
 
-        public void OnDeviceRemoved(InputDevice device)
+        public void OnControllerRemoved(InputDevice controller)
         {
             // Ignore devices not registered to this profile
-            if (!ContainsDevice(device))
+            if (!ContainsController(controller))
                 return;
 
             // Ensure devices aren't serialized twice
-            int serializedIndex = FindSerializedIndex(device);
+            int serializedIndex = FindSerializedIndex(controller);
             if (serializedIndex >= 0)
                 return;
 
-            _controllers.Remove(device);
-            _unresolvedControllers.Add(device.Serialize());
-            NotifyDeviceRemoved(device);
+            _controllers.Remove(controller);
+            _unresolvedControllers.Add(controller.Serialize());
+            NotifyControllerRemoved(controller);
         }
 
-        private void NotifyDeviceAdded(InputDevice controller)
+        private void NotifyControllerAdded(InputDevice controller)
         {
             var controllerHash = controller.GetHash();
 
@@ -470,16 +483,16 @@ namespace YARG.Input
             ControllerAdded?.Invoke(controller);
         }
 
-        private void NotifyDeviceRemoved(InputDevice device)
+        private void NotifyControllerRemoved(InputDevice controller)
         {
             foreach (var bindings in _bindsByGameMode.Values)
             {
-                bindings.OnDeviceRemoved(device);
+                bindings.OnDeviceRemoved(controller);
             }
 
-            MenuBindings.OnDeviceRemoved(device);
+            MenuBindings.OnDeviceRemoved(controller);
 
-            ControllerRemoved?.Invoke(device);
+            ControllerRemoved?.Invoke(controller);
         }
 
         public void UpdateBindingsForFrame(double updateTime)
@@ -537,9 +550,9 @@ namespace YARG.Input
             ControllerAdded = null;
             ControllerRemoved = null;
 
-            foreach (var device in InputSystem.devices)
+            foreach (var controller in InputSystem.devices)
             {
-                OnDeviceRemoved(device);
+                OnControllerRemoved(controller);
             }
 
             ReleaseMicrophones();

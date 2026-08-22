@@ -110,7 +110,7 @@ namespace YARG.Input
         public void Listen(InputDevice device, InputEventPtr iep)
         {
             // Ignore controls for devices not added to the player's bindings
-            if (!_player.DeviceInfo.ContainsDevice(device))
+            if (!_player.DeviceInfo.ContainsController(device))
                 return;
 
             // The eventPtr is not used here, as it is not guaranteed to be valid,

@@ -253,16 +253,16 @@ namespace YARG.Menu.ProfileList
                 armDelaySeconds: 2f);
         }
 
-        public async UniTask<bool> PromptAddDevice()
+        public async UniTask<bool> PromptAddController()
         {
-            var dialog = DialogManager.Instance.ShowList("Add Device\n" +
-                "<alpha=#44><size=65%><line-height=50%>\nIf your device does not show up, try hitting a button/pad on " +
+            var dialog = DialogManager.Instance.ShowList("Add Controller\n" +
+                "<alpha=#44><size=65%><line-height=50%>\nIf your controller does not show up, try hitting a button/pad on " +
                 "it first, and then retry.</size>");
             var player = PlayerContainer.GetPlayerFromProfile(Profile);
 
-            bool selectedDevice = false;
+            bool selectedController = false;
             bool xinputDialogShowing = false;
-            int inputDeviceCount = 0;
+            int controllerCount = 0;
 
             // Add InputSystem devices immediately — fast, no probe
             foreach (var controller in InputSystem.devices)
@@ -270,7 +270,7 @@ namespace YARG.Menu.ProfileList
                 if (!controller.enabled) continue;
                 if (PlayerContainer.IsDeviceTaken(controller)) continue;
 
-                inputDeviceCount++;
+                controllerCount++;
                 // Only Windows awaits the XInput mode prompt. Non-Windows omits async to prevent CS1998 warning.
 #if UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN
                 dialog.AddListButton(controller.displayName, async () =>
@@ -278,8 +278,8 @@ namespace YARG.Menu.ProfileList
                 dialog.AddListButton(device.displayName, () =>
 #endif
                 {
-                    player.DeviceInfo.AddDevice(controller);
-                    if (!player.DeviceInfo.ContainsBindingsForDevice(controller))
+                    player.DeviceInfo.AddController(controller);
+                    if (!player.DeviceInfo.ContainsBindingsForController(controller))
                     {
 #if UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN
                         if (controller is XInputController xinput)
@@ -300,9 +300,32 @@ namespace YARG.Menu.ProfileList
                         }
                     }
 
-                    selectedDevice = true;
+                    selectedController = true;
                 });
             }
+
+            await dialog.WaitUntilClosed();
+
+            if (xinputDialogShowing)
+            {
+                await UniTask.Yield();
+                await DialogManager.Instance.WaitUntilCurrentClosed();
+                await UniTask.Yield();
+            }
+
+            StatsManager.Instance.UpdateActivePlayers();
+
+            return selectedController;
+        }
+
+        public async UniTask<bool> PromptAddMicrophone()
+        {
+            var dialog = DialogManager.Instance.ShowList("Add Microphone");
+            var player = PlayerContainer.GetPlayerFromProfile(Profile);
+
+            bool selectedMicrophone = false;
+            bool xinputDialogShowing = false;
+            int inputDeviceCount = 0;
 
             bool TryAddMicrophone(InputDeviceInfo device)
             {
@@ -324,7 +347,7 @@ namespace YARG.Menu.ProfileList
             {
                 if (TryAddMicrophone(mic))
                 {
-                    selectedDevice = true;
+                    selectedMicrophone = true;
                 }
             }).Forget();
 
@@ -339,7 +362,7 @@ namespace YARG.Menu.ProfileList
 
             StatsManager.Instance.UpdateActivePlayers();
 
-            return selectedDevice;
+            return selectedMicrophone;
         }
 
         private static async UniTask PopulateMicsAsync(
@@ -422,66 +445,6 @@ namespace YARG.Menu.ProfileList
             return mode;
         }
 
-        public async UniTask<bool> PromptRemoveDevice()
-        {
-            var dialog = DialogManager.Instance.ShowListWithSettings("Remove Device");
-            var player = PlayerContainer.GetPlayerFromProfile(Profile);
-
-            bool devicesAvailable = false;
-            bool selectedDevice = false;
-            bool clearBinds = false;
-
-            dialog.AddToggleSetting("Clear Binds for Device", false, (value) => clearBinds = value);
-
-            // Add available devices
-            foreach (var device in InputSystem.devices)
-            {
-                if (!player.DeviceInfo.ContainsDevice(device)) continue;
-
-                devicesAvailable = true;
-                dialog.AddListButton(device.displayName, () =>
-                {
-                    if (clearBinds)
-                    {
-                        player.DeviceInfo.ClearBindingsForDevice(device);
-
-                        // Remove cleared XInput devices from prompt cache
-                        if (device is XInputController xinput)
-                        {
-                            _xinputGamepads.Remove(xinput);
-                        }
-                    }
-
-                    player.DeviceInfo.RemoveDevice(device);
-                    selectedDevice = true;
-                });
-            }
-
-            // Add the microphones
-            foreach (var mic in player.DeviceInfo.Microphones)
-            {
-                devicesAvailable = true;
-                dialog.AddListButton(mic.DisplayName, () =>
-                {
-                    player.DeviceInfo.RemoveMicrophone(mic);
-                    selectedDevice = true;
-                });
-            }
-
-            if (devicesAvailable)
-            {
-                await dialog.WaitUntilClosed();
-                // Update active players to show the "No input device" icons if appropriate.
-                StatsManager.Instance.UpdateActivePlayers();
-            }
-            else
-            {
-                DialogManager.Instance.ClearDialog();
-            }
-
-            return selectedDevice;
-        }
-
         public void ConnectButtonAction()
         {
             if (_profileListMenu.CanConnectProfile)
@@ -512,7 +475,7 @@ namespace YARG.Menu.ProfileList
             if (!Profile.IsBot && player.DeviceInfo.HasNoDevices)
             {
                 // Prompt the user to select a device
-                if (!await PromptAddDevice())
+                if (!await PromptAddController())
                 {
                     // Don't leak player when cancelling
                     PlayerContainer.DisposePlayer(player);

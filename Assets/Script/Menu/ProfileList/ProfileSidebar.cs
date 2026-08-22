@@ -1,9 +1,9 @@
-﻿using System;
+﻿using Cysharp.Threading.Tasks;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -20,6 +20,7 @@ using YARG.Menu.ProfileInfo;
 using YARG.Player;
 using YARG.Scores;
 using YARG.Settings.Customization;
+using static UnityEditor.AddressableAssets.Build.Layout.BuildLayout;
 
 namespace YARG.Menu.ProfileList
 {
@@ -72,6 +73,10 @@ namespace YARG.Menu.ProfileList
         [SerializeField]
         private TMP_Dropdown _gameModeDropdown;
         [SerializeField]
+        private GameObject _controllersList;
+        [SerializeField]
+        private GameObject _microphonesList;
+        [SerializeField]
         private TMP_InputField _noteSpeedField;
         [SerializeField]
         private TMP_InputField _highwayLengthField;
@@ -112,6 +117,12 @@ namespace YARG.Menu.ProfileList
 
         [Space]
         [SerializeField]
+        private ControllerEntryView _controllerEntryViewPrefab;
+        [SerializeField]
+        private MicrophoneEntryView _microphoneEntryViewPrefab;
+
+        [Space]
+        [SerializeField]
         private Sprite _profileGenericSprite;
         [SerializeField]
         private Sprite _profileBotSprite;
@@ -121,6 +132,12 @@ namespace YARG.Menu.ProfileList
         private GameObject _deleteButton;
         [SerializeField]
         private GameObject _editButton;
+
+        [Space]
+        [SerializeField]
+        private TextMeshProUGUI _tooltipTitleText;
+        [SerializeField]
+        private TextMeshProUGUI _tooltipText;
 
         private ProfileView _profileView;
         private YargProfile _profile;
@@ -261,6 +278,8 @@ namespace YARG.Menu.ProfileList
             _rangeDisabledToggle.isOn = profile.RangeEnabled;
             _openLaneDisplayTypeDropdown.value = _openLaneDisplayTypesByIndex.IndexOf(profile.OpenLaneDisplayType);
             _useCymbalModelsToggle.isOn = profile.UseCymbalModels;
+            RefreshControllers();
+            RefreshMicrophones();
 
             // Update preset dropdowns
             _engineDropdown.SetValueWithoutNotify(
@@ -279,6 +298,7 @@ namespace YARG.Menu.ProfileList
                 _starPowerActivationTypesByIndex.IndexOf(profile.StarPowerActivationType));
             _rockMeterPresetDropdown.SetValueWithoutNotify(
                 _rockmeterPresetsByIndex.IndexOf(profile.RockMeterPreset));
+
 
             // Not all game modes support all engine presets.
             // If the current engine doesn't exist for the selected instrument, the above _engineDropdown
@@ -417,14 +437,38 @@ namespace YARG.Menu.ProfileList
             UpdateSidebar(_profile, _profileView);
         }
 
-        public void AddDevice()
+        public async void AddController()
         {
-            _profileView.PromptAddDevice().Forget();
+            await _profileView.PromptAddController();
+            UpdateSidebar(_profile, _profileView);
         }
 
-        public void RemoveDevice()
+        public async void AddMicrophone()
         {
-            _profileView.PromptRemoveDevice().Forget();
+            await _profileView.PromptAddMicrophone();
+            UpdateSidebar(_profile, _profileView);
+        }
+
+        public void RefreshControllers()
+        {
+            var player = PlayerContainer.GetPlayerFromProfile(_profile);
+            _controllersList.transform.DestroyChildren();
+            foreach (var controller in player.DeviceInfo.Controllers)
+            {
+                var entry = Instantiate(_controllerEntryViewPrefab, _controllersList.transform);
+                entry.Initialize(_profile, _profileView, this, controller);
+            }
+        }
+
+        public void RefreshMicrophones()
+        {
+            var player = PlayerContainer.GetPlayerFromProfile(_profile);
+            _microphonesList.transform.DestroyChildren();
+            foreach (var microphone in player.DeviceInfo.Microphones)
+            {
+                var entry = Instantiate(_microphoneEntryViewPrefab, _microphonesList.transform);
+                entry.Initialize(_profile, _profileView, this, microphone);
+            }
         }
 
         public void ChangeGameMode()
@@ -578,6 +622,17 @@ namespace YARG.Menu.ProfileList
         public void ChangeRockMeterPreset()
         {
             _profile.RockMeterPreset = _rockmeterPresetsByIndex[_rockMeterPresetDropdown.value];
+        }
+
+        public void SetTooltip(string title, string text)
+        {
+            _tooltipTitleText.text = title;
+            _tooltipText.text = text;
+        }
+
+        public void ClearTooltip()
+        {
+            SetTooltip(string.Empty, string.Empty);
         }
     }
 }
