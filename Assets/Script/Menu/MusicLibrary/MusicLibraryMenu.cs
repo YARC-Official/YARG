@@ -136,7 +136,7 @@ namespace YARG.Menu.MusicLibrary
         [SerializeField]
         private TextMeshProUGUI _subHeader;
         [SerializeField]
-        private Sidebar _sidebar;
+        protected Sidebar _sidebar;
         [SerializeField]
         private GameObject _noPlayerWarning;
         [SerializeField]
@@ -156,14 +156,16 @@ namespace YARG.Menu.MusicLibrary
         private SongEntry _currentSong;
         public List<(string, int)> Shortcuts { get; private set; } = new();
 
-        private List<HoldContext> _heldInputs = new();
+        protected List<HoldContext> _heldInputs = new();
 
         // Doesn't go through PlaylistContainer because it is ephemeral
 
         private static ScoreContext _lastScoreContext;
 
-        private static bool _needsReload = false;
-        private bool _needsNavigationSchemeRefresh = false;
+        private static bool _needsReload                  = false;
+        protected      bool _needsNavigationSchemeRefresh = false;
+
+        protected virtual bool SearchAllowed => true;
 
         public static void NeedsReload()
         {
@@ -211,16 +213,22 @@ namespace YARG.Menu.MusicLibrary
             SetNavigationScheme();
 
             // Restore search
-            _searchField.Restore();
-            _searchField.OnSearchQueryUpdated += UpdateSearch;
+            if (SearchAllowed)
+            {
+                _searchField.Restore();
+                _searchField.OnSearchQueryUpdated += UpdateSearch;
+            }
+            else
+            {
+                _searchField.gameObject.SetActive(false);
+            }
 
             if (CurrentlyPlaying != null)
             {
                 _currentSong = CurrentlyPlaying;
             }
 
-            FiltersMenu.RefreshActiveFilterPredicate();
-            SetRefreshIfNeeded();
+            InitializeFilters();
 
             StemSettings.ApplySettings = SettingsManager.Settings.ApplyVolumesInMusicLibrary.Value;
             _previewDelay = 0;
@@ -306,6 +314,17 @@ namespace YARG.Menu.MusicLibrary
             _sidebar.UpdateSidebar(true);
         }
 
+        protected virtual void InitializeFilters()
+        {
+            FiltersMenu.RefreshActiveFilterPredicate();
+            SetRefreshIfNeeded();
+        }
+
+        protected virtual void Initialize()
+        {
+
+        }
+
         private void SetRefreshIfNeeded()
         {
             var scoreContext = ScoreContext.Capture();
@@ -329,7 +348,7 @@ namespace YARG.Menu.MusicLibrary
         }
 
         // Public because PopupMenu may need to reset the navigation scheme
-        public void SetNavigationScheme(bool reset = false)
+        public virtual void SetNavigationScheme(bool reset = false)
         {
             // Show mode sets its own navigation, don't overwrite
             if (MenuState == MenuState.Show)
@@ -767,7 +786,7 @@ namespace YARG.Menu.MusicLibrary
             return selected;
         }
 
-        public void Refresh()
+        public virtual void Refresh()
         {
             SetRecommendedSongs();
             _searchField.Reset();
@@ -781,7 +800,7 @@ namespace YARG.Menu.MusicLibrary
             SetNavigationScheme();
         }
 
-        private bool IsNavigationSchemeBlocked()
+        protected bool IsNavigationSchemeBlocked()
         {
             if (_popupMenu != null && _popupMenu.gameObject.activeSelf)
                 return true;
