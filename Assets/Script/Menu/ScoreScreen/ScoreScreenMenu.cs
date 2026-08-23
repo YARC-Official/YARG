@@ -691,8 +691,14 @@ namespace YARG.Menu.ScoreScreen
             }
 
             // Now doesn't look so great when changing quickly quickly between advanced stats
-            if ((_humanPlayerCount == 1 || !SettingsManager.Settings.ShowSongOffsetCalibrationOnlyOnePlayer.Value)
-                    && _showAdvancedStats && SettingsManager.Settings.ShowSongOffsetCalibration.Value)
+            var showMeanOffset = SettingsManager.Settings.ShowMeanSongOffsetCalibration.Value switch
+            {
+                ShowMeanSongOffsetCalibrationMode.Always        => true,
+                ShowMeanSongOffsetCalibrationMode.OnlyOnePlayer => _humanPlayerCount == 1,
+                _                                                => false,
+            };
+
+            if (showMeanOffset && _showAdvancedStats)
             {
                 buttons.Add(_toggleOffsetEntry);
             }

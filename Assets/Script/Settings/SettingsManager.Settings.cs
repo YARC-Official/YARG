@@ -39,6 +39,13 @@ namespace YARG.Settings
         LegacyLabels,
     }
 
+    public enum ShowMeanSongOffsetCalibrationMode
+    {
+        Off,
+        OnlyOnePlayer,
+        Always,
+    }
+
     public enum QualityMode
     {
         NativeAA = 0,
@@ -173,8 +180,12 @@ namespace YARG.Settings
             public ToggleSetting AutoCalibrateAudio { get; } = new(false);
             public ToggleSetting AutoCalibrateVideo { get; } = new(false);
             public ToggleSetting AutoCalibrateOffset { get; } = new(false);
-            public ToggleSetting ShowSongOffsetCalibration { get; } = new(true);
-            public ToggleSetting ShowSongOffsetCalibrationOnlyOnePlayer { get; } = new(true);
+            public DropdownSetting<ShowMeanSongOffsetCalibrationMode> ShowMeanSongOffsetCalibration { get; } = new(ShowMeanSongOffsetCalibrationMode.OnlyOnePlayer)
+            {
+                ShowMeanSongOffsetCalibrationMode.Off,
+                ShowMeanSongOffsetCalibrationMode.OnlyOnePlayer,
+                ShowMeanSongOffsetCalibrationMode.Always
+            };
             public ToggleSetting UseSongOffsetCalibration { get; } = new(true);
 
             public ToggleSetting AccountForHardwareLatency { get; } = new(true);

@@ -1682,16 +1682,17 @@
                 "PauseName": "Specific Song Delay (ms)",
                 "Description": "This song's specific offset in milliseconds, on top of audio/video calibration. Saved per-song."
             },
-            "ShowSongOffsetCalibration": {
-                "Name": "Show Mean Song Offset Calibration",
-                "Description": "Shows an option on the advanced stats screen to save average song offset."
-            },
-            "ShowSongOffsetCalibrationOnlyOnePlayer": {
-                "Name": "Only Show With One Player",
-                "Description": "Only shows the option to average mean song offset when there is one human player."
+            "ShowMeanSongOffsetCalibration": {
+                "Name": "Show Average Song Offset",
+                "Description": "Shows an option on the advanced stats screen to save average song offset.",
+                "Dropdown": {
+                    "Off": "Off",
+                    "OnlyOnePlayer": "Solo Only",
+                    "Always": "Always"
+                }
             },
             "UseSongOffsetCalibration": {
-                "Name": "Use Mean Song Offset Calibration",
+                "Name": "Use Average Song Offset",
                 "Description": "Use the saved song mean offset to adjust song audio delay."
             },
             "VocalMonitoring": {

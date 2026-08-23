@@ -1500,16 +1500,17 @@
                 "PauseName": "Calibrage automatique de l'audio",
                 "Description": "Ajuste automatiquement la calibration pendant le jeu en fonction de votre timing d'input."
             },
-            "ShowSongOffsetCalibration": {
-                "Name": "Montrer l'option de calibrage de décalage moyen",
-                "Description": "Ajoute un bouton sur l'écran de statistiques avancées pour enregistrer le décalage moyen détecté."
-            },
-            "ShowSongOffsetCalibrationOnlyOnePlayer": {
-                "Name": "Seulement montrer avec un joueur",
-                "Description": "Montrer l'option pour enregistrer le décalage moyen détecté seulement s'il n'y a qu'un seul humain connecté."
+            "ShowMeanSongOffsetCalibration": {
+                "Name": "Montrer le décalage moyen de la chanson",
+                "Description": "Ajoute un bouton sur l'écran de statistiques avancées pour enregistrer le décalage moyen détecté.",
+                "Dropdown": {
+                    "Off": "Désactivé",
+                    "OnlyOnePlayer": "Un seul joueur",
+                    "Always": "Toujours"
+                }
             },
             "UseSongOffsetCalibration": {
-                "Name": "Utiliser le calibrage de décalage moyen",
+                "Name": "Utiliser le décalage moyen de la chanson",
                 "Description": "Utilise la valeur enregistrée pour le décalage moyen d'une chanson pour ajuster le délai de l'audio."
             },
             "AutoCalibrateVideo": {
