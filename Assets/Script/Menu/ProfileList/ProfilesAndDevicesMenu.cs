@@ -22,18 +22,28 @@ using static YARG.Menu.HighwayConfiguration.DrumsHighwayConfigurationMenu;
 
 namespace YARG.Menu.ProfileList
 {
-    public class ProfileListMenu : MonoBehaviour
+    public class ProfilesAndDevicesMenu : MonoBehaviour
     {
+        private const string PROFILES_TAB = "profiles";
+        private const string DEVICES_TAB  = "devices";
+        private const string BINDINGS_TAB = "bindings";
+
         [SerializeField]
         private NavigationGroup _navigationGroup;
 
         [Space]
         [SerializeField]
-        private ProfileSidebar _profileSidebar;
+        private Transform _leftPaneList;
         [SerializeField]
-        private Transform _profileList;
+        private ProfileCenterPane _profileCenterPane;
+        [SerializeField]
+        private GameObject _deviceCenterPane;
+        [SerializeField]
+        private GameObject _bindingCenterPane;
 
         [Space]
+        [SerializeField]
+        private HeaderTabs _headerTabs;
         [SerializeField]
         private GameObject _profileViewPrefab;
         [SerializeField]
@@ -51,6 +61,10 @@ namespace YARG.Menu.ProfileList
             {
                 new NavigationScheme.Entry(MenuAction.Red, "Menu.Common.Back", () => MenuManager.Instance.PopMenu(), hide: true),
             }, true));
+
+            _profileCenterPane.gameObject.SetActive(true);
+            _deviceCenterPane.SetActive(false);
+            _bindingCenterPane.SetActive(false);
 
             PlayerContainer.PlayerAdded += OnPlayerAdded;
         }
@@ -72,10 +86,10 @@ namespace YARG.Menu.ProfileList
         public void RefreshList(YargProfile selectedProfile = null)
         {
             // Deselect
-            _profileSidebar.HideContents();
+            _profileCenterPane.HideContents();
 
             // Remove old ones
-            _profileList.transform.DestroyChildren();
+            _leftPaneList.transform.DestroyChildren();
             _navigationGroup.ClearNavigatables();
 
             var activeProfiles = PlayerContainer.Players.Select(e => e.Profile).ToArray();
@@ -90,6 +104,8 @@ namespace YARG.Menu.ProfileList
                 return;
             }
 
+            _headerTabs.TabChanged += OnTabChanged;
+
             SetSelectedProfile(selectedProfile);
         }
 
@@ -100,15 +116,15 @@ namespace YARG.Menu.ProfileList
                 return;
             }
 
-            var headerGo = Instantiate(_profileListHeaderPrefab, _profileList);
+            var headerGo = Instantiate(_profileListHeaderPrefab, _leftPaneList);
             headerGo.GetComponentInChildren<TextMeshProUGUI>().text = header;
             _navigationGroup.AddNavigatable(headerGo);
 
             // Spawn in a profile view for each player
             foreach (var profile in profiles)
             {
-                var go = Instantiate(_profileViewPrefab, _profileList);
-                go.GetComponent<ProfileView>().Init(this, profile, _profileSidebar);
+                var go = Instantiate(_profileViewPrefab, _leftPaneList);
+                go.GetComponent<ProfileView>().Init(this, profile, _profileCenterPane);
                 _navigationGroup.AddNavigatable(go);
             }
         }
@@ -177,7 +193,7 @@ namespace YARG.Menu.ProfileList
         private YargProfile? GetSelectedProfile()
         #nullable disable
         {
-            var profileView = _profileList.GetComponentsInChildren<ProfileView>()
+            var profileView = _leftPaneList.GetComponentsInChildren<ProfileView>()
                 .FirstOrDefault(e => e.Selected);
             if (profileView != null)
             {
@@ -190,7 +206,7 @@ namespace YARG.Menu.ProfileList
         public void SetSelectedProfile(YargProfile profile)
         {
             // Have to use LastOrDefault() here as this GetComponentsInChildren() call may include recently Destroyed objects.
-            var profileView = _profileList.GetComponentsInChildren<ProfileView>()
+            var profileView = _leftPaneList.GetComponentsInChildren<ProfileView>()
                 .LastOrDefault(e => e.Profile == profile);
             if (profileView != null)
             {
@@ -282,6 +298,13 @@ namespace YARG.Menu.ProfileList
                 Instrument.FiveLaneDrums,
                 profile
             );
+        }
+
+        private void OnTabChanged(string tabId)
+        {
+            _profileCenterPane.gameObject.SetActive(tabId == PROFILES_TAB);
+            _deviceCenterPane.SetActive(tabId == DEVICES_TAB);
+            _bindingCenterPane.SetActive(tabId == BINDINGS_TAB);
         }
     }
 }

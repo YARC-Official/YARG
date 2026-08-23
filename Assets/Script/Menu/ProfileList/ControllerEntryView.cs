@@ -16,10 +16,10 @@ namespace YARG.Menu.ProfileList
 
         private YargProfile _profile;
         private ProfileView _profileView;
-        private ProfileSidebar _profileSidebar;
+        private ProfileCenterPane _profileSidebar;
         private InputDevice _controller;
 
-        public void Initialize(YargProfile profile, ProfileView profileView, ProfileSidebar profileSidebar, InputDevice controller)
+        public void Initialize(YargProfile profile, ProfileView profileView, ProfileCenterPane profileSidebar, InputDevice controller)
         {
             _name.text = controller.displayName;
             _profile = profile;
