@@ -125,7 +125,7 @@ namespace YARG.Gameplay
                 }
 
                 var player = _players[_debugSelectedPlayer];
-                return player.Player.DeviceInfo.ContainsDevice(device);
+                return player.Player.DeviceInfo.ContainsController(device);
             };
         }
 

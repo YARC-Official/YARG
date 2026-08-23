@@ -88,7 +88,7 @@ namespace YARG.Menu.Dialogs
             button.interactable = false;
             button.image.color = Color.gray;
 
-            _player.DeviceInfo.ClearBindingsForDevice(_device, false);
+            _player.DeviceInfo.ClearBindingsForController(_device, false);
 
             _cancelButton.Text.text = Localize.Key("Menu.Dialog.FriendlyBindingDialog.Skip");
             _cancellationTokenSource = new CancellationTokenSource();

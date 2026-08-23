@@ -71,6 +71,8 @@ namespace YARG.Menu.ProfileList
         [SerializeField]
         private GameObject _controllersList;
         [SerializeField]
+        private GameObject _microphonesList;
+        [SerializeField]
         private TMP_InputField _noteSpeedField;
         [SerializeField]
         private TMP_InputField _highwayLengthField;
@@ -112,12 +114,20 @@ namespace YARG.Menu.ProfileList
         [Space]
         [SerializeField]
         private ControllerEntryView _controllerEntryViewPrefab;
+        [SerializeField]
+        private MicrophoneEntryView _microphoneEntryViewPrefab;
 
         [Space]
         [SerializeField]
         private Sprite _profileGenericSprite;
         [SerializeField]
         private Sprite _profileBotSprite;
+
+        [Space]
+        [SerializeField]
+        private TextMeshProUGUI _tooltipTitleText;
+        [SerializeField]
+        private TextMeshProUGUI _tooltipText;
 
         private ProfileView _profileView;
         private YargProfile _profile;
@@ -259,6 +269,7 @@ namespace YARG.Menu.ProfileList
             _openLaneDisplayTypeDropdown.value = _openLaneDisplayTypesByIndex.IndexOf(profile.OpenLaneDisplayType);
             _useCymbalModelsToggle.isOn = profile.UseCymbalModels;
             RefreshControllers();
+            RefreshMicrophones();
 
             // Update preset dropdowns
             _engineDropdown.SetValueWithoutNotify(
@@ -381,15 +392,15 @@ namespace YARG.Menu.ProfileList
             menu.gameObject.SetActive(true);
         }
 
-        public async void AddDevice()
+        public async void AddController()
         {
-            await _profileView.PromptAddDevice();
+            await _profileView.PromptAddController();
             UpdateSidebar(_profile, _profileView);
         }
 
-        public async void RemoveDevice()
+        public async void AddMicrophone()
         {
-            await _profileView.PromptRemoveDevice();
+            await _profileView.PromptAddMicrophone();
             UpdateSidebar(_profile, _profileView);
         }
 
@@ -401,6 +412,17 @@ namespace YARG.Menu.ProfileList
             {
                 var entry = Instantiate(_controllerEntryViewPrefab, _controllersList.transform);
                 entry.Initialize(_profile, _profileView, this, controller);
+            }
+        }
+
+        public void RefreshMicrophones()
+        {
+            var player = PlayerContainer.GetPlayerFromProfile(_profile);
+            _microphonesList.transform.DestroyChildren();
+            foreach (var microphone in player.DeviceInfo.Microphones)
+            {
+                var entry = Instantiate(_microphoneEntryViewPrefab, _microphonesList.transform);
+                entry.Initialize(_profile, _profileView, this, microphone);
             }
         }
 
@@ -554,6 +576,17 @@ namespace YARG.Menu.ProfileList
         public void ChangeRockMeterPreset()
         {
             _profile.RockMeterPreset = _rockmeterPresetsByIndex[_rockMeterPresetDropdown.value];
+        }
+
+        public void SetTooltip(string title, string text)
+        {
+            _tooltipTitleText.text = title;
+            _tooltipText.text = text;
+        }
+
+        public void ClearTooltip()
+        {
+            SetTooltip(string.Empty, string.Empty);
         }
     }
 }

@@ -4,12 +4,13 @@ using System.Text;
 using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using YARG.Core.Audio;
 using YARG.Core.Game;
 using YARG.Player;
 
 namespace YARG.Menu.ProfileList
 {
-    public class ControllerEntryView : MonoBehaviour
+    public class MicrophoneEntryView : MonoBehaviour
     {
         [SerializeField]
         private TextMeshProUGUI _name;
@@ -17,21 +18,21 @@ namespace YARG.Menu.ProfileList
         private YargProfile _profile;
         private ProfileView _profileView;
         private ProfileSidebar _profileSidebar;
-        private InputDevice _controller;
+        private MicDevice _microphone;
 
-        public void Initialize(YargProfile profile, ProfileView profileView, ProfileSidebar profileSidebar, InputDevice controller)
+        public void Initialize(YargProfile profile, ProfileView profileView, ProfileSidebar profileSidebar, MicDevice microphone)
         {
-            _name.text = controller.displayName;
+            _name.text = microphone.DisplayName;
             _profile = profile;
             _profileView = profileView;
             _profileSidebar = profileSidebar;
-            _controller = controller;
+            _microphone = microphone;
         }
 
         public void Remove()
         {
             var player = PlayerContainer.GetPlayerFromProfile(_profile);
-            player.DeviceInfo.RemoveController(_controller);
+            player.DeviceInfo.RemoveMicrophone(_microphone);
             _profileSidebar.UpdateSidebar(_profile, _profileView);
         }
     }

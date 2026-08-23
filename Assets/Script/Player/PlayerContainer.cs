@@ -217,7 +217,7 @@ namespace YARG.Player
                 }
 
                 var bindings = BindingsContainer.GetBindingsForProfile(profile);
-                if (bindings.MatchesDevice(device))
+                if (bindings.MatchesController(device))
                 {
                     candidateProfiles.Add(profile);
                 }
@@ -231,7 +231,7 @@ namespace YARG.Player
         {
             foreach (var player in _players)
             {
-                if (player.DeviceInfo.ContainsDevice(device))
+                if (player.DeviceInfo.ContainsController(device))
                 {
                     return true;
                 }
@@ -244,7 +244,7 @@ namespace YARG.Player
         {
             foreach (var player in _players)
             {
-                player.DeviceInfo.OnDeviceAdded(device);
+                player.DeviceInfo.OnControllerAdded(device);
             }
 
             if (!SettingsManager.Settings.AutoCreateProfiles.Value)
@@ -259,7 +259,7 @@ namespace YARG.Player
         {
             foreach (var player in _players)
             {
-                player.DeviceInfo.OnDeviceRemoved(device);
+                player.DeviceInfo.OnControllerRemoved(device);
             }
         }
 
@@ -505,7 +505,7 @@ namespace YARG.Player
 
             foreach (var player in _players)
             {
-                if (player.InputsEnabled && player.DeviceInfo.ContainsDevice(keyboard))
+                if (player.InputsEnabled && player.DeviceInfo.ContainsController(keyboard))
                 {
                     return true;
                 }
@@ -655,9 +655,9 @@ namespace YARG.Player
                 return false;
             }
 
-            player.DeviceInfo.AddDevice(device);
+            player.DeviceInfo.AddController(device);
 
-            if (!player.DeviceInfo.ContainsBindingsForDevice(device))
+            if (!player.DeviceInfo.ContainsBindingsForController(device))
             {
                 player.DeviceInfo.SetDefaultBinds(device);
             }
