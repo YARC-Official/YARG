@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using System.Text;
 using TMPro;
 using UnityEngine;
+using UnityEngine.InputSystem;
+using YARG.Core.Game;
+using YARG.Player;
 
 namespace YARG.Menu.ProfileList
 {
@@ -11,9 +14,25 @@ namespace YARG.Menu.ProfileList
         [SerializeField]
         private TextMeshProUGUI _name;
 
-        public void Initialize(string name)
+        private YargProfile _profile;
+        private ProfileView _profileView;
+        private ProfileSidebar _profileSidebar;
+        private InputDevice _controller;
+
+        public void Initialize(YargProfile profile, ProfileView profileView, ProfileSidebar profileSidebar, InputDevice controller)
         {
-            _name.text = name;
+            _name.text = controller.displayName;
+            _profile = profile;
+            _profileView = profileView;
+            _profileSidebar = profileSidebar;
+            _controller = controller;
+        }
+
+        public void Remove()
+        {
+            var player = PlayerContainer.GetPlayerFromProfile(_profile);
+            player.DeviceInfo.RemoveDevice(_controller);
+            _profileSidebar.UpdateSidebar(_profile, _profileView);
         }
     }
 }

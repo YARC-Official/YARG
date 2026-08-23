@@ -381,16 +381,16 @@ namespace YARG.Menu.ProfileList
             menu.gameObject.SetActive(true);
         }
 
-        public void AddDevice()
+        public async void AddDevice()
         {
-            _profileView.PromptAddDevice().Forget();
-            RefreshControllers();
+            await _profileView.PromptAddDevice();
+            UpdateSidebar(_profile, _profileView);
         }
 
-        public void RemoveDevice()
+        public async void RemoveDevice()
         {
-            _profileView.PromptRemoveDevice().Forget();
-            RefreshControllers();
+            await _profileView.PromptRemoveDevice();
+            UpdateSidebar(_profile, _profileView);
         }
 
         public void RefreshControllers()
@@ -400,7 +400,7 @@ namespace YARG.Menu.ProfileList
             foreach (var controller in player.DeviceInfo.Controllers)
             {
                 var entry = Instantiate(_controllerEntryViewPrefab, _controllersList.transform);
-                entry.Initialize(controller.displayName);
+                entry.Initialize(_profile, _profileView, this, controller);
             }
         }
 
