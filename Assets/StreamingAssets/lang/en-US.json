@@ -1693,7 +1693,7 @@
             },
             "UseSongOffsetCalibration": {
                 "Name": "Use Average Song Offset",
-                "Description": "Use the saved song mean offset to adjust song audio delay."
+                "Description": "Use the saved song average offset to adjust song audio delay."
             },
             "VocalMonitoring": {
                 "Name": "Vocal Monitoring Volume",
