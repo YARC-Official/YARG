@@ -577,16 +577,5 @@ namespace YARG.Menu.ProfileList
         {
             _profile.RockMeterPreset = _rockmeterPresetsByIndex[_rockMeterPresetDropdown.value];
         }
-
-        public void SetTooltip(string title, string text)
-        {
-            _tooltipTitleText.text = title;
-            _tooltipText.text = text;
-        }
-
-        public void ClearTooltip()
-        {
-            SetTooltip(string.Empty, string.Empty);
-        }
     }
 }
