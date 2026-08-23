@@ -55,10 +55,10 @@ namespace YARG.Menu.ProfileList
         /// <summary>The set-aside record this view represents, or null for a normal profile row.</summary>
         public PlayerContainer.UnloadedProfile UnloadedRecord { get; private set; }
 
-        private ProfileListMenu _profileListMenu;
-        private ProfileSidebar  _profileSidebar;
+        private ProfilesAndDevicesMenu _profileListMenu;
+        private ProfileCenterPane  _profileSidebar;
 
-        public void Init(ProfileListMenu menu, YargProfile profile, ProfileSidebar sidebar)
+        public void Init(ProfilesAndDevicesMenu menu, YargProfile profile, ProfileCenterPane sidebar)
         {
             _profileListMenu = menu;
             _profileSidebar = sidebar;

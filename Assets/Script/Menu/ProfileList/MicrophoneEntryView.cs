@@ -17,10 +17,10 @@ namespace YARG.Menu.ProfileList
 
         private YargProfile _profile;
         private ProfileView _profileView;
-        private ProfileSidebar _profileSidebar;
+        private ProfileCenterPane _profileSidebar;
         private MicDevice _microphone;
 
-        public void Initialize(YargProfile profile, ProfileView profileView, ProfileSidebar profileSidebar, MicDevice microphone)
+        public void Initialize(YargProfile profile, ProfileView profileView, ProfileCenterPane profileSidebar, MicDevice microphone)
         {
             _name.text = microphone.DisplayName;
             _profile = profile;

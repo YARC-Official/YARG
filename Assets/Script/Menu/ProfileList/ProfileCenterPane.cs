@@ -26,7 +26,7 @@ namespace YARG.Menu.ProfileList
 {
     // This will be cleaned up when we add the new profile overview screen
 
-    public class ProfileSidebar : MonoBehaviour
+    public class ProfileCenterPane : MonoBehaviour
     {
         private const string NUMBER_FORMAT = "0.0###";
 
@@ -113,7 +113,7 @@ namespace YARG.Menu.ProfileList
 
         [Space]
         [SerializeField]
-        private ProfileListMenu _profileListMenu;
+        private ProfilesAndDevicesMenu _profileListMenu;
 
         [Space]
         [SerializeField]
