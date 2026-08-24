@@ -1,328 +1,190 @@
+#nullable enable
 using System;
 using System.Collections.Generic;
-using System.Threading;
+using System.Linq;
 using ManagedBass;
 using ManagedBass.Mix;
+using YARG.Audio.BASS.Effects;
 using YARG.Core.Audio;
 using YARG.Core.Logging;
 
 namespace YARG.Audio.BASS
 {
     /// <summary>
-    /// Mixes scheduled one-shot samples directly into the final playback mixer.
+    ///     Managed coordinator for a native BASS mixer source.
+    ///     Sample scheduling and mixing never enter managed code.
     /// </summary>
-    /// <remarks>
-    /// The DSP runs after tempo processing, preserving sample pitch and duration at every song speed.
-    /// Scheduled hits are mixed at their exact output frame without creating per-hit BASS syncs.
-    /// </remarks>
     internal sealed class BassOneShotChannel : OneShotChannel
     {
-        private const int MAX_ACTIVE_SAMPLES = 64;
-        private const int DECODE_BUFFER_SIZE = 4096;
-
-        private sealed class ScheduleAnchor
-        {
-            public readonly int Generation;
-            public readonly long OutputPosition;
-            public readonly double SongPosition;
-            public readonly float Speed;
-            public readonly bool ClearActiveSamples;
-
-            public ScheduleAnchor(int generation, long outputPosition, double songPosition,
-                float speed, bool clearActiveSamples)
-            {
-                Generation = generation;
-                OutputPosition = outputPosition;
-                SongPosition = songPosition;
-                Speed = speed;
-                ClearActiveSamples = clearActiveSamples;
-            }
-        }
-
-        private readonly int _outputMixerHandle;
-        private readonly int _tempoStreamHandle;
-        private readonly int _sampleRate;
-        private readonly int _channelCount;
-        private readonly int _bytesPerFrame;
-        private readonly int _sampleFrameCount;
-        private readonly double[] _scheduledPlays;
-        private readonly float[] _sample;
-        private readonly int[] _activeSampleFrames = new int[MAX_ACTIVE_SAMPLES];
+        private const    int                DECODE_BUFFER_SIZE = 4096;
         private readonly Func<long, double> _getSongPosition;
-        private readonly Func<float> _getSpeed;
-        private readonly double _outputLeadTime;
-        private readonly DSPProcedure _dspCallback;
-        private readonly int _dspHandle;
+        private readonly Func<float>        _getSpeed;
+        private readonly double             _outputLeadTime;
+        private readonly int                _sampleRate;
+        private readonly double[]           _scheduledPlays;
 
-        private ScheduleAnchor _scheduleAnchor;
-        private int _anchorGeneration;
+        private readonly int                      _tempoStreamHandle;
+        private          bool                     _disposed;
+        private          BassNativeOneShotStream? _nativeStream;
+        private          int                      _outputMixerHandle;
+        private          bool                     _playbackPaused;
+        private          int                      _targetMixerHandle;
 
-        // State below is owned by the DSP callback.
-        private int _callbackAnchorGeneration = -1;
-        private long _previousEndPosition;
-        private int _nextScheduledPlay;
-        private int _activeSampleCount;
-
-        private float _volume = 1;
-        private bool _enabled = true;
-        private bool _disposed;
-
-        internal event Action<BassOneShotChannel> Disposed;
-
-        public BassOneShotChannel(int outputMixerHandle, int tempoStreamHandle,
-            int sampleStream, IReadOnlyList<double> scheduledPlays,
-            Func<long, double> getSongPosition, Func<float> getSpeed, double outputLeadTime)
+        public BassOneShotChannel(int outputMixerHandle, int tempoStreamHandle, int sampleStream,
+            IReadOnlyList<double> scheduledPlays, Func<long, double> getSongPosition, Func<float> getSpeed,
+            double outputLeadTime, bool playbackPaused, OutputChannel? outputChannel = null)
         {
             _outputMixerHandle = outputMixerHandle;
+            _targetMixerHandle = outputMixerHandle;
+            _playbackPaused = playbackPaused;
             _tempoStreamHandle = tempoStreamHandle;
-            _getSongPosition = getSongPosition ?? throw new ArgumentNullException(nameof(getSongPosition));
-            _getSpeed = getSpeed ?? throw new ArgumentNullException(nameof(getSpeed));
+            _getSongPosition = getSongPosition;
+            _getSpeed = getSpeed;
             _outputLeadTime = Math.Max(0, outputLeadTime);
-            _scheduledPlays = CopyAndSort(scheduledPlays);
+            _scheduledPlays = scheduledPlays.ToArray();
+            Array.Sort(_scheduledPlays);
 
             var info = Bass.ChannelGetInfo(outputMixerHandle);
-            bool usesFloatSamples = (info.Flags & BassFlags.Float) != 0;
-            if (!usesFloatSamples)
+            if (info.Frequency <= 0 || info.Channels <= 0 || (info.Flags & BassFlags.Float) == 0)
             {
                 Bass.StreamFree(sampleStream);
-                throw new ArgumentException("Playback mixer must use float sample data.",
-                    nameof(outputMixerHandle));
+                throw new ArgumentException("Playback mixer must use float sample data.", nameof(outputMixerHandle));
             }
 
+            var speakerFlags = outputChannel is BassOutputChannel bassOutputChannel
+                ? bassOutputChannel.Flags
+                : BassFlags.Default;
+
             _sampleRate = info.Frequency;
-            _channelCount = info.Channels;
-            _bytesPerFrame = sizeof(float) * _channelCount;
-            _sample = DecodeSample(sampleStream, _sampleRate, _channelCount) ?? Array.Empty<float>();
-            _sampleFrameCount = _sample.Length / _channelCount;
-            if (_sampleFrameCount == 0)
+            float[]? sample = DecodeSample(sampleStream, _sampleRate, info.Channels, speakerFlags);
+            if (sample == null || sample.Length == 0)
             {
                 return;
             }
 
-            Reanchor(clearActiveSamples: true);
-            _dspCallback = ProcessAudio;
-            _dspHandle = Bass.ChannelSetDSP(outputMixerHandle, _dspCallback);
-            if (_dspHandle == 0)
+            _nativeStream = BassNativeOneShotStream.Create(
+                _sampleRate, info.Channels, sample, _scheduledPlays, _outputLeadTime);
+            if (_nativeStream == null)
             {
-                LogBassError("Failed to attach one-shot DSP: {0}!");
+                return;
             }
+
+            AttachOutput(outputMixerHandle, playbackPaused);
         }
+
+        internal event Action<BassOneShotChannel>? Disposed;
 
         public override void SetVolume(double volume)
         {
-            Volatile.Write(ref _volume, (float) volume);
+            _nativeStream?.SetVolume(volume);
         }
 
         public override void SetEnabled(bool enabled)
         {
-            Volatile.Write(ref _enabled, enabled);
+            _nativeStream?.SetEnabled(enabled);
         }
 
-        /// <summary>
-        /// One-shot state remains attached while the paused playback graph is prepared for seeking.
-        /// </summary>
-        internal void PrepareForSeek()
+        internal void DetachOutput()
         {
+            bool detached = _nativeStream?.Detach() ?? true;
+            if (detached)
+            {
+                _outputMixerHandle = 0;
+            }
         }
 
-        internal void ResetAfterSeek()
+        internal void AttachOutput(int outputMixerHandle, bool playbackPaused)
         {
-            Reanchor(clearActiveSamples: true);
-        }
-
-        internal void ResetAfterSpeedChange()
-        {
-            Reanchor(clearActiveSamples: false);
-        }
-
-        private void Reanchor(bool clearActiveSamples)
-        {
-            if (_disposed)
+            _targetMixerHandle = outputMixerHandle;
+            if (_disposed || _nativeStream == null)
             {
                 return;
             }
 
-            long outputPosition = Bass.ChannelGetPosition(_outputMixerHandle, PositionFlags.Decode);
-            long tempoPosition = Bass.ChannelGetPosition(_tempoStreamHandle, PositionFlags.Decode);
-            if (outputPosition < 0 || tempoPosition < 0)
-            {
-                LogBassError("Failed to read one-shot playback position: {0}!");
-                return;
-            }
-
-            double songPosition = _getSongPosition(tempoPosition);
-            float speed = Math.Max(0.0001f, _getSpeed());
-            int generation = Interlocked.Increment(ref _anchorGeneration);
-            var anchor = new ScheduleAnchor(generation, outputPosition, songPosition, speed,
-                clearActiveSamples);
-            Volatile.Write(ref _scheduleAnchor, anchor);
-        }
-
-        /// <summary>
-        /// Mixes active and newly scheduled samples into one final-output buffer.
-        /// </summary>
-        /// <remarks>
-        /// BASS invokes this on its audio thread. It must remain allocation-free and non-blocking.
-        /// </remarks>
-        private unsafe void ProcessAudio(int _, int channel, IntPtr buffer, int length, IntPtr __)
-        {
-            int frameCount = length / _bytesPerFrame;
-            if (frameCount <= 0)
+            if (!TryGetCurrentSongPosition(outputMixerHandle, out double songPosition, out float speed))
             {
                 return;
             }
 
-            var anchor = Volatile.Read(ref _scheduleAnchor);
-            if (anchor == null)
+            if (_nativeStream.Attach(outputMixerHandle, songPosition, speed, playbackPaused))
+            {
+                _outputMixerHandle = outputMixerHandle;
+            }
+        }
+
+        internal void SetPlaybackPaused(bool paused)
+        {
+            if (_nativeStream == null)
             {
                 return;
             }
 
-            if (_callbackAnchorGeneration != anchor.Generation)
+            _playbackPaused = paused;
+
+            if (paused)
             {
-                ApplyAnchor(anchor);
+                _nativeStream.SetPaused(true);
             }
-
-            long endPosition = Bass.ChannelGetPosition(channel, PositionFlags.Decode);
-            long startPosition = _previousEndPosition;
-            if (endPosition <= startPosition)
+            else
             {
-                return;
-            }
-            _previousEndPosition = endPosition;
-
-            float* output = (float*) buffer;
-            float volume = Volatile.Read(ref _volume);
-            MixActiveSamples(output, frameCount, volume);
-            MixScheduledSamples(output, frameCount, volume, startPosition, endPosition, anchor);
-        }
-
-        private void ApplyAnchor(ScheduleAnchor anchor)
-        {
-            _callbackAnchorGeneration = anchor.Generation;
-            _previousEndPosition = anchor.OutputPosition;
-            _nextScheduledPlay = FindFirstScheduledPlay(anchor);
-            if (anchor.ClearActiveSamples)
-            {
-                _activeSampleCount = 0;
-            }
-        }
-
-        private int FindFirstScheduledPlay(ScheduleAnchor anchor)
-        {
-            double firstAudibleSongPosition =
-                anchor.SongPosition + _outputLeadTime * anchor.Speed;
-            int start = 0;
-            int end = _scheduledPlays.Length;
-            while (start < end)
-            {
-                int middle = start + (end - start) / 2;
-                double scheduledPlay = _scheduledPlays[middle];
-                bool alreadyPassed = _outputLeadTime > 0
-                    ? scheduledPlay <= firstAudibleSongPosition
-                    : scheduledPlay < firstAudibleSongPosition;
-                if (alreadyPassed)
+                if (Reanchor(false))
                 {
-                    start = middle + 1;
-                }
-                else
-                {
-                    end = middle;
+                    _nativeStream.SetPaused(false);
                 }
             }
-            return start;
         }
 
-        private unsafe void MixScheduledSamples(float* output, int frameCount, float volume,
-            long startPosition, long endPosition, ScheduleAnchor anchor)
+        internal void ResetAfterSeek() => Reanchor(true);
+        internal void ResetAfterSpeedChange() => Reanchor(false);
+
+        private bool Reanchor(bool clearActiveVoices)
         {
-            long bufferLength = endPosition - startPosition;
-            while (_nextScheduledPlay < _scheduledPlays.Length)
+            if (_disposed || _nativeStream == null)
             {
-                double scheduledPlay = _scheduledPlays[_nextScheduledPlay];
-                long targetPosition = GetOutputPosition(scheduledPlay, anchor);
-                if (targetPosition >= endPosition)
-                {
-                    return;
-                }
-                _nextScheduledPlay++;
-
-                if (targetPosition < startPosition || !Volatile.Read(ref _enabled))
-                {
-                    continue;
-                }
-
-                double progress = (double) (targetPosition - startPosition) / bufferLength;
-                int startFrame = Math.Clamp((int) Math.Round(progress * frameCount), 0, frameCount - 1);
-                StartSample(output, frameCount, startFrame, volume);
+                return false;
             }
-        }
 
-        private long GetOutputPosition(double scheduledPlay, ScheduleAnchor anchor)
-        {
-            double outputDelay =
-                (scheduledPlay - anchor.SongPosition) / anchor.Speed - _outputLeadTime;
-            long outputFrames = (long) Math.Round(outputDelay * _sampleRate);
-            return anchor.OutputPosition + outputFrames * _bytesPerFrame;
-        }
-
-        private unsafe void MixActiveSamples(float* output, int frameCount, float volume)
-        {
-            int writeIndex = 0;
-            for (int i = 0; i < _activeSampleCount; i++)
+            if (_outputMixerHandle == 0)
             {
-                int sampleFrame = _activeSampleFrames[i];
-                MixSample(output, frameCount, startFrame: 0, volume, ref sampleFrame);
-                if (sampleFrame < _sampleFrameCount)
+                AttachOutput(_targetMixerHandle, _playbackPaused);
+                if (_outputMixerHandle == 0)
                 {
-                    _activeSampleFrames[writeIndex++] = sampleFrame;
+                    return false;
                 }
             }
-            _activeSampleCount = writeIndex;
+
+            if (!TryGetCurrentSongPosition(_outputMixerHandle, out double songPosition, out float speed))
+            {
+                return false;
+            }
+
+            return _nativeStream.Resync(songPosition, speed, clearActiveVoices);
         }
 
-        private unsafe void StartSample(float* output, int frameCount, int startFrame, float volume)
+        private bool TryGetCurrentSongPosition(int outputMixerHandle, out double songPosition, out float speed)
         {
-            int sampleFrame = 0;
-            MixSample(output, frameCount, startFrame, volume, ref sampleFrame);
-            if (sampleFrame < _sampleFrameCount && _activeSampleCount < MAX_ACTIVE_SAMPLES)
+            songPosition = 0;
+            speed = 0;
+            long tempo = Bass.ChannelGetPosition(_tempoStreamHandle, PositionFlags.Decode);
+            if (tempo < 0)
             {
-                _activeSampleFrames[_activeSampleCount++] = sampleFrame;
+                YargLogger.LogFormatError("Failed to read one-shot playback position: {0}", Bass.LastError);
+                return false;
             }
+
+            speed = Math.Max(0.0001f, _getSpeed());
+            if (float.IsNaN(speed) || float.IsInfinity(speed))
+            {
+                YargLogger.LogFormatError("Failed to read one-shot playback speed: {0}", speed);
+                return false;
+            }
+
+            songPosition = _getSongPosition(tempo);
+            return !double.IsNaN(songPosition) && !double.IsInfinity(songPosition);
         }
 
-        private unsafe void MixSample(float* output, int outputFrames, int startFrame, float volume,
-            ref int sampleFrame)
-        {
-            int framesToMix = Math.Min(outputFrames - startFrame, _sampleFrameCount - sampleFrame);
-            int source = sampleFrame * _channelCount;
-            int destination = startFrame * _channelCount;
-            int valuesRemaining = framesToMix * _channelCount;
-            while (valuesRemaining-- > 0)
-            {
-                float mixed = output[destination] + _sample[source++] * volume;
-                output[destination++] = Math.Clamp(mixed, -1f, 1f);
-            }
-            sampleFrame += framesToMix;
-        }
-
-        private static double[] CopyAndSort(IReadOnlyList<double> scheduledPlays)
-        {
-            if (scheduledPlays == null)
-            {
-                throw new ArgumentNullException(nameof(scheduledPlays));
-            }
-
-            var copy = new double[scheduledPlays.Count];
-            for (int i = 0; i < copy.Length; i++)
-            {
-                copy[i] = scheduledPlays[i];
-            }
-            Array.Sort(copy);
-            return copy;
-        }
-
-        private static float[] DecodeSample(int streamHandle, int sampleRate, int channelCount)
+        private static float[]? DecodeSample(int streamHandle, int sampleRate, int channelCount,
+            BassFlags speakerFlags)
         {
             if (streamHandle == 0)
             {
@@ -333,37 +195,39 @@ namespace YARG.Audio.BASS
                 BassFlags.Float | BassFlags.Decode | BassFlags.MixerEnd);
             if (converter == 0)
             {
-                LogBassError("Failed to create one-shot sample converter: {0}!");
                 Bass.StreamFree(streamHandle);
                 return null;
             }
 
             try
             {
-                if (!BassMix.MixerAddChannel(converter, streamHandle, BassFlags.MixerChanNoRampin))
+                var flags = BassFlags.MixerChanNoRampin | speakerFlags;
+                if (!BassMix.MixerAddChannel(converter, streamHandle, flags))
                 {
-                    LogBassError("Failed to add one-shot sample to converter: {0}!");
-                    return null;
+                    if (speakerFlags != BassFlags.Default &&
+                        !BassMix.MixerAddChannel(converter, streamHandle, BassFlags.MixerChanNoRampin))
+                    {
+                        return null;
+                    }
                 }
 
-                var samples = new List<float>();
-                var buffer = new float[DECODE_BUFFER_SIZE];
+                var result = new List<float>();
+                float[] buffer = new float[DECODE_BUFFER_SIZE];
                 int bytesRead;
-                while ((bytesRead = Bass.ChannelGetData(converter, buffer,
-                    buffer.Length * sizeof(float))) > 0)
+                while ((bytesRead = Bass.ChannelGetData(converter, buffer, buffer.Length * sizeof(float))) > 0)
                 {
-                    int sampleCount = bytesRead / sizeof(float);
-                    for (int i = 0; i < sampleCount; i++)
+                    for (int i = 0; i < bytesRead / sizeof(float); i++)
                     {
-                        samples.Add(buffer[i]);
+                        result.Add(buffer[i]);
                     }
                 }
 
                 if (bytesRead < 0 && Bass.LastError != Errors.Ended)
                 {
-                    LogBassError("Failed to decode one-shot sample: {0}!");
+                    YargLogger.LogFormatError("Failed to decode one-shot sample: {0}", Bass.LastError);
                 }
-                return samples.Count == 0 ? null : samples.ToArray();
+
+                return result.Count == 0 ? null : result.ToArray();
             }
             finally
             {
@@ -380,21 +244,11 @@ namespace YARG.Audio.BASS
             }
 
             _disposed = true;
-            if (_dspHandle != 0 &&
-                !Bass.ChannelRemoveDSP(_outputMixerHandle, _dspHandle) &&
-                Bass.LastError != Errors.Handle)
-            {
-                LogBassError("Failed to remove one-shot DSP: {0}!");
-            }
-
-            var disposed = Disposed;
+            _nativeStream?.Dispose();
+            _nativeStream = null;
+            var callback = Disposed;
             Disposed = null;
-            disposed?.Invoke(this);
-        }
-
-        private static void LogBassError(string format)
-        {
-            YargLogger.LogFormatError(format, Bass.LastError);
+            callback?.Invoke(this);
         }
     }
 }

@@ -150,6 +150,11 @@ tab_width = 4
 indent_style = tab
 tab_width = 4
 
+[manifest.json]
+charset = utf-8
+indent_style = space
+indent_size = 2
+
 [*.inputactions]
 indent_style = tab
 tab_width = 4

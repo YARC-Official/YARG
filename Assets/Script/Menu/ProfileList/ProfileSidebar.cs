@@ -500,7 +500,7 @@ namespace YARG.Menu.ProfileList
 
             // Add buttons
 
-            dialog.AddDialogButton("Menu.Common.Cancel", MenuData.Colors.CancelButton,
+            dialog.AddDialogButton("Menu.Common.DontApply", MenuData.Colors.CancelButton,
                 () => DialogManager.Instance.ClearDialog());
 
             dialog.AddDialogButton("Menu.Common.Apply", MenuData.Colors.ConfirmButton, () =>

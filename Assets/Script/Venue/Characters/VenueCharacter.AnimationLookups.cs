@@ -24,7 +24,7 @@ namespace YARG.Venue.Characters
         private readonly List<int>       _triggerHashes = new();
         private readonly HashSet<int>    _floatHashes = new();
         private readonly HashSet<int>    _boolHashes = new();
-        private readonly HashSet<int>    _intHashes = new();
+        protected readonly HashSet<int>    _intHashes = new();
 
         private readonly Dictionary<string, int> _hashCache = new();
 
@@ -171,6 +171,7 @@ namespace YARG.Venue.Characters
                 "Idle"            => AnimationStateType.Idle,
                 "Playing"         => AnimationStateType.Playing,
                 "IdleRealtime"    => AnimationStateType.IdleRealtime,
+                "IdleMellow"      => AnimationStateType.IdleMellow,
                 "Intense"         => AnimationStateType.Intense,
                 "Mellow"          => AnimationStateType.Mellow,
                 // Drums
@@ -616,7 +617,8 @@ namespace YARG.Venue.Characters
             Pick,
             Finger,
             IdleIntense,
-            PlayingSolo
+            PlayingSolo,
+            IdleMellow
         }
 
         private AnimationStateType? GetAnimationStateForHandMap(HandMap.HandMapType handMap)
@@ -734,6 +736,7 @@ namespace YARG.Venue.Characters
                         // First, reset the bools to false (if they exist)
                         SetBool("isIdle", false);
                         SetBool("isIdleRealtime", false);
+                        SetBool("isIdleMellow", false);
                         SetBool("isPlaying", false);
                         SetBool("isMellow", false);
                         SetBool("isIntense", false);
@@ -743,6 +746,7 @@ namespace YARG.Venue.Characters
 
                         // Update the current generic state (for debug)
                         CurrentGenericState = state;
+                        RngAtLastTransition = CurrentRng;
 
                         // Now reset them if necessary so that transitions can use them to select the correct variety
                         if (IsLayeredState(state))
@@ -754,6 +758,9 @@ namespace YARG.Venue.Characters
                                     break;
                                 case AnimationStateType.IdleRealtime:
                                     SetBool("isIdleRealtime", true);
+                                    break;
+                                case AnimationStateType.IdleMellow:
+                                    SetBool("isIdleMellow", true);
                                     break;
                                 case AnimationStateType.Playing:
                                     SetBool("isPlaying", true);
@@ -939,7 +946,7 @@ namespace YARG.Venue.Characters
         private static bool IsGenericState(AnimationStateType state)
         {
             return state is AnimationStateType.Idle or AnimationStateType.Playing or AnimationStateType.IdleRealtime
-                or AnimationStateType.Mellow or AnimationStateType.Intense;
+                or AnimationStateType.IdleMellow or AnimationStateType.Mellow or AnimationStateType.Intense;
         }
 
         private static bool IsLeftHandPositionState(AnimationStateType state)
@@ -952,6 +959,7 @@ namespace YARG.Venue.Characters
         {
             // Generic states
             { AnimationStateType.IdleRealtime, AnimationStateType.Idle },
+            { AnimationStateType.IdleMellow, AnimationStateType.Idle },
             { AnimationStateType.Mellow, AnimationStateType.Playing },
             { AnimationStateType.Intense, AnimationStateType.Playing },
 
@@ -1004,6 +1012,7 @@ namespace YARG.Venue.Characters
             { CharacterState.CharacterStateType.Idle, AnimationStateType.Idle },
             { CharacterState.CharacterStateType.IdleIntense, AnimationStateType.IdleIntense },
             { CharacterState.CharacterStateType.IdleRealtime, AnimationStateType.IdleRealtime },
+            { CharacterState.CharacterStateType.IdleMellow, AnimationStateType.IdleMellow },
             { CharacterState.CharacterStateType.Intense, AnimationStateType.Intense },
             { CharacterState.CharacterStateType.Mellow, AnimationStateType.Mellow },
             { CharacterState.CharacterStateType.Play, AnimationStateType.Playing },

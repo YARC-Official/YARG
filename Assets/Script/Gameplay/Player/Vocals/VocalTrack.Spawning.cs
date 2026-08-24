@@ -95,8 +95,10 @@ namespace YARG.Gameplay.Player
 
                     // Spawn the vocal note
                     var noteObj = pool.TakeWithoutEnabling();
-                    ((VocalNoteElement) noteObj).NoteRef = note;
+                    var vocalNote = (VocalNoteElement) noteObj;
+                    vocalNote.NoteRef = note;
                     noteObj.EnableFromPool();
+                    vocalNote.SetSpGlow(tracker.CurrentPhrase.IsStarPower && AllowStarPower);
                 }
 
                 tracker.NextNote();

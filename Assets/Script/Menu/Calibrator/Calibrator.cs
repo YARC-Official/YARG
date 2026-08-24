@@ -5,7 +5,6 @@ using System.IO;
 using TMPro;
 using UnityEngine;
 using YARG.Audio;
-using YARG.Audio.BASS;
 using YARG.Core.Audio;
 using YARG.Core.Input;
 using YARG.Input;
@@ -48,7 +47,6 @@ namespace YARG.Menu.Calibrator
         private YargPlayer _player;
 #nullable enable
         private StemMixer? _mixer;
-        private double _audioStartTime;
 #nullable disable
 
         private bool _hasNavigationScheme;
@@ -90,7 +88,8 @@ namespace YARG.Menu.Calibrator
                     _audioCalibrateText.color = Color.green;
                     _audioCalibrateText.text = Localize.Key("Menu.Calibrator.Detected");
 
-                    _calibrationTimes.Add(input.Time - _audioStartTime);
+                    double inputAge = InputManager.CurrentInputTime - input.Time;
+                    _calibrationTimes.Add(_mixer.GetPosition() - inputAge);
                     break;
             }
         }
@@ -146,7 +145,6 @@ namespace YARG.Menu.Calibrator
                     _mixer = GlobalAudioHandler.LoadCustomFile(file, SPEED, VOLUME);
                     _mixer.SongEnd += OnAudioEnd;
                     _mixer.Play();
-                    _audioStartTime = InputManager.CurrentInputTime + BassLatencyProvider.StartupLatency;
                     StartCoroutine(AudioCalibrateCoroutine());
                     break;
                 case State.AudioDone:

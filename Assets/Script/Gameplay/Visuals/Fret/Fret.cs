@@ -61,6 +61,11 @@ namespace YARG.Gameplay.Visuals
 
         public void Initialize(Color top, Color inner, Color particles, Color openParticles)
         {
+            // Clear so Initialize is safe to re-call for live fret recoloring (e.g. the
+            // settings preview's lefty flip); these lists are empty on the first call.
+            _topMaterials.Clear();
+            _innerMaterials.Clear();
+
             _originalUnityTopColor = top.ToUnityColor();
             _originalUnityInnerColor = inner.ToUnityColor();
             _originalEmissionColor = top.ToUnityColor() * 11.5f;

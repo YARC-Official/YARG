@@ -559,6 +559,8 @@ namespace YARG.Gameplay
                     using var text = ZString.CreateStringBuilder(true);
 
                     text.AppendFormat("Heard sync error: {0:0.000} ms\n", _songRunner.SyncError * 1000.0);
+                    text.AppendFormat("Raw control sync error: {0:0.000} ms\n",
+                        _songRunner.DebugRawControlSyncError * 1000.0);
                     text.AppendFormat("Control sync error: {0:0.000} ms\n",
                         _songRunner.DebugControlSyncError * 1000.0);
                     text.AppendFormat("Control correction start: {0:0.000} ms\n",
@@ -807,6 +809,8 @@ namespace YARG.Gameplay
                         var kind = character is VRMCharacter ? "VRM" : "Built-in";
                         text.AppendFormat("Character Type: {0}\n", kind);
                         text.AppendFormat("Character State: {0}\n", character.CurrentGenericState);
+                        text.AppendFormat("RNG: {0}\n", character.CurrentRng);
+                        text.AppendFormat("RNG at state change: {0}\n", character.RngAtLastTransition);
                         if (character.Type is VenueCharacter.CharacterType.Guitar or VenueCharacter.CharacterType.Bass)
                         {
                             text.AppendFormat("Hand Position: {0}\n", character.CurrentHandPosition);

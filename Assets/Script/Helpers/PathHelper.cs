@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Text.RegularExpressions;
 using Newtonsoft.Json.Linq;
@@ -85,9 +85,16 @@ namespace YARG.Helpers
             IgnoreInaccessible = true,
         };
 
+#if UNITY_EDITOR
+        [UnityEditor.InitializeOnLoadMethod]
+#endif
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSplashScreen)]
-        private static void Init()
+        public static void Init()
         {
+            if (!string.IsNullOrEmpty(PersistentDataPath))
+            {
+                return;
+            }
             // Save this data as Application.* is main thread only (why Unity)
             RealPersistentDataPath = SanitizePath(Application.persistentDataPath);
 #if UNITY_EDITOR || YARG_TEST_BUILD

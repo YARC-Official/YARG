@@ -1,7 +1,8 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using YARG.Core.Audio;
@@ -14,12 +15,12 @@ using YARG.Integration;
 using YARG.Integration.RB3E;
 using YARG.Integration.Sacn;
 using YARG.Integration.StageKit;
+using YARG.Input.Bindings;
 using YARG.Menu.Filters;
 using YARG.Menu.History;
 using YARG.Menu.MusicLibrary;
 using YARG.Menu.Persistent;
 using YARG.Menu.Settings;
-using YARG.Playback;
 using YARG.Player;
 using YARG.Scores;
 using YARG.Settings.Metadata;
@@ -32,6 +33,12 @@ using Object = UnityEngine.Object;
 
 namespace YARG.Settings
 {
+    public enum SongLengthLabelMode
+    {
+        RangeLabels,
+        LegacyLabels,
+    }
+
     public enum QualityMode
     {
         NativeAA = 0,
@@ -61,6 +68,12 @@ namespace YARG.Settings
         Addressable
     }
 
+    public enum ReverbMode
+    {
+        Performance = 0,
+        Quality = 1
+    }
+
     public struct CustomCharacterInfo : IEquatable<CustomCharacterInfo>
     {
         public CustomCharacterSource          Source;
@@ -71,7 +84,9 @@ namespace YARG.Settings
             return Source == other.Source && Identifier == other.Identifier;
         }
 
+#nullable enable
         public override bool Equals(object? obj)
+#nullable disable
         {
             return obj is CustomCharacterInfo other && Equals(other);
         }
@@ -108,6 +123,10 @@ namespace YARG.Settings
             public bool ShowAntiPiracyDialog = true;
             public bool ShowEngineInconsistencyDialog = true;
             public bool ShowExperimentalWarningDialog = true;
+
+            [JsonProperty("LastWindowsAudioDevice")]
+            public string LastSharedAudioDevice = "Default";
+            public string LastAsioDevice = string.Empty;
 
             public SortAttribute LibrarySort = SortAttribute.Name;
             public SortAttribute PreviousLibrarySort = SortAttribute.Name;
@@ -217,13 +236,15 @@ namespace YARG.Settings
 
             #region Songs
 
+            private static void RefreshSongs()
+            {
+                SongContainer.RequestContainerRefresh();
+                MusicLibraryMenu.SetReload(MusicLibraryReloadState.Full);
+                HistoryMenu.ForceUpdate = true;
+            }
+
             public DropdownSetting<SongRating> MaxSongRating { get; }
-                = new(SongRating.None, _ =>
-                {
-                    SongContainer.RequestContainerRefresh();
-                    MusicLibraryMenu.SetReload(MusicLibraryReloadState.Full);
-                    HistoryMenu.ForceUpdate = true;
-                })
+                = new(SongRating.None, _ => RefreshSongs())
             {
                 SongRating.Family_Friendly,
                 SongRating.Supervision_Recommended,
@@ -232,11 +253,22 @@ namespace YARG.Settings
                 SongRating.None,
             };
 
+            // If MaxSongRating is set to anything other than Family_Friendly,
+            // this setting could change the available songs, so we need to refresh the song list
+            public ToggleSetting CensorMatureContent { get; } = new(false, _ => RefreshSongs());
+
             public ToggleSetting AllowDuplicateSongs { get; } = new(true, _ => MusicLibraryMenu.SetReload(MusicLibraryReloadState.Partial));
             public ToggleSetting UseFullDirectoryForPlaylists { get; } = new(false);
 
             public ToggleSetting ShowFavoriteButton { get; } = new(true);
             public ToggleSetting ShowRecommendedSongs { get; } = new(true, ShowRecommendedSongsCallback);
+
+            public DropdownSetting<SongLengthLabelMode> SongLengthLabels { get; }
+                = new(SongLengthLabelMode.RangeLabels, _ => RefreshSongs())
+                {
+                    SongLengthLabelMode.RangeLabels,
+                    SongLengthLabelMode.LegacyLabels,
+                };
 
             public ToggleSetting EnablePlayAShow { get; } = new(true);
             public SliderSetting PlayAShowTimeout { get; } = new (10.0f, 1.0f, 30.0f);
@@ -334,11 +366,25 @@ namespace YARG.Settings
 
             public VolumeSetting PreviewVolume { get; } = new(0.25f);
             public VolumeSetting MusicPlayerVolume { get; } = new(0.15f, MusicPlayerVolumeCallback);
-            public VolumeSetting VocalMonitoring { get; } = new(0.7f, VocalMonitoringCallback);
+            public VolumeSetting VocalMonitoring { get; } =
+                new(0.7f, 1f, VocalMonitoringCallback);
+
+            public VolumeSetting VocalReverb { get; } =
+                new(0.25f, 1f, VocalReverbCallback);
+
+            private bool _automaticPlaybackBufferWasEnabled = true;
+
+            public ToggleSetting AutomaticPlaybackBuffer { get; }
 
             public IntSetting PlaybackBufferLength { get; }
                 = new(75, 0, GlobalAudioHandler.MaximumBufferLength,
                     GlobalAudioHandler.SetBufferLength);
+
+            public SettingContainer()
+            {
+                AutomaticPlaybackBuffer = new(true, AutomaticPlaybackBufferChanged);
+                PlaybackBufferLength.EditableWhen = () => !AutomaticPlaybackBuffer.Value;
+            }
 
             public SliderSetting MicrophoneSensitivity { get; } = new(2f, -50f, 50f);
 
@@ -356,12 +402,13 @@ namespace YARG.Settings
                 AudioFxMode.On
             };
 
-            public DropdownSetting<CrowdFxMode> UseCrowdFx { get; } = new(CrowdFxMode.Enabled)
-            {
-                CrowdFxMode.Disabled,
-                CrowdFxMode.StarpowerClapsOnly,
-                CrowdFxMode.Enabled
-            };
+            public ToggleSetting UseCrowdCheering { get; } = new(true);
+
+            public ToggleSetting UseCrowdIdle { get; } = new(true);
+
+            public ToggleSetting UseStarPowerClaps { get; } = new(true);
+
+            public ToggleSetting UsePerformanceClaps { get; } = new(true);
 
             public ToggleSetting UseVenueSfx { get; } = new(true);
 
@@ -506,6 +553,8 @@ namespace YARG.Settings
                     LyricDisplayMode.Disabled
                 };
 
+            public ToggleSetting KeepLyricBar { get; } = new(false);
+
             public DropdownSetting<SongProgressMode> SongTimeOnScoreBox { get; }
                 = new(SongProgressMode.CountUpAndTotal)
                 {
@@ -592,56 +641,56 @@ namespace YARG.Settings
             public ToggleSetting RB3EEnabled      { get; } = new(false, RB3EEnabledCallback);
 
             public DMXChannelsSetting DMXDimmerChannels { get; } = new(
-                new[] { 01, 09, 17, 25, 33, 41, 49, 57 }, v => SacnInterpreter.Instance.DimmerChannels = v);
+                new[] { 01, 09, 17, 25, 33, 41, 49, 57 }, v => { if (SacnInterpreter.Instance != null) SacnInterpreter.Instance.DimmerChannels = v; });
 
             public DMXChannelsSetting DMXRedChannels { get; } = new(
-                new[] { 02, 10, 18, 26, 34, 42, 50, 58 }, v => SacnInterpreter.Instance.RedChannels = v);
+                new[] { 02, 10, 18, 26, 34, 42, 50, 58 }, v => { if (SacnInterpreter.Instance != null) SacnInterpreter.Instance.RedChannels = v; });
 
             public DMXChannelsSetting DMXGreenChannels { get; } = new(
-                new[] { 03, 11, 19, 27, 35, 43, 51, 59 }, v => SacnInterpreter.Instance.GreenChannels = v);
+                new[] { 03, 11, 19, 27, 35, 43, 51, 59 }, v => { if (SacnInterpreter.Instance != null) SacnInterpreter.Instance.GreenChannels = v; });
 
             public DMXChannelsSetting DMXBlueChannels { get; } = new(
-                new[] { 04, 12, 20, 28, 36, 44, 52, 60 }, v => SacnInterpreter.Instance.BlueChannels = v);
+                new[] { 04, 12, 20, 28, 36, 44, 52, 60 }, v => { if (SacnInterpreter.Instance != null) SacnInterpreter.Instance.BlueChannels = v; });
 
             public DMXChannelsSetting DMXYellowChannels { get; } = new(
-                new[] { 05, 13, 21, 29, 37, 45, 53, 61 }, v => SacnInterpreter.Instance.YellowChannels = v);
+                new[] { 05, 13, 21, 29, 37, 45, 53, 61 }, v => { if (SacnInterpreter.Instance != null) SacnInterpreter.Instance.YellowChannels = v; });
 
             public DMXChannelsSetting DMXFogChannels { get; } = new(
-                new[] { 06, 14, 22, 30, 38, 46, 54, 62 }, v => SacnInterpreter.Instance.FogChannels = v);
+                new[] { 06, 14, 22, 30, 38, 46, 54, 62 }, v => { if (SacnInterpreter.Instance != null) SacnInterpreter.Instance.FogChannels = v; });
 
             public DMXChannelsSetting DMXStrobeChannels { get; } = new(
-                new[] { 07, 15, 23, 31, 39, 47, 55, 63 }, v => SacnInterpreter.Instance.StrobeChannels = v);
+                new[] { 07, 15, 23, 31, 39, 47, 55, 63 }, v => { if (SacnInterpreter.Instance != null) SacnInterpreter.Instance.StrobeChannels = v; });
 
             public IntSetting DMXCueChangeChannel { get; } =
-                new(8, 1, 512, v => SacnInterpreter.Instance.CueChangeChannel = v);
+                new(8, 1, 512, v => { if (SacnInterpreter.Instance != null) SacnInterpreter.Instance.CueChangeChannel = v; });
 
             public IPv4Setting RB3EBroadcastIP { get; } =
-                new("255.255.255.255", ip => RB3EHardware.Instance.IPAddress = IPAddress.Parse(ip));
+                new("255.255.255.255", ip => { if (RB3EHardware.Instance != null) RB3EHardware.Instance.IPAddress = IPAddress.Parse(ip); });
 
             public IntSetting DMXBeatlineChannel { get; } =
-                new(14, 1, 512, v => SacnInterpreter.Instance.BeatlineChannel = v);
+                new(14, 1, 512, v => { if (SacnInterpreter.Instance != null) SacnInterpreter.Instance.BeatlineChannel = v; });
 
             public IntSetting DMXBonusEffectChannel { get; } =
-                new(15, 1, 512, v => SacnInterpreter.Instance.BonusEffectChannel = v);
+                new(15, 1, 512, v => { if (SacnInterpreter.Instance != null) SacnInterpreter.Instance.BonusEffectChannel = v; });
 
             public IntSetting DMXKeyframeChannel { get; } =
-                new(16, 1, 512, v => SacnInterpreter.Instance.KeyframeChannel = v);
+                new(16, 1, 512, v => { if (SacnInterpreter.Instance != null) SacnInterpreter.Instance.KeyframeChannel = v; });
 
             public IntSetting DMXDrumsChannel { get; } =
-                new(22, 1, 512, v => SacnInterpreter.Instance.DrumChannel = v);
+                new(22, 1, 512, v => { if (SacnInterpreter.Instance != null) SacnInterpreter.Instance.DrumChannel = v; });
 
             public IntSetting DMXPostProcessingChannel { get; } =
-                new(23, 1, 512, v => SacnInterpreter.Instance.PostProcessingChannel = v);
+                new(23, 1, 512, v => { if (SacnInterpreter.Instance != null) SacnInterpreter.Instance.PostProcessingChannel = v; });
 
             public IntSetting DMXGuitarChannel { get; } =
-                new(24, 1, 512, v => SacnInterpreter.Instance.GuitarChannel = v);
+                new(24, 1, 512, v => { if (SacnInterpreter.Instance != null) SacnInterpreter.Instance.GuitarChannel = v; });
 
-            public IntSetting DMXBassChannel { get; } = new(30, 1, 512, v => SacnInterpreter.Instance.BassChannel = v);
+            public IntSetting DMXBassChannel { get; } = new(30, 1, 512, v => { if (SacnInterpreter.Instance != null) SacnInterpreter.Instance.BassChannel = v; });
 
             //NYI
             //public IntSetting DMXPerformerChannel { get; } = new(31, 1, 512);
 
-            public IntSetting DMXKeysChannel { get; } = new(32, 1, 512, v => SacnInterpreter.Instance.KeysChannel = v);
+            public IntSetting DMXKeysChannel { get; } = new(32, 1, 512, v => { if (SacnInterpreter.Instance != null) SacnInterpreter.Instance.KeysChannel = v; });
 
             public IPv4Setting DMXLocalIP { get; } = new(defaultValue: string.Empty, allowEmpty: true);
 
@@ -694,10 +743,23 @@ namespace YARG.Settings
                 BandComboType.Lenient,
                 BandComboType.Strict
             };
+            public DropdownSetting<ReverbMode> ReverbImplementation { get; } = new(ReverbMode.Performance,
+                ReverbImplementationCallback)
+            {
+                ReverbMode.Performance,
+                ReverbMode.Quality
+            };
             public ToggleSetting SaveScoresWithBots { get; } = new(false);
             public SliderSetting FontScaling { get; } = new(0f, 0f, 100f, FontScalingCallback);
 
+            public DropdownSetting<AudioOutputMode> OutputMode { get; } = new(AudioOutputMode.Shared,
+                OutputModeCallback)
+            {
+                AudioOutputMode.Shared,
+                AudioOutputMode.Asio
+            };
             public OutputDeviceSetting OutputDevice { get; } = new("Default", OutputDeviceCallback);
+            public OutputBufferSizeSetting AsioBufferSize { get; } = new(0);
             public OutputChannelDefaultSetting OutputChannelDefault { get; } = new(1, OutputChannelDefaultCallback);
             public OutputChannelSetting OutputChannelDrumSfx { get; } = new(-1, OutputChannelDrumSfxCallback);
             public OutputChannelSetting OutputChannelSfx { get; } = new(-1, OutputChannelSfxCallback);
@@ -705,6 +767,15 @@ namespace YARG.Settings
             public OutputChannelSetting OutputChannelMetronome { get; } = new(-1, OutputChannelMetronomeCallback);
 
             public CustomCharacterSetting CustomVocalsCharacter { get; } = new(string.Empty, CharacterType.Vocals, CustomCharacterCallback);
+
+            public void RefreshAsioBufferSize()
+            {
+                AsioBufferSize.UpdateValues();
+                if (SettingsMenu.Instance?.gameObject.activeInHierarchy == true)
+                {
+                    SettingsMenu.Instance.RefreshAndKeepPosition();
+                }
+            }
             #endregion
 
             #region Helpers
@@ -720,7 +791,6 @@ namespace YARG.Settings
                     SetOutputChannel(channelSetting, stem);
                 }
 
-                SettingsMenu.Instance.RefreshAndKeepPosition();
             }
 
             private static void SetOutputChannel(OutputChannelSetting channelSetting, SongStem stem)
@@ -730,6 +800,16 @@ namespace YARG.Settings
             #endregion
 
             #region Callbacks
+
+            private void AutomaticPlaybackBufferChanged(bool enabled)
+            {
+                var wasEnabled = _automaticPlaybackBufferWasEnabled;
+                _automaticPlaybackBufferWasEnabled = enabled;
+                if (IsInitialized && enabled && !wasEnabled)
+                {
+                    PlaybackBufferLength.Value = 0;
+                }
+            }
 
             private static void SetLogLevelCallback(LogLevel level)
             {
@@ -741,11 +821,11 @@ namespace YARG.Settings
                 // Dispose Discord instance if rich presence is turned off, otherwise try initializing it again
                 if (mode == DiscordRichPresenceMode.Hide)
                 {
-                    DiscordController.Instance.TryDispose();
+                    DiscordController.Instance?.TryDispose();
                 }
                 else
                 {
-                    DiscordController.Instance.CreateInstance();
+                    DiscordController.Instance?.CreateInstance();
                 }
             }
 
@@ -754,12 +834,12 @@ namespace YARG.Settings
                 // Only show if battery status is reported and has a valid value
                 value &= SystemInfo.batteryStatus != BatteryStatus.Unknown &&
                     SystemInfo.batteryLevel is >= 0 and <= 1;
-                StatsManager.Instance.SetShowing(StatsManager.Stat.Battery, value);
+                StatsManager.Instance?.SetShowing(StatsManager.Stat.Battery, value);
             }
 
             private static void ShowTimeCallback(bool value)
             {
-                StatsManager.Instance.SetShowing(StatsManager.Stat.Time, value);
+                StatsManager.Instance?.SetShowing(StatsManager.Stat.Time, value);
             }
 
             private static void MemoryStatsCallback(bool value)
@@ -769,17 +849,17 @@ namespace YARG.Settings
                 value = true;
 #endif
 
-                StatsManager.Instance.SetShowing(StatsManager.Stat.Memory, value);
+                StatsManager.Instance?.SetShowing(StatsManager.Stat.Memory, value);
             }
 
             private static void ShowActivePlayersCallback(bool value)
             {
-                StatsManager.Instance.SetShowing(StatsManager.Stat.ActivePlayers, value);
+                StatsManager.Instance?.SetShowing(StatsManager.Stat.ActivePlayers, value);
             }
 
             private static void ShowActiveBotsCallback(bool value)
             {
-                StatsManager.Instance.SetShowing(StatsManager.Stat.ActiveBots, value);
+                StatsManager.Instance?.SetShowing(StatsManager.Stat.ActiveBots, value);
             }
 
             private static void ShowRecommendedSongsCallback(bool value)
@@ -809,17 +889,17 @@ namespace YARG.Settings
                 {
                     return;
                 }
-                DataStreamController.Instance.HandleEnabledChanged(value);
+                DataStreamController.Instance?.HandleEnabledChanged(value);
             }
 
             private static void FontScalingCallback(float value)
             {
-                MenuFontScaler.Instance.SetFontScalePercent(value);
+                MenuFontScaler.Instance?.SetFontScalePercent(value);
             }
 
             private static void RB3EEnabledCallback(bool value)
             {
-                RB3EHardware.Instance.HandleEnabledChanged(value);
+                RB3EHardware.Instance?.HandleEnabledChanged(value);
             }
 
             private static void StageKitEnabledCallback(bool value)
@@ -829,12 +909,12 @@ namespace YARG.Settings
                 {
                     return;
                 }
-                StageKitHardware.Instance.HandleEnabledChanged(value);
+                StageKitHardware.Instance?.HandleEnabledChanged(value);
             }
 
             private static void DMXEnabledCallback(bool value)
             {
-                SacnHardware.Instance.HandleEnabledChanged(value);
+                SacnHardware.Instance?.HandleEnabledChanged(value);
             }
 
             private static void VSyncCallback(bool value)
@@ -849,12 +929,15 @@ namespace YARG.Settings
                 value = true;
 #endif
 
-                StatsManager.Instance.SetShowing(StatsManager.Stat.FPS, value);
+                StatsManager.Instance?.SetShowing(StatsManager.Stat.FPS, value);
             }
 
             private static void VenueAACallback(VenueAntiAliasingMethod value)
             {
-                GraphicsManager.Instance.VenueAntiAliasing = value;
+                if (GraphicsManager.Instance != null)
+                {
+                    GraphicsManager.Instance.VenueAntiAliasing = value;
+                }
             }
 
             private static void FpsCapCallback(int value)
@@ -881,7 +964,10 @@ namespace YARG.Settings
                     return;
                 }
 
-                GraphicsManager.Instance.VenueRenderScale = 1.0f / GetUpscaleRatioFromQualityMode(value);
+                if (GraphicsManager.Instance != null)
+                {
+                    GraphicsManager.Instance.VenueRenderScale = 1.0f / GetUpscaleRatioFromQualityMode(value);
+                }
             }
 
             private static void ResolutionCallback(Resolution? value)
@@ -896,40 +982,85 @@ namespace YARG.Settings
                 ScreenHelper.SetResolution(resolution);
 
                 // Make sure to refresh the preview since it'll look stretched if we don't
-                SettingsMenu.Instance.RefreshPreview(true);
+                SettingsMenu.Instance?.RefreshPreview(true);
             }
 
             private static void LowQualityCallback(bool value)
             {
-                GraphicsManager.Instance.LowQuality = value;
+                if (GraphicsManager.Instance != null)
+                {
+                    GraphicsManager.Instance.LowQuality = value;
+                }
             }
 
             private static void DisableBloomCallback(bool value)
             {
-                GraphicsManager.Instance.BloomEnabled = !value;
+                if (GraphicsManager.Instance != null)
+                {
+                    GraphicsManager.Instance.BloomEnabled = !value;
+                }
             }
 
             private static void DisableFilmGrainCallback(bool value)
             {
-                GraphicsManager.Instance.FilmGrainEnabled = !value;
+                if (GraphicsManager.Instance != null)
+                {
+                    GraphicsManager.Instance.FilmGrainEnabled = !value;
+                }
             }
 
             private static void ShowHitWindowCallback(bool value)
             {
-                SettingsMenu.Instance.RefreshPreview();
+                SettingsMenu.Instance?.RefreshPreview();
             }
 
             private static void VocalMonitoringCallback(float volume)
             {
                 foreach (var player in PlayerContainer.Players)
                 {
-                    player.Bindings.Microphone?.SetMonitoringLevel(volume);
+                    foreach (var mic in player.Bindings.Microphones)
+                    {
+                        mic.SetMonitoringLevel(volume);
+                    }
+                }
+            }
+
+            private static void VocalReverbCallback(float wet)
+            {
+                foreach (var player in PlayerContainer.Players)
+                {
+                    foreach (var mic in player.Bindings.Microphones)
+                    {
+                        mic.SetReverbLevel(wet);
+                    }
+                }
+            }
+
+            private static void ReverbImplementationCallback(ReverbMode mode)
+            {
+                if (!IsInitialized)
+                {
+                    return;
+                }
+
+                BindingsContainer.ReleaseMicrophones();
+                try
+                {
+                    if (!GlobalAudioHandler.ReinitializeOutput())
+                    {
+                        YargLogger.LogError("Failed to reinitialize audio output after reverb implementation change");
+                        ToastManager.ToastError("Failed to reinitialize audio output after reverb change.");
+                    }
+                }
+                finally
+                {
+                    BindingsContainer.ResolveMicrophones();
                 }
             }
 
             private static void MusicPlayerVolumeCallback(float volume)
             {
-                HelpBar.Instance.MusicPlayer.UpdateVolume(volume);
+                HelpBar.Instance?.MusicPlayer.UpdateVolume(volume);
             }
 
             // private static void WhammyOversampleFactorChange(int value)
@@ -966,13 +1097,99 @@ namespace YARG.Settings
                     return;
                 }
 
-                GlobalAudioHandler.SetOutputDevice(name);
+                BindingsContainer.ReleaseMicrophones();
+                try
+                {
+                    GlobalAudioHandler.SetOutputDevice(name);
+                }
+                finally
+                {
+                    BindingsContainer.ResolveMicrophones();
+                }
+
+                string activeDevice = Settings.OutputDevice.Value;
+                AudioOutputMode mode = GlobalAudioHandler.GetOutputMode(activeDevice);
+                Settings.OutputMode.SetValueWithoutNotify(mode);
+                Settings.RememberOutputDevice(mode, activeDevice);
+
+                Settings.AsioBufferSize.UpdateValues();
 
                 ResetChannelSetting(Settings.OutputChannelDefault, SongStem.Master, 1);
                 ResetChannelSetting(Settings.OutputChannelDrumSfx, SongStem.DrumSfx);
                 ResetChannelSetting(Settings.OutputChannelSfx, SongStem.Sfx);
                 ResetChannelSetting(Settings.OutputChannelVox, SongStem.VoxSample);
                 ResetChannelSetting(Settings.OutputChannelMetronome, SongStem.Metronome);
+                SettingsMenu.Instance?.RefreshAndKeepPosition();
+            }
+
+            private static void OutputModeCallback(AudioOutputMode mode)
+            {
+                if (!IsInitialized)
+                {
+                    return;
+                }
+
+                string currentDevice = Settings.OutputDevice.Value;
+                AudioOutputMode currentMode = GlobalAudioHandler.GetOutputMode(currentDevice);
+                Settings.RememberOutputDevice(currentMode, currentDevice);
+                Settings.OutputDevice.UpdateValues(mode);
+
+                if (currentMode == mode && Settings.OutputDevice.FindAvailable(currentDevice) == currentDevice)
+                {
+                    SettingsMenu.Instance?.RefreshAndKeepPosition();
+                    return;
+                }
+
+                string preferred = mode == AudioOutputMode.Asio
+                    ? Settings.LastAsioDevice
+                    : Settings.LastSharedAudioDevice;
+                string target = Settings.OutputDevice.FindAvailable(preferred);
+
+                if (string.IsNullOrEmpty(target))
+                {
+                    Settings.OutputMode.SetValueWithoutNotify(currentMode);
+                    Settings.OutputDevice.UpdateValues(currentMode);
+                    ToastManager.ToastError("No ASIO output devices were found.");
+                    SettingsMenu.Instance?.RefreshAndKeepPosition();
+                    return;
+                }
+
+                Settings.OutputDevice.Value = target;
+            }
+
+            public void OpenAsioControlPanel()
+            {
+                if (!IsInitialized || GlobalAudioHandler.GetOutputMode(Settings.OutputDevice.Value) !=
+                    AudioOutputMode.Asio)
+                {
+                    return;
+                }
+
+                if (!GlobalAudioHandler.OpenOutputControlPanel())
+                {
+                    ToastManager.ToastError("Failed to open ASIO control panel.");
+                    return;
+                }
+
+                if (!GlobalAudioHandler.ReinitializeOutput())
+                {
+                    ToastManager.ToastError("Failed to reinitialize audio after closing ASIO control panel.");
+                    return;
+                }
+
+                RefreshAsioBufferSize();
+            }
+
+            internal void RememberOutputDevice(AudioOutputMode mode, string name)
+            {
+                if (mode == AudioOutputMode.Asio)
+                {
+                    Settings.LastAsioDevice = name;
+                }
+                else
+                {
+                    Settings.LastSharedAudioDevice = name;
+                }
             }
 
             private static void OutputChannelDefaultCallback(int channelId)

@@ -187,6 +187,7 @@ namespace YARG.Menu.MusicLibrary
         protected override void OnEnable()
         {
             base.OnEnable();
+            SetSidebarDifficultiesVisible(true);
 
             _heldInputs.Clear();
 
@@ -816,6 +817,7 @@ namespace YARG.Menu.MusicLibrary
                 GlobalVariables.State.SongSpeed,
                 delay,
                 FADE_DURATION,
+                SettingsManager.Settings.CensorMatureContent.Value,
                 canceller.Token);
             if (context != null)
             {
@@ -1236,7 +1238,8 @@ namespace YARG.Menu.MusicLibrary
 
         private static bool IsDynamicScoreSort(SortAttribute sort)
         {
-            return sort is SortAttribute.Playcount or SortAttribute.Stars;
+            return sort is SortAttribute.Playcount or SortAttribute.Stars or
+                SortAttribute.Percentage or SortAttribute.Score;
         }
 
         private bool SetIndexToStableId(string stableId, int searchStartIndex = 0)
@@ -1315,6 +1318,7 @@ namespace YARG.Menu.MusicLibrary
             {
                 // Ensure difficulty rings are restored even if the scan fails or is canceled
                 _sidebar.gameObject.SetActive(true);
+                SetSidebarDifficultiesVisible(true);
                 _sidebar.UpdateSidebar(true);
             }
         }

@@ -13,9 +13,9 @@ namespace YARG.Gameplay
     /// </summary>
     public sealed class CrowdClapScheduler : IDisposable
     {
-        // Built-in clap reaches its transient roughly 20 ms after the sample starts. This lead is
-        // measured on the output timeline, so it remains fixed when song speed changes.
-        private const double OUTPUT_LEAD_TIME = 0.02;
+        // Built-in crowd clap's dominant transient lands roughly 85 ms after sample start.
+        // Start it early so that transient, rather than its quiet attack, lands on the beat.
+        private const double OUTPUT_LEAD_TIME = 0.020;
 
         private readonly StemMixer _mixer;
         private OneShotChannel _channel;
@@ -74,7 +74,14 @@ namespace YARG.Gameplay
             }
 
             int stream = GlobalAudioHandler.CreateSoundEffectStream(SfxSample.Clap);
-            _channel = _mixer.CreateOneShotChannel(stream, plays, OUTPUT_LEAD_TIME);
+            int channelId = SettingsManager.Settings.OutputChannelSfx.Value;
+            if (channelId == -1)
+            {
+                channelId = SettingsManager.Settings.OutputChannelDefault.Value;
+            }
+
+            var outputChannel = GlobalAudioHandler.CreateOutputChannel(channelId);
+            _channel = _mixer.CreateOneShotChannel(stream, plays, OUTPUT_LEAD_TIME, outputChannel);
             _channel.SetEnabled(_enabled);
             SettingsManager.Settings.SfxVolume.OnChange += OnVolumeChanged;
             ApplyVolume();

@@ -292,11 +292,14 @@ namespace YARG.Gameplay.Visuals
 
         // Give me a list of chart phrases, I give you a list of corresponding track effects
         // I only ask that the phrases you give me are all the same kind
-        public static List<TrackEffect> PhrasesToEffects(params List<Phrase>[] arrayOfPhraseLists)
+        public static List<TrackEffect> PhrasesToEffects<TNote>(List<TNote> notes, params List<Phrase>[] arrayOfPhraseLists)
+            where TNote : Note<TNote>
         {
             var effects = new List<TrackEffect>();
             foreach (var phrases in arrayOfPhraseLists)
             {
+                phrases.Sort((x, y) => x.Time.CompareTo(y.Time));
+                int noteIndex = 0;
                 for (var i = 0; i < phrases.Count; i++)
                 {
                     var type = phrases[i].Type;
@@ -319,10 +322,48 @@ namespace YARG.Gameplay.Visuals
                     var transitionState = true;
 
                     effects.Add(
-                        new TrackEffect(phrases[i].Time, phrases[i].TimeEnd, (TrackEffectType) kind, transitionState, transitionState));
+                        new TrackEffect(phrases[i].Time, GetVisualTimeEndOfPhrase(notes, ref noteIndex, phrases[i]), (TrackEffectType) kind, transitionState, transitionState));
                 }
             }
             return effects;
+        }
+
+        private static double GetVisualTimeEndOfPhrase<TNote>(List<TNote> notes, ref int currentNoteIndex, Phrase phrase)
+            where TNote : Note<TNote>
+        {
+            if (
+                notes is List<DrumNote> ||
+                notes is null ||
+                notes.Count == 0 ||
+                notes.Count <= currentNoteIndex
+            )
+            {
+                return phrase.TimeEnd;
+            }
+
+            while (currentNoteIndex < notes.Count && notes[currentNoteIndex].Tick < phrase.Tick)
+            {
+                currentNoteIndex++;
+            }
+
+            double endTime = phrase.TimeEnd;
+
+            // We intentionally don't increase currentNoteIndex here by making a copy into i,
+            // Since phrases of different types can overlap
+            for (int i = currentNoteIndex; i < notes.Count; i++)
+            {
+                var note = notes[i];
+
+                if (note.Tick >= phrase.TickEnd)
+                {
+                    endTime = Math.Min(endTime, note.Time);
+                    break;
+                }
+
+                endTime = Math.Max(endTime, note.TimeEnd);
+            }
+
+            return endTime;
         }
     }
 }

@@ -1,0 +1,145 @@
+name: Native audio
+
+on:
+  pull_request:
+    paths:
+      - "Native/YargAudio/**"
+      - "Assets/Plugins/YargAudio/**"
+      - "scripts/NativeBuild/**"
+      - ".github/workflows/native-audio.yml"
+  push:
+    branches: [dev]
+    paths:
+      - "Native/YargAudio/**"
+      - "Assets/Plugins/YargAudio/**"
+      - "scripts/NativeBuild/**"
+      - ".github/workflows/native-audio.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  windows:
+    name: Windows x64
+    runs-on: windows-2022
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - name: Build, test, and package plugin
+        run: >
+          dotnet run --project scripts/NativeBuild --
+          build --output "$env:RUNNER_TEMP/yarg-audio-package" --verify-committed-plugin
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: yarg-audio-windows-x64
+          path: ${{ runner.temp }}/yarg-audio-package
+          if-no-files-found: error
+
+  linux:
+    name: Linux x64
+    # Build inside an Ubuntu 20.04 container (glibc 2.31, gcc 11) to keep the
+    # glibc floor at 2.31, matching Unity 6's Ubuntu 20.04 support. Toolchains
+    # linked against glibc >= 2.34 emit dlopen@GLIBC_2.34 and fail to load on
+    # Ubuntu 20.04, Debian 11, and RHEL 8. Do not bump this container without
+    # re-evaluating the floor (see Native/YargAudio/README.md).
+    runs-on: ubuntu-22.04
+    container: ubuntu:20.04
+    env:
+      # apt can hang on debconf prompts (e.g. tzdata) in bare containers.
+      DEBIAN_FRONTEND: noninteractive
+    steps:
+      - name: Install toolchain (gcc 10, cmake)
+        timeout-minutes: 10
+        run: |
+          apt-get update
+          # gcc-10 ships in focal universe and supports C++20 (designated
+          # initializers, etc.); avoids the launchpad PPA keyserver.
+          apt-get install -y --no-install-recommends \
+            g++-10 git python3-pip curl ca-certificates libicu66 make \
+            file binutils
+          update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-10 100
+          update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-10 100
+          # Ubuntu 20.04 ships cmake 3.16; YargAudio requires >= 3.25.
+          # py3-none wheel bundles a fresh cmake; pinned <4 for preset compat.
+          pip3 install --no-cache-dir "cmake<4"
+          cmake --version
+          gcc --version | head -1
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.x
+      - name: Build, test, and package plugin
+        run: >
+          dotnet run --project scripts/NativeBuild --
+          build --output "$RUNNER_TEMP/yarg-audio-package" --verify-committed-plugin
+      - name: Verify architecture and exports
+        run: |
+          file Native/YargAudio/build/linux-x64/libyarg_audio.so | grep 'ELF 64-bit.*x86-64'
+          nm -D --defined-only Native/YargAudio/build/linux-x64/libyarg_audio.so | grep ' yarg_gain_dsp_attach$'
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: yarg-audio-linux-x64
+          path: ${{ runner.temp }}/yarg-audio-package
+          if-no-files-found: error
+
+  macos:
+    name: macOS universal
+    # macos-26, not -14/-15: dyld4 on macOS 26 rejects ad-hoc signatures
+    # produced by older codesign versions (Xcode 16) with SIGKILL at dlopen,
+    # and enforces the LC_UUID requirement. This runner matches what users
+    # run, so the integration test exercises the real load path.
+    runs-on: macos-26
+    env:
+      # Pin Xcode 26.0.1: its clang (17.0.0.17000319) matches what the
+      # maintainers build with, keeping the byte-identical plugin gate
+      # meaningful. Also: never ad-hoc re-sign with codesign here — dyld on
+      # macOS 26.0-26.4 SIGKILLs codesign-made signatures at dlopen; the
+      # linker's own ad-hoc signature (linker-signed) loads everywhere.
+      DEVELOPER_DIR: /Applications/Xcode_26.0.1.app/Contents/Developer
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      # xcode-select alone does not redirect the codesign shim when the image
+      # also ships newer Command Line Tools; DEVELOPER_DIR does. Kept for the
+      # clang toolchain selection even though the plugin is no longer re-signed.
+      - name: Pin Xcode 26.0.1
+        run: |
+          sudo xcode-select -s /Applications/Xcode_26.0.1.app
+          xcode-select -p
+          clang --version | head -1
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.x
+      - name: Build, test, and package plugin
+        run: >
+          dotnet run --project scripts/NativeBuild --
+          build --output "$RUNNER_TEMP/yarg-audio-package" --verify-committed-plugin
+      - name: Verify architectures, load commands, and signature
+        run: |
+          lipo Native/YargAudio/build/macos-universal/libyarg_audio.dylib -verify_arch x86_64 arm64
+          nm -gU Native/YargAudio/build/macos-universal/libyarg_audio.dylib | grep ' _yarg_gain_dsp_attach$'
+          # dyld4 (macOS 15+) refuses UUID-less dylibs; guard against linker
+          # flags that strip LC_UUID for reproducibility.
+          otool -l Native/YargAudio/build/macos-universal/libyarg_audio.dylib | grep -c 'cmd LC_UUID' | grep -q '^2$'
+          # CD size identifies the codesign generation; 26.0-era is ~358,
+          # newer is ~367 and SIGKILLs at dlopen on macOS 26.0-26.4. A
+          # linker-signed (0x20002) signature is the expected good state.
+          # Note: codesign --verify cannot validate linker-signed binaries
+          # (reports "not signed at all"); the integration test's dlopen is
+          # the real load proof.
+          codesign -dv --verbose=4 Native/YargAudio/build/macos-universal/libyarg_audio.dylib 2>&1 | grep CodeDirectory
+      - name: Verify Intel (x86_64) slice under Rosetta
+        run: arch -x86_64 Native/YargAudio/build/macos-universal/yarg_audio_tests
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: yarg-audio-macos-universal
+          path: ${{ runner.temp }}/yarg-audio-package
+          if-no-files-found: error

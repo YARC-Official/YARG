@@ -1,10 +1,11 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 using YARG.Core.Logging;
 using YARG.Helpers;
+using YARG.Input.Bindings;
 using YARG.Integration;
 using YARG.Localization;
 using YARG.Menu.Navigation;
@@ -62,6 +63,7 @@ namespace YARG
             if (SettingsManager.Settings.ReconnectProfiles.Value)
             {
                 PlayerContainer.AutoConnectProfiles();
+                RetryUnresolvedMicrophones().Forget();
             }
             else
             {
@@ -129,6 +131,12 @@ namespace YARG
                     context.SetSubText(string.Join(", ", tasks));
                 }
             }
+        }
+
+        private static async UniTaskVoid RetryUnresolvedMicrophones()
+        {
+            await UniTask.Delay(2000);
+            BindingsContainer.ResolveMicrophones();
         }
 
         private void Quit()
@@ -208,7 +216,6 @@ namespace YARG
             if (!_disposed)
             {
                 await Wait();
-                GlobalVariables.RestartProfileMicrophones();
                 LoadingScreen.Instance.gameObject.SetActive(false);
                 Navigator.Instance.DisableMenuInputs = false;
                 _disposed = true;

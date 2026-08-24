@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using YARG.Audio;
 using YARG.Core.Audio;
 using YARG.Core.Input;
@@ -8,13 +8,13 @@ namespace YARG.Input
 {
     public class MicInputContext
     {
-        public readonly MicDevice Device;
+        private readonly List<MicDevice> _devices;
 
         private readonly GameManager _gameManager;
 
-        public MicInputContext(MicDevice device, GameManager gameManager)
+        public MicInputContext(List<MicDevice> devices, GameManager gameManager)
         {
-            Device = device;
+            _devices = devices;
 
             _gameManager = gameManager;
         }
@@ -24,8 +24,11 @@ namespace YARG.Input
         /// </summary>
         public void Start()
         {
-            Device.ClearOutputQueue();
-            Device.IsRecordingOutput = true;
+            foreach (var device in _devices)
+            {
+                device.ClearOutputQueue();
+                device.IsRecordingOutput = true;
+            }
         }
 
         /// <summary>
@@ -34,22 +37,25 @@ namespace YARG.Input
         /// </summary>
         public IEnumerable<GameInput> GetInputsFromMic()
         {
-            while (Device.DequeueOutputFrame(out var frame))
+            foreach (var device in _devices)
             {
-                // frame.VoiceDetected will ALWAYS be true here, as it wouldn't be queued otherwise
-
-                // Queue it up!
-                GameInput gameInput;
-                if (!frame.IsHit)
+                while (device.DequeueOutputFrame(out var frame))
                 {
-                    gameInput = GameInput.Create(frame.Time, VocalsAction.Pitch, frame.PitchAsMidiNote);
-                }
-                else
-                {
-                    gameInput = GameInput.Create(frame.Time, VocalsAction.Hit, true);
-                }
+                    // frame.VoiceDetected will ALWAYS be true here, as it wouldn't be queued otherwise
 
-                yield return gameInput;
+                    // Queue it up!
+                    GameInput gameInput;
+                    if (!frame.IsHit)
+                    {
+                        gameInput = GameInput.Create(frame.Time, VocalsAction.Pitch, frame.PitchAsMidiNote);
+                    }
+                    else
+                    {
+                        gameInput = GameInput.Create(frame.Time, VocalsAction.Hit, true);
+                    }
+
+                    yield return gameInput;
+                }
             }
         }
 
@@ -58,8 +64,11 @@ namespace YARG.Input
         /// </summary>
         public void Stop()
         {
-            Device.IsRecordingOutput = false;
-            Device.Reset();
+            foreach (var device in _devices)
+            {
+                device.IsRecordingOutput = false;
+                device.Reset();
+            }
         }
     }
 }

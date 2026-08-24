@@ -1,9 +1,10 @@
-﻿using TMPro;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using YARG.Core.Input;
 using YARG.Localization;
 using YARG.Menu.Navigation;
+using YARG.Settings;
 using YARG.Settings.Types;
 
 namespace YARG.Gameplay.HUD
@@ -20,6 +21,8 @@ namespace YARG.Gameplay.HUD
         {
             base.Initialize(settingName, setting);
 
+            _slider.minValue = setting.Min;
+            _slider.maxValue = setting.Max;
             _slider.SetValueWithoutNotify(setting.Value);
             _value.text = Localize.Percent(setting.Value);
         }
@@ -31,13 +34,15 @@ namespace YARG.Gameplay.HUD
                 NavigateFinish,
                 new NavigationScheme.Entry(MenuAction.Up, "Menu.Common.Increase", () =>
                 {
-                    Setting.Value += 1f / 20f;
+                    float max = _slider != null ? _slider.maxValue : Setting.Max;
+                    Setting.Value += (max - Setting.Min) / 20f;
 
                     RefreshVisual();
                 }),
                 new NavigationScheme.Entry(MenuAction.Down, "Menu.Common.Decrease", () =>
                 {
-                    Setting.Value -= 1f / 20f;
+                    float max = _slider != null ? _slider.maxValue : Setting.Max;
+                    Setting.Value -= (max - Setting.Min) / 20f;
 
                     RefreshVisual();
                 })
