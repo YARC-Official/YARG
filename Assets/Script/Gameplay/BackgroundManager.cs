@@ -324,7 +324,7 @@ namespace YARG.Gameplay
             var renderers = bg.GetComponentsInChildren<Renderer>(true);
 
             var textureManager = GetComponent<TextureManager>();
-            var songBackground = GameManager.Song.LoadBackground();
+            var songBackground = GameManager.Song.LoadBackground(SettingsManager.Settings.CensorMatureContent.Value);
 
             foreach (var renderer in renderers)
             {
