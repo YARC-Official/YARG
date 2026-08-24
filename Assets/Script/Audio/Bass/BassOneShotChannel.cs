@@ -21,7 +21,14 @@ namespace YARG.Audio.BASS
         private readonly Func<float>        _getSpeed;
         private readonly double             _outputLeadTime;
         private readonly int                _sampleRate;
-        private readonly double[]           _scheduledPlays;
+        private readonly int                _channels;
+        private          double[]           _scheduledPlays;
+
+        // Cached PCM decoded once in the constructor so UpdateSchedule() can rebuild just the
+        // native (schedule-bearing) stream without re-decoding audio or touching BASS streams.
+        private readonly float[]?                 _sample;
+        private          double                   _currentVolume = 1;
+        private          bool                     _currentEnabled = true;
 
         private readonly int                      _tempoStreamHandle;
         private          bool                     _disposed;
@@ -56,14 +63,15 @@ namespace YARG.Audio.BASS
                 : BassFlags.Default;
 
             _sampleRate = info.Frequency;
-            float[]? sample = DecodeSample(sampleStream, _sampleRate, info.Channels, speakerFlags);
-            if (sample == null || sample.Length == 0)
+            _channels = info.Channels;
+            _sample = DecodeSample(sampleStream, _sampleRate, _channels, speakerFlags);
+            if (_sample == null || _sample.Length == 0)
             {
                 return;
             }
 
             _nativeStream = BassNativeOneShotStream.Create(
-                _sampleRate, info.Channels, sample, _scheduledPlays, _outputLeadTime);
+                _sampleRate, _channels, _sample, _scheduledPlays, _outputLeadTime);
             if (_nativeStream == null)
             {
                 return;
@@ -76,12 +84,45 @@ namespace YARG.Audio.BASS
 
         public override void SetVolume(double volume)
         {
+            _currentVolume = volume;
             _nativeStream?.SetVolume(volume);
         }
 
         public override void SetEnabled(bool enabled)
         {
+            _currentEnabled = enabled;
             _nativeStream?.SetEnabled(enabled);
+        }
+
+        /// <summary>
+        /// Rebuilds only the native one-shot stream with a new schedule, reusing the PCM
+        /// decoded at construction time. Avoids the BASS stream creation + sample decode that
+        /// makes full re-creation (<see cref="BassSong.CreateOneShotChannel"/>) too slow to call
+        /// on every offset change during live calibration.
+        /// Unity-side only: not part of the <see cref="OneShotChannel"/> base class, so callers
+        /// need a reference typed as <see cref="BassOneShotChannel"/> to use it.
+        /// </summary>
+        public void UpdateSchedule(IReadOnlyList<double> scheduledPlays)
+        {
+            if (_disposed || _sample == null)
+            {
+                return;
+            }
+
+            _scheduledPlays = scheduledPlays.ToArray();
+            Array.Sort(_scheduledPlays);
+
+            _nativeStream?.Dispose();
+            _nativeStream = BassNativeOneShotStream.Create(
+                _sampleRate, _channels, _sample, _scheduledPlays, _outputLeadTime);
+            if (_nativeStream == null)
+            {
+                return;
+            }
+
+            _nativeStream.SetVolume(_currentVolume);
+            _nativeStream.SetEnabled(_currentEnabled);
+            AttachOutput(_targetMixerHandle, _playbackPaused);
         }
 
         internal void DetachOutput()

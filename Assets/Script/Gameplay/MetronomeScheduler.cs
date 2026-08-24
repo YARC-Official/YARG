@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using YARG.Audio.BASS;
 using YARG.Core.Audio;
 using YARG.Core.Chart;
 using YARG.Playback;
@@ -16,8 +17,12 @@ namespace YARG.Gameplay
         private readonly StemMixer _mixer;
         private double[] _hiHits = Array.Empty<double>();
         private double[] _loHits = Array.Empty<double>();
-        private OneShotChannel _hiChannel;
-        private OneShotChannel _loChannel;
+
+        // Held as the concrete Bass type (rather than the OneShotChannel base from YARG.Core)
+        // so Reschedule() can call UpdateSchedule() without a YARG.Core change. Bass is
+        // currently the only audio backend, so this cast is safe.
+        private BassOneShotChannel _hiChannel;
+        private BassOneShotChannel _loChannel;
         private bool _scheduled;
         private bool _disposed;
 
@@ -53,8 +58,9 @@ namespace YARG.Gameplay
         }
 
         /// <summary>
-        /// Recomputes metronome hit times (e.g. after a live song offset change) and rebuilds
-        /// the scheduled playback channels to match.
+        /// Recomputes metronome hit times (e.g. after a live song offset change) and updates
+        /// the already-scheduled playback channels in place. Cheap enough to call every frame,
+        /// since it reuses the decoded metronome samples instead of rebuilding them.
         /// </summary>
         public void Reschedule(SongRunner songRunner, SyncTrack sync, double songLength)
         {
@@ -68,7 +74,8 @@ namespace YARG.Gameplay
             }
 
             CreateSchedule(songRunner, sync, songLength, out _hiHits, out _loHits);
-            CreateChannels(SettingsManager.Settings.MetronomeSound.Value);
+            _hiChannel.UpdateSchedule(_hiHits);
+            _loChannel.UpdateSchedule(_loHits);
         }
 
         private static void CreateSchedule(SongRunner songRunner, SyncTrack sync, double songLength,
@@ -105,8 +112,8 @@ namespace YARG.Gameplay
             }
 
             var outputChannel = GlobalAudioHandler.CreateOutputChannel(channelId);
-            _hiChannel = _mixer.CreateOneShotChannel(hiStream, _hiHits, outputChannel: outputChannel);
-            _loChannel = _mixer.CreateOneShotChannel(loStream, _loHits, outputChannel: outputChannel);
+            _hiChannel = (BassOneShotChannel) _mixer.CreateOneShotChannel(hiStream, _hiHits, outputChannel: outputChannel);
+            _loChannel = (BassOneShotChannel) _mixer.CreateOneShotChannel(loStream, _loHits, outputChannel: outputChannel);
             SetVolume(sample);
         }
 
