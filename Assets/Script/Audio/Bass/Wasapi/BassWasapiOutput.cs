@@ -44,6 +44,9 @@ namespace YARG.Audio.BASS.Wasapi
 
         internal override bool UsesIndependentClock => true;
 
+        internal static bool IsDeviceName(string name) =>
+            name.StartsWith(DEVICE_PREFIX, StringComparison.Ordinal);
+
         public static BassWasapiOutput? Find(string name, BassWasapiMicManager microphones)
         {
             foreach (var (id, devName) in GetDevices())

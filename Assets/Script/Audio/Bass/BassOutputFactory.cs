@@ -1,5 +1,4 @@
 #nullable enable
-using System;
 using System.Collections.Generic;
 using YARG.Audio.BASS.Asio;
 using YARG.Audio.BASS.Wasapi;
@@ -39,12 +38,12 @@ namespace YARG.Audio.BASS
         {
             if (IsWindows)
             {
-                if (name.StartsWith(BassWasapiOutput.DEVICE_PREFIX, StringComparison.Ordinal))
+                if (BassWasapiOutput.IsDeviceName(name))
                 {
                     return BassWasapiOutput.Find(name, _wasapiMics);
                 }
 
-                if (name.StartsWith(BassAsioOutput.DEVICE_PREFIX, StringComparison.Ordinal))
+                if (BassAsioOutput.IsDeviceName(name))
                 {
                     return BassAsioOutput.Find(name, _router, _asioMics);
                 }
@@ -67,12 +66,12 @@ namespace YARG.Audio.BASS
 
         public AudioOutputMode ModeFor(string name)
         {
-            if (name.StartsWith(BassWasapiOutput.DEVICE_PREFIX, StringComparison.Ordinal))
+            if (BassWasapiOutput.IsDeviceName(name))
             {
                 return AudioOutputMode.WasapiExclusive;
             }
 
-            if (name.StartsWith(BassAsioOutput.DEVICE_PREFIX, StringComparison.Ordinal))
+            if (BassAsioOutput.IsDeviceName(name))
             {
                 return AudioOutputMode.Asio;
             }

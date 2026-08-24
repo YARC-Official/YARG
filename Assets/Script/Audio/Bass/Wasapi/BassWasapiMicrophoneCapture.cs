@@ -10,7 +10,10 @@ namespace YARG.Audio.BASS.Wasapi
 {
     internal sealed class BassWasapiMicrophoneCapture : IDisposable
     {
-        private const float DEFAULT_BUFFER_LENGTH_SECONDS = 0.05f;
+        private const float             DEFAULT_BUFFER_LENGTH_SECONDS = 0.05f;
+        private const WasapiInitFlags   COMMON_INIT_FLAGS            = WasapiInitFlags.EventDriven |
+                                                                      WasapiInitFlags.AutoFormat |
+                                                                      WasapiInitFlags.Buffer;
 
         private static readonly object _systemLock = new();
 
@@ -103,18 +106,8 @@ namespace YARG.Audio.BASS.Wasapi
                 ? (float) deviceInfo.DefaultUpdatePeriod
                 : DEFAULT_BUFFER_LENGTH_SECONDS;
 
-            var exclusiveFlags = WasapiInitFlags.Exclusive | WasapiInitFlags.EventDriven |
-                                 WasapiInitFlags.AutoFormat | WasapiInitFlags.Buffer;
-
-            bool initialized = BassWasapi.InitEx(_deviceId, SampleRate, Channels, exclusiveFlags, bufferLength, 0,
-                BassWasapi.WasapiProc_Bass, (IntPtr) ReadHandle);
-
-            if (initialized)
+            if (TryInitializeDevice(deviceInfo, bufferLength, WasapiInitFlags.Exclusive))
             {
-                BassWasapi.CurrentDevice = _deviceId;
-                YargLogger.LogFormatInfo(
-                    "WASAPI Exclusive input initialized: device [{0}] ({1}), {2} Hz, {3} ch, buffer {4:F3}s",
-                    _deviceId, deviceInfo.Name, SampleRate, Channels, bufferLength);
                 return true;
             }
 
@@ -123,22 +116,31 @@ namespace YARG.Audio.BASS.Wasapi
                 "Failed to initialize WASAPI input device [{0}] in Exclusive mode ({1}), attempting Shared mode fallback...",
                 _deviceId, exclusiveError);
 
-            var sharedFlags = WasapiInitFlags.Shared | WasapiInitFlags.EventDriven |
-                              WasapiInitFlags.AutoFormat | WasapiInitFlags.Buffer;
-
-            if (BassWasapi.InitEx(_deviceId, SampleRate, Channels, sharedFlags, bufferLength, 0,
-                    BassWasapi.WasapiProc_Bass, (IntPtr) ReadHandle))
+            if (TryInitializeDevice(deviceInfo, bufferLength, WasapiInitFlags.Shared))
             {
-                BassWasapi.CurrentDevice = _deviceId;
-                YargLogger.LogFormatInfo(
-                    "WASAPI Shared input initialized (fallback): device [{0}] ({1}), {2} Hz, {3} ch, buffer {4:F3}s",
-                    _deviceId, deviceInfo.Name, SampleRate, Channels, bufferLength);
                 return true;
             }
 
             YargLogger.LogFormatError("Failed to initialize WASAPI input device [{0}] in both Exclusive and Shared modes: {1}",
                 _deviceId, Bass.LastError);
             return false;
+        }
+
+        private bool TryInitializeDevice(WasapiDeviceInfo deviceInfo, float bufferLength, WasapiInitFlags mode)
+        {
+            var flags = mode | COMMON_INIT_FLAGS;
+            if (!BassWasapi.InitEx(_deviceId, SampleRate, Channels, flags, bufferLength, 0,
+                    BassWasapi.WasapiProc_Bass, (IntPtr) ReadHandle))
+            {
+                return false;
+            }
+
+            BassWasapi.CurrentDevice = _deviceId;
+            string modeName = mode == WasapiInitFlags.Exclusive ? "Exclusive" : "Shared";
+            YargLogger.LogFormatInfo(
+                "WASAPI {0} input initialized: device [{1}] ({2}), {3} Hz, {4} ch, buffer {5:F3}s",
+                modeName, _deviceId, deviceInfo.Name, SampleRate, Channels, bufferLength);
+            return true;
         }
 
         public bool TryClaimChannel(int channel)
@@ -250,44 +252,54 @@ namespace YARG.Audio.BASS.Wasapi
 
         public MicBufferInfo GetBufferInfo()
         {
-            int bufferFrames = 0;
-            double bufferMs = 0;
-
-            lock (_systemLock)
-            {
-                try
-                {
-                    if (BassWasapi.GetDeviceInfo(_deviceId, out var devInfo) && devInfo.IsInitialized)
-                    {
-                        BassWasapi.CurrentDevice = _deviceId;
-                        if (BassWasapi.GetInfo(out var info))
-                        {
-                            bufferFrames = info.Channels > 0 && info.Frequency > 0
-                                ? info.BufferLength / (info.Channels * sizeof(float))
-                                : 0;
-                            bufferMs = info.Frequency > 0 ? bufferFrames * 1000.0 / info.Frequency : 0;
-                        }
-                    }
-                }
-                catch
-                {
-                }
-            }
-
-            int waitingBytes = 0;
-            if (ReadHandle != 0)
-            {
-                waitingBytes = Math.Max(0, Bass.ChannelGetData(ReadHandle, IntPtr.Zero, (int) DataFlags.Available));
-            }
+            var buffer = GetWasapiBuffer();
 
             return new MicBufferInfo(
-                bufferFrames: bufferFrames,
-                bufferMilliseconds: bufferMs,
+                bufferFrames: buffer.Frames,
+                bufferMilliseconds: buffer.Milliseconds,
                 sampleRate: SampleRate,
                 channels: Channels,
                 isAsio: false,
                 cushionMilliseconds: 0,
-                waitingBytes: waitingBytes);
+                waitingBytes: GetWaitingBytes());
+        }
+
+        private (int Frames, double Milliseconds) GetWasapiBuffer()
+        {
+            lock (_systemLock)
+            {
+                try
+                {
+                    if (!BassWasapi.GetDeviceInfo(_deviceId, out var deviceInfo) || !deviceInfo.IsInitialized)
+                    {
+                        return (0, 0);
+                    }
+
+                    BassWasapi.CurrentDevice = _deviceId;
+                    if (!BassWasapi.GetInfo(out var info) || info.Channels <= 0 || info.Frequency <= 0)
+                    {
+                        return (0, 0);
+                    }
+
+                    int frames = info.BufferLength / (info.Channels * sizeof(float));
+                    double milliseconds = frames * 1000.0 / info.Frequency;
+                    return (frames, milliseconds);
+                }
+                catch
+                {
+                    return (0, 0);
+                }
+            }
+        }
+
+        private int GetWaitingBytes()
+        {
+            if (ReadHandle == 0)
+            {
+                return 0;
+            }
+
+            return Math.Max(0, Bass.ChannelGetData(ReadHandle, IntPtr.Zero, (int) DataFlags.Available));
         }
 
         public void Dispose()
@@ -399,8 +411,9 @@ namespace YARG.Audio.BASS.Wasapi
                             BassWasapi.Stop(true);
                             BassWasapi.Start();
                         }
-                        catch
+                        catch (Exception exception)
                         {
+                            YargLogger.LogException(exception, $"Failed to restart WASAPI device {_deviceId}");
                         }
                     }
                 }
