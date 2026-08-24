@@ -25,6 +25,7 @@ namespace YARG.Gameplay
         private BassOneShotChannel _loChannel;
         private bool _scheduled;
         private bool _disposed;
+        public bool IsDisposed => _disposed;
 
         /// <summary>
         /// Creates a metronome scheduler for the supplied mixer.
@@ -64,13 +65,9 @@ namespace YARG.Gameplay
         /// </summary>
         public void Reschedule(SongRunner songRunner, SyncTrack sync, double songLength)
         {
-            if (_disposed)
+            if (_disposed || !_scheduled)
             {
-                throw new ObjectDisposedException(nameof(MetronomeScheduler));
-            }
-            if (!_scheduled)
-            {
-                throw new InvalidOperationException("Metronome has not been scheduled yet.");
+                return;
             }
 
             CreateSchedule(songRunner, sync, songLength, out _hiHits, out _loHits);

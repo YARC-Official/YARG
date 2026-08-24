@@ -72,13 +72,9 @@ namespace YARG.Gameplay
             IReadOnlyList<CrowdEvent> crowdEvents, double firstNoteTime, double lastNoteTime,
             double songLength)
         {
-            if (_disposed)
+            if (_disposed || !_scheduled)
             {
-                throw new ObjectDisposedException(nameof(CrowdClapScheduler));
-            }
-            if (!_scheduled)
-            {
-                throw new InvalidOperationException("Crowd claps have not been scheduled yet.");
+                return;
             }
 
             var plays = BuildPlayTimes(songRunner, sync, crowdEvents, firstNoteTime, lastNoteTime, songLength);
