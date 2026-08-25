@@ -11,6 +11,8 @@ namespace YARG.Audio.BASS.Wasapi
 {
     internal sealed class BassWasapiMicrophoneCapture : IDisposable
     {
+        private const int               DEFAULT_SAMPLE_RATE           = 48_000;
+        private const int               DEFAULT_CHANNEL_COUNT         = 1;
         private const float             DEFAULT_BUFFER_LENGTH_SECONDS = 0.05f;
         private const WasapiInitFlags   COMMON_INIT_FLAGS            = WasapiInitFlags.EventDriven |
                                                                       WasapiInitFlags.AutoFormat |
@@ -65,8 +67,8 @@ namespace YARG.Audio.BASS.Wasapi
                         return null;
                     }
 
-                    int sampleRate = deviceInfo.MixFrequency > 0 ? deviceInfo.MixFrequency : 48_000;
-                    int actualChannels = channels > 0 ? channels : (deviceInfo.MixChannels > 0 ? deviceInfo.MixChannels : 1);
+                    int sampleRate = deviceInfo.MixFrequency > 0 ? deviceInfo.MixFrequency : DEFAULT_SAMPLE_RATE;
+                    int actualChannels = channels > 0 ? channels : (deviceInfo.MixChannels > 0 ? deviceInfo.MixChannels : DEFAULT_CHANNEL_COUNT);
 
                     pushStreamHandle = Bass.CreateStream(sampleRate, actualChannels,
                         BassFlags.Float | BassFlags.Decode, StreamProcedureType.Push);

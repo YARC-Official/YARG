@@ -126,7 +126,8 @@ namespace YARG.Audio.BASS.Asio
             {
                 BassAsio.CurrentDevice = _asioDeviceIndex;
                 var info = BassAsio.Info;
-                return new OutputBufferInfo(Array.Empty<int>(), info.PreferredBufferLength, _driver.SampleRate, true);
+                return new OutputBufferInfo(Array.Empty<int>(), info.PreferredBufferLength, _driver.SampleRate,
+                    isDriverControlled: true);
             }
             catch (Exception exception)
             {

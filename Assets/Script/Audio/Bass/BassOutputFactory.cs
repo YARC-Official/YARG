@@ -22,17 +22,12 @@ namespace YARG.Audio.BASS
             _wasapiMics = new BassWasapiMicManager(router);
         }
 
-        private static bool IsWindows
-        {
-            get
-            {
+        private static bool IsWindows =>
 #if UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN
-                return true;
+            true;
 #else
-                return false;
+            false;
 #endif
-            }
-        }
 
         public BassOutput? Create(string name)
         {

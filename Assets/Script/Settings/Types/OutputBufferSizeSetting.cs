@@ -12,7 +12,7 @@ namespace YARG.Settings.Types
         private int  _preferredLength;
         private bool _isDriverControlled;
 
-        public OutputBufferSizeSetting(int value, Action<int> onChange = null) : base(value, onChange, false)
+        public OutputBufferSizeSetting(int value, Action<int> onChange = null) : base(value, onChange, localizable: false)
         {
         }
 

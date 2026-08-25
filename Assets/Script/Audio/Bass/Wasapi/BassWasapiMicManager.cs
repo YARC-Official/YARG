@@ -50,13 +50,7 @@ namespace YARG.Audio.BASS.Wasapi
                 }
 
                 _output = null;
-                if (_captures.Count == 0 && _notificationsRegistered)
-                {
-                    if (BassWasapiMicrophoneCapture.SetNotification(null))
-                    {
-                        _notificationsRegistered = false;
-                    }
-                }
+                UnregisterNotificationsIfUnused();
             }
         }
 
@@ -209,14 +203,19 @@ namespace YARG.Audio.BASS.Wasapi
                     {
                         _captures.Remove(deviceId);
                         capture.Dispose();
-                        if (_output == null && _notificationsRegistered)
-                        {
-                            if (BassWasapiMicrophoneCapture.SetNotification(null))
-                            {
-                                _notificationsRegistered = false;
-                            }
-                        }
+                        UnregisterNotificationsIfUnused();
                     }
+                }
+            }
+        }
+
+        private void UnregisterNotificationsIfUnused()
+        {
+            if (_output == null && _captures.Count == 0 && _notificationsRegistered)
+            {
+                if (BassWasapiMicrophoneCapture.SetNotification(null))
+                {
+                    _notificationsRegistered = false;
                 }
             }
         }

@@ -9,10 +9,7 @@ namespace YARG.Settings.Types
         {
         }
 
-        public override void UpdateValues()
-        {
-            UpdateValues(GlobalAudioHandler.GetOutputMode(Value));
-        }
+        public override void UpdateValues() => UpdateValues(GlobalAudioHandler.GetOutputMode(Value));
 
         public void UpdateValues(AudioOutputMode mode)
         {

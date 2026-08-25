@@ -156,7 +156,7 @@ namespace YARG.Audio.BASS.Wasapi
         }
 
         public override OutputBufferInfo? GetBufferInfo() =>
-            _isStarted ? new OutputBufferInfo(Array.Empty<int>(), _latencyFrames, SampleRate, true) : null;
+            _isStarted ? new OutputBufferInfo(Array.Empty<int>(), _latencyFrames, SampleRate, isDriverControlled: true) : null;
 
         public override IReadOnlyList<InputDeviceInfo> GetInputs() => _microphones.GetAllDevices();
 

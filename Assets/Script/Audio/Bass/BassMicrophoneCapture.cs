@@ -278,7 +278,7 @@ namespace YARG.Audio.BASS
             return discarded && paused;
         }
 
-        private unsafe bool DiscardAudioLocked()
+        private bool DiscardAudioLocked()
         {
             int waitingBytes = GetAvailableRecordBytes();
             if (waitingBytes <= 0)
@@ -286,20 +286,17 @@ namespace YARG.Audio.BASS
                 return true;
             }
 
-            Span<byte> buffer = stackalloc byte[Math.Min(waitingBytes, 4096)];
-            fixed (byte* pointer = buffer)
+            var buffer = new byte[Math.Min(waitingBytes, 4096)];
+            while (waitingBytes > 0)
             {
-                while (waitingBytes > 0)
+                int toRead = Math.Min(waitingBytes, buffer.Length);
+                int read = Bass.ChannelGetData(_microphoneHandle, buffer, toRead);
+                if (read <= 0)
                 {
-                    int toRead = Math.Min(waitingBytes, buffer.Length);
-                    int read = Bass.ChannelGetData(_microphoneHandle, (IntPtr) pointer, toRead);
-                    if (read <= 0)
-                    {
-                        break;
-                    }
-
-                    waitingBytes -= read;
+                    break;
                 }
+
+                waitingBytes -= read;
             }
 
             BassMix.SplitStreamReset(_microphoneHandle, 0);
