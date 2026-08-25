@@ -89,8 +89,8 @@ namespace YARG.Audio.BASS.Wasapi
 
                 bool discarded = _capture.DiscardBufferedAudio();
                 bool monitorReset = _signal.ResetMonitor();
-                bool liveReset = _signal.ResetToLive();
-                return discarded && monitorReset && liveReset;
+                bool analysisReset = _signal.ResetAnalysis();
+                return discarded && monitorReset && analysisReset;
             }
         }
 
