@@ -137,9 +137,22 @@ namespace YARG.Audio.BASS.Wasapi
 
             BassWasapi.CurrentDevice = _deviceId;
             string modeName = mode == WasapiInitFlags.Exclusive ? "Exclusive" : "Shared";
-            YargLogger.LogFormatInfo(
-                "WASAPI {0} input initialized: device [{1}] ({2}), {3} Hz, {4} ch, buffer {5:F3}s",
-                modeName, _deviceId, deviceInfo.Name, SampleRate, Channels, bufferLength);
+            if (BassWasapi.GetInfo(out var info) && info.Channels > 0 && info.Frequency > 0)
+            {
+                int bufferFrames = info.BufferLength / (info.Channels * sizeof(float));
+                double bufferMilliseconds = bufferFrames * 1000.0 / info.Frequency;
+                YargLogger.LogFormatInfo(
+                    "WASAPI {0} input initialized: device [{1}] ({2}), {3} Hz, {4} ch, requested buffer {5:F3}s, actual buffer {6} bytes ({7} frames, {8:F3}ms)",
+                    modeName, _deviceId, deviceInfo.Name, SampleRate, Channels, bufferLength, info.BufferLength,
+                    bufferFrames, bufferMilliseconds);
+            }
+            else
+            {
+                YargLogger.LogFormatInfo(
+                    "WASAPI {0} input initialized: device [{1}] ({2}), {3} Hz, {4} ch, requested buffer {5:F3}s, actual buffer unavailable",
+                    modeName, _deviceId, deviceInfo.Name, SampleRate, Channels, bufferLength);
+            }
+
             return true;
         }
 

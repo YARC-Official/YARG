@@ -106,6 +106,9 @@ namespace YARG.Audio.BASS
                     BassAsio.CurrentDevice = i;
                     BassAsio.Free();
                 }
+                catch (BassException exception) when (exception.ErrorCode == Errors.Init)
+                {
+                }
                 catch (Exception ex)
                 {
                     YargLogger.LogWarning($"Exception freeing ASIO device {i}: {ex.Message}");
