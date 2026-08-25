@@ -1,11 +1,8 @@
 using System.Globalization;
 using TMPro;
 using UnityEngine;
-using YARG.Core.Audio;
 using YARG.Core.Input;
-using YARG.Localization;
 using YARG.Menu.Navigation;
-using YARG.Settings;
 using YARG.Settings.Types;
 
 namespace YARG.Menu.Settings.Visuals
@@ -18,14 +15,6 @@ namespace YARG.Menu.Settings.Visuals
         public override void RefreshVisual()
         {
             _inputField.text = Setting.Value.ToString(CultureInfo.InvariantCulture);
-
-            if (_settingLabel != null && !IsPresetSetting &&
-                UnlocalizedName == nameof(SettingsManager.Settings.PlaybackBufferLength))
-            {
-                int estimatedLatency = GlobalAudioHandler.PlaybackLatency + Setting.Value;
-                string baseName = Localize.Key("Settings.Setting", UnlocalizedName, "Name");
-                _settingLabel.text = $"{baseName} (~{estimatedLatency}ms)";
-            }
         }
 
         public override NavigationScheme GetNavigationScheme()
