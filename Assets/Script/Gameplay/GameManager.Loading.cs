@@ -219,7 +219,7 @@ namespace YARG.Gameplay
                 _metronomeScheduler.Reschedule(_songRunner, Chart.SyncTrack, SongLength);
                 _crowdClapScheduler.Reschedule(_songRunner, Chart.SyncTrack, Chart.CrowdEvents,
                     FirstNoteTime, LastNoteTime, SongLength);
-                BackgroundManager.SetTime(_songRunner.GetAudioPlaybackTime(_songRunner.SongTime));
+                BackgroundManager.SetTime(_songRunner.GetAudioPlaybackTime(_songRunner.SongTime), waitForSeek: false);
             });
 
             _metronomeScheduler = new MetronomeScheduler(_mixer);
