@@ -65,8 +65,9 @@ namespace YARG.Audio.BASS
 
                 bool discarded = _capture.PauseAndDiscardBufferedAudio();
                 bool monitorReset = _signal.ResetMonitor();
+                bool liveReset = _signal.ResetToLive();
                 bool resumed = _capture.Resume();
-                return discarded && monitorReset && resumed;
+                return discarded && monitorReset && liveReset && resumed;
             }
         }
 

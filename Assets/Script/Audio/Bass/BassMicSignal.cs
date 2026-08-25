@@ -422,8 +422,6 @@ namespace YARG.Audio.BASS
                     return false;
                 }
 
-                _noiseGate.Reset();
-                _reverb.RequestReset();
                 return true;
             }
         }
