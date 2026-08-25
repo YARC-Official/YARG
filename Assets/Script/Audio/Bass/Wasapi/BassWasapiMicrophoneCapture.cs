@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using ManagedBass;
+using ManagedBass.Mix;
 using ManagedBass.Wasapi;
 using YARG.Core.Audio;
 using YARG.Core.Logging;
@@ -255,20 +256,17 @@ namespace YARG.Audio.BASS.Wasapi
             }
         }
 
-        private bool DiscardBufferedAudio()
+        internal bool DiscardBufferedAudio()
         {
-            int waitingBytes = Bass.ChannelGetData(ReadHandle, IntPtr.Zero, (int) DataFlags.Available);
-            if (waitingBytes < 0)
+            lock (_stateLock)
             {
-                return false;
-            }
+                if (ReadHandle == 0 || _disposed)
+                {
+                    return true;
+                }
 
-            if (waitingBytes == 0)
-            {
-                return true;
+                return Bass.ChannelSetPosition(ReadHandle, 0, PositionFlags.Bytes);
             }
-
-            return Bass.ChannelGetData(ReadHandle, IntPtr.Zero, waitingBytes) == waitingBytes;
         }
 
         public MicBufferInfo GetBufferInfo()

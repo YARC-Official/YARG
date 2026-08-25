@@ -56,6 +56,19 @@ namespace YARG.Audio.BASS.Asio
 
         public bool ResetToLive() => _claimed && _signal?.ResetToLive() == true;
 
+        internal bool Reset()
+        {
+            if (!_claimed || _signal == null)
+            {
+                return false;
+            }
+
+            Bass.ChannelSetPosition(RootHandle, 0, PositionFlags.Bytes);
+            bool monitorReset = _signal.ResetMonitor();
+            bool liveReset = _signal.ResetToLive();
+            return monitorReset && liveReset;
+        }
+
         public MicBufferInfo? GetBufferInfo()
         {
             if (!_claimed)
