@@ -19,6 +19,8 @@ namespace YARG.Gameplay
         private const double OUTPUT_LEAD_TIME = 0.020;
 
         private readonly StemMixer _mixer;
+        private double[] _chartTimes = Array.Empty<double>();
+        private double[] _playTimes = Array.Empty<double>();
 
         // Held as the concrete Bass type (rather than the OneShotChannel base from YARG.Core)
         // so Reschedule() can call UpdateSchedule() without a YARG.Core change. Bass is
@@ -46,7 +48,8 @@ namespace YARG.Gameplay
                 throw new InvalidOperationException("Crowd claps have already been scheduled.");
             }
 
-            var plays = BuildPlayTimes(songRunner, sync, crowdEvents, firstNoteTime, lastNoteTime, songLength);
+            _chartTimes = BuildChartTimes(sync, crowdEvents, firstNoteTime, lastNoteTime, songLength);
+            RemapPlayTimes(songRunner);
 
             int stream = GlobalAudioHandler.CreateSoundEffectStream(SfxSample.Clap);
             int channelId = SettingsManager.Settings.OutputChannelSfx.Value;
@@ -56,7 +59,7 @@ namespace YARG.Gameplay
             }
 
             var outputChannel = GlobalAudioHandler.CreateOutputChannel(channelId);
-            _channel = (BassOneShotChannel) _mixer.CreateOneShotChannel(stream, plays, OUTPUT_LEAD_TIME, outputChannel);
+            _channel = (BassOneShotChannel) _mixer.CreateOneShotChannel(stream, _playTimes, OUTPUT_LEAD_TIME, outputChannel);
             _channel.SetEnabled(_enabled);
             SettingsManager.Settings.SfxVolume.OnChange += OnVolumeChanged;
             ApplyVolume();
@@ -66,7 +69,9 @@ namespace YARG.Gameplay
         /// <summary>
         /// Recomputes crowd clap hit times (e.g. after a live song offset change) and updates
         /// the already-scheduled playback channel in place. Cheap enough to call every frame,
-        /// since it reuses the decoded clap sample instead of rebuilding it.
+        /// since it reuses the decoded clap sample instead of rebuilding it, and only remaps the
+        /// cached chart times through the current offset instead of re-walking the sync track and
+        /// crowd events.
         /// </summary>
         public void Reschedule(SongRunner songRunner, SyncTrack sync,
             IReadOnlyList<CrowdEvent> crowdEvents, double firstNoteTime, double lastNoteTime,
@@ -77,18 +82,21 @@ namespace YARG.Gameplay
                 return;
             }
 
-            var plays = BuildPlayTimes(songRunner, sync, crowdEvents, firstNoteTime, lastNoteTime, songLength);
-            _channel.UpdateSchedule(plays);
+            RemapPlayTimes(songRunner);
+            _channel.UpdateSchedule(_playTimes);
         }
 
-        private static List<double> BuildPlayTimes(SongRunner songRunner, SyncTrack sync,
+        // Which beatlines qualify for a clap depends only on the chart, crowd events, and note
+        // bounds, never on the offset, so this only needs to run once (in Schedule()) instead of
+        // on every Reschedule().
+        private static double[] BuildChartTimes(SyncTrack sync,
             IReadOnlyList<CrowdEvent> crowdEvents, double firstNoteTime, double lastNoteTime,
             double songLength)
         {
             var events = new List<CrowdEvent>(crowdEvents);
             events.Sort((a, b) => a.Time.CompareTo(b.Time));
 
-            var plays = new List<double>();
+            var times = new List<double>();
             var clapState = ClapState.Clap;
             int eventIndex = 0;
             foreach (var beatline in sync.Beatlines)
@@ -114,10 +122,25 @@ namespace YARG.Gameplay
                     continue;
                 }
 
-                plays.Add(songRunner.GetAudioPlaybackTime(beatline.Time));
+                times.Add(beatline.Time);
             }
 
-            return plays;
+            return times.ToArray();
+        }
+
+        // Only the audio-time mapping depends on the offset, so Reschedule() only needs to redo
+        // this cheap remap over the cached chart times, with no allocation once warmed up.
+        private void RemapPlayTimes(SongRunner songRunner)
+        {
+            if (_playTimes.Length != _chartTimes.Length)
+            {
+                _playTimes = new double[_chartTimes.Length];
+            }
+
+            for (int i = 0; i < _chartTimes.Length; i++)
+            {
+                _playTimes[i] = songRunner.GetAudioPlaybackTime(_chartTimes[i]);
+            }
         }
 
         public void SetEnabled(bool enabled)
