@@ -74,6 +74,14 @@ namespace YARG.Audio.BASS.Wasapi
 
                         for (int channel = 0; channel < channelCount; channel++)
                         {
+                            lock (_lock)
+                            {
+                                if (_captures.TryGetValue(i, out var capture) && capture.IsChannelClaimed(channel))
+                                {
+                                    continue;
+                                }
+                            }
+
                             result.Add(new InputDeviceInfo(i, baseName, channel, channelCount));
                         }
                     }

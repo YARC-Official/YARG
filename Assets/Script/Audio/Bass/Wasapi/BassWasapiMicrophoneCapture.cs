@@ -164,6 +164,14 @@ namespace YARG.Audio.BASS.Wasapi
             }
         }
 
+        public bool IsChannelClaimed(int channel)
+        {
+            lock (_stateLock)
+            {
+                return _claimedChannels.Contains(channel);
+            }
+        }
+
         public void AddListener()
         {
             lock (_stateLock)
