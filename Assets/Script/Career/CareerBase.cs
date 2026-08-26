@@ -1,45 +1,57 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using Newtonsoft.Json;
+using YARG.Core.Game;
 
 namespace YARG.Career
 {
-    public class CareerBase
+    public class CareerBase : BasePreset
     {
-        public Guid Id;
-        public string Name;
+        public Guid   CareerId;
+        public string Title;
         public string Description;
+        public int    Version = 1;
 
-        public CareerTier[] Tiers;
+        private readonly List<CareerTier>          _tiers;
+        public           IReadOnlyList<CareerTier> Tiers => _tiers;
 
-        public CareerBase()
+        public CareerBase(Guid id, string title, string description) : base(title, true)
         {
-            Id = Guid.NewGuid();
-        }
-
-        public CareerBase(string name, string description)
-        {
-            Id = Guid.NewGuid();
-            Name = name;
+            Id = id;
+            Title = title;
             Description = description;
         }
 
-        public CareerBase(Guid id, string name, string description)
+        [JsonConstructor]
+        public CareerBase(Guid id, string name, string description, CareerTier[] tiers) : base(name, true)
         {
             Id = id;
             Name = name;
             Description = description;
+            _tiers = tiers.ToList();
         }
 
-        public CareerBase(Guid id, string name, string description, CareerTier[] tiers)
+        private void AddTier(CareerTier tier)
         {
-            Id = id;
-            Name = name;
-            Description = description;
-            Tiers = tiers;
+            _tiers.Add(tier);
+        }
+
+        public override BasePreset CopyWithNewName(string name)
+        {
+            var tiers = new CareerTier[_tiers.Count];
+
+            for (var i = 0; i < _tiers.Count; i++)
+            {
+                tiers[i] = new CareerTier(_tiers[i], this);
+            }
+
+            return new CareerBase(Guid.NewGuid(), name, Description, tiers);
         }
 
         public override string ToString()
         {
-            return $"CareerBase: {Name}, Tiers: {Tiers.Length}";
+            return $"CareerBase: {Title}, Tiers: {Tiers.Count}";
         }
     }
 }

@@ -149,25 +149,5 @@ namespace YARG.Settings.Customization
             preset.BackgroundImage = new FileInfo(Path.Join(imagePath, "background.png"));
             preset.SideImage = new FileInfo(Path.Join(imagePath, "side.png"));
         }
-
-        private static void CopyAdditionalFiles(string source, string destination)
-        {
-            if (source == null || destination == null)
-            {
-                return;
-            }
-
-            if (!Directory.Exists(source))
-            {
-                YargLogger.LogFormatError("Source directory does not exist: {0}", source);
-            }
-
-            Directory.CreateDirectory(destination);
-
-            foreach (var file in Directory.GetFiles(source))
-            {
-                File.Copy(file, Path.Join(destination, Path.GetFileName(file)));
-            }
-        }
     }
 }

@@ -24,10 +24,11 @@ namespace YARG.Scores
         HighestScoreCurrentDifficulty = 5,
     }
 
-    public static partial class ScoreContainer
+    public static class ScoreContainer
     {
         public static string ScoreDirectory { get; private set; }
         public static string ScoreReplayDirectory { get; private set; }
+        public static CareerDatabase Careers { get; private set; }
 
         private static string _scoreDatabaseFile;
 
@@ -75,6 +76,7 @@ namespace YARG.Scores
                 Directory.CreateDirectory(ScoreReplayDirectory);
 
                 _db = new ScoreDatabase(_scoreDatabaseFile);
+                Careers = _db.Careers;
                 FetchBandHighScores();
             }
             catch (Exception e)

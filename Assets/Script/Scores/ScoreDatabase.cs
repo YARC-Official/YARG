@@ -68,6 +68,7 @@ namespace YARG.Scores
     {
         public SQLiteConnection _db;
         private int _currentLibraryHashRevision = -1;
+        public CareerDatabase   Careers { get; }
 
         public ScoreDatabase(string path)
         {
@@ -138,6 +139,10 @@ namespace YARG.Scores
             {
                 YargLogger.LogFormatDebug("Successfully updated the HasBots field on {0} rows.", amountUpdated);
             }
+
+            // Initialize Careers
+            Careers = new CareerDatabase(_db);
+            Careers.Initialize();
         }
 
         public void Dispose()
