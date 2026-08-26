@@ -262,6 +262,7 @@ namespace YARG.Settings
 
             public ToggleSetting ShowFavoriteButton { get; } = new(true);
             public ToggleSetting ShowRecommendedSongs { get; } = new(true, ShowRecommendedSongsCallback);
+            public ToggleSetting OnlyShowPlayableSongs { get; } = new(false, RefreshLibraryFilterCallback);
 
             public DropdownSetting<SongLengthLabelMode> SongLengthLabels { get; }
                 = new(SongLengthLabelMode.RangeLabels, _ => RefreshSongs())
@@ -871,6 +872,27 @@ namespace YARG.Settings
                     return;
                 }
 
+                var library = Object.FindFirstObjectByType<MusicLibraryMenu>();
+                if (library != null)
+                {
+                    library.RefreshAndReselect();
+                }
+                else
+                {
+                    MusicLibraryMenu.SetReload(MusicLibraryReloadState.Partial);
+                }
+            }
+
+            private static void RefreshLibraryFilterCallback(bool value)
+            {
+                if (FiltersMenu.Instance != null && FiltersMenu.Instance.gameObject.activeInHierarchy)
+                {
+                    // Defer refresh until the filters menu closes to avoid switching navigation schemes.
+                    MusicLibraryMenu.SetReload(MusicLibraryReloadState.Partial);
+                    return;
+                }
+
+                FiltersMenu.RefreshActiveFilterPredicate();
                 var library = Object.FindFirstObjectByType<MusicLibraryMenu>();
                 if (library != null)
                 {
