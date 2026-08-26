@@ -5,50 +5,57 @@ using YARG.Settings;
 
 namespace YARG.Audio.BASS.Wasapi
 {
+    /// <summary>
+    ///     Represents a single microphone input channel captured from a WASAPI device, bridging the
+    ///     hardware push stream into pitch analysis and real-time vocal monitoring.
+    /// </summary>
     internal sealed class BassWasapiMicSource : BassMicSourceBase
     {
-        private readonly BassWasapiMicrophoneCapture _capture;
-        private readonly BassMicSignal               _signal;
-        private readonly Action                      _onDisposed;
+        private readonly BassWasapiMicCapture _capture;
+        private readonly Action               _onDisposed;
+        private readonly BassMicSignal        _signal;
 
-        private BassWasapiMicSource(BassWasapiMicrophoneCapture capture, BassMicSignal signal,
-            InputDeviceInfo device, Action onDisposed)
+        public BassWasapiMicSource(BassWasapiMicCapture capture, InputDeviceInfo device,
+            BassAudioRouter router, Action onDisposed)
             : base(device.Name, device.DisplayName, device.Channel)
         {
             _capture = capture;
-            _signal = signal;
             _onDisposed = onDisposed;
+
+            int[]? channelMap = capture.Channels > 1
+                ? new[]
+                {
+                    device.Channel,
+                    -1,
+                }
+                : null;
+            float monitoringLevel = SettingsManager.Settings.VocalMonitoring.Value;
+
+            _signal = BassMicSignal.Create(
+                    capture.ReadHandle,
+                    channelMap,
+                    capture.SampleRate,
+                    device.DisplayName,
+                    router,
+                    monitoringLevel,
+                    true,
+                    null,
+                    OnMonitorDetached)
+                ?? throw new InvalidOperationException(
+                    $"Failed to create WASAPI mic signal for '{device.DisplayName}'");
         }
 
-        public static BassWasapiMicSource? Create(BassWasapiMicrophoneCapture capture, InputDeviceInfo device,
+        public static BassWasapiMicSource? Create(BassWasapiMicCapture capture, InputDeviceInfo device,
             BassAudioRouter router, Action onDisposed)
         {
-            int[]? channelMap = capture.Channels > 1 ? new[] { device.Channel, -1 } : null;
-            float monitoringLevel = SettingsManager.Settings.VocalMonitoring.Value;
-            BassWasapiMicSource? source = null;
-
-            var signal = BassMicSignal.Create(
-                sourceHandle: capture.ReadHandle,
-                channelMap: channelMap,
-                sampleRate: capture.SampleRate,
-                name: device.DisplayName,
-                router: router,
-                monitoringLevel: monitoringLevel,
-                applyAnalysisEq: true,
-                attached: () => capture.AddListener(),
-                detached: () =>
-                {
-                    capture.RemoveListener();
-                    source?.RaiseInputChanged();
-                });
-
-            if (signal == null)
+            try
+            {
+                return new BassWasapiMicSource(capture, device, router, onDisposed);
+            }
+            catch (Exception)
             {
                 return null;
             }
-
-            source = new BassWasapiMicSource(capture, signal, device, onDisposed);
-            return source;
         }
 
         protected override int GetSampleRateCore() => _capture.SampleRate;
@@ -101,5 +108,7 @@ namespace YARG.Audio.BASS.Wasapi
             _signal.Dispose();
             _onDisposed();
         }
+
+        private void OnMonitorDetached() => RaiseInputChanged();
     }
 }

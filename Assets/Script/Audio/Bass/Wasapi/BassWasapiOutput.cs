@@ -9,22 +9,29 @@ using YARG.Core.Logging;
 
 namespace YARG.Audio.BASS.Wasapi
 {
+    /// <summary>
+    ///     Handles low-latency audio playback and microphone routing through WASAPI in Exclusive mode,
+    ///     feeding an output decode mixer directly into the WASAPI endpoint buffer.
+    /// </summary>
     internal sealed class BassWasapiOutput : BassOutput
     {
         internal const string DEVICE_PREFIX = "WASAPI: ";
 
-        private const int DEFAULT_SAMPLE_RATE = 48_000;
-        private const int DEFAULT_CHANNEL_COUNT = 2;
-        private const int MINIMUM_READ_BLOCK_FRAMES = 128;
+        private const int   DEFAULT_SAMPLE_RATE           = 48_000;
+        private const int   DEFAULT_CHANNEL_COUNT         = 2;
+        private const int   MINIMUM_READ_BLOCK_FRAMES     = 128;
         private const float DEFAULT_BUFFER_LENGTH_SECONDS = 0.05f;
+        private const WasapiInitFlags INIT_FLAGS = WasapiInitFlags.Exclusive |
+            WasapiInitFlags.EventDriven |
+            WasapiInitFlags.AutoFormat |
+            WasapiInitFlags.Buffer;
 
-        private readonly int                   _wasapiDeviceIndex;
-        private readonly BassWasapiMicManager  _microphones;
-
-        private double _volume = 1;
-        private int    _restartQueued;
-        private int    _latencyFrames;
-        private bool   _isStarted;
+        private readonly BassWasapiMicManager _microphones;
+        private readonly int                  _wasapiDeviceIndex;
+        private volatile bool                 _isStarted;
+        private volatile int                  _latencyFrames;
+        private          int                  _restartQueued;
+        private          double               _volume = 1;
 
         private BassWasapiOutput(string name, BassOutputDevice device, int wasapiDeviceIndex,
             BassWasapiMicManager microphones)
@@ -39,17 +46,20 @@ namespace YARG.Audio.BASS.Wasapi
 
         internal override int EndpointDelayFrames => _latencyFrames;
 
-        internal override double SongPlaybackStartDelay =>
-            SampleRate > 0 ? _latencyFrames / (double) SampleRate : 0;
+        internal override double SongPlaybackStartDelay => SampleRate > 0 ? _latencyFrames / (double) SampleRate : 0;
 
         internal override bool UsesIndependentClock => true;
 
-        internal static bool IsDeviceName(string name) =>
-            name.StartsWith(DEVICE_PREFIX, StringComparison.Ordinal);
+        internal static bool IsWasapiDevice(string name) => name.StartsWith(DEVICE_PREFIX, StringComparison.Ordinal);
 
         public static BassWasapiOutput? Find(string name, BassWasapiMicManager microphones)
         {
-            foreach (var (id, devName) in GetDevices())
+            if (!IsWasapiDevice(name))
+            {
+                return null;
+            }
+
+            foreach ((int id, string devName) in GetDevices())
             {
                 if (string.Equals(devName, name, StringComparison.Ordinal))
                 {
@@ -70,7 +80,7 @@ namespace YARG.Audio.BASS.Wasapi
                 {
                     if (info.IsUsableOutput())
                     {
-                        devices.Add((i, $"{DEVICE_PREFIX}{info.Name}"));
+                        devices.Add((i, info.GetOutputDisplayName()));
                     }
                 }
             }
@@ -105,15 +115,19 @@ namespace YARG.Audio.BASS.Wasapi
                     return false;
                 }
 
-                var flags = WasapiInitFlags.Exclusive | WasapiInitFlags.EventDriven |
-                            WasapiInitFlags.AutoFormat | WasapiInitFlags.Buffer;
-
                 float bufferLength = deviceInfo.DefaultUpdatePeriod > 0
                     ? (float) deviceInfo.DefaultUpdatePeriod
                     : DEFAULT_BUFFER_LENGTH_SECONDS;
 
-                if (!BassWasapi.InitEx(_wasapiDeviceIndex, sampleRate, channelCount, flags, bufferLength, 0,
-                        BassWasapi.WasapiProc_Bass, (IntPtr) OutputMixerHandle))
+                if (!BassWasapi.InitEx(
+                    _wasapiDeviceIndex,
+                    sampleRate,
+                    channelCount,
+                    INIT_FLAGS,
+                    bufferLength,
+                    0,
+                    BassWasapi.WasapiProc_Bass,
+                    (IntPtr) OutputMixerHandle))
                 {
                     YargLogger.LogFormatError("Failed to initialize WASAPI device [{0}]: {1}", Name, Bass.LastError);
                     StopOutput();
@@ -124,7 +138,7 @@ namespace YARG.Audio.BASS.Wasapi
 
                 if (BassWasapi.GetInfo(out var wasapiInfo))
                 {
-                    _latencyFrames = wasapiInfo.Channels > 0 ? wasapiInfo.BufferLength / (wasapiInfo.Channels * sizeof(float)) : 0;
+                    _latencyFrames = wasapiInfo.GetBufferFrames();
                     YargLogger.LogFormatInfo(
                         "WASAPI Exclusive output initialized: {0} Hz, {1} ch, buffer {2} bytes ({3} format)",
                         wasapiInfo.Frequency, wasapiInfo.Channels, wasapiInfo.BufferLength, wasapiInfo.Format);
@@ -156,7 +170,7 @@ namespace YARG.Audio.BASS.Wasapi
         }
 
         public override OutputBufferInfo? GetBufferInfo() =>
-            _isStarted ? new OutputBufferInfo(Array.Empty<int>(), _latencyFrames, SampleRate, isDriverControlled: true) : null;
+            _isStarted ? new OutputBufferInfo(Array.Empty<int>(), _latencyFrames, SampleRate, true) : null;
 
         public override IReadOnlyList<InputDeviceInfo> GetInputs() => _microphones.GetAllDevices();
 
@@ -188,9 +202,12 @@ namespace YARG.Audio.BASS.Wasapi
             _microphones.DetachOutput(this);
             try
             {
-                BassWasapi.CurrentDevice = _wasapiDeviceIndex;
-                BassWasapi.Stop(true);
-                BassWasapi.Free();
+                if (BassWasapi.GetDeviceInfo(_wasapiDeviceIndex, out var devInfo) && devInfo.IsInitialized)
+                {
+                    BassWasapi.CurrentDevice = _wasapiDeviceIndex;
+                    BassWasapi.Stop();
+                    BassWasapi.Free();
+                }
             }
             catch (Exception exception)
             {
@@ -226,5 +243,8 @@ namespace YARG.Audio.BASS.Wasapi
     {
         public static bool IsUsableOutput(this WasapiDeviceInfo info) =>
             info.IsEnabled && !info.IsInput && !info.IsLoopback;
+
+        public static string GetOutputDisplayName(this WasapiDeviceInfo info) =>
+            $"{BassWasapiOutput.DEVICE_PREFIX}{info.Name}";
     }
 }

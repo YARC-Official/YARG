@@ -33,12 +33,12 @@ namespace YARG.Audio.BASS
         {
             if (IsWindows)
             {
-                if (BassWasapiOutput.IsDeviceName(name))
+                if (BassWasapiOutput.IsWasapiDevice(name))
                 {
                     return BassWasapiOutput.Find(name, _wasapiMics);
                 }
 
-                if (BassAsioOutput.IsDeviceName(name))
+                if (BassAsioOutput.IsAsioDevice(name))
                 {
                     return BassAsioOutput.Find(name, _router, _asioMics);
                 }
@@ -61,12 +61,12 @@ namespace YARG.Audio.BASS
 
         public AudioOutputMode ModeFor(string name)
         {
-            if (BassWasapiOutput.IsDeviceName(name))
+            if (BassWasapiOutput.IsWasapiDevice(name))
             {
                 return AudioOutputMode.WasapiExclusive;
             }
 
-            if (BassAsioOutput.IsDeviceName(name))
+            if (BassAsioOutput.IsAsioDevice(name))
             {
                 return AudioOutputMode.Asio;
             }

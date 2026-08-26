@@ -82,7 +82,7 @@ QualitySettings:
     billboardsFaceCameraPosition: 1
     useLegacyDetailDistribution: 1
     adaptiveVsync: 0
-    vSyncCount: 0
+    vSyncCount: 1
     realtimeGICPUUsage: 25
     adaptiveVsyncExtraA: 0
     adaptiveVsyncExtraB: 0

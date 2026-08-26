@@ -39,6 +39,9 @@ namespace YARG.Audio.BASS
         public abstract   int    HeardLatencyMilliseconds { get; }
         internal abstract int    EndpointDelayFrames      { get; }
         internal abstract double SongPlaybackStartDelay   { get; }
+
+        // When true (WASAPI Exclusive / ASIO), position tracking is calculated from hardware DAC pull callbacks
+        // instead of BASS's software mixer timeline.
         internal virtual bool UsesIndependentClock => false;
 
         public void Dispose()

@@ -45,12 +45,12 @@ namespace YARG.Audio.BASS.Asio
 
         internal string DriverId => _driver.DriverId;
 
-        internal static bool IsDeviceName(string name) =>
+        internal static bool IsAsioDevice(string name) =>
             name.StartsWith(DEVICE_PREFIX, StringComparison.Ordinal);
 
         public static BassAsioOutput? Find(string name, BassAudioRouter router, BassAsioMics microphones)
         {
-            if (!IsDeviceName(name))
+            if (!IsAsioDevice(name))
             {
                 return null;
             }
