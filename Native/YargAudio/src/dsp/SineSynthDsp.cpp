@@ -14,7 +14,8 @@ yarg_sine_synth_dsp::yarg_sine_synth_dsp(const yarg::audio::BassCoreBindings& bi
     : bass(bindings), tempoStream(tempoStreamHandle), volume(toneVolume),
       fadeSeconds(fade),
       songTimeOffsetBits(yarg::audio::bitCast<std::uint64_t>(0.0)),
-      speedBits(yarg::audio::bitCast<std::uint32_t>(1.0f)) {}
+      speedBits(yarg::audio::bitCast<std::uint32_t>(1.0f)),
+      outputChannel(0) {}
 
 namespace yarg::audio {
 namespace {
@@ -107,6 +108,16 @@ void sineSynthDspRender(yarg_sine_synth_dsp& state, float* buffer, std::size_t f
     const double step = (songTimeEnd - songTimeStart) / static_cast<double>(frames);
     double songTime = songTimeStart;
 
+    // Resolve the target speaker pair once per block. A 1-based setting value maps its odd
+    // channel to the left of the pair (1 -> index 0, 3 -> index 2, ...). 0, or a value past the
+    // device's channels, falls back to writing every channel, so a stereo device and any
+    // misconfiguration keep the previous full-mix behaviour instead of going silent.
+    const std::uint32_t channelSetting =
+        state.outputChannel.load(std::memory_order_relaxed);
+    const bool routeToPair = channelSetting != 0 && channelSetting <= channels;
+    const std::uint32_t leftChannel = routeToPair ? channelSetting - 1 : 0;
+    const bool hasRightChannel = routeToPair && leftChannel + 1 < channels;
+
     for (std::size_t i = 0; i < frames; ++i) {
         const float frequency = sineSynthDspFrequencyAt(state, songTime);
         songTime += step;
@@ -127,8 +138,15 @@ void sineSynthDspRender(yarg_sine_synth_dsp& state, float* buffer, std::size_t f
 
         const float sample = state.currentVolume * static_cast<float>(std::sin(state.phase * Tau));
         float* frame = buffer + static_cast<std::size_t>(i) * channels;
-        for (std::uint32_t ch = 0; ch < channels; ++ch) {
-            frame[ch] += sample;
+        if (routeToPair) {
+            frame[leftChannel] += sample;
+            if (hasRightChannel) {
+                frame[leftChannel + 1] += sample;
+            }
+        } else {
+            for (std::uint32_t ch = 0; ch < channels; ++ch) {
+                frame[ch] += sample;
+            }
         }
 
         // A frequency of 0 holds the phase, so that the fade out at the end of a tone ramps
@@ -203,6 +221,8 @@ int sineSynthDspCreate(const BassCoreBindings& bass, const yarg_sine_synth_confi
     auto* state = new (std::nothrow) yarg_sine_synth_dsp(bass, config->tempo_stream,
         config->volume, config->fade_seconds);
     if (!state) return YARG_AUDIO_ERROR_INTERNAL;
+
+    state->outputChannel.store(config->output_channel, std::memory_order_relaxed);
 
     *dsp = state;
     return YARG_AUDIO_OK;
@@ -309,6 +329,14 @@ int sineSynthDspSetTiming(yarg_sine_synth_dsp* dsp, double songTimeOffset,
     dsp->songTimeOffsetBits.store(bitCast<std::uint64_t>(songTimeOffset),
         std::memory_order_relaxed);
     dsp->speedBits.store(bitCast<std::uint32_t>(playbackSpeed), std::memory_order_relaxed);
+    return YARG_AUDIO_OK;
+}
+
+int sineSynthDspSetOutputChannel(yarg_sine_synth_dsp* dsp,
+    std::uint32_t outputChannel) noexcept {
+    if (!dsp) return YARG_AUDIO_ERROR_INVALID_ARGUMENT;
+
+    dsp->outputChannel.store(outputChannel, std::memory_order_relaxed);
     return YARG_AUDIO_OK;
 }
 

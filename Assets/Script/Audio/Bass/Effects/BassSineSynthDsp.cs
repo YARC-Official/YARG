@@ -55,6 +55,9 @@ namespace YARG.Audio.BASS.Effects
                 TempoStream = unchecked((uint) tempoStreamHandle),
                 Volume = volume,
                 FadeSeconds = fadeSeconds,
+                // Broadcast to every channel until the song routing publishes the configured
+                // output channel; SetOutputChannel is called before the DSP is attached.
+                OutputChannel = 0,
             };
 
             try
@@ -193,6 +196,22 @@ namespace YARG.Audio.BASS.Effects
             return Native.SetTiming(this, songTimeOffset, playbackSpeed) == 0;
         }
 
+        /// <summary>
+        /// Publishes the output channel the tone renders into: a 1-based value matching the
+        /// experimental output-channel setting (the odd channel of a speaker pair), or 0 to
+        /// broadcast to every channel. A value past the device's channel count falls back to
+        /// broadcasting on the render thread rather than dropping the tone.
+        /// </summary>
+        internal bool SetOutputChannel(uint outputChannel)
+        {
+            if (IsClosed || IsInvalid)
+            {
+                return false;
+            }
+
+            return Native.SetOutputChannel(this, outputChannel) == 0;
+        }
+
         protected override bool ReleaseHandle()
         {
             return Native.Destroy(handle) == 0;
@@ -230,6 +249,7 @@ namespace YARG.Audio.BASS.Effects
             public uint  TempoStream;
             public float Volume;
             public float FadeSeconds;
+            public uint  OutputChannel;
         }
 
         private static class Native
@@ -262,6 +282,10 @@ namespace YARG.Audio.BASS.Effects
                 CallingConvention = CallingConvention.Cdecl)]
             internal static extern int SetTiming(BassSineSynthDsp dsp, double songTimeOffset,
                 float playbackSpeed);
+
+            [DllImport(LIBRARY, EntryPoint = "yarg_sine_synth_dsp_set_output_channel",
+                CallingConvention = CallingConvention.Cdecl)]
+            internal static extern int SetOutputChannel(BassSineSynthDsp dsp, uint outputChannel);
 
             [DllImport(LIBRARY, EntryPoint = "yarg_sine_synth_dsp_destroy",
                 CallingConvention = CallingConvention.Cdecl)]

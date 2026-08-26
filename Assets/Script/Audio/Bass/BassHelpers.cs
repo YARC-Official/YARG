@@ -38,7 +38,7 @@ namespace YARG.Audio.BASS
 
     public static class BassHelpers
     {
-        public const uint YARG_AUDIO_ABI_VERSION = 7;
+        public const uint YARG_AUDIO_ABI_VERSION = 8;
 
         /// <summary>
         /// Floor applied to the playback speed before it is used as a divisor or to scale a

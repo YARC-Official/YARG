@@ -415,6 +415,13 @@ namespace YARG.Audio.BASS
         {
             _outputChannel = channel;
             _connection?.SetOutputChannel(channel);
+
+            // Keep the guide tone on the same speaker pair as the music when the setting changes
+            // mid-song, matching the routing just applied to the tempo stream above.
+            foreach (var toneChannel in _toneChannels)
+            {
+                toneChannel.SetOutputChannel(ToneOutputChannel);
+            }
         }
 
         protected override void SetOutputDevice_Internal(OutputDevice device)
@@ -499,6 +506,9 @@ namespace YARG.Audio.BASS
             }
 
             channel.SetTiming(SongTimeOffset, _speed);
+            // Route the tone before it is attached, so its first rendered block already lands on
+            // the configured pair instead of every speaker.
+            channel.SetOutputChannel(ToneOutputChannel);
 
             // The song mixer is recreated on every output device change, so the channel is tracked
             // here and re-attached by BassSongConnection.Create as one-shots are. With no connection
@@ -523,6 +533,14 @@ namespace YARG.Audio.BASS
         private double SongTimeOffset => _seekPosition - TotalStreamDelay;
 
         /// <summary>
+        /// The output channel the guide tone should render into, taken from the song's own
+        /// routing so it follows the same speaker pair as the music. A 1-based channel value, or
+        /// 0 to broadcast to every channel when no routing is set.
+        /// </summary>
+        private uint ToneOutputChannel =>
+            _outputChannel is { ChannelId: > 0 } outputChannel ? (uint) outputChannel.ChannelId : 0u;
+
+        /// <summary>
         /// Republishes timing to the tone channels, and retries any that are registered but not
         /// attached, so a failed attach during an output device change does not silently disable
         /// the tone for the rest of the song.
@@ -532,6 +550,7 @@ namespace YARG.Audio.BASS
             foreach (var channel in _toneChannels)
             {
                 channel.SetTiming(SongTimeOffset, _speed);
+                channel.SetOutputChannel(ToneOutputChannel);
                 if (_connection != null)
                 {
                     channel.Reattach();

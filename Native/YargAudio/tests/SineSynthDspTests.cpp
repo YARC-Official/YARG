@@ -207,6 +207,121 @@ void testRenderFadesAndMixesAdditively() {
     REQUIRE(sineSynthDspDestroy(dsp));
 }
 
+// Sums the absolute tone energy each channel of an interleaved block received. A channel the
+// tone never wrote stays exactly zero, so a zero sum is a reliable "silent here" assertion.
+std::vector<double> channelEnergy(const std::vector<float>& buffer, std::uint32_t channels) {
+    std::vector<double> energy(channels, 0.0);
+    for (std::size_t frame = 0; frame * channels < buffer.size(); ++frame) {
+        for (std::uint32_t ch = 0; ch < channels; ++ch) {
+            energy[ch] += std::fabs(buffer[frame * channels + ch]);
+        }
+    }
+    return energy;
+}
+
+// The guide tone must land only on the configured output pair, so a multichannel setup does not
+// hear it from every speaker. This is the behaviour the managed layer drives from the
+// experimental default-channel setting.
+void testOutputChannelRoutesToConfiguredPair() {
+    MockBass state;
+    BassCoreBindings bass(completeFunctions());
+    auto* dsp = create(bass, state);
+
+    const yarg_tone_segment notes[] = {note(0.0, 10.0, 69.0f, 69.0f)};
+    REQUIRE(sineSynthDspSetSchedule(dsp, notes, 1, nullptr) == YARG_AUDIO_OK);
+
+    constexpr std::size_t frames = 512;
+    constexpr std::uint32_t channels = 6;
+
+    auto renderFresh = [&](std::uint32_t channelSetting) {
+        REQUIRE(sineSynthDspSetOutputChannel(dsp, channelSetting) == YARG_AUDIO_OK);
+        // Reset the oscillator so each render starts from the same silence-to-tone ramp.
+        REQUIRE(sineSynthDspSetSchedule(dsp, notes, 1, nullptr) == YARG_AUDIO_OK);
+        dsp->currentVolume = 0.0f;
+        std::vector<float> buffer(frames * channels, 0.0f);
+        sineSynthDspRender(*dsp, buffer.data(), frames, channels, 48000, 0.0,
+            frames / 48000.0);
+        return channelEnergy(buffer, channels);
+    };
+
+    // Value 1 -> the first pair (indices 0 and 1); the other four channels stay silent.
+    {
+        const auto energy = renderFresh(1);
+        REQUIRE(energy[0] > 0.0);
+        REQUIRE(energy[1] > 0.0);
+        REQUIRE(energy[0] == energy[1]);
+        for (std::uint32_t ch = 2; ch < channels; ++ch) REQUIRE(energy[ch] == 0.0);
+    }
+
+    // Value 3 -> the second pair (indices 2 and 3); nothing leaks to the others.
+    {
+        const auto energy = renderFresh(3);
+        for (std::uint32_t ch = 0; ch < channels; ++ch) {
+            const bool inPair = ch == 2 || ch == 3;
+            REQUIRE((energy[ch] > 0.0) == inPair);
+        }
+    }
+
+    // 0 keeps the fallback of broadcasting to every channel (used for stereo and for an
+    // unset value), so nothing regresses for a plain two-channel device.
+    {
+        const auto energy = renderFresh(0);
+        for (std::uint32_t ch = 0; ch < channels; ++ch) REQUIRE(energy[ch] > 0.0);
+    }
+
+    // A value past the device's channel count falls back to broadcasting rather than writing
+    // out of bounds or going silent.
+    {
+        const auto energy = renderFresh(channels + 1);
+        for (std::uint32_t ch = 0; ch < channels; ++ch) REQUIRE(energy[ch] > 0.0);
+    }
+
+    REQUIRE(sineSynthDspDestroy(dsp));
+}
+
+// An odd-channel device (e.g. 4.1 with five speakers) exposes its final channel on its own. The
+// tone must drive that single channel without touching the phantom sixth index past the buffer.
+void testOutputChannelMonoTail() {
+    MockBass state;
+    BassCoreBindings bass(completeFunctions());
+    auto* dsp = create(bass, state);
+
+    const yarg_tone_segment notes[] = {note(0.0, 10.0, 69.0f, 69.0f)};
+    REQUIRE(sineSynthDspSetSchedule(dsp, notes, 1, nullptr) == YARG_AUDIO_OK);
+    REQUIRE(sineSynthDspSetOutputChannel(dsp, 5) == YARG_AUDIO_OK);
+
+    constexpr std::size_t frames = 256;
+    constexpr std::uint32_t channels = 5;
+    std::vector<float> buffer(frames * channels, 0.0f);
+    sineSynthDspRender(*dsp, buffer.data(), frames, channels, 48000, 0.0, frames / 48000.0);
+
+    const auto energy = channelEnergy(buffer, channels);
+    for (std::uint32_t ch = 0; ch < channels; ++ch) REQUIRE((energy[ch] > 0.0) == (ch == 4));
+
+    REQUIRE(sineSynthDspDestroy(dsp));
+}
+
+// The setter validates its handle and its result is observable through the config on create.
+void testOutputChannelValidationAndCreateConfig() {
+    REQUIRE(sineSynthDspSetOutputChannel(nullptr, 1) == YARG_AUDIO_ERROR_INVALID_ARGUMENT);
+
+    MockBass state;
+    BassCoreBindings bass(completeFunctions());
+    mock = &state;
+
+    auto settings = config();
+    settings.output_channel = 3;
+    yarg_sine_synth_dsp* dsp = nullptr;
+    REQUIRE(sineSynthDspCreate(bass, &settings, &dsp) == YARG_AUDIO_OK);
+    REQUIRE(dsp != nullptr);
+    REQUIRE(dsp->outputChannel.load() == 3);
+
+    REQUIRE(sineSynthDspSetOutputChannel(dsp, 1) == YARG_AUDIO_OK);
+    REQUIRE(dsp->outputChannel.load() == 1);
+
+    REQUIRE(sineSynthDspDestroy(dsp));
+}
+
 void testSilenceResetsPhase() {
     MockBass state;
     BassCoreBindings bass(completeFunctions());
@@ -593,6 +708,9 @@ void runSineSynthDspTests() {
     testFrequencyLookup();
     testForwardGapDoesNotRestartScan();
     testRenderFadesAndMixesAdditively();
+    testOutputChannelRoutesToConfiguredPair();
+    testOutputChannelMonoTail();
+    testOutputChannelValidationAndCreateConfig();
     testSilenceResetsPhase();
     testPlaybackSpeedDoesNotShiftPitch();
     testDspProcReadsSongPosition();

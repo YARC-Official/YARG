@@ -24,6 +24,10 @@ struct yarg_sine_synth_dsp {
     std::atomic<std::uint64_t> songTimeOffsetBits;
     std::atomic<std::uint32_t> speedBits;
 
+    // 1-based output channel (the odd channel of a speaker pair), or 0 to broadcast to every
+    // channel. Published by the game thread when the setting changes, read on the render thread.
+    std::atomic<std::uint32_t> outputChannel;
+
     // Tone schedule, sorted by start time. Replaced under the channel lock while attached, so
     // the render thread never observes a partially written table.
     std::vector<yarg_tone_segment> notes;
@@ -51,6 +55,8 @@ int sineSynthDspSetSchedule(yarg_sine_synth_dsp* dsp, const yarg_tone_segment* n
     std::size_t segmentCount, int* bassError) noexcept;
 int sineSynthDspSetTiming(yarg_sine_synth_dsp* dsp, double songTimeOffset,
     float playbackSpeed) noexcept;
+int sineSynthDspSetOutputChannel(yarg_sine_synth_dsp* dsp,
+    std::uint32_t outputChannel) noexcept;
 
 // Returns false when state must remain allocated because detach was not safe.
 bool sineSynthDspDestroy(yarg_sine_synth_dsp* dsp) noexcept;

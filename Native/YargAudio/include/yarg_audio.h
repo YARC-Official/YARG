@@ -18,7 +18,7 @@
 extern "C" {
 #endif
 
-#define YARG_AUDIO_ABI_VERSION 7u
+#define YARG_AUDIO_ABI_VERSION 8u
 
 typedef struct yarg_read_ahead_stream yarg_read_ahead_stream;
 typedef struct yarg_gain_dsp yarg_gain_dsp;
@@ -61,6 +61,11 @@ typedef struct yarg_sine_synth_config {
     uint32_t tempo_stream;
     float volume;
     float fade_seconds;
+    /* 1-based output channel (the odd channel of a speaker pair, matching the experimental
+       output-channel setting): 1 routes the tone to the first pair, 3 to the second, and so on.
+       0 broadcasts to every channel, which is also the fallback when the value exceeds the
+       device's channel count. */
+    uint32_t output_channel;
 } yarg_sine_synth_config;
 
 typedef enum yarg_read_ahead_state {
@@ -207,6 +212,8 @@ YARG_AUDIO_API int32_t YARG_AUDIO_CALL yarg_sine_synth_dsp_set_schedule(
     int32_t* bass_error);
 YARG_AUDIO_API int32_t YARG_AUDIO_CALL yarg_sine_synth_dsp_set_timing(
     yarg_sine_synth_dsp* dsp, double song_time_offset, float playback_speed);
+YARG_AUDIO_API int32_t YARG_AUDIO_CALL yarg_sine_synth_dsp_set_output_channel(
+    yarg_sine_synth_dsp* dsp, uint32_t output_channel);
 YARG_AUDIO_API int32_t YARG_AUDIO_CALL yarg_sine_synth_dsp_destroy(
     yarg_sine_synth_dsp* dsp);
 

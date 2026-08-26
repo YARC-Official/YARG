@@ -22,7 +22,7 @@ static_assert(sizeof(yarg_freeverb_params) == 24);
 static_assert(sizeof(yarg_dattorro_reverb_params) == 24);
 static_assert(sizeof(yarg_noise_gate_params) == 24);
 static_assert(sizeof(yarg_tone_segment) == 24);
-static_assert(sizeof(yarg_sine_synth_config) == 16);
+static_assert(sizeof(yarg_sine_synth_config) == 20);
 static_assert(sizeof(int32_t) == sizeof(int));
 
 struct yarg_one_shot_stream {
@@ -130,6 +130,11 @@ int32_t YARG_AUDIO_CALL yarg_sine_synth_dsp_set_schedule(yarg_sine_synth_dsp* ds
 int32_t YARG_AUDIO_CALL yarg_sine_synth_dsp_set_timing(yarg_sine_synth_dsp* dsp,
     double song_time_offset, float playback_speed) {
     return yarg::audio::sineSynthDspSetTiming(dsp, song_time_offset, playback_speed);
+}
+
+int32_t YARG_AUDIO_CALL yarg_sine_synth_dsp_set_output_channel(yarg_sine_synth_dsp* dsp,
+    uint32_t output_channel) {
+    return yarg::audio::sineSynthDspSetOutputChannel(dsp, output_channel);
 }
 
 int32_t YARG_AUDIO_CALL yarg_sine_synth_dsp_destroy(yarg_sine_synth_dsp* dsp) {

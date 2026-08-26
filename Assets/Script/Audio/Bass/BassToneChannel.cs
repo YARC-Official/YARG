@@ -78,6 +78,20 @@ namespace YARG.Audio.BASS
             }
         }
 
+        /// <summary>
+        ///     Routes the tone to a 1-based output channel (the odd channel of a speaker pair),
+        ///     or to every channel when <paramref name="outputChannel"/> is 0. Mirrors the song's
+        ///     own speaker routing so the guide pitch does not leak to every speaker on a
+        ///     multichannel device.
+        /// </summary>
+        internal void SetOutputChannel(uint outputChannel)
+        {
+            if (!_disposed)
+            {
+                _dsp.SetOutputChannel(outputChannel);
+            }
+        }
+
         public override void Dispose()
         {
             if (_disposed)
