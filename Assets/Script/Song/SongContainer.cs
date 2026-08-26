@@ -907,13 +907,13 @@ namespace YARG.Song
                     if (!intensities.TryGetValue(intensity, out var songs))
                         continue;
 
-                    string label = YARG.Menu.Filters.FiltersMenu.GetStandardIntensityLabel(intensity);
+                    string label = YARG.Menu.Filters.FiltersMenu.GetIntensityLabel(intensity);
                     categories[index++] = new SongCategory(label, songs.ToArray(), label);
                 }
 
                 foreach (var intensity in intensities.Where(pair => pair.Key < 0 || pair.Key > 6))
                 {
-                    string label = Localize.KeyFormat("Menu.MusicLibrary.Sort.Intensity", intensity.Key);
+                    string label = YARG.Menu.Filters.FiltersMenu.GetIntensityLabel(intensity.Key);
                     categories[index++] = new SongCategory(label, intensity.Value.ToArray(), label);
                 }
             }

@@ -1636,6 +1636,7 @@ namespace YARG.Menu.Filters
         {
             var counts = GetIntensityCounts(instrument);
             var ordered = new List<string>(IntensityLabelKeys.Length + 2);
+            var nonstandardIntensities = new SortedSet<int>();
 
             for (int i = 0; i < IntensityLabelKeys.Length; i++)
             {
@@ -1644,9 +1645,17 @@ namespace YARG.Menu.Filters
                     ordered.Add(label);
             }
 
-            var unknownLabel = Localize.Key(IntensityLabelUnknownKey);
-            if (counts.TryGetValue(unknownLabel, out int unknownCount) && unknownCount > 0)
-                ordered.Add(unknownLabel);
+            foreach (var song in SongContainer.Songs)
+            {
+                if (TryGetIntensity(song, instrument, out int intensity) &&
+                    (intensity < 0 || intensity >= IntensityLabelKeys.Length))
+                {
+                    nonstandardIntensities.Add(intensity);
+                }
+            }
+
+            foreach (int intensity in nonstandardIntensities)
+                ordered.Add(GetIntensityLabel(intensity));
 
             var noPartLabel = Localize.Key(IntensityLabelNoPartKey);
             if (counts.TryGetValue(noPartLabel, out int noPartCount) && noPartCount > 0)
@@ -1674,34 +1683,28 @@ namespace YARG.Menu.Filters
 
         private static string GetIntensityLabel(SongEntry entry, Instrument instrument)
         {
+            return TryGetIntensity(entry, instrument, out int intensity)
+                ? GetIntensityLabel(intensity)
+                : Localize.Key(IntensityLabelNoPartKey);
+        }
+
+        private static bool TryGetIntensity(SongEntry entry, Instrument instrument, out int intensity)
+        {
             if (instrument == Instrument.EliteDrums)
             {
                 var preferredInstrument = MidiDrumkitHelper.GetPreferredInstrumentForSong(entry);
                 if (!preferredInstrument.HasValue)
-                    return Localize.Key(IntensityLabelNoPartKey);
+                {
+                    intensity = default;
+                    return false;
+                }
 
-                var preferredPart = entry[preferredInstrument.Value];
-                if (!preferredPart.IsActive())
-                    return Localize.Key(IntensityLabelNoPartKey);
-
-                int preferredIntensity = preferredPart.Intensity;
-                if (preferredIntensity < 0) return Localize.Key(IntensityLabelUnknownKey);
-
-                if (preferredIntensity >= IntensityLabelKeys.Length)
-                    return GetIntensityLabelByIndex(IntensityLabelKeys.Length - 1);
-
-                return GetIntensityLabelByIndex(preferredIntensity);
+                instrument = preferredInstrument.Value;
             }
 
             var part = entry[instrument];
-            if (!part.IsActive()) return Localize.Key(IntensityLabelNoPartKey);
-
-            int intensity = part.Intensity;
-            if (intensity < 0) return Localize.Key(IntensityLabelUnknownKey);
-
-            if (intensity >= IntensityLabelKeys.Length) return GetIntensityLabelByIndex(IntensityLabelKeys.Length - 1);
-
-            return GetIntensityLabelByIndex(intensity);
+            intensity = part.Intensity;
+            return part.IsActive();
         }
 
         private static string GetIntensityLabelByIndex(int index)
@@ -1717,6 +1720,12 @@ namespace YARG.Menu.Filters
             return intensity >= 0 && intensity < IntensityLabelKeys.Length
                 ? GetIntensityLabelByIndex(intensity)
                 : null;
+        }
+
+        public static string GetIntensityLabel(int intensity)
+        {
+            return GetStandardIntensityLabel(intensity) ??
+                Localize.KeyFormat("Menu.MusicLibrary.Sort.Intensity", intensity);
         }
 #endregion
 
