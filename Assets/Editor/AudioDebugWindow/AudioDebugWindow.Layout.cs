@@ -138,7 +138,12 @@ namespace YARG.Editor
                     string currentDevice = SettingsManager.Settings?.OutputDevice.Value ?? "Default";
                     var currentMode = GlobalAudioHandler.GetOutputMode(currentDevice);
                     string cleanDev = CleanDeviceName(currentDevice);
-                    string devButtonLabel = currentMode == AudioOutputMode.Asio ? $"⚡ ASIO: {cleanDev} ▾" : $"🔊 {cleanDev} ▾";
+                    string devButtonLabel = currentMode switch
+                    {
+                        AudioOutputMode.Asio => $"⚡ ASIO: {cleanDev} ▾",
+                        AudioOutputMode.WasapiExclusive => $"⚡ WASAPI: {cleanDev} ▾",
+                        _ => $"🔊 {cleanDev} ▾"
+                    };
 
                     if (GUILayout.Button(devButtonLabel, EditorStyles.miniButton, GUILayout.Height(20), GUILayout.MaxWidth(240)))
                     {
@@ -174,7 +179,12 @@ namespace YARG.Editor
                     string activeDevice = SettingsManager.Settings?.OutputDevice.Value ?? "Default";
                     string cleanActive = CleanDeviceName(activeDevice);
                     var mode = GlobalAudioHandler.GetOutputMode(activeDevice);
-                    string modeLabel = mode == AudioOutputMode.Asio ? "ASIO" : "Shared";
+                    string modeLabel = mode switch
+                    {
+                        AudioOutputMode.Asio => "ASIO",
+                        AudioOutputMode.WasapiExclusive => "WASAPI Exclusive",
+                        _ => "Shared"
+                    };
                     double latencyMs = GlobalAudioHandler.PlaybackLatency;
                     var bufferInfo = GlobalAudioHandler.GetOutputBufferInfo();
                     string bufferStr = bufferInfo is { } bInfo && bInfo.PreferredLength > 0 ? $" • {bInfo.PreferredLength} spl" : string.Empty;
@@ -214,12 +224,20 @@ namespace YARG.Editor
 
         private static string CleanDeviceName(string? rawName)
         {
-            if (string.IsNullOrEmpty(rawName)) return "Default";
+            if (string.IsNullOrEmpty(rawName))
+            {
+                return "Default";
+            }
+
             string name = rawName!.Trim();
-            while (name.StartsWith("ASIO: ", StringComparison.OrdinalIgnoreCase) || name.StartsWith("ASIO:", StringComparison.OrdinalIgnoreCase))
+            while (name.StartsWith("ASIO: ", StringComparison.OrdinalIgnoreCase) ||
+                   name.StartsWith("ASIO:", StringComparison.OrdinalIgnoreCase) ||
+                   name.StartsWith("WASAPI: ", StringComparison.OrdinalIgnoreCase) ||
+                   name.StartsWith("WASAPI:", StringComparison.OrdinalIgnoreCase))
             {
                 name = name.Substring(name.IndexOf(':') + 1).Trim();
             }
+
             return name;
         }
 
@@ -292,16 +310,35 @@ namespace YARG.Editor
             string currentDevice = SettingsManager.Settings?.OutputDevice.Value ?? "Default";
 
             var sharedDevices = allDevices.Where(d => GlobalAudioHandler.GetOutputMode(d.name) == AudioOutputMode.Shared).ToList();
+            var wasapiDevices = allDevices.Where(d => GlobalAudioHandler.GetOutputMode(d.name) == AudioOutputMode.WasapiExclusive).ToList();
             var asioDevices = allDevices.Where(d => GlobalAudioHandler.GetOutputMode(d.name) == AudioOutputMode.Asio).ToList();
 
             foreach (var device in sharedDevices)
             {
                 string devName = device.name;
                 bool isCurrent = devName == currentDevice;
-                menu.AddItem(new GUIContent($"Shared (WASAPI\\/DirectSound)/{devName}"), isCurrent, () =>
+                menu.AddItem(new GUIContent($"Shared (DirectSound\\/WASAPI)/{devName}"), isCurrent, () =>
                 {
                     SwitchOutputDevice(devName);
                 });
+            }
+
+            if (wasapiDevices.Count > 0)
+            {
+                foreach (var device in wasapiDevices)
+                {
+                    string devName = device.name;
+                    string displayName = CleanDeviceName(devName);
+                    bool isCurrent = devName == currentDevice;
+                    menu.AddItem(new GUIContent($"WASAPI Exclusive (Low Latency)/{displayName}"), isCurrent, () =>
+                    {
+                        SwitchOutputDevice(devName);
+                    });
+                }
+            }
+            else
+            {
+                menu.AddDisabledItem(new GUIContent("WASAPI Exclusive (Low Latency)/No WASAPI Devices Found"));
             }
 
             if (asioDevices.Count > 0)
@@ -309,9 +346,7 @@ namespace YARG.Editor
                 foreach (var device in asioDevices)
                 {
                     string devName = device.name;
-                    string displayName = devName.StartsWith("ASIO: ", StringComparison.Ordinal)
-                        ? devName.Substring(6)
-                        : devName;
+                    string displayName = CleanDeviceName(devName);
                     bool isCurrent = devName == currentDevice;
                     menu.AddItem(new GUIContent($"ASIO (Low Latency)/{displayName}"), isCurrent, () =>
                     {

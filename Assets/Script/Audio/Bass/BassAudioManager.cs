@@ -215,6 +215,7 @@ namespace YARG.Audio.BASS
             _router.Dispose();
             _output?.Dispose();
             _output = null;
+            _outputFactory.Dispose();
             _runtime.Dispose();
         }
 
@@ -250,12 +251,6 @@ namespace YARG.Audio.BASS
 
         private bool ApplyOutputDevice(string name)
         {
-            var nextOutput = _outputFactory.Create(name);
-            if (nextOutput == null)
-            {
-                return false;
-            }
-
             var venueSamples = CaptureVenueSamples();
             var previous = _output;
             if (previous != null)
@@ -263,9 +258,10 @@ namespace YARG.Audio.BASS
                 Disconnect(previous);
             }
 
-            if (!nextOutput.Start() || !Connect(nextOutput))
+            var nextOutput = _outputFactory.Create(name);
+            if (nextOutput == null || !nextOutput.Start() || !Connect(nextOutput))
             {
-                nextOutput.Dispose();
+                nextOutput?.Dispose();
                 if (previous != null)
                 {
                     RestorePreviousOutput(previous, venueSamples, name);
@@ -281,6 +277,7 @@ namespace YARG.Audio.BASS
             }
 
             _output = nextOutput;
+            nextOutput.Device.Use();
             nextOutput.RestartRequested += OnOutputRestartRequested;
 
             UpdatePlaybackLatency();

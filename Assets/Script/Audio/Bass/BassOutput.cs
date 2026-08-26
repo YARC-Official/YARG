@@ -39,6 +39,9 @@ namespace YARG.Audio.BASS
         public abstract   int    HeardLatencyMilliseconds { get; }
         internal abstract int    EndpointDelayFrames      { get; }
         internal abstract double SongPlaybackStartDelay   { get; }
+
+        // When true (WASAPI Exclusive / ASIO), position tracking is calculated from hardware DAC pull callbacks
+        // instead of BASS's software mixer timeline.
         internal virtual bool UsesIndependentClock => false;
 
         public void Dispose()
@@ -122,7 +125,7 @@ namespace YARG.Audio.BASS
         }
 
         public bool PlaySample(int sourceHandle, OutputChannel? outputChannel) =>
-            AddToOutputMixer(sourceHandle, outputChannel, BassFlags.AutoFree);
+            AddToOutputMixer(sourceHandle, outputChannel, BassFlags.AutoFree | BassFlags.MixerChanNoRampin);
 
         public void SetSampleOutputChannel(int sourceHandle, OutputChannel? outputChannel)
         {
@@ -134,11 +137,14 @@ namespace YARG.Audio.BASS
 
         public bool AttachMonitor(int sourceHandle, double volume)
         {
-            if (_monitors.Contains(sourceHandle))
+            bool isConnected = OutputMixerHandle != 0 && BassMix.ChannelGetMixer(sourceHandle) == OutputMixerHandle;
+            if (isConnected)
             {
+                _monitors.Add(sourceHandle);
                 return SetMonitorVolume(sourceHandle, volume);
             }
 
+            _monitors.Remove(sourceHandle);
             if (!SetMonitorVolume(sourceHandle, volume) || !AddToOutputMixer(sourceHandle, null))
             {
                 return false;
@@ -201,7 +207,7 @@ namespace YARG.Audio.BASS
         private bool AddToOutputMixer(int sourceHandle, OutputChannel? outputChannel,
             BassFlags additionalFlags = BassFlags.Default)
         {
-            var flags = BassFlags.MixerChanDownMix | BassFlags.MixerChanNoRampin | additionalFlags;
+            var flags = BassFlags.MixerChanDownMix | additionalFlags;
             if (outputChannel is BassOutputChannel bassOutputChannel)
             {
                 flags |= bassOutputChannel.Flags;
