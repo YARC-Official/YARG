@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using UnityEngine;
-using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 using YARG.Audio.BASS;
 using YARG.Core.Logging;
@@ -119,17 +118,6 @@ namespace YARG
         private void Update()
         {
             GlobalAudioHandler.Update();
-
-            if (Keyboard.current?.f8Key.wasPressedThisFrame == true)
-            {
-                long memoryBefore = GC.GetTotalMemory(false);
-                GC.Collect();
-                GC.WaitForPendingFinalizers();
-                GC.Collect();
-                long memoryAfter = GC.GetTotalMemory(false);
-                YargLogger.LogFormatInfo("F8 pressed: Garbage collection complete. Memory: {0:N0} -> {1:N0} bytes (freed {2:N0} bytes)",
-                    memoryBefore, memoryAfter, memoryBefore - memoryAfter);
-            }
 
 #if UNITY_EDITOR
             bool muted = UnityEditor.EditorUtility.audioMasterMute;
