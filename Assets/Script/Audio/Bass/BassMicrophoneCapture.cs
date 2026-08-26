@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using ManagedBass;
+using ManagedBass.Mix;
 using YARG.Core.Audio;
 using YARG.Core.Logging;
 
@@ -280,12 +281,26 @@ namespace YARG.Audio.BASS
         private bool DiscardAudioLocked()
         {
             int waitingBytes = GetAvailableRecordBytes();
-            if (waitingBytes == 0)
+            if (waitingBytes <= 0)
             {
                 return true;
             }
 
-            return Bass.ChannelGetData(_microphoneHandle, IntPtr.Zero, waitingBytes) >= 0;
+            var buffer = new byte[Math.Min(waitingBytes, 4096)];
+            while (waitingBytes > 0)
+            {
+                int toRead = Math.Min(waitingBytes, buffer.Length);
+                int read = Bass.ChannelGetData(_microphoneHandle, buffer, toRead);
+                if (read <= 0)
+                {
+                    break;
+                }
+
+                waitingBytes -= read;
+            }
+
+            BassMix.SplitStreamReset(_microphoneHandle, 0);
+            return true;
         }
 
         internal void AddListener()

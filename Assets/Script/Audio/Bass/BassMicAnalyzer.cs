@@ -36,13 +36,11 @@ namespace YARG.Audio.BASS
 
         private const int AMPLITUDE_STRIDE   = 4;
         private const int IDLE_SLEEP_MS      = 1;
-        private const int MAX_BACKLOG_FRAMES = 2;
 
         private readonly object                          _analysisLock = new();
         private readonly float[]                         _frameBuffer;
         private readonly Func<double>                    _getInputTime;
         private readonly Func<bool>                      _isOutputRecording;
-        private readonly int                             _maximumBacklogBytes;
         private readonly ConcurrentQueue<MicOutputFrame> _outputFrames = new();
         private readonly PitchTracker                    _pitchTracker;
 
@@ -50,7 +48,6 @@ namespace YARG.Audio.BASS
 
         private readonly IBassMicSampleSource _source;
         private readonly Thread               _worker;
-        private          int                  _backlogResets;
         private          bool                 _failureLogged;
         private          int                  _frameSamples;
         private          float?               _lastAmplitude;
@@ -70,7 +67,6 @@ namespace YARG.Audio.BASS
             _readBuffer = new float[samplesPerFrame];
             _frameBuffer = new float[samplesPerFrame];
             _pitchTracker = new PitchTracker(source.SampleRate);
-            _maximumBacklogBytes = checked(samplesPerFrame * sizeof(float) * MAX_BACKLOG_FRAMES);
 
             _worker = new Thread(ReadLoop)
             {
@@ -79,8 +75,6 @@ namespace YARG.Audio.BASS
             };
             _worker.Start();
         }
-
-        internal int BacklogResetCount => Volatile.Read(ref _backlogResets);
 
         public void Dispose() => StopAndJoin();
 
@@ -180,11 +174,6 @@ namespace YARG.Audio.BASS
                     return false;
                 }
 
-                if (backlogBytes > _maximumBacklogBytes)
-                {
-                    return HandleStaleBacklog(backlogBytes);
-                }
-
                 double readTime = _getInputTime();
                 int samplesRead = _source.Read(_readBuffer.AsSpan());
 
@@ -205,25 +194,6 @@ namespace YARG.Audio.BASS
 
                 return true;
             }
-        }
-
-        private bool HandleStaleBacklog(int backlogBytes)
-        {
-            int resetCount = Interlocked.Increment(ref _backlogResets);
-            if (resetCount == 1 || resetCount % 32 == 0)
-            {
-                YargLogger.LogWarning($"Dropped stale microphone analysis backlog: {backlogBytes} bytes " +
-                    $"(limit {_maximumBacklogBytes}), reset {resetCount}");
-            }
-
-            if (!_source.ResetToLive())
-            {
-                LogFailure("Failed to reset microphone analysis backlog");
-                return false;
-            }
-
-            ClearState();
-            return true;
         }
 
         private void AssembleFrames(float[] samples, int sampleCount, double readTime, int backlogBytesBeforeRead)
