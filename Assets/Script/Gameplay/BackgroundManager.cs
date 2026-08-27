@@ -41,8 +41,10 @@ namespace YARG.Gameplay
 
         private string VIDEO_PATH;
 
+        private RenderTexture _plainVideoTexture;
+
         [SerializeField]
-        private VideoPlayer _videoPlayer;
+        private LibVlcVideoPlayer _videoPlayer;
 
         [SerializeField]
         private RawImage _backgroundImage;
@@ -65,6 +67,16 @@ namespace YARG.Gameplay
         private bool _videoWasPausedBeforeSeek = false;
 
         private const float FADE_DURATION = 0.5f;
+
+        // Corrects video decode falling behind real-time at >1x speed by biasing Rate instead of
+        // seeking -- a seek forces libVLC to re-buffer from a keyframe and visibly chops (tried
+        // and abandoned). See CorrectVideoDrift.
+        private const double DRIFT_DEAD_ZONE_SECONDS = 0.05;
+        private const double DRIFT_CORRECTION_GAIN = 0.5;
+        private const float DRIFT_MAX_RATE_BIAS = 0.15f;
+        private const float DRIFT_CHECK_INTERVAL_SECONDS = 0.5f;
+        private float _lastDriftCheckTime;
+        private float _videoRateBias;
 
         private float YARGROUND_OFFSET = 50f;
 
@@ -97,6 +109,9 @@ namespace YARG.Gameplay
 #if UNITY_EDITOR
             if (VenueEditorHelper.IsSceneEnabled())
             {
+                YargLogger.LogWarning("[Video] VenueEditorHelper.IsSceneEnabled() is true -- loading the Venue " +
+                    "Editor preview scene instead of the song's actual background (video/image/normal yarground). " +
+                    "If you're trying to test a song's video, disable Venue Editor scene mode.");
                 if (VenueEditorHelper.TryGetScenePath(out _editorVenuePath))
                 {
                     var loadedScene = SceneManager.GetSceneByName(_editorVenuePath);
@@ -182,8 +197,11 @@ namespace YARG.Gameplay
 
             using var result = VenueLoader.GetVenue(GameManager.Song, out _source);
 
+            YargLogger.LogDebug($"[Video] VenueLoader.GetVenue: result={(result == null ? "null" : result.Type.ToString())}, source={_source}");
+
             if (result == null)
             {
+                YargLogger.LogWarning("[Video] VenueLoader.GetVenue returned null -- no background will be shown at all");
                 return;
             }
 
@@ -197,9 +215,11 @@ namespace YARG.Gameplay
             var hint = GameManager.Song.VenueHint;
             if (!string.IsNullOrWhiteSpace(hint))
             {
+                YargLogger.LogDebug($"[Video] VenueHint present: '{hint}', checking for a matching addressable yarground");
                 if (await AddressableVenueExists(hint))
                 {
                     var loaded = await LoadAddressableYarground(hint, vocalGender);
+                    YargLogger.LogDebug($"[Video] Addressable yarground '{hint}' load attempt: loaded={loaded}");
                     if (loaded)
                     {
                         GameManager.CrowdEventHandler.Start();
@@ -211,6 +231,7 @@ namespace YARG.Gameplay
             // Hint didn't resolve or failed to load, so pretend it didn't exist
 
             _type = result.Type;
+            YargLogger.LogDebug($"[Video] Resolved background _type={_type}");
 
             // Start crowd event handler now if we aren't waiting on a yarground
             // TODO: Figure out how to decouple this
@@ -226,6 +247,30 @@ namespace YARG.Gameplay
                     GameManager.CrowdEventHandler.Start();
                     break;
                 case BackgroundType.Video:
+                    // LibVlcVideoPlayer always needs an explicit target texture (no
+                    // camera-composite render mode like Unity's VideoPlayer), so route it
+                    // through _backgroundImage like the Image case below.
+                    _plainVideoTexture = new RenderTexture(1920, 1080, 0);
+                    // Repeat is required: _backgroundImage's uvRect below flips V negative,
+                    // which only wraps correctly under Repeat -- Clamp collapses it to row 0.
+                    _plainVideoTexture.wrapMode = TextureWrapMode.Repeat;
+
+                    // Undefined GPU memory (renders grey) until the first video frame decodes.
+                    _plainVideoTexture.Create();
+                    var prevActiveRt = RenderTexture.active;
+                    RenderTexture.active = _plainVideoTexture;
+                    GL.Clear(false, true, Color.black);
+                    RenderTexture.active = prevActiveRt;
+
+                    _videoPlayer.targetTexture = _plainVideoTexture;
+                    _backgroundImage.texture = _plainVideoTexture;
+                    _backgroundImage.uvRect = new Rect(0f, 0f, 1f, -1f);
+                    _backgroundImage.gameObject.SetActive(true);
+                    // Stay invisible until playback starts (Update()'s "Start video" block) so
+                    // Prepare()'s async window never flashes -- fades in instead.
+                    _backgroundImage.canvasRenderer.SetAlpha(0f);
+                    YargLogger.LogDebug($"[Video] Plain video background: created {_plainVideoTexture.width}x{_plainVideoTexture.height} " +
+                        "target texture, wired to _backgroundImage");
                     LoadVideoBackground(result);
                     break;
                 case BackgroundType.Image:
@@ -502,25 +547,31 @@ namespace YARG.Gameplay
                 case FileStream fs:
                 {
                     _videoPlayer.url = fs.Name;
+                    YargLogger.LogFormatDebug("[Video] Loading from FileStream: {0}", fs.Name);
                     break;
                 }
                 case SngFileStream sngStream:
                 {
-                    // UNFORTUNATELY, Videoplayer can't use streams, so video files
-                    // MUST BE FULLY DECRYPTED
+                    // Could stream directly via LibVLCSharp's StreamMediaInput, but decrypting to
+                    // a temp file decouples playback from the .sng handle's lifetime -- simpler.
 
                     VIDEO_PATH = Path.Combine(Application.persistentDataPath, sngStream.Name);
                     using var tmp = File.OpenWrite(VIDEO_PATH);
                     File.SetAttributes(VIDEO_PATH, File.GetAttributes(VIDEO_PATH) | FileAttributes.Temporary | FileAttributes.Hidden);
                     bg.Stream.CopyTo(tmp);
                     _videoPlayer.url = VIDEO_PATH;
+                    YargLogger.LogDebug($"[Video] Loading from decrypted .sng stream: {sngStream.Name} -> {VIDEO_PATH}");
                     break;
                 }
+                default:
+                    YargLogger.LogFormatWarning("[Video] Unrecognized BackgroundResult.Stream type: {0}", bg.Stream?.GetType().FullName ?? "null");
+                    break;
             }
 
             _videoPlayer.enabled = true;
             _videoPlayer.prepareCompleted += OnVideoPrepared;
             _videoPlayer.seekCompleted += OnVideoSeeked;
+            YargLogger.LogDebug("[Video] Calling Prepare()");
             _videoPlayer.Prepare();
             enabled = true;
         }
@@ -546,29 +597,87 @@ namespace YARG.Gameplay
                     return;
 
                 _videoStarted = true;
+                YargLogger.LogFormatDebug("[Video] Starting playback at songTime={0:F3}, videoStartTime={1:F3}, videoEndTime={2:F3}",
+                    time, _videoStartTime, _videoEndTime);
                 _videoPlayer.Play();
 
-                // Disable after starting the video if it's not from the song folder
-                // or if video end time is not specified
-                if (_source != VenueSource.Song || double.IsNaN(_videoEndTime))
+                FadeBackgroundImage(1f);
+
+                // Videos with no end time used to also disable here, but now stay enabled so
+                // drift correction below keeps running for them too.
+                if (_source != VenueSource.Song)
                 {
                     enabled = false;
                     return;
                 }
             }
 
+            CorrectVideoDrift();
+
             // End video when reaching the specified end time
             if (time + _videoStartTime >= _videoEndTime)
             {
+                YargLogger.LogFormatDebug("[Video] Reached videoEndTime={0:F3} at songTime={1:F3}, stopping", _videoEndTime, time);
+
+                // Freezes on the last decoded frame while fading out over it. Looping videos
+                // never reach this branch (handled via LibVlcVideoPlayer's own EndReached restart).
+                FadeBackgroundImage(0f);
+
                 _videoPlayer.Stop();
                 _videoPlayer.enabled = false;
                 enabled = false;
             }
         }
 
+        // No-op for the yarground venue-screen video path (SetUpVideoTexture) -- only the
+        // plain-video path displays through _backgroundImage.
+        private void FadeBackgroundImage(float targetAlpha)
+        {
+            if (_type == BackgroundType.Video)
+            {
+                _backgroundImage.CrossFadeAlpha(targetAlpha, FADE_DURATION, true);
+            }
+        }
+
+        // Proportional controller: biases playbackSpeed to close the expected-vs-actual video
+        // position error, recomputed fresh each interval (not accumulated) so it relaxes to zero
+        // as drift closes. Skipped for looping videos -- no single "expected position" for them,
+        // since they restart their own clock every loop (LibVlcVideoPlayer's EndReached).
+        private void CorrectVideoDrift()
+        {
+            if (double.IsNaN(_videoEndTime) || _videoSeeking)
+                return;
+
+            if (Time.unscaledTime - _lastDriftCheckTime < DRIFT_CHECK_INTERVAL_SECONDS)
+                return;
+
+            _lastDriftCheckTime = Time.unscaledTime;
+
+            double expectedVideoTime = GameManager.VisualTime + GameManager.Song.SongOffsetSeconds + _videoStartTime;
+            if (expectedVideoTime < 0.0 || expectedVideoTime >= _videoPlayer.length)
+                return;
+
+            // Positive error means the video is behind and needs to speed up; negative means it's
+            // ahead and needs to slow down.
+            double error = expectedVideoTime - _videoPlayer.time;
+
+            float newBias = Math.Abs(error) > DRIFT_DEAD_ZONE_SECONDS
+                ? Math.Clamp((float) (error * DRIFT_CORRECTION_GAIN), -DRIFT_MAX_RATE_BIAS, DRIFT_MAX_RATE_BIAS)
+                : 0f;
+
+            if (!Mathf.Approximately(newBias, _videoRateBias))
+            {
+                _videoRateBias = newBias;
+                float correctedRate = GameManager.SongSpeed + _videoRateBias;
+                YargLogger.LogFormatDebug("[Video] Drift correction: expected={0:F3}, actual={1:F3}, error={2:F3}s, " +
+                    "rateBias={3:F3}, rate={4:F3}", expectedVideoTime, _videoPlayer.time, error, _videoRateBias, correctedRate);
+                _videoPlayer.playbackSpeed = correctedRate;
+            }
+        }
+
         // Some video player properties don't work correctly until
         // it's finished preparing, such as the length
-        private void OnVideoPrepared(VideoPlayer player)
+        private void OnVideoPrepared(LibVlcVideoPlayer player)
         {
             // Start time is considered set if it is greater than 25 ms in either direction
             // End time is only set if it is greater than 0
@@ -576,6 +685,9 @@ namespace YARG.Gameplay
             const double startTimeThreshold = 0.025;
             const double endTimeThreshold = 0;
             const double dontLoopThreshold = 0.85;
+
+            YargLogger.LogFormatDebug("[Video] OnVideoPrepared: length={0:F3}s, source={1}, songVideoLoop={2}",
+                player.length, _source, GameManager.Song.VideoLoop);
 
             if (_source == VenueSource.Song && !GameManager.Song.VideoLoop)
             {
@@ -598,7 +710,11 @@ namespace YARG.Gameplay
                     player.isLooping = false;
                     if (_videoEndTime <= 0)
                     {
-                        _videoEndTime = player.length;
+                        // Fall back to whichever runs out first: the video file's length, or the
+                        // song's own end (video-time, hence + _videoStartTime). player.length alone
+                        // was a bug -- a background video longer than the song made this end time
+                        // unreachable, so fade-out never fired.
+                        _videoEndTime = Math.Min(player.length, GameManager.SongLength + _videoStartTime);
                     }
                 }
             }
@@ -608,6 +724,28 @@ namespace YARG.Gameplay
                 _videoEndTime = double.NaN;
                 player.isLooping = true;
             }
+
+            YargLogger.LogFormatDebug("[Video] Resolved videoStartTime={0:F3}, videoEndTime={1:F3}, isLooping={2}",
+                _videoStartTime, _videoEndTime, player.isLooping);
+        }
+
+        // Seeks+plays immediately, bypassing SetTime's OverridePause/seek-completion wait -- that
+        // machinery is wrong to invoke here since GameManager.Resume()'s practice-mode fast path
+        // skips OverrideResume(), leaking the pause-override counter if OverridePause() was
+        // engaged by a SetTime call right before. Used by pause-rewind catch-up and practice loop
+        // restarts (GameManager.SetSongTime's immediateVideoSync path).
+        public void SeekVideoImmediate(double songTime)
+        {
+            if (_type != BackgroundType.Video || _source != VenueSource.Song || !_videoStarted)
+                return;
+
+            double videoTime = songTime + _videoStartTime;
+            if (videoTime < 0.0 || videoTime >= _videoPlayer.length)
+                return;
+
+            YargLogger.LogFormatDebug("[Video] SeekVideoImmediate: seeking to {0:F3}s", videoTime);
+            _videoPlayer.time = videoTime;
+            _videoPlayer.Play();
         }
 
         public void SetTime(double songTime, bool waitForSeek = true)
@@ -652,17 +790,26 @@ namespace YARG.Gameplay
             }
         }
 
-        private void OnVideoSeeked(VideoPlayer player)
+        private void OnVideoSeeked(LibVlcVideoPlayer player)
         {
             if (!_videoSeeking)
                 return;
 
-            if (!_videoSeekWaitForPause ||
-                !SettingsManager.Settings.WaitForSongVideo.Value ||
-                GameManager.OverrideResume())
+            // Honor a SetPaused() call stashed while the seek was in flight (see SetPaused),
+            // instead of always resuming.
+            bool shouldPlay = _pendingPausedState is not true;
+            _pendingPausedState = null;
+
+            if (!SettingsManager.Settings.WaitForSongVideo.Value || GameManager.OverrideResume())
             {
-                if (!_videoWasPausedBeforeSeek)
+                if (shouldPlay)
+                {
                     player.Play();
+                }
+                else
+                {
+                    player.Pause();
+                }
             }
 
             enabled = !double.IsNaN(_videoEndTime);
@@ -676,23 +823,37 @@ namespace YARG.Gameplay
             switch (_type)
             {
                 case BackgroundType.Video:
+                    // Reset drift-correction bias (see CorrectVideoDrift) -- it was computed
+                    // against the old speed.
+                    _videoRateBias = 0f;
                     _videoPlayer.playbackSpeed = speed;
                     break;
             }
         }
 
+        // Pause/resume request that arrived mid-seek (see SetTime); applied in OnVideoSeeked
+        // once the seek lands.
+        private bool? _pendingPausedState;
+
         public void SetPaused(bool paused)
         {
             // Pause/unpause video
-            if (_videoPlayer.enabled && _videoStarted && !_videoSeeking)
+            if (_videoPlayer.playerEnabled && _videoStarted)
             {
-                if (paused)
+                if (_videoSeeking)
                 {
-                    _videoPlayer.Pause();
+                    _pendingPausedState = paused;
                 }
                 else
                 {
-                    _videoPlayer.Play();
+                    if (paused)
+                    {
+                        _videoPlayer.Pause();
+                    }
+                    else
+                    {
+                        _videoPlayer.Play();
+                    }
                 }
             }
 
@@ -1177,6 +1338,13 @@ namespace YARG.Gameplay
             {
                 File.Delete(VIDEO_PATH);
                 VIDEO_PATH = null;
+            }
+
+            if (_plainVideoTexture != null)
+            {
+                _plainVideoTexture.Release();
+                Destroy(_plainVideoTexture);
+                _plainVideoTexture = null;
             }
 
             // In case this somehow doesn't happen in GameplayDestroy

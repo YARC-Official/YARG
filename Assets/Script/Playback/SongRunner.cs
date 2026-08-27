@@ -729,7 +729,8 @@ namespace YARG.Playback
             return !Paused;
         }
 
-        public async UniTask<bool> RewindAndResume(double seconds, double? overrideTargetTime = null)
+        public async UniTask<bool> RewindAndResume(double seconds, double? overrideTargetTime = null,
+            Action onResuming = null)
         {
             // We can only do this when paused
             if (!Paused)
@@ -763,6 +764,10 @@ namespace YARG.Playback
 
             SetSongTime(targetRewindTime - (AudioCalibration * SongSpeed), 0);
             Resume();
+
+            // Lets callers (e.g. bg video) resync to this point instead of sitting frozen
+            // through the catch-up window to targetResumeTime.
+            onResuming?.Invoke();
 
             var waitCanceled = await UniTask.WaitUntil(() => SongTime > targetResumeTime, cancellationToken: token)
                 .SuppressCancellationThrow();

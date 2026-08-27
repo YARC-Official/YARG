@@ -112,6 +112,13 @@ namespace YARG.Gameplay
             if (_videoTexture == null)
             {
                 _videoTexture = new RenderTexture(VIDEO_TEX_WIDTH, VIDEO_TEX_HEIGHT, 0);
+
+                // Undefined GPU memory (renders grey) until first drawn into -- clear to black.
+                _videoTexture.Create();
+                var prevActiveRt = RenderTexture.active;
+                RenderTexture.active = _videoTexture;
+                GL.Clear(false, true, Color.black);
+                RenderTexture.active = prevActiveRt;
             }
             if (width is { } checkedWidth && checkedWidth > _videoTexture.width)
             {

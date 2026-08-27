@@ -157,7 +157,7 @@ namespace YARG.Gameplay
                     SetAPosition(startTime);
                     SetBPosition(endTime);
                     double restartDelay = SettingsManager.Settings.PracticeRestartDelay.Value;
-                    GameManager.SetSongTime(TimeStart, restartDelay);
+                    GameManager.SetSongTime(TimeStart, restartDelay, immediateVideoSync: true);
                     _pauseMenu.PushMenu(PauseMenuManager.Menu.PracticePause);
                     return;
                 }
@@ -216,7 +216,7 @@ namespace YARG.Gameplay
             GameManager.VocalTrack.AllowStarPower = allowPracticeSP;
             GameManager.VocalTrack.SetPracticeSection(tickStart, tickEnd);
 
-            GameManager.SetSongTime(timeStart, SettingsManager.Settings.PracticeRestartDelay.Value);
+            GameManager.SetSongTime(timeStart, SettingsManager.Settings.PracticeRestartDelay.Value, immediateVideoSync: true);
 
             _practiceHud.SetSections(GetSectionsInPractice(_sectionStartTick, _sectionEndTick));
             HasSelectedSection = true;
@@ -289,7 +289,7 @@ namespace YARG.Gameplay
             }
             GameManager.VocalTrack.ResetPracticeSection();
 
-            GameManager.SetSongTime(TimeStart, SettingsManager.Settings.PracticeRestartDelay.Value);
+            GameManager.SetSongTime(TimeStart, SettingsManager.Settings.PracticeRestartDelay.Value, immediateVideoSync: true);
             GameManager.Resume();
         }
 

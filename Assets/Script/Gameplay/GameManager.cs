@@ -351,13 +351,27 @@ namespace YARG.Gameplay
         }
 
 
-        public void SetSongTime(double time, double delayTime = SONG_START_DELAY)
+        // immediateVideoSync: bypasses SetTime's OverridePause wait for an immediate seek+play
+        // (BackgroundManager.SeekVideoImmediate). Needed by practice mode (PracticeManager.cs),
+        // whose Resume() fast path skips OverrideResume() and would leak the pause-override
+        // counter if OverridePause() had just been engaged by a SetTime call.
+        public void SetSongTime(double time, double delayTime = SONG_START_DELAY, bool immediateVideoSync = false)
         {
             _songRunner.SetSongTime(time, delayTime);
             ApplySongSpeed();
 
             BeatEventHandler.Reset();
-            BackgroundManager.SetTime(_songRunner.GetAudioPlaybackTime(_songRunner.SongTime));
+            // VisualTime (video calibration), not SongTime (audio calibration) -- they diverge
+            // proportionally to SongSpeed whenever the two calibration settings differ.
+            double videoSyncTime = _songRunner.VisualTime + Song.SongOffsetSeconds;
+            if (immediateVideoSync)
+            {
+                BackgroundManager.SeekVideoImmediate(videoSyncTime);
+            }
+            else
+            {
+                BackgroundManager.SetTime(videoSyncTime);
+            }
             VenueCameraManager?.ResetTime(time);
             VenueCharacterManager?.ResetTime(time);
             if (_lyricBar.gameObject.activeSelf)
@@ -1088,7 +1102,12 @@ namespace YARG.Gameplay
                 targetTime = PauseInfo[^1].PauseTime;
             }
 
-            var canceled = await _songRunner.RewindAndResume(seconds, targetTime);
+            // Matches SongRunner.RewindAndResume's own targetVisualTime (SongRunner.cs:707) --
+            // VisualTime doesn't move while paused, so this equals what it computes internally.
+            double videoRewindTime = VisualTime - seconds;
+
+            var canceled = await _songRunner.RewindAndResume(seconds, targetTime,
+                onResuming: () => BackgroundManager.SeekVideoImmediate(videoRewindTime + Song.SongOffsetSeconds));
 
             if (canceled)
             {

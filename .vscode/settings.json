@@ -1,6 +1,5 @@
 {
-    "files.exclude":
-    {
+    "files.exclude": {
         "**/.DS_Store": true,
         "**/.git": true,
         "**/*.meta": true,
@@ -11,5 +10,5 @@
         "temp/": true,
         "Temp/": true
     },
-    "dotnet.defaultSolution": "YARG.slnx"
+    "dotnet.defaultSolution": "yarg.slnx"
 }

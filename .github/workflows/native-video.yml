@@ -1,0 +1,289 @@
+name: Native video (libVLC)
+
+on:
+  pull_request:
+    paths:
+      - "Assets/Script/Gameplay/LibVlcVideoPlayer.cs"
+      - "Assets/Script/Gameplay/LibVlcNativePath.cs"
+      - "scripts/NativeBuild/libvlc-plugin-allowlist.txt"
+      - ".github/workflows/native-video.yml"
+  push:
+    branches: [dev]
+    paths:
+      - "Assets/Script/Gameplay/LibVlcVideoPlayer.cs"
+      - "Assets/Script/Gameplay/LibVlcNativePath.cs"
+      - "scripts/NativeBuild/libvlc-plugin-allowlist.txt"
+      - ".github/workflows/native-video.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# Each job fetches a prebuilt libvlc redistributable for its platform (no from-source build --
+# libvlc is VideoLAN's, not ours), trims it to scripts/NativeBuild/libvlc-plugin-allowlist.txt,
+# and uploads the result as an artifact. Nothing auto-commits: a maintainer downloads the
+# yarg-libvlc-<platform> artifact and extracts it into Assets/Plugins/LibVLCNative/<Platform>/,
+# same review-before-merge convention as native-audio.yml.
+jobs:
+  linux:
+    name: Linux x64
+    # No redistributable VideoLAN.LibVLC.Linux NuGet package (unlike Windows/Mac) -- fetch
+    # prebuilt Ubuntu libvlc + plugin packages and repackage so Linux stays self-contained
+    # rather than requiring a system-installed libvlc.
+    #
+    # Built inside Ubuntu 20.04 to match the glibc 2.31 floor native-audio.yml already
+    # established (Unity 6's minimum supported glibc). Don't bump without re-evaluating the floor.
+    runs-on: ubuntu-22.04
+    container: ubuntu:20.04
+    env:
+      DEBIAN_FRONTEND: noninteractive
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Fetch libvlc, libvlccore, and every vlc-plugin-* package
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends apt-utils
+
+          # Package names/splits drift between distro releases, so discover vlc-plugin-*
+          # dynamically and trim to the allowlist below instead of hardcoding package names.
+          PLUGIN_PACKAGES=$(apt-cache search '^vlc-plugin-' | awk '{print $1}' | sort)
+          echo "Plugin packages: $PLUGIN_PACKAGES"
+
+          mkdir -p "$RUNNER_TEMP/apt-cache/archives/partial"
+          apt-get install -y --no-install-recommends --download-only \
+            -o Dir::Cache::archives="$RUNNER_TEMP/apt-cache/archives" \
+            libvlc5 libvlccore9 $PLUGIN_PACKAGES
+
+      - name: Extract .deb packages
+        run: |
+          EXTRACT="$RUNNER_TEMP/libvlc-extract"
+          mkdir -p "$EXTRACT"
+          for deb in "$RUNNER_TEMP"/apt-cache/archives/*.deb; do
+            dpkg-deb -x "$deb" "$EXTRACT"
+          done
+          find "$EXTRACT" -iname 'libvlc.so*' -o -iname 'libvlccore.so*'
+
+      - name: Assemble Assets/Plugins/LibVLCNative/Linux bundle
+        run: |
+          EXTRACT="$RUNNER_TEMP/libvlc-extract"
+          OUT="$RUNNER_TEMP/vlc-linux-x64"
+          mkdir -p "$OUT/plugins"
+
+          # Flatten every shared lib (libvlc/libvlccore + plugin dependencies like libavcodec,
+          # libdav1d) into $OUT so LD_LIBRARY_PATH=$OUT alone resolves everything -- plugins/
+          # only holds the plugin modules themselves.
+          find "$EXTRACT" -name '*.so*' -not -path '*/vlc/plugins/*' -exec cp -Pn {} "$OUT/" \;
+
+          # Trim to the curated allowlist shared with the macOS vendoring step.
+          PLUGINDIR=$(find "$EXTRACT" -type d -path '*/vlc/plugins' | head -1)
+          while IFS= read -r name; do
+            [ -z "$name" ] && continue
+            case "$name" in \#*) continue ;; esac
+            found=$(find "$PLUGINDIR" -name "lib${name}_plugin.so" | head -1)
+            if [ -n "$found" ]; then
+              cp -P "$found" "$OUT/plugins/"
+            else
+              echo "::warning::allowlisted plugin '$name' not found in apt packages"
+            fi
+          done < scripts/NativeBuild/libvlc-plugin-allowlist.txt
+
+          du -sh "$OUT"
+          find "$OUT" -name '*.so*' | wc -l
+
+      - name: Verify architecture and glibc floor
+        run: |
+          OUT="$RUNNER_TEMP/vlc-linux-x64"
+          apt-get install -y --no-install-recommends binutils file
+
+          file "$OUT/libvlc.so"* | grep 'ELF 64-bit.*x86-64'
+
+          # Fail if any bundled .so requires a glibc symbol newer than 2.31 -- wouldn't dlopen
+          # on the floor (Ubuntu 20.04 / Debian 11 / RHEL 8) native-audio.yml targets.
+          MAX_OVER_FLOOR=""
+          while IFS= read -r -d '' so; do
+            ver=$(objdump -T "$so" 2>/dev/null | grep -oE 'GLIBC_[0-9]+\.[0-9]+' | sort -V | tail -1 | sed 's/GLIBC_//')
+            if [ -n "$ver" ]; then
+              major=$(echo "$ver" | cut -d. -f1)
+              minor=$(echo "$ver" | cut -d. -f2)
+              if [ "$major" -gt 2 ] || { [ "$major" -eq 2 ] && [ "$minor" -gt 31 ]; }; then
+                echo "::error file=$so::requires GLIBC_$ver, exceeds the 2.31 floor"
+                MAX_OVER_FLOOR="$so"
+              fi
+            fi
+          done < <(find "$OUT" -name '*.so*' -print0)
+
+          if [ -n "$MAX_OVER_FLOOR" ]; then
+            echo "One or more bundled libraries exceed the glibc 2.31 floor; see errors above."
+            exit 1
+          fi
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: yarg-libvlc-linux-x64
+          path: ${{ runner.temp }}/vlc-linux-x64
+          if-no-files-found: error
+
+      - name: Bundle instructions
+        run: |
+          echo "### libVLC Linux bundle" >> "$GITHUB_STEP_SUMMARY"
+          echo "Download the yarg-libvlc-linux-x64 artifact and extract it to" >> "$GITHUB_STEP_SUMMARY"
+          echo '`Assets/Plugins/LibVLCNative/Linux/` to vendor/refresh the bundle, then commit it.' >> "$GITHUB_STEP_SUMMARY"
+
+  macos:
+    name: macOS universal
+    # Fetch VideoLAN's official prebuilt macOS libvlc rather than a developer's local VLC.app
+    # (not reproducible, single-arch). Needs the @rpath -> @loader_path rewrite + ad-hoc
+    # re-sign below since libvlc's plugins link libvlccore via @rpath, which dlopen() never
+    # resolves unless rewritten relative to the plugin itself.
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Fetch and extract VideoLAN's macOS libvlc release
+        env:
+          # Pin a specific libvlc release rather than "last" so this job is reproducible; bump
+          # deliberately alongside VideoLAN.LibVLC.Mac's version in Assets/packages.config.
+          VLC_VERSION: "3.0.20"
+        run: |
+          EXTRACT="$RUNNER_TEMP/libvlc-extract"
+          mkdir -p "$EXTRACT"
+          curl -fL "https://download.videolan.org/pub/videolan/vlc/${VLC_VERSION}/macosx/vlc-${VLC_VERSION}.dmg" \
+            -o "$RUNNER_TEMP/vlc.dmg"
+          MOUNTPOINT=$(hdiutil attach "$RUNNER_TEMP/vlc.dmg" -nobrowse | tail -1 | awk '{print $NF}')
+          cp -R "$MOUNTPOINT/VLC.app/Contents/MacOS/lib" "$EXTRACT/lib"
+          cp -R "$MOUNTPOINT/VLC.app/Contents/MacOS/plugins" "$EXTRACT/plugins"
+          hdiutil detach "$MOUNTPOINT"
+          ls "$EXTRACT/lib"
+
+      - name: Assemble Assets/Plugins/LibVLCNative/Mac bundle
+        run: |
+          EXTRACT="$RUNNER_TEMP/libvlc-extract"
+          OUT="$RUNNER_TEMP/vlc-macos"
+          mkdir -p "$OUT/plugins"
+
+          cp -P "$EXTRACT/lib/libvlc.dylib" "$EXTRACT/lib/libvlccore.dylib" "$OUT/"
+
+          while IFS= read -r name; do
+            [ -z "$name" ] && continue
+            case "$name" in \#*) continue ;; esac
+            found=$(find "$EXTRACT/plugins" -name "lib${name}_plugin.dylib" | head -1)
+            if [ -n "$found" ]; then
+              cp -P "$found" "$OUT/plugins/"
+            else
+              echo "::warning::allowlisted plugin '$name' not found in the VLC.app bundle"
+            fi
+          done < scripts/NativeBuild/libvlc-plugin-allowlist.txt
+
+          # @rpath -> @loader_path rewrite (see job comment above) + ad-hoc re-sign so
+          # Gatekeeper doesn't reject the modified binary.
+          install_name_tool -change '@rpath/libvlccore.dylib' '@loader_path/libvlccore.dylib' "$OUT/libvlc.dylib"
+          codesign --sign - --force "$OUT/libvlc.dylib"
+          for plugin in "$OUT"/plugins/*.dylib; do
+            install_name_tool -change '@rpath/libvlccore.dylib' '@loader_path/../libvlccore.dylib' "$plugin"
+            codesign --sign - --force "$plugin"
+          done
+
+          du -sh "$OUT"
+          find "$OUT" -name '*.dylib' | wc -l
+
+      - name: Verify architecture and load
+        run: |
+          OUT="$RUNNER_TEMP/vlc-macos"
+          file "$OUT/libvlc.dylib" | grep -E 'arm64|x86_64'
+          codesign -dv "$OUT/libvlc.dylib"
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: yarg-libvlc-macos
+          path: ${{ runner.temp }}/vlc-macos
+          if-no-files-found: error
+
+      - name: Bundle instructions
+        run: |
+          echo "### libVLC macOS bundle" >> "$GITHUB_STEP_SUMMARY"
+          echo "Download the yarg-libvlc-macos artifact and extract it to" >> "$GITHUB_STEP_SUMMARY"
+          echo '`Assets/Plugins/LibVLCNative/Mac/` to vendor/refresh the bundle, then commit it.' >> "$GITHUB_STEP_SUMMARY"
+          echo "Note: the current committed copy was built arm64-only from a developer's local" >> "$GITHUB_STEP_SUMMARY"
+          echo "VLC.app install; verify this job's output covers the architectures YARG ships for macOS." >> "$GITHUB_STEP_SUMMARY"
+
+  windows:
+    name: Windows x64
+    # Fetch VideoLAN's official prebuilt Windows libvlc rather than relying on
+    # VideoLAN.LibVLC.Windows, which NuGetForUnity only restores as metadata (no actual .dll).
+    runs-on: windows-2022
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Fetch and extract VideoLAN's Windows libvlc release
+        env:
+          VLC_VERSION: "3.0.20"
+        shell: pwsh
+        run: |
+          $zip = "$env:RUNNER_TEMP\vlc.7z"
+          Invoke-WebRequest -Uri "https://download.videolan.org/pub/videolan/vlc/$env:VLC_VERSION/win64/vlc-$env:VLC_VERSION-win64.7z" -OutFile $zip
+          7z x $zip -o"$env:RUNNER_TEMP\libvlc-extract"
+          Get-ChildItem "$env:RUNNER_TEMP\libvlc-extract" -Recurse -Filter libvlc.dll
+
+      - name: Assemble Assets/Plugins/LibVLCNative/Windows bundle
+        shell: pwsh
+        run: |
+          $extractRoot = Get-ChildItem "$env:RUNNER_TEMP\libvlc-extract" -Directory | Select-Object -First 1
+          $out = "$env:RUNNER_TEMP\vlc-windows"
+          New-Item -ItemType Directory -Force -Path "$out\plugins" | Out-Null
+
+          Copy-Item "$extractRoot\libvlc.dll" $out
+          Copy-Item "$extractRoot\libvlccore.dll" $out
+
+          $allowlist = Get-Content scripts/NativeBuild/libvlc-plugin-allowlist.txt |
+            Where-Object { $_ -and -not $_.StartsWith('#') }
+          foreach ($name in $allowlist) {
+            $found = Get-ChildItem "$extractRoot\plugins" -Recurse -Filter "$name`_plugin.dll" | Select-Object -First 1
+            if ($found) {
+              Copy-Item $found.FullName "$out\plugins"
+            } else {
+              Write-Host "::warning::allowlisted plugin '$name' not found in the VLC release"
+            }
+          }
+
+      - name: Verify architecture
+        shell: pwsh
+        run: |
+          # Read the PE COFF header's machine field directly (no dumpbin/corflags dependency)
+          # to confirm an x64 build -- mirrors the `file` check the linux/macos jobs run.
+          $dll = "$env:RUNNER_TEMP\vlc-windows\libvlc.dll"
+          $stream = [System.IO.File]::OpenRead($dll)
+          $reader = New-Object System.IO.BinaryReader($stream)
+          $stream.Seek(0x3C, 'Begin') | Out-Null
+          $peOffset = $reader.ReadUInt32()
+          $stream.Seek($peOffset + 4, 'Begin') | Out-Null
+          $machine = $reader.ReadUInt16()
+          $reader.Close()
+
+          if ($machine -ne 0x8664) {
+            Write-Host "::error file=$dll::expected IMAGE_FILE_MACHINE_AMD64 (0x8664), got 0x$($machine.ToString('X4'))"
+            exit 1
+          }
+          Write-Host "libvlc.dll is x64 (machine=0x$($machine.ToString('X4')))"
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: yarg-libvlc-windows-x64
+          path: ${{ runner.temp }}\vlc-windows
+          if-no-files-found: error
+
+      - name: Bundle instructions
+        shell: pwsh
+        run: |
+          "### libVLC Windows bundle" >> $env:GITHUB_STEP_SUMMARY
+          "Download the yarg-libvlc-windows-x64 artifact and extract it to" >> $env:GITHUB_STEP_SUMMARY
+          '``Assets/Plugins/LibVLCNative/Windows/`` to vendor the bundle, then commit it.' >> $env:GITHUB_STEP_SUMMARY
