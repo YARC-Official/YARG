@@ -137,6 +137,7 @@ namespace YARG.Song
         public static IReadOnlyDictionary<int, List<SongEntry>> AggregateDrums => _sortedSongs.AggregateDrums;
 
         public static int Count => _songs.Length;
+        public static int LibraryRevision { get; private set; }
         // public static IReadOnlyDictionary<HashWrapper, List<SongEntry>> SongsByHash => _songCache.Entries;
         public static IReadOnlyDictionary<HashWrapper, List<SongEntry>> SongsByHash => _songsByHash;
         public static SongEntry[]                                       Songs       => _songs;
@@ -965,6 +966,8 @@ namespace YARG.Song
                     _sortAggregateDrums[index++] = new SongCategory(categoryName, difficulty.Value.ToArray(), categoryName);
                 }
             }
+
+            LibraryRevision++;
 
             static SongEntry[] SetAllSongs(Dictionary<HashWrapper, List<SongEntry>> entries)
             {
