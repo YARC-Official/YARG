@@ -36,10 +36,7 @@ namespace YARG.Gameplay.HUD
         [SerializeField]
         private TextMeshProUGUI _guidePitchPartText;
 
-        // The orange menu-button hint shown under the guide pitch status, so players can see which
-        // control toggles it. Rather than duplicate the art, this spawns an instance of the shared
-        // HelpBarButton prefab and drives it with an Orange navigation entry, so it looks and behaves
-        // exactly like the orange button in the help bar. Wired in the scene.
+        // The shared HelpBarButton prefab, reused so the hint matches the help bar's orange button.
         [SerializeField]
         private GameObject _guidePitchButtonPrefab;
         [SerializeField]
@@ -195,11 +192,6 @@ namespace YARG.Gameplay.HUD
             }
         }
 
-        // Spawns the orange menu-button hint from the shared HelpBarButton prefab and points it at an
-        // Orange navigation entry with a "Toggle" label. HelpBarButton fills in the sprite, color and
-        // "-" glyph from the same navigation icons the help bar uses, and its own click handling
-        // invokes the entry, so clicking the hint raises the same toggle the controller's Orange
-        // button does.
         private void SetupGuidePitchButton()
         {
             if (_guidePitchButtonPrefab == null || _guidePitchButtonParent == null ||
@@ -214,15 +206,12 @@ namespace YARG.Gameplay.HUD
                 MenuAction.Orange, "Gameplay.Practice.GuidePitchToggle",
                 () => GuidePitchToggleRequested?.Invoke()));
 
-            // The prefab is a fixed width tuned for the help-bar strip, which is too narrow for a
-            // short label here, so the text overflows its right margin and runs into the button's
-            // edge. A preferred-width fitter sizes the button to its content instead, restoring the
-            // label's built-in right padding (and adapting to whatever the localized label is).
+            // The prefab's fixed help-bar width is too narrow for a short label, so the text overflows
+            // its margin; sizing to content instead restores the label's built-in right padding.
             var fitter = buttonObject.AddComponent<ContentSizeFitter>();
             fitter.horizontalFit = ContentSizeFitter.FitMode.PreferredSize;
             fitter.verticalFit = ContentSizeFitter.FitMode.Unconstrained;
 
-            // Center the spawned button in the hint slot.
             var rect = buttonObject.GetComponent<RectTransform>();
             rect.anchorMin = rect.anchorMax = rect.pivot = new Vector2(0.5f, 0.5f);
             rect.anchoredPosition = Vector2.zero;
