@@ -53,6 +53,7 @@ namespace YARG.Gameplay
             }
 
             Navigator.Instance.NavigationEvent += OnNavigationEvent;
+            _practiceHud.GuidePitchToggleRequested += OnGuidePitchToggleRequested;
             _practiceHud.gameObject.SetActive(true);
             _scoreDisplayObject.SetActive(false);
         }
@@ -66,7 +67,21 @@ namespace YARG.Gameplay
         protected override void GameplayDestroy()
         {
             Navigator.Instance.NavigationEvent -= OnNavigationEvent;
+            _practiceHud.GuidePitchToggleRequested -= OnGuidePitchToggleRequested;
             _guidePitchManager?.Dispose();
+        }
+
+        // Mouse click on the guide pitch hint icon. Routed through the same toggle as the orange
+        // menu button so both inputs behave identically. The icon is only shown when the chart has
+        // vocals, which is exactly when the manager is non-null.
+        private void OnGuidePitchToggleRequested()
+        {
+            if (GameManager.Paused)
+            {
+                return;
+            }
+
+            _guidePitchManager?.ToggleGuidePitch();
         }
 
         private void Update()

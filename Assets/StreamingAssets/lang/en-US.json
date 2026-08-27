@@ -877,7 +877,8 @@
 				"WithNumber": "{0} {1}",
 				"PercentageBased": "{0}% - {1}%"
 			},
-            "GuidePitch": "Guide Pitch"
+            "GuidePitch": "Guide Pitch",
+            "GuidePitchToggle": "Toggle"
 		},
         "UnisonDisplay": {
             "Header": "Unison Bonus"

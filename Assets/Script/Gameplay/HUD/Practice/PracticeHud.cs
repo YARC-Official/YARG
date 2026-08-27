@@ -8,6 +8,8 @@ using YARG.Core;
 using YARG.Core.Chart;
 using YARG.Core.Input;
 using YARG.Menu.Data;
+using YARG.Menu.Navigation;
+using YARG.Menu.Persistent;
 
 namespace YARG.Gameplay.HUD
 {
@@ -34,11 +36,17 @@ namespace YARG.Gameplay.HUD
         [SerializeField]
         private TextMeshProUGUI _guidePitchPartText;
 
-        // Orange menu-button hint shown under the guide pitch status, so players can see the
-        // control that toggles it. Wired in the scene; the sprite and tint are filled in from the
-        // shared navigation icons so it matches the orange menu button everywhere else.
+        // The orange menu-button hint shown under the guide pitch status, so players can see which
+        // control toggles it. Rather than duplicate the art, this spawns an instance of the shared
+        // HelpBarButton prefab and drives it with an Orange navigation entry, so it looks and behaves
+        // exactly like the orange button in the help bar. Wired in the scene.
         [SerializeField]
-        private Image _guidePitchButtonIcon;
+        private GameObject _guidePitchButtonPrefab;
+        [SerializeField]
+        private Transform _guidePitchButtonParent;
+
+        /// <summary>Raised when the guide pitch hint button is clicked with the mouse.</summary>
+        public event Action GuidePitchToggleRequested;
 
         private float _speed;
         private float _percentHit;
@@ -75,7 +83,7 @@ namespace YARG.Gameplay.HUD
             // reported false. SongStarted is raised after the players are spawned, and is the
             // same hook PracticeManager uses to build the guide pitch manager.
             _guidePitchPartGroup.gameObject.SetActive(HasVocalsPlayer());
-            SetupGuidePitchButtonIcon();
+            SetupGuidePitchButton();
         }
 
         private void Update()
@@ -187,24 +195,37 @@ namespace YARG.Gameplay.HUD
             }
         }
 
-        // Fills the guide pitch hint with the orange menu button's sprite and tint. Uses the same
-        // navigation icons the help bar does, so the hint tracks the real button art rather than a
-        // separately maintained copy. Leaves whatever the scene set up if the icon is unavailable.
-        private void SetupGuidePitchButtonIcon()
+        // Spawns the orange menu-button hint from the shared HelpBarButton prefab and points it at an
+        // Orange navigation entry with a "Toggle" label. HelpBarButton fills in the sprite, color and
+        // "-" glyph from the same navigation icons the help bar uses, and its own click handling
+        // invokes the entry, so clicking the hint raises the same toggle the controller's Orange
+        // button does.
+        private void SetupGuidePitchButton()
         {
-            if (_guidePitchButtonIcon == null || MenuData.Instance == null)
+            if (_guidePitchButtonPrefab == null || _guidePitchButtonParent == null ||
+                MenuData.Instance == null || !HasVocalsPlayer())
             {
                 return;
             }
 
-            var icons = MenuData.NavigationIcons;
-            if (icons == null || !icons.HasIcon(MenuAction.Orange))
-            {
-                return;
-            }
+            var buttonObject = Instantiate(_guidePitchButtonPrefab, _guidePitchButtonParent);
+            var button = buttonObject.GetComponent<HelpBarButton>();
+            button.SetInfoFromSchemeEntry(new NavigationScheme.Entry(
+                MenuAction.Orange, "Gameplay.Practice.GuidePitchToggle",
+                () => GuidePitchToggleRequested?.Invoke()));
 
-            _guidePitchButtonIcon.sprite = icons.GetIcon(MenuAction.Orange);
-            _guidePitchButtonIcon.color = icons.GetColor(MenuAction.Orange);
+            // The prefab is a fixed width tuned for the help-bar strip, which is too narrow for a
+            // short label here, so the text overflows its right margin and runs into the button's
+            // edge. A preferred-width fitter sizes the button to its content instead, restoring the
+            // label's built-in right padding (and adapting to whatever the localized label is).
+            var fitter = buttonObject.AddComponent<ContentSizeFitter>();
+            fitter.horizontalFit = ContentSizeFitter.FitMode.PreferredSize;
+            fitter.verticalFit = ContentSizeFitter.FitMode.Unconstrained;
+
+            // Center the spawned button in the hint slot.
+            var rect = buttonObject.GetComponent<RectTransform>();
+            rect.anchorMin = rect.anchorMax = rect.pivot = new Vector2(0.5f, 0.5f);
+            rect.anchoredPosition = Vector2.zero;
         }
 
         private bool HasVocalsPlayer()
