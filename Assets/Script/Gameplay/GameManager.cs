@@ -633,6 +633,10 @@ namespace YARG.Gameplay
         public double GetInputTime(double inputSystemTime)
             => _songRunner.GetInputTime(inputSystemTime);
 
+        /// <inheritdoc cref="SongRunner.GetAudioPlaybackTime"/>
+        public double GetAudioPlaybackTime(double songTime)
+            => _songRunner.GetAudioPlaybackTime(songTime);
+
         private bool EndSong()
         {
             _crowdClapScheduler?.Dispose();
