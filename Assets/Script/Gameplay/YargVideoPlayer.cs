@@ -158,6 +158,17 @@ public class YargVideoPlayer : MonoBehaviour
 #endif
     }
 
+    public bool isPaused
+    {
+#if VLC_SUPPORTED
+        get => _usingVLC && _vlcPlayer != null
+            ? !_vlcPlayer.MediaPlayer.IsPlaying
+            : !_unityVideoPlayer.isPlaying;
+#else
+        get => !_unityVideoPlayer.isPlaying;
+#endif
+    }
+
     public Camera targetCamera => _unityVideoPlayer?.targetCamera;
 
     // ─── Events ───
