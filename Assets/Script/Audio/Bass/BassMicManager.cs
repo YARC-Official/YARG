@@ -67,15 +67,33 @@ namespace YARG.Audio.BASS
                 }
             }
 
-            var mic = BassMicDevice.Create(capture, device.Name, device.Channel, _router);
-            if (mic != null)
+            string displayName = channelCount > 1 ? $"{device.Name} - Channel {device.Channel + 1}" : device.Name;
+            BassSharedMicSource? source = null;
+            try
             {
-                mic.Disposed += () => ReleaseMic(device.DeviceId, device.Channel, capture);
-                return mic;
+                source = new BassSharedMicSource(capture, device.Name, displayName, device.Channel, _router,
+                    () => ReleaseMic(device.DeviceId, device.Channel, capture));
+            }
+            catch (Exception exception)
+            {
+                YargLogger.LogException(exception, $"Failed to create mic '{displayName}'");
+                ReleaseMic(device.DeviceId, device.Channel, capture);
+                return null;
             }
 
-            ReleaseMic(device.DeviceId, device.Channel, capture);
-            return null;
+            if (!source.IsValid || !capture.Start())
+            {
+                source.Dispose();
+                return null;
+            }
+
+            var mic = BassMicDevice.Create(source);
+            if (mic == null)
+            {
+                source.Dispose();
+            }
+
+            return mic;
         }
 
         private BassMicrophoneCapture? FindOrCreateCapture(int deviceId, int channels)

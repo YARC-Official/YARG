@@ -178,11 +178,44 @@ namespace YARG.Audio.BASS
 
         public override void ClearVenueSamples() => UnloadVenueSamples();
 
+        protected override void PlayMetronomeSoundEffectToChannel(MetronomeSample sample, MetronomePitch pitch, int channelId)
+        {
+            if ((int) sample < 0 || (int) sample >= MetronomeSamples.Length)
+            {
+                return;
+            }
+
+            var metronomeChannel = MetronomeSamples[(int) sample];
+            if (metronomeChannel == null)
+            {
+                return;
+            }
+
+            int voice = metronomeChannel.CreateStream(pitch);
+            if (voice == 0)
+            {
+                return;
+            }
+
+            double volume = GlobalAudioHandler.GetTrueVolume(SongStem.Metronome) * AudioHelpers.MetronomeSamples[(int) sample].Volume;
+            if (!Bass.ChannelSetAttribute(voice, ChannelAttribute.Volume, volume))
+            {
+                YargLogger.LogFormatError("Failed to set audition metronome sample volume: {0}!", Bass.LastError);
+            }
+
+            var outputChannel = CreateOutputChannel(channelId);
+            if (!_router.PlaySample(voice, outputChannel))
+            {
+                Bass.StreamFree(voice);
+            }
+        }
+
         protected override void DisposeUnmanagedResources()
         {
             _router.Dispose();
             _output?.Dispose();
             _output = null;
+            _outputFactory.Dispose();
             _runtime.Dispose();
         }
 
@@ -218,12 +251,6 @@ namespace YARG.Audio.BASS
 
         private bool ApplyOutputDevice(string name)
         {
-            var nextOutput = _outputFactory.Create(name);
-            if (nextOutput == null)
-            {
-                return false;
-            }
-
             var venueSamples = CaptureVenueSamples();
             var previous = _output;
             if (previous != null)
@@ -231,9 +258,10 @@ namespace YARG.Audio.BASS
                 Disconnect(previous);
             }
 
-            if (!nextOutput.Start() || !Connect(nextOutput))
+            var nextOutput = _outputFactory.Create(name);
+            if (nextOutput == null || !nextOutput.Start() || !Connect(nextOutput))
             {
-                nextOutput.Dispose();
+                nextOutput?.Dispose();
                 if (previous != null)
                 {
                     RestorePreviousOutput(previous, venueSamples, name);
@@ -249,6 +277,7 @@ namespace YARG.Audio.BASS
             }
 
             _output = nextOutput;
+            nextOutput.Device.Use();
             nextOutput.RestartRequested += OnOutputRestartRequested;
 
             UpdatePlaybackLatency();

@@ -28,7 +28,6 @@ using YARG.Song;
 using YARG.Playlists;
 using YARG.Helpers.Extensions;
 using YARG.Core.Engine;
-using YARG.Playback;
 using YARG.Settings;
 
 namespace YARG.Menu.ScoreScreen
@@ -103,10 +102,11 @@ namespace YARG.Menu.ScoreScreen
             ShowReplayAnalysis(song, scoreScreenStats);
 
         // Play audience chatter, unless we are viewing a replay score
-        if (SettingsManager.Settings.UseCrowdFx.Value == CrowdFxMode.Enabled && !GlobalVariables.State.IsReplay)
-            {
-                GlobalAudioHandler.PlaySoundEffect(SfxSample.Chatter, 1.0);
-            }
+        if (SettingsManager.Settings.UseCrowdCheering.Value &&
+            !GlobalVariables.State.CrowdSfxVenueOverride && !GlobalVariables.State.IsReplay)
+        {
+            GlobalAudioHandler.PlaySoundEffect(SfxSample.Chatter, 1.0);
+        }
 
             // Set text
             _songTitle.text = song.Name;

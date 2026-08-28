@@ -21,7 +21,6 @@ using YARG.Menu.History;
 using YARG.Menu.MusicLibrary;
 using YARG.Menu.Persistent;
 using YARG.Menu.Settings;
-using YARG.Playback;
 using YARG.Player;
 using YARG.Scores;
 using YARG.Settings.Metadata;
@@ -34,6 +33,12 @@ using Object = UnityEngine.Object;
 
 namespace YARG.Settings
 {
+    public enum SongLengthLabelMode
+    {
+        RangeLabels,
+        LegacyLabels,
+    }
+
     public enum QualityMode
     {
         NativeAA = 0,
@@ -61,6 +66,12 @@ namespace YARG.Settings
         None,
         File,
         Addressable
+    }
+
+    public enum ReverbMode
+    {
+        Performance = 0,
+        Quality = 1
     }
 
     public struct CustomCharacterInfo : IEquatable<CustomCharacterInfo>
@@ -116,6 +127,7 @@ namespace YARG.Settings
             [JsonProperty("LastWindowsAudioDevice")]
             public string LastSharedAudioDevice = "Default";
             public string LastAsioDevice = string.Empty;
+            public string LastWasapiDevice = string.Empty;
 
             public SortAttribute LibrarySort = SortAttribute.Name;
             public SortAttribute PreviousLibrarySort = SortAttribute.Name;
@@ -252,6 +264,13 @@ namespace YARG.Settings
             public ToggleSetting ShowFavoriteButton { get; } = new(true);
             public ToggleSetting ShowRecommendedSongs { get; } = new(true, ShowRecommendedSongsCallback);
 
+            public DropdownSetting<SongLengthLabelMode> SongLengthLabels { get; }
+                = new(SongLengthLabelMode.RangeLabels, _ => RefreshSongs())
+                {
+                    SongLengthLabelMode.RangeLabels,
+                    SongLengthLabelMode.LegacyLabels,
+                };
+
             public ToggleSetting EnablePlayAShow { get; } = new(true);
             public SliderSetting PlayAShowTimeout { get; } = new (10.0f, 1.0f, 30.0f);
             public ToggleSetting RequireAllDifficulties { get; } = new(true);
@@ -349,7 +368,10 @@ namespace YARG.Settings
             public VolumeSetting PreviewVolume { get; } = new(0.25f);
             public VolumeSetting MusicPlayerVolume { get; } = new(0.15f, MusicPlayerVolumeCallback);
             public VolumeSetting VocalMonitoring { get; } =
-                new(0.7f, 2f, VocalMonitoringCallback);
+                new(0.7f, 1f, VocalMonitoringCallback);
+
+            public VolumeSetting VocalReverb { get; } =
+                new(0.25f, 1f, VocalReverbCallback);
 
             private bool _automaticPlaybackBufferWasEnabled = true;
 
@@ -381,12 +403,13 @@ namespace YARG.Settings
                 AudioFxMode.On
             };
 
-            public DropdownSetting<CrowdFxMode> UseCrowdFx { get; } = new(CrowdFxMode.Enabled)
-            {
-                CrowdFxMode.Disabled,
-                CrowdFxMode.StarpowerClapsOnly,
-                CrowdFxMode.Enabled
-            };
+            public ToggleSetting UseCrowdCheering { get; } = new(true);
+
+            public ToggleSetting UseCrowdIdle { get; } = new(true);
+
+            public ToggleSetting UseStarPowerClaps { get; } = new(true);
+
+            public ToggleSetting UsePerformanceClaps { get; } = new(true);
 
             public ToggleSetting UseVenueSfx { get; } = new(true);
 
@@ -721,6 +744,12 @@ namespace YARG.Settings
                 BandComboType.Lenient,
                 BandComboType.Strict
             };
+            public DropdownSetting<ReverbMode> ReverbImplementation { get; } = new(ReverbMode.Performance,
+                ReverbImplementationCallback)
+            {
+                ReverbMode.Performance,
+                ReverbMode.Quality
+            };
             public ToggleSetting SaveScoresWithBots { get; } = new(false);
             public SliderSetting FontScaling { get; } = new(0f, 0f, 100f, FontScalingCallback);
 
@@ -728,7 +757,8 @@ namespace YARG.Settings
                 OutputModeCallback)
             {
                 AudioOutputMode.Shared,
-                AudioOutputMode.Asio
+                AudioOutputMode.Asio,
+                AudioOutputMode.WasapiExclusive
             };
             public OutputDeviceSetting OutputDevice { get; } = new("Default", OutputDeviceCallback);
             public OutputBufferSizeSetting AsioBufferSize { get; } = new(0);
@@ -997,6 +1027,39 @@ namespace YARG.Settings
                 }
             }
 
+            private static void VocalReverbCallback(float wet)
+            {
+                foreach (var player in PlayerContainer.Players)
+                {
+                    foreach (var mic in player.Bindings.Microphones)
+                    {
+                        mic.SetReverbLevel(wet);
+                    }
+                }
+            }
+
+            private static void ReverbImplementationCallback(ReverbMode mode)
+            {
+                if (!IsInitialized)
+                {
+                    return;
+                }
+
+                BindingsContainer.ReleaseMicrophones();
+                try
+                {
+                    if (!GlobalAudioHandler.ReinitializeOutput())
+                    {
+                        YargLogger.LogError("Failed to reinitialize audio output after reverb implementation change");
+                        ToastManager.ToastError("Failed to reinitialize audio output after reverb change.");
+                    }
+                }
+                finally
+                {
+                    BindingsContainer.ResolveMicrophones();
+                }
+            }
+
             private static void MusicPlayerVolumeCallback(float volume)
             {
                 HelpBar.Instance?.MusicPlayer.UpdateVolume(volume);
@@ -1079,16 +1142,22 @@ namespace YARG.Settings
                     return;
                 }
 
-                string preferred = mode == AudioOutputMode.Asio
-                    ? Settings.LastAsioDevice
-                    : Settings.LastSharedAudioDevice;
+                string preferred = mode switch
+                {
+                    AudioOutputMode.Asio => Settings.LastAsioDevice,
+                    AudioOutputMode.WasapiExclusive => Settings.LastWasapiDevice,
+                    _ => Settings.LastSharedAudioDevice
+                };
                 string target = Settings.OutputDevice.FindAvailable(preferred);
 
                 if (string.IsNullOrEmpty(target))
                 {
                     Settings.OutputMode.SetValueWithoutNotify(currentMode);
                     Settings.OutputDevice.UpdateValues(currentMode);
-                    ToastManager.ToastError("No ASIO output devices were found.");
+                    string errorMsg = mode == AudioOutputMode.WasapiExclusive
+                        ? "No WASAPI output devices were found."
+                        : "No ASIO output devices were found.";
+                    ToastManager.ToastError(errorMsg);
                     SettingsMenu.Instance?.RefreshAndKeepPosition();
                     return;
                 }
@@ -1124,6 +1193,10 @@ namespace YARG.Settings
                 if (mode == AudioOutputMode.Asio)
                 {
                     Settings.LastAsioDevice = name;
+                }
+                else if (mode == AudioOutputMode.WasapiExclusive)
+                {
+                    Settings.LastWasapiDevice = name;
                 }
                 else
                 {

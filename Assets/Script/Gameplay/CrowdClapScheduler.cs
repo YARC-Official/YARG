@@ -74,7 +74,14 @@ namespace YARG.Gameplay
             }
 
             int stream = GlobalAudioHandler.CreateSoundEffectStream(SfxSample.Clap);
-            _channel = _mixer.CreateOneShotChannel(stream, plays, OUTPUT_LEAD_TIME);
+            int channelId = SettingsManager.Settings.OutputChannelSfx.Value;
+            if (channelId == -1)
+            {
+                channelId = SettingsManager.Settings.OutputChannelDefault.Value;
+            }
+
+            var outputChannel = GlobalAudioHandler.CreateOutputChannel(channelId);
+            _channel = _mixer.CreateOneShotChannel(stream, plays, OUTPUT_LEAD_TIME, outputChannel);
             _channel.SetEnabled(_enabled);
             SettingsManager.Settings.SfxVolume.OnChange += OnVolumeChanged;
             ApplyVolume();
