@@ -60,6 +60,8 @@ namespace YARG.Gameplay
 
         private bool _videoStarted = false;
         private bool _videoSeeking = false;
+        private bool _videoSeekWaitForPause = false;
+        private bool _videoWasPausedBeforeSeek = false;
 
         private const float FADE_DURATION = 0.5f;
 
@@ -531,7 +533,7 @@ namespace YARG.Gameplay
             if (_videoSeeking)
                 return;
 
-            double time = GameManager.SongTime + GameManager.Song.SongOffsetSeconds;
+            double time = GameManager.GetAudioPlaybackTime(GameManager.SongTime);
             // Start video
             if (!_videoStarted)
             {
@@ -621,7 +623,7 @@ namespace YARG.Gameplay
             }
         }
 
-        public void SetTime(double songTime)
+        public void SetTime(double songTime, bool waitForSeek = true)
         {
             switch (_type)
             {
@@ -651,7 +653,10 @@ namespace YARG.Gameplay
 
                         // Hack to ensure the video stays synced to the audio
                         _videoSeeking = true; // Signaling flag; must come first
-                        if (SettingsManager.Settings.WaitForSongVideo.Value)
+                        _videoSeekWaitForPause = waitForSeek;
+                        _videoWasPausedBeforeSeek = _videoPlayer.isPaused;
+
+                        if (waitForSeek && SettingsManager.Settings.WaitForSongVideo.Value)
                             GameManager.OverridePause();
 
                         _videoPlayer.time = videoTime;
@@ -665,11 +670,18 @@ namespace YARG.Gameplay
             if (!_videoSeeking)
                 return;
 
-            if (!SettingsManager.Settings.WaitForSongVideo.Value || GameManager.OverrideResume())
-                player.Play();
+            if (!_videoSeekWaitForPause ||
+                !SettingsManager.Settings.WaitForSongVideo.Value ||
+                GameManager.OverrideResume())
+            {
+                if (!_videoWasPausedBeforeSeek)
+                    player.Play();
+            }
 
             enabled = !double.IsNaN(_videoEndTime);
             _videoSeeking = false;
+            _videoSeekWaitForPause = false;
+            _videoWasPausedBeforeSeek = false;
         }
 
         public void SetSpeed(float speed)

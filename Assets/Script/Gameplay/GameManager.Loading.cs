@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using Cysharp.Threading.Tasks;
@@ -19,6 +19,7 @@ using YARG.Playback;
 using YARG.Player;
 using YARG.Scores;
 using YARG.Settings;
+using YARG.Settings.Types;
 using YARG.Song;
 
 namespace YARG.Gameplay
@@ -189,13 +190,37 @@ namespace YARG.Gameplay
 
             FinalizeChart();
 
+            // Add the offset read from the .json file placed in PathHelper.PersistentDataPath
+            double offsetOverrideSeconds = 0;
+            if (SettingsManager.Settings.UseSongOffsetCalibration.Value)
+            {
+                var offsetOverrideMs = SongOffsetContainer.GetOffsetMilliseconds(Song.Hash.ToString());
+                offsetOverrideSeconds = offsetOverrideMs / 1000.0;
+            }
+
             // Initialize song runner
             _songRunner = new SongRunner(
                 _mixer,
                 startTime: 0,
-                SONG_START_DELAY,
+                startDelay: SONG_START_DELAY,
                 GlobalVariables.State.SongSpeed,
-                Song.SongOffsetSeconds);
+                chartSongOffset: Song.SongOffsetSeconds,
+                songOffsetOverride: offsetOverrideSeconds);
+
+            // Lets the pause menu display/edit this song's specific offset, and persists
+            // changes (manual or auto-calibrated) to the song offsets JSON file.
+            SongOffsetOverride = new SongOffsetSetting(Song.Hash.ToString(), onChange: offsetMs =>
+            {
+                _songRunner.SetSongOffsetOverride(offsetMs / 1000.0);
+
+                // Music re-syncs itself via the audio synchronizer, but pre-scheduled one-shot
+                // events and the background video don't, so bring them back in line with the
+                // new offset here.
+                _metronomeScheduler.Reschedule(_songRunner, Chart.SyncTrack, SongLength);
+                _crowdClapScheduler.Reschedule(_songRunner, Chart.SyncTrack, Chart.CrowdEvents,
+                    FirstNoteTime, LastNoteTime, SongLength);
+                BackgroundManager.SetTime(_songRunner.GetAudioPlaybackTime(_songRunner.SongTime), waitForSeek: false);
+            });
 
             _metronomeScheduler = new MetronomeScheduler(_mixer);
             _metronomeScheduler.Schedule(_songRunner, Chart.SyncTrack, SongLength);
@@ -253,6 +278,13 @@ namespace YARG.Gameplay
                 _failMeter.SetActive(false);
             }
 
+            // Always reset calibration toggles on load, even for a pure replay, so that stale
+            // auto-calibration from a previous song can't apply itself (and so there's nothing
+            // for AutoCalibrator to adjust while only observing a replay).
+            SettingsManager.Settings.AutoCalibrateAudio.Value = false;
+            SettingsManager.Settings.AutoCalibrateVideo.Value = false;
+            SettingsManager.Settings.AutoCalibrateOffset.Value = false;
+
             // This is not an else because we still want to subscribe in case the user disables no fail during the song
             // We check in the callback to determine whether we should actually run the fail routine
             if (ReplayInfo == null || GlobalVariables.State.PlayingWithReplay)
@@ -260,8 +292,6 @@ namespace YARG.Gameplay
                 EngineManager.OnSongFailed += OnSongFailed;
 
                 SettingsManager.Settings.NoFail.OnChange += OnNoFailModeChanged;
-                SettingsManager.Settings.AutoCalibrateAudio.Value = false;
-                SettingsManager.Settings.AutoCalibrateVideo.Value = false;
             }
 
             var noFail = ReplayData?.NoFail ?? SettingsManager.Settings.NoFail.Value != NoFailMode.Off;
