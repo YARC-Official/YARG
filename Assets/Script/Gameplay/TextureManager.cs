@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using Unity.Collections;
 using UnityEngine;
@@ -34,6 +35,8 @@ namespace YARG.Gameplay
         private float[] _rawWave = new float[FFT_SIZE];
 
         private bool _videoTexFound = false;
+
+        private List<Material> _videoMaterials = new List<Material>();
 
         private UniTask           _updateTask = UniTask.CompletedTask;
         private NativeArray<byte> _pixelData;
@@ -125,6 +128,21 @@ namespace YARG.Gameplay
             if (_videoTexture != null && !_videoTexture.IsCreated())
             {
                 _videoTexture.Create();
+                UpdateVideoMaterials();
+            }
+        }
+
+        public void SetVideoTexture(RenderTexture texture)
+        {
+            _videoTexture = texture;
+            UpdateVideoMaterials();
+        }
+
+        private void UpdateVideoMaterials()
+        {
+            foreach (var m in _videoMaterials)
+            {
+                m.SetTexture(_videoTexId, _videoTexture);
             }
         }
 
@@ -150,6 +168,7 @@ namespace YARG.Gameplay
                 {
                     m.SetTexture(_videoTexId, GetVideoTexture(matTex.width, matTex.height));
                     _videoTexFound = true;
+                    _videoMaterials.Add(m);
                 }
             }
             if (m.HasTexture(_imageTexId) && songBackgroundType is BackgroundType.Image)

@@ -14,6 +14,7 @@ using YARG.Helpers.Extensions;
 using YARG.Localization;
 using YARG.Menu.MusicLibrary;
 using YARG.Player;
+using YARG.Playlists;
 using YARG.Scores;
 using YARG.Settings;
 
@@ -36,6 +37,8 @@ namespace YARG.Song
         DateAdded,
         Playcount,
         Stars,
+        Percentage,
+        Score,
         Playable,
         Random,
 
@@ -154,9 +157,11 @@ namespace YARG.Song
             }
 
             var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+            var previousSongCache = _songCache;
+            SongCache refreshedSongCache = null;
             var task = UniTask.RunOnThreadPool(() =>
             {
-                _songCache =  CacheHandler.RunScan(quick,
+                refreshedSongCache = CacheHandler.RunScan(quick,
                     PathHelper.SongCachePath,
                     PathHelper.BadSongsPath,
                     SettingsManager.Settings.UseFullDirectoryForPlaylists.Value,
@@ -171,6 +176,10 @@ namespace YARG.Song
                 }
                 await UniTask.NextFrame();
             }
+
+            PlaylistContainer.ReplaceUpdatedSongHashes(
+                FindUpdatedSongHashes(previousSongCache, refreshedSongCache));
+            _songCache = refreshedSongCache;
 
             if (SettingsManager.Settings.Genrelizer.Value is GenrelizerMode.Genrelize && !GlobalVariables.OfflineMode)
             {
@@ -191,6 +200,66 @@ namespace YARG.Song
             YargLogger.LogFormatInfo("Scan time: {0}s", stopwatch.Elapsed.TotalSeconds);
             MusicLibraryMenu.SetReload(MusicLibraryReloadState.Full);
             SongSources.LoadSprites(context);
+        }
+
+        private static Dictionary<HashWrapper, HashWrapper> FindUpdatedSongHashes(
+            SongCache previousCache, SongCache refreshedCache)
+        {
+            var previousByLocation = GetSongsByUniqueLocation(previousCache);
+            var refreshedByLocation = GetSongsByUniqueLocation(refreshedCache);
+            var replacements = new Dictionary<HashWrapper, HashWrapper>();
+            var ambiguousHashes = new HashSet<HashWrapper>();
+
+            foreach (var (location, previousSong) in previousByLocation)
+            {
+                if (!refreshedByLocation.TryGetValue(location, out var refreshedSong) ||
+                    previousSong.Hash.Equals(refreshedSong.Hash) ||
+                    refreshedCache.Entries.ContainsKey(previousSong.Hash) ||
+                    ambiguousHashes.Contains(previousSong.Hash))
+                {
+                    continue;
+                }
+
+                // A hash can represent duplicate copies in different directories. If those
+                // copies changed to different hashes, there is no unambiguous replacement.
+                if (replacements.TryGetValue(previousSong.Hash, out var replacement))
+                {
+                    if (!replacement.Equals(refreshedSong.Hash))
+                    {
+                        replacements.Remove(previousSong.Hash);
+                        ambiguousHashes.Add(previousSong.Hash);
+                    }
+                }
+                else
+                {
+                    replacements.Add(previousSong.Hash, refreshedSong.Hash);
+                }
+            }
+
+            return replacements;
+        }
+
+        private static Dictionary<string, SongEntry> GetSongsByUniqueLocation(SongCache songCache)
+        {
+            var songsByLocation = new Dictionary<string, SongEntry>(StringComparer.OrdinalIgnoreCase);
+            var duplicateLocations = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+            foreach (var song in songCache.Entries.Values.SelectMany(entries => entries))
+            {
+                string location = song.ActualLocation;
+                if (duplicateLocations.Contains(location))
+                {
+                    continue;
+                }
+
+                if (!songsByLocation.TryAdd(location, song))
+                {
+                    songsByLocation.Remove(location);
+                    duplicateLocations.Add(location);
+                }
+            }
+
+            return songsByLocation;
         }
 
         public static SongCategory[] GetSortedCategory(SortAttribute sort)
@@ -216,6 +285,8 @@ namespace YARG.Song
                     SortAttribute.Playcount    => GetPlaycounts(),
                     SortAttribute.Playable     => GetPlayableSongs(),
                     SortAttribute.Stars        => GetStars(),
+                    SortAttribute.Percentage   => GetPercentage(),
+                    SortAttribute.Score        => GetScore(),
                     SortAttribute.Random       => GetRandomSort(),
 
                     SortAttribute.FiveFretGuitar => _sortInstruments[Instrument.FiveFretGuitar],
@@ -583,6 +654,224 @@ namespace YARG.Song
             return new[] { new SongCategory(string.Empty, shuffled.ToArray(), null) };
         }
 
+        private static SongCategory[] GetPercentage()
+        {
+            if (PlayerContainer.OnlyHasBotsActive())
+            {
+                return GetFallbackScoreSort();
+            }
+
+            YargPlayer player = PlayerContainer.Players.FirstOrDefault(e => !e.Profile.IsBot);
+            if (player == null)
+            {
+                return _sortTitles;
+            }
+
+            YargProfile profile = player.Profile;
+            Instrument instrument = profile.CurrentInstrument;
+            IntensityComparer comparer = new(instrument);
+            string[] bucketKeys =
+            {
+                Localize.Key("Menu.MusicLibrary.Sort.Percentage.100"),
+                Localize.Key("Menu.MusicLibrary.Sort.Percentage.90"),
+                Localize.Key("Menu.MusicLibrary.Sort.Percentage.80"),
+                Localize.Key("Menu.MusicLibrary.Sort.Percentage.70"),
+                Localize.Key("Menu.MusicLibrary.Sort.Percentage.60"),
+                Localize.Key("Menu.MusicLibrary.Sort.Percentage.50"),
+                Localize.Key("Menu.MusicLibrary.Sort.Percentage.Below50"),
+                Localize.Key("Menu.MusicLibrary.Sort.Unplayed"),
+                Localize.Key("Menu.MusicLibrary.Sort.NoPart"),
+            };
+            var buckets = new List<SongEntry>[bucketKeys.Length];
+            for (int i = 0; i < buckets.Length; i++)
+            {
+                buckets[i] = new List<SongEntry>();
+            }
+            var percentageRecords = new Dictionary<SongEntry, PlayerScoreRecord>();
+
+            // Prime the cache once. Its validity criteria include the profile,
+            // instrument, difficulty, and High Score History mode.
+            if (_songs.Length > 0)
+            {
+                ScoreContainer.GetBestPercentageScore(
+                    _songs[0].Hash, profile.Id, instrument, allowCacheUpdate: true);
+            }
+
+            foreach (SongEntry song in _songs)
+            {
+                if (!song[instrument].IsActive())
+                {
+                    InsertSorted(buckets[^1], song, comparer);
+                    continue;
+                }
+
+                PlayerScoreRecord record = ScoreContainer.GetBestPercentageScore(
+                    song.Hash, profile.Id, instrument, allowCacheUpdate: false);
+                if (record == null || record.GetPercent() <= 0f)
+                {
+                    InsertSorted(buckets[^2], song, comparer);
+                    continue;
+                }
+
+                float percent = record.GetPercent() * 100f;
+                int bucketIndex = percent switch
+                {
+                    >= 100f => 0,
+                    >= 90f  => 1,
+                    >= 80f  => 2,
+                    >= 70f  => 3,
+                    >= 60f  => 4,
+                    >= 50f  => 5,
+                    _       => 6,
+                };
+                percentageRecords[song] = record;
+                buckets[bucketIndex].Add(song);
+            }
+
+            for (int i = 0; i < buckets.Length - 2; i++)
+            {
+                buckets[i].Sort((x, y) =>
+                {
+                    PlayerScoreRecord xRecord = percentageRecords[x];
+                    PlayerScoreRecord yRecord = percentageRecords[y];
+                    int comparison = yRecord.GetPercent().CompareTo(xRecord.GetPercent());
+
+                    // For equal percentages, show full combos first. Then break
+                    // remaining ties by instrument intensity and title.
+                    if (comparison == 0)
+                    {
+                        comparison = yRecord.IsFc.CompareTo(xRecord.IsFc);
+                    }
+
+                    return comparison != 0 ? comparison : comparer.Compare(x, y);
+                });
+            }
+
+            return CreateScoreCategories(bucketKeys, buckets);
+        }
+
+        private static SongCategory[] GetScore()
+        {
+            if (PlayerContainer.OnlyHasBotsActive())
+            {
+                return GetFallbackScoreSort();
+            }
+
+            YargPlayer player = PlayerContainer.Players.FirstOrDefault(e => !e.Profile.IsBot);
+            if (player == null)
+            {
+                return _sortTitles;
+            }
+
+            YargProfile profile = player.Profile;
+            Instrument instrument = profile.CurrentInstrument;
+            IntensityComparer comparer = new(instrument);
+            int[] thresholds = { 500000, 400000, 300000, 200000, 150000, 100000, 75000, 50000, 30000, 10000, 1 };
+            var categorySongs = new List<SongEntry>[thresholds.Length];
+            for (int i = 0; i < categorySongs.Length; i++)
+            {
+                categorySongs[i] = new List<SongEntry>();
+            }
+
+            var unplayed = new List<SongEntry>();
+            var noPart = new List<SongEntry>();
+            var scoreRecords = new Dictionary<SongEntry, PlayerScoreRecord>();
+
+            if (_songs.Length > 0)
+            {
+                ScoreContainer.GetHighScore(
+                    _songs[0].Hash, profile.Id, instrument, allowCacheUpdate: true);
+            }
+
+            foreach (SongEntry song in _songs)
+            {
+                if (!song[instrument].IsActive())
+                {
+                    InsertSorted(noPart, song, comparer);
+                    continue;
+                }
+
+                PlayerScoreRecord record = ScoreContainer.GetHighScore(
+                    song.Hash, profile.Id, instrument, allowCacheUpdate: false);
+                if (record == null || record.Score <= 0)
+                {
+                    InsertSorted(unplayed, song, comparer);
+                    continue;
+                }
+
+                int bucketIndex = thresholds.Length - 1;
+                for (int i = 0; i < thresholds.Length; i++)
+                {
+                    if (record.Score >= thresholds[i])
+                    {
+                        bucketIndex = i;
+                        break;
+                    }
+                }
+
+                scoreRecords[song] = record;
+                categorySongs[bucketIndex].Add(song);
+            }
+
+            var result = new List<SongCategory>();
+            for (int i = 0; i < thresholds.Length; i++)
+            {
+                if (categorySongs[i].Count > 0)
+                {
+                    categorySongs[i].Sort((x, y) =>
+                    {
+                        int comparison = scoreRecords[y].Score.CompareTo(scoreRecords[x].Score);
+
+                        // Break equal scores by instrument intensity, then title.
+                        return comparison != 0 ? comparison : comparer.Compare(x, y);
+                    });
+                    string label = Localize.Key($"Menu.MusicLibrary.Sort.Score.{thresholds[i]}");
+                    result.Add(new SongCategory(label, categorySongs[i].ToArray(), label));
+                }
+            }
+
+            AddScoreCategory(result, unplayed, Localize.Key("Menu.MusicLibrary.Sort.Unplayed"));
+            AddScoreCategory(result, noPart, Localize.Key("Menu.MusicLibrary.Sort.NoPart"));
+            return result.ToArray();
+        }
+
+        private static SongCategory[] GetFallbackScoreSort()
+        {
+            SortAttribute previousSort = SettingsManager.Settings.PreviousLibrarySort;
+            if (previousSort != SortAttribute.Stars && previousSort != SortAttribute.Playcount &&
+                previousSort != SortAttribute.Playable && previousSort != SortAttribute.Percentage &&
+                previousSort != SortAttribute.Score)
+            {
+                return GetSortedCategory(previousSort);
+            }
+
+            return _sortTitles;
+        }
+
+        private static SongCategory[] CreateScoreCategories(string[] labels, List<SongEntry>[] buckets)
+        {
+            var result = new List<SongCategory>();
+            for (int i = 0; i < labels.Length; i++)
+            {
+                AddScoreCategory(result, buckets[i], labels[i]);
+            }
+            return result.ToArray();
+        }
+
+        private static void AddScoreCategory(List<SongCategory> result, List<SongEntry> songs, string label)
+        {
+            if (songs.Count > 0)
+            {
+                result.Add(new SongCategory(label, songs.ToArray(), label));
+            }
+        }
+
+        private static void InsertSorted(List<SongEntry> songs, SongEntry song, IntensityComparer comparer)
+        {
+            int index = songs.BinarySearch(song, comparer);
+            songs.Insert(~index, song);
+        }
+
         private static void UpdateSongUi(LoadingContext context)
         {
             var tracker = CacheHandler.Progress;
@@ -910,6 +1199,8 @@ namespace YARG.Song
 
                 if (intensityX == intensityY)
                 {
+                    // MetadataComparer sorts by title first, with the remaining
+                    // metadata providing a deterministic fallback for duplicate titles.
                     return SongEntrySorting.MetadataComparer.Instance.Compare(x, y);
                 }
                 else if (intensityX == -1)

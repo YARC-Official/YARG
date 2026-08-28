@@ -5,6 +5,7 @@
 #include "dsp/FreeverbDsp.h"
 #include "dsp/GainDsp.h"
 #include "dsp/NoiseGateDsp.h"
+#include "dsp/SineSynthDsp.h"
 #include "one_shot/NativeOneShotStream.h"
 #include "yarg_audio.h"
 
@@ -20,6 +21,8 @@ static_assert(sizeof(yarg_one_shot_config) == 24);
 static_assert(sizeof(yarg_freeverb_params) == 24);
 static_assert(sizeof(yarg_dattorro_reverb_params) == 24);
 static_assert(sizeof(yarg_noise_gate_params) == 24);
+static_assert(sizeof(yarg_tone_segment) == 24);
+static_assert(sizeof(yarg_sine_synth_config) == 20);
 static_assert(sizeof(int32_t) == sizeof(int));
 
 struct yarg_one_shot_stream {
@@ -97,6 +100,46 @@ int32_t YARG_AUDIO_CALL yarg_gain_dsp_set_gain(yarg_gain_dsp* dsp, float gain) {
 
 void YARG_AUDIO_CALL yarg_gain_dsp_destroy(yarg_gain_dsp* dsp) {
     (void) yarg::audio::gainDspDestroy(dsp);
+}
+
+int32_t YARG_AUDIO_CALL yarg_sine_synth_dsp_create(
+    const yarg_sine_synth_config* config, yarg_sine_synth_dsp** dsp) {
+    return yarg::audio::sineSynthDspCreate(coreBassBindings(), config, dsp);
+}
+
+int32_t YARG_AUDIO_CALL yarg_sine_synth_dsp_attach(yarg_sine_synth_dsp* dsp,
+    uint32_t channel, int32_t priority, int32_t* bass_error) {
+    return yarg::audio::sineSynthDspAttach(dsp, channel, priority, bass_error);
+}
+
+int32_t YARG_AUDIO_CALL yarg_sine_synth_dsp_detach(yarg_sine_synth_dsp* dsp,
+    int32_t* bass_error) {
+    return yarg::audio::sineSynthDspDetach(dsp, bass_error);
+}
+
+int32_t YARG_AUDIO_CALL yarg_sine_synth_dsp_set_schedule(yarg_sine_synth_dsp* dsp,
+    const yarg_tone_segment* notes, uint64_t segment_count, int32_t* bass_error) {
+    if (bass_error) *bass_error = 0;
+    constexpr auto maximum = std::numeric_limits<std::size_t>::max();
+    if (segment_count > maximum / sizeof(yarg_tone_segment))
+        return YARG_AUDIO_ERROR_INVALID_ARGUMENT;
+    return yarg::audio::sineSynthDspSetSchedule(dsp, notes,
+        static_cast<std::size_t>(segment_count), bass_error);
+}
+
+int32_t YARG_AUDIO_CALL yarg_sine_synth_dsp_set_timing(yarg_sine_synth_dsp* dsp,
+    double song_time_offset, float playback_speed) {
+    return yarg::audio::sineSynthDspSetTiming(dsp, song_time_offset, playback_speed);
+}
+
+int32_t YARG_AUDIO_CALL yarg_sine_synth_dsp_set_output_channel(yarg_sine_synth_dsp* dsp,
+    uint32_t output_channel) {
+    return yarg::audio::sineSynthDspSetOutputChannel(dsp, output_channel);
+}
+
+int32_t YARG_AUDIO_CALL yarg_sine_synth_dsp_destroy(yarg_sine_synth_dsp* dsp) {
+    return yarg::audio::sineSynthDspDestroy(dsp)
+        ? YARG_AUDIO_OK : YARG_AUDIO_ERROR_INVALID_STATE;
 }
 
 int32_t YARG_AUDIO_CALL yarg_freeverb_dsp_attach(uint32_t channel,

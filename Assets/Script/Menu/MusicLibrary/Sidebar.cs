@@ -361,12 +361,13 @@ namespace YARG.Menu.MusicLibrary
                 _subgenre.fontSize = baseFontSize * shrinkFactor;
             }
 
+            _genreSpacer.SetActive(!string.IsNullOrEmpty(subgenreText));
+
             if (measureText.Length > maxCharsBeforeWrap && !string.IsNullOrEmpty(subgenreText))
             {
                 _genreVerticalLayoutGroup.SetActive(true);
                 _genreHorizontalLayoutGroup.SetActive(false);
                 _genre.transform.SetParent(_genreVerticalLayoutGroup.transform, false);
-                _genreSpacer.SetActive(false);
                 _subgenre.transform.SetParent(_genreVerticalLayoutGroup.transform, false);
             }
             else
@@ -374,7 +375,6 @@ namespace YARG.Menu.MusicLibrary
                 _genreVerticalLayoutGroup.SetActive(false);
                 _genreHorizontalLayoutGroup.SetActive(true);
                 _genre.transform.SetParent(_genreHorizontalLayoutGroup.transform, false);
-                _genreSpacer.SetActive(true);
                 _subgenre.transform.SetParent(_genreHorizontalLayoutGroup.transform, false);
             }
             _genre.transform.SetAsFirstSibling();

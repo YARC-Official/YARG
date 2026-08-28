@@ -67,7 +67,6 @@ namespace YARG.Input
             foreach (var device in _devices)
             {
                 device.IsRecordingOutput = false;
-                device.Reset();
             }
         }
     }

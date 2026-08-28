@@ -40,7 +40,7 @@ namespace YARG.Venue
             source = VenueSource.Song;
             if (!SettingsManager.Settings.DisablePerSongBackgrounds.Value)
             {
-                result = song.LoadBackground();
+                result = song.LoadBackground(SettingsManager.Settings.CensorMatureContent.Value);
             }
 
             if (!SettingsManager.Settings.DisableGlobalBackgrounds.Value && result == null)

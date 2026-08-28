@@ -134,6 +134,7 @@ namespace YARG.Settings
             [JsonProperty("LastWindowsAudioDevice")]
             public string LastSharedAudioDevice = "Default";
             public string LastAsioDevice = string.Empty;
+            public string LastWasapiDevice = string.Empty;
 
             public SortAttribute LibrarySort = SortAttribute.Name;
             public SortAttribute PreviousLibrarySort = SortAttribute.Name;
@@ -771,7 +772,8 @@ namespace YARG.Settings
                 OutputModeCallback)
             {
                 AudioOutputMode.Shared,
-                AudioOutputMode.Asio
+                AudioOutputMode.Asio,
+                AudioOutputMode.WasapiExclusive
             };
             public OutputDeviceSetting OutputDevice { get; } = new("Default", OutputDeviceCallback);
             public OutputBufferSizeSetting AsioBufferSize { get; } = new(0);
@@ -1155,16 +1157,22 @@ namespace YARG.Settings
                     return;
                 }
 
-                string preferred = mode == AudioOutputMode.Asio
-                    ? Settings.LastAsioDevice
-                    : Settings.LastSharedAudioDevice;
+                string preferred = mode switch
+                {
+                    AudioOutputMode.Asio => Settings.LastAsioDevice,
+                    AudioOutputMode.WasapiExclusive => Settings.LastWasapiDevice,
+                    _ => Settings.LastSharedAudioDevice
+                };
                 string target = Settings.OutputDevice.FindAvailable(preferred);
 
                 if (string.IsNullOrEmpty(target))
                 {
                     Settings.OutputMode.SetValueWithoutNotify(currentMode);
                     Settings.OutputDevice.UpdateValues(currentMode);
-                    ToastManager.ToastError("No ASIO output devices were found.");
+                    string errorMsg = mode == AudioOutputMode.WasapiExclusive
+                        ? "No WASAPI output devices were found."
+                        : "No ASIO output devices were found.";
+                    ToastManager.ToastError(errorMsg);
                     SettingsMenu.Instance?.RefreshAndKeepPosition();
                     return;
                 }
@@ -1200,6 +1208,10 @@ namespace YARG.Settings
                 if (mode == AudioOutputMode.Asio)
                 {
                     Settings.LastAsioDevice = name;
+                }
+                else if (mode == AudioOutputMode.WasapiExclusive)
+                {
+                    Settings.LastWasapiDevice = name;
                 }
                 else
                 {

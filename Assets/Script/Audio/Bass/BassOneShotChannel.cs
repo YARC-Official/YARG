@@ -213,7 +213,7 @@ namespace YARG.Audio.BASS
                 return false;
             }
 
-            speed = Math.Max(0.0001f, _getSpeed());
+            speed = Math.Max(BassHelpers.MINIMUM_SPEED, _getSpeed());
             if (float.IsNaN(speed) || float.IsInfinity(speed))
             {
                 YargLogger.LogFormatError("Failed to read one-shot playback speed: {0}", speed);
