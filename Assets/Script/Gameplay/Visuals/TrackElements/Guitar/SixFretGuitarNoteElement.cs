@@ -136,7 +136,7 @@ namespace YARG.Gameplay.Visuals
 
             UpdateColor();
 
-            if (LaneType == LaneNoteType.Barre && NoteRef.Fret % 2 == 1)
+            if (LaneType == LaneNoteType.Barre && NoteRef.Fret >= (int)SixFretGuitarFret.White1)
             {
                 // In a barre we're converting one of the elements into barre note and hiding a sibling
                 HideElement();
