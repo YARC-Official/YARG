@@ -492,7 +492,7 @@ namespace YARG.Settings.Preview
                         CenterNote = false,
                         NoteType = noteType
                     };
-                case ThemeNoteType.SixFretBarre or ThemeNoteType.SixFretBarreTap:
+                case ThemeNoteType.SixFretBarre or ThemeNoteType.SixFretBarreHOPO or ThemeNoteType.SixFretBarreTap:
                     return new FakeNoteData
                     {
                         Time = time,
@@ -517,8 +517,7 @@ namespace YARG.Settings.Preview
         /// <summary>
         /// Picks the note type for a fretted six-fret note: black frets (1-3) are
         /// "up" notes, white frets (4-6) are "down" notes, with a 30% chance of a
-        /// barre. Barre notes only have the strum variant; up/down notes randomly
-        /// use the strum, HOPO, or Tap variant.
+        /// barre. Up/down/barre notes randomly use the strum, HOPO, or Tap variant.
         /// </summary>
         private static ThemeNoteType CreateFretNoteType(int fret, IFakeNoteRandom random)
         {
@@ -533,10 +532,12 @@ namespace YARG.Settings.Preview
             return random.Range(0, 3) switch
             {
                 0 => themeType, // Strum
-                1 => isBarre ? themeType : // Barre only has strum
-                    (isUp ? ThemeNoteType.SixFretUpHOPO : ThemeNoteType.SixFretDownHOPO),
-                _ => isBarre ? themeType : // Barre only has strum
-                    (isUp ? ThemeNoteType.SixFretUpTap : ThemeNoteType.SixFretDownTap)
+                1 => (isUp ? ThemeNoteType.SixFretUpHOPO :
+                      isBarre ? ThemeNoteType.SixFretBarreHOPO :
+                               ThemeNoteType.SixFretDownHOPO),
+                _ => (isUp ? ThemeNoteType.SixFretUpTap :
+                      isBarre ? ThemeNoteType.SixFretBarreTap :
+                               ThemeNoteType.SixFretDownTap)
             };
         }
     }

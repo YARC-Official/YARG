@@ -83,10 +83,10 @@ namespace YARG.Gameplay.Visuals
             _frets.Clear();
             foreach (var (noteType, highwayOrderingInfo) in highwayOrdering)
             {
-                // For dual-half frets, check if position already exists
-                if (dualHalfFrets && !_usedFretIndexes.Add(highwayOrderingInfo.Position))
+                // Check if position was already added (barre chords share the same physical fret object across lanes)
+                if (!_usedFretIndexes.Add(highwayOrderingInfo.Position))
                 {
-                    // Find the earlier note type with the same position
+                    // Find an earlier note type at this same position and reuse its fret component
                     foreach (var (otherNoteType, otherHighwayOrderingInfo) in highwayOrdering)
                     {
                         if (otherHighwayOrderingInfo.Position == highwayOrderingInfo.Position)
@@ -98,21 +98,6 @@ namespace YARG.Gameplay.Visuals
 
                     continue;
                 }
-                else if (!dualHalfFrets && !_usedFretIndexes.Add(highwayOrderingInfo.Position))
-                {
-                    // Original logic for non-dual frets
-                    foreach (var (otherNoteType, otherHighwayOrderingInfo) in highwayOrdering)
-                    {
-                        if (otherHighwayOrderingInfo.Position == highwayOrderingInfo.Position)
-                        {
-                            _frets[noteType] = _frets[otherNoteType];
-                            break;
-                        }
-                    }
-
-                    continue;
-                }
-
                 var fret = Instantiate(fretPrefab, transform);
                 fret.SetActive(true);
 

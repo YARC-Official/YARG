@@ -122,7 +122,6 @@ namespace YARG.Gameplay.Player
 
             // Check if sibling note exists in same lane pair (barre)
             bool hasSibling = false;
-            bool isTap = note.IsTap;
             foreach (var other in note.ParentOrSelf.AllNotes)
             {
                 if (other != note &&
@@ -132,7 +131,6 @@ namespace YARG.Gameplay.Player
                     other.Fret != note.Fret)
                 {
                     hasSibling = true;
-                    isTap |= other.IsTap;
                     break;
                 }
             }
