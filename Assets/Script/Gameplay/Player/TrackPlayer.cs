@@ -1033,11 +1033,19 @@ namespace YARG.Gameplay.Player
 
         protected abstract void RescaleLanesForBRE();
 
+        /// <summary>
+        /// Whether the given hit note should count as a "strum" for
+        /// <see cref="SettingsManager.Settings.UseStrumOnlyOffsetForCalibration"/> purposes. Null for
+        /// instruments with no strum/HOPO/tap distinction, in which case every hit note counts, same
+        /// as when the setting is disabled.
+        /// </summary>
+        protected virtual bool? IsNoteStrum(TNote note) => null;
+
         protected virtual void OnNoteHit(int index, TNote note)
         {
             if (!Player.Profile.IsBot)
             {
-                _autoCalibrator.RecordAccuracy(Engine.CurrentTime, note.Time);
+                _autoCalibrator.RecordAccuracy(Engine.CurrentTime, note.Time, IsNoteStrum(note));
             }
 
             if (!GameManager.IsSeekingReplay)

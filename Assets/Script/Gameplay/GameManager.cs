@@ -682,7 +682,8 @@ namespace YARG.Gameplay
                     IsHighScore = player.Score > player.LastHighScore,
                     Player = player.Player,
                     Stats = player.BaseStats,
-                    IsReplay = player.Player.IsReplay
+                    IsReplay = player.Player.IsReplay,
+                    OffsetSampleIsStrum = player.GetOffsetSampleIsStrum()
                 }).ToArray(),
                 BandScore = BandScore,
                 BandStars = (int) BandStars,
@@ -691,11 +692,21 @@ namespace YARG.Gameplay
                 // .Where(player => !player.Player.Profile.IsBot)
                 // to:
                 // .Where(player => !(player.Player.Profile.IsBot || player.Player.IsRemote))
-                MeanAverageOffset = _players
+                //
+                // Both fields below are weighted by note count: every hit note's offset is pooled
+                // into one flat list and reduced to a single value, rather than reducing each
+                // player's own samples first. Otherwise a player who hit 30 notes would count
+                // exactly as much as one who hit 3000, which skews the band number toward whoever
+                // played the least. That single value is the mean, unless
+                // UseMedianForInSongCalibration is set to also cover the end-of-song save, in
+                // which case it's the median -- see GetWeightedOffset.
+                MeanAverageOffset = GetWeightedOffset(_players
                     .Where(player => !player.Player.Profile.IsBot)
-                    .Select(player => player.BaseStats.GetAverageOffset())
-                    .DefaultIfEmpty(0)
-                    .Average(),
+                    .SelectMany(player => player.BaseStats.GetOffsetSamples())
+                    .ToList()) ?? 0,
+
+                MeanAverageOffsetStrumOnly = GetWeightedOffset(GetWeightedStrumOnlySamples(_players
+                    .Where(player => !player.Player.Profile.IsBot))),
 
                 ReplayInfo = replayInfo,
             };
@@ -705,6 +716,76 @@ namespace YARG.Gameplay
             // Go to the score screen
             GlobalVariables.Instance.LoadScene(SceneIndex.Score);
             return true;
+        }
+
+        /// <summary>
+        /// Band-wide pooled note-hit offset samples, counting only strummed notes for instruments
+        /// that distinguish strum from HOPO/tap (read from
+        /// <see cref="BasePlayer.GetOffsetSampleIsStrum"/> -- see that method for details). Players on
+        /// an instrument with no such distinction (keys, drums, vocals, etc.) still contribute their
+        /// full set of offset samples, so they're never silently dropped from the band average.
+        /// </summary>
+        private static List<double> GetWeightedStrumOnlySamples(IEnumerable<BasePlayer> players)
+        {
+            var pooledSamples = new List<double>();
+            foreach (var player in players)
+            {
+                var isStrum = player.GetOffsetSampleIsStrum();
+                var offsetSamples = player.BaseStats.GetOffsetSamples();
+                if (isStrum == null || isStrum.Count != offsetSamples.Count)
+                {
+                    // No strum/HOPO/tap distinction (or a data mismatch) -- fall back to this
+                    // player's full sample set instead of excluding them from the band average.
+                    pooledSamples.AddRange(offsetSamples);
+                    continue;
+                }
+
+                int strumCount = 0;
+                for (int i = 0; i < offsetSamples.Count; i++)
+                {
+                    if (isStrum[i])
+                    {
+                        pooledSamples.Add(offsetSamples[i]);
+                        strumCount++;
+                    }
+                }
+
+                if (strumCount == 0)
+                {
+                    // This player has the strum/HOPO/tap distinction but hit zero strums this
+                    // song (e.g. an all-HOPO run) -- fall back to their full sample set instead
+                    // of contributing nothing, same as instruments with no distinction at all.
+                    pooledSamples.AddRange(offsetSamples);
+                }
+            }
+
+            return pooledSamples;
+        }
+
+        /// <summary>
+        /// Reduces a pooled sample list to a single band-wide offset value: the mean, unless
+        /// <see cref="SettingsManager.Settings.UseMedianForInSongCalibration"/> is set to
+        /// <see cref="UseMedianForInSongCalibrationMode.AutoCalibrationAndEndOfSong"/>, in which
+        /// case the median. Null for an empty sample list.
+        /// </summary>
+        private static double? GetWeightedOffset(List<double> samples)
+        {
+            if (samples.Count == 0)
+            {
+                return null;
+            }
+
+            bool useMedian = SettingsManager.Settings.UseMedianForInSongCalibration.Value
+                == UseMedianForInSongCalibrationMode.AutoCalibrationAndEndOfSong;
+            return useMedian ? CalculateMedian(samples) : samples.Average();
+        }
+
+        private static double CalculateMedian(List<double> values)
+        {
+            var sorted = values.OrderBy(x => x).ToList();
+            int count = sorted.Count;
+            int middle = count / 2;
+            return count % 2 == 0 ? (sorted[middle - 1] + sorted[middle]) / 2.0 : sorted[middle];
         }
 
         private void RecordScores(ReplayInfo replayInfo)
