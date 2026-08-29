@@ -62,10 +62,12 @@ namespace YARG.Menu.DifficultySelect
         private const float ICON_DIM_FOCUSSED = 0.45f;
         private const float ICON_DIM_UNFOCUSSED = 0.3f;
 
-        // Done buttons: the Ready-button text treatment in blue (blue text
-        // normally, near-black blue on the row's highlight while selected).
+        // Done buttons: the ready/sit-out treatment in blue — blue text on the
+        // normal row, and while selected a solid blue fill of the whole row
+        // behind near-black text.
         private static Color DONE_TEXT_COLOR => MenuData.Colors.NavigationBlue;
         private static readonly Color DONE_SELECTED_TEXT_COLOR = new Color32(0x01, 0x22, 0x27, 0xFF);
+        private static readonly Color DONE_SELECTED_FILL_COLOR = new Color32(0x00, 0xD3, 0xFF, 0xFF);
 
         [SerializeField]
         private TextMeshProUGUI _subHeader;
@@ -668,8 +670,9 @@ namespace YARG.Menu.DifficultySelect
             btn.SetInteractable(true);
             _navGroup.AddNavigatable(btn.Button);
 
-            btn.GetComponent<DifficultyItemColorizer>()
-                .SetButtonColor(DONE_TEXT_COLOR, DONE_SELECTED_TEXT_COLOR);
+            var colorizer = btn.GetComponent<DifficultyItemColorizer>();
+            colorizer.SetButtonColor(DONE_TEXT_COLOR, DONE_SELECTED_TEXT_COLOR);
+            colorizer.SetSelectionFill(DONE_SELECTED_FILL_COLOR);
         }
 
         private void CreateModifierMenu()

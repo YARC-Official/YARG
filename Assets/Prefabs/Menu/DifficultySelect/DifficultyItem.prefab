@@ -172,6 +172,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _header: {fileID: 5430129744403957328}
   _body: {fileID: 3516380366716677501}
+  _selectionFill: {fileID: 4397009308058567305}
+  _canvasGroup: {fileID: 5820147392658104736}
   <Button>k__BackingField: {fileID: 2335544872904412327}
 --- !u!114 &7218480041909641848
 MonoBehaviour:

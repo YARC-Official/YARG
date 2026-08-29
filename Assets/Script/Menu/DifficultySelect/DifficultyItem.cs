@@ -14,6 +14,11 @@ namespace YARG.Menu.DifficultySelect
         [SerializeField]
         private TextMeshProUGUI _body;
 
+        [SerializeField]
+        private Image _selectionFill;
+        [SerializeField]
+        private CanvasGroup _canvasGroup;
+
         [field: SerializeField]
         public NavigatableButton Button { get; private set; }
 
@@ -58,6 +63,11 @@ namespace YARG.Menu.DifficultySelect
         /// </summary>
         public void InitializeAsTitle(string header)
         {
+            // A title never joins the navigation group, so nothing ever
+            // deselects it once the pointer selects it. Keep the pointer away
+            // from it entirely; the row is a label, not a button.
+            Button.SelectOnHover = false;
+
             _header.gameObject.SetActive(true);
             _header.text = header;
             _body.gameObject.SetActive(false);
@@ -77,11 +87,21 @@ namespace YARG.Menu.DifficultySelect
         /// </summary>
         public void SetInteractable(bool interactable)
         {
-            var group = GetComponent<CanvasGroup>();
+            _canvasGroup.alpha = interactable ? 1f : 0.3f;
+            _canvasGroup.interactable = interactable;
+            _canvasGroup.blocksRaycasts = interactable;
+        }
 
-            group.alpha = interactable ? 1f : 0.3f;
-            group.interactable = interactable;
-            group.blocksRaycasts = interactable;
+        /// <summary>
+        /// Fills the entire button background with the given color while the item
+        /// is selected, behind the selected text color. The colored variant's
+        /// selection background carries no sprite — a sprite-less Image draws a
+        /// plain full-rect quad — so the color alone paints an edge-to-edge
+        /// ready/sit-out style fill, without a per-color sprite.
+        /// </summary>
+        public void SetSelectionFill(Color fillColor)
+        {
+            _selectionFill.color = fillColor;
         }
     }
 }

@@ -13,6 +13,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: DifficultyItemColored
       objectReference: {fileID: 0}
+    - target: {fileID: 4397009308058567305, guid: 4442d264050ba2d48a3625616ee2f9d4,
+        type: 3}
+      propertyPath: m_Sprite
+      value: 
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []

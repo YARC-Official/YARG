@@ -19,6 +19,18 @@ namespace YARG.Menu.Navigation
 
         public bool Selected { get; private set; }
 
+        /// <summary>
+        /// Whether moving the pointer over this element selects it. Disable this
+        /// for rows that never join a navigation group (like menu titles), so the
+        /// pointer cannot highlight them. Selection driven by the navigation group
+        /// (keyboard/controller) is unaffected.
+        /// </summary>
+        public bool SelectOnHover
+        {
+            get => _selectOnHover;
+            set => _selectOnHover = value;
+        }
+
         public event Action<NavigatableBehaviour, bool, SelectionOrigin> SelectionStateChanged;
 
         protected virtual void Awake()
