@@ -56,6 +56,19 @@ namespace YARG.Audio.BASS.Asio
 
         public bool ResetToLive() => _claimed && _signal?.ResetToLive() == true;
 
+        internal bool Reset()
+        {
+            if (!_claimed || _signal == null)
+            {
+                return false;
+            }
+
+            Bass.ChannelSetPosition(RootHandle, 0, PositionFlags.Bytes);
+            bool monitorReset = _signal.ResetMonitor();
+            bool analysisReset = _signal.ResetAnalysis();
+            return monitorReset && analysisReset;
+        }
+
         public MicBufferInfo? GetBufferInfo()
         {
             if (!_claimed)
@@ -96,7 +109,14 @@ namespace YARG.Audio.BASS.Asio
             }
 
             string name = $"{BassAsioOutput.DEVICE_PREFIX}{DriverName} - Channel {ChannelIndex + 1}";
-            _signal = BassMicSignal.Create(RootHandle, null, SampleRate, name, router, 0, true);
+            _signal = BassMicSignal.Create(
+                sourceHandle: RootHandle,
+                channelMap: null,
+                sampleRate: SampleRate,
+                name: name,
+                router: router,
+                monitoringLevel: 0,
+                applyAnalysisEq: true);
             return _signal != null;
         }
 

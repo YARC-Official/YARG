@@ -29,30 +29,45 @@ namespace YARG.Helpers
 
         private bool IsCalibratingAudio => CalibrationMode == CalibrationType.AUDIO;
         private bool IsCalibratingVideo => CalibrationMode == CalibrationType.VIDEO;
+        private bool IsCalibratingOffset => CalibrationMode == CalibrationType.OFFSET;
         private IntSetting AudioCalibrationSetting => SettingsManager.Settings.AudioCalibration;
         private IntSetting VideoCalibrationSetting => SettingsManager.Settings.VideoCalibration;
         private ToggleSetting AutoAudioSetting => SettingsManager.Settings.AutoCalibrateAudio;
         private ToggleSetting AutoVideoSetting => SettingsManager.Settings.AutoCalibrateVideo;
+        private ToggleSetting AutoOffsetSetting => SettingsManager.Settings.AutoCalibrateOffset;
+
+        // The current song's specific offset. Set once per song load, before players (and
+        // therefore this calibrator) are created.
+        private readonly IntSetting _songOffsetSetting;
 
         private enum CalibrationType
         {
             DISABLED,
             AUDIO,
-            VIDEO
+            VIDEO,
+            OFFSET
         }
 
         private CalibrationType CalibrationMode =>
-            AutoAudioSetting.Value   ? CalibrationType.AUDIO
-            : AutoVideoSetting.Value ? CalibrationType.VIDEO
+            AutoAudioSetting.Value    ? CalibrationType.AUDIO
+            : AutoVideoSetting.Value  ? CalibrationType.VIDEO
+            : AutoOffsetSetting.Value ? CalibrationType.OFFSET
                                        : CalibrationType.DISABLED;
 
         public AutoCalibrator(GameManager gameManager)
         {
             _gameManager = gameManager;
+            _songOffsetSetting = gameManager.SongOffsetOverride;
+
             AutoAudioSetting.OnChange += OnAutoCalibrateAudioChanged;
             AutoVideoSetting.OnChange += OnAutoCalibrateVideoChanged;
+            AutoOffsetSetting.OnChange += OnAutoCalibrateOffsetChanged;
             AudioCalibrationSetting.OnChange += OnAudioCalibrationChanged;
             VideoCalibrationSetting.OnChange += OnVideoCalibrationChanged;
+            if (_songOffsetSetting != null)
+            {
+                _songOffsetSetting.OnChange += OnSongOffsetChanged;
+            }
             Reset();
         }
 
@@ -62,6 +77,7 @@ namespace YARG.Helpers
             {
                 _gameManager.InvalidateScores("Menu.Toast.AutoCalibrationScore");
                 AutoVideoSetting.Value = false;
+                AutoOffsetSetting.Value = false;
             }
 
             Reset();
@@ -73,6 +89,19 @@ namespace YARG.Helpers
             {
                 _gameManager.InvalidateScores("Menu.Toast.AutoCalibrationScore");
                 AutoAudioSetting.Value = false;
+                AutoOffsetSetting.Value = false;
+            }
+
+            Reset();
+        }
+
+        private void OnAutoCalibrateOffsetChanged(bool enabled)
+        {
+            if (enabled)
+            {
+                _gameManager.InvalidateScores("Menu.Toast.AutoCalibrationScore");
+                AutoAudioSetting.Value = false;
+                AutoVideoSetting.Value = false;
             }
 
             Reset();
@@ -96,12 +125,26 @@ namespace YARG.Helpers
             }
         }
 
+        private void OnSongOffsetChanged(int calibration)
+        {
+            if (IsCalibratingOffset && !_isApplyingAdjustment)
+            {
+                _accuracyList.Clear();
+                _calibration = calibration;
+            }
+        }
+
         public void Dispose()
         {
             AutoAudioSetting.OnChange -= OnAutoCalibrateAudioChanged;
             AutoVideoSetting.OnChange -= OnAutoCalibrateVideoChanged;
+            AutoOffsetSetting.OnChange -= OnAutoCalibrateOffsetChanged;
             AudioCalibrationSetting.OnChange -= OnAudioCalibrationChanged;
             VideoCalibrationSetting.OnChange -= OnVideoCalibrationChanged;
+            if (_songOffsetSetting != null)
+            {
+                _songOffsetSetting.OnChange -= OnSongOffsetChanged;
+            }
         }
 
         private void Reset()
@@ -115,11 +158,20 @@ namespace YARG.Helpers
             {
                 _calibration = VideoCalibrationSetting.Value;
             }
+            else if (IsCalibratingOffset && _songOffsetSetting != null)
+            {
+                _calibration = _songOffsetSetting.Value;
+            }
         }
 
         public void RecordAccuracy(double hitTime, double noteTime)
         {
             if (CalibrationMode == CalibrationType.DISABLED || _gameManager.IsAudioSyncCorrectionActive)
+            {
+                return;
+            }
+
+            if (IsCalibratingOffset && _songOffsetSetting == null)
             {
                 return;
             }
@@ -165,6 +217,11 @@ namespace YARG.Helpers
                     VideoCalibrationSetting.Value = _calibration;
                     _calibration = VideoCalibrationSetting.Value;
                 }
+                else if (CalibrationMode == CalibrationType.OFFSET && _songOffsetSetting != null)
+                {
+                    _songOffsetSetting.Value = _calibration;
+                    _calibration = _songOffsetSetting.Value;
+                }
             }
             finally
             {
@@ -174,15 +231,23 @@ namespace YARG.Helpers
             _gameManager.UpdateCalibration();
         }
 
+        private static string CalibrationTypeName(CalibrationType type) => type switch
+        {
+            CalibrationType.AUDIO  => "Audio",
+            CalibrationType.VIDEO  => "Video",
+            CalibrationType.OFFSET => "Song offset",
+            _                      => "Calibration"
+        };
+
         private void NotifyCalibrationUpdated()
         {
-            var type = IsCalibratingAudio ? "Audio" : "Video";
+            var type = CalibrationTypeName(CalibrationMode);
             ToastManager.ToastMessage($"{type} calibration updated: {_calibration} ms");
         }
 
         private void NotifyCalibrationStable()
         {
-            var type = IsCalibratingAudio ? "Audio" : "Video";
+            var type = CalibrationTypeName(CalibrationMode);
             ToastManager.ToastSuccess($"{type} calibration stable ({_calibration} ms)");
         }
 

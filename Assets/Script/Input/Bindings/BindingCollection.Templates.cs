@@ -23,6 +23,7 @@ namespace YARG.Input
             new ButtonBinding("Menu.Right",  (int) MenuAction.Right),
 
             new ButtonBinding("Menu.Search", (int) MenuAction.Search),
+            new ButtonBinding("Menu.SelectArtist", (int) MenuAction.SelectArtist),
         };
 
         public static BindingCollection CreateFiveFretGuitarBindings() => new(GameMode.FiveFretGuitar)

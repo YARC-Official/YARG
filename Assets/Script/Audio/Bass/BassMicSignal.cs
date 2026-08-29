@@ -289,7 +289,7 @@ namespace YARG.Audio.BASS
             }
         }
 
-        public bool ResetToLive()
+        public bool ResetAnalysis()
         {
             lock (_streamLock)
             {
@@ -302,6 +302,8 @@ namespace YARG.Audio.BASS
                 return false;
             }
         }
+
+        public bool ResetToLive() => ResetAnalysis();
 
         public void Dispose()
         {
@@ -422,8 +424,6 @@ namespace YARG.Audio.BASS
                     return false;
                 }
 
-                _noiseGate.Reset();
-                _reverb.RequestReset();
                 return true;
             }
         }

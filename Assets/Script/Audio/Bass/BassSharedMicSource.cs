@@ -22,8 +22,17 @@ namespace YARG.Audio.BASS
             _onDisposed = onDisposed;
 
             int[] channelMap = { channel, -1 };
-            _signal = BassMicSignal.Create(capture.ReadHandle, channelMap, capture.SampleRate, displayName, router,
-                SettingsManager.Settings.VocalMonitoring.Value, true, OnMonitorAttached, OnMonitorDetached)
+            float monitoringLevel = SettingsManager.Settings.VocalMonitoring.Value;
+            _signal = BassMicSignal.Create(
+                sourceHandle: capture.ReadHandle,
+                channelMap: channelMap,
+                sampleRate: capture.SampleRate,
+                name: displayName,
+                router: router,
+                monitoringLevel: monitoringLevel,
+                applyAnalysisEq: true,
+                attached: OnMonitorAttached,
+                detached: OnMonitorDetached)
                 ?? throw new InvalidOperationException($"Failed to create mic signal for '{displayName}'");
         }
 
@@ -65,8 +74,9 @@ namespace YARG.Audio.BASS
 
                 bool discarded = _capture.PauseAndDiscardBufferedAudio();
                 bool monitorReset = _signal.ResetMonitor();
+                bool analysisReset = _signal.ResetAnalysis();
                 bool resumed = _capture.Resume();
-                return discarded && monitorReset && resumed;
+                return discarded && monitorReset && analysisReset && resumed;
             }
         }
 

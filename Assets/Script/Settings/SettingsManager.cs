@@ -52,6 +52,10 @@ namespace YARG.Settings
                 nameof(Settings.AudioCalibration),
                 nameof(Settings.VideoCalibration),
                 new FieldMetadata(nameof(Settings.AccountForHardwareLatency), true, isAdvanced: true),
+                // Not sure how to use nameof?
+                new HeaderMetadata("OffsetCalibration"),
+                nameof(Settings.ShowMeanSongOffsetCalibration),
+                nameof(Settings.UseSongOffsetCalibration),
 
                 new HeaderMetadata("Venues"),
                 new ButtonRowMetadata(nameof(Settings.OpenVenueFolder)),

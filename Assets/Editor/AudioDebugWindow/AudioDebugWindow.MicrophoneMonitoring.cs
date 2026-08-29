@@ -227,8 +227,7 @@ namespace YARG.Editor
                 return;
             }
 
-            var sharedMics = _availableMicDevices.Where(d => !d.DisplayName.StartsWith("ASIO: ", StringComparison.OrdinalIgnoreCase)).ToList();
-            var asioMics = _availableMicDevices.Where(d => d.DisplayName.StartsWith("ASIO: ", StringComparison.OrdinalIgnoreCase)).ToList();
+            var (sharedMics, wasapiMics, asioMics) = GroupMicrophones();
 
             foreach (var device in sharedMics)
             {
@@ -236,7 +235,20 @@ namespace YARG.Editor
                 bool alreadyUsed = _micSlots.Any(s => s.SelectedDevice?.DisplayName == devName && s.ActiveDevice != null);
                 string suffix = alreadyUsed ? " (In use)" : "";
                 var captured = device;
-                menu.AddItem(new GUIContent($"Shared (WASAPI\\/DirectSound)/{devName}{suffix}"), false, () =>
+                menu.AddItem(new GUIContent($"Shared (DirectSound\\/WASAPI)/{devName}{suffix}"), false, () =>
+                {
+                    AddMicSlot(captured);
+                });
+            }
+
+            foreach (var device in wasapiMics)
+            {
+                string devName = device.DisplayName;
+                string displayName = CleanDeviceName(devName);
+                bool alreadyUsed = _micSlots.Any(s => s.SelectedDevice?.DisplayName == devName && s.ActiveDevice != null);
+                string suffix = alreadyUsed ? " (In use)" : "";
+                var captured = device;
+                menu.AddItem(new GUIContent($"WASAPI Exclusive (Low Latency)/{displayName}{suffix}"), false, () =>
                 {
                     AddMicSlot(captured);
                 });
@@ -245,7 +257,7 @@ namespace YARG.Editor
             foreach (var device in asioMics)
             {
                 string devName = device.DisplayName;
-                string displayName = devName.StartsWith("ASIO: ", StringComparison.OrdinalIgnoreCase) ? devName.Substring(6) : devName;
+                string displayName = CleanDeviceName(devName);
                 bool alreadyUsed = _micSlots.Any(s => s.SelectedDevice?.DisplayName == devName && s.ActiveDevice != null);
                 string suffix = alreadyUsed ? " (In use)" : "";
                 var captured = device;
@@ -270,15 +282,26 @@ namespace YARG.Editor
                 return;
             }
 
-            var sharedMics = _availableMicDevices.Where(d => !d.DisplayName.StartsWith("ASIO: ", StringComparison.OrdinalIgnoreCase)).ToList();
-            var asioMics = _availableMicDevices.Where(d => d.DisplayName.StartsWith("ASIO: ", StringComparison.OrdinalIgnoreCase)).ToList();
+            var (sharedMics, wasapiMics, asioMics) = GroupMicrophones();
 
             foreach (var device in sharedMics)
             {
                 string devName = device.DisplayName;
                 bool isCurrent = slot.ActiveDevice != null && slot.SelectedDevice?.DisplayName == devName;
                 var captured = device;
-                menu.AddItem(new GUIContent($"Shared (WASAPI\\/DirectSound)/{devName}"), isCurrent, () =>
+                menu.AddItem(new GUIContent($"Shared (DirectSound\\/WASAPI)/{devName}"), isCurrent, () =>
+                {
+                    ConnectMicSlot(slot, captured);
+                });
+            }
+
+            foreach (var device in wasapiMics)
+            {
+                string devName = device.DisplayName;
+                string displayName = CleanDeviceName(devName);
+                bool isCurrent = slot.ActiveDevice != null && slot.SelectedDevice?.DisplayName == devName;
+                var captured = device;
+                menu.AddItem(new GUIContent($"WASAPI Exclusive (Low Latency)/{displayName}"), isCurrent, () =>
                 {
                     ConnectMicSlot(slot, captured);
                 });
@@ -287,7 +310,7 @@ namespace YARG.Editor
             foreach (var device in asioMics)
             {
                 string devName = device.DisplayName;
-                string displayName = devName.StartsWith("ASIO: ", StringComparison.OrdinalIgnoreCase) ? devName.Substring(6) : devName;
+                string displayName = CleanDeviceName(devName);
                 bool isCurrent = slot.ActiveDevice != null && slot.SelectedDevice?.DisplayName == devName;
                 var captured = device;
                 menu.AddItem(new GUIContent($"ASIO (Low Latency)/{displayName}"), isCurrent, () =>
@@ -297,6 +320,32 @@ namespace YARG.Editor
             }
 
             menu.ShowAsContext();
+        }
+
+        private (List<InputDeviceInfo> Shared, List<InputDeviceInfo> Wasapi, List<InputDeviceInfo> Asio)
+            GroupMicrophones()
+        {
+            var shared = new List<InputDeviceInfo>();
+            var wasapi = new List<InputDeviceInfo>();
+            var asio = new List<InputDeviceInfo>();
+
+            foreach (var device in _availableMicDevices)
+            {
+                if (device.DisplayName.StartsWith("WASAPI: ", StringComparison.OrdinalIgnoreCase))
+                {
+                    wasapi.Add(device);
+                }
+                else if (device.DisplayName.StartsWith("ASIO: ", StringComparison.OrdinalIgnoreCase))
+                {
+                    asio.Add(device);
+                }
+                else
+                {
+                    shared.Add(device);
+                }
+            }
+
+            return (shared, wasapi, asio);
         }
 
         private void RefreshAvailableMicrophones()

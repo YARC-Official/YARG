@@ -1,9 +1,11 @@
 using System;
+using System.IO;
 using System.Linq;
 using System.Collections.Generic;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using DG.Tweening;
+using Newtonsoft.Json;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Serialization;
@@ -15,6 +17,7 @@ using YARG.Core.Engine.Guitar;
 using YARG.Core.Engine.Keys;
 using YARG.Core.Engine.Vocals;
 using YARG.Core.Input;
+using YARG.Core.IO.Ini;
 using YARG.Core.Logging;
 using YARG.Core.Replays;
 using YARG.Core.Replays.Analyzer;
@@ -26,9 +29,11 @@ using YARG.Menu.Persistent;
 using YARG.Scores;
 using YARG.Song;
 using YARG.Playlists;
+using YARG.Helpers;
 using YARG.Helpers.Extensions;
 using YARG.Core.Engine;
 using YARG.Settings;
+
 
 namespace YARG.Menu.ScoreScreen
 {
@@ -79,6 +84,10 @@ namespace YARG.Menu.ScoreScreen
         private bool _analyzingReplay;
         private bool _restartingSong;
         private bool _showAdvancedStats;
+        private bool _offsetModified;
+        private int _humanPlayerCount;
+        private string _songHashKey;
+        private Dictionary<string, long> _offsets;
 
         private float                   _horizontalScrollStep;
         private Tween                   _horizontalScrollTween;
@@ -101,12 +110,15 @@ namespace YARG.Menu.ScoreScreen
 
             ShowReplayAnalysis(song, scoreScreenStats);
 
-        // Play audience chatter, unless we are viewing a replay score
-        if (SettingsManager.Settings.UseCrowdCheering.Value &&
-            !GlobalVariables.State.CrowdSfxVenueOverride && !GlobalVariables.State.IsReplay)
-        {
-            GlobalAudioHandler.PlaySoundEffect(SfxSample.Chatter, 1.0);
-        }
+            _humanPlayerCount = scoreScreenStats.PlayerScores.Count(p => !p.Player.Profile.IsBot);
+            _songHashKey = song.Hash.ToString();
+            _offsets = SongOffsetContainer.LoadOffsets();
+            // Play audience chatter, unless we are viewing a replay score
+            if (SettingsManager.Settings.UseCrowdCheering.Value &&
+                !GlobalVariables.State.CrowdSfxVenueOverride && !GlobalVariables.State.IsReplay)
+            {
+                GlobalAudioHandler.PlaySoundEffect(SfxSample.Chatter, 1.0);
+            }
 
             // Set text
             _songTitle.text = song.Name;
@@ -157,6 +169,13 @@ namespace YARG.Menu.ScoreScreen
 
         private void OnDisable()
         {
+            // Only write back if an offset was actually toggled here; otherwise there's nothing
+            // to persist and re-saving unmodified data risks clobbering entries that couldn't be
+            // recovered from a corrupted file on load.
+            if (_offsetModified)
+            {
+                SongOffsetContainer.SaveOffsets(_offsets);
+            }
             MusicLibraryMenu.CurrentlyPlaying = GlobalVariables.State.CurrentSong;
             if (!GlobalVariables.State.PlayingAShow && !_restartingSong)
             {
@@ -418,6 +437,7 @@ namespace YARG.Menu.ScoreScreen
         private NavigationScheme.Entry _showAdvancedButtonEntry;
         private NavigationScheme.Entry _removeFavoriteButtonEntry;
         private NavigationScheme.Entry _addFavoriteButtonEntry;
+        private NavigationScheme.Entry _toggleOffsetEntry;
         private NavigationScheme.Entry _scrollLeftEntry;
         private NavigationScheme.Entry _scrollRightEntry;
         private NavigationScheme.Entry _scrollUpEntry;
@@ -487,6 +507,8 @@ namespace YARG.Menu.ScoreScreen
                 });
 
             UpdateShowAdvancedButton();
+
+            UpdateAddOffsetButton();
 
             _scrollLeftEntry = new NavigationScheme.Entry(MenuAction.Left, "Menu.Common.Scroll", context =>
                 {
@@ -573,6 +595,56 @@ namespace YARG.Menu.ScoreScreen
             _showAdvancedButtonEntry = new NavigationScheme.Entry(MenuAction.Orange, key, ToggleAdvancedStats);
         }
 
+        private void ToggleOffsetToJson()
+        {
+            var offset = GlobalVariables.State.ScoreScreenStats.Value.MeanAverageOffset;
+
+            var offsetMs = (long)Math.Round(offset * 1000);
+
+            if (_offsetModified)
+            {
+                ToastManager.ToastSuccess($"{offsetMs}ms offset removed");
+                AddSongOffsetJson(_songHashKey, -offsetMs);
+            }
+            else
+            {
+                ToastManager.ToastSuccess($"{offsetMs}ms offset added");
+                AddSongOffsetJson(_songHashKey, offsetMs);
+            }
+            _offsetModified = !_offsetModified;
+            UpdateAddOffsetButton();
+            UpdateNavigationScheme(true);
+        }
+
+        private void AddSongOffsetJson(string hashKey, long offsetMilliseconds)
+        {
+            _offsets.TryGetValue(hashKey, out var existing);
+            var newValue = existing + offsetMilliseconds;
+
+            if (newValue == 0)
+            {
+                _offsets.Remove(hashKey);
+            }
+            else
+            {
+                _offsets[hashKey] = newValue;
+            }
+        }
+
+
+        private void UpdateAddOffsetButton()
+        {
+            var key = _offsetModified ? "Menu.ScoreScreen.RemoveSongOffset" : "Menu.ScoreScreen.AddSongOffset";
+            // Make offset button holdable, 1 second
+            _toggleOffsetEntry = new NavigationScheme.Entry(
+                MenuAction.Select,
+                key,
+                () => { }, // tap does nothing
+                holdSeconds: 1f,
+                onHoldHandler: ToggleOffsetToJson
+            );
+        }
+
         private void UpdateNavigationScheme(bool reset = false)
         {
             if (reset)
@@ -616,6 +688,19 @@ namespace YARG.Menu.ScoreScreen
                 GlobalVariables.State.ShowIndex + 1 < GlobalVariables.State.ShowSongs.Count)
             {
                 buttons.Insert(1, _endEarlyButtonEntry);
+            }
+
+            // Now doesn't look so great when changing quickly quickly between advanced stats
+            var showMeanOffset = SettingsManager.Settings.ShowMeanSongOffsetCalibration.Value switch
+            {
+                ShowMeanSongOffsetCalibrationMode.Always        => true,
+                ShowMeanSongOffsetCalibrationMode.OnlyOnePlayer => _humanPlayerCount == 1,
+                _                                                => false,
+            };
+
+            if (showMeanOffset && _showAdvancedStats)
+            {
+                buttons.Add(_toggleOffsetEntry);
             }
 
             buttons.Add(_scrollLeftEntry);

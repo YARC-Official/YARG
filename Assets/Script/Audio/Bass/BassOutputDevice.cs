@@ -38,6 +38,14 @@ namespace YARG.Audio.BASS
             }
         }
 
+        internal static BassOutputDevice? CreateWasapi(string name)
+        {
+            lock (_lock)
+            {
+                return TryCreate(NO_SOUND_DEVICE, name, DeviceInitFlags.Default);
+            }
+        }
+
         public void Use()
         {
             Bass.CurrentDevice = DeviceId;
@@ -94,6 +102,15 @@ namespace YARG.Audio.BASS
 
         private static bool TryInitializeBass(int deviceId, string name, DeviceInitFlags flags)
         {
+            if (deviceId != NO_SOUND_DEVICE)
+            {
+                int devPeriod = Math.Max(1, Bass.GetConfig(Configuration.DevicePeriod));
+                if (Bass.DeviceBufferLength <= 0)
+                {
+                    Bass.DeviceBufferLength = 2 * devPeriod;
+                }
+            }
+
             if (Bass.Init(deviceId, DEFAULT_SAMPLE_RATE, flags, IntPtr.Zero))
             {
                 return true;

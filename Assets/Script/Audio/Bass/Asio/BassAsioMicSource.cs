@@ -71,7 +71,7 @@ namespace YARG.Audio.BASS.Asio
                     return false;
                 }
 
-                return _input.ResetMonitor();
+                return _input.Reset();
             }
         }
 

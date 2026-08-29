@@ -29,6 +29,7 @@ namespace YARG.Editor
                 string currentDevice = SettingsManager.Settings?.OutputDevice.Value ?? "Default";
                 var currentMode = GlobalAudioHandler.GetOutputMode(currentDevice);
                 bool isAsio = currentMode == AudioOutputMode.Asio;
+                bool isWasapi = currentMode == AudioOutputMode.WasapiExclusive;
 
                 using (new EditorGUILayout.HorizontalScope())
                 {
@@ -42,10 +43,15 @@ namespace YARG.Editor
                         GUI.backgroundColor = new Color(0.2f, 0.75f, 1f, 1f);
                         GUILayout.Label(" ASIO (EXCLUSIVE) ", EditorStyles.helpBox, GUILayout.Height(18));
                     }
+                    else if (isWasapi)
+                    {
+                        GUI.backgroundColor = new Color(0.85f, 0.45f, 1f, 1f);
+                        GUILayout.Label(" WASAPI (EXCLUSIVE) ", EditorStyles.helpBox, GUILayout.Height(18));
+                    }
                     else
                     {
                         GUI.backgroundColor = new Color(0.4f, 0.8f, 0.4f, 1f);
-                        GUILayout.Label(" SHARED (WASAPI) ", EditorStyles.helpBox, GUILayout.Height(18));
+                        GUILayout.Label(" SHARED (SYSTEM) ", EditorStyles.helpBox, GUILayout.Height(18));
                     }
                     GUI.backgroundColor = prevBg;
 
@@ -307,11 +313,12 @@ namespace YARG.Editor
         private void DrawBassBufferSettingsCard()
         {
             string currentDevice = SettingsManager.Settings?.OutputDevice.Value ?? "Default";
-            bool isAsio = GlobalAudioHandler.GetOutputMode(currentDevice) == AudioOutputMode.Asio;
+            var currentMode = GlobalAudioHandler.GetOutputMode(currentDevice);
+            bool isExclusive = currentMode != AudioOutputMode.Shared;
             int devicePeriod = Math.Max(1, Bass.GetConfig(Configuration.DevicePeriod));
 
 #if UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN
-            bool supportsDeviceBuffer = !isAsio;
+            bool supportsDeviceBuffer = !isExclusive;
 #else
             bool supportsDeviceBuffer = false;
 #endif

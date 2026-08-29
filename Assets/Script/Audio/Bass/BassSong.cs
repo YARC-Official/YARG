@@ -6,6 +6,7 @@ using System.Linq;
 using ManagedBass;
 using ManagedBass.Mix;
 using UnityEngine;
+using YARG.Audio.BASS.Effects;
 using YARG.Core.Audio;
 using YARG.Core.Logging;
 using YARG.Core.Song;
@@ -25,7 +26,8 @@ namespace YARG.Audio.BASS
         private const float MAX_PLAYBACK_SPEED           = 51f;
 
         private readonly BassStemPipeline            _stemPipeline;
-        private readonly HashSet<BassOneShotChannel> _oneShots = new();
+        private readonly HashSet<BassOneShotChannel> _oneShots     = new();
+        private readonly HashSet<BassToneChannel>    _toneChannels = new();
 
         private readonly Timer _whammySyncTimer;
         private          int   _bufferLength;
@@ -113,7 +115,7 @@ namespace YARG.Audio.BASS
         internal bool TryAttachOutput(BassOutput output)
         {
             var connection = BassSongConnection.Create(output, _stemPipeline.OutputHandle, _bufferLength,
-                BassHelpers.ExponentialVolume(_volume), _outputChannel, _oneShots);
+                BassHelpers.ExponentialVolume(_volume), _outputChannel, _oneShots, _toneChannels);
             if (connection == null)
             {
                 return false;
@@ -150,6 +152,11 @@ namespace YARG.Audio.BASS
             foreach (var oneShot in _oneShots)
             {
                 oneShot.DetachOutput();
+            }
+
+            foreach (var channel in _toneChannels)
+            {
+                channel.DetachOutput();
             }
 
             _connection?.Dispose();
@@ -300,6 +307,8 @@ namespace YARG.Audio.BASS
                 return;
             }
 
+            RefreshToneChannels();
+
             foreach (var oneShot in _oneShots)
             {
                 oneShot.ResetAfterSpeedChange();
@@ -337,6 +346,8 @@ namespace YARG.Audio.BASS
             {
                 oneShot.ResetAfterSeek();
             }
+
+            RefreshToneChannels();
 
             if (wasPlaying)
             {
@@ -404,6 +415,13 @@ namespace YARG.Audio.BASS
         {
             _outputChannel = channel;
             _connection?.SetOutputChannel(channel);
+
+            // Keep the guide tone on the same speaker pair as the music when the setting changes
+            // mid-song, matching the routing just applied to the tempo stream above.
+            foreach (var toneChannel in _toneChannels)
+            {
+                toneChannel.SetOutputChannel(ToneOutputChannel);
+            }
         }
 
         protected override void SetOutputDevice_Internal(OutputDevice device)
@@ -473,6 +491,73 @@ namespace YARG.Audio.BASS
 
         private void RemoveOneShot(BassOneShotChannel oneShot) => _oneShots.Remove(oneShot);
 
+        public override ToneChannel? CreateToneChannel(double volume, double fadeDuration)
+        {
+            // The tone is rendered onto the song mixer, which puts it inside the buffered song
+            // branch: it travels through the read-ahead buffer alongside the music it is mixed into,
+            // and it follows song volume and fades. It also stays out of the data behind
+            // GetFFTData, which is read from the tempo stream upstream of this point and drives the
+            // venue visuals. Song position comes from the tempo stream, so the offset below is the
+            // same mapping ConvertTempoBytesToSongPosition applies on the game thread.
+            var channel = BassToneChannel.Create(_stemPipeline.OutputHandle, volume, fadeDuration);
+            if (channel == null)
+            {
+                return null;
+            }
+
+            channel.SetTiming(SongTimeOffset, _speed);
+            // Route the tone before it is attached, so its first rendered block already lands on
+            // the configured pair instead of every speaker.
+            channel.SetOutputChannel(ToneOutputChannel);
+
+            // The song mixer is recreated on every output device change, so the channel is tracked
+            // here and re-attached by BassSongConnection.Create as one-shots are. With no connection
+            // yet it stays registered and unattached, and the next TryAttachOutput picks it up.
+            if (_connection != null && !_connection.AttachTone(channel))
+            {
+                channel.Dispose();
+                return null;
+            }
+
+            channel.Disposed += RemoveToneChannel;
+            _toneChannels.Add(channel);
+            return channel;
+        }
+
+        private void RemoveToneChannel(BassToneChannel channel) => _toneChannels.Remove(channel);
+
+        /// <summary>
+        /// Maps a tempo stream position in seconds onto a song position. Published to the native
+        /// tone DSP, which reads the tempo stream directly on the render thread.
+        /// </summary>
+        private double SongTimeOffset => _seekPosition - TotalStreamDelay;
+
+        /// <summary>
+        /// The output channel the guide tone should render into, taken from the song's own
+        /// routing so it follows the same speaker pair as the music. A 1-based channel value, or
+        /// 0 to broadcast to every channel when no routing is set.
+        /// </summary>
+        private uint ToneOutputChannel =>
+            _outputChannel is { ChannelId: > 0 } outputChannel ? (uint) outputChannel.ChannelId : 0u;
+
+        /// <summary>
+        /// Republishes timing to the tone channels, and retries any that are registered but not
+        /// attached, so a failed attach during an output device change does not silently disable
+        /// the tone for the rest of the song.
+        /// </summary>
+        private void RefreshToneChannels()
+        {
+            foreach (var channel in _toneChannels)
+            {
+                channel.SetTiming(SongTimeOffset, _speed);
+                channel.SetOutputChannel(ToneOutputChannel);
+                if (_connection != null)
+                {
+                    channel.Reattach();
+                }
+            }
+        }
+
         protected override void DisposeManagedResources()
         {
             _whammySyncTimer.Stop();
@@ -496,6 +581,13 @@ namespace YARG.Audio.BASS
             }
 
             _oneShots.Clear();
+
+            foreach (var channel in _toneChannels.ToArray())
+            {
+                channel.Dispose();
+            }
+
+            _toneChannels.Clear();
             _stemPipeline.Dispose();
         }
 
@@ -567,12 +659,14 @@ namespace YARG.Audio.BASS
             AlignmentDelay = alignmentDelay;
             _playbackDelay = playbackDelay;
             _lastSongPosition = seekPosition - TotalStreamDelay;
+            RefreshToneChannels();
         }
 
         private void SetAlignmentDelay(double delay)
         {
             _lastSongPosition -= delay - AlignmentDelay;
             AlignmentDelay = delay;
+            RefreshToneChannels();
         }
     }
 }

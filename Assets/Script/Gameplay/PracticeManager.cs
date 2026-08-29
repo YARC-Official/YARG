@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Linq;
 using UnityEngine;
+using YARG.Core;
 using YARG.Core.Chart;
 using YARG.Core.Input;
 using YARG.Gameplay.HUD;
+using YARG.Gameplay.Player;
 using YARG.Menu.Navigation;
 using YARG.Settings;
 
@@ -23,6 +25,8 @@ namespace YARG.Gameplay
         private GameObject _scoreDisplayObject;
 
         private SongChart _chart;
+
+        private GuidePitchManager _guidePitchManager;
 
         public double TimeStart { get; private set; }
         public double TimeEnd   { get; private set; }
@@ -49,13 +53,35 @@ namespace YARG.Gameplay
             }
 
             Navigator.Instance.NavigationEvent += OnNavigationEvent;
+            _practiceHud.GuidePitchToggleRequested += OnGuidePitchToggleRequested;
             _practiceHud.gameObject.SetActive(true);
             _scoreDisplayObject.SetActive(false);
+        }
+
+        protected override void OnSongStarted()
+        {
+            _guidePitchManager = GuidePitchManager.Create(GameManager.Mixer, GameManager.VocalTrack,
+                _practiceHud.SetGuidePitchPartText);
         }
 
         protected override void GameplayDestroy()
         {
             Navigator.Instance.NavigationEvent -= OnNavigationEvent;
+            _practiceHud.GuidePitchToggleRequested -= OnGuidePitchToggleRequested;
+            _guidePitchManager?.Dispose();
+        }
+
+        // Mouse click on the guide pitch hint icon. Routed through the same toggle as the orange
+        // menu button so both inputs behave identically. The icon is only shown when the chart has
+        // vocals, which is exactly when the manager is non-null.
+        private void OnGuidePitchToggleRequested()
+        {
+            if (GameManager.Paused)
+            {
+                return;
+            }
+
+            _guidePitchManager?.ToggleGuidePitch();
         }
 
         private void Update()
@@ -101,6 +127,13 @@ namespace YARG.Gameplay
                 // Reset
                 case MenuAction.Select:
                     ResetPractice();
+                    break;
+                // Guide pitch toggle (Vocalist only)
+                case MenuAction.Orange:
+                    if (ctx.Player?.Profile.CurrentInstrument is Instrument.Vocals or Instrument.Harmony)
+                    {
+                        _guidePitchManager?.ToggleGuidePitch();
+                    }
                     break;
             }
         }

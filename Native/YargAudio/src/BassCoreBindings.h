@@ -21,6 +21,10 @@ struct BassCoreFunctions {
     std::uint32_t (YARG_BASS_CALL* streamCreate)(
         std::uint32_t, std::uint32_t, std::uint32_t, BassStreamProc, void*) = nullptr;
     int (YARG_BASS_CALL* streamFree)(std::uint32_t) = nullptr;
+    std::uint64_t (YARG_BASS_CALL* channelGetPosition)(
+        std::uint32_t, std::uint32_t) = nullptr;
+    double (YARG_BASS_CALL* channelBytes2Seconds)(
+        std::uint32_t, std::uint64_t) = nullptr;
 };
 
 class BassCoreBindings {
@@ -43,6 +47,12 @@ public:
     std::uint32_t getConfig(std::uint32_t option) const noexcept;
     bool oneShotValid() const noexcept;
     bool readAheadValid() const noexcept;
+
+    // Song position support, required by the sine synth DSP.
+    bool positionValid() const noexcept;
+    std::int64_t getPosition(std::uint32_t channel, std::uint32_t mode) const noexcept;
+    double bytesToSeconds(std::uint32_t channel, std::int64_t bytes) const noexcept;
+
     std::uint32_t createStream(std::uint32_t frequency, std::uint32_t channels,
         std::uint32_t flags, BassStreamProc proc, void* user) const noexcept;
     bool freeStream(std::uint32_t stream) const noexcept;

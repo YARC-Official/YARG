@@ -10,10 +10,9 @@ namespace YARG.Settings.Types
     public sealed class OutputBufferSizeSetting : DropdownSetting<int>
     {
         private int  _preferredLength;
-        private int  _sampleRate;
         private bool _isDriverControlled;
 
-        public OutputBufferSizeSetting(int value, Action<int> onChange = null) : base(value, onChange, false)
+        public OutputBufferSizeSetting(int value, Action<int> onChange = null) : base(value, onChange, localizable: false)
         {
         }
 
@@ -23,7 +22,6 @@ namespace YARG.Settings.Types
             _possibleValues.Clear();
             _possibleValues.Add(0);
             _preferredLength = 0;
-            _sampleRate = 0;
             _isDriverControlled = false;
 
             if (GlobalAudioHandler.GetOutputBufferInfo() is not { } info)
@@ -32,7 +30,6 @@ namespace YARG.Settings.Types
             }
 
             _preferredLength = info.PreferredLength;
-            _sampleRate = info.SampleRate;
             _isDriverControlled = info.IsDriverControlled;
             if (!_isDriverControlled)
             {
@@ -55,14 +52,7 @@ namespace YARG.Settings.Types
                     : Localize.Key("Settings.Setting.AsioBufferSize.DriverDefault");
             }
 
-            if (_sampleRate <= 0)
-            {
-                return Localize.KeyFormat("Settings.Setting.AsioBufferSize.Samples", value);
-            }
-
-            double milliseconds = value * 1000.0 / _sampleRate;
-            return Localize.KeyFormat("Settings.Setting.AsioBufferSize.SamplesWithDuration", value,
-                milliseconds.ToString("0.0##"));
+            return Localize.KeyFormat("Settings.Setting.AsioBufferSize.Samples", value);
         }
     }
 }

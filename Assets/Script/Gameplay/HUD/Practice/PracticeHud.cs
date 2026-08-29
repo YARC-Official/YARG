@@ -2,8 +2,14 @@
 using Cysharp.Text;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 using YARG.Assets.Script.Helpers;
+using YARG.Core;
 using YARG.Core.Chart;
+using YARG.Core.Input;
+using YARG.Menu.Data;
+using YARG.Menu.Navigation;
+using YARG.Menu.Persistent;
 
 namespace YARG.Gameplay.HUD
 {
@@ -25,6 +31,19 @@ namespace YARG.Gameplay.HUD
 
         [SerializeField]
         private TextMeshProUGUI _notesHitTotalText;
+        [SerializeField]
+        private LayoutGroup _guidePitchPartGroup;
+        [SerializeField]
+        private TextMeshProUGUI _guidePitchPartText;
+
+        // The shared HelpBarButton prefab, reused so the hint matches the help bar's orange button.
+        [SerializeField]
+        private GameObject _guidePitchButtonPrefab;
+        [SerializeField]
+        private Transform _guidePitchButtonParent;
+
+        /// <summary>Raised when the guide pitch hint button is clicked with the mouse.</summary>
+        public event Action GuidePitchToggleRequested;
 
         private float _speed;
         private float _percentHit;
@@ -52,6 +71,16 @@ namespace YARG.Gameplay.HUD
             {
                 Destroy(gameObject);
             }
+        }
+
+        protected override void OnSongStarted()
+        {
+            // Not OnSongLoaded: SongLoaded is fired from FinalizeChart, which runs before
+            // CreatePlayers, so the player list is still empty there and HasVocalsPlayer always
+            // reported false. SongStarted is raised after the players are spawned, and is the
+            // same hook PracticeManager uses to build the guide pitch manager.
+            _guidePitchPartGroup.gameObject.SetActive(HasVocalsPlayer());
+            SetupGuidePitchButton();
         }
 
         private void Update()
@@ -152,6 +181,59 @@ namespace YARG.Gameplay.HUD
 
             _bestPercentText.text = "0%";
             _sectionText.text = _sectionNames[_currentSectionIndex];
+        }
+
+        public void SetGuidePitchPartText(string status, Color color)
+        {
+            if (_guidePitchPartText != null)
+            {
+                _guidePitchPartText.text = status;
+                _guidePitchPartText.color = color;
+            }
+        }
+
+        private void SetupGuidePitchButton()
+        {
+            if (_guidePitchButtonPrefab == null || _guidePitchButtonParent == null ||
+                MenuData.Instance == null || !HasVocalsPlayer())
+            {
+                return;
+            }
+
+            var buttonObject = Instantiate(_guidePitchButtonPrefab, _guidePitchButtonParent);
+            var button = buttonObject.GetComponent<HelpBarButton>();
+            button.SetInfoFromSchemeEntry(new NavigationScheme.Entry(
+                MenuAction.Orange, "Gameplay.Practice.GuidePitchToggle",
+                () => GuidePitchToggleRequested?.Invoke()));
+
+            // The prefab's fixed help-bar width is too narrow for a short label, so the text overflows
+            // its margin; sizing to content instead restores the label's built-in right padding.
+            var fitter = buttonObject.AddComponent<ContentSizeFitter>();
+            fitter.horizontalFit = ContentSizeFitter.FitMode.PreferredSize;
+            fitter.verticalFit = ContentSizeFitter.FitMode.Unconstrained;
+
+            var rect = buttonObject.GetComponent<RectTransform>();
+            rect.anchorMin = rect.anchorMax = rect.pivot = new Vector2(0.5f, 0.5f);
+            rect.anchoredPosition = Vector2.zero;
+        }
+
+        private bool HasVocalsPlayer()
+        {
+            if (GameManager.Players is null)
+            {
+                return false;
+            }
+
+            foreach (var player in GameManager.Players)
+            {
+                var instrument = player.Player.Profile.CurrentInstrument;
+                if (instrument is Instrument.Vocals or Instrument.Harmony)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
     }
 }

@@ -3,6 +3,7 @@ using System.IO;
 using ManagedBass;
 using ManagedBass.Asio;
 using ManagedBass.Mix;
+using ManagedBass.Wasapi;
 using UnityEngine;
 using YARG.Core.Audio;
 using YARG.Core.Logging;
@@ -88,22 +89,54 @@ namespace YARG.Audio.BASS
 #endif
 
 #if UNITY_EDITOR_WIN
+            int asioDeviceCount = 0;
             try
             {
-                for (int asioIndex = 0; asioIndex < BassAsio.DeviceCount; asioIndex++)
+                asioDeviceCount = BassAsio.DeviceCount;
+            }
+            catch (Exception ex)
+            {
+                YargLogger.LogWarning($"Exception reading ASIO devices during cleanup: {ex.Message}");
+            }
+
+            for (int i = 0; i < asioDeviceCount; i++)
+            {
+                try
                 {
-                    try
-                    {
-                        BassAsio.CurrentDevice = asioIndex;
-                        BassAsio.Free();
-                    }
-                    catch
-                    {
-                    }
+                    BassAsio.CurrentDevice = i;
+                    BassAsio.Free();
+                }
+                catch (BassException exception) when (exception.ErrorCode == Errors.Init)
+                {
+                }
+                catch (Exception ex)
+                {
+                    YargLogger.LogWarning($"Exception freeing ASIO device {i}: {ex.Message}");
                 }
             }
-            catch
+
+            for (int i = 0; ; i++)
             {
+                bool found;
+                try
+                {
+                    found = BassWasapi.GetDeviceInfo(i, out var wasapiInfo);
+                    if (!found)
+                    {
+                        break;
+                    }
+
+                    if (wasapiInfo.IsInitialized)
+                    {
+                        BassWasapi.CurrentDevice = i;
+                        BassWasapi.Free();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    YargLogger.LogWarning($"Exception freeing WASAPI device {i}: {ex.Message}");
+                    break;
+                }
             }
 #endif
         }

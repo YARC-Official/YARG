@@ -418,6 +418,8 @@ namespace YARG.Menu.MusicLibrary
                     OnOrangeHit, OnOrangeRelease),
                 new NavigationScheme.Entry(MenuAction.Search, "Menu.MusicLibrary.Search",
                     _searchField.Focus, hide: true),
+                new NavigationScheme.Entry(MenuAction.SelectArtist, "Menu.MusicLibrary.SelectArtist",
+                    () => CurrentSelection?.SecondaryTextClick(), hide: true),
             };
 
             _ = Navigator.Instance.PushScheme(new NavigationScheme(entries, false));
@@ -1238,7 +1240,8 @@ namespace YARG.Menu.MusicLibrary
 
         private static bool IsDynamicScoreSort(SortAttribute sort)
         {
-            return sort is SortAttribute.Playcount or SortAttribute.Stars;
+            return sort is SortAttribute.Playcount or SortAttribute.Stars or
+                SortAttribute.Percentage or SortAttribute.Score;
         }
 
         private bool SetIndexToStableId(string stableId, int searchStartIndex = 0)

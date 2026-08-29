@@ -38,7 +38,13 @@ namespace YARG.Audio.BASS
 
     public static class BassHelpers
     {
-        public const uint YARG_AUDIO_ABI_VERSION = 6;
+        public const uint YARG_AUDIO_ABI_VERSION = 8;
+
+        /// <summary>
+        /// Floor applied to the playback speed before it is used as a divisor or to scale a
+        /// duration, so that a zero or near-zero speed cannot produce an infinite result.
+        /// </summary>
+        public const float MINIMUM_SPEED = 0.0001f;
 
         public const float REVERB_VOLUME_MULTIPLIER = 0.35f;
 
