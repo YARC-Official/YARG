@@ -114,6 +114,19 @@ namespace YARG.Player
             return _playersByProfile.ContainsKey(profile);
         }
 
+        public static bool IsControllerInUse(InputDevice controller)
+        {
+            foreach (var player in _players)
+            {
+                if (player.DeviceInfo.Controllers.Contains(controller))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         public static YargPlayer CreatePlayerFromProfile(YargProfile profile, bool resolveDevices)
         {
             if (!_profiles.Contains(profile))

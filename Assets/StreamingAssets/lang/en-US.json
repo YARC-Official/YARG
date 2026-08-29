@@ -538,10 +538,6 @@
 					"Title": "Detach Microphone",
 					"Text": "Detach this microphone from this profile."
 				},
-				"LeftyFlip": {
-					"Title": "Lefty Flip",
-					"Text": "Reorient guitar and drum charts for left-handed gameplay."
-				},
 				"NoteSpeed": {
 					"Title": "Note Speed",
 					"Text": "Adjust the scrolling speed of the highway. At faster speeds, the gems are visually further apart.\n\nDefault value is 5.0. Higher values produce higher speeds."
@@ -549,6 +545,10 @@
 				"HighwayLength": {
 					"Title": "Track Length",
 					"Text": "Adjust the length of the highway.\n\nDefault value is 1.0. Higher values produce longer highways."
+				},
+				"LeftyFlip": {
+					"Title": "Lefty Flip",
+					"Text": "Reorient guitar and drum charts for left-handed gameplay."
 				}
 			}
         },
