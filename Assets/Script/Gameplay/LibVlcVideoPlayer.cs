@@ -32,18 +32,12 @@ namespace YARG.Gameplay
         private Camera _targetCamera;
         public Camera targetCamera => _targetCamera;
 
+        // The fallback VideoPlayer never renders directly into this -- see _fallbackFrameTexture.
         private RenderTexture _targetTexture;
         public RenderTexture targetTexture
         {
             get => _targetTexture;
-            set
-            {
-                _targetTexture = value;
-                if (_fallbackPlayer != null)
-                {
-                    _fallbackPlayer.targetTexture = value;
-                }
-            }
+            set => _targetTexture = value;
         }
 
         public event Action<LibVlcVideoPlayer> prepareCompleted;
@@ -146,6 +140,10 @@ namespace YARG.Gameplay
         private bool _usingVlc;
         private bool _playerEnabled = true;
         private VideoPlayer _fallbackPlayer;
+
+        // Intermediate texture the fallback VideoPlayer renders into, sized to the clip's own
+        // native resolution
+        private RenderTexture _fallbackFrameTexture;
 
         private MediaPlayer _mediaPlayer;
         private Media _media;
@@ -282,12 +280,22 @@ namespace YARG.Gameplay
 
             _fallbackPlayer.playOnAwake = false;
             _fallbackPlayer.renderMode = VideoRenderMode.RenderTexture;
-            _fallbackPlayer.targetTexture = _targetTexture;
             _fallbackPlayer.isLooping = _isLooping;
             _fallbackPlayer.enabled = _playerEnabled;
 
             _fallbackPlayer.prepareCompleted += vp =>
             {
+                // vp.width/height report the clip's native resolution, valid once prepared --
+                // render into a texture that size so Update() can cover-fit blit it into
+                // targetTexture instead of Unity's VideoPlayer stretching straight into it.
+                int srcW = (int) vp.width;
+                int srcH = (int) vp.height;
+                if (srcW > 0 && srcH > 0)
+                {
+                    _fallbackFrameTexture = new RenderTexture(srcW, srcH, 0);
+                    _fallbackPlayer.targetTexture = _fallbackFrameTexture;
+                }
+
                 length = vp.length;
                 prepareCompleted?.Invoke(this);
             };
@@ -297,7 +305,6 @@ namespace YARG.Gameplay
         private void PrepareFallback()
         {
             _fallbackPlayer.url = url;
-            _fallbackPlayer.targetTexture = _targetTexture;
             _fallbackPlayer.Prepare();
         }
 
@@ -458,6 +465,12 @@ namespace YARG.Gameplay
 
         private void Update()
         {
+            if (!_usingVlc)
+            {
+                UpdateFallback();
+                return;
+            }
+
             if (_pendingLoopRestart)
             {
                 YargLogger.LogDebug("[Video] Looping: Stop() + Play()");
@@ -506,10 +519,7 @@ namespace YARG.Gameplay
 
             if (targetTexture != null)
             {
-                // "Cover" fit: preserve the video's native aspect ratio and crop overflow rather
-                // than stretching it to targetTexture's (usually different) aspect ratio.
-                var (scale, offset) = GetCoverScaleOffset(_frameWidth, _frameHeight, targetTexture.width, targetTexture.height);
-                Graphics.Blit(_frameTexture, targetTexture, scale, offset);
+                BlitLetterboxed(_frameTexture, targetTexture, _frameWidth, _frameHeight);
             }
             else if (!_hasBlitted)
             {
@@ -520,28 +530,70 @@ namespace YARG.Gameplay
             _hasBlitted = true;
         }
 
-        // "Cover" fit: scales the source up just enough to cover the destination, centered,
-        // cropping whichever axis overflows -- avoids the stretch a plain Blit produces when
-        // aspect ratios differ.
-        private static (Vector2 scale, Vector2 offset) GetCoverScaleOffset(int srcW, int srcH, int dstW, int dstH)
+        private void UpdateFallback()
+        {
+            if (_fallbackFrameTexture == null || targetTexture == null)
+            {
+                return;
+            }
+
+            BlitLetterboxed(_fallbackFrameTexture, targetTexture, _fallbackFrameTexture.width, _fallbackFrameTexture.height);
+        }
+
+        // Logged once per distinct (src, dst) pair rather than every frame -- Update() calls
+        // this every frame once a video is playing, and the values are static for the life of
+        // a given clip/targetTexture pairing.
+        private int _lastLoggedSrcW, _lastLoggedSrcH, _lastLoggedDstW, _lastLoggedDstH;
+
+        // "Contain" fit: scales the source down (or up) to fit entirely within the destination,
+        // centered, letterboxing/pillarboxing whichever axis has slack -- unlike a plain
+        // Graphics.Blit (which always stretches the source to fill every pixel of dest,
+        // distorting it whenever src/dst aspect ratios differ) or a Blit(scale, offset) "cover"
+        // crop (which fills dest completely but crops overflow, never showing the full frame).
+        // Graphics.Blit's scale/offset overload only selects a SOURCE sub-rect -- it can't leave
+        // dest partially unfilled -- so achieving letterboxing means placing a smaller
+        // DESTINATION sub-rect ourselves via Graphics.DrawTexture in pixel space instead.
+        private void BlitLetterboxed(Texture source, RenderTexture dest, int srcW, int srcH)
         {
             float srcAspect = (float) srcW / srcH;
-            float dstAspect = (float) dstW / dstH;
+            float dstAspect = (float) dest.width / dest.height;
 
-            Vector2 scale;
+            float destW, destH;
             if (srcAspect > dstAspect)
             {
-                // Source is relatively wider than the destination -- crop left/right.
-                scale = new Vector2(dstAspect / srcAspect, 1f);
+                // Source is relatively wider than the destination -- fit width, letterbox top/bottom.
+                destW = dest.width;
+                destH = destW / srcAspect;
             }
             else
             {
-                // Source is relatively taller than the destination -- crop top/bottom.
-                scale = new Vector2(1f, srcAspect / dstAspect);
+                // Source is relatively taller than the destination -- fit height, pillarbox left/right.
+                destH = dest.height;
+                destW = destH * srcAspect;
             }
 
-            var offset = new Vector2((1f - scale.x) * 0.5f, (1f - scale.y) * 0.5f);
-            return (scale, offset);
+            if (srcW != _lastLoggedSrcW || srcH != _lastLoggedSrcH
+                || dest.width != _lastLoggedDstW || dest.height != _lastLoggedDstH)
+            {
+                _lastLoggedSrcW = srcW;
+                _lastLoggedSrcH = srcH;
+                _lastLoggedDstW = dest.width;
+                _lastLoggedDstH = dest.height;
+                YargLogger.LogInfo($"[Video] Letterbox fit: src={srcW}x{srcH} (aspect={srcAspect:F3}) -> " +
+                    $"dest={dest.width}x{dest.height} (aspect={dstAspect:F3}) => drawing {destW:F1}x{destH:F1} " +
+                    $"at ({(dest.width - destW) * 0.5f:F1}, {(dest.height - destH) * 0.5f:F1})");
+            }
+
+            var prevActive = RenderTexture.active;
+            RenderTexture.active = dest;
+            GL.Clear(false, true, Color.black);
+
+            GL.PushMatrix();
+            GL.LoadPixelMatrix(0, dest.width, dest.height, 0);
+            Graphics.DrawTexture(new Rect((dest.width - destW) * 0.5f, (dest.height - destH) * 0.5f, destW, destH), source);
+            GL.PopMatrix();
+
+            RenderTexture.active = prevActive;
         }
 
         private void OnDestroy()
@@ -561,6 +613,12 @@ namespace YARG.Gameplay
             if (_frameTexture != null)
             {
                 Destroy(_frameTexture);
+            }
+
+            if (_fallbackFrameTexture != null)
+            {
+                _fallbackFrameTexture.Release();
+                Destroy(_fallbackFrameTexture);
             }
         }
     }

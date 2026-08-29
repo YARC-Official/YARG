@@ -250,7 +250,9 @@ namespace YARG.Gameplay
                     // LibVlcVideoPlayer always needs an explicit target texture (no
                     // camera-composite render mode like Unity's VideoPlayer), so route it
                     // through _backgroundImage like the Image case below.
-                    _plainVideoTexture = new RenderTexture(1920, 1080, 0);
+                    int plainVideoWidth = Mathf.Max(Screen.width, 1);
+                    int plainVideoHeight = Mathf.Max(Screen.height, 1);
+                    _plainVideoTexture = new RenderTexture(plainVideoWidth, plainVideoHeight, 0);
                     // Repeat is required: _backgroundImage's uvRect below flips V negative,
                     // which only wraps correctly under Repeat -- Clamp collapses it to row 0.
                     _plainVideoTexture.wrapMode = TextureWrapMode.Repeat;
@@ -270,7 +272,8 @@ namespace YARG.Gameplay
                     // Prepare()'s async window never flashes -- fades in instead.
                     _backgroundImage.canvasRenderer.SetAlpha(0f);
                     YargLogger.LogDebug($"[Video] Plain video background: created {_plainVideoTexture.width}x{_plainVideoTexture.height} " +
-                        "target texture, wired to _backgroundImage");
+                        $"target texture (Screen.width/height={Screen.width}x{Screen.height}, _backgroundImage rect=" +
+                        $"{_backgroundImage.rectTransform.rect.width}x{_backgroundImage.rectTransform.rect.height}), wired to _backgroundImage");
                     LoadVideoBackground(result);
                     break;
                 case BackgroundType.Image:
