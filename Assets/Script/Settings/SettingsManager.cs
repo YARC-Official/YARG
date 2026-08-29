@@ -56,8 +56,6 @@ namespace YARG.Settings
                 new HeaderMetadata("OffsetCalibration"),
                 nameof(Settings.ShowMeanSongOffsetCalibration),
                 nameof(Settings.UseSongOffsetCalibration),
-                nameof(Settings.UseStrumOnlyOffsetForCalibration),
-                nameof(Settings.UseMedianForInSongCalibration),
 
                 new HeaderMetadata("Venues"),
                 new ButtonRowMetadata(nameof(Settings.OpenVenueFolder)),

@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using Cysharp.Threading.Tasks.Triggers;
 using DG.Tweening;
@@ -112,19 +112,7 @@ namespace YARG.Gameplay.HUD
                 settings.Remove(nameof(SettingsManager.Settings.AutoCalibrateOffset));
             }
 
-            // Relevant if either live auto-calibration can run, or the end-of-song "save mean
-            // offset" action is available -- the latter isn't restricted to solo play.
-            var showManualOffsetSave = SettingsManager.Settings.ShowMeanSongOffsetCalibration.Value switch
-            {
-                ShowMeanSongOffsetCalibrationMode.Always => true,
-                ShowMeanSongOffsetCalibrationMode.OnlyOnePlayer => activeHumanPlayers == 1,
-                _ => false,
-            };
-            var showStrumOnlyCalibration = (allowAutoCalibration && !GlobalVariables.State.IsReplay)
-                || showManualOffsetSave;
-
-            OpenSubSettings(settings, showSongOffset ? GameManager.SongOffsetOverride : null,
-                showStrumOnlyCalibration);
+            OpenSubSettings(settings, showSongOffset ? GameManager.SongOffsetOverride : null);
         }
 
         public void ToggleNoFail()
@@ -148,8 +136,7 @@ namespace YARG.Gameplay.HUD
                 : "Enable Venue Post Processing";
         }
 
-        private void OpenSubSettings(List<string> settings, IntSetting songOffsetSetting = null,
-            bool showStrumOnlyCalibration = false)
+        private void OpenSubSettings(List<string> settings, IntSetting extraIntSetting = null)
         {
             // Destroy all of the options (except for the back button)
             foreach (Transform child in _subSettingsContainer)
@@ -168,7 +155,7 @@ namespace YARG.Gameplay.HUD
             foreach (var settingName in settings)
             {
                 var setting = SettingsManager.GetSettingByName(settingName);
-
+            
                 switch (setting)
                 {
                     case VolumeSetting volumeSetting:
@@ -203,24 +190,11 @@ namespace YARG.Gameplay.HUD
                 // Per-song settings (e.g. the specific song offset) aren't registered with
                 // SettingsManager, so they can't be looked up by name like the rest of the list.
                 // Instead, we just add it manually right after VideoCalibration.
-                if (settingName == nameof(SettingsManager.Settings.VideoCalibration))
+                if (settingName == nameof(SettingsManager.Settings.VideoCalibration) && extraIntSetting != null)
                 {
-                    if (songOffsetSetting != null)
-                    {
-                        var songOffset = Instantiate(_intPauseSettingPrefab, _subSettingsContainer);
-                        songOffset.Initialize("SongOffset", songOffsetSetting);
-                        _subSettingsNavGroup.AddNavigatable(songOffset.gameObject);
-                    }
-
-                    // Only affects auto-calibration, so it's pointless to show when none of
-                    // the auto-calibrate toggles below are available either.
-                    if (showStrumOnlyCalibration)
-                    {
-                        var strumOnly = Instantiate(_togglePauseSettingPrefab, _subSettingsContainer);
-                        strumOnly.Initialize(nameof(SettingsManager.Settings.UseStrumOnlyOffsetForCalibration),
-                            SettingsManager.Settings.UseStrumOnlyOffsetForCalibration);
-                        _subSettingsNavGroup.AddNavigatable(strumOnly.gameObject);
-                    }
+                    var songOffset = Instantiate(_intPauseSettingPrefab, _subSettingsContainer);
+                    songOffset.Initialize("SongOffset", extraIntSetting);
+                    _subSettingsNavGroup.AddNavigatable(songOffset.gameObject);
                 }
             }
 

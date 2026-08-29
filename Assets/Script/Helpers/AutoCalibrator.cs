@@ -22,13 +22,6 @@ namespace YARG.Helpers
         private const double STABLE_THRESHOLD_MS = 5.0;
 
         private readonly List<double> _accuracyList = new();
-
-        // Subset of _accuracyList containing only strummed notes, used when
-        // UseStrumOnlyOffsetForCalibration is on. Instruments with no strum/HOPO/tap distinction
-        // (drums, keys, vocals, etc.) report every note as a "strum" here, so this list is simply
-        // identical to _accuracyList for them and the strum-only setting has no effect.
-        private readonly List<double> _strumAccuracyList = new();
-
         private readonly GameManager _gameManager;
 
         private int _calibration;
@@ -157,7 +150,6 @@ namespace YARG.Helpers
         private void Reset()
         {
             _accuracyList.Clear();
-            _strumAccuracyList.Clear();
             if (IsCalibratingAudio)
             {
                 _calibration = AudioCalibrationSetting.Value;
@@ -172,11 +164,7 @@ namespace YARG.Helpers
             }
         }
 
-        /// <param name="isStrum">
-        /// Whether this hit note is a strum, for <see cref="SettingsManager.Settings.UseStrumOnlyOffsetForCalibration"/>.
-        /// Pass null for instruments with no strum/HOPO/tap distinction.
-        /// </param>
-        public void RecordAccuracy(double hitTime, double noteTime, bool? isStrum = null)
+        public void RecordAccuracy(double hitTime, double noteTime)
         {
             if (CalibrationMode == CalibrationType.DISABLED || _gameManager.IsAudioSyncCorrectionActive)
             {
@@ -190,22 +178,17 @@ namespace YARG.Helpers
 
             double accuracy = (hitTime - noteTime) * 1000;
             _accuracyList.Add(accuracy);
-            if (isStrum ?? true)
-            {
-                _strumAccuracyList.Add(accuracy);
-            }
 
-            var sample = GetReadySample();
-            if (sample == null)
+            if (_accuracyList.Count < SAMPLE_SIZE)
             {
                 return;
             }
 
-            var filtered = RemoveOutliers(sample);
-            double center = UseMedian ? CalculateMedian(filtered) : filtered.Average();
-            int adjustment = (int) Math.Round(center * DAMPING);
+            var filtered = RemoveOutliers(_accuracyList);
+            double median = CalculateMedian(filtered);
+            int adjustment = (int) Math.Round(median * DAMPING);
 
-            if (Math.Abs(center) <= STABLE_THRESHOLD_MS)
+            if (Math.Abs(median) <= STABLE_THRESHOLD_MS)
             {
                 NotifyCalibrationStable();
             }
@@ -216,40 +199,6 @@ namespace YARG.Helpers
             }
 
             _accuracyList.Clear();
-            _strumAccuracyList.Clear();
-        }
-
-        // Median is more robust than the mean to a single outlier note (lag spike, overstrum,
-        // fat-finger) within these small (SAMPLE_SIZE-note) windows, at the cost of needing
-        // roughly 1.57x as many samples to match the mean's precision on well-behaved (roughly
-        // Gaussian) timing noise -- see UseMedianForInSongCalibrationMode for the other half of
-        // this trade-off, applied to the end-of-song band average instead.
-        private static bool UseMedian =>
-            SettingsManager.Settings.UseMedianForInSongCalibration.Value != UseMedianForInSongCalibrationMode.Off;
-
-        // Picks which pooled sample list to calibrate from, or null if we should keep collecting.
-        // With strum-only calibration on: wait for SAMPLE_SIZE strums, unless the whole window so
-        // far has had zero strums (e.g. an all-HOPO run, or an instrument with no strum/HOPO/tap
-        // distinction), in which case fall back to the full note sample once it reaches
-        // SAMPLE_SIZE -- same fallback rule used for the band-average strum-only offset stat.
-        private List<double> GetReadySample()
-        {
-            if (!SettingsManager.Settings.UseStrumOnlyOffsetForCalibration.Value)
-            {
-                return _accuracyList.Count >= SAMPLE_SIZE ? _accuracyList : null;
-            }
-
-            if (_strumAccuracyList.Count >= SAMPLE_SIZE)
-            {
-                return _strumAccuracyList;
-            }
-
-            if (_accuracyList.Count >= SAMPLE_SIZE && _strumAccuracyList.Count == 0)
-            {
-                return _accuracyList;
-            }
-
-            return null;
         }
 
         private void ApplyAdjustment(int adjustment)

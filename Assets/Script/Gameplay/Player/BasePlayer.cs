@@ -88,14 +88,6 @@ namespace YARG.Gameplay.Player
 
         public int TotalNotes { get; protected set; }
 
-        /// <summary>
-        /// Per-hit-note category for the score-screen offset histogram, aligned 1:1 in order with
-        /// <see cref="Engine.BaseStats.GetOffsetSamples"/>: true for a strummed note, false for a
-        /// HOPO/tap. Returns null for instruments with no strum/HOPO/tap distinction, in which case
-        /// the histogram should render as a single color.
-        /// </summary>
-        public virtual IReadOnlyList<bool> GetOffsetSampleIsStrum() => null;
-
         public bool IsFc { get; protected set; }
 
         public int? LastHighScore { get; private set; }

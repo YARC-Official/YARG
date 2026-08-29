@@ -1727,20 +1727,6 @@
                 "Name": "Use Average Song Offset",
                 "Description": "Use the saved song average offset to adjust song audio delay."
             },
-            "UseStrumOnlyOffsetForCalibration": {
-                "Name": "Auto Calibrate Using Strums Only",
-                "PauseName": "Use Strums Only",
-                "Description": "When saving average song offset or when auto calibrating during a song, use the average of strummed notes only, excluding HOPOs and taps."
-            },
-            "UseMedianForInSongCalibration": {
-                "Name": "Use Median for In-Song Calibration",
-                "Description": "Use the median instead of the average when auto calibrating and/or saving average song offset. The median resists being thrown off by a single mistimed note.",
-                "Dropdown": {
-                    "Off": "Off",
-                    "AutoCalibrationOnly": "Auto Calibration Only",
-                    "AutoCalibrationAndEndOfSong": "Auto Calibration and End of Song"
-                }
-            },
             "VocalMonitoring": {
                 "Name": "Vocal Monitoring Volume",
                 "PauseName": "Monitoring",
