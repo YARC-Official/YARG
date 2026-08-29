@@ -13,6 +13,7 @@ using UnityEngine.Animations;
 using UnityEngine.ResourceManagement.AsyncOperations;
 using UnityEngine.ResourceManagement.ResourceLocations;
 using UnityEngine.UI;
+using UnityEngine.Video;
 using YARG.Core.IO;
 using YARG.Core.Song;
 using YARG.Core.Venue;
@@ -41,7 +42,7 @@ namespace YARG.Gameplay
         private string VIDEO_PATH;
 
         [SerializeField]
-        private YargVideoPlayer _videoPlayer;
+        private VideoPlayer _videoPlayer;
 
         [SerializeField]
         private RawImage _backgroundImage;
@@ -60,6 +61,8 @@ namespace YARG.Gameplay
 
         private bool _videoStarted = false;
         private bool _videoSeeking = false;
+        private bool _videoSeekWaitForPause = false;
+        private bool _videoWasPausedBeforeSeek = false;
 
         private const float FADE_DURATION = 0.5f;
 
@@ -84,6 +87,7 @@ namespace YARG.Gameplay
         private          string           _editorVenuePath;
         private          Scene            _editorVenueScene;
 #endif
+        // "The Unity message 'Start' has an incorrect signature."
         [SuppressMessage("Type Safety", "UNT0006", Justification = "UniTaskVoid is a compatible return type.")]
         private async UniTaskVoid Start()
         {
@@ -457,6 +461,7 @@ namespace YARG.Gameplay
                     //set venue source to song to enable video seeking/pausing features
                     _source = VenueSource.Song;
                     //set up videoPlayer to render to venue texture
+                    _videoPlayer.renderMode = VideoRenderMode.RenderTexture;
                     _videoPlayer.targetTexture = textureManager.GetVideoTexture(0, 0);
 
                     LoadVideoBackground(songBackGround);
@@ -492,12 +497,6 @@ namespace YARG.Gameplay
 
         private void LoadVideoBackground(BackgroundResult bg)
         {
-            var textureManager = GetComponent<TextureManager>();
-
-            var videoTexture = textureManager.GetVideoTexture(Screen.width, Screen.height);
-            textureManager.CreateVideoTexture();
-            _videoPlayer.targetTexture = videoTexture;
-
             switch (bg.Stream)
             {
                 case FileStream fs:
@@ -519,7 +518,7 @@ namespace YARG.Gameplay
                 }
             }
 
-            _videoPlayer.playerEnabled = true;
+            _videoPlayer.enabled = true;
             _videoPlayer.prepareCompleted += OnVideoPrepared;
             _videoPlayer.seekCompleted += OnVideoSeeked;
             _videoPlayer.Prepare();
@@ -531,7 +530,7 @@ namespace YARG.Gameplay
             if (_videoSeeking)
                 return;
 
-            double time = GameManager.SongTime + GameManager.Song.SongOffsetSeconds;
+            double time = GameManager.GetAudioPlaybackTime(GameManager.SongTime);
             // Start video
             if (!_videoStarted)
             {
@@ -562,14 +561,14 @@ namespace YARG.Gameplay
             if (time + _videoStartTime >= _videoEndTime)
             {
                 _videoPlayer.Stop();
-                _videoPlayer.playerEnabled = false;
+                _videoPlayer.enabled = false;
                 enabled = false;
             }
         }
 
         // Some video player properties don't work correctly until
         // it's finished preparing, such as the length
-        private void OnVideoPrepared(YargVideoPlayer player)
+        private void OnVideoPrepared(VideoPlayer player)
         {
             // Start time is considered set if it is greater than 25 ms in either direction
             // End time is only set if it is greater than 0
@@ -577,8 +576,6 @@ namespace YARG.Gameplay
             const double startTimeThreshold = 0.025;
             const double endTimeThreshold = 0;
             const double dontLoopThreshold = 0.85;
-
-            player.Stop();
 
             if (_source == VenueSource.Song && !GameManager.Song.VideoLoop)
             {
@@ -611,17 +608,9 @@ namespace YARG.Gameplay
                 _videoEndTime = double.NaN;
                 player.isLooping = true;
             }
-
-            GetComponent<TextureManager>().SetVideoTexture(_videoPlayer.targetTexture);
-            if (_type == BackgroundType.Video)
-            {
-                _venueOutput.texture = _videoPlayer.targetTexture;
-                _venueOutput.gameObject.SetActive(true);
-                _venueFadeOverlay.CrossFadeAlpha(0f, FADE_DURATION, true);
-            }
         }
 
-        public void SetTime(double songTime)
+        public void SetTime(double songTime, bool waitForSeek = true)
         {
             switch (_type)
             {
@@ -634,24 +623,27 @@ namespace YARG.Gameplay
                     if (videoTime < 0f) // Seeking before video start
                     {
                         enabled = true;
-                        _videoPlayer.playerEnabled = true;
+                        _videoPlayer.enabled = true;
                         _videoStarted = false;
                         _videoPlayer.Stop();
                     }
                     else if (videoTime >= _videoPlayer.length) // Seeking after video end
                     {
                         enabled = false;
-                        _videoPlayer.playerEnabled = false;
+                        _videoPlayer.enabled = false;
                         _videoPlayer.Stop();
                     }
                     else
                     {
                         enabled = false; // Temp disable
-                        _videoPlayer.playerEnabled = true;
+                        _videoPlayer.enabled = true;
 
                         // Hack to ensure the video stays synced to the audio
                         _videoSeeking = true; // Signaling flag; must come first
-                        if (SettingsManager.Settings.WaitForSongVideo.Value)
+                        _videoSeekWaitForPause = waitForSeek;
+                        _videoWasPausedBeforeSeek = _videoPlayer.isPaused;
+
+                        if (waitForSeek && SettingsManager.Settings.WaitForSongVideo.Value)
                             GameManager.OverridePause();
 
                         _videoPlayer.time = videoTime;
@@ -660,16 +652,23 @@ namespace YARG.Gameplay
             }
         }
 
-        private void OnVideoSeeked(YargVideoPlayer player)
+        private void OnVideoSeeked(VideoPlayer player)
         {
             if (!_videoSeeking)
                 return;
 
-            if (!SettingsManager.Settings.WaitForSongVideo.Value || GameManager.OverrideResume())
-                player.Play();
+            if (!_videoSeekWaitForPause ||
+                !SettingsManager.Settings.WaitForSongVideo.Value ||
+                GameManager.OverrideResume())
+            {
+                if (!_videoWasPausedBeforeSeek)
+                    player.Play();
+            }
 
             enabled = !double.IsNaN(_videoEndTime);
             _videoSeeking = false;
+            _videoSeekWaitForPause = false;
+            _videoWasPausedBeforeSeek = false;
         }
 
         public void SetSpeed(float speed)
@@ -685,7 +684,7 @@ namespace YARG.Gameplay
         public void SetPaused(bool paused)
         {
             // Pause/unpause video
-            if (_videoPlayer.playerEnabled && _videoStarted && !_videoSeeking)
+            if (_videoPlayer.enabled && _videoStarted && !_videoSeeking)
             {
                 if (paused)
                 {
