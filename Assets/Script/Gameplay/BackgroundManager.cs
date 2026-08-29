@@ -540,6 +540,12 @@ namespace YARG.Gameplay
             _venueFadeOverlay.CrossFadeAlpha(0f, FADE_DURATION, true);
         }
 
+        // Callers must set _videoPlayer.targetTexture themselves before calling this -- the
+        // right texture differs by caller (Start()'s plain-video case uses _plainVideoTexture,
+        // routed through _backgroundImage; SetUpVideoTexture's Yarground-embedded-screen case
+        // uses TextureManager's shared video texture, routed into venue shader materials). This
+        // used to overwrite targetTexture with TextureManager's texture unconditionally, which
+        // silently broke the plain-video case by redirecting playback away from _backgroundImage.
         private void LoadVideoBackground(BackgroundResult bg)
         {
             switch (bg.Stream)
