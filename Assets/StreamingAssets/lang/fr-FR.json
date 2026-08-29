@@ -1513,6 +1513,19 @@
                 "Name": "Utiliser le décalage moyen de la chanson",
                 "Description": "Utilise la valeur enregistrée pour le décalage moyen d'une chanson pour ajuster le délai de l'audio."
             },
+            "UseStrumOnlyOffsetForCalibration": {
+                "Name": "Calibrer avec les grattages seulement",
+                "Description": "Lors de l'enregistrement du décalage moyen ou lors de la calibration automatique durant une chanson, utilise la moyenne des notes grattées seulement, en excluant les HOPO et les taps."
+            },
+            "UseMedianForInSongCalibration": {
+                "Name": "Utiliser la médiane pour la calibration en chanson",
+                "Description": "Utilise la médiane plutôt que la moyenne lors de la calibration automatique et/ou de l'enregistrement du décalage moyen. La médiane résiste mieux à une seule note mal synchronisée.",
+                "Dropdown": {
+                    "Off": "Désactivé",
+                    "AutoCalibrationOnly": "Calibration automatique seulement",
+                    "AutoCalibrationAndEndOfSong": "Calibration automatique et fin de chanson"
+                }
+            },
             "AutoCalibrateVideo": {
                 "Name": "Calibrage automatique de la vidéo",
                 "PauseName": "Calibrage automatique de la vidéo",

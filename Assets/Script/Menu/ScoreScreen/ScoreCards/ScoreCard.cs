@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
@@ -25,6 +26,11 @@ namespace YARG.Menu.ScoreScreen
         private const float OFFSET_HISTOGRAM_AXIS_LABEL_HEIGHT = 22f;
         private const float OFFSET_HISTOGRAM_AXIS_FONT_SIZE = 20f;
         private const float OFFSET_HISTOGRAM_HORIZONTAL_MARGIN = 54f;
+
+        // Strummed notes render below in white, HOPOs/taps stack above in gray, so a skewed
+        // histogram can be attributed to real strum timing vs. HOPO/tap infinite front end.
+        private static readonly Color OFFSET_HISTOGRAM_STRUM_COLOR    = new(1f, 1f, 1f, 0.85f);
+        private static readonly Color OFFSET_HISTOGRAM_HOPO_TAP_COLOR = new(1f, 1f, 1f, 0.30f);
 
         [SerializeField]
         private ModifierIcon _modifierIconPrefab;
@@ -82,6 +88,12 @@ namespace YARG.Menu.ScoreScreen
         private TextMeshProUGUI _bandBonusScore;
         [SerializeField]
         protected TextMeshProUGUI _averageOffset;
+        /// <summary>
+        /// The static label to the left of <see cref="_averageOffset"/>. Optional -- if it is not
+        /// wired in the Inspector, the score card finds the other text element in the row.
+        /// </summary>
+        [SerializeField]
+        private TextMeshProUGUI _averageOffsetLabel;
         [SerializeField]
         private TextMeshProUGUI _starPowerActivations;
         [SerializeField]
@@ -118,6 +130,12 @@ namespace YARG.Menu.ScoreScreen
         protected T     Stats;
         protected bool  IsReplay;
 
+        /// <summary>
+        /// Aligned 1:1 with <see cref="Stats"/>'s offset samples: true for a strummed note, false
+        /// for a HOPO/tap. Null if the instrument has no such distinction.
+        /// </summary>
+        protected IReadOnlyList<bool> OffsetSampleIsStrum;
+
         public YargPlayer Player { get; private set; }
 
         private void Awake()
@@ -125,12 +143,14 @@ namespace YARG.Menu.ScoreScreen
             _colorizer = GetComponent<ScoreCardColorizer>();
         }
 
-        public void Initialize(bool isHighScore, YargPlayer player, T stats, bool isReplay)
+        public void Initialize(bool isHighScore, YargPlayer player, T stats, bool isReplay,
+            IReadOnlyList<bool> offsetSampleIsStrum = null)
         {
             IsHighScore = isHighScore;
             Player = player;
             Stats = stats;
             IsReplay  = isReplay;
+            OffsetSampleIsStrum = offsetSampleIsStrum;
         }
 
         public virtual void SetCardContents()
@@ -209,7 +229,7 @@ namespace YARG.Menu.ScoreScreen
                 $"{ColorizeSecondary(Stats.TotalStarPowerPhrases)}";
             _averageMultiplier.text = ColorizePrimary(Stats.AverageMultiplier.ToString("0.00"));
             _bandBonusScore.text = ColorizePrimary(Stats.BandBonusScore.ToString("N0"));
-            _averageOffset.text = $"{ColorizePrimary(Math.Round(Stats.GetAverageOffset() * 1000, MidpointRounding.AwayFromZero))} {ColorizeSecondary("ms")}";
+            BuildOffsetSummaryRows();
             _starPowerActivations.text = ColorizePrimary(Stats.StarPowerActivationCount);
             string timeInStarPower = TimeSpan.FromSeconds(Stats.TimeInStarPower).ToString(@"m\:ss");
             _timeInStarPower.text = ColorizePrimary(timeInStarPower);
@@ -267,6 +287,205 @@ namespace YARG.Menu.ScoreScreen
             _modifiersUsedSeparator.gameObject.SetActive(anyModifiersUsed);
         }
 
+        private const float OFFSET_STATS_MEDIAN_SPACING = 8f;
+
+        private readonly List<GameObject> _generatedOffsetRows = new();
+        private GameObject _offsetMedianSpacer;
+
+        /// <summary>
+        /// Displays offset statistics as separate left-label/right-value rows. Strum-only statistics
+        /// are shown only when the song contains both strummed and non-strummed hits; otherwise they
+        /// would either be unavailable or identical to the normal statistics.
+        /// </summary>
+        private void BuildOffsetSummaryRows()
+        {
+            var samples = Stats.GetOffsetSamples();
+            var strumSamples = GetStrumOnlySamples(samples);
+            bool hasStrums = strumSamples is { Count: > 0 };
+            bool hasNonStrums = strumSamples != null && strumSamples.Count < samples.Count;
+            bool showStrumRows = hasStrums && hasNonStrums;
+
+            var rows = new List<(string Label, double Value)>
+            {
+                ("AVERAGE OFFSET", Stats.GetAverageOffset()),
+                ("MEDIAN OFFSET", GetMedian(samples) ?? Stats.GetAverageOffset())
+            };
+
+            if (showStrumRows)
+            {
+                rows.Insert(1, ("STRUM AVERAGE", strumSamples.Average()));
+                rows.Add(("STRUM MEDIAN", GetMedian(strumSamples) ?? strumSamples.Average()));
+            }
+
+            var templateRow = _averageOffset.transform.parent as RectTransform;
+            if (templateRow == null)
+            {
+                _averageOffset.text =
+                    $"{ColorizePrimary(ToMilliseconds(Stats.GetAverageOffset()))} {ColorizeSecondary("ms")}";
+                return;
+            }
+
+            ClearGeneratedOffsetRows();
+
+            var labelTransform = _averageOffsetLabel != null
+                ? _averageOffsetLabel.transform
+                : FindOffsetLabel(templateRow)?.transform;
+            string labelPath = GetRelativePath(templateRow, labelTransform);
+            string valuePath = GetRelativePath(templateRow, _averageOffset.transform);
+
+            SetOffsetRow(templateRow.gameObject, labelPath, valuePath, rows[0].Label, rows[0].Value);
+
+            int templateIndex = templateRow.GetSiblingIndex();
+            for (int i = 1; i < rows.Count; i++)
+            {
+                var clone = Instantiate(templateRow.gameObject, templateRow.parent);
+                clone.name = $"AverageOffsetRow_{i}";
+                clone.SetActive(true);
+                clone.transform.SetSiblingIndex(templateIndex + i);
+                SetOffsetRow(clone, labelPath, valuePath, rows[i].Label, rows[i].Value);
+                _generatedOffsetRows.Add(clone);
+            }
+
+            // Keep the averages together and add a small gap before the median rows.
+            int medianStartIndex = showStrumRows ? 2 : 1;
+            var spacer = new GameObject(
+                "AverageOffsetMedianSpacer",
+                typeof(RectTransform),
+                typeof(LayoutElement));
+            spacer.transform.SetParent(templateRow.parent, false);
+            spacer.transform.SetSiblingIndex(templateIndex + medianStartIndex);
+            var spacerLayout = spacer.GetComponent<LayoutElement>();
+            spacerLayout.minHeight = OFFSET_STATS_MEDIAN_SPACING;
+            spacerLayout.preferredHeight = OFFSET_STATS_MEDIAN_SPACING;
+            _offsetMedianSpacer = spacer;
+        }
+
+        private static string ToMilliseconds(double seconds)
+        {
+            return Math.Round(seconds * 1000, MidpointRounding.AwayFromZero).ToString();
+        }
+
+        private void SetOffsetRow(GameObject rowObject, string labelPath, string valuePath, string labelText,
+            double valueSeconds)
+        {
+            var row = rowObject.transform as RectTransform;
+            var label = labelPath != null
+                ? row.Find(labelPath)?.GetComponent<TextMeshProUGUI>()
+                : FindOffsetLabel(row, row.Find(valuePath))?.GetComponent<TextMeshProUGUI>();
+            var value = row.Find(valuePath)?.GetComponent<TextMeshProUGUI>();
+
+            if (label != null)
+            {
+                label.text = labelText;
+            }
+
+            if (value != null)
+            {
+                value.alignment = TextAlignmentOptions.MidlineRight;
+                value.text =
+                    $"{ColorizePrimary(ToMilliseconds(valueSeconds))} {ColorizeSecondary("ms")}";
+            }
+        }
+
+        private static TextMeshProUGUI FindOffsetLabel(RectTransform row, Transform valueTransform = null)
+        {
+            foreach (Transform child in row)
+            {
+                if (child == valueTransform)
+                {
+                    continue;
+                }
+
+                if (child.TryGetComponent(out TextMeshProUGUI text))
+                {
+                    return text;
+                }
+            }
+
+            return null;
+        }
+
+        private static string GetRelativePath(Transform root, Transform target)
+        {
+            if (target == null || !target.IsChildOf(root))
+            {
+                return null;
+            }
+
+            var parts = new Stack<string>();
+            var current = target;
+            while (current != root)
+            {
+                parts.Push(current.name);
+                current = current.parent;
+            }
+
+            return string.Join("/", parts);
+        }
+
+        private void ClearGeneratedOffsetRows()
+        {
+            foreach (var row in _generatedOffsetRows)
+            {
+                if (row != null)
+                {
+                    Destroy(row);
+                }
+            }
+
+            _generatedOffsetRows.Clear();
+
+            if (_offsetMedianSpacer != null)
+            {
+                Destroy(_offsetMedianSpacer);
+                _offsetMedianSpacer = null;
+            }
+        }
+
+        private static double? GetMedian(IReadOnlyList<double> samples)
+        {
+            if (samples.Count == 0)
+            {
+                return null;
+            }
+
+            var sorted = new double[samples.Count];
+            for (int i = 0; i < samples.Count; i++)
+            {
+                sorted[i] = samples[i];
+            }
+
+            Array.Sort(sorted);
+
+            int mid = sorted.Length / 2;
+            return sorted.Length % 2 == 0
+                ? (sorted[mid - 1] + sorted[mid]) / 2.0
+                : sorted[mid];
+        }
+
+        /// <summary>
+        /// Returns just the strummed samples (excluding HOPOs/taps), or null if
+        /// <see cref="OffsetSampleIsStrum"/> isn't available/aligned for this instrument.
+        /// </summary>
+        private List<double> GetStrumOnlySamples(IReadOnlyList<double> samples)
+        {
+            if (OffsetSampleIsStrum == null || OffsetSampleIsStrum.Count != samples.Count)
+            {
+                return null;
+            }
+
+            var result = new List<double>(samples.Count);
+            for (int i = 0; i < samples.Count; i++)
+            {
+                if (OffsetSampleIsStrum[i])
+                {
+                    result.Add(samples[i]);
+                }
+            }
+
+            return result;
+        }
+
         private void BuildOffsetHistogram()
         {
             if (!TryGetHistogramSection(out var sectionContainer, out int insertIndex))
@@ -284,7 +503,31 @@ namespace YARG.Menu.ScoreScreen
 
             float minOffsetMs = -OFFSET_HISTOGRAM_ABS_BOUND_MS;
             float maxOffsetMs = OFFSET_HISTOGRAM_ABS_BOUND_MS;
-            int[] bins = BuildHistogramBins(offsetSamples, minOffsetMs, maxOffsetMs, out int maxCount);
+
+            // OffsetSampleIsStrum is read once, post-song, from the live chart's WasHit note
+            // flags (see FiveFretGuitarPlayer.GetOffsetSampleIsStrum) -- it's only meaningful
+            // when it lines up 1:1 with offsetSamples. If it's missing or mismatched (non-guitar
+            // instruments, or an older replay/save), everything is treated as "strum" and the
+            // histogram renders as a single white bar per bin, same as before this feature.
+            IReadOnlyList<bool> isStrum = OffsetSampleIsStrum != null && OffsetSampleIsStrum.Count == offsetSamples.Count
+                ? OffsetSampleIsStrum
+                : null;
+
+            int[] strumBins = BuildHistogramBins(offsetSamples, isStrum, wantStrum: true, minOffsetMs, maxOffsetMs);
+            int[] hopoTapBins = isStrum == null
+                ? new int[OFFSET_HISTOGRAM_BIN_COUNT]
+                : BuildHistogramBins(offsetSamples, isStrum, wantStrum: false, minOffsetMs, maxOffsetMs);
+
+            int maxCount = 0;
+            for (int i = 0; i < OFFSET_HISTOGRAM_BIN_COUNT; i++)
+            {
+                int stackedCount = strumBins[i] + hopoTapBins[i];
+                if (stackedCount > maxCount)
+                {
+                    maxCount = stackedCount;
+                }
+            }
+
             if (maxCount <= 0)
             {
                 SetOffsetHistogramActive(false);
@@ -304,7 +547,7 @@ namespace YARG.Menu.ScoreScreen
 
             float zeroAxisPosition = Mathf.InverseLerp(minOffsetMs, maxOffsetMs, 0f);
             SetVerticalAxisLinePosition(_offsetHistogramZeroLineRect, zeroAxisPosition, 3f);
-            PopulateHistogramBars(bins, maxCount);
+            PopulateHistogramBars(strumBins, hopoTapBins, maxCount);
             SetHistogramAxisLabels(minOffsetMs, maxOffsetMs);
         }
 
@@ -403,11 +646,10 @@ namespace YARG.Menu.ScoreScreen
             labelRect.sizeDelta = new Vector2(0f, OFFSET_HISTOGRAM_AXIS_LABEL_HEIGHT);
         }
 
-        private void PopulateHistogramBars(IReadOnlyList<int> bins, int maxCount)
+        private void PopulateHistogramBars(IReadOnlyList<int> strumBins, IReadOnlyList<int> hopoTapBins, int maxCount)
         {
             float barMaxHeight = OFFSET_HISTOGRAM_GRAPH_HEIGHT - 2f;
-            var barColor = _colorizer.CurrentColor;
-            barColor.a = 0.85f;
+            int binCount = strumBins.Count;
             int barPoolIndex = 0;
 
             Canvas.ForceUpdateCanvases();
@@ -420,22 +662,19 @@ namespace YARG.Menu.ScoreScreen
             float barBaseYPixels = Mathf.Round(1f * scaleFactor);
             float halfGapUnits = 1f / scaleFactor * 0.5f;
 
-            for (int i = 0; i < bins.Count; i++)
+            for (int i = 0; i < binCount; i++)
             {
-                int count = bins[i];
-                if (count <= 0)
+                int strumCount = strumBins[i];
+                int hopoTapCount = hopoTapBins[i];
+                if (strumCount <= 0 && hopoTapCount <= 0)
                 {
                     continue;
                 }
 
-                float normalizedHeight = (float) count / maxCount;
-                var barRect = GetOrCreateBar(barPoolIndex++);
-
                 if (canUsePixelSnapping)
                 {
-                    float barHeightPixels = Mathf.Max(1f, Mathf.Round(normalizedHeight * barMaxHeight * scaleFactor));
-                    float slotLeftPixels = Mathf.Round(i * graphWidthPixels / bins.Count);
-                    float slotRightPixels = Mathf.Round((i + 1f) * graphWidthPixels / bins.Count);
+                    float slotLeftPixels = Mathf.Round(i * graphWidthPixels / binCount);
+                    float slotRightPixels = Mathf.Round((i + 1f) * graphWidthPixels / binCount);
                     float barLeftPixels = slotLeftPixels;
                     float barRightPixels = slotRightPixels - 1f;
 
@@ -449,32 +688,81 @@ namespace YARG.Menu.ScoreScreen
                         continue;
                     }
 
-                    barRect.anchorMin = Vector2.zero;
-                    barRect.anchorMax = Vector2.zero;
-                    barRect.pivot = Vector2.zero;
-                    barRect.anchoredPosition = new Vector2(barLeftPixels / scaleFactor, barBaseYPixels / scaleFactor);
-                    barRect.sizeDelta = new Vector2((barRightPixels - barLeftPixels) / scaleFactor,
-                        barHeightPixels / scaleFactor);
+                    float stackYPixels = barBaseYPixels;
+
+                    if (strumCount > 0)
+                    {
+                        float segmentHeightPixels =
+                            Mathf.Max(1f, Mathf.Round((float) strumCount / maxCount * barMaxHeight * scaleFactor));
+                        PlaceBarSegmentPixels(GetOrCreateBar(barPoolIndex++), OFFSET_HISTOGRAM_STRUM_COLOR,
+                            barLeftPixels, barRightPixels, stackYPixels, segmentHeightPixels, scaleFactor);
+                        stackYPixels += segmentHeightPixels;
+                    }
+
+                    if (hopoTapCount > 0)
+                    {
+                        float segmentHeightPixels =
+                            Mathf.Max(1f, Mathf.Round((float) hopoTapCount / maxCount * barMaxHeight * scaleFactor));
+                        PlaceBarSegmentPixels(GetOrCreateBar(barPoolIndex++), OFFSET_HISTOGRAM_HOPO_TAP_COLOR,
+                            barLeftPixels, barRightPixels, stackYPixels, segmentHeightPixels, scaleFactor);
+                    }
                 }
                 else
                 {
-                    float height = Mathf.Max(1f, normalizedHeight * barMaxHeight);
-                    barRect.anchorMin = new Vector2(i / (float) bins.Count, 0f);
-                    barRect.anchorMax = new Vector2((i + 1f) / bins.Count, 0f);
-                    barRect.offsetMin = new Vector2(halfGapUnits, 1f);
-                    barRect.offsetMax = new Vector2(-halfGapUnits, 1f + height);
-                }
+                    float anchorMinX = i / (float) binCount;
+                    float anchorMaxX = (i + 1f) / binCount;
+                    float stackHeight = 0f;
 
-                var image = barRect.GetComponent<Image>();
-                image.color = barColor;
-                image.raycastTarget = false;
-                barRect.gameObject.SetActive(true);
+                    if (strumCount > 0)
+                    {
+                        float segmentHeight = Mathf.Max(1f, (float) strumCount / maxCount * barMaxHeight);
+                        PlaceBarSegmentUnits(GetOrCreateBar(barPoolIndex++), OFFSET_HISTOGRAM_STRUM_COLOR,
+                            anchorMinX, anchorMaxX, halfGapUnits, stackHeight, segmentHeight);
+                        stackHeight += segmentHeight;
+                    }
+
+                    if (hopoTapCount > 0)
+                    {
+                        float segmentHeight = Mathf.Max(1f, (float) hopoTapCount / maxCount * barMaxHeight);
+                        PlaceBarSegmentUnits(GetOrCreateBar(barPoolIndex++), OFFSET_HISTOGRAM_HOPO_TAP_COLOR,
+                            anchorMinX, anchorMaxX, halfGapUnits, stackHeight, segmentHeight);
+                    }
+                }
             }
 
             for (int i = barPoolIndex; i < _offsetHistogramBarPool.Count; i++)
             {
                 _offsetHistogramBarPool[i].gameObject.SetActive(false);
             }
+        }
+
+        private static void PlaceBarSegmentPixels(RectTransform barRect, Color color, float leftPixels,
+            float rightPixels, float bottomPixels, float heightPixels, float scaleFactor)
+        {
+            barRect.anchorMin = Vector2.zero;
+            barRect.anchorMax = Vector2.zero;
+            barRect.pivot = Vector2.zero;
+            barRect.anchoredPosition = new Vector2(leftPixels / scaleFactor, bottomPixels / scaleFactor);
+            barRect.sizeDelta = new Vector2((rightPixels - leftPixels) / scaleFactor, heightPixels / scaleFactor);
+
+            var image = barRect.GetComponent<Image>();
+            image.color = color;
+            image.raycastTarget = false;
+            barRect.gameObject.SetActive(true);
+        }
+
+        private static void PlaceBarSegmentUnits(RectTransform barRect, Color color, float anchorMinX,
+            float anchorMaxX, float halfGapUnits, float bottomOffset, float height)
+        {
+            barRect.anchorMin = new Vector2(anchorMinX, 0f);
+            barRect.anchorMax = new Vector2(anchorMaxX, 0f);
+            barRect.offsetMin = new Vector2(halfGapUnits, 1f + bottomOffset);
+            barRect.offsetMax = new Vector2(-halfGapUnits, 1f + bottomOffset + height);
+
+            var image = barRect.GetComponent<Image>();
+            image.color = color;
+            image.raycastTarget = false;
+            barRect.gameObject.SetActive(true);
         }
 
         private RectTransform GetOrCreateBar(int index)
@@ -505,25 +793,30 @@ namespace YARG.Menu.ScoreScreen
             }
         }
 
-        private static int[] BuildHistogramBins(IReadOnlyList<double> offsetSamples, float minOffsetMs,
-            float maxOffsetMs, out int maxCount)
+        /// <summary>
+        /// Bins offset samples into <see cref="OFFSET_HISTOGRAM_BIN_COUNT"/> buckets. When
+        /// <paramref name="isStrum"/> is non-null, only samples matching <paramref name="wantStrum"/>
+        /// are counted, so callers can build the strum and HOPO/tap bins separately for stacking.
+        /// </summary>
+        private static int[] BuildHistogramBins(IReadOnlyList<double> offsetSamples, IReadOnlyList<bool> isStrum,
+            bool wantStrum, float minOffsetMs, float maxOffsetMs)
         {
             var bins = new int[OFFSET_HISTOGRAM_BIN_COUNT];
             float totalRange = Mathf.Max(1f, maxOffsetMs - minOffsetMs);
-            maxCount = 0;
 
             for (int i = 0; i < offsetSamples.Count; i++)
             {
+                if (isStrum != null && isStrum[i] != wantStrum)
+                {
+                    continue;
+                }
+
                 float offsetMs = Mathf.Clamp((float) (offsetSamples[i] * 1000d), minOffsetMs, maxOffsetMs);
                 float normalized = (offsetMs - minOffsetMs) / totalRange;
                 int index = Mathf.Clamp(Mathf.FloorToInt(normalized * OFFSET_HISTOGRAM_BIN_COUNT), 0,
                     OFFSET_HISTOGRAM_BIN_COUNT - 1);
 
                 bins[index]++;
-                if (bins[index] > maxCount)
-                {
-                    maxCount = bins[index];
-                }
             }
 
             return bins;

@@ -46,6 +46,13 @@ namespace YARG.Settings
         Always,
     }
 
+    public enum UseMedianForInSongCalibrationMode
+    {
+        Off,
+        AutoCalibrationOnly,
+        AutoCalibrationAndEndOfSong,
+    }
+
     public enum QualityMode
     {
         NativeAA = 0,
@@ -188,6 +195,13 @@ namespace YARG.Settings
                 ShowMeanSongOffsetCalibrationMode.Always
             };
             public ToggleSetting UseSongOffsetCalibration { get; } = new(true);
+            public ToggleSetting UseStrumOnlyOffsetForCalibration { get; } = new(false);
+            public DropdownSetting<UseMedianForInSongCalibrationMode> UseMedianForInSongCalibration { get; } = new(UseMedianForInSongCalibrationMode.AutoCalibrationOnly)
+            {
+                UseMedianForInSongCalibrationMode.Off,
+                UseMedianForInSongCalibrationMode.AutoCalibrationOnly,
+                UseMedianForInSongCalibrationMode.AutoCalibrationAndEndOfSong
+            };
 
             public ToggleSetting AccountForHardwareLatency { get; } = new(true);
 
