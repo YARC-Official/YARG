@@ -1,0 +1,75 @@
+--- a/Assets/VLCUnity/Internal/OnLoad.cs
++++ b/Assets/VLCUnity/Internal/OnLoad.cs
+@@ -53,7 +53,17 @@
+             Debug.Log("[VLC] Set VLC_PLUGIN_PATH to " + pluginPath);
+ #endif
+           //  Debug.Log("UnityEngine.QualitySettings.activeColorSpace: " + PlayerColorSpace);
+-            SetColorSpace(PlayerColorSpace);
++            try
++            {
++                SetColorSpace(PlayerColorSpace);
++            }
++            catch (DllNotFoundException e)
++            {
++                // The native plugin is not shipped on this platform (e.g. Windows);
++                // the VLC video backend simply stays disabled.
++                Debug.LogWarning("[VLC] Native plugin not available, VLC support disabled: " + e.Message);
++                return;
++            }
+ #if UNITY_ANDROID || UNITY_IOS || UNITY_STANDALONE_LINUX || UNITY_EDITOR_LINUX || UNITY_EMBEDDED_LINUX
+             GL.IssuePluginEvent(GetRenderEventFunc(), 1);
+ #endif
+--- a/Assets/VLCUnity/Internal/TrialNotice.cs
++++ b/Assets/VLCUnity/Internal/TrialNotice.cs
+@@ -1,3 +1,4 @@
++using System;
+ using System.Runtime.InteropServices;
+ using UnityEngine;
+ #if UNITY_EDITOR
+@@ -24,7 +25,21 @@
+ #endif
+ 
+     [DllImport(UnityPlugin, CallingConvention = CallingConvention.Cdecl, EntryPoint = "libvlc_unity_is_trial")]
+-    static extern bool IsTrial();
++    static extern bool IsTrialNative();
++
++    // The native plugin is not shipped on every platform (e.g. Windows);
++    // treat a missing plugin as "not a trial" instead of throwing.
++    static bool IsTrial()
++    {
++        try
++        {
++            return IsTrialNative();
++        }
++        catch (DllNotFoundException)
++        {
++            return false;
++        }
++    }
+ 
+     private const string STORE_URL = "https://videolabs.io/store/unity/";
+ 
+--- a/Assets/VLCUnity/Internal/VLCMediaPlayer.cs
++++ b/Assets/VLCUnity/Internal/VLCMediaPlayer.cs
+@@ -87,8 +87,19 @@
+         #region unity
+         private void Awake()
+         {
+-            if (LibVLC == null)
+-                CreateLibVLC();
++            try
++            {
++                if (LibVLC == null)
++                    CreateLibVLC();
++            }
++            catch (DllNotFoundException e)
++            {
++                // The native plugin is not shipped on this platform (e.g. Windows);
++                // stay inert so the game can fall back to its own video player.
++                Debug.LogWarning("[VLC] Native plugin not available, VLC support disabled: " + e.Message);
++                enabled = false;
++                return;
++            }
+ 
+             if (useUnityAudio)
+             {
