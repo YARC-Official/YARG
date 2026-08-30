@@ -119,6 +119,13 @@ cp "$VLC_UNITY_DIR/Assets/VLCUnity/VLCUnity.asmdef" "$ROOT/Assets/VLCUnity/"
 cp "$VLC_UNITY_DIR/Assets/VLCUnity/VLCUnity.asmdef.meta" "$ROOT/Assets/VLCUnity/"
 cp "$VLC_UNITY_DIR/Assets/VLCUnity/Internal.meta" "$ROOT/Assets/VLCUnity/"
 
+# Apply YARG-specific patches on top (see patches/0001-*: tolerate a missing
+# native plugin on platforms we don't ship one for, e.g. Windows)
+shopt -s nullglob
+for p in "$VLC_DIR"/patches/*.patch; do
+    git -C "$ROOT" apply --whitespace=nowarn "$p"
+done
+
 rm -rf "$OUT"
 
 # ---------------------------------------------------------------------------

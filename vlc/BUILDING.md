@@ -106,3 +106,9 @@ Everything above is automated by `vlc/build.sh`, which:
 
 The script does not build libVLC itself — it links the plugin against the
 libvlc 4.x dev files available to pkg-config.
+
+YARG-specific changes to the mirrored upstream sources live in `patches/`
+and are applied by the script after copying (currently: making the
+auto-initialization tolerate a missing native plugin, e.g. on Windows,
+where only `LibVLCSharp.dll` is shipped and the game falls back to Unity's
+built-in video player).
