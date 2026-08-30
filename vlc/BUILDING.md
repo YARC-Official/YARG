@@ -1,10 +1,14 @@
 # Building the VLC video backend
 
-This directory contains pinned checkouts of the two upstream projects the VLC
-video path is built from:
+The VLC video path is built from two upstream projects:
 
 - `vlc-unity/` — native renderer plugin (`libVLCUnityPlugin`), built with meson
 - `LibVLCSharp/` — managed C# binding (`LibVLCSharp.dll`), built with dotnet
+
+These are **not** submodules; `vlc/build.sh` shallow-clones both, builds the
+assets and imports them into the Unity project (see *Updating the assets*
+below). The checkouts are gitignored. The commits they were built from are
+recorded in `vlc/BUILT_WITH`.
 
 The built artifacts are committed to the repo so a plain checkout works without
 any build tooling:
@@ -79,8 +83,26 @@ picked up from the `Assets/Plugins/vlc/Linux/x86_64` tree. The
 `VLC_PLUGIN_PATH` environment variable (pointing at the libVLC plugin
 directory) is set automatically by `OnLoad.cs` before anything is loaded.
 
-## Updating the submodules
+## Updating the assets
 
-`vlc-unity/` and `LibVLCSharp/` are git submodules used to pin exactly which
-upstream commits the committed binaries were built from. When rebuilding,
-bump the submodule pointers together with the new binaries.
+Everything above is automated by `vlc/build.sh`, which:
+
+1. Shallow-clones (depth 1) `LibVLCSharp` (from `master`, matching
+   vlc-unity's CI — the default `3.x` branch has a restructured
+   `LibVLCSharp.Shared.*` namespace that doesn't compile against vlc-unity)
+   and `vlc-unity` into this directory
+2. Builds `LibVLCSharp.dll` and `libVLCUnityPlugin.so`
+3. Copies the binaries to `Assets/Plugins/vlc/` and mirrors
+   `vlc-unity/Assets/VLCUnity/Internal` (+ asmdef) into `Assets/VLCUnity/`
+4. Writes the used commits to `vlc/BUILT_WITH`
+5. Stages and commits everything as `Updating vlc assets`, with the exact
+   hashes and a changelog against the previously built commits
+   (obtained by comparing against `vlc/BUILT_WITH`)
+
+```sh
+./vlc/build.sh           # build + import + commit
+./vlc/build.sh --no-commit  # build + import, leave changes staged
+```
+
+The script does not build libVLC itself — it links the plugin against the
+libvlc 4.x dev files available to pkg-config.
