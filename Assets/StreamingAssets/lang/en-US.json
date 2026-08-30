@@ -350,6 +350,8 @@
                     "RemoveFromPlaylist": "Remove From Playlist",
                     "RemoveFromSetlist": "Remove From Setlist",
                     "CreateNewPlaylist": "Create New...",
+                    "AddPlaylistToSetlist": "Add Playlist to Setlist",
+                    "SaveSetlistToPlaylist": "Save Setlist to Playlist",
                     "RenamePlaylist": "Rename Playlist",
                     "DeletePlaylist": "Delete Playlist",
                     "DeleteSetlist": "Delete Setlist",
