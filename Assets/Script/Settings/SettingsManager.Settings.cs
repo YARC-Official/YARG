@@ -635,6 +635,10 @@ namespace YARG.Settings
                 FileExplorerHelper.OpenFolder(PathHelper.ExecutablePath);
             }
 
+            // Empty means "not set" -- LibVlcNativePath falls back to its own
+            // per-OS auto-detection when this is empty.
+            public FolderPathSetting VlcLibraryPath { get; } = new(string.Empty);
+
             public async void RemoveRemoteContent()
             {
                 // Pop confirmation dialog

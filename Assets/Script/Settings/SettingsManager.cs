@@ -232,6 +232,8 @@ namespace YARG.Settings
                     nameof(Settings.CopyCurrentSongJsonFilePath)),
                 new ButtonRowMetadata(nameof(Settings.OpenPersistentDataPath)),
                 new ButtonRowMetadata(nameof(Settings.OpenExecutablePath)),
+                new HeaderMetadata("EnhancedVideo"),
+                new FieldMetadata(nameof(Settings.VlcLibraryPath), isAdvanced: true),
                 new HeaderMetadata("CacheManagement"),
                 new ButtonRowMetadata(nameof(Settings.RemoveRemoteContent)),
             },

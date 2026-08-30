@@ -563,6 +563,7 @@
             "ShowAdvanced": "Show Advanced",
             "HideAdvanced": "Hide Advanced",
             "NoFolder": "<i>No Folder</i>",
+            "NotFound": "<i>(not found)</i>",
             "SearchHeader": {
                 "AllCategories": "All Categories",
                 "Results": "Results"
@@ -1073,6 +1074,7 @@
             "LightingGeneral": "Lighting General",
             "ExportSongs": "Export Songs List",
             "PathsAndFolders": "Paths and Folders",
+            "EnhancedVideo": "Enhanced Video",
             "CacheManagement": "Cache Management",
             "MusicLibrary": "Music Library",
             "PlayAShow": "Play A Show",
@@ -1114,6 +1116,10 @@
             "AmIAwesome": {
                 "Name": "Awesomeness Detection",
                 "Description": "Are you awesome?"
+            },
+            "VlcLibraryPath": {
+                "Name": "VLC / libVLC Path",
+                "Description": "Points video background playback at a specific VLC.app or libVLC install (e.g. if it isn't in the default location for your OS). Requires VLC 3.x or a compatible libvlc install. Leave empty to auto-detect."
             },
             "AudioCalibration": {
                 "Name": "Audio Calibration (ms)",
