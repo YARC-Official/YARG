@@ -143,3 +143,7 @@ Tools/**/[Bb]in/
 Tools/**/[Oo]bj/
 
 qodana.yaml
+
+# VLC upstream checkouts (managed by vlc/build.sh)
+/vlc/vlc-unity/
+/vlc/LibVLCSharp/
