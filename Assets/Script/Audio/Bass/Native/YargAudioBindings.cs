@@ -2,8 +2,8 @@
 using System;
 using System.IO;
 using System.Runtime.InteropServices;
-using UnityEngine;
 using YARG.Audio.BASS.Effects;
+using YARG.Helpers;
 
 namespace YARG.Audio.BASS.Native
 {
@@ -279,24 +279,17 @@ namespace YARG.Audio.BASS.Native
             return Marshal.GetDelegateForFunctionPointer<T>(address);
         }
 
+#if UNITY_EDITOR
         private static string GetLibraryPath()
         {
-#if UNITY_EDITOR
-            var projectRoot = Path.GetFullPath(Path.Combine(Application.dataPath, ".."));
-            var sourcePath = Application.platform switch
-            {
-                RuntimePlatform.WindowsEditor => Path.Combine(projectRoot, "Assets", "Plugins", "YargAudio", "Windows", "x86_64", "yarg_audio.dll"),
-                RuntimePlatform.LinuxEditor => Path.Combine(projectRoot, "Assets", "Plugins", "YargAudio", "Linux", "x86_64", "libyarg_audio.so"),
-                RuntimePlatform.OSXEditor => Path.Combine(projectRoot, "Assets", "Plugins", "YargAudio", "Mac", "libyarg_audio.dylib"),
-                _ => Path.Combine(projectRoot, "Assets", "Plugins", "YargAudio", "Windows", "x86_64", "yarg_audio.dll")
-            };
-
+            var projectRoot = Directory.GetCurrentDirectory();
+            var sourcePath = GetSourcePluginPath(projectRoot);
             if (!File.Exists(sourcePath))
             {
                 return sourcePath;
             }
 
-            var tempDir = Path.Combine(Application.temporaryCachePath, "YargAudioShadow");
+            var tempDir = Path.Combine(Path.GetTempPath(), "YargAudioShadow");
             Directory.CreateDirectory(tempDir);
 
             var ext = Path.GetExtension(sourcePath);
@@ -310,36 +303,89 @@ namespace YARG.Audio.BASS.Native
             }
 
             return shadowPath;
-#else
-            return Application.platform switch
-            {
-                RuntimePlatform.WindowsPlayer => Path.Combine(Application.dataPath, "Plugins", "x86_64", "yarg_audio.dll"),
-                RuntimePlatform.LinuxPlayer => Path.Combine(Application.dataPath, "Plugins", "x86_64", "libyarg_audio.so"),
-                RuntimePlatform.OSXPlayer => Path.Combine(Application.dataPath, "Plugins", "libyarg_audio.dylib"),
-                _ => "yarg_audio"
-            };
-#endif
         }
 
-        private static IntPtr LoadNativeLibrary(string path) =>
-            Application.platform switch
+        private static string GetSourcePluginPath(string projectRoot)
+        {
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
             {
-                RuntimePlatform.WindowsEditor or RuntimePlatform.WindowsPlayer => WindowsNative.LoadLibrary(path),
-                RuntimePlatform.LinuxEditor or RuntimePlatform.LinuxPlayer => LinuxNative.dlopen(path, RTLD_NOW | RTLD_GLOBAL),
-                RuntimePlatform.OSXEditor or RuntimePlatform.OSXPlayer => MacNative.dlopen(path, RTLD_NOW | RTLD_GLOBAL),
-                _ => IntPtr.Zero
-            };
+                return Path.Combine(projectRoot, "Assets", "Plugins", "YargAudio", "Mac", "libyarg_audio.dylib");
+            }
 
-        private static IntPtr GetProcAddress(IntPtr handle, string symbol) =>
-            handle == IntPtr.Zero
-                ? IntPtr.Zero
-                : Application.platform switch
-                {
-                    RuntimePlatform.WindowsEditor or RuntimePlatform.WindowsPlayer => WindowsNative.GetProcAddress(handle, symbol),
-                    RuntimePlatform.LinuxEditor or RuntimePlatform.LinuxPlayer => LinuxNative.dlsym(handle, symbol),
-                    RuntimePlatform.OSXEditor or RuntimePlatform.OSXPlayer => MacNative.dlsym(handle, symbol),
-                    _ => IntPtr.Zero
-                };
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            {
+                return Path.Combine(projectRoot, "Assets", "Plugins", "YargAudio", "Linux", "x86_64", "libyarg_audio.so");
+            }
+
+            return Path.Combine(projectRoot, "Assets", "Plugins", "YargAudio", "Windows", "x86_64", "yarg_audio.dll");
+        }
+#else
+        private static string GetLibraryPath()
+        {
+            var dataPath = PathHelper.ApplicationDataPath ?? string.Empty;
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            {
+                return Path.Combine(dataPath, "Plugins", "libyarg_audio.dylib");
+            }
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            {
+                return Path.Combine(dataPath, "Plugins", "x86_64", "libyarg_audio.so");
+            }
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                return Path.Combine(dataPath, "Plugins", "x86_64", "yarg_audio.dll");
+            }
+
+            return "yarg_audio";
+        }
+#endif
+
+        private static IntPtr LoadNativeLibrary(string path)
+        {
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                return WindowsNative.LoadLibrary(path);
+            }
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            {
+                return LinuxNative.dlopen(path, RTLD_NOW | RTLD_GLOBAL);
+            }
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            {
+                return MacNative.dlopen(path, RTLD_NOW | RTLD_GLOBAL);
+            }
+
+            return IntPtr.Zero;
+        }
+
+        private static IntPtr GetProcAddress(IntPtr handle, string symbol)
+        {
+            if (handle == IntPtr.Zero)
+            {
+                return IntPtr.Zero;
+            }
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                return WindowsNative.GetProcAddress(handle, symbol);
+            }
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            {
+                return LinuxNative.dlsym(handle, symbol);
+            }
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            {
+                return MacNative.dlsym(handle, symbol);
+            }
+
+            return IntPtr.Zero;
+        }
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         private delegate uint GetAbiVersionDelegate();
