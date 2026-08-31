@@ -63,8 +63,6 @@ namespace YARG.Gameplay
 
         private bool _videoStarted = false;
         private bool _videoSeeking = false;
-        private bool _videoSeekWaitForPause = false;
-        private bool _videoWasPausedBeforeSeek = false;
 
         // Set when OnVideoPrepared issues the initial seek to VideoStartTimeSeconds; cleared once
         // LibVlcVideoPlayer.FramesDeliveredSinceSeek reaches MIN_FRAMES_BEFORE_INITIAL_REVEAL, not
@@ -532,7 +530,6 @@ namespace YARG.Gameplay
                     //set venue source to song to enable video seeking/pausing features
                     _source = VenueSource.Song;
                     //set up videoPlayer to render to venue texture
-                    _videoPlayer.renderMode = VideoRenderMode.RenderTexture;
                     _videoPlayer.targetTexture = textureManager.GetVideoTexture(0, 0);
 
                     LoadVideoBackground(songBackGround);
@@ -600,7 +597,7 @@ namespace YARG.Gameplay
                     break;
             }
 
-            _videoPlayer.enabled = true;
+            _videoPlayer.playerEnabled = true;
             _videoPlayer.prepareCompleted += OnVideoPrepared;
             _videoPlayer.seekCompleted += OnVideoSeeked;
             YargLogger.LogDebug("[Video] Calling Prepare()");
@@ -684,7 +681,7 @@ namespace YARG.Gameplay
                 FadeBackgroundImage(0f);
 
                 _videoPlayer.Stop();
-                _videoPlayer.enabled = false;
+                _videoPlayer.playerEnabled = false;
                 enabled = false;
             }
         }
@@ -843,25 +840,23 @@ namespace YARG.Gameplay
                     if (videoTime < 0f) // Seeking before video start
                     {
                         enabled = true;
-                        _videoPlayer.enabled = true;
+                        _videoPlayer.playerEnabled = true;
                         _videoStarted = false;
                         _videoPlayer.Stop();
                     }
                     else if (videoTime >= _videoPlayer.length) // Seeking after video end
                     {
                         enabled = false;
-                        _videoPlayer.enabled = false;
+                        _videoPlayer.playerEnabled = false;
                         _videoPlayer.Stop();
                     }
                     else
                     {
                         enabled = false; // Temp disable
-                        _videoPlayer.enabled = true;
+                        _videoPlayer.playerEnabled = true;
 
                         // Hack to ensure the video stays synced to the audio
                         _videoSeeking = true; // Signaling flag; must come first
-                        _videoSeekWaitForPause = waitForSeek;
-                        _videoWasPausedBeforeSeek = _videoPlayer.isPaused;
 
                         if (waitForSeek && SettingsManager.Settings.WaitForSongVideo.Value)
                             GameManager.OverridePause();
@@ -890,8 +885,6 @@ namespace YARG.Gameplay
 
             enabled = !double.IsNaN(_videoEndTime);
             _videoSeeking = false;
-            _videoSeekWaitForPause = false;
-            _videoWasPausedBeforeSeek = false;
         }
 
         public void SetSpeed(float speed)

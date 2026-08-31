@@ -32,12 +32,21 @@ namespace YARG.Gameplay
         private Camera _targetCamera;
         public Camera targetCamera => _targetCamera;
 
-        // The fallback VideoPlayer never renders directly into this -- see _fallbackFrameTexture.
         private RenderTexture _targetTexture;
         public RenderTexture targetTexture
         {
             get => _targetTexture;
-            set => _targetTexture = value;
+            set
+            {
+                _targetTexture = value;
+                // The VLC path blits into this manually each frame (Update()) since libVLC has
+                // no native render-texture pipeline. The fallback VideoPlayer targets it
+                // directly instead -- see SwitchToFallback.
+                if (!_usingVlc && _fallbackPlayer != null)
+                {
+                    _fallbackPlayer.targetTexture = value;
+                }
+            }
         }
 
         public event Action<LibVlcVideoPlayer> prepareCompleted;
@@ -155,10 +164,6 @@ namespace YARG.Gameplay
         private bool _usingVlc;
         private bool _playerEnabled = true;
         private VideoPlayer _fallbackPlayer;
-
-        // Intermediate texture the fallback VideoPlayer renders into, sized to the clip's own
-        // native resolution
-        private RenderTexture _fallbackFrameTexture;
 
         private MediaPlayer _mediaPlayer;
         private Media _media;
@@ -302,22 +307,15 @@ namespace YARG.Gameplay
 
             _fallbackPlayer.playOnAwake = false;
             _fallbackPlayer.renderMode = VideoRenderMode.RenderTexture;
+            // aspectRatio is left at its default (VideoAspectRatio.FitInside) -- Unity already
+            // letterboxes/pillarboxes into targetTexture on its own, matching BlitLetterboxed's
+            // contain-fit behavior on the VLC path below with no extra code needed here.
+            _fallbackPlayer.targetTexture = targetTexture;
             _fallbackPlayer.isLooping = _isLooping;
             _fallbackPlayer.enabled = _playerEnabled;
 
             _fallbackPlayer.prepareCompleted += vp =>
             {
-                // vp.width/height report the clip's native resolution, valid once prepared --
-                // render into a texture that size so Update() can cover-fit blit it into
-                // targetTexture instead of Unity's VideoPlayer stretching straight into it.
-                int srcW = (int) vp.width;
-                int srcH = (int) vp.height;
-                if (srcW > 0 && srcH > 0)
-                {
-                    _fallbackFrameTexture = new RenderTexture(srcW, srcH, 0);
-                    _fallbackPlayer.targetTexture = _fallbackFrameTexture;
-                }
-
                 length = vp.length;
                 prepareCompleted?.Invoke(this);
             };
@@ -527,7 +525,6 @@ namespace YARG.Gameplay
         {
             if (!_usingVlc)
             {
-                UpdateFallback();
                 return;
             }
 
@@ -588,16 +585,6 @@ namespace YARG.Gameplay
             }
 
             _hasBlitted = true;
-        }
-
-        private void UpdateFallback()
-        {
-            if (_fallbackFrameTexture == null || targetTexture == null)
-            {
-                return;
-            }
-
-            BlitLetterboxed(_fallbackFrameTexture, targetTexture, _fallbackFrameTexture.width, _fallbackFrameTexture.height);
         }
 
         // Logged once per distinct (src, dst) pair rather than every frame -- Update() calls
@@ -670,12 +657,6 @@ namespace YARG.Gameplay
             if (_frameTexture != null)
             {
                 Destroy(_frameTexture);
-            }
-
-            if (_fallbackFrameTexture != null)
-            {
-                _fallbackFrameTexture.Release();
-                Destroy(_fallbackFrameTexture);
             }
         }
     }
