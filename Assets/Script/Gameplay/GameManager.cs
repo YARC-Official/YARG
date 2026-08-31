@@ -472,7 +472,6 @@ namespace YARG.Gameplay
 
             // Pause the background/venue
             Time.timeScale = 0f;
-            BackgroundManager.SetPaused(true);
             GameStateFetcher.SetPaused(true);
 
             // This uses the raw input update time because it keeps running during the pause
@@ -596,7 +595,6 @@ namespace YARG.Gameplay
 
             // Unpause the background/venue
             Time.timeScale = 1f;
-            BackgroundManager.SetPaused(false);
             GameStateFetcher.SetPaused(false);
 
             // Unpause any audio samples that are currently playing

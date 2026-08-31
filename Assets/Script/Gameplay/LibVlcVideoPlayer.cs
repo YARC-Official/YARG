@@ -441,19 +441,30 @@ namespace YARG.Gameplay
             }
         }
 
-        // Seeks via the same deferred pipeline as the `time` setter (_pendingSeekTime ->
-        // _applyPendingSeekOnNextUpdate -> BeginSeek) instead of writing Time synchronously --
-        // a Time write while Paused doesn't reliably land until Play() transitions the player to
-        // Playing, so writing immediately and also relying on Play()'s deferred reapply seeks
-        // twice. Requires the player to be Paused/Stopped when called (true for every current
-        // caller); if ever called while already Playing, Play() won't re-fire Playing and the
-        // seek will silently never apply.
+        // Ensures the video is at `time` and playing, regardless of its current state.
+        //
+        // While Paused/Stopped, seeks via the same deferred pipeline as the `time` setter
+        // (_pendingSeekTime -> _applyPendingSeekOnNextUpdate -> BeginSeek) instead of writing
+        // Time synchronously -- a Time write while Paused doesn't reliably land until Play()
+        // transitions the player to Playing, so writing immediately and also relying on Play()'s
+        // deferred reapply would seek twice.
+        //
+        // While already Playing (e.g. a practice-mode loop restart, which reseeks without ever
+        // pausing), Play() causes no Playing/state transition, so that deferred pipeline would
+        // never fire and the seek would silently never apply -- seek directly instead.
         public void SeekAndPlay(double time)
         {
             if (_usingVlc)
             {
-                _pendingSeekTime = time;
-                _mediaPlayer?.Play();
+                if (_mediaPlayer != null && _mediaPlayer.IsPlaying)
+                {
+                    BeginSeek((long) (time * 1000.0));
+                }
+                else
+                {
+                    _pendingSeekTime = time;
+                    _mediaPlayer?.Play();
+                }
             }
             else if (_fallbackPlayer != null)
             {
@@ -599,9 +610,6 @@ namespace YARG.Gameplay
         // Graphics.Blit (which always stretches the source to fill every pixel of dest,
         // distorting it whenever src/dst aspect ratios differ) or a Blit(scale, offset) "cover"
         // crop (which fills dest completely but crops overflow, never showing the full frame).
-        // Graphics.Blit's scale/offset overload only selects a SOURCE sub-rect -- it can't leave
-        // dest partially unfilled -- so achieving letterboxing means placing a smaller
-        // DESTINATION sub-rect ourselves via Graphics.DrawTexture in pixel space instead.
         private void BlitLetterboxed(Texture source, RenderTexture dest, int srcW, int srcH)
         {
             float srcAspect = (float) srcW / srcH;

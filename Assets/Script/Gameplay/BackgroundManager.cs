@@ -623,6 +623,10 @@ namespace YARG.Gameplay
             // Start video
             if (!_videoStarted)
             {
+                // Don't auto-start while the game is paused
+                if (GameManager.Paused)
+                    return;
+
                 // Don't start playing the video until the start of the song
                 if (time < 0.0)
                     return;
@@ -635,9 +639,20 @@ namespace YARG.Gameplay
                     return;
 
                 _videoStarted = true;
-                YargLogger.LogFormatDebug("[Video] Starting playback at songTime={0:F3}, videoStartTime={1:F3}, videoEndTime={2:F3}",
-                    time, _videoStartTime, _videoEndTime);
-                _videoPlayer.Play();
+                YargLogger.LogFormatDebug("[Video] Starting playback at songTime={0:F3}, videoStartTime={1:F3}, videoEndTime={2:F3}, seekTarget={3:F3}",
+                    time, _videoStartTime, _videoEndTime, time + _videoStartTime);
+
+                if (_source == VenueSource.Song)
+                {
+                    // Seek to the current song position instead of just playing from wherever OnVideoPrepared
+                    // originally pointed it -- practice mode can jump SongTime straight into the middle
+                    // of the song (SetPracticeSection) before the video ever starts
+                    _videoPlayer.SeekAndPlay(time + _videoStartTime);
+                }
+                else
+                {
+                    _videoPlayer.Play();
+                }
 
                 BeginDriftGracePeriod();
 
@@ -864,21 +879,13 @@ namespace YARG.Gameplay
             if (!_videoSeeking)
                 return;
 
-            // Honor a SetPaused() call stashed while the seek was in flight (see SetPaused),
-            // instead of always resuming.
-            bool shouldPlay = _pendingPausedState is not true;
-            _pendingPausedState = null;
-
-            if (!SettingsManager.Settings.WaitForSongVideo.Value || GameManager.OverrideResume())
+            // Releases the pause-override SetTime engaged for this seek (see SetTime) -- must
+            // run even though its result isn't used here. LateUpdate's GameManager.Paused poll
+            // picks up the actual final play/pause state once _videoSeeking clears below,
+            // whether or not other overrides are still holding the song paused.
+            if (SettingsManager.Settings.WaitForSongVideo.Value)
             {
-                if (shouldPlay)
-                {
-                    player.Play();
-                }
-                else
-                {
-                    player.Pause();
-                }
+                GameManager.OverrideResume();
             }
 
             enabled = !double.IsNaN(_videoEndTime);
@@ -900,33 +907,34 @@ namespace YARG.Gameplay
             }
         }
 
-        // Pause/resume request that arrived mid-seek (see SetTime); applied in OnVideoSeeked
-        // once the seek lands.
-        private bool? _pendingPausedState;
+        // Last pause state actually applied to the video player, so LateUpdate below only calls
+        // Play()/Pause() on a real change instead of every frame.
+        private bool _videoPaused;
 
-        public void SetPaused(bool paused)
+        // Follows GameManager.Paused directly rather than being pushed pause/resume calls --
+        // some inputs (e.g. Escape, which can dispatch through both the pause menu's Back()
+        // binding and GameManager.Update's own key poll) can flip Paused twice in one frame, and
+        // reacting to each change as it happened would tell the video to play for a moment
+        // before the second one paused it again. Reading the state once here, after every
+        // Update() this frame has run, means only the frame's final value is ever applied.
+        // Skipped while _videoSeeking -- OnVideoSeeked re-checks once the seek lands.
+        private void LateUpdate()
         {
-            // Pause/unpause video
-            if (_videoPlayer.playerEnabled && _videoStarted)
+            if (!_videoPlayer.playerEnabled || !_videoStarted || _videoSeeking)
+                return;
+
+            if (GameManager.Paused != _videoPaused)
             {
-                if (_videoSeeking)
+                _videoPaused = GameManager.Paused;
+                if (_videoPaused)
                 {
-                    _pendingPausedState = paused;
+                    _videoPlayer.Pause();
                 }
                 else
                 {
-                    if (paused)
-                    {
-                        _videoPlayer.Pause();
-                    }
-                    else
-                    {
-                        _videoPlayer.Play();
-                    }
+                    _videoPlayer.Play();
                 }
             }
-
-            // The venue is dealt with in the GameManager via Time.timeScale
         }
 
         private async UniTask<GameObject> GetAddressableCharacter(string hint)
