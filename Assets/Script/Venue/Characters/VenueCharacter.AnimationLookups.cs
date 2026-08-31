@@ -739,6 +739,7 @@ namespace YARG.Venue.Characters
                         SetBool("isIdle", false);
                         SetBool("isIdleRealtime", false);
                         SetBool("isIdleMellow", false);
+                        SetBool("isIdleIntense", false);
                         SetBool("isPlaying", false);
                         SetBool("isMellow", false);
                         SetBool("isIntense", false);
@@ -763,6 +764,9 @@ namespace YARG.Venue.Characters
                                     break;
                                 case AnimationStateType.IdleMellow:
                                     SetBool("isIdleMellow", true);
+                                    break;
+                                case AnimationStateType.IdleIntense:
+                                    SetBool("isIdleIntense", true);
                                     break;
                                 case AnimationStateType.Playing:
                                     SetBool("isPlaying", true);
@@ -948,7 +952,8 @@ namespace YARG.Venue.Characters
         private static bool IsGenericState(AnimationStateType state)
         {
             return state is AnimationStateType.Idle or AnimationStateType.Playing or AnimationStateType.IdleRealtime
-                or AnimationStateType.IdleMellow or AnimationStateType.Mellow or AnimationStateType.Intense;
+                or AnimationStateType.IdleMellow or AnimationStateType.Mellow or AnimationStateType.Intense
+                or AnimationStateType.IdleIntense or AnimationStateType.End or AnimationStateType.PlayingSolo;
         }
 
         private static bool IsLeftHandPositionState(AnimationStateType state)
