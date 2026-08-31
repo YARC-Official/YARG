@@ -86,14 +86,20 @@ namespace YARG.Menu.ProfileInfo
             SelectedGameMode = gameMode;
             SelectingMenuBinds = false;
 
-            RefreshFromBindingCollection(_currentPlayer.DeviceInfo[gameMode]);
+            foreach (var controller in _currentPlayer.DeviceInfo.Controllers)
+            {
+                RefreshFromBindingCollection(_currentPlayer.DeviceInfo[(gameMode, controller.layout)]);
+            }
         }
 
         public void RefreshMenuBindings()
         {
             SelectingMenuBinds = true;
 
-            RefreshFromBindingCollection(_currentPlayer.DeviceInfo.MenuBindings);
+            foreach (var bindings in _currentPlayer.DeviceInfo.MenuBindingsByBaseLayout.Values)
+            {
+                RefreshFromBindingCollection(bindings);
+            }
         }
 
         private void RefreshFromBindingCollection(BindingCollection collection)

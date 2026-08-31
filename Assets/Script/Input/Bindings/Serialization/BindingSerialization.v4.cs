@@ -11,7 +11,6 @@ using YARG.Core.Logging;
 namespace YARG.Input.Serialization
 {
     // Unchanged data types
-    using SerializedControllerV4 = SerializedInputDeviceV0;
     using SerializedMicV4 = SerializedMicV3;
 
     public class SerializedBindingsV4
@@ -20,8 +19,7 @@ namespace YARG.Input.Serialization
 
         public int Version = VERSION;
         public Dictionary<Guid, SerializedProfileDeviceInfoV4> Profiles = new();
-        public Dictionary<string, Guid> ControllerDefaults = new();
-        public List<SerializedBindingCollectionV4> BindingCollections = new();
+        public Dictionary<Guid, SerializedBindingCollectionV4> BindingCollections = new();
 
         [JsonConstructor]
         public SerializedBindingsV4() { }
@@ -29,19 +27,14 @@ namespace YARG.Input.Serialization
         public SerializedBindingsV4(SerializedBindings serialized)
         {
 
-            foreach (var (id, profile) in serialized.Profiles)
+            foreach (var (guid, profile) in serialized.Profiles)
             {
-                Profiles[id] = new SerializedProfileDeviceInfoV4(profile);
+                Profiles[guid] = new SerializedProfileDeviceInfoV4(profile);
             }
 
-            foreach (var (controllerHash, bindingSetGuid) in serialized.ControllerDefaults)
+            foreach (var (guid, bind) in serialized.BindingCollections)
             {
-                ControllerDefaults[controllerHash] = bindingSetGuid;
-            }
-
-            foreach (var bind in serialized.BindingCollections)
-            {
-                BindingCollections.Add(new SerializedBindingCollectionV4(bind));
+                BindingCollections[guid] = new SerializedBindingCollectionV4(bind);
             }
         }
 
@@ -49,19 +42,14 @@ namespace YARG.Input.Serialization
         {
             var deserialized = new SerializedBindings();
 
-            foreach (var bind in BindingCollections)
+            foreach (var (guid, bind) in BindingCollections)
             {
-                deserialized.BindingCollections.Add(bind.Deserialize());
+                deserialized.BindingCollections[guid] = bind.Deserialize();
             }
 
-            foreach (var (id, profile) in Profiles)
+            foreach (var (guid, profile) in Profiles)
             {
-                deserialized.Profiles[id] = profile.Deserialize();
-            }
-
-            foreach (var (controllerHash, bindingSetGuid) in ControllerDefaults)
-            {
-                deserialized.ControllerDefaults[controllerHash] = bindingSetGuid;
+                deserialized.Profiles[guid] = profile.Deserialize();
             }
 
             return deserialized;
@@ -71,19 +59,9 @@ namespace YARG.Input.Serialization
         {
             public List<SerializedControllerV4> Controllers = new();
             public List<SerializedMicV4> Microphones = new();
+            public Dictionary<GameMode, SerializedModeMappingCollectionV4> ModeMappings = new();
 
-
-            // Stores the GUIDs of BindingCollections that this profile likes to use by default for certain GameModes
-            // Can be overridden by this profile's ControllerBindings or a controller's user-specified default bindings
-            public Dictionary<GameMode, Guid> ModeMappings = new();
-
-            // Key is a controller layout hash
-            // Stores the GUIDs of BindingCollections that this profile has assigned to specific controllers
-            // This overrides this profile's ModeMappings as well as the device's user-specified default bindings
-            public Dictionary<string, Guid> ControllerMappings = new();
-
-            // GUID of the BindingCollection that this profile uses for menu bindings
-            public Guid? MenuMappings;
+            public Dictionary<string, Guid> MenuMappings = new(); // Key is BaseLayout
 
             [JsonConstructor]
             public SerializedProfileDeviceInfoV4() { }
@@ -100,19 +78,13 @@ namespace YARG.Input.Serialization
                     }
                 }
 
-                foreach (var (gameMode, bindingSetGuid) in serialized.ModeMappings)
+                foreach (var (gameMode, modeMappingCollection) in serialized.ModeMappings)
                 {
-                    ModeMappings[gameMode] = bindingSetGuid;
+                    ModeMappings[gameMode] = new(modeMappingCollection);
                 }
 
-                foreach (var (controllerHash, bindingSetGuid) in serialized.ControllerMappings)
-                {
-                    ControllerMappings[controllerHash] = bindingSetGuid;
-                }
-
-                if (serialized.MenuMapping is not null)
-                {
-                    MenuMappings = serialized.MenuMapping;
+                foreach (var (baseLayout, bindingSetGuid) in serialized.MenuMappings) {
+                    MenuMappings[baseLayout] = bindingSetGuid;
                 }
             }
 
@@ -130,19 +102,42 @@ namespace YARG.Input.Serialization
 
                 deserialized.Controllers.AddRange(Controllers.Select((controller) => controller.Deserialize()));
 
-                foreach (var (gameMode, bindingSetGuid) in ModeMappings)
+                foreach (var (gameMode, modeMappingCollection) in ModeMappings)
                 {
-                    deserialized.ModeMappings[gameMode] = bindingSetGuid;
+                    deserialized.ModeMappings[gameMode] = modeMappingCollection.Deserialize();
                 }
 
-                foreach (var (controllerHash, bindingSetGuid) in ControllerMappings)
+                foreach (var (baseLayout, bindingSetGuid) in MenuMappings)
                 {
-                    deserialized.ControllerMappings[controllerHash] = bindingSetGuid;
+                    deserialized.MenuMappings[baseLayout] = bindingSetGuid;
                 }
 
-                if (MenuMappings is not null)
+                return deserialized;
+            }
+        }
+
+        public class SerializedModeMappingCollectionV4
+        {
+            public Dictionary<string, Guid> MappingsByBaseLayout = new();
+
+            [JsonConstructor]
+            public SerializedModeMappingCollectionV4() { }
+
+            public SerializedModeMappingCollectionV4(SerializedModeMappingCollection serialized)
+            {
+                foreach (var (baseLayout, bindingSetGuid) in serialized.MappingsByBaseLayout)
                 {
-                    deserialized.MenuMapping = MenuMappings;
+                    MappingsByBaseLayout[baseLayout] = bindingSetGuid;
+                }
+            }
+
+            public SerializedModeMappingCollection Deserialize()
+            {
+                var deserialized = new SerializedModeMappingCollection();
+
+                foreach (var (baseLayout, serializedBindingCollection) in MappingsByBaseLayout)
+                {
+                    deserialized.MappingsByBaseLayout[baseLayout] = serializedBindingCollection;
                 }
 
                 return deserialized;
@@ -153,6 +148,7 @@ namespace YARG.Input.Serialization
         {
             public Dictionary<string, SerializedControlBindingV4> Bindings = new();
             public GameMode GameMode;
+            public string BaseLayout;
             public bool Reusable;
 
             [JsonConstructor]
@@ -171,7 +167,7 @@ namespace YARG.Input.Serialization
 
             public SerializedBindingCollection Deserialize()
             {
-                var converted = new SerializedBindingCollection() {
+                var converted = new SerializedBindingCollection(BaseLayout) {
                     GameMode = GameMode,
                     Reusable = Reusable
                 };
@@ -257,6 +253,31 @@ namespace YARG.Input.Serialization
         }
 
     }
+
+    public class SerializedControllerV4
+    {
+        public string BaseLayout;
+        public string Layout;
+        public string Hash;
+
+        [JsonConstructor]
+        public SerializedControllerV4()
+        {
+            BaseLayout = string.Empty;
+            Layout = string.Empty;
+            Hash = string.Empty;
+        }
+
+        public SerializedControllerV4(SerializedInputDevice serialized)
+        {
+            BaseLayout = serialized.BaseLayout;
+            Layout = serialized.Layout;
+            Hash = serialized.Hash;
+        }
+
+        public SerializedInputDevice Deserialize() => new(BaseLayout, Layout, Hash);
+    }
+
     public static partial class BindingSerialization
     {
         private static SerializedBindingsV4 SerializeBindingsV4(SerializedBindings serialized)

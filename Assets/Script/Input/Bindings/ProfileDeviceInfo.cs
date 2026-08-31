@@ -12,6 +12,7 @@ using YARG.Core.Logging;
 using YARG.Input.Serialization;
 using YARG.Player;
 using YARG.Input.Bindings;
+using UnityEngine.InputSystem.Utilities;
 
 namespace YARG.Input
 {
@@ -37,16 +38,14 @@ namespace YARG.Input
         private readonly List<SerializedInputDevice> _unresolvedControllers = new();
         private readonly List<InputDevice> _controllers = new();
 
-        private readonly Dictionary<GameMode, BindingCollection> _bindsByGameMode = new();
-        private readonly Dictionary<string, BindingCollection> _bindsByDeviceHash = new();
-        public readonly BindingCollection MenuBindings;
+        private readonly Dictionary<(GameMode mode, string baseLayout), BindingCollection> _bindsByContext = new();
+        public readonly Dictionary<string, BindingCollection> MenuBindingsByBaseLayout = new();
 
         public bool HasDeviceAssigned => _controllers.Count > 0;
         public bool HasMicrophoneAssigned => _microphones.Count == 0;
         public bool HasNoDevices => !HasDeviceAssigned && !HasMicrophoneAssigned;
 
-        public BindingCollection this[GameMode mode] => _bindsByGameMode[mode];
-
+        public BindingCollection this[(GameMode, string) tupleKey] => _bindsByContext[tupleKey];
         public event Action<InputDevice> ControllerAdded;
         public event Action<InputDevice> ControllerRemoved;
 
@@ -54,40 +53,51 @@ namespace YARG.Input
         {
             add
             {
-                foreach (var bindings in _bindsByGameMode.Values)
+                foreach (var binds in _bindsByContext.Values)
                 {
-                    bindings.BindingsChanged += value;
+                    binds.BindingsChanged += value;
                 }
 
-                MenuBindings.BindingsChanged += value;
+                foreach (var layoutMenuBinds in MenuBindingsByBaseLayout.Values)
+                {
+                    layoutMenuBinds.BindingsChanged += value;
+                }
             }
             remove
             {
-                foreach (var bindings in _bindsByGameMode.Values)
+                foreach (var binds in _bindsByContext.Values)
                 {
-                    bindings.BindingsChanged -= value;
+                    binds.BindingsChanged -= value;
                 }
 
-                MenuBindings.BindingsChanged -= value;
+                foreach (var layoutMenuBinds in MenuBindingsByBaseLayout.Values)
+                {
+                    layoutMenuBinds.BindingsChanged -= value;
+                }
             }
         }
 
         public event GameInputProcessed MenuInputProcessed
         {
-            add    => MenuBindings.InputProcessed += value;
-            remove => MenuBindings.InputProcessed -= value;
+            add
+            {
+                foreach (var layoutMenuBinds in MenuBindingsByBaseLayout.Values)
+                {
+                    layoutMenuBinds.InputProcessed += value;
+                }
+            }    
+            remove
+            {
+                foreach (var layoutMenuBinds in MenuBindingsByBaseLayout.Values)
+                {
+                    layoutMenuBinds.InputProcessed -= value;
+                }
+            }
         }
 
         public ProfileDeviceInfo(YargProfile profile)
         {
             Profile = profile;
-
-            foreach (var mode in EnumExtensions<GameMode>.Values)
-            {
-                _bindsByGameMode.Add(mode, BindingCollection.CreateGameplayBindings(mode));
-            }
-
-            MenuBindings = BindingCollection.CreateMenuBindings();
         }
 
 #nullable enable
@@ -128,29 +138,29 @@ namespace YARG.Input
                 _unresolvedMics.Add(profileBindings.Microphone);
             }
 
-            // _bindsByGameMode should currently be populated with the default bindings for each GameMode.
-            // If this profile has defined its own GameMode-level binding preferences, we'll overwrite the corresponding
-            // entry for each defined mode
             if (profileBindings.ModeMappings is not null)
             {
                 List<GameMode> modesToRemove = new();
-                foreach (var (mode, bindingSetGuid) in profileBindings.ModeMappings)
+                foreach (var (mode, modeMappings) in profileBindings.ModeMappings)
                 {
-                    if (!_bindsByGameMode.TryGetValue(mode, out var modeBindings))
+                    foreach (var (baseLayout, bindings) in modeMappings.MappingsByBaseLayout)
                     {
-                        YargLogger.LogFormatWarning("Encountered invalid game mode {0} in bindings for profile {1}!", mode, item2: profile.Name);
-                        continue;
+                        if (modeMappings.MappingsByBaseLayout.TryGetValue(baseLayout, out var bindingSetGuid))
+                        {
+                            if (BindingsContainer.TryGetBindingCollectionById(bindingSetGuid, out var modeMapping))
+                            {
+                                _bindsByContext[(mode, baseLayout)] = modeMapping;
+                            }
+                            else
+                            {
+                                YargLogger.LogWarning($"Referenced nonexistent binding collection GUID {bindingSetGuid}; it will be removed");
+                                modesToRemove.Add(mode);
+                            }
+                        }
+
                     }
 
-                    if (BindingsContainer.TryGetBindingCollectionById(bindingSetGuid, out var modeMapping))
-                    {
-                        _bindsByGameMode[mode] = modeMapping;
-                    }
-                    else
-                    {
-                        YargLogger.LogWarning($"Referenced nonexistent binding collection GUID {bindingSetGuid}; it will be removed");
-                        modesToRemove.Add(mode);
-                    }
+
                 }
 
                 foreach (var mode in modesToRemove)
@@ -159,43 +169,21 @@ namespace YARG.Input
                 }
             }
 
-            // Profiles can also define preferred binding sets for individual controllers, which supersede GameMode-level preferences.
-            // Populate _bindsByDeviceHash with each of those binding sets, regardless of whether the relevant device is currently attached
-            // to this profile; if the player attaches it later, we'll want to retrieve their preferred binding set
-            if (profileBindings.ControllerMappings is not null)
+            if (profileBindings.MenuMappings is not null)
             {
-                List<string> hashesToRemove = new();
-
-                foreach (var (controllerHash, bindingSetGuid) in profileBindings.ControllerMappings)
+                foreach (var (baseLayout, bindingSetGuid) in profileBindings.MenuMappings)
                 {
-                    if (BindingsContainer.TryGetBindingCollectionById(bindingSetGuid, out var controllerMapping))
+                    if (BindingsContainer.TryGetBindingCollectionById(bindingSetGuid, out var menuMapping))
                     {
-                        _bindsByDeviceHash[controllerHash] = controllerMapping;
+                        MenuBindingsByBaseLayout[baseLayout] = menuMapping;
                     }
                     else
                     {
-                        YargLogger.LogWarning($"Referenced nonexistent binding collection GUID {bindingSetGuid}; it will be removed");
-                        hashesToRemove.Add(controllerHash);
+                        YargLogger.LogWarning($"Referenced nonexistent binding collection GUID {bindingSetGuid}; removing it");
+                        profileBindings.MenuMappings.Remove(baseLayout);
                     }
                 }
 
-                foreach (var hash in hashesToRemove)
-                {
-                    profileBindings.ControllerMappings.Remove(hash);
-                }
-            }
-
-            if (profileBindings.MenuMapping is not null)
-            {
-                if (BindingsContainer.TryGetBindingCollectionById(profileBindings.MenuMapping.Value, out var menuMapping))
-                {
-                    MenuBindings = menuMapping;
-                }
-                else
-                {
-                    YargLogger.LogWarning($"Referenced nonexistent binding collection GUID {profileBindings.MenuMapping}; removing it");
-                    profileBindings.MenuMapping = null;
-                }
             }
         }
 
@@ -223,16 +211,31 @@ namespace YARG.Input
                 serialized.Microphones.Add(mic);
             }
 
-            foreach (var (mode, bindings) in _bindsByGameMode)
+            foreach (var ((mode, baseLayout), bindingSet) in _bindsByContext)
             {
-                var serializedBinds = bindings.Serialize();
+                var serializedBinds = bindingSet.Serialize();
                 if (serializedBinds is null)
                     continue;
 
-                serialized.ModeMappings.Add(mode, serializedBinds.Guid);
+                if (!serialized.ModeMappings.ContainsKey(mode))
+                {
+                    serialized.ModeMappings[mode] = new();
+                }
+
+                serialized.ModeMappings[mode].MappingsByBaseLayout[baseLayout] = bindingSet.Guid;
             }
 
-            serialized.MenuMapping = MenuBindings.Guid;
+            foreach (var (baseLayout, bindingSet) in MenuBindingsByBaseLayout)
+            {
+                var serializedMenuBinds = bindingSet.Serialize();
+
+                if (serializedMenuBinds is null)
+                {
+                    continue;
+                }
+
+                serialized.MenuMappings[baseLayout] = bindingSet.Guid;
+            }
 
             return serialized;
         }
@@ -281,32 +284,45 @@ namespace YARG.Input
 
         public void EnableInputs()
         {
-            foreach (var bindings in _bindsByGameMode.Values)
+            foreach (var bindings in _bindsByContext.Values)
             {
                 bindings.EnableInputs();
             }
 
-            MenuBindings.EnableInputs();
+            foreach (var bindings in MenuBindingsByBaseLayout.Values)
+            {
+                bindings.EnableInputs();
+            }
         }
 
         public void DisableInputs()
         {
-            foreach (var bindings in _bindsByGameMode.Values)
+            foreach (var bindings in _bindsByContext.Values)
             {
                 bindings.DisableInputs();
             }
 
-            MenuBindings.DisableInputs();
+            foreach (var bindings in MenuBindingsByBaseLayout.Values)
+            {
+                bindings.DisableInputs();
+            }
         }
 
         public void SubscribeToGameplayInputs(GameMode mode, GameInputProcessed onInputProcessed)
         {
-            _bindsByGameMode[mode].InputProcessed += onInputProcessed;
+            foreach (var controller in Controllers)
+            {
+                _bindsByContext[(mode, controller.layout)].InputProcessed += onInputProcessed;
+            }
+
         }
 
         public void UnsubscribeFromGameplayInputs(GameMode mode, GameInputProcessed onInputProcessed)
         {
-            _bindsByGameMode[mode].InputProcessed -= onInputProcessed;
+            foreach (var controller in Controllers)
+            {
+                _bindsByContext[(mode, controller.layout)].InputProcessed -= onInputProcessed;
+            }
         }
 
         public bool AddController(InputDevice controller)
@@ -365,13 +381,18 @@ namespace YARG.Input
         {
             return _unresolvedControllers.Any(dev => dev.MatchesDevice(controller));
         }
+
+        // TODO: Delete?
         public bool ContainsBindingsForController(InputDevice controller)
         {
-            return _bindsByDeviceHash.ContainsKey(controller.GetHash());
+            return false;
+
+            //return _bindsByDeviceHash.ContainsKey(controller.GetHash());
 
             // return MenuBindings.ContainsBindingsForDevice(device); TODO: Delete?
         }
 
+        /* TODO: After controller overrides are implemented
         public void ClearBindingsForController(InputDevice controller, bool clearMenuBindings = true)
         {
             _bindsByDeviceHash.Remove(controller.GetHash());
@@ -381,15 +402,19 @@ namespace YARG.Input
                 // MenuBindings.ClearBindingsForDevice(device); TODO: Delete?
             }
         }
+        */
 
         public void ClearAllBindings()
         {
-            foreach (var bindings in _bindsByGameMode.Values)
+            foreach (var bindings in _bindsByContext.Values)
             {
                 bindings.ClearAllBindings();
             }
 
-            MenuBindings.ClearAllBindings();
+            foreach (var bindings in MenuBindingsByBaseLayout.Values)
+            {
+                bindings.ClearAllBindings();
+            }
         }
 
         public bool SetDefaultBinds(InputDevice controller)
@@ -399,12 +424,15 @@ namespace YARG.Input
                 return false;
             }
 
-            foreach (var bindings in _bindsByGameMode.Values)
+            foreach (var bindings in _bindsByContext.Values)
             {
                 bindings.SetDefaultBindings(controller);
             }
 
-            MenuBindings.SetDefaultBindings(controller);
+            foreach (var bindings in MenuBindingsByBaseLayout.Values)
+            {
+                bindings.SetDefaultBindings(controller);
+            }
 
             return true;
         }
@@ -416,12 +444,15 @@ namespace YARG.Input
                 return false;
             }
 
-            foreach (var bindings in _bindsByGameMode.Values)
+            foreach (var bindings in _bindsByContext.Values)
             {
                 bindings.SetDefaultBindings(gamepad, mode);
             }
 
-            MenuBindings.SetDefaultBindings(gamepad, mode);
+            foreach (var bindings in MenuBindingsByBaseLayout.Values)
+            {
+                bindings.SetDefaultBindings(gamepad, mode);
+            }
 
             return true;
         }
@@ -460,49 +491,45 @@ namespace YARG.Input
 
         private void NotifyControllerAdded(InputDevice controller)
         {
-            var controllerHash = controller.GetHash();
-
-            if (_bindsByDeviceHash.TryGetValue(controller.GetHash(), out var deviceSpecificBindings))
+            foreach (var bindings in _bindsByContext.Values)
             {
-                deviceSpecificBindings.OnDeviceAdded(controller);
-            }
-            else if (BindingsContainer.TryGetDefaultBindingCollectionForControllerHash(controllerHash, out var deviceDefaultBindings))
-            {
-                deviceDefaultBindings.OnDeviceAdded(controller);
-            }
-            else
-            {
-                foreach (var bindings in _bindsByGameMode.Values)
-                {
-                    bindings.OnDeviceAdded(controller);
-                }
+                bindings.OnDeviceAdded(controller);
             }
 
-            MenuBindings.OnDeviceAdded(controller);
+            foreach (var bindings in MenuBindingsByBaseLayout.Values)
+            {
+                bindings.OnDeviceAdded(controller);
+            }
 
             ControllerAdded?.Invoke(controller);
         }
 
         private void NotifyControllerRemoved(InputDevice controller)
         {
-            foreach (var bindings in _bindsByGameMode.Values)
+            foreach (var bindings in _bindsByContext.Values)
             {
                 bindings.OnDeviceRemoved(controller);
             }
 
-            MenuBindings.OnDeviceRemoved(controller);
+            foreach (var bindings in MenuBindingsByBaseLayout.Values)
+            {
+                bindings.OnDeviceRemoved(controller);
+            }
 
             ControllerRemoved?.Invoke(controller);
         }
 
         public void UpdateBindingsForFrame(double updateTime)
         {
-            foreach (var bindings in _bindsByGameMode.Values)
+            foreach (var bindings in _bindsByContext.Values)
             {
                 bindings.UpdateBindingsForFrame(updateTime);
             }
 
-            MenuBindings.UpdateBindingsForFrame(updateTime);
+            foreach (var bindings in MenuBindingsByBaseLayout.Values)
+            {
+                bindings.UpdateBindingsForFrame(updateTime);
+            }
         }
 
         public void AddMicrophone(MicDevice microphone)

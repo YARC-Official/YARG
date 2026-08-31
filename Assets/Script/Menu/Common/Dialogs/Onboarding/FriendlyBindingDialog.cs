@@ -67,7 +67,7 @@ namespace YARG.Menu.Dialogs
         {
             _device = parameters.device;
             _player = parameters.player;
-            _bindingCollection = _player.DeviceInfo[_player.Profile.GameMode];
+            _bindingCollection = _player.DeviceInfo[(_player.Profile.GameMode, _device.layout)];
             _mode = parameters.mode;
         }
 
@@ -87,7 +87,7 @@ namespace YARG.Menu.Dialogs
             button.interactable = false;
             button.image.color = Color.gray;
 
-            _player.DeviceInfo.ClearBindingsForController(_device, false);
+            // _player.DeviceInfo.ClearBindingsForController(_device, false); TODO: Delete?
 
             _cancelButton.Text.text = Localize.Key("Menu.Dialog.FriendlyBindingDialog.Skip");
             bool success;

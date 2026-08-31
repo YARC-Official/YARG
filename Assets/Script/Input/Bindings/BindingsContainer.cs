@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using UnityEditor.Build.Content;
 using UnityEngine;
+using YARG.Core;
 using YARG.Core.Game;
 using YARG.Core.Logging;
 using YARG.Input.Serialization;
@@ -22,7 +23,9 @@ namespace YARG.Input.Bindings
 
         private static readonly Dictionary<string, BindingCollection> _controllerDefaultBindings = new();
 
-        private static readonly Dictionary<Guid, BindingCollection> _bindingCollections = new();
+        private static readonly Dictionary<Guid, BindingCollection> _allBindingCollectionsByGuid = new();
+
+        private static readonly Dictionary<(GameMode mode, string baseLayout), List<BindingCollection>> _bindingCollectionsByContext = new();
 
         public static ProfileDeviceInfo GetBindingsForProfile(YargProfile profile)
         {
@@ -38,9 +41,9 @@ namespace YARG.Input.Bindings
 
         public static bool TryGetBindingCollectionById(Guid guid, out BindingCollection bindingCollection)
         {
-            if (_bindingCollections.ContainsKey(guid))
+            if (_allBindingCollectionsByGuid.ContainsKey(guid))
             {
-                bindingCollection = _bindingCollections[guid];
+                bindingCollection = _allBindingCollectionsByGuid[guid];
                 return true;
             }
 
@@ -85,11 +88,21 @@ namespace YARG.Input.Bindings
                 usedBackup = true;
             }
 
-            foreach (var serializedBindingCollection in bindings.BindingCollections)
+            foreach (var (guid, serializedBindingCollection) in bindings.BindingCollections)
             {
-                var bindingCollection = new BindingCollection(serializedBindingCollection.GameMode);
+                var bindingCollection = new BindingCollection(serializedBindingCollection.GameMode, serializedBindingCollection.BaseLayout);
                 bindingCollection.Deserialize(serializedBindingCollection);
-                _bindingCollections.Add(serializedBindingCollection.Guid, bindingCollection);
+                _allBindingCollectionsByGuid.Add(guid, bindingCollection);
+
+                var tupleKey = (bindingCollection.Mode.Value, bindingCollection.BaseLayout);
+
+                if (!_bindingCollectionsByContext.ContainsKey(tupleKey)) {
+                    _bindingCollectionsByContext[tupleKey] = new() { bindingCollection };
+                }
+                else
+                {
+                    _bindingCollectionsByContext[tupleKey].Add(bindingCollection);
+                }
             }
 
             foreach (var (id, serialized) in bindings.Profiles)
@@ -107,19 +120,6 @@ namespace YARG.Input.Bindings
 
                 var deserialized = ProfileDeviceInfo.Deserialize(profile, serialized);
                 _profileBindings.Add(id, deserialized);
-            }
-
-            foreach (var (hash, guid) in bindings.ControllerDefaults)
-            {
-                if (TryGetBindingCollectionById(guid, out var controllerDefaultMapping))
-                {
-                    _controllerDefaultBindings[hash] = controllerDefaultMapping;
-                }
-                else
-                {
-                    YargLogger.LogWarning($"Referenced nonexistent binding collection GUID {guid}; removing it");
-                    bindings.ControllerDefaults.Remove(hash);
-                }
             }
 
             // If we used the backup save the backup data to the main path, otherwise save main to backup
