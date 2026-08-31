@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using TMPro;
 using UnityEngine;
@@ -24,18 +25,16 @@ using static YARG.Menu.HighwayConfiguration.DrumsHighwayConfigurationMenu;
 
 namespace YARG.Menu.ProfileList
 {
-    public class ProfilesAndDevicesMenu : MonoBehaviour
+    public class ProfilesMenu : MonoBehaviour
     {
         public const string NUMBER_FORMAT = "0.0###";
 
         private const string PROFILES_TAB = "profiles";
-        private const string DEVICES_TAB  = "devices";
         private const string BINDINGS_TAB = "bindings";
 
         private enum ProfileMenuTab
         {
             Profiles,
-            Devices,
             Bindings
         }
 
@@ -50,8 +49,6 @@ namespace YARG.Menu.ProfileList
         [SerializeField]
         private ProfileCenterPane _profileCenterPane;
         [SerializeField]
-        private DeviceCenterPane _deviceCenterPane;
-        [SerializeField]
         private GameObject _bindingCenterPane;
 
         [Space]
@@ -59,8 +56,6 @@ namespace YARG.Menu.ProfileList
         private HeaderTabs _headerTabs;
         [SerializeField]
         private GameObject _profileViewPrefab;
-        [SerializeField]
-        private GameObject _deviceViewPrefab;
         [SerializeField]
         private GameObject _profileListHeaderPrefab;
 
@@ -78,7 +73,6 @@ namespace YARG.Menu.ProfileList
             }, true));
 
             _profileCenterPane.gameObject.SetActive(true);
-            _deviceCenterPane.gameObject.SetActive(false);
             _bindingCenterPane.SetActive(false);
 
             _headerTabs.TabChanged += OnTabChanged;
@@ -127,34 +121,6 @@ namespace YARG.Menu.ProfileList
                     SetSelectedProfile(selectedProfile);
                     break;
 
-                case ProfileMenuTab.Devices:
-                    var controllersInUse = new List<InputDevice>();
-
-                    foreach (var player in PlayerContainer.Players)
-                    {
-                        foreach (var controller in player.DeviceInfo.Controllers)
-                        {
-                            controllersInUse.Add(controller);
-                        }
-                    }
-
-                    var availableControllers = new List<InputDevice>();
-                    foreach (var controller in InputSystem.devices)
-                    {
-                        if (!controllersInUse.Contains(controller))
-                        {
-                            availableControllers.Add(controller);
-                        }
-                    }
-
-                    var savedControllers = new List<SerializedInputDevice>();
-
-                    AddDeviceListGroup(Localize.Key("Menu.DeviceList.DevicesInUse"), controllersInUse);
-                    AddDeviceListGroup(Localize.Key("Menu.DeviceList.AvailableDevices"), availableControllers);
-                    //AddDeviceListGroup(Localize.Key("Menu.DeviceList.SavedDevices"), savedControllers);
-
-                    break;
-
                 case ProfileMenuTab.Bindings:
                     break;
             }
@@ -185,31 +151,14 @@ namespace YARG.Menu.ProfileList
                 return;
             }
 
-            var headerGo = Instantiate(_profileListHeaderPrefab, _profileList);
+            var headerGo = Instantiate(_profileListHeaderPrefab, _leftPaneList);
             headerGo.GetComponentInChildren<TextMeshProUGUI>().text = header;
             _navigationGroup.AddNavigatable(headerGo);
 
             foreach (var record in PlayerContainer.UnloadedProfiles)
             {
-                var go = Instantiate(_profileViewPrefab, _profileList);
-                go.GetComponent<ProfileView>().InitUnloaded(this, record, _profileSidebar);
-                _navigationGroup.AddNavigatable(go);
-            }
-        }
-
-        private void AddDeviceListGroup(string header, IEnumerable<InputDevice> controllers)
-        {
-            if (!controllers.Any())
-            {
-                return;
-            }
-
-            AddListHeader(header);
-
-            foreach (var controller in controllers)
-            {
-                var go = Instantiate(_deviceViewPrefab, _leftPaneList);
-                go.GetComponent<DeviceView>().Init(this, controller, _deviceCenterPane);
+                var go = Instantiate(_profileViewPrefab, _leftPaneList);
+                go.GetComponent<ProfileView>().InitUnloaded(this, record, _profileCenterPane);
                 _navigationGroup.AddNavigatable(go);
             }
         }
@@ -395,14 +344,13 @@ namespace YARG.Menu.ProfileList
         private void OnTabChanged(string tabId)
         {
             _profileCenterPane.gameObject.SetActive(tabId == PROFILES_TAB);
-            _deviceCenterPane.gameObject.SetActive(tabId == DEVICES_TAB);
             _bindingCenterPane.SetActive(tabId == BINDINGS_TAB);
 
             _currentTab = tabId switch
             {
                 PROFILES_TAB => ProfileMenuTab.Profiles,
-                DEVICES_TAB => ProfileMenuTab.Devices,
                 BINDINGS_TAB => ProfileMenuTab.Bindings,
+                _ => throw new ArgumentOutOfRangeException($"Unexpected tabId {tabId}"),
             };
         }
     }

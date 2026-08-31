@@ -55,10 +55,10 @@ namespace YARG.Menu.ProfileList
         /// <summary>The set-aside record this view represents, or null for a normal profile row.</summary>
         public PlayerContainer.UnloadedProfile UnloadedRecord { get; private set; }
 
-        private ProfilesAndDevicesMenu _profileListMenu;
+        private ProfilesMenu _profileListMenu;
         private ProfileCenterPane  _profileSidebar;
 
-        public void Init(ProfilesAndDevicesMenu menu, YargProfile profile, ProfileCenterPane sidebar)
+        public void Init(ProfilesMenu menu, YargProfile profile, ProfileCenterPane sidebar)
         {
             _profileListMenu = menu;
             _profileSidebar = sidebar;
@@ -69,7 +69,7 @@ namespace YARG.Menu.ProfileList
         /// Shows a set-aside profile record that this version of the game could
         /// not load. The row is inert except for its delete button.
         /// </summary>
-        public void InitUnloaded(ProfileListMenu menu, PlayerContainer.UnloadedProfile record, ProfileSidebar sidebar)
+        public void InitUnloaded(ProfilesMenu menu, PlayerContainer.UnloadedProfile record, ProfileCenterPane sidebar)
         {
             _profileListMenu = menu;
             _profileSidebar = sidebar;
