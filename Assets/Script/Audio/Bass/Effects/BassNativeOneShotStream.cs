@@ -2,6 +2,7 @@
 using System;
 using System.Runtime.InteropServices;
 using Microsoft.Win32.SafeHandles;
+using YARG.Audio.BASS.Native;
 using YARG.Core.Logging;
 
 namespace YARG.Audio.BASS.Effects
@@ -11,7 +12,7 @@ namespace YARG.Audio.BASS.Effects
     {
         private const string EFFECT_NAME = "native one-shot stream";
 
-        private readonly object _lifecycleLock = new object();
+        private readonly object _lifecycleLock = new();
         private int _mixerHandle;
         private float _volume = 1;
         private bool _enabled = true;
@@ -23,10 +24,9 @@ namespace YARG.Audio.BASS.Effects
         internal static BassNativeOneShotStream? Create(int sampleRate, int channels,
             float[] sample, double[] schedule, double leadTime)
         {
-            if (sampleRate <= 0 || channels <= 0 || sample == null || schedule == null ||
-                sample.Length == 0 ||
-                sample.Length % channels != 0 || double.IsNaN(leadTime) ||
-                double.IsInfinity(leadTime) || leadTime < 0)
+            if (!sampleRate.IsValidSampleRate() || !channels.IsValidChannelCount() ||
+                !sample.IsValidSampleBuffer(channels) || schedule == null ||
+                !leadTime.IsValidLeadTime())
             {
                 return null;
             }
@@ -34,8 +34,8 @@ namespace YARG.Audio.BASS.Effects
             var config = new NativeConfig
             {
                 Size = (uint) Marshal.SizeOf<NativeConfig>(),
-                SampleRate = (uint) sampleRate,
-                Channels = (uint) channels,
+                SampleRate = checked((uint) sampleRate),
+                Channels = checked((uint) channels),
                 LeadTime = leadTime
             };
 
@@ -45,16 +45,23 @@ namespace YARG.Audio.BASS.Effects
             try
             {
                 samplePin = GCHandle.Alloc(sample, GCHandleType.Pinned);
-                IntPtr samplePointer = samplePin.AddrOfPinnedObject();
-                IntPtr schedulePointer = IntPtr.Zero;
+                var samplePointer = samplePin.AddrOfPinnedObject();
+                var schedulePointer = IntPtr.Zero;
                 if (schedule.Length > 0)
                 {
                     schedulePin = GCHandle.Alloc(schedule, GCHandleType.Pinned);
                     schedulePointer = schedulePin.AddrOfPinnedObject();
                 }
 
-                int result = Native.Create(ref config, samplePointer, (ulong) sample.LongLength,
-                    schedulePointer, (ulong) schedule.LongLength, out stream, out int bassError);
+                int result = YargAudioBindings.OneShotStreamCreate(
+                    in config,
+                    samplePointer,
+                    (ulong) sample.LongLength,
+                    schedulePointer,
+                    (ulong) schedule.LongLength,
+                    out stream,
+                    out int bassError);
+
                 if (result == 0 && stream != null && !stream.IsInvalid)
                 {
                     return stream;
@@ -72,8 +79,15 @@ namespace YARG.Audio.BASS.Effects
             }
             finally
             {
-                if (schedulePin.IsAllocated) schedulePin.Free();
-                if (samplePin.IsAllocated) samplePin.Free();
+                if (schedulePin.IsAllocated)
+                {
+                    schedulePin.Free();
+                }
+
+                if (samplePin.IsAllocated)
+                {
+                    samplePin.Free();
+                }
             }
         }
 
@@ -82,14 +96,25 @@ namespace YARG.Audio.BASS.Effects
         {
             lock (_lifecycleLock)
             {
-                if (!IsUsable || mixerHandle == 0) return false;
-                int result = Native.Attach(this, unchecked((uint) mixerHandle),
-                    anchorSongPosition, playbackSpeed, paused ? 1 : 0, out int bassError);
+                if (!IsUsable || mixerHandle == 0)
+                {
+                    return false;
+                }
+
+                int result = YargAudioBindings.OneShotStreamAttach(
+                    stream: this,
+                    mixer: unchecked((uint) mixerHandle),
+                    anchorSongPosition: anchorSongPosition,
+                    playbackSpeed: playbackSpeed,
+                    paused: paused ? 1 : 0,
+                    out int bassError);
+
                 if (result != 0)
                 {
                     LogFailure("attach", result, bassError);
                     return false;
                 }
+
                 _mixerHandle = mixerHandle;
                 return true;
             }
@@ -100,17 +125,27 @@ namespace YARG.Audio.BASS.Effects
         {
             lock (_lifecycleLock)
             {
-                if (!IsUsable || _mixerHandle == 0) return false;
+                if (!IsUsable || _mixerHandle == 0)
+                {
+                    return false;
+                }
+
                 try
                 {
-                    int result = Native.Resync(this, unchecked((uint) _mixerHandle),
-                        anchorSongPosition, playbackSpeed, clearActiveVoices ? 1 : 0,
+                    int result = YargAudioBindings.OneShotStreamResync(
+                        stream: this,
+                        mixer: unchecked((uint) _mixerHandle),
+                        anchorSongPosition: anchorSongPosition,
+                        playbackSpeed: playbackSpeed,
+                        clearActiveVoices: clearActiveVoices ? 1 : 0,
                         out int bassError);
+
                     if (result != 0)
                     {
                         LogFailure("resync", result, bassError);
                         return false;
                     }
+
                     return true;
                 }
                 catch (Exception exception) when (exception is DllNotFoundException or
@@ -126,13 +161,18 @@ namespace YARG.Audio.BASS.Effects
         {
             lock (_lifecycleLock)
             {
-                if (!IsUsable || _mixerHandle == 0) return true;
-                int result = Native.Detach(this, out int bassError);
+                if (!IsUsable || _mixerHandle == 0)
+                {
+                    return true;
+                }
+
+                int result = YargAudioBindings.OneShotStreamDetach(this, out int bassError);
                 if (result != 0)
                 {
                     LogFailure("detach", result, bassError);
                     return false;
                 }
+
                 _mixerHandle = 0;
                 return true;
             }
@@ -142,14 +182,23 @@ namespace YARG.Audio.BASS.Effects
         {
             lock (_lifecycleLock)
             {
-                if (!IsUsable) return false;
-                int result = Native.SetPaused(this, unchecked((uint) _mixerHandle),
-                    paused ? 1 : 0, out int bassError);
+                if (!IsUsable)
+                {
+                    return false;
+                }
+
+                int result = YargAudioBindings.OneShotStreamSetPaused(
+                    stream: this,
+                    mixer: unchecked((uint) _mixerHandle),
+                    paused: paused ? 1 : 0,
+                    out int bassError);
+
                 if (result != 0)
                 {
                     LogFailure("set pause", result, bassError);
                     return false;
                 }
+
                 return true;
             }
         }
@@ -158,9 +207,17 @@ namespace YARG.Audio.BASS.Effects
         {
             lock (_lifecycleLock)
             {
-                if (double.IsNaN(volume) || double.IsInfinity(volume)) return false;
-                float value = (float) volume;
-                if (float.IsNaN(value) || float.IsInfinity(value)) return false;
+                if (!volume.IsFinite())
+                {
+                    return false;
+                }
+
+                var value = (float) volume;
+                if (!value.IsFinite())
+                {
+                    return false;
+                }
+
                 return SetEffectiveGainLocked(value);
             }
         }
@@ -178,7 +235,7 @@ namespace YARG.Audio.BASS.Effects
         {
             try
             {
-                return Native.Destroy(handle, out _ ) == 0;
+                return YargAudioBindings.OneShotStreamDestroy(handle, out _) == 0;
             }
             catch (Exception exception) when (exception is DllNotFoundException or
                 EntryPointNotFoundException or BadImageFormatException)
@@ -191,14 +248,19 @@ namespace YARG.Audio.BASS.Effects
 
         private bool SetEffectiveGainLocked(float volume)
         {
-            if (!IsUsable) return false;
+            if (!IsUsable)
+            {
+                return false;
+            }
+
             float gain = _enabled ? volume : 0;
-            int result = Native.SetGain(this, gain);
+            int result = YargAudioBindings.OneShotStreamSetGain(this, gain);
             if (result != 0)
             {
                 LogFailure("set gain", result, 0);
                 return false;
             }
+
             _volume = volume;
             return true;
         }
@@ -210,7 +272,7 @@ namespace YARG.Audio.BASS.Effects
         }
 
         [StructLayout(LayoutKind.Sequential)]
-        private struct NativeConfig
+        internal struct NativeConfig
         {
             internal uint Size;
             internal uint SampleRate;
@@ -218,46 +280,24 @@ namespace YARG.Audio.BASS.Effects
             internal uint Reserved;
             internal double LeadTime;
         }
+    }
 
-        private static class Native
-        {
-            private const string LIBRARY = "yarg_audio";
+    internal static class BassNativeOneShotStreamExtensions
+    {
+        internal static bool IsValidSampleRate(this int sampleRate) => sampleRate > 0;
 
-            [DllImport(LIBRARY, EntryPoint = "yarg_one_shot_stream_create",
-                CallingConvention = CallingConvention.Cdecl)]
-            internal static extern int Create(ref NativeConfig config, IntPtr pcm,
-                ulong pcmSampleCount, IntPtr schedule, ulong scheduleCount,
-                out BassNativeOneShotStream stream, out int bassError);
+        internal static bool IsValidChannelCount(this int channels) => channels > 0;
 
-            [DllImport(LIBRARY, EntryPoint = "yarg_one_shot_stream_attach",
-                CallingConvention = CallingConvention.Cdecl)]
-            internal static extern int Attach(BassNativeOneShotStream stream, uint mixer,
-                double anchorSongPosition, float playbackSpeed, int paused,
-                out int bassError);
+        internal static bool IsValidSampleBuffer(this float[]? sample, int channels) =>
+            sample != null && sample.Length > 0 && sample.Length % channels == 0;
 
-            [DllImport(LIBRARY, EntryPoint = "yarg_one_shot_stream_resync_ex",
-                CallingConvention = CallingConvention.Cdecl)]
-            internal static extern int Resync(BassNativeOneShotStream stream, uint mixer,
-                double anchorSongPosition, float playbackSpeed, int clearActiveVoices,
-                out int bassError);
+        internal static bool IsValidLeadTime(this double leadTime) =>
+            !double.IsNaN(leadTime) && !double.IsInfinity(leadTime) && leadTime >= 0;
 
-            [DllImport(LIBRARY, EntryPoint = "yarg_one_shot_stream_set_paused",
-                CallingConvention = CallingConvention.Cdecl)]
-            internal static extern int SetPaused(BassNativeOneShotStream stream, uint mixer,
-                int paused, out int bassError);
+        internal static bool IsFinite(this double value) =>
+            !double.IsNaN(value) && !double.IsInfinity(value);
 
-            [DllImport(LIBRARY, EntryPoint = "yarg_one_shot_stream_set_gain",
-                CallingConvention = CallingConvention.Cdecl)]
-            internal static extern int SetGain(BassNativeOneShotStream stream, float gain);
-
-            [DllImport(LIBRARY, EntryPoint = "yarg_one_shot_stream_detach",
-                CallingConvention = CallingConvention.Cdecl)]
-            internal static extern int Detach(BassNativeOneShotStream stream,
-                out int bassError);
-
-            [DllImport(LIBRARY, EntryPoint = "yarg_one_shot_stream_destroy",
-                CallingConvention = CallingConvention.Cdecl)]
-            internal static extern int Destroy(IntPtr stream, out int bassError);
-        }
+        internal static bool IsFinite(this float value) =>
+            !float.IsNaN(value) && !float.IsInfinity(value);
     }
 }
