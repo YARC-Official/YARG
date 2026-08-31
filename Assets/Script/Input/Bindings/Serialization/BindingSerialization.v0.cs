@@ -6,6 +6,7 @@ using Newtonsoft.Json.Linq;
 using YARG.Audio;
 using YARG.Core;
 using YARG.Core.Audio;
+using YARG.Input.Bindings;
 
 #nullable enable
 
@@ -85,7 +86,7 @@ namespace YARG.Input.Serialization
             Hash = serialized.Hash;
         }
 
-        public SerializedInputDevice Deserialize() => new(Layout, Hash);
+        public SerializedInputDevice Deserialize() => new(LayoutStrings.GetBaseLayout(Layout), Layout, Hash);
     }
 /*
     public class SerializedInputControlV0

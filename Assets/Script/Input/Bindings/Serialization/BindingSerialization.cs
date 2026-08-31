@@ -12,6 +12,8 @@ using YARG.Audio;
 using YARG.Core;
 using YARG.Core.Logging;
 using YARG.Core.Audio;
+using UnityEngine.InputSystem.Utilities;
+using YARG.Input.Bindings;
 
 #nullable enable
 
@@ -32,26 +34,7 @@ namespace YARG.Input.Serialization
     public class SerializedBindings
     {
         public Dictionary<Guid, SerializedProfileDeviceInfo> Profiles = new();
-        public Dictionary<string, Guid> ControllerDefaults = new();
-        public List<SerializedBindingCollection> BindingCollections = new();
-
-        public SerializedBindingCollection? GetBindingSetByGuid(Guid? guid)
-        {
-            if (guid is null)
-            {
-                return null;
-            }
-
-            foreach (var bindingCollection in BindingCollections)
-            {
-                if (bindingCollection.Guid == guid)
-                {
-                    return bindingCollection;
-                }
-            }
-
-            return null;
-        }
+        public Dictionary<Guid, SerializedBindingCollection> BindingCollections = new();
     }
 
     public class SerializedProfileDeviceInfo
@@ -62,15 +45,25 @@ namespace YARG.Input.Serialization
         // Legacy single microphone, only filled when loading v0-v2 files
         public SerializedMic? Microphone;
 
-        public Dictionary<GameMode, Guid> ModeMappings = new();
-        public Dictionary<string, Guid> ControllerMappings = new();
-        public Guid? MenuMapping;
+        public Dictionary<GameMode, SerializedModeMappingCollection> ModeMappings = new();
+        public Dictionary<string, Guid> MenuMappings = new(); // Key is BaseLayout
+    }
+
+    public class SerializedModeMappingCollection
+    {
+        public Dictionary<string, Guid> MappingsByBaseLayout = new();
     }
 
     public class SerializedBindingCollection
     {
+        public SerializedBindingCollection(string baseLayout)
+        {
+            BaseLayout = baseLayout;
+        }
+
         public Guid Guid;
         public GameMode GameMode;
+        public string BaseLayout;
         public bool Reusable;
         public Dictionary<string, SerializedControlBinding> Bindings = new();
     }
@@ -83,17 +76,20 @@ namespace YARG.Input.Serialization
 
     public class SerializedInputDevice
     {
+        public string BaseLayout;
         public string Layout;
         public string Hash;
 
-        public SerializedInputDevice(string layout, string hash)
+        public SerializedInputDevice(string baseLayout, string layout, string hash)
         {
+            BaseLayout = baseLayout;
             Layout = layout;
             Hash = hash;
         }
 
         public SerializedInputDevice(InputDevice device)
         {
+            BaseLayout = LayoutStrings.GetBaseLayout(device.layout);
             Layout = device.layout;
             Hash = device.GetHash();
         }

@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.Utilities;
 using UnityEngine.InputSystem.XInput;
 using YARG.Core;
 using YARG.Core.Extensions;
@@ -13,6 +14,9 @@ namespace YARG.Input
     public partial class BindingCollection : IEnumerable<ControlBinding>
     {
         public Guid Guid { get; private set; }
+        public string BaseLayout { get; private set; }
+        public GameMode? Mode { get; } // null means menu bindings
+
 
         private readonly List<ControlBinding> _bindings = new();
 
@@ -44,20 +48,19 @@ namespace YARG.Input
             }
         }
 
-        public GameMode? Mode { get; }
-
         public bool IsMenu => Mode == null;
         public bool IsGameplay => Mode != null;
 
-        public BindingCollection(GameMode? mode)
+        public BindingCollection(GameMode? mode, string baseLayout)
         {
             Mode = mode;
+            BaseLayout = baseLayout;
         }
 
 #nullable enable
         public SerializedBindingCollection? Serialize()
         {
-            var serialized = new SerializedBindingCollection() { Guid = Guid };
+            var serialized = new SerializedBindingCollection(BaseLayout) { Guid = Guid };
             foreach (var binding in _bindings)
             {
                 var serializedBind = binding.Serialize();
