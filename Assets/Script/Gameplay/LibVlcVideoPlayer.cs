@@ -87,6 +87,13 @@ namespace YARG.Gameplay
                     return;
                 }
 
+                // Before the first Playing event, libVLC drops this write anyway -- skip the
+                // doomed attempt and let the deferred reapply above handle it (see _hasEverPlayed).
+                if (!_hasEverPlayed)
+                {
+                    return;
+                }
+
                 BeginSeek((long) (value * 1000.0));
             }
         }
@@ -99,8 +106,16 @@ namespace YARG.Gameplay
             _seeking = true;
             _seekTargetMs = targetMs;
             _seekRequestedAtUnscaledTime = Time.unscaledTime;
+            _framesDeliveredSinceSeek = 0;
             _mediaPlayer.Time = targetMs;
         }
+
+        // DisplayFrame deliveries since the last BeginSeek. seekCompleted/Time report the seek
+        // target the instant it's requested, not once decode actually catches up -- the first
+        // frame or two delivered after a seek can still be stale. Callers that need the on-screen
+        // result (not just the reported one) should wait for a small margin of this instead of
+        // trusting seekCompleted (see BackgroundManager.MIN_FRAMES_BEFORE_INITIAL_REVEAL).
+        public int FramesDeliveredSinceSeek => _framesDeliveredSinceSeek;
 
         public double length { get; private set; }
 
@@ -155,11 +170,18 @@ namespace YARG.Gameplay
         private readonly object _frameLock = new();
         private bool _frameDirty;
         private bool _seeking;
+        private int _framesDeliveredSinceSeek;
         private long _seekTargetMs;
         private float _seekRequestedAtUnscaledTime;
         private bool _pendingLoopRestart;
         private double? _pendingSeekTime;
         private bool _applyPendingSeekOnNextUpdate;
+
+        // True once Playing has fired at least once for this media. A seek attempted before that
+        // is silently dropped by libVLC, and letting it try anyway races SEEK_TIMEOUT_SECONDS
+        // against however long the caller takes to call Play() -- if the timeout wins, it fires a
+        // spurious seekCompleted that callers can mistake for the real seek landing.
+        private bool _hasEverPlayed;
 
         // Seek-complete tolerance, and how long to wait before giving up and firing
         // seekCompleted anyway (callers like BackgroundManager gate their own Update() on
@@ -315,6 +337,7 @@ namespace YARG.Gameplay
             _mediaPlayer?.Dispose();
             _media?.Dispose();
             _hasBlitted = false;
+            _hasEverPlayed = false;
 
             _media = new Media(_libVlc, path, FromType.FromPath);
 
@@ -379,6 +402,7 @@ namespace YARG.Gameplay
                 // against a lock libVLC still holds (observed: playback freezes dead at the
                 // seek target). Defer to Update() instead.
                 _applyPendingSeekOnNextUpdate = true;
+                _hasEverPlayed = true;
             };
 
             _mediaPlayer.PositionChanged += (_, _) =>
@@ -414,6 +438,27 @@ namespace YARG.Gameplay
             else
             {
                 _fallbackPlayer?.Play();
+            }
+        }
+
+        // Seeks via the same deferred pipeline as the `time` setter (_pendingSeekTime ->
+        // _applyPendingSeekOnNextUpdate -> BeginSeek) instead of writing Time synchronously --
+        // a Time write while Paused doesn't reliably land until Play() transitions the player to
+        // Playing, so writing immediately and also relying on Play()'s deferred reapply seeks
+        // twice. Requires the player to be Paused/Stopped when called (true for every current
+        // caller); if ever called while already Playing, Play() won't re-fire Playing and the
+        // seek will silently never apply.
+        public void SeekAndPlay(double time)
+        {
+            if (_usingVlc)
+            {
+                _pendingSeekTime = time;
+                _mediaPlayer?.Play();
+            }
+            else if (_fallbackPlayer != null)
+            {
+                _fallbackPlayer.time = time;
+                _fallbackPlayer.Play();
             }
         }
 
@@ -457,6 +502,10 @@ namespace YARG.Gameplay
 
         private void DisplayFrame(IntPtr opaque, IntPtr picture)
         {
+            // Runs on libVLC's own thread; not perfectly atomic with BeginSeek's reset on the
+            // main thread, but callers only need this roughly right, not exact.
+            _framesDeliveredSinceSeek++;
+
             lock (_frameLock)
             {
                 _frameDirty = true;

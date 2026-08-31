@@ -66,6 +66,18 @@ namespace YARG.Gameplay
         private bool _videoSeekWaitForPause = false;
         private bool _videoWasPausedBeforeSeek = false;
 
+        // Set when OnVideoPrepared issues the initial seek to VideoStartTimeSeconds; cleared once
+        // LibVlcVideoPlayer.FramesDeliveredSinceSeek reaches MIN_FRAMES_BEFORE_INITIAL_REVEAL, not
+        // on seekCompleted -- seekCompleted fires as soon as the seek is requested, before the
+        // real content is decoded, so gating on it flashed stale pre-seek frames on screen.
+        // Distinct from _videoSeeking, which guards SetTime's own scrub-path blackout.
+        private bool _pendingInitialSeek;
+
+        // Margin of real frame deliveries to wait past a seek before trusting what's on screen.
+        // Don't lower this: the first 1-2 frames after a seek are the stale ones in practice, and
+        // 3 is the first frame confirmed to reliably carry correct content.
+        private const int MIN_FRAMES_BEFORE_INITIAL_REVEAL = 3;
+
         private const float FADE_DURATION = 0.5f;
 
         // Corrects video decode falling behind real-time at >1x speed by biasing Rate instead of
@@ -75,8 +87,19 @@ namespace YARG.Gameplay
         private const double DRIFT_CORRECTION_GAIN = 0.5;
         private const float DRIFT_MAX_RATE_BIAS = 0.15f;
         private const float DRIFT_CHECK_INTERVAL_SECONDS = 0.5f;
+        // Caps how far _videoRateBias can move per check. Snapping straight to newBias is a
+        // proportional-controller limit cycle: a bias near the +-0.15 clamp, held for a full 0.5s
+        // interval, overshoots "expected" and flips the error's sign by the next check, so it
+        // oscillates between the clamp extremes forever instead of converging. Don't remove this
+        // step limit or raise it back toward DRIFT_MAX_RATE_BIAS.
+        private const float DRIFT_MAX_BIAS_STEP_PER_CHECK = 0.05f;
         private float _lastDriftCheckTime;
         private float _videoRateBias;
+
+        // How long to hold off drift-correction checks after a seek, to let libVLC's real
+        // re-buffer settle before sampling error -- see CorrectVideoDrift.
+        private const float SEEK_DRIFT_GRACE_SECONDS = 1f;
+        private float _driftGraceUntilUnscaledTime;
 
         private float YARGROUND_OFFSET = 50f;
 
@@ -587,6 +610,12 @@ namespace YARG.Gameplay
 
         private void Update()
         {
+            if (_pendingInitialSeek && _videoPlayer.FramesDeliveredSinceSeek >= MIN_FRAMES_BEFORE_INITIAL_REVEAL)
+            {
+                _pendingInitialSeek = false;
+                FadeBackgroundImage(1f);
+            }
+
             if (_videoSeeking)
                 return;
 
@@ -610,7 +639,14 @@ namespace YARG.Gameplay
                     time, _videoStartTime, _videoEndTime);
                 _videoPlayer.Play();
 
-                FadeBackgroundImage(1f);
+                BeginDriftGracePeriod();
+
+                // If the initial seek hasn't cleared _pendingInitialSeek yet, hold off -- Update()
+                // fades in once it does.
+                if (!_pendingInitialSeek)
+                {
+                    FadeBackgroundImage(1f);
+                }
 
                 // Videos with no end time used to also disable here, but now stay enabled so
                 // drift correction below keeps running for them too.
@@ -652,9 +688,16 @@ namespace YARG.Gameplay
         // position error, recomputed fresh each interval (not accumulated) so it relaxes to zero
         // as drift closes. Skipped for looping videos -- no single "expected position" for them,
         // since they restart their own clock every loop (LibVlcVideoPlayer's EndReached).
+        //
+        // Also skipped for a grace period right after any seek (BeginDriftGracePeriod) -- a fresh
+        // seek's own re-buffer settling looks like a huge one-off position error to this
+        // controller, which would otherwise slam the bias to its max right after every seek.
         private void CorrectVideoDrift()
         {
             if (double.IsNaN(_videoEndTime) || _videoSeeking)
+                return;
+
+            if (Time.unscaledTime < _driftGraceUntilUnscaledTime)
                 return;
 
             if (Time.unscaledTime - _lastDriftCheckTime < DRIFT_CHECK_INTERVAL_SECONDS)
@@ -670,9 +713,12 @@ namespace YARG.Gameplay
             // ahead and needs to slow down.
             double error = expectedVideoTime - _videoPlayer.time;
 
-            float newBias = Math.Abs(error) > DRIFT_DEAD_ZONE_SECONDS
+            float targetBias = Math.Abs(error) > DRIFT_DEAD_ZONE_SECONDS
                 ? Math.Clamp((float) (error * DRIFT_CORRECTION_GAIN), -DRIFT_MAX_RATE_BIAS, DRIFT_MAX_RATE_BIAS)
                 : 0f;
+
+            // Step toward targetBias rather than snapping to it -- see DRIFT_MAX_BIAS_STEP_PER_CHECK.
+            float newBias = Mathf.MoveTowards(_videoRateBias, targetBias, DRIFT_MAX_BIAS_STEP_PER_CHECK);
 
             if (!Mathf.Approximately(newBias, _videoRateBias))
             {
@@ -705,6 +751,7 @@ namespace YARG.Gameplay
 
                 player.time = _videoStartTime;
                 player.playbackSpeed = GameManager.SongSpeed;
+                _pendingInitialSeek = true;
 
                 // Only loop the video if it's not around the same length as the song
                 if (Math.Abs(_videoStartTime) < startTimeThreshold &&
@@ -753,8 +800,19 @@ namespace YARG.Gameplay
                 return;
 
             YargLogger.LogFormatDebug("[Video] SeekVideoImmediate: seeking to {0:F3}s", videoTime);
-            _videoPlayer.time = videoTime;
-            _videoPlayer.Play();
+
+            BeginDriftGracePeriod();
+            _videoPlayer.SeekAndPlay(videoTime);
+        }
+
+        // Resets to a neutral rate instead of carrying over a stale bias, and holds off
+        // CorrectVideoDrift until the seek settles -- see CorrectVideoDrift. Call before any seek
+        // that expects the video to actually be at the new position shortly after.
+        private void BeginDriftGracePeriod()
+        {
+            _videoRateBias = 0f;
+            _videoPlayer.playbackSpeed = GameManager.SongSpeed;
+            _driftGraceUntilUnscaledTime = Time.unscaledTime + SEEK_DRIFT_GRACE_SECONDS;
         }
 
         public void SetTime(double songTime, bool waitForSeek = true)
@@ -801,6 +859,8 @@ namespace YARG.Gameplay
 
         private void OnVideoSeeked(LibVlcVideoPlayer player)
         {
+            // _pendingInitialSeek is deliberately not cleared here -- see its own comment.
+
             if (!_videoSeeking)
                 return;
 
