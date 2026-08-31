@@ -1,8 +1,10 @@
 #nullable enable
+using System;
 using System.Collections.Generic;
 using YARG.Audio.BASS.Asio;
 using YARG.Audio.BASS.Wasapi;
 using YARG.Core.Audio;
+using YARG.Core.Logging;
 
 namespace YARG.Audio.BASS
 {
@@ -61,14 +63,24 @@ namespace YARG.Audio.BASS
 
         public AudioOutputMode ModeFor(string name)
         {
-            if (BassWasapiOutput.IsWasapiDevice(name))
+            // TODO: This is a hacky workaround for a failure to deserialize settings on Mac. Most likely
+            //  the problem is actually that we are getting called with a null name or that BassWasapiOutput
+            //  hasn't been created yet.
+            try
             {
-                return AudioOutputMode.WasapiExclusive;
-            }
+                if (BassWasapiOutput.IsWasapiDevice(name))
+                {
+                    return AudioOutputMode.WasapiExclusive;
+                }
 
-            if (BassAsioOutput.IsAsioDevice(name))
+                if (BassAsioOutput.IsAsioDevice(name))
+                {
+                    return AudioOutputMode.Asio;
+                }
+            }
+            catch (Exception)
             {
-                return AudioOutputMode.Asio;
+                YargLogger.LogError("BassAsioOutput or BassWasapiOutput was not initialized! Falling back to Shared.");
             }
 
             return AudioOutputMode.Shared;
