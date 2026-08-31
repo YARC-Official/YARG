@@ -26,7 +26,7 @@ namespace YARG.Audio.BASS.Effects
 
             return YargAudioNative.Attach(EFFECT_NAME, streamHandle,
                 (out BassDattorroReverbDsp handle, out int bassError) =>
-                    Native.Attach(unchecked((uint) streamHandle), dryMix, wetMix,
+                    YargAudioBindings.DattorroReverbDspAttach(unchecked((uint) streamHandle), dryMix, wetMix,
                         roomSize, damp, width, priority, out handle, out bassError));
         }
 
@@ -51,25 +51,17 @@ namespace YARG.Audio.BASS.Effects
             }
         }
 
-        protected override void Destroy(System.IntPtr handle)
-        {
-            Native.Destroy(handle);
-        }
+        protected override void Destroy(System.IntPtr handle) =>
+            YargAudioBindings.DattorroReverbDspDestroy(handle);
 
-        protected override int NativeReset()
-        {
-            return Native.Reset(this);
-        }
+        protected override int NativeReset() =>
+            YargAudioBindings.DattorroReverbDspReset(this);
 
-        protected override int NativeSetParams(in DattorroReverbParams parms)
-        {
-            return Native.SetParams(this, in parms);
-        }
+        protected override int NativeSetParams(in DattorroReverbParams parms) =>
+            YargAudioBindings.DattorroReverbDspSetParams(this, in parms);
 
-        protected override DattorroReverbParams CreateParams(float dryMix, float wetMix, float roomSize, float damp, float width)
-        {
-            return new DattorroReverbParams(dryMix, wetMix, roomSize, damp, width);
-        }
+        protected override DattorroReverbParams CreateParams(float dryMix, float wetMix, float roomSize, float damp, float width) =>
+            new DattorroReverbParams(dryMix, wetMix, roomSize, damp, width);
 
         protected override bool AreFinite(in DattorroReverbParams parms)
         {
@@ -80,29 +72,6 @@ namespace YARG.Audio.BASS.Effects
             }
 
             return true;
-        }
-
-        private static class Native
-        {
-            private const string LIBRARY = "yarg_audio";
-
-            [DllImport(LIBRARY, EntryPoint = "yarg_dattorro_reverb_dsp_attach",
-                CallingConvention = CallingConvention.Cdecl)]
-            internal static extern int Attach(uint channel, float dryMix, float wetMix,
-                float roomSize, float damp, float width, int priority,
-                out BassDattorroReverbDsp dsp, out int bassError);
-
-            [DllImport(LIBRARY, EntryPoint = "yarg_dattorro_reverb_dsp_reset",
-                CallingConvention = CallingConvention.Cdecl)]
-            internal static extern int Reset(BassDattorroReverbDsp dsp);
-
-            [DllImport(LIBRARY, EntryPoint = "yarg_dattorro_reverb_dsp_set_params",
-                CallingConvention = CallingConvention.Cdecl)]
-            internal static extern int SetParams(BassDattorroReverbDsp dsp, in DattorroReverbParams parms);
-
-            [DllImport(LIBRARY, EntryPoint = "yarg_dattorro_reverb_dsp_destroy",
-                CallingConvention = CallingConvention.Cdecl)]
-            internal static extern void Destroy(System.IntPtr dsp);
         }
     }
 }

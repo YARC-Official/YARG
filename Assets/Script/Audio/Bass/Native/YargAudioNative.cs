@@ -11,10 +11,7 @@ namespace YARG.Audio.BASS.Native
 
     internal static class YargAudioNative
     {
-        private const string LIBRARY = "yarg_audio";
-
-        [DllImport(LIBRARY, EntryPoint = "yarg_audio_get_abi_version", CallingConvention = CallingConvention.Cdecl)]
-        private static extern uint GetAbiVersion();
+        internal static uint GetAbiVersion() => YargAudioBindings.GetAbiVersion();
 
         internal static string PlatformDescription =>
             $"{RuntimeInformation.OSDescription}/{RuntimeInformation.ProcessArchitecture}/{IntPtr.Size * 8}-bit";
