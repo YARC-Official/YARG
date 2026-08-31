@@ -358,14 +358,14 @@ namespace YARG.Gameplay
             }
 
             var hint = GameManager.Song.VocalCharacterHint;
-            await LoadCharacter(bgInstance, hint, gender);
+            var usingCustomChar = await LoadCharacter(bgInstance, hint, gender);
 
 
             // Initialize CharacterManager, if it exists
             var characterManager = bgInstance.GetComponentInChildren<CharacterManager>();
             if (characterManager != null)
             {
-                characterManager.Initialize();
+                characterManager.Initialize(usingCustomChar);
             }
         }
 
@@ -860,7 +860,7 @@ namespace YARG.Gameplay
             return null;
         }
 
-        private async UniTask LoadCharacter(GameObject venueRoot, string hint, VocalGender gender)
+        private async UniTask<bool> LoadCharacter(GameObject venueRoot, string hint, VocalGender gender)
         {
             var character = await GetAddressableCharacter(hint);
 
@@ -876,15 +876,16 @@ namespace YARG.Gameplay
                 character = await GetAddressableCharacter(gender);
             }
 
-            await LoadCharacter(venueRoot, character);
+            var usingCustomChar = await LoadCharacter(venueRoot, character);
+            return usingCustomChar;
         }
 
-        private async UniTask LoadCharacter(GameObject venueRoot, GameObject character)
+        private async UniTask<bool> LoadCharacter(GameObject venueRoot, GameObject character)
         {
             if (character == null)
             {
                 YargLogger.LogWarning("Failed to load custom character");
-                return;
+                return false;
             }
 
             // Load default animation controller and parameters if necessary
@@ -907,7 +908,7 @@ namespace YARG.Gameplay
             if (existingCharacter == null)
             {
                 YargLogger.LogFormatError("Failed to find character of type {0} in venue root", venueCharacter.Type);
-                return;
+                return false;
             }
 
             // Replace existingCharacter with the new character
@@ -928,6 +929,8 @@ namespace YARG.Gameplay
             // Lastly, make sure the new character and all its children are in the Venue layer
             var layerIndex = LayerMask.NameToLayer("Venue");
             SetLayer(newCharacter, layerIndex);
+
+            return true;
         }
 
         private static async UniTask CopyLipsyncToNewCharacter(GameObject venueRoot, VRMCharacter character)

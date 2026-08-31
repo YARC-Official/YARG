@@ -94,6 +94,9 @@ namespace YARG.Venue.Characters
 
         private bool _songHasDrumAnimations;
 
+        private double _chartEndTime;
+        private bool   _endTriggered;
+
         public double SongTime => GameManager.SongTime;
 
         protected override void OnChartLoaded(SongChart chart)
@@ -195,11 +198,21 @@ namespace YARG.Venue.Characters
                 _vocalMaps = GenerateMap(_vocalEvents);
             }
 
+            var (_, endEvent) = chart.GetMusicEvents();
+            if (endEvent != null)
+            {
+                _chartEndTime = endEvent.Time;
+            }
+            else
+            {
+                _chartEndTime = GameManager.LastNoteTime;
+            }
+
             // Register self with GameManager
             GameManager.SetVenueCharacterManager(this);
         }
 
-        public void Initialize()
+        public void Initialize(bool usingCustomChar = false)
         {
             // Find all the characters in the venue, done here because OnChartLoaded can get called before any
             // replacement characters are loaded.
@@ -212,7 +225,7 @@ namespace YARG.Venue.Characters
                 {
                     continue;
                 }
-                character.Initialize(this);
+                character.Initialize(this, usingCustomChar);
                 _characters.Add(character.Type, character);
             }
             InitializeLipsync();
@@ -396,6 +409,12 @@ namespace YARG.Venue.Characters
                 {
                     ((VRMCharacter) character).SetWind(_wind);
                 }
+
+                if (_chartEndTime > 0 && GameManager.VisualTime >= _chartEndTime && !_endTriggered)
+                {
+                    _endTriggered = true;
+                    character.TriggerEnd();
+                }
             }
 
             _lastKnownPausedState = GameManager.Paused;
@@ -421,6 +440,8 @@ namespace YARG.Venue.Characters
             _keysTriggerIndex = 0;
             _proKeysTriggerIndex = 0;
             _vocalTriggerIndex = 0;
+
+            _endTriggered = false;
 
             while (_guitarNoteIndex < _guitarNotes.Count && _guitarNotes[_guitarNoteIndex].Time < time)
             {

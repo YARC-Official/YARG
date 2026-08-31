@@ -174,6 +174,7 @@ namespace YARG.Venue.Characters
                 "IdleMellow"      => AnimationStateType.IdleMellow,
                 "Intense"         => AnimationStateType.Intense,
                 "Mellow"          => AnimationStateType.Mellow,
+                "End"             => AnimationStateType.End,
                 // Drums
                 "Kick"            => AnimationStateType.Kick,
                 "OpenHat"         => AnimationStateType.OpenHiHat,
@@ -477,7 +478,7 @@ namespace YARG.Venue.Characters
             }
         }
 
-        private class AnimationEventInfo
+        protected class AnimationEventInfo
         {
             public AnimationEventInfo(AnimationStateType type, string name, int hash, int layer, bool hasTrigger)
             {
@@ -618,7 +619,8 @@ namespace YARG.Venue.Characters
             Finger,
             IdleIntense,
             PlayingSolo,
-            IdleMellow
+            IdleMellow,
+            End,
         }
 
         private AnimationStateType? GetAnimationStateForHandMap(HandMap.HandMapType handMap)
@@ -651,12 +653,12 @@ namespace YARG.Venue.Characters
             };
         }
 
-        private void SetTrigger(CharacterState.CharacterStateType state)
+        protected void SetTrigger(CharacterState.CharacterStateType state)
         {
             SetTrigger(CharacterStateAnimationStates[state]);
         }
 
-        private void SetTrigger(string triggerName)
+        protected void SetTrigger(string triggerName)
         {
             // See if this exists, and if so, trigger an animation
             if (_animationEvents.TryGet(triggerName, out var animationEvent))
@@ -677,7 +679,7 @@ namespace YARG.Venue.Characters
             }
         }
 
-        private void SetTrigger(List<AnimationEventInfo> animations)
+        protected void SetTrigger(List<AnimationEventInfo> animations)
         {
             foreach (var animation in animations)
             {
@@ -695,7 +697,7 @@ namespace YARG.Venue.Characters
             SetTrigger(AnimationStateType.Playing);
         }
 
-        private void SetTrigger(AnimationStateType state)
+        protected void SetTrigger(AnimationStateType state)
         {
             if (_animationEvents.TryGet(state, out var list))
             {
@@ -795,7 +797,7 @@ namespace YARG.Venue.Characters
             }
         }
 
-        private void ResetGenericTriggers()
+        protected void ResetGenericTriggers()
         {
             foreach (var hash in _genericTriggerHashes)
             {
@@ -1016,7 +1018,8 @@ namespace YARG.Venue.Characters
             { CharacterState.CharacterStateType.Intense, AnimationStateType.Intense },
             { CharacterState.CharacterStateType.Mellow, AnimationStateType.Mellow },
             { CharacterState.CharacterStateType.Play, AnimationStateType.Playing },
-            { CharacterState.CharacterStateType.PlaySolo, AnimationStateType.PlayingSolo }
+            { CharacterState.CharacterStateType.PlaySolo, AnimationStateType.PlayingSolo },
+            { CharacterState.CharacterStateType.End, AnimationStateType.End },
         };
     }
 }

@@ -100,6 +100,9 @@ namespace YARG.Venue.VenueCamera
         // Minimum of 1 second between camera cuts when reduce flashing lights is enabled
         private const float REDUCED_CAMERA_CUT_INTERVAL = 1.0f;
 
+        public delegate void CameraCutEventDelegate();
+        public event CameraCutEventDelegate OnCameraCut;
+
         private List<Camera>  _cameras;
 
         private List<CameraCutEvent> _cameraCuts;
@@ -364,6 +367,7 @@ namespace YARG.Venue.VenueCamera
             }
 
             CurrentCamera.gameObject.SetActive(false);
+            OnCameraCut?.Invoke();
             CurrentCamera = newCamera;
             CurrentCamera.gameObject.SetActive(true);
             _cameraIndex = _cameras.IndexOf(CurrentCamera);
