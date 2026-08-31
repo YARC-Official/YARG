@@ -107,7 +107,7 @@ namespace YARG.Menu.ProfileList
 
         [Space]
         [SerializeField]
-        private ProfilesAndDevicesMenu _profileListMenu;
+        private ProfilesMenu _profileListMenu;
 
         [Space]
         [SerializeField]
@@ -259,8 +259,8 @@ namespace YARG.Menu.ProfileList
             _gameModeDropdown.value = _gameModesByIndex.IndexOf(profile.GameMode);
             _starPowerActivationTypeDropdown.value = _starPowerActivationTypesByIndex
                 .IndexOf(profile.StarPowerActivationType);
-            _noteSpeedField.text = profile.NoteSpeed.ToString(ProfilesAndDevicesMenu.NUMBER_FORMAT, CultureInfo.CurrentCulture);
-            _highwayLengthField.text = profile.HighwayLength.ToString(ProfilesAndDevicesMenu.NUMBER_FORMAT, CultureInfo.CurrentCulture);
+            _noteSpeedField.text = profile.NoteSpeed.ToString(ProfilesMenu.NUMBER_FORMAT, CultureInfo.CurrentCulture);
+            _highwayLengthField.text = profile.HighwayLength.ToString(ProfilesMenu.NUMBER_FORMAT, CultureInfo.CurrentCulture);
             _inputCalibrationField.text = _profile.InputCalibrationMilliseconds.ToString();
             _leftyFlipToggle.isOn = profile.LeftyFlip;
             _rangeDisabledToggle.isOn = profile.RangeEnabled;
@@ -446,7 +446,7 @@ namespace YARG.Menu.ProfileList
             }
 
             // Always format it after
-            _noteSpeedField.text = _profile.NoteSpeed.ToString(ProfilesAndDevicesMenu.NUMBER_FORMAT, CultureInfo.CurrentCulture);
+            _noteSpeedField.text = _profile.NoteSpeed.ToString(ProfilesMenu.NUMBER_FORMAT, CultureInfo.CurrentCulture);
         }
 
         public void ChangeHighwayLength()
@@ -457,7 +457,7 @@ namespace YARG.Menu.ProfileList
             }
 
             // Always format it after
-            _highwayLengthField.text = _profile.HighwayLength.ToString(ProfilesAndDevicesMenu.NUMBER_FORMAT, CultureInfo.CurrentCulture);
+            _highwayLengthField.text = _profile.HighwayLength.ToString(ProfilesMenu.NUMBER_FORMAT, CultureInfo.CurrentCulture);
         }
 
         public void ChangeInputCalibration()

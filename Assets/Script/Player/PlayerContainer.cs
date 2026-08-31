@@ -653,7 +653,7 @@ namespace YARG.Player
 
             var newProfile = new YargProfile
             {
-                Name = ProfilesAndDevicesMenu.GetUniqueProfileName(profileName),
+                Name = ProfilesMenu.GetUniqueProfileName(profileName),
                 NoteSpeed = 5,
                 HighwayLength = 1,
                 GameMode = gameMode

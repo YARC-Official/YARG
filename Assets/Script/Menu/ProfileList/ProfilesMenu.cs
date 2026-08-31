@@ -25,12 +25,11 @@ using static YARG.Menu.HighwayConfiguration.DrumsHighwayConfigurationMenu;
 
 namespace YARG.Menu.ProfileList
 {
-    public class ProfilesAndDevicesMenu : MonoBehaviour
+    public class ProfilesMenu : MonoBehaviour
     {
         public const string NUMBER_FORMAT = "0.0###";
 
         private const string PROFILES_TAB = "profiles";
-        private const string DEVICES_TAB  = "devices";
         private const string BINDINGS_TAB = "bindings";
 
         private enum ProfileMenuTab

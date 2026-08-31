@@ -50,10 +50,10 @@ namespace YARG.Menu.ProfileList
 
         public YargProfile Profile { get; private set; }
 
-        private ProfilesAndDevicesMenu _profileListMenu;
+        private ProfilesMenu _profileListMenu;
         private ProfileCenterPane  _profileSidebar;
 
-        public void Init(ProfilesAndDevicesMenu menu, YargProfile profile, ProfileCenterPane sidebar)
+        public void Init(ProfilesMenu menu, YargProfile profile, ProfileCenterPane sidebar)
         {
             _profileListMenu = menu;
             _profileSidebar = sidebar;
