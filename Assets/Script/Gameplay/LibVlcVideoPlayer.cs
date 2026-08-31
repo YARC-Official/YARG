@@ -54,9 +54,10 @@ namespace YARG.Gameplay
 
         public string url { private get; set; }
 
-        // Distinct from MonoBehaviour.enabled -- mirrors the old YargVideoPlayer's
-        // "playerEnabled" concept, letting BackgroundManager toggle just the underlying
-        // player without touching this component's own Update() loop.
+        // Distinct from MonoBehaviour.enabled: on the fallback path, _fallbackPlayer is a
+        // sibling VideoPlayer component with its own enabled flag, which this component's own
+        // Component.enabled has no way to reach. On the VLC path this just stores the flag --
+        // there's no equivalent native concept to forward it to.
         public bool playerEnabled
         {
             get => _playerEnabled;
@@ -346,11 +347,6 @@ namespace YARG.Gameplay
 
             length = _media.Duration / 1000.0;
 
-            foreach (var track in _media.Tracks)
-            {
-                YargLogger.LogDebug($"[Video] Track: type={track.TrackType}, codec={track.Codec}, id={track.Id}");
-            }
-
             var videoTrack = _media.Tracks.FirstOrDefault(t => t.TrackType == TrackType.Video);
             bool hasVideoTrack = videoTrack.TrackType == TrackType.Video;
             if (!hasVideoTrack)
@@ -382,11 +378,8 @@ namespace YARG.Gameplay
             // BackgroundManager.CorrectVideoDrift) -- request hardware decode when a suitable
             // plugin is bundled (scripts/NativeBuild/libvlc-plugin-allowlist.txt).
             _mediaPlayer.EnableHardwareDecoding = true;
-            YargLogger.LogDebug($"[Video] EnableHardwareDecoding=true (check nearby [libvlc:...] " +
-                "lines for which decoder module actually engages)");
             _mediaPlayer.SetVideoFormat("RV32", (uint) _frameWidth, (uint) _frameHeight, (uint) (_frameWidth * 4));
             _mediaPlayer.SetVideoCallbacks(LockFrame, null, DisplayFrame);
-            YargLogger.LogDebug("[Video] SetVideoFormat(RV32) + SetVideoCallbacks registered");
 
             _mediaPlayer.EncounteredError += (_, _) =>
             {
@@ -416,7 +409,6 @@ namespace YARG.Gameplay
 
             _mediaPlayer.EndReached += (_, _) =>
             {
-                YargLogger.LogDebug("[Video] MediaPlayer.EndReached");
                 if (isLooping)
                 {
                     _pendingLoopRestart = true;
@@ -530,7 +522,6 @@ namespace YARG.Gameplay
 
             if (_pendingLoopRestart)
             {
-                YargLogger.LogDebug("[Video] Looping: Stop() + Play()");
                 _pendingLoopRestart = false;
                 _mediaPlayer.Stop();
                 _mediaPlayer.Play();

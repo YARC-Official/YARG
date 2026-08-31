@@ -874,13 +874,12 @@ namespace YARG.Gameplay
             if (!_videoSeeking)
                 return;
 
-            // Releases the pause-override SetTime engaged for this seek (see SetTime) -- must
-            // run even though its result isn't used here. LateUpdate's GameManager.Paused poll
-            // picks up the actual final play/pause state once _videoSeeking clears below,
-            // whether or not other overrides are still holding the song paused.
-            if (SettingsManager.Settings.WaitForSongVideo.Value)
+            // OverrideResume() releases the pause-override SetTime engaged for this seek (see
+            // SetTime); only actually resume the video once it reports every such override is
+            // clear, not just this one (a second overlapping SetTime call could still be waiting).
+            if (!SettingsManager.Settings.WaitForSongVideo.Value || GameManager.OverrideResume())
             {
-                GameManager.OverrideResume();
+                SetPaused(GameManager.Paused);
             }
 
             enabled = !double.IsNaN(_videoEndTime);
@@ -900,26 +899,15 @@ namespace YARG.Gameplay
             }
         }
 
-        // Last pause state actually applied to the video player, so LateUpdate below only calls
-        // Play()/Pause() on a real change instead of every frame.
-        private bool _videoPaused;
-
-        // Follows GameManager.Paused directly rather than being pushed pause/resume calls --
-        // some inputs (e.g. Escape, which can dispatch through both the pause menu's Back()
-        // binding and GameManager.Update's own key poll) can flip Paused twice in one frame, and
-        // reacting to each change as it happened would tell the video to play for a moment
-        // before the second one paused it again. Reading the state once here, after every
-        // Update() this frame has run, means only the frame's final value is ever applied.
-        // Skipped while _videoSeeking -- OnVideoSeeked re-checks once the seek lands.
-        private void LateUpdate()
+        public void SetPaused(bool paused)
         {
-            if (!_videoPlayer.playerEnabled || !_videoStarted || _videoSeeking)
-                return;
-
-            if (GameManager.Paused != _videoPaused)
+            // Pause/unpause video. Silently no-ops a request that arrives mid-seek
+            // (_videoSeeking) rather than queuing it -- OnVideoSeeked calls this again with the
+            // then-current state once the seek lands, so nothing is lost as long as GameManager's
+            // paused state doesn't change again in between.
+            if (_videoPlayer.playerEnabled && _videoStarted && !_videoSeeking)
             {
-                _videoPaused = GameManager.Paused;
-                if (_videoPaused)
+                if (paused)
                 {
                     _videoPlayer.Pause();
                 }
