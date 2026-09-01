@@ -87,19 +87,8 @@ namespace LibVLCSharp
         #region unity
         private void Awake()
         {
-            try
-            {
-                if (LibVLC == null)
-                    CreateLibVLC();
-            }
-            catch (DllNotFoundException e)
-            {
-                // The native plugin is not shipped on this platform (e.g. Windows);
-                // stay inert so the game can fall back to its own video player.
-                Debug.LogWarning("[VLC] Native plugin not available, VLC support disabled: " + e.Message);
-                enabled = false;
-                return;
-            }
+            if (LibVLC == null)
+                CreateLibVLC();
 
             if (useUnityAudio)
             {

@@ -1,4 +1,4 @@
-#if (UNITY_EDITOR_LINUX || UNITY_STANDALONE_LINUX)
+#if (UNITY_EDITOR_LINUX || UNITY_STANDALONE_LINUX || UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX || UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN)
 #define VLC_SUPPORTED
 #endif
 
@@ -10,9 +10,9 @@ using YARG.Core.Logging;
 /// <summary>
 /// Video player wrapper that tries VLC (via vlc-unity) first,
 /// falling back to Unity's built-in VideoPlayer if VLC native
-/// binaries are not available. On Windows / WSA, the VLC code
-/// path is compiled out entirely (see VLC_SUPPORTED) and the
-/// class behaves as a thin Unity VideoPlayer wrapper.
+/// binaries are not available. On platforms without a native plugin
+/// (e.g. WSA), the VLC code path is compiled out entirely
+/// (see VLC_SUPPORTED) and the class behaves as a thin Unity VideoPlayer wrapper.
 /// </summary>
 public class YargVideoPlayer : MonoBehaviour
 {
