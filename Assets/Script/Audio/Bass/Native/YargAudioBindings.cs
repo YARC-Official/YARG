@@ -9,8 +9,10 @@ namespace YARG.Audio.BASS.Native
 {
     public static class YargAudioBindings
     {
+#if UNITY_STANDALONE_LINUX || UNITY_EDITOR_LINUX || UNITY_STANDALONE_OSX || UNITY_EDITOR_OSX
         private const int RTLD_NOW = 2;
         private const int RTLD_GLOBAL = 8;
+#endif
 
         private static IntPtr _libraryHandle = IntPtr.Zero;
         private static string? _loadedPath;
@@ -307,59 +309,41 @@ namespace YARG.Audio.BASS.Native
 
         private static string GetSourcePluginPath(string projectRoot)
         {
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-            {
-                return Path.Combine(projectRoot, "Assets", "Plugins", "YargAudio", "Mac", "libyarg_audio.dylib");
-            }
-
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-            {
-                return Path.Combine(projectRoot, "Assets", "Plugins", "YargAudio", "Linux", "x86_64", "libyarg_audio.so");
-            }
-
+#if UNITY_EDITOR_OSX
+            return Path.Combine(projectRoot, "Assets", "Plugins", "YargAudio", "Mac", "libyarg_audio.dylib");
+#elif UNITY_EDITOR_LINUX
+            return Path.Combine(projectRoot, "Assets", "Plugins", "YargAudio", "Linux", "x86_64", "libyarg_audio.so");
+#else
             return Path.Combine(projectRoot, "Assets", "Plugins", "YargAudio", "Windows", "x86_64", "yarg_audio.dll");
+#endif
         }
 #else
         private static string GetLibraryPath()
         {
             var dataPath = PathHelper.ApplicationDataPath ?? string.Empty;
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-            {
-                return Path.Combine(dataPath, "Plugins", "libyarg_audio.dylib");
-            }
-
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-            {
-                return Path.Combine(dataPath, "Plugins", "x86_64", "libyarg_audio.so");
-            }
-
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                return Path.Combine(dataPath, "Plugins", "x86_64", "yarg_audio.dll");
-            }
-
+#if UNITY_STANDALONE_OSX
+            return Path.Combine(dataPath, "Plugins", "libyarg_audio.dylib");
+#elif UNITY_STANDALONE_LINUX
+            return Path.Combine(dataPath, "Plugins", "x86_64", "libyarg_audio.so");
+#elif UNITY_STANDALONE_WIN
+            return Path.Combine(dataPath, "Plugins", "x86_64", "yarg_audio.dll");
+#else
             return "yarg_audio";
+#endif
         }
 #endif
 
         private static IntPtr LoadNativeLibrary(string path)
         {
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                return WindowsNative.LoadLibrary(path);
-            }
-
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-            {
-                return LinuxNative.dlopen(path, RTLD_NOW | RTLD_GLOBAL);
-            }
-
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-            {
-                return MacNative.dlopen(path, RTLD_NOW | RTLD_GLOBAL);
-            }
-
+#if UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN
+            return WindowsNative.LoadLibrary(path);
+#elif UNITY_STANDALONE_LINUX || UNITY_EDITOR_LINUX
+            return LinuxNative.dlopen(path, RTLD_NOW | RTLD_GLOBAL);
+#elif UNITY_STANDALONE_OSX || UNITY_EDITOR_OSX
+            return MacNative.dlopen(path, RTLD_NOW | RTLD_GLOBAL);
+#else
             return IntPtr.Zero;
+#endif
         }
 
         private static IntPtr GetProcAddress(IntPtr handle, string symbol)
@@ -369,22 +353,15 @@ namespace YARG.Audio.BASS.Native
                 return IntPtr.Zero;
             }
 
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                return WindowsNative.GetProcAddress(handle, symbol);
-            }
-
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-            {
-                return LinuxNative.dlsym(handle, symbol);
-            }
-
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-            {
-                return MacNative.dlsym(handle, symbol);
-            }
-
+#if UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN
+            return WindowsNative.GetProcAddress(handle, symbol);
+#elif UNITY_STANDALONE_LINUX || UNITY_EDITOR_LINUX
+            return LinuxNative.dlsym(handle, symbol);
+#elif UNITY_STANDALONE_OSX || UNITY_EDITOR_OSX
+            return MacNative.dlsym(handle, symbol);
+#else
             return IntPtr.Zero;
+#endif
         }
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
@@ -504,6 +481,7 @@ namespace YARG.Audio.BASS.Native
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         private delegate int ReadAheadStreamDestroyDelegate(IntPtr stream, out int bassError);
 
+#if UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN
         private static class WindowsNative
         {
             [DllImport("kernel32", SetLastError = true, CharSet = CharSet.Unicode)]
@@ -512,7 +490,7 @@ namespace YARG.Audio.BASS.Native
             [DllImport("kernel32", SetLastError = true, CharSet = CharSet.Ansi, ExactSpelling = true)]
             public static extern IntPtr GetProcAddress(IntPtr hModule, string procName);
         }
-
+#elif UNITY_STANDALONE_LINUX || UNITY_EDITOR_LINUX
         private static class LinuxNative
         {
             [DllImport("libdl.so.2")]
@@ -521,7 +499,7 @@ namespace YARG.Audio.BASS.Native
             [DllImport("libdl.so.2")]
             public static extern IntPtr dlsym(IntPtr handle, string symbol);
         }
-
+#elif UNITY_STANDALONE_OSX || UNITY_EDITOR_OSX
         private static class MacNative
         {
             [DllImport("libSystem.dylib")]
@@ -530,5 +508,6 @@ namespace YARG.Audio.BASS.Native
             [DllImport("libSystem.dylib")]
             public static extern IntPtr dlsym(IntPtr handle, string symbol);
         }
+#endif
     }
 }
