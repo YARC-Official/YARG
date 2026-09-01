@@ -935,7 +935,7 @@
             "Cache": "Cache",
             "Venues": "Scènes/Arrière-plans",
             "Calibration": "Calibration",
-            "OffsetCalibration": "Calibration du décalage moyen",
+            "OffsetCalibration": "Calibration automatique et de fin de musique",
             "Input": "Saisie",
             "PresetSettings": "Paramètre du preset",
             "Debug": "Débug",
@@ -1510,8 +1510,8 @@
                 }
             },
             "UseSongOffsetCalibration": {
-                "Name": "Utiliser le décalage moyen de la chanson",
-                "Description": "Utilise la valeur enregistrée pour le décalage moyen d'une chanson pour ajuster le délai de l'audio."
+                "Name": "Utiliser le décalage de la chanson",
+                "Description": "Utilise la valeur enregistrée pour le décalage d'une chanson pour ajuster le délai de l'audio."
             },
             "UseStrumOnlyOffsetForCalibration": {
                 "Name": "Filtre de grattages pour la calibration",
@@ -1532,12 +1532,12 @@
                 }
             },
             "UseMedianForInSongCalibration": {
-                "Name": "Utiliser la médiane pour la calibration en chanson",
-                "Description": "Utilise la médiane plutôt que la moyenne lors de la calibration automatique et/ou de l'enregistrement du décalage moyen. La médiane résiste mieux à une seule note mal synchronisée.",
+                "Name": "Méthode de calibration",
+                "Description": "Utiliser la médiane ou la moyenne lors de la calibration automatique et/ou de l'enregistrement du décalage moyen. La médiane résiste mieux à une seule note mal synchronisée.",
                 "Dropdown": {
-                    "Off": "Désactivé",
-                    "AutoCalibrationOnly": "Calibration automatique seulement",
-                    "AutoCalibrationAndEndOfSong": "Calibration automatique et fin de chanson"
+                    "Off": "Utiliser la moyenne",
+                    "AutoCalibrationOnly": "Automatique: médiane, fin de musique: moyenne",
+                    "AutoCalibrationAndEndOfSong": "Utiliser la médiane"
                 }
             },
             "AutoCalibrateVideo": {

@@ -1054,7 +1054,7 @@
             "Cache": "Cache",
             "Venues": "Venues/Backgrounds",
             "Calibration": "Calibration",
-            "OffsetCalibration": "Offset Calibration",
+            "OffsetCalibration": "End of Song and Auto Calibration",
             "Input": "Input",
             "PresetSettings": "Preset Settings",
             "Debug": "Debug",
@@ -1715,7 +1715,7 @@
                 "Description": "This song's specific offset in milliseconds, on top of audio/video calibration. Saved per-song."
             },
             "ShowMeanSongOffsetCalibration": {
-                "Name": "Show Average Song Offset",
+                "Name": "End of Song Calibration",
                 "Description": "Shows an option on the advanced stats screen to save average song offset.",
                 "Dropdown": {
                     "Off": "Off",
@@ -1724,8 +1724,8 @@
                 }
             },
             "UseSongOffsetCalibration": {
-                "Name": "Use Average Song Offset",
-                "Description": "Use the saved song average offset to adjust song audio delay."
+                "Name": "Use Saved Song Offset",
+                "Description": "Use the saved song offset to adjust song audio delay."
             },
             "UseStrumOnlyOffsetForCalibration": {
                 "Name": "Strum Filter for Calibration",
@@ -1746,12 +1746,12 @@
                 }
             },
             "UseMedianForInSongCalibration": {
-                "Name": "Use Median for In-Song Calibration",
-                "Description": "Use the median instead of the average when auto calibrating and/or saving average song offset. The median resists being thrown off by a single mistimed note.",
+                "Name": "In-Song Calibration Method",
+                "Description": "Use the median or the average when auto calibrating and/or saving average song offset. The median resists being thrown off by a single mistimed note.",
                 "Dropdown": {
-                    "Off": "Off",
-                    "AutoCalibrationOnly": "Auto Calibration Only",
-                    "AutoCalibrationAndEndOfSong": "Auto Calibration and End of Song"
+                    "Off": "Always Use Average",
+                    "AutoCalibrationOnly": "Auto: Median, End of Song: Average",
+                    "AutoCalibrationAndEndOfSong": "Always Use Median"
                 }
             },
             "VocalMonitoring": {
