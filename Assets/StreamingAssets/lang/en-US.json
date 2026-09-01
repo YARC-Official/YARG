@@ -331,6 +331,7 @@
             "PlayableSongs": "PLAYABLE SONGS",
             "RandomSong": "RANDOM SONG",
             "Sort": {
+                "Intensity": "Intensity: {0}",
                 "Unplayed": "Unplayed Songs",
                 "NoPart": "No Part",
                 "Percentage": {
@@ -397,6 +398,7 @@
             "ExpandHeaderHoldStartSet": "<align=left>Expand Header<br><size=67%>(Hold) Start The Set</size></align>",
             "CollapseHeaderHoldStartSet": "<align=left>Collapse Header<br><size=67%>(Hold) Start The Set</size></align>",
             "Search": "Search",
+            "SelectArtist": "Select Current Artist",
             "ExitSearchHold": "(Hold) Exit Search",
             "SkipSection": "<align=left>Navigate Sections</align>",
             "MoveInPlaylist": "Move Song",
@@ -545,6 +547,8 @@
             "ShowAdvanced": "Show Advanced",
             "HideAdvanced": "Hide Advanced",
             "EndSetlistEarly" : "End Setlist",
+            "AddSongOffset": "(Hold) Save song offset",
+            "RemoveSongOffset": "(Hold) Undo offset save",
             "ViewReplay": "View Replay"
         },
         "Settings": {
@@ -580,6 +584,7 @@
             "ShowAnyOfHeader": "Show Any Of",
             "SortedBy": "Sorted By",
             "ShowRecommendations": "Show Recommendations",
+            "OnlyShowPlayableSongs": "Only Show Playable Songs",
             "ResetAllFilters": "(Hold) Reset All Filters",
             "SelectAll": "Select All",
             "DeselectAll": "Deselect All",
@@ -876,7 +881,9 @@
 				"LetterSection": "{0} section",
 				"WithNumber": "{0} {1}",
 				"PercentageBased": "{0}% - {1}%"
-			}
+			},
+            "GuidePitch": "Guide Pitch",
+            "GuidePitchToggle": "Toggle"
 		},
         "UnisonDisplay": {
             "Header": "Unison Bonus"
@@ -916,7 +923,8 @@
             "Right": "Right",
             "Start": "Start (Pause)",
             "Select": "Select",
-            "Search": "Search"
+            "Search": "Search",
+            "SelectArtist": "Select Current Artist"
         },
         "FiveFret": {
             "Green": "Green Fret (First)",
@@ -1048,6 +1056,7 @@
             "Cache": "Cache",
             "Venues": "Venues/Backgrounds",
             "Calibration": "Calibration",
+            "OffsetCalibration": "Offset Calibration",
             "Input": "Input",
             "PresetSettings": "Preset Settings",
             "Debug": "Debug",
@@ -1483,10 +1492,11 @@
             },
             "OutputMode": {
                 "Name": "Output Mode",
-                "Description": "Select standard system audio or an ASIO driver.",
+                "Description": "Select standard system audio, ASIO, or WASAPI Exclusive.",
                 "Dropdown": {
                     "Shared": "Shared Audio",
-                    "Asio": "ASIO"
+                    "Asio": "ASIO",
+                    "WasapiExclusive": "WASAPI Exclusive"
                 }
             },
             "AsioBufferSize": {
@@ -1495,8 +1505,7 @@
                 "DriverDefault": "Driver Default",
                 "DriverDefaultWithSize": "Driver Default ({0} samples)",
                 "DriverControlledWithSize": "Driver controlled ({0} samples)",
-                "Samples": "{0} samples",
-                "SamplesWithDuration": "{0} samples (~{1} ms)"
+                "Samples": "{0} samples"
             },
             "OutputDevice": {
                 "Name": "Output Device",
@@ -1696,6 +1705,29 @@
                 "Name": "Auto Calibrate Video",
                 "PauseName": "Auto Calibrate Video",
                 "Description": "Placeholder setting. Currently has no effect."
+            },
+            "AutoCalibrateOffset": {
+                "Name": "Auto Calibrate Offset",
+                "PauseName": "Auto Calibrate Offset",
+                "Description": "Automatically adjusts this song's specific offset during gameplay based on your input timing."
+            },
+            "SongOffset": {
+                "Name": "Specific Song Delay (ms)",
+                "PauseName": "Specific Song Delay (ms)",
+                "Description": "This song's specific offset in milliseconds, on top of audio/video calibration. Saved per-song."
+            },
+            "ShowMeanSongOffsetCalibration": {
+                "Name": "Show Average Song Offset",
+                "Description": "Shows an option on the advanced stats screen to save average song offset.",
+                "Dropdown": {
+                    "Off": "Off",
+                    "OnlyOnePlayer": "Solo Only",
+                    "Always": "Always"
+                }
+            },
+            "UseSongOffsetCalibration": {
+                "Name": "Use Average Song Offset",
+                "Description": "Use the saved song average offset to adjust song audio delay."
             },
             "VocalMonitoring": {
                 "Name": "Vocal Monitoring Volume",

@@ -35,7 +35,6 @@ namespace YARG.Menu.Dialogs
 
         protected GameMode _mode;
 
-        protected CancellationTokenSource _cancellationTokenSource;
         protected CancellationTokenSource _bindingTokenSource;
         protected State                   _state;
         protected ActuationSettings       _bindSettings    = new();
@@ -91,7 +90,6 @@ namespace YARG.Menu.Dialogs
             _player.Bindings.ClearBindingsForDevice(_device, false);
 
             _cancelButton.Text.text = Localize.Key("Menu.Dialog.FriendlyBindingDialog.Skip");
-            _cancellationTokenSource = new CancellationTokenSource();
             bool success;
             try
             {
@@ -274,7 +272,7 @@ namespace YARG.Menu.Dialogs
         {
             if (_state is not State.Starting and not State.Done)
             {
-                _cancellationTokenSource.Cancel();
+                _bindingTokenSource?.Cancel();
                 return;
             }
 
@@ -286,12 +284,10 @@ namespace YARG.Menu.Dialogs
         {
             if (_state is not State.Starting and not State.Done)
             {
-                _cancellationTokenSource?.Cancel();
                 _bindingTokenSource?.Cancel();
             }
             _state = State.Done;
 
-            _cancellationTokenSource?.Dispose();
             _bindingTokenSource?.Dispose();
         }
 

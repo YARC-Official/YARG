@@ -72,15 +72,19 @@ namespace YARG.Venue.Characters
 
         private CameraManager _cameraManager;
 
-        public override void Initialize(CharacterManager characterManager = null)
+        private bool _isCustomCharacter;
+
+        public override void Initialize(CharacterManager characterManager = null, bool isCustom = false)
         {
             _initialPosition = transform.position;
             _initialRotation = transform.rotation;
 
             // Find camera manager
             _cameraManager = FindFirstObjectByType<CameraManager>();
+            // Subscribe to camera cut event
+            _cameraManager.OnCameraCut += OnCameraCut;
 
-            SetupBoundsCheck();
+            _isCustomCharacter = isCustom;
 
             _lipsyncKey = GetExpressionKey(_expressionKey);
             _characterManager = characterManager;
@@ -98,7 +102,7 @@ namespace YARG.Venue.Characters
                 _customExpressions[clip.name] = VrmInstance.Vrm.Expression.CreateKey(clip);
             }
 
-            base.Initialize(characterManager);
+            base.Initialize(characterManager, isCustom);
 
             _rngHash = Animator.StringToHash("RNG");
             HasRng = _intHashes.Contains(_rngHash);
@@ -128,16 +132,6 @@ namespace YARG.Venue.Characters
             }
 
             base.Update();
-        }
-
-        private void LateUpdate()
-        {
-            if (!Application.isPlaying)
-            {
-                return;
-            }
-
-            UpdateBounds();
         }
 
         private void ProcessLipsync(double time)
@@ -226,153 +220,34 @@ namespace YARG.Venue.Characters
             VrmInstance.Runtime.SpringBone.SetModelLevel(VrmInstance.transform, _modelLevels);
         }
 
+        private void OnCameraCut()
+        {
+            // Only for vocals for now
+            // TODO: Remove the _isCustomCharacter check once the venues are updated
+            if (Type != CharacterType.Vocals || !_isCustomCharacter)
+            {
+                return;
+            }
+
+            // keep spring bones from flailing when we move the character
+            SetSpringPause(true);
+
+            // Trigger default animation from controller (so we don't end up with the character floating or something)
+            ResetGenericTriggers();
+
+            // Reset x and z pos to initial
+            transform.position = _initialPosition;
+            transform.rotation = _initialRotation;
+
+            // Retrigger current animation state
+            SetTrigger(CurrentGenericState);
+
+            SetSpringPause(false);
+        }
+
         public override void OnChartEvent(ChartEvent e)
         {
 
-        }
-
-        private void SetupBoundsCheck()
-        {
-            if (_visibilityRenderer != null)
-            {
-                return;
-            }
-
-            SetupBoundsCheckResources();
-
-            var boundsObject = new GameObject("Bounds Checker");
-            boundsObject.transform.SetParent(transform, false);
-            boundsObject.AddComponent<VisibilityForwarder>().Initialize(this);
-            boundsObject.layer = LayerMask.NameToLayer("Venue");
-
-            _visibilityRenderer = boundsObject.AddComponent<MeshRenderer>();
-            _visibilityFilter = boundsObject.AddComponent<MeshFilter>();
-
-            _visibilityFilter.sharedMesh = _unitCubeMesh;
-            _visibilityRenderer.sharedMaterial = _invisibleMaterial;
-            _visibilityRenderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
-            _visibilityRenderer.receiveShadows = false;
-            _visibilityRenderer.lightProbeUsage = UnityEngine.Rendering.LightProbeUsage.Off;
-            _visibilityRenderer.reflectionProbeUsage = UnityEngine.Rendering.ReflectionProbeUsage.Off;
-            _visibilityRenderer.motionVectorGenerationMode = MotionVectorGenerationMode.ForceNoMotion;
-
-            _visibilityRenderer.transform.localPosition = Vector3.zero;
-            _visibilityRenderer.transform.localRotation = Quaternion.identity;
-            _visibilityRenderer.transform.localScale = Vector3.one;
-
-            _wasVisible = false;
-            _hasBounds = false;
-            _visibilityBounds = default;
-        }
-
-        private static void SetupBoundsCheckResources()
-        {
-            if (_unitCubeMesh == null)
-            {
-                var tmp = GameObject.CreatePrimitive(PrimitiveType.Cube);
-                _unitCubeMesh = tmp.GetComponent<MeshFilter>().mesh;
-                Destroy(tmp);
-            }
-
-            if (_invisibleMaterial == null)
-            {
-                _invisibleMaterial = new Material(Shader.Find("Shader Graphs/LitFadeTransparent")) { color = Color.clear };
-            }
-        }
-
-        private void UpdateBounds()
-        {
-            if (_visibilityRenderer == null)
-            {
-                return;
-            }
-
-            var renderers = GetComponentsInChildren<Renderer>(false);
-
-            bool hasAny = false;
-            Bounds worldBounds = default;
-
-            for (int i = 0; i < renderers.Length; i++)
-            {
-                var r = renderers[i];
-                if (r == null || r == _visibilityRenderer)
-                {
-                    continue;
-                }
-
-                if (!hasAny)
-                {
-                    worldBounds = r.bounds;
-                    hasAny = true;
-                }
-                else
-                {
-                    worldBounds.Encapsulate(r.bounds);
-                }
-            }
-
-            _hasBounds = hasAny;
-            _visibilityBounds = worldBounds;
-
-            if (hasAny)
-            {
-                _visibilityRenderer.transform.position = worldBounds.center;
-                _visibilityRenderer.transform.rotation = Quaternion.identity;
-                _visibilityRenderer.transform.localScale = worldBounds.size;
-            }
-        }
-
-        private void OnBecameVisible()
-        {
-            if (!Application.isPlaying)
-            {
-                return;
-            }
-
-            _wasVisible = true;
-        }
-
-        private void OnBecameInvisible()
-        {
-            if (!Application.isPlaying)
-            {
-                return;
-            }
-
-            if (!_wasVisible)
-            {
-                return;
-            }
-
-            _wasVisible = false;
-
-            if (!_hasBounds)
-            {
-                return;
-            }
-
-            var cam = _cameraManager?.CurrentCamera;
-            if (cam == null)
-            {
-                return;
-            }
-
-            // Vector3 destination = new Vector3(_initialPosition.x, transform.position.y, _initialPosition.z);
-
-            if (WouldBeVisible(cam, _visibilityBounds))
-            {
-                return;
-            }
-
-            // Reset X and Z pos to their initial values
-            transform.position = _initialPosition;
-            transform.rotation = _initialRotation;
-        }
-
-        private static bool WouldBeVisible(Camera cam, Bounds bounds)
-        {
-            var planes = GeometryUtility.CalculateFrustumPlanes(cam);
-            return GeometryUtility.TestPlanesAABB(planes, bounds);
         }
 
         private static bool IsMouthShape(LipsyncType type)
@@ -468,24 +343,14 @@ namespace YARG.Venue.Characters
             return false;
         }
 
-        private sealed class VisibilityForwarder : MonoBehaviour
+        private void OnDestroy()
         {
-            private VRMCharacter _owner;
-
-            public void Initialize(VRMCharacter owner)
+            if (_cameraManager == null)
             {
-                _owner = owner;
+                return;
             }
 
-            private void OnBecameVisible()
-            {
-                _owner?.OnBecameVisible();
-            }
-
-            private void OnBecameInvisible()
-            {
-                _owner?.OnBecameInvisible();
-            }
+            _cameraManager.OnCameraCut -= OnCameraCut;
         }
     }
 }

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using DG.Tweening;
@@ -142,8 +142,21 @@ namespace YARG.Playback
         /// <remarks>
         /// Be aware that this value is negated!
         /// Positive offsets in the .ini or .chart will result in a negative number here.
+        /// This is the sum of the chart-provided offset and <see cref="SongOffsetOverride"/>.
         /// </remarks>
-        public double SongOffset { get; }
+        public double SongOffset { get; private set; }
+
+        /// <summary>
+        /// The chart/.ini-provided offset, in seconds. Fixed for the duration of the song.
+        /// </summary>
+        private double _chartSongOffset;
+
+        /// <summary>
+        /// A per-song offset override on top of <see cref="_chartSongOffset"/>, in seconds
+        /// (not negated). This is the value edited live from the pause menu's "Specific Song
+        /// Offset" and "Auto Calibrate Offset" options.
+        /// </summary>
+        public double SongOffsetOverride { get; private set; }
 
         /// <summary>
         /// The input time that is considered to be 0.
@@ -248,21 +261,48 @@ namespace YARG.Playback
         /// <param name="songOffset">
         /// The chart's audio offset, in seconds. This value is negated for internal use.
         /// </param>
+        /// <param name="chartSongOffset">
+        /// The chart's audio offset, in seconds. This value is negated for internal use.
+        /// </param>
+        /// <param name="songOffsetOverride">
+        /// A per-song offset override on top of <paramref name="chartSongOffset"/>, in seconds
+        /// (not negated), sourced from the user's recorded/manually-set song offset.
+        /// </param>
         public SongRunner(
             StemMixer mixer,
             double startTime,
             double startDelay,
             float songSpeed,
-            double songOffset
+            double chartSongOffset,
+            double songOffsetOverride = 0
         )
         {
             _mixer = mixer;
             _audioSynchronizer = new AudioSynchronizer(mixer);
             SongSpeed = ClampSongSpeed(songSpeed);
             _requestedSongSpeed = SongSpeed;
-            SongOffset = -songOffset;
+            _chartSongOffset = chartSongOffset;
+            SongOffsetOverride = songOffsetOverride;
+            SongOffset = -(_chartSongOffset + SongOffsetOverride);
             InitializeSongTime(startTime + SongOffset, startDelay);
             UpdateCalibration();
+        }
+
+        /// <summary>
+        /// Live-updates <see cref="SongOffsetOverride"/> (and therefore <see cref="SongOffset"/>)
+        /// while preserving current gameplay time. Used by the pause menu's specific song offset
+        /// setting and its auto-calibration.
+        /// </summary>
+        public void SetSongOffsetOverride(double songOffsetOverride)
+        {
+            SongOffsetOverride = songOffsetOverride;
+            SongOffset = -(_chartSongOffset + SongOffsetOverride);
+            AnchorTimeline(InputTime);
+        }
+
+        ~SongRunner()
+        {
+            Dispose();
         }
 
         public void Dispose()
