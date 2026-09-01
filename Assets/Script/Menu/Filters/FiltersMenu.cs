@@ -1707,6 +1707,9 @@ namespace YARG.Menu.Filters
 
         public static string GetIntensityLabel(int intensity)
         {
+            if (intensity < 0)
+                return Localize.Key(IntensityLabels.UnknownKey);
+
             return GetStandardIntensityLabel(intensity) ??
                 Localize.KeyFormat("Menu.MusicLibrary.Sort.Intensity", intensity);
         }
