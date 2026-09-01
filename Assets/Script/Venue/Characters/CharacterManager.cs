@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using JetBrains.Annotations;
 using UnityEngine;
-using UnityEngine.TextCore.Text;
 using YARG.Core;
 using YARG.Core.Chart;
 using YARG.Core.Chart.Events;
