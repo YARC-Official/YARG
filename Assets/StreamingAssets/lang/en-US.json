@@ -226,6 +226,7 @@
             "ResumeAfterFailInvalidate": "Score saving disabled: Resuming after failure invalidated score.",
             "ProfileCreated": "Profile created for new device: {0}\nTime to do some YARGin!",
             "TooManyPauses": "Score saving disabled: Too many pauses.",
+            "ProfileLoadWarning": "{0} profile(s) could not be loaded by this version of YARG. They are kept and will be retried after an update, or can be removed from the profile list.",
             "UnsupportedDevice": "Automatic profile creation is not supported for {0}!"
         },
         "Dialog": {
@@ -540,7 +541,12 @@
             "AddBot": "Add Bot",
             "AddProfile": "Add Profile",
             "Bots" : "Bots",
-            "Players" : "Players"
+            "Players" : "Players",
+            "CouldNotLoad": "Couldn't Load",
+            "UnloadedEntry": "{0} <alpha=#66>— could not be loaded by this version of YARG",
+            "UnloadedDeleteTitle": "Delete Profile?",
+            "UnloadedDelete": "Deleting it is permanent.",
+            "BotDelete": "Deleting this bot is permanent."
         },
         "ScoreScreen" : {
             "BandScoreNotSaved" : "Score not saved",
