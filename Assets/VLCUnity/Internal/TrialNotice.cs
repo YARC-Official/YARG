@@ -1,4 +1,3 @@
-using System;
 using System.Runtime.InteropServices;
 using UnityEngine;
 #if UNITY_EDITOR
@@ -25,21 +24,7 @@ public static class TrialNotice
 #endif
 
     [DllImport(UnityPlugin, CallingConvention = CallingConvention.Cdecl, EntryPoint = "libvlc_unity_is_trial")]
-    static extern bool IsTrialNative();
-
-    // The native plugin is not shipped on every platform (e.g. Windows);
-    // treat a missing plugin as "not a trial" instead of throwing.
-    static bool IsTrial()
-    {
-        try
-        {
-            return IsTrialNative();
-        }
-        catch (DllNotFoundException)
-        {
-            return false;
-        }
-    }
+    static extern bool IsTrial();
 
     private const string STORE_URL = "https://videolabs.io/store/unity/";
 
