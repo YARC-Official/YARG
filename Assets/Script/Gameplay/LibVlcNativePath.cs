@@ -121,7 +121,7 @@ namespace YARG.Gameplay
             {
                 case RuntimePlatform.WindowsEditor:
                 case RuntimePlatform.WindowsPlayer:
-                    if (ResolveVendored("libvlc.dll", "Windows") is { } vendoredWin)
+                    if (ResolveVendored(libGlob, "Windows") is { } vendoredWin)
                     {
                         return vendoredWin;
                     }
@@ -141,11 +141,11 @@ namespace YARG.Gameplay
 
                 case RuntimePlatform.OSXEditor:
                 case RuntimePlatform.OSXPlayer:
-                    return ResolveVendored("libvlc.dylib", "Mac") ?? ResolveMacVlcApp(logging);
+                    return ResolveVendored(libGlob, "Mac") ?? ResolveMacVlcApp(logging);
 
                 case RuntimePlatform.LinuxEditor:
                 case RuntimePlatform.LinuxPlayer:
-                    if (ResolveVendored("libvlc.so*", "Linux") is { } vendoredLinux)
+                    if (ResolveVendored(libGlob, "Linux") is { } vendoredLinux)
                     {
                         return vendoredLinux;
                     }

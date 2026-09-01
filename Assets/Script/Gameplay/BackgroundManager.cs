@@ -282,12 +282,8 @@ namespace YARG.Gameplay
                     // which only wraps correctly under Repeat -- Clamp collapses it to row 0.
                     _plainVideoTexture.wrapMode = TextureWrapMode.Repeat;
 
-                    // Undefined GPU memory (renders grey) until the first video frame decodes.
                     _plainVideoTexture.Create();
-                    var prevActiveRt = RenderTexture.active;
-                    RenderTexture.active = _plainVideoTexture;
-                    GL.Clear(false, true, Color.black);
-                    RenderTexture.active = prevActiveRt;
+                    _plainVideoTexture.ClearToBlack();
 
                     _videoPlayer.targetTexture = _plainVideoTexture;
                     _backgroundImage.texture = _plainVideoTexture;
@@ -839,13 +835,20 @@ namespace YARG.Gameplay
             _videoPlayer.SeekAndPlay(videoTime);
         }
 
+        // Resets the drift-correction bias (see CorrectVideoDrift) to neutral against the given
+        // rate, discarding whatever was computed for the old one.
+        private void ResetDriftBias(float speed)
+        {
+            _videoRateBias = 0f;
+            _videoPlayer.playbackSpeed = speed;
+        }
+
         // Resets to a neutral rate instead of carrying over a stale bias, and holds off
         // CorrectVideoDrift until the seek settles -- see CorrectVideoDrift. Call before any seek
         // that expects the video to actually be at the new position shortly after.
         private void BeginDriftGracePeriod()
         {
-            _videoRateBias = 0f;
-            _videoPlayer.playbackSpeed = GameManager.SongSpeed;
+            ResetDriftBias(GameManager.SongSpeed);
             _driftGraceUntilUnscaledTime = Time.unscaledTime + SEEK_DRIFT_GRACE_SECONDS;
         }
 
@@ -914,10 +917,7 @@ namespace YARG.Gameplay
             switch (_type)
             {
                 case BackgroundType.Video:
-                    // Reset drift-correction bias (see CorrectVideoDrift) -- it was computed
-                    // against the old speed.
-                    _videoRateBias = 0f;
-                    _videoPlayer.playbackSpeed = speed;
+                    ResetDriftBias(speed);
                     break;
             }
         }
