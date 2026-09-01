@@ -683,7 +683,7 @@ namespace YARG.Gameplay
                     Player = player.Player,
                     Stats = player.BaseStats,
                     IsReplay = player.Player.IsReplay,
-                    OffsetSampleIsStrum = player.GetOffsetSampleIsStrum()
+                    OffsetSampleFilterCategory = player.GetOffsetSampleFilterCategory()
                 }).ToArray(),
                 BandScore = BandScore,
                 BandStars = (int) BandStars,
@@ -705,7 +705,7 @@ namespace YARG.Gameplay
                     .SelectMany(player => player.BaseStats.GetOffsetSamples())
                     .ToList()) ?? 0,
 
-                MeanAverageOffsetStrumOnly = GetWeightedOffset(GetWeightedStrumOnlySamples(_players
+                MeanAverageOffsetFilterCategoryOnly = GetWeightedOffset(GetWeightedFilterCategorySamples(_players
                     .Where(player => !player.Player.Profile.IsBot))),
 
                 ReplayInfo = replayInfo,
@@ -719,42 +719,44 @@ namespace YARG.Gameplay
         }
 
         /// <summary>
-        /// Band-wide pooled note-hit offset samples, counting only strummed notes for instruments
-        /// that distinguish strum from HOPO/tap (read from
-        /// <see cref="BasePlayer.GetOffsetSampleIsStrum"/> -- see that method for details). Players on
-        /// an instrument with no such distinction (keys, drums, vocals, etc.) still contribute their
-        /// full set of offset samples, so they're never silently dropped from the band average.
+        /// Band-wide pooled note-hit offset samples, counting only each player's filter-category
+        /// notes for instruments that distinguish one (strums for guitar, kicks for drums; read
+        /// from <see cref="BasePlayer.GetOffsetSampleFilterCategory"/> -- see that method for
+        /// details). Players on an instrument with no such distinction (keys, vocals, etc.) still
+        /// contribute their full set of offset samples, so they're never silently dropped from the
+        /// band average.
         /// </summary>
-        private static List<double> GetWeightedStrumOnlySamples(IEnumerable<BasePlayer> players)
+        private static List<double> GetWeightedFilterCategorySamples(IEnumerable<BasePlayer> players)
         {
             var pooledSamples = new List<double>();
             foreach (var player in players)
             {
-                var isStrum = player.GetOffsetSampleIsStrum();
+                var filterCategory = player.GetOffsetSampleFilterCategory();
                 var offsetSamples = player.BaseStats.GetOffsetSamples();
-                if (isStrum == null || isStrum.Count != offsetSamples.Count)
+                if (filterCategory == null || filterCategory.Count != offsetSamples.Count)
                 {
-                    // No strum/HOPO/tap distinction (or a data mismatch) -- fall back to this
+                    // No filter-category distinction (or a data mismatch) -- fall back to this
                     // player's full sample set instead of excluding them from the band average.
                     pooledSamples.AddRange(offsetSamples);
                     continue;
                 }
 
-                int strumCount = 0;
+                int matchingCount = 0;
                 for (int i = 0; i < offsetSamples.Count; i++)
                 {
-                    if (isStrum[i])
+                    if (filterCategory[i])
                     {
                         pooledSamples.Add(offsetSamples[i]);
-                        strumCount++;
+                        matchingCount++;
                     }
                 }
 
-                if (strumCount == 0)
+                if (matchingCount == 0)
                 {
-                    // This player has the strum/HOPO/tap distinction but hit zero strums this
-                    // song (e.g. an all-HOPO run) -- fall back to their full sample set instead
-                    // of contributing nothing, same as instruments with no distinction at all.
+                    // This player has the filter-category distinction but hit zero matching notes
+                    // this song (e.g. an all-HOPO run, or a kickless song) -- fall back to their
+                    // full sample set instead of contributing nothing, same as instruments with no
+                    // distinction at all.
                     pooledSamples.AddRange(offsetSamples);
                 }
             }

@@ -10,6 +10,9 @@ namespace YARG.Menu.ScoreScreen
 {
     public class DrumsScoreCard : ScoreCard<DrumsStats>
     {
+        /// <inheritdoc/>
+        protected override string CategoryLabel => "KICK";
+
         [Space]
         [SerializeField]
         private TextMeshProUGUI _overhits;

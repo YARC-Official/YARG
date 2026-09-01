@@ -16,6 +16,7 @@ using YARG.Helpers;
 using YARG.Playback;
 using YARG.Player;
 using YARG.Settings;
+using YARG.Settings.Types;
 using YARG.Themes;
 
 namespace YARG.Gameplay.Player
@@ -267,7 +268,7 @@ namespace YARG.Gameplay.Player
 
             SongLength = (float) chart.GetEndTime();
 
-            _autoCalibrator = new AutoCalibrator(GameManager);
+            _autoCalibrator = new AutoCalibrator(GameManager, OffsetFilterCalibrationSetting);
         }
 
         protected override void FinishDestruction()
@@ -1034,18 +1035,25 @@ namespace YARG.Gameplay.Player
         protected abstract void RescaleLanesForBRE();
 
         /// <summary>
-        /// Whether the given hit note should count as a "strum" for
-        /// <see cref="SettingsManager.Settings.UseStrumOnlyOffsetForCalibration"/> purposes. Null for
-        /// instruments with no strum/HOPO/tap distinction, in which case every hit note counts, same
-        /// as when the setting is disabled.
+        /// Which per-instrument dropdown, if any, governs <see cref="IsNoteInOffsetFilterCategory"/>
+        /// for this instrument's calibration -- e.g. UseStrumOnlyOffsetForCalibration for guitar,
+        /// UseKickOnlyOffsetForCalibration for drums. Null for instruments with no such setting.
         /// </summary>
-        protected virtual bool? IsNoteStrum(TNote note) => null;
+        protected virtual DropdownSetting<OffsetCalibrationFilter> OffsetFilterCalibrationSetting => null;
+
+        /// <summary>
+        /// Whether the given hit note falls on the "selected" side of
+        /// <see cref="OffsetFilterCalibrationSetting"/> (e.g. is a strum, or is a kick). Null for
+        /// instruments with no such distinction, in which case every hit note counts, same as when
+        /// the setting is set to Everything.
+        /// </summary>
+        protected virtual bool? IsNoteInOffsetFilterCategory(TNote note) => null;
 
         protected virtual void OnNoteHit(int index, TNote note)
         {
             if (!Player.Profile.IsBot)
             {
-                _autoCalibrator.RecordAccuracy(Engine.CurrentTime, note.Time, IsNoteStrum(note));
+                _autoCalibrator.RecordAccuracy(Engine.CurrentTime, note.Time, IsNoteInOffsetFilterCategory(note));
             }
 
             if (!GameManager.IsSeekingReplay)

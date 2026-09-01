@@ -53,6 +53,16 @@ namespace YARG.Settings
         AutoCalibrationAndEndOfSong,
     }
 
+    // Shared by every per-instrument "which notes count for calibration" dropdown (currently
+    // strums for guitar, kicks for drums). OnlySelected/ExcludeSelected both fall back to
+    // Everything if the chosen category has zero samples in a given window -- see AutoCalibrator.
+    public enum OffsetCalibrationFilter
+    {
+        Everything,
+        OnlySelected,
+        ExcludeSelected,
+    }
+
     public enum QualityMode
     {
         NativeAA = 0,
@@ -195,7 +205,18 @@ namespace YARG.Settings
                 ShowMeanSongOffsetCalibrationMode.Always
             };
             public ToggleSetting UseSongOffsetCalibration { get; } = new(true);
-            public ToggleSetting UseStrumOnlyOffsetForCalibration { get; } = new(false);
+            public DropdownSetting<OffsetCalibrationFilter> UseStrumOnlyOffsetForCalibration { get; } = new(OffsetCalibrationFilter.Everything)
+            {
+                OffsetCalibrationFilter.Everything,
+                OffsetCalibrationFilter.OnlySelected,
+                OffsetCalibrationFilter.ExcludeSelected
+            };
+            public DropdownSetting<OffsetCalibrationFilter> UseKickOnlyOffsetForCalibration { get; } = new(OffsetCalibrationFilter.Everything)
+            {
+                OffsetCalibrationFilter.Everything,
+                OffsetCalibrationFilter.OnlySelected,
+                OffsetCalibrationFilter.ExcludeSelected
+            };
             public DropdownSetting<UseMedianForInSongCalibrationMode> UseMedianForInSongCalibration { get; } = new(UseMedianForInSongCalibrationMode.AutoCalibrationOnly)
             {
                 UseMedianForInSongCalibrationMode.Off,

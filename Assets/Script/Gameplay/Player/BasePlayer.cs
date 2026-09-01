@@ -90,11 +90,12 @@ namespace YARG.Gameplay.Player
 
         /// <summary>
         /// Per-hit-note category for the score-screen offset histogram, aligned 1:1 in order with
-        /// <see cref="Engine.BaseStats.GetOffsetSamples"/>: true for a strummed note, false for a
-        /// HOPO/tap. Returns null for instruments with no strum/HOPO/tap distinction, in which case
-        /// the histogram should render as a single color.
+        /// <see cref="Engine.BaseStats.GetOffsetSamples"/>: true for the "selected" side of this
+        /// instrument's calibration filter (e.g. a strummed note for guitar, a kick for drums),
+        /// false for the other side. Returns null for instruments with no such distinction, in
+        /// which case the histogram should render as a single color.
         /// </summary>
-        public virtual IReadOnlyList<bool> GetOffsetSampleIsStrum() => null;
+        public virtual IReadOnlyList<bool> GetOffsetSampleFilterCategory() => null;
 
         public bool IsFc { get; protected set; }
 

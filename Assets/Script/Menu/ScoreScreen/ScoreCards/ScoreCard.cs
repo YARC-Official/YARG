@@ -27,10 +27,17 @@ namespace YARG.Menu.ScoreScreen
         private const float OFFSET_HISTOGRAM_AXIS_FONT_SIZE = 20f;
         private const float OFFSET_HISTOGRAM_HORIZONTAL_MARGIN = 54f;
 
-        // Strummed notes render below in white, HOPOs/taps stack above in gray, so a skewed
-        // histogram can be attributed to real strum timing vs. HOPO/tap infinite front end.
-        private static readonly Color OFFSET_HISTOGRAM_STRUM_COLOR    = new(1f, 1f, 1f, 0.85f);
-        private static readonly Color OFFSET_HISTOGRAM_HOPO_TAP_COLOR = new(1f, 1f, 1f, 0.30f);
+        // The filter-category notes (strums for guitar, kicks for drums) render below in white,
+        // the rest stack above in gray, so a skewed histogram can be attributed to real filter-
+        // category timing vs. the other category's infinite front end (HOPO/tap for guitar).
+        private static readonly Color OFFSET_HISTOGRAM_PRIMARY_COLOR   = new(1f, 1f, 1f, 0.85f);
+        private static readonly Color OFFSET_HISTOGRAM_SECONDARY_COLOR = new(1f, 1f, 1f, 0.30f);
+
+        /// <summary>
+        /// Label prefix used for the filter-category offset summary rows ("STRUM AVERAGE"/"STRUM
+        /// MEDIAN" by default). Overridden per instrument -- e.g. "KICK" for drums.
+        /// </summary>
+        protected virtual string CategoryLabel => "STRUM";
 
         [SerializeField]
         private ModifierIcon _modifierIconPrefab;
@@ -131,10 +138,11 @@ namespace YARG.Menu.ScoreScreen
         protected bool  IsReplay;
 
         /// <summary>
-        /// Aligned 1:1 with <see cref="Stats"/>'s offset samples: true for a strummed note, false
-        /// for a HOPO/tap. Null if the instrument has no such distinction.
+        /// Aligned 1:1 with <see cref="Stats"/>'s offset samples: true for the filter-category note
+        /// (a strum for guitar, a kick for drums), false for the other side. Null if the instrument
+        /// has no such distinction.
         /// </summary>
-        protected IReadOnlyList<bool> OffsetSampleIsStrum;
+        protected IReadOnlyList<bool> OffsetSampleFilterCategory;
 
         public YargPlayer Player { get; private set; }
 
@@ -144,13 +152,13 @@ namespace YARG.Menu.ScoreScreen
         }
 
         public void Initialize(bool isHighScore, YargPlayer player, T stats, bool isReplay,
-            IReadOnlyList<bool> offsetSampleIsStrum = null)
+            IReadOnlyList<bool> offsetSampleFilterCategory = null)
         {
             IsHighScore = isHighScore;
             Player = player;
             Stats = stats;
             IsReplay  = isReplay;
-            OffsetSampleIsStrum = offsetSampleIsStrum;
+            OffsetSampleFilterCategory = offsetSampleFilterCategory;
         }
 
         public virtual void SetCardContents()
@@ -293,17 +301,18 @@ namespace YARG.Menu.ScoreScreen
         private GameObject _offsetMedianSpacer;
 
         /// <summary>
-        /// Displays offset statistics as separate left-label/right-value rows. Strum-only statistics
-        /// are shown only when the song contains both strummed and non-strummed hits; otherwise they
-        /// would either be unavailable or identical to the normal statistics.
+        /// Displays offset statistics as separate left-label/right-value rows. Filter-category-only
+        /// statistics (<see cref="CategoryLabel"/>) are shown only when the song contains both
+        /// category and non-category hits; otherwise they would either be unavailable or identical
+        /// to the normal statistics.
         /// </summary>
         private void BuildOffsetSummaryRows()
         {
             var samples = Stats.GetOffsetSamples();
-            var strumSamples = GetStrumOnlySamples(samples);
-            bool hasStrums = strumSamples is { Count: > 0 };
-            bool hasNonStrums = strumSamples != null && strumSamples.Count < samples.Count;
-            bool showStrumRows = hasStrums && hasNonStrums;
+            var categorySamples = GetFilterCategorySamples(samples);
+            bool hasCategory = categorySamples is { Count: > 0 };
+            bool hasNonCategory = categorySamples != null && categorySamples.Count < samples.Count;
+            bool showCategoryRows = hasCategory && hasNonCategory;
 
             var rows = new List<(string Label, double Value)>
             {
@@ -311,10 +320,10 @@ namespace YARG.Menu.ScoreScreen
                 ("MEDIAN OFFSET", GetMedian(samples) ?? Stats.GetAverageOffset())
             };
 
-            if (showStrumRows)
+            if (showCategoryRows)
             {
-                rows.Insert(1, ("STRUM AVERAGE", strumSamples.Average()));
-                rows.Add(("STRUM MEDIAN", GetMedian(strumSamples) ?? strumSamples.Average()));
+                rows.Insert(1, ($"{CategoryLabel} AVERAGE", categorySamples.Average()));
+                rows.Add(($"{CategoryLabel} MEDIAN", GetMedian(categorySamples) ?? categorySamples.Average()));
             }
 
             var templateRow = _averageOffset.transform.parent as RectTransform;
@@ -347,7 +356,7 @@ namespace YARG.Menu.ScoreScreen
             }
 
             // Keep the averages together and add a small gap before the median rows.
-            int medianStartIndex = showStrumRows ? 2 : 1;
+            int medianStartIndex = showCategoryRows ? 2 : 1;
             var spacer = new GameObject(
                 "AverageOffsetMedianSpacer",
                 typeof(RectTransform),
@@ -464,12 +473,12 @@ namespace YARG.Menu.ScoreScreen
         }
 
         /// <summary>
-        /// Returns just the strummed samples (excluding HOPOs/taps), or null if
-        /// <see cref="OffsetSampleIsStrum"/> isn't available/aligned for this instrument.
+        /// Returns just the filter-category samples (strums for guitar, kicks for drums), or null
+        /// if <see cref="OffsetSampleFilterCategory"/> isn't available/aligned for this instrument.
         /// </summary>
-        private List<double> GetStrumOnlySamples(IReadOnlyList<double> samples)
+        private List<double> GetFilterCategorySamples(IReadOnlyList<double> samples)
         {
-            if (OffsetSampleIsStrum == null || OffsetSampleIsStrum.Count != samples.Count)
+            if (OffsetSampleFilterCategory == null || OffsetSampleFilterCategory.Count != samples.Count)
             {
                 return null;
             }
@@ -477,7 +486,7 @@ namespace YARG.Menu.ScoreScreen
             var result = new List<double>(samples.Count);
             for (int i = 0; i < samples.Count; i++)
             {
-                if (OffsetSampleIsStrum[i])
+                if (OffsetSampleFilterCategory[i])
                 {
                     result.Add(samples[i]);
                 }
@@ -504,24 +513,25 @@ namespace YARG.Menu.ScoreScreen
             float minOffsetMs = -OFFSET_HISTOGRAM_ABS_BOUND_MS;
             float maxOffsetMs = OFFSET_HISTOGRAM_ABS_BOUND_MS;
 
-            // OffsetSampleIsStrum is read once, post-song, from the live chart's WasHit note
-            // flags (see FiveFretGuitarPlayer.GetOffsetSampleIsStrum) -- it's only meaningful
-            // when it lines up 1:1 with offsetSamples. If it's missing or mismatched (non-guitar
-            // instruments, or an older replay/save), everything is treated as "strum" and the
-            // histogram renders as a single white bar per bin, same as before this feature.
-            IReadOnlyList<bool> isStrum = OffsetSampleIsStrum != null && OffsetSampleIsStrum.Count == offsetSamples.Count
-                ? OffsetSampleIsStrum
+            // OffsetSampleFilterCategory is read once, post-song, from the live chart's WasHit note
+            // flags (see FiveFretGuitarPlayer/DrumsPlayer.GetOffsetSampleFilterCategory) -- it's
+            // only meaningful when it lines up 1:1 with offsetSamples. If it's missing or
+            // mismatched (an instrument with no distinction, or an older replay/save), everything
+            // is treated as one category and the histogram renders as a single white bar per bin,
+            // same as before this feature.
+            IReadOnlyList<bool> filterCategory = OffsetSampleFilterCategory != null && OffsetSampleFilterCategory.Count == offsetSamples.Count
+                ? OffsetSampleFilterCategory
                 : null;
 
-            int[] strumBins = BuildHistogramBins(offsetSamples, isStrum, wantStrum: true, minOffsetMs, maxOffsetMs);
-            int[] hopoTapBins = isStrum == null
+            int[] categoryBins = BuildHistogramBins(offsetSamples, filterCategory, wantCategory: true, minOffsetMs, maxOffsetMs);
+            int[] otherBins = filterCategory == null
                 ? new int[OFFSET_HISTOGRAM_BIN_COUNT]
-                : BuildHistogramBins(offsetSamples, isStrum, wantStrum: false, minOffsetMs, maxOffsetMs);
+                : BuildHistogramBins(offsetSamples, filterCategory, wantCategory: false, minOffsetMs, maxOffsetMs);
 
             int maxCount = 0;
             for (int i = 0; i < OFFSET_HISTOGRAM_BIN_COUNT; i++)
             {
-                int stackedCount = strumBins[i] + hopoTapBins[i];
+                int stackedCount = categoryBins[i] + otherBins[i];
                 if (stackedCount > maxCount)
                 {
                     maxCount = stackedCount;
@@ -547,7 +557,7 @@ namespace YARG.Menu.ScoreScreen
 
             float zeroAxisPosition = Mathf.InverseLerp(minOffsetMs, maxOffsetMs, 0f);
             SetVerticalAxisLinePosition(_offsetHistogramZeroLineRect, zeroAxisPosition, 3f);
-            PopulateHistogramBars(strumBins, hopoTapBins, maxCount);
+            PopulateHistogramBars(categoryBins, otherBins, maxCount);
             SetHistogramAxisLabels(minOffsetMs, maxOffsetMs);
         }
 
@@ -646,10 +656,10 @@ namespace YARG.Menu.ScoreScreen
             labelRect.sizeDelta = new Vector2(0f, OFFSET_HISTOGRAM_AXIS_LABEL_HEIGHT);
         }
 
-        private void PopulateHistogramBars(IReadOnlyList<int> strumBins, IReadOnlyList<int> hopoTapBins, int maxCount)
+        private void PopulateHistogramBars(IReadOnlyList<int> categoryBins, IReadOnlyList<int> otherBins, int maxCount)
         {
             float barMaxHeight = OFFSET_HISTOGRAM_GRAPH_HEIGHT - 2f;
-            int binCount = strumBins.Count;
+            int binCount = categoryBins.Count;
             int barPoolIndex = 0;
 
             Canvas.ForceUpdateCanvases();
@@ -664,9 +674,9 @@ namespace YARG.Menu.ScoreScreen
 
             for (int i = 0; i < binCount; i++)
             {
-                int strumCount = strumBins[i];
-                int hopoTapCount = hopoTapBins[i];
-                if (strumCount <= 0 && hopoTapCount <= 0)
+                int categoryCount = categoryBins[i];
+                int otherCount = otherBins[i];
+                if (categoryCount <= 0 && otherCount <= 0)
                 {
                     continue;
                 }
@@ -690,20 +700,20 @@ namespace YARG.Menu.ScoreScreen
 
                     float stackYPixels = barBaseYPixels;
 
-                    if (strumCount > 0)
+                    if (categoryCount > 0)
                     {
                         float segmentHeightPixels =
-                            Mathf.Max(1f, Mathf.Round((float) strumCount / maxCount * barMaxHeight * scaleFactor));
-                        PlaceBarSegmentPixels(GetOrCreateBar(barPoolIndex++), OFFSET_HISTOGRAM_STRUM_COLOR,
+                            Mathf.Max(1f, Mathf.Round((float) categoryCount / maxCount * barMaxHeight * scaleFactor));
+                        PlaceBarSegmentPixels(GetOrCreateBar(barPoolIndex++), OFFSET_HISTOGRAM_PRIMARY_COLOR,
                             barLeftPixels, barRightPixels, stackYPixels, segmentHeightPixels, scaleFactor);
                         stackYPixels += segmentHeightPixels;
                     }
 
-                    if (hopoTapCount > 0)
+                    if (otherCount > 0)
                     {
                         float segmentHeightPixels =
-                            Mathf.Max(1f, Mathf.Round((float) hopoTapCount / maxCount * barMaxHeight * scaleFactor));
-                        PlaceBarSegmentPixels(GetOrCreateBar(barPoolIndex++), OFFSET_HISTOGRAM_HOPO_TAP_COLOR,
+                            Mathf.Max(1f, Mathf.Round((float) otherCount / maxCount * barMaxHeight * scaleFactor));
+                        PlaceBarSegmentPixels(GetOrCreateBar(barPoolIndex++), OFFSET_HISTOGRAM_SECONDARY_COLOR,
                             barLeftPixels, barRightPixels, stackYPixels, segmentHeightPixels, scaleFactor);
                     }
                 }
@@ -713,18 +723,18 @@ namespace YARG.Menu.ScoreScreen
                     float anchorMaxX = (i + 1f) / binCount;
                     float stackHeight = 0f;
 
-                    if (strumCount > 0)
+                    if (categoryCount > 0)
                     {
-                        float segmentHeight = Mathf.Max(1f, (float) strumCount / maxCount * barMaxHeight);
-                        PlaceBarSegmentUnits(GetOrCreateBar(barPoolIndex++), OFFSET_HISTOGRAM_STRUM_COLOR,
+                        float segmentHeight = Mathf.Max(1f, (float) categoryCount / maxCount * barMaxHeight);
+                        PlaceBarSegmentUnits(GetOrCreateBar(barPoolIndex++), OFFSET_HISTOGRAM_PRIMARY_COLOR,
                             anchorMinX, anchorMaxX, halfGapUnits, stackHeight, segmentHeight);
                         stackHeight += segmentHeight;
                     }
 
-                    if (hopoTapCount > 0)
+                    if (otherCount > 0)
                     {
-                        float segmentHeight = Mathf.Max(1f, (float) hopoTapCount / maxCount * barMaxHeight);
-                        PlaceBarSegmentUnits(GetOrCreateBar(barPoolIndex++), OFFSET_HISTOGRAM_HOPO_TAP_COLOR,
+                        float segmentHeight = Mathf.Max(1f, (float) otherCount / maxCount * barMaxHeight);
+                        PlaceBarSegmentUnits(GetOrCreateBar(barPoolIndex++), OFFSET_HISTOGRAM_SECONDARY_COLOR,
                             anchorMinX, anchorMaxX, halfGapUnits, stackHeight, segmentHeight);
                     }
                 }
@@ -795,18 +805,19 @@ namespace YARG.Menu.ScoreScreen
 
         /// <summary>
         /// Bins offset samples into <see cref="OFFSET_HISTOGRAM_BIN_COUNT"/> buckets. When
-        /// <paramref name="isStrum"/> is non-null, only samples matching <paramref name="wantStrum"/>
-        /// are counted, so callers can build the strum and HOPO/tap bins separately for stacking.
+        /// <paramref name="filterCategory"/> is non-null, only samples matching
+        /// <paramref name="wantCategory"/> are counted, so callers can build the category and
+        /// non-category bins separately for stacking.
         /// </summary>
-        private static int[] BuildHistogramBins(IReadOnlyList<double> offsetSamples, IReadOnlyList<bool> isStrum,
-            bool wantStrum, float minOffsetMs, float maxOffsetMs)
+        private static int[] BuildHistogramBins(IReadOnlyList<double> offsetSamples, IReadOnlyList<bool> filterCategory,
+            bool wantCategory, float minOffsetMs, float maxOffsetMs)
         {
             var bins = new int[OFFSET_HISTOGRAM_BIN_COUNT];
             float totalRange = Mathf.Max(1f, maxOffsetMs - minOffsetMs);
 
             for (int i = 0; i < offsetSamples.Count; i++)
             {
-                if (isStrum != null && isStrum[i] != wantStrum)
+                if (filterCategory != null && filterCategory[i] != wantCategory)
                 {
                     continue;
                 }

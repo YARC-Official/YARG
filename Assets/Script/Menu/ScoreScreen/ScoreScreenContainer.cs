@@ -15,10 +15,11 @@ namespace YARG.Menu.ScoreScreen
         public BaseStats  Stats;
 
         /// <summary>
-        /// Aligned 1:1 with <see cref="Stats"/>'s offset samples: true for a strummed note, false
-        /// for a HOPO/tap. Null if the instrument has no such distinction.
+        /// Aligned 1:1 with <see cref="Stats"/>'s offset samples: true for the "selected" side of
+        /// this instrument's calibration filter (a strummed note for guitar, a kick for drums),
+        /// false for the other side. Null if the instrument has no such distinction.
         /// </summary>
-        public IReadOnlyList<bool> OffsetSampleIsStrum;
+        public IReadOnlyList<bool> OffsetSampleFilterCategory;
     }
 
     public struct ScoreScreenStats
@@ -31,11 +32,12 @@ namespace YARG.Menu.ScoreScreen
         public double MeanAverageOffset;
 
         /// <summary>
-        /// Same as <see cref="MeanAverageOffset"/>, but averaging only strummed notes (excluding
-        /// HOPOs/taps) per player before averaging across players. Null when no strummed notes
-        /// were recorded by any eligible player.
+        /// Same as <see cref="MeanAverageOffset"/>, but for each player using only their filter
+        /// category's samples (strums for guitar, kicks for drums; a player's full sample set if
+        /// their instrument has no such distinction) before averaging across players. Null when no
+        /// samples were recorded by any eligible player.
         /// </summary>
-        public double? MeanAverageOffsetStrumOnly;
+        public double? MeanAverageOffsetFilterCategoryOnly;
 
 #nullable enable
         public ReplayInfo? ReplayInfo;

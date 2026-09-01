@@ -1728,9 +1728,22 @@
                 "Description": "Use the saved song average offset to adjust song audio delay."
             },
             "UseStrumOnlyOffsetForCalibration": {
-                "Name": "Auto Calibrate Using Strums Only",
-                "PauseName": "Use Strums Only",
-                "Description": "When saving average song offset or when auto calibrating during a song, use the average of strummed notes only, excluding HOPOs and taps."
+                "Name": "Strum Filter for Calibration",
+                "Description": "When saving average song offset or when auto calibrating during a song, restrict which guitar/bass notes count toward the average.",
+                "Dropdown": {
+                    "Everything": "Everything",
+                    "OnlySelected": "Only Strums",
+                    "ExcludeSelected": "No Strums"
+                }
+            },
+            "UseKickOnlyOffsetForCalibration": {
+                "Name": "Kick Filter for Calibration",
+                "Description": "When saving average song offset or when auto calibrating during a song, restrict which drum notes count toward the average.",
+                "Dropdown": {
+                    "Everything": "Everything",
+                    "OnlySelected": "Only Kicks",
+                    "ExcludeSelected": "No Kicks"
+                }
             },
             "UseMedianForInSongCalibration": {
                 "Name": "Use Median for In-Song Calibration",

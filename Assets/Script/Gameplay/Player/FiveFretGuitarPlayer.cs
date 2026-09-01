@@ -18,6 +18,7 @@ using YARG.Helpers.Extensions;
 using YARG.Playback;
 using YARG.Player;
 using YARG.Settings;
+using YARG.Settings.Types;
 using YARG.Themes;
 using static YARG.Core.Game.ColorProfile;
 using Random = UnityEngine.Random;
@@ -102,7 +103,7 @@ namespace YARG.Gameplay.Player
         /// strictly in chart order, so filtering to hit, non-lane notes lines up 1:1 with
         /// <see cref="Engine.BaseStats.GetOffsetSamples"/>.
         /// </remarks>
-        public override IReadOnlyList<bool> GetOffsetSampleIsStrum()
+        public override IReadOnlyList<bool> GetOffsetSampleFilterCategory()
         {
             var result = new List<bool>(BaseStats.GetOffsetSamples().Count);
             foreach (var note in Notes)
@@ -119,7 +120,11 @@ namespace YARG.Gameplay.Player
         }
 
         /// <inheritdoc/>
-        protected override bool? IsNoteStrum(GuitarNote note) => note.IsStrum;
+        protected override DropdownSetting<OffsetCalibrationFilter> OffsetFilterCalibrationSetting =>
+            SettingsManager.Settings.UseStrumOnlyOffsetForCalibration;
+
+        /// <inheritdoc/>
+        protected override bool? IsNoteInOffsetFilterCategory(GuitarNote note) => note.IsStrum;
 
         /// See <see cref="StarMultiplierThresholds"/>
         private static float[] GuitarStarMultiplierThresholds => new[]

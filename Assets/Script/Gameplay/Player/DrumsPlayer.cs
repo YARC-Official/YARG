@@ -19,6 +19,7 @@ using YARG.Helpers.Extensions;
 using YARG.Menu.HighwayConfiguration;
 using YARG.Player;
 using YARG.Settings;
+using YARG.Settings.Types;
 using YARG.Themes;
 using static YARG.Core.Game.ColorProfile;
 
@@ -166,6 +167,36 @@ namespace YARG.Gameplay.Player
             _wildcard = _fiveLaneMode ? (int) FiveLaneDrumPad.Wildcard : (int) FourLaneDrumPad.Wildcard;
             base.Initialize(index, player, chart, trackView, mixer, currentHighScore);
             _lastStem = GetLastAvailableDrumStem(mixer);
+        }
+
+        /// <inheritdoc/>
+        protected override DropdownSetting<OffsetCalibrationFilter> OffsetFilterCalibrationSetting =>
+            SettingsManager.Settings.UseKickOnlyOffsetForCalibration;
+
+        /// <inheritdoc/>
+        protected override bool? IsNoteInOffsetFilterCategory(DrumNote note) => note.Pad == _kick;
+
+        /// <inheritdoc/>
+        /// <remarks>
+        /// Same approach as <see cref="FiveFretGuitarPlayer.GetOffsetSampleFilterCategory"/>, but
+        /// keyed on kick vs. pad instead of strum vs. HOPO/tap. <see cref="DrumNote.IsAnyLane"/>
+        /// (rather than the base <see cref="Note{TNote}.IsLane"/>) additionally excludes sustained
+        /// kick-lane notes, which have no discrete hit time.
+        /// </remarks>
+        public override IReadOnlyList<bool> GetOffsetSampleFilterCategory()
+        {
+            var result = new List<bool>(BaseStats.GetOffsetSamples().Count);
+            foreach (var note in Notes)
+            {
+                if (note.IsAnyLane || note.IsBigRockEnding || !note.WasHit)
+                {
+                    continue;
+                }
+
+                result.Add(note.Pad == _kick);
+            }
+
+            return result;
         }
 
         private static SongStem GetLastAvailableDrumStem(StemMixer mixer)
