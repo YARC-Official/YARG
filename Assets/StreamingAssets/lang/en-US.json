@@ -331,6 +331,7 @@
             "PlayableSongs": "PLAYABLE SONGS",
             "RandomSong": "RANDOM SONG",
             "Sort": {
+                "Intensity": "Intensity: {0}",
                 "Unplayed": "Unplayed Songs",
                 "NoPart": "No Part",
                 "Percentage": {
@@ -583,6 +584,7 @@
             "ShowAnyOfHeader": "Show Any Of",
             "SortedBy": "Sorted By",
             "ShowRecommendations": "Show Recommendations",
+            "OnlyShowPlayableSongs": "Only Show Playable Songs",
             "ResetAllFilters": "(Hold) Reset All Filters",
             "SelectAll": "Select All",
             "DeselectAll": "Deselect All",
