@@ -22,6 +22,8 @@ namespace YARG.Venue
         private int  _prevCrowdState = -1;
         private bool _prevClap;
 
+        private Action _callback;
+
         public CrowdChannel(Animator animator, VenueHashLibrary hashes, int leadingFrames, EngineManager engineManager)
         {
             _animator = animator;
@@ -30,12 +32,13 @@ namespace YARG.Venue
             _engineManager = engineManager;
         }
 
-        public void BuildCommands(SongChart chart, AnimatorCommandQueue queue)
+        public void BuildCommands(SongChart chart, AnimatorCommandQueue queue, Action callback = null)
         {
             _events = chart.CrowdEvents;
             _eventIndex = 0;
             _crowdLimit = 0;
             _crowdClapOff = false;
+            _callback = callback;
         }
 
         public void Update(double visualTime)
