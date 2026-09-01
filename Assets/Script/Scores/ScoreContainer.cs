@@ -283,6 +283,65 @@ namespace YARG.Scores
                 : GetBestPercentageScore(songChecksum, playerId, instrument, allowCacheUpdate);
         }
 
+        /// <summary>
+        /// Get the best result (score or percentage, following the high score history setting's metric)
+        /// for a specific song, player, instrument and difficulty.
+        /// </summary>
+        public static PlayerScoreRecord GetPreferredHighScoreForDifficulty(HashWrapper songChecksum,
+            Guid playerId, Instrument instrument, Difficulty difficulty)
+        {
+            try
+            {
+                return UseHighestScore
+                    ? _db.QueryPlayerSongHighScore(songChecksum, playerId, instrument,
+                        highestDifficultyOnly: false, currentDifficultyOnly: true, difficulty)
+                    : _db.QueryPlayerSongHighestPercentage(songChecksum, playerId, instrument,
+                        highestDifficultyOnly: false, currentDifficultyOnly: true, difficulty);
+            }
+            catch (Exception e)
+            {
+                YargLogger.LogException(e, $"Failed to load high score from database for player with ID {playerId}.");
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Get the best result at a specific difficulty across several instruments
+        /// (used for Elite Drums kits, which can play multiple drum instruments).
+        /// </summary>
+        public static PlayerScoreRecord GetPreferredHighScoreForDifficulty(HashWrapper songChecksum,
+            Guid playerId, IReadOnlyList<Instrument> instruments, Difficulty difficulty)
+        {
+            PlayerScoreRecord best = null;
+            foreach (var instrument in instruments)
+            {
+                var record = GetPreferredHighScoreForDifficulty(songChecksum, playerId, instrument, difficulty);
+                if (record is null) continue;
+
+                if (best is null || IsPreferredOver(record, best))
+                {
+                    best = record;
+                }
+            }
+
+            return best;
+        }
+
+        private static bool IsPreferredOver(PlayerScoreRecord candidate, PlayerScoreRecord current)
+        {
+            if (UseHighestScore)
+            {
+                return candidate.Score > current.Score;
+            }
+
+            // Matches the percentage query's ordering: percent, then score, then FC
+            if (candidate.GetPercent() != current.GetPercent())
+                return candidate.GetPercent() > current.GetPercent();
+            if (candidate.Score != current.Score)
+                return candidate.Score > current.Score;
+            return candidate.IsFc && !current.IsFc;
+        }
+
         public static bool UseBandHighScoresForCurrentPlayers
             => PlayerContainer.Players.Count(player => !player.Profile.IsBot) != 1;
 
