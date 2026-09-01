@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 using YARG.Core.Chart;
 using YARG.Core.Engine;
 
@@ -19,7 +20,7 @@ namespace YARG.Venue
             _postProcessingLayerHash = hashes.PostProcessingLayerHash;
         }
 
-        public void BuildCommands(SongChart chart, AnimatorCommandQueue queue)
+        public void BuildCommands(SongChart chart, AnimatorCommandQueue queue, Action callback = null)
         {
             var events = chart.VenueTrack.PostProcessing;
             bool suppressNext = false;

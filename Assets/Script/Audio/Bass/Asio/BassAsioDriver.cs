@@ -86,7 +86,16 @@ namespace YARG.Audio.BASS.Asio
 
             var deviceInfo = BassAsio.GetDeviceInfo(_deviceId);
             DriverName = string.IsNullOrWhiteSpace(deviceInfo.Name) ? $"ASIO {_deviceId}" : deviceInfo.Name;
-            DriverId = string.IsNullOrWhiteSpace(deviceInfo.Driver) ? DriverName : deviceInfo.Driver;
+            try
+            {
+                DriverId = string.IsNullOrWhiteSpace(deviceInfo.Driver) ? DriverName : deviceInfo.Driver;
+            }
+            catch (Exception exception)
+            {
+                YargLogger.LogException(exception, "Failed to read ASIO driver path; falling back to the driver name");
+                DriverId = DriverName;
+            }
+
             SampleRate = sampleRate;
             CallbackFrames = Math.Max(1, driverInfo.PreferredBufferLength);
             InputCount = Math.Max(0, driverInfo.Inputs);

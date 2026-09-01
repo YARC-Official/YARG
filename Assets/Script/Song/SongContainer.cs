@@ -137,6 +137,7 @@ namespace YARG.Song
         public static IReadOnlyDictionary<int, List<SongEntry>> AggregateDrums => _sortedSongs.AggregateDrums;
 
         public static int Count => _songs.Length;
+        public static int LibraryRevision { get; private set; }
         // public static IReadOnlyDictionary<HashWrapper, List<SongEntry>> SongsByHash => _songCache.Entries;
         public static IReadOnlyDictionary<HashWrapper, List<SongEntry>> SongsByHash => _songsByHash;
         public static SongEntry[]                                       Songs       => _songs;
@@ -941,13 +942,13 @@ namespace YARG.Song
             {
                 try
                 {
-                    var arr = new SongCategory[instrument.Value.Count];
+                    var noPart = _songs.Where(song => !song[instrument.Key].IsActive()).ToList();
+                    noPart.Sort(new IntensityComparer(instrument.Key));
+
+                    var arr = new SongCategory[instrument.Value.Count + (noPart.Count > 0 ? 1 : 0)];
                     int index = 0;
-                    foreach (var difficulty in instrument.Value)
-                    {
-                        string categoryName = $"{instrument.Key.ToSortAttribute().ToLocalizedName()} [{difficulty.Key}]";
-                        arr[index++] = new SongCategory(categoryName, difficulty.Value.ToArray(), categoryName);
-                    }
+                    AddIntensityCategories(arr, ref index, instrument.Value);
+                    AddNoPartCategory(arr, ref index, noPart);
                     _sortInstruments.Add(instrument.Key, arr);
                 }
                 catch (Exception ex)
@@ -956,15 +957,45 @@ namespace YARG.Song
                 }
             }
 
-            _sortAggregateDrums = new SongCategory[_sortedSongs.AggregateDrums.Count];
+            var noAggregateDrumsPart = _songs.Where(song => !MidiDrumkitHelper.HasAnyDrumPart(song)).ToList();
+            noAggregateDrumsPart.Sort(new AggregateDrumsIntensityComparer());
+            _sortAggregateDrums = new SongCategory[
+                _sortedSongs.AggregateDrums.Count + (noAggregateDrumsPart.Count > 0 ? 1 : 0)];
             {
                 int index = 0;
-                foreach (var difficulty in _sortedSongs.AggregateDrums)
+                AddIntensityCategories(_sortAggregateDrums, ref index, _sortedSongs.AggregateDrums);
+                AddNoPartCategory(_sortAggregateDrums, ref index, noAggregateDrumsPart);
+            }
+
+            static void AddIntensityCategories(SongCategory[] categories, ref int index,
+                SortedDictionary<int, List<SongEntry>> intensities)
+            {
+                for (int intensity = 0; intensity <= 6; intensity++)
                 {
-                    string categoryName = $"{SortAttribute.AggregateDrums.ToLocalizedName()} [{difficulty.Key}]";
-                    _sortAggregateDrums[index++] = new SongCategory(categoryName, difficulty.Value.ToArray(), categoryName);
+                    if (!intensities.TryGetValue(intensity, out var songs))
+                        continue;
+
+                    string label = YARG.Menu.Filters.FiltersMenu.GetIntensityLabel(intensity);
+                    categories[index++] = new SongCategory(label, songs.ToArray(), label);
+                }
+
+                foreach (var intensity in intensities.Where(pair => pair.Key < 0 || pair.Key > 6))
+                {
+                    string label = YARG.Menu.Filters.FiltersMenu.GetIntensityLabel(intensity.Key);
+                    categories[index++] = new SongCategory(label, intensity.Value.ToArray(), label);
                 }
             }
+
+            static void AddNoPartCategory(SongCategory[] categories, ref int index, List<SongEntry> noPart)
+            {
+                if (noPart.Count == 0)
+                    return;
+
+                string label = Localize.Key("Menu.MusicLibrary.Sort.NoPart");
+                categories[index++] = new SongCategory(label, noPart.ToArray(), label);
+            }
+
+            LibraryRevision++;
 
             static SongEntry[] SetAllSongs(Dictionary<HashWrapper, List<SongEntry>> entries)
             {

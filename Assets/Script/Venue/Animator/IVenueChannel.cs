@@ -1,4 +1,5 @@
-﻿using YARG.Core.Chart;
+﻿using System;
+using YARG.Core.Chart;
 using YARG.Core.Engine;
 
 namespace YARG.Venue
@@ -14,7 +15,7 @@ namespace YARG.Venue
         /// Called once after chart load. Chart-driven channels should add all
         /// their commands to the queue here and do nothing in Update.
         /// </summary>
-        void BuildCommands(SongChart chart, AnimatorCommandQueue queue);
+        void BuildCommands(SongChart chart, AnimatorCommandQueue queue, Action callback = null);
 
         /// <summary>
         /// Called every frame for reactive channels (happiness, crowd).
