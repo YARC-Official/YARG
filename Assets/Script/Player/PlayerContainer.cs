@@ -182,9 +182,12 @@ namespace YARG.Player
 
         private static void ActiveProfilesChanged()
         {
-            if (SettingsManager.Settings.LibrarySort == SortAttribute.Playable ||
+            if (SettingsManager.Settings.OnlyShowPlayableSongs.Value ||
                 SettingsManager.Settings.LibrarySort == SortAttribute.Playcount)
             {
+                if (SettingsManager.Settings.OnlyShowPlayableSongs.Value)
+                    FiltersMenu.RefreshActiveFilterPredicate();
+
                 MusicLibraryMenu.SetReload(MusicLibraryReloadState.Full);
             }
 

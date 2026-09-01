@@ -31,6 +31,32 @@ namespace YARG.Venue.Characters
             Keys,
         }
 
+        public static CharacterType? CharacterTypeFromPerformer(Performer performer)
+        {
+            return performer switch
+            {
+                Performer.Bass     => CharacterType.Bass,
+                Performer.Guitar   => CharacterType.Guitar,
+                Performer.Drums    => CharacterType.Drums,
+                Performer.Vocals   => CharacterType.Vocals,
+                Performer.Keyboard => CharacterType.Keys,
+                _                  => null
+            };
+        }
+
+        public static Performer PerformerFromCharacterType(CharacterType characterType)
+        {
+            return characterType switch
+            {
+                CharacterType.Bass   => Performer.Bass,
+                CharacterType.Guitar => Performer.Guitar,
+                CharacterType.Drums  => Performer.Drums,
+                CharacterType.Vocals => Performer.Vocals,
+                CharacterType.Keys   => Performer.Keyboard,
+                _                    => Performer.None
+            };
+        }
+
         [Tooltip("This only needs to be set if you are building the character into a venue.\n\nIt is handled automatically for .yargchar exports.")]
         [SerializeField]
         protected CharacterManager _characterManager;
@@ -140,7 +166,7 @@ namespace YARG.Venue.Characters
         public int RngAtLastTransition;
         protected int  _rngHash;
 
-        public virtual void Initialize(CharacterManager characterManager)
+        public virtual void Initialize(CharacterManager characterManager, bool isCustom = false)
         {
             _characterManager = characterManager;
             _animator = GetComponent<Animator>();
@@ -816,6 +842,11 @@ namespace YARG.Venue.Characters
         public bool IsAnimating()
         {
             return _isAnimating;
+        }
+
+        public void TriggerEnd()
+        {
+            SetTrigger(CharacterStateType.End);
         }
 
         public void UpdateTempo(double secondsPerBeat)

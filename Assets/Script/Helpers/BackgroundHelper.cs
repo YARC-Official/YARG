@@ -65,7 +65,10 @@ namespace YARG.Helpers
                 var allAssets = shaderBundle.LoadAllAssets<Shader>();
                 foreach (var shader in allAssets)
                 {
-                    metalShaders.Add(shader.name, shader);
+                    if (!metalShaders.TryAdd(shader.name, shader))
+                    {
+                        YargLogger.LogFormatWarning("Duplicate metal shader: {0}", shader.name);
+                    }
                 }
             }
             else
@@ -90,7 +93,7 @@ namespace YARG.Helpers
                     }
                     else
                     {
-                        YargLogger.LogFormatDebug("Did not find bundled shader {0}", shaderName);
+                        YargLogger.LogFormatWarning("Did not find bundled shader {0}", shaderName);
                         // Fallback to try to find among builtin shaders
                         material.shader = Shader.Find(shaderName);
                     }

@@ -2,8 +2,10 @@ using System;
 using System.Collections.Generic;
 using ManagedBass;
 using ManagedBass.Fx;
+using YARG.Audio.BASS.Effects;
 using YARG.Core.Audio;
 using YARG.Core.Logging;
+using YARG.Settings;
 
 namespace YARG.Audio.BASS
 {
@@ -36,7 +38,13 @@ namespace YARG.Audio.BASS
 
     public static class BassHelpers
     {
-        public const uint YARG_AUDIO_ABI_VERSION = 2;
+        public const uint YARG_AUDIO_ABI_VERSION = 8;
+
+        /// <summary>
+        /// Floor applied to the playback speed before it is used as a divisor or to scale a
+        /// duration, so that a zero or near-zero speed cannot produce an infinite result.
+        /// </summary>
+        public const float MINIMUM_SPEED = 0.0001f;
 
         public const float REVERB_VOLUME_MULTIPLIER = 0.35f;
 
@@ -142,6 +150,19 @@ namespace YARG.Audio.BASS
 
         public static int AddPitchShiftToChannel(int handle, IEffectParameter pitchParams) =>
             FXAddParameters(handle, EffectType.PitchShift, pitchParams);
+
+#nullable enable
+        public static IBassReverbDsp? CreateReverb(ReverbMode mode, int streamHandle, float dryMix, float wetMix,
+            float roomSize, float damp, float width = 1f, int priority = 0)
+        {
+            return mode switch
+            {
+                ReverbMode.Quality => BassDattorroReverbDsp.Create(streamHandle, dryMix, wetMix, roomSize, damp,
+                    width, priority),
+                _ => BassFreeverbDsp.Create(streamHandle, dryMix, wetMix, roomSize, damp, width, priority)
+            };
+        }
+#nullable disable
 
         public static int GetOutputChannelCount()
         {

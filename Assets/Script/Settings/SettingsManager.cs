@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using UnityEngine;
 using YARG.Core.Audio;
 using YARG.Core.Logging;
@@ -36,6 +37,8 @@ namespace YARG.Settings
 
         private static string _serializedSettings;
 
+        private static bool _settingsCanBeSaved = true;
+
         public static string OutputDeviceAtStartup { get; private set; } = "Default";
 
         public static SettingContainer Settings { get; private set; }
@@ -49,6 +52,10 @@ namespace YARG.Settings
                 nameof(Settings.AudioCalibration),
                 nameof(Settings.VideoCalibration),
                 new FieldMetadata(nameof(Settings.AccountForHardwareLatency), true, isAdvanced: true),
+                // Not sure how to use nameof?
+                new HeaderMetadata("OffsetCalibration"),
+                nameof(Settings.ShowMeanSongOffsetCalibration),
+                nameof(Settings.UseSongOffsetCalibration),
 
                 new HeaderMetadata("Venues"),
                 new ButtonRowMetadata(nameof(Settings.OpenVenueFolder)),
@@ -100,6 +107,7 @@ namespace YARG.Settings
                 nameof(Settings.HighScoreInfo),
                 new FieldMetadata(nameof(Settings.ShowPercentDecimals), isAdvanced: true),
                 nameof(Settings.HighScoreHistory),
+                new FieldMetadata(nameof(Settings.SongLengthLabels), isAdvanced: true),
                 new HeaderMetadata("PlayAShow"),
                 nameof(Settings.EnablePlayAShow),
                 nameof(Settings.PlayAShowTimeout),
@@ -124,6 +132,7 @@ namespace YARG.Settings
                 new FieldMetadata(nameof(Settings.PreviewVolume), isAdvanced: true),
                 nameof(Settings.MusicPlayerVolume),
                 new FieldMetadata(nameof(Settings.VocalMonitoring)),
+                nameof(Settings.VocalReverb),
                 new FieldMetadata(nameof(Settings.MetronomeVolume), isAdvanced: true),
 
                 new HeaderMetadata("Customization", isAdvanced: true),
@@ -136,12 +145,17 @@ namespace YARG.Settings
                 new HeaderMetadata("Gameplay"),
                 nameof(Settings.MuteOnMiss),
                 nameof(Settings.UseStarpowerFx),
-                nameof(Settings.UseCrowdFx),
                 nameof(Settings.UseVenueSfx),
                 nameof(Settings.OverstrumAndOverhitSoundEffects),
                 new FieldMetadata(nameof(Settings.AlwaysOnDrumSFX), isAdvanced: true),
                 new FieldMetadata(nameof(Settings.UseWhammyFx), isAdvanced: true),
                 new FieldMetadata(nameof(Settings.WhammyPitchShiftAmount), isAdvanced: true),
+
+                new HeaderMetadata("CrowdFX"),
+                nameof(Settings.UseCrowdCheering),
+                nameof(Settings.UseCrowdIdle),
+                nameof(Settings.UseStarPowerClaps),
+                nameof(Settings.UsePerformanceClaps),
 
                 new HeaderMetadata("Other"),
                 new FieldMetadata(nameof(Settings.UseChipmunkSpeed), isAdvanced: true),
@@ -270,6 +284,7 @@ namespace YARG.Settings
                 nameof(Settings.BandComboTypeSetting),
                 nameof(Settings.DataStreamEnable),
                 nameof(Settings.SaveScoresWithBots),
+                nameof(Settings.ReverbImplementation),
                 new HeaderMetadata("Accessibility"),
                 nameof(Settings.FontScaling),
                 new HeaderMetadata("OutputConfiguration"),
@@ -314,15 +329,23 @@ namespace YARG.Settings
 
         public static void LoadSettings()
         {
+            _settingsCanBeSaved = true;
+            bool settingsFileExists = File.Exists(SettingsFile);
+
             // Create settings container
             try
             {
                 string text = _serializedSettings ?? File.ReadAllText(SettingsFile);
                 _serializedSettings = null;
-                Settings = JsonConvert.DeserializeObject<SettingContainer>(text, JsonSettings);
+
+                var settingsJson = JObject.Parse(text);
+                settingsJson = SettingsMigration.Migrate(settingsJson, out _settingsCanBeSaved);
+                Settings = JsonConvert.DeserializeObject<SettingContainer>(
+                    settingsJson.ToString(Formatting.None), JsonSettings);
             }
             catch (Exception e)
             {
+                _settingsCanBeSaved = !settingsFileExists;
                 YargLogger.LogException(e, "Failed to load settings!");
             }
 
@@ -356,10 +379,11 @@ namespace YARG.Settings
         {
             // If the game tries to save the settings before they are loaded, it can wipe the settings file
             // (such as closing the game before they load)
-            if (SettingContainer.IsInitialized && Settings is not null)
+            if (SettingContainer.IsInitialized && Settings is not null && _settingsCanBeSaved)
             {
-                var json = JsonConvert.SerializeObject(Settings, JsonSettings);
-                File.WriteAllText(SettingsFile, json);
+                var json = JObject.Parse(JsonConvert.SerializeObject(Settings, JsonSettings));
+                SettingsMigration.SetCurrentSchemaVersion(json);
+                File.WriteAllText(SettingsFile, json.ToString(Formatting.Indented));
             }
         }
 

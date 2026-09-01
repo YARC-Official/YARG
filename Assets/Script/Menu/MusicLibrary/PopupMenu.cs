@@ -389,20 +389,17 @@ namespace YARG.Menu.MusicLibrary
             {
                 // Skip theses because they don't make sense
                 if (sort == SortAttribute.Unspecified)
-                {
                     continue;
-                }
+
+                if (sort == SortAttribute.Playable)
+                    continue;
 
                 // Skip Play count if there are no real players
                 if (sort == SortAttribute.Playcount && PlayerContainer.OnlyHasBotsActive())
-                {
                     continue;
-                }
 
                 if (sort >= SortAttribute.Instrument)
-                {
                     break;
-                }
 
                 CreateItemUnlocalized(sort.ToLocalizedName(), () =>
                 {

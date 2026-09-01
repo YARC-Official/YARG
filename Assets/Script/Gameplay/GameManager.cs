@@ -27,6 +27,7 @@ using YARG.Player;
 using YARG.Replays;
 using YARG.Scores;
 using YARG.Settings;
+using YARG.Settings.Types;
 using YARG.Venue.Characters;
 using YARG.Venue.VenueCamera;
 
@@ -126,6 +127,12 @@ namespace YARG.Gameplay
         public bool Paused => _songRunner?.Paused ?? true;
 
         /// <summary>
+        /// The current song's specific offset (in milliseconds), editable from the pause menu
+        /// and by <see cref="Helpers.AutoCalibrator"/>. Backed by <see cref="Song.SongOffsetContainer"/>.
+        /// </summary>
+        public IntSetting SongOffsetOverride { get; private set; }
+
+        /// <summary>
         /// Set when we are in the middle of resuming, but have not yet fully resumed
         /// </summary>
         public bool Rewinding { get; private set; }
@@ -168,6 +175,8 @@ namespace YARG.Gameplay
         private int _originalSleepTimeout;
 
         private StemMixer _mixer;
+        public  StemMixer  Mixer => _mixer;
+
         private MetronomeScheduler _metronomeScheduler;
         private CrowdClapScheduler _crowdClapScheduler;
 
@@ -348,7 +357,7 @@ namespace YARG.Gameplay
             ApplySongSpeed();
 
             BeatEventHandler.Reset();
-            BackgroundManager.SetTime(_songRunner.SongTime + Song.SongOffsetSeconds);
+            BackgroundManager.SetTime(_songRunner.GetAudioPlaybackTime(_songRunner.SongTime));
             VenueCameraManager?.ResetTime(time);
             VenueCharacterManager?.ResetTime(time);
             if (_lyricBar.gameObject.activeSelf)
@@ -626,6 +635,10 @@ namespace YARG.Gameplay
         public double GetInputTime(double inputSystemTime)
             => _songRunner.GetInputTime(inputSystemTime);
 
+        /// <inheritdoc cref="SongRunner.GetAudioPlaybackTime"/>
+        public double GetAudioPlaybackTime(double songTime)
+            => _songRunner.GetAudioPlaybackTime(songTime);
+
         private bool EndSong()
         {
             _crowdClapScheduler?.Dispose();
@@ -673,6 +686,17 @@ namespace YARG.Gameplay
                 }).ToArray(),
                 BandScore = BandScore,
                 BandStars = (int) BandStars,
+
+                // TODO: When online comes out, change
+                // .Where(player => !player.Player.Profile.IsBot)
+                // to:
+                // .Where(player => !(player.Player.Profile.IsBot || player.Player.IsRemote))
+                MeanAverageOffset = _players
+                    .Where(player => !player.Player.Profile.IsBot)
+                    .Select(player => player.BaseStats.GetAverageOffset())
+                    .DefaultIfEmpty(0)
+                    .Average(),
+
                 ReplayInfo = replayInfo,
             };
 

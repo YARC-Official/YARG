@@ -45,9 +45,12 @@ namespace YARG.Audio.BASS.Asio
 
         internal string DriverId => _driver.DriverId;
 
+        internal static bool IsAsioDevice(string name) =>
+            name.StartsWith(DEVICE_PREFIX, StringComparison.Ordinal);
+
         public static BassAsioOutput? Find(string name, BassAudioRouter router, BassAsioMics microphones)
         {
-            if (!name.StartsWith(DEVICE_PREFIX, StringComparison.Ordinal))
+            if (!IsAsioDevice(name))
             {
                 return null;
             }
@@ -119,30 +122,25 @@ namespace YARG.Audio.BASS.Asio
 
         public override OutputBufferInfo? GetBufferInfo()
         {
-            int previous = BassAsio.CurrentDevice;
-            BassAsio.CurrentDevice = _asioDeviceIndex;
             try
             {
+                BassAsio.CurrentDevice = _asioDeviceIndex;
                 var info = BassAsio.Info;
-                return new OutputBufferInfo(Array.Empty<int>(), info.PreferredBufferLength, _driver.SampleRate, true);
+                return new OutputBufferInfo(Array.Empty<int>(), info.PreferredBufferLength, _driver.SampleRate,
+                    isDriverControlled: true);
             }
             catch (Exception exception)
             {
                 YargLogger.LogException(exception, "Failed to read ASIO buffer sizes");
                 return null;
             }
-            finally
-            {
-                BassAsio.CurrentDevice = previous;
-            }
         }
 
         public override bool OpenControlPanel()
         {
-            int previous = BassAsio.CurrentDevice;
-            BassAsio.CurrentDevice = _asioDeviceIndex;
             try
             {
+                BassAsio.CurrentDevice = _asioDeviceIndex;
                 if (BassAsio.ControlPanel())
                 {
                     return true;
@@ -153,10 +151,6 @@ namespace YARG.Audio.BASS.Asio
             catch (Exception exception)
             {
                 YargLogger.LogException(exception, "Failed to open ASIO control panel");
-            }
-            finally
-            {
-                BassAsio.CurrentDevice = previous;
             }
 
             return false;
@@ -247,7 +241,8 @@ namespace YARG.Audio.BASS.Asio
 
             for (int channel = 0; channel < _driver.InputCount; channel++)
             {
-                var input = BassAsioInput.Create(_driver.DriverId, _driver.DriverName, channel, SampleRate);
+                var input = BassAsioInput.Create(_driver.DriverId, _driver.DriverName, channel, SampleRate,
+                    _driver.CallbackFrames);
                 if (input == null)
                 {
                     YargLogger.LogFormatError("Failed to create ASIO input {0}: {1}", channel, Bass.LastError);
