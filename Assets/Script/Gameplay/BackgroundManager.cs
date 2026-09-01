@@ -64,6 +64,10 @@ namespace YARG.Gameplay
         private bool _videoStarted = false;
         private bool _videoSeeking = false;
 
+        // Last pause state actually applied to the video player -- see Update()'s
+        // GameManager.Paused diff check.
+        private bool _lastKnownPausedState;
+
         // Set when OnVideoPrepared issues the initial seek to VideoStartTimeSeconds; cleared once
         // LibVlcVideoPlayer.FramesDeliveredSinceSeek reaches MIN_FRAMES_BEFORE_INITIAL_REVEAL, not
         // on seekCompleted -- seekCompleted fires as soon as the seek is requested, before the
@@ -616,6 +620,24 @@ namespace YARG.Gameplay
             if (_videoSeeking)
                 return;
 
+            // Follows GameManager.Paused directly each frame rather than being pushed
+            // pause/resume calls -- same pattern as CharacterManager's SetSpringPause.
+            // Diffing once per frame, after GameManager's own Update (which runs first, see its
+            // DefaultExecutionOrder), means only the frame's settled value is ever applied,
+            // however many times something toggled Paused within it.
+            if (_videoPlayer.playerEnabled && _videoStarted && GameManager.Paused != _lastKnownPausedState)
+            {
+                _lastKnownPausedState = GameManager.Paused;
+                if (_lastKnownPausedState)
+                {
+                    _videoPlayer.Pause();
+                }
+                else
+                {
+                    _videoPlayer.Play();
+                }
+            }
+
             double time = GameManager.GetAudioPlaybackTime(GameManager.SongTime);
             // Start video
             if (!_videoStarted)
@@ -874,12 +896,13 @@ namespace YARG.Gameplay
             if (!_videoSeeking)
                 return;
 
-            // OverrideResume() releases the pause-override SetTime engaged for this seek (see
-            // SetTime); only actually resume the video once it reports every such override is
-            // clear, not just this one (a second overlapping SetTime call could still be waiting).
-            if (!SettingsManager.Settings.WaitForSongVideo.Value || GameManager.OverrideResume())
+            // Releases the pause-override SetTime engaged for this seek (see SetTime) -- must
+            // run even though its result isn't used here. Update()'s GameManager.Paused check
+            // picks up the actual final play/pause state once _videoSeeking clears below,
+            // whether or not other overrides are still holding the song paused.
+            if (SettingsManager.Settings.WaitForSongVideo.Value)
             {
-                SetPaused(GameManager.Paused);
+                GameManager.OverrideResume();
             }
 
             enabled = !double.IsNaN(_videoEndTime);
@@ -896,25 +919,6 @@ namespace YARG.Gameplay
                     _videoRateBias = 0f;
                     _videoPlayer.playbackSpeed = speed;
                     break;
-            }
-        }
-
-        public void SetPaused(bool paused)
-        {
-            // Pause/unpause video. Silently no-ops a request that arrives mid-seek
-            // (_videoSeeking) rather than queuing it -- OnVideoSeeked calls this again with the
-            // then-current state once the seek lands, so nothing is lost as long as GameManager's
-            // paused state doesn't change again in between.
-            if (_videoPlayer.playerEnabled && _videoStarted && !_videoSeeking)
-            {
-                if (paused)
-                {
-                    _videoPlayer.Pause();
-                }
-                else
-                {
-                    _videoPlayer.Play();
-                }
             }
         }
 

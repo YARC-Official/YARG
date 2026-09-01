@@ -470,7 +470,8 @@ namespace YARG.Gameplay
                 }
             }
 
-            // Pause the background/venue
+            // Pause the venue. The background video follows GameManager.Paused on its own each
+            // frame (see BackgroundManager.Update) rather than being told here.
             Time.timeScale = 0f;
             GameStateFetcher.SetPaused(true);
 
@@ -593,7 +594,8 @@ namespace YARG.Gameplay
                 return;
             }
 
-            // Unpause the background/venue
+            // Unpause the venue. The background video follows GameManager.Paused on its own each
+            // frame (see BackgroundManager.Update) rather than being told here.
             Time.timeScale = 1f;
             GameStateFetcher.SetPaused(false);
 
