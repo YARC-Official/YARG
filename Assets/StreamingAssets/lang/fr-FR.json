@@ -1531,14 +1531,9 @@
                     "ExcludeSelected": "Aucune pédale"
                 }
             },
-            "UseMedianForInSongCalibration": {
-                "Name": "Méthode de calibration",
-                "Description": "Utiliser la médiane ou la moyenne lors de la calibration automatique et/ou de l'enregistrement du décalage moyen. La médiane résiste mieux à une seule note mal synchronisée.",
-                "Dropdown": {
-                    "Off": "Utiliser la moyenne",
-                    "AutoCalibrationOnly": "Automatique: médiane, fin de musique: moyenne",
-                    "AutoCalibrationAndEndOfSong": "Utiliser la médiane"
-                }
+            "UseMedianForEndOfSongCalibration": {
+                "Name": "Utiliser la médiane pour la calibration de fin de musique",
+                "Description": "Utiliser la médiane ou la moyenne lors de l'enregistrement du décalage moyen. La médiane résiste mieux à une seule note mal synchronisée."
             },
             "AutoCalibrateVideo": {
                 "Name": "Calibrage automatique de la vidéo",

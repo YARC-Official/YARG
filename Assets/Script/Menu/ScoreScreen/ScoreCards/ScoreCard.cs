@@ -342,10 +342,9 @@ namespace YARG.Menu.ScoreScreen
             // Mirrors ScoreScreenMenu.ToggleOffsetToJson: the filter-category value is what's
             // actually saved whenever this instrument's calibration filter narrows things down
             // *and* a filtered value is available (i.e. the category rows are shown); otherwise
-            // it's the plain offset. Median vs average is decided by UseMedianForInSongCalibration.
+            // it's the plain offset. Median vs average is decided by UseMedianForEndOfSongCalibration.
             bool useCategoryForCalibration = FilterMode != OffsetCalibrationFilter.Everything && showCategoryRows;
-            bool useMedianForCalibration = SettingsManager.Settings.UseMedianForInSongCalibration.Value
-                == UseMedianForInSongCalibrationMode.AutoCalibrationAndEndOfSong;
+            bool useMedianForCalibration = SettingsManager.Settings.UseMedianForEndOfSongCalibration.Value;
 
             var rows = new List<(string Label, double Value, bool IsCalibrationRow)>
             {

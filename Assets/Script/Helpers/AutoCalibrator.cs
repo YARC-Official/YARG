@@ -217,7 +217,7 @@ namespace YARG.Helpers
             }
 
             var filtered = RemoveOutliers(sample);
-            double center = UseMedian ? CalculateMedian(filtered) : filtered.Average();
+            double center = CalculateMedian(filtered);
             int adjustment = (int) Math.Round(center * DAMPING);
 
             if (Math.Abs(center) <= STABLE_THRESHOLD_MS)
@@ -234,14 +234,6 @@ namespace YARG.Helpers
             _matchingAccuracyList.Clear();
             _nonMatchingAccuracyList.Clear();
         }
-
-        // Median is more robust than the mean to a single outlier note (lag spike, overstrum,
-        // fat-finger) within these small (SAMPLE_SIZE-note) windows, at the cost of needing
-        // roughly 1.57x as many samples to match the mean's precision on well-behaved (roughly
-        // Gaussian) timing noise -- see UseMedianForInSongCalibrationMode for the other half of
-        // this trade-off, applied to the end-of-song band average instead.
-        private static bool UseMedian =>
-            SettingsManager.Settings.UseMedianForInSongCalibration.Value != UseMedianForInSongCalibrationMode.Off;
 
         // Picks which pooled sample list to calibrate from, or null if we should keep collecting.
         // With OnlySelected/ExcludeSelected: wait for SAMPLE_SIZE notes on the relevant side,

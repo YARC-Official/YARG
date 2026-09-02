@@ -46,13 +46,6 @@ namespace YARG.Settings
         Always,
     }
 
-    public enum UseMedianForInSongCalibrationMode
-    {
-        Off,
-        AutoCalibrationOnly,
-        AutoCalibrationAndEndOfSong,
-    }
-
     // Shared by every per-instrument "which notes count for calibration" dropdown (currently
     // strums for guitar, kicks for drums). OnlySelected/ExcludeSelected both fall back to
     // Everything if the chosen category has zero samples in a given window -- see AutoCalibrator.
@@ -198,13 +191,13 @@ namespace YARG.Settings
             public ToggleSetting AutoCalibrateAudio { get; } = new(false);
             public ToggleSetting AutoCalibrateVideo { get; } = new(false);
             public ToggleSetting AutoCalibrateOffset { get; } = new(false);
+            public ToggleSetting UseSongOffsetCalibration { get; } = new(true);
             public DropdownSetting<ShowMeanSongOffsetCalibrationMode> ShowMeanSongOffsetCalibration { get; } = new(ShowMeanSongOffsetCalibrationMode.OnlyOnePlayer)
             {
                 ShowMeanSongOffsetCalibrationMode.Off,
                 ShowMeanSongOffsetCalibrationMode.OnlyOnePlayer,
                 ShowMeanSongOffsetCalibrationMode.Always
             };
-            public ToggleSetting UseSongOffsetCalibration { get; } = new(true);
             public DropdownSetting<OffsetCalibrationFilter> UseStrumOnlyOffsetForCalibration { get; } = new(OffsetCalibrationFilter.Everything)
             {
                 OffsetCalibrationFilter.Everything,
@@ -217,12 +210,7 @@ namespace YARG.Settings
                 OffsetCalibrationFilter.OnlySelected,
                 OffsetCalibrationFilter.ExcludeSelected
             };
-            public DropdownSetting<UseMedianForInSongCalibrationMode> UseMedianForInSongCalibration { get; } = new(UseMedianForInSongCalibrationMode.AutoCalibrationOnly)
-            {
-                UseMedianForInSongCalibrationMode.Off,
-                UseMedianForInSongCalibrationMode.AutoCalibrationOnly,
-                UseMedianForInSongCalibrationMode.AutoCalibrationAndEndOfSong
-            };
+            public ToggleSetting UseMedianForEndOfSongCalibration { get; } = new(True);
 
             public ToggleSetting AccountForHardwareLatency { get; } = new(true);
 

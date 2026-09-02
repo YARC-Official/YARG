@@ -698,8 +698,8 @@ namespace YARG.Gameplay
                 // player's own samples first. Otherwise a player who hit 30 notes would count
                 // exactly as much as one who hit 3000, which skews the band number toward whoever
                 // played the least. That single value is the mean, unless
-                // UseMedianForInSongCalibration is set to also cover the end-of-song save, in
-                // which case it's the median -- see GetWeightedOffset.
+                // UseMedianForEndOfSongCalibration is set to true, in
+                // which case it's the median, see GetWeightedOffset.
                 MeanAverageOffset = GetWeightedOffset(_players
                     .Where(player => !player.Player.Profile.IsBot)
                     .SelectMany(player => player.BaseStats.GetOffsetSamples())
@@ -766,9 +766,8 @@ namespace YARG.Gameplay
 
         /// <summary>
         /// Reduces a pooled sample list to a single band-wide offset value: the mean, unless
-        /// <see cref="SettingsManager.Settings.UseMedianForInSongCalibration"/> is set to
-        /// <see cref="UseMedianForInSongCalibrationMode.AutoCalibrationAndEndOfSong"/>, in which
-        /// case the median. Null for an empty sample list.
+        /// <see cref="SettingsManager.Settings.UseMedianForEndOfSongCalibration"/> is set to true,
+        /// in which case the median. Null for an empty sample list.
         /// </summary>
         private static double? GetWeightedOffset(List<double> samples)
         {
@@ -777,8 +776,7 @@ namespace YARG.Gameplay
                 return null;
             }
 
-            bool useMedian = SettingsManager.Settings.UseMedianForInSongCalibration.Value
-                == UseMedianForInSongCalibrationMode.AutoCalibrationAndEndOfSong;
+            bool useMedian = SettingsManager.Settings.UseMedianForEndOfSongCalibration.Value;
             return useMedian ? CalculateMedian(samples) : samples.Average();
         }
 

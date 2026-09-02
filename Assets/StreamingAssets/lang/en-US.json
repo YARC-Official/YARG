@@ -1745,14 +1745,9 @@
                     "ExcludeSelected": "No Kicks"
                 }
             },
-            "UseMedianForInSongCalibration": {
-                "Name": "In-Song Calibration Method",
-                "Description": "Use the median or the average when auto calibrating and/or saving average song offset. The median resists being thrown off by a single mistimed note.",
-                "Dropdown": {
-                    "Off": "Always Use Average",
-                    "AutoCalibrationOnly": "Auto: Median, End of Song: Average",
-                    "AutoCalibrationAndEndOfSong": "Always Use Median"
-                }
+            "UseMedianForEndOfSongCalibration": {
+                "Name": "Use Median for End of Song Calibration",
+                "Description": "Use the median or the average when saving average song offset. The median resists being thrown off by a single mistimed note."
             },
             "VocalMonitoring": {
                 "Name": "Vocal Monitoring Volume",

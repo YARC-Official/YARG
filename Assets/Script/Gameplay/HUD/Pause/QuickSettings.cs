@@ -192,9 +192,8 @@ namespace YARG.Gameplay.HUD
                 // Instead, we just add it manually right after VideoCalibration.
                 //
                 // Note: the strum/kick calibration filter dropdowns (UseStrumOnlyOffsetForCalibration,
-                // UseKickOnlyOffsetForCalibration) are intentionally not offered here -- like the
-                // other calibration dropdown (UseMedianForInSongCalibration), they're only in the
-                // main Settings menu, since this pause quick-settings menu doesn't have a dropdown
+                // UseKickOnlyOffsetForCalibration) are intentionally not offered here, they're only in
+                // the main Settings menu, since this pause quick-settings menu doesn't have a dropdown
                 // prefab wired up yet.
                 if (settingName == nameof(SettingsManager.Settings.VideoCalibration) && songOffsetSetting != null)
                 {
