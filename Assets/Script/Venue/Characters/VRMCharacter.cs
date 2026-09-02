@@ -122,6 +122,11 @@ namespace YARG.Venue.Characters
             _hasLipsyncAssigned = true;
         }
 
+        public GenreAnimationMap GetGenreSpecificAnimations()
+        {
+            return _genreSpecificAnimations;
+        }
+
         protected override void Update()
         {
             if (_characterManager != null)
