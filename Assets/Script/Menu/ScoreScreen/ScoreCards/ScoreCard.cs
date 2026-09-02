@@ -324,6 +324,9 @@ namespace YARG.Menu.ScoreScreen
         /// to the normal statistics. When <see cref="FilterMode"/> is set to exclude the filter
         /// category (e.g. "No Strums"), the *other* side's statistics are shown instead, under
         /// <see cref="OppositeCategoryLabel"/>, since that's the side actually driving calibration.
+        /// The one row whose value would actually be saved as the song's calibration offset renders
+        /// in white; the rest stay gray, so new players can tell at a glance which number this all
+        /// comes down to.
         /// </summary>
         private void BuildOffsetSummaryRows()
         {
@@ -336,16 +339,24 @@ namespace YARG.Menu.ScoreScreen
             bool hasOther = primarySamples != null && primarySamples.Count < samples.Count;
             bool showCategoryRows = hasPrimary && hasOther;
 
-            var rows = new List<(string Label, double Value)>
+            // Mirrors ScoreScreenMenu.ToggleOffsetToJson: the filter-category value is what's
+            // actually saved whenever this instrument's calibration filter narrows things down
+            // *and* a filtered value is available (i.e. the category rows are shown); otherwise
+            // it's the plain offset. Median vs average is decided by UseMedianForInSongCalibration.
+            bool useCategoryForCalibration = FilterMode != OffsetCalibrationFilter.Everything && showCategoryRows;
+            bool useMedianForCalibration = SettingsManager.Settings.UseMedianForInSongCalibration.Value
+                == UseMedianForInSongCalibrationMode.AutoCalibrationAndEndOfSong;
+
+            var rows = new List<(string Label, double Value, bool IsCalibrationRow)>
             {
-                ("AVERAGE OFFSET", Stats.GetAverageOffset()),
-                ("MEDIAN OFFSET", GetMedian(samples) ?? Stats.GetAverageOffset())
+                ("AVERAGE OFFSET", Stats.GetAverageOffset(), !useCategoryForCalibration && !useMedianForCalibration),
+                ("MEDIAN OFFSET", GetMedian(samples) ?? Stats.GetAverageOffset(), !useCategoryForCalibration && useMedianForCalibration)
             };
 
             if (showCategoryRows)
             {
-                rows.Insert(1, ($"{primaryLabel} AVERAGE", primarySamples.Average()));
-                rows.Add(($"{primaryLabel} MEDIAN", GetMedian(primarySamples) ?? primarySamples.Average()));
+                rows.Insert(1, ($"{primaryLabel} AVERAGE", primarySamples.Average(), useCategoryForCalibration && !useMedianForCalibration));
+                rows.Add(($"{primaryLabel} MEDIAN", GetMedian(primarySamples) ?? primarySamples.Average(), useCategoryForCalibration && useMedianForCalibration));
             }
 
             var templateRow = _averageOffset.transform.parent as RectTransform;
@@ -364,7 +375,8 @@ namespace YARG.Menu.ScoreScreen
             string labelPath = GetRelativePath(templateRow, labelTransform);
             string valuePath = GetRelativePath(templateRow, _averageOffset.transform);
 
-            SetOffsetRow(templateRow.gameObject, labelPath, valuePath, rows[0].Label, rows[0].Value);
+            SetOffsetRow(templateRow.gameObject, labelPath, valuePath, rows[0].Label, rows[0].Value,
+                rows[0].IsCalibrationRow);
 
             int templateIndex = templateRow.GetSiblingIndex();
             for (int i = 1; i < rows.Count; i++)
@@ -373,7 +385,7 @@ namespace YARG.Menu.ScoreScreen
                 clone.name = $"AverageOffsetRow_{i}";
                 clone.SetActive(true);
                 clone.transform.SetSiblingIndex(templateIndex + i);
-                SetOffsetRow(clone, labelPath, valuePath, rows[i].Label, rows[i].Value);
+                SetOffsetRow(clone, labelPath, valuePath, rows[i].Label, rows[i].Value, rows[i].IsCalibrationRow);
                 _generatedOffsetRows.Add(clone);
             }
 
@@ -396,8 +408,13 @@ namespace YARG.Menu.ScoreScreen
             return Math.Round(seconds * 1000, MidpointRounding.AwayFromZero).ToString();
         }
 
+        /// <param name="isCalibrationRow">
+        /// Whether this row's value is the one actually saved as the song's calibration offset --
+        /// rendered in white (via <see cref="ColorizePrimary"/>) to flag it as the number that
+        /// matters; every other row renders muted gray (via <see cref="ColorizeSecondary"/>).
+        /// </param>
         private void SetOffsetRow(GameObject rowObject, string labelPath, string valuePath, string labelText,
-            double valueSeconds)
+            double valueSeconds, bool isCalibrationRow)
         {
             var row = rowObject.transform as RectTransform;
             var label = labelPath != null
@@ -407,14 +424,16 @@ namespace YARG.Menu.ScoreScreen
 
             if (label != null)
             {
-                label.text = labelText;
+                label.text = isCalibrationRow ? ColorizePrimary(labelText) : ColorizeSecondary(labelText);
             }
 
             if (value != null)
             {
                 value.alignment = TextAlignmentOptions.MidlineRight;
-                value.text =
-                    $"{ColorizePrimary(ToMilliseconds(valueSeconds))} {ColorizeSecondary("ms")}";
+                var colorizedValue = isCalibrationRow
+                    ? ColorizePrimary(ToMilliseconds(valueSeconds))
+                    : ColorizeSecondary(ToMilliseconds(valueSeconds));
+                value.text = $"{colorizedValue} {ColorizeSecondary("ms")}";
             }
         }
 
