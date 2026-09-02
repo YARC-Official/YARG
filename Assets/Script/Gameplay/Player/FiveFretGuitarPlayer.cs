@@ -28,6 +28,8 @@ namespace YARG.Gameplay.Player
     {
         private const double SUSTAIN_END_MUTE_THRESHOLD = 0.1;
 
+        private const double DEDICATED_OPEN_FLASH_HOLD_DURATION = 0.05;
+
         private const int SHIFT_INDICATOR_MEASURES_BEFORE = 5;
 
         public bool UsingOpenLane { get; private set; }
@@ -44,7 +46,7 @@ namespace YARG.Gameplay.Player
         // Record of the most recent time that each BRE lane has been lit up by any of the actions that map to it
         private Dictionary<FiveFretGuitarFret, double> _fretToMostRecentTime = new()
         {
-            { FiveFretGuitarFret.Open,      0 },
+            { FiveFretGuitarFret.Open,      0 }, // We'll also use this for driving the dedicated open fret's "flashing" effect, like on drums
             { FiveFretGuitarFret.Green,     0 },
             { FiveFretGuitarFret.Red,       0 },
             { FiveFretGuitarFret.Yellow,    0 },
@@ -56,6 +58,9 @@ namespace YARG.Gameplay.Player
         // Key is a FiveFretGuitarFret
         // Value is the fret's lateral position on the fret array
         private Dictionary<int, int> _highwayOrdering;
+
+        // Used to control fret brightness for the dedicated open lane
+        private bool _openSustaining = false;
 
         private float GetLanePositionOrCentered(int fret)
         {
@@ -268,6 +273,8 @@ namespace YARG.Gameplay.Player
             {
                 _fretToMostRecentTime[(FiveFretGuitarFret)fret] = 0;
             }
+
+
         }
 
         public override void SetReplayTime(double time)
@@ -382,7 +389,18 @@ namespace YARG.Gameplay.Player
         {
             for (var action = GuitarAction.GreenFret; action <= GuitarAction.OrangeFret; action++)
             {
-                _fretArray.SetPressed((int)GetFretIndex(action), Engine.IsFretHeld(action));
+                _fretArray.SetPressed((int) GetFretIndex(action), Engine.IsFretHeld(action));
+            }
+
+            if (UsingOpenLane) {
+                var openInputDelta = GameManager.VisualTime - _fretToMostRecentTime[FiveFretGuitarFret.Open];
+
+
+                _fretArray.SetPressedDrum(
+                    (int) FiveFretGuitarFret.Open,
+                    _openSustaining || (openInputDelta < DEDICATED_OPEN_FLASH_HOLD_DURATION),
+                    Fret.AnimType.CorrectNormal
+                );
             }
         }
 
@@ -555,6 +573,11 @@ namespace YARG.Gameplay.Player
                 }
                 else
                 {
+                    if (note.Fret is (int) FiveFretGuitarFret.Open)
+                    {
+                        _fretToMostRecentTime[FiveFretGuitarFret.Open] = GameManager.VisualTime;
+                    }
+
                     _fretArray.PlayHitAnimation(note.Fret);
                 }
             }
@@ -626,6 +649,7 @@ namespace YARG.Gameplay.Player
                 if (UsingOpenLane)
                 {
                     _fretArray.PlayMissAnimation((int)FiveFretGuitarFret.Open);
+                    _fretToMostRecentTime[FiveFretGuitarFret.Open] = GameManager.VisualTime;
                 }
                 else
                 {
@@ -644,9 +668,14 @@ namespace YARG.Gameplay.Player
                     continue;
                 }
 
+                if (note.Fret is (int) FiveFretGuitarFret.Open)
+                {
+                    _openSustaining = true;
+                }
+
                 if (NoteIsFullWidth(note))
                 {
-                    if (note.Fret == (int) FiveFretGuitarFret.Open)
+                    if (note.Fret is (int) FiveFretGuitarFret.Open)
                     {
                         StrikelineAnimator.SetParticleColor(Player.ColorProfile.FiveFretGuitar.GetNoteColor(note.Fret).ToUnityColor());
                     }
@@ -677,6 +706,11 @@ namespace YARG.Gameplay.Player
                 }
 
                 (NotePool.GetByKey(note) as FiveFretGuitarNoteElement)?.SustainEnd(finished);
+
+                if (note.Fret is (int) FiveFretGuitarFret.Open)
+                {
+                    _openSustaining = false;
+                }
 
                 if (NoteIsFullWidth(note))
                 {
@@ -940,6 +974,14 @@ namespace YARG.Gameplay.Player
                     _highwayOrdering = GryboHighwayHelpers.OPEN_LANE_LEFTY_HIGHWAY_ORDERING;
                     break;
             }
+        }
+
+        // It's not possible to hold an open note (no, holding the strum bar down doesn't count),
+        // so the dedicated open lane needs the same visual trick we use on drums to make it look
+        // fully lit when hit
+        private void ZeroOutOpenHitTime()
+        {
+
         }
     }
 }
