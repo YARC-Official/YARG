@@ -39,6 +39,23 @@ namespace YARG.Menu.ScoreScreen
         /// </summary>
         protected virtual string CategoryLabel => "STRUM";
 
+        /// <summary>
+        /// Label for the *other* side of the filter category, used in place of
+        /// <see cref="CategoryLabel"/> when <see cref="FilterMode"/> is ExcludeSelected (e.g. "No
+        /// Strums") -- that's the side actually driving calibration in that mode.
+        /// </summary>
+        protected virtual string OppositeCategoryLabel => "HOPO/TAP";
+
+        /// <summary>
+        /// Which per-instrument calibration filter dropdown decides whether the filter-category
+        /// notes or the other side render as "primary" (white, and shown in the summary rows) --
+        /// e.g. UseStrumOnlyOffsetForCalibration for guitar, UseKickOnlyOffsetForCalibration for
+        /// drums. Read directly from settings rather than passed in through Initialize, since it
+        /// can be changed from the main Settings menu between score screens.
+        /// </summary>
+        protected virtual OffsetCalibrationFilter FilterMode =>
+            SettingsManager.Settings.UseStrumOnlyOffsetForCalibration.Value;
+
         [SerializeField]
         private ModifierIcon _modifierIconPrefab;
 
@@ -301,18 +318,23 @@ namespace YARG.Menu.ScoreScreen
         private GameObject _offsetMedianSpacer;
 
         /// <summary>
-        /// Displays offset statistics as separate left-label/right-value rows. Filter-category-only
+        /// Displays offset statistics as separate left-label/right-value rows. The filter-category
         /// statistics (<see cref="CategoryLabel"/>) are shown only when the song contains both
         /// category and non-category hits; otherwise they would either be unavailable or identical
-        /// to the normal statistics.
+        /// to the normal statistics. When <see cref="FilterMode"/> is set to exclude the filter
+        /// category (e.g. "No Strums"), the *other* side's statistics are shown instead, under
+        /// <see cref="OppositeCategoryLabel"/>, since that's the side actually driving calibration.
         /// </summary>
         private void BuildOffsetSummaryRows()
         {
             var samples = Stats.GetOffsetSamples();
-            var categorySamples = GetFilterCategorySamples(samples);
-            bool hasCategory = categorySamples is { Count: > 0 };
-            bool hasNonCategory = categorySamples != null && categorySamples.Count < samples.Count;
-            bool showCategoryRows = hasCategory && hasNonCategory;
+            bool primaryIsCategory = FilterMode != OffsetCalibrationFilter.ExcludeSelected;
+            var primarySamples = GetFilterCategorySamples(samples, primaryIsCategory);
+            var primaryLabel = primaryIsCategory ? CategoryLabel : OppositeCategoryLabel;
+
+            bool hasPrimary = primarySamples is { Count: > 0 };
+            bool hasOther = primarySamples != null && primarySamples.Count < samples.Count;
+            bool showCategoryRows = hasPrimary && hasOther;
 
             var rows = new List<(string Label, double Value)>
             {
@@ -322,8 +344,8 @@ namespace YARG.Menu.ScoreScreen
 
             if (showCategoryRows)
             {
-                rows.Insert(1, ($"{CategoryLabel} AVERAGE", categorySamples.Average()));
-                rows.Add(($"{CategoryLabel} MEDIAN", GetMedian(categorySamples) ?? categorySamples.Average()));
+                rows.Insert(1, ($"{primaryLabel} AVERAGE", primarySamples.Average()));
+                rows.Add(($"{primaryLabel} MEDIAN", GetMedian(primarySamples) ?? primarySamples.Average()));
             }
 
             var templateRow = _averageOffset.transform.parent as RectTransform;
@@ -473,10 +495,11 @@ namespace YARG.Menu.ScoreScreen
         }
 
         /// <summary>
-        /// Returns just the filter-category samples (strums for guitar, kicks for drums), or null
-        /// if <see cref="OffsetSampleFilterCategory"/> isn't available/aligned for this instrument.
+        /// Returns just the samples on the requested side of <see cref="OffsetSampleFilterCategory"/>
+        /// (true for the filter category itself -- a strum for guitar, a kick for drums -- false for
+        /// the other side), or null if it isn't available/aligned for this instrument.
         /// </summary>
-        private List<double> GetFilterCategorySamples(IReadOnlyList<double> samples)
+        private List<double> GetFilterCategorySamples(IReadOnlyList<double> samples, bool wantCategory = true)
         {
             if (OffsetSampleFilterCategory == null || OffsetSampleFilterCategory.Count != samples.Count)
             {
@@ -486,7 +509,7 @@ namespace YARG.Menu.ScoreScreen
             var result = new List<double>(samples.Count);
             for (int i = 0; i < samples.Count; i++)
             {
-                if (OffsetSampleFilterCategory[i])
+                if (OffsetSampleFilterCategory[i] == wantCategory)
                 {
                     result.Add(samples[i]);
                 }
@@ -523,10 +546,16 @@ namespace YARG.Menu.ScoreScreen
                 ? OffsetSampleFilterCategory
                 : null;
 
-            int[] categoryBins = BuildHistogramBins(offsetSamples, filterCategory, wantCategory: true, minOffsetMs, maxOffsetMs);
+            // When calibration is set to exclude the filter category (e.g. "No Strums"), the
+            // *other* side is what's actually driving calibration, so it renders as the primary
+            // (white, bottom-of-stack) bar instead -- otherwise the graph would spotlight the side
+            // being ignored rather than the one actually being calibrated against.
+            bool primaryIsCategory = FilterMode != OffsetCalibrationFilter.ExcludeSelected;
+
+            int[] categoryBins = BuildHistogramBins(offsetSamples, filterCategory, wantCategory: primaryIsCategory, minOffsetMs, maxOffsetMs);
             int[] otherBins = filterCategory == null
                 ? new int[OFFSET_HISTOGRAM_BIN_COUNT]
-                : BuildHistogramBins(offsetSamples, filterCategory, wantCategory: false, minOffsetMs, maxOffsetMs);
+                : BuildHistogramBins(offsetSamples, filterCategory, wantCategory: !primaryIsCategory, minOffsetMs, maxOffsetMs);
 
             int maxCount = 0;
             for (int i = 0; i < OFFSET_HISTOGRAM_BIN_COUNT; i++)

@@ -174,26 +174,43 @@ namespace YARG.Gameplay.Player
             SettingsManager.Settings.UseKickOnlyOffsetForCalibration;
 
         /// <inheritdoc/>
+        /// <remarks>
+        /// The engine fires its hit event (and so this callback) once per individual pad in a
+        /// chord, not once per chord -- see the remarks on <see cref="GetOffsetSampleFilterCategory"/>
+        /// for why that matters. <paramref name="note"/> is therefore always that one pad already,
+        /// so a direct Pad check is correct here.
+        /// </remarks>
         protected override bool? IsNoteInOffsetFilterCategory(DrumNote note) => note.Pad == _kick;
 
         /// <inheritdoc/>
         /// <remarks>
         /// Same approach as <see cref="FiveFretGuitarPlayer.GetOffsetSampleFilterCategory"/>, but
-        /// keyed on kick vs. pad instead of strum vs. HOPO/tap. <see cref="DrumNote.IsAnyLane"/>
-        /// (rather than the base <see cref="Note{TNote}.IsLane"/>) additionally excludes sustained
-        /// kick-lane notes, which have no discrete hit time.
+        /// keyed on kick vs. pad instead of strum vs. HOPO/tap -- with one crucial difference: this
+        /// walks each chord's <see cref="Note{TNote}.AllNotes"/> (itself plus everything chorded
+        /// with it, e.g. a kick landing on the same tick as a cymbal) rather than just
+        /// <see cref="Notes"/>' top-level entries. A guitar strum hits every fret in a chord with
+        /// one motion, so the engine records one offset sample per chord -- but each pad in a drum
+        /// "chord" is a separate physical hit, judged and timed independently (confirmed in
+        /// YargDrumsEngine.HitNote, which calls IncrementNotesHit once per pad, not once per chord).
+        /// Iterating only the top-level notes here undercounts against
+        /// <see cref="Engine.BaseStats.GetOffsetSamples"/> (one sample per pad) and permanently
+        /// mismatches its count -- which is what was silently forcing the single-color histogram
+        /// fallback even after chorded kicks were correctly detected.
         /// </remarks>
         public override IReadOnlyList<bool> GetOffsetSampleFilterCategory()
         {
             var result = new List<bool>(BaseStats.GetOffsetSamples().Count);
             foreach (var note in Notes)
             {
-                if (note.IsAnyLane || note.IsBigRockEnding || !note.WasHit)
+                foreach (var chordNote in note.AllNotes)
                 {
-                    continue;
-                }
+                    if (chordNote.IsAnyLane || chordNote.IsBigRockEnding || !chordNote.WasHit)
+                    {
+                        continue;
+                    }
 
-                result.Add(note.Pad == _kick);
+                    result.Add(chordNote.Pad == _kick);
+                }
             }
 
             return result;
