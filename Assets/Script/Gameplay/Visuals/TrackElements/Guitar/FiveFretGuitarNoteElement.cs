@@ -207,9 +207,10 @@ namespace YARG.Gameplay.Visuals
             System.Drawing.Color colorNoStarPower;
             System.Drawing.Color color;
 
-            // Open HOPO/Tap notes use a dedicated color (the prefab's
+            // Fullwidth Open HOPO/Tap notes use a dedicated color (the prefab's
             // EmissionAddition: 1 washes to white by default)
-            if (NoteRef.Fret == (int) FiveFretGuitarFret.Open &&
+            if (!Player.UsingOpenLane &&
+                NoteRef.Fret is (int) FiveFretGuitarFret.Open &&
                 NoteRef.Type is GuitarNoteType.Hopo or GuitarNoteType.Tap)
             {
                 colorNoStarPower = colors.OpenHopoNote;
