@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 using YARG.Core.Chart;
 using YARG.Core.Engine;
@@ -20,7 +21,7 @@ namespace YARG.Venue
             _lightingLayerHash = hashes.LightingLayerHash;
         }
 
-        public void BuildCommands(SongChart chart, AnimatorCommandQueue queue)
+        public void BuildCommands(SongChart chart, AnimatorCommandQueue queue, Action callback = null)
         {
             var events = chart.VenueTrack.Lighting;
             bool suppressNext = false;

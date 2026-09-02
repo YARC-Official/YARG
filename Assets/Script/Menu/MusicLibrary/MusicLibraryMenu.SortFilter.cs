@@ -134,7 +134,7 @@ namespace YARG.Menu.MusicLibrary
             {
                 _sortedSongs = _searchField.Search(SettingsManager.Settings.LibrarySort);
                 // _sortedSongs = ApplyCollapsedSectionsForCurrentSort(_sortedSongs);
-                _searchField.gameObject.SetActive(true);
+                _searchField.gameObject.SetActive(MenuState == MenuState.Library);
             }
             else
             {
@@ -304,13 +304,15 @@ namespace YARG.Menu.MusicLibrary
             }
 
             SortAttribute nextSort;
-            if (SettingsManager.Settings.LibrarySort >= SortAttribute.Playable)
+            if (SettingsManager.Settings.LibrarySort >= SortAttribute.Random)
             {
                 nextSort = SortAttribute.Name;
             }
             else
             {
                 nextSort = (SortAttribute) ((int) SettingsManager.Settings.LibrarySort + 1);
+                if (nextSort == SortAttribute.Playable)
+                    nextSort = SortAttribute.Random;
             }
 
             ChangeSort(nextSort);
@@ -342,15 +344,16 @@ namespace YARG.Menu.MusicLibrary
 
         public void ApplySortFromPopup(SortAttribute sort, bool ascending = true)
         {
-            if (MenuState == MenuState.Playlist && SelectedPlaylist != null)
+            var playlist = MenuState == MenuState.Show ? ShowPlaylist : SelectedPlaylist;
+            if ((MenuState == MenuState.Playlist || MenuState == MenuState.Show) && playlist != null)
             {
                 switch (sort)
                 {
                     case SortAttribute.Name:
-                        SelectedPlaylist.SortByName(ascending);
+                        playlist.SortByName(ascending);
                         break;
                     case SortAttribute.Artist:
-                        SelectedPlaylist.SortByArtist(ascending);
+                        playlist.SortByArtist(ascending);
                         break;
                     default:
                         ToastManager.ToastWarning("Sort not supported in playlists");
@@ -375,7 +378,7 @@ namespace YARG.Menu.MusicLibrary
                         MenuData.Colors.HeaderSecondary,
                         700);
                 }
-                else if (SettingsManager.Settings.LibrarySort < SortAttribute.Instrument)
+                else
                 {
                     var sortingBy = TextColorer.StyleString("SORTED BY ",
                         MenuData.Colors.HeaderTertiary,
@@ -386,18 +389,6 @@ namespace YARG.Menu.MusicLibrary
                         700);
 
                     _sortInfoHeaderPrimaryText.text = ZString.Concat(sortingBy, sortKey);
-                }
-                else
-                {
-                    var playableSongs = TextColorer.StyleString("PLAYABLE ON ",
-                        MenuData.Colors.HeaderTertiary,
-                        600);
-
-                    var sortKey = TextColorer.StyleString(SettingsManager.Settings.LibrarySort.ToLocalizedName(),
-                        MenuData.Colors.HeaderSecondary,
-                        700);
-
-                    _sortInfoHeaderPrimaryText.text = ZString.Concat(playableSongs, sortKey);
                 }
 
                 string countText;
@@ -457,11 +448,14 @@ namespace YARG.Menu.MusicLibrary
                 _sortInfoHeaderStarCountText.text = "";
                 _sortInfoHeaderStarIcon.color = _sortInfoHeaderStarIcon.color.WithAlpha(0);
             }
-            else if (MenuState == MenuState.Playlist)
+            else if (MenuState == MenuState.Playlist || MenuState == MenuState.Show)
             {
+                string playlistName = MenuState == MenuState.Show
+                    ? Localize.Key("Menu.MusicLibrary.PlayShow")
+                    : GetPlaylistDisplayName(SelectedPlaylist);
                 _sortInfoHeaderPrimaryText.text = ZString.Concat(
                     TextColorer.StyleString("PLAYLIST ", MenuData.Colors.HeaderTertiary, 600),
-                    TextColorer.StyleString(GetPlaylistDisplayName(SelectedPlaylist), MenuData.Colors.HeaderSecondary, 700));
+                    TextColorer.StyleString(playlistName, MenuData.Colors.HeaderSecondary, 700));
 
                 var countText = TextColorer.StyleString(ZString.Format("{0:N0}", _totalSongCount),
                     MenuData.Colors.HeaderSecondary, 500);

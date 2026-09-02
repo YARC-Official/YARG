@@ -394,7 +394,8 @@ namespace YARG.Scores
                 foreach (var instrument in instruments)
                 {
                      var highScores = _db.QueryPlayerHighScores(
-                         playerId, instrument, HighestDifficultyOnly, CurrentDifficultyOnly, currentDifficulty);
+                          playerId, instrument, HighestDifficultyOnly, CurrentDifficultyOnly, currentDifficulty,
+                          SongContainer.SongsByHash.Keys, SongContainer.LibraryRevision);
                     foreach (var score in highScores)
                     {
                         if (!checksumByRecordId.TryGetValue(score.GameRecordId, out var checksum))
@@ -408,7 +409,8 @@ namespace YARG.Scores
                 foreach (var instrument in instruments)
                 {
                      var highPercentages = _db.QueryPlayerHighestPercentages(
-                         playerId, instrument, HighestDifficultyOnly, CurrentDifficultyOnly, currentDifficulty);
+                          playerId, instrument, HighestDifficultyOnly, CurrentDifficultyOnly, currentDifficulty,
+                          SongContainer.SongsByHash.Keys, SongContainer.LibraryRevision);
                     foreach (var score in highPercentages)
                     {
                         if (!checksumByRecordId.TryGetValue(score.GameRecordId, out var checksum))
@@ -567,8 +569,11 @@ namespace YARG.Scores
             {
                 List<PlayerScoreWithChecksum> records = profile.GameMode == GameMode.EliteDrums
                     ? _db.QueryPlayerBestStarsForInstruments(
-                        profile, MidiDrumkitHelper.Instruments, SettingsManager.Settings.HighScoreHistory.Value)
-                    : _db.QueryPlayerBestStars(profile, SettingsManager.Settings.HighScoreHistory.Value);
+                        profile, MidiDrumkitHelper.Instruments, SettingsManager.Settings.HighScoreHistory.Value,
+                        SongContainer.SongsByHash.Keys, SongContainer.LibraryRevision)
+                    : _db.QueryPlayerBestStars(
+                        profile, SettingsManager.Settings.HighScoreHistory.Value, SongContainer.SongsByHash.Keys,
+                        SongContainer.LibraryRevision);
                 Dictionary<HashWrapper, StarAmount> result = new Dictionary<HashWrapper, StarAmount>();
 
                 foreach (PlayerScoreWithChecksum record in records)

@@ -187,6 +187,18 @@ namespace YARG.Menu.MusicLibrary
         protected override void OnEnable()
         {
             base.OnEnable();
+
+            // Playable Songs used to be a sort that also filtered the library. Preserve that
+            // preference while migrating it to the independent filter.
+            if (SettingsManager.Settings.LibrarySort == SortAttribute.Playable)
+            {
+                SettingsManager.Settings.OnlyShowPlayableSongs.SetValueWithoutNotify(true);
+                var previousSort = SettingsManager.Settings.PreviousLibrarySort;
+                SettingsManager.Settings.LibrarySort = previousSort == SortAttribute.Playable ||
+                    previousSort == SortAttribute.Unspecified
+                    ? SortAttribute.Name
+                    : previousSort;
+            }
             SetSidebarDifficultiesVisible(true);
 
             _heldInputs.Clear();
@@ -614,10 +626,14 @@ namespace YARG.Menu.MusicLibrary
                         };
                     }
 
+                    string shortcutName = SettingsManager.Settings.LibrarySort == SortAttribute.Source
+                        ? displayName
+                        : section.CategoryGroup;
+
                     sortHeader = new SortHeaderViewType(
                         displayName,
                         section.Songs.Length,
-                        section.CategoryGroup,
+                        shortcutName,
                         section.Songs,
                         _collapsedHeaders[SettingsManager.Settings.LibrarySort].Contains(section),
                         onHeaderClicked);

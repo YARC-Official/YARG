@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 using YARG.Core;
 using YARG.Core.Chart;
@@ -26,7 +27,7 @@ namespace YARG.Venue
             _instrumentIndex = instrumentIndex;
         }
 
-        public void BuildCommands(SongChart chart, AnimatorCommandQueue queue)
+        public void BuildCommands(SongChart chart, AnimatorCommandQueue queue, Action callback = null)
         {
             _notes.Clear();
             InstrumentDifficulty<VocalNote> instrument = null;

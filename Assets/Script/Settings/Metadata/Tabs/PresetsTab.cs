@@ -237,12 +237,13 @@ namespace YARG.Settings.Metadata
             else
             {
                 tab.SetPresetReference(SelectedPreset);
-                tab.HideFields = preset.DefaultPreset;
-                tab.BuildSettingTab(settingContainer, navGroup);
+                tab.ReadOnlyFields = preset.DefaultPreset;
                 if (preset.DefaultPreset)
                 {
+                    // Keep the default-preset notice above its read-only fields.
                     Object.Instantiate(_presetDefaultText, settingContainer);
                 }
+                tab.BuildSettingTab(settingContainer, navGroup);
             }
         }
 

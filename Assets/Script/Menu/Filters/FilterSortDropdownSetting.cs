@@ -26,6 +26,9 @@ namespace YARG.Menu.Filters
                 if (sort == SortAttribute.Unspecified)
                     continue;
 
+                if (sort == SortAttribute.Playable)
+                    continue;
+
                 if (sort == SortAttribute.Playcount && PlayerContainer.OnlyHasBotsActive())
                     continue;
 

@@ -68,46 +68,24 @@ namespace YARG.Menu.Settings
             if (preset.DefaultPreset) return;
 
             // Deleting is irreversible, so confirm first (same compact dialog
-            // as "Copy from note"). The delete button starts disabled/grey for
-            // a moment so it can't be hit by accidental mashing.
-            bool armed = false;
-
-            void Delete()
-            {
-                if (!armed) return;
-
-                DialogManager.Instance.ClearDialog();
-
-                _tab.SelectedContent.DeletePreset(preset);
-                _tab.ResetSelectedPreset();
-
-                SettingsMenu.Instance.Refresh();
-            }
-
-            // The cancel button keeps its brighter "safe" color here (delete is
-            // the destructive action, so it stays the red default).
-            var deleteButton = PresetSubTab.ShowCompactConfirmation(
+            // as "Copy from note"), with the delete button disabled for a moment
+            // so it can't be hit by accidental mashing. The cancel button keeps
+            // its brighter "safe" color (delete is the destructive action, so it
+            // gets the red default).
+            PresetSubTab.ShowCompactConfirmation(
                 Localize.Key("Settings.PresetSetting.Dialog.DeletePreset.Title"),
                 Localize.KeyFormat("Settings.PresetSetting.Dialog.DeletePreset.Message", preset.Name),
-                "Menu.Common.Delete", MenuData.Colors.CancelButton, Delete,
-                cancelColor: MenuData.Colors.BrightButton);
+                "Menu.Common.Delete", MenuData.Colors.CancelButton, () =>
+                {
+                    DialogManager.Instance.ClearDialog();
 
-            deleteButton.DisableButton();
-            ArmDeleteButton(deleteButton).Forget();
+                    _tab.SelectedContent.DeletePreset(preset);
+                    _tab.ResetSelectedPreset();
 
-            async UniTaskVoid ArmDeleteButton(ColoredButton button)
-            {
-                await UniTask.Delay(2000, cancellationToken: button.GetCancellationTokenOnDestroy());
-
-                // The dialog may have been cancelled in the meantime
-                if (button == null) return;
-
-                armed = true;
-                button.EnableButton();
-                // EnableButton restores the prefab's original color, not the
-                // red this button was given
-                button.SetBackgroundAndTextColor(MenuData.Colors.CancelButton);
-            }
+                    SettingsMenu.Instance.Refresh();
+                },
+                cancelColor: MenuData.Colors.BrightButton,
+                armDelaySeconds: 2f);
         }
 
         public void ImportPreset()

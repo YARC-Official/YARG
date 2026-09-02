@@ -450,6 +450,29 @@ namespace YARG.Song
             { (OTHER, "trance"),                        (TRANCE, null) },
         };
 
+        // Overgenrelizer keys to BaseGenre
+        private static Dictionary<SortString, BaseGenre> OVERGENRE_TO_BASE_GENRE = new()
+        {
+            { OVER_DANCE_ELECTRONIC, BaseGenre.DanceElectronic },
+            { OVER_HIP_HOP, BaseGenre.HipHop },
+            { OVER_METAL, BaseGenre.Metal },
+            { OVER_POP, BaseGenre.Pop },
+            { OVER_PUNK_SCENE_CORE, BaseGenre.Punk },
+            { OVER_ROCK, BaseGenre.Rock },
+            { OVER_OTHER, BaseGenre.Other },
+        };
+
+        public enum BaseGenre
+        {
+            DanceElectronic,
+            HipHop,
+            Metal,
+            Pop,
+            Punk,
+            Rock,
+            Other,
+        }
+
         private class TupleStringComparer : IEqualityComparer<(string genre, string subgenre)>
         {
             public bool Equals((string genre, string subgenre) x, (string genre, string subgenre) y)

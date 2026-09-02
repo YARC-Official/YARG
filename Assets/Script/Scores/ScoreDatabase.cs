@@ -67,6 +67,7 @@ namespace YARG.Scores
     public class ScoreDatabase : IDisposable
     {
         public SQLiteConnection _db;
+        private int _currentLibraryHashRevision = -1;
 
         public ScoreDatabase(string path)
         {
@@ -76,6 +77,25 @@ namespace YARG.Scores
             _db.CreateTable<GameRecord>();
             _db.CreateTable<PlayerScoreRecord>();
             _db.CreateTable<PlayerInfoRecord>();
+
+            // These queries filter player scores by player/instrument/replay status and then join through
+            // GameRecordId. The individual column indexes created by sqlite-net cannot cover that access pattern.
+            _db.Execute(
+                @"CREATE INDEX IF NOT EXISTS IX_PlayerScores_PlayerInstrumentReplayGameRecord
+                ON PlayerScores(PlayerId, Instrument, IsReplay, GameRecordId)"
+            );
+            _db.Execute(
+                @"CREATE INDEX IF NOT EXISTS IX_PlayerScores_GameRecordPlayerInstrumentReplayDifficulty
+                ON PlayerScores(GameRecordId, PlayerId, Instrument, IsReplay, Difficulty)"
+            );
+
+            // This connection-local table lets score queries join against the current library without
+            // constructing an IN clause that can exceed SQLite's parameter limit.
+            _db.Execute(
+                @"CREATE TEMP TABLE IF NOT EXISTS CurrentLibrarySongHashes (
+                    SongChecksum BLOB PRIMARY KEY
+                ) WITHOUT ROWID"
+            );
 
             // Fill in missing percentage values
             int amountFilled = _db.Execute(
@@ -227,6 +247,26 @@ namespace YARG.Scores
             return result;
         }
 
+        private void SetCurrentLibrarySongHashes(IEnumerable<HashWrapper> songHashes, int libraryRevision)
+        {
+            if (_currentLibraryHashRevision == libraryRevision)
+            {
+                return;
+            }
+
+            _db.RunInTransaction(() =>
+            {
+                _db.Execute("DELETE FROM CurrentLibrarySongHashes");
+                foreach (var hash in songHashes)
+                {
+                    _db.Execute(
+                        "INSERT OR IGNORE INTO CurrentLibrarySongHashes (SongChecksum) VALUES (?)",
+                        hash.HashBytes);
+                }
+            });
+            _currentLibraryHashRevision = libraryRevision;
+        }
+
         public List<GameRecord> QueryAllScores()
         {
             return Query<GameRecord>("SELECT * FROM GameRecords");
@@ -299,80 +339,33 @@ namespace YARG.Scores
             Instrument instrument,
             bool highestDifficultyOnly,
             bool currentDifficultyOnly,
-            Difficulty currentDifficulty
+            Difficulty currentDifficulty,
+            IEnumerable<HashWrapper> currentLibrarySongHashes,
+            int libraryRevision
         )
         {
+            SetCurrentLibrarySongHashes(currentLibrarySongHashes, libraryRevision);
             string orderBy = highestDifficultyOnly
-                ? "ps2.Difficulty DESC, ps2.Score DESC"
-                : "ps2.Score DESC";
+                ? "ps.Difficulty DESC, ps.Score DESC"
+                : "ps.Score DESC";
             string difficultyFilter = currentDifficultyOnly ? " AND ps.Difficulty = ?" : "";
-            string subDifficultyFilter = currentDifficultyOnly ? " AND ps2.Difficulty = ps.Difficulty" : "";
 
-            string query = $@"SELECT ps.* FROM PlayerScores ps
-                INNER JOIN GameRecords gr
-                    ON ps.GameRecordId = gr.Id
-                WHERE ps.PlayerId = ?
-                    AND ps.Instrument = ?
-                    {difficultyFilter}
-                    AND ps.IsReplay = 0
-                    AND ps.Id = (
-                        SELECT ps2.Id FROM PlayerScores ps2
-                            INNER JOIN GameRecords gr2
-                                ON ps2.GameRecordId = gr2.Id
-                        WHERE ps2.PlayerId = ps.PlayerId
-                            AND ps2.Instrument = ps.Instrument
-                            {subDifficultyFilter}
-                            AND ps2.IsReplay = 0
-                            AND gr2.SongChecksum = gr.SongChecksum
-                        ORDER BY {orderBy}
-                        LIMIT 1
-                    )";
-
-            return currentDifficultyOnly
-                ? Query<PlayerScoreRecord>(
-                    query,
-                    playerId,
-                    (int) instrument,
-                    (int) currentDifficulty)
-                : Query<PlayerScoreRecord>(
-                    query,
-                    playerId,
-                    (int) instrument);
-        }
-
-        public List<PlayerScoreRecord> QueryPlayerHighestPercentages(
-            Guid playerId,
-            Instrument instrument,
-            bool highestDifficultyOnly,
-            bool currentDifficultyOnly,
-            Difficulty currentDifficulty
-        )
-        {
-            string orderBy = highestDifficultyOnly
-                ? "ps2.Difficulty DESC, ps2.Percent DESC, ps2.Score DESC, ps2.IsFc DESC"
-                : "ps2.Percent DESC, ps2.Score DESC, ps2.IsFc DESC";
-            string difficultyFilter = currentDifficultyOnly ? " AND ps.Difficulty = ?" : "";
-            string subDifficultyFilter = currentDifficultyOnly ? " AND ps2.Difficulty = ps.Difficulty" : "";
-
-            string query = $@"SELECT ps.* FROM PlayerScores ps
-                INNER JOIN GameRecords gr
-                    ON ps.GameRecordId = gr.Id
-                WHERE ps.PlayerId = ?
-                    AND ps.Instrument = ?
-                    {difficultyFilter}
-                    AND ps.IsReplay = 0
-                    AND ps.Id = (
-                        SELECT ps2.Id FROM PlayerScores ps2
-                            INNER JOIN GameRecords gr2
-                                ON ps2.GameRecordId = gr2.Id
-                        WHERE ps2.PlayerId = ps.PlayerId
-                            AND ps2.Instrument = ps.Instrument
-                            {subDifficultyFilter}
-                            AND ps2.IsReplay = 0
-                            AND gr2.SongChecksum = gr.SongChecksum
-                        ORDER BY {orderBy}
-                        LIMIT 1
-                    )";
+            string query = $@"WITH RankedScores AS (
+                    SELECT ps.*,
+                        ROW_NUMBER() OVER (
+                            PARTITION BY gr.SongChecksum
+                            ORDER BY {orderBy}
+                        ) AS ScoreRank
+                    FROM CurrentLibrarySongHashes library
+                    INNER JOIN GameRecords gr
+                        ON gr.SongChecksum = library.SongChecksum
+                    INNER JOIN PlayerScores ps
+                        ON ps.GameRecordId = gr.Id
+                    WHERE ps.PlayerId = ?
+                        AND ps.Instrument = ?{difficultyFilter}
+                        AND ps.IsReplay = 0
+                )
+                SELECT * FROM RankedScores WHERE ScoreRank = 1";
 
             var result = currentDifficultyOnly
                 ? Query<PlayerScoreRecord>(
@@ -384,6 +377,53 @@ namespace YARG.Scores
                     query,
                     playerId,
                     (int) instrument);
+            return result;
+        }
+
+        public List<PlayerScoreRecord> QueryPlayerHighestPercentages(
+            Guid playerId,
+            Instrument instrument,
+            bool highestDifficultyOnly,
+            bool currentDifficultyOnly,
+            Difficulty currentDifficulty,
+            IEnumerable<HashWrapper> currentLibrarySongHashes,
+            int libraryRevision
+        )
+        {
+            SetCurrentLibrarySongHashes(currentLibrarySongHashes, libraryRevision);
+            string orderBy = highestDifficultyOnly
+                ? "ps.Difficulty DESC, ps.Percent DESC, ps.Score DESC, ps.IsFc DESC"
+                : "ps.Percent DESC, ps.Score DESC, ps.IsFc DESC";
+            string difficultyFilter = currentDifficultyOnly ? " AND ps.Difficulty = ?" : "";
+
+            string query = $@"WITH RankedScores AS (
+                    SELECT ps.*,
+                        ROW_NUMBER() OVER (
+                            PARTITION BY gr.SongChecksum
+                            ORDER BY {orderBy}
+                        ) AS ScoreRank
+                    FROM CurrentLibrarySongHashes library
+                    INNER JOIN GameRecords gr
+                        ON gr.SongChecksum = library.SongChecksum
+                    INNER JOIN PlayerScores ps
+                        ON ps.GameRecordId = gr.Id
+                    WHERE ps.PlayerId = ?
+                        AND ps.Instrument = ?{difficultyFilter}
+                        AND ps.IsReplay = 0
+                )
+                SELECT * FROM RankedScores WHERE ScoreRank = 1";
+
+            var result = currentDifficultyOnly
+                ? Query<PlayerScoreRecord>(
+                    query,
+                    playerId,
+                    (int) instrument,
+                    (int) currentDifficulty)
+                : Query<PlayerScoreRecord>(
+                    query,
+                    playerId,
+                    (int) instrument);
+
             return result;
         }
 
@@ -543,50 +583,54 @@ namespace YARG.Scores
             );
         }
 
-        public List<PlayerScoreWithChecksum> QueryPlayerBestStars(YargProfile profile, HighScoreHistoryMode mode)
+        public List<PlayerScoreWithChecksum> QueryPlayerBestStars(
+            YargProfile profile,
+            HighScoreHistoryMode mode,
+            IEnumerable<HashWrapper> currentLibrarySongHashes,
+            int libraryRevision)
         {
+            SetCurrentLibrarySongHashes(currentLibrarySongHashes, libraryRevision);
+
             bool currentDifficultyOnly = mode is
                 HighScoreHistoryMode.HighestPercentageCurrentDifficulty or
                 HighScoreHistoryMode.HighestScoreCurrentDifficulty;
 
             string difficultyFilter = currentDifficultyOnly ? " AND ps.Difficulty = ?" : "";
-            string subDifficultyFilter = currentDifficultyOnly ? " AND ps2.Difficulty = ps.Difficulty" : "";
             string orderBy = mode switch
             {
                 HighScoreHistoryMode.HighestPercentageOverall =>
-                    "ps2.Percent DESC, ps2.Score DESC, ps2.IsFc DESC",
+                    "ps.Percent DESC, ps.Score DESC, ps.IsFc DESC",
                 HighScoreHistoryMode.HighestPercentageDifficulty =>
-                    "ps2.Difficulty DESC, ps2.Percent DESC, ps2.Score DESC, ps2.IsFc DESC",
+                    "ps.Difficulty DESC, ps.Percent DESC, ps.Score DESC, ps.IsFc DESC",
                 HighScoreHistoryMode.HighestScoreOverall =>
-                    "ps2.Score DESC",
+                    "ps.Score DESC",
                 HighScoreHistoryMode.HighestScoreDifficulty =>
-                    "ps2.Difficulty DESC, ps2.Score DESC",
+                    "ps.Difficulty DESC, ps.Score DESC",
                 HighScoreHistoryMode.HighestPercentageCurrentDifficulty =>
-                    "ps2.Percent DESC, ps2.Score DESC, ps2.IsFc DESC",
+                    "ps.Percent DESC, ps.Score DESC, ps.IsFc DESC",
                 HighScoreHistoryMode.HighestScoreCurrentDifficulty =>
-                    "ps2.Score DESC",
+                    "ps.Score DESC",
                 _ => throw new ArgumentOutOfRangeException(nameof(mode), mode, null)
             };
 
-            string query = $@"SELECT ps.*, gr.SongChecksum FROM PlayerScores ps
-                INNER JOIN GameRecords gr
-                    ON ps.GameRecordId = gr.Id
-                WHERE ps.PlayerId = ?
-                    AND ps.Instrument = ?{difficultyFilter}
-                    AND ps.IsReplay = 0
-                    AND ps.Id = (
-                        SELECT ps2.Id FROM PlayerScores ps2
-                            INNER JOIN GameRecords gr2
-                                ON ps2.GameRecordId = gr2.Id
-                        WHERE ps2.PlayerId = ps.PlayerId
-                            AND ps2.Instrument = ps.Instrument{subDifficultyFilter}
-                            AND ps2.IsReplay = 0
-                            AND gr2.SongChecksum = gr.SongChecksum
-                        ORDER BY {orderBy}
-                        LIMIT 1
-                    )";
+            string query = $@"WITH RankedScores AS (
+                    SELECT ps.*, gr.SongChecksum,
+                        ROW_NUMBER() OVER (
+                            PARTITION BY gr.SongChecksum
+                            ORDER BY {orderBy}
+                        ) AS ScoreRank
+                    FROM CurrentLibrarySongHashes library
+                    INNER JOIN GameRecords gr
+                        ON gr.SongChecksum = library.SongChecksum
+                    INNER JOIN PlayerScores ps
+                        ON ps.GameRecordId = gr.Id
+                    WHERE ps.PlayerId = ?
+                        AND ps.Instrument = ?{difficultyFilter}
+                        AND ps.IsReplay = 0
+                )
+                SELECT * FROM RankedScores WHERE ScoreRank = 1";
 
-            return currentDifficultyOnly
+            var result = currentDifficultyOnly
                 ? Query<PlayerScoreWithChecksum>(
                     query,
                     profile.Id,
@@ -596,54 +640,57 @@ namespace YARG.Scores
                     query,
                     profile.Id,
                     (int) profile.CurrentInstrument);
+            return result;
         }
 
         public List<PlayerScoreWithChecksum> QueryPlayerBestStarsForInstruments(
             YargProfile profile,
             IReadOnlyList<Instrument> instruments,
-            HighScoreHistoryMode mode)
+            HighScoreHistoryMode mode,
+            IEnumerable<HashWrapper> currentLibrarySongHashes,
+            int libraryRevision)
         {
+            SetCurrentLibrarySongHashes(currentLibrarySongHashes, libraryRevision);
+
             bool currentDifficultyOnly = mode is
                 HighScoreHistoryMode.HighestPercentageCurrentDifficulty or
                 HighScoreHistoryMode.HighestScoreCurrentDifficulty;
 
             string inClause = BuildInstrumentInClause(instruments);
             string difficultyFilter = currentDifficultyOnly ? " AND ps.Difficulty = ?" : "";
-            string subDifficultyFilter = currentDifficultyOnly ? " AND ps2.Difficulty = ps.Difficulty" : "";
             string orderBy = mode switch
             {
                 HighScoreHistoryMode.HighestPercentageOverall =>
-                    "ps2.Percent DESC, ps2.IsFc DESC",
+                    "ps.Percent DESC, ps.IsFc DESC",
                 HighScoreHistoryMode.HighestPercentageDifficulty =>
-                    "ps2.Difficulty DESC, ps2.Percent DESC, ps2.IsFc DESC",
+                    "ps.Difficulty DESC, ps.Percent DESC, ps.IsFc DESC",
                 HighScoreHistoryMode.HighestScoreOverall =>
-                    "ps2.Score DESC",
+                    "ps.Score DESC",
                 HighScoreHistoryMode.HighestScoreDifficulty =>
-                    "ps2.Difficulty DESC, ps2.Score DESC",
+                    "ps.Difficulty DESC, ps.Score DESC",
                 HighScoreHistoryMode.HighestPercentageCurrentDifficulty =>
-                    "ps2.Percent DESC, ps2.IsFc DESC",
+                    "ps.Percent DESC, ps.IsFc DESC",
                 HighScoreHistoryMode.HighestScoreCurrentDifficulty =>
-                    "ps2.Score DESC",
+                    "ps.Score DESC",
                 _ => throw new ArgumentOutOfRangeException(nameof(mode), mode, null)
             };
 
-            string query = $@"SELECT ps.*, gr.SongChecksum FROM PlayerScores ps
-                INNER JOIN GameRecords gr
-                    ON ps.GameRecordId = gr.Id
-                WHERE ps.PlayerId = ?
-                    AND ps.Instrument {inClause}{difficultyFilter}
-                    AND ps.IsReplay = 0
-                    AND ps.Id = (
-                        SELECT ps2.Id FROM PlayerScores ps2
-                            INNER JOIN GameRecords gr2
-                                ON ps2.GameRecordId = gr2.Id
-                        WHERE ps2.PlayerId = ps.PlayerId
-                            AND ps2.Instrument {inClause}{subDifficultyFilter}
-                            AND ps2.IsReplay = 0
-                            AND gr2.SongChecksum = gr.SongChecksum
-                        ORDER BY {orderBy}
-                        LIMIT 1
-                    )";
+            string query = $@"WITH RankedScores AS (
+                    SELECT ps.*, gr.SongChecksum,
+                        ROW_NUMBER() OVER (
+                            PARTITION BY gr.SongChecksum
+                            ORDER BY {orderBy}
+                        ) AS ScoreRank
+                    FROM CurrentLibrarySongHashes library
+                    INNER JOIN GameRecords gr
+                        ON gr.SongChecksum = library.SongChecksum
+                    INNER JOIN PlayerScores ps
+                        ON ps.GameRecordId = gr.Id
+                    WHERE ps.PlayerId = ?
+                        AND ps.Instrument {inClause}{difficultyFilter}
+                        AND ps.IsReplay = 0
+                )
+                SELECT * FROM RankedScores WHERE ScoreRank = 1";
 
             var parameters = new List<object> { profile.Id };
             parameters.AddRange(BuildInstrumentParams(instruments));
@@ -651,8 +698,6 @@ namespace YARG.Scores
             {
                 parameters.Add((int) profile.CurrentDifficulty);
             }
-            parameters.AddRange(BuildInstrumentParams(instruments));
-
             return Query<PlayerScoreWithChecksum>(query, parameters.ToArray());
         }
 

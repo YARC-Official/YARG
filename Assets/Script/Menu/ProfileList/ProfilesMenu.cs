@@ -111,6 +111,7 @@ namespace YARG.Menu.ProfileList
                     AddProfileListGroup(Localize.Key("Menu.ProfileList.ActiveProfiles"), activeProfiles);
                     AddProfileListGroup(Localize.Key("Menu.ProfileList.Players"), otherProfiles.Where(e => !e.IsBot));
                     AddProfileListGroup(Localize.Key("Menu.ProfileList.Bots"), otherProfiles.Where(e => e.IsBot));
+                    AddUnloadedGroup(Localize.Key("Menu.ProfileList.CouldNotLoad"));
 
                     if (selectedProfile == null)
                     {
@@ -148,6 +149,25 @@ namespace YARG.Menu.ProfileList
             var headerGo = Instantiate(_profileListHeaderPrefab, _leftPaneList);
             headerGo.GetComponentInChildren<TextMeshProUGUI>().text = header;
             _navigationGroup.AddNavigatable(headerGo);
+        }
+
+        private void AddUnloadedGroup(string header)
+        {
+            if (PlayerContainer.UnloadedProfiles.Count == 0)
+            {
+                return;
+            }
+
+            var headerGo = Instantiate(_profileListHeaderPrefab, _profileList);
+            headerGo.GetComponentInChildren<TextMeshProUGUI>().text = header;
+            _navigationGroup.AddNavigatable(headerGo);
+
+            foreach (var record in PlayerContainer.UnloadedProfiles)
+            {
+                var go = Instantiate(_profileViewPrefab, _profileList);
+                go.GetComponent<ProfileView>().InitUnloaded(this, record, _profileSidebar);
+                _navigationGroup.AddNavigatable(go);
+            }
         }
 
         // TODO: Since we're using this outside of ProfileListMenu, we should probably find a better home for it

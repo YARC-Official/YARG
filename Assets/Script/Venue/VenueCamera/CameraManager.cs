@@ -96,9 +96,13 @@ namespace YARG.Venue.VenueCamera
         private GameObject _venue;
 
         public Camera CurrentCamera { get; private set; }
+        public CameraCutEvent.CameraCutSubject CurrentSubject { get; private set; }
 
         // Minimum of 1 second between camera cuts when reduce flashing lights is enabled
         private const float REDUCED_CAMERA_CUT_INTERVAL = 1.0f;
+
+        public delegate void CameraCutEventDelegate();
+        public event CameraCutEventDelegate OnCameraCut;
 
         private List<Camera>  _cameras;
 
@@ -227,7 +231,7 @@ namespace YARG.Venue.VenueCamera
 
             _useCameraTimer = _cameraCuts.Count < 1;
 
-            SwitchCamera(CurrentCamera, _useCameraTimer);
+            SwitchCamera(CurrentCamera, CameraCutEvent.CameraCutSubject.Stage, _useCameraTimer);
 
             if (_useCameraTimer)
             {
@@ -236,6 +240,13 @@ namespace YARG.Venue.VenueCamera
             }
 
             GameManager.SetVenueCameraManager(this);
+
+            // If there is a VenueAnimator, pass through its camera cut events
+            var venueAnimator = FindFirstObjectByType<VenueAnimator>();
+            if (venueAnimator != null)
+            {
+                venueAnimator.OnCameraCut += () => OnCameraCut?.Invoke();
+            }
         }
 
         private static (List<PostProcessingEvent> PostProcessingEvents, List<CameraCutEvent> CameraCuts) ReduceFlashingEvents(
@@ -299,7 +310,7 @@ namespace YARG.Venue.VenueCamera
                 if (GameManager.VisualTime >= cut.Time)
                 {
                     CurrentCut = cut;
-                    SwitchCamera(MapSubjectToValidCamera(cut));
+                    SwitchCamera(MapSubjectToValidCamera(cut), cut.Subject);
                 }
 
                 _currentCutIndex++;
@@ -324,7 +335,10 @@ namespace YARG.Venue.VenueCamera
             if (_cameraTimer <= 0f)
             {
                 YargLogger.LogDebug("Changing camera due to timer expiry");
-                SwitchCamera(GetRandomCamera(), true);
+                var subject = GetRandomSubject();
+                var validCameras = _subjectToCameraMap[subject];
+                var camera = validCameras[Random.Range(0, validCameras.Count)];
+                SwitchCamera(camera, subject, true);
             }
         }
 
@@ -339,13 +353,14 @@ namespace YARG.Venue.VenueCamera
 
             if (_currentCutIndex < _cameraCuts.Count && _cameras.Count > 1)
             {
-                SwitchCamera(MapSubjectToValidCamera(_cameraCuts[_currentCutIndex]));
+                var cut = _cameraCuts[_currentCutIndex];
+                SwitchCamera(MapSubjectToValidCamera(cut), cut.Subject);
             }
 
             ResetPostProcessing(time);
         }
 
-        private void SwitchCamera(Camera newCamera, bool random = false)
+        private void SwitchCamera(Camera newCamera, CameraCutEvent.CameraCutSubject newSubject, bool random = false)
         {
             if (random)
             {
@@ -358,13 +373,15 @@ namespace YARG.Venue.VenueCamera
             }
 
             // If we are switching to the same camera, just leave it active
-            if (newCamera == CurrentCamera)
+            if (newCamera == CurrentCamera && newSubject == CurrentSubject)
             {
                 return;
             }
 
             CurrentCamera.gameObject.SetActive(false);
+            OnCameraCut?.Invoke();
             CurrentCamera = newCamera;
+            CurrentSubject = newSubject;
             CurrentCamera.gameObject.SetActive(true);
             _cameraIndex = _cameras.IndexOf(CurrentCamera);
         }
@@ -379,6 +396,12 @@ namespace YARG.Venue.VenueCamera
         {
             var index = Random.Range(0, _cameras.Count - 1);
             return _cameras[index];
+        }
+
+        private CameraCutEvent.CameraCutSubject GetRandomSubject()
+        {
+            var randomKey = _subjectToCameraMap.Keys.ElementAt(Random.Range(0, _subjectToCameraMap.Values.Count));
+            return randomKey;
         }
 
         private Camera MapSubjectToValidCamera(CameraCutEvent cut)
