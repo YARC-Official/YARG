@@ -533,7 +533,7 @@ namespace YARG.Assets.Script.Gameplay.Player
 
             if (!IsNormalNote(note))
             {
-                _fretArray.PlayOpenHitAnimation();
+                _fretArray.PlayFullWidthHitAnimation();
             }
             else
             {
@@ -554,7 +554,7 @@ namespace YARG.Assets.Script.Gameplay.Player
 
             if (key is (int) FiveLaneKeysAction.OpenNote && !UsingOpenLane)
             {
-                _fretArray.PlayOpenMissAnimation();
+                _fretArray.PlayFullWidthMissAnimation();
             }
             else
             {

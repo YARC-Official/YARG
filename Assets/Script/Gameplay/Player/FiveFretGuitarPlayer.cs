@@ -481,7 +481,7 @@ namespace YARG.Gameplay.Player
 
         protected override void ModifyLaneFromNote(LaneElement lane, GuitarNote note)
         {
-            if (note.Fret is (int) FiveFretGuitarFret.Open or (int) FiveFretGuitarFret.Wildcard)
+            if (NoteIsFullWidth(note))
             {
                 lane.ToggleFullWidth(true);
             }
@@ -501,7 +501,15 @@ namespace YARG.Gameplay.Player
             var asFret = _actionToFret[action];
 
             _fretToMostRecentTime[asFret] = GameManager.VisualTime;
-            _fretArray.PlayCodaHitAnimation((int)asFret);
+
+            if (asFret is FiveFretGuitarFret.Open && !UsingOpenLane)
+            {
+                _fretArray.PlayFullWidthHitAnimation();
+            }
+            else
+            {
+                _fretArray.PlayCodaHitAnimation((int) asFret);
+            }
         }
 
         protected override void OnCodaStart(CodaSection coda)
@@ -541,13 +549,13 @@ namespace YARG.Gameplay.Player
             {
                 (NotePool.GetByKey(note) as FiveFretGuitarNoteElement)?.HitNote();
 
-                if (note.Fret != (int) FiveFretGuitarFret.Open && note.Fret != (int) FiveFretGuitarFret.Wildcard)
+                if (NoteIsFullWidth(note))
                 {
-                    _fretArray.PlayHitAnimation(note.Fret);
+                    _fretArray.PlayFullWidthHitAnimation();
                 }
                 else
                 {
-                    _fretArray.PlayOpenHitAnimation();
+                    _fretArray.PlayHitAnimation(note.Fret);
                 }
             }
         }
@@ -615,7 +623,14 @@ namespace YARG.Gameplay.Player
             // Play open-strum miss if no frets are held
             if (!anyHeld)
             {
-                _fretArray.PlayOpenMissAnimation();
+                if (UsingOpenLane)
+                {
+                    _fretArray.PlayMissAnimation((int)FiveFretGuitarFret.Open);
+                }
+                else
+                {
+                    _fretArray.PlayFullWidthMissAnimation();
+                }
             }
         }
 
@@ -629,13 +644,8 @@ namespace YARG.Gameplay.Player
                     continue;
                 }
 
-                if (note.Fret != (int) FiveFretGuitarFret.Open && note.Fret != (int) FiveFretGuitarFret.Wildcard)
+                if (NoteIsFullWidth(note))
                 {
-                    _fretArray.SetSustained(note.Fret, true);
-                }
-                else
-                {
-                    // Must be an open or wildcard
                     if (note.Fret == (int) FiveFretGuitarFret.Open)
                     {
                         StrikelineAnimator.SetParticleColor(Player.ColorProfile.FiveFretGuitar.GetNoteColor(note.Fret).ToUnityColor());
@@ -646,6 +656,10 @@ namespace YARG.Gameplay.Player
                     }
 
                     StrikelineAnimator.SetSustaining(true);
+                }
+                else
+                {
+                    _fretArray.SetSustained(note.Fret, true);
                 }
 
                 _sustainCount++;
@@ -664,14 +678,13 @@ namespace YARG.Gameplay.Player
 
                 (NotePool.GetByKey(note) as FiveFretGuitarNoteElement)?.SustainEnd(finished);
 
-                if (note.Fret != (int) FiveFretGuitarFret.Open && note.Fret != (int) FiveFretGuitarFret.Wildcard)
+                if (NoteIsFullWidth(note))
                 {
-                    _fretArray.SetSustained(note.Fret, false);
+                    StrikelineAnimator.SetSustaining(false);
                 }
                 else
                 {
-                    // Must be an open or wildcard
-                    StrikelineAnimator.SetSustaining(false);
+                    _fretArray.SetSustained(note.Fret, false);
                 }
 
                 _sustainCount--;
@@ -860,6 +873,16 @@ namespace YARG.Gameplay.Player
                 // In case we have no samples for this shift event, 0.5 is a reasonable default
                 shift.BeatDuration = firstBeatTime < double.MaxValue ? (lastBeatTime - firstBeatTime) / SHIFT_INDICATOR_MEASURES_BEFORE : 0.5;
             }
+        }
+
+        public bool NoteIsFullWidth(GuitarNote note)
+        {
+            return note.Fret switch
+            {
+                (int) FiveFretGuitarFret.Open => !UsingOpenLane,
+                (int) FiveFretGuitarFret.Wildcard => true,
+                _ => false
+            };
         }
 
         private void SetActiveFretsForShiftEvent(FiveFretRangeShift range)

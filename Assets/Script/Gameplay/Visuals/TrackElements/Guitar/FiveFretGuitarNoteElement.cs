@@ -56,7 +56,7 @@ namespace YARG.Gameplay.Visuals
 
             var noteGroups = IsStarPowerVisible ? StarPowerNoteGroups : NoteGroups;
 
-            if (!IsFullWidth())
+            if (!Player.NoteIsFullWidth(NoteRef))
             {
                 // Deal with regular single-lane notes
                 var lane = Player.GetLanePosition((FiveFretGuitarFret)NoteRef.Fret);
@@ -250,16 +250,6 @@ namespace YARG.Gameplay.Visuals
             _normalSustainLine.gameObject.SetActive(false);
             _openSustainLine.gameObject.SetActive(false);
             _wildcardSustainLine.gameObject.SetActive(false);
-        }
-
-        private bool IsFullWidth()
-        {
-            return NoteRef.Fret switch
-            {
-                (int) FiveFretGuitarFret.Open => !Player.UsingOpenLane,
-                (int) FiveFretGuitarFret.Wildcard => true,
-                _ => false
-            };
         }
     }
 }
