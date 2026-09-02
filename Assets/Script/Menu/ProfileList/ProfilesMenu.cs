@@ -158,14 +158,14 @@ namespace YARG.Menu.ProfileList
                 return;
             }
 
-            var headerGo = Instantiate(_profileListHeaderPrefab, _profileList);
+            var headerGo = Instantiate(_profileListHeaderPrefab, _leftPaneList);
             headerGo.GetComponentInChildren<TextMeshProUGUI>().text = header;
             _navigationGroup.AddNavigatable(headerGo);
 
             foreach (var record in PlayerContainer.UnloadedProfiles)
             {
-                var go = Instantiate(_profileViewPrefab, _profileList);
-                go.GetComponent<ProfileView>().InitUnloaded(this, record, _profileSidebar);
+                var go = Instantiate(_profileViewPrefab, _leftPaneList);
+                go.GetComponent<ProfileView>().InitUnloaded(this, record, _profileCenterPane);
                 _navigationGroup.AddNavigatable(go);
             }
         }

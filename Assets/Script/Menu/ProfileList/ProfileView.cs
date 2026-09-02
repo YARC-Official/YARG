@@ -70,7 +70,7 @@ namespace YARG.Menu.ProfileList
         /// Shows a set-aside profile record that this version of the game could
         /// not load. The row is inert except for its delete button.
         /// </summary>
-        public void InitUnloaded(ProfileListMenu menu, PlayerContainer.UnloadedProfile record, ProfileSidebar sidebar)
+        public void InitUnloaded(ProfilesMenu menu, PlayerContainer.UnloadedProfile record, ProfileCenterPane sidebar)
         {
             _profileListMenu = menu;
             _profileSidebar = sidebar;
