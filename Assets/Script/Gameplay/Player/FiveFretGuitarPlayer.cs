@@ -396,7 +396,7 @@ namespace YARG.Gameplay.Player
                 var openInputDelta = GameManager.VisualTime - _fretToMostRecentTime[FiveFretGuitarFret.Open];
 
 
-                _fretArray.SetPressedDrum(
+                _fretArray.SetPressedImpulse(
                     (int) FiveFretGuitarFret.Open,
                     _openSustaining || (openInputDelta < DEDICATED_OPEN_FLASH_HOLD_DURATION),
                     Fret.AnimType.CorrectNormal
@@ -974,14 +974,6 @@ namespace YARG.Gameplay.Player
                     _highwayOrdering = GryboHighwayHelpers.OPEN_LANE_LEFTY_HIGHWAY_ORDERING;
                     break;
             }
-        }
-
-        // It's not possible to hold an open note (no, holding the strum bar down doesn't count),
-        // so the dedicated open lane needs the same visual trick we use on drums to make it look
-        // fully lit when hit
-        private void ZeroOutOpenHitTime()
-        {
-
         }
     }
 }
