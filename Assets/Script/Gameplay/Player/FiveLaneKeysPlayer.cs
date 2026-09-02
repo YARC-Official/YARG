@@ -84,17 +84,7 @@ namespace YARG.Assets.Script.Gameplay.Player
                 note.FiveLaneKeysAction is not FiveLaneKeysAction.Wildcard;
         }
 
-        private static Dictionary<int, int> OPEN_LANE_HIGHWAY_ORDERING = new()
-        {
-            { (int) FiveFretGuitarFret.Open,    0 },
-            { (int) FiveFretGuitarFret.Green,   1 },
-            { (int) FiveFretGuitarFret.Red,     2 },
-            { (int) FiveFretGuitarFret.Yellow,  3 },
-            { (int) FiveFretGuitarFret.Blue,    4 },
-            { (int) FiveFretGuitarFret.Orange,  5 }
-        };
-
-public override bool ShouldUpdateInputsOnResume => true;
+        public override bool ShouldUpdateInputsOnResume => true;
 
         /// See <see cref="StarMultiplierThresholds"/>
         private static float[] GuitarStarMultiplierThresholds => new[]
@@ -456,7 +446,7 @@ public override bool ShouldUpdateInputsOnResume => true;
             );
         }
 
-        protected override void InitializeSpawnedLane(LaneElement lane, int laneIndex)
+        protected override void InitializeBRELane(LaneElement lane, int laneIndex)
         {
             if (UsingOpenLane)
             {
@@ -515,10 +505,10 @@ public override bool ShouldUpdateInputsOnResume => true;
                 // Open forwards its inputs to the green scoring zone, since opens aren't supposed to be part of 5LK
                 {(int)FiveLaneKeysAction.OpenNote, (int)FiveLaneKeysBreLaneIndex.Green },
                 {(int)FiveLaneKeysAction.GreenKey, (int)FiveLaneKeysBreLaneIndex.Green },
-                {(int)FiveLaneKeysAction.RedKey, (int)FiveLaneKeysBreLaneIndex.Green },
-                {(int)FiveLaneKeysAction.YellowKey, (int)FiveLaneKeysBreLaneIndex.Green },
-                {(int)FiveLaneKeysAction.BlueKey, (int)FiveLaneKeysBreLaneIndex.Green },
-                {(int)FiveLaneKeysAction.OrangeKey, (int)FiveLaneKeysBreLaneIndex.Green },
+                {(int)FiveLaneKeysAction.RedKey, (int)FiveLaneKeysBreLaneIndex.Red },
+                {(int)FiveLaneKeysAction.YellowKey, (int)FiveLaneKeysBreLaneIndex.Yellow },
+                {(int)FiveLaneKeysAction.BlueKey, (int)FiveLaneKeysBreLaneIndex.Blue },
+                {(int)FiveLaneKeysAction.OrangeKey, (int)FiveLaneKeysBreLaneIndex.Orange },
             });
 
             _fretArray.SetBreMode(true);
@@ -840,12 +830,12 @@ public override bool ShouldUpdateInputsOnResume => true;
 
         private void MakeHighwayOrdering()
         {
-            UsingOpenLane = ShouldUseOpenLane();
+            UsingOpenLane = GryboHighwayHelpers.ShouldUseOpenLane(Player.Profile.OpenLaneDisplayType, NoteTrack.Notes);
 
             if (UsingOpenLane)
             {
                 LaneCount = 6;
-                _highwayOrdering = OPEN_LANE_HIGHWAY_ORDERING;
+                _highwayOrdering = GryboHighwayHelpers.OPEN_LANE_HIGHWAY_ORDERING;
                 _actionToBreLaneIndex = new()
                 {
                     { FiveLaneKeysAction.OpenNote, FiveLaneKeysBreLaneIndex.Open },
@@ -869,7 +859,7 @@ public override bool ShouldUpdateInputsOnResume => true;
             else
             {
                 LaneCount = 5;
-                _highwayOrdering = FiveFretGuitarPlayer.DEFAULT_HIGHWAY_ORDERING;
+                _highwayOrdering = GryboHighwayHelpers.DEFAULT_HIGHWAY_ORDERING;
                 _actionToBreLaneIndex = new()
                 {
                     { FiveLaneKeysAction.OpenNote, FiveLaneKeysBreLaneIndex.Green },
@@ -890,35 +880,9 @@ public override bool ShouldUpdateInputsOnResume => true;
                 };
             }
         }
-
-        private bool ShouldUseOpenLane()
-        {
-            switch (Player.Profile.OpenLaneDisplayType)
-            {
-                case OpenLaneDisplayType.Never:
-                    return false;
-                case OpenLaneDisplayType.Always:
-                    return true;
-                case OpenLaneDisplayType.IfChartContainsOpens:
-                    foreach (var note in NoteTrack.Notes)
-                    {
-                        foreach (var child in note.AllNotes)
-                        {
-                            if (child.Fret is (int)FiveFretGuitarFret.Open)
-                            {
-                                return true;
-                            }
-                        }
-                    }
-                    return false;
-                default:
-                    throw new ArgumentOutOfRangeException("Unrecognized OpenLaneDisplayType");
-            }
-        }
-
         private enum FiveLaneKeysBreLaneIndex
         {
-            Open, // Only exists if the Dedicated Open Lane setting is enabled
+            Open, // Not scored, only visually exists if the Dedicated Open Lane setting is enabled
             Green,
             Red,
             Yellow,

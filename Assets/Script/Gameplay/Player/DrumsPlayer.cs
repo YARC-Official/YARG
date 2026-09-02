@@ -580,7 +580,7 @@ namespace YARG.Gameplay.Player
 
         }
 
-        protected override void InitializeSpawnedLane(LaneElement lane, int laneIndex)
+        protected override void InitializeBRELane(LaneElement lane, int laneIndex)
         {
             int highwayIndex = -1;
             HighwayOrderingInfo highwayOrderingInfo = default;
