@@ -24,7 +24,7 @@ namespace YARG.Venue.Characters
         private readonly List<int>       _triggerHashes = new();
         private readonly HashSet<int>    _floatHashes = new();
         private readonly HashSet<int>    _boolHashes = new();
-        private readonly HashSet<int>    _intHashes = new();
+        protected readonly HashSet<int>    _intHashes = new();
 
         private readonly Dictionary<string, int> _hashCache = new();
 
@@ -171,8 +171,10 @@ namespace YARG.Venue.Characters
                 "Idle"            => AnimationStateType.Idle,
                 "Playing"         => AnimationStateType.Playing,
                 "IdleRealtime"    => AnimationStateType.IdleRealtime,
+                "IdleMellow"      => AnimationStateType.IdleMellow,
                 "Intense"         => AnimationStateType.Intense,
                 "Mellow"          => AnimationStateType.Mellow,
+                "End"             => AnimationStateType.End,
                 // Drums
                 "Kick"            => AnimationStateType.Kick,
                 "OpenHat"         => AnimationStateType.OpenHiHat,
@@ -476,7 +478,7 @@ namespace YARG.Venue.Characters
             }
         }
 
-        private class AnimationEventInfo
+        protected class AnimationEventInfo
         {
             public AnimationEventInfo(AnimationStateType type, string name, int hash, int layer, bool hasTrigger)
             {
@@ -616,7 +618,9 @@ namespace YARG.Venue.Characters
             Pick,
             Finger,
             IdleIntense,
-            PlayingSolo
+            PlayingSolo,
+            IdleMellow,
+            End,
         }
 
         private AnimationStateType? GetAnimationStateForHandMap(HandMap.HandMapType handMap)
@@ -649,12 +653,12 @@ namespace YARG.Venue.Characters
             };
         }
 
-        private void SetTrigger(CharacterState.CharacterStateType state)
+        protected void SetTrigger(CharacterState.CharacterStateType state)
         {
             SetTrigger(CharacterStateAnimationStates[state]);
         }
 
-        private void SetTrigger(string triggerName)
+        protected void SetTrigger(string triggerName)
         {
             // See if this exists, and if so, trigger an animation
             if (_animationEvents.TryGet(triggerName, out var animationEvent))
@@ -675,7 +679,7 @@ namespace YARG.Venue.Characters
             }
         }
 
-        private void SetTrigger(List<AnimationEventInfo> animations)
+        protected void SetTrigger(List<AnimationEventInfo> animations)
         {
             foreach (var animation in animations)
             {
@@ -693,7 +697,7 @@ namespace YARG.Venue.Characters
             SetTrigger(AnimationStateType.Playing);
         }
 
-        private void SetTrigger(AnimationStateType state)
+        protected void SetTrigger(AnimationStateType state)
         {
             if (_animationEvents.TryGet(state, out var list))
             {
@@ -734,6 +738,8 @@ namespace YARG.Venue.Characters
                         // First, reset the bools to false (if they exist)
                         SetBool("isIdle", false);
                         SetBool("isIdleRealtime", false);
+                        SetBool("isIdleMellow", false);
+                        SetBool("isIdleIntense", false);
                         SetBool("isPlaying", false);
                         SetBool("isMellow", false);
                         SetBool("isIntense", false);
@@ -743,6 +749,7 @@ namespace YARG.Venue.Characters
 
                         // Update the current generic state (for debug)
                         CurrentGenericState = state;
+                        RngAtLastTransition = CurrentRng;
 
                         // Now reset them if necessary so that transitions can use them to select the correct variety
                         if (IsLayeredState(state))
@@ -754,6 +761,12 @@ namespace YARG.Venue.Characters
                                     break;
                                 case AnimationStateType.IdleRealtime:
                                     SetBool("isIdleRealtime", true);
+                                    break;
+                                case AnimationStateType.IdleMellow:
+                                    SetBool("isIdleMellow", true);
+                                    break;
+                                case AnimationStateType.IdleIntense:
+                                    SetBool("isIdleIntense", true);
                                     break;
                                 case AnimationStateType.Playing:
                                     SetBool("isPlaying", true);
@@ -788,7 +801,7 @@ namespace YARG.Venue.Characters
             }
         }
 
-        private void ResetGenericTriggers()
+        protected void ResetGenericTriggers()
         {
             foreach (var hash in _genericTriggerHashes)
             {
@@ -939,7 +952,8 @@ namespace YARG.Venue.Characters
         private static bool IsGenericState(AnimationStateType state)
         {
             return state is AnimationStateType.Idle or AnimationStateType.Playing or AnimationStateType.IdleRealtime
-                or AnimationStateType.Mellow or AnimationStateType.Intense;
+                or AnimationStateType.IdleMellow or AnimationStateType.Mellow or AnimationStateType.Intense
+                or AnimationStateType.IdleIntense or AnimationStateType.End or AnimationStateType.PlayingSolo;
         }
 
         private static bool IsLeftHandPositionState(AnimationStateType state)
@@ -952,6 +966,7 @@ namespace YARG.Venue.Characters
         {
             // Generic states
             { AnimationStateType.IdleRealtime, AnimationStateType.Idle },
+            { AnimationStateType.IdleMellow, AnimationStateType.Idle },
             { AnimationStateType.Mellow, AnimationStateType.Playing },
             { AnimationStateType.Intense, AnimationStateType.Playing },
 
@@ -1004,10 +1019,12 @@ namespace YARG.Venue.Characters
             { CharacterState.CharacterStateType.Idle, AnimationStateType.Idle },
             { CharacterState.CharacterStateType.IdleIntense, AnimationStateType.IdleIntense },
             { CharacterState.CharacterStateType.IdleRealtime, AnimationStateType.IdleRealtime },
+            { CharacterState.CharacterStateType.IdleMellow, AnimationStateType.IdleMellow },
             { CharacterState.CharacterStateType.Intense, AnimationStateType.Intense },
             { CharacterState.CharacterStateType.Mellow, AnimationStateType.Mellow },
             { CharacterState.CharacterStateType.Play, AnimationStateType.Playing },
-            { CharacterState.CharacterStateType.PlaySolo, AnimationStateType.PlayingSolo }
+            { CharacterState.CharacterStateType.PlaySolo, AnimationStateType.PlayingSolo },
+            { CharacterState.CharacterStateType.End, AnimationStateType.End },
         };
     }
 }

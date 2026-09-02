@@ -20,7 +20,7 @@ namespace YARG.Venue
             _leadingFrames = leadingFrames;
         }
 
-        public void BuildCommands(SongChart chart, AnimatorCommandQueue queue)
+        public void BuildCommands(SongChart chart, AnimatorCommandQueue queue, Action callback = null)
         {
             var drumsId = chart.ProDrums.GetDifficulty(Difficulty.Expert);
             if (drumsId.Notes.Count == 0)

@@ -224,7 +224,20 @@ namespace YARG.Gameplay.Visuals
             // Initialize material
             _innerMaterial = _meshRenderer.materials[_innerMaterialIndex];
             _innerMaterial.color = _color;
-            ResetEmissionState();
+
+            if (_isFullWidth)
+            {
+                var newColor = _color / 48f;
+
+                _innerMaterial.SetColor(EmissionColor, newColor);
+                _innerMaterial.DisableKeyword(EMISSION_DISABLED_KEYWORD);
+                _innerMaterial.DisableKeyword(EMISSION_COLORCORRECTION);
+                _innerMaterial.EnableKeyword(EMISSION_ENABLED_KEYWORD);
+            }
+            else
+            {
+                ResetEmissionState();
+            }
         }
 
         protected override void UpdateElement()

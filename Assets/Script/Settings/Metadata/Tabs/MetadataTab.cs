@@ -37,7 +37,7 @@ namespace YARG.Settings.Metadata
             // Once we've found the tab, add the settings
             foreach (var settingMetadata in _settings)
             {
-                if (settingMetadata.IsAdvanced && !showAdvanced)
+                if (!settingMetadata.IsVisible || (settingMetadata.IsAdvanced && !showAdvanced))
                 {
                     continue;
                 }
@@ -104,6 +104,7 @@ namespace YARG.Settings.Metadata
                         visual.AssignSetting(field.FieldName, field.HasDescription);
                         visual.AssignIndex(settingIndex);
                         visual.ShowAdvancedMarker(field.IsAdvanced);
+                        visual.SetEditable(setting.IsEditable);
 
                         _settingVisuals.Add(field.FieldName, visual);
                         navGroup.AddNavigatable(visual.gameObject);
@@ -113,8 +114,18 @@ namespace YARG.Settings.Metadata
                     }
                 }
             }
-
         }
+
+        public override void OnSettingChanged()
+        {
+            foreach (var pair in _settingVisuals)
+            {
+                var setting = SettingsManager.GetSettingByName(pair.Key);
+                pair.Value.SetEditable(setting.IsEditable);
+                pair.Value.RefreshVisual();
+            }
+        }
+
         // For collection initializer support
         public void Add(AbstractMetadata setting) => _settings.Add(setting);
         private List<AbstractMetadata>.Enumerator GetEnumerator() => _settings.GetEnumerator();

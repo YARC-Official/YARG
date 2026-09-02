@@ -77,7 +77,7 @@ namespace YARG.Menu.Persistent
                 lock (_lock)
                 {
                     const float SPEED = 1f;
-                    _current = task = Task.Run(() => entry.LoadAudio(SPEED, SettingsManager.Settings.MusicPlayerVolume.Value, SongStem.Crowd));
+                    _current = task = Task.Run(() => entry.LoadAudio(SPEED, SettingsManager.Settings.MusicPlayerVolume.Value, SettingsManager.Settings.CensorMatureContent.Value, SongStem.Crowd));
                 }
 
                 var mixer = await task;

@@ -23,6 +23,7 @@ using YARG.Venue;
 using YARG.Venue.Characters;
 using YARG.Core.Logging;
 using YARG.Helpers;
+using YARG.Song;
 using Random = UnityEngine.Random;
 
 #if UNITY_EDITOR
@@ -61,6 +62,8 @@ namespace YARG.Gameplay
 
         private bool _videoStarted = false;
         private bool _videoSeeking = false;
+        private bool _videoSeekWaitForPause = false;
+        private bool _videoWasPausedBeforeSeek = false;
 
         private const float FADE_DURATION = 0.5f;
 
@@ -324,7 +327,7 @@ namespace YARG.Gameplay
             var renderers = bg.GetComponentsInChildren<Renderer>(true);
 
             var textureManager = GetComponent<TextureManager>();
-            var songBackground = GameManager.Song.LoadBackground();
+            var songBackground = GameManager.Song.LoadBackground(SettingsManager.Settings.CensorMatureContent.Value);
 
             foreach (var renderer in renderers)
             {
@@ -356,14 +359,14 @@ namespace YARG.Gameplay
             }
 
             var hint = GameManager.Song.VocalCharacterHint;
-            await LoadCharacter(bgInstance, hint, gender);
+            var usingCustomChar = await LoadCharacter(bgInstance, hint, gender);
 
 
             // Initialize CharacterManager, if it exists
             var characterManager = bgInstance.GetComponentInChildren<CharacterManager>();
             if (characterManager != null)
             {
-                characterManager.Initialize();
+                characterManager.Initialize(usingCustomChar);
             }
         }
 
@@ -528,7 +531,7 @@ namespace YARG.Gameplay
             if (_videoSeeking)
                 return;
 
-            double time = GameManager.SongTime + GameManager.Song.SongOffsetSeconds;
+            double time = GameManager.GetAudioPlaybackTime(GameManager.SongTime);
             // Start video
             if (!_videoStarted)
             {
@@ -608,7 +611,7 @@ namespace YARG.Gameplay
             }
         }
 
-        public void SetTime(double songTime)
+        public void SetTime(double songTime, bool waitForSeek = true)
         {
             switch (_type)
             {
@@ -638,7 +641,10 @@ namespace YARG.Gameplay
 
                         // Hack to ensure the video stays synced to the audio
                         _videoSeeking = true; // Signaling flag; must come first
-                        if (SettingsManager.Settings.WaitForSongVideo.Value)
+                        _videoSeekWaitForPause = waitForSeek;
+                        _videoWasPausedBeforeSeek = _videoPlayer.isPaused;
+
+                        if (waitForSeek && SettingsManager.Settings.WaitForSongVideo.Value)
                             GameManager.OverridePause();
 
                         _videoPlayer.time = videoTime;
@@ -652,11 +658,18 @@ namespace YARG.Gameplay
             if (!_videoSeeking)
                 return;
 
-            if (!SettingsManager.Settings.WaitForSongVideo.Value || GameManager.OverrideResume())
-                player.Play();
+            if (!_videoSeekWaitForPause ||
+                !SettingsManager.Settings.WaitForSongVideo.Value ||
+                GameManager.OverrideResume())
+            {
+                if (!_videoWasPausedBeforeSeek)
+                    player.Play();
+            }
 
             enabled = !double.IsNaN(_videoEndTime);
             _videoSeeking = false;
+            _videoSeekWaitForPause = false;
+            _videoWasPausedBeforeSeek = false;
         }
 
         public void SetSpeed(float speed)
@@ -848,7 +861,7 @@ namespace YARG.Gameplay
             return null;
         }
 
-        private async UniTask LoadCharacter(GameObject venueRoot, string hint, VocalGender gender)
+        private async UniTask<bool> LoadCharacter(GameObject venueRoot, string hint, VocalGender gender)
         {
             var character = await GetAddressableCharacter(hint);
 
@@ -864,28 +877,29 @@ namespace YARG.Gameplay
                 character = await GetAddressableCharacter(gender);
             }
 
-            await LoadCharacter(venueRoot, character);
+            var usingCustomChar = await LoadCharacter(venueRoot, character);
+            return usingCustomChar;
         }
 
-        private async UniTask LoadCharacter(GameObject venueRoot, GameObject character)
+        private async UniTask<bool> LoadCharacter(GameObject venueRoot, GameObject character)
         {
             if (character == null)
             {
                 YargLogger.LogWarning("Failed to load custom character");
-                return;
+                return false;
             }
 
             // Load default animation controller and parameters if necessary
             LoadAnimationDefaults(character);
 
-            var newType = character.GetComponent<VenueCharacter>().Type;
+            var venueCharacter = character.GetComponent<VenueCharacter>();
             // Find a character of the same type in venueRoot
             GameObject existingCharacter = null;
 
             var characters = venueRoot.GetComponentsInChildren<VenueCharacter>();
             foreach (var c in characters)
             {
-                if (c.Type == newType)
+                if (c.Type == venueCharacter.Type)
                 {
                     existingCharacter = c.gameObject;
                     break;
@@ -894,8 +908,8 @@ namespace YARG.Gameplay
 
             if (existingCharacter == null)
             {
-                YargLogger.LogFormatError("Failed to find character of type {0} in venue root", newType);
-                return;
+                YargLogger.LogFormatError("Failed to find character of type {0} in venue root", venueCharacter.Type);
+                return false;
             }
 
             // Replace existingCharacter with the new character
@@ -906,11 +920,31 @@ namespace YARG.Gameplay
             existingCharacter.SetActive(false);
             Destroy(existingCharacter);
 
+            if (venueCharacter is VRMCharacter vrmCharacter)
+            {
+                _ = CopyLipsyncToNewCharacter(venueRoot, vrmCharacter);
+            }
+
             AddMicrophoneToCharacter(newCharacter);
 
             // Lastly, make sure the new character and all its children are in the Venue layer
             var layerIndex = LayerMask.NameToLayer("Venue");
             SetLayer(newCharacter, layerIndex);
+
+            return true;
+        }
+
+        private static async UniTask CopyLipsyncToNewCharacter(GameObject venueRoot, VRMCharacter character)
+        {
+            // Find CharacterManager
+            var characterManager = venueRoot.GetComponentInChildren<CharacterManager>();
+
+            if (characterManager == null)
+            {
+                return;
+            }
+
+            characterManager.AssignLipsyncToCharacter(character);
         }
 
         private void AddMicrophoneToCharacter(GameObject character)
@@ -1004,6 +1038,51 @@ namespace YARG.Gameplay
                     }
                 }
             }
+            else
+            {
+                SetCustomGenreSpecificAnimator(vrmCharacter);
+            }
+        }
+
+        /// <summary>
+        /// Checks the supplied VRMCharacter for genre-specific animator overrides
+        /// </summary>
+        /// <param name="character"></param>
+        /// <returns>
+        /// true: We found and replaced the character's animator<br />
+        /// false: We did not find a genre-specific animator override
+        /// </returns>
+        private bool SetCustomGenreSpecificAnimator(VRMCharacter character)
+        {
+            if (character == null)
+            {
+                return false;
+            }
+
+            var animator = character.GetComponent<Animator>();
+            if (animator == null)
+            {
+                return false;
+            }
+
+            var anims = character.GetGenreSpecificAnimations();
+
+            if (anims == null || anims.Keys.Count <= 0)
+            {
+                return false;
+            }
+
+            var genre = Genrelizer.GetBaseGenre(GameManager.Song.Genre);
+
+            if (!anims.ContainsKey(genre))
+            {
+                return false;
+            }
+
+            var controller = anims[genre];
+            animator.runtimeAnimatorController = controller;
+            animator.Rebind();
+            return true;
         }
 
 #pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously

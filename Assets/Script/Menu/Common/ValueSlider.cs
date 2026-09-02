@@ -16,6 +16,16 @@ namespace YARG.Menu
         [SerializeField]
         private string _formatString = "N2";
 
+        /// <summary>
+        /// Allows changing the numeric display format at runtime (e.g. "F0" for
+        /// integer display on percentage sliders).
+        /// </summary>
+        public string FormatString
+        {
+            get => _formatString;
+            set => _formatString = value;
+        }
+
         [Space]
         public UnityEvent<float> ValueChanged;
 

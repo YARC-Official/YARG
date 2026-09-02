@@ -23,6 +23,7 @@ using YARG.Player;
 using YARG.Playlists;
 using YARG.Song;
 using YARG.Settings;
+using YARG.Settings.Types;
 
 namespace YARG.Menu.Filters
 {
@@ -113,6 +114,7 @@ namespace YARG.Menu.Filters
 
         private readonly Dictionary<FilterKey, FilterCategoryRow> _leftRows = new();
         private Toggle _showRecommendationsToggle;
+        private Toggle _onlyShowPlayableToggle;
 
         private readonly Dictionary<string, bool> _genreEnabled =
             new(StringComparer.OrdinalIgnoreCase);
@@ -153,6 +155,7 @@ namespace YARG.Menu.Filters
         private static int _cachedPlaylistCountsSignature = -1;
         private static int _cachedCharterSongCount = -1;
         private static int _cachedLengthSongCount = -1;
+        private static SongLengthLabelMode? _cachedLengthLabelMode;
         private static int _cachedIntensitySongCount = -1;
 
 
@@ -183,6 +186,7 @@ namespace YARG.Menu.Filters
         private FilterHelpBarState _lastHelpBarState;
         private bool _pendingHelpBarRefresh;
         private bool _showRecommendationsOnOpen;
+        private bool _onlyShowPlayableOnOpen;
 
         protected override void SingletonAwake()
         {
@@ -216,6 +220,7 @@ namespace YARG.Menu.Filters
             Refresh();
             SaveFilters();
             _showRecommendationsOnOpen = SettingsManager.Settings.ShowRecommendedSongs.Value;
+            _onlyShowPlayableOnOpen = SettingsManager.Settings.OnlyShowPlayableSongs.Value;
             RefreshHelpBar();
         }
 
@@ -352,7 +357,12 @@ namespace YARG.Menu.Filters
             AddHeader(container, Localize.Key("Menu.Filters.OptionsHeader"));
             rowIndex = 0;
             AddDropdown(container, navGroup, Localize.Key("Menu.Filters.SortedBy"))?.AssignIndex(rowIndex++);
-            AddToggle(container, navGroup, Localize.Key("Menu.Filters.ShowRecommendations"))?.AssignIndex(rowIndex++);
+            AddToggle(container, navGroup, Localize.Key("Menu.Filters.ShowRecommendations"),
+                "Filters.ShowRecommendations", SettingsManager.Settings.ShowRecommendedSongs,
+                toggle => _showRecommendationsToggle = toggle)?.AssignIndex(rowIndex++);
+            AddToggle(container, navGroup, Localize.Key("Menu.Filters.OnlyShowPlayableSongs"),
+                "Filters.OnlyShowPlayableSongs", SettingsManager.Settings.OnlyShowPlayableSongs,
+                toggle => _onlyShowPlayableToggle = toggle)?.AssignIndex(rowIndex++);
 
             AddHeader(container, Localize.Key("Menu.Filters.FiltersHeader"));
             rowIndex = 0;
@@ -538,13 +548,14 @@ namespace YARG.Menu.Filters
             return row.GetComponent<BaseSettingVisual>();
         }
 
-        private BaseSettingVisual AddToggle(Transform container, NavigationGroup navGroup, string label)
+        private BaseSettingVisual AddToggle(Transform container, NavigationGroup navGroup, string label,
+            string settingName, ToggleSetting setting, Action<Toggle> assignToggle)
         {
             var prefab = _showRecommendationsTogglePrefab;
             if (prefab == null) return null;
 
             var row = Instantiate(prefab, container);
-            SetupShowRecommendationsToggle(row, label);
+            SetupToggle(row, label, settingName, setting, assignToggle);
 
             var navigatable = row.GetComponent<BaseSettingNavigatable>();
             if (navigatable != null)
@@ -650,7 +661,8 @@ namespace YARG.Menu.Filters
                     }
                     else
                     {
-                        if (sort != SortAttribute.Playcount && sort != SortAttribute.Stars)
+                        if (sort != SortAttribute.Playcount && sort != SortAttribute.Stars &&
+                            sort != SortAttribute.Percentage && sort != SortAttribute.Score)
                             SettingsManager.Settings.PreviousLibrarySort = sort;
 
                         SettingsManager.Settings.LibrarySort = sort;
@@ -668,7 +680,8 @@ namespace YARG.Menu.Filters
             SetSortedByLabel(row, label);
         }
 
-        public void SetupShowRecommendationsToggle(GameObject row, string label)
+        private static void SetupToggle(GameObject row, string label, string settingName,
+            ToggleSetting setting, Action<Toggle> assignToggle)
         {
             if (row == null)
                 return;
@@ -677,10 +690,9 @@ namespace YARG.Menu.Filters
             if (visual == null)
                 return;
 
-            visual.AssignPresetSetting("Filters.ShowRecommendations", false, SettingsManager.Settings.ShowRecommendedSongs);
+            visual.AssignPresetSetting(settingName, false, setting);
             SetToggleLabel(row, label);
-
-            _showRecommendationsToggle = row.GetComponentInChildren<Toggle>(true);
+            assignToggle?.Invoke(row.GetComponentInChildren<Toggle>(true));
         }
 
         private static void SetSortedByLabel(GameObject row, string label)
@@ -1158,6 +1170,14 @@ namespace YARG.Menu.Filters
         {
             var predicates = new List<Func<SongEntry, bool>>();
 
+            if (SettingsManager.Settings.OnlyShowPlayableSongs.Value)
+            {
+                var playableSongs = SongContainer.GetSortedCategory(SortAttribute.Playable)
+                    .SelectMany(category => category.Songs)
+                    .ToHashSet();
+                predicates.Add(playableSongs.Contains);
+            }
+
             if (TryGetSelectedSet(_genreEnabled, GetAllGenresCached(), NormalizeFilterKey, out var genres))
                 predicates.Add(entry => genres.Contains(entry.Genre.SearchStr));
 
@@ -1241,6 +1261,8 @@ namespace YARG.Menu.Filters
             EnsureAllDefaults();
             SetAllFilters(true);
             SetShowAnyOfFilters(false);
+            SettingsManager.Settings.OnlyShowPlayableSongs.Value = false;
+            _onlyShowPlayableToggle?.SetIsOnWithoutNotify(false);
             UpdateAllSummaries();
 
             // If right panel is visible, update toggles there too
@@ -1477,17 +1499,26 @@ namespace YARG.Menu.Filters
 #region Song Lengths
         private static IReadOnlyList<string> GetAllLengthsCached()
         {
-            return GetAllCached(ref _cachedLengths, ref _cachedLengthSongCount, () =>
+            var labelMode = SettingsManager.Settings.SongLengthLabels.Value;
+            if (_cachedLengths != null &&
+                _cachedLengthSongCount == SongContainer.Count &&
+                _cachedLengthLabelMode == labelMode)
             {
-                var counts = GetLengthCounts();
-                var ordered = new List<string>(LengthLabels.Count);
-                foreach (var label in LengthLabels)
-                {
-                    if (counts.TryGetValue(label, out int count) && count > 0)
-                        ordered.Add(label);
-                }
-                return ordered;
-            });
+                return _cachedLengths;
+            }
+
+            _cachedLengthSongCount = SongContainer.Count;
+            _cachedLengthLabelMode = labelMode;
+
+            var counts = GetLengthCounts();
+            var ordered = new List<string>(LengthLabels.Count);
+            foreach (var label in LengthLabels)
+            {
+                if (counts.TryGetValue(label, out int count) && count > 0)
+                    ordered.Add(label);
+            }
+
+            return _cachedLengths = ordered;
         }
 
         private static Dictionary<string, int> GetLengthCounts()
@@ -1506,11 +1537,6 @@ namespace YARG.Menu.Filters
             return dict;
         }
 
-        // Toggle which length buckets to use by switching this flag.
-        // - true  -> Legacy labels (Short/Medium/Long/Epic)
-        // - false -> Range labels (0-2, 2-5, 5-10, 10-15, 15-20, 20+)
-        private const bool UseLegacyLengthLabels = true;
-
         private static readonly string[] LegacyLengthLabelKeys =
         {
             "Menu.Filters.Length.Short",
@@ -1528,6 +1554,9 @@ namespace YARG.Menu.Filters
             "15:00 - 20:00",
             "20:00+",
         };
+
+        private static bool UseLegacyLengthLabels =>
+            SettingsManager.Settings.SongLengthLabels.Value == SongLengthLabelMode.LegacyLabels;
 
         private static IReadOnlyList<string> LengthLabels =>
             UseLegacyLengthLabels ? GetLegacyLengthLabels() : RangeLengthLabels;
@@ -1560,8 +1589,6 @@ namespace YARG.Menu.Filters
                 };
             }
 
-            // Left for possible future use
-#pragma warning disable CS0162 // Unreachable code detected
             return lengthMilliseconds switch
             {
                 < 120000  => RangeLengthLabels[0],
@@ -1571,7 +1598,6 @@ namespace YARG.Menu.Filters
                 < 1200000 => RangeLengthLabels[4],
                 _         => RangeLengthLabels[5],
             };
-#pragma warning restore CS0162 // Unreachable code detected
         }
 #endregion
 
@@ -1610,6 +1636,7 @@ namespace YARG.Menu.Filters
         {
             var counts = GetIntensityCounts(instrument);
             var ordered = new List<string>(IntensityLabelKeys.Length + 2);
+            var nonstandardIntensities = new SortedSet<int>();
 
             for (int i = 0; i < IntensityLabelKeys.Length; i++)
             {
@@ -1618,9 +1645,17 @@ namespace YARG.Menu.Filters
                     ordered.Add(label);
             }
 
-            var unknownLabel = Localize.Key(IntensityLabelUnknownKey);
-            if (counts.TryGetValue(unknownLabel, out int unknownCount) && unknownCount > 0)
-                ordered.Add(unknownLabel);
+            foreach (var song in SongContainer.Songs)
+            {
+                if (TryGetIntensity(song, instrument, out int intensity) &&
+                    (intensity < 0 || intensity >= IntensityLabelKeys.Length))
+                {
+                    nonstandardIntensities.Add(intensity);
+                }
+            }
+
+            foreach (int intensity in nonstandardIntensities)
+                ordered.Add(GetIntensityLabel(intensity));
 
             var noPartLabel = Localize.Key(IntensityLabelNoPartKey);
             if (counts.TryGetValue(noPartLabel, out int noPartCount) && noPartCount > 0)
@@ -1648,34 +1683,28 @@ namespace YARG.Menu.Filters
 
         private static string GetIntensityLabel(SongEntry entry, Instrument instrument)
         {
+            return TryGetIntensity(entry, instrument, out int intensity)
+                ? GetIntensityLabel(intensity)
+                : Localize.Key(IntensityLabelNoPartKey);
+        }
+
+        private static bool TryGetIntensity(SongEntry entry, Instrument instrument, out int intensity)
+        {
             if (instrument == Instrument.EliteDrums)
             {
                 var preferredInstrument = MidiDrumkitHelper.GetPreferredInstrumentForSong(entry);
                 if (!preferredInstrument.HasValue)
-                    return Localize.Key(IntensityLabelNoPartKey);
+                {
+                    intensity = default;
+                    return false;
+                }
 
-                var preferredPart = entry[preferredInstrument.Value];
-                if (!preferredPart.IsActive())
-                    return Localize.Key(IntensityLabelNoPartKey);
-
-                int preferredIntensity = preferredPart.Intensity;
-                if (preferredIntensity < 0) return Localize.Key(IntensityLabelUnknownKey);
-
-                if (preferredIntensity >= IntensityLabelKeys.Length)
-                    return GetIntensityLabelByIndex(IntensityLabelKeys.Length - 1);
-
-                return GetIntensityLabelByIndex(preferredIntensity);
+                instrument = preferredInstrument.Value;
             }
 
             var part = entry[instrument];
-            if (!part.IsActive()) return Localize.Key(IntensityLabelNoPartKey);
-
-            int intensity = part.Intensity;
-            if (intensity < 0) return Localize.Key(IntensityLabelUnknownKey);
-
-            if (intensity >= IntensityLabelKeys.Length) return GetIntensityLabelByIndex(IntensityLabelKeys.Length - 1);
-
-            return GetIntensityLabelByIndex(intensity);
+            intensity = part.Intensity;
+            return part.IsActive();
         }
 
         private static string GetIntensityLabelByIndex(int index)
@@ -1684,6 +1713,19 @@ namespace YARG.Menu.Filters
             if (index >= IntensityLabelKeys.Length) index = IntensityLabelKeys.Length - 1;
 
             return Localize.Key(IntensityLabelKeys[index]);
+        }
+
+        public static string GetStandardIntensityLabel(int intensity)
+        {
+            return intensity >= 0 && intensity < IntensityLabelKeys.Length
+                ? GetIntensityLabelByIndex(intensity)
+                : null;
+        }
+
+        public static string GetIntensityLabel(int intensity)
+        {
+            return GetStandardIntensityLabel(intensity) ??
+                Localize.KeyFormat("Menu.MusicLibrary.Sort.Intensity", intensity);
         }
 #endregion
 
@@ -1834,6 +1876,8 @@ namespace YARG.Menu.Filters
 
             bool showRecommendationsChanged = _showRecommendationsOnOpen !=
                 SettingsManager.Settings.ShowRecommendedSongs.Value;
+            bool onlyShowPlayableChanged = _onlyShowPlayableOnOpen !=
+                SettingsManager.Settings.OnlyShowPlayableSongs.Value;
             // Must check before SaveFilters() so we don't overwrite the previous state
             // otherwise filter changes won't trigger a library refresh
             bool filtersChanged = HaveFiltersChanged();
@@ -1844,7 +1888,7 @@ namespace YARG.Menu.Filters
             if (library != null)
             {
                 library.SetSidebarDifficultiesVisible(true);
-                if (filtersChanged || showRecommendationsChanged)
+                if (filtersChanged || showRecommendationsChanged || onlyShowPlayableChanged)
                 {
                     library.RefreshAndReselect();
                 }

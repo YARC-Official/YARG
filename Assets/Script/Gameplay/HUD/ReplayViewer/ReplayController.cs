@@ -267,7 +267,7 @@ namespace YARG.Gameplay.HUD
             GameManager.SetSongTime(time, 0);
 
             // EngineManager's state will get fixed when the players play up to time
-            GameManager.EngineManager.Reset();
+            GameManager.EngineManager.ResetState();
 
             foreach (var player in GameManager.Players)
             {

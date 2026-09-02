@@ -1,15 +1,11 @@
-using System;
-using System.Linq;
 using Cysharp.Text;
 using UnityEngine;
-using YARG.Core;
 using YARG.Core.Game;
 using YARG.Core.Song;
 using YARG.Helpers;
 using YARG.Player;
 using YARG.Playlists;
 using YARG.Scores;
-using YARG.Settings;
 using YARG.Song;
 
 namespace YARG.Menu.MusicLibrary
@@ -38,11 +34,7 @@ namespace YARG.Menu.MusicLibrary
         private bool _fetchedScores;
         private PlayerScoreRecord _playerScoreRecord;
         private GameRecord _bandScoreRecord;
-        private int _fetchedHumanCount;
-        private Guid _fetchedPlayerId;
-        private Instrument _fetchedInstrument;
-        private Difficulty _fetchedDifficulty;
-        private HighScoreHistoryMode _fetchedHighScoreHistoryMode;
+        private ScoreContext _fetchedScoreContext;
 
         public SongViewType(MusicLibraryMenu musicLibrary, SongEntry songEntry, string context = "library")
         {
@@ -220,64 +212,21 @@ namespace YARG.Menu.MusicLibrary
 
         private void FetchHighScores()
         {
-            var context = GetCurrentScoreContext();
-            if (_fetchedScores &&
-                _fetchedHumanCount == context.HumanCount &&
-                _fetchedPlayerId == context.PlayerId &&
-                _fetchedInstrument == context.Instrument &&
-                _fetchedDifficulty == context.Difficulty &&
-                _fetchedHighScoreHistoryMode == context.HighScoreHistoryMode)
+            var context = ScoreContext.Capture();
+            if (_fetchedScores && _fetchedScoreContext.Equals(context))
             {
                 return;
             }
 
             FetchHighScores(SongEntry, out _playerScoreRecord, out _bandScoreRecord);
-            _fetchedHumanCount = context.HumanCount;
-            _fetchedPlayerId = context.PlayerId;
-            _fetchedInstrument = context.Instrument;
-            _fetchedDifficulty = context.Difficulty;
-            _fetchedHighScoreHistoryMode = context.HighScoreHistoryMode;
+            _fetchedScoreContext = context;
             _fetchedScores = true;
-        }
-
-        private static ScoreContext GetCurrentScoreContext()
-        {
-            var player = PlayerContainer.Players.FirstOrDefault(e => !e.Profile.IsBot);
-            return new ScoreContext(
-                PlayerContainer.Players.Count(p => !p.Profile.IsBot),
-                player?.Profile.Id ?? Guid.Empty,
-                player?.Profile.CurrentInstrument ?? Instrument.Band,
-                player?.Profile.CurrentDifficulty ?? Difficulty.Easy,
-                SettingsManager.Settings.HighScoreHistory.Value);
         }
 
         private static void FetchHighScores(SongEntry songEntry, out PlayerScoreRecord playerScoreRecord, out GameRecord bandScoreRecord)
         {
             ScoreContainer.GetPreferredHighScoresForCurrentPlayers(
                 songEntry.Hash, out playerScoreRecord, out bandScoreRecord);
-        }
-
-        private readonly struct ScoreContext
-        {
-            public readonly int HumanCount;
-            public readonly Guid PlayerId;
-            public readonly Instrument Instrument;
-            public readonly Difficulty Difficulty;
-            public readonly HighScoreHistoryMode HighScoreHistoryMode;
-
-            public ScoreContext(
-                int humanCount,
-                Guid playerId,
-                Instrument instrument,
-                Difficulty difficulty,
-                HighScoreHistoryMode highScoreHistoryMode)
-            {
-                HumanCount = humanCount;
-                PlayerId = playerId;
-                Instrument = instrument;
-                Difficulty = difficulty;
-                HighScoreHistoryMode = highScoreHistoryMode;
-            }
         }
     }
 }

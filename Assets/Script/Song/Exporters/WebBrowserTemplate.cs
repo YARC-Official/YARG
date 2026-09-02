@@ -660,18 +660,34 @@ namespace YARG.Song.Exporters
             return true;
         }
 
+        // Sort metadata without changing the displayed values: ignore one leading
+        // English article when it is followed by whitespace.
+        function normalizeSortValue(value) {
+            const normalized = (value || '').trim().toLowerCase();
+            // The whitespace terminator makes the alternation safe and order-independent.
+            return normalized.replace(/^(the|an|a)\s+/i, '');
+        }
+
         function sortFiltered() {
             if (!state.sortCol) return;
             const col = state.sortCol;
             const dir = state.sortAsc ? 1 : -1;
             const numericCols = new Set(['l', 'y']);
+            const articleInsensitiveCols = new Set(['a', 't', 'al']);
             if (numericCols.has(col)) {
                 filtered.sort((a, b) => ((a[col] || 0) - (b[col] || 0)) * dir);
             } else {
                 filtered.sort((a, b) => {
-                    const va = (a[col] || '').toLowerCase();
-                    const vb = (b[col] || '').toLowerCase();
-                    return va < vb ? -dir : va > vb ? dir : 0;
+                    const rawA = (a[col] || '').toLowerCase();
+                    const rawB = (b[col] || '').toLowerCase();
+                    const va = articleInsensitiveCols.has(col) ? normalizeSortValue(rawA) : rawA;
+                    const vb = articleInsensitiveCols.has(col) ? normalizeSortValue(rawB) : rawB;
+                    if (va < vb) return -dir;
+                    if (va > vb) return dir;
+                    if (articleInsensitiveCols.has(col) && rawA !== rawB) {
+                        return rawA < rawB ? -dir : dir;
+                    }
+                    return 0;
                 });
             }
         }

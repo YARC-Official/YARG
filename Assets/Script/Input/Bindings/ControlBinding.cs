@@ -507,6 +507,11 @@ namespace YARG.Input
             InputEventPtr eventPtr,
             long monitorIndex)
         {
+            if (InputManager.IsEditorUpdate)
+            {
+                return;
+            }
+
             if (!eventPtr.valid)
             {
                 YargLogger.LogFormatError("Invalid eventPtr received for control {0}!", control);
@@ -527,8 +532,9 @@ namespace YARG.Input
                 return;
             }
 
-            binding.UpdateState(eventPtr.time);
-            OnStateChanged(binding, eventPtr.time);
+            double inputTime = InputManager.ClampInputTime(time);
+            binding.UpdateState(inputTime);
+            OnStateChanged(binding, inputTime);
             FireStateChanged();
         }
 

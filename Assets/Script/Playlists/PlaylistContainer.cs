@@ -110,6 +110,51 @@ namespace YARG.Playlists
             return removed;
         }
 
+        public static int ReplaceUpdatedSongHashes(IReadOnlyDictionary<HashWrapper, HashWrapper> replacements)
+        {
+            if (replacements == null || replacements.Count == 0)
+            {
+                return 0;
+            }
+
+            int replaced = 0;
+
+            void ReplaceAndSave(Playlist playlist, string path)
+            {
+                if (playlist?.SongHashes == null)
+                {
+                    return;
+                }
+
+                int playlistReplacements = 0;
+                for (int i = 0; i < playlist.SongHashes.Count; i++)
+                {
+                    if (replacements.TryGetValue(playlist.SongHashes[i], out var replacement))
+                    {
+                        playlist.SongHashes[i] = replacement;
+                        playlistReplacements++;
+                    }
+                }
+
+                if (playlistReplacements == 0)
+                {
+                    return;
+                }
+
+                replaced += playlistReplacements;
+                SavePlaylist(playlist, path);
+                YargLogger.LogInfo($"Replaced {playlistReplacements} updated song hashes in playlist '{playlist.Name}'");
+            }
+
+            ReplaceAndSave(FavoritesPlaylist, _favoritesPath);
+            foreach (var playlist in _playlists)
+            {
+                ReplaceAndSave(playlist, Path.Join(PlaylistDirectory, GetFileNameForPlaylist(playlist)));
+            }
+
+            return replaced;
+        }
+
         private static bool RemoveDeadHashesFromPlaylist(Playlist playlist, IReadOnlyDictionary<HashWrapper, List<SongEntry>> songsByHash, ref int removed)
         {
             if (playlist.SongHashes == null || playlist.SongHashes.Count == 0)

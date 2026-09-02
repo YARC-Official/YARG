@@ -55,10 +55,18 @@ namespace YARG.Menu.Persistent
         private readonly struct ToastInfo
         {
             public readonly ToastType Type;
-            public readonly string Text;
+
+            /// <summary>Resolved when the toast is shown, not when it is queued;
+            /// startup toasts enqueue before localization has loaded.</summary>
+            public readonly Func<string> Text;
             public readonly Action OnClick;
 
             public ToastInfo(ToastType type, string text, Action onClick)
+                : this(type, () => text, onClick)
+            {
+            }
+
+            public ToastInfo(ToastType type, Func<string> text, Action onClick)
             {
                 Type = type;
                 Text = text;
@@ -81,7 +89,7 @@ namespace YARG.Menu.Persistent
 
             while (transform.childCount < MAX_TOAST_COUNT && _toastQueue.TryDequeue(out var toast))
             {
-                ShowToast(toast.Type, toast.Text, toast.OnClick);
+                ShowToast(toast.Type, toast.Text(), toast.OnClick);
             }
         }
 
@@ -118,6 +126,15 @@ namespace YARG.Menu.Persistent
             => AddToast(ToastType.Warning, text, onClick);
 
         /// <summary>
+        /// Adds a warning toast whose text is resolved when it is shown. Use for
+        /// toasts queued during startup, before localization has loaded.
+        /// </summary>
+        /// <param name="textProvider">Produces the text of the toast.</param>
+        /// <param name="onClick">Action to perform when the toast is clicked.</param>
+        public static void ToastWarning(Func<string> textProvider, Action onClick = null)
+            => AddToast(ToastType.Warning, textProvider, onClick);
+
+        /// <summary>
         /// Adds an error message toast to the toast queue.
         /// </summary>
         /// <param name="text">Text of the toast.</param>
@@ -126,6 +143,11 @@ namespace YARG.Menu.Persistent
             => AddToast(ToastType.Error, text, onClick);
 
         private static void AddToast(ToastType type, string text, Action onClick)
+        {
+            _toastQueue.Enqueue(new ToastInfo(type, text, onClick));
+        }
+
+        private static void AddToast(ToastType type, Func<string> text, Action onClick)
         {
             _toastQueue.Enqueue(new ToastInfo(type, text, onClick));
         }

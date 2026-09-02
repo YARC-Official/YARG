@@ -21,6 +21,11 @@ namespace YARG.Venue.Stage
 
         protected override void OnChartLoaded(SongChart chart)
         {
+            if (_venue == null)
+            {
+                return;
+            }
+
             _stageElements = _venue.GetComponentsInChildren<StageElement>();
 
             if (_stageElements.Length == 0)

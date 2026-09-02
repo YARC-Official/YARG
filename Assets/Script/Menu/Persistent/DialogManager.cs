@@ -212,17 +212,21 @@ namespace YARG.Menu.Persistent
         /// Displays and returns a confirm delete dialog.
         /// </summary>
         /// <inheritdoc cref="ShowDialog{ListDialog}(ListDialog)"/>
-        public ColorPickerDialog ShowColorPickerDialog(Color initialColor, Action<Color> colorPickAction)
+        public ColorPickerDialog ShowColorPickerDialog(Color initialColor, Action<Color> colorPickAction,
+            bool allowTransparency = false)
         {
             var dialog = ShowDialog(_colorPickerDialog);
 
             dialog.Title.text = Localize.Key("Menu.Dialog.ColorPicker.Title");
-            dialog.Initialize(initialColor);
+            dialog.Initialize(initialColor, allowTransparency);
             dialog.ColorPickAction = colorPickAction;
 
             dialog.ClearButtons();
             dialog.AddDialogButton("Menu.Common.Cancel", MenuData.Colors.CancelButton, ClearDialog);
             dialog.AddDialogButton("Menu.Common.Apply", MenuData.Colors.ConfirmButton, () => _currentDialog.Submit());
+
+            // After the buttons exist so they can be placed last in nav order
+            dialog.InitializeNavigation();
 
             return dialog;
         }

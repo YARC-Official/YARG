@@ -3,10 +3,12 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Cysharp.Threading.Tasks;
+using TMPro;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using YARG.Core.Game;
 using YARG.Core.Logging;
+using YARG.Menu;
 using YARG.Menu.Navigation;
 using YARG.Menu.Settings;
 using YARG.Settings.Customization;
@@ -206,18 +208,41 @@ namespace YARG.Settings.Metadata
             var actions = Object.Instantiate(_presetActions, settingContainer);
             actions.GetComponent<PresetActions>().Initialize(this);
 
+            // Controller navigation for the rows above (they were mouse-only).
+            // Confirm on a dropdown row opens the actual TMP list and navigates
+            // it (see RuntimeNavigatable.OpenDropdownList); the action buttons
+            // confirm as clicks. All registered before the sub-tab's fields so
+            // the nav order matches the visual order.
+            navGroup.AddNavigatable(RuntimeNavigatable.Attach(typeDropdown,
+                () => RuntimeNavigatable.OpenDropdownList(
+                    typeDropdown.GetComponentInChildren<TMP_Dropdown>())));
+            navGroup.AddNavigatable(RuntimeNavigatable.Attach(dropdown,
+                () => RuntimeNavigatable.OpenDropdownList(
+                    dropdown.GetComponentInChildren<TMP_Dropdown>())));
+            foreach (var actionButton in actions.GetComponentsInChildren<ColoredButton>())
+            {
+                var button = actionButton;
+                navGroup.AddNavigatable(RuntimeNavigatable.Attach(button.gameObject,
+                    () => button.OnClick.Invoke()));
+            }
+
             // Get the tab for the selected custom content type
             var tab = CurrentSubTab;
             if (tab is null) return;
 
-            if (preset is null || preset.DefaultPreset)
+            if (preset is null)
             {
                 Object.Instantiate(_presetDefaultText, settingContainer);
             }
             else
             {
-                // Create the settings
                 tab.SetPresetReference(SelectedPreset);
+                tab.ReadOnlyFields = preset.DefaultPreset;
+                if (preset.DefaultPreset)
+                {
+                    // Keep the default-preset notice above its read-only fields.
+                    Object.Instantiate(_presetDefaultText, settingContainer);
+                }
                 tab.BuildSettingTab(settingContainer, navGroup);
             }
         }
@@ -241,6 +266,11 @@ namespace YARG.Settings.Metadata
         public override void OnSettingChanged()
         {
             CurrentSubTab?.OnSettingChanged();
+        }
+
+        public override void OnSettingSelected(string unlocalizedName)
+        {
+            CurrentSubTab?.OnSettingSelected(unlocalizedName);
         }
 
         private static BasePreset GetLastSelectedBasePreset(CustomContent customContent)

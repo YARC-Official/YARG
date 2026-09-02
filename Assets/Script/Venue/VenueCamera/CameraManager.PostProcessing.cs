@@ -189,7 +189,6 @@ namespace YARG.Venue.VenueCamera
         private void SetCameraPostProcessing(PostProcessingEvent newEffect)
         {
             var found = true;
-            float duration = 0.0f;
 
             // Reset any existing effects, because they aren't supposed to stack
             ResetCameraEffect();
@@ -200,12 +199,7 @@ namespace YARG.Venue.VenueCamera
                 return;
             }
 
-            if (newEffect.Type == PreviousEffect.Type && NextEffect != null)
-            {
-                // In this case, we start animating toward NextEffect now
-                duration = (float) (NextEffect.Time - newEffect.Time);
-                newEffect = NextEffect;
-            }
+            var duration = (float) newEffect.TimeLength;
 
             // Now set the new effect
             switch (newEffect.Type)
@@ -214,124 +208,124 @@ namespace YARG.Venue.VenueCamera
                     break;
                 case PostProcessingType.Bloom:
                     SetLowFrameRate(true);
-                    SetBloom(true);
+                    SetBloom(true, duration);
                     break;
                 case PostProcessingType.Bright:
-                    SetBrightness(true);
-					SetBloom(true);
+                    SetBrightness(true, duration);
+					SetBloom(true, duration);
                     break;
                 case PostProcessingType.Contrast: // This is just my best guess
-                    SetContrast(true);
+                    SetContrast(true, duration);
                     break;
                 case PostProcessingType.Posterize:
-                    SetPosterize(true);
+                    SetPosterize(true, 4, duration);
                     break;
                 case PostProcessingType.PhotoNegative:
-                    SetInvertedColors(true);
+                    SetInvertedColors(true, duration);
                     break;
                 case PostProcessingType.Mirror:
-                    SetMirror(true);
+                    SetMirror(true, duration);
                     break;
                 case PostProcessingType.BlackAndWhite:
-                    SetBlackAndWhite(true);
+                    SetBlackAndWhite(true, duration);
                     break;
                 case PostProcessingType.Choppy_BlackAndWhite:
                     SetLowFrameRate(true);
-                    SetBlackAndWhite(true);
-                    SetGrainy(true);
-                    SetContrast(true);
+                    SetBlackAndWhite(true, duration);
+                    SetGrainy(true, duration);
+                    SetContrast(true, duration);
                     break;
                 case PostProcessingType.Scanlines_BlackAndWhite:
-                    SetBlackAndWhite(true);
+                    SetBlackAndWhite(true, duration);
                     SetScanline(true);
                     break;
                 case PostProcessingType.Polarized_BlackAndWhite:
-                    SetBlackAndWhite(true);
-                    SetContrast(true);
+                    SetBlackAndWhite(true, duration);
+                    SetContrast(true, duration);
                     break;
                 case PostProcessingType.SepiaTone:
-                    SetSepiaTone(true);
-					SetBloom(true);
+                    SetSepiaTone(true, duration);
+					SetBloom(true, duration);
                     break;
                 case PostProcessingType.SilverTone:
-                    SetSilverTone(true);
-					SetBloom(true);
+                    SetSilverTone(true, duration);
+					SetBloom(true, duration);
                     break;
                 case PostProcessingType.Scanlines:
-                    SetScanline(true);
-					SetBloom(true);
+                    SetScanline(true, duration);
+					SetBloom(true, duration);
                     break;
                 case PostProcessingType.Scanlines_Blue:
-                    SetBlueTint(true);
-					SetContrast(true);
-					SetBloom(true);
-                    SetScanline(true);
+                    SetBlueTint(true, duration);
+					SetContrast(true, duration);
+					SetBloom(true, duration);
+                    SetScanline(true, duration);
                     break;
                 case PostProcessingType.Scanlines_Security:
-                    SetGrainy(true);
-                    SetGreenTint(true);
-					SetContrast(true);
-					SetBloom(true);
-                    SetScanline(true);
+                    SetGrainy(true, duration);
+                    SetGreenTint(true, duration);
+					SetContrast(true, duration);
+					SetBloom(true, duration);
+                    SetScanline(true, duration);
                     break;
                 case PostProcessingType.Grainy_Film:
-                    SetGrainy(true);
-                    SetExposure(true, -0.75f);
-                    SetBloom(true);
+                    SetGrainy(true, duration);
+                    SetExposure(true, -0.75f, duration);
+                    SetBloom(true, duration);
                     break;
                 case PostProcessingType.Grainy_ChromaticAbberation:
-                    SetGrainy(true);
-                    SetChromaticAberration(true);
-                    SetDesaturation(true, -35f);
+                    SetGrainy(true, duration);
+                    SetChromaticAberration(true, 0.35f, duration);
+                    SetDesaturation(true, -35f, duration);
                     break;
                 case PostProcessingType.Trails_Flickery: // TODO: Add a flicker effect for this
-					SetDesaturatedRed(true);
-					SetTrail(true);
-					SetContrast(true);
+					SetDesaturatedRed(true, duration);
+					SetTrail(true, duration);
+					SetContrast(true, duration);
 					break;
                 case PostProcessingType.Trails:
-                    SetTrail(true, 0.55f);
-					SetBloom(true);
+                    SetTrail(true, duration > 0.55f ? duration : 0.55f);
+					SetBloom(true, duration);
                     break;
                 case PostProcessingType.Trails_Desaturated:
-                    SetPosterize(true, 10);
-                    SetTrail(true, 0.67f);
-                    SetTrailsDesaturation(true);
+                    SetPosterize(true, 10, duration);
+                    SetTrail(true, duration > 0.67f ? duration : 0.67f);
+                    SetTrailsDesaturation(true, -85f, 100f, duration);
                     break;
                 case PostProcessingType.Trails_Long:
-                    SetTrail(true, 0.67f);
+                    SetTrail(true, duration > 0.67f ? duration : 0.67f);
                     break;
                 case PostProcessingType.Trails_Spacey:
-                    SetTrail(true, 0.9f);
-                    SetBrightness(true);
-                    SetBloom(true);
-                    SetChromaticAberration(true);
+                    SetTrail(true, duration > 0.9f ? duration : 0.9f);
+                    SetBrightness(true, duration);
+                    SetBloom(true, duration);
+                    SetChromaticAberration(true, duration);
                     break;
                 case PostProcessingType.Desaturated_Red:
-                    SetDesaturatedRed(true);
+                    SetDesaturatedRed(true, duration);
                     break;
                 case PostProcessingType.Desaturated_Blue:
-                    SetDesaturatedBlue(true);
-                    SetBloom(true);
+                    SetDesaturatedBlue(true, duration);
+                    SetBloom(true, duration);
                     break;
                 case PostProcessingType.PhotoNegative_RedAndBlack:
-                    SetInvertedColors(true);
-                    SetPhotoNegativeRedAndBlack(true);
+                    SetInvertedColors(true, duration);
+                    SetPhotoNegativeRedAndBlack(true, duration);
                     break;
                 case PostProcessingType.Contrast_Green:
-                    SetContrastGreen(true);
-                    SetBloom(true);
+                    SetContrastGreen(true, duration);
+                    SetBloom(true, duration);
                     break;
                 case PostProcessingType.Contrast_Blue:
-                    SetContrastBlue(true);
-                    SetBloom(true);
+                    SetContrastBlue(true, duration);
+                    SetBloom(true, duration);
                     break;
                 case PostProcessingType.Contrast_Red:
-                    SetContrastRed(true);
-                    SetBloom(true);
+                    SetContrastRed(true, duration);
+                    SetBloom(true, duration);
                     break;
                 case PostProcessingType.Polarized_RedAndBlue:
-                    SetPsychRB(true);
+                    SetPsychRB(true, duration);
                     break;
                 default:
                     found = false;
@@ -518,59 +512,59 @@ namespace YARG.Venue.VenueCamera
             SetPsychRB(false);
         }
 
-        private void SetContrastGreen(bool enabled)
+        private void SetContrastGreen(bool enabled, float duration = 0.01f)
         {
             if (!_profile.TryGet<ColorAdjustments>(out var colorAdjustments))
             {
                 return;
             }
 
-            SetAnimation(colorAdjustments.contrast, enabled ? 30f : 0f, 0.01f, enabled);
-            SetAnimation(colorAdjustments.colorFilter, enabled ? _desatTint : Color.white, 0.01f, enabled);
-            SetAnimation(colorAdjustments.hueShift, enabled ? 90f : 0f, 0.01f, enabled);
+            SetAnimation(colorAdjustments.contrast, enabled ? 30f : 0f, duration, enabled);
+            SetAnimation(colorAdjustments.colorFilter, enabled ? _desatTint : Color.white, duration, enabled);
+            SetAnimation(colorAdjustments.hueShift, enabled ? 90f : 0f, duration, enabled);
         }
 
-        private void SetContrastBlue(bool enabled)
+        private void SetContrastBlue(bool enabled, float duration = 0.01f)
         {
             if (!_profile.TryGet<ColorAdjustments>(out var colorAdjustments))
             {
                 return;
             }
 
-            SetAnimation(colorAdjustments.contrast, enabled ? 30f : 0f, 0.01f, enabled);
-            SetAnimation(colorAdjustments.colorFilter, enabled ? _desatTint : Color.white, 0.01f, enabled);
-            SetAnimation(colorAdjustments.hueShift, enabled ? -90f : 0f, 0.01f, enabled);
+            SetAnimation(colorAdjustments.contrast, enabled ? 30f : 0f, duration, enabled);
+            SetAnimation(colorAdjustments.colorFilter, enabled ? _desatTint : Color.white, duration, enabled);
+            SetAnimation(colorAdjustments.hueShift, enabled ? -90f : 0f, duration, enabled);
         }
 
-        private void SetContrastRed(bool enabled)
+        private void SetContrastRed(bool enabled, float duration = 0.01f)
         {
             if (!_profile.TryGet<ColorAdjustments>(out var colorAdjustments))
             {
                 return;
             }
 
-            SetAnimation(colorAdjustments.contrast, enabled ? 30f : 0f, 0.01f, enabled);
-            SetAnimation(colorAdjustments.colorFilter, enabled ? _desatTint : Color.white, 0.01f, enabled);
+            SetAnimation(colorAdjustments.contrast, enabled ? 30f : 0f, duration, enabled);
+            SetAnimation(colorAdjustments.colorFilter, enabled ? _desatTint : Color.white, duration, enabled);
         }
 
-        private void SetExposure(bool enabled, float strength = 0f)
+        private void SetExposure(bool enabled, float strength = 0f, float duration = 0.01f)
         {
             if (!_profile.TryGet<ColorAdjustments>(out var colorAdjustments))
             {
                 return;
             }
 
-            SetAnimation(colorAdjustments.postExposure, enabled ? strength : 0f, 0.01f, enabled);
+            SetAnimation(colorAdjustments.postExposure, enabled ? strength : 0f, duration, enabled);
         }
 
-        private void SetChromaticAberration(bool enabled, float strength = 0.35f)
+        private void SetChromaticAberration(bool enabled, float strength = 0.35f, float duration = 0.01f)
         {
             if (!_profile.TryGet<ChromaticAberration>(out var chromaticAberration))
             {
                 return;
             }
 
-            SetAnimation(chromaticAberration.intensity, enabled ? strength : 0, 0.01f, enabled);
+            SetAnimation(chromaticAberration.intensity, enabled ? strength : 0, duration, enabled);
         }
 
         public void SetLowFrameRate(bool enabled, int divisor = 5)
@@ -590,7 +584,7 @@ namespace YARG.Venue.VenueCamera
             slowFPS.active = enabled;
         }
 
-        private void SetDesaturatedRed(bool enabled)
+        private void SetDesaturatedRed(bool enabled, float duration = 0.01f)
         {
 			if (!_profile.TryGet<ColorAdjustments>(out var colorAdjustments))
             {
@@ -599,12 +593,12 @@ namespace YARG.Venue.VenueCamera
 
 			Color desatRed = new Color(1.1f, 0.9f, 0.9f);
 
-            SetAnimation(colorAdjustments.contrast, enabled ? 30f : 0f, 0.01f, enabled);
-			SetAnimation(colorAdjustments.colorFilter, enabled ? desatRed : Color.white, 0.01f, enabled);
-			SetAnimation(colorAdjustments.saturation, enabled ? -50f : 0f, 0.01f, enabled);
+            SetAnimation(colorAdjustments.contrast, enabled ? 30f : 0f, duration, enabled);
+			SetAnimation(colorAdjustments.colorFilter, enabled ? desatRed : Color.white, duration, enabled);
+			SetAnimation(colorAdjustments.saturation, enabled ? -50f : 0f, duration, enabled);
         }
 
-        private void SetDesaturatedBlue(bool enabled)
+        private void SetDesaturatedBlue(bool enabled, float duration = 0.01f)
         {
             if (!_profile.TryGet<ColorAdjustments>(out var colorAdjustments))
             {
@@ -613,11 +607,11 @@ namespace YARG.Venue.VenueCamera
 
 			Color DesatBlue = new Color(0f, 0f, 4f);
 
-            SetAnimation(colorAdjustments.saturation, enabled ? -90f : 0f, 0.01f, enabled);
-            SetAnimation(colorAdjustments.colorFilter, enabled ? DesatBlue : Color.white, 0.01f, enabled);
+            SetAnimation(colorAdjustments.saturation, enabled ? -90f : 0f, duration, enabled);
+            SetAnimation(colorAdjustments.colorFilter, enabled ? DesatBlue : Color.white, duration, enabled);
         }
 
-        private void SetPhotoNegativeRedAndBlack(bool enabled)
+        private void SetPhotoNegativeRedAndBlack(bool enabled, float duration = 0.01f)
         {
             if (!_profile.TryGet<ColorCurves>(out var colorCurves))
             {
@@ -631,59 +625,59 @@ namespace YARG.Venue.VenueCamera
 
             var flatZeroCurveParam = new TextureCurveParameter(flatZeroCurve, true);
 
-            SetAnimation(colorCurves.green, enabled ? flatZeroCurve : _defaultCurve, 0.01f, enabled);
-            SetAnimation(colorCurves.blue, enabled ? flatZeroCurve : _defaultCurve, 0.01f, enabled);
+            SetAnimation(colorCurves.green, enabled ? flatZeroCurve : _defaultCurve, duration, enabled);
+            SetAnimation(colorCurves.blue, enabled ? flatZeroCurve : _defaultCurve, duration, enabled);
         }
 
-        private void SetInvertedColors(bool enabled)
+        private void SetInvertedColors(bool enabled, float duration = 0.01f)
         {
             if (!_profile.TryGet<ColorCurves>(out var colorCurves))
             {
                 return;
             }
 
-            SetAnimation(colorCurves.master, enabled ? _invertCurve : _defaultCurve, 0.01f, enabled);
+            SetAnimation(colorCurves.master, enabled ? _invertCurve : _defaultCurve, duration, enabled);
         }
 
-        private void SetPosterize(bool enabled, int steps = 4)
+        private void SetPosterize(bool enabled, int steps = 4, float duration = 0.01f)
         {
 			if (!_profile.TryGet<ColorCurves>(out var colorCurves))
             {
                 return;
             }
 
-			SetAnimation(colorCurves.master, enabled ? _posterMasterCurve : _defaultCurve, 0.01f, enabled);
-			SetAnimation(colorCurves.lumVsSat, enabled ? _posterLumSatCurve : _defaultLumSatCurve, 0.01f, enabled);
+			SetAnimation(colorCurves.master, enabled ? _posterMasterCurve : _defaultCurve, duration, enabled);
+			SetAnimation(colorCurves.lumVsSat, enabled ? _posterLumSatCurve : _defaultLumSatCurve, duration, enabled);
         }
 
-        private void SetContrast(bool enabled)
+        private void SetContrast(bool enabled, float duration = 0.01f)
         {
             if (!_profile.TryGet<ColorAdjustments>(out var colorAdjustments))
             {
                 return;
             }
 
-            SetAnimation(colorAdjustments.contrast, enabled ? 50.0f : 1.0f, 0.01f, enabled);
+            SetAnimation(colorAdjustments.contrast, enabled ? 50.0f : 1.0f, duration, enabled);
         }
 
-        private void SetBrightness(bool enabled)
+        private void SetBrightness(bool enabled, float duration = 0.01f)
         {
             if (!_profile.TryGet<ColorCurves>(out var colorCurves))
             {
                 return;
             }
 
-            SetAnimation(colorCurves.master, enabled ? _brightCurve : _defaultCurve, 0.01f, enabled);
+            SetAnimation(colorCurves.master, enabled ? _brightCurve : _defaultCurve, duration, enabled);
 
 			if(!_profile.TryGet<ColorAdjustments>(out var colorAdjustments))
             {
                 return;
             }
 
-            SetAnimation(colorAdjustments.saturation, (float)(enabled ? 50.0f : 0.0f), 0.01f, enabled);
+            SetAnimation(colorAdjustments.saturation, (float)(enabled ? 50.0f : 0.0f), duration, enabled);
         }
 
-        private void SetMirror(bool enabled)
+        private void SetMirror(bool enabled, float duration = 0.5f)
         {
             if (!_profile.TryGet<MirrorComponent>(out var mirror))
             {
@@ -697,10 +691,11 @@ namespace YARG.Venue.VenueCamera
 
             // Make sure the wipe time doesn't exceed the time until the next effect
             // For now we'll default to a max of 0.5 seconds
+            // TODO: Remove the dependency on NextEffect here
             var wipeTime = 0.5f;
             if (NextEffect != null)
             {
-                wipeTime = Mathf.Min((float) (NextEffect.Time - CurrentEffect.Time), wipeTime);
+                wipeTime = Mathf.Min((float) (NextEffect.Time - CurrentEffect.Time), duration);
             }
 
             mirror.wipeTime.value = enabled ? wipeTime : 0.5f;
@@ -718,85 +713,85 @@ namespace YARG.Venue.VenueCamera
                 return;
             }
 
-			SetAnimation(colorCurves.red, enabled ? _mirrorRCurve : _defaultCurve, 0.01f, enabled);
-			SetAnimation(colorCurves.green, enabled ? _mirrorGCurve : _defaultCurve, 0.01f, enabled);
-			SetAnimation(colorCurves.blue, enabled ? _mirrorBCurve : _defaultCurve, 0.01f, enabled);
+			SetAnimation(colorCurves.red, enabled ? _mirrorRCurve : _defaultCurve, duration, enabled);
+			SetAnimation(colorCurves.green, enabled ? _mirrorGCurve : _defaultCurve, duration, enabled);
+			SetAnimation(colorCurves.blue, enabled ? _mirrorBCurve : _defaultCurve, duration, enabled);
         }
 
-        private void SetDesaturation(bool enabled, float strength = -50.0f)
+        private void SetDesaturation(bool enabled, float strength = -50.0f, float duration = 0.01f)
         {
             if (!_profile.TryGet<ColorAdjustments>(out var colorAdjustments))
             {
                 return;
             }
 
-            SetAnimation(colorAdjustments.saturation, (float)(enabled ? strength : 0.0f), 0.01f, enabled);
+            SetAnimation(colorAdjustments.saturation, (float)(enabled ? strength : 0.0f), duration, enabled);
         }
 
-		private void SetTrailsDesaturation(bool enabled, float strength = -85.0f, float contrast = 100f)
+		private void SetTrailsDesaturation(bool enabled, float strength = -85.0f, float contrast = 100f, float duration = 0.01f)
         {
             if (!_profile.TryGet<ColorAdjustments>(out var colorAdjustments))
             {
                 return;
             }
 
-            SetAnimation(colorAdjustments.saturation, (float)(enabled ? strength : 0.0f), 0.01f, enabled);
-            SetAnimation(colorAdjustments.contrast, (float)(enabled ? contrast : 0.0f), 0.01f, enabled);
+            SetAnimation(colorAdjustments.saturation, (float)(enabled ? strength : 0.0f), duration, enabled);
+            SetAnimation(colorAdjustments.contrast, (float)(enabled ? contrast : 0.0f), duration, enabled);
         }
 
-        private void SetBlackAndWhite(bool enabled)
+        private void SetBlackAndWhite(bool enabled, float duration = 0.01f)
         {
             if(!_profile.TryGet<ColorAdjustments>(out var colorAdjustments))
             {
                 return;
             }
 
-            SetAnimation(colorAdjustments.saturation, (float)(enabled ? -100.0f : 0.0f), 0.01f, enabled);
-            SetAnimation(colorAdjustments.contrast, (float)(enabled ? -10f : 1.0f), 0.01f, enabled);
+            SetAnimation(colorAdjustments.saturation, (float)(enabled ? -100.0f : 0.0f), duration, enabled);
+            SetAnimation(colorAdjustments.contrast, (float)(enabled ? -10f : 1.0f), duration, enabled);
 		}
 
-        private void SetBadCopier(bool enabled)
+        private void SetBadCopier(bool enabled, float duration = 0.01f)
         {
             if (!_profile.TryGet<ColorCurves>(out var colorCurves))
             {
                 return;
             }
 
-            SetAnimation(colorCurves.master, enabled ? _copierCurve : _defaultCurve, 0.01f, enabled);
+            SetAnimation(colorCurves.master, enabled ? _copierCurve : _defaultCurve, duration, enabled);
         }
 
-        private void SetSilverTone(bool enabled)
+        private void SetSilverTone(bool enabled, float duration = 0.01f)
         {
             if(!_profile.TryGet<ColorAdjustments>(out var colorAdjustments))
             {
                 return;
             }
 
-            SetAnimation(colorAdjustments.saturation, (float)(enabled ? -100.0f : 0.0f), 0.01f, enabled);
+            SetAnimation(colorAdjustments.saturation, (float)(enabled ? -100.0f : 0.0f), duration, enabled);
         }
 
-        private void SetSepiaTone(bool enabled)
+        private void SetSepiaTone(bool enabled, float duration = 0.01f)
         {
             if (!_profile.TryGet<ChannelMixer>(out var mixer))
             {
                 return;
             }
 
-            SetAnimation(mixer.redOutRedIn, enabled ? 39.3f : 100f, 0.01f, enabled);
-            SetAnimation(mixer.greenOutRedIn, enabled ? 34.9f : 0f, 0.01f, enabled);
-            SetAnimation(mixer.blueOutRedIn, enabled ? 27.2f : 0f, 0.01f, enabled);
+            SetAnimation(mixer.redOutRedIn, enabled ? 39.3f : 100f, duration, enabled);
+            SetAnimation(mixer.greenOutRedIn, enabled ? 34.9f : 0f, duration, enabled);
+            SetAnimation(mixer.blueOutRedIn, enabled ? 27.2f : 0f, duration, enabled);
 
-            SetAnimation(mixer.redOutGreenIn, enabled ? 76.9f : 0f, 0.01f, enabled);
-            SetAnimation(mixer.greenOutGreenIn, enabled ? 68.6f : 100f, 0.01f, enabled);
-            SetAnimation(mixer.blueOutGreenIn, enabled ? 53.4f : 0f, 0.01f, enabled);
+            SetAnimation(mixer.redOutGreenIn, enabled ? 76.9f : 0f, duration, enabled);
+            SetAnimation(mixer.greenOutGreenIn, enabled ? 68.6f : 100f, duration, enabled);
+            SetAnimation(mixer.blueOutGreenIn, enabled ? 53.4f : 0f, duration, enabled);
 
-            SetAnimation(mixer.blueOutRedIn, enabled ? 18.9f : 0f, 0.01f, enabled);
-            SetAnimation(mixer.greenOutRedIn, enabled ? 16.8f : 0f, 0.01f, enabled);
-            SetAnimation(mixer.blueOutBlueIn, enabled ? 13.1f : 100f, 0.01f, enabled);
+            SetAnimation(mixer.blueOutRedIn, enabled ? 18.9f : 0f, duration, enabled);
+            SetAnimation(mixer.greenOutRedIn, enabled ? 16.8f : 0f, duration, enabled);
+            SetAnimation(mixer.blueOutBlueIn, enabled ? 13.1f : 100f, duration, enabled);
         }
 
 
-        private void SetBloom(bool enabled)
+        private void SetBloom(bool enabled, float duration = 0.01f)
         {
             if (!_profile.TryGet<Bloom>(out var bloom))
             {
@@ -805,61 +800,61 @@ namespace YARG.Venue.VenueCamera
 
             if (enabled)
             {
-                SetAnimation(bloom.intensity, 1.0f, 0.01f, true);
-                SetAnimation(bloom.threshold, 0.6f, 0.01f, true);
+                SetAnimation(bloom.intensity, 1.0f, duration, true);
+                SetAnimation(bloom.threshold, 0.6f, duration, true);
             }
             else
             {
-                SetAnimation(bloom.intensity, _originalBloom, 0.01f, _originalBloomState);
-                SetAnimation(bloom.threshold, _originalBloomThreshold, 0.01f, _originalBloomTState);
+                SetAnimation(bloom.intensity, _originalBloom, duration, _originalBloomState);
+                SetAnimation(bloom.threshold, _originalBloomThreshold, duration, _originalBloomTState);
             }
         }
 
-        private void SetGreenTint(bool enabled)
+        private void SetGreenTint(bool enabled, float duration = 0.01f)
         {
             if (!_profile.TryGet<ColorAdjustments>(out var colorAdjustments))
             {
                 return;
             }
 
-			SetAnimation(colorAdjustments.saturation, enabled ? -20f : 0f, 0.01f, enabled);
-            SetAnimation(colorAdjustments.colorFilter, enabled ? _greenTint : Color.white, 0.01f, enabled);
+			SetAnimation(colorAdjustments.saturation, enabled ? -20f : 0f, duration, enabled);
+            SetAnimation(colorAdjustments.colorFilter, enabled ? _greenTint : Color.white, duration, enabled);
         }
 
-        private void SetBlueTint(bool enabled)
+        private void SetBlueTint(bool enabled, float duration = 0.01f)
         {
             if (!_profile.TryGet<ColorAdjustments>(out var colorAdjustments))
             {
                 return;
             }
 
-            SetAnimation(colorAdjustments.colorFilter, enabled ? _blueTint : Color.white, 0.01f, enabled);
+            SetAnimation(colorAdjustments.colorFilter, enabled ? _blueTint : Color.white, duration, enabled);
         }
 
-        private void SetScanline(bool enabled)
+        private void SetScanline(bool enabled, float duration = 0.01f)
         {
             if (!_profile.TryGet<ScanlineComponent>(out var scanline))
             {
                 return;
             }
 
-            SetAnimation(scanline.intensity, enabled ? 0.6f : 0.0f, 0.01f, enabled);
+            SetAnimation(scanline.intensity, enabled ? 0.6f : 0.0f, duration, enabled);
 
             // This should really be ~1/4 of the screen resolution
             scanline.scanlineCount.value = 190;
             scanline.scanlineCount.overrideState = enabled;
         }
 
-        private void SetTrail(bool enabled, float intensity = 0.6f)
+        private void SetTrail(bool enabled, float duration = 0.01f, float intensity = 0.6f)
         {
             if (!_profile.TryGet<TrailsComponent>(out var trail))
             {
                 return;
             }
-            SetAnimation(trail.length, enabled ? intensity : 0.0f, 0.01f, enabled);;
+            SetAnimation(trail.length, enabled ? intensity : 0.0f, duration, enabled);;
         }
 
-        private void SetGrainy(bool enabled)
+        private void SetGrainy(bool enabled, float duration = 0.01f)
         {
             if (!_profile.TryGet<FilmGrain>(out var grain))
             {
@@ -871,12 +866,12 @@ namespace YARG.Venue.VenueCamera
                 return;
             }
 
-            SetAnimation(colorAdjustments.contrast, enabled ? 20.0f : 0.0f, 0.01f, enabled);
-            SetAnimation(grain.intensity, enabled ? 1.0f : 0.25f, 0.01f, enabled);
-            SetAnimation(grain.response, enabled ? 0.0f : 0.8f, 0.01f, enabled);
+            SetAnimation(colorAdjustments.contrast, enabled ? 20.0f : 0.0f, duration, enabled);
+            SetAnimation(grain.intensity, enabled ? 1.0f : 0.25f, duration, enabled);
+            SetAnimation(grain.response, enabled ? 0.0f : 0.8f, duration, enabled);
         }
 
-		private void SetPsychRB(bool enabled)
+		private void SetPsychRB(bool enabled, float duration = 0.01f)
         {
             if (!_profile.TryGet<ColorCurves>(out var colorCurves))
             {
@@ -890,27 +885,21 @@ namespace YARG.Venue.VenueCamera
 
             var flatZeroCurveParam = new TextureCurveParameter(flatZeroCurve, true);
 
-            SetAnimation(colorCurves.green, enabled ? flatZeroCurve : _defaultCurve, 0.01f, enabled);
-            SetAnimation(colorCurves.blue, enabled ? _invertCurve : _defaultCurve, 0.01f, enabled);
+            SetAnimation(colorCurves.green, enabled ? flatZeroCurve : _defaultCurve, duration, enabled);
+            SetAnimation(colorCurves.blue, enabled ? _invertCurve : _defaultCurve, duration, enabled);
         }
 
         public void SetAnimation(ClampedFloatParameter target, float endValue, float duration, bool finalOverrideState)
         {
-            if (CurrentEffect.Type == PreviousEffect.Type)
-            {
-                // Duration is the time between current and next, unless next doesn't exist, in which case we do nothing
-                // because there is no change
-                if (NextEffect == null  || CurrentEffect.Type == NextEffect.Type)
-                {
-                    return;
-                }
-
-                // The - 0.02f is to make sure that this animation will complete before the disable call for the next
-                // effect
-                duration = (float) (NextEffect.Time - CurrentEffect.Time) - 0.02f;
-            }
-
             var anim = new ClampedFloatAnimation(endValue, duration, target, finalOverrideState);
+
+            if (Mathf.Approximately(duration, 0f))
+            {
+                target.value = endValue;
+                target.overrideState = finalOverrideState;
+                _clampedFloatAnimations.RemoveAll(t => t.Equals(anim));
+                return;
+            }
 
             // Disable is happening before enable again, so if we find something is animating this target, kill it
             if (!finalOverrideState)
@@ -923,25 +912,21 @@ namespace YARG.Venue.VenueCamera
             if (duration > 0.01f)
             {
                 YargLogger.LogDebug(
-                    $"Animating post processing from {CurrentEffect.Type} to {NextEffect.Type} for {duration} seconds");
+                    $"Animating post processing to {CurrentEffect.Type} for {duration} seconds");
             }
         }
 
         public void SetAnimation(FloatParameter target, float endValue, float duration, bool finalOverrideState)
         {
-            if (CurrentEffect.Type == PreviousEffect.Type)
-            {
-                // Duration is the time between current and next, unless next doesn't exist, in which case we do nothing
-                // because there is no change
-                if (NextEffect == null || CurrentEffect.Type == NextEffect.Type)
-                {
-                    return;
-                }
-
-                duration = (float) (NextEffect.Time - CurrentEffect.Time) - 0.02f;
-            }
-
             var anim = new FloatAnimation(endValue, duration, target, finalOverrideState);
+
+            if (Mathf.Approximately(duration, 0f))
+            {
+                target.value = endValue;
+                target.overrideState = finalOverrideState;
+                _floatAnimations.RemoveAll(t => t.Equals(anim));
+                return;
+            }
 
             if (!finalOverrideState)
             {
@@ -952,25 +937,21 @@ namespace YARG.Venue.VenueCamera
             if (duration > 0.01f)
             {
                 YargLogger.LogDebug(
-                    $"Animating post processing from {CurrentEffect.Type} to {NextEffect.Type} for {duration} seconds");
+                    $"Animating post processing to {CurrentEffect.Type} for {duration} seconds");
             }
         }
 
         public void SetAnimation(TextureCurveParameter target, TextureCurve endValue, float duration, bool finalOverrideState)
         {
-            if (CurrentEffect.Type == PreviousEffect.Type)
-            {
-                // Duration is the time between current and next, unless next doesn't exist, in which case we do nothing
-                // because there is no change
-                if (NextEffect == null || CurrentEffect.Type == NextEffect.Type)
-                {
-                    return;
-                }
-
-                duration = (float) (NextEffect.Time - CurrentEffect.Time) - 0.02f;
-            }
-
             var anim = new CurveAnimation(endValue, duration, target, finalOverrideState);
+
+            if (Mathf.Approximately(duration, 0f))
+            {
+                target.value = endValue;
+                target.overrideState = finalOverrideState;
+                _curveAnimations.RemoveAll(t => t.Equals(anim));
+                return;
+            }
 
             if (!finalOverrideState)
             {
@@ -982,25 +963,21 @@ namespace YARG.Venue.VenueCamera
             if (duration > 0.01f)
             {
                 YargLogger.LogDebug(
-                    $"Animating post processing from {CurrentEffect.Type} to {NextEffect.Type} for {duration} seconds");
+                    $"Animating post processing to {CurrentEffect.Type} for {duration} seconds");
             }
         }
 
         public void SetAnimation(ColorParameter target, Color endValue, float duration, bool finalOverrideState)
         {
-            if (CurrentEffect.Type == PreviousEffect.Type)
-            {
-                // Duration is the time between current and next, unless next doesn't exist, in which case we do nothing
-                // because there is no change
-                if (NextEffect == null || CurrentEffect.Type == NextEffect.Type)
-                {
-                    return;
-                }
-
-                duration = (float) (NextEffect.Time - CurrentEffect.Time) - 0.02f;
-            }
-
             var anim = new ColorAnimation(endValue, duration, target, finalOverrideState);
+
+            if (Mathf.Approximately(duration, 0f))
+            {
+                target.value = endValue;
+                target.overrideState = finalOverrideState;
+                _colorAnimations.RemoveAll(t => t.Equals(anim));
+                return;
+            }
 
             if (!finalOverrideState)
             {
@@ -1011,25 +988,21 @@ namespace YARG.Venue.VenueCamera
             if (duration > 0.01f)
             {
                 YargLogger.LogDebug(
-                    $"Animating post processing from {CurrentEffect.Type} to {NextEffect.Type} for {duration} seconds");
+                    $"Animating post processing to {CurrentEffect.Type} for {duration} seconds");
             }
         }
 
         public void SetAnimation(ClampedIntParameter target, int endValue, float duration, bool finalOverrideState)
         {
-            if (CurrentEffect.Type == PreviousEffect.Type)
-            {
-                // Duration is the time between current and next, unless next doesn't exist, in which case we do nothing
-                // because there is no change
-                if (NextEffect == null || CurrentEffect.Type == NextEffect.Type)
-                {
-                    return;
-                }
-
-                duration = (float) (NextEffect.Time - CurrentEffect.Time) - 0.02f;
-            }
-
             var anim = new ClampedIntAnimation(endValue, duration, target, finalOverrideState);
+
+            if (Mathf.Approximately(duration, 0f))
+            {
+                target.value = endValue;
+                target.overrideState = finalOverrideState;
+                _clampedIntAnimations.RemoveAll(t => t.Equals(anim));
+                return;
+            }
 
             if (!finalOverrideState)
             {
@@ -1040,7 +1013,7 @@ namespace YARG.Venue.VenueCamera
             if (duration > 0.01f)
             {
                 YargLogger.LogDebug(
-                    $"Animating post processing from {CurrentEffect.Type} to {NextEffect.Type} for {duration} seconds");
+                    $"Animating post processing to {CurrentEffect.Type} for {duration} seconds");
             }
         }
 
@@ -1388,12 +1361,6 @@ namespace YARG.Venue.VenueCamera
         // This returns a bool so that the caller can remove us from the list when we are no longer needed
         public bool Update()
         {
-            // if (_gameManager.RealVisualTime < _startTime)
-            // {
-            //     // Nothing to do yet
-            //     return false;
-            // }
-
             if (_elapsedTime >= _duration)
             {
                 // We're done, so set _endValue
@@ -1464,12 +1431,6 @@ namespace YARG.Venue.VenueCamera
         // This returns a bool so that the caller can remove us from the list when we are no longer needed
         public bool Update()
         {
-            // if (_gameManager.RealVisualTime < _startTime)
-            // {
-            //     // Nothing to do yet
-            //     return false;
-            // }
-
             if (_elapsedTime >= _duration)
             {
                 // We're done, so set _endValue
@@ -1538,12 +1499,6 @@ namespace YARG.Venue.VenueCamera
 
         public bool Update()
         {
-            // if (_gameManager.RealVisualTime < _startTime)
-            // {
-            //     // Nothing to do yet
-            //     return false;
-            // }
-
             if (_elapsedTime >= _duration)
             {
                 // We're done, so set _endValue

@@ -7,6 +7,11 @@ namespace YARG.Audio.BASS
     {
         public readonly BassFlags Flags;
 
+        private BassOutputChannel(BassFlags flags, int channelId) : base(channelId)
+        {
+            Flags = flags;
+        }
+
 #nullable enable
         internal static BassOutputChannel? Create(int channelId)
 #nullable disable
@@ -20,8 +25,8 @@ namespace YARG.Audio.BASS
                 // Center and LFE speaker
                 5 or 6 => BassFlags.SpeakerPair3,
                 // Rear center speakers for 7.1
-                7 or 8 => BassFlags.SpeakerPair4,
-                9 or 10 => BassFlags.SpeakerPair5,
+                7 or 8   => BassFlags.SpeakerPair4,
+                9 or 10  => BassFlags.SpeakerPair5,
                 11 or 12 => BassFlags.SpeakerPair6,
                 13 or 14 => BassFlags.SpeakerPair7,
                 15 or 16 => BassFlags.SpeakerPair8,
@@ -36,17 +41,12 @@ namespace YARG.Audio.BASS
                 _ => null,
             };
 
-            if (channel == null) {
+            if (channel == null)
+            {
                 return null;
             }
 
-            return new BassOutputChannel((BassFlags)channel, channelId);
-        }
-
-        private BassOutputChannel(BassFlags flags, int channelId)
-            : base(channelId)
-        {
-            Flags = flags;
+            return new BassOutputChannel((BassFlags) channel, channelId);
         }
     }
 }

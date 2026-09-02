@@ -27,6 +27,7 @@ using YARG.Player;
 using YARG.Replays;
 using YARG.Scores;
 using YARG.Settings;
+using YARG.Settings.Types;
 using YARG.Venue.Characters;
 using YARG.Venue.VenueCamera;
 
@@ -120,10 +121,16 @@ namespace YARG.Gameplay
         public bool IsAudioSyncCorrectionActive => _songRunner.IsAudioSyncCorrectionActive;
 
         /// <inheritdoc cref="SongRunner.Started"/>
-        public bool Started => _songRunner.Started;
+        public bool Started => _songRunner?.Started ?? false;
 
         /// <inheritdoc cref="SongRunner.Paused"/>
-        public bool Paused => _songRunner.Paused;
+        public bool Paused => _songRunner?.Paused ?? true;
+
+        /// <summary>
+        /// The current song's specific offset (in milliseconds), editable from the pause menu
+        /// and by <see cref="Helpers.AutoCalibrator"/>. Backed by <see cref="Song.SongOffsetContainer"/>.
+        /// </summary>
+        public IntSetting SongOffsetOverride { get; private set; }
 
         /// <summary>
         /// Set when we are in the middle of resuming, but have not yet fully resumed
@@ -166,9 +173,10 @@ namespace YARG.Gameplay
 
         private bool _isReplaySaved;
         private int _originalSleepTimeout;
-        private bool _breBoxActive;
 
         private StemMixer _mixer;
+        public  StemMixer  Mixer => _mixer;
+
         private MetronomeScheduler _metronomeScheduler;
         private CrowdClapScheduler _crowdClapScheduler;
 
@@ -307,14 +315,8 @@ namespace YARG.Gameplay
                 return;
             }
 
-            bool runnerWasStarted = _songRunner.Started;
-
             // Update handlers
             _songRunner.Update();
-            if (!runnerWasStarted && _songRunner.Started)
-            {
-                GlobalVariables.RestartProfileMicrophones();
-            }
 
             ApplySongSpeed();
             BeatEventHandler.Update(_songRunner.SongTime, _songRunner.VisualTime);
@@ -355,7 +357,7 @@ namespace YARG.Gameplay
             ApplySongSpeed();
 
             BeatEventHandler.Reset();
-            BackgroundManager.SetTime(_songRunner.SongTime + Song.SongOffsetSeconds);
+            BackgroundManager.SetTime(_songRunner.GetAudioPlaybackTime(_songRunner.SongTime));
             VenueCameraManager?.ResetTime(time);
             VenueCharacterManager?.ResetTime(time);
             if (_lyricBar.gameObject.activeSelf)
@@ -633,6 +635,10 @@ namespace YARG.Gameplay
         public double GetInputTime(double inputSystemTime)
             => _songRunner.GetInputTime(inputSystemTime);
 
+        /// <inheritdoc cref="SongRunner.GetAudioPlaybackTime"/>
+        public double GetAudioPlaybackTime(double songTime)
+            => _songRunner.GetAudioPlaybackTime(songTime);
+
         private bool EndSong()
         {
             _crowdClapScheduler?.Dispose();
@@ -680,6 +686,17 @@ namespace YARG.Gameplay
                 }).ToArray(),
                 BandScore = BandScore,
                 BandStars = (int) BandStars,
+
+                // TODO: When online comes out, change
+                // .Where(player => !player.Player.Profile.IsBot)
+                // to:
+                // .Where(player => !(player.Player.Profile.IsBot || player.Player.IsRemote))
+                MeanAverageOffset = _players
+                    .Where(player => !player.Player.Profile.IsBot)
+                    .Select(player => player.BaseStats.GetAverageOffset())
+                    .DefaultIfEmpty(0)
+                    .Average(),
+
                 ReplayInfo = replayInfo,
             };
 
@@ -888,11 +905,11 @@ namespace YARG.Gameplay
                 return null;
             }
 
-            var noFail = SettingsManager.Settings.NoFail.Value == NoFailMode.On;
+            var noFail = SettingsManager.Settings.NoFail.Value != NoFailMode.Off;
             var stars = StarAmountHelper.GetStarsFromInt(Mathf.FloorToInt(bandStars));
             ReplayData = new ReplayData(colorProfiles, cameraPresets, rockMeterPresets, noFail, frames.ToArray(), _frameTimes.ToArray());
 
-            (bool success, var replayInfo) = ReplayIO.TrySerialize(directory, Song, SongSpeed, length, bandScore, stars, PauseInfo.ToArray(), replayStats.ToArray(), ReplayData);
+            (bool success, var replayInfo) = ReplayIO.TrySerialize(directory, Song, SongSpeed, length, bandScore, stars, PauseInfo.ToArray(), SettingsManager.Settings.CensorMatureContent.Value, replayStats.ToArray(), ReplayData);
             if (!success)
             {
                 return null;
@@ -1098,25 +1115,18 @@ namespace YARG.Gameplay
 
         public void StartCoda(CodaSection _)
         {
-            if (_breBoxActive)
-            {
-                return;
-            }
-
-            _breBoxActive = true;
             _breBox.StartCoda(EngineManager);
         }
 
         public void EndCoda(CodaSection coda)
         {
             var songEnding = SongTime >= LastNoteTime;
-            _breBox.EndCoda(EngineManager.TotalCodaBonus, songEnding, () => { _breBoxActive = false; });
+            _breBox.EndCoda(EngineManager.TotalCodaBonus, songEnding, null);
         }
 
         public void ResetCoda()
         {
             _breBox.ForceReset();
-            _breBoxActive = false;
         }
     }
 }

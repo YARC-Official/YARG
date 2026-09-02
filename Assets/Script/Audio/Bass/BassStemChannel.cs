@@ -1,8 +1,10 @@
 using ManagedBass;
 using ManagedBass.Mix;
 using UnityEngine;
+using YARG.Audio.BASS.Effects;
 using YARG.Core.Audio;
 using YARG.Core.Logging;
+using YARG.Settings;
 
 namespace YARG.Audio.BASS
 {
@@ -12,7 +14,7 @@ namespace YARG.Audio.BASS
         private          StreamHandle               _streamHandles;
         private          StreamHandle               _reverbHandles;
         private          PitchShiftParametersStruct _pitchParams;
-        private          BassFreeverbDsp             _reverbDsp;
+        private          IBassReverbDsp              _reverbDsp;
 
         private          double _volume;
         private          bool   _isReverbing;
@@ -141,7 +143,8 @@ namespace YARG.Audio.BASS
                         return;
                     }
 
-                    _reverbDsp = BassFreeverbDsp.Create(_reverbHandles.Stream,
+                    _reverbDsp = BassHelpers.CreateReverb(SettingsManager.Settings.ReverbImplementation.Value,
+                        _reverbHandles.Stream,
                         dryMix: 0.0f,
                         wetMix: 1.0f,
                         roomSize: 0.8f,
@@ -177,8 +180,6 @@ namespace YARG.Audio.BASS
         {
             _reverbDsp?.Dispose();
             _reverbDsp = null;
-            _streamHandles.Dispose();
-            _reverbHandles.Dispose();
         }
 
         private void RemoveReverbEq()
