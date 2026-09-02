@@ -1,0 +1,22 @@
+{
+    "name": "VLCUnity",
+    "rootNamespace": "Videolabs.VLCUnity",
+    "references": [
+        "Unity.InputSystem"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": true,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [
+        {
+            "name": "com.unity.inputsystem",
+            "expression": "1.0.0",
+            "define": "VLC_HAS_INPUT_SYSTEM"
+        }
+    ],
+    "noEngineReferences": false
+}
