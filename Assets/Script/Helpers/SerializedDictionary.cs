@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace YARG.Helpers
 {
@@ -43,7 +44,7 @@ namespace YARG.Helpers
             }
         }
 
-        public void OnAfterDeserialize()
+        public virtual void OnAfterDeserialize()
         {
             _dictionary.Clear();
 

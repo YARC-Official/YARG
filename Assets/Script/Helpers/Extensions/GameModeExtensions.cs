@@ -61,6 +61,7 @@ namespace YARG.Helpers.Extensions
                 {
                     (ProfileSettingStrings.LEFTY_FLIP, null),
                     (ProfileSettingStrings.RANGE_DISABLE, "RANGE SHIFT MARKERS"),
+                    (ProfileSettingStrings.OPEN_LANE_DISPLAY_TYPE, "DEDICATED OPEN NOTE LANE"),
                 },
                 GameMode.EliteDrums => new()
                 {
