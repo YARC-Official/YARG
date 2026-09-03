@@ -161,6 +161,12 @@ namespace YARG.Song
             };
         }
 
+        public static BaseGenre GetBaseGenre(SortString genre)
+        {
+            var overGenre = Overgenrelize(genre);
+            return OVERGENRE_TO_BASE_GENRE.GetValueOrDefault(overGenre, BaseGenre.Other);
+        }
+
         private static string _getLocalizedGenre(string genre)
         {
             var res = Localization.Localize.Key("Menu.MusicLibrary.Genre", GENRE_LOCALIZATION_KEYS.GetValueOrDefault(genre));

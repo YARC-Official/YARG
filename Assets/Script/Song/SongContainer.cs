@@ -14,6 +14,7 @@ using YARG.Helpers.Extensions;
 using YARG.Localization;
 using YARG.Menu.MusicLibrary;
 using YARG.Player;
+using YARG.Playlists;
 using YARG.Scores;
 using YARG.Settings;
 
@@ -136,6 +137,7 @@ namespace YARG.Song
         public static IReadOnlyDictionary<int, List<SongEntry>> AggregateDrums => _sortedSongs.AggregateDrums;
 
         public static int Count => _songs.Length;
+        public static int LibraryRevision { get; private set; }
         // public static IReadOnlyDictionary<HashWrapper, List<SongEntry>> SongsByHash => _songCache.Entries;
         public static IReadOnlyDictionary<HashWrapper, List<SongEntry>> SongsByHash => _songsByHash;
         public static SongEntry[]                                       Songs       => _songs;
@@ -156,9 +158,11 @@ namespace YARG.Song
             }
 
             var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+            var previousSongCache = _songCache;
+            SongCache refreshedSongCache = null;
             var task = UniTask.RunOnThreadPool(() =>
             {
-                _songCache =  CacheHandler.RunScan(quick,
+                refreshedSongCache = CacheHandler.RunScan(quick,
                     PathHelper.SongCachePath,
                     PathHelper.BadSongsPath,
                     SettingsManager.Settings.UseFullDirectoryForPlaylists.Value,
@@ -173,6 +177,10 @@ namespace YARG.Song
                 }
                 await UniTask.NextFrame();
             }
+
+            PlaylistContainer.ReplaceUpdatedSongHashes(
+                FindUpdatedSongHashes(previousSongCache, refreshedSongCache));
+            _songCache = refreshedSongCache;
 
             if (SettingsManager.Settings.Genrelizer.Value is GenrelizerMode.Genrelize && !GlobalVariables.OfflineMode)
             {
@@ -193,6 +201,66 @@ namespace YARG.Song
             YargLogger.LogFormatInfo("Scan time: {0}s", stopwatch.Elapsed.TotalSeconds);
             MusicLibraryMenu.SetReload(MusicLibraryReloadState.Full);
             SongSources.LoadSprites(context);
+        }
+
+        private static Dictionary<HashWrapper, HashWrapper> FindUpdatedSongHashes(
+            SongCache previousCache, SongCache refreshedCache)
+        {
+            var previousByLocation = GetSongsByUniqueLocation(previousCache);
+            var refreshedByLocation = GetSongsByUniqueLocation(refreshedCache);
+            var replacements = new Dictionary<HashWrapper, HashWrapper>();
+            var ambiguousHashes = new HashSet<HashWrapper>();
+
+            foreach (var (location, previousSong) in previousByLocation)
+            {
+                if (!refreshedByLocation.TryGetValue(location, out var refreshedSong) ||
+                    previousSong.Hash.Equals(refreshedSong.Hash) ||
+                    refreshedCache.Entries.ContainsKey(previousSong.Hash) ||
+                    ambiguousHashes.Contains(previousSong.Hash))
+                {
+                    continue;
+                }
+
+                // A hash can represent duplicate copies in different directories. If those
+                // copies changed to different hashes, there is no unambiguous replacement.
+                if (replacements.TryGetValue(previousSong.Hash, out var replacement))
+                {
+                    if (!replacement.Equals(refreshedSong.Hash))
+                    {
+                        replacements.Remove(previousSong.Hash);
+                        ambiguousHashes.Add(previousSong.Hash);
+                    }
+                }
+                else
+                {
+                    replacements.Add(previousSong.Hash, refreshedSong.Hash);
+                }
+            }
+
+            return replacements;
+        }
+
+        private static Dictionary<string, SongEntry> GetSongsByUniqueLocation(SongCache songCache)
+        {
+            var songsByLocation = new Dictionary<string, SongEntry>(StringComparer.OrdinalIgnoreCase);
+            var duplicateLocations = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+            foreach (var song in songCache.Entries.Values.SelectMany(entries => entries))
+            {
+                string location = song.ActualLocation;
+                if (duplicateLocations.Contains(location))
+                {
+                    continue;
+                }
+
+                if (!songsByLocation.TryAdd(location, song))
+                {
+                    songsByLocation.Remove(location);
+                    duplicateLocations.Add(location);
+                }
+            }
+
+            return songsByLocation;
         }
 
         public static SongCategory[] GetSortedCategory(SortAttribute sort)
@@ -874,13 +942,13 @@ namespace YARG.Song
             {
                 try
                 {
-                    var arr = new SongCategory[instrument.Value.Count];
+                    var noPart = _songs.Where(song => !song[instrument.Key].IsActive()).ToList();
+                    noPart.Sort(new IntensityComparer(instrument.Key));
+
+                    var arr = new SongCategory[instrument.Value.Count + (noPart.Count > 0 ? 1 : 0)];
                     int index = 0;
-                    foreach (var difficulty in instrument.Value)
-                    {
-                        string categoryName = $"{instrument.Key.ToSortAttribute().ToLocalizedName()} [{difficulty.Key}]";
-                        arr[index++] = new SongCategory(categoryName, difficulty.Value.ToArray(), categoryName);
-                    }
+                    AddIntensityCategories(arr, ref index, instrument.Value);
+                    AddNoPartCategory(arr, ref index, noPart);
                     _sortInstruments.Add(instrument.Key, arr);
                 }
                 catch (Exception ex)
@@ -889,15 +957,45 @@ namespace YARG.Song
                 }
             }
 
-            _sortAggregateDrums = new SongCategory[_sortedSongs.AggregateDrums.Count];
+            var noAggregateDrumsPart = _songs.Where(song => !MidiDrumkitHelper.HasAnyDrumPart(song)).ToList();
+            noAggregateDrumsPart.Sort(new AggregateDrumsIntensityComparer());
+            _sortAggregateDrums = new SongCategory[
+                _sortedSongs.AggregateDrums.Count + (noAggregateDrumsPart.Count > 0 ? 1 : 0)];
             {
                 int index = 0;
-                foreach (var difficulty in _sortedSongs.AggregateDrums)
+                AddIntensityCategories(_sortAggregateDrums, ref index, _sortedSongs.AggregateDrums);
+                AddNoPartCategory(_sortAggregateDrums, ref index, noAggregateDrumsPart);
+            }
+
+            static void AddIntensityCategories(SongCategory[] categories, ref int index,
+                SortedDictionary<int, List<SongEntry>> intensities)
+            {
+                for (int intensity = 0; intensity <= 6; intensity++)
                 {
-                    string categoryName = $"{SortAttribute.AggregateDrums.ToLocalizedName()} [{difficulty.Key}]";
-                    _sortAggregateDrums[index++] = new SongCategory(categoryName, difficulty.Value.ToArray(), categoryName);
+                    if (!intensities.TryGetValue(intensity, out var songs))
+                        continue;
+
+                    string label = YARG.Menu.Filters.FiltersMenu.GetIntensityLabel(intensity);
+                    categories[index++] = new SongCategory(label, songs.ToArray(), label);
+                }
+
+                foreach (var intensity in intensities.Where(pair => pair.Key < 0 || pair.Key > 6))
+                {
+                    string label = YARG.Menu.Filters.FiltersMenu.GetIntensityLabel(intensity.Key);
+                    categories[index++] = new SongCategory(label, intensity.Value.ToArray(), label);
                 }
             }
+
+            static void AddNoPartCategory(SongCategory[] categories, ref int index, List<SongEntry> noPart)
+            {
+                if (noPart.Count == 0)
+                    return;
+
+                string label = Localize.Key("Menu.MusicLibrary.Sort.NoPart");
+                categories[index++] = new SongCategory(label, noPart.ToArray(), label);
+            }
+
+            LibraryRevision++;
 
             static SongEntry[] SetAllSongs(Dictionary<HashWrapper, List<SongEntry>> entries)
             {

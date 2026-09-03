@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using YARG.Core.Chart;
@@ -220,6 +221,11 @@ namespace YARG.Venue
         private int               _tempoIndex;
         private List<Animator>    _animators;
 
+        // TODO: This should probably use the pattern BeatEventHandler uses
+        //  so that we can have callbacks for all the channels rather than special-casing camera cuts
+        public delegate void CameraCutEvent();
+        public CameraCutEvent OnCameraCut;
+
         protected override void GameplayAwake()
         {
             string lightingLayerName = "Base Layer";
@@ -378,7 +384,15 @@ namespace YARG.Venue
             // Initialize all channels
             foreach (var channel in _channels)
             {
-                channel.BuildCommands(chart, _queue);
+                if (channel is CameraChannel)
+                {
+                    // TODO: There is probably a better way to do this that doesn't involve a closure
+                    channel.BuildCommands(chart, _queue, () => OnCameraCut?.Invoke());
+                }
+                else
+                {
+                    channel.BuildCommands(chart, _queue);
+                }
             }
 
             _queue.Sort();

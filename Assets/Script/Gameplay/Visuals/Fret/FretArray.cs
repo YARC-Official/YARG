@@ -173,7 +173,10 @@ namespace YARG.Gameplay.Visuals
             _frets[index].SetPressed(pressed);
         }
 
-        public void SetPressedDrum(int index, bool pressed, Fret.AnimType animType)
+        // Used for frets that can only receive a momentary input rather than being held. This includes all
+        // drum frets, as well as the dedicated open lane fret for 5F Guitar (no, holding the strum bar down
+        // doesn't count)
+        public void SetPressedImpulse(int index, bool pressed, Fret.AnimType animType)
         {
             _frets[index].SetPressedDrum(pressed, animType);
         }
@@ -206,12 +209,12 @@ namespace YARG.Gameplay.Visuals
             _frets[index].PlayHitParticles();
         }
 
-        public void PlayOpenHitAnimation()
+        public void PlayFullWidthHitAnimation()
         {
             foreach (var (_, fret) in _frets)
             {
                 fret.PlayHitAnimation();
-                fret.PlayOpenHitParticles();
+                fret.PlayFullWidthHitParticles();
             }
         }
 
@@ -224,7 +227,7 @@ namespace YARG.Gameplay.Visuals
             }
         }
 
-        public void PlayOpenMissAnimation()
+        public void PlayFullWidthMissAnimation()
         {
             foreach (var (_, fret) in _frets)
             {

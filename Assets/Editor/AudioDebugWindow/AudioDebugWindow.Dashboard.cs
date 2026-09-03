@@ -360,9 +360,15 @@ namespace YARG.Editor
             {
                 if (bufferInfo is { } bInfo)
                 {
+                    bool isWasapi = slot.SelectedDevice?.DisplayName.StartsWith("WASAPI: ", StringComparison.OrdinalIgnoreCase) == true;
+
+                    Color tagColor = bInfo.IsAsio
+                        ? new Color(0.35f, 0.9f, 0.5f)
+                        : (isWasapi ? new Color(0.85f, 0.45f, 1f) : new Color(0.45f, 0.8f, 1f));
+
                     var tagStyle = new GUIStyle(EditorStyles.miniBoldLabel)
                     {
-                        normal = { textColor = bInfo.IsAsio ? new Color(0.35f, 0.9f, 0.5f) : new Color(0.45f, 0.8f, 1f) },
+                        normal = { textColor = tagColor },
                         alignment = TextAnchor.MiddleLeft
                     };
                     var statStyle = new GUIStyle(EditorStyles.miniLabel)
@@ -371,12 +377,24 @@ namespace YARG.Editor
                         alignment = TextAnchor.MiddleLeft
                     };
 
-                    string modeTag = bInfo.IsAsio ? "⚡ ASIO" : "🎙 Shared";
+                    string modeTag = bInfo.IsAsio
+                        ? "⚡ ASIO"
+                        : (isWasapi ? "⚡ WASAPI" : "🎙 Shared");
                     GUILayout.Label(modeTag, tagStyle, GUILayout.Width(62));
 
-                    string bufStr = bInfo.IsAsio
-                        ? $"{bInfo.SampleRate} Hz • {bInfo.BufferFrames} spl ({bInfo.BufferMilliseconds:F1} ms buffer)"
-                        : $"{bInfo.SampleRate} Hz • {bInfo.Channels} ch • {bInfo.BufferMilliseconds} ms ({bInfo.BufferFrames} spl) buffer • {bInfo.CushionMilliseconds} ms target • {GetWaitingMilliseconds(bInfo)} ms queued";
+                    string bufStr;
+                    if (bInfo.IsAsio)
+                    {
+                        bufStr = $"{bInfo.SampleRate} Hz • {bInfo.BufferFrames} spl ({bInfo.BufferMilliseconds:F1} ms buffer)";
+                    }
+                    else if (isWasapi)
+                    {
+                        bufStr = $"{bInfo.SampleRate} Hz • {bInfo.Channels} ch • {bInfo.BufferFrames} spl ({bInfo.BufferMilliseconds:F1} ms buffer) • {GetWaitingMilliseconds(bInfo)} ms queued";
+                    }
+                    else
+                    {
+                        bufStr = $"{bInfo.SampleRate} Hz • {bInfo.Channels} ch • {bInfo.BufferMilliseconds} ms ({bInfo.BufferFrames} spl) buffer • {bInfo.CushionMilliseconds} ms target • {GetWaitingMilliseconds(bInfo)} ms queued";
+                    }
 
                     GUILayout.Label(bufStr, statStyle);
                 }
