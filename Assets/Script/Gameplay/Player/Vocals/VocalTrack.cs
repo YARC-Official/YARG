@@ -47,13 +47,7 @@ namespace YARG.Gameplay.Player
 
         private static readonly int _alphaMultiplier = Shader.PropertyToID("AlphaMultiplier");
 
-        // TODO: Temporary until color profiles for vocals
-        public static readonly Color[] Colors =
-        {
-            new(0f, 0.800f, 1f, 1f),
-            new(1f, 0.522f, 0f, 1f),
-            new(1f, 0.859f, 0f, 1f)
-        };
+        public Color[] Colors { get; } = new Color[3];
 
         /// <summary>
         /// Time offset relative to 1.0 note speed
@@ -261,6 +255,12 @@ namespace YARG.Gameplay.Player
         public void Initialize(VocalsTrack vocalsTrack, YargPlayer primaryPlayer, float? trackSpeed)
         {
             _originalVocalsTrack = vocalsTrack;
+
+            bool isHarmony = vocalsTrack.Instrument == Instrument.Harmony;
+            for (int i = 0; i < Colors.Length; i++)
+            {
+                Colors[i] = primaryPlayer.ColorProfile.Vocals.GetPartColor(i, isHarmony).ToUnityColor();
+            }
 
             // Apply the modifiers of the primary player. All players should have the
             // same modifier(s) chosen.
