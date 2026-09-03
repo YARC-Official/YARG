@@ -43,6 +43,7 @@ ExportedObj/
 .consulo/
 *.csproj
 !/Native/YargAudio/tests/GainIntegration/GainIntegration.csproj
+!/YARG.UnitTests/*.csproj
 /Native/YargAudio/tests/GainIntegration/[Bb]in/
 /Native/YargAudio/tests/GainIntegration/[Oo]bj/
 /scripts/NativeBuild/[Bb]in/
@@ -138,7 +139,9 @@ reload_lock~.meta
 # Unity crash dumps
 mono_crash.mem.*.blob
 
-# dotnet tool build output
+# dotnet build output
+[Bb]in/
+[Oo]bj/
 Tools/**/[Bb]in/
 Tools/**/[Oo]bj/
 

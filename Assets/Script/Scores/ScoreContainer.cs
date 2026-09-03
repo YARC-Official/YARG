@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -44,22 +44,22 @@ namespace YARG.Scores
         private static bool       _scoresWereFetched;
 
         private static bool HighestDifficultyOnly
-            => SettingsManager.Settings.HighScoreHistory.Value is
+            => SettingsManager.Settings?.HighScoreHistory.Value is
                 HighScoreHistoryMode.HighestPercentageDifficulty or
                 HighScoreHistoryMode.HighestScoreDifficulty;
 
         private static bool CurrentDifficultyOnly
-            => SettingsManager.Settings.HighScoreHistory.Value is
+            => SettingsManager.Settings?.HighScoreHistory.Value is
                 HighScoreHistoryMode.HighestPercentageCurrentDifficulty or
                 HighScoreHistoryMode.HighestScoreCurrentDifficulty;
 
         private static bool UseHighestScore
-            => SettingsManager.Settings.HighScoreHistory.Value is
+            => SettingsManager.Settings?.HighScoreHistory.Value is
                 HighScoreHistoryMode.HighestScoreOverall or
                 HighScoreHistoryMode.HighestScoreDifficulty or
                 HighScoreHistoryMode.HighestScoreCurrentDifficulty;
 
-        private static bool AllowScoresWithBots => SettingsManager.Settings.SaveScoresWithBots.Value;
+        private static bool AllowScoresWithBots => SettingsManager.Settings?.SaveScoresWithBots.Value ?? false;
 
         public static void Init()
         {
@@ -85,7 +85,7 @@ namespace YARG.Scores
 
         public static void Destroy()
         {
-            _db.Dispose();
+            _db?.Dispose();
         }
 
         private static void FetchBandHighScores()
@@ -205,7 +205,7 @@ namespace YARG.Scores
 
         public static void RecordPlayerInfo(Guid id, string name)
         {
-            _db.InsertPlayerRecord(id, name);
+            _db?.InsertPlayerRecord(id, name);
         }
 
         public static List<GameRecord> GetAllGameRecords()
@@ -262,7 +262,7 @@ namespace YARG.Scores
         /// <returns>The highest score for the provided song, player and instrument, or null if no high score exists.</returns>
         public static PlayerScoreRecord GetHighScore(HashWrapper songChecksum, Guid playerId, Instrument instrument, bool allowCacheUpdate = true)
         {
-            if (allowCacheUpdate)
+            if (allowCacheUpdate && _db is not null)
                 FetchHighScores(playerId, new[] { instrument });
 
             if (_currentPlayerId == playerId && _currentInstrumentSetKey == BuildInstrumentSetKey(instrument))
@@ -312,9 +312,10 @@ namespace YARG.Scores
         {
             try
             {
-                return _db.QueryPlayerSongHighScore(
+                var difficulty = PlayerContainer.GetProfileById(playerId)?.CurrentDifficulty ?? Difficulty.Expert;
+                return _db?.QueryPlayerSongHighScore(
                     songChecksum, playerId, instrument, HighestDifficultyOnly, CurrentDifficultyOnly,
-                    PlayerContainer.GetProfileById(playerId).CurrentDifficulty);
+                    difficulty);
             }
             catch (Exception e)
             {
@@ -336,7 +337,7 @@ namespace YARG.Scores
         /// <returns>The highest score percentage for the provided song, player and instrument, or null if no high score exists.</returns>
         public static PlayerScoreRecord GetBestPercentageScore(HashWrapper songChecksum, Guid playerId, Instrument instrument, bool allowCacheUpdate = true)
         {
-            if (allowCacheUpdate)
+            if (allowCacheUpdate && _db is not null)
                 FetchHighScores(playerId, new[] { instrument });
 
             if (_currentPlayerId == playerId && _currentInstrumentSetKey == BuildInstrumentSetKey(instrument))
@@ -349,9 +350,10 @@ namespace YARG.Scores
         {
             try
             {
-                return _db.QueryPlayerSongHighestPercentage(
+                var difficulty = PlayerContainer.GetProfileById(playerId)?.CurrentDifficulty ?? Difficulty.Expert;
+                return _db?.QueryPlayerSongHighestPercentage(
                     songChecksum, playerId, instrument, HighestDifficultyOnly, CurrentDifficultyOnly,
-                    PlayerContainer.GetProfileById(playerId).CurrentDifficulty);
+                    difficulty);
             }
             catch (Exception e)
             {
@@ -362,11 +364,11 @@ namespace YARG.Scores
 
         private static void FetchHighScores(Guid playerId, IReadOnlyList<Instrument> instruments)
         {
-            if (instruments == null || instruments.Count == 0) return;
+            if (instruments == null || instruments.Count == 0 || _db is null) return;
 
             var profile = PlayerContainer.GetProfileById(playerId);
             var currentDifficulty = profile?.CurrentDifficulty ?? Difficulty.Expert;
-            var currentHighScoreHistoryMode = SettingsManager.Settings.HighScoreHistory.Value;
+            var currentHighScoreHistoryMode = SettingsManager.Settings?.HighScoreHistory.Value ?? HighScoreHistoryMode.HighestPercentageOverall;
             string instrumentKey = BuildInstrumentSetKey(instruments);
 
             if (_currentPlayerId == playerId &&
@@ -565,14 +567,20 @@ namespace YARG.Scores
 
         public static Dictionary<HashWrapper, StarAmount> GetBestStarsForSong(YargProfile profile)
         {
+            if (_db is null)
+            {
+                return new Dictionary<HashWrapper, StarAmount>();
+            }
+
             try
             {
+                var mode = SettingsManager.Settings?.HighScoreHistory.Value ?? HighScoreHistoryMode.HighestPercentageOverall;
                 List<PlayerScoreWithChecksum> records = profile.GameMode == GameMode.EliteDrums
                     ? _db.QueryPlayerBestStarsForInstruments(
-                        profile, MidiDrumkitHelper.Instruments, SettingsManager.Settings.HighScoreHistory.Value,
+                        profile, MidiDrumkitHelper.Instruments, mode,
                         SongContainer.SongsByHash.Keys, SongContainer.LibraryRevision)
                     : _db.QueryPlayerBestStars(
-                        profile, SettingsManager.Settings.HighScoreHistory.Value, SongContainer.SongsByHash.Keys,
+                        profile, mode, SongContainer.SongsByHash.Keys,
                         SongContainer.LibraryRevision);
                 Dictionary<HashWrapper, StarAmount> result = new Dictionary<HashWrapper, StarAmount>();
 
@@ -627,10 +635,10 @@ namespace YARG.Scores
 
             if (instruments.Count == 1)
             {
-                return GetHighScore(songChecksum, playerId, instruments[0]);
+                return GetHighScore(songChecksum, playerId, instruments[0], allowCacheUpdate);
             }
 
-            if (allowCacheUpdate)
+            if (allowCacheUpdate && _db is not null)
                 FetchHighScores(playerId, instruments);
 
             string instrumentKey = BuildInstrumentSetKey(instruments);
@@ -640,6 +648,9 @@ namespace YARG.Scores
             {
                 return PlayerHighScores.GetValueOrDefault(songChecksum);
             }
+
+            if (_db is null)
+                return null;
 
             try
             {
@@ -665,10 +676,10 @@ namespace YARG.Scores
 
             if (instruments.Count == 1)
             {
-                return GetBestPercentageScore(songChecksum, playerId, instruments[0]);
+                return GetBestPercentageScore(songChecksum, playerId, instruments[0], allowCacheUpdate);
             }
 
-            if (allowCacheUpdate)
+            if (allowCacheUpdate && _db is not null)
                 FetchHighScores(playerId, instruments);
 
             string instrumentKey = BuildInstrumentSetKey(instruments);
@@ -679,6 +690,9 @@ namespace YARG.Scores
                 return PlayerHighPercentages.GetValueOrDefault(songChecksum);
             }
 
+            if (_db is null)
+                return null;
+
             try
             {
                 return _db.QueryPlayerSongHighestPercentageForInstruments(songChecksum, playerId, instruments, HighestDifficultyOnly);
@@ -687,7 +701,7 @@ namespace YARG.Scores
             {
                 YargLogger.LogException(e, $"Failed to load high score from database for player with ID {playerId}.");
                 return null;
-        }
+            }
         }
     }
 }

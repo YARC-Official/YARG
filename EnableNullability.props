@@ -5,5 +5,4 @@
   <PropertyGroup Condition="'$(MSBuildProjectFile)' == 'YARG.Core.Package.csproj'">
     <Nullable>enable</Nullable>
   </PropertyGroup>
-
 </Project>

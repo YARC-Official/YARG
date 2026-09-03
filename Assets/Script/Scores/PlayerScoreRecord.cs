@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using SQLite;
 using YARG.Core;
 using YARG.Core.Game;
@@ -42,8 +42,18 @@ namespace YARG.Scores
 
         public float GetPercent()
         {
-            return Percent
-                ?? (float) NotesHit / (NotesHit + NotesMissed);
+            if (Percent.HasValue)
+            {
+                return Percent.Value;
+            }
+
+            int totalNotes = NotesHit + NotesMissed;
+            if (totalNotes == 0)
+            {
+                return 0f;
+            }
+
+            return (float) NotesHit / totalNotes;
         }
     }
 }

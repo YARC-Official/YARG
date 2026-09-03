@@ -1,0 +1,148 @@
+name: Tests
+
+on:
+  pull_request:
+  push:
+    branches: [dev]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  dotnet-tests:
+    name: .NET Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout project
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Restore YARG.UnitTests
+        run: dotnet restore YARG.UnitTests/YARG.UnitTests.csproj
+
+      - name: Run YARG Unit Tests
+        run: dotnet test YARG.UnitTests/YARG.UnitTests.csproj --configuration Debug --no-restore --logger "trx;LogFileName=yarg-tests.trx" --results-directory TestResults
+
+      - name: Run YARG.Core Unit Tests
+        if: success() || failure()
+        run: dotnet test YARG.Core/YARG.Core.UnitTests/YARG.Core.UnitTests.csproj --configuration Debug --logger "trx;LogFileName=yarg-core-tests.trx" --results-directory TestResults
+
+      - name: Publish Test Summary
+        if: always()
+        run: |
+          python3 - << 'EOF'
+          import glob
+          import os
+          import xml.etree.ElementTree as ET
+          from datetime import datetime
+
+          summary_path = os.environ.get('GITHUB_STEP_SUMMARY')
+          trx_files = sorted(glob.glob('TestResults/*.trx'))
+
+          if not summary_path or not trx_files:
+              exit(0)
+
+          try:
+              results = []
+              for file_path in trx_files:
+                  tree = ET.parse(file_path)
+                  root = tree.getroot()
+
+                  base_name = os.path.splitext(os.path.basename(file_path))[0]
+                  suite_name = 'YARG.UnitTests' if 'yarg-tests' in base_name else ('YARG.Core.UnitTests' if 'yarg-core' in base_name else base_name)
+
+                  duration = 0.0
+                  times = root.find('.//{*}Times')
+                  if times is not None:
+                      s = times.attrib.get('start')
+                      f = times.attrib.get('finish')
+                      if s and f:
+                          try:
+                              t0 = datetime.fromisoformat(s)
+                              t1 = datetime.fromisoformat(f)
+                              duration = max(0.0, (t1 - t0).total_seconds())
+                          except Exception:
+                              pass
+
+                  counters = root.find('.//{*}Counters')
+                  total = int(counters.attrib.get('total', '0')) if counters is not None else 0
+                  passed = int(counters.attrib.get('passed', '0')) if counters is not None else 0
+                  failed = int(counters.attrib.get('failed', '0')) if counters is not None else 0
+                  executed = int(counters.attrib.get('executed', '0')) if counters is not None else 0
+                  skipped = max(0, total - executed)
+
+                  failures = []
+                  for r in root.findall('.//{*}UnitTestResult'):
+                      if r.attrib.get('outcome') == 'Failed':
+                          name = r.attrib.get('testName', 'Unknown')
+                          msg_el = r.find('.//{*}Message')
+                          stack_el = r.find('.//{*}StackTrace')
+                          msg = msg_el.text.strip() if msg_el is not None and msg_el.text else 'No failure message.'
+                          stack = stack_el.text.strip() if stack_el is not None and stack_el.text else ''
+                          failures.append((suite_name, name, msg, stack))
+
+                  results.append({
+                      'suite': suite_name,
+                      'total': total,
+                      'passed': passed,
+                      'failed': failed,
+                      'skipped': skipped,
+                      'duration': duration,
+                      'failures': failures
+                  })
+
+              with open(summary_path, 'a', encoding='utf-8') as f:
+                  f.write("## .NET Test Results\n\n")
+                  f.write("| Test Suite | Total | Passed | Failed | Skipped | Duration |\n")
+                  f.write("| :--- | :---: | :---: | :---: | :---: | :---: |\n")
+
+                  total_all = sum(r['total'] for r in results)
+                  passed_all = sum(r['passed'] for r in results)
+                  failed_all = sum(r['failed'] for r in results)
+                  skipped_all = sum(r['skipped'] for r in results)
+                  duration_all = sum(r['duration'] for r in results)
+
+                  for r in results:
+                      f.write(f"| {r['suite']} | {r['total']} | {r['passed']} | {r['failed']} | {r['skipped']} | {r['duration']:.2f}s |\n")
+
+                  if len(results) > 1:
+                      f.write(f"| **Total** | **{total_all}** | **{passed_all}** | **{failed_all}** | **{skipped_all}** | **{duration_all:.2f}s** |\n")
+
+                  f.write("\n")
+
+                  all_failures = [f for r in results for f in r['failures']]
+                  if all_failures:
+                      f.write("### Failed Tests\n\n")
+                      for suite, name, msg, stack in all_failures:
+                          f.write(f"<details><summary><b>{suite}: {name}</b></summary>\n\n")
+                          f.write(f"**Failure Reason:**\n```\n{msg}\n```\n\n")
+                          if stack:
+                              f.write(f"**Stack Trace:**\n```\n{stack}\n```\n\n")
+                          f.write("</details>\n\n")
+                  else:
+                      f.write("**All tests passed successfully.**\n")
+          except Exception as e:
+              with open(summary_path, 'a', encoding='utf-8') as f:
+                  f.write(f"## Test Summary Generation Error\n\nCould not parse test results: {e}\n")
+          EOF
+
+      - name: Upload Test Results (.trx)
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: dotnet-test-results
+          path: TestResults/*.trx
+          if-no-files-found: ignore
