@@ -12,42 +12,42 @@ namespace YARG.UnitTests
         public void CalculateMedian_EmptyCollection_ReturnsZero()
         {
             var values = Array.Empty<double>();
-            AutoCalibratorMath.CalculateMedian(values).ShouldBe(0.0);
+            AutoCalibrator.CalculateMedian(values).ShouldBe(0.0);
         }
 
         [Test]
         public void CalculateMedian_OddCount_ReturnsMiddleElement()
         {
             var values = new[] { 5.0, 1.0, 9.0 };
-            AutoCalibratorMath.CalculateMedian(values).ShouldBe(5.0);
+            AutoCalibrator.CalculateMedian(values).ShouldBe(5.0);
         }
 
         [Test]
         public void CalculateMedian_EvenCount_ReturnsAverageOfMiddleElements()
         {
             var values = new[] { 10.0, 20.0, 30.0, 40.0 };
-            AutoCalibratorMath.CalculateMedian(values).ShouldBe(25.0);
+            AutoCalibrator.CalculateMedian(values).ShouldBe(25.0);
         }
 
         [Test]
         public void CalculateMedian_SingleElement_ReturnsElement()
         {
             var values = new[] { 42.0 };
-            AutoCalibratorMath.CalculateMedian(values).ShouldBe(42.0);
+            AutoCalibrator.CalculateMedian(values).ShouldBe(42.0);
         }
 
         [Test]
         public void CalculateMedian_NegativeAndUnsorted_ReturnsCorrectMedian()
         {
             var values = new[] { 12.0, -8.0, 0.0, 4.0, -2.0 };
-            AutoCalibratorMath.CalculateMedian(values).ShouldBe(0.0);
+            AutoCalibrator.CalculateMedian(values).ShouldBe(0.0);
         }
 
         [Test]
         public void RemoveOutliers_CountLessThanFour_ReturnsAllElements()
         {
             var values = new[] { 10.0, 200.0, -50.0 };
-            var result = AutoCalibratorMath.RemoveOutliers(values);
+            var result = AutoCalibrator.RemoveOutliers(values);
             result.Count.ShouldBe(3);
         }
 
@@ -62,7 +62,7 @@ namespace YARG.UnitTests
             values.Add(-500.0);
             values.Add(500.0);
 
-            var filtered = AutoCalibratorMath.RemoveOutliers(values);
+            var filtered = AutoCalibrator.RemoveOutliers(values);
 
             filtered.Count.ShouldBe(18);
             filtered.ShouldAllBe(x => x == 10.0);
@@ -77,7 +77,7 @@ namespace YARG.UnitTests
                 values.Add(i);
             }
 
-            var filtered = AutoCalibratorMath.RemoveOutliers(values);
+            var filtered = AutoCalibrator.RemoveOutliers(values);
 
             filtered.Count.ShouldBe(values.Count);
         }
@@ -89,7 +89,7 @@ namespace YARG.UnitTests
         [TestCase(-15.0, ExpectedResult = -8)]
         public int CalculateAdjustment_AppliesDampingAndRounds(double median)
         {
-            return AutoCalibratorMath.CalculateAdjustment(median);
+            return AutoCalibrator.CalculateAdjustment(median);
         }
 
         [TestCase(0.0, ExpectedResult = true)]
@@ -101,7 +101,7 @@ namespace YARG.UnitTests
         [TestCase(25.0, ExpectedResult = false)]
         public bool IsStable_ThresholdBoundaryCheck(double median)
         {
-            return AutoCalibratorMath.IsStable(median);
+            return AutoCalibrator.IsStable(median);
         }
 
         [Test]
@@ -115,28 +115,28 @@ namespace YARG.UnitTests
             while (!isStable && batchCount < 10)
             {
                 batchCount++;
-                var samples = new List<double>(AutoCalibratorMath.SAMPLE_SIZE);
-                for (var i = 0; i < AutoCalibratorMath.SAMPLE_SIZE; i++)
+                var samples = new List<double>(AutoCalibrator.SAMPLE_SIZE);
+                for (var i = 0; i < AutoCalibrator.SAMPLE_SIZE; i++)
                 {
                     var jitter = (i % 5) - 2;
                     var measuredError = (TRUE_HARDWARE_LATENCY - currentCalibration) + jitter;
                     samples.Add(measuredError);
                 }
 
-                var filtered = AutoCalibratorMath.RemoveOutliers(samples);
-                var median = AutoCalibratorMath.CalculateMedian(filtered);
-                isStable = AutoCalibratorMath.IsStable(median);
+                var filtered = AutoCalibrator.RemoveOutliers(samples);
+                var median = AutoCalibrator.CalculateMedian(filtered);
+                isStable = AutoCalibrator.IsStable(median);
 
                 if (!isStable)
                 {
-                    var adjustment = AutoCalibratorMath.CalculateAdjustment(median);
+                    var adjustment = AutoCalibrator.CalculateAdjustment(median);
                     currentCalibration += adjustment;
                 }
             }
 
             isStable.ShouldBeTrue();
             batchCount.ShouldBeLessThan(8);
-            Math.Abs(TRUE_HARDWARE_LATENCY - currentCalibration).ShouldBeLessThanOrEqualTo(AutoCalibratorMath.STABLE_THRESHOLD_MS);
+            Math.Abs(TRUE_HARDWARE_LATENCY - currentCalibration).ShouldBeLessThanOrEqualTo(AutoCalibrator.STABLE_THRESHOLD_MS);
         }
     }
 }

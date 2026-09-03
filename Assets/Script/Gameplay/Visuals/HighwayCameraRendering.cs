@@ -513,20 +513,18 @@ namespace YARG.Gameplay.Visuals
         /// <param name="highwayScale">Scale of each highway in NDC (e.g. 1.0 means full size)</param>
         /// <param name="horizontalOffsetNdc">Additional x-offset in NDC units.</param>
         public static Matrix4x4 GetPostProjectionMatrix(int index, int highwayCount, float highwayScale,
-            float horizontalOffsetNdc = 0f, float? tiltMultiplier = null)
+            float horizontalOffsetNdc = 0f)
         {
             if (highwayCount < 1)
             {
                 return Matrix4x4.identity;
             }
 
-            float tilt = tiltMultiplier ?? SettingsManager.Settings?.HighwayTiltMultiplier.Value ?? 0f;
-
             // Divide screen into N equal regions: [-1, 1] => 2.0 width
             float laneWidth = 2.0f / highwayCount; // NDC horizontal span is [-1, 1] → 2.0
             float centerX = -1.0f + laneWidth * (index + 0.5f);
             float offsetX = centerX + GetMultiplayerXOffset(index, highwayCount,
-                -1f * tilt / highwayCount) + horizontalOffsetNdc;
+                -1f * SettingsManager.Settings.HighwayTiltMultiplier.Value / highwayCount) + horizontalOffsetNdc;
             float offsetY = -1.0f + highwayScale; // Offset down if scaled vertically
 
             // This matrix modifies the output of clip space before perspective divide
@@ -545,9 +543,9 @@ namespace YARG.Gameplay.Visuals
         /// Generates the modified projection matrix (postProj * camProj).
         /// </summary>
         public static Matrix4x4 GetModifiedProjectionMatrix(Matrix4x4 camProj, int index, int highwayCount,
-            float highwayScale, float horizontalOffsetNdc = 0f, float? tiltMultiplier = null)
+            float highwayScale, float horizontalOffsetNdc = 0f)
         {
-            Matrix4x4 postProj = GetPostProjectionMatrix(index, highwayCount, highwayScale, horizontalOffsetNdc, tiltMultiplier);
+            Matrix4x4 postProj = GetPostProjectionMatrix(index, highwayCount, highwayScale, horizontalOffsetNdc);
             return postProj * camProj; // HLSL-style: mul(postProj, proj)
         }
 

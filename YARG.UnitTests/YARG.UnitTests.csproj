@@ -23,7 +23,9 @@
     <Compile Include="..\Assets\Script\Scores\GameRecord.cs" Link="GameRecord.cs" />
     <Compile Include="..\Assets\Script\Scores\PlayCountRecord.cs" Link="PlayCountRecord.cs" />
     <Compile Include="..\Assets\Script\Scores\PlayerInfoRecord.cs" Link="PlayerInfoRecord.cs" />
+    <Compile Include="..\Assets\Script\Scores\HighScoreHistoryMode.cs" Link="HighScoreHistoryMode.cs" />
     <Compile Include="..\Assets\Script\Helpers\MidiDrumkitHelper.cs" Link="MidiDrumkitHelper.cs" />
+    <Compile Include="..\Assets\Script\Helpers\AutoCalibrator.Math.cs" Link="AutoCalibrator.Math.cs" />
   </ItemGroup>
 
   <ItemGroup>
