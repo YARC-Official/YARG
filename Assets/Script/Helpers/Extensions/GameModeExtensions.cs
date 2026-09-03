@@ -41,6 +41,7 @@ namespace YARG.Helpers.Extensions
             {
                 (ProfileSettingStrings.INSTRUMENT_SELECT, null),
                 (ProfileSettingStrings.ENGINE_PRESET, null),
+                (ProfileSettingStrings.COLOR_PROFILE_SELECT, null),
                 (ProfileSettingStrings.ROCK_METER_PRESET, null),
                 (ProfileSettingStrings.INPUT_CALIBRATION, null),
             };
@@ -48,7 +49,6 @@ namespace YARG.Helpers.Extensions
             List<(string setting, string? overrideText)> unconditionallyValidInAllModesExceptVocals = new()
             {
                 (ProfileSettingStrings.THEME_SELECT, null),
-                (ProfileSettingStrings.COLOR_PROFILE_SELECT, null),
                 (ProfileSettingStrings.CAMERA_PRESET, null),
                 (ProfileSettingStrings.HIGHWAY_PRESET, null),
                 (ProfileSettingStrings.INPUT_CALIBRATION, null),
