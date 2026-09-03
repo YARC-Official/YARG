@@ -1,8 +1,8 @@
 ﻿using UnityEngine;
 using YARG.Core;
 using YARG.Core.Engine;
+using YARG.Core.Game;
 using YARG.Core.Logging;
-using YARG.Gameplay.Player;
 using YARG.Helpers.Extensions;
 using YARG.Player;
 
@@ -38,15 +38,13 @@ namespace YARG.Gameplay.HUD
 
         public static Color GetHarmonyColor(this YargPlayer player)
         {
-            return GetHarmonyColor(player.Profile.CurrentInstrument, player.Profile.HarmonyIndex, player.IsMissingInputDevice || player.IsMissingMicrophone, player.SittingOut);
+            return GetHarmonyColor(player.Profile.CurrentInstrument, player.Profile.HarmonyIndex,
+                player.IsMissingInputDevice || player.IsMissingMicrophone, player.SittingOut,
+                player.ColorProfile);
         }
 
-        public static Color GetHarmonyColor(this EngineManager.EngineContainer container)
-        {
-            return GetHarmonyColor(container.Instrument, container.HarmonyIndex, false, false);
-        }
-
-        private static Color GetHarmonyColor(Instrument instrument, int harmonyIndex, bool isMissingDevice, bool isSittingOut)
+        private static Color GetHarmonyColor(Instrument instrument, int harmonyIndex, bool isMissingDevice,
+            bool isSittingOut, ColorProfile colorProfile)
         {
             if (isMissingDevice)
             {
@@ -62,13 +60,13 @@ namespace YARG.Gameplay.HUD
                 return Color.white;
             }
 
-            if (harmonyIndex >= VocalTrack.Colors.Length)
+            if (harmonyIndex < 0 || harmonyIndex > 2)
             {
                 YargLogger.LogWarning("PlayerNameDisplay", $"Harmony index {harmonyIndex} is out of bounds.");
                 return Color.white;
             }
 
-            return VocalTrack.Colors[harmonyIndex];
+            return colorProfile.Vocals.GetPartColor(harmonyIndex, isHarmony: true).ToUnityColor();
         }
     }
 }

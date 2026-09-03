@@ -272,23 +272,24 @@ namespace YARG.Settings.Metadata
 
         // Single source of truth linking a ColorProfile sub-section (its identity
         // name), the preview GameMode it drives, and the human label shown in the
-        // instrument dropdown. Adding an instrument (e.g. Pro Guitar, Elite Drums)
-        // means adding one row here instead of touching several parallel switches.
-        private static readonly (string SubSection, string Label, GameMode Mode)[] InstrumentModes =
+        // instrument dropdown. A null preview mode means the colors are editable
+        // without using the lane-based track preview.
+        private static readonly (string SubSection, string Label, GameMode? PreviewMode)[] InstrumentModes =
         {
             (nameof(ColorProfile.FiveFretGuitar), "Five Fret Guitar", GameMode.FiveFretGuitar),
             (nameof(ColorProfile.FourLaneDrums),  "Four Lane Drums",  GameMode.FourLaneDrums),
             (nameof(ColorProfile.FiveLaneDrums),  "Five Lane Drums",  GameMode.FiveLaneDrums),
             (nameof(ColorProfile.ProKeys),        "Pro Keys",         GameMode.ProKeys),
+            (nameof(ColorProfile.Vocals),         "Vocals",          null),
         };
 
         private static bool TryGetModeForSubSection(string subSection, out GameMode mode)
         {
             foreach (var row in InstrumentModes)
             {
-                if (row.SubSection == subSection)
+                if (row.SubSection == subSection && row.PreviewMode is { } previewMode)
                 {
-                    mode = row.Mode;
+                    mode = previewMode;
                     return true;
                 }
             }
@@ -303,17 +304,6 @@ namespace YARG.Settings.Metadata
             {
                 if (row.SubSection == subSection)
                     return row.Label;
-            }
-
-            return null;
-        }
-
-        private static string ModeToSubSection(GameMode mode)
-        {
-            foreach (var row in InstrumentModes)
-            {
-                if (row.Mode == mode)
-                    return row.SubSection;
             }
 
             return null;
@@ -453,10 +443,10 @@ namespace YARG.Settings.Metadata
                 {
                     if (PreviewBuilder is TrackPreviewBuilder trackPreviewBuilder)
                     {
-                        trackPreviewBuilder.StartingGameMode =
-                            TryGetModeForSubSection(_subSection, out var subSectionMode)
-                                ? subSectionMode
-                                : throw new Exception("Unreachable.");
+                        if (TryGetModeForSubSection(_subSection, out var subSectionMode))
+                        {
+                            trackPreviewBuilder.StartingGameMode = subSectionMode;
+                        }
                     }
                     else
                     {
@@ -678,9 +668,9 @@ namespace YARG.Settings.Metadata
             // On Color Profile, this switches the sub-section (which colors are edited).
             // On other tabs, it only changes the preview instrument.
             string currentLabel = InstrumentModes[0].Label;
-            foreach (var (_, label, mode) in InstrumentModes)
+            foreach (var (_, label, previewMode) in InstrumentModes)
             {
-                if (mode == PreviewOptions.GameMode)
+                if (previewMode == PreviewOptions.GameMode)
                 {
                     currentLabel = label;
                     break;
@@ -695,19 +685,21 @@ namespace YARG.Settings.Metadata
 
             var modeDropdown = new InstrumentDropdownSetting(currentLabel, selected =>
             {
-                foreach (var (_, label, gameMode) in InstrumentModes)
+                foreach (var (subSection, label, previewMode) in InstrumentModes)
                 {
                     if (label == selected)
                     {
-                        PreviewOptions.GameMode = gameMode;
-                        tpb.StartingGameMode = gameMode;
+                        if (previewMode is { } gameMode)
+                        {
+                            PreviewOptions.GameMode = gameMode;
+                            tpb.StartingGameMode = gameMode;
+                        }
 
                         if (typeof(T) == typeof(ColorProfile))
                         {
-                            string newSub = ModeToSubSection(gameMode);
-                            if (newSub != null && newSub != _subSection)
+                            if (subSection != _subSection)
                             {
-                                RefreshForSubSection(newSub);
+                                RefreshForSubSection(subSection);
                                 ReselectInstrumentRow();
                                 return;
                             }
@@ -720,8 +712,13 @@ namespace YARG.Settings.Metadata
                 }
             });
 
-            foreach (var (_, label, _) in InstrumentModes)
-                modeDropdown.Add(label);
+            foreach (var (_, label, previewMode) in InstrumentModes)
+            {
+                if (previewMode is not null || typeof(T) == typeof(ColorProfile))
+                {
+                    modeDropdown.Add(label);
+                }
+            }
 
             var instrumentVisual = CreateField(PreviewControlsContainer, navGroup,
                 "PreviewVisuals", "Instrument", modeDropdown, false);

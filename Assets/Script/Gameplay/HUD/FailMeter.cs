@@ -156,7 +156,7 @@ namespace YARG.Gameplay.HUD
 
                 var sprite = Addressables.LoadAssetAsync<Sprite>(spriteName).WaitForCompletion();
                 handleImage.sprite = sprite;
-                handleImage.color = _players[i].GetHarmonyColor();
+                handleImage.color = _gameManager.Players[i].Player.GetHarmonyColor();
 
                 _playerSliders[i].value = 0.01f;
                 _needleSliders[i].value = 0.01f;

@@ -90,7 +90,8 @@ namespace YARG.Gameplay.Player
             var materialPath = $"VocalNeedle/{needleIndex}";
             _needleRenderer.material = Addressables.LoadAssetAsync<Material>(materialPath).WaitForCompletion();
 
-            MaterialPropertyInstance.Instance.SetColor(OutlineColorID, VocalTrack.Colors[Player.Profile.HarmonyIndex]);
+            MaterialPropertyInstance.Instance.SetColor(OutlineColorID,
+                GameManager.VocalTrack.Colors[Player.Profile.HarmonyIndex]);
             MaterialPropertyInstance.Instance.SetFloat(OutlineWidthID, 0f);
             _needleRenderer.SetPropertyBlock(MaterialPropertyInstance.Instance);
             _outlineEnabled = false;
@@ -121,7 +122,7 @@ namespace YARG.Gameplay.Player
                 var startSpeed = main.startSpeed;
                 startSpeed.constant *= trackSpeed;
                 main.startSpeed = startSpeed;
-                main.startColor = VocalTrack.Colors[Player.Profile.HarmonyIndex];
+                main.startColor = GameManager.VocalTrack.Colors[Player.Profile.HarmonyIndex];
             }
 
             // Initialize player specific vocal visuals
@@ -422,7 +423,8 @@ namespace YARG.Gameplay.Player
             }
             MaterialPropertyInstance.Instance.SetFloat(OutlineWidthID, enableOutline ? OUTLINE_WIDTH : 0f);
             // Not sure if I need to set this every time, but it was being weird if I didn't
-            MaterialPropertyInstance.Instance.SetColor(OutlineColorID, VocalTrack.Colors[Player.Profile.HarmonyIndex]);
+            MaterialPropertyInstance.Instance.SetColor(OutlineColorID,
+                GameManager.VocalTrack.Colors[Player.Profile.HarmonyIndex]);
             _needleRenderer.SetPropertyBlock(MaterialPropertyInstance.Instance);
             _outlineEnabled = enableOutline;
         }
