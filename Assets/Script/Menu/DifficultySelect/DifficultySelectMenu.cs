@@ -773,8 +773,8 @@ namespace YARG.Menu.DifficultySelect
 
         private bool HasPlayableInstrument(SongEntry entry, in Instrument instrument)
         {
-            // For vocals, all players *must* select the same gamemode (solo/harmony)
-            if (instrument is Instrument.Vocals or Instrument.Harmony)
+            // For vocals, all players *must* select the same gamemode (solo/harmony/party)
+            if (instrument is Instrument.Vocals or Instrument.Harmony or Instrument.PartyVocals)
             {
                 if (!entry.HasInstrument(instrument))
                 {
@@ -787,7 +787,7 @@ namespace YARG.Menu.DifficultySelect
                 {
                     var player = PlayerContainer.Players[i];
                     var playerInstrument = player.Profile.CurrentInstrument;
-                    if (playerInstrument is Instrument.Vocals or Instrument.Harmony)
+                    if (playerInstrument is Instrument.Vocals or Instrument.Harmony or Instrument.PartyVocals)
                     {
                         return playerInstrument == instrument;
                     }
@@ -808,7 +808,7 @@ namespace YARG.Menu.DifficultySelect
         private bool HasPlayableDifficulty(SongEntry entry, in Instrument instrument, in Difficulty difficulty)
         {
             // For vocals, insert special difficulties
-            if (instrument is Instrument.Vocals or Instrument.Harmony)
+            if (instrument is Instrument.Vocals or Instrument.Harmony or Instrument.PartyVocals)
             {
                 return difficulty is not Difficulty.ExpertPlus;
             }

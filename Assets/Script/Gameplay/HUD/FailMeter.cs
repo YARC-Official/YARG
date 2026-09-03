@@ -152,11 +152,11 @@ namespace YARG.Gameplay.HUD
                 _needleSliders[i].handleRect.DOAnchorPosX(SPRITE_INITIAL_OFFSET, 0.125f).SetAutoKill(false).SetLink(_needleSliders[i].gameObject);
 
                 var handleImage = _playerSliders[i].handleRect.GetComponentInChildren<Image>();
-                var spriteName = _players[i].GetInstrumentSprite();
+                var spriteName = _players[i].GetInstrumentSprite(_gameManager.Song);
 
                 var sprite = Addressables.LoadAssetAsync<Sprite>(spriteName).WaitForCompletion();
                 handleImage.sprite = sprite;
-                handleImage.color = _players[i].GetHarmonyColor();
+                handleImage.color = _players[i].GetGameplayIconColor();
 
                 _playerSliders[i].value = 0.01f;
                 _needleSliders[i].value = 0.01f;

@@ -312,7 +312,7 @@ namespace YARG.Gameplay.Player
 
             // Choose the correct amount of lanes
             LyricLaneCount = 1;
-            if (vocalsTrack.Instrument == Instrument.Harmony)
+            if (vocalsTrack.Instrument == Instrument.Harmony || vocalsTrack.Instrument == Instrument.PartyVocals)
             {
                 LyricLaneCount = _totalHarms switch
                 {

@@ -34,6 +34,7 @@ namespace YARG.Helpers.Extensions
                 Instrument.ProKeys            => SortAttribute.ProKeys,
                 Instrument.Vocals             => SortAttribute.Vocals,
                 Instrument.Harmony            => SortAttribute.Harmony,
+                Instrument.PartyVocals        => SortAttribute.Harmony,
                 Instrument.Band               => SortAttribute.Band,
                 _ => throw new InvalidOperationException("Invalid instrument value")
             };
@@ -89,6 +90,7 @@ namespace YARG.Helpers.Extensions
 
                 Instrument.Vocals  => "vocals",
                 Instrument.Harmony => "harmVocals",
+                Instrument.PartyVocals => "harmVocals",
 
                 _ => null,
             };

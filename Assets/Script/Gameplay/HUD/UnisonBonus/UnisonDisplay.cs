@@ -189,7 +189,7 @@ namespace YARG.Gameplay.HUD
             bool vocalsPresent = false;
             foreach (var engineContainer in GameManager.EngineManager.Engines)
             {
-                if (engineContainer.Instrument is Instrument.Vocals or Instrument.Harmony)
+                if (engineContainer.Instrument is Instrument.Vocals or Instrument.Harmony or Instrument.PartyVocals)
                 {
                     vocalsPresent = true;
                 }
