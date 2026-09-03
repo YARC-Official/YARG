@@ -34,52 +34,45 @@ namespace YARG.Gameplay.Player
 
         public bool UsingOpenLane { get; private set; }
 
-        private static Dictionary<int, FiveFretGuitarFret> _actionToFret = new() {
-            { YargFiveFretGuitarEngine.OPEN_BRE_INPUT, FiveFretGuitarFret.Open },
-            { (int)GuitarAction.Fret1,                 FiveFretGuitarFret.Green },
-            { (int)GuitarAction.Fret2,                 FiveFretGuitarFret.Red },
-            { (int)GuitarAction.Fret3,                 FiveFretGuitarFret.Yellow },
-            { (int)GuitarAction.Fret4,                 FiveFretGuitarFret.Blue },
-            { (int)GuitarAction.Fret5,                 FiveFretGuitarFret.Orange },
-        };
-
         // Record of the most recent time that each BRE lane has been lit up by any of the actions that map to it
-        private Dictionary<FiveFretGuitarFret, double> _fretToMostRecentTime = new()
+        protected Dictionary<int, double> FretToMostRecentTime;
+        protected virtual Dictionary<int, double> CreateFretToMostRecentTime() => new()
         {
-            { FiveFretGuitarFret.Open,      0 }, // We'll also use this for driving the dedicated open fret's "flashing" effect, like on drums
-            { FiveFretGuitarFret.Green,     0 },
-            { FiveFretGuitarFret.Red,       0 },
-            { FiveFretGuitarFret.Yellow,    0 },
-            { FiveFretGuitarFret.Blue,      0 },
-            { FiveFretGuitarFret.Orange,    0 },
+            { (int)FiveFretGuitarFret.Open,      0 }, // We'll also use this for driving the dedicated open fret's "flashing" effect, like on drums
+            { (int)FiveFretGuitarFret.Green,     0 },
+            { (int)FiveFretGuitarFret.Red,       0 },
+            { (int)FiveFretGuitarFret.Yellow,    0 },
+            { (int)FiveFretGuitarFret.Blue,      0 },
+            { (int)FiveFretGuitarFret.Orange,    0 },
         };
 
 
-        // Key is a FiveFretGuitarFret
+        // Key is an int corresponding to a FiveFretGuitarFret (or SixFretGuitarFret on 6F)
         // Value is the fret's lateral position on the fret array
-        private Dictionary<int, int> _highwayOrdering;
+        protected Dictionary<int, int> HighwayOrdering;
 
         // Used to control fret brightness for the dedicated open lane
         private bool _openSustaining = false;
 
-        private FiveFretGuitarFret GetFretIndex(GuitarAction action)
+        protected virtual int GetFretIndex(int action)
         {
             return action switch
             {
-                GuitarAction.Fret1 => FiveFretGuitarFret.Green,
-                GuitarAction.Fret2 => FiveFretGuitarFret.Red,
-                GuitarAction.Fret3 => FiveFretGuitarFret.Yellow,
-                GuitarAction.Fret4 => FiveFretGuitarFret.Blue,
-                GuitarAction.Fret5 => FiveFretGuitarFret.Orange,
+                (int)GuitarAction.Fret1 => (int)FiveFretGuitarFret.Green,
+                (int)GuitarAction.Fret2 => (int)FiveFretGuitarFret.Red,
+                (int)GuitarAction.Fret3 => (int)FiveFretGuitarFret.Yellow,
+                (int)GuitarAction.Fret4 => (int)FiveFretGuitarFret.Blue,
+                (int)GuitarAction.Fret5 => (int)FiveFretGuitarFret.Orange,
+                YargFiveFretGuitarEngine.OPEN_BRE_INPUT => (int)FiveFretGuitarFret.Open,
                 _                  => throw new ArgumentOutOfRangeException(nameof(action))
             };
         }
 
         protected float GetLanePositionOrCentered(int fret)
         {
-            if (_highwayOrdering.ContainsKey(fret))
+            if (HighwayOrdering.ContainsKey(fret))
             {
-                return _highwayOrdering[fret];
+                return HighwayOrdering[fret];
             }
 
             return (LaneCount - 1) / 2;
@@ -87,7 +80,7 @@ namespace YARG.Gameplay.Player
 
         public int GetLanePosition(FiveFretGuitarFret fret)
         {
-            return _highwayOrdering[(int)fret];
+            return HighwayOrdering[(int)fret];
         }
 
         public override bool ShouldUpdateInputsOnResume => true;
@@ -189,6 +182,8 @@ namespace YARG.Gameplay.Player
                 EngineParams = (GuitarEngineParameters)Player.EngineParameterOverride;
             }
 
+            FretToMostRecentTime = CreateFretToMostRecentTime();
+
             if (EngineContainer != null)
             {
                 GameManager.EngineManager.Unregister(EngineContainer);
@@ -256,7 +251,7 @@ namespace YARG.Gameplay.Player
         protected virtual void InitializeFretArray()
         {
             _fretArray.Initialize(
-                _highwayOrdering,
+                HighwayOrdering,
                 LaneCount,
                 null,
                 Player.ColorProfile.FiveFretGuitar,
@@ -284,12 +279,10 @@ namespace YARG.Gameplay.Player
 
         protected override void ResetLastHitTimes()
         {
-            foreach (var fret in _highwayOrdering.Keys)
+            foreach (var fret in HighwayOrdering.Keys)
             {
-                _fretToMostRecentTime[(FiveFretGuitarFret) fret] = 0;
+                FretToMostRecentTime[fret] = 0;
             }
-
-
         }
 
         public override void SetReplayTime(double time)
@@ -317,9 +310,9 @@ namespace YARG.Gameplay.Player
         /// </summary>
         protected virtual void UpdateBreLaneEmissions(double visualTime)
         {
-            foreach (var (breLaneIndex, highwayOrderingIndex) in _highwayOrdering)
+            foreach (var (breLaneIndex, highwayOrderingIndex) in HighwayOrdering)
             {
-                var mostRecentTime = _fretToMostRecentTime[(FiveFretGuitarFret)breLaneIndex];
+                var mostRecentTime = FretToMostRecentTime[breLaneIndex];
                 var normalizedTimeSinceLastHit = CodaSection.GetNormalizedTimeSinceLastHit(visualTime, mostRecentTime);
                 BRELanes[highwayOrderingIndex].SetEmissionColor(normalizedTimeSinceLastHit);
             }
@@ -381,7 +374,7 @@ namespace YARG.Gameplay.Player
             if (nextShift.Time <= visualTime)
             {
                 _rangeShiftEventQueue.Dequeue();
-                foreach (var fretIndex in _highwayOrdering.Keys)
+                foreach (var fretIndex in HighwayOrdering.Keys)
                 {
                     _fretArray.SetFretColorPulse(fretIndex, false, (float) nextShift.BeatDuration);
                 }
@@ -412,11 +405,11 @@ namespace YARG.Gameplay.Player
         {
             for (var action = GuitarAction.GreenFret; action <= GetFretActionMax(); action++)
             {
-                _fretArray.SetPressed((int)GetFretIndex(action), Engine.IsFretHeld(action));
+                _fretArray.SetPressed(GetFretIndex((int)action), Engine.IsFretHeld(action));
             }
 
             if (UsingOpenLane) {
-                var openInputDelta = GameManager.VisualTime - _fretToMostRecentTime[FiveFretGuitarFret.Open];
+                var openInputDelta = GameManager.VisualTime - FretToMostRecentTime[(int)FiveFretGuitarFret.Open];
 
 
                 _fretArray.SetPressedImpulse(
@@ -498,7 +491,7 @@ namespace YARG.Gameplay.Player
         {
             int lanedFret = -1;
 
-            foreach (var (fret, position) in _highwayOrdering)
+            foreach (var (fret, position) in HighwayOrdering)
             {
                 if (position == laneIndex)
                 {
@@ -541,11 +534,11 @@ namespace YARG.Gameplay.Player
 
         private void OnLaneHit(int action)
         {
-            var asFret = GetFretIndex((GuitarAction)action);
+            var asFret = GetFretIndex(action);
 
-            _fretToMostRecentTime[asFret] = GameManager.VisualTime;
+            FretToMostRecentTime[asFret] = GameManager.VisualTime;
 
-            if (asFret is FiveFretGuitarFret.Open && !UsingOpenLane)
+            if (asFret is (int)FiveFretGuitarFret.Open && !UsingOpenLane)
             {
                 _fretArray.PlayFullWidthHitAnimation();
             }
@@ -600,7 +593,7 @@ namespace YARG.Gameplay.Player
                 {
                     if (note.Fret is (int) FiveFretGuitarFret.Open)
                     {
-                        _fretToMostRecentTime[FiveFretGuitarFret.Open] = GameManager.VisualTime;
+                        FretToMostRecentTime[(int)FiveFretGuitarFret.Open] = GameManager.VisualTime;
                     }
 
                     _fretArray.PlayHitAnimation(note.Fret);
@@ -664,7 +657,7 @@ namespace YARG.Gameplay.Player
 
                 if (currentNote == null || (currentNote.NoteMask & (1 << (int) action)) == 0)
                 {
-                    _fretArray.PlayMissAnimation(GetFretIndex(action));
+                    _fretArray.PlayMissAnimation(GetFretIndex((int)action));
                 }
             }
 
@@ -674,7 +667,7 @@ namespace YARG.Gameplay.Player
                 if (UsingOpenLane)
                 {
                     _fretArray.PlayMissAnimation((int)FiveFretGuitarFret.Open);
-                    _fretToMostRecentTime[FiveFretGuitarFret.Open] = GameManager.VisualTime;
+                    FretToMostRecentTime[(int)FiveFretGuitarFret.Open] = GameManager.VisualTime;
                 }
                 else
                 {
@@ -955,7 +948,7 @@ namespace YARG.Gameplay.Player
         private void SetDefaultActiveFrets()
         {
             var newFrets = new List<int>();
-            foreach (var fretIdx in _highwayOrdering.Keys)
+            foreach (var fretIdx in HighwayOrdering.Keys)
             {
                 newFrets.Add(fretIdx);
             }
@@ -977,16 +970,16 @@ namespace YARG.Gameplay.Player
             switch ((UsingOpenLane, Player.Profile.LeftyFlip))
             {
                 case (false, false):
-                    _highwayOrdering = GryboHighwayHelpers.DEFAULT_HIGHWAY_ORDERING;
+                    HighwayOrdering = GryboHighwayHelpers.DEFAULT_HIGHWAY_ORDERING;
                     break;
                 case (false, true):
-                    _highwayOrdering = GryboHighwayHelpers.LEFTY_HIGHWAY_ORDERING;
+                    HighwayOrdering = GryboHighwayHelpers.LEFTY_HIGHWAY_ORDERING;
                     break;
                 case (true, false):
-                    _highwayOrdering = GryboHighwayHelpers.OPEN_LANE_HIGHWAY_ORDERING;
+                    HighwayOrdering = GryboHighwayHelpers.OPEN_LANE_HIGHWAY_ORDERING;
                     break;
                 case (true, true):
-                    _highwayOrdering = GryboHighwayHelpers.OPEN_LANE_LEFTY_HIGHWAY_ORDERING;
+                    HighwayOrdering = GryboHighwayHelpers.OPEN_LANE_LEFTY_HIGHWAY_ORDERING;
                     break;
             }
         }

@@ -7,12 +7,15 @@ using YARG.Core.Engine;
 using YARG.Core.Engine.Guitar;
 using YARG.Core.Engine.Guitar.Engines;
 using YARG.Core.Input;
+using YARG.Core.Logging;
 using YARG.Gameplay.Visuals;
 using YARG.Helpers.Extensions;
 using YARG.Themes;
 
 namespace YARG.Gameplay.Player
 {
+    //TODO: This needs to be decoupled from FiveFretGuitarPlayer, as it is not a 5-fret instrument.
+    // Either make a base GuitarPlayer class, or make a new SixFretGuitarPlayer class that does not inherit from FiveFretGuitarPlayer.
     public class SixFretGuitarPlayer : FiveFretGuitarPlayer
     {
         // Lane mapping: 3 visual lanes, each = black+white pair
@@ -26,10 +29,6 @@ namespace YARG.Gameplay.Player
             { (int)SixFretGuitarFret.White3, 2 },
         };
 
-        // Override (not hide) so virtual calls from FiveFretGuitarPlayer (BRE lane count,
-        // lane scales, centered lane position) resolve to 3 lanes for six-fret
-        public override int LaneCount => 3;
-
         // Determine if fret is "up" row (black normal, white lefty flip)
         protected bool IsUpFret(SixFretGuitarFret fret)
         {
@@ -39,18 +38,19 @@ namespace YARG.Gameplay.Player
         }
 
         // Get lane index (0-2) for a fret (accessible to note elements)
-        public int GetLaneIndex(SixFretGuitarFret fret) => _lanePositions[(int)fret];
+        public int GetLaneIndex(SixFretGuitarFret fret) => HighwayOrdering[(int)fret];
 
-        protected override int GetFretIndex(GuitarAction action)
+        protected override int GetFretIndex(int action)
         {
             return action switch
             {
-                GuitarAction.Black1Fret => (int)SixFretGuitarFret.Black1,
-                GuitarAction.Black2Fret => (int)SixFretGuitarFret.Black2,
-                GuitarAction.Black3Fret => (int)SixFretGuitarFret.Black3,
-                GuitarAction.White1Fret => (int)SixFretGuitarFret.White1,
-                GuitarAction.White2Fret => (int)SixFretGuitarFret.White2,
-                GuitarAction.White3Fret => (int)SixFretGuitarFret.White3,
+                (int)GuitarAction.Black1Fret => (int)SixFretGuitarFret.Black1,
+                (int)GuitarAction.Black2Fret => (int)SixFretGuitarFret.Black2,
+                (int)GuitarAction.Black3Fret => (int)SixFretGuitarFret.Black3,
+                (int)GuitarAction.White1Fret => (int)SixFretGuitarFret.White1,
+                (int)GuitarAction.White2Fret => (int)SixFretGuitarFret.White2,
+                (int)GuitarAction.White3Fret => (int)SixFretGuitarFret.White3,
+                YargFiveFretGuitarEngine.OPEN_BRE_INPUT => (int)SixFretGuitarFret.Open,
                 _ => base.GetFretIndex(action)
             };
         }
@@ -66,11 +66,6 @@ namespace YARG.Gameplay.Player
             { (int)SixFretGuitarFret.Black3, 0 },
             { (int)SixFretGuitarFret.White3, 0 },
         };
-
-        public int GetLanePosition(SixFretGuitarFret fret)
-        {
-            return _lanePositions[(int)fret];
-        }
 
         protected override InstrumentDifficulty<GuitarNote> GetNotes(SongChart chart)
         {
@@ -97,8 +92,8 @@ namespace YARG.Gameplay.Player
         protected override void InitializeFretArray()
         {
             _fretArray.Initialize(
-                _lanePositions,
-                3,  // 3 visual lanes
+                HighwayOrdering,
+                LaneCount,  // 3 visual lanes
                 null,
                 Player.ColorProfile.SixFretGuitar,
                 Player.ThemePreset,
@@ -151,36 +146,41 @@ namespace YARG.Gameplay.Player
 
         protected override void InitializeSpawnedLane(LaneElement lane, GuitarNote note)
         {
-            int laneIndex = GetLaneIndex((SixFretGuitarFret)note.Fret);
             lane.SetAppearance(
                 Player.Profile.CurrentInstrument,
-                note.LaneNote,
-                laneIndex,
-                3,  // 3 visual lanes
+                GetLaneIndex((SixFretGuitarFret)note.Fret),
+                GetLanePositionOrCentered(note.Fret),
+                LaneCount,
                 Player.ColorProfile.SixFretGuitar.GetNoteColor(note.Fret).ToUnityColor()
             );
         }
 
-        protected override void InitializeSpawnedLane(LaneElement lane, int laneIndex)
+        protected override void InitializeBRELane(LaneElement lane, int laneIndex)
         {
-            // Map laneIndex (0-2) to corresponding fret color
-            var fret = (SixFretGuitarFret)(laneIndex + 1); // Black1, Black2, Black3
-            if (Player.Profile.LeftyFlip)
+            int lanedFret = -1;
+
+            foreach (var (fret, position) in HighwayOrdering)
             {
-                fret = laneIndex switch
+                if (position == laneIndex)
                 {
-                    0 => SixFretGuitarFret.Black3,
-                    1 => SixFretGuitarFret.Black2,
-                    2 => SixFretGuitarFret.Black1,
-                    _ => fret
-                };
+                    lanedFret = fret;
+                    break;
+                }
             }
+
+            if (lanedFret == -1)
+            {
+                YargLogger.LogError("Tried to make a BRE lane for a fret with no highway position.");
+                return;
+            }
+
+
             lane.SetAppearance(
                 Player.Profile.CurrentInstrument,
+                lanedFret,
                 laneIndex,
-                laneIndex,
-                3,  // 3 visual lanes
-                Player.ColorProfile.SixFretGuitar.GetNoteColor((int)fret).ToUnityColor());
+                3,
+                Player.ColorProfile.SixFretGuitar.GetNoteColor(lanedFret).ToUnityColor());
         }
 
         protected override void ModifyLaneFromNote(LaneElement lane, GuitarNote note)
@@ -211,11 +211,11 @@ namespace YARG.Gameplay.Player
             for (int laneIndex = 0; laneIndex < LaneCount; laneIndex++)
             {
                 double mostRecentTime = 0;
-                foreach (var (fret, lanePosition) in _lanePositions)
+                foreach (var (fret, lanePosition) in HighwayOrdering)
                 {
                     if (lanePosition == laneIndex)
                     {
-                        mostRecentTime = Math.Max(mostRecentTime, _fretToMostRecentTime[fret]);
+                        mostRecentTime = Math.Max(mostRecentTime, FretToMostRecentTime[fret]);
                     }
                 }
 
@@ -243,7 +243,7 @@ namespace YARG.Gameplay.Player
         protected override void UpdateFretArray()
         {
             // Iterate lane pairs (0, 1, 2)
-            for (int pair = 0; pair < 3; pair++)
+            for (int pair = 0; pair < LaneCount; pair++)
             {
                 var blackFret = (SixFretGuitarFret)(pair + 1); // Black1=1, Black2=2, Black3=3
                 var whiteFret = (SixFretGuitarFret)(pair + 4); // White1=4, White2=5, White3=6
@@ -272,7 +272,7 @@ namespace YARG.Gameplay.Player
                 }
                 else
                 {
-                    _fretArray.PlayOpenHitAnimation();
+                    _fretArray.PlayFullWidthHitAnimation();
                 }
             }
         }
@@ -344,10 +344,13 @@ namespace YARG.Gameplay.Player
 
         protected override void MakeHighwayOrdering()
         {
+            LaneCount = 3;
+            BRELanes = new LaneElement[LaneCount];
+            // 6F does not have an open lane setting
             if (Player.Profile.LeftyFlip)
             {
                 // Swap lane 0 ↔ 2, keep lane 1 centered
-                _lanePositions = new()
+                HighwayOrdering = new()
                 {
                     { (int)SixFretGuitarFret.Black1, 2 },
                     { (int)SixFretGuitarFret.White1, 2 },
@@ -359,7 +362,7 @@ namespace YARG.Gameplay.Player
             }
             else
             {
-                _lanePositions = new Dictionary<int, int>(DEFAULT_LANE_POSITIONS);
+                HighwayOrdering = new Dictionary<int, int>(DEFAULT_LANE_POSITIONS);
             }
         }
     }
