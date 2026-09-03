@@ -35,6 +35,8 @@ namespace YARG.Gameplay.Player
         /// </summary>
         private int _enabledHarmonyIndex = -1;
 
+        private bool IsHarmony => _vocalsTrack.Instrument is Instrument.Harmony or Instrument.PartyVocals;
+
         private readonly ToneChannel           _toneChannel;
         private readonly VocalsTrack           _vocalsTrack;
         private readonly Action<string, Color> _statusChanged;
@@ -87,10 +89,9 @@ namespace YARG.Gameplay.Player
         /// </summary>
         public void ToggleGuidePitch()
         {
-            bool isHarmony = _vocalsTrack.Instrument == Instrument.Harmony;
-            var  parts     = _vocalsTrack.Parts;
+            var parts = _vocalsTrack.Parts;
 
-            if (!isHarmony)
+            if (!IsHarmony)
             {
                 _enabledHarmonyIndex = _enabledHarmonyIndex < 0 ? 0 : -1;
             }
@@ -152,7 +153,7 @@ namespace YARG.Gameplay.Player
                 return Localize.Key("Menu.Common.Off");
             }
 
-            if (_vocalsTrack.Instrument != Instrument.Harmony)
+            if (!IsHarmony)
             {
                 return Localize.Key("Menu.Common.On");
             }
@@ -162,7 +163,7 @@ namespace YARG.Gameplay.Player
 
         private Color GetStatusColor()
         {
-            if (_enabledHarmonyIndex < 0 || _vocalsTrack.Instrument != Instrument.Harmony)
+            if (_enabledHarmonyIndex < 0 || !IsHarmony)
             {
                 return Color.white;
             }
