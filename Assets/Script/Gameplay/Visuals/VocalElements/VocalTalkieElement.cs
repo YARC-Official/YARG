@@ -42,7 +42,7 @@ namespace YARG.Gameplay.Visuals
             _threeLaneTalkie.gameObject.SetActive(lanes == 3);
 
             // Set the color
-            var color = Player.VocalTrack.Colors[NoteRef.HarmonyPart];
+            var color = VocalTrack.Colors[NoteRef.HarmonyPart];
             mesh.material.SetColor(BaseColorId, color.WithAlpha(ALPHA_VALUE));
 
             // Update the size of the talkie
