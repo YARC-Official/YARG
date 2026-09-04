@@ -69,8 +69,10 @@ namespace YARG.Gameplay.Player
 
         protected override InstrumentDifficulty<GuitarNote> GetNotes(SongChart chart)
         {
-            // 5-fret charts played in 6-fret mode are remapped into legal 6-fret chords
-            return chart.GetSixFretPlayableDifficulty(Player.Profile.CurrentInstrument, Player.Profile.CurrentDifficulty);
+            // 5-fret charts played in 6-fret mode are remapped into legal 6-fret chords;
+            // lefty flip additionally swaps the black/white pad rows of every note
+            return chart.GetSixFretPlayableDifficulty(Player.Profile.CurrentInstrument, Player.Profile.CurrentDifficulty,
+                Player.Profile.LeftyFlip);
         }
 
         // --- CreateEngine() hooks (replaces full method duplication) ---
