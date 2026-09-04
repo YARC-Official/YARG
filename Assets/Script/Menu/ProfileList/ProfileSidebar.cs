@@ -192,13 +192,13 @@ namespace YARG.Menu.ProfileList
             //  change something relevant to the profile's game mode
 
             // Solo Taps only changes FiveFretGuitar
-            if (profile.GameMode is not GameMode.FiveFretGuitar)
+            if (profile.GameMode is not (GameMode.FiveFretGuitar or GameMode.SixFretGuitar))
             {
                 RemoveDropdownOption(_engineDropdown, _enginePresetsByIndex, EnginePreset.SoloTaps.Id);
             }
 
             // Casual only changes FiveFretGuitar and Vocals
-            if (profile.GameMode is not (GameMode.FiveFretGuitar or GameMode.Vocals))
+            if (profile.GameMode is not (GameMode.FiveFretGuitar or GameMode.Vocals or GameMode.SixFretGuitar))
             {
                 RemoveDropdownOption(_engineDropdown, _enginePresetsByIndex, EnginePreset.Casual.Id);
             }
