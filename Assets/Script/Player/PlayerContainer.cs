@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using Cysharp.Threading.Tasks;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using PlasticBand.Devices;
 using UnityEngine.InputSystem;
 using YARG.Core;
@@ -33,9 +34,11 @@ namespace YARG.Player
         public  static string ProfilesDirectory => Path.Combine(PathHelper.PersistentDataPath, "profiles");
         private static string ProfilesPath      => Path.Combine(ProfilesDirectory, "profiles.json");
         private static string ProfilesBackupPath => Path.Combine(ProfilesDirectory, "profiles.json.bak");
+        private static string UnloadedProfilesPath => Path.Combine(ProfilesDirectory, "profiles.json.unloaded");
 
         private static readonly List<YargProfile> _profiles = new();
         private static readonly List<YargPlayer>  _players  = new();
+        private static readonly List<UnloadedProfile> _unloadedProfiles = new();
 
         private static readonly Dictionary<Guid, YargProfile>       _profilesById     = new();
         private static readonly Dictionary<YargProfile, YargPlayer> _playersByProfile = new();
@@ -50,6 +53,26 @@ namespace YARG.Player
         /// A list of all of the profiles (taken or not).
         /// </summary>
         public static IReadOnlyList<YargProfile> Profiles => _profiles;
+
+        /// <summary>
+        /// A list of profile records this version of the game could not load.
+        /// </summary>
+        public static IReadOnlyList<UnloadedProfile> UnloadedProfiles => _unloadedProfiles;
+
+        /// <summary>
+        /// Permanently removes a set-aside profile record. The only automatic
+        /// removal is a successful retry on load.
+        /// </summary>
+        public static bool DeleteUnloadedProfile(UnloadedProfile record)
+        {
+            if (!_unloadedProfiles.Remove(record))
+            {
+                return false;
+            }
+
+            SaveUnloadedProfiles();
+            return true;
+        }
 
         /// <summary>
         /// A list of all of the active players.
@@ -301,97 +324,382 @@ namespace YARG.Player
             return true;
         }
 
+        /// <summary>
+        /// A profile record the current version of the game could not load.
+        /// Kept in a sidecar file, retried whenever the game version changes,
+        /// and never deleted automatically.
+        /// </summary>
+        public sealed class UnloadedProfile
+        {
+            /// <summary>Display-only copy of the record's name; never trusted data.</summary>
+            public string Name;
+
+            /// <summary>The game version that last attempted (and failed) to load this record.</summary>
+            public string LastTriedVersion;
+
+            /// <summary>The error from the last failed attempt.</summary>
+            public string LastError;
+
+            /// <summary>The original profile record, preserved verbatim.</summary>
+            public JToken Record;
+        }
+
+        /// <summary>
+        /// Outcome of reading and parsing a single profiles file.
+        /// </summary>
+        private sealed class ProfileFileResult
+        {
+            public static readonly ProfileFileResult Missing = new();
+
+            /// <summary>Raw JSON tokens of each element in the profile array.</summary>
+            public List<JToken> Tokens { get; } = new();
+
+            /// <summary>Whether the file was read and parsed as a JSON array (even an empty one).</summary>
+            public bool StructurallyReadable;
+        }
+
         public static int LoadProfiles()
         {
-            bool usedBackup = false;
-
             _profiles.Clear();
             _profilesById.Clear();
+            _unloadedProfiles.Clear();
 
             // Players must be disposed
             _players.ForEach(i => i.Dispose());
             _players.Clear();
 
-            string profilesPath = ProfilesPath;
-            if (!File.Exists(profilesPath))
-            {
-                // If the file doesn't exist, then there are no profiles
-                _isInitialized = true;
-                return 0;
-            }
+            var main = LoadProfileFile(ProfilesPath, "profiles.json");
+            bool fileMissing = ReferenceEquals(main, ProfileFileResult.Missing);
+            bool usedBackup = false;
+            ProfileFileResult source = null;
 
-            string profilesJson = File.ReadAllText(profilesPath);
-            List<YargProfile> profiles = null;
-            try
+            if (!fileMissing && main.StructurallyReadable)
             {
-                profiles = JsonConvert.DeserializeObject<List<YargProfile>>(profilesJson);
+                source = main;
             }
-            catch (Exception ex)
+            else if (!fileMissing)
             {
-                YargLogger.LogException(ex, "Error while loading profiles! Recovery will be attempted.");
-            }
+                // The main file is unreadable or not a JSON array, so recover from the backup
+                var backup = LoadProfileFile(ProfilesBackupPath, "profiles.json.bak");
+                YargLogger.LogWarning("Failed to parse the main profiles file, attempting recovery from the backup.");
 
-            if (profiles is null)
-            {
-                // Attempt to load from backup before giving up
-                profiles = LoadProfilesFromBackup();
-
-                if (profiles.Count > 0)
+                if (backup.StructurallyReadable)
                 {
-                    // Flag that we used the backup so we can immediately save once everything is loaded
-                    YargLogger.LogWarning("Failed to load profiles from main file, using backup.");
+                    source = backup;
                     usedBackup = true;
                 }
-                else
+
+                // If neither source is usable, continue with zero profiles rather than aborting
+            }
+
+            // Register profiles one at a time so a single bad record can't abort the
+            // rest; records this version can't load are set aside, never deleted
+            int rejectedByThisVersion = 0;
+
+            if (source is not null)
+            {
+                string sourceName = usedBackup ? "profiles.json.bak" : "profiles.json";
+                foreach (var token in source.Tokens)
                 {
-                    YargLogger.LogWarning("Failed to load profiles! Bindings loading will be skipped.");
-                    return 0;
+                    if (TryRegisterProfileToken(token, out _, out string error, out bool setAside))
+                    {
+                        continue;
+                    }
+
+                    YargLogger.LogFormatWarning("Skipped invalid profile record in {0}", sourceName + ": " + error);
+                    rejectedByThisVersion++;
+
+                    if (setAside)
+                    {
+                        AddUnloadedProfile(token, error);
+                    }
                 }
             }
 
-            _profiles.AddRange(profiles);
+            // Retry records that last failed under a different version of the game;
+            // records that still fail get their attempt stamp moved forward
+            LoadUnloadedProfiles();
+            RetryUnloadedProfiles(out int promotedCount, out int retriedFailedCount);
+            rejectedByThisVersion += retriedFailedCount;
 
-            // Store profiles by ID
-            foreach (var profile in _profiles)
-            {
-                profile.GrandfatherIn();
-                _profilesById.Add(profile.Id, profile);
-            }
-
+            // Bindings loading handles orphaned records itself, so it is safe (and intended)
+            // even when the valid profile count is zero
             BindingsContainer.LoadBindings();
 
+            // Initialization must hold after every non-throwing recovery path, or no
+            // profile could ever be saved again
             _isInitialized = true;
 
             if (usedBackup)
             {
-                // Rewrite the main profiles file with the backup data
-                SaveProfiles(false);
+                // Preserve the unreadable source before the sanitized rewrite replaces it
+                CopyAsideFailedSource(ProfilesPath, ProfilesPath + ".invalid");
             }
-            else
+
+            if (usedBackup || rejectedByThisVersion > 0 || promotedCount > 0)
             {
-                // If we didn't use the backup, that means loading was good so we should save a new backup
+                // Rewrite the active files from the sanitized set; set-aside records
+                // live on in the sidecar, so nothing is lost
+                SaveProfiles(false);
                 SaveBackupProfiles();
+            }
+            else if (!fileMissing)
+            {
+                // Loading was good, so refresh the backup as usual
+                SaveBackupProfiles();
+            }
+
+            if (rejectedByThisVersion > 0 || promotedCount > 0 || retriedFailedCount > 0)
+            {
+                SaveUnloadedProfiles();
+            }
+
+            if (rejectedByThisVersion > 0)
+            {
+                // Deferred text: the toast is queued during startup, before
+                // localization has loaded, so resolve the key when shown
+                ToastManager.ToastWarning(() =>
+                    Localize.KeyFormat("Menu.Toast.ProfileLoadWarning", rejectedByThisVersion));
             }
 
             return _profiles.Count;
         }
 
-        private static List<YargProfile> LoadProfilesFromBackup()
+        /// <summary>
+        /// Converts and registers a single profile record. Any record-local failure
+        /// (deserialization, validation, migration) returns false with an error
+        /// message instead of throwing. Duplicate IDs also return false, but with
+        /// <paramref name="setAside"/> cleared since retrying them cannot help.
+        /// </summary>
+        private static bool TryRegisterProfileToken(JToken token, out YargProfile profile, out string error, out bool setAside)
         {
-            if (!File.Exists(ProfilesBackupPath))
-            {
-                return new List<YargProfile>();
-            }
+            profile = null;
+            error = string.Empty;
+            setAside = true;
 
-            string profilesJson = File.ReadAllText(ProfilesBackupPath);
             try
             {
-                return JsonConvert.DeserializeObject<List<YargProfile>>(profilesJson);
+                // This includes OnDeserialized validation failures, malformed
+                // individual records, and null elements
+                profile = token.ToObject<YargProfile>();
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                YargLogger.LogFormatError("Failed to load profiles from backup file: {0}", e.Message);
-                return new List<YargProfile>();
+                error = ex.Message;
+                return false;
+            }
+
+            if (profile is null)
+            {
+                error = "Profile record is null.";
+                return false;
+            }
+
+            try
+            {
+                profile.GrandfatherIn();
+            }
+            catch (Exception ex)
+            {
+                error = "Migration failed: " + ex.Message;
+                profile = null;
+                return false;
+            }
+
+            if (_profilesById.ContainsKey(profile.Id))
+            {
+                error = $"Duplicate profile ID {profile.Id}.";
+                profile = null;
+                setAside = false;
+                return false;
+            }
+
+            _profiles.Add(profile);
+            _profilesById.Add(profile.Id, profile);
+            return true;
+        }
+
+        /// <summary>
+        /// Reattempts sidecar records whose last failure was under a different
+        /// game version. Promotions become normal profiles; records that still
+        /// fail get their attempt stamp moved to the current version.
+        /// </summary>
+        private static void RetryUnloadedProfiles(out int promotedCount, out int retriedFailedCount)
+        {
+            promotedCount = 0;
+            retriedFailedCount = 0;
+
+            string currentVersion = GlobalVariables.Instance.CurrentVersion;
+
+            for (int i = _unloadedProfiles.Count - 1; i >= 0; i--)
+            {
+                var record = _unloadedProfiles[i];
+
+                if (record.Record is null)
+                {
+                    // Malformed sidecar entry; leave it alone rather than delete user data
+                    continue;
+                }
+
+                // Only reattempt records that failed under a different build
+                if (record.LastTriedVersion == currentVersion)
+                {
+                    continue;
+                }
+
+                if (TryRegisterProfileToken(record.Record, out var profile, out string error, out bool setAside))
+                {
+                    YargLogger.LogInfo($"Profile '{profile.Name}' loaded after being set aside by version {record.LastTriedVersion}.");
+                    _unloadedProfiles.RemoveAt(i);
+                    promotedCount++;
+                }
+                else if (setAside)
+                {
+                    YargLogger.LogWarning($"Profile '{record.Name}' (set aside by {record.LastTriedVersion}) still fails under {currentVersion}: {error}");
+                    record.LastTriedVersion = currentVersion;
+                    record.LastError = error;
+                    retriedFailedCount++;
+                }
+                else
+                {
+                    YargLogger.LogWarning($"Profile '{record.Name}' (set aside by {record.LastTriedVersion}) cannot be registered yet: {error}");
+                }
+            }
+        }
+
+        private static void AddUnloadedProfile(JToken token, string error)
+        {
+            var name = (token as JObject)?["Name"]?.Value<string>();
+            _unloadedProfiles.Add(new UnloadedProfile
+            {
+                Name = string.IsNullOrEmpty(name) ? "(unknown)" : name,
+                LastTriedVersion = GlobalVariables.Instance.CurrentVersion,
+                LastError = error,
+                Record = token,
+            });
+        }
+
+        private static void LoadUnloadedProfiles()
+        {
+            if (!File.Exists(UnloadedProfilesPath))
+            {
+                return;
+            }
+
+            try
+            {
+                var records = JsonConvert.DeserializeObject<List<UnloadedProfile>>(
+                    File.ReadAllText(UnloadedProfilesPath));
+
+                if (records is not null)
+                {
+                    _unloadedProfiles.AddRange(records);
+                }
+            }
+            catch (Exception ex)
+            {
+                YargLogger.LogError("Failed to read the unloaded-profiles sidecar: " + ex.Message);
+            }
+        }
+
+        public static void SaveUnloadedProfiles()
+        {
+            try
+            {
+                if (_unloadedProfiles.Count == 0)
+                {
+                    if (File.Exists(UnloadedProfilesPath))
+                    {
+                        File.Delete(UnloadedProfilesPath);
+                    }
+
+                    return;
+                }
+
+                File.WriteAllText(UnloadedProfilesPath,
+                    JsonConvert.SerializeObject(_unloadedProfiles, Formatting.Indented));
+            }
+            catch (Exception ex)
+            {
+                YargLogger.LogError("Failed to write the unloaded-profiles sidecar: " + ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// Parses a profiles file element-by-element so one invalid record
+        /// cannot discard the valid ones.
+        /// </summary>
+        private static ProfileFileResult LoadProfileFile(string path, string name)
+        {
+            if (!File.Exists(path))
+            {
+                return ProfileFileResult.Missing;
+            }
+
+            string profilesJson;
+            try
+            {
+                profilesJson = File.ReadAllText(path);
+            }
+            catch (Exception ex)
+            {
+                YargLogger.LogError($"Failed to read {name}: {ex.Message}");
+                return new ProfileFileResult();
+            }
+
+            JArray root;
+            try
+            {
+                if (JToken.Parse(profilesJson) is not JArray array)
+                {
+                    YargLogger.LogFormatError("{0} does not contain a JSON array.", name);
+                    return new ProfileFileResult();
+                }
+
+                root = array;
+            }
+            catch (Exception ex)
+            {
+                YargLogger.LogError($"Failed to parse {name}: {ex.Message}");
+                return new ProfileFileResult();
+            }
+
+            var result = new ProfileFileResult
+            {
+                StructurallyReadable = true,
+            };
+
+            // Records are converted at registration time so their raw form can be
+            // preserved verbatim if they fail
+            foreach (var token in root)
+            {
+                result.Tokens.Add(token);
+            }
+
+            return result;
+        }
+
+        private static void CopyAsideFailedSource(string sourcePath, string destPath)
+        {
+            try
+            {
+                if (!File.Exists(sourcePath))
+                {
+                    return;
+                }
+
+                if (File.Exists(destPath))
+                {
+                    string timestamp = DateTime.UtcNow.ToString("yyyyMMddHHmmssfff");
+                    destPath += "." + timestamp;
+                }
+
+                File.Copy(sourcePath, destPath);
+                YargLogger.LogFormatWarning("Preserved failed profile source as {0}.", Path.GetFileName(destPath));
+            }
+            catch (Exception ex)
+            {
+                YargLogger.LogFormatError("Failed to preserve failed profile source: {0}", ex.Message);
             }
         }
 

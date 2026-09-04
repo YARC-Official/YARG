@@ -34,10 +34,10 @@
             "FiveFretRhythm": "Rhythm",
             "FiveFretCoopGuitar": "Co-op",
             "Keys": "Keys",
-            "SixFretGuitar": "Guitar",
-            "SixFretBass": "Bass",
-            "SixFretRhythm": "Rhythm",
-            "SixFretCoopGuitar": "Co-op",
+            "SixFretGuitar": "Guitar (6-Fret)",
+            "SixFretBass": "Bass (6-Fret)",
+            "SixFretRhythm": "Rhythm (6-Fret)",
+            "SixFretCoopGuitar": "Co-op (6-Fret)",
             "FourLaneDrums": "4-Lane Drums",
             "ProDrums": "Pro Drums",
             "FiveLaneDrums": "5-Lane Drums",
@@ -226,6 +226,7 @@
             "ResumeAfterFailInvalidate": "Score saving disabled: Resuming after failure invalidated score.",
             "ProfileCreated": "Profile created for new device: {0}\nTime to do some YARGin!",
             "TooManyPauses": "Score saving disabled: Too many pauses.",
+            "ProfileLoadWarning": "{0} profile(s) could not be loaded by this version of YARG. They are kept and will be retried after an update, or can be removed from the profile list.",
             "UnsupportedDevice": "Automatic profile creation is not supported for {0}!"
         },
         "Dialog": {
@@ -379,6 +380,8 @@
                     "RemoveFromPlaylist": "Remove From Playlist",
                     "RemoveFromSetlist": "Remove From Setlist",
                     "CreateNewPlaylist": "Create New...",
+                    "AddPlaylistToSetlist": "Add Playlist to Setlist",
+                    "SaveSetlistToPlaylist": "Save Setlist to Playlist",
                     "RenamePlaylist": "Rename Playlist",
                     "DeletePlaylist": "Delete Playlist",
                     "DeleteSetlist": "Delete Setlist",
@@ -538,7 +541,12 @@
             "AddBot": "Add Bot",
             "AddProfile": "Add Profile",
             "Bots" : "Bots",
-            "Players" : "Players"
+            "Players" : "Players",
+            "CouldNotLoad": "Couldn't Load",
+            "UnloadedEntry": "{0} <alpha=#66>— could not be loaded by this version of YARG",
+            "UnloadedDeleteTitle": "Delete Profile?",
+            "UnloadedDelete": "Deleting it is permanent.",
+            "BotDelete": "Deleting this bot is permanent."
         },
         "ScoreScreen" : {
             "BandScoreNotSaved" : "Score not saved",
@@ -937,6 +945,14 @@
             "SoloYellow": "Solo Yellow Fret",
             "SoloBlue": "Solo Blue Fret",
             "SoloOrange": "Solo Orange Fret"
+        },
+        "SixFret": {
+            "Black1": "Black Fret 1 (First)",
+            "Black2": "Black Fret 2 (Second)",
+            "Black3": "Black Fret 3 (Third)",
+            "White1": "White Fret 1 (Fourth)",
+            "White2": "White Fret 2 (Fifth)",
+            "White3": "White Fret 3 (Sixth)"
         },
         "Guitar": {
             "StrumUp": "Strum Up",
@@ -2029,6 +2045,7 @@
                     "Name": "Instrument",
                     "Dropdown": {
                         "FiveFretGuitar": "Guitar (5-Fret)",
+                        "SixFretGuitar": "Guitar (6-Fret)",
                         "FiveLaneDrums": "Drums (5-Lane)",
                         "FourLaneDrums": "Drums (4-Lane)",
                         "ProKeys": "Pro Keys"
@@ -2357,6 +2374,24 @@
                 },
                 "BlackNoteStarPower": {
                     "Name": "Black Note Star Power"
+                },
+                "BlackFret": {
+                    "Name": "Black Fret"
+                },
+                "WhiteFret": {
+                    "Name": "White Fret"
+                },
+                "BlackFretInner": {
+                    "Name": "Black Fret Inner"
+                },
+                "WhiteFretInner": {
+                    "Name": "White Fret Inner"
+                },
+                "BlackParticles": {
+                    "Name": "Black Particles"
+                },
+                "WhiteParticles": {
+                    "Name": "White Particles"
                 },
                 "TapStripEmission": {
                     "Name": "Tap Strip Emission",

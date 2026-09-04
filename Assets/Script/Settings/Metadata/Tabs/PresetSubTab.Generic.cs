@@ -277,6 +277,7 @@ namespace YARG.Settings.Metadata
         private static readonly (string SubSection, string Label, GameMode Mode)[] InstrumentModes =
         {
             (nameof(ColorProfile.FiveFretGuitar), "Five Fret Guitar", GameMode.FiveFretGuitar),
+            (nameof(ColorProfile.SixFretGuitar),  "Six Fret Guitar",  GameMode.SixFretGuitar),
             (nameof(ColorProfile.FourLaneDrums),  "Four Lane Drums",  GameMode.FourLaneDrums),
             (nameof(ColorProfile.FiveLaneDrums),  "Five Lane Drums",  GameMode.FiveLaneDrums),
             (nameof(ColorProfile.ProKeys),        "Pro Keys",         GameMode.ProKeys),
@@ -471,26 +472,28 @@ namespace YARG.Settings.Metadata
                 }
                 default:
                 {
-                    if (!HideFields)
+                    if (_subSection is not null
+                        && _presetRef is ColorProfile
+                        && ColorFieldGroups.TryGetValue(_subSection, out var groups))
                     {
-                        if (_subSection is not null
-                            && _presetRef is ColorProfile
-                            && ColorFieldGroups.TryGetValue(_subSection, out var groups))
+                        BuildGroupedFields(settingContainer, navGroup, _presetRef, groups);
+                    }
+                    else
+                    {
+                        foreach (var field in _fields)
                         {
-                            BuildGroupedFields(settingContainer, navGroup, _presetRef, groups);
-                        }
-                        else
-                        {
-                            foreach (var field in _fields)
+                            if (_subSection is not null && field.ParentField.Name != _subSection)
                             {
-                                if (_subSection is not null && field.ParentField.Name != _subSection)
-                                {
-                                    continue;
-                                }
-
-                                BuildField(field, settingContainer, navGroup, _presetRef);
+                                continue;
                             }
+
+                            BuildField(field, settingContainer, navGroup, _presetRef);
                         }
+                    }
+
+                    if (ReadOnlyFields)
+                    {
+                        MakeFieldsReadOnly(settingContainer);
                     }
 
                     break;
@@ -899,9 +902,16 @@ namespace YARG.Settings.Metadata
         /// same as clicking the row's Color Picker button. Keeps the stock row
         /// highlight ("Selected Background").
         /// </summary>
-        private static void UseColorPickerNavigation(BaseSettingVisual visual, NavigationGroup navGroup)
+        private void UseColorPickerNavigation(BaseSettingVisual visual, NavigationGroup navGroup)
         {
             if (visual is not ColorSettingVisual colorVisual)
+            {
+                return;
+            }
+
+            // Keep read-only rows navigable for controller scrolling; confirm no-ops
+            // when IsEditable is false.
+            if (ReadOnlyFields)
             {
                 return;
             }
@@ -1258,6 +1268,11 @@ namespace YARG.Settings.Metadata
             FieldSubGroup fretSub, Dictionary<string, FieldSettingInfo> fieldLookup, T preset,
             NavigationGroup navGroup)
         {
+            // Copying would modify a read-only (default) preset.
+            if (ReadOnlyFields)
+            {
+                return;
+            }
             // The base note is the first color field of the Notes sub-group.
             if (group.SubGroups.Length == 0 || group.SubGroups[0].FieldNames.Length == 0)
             {
@@ -1479,6 +1494,22 @@ namespace YARG.Settings.Metadata
                 _swatchFillSprite = sprite;
             }
             return sprite;
+        }
+
+        // Keep values opaque: CanvasGroup alpha would make colors and sliders
+        // translucent, so only input text is dimmed.
+        private static void MakeFieldsReadOnly(Transform container)
+        {
+            foreach (var visual in container.GetComponentsInChildren<BaseSettingVisual>(false))
+            {
+                visual.SetEditable(false, dim: false);
+
+                foreach (var input in visual.GetComponentsInChildren<TMP_InputField>(false))
+                {
+                    var text = input.textComponent;
+                    text.color = text.color.WithAlpha(0.7f);
+                }
+            }
         }
 
         private void BuildField(FieldSettingInfo field, Transform container, NavigationGroup navGroup, T preset)

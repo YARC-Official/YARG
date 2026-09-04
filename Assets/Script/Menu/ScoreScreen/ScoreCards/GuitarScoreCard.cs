@@ -34,6 +34,10 @@ namespace YARG.Menu.ScoreScreen
                 case Instrument.FiveFretGuitar:
                 case Instrument.FiveFretRhythm:
                 case Instrument.FiveFretCoopGuitar:
+                case Instrument.SixFretBass:
+                case Instrument.SixFretGuitar:
+                case Instrument.SixFretRhythm:
+                case Instrument.SixFretCoopGuitar:
                     iconName = Player.Profile.CurrentInstrument.ToResourceName();
                     break;
                 default:

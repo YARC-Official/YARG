@@ -217,6 +217,7 @@ namespace YARG.Menu.ScoreScreen
                 switch (score.Player.Profile.GameMode)
                 {
                     case GameMode.FiveFretGuitar:
+                    case GameMode.SixFretGuitar:
                     {
                         card = Instantiate(_guitarCardPrefab, _cardContainer);
                         ((ScoreCard<GuitarStats>)card).Initialize(score.IsHighScore, score.Player, score.Stats as GuitarStats, score.IsReplay);

@@ -299,7 +299,7 @@ namespace YARG.Menu.DifficultySelect
                 });
 
                 CreateItem(LocalizeHeader("Instrument"),
-                    player.Profile.CurrentInstrument.ToLocalizedName(),
+                    GetInstrumentDisplayName(player.Profile.CurrentInstrument, player.Profile.GameMode),
                     _lastMenuState == State.Instrument, () =>
                 {
                     _menuState = State.Instrument;
@@ -414,7 +414,7 @@ namespace YARG.Menu.DifficultySelect
             foreach (var instrument in _possibleInstruments)
             {
                 bool selected = CurrentPlayer.Profile.CurrentInstrument == instrument;
-                CreateItem(instrument.ToLocalizedName(), selected, () =>
+                CreateItem(GetInstrumentDisplayName(instrument, CurrentPlayer.Profile.GameMode), selected, () =>
                 {
                     var preferredInstrument = CurrentPlayer.Profile.PreferredInstrument;
                     CurrentPlayer.Profile.CurrentInstrument = instrument;
@@ -769,6 +769,18 @@ namespace YARG.Menu.DifficultySelect
         private string LocalizeHeader(string key)
         {
             return Localize.Key("Menu.DifficultySelect", key);
+        }
+
+        private string GetInstrumentDisplayName(Instrument instrument, GameMode gameMode)
+        {
+            var name = instrument.ToLocalizedName();
+            // When in 6-fret mode, indicate when a 5-fret instrument is being used
+            // (i.e., a 5-fret chart loaded in 6-fret mode)
+            if (gameMode == GameMode.SixFretGuitar && !instrument.IsSixFret())
+            {
+                return $"{name} (5-Fret)";
+            }
+            return name;
         }
 
         private bool HasPlayableInstrument(SongEntry entry, in Instrument instrument)

@@ -388,6 +388,160 @@ namespace YARG.Settings.Preview
         }
     }
 
+    public sealed class SixFretGuitarFakeNoteGenerator : IFakeNoteGenerator
+    {
+        public FakeNoteData CreateNote(double time, IFakeNoteRandom random)
+        {
+            // 0 = Open, 1-6 = 6 frets, 7 = Wildcard
+            int fret = random.Range(0, 8);
+
+            // Open notes
+            if (fret == 0)
+            {
+                return new FakeNoteData
+                {
+                    Time = time,
+                    Fret = (int) SixFretGuitarFret.Open,
+                    CenterNote = true,
+                    NoteType = ThemeNoteType.Open
+                };
+            }
+
+            // Wildcard
+            if (fret == 7)
+            {
+                return new FakeNoteData
+                {
+                    Time = time,
+                    Fret = (int) SixFretGuitarFret.Wildcard,
+                    CenterNote = true,
+                    NoteType = ThemeNoteType.Wildcard
+                };
+            }
+
+            return new FakeNoteData
+            {
+                Time = time,
+                Fret = fret,
+                CenterNote = false,
+                NoteType = CreateFretNoteType(fret, random)
+            };
+        }
+
+        public FakeNoteData CreateSpotlightNote(double time, FakeNoteSpotlight spotlight,
+            IFakeNoteRandom random)
+        {
+            if (spotlight.CenterNote)
+            {
+                return new FakeNoteData
+                {
+                    Time = time,
+                    Fret = (int) SixFretGuitarFret.Open,
+                    CenterNote = true,
+                    NoteType = ThemeNoteType.Open
+                };
+            }
+
+            return new FakeNoteData
+            {
+                Time = time,
+                Fret = spotlight.Fret,
+                CenterNote = false,
+                NoteType = CreateFretNoteType(spotlight.Fret, random)
+            };
+        }
+
+        public FakeNoteData CreateTypeSpotlightNote(double time, ThemeNoteType noteType,
+            IFakeNoteRandom random)
+        {
+            switch (noteType)
+            {
+                case ThemeNoteType.Open:
+                    return new FakeNoteData
+                    {
+                        Time = time,
+                        Fret = (int) SixFretGuitarFret.Open,
+                        CenterNote = true,
+                        NoteType = noteType
+                    };
+                case ThemeNoteType.Wildcard:
+                    return new FakeNoteData
+                    {
+                        Time = time,
+                        Fret = (int) SixFretGuitarFret.Wildcard,
+                        CenterNote = true,
+                        NoteType = noteType
+                    };
+                case ThemeNoteType.SixFretUp or ThemeNoteType.SixFretUpHOPO
+                    or ThemeNoteType.SixFretUpTap:
+                    // Black frets (1-3) render as "up" notes
+                    return new FakeNoteData
+                    {
+                        Time = time,
+                        Fret = random.Range(1, 4),
+                        CenterNote = false,
+                        NoteType = noteType
+                    };
+                case ThemeNoteType.SixFretDown or ThemeNoteType.SixFretDownHOPO
+                    or ThemeNoteType.SixFretDownTap:
+                    // White frets (4-6) render as "down" notes
+                    return new FakeNoteData
+                    {
+                        Time = time,
+                        Fret = random.Range(4, 7),
+                        CenterNote = false,
+                        NoteType = noteType
+                    };
+                case ThemeNoteType.SixFretBarre or ThemeNoteType.SixFretBarreHOPO or ThemeNoteType.SixFretBarreTap:
+                    return new FakeNoteData
+                    {
+                        Time = time,
+                        Fret = random.Range(1, 7),
+                        CenterNote = false,
+                        NoteType = noteType
+                    };
+                default:
+                    var note = CreateNote(time, random);
+                    note.NoteType = noteType;
+                    return note;
+            }
+        }
+
+        public IEnumerable<FakeNoteData> CreateChordNotes(double time, FakeNoteData baseNote,
+            IFakeNoteRandom random)
+        {
+            // Six-fret preview has no chord generation
+            yield break;
+        }
+
+        /// <summary>
+        /// Picks the note type for a fretted six-fret note: black frets (1-3) are
+        /// "up" notes, white frets (4-6) are "down" notes, with a 30% chance of a
+        /// barre. Up/down/barre notes randomly use the strum, HOPO, or Tap variant.
+        /// </summary>
+        private static ThemeNoteType CreateFretNoteType(int fret, IFakeNoteRandom random)
+        {
+            bool isUp = fret is >= 1 and <= 3; // Black1(1)-Black3(3)
+            bool isBarre = random.Range(0, 100) < 30;
+
+            // Map to theme note type
+            ThemeNoteType themeType = isBarre ? ThemeNoteType.SixFretBarre
+                : isUp ? ThemeNoteType.SixFretUp : ThemeNoteType.SixFretDown;
+
+            // Override to HOPO/Tap variants randomly
+            return random.Range(0, 3) switch
+            {
+                0 => themeType, // Strum
+                1 => (isUp ? ThemeNoteType.SixFretUpHOPO :
+                      isBarre ? ThemeNoteType.SixFretBarreHOPO :
+                               ThemeNoteType.SixFretDownHOPO),
+                _ => (isUp ? ThemeNoteType.SixFretUpTap :
+                      isBarre ? ThemeNoteType.SixFretBarreTap :
+                               ThemeNoteType.SixFretDownTap)
+            };
+        }
+    }
+
     public sealed class ProKeysFakeNoteGenerator : IFakeNoteGenerator
     {
         public FakeNoteData CreateNote(double time, IFakeNoteRandom random)

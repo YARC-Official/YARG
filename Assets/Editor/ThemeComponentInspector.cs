@@ -10,10 +10,12 @@ namespace Editor
     public class ThemeComponentInspector : UnityEditor.Editor
     {
         private SerializedProperty _fiveFretNotes;
+        private SerializedProperty _sixFretNotes;
         private SerializedProperty _fourLaneNotes;
         private SerializedProperty _fiveLaneNotes;
         private SerializedProperty _proKeysNotes;
         private SerializedProperty _fiveFretFret;
+        private SerializedProperty _sixFretFret;
         private SerializedProperty _fourLaneFret;
         private SerializedProperty _fiveLaneFret;
         private SerializedProperty _whiteKey;
@@ -23,10 +25,12 @@ namespace Editor
         private void OnEnable()
         {
             _fiveFretNotes = serializedObject.FindProperty("_fiveFretNotes");
+            _sixFretNotes = serializedObject.FindProperty("_sixFretNotes");
             _fourLaneNotes = serializedObject.FindProperty("_fourLaneNotes");
             _fiveLaneNotes = serializedObject.FindProperty("_fiveLaneNotes");
             _proKeysNotes = serializedObject.FindProperty("_proKeysNotes");
             _fiveFretFret = serializedObject.FindProperty("_fiveFretFret");
+            _sixFretFret = serializedObject.FindProperty("_sixFretFret");
             _fourLaneFret = serializedObject.FindProperty("_fourLaneFret");
             _fiveLaneFret = serializedObject.FindProperty("_fiveLaneFret");
             _whiteKey = serializedObject.FindProperty("_whiteKey");
@@ -47,13 +51,13 @@ namespace Editor
 
             // Validation warnings
             var warnings = new VisualElement();
-            var noteParents = new[] { _fiveFretNotes, _fourLaneNotes, _fiveLaneNotes, _proKeysNotes };
+            var noteParents = new[] { _fiveFretNotes, _sixFretNotes, _fourLaneNotes, _fiveLaneNotes, _proKeysNotes };
             if (!noteParents.Any(p => p.objectReferenceValue != null))
             {
                 warnings.Add(new HelpBox("No note parents assigned. Theme will have no note models.", HelpBoxMessageType.Warning));
             }
 
-            var fretFields = new[] { _fiveFretFret, _fourLaneFret, _fiveLaneFret };
+            var fretFields = new[] { _fiveFretFret, _sixFretFret, _fourLaneFret, _fiveLaneFret };
             if (!fretFields.Any(p => p.objectReferenceValue != null))
             {
                 warnings.Add(new HelpBox("No frets assigned. Theme will use default frets.", HelpBoxMessageType.Warning));
@@ -62,12 +66,14 @@ namespace Editor
 
             root.Add(new Label("\n<b><size=1.15em>Note Parents</size></b>"));
             root.Add(new PropertyField(_fiveFretNotes));
+            root.Add(new PropertyField(_sixFretNotes));
             root.Add(new PropertyField(_fourLaneNotes));
             root.Add(new PropertyField(_fiveLaneNotes));
             root.Add(new PropertyField(_proKeysNotes));
 
             root.Add(new Label("\n<b><size=1.15em>Frets</size></b>"));
             root.Add(new PropertyField(_fiveFretFret));
+            root.Add(new PropertyField(_sixFretFret));
             root.Add(new PropertyField(_fourLaneFret));
             root.Add(new PropertyField(_fiveLaneFret));
 

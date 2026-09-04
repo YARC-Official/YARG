@@ -580,7 +580,7 @@ namespace YARG.Gameplay.Player
 
         }
 
-        protected override void InitializeSpawnedLane(LaneElement lane, int laneIndex)
+        protected override void InitializeBRELane(LaneElement lane, int laneIndex)
         {
             int highwayIndex = -1;
             HighwayOrderingInfo highwayOrderingInfo = default;
@@ -1026,7 +1026,7 @@ namespace YARG.Gameplay.Player
 
                 if (padToPress is not null)
                 {
-                    _fretArray.SetPressedDrum(padToPress.Value, lowestDelta < DRUM_PAD_FLASH_HOLD_DURATION, GetAnimType(padToPress.Value));
+                    _fretArray.SetPressedImpulse(padToPress.Value, lowestDelta < DRUM_PAD_FLASH_HOLD_DURATION, GetAnimType(padToPress.Value));
                     _fretArray.UpdateAccentColorState(padToPress.Value,
                         _animTypeToPadToLastPressedDelta[Fret.AnimType.CorrectHard][padToPress.Value] <
                         DRUM_PAD_FLASH_HOLD_DURATION);

@@ -93,56 +93,6 @@ namespace YARG.Menu.Credits
             }
         }
 
-        private static List<string> GetCharterCredits(SongEntry song)
-        {
-            var credits = new List<string>(10);
-
-            void Add(string item)
-            {
-                if (string.IsNullOrEmpty(item) || credits.Contains(item))
-                {
-                    return;
-                }
-
-                // Is this a joined list of credits?
-                if (item.Contains(","))
-                {
-                    // Split the string at the commas, trim any leading or trailing spaces, add results to list
-                    foreach (var substring in item.Split(','))
-                    {
-                        var trimmed = substring.Trim();
-                        if (!string.IsNullOrEmpty(trimmed) && !credits.Contains(trimmed))
-                        {
-                            credits.Add(trimmed);
-                        }
-                    }
-
-                    return;
-                }
-
-                credits.Add(item);
-            }
-
-            Add(song.CharterGuitar);
-            Add(song.CharterBass);
-            Add(song.CharterDrums);
-            Add(song.CharterVocals);
-            Add(song.CharterKeys);
-            Add(song.CharterProKeys);
-            Add(song.CharterVenue);
-            Add(song.CharterAudio);
-
-            // For future use
-            // Add(song.CharterProGuitar);
-            // Add(song.CharterProBass);
-            // Add(song.CharterEliteDrums);
-
-            // Sort credit entries alphabetically
-            credits.Sort();
-
-            return credits;
-        }
-
         private void HandleCombinedCredits()
         {
             // Match up _songCredit entries that should be combined together and combine them into the first entry.
@@ -208,6 +158,60 @@ namespace YARG.Menu.Credits
                 LocalizationKey = unlocalized;
                 Metadata = metadata;
             }
+        }
+
+        private static List<string> GetCharterCredits(SongEntry song)
+        {
+            var credits = new List<string>(10);
+
+            void Add(string item)
+            {
+                if (string.IsNullOrEmpty(item) || credits.Contains(item))
+                {
+                    return;
+                }
+
+                // Is this a joined list of credits?
+                if (item.Contains(","))
+                {
+                    // Split the string at the commas, trim any leading or trailing spaces, add results to list
+                    foreach (var substring in item.Split(','))
+                    {
+                        var trimmed = substring.Trim();
+                        if (!string.IsNullOrEmpty(trimmed) && !credits.Contains(trimmed))
+                        {
+                            credits.Add(trimmed);
+                        }
+                    }
+
+                    return;
+                }
+
+                credits.Add(item);
+            }
+
+            Add(song.CharterGuitar);
+            Add(song.CharterGuitar6F);
+            Add(song.CharterBass);
+            Add(song.CharterBass6F);
+            Add(song.CharterRhythm);
+            Add(song.CharterRhythm6F);
+            Add(song.CharterDrums);
+            Add(song.CharterVocals);
+            Add(song.CharterKeys);
+            Add(song.CharterProKeys);
+            Add(song.CharterVenue);
+            Add(song.CharterAudio);
+
+            // For future use
+            // Add(song.CharterProGuitar);
+            // Add(song.CharterProBass);
+            // Add(song.CharterEliteDrums);
+
+            // Sort credit entries alphabetically
+            credits.Sort();
+
+            return credits;
         }
     }
 }

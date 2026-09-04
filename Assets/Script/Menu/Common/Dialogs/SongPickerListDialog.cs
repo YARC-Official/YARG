@@ -276,7 +276,7 @@ namespace YARG.Menu.Dialogs
         public override void Submit()
         {
             _timerSequence.Kill();
-            MusicLibrary.RefreshAndReselect();
+            MusicLibrary.RefreshAndReselect(selectTopOfList: true);
             DialogManager.Instance.ClearDialog();
         }
 

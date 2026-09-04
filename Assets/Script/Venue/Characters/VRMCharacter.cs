@@ -4,6 +4,8 @@ using UniGLTF.SpringBoneJobs.Blittables;
 using UnityEngine;
 using UniVRM10;
 using YARG.Core.Chart;
+using YARG.Helpers;
+using YARG.Song;
 using LipsyncType = YARG.Core.Chart.LipsyncEvent.LipsyncType;
 using YARG.Venue.VenueCamera;
 
@@ -37,6 +39,9 @@ namespace YARG.Venue.Characters
         [SerializeField]
         [Tooltip("Set to true if you want to use custom animations instead of the default ones.")]
         public bool UseCustomAnimations;
+        [SerializeField]
+        [Tooltip("Genre-specific custom animations")]
+        private GenreAnimationMap _genreSpecificAnimations;
 
         private ExpressionKey       _lipsyncKey;
         private bool                _hasVrmInstance;
@@ -115,6 +120,11 @@ namespace YARG.Venue.Characters
             _singalongEventIndex = 0;
             _lipsyncIndex = 0;
             _hasLipsyncAssigned = true;
+        }
+
+        public GenreAnimationMap GetGenreSpecificAnimations()
+        {
+            return _genreSpecificAnimations;
         }
 
         protected override void Update()
