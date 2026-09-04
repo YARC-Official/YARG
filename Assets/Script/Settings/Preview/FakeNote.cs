@@ -246,6 +246,7 @@ namespace YARG.Settings.Preview
             var metalColor = (FakeTrackPlayer.SelectedGameMode switch
             {
                 GameMode.FiveFretGuitar => colorProfile.FiveFretGuitar.GetMetalColor(useStarPower),
+                GameMode.SixFretGuitar => colorProfile.SixFretGuitar.GetMetalColor(useStarPower),
                 GameMode.FourLaneDrums  => colorProfile.FourLaneDrums.GetMetalColor(useStarPower),
                 GameMode.FiveLaneDrums  => colorProfile.FiveLaneDrums.GetMetalColor(useStarPower),
                 GameMode.ProKeys        => FakeTrackPlayer.UseFiveLaneKeys
