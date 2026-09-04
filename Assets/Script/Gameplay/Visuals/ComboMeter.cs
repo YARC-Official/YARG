@@ -83,6 +83,9 @@ namespace YARG.Gameplay.Visuals
         {
             _multiplierText.enabled = false;
 
+            // Update the combo text everytime.
+            _comboText.SetText("{0}", combo);
+
             // No multiplier text or updates while coda is active
             if (codaStarted)
             {
@@ -106,10 +109,7 @@ namespace YARG.Gameplay.Visuals
                 index = 10;
             }
 
-            // Update the combo text everytime.
-            _comboText.SetText("{0}", combo);
             _comboMesh.material.SetFloat(_spriteIndexProperty, index);
-
         }
 
         public void SetFullCombo(bool isFc)
