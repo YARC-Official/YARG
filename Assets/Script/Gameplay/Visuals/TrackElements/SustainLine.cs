@@ -48,6 +48,8 @@ namespace YARG.Gameplay.Visuals
         private float _currentLength;
         private float _currentStartZ;
 
+        private Color? _secondaryColor = null;
+
         private void Awake()
         {
             _player = GetComponentInParent<TrackPlayer>();
@@ -181,6 +183,12 @@ namespace YARG.Gameplay.Visuals
 
             Color color = GetBrighterColorIfTooDark(c);
 
+            // Blend with secondary color if set (for barre sustains)
+            if (_secondaryColor.HasValue)
+            {
+                color = Color.Lerp(color, GetBrighterColorIfTooDark(_secondaryColor.Value), 0.5f);
+            }
+
             switch (state)
             {
                 case SustainState.Waiting:
@@ -200,6 +208,11 @@ namespace YARG.Gameplay.Visuals
                     ResetAmplitudes();
                     break;
             }
+        }
+
+        public void SetSecondaryColor(Color secondary)
+        {
+            _secondaryColor = secondary;
         }
 
         private void ResetAmplitudes()

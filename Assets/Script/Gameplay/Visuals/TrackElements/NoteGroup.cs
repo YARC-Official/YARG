@@ -45,6 +45,8 @@ namespace YARG.Gameplay.Visuals
         }
 
         private static readonly int _emissionColor = Shader.PropertyToID("_EmissionColor");
+        private static readonly int _secondaryColor = Shader.PropertyToID("_SecondaryColor");
+        private static readonly int _secondaryEmissionColor = Shader.PropertyToID("_SecondaryEmissionColor");
 
         private const string EMISSION_ENABLED_KEYWORD = "_EMISSION_ENABLED";
         private const string EMISSION_DISABLED_KEYWORD = "_EMISSION_DISABLED";
@@ -64,10 +66,11 @@ namespace YARG.Gameplay.Visuals
 
         public void Initialize()
         {
-            _coloredMaterialCache ??= _themeNote.ColoredMaterials.Select(MaterialInfo.From).ToArray();
-            _coloredMaterialNoStarPowerCache ??= _themeNote.ColoredMaterialsNoStarPower.Select(MaterialInfo.From).ToArray();
-            _allColoredCache ??= _coloredMaterialCache.Concat(_coloredMaterialNoStarPowerCache).ToArray();
-            _coloredMetalMaterialCache ??= _themeNote.ColoredMetalMaterials.Select(MaterialInfo.From).ToArray();
+            _coloredMaterialCache = _themeNote.ColoredMaterials.Select(MaterialInfo.From).ToArray();
+            _coloredMaterialNoStarPowerCache = _themeNote.ColoredMaterialsNoStarPower.Select(MaterialInfo.From).ToArray();
+            _allColoredCache = _coloredMaterialCache.Concat(_coloredMaterialNoStarPowerCache).ToArray();
+            _coloredMetalMaterialCache = _themeNote.ColoredMetalMaterials.Select(MaterialInfo.From).ToArray();
+            _coloredSecondaryMaterialCache = _themeNote.ColoredSecondaryMaterials?.Select(MaterialInfo.From).ToArray() ?? System.Array.Empty<MaterialInfo>();
 
             // Set random values
             var randomFloat = Random.Range(-1f, 1f);
@@ -123,6 +126,25 @@ namespace YARG.Gameplay.Visuals
                 info.MaterialCache.color = metalColor;
                 info.MaterialCache.SetColor(_emissionColor, metalColor);
             }
+        }
+
+        private MaterialInfo[] _coloredSecondaryMaterialCache;
+
+        public void SetSecondaryColor(Color secondary, Color secondaryNoStarPower)
+        {
+            if (_coloredSecondaryMaterialCache.Length == 0) return;
+
+            // Apply secondary color (with star power)
+            foreach (var info in _coloredSecondaryMaterialCache)
+            {
+                float a = info.EmissionAddition;
+                var realColor = secondary + new Color(a, a, a);
+
+                info.MaterialCache.SetColor(_secondaryColor, realColor);
+                info.MaterialCache.SetColor(_secondaryEmissionColor, realColor * info.EmissionMultiplier);
+            }
+
+            // Note: No separate no-star-power cache for secondary, as barre notes use same SP state as primary
         }
 
         /// <summary>

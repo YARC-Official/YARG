@@ -36,8 +36,6 @@ namespace YARG.Gameplay.Visuals
         [SerializeField]
         private Transform _rightKickFretPosition;
 
-        public Dictionary<int, Fret> Frets => _frets;
-
         private readonly Dictionary<int, Fret> _frets = new();
         private readonly List<KickFret> _kickFrets = new();
 
@@ -57,7 +55,7 @@ namespace YARG.Gameplay.Visuals
          */
         #nullable enable
         public void Initialize(Dictionary<int, int> highwayOrdering, int laneCount, GameObject? kickFretPrefab,
-            IFretColorProvider fretColorProvider, ThemePreset themePreset, VisualStyle style)
+            IFretColorProvider fretColorProvider, ThemePreset themePreset, VisualStyle style, bool dualHalfFrets = false)
         {
             var derivedDictionary = new Dictionary<int, HighwayOrderingInfo>();
 
@@ -66,20 +64,29 @@ namespace YARG.Gameplay.Visuals
                 derivedDictionary.Add(noteType, new(position, noteType));
             }
 
-            Initialize(derivedDictionary, laneCount, kickFretPrefab, fretColorProvider, themePreset, style);
+            Initialize(derivedDictionary, laneCount, kickFretPrefab, fretColorProvider, themePreset, style, dualHalfFrets);
         }
 
         public void Initialize(Dictionary<int, HighwayOrderingInfo> highwayOrdering, int laneCount,
             GameObject? kickFretPrefab, IFretColorProvider fretColorProvider, ThemePreset themePreset, VisualStyle style)
+        {
+            Initialize(highwayOrdering, laneCount, kickFretPrefab, fretColorProvider, themePreset, style, false);
+        }
+
+        // Overload with dual-half fret support (for 6-fret guitar)
+        public void Initialize(Dictionary<int, HighwayOrderingInfo> highwayOrdering, int laneCount,
+            GameObject? kickFretPrefab, IFretColorProvider fretColorProvider, ThemePreset themePreset, VisualStyle style,
+            bool dualHalfFrets)
         {
             var fretPrefab = ThemeManager.Instance.CreateFretPrefabFromTheme(themePreset, style);
 
             _frets.Clear();
             foreach (var (noteType, highwayOrderingInfo) in highwayOrdering)
             {
+                // Check if position was already added (barre chords share the same physical fret object across lanes)
                 if (!_usedFretIndexes.Add(highwayOrderingInfo.Position))
                 {
-                    // Find the earlier highway ordering info with the same position
+                    // Find an earlier note type at this same position and reuse its fret component
                     foreach (var (otherNoteType, otherHighwayOrderingInfo) in highwayOrdering)
                     {
                         if (otherHighwayOrderingInfo.Position == highwayOrderingInfo.Position)
@@ -91,10 +98,8 @@ namespace YARG.Gameplay.Visuals
 
                     continue;
                 }
-
                 var fret = Instantiate(fretPrefab, transform);
                 fret.SetActive(true);
-
 
                 // Position
                 float x = _trackWidth / laneCount * highwayOrderingInfo.Position - _trackWidth / 2f + 1f / laneCount;
@@ -105,12 +110,51 @@ namespace YARG.Gameplay.Visuals
                 fret.transform.localScale = new Vector3(scale, 1f, 1f);
 
                 var fretComp = fret.GetComponent<Fret>();
-                fretComp.Initialize(
-                    fretColorProvider.GetFretColor(highwayOrderingInfo.ColorIndex),
-                    fretColorProvider.GetFretInnerColor(highwayOrderingInfo.ColorIndex),
-                    fretColorProvider.GetParticleColor(highwayOrderingInfo.ColorIndex),
-                    fretColorProvider.GetParticleColor((int)FiveFretGuitarFret.Open)
-                );
+
+                if (dualHalfFrets)
+                {
+                    // Primary = first fret (Black), Secondary = second fret (White)
+                    // Since enum order is Black1, White1, Black2, etc., first occurrence is Black
+                    var primaryColor = fretColorProvider.GetFretColor(highwayOrderingInfo.ColorIndex);
+                    var primaryInner = fretColorProvider.GetFretInnerColor(highwayOrderingInfo.ColorIndex);
+                    var primaryParticles = fretColorProvider.GetParticleColor(highwayOrderingInfo.ColorIndex);
+
+                    // Find secondary color (next fret in same position)
+                    int secondaryColorIndex = -1;
+                    foreach (var (otherNoteType, otherInfo) in highwayOrdering)
+                    {
+                        if (otherInfo.Position == highwayOrderingInfo.Position && otherNoteType != noteType)
+                        {
+                            secondaryColorIndex = otherInfo.ColorIndex;
+                            break;
+                        }
+                    }
+
+                    var secondaryColor = secondaryColorIndex != -1
+                        ? fretColorProvider.GetFretColor(secondaryColorIndex)
+                        : primaryColor;
+                    var secondaryInner = secondaryColorIndex != -1
+                        ? fretColorProvider.GetFretInnerColor(secondaryColorIndex)
+                        : primaryInner;
+                    var secondaryParticles = secondaryColorIndex != -1
+                        ? fretColorProvider.GetParticleColor(secondaryColorIndex)
+                        : primaryParticles;
+
+                    fretComp.Initialize(
+                        primaryColor, primaryInner, primaryParticles,
+                        fretColorProvider.GetParticleColor((int)FiveFretGuitarFret.Open),
+                        secondaryColor, secondaryInner, secondaryParticles
+                    );
+                }
+                else
+                {
+                    fretComp.Initialize(
+                        fretColorProvider.GetFretColor(highwayOrderingInfo.ColorIndex),
+                        fretColorProvider.GetFretInnerColor(highwayOrderingInfo.ColorIndex),
+                        fretColorProvider.GetParticleColor(highwayOrderingInfo.ColorIndex),
+                        fretColorProvider.GetParticleColor((int)FiveFretGuitarFret.Open)
+                    );
+                }
 
                 _frets[noteType] = fretComp;
             }
@@ -171,6 +215,16 @@ namespace YARG.Gameplay.Visuals
         public void SetPressed(int index, bool pressed)
         {
             _frets[index].SetPressed(pressed);
+        }
+
+        public void SetPressedSecondary(int index, bool pressed)
+        {
+            _frets[index].SetPressedSecondary(pressed, pressed ? 1f : 0f);
+        }
+
+        public void SetPressedSecondary(int index, bool pressed, float value)
+        {
+            _frets[index].SetPressedSecondary(pressed, value);
         }
 
         // Used for frets that can only receive a momentary input rather than being held. This includes all

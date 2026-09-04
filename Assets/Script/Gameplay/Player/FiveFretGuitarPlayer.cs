@@ -4,6 +4,7 @@ using System.Linq;
 using UnityEngine;
 using YARG.Core;
 using YARG.Core.Audio;
+using YARG.Core.Game;
 using YARG.Core.Chart;
 using YARG.Core.Engine;
 using YARG.Core.Engine.Guitar;
@@ -19,12 +20,11 @@ using YARG.Playback;
 using YARG.Player;
 using YARG.Settings;
 using YARG.Themes;
-using static YARG.Core.Game.ColorProfile;
 using Random = UnityEngine.Random;
 
 namespace YARG.Gameplay.Player
 {
-    public sealed class FiveFretGuitarPlayer : TrackPlayer<GuitarEngine, GuitarNote>
+    public class FiveFretGuitarPlayer : TrackPlayer<GuitarEngine, GuitarNote>
     {
         private const double SUSTAIN_END_MUTE_THRESHOLD = 0.1;
 
@@ -34,60 +34,53 @@ namespace YARG.Gameplay.Player
 
         public bool UsingOpenLane { get; private set; }
 
-        private static Dictionary<int, FiveFretGuitarFret> _actionToFret = new() {
-            { YargFiveFretGuitarEngine.OPEN_BRE_INPUT, FiveFretGuitarFret.Open },
-            { (int)GuitarAction.Fret1,                 FiveFretGuitarFret.Green },
-            { (int)GuitarAction.Fret2,                 FiveFretGuitarFret.Red },
-            { (int)GuitarAction.Fret3,                 FiveFretGuitarFret.Yellow },
-            { (int)GuitarAction.Fret4,                 FiveFretGuitarFret.Blue },
-            { (int)GuitarAction.Fret5,                 FiveFretGuitarFret.Orange },
-        };
-
         // Record of the most recent time that each BRE lane has been lit up by any of the actions that map to it
-        private Dictionary<FiveFretGuitarFret, double> _fretToMostRecentTime = new()
+        protected Dictionary<int, double> FretToMostRecentTime;
+        protected virtual Dictionary<int, double> CreateFretToMostRecentTime() => new()
         {
-            { FiveFretGuitarFret.Open,      0 }, // We'll also use this for driving the dedicated open fret's "flashing" effect, like on drums
-            { FiveFretGuitarFret.Green,     0 },
-            { FiveFretGuitarFret.Red,       0 },
-            { FiveFretGuitarFret.Yellow,    0 },
-            { FiveFretGuitarFret.Blue,      0 },
-            { FiveFretGuitarFret.Orange,    0 },
+            { (int)FiveFretGuitarFret.Open,      0 }, // We'll also use this for driving the dedicated open fret's "flashing" effect, like on drums
+            { (int)FiveFretGuitarFret.Green,     0 },
+            { (int)FiveFretGuitarFret.Red,       0 },
+            { (int)FiveFretGuitarFret.Yellow,    0 },
+            { (int)FiveFretGuitarFret.Blue,      0 },
+            { (int)FiveFretGuitarFret.Orange,    0 },
         };
 
 
-        // Key is a FiveFretGuitarFret
+        // Key is an int corresponding to a FiveFretGuitarFret (or SixFretGuitarFret on 6F)
         // Value is the fret's lateral position on the fret array
-        private Dictionary<int, int> _highwayOrdering;
+        protected Dictionary<int, int> HighwayOrdering;
 
         // Used to control fret brightness for the dedicated open lane
         private bool _openSustaining = false;
 
-        private float GetLanePositionOrCentered(int fret)
+        protected virtual int GetFretIndex(int action)
         {
-            if (_highwayOrdering.ContainsKey(fret))
+            return action switch
             {
-                return _highwayOrdering[fret];
+                (int)GuitarAction.Fret1 => (int)FiveFretGuitarFret.Green,
+                (int)GuitarAction.Fret2 => (int)FiveFretGuitarFret.Red,
+                (int)GuitarAction.Fret3 => (int)FiveFretGuitarFret.Yellow,
+                (int)GuitarAction.Fret4 => (int)FiveFretGuitarFret.Blue,
+                (int)GuitarAction.Fret5 => (int)FiveFretGuitarFret.Orange,
+                YargFiveFretGuitarEngine.OPEN_BRE_INPUT => (int)FiveFretGuitarFret.Open,
+                _                  => throw new ArgumentOutOfRangeException(nameof(action))
+            };
+        }
+
+        protected float GetLanePositionOrCentered(int fret)
+        {
+            if (HighwayOrdering.ContainsKey(fret))
+            {
+                return HighwayOrdering[fret];
             }
 
             return (LaneCount - 1) / 2;
         }
 
-        private FiveFretGuitarFret GetFretIndex(GuitarAction action)
-        {
-            return action switch
-            {
-                GuitarAction.Fret1 => FiveFretGuitarFret.Green,
-                GuitarAction.Fret2 => FiveFretGuitarFret.Red,
-                GuitarAction.Fret3 => FiveFretGuitarFret.Yellow,
-                GuitarAction.Fret4 => FiveFretGuitarFret.Blue,
-                GuitarAction.Fret5 => FiveFretGuitarFret.Orange,
-                _ => throw new ArgumentOutOfRangeException(nameof(action))
-            };
-        }
-
         public int GetLanePosition(FiveFretGuitarFret fret)
         {
-            return _highwayOrdering[(int)fret];
+            return HighwayOrdering[(int)fret];
         }
 
         public override bool ShouldUpdateInputsOnResume => true;
@@ -99,12 +92,12 @@ namespace YARG.Gameplay.Player
         };
 
         /// See <see cref="StarMultiplierThresholds"/>
-        private static float[] BassStarMultiplierThresholds => new[]
+        protected static float[] BassStarMultiplierThresholds => new[]
         {
             0.05f, 0.1f, 0.19f, 0.47f, 0.78f, 1.15f
         };
 
-        public GuitarEngineParameters EngineParams { get; private set; }
+        public GuitarEngineParameters EngineParams { get; protected set; }
 
         private double TimeFromSpawnToStrikeline => SpawnTimeOffset - (-STRIKE_LINE_POS / NoteSpeed);
 
@@ -128,7 +121,7 @@ namespace YARG.Gameplay.Player
 
         [Header("Five Fret Specific")]
         [SerializeField]
-        private FretArray _fretArray;
+        protected FretArray _fretArray;
         [SerializeField]
         private Pool _shiftIndicatorPool;
         [SerializeField]
@@ -137,11 +130,11 @@ namespace YARG.Gameplay.Player
         protected override float[] StarMultiplierThresholds { get; set; } =
             GuitarStarMultiplierThresholds;
 
-        public float WhammyFactor { get; private set; }
+        public float WhammyFactor { get; protected set; }
 
-        private int _sustainCount;
+        protected int _sustainCount;
 
-        private SongStem _stem;
+        protected SongStem _stem;
         private double _practiceSectionStartTime;
 
         public override void Initialize(int index, YargPlayer player, SongChart chart, TrackView trackView, StemMixer mixer, int? currentHighScore)
@@ -161,10 +154,20 @@ namespace YARG.Gameplay.Player
             return track.GetDifficulty(Player.Profile.CurrentDifficulty);
         }
 
+        /// <summary>The instrument that counts as "bass" for star multiplier threshold purposes.</summary>
+        protected virtual Instrument GetBassInstrument() => Instrument.FiveFretBass;
+
+        /// <summary>The engine preset to use for this guitar variant.</summary>
+        protected virtual EnginePreset.FiveFretGuitarPreset GetEnginePreset() => Player.EnginePreset.FiveFretGuitar;
+
+        /// <summary>Creates the concrete guitar engine instance.</summary>
+        protected virtual GuitarEngine BuildEngine(GuitarEngineParameters parameters)
+            => new YargFiveFretGuitarEngine(NoteTrack, SyncTrack, parameters, Player.Profile.IsBot);
+
         protected override GuitarEngine CreateEngine()
         {
             // If on bass, replace the star multiplier threshold
-            bool isBass = Player.Profile.CurrentInstrument == Instrument.FiveFretBass;
+            bool isBass = Player.Profile.CurrentInstrument == GetBassInstrument();
             if (isBass)
             {
                 StarMultiplierThresholds = BassStarMultiplierThresholds;
@@ -172,15 +175,14 @@ namespace YARG.Gameplay.Player
 
             if (!Player.IsReplay)
             {
-                // Create the engine params from the engine preset
-                EngineParams = Player.EnginePreset.FiveFretGuitar.Create(StarMultiplierThresholds, SoloBonusStarMultiplierThresholds, isBass);
-                //EngineParams = EnginePreset.Precision.FiveFretGuitar.Create(StarMultiplierThresholds, isBass);
+                EngineParams = GetEnginePreset().Create(StarMultiplierThresholds, SoloBonusStarMultiplierThresholds, isBass);
             }
             else
             {
-                // Otherwise, get from the replay
-                EngineParams = (GuitarEngineParameters) Player.EngineParameterOverride;
+                EngineParams = (GuitarEngineParameters)Player.EngineParameterOverride;
             }
+
+            FretToMostRecentTime = CreateFretToMostRecentTime();
 
             if (EngineContainer != null)
             {
@@ -188,7 +190,7 @@ namespace YARG.Gameplay.Player
                 EngineContainer = null;
             }
 
-            var engine = new YargFiveFretGuitarEngine(NoteTrack, SyncTrack, EngineParams, Player.Profile.IsBot);
+            var engine = BuildEngine(EngineParams);
             EngineContainer = GameManager.EngineManager.Register(engine, NoteTrack, Chart, Player.RockMeterPreset);
 
             HitWindow = EngineParams.HitWindow;
@@ -227,17 +229,8 @@ namespace YARG.Gameplay.Player
 
             MakeHighwayOrdering();
 
-            IndicatorStripes.Initialize(Player.EnginePreset.FiveFretGuitar);
-
-
-            _fretArray.Initialize(
-                _highwayOrdering,
-                LaneCount,
-                null,
-                Player.ColorProfile.FiveFretGuitar,
-                Player.ThemePreset,
-                VisualStyle.FiveFretGuitar
-            );
+            InitializeIndicatorStripes();
+            InitializeFretArray();
 
             if (Player.Profile.RangeEnabled)
             {
@@ -245,9 +238,26 @@ namespace YARG.Gameplay.Player
                 InitializeRangeShift();
             }
 
-            LaneElement.DefineLaneScale(Player.Profile.CurrentInstrument, 5);
+            LaneElement.DefineLaneScale(Player.Profile.CurrentInstrument, LaneCount);
 
             GameManager.BeatEventHandler.Visual.Subscribe(_fretArray.PulseFretColors, BeatEventType.StrongBeat);
+        }
+
+        protected virtual void InitializeIndicatorStripes()
+        {
+            IndicatorStripes.Initialize(Player.EnginePreset.FiveFretGuitar);
+        }
+
+        protected virtual void InitializeFretArray()
+        {
+            _fretArray.Initialize(
+                HighwayOrdering,
+                LaneCount,
+                null,
+                Player.ColorProfile.FiveFretGuitar,
+                Player.ThemePreset,
+                VisualStyle.FiveFretGuitar
+            );
         }
 
         public override void ResetPracticeSection()
@@ -269,12 +279,10 @@ namespace YARG.Gameplay.Player
 
         protected override void ResetLastHitTimes()
         {
-            foreach (var fret in _highwayOrdering.Keys)
+            foreach (var fret in HighwayOrdering.Keys)
             {
-                _fretToMostRecentTime[(FiveFretGuitarFret)fret] = 0;
+                FretToMostRecentTime[fret] = 0;
             }
-
-
         }
 
         public override void SetReplayTime(double time)
@@ -288,18 +296,26 @@ namespace YARG.Gameplay.Player
             // Update coda lane emissions if necessary
             if (Engine.IsCodaActive)
             {
-                // Set emission color of BRE lanes depending on currently available score value
-                foreach (var (fret, highwayOrderingIndex) in _highwayOrdering)
-                {
-                    var mostRecentTime = _fretToMostRecentTime[(FiveFretGuitarFret)fret];
-                    var normalizedTimeSinceLastHit = CodaSection.GetNormalizedTimeSinceLastHit(visualTime, mostRecentTime);
-                    BRELanes[highwayOrderingIndex].SetEmissionColor(normalizedTimeSinceLastHit);
-                }
+                UpdateBreLaneEmissions(visualTime);
             }
 
             base.UpdateVisuals(visualTime);
             UpdateRangeShift(visualTime);
             UpdateFretArray();
+        }
+
+        /// <summary>
+        /// Sets the emission color of BRE lanes depending on the currently available score value.
+        /// One BRE lane per fret, lit by the most recent time that fret was pressed.
+        /// </summary>
+        protected virtual void UpdateBreLaneEmissions(double visualTime)
+        {
+            foreach (var (breLaneIndex, highwayOrderingIndex) in HighwayOrdering)
+            {
+                var mostRecentTime = FretToMostRecentTime[breLaneIndex];
+                var normalizedTimeSinceLastHit = CodaSection.GetNormalizedTimeSinceLastHit(visualTime, mostRecentTime);
+                BRELanes[highwayOrderingIndex].SetEmissionColor(normalizedTimeSinceLastHit);
+            }
         }
 
         public void UpdateRangeShift(double visualTime)
@@ -358,7 +374,7 @@ namespace YARG.Gameplay.Player
             if (nextShift.Time <= visualTime)
             {
                 _rangeShiftEventQueue.Dequeue();
-                foreach (var fretIndex in _highwayOrdering.Keys)
+                foreach (var fretIndex in HighwayOrdering.Keys)
                 {
                     _fretArray.SetFretColorPulse(fretIndex, false, (float) nextShift.BeatDuration);
                 }
@@ -385,15 +401,15 @@ namespace YARG.Gameplay.Player
 
         }
 
-        private void UpdateFretArray()
+        protected virtual void UpdateFretArray()
         {
-            for (var action = GuitarAction.GreenFret; action <= GuitarAction.OrangeFret; action++)
+            for (var action = GuitarAction.GreenFret; action <= GetFretActionMax(); action++)
             {
-                _fretArray.SetPressed((int) GetFretIndex(action), Engine.IsFretHeld(action));
+                _fretArray.SetPressed(GetFretIndex((int)action), Engine.IsFretHeld(action));
             }
 
             if (UsingOpenLane) {
-                var openInputDelta = GameManager.VisualTime - _fretToMostRecentTime[FiveFretGuitarFret.Open];
+                var openInputDelta = GameManager.VisualTime - FretToMostRecentTime[(int)FiveFretGuitarFret.Open];
 
 
                 _fretArray.SetPressedImpulse(
@@ -403,6 +419,8 @@ namespace YARG.Gameplay.Player
                 );
             }
         }
+
+        protected virtual GuitarAction GetFretActionMax() => GuitarAction.OrangeFret;
 
         private void SpawnRangeIndicator(FiveFretRangeShift nextShift)
         {
@@ -473,7 +491,7 @@ namespace YARG.Gameplay.Player
         {
             int lanedFret = -1;
 
-            foreach (var (fret, position) in _highwayOrdering)
+            foreach (var (fret, position) in HighwayOrdering)
             {
                 if (position == laneIndex)
                 {
@@ -488,7 +506,7 @@ namespace YARG.Gameplay.Player
                 return;
             }
 
-            
+
             lane.SetAppearance(
                 Player.Profile.CurrentInstrument,
                 lanedFret,
@@ -511,16 +529,16 @@ namespace YARG.Gameplay.Player
 
         protected override void RescaleLanesForBRE()
         {
-            LaneElement.DefineLaneScale(Player.Profile.CurrentInstrument, 5, true);
+            LaneElement.DefineLaneScale(Player.Profile.CurrentInstrument, LaneCount, true);
         }
 
         private void OnLaneHit(int action)
         {
-            var asFret = _actionToFret[action];
+            var asFret = GetFretIndex(action);
 
-            _fretToMostRecentTime[asFret] = GameManager.VisualTime;
+            FretToMostRecentTime[asFret] = GameManager.VisualTime;
 
-            if (asFret is FiveFretGuitarFret.Open && !UsingOpenLane)
+            if (asFret is (int)FiveFretGuitarFret.Open && !UsingOpenLane)
             {
                 _fretArray.PlayFullWidthHitAnimation();
             }
@@ -575,7 +593,7 @@ namespace YARG.Gameplay.Player
                 {
                     if (note.Fret is (int) FiveFretGuitarFret.Open)
                     {
-                        _fretToMostRecentTime[FiveFretGuitarFret.Open] = GameManager.VisualTime;
+                        FretToMostRecentTime[(int)FiveFretGuitarFret.Open] = GameManager.VisualTime;
                     }
 
                     _fretArray.PlayHitAnimation(note.Fret);
@@ -628,7 +646,7 @@ namespace YARG.Gameplay.Player
 
             // Play miss animation for every held fret that does not match the current note
             bool anyHeld = false;
-            for (var action = GuitarAction.GreenFret; action <= GuitarAction.OrangeFret; action++)
+            for (var action = GuitarAction.GreenFret; action <= GetFretActionMax(); action++)
             {
                 if (!Engine.IsFretHeld(action))
                 {
@@ -639,7 +657,7 @@ namespace YARG.Gameplay.Player
 
                 if (currentNote == null || (currentNote.NoteMask & (1 << (int) action)) == 0)
                 {
-                    _fretArray.PlayMissAnimation((int) GetFretIndex(action));
+                    _fretArray.PlayMissAnimation(GetFretIndex((int)action));
                 }
             }
 
@@ -649,7 +667,7 @@ namespace YARG.Gameplay.Player
                 if (UsingOpenLane)
                 {
                     _fretArray.PlayMissAnimation((int)FiveFretGuitarFret.Open);
-                    _fretToMostRecentTime[FiveFretGuitarFret.Open] = GameManager.VisualTime;
+                    FretToMostRecentTime[(int)FiveFretGuitarFret.Open] = GameManager.VisualTime;
                 }
                 else
                 {
@@ -658,15 +676,11 @@ namespace YARG.Gameplay.Player
             }
         }
 
-        private void OnSustainStart(GuitarNote parent)
+        protected virtual void OnSustainStart(GuitarNote parent)
         {
             foreach (var note in parent.AllNotes)
             {
-                // If the note is disjoint, only iterate the parent as sustains are added separately
-                if (parent.IsDisjoint && parent != note)
-                {
-                    continue;
-                }
+                if (parent.IsDisjoint && parent != note) continue;
 
                 if (note.Fret is (int) FiveFretGuitarFret.Open)
                 {
@@ -695,15 +709,11 @@ namespace YARG.Gameplay.Player
             }
         }
 
-        private void OnSustainEnd(GuitarNote parent, double timeEnded, bool finished)
+        protected virtual void OnSustainEnd(GuitarNote parent, double timeEnded, bool finished)
         {
             foreach (var note in parent.AllNotes)
             {
-                // If the note is disjoint, only iterate the parent as sustains are added separately
-                if (parent.IsDisjoint && parent != note)
-                {
-                    continue;
-                }
+                if (parent.IsDisjoint && parent != note) continue;
 
                 (NotePool.GetByKey(note) as FiveFretGuitarNoteElement)?.SustainEnd(finished);
 
@@ -724,8 +734,6 @@ namespace YARG.Gameplay.Player
                 _sustainCount--;
             }
 
-            // Mute the stem if you let go of the sustain too early.
-            // Leniency is handled by the engine's sustain burst threshold.
             if (!finished)
             {
                 if (!parent.IsDisjoint || _sustainCount == 0)
@@ -940,7 +948,7 @@ namespace YARG.Gameplay.Player
         private void SetDefaultActiveFrets()
         {
             var newFrets = new List<int>();
-            foreach (var fretIdx in _highwayOrdering.Keys)
+            foreach (var fretIdx in HighwayOrdering.Keys)
             {
                 newFrets.Add(fretIdx);
             }
@@ -952,7 +960,7 @@ namespace YARG.Gameplay.Player
             }
         }
 
-        private void MakeHighwayOrdering()
+        protected virtual void MakeHighwayOrdering()
         {
             UsingOpenLane = GryboHighwayHelpers.ShouldUseOpenLane(Player.Profile.OpenLaneDisplayType, NoteTrack.Notes);
 
@@ -962,16 +970,16 @@ namespace YARG.Gameplay.Player
             switch ((UsingOpenLane, Player.Profile.LeftyFlip))
             {
                 case (false, false):
-                    _highwayOrdering = GryboHighwayHelpers.DEFAULT_HIGHWAY_ORDERING;
+                    HighwayOrdering = GryboHighwayHelpers.DEFAULT_HIGHWAY_ORDERING;
                     break;
                 case (false, true):
-                    _highwayOrdering = GryboHighwayHelpers.LEFTY_HIGHWAY_ORDERING;
+                    HighwayOrdering = GryboHighwayHelpers.LEFTY_HIGHWAY_ORDERING;
                     break;
                 case (true, false):
-                    _highwayOrdering = GryboHighwayHelpers.OPEN_LANE_HIGHWAY_ORDERING;
+                    HighwayOrdering = GryboHighwayHelpers.OPEN_LANE_HIGHWAY_ORDERING;
                     break;
                 case (true, true):
-                    _highwayOrdering = GryboHighwayHelpers.OPEN_LANE_LEFTY_HIGHWAY_ORDERING;
+                    HighwayOrdering = GryboHighwayHelpers.OPEN_LANE_LEFTY_HIGHWAY_ORDERING;
                     break;
             }
         }
