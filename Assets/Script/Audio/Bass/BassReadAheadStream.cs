@@ -102,7 +102,7 @@ namespace YARG.Audio.BASS
                     BufferMilliseconds = checked((uint) bufferMilliseconds),
                 };
 
-                int result = Native.Create(in config, out var stream, out uint streamHandle, out int bassError);
+                int result = YargAudioBindings.ReadAheadStreamCreate(in config, out var stream, out uint streamHandle, out int bassError);
                 if (result != 0 || stream == null || stream.IsInvalid || streamHandle == 0)
                 {
                     stream?.Dispose();
@@ -111,7 +111,7 @@ namespace YARG.Audio.BASS
                     return null;
                 }
 
-                if (Native.SetCallbackClock(stream, useIndependentClock ? 1 : 0) != 0)
+                if (YargAudioBindings.ReadAheadStreamSetCallbackClock(stream, useIndependentClock ? 1 : 0) != 0)
                 {
                     stream.Dispose();
                     return null;
@@ -131,27 +131,25 @@ namespace YARG.Audio.BASS
         public bool Prefill(int timeoutMilliseconds)
         {
             ThrowIfDisposed();
-            return Native.Prefill(this, checked((uint) timeoutMilliseconds)) == 0;
+            return YargAudioBindings.ReadAheadStreamPrefill(this, checked((uint) timeoutMilliseconds)) == 0;
         }
 
         public bool Flush()
         {
             ThrowIfDisposed();
-            return Native.Flush(this) == 0;
+            return YargAudioBindings.ReadAheadStreamFlush(this) == 0;
         }
 
         public bool SetBufferLength(int bufferMilliseconds)
         {
             ThrowIfDisposed();
-            return Native.SetBufferLength(this, checked((uint) bufferMilliseconds)) == 0;
+            return YargAudioBindings.ReadAheadStreamSetBufferLength(this, checked((uint) bufferMilliseconds)) == 0;
         }
 
-        public long GetSourcePosition(int sourceHandle, int endpointDelayFrames)
-        {
-            return TryGetPositionSnapshot(sourceHandle, endpointDelayFrames, out var snapshot)
+        public long GetSourcePosition(int sourceHandle, int endpointDelayFrames) =>
+            TryGetPositionSnapshot(sourceHandle, endpointDelayFrames, out var snapshot)
                 ? snapshot.HeardPosition
                 : -1;
-        }
 
         public bool TryGetPositionSnapshot(int sourceHandle, int endpointDelayFrames,
             out ReadAheadPositionSnapshot snapshot)
@@ -161,7 +159,7 @@ namespace YARG.Audio.BASS
             {
                 Size = (uint) Marshal.SizeOf<ReadAheadPositionSnapshot>(),
             };
-            return Native.GetPositionSnapshot(this, unchecked((uint) sourceHandle),
+            return YargAudioBindings.ReadAheadStreamGetPositionSnapshot(this, unchecked((uint) sourceHandle),
                 checked((uint) Math.Max(0, endpointDelayFrames)), ref snapshot) == 0;
         }
 
@@ -172,7 +170,7 @@ namespace YARG.Audio.BASS
             {
                 Size = (uint) Marshal.SizeOf<ReadAheadStats>(),
             };
-            int result = Native.GetStats(this, ref stats);
+            int result = YargAudioBindings.ReadAheadStreamGetStats(this, ref stats);
             if (result != 0)
             {
                 stats.LastError = result;
@@ -183,7 +181,7 @@ namespace YARG.Audio.BASS
 
         protected override bool ReleaseHandle()
         {
-            Native.Destroy(handle, out _);
+            YargAudioBindings.ReadAheadStreamDestroy(handle, out _);
             StreamHandle = 0;
             return true;
         }
@@ -194,50 +192,6 @@ namespace YARG.Audio.BASS
             {
                 throw new ObjectDisposedException(nameof(BassReadAheadStream));
             }
-        }
-
-        private static class Native
-        {
-            private const string LIBRARY = "yarg_audio";
-
-            [DllImport(LIBRARY, EntryPoint = "yarg_read_ahead_stream_create",
-                CallingConvention = CallingConvention.Cdecl)]
-            internal static extern int Create(in ReadAheadConfig config, out BassReadAheadStream stream,
-                out uint streamHandle, out int bassError);
-
-            [DllImport(LIBRARY, EntryPoint = "yarg_read_ahead_stream_prefill",
-                CallingConvention = CallingConvention.Cdecl)]
-            internal static extern int Prefill(BassReadAheadStream stream, uint timeoutMilliseconds);
-
-            [DllImport(LIBRARY, EntryPoint = "yarg_read_ahead_stream_set_callback_clock",
-                CallingConvention = CallingConvention.Cdecl)]
-            internal static extern int SetCallbackClock(BassReadAheadStream stream, int enabled);
-
-            [DllImport(LIBRARY, EntryPoint = "yarg_read_ahead_stream_flush",
-                CallingConvention = CallingConvention.Cdecl)]
-            internal static extern int Flush(BassReadAheadStream stream);
-
-            [DllImport(LIBRARY, EntryPoint = "yarg_read_ahead_stream_set_buffer_length",
-                CallingConvention = CallingConvention.Cdecl)]
-            internal static extern int SetBufferLength(BassReadAheadStream stream, uint bufferMilliseconds);
-
-            [DllImport(LIBRARY, EntryPoint = "yarg_read_ahead_stream_get_source_position",
-                CallingConvention = CallingConvention.Cdecl)]
-            internal static extern long GetSourcePosition(BassReadAheadStream stream, uint source,
-                uint endpointDelayFrames, out int error);
-
-            [DllImport(LIBRARY, EntryPoint = "yarg_read_ahead_stream_get_position_snapshot",
-                CallingConvention = CallingConvention.Cdecl)]
-            internal static extern int GetPositionSnapshot(BassReadAheadStream stream, uint source,
-                uint endpointDelayFrames, ref ReadAheadPositionSnapshot snapshot);
-
-            [DllImport(LIBRARY, EntryPoint = "yarg_read_ahead_stream_get_stats",
-                CallingConvention = CallingConvention.Cdecl)]
-            internal static extern int GetStats(BassReadAheadStream stream, ref ReadAheadStats stats);
-
-            [DllImport(LIBRARY, EntryPoint = "yarg_read_ahead_stream_destroy",
-                CallingConvention = CallingConvention.Cdecl)]
-            internal static extern int Destroy(IntPtr stream, out int bassError);
         }
     }
 }

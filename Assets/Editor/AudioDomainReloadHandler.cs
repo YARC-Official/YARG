@@ -19,6 +19,11 @@ namespace YARG.Editor
 
         private static void CleanupAudio()
         {
+            if (!BassAudioManager.HasActiveSession)
+            {
+                return;
+            }
+
             GlobalAudioHandler.Close();
 
 #if UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN
