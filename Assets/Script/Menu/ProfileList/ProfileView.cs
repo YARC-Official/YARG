@@ -204,7 +204,7 @@ namespace YARG.Menu.ProfileList
             if (PlayerContainer.RemoveProfile(Profile))
             {
                 // Rebuild the list so emptied group headers disappear immediately
-                _profileListMenu.RefreshList();
+                _profileListMenu.RefreshProfileList();
             }
         }
 
@@ -229,7 +229,7 @@ namespace YARG.Menu.ProfileList
                     {
                         // Rebuild the list so an emptied "Couldn't Load" group's
                         // header goes away immediately
-                        _profileListMenu.RefreshList();
+                        _profileListMenu.RefreshProfileList();
                     }
                 },
                 cancelColor: MenuData.Colors.BrightButton,
@@ -457,12 +457,12 @@ namespace YARG.Menu.ProfileList
                 {
                     // Don't leak player when cancelling
                     PlayerContainer.DisposePlayer(player);
-                    _profileListMenu.RefreshList(Profile);
+                    _profileListMenu.RefreshProfileList(Profile);
                     return;
                 }
             }
 
-            _profileListMenu.RefreshList(Profile);
+            _profileListMenu.RefreshProfileList(Profile);
         }
 
         public void Disconnect()
@@ -478,7 +478,7 @@ namespace YARG.Menu.ProfileList
             }
 
             PlayerContainer.DisposePlayer(player);
-            _profileListMenu.RefreshList();
+            _profileListMenu.RefreshProfileList();
         }
 
         public void MoveUp()

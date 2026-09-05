@@ -16,7 +16,6 @@ namespace YARG.Menu.ProfileList
         [SerializeField]
         private ProfilesMenu _profilesMenu;
 
-
         private static List<ControllerFamily> _controllerFamiliesByIndex = new()
         {
             ControllerFamily.FiveFretGuitar,

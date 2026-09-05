@@ -68,7 +68,7 @@ namespace YARG.Menu.ProfileList
 
         private void OnEnable()
         {
-            RefreshList();
+            RefreshProfileList();
 
             _ = Navigator.Instance.PushScheme(new NavigationScheme(new()
             {
@@ -97,8 +97,28 @@ namespace YARG.Menu.ProfileList
             PlayerContainer.PlayerAdded -= OnPlayerAdded;
         }
 
-        public void RefreshList(YargProfile selectedProfile = null)
+        public void RefreshBindingSetList()
         {
+            if (_currentTab is not ProfileMenuTab.Bindings)
+            {
+                return;
+            }
+
+            // Deselect
+            _profileCenterPane.HideContents();
+
+            // Remove old ones
+            _leftPaneList.transform.DestroyChildren();
+            _navigationGroup.ClearNavigatables();
+        }
+
+        public void RefreshProfileList(YargProfile selectedProfile = null)
+        {
+            if (_currentTab is not ProfileMenuTab.Profiles)
+            {
+                return;
+            }
+
             // Deselect
             _profileCenterPane.HideContents();
 
@@ -106,27 +126,20 @@ namespace YARG.Menu.ProfileList
             _leftPaneList.transform.DestroyChildren();
             _navigationGroup.ClearNavigatables();
 
-            switch (_currentTab) {
-                case ProfileMenuTab.Profiles:
-                    var activeProfiles = PlayerContainer.Players.Select(e => e.Profile).ToArray();
-                    var otherProfiles = PlayerContainer.Profiles.Except(activeProfiles).OrderBy(e => e.Name).ToArray();
+            var activeProfiles = PlayerContainer.Players.Select(e => e.Profile).ToArray();
+            var otherProfiles = PlayerContainer.Profiles.Except(activeProfiles).OrderBy(e => e.Name).ToArray();
 
-                    AddProfileListGroup(Localize.Key("Menu.ProfileList.ActiveProfiles"), activeProfiles);
-                    AddProfileListGroup(Localize.Key("Menu.ProfileList.Players"), otherProfiles.Where(e => !e.IsBot));
-                    AddProfileListGroup(Localize.Key("Menu.ProfileList.Bots"), otherProfiles.Where(e => e.IsBot));
-                    AddUnloadedGroup(Localize.Key("Menu.ProfileList.CouldNotLoad"));
+            AddProfileListGroup(Localize.Key("Menu.ProfileList.ActiveProfiles"), activeProfiles);
+            AddProfileListGroup(Localize.Key("Menu.ProfileList.Players"), otherProfiles.Where(e => !e.IsBot));
+            AddProfileListGroup(Localize.Key("Menu.ProfileList.Bots"), otherProfiles.Where(e => e.IsBot));
+            AddUnloadedGroup(Localize.Key("Menu.ProfileList.CouldNotLoad"));
 
-                    if (selectedProfile == null)
-                    {
-                        return;
-                    }
-
-                    SetSelectedProfile(selectedProfile);
-                    break;
-
-                case ProfileMenuTab.Bindings:
-                    break;
+            if (selectedProfile == null)
+            {
+                return;
             }
+
+            SetSelectedProfile(selectedProfile);
         }
 
         private void AddProfileListGroup(string header, IEnumerable<YargProfile> profiles)
@@ -204,7 +217,7 @@ namespace YARG.Menu.ProfileList
                 GameMode = GameMode.FiveFretGuitar
             });
 
-            RefreshList();
+            RefreshProfileList();
         }
 
         public void AddBotProfile()
@@ -218,19 +231,19 @@ namespace YARG.Menu.ProfileList
                 IsBot = true
             });
 
-            RefreshList();
+            RefreshProfileList();
         }
 
         public void MoveProfileUp(YargProfile profile)
         {
             PlayerContainer.MoveUp(PlayerContainer.GetPlayerFromProfile(profile));
-            RefreshList(profile);
+            RefreshProfileList(profile);
         }
 
         public void MoveProfileDown(YargProfile profile)
         {
             PlayerContainer.MoveDown(PlayerContainer.GetPlayerFromProfile(profile));
-            RefreshList(profile);
+            RefreshProfileList(profile);
         }
 
         #nullable enable
@@ -260,7 +273,7 @@ namespace YARG.Menu.ProfileList
 
         public void OnPlayerAdded(YargPlayer player)
         {
-            RefreshList(GetSelectedProfile());
+            RefreshProfileList(GetSelectedProfile());
         }
 
         private void OpenDrumsHighwayConfigurationMenu(
@@ -350,12 +363,21 @@ namespace YARG.Menu.ProfileList
             _bindingCenterPane.SetActive(tabId == BINDINGS_TAB);
             _bindingSetsFilter.gameObject.SetActive(tabId == BINDINGS_TAB);
 
-            _currentTab = tabId switch
+            switch (tabId)
             {
-                PROFILES_TAB => ProfileMenuTab.Profiles,
-                BINDINGS_TAB => ProfileMenuTab.Bindings,
-                _ => throw new ArgumentOutOfRangeException($"Unexpected tabId {tabId}"),
+                case PROFILES_TAB:
+                    _currentTab = ProfileMenuTab.Profiles;
+                    RefreshProfileList();
+                    break;
+                case BINDINGS_TAB:
+                    _currentTab = ProfileMenuTab.Bindings;
+                    RefreshBindingSetList();
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException($"Unexpected tabId {tabId}");
             };
+
+            
         }
     }
 }
