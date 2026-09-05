@@ -363,6 +363,13 @@ namespace YARG.Settings
                     HighScoreHistoryMode.HighestScoreCurrentDifficulty,
                 };
 
+            public ToggleSetting PerEngineHighScores { get; } = new(false, _ =>
+            {
+                ScoreContainer.InvalidateScoreCache();
+                SongContainer.InvalidateStarsCache();
+                MusicLibraryMenu.SetReload(MusicLibraryReloadState.Partial);
+            });
+
             public ToggleSetting ShowPercentDecimals { get; } = new(false);
 
             #endregion
