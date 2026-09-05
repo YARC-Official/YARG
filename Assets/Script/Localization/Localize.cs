@@ -7,6 +7,7 @@ using Cysharp.Text;
 using YARG.Core;
 using YARG.Core.Game;
 using YARG.Core.Logging;
+using YARG.Menu.ProfileList;
 using YARG.Song;
 
 namespace YARG.Localization
@@ -106,6 +107,11 @@ namespace YARG.Localization
         public static string ToLocalizedName(this StarPowerActivationType starPowerActivationType)
         {
             return Key("Enum.StarPowerActivationType", starPowerActivationType);
+        }
+
+        public static string ToLocalizedName(this ControllerFamily controllerFamily)
+        {
+            return Key("Enum.ControllerFamily", controllerFamily);
         }
 
         public static string ToLocalizedName(this Instrument instrument)

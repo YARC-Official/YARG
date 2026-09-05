@@ -120,6 +120,15 @@
 			"Never": "Never",
 			"Always": "Always",
 			"IfChartContainsOpens": "If chart contains open notes"
+		},
+		"ControllerFamily": {
+			"FiveFretGuitar": "5-Fret Guitars",
+			"SixFretGuitar": "6-Fret Guitars",
+			"FourLaneDrumkit": "4-Lane Drumkits",
+			"FiveLaneDrumkit": "5-Lane Drumkits",
+			"ProKeyboard": "Pro Keyboards",
+			"MidiDevice": "MIDI Devices",
+			"Gamepad": "Gamepads"
 		}
     },
     "Menu": {

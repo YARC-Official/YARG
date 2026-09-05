@@ -39,6 +39,7 @@ namespace YARG.Menu.ProfileList
         }
 
         private static ProfileMenuTab _currentTab = ProfileMenuTab.Profiles;
+        public ControllerFamily CurrentBindingSetFilter = ControllerFamily.FiveFretGuitar;
 
         [SerializeField]
         private NavigationGroup _navigationGroup;

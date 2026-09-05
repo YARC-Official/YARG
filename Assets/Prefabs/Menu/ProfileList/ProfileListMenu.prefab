@@ -3055,6 +3055,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 91434419db88219429ea9350d1ff5e93, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  CurrentBindingSetFilter: 0
   _navigationGroup: {fileID: 398563533533948189}
   _leftPaneList: {fileID: 2542308448775651636}
   _bindingSetsFilter: {fileID: 2015764702387435712}
@@ -10635,6 +10636,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 227b2602dd1767e4aa471cc1216c8ca8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::YARG.Menu.ProfileList.BindingSetsFilter
+  _dropdown: {fileID: 1318221393709715131}
+  _profilesMenu: {fileID: 5881746760155002837}
 --- !u!1 &7565569176938643338
 GameObject:
   m_ObjectHideFlags: 0
@@ -15865,14 +15868,14 @@ PrefabInstance:
     - target: {fileID: 4622602834413321867, guid: 5f7c905be0699a94b8dc56fc6105c02d, type: 3}
       propertyPath: m_OnValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_Target
       value: 
-      objectReference: {fileID: 7898968641357467819}
+      objectReference: {fileID: 2015764702387435712}
     - target: {fileID: 4622602834413321867, guid: 5f7c905be0699a94b8dc56fc6105c02d, type: 3}
       propertyPath: m_OnValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
-      value: ChangeEngine
+      value: ChangeFilter
       objectReference: {fileID: 0}
     - target: {fileID: 4622602834413321867, guid: 5f7c905be0699a94b8dc56fc6105c02d, type: 3}
       propertyPath: m_OnValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
-      value: YARG.Menu.Profiles.ProfileSidebar, Assembly-CSharp
+      value: YARG.Menu.ProfileList.BindingSetsFilter, Assembly-CSharp
       objectReference: {fileID: 0}
     - target: {fileID: 7421987709479303017, guid: 5f7c905be0699a94b8dc56fc6105c02d, type: 3}
       propertyPath: m_text
@@ -15971,6 +15974,17 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 5f7c905be0699a94b8dc56fc6105c02d, type: 3}
+--- !u!114 &1318221393709715131 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 4622602834413321867, guid: 5f7c905be0699a94b8dc56fc6105c02d, type: 3}
+  m_PrefabInstance: {fileID: 5939556963582488624}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7b743370ac3e4ec2a1668f5455a8ef8a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!224 &4038656756087165539 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 7665614177142481491, guid: 5f7c905be0699a94b8dc56fc6105c02d, type: 3}
