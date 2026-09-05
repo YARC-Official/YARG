@@ -5,11 +5,22 @@ using YARG.Core;
 using YARG.Core.Engine.Drums;
 using YARG.Input;
 using YARG.Localization;
+using YARG.Settings;
 
 namespace YARG.Menu.ScoreScreen
 {
     public class DrumsScoreCard : ScoreCard<DrumsStats>
     {
+        /// <inheritdoc/>
+        protected override string CategoryLabel => "KICK";
+
+        /// <inheritdoc/>
+        protected override string OppositeCategoryLabel => "PAD";
+
+        /// <inheritdoc/>
+        protected override OffsetCalibrationFilter FilterMode =>
+            SettingsManager.Settings.UseKickOnlyOffsetForCalibration.Value;
+
         [Space]
         [SerializeField]
         private TextMeshProUGUI _overhits;

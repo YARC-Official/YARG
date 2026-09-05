@@ -682,7 +682,8 @@ namespace YARG.Gameplay
                     IsHighScore = player.Score > player.LastHighScore,
                     Player = player.Player,
                     Stats = player.BaseStats,
-                    IsReplay = player.Player.IsReplay
+                    IsReplay = player.Player.IsReplay,
+                    OffsetSampleFilterCategory = player.GetOffsetSampleFilterCategory()
                 }).ToArray(),
                 BandScore = BandScore,
                 BandStars = (int) BandStars,
@@ -691,11 +692,21 @@ namespace YARG.Gameplay
                 // .Where(player => !player.Player.Profile.IsBot)
                 // to:
                 // .Where(player => !(player.Player.Profile.IsBot || player.Player.IsRemote))
-                MeanAverageOffset = _players
+                //
+                // Both fields below are weighted by note count: every hit note's offset is pooled
+                // into one flat list and reduced to a single value, rather than reducing each
+                // player's own samples first. Otherwise a player who hit 30 notes would count
+                // exactly as much as one who hit 3000, which skews the band number toward whoever
+                // played the least. That single value is the mean, unless
+                // UseMedianForEndOfSongCalibration is set to true, in
+                // which case it's the median, see GetWeightedOffset.
+                MeanAverageOffset = GetWeightedOffset(_players
                     .Where(player => !player.Player.Profile.IsBot)
-                    .Select(player => player.BaseStats.GetAverageOffset())
-                    .DefaultIfEmpty(0)
-                    .Average(),
+                    .SelectMany(player => player.BaseStats.GetOffsetSamples())
+                    .ToList()) ?? 0,
+
+                MeanAverageOffsetFilterCategoryOnly = GetWeightedOffset(GetWeightedFilterCategorySamples(_players
+                    .Where(player => !player.Player.Profile.IsBot))),
 
                 ReplayInfo = replayInfo,
             };
@@ -705,6 +716,76 @@ namespace YARG.Gameplay
             // Go to the score screen
             GlobalVariables.Instance.LoadScene(SceneIndex.Score);
             return true;
+        }
+
+        /// <summary>
+        /// Band-wide pooled note-hit offset samples, counting only each player's filter-category
+        /// notes for instruments that distinguish one (strums for guitar, kicks for drums; read
+        /// from <see cref="BasePlayer.GetOffsetSampleFilterCategory"/> -- see that method for
+        /// details). Players on an instrument with no such distinction (keys, vocals, etc.) still
+        /// contribute their full set of offset samples, so they're never silently dropped from the
+        /// band average.
+        /// </summary>
+        private static List<double> GetWeightedFilterCategorySamples(IEnumerable<BasePlayer> players)
+        {
+            var pooledSamples = new List<double>();
+            foreach (var player in players)
+            {
+                var filterCategory = player.GetOffsetSampleFilterCategory();
+                var offsetSamples = player.BaseStats.GetOffsetSamples();
+                if (filterCategory == null || filterCategory.Count != offsetSamples.Count)
+                {
+                    // No filter-category distinction (or a data mismatch) -- fall back to this
+                    // player's full sample set instead of excluding them from the band average.
+                    pooledSamples.AddRange(offsetSamples);
+                    continue;
+                }
+
+                int matchingCount = 0;
+                for (int i = 0; i < offsetSamples.Count; i++)
+                {
+                    if (filterCategory[i])
+                    {
+                        pooledSamples.Add(offsetSamples[i]);
+                        matchingCount++;
+                    }
+                }
+
+                if (matchingCount == 0)
+                {
+                    // This player has the filter-category distinction but hit zero matching notes
+                    // this song (e.g. an all-HOPO run, or a kickless song) -- fall back to their
+                    // full sample set instead of contributing nothing, same as instruments with no
+                    // distinction at all.
+                    pooledSamples.AddRange(offsetSamples);
+                }
+            }
+
+            return pooledSamples;
+        }
+
+        /// <summary>
+        /// Reduces a pooled sample list to a single band-wide offset value: the mean, unless
+        /// <see cref="SettingsManager.Settings.UseMedianForEndOfSongCalibration"/> is set to true,
+        /// in which case the median. Null for an empty sample list.
+        /// </summary>
+        private static double? GetWeightedOffset(List<double> samples)
+        {
+            if (samples.Count == 0)
+            {
+                return null;
+            }
+
+            bool useMedian = SettingsManager.Settings.UseMedianForEndOfSongCalibration.Value;
+            return useMedian ? CalculateMedian(samples) : samples.Average();
+        }
+
+        private static double CalculateMedian(List<double> values)
+        {
+            var sorted = values.OrderBy(x => x).ToList();
+            int count = sorted.Count;
+            int middle = count / 2;
+            return count % 2 == 0 ? (sorted[middle - 1] + sorted[middle]) / 2.0 : sorted[middle];
         }
 
         private void RecordScores(ReplayInfo replayInfo)

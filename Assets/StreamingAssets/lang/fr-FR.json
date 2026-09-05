@@ -935,7 +935,7 @@
             "Cache": "Cache",
             "Venues": "Scènes/Arrière-plans",
             "Calibration": "Calibration",
-            "OffsetCalibration": "Calibration du décalage moyen",
+            "OffsetCalibration": "Calibration automatique et de fin de musique",
             "Input": "Saisie",
             "PresetSettings": "Paramètre du preset",
             "Debug": "Débug",
@@ -1510,8 +1510,30 @@
                 }
             },
             "UseSongOffsetCalibration": {
-                "Name": "Utiliser le décalage moyen de la chanson",
-                "Description": "Utilise la valeur enregistrée pour le décalage moyen d'une chanson pour ajuster le délai de l'audio."
+                "Name": "Utiliser le décalage de la chanson",
+                "Description": "Utilise la valeur enregistrée pour le décalage d'une chanson pour ajuster le délai de l'audio."
+            },
+            "UseStrumOnlyOffsetForCalibration": {
+                "Name": "Filtre de grattages pour la calibration",
+                "Description": "Lors de l'enregistrement du décalage moyen ou lors de la calibration automatique durant une chanson, restreint les notes de guitare/basse comptées dans la moyenne.",
+                "Dropdown": {
+                    "Everything": "Toutes les notes",
+                    "OnlySelected": "Grattages seulement",
+                    "ExcludeSelected": "Aucun grattage"
+                }
+            },
+            "UseKickOnlyOffsetForCalibration": {
+                "Name": "Filtre de pédale pour la calibration",
+                "Description": "Lors de l'enregistrement du décalage moyen ou lors de la calibration automatique durant une chanson, restreint les notes de batterie comptées dans la moyenne.",
+                "Dropdown": {
+                    "Everything": "Toutes les notes",
+                    "OnlySelected": "Pédale seulement",
+                    "ExcludeSelected": "Aucune pédale"
+                }
+            },
+            "UseMedianForEndOfSongCalibration": {
+                "Name": "Utiliser la médiane pour la calibration de fin de musique",
+                "Description": "Utiliser la médiane ou la moyenne lors de l'enregistrement du décalage moyen. La médiane résiste mieux à une seule note mal synchronisée."
             },
             "AutoCalibrateVideo": {
                 "Name": "Calibrage automatique de la vidéo",

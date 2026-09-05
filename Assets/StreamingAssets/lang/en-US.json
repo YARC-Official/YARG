@@ -1072,7 +1072,7 @@
             "Cache": "Cache",
             "Venues": "Venues/Backgrounds",
             "Calibration": "Calibration",
-            "OffsetCalibration": "Offset Calibration",
+            "OffsetCalibration": "End of Song and Auto Calibration",
             "Input": "Input",
             "PresetSettings": "Preset Settings",
             "Debug": "Debug",
@@ -1733,7 +1733,7 @@
                 "Description": "This song's specific offset in milliseconds, on top of audio/video calibration. Saved per-song."
             },
             "ShowMeanSongOffsetCalibration": {
-                "Name": "Show Average Song Offset",
+                "Name": "End of Song Calibration",
                 "Description": "Shows an option on the advanced stats screen to save average song offset.",
                 "Dropdown": {
                     "Off": "Off",
@@ -1742,8 +1742,30 @@
                 }
             },
             "UseSongOffsetCalibration": {
-                "Name": "Use Average Song Offset",
-                "Description": "Use the saved song average offset to adjust song audio delay."
+                "Name": "Use Saved Song Offset",
+                "Description": "Use the saved song offset to adjust song audio delay."
+            },
+            "UseStrumOnlyOffsetForCalibration": {
+                "Name": "Strum Filter for Calibration",
+                "Description": "When saving average song offset or when auto calibrating during a song, restrict which guitar/bass notes count toward the average.",
+                "Dropdown": {
+                    "Everything": "Everything",
+                    "OnlySelected": "Only Strums",
+                    "ExcludeSelected": "No Strums"
+                }
+            },
+            "UseKickOnlyOffsetForCalibration": {
+                "Name": "Kick Filter for Calibration",
+                "Description": "When saving average song offset or when auto calibrating during a song, restrict which drum notes count toward the average.",
+                "Dropdown": {
+                    "Everything": "Everything",
+                    "OnlySelected": "Only Kicks",
+                    "ExcludeSelected": "No Kicks"
+                }
+            },
+            "UseMedianForEndOfSongCalibration": {
+                "Name": "Use Median for End of Song Calibration",
+                "Description": "Use the median or the average when saving average song offset. The median resists being thrown off by a single mistimed note."
             },
             "VocalMonitoring": {
                 "Name": "Vocal Monitoring Volume",
