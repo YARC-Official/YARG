@@ -102,6 +102,7 @@ namespace YARG.Menu.MusicLibrary
                 Difficulty = _playerScoreRecord.Difficulty,
                 Percent = _playerScoreRecord.GetPercent(),
                 Instrument = _playerScoreRecord.Instrument,
+                EnginePresetId = _playerScoreRecord.EnginePresetId,
                 IsFc = _playerScoreRecord.IsFc
             };
         }
