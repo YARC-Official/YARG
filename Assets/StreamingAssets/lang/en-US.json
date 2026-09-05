@@ -127,8 +127,9 @@
 			"FourLaneDrumkit": "4-Lane Drumkits",
 			"FiveLaneDrumkit": "5-Lane Drumkits",
 			"ProKeyboard": "Pro Keyboards",
+			"ProGuitar": "Pro Guitars",
 			"MidiDevice": "MIDI Devices",
-			"Gamepad": "Gamepads"
+			"Generic": "Generic Input Devices"
 		}
     },
     "Menu": {
