@@ -811,10 +811,12 @@ namespace YARG.Menu.DifficultySelect
                 }
 
                 // Loop through all of the players up to the current one
-                // to see what has already been selected.
+                // to see what has already been selected. Skip sitting-out players —
+                // their CurrentInstrument shouldn't lock later players into a vocals mode.
                 for (int i = 0; i < _playerIndex; i++)
                 {
                     var player = PlayerContainer.Players[i];
+                    if (player.SittingOut) continue;
                     var playerInstrument = player.Profile.CurrentInstrument;
                     if (playerInstrument is Instrument.Vocals or Instrument.Harmony)
                     {
