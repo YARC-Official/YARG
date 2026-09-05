@@ -238,6 +238,16 @@ namespace YARG.Playback
         private double _previousInputTime    = double.MinValue;
         private double _inputSystemTimeFloor = double.NegativeInfinity;
 
+        // Smoothed visual clock. The input system's event timestamps (which drive InputTime)
+        // can advance in bursts due to event coalescing, which makes directly-derived VisualTime
+        // lurch between frames even when frames present at a steady rate. VisualTime instead
+        // advances by frame time and follows the input clock with a bounded correction.
+        private double _smoothedVisualTime = double.NaN;
+
+        private const double VISUAL_SMOOTH_SNAP = 0.1;    // s; snap to target on seeks/rewinds
+        private const double VISUAL_SMOOTH_GAIN = 0.25;   // fraction of remaining error per frame
+        private const double VISUAL_SMOOTH_MAX_CORRECTION = 0.001; // s per frame
+
         #endregion
 
         /// <summary>
@@ -440,7 +450,7 @@ namespace YARG.Playback
             double inputSystemTime = Math.Max(InputManager.InputUpdateTime, _inputSystemTimeFloor);
             InputTime = GetInputTime(inputSystemTime);
             SongTime = InputTime + (AudioCalibration * SongSpeed);
-            VisualTime = InputTime + (VideoCalibration * SongSpeed);
+            VisualTime = SmoothVisualTime(InputTime + (VideoCalibration * SongSpeed));
 
             // Project the frame's input timestamp with the same high-resolution clock used by the
             // mixer control timeline. This avoids measuring frame age as audio drift.
@@ -449,6 +459,30 @@ namespace YARG.Playback
             double controlTargetTime = GetAudioPlaybackTime(syncInputTime);
             double heardTargetTime = controlTargetTime + (AudioCalibration * SongSpeed);
             _audioSynchronizer.Synchronize(controlTargetTime, heardTargetTime, SongSpeed, syncSystemTime);
+        }
+
+        /// <summary>
+        /// Advances the visual clock smoothly. The input-driven target can jump when input
+        /// event timestamps coalesce, so advance by frame time and correct toward the target
+        /// with a bounded, damped adjustment. Snaps on large discontinuities (seeks, rewinds).
+        /// </summary>
+        private double SmoothVisualTime(double targetVisualTime)
+        {
+            if (double.IsNaN(_smoothedVisualTime) ||
+                Math.Abs(targetVisualTime - _smoothedVisualTime) > VISUAL_SMOOTH_SNAP)
+            {
+                _smoothedVisualTime = targetVisualTime;
+                return targetVisualTime;
+            }
+
+            _smoothedVisualTime += Time.deltaTime * SongSpeed;
+
+            double correction = Math.Clamp(
+                (targetVisualTime - _smoothedVisualTime) * VISUAL_SMOOTH_GAIN,
+                -VISUAL_SMOOTH_MAX_CORRECTION, VISUAL_SMOOTH_MAX_CORRECTION);
+            _smoothedVisualTime += correction;
+
+            return _smoothedVisualTime;
         }
 
         /// <summary>
@@ -475,6 +509,7 @@ namespace YARG.Playback
             InputTime = GetInputTime(inputSystemTime);
             SongTime = InputTime + (AudioCalibration * SongSpeed);
             VisualTime = InputTime + (VideoCalibration * SongSpeed);
+            _smoothedVisualTime = VisualTime;
 
             YargLogger.LogFormatDebug(
                 "Set input time base.\n" +
