@@ -550,6 +550,7 @@
         },
         "ScoreScreen" : {
             "BandScoreNotSaved" : "Score not saved",
+            "PreviousBest" : "Previous Best",
             "InconsistentReplay": "Inconsistent Replay",
             "RestartSong" : "Restart Song",
             "ShowAdvanced": "Show Advanced",

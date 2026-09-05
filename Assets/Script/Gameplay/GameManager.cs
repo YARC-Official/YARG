@@ -698,6 +698,7 @@ namespace YARG.Gameplay
                     .Average(),
 
                 ReplayInfo = replayInfo,
+                PreviousBest = GetPreviousBest(),
             };
 
             RecordScores(replayInfo);
@@ -705,6 +706,28 @@ namespace YARG.Gameplay
             // Go to the score screen
             GlobalVariables.Instance.LoadScene(SceneIndex.Score);
             return true;
+        }
+
+        /// <summary>
+        /// The record that was standing before this run, for the score screen's header.
+        /// Must be read before <see cref="RecordScores"/> saves this run.
+        /// </summary>
+        private int? GetPreviousBest()
+        {
+            var humans = _players.Where(p => !p.Player.Profile.IsBot).ToList();
+
+            if (humans.Count == 1)
+            {
+                // The same setting-driven record the in-song high score popup compares against
+                return humans[0].LastHighScore;
+            }
+
+            if (humans.Count > 1)
+            {
+                return ScoreContainer.GetBandHighScore(Song.Hash)?.BandScore;
+            }
+
+            return null;
         }
 
         private void RecordScores(ReplayInfo replayInfo)
