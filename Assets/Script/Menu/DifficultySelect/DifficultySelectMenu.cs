@@ -65,6 +65,10 @@ namespace YARG.Menu.DifficultySelect
 
         [Space]
         [SerializeField]
+        private HighScoreDisplay _highScoreDisplay;
+
+        [Space]
+        [SerializeField]
         private DifficultyItem _difficultyItemPrefab;
         [SerializeField]
         private DifficultyItem _difficultyGreenPrefab;
@@ -172,6 +176,23 @@ namespace YARG.Menu.DifficultySelect
             SelectionOrigin selectionOrigin)
         {
             UpdateScrollbarForSelection();
+
+            // While the instrument or difficulty submenu is open, the high score display
+            // follows the highlighted option so it can be compared before confirming
+            if (_menuState == State.Instrument &&
+                _navGroup.SelectedIndex is { } instrumentIndex &&
+                instrumentIndex >= 0 && instrumentIndex < _possibleInstruments.Count)
+            {
+                _highScoreDisplay.Show(GlobalVariables.State.CurrentSong, CurrentPlayer,
+                    _possibleInstruments[instrumentIndex], CurrentPlayer.Profile.CurrentDifficulty);
+            }
+            else if (_menuState == State.Difficulty &&
+                _navGroup.SelectedIndex is { } difficultyIndex &&
+                difficultyIndex >= 0 && difficultyIndex < _possibleDifficulties.Count)
+            {
+                _highScoreDisplay.Show(GlobalVariables.State.CurrentSong, CurrentPlayer,
+                    CurrentPlayer.Profile.CurrentInstrument, _possibleDifficulties[difficultyIndex]);
+            }
         }
 
         private void UpdateScrollbarForSelection()
@@ -220,6 +241,9 @@ namespace YARG.Menu.DifficultySelect
             _navGroup.ClearNavigatables();
             _container.DestroyChildren();
             StatsManager.Instance.UpdateActivePlayers();
+
+            _highScoreDisplay.Show(GlobalVariables.State.CurrentSong, CurrentPlayer,
+                CurrentPlayer.Profile.CurrentInstrument, CurrentPlayer.Profile.CurrentDifficulty);
 
             // Create the menu
             switch (_menuState)
