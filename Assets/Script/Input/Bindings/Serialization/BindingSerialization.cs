@@ -34,7 +34,7 @@ namespace YARG.Input.Serialization
     public class SerializedBindings
     {
         public Dictionary<Guid, SerializedProfileDeviceInfo> Profiles = new();
-        public Dictionary<Guid, SerializedBindingCollection> BindingCollections = new();
+        public Dictionary<Guid, SerializedReusableBindingSet> ReusableBindingSets = new();
     }
 
     public class SerializedProfileDeviceInfo
@@ -54,24 +54,23 @@ namespace YARG.Input.Serialization
         public Dictionary<string, Guid> MappingsByBaseLayout = new();
     }
 
-    public class SerializedBindingCollection
+    public class SerializedReusableBindingSet
     {
-        public SerializedBindingCollection(string baseLayout)
+        public SerializedReusableBindingSet(string baseLayout)
         {
             BaseLayout = baseLayout;
         }
 
         public Guid Guid;
-        public GameMode GameMode;
+        public GameMode? GameMode;
         public string BaseLayout;
-        public bool Reusable;
 
         // Key is binding name, like "FiveFret.Green" or "FourDrums.RedPad"
         // These names come from BindingCollection.Templates.cs; they are YARG's, not PlasticBand's
-        public Dictionary<string, SerializedControlBinding> Bindings = new();
+        public Dictionary<string, SerializedReusableControlBinding> Bindings = new();
     }
 
-    public class SerializedControlBinding
+    public class SerializedReusableControlBinding
     {
         public Dictionary<string, string> Parameters = new();
         public List<SerializedInputControl> Controls = new();
@@ -105,12 +104,16 @@ namespace YARG.Input.Serialization
 
     public class SerializedInputControl
     {
-        public string ControlPath;
+        [Obsolete]
+        public string ControlPath = string.Empty;
+
+        public string ControlName;
+
         public Dictionary<string, string> Parameters = new();
 
-        public SerializedInputControl(string path)
+        public SerializedInputControl(string controlName)
         {
-            ControlPath = path;
+            ControlName = controlName;
         }
     }
 

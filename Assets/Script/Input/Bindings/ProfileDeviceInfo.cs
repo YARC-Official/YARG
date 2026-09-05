@@ -13,6 +13,8 @@ using YARG.Input.Serialization;
 using YARG.Player;
 using YARG.Input.Bindings;
 using UnityEngine.InputSystem.Utilities;
+using YARG.Menu.ProfileList;
+using YARG.Helpers;
 
 namespace YARG.Input
 {
@@ -37,15 +39,15 @@ namespace YARG.Input
 
         private readonly List<SerializedInputDevice> _unresolvedControllers = new();
         private readonly List<InputDevice> _controllers = new();
-
-        private readonly Dictionary<(GameMode mode, string baseLayout), BindingCollection> _bindsByContext = new();
-        public readonly Dictionary<string, BindingCollection> MenuBindingsByBaseLayout = new();
+        private readonly Dictionary<(InputDevice, GameMode), BindingCollection> _activeGameplayBindings = new();
+        private readonly Dictionary<InputDevice, BindingCollection> _activeMenuBindings = new();
+        private readonly Dictionary<(GameMode mode, ControllerFamily controllerFamily), ReusableBindingSet> _preferredBindsByContext = new();
+        public readonly Dictionary<ControllerFamily, ReusableBindingSet> PreferredMenuBindingsByBaseLayout = new();
 
         public bool HasDeviceAssigned => _controllers.Count > 0;
         public bool HasMicrophoneAssigned => _microphones.Count == 0;
         public bool HasNoDevices => !HasDeviceAssigned && !HasMicrophoneAssigned;
 
-        public BindingCollection this[(GameMode, string) tupleKey] => _bindsByContext[tupleKey];
         public event Action<InputDevice> ControllerAdded;
         public event Action<InputDevice> ControllerRemoved;
 
@@ -53,24 +55,24 @@ namespace YARG.Input
         {
             add
             {
-                foreach (var binds in _bindsByContext.Values)
+                foreach (var binds in _activeGameplayBindings.Values)
                 {
                     binds.BindingsChanged += value;
                 }
 
-                foreach (var layoutMenuBinds in MenuBindingsByBaseLayout.Values)
+                foreach (var layoutMenuBinds in _activeMenuBindings.Values)
                 {
                     layoutMenuBinds.BindingsChanged += value;
                 }
             }
             remove
             {
-                foreach (var binds in _bindsByContext.Values)
+                foreach (var binds in _activeGameplayBindings.Values)
                 {
                     binds.BindingsChanged -= value;
                 }
 
-                foreach (var layoutMenuBinds in MenuBindingsByBaseLayout.Values)
+                foreach (var layoutMenuBinds in _activeMenuBindings.Values)
                 {
                     layoutMenuBinds.BindingsChanged -= value;
                 }
@@ -81,14 +83,14 @@ namespace YARG.Input
         {
             add
             {
-                foreach (var layoutMenuBinds in MenuBindingsByBaseLayout.Values)
+                foreach (var layoutMenuBinds in _activeMenuBindings.Values)
                 {
                     layoutMenuBinds.InputProcessed += value;
                 }
             }    
             remove
             {
-                foreach (var layoutMenuBinds in MenuBindingsByBaseLayout.Values)
+                foreach (var layoutMenuBinds in _activeMenuBindings.Values)
                 {
                     layoutMenuBinds.InputProcessed -= value;
                 }
@@ -145,11 +147,13 @@ namespace YARG.Input
                 {
                     foreach (var (baseLayout, bindings) in modeMappings.MappingsByBaseLayout)
                     {
+                        var controllerFamily = LayoutHelper.LayoutStringToControllerFamily(baseLayout);
+
                         if (modeMappings.MappingsByBaseLayout.TryGetValue(baseLayout, out var bindingSetGuid))
                         {
                             if (BindingsContainer.TryGetBindingCollectionById(bindingSetGuid, out var modeMapping))
                             {
-                                _bindsByContext[(mode, baseLayout)] = modeMapping;
+                                _preferredBindsByContext[(mode, controllerFamily)] = modeMapping;
                             }
                             else
                             {
@@ -173,9 +177,11 @@ namespace YARG.Input
             {
                 foreach (var (baseLayout, bindingSetGuid) in profileBindings.MenuMappings)
                 {
+                    var controllerFamily = LayoutHelper.LayoutStringToControllerFamily(baseLayout);
+
                     if (BindingsContainer.TryGetBindingCollectionById(bindingSetGuid, out var menuMapping))
                     {
-                        MenuBindingsByBaseLayout[baseLayout] = menuMapping;
+                        PreferredMenuBindingsByBaseLayout[controllerFamily] = menuMapping;
                     }
                     else
                     {
@@ -211,7 +217,7 @@ namespace YARG.Input
                 serialized.Microphones.Add(mic);
             }
 
-            foreach (var ((mode, baseLayout), bindingSet) in _bindsByContext)
+            foreach (var ((mode, baseLayout), bindingSet) in _preferredBindsByContext)
             {
                 var serializedBinds = bindingSet.Serialize();
                 if (serializedBinds is null)
@@ -225,7 +231,7 @@ namespace YARG.Input
                 serialized.ModeMappings[mode].MappingsByBaseLayout[baseLayout] = bindingSet.Guid;
             }
 
-            foreach (var (baseLayout, bindingSet) in MenuBindingsByBaseLayout)
+            foreach (var (baseLayout, bindingSet) in PreferredMenuBindingsByBaseLayout)
             {
                 var serializedMenuBinds = bindingSet.Serialize();
 
@@ -284,12 +290,12 @@ namespace YARG.Input
 
         public void EnableInputs()
         {
-            foreach (var bindings in _bindsByContext.Values)
+            foreach (var bindings in _preferredBindsByContext.Values)
             {
                 bindings.EnableInputs();
             }
 
-            foreach (var bindings in MenuBindingsByBaseLayout.Values)
+            foreach (var bindings in PreferredMenuBindingsByBaseLayout.Values)
             {
                 bindings.EnableInputs();
             }
@@ -297,12 +303,12 @@ namespace YARG.Input
 
         public void DisableInputs()
         {
-            foreach (var bindings in _bindsByContext.Values)
+            foreach (var bindings in _preferredBindsByContext.Values)
             {
                 bindings.DisableInputs();
             }
 
-            foreach (var bindings in MenuBindingsByBaseLayout.Values)
+            foreach (var bindings in PreferredMenuBindingsByBaseLayout.Values)
             {
                 bindings.DisableInputs();
             }
@@ -312,7 +318,7 @@ namespace YARG.Input
         {
             foreach (var controller in Controllers)
             {
-                _bindsByContext[(mode, controller.layout)].InputProcessed += onInputProcessed;
+                _preferredBindsByContext[(mode, controller.layout)].InputProcessed += onInputProcessed;
             }
 
         }
@@ -321,7 +327,7 @@ namespace YARG.Input
         {
             foreach (var controller in Controllers)
             {
-                _bindsByContext[(mode, controller.layout)].InputProcessed -= onInputProcessed;
+                _preferredBindsByContext[(mode, controller.layout)].InputProcessed -= onInputProcessed;
             }
         }
 
@@ -406,12 +412,12 @@ namespace YARG.Input
 
         public void ClearAllBindings()
         {
-            foreach (var bindings in _bindsByContext.Values)
+            foreach (var bindings in _preferredBindsByContext.Values)
             {
                 bindings.ClearAllBindings();
             }
 
-            foreach (var bindings in MenuBindingsByBaseLayout.Values)
+            foreach (var bindings in PreferredMenuBindingsByBaseLayout.Values)
             {
                 bindings.ClearAllBindings();
             }
@@ -424,12 +430,12 @@ namespace YARG.Input
                 return false;
             }
 
-            foreach (var bindings in _bindsByContext.Values)
+            foreach (var bindings in _preferredBindsByContext.Values)
             {
                 bindings.SetDefaultBindings(controller);
             }
 
-            foreach (var bindings in MenuBindingsByBaseLayout.Values)
+            foreach (var bindings in PreferredMenuBindingsByBaseLayout.Values)
             {
                 bindings.SetDefaultBindings(controller);
             }
@@ -444,12 +450,12 @@ namespace YARG.Input
                 return false;
             }
 
-            foreach (var bindings in _bindsByContext.Values)
+            foreach (var bindings in _preferredBindsByContext.Values)
             {
                 bindings.SetDefaultBindings(gamepad, mode);
             }
 
-            foreach (var bindings in MenuBindingsByBaseLayout.Values)
+            foreach (var bindings in PreferredMenuBindingsByBaseLayout.Values)
             {
                 bindings.SetDefaultBindings(gamepad, mode);
             }
@@ -491,12 +497,12 @@ namespace YARG.Input
 
         private void NotifyControllerAdded(InputDevice controller)
         {
-            foreach (var bindings in _bindsByContext.Values)
+            foreach (var bindings in _preferredBindsByContext.Values)
             {
                 bindings.OnDeviceAdded(controller);
             }
 
-            foreach (var bindings in MenuBindingsByBaseLayout.Values)
+            foreach (var bindings in PreferredMenuBindingsByBaseLayout.Values)
             {
                 bindings.OnDeviceAdded(controller);
             }
@@ -506,12 +512,12 @@ namespace YARG.Input
 
         private void NotifyControllerRemoved(InputDevice controller)
         {
-            foreach (var bindings in _bindsByContext.Values)
+            foreach (var bindings in _preferredBindsByContext.Values)
             {
                 bindings.OnDeviceRemoved(controller);
             }
 
-            foreach (var bindings in MenuBindingsByBaseLayout.Values)
+            foreach (var bindings in PreferredMenuBindingsByBaseLayout.Values)
             {
                 bindings.OnDeviceRemoved(controller);
             }
@@ -521,12 +527,12 @@ namespace YARG.Input
 
         public void UpdateBindingsForFrame(double updateTime)
         {
-            foreach (var bindings in _bindsByContext.Values)
+            foreach (var bindings in _preferredBindsByContext.Values)
             {
                 bindings.UpdateBindingsForFrame(updateTime);
             }
 
-            foreach (var bindings in MenuBindingsByBaseLayout.Values)
+            foreach (var bindings in PreferredMenuBindingsByBaseLayout.Values)
             {
                 bindings.UpdateBindingsForFrame(updateTime);
             }

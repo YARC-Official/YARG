@@ -86,8 +86,8 @@ namespace YARG.Input
         }
 
 #nullable enable
-        public abstract SerializedControlBinding? Serialize();
-        public abstract void Deserialize(SerializedControlBinding serialized);
+        public abstract SerializedReusableControlBinding? Serialize();
+        public abstract void Deserialize(SerializedReusableControlBinding serialized);
 
 #nullable disable
 
@@ -238,9 +238,9 @@ namespace YARG.Input
         }
 
 #nullable enable
-        public override SerializedControlBinding? Serialize()
+        public override SerializedReusableControlBinding? Serialize()
         {
-            var serialized = new SerializedControlBinding()
+            var serialized = new SerializedReusableControlBinding()
             {
                 Parameters = SerializeParameters()
             };
@@ -260,7 +260,7 @@ namespace YARG.Input
             return serialized;
         }
 
-        public override void Deserialize(SerializedControlBinding? serialized)
+        public override void Deserialize(SerializedReusableControlBinding? serialized)
         {
             if (serialized is null || serialized.Controls is null) return;
 

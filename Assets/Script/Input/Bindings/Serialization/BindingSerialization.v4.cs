@@ -32,7 +32,7 @@ namespace YARG.Input.Serialization
                 Profiles[guid] = new SerializedProfileDeviceInfoV4(profile);
             }
 
-            foreach (var (guid, bind) in serialized.BindingCollections)
+            foreach (var (guid, bind) in serialized.ReusableBindingSets)
             {
                 BindingCollections[guid] = new SerializedBindingCollectionV4(bind);
             }
@@ -44,7 +44,7 @@ namespace YARG.Input.Serialization
 
             foreach (var (guid, bind) in BindingCollections)
             {
-                deserialized.BindingCollections[guid] = bind.Deserialize();
+                deserialized.ReusableBindingSets[guid] = bind.Deserialize();
             }
 
             foreach (var (guid, profile) in Profiles)
@@ -149,15 +149,13 @@ namespace YARG.Input.Serialization
             public Dictionary<string, SerializedControlBindingV4> Bindings = new();
             public GameMode GameMode;
             public string BaseLayout;
-            public bool Reusable;
 
             [JsonConstructor]
             public SerializedBindingCollectionV4() { }
 
-            public SerializedBindingCollectionV4(SerializedBindingCollection serialized)
+            public SerializedBindingCollectionV4(SerializedReusableBindingSet serialized)
             {
-                GameMode = serialized.GameMode;
-                Reusable = serialized.Reusable;
+                GameMode = serialized.GameMode.Value;
 
                 foreach (var (id, serializedBindings) in serialized.Bindings)
                 {
@@ -165,11 +163,10 @@ namespace YARG.Input.Serialization
                 }
             }
 
-            public SerializedBindingCollection Deserialize()
+            public SerializedReusableBindingSet Deserialize()
             {
-                var converted = new SerializedBindingCollection(BaseLayout) {
-                    GameMode = GameMode,
-                    Reusable = Reusable
+                var converted = new SerializedReusableBindingSet(BaseLayout) {
+                    GameMode = GameMode
                 };
 
                 foreach (var (id, serializedBinds) in Bindings)
@@ -189,7 +186,7 @@ namespace YARG.Input.Serialization
             [JsonConstructor]
             public SerializedControlBindingV4() { }
 
-            public SerializedControlBindingV4(SerializedControlBinding serialized)
+            public SerializedControlBindingV4(SerializedReusableControlBinding serialized)
             {
                 foreach (var (name, value) in serialized.Parameters)
                 {
@@ -199,9 +196,9 @@ namespace YARG.Input.Serialization
                 Controls.AddRange(serialized.Controls.Select((bind) => new SerializedInputControlV4(bind)));
             }
 
-            public SerializedControlBinding Deserialize()
+            public SerializedReusableControlBinding Deserialize()
             {
-                var control = new SerializedControlBinding();
+                var control = new SerializedReusableControlBinding();
 
                 foreach (var (name, value) in Parameters)
                 {
