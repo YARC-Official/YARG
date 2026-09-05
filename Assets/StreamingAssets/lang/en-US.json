@@ -587,7 +587,11 @@
           "LeftyFlip": {
             "Title": "Lefty Flip",
             "Text": "Reorient guitar and drum charts for left-handed gameplay."
-          }
+          },
+		  "BindingSetFilter": {
+			  "Title": "Binding Sets Filter",
+			  "Text": "Pick a type of controller for which to show binding sets. Most controller types are associated with a specific input mode (for example, 5-fret guitar controllers are for 5-Fret Guitar mode) but generic controller types like gamepads and MIDI devices can be used for various modes."
+		  }
         }
       },
         "ScoreScreen" : {

@@ -47,6 +47,8 @@ namespace YARG.Menu.ProfileList
         [SerializeField]
         private Transform _leftPaneList;
         [SerializeField]
+        private BindingSetsFilter _bindingSetsFilter;
+        [SerializeField]
         private ProfileCenterPane _profileCenterPane;
         [SerializeField]
         private GameObject _bindingCenterPane;
@@ -345,6 +347,7 @@ namespace YARG.Menu.ProfileList
         {
             _profileCenterPane.gameObject.SetActive(tabId == PROFILES_TAB);
             _bindingCenterPane.SetActive(tabId == BINDINGS_TAB);
+            _bindingSetsFilter.gameObject.SetActive(tabId == BINDINGS_TAB);
 
             _currentTab = tabId switch
             {
