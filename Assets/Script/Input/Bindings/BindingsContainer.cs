@@ -23,8 +23,6 @@ namespace YARG.Input.Bindings
 
         private static readonly Dictionary<Guid, ProfileDeviceInfo> _profileBindings = new();
 
-        private static readonly Dictionary<string, BindingCollection> _controllerDefaultBindings = new();
-
         private static readonly Dictionary<Guid, BindingCollection> _allBindingCollectionsByGuid = new();
 
         private static readonly Dictionary<ControllerFamily, List<BindingCollection>> _bindingCollectionsByControllerFamily = new();
@@ -60,24 +58,11 @@ namespace YARG.Input.Bindings
             return false;
         }
 
-        public static bool TryGetDefaultBindingCollectionForControllerHash(string hash, out BindingCollection controllerDefaultBindings)
-        {
-            if (_controllerDefaultBindings.ContainsKey(hash))
-            {
-                controllerDefaultBindings = _controllerDefaultBindings[hash];
-                return true;
-            }
-
-            controllerDefaultBindings = null;
-            return false;
-        }
-
         public static void LoadBindings()
         {
             bool usedBackup = false;
 
             _profileBindings.Clear();
-            _controllerDefaultBindings.Clear();
 
             string bindingsPath = BindingsPath;
             if (!File.Exists(bindingsPath))
