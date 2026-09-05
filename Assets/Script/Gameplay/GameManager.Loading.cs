@@ -482,7 +482,12 @@ namespace YARG.Gameplay
                         player.RefreshPresets();
                     }
 
-                    var lastHighScore = ScoreContainer.GetHighScore(Song.Hash, player.Profile.Id, player.Profile.CurrentInstrument, false)?.Score;
+                    var lastHighScore = ScoreContainer.GetHighScore(
+                        Song.Hash,
+                        player.Profile.Id,
+                        player.Profile.CurrentInstrument,
+                        allowCacheUpdate: false,
+                        preferredEnginePresetId: player.Profile.EnginePreset)?.Score;
                     YargLogger.LogFormatInfo("Current high score for player {0} on {1}: {2}",
                         player.Profile.Name, player.Profile.CurrentInstrument, lastHighScore ?? 0);
 

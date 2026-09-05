@@ -117,6 +117,7 @@ namespace YARG.Song
         private static Guid _starsCacheProfileId = Guid.Empty;
         private static Instrument _starsCacheInstrument = Instrument.Band;
         private static Difficulty _starsCacheDifficulty = Difficulty.Easy;
+        private static Guid _starsCacheEnginePreset = Guid.Empty;
         private static HighScoreHistoryMode _starsCacheHighScoreHistoryMode;
         private static bool _starsCacheUsesBandScores;
         private static bool _starsCacheValid;
@@ -422,6 +423,7 @@ namespace YARG.Song
 
         public static void InvalidateStarsCache()
         {
+            _starsCacheEnginePreset = Guid.Empty;
             _starsCacheValid = false;
             _sortStars = Array.Empty<SongCategory>();
             _runtimeStars.Clear();
@@ -570,6 +572,7 @@ namespace YARG.Song
                 _starsCacheProfileId == profile.Id &&
                 _starsCacheInstrument == cacheInstrument &&
                 _starsCacheDifficulty == profile.CurrentDifficulty &&
+                _starsCacheEnginePreset == profile.EnginePreset &&
                 _starsCacheHighScoreHistoryMode == SettingsManager.Settings.HighScoreHistory.Value &&
                 _starsCacheUsesBandScores == useBandScores)
             {
@@ -642,6 +645,7 @@ namespace YARG.Song
             _starsCacheProfileId = profile.Id;
             _starsCacheInstrument = cacheInstrument;
             _starsCacheDifficulty = profile.CurrentDifficulty;
+            _starsCacheEnginePreset = profile.EnginePreset;
             _starsCacheHighScoreHistoryMode = SettingsManager.Settings.HighScoreHistory.Value;
             _starsCacheUsesBandScores = useBandScores;
             _starsCacheValid = true;
