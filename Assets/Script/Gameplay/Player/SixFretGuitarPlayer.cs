@@ -71,13 +71,21 @@ namespace YARG.Gameplay.Player
         {
             // 5-fret charts played in 6-fret mode are remapped into legal 6-fret chords;
             // lefty flip additionally swaps the black/white pad rows of every note
-            return chart.GetSixFretPlayableDifficulty(Player.Profile.CurrentInstrument, Player.Profile.CurrentDifficulty,
+            var instrumentDifficulty = chart.GetSixFretPlayableDifficulty(Player.Profile.CurrentInstrument, Player.Profile.CurrentDifficulty,
                 Player.Profile.LeftyFlip);
+            if (instrumentDifficulty.Instrument is Instrument.FiveFretBass or Instrument.FiveFretGuitar)
+            {
+                _chartIsFiveFretOnSixFret = true;
+            }
+
+            return instrumentDifficulty;
         }
 
         // --- CreateEngine() hooks (replaces full method duplication) ---
+        private bool _chartIsFiveFretOnSixFret = false;
 
-        protected override Instrument GetBassInstrument() => Instrument.SixFretBass;
+        //TODO: We need a better way to represent 5F charts on 6F, or any other converted chart than just pretending they are the chart's instrument.
+        protected override Instrument GetBassInstrument() => _chartIsFiveFretOnSixFret ? Instrument.FiveFretBass : Instrument.SixFretBass;
 
         protected override EnginePreset.FiveFretGuitarPreset GetEnginePreset() => Player.EnginePreset.SixFretGuitar;
 
