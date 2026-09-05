@@ -131,6 +131,12 @@ namespace YARG.Audio.BASS
                 Bass.CurrentRecordingDevice = deviceId;
                 int devicePeriod = Bass.GetConfig(Configuration.DevicePeriod);
                 var capture = CreateCapture(deviceId, channels, devicePeriod, ownsDevice);
+#if UNITY_EDITOR_LINUX || UNITY_STANDALONE_LINUX
+                if (capture == null && channels == 2)
+                {
+                    capture = CreateCapture(deviceId, 1, devicePeriod, ownsDevice);
+                }
+#endif
                 if (capture != null)
                 {
                     return capture;
