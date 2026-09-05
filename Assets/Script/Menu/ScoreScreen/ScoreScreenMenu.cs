@@ -53,6 +53,8 @@ namespace YARG.Menu.ScoreScreen
         private StarView _bandStarView;
         [SerializeField]
         private TextMeshProUGUI _bandScore;
+        [SerializeField]
+        private TextMeshProUGUI _previousBestText;
         [FormerlySerializedAs("_bandScoreNotSavedPill")]
         [SerializeField]
         private ColoredPillElement _scoreStatusPill;
@@ -152,6 +154,18 @@ namespace YARG.Menu.ScoreScreen
             // Set the band score and stars
             _bandStarView.SetStars(scoreScreenStats.BandStars);
             _bandScore.text = scoreScreenStats.BandScore.ToString("N0");
+
+            // Show the record that was standing before this run
+            if (scoreScreenStats.PreviousBest is { } previousBest && !GlobalVariables.State.IsReplay)
+            {
+                _previousBestText.gameObject.SetActive(true);
+                _previousBestText.text =
+                    $"{Localize.Key("Menu.ScoreScreen.PreviousBest")}  {previousBest:N0}";
+            }
+            else
+            {
+                _previousBestText.gameObject.SetActive(false);
+            }
 
             // Put the scores in!
             CreateScoreCards(scoreScreenStats);
