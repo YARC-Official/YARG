@@ -122,7 +122,22 @@ namespace YARG.Gameplay.Player
 
         public virtual void DropOut()
         {
+            if (HasDroppedOut)
+            {
+                return;
+            }
+
             HasDroppedOut = true;
+            IsFc = false;
+
+            Player.IsScoreValid = false;
+
+            if (EngineContainer != null)
+            {
+                GameManager.EngineManager.DropOutPlayer(EngineContainer);
+            }
+
+            SetStemMuteState(false);
         }
 
         protected override void GameplayAwake()
@@ -256,6 +271,11 @@ namespace YARG.Gameplay.Player
 
         protected virtual void UpdateInputs(double time)
         {
+            if (HasDroppedOut)
+            {
+                return;
+            }
+
             // Apply input offset
             // Video offset is already accounted for
             time += InputCalibration;

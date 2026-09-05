@@ -76,16 +76,6 @@ namespace YARG.Gameplay.Player
             return new[]
             {
                 new PlayerMenuItem("DROP OUT", DropOut),
-                new PlayerMenuItem("TEST ITEM 1", () => { }),
-                new PlayerMenuItem("TEST ITEM 2", () => { }),
-                new PlayerMenuItem("TEST ITEM 3", () => { }),
-                new PlayerMenuItem("TEST ITEM 4", () => { }),
-                new PlayerMenuItem("TEST ITEM 5", () => { }),
-                new PlayerMenuItem("TEST ITEM 4", () => { }),
-                new PlayerMenuItem("TEST ITEM 5", () => { }),
-                new PlayerMenuItem("TEST ITEM 6", () => { }),
-                new PlayerMenuItem("TEST ITEM 7", () => { }),
-                new PlayerMenuItem("TEST ITEM 8", () => { }),
             };
         }
 
