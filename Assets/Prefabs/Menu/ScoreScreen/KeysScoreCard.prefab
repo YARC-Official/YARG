@@ -1,5 +1,10 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!1 &4011162779391448475 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 2854826188849426933, guid: 2025f8ef58ef1ef46a59478fdc3fe13d, type: 3}
+  m_PrefabInstance: {fileID: 1167806695846405230}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &1167806695846405230
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1370,6 +1375,7 @@ MonoBehaviour:
   _averageOffset: {fileID: 7513722069734419521}
   _starPowerActivations: {fileID: 7743279824349473599}
   _timeInStarPower: {fileID: 7331706903495288829}
+  _starPowerStatsSeparator: {fileID: 4011162779391448475}
   _advancedStatsRect: {fileID: 2970566354708741997}
   _basicStatsRect: {fileID: 5656862144262534385}
   _enginePresetTag: {fileID: 4518544156755162605}

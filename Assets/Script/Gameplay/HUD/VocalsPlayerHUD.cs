@@ -81,6 +81,10 @@ namespace YARG.Gameplay.HUD
             {
                 _comboMeterFill.color = new Color(1.0f, 0.9f, 0.0f);
             }
+            else if (enginePreset == EnginePreset.Tournament)
+            {
+                _comboMeterFill.color = new Color(0f, 0.53333336f, 0.627451f);
+            }
             else
             {
                 // Otherwise, it must be a custom preset

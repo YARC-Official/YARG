@@ -195,6 +195,7 @@ namespace YARG.Menu.ScoreScreen
         {
             int fcCount = 0;
             int highScoreCount = 0;
+            bool canEarnBandBonus = CanAnyPlayerEarnBandBonus(scoreScreenStats);
 
             foreach (var score in scoreScreenStats.PlayerScores)
             {
@@ -220,7 +221,9 @@ namespace YARG.Menu.ScoreScreen
                     case GameMode.SixFretGuitar:
                     {
                         card = Instantiate(_guitarCardPrefab, _cardContainer);
-                        ((ScoreCard<GuitarStats>)card).Initialize(score.IsHighScore, score.Player, score.Stats as GuitarStats, score.IsReplay);
+                        ((ScoreCard<GuitarStats>)card).Initialize(score.IsHighScore, score.Player,
+                            score.Stats as GuitarStats, score.IsReplay, score.Percent,
+                            canEarnBandBonus || score.Stats.BandBonusScore != 0);
                         break;
                     }
                     case GameMode.FourLaneDrums:
@@ -228,19 +231,25 @@ namespace YARG.Menu.ScoreScreen
                     case GameMode.EliteDrums:
                     {
                         card = Instantiate(_drumsCardPrefab, _cardContainer);
-                        ((ScoreCard<DrumsStats>)card).Initialize(score.IsHighScore, score.Player, score.Stats as DrumsStats, score.IsReplay);
+                        ((ScoreCard<DrumsStats>)card).Initialize(score.IsHighScore, score.Player,
+                            score.Stats as DrumsStats, score.IsReplay, score.Percent,
+                            canEarnBandBonus || score.Stats.BandBonusScore != 0);
                         break;
                     }
                     case GameMode.Vocals:
                     {
                         card = Instantiate(_vocalsCardPrefab, _cardContainer);
-                        ((ScoreCard<VocalsStats>)card).Initialize(score.IsHighScore, score.Player, score.Stats as VocalsStats, score.IsReplay);
+                        ((ScoreCard<VocalsStats>)card).Initialize(score.IsHighScore, score.Player,
+                            score.Stats as VocalsStats, score.IsReplay, score.Percent,
+                            canEarnBandBonus || score.Stats.BandBonusScore != 0);
                         break;
                     }
                     case GameMode.ProKeys:
                     {
                         card = Instantiate(_keysCardPrefab, _cardContainer);
-                        ((ScoreCard<KeysStats>) card).Initialize(score.IsHighScore, score.Player, score.Stats as KeysStats, score.IsReplay);
+                        ((ScoreCard<KeysStats>) card).Initialize(score.IsHighScore, score.Player,
+                            score.Stats as KeysStats, score.IsReplay, score.Percent,
+                            canEarnBandBonus || score.Stats.BandBonusScore != 0);
                         break;
                     }
                 }
@@ -267,6 +276,12 @@ namespace YARG.Menu.ScoreScreen
             {
                 PlayScoreVox(fcCount, highScoreCount);
             }
+        }
+
+        private static bool CanAnyPlayerEarnBandBonus(ScoreScreenStats scoreScreenStats)
+        {
+            return scoreScreenStats.PlayerScores.Length > 1 &&
+                scoreScreenStats.PlayerScores.Any(score => score.Stats.TotalStarPowerPhrases > 0);
         }
 
         private void KillScrollTween()

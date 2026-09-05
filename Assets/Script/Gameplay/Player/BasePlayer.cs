@@ -369,6 +369,11 @@ namespace YARG.Gameplay.Player
 
         protected virtual void OnStarPowerPhraseHit()
         {
+            if (!BaseParameters.StarPowerEnabled)
+            {
+                return;
+            }
+
             if (!GameManager.Paused && !GameManager.IsSeekingReplay)
             {
                 GlobalAudioHandler.PlaySoundEffect(SfxSample.StarPowerAward);
