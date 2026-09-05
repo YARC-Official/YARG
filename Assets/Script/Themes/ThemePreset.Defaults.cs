@@ -32,6 +32,7 @@ namespace YARG.Themes
                 SupportedStyles =
                 {
                     VisualStyle.FiveFretGuitar,
+                    VisualStyle.SixFretGuitar,
                     VisualStyle.FiveLaneKeys
                 },
                 PreferredColorProfile = ColorProfile.CircularDefault.Id,
@@ -43,6 +44,7 @@ namespace YARG.Themes
                 SupportedStyles =
                 {
                     VisualStyle.FiveFretGuitar,
+                    VisualStyle.SixFretGuitar,
                     VisualStyle.FourLaneDrums,
                     VisualStyle.FiveLaneDrums,
                     VisualStyle.FiveLaneKeys

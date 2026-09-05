@@ -1475,6 +1475,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5f9d6d58525b4d22961cb5f7264164de, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _fiveFretGuitarPrefab: {fileID: 7381119128095886790, guid: 0f7a37c9e4abcad4da73b7603d4b7596, type: 3}
+  _sixFretGuitarPrefab: {fileID: 7381119128095886790, guid: 93bb65c0743846fb28f6ecbb05e1e37b, type: 3}
+  _fourLaneDrumsPrefab: {fileID: 7508612376246159914, guid: 14dfc37fcbd6e0c4ba41507437a52fea, type: 3}
+  _fiveLaneDrumsPrefab: {fileID: 7912406415472637727, guid: b98748e11cf38534c814f11da4eaa863, type: 3}
+  _proKeysPrefab: {fileID: 7381119128095886790, guid: 52322b4e39d4f9349a65c60a07fc1b3a, type: 3}
+  _fiveLaneKeysPrefab: {fileID: 7381119128095886790, guid: 6117371a3e2df654494387fa6a3fd64a, type: 3}
+  _proGuitarPrefab: {fileID: 0}
   IsSeekingReplay: 0
   _trackViewManager: {fileID: 1330928978}
   _replayController: {fileID: 922548498}
@@ -1486,13 +1493,6 @@ MonoBehaviour:
   _breBox: {fileID: 1485334878}
   <VocalTrack>k__BackingField: {fileID: 1312797156}
   ShowIndex: 0
-  _fiveFretGuitarPrefab: {fileID: 7381119128095886790, guid: 0f7a37c9e4abcad4da73b7603d4b7596, type: 3}
-  _sixFretGuitarPrefab: {fileID: 0}
-  _fourLaneDrumsPrefab: {fileID: 7508612376246159914, guid: 14dfc37fcbd6e0c4ba41507437a52fea, type: 3}
-  _fiveLaneDrumsPrefab: {fileID: 7912406415472637727, guid: b98748e11cf38534c814f11da4eaa863, type: 3}
-  _proKeysPrefab: {fileID: 7381119128095886790, guid: 52322b4e39d4f9349a65c60a07fc1b3a, type: 3}
-  _fiveLaneKeysPrefab: {fileID: 7381119128095886790, guid: 6117371a3e2df654494387fa6a3fd64a, type: 3}
-  _proGuitarPrefab: {fileID: 0}
 --- !u!4 &318454372
 Transform:
   m_ObjectHideFlags: 0
@@ -1636,7 +1636,7 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 1682100931862694993, guid: 039fee0ec42345d4f88c0625255415d4, type: 3}
-      propertyPath: 'm_ActiveFontFeatures.Array.data[0]'
+      propertyPath: m_ActiveFontFeatures.Array.data[0]
       value: 1801810542
       objectReference: {fileID: 0}
     - target: {fileID: 1682100932150968561, guid: 039fee0ec42345d4f88c0625255415d4, type: 3}
@@ -1876,7 +1876,7 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5887468963209947489, guid: 039fee0ec42345d4f88c0625255415d4, type: 3}
-      propertyPath: 'm_ActiveFontFeatures.Array.data[0]'
+      propertyPath: m_ActiveFontFeatures.Array.data[0]
       value: 1801810542
       objectReference: {fileID: 0}
     - target: {fileID: 6081917654220247207, guid: 039fee0ec42345d4f88c0625255415d4, type: 3}
@@ -1896,7 +1896,7 @@ PrefabInstance:
       value: -157.1503
       objectReference: {fileID: 0}
     - target: {fileID: 6897601373631971078, guid: 039fee0ec42345d4f88c0625255415d4, type: 3}
-      propertyPath: 'm_ActiveFontFeatures.Array.data[0]'
+      propertyPath: m_ActiveFontFeatures.Array.data[0]
       value: 1801810542
       objectReference: {fileID: 0}
     - target: {fileID: 7328250424041952305, guid: 039fee0ec42345d4f88c0625255415d4, type: 3}
@@ -1924,7 +1924,7 @@ PrefabInstance:
       value: <mspace=0.538em>99x
       objectReference: {fileID: 0}
     - target: {fileID: 8915388482217552038, guid: 039fee0ec42345d4f88c0625255415d4, type: 3}
-      propertyPath: 'm_ActiveFontFeatures.Array.data[0]'
+      propertyPath: m_ActiveFontFeatures.Array.data[0]
       value: 1801810542
       objectReference: {fileID: 0}
     - target: {fileID: 9151995171417952487, guid: 039fee0ec42345d4f88c0625255415d4, type: 3}
@@ -3165,7 +3165,7 @@ PrefabInstance:
     m_TransformParent: {fileID: 1517088745}
     m_Modifications:
     - target: {fileID: 2412034789861198308, guid: 249f3206655c65946a0f15b17834fca4, type: 3}
-      propertyPath: 'm_ActiveFontFeatures.Array.data[0]'
+      propertyPath: m_ActiveFontFeatures.Array.data[0]
       value: 1801810542
       objectReference: {fileID: 0}
     - target: {fileID: 3967995507941194808, guid: 249f3206655c65946a0f15b17834fca4, type: 3}
@@ -5497,7 +5497,7 @@ PrefabInstance:
     m_TransformParent: {fileID: 1212139298}
     m_Modifications:
     - target: {fileID: 1146569326023523432, guid: f8c143f8514898b4fb85fbadc18550c0, type: 3}
-      propertyPath: 'm_ActiveFontFeatures.Array.data[0]'
+      propertyPath: m_ActiveFontFeatures.Array.data[0]
       value: 1801810542
       objectReference: {fileID: 0}
     - target: {fileID: 1896662541191257382, guid: f8c143f8514898b4fb85fbadc18550c0, type: 3}
@@ -5505,7 +5505,7 @@ PrefabInstance:
       value: -1183493901
       objectReference: {fileID: 0}
     - target: {fileID: 1896662541191257382, guid: f8c143f8514898b4fb85fbadc18550c0, type: 3}
-      propertyPath: 'm_ActiveFontFeatures.Array.data[0]'
+      propertyPath: m_ActiveFontFeatures.Array.data[0]
       value: 1801810542
       objectReference: {fileID: 0}
     - target: {fileID: 2006855537152082164, guid: f8c143f8514898b4fb85fbadc18550c0, type: 3}
@@ -5533,7 +5533,7 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 2842466915050512126, guid: f8c143f8514898b4fb85fbadc18550c0, type: 3}
-      propertyPath: 'm_ActiveFontFeatures.Array.data[0]'
+      propertyPath: m_ActiveFontFeatures.Array.data[0]
       value: 1801810542
       objectReference: {fileID: 0}
     - target: {fileID: 2933889975780695480, guid: f8c143f8514898b4fb85fbadc18550c0, type: 3}
@@ -5553,7 +5553,7 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4585064127559478306, guid: f8c143f8514898b4fb85fbadc18550c0, type: 3}
-      propertyPath: 'm_ActiveFontFeatures.Array.data[0]'
+      propertyPath: m_ActiveFontFeatures.Array.data[0]
       value: 1801810542
       objectReference: {fileID: 0}
     - target: {fileID: 5322898957872382039, guid: f8c143f8514898b4fb85fbadc18550c0, type: 3}
@@ -5705,7 +5705,7 @@ PrefabInstance:
       value: -1183493901
       objectReference: {fileID: 0}
     - target: {fileID: 7685424141149583135, guid: f8c143f8514898b4fb85fbadc18550c0, type: 3}
-      propertyPath: 'm_ActiveFontFeatures.Array.data[0]'
+      propertyPath: m_ActiveFontFeatures.Array.data[0]
       value: 1801810542
       objectReference: {fileID: 0}
     - target: {fileID: 8431678723656029144, guid: f8c143f8514898b4fb85fbadc18550c0, type: 3}
@@ -6542,15 +6542,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3a868e9a2b1f4e01834956d57fb2763e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::YARG.Gameplay.HUD.UnisonDisplay
-  _parent: {fileID: 2044355436}
+  _backgroundImage: {fileID: 2070051285}
+  _defaultSprite: {fileID: 1163767304, guid: 1d22b7c60d56c1c4e8a213cf3b098af9, type: 3}
+  _failSprite: {fileID: -1426596008, guid: 1d22b7c60d56c1c4e8a213cf3b098af9, type: 3}
+  _failColor: {r: 0.7686275, g: 0.19215688, b: 0.1137255, a: 1}
   _headerText: {fileID: 651940416}
   _iconContainer: {fileID: 258647514}
   _unisonBar: {fileID: 189712602}
-  _backgroundImage: {fileID: 2070051285}
-  _defaultSprite: {fileID: 1163767304, guid: 1d22b7c60d56c1c4e8a213cf3b098af9, type: 3}
+  _parent: {fileID: 2044355436}
   _successSprite: {fileID: -1518087258, guid: 1d22b7c60d56c1c4e8a213cf3b098af9, type: 3}
-  _failSprite: {fileID: -1426596008, guid: 1d22b7c60d56c1c4e8a213cf3b098af9, type: 3}
-  _failColor: {r: 0.7686275, g: 0.19215688, b: 0.1137255, a: 1}
   _trackCountToPositionOffset:
   - {x: 0, y: 0}
   - {x: 0, y: -100}

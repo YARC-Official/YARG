@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using Cysharp.Threading.Tasks;
@@ -468,7 +468,27 @@ namespace YARG.Menu.MusicLibrary
                 _difficultyRings[6].SetInfo("rhythm", Instrument.FiveFretRhythm, entry[Instrument.FiveFretRhythm]);
             }
 
-            _difficultyRings[7].SetInfo("eliteDrums", Instrument.EliteDrums, entry[Instrument.EliteDrums]);
+            // 6-fret guitar or 6-fret variants
+            if (entry.HasInstrument(Instrument.SixFretGuitar))
+            {
+                _difficultyRings[7].SetInfo("guitar6", Instrument.SixFretGuitar, entry[Instrument.SixFretGuitar]);
+            }
+            else if (entry.HasInstrument(Instrument.SixFretBass))
+            {
+                _difficultyRings[7].SetInfo("bass6", Instrument.SixFretBass, entry[Instrument.SixFretBass]);
+            }
+            else if (entry.HasInstrument(Instrument.SixFretRhythm))
+            {
+                _difficultyRings[7].SetInfo("rhythm6", Instrument.SixFretRhythm, entry[Instrument.SixFretRhythm]);
+            }
+            else if (entry.HasInstrument(Instrument.SixFretCoopGuitar))
+            {
+                _difficultyRings[7].SetInfo("coop6", Instrument.SixFretCoopGuitar, entry[Instrument.SixFretCoopGuitar]);
+            }
+            else
+            {
+                _difficultyRings[7].SetInfo("eliteDrums", Instrument.EliteDrums, entry[Instrument.EliteDrums]);
+            }
             _difficultyRings[8].SetInfo("realKeys", Instrument.ProKeys, entry[Instrument.ProKeys]);
             _difficultyRings[9].SetInfo("band", Instrument.Band, entry[Instrument.Band]);
             return;

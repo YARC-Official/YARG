@@ -20,6 +20,13 @@ namespace YARG.Themes
         [SerializeField]
         private MeshMaterialIndex[] _innerMaterials;
 
+        // Secondary half materials (for 6-fret dual-half frets)
+        [Space]
+        [SerializeField]
+        private MeshMaterialIndex[] _secondaryColoredMaterials;
+        [SerializeField]
+        private MeshMaterialIndex[] _secondaryInnerMaterials;
+
         [field: Space]
         [field: SerializeField]
         public EffectGroup HitEffect { get; private set; }
@@ -33,6 +40,11 @@ namespace YARG.Themes
         public EffectGroup SustainEffect { get; private set; }
         [field: SerializeField]
         public EffectGroup PressedEffect { get; private set; }
+
+        // Secondary half press effect
+        [field: Space]
+        [field: SerializeField]
+        public EffectGroup SecondaryPressedEffect { get; private set; }
 
         [field: Space]
         [field: SerializeField]
@@ -58,6 +70,22 @@ namespace YARG.Themes
         public IEnumerable<Material> GetInnerColoredMaterials()
         {
             return _innerMaterials.Select(i => i.Mesh.materials[i.MaterialIndex]);
+        }
+
+        /// <summary>
+        /// Warning! This can be slow. Cache values if needed repeatedly.
+        /// </summary>
+        public IEnumerable<Material> GetSecondaryColoredMaterials()
+        {
+            return _secondaryColoredMaterials?.Select(i => i.Mesh.materials[i.MaterialIndex]) ?? System.Linq.Enumerable.Empty<Material>();
+        }
+
+        /// <summary>
+        /// Warning! This can be slow. Cache values if needed repeatedly.
+        /// </summary>
+        public IEnumerable<Material> GetSecondaryInnerColoredMaterials()
+        {
+            return _secondaryInnerMaterials?.Select(i => i.Mesh.materials[i.MaterialIndex]) ?? System.Linq.Enumerable.Empty<Material>();
         }
 
         public void SetBreMode(bool breMode)
