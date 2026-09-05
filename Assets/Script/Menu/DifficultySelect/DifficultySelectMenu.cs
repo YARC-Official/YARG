@@ -38,6 +38,18 @@ namespace YARG.Menu.DifficultySelect
             Harmony
         }
 
+        // Instruments that use the (X-Fret) suffix and not the (X-Lane) suffix when in 6-fret mode
+        private static readonly Instrument[] _fretInstruments = {
+            Instrument.FiveFretGuitar,
+            Instrument.FiveFretBass,
+            Instrument.FiveFretCoopGuitar,
+            Instrument.FiveFretRhythm,
+            Instrument.SixFretGuitar,
+            Instrument.SixFretBass,
+            Instrument.SixFretRhythm,
+            Instrument.SixFretCoopGuitar,
+        };
+
         [SerializeField]
         private TextMeshProUGUI _subHeader;
         [SerializeField]
@@ -778,7 +790,12 @@ namespace YARG.Menu.DifficultySelect
             // (i.e., a 5-fret chart loaded in 6-fret mode)
             if (gameMode == GameMode.SixFretGuitar && !instrument.IsSixFret())
             {
-                return $"{name} (5-Fret)";
+                //TODO: Figure out a way to localise this
+                if (_fretInstruments.Contains(instrument))
+                {
+                    return $"{name} (5-Fret)";
+                }
+                return $"{name} (5-Lane)";
             }
             return name;
         }
