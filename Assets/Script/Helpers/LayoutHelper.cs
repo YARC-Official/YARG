@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Text;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Layouts;
+using YARG.Input.Bindings;
+using YARG.Menu.ProfileList;
 
 namespace YARG.Helpers
 {
@@ -61,6 +63,34 @@ namespace YARG.Helpers
         {
             var parentName = InputSystem.GetNameOfBaseLayout(layout.name);
             return InputSystem.LoadLayout(parentName);
+        }
+
+        public static ControllerFamily LayoutStringToControllerFamily(string layout)
+        {
+            return layout switch
+            {
+                LayoutStrings.FIVE_FRET_GUITAR => ControllerFamily.FiveFretGuitar,
+                LayoutStrings.SIX_FRET_GUITAR => ControllerFamily.SixFretGuitar,
+                LayoutStrings.FOUR_LANE_DRUMKIT => ControllerFamily.FourLaneDrumkit,
+                LayoutStrings.FIVE_LANE_DRUMKIT => ControllerFamily.FiveLaneDrumkit,
+                LayoutStrings.PRO_KEYBOARD => ControllerFamily.ProKeyboard,
+                LayoutStrings.PRO_GUITAR => ControllerFamily.ProGuitar,
+                _ => ControllerFamily.Generic
+            };
+        }
+
+        public static string ControllerFamilyToLayoutString(ControllerFamily controllerFamily)
+        {
+            return controllerFamily switch
+            {
+                ControllerFamily.FiveFretGuitar => LayoutStrings.FIVE_FRET_GUITAR,
+                ControllerFamily.SixFretGuitar => LayoutStrings.SIX_FRET_GUITAR,
+                ControllerFamily.FourLaneDrumkit => LayoutStrings.FOUR_LANE_DRUMKIT,
+                ControllerFamily.FiveLaneDrumkit => LayoutStrings.FIVE_LANE_DRUMKIT,
+                ControllerFamily.ProKeyboard => LayoutStrings.PRO_KEYBOARD,
+                ControllerFamily.ProGuitar => LayoutStrings.PRO_GUITAR,
+                _ => LayoutStrings.ANY
+            };
         }
     }
 }

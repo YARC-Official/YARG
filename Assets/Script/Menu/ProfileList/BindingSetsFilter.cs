@@ -24,7 +24,8 @@ namespace YARG.Menu.ProfileList
             ControllerFamily.FiveLaneDrumkit,
             ControllerFamily.ProKeyboard,
             ControllerFamily.MidiDevice,
-            ControllerFamily.Gamepad
+            ControllerFamily.ProGuitar,
+            ControllerFamily.Generic
         };
 
         public void OnEnable()
@@ -49,6 +50,7 @@ namespace YARG.Menu.ProfileList
         FiveLaneDrumkit,
         ProKeyboard,
         MidiDevice,
-        Gamepad
+        ProGuitar,
+        Generic
     }
 }

@@ -110,6 +110,10 @@ namespace YARG.Menu.ProfileList
             // Remove old ones
             _leftPaneList.transform.DestroyChildren();
             _navigationGroup.ClearNavigatables();
+
+            var relevantBindingSets = BindingsContainer.GetBindingSetsForControllerFamily(CurrentBindingSetFilter);
+
+
         }
 
         public void RefreshProfileList(YargProfile selectedProfile = null)

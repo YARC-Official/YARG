@@ -6,7 +6,9 @@ using UnityEngine;
 using YARG.Core;
 using YARG.Core.Game;
 using YARG.Core.Logging;
+using YARG.Helpers;
 using YARG.Input.Serialization;
+using YARG.Menu.ProfileList;
 using YARG.Player;
 
 namespace YARG.Input.Bindings
@@ -25,7 +27,9 @@ namespace YARG.Input.Bindings
 
         private static readonly Dictionary<Guid, BindingCollection> _allBindingCollectionsByGuid = new();
 
-        private static readonly Dictionary<(GameMode mode, string baseLayout), List<BindingCollection>> _bindingCollectionsByContext = new();
+        private static readonly Dictionary<ControllerFamily, List<BindingCollection>> _bindingCollectionsByControllerFamily = new();
+
+        private static readonly Dictionary<(GameMode mode, ControllerFamily controllerFamily), List<BindingCollection>> _bindingCollectionsByContext = new();
 
         public static ProfileDeviceInfo GetBindingsForProfile(YargProfile profile)
         {
@@ -37,6 +41,11 @@ namespace YARG.Input.Bindings
             }
 
             return bindings;
+        }
+
+        public static List<BindingCollection> GetBindingSetsForControllerFamily(ControllerFamily controllerFamily)
+        {
+            return _bindingCollectionsByControllerFamily.GetValueOrDefault(controllerFamily, null);
         }
 
         public static bool TryGetBindingCollectionById(Guid guid, out BindingCollection bindingCollection)
@@ -90,11 +99,21 @@ namespace YARG.Input.Bindings
 
             foreach (var (guid, serializedBindingCollection) in bindings.BindingCollections)
             {
-                var bindingCollection = new BindingCollection(serializedBindingCollection.GameMode, serializedBindingCollection.BaseLayout);
+                var bindingCollection = new BindingCollection(serializedBindingCollection.GameMode);
+
                 bindingCollection.Deserialize(serializedBindingCollection);
                 _allBindingCollectionsByGuid.Add(guid, bindingCollection);
 
-                var tupleKey = (bindingCollection.Mode.Value, bindingCollection.BaseLayout);
+                if (!_bindingCollectionsByControllerFamily.ContainsKey(bindingCollection.ControllerFamily))
+                {
+                    _bindingCollectionsByControllerFamily[bindingCollection.ControllerFamily] = new() { bindingCollection };
+                }
+                else
+                {
+                    _bindingCollectionsByControllerFamily[bindingCollection.ControllerFamily].Add(bindingCollection);
+                }
+
+                var tupleKey = (bindingCollection.Mode.Value, bindingCollection.ControllerFamily);
 
                 if (!_bindingCollectionsByContext.ContainsKey(tupleKey)) {
                     _bindingCollectionsByContext[tupleKey] = new() { bindingCollection };

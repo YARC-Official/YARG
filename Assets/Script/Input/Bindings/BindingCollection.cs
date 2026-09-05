@@ -7,14 +7,16 @@ using UnityEngine.InputSystem.Utilities;
 using UnityEngine.InputSystem.XInput;
 using YARG.Core;
 using YARG.Core.Extensions;
+using YARG.Helpers;
 using YARG.Input.Serialization;
+using YARG.Menu.ProfileList;
 
 namespace YARG.Input
 {
     public partial class BindingCollection : IEnumerable<ControlBinding>
     {
         public Guid Guid { get; private set; }
-        public string BaseLayout { get; private set; }
+        public ControllerFamily ControllerFamily { get; private set; } // TODO: Move
         public GameMode? Mode { get; } // null means menu bindings
 
 
@@ -51,16 +53,15 @@ namespace YARG.Input
         public bool IsMenu => Mode == null;
         public bool IsGameplay => Mode != null;
 
-        public BindingCollection(GameMode? mode, string baseLayout)
+        public BindingCollection(GameMode? mode)
         {
             Mode = mode;
-            BaseLayout = baseLayout;
         }
 
 #nullable enable
         public SerializedBindingCollection? Serialize()
         {
-            var serialized = new SerializedBindingCollection(BaseLayout) { Guid = Guid };
+            var serialized = new SerializedBindingCollection(LayoutHelper.ControllerFamilyToLayoutString(ControllerFamily)) { Guid = Guid };
             foreach (var binding in _bindings)
             {
                 var serializedBind = binding.Serialize();
