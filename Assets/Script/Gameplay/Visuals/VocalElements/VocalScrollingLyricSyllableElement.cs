@@ -13,13 +13,11 @@ namespace YARG.Gameplay.Visuals
             public readonly string DisplayText;
             public readonly FontStyles FontStyle;
             public readonly float Width;
-            public readonly double NoteLength;
             public readonly bool IsHidden;
 
-            public PreparedLyric(LyricEvent lyric, VocalNote probableNote, bool allowHiding, float width)
+            public PreparedLyric(LyricEvent lyric, bool allowHiding, float width)
             {
                 Lyric = lyric;
-                NoteLength = probableNote?.TotalTimeLength ?? 0;
                 DisplayText = lyric.HarmonyHidden && allowHiding ? string.Empty : lyric.Text;
                 FontStyle = lyric.NonPitched ? FontStyles.Italic : FontStyles.Normal;
                 IsHidden = string.IsNullOrEmpty(DisplayText);
@@ -29,13 +27,15 @@ namespace YARG.Gameplay.Visuals
 
         private LyricEvent _lyricRef;
         private PreparedLyric _preparedLyric;
-        private double _lyricLength;
 
         private double _minimumTime;
         private bool _isStarpower;
 
         private int _harmonyIndex;
         private bool _allowHiding;
+
+        private readonly Color _highlightColor = new Color(0.0549f, 0.6431f, 0.9765f);
+        private readonly Color _pastColor      = new Color(0.349f, 0.349f, 0.349f);
 
         public override double ElementTime => Math.Max(_lyricRef.Time, _minimumTime);
 
@@ -44,12 +44,11 @@ namespace YARG.Gameplay.Visuals
 
         public float Width => _preparedLyric.Width;
 
-        public void Initialize(PreparedLyric preparedLyric, double minTime, double lyricLength,
+        public void Initialize(PreparedLyric preparedLyric, double minTime,
             bool isStarpower, int harmonyIndex, bool allowHiding)
         {
             _preparedLyric = preparedLyric;
             _lyricRef = preparedLyric.Lyric;
-            _lyricLength = lyricLength;
 
             _minimumTime = minTime;
             _isStarpower = isStarpower;
@@ -76,13 +75,13 @@ namespace YARG.Gameplay.Visuals
             {
                 _lyricText.color = _isStarpower ? Color.yellow : Color.white;
             }
-            else if (GameManager.VisualTime > _lyricRef.Time && GameManager.VisualTime < _lyricRef.Time + _lyricLength)
+            else if (GameManager.VisualTime > _lyricRef.Time && GameManager.VisualTime < _lyricRef.TimeEnd)
             {
-                _lyricText.color = new Color(0.0549f, 0.6431f, 0.9765f);
+                _lyricText.color = _highlightColor;
             }
             else
             {
-                _lyricText.color = new Color(0.349f, 0.349f, 0.349f);
+                _lyricText.color = _pastColor;
             }
         }
 
