@@ -15,7 +15,7 @@ namespace YARG.Input
 {
     public partial class BindingCollection : IEnumerable<ControlBinding>
     {
-        public Guid Guid { get; private set; }
+        
         public ControllerFamily ControllerFamily { get; private set; } // TODO: Move
         public GameMode? Mode { get; } // null means menu bindings
 
@@ -59,38 +59,6 @@ namespace YARG.Input
         }
 
 #nullable enable
-        public SerializedBindingCollection? Serialize()
-        {
-            var serialized = new SerializedBindingCollection(LayoutHelper.ControllerFamilyToLayoutString(ControllerFamily)) { Guid = Guid };
-            foreach (var binding in _bindings)
-            {
-                var serializedBind = binding.Serialize();
-                if (serializedBind is null)
-                    continue;
-
-                serialized.Bindings.Add(binding.Key, serializedBind);
-            }
-
-            if (serialized.Bindings.Count < 1)
-                return null;
-
-            return serialized;
-        }
-
-        public void Deserialize(SerializedBindingCollection? serialized)
-        {
-            if (serialized is null || serialized.Bindings is null)
-                return;
-
-            foreach (var (key, bindings) in serialized.Bindings)
-            {
-                var binding = TryGetBindingByKey(key);
-                if (binding is null)
-                    continue;
-
-                binding.Deserialize(bindings);
-            }
-        }
 
         public void EnableInputs()
         {

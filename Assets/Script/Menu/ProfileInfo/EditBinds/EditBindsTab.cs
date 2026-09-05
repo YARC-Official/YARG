@@ -96,7 +96,7 @@ namespace YARG.Menu.ProfileInfo
         {
             SelectingMenuBinds = true;
 
-            foreach (var bindings in _currentPlayer.DeviceInfo.MenuBindingsByBaseLayout.Values)
+            foreach (var bindings in _currentPlayer.DeviceInfo.PreferredMenuBindingsByBaseLayout.Values)
             {
                 RefreshFromBindingCollection(bindings);
             }
