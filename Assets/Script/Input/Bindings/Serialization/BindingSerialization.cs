@@ -65,6 +65,9 @@ namespace YARG.Input.Serialization
         public GameMode GameMode;
         public string BaseLayout;
         public bool Reusable;
+
+        // Key is binding name, like "FiveFret.Green" or "FourDrums.RedPad"
+        // These names come from BindingCollection.Templates.cs; they are YARG's, not PlasticBand's
         public Dictionary<string, SerializedControlBinding> Bindings = new();
     }
 
@@ -179,6 +182,7 @@ namespace YARG.Input.Serialization
 
                 var bindings = version switch
                 {
+                    // TODO: Remember to generalize control path layouts when deserializing old versions
                     //0 => DeserializeBindingsV0(jObject),
                     //1 => DeserializeBindingsV1(jObject),
                     //2 => DeserializeBindingsV2(jObject),
