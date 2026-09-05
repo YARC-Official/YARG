@@ -20,7 +20,7 @@ namespace YARG.Venue
             _leadingFrames = leadingFrames;
         }
 
-        public void BuildCommands(SongChart chart, AnimatorCommandQueue queue)
+        public void BuildCommands(SongChart chart, AnimatorCommandQueue queue, Action callback = null)
         {
             var bassId = chart.FiveFretBass.GetDifficulty(Difficulty.Expert);
             foreach (var bNote in bassId.Notes)

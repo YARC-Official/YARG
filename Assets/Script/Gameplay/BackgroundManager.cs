@@ -23,6 +23,7 @@ using YARG.Venue;
 using YARG.Venue.Characters;
 using YARG.Core.Logging;
 using YARG.Helpers;
+using YARG.Song;
 using Random = UnityEngine.Random;
 
 #if UNITY_EDITOR
@@ -1037,6 +1038,51 @@ namespace YARG.Gameplay
                     }
                 }
             }
+            else
+            {
+                SetCustomGenreSpecificAnimator(vrmCharacter);
+            }
+        }
+
+        /// <summary>
+        /// Checks the supplied VRMCharacter for genre-specific animator overrides
+        /// </summary>
+        /// <param name="character"></param>
+        /// <returns>
+        /// true: We found and replaced the character's animator<br />
+        /// false: We did not find a genre-specific animator override
+        /// </returns>
+        private bool SetCustomGenreSpecificAnimator(VRMCharacter character)
+        {
+            if (character == null)
+            {
+                return false;
+            }
+
+            var animator = character.GetComponent<Animator>();
+            if (animator == null)
+            {
+                return false;
+            }
+
+            var anims = character.GetGenreSpecificAnimations();
+
+            if (anims == null || anims.Keys.Count <= 0)
+            {
+                return false;
+            }
+
+            var genre = Genrelizer.GetBaseGenre(GameManager.Song.Genre);
+
+            if (!anims.ContainsKey(genre))
+            {
+                return false;
+            }
+
+            var controller = anims[genre];
+            animator.runtimeAnimatorController = controller;
+            animator.Rebind();
+            return true;
         }
 
 #pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously

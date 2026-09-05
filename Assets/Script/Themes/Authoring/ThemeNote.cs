@@ -4,6 +4,7 @@ using UnityEngine;
 namespace YARG.Themes
 {
     // WARNING: Changing this could break themes or venues!
+    // WARNING: Changing this will break code!
     //
     // Changing the serialized fields (or the enum) in this file will result
     // in older themes not working properly. Only change if you need to.
@@ -33,6 +34,17 @@ namespace YARG.Themes
         DedicatedLaneKick = 15,
 
         BlackGlissando = 16,
+        
+        // 6-fret guitar specific types
+        SixFretDown      = 17,
+        SixFretDownHOPO  = 18,
+        SixFretDownTap   = 19,
+        SixFretUpHOPO    = 20,
+        SixFretUpTap     = 21,
+        SixFretUp        = 22,
+        SixFretBarre     = 23,
+        SixFretBarreTap  = 24,
+        SixFretBarreHOPO = 25,
     }
 
     public class ThemeNote : MonoBehaviour
@@ -51,9 +63,14 @@ namespace YARG.Themes
         [SerializeField]
         private MeshEmissionMaterialIndex[] _coloredMetalMaterials;
 
+        [Space]
+        [SerializeField]
+        private MeshEmissionMaterialIndex[] _coloredSecondaryMaterials;
+
         public IEnumerable<MeshEmissionMaterialIndex> ColoredMaterials => _coloredMaterials;
         public IEnumerable<MeshEmissionMaterialIndex> ColoredMaterialsNoStarPower => _coloredMaterialsNoStarPower;
         public IEnumerable<MeshEmissionMaterialIndex> ColoredMetalMaterials => _coloredMetalMaterials;
+        public IEnumerable<MeshEmissionMaterialIndex> ColoredSecondaryMaterials => _coloredSecondaryMaterials;
 
         private void OnDrawGizmos()
         {

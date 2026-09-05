@@ -69,6 +69,18 @@ namespace YARG.Menu.DifficultySelect
         private static readonly Color DONE_SELECTED_TEXT_COLOR = new Color32(0x01, 0x22, 0x27, 0xFF);
         private static readonly Color DONE_SELECTED_FILL_COLOR = new Color32(0x00, 0xD3, 0xFF, 0xFF);
 
+        // Instruments that use the (X-Fret) suffix and not the (X-Lane) suffix when in 6-fret mode
+        private static readonly Instrument[] _fretInstruments = {
+            Instrument.FiveFretGuitar,
+            Instrument.FiveFretBass,
+            Instrument.FiveFretCoopGuitar,
+            Instrument.FiveFretRhythm,
+            Instrument.SixFretGuitar,
+            Instrument.SixFretBass,
+            Instrument.SixFretRhythm,
+            Instrument.SixFretCoopGuitar,
+        };
+
         [SerializeField]
         private TextMeshProUGUI _subHeader;
         [SerializeField]
@@ -394,7 +406,7 @@ namespace YARG.Menu.DifficultySelect
                 });
 
                 var instrumentItem = CreateItem(LocalizeHeader("Instrument"),
-                    player.Profile.CurrentInstrument.ToLocalizedName(),
+                    GetInstrumentDisplayName(player.Profile.CurrentInstrument, player.Profile.GameMode),
                     _lastMenuState == State.Instrument, _ringsItemPrefab, () =>
                 {
                     _menuState = State.Instrument;
@@ -579,10 +591,9 @@ namespace YARG.Menu.DifficultySelect
             foreach (var instrument in _possibleInstruments)
             {
                 bool selected = CurrentPlayer.Profile.CurrentInstrument == instrument;
-
                 // Instrument name with its charted tier on a smaller, dimmed
                 // second line (mirroring the header text style).
-                string label = instrument.ToLocalizedName()
+                string label = GetInstrumentDisplayName(instrument, CurrentPlayer.Profile.GameMode)
                     + $"\n<size=18><color=#FFFFFF80>{GetTierLabel(GetTierValues(song, instrument))}</color></size>";
 
                 CreateItem(label, selected, () =>
@@ -1245,6 +1256,23 @@ namespace YARG.Menu.DifficultySelect
         private string LocalizeHeader(string key)
         {
             return Localize.Key("Menu.DifficultySelect", key);
+        }
+
+        private string GetInstrumentDisplayName(Instrument instrument, GameMode gameMode)
+        {
+            var name = instrument.ToLocalizedName();
+            // When in 6-fret mode, indicate when a 5-fret instrument is being used
+            // (i.e., a 5-fret chart loaded in 6-fret mode)
+            if (gameMode == GameMode.SixFretGuitar && !instrument.IsSixFret())
+            {
+                //TODO: Figure out a way to localise this
+                if (_fretInstruments.Contains(instrument))
+                {
+                    return $"{name} (5-Fret)";
+                }
+                return $"{name} (5-Lane)";
+            }
+            return name;
         }
 
         private bool HasPlayableInstrument(SongEntry entry, in Instrument instrument)

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using YARG.Core;
 using YARG.Core.Chart;
@@ -78,6 +78,11 @@ namespace YARG.Helpers.Extensions
                 Instrument.FiveFretCoopGuitar => "guitarCoop",
                 Instrument.Keys               => "keys",
 
+                Instrument.SixFretGuitar      => "guitar6",
+                Instrument.SixFretBass        => "bass6",
+                Instrument.SixFretRhythm      => "rhythm6",
+                Instrument.SixFretCoopGuitar  => "coop6",
+
                 Instrument.FourLaneDrums => "drums",
                 Instrument.ProDrums      => "realDrums",
                 Instrument.FiveLaneDrums => "ghDrums",
@@ -103,6 +108,11 @@ namespace YARG.Helpers.Extensions
                 "rhythm"     => Instrument.FiveFretRhythm,
                 "guitarCoop" => Instrument.FiveFretCoopGuitar,
                 "keys"       => Instrument.Keys,
+
+                "guitar6"    => Instrument.SixFretGuitar,
+                "bass6"      => Instrument.SixFretBass,
+                "rhythm6"    => Instrument.SixFretRhythm,
+                "coop6"      => Instrument.SixFretCoopGuitar,
 
                 "drums"     => Instrument.FourLaneDrums,
                 "realDrums" => Instrument.ProDrums,
