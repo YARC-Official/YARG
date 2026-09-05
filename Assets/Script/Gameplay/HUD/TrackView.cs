@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 using YARG.Core.Engine;
 using YARG.Gameplay.Visuals;
@@ -28,6 +29,13 @@ namespace YARG.Gameplay.HUD
         private CountdownDisplay _countdownDisplay;
         [SerializeField]
         private PlayerNameDisplay _playerNameDisplay;
+
+        [SerializeField]
+        private TrackPlayerMenu _playerMenuPrefab;
+
+        private TrackPlayerMenu _playerMenu;
+
+        public bool IsPlayerMenuOpen => _playerMenu != null && _playerMenu.IsOpen;
 
 
         private HighwayCameraRendering _highwayRenderer;
@@ -147,6 +155,9 @@ namespace YARG.Gameplay.HUD
             SetHighwayOffsetX(hasCustomPosition ? _highwayDraggable.CurrentPosition.x : 0f);
 
             var trackBounds = _highwayRenderer.GetTrackBoundsScreenSpace(highwayIndex);
+            _playerMenu?.SetTrackBounds(trackBounds,
+                bottom: _highwayRenderer.GetTrackPositionScreenSpace(highwayIndex, 0.5f, 0f),
+                top: _highwayRenderer.GetTrackPositionScreenSpace(highwayIndex, 0.5f, 1f));
             if (trackBounds == null)
             {
                 _highwayEditContainer.position = _hiddenPosition;
@@ -285,6 +296,26 @@ namespace YARG.Gameplay.HUD
         {
             _playerNameDisplay.ShowPlayer(player);
         }
+
+        public void ShowPlayerMenu(IReadOnlyList<PlayerMenuItem> items)
+        {
+            if (_playerMenu == null)
+            {
+                _playerMenu = Instantiate(_playerMenuPrefab, transform);
+                _playerMenu.Initialize(_countdownDisplay.transform);
+            }
+
+            _playerMenu.SetItems(items);
+            _playerMenu.Show();
+        }
+
+        public void SelectPlayerMenuNext() => _playerMenu?.SelectNext();
+
+        public void SelectPlayerMenuPrevious() => _playerMenu?.SelectPrevious();
+
+        public void ConfirmPlayerMenu() => _playerMenu?.ConfirmSelection();
+
+        public void ClosePlayerMenu() => _playerMenu?.Close();
 
         public void ForceReset()
         {

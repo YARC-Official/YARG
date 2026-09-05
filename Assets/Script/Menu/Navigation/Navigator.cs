@@ -417,6 +417,24 @@ namespace YARG.Menu.Navigation
             UpdateHelpBar().Forget();
         }
 
+        public void RemoveScheme(NavigationScheme scheme)
+        {
+            if (!_schemeStack.Contains(scheme))
+            {
+                return;
+            }
+
+            var remaining = _schemeStack.Where(entry => entry != scheme).Reverse().ToArray();
+            _schemeStack.Clear();
+            foreach (var entry in remaining)
+            {
+                _schemeStack.Push(entry);
+            }
+
+            scheme.PopCallback?.Invoke();
+            UpdateHelpBar().Forget();
+        }
+
         private async UniTask UpdateHelpBar()
         {
             // Wait one frame to update, in case another one gets pushed.

@@ -118,6 +118,13 @@ namespace YARG.Gameplay.Player
 
         protected bool PlayerHasFailed;
 
+        public bool HasDroppedOut { get; protected set; }
+
+        public virtual void DropOut()
+        {
+            HasDroppedOut = true;
+        }
+
         protected override void GameplayAwake()
         {
             _replayInputs = new List<GameInput>();
@@ -314,6 +321,12 @@ namespace YARG.Gameplay.Player
 
         public void SendInputsOnResume()
         {
+            if (HasDroppedOut)
+            {
+                InputsToSendOnResume.Clear();
+                return;
+            }
+
             foreach (var originalInput in InputsToSendOnResume.Values)
             {
                 var input = new GameInput(InputManager.CurrentInputTime, originalInput.Action, originalInput.Integer);
@@ -323,11 +336,23 @@ namespace YARG.Gameplay.Player
             InputsToSendOnResume.Clear();
         }
 
+        protected virtual bool IsMenuOpen => false;
+
+        protected virtual void OnMenuGameInput(GameInput input)
+        {
+        }
+
         protected void OnGameInput(ref GameInput input)
         {
             // Ignore completely if the song hasn't started yet or player failed
-            if (!GameManager.Started || PlayerHasFailed)
+            if (!GameManager.Started || PlayerHasFailed || HasDroppedOut)
                 return;
+
+            if (IsMenuOpen)
+            {
+                OnMenuGameInput(input);
+                return;
+            }
 
             // Ignore while paused
             if (GameManager.Paused || GameManager.Rewinding)

@@ -9,6 +9,7 @@ using YARG.Core;
 using YARG.Core.Audio;
 using YARG.Core.Chart;
 using YARG.Core.Engine;
+using YARG.Core.Input;
 using YARG.Core.Logging;
 using YARG.Gameplay.HUD;
 using YARG.Gameplay.Visuals;
@@ -33,6 +34,98 @@ namespace YARG.Gameplay.Player
         public double SpawnTimeOffset => (ZeroFadePosition + _spawnAheadDelay + -STRIKE_LINE_POS) / NoteSpeed;
 
         protected TrackView TrackView { get; private set; }
+
+        public bool IsPlayerMenuOpen => TrackView.IsPlayerMenuOpen;
+
+        public void ShowPlayerMenu()
+        {
+            if (HasDroppedOut)
+            {
+                return;
+            }
+
+            TrackView.ShowPlayerMenu(GetPlayerMenuItems());
+        }
+
+        public void PlayerMenuNext()
+        {
+            if (IsPlayerMenuOpen)
+            {
+                TrackView.SelectPlayerMenuNext();
+            }
+        }
+
+        public void PlayerMenuPrevious()
+        {
+            if (IsPlayerMenuOpen)
+            {
+                TrackView.SelectPlayerMenuPrevious();
+            }
+        }
+
+        public void ConfirmPlayerMenu()
+        {
+            if (IsPlayerMenuOpen)
+            {
+                TrackView.ConfirmPlayerMenu();
+            }
+        }
+
+        private IReadOnlyList<PlayerMenuItem> GetPlayerMenuItems()
+        {
+            return new[]
+            {
+                new PlayerMenuItem("DROP OUT", DropOut),
+                new PlayerMenuItem("TEST ITEM 1", () => { }),
+                new PlayerMenuItem("TEST ITEM 2", () => { }),
+                new PlayerMenuItem("TEST ITEM 3", () => { }),
+                new PlayerMenuItem("TEST ITEM 4", () => { }),
+                new PlayerMenuItem("TEST ITEM 5", () => { }),
+                new PlayerMenuItem("TEST ITEM 4", () => { }),
+                new PlayerMenuItem("TEST ITEM 5", () => { }),
+                new PlayerMenuItem("TEST ITEM 6", () => { }),
+                new PlayerMenuItem("TEST ITEM 7", () => { }),
+                new PlayerMenuItem("TEST ITEM 8", () => { }),
+            };
+        }
+
+        protected override bool IsMenuOpen => TrackView != null && IsPlayerMenuOpen;
+
+        protected override void OnMenuGameInput(GameInput input)
+        {
+            if (!input.Button)
+            {
+                return;
+            }
+
+            var mode = Player.Profile.GameMode;
+            if (mode is GameMode.FiveFretGuitar or GameMode.SixFretGuitar)
+            {
+                var action = input.GetAction<GuitarAction>();
+                if (action == GuitarAction.StrumUp)
+                {
+                    PlayerMenuPrevious();
+                }
+                else if (action == GuitarAction.StrumDown)
+                {
+                    PlayerMenuNext();
+                }
+            }
+        }
+
+        public void ClosePlayerMenu() => TrackView.ClosePlayerMenu();
+
+        public override void DropOut()
+        {
+            if (HasDroppedOut)
+            {
+                return;
+            }
+
+            base.DropOut();
+            CameraPositioner.Lower(true);
+            ClosePlayerMenu();
+        }
 
         [field: Header("Visuals")]
         [field: SerializeField]
@@ -503,11 +596,11 @@ namespace YARG.Gameplay.Player
             }
 
             bool isSongEnd = visualTime > SongLength;
-            bool shouldLowerTrack = isSongEnd || GameManager.PlayerHasFailed;
+            bool shouldLowerTrack = isSongEnd || GameManager.PlayerHasFailed || HasDroppedOut;
             if (!_didLowerTrack && shouldLowerTrack)
             {
                 _didLowerTrack = true;
-                CameraPositioner.Lower(isSongEnd);
+                CameraPositioner.Lower(isSongEnd || HasDroppedOut);
             }
             else if (_didLowerTrack && !shouldLowerTrack)
             {

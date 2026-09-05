@@ -110,6 +110,7 @@ namespace YARG.Menu.Navigation
         public Action PopCallback;
 
         public bool SuppressHelpBar;
+        public bool HideHelpBar;
 
         public NavigationScheme(List<Entry> entries, bool? allowsMusicPlayer, Action popCallback = null)
         {

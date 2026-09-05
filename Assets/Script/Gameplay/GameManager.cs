@@ -241,6 +241,10 @@ namespace YARG.Gameplay
             if (Navigator.Instance != null)
             {
                 Navigator.Instance.NavigationEvent -= OnNavigationEvent;
+                if (_playerMenuScheme != null)
+                {
+                    Navigator.Instance.RemoveScheme(_playerMenuScheme);
+                }
             }
 
             // Unsubscribe from other events
@@ -432,6 +436,11 @@ namespace YARG.Gameplay
 
         private void PauseCore(bool showMenu)
         {
+            foreach (var player in _players.OfType<TrackPlayer>())
+            {
+                player.ClosePlayerMenu();
+            }
+
             if (showMenu)
             {
                 if (!GlobalVariables.State.PlayingWithReplay && ReplayInfo != null)
@@ -920,12 +929,20 @@ namespace YARG.Gameplay
             return replayInfo;
         }
 
+        private NavigationScheme _playerMenuScheme;
+
         private void OnNavigationEvent(NavigationContext context)
         {
             switch (context.Action)
             {
                 // Pause
                 case MenuAction.Start:
+                    var trackPlayer = _players.OfType<TrackPlayer>().FirstOrDefault(player => player.Player == context.Player);
+                    if (trackPlayer != null && trackPlayer.IsPlayerMenuOpen)
+                    {
+                        return;
+                    }
+
                     if (_draggableHud.EditMode)
                     {
                         SetEditHUD(false);
@@ -937,6 +954,51 @@ namespace YARG.Gameplay
                     }
                     break;
             }
+        }
+
+        private void OnPlayerMenuHold(NavigationContext context)
+        {
+            var trackPlayer = _players.OfType<TrackPlayer>().FirstOrDefault(player => player.Player == context.Player);
+            if (trackPlayer == null)
+            {
+                OnNavigationEvent(context);
+                return;
+            }
+
+            if (TotalPlayers > 1 && !Paused && !Rewinding && !PlayerHasFailed &&
+                !_draggableHud.EditMode && !DialogManager.Instance.IsDialogShowing)
+            {
+                if (!trackPlayer.HasDroppedOut)
+                {
+                    trackPlayer.ShowPlayerMenu();
+                }
+            }
+        }
+
+        private void ConfirmPlayerMenu(NavigationContext context)
+        {
+            GetPlayerMenuOwner(context)?.ConfirmPlayerMenu();
+        }
+
+        private void PlayerMenuUp(NavigationContext context)
+        {
+            GetPlayerMenuOwner(context)?.PlayerMenuPrevious();
+        }
+
+        private void PlayerMenuDown(NavigationContext context)
+        {
+            GetPlayerMenuOwner(context)?.PlayerMenuNext();
+        }
+
+        private TrackPlayer GetPlayerMenuOwner(NavigationContext context)
+        {
+            return _players.OfType<TrackPlayer>().FirstOrDefault(player => player.Player == context.Player);
+        }
+
+        private void ClosePlayerMenu(NavigationContext context)
+        {
+            var trackPlayer = _players.OfType<TrackPlayer>().FirstOrDefault(player => player.Player == context.Player);
+            trackPlayer?.ClosePlayerMenu();
         }
 
         private void OnApplicationFocus(bool hasFocus)

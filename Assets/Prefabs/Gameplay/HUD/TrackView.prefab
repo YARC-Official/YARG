@@ -58,6 +58,7 @@ MonoBehaviour:
   _textNotifications: {fileID: 4946571513074747625}
   _countdownDisplay: {fileID: 202077715988875599}
   _playerNameDisplay: {fileID: 8857866979392484843}
+  _playerMenuPrefab: {fileID: 7944909741338334048, guid: fdcc142f62d08694da561b9589b7da7b, type: 3}
 --- !u!1 &547032022231682811
 GameObject:
   m_ObjectHideFlags: 0
