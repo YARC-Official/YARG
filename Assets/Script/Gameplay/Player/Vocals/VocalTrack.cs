@@ -375,6 +375,34 @@ namespace YARG.Gameplay.Player
                 _ => throw new Exception("Unreachable.")
             };
 
+            if (SettingsManager.Settings.StaticVocalsMode.Value)
+            {
+                foreach (var heldPhraseEl in _staticLyricHoldText)
+                {
+                    heldPhraseEl.Initialize();
+                }
+
+                switch (LyricLaneCount)
+                {
+                    case 1:
+                        _staticLyricHoldText[1].gameObject.SetActive(false);
+                        _staticLyricHoldText[2].gameObject.SetActive(false);
+                        break;
+                    case 2:
+                        _staticLyricHoldText[2].gameObject.SetActive(false);
+                        _staticLyricHoldText[1].transform.localPosition =
+                            _staticLyricHoldText[2].transform.localPosition;
+                        break;
+                }
+            }
+            else
+            {
+                foreach (var heldPhraseEl in _staticLyricHoldText)
+                {
+                    heldPhraseEl.gameObject.SetActive(false);
+                }
+            }
+
             // this should never happen, yell in the logs if it does
             if (_vocalsTrack.RangeShifts.Count < 1)
             {
@@ -572,6 +600,7 @@ namespace YARG.Gameplay.Player
                 _highestEnqueuedPhrasePairIndices[i] = -1;
                 _rightEdges[i] = DEFAULT_STATIC_LYRICS_RIGHT_EDGE;
                 _noMoreStaticPhrases[i] = false;
+                _staticLyricHoldText[i].Reset();
             }
 
 
@@ -688,158 +717,16 @@ namespace YARG.Gameplay.Player
             {
                 // In 3-lane mode, each lane gets its own tracker with no merging.
                 // In 2-lane mode, HARM1 still gets its own tracker with no merging.
-                return new StaticPhraseTracker(GetVocalPhrasePairs(parts[index], null));
+                return new StaticPhraseTracker(parts[index].StaticLyricPhrases);
             }
 
             return index switch
             {
                 // In 2-lane mode, HARM2 gets HARM3 as a merged part.
-                1 => new StaticPhraseTracker(GetVocalPhrasePairs(parts[index],
-                    index + 1 < parts.Count ? parts[index + 1] : null)),
+                1 => new StaticPhraseTracker(parts[1].MergedStaticLyricPhrases),
                 // HARM3 is handled by HARM2 in 2-lane mode.
                 _ => null
             };
         }
-
-        // Necessary for combining HARM2 and HARM3 in two-lane view
-#nullable enable
-        public struct VocalPhrasePair
-        {
-            public double Tick;
-            public double Time;
-
-            // In three-lane view, this is always populated
-            // In two-lane view, the HARM2 tracker might have some VocalPhrasePairs where this is null but mergedPhrase is not (for phrases that include
-            // HARM3 but not HARM2). Still always populated for HARM1
-            public VocalsPhrase? MainPhrase;
-
-            // In three-lane view, this is always null
-            // In two-lane view, this is populated with HARM3's phrases. When HARM2 and HARM3 share a phrase, both fields are populated. Still always null
-            // for HARM1
-            public VocalsPhrase? MergedPhrase;
-
-            public VocalPhrasePair(VocalsPhrase? mainPhrase, VocalsPhrase? mergedPhrase)
-            {
-                MainPhrase = mainPhrase;
-                MergedPhrase = mergedPhrase;
-
-                if (mainPhrase is not null)
-                {
-                    Tick = mainPhrase.Tick;
-                    Time = mainPhrase.Time;
-                }
-                else if (mergedPhrase is not null)
-                {
-                    Tick = mergedPhrase.Tick;
-                    Time = mergedPhrase.Time;
-                }
-                else
-                {
-                    throw new InvalidOperationException("Tried to create VocalPhrasePair with two null phrases");
-                }
-            }
-
-            // Percussion is only valid on Solo Vocals and HARM1, so the merged phrase can be assumed false
-            public readonly bool IsPercussion => MainPhrase?.IsPercussion ?? false;
-
-            public readonly bool IsStarPower => MainPhrase?.IsStarPower ?? MergedPhrase!.IsStarPower;
-
-            public readonly bool HasNotes => HasNotesInPhrase(MainPhrase) || HasNotesInPhrase(MergedPhrase);
-
-            public double Duration => GetLastNoteTotalEndTime() - GetFirstNoteStartTime();
-
-            public double GetFirstNoteStartTime()
-            {
-                if (!HasNotes)
-                {
-                    return Time;
-                }
-
-                if (!HasNotesInPhrase(MergedPhrase))
-                {
-                    return MainPhrase!.PhraseParentNote.Time;
-                }
-
-                if (!HasNotesInPhrase(MainPhrase))
-                {
-                    return MergedPhrase!.PhraseParentNote.Time;
-                }
-
-                return Math.Min(MainPhrase!.PhraseParentNote.Time, MergedPhrase!.PhraseParentNote.Time);
-            }
-
-            public double GetLastNoteTotalEndTime()
-            {
-                if (!HasNotes)
-                {
-                    return Time;
-                }
-
-                if (!HasNotesInPhrase(MergedPhrase))
-                {
-                    return MainPhrase!.PhraseParentNote.ChildNotes[^1].TotalTimeEnd;
-                }
-
-                if (!HasNotesInPhrase(MainPhrase))
-                {
-                    return MergedPhrase!.PhraseParentNote.ChildNotes[^1].TotalTimeEnd;
-                }
-
-                return Math.Max(MainPhrase!.PhraseParentNote.ChildNotes[^1].TotalTimeEnd,
-                    MergedPhrase!.PhraseParentNote.ChildNotes[^1].TotalTimeEnd);
-            }
-
-            private static bool HasNotesInPhrase(VocalsPhrase? phrase)
-            {
-                return phrase?.PhraseParentNote.ChildNotes.Count > 0;
-            }
-        }
-
-        private List<VocalPhrasePair> GetVocalPhrasePairs(VocalsPart mainPart, VocalsPart? mergedPart)
-        {
-            var phrasePairs = new List<VocalPhrasePair>();
-
-            if (mergedPart is null)
-            {
-                foreach (var phrase in mainPart.StaticLyricPhrases)
-                {
-                    phrasePairs.Add(new(phrase, null));
-                }
-            }
-            else
-            {
-                var mergedPhraseIdx = 0;
-
-                foreach (var mainPhrase in mainPart.StaticLyricPhrases)
-                {
-                    // Capture any HARM3-only phrases that happened since last time
-                    while (mergedPhraseIdx < mergedPart.StaticLyricPhrases.Count && mergedPart.StaticLyricPhrases[mergedPhraseIdx].Tick < mainPhrase.Tick)
-                    {
-                        phrasePairs.Add(new(null, mergedPart.StaticLyricPhrases[mergedPhraseIdx++]));
-                    }
-
-                    // Capture HARM2+3 phrase
-                    if (mergedPhraseIdx < mergedPart.StaticLyricPhrases.Count && mergedPart.StaticLyricPhrases[mergedPhraseIdx].Tick == mainPhrase.Tick)
-                    {
-                        phrasePairs.Add(new(mainPhrase, mergedPart.StaticLyricPhrases[mergedPhraseIdx++]));
-                    }
-
-                    // Capture HARM2-only phrase
-                    else
-                    {
-                        phrasePairs.Add(new(mainPhrase, null));
-                    }
-                }
-
-                // Capture any remaining HARM3-only phrases after the last HARM2 phrase
-                while (mergedPhraseIdx < mergedPart.StaticLyricPhrases.Count)
-                {
-                    phrasePairs.Add(new(null, mergedPart.StaticLyricPhrases[mergedPhraseIdx++]));
-                }
-            }
-
-            return phrasePairs;
-        }
-#nullable disable
     }
 }

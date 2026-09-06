@@ -103,6 +103,9 @@ namespace YARG.Settings.Preview
                     NoteColorProvider = (colorProfile, note) => colorProfile.SixFretGuitar
                         .GetNoteColor(note.Fret)
                         .ToUnityColor(),
+                    NoteStarPowerColorProvider = (colorProfile, note) => colorProfile.SixFretGuitar
+                        .GetNoteStarPowerColor(note.Fret)
+                        .ToUnityColor(),
 
                     HitWindowProvider = (enginePreset) => enginePreset.SixFretGuitar.HitWindow,
                     Generator = new SixFretGuitarFakeNoteGenerator()
