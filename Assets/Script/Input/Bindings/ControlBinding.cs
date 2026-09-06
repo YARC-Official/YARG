@@ -169,10 +169,12 @@ namespace YARG.Input
         }
     }
 
-    public abstract class SingleBinding<TState>
+    public abstract class SingleBinding<TState> : ISingleBinding<TState>
         where TState : struct
     {
         public InputControl<TState> Control { get; }
+        public string ControlName => Control.name;
+
         public TState               State   { get; protected set; }
 
         public event Action<TState> StateChanged;
@@ -218,7 +220,7 @@ namespace YARG.Input
     /// <summary>
     /// A binding to one or more controls.
     /// </summary>
-    public abstract class ControlBinding<TState, TBinding> : ControlBinding, IInputStateChangeMonitor
+    public abstract class ControlBinding<TState, TBinding> : ControlBinding, IControlBinding<TState, TBinding>, IInputStateChangeMonitor
         where TState : struct
         where TBinding : SingleBinding<TState>
     {

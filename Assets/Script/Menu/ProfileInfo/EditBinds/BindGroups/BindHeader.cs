@@ -1,4 +1,4 @@
-using TMPro;
+﻿using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using YARG.Core.Input;
@@ -29,10 +29,10 @@ namespace YARG.Menu.ProfileInfo
         private GameObject _dropdownArrow;
 
         private EditBindsTab _editBindsTab;
-        private YargPlayer _player;
+        private YargPlayer? _player;
         private ControlBinding _binding;
 
-        public void Init(EditBindsTab editBindsTab, YargPlayer player, ControlBinding binding)
+        public void Init(EditBindsTab editBindsTab, YargPlayer? player, ControlBinding binding)
         {
             _editBindsTab = editBindsTab;
             _player = player;
@@ -110,8 +110,8 @@ namespace YARG.Menu.ProfileInfo
         public void AddBinding<TView, TState, TBinding, TSingle>(TView viewPrefab, TBinding binding, TSingle control)
             where TView : SingleBindView<TState, TBinding, TSingle>
             where TState : struct
-            where TBinding : ControlBinding<TState, TSingle>
-            where TSingle : SingleBinding<TState>
+            where TBinding : IControlBinding<TState, TSingle>
+            where TSingle : ISingleBinding<TState>
         {
             var bindView = _bindingList.AddNewWithoutRebuild(viewPrefab);
             bindView.Init(binding, control);

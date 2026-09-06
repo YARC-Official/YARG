@@ -1,11 +1,11 @@
-using TMPro;
+﻿using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using YARG.Input;
 
 namespace YARG.Menu.ProfileInfo
 {
-    public class SingleButtonBindView : SingleBindView<float, ButtonBinding, SingleButtonBinding>
+    public class SingleButtonBindView : SingleBindView<float, IButtonBinding, ISingleButtonBinding>
     {
         [SerializeField]
         private AxisDisplay _valueDisplay;
@@ -22,7 +22,7 @@ namespace YARG.Menu.ProfileInfo
         [SerializeField]
         private ValueSlider _debounceSlider;
 
-        public override void Init(ButtonBinding binding, SingleButtonBinding singleBinding)
+        public override void Init(IButtonBinding binding, ISingleButtonBinding singleBinding)
         {
             base.Init(binding, singleBinding);
 

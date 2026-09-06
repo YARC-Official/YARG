@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -190,7 +190,7 @@ namespace YARG.Input
 
     public class ButtonBinding : ControlBinding<float, SingleButtonBinding>
     {
-        protected const long DEBOUNCE_DEFAULT = 5;
+        protected const long DEBOUNCE_DEFAULT = 5; // TODO-FRICK: Remove?
 
         protected DebounceTimer<bool> _debounceTimer = new()
         {

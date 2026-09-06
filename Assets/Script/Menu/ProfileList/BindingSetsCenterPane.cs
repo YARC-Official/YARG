@@ -1,4 +1,5 @@
 ﻿using TMPro;
+using Unity.Multiplayer.PlayMode;
 using UnityEngine;
 using YARG.Helpers.Extensions;
 using YARG.Input;
@@ -68,9 +69,25 @@ namespace YARG.Menu.ProfileList
 
             _name.text = bindingSet.Name;
 
-            foreach (var binding in bindingSet.Bindings)
+            foreach (var (name, binding) in bindingSet.Bindings)
             {
+                switch (binding)
+                {
+                    case ReusableButtonBinding button:
+                        var buttonGroup = Instantiate(_buttonGroupPrefab, _bindsList);
+                        buttonGroup.Init(this, null, binding);
+                        break;
 
+                    case ReusableAxisBinding axis:
+                        var axisGroup = Instantiate(_axisGroupPrefab, _bindsList);
+                        axisGroup.Init(this, null, axis);
+                        break;
+
+                    case ReusableIntegerBinding integer:
+                        var integerGroup = Instantiate(_integerGroupPrefab, _bindsList);
+                        integerGroup.Init(this, null, integer);
+                        break;
+                }
             }
         }
     }

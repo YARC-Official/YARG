@@ -33,9 +33,12 @@ namespace YARG.Input
 
             var bindingType = template[controlName];
 
-            return new ReusableControlBinding(bindingType)
+            return bindingType switch
             {
-                Controls = new() { new(controlName) }
+                BindingType.Button => new ReusableButtonBinding() { Bindings = new() { new(controlName) } },
+                BindingType.Axis => new ReusableAxisBinding() { Bindings = new() { new(controlName) } },
+                BindingType.Integer => new ReusableIntegerBinding() { Bindings = new() { new(controlName) } },
+                _ => throw new ArgumentOutOfRangeException("Unexpected binding type!")
             };
         }
     }

@@ -1,15 +1,15 @@
-using TMPro;
+﻿using TMPro;
 using UnityEngine;
 using YARG.Input;
 
 namespace YARG.Menu.ProfileInfo
 {
-    public class SingleIntegerBindView : SingleBindView<int, IntegerBinding, SingleIntegerBinding>
+    public class SingleIntegerBindView : SingleBindView<int, IIntegerBinding, ISingleIntegerBinding>
     {
         [SerializeField]
         private TMP_InputField _valueText;
 
-        public override void Init(IntegerBinding binding, SingleIntegerBinding singleBinding)
+        public override void Init(IIntegerBinding binding, ISingleIntegerBinding singleBinding)
         {
             base.Init(binding, singleBinding);
 

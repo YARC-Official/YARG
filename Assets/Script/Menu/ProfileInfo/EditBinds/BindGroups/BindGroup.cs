@@ -7,8 +7,8 @@ namespace YARG.Menu.ProfileInfo
     public abstract class BindGroup<TView, TState, TBinding, TSingle> : MonoBehaviour
         where TView : SingleBindView<TState, TBinding, TSingle>
         where TState : struct
-        where TBinding : ControlBinding<TState, TSingle>
-        where TSingle : SingleBinding<TState>
+        where TBinding : IControlBinding<TState, TSingle>
+        where TSingle : ISingleBinding<TState>
     {
         [SerializeField]
         protected BindHeader _header;

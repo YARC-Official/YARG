@@ -5,6 +5,7 @@ using YARG.Core;
 using YARG.Helpers;
 using YARG.Input.Serialization;
 using YARG.Menu.ProfileList;
+using static YARG.Input.Serialization.SerializedBindingsV4;
 
 namespace YARG.Input
 {
@@ -49,7 +50,12 @@ namespace YARG.Input
             {
                 var type = template[name];
 
-                Bindings[name] = new(type, serializedControlBinding);
+                Bindings[name] = type switch {
+                    BindingType.Button => new ReusableButtonBinding(serializedControlBinding),
+                    BindingType.Axis => new ReusableAxisBinding(serializedControlBinding),
+                    BindingType.Integer => new ReusableIntegerBinding(serializedControlBinding),
+                    _ => throw new ArgumentOutOfRangeException("Unexpected binding type"),
+                };
             }
             
 
@@ -62,7 +68,13 @@ namespace YARG.Input
             {
                 if (!Bindings.ContainsKey(name))
                 {
-                    Bindings[name] = new(type);
+                    Bindings[name] = type switch
+                    {
+                        BindingType.Button => new ReusableButtonBinding(),
+                        BindingType.Axis => new ReusableAxisBinding(),
+                        BindingType.Integer => new ReusableIntegerBinding(),
+                        _ => throw new ArgumentOutOfRangeException("Unexpected binding type"),
+                    };
                 }
             }
         }

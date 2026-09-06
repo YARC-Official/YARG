@@ -1,11 +1,11 @@
-using Minis;
+﻿using Minis;
 using UnityEngine;
 using YARG.Input;
 using YARG.Player;
 
 namespace YARG.Menu.ProfileInfo
 {
-    public class ButtonBindGroup : BindGroup<SingleButtonBindView, float, ButtonBinding, SingleButtonBinding>
+    public class ButtonBindGroup : BindGroup<SingleButtonBindView, float, IButtonBinding, ISingleButtonBinding>
     {
         [SerializeField]
         private SingleMidiNoteBindView _midiNoteViewPrefab;
@@ -18,7 +18,7 @@ namespace YARG.Menu.ProfileInfo
         [SerializeField]
         private ValueSlider _debounceSlider;
 
-        public override void Init(EditBindsTab editBindsTab, YargPlayer player, ButtonBinding binding)
+        public override void Init(EditBindsTab editBindsTab, YargPlayer player, IButtonBinding binding)
         {
             base.Init(editBindsTab, player, binding);
 

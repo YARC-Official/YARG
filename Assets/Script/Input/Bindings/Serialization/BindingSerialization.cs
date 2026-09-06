@@ -106,7 +106,7 @@ namespace YARG.Input.Serialization
 
     public class SerializedInputControl
     {
-        [Obsolete]
+        [Obsolete] // TODO-FRICK
         public string ControlPath = string.Empty;
 
         public string ControlName;

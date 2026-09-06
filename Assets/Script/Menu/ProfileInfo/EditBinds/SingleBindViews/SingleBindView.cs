@@ -1,4 +1,4 @@
-using TMPro;
+﻿using TMPro;
 using UnityEngine;
 using YARG.Input;
 
@@ -6,8 +6,8 @@ namespace YARG.Menu.ProfileInfo
 {
     public abstract class SingleBindView<TState, TBinding, TSingle> : MonoBehaviour
         where TState : struct
-        where TBinding : ControlBinding<TState, TSingle>
-        where TSingle : SingleBinding<TState>
+        where TBinding : IControlBinding<TState, TSingle>
+        where TSingle : ISingleBinding<TState>
     {
         [Space]
         [SerializeField]

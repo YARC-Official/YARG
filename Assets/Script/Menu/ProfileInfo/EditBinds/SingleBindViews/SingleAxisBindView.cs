@@ -1,10 +1,10 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
 using YARG.Input;
 
 namespace YARG.Menu.ProfileInfo
 {
-    public class SingleAxisBindView : SingleBindView<float, AxisBinding, SingleAxisBinding>
+    public class SingleAxisBindView : SingleBindView<float, IAxisBinding, ISingleAxisBinding>
     {
         [SerializeField]
         private AxisDisplay _rawValueDisplay;
@@ -23,7 +23,7 @@ namespace YARG.Menu.ProfileInfo
         [SerializeField]
         private ValueSlider _lowerDeadzoneSlider;
 
-        public override void Init(AxisBinding binding, SingleAxisBinding singleBinding)
+        public override void Init(IAxisBinding binding, ISingleAxisBinding singleBinding)
         {
             base.Init(binding, singleBinding);
 

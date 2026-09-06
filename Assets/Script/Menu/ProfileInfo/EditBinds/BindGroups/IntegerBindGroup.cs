@@ -1,10 +1,10 @@
-using TMPro;
+﻿using TMPro;
 using UnityEngine;
 using YARG.Input;
 
 namespace YARG.Menu.ProfileInfo
 {
-    public class IntegerBindGroup : BindGroup<SingleIntegerBindView, int, IntegerBinding, SingleIntegerBinding>
+    public class IntegerBindGroup : BindGroup<SingleIntegerBindView, int, IIntegerBinding, ISingleIntegerBinding>
     {
         [Space]
         [SerializeField]

@@ -1,11 +1,11 @@
-using System;
+﻿using System;
 using TMPro;
 using UnityEngine;
 using YARG.Input;
 
 namespace YARG.Menu.ProfileInfo
 {
-    public class SingleMidiNoteBindView : SingleBindView<float, ButtonBinding, SingleButtonBinding>
+    public class SingleMidiNoteBindView : SingleBindView<float, IButtonBinding, ISingleButtonBinding>
     {
         private const float MAX_VELOCITY = 127;
 
@@ -24,7 +24,7 @@ namespace YARG.Menu.ProfileInfo
         [SerializeField]
         private ValueSlider _debounceSlider;
 
-        public override void Init(ButtonBinding binding, SingleButtonBinding singleBinding)
+        public override void Init(IButtonBinding binding, ISingleButtonBinding singleBinding)
         {
             base.Init(binding, singleBinding);
 
