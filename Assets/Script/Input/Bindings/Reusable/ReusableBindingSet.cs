@@ -18,15 +18,22 @@ namespace YARG.Input
 
         // Key is binding name, like "FiveFret.Green" or "FourDrums.RedPad"
         // These names come from BindingCollection.Templates.cs; they are YARG's, not PlasticBand's
-        public Dictionary<string, SerializedReusableControlBinding> Bindings = new();
+        public Dictionary<string, ReusableControlBinding> Bindings = new();
 
-        // Set generateGuid to false when hardcoding defaults
-        public ReusableBindingSet(string name, GameMode? mode, ControllerFamily controllerFamily, bool isDefault = false) {
+        public ReusableBindingSet(
+            string name,
+            GameMode? mode,
+            ControllerFamily controllerFamily,
+            Dictionary<string, ReusableControlBinding> bindings,
+            bool isDefault = false
+        ) {
             Name = name;
             Mode = mode;
             ControllerFamily = controllerFamily;
             Guid = isDefault ? Guid.Empty : Guid.NewGuid();
             IsDefault = isDefault;
+            Bindings = bindings;
+
         }
 
         public ReusableBindingSet(SerializedReusableBindingSet serialized)
@@ -35,10 +42,30 @@ namespace YARG.Input
             Guid = serialized.Guid;
             Mode = serialized.GameMode;
             ControllerFamily = LayoutHelper.LayoutStringToControllerFamily(serialized.BaseLayout);
-            Bindings = serialized.Bindings;
+
+            var template = ReusableBindingSetTemplates.GetTemplateForGameMode(Mode);
+
+            foreach (var (name, serializedControlBinding) in serialized.Bindings)
+            {
+                var type = template[name];
+
+                Bindings[name] = new(type, serializedControlBinding);
+            }
+            
+
+            AddRemainingBindings(template);
         }
 
-
+        private void AddRemainingBindings(Dictionary<string, BindingType> template)
+        {
+            foreach (var (name, type) in template)
+            {
+                if (!Bindings.ContainsKey(name))
+                {
+                    Bindings[name] = new(type);
+                }
+            }
+        }
 
 #nullable enable
         public SerializedReusableBindingSet? Serialize()
@@ -48,11 +75,17 @@ namespace YARG.Input
                 return null;
             }
 
+            var serializedBindings = new Dictionary<string, SerializedReusableControlBinding>();
+            foreach (var (name, binding) in Bindings)
+            {
+                serializedBindings[name] = binding.Serialize();
+            }
+
             return new SerializedReusableBindingSet(Name, LayoutHelper.ControllerFamilyToLayoutString(ControllerFamily)) {
                 Guid = Guid,
-                Bindings = Bindings,
                 GameMode = Mode,
-                BaseLayout = LayoutHelper.ControllerFamilyToLayoutString(ControllerFamily)
+                Bindings = serializedBindings,
+                BaseLayout = LayoutHelper.ControllerFamilyToLayoutString(ControllerFamily),
             };
         }
     }

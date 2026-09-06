@@ -67,6 +67,11 @@ namespace YARG.Menu.ProfileList
             _bindsList.DestroyChildren();
 
             _name.text = bindingSet.Name;
+
+            foreach (var binding in bindingSet.Bindings)
+            {
+
+            }
         }
     }
 }

@@ -17,7 +17,6 @@ using YARG.Menu.ProfileInfo;
 using YARG.Player;
 using YARG.Scores;
 using YARG.Settings.Customization;
-using static UnityEditor.AddressableAssets.Build.Layout.BuildLayout;
 
 namespace YARG.Menu.ProfileList
 {

@@ -11,22 +11,29 @@ namespace YARG.Input
 {
     public partial class ReusableBindingSet
     {
-        public static ReusableBindingSet DEFAULT_5F_GUITAR = new("Default 5-Fret Guitar", GameMode.FiveFretGuitar, ControllerFamily.FiveFretGuitar, true)
-        {
-            Bindings = new()
+        public static ReusableBindingSet DEFAULT_5F_GUITAR = new(
+            "Default 5-Fret Guitar",
+            GameMode.FiveFretGuitar,
+            ControllerFamily.FiveFretGuitar,
+            new()
             {
-                { "FiveFret.Green", MakeSimpleControlBinding(nameof(FiveFretGuitar.greenFret)) },
-                { "FiveFret.Red", MakeSimpleControlBinding(nameof(FiveFretGuitar.redFret)) },
-                { "FiveFret.Yellow", MakeSimpleControlBinding(nameof(FiveFretGuitar.yellowFret)) },
-                { "FiveFret.Blue", MakeSimpleControlBinding(nameof(FiveFretGuitar.blueFret)) },
-                { "FiveFret.Orange", MakeSimpleControlBinding(nameof(FiveFretGuitar.orangeFret)) },
-            }
-        };
+                { "FiveFret.Green",     MakeSimpleControlBinding(GameMode.FiveFretGuitar, nameof(FiveFretGuitar.greenFret)) },
+                { "FiveFret.Red",       MakeSimpleControlBinding(GameMode.FiveFretGuitar, nameof(FiveFretGuitar.redFret)) },
+                { "FiveFret.Yellow",    MakeSimpleControlBinding(GameMode.FiveFretGuitar, nameof(FiveFretGuitar.yellowFret)) },
+                { "FiveFret.Blue",      MakeSimpleControlBinding(GameMode.FiveFretGuitar, nameof(FiveFretGuitar.blueFret)) },
+                { "FiveFret.Orange",    MakeSimpleControlBinding(GameMode.FiveFretGuitar, nameof(FiveFretGuitar.orangeFret)) },
+            },
+            true
+        );
 
 
-        private static SerializedReusableControlBinding MakeSimpleControlBinding(string controlName)
+        private static ReusableControlBinding MakeSimpleControlBinding(GameMode mode, string controlName)
         {
-            return new SerializedReusableControlBinding()
+            var template = ReusableBindingSetTemplates.GetTemplateForGameMode(mode);
+
+            var bindingType = template[controlName];
+
+            return new ReusableControlBinding(bindingType)
             {
                 Controls = new() { new(controlName) }
             };
