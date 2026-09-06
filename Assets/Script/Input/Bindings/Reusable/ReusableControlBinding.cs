@@ -27,9 +27,11 @@ namespace YARG.Input
 
     public abstract class ReusableControlBinding<TState, TSingle> : ReusableControlBinding, IControlBinding<TState, TSingle>
         where TState : struct
-        where TSingle : ISingleBinding<TState>
+        where TSingle : ReusableSingleBinding<TState>
     {
-        public List<ReusableSingleBinding<TState>> Bindings;
+        protected List<TSingle> _bindings { get; set; }
+        public IReadOnlyList<TSingle> Bindings => _bindings;
+
         public TState State { get; set; }
         public event Action StateChanged;
 
@@ -42,7 +44,7 @@ namespace YARG.Input
         {
             var controls = new List<SerializedInputControl>();
 
-            foreach (var binding in Bindings)
+            foreach (var binding in _bindings)
             {
                 controls.Add(binding.Serialize());
             }
@@ -58,9 +60,9 @@ namespace YARG.Input
         {
             var removed = false;
 
-            var newControls = new List<ReusableSingleBinding<TState>>();
+            var newControls = new List<TSingle>();
 
-            foreach (var control in Bindings)
+            foreach (var control in _bindings)
             {
                 if (control.ControlName == single.ControlName)
                 {
@@ -74,7 +76,7 @@ namespace YARG.Input
 
             if (removed)
             {
-                Bindings = newControls;
+                _bindings = newControls;
             }
 
             return removed;
@@ -94,13 +96,18 @@ namespace YARG.Input
         {
             foreach (var control in serialized.Controls)
             {
-                Bindings.Add(new ReusableSingleButtonBinding(control));
+                _bindings.Add(new ReusableSingleButtonBinding(control));
             }
 
             if (serialized.Parameters.TryGetValue(DEBOUNCE_THRESHOLD, out var debounceString))
             {
                 long.TryParse(debounceString, out DebounceThreshold);
             }
+        }
+
+        public ReusableButtonBinding(string name, List<ReusableSingleButtonBinding> bindings) : base(name)
+        {
+            _bindings = bindings;
         }
     }
 
@@ -112,6 +119,11 @@ namespace YARG.Input
         {
             // TODO-FRICK: Axis parameters
         }
+
+        public ReusableAxisBinding(string name, List<ReusableSingleAxisBinding> bindings) : base(name)
+        {
+            _bindings = bindings;
+        }
     }
 
     public class ReusableIntegerBinding : ReusableControlBinding<int, ReusableSingleIntegerBinding>
@@ -121,6 +133,11 @@ namespace YARG.Input
         public ReusableIntegerBinding(string name, SerializedReusableControlBinding? serialized = null) : base(name, serialized)
         {
             // TODO-FRICK: Integer parameters
+        }
+
+        public ReusableIntegerBinding(string name, List<ReusableSingleIntegerBinding> bindings) : base(name)
+        {
+            _bindings = bindings;
         }
     }
 
@@ -135,13 +152,19 @@ namespace YARG.Input
         where TBinding : ISingleBinding<TState>
     {
         bool RemoveBinding(TBinding single);
-        public TState State { get; set; }
         public event Action StateChanged;
+        public IReadOnlyList<TBinding> Bindings { get; }
     }
 
-    public interface IButtonBinding : IControlBinding<float, ISingleButtonBinding> { }
-    public interface IAxisBinding : IControlBinding<float, ISingleAxisBinding> { }
-    public interface IIntegerBinding : IControlBinding<int, ISingleIntegerBinding> { }
+    public interface IButtonBinding : IControlBinding<float, ISingleButtonBinding> {
+        public bool State { get; set; }
+    }
+    public interface IAxisBinding : IControlBinding<float, ISingleAxisBinding> {
+        public float State { get; set; }
+    }
+    public interface IIntegerBinding : IControlBinding<int, ISingleIntegerBinding> {
+        public int State { get; set; }
+    }
 
     public interface ISingleBinding<TState>
         where TState : struct
@@ -156,6 +179,8 @@ namespace YARG.Input
         public float PressPoint { get; set; }
         public DebounceMode DebounceMode { get; set; }
         public long DebounceThreshold { get; set; }
+
+        public bool IsPressed { get; }
     }
     public interface ISingleAxisBinding : ISingleBinding<float> {
         public bool Inverted { get; set; }
@@ -206,6 +231,8 @@ namespace YARG.Input
         public float PressPoint { get; set; } = 0.5f;
         public DebounceMode DebounceMode { get; set; }
         public long DebounceThreshold { get; set; }
+
+        public bool IsPressed => false; // TODO-FRICK
 
         public ReusableSingleButtonBinding(string controlName) : base(controlName) {}
 
@@ -300,8 +327,6 @@ namespace YARG.Input
     {
         public ReusableSingleIntegerBinding(string controlName) : base(controlName) { }
 
-        public ReusableSingleIntegerBinding(SerializedInputControl serialized) : base(serialized) {
-            // TODO-FRICK: Params
-        }
+        public ReusableSingleIntegerBinding(SerializedInputControl serialized) : base(serialized) { }
     }
 }

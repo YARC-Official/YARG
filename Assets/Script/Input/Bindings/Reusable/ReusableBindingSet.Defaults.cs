@@ -35,9 +35,9 @@ namespace YARG.Input
 
             return bindingType switch
             {
-                BindingType.Button => new ReusableButtonBinding(bindingLocalizationKey) { Bindings = new() { new ReusableSingleButtonBinding(singleBindingName) } },
-                BindingType.Axis => new ReusableAxisBinding(bindingLocalizationKey) { Bindings = new() { new ReusableSingleAxisBinding(singleBindingName) } },
-                BindingType.Integer => new ReusableIntegerBinding(bindingLocalizationKey) { Bindings = new() { new ReusableSingleIntegerBinding(singleBindingName) } },
+                BindingType.Button => new ReusableButtonBinding(bindingLocalizationKey, new List<ReusableSingleButtonBinding>() { new(singleBindingName) }),
+                BindingType.Axis => new ReusableAxisBinding  (bindingLocalizationKey, new List<ReusableSingleAxisBinding>() { new(singleBindingName) }),
+                BindingType.Integer => new ReusableIntegerBinding(bindingLocalizationKey, new List<ReusableSingleIntegerBinding>() { new(singleBindingName) }),
                 _ => throw new ArgumentOutOfRangeException("Unexpected binding type!")
             };
         }
