@@ -88,7 +88,7 @@ namespace YARG.Menu.ProfileInfo
 
             foreach (var controller in _currentPlayer.DeviceInfo.Controllers)
             {
-                RefreshFromBindingCollection(_currentPlayer.DeviceInfo[(gameMode, controller.layout)]);
+                // RefreshFromBindingCollection(_currentPlayer.DeviceInfo[(gameMode, controller.layout)]); TODO
             }
         }
 
@@ -98,7 +98,7 @@ namespace YARG.Menu.ProfileInfo
 
             foreach (var bindings in _currentPlayer.DeviceInfo.PreferredMenuBindingsByBaseLayout.Values)
             {
-                RefreshFromBindingCollection(bindings);
+                // RefreshFromBindingCollection(bindings); TODO
             }
         }
 

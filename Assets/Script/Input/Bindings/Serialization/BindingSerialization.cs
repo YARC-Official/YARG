@@ -56,11 +56,13 @@ namespace YARG.Input.Serialization
 
     public class SerializedReusableBindingSet
     {
-        public SerializedReusableBindingSet(string baseLayout)
+        public SerializedReusableBindingSet(string name, string baseLayout)
         {
+            Name = name;
             BaseLayout = baseLayout;
         }
 
+        public string Name;
         public Guid Guid;
         public GameMode? GameMode;
         public string BaseLayout;

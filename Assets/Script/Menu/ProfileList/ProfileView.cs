@@ -57,12 +57,12 @@ namespace YARG.Menu.ProfileList
         public PlayerContainer.UnloadedProfile UnloadedRecord { get; private set; }
 
         private ProfilesMenu _profileListMenu;
-        private ProfileCenterPane  _profileSidebar;
+        private ProfileCenterPane  _profileCenterPane;
 
-        public void Init(ProfilesMenu menu, YargProfile profile, ProfileCenterPane sidebar)
+        public void Init(ProfilesMenu menu, YargProfile profile, ProfileCenterPane centerPane)
         {
             _profileListMenu = menu;
-            _profileSidebar = sidebar;
+            _profileCenterPane = centerPane;
             UpdateDisplay(profile);
         }
 
@@ -73,7 +73,7 @@ namespace YARG.Menu.ProfileList
         public void InitUnloaded(ProfilesMenu menu, PlayerContainer.UnloadedProfile record, ProfileCenterPane sidebar)
         {
             _profileListMenu = menu;
-            _profileSidebar = sidebar;
+            _profileCenterPane = sidebar;
             UnloadedRecord = record;
 
             _profileName.text = Localize.KeyFormat("Menu.ProfileList.UnloadedEntry", record.Name);
@@ -146,11 +146,11 @@ namespace YARG.Menu.ProfileList
                 // Unloaded records have nothing to show in the sidebar
                 if (UnloadedRecord is not null)
                 {
-                    _profileSidebar.HideContents();
+                    _profileCenterPane.HideContents();
                     return;
                 }
 
-                _profileSidebar.UpdateSidebar(Profile, this);
+                _profileCenterPane.UpdateSidebar(Profile, this);
             }
         }
 
@@ -198,7 +198,7 @@ namespace YARG.Menu.ProfileList
         {
             if (Selected)
             {
-                _profileSidebar.HideContents();
+                _profileCenterPane.HideContents();
             }
 
             if (PlayerContainer.RemoveProfile(Profile))
@@ -222,7 +222,7 @@ namespace YARG.Menu.ProfileList
 
                     if (Selected)
                     {
-                        _profileSidebar.HideContents();
+                        _profileCenterPane.HideContents();
                     }
 
                     if (PlayerContainer.DeleteUnloadedProfile(UnloadedRecord))

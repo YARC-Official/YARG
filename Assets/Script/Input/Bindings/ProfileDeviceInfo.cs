@@ -416,12 +416,12 @@ namespace YARG.Input
         {
             foreach (var bindings in _preferredBindsByContext.Values)
             {
-                bindings.ClearAllBindings();
+                //bindings.ClearAllBindings(); TODO
             }
 
             foreach (var bindings in PreferredMenuBindingsByBaseLayout.Values)
             {
-                bindings.ClearAllBindings();
+                //bindings.ClearAllBindings(); TODO
             }
         }
 
@@ -434,12 +434,12 @@ namespace YARG.Input
 
             foreach (var bindings in _preferredBindsByContext.Values)
             {
-                bindings.SetDefaultBindings(controller);
+                // bindings.SetDefaultBindings(controller); TODO
             }
 
             foreach (var bindings in PreferredMenuBindingsByBaseLayout.Values)
             {
-                bindings.SetDefaultBindings(controller);
+                // bindings.SetDefaultBindings(controller); TODO
             }
 
             return true;
@@ -454,12 +454,12 @@ namespace YARG.Input
 
             foreach (var bindings in _preferredBindsByContext.Values)
             {
-                bindings.SetDefaultBindings(gamepad, mode);
+                // bindings.SetDefaultBindings(gamepad, mode); TODO
             }
 
             foreach (var bindings in PreferredMenuBindingsByBaseLayout.Values)
             {
-                bindings.SetDefaultBindings(gamepad, mode);
+                // bindings.SetDefaultBindings(gamepad, mode); TODO
             }
 
             return true;
