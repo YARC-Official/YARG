@@ -217,7 +217,7 @@ namespace YARG.Input
                 serialized.Microphones.Add(mic);
             }
 
-            foreach (var ((mode, baseLayout), bindingSet) in _preferredBindsByContext)
+            foreach (var ((mode, controllerFamily), bindingSet) in _preferredBindsByContext)
             {
                 var serializedBinds = bindingSet.Serialize();
                 if (serializedBinds is null)
@@ -228,10 +228,11 @@ namespace YARG.Input
                     serialized.ModeMappings[mode] = new();
                 }
 
+                var baseLayout = LayoutHelper.ControllerFamilyToLayoutString(controllerFamily);
                 serialized.ModeMappings[mode].MappingsByBaseLayout[baseLayout] = bindingSet.Guid;
             }
 
-            foreach (var (baseLayout, bindingSet) in PreferredMenuBindingsByBaseLayout)
+            foreach (var (controllerFamily, bindingSet) in PreferredMenuBindingsByBaseLayout)
             {
                 var serializedMenuBinds = bindingSet.Serialize();
 
@@ -240,6 +241,7 @@ namespace YARG.Input
                     continue;
                 }
 
+                var baseLayout = LayoutHelper.ControllerFamilyToLayoutString(controllerFamily);
                 serialized.MenuMappings[baseLayout] = bindingSet.Guid;
             }
 
@@ -290,12 +292,12 @@ namespace YARG.Input
 
         public void EnableInputs()
         {
-            foreach (var bindings in _preferredBindsByContext.Values)
+            foreach (var bindings in _activeGameplayBindings.Values)
             {
                 bindings.EnableInputs();
             }
 
-            foreach (var bindings in PreferredMenuBindingsByBaseLayout.Values)
+            foreach (var bindings in _activeMenuBindings.Values)
             {
                 bindings.EnableInputs();
             }
@@ -303,12 +305,12 @@ namespace YARG.Input
 
         public void DisableInputs()
         {
-            foreach (var bindings in _preferredBindsByContext.Values)
+            foreach (var bindings in _activeGameplayBindings.Values)
             {
                 bindings.DisableInputs();
             }
 
-            foreach (var bindings in PreferredMenuBindingsByBaseLayout.Values)
+            foreach (var bindings in _activeMenuBindings.Values)
             {
                 bindings.DisableInputs();
             }
@@ -318,7 +320,7 @@ namespace YARG.Input
         {
             foreach (var controller in Controllers)
             {
-                _preferredBindsByContext[(mode, controller.layout)].InputProcessed += onInputProcessed;
+                _activeGameplayBindings[(controller, mode)].InputProcessed += onInputProcessed;
             }
 
         }
@@ -327,7 +329,7 @@ namespace YARG.Input
         {
             foreach (var controller in Controllers)
             {
-                _preferredBindsByContext[(mode, controller.layout)].InputProcessed -= onInputProcessed;
+                _activeGameplayBindings[(controller, mode)].InputProcessed -= onInputProcessed;
             }
         }
 
@@ -497,12 +499,12 @@ namespace YARG.Input
 
         private void NotifyControllerAdded(InputDevice controller)
         {
-            foreach (var bindings in _preferredBindsByContext.Values)
+            foreach (var bindings in _activeGameplayBindings.Values)
             {
                 bindings.OnDeviceAdded(controller);
             }
 
-            foreach (var bindings in PreferredMenuBindingsByBaseLayout.Values)
+            foreach (var bindings in _activeMenuBindings.Values)
             {
                 bindings.OnDeviceAdded(controller);
             }
@@ -512,12 +514,12 @@ namespace YARG.Input
 
         private void NotifyControllerRemoved(InputDevice controller)
         {
-            foreach (var bindings in _preferredBindsByContext.Values)
+            foreach (var bindings in _activeGameplayBindings.Values)
             {
                 bindings.OnDeviceRemoved(controller);
             }
 
-            foreach (var bindings in PreferredMenuBindingsByBaseLayout.Values)
+            foreach (var bindings in _activeMenuBindings.Values)
             {
                 bindings.OnDeviceRemoved(controller);
             }
@@ -527,12 +529,12 @@ namespace YARG.Input
 
         public void UpdateBindingsForFrame(double updateTime)
         {
-            foreach (var bindings in _preferredBindsByContext.Values)
+            foreach (var bindings in _activeGameplayBindings.Values)
             {
                 bindings.UpdateBindingsForFrame(updateTime);
             }
 
-            foreach (var bindings in PreferredMenuBindingsByBaseLayout.Values)
+            foreach (var bindings in _activeMenuBindings.Values)
             {
                 bindings.UpdateBindingsForFrame(updateTime);
             }
@@ -586,6 +588,12 @@ namespace YARG.Input
             }
 
             ReleaseMicrophones();
+        }
+
+# nullable enable
+        public ReusableBindingSet? GetPreferredBindingSet(GameMode mode, ControllerFamily controllerFamily)
+        {
+            return _preferredBindsByContext.GetValueOrDefault((mode, controllerFamily), null);
         }
     }
 }
