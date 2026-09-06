@@ -67,7 +67,7 @@ namespace YARG.Menu.Dialogs
         {
             _device = parameters.device;
             _player = parameters.player;
-            _bindingCollection = _player.DeviceInfo[(_player.Profile.GameMode, _device.layout)];
+            // _bindingCollection = _player.DeviceInfo[(_player.Profile.GameMode, _device.layout)]; TODO
             _mode = parameters.mode;
         }
 

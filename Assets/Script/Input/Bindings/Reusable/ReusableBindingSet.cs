@@ -8,23 +8,37 @@ using YARG.Menu.ProfileList;
 
 namespace YARG.Input
 {
-    public class ReusableBindingSet
+    public partial class ReusableBindingSet
     {
         public Guid Guid { get; private set; }
         public GameMode? Mode { get; } // null means menu bindings
         public ControllerFamily ControllerFamily { get; private set; }
+        public string Name { get; private set; }
+        public bool IsDefault { get; private set; }
 
         // Key is binding name, like "FiveFret.Green" or "FourDrums.RedPad"
         // These names come from BindingCollection.Templates.cs; they are YARG's, not PlasticBand's
         public Dictionary<string, SerializedReusableControlBinding> Bindings = new();
 
+        // Set generateGuid to false when hardcoding defaults
+        public ReusableBindingSet(string name, GameMode? mode, ControllerFamily controllerFamily, bool isDefault = false) {
+            Name = name;
+            Mode = mode;
+            ControllerFamily = controllerFamily;
+            Guid = isDefault ? Guid.Empty : Guid.NewGuid();
+            IsDefault = isDefault;
+        }
+
         public ReusableBindingSet(SerializedReusableBindingSet serialized)
         {
+            Name = serialized.Name;
             Guid = serialized.Guid;
             Mode = serialized.GameMode;
             ControllerFamily = LayoutHelper.LayoutStringToControllerFamily(serialized.BaseLayout);
             Bindings = serialized.Bindings;
         }
+
+
 
 #nullable enable
         public SerializedReusableBindingSet? Serialize()
@@ -34,7 +48,7 @@ namespace YARG.Input
                 return null;
             }
 
-            return new SerializedReusableBindingSet(LayoutHelper.ControllerFamilyToLayoutString(ControllerFamily)) {
+            return new SerializedReusableBindingSet(Name, LayoutHelper.ControllerFamilyToLayoutString(ControllerFamily)) {
                 Guid = Guid,
                 Bindings = Bindings,
                 GameMode = Mode,

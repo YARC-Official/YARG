@@ -39,6 +39,7 @@ namespace YARG.Menu.ProfileList
         public void ChangeFilter()
         {
             _profilesMenu.CurrentBindingSetFilter = _controllerFamiliesByIndex[_dropdown.value];
+            _profilesMenu.RefreshBindingSetList();
         }
     }
 

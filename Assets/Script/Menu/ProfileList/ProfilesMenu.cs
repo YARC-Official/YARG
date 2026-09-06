@@ -52,6 +52,8 @@ namespace YARG.Menu.ProfileList
         [SerializeField]
         private ProfileCenterPane _profileCenterPane;
         [SerializeField]
+        private BindingSetsCenterPane _bindingSetsCenterPane;
+        [SerializeField]
         private GameObject _bindingCenterPane;
 
         [Space]
@@ -59,6 +61,8 @@ namespace YARG.Menu.ProfileList
         private HeaderTabs _headerTabs;
         [SerializeField]
         private GameObject _profileViewPrefab;
+        [SerializeField]
+        private GameObject _bindingSetViewPrefab;
         [SerializeField]
         private GameObject _profileListHeaderPrefab;
 
@@ -113,7 +117,7 @@ namespace YARG.Menu.ProfileList
 
             var relevantBindingSets = BindingsContainer.GetBindingSetsForControllerFamily(CurrentBindingSetFilter);
 
-
+            AddBindingSetListGroup(null, relevantBindingSets.Where(bs => bs.Mode is GameMode.FiveFretGuitar));
         }
 
         public void RefreshProfileList(YargProfile selectedProfile = null)
@@ -160,6 +164,27 @@ namespace YARG.Menu.ProfileList
             {
                 var go = Instantiate(_profileViewPrefab, _leftPaneList);
                 go.GetComponent<ProfileView>().Init(this, profile, _profileCenterPane);
+                _navigationGroup.AddNavigatable(go);
+            }
+        }
+
+        private void AddBindingSetListGroup(string? header, IEnumerable<ReusableBindingSet> bindingSets)
+        {
+            if (!bindingSets.Any())
+            {
+                return;
+            }
+
+            if (header is not null)
+            {
+                AddListHeader(header);
+            }
+
+            // Spawn in a profile view for each player
+            foreach (var bindingSet in bindingSets)
+            {
+                var go = Instantiate(_bindingSetViewPrefab, _leftPaneList);
+                go.GetComponent<BindingSetView>().Init(this, bindingSet, _profileCenterPane);
                 _navigationGroup.AddNavigatable(go);
             }
         }

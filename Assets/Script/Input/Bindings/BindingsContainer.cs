@@ -25,7 +25,10 @@ namespace YARG.Input.Bindings
 
         private static readonly Dictionary<Guid, ReusableBindingSet> _allBindingCollectionsByGuid = new();
 
-        private static readonly Dictionary<ControllerFamily, List<ReusableBindingSet>> _bindingCollectionsByControllerFamily = new();
+        private static readonly Dictionary<ControllerFamily, List<ReusableBindingSet>> _reusableBindingSetsByControllerFamily = new()
+        {
+            { ControllerFamily.FiveFretGuitar, new() { ReusableBindingSet.DEFAULT_5F_GUITAR } },
+        };
 
         private static readonly Dictionary<(GameMode mode, ControllerFamily controllerFamily), List<ReusableBindingSet>> _bindingCollectionsByContext = new();
 
@@ -43,7 +46,7 @@ namespace YARG.Input.Bindings
 
         public static List<ReusableBindingSet> GetBindingSetsForControllerFamily(ControllerFamily controllerFamily)
         {
-            return _bindingCollectionsByControllerFamily.GetValueOrDefault(controllerFamily, null);
+            return _reusableBindingSetsByControllerFamily.GetValueOrDefault(controllerFamily, new());
         }
 
         public static bool TryGetBindingCollectionById(Guid guid, out ReusableBindingSet bindingCollection)
@@ -88,13 +91,13 @@ namespace YARG.Input.Bindings
 
                 _allBindingCollectionsByGuid.Add(guid, bindingCollection);
 
-                if (!_bindingCollectionsByControllerFamily.ContainsKey(bindingCollection.ControllerFamily))
+                if (!_reusableBindingSetsByControllerFamily.ContainsKey(bindingCollection.ControllerFamily))
                 {
-                    _bindingCollectionsByControllerFamily[bindingCollection.ControllerFamily] = new() { bindingCollection };
+                    _reusableBindingSetsByControllerFamily[bindingCollection.ControllerFamily] = new() { bindingCollection };
                 }
                 else
                 {
-                    _bindingCollectionsByControllerFamily[bindingCollection.ControllerFamily].Add(bindingCollection);
+                    _reusableBindingSetsByControllerFamily[bindingCollection.ControllerFamily].Add(bindingCollection);
                 }
 
                 var tupleKey = (bindingCollection.Mode.Value, bindingCollection.ControllerFamily);

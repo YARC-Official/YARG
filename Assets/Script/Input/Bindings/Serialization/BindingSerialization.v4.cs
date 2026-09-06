@@ -146,6 +146,7 @@ namespace YARG.Input.Serialization
 
         public class SerializedBindingCollectionV4
         {
+            public string Name;
             public Dictionary<string, SerializedControlBindingV4> Bindings = new();
             public GameMode GameMode;
             public string BaseLayout;
@@ -155,6 +156,7 @@ namespace YARG.Input.Serialization
 
             public SerializedBindingCollectionV4(SerializedReusableBindingSet serialized)
             {
+                Name = serialized.Name;
                 GameMode = serialized.GameMode.Value;
 
                 foreach (var (id, serializedBindings) in serialized.Bindings)
@@ -165,7 +167,7 @@ namespace YARG.Input.Serialization
 
             public SerializedReusableBindingSet Deserialize()
             {
-                var converted = new SerializedReusableBindingSet(BaseLayout) {
+                var converted = new SerializedReusableBindingSet(Name, BaseLayout) {
                     GameMode = GameMode
                 };
 
