@@ -131,6 +131,7 @@ namespace YARG.Gameplay.Player
             IsFc = false;
 
             Player.IsScoreValid = false;
+            Player.HasDroppedOut = true;
 
             if (EngineContainer != null)
             {

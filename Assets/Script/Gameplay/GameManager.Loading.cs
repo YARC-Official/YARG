@@ -474,6 +474,7 @@ namespace YARG.Gameplay
                 foreach (var player in YargPlayers)
                 {
                     player.IsScoreValid = true;
+                    player.HasDroppedOut = false;
 
                     if (!player.IsReplay)
                     {

@@ -38,6 +38,8 @@ namespace YARG.Player
         /// <remarks>Could be invalidated due abusing pauses or no fail mode.</remarks>
         public bool IsScoreValid { get; set; } = true;
 
+        public bool HasDroppedOut;
+
         public bool IsReplay { get; private set; }
         public int ReplayIndex = -1;
 

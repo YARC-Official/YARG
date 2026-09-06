@@ -332,6 +332,11 @@ namespace YARG.Gameplay
             {
                 player.GameplayUpdate();
 
+                if (player.HasDroppedOut)
+                {
+                    continue;
+                }
+
                 totalScore += player.Score;
                 totalScore += player.BandBonusScore;
             }
@@ -688,7 +693,7 @@ namespace YARG.Gameplay
             {
                 PlayerScores = _players.Select(player => new PlayerScoreCard
                 {
-                    IsHighScore = player.Score > player.LastHighScore,
+                    IsHighScore = !player.HasDroppedOut && player.Score > player.LastHighScore,
                     Player = player.Player,
                     Stats = player.BaseStats,
                     IsReplay = player.Player.IsReplay
@@ -701,7 +706,7 @@ namespace YARG.Gameplay
                 // to:
                 // .Where(player => !(player.Player.Profile.IsBot || player.Player.IsRemote))
                 MeanAverageOffset = _players
-                    .Where(player => !player.Player.Profile.IsBot)
+                    .Where(player => !player.Player.Profile.IsBot && !player.HasDroppedOut)
                     .Select(player => player.BaseStats.GetAverageOffset())
                     .DefaultIfEmpty(0)
                     .Average(),
@@ -801,6 +806,11 @@ namespace YARG.Gameplay
                 // No bots, use live scores directly
                 foreach (var player in _players)
                 {
+                    if (player.HasDroppedOut)
+                    {
+                        continue;
+                    }
+
                     humanBandScore += player.Score + player.BaseStats.BandBonusScore;
                 }
                 humanBandStars = EngineManager.Stars;
@@ -883,7 +893,7 @@ namespace YARG.Gameplay
             for (int i = 0; i < _players.Count; i++)
             {
                 var player = _players[i];
-                if (player.Player.Profile.IsBot)
+                if (player.Player.Profile.IsBot || player.HasDroppedOut)
                 {
                     continue;
                 }
