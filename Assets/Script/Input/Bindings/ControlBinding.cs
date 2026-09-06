@@ -23,7 +23,7 @@ namespace YARG.Input
     /// <summary>
     /// A binding to one or more controls.
     /// </summary>
-    public abstract class ControlBinding
+    public abstract class ControlBinding : IControlBinding
     {
         public static event Action<ControlBinding, InputControl> BindingAdded;
         public static event Action<ControlBinding, InputControl> BindingRemoved;
@@ -175,7 +175,7 @@ namespace YARG.Input
         public InputControl<TState> Control { get; }
         public string ControlName => Control.name;
 
-        public TState               State   { get; protected set; }
+        public TState State { get; set; }
 
         public event Action<TState> StateChanged;
 
@@ -224,6 +224,7 @@ namespace YARG.Input
         where TState : struct
         where TBinding : SingleBinding<TState>
     {
+        public TState State { get; set; }
         public event Action StateChanged;
 
         private List<SerializedInputControl> _unresolvedBindings = new();

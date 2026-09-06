@@ -20,7 +20,7 @@ namespace YARG.Input
         PressAndRelease,
     }
 
-    public class SingleButtonBinding : SingleBinding<float>
+    public class SingleButtonBinding : SingleBinding<float>, ISingleButtonBinding
     {
         private const bool INVERT_DEFAULT = false;
         private const DebounceMode DEBOUNCE_MODE_DEFAULT = DebounceMode.Press;

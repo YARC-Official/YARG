@@ -30,9 +30,9 @@ namespace YARG.Menu.ProfileInfo
 
         private EditBindsTab _editBindsTab;
         private YargPlayer? _player;
-        private ControlBinding _binding;
+        private IControlBinding _binding;
 
-        public void Init(EditBindsTab editBindsTab, YargPlayer? player, ControlBinding binding)
+        public void Init(EditBindsTab editBindsTab, YargPlayer? player, IControlBinding binding)
         {
             _editBindsTab = editBindsTab;
             _player = player;

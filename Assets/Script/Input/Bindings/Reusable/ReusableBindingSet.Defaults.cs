@@ -17,27 +17,27 @@ namespace YARG.Input
             ControllerFamily.FiveFretGuitar,
             new()
             {
-                { "FiveFret.Green",     MakeSimpleControlBinding(GameMode.FiveFretGuitar, nameof(FiveFretGuitar.greenFret)) },
-                { "FiveFret.Red",       MakeSimpleControlBinding(GameMode.FiveFretGuitar, nameof(FiveFretGuitar.redFret)) },
-                { "FiveFret.Yellow",    MakeSimpleControlBinding(GameMode.FiveFretGuitar, nameof(FiveFretGuitar.yellowFret)) },
-                { "FiveFret.Blue",      MakeSimpleControlBinding(GameMode.FiveFretGuitar, nameof(FiveFretGuitar.blueFret)) },
-                { "FiveFret.Orange",    MakeSimpleControlBinding(GameMode.FiveFretGuitar, nameof(FiveFretGuitar.orangeFret)) },
+                { ReusableBindingSetTemplates.FIVE_FRET_GREEN,     MakeSimpleControlBinding(GameMode.FiveFretGuitar, ReusableBindingSetTemplates.FIVE_FRET_GREEN,   nameof(FiveFretGuitar.greenFret)) },
+                { ReusableBindingSetTemplates.FIVE_FRET_RED,       MakeSimpleControlBinding(GameMode.FiveFretGuitar, ReusableBindingSetTemplates.FIVE_FRET_RED,     nameof(FiveFretGuitar.redFret)) },
+                { ReusableBindingSetTemplates.FIVE_FRET_YELLOW,    MakeSimpleControlBinding(GameMode.FiveFretGuitar, ReusableBindingSetTemplates.FIVE_FRET_YELLOW,  nameof(FiveFretGuitar.yellowFret)) },
+                { ReusableBindingSetTemplates.FIVE_FRET_BLUE,      MakeSimpleControlBinding(GameMode.FiveFretGuitar, ReusableBindingSetTemplates.FIVE_FRET_BLUE,    nameof(FiveFretGuitar.blueFret)) },
+                { ReusableBindingSetTemplates.FIVE_FRET_ORANGE,    MakeSimpleControlBinding(GameMode.FiveFretGuitar, ReusableBindingSetTemplates.FIVE_FRET_ORANGE,  nameof(FiveFretGuitar.orangeFret)) },
             },
             true
         );
 
 
-        private static ReusableControlBinding MakeSimpleControlBinding(GameMode mode, string controlName)
+        private static ReusableControlBinding MakeSimpleControlBinding(GameMode mode, string bindingLocalizationKey, string singleBindingName)
         {
             var template = ReusableBindingSetTemplates.GetTemplateForGameMode(mode);
 
-            var bindingType = template[controlName];
+            var bindingType = template[singleBindingName];
 
             return bindingType switch
             {
-                BindingType.Button => new ReusableButtonBinding() { Bindings = new() { new(controlName) } },
-                BindingType.Axis => new ReusableAxisBinding() { Bindings = new() { new(controlName) } },
-                BindingType.Integer => new ReusableIntegerBinding() { Bindings = new() { new(controlName) } },
+                BindingType.Button => new ReusableButtonBinding(bindingLocalizationKey) { Bindings = new() { new ReusableSingleButtonBinding(singleBindingName) } },
+                BindingType.Axis => new ReusableAxisBinding(bindingLocalizationKey) { Bindings = new() { new ReusableSingleAxisBinding(singleBindingName) } },
+                BindingType.Integer => new ReusableIntegerBinding(bindingLocalizationKey) { Bindings = new() { new ReusableSingleIntegerBinding(singleBindingName) } },
                 _ => throw new ArgumentOutOfRangeException("Unexpected binding type!")
             };
         }

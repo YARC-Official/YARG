@@ -51,9 +51,9 @@ namespace YARG.Input
                 var type = template[name];
 
                 Bindings[name] = type switch {
-                    BindingType.Button => new ReusableButtonBinding(serializedControlBinding),
-                    BindingType.Axis => new ReusableAxisBinding(serializedControlBinding),
-                    BindingType.Integer => new ReusableIntegerBinding(serializedControlBinding),
+                    BindingType.Button => new ReusableButtonBinding(name, serializedControlBinding),
+                    BindingType.Axis => new ReusableAxisBinding(name, serializedControlBinding),
+                    BindingType.Integer => new ReusableIntegerBinding(name, serializedControlBinding),
                     _ => throw new ArgumentOutOfRangeException("Unexpected binding type"),
                 };
             }
@@ -70,9 +70,9 @@ namespace YARG.Input
                 {
                     Bindings[name] = type switch
                     {
-                        BindingType.Button => new ReusableButtonBinding(),
-                        BindingType.Axis => new ReusableAxisBinding(),
-                        BindingType.Integer => new ReusableIntegerBinding(),
+                        BindingType.Button => new ReusableButtonBinding(name),
+                        BindingType.Axis => new ReusableAxisBinding(name),
+                        BindingType.Integer => new ReusableIntegerBinding(name),
                         _ => throw new ArgumentOutOfRangeException("Unexpected binding type"),
                     };
                 }
