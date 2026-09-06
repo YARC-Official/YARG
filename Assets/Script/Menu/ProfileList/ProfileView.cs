@@ -150,7 +150,7 @@ namespace YARG.Menu.ProfileList
                     return;
                 }
 
-                _profileCenterPane.UpdateSidebar(Profile, this);
+                _profileCenterPane.UpdateCenterPane(Profile, this);
             }
         }
 

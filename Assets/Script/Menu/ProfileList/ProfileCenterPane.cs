@@ -237,7 +237,7 @@ namespace YARG.Menu.ProfileList
             }
         }
 
-        public void UpdateSidebar(YargProfile profile, ProfileView profileView)
+        public void UpdateCenterPane(YargProfile profile, ProfileView profileView)
         {
             _profile = profile;
             _profileView = profileView;
@@ -394,13 +394,13 @@ namespace YARG.Menu.ProfileList
         public async void AddController()
         {
             await _profileView.PromptAddController();
-            UpdateSidebar(_profile, _profileView);
+            UpdateCenterPane(_profile, _profileView);
         }
 
         public async void AddMicrophone()
         {
             await _profileView.PromptAddMicrophone();
-            UpdateSidebar(_profile, _profileView);
+            UpdateCenterPane(_profile, _profileView);
         }
 
         public void RefreshControllers()
@@ -436,7 +436,7 @@ namespace YARG.Menu.ProfileList
             _profileView.UpdateDisplay(_profile);
             FiltersMenu.ResetIntensityFiltersForProfile(_profile);
             // Update sidebar when game mode changes so the correct settings are displayed
-            UpdateSidebar(_profile, _profileView);
+            UpdateCenterPane(_profile, _profileView);
         }
 
         public void ChangeNoteSpeed()
@@ -551,7 +551,7 @@ namespace YARG.Menu.ProfileList
                 _profile.CameraPreset = cameraPreset?.Id ?? CameraPreset.Default.Id;
                 _profile.ColorProfile = colorProfile?.Id ?? ColorProfile.Default.Id;
 
-                UpdateSidebar(_profile, _profileView);
+                UpdateCenterPane(_profile, _profileView);
 
                 DialogManager.Instance.SubmitAndClearDialog();
             });

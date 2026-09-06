@@ -6,6 +6,7 @@ using UnityEngine;
 using YARG.Core.Game;
 using YARG.Input;
 using YARG.Menu.Navigation;
+using static UnityEditor.AddressableAssets.Build.Layout.BuildLayout;
 
 namespace YARG.Menu.ProfileList
 {
@@ -14,22 +15,30 @@ namespace YARG.Menu.ProfileList
         [Space]
         [SerializeField]
         private TextMeshProUGUI _bindingSetName;
+        [SerializeField]
+        private BindingSetsCenterPane _centerPane;
 
-        public ReusableBindingSet BindingSet { get; private set; }
+        private ReusableBindingSet _bindingSet;
         private ProfilesMenu _profileListMenu;
-        private ProfileCenterPane _profileCenterPane;
 
-        public void Init(ProfilesMenu menu, ReusableBindingSet bindingSet, ProfileCenterPane centerPane)
+        public void Init(ProfilesMenu menu, ReusableBindingSet bindingSet, BindingSetsCenterPane centerPane)
         {
             _profileListMenu = menu;
-            _profileCenterPane = centerPane;
+            _centerPane = centerPane;
             UpdateDisplay(bindingSet);
         }
 
         public void UpdateDisplay(ReusableBindingSet bindingSet)
         {
-            BindingSet = bindingSet;
+            _bindingSet = bindingSet;
             _bindingSetName.text = bindingSet.Name;
+        }
+
+        protected override void OnSelectionChanged(bool selected)
+        {
+            base.OnSelectionChanged(selected);
+
+            _centerPane.SelectBindingSet(_bindingSet);
         }
     }
 }
