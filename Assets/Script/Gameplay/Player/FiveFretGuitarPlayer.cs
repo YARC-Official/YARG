@@ -191,7 +191,8 @@ namespace YARG.Gameplay.Player
             }
 
             var engine = BuildEngine(EngineParams);
-            EngineContainer = GameManager.EngineManager.Register(engine, NoteTrack, Chart, Player.RockMeterPreset);
+            EngineContainer = GameManager.EngineManager.Register(engine, NoteTrack, Chart, Player.RockMeterPreset,
+                Player.Participation);
 
             HitWindow = EngineParams.HitWindow;
 

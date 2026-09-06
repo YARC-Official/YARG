@@ -20,6 +20,7 @@ namespace YARG.Menu.ScoreScreen
 
         public int BandStars;
         public int BandScore;
+        public bool BandScoreValid;
 
         public double MeanAverageOffset;
 

@@ -38,7 +38,8 @@ namespace YARG.Player
         /// <remarks>Could be invalidated due abusing pauses or no fail mode.</remarks>
         public bool IsScoreValid { get; set; } = true;
 
-        public bool HasDroppedOut;
+        public PlayerParticipation Participation { get; } = new();
+        public bool IsActive => Participation.IsActive;
 
         public bool IsReplay { get; private set; }
         public int ReplayIndex = -1;

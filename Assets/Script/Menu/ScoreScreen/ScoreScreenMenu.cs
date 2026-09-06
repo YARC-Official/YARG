@@ -123,7 +123,7 @@ namespace YARG.Menu.ScoreScreen
             // Set text
             _songTitle.text = song.Name;
             _artistName.text = song.Artist;
-            if (!GlobalVariables.State.IsReplay && !ScoreContainer.IsBandScoreValid(PersistentState.Default.SongSpeed))
+            if (!GlobalVariables.State.IsReplay && !scoreScreenStats.BandScoreValid)
             {
                 var text = Localize.Key("Menu.ScoreScreen.BandScoreNotSaved");
                 _scoreStatusPill.SetValues(text,

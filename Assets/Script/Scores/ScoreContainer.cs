@@ -106,9 +106,9 @@ namespace YARG.Scores
             }
         }
 
-        public static bool IsBandScoreValid(float songSpeed)
+        public static bool IsBandScoreValid(float songSpeed, IReadOnlyList<YargPlayer> players)
         {
-            var activePlayers = PlayerContainer.Players.Where(p => !p.SittingOut && !p.HasDroppedOut).ToList();
+            var activePlayers = players.Where(p => !p.SittingOut).ToList();
             var humans = activePlayers.Where(p => !p.Profile.IsBot).ToList();
             var hasBots = activePlayers.Count > humans.Count;
             var hasHumans = humans.Count > 0;

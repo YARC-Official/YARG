@@ -474,7 +474,7 @@ namespace YARG.Gameplay
                 foreach (var player in YargPlayers)
                 {
                     player.IsScoreValid = true;
-                    player.HasDroppedOut = false;
+                    player.Participation.Reset();
 
                     if (!player.IsReplay)
                     {
@@ -600,6 +600,8 @@ namespace YARG.Gameplay
                         bgState.Audible += 2;
                     }
                 }
+
+                _activePlayers = new List<BasePlayer>(_players);
             }
             catch (Exception ex)
             {

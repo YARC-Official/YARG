@@ -79,6 +79,7 @@ namespace YARG.Gameplay
         public IReadOnlyList<YargPlayer> YargPlayers { get; private set;}
 
         private List<BasePlayer> _players;
+        private List<BasePlayer> _activePlayers = new();
 
         public int TotalPlayers => _players.Count;
 
@@ -168,6 +169,9 @@ namespace YARG.Gameplay
         public List<PauseInfo> PauseInfo { get; } = new List<PauseInfo>();
 
         public IReadOnlyList<BasePlayer> Players => _players;
+        public IReadOnlyList<BasePlayer> ActivePlayers => _activePlayers;
+
+        internal void RemoveActivePlayer(BasePlayer player) => _activePlayers.Remove(player);
 
         public int StarPowerActivations { get; private set; } = 0;
 
@@ -193,7 +197,7 @@ namespace YARG.Gameplay
 
         private BandComboType _bandComboType;
 
-        private        bool HasBots            => _players.Any(p => !p.Player.SittingOut && p.Player.Profile.IsBot);
+        private        bool HasBots            => _activePlayers.Any(p => p.Player.Profile.IsBot);
         private static bool SaveScoresWithBots => SettingsManager.Settings.SaveScoresWithBots.Value;
 
         private void Awake()
@@ -331,12 +335,10 @@ namespace YARG.Gameplay
             foreach (var player in _players)
             {
                 player.GameplayUpdate();
+            }
 
-                if (player.HasDroppedOut)
-                {
-                    continue;
-                }
-
+            foreach (var player in _activePlayers)
+            {
                 totalScore += player.Score;
                 totalScore += player.BandBonusScore;
             }
@@ -688,25 +690,29 @@ namespace YARG.Gameplay
                 YargLogger.LogException(e, "Failed to save replay!");
             }
 
+            var bandScoreValid = ScoreContainer.IsBandScoreValid(SongSpeed,
+                _activePlayers.Select(player => player.Player).ToArray());
+
             // Pass the score info to the stats screen
             GlobalVariables.State.ScoreScreenStats = new ScoreScreenStats
             {
                 PlayerScores = _players.Select(player => new PlayerScoreCard
                 {
-                    IsHighScore = !player.HasDroppedOut && player.Score > player.LastHighScore,
+                    IsHighScore = player.IsActive && player.Score > player.LastHighScore,
                     Player = player.Player,
                     Stats = player.BaseStats,
                     IsReplay = player.Player.IsReplay
                 }).ToArray(),
                 BandScore = BandScore,
                 BandStars = (int) BandStars,
+                BandScoreValid = bandScoreValid,
 
                 // TODO: When online comes out, change
                 // .Where(player => !player.Player.Profile.IsBot)
                 // to:
                 // .Where(player => !(player.Player.Profile.IsBot || player.Player.IsRemote))
-                MeanAverageOffset = _players
-                    .Where(player => !player.Player.Profile.IsBot && !player.HasDroppedOut)
+                MeanAverageOffset = _activePlayers
+                    .Where(player => !player.Player.Profile.IsBot)
                     .Select(player => player.BaseStats.GetAverageOffset())
                     .DefaultIfEmpty(0)
                     .Average(),
@@ -714,16 +720,16 @@ namespace YARG.Gameplay
                 ReplayInfo = replayInfo,
             };
 
-            RecordScores(replayInfo);
+            RecordScores(replayInfo, bandScoreValid);
 
             // Go to the score screen
             GlobalVariables.Instance.LoadScene(SceneIndex.Score);
             return true;
         }
 
-        private void RecordScores(ReplayInfo replayInfo)
+        private void RecordScores(ReplayInfo replayInfo, bool bandScoreValid)
         {
-            if (!ScoreContainer.IsBandScoreValid(SongSpeed))
+            if (!bandScoreValid)
             {
                 return;
             }
@@ -731,7 +737,7 @@ namespace YARG.Gameplay
             // Get all of the individual player score entries
             var playerEntries = new List<PlayerScoreRecord>();
             var starScoreCutoffsList = new List<int[]>();
-            foreach (var player in _players)
+            foreach (var player in _activePlayers)
             {
                 var profile = player.Player.Profile;
 
@@ -764,7 +770,7 @@ namespace YARG.Gameplay
                 starScoreCutoffsList.Add(player.BaseEngine.StarScoreThresholds);
             }
 
-            var validScoreCount = _players.Count(p => ScoreContainer.IsSoloScoreValid(SongSpeed, p.Player));
+            var validScoreCount = _activePlayers.Count(p => ScoreContainer.IsSoloScoreValid(SongSpeed, p.Player));
             if (validScoreCount == 0)
             {
                 return;
@@ -804,13 +810,8 @@ namespace YARG.Gameplay
             else
             {
                 // No bots, use live scores directly
-                foreach (var player in _players)
+                foreach (var player in _activePlayers)
                 {
-                    if (player.HasDroppedOut)
-                    {
-                        continue;
-                    }
-
                     humanBandScore += player.Score + player.BaseStats.BandBonusScore;
                 }
                 humanBandStars = EngineManager.Stars;
@@ -890,10 +891,10 @@ namespace YARG.Gameplay
 
             int bandScore = 0;
             float bandStars = EngineManager.Stars;
-            for (int i = 0; i < _players.Count; i++)
+            for (int i = 0; i < _activePlayers.Count; i++)
             {
-                var player = _players[i];
-                if (player.Player.Profile.IsBot || player.HasDroppedOut)
+                var player = _activePlayers[i];
+                if (player.Player.Profile.IsBot)
                 {
                     continue;
                 }
@@ -978,7 +979,7 @@ namespace YARG.Gameplay
             if (TotalPlayers > 1 && !Paused && !Rewinding && !PlayerHasFailed &&
                 !_draggableHud.EditMode && !DialogManager.Instance.IsDialogShowing)
             {
-                if (!trackPlayer.HasDroppedOut)
+                if (trackPlayer.IsActive)
                 {
                     trackPlayer.ShowPlayerMenu();
                 }
@@ -1027,7 +1028,7 @@ namespace YARG.Gameplay
                     BandCombo = 0;
                 break;
                 case BandComboType.Lenient:
-                    BandCombo = Players.Where(e => !e.HasDroppedOut).Sum(e => e.Combo * e.BaseStats.BandComboUnits);
+                    BandCombo = ActivePlayers.Sum(e => e.Combo * e.BaseStats.BandComboUnits);
                 break;
             }
         }

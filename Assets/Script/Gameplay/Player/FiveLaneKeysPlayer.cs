@@ -164,7 +164,8 @@ namespace YARG.Assets.Script.Gameplay.Player
             }
 
             var engine = new YargFiveLaneKeysEngine(NoteTrack, SyncTrack, EngineParams, Player.Profile.IsBot);
-            EngineContainer = GameManager.EngineManager.Register(engine, NoteTrack, Chart, Player.RockMeterPreset);
+            EngineContainer = GameManager.EngineManager.Register(engine, NoteTrack, Chart, Player.RockMeterPreset,
+                Player.Participation);
 
             HitWindow = EngineParams.HitWindow;
 

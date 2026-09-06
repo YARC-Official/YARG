@@ -118,24 +118,22 @@ namespace YARG.Gameplay.Player
 
         protected bool PlayerHasFailed;
 
-        public bool HasDroppedOut { get; protected set; }
+        public bool IsActive => Player?.IsActive ?? true;
 
         public virtual void DropOut()
         {
-            if (HasDroppedOut)
+            if (!IsActive)
             {
                 return;
             }
 
-            HasDroppedOut = true;
             IsFc = false;
 
             Player.IsScoreValid = false;
-            Player.HasDroppedOut = true;
-
             if (EngineContainer != null)
             {
                 GameManager.EngineManager.DropOutPlayer(EngineContainer);
+                GameManager.RemoveActivePlayer(this);
             }
 
             SetStemMuteState(false);
@@ -272,7 +270,7 @@ namespace YARG.Gameplay.Player
 
         protected virtual void UpdateInputs(double time)
         {
-            if (HasDroppedOut)
+            if (!IsActive)
             {
                 return;
             }
@@ -342,7 +340,7 @@ namespace YARG.Gameplay.Player
 
         public void SendInputsOnResume()
         {
-            if (HasDroppedOut)
+            if (!IsActive)
             {
                 InputsToSendOnResume.Clear();
                 return;
@@ -366,7 +364,7 @@ namespace YARG.Gameplay.Player
         protected void OnGameInput(ref GameInput input)
         {
             // Ignore completely if the song hasn't started yet or player failed
-            if (!GameManager.Started || PlayerHasFailed || HasDroppedOut)
+            if (!GameManager.Started || PlayerHasFailed || !IsActive)
                 return;
 
             if (IsMenuOpen)

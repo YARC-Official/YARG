@@ -39,7 +39,7 @@ namespace YARG.Gameplay.Player
 
         public void ShowPlayerMenu()
         {
-            if (HasDroppedOut)
+            if (!IsActive)
             {
                 return;
             }
@@ -107,7 +107,7 @@ namespace YARG.Gameplay.Player
 
         public override void DropOut()
         {
-            if (HasDroppedOut)
+            if (!IsActive)
             {
                 return;
             }
@@ -586,11 +586,11 @@ namespace YARG.Gameplay.Player
             }
 
             bool isSongEnd = visualTime > SongLength;
-            bool shouldLowerTrack = isSongEnd || GameManager.PlayerHasFailed || HasDroppedOut;
+            bool shouldLowerTrack = isSongEnd || GameManager.PlayerHasFailed || !IsActive;
             if (!_didLowerTrack && shouldLowerTrack)
             {
                 _didLowerTrack = true;
-                CameraPositioner.Lower(isSongEnd || HasDroppedOut);
+                CameraPositioner.Lower(isSongEnd || !IsActive);
             }
             else if (_didLowerTrack && !shouldLowerTrack)
             {

@@ -253,6 +253,7 @@ namespace YARG.Menu.History
                 PlayerScores = playerScoreCards,
                 BandScore = _entry.BandScore,
                 BandStars = (int) _entry.BandStars,
+                BandScoreValid = true,
                 ReplayInfo = _entry,
                 ReplayWasConsistent = results.All(r => r.Passed),
             };
