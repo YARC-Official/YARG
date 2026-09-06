@@ -32,7 +32,7 @@ namespace YARG.Menu.ProfileList
         {
             var player = PlayerContainer.GetPlayerFromProfile(_profile);
             player.DeviceInfo.RemoveController(_controller);
-            _profileSidebar.UpdateSidebar(_profile, _profileView);
+            _profileSidebar.UpdateCenterPane(_profile, _profileView);
         }
     }
 }

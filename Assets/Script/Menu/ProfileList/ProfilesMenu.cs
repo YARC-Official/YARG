@@ -184,7 +184,7 @@ namespace YARG.Menu.ProfileList
             foreach (var bindingSet in bindingSets)
             {
                 var go = Instantiate(_bindingSetViewPrefab, _leftPaneList);
-                go.GetComponent<BindingSetView>().Init(this, bindingSet, _profileCenterPane);
+                go.GetComponent<BindingSetView>().Init(this, bindingSet, _bindingSetsCenterPane);
                 _navigationGroup.AddNavigatable(go);
             }
         }
