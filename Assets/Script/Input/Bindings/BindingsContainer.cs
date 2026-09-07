@@ -14,14 +14,14 @@ using YARG.Player;
 namespace YARG.Input.Bindings
 {
     /// <summary>
-    /// Manages all of the <see cref="ProfileDeviceInfo"/> for <see cref="YargProfile"/>/<see cref="YargPlayer"/>s.
+    /// Manages all of the <see cref="PlayerDeviceInfo"/> for <see cref="YargProfile"/>/<see cref="YargPlayer"/>s.
     /// </summary>
     public static class BindingsContainer
     {
         private static string BindingsPath => Path.Combine(PlayerContainer.ProfilesDirectory, "bindings.json");
         private static string BindingsBackupPath => Path.Combine(PlayerContainer.ProfilesDirectory, "bindings.json.bak");
 
-        private static readonly Dictionary<Guid, ProfileDeviceInfo> _profileBindings = new();
+        private static readonly Dictionary<Guid, PlayerDeviceInfo> _profileBindings = new();
 
         private static readonly Dictionary<Guid, ReusableBindingSet> _allBindingCollectionsByGuid = new();
 
@@ -32,12 +32,12 @@ namespace YARG.Input.Bindings
 
         private static readonly Dictionary<(GameMode mode, ControllerFamily controllerFamily), List<ReusableBindingSet>> _bindingCollectionsByContext = new();
 
-        public static ProfileDeviceInfo GetBindingsForProfile(YargProfile profile)
+        public static PlayerDeviceInfo GetBindingsForProfile(YargProfile profile)
         {
             if (!_profileBindings.TryGetValue(profile.Id, out var bindings))
             {
                 // Bindings must always be provided
-                bindings = new(profile);
+                bindings = new();
                 _profileBindings.Add(profile.Id, bindings);
             }
 
@@ -124,7 +124,7 @@ namespace YARG.Input.Bindings
                 if (profile.IsBot)
                     continue;
 
-                var deserialized = ProfileDeviceInfo.Deserialize(profile, serialized);
+                var deserialized = PlayerDeviceInfo.Deserialize(profile, serialized);
                 _profileBindings.Add(id, deserialized);
             }
 

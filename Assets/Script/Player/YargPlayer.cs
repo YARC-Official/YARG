@@ -25,7 +25,7 @@ namespace YARG.Player
         public bool SittingOut;
 
         public bool InputsEnabled { get; private set; }
-        public ProfileDeviceInfo DeviceInfo { get; private set; }
+        public PlayerDeviceInfo DeviceInfo { get; private set; }
 
         public EnginePreset    EnginePreset    { get; private set; }
         public ThemePreset     ThemePreset     { get; private set; }
@@ -57,7 +57,7 @@ namespace YARG.Player
         public bool IsMissingMicrophone => !IsReplay && Profile.GameMode == GameMode.Vocals && DeviceInfo.Microphone == null && !Profile.IsBot;
         public bool IsMissingInputDevice => !IsReplay && Profile.GameMode != GameMode.Vocals && !DeviceInfo.HasDeviceAssigned && !Profile.IsBot;
 
-        public YargPlayer(YargProfile profile, ProfileDeviceInfo bindings)
+        public YargPlayer(YargProfile profile, PlayerDeviceInfo bindings)
         {
             Profile = profile;
             DeviceInfo = bindings;
@@ -90,7 +90,7 @@ namespace YARG.Player
                 ?? RockMeterPreset.Normal;
         }
 
-        public void SwapToProfile(YargProfile profile, ProfileDeviceInfo bindings, bool resolveDevices)
+        public void SwapToProfile(YargProfile profile, PlayerDeviceInfo bindings, bool resolveDevices)
         {
             // Force-disable inputs
             bool enabled = InputsEnabled;
