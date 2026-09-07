@@ -1,7 +1,7 @@
 ﻿using TMPro;
 using UnityEngine;
 using YARG.Helpers.Extensions;
-using YARG.Input;
+using YARG.Input.Bindings;
 using YARG.Menu.ProfileInfo;
 
 namespace YARG.Menu.ProfileList

@@ -12,9 +12,12 @@ namespace YARG.Input.Bindings
 
         public ReusableButtonBinding(InputActionInfo info) : base(info) { }
 
-        public ReusableButtonBinding(InputActionInfo info, List<string> controlNames) : base(info)
+        public ReusableButtonBinding(InputActionInfo info, ReusableSingleButtonBindingConfig control)
+            : this(info, new List<ReusableSingleButtonBindingConfig>() { control }) { }
+
+        public ReusableButtonBinding(InputActionInfo info, List<ReusableSingleButtonBindingConfig> controls) : base(info)
         {
-            foreach (var controlName in controlNames)
+            foreach (var controlName in controls)
             {
                 Bindings.Add(new(controlName));
             }
@@ -64,6 +67,15 @@ namespace YARG.Input.Bindings
         }
     }
 
+    public struct ReusableSingleButtonBindingConfig
+    {
+        public string ControlName;
+        public long? DebounceThreshold;
+        public DebounceMode? DebounceMode;
+        public float? PressPoint;
+        public bool? Inverted;
+    }
+
     public class ReusableSingleButtonBinding : ReusableSingleBinding
     {
         private const long DEBOUNCE_THRESHOLD_DEFAULT = 5;
@@ -76,7 +88,12 @@ namespace YARG.Input.Bindings
         public float PressPoint { get; set; } = PRESS_POINT_DEFAULT;
         public bool Inverted { get; set; } = INVERTED_DEFAULT;
 
-        public ReusableSingleButtonBinding(string controlName) : base(controlName) { }
+        public ReusableSingleButtonBinding(ReusableSingleButtonBindingConfig config) : base(config.ControlName) {
+            DebounceThreshold = config.DebounceThreshold ?? DEBOUNCE_THRESHOLD_DEFAULT;
+            DebounceMode = config.DebounceMode ?? DEBOUNCE_MODE_DEFAULT;
+            PressPoint = config.PressPoint ?? PRESS_POINT_DEFAULT;
+            Inverted = config.Inverted ?? INVERTED_DEFAULT;
+        }
 
         public ReusableSingleButtonBinding(SerializedSingleBinding serialized) : base(serialized)
         {
