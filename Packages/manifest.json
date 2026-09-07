@@ -44,6 +44,7 @@
     "com.unity.inputsystem": "1.17.0",
     "com.unity.multiplayer.center": "1.0.1",
     "com.unity.nuget.newtonsoft-json": "3.2.2",
+    "com.unity.pipeline": "0.6.0-exp.1",
     "com.unity.probuilder": "6.0.8",
     "com.unity.render-pipelines.universal": "17.3.0",
     "com.unity.timeline": "1.8.10",
@@ -86,7 +87,6 @@
     "com.unity.modules.video": "1.0.0",
     "com.unity.modules.vr": "1.0.0",
     "com.unity.modules.wind": "1.0.0",
-    "com.unity.modules.xr": "1.0.0",
-    "com.unity.pipeline": "0.5.0-exp.1"
+    "com.unity.modules.xr": "1.0.0"
   }
 }
