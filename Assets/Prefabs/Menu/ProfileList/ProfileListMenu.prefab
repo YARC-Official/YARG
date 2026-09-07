@@ -671,7 +671,7 @@ MonoBehaviour:
   _contents: {fileID: 2777129461737572423}
   _bindsList: {fileID: 2495978932213244613}
   _name: {fileID: 8994554616790612947}
-  _buttonGroupPrefab: {fileID: 2533602271579289954, guid: dab9c3ea83a2a0d43948a5c0dd53bf72, type: 3}
+  _buttonGroupPrefab: {fileID: 2112290437380438965, guid: c80fa54dd0546cd45b62feb701421775, type: 3}
   _axisGroupPrefab: {fileID: 3950604665545716148, guid: 0d6e57f58330d61429300b43cfbc01f4, type: 3}
   _integerGroupPrefab: {fileID: 777512555580489659, guid: 2c9b962f8dbdf8947b897c21e3b49819, type: 3}
 --- !u!1 &572975197060413157

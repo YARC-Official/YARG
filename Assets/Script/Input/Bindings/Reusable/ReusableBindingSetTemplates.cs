@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using YARG.Core;
 using YARG.Menu.ProfileList;
 
 namespace YARG.Input.Bindings
@@ -34,10 +35,10 @@ namespace YARG.Input.Bindings
 
     public static partial class ReusableBindingSetTemplates
     {
-        public static Dictionary<string, InputActionInfo> GetTemplate(ControllerFamily controllerFamily)
+        public static Dictionary<string, InputActionInfo> GetTemplate(GameMode? mode)
         {
-            return controllerFamily switch {
-                ControllerFamily.FiveFretGuitar => FIVE_FRET_GUITAR,
+            return mode switch {
+                GameMode.FiveFretGuitar => FIVE_FRET_GUITAR,
                 _ => new()
             };
         }
