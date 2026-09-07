@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using DG.Tweening;
 using UnityEngine;
@@ -160,8 +160,8 @@ namespace YARG.Gameplay.HUD
 
                 _playerSliders[i].value = 0.01f;
                 _needleSliders[i].value = 0.01f;
-                _playerSliders[i].gameObject.SetActive(true);
-                _needleSliders[i].gameObject.SetActive(true);
+                _playerSliders[i].gameObject.SetActive(_players[i].IsActive);
+                _needleSliders[i].gameObject.SetActive(_players[i].IsActive);
 
                 // Cached for reuse because starting a new tween generates garbage
                 _playerHappinessTweeners[i] = _playerSliders[i].DOValue(_players[i].Happiness, 0.5f).SetAutoKill(false).SetLink(_playerSliders[i].gameObject);
@@ -195,6 +195,20 @@ namespace YARG.Gameplay.HUD
             bool anyPlayerInSp = false;
             for (var i = _players.Count - 1; i >= 0; i--)
             {
+                if (!_players[i].IsActive)
+                {
+                    if (_playerSliders[i].gameObject.activeSelf)
+                    {
+                        _playerSliders[i].gameObject.SetActive(false);
+                        _needleSliders[i].gameObject.SetActive(false);
+                        _playerHappinessTweeners[i].Pause();
+                        _needleHappinessTweeners[i].Pause();
+                        _xposTweeners[i].Pause();
+                    }
+
+                    continue;
+                }
+
                 if (_players[i].BaseEngine.BaseStats.IsStarPowerActive)
                 {
                     anyPlayerInSp = true;
@@ -203,7 +217,7 @@ namespace YARG.Gameplay.HUD
                 // Check if we will overlap another icon
                 for (var j = i; j >= 0; j--)
                 {
-                    if (j == i)
+                    if (j == i || !_players[j].IsActive)
                     {
                         // Ignore self
                         continue;
@@ -346,6 +360,26 @@ namespace YARG.Gameplay.HUD
             {
                 // Move offscreen
                 _meterPositionTweener.PlayForward();
+            }
+        }
+
+        public void UpdatePlayerStates()
+        {
+            if (_playerSliders == null)
+            {
+                return;
+            }
+
+            for (var i = 0; i < _players.Count; i++)
+            {
+                if (!_players[i].IsActive && _playerSliders[i].gameObject.activeSelf)
+                {
+                    _playerSliders[i].gameObject.SetActive(false);
+                    _needleSliders[i].gameObject.SetActive(false);
+                    _playerHappinessTweeners[i].Pause();
+                    _needleHappinessTweeners[i].Pause();
+                    _xposTweeners[i].Pause();
+                }
             }
         }
 

@@ -34,14 +34,12 @@ namespace YARG.Gameplay.HUD
         private const float OPTION_SPACING = 0f;
         private const float TOP_PAD = 13f;
         private const float HEADING_HEIGHT = 60f;
-        private const float HINT_HEIGHT = 28f;
-        private const float SELECTED_BRIGHTNESS = 1.8f;
+        private const float BOTTOM_PAD = 44f;
+        private const float BOTTOM_OFFSCREEN = 36f;
+        private const float HIDDEN_OFFSET = 8f;
         private const float DISABLED_ALPHA = 0.35f;
 
-        private static readonly string[] HINT_NAMES =
-        {
-            "Close Hint", "Accept Hint", "Red Button", "Green Button"
-        };
+        private const float HEADER_ICON_SPACING = 10f;
 
         public bool IsOpen { get; private set; }
 
@@ -55,9 +53,9 @@ namespace YARG.Gameplay.HUD
 
         private RectTransform _optionTemplate;
         private RectTransform _heading;
+        private TextMeshProUGUI _headingText;
+        private RectTransform _icon;
         private AsyncOperationHandle<Sprite> _iconHandle;
-        private readonly List<RectTransform> _hintObjects = new();
-        private float _hintReferenceY;
 
         private IReadOnlyList<PlayerMenuItem> _items = Array.Empty<PlayerMenuItem>();
         private readonly List<GameObject> _rows = new();
@@ -80,19 +78,16 @@ namespace YARG.Gameplay.HUD
             _optionTemplate.anchorMax = new Vector2(1f, 0.5f);
             _optionTemplate.sizeDelta = new Vector2(_optionTemplate.sizeDelta.x - _size.x,
                 _optionTemplate.sizeDelta.y);
-            _heading = (RectTransform) transform.Find("Heading");
-            _heading.GetComponent<TextMeshProUGUI>().text = player.Profile.Name;
-            _iconHandle = Addressables.LoadAssetAsync<Sprite>(player.GetInstrumentSprite());
-            transform.Find("Instrument Icon").GetComponent<Image>().sprite = _iconHandle.WaitForCompletion();
-            foreach (var hintName in HINT_NAMES)
-            {
-                _hintObjects.Add((RectTransform) transform.Find(hintName));
-            }
-            _hintReferenceY = ((RectTransform) transform.Find("Close Hint")).anchoredPosition.y;
 
+            _heading = (RectTransform) transform.Find("Heading");
+            _headingText = _heading.GetComponent<TextMeshProUGUI>();
+            _headingText.text = player.Profile.Name;
+
+            _icon = (RectTransform) transform.Find("Instrument Icon");
+            _iconHandle = Addressables.LoadAssetAsync<Sprite>(player.GetInstrumentSprite());
+            _icon.GetComponent<Image>().sprite = _iconHandle.WaitForCompletion();
             _normalColor = _optionTemplate.GetComponent<Image>().color;
-            _selectedColor = _normalColor * SELECTED_BRIGHTNESS;
-            _selectedColor.a = 1f;
+            _selectedColor = Color.white;
 
             StretchToPanel("Background");
             StretchToPanel("Border");
@@ -256,23 +251,21 @@ namespace YARG.Gameplay.HUD
             int count = MAX_VISIBLE_OPTIONS;
             float optionsHeight = count * OPTION_HEIGHT + (count - 1) * OPTION_SPACING;
             float panelHeight = TOP_PAD + HEADING_HEIGHT + OPTION_SPACING
-                + optionsHeight + OPTION_SPACING + HINT_HEIGHT + TOP_PAD;
+                + optionsHeight + BOTTOM_PAD;
             _panel.sizeDelta = new Vector2(_panel.sizeDelta.x, panelHeight);
 
             float half = panelHeight / 2f;
-            _heading.anchoredPosition = new Vector2(_heading.anchoredPosition.x,
-                half - TOP_PAD - HEADING_HEIGHT / 2f);
-            var icon = (RectTransform) transform.Find("Instrument Icon");
-            icon.anchoredPosition = new Vector2(icon.anchoredPosition.x, _heading.anchoredPosition.y);
+            float headingY = half - (TOP_PAD + HEADING_HEIGHT) / 2f;
 
-            float optionsTop = half - TOP_PAD - HEADING_HEIGHT - OPTION_SPACING;
-            float hintsY = optionsTop - optionsHeight - OPTION_SPACING - HINT_HEIGHT / 2f;
-            float delta = hintsY - _hintReferenceY;
-            foreach (var hint in _hintObjects)
-            {
-                hint.anchoredPosition = new Vector2(hint.anchoredPosition.x, hint.anchoredPosition.y + delta);
-            }
-            _hintReferenceY = hintsY;
+            float iconWidth = _icon.sizeDelta.x;
+            float maxTextWidth = _panel.sizeDelta.x - 40f - iconWidth - HEADER_ICON_SPACING;
+            float textWidth = Mathf.Min(_headingText.GetPreferredValues().x, maxTextWidth);
+            float totalHeaderWidth = iconWidth + HEADER_ICON_SPACING + textWidth;
+            float headerStartX = -totalHeaderWidth / 2f;
+
+            _icon.anchoredPosition = new Vector2(headerStartX + iconWidth / 2f, headingY);
+            _heading.sizeDelta = new Vector2(textWidth, HEADING_HEIGHT);
+            _heading.anchoredPosition = new Vector2(headerStartX + iconWidth + HEADER_ICON_SPACING + textWidth / 2f, headingY);
         }
 
         public void Show()
@@ -287,7 +280,7 @@ namespace YARG.Gameplay.HUD
 
         public void SetTrackBounds(Rect? bounds, Vector2? bottom, Vector2? top)
         {
-            if (!bounds.HasValue || !bottom.HasValue || !top.HasValue)
+            if (!bounds.HasValue || !bottom.HasValue || !top.HasValue || bounds.Value.width <= 0f)
             {
                 _panel.gameObject.SetActive(false);
                 return;
@@ -322,7 +315,9 @@ namespace YARG.Gameplay.HUD
         {
             var height = _panel.rect.height * _trackScale;
             var slide = Mathf.SmoothStep(0f, 1f, _progress);
-            var position = _screenBottom + Vector2.up * Mathf.Lerp(-height / 2f - 8f, height / 2f - 8f, slide);
+            var closedY = -height / 2f - HIDDEN_OFFSET * _trackScale;
+            var openY = height / 2f - BOTTOM_OFFSCREEN * _trackScale;
+            var position = _screenBottom + Vector2.up * Mathf.Lerp(closedY, openY, slide);
             _panel.localPosition = new Vector3(position.x, position.y, 0f);
             _panel.localScale = Vector3.one * _trackScale;
         }

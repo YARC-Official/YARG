@@ -155,9 +155,9 @@ namespace YARG.Gameplay.HUD
             SetHighwayOffsetX(hasCustomPosition ? _highwayDraggable.CurrentPosition.x : 0f);
 
             var trackBounds = _highwayRenderer.GetTrackBoundsScreenSpace(highwayIndex);
-            _playerMenu?.SetTrackBounds(trackBounds,
-                bottom: _highwayRenderer.GetTrackPositionScreenSpace(highwayIndex, 0.5f, 0f),
-                top: _highwayRenderer.GetTrackPositionScreenSpace(highwayIndex, 0.5f, 1f));
+            _playerMenu?.SetTrackBounds(_highwayRenderer.GetTrackBoundsScreenSpaceRaised(highwayIndex),
+                bottom: _highwayRenderer.GetTrackPositionScreenSpaceRaised(highwayIndex, 0.5f, 0f),
+                top: _highwayRenderer.GetTrackPositionScreenSpaceRaised(highwayIndex, 0.5f, 1f));
             if (trackBounds == null)
             {
                 _highwayEditContainer.position = _hiddenPosition;

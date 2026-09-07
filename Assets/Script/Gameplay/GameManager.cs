@@ -171,7 +171,11 @@ namespace YARG.Gameplay
         public IReadOnlyList<BasePlayer> Players => _players;
         public IReadOnlyList<BasePlayer> ActivePlayers => _activePlayers;
 
-        internal void RemoveActivePlayer(BasePlayer player) => _activePlayers.Remove(player);
+        internal void RemoveActivePlayer(BasePlayer player)
+        {
+            _activePlayers.Remove(player);
+            _failMeter?.UpdatePlayerStates();
+        }
 
         public int StarPowerActivations { get; private set; } = 0;
 
