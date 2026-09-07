@@ -20,7 +20,6 @@ namespace YARG.Input
         // These names come from BindingCollection.Templates.cs; they are YARG's, not PlasticBand's
         public Dictionary<string, SerializedReusableControlBinding> Bindings = new();
 
-        // Set generateGuid to false when hardcoding defaults
         public ReusableBindingSet(string name, GameMode? mode, ControllerFamily controllerFamily, bool isDefault = false) {
             Name = name;
             Mode = mode;

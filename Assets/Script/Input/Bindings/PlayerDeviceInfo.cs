@@ -18,10 +18,8 @@ using YARG.Helpers;
 
 namespace YARG.Input
 {
-    public class ProfileDeviceInfo : IDisposable
+    public class PlayerDeviceInfo : IDisposable
     {
-        public YargProfile Profile { get; }
-
         private readonly List<SerializedMic> _unresolvedMics = new();
         private readonly List<MicDevice> _microphones = new();
 
@@ -97,21 +95,17 @@ namespace YARG.Input
             }
         }
 
-        public ProfileDeviceInfo(YargProfile profile)
-        {
-            Profile = profile;
-        }
+        public PlayerDeviceInfo() { }
 
 #nullable enable
-        public ProfileDeviceInfo(YargProfile profile, SerializedProfileDeviceInfo? profileBindings)
-            : this(profile)
+        public PlayerDeviceInfo(YargProfile profile, SerializedPlayerDeviceInfo? serialized)
         {
-            if (profileBindings is null)
+            if (serialized is null)
                 return;
 
-            if (profileBindings.Controllers is not null)
+            if (serialized.Controllers is not null)
             {
-                foreach (var device in profileBindings.Controllers)
+                foreach (var device in serialized.Controllers)
                 {
                     if (device is null || string.IsNullOrEmpty(device.Layout) || string.IsNullOrEmpty(device.Hash))
                     {
@@ -124,9 +118,9 @@ namespace YARG.Input
                 }
             }
 
-            if (profileBindings.Microphones.Count > 0)
+            if (serialized.Microphones.Count > 0)
             {
-                foreach (var mic in profileBindings.Microphones)
+                foreach (var mic in serialized.Microphones)
                 {
                     if (mic is not null)
                     {
@@ -134,16 +128,16 @@ namespace YARG.Input
                     }
                 }
             }
-            else if (profileBindings.Microphone is not null)
+            else if (serialized.Microphone is not null)
             {
                 // Legacy files (v0-v2) only had a single microphone
-                _unresolvedMics.Add(profileBindings.Microphone);
+                _unresolvedMics.Add(serialized.Microphone);
             }
 
-            if (profileBindings.ModeMappings is not null)
+            if (serialized.ModeMappings is not null)
             {
                 List<GameMode> modesToRemove = new();
-                foreach (var (mode, modeMappings) in profileBindings.ModeMappings)
+                foreach (var (mode, modeMappings) in serialized.ModeMappings)
                 {
                     foreach (var (baseLayout, bindings) in modeMappings.MappingsByBaseLayout)
                     {
@@ -169,13 +163,13 @@ namespace YARG.Input
 
                 foreach (var mode in modesToRemove)
                 {
-                    profileBindings.ModeMappings.Remove(mode);
+                    serialized.ModeMappings.Remove(mode);
                 }
             }
 
-            if (profileBindings.MenuMappings is not null)
+            if (serialized.MenuMappings is not null)
             {
-                foreach (var (baseLayout, bindingSetGuid) in profileBindings.MenuMappings)
+                foreach (var (baseLayout, bindingSetGuid) in serialized.MenuMappings)
                 {
                     var controllerFamily = LayoutHelper.LayoutStringToControllerFamily(baseLayout);
 
@@ -186,16 +180,16 @@ namespace YARG.Input
                     else
                     {
                         YargLogger.LogWarning($"Referenced nonexistent binding collection GUID {bindingSetGuid}; removing it");
-                        profileBindings.MenuMappings.Remove(baseLayout);
+                        serialized.MenuMappings.Remove(baseLayout);
                     }
                 }
 
             }
         }
 
-        public SerializedProfileDeviceInfo Serialize()
+        public SerializedPlayerDeviceInfo Serialize()
         {
-            var serialized = new SerializedProfileDeviceInfo();
+            var serialized = new SerializedPlayerDeviceInfo();
 
             foreach (var device in _controllers)
             {
@@ -248,7 +242,7 @@ namespace YARG.Input
             return serialized;
         }
 
-        public static ProfileDeviceInfo Deserialize(YargProfile profile, SerializedProfileDeviceInfo? serialized)
+        public static PlayerDeviceInfo Deserialize(YargProfile profile, SerializedPlayerDeviceInfo? serialized)
         {
             return new(profile, serialized);
         }

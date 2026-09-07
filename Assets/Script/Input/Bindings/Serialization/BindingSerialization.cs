@@ -33,11 +33,11 @@ namespace YARG.Input.Serialization
 
     public class SerializedBindings
     {
-        public Dictionary<Guid, SerializedProfileDeviceInfo> Profiles = new();
+        public Dictionary<Guid, SerializedPlayerDeviceInfo> Profiles = new();
         public Dictionary<Guid, SerializedReusableBindingSet> ReusableBindingSets = new();
     }
 
-    public class SerializedProfileDeviceInfo
+    public class SerializedPlayerDeviceInfo
     {
         public List<SerializedInputDevice> Controllers = new();
         public List<SerializedMic> Microphones = new();

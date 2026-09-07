@@ -66,7 +66,7 @@ namespace YARG.Input.Serialization
             [JsonConstructor]
             public SerializedProfileDeviceInfoV4() { }
 
-            public SerializedProfileDeviceInfoV4(SerializedProfileDeviceInfo serialized)
+            public SerializedProfileDeviceInfoV4(SerializedPlayerDeviceInfo serialized)
             {
                 Controllers.AddRange(serialized.Controllers.Select((controller) => new SerializedControllerV4(controller)));
 
@@ -88,9 +88,9 @@ namespace YARG.Input.Serialization
                 }
             }
 
-            public SerializedProfileDeviceInfo Deserialize()
+            public SerializedPlayerDeviceInfo Deserialize()
             {
-                var deserialized = new SerializedProfileDeviceInfo();
+                var deserialized = new SerializedPlayerDeviceInfo();
 
                 foreach (var mic in Microphones)
                 {
