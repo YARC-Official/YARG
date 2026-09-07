@@ -151,15 +151,9 @@ namespace YARG.Gameplay.HUD
             RefreshSelection();
         }
 
-        public void SelectNext()
-        {
-            MoveSelection(1);
-        }
+        public void SelectNext() => MoveSelection(1);
 
-        public void SelectPrevious()
-        {
-            MoveSelection(-1);
-        }
+        public void SelectPrevious() => MoveSelection(-1);
 
         public void ConfirmSelection()
         {
@@ -273,10 +267,7 @@ namespace YARG.Gameplay.HUD
             gameObject.SetActive(true);
         }
 
-        public void Close()
-        {
-            IsOpen = false;
-        }
+        public void Close() => IsOpen = false;
 
         public void SetTrackBounds(Rect? bounds, Vector2? bottom, Vector2? top)
         {

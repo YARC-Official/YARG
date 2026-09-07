@@ -108,34 +108,38 @@ namespace YARG.Scores
 
         public static bool IsBandScoreValid(float songSpeed, IEnumerable<YargPlayer> players)
         {
-            var activePlayers = players.Where(p => !p.SittingOut).ToList();
-            var humans = activePlayers.Where(p => !p.Profile.IsBot).ToList();
-            var hasBots = activePlayers.Count > humans.Count;
-            var hasHumans = humans.Count > 0;
-            var allHumanScoresValid = hasHumans && humans.All(player => IsSoloScoreValid(songSpeed, player));
+            int activeCount = 0;
+            int humanCount = 0;
+            bool allHumansValid = true;
 
-            if (!allHumanScoresValid)
+            foreach (var player in players)
+            {
+                if (player.SittingOut)
+                {
+                    continue;
+                }
+
+                activeCount++;
+                if (!player.Profile.IsBot)
+                {
+                    humanCount++;
+                    allHumansValid &= IsSoloScoreValid(songSpeed, player);
+                }
+            }
+
+            bool hasBots = activeCount > humanCount;
+            bool hasHumans = humanCount > 0;
+
+            if (!hasHumans || !allHumansValid)
             {
                 return false;
             }
 
-            if (!AllowScoresWithBots && hasBots)
-            {
-                return false;
-            }
-
-            return true;
+            return AllowScoresWithBots || !hasBots;
         }
 
-        public static bool IsSoloScoreValid(float songSpeed, YargPlayer player)
-        {
-            if (songSpeed < 1.0f || player.Profile.IsBot || !player.IsScoreValid)
-            {
-                return false;
-            }
-
-            return true;
-        }
+        public static bool IsSoloScoreValid(float songSpeed, YargPlayer player) =>
+            songSpeed >= 1.0f && !player.Profile.IsBot && player.IsScoreValid;
 
         public static void RecordScore(GameRecord gameRecord, List<PlayerScoreRecord> playerEntries)
         {

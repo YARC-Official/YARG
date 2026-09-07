@@ -357,19 +357,16 @@ namespace YARG.Gameplay.Player
 
         protected virtual bool IsMenuOpen => false;
 
-        protected virtual void OnMenuGameInput(GameInput input)
-        {
-        }
-
         protected void OnGameInput(ref GameInput input)
         {
             // Ignore completely if the song hasn't started yet or player failed
             if (!GameManager.Started || PlayerHasFailed || !IsActive)
+            {
                 return;
+            }
 
             if (IsMenuOpen)
             {
-                OnMenuGameInput(input);
                 return;
             }
 

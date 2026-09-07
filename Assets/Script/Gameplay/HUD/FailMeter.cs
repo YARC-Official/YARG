@@ -197,15 +197,7 @@ namespace YARG.Gameplay.HUD
             {
                 if (!_players[i].IsActive)
                 {
-                    if (_playerSliders[i].gameObject.activeSelf)
-                    {
-                        _playerSliders[i].gameObject.SetActive(false);
-                        _needleSliders[i].gameObject.SetActive(false);
-                        _playerHappinessTweeners[i].Pause();
-                        _needleHappinessTweeners[i].Pause();
-                        _xposTweeners[i].Pause();
-                    }
-
+                    HidePlayerMeter(i);
                     continue;
                 }
 
@@ -372,14 +364,22 @@ namespace YARG.Gameplay.HUD
 
             for (var i = 0; i < _players.Count; i++)
             {
-                if (!_players[i].IsActive && _playerSliders[i].gameObject.activeSelf)
+                if (!_players[i].IsActive)
                 {
-                    _playerSliders[i].gameObject.SetActive(false);
-                    _needleSliders[i].gameObject.SetActive(false);
-                    _playerHappinessTweeners[i].Pause();
-                    _needleHappinessTweeners[i].Pause();
-                    _xposTweeners[i].Pause();
+                    HidePlayerMeter(i);
                 }
+            }
+        }
+
+        private void HidePlayerMeter(int index)
+        {
+            if (_playerSliders[index].gameObject.activeSelf)
+            {
+                _playerSliders[index].gameObject.SetActive(false);
+                _needleSliders[index].gameObject.SetActive(false);
+                _playerHappinessTweeners[index].Pause();
+                _needleHappinessTweeners[index].Pause();
+                _xposTweeners[index].Pause();
             }
         }
 

@@ -1010,15 +1010,11 @@ namespace YARG.Gameplay
             UpdatePlayerMenuNavScheme();
         }
 
-        private void PlayerMenuUp(NavigationContext context)
-        {
+        private void PlayerMenuUp(NavigationContext context) =>
             GetPlayerMenuOwner(context)?.PlayerMenuPrevious();
-        }
 
-        private void PlayerMenuDown(NavigationContext context)
-        {
+        private void PlayerMenuDown(NavigationContext context) =>
             GetPlayerMenuOwner(context)?.PlayerMenuNext();
-        }
 
         private TrackPlayer GetPlayerMenuOwner(NavigationContext context)
         {
