@@ -23,9 +23,8 @@ namespace YARG.Menu.ProfileList
             Binding = binding;
             SingleBinding = singleBinding;
 
-            
             _bindText.text = // $"<font-weight=400>{control.device.displayName}</font-weight> - " + TODO-FRICK: Controller family
-                $"<font-weight=600>{binding.Name}</font-weight>"; // TODO-FRICK: Lefty? Wasn't accounted for previously
+                $"<font-weight=600>{singleBinding.ControlName}</font-weight>";
         }
 
         public void DeleteBinding()

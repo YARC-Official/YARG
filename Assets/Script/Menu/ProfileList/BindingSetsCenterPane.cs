@@ -59,19 +59,6 @@ namespace YARG.Menu.ProfileList
                 return;
             }
 
-            var template = ReusableBindingSetTemplates.GetTemplate(bindingSet.Mode);
-
-            foreach (var (key, info) in template)
-            {
-                switch (info.Type)
-                {
-                    case BindingType.Button or BindingType.IndividualButton:
-                        var go = Instantiate(_buttonGroupPrefab, transform);
-                        go.Init(this, bindingSet, bindingSet.Bindings[key] as ReusableButtonBinding);
-                        break;
-                }
-            }
-
             ShowContents();
 
             RefreshFromBindingSet(_bindingSet);
@@ -80,6 +67,19 @@ namespace YARG.Menu.ProfileList
         private void RefreshFromBindingSet(ReusableBindingSet bindingSet)
         {
             _bindsList.DestroyChildren();
+
+            var template = ReusableBindingSetTemplates.GetTemplate(bindingSet.Mode);
+
+            foreach (var (key, info) in template)
+            {
+                switch (info.Type)
+                {
+                    case BindingType.Button or BindingType.IndividualButton:
+                        var go = Instantiate(_buttonGroupPrefab, _bindsList);
+                        go.Init(this, bindingSet, bindingSet.Bindings[key] as ReusableButtonBinding);
+                        break;
+                }
+            }
 
             _name.text = bindingSet.Name;
         }
