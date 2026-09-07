@@ -136,7 +136,8 @@ namespace YARG.Venue.Characters
 
             if (HasRng)
             {
-                var random = UnityEngine.Random.Range(0, 9);
+                //end is max exclusive intended range is 1-100
+                var random = UnityEngine.Random.Range(1, 101);
                 _animator.SetInteger(_rngHash, random);
                 CurrentRng = random;
             }
