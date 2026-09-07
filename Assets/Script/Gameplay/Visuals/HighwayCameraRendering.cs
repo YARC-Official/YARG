@@ -409,9 +409,6 @@ namespace YARG.Gameplay.Visuals
             {
                 var camera = _cameras[i];
 
-                if (camera.orthographic)
-                    continue;
-
                 float multiplayerXOffset = GetMultiplayerXOffset(highwayIndex, HighwayCount(),
                     -1f * SettingsManager.Settings.HighwayTiltMultiplier.Value);
                 OffsetLocalPosition(camera.transform, multiplayerXOffset);
@@ -460,7 +457,20 @@ namespace YARG.Gameplay.Visuals
                 }
                 else
                 {
-                    projMatrix = GetModifiedProjectionMatrix(camera.projectionMatrix,
+                    // For orthographic cameras, compute the projection matrix
+                    // explicitly with Matrix4x4.Ortho (m33 = 1) instead of using
+                    // camera.projectionMatrix, whose internal orthographic convention
+                    // may encode depth in w (m33 = 0) and break the post-projection
+                    // NDC tiling applied by GetModifiedProjectionMatrix.
+                    if (camera.orthographic)
+                    {
+                        float halfHeight = camera.orthographicSize;
+                        float halfWidth = halfHeight * camera.aspect;
+                        projMatrix = Matrix4x4.Ortho(
+                            -halfWidth, halfWidth, -halfHeight, halfHeight,
+                            camera.nearClipPlane, camera.farClipPlane);
+                    }
+                    projMatrix = GetModifiedProjectionMatrix(projMatrix,
                         highwayIndex, HighwayCount(), _laneScales[i], horizontalOffsetNdc);
                     highwayIndex++;
                 }
