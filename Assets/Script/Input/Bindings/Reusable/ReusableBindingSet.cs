@@ -2,11 +2,12 @@
 using System.Collections.Generic;
 using System.Text;
 using YARG.Core;
+using YARG.Core.Logging;
 using YARG.Helpers;
 using YARG.Input.Serialization;
 using YARG.Menu.ProfileList;
 
-namespace YARG.Input
+namespace YARG.Input.Bindings
 {
     public partial class ReusableBindingSet
     {
@@ -18,7 +19,7 @@ namespace YARG.Input
 
         // Key is binding name, like "FiveFret.Green" or "FourDrums.RedPad"
         // These names come from BindingCollection.Templates.cs; they are YARG's, not PlasticBand's
-        public Dictionary<string, SerializedReusableControlBinding> Bindings = new();
+        public Dictionary<string, ReusableControlBinding> Bindings = new();
 
         public ReusableBindingSet(string name, GameMode? mode, ControllerFamily controllerFamily, bool isDefault = false) {
             Name = name;
@@ -34,7 +35,35 @@ namespace YARG.Input
             Guid = serialized.Guid;
             Mode = serialized.GameMode;
             ControllerFamily = LayoutHelper.LayoutStringToControllerFamily(serialized.BaseLayout);
-            Bindings = serialized.Bindings;
+
+            var template = ReusableBindingSetTemplates.GetTemplate(ControllerFamily);
+
+            foreach (var (key, binding) in serialized.Bindings)
+            {
+                if (template.TryGetValue(key, out var info))
+                {
+                    ReusableControlBinding newBinding = info.Type switch
+                    {
+                        BindingType.Button => new ReusableButtonBinding(binding, info),
+                        BindingType.Axis => new ReusableAxisBinding(binding, info),
+                        BindingType.Integer => new ReusableIntegerBinding(binding, info),
+                        _ => null
+                    };
+
+                    if (newBinding is not null)
+                    {
+                        Bindings.Add(key, newBinding);
+                    }
+                    else
+                    {
+                        YargLogger.LogWarning($"Failed to parse binding with key {key} as any known binding type");
+                    }
+                }
+                else
+                {
+                    YargLogger.LogWarning($"Unrecognized input action name {key} for controller family {ControllerFamily}; ignoring");
+                }
+            }
         }
 
 
@@ -47,11 +76,19 @@ namespace YARG.Input
                 return null;
             }
 
+            var serializedBindings = new Dictionary<string, SerializedReusableControlBinding>();
+
+            foreach (var (key, binding) in Bindings)
+            {
+                serializedBindings[key] = binding.Serialize();
+            }
+
             return new SerializedReusableBindingSet(Name, LayoutHelper.ControllerFamilyToLayoutString(ControllerFamily)) {
                 Guid = Guid,
-                Bindings = Bindings,
                 GameMode = Mode,
-                BaseLayout = LayoutHelper.ControllerFamilyToLayoutString(ControllerFamily)
+                BaseLayout = LayoutHelper.ControllerFamilyToLayoutString(ControllerFamily),
+
+                Bindings = serializedBindings
             };
         }
     }

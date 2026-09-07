@@ -233,13 +233,13 @@ namespace YARG.Input.Serialization
                 ControlPath = string.Empty;
             }
 
-            public SerializedInputControlV4(SerializedInputControl serialized)
+            public SerializedInputControlV4(SerializedSingleBinding serialized)
             {
                 ControlPath = serialized.ControlPath;
                 Parameters = serialized.Parameters;
             }
 
-            public SerializedInputControl? Deserialize()
+            public SerializedSingleBinding? Deserialize()
             {
                 return new(ControlPath)
                 {
