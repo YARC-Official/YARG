@@ -65,7 +65,7 @@ namespace YARG.Menu.DifficultySelect
         // Done buttons: the ready/sit-out treatment in blue — blue text on the
         // normal row, and while selected a solid blue fill of the whole row
         // behind near-black text.
-        private static Color DONE_TEXT_COLOR => MenuData.Colors.NavigationBlue;
+        private static          Color DONE_TEXT_COLOR => new Color32(0x00, 0xD3, 0xFF, 0xFF);
         private static readonly Color DONE_SELECTED_TEXT_COLOR = new Color32(0x01, 0x22, 0x27, 0xFF);
         private static readonly Color DONE_SELECTED_FILL_COLOR = new Color32(0x00, 0xD3, 0xFF, 0xFF);
 
