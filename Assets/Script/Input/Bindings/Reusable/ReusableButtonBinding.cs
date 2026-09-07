@@ -12,6 +12,14 @@ namespace YARG.Input.Bindings
 
         public ReusableButtonBinding(InputActionInfo info) : base(info) { }
 
+        public ReusableButtonBinding(InputActionInfo info, List<string> controlNames) : base(info)
+        {
+            foreach (var controlName in controlNames)
+            {
+                Bindings.Add(new(controlName));
+            }
+        }
+
         public ReusableButtonBinding(SerializedReusableControlBinding serialized, InputActionInfo info) : base(serialized, info) {
             foreach (var binding in serialized.Controls)
             {
@@ -68,7 +76,9 @@ namespace YARG.Input.Bindings
         public float PressPoint { get; set; } = PRESS_POINT_DEFAULT;
         public bool Inverted { get; set; } = INVERTED_DEFAULT;
 
-        public ReusableSingleButtonBinding(SerializedSingleBinding serialized)
+        public ReusableSingleButtonBinding(string controlName) : base(controlName) { }
+
+        public ReusableSingleButtonBinding(SerializedSingleBinding serialized) : base(serialized)
         {
             DeserializeParameters(serialized.Parameters);
         }

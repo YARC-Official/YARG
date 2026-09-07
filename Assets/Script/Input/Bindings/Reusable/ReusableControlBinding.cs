@@ -83,7 +83,15 @@ namespace YARG.Input.Bindings
     {
         public string ControlName { get; set; }
 
-        public ReusableSingleBinding() { }
+        public ReusableSingleBinding(string controlName)
+        {
+            ControlName = controlName;
+        }
+
+        public ReusableSingleBinding(SerializedSingleBinding serialized) {
+            ControlName = serialized.ControlName;
+        }
+
         public SerializedSingleBinding Serialize()
         {
             return new SerializedSingleBinding(ControlName)

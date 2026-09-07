@@ -44,7 +44,8 @@ namespace YARG.Input.Bindings
                 {
                     ReusableControlBinding newBinding = info.Type switch
                     {
-                        BindingType.Button => new ReusableButtonBinding(binding, info),
+                        BindingType.Button or
+                        BindingType.IndividualButton => new ReusableButtonBinding(binding, info),
                         BindingType.Axis => new ReusableAxisBinding(binding, info),
                         BindingType.Integer => new ReusableIntegerBinding(binding, info),
                         _ => null

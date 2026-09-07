@@ -9,6 +9,14 @@ namespace YARG.Input.Bindings
     {
         public ReusableIntegerBinding(InputActionInfo info) : base(info) { }
 
+        public ReusableIntegerBinding(InputActionInfo info, List<string> controlNames) : base(info)
+        {
+            foreach (var controlName in controlNames)
+            {
+                Bindings.Add(new(controlName));
+            }
+        }
+
         public ReusableIntegerBinding(SerializedReusableControlBinding serialized, InputActionInfo info) : base(serialized, info)
         {
             foreach (var binding in serialized.Controls)
@@ -19,7 +27,9 @@ namespace YARG.Input.Bindings
     }
 
     public class ReusableSingleIntegerBinding : ReusableSingleBinding {
-        public ReusableSingleIntegerBinding(SerializedSingleBinding serialized)
+        public ReusableSingleIntegerBinding(string controlName) : base(controlName) { }
+
+        public ReusableSingleIntegerBinding(SerializedSingleBinding serialized) : base(serialized)
         {
             DeserializeParameters(serialized.Parameters);
         }

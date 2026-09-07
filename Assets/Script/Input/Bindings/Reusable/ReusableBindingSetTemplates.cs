@@ -8,6 +8,7 @@ namespace YARG.Input.Bindings
     public enum BindingType
     {
         Button,
+        IndividualButton,
         Axis,
         Integer
     }
