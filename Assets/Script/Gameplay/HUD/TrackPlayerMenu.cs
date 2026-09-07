@@ -2,7 +2,10 @@ using System;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.AddressableAssets;
+using UnityEngine.ResourceManagement.AsyncOperations;
 using UnityEngine.UI;
+using YARG.Player;
 
 namespace YARG.Gameplay.HUD
 {
@@ -23,15 +26,14 @@ namespace YARG.Gameplay.HUD
     public class TrackPlayerMenu : MonoBehaviour
     {
         private const float OPEN_SECONDS = 0.22f;
-        private const float CLOSE_SECONDS = 0.12f;
-        private const float TRACK_WIDTH_FRACTION = 0.85f;
+        private const float CLOSE_SECONDS = 0.22f;
 
         private const int MAX_VISIBLE_OPTIONS = 5;
 
         private const float OPTION_HEIGHT = 54f;
-        private const float OPTION_SPACING = 8f;
+        private const float OPTION_SPACING = 0f;
         private const float TOP_PAD = 13f;
-        private const float HEADING_HEIGHT = 28f;
+        private const float HEADING_HEIGHT = 60f;
         private const float HINT_HEIGHT = 28f;
         private const float SELECTED_BRIGHTNESS = 1.8f;
         private const float DISABLED_ALPHA = 0.35f;
@@ -41,17 +43,11 @@ namespace YARG.Gameplay.HUD
             "Close Hint", "Accept Hint", "Red Button", "Green Button"
         };
 
-        private static readonly AnimationCurve POP_SCALE = new(
-            new Keyframe(0f, 0.78f),
-            new Keyframe(0.55f, 1.06f),
-            new Keyframe(0.8f, 0.985f),
-            new Keyframe(1f, 1f));
-
         public bool IsOpen { get; private set; }
 
         private RectTransform _panel;
         private RectTransform _parent;
-        private Transform _countdown;
+        private Vector2 _screenBottom;
         private Canvas _canvas;
         private Vector2 _size;
         private float _trackScale;
@@ -59,6 +55,7 @@ namespace YARG.Gameplay.HUD
 
         private RectTransform _optionTemplate;
         private RectTransform _heading;
+        private AsyncOperationHandle<Sprite> _iconHandle;
         private readonly List<RectTransform> _hintObjects = new();
         private float _hintReferenceY;
 
@@ -71,16 +68,22 @@ namespace YARG.Gameplay.HUD
         private Color _normalColor;
         private Color _selectedColor;
 
-        public void Initialize(Transform countdown)
+        public void Initialize(YargPlayer player)
         {
-            _countdown = countdown;
             _panel = (RectTransform) transform;
             _parent = (RectTransform) transform.parent;
             _canvas = GetComponentInParent<Canvas>();
             _size = _panel.sizeDelta;
 
             _optionTemplate = (RectTransform) transform.Find("Option Template");
+            _optionTemplate.anchorMin = new Vector2(0f, 0.5f);
+            _optionTemplate.anchorMax = new Vector2(1f, 0.5f);
+            _optionTemplate.sizeDelta = new Vector2(_optionTemplate.sizeDelta.x - _size.x,
+                _optionTemplate.sizeDelta.y);
             _heading = (RectTransform) transform.Find("Heading");
+            _heading.GetComponent<TextMeshProUGUI>().text = player.Profile.Name;
+            _iconHandle = Addressables.LoadAssetAsync<Sprite>(player.GetInstrumentSprite());
+            transform.Find("Instrument Icon").GetComponent<Image>().sprite = _iconHandle.WaitForCompletion();
             foreach (var hintName in HINT_NAMES)
             {
                 _hintObjects.Add((RectTransform) transform.Find(hintName));
@@ -250,7 +253,7 @@ namespace YARG.Gameplay.HUD
 
         private void LayoutMenu()
         {
-            int count = Math.Max(VisibleOptionCount(), 1);
+            int count = MAX_VISIBLE_OPTIONS;
             float optionsHeight = count * OPTION_HEIGHT + (count - 1) * OPTION_SPACING;
             float panelHeight = TOP_PAD + HEADING_HEIGHT + OPTION_SPACING
                 + optionsHeight + OPTION_SPACING + HINT_HEIGHT + TOP_PAD;
@@ -259,6 +262,8 @@ namespace YARG.Gameplay.HUD
             float half = panelHeight / 2f;
             _heading.anchoredPosition = new Vector2(_heading.anchoredPosition.x,
                 half - TOP_PAD - HEADING_HEIGHT / 2f);
+            var icon = (RectTransform) transform.Find("Instrument Icon");
+            icon.anchoredPosition = new Vector2(icon.anchoredPosition.x, _heading.anchoredPosition.y);
 
             float optionsTop = half - TOP_PAD - HEADING_HEIGHT - OPTION_SPACING;
             float hintsY = optionsTop - optionsHeight - OPTION_SPACING - HINT_HEIGHT / 2f;
@@ -288,8 +293,16 @@ namespace YARG.Gameplay.HUD
                 return;
             }
 
-            var width = bounds.Value.width / _canvas.scaleFactor * TRACK_WIDTH_FRACTION;
+            var camera = _canvas.renderMode == RenderMode.ScreenSpaceOverlay ? null : _canvas.worldCamera;
+            var direction = top.Value - bottom.Value;
+            var baseX = Mathf.Approximately(direction.y, 0f)
+                ? bottom.Value.x
+                : bottom.Value.x - bottom.Value.y * direction.x / direction.y;
+            RectTransformUtility.ScreenPointToLocalPointInRectangle(_parent,
+                new Vector2(baseX, 0f), camera, out _screenBottom);
+            var width = bounds.Value.width / _canvas.scaleFactor;
             _trackScale = Mathf.Min(1f, width / _size.x);
+            _panel.sizeDelta = new Vector2(Mathf.Max(_size.x, width), _panel.sizeDelta.y);
             _panel.gameObject.SetActive(IsOpen || _progress > 0f);
             UpdateAppearance();
         }
@@ -307,8 +320,19 @@ namespace YARG.Gameplay.HUD
 
         private void UpdateAppearance()
         {
-            _panel.anchoredPosition = (Vector2) _parent.InverseTransformPoint(_countdown.position);
-            _panel.localScale = Vector3.one * (_trackScale * POP_SCALE.Evaluate(_progress));
+            var height = _panel.rect.height * _trackScale;
+            var slide = Mathf.SmoothStep(0f, 1f, _progress);
+            var position = _screenBottom + Vector2.up * Mathf.Lerp(-height / 2f - 8f, height / 2f - 8f, slide);
+            _panel.localPosition = new Vector3(position.x, position.y, 0f);
+            _panel.localScale = Vector3.one * _trackScale;
+        }
+
+        private void OnDestroy()
+        {
+            if (_iconHandle.IsValid())
+            {
+                Addressables.Release(_iconHandle);
+            }
         }
     }
 }

@@ -297,12 +297,12 @@ namespace YARG.Gameplay.HUD
             _playerNameDisplay.ShowPlayer(player);
         }
 
-        public void ShowPlayerMenu(IReadOnlyList<PlayerMenuItem> items)
+        public void ShowPlayerMenu(IReadOnlyList<PlayerMenuItem> items, YargPlayer player)
         {
             if (_playerMenu == null)
             {
                 _playerMenu = Instantiate(_playerMenuPrefab, transform);
-                _playerMenu.Initialize(_countdownDisplay.transform);
+                _playerMenu.Initialize(player);
             }
 
             _playerMenu.SetItems(items);

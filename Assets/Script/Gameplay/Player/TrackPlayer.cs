@@ -44,7 +44,7 @@ namespace YARG.Gameplay.Player
                 return;
             }
 
-            TrackView.ShowPlayerMenu(GetPlayerMenuItems());
+            TrackView.ShowPlayerMenu(GetPlayerMenuItems(), Player);
         }
 
         public void PlayerMenuNext()
