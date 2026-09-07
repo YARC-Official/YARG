@@ -28,6 +28,11 @@ namespace YARG.Input
             if (guitar is GuitarHeroGuitar gh)
             {
                 AddBinding(GuitarAction.StarPower, gh.spPedal);
+                AddBinding(GuitarAction.SoloGreenFret, gh.touchGreen);
+                AddBinding(GuitarAction.SoloRedFret, gh.touchRed);
+                AddBinding(GuitarAction.SoloYellowFret, gh.touchYellow);
+                AddBinding(GuitarAction.SoloBlueFret, gh.touchBlue);
+                AddBinding(GuitarAction.SoloOrangeFret, gh.touchOrange);
             }
             else if (guitar is RockBandGuitar rb)
             {
