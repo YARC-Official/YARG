@@ -36,7 +36,7 @@ namespace YARG.Input.Bindings
             Mode = serialized.GameMode;
             ControllerFamily = LayoutHelper.LayoutStringToControllerFamily(serialized.BaseLayout);
 
-            var template = ReusableBindingSetTemplates.GetTemplate(ControllerFamily);
+            var template = ReusableBindingSetTemplates.GetTemplate(Mode);
 
             foreach (var (key, binding) in serialized.Bindings)
             {

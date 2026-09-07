@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using YARG.Helpers;
 using YARG.Input.Serialization;
 
 namespace YARG.Input.Bindings
@@ -17,9 +18,9 @@ namespace YARG.Input.Bindings
 
         public ReusableButtonBinding(InputActionInfo info, List<ReusableSingleButtonBindingConfig> controls) : base(info)
         {
-            foreach (var controlName in controls)
+            foreach (var controlConfig in controls)
             {
-                Bindings.Add(new(controlName));
+                Bindings.Add(new(controlConfig));
             }
         }
 
@@ -70,10 +71,24 @@ namespace YARG.Input.Bindings
     public struct ReusableSingleButtonBindingConfig
     {
         public string ControlName;
+        public string DisplayName;
         public long? DebounceThreshold;
         public DebounceMode? DebounceMode;
         public float? PressPoint;
         public bool? Inverted;
+
+        public ReusableSingleButtonBindingConfig(string controlName, string layout)
+        {
+            ControlName = controlName;
+            var baseLayout = LayoutHelper.GetMostGeneralLayoutForControl(layout, controlName);
+            DisplayName = LayoutHelper.GetDisplayNameOfControlInLayout(baseLayout, controlName) ?? ControlName;
+
+            // These would be more pleasant as struct field initializers, but those aren't in C# 9.0
+            DebounceThreshold = null;
+            DebounceMode = null;
+            PressPoint = null;
+            Inverted = null;
+        }
     }
 
     public class ReusableSingleButtonBinding : ReusableSingleBinding
@@ -88,7 +103,7 @@ namespace YARG.Input.Bindings
         public float PressPoint { get; set; } = PRESS_POINT_DEFAULT;
         public bool Inverted { get; set; } = INVERTED_DEFAULT;
 
-        public ReusableSingleButtonBinding(ReusableSingleButtonBindingConfig config) : base(config.ControlName) {
+        public ReusableSingleButtonBinding(ReusableSingleButtonBindingConfig config) : base(config.ControlName, config.DisplayName) {
             DebounceThreshold = config.DebounceThreshold ?? DEBOUNCE_THRESHOLD_DEFAULT;
             DebounceMode = config.DebounceMode ?? DEBOUNCE_MODE_DEFAULT;
             PressPoint = config.PressPoint ?? PRESS_POINT_DEFAULT;

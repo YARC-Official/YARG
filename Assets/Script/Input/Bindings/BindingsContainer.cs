@@ -30,8 +30,7 @@ namespace YARG.Input.Bindings
             {
                 ControllerFamily.FiveFretGuitar,
                 new() {
-                    ReusableBindingSet.DefaultFiveFretGuitar,
-                    ReusableBindingSet.DefaultRiffmasterGuitar
+                    ReusableBindingSet.DefaultFiveFretGuitar
                 }
             },
         };

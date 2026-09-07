@@ -13,7 +13,7 @@ namespace YARG.Input.Bindings
         {
             foreach (var controlName in controlNames)
             {
-                Bindings.Add(new(controlName));
+                Bindings.Add(new(controlName, controlName)); // TODO-FRICK: DisplayName
             }
         }
 
@@ -27,7 +27,7 @@ namespace YARG.Input.Bindings
     }
 
     public class ReusableSingleIntegerBinding : ReusableSingleBinding {
-        public ReusableSingleIntegerBinding(string controlName) : base(controlName) { }
+        public ReusableSingleIntegerBinding(string controlName, string displayName) : base(controlName, displayName) { }
 
         public ReusableSingleIntegerBinding(SerializedSingleBinding serialized) : base(serialized)
         {

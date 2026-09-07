@@ -19,13 +19,14 @@ namespace YARG.Menu.ProfileList
 
         [Space]
         [SerializeField]
-        private ButtonBindGroup _buttonGroupPrefab;
+        private ReusableButtonBindGroup _buttonGroupPrefab;
         [SerializeField]
         private AxisBindGroup _axisGroupPrefab;
         [SerializeField]
         private IntegerBindGroup _integerGroupPrefab;
 
         private ReusableBindingSet _bindingSet;
+        private BindingSetView _bindingSetView;
 
         public void HideContents()
         {
@@ -44,12 +45,13 @@ namespace YARG.Menu.ProfileList
 
         public void ClearBindingSet()
         {
-            SelectBindingSet(null);
+            SelectBindingSet(null, null);
         }
 
-        public void SelectBindingSet(ReusableBindingSet? bindingSet)
+        public void SelectBindingSet(ReusableBindingSet? bindingSet, BindingSetView bindingSetView)
         {
             _bindingSet = bindingSet;
+            _bindingSetView = bindingSetView;
 
             if (_bindingSet is null)
             {
@@ -65,6 +67,19 @@ namespace YARG.Menu.ProfileList
         private void RefreshFromBindingSet(ReusableBindingSet bindingSet)
         {
             _bindsList.DestroyChildren();
+
+            var template = ReusableBindingSetTemplates.GetTemplate(bindingSet.Mode);
+
+            foreach (var (key, info) in template)
+            {
+                switch (info.Type)
+                {
+                    case BindingType.Button or BindingType.IndividualButton:
+                        var go = Instantiate(_buttonGroupPrefab, _bindsList);
+                        go.Init(this, bindingSet, bindingSet.Bindings[key] as ReusableButtonBinding);
+                        break;
+                }
+            }
 
             _name.text = bindingSet.Name;
         }
