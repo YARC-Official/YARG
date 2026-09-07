@@ -34,18 +34,14 @@ namespace YARG.Input
             new ButtonBinding("FiveFret.Yellow", (int) GuitarAction.YellowFret),
             new ButtonBinding("FiveFret.Blue",   (int) GuitarAction.BlueFret),
             new ButtonBinding("FiveFret.Orange", (int) GuitarAction.OrangeFret),
-            // Also need bindings for solo frets
             new ButtonBinding("FiveFret.SoloGreen", (int) GuitarAction.SoloGreenFret),
             new ButtonBinding("FiveFret.SoloRed",   (int) GuitarAction.SoloRedFret),
             new ButtonBinding("FiveFret.SoloYellow",(int) GuitarAction.SoloYellowFret),
             new ButtonBinding("FiveFret.SoloBlue",  (int) GuitarAction.SoloBlueFret),
             new ButtonBinding("FiveFret.SoloOrange",(int) GuitarAction.SoloOrangeFret),
-
             new ButtonBinding("Guitar.StrumUp",   (int) GuitarAction.StrumUp),
             new ButtonBinding("Guitar.StrumDown", (int) GuitarAction.StrumDown),
-
             new IndividualButtonBinding("Guitar.StarPower", (int) GuitarAction.StarPower),
-
             new AxisBinding("Guitar.Whammy", (int) GuitarAction.Whammy),
         };
 

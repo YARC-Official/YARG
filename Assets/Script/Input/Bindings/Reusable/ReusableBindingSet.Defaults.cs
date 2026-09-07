@@ -11,25 +11,81 @@ namespace YARG.Input.Bindings
 {
     public partial class ReusableBindingSet
     {
-        public static ReusableBindingSet DEFAULT_5F_GUITAR = new("Default 5-Fret Guitar", GameMode.FiveFretGuitar, ControllerFamily.FiveFretGuitar, true)
+        public static ReusableBindingSet DefaultFiveFretGuitar = new(
+            "Default 5-Fret Guitar",
+            GameMode.FiveFretGuitar,
+            ControllerFamily.FiveFretGuitar,
+            true
+        )
         {
             Bindings = new()
             {
-                { "FiveFret.Green", MakeSimpleControlBinding(nameof(FiveFretGuitar.greenFret)) },
-                { "FiveFret.Red", MakeSimpleControlBinding(nameof(FiveFretGuitar.redFret)) },
-                { "FiveFret.Yellow", MakeSimpleControlBinding(nameof(FiveFretGuitar.yellowFret)) },
-                { "FiveFret.Blue", MakeSimpleControlBinding(nameof(FiveFretGuitar.blueFret)) },
-                { "FiveFret.Orange", MakeSimpleControlBinding(nameof(FiveFretGuitar.orangeFret)) },
+                {
+                    ControlStrings.FIVE_FRET_GREEN,
+                    new ReusableButtonBinding(
+                        ReusableBindingSetTemplates.FIVE_FRET_GUITAR[ControlStrings.FIVE_FRET_GREEN],
+                        new ReusableSingleButtonBindingConfig() { ControlName = nameof(FiveFretGuitar.greenFret) }
+                    )
+                },
+                {
+                    ControlStrings.FIVE_FRET_RED,
+                    new ReusableButtonBinding(
+                        ReusableBindingSetTemplates.FIVE_FRET_GUITAR[ControlStrings.FIVE_FRET_RED],
+                        new ReusableSingleButtonBindingConfig() { ControlName = nameof(FiveFretGuitar.redFret) }
+                    )
+                },
+
+                {
+                    ControlStrings.GUITAR_STAR_POWER,
+                    new ReusableButtonBinding(
+                        ReusableBindingSetTemplates.FIVE_FRET_GUITAR[ControlStrings.GUITAR_STAR_POWER],
+                        new List<ReusableSingleButtonBindingConfig>() {
+                            new() { ControlName = nameof(FiveFretGuitar.tilt), PressPoint = 1f },
+                            new() { ControlName = nameof(FiveFretGuitar.selectButton) },
+                            new() { ControlName = nameof(GuitarHeroGuitar.spPedal) },
+                        }
+                    )
+                },
             }
         };
 
-
-        private static ReusableControlBinding MakeSimpleButtonBinding(string controlName)
+        public static ReusableBindingSet DefaultRiffmasterGuitar = new(
+            "Default Riffmaster Guitar",
+            GameMode.FiveFretGuitar,
+            ControllerFamily.FiveFretGuitar,
+            true
+        )
         {
-            return new ReusableButtonBinding()
+            Bindings = new()
             {
-                Controls = new() { new(controlName) }
-            };
-        }
+                {
+                    ControlStrings.FIVE_FRET_GREEN,
+                    new ReusableButtonBinding(
+                        ReusableBindingSetTemplates.FIVE_FRET_GUITAR[ControlStrings.FIVE_FRET_GREEN],
+                        new ReusableSingleButtonBindingConfig() { ControlName = nameof(FiveFretGuitar.greenFret) }
+                    )
+                },
+                {
+                    ControlStrings.FIVE_FRET_RED,
+                    new ReusableButtonBinding(
+                        ReusableBindingSetTemplates.FIVE_FRET_GUITAR[ControlStrings.FIVE_FRET_RED],
+                        new ReusableSingleButtonBindingConfig() { ControlName = nameof(FiveFretGuitar.redFret) }
+                    )
+                },
+
+                {
+                    ControlStrings.GUITAR_STAR_POWER,
+                    new ReusableButtonBinding(
+                        ReusableBindingSetTemplates.FIVE_FRET_GUITAR[ControlStrings.GUITAR_STAR_POWER],
+                        new List<ReusableSingleButtonBindingConfig>() {
+                            new() { ControlName = nameof(FiveFretGuitar.tilt), PressPoint = 0.7f },
+                            new() { ControlName = nameof(FiveFretGuitar.selectButton) },
+                            new() { ControlName = nameof(GuitarHeroGuitar.spPedal) },
+                        }
+                    )
+                },
+
+            }
+        };
     }
 }

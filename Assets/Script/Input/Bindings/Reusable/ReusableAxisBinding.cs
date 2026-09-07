@@ -9,6 +9,14 @@ namespace YARG.Input.Bindings
     {
         public ReusableAxisBinding(InputActionInfo info) : base(info) { }
 
+        public ReusableAxisBinding(InputActionInfo info, List<string> controlNames) : base(info)
+        {
+            foreach (var controlName in controlNames)
+            {
+                Bindings.Add(new(controlName));
+            }
+        }
+
         public ReusableAxisBinding(SerializedReusableControlBinding serialized, InputActionInfo info) : base(serialized, info) {
             foreach (var binding in serialized.Controls)
             {
@@ -33,7 +41,9 @@ namespace YARG.Input.Bindings
         public float LowerDeadzone { get; set; }
         public float UpperDeadzone { get; set; }
 
-        public ReusableSingleAxisBinding(SerializedSingleBinding serialized)
+        public ReusableSingleAxisBinding(string controlName) : base(controlName) { }
+
+        public ReusableSingleAxisBinding(SerializedSingleBinding serialized) : base(serialized)
         {
             DeserializeParameters(serialized.Parameters);
         }

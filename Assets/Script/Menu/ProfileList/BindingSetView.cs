@@ -4,7 +4,7 @@ using System.Text;
 using TMPro;
 using UnityEngine;
 using YARG.Core.Game;
-using YARG.Input;
+using YARG.Input.Bindings;
 using YARG.Menu.Navigation;
 using static UnityEditor.AddressableAssets.Build.Layout.BuildLayout;
 

@@ -52,7 +52,7 @@ namespace YARG.Input.Bindings
     public abstract class ReusableControlBinding<TSingle> : ReusableControlBinding
         where TSingle : ReusableSingleBinding
     {
-        public List<TSingle> Bindings;
+        public List<TSingle> Bindings = new();
 
         public ReusableControlBinding(InputActionInfo info) : base(info) { }
 
@@ -83,7 +83,15 @@ namespace YARG.Input.Bindings
     {
         public string ControlName { get; set; }
 
-        public ReusableSingleBinding() { }
+        public ReusableSingleBinding(string controlName)
+        {
+            ControlName = controlName;
+        }
+
+        public ReusableSingleBinding(SerializedSingleBinding serialized) {
+            ControlName = serialized.ControlName;
+        }
+
         public SerializedSingleBinding Serialize()
         {
             return new SerializedSingleBinding(ControlName)

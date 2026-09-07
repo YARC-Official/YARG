@@ -27,7 +27,13 @@ namespace YARG.Input.Bindings
 
         private static readonly Dictionary<ControllerFamily, List<ReusableBindingSet>> _reusableBindingSetsByControllerFamily = new()
         {
-            { ControllerFamily.FiveFretGuitar, new() { ReusableBindingSet.DEFAULT_5F_GUITAR } },
+            {
+                ControllerFamily.FiveFretGuitar,
+                new() {
+                    ReusableBindingSet.DefaultFiveFretGuitar,
+                    ReusableBindingSet.DefaultRiffmasterGuitar
+                }
+            },
         };
 
         private static readonly Dictionary<(GameMode mode, ControllerFamily controllerFamily), List<ReusableBindingSet>> _bindingCollectionsByContext = new();
