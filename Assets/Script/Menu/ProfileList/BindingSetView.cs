@@ -38,7 +38,10 @@ namespace YARG.Menu.ProfileList
         {
             base.OnSelectionChanged(selected);
 
-            _centerPane.SelectBindingSet(_bindingSet);
+            if (selected)
+            {
+                _centerPane.SelectBindingSet(_bindingSet);
+            }
         }
     }
 }
