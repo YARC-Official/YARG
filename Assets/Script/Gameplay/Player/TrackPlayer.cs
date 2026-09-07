@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Cysharp.Threading.Tasks;
@@ -14,6 +14,7 @@ using YARG.Core.Logging;
 using YARG.Gameplay.HUD;
 using YARG.Gameplay.Visuals;
 using YARG.Helpers;
+using YARG.Localization;
 using YARG.Playback;
 using YARG.Player;
 using YARG.Settings;
@@ -75,33 +76,11 @@ namespace YARG.Gameplay.Player
         {
             return new[]
             {
-                new PlayerMenuItem("DROP OUT", DropOut),
+                new PlayerMenuItem(Localize.Key("Menu.Pause.Generic.DropOut"), DropOut),
             };
         }
 
         protected override bool IsMenuOpen => TrackView != null && IsPlayerMenuOpen;
-
-        protected override void OnMenuGameInput(GameInput input)
-        {
-            if (!input.Button)
-            {
-                return;
-            }
-
-            var mode = Player.Profile.GameMode;
-            if (mode is GameMode.FiveFretGuitar or GameMode.SixFretGuitar)
-            {
-                var action = input.GetAction<GuitarAction>();
-                if (action == GuitarAction.StrumUp)
-                {
-                    PlayerMenuPrevious();
-                }
-                else if (action == GuitarAction.StrumDown)
-                {
-                    PlayerMenuNext();
-                }
-            }
-        }
 
         public void ClosePlayerMenu() => TrackView.ClosePlayerMenu();
 
@@ -113,7 +92,6 @@ namespace YARG.Gameplay.Player
             }
 
             base.DropOut();
-            CameraPositioner.Lower(true);
             ClosePlayerMenu();
         }
 

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -106,7 +106,7 @@ namespace YARG.Scores
             }
         }
 
-        public static bool IsBandScoreValid(float songSpeed, IReadOnlyList<YargPlayer> players)
+        public static bool IsBandScoreValid(float songSpeed, IEnumerable<YargPlayer> players)
         {
             var activePlayers = players.Where(p => !p.SittingOut).ToList();
             var humans = activePlayers.Where(p => !p.Profile.IsBot).ToList();

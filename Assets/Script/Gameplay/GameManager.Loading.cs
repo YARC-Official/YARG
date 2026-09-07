@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using Cysharp.Threading.Tasks;
@@ -255,16 +255,12 @@ namespace YARG.Gameplay
 
             // Listen for menu inputs
             Navigator.Instance.NavigationEvent += OnNavigationEvent;
-            if (!IsReplay && (IsPractice || !GlobalVariables.State.PlayingAShow))
+            if (!IsReplay && !IsPractice && !GlobalVariables.State.PlayingAShow && TotalPlayers > 1)
             {
                 _playerMenuScheme = new NavigationScheme(new()
                 {
                     new NavigationScheme.Entry(MenuAction.Start, "", handler: (NavigationContext _) => { },
                         onHoldHandler: OnPlayerMenuHold, holdSeconds: 0.5f, hide: true),
-                    new NavigationScheme.Entry(MenuAction.Red, "", handler: ClosePlayerMenu, hide: true),
-                    new NavigationScheme.Entry(MenuAction.Green, "", handler: ConfirmPlayerMenu, hide: true),
-                    new NavigationScheme.Entry(MenuAction.Up, "", handler: PlayerMenuUp, hide: true),
-                    new NavigationScheme.Entry(MenuAction.Down, "", handler: PlayerMenuDown, hide: true)
                 }, allowsMusicPlayer: false)
                 {
                     HideHelpBar = true

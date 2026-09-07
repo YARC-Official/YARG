@@ -116,23 +116,22 @@ namespace YARG.Gameplay.HUD
         {
             _items = items;
 
-            foreach (var row in _rows)
-            {
-                Destroy(row);
-            }
-            _rows.Clear();
-            _rowBackgrounds.Clear();
-            _rowLabels.Clear();
-
-            foreach (var item in _items)
+            while (_rows.Count < _items.Count)
             {
                 var row = Instantiate(_optionTemplate, transform);
-                row.gameObject.SetActive(true);
-                var label = row.GetComponentInChildren<TextMeshProUGUI>(true);
-                label.text = item.Label;
                 _rows.Add(row.gameObject);
                 _rowBackgrounds.Add(row.GetComponent<Image>());
-                _rowLabels.Add(label);
+                _rowLabels.Add(row.GetComponentInChildren<TextMeshProUGUI>(true));
+            }
+
+            for (int i = 0; i < _items.Count; i++)
+            {
+                _rowLabels[i].text = _items[i].Label;
+            }
+
+            for (int i = _items.Count; i < _rows.Count; i++)
+            {
+                _rows[i].SetActive(false);
             }
 
             _selectedIndex = 0;
@@ -228,7 +227,7 @@ namespace YARG.Gameplay.HUD
             float half = _panel.sizeDelta.y / 2f;
             float optionsTop = half - TOP_PAD - HEADING_HEIGHT - OPTION_SPACING;
             int visibleCount = VisibleOptionCount();
-            for (int i = 0; i < _rows.Count; i++)
+            for (int i = 0; i < _items.Count; i++)
             {
                 bool visible = i >= _scrollOffset && i < _scrollOffset + visibleCount;
                 _rows[i].SetActive(visible);
@@ -248,7 +247,7 @@ namespace YARG.Gameplay.HUD
 
         private void LayoutMenu()
         {
-            int count = MAX_VISIBLE_OPTIONS;
+            int count = Math.Max(VisibleOptionCount(), 1);
             float optionsHeight = count * OPTION_HEIGHT + (count - 1) * OPTION_SPACING;
             float panelHeight = TOP_PAD + HEADING_HEIGHT + OPTION_SPACING
                 + optionsHeight + BOTTOM_PAD;
@@ -271,6 +270,7 @@ namespace YARG.Gameplay.HUD
         public void Show()
         {
             IsOpen = true;
+            gameObject.SetActive(true);
         }
 
         public void Close()

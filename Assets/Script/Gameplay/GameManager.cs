@@ -249,6 +249,10 @@ namespace YARG.Gameplay
             if (Navigator.Instance != null)
             {
                 Navigator.Instance.NavigationEvent -= OnNavigationEvent;
+                if (_playerMenuNavScheme != null)
+                {
+                    Navigator.Instance.RemoveScheme(_playerMenuNavScheme);
+                }
                 if (_playerMenuScheme != null)
                 {
                     Navigator.Instance.RemoveScheme(_playerMenuScheme);
@@ -447,10 +451,14 @@ namespace YARG.Gameplay
 
         private void PauseCore(bool showMenu)
         {
-            foreach (var player in _players.OfType<TrackPlayer>())
+            for (int i = 0; i < _players.Count; i++)
             {
-                player.ClosePlayerMenu();
+                if (_players[i] is TrackPlayer player)
+                {
+                    player.ClosePlayerMenu();
+                }
             }
+            UpdatePlayerMenuNavScheme();
 
             if (showMenu)
             {
@@ -695,7 +703,7 @@ namespace YARG.Gameplay
             }
 
             var bandScoreValid = ScoreContainer.IsBandScoreValid(SongSpeed,
-                _activePlayers.Select(player => player.Player).ToArray());
+                _activePlayers.Select(player => player.Player));
 
             // Pass the score info to the stats screen
             GlobalVariables.State.ScoreScreenStats = new ScoreScreenStats
@@ -945,6 +953,8 @@ namespace YARG.Gameplay
         }
 
         private NavigationScheme _playerMenuScheme;
+        private NavigationScheme _playerMenuNavScheme;
+        private bool _isPlayerMenuNavSchemePushed;
 
         private void OnNavigationEvent(NavigationContext context)
         {
@@ -952,7 +962,7 @@ namespace YARG.Gameplay
             {
                 // Pause
                 case MenuAction.Start:
-                    var trackPlayer = _players.OfType<TrackPlayer>().FirstOrDefault(player => player.Player == context.Player);
+                    var trackPlayer = GetPlayerMenuOwner(context);
                     if (trackPlayer != null && trackPlayer.IsPlayerMenuOpen)
                     {
                         return;
@@ -973,7 +983,7 @@ namespace YARG.Gameplay
 
         private void OnPlayerMenuHold(NavigationContext context)
         {
-            var trackPlayer = _players.OfType<TrackPlayer>().FirstOrDefault(player => player.Player == context.Player);
+            var trackPlayer = GetPlayerMenuOwner(context);
             if (trackPlayer == null)
             {
                 OnNavigationEvent(context);
@@ -986,13 +996,18 @@ namespace YARG.Gameplay
                 if (trackPlayer.IsActive)
                 {
                     trackPlayer.ShowPlayerMenu();
+                    EnsurePlayerMenuNavScheme();
+                    return;
                 }
             }
+
+            OnNavigationEvent(context);
         }
 
         private void ConfirmPlayerMenu(NavigationContext context)
         {
             GetPlayerMenuOwner(context)?.ConfirmPlayerMenu();
+            UpdatePlayerMenuNavScheme();
         }
 
         private void PlayerMenuUp(NavigationContext context)
@@ -1007,13 +1022,68 @@ namespace YARG.Gameplay
 
         private TrackPlayer GetPlayerMenuOwner(NavigationContext context)
         {
-            return _players.OfType<TrackPlayer>().FirstOrDefault(player => player.Player == context.Player);
+            for (int i = 0; i < _players.Count; i++)
+            {
+                if (_players[i] is TrackPlayer trackPlayer && trackPlayer.Player == context.Player)
+                {
+                    return trackPlayer;
+                }
+            }
+
+            return null;
         }
 
         private void ClosePlayerMenu(NavigationContext context)
         {
-            var trackPlayer = _players.OfType<TrackPlayer>().FirstOrDefault(player => player.Player == context.Player);
-            trackPlayer?.ClosePlayerMenu();
+            GetPlayerMenuOwner(context)?.ClosePlayerMenu();
+            UpdatePlayerMenuNavScheme();
+        }
+
+        private void EnsurePlayerMenuNavScheme()
+        {
+            if (_playerMenuNavScheme == null)
+            {
+                _playerMenuNavScheme = new NavigationScheme(new()
+                {
+                    new NavigationScheme.Entry(MenuAction.Start, "", handler: (NavigationContext _) => { },
+                        onHoldHandler: OnPlayerMenuHold, holdSeconds: 0.5f, hide: true),
+                    new NavigationScheme.Entry(MenuAction.Red, "", handler: ClosePlayerMenu, hide: true),
+                    new NavigationScheme.Entry(MenuAction.Green, "", handler: ConfirmPlayerMenu, hide: true),
+                    new NavigationScheme.Entry(MenuAction.Up, "", handler: PlayerMenuUp, hide: true),
+                    new NavigationScheme.Entry(MenuAction.Down, "", handler: PlayerMenuDown, hide: true)
+                }, allowsMusicPlayer: false, popCallback: () => _isPlayerMenuNavSchemePushed = false)
+                {
+                    HideHelpBar = true
+                };
+            }
+
+            if (!_isPlayerMenuNavSchemePushed)
+            {
+                Navigator.Instance.PushSchemeImmediate(_playerMenuNavScheme);
+                _isPlayerMenuNavSchemePushed = true;
+            }
+        }
+
+        private void UpdatePlayerMenuNavScheme()
+        {
+            if (_isPlayerMenuNavSchemePushed && !AnyPlayerMenuOpen())
+            {
+                Navigator.Instance.RemoveScheme(_playerMenuNavScheme);
+                _isPlayerMenuNavSchemePushed = false;
+            }
+        }
+
+        private bool AnyPlayerMenuOpen()
+        {
+            for (int i = 0; i < _players.Count; i++)
+            {
+                if (_players[i] is TrackPlayer trackPlayer && trackPlayer.IsPlayerMenuOpen)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private void OnApplicationFocus(bool hasFocus)
