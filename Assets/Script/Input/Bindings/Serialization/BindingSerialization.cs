@@ -75,7 +75,7 @@ namespace YARG.Input.Serialization
     public class SerializedReusableControlBinding
     {
         public Dictionary<string, string> Parameters = new();
-        public List<SerializedInputControl> Controls = new();
+        public List<SerializedSingleBinding> Controls = new();
     }
 
     public class SerializedInputDevice
@@ -104,7 +104,7 @@ namespace YARG.Input.Serialization
         }
     }
 
-    public class SerializedInputControl
+    public class SerializedSingleBinding
     {
         [Obsolete]
         public string ControlPath = string.Empty;
@@ -113,7 +113,7 @@ namespace YARG.Input.Serialization
 
         public Dictionary<string, string> Parameters = new();
 
-        public SerializedInputControl(string controlName)
+        public SerializedSingleBinding(string controlName)
         {
             ControlName = controlName;
         }

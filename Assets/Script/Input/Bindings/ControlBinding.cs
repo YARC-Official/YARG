@@ -25,13 +25,13 @@ namespace YARG.Input
     /// </summary>
     public abstract class ControlBinding
     {
-        public static event Action<ControlBinding, InputControl> BindingAdded;
-        public static event Action<ControlBinding, InputControl> BindingRemoved;
+        public static event Action<ControlBinding, InputControl> BindingAdded; // TODO-FRICK: Delete; handled in Reusable
+        public static event Action<ControlBinding, InputControl> BindingRemoved; // TODO-FRICK: Delete; handled in Reusable
 
         /// <summary>
         /// Fired when a binding has been added or removed.
         /// </summary>
-        public event Action BindingsChanged;
+        public event Action BindingsChanged; // TODO-FRICK: Delete; handled in Reusable
 
         /// <summary>
         /// Fired when an input event has been processed by this binding.
@@ -41,27 +41,27 @@ namespace YARG.Input
         /// <summary>
         /// The unlocalized name for this binding.
         /// </summary>
-        public string Name { get; }
+        public string Name { get; } // TODO-FRICK: Delete; handled in Reusable
 
         /// <summary>
         /// The alternate unlocalized name for this binding, representing lefty-flip.
         /// </summary>
-        public string NameLefty { get; }
+        public string NameLefty { get; } // TODO-FRICK: Delete; handled in Reusable
 
         /// <summary>
         /// The key string for this binding.
         /// </summary>
-        public string Key { get; }
+        public string Key { get; } // TODO-FRICK: Delete; handled in Reusable
 
         /// <summary>
         /// The action enum value for this binding.
         /// </summary>
-        public int Action { get; }
+        public int Action { get; } // TODO-FRICK: Delete; handled in Reusable
 
         /// <summary>
         /// Whether or not this control is enabled.
         /// </summary>
-        public bool Enabled { get; protected set; } = false;
+        public bool Enabled { get; protected set; } = false; // TODO-FRICK: Delete?
 
         protected double _lastEventTime;
 
@@ -182,7 +182,7 @@ namespace YARG.Input
             Control = control;
         }
 
-        public SingleBinding(InputControl<TState> control, SerializedInputControl serialized)
+        public SingleBinding(InputControl<TState> control, SerializedSingleBinding serialized)
             : this(control)
         {
         }
@@ -204,7 +204,7 @@ namespace YARG.Input
             StateChanged?.Invoke(state);
         }
 
-        public virtual SerializedInputControl Serialize()
+        public virtual SerializedSingleBinding Serialize()
         {
             // InputControl.path uses the device name,
             // which is not guaranteed to be stable across different runs of the game
@@ -224,7 +224,7 @@ namespace YARG.Input
     {
         public event Action StateChanged;
 
-        private List<SerializedInputControl> _unresolvedBindings = new();
+        private List<SerializedSingleBinding> _unresolvedBindings = new();
 
         protected List<TBinding>          _bindings = new();
         public    IReadOnlyList<TBinding> Bindings => _bindings;
@@ -552,12 +552,12 @@ namespace YARG.Input
         }
 
 #nullable enable
-        protected virtual SerializedInputControl? SerializeControl(TBinding binding)
+        protected virtual SerializedSingleBinding? SerializeControl(TBinding binding)
         {
             return binding.Serialize();
         }
 
-        private TBinding? DeserializeControl(InputDevice device, SerializedInputControl serialized)
+        private TBinding? DeserializeControl(InputDevice device, SerializedSingleBinding serialized)
         {
             var control = InputControlPath.TryFindControl(device, serialized.ControlPath);
             if (control == null)
@@ -593,6 +593,6 @@ namespace YARG.Input
             return DeserializeControl(tControl, serialized);
         }
 
-        protected abstract TBinding DeserializeControl(InputControl<TState> control, SerializedInputControl serialized);
+        protected abstract TBinding DeserializeControl(InputControl<TState> control, SerializedSingleBinding serialized);
     }
 }

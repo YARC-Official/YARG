@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using UnityEngine.InputSystem;
 using YARG.Input.Serialization;
 
@@ -15,12 +15,12 @@ namespace YARG.Input
         {
         }
 
-        public SingleIntegerBinding(InputControl<int> control, SerializedInputControl serialized)
+        public SingleIntegerBinding(InputControl<int> control, SerializedSingleBinding serialized)
             : base(control, serialized)
         {
         }
 
-        public override SerializedInputControl Serialize()
+        public override SerializedSingleBinding Serialize()
         {
             return base.Serialize();
         }
@@ -65,7 +65,7 @@ namespace YARG.Input
             return new(control, settings);
         }
 
-        protected override SingleIntegerBinding DeserializeControl(InputControl<int> control, SerializedInputControl serialized)
+        protected override SingleIntegerBinding DeserializeControl(InputControl<int> control, SerializedSingleBinding serialized)
         {
             return new(control, serialized);
         }

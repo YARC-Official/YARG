@@ -7,7 +7,7 @@ using YARG.Core;
 using YARG.Input.Serialization;
 using YARG.Menu.ProfileList;
 
-namespace YARG.Input
+namespace YARG.Input.Bindings
 {
     public partial class ReusableBindingSet
     {
@@ -24,9 +24,9 @@ namespace YARG.Input
         };
 
 
-        private static SerializedReusableControlBinding MakeSimpleControlBinding(string controlName)
+        private static ReusableControlBinding MakeSimpleButtonBinding(string controlName)
         {
-            return new SerializedReusableControlBinding()
+            return new ReusableButtonBinding()
             {
                 Controls = new() { new(controlName) }
             };
