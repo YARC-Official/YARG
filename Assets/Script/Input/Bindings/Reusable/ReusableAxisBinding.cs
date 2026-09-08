@@ -41,7 +41,7 @@ namespace YARG.Input.Bindings
         public float LowerDeadzone { get; set; }
         public float UpperDeadzone { get; set; }
 
-        public ReusableSingleAxisBinding(string controlName) : base(controlName) { }
+        public ReusableSingleAxisBinding(string controlName) : base(controlName, controlName) { } // TODO-FRICK: DisplayName
 
         public ReusableSingleAxisBinding(SerializedSingleBinding serialized) : base(serialized)
         {

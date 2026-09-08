@@ -92,5 +92,18 @@ namespace YARG.Helpers
                 _ => LayoutStrings.ANY
             };
         }
+
+        public static string? GetDisplayNameOfControlInLayout(InputControlLayout layout, string name)
+        {
+            foreach (var control in layout.controls)
+            {
+                if (control.name == name)
+                {
+                    return control.displayName;
+                }
+            }
+
+            return null;
+        }
     }
 }

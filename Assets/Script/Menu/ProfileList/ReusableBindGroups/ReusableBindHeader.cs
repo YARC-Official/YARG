@@ -35,7 +35,7 @@ namespace YARG.Menu.ProfileList
             _bindingSet = bindingSet;
             _binding = binding;
 
-            _bindingNameText.text = Localize.Key("Bindings", /*player.Profile.LeftyFlip TODO-FRICK: Lefty toggle
+            _bindingNameText.text = Localize.Key(/*player.Profile.LeftyFlip TODO-FRICK: Lefty toggle
                 ? binding.NameLefty
                 :*/ binding.Name);
 

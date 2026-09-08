@@ -82,15 +82,16 @@ namespace YARG.Input.Bindings
     public abstract class ReusableSingleBinding
     {
         public string ControlName { get; set; }
+        public string DisplayName { get; set; }
 
-        public ReusableSingleBinding(string controlName)
+        public ReusableSingleBinding(string controlName, string displayName)
         {
             ControlName = controlName;
+            DisplayName = displayName;
         }
 
-        public ReusableSingleBinding(SerializedSingleBinding serialized) {
-            ControlName = serialized.ControlName;
-        }
+        public ReusableSingleBinding(SerializedSingleBinding serialized)
+            : this(serialized.ControlName, serialized.ControlName) { } // TODO-FRICK: DisplayName
 
         public SerializedSingleBinding Serialize()
         {
