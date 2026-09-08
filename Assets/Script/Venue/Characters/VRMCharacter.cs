@@ -256,11 +256,6 @@ namespace YARG.Venue.Characters
             SetSpringPause(false);
         }
 
-        public override void OnChartEvent(ChartEvent e)
-        {
-
-        }
-
         private static bool IsMouthShape(LipsyncType type)
         {
             return type switch
