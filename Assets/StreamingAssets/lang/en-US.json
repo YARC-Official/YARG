@@ -298,6 +298,15 @@
             "WarningPlayerNoInputDevice" : "This player has no input device assigned! Assign one from the Profiles menu.",
             "WarningVocalistNoMicrophone" : "This vocalist has no microphone assigned! Assign one from the Profiles menu."
         },
+        "GameModes": {
+            "Options": {
+                "Name": "Game Modes",
+                "CareerList": "Careers",
+                "Practice": "Practice",
+                "History": "History",
+                "Back": "Main Menu"
+            }
+        },
         "History": {
             "Name": "History",
             "Time": {
@@ -318,9 +327,8 @@
             "MessageOfTheDay": "<align=center><size=32><b>Welcome to v0.15!</b></size></align>\n\nv0.15 is a major update that adds many highly requested and necessary gameplay features such as roll/trill lanes and Big \"YARG\" endings, as well as revamped user interface in the song selection and results screen, drum lane customization, automatic genre categorization, experimental custom vocalist characters in venues, and more.\n\n<b>If you have any feedback or find any bugs, please let us know on Discord or GitHub.</b>\n\nHappy YARGin'!",
             "Options": {
                 "Quickplay": "Quickplay",
-                "Practice": "Practice",
+                "GameModes": "Game Modes",
                 "Profiles": "Profiles",
-                "History": "History",
                 "Content": "Content",
                 "Settings": "Settings",
                 "Credits": "Credits",

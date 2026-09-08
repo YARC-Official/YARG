@@ -13,11 +13,11 @@ namespace YARG.Settings.Customization
         public override string PresetTypeStringName => "Career";
 
         public override IReadOnlyList<CareerBase> DefaultPresets { get; } = new List<CareerBase>();
-        
+
         public override BasePreset CopyPreset(BasePreset source, BasePreset destination)
         {
             var newPreset = (CareerBase) base.CopyPreset(source, destination);
-            
+
             if (source is not CareerBase original || destination is not CareerBase)
             {
                 return newPreset;
@@ -25,7 +25,7 @@ namespace YARG.Settings.Customization
 
             var oldPath = original.GetExtraContentFolder();
             var newPath = newPreset.GetExtraContentFolder();
-            
+
             if (oldPath != null && Directory.Exists(oldPath) && newPath != null && !oldPath.Equals(newPath))
             {
                 CopyAdditionalFiles(oldPath, newPath);
@@ -42,16 +42,16 @@ namespace YARG.Settings.Customization
                 base.DeletePreset(preset);
                 return;
             }
-            
+
             var extra = career.GetExtraContentFolder();
             if (extra != null && Directory.Exists(extra))
             {
                 Directory.Delete(extra, true);
             }
-            
+
             base.DeletePreset(preset);
         }
-        
+
         public override void RenamePreset(BasePreset preset, string name)
         {
             // This is a little weird because the existing code deletes the original and renames it
@@ -88,23 +88,24 @@ namespace YARG.Settings.Customization
         protected override void AddAdditionalFilesToExport(BasePreset preset, ZipArchive archive)
         {
             var careerBase = (CareerBase) preset;
+            var contentFolder = preset.GetExtraContentFolder();
 
-            if (careerBase.Path == null)
+            if (careerBase.Path == null || contentFolder == null)
             {
                 return;
             }
-            
+
             foreach (var tier in careerBase.Tiers)
             {
                 if (string.IsNullOrWhiteSpace(tier.MediaFilename))
                 {
                     continue;
                 }
-                
-                var mediaPath = Path.Combine(careerBase.Path, tier.MediaFilename);
+
+                var mediaPath = Path.Combine(contentFolder, tier.MediaFilename);
                 if (File.Exists(mediaPath))
                 {
-                    archive.CreateEntryFromFile(mediaPath, Path.GetFileName(mediaPath));
+                    archive.CreateEntryFromFile(contentFolder, Path.GetFileName(mediaPath));
                 }
             }
         }
@@ -116,17 +117,30 @@ namespace YARG.Settings.Customization
                 return;
             }
 
+            var contentFolder = preset.GetExtraContentFolder();
+
+            if (contentFolder == null)
+            {
+                return;
+            }
+
+            if (!string.IsNullOrWhiteSpace(preset.BackgroundImageName))
+            {
+                var bgEntry = archive.GetEntry(preset.BackgroundImageName);
+                bgEntry?.ExtractToFile(Path.Combine(contentFolder, preset.BackgroundImageName), true);
+            }
+
             foreach (var tier in preset.Tiers)
             {
                 if (string.IsNullOrWhiteSpace(tier.MediaFilename))
                 {
                     continue;
                 }
-                
+
                 var entry = archive.GetEntry(tier.MediaFilename);
 
                 // TODO: If preset.Path isn't what we think it is, this will not work
-                entry?.ExtractToFile(Path.Combine(preset.Path, tier.MediaFilename), true);
+                entry?.ExtractToFile(Path.Combine(contentFolder, tier.MediaFilename), true);
             }
         }
     }

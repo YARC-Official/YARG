@@ -3,7 +3,7 @@ using YARG.Menu.ListMenu;
 
 namespace YARG.Menu.Career
 {
-    public class SongView : ViewObject<SongViewType>
+    public class SongView : ViewObject<ViewType>
     {
         [SerializeField]
         private GameObject _songViewContainer;

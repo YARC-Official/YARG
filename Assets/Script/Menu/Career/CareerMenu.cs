@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 using YARG.Career;
 using YARG.Core.Input;
 using YARG.Menu.ListMenu;
@@ -8,7 +9,7 @@ using YARG.Menu.Navigation;
 
 namespace YARG.Menu.Career
 {
-    public class CareerMenu : ListMenu<ViewType, CareerView>
+    public class CareerMenu : ListMenu<ViewType, SongView>
     {
         protected override int ExtraListViewPadding => 10;
 
@@ -22,10 +23,7 @@ namespace YARG.Menu.Career
         [SerializeField]
         private TextMeshProUGUI _careerDescriptionText;
         [SerializeField]
-        private Texture2D _bgImage;
-        [Space]
-        [SerializeField]
-        private GameObject _bgImageContainer;
+        private RawImage _bgImage;
 
         protected override void OnEnable()
         {
@@ -81,6 +79,7 @@ namespace YARG.Menu.Career
         public void Initialize(CareerBase career)
         {
             _career = career;
+            _bgImage = _career.BackgroundImage;
             RequestViewListUpdate();
         }
     }
