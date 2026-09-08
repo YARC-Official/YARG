@@ -4,11 +4,13 @@ using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.Layouts;
 using YARG.Core;
 using YARG.Core.Audio;
 using YARG.Core.Game;
 using YARG.Core.Input;
 using YARG.Gameplay.Visuals;
+using YARG.Helpers;
 using YARG.Helpers.Extensions;
 using YARG.Input;
 using YARG.Input.Bindings;
@@ -39,7 +41,11 @@ namespace YARG.Menu.ProfileList
         }
 
         private static ProfileMenuTab _currentTab = ProfileMenuTab.Profiles;
-        public ControllerFamily CurrentBindingSetFilter = ControllerFamily.FiveFretGuitar;
+
+        private const ControllerFamily DEFAULT_BINDING_SET_FILTER = ControllerFamily.FiveFretGuitar;
+        public ControllerFamily CurrentBindingSetFilter = DEFAULT_BINDING_SET_FILTER;
+        private List<InputControlLayout.ControlItem> _controls;
+        public IReadOnlyList<InputControlLayout.ControlItem> Controls => _controls;
 
         [SerializeField]
         private NavigationGroup _navigationGroup;
@@ -73,6 +79,8 @@ namespace YARG.Menu.ProfileList
         private void OnEnable()
         {
             RefreshProfileList();
+
+            _controls = LayoutHelper.GetAllControlsForControllerFamily(CurrentBindingSetFilter);
 
             _ = Navigator.Instance.PushScheme(new NavigationScheme(new()
             {
@@ -405,8 +413,13 @@ namespace YARG.Menu.ProfileList
                 default:
                     throw new ArgumentOutOfRangeException($"Unexpected tabId {tabId}");
             };
+        }
 
-            
+        public void SetCurrentBindingSetFilter(ControllerFamily family)
+        {
+            CurrentBindingSetFilter = family;
+            _controls = LayoutHelper.GetAllControlsForControllerFamily(family);
+            RefreshBindingSetList();
         }
     }
 }

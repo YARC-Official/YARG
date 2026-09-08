@@ -648,7 +648,6 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 2297268868837242705}
-  - {fileID: 5983773925187658510}
   m_Father: {fileID: 2128586033879703065}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -668,6 +667,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d63dfce412302a4449bf1b9ee4805121, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::YARG.Menu.ProfileList.BindingSetsCenterPane
+  _profilesMenu: {fileID: 5881746760155002837}
   _contents: {fileID: 2777129461737572423}
   _bindsList: {fileID: 2495978932213244613}
   _name: {fileID: 8994554616790612947}
@@ -2818,7 +2818,8 @@ RectTransform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 5983773925187658510}
   m_Father: {fileID: 6837417037008249973}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -5347,7 +5348,7 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2777129461737572423}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -5355,7 +5356,7 @@ RectTransform:
   - {fileID: 91241018411213388}
   - {fileID: 78825035222851641}
   - {fileID: 1083640773238015534}
-  m_Father: {fileID: 6837417037008249973}
+  m_Father: {fileID: 2297268868837242705}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
@@ -16610,7 +16611,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6232041351873830570, guid: 81863a63e0d96cf459c263ee0ea6f98e, type: 3}
       propertyPath: m_Size
-      value: 0.48983863
+      value: 0.48247612
       objectReference: {fileID: 0}
     - target: {fileID: 6232041351873830570, guid: 81863a63e0d96cf459c263ee0ea6f98e, type: 3}
       propertyPath: m_Value

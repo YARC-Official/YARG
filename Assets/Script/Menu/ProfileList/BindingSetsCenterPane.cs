@@ -1,5 +1,6 @@
 ﻿using TMPro;
 using UnityEngine;
+using YARG.Helpers;
 using YARG.Helpers.Extensions;
 using YARG.Input.Bindings;
 using YARG.Menu.ProfileInfo;
@@ -9,13 +10,13 @@ namespace YARG.Menu.ProfileList
     public class BindingSetsCenterPane : MonoBehaviour
     {
         [SerializeField]
+        private ProfilesMenu _profilesMenu;
+        [SerializeField]
         private GameObject _contents;
         [SerializeField]
         private Transform _bindsList;
         [SerializeField]
         private TextMeshProUGUI _name;
-
-
 
         [Space]
         [SerializeField]
@@ -69,6 +70,7 @@ namespace YARG.Menu.ProfileList
             _bindsList.DestroyChildren();
 
             var template = ReusableBindingSetTemplates.GetTemplate(bindingSet.Mode);
+            var controls = LayoutHelper.GetAllControlsForControllerFamily(_profilesMenu.CurrentBindingSetFilter);
 
             foreach (var (key, info) in template)
             {

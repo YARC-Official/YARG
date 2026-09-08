@@ -1,5 +1,7 @@
-﻿using System;
+﻿using PlasticBand.Devices;
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Layouts;
@@ -104,6 +106,34 @@ namespace YARG.Helpers
             }
 
             return null;
+        }
+
+        public static List<InputControlLayout.ControlItem> GetAllControlsForControllerFamily(ControllerFamily family) {
+            List<string> layoutTreeStrings = family switch {
+                ControllerFamily.FiveFretGuitar => new() { nameof(FiveFretGuitar), nameof(RockBandGuitar), nameof(GuitarHeroGuitar), nameof(RiffmasterGuitar) },
+                ControllerFamily.SixFretGuitar => new() { nameof(SixFretGuitar) },
+                ControllerFamily.FourLaneDrumkit => new() { nameof(FourLaneDrumkit) },
+                ControllerFamily.FiveLaneDrumkit => new() { nameof(FiveLaneDrumkit) },
+                ControllerFamily.ProKeyboard => new() { nameof(ProKeyboard) },
+                ControllerFamily.ProGuitar => new() { nameof(ProGuitar) },
+                _ => throw new NotImplementedException() // TODO-FRICK
+            };
+
+            List<InputControlLayout.ControlItem> controls = new();
+
+            foreach (var layoutTreeString in layoutTreeStrings)
+            {
+                var layout = InputSystem.LoadLayout(layoutTreeString);
+                foreach (var controlItem in layout.controls)
+                {
+                    if (controlItem.isFirstDefinedInThisLayout)
+                    {
+                        controls.Add(controlItem);
+                    }
+                }
+            }
+
+            return controls;
         }
     }
 }
