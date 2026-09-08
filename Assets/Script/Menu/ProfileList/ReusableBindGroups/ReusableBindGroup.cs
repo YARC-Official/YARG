@@ -1,4 +1,6 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.InputSystem.Layouts;
 using YARG.Input.Bindings;
 
 namespace YARG.Menu.ProfileList
@@ -14,6 +16,8 @@ namespace YARG.Menu.ProfileList
         protected TView _viewPrefab;
 
         protected TBinding _binding;
+
+        protected List<InputControlLayout.ControlItem> _controls;
 
         public virtual void Init(BindingSetsCenterPane centerPane, ReusableBindingSet bindingSet, TBinding binding)
         {

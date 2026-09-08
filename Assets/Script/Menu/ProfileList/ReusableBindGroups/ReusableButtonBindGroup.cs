@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using UnityEngine;
+using UnityEngine.InputSystem.Layouts;
 using YARG.Input;
 using YARG.Input.Bindings;
 using YARG.Menu.ProfileInfo;
