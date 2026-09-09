@@ -76,7 +76,7 @@ namespace YARG.Menu.ProfileList
             {
                 switch (info.Type)
                 {
-                    case BindingType.Button or BindingType.IndividualButton:
+                    case BindingType.Button or BindingType.IndividualButton or BindingType.DrumButton:
                         var buttonGroup = Instantiate(_buttonGroupPrefab, _bindsList);
                         buttonGroup.Init(this, bindingSet, bindingSet.Bindings[action] as ReusableButtonBinding, controls);
                         break;

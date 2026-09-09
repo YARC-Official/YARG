@@ -20,5 +20,14 @@ namespace YARG.Input.Bindings
         public const string GUITAR_STRUM_DOWN = "Guitar.StrumDown";
         public const string GUITAR_STAR_POWER = "Guitar.StarPower";
         public const string GUITAR_WHAMMY = "Guitar.Whammy";
+
+        public const string DRUMS_KICK = "Drums.Kick";
+        public const string FOUR_DRUMS_RED_PAD = "FourDrums.RedPad";
+        public const string FOUR_DRUMS_YELLOW_PAD = "FourDrums.YellowPad";
+        public const string FOUR_DRUMS_BLUE_PAD = "FourDrums.BluePad";
+        public const string FOUR_DRUMS_GREEN_PAD = "FourDrums.GreenPad";
+        public const string FOUR_DRUMS_YELLOW_CYMBAL = "FourDrums.YellowCymbal";
+        public const string FOUR_DRUMS_BLUE_CYMBAL = "FourDrums.BlueCymbal";
+        public const string FOUR_DRUMS_GREEN_CYMBAL = "FourDrums.GreenCymbal";
     }
 }
