@@ -9,7 +9,10 @@ namespace YARG.Input.Bindings
 {
     public static class LayoutStrings
     {
-        public const string ANY = nameof(InputDevice);
+        public const string BUTTON = "Button";
+        public const string AXIS = "Axis";
+
+        public const string INPUT_DEVICE = nameof(InputDevice);
 
         public const string MOUSE = nameof(Mouse);
         public const string KEYBOARD = nameof(Keyboard);

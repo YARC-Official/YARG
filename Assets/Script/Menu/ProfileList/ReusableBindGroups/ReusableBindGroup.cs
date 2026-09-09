@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem.Layouts;
+using YARG.Helpers;
 using YARG.Input.Bindings;
 
 namespace YARG.Menu.ProfileList
@@ -17,13 +18,13 @@ namespace YARG.Menu.ProfileList
 
         protected TBinding _binding;
 
-        protected List<InputControlLayout.ControlItem> _controls;
+        protected List<ControlItemInfo> _controls;
 
         public virtual void Init(
             BindingSetsCenterPane centerPane,
             ReusableBindingSet bindingSet,
             TBinding binding,
-            List<InputControlLayout.ControlItem> controls
+            List<ControlItemInfo> controls
         )
         {
             _binding = binding;
