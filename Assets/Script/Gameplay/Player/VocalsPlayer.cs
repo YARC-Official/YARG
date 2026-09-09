@@ -159,6 +159,16 @@ namespace YARG.Gameplay.Player
             _inputContext?.Stop();
         }
 
+        protected override void OnMenuInput(YargPlayer _, ref GameInput input)
+        {
+            if (input.Action != (int) MenuAction.Start || !input.Button || IsPauseInputBlocked)
+            {
+                return;
+            }
+
+            GameManager.TogglePause();
+        }
+
         protected VocalsEngine CreateEngine()
         {
             if (!Player.IsReplay)
