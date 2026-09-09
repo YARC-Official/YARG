@@ -10,6 +10,7 @@ namespace YARG.Input.Bindings
     {
         Button,
         IndividualButton,
+        DrumButton,
         Axis,
         Integer
     }
@@ -39,6 +40,7 @@ namespace YARG.Input.Bindings
         {
             return mode switch {
                 GameMode.FiveFretGuitar => FIVE_FRET_GUITAR,
+                GameMode.FourLaneDrums => FOUR_LANE_DRUMKIT,
                 _ => new()
             };
         }

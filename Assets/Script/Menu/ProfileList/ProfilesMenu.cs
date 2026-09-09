@@ -125,7 +125,7 @@ namespace YARG.Menu.ProfileList
 
             var relevantBindingSets = BindingsContainer.GetBindingSetsForControllerFamily(CurrentBindingSetFilter);
 
-            AddBindingSetListGroup(null, relevantBindingSets.Where(bs => bs.Mode is GameMode.FiveFretGuitar));
+            AddBindingSetListGroup(null, relevantBindingSets);
         }
 
         public void RefreshProfileList(YargProfile selectedProfile = null)
