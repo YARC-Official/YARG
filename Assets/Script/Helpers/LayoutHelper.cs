@@ -122,7 +122,7 @@ namespace YARG.Helpers
 
             Dictionary<string, ControlItemInfo> controlsByPath = new();
 
-            void AddControl(ControlItem controlItem, string parentPath = null, string parentLayout = null)
+            void AddControl(ControlItem controlItem, string sourceLayout, string parentPath = null, string parentLayout = null)
             {
                 var controlPath = parentPath is null ? controlItem.name : $"{parentPath}/{controlItem.name}";
 
@@ -136,11 +136,12 @@ namespace YARG.Helpers
                     else
                     {
                         controlsByPath[controlPath] = new(
-                            controlPath,
-                            controlItem,
-                            parentLayout,
-                            parentPath,
-                            false
+                            controlPath: controlPath,
+                            parentPath: parentPath,
+                            sourceLayout: sourceLayout,
+                            parentLayout: parentLayout,
+                            controlItem: controlItem,
+                            hasChildren: false
                         );
                     }
 
@@ -150,11 +151,12 @@ namespace YARG.Helpers
                 if (controlItem.layout.IsEmpty())
                 {
                     controlsByPath[controlPath] = new(
-                        controlPath,
-                        controlItem,
-                        parentLayout,
-                        parentPath,
-                        false
+                        controlPath: controlPath,
+                        parentPath: parentPath,
+                        sourceLayout: sourceLayout,
+                        parentLayout: parentLayout,
+                        controlItem: controlItem,
+                        hasChildren: false
                     );
                     return;
                 }
@@ -164,26 +166,28 @@ namespace YARG.Helpers
                 if (childLayout.controls.Count == 0)
                 {
                     controlsByPath[controlPath] = new(
-                        controlPath,
-                        controlItem,
-                        parentLayout,
-                        parentPath,
-                        false
+                        controlPath: controlPath,
+                        parentPath: parentPath,
+                        sourceLayout: sourceLayout,
+                        parentLayout: parentLayout,
+                        controlItem: controlItem,
+                        hasChildren: false
                     );
                     return;
                 }
 
                 controlsByPath[controlPath] = new(
-                    controlPath,
-                    controlItem,
-                    parentLayout,
-                    parentPath,
-                    true
+                    controlPath: controlPath,
+                    parentPath: parentPath,
+                    sourceLayout: sourceLayout,
+                    parentLayout: parentLayout,
+                    controlItem: controlItem,
+                    hasChildren: true
                 );
 
                 foreach (var childControlItem in childLayout.controls)
                 {
-                    AddControl(childControlItem, controlPath, controlItem.layout);
+                    AddControl(childControlItem, sourceLayout, controlPath, controlItem.layout);
                 }
             }
 
@@ -195,7 +199,7 @@ namespace YARG.Helpers
                 {
                     if (controlItem.isFirstDefinedInThisLayout)
                     {
-                        AddControl(controlItem);
+                        AddControl(controlItem, layoutTreeString);
                     }
                 }
             }
@@ -208,19 +212,27 @@ namespace YARG.Helpers
     {
         public string Layout;
         public string? ParentLayout;
+        public string SourceLayout;
         public bool HasChildren;
         public string ControlPath;
         public string? ParentPath;
         public string DisplayName;
         public ControlItem ControlItem;
 
-        public ControlItemInfo(string controlPath, ControlItem controlItem, string? parentLayout, string? parentPath, bool hasChildren)
-        {
+        public ControlItemInfo(
+            string controlPath,
+            string? parentPath,
+            string sourceLayout,
+            string? parentLayout,
+            ControlItem controlItem,
+            bool hasChildren
+        ) {
             ControlPath = controlPath;
             DisplayName = controlItem.displayName;
             Layout = controlItem.layout;
-            ParentPath = parentPath;
             ParentLayout = parentLayout;
+            SourceLayout = sourceLayout;
+            ParentPath = parentPath;
             HasChildren = hasChildren;
             ControlItem = controlItem;
         }
