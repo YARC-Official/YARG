@@ -1,5 +1,7 @@
-﻿using TMPro;
+﻿using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
+using UnityEngine.InputSystem.Layouts;
 using UnityEngine.UI;
 using YARG.Input.Bindings;
 using YARG.Localization;
@@ -105,13 +107,18 @@ namespace YARG.Menu.ProfileList
             _bindingList.ClearDrawer();
         }
 
-        public void AddBinding<TView, TBinding, TSingle>(TView viewPrefab, TBinding binding, TSingle control)
-            where TView : ReusableSingleBindView<TBinding, TSingle>
+        public void AddBinding<TSingleView, TBinding, TSingle>(
+            TSingleView viewPrefab,
+            TBinding binding,
+            TSingle control,
+            List<InputControlLayout.ControlItem> controls
+        )
+            where TSingleView : ReusableSingleBindView<TBinding, TSingle>
             where TBinding : ReusableControlBinding<TSingle>
             where TSingle : ReusableSingleBinding
         {
             var bindView = _bindingList.AddNewWithoutRebuild(viewPrefab);
-            bindView.Init(binding, control);
+            bindView.Init(binding, control, controls);
         }
 
         public void RebuildBindingsLayout()

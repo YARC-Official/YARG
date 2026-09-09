@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using TMPro;
 using UnityEngine;
+using UnityEngine.InputSystem.Layouts;
 using UnityEngine.UI;
 using YARG.Input;
 using YARG.Input.Bindings;
@@ -27,9 +28,9 @@ namespace YARG.Menu.ProfileList
         [SerializeField]
         private ValueSlider _debounceSlider;
 
-        public override void Init(ReusableButtonBinding binding, ReusableSingleButtonBinding singleBinding)
+        public override void Init(ReusableButtonBinding binding, ReusableSingleButtonBinding singleBinding, List<InputControlLayout.ControlItem> controls)
         {
-            base.Init(binding, singleBinding);
+            base.Init(binding, singleBinding, controls);
 
             // Set with notify for propogation to other components
             _invertToggle.isOn = singleBinding.Inverted;
