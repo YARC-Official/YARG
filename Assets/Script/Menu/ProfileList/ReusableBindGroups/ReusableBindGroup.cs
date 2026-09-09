@@ -5,23 +5,29 @@ using YARG.Input.Bindings;
 
 namespace YARG.Menu.ProfileList
 {
-    public abstract class ReusableBindGroup<TView, TBinding, TSingle> : MonoBehaviour
-        where TView: ReusableSingleBindView<TBinding, TSingle>
+    public abstract class ReusableBindGroup<TSingleView, TBinding, TSingle> : MonoBehaviour
+        where TSingleView: ReusableSingleBindView<TBinding, TSingle>
         where TBinding : ReusableControlBinding<TSingle>
         where TSingle : ReusableSingleBinding
     {
         [SerializeField]
         protected ReusableBindHeader _header;
         [SerializeField]
-        protected TView _viewPrefab;
+        protected TSingleView _viewPrefab;
 
         protected TBinding _binding;
 
         protected List<InputControlLayout.ControlItem> _controls;
 
-        public virtual void Init(BindingSetsCenterPane centerPane, ReusableBindingSet bindingSet, TBinding binding)
+        public virtual void Init(
+            BindingSetsCenterPane centerPane,
+            ReusableBindingSet bindingSet,
+            TBinding binding,
+            List<InputControlLayout.ControlItem> controls
+        )
         {
             _binding = binding;
+            _controls = controls;
 
             _header.Init(centerPane, bindingSet, binding);
 
@@ -34,7 +40,7 @@ namespace YARG.Menu.ProfileList
 
             foreach (var control in _binding.Bindings)
             {
-                _header.AddBinding<TView, TBinding, TSingle>(_viewPrefab, _binding, control);
+                _header.AddBinding<TSingleView, TBinding, TSingle>(_viewPrefab, _binding, control, _controls);
             }
 
             _header.RebuildBindingsLayout();

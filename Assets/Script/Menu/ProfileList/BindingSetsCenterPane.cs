@@ -72,13 +72,13 @@ namespace YARG.Menu.ProfileList
             var template = ReusableBindingSetTemplates.GetTemplate(bindingSet.Mode);
             var controls = LayoutHelper.GetAllControlsForControllerFamily(_profilesMenu.CurrentBindingSetFilter);
 
-            foreach (var (key, info) in template)
+            foreach (var (action, info) in template)
             {
                 switch (info.Type)
                 {
                     case BindingType.Button or BindingType.IndividualButton:
-                        var go = Instantiate(_buttonGroupPrefab, _bindsList);
-                        go.Init(this, bindingSet, bindingSet.Bindings[key] as ReusableButtonBinding);
+                        var buttonGroup = Instantiate(_buttonGroupPrefab, _bindsList);
+                        buttonGroup.Init(this, bindingSet, bindingSet.Bindings[action] as ReusableButtonBinding, controls);
                         break;
                 }
             }

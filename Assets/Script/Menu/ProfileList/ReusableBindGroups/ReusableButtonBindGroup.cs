@@ -25,9 +25,14 @@ namespace YARG.Menu.ProfileList
         [SerializeField]
         private ValueSlider _debounceSlider;
 
-        public override void Init(BindingSetsCenterPane centerPane, ReusableBindingSet bindingSet, ReusableButtonBinding binding)
+        public override void Init(
+            BindingSetsCenterPane centerPane,
+            ReusableBindingSet bindingSet,
+            ReusableButtonBinding binding,
+            List<InputControlLayout.ControlItem> controls
+        )
         {
-            base.Init(centerPane, bindingSet, binding);
+            base.Init(centerPane, bindingSet, binding, controls);
 
             _debounceSlider.SetValueWithoutNotify(binding.DebounceThreshold);
         }
@@ -52,7 +57,7 @@ namespace YARG.Menu.ProfileList
                 else
                 {*/
                     _header.AddBinding<ReusableSingleButtonBindView, ReusableButtonBinding, ReusableSingleButtonBinding>(
-                        _viewPrefab, _binding, control);
+                        _viewPrefab, _binding, control, _controls);
                 //}
             }
 
