@@ -75,6 +75,14 @@ namespace YARG.Input.Bindings
                         new(nameof(GuitarHeroGuitar.spPedal),    LayoutStrings.GUITAR_HERO_GUITAR),
                     }
                 )
+            },
+
+            {
+                ControlStrings.GUITAR_WHAMMY,
+                new ReusableAxisBinding(
+                    ReusableBindingSetTemplates.FIVE_FRET_GUITAR[ControlStrings.GUITAR_WHAMMY],
+                    new ReusableSingleAxisBindingConfig(nameof(FiveFretGuitar.whammy), LayoutStrings.FIVE_FRET_GUITAR)
+                )
             }
         };
 
@@ -104,6 +112,14 @@ namespace YARG.Input.Bindings
                         new(nameof(FiveFretGuitar.selectButton), LayoutStrings.FIVE_FRET_GUITAR),
                         new(nameof(GuitarHeroGuitar.spPedal),    LayoutStrings.GUITAR_HERO_GUITAR),
                     }
+                )
+            },
+
+            {
+                ControlStrings.GUITAR_WHAMMY,
+                new ReusableAxisBinding(
+                    ReusableBindingSetTemplates.FIVE_FRET_GUITAR[ControlStrings.GUITAR_WHAMMY],
+                    new ReusableSingleAxisBindingConfig(nameof(FiveFretGuitar.whammy), LayoutStrings.FIVE_FRET_GUITAR)
                 )
             }
         };

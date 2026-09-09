@@ -22,7 +22,7 @@ namespace YARG.Menu.ProfileList
         [SerializeField]
         private ReusableButtonBindGroup _buttonGroupPrefab;
         [SerializeField]
-        private AxisBindGroup _axisGroupPrefab;
+        private ReusableAxisBindGroup _axisGroupPrefab;
         [SerializeField]
         private IntegerBindGroup _integerGroupPrefab;
 
@@ -79,6 +79,10 @@ namespace YARG.Menu.ProfileList
                     case BindingType.Button or BindingType.IndividualButton:
                         var buttonGroup = Instantiate(_buttonGroupPrefab, _bindsList);
                         buttonGroup.Init(this, bindingSet, bindingSet.Bindings[action] as ReusableButtonBinding, controls);
+                        break;
+                    case BindingType.Axis:
+                        var axisGroup = Instantiate(_axisGroupPrefab, _bindsList);
+                        axisGroup.Init(this, bindingSet, bindingSet.Bindings[action] as ReusableAxisBinding, controls);
                         break;
                 }
             }
