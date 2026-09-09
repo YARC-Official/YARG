@@ -11,6 +11,8 @@ namespace YARG.Input.Bindings
     {
         public const string BUTTON = "Button";
         public const string AXIS = "Axis";
+        public const string DPAD = "Dpad";
+        public const string STICK = "Stick";
 
         public const string INPUT_DEVICE = nameof(InputDevice);
 

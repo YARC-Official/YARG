@@ -69,12 +69,30 @@ namespace YARG.Menu.ProfileList
             {
                 if (
                     control.Layout == LayoutStrings.BUTTON ||
-                    (control.Layout == LayoutStrings.AXIS && control.ParentPath is null)
+                    (control.Layout == LayoutStrings.AXIS && control.ParentPath is null) // e.g., tilt axis is OK, but d-pad X-axis is not
                 )
                 {
-                    _controlDropdown.options.Add(new(control.DisplayName));
+                    _controlDropdown.options.Add(new(DisambiguateDisplayName(control)));
                 }
             }
+        }
+
+        private string DisambiguateDisplayName(ControlItemInfo item)
+        {
+            switch (item.ParentLayout)
+            {
+                case LayoutStrings.DPAD:
+                    return $"D-Pad {item.DisplayName}";
+                case LayoutStrings.STICK:
+                    return $"Joystick {item.DisplayName}";
+            }
+
+            if (item.ControlPath == "joystickClick")
+            {
+                return "Joystick Click";
+            }
+
+            return item.DisplayName;
         }
     }
 }
