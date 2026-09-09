@@ -1290,6 +1290,10 @@
                 "Name": "Font Scaling",
                 "Description": "Scales the minimum font size to be more visible"
             },
+            "VocalFontScaling": {
+                "Name": "Vocal Font Scaling",
+                "Description": "Increases the size of lyrics shown on the vocal highway by up to 200%. May not work with harmonies."
+            },
             "FullscreenMode": {
                 "Name": "Fullscreen Mode",
                 "Description": "Changes the fullscreen mode.",
