@@ -19,17 +19,20 @@ namespace YARG.Menu.ProfileList
 
         protected TBinding Binding;
         protected TSingle SingleBinding;
-        protected List<ControlItemInfo> _controls;
+        protected List<ControlItemInfo> _allControls;
+        protected List<ControlItemInfo> _dropdownControls = new();
 
         public virtual void Init(TBinding binding, TSingle singleBinding, List<ControlItemInfo> controls)
         {
             Binding = binding;
             SingleBinding = singleBinding;
-            _controls = controls;
+            _allControls = controls;
 
             PopulateControlDropdown();
 
-            _controlDropdown.value = _controlDropdown.options.FindIndex(o => o.text == singleBinding.DisplayName); // TODO-FRICK
+            var selectedIndex = _dropdownControls.FindIndex(i => string.Equals(i.ControlPath, singleBinding.ControlPath, StringComparison.OrdinalIgnoreCase));
+
+            _controlDropdown.value = selectedIndex >= 0 ? selectedIndex + 1 : 0; // Account for the None option
         }
 
         public void DeleteBinding()
@@ -40,6 +43,7 @@ namespace YARG.Menu.ProfileList
         protected virtual void PopulateControlDropdown()
         {
             _controlDropdown.options.Clear();
+            _dropdownControls.Clear();
             _controlDropdown.options.Add(new("<i>None</i>"));
         }
     }

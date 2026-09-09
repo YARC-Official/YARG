@@ -15,7 +15,7 @@ namespace YARG.Input.Bindings
                 ControlStrings.FOUR_DRUMS_RED_PAD,
                 new ReusableButtonBinding(
                     ReusableBindingSetTemplates.FOUR_LANE_DRUMKIT[ControlStrings.FOUR_DRUMS_RED_PAD],
-                    new ReusableSingleButtonBindingConfig(nameof(FourLaneDrumkit.redPad), LayoutStrings.FOUR_LANE_DRUMKIT)
+                    new ReusableSingleButtonBindingConfig(ControllerFamily.FourLaneDrumkit, nameof(FourLaneDrumkit.redPad))
                 )
             }
         };

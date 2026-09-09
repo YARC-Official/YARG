@@ -65,13 +65,14 @@ namespace YARG.Menu.ProfileList
         {
             base.PopulateControlDropdown();
 
-            foreach (var control in _controls)
+            foreach (var control in _allControls)
             {
                 if (
                     control.Layout is LayoutStrings.BUTTON ||
                     (control.Layout is LayoutStrings.AXIS && control.ParentPath is null) // e.g., tilt axis is OK, but d-pad X-axis is not
                 )
                 {
+                    _dropdownControls.Add(control);
                     _controlDropdown.options.Add(new(DisambiguateDisplayName(control)));
                 }
             }

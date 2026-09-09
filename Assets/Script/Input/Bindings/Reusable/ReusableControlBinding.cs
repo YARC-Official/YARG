@@ -81,12 +81,12 @@ namespace YARG.Input.Bindings
 
     public abstract class ReusableSingleBinding
     {
-        public string ControlName { get; set; }
+        public string ControlPath { get; set; }
         public string DisplayName { get; set; }
 
-        public ReusableSingleBinding(string controlName, string displayName)
+        public ReusableSingleBinding(string controlPath, string displayName)
         {
-            ControlName = controlName;
+            ControlPath = controlPath;
             DisplayName = displayName;
         }
 
@@ -95,7 +95,7 @@ namespace YARG.Input.Bindings
 
         public SerializedSingleBinding Serialize()
         {
-            return new SerializedSingleBinding(ControlName)
+            return new SerializedSingleBinding(ControlPath)
             {
                 Parameters = SerializeParameters()
             };
