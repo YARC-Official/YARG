@@ -2,9 +2,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using UnityEngine.InputSystem;
-using UnityEngine.InputSystem.Layouts;
+using YARG.Core.Logging;
 using YARG.Input.Bindings;
 using YARG.Menu.ProfileList;
 using static UnityEngine.InputSystem.Layouts.InputControlLayout;
@@ -13,61 +12,32 @@ namespace YARG.Helpers
 {
     public static class LayoutHelper
     {
-        private enum ControlInclusion
+        public static ControlItemInfo GetControlInfo(ControllerFamily family, string controlName)
         {
-            Introduces,
-            Inherits,
-            DoesNotHave
-        }
+            var layouts = GetLayoutsForFamily(family);
+            var (controlsByPath, aliasesToCanonicalPaths) = BuildControlInfoIndex(layouts);
 
-        const string INPUT_DEVICE = nameof(InputDevice);
-
-        public static InputControlLayout GetMostGeneralLayoutForControl(string layoutName, string controlName)
-        {
-            return GetMostGeneralLayoutForControl(InputSystem.LoadLayout(layoutName), controlName);
-        }
-
-        public static InputControlLayout GetMostGeneralLayoutForControl(InputDevice controller, string controlName)
-        {
-            return GetMostGeneralLayoutForControl(controller.layout, controlName);
-        }
-
-        public static InputControlLayout GetMostGeneralLayoutForControl(InputControlLayout controlSource, string controlName)
-        {
-            if (CheckControlInclusion(controlSource, controlName) is ControlInclusion.DoesNotHave)
+            if (controlsByPath.TryGetValue(controlName, out var info))
             {
-                throw new InvalidOperationException($"Layout {controlSource.name} does not have control {controlName}!");
+                return info;
             }
 
-            var mostGeneralLayout = controlSource;
-
-            while (CheckControlInclusion(mostGeneralLayout, controlName) is not ControlInclusion.Introduces)
+            if (aliasesToCanonicalPaths.TryGetValue(controlName, out var canonicalPath) &&
+                controlsByPath.TryGetValue(canonicalPath, out info)
+            )
             {
-                mostGeneralLayout = GetParentLayout(mostGeneralLayout);
+                return info;
             }
 
-            return mostGeneralLayout;
+
+            throw new ArgumentOutOfRangeException($"Controller family {family} does not contain control {controlName}!");
         }
 
-        private static ControlInclusion CheckControlInclusion(InputControlLayout layout, string controlName)
-        {
-            foreach (var control in layout.controls)
-            {
-                if (control.name == controlName)
-                {
-                    return control.isFirstDefinedInThisLayout ? ControlInclusion.Introduces : ControlInclusion.Inherits;
-                }
-            }
+        public static List<ControlItemInfo> GetAllControlsForControllerFamily(ControllerFamily family) {
 
-            return ControlInclusion.DoesNotHave;
+            var layouts = GetLayoutsForFamily(family);
+            return BuildControlInfoIndex(layouts).ControlsByPath.Values.ToList();
         }
-
-        private static InputControlLayout GetParentLayout(InputControlLayout layout)
-        {
-            var parentName = InputSystem.GetNameOfBaseLayout(layout.name);
-            return InputSystem.LoadLayout(parentName);
-        }
-
         public static ControllerFamily LayoutStringToControllerFamily(string layout)
         {
             return layout switch
@@ -96,21 +66,10 @@ namespace YARG.Helpers
             };
         }
 
-        public static string? GetDisplayNameOfControlInLayout(InputControlLayout layout, string name)
+        private static List<string> GetLayoutsForFamily(ControllerFamily family)
         {
-            foreach (var control in layout.controls)
+            return family switch
             {
-                if (control.name == name)
-                {
-                    return control.displayName;
-                }
-            }
-
-            return null;
-        }
-
-        public static List<ControlItemInfo> GetAllControlsForControllerFamily(ControllerFamily family) {
-            List<string> layoutTreeStrings = family switch {
                 ControllerFamily.FiveFretGuitar => new() { nameof(FiveFretGuitar), nameof(RockBandGuitar), nameof(GuitarHeroGuitar), nameof(RiffmasterGuitar) },
                 ControllerFamily.SixFretGuitar => new() { nameof(SixFretGuitar) },
                 ControllerFamily.FourLaneDrumkit => new() { nameof(FourLaneDrumkit) },
@@ -119,8 +78,29 @@ namespace YARG.Helpers
                 ControllerFamily.ProGuitar => new() { nameof(ProGuitar) },
                 _ => throw new NotImplementedException() // TODO-FRICK
             };
+        }
 
-            Dictionary<string, ControlItemInfo> controlsByPath = new();
+        private static (Dictionary<string, ControlItemInfo> ControlsByPath, Dictionary<string, string> AliasesToCanonicalPaths)
+            BuildControlInfoIndex(List<string> layoutNames)
+        {
+            var controlsByPath = new Dictionary<string, ControlItemInfo>(StringComparer.OrdinalIgnoreCase);
+            var aliasesToCanonicalPaths = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+
+            void RegisterAliases(ControlItem controlItem, string controlPath)
+            {
+                foreach (var alias in controlItem.aliases)
+                {
+                    if (!aliasesToCanonicalPaths.TryAdd(alias, controlPath))
+                    {
+                        var existingPath = aliasesToCanonicalPaths[alias];
+
+                        if (!string.Equals(existingPath, controlPath, StringComparison.OrdinalIgnoreCase))
+                        {
+                            YargLogger.LogWarning($"Alias {alias} refers to both {existingPath} and {controlPath}; the latter will be ignored");
+                        }
+                    }
+                }
+            }
 
             void AddControl(ControlItem controlItem, string sourceLayout, string parentPath = null, string parentLayout = null)
             {
@@ -128,23 +108,15 @@ namespace YARG.Helpers
 
                 if (controlItem.isModifyingExistingControl)
                 {
-                    if (controlsByPath.TryGetValue(controlPath, out var existingControl))
+                    if (!controlsByPath.TryGetValue(controlPath, out var existingControl))
                     {
-                        existingControl.ApplyOverride(controlItem);
-                        controlsByPath[controlPath] = existingControl;
+                        throw new InvalidOperationException($"Control override {controlPath} was encountered before the original control.");
                     }
-                    else
-                    {
-                        controlsByPath[controlPath] = new(
-                            controlPath: controlPath,
-                            parentPath: parentPath,
-                            sourceLayout: sourceLayout,
-                            parentLayout: parentLayout,
-                            controlItem: controlItem,
-                            hasChildren: false
-                        );
-                    }
-
+                   
+                    existingControl.ApplyOverride(controlItem);
+                    controlsByPath[controlPath] = existingControl;
+                    RegisterAliases(controlItem, controlPath);
+                    
                     return;
                 }
 
@@ -158,6 +130,8 @@ namespace YARG.Helpers
                         controlItem: controlItem,
                         hasChildren: false
                     );
+                    RegisterAliases(controlItem, controlPath);
+
                     return;
                 }
 
@@ -173,6 +147,7 @@ namespace YARG.Helpers
                         controlItem: controlItem,
                         hasChildren: false
                     );
+                    RegisterAliases(controlItem, controlPath);
                     return;
                 }
 
@@ -184,6 +159,7 @@ namespace YARG.Helpers
                     controlItem: controlItem,
                     hasChildren: true
                 );
+                RegisterAliases(controlItem, controlPath);
 
                 foreach (var childControlItem in childLayout.controls)
                 {
@@ -191,7 +167,7 @@ namespace YARG.Helpers
                 }
             }
 
-            foreach (var layoutTreeString in layoutTreeStrings)
+            foreach (var layoutTreeString in layoutNames)
             {
                 var layout = InputSystem.LoadLayout(layoutTreeString);
 
@@ -204,20 +180,22 @@ namespace YARG.Helpers
                 }
             }
 
-            return controlsByPath.Values.ToList();
+            return (controlsByPath, aliasesToCanonicalPaths);
         }
+
+
     }
 
     public struct ControlItemInfo
     {
-        public string Layout;
-        public string? ParentLayout;
-        public string SourceLayout;
-        public bool HasChildren;
         public string ControlPath;
         public string? ParentPath;
-        public string DisplayName;
+        public string SourceLayout;
+        public string? ParentLayout;
         public ControlItem ControlItem;
+        public string Layout;
+        public bool HasChildren;
+        public string DisplayName;
 
         public ControlItemInfo(
             string controlPath,
@@ -244,7 +222,10 @@ namespace YARG.Helpers
                 DisplayName = controlItem.displayName;
             }
 
-            ControlItem = controlItem;
+            if (!string.IsNullOrEmpty(controlItem.layout))
+            {
+                Layout = controlItem.layout;
+            }
         }
     }
 }

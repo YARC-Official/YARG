@@ -93,6 +93,10 @@ namespace YARG.Menu.ProfileList
             _headerTabs.TabChanged += OnTabChanged;
 
             PlayerContainer.PlayerAdded += OnPlayerAdded;
+
+            var x = LayoutHelper.GetAllControlsForControllerFamily(ControllerFamily.FiveFretGuitar);
+
+            Console.WriteLine("xxx");
         }
 
         private void OnDisable()

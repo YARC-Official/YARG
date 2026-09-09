@@ -4,6 +4,7 @@ using System.Text;
 using UnityEditor.Experimental.GraphView;
 using YARG.Helpers;
 using YARG.Input.Serialization;
+using YARG.Menu.ProfileList;
 
 namespace YARG.Input.Bindings
 {
@@ -32,7 +33,7 @@ namespace YARG.Input.Bindings
 
     public struct ReusableSingleAxisBindingConfig
     {
-        public string ControlName;
+        public string ControlPath;
         public string DisplayName;
         public bool? Inverted;
         public float? Maximum;
@@ -40,11 +41,12 @@ namespace YARG.Input.Bindings
         public float? LowerDeadzone;
         public float? UpperDeadzone;
 
-        public ReusableSingleAxisBindingConfig(string controlName, string layout)
+        public ReusableSingleAxisBindingConfig(ControllerFamily family, string controlPath)
         {
-            ControlName = controlName;
-            var baseLayout = LayoutHelper.GetMostGeneralLayoutForControl(layout, controlName);
-            DisplayName = LayoutHelper.GetDisplayNameOfControlInLayout(baseLayout, controlName) ?? ControlName;
+            ControlItemInfo control = LayoutHelper.GetControlInfo(family, controlPath);
+
+            ControlPath = control.ControlPath;
+            DisplayName = control.DisplayName;
 
             // These would be more pleasant as struct field initializers, but those aren't in C# 9.0
             Inverted = null;
@@ -72,7 +74,7 @@ namespace YARG.Input.Bindings
         public float LowerDeadzone { get; set; }
         public float UpperDeadzone { get; set; }
 
-        public ReusableSingleAxisBinding(ReusableSingleAxisBindingConfig control) : base(control.ControlName, control.DisplayName) { }
+        public ReusableSingleAxisBinding(ReusableSingleAxisBindingConfig control) : base(control.ControlPath, control.DisplayName) { }
 
         public ReusableSingleAxisBinding(SerializedSingleBinding serialized) : base(serialized)
         {

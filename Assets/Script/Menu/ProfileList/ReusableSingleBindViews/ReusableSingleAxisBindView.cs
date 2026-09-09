@@ -113,7 +113,7 @@ namespace YARG.Menu.ProfileList
         {
             base.PopulateControlDropdown();
 
-            foreach (var control in _controls)
+            foreach (var control in _allControls)
             {
                 if (control.Layout is LayoutStrings.AXIS)
                 {
