@@ -3,6 +3,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem.Layouts;
 using UnityEngine.UI;
+using YARG.Helpers;
 using YARG.Input.Bindings;
 using YARG.Localization;
 
@@ -111,7 +112,7 @@ namespace YARG.Menu.ProfileList
             TSingleView viewPrefab,
             TBinding binding,
             TSingle control,
-            List<InputControlLayout.ControlItem> controls
+            List<ControlItemInfo> controls
         )
             where TSingleView : ReusableSingleBindView<TBinding, TSingle>
             where TBinding : ReusableControlBinding<TSingle>

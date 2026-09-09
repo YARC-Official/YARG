@@ -5,6 +5,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem.Layouts;
 using UnityEngine.UI;
+using YARG.Helpers;
 using YARG.Input;
 using YARG.Input.Bindings;
 using YARG.Menu.ProfileInfo;
@@ -28,7 +29,7 @@ namespace YARG.Menu.ProfileList
         [SerializeField]
         private ValueSlider _debounceSlider;
 
-        public override void Init(ReusableButtonBinding binding, ReusableSingleButtonBinding singleBinding, List<InputControlLayout.ControlItem> controls)
+        public override void Init(ReusableButtonBinding binding, ReusableSingleButtonBinding singleBinding, List<ControlItemInfo> controls)
         {
             base.Init(binding, singleBinding, controls);
 
@@ -58,6 +59,22 @@ namespace YARG.Menu.ProfileList
         public void OnDebounceValueChanged(float value)
         {
             SingleBinding.DebounceThreshold = (long) value;
+        }
+
+        protected override void PopulateControlDropdown()
+        {
+            base.PopulateControlDropdown();
+
+            foreach (var control in _controls)
+            {
+                if (
+                    control.Layout == LayoutStrings.BUTTON ||
+                    (control.Layout == LayoutStrings.AXIS && control.ParentPath is null)
+                )
+                {
+                    _controlDropdown.options.Add(new(control.DisplayName));
+                }
+            }
         }
     }
 }

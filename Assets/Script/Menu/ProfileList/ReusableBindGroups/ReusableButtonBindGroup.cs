@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Text;
 using UnityEngine;
 using UnityEngine.InputSystem.Layouts;
+using YARG.Helpers;
 using YARG.Input;
 using YARG.Input.Bindings;
 using YARG.Menu.ProfileInfo;
@@ -29,7 +30,7 @@ namespace YARG.Menu.ProfileList
             BindingSetsCenterPane centerPane,
             ReusableBindingSet bindingSet,
             ReusableButtonBinding binding,
-            List<InputControlLayout.ControlItem> controls
+            List<ControlItemInfo> controls
         )
         {
             base.Init(centerPane, bindingSet, binding, controls);

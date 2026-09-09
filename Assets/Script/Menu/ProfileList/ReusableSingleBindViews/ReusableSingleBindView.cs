@@ -4,6 +4,7 @@ using System.Text;
 using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem.Layouts;
+using YARG.Helpers;
 using YARG.Input.Bindings;
 
 namespace YARG.Menu.ProfileList
@@ -14,13 +15,13 @@ namespace YARG.Menu.ProfileList
     {
         [Space]
         [SerializeField]
-        private TMP_Dropdown _controlDropdown;
+        protected TMP_Dropdown _controlDropdown;
 
         protected TBinding Binding;
         protected TSingle SingleBinding;
-        private List<InputControlLayout.ControlItem> _controls;
+        protected List<ControlItemInfo> _controls;
 
-        public virtual void Init(TBinding binding, TSingle singleBinding, List<InputControlLayout.ControlItem> controls)
+        public virtual void Init(TBinding binding, TSingle singleBinding, List<ControlItemInfo> controls)
         {
             Binding = binding;
             SingleBinding = singleBinding;
@@ -36,16 +37,10 @@ namespace YARG.Menu.ProfileList
             // Binding.RemoveBinding(SingleBinding); TODO-FRICK
         }
 
-        private void PopulateControlDropdown()
+        protected virtual void PopulateControlDropdown()
         {
             _controlDropdown.options.Clear();
-
             _controlDropdown.options.Add(new("<i>None</i>"));
-
-            foreach (var control in _controls)
-            {
-                _controlDropdown.options.Add(new(control.displayName));
-            }
         }
     }
 }

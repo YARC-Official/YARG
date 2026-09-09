@@ -44,8 +44,8 @@ namespace YARG.Menu.ProfileList
 
         private const ControllerFamily DEFAULT_BINDING_SET_FILTER = ControllerFamily.FiveFretGuitar;
         public ControllerFamily CurrentBindingSetFilter = DEFAULT_BINDING_SET_FILTER;
-        private List<InputControlLayout.ControlItem> _controls;
-        public IReadOnlyList<InputControlLayout.ControlItem> Controls => _controls;
+        private List<ControlItemInfo> _controls;
+        public IReadOnlyList<ControlItemInfo> Controls => _controls;
 
         [SerializeField]
         private NavigationGroup _navigationGroup;

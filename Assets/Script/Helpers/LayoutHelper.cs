@@ -7,6 +7,7 @@ using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Layouts;
 using YARG.Input.Bindings;
 using YARG.Menu.ProfileList;
+using static UnityEngine.InputSystem.Layouts.InputControlLayout;
 
 namespace YARG.Helpers
 {
@@ -91,7 +92,7 @@ namespace YARG.Helpers
                 ControllerFamily.FiveLaneDrumkit => LayoutStrings.FIVE_LANE_DRUMKIT,
                 ControllerFamily.ProKeyboard => LayoutStrings.PRO_KEYBOARD,
                 ControllerFamily.ProGuitar => LayoutStrings.PRO_GUITAR,
-                _ => LayoutStrings.ANY
+                _ => LayoutStrings.INPUT_DEVICE
             };
         }
 
@@ -108,7 +109,7 @@ namespace YARG.Helpers
             return null;
         }
 
-        public static List<InputControlLayout.ControlItem> GetAllControlsForControllerFamily(ControllerFamily family) {
+        public static List<ControlItemInfo> GetAllControlsForControllerFamily(ControllerFamily family) {
             List<string> layoutTreeStrings = family switch {
                 ControllerFamily.FiveFretGuitar => new() { nameof(FiveFretGuitar), nameof(RockBandGuitar), nameof(GuitarHeroGuitar), nameof(RiffmasterGuitar) },
                 ControllerFamily.SixFretGuitar => new() { nameof(SixFretGuitar) },
@@ -119,21 +120,119 @@ namespace YARG.Helpers
                 _ => throw new NotImplementedException() // TODO-FRICK
             };
 
-            List<InputControlLayout.ControlItem> controls = new();
+            Dictionary<string, ControlItemInfo> controlsByPath = new();
+
+            void AddControl(ControlItem controlItem, string parentPath = null, string parentLayout = null)
+            {
+                var controlPath = parentPath is null ? controlItem.name : $"{parentPath}/{controlItem.name}";
+
+                if (controlItem.isModifyingExistingControl)
+                {
+                    if (controlsByPath.TryGetValue(controlPath, out var existingControl))
+                    {
+                        existingControl.ApplyOverride(controlItem);
+                        controlsByPath[controlPath] = existingControl;
+                    }
+                    else
+                    {
+                        controlsByPath[controlPath] = new(
+                            controlPath,
+                            controlItem,
+                            parentLayout,
+                            parentPath,
+                            false
+                        );
+                    }
+
+                    return;
+                }
+
+                if (controlItem.layout.IsEmpty())
+                {
+                    controlsByPath[controlPath] = new(
+                        controlPath,
+                        controlItem,
+                        parentLayout,
+                        parentPath,
+                        false
+                    );
+                    return;
+                }
+
+                var childLayout = InputSystem.LoadLayout(controlItem.layout);
+
+                if (childLayout.controls.Count == 0)
+                {
+                    controlsByPath[controlPath] = new(
+                        controlPath,
+                        controlItem,
+                        parentLayout,
+                        parentPath,
+                        false
+                    );
+                    return;
+                }
+
+                controlsByPath[controlPath] = new(
+                    controlPath,
+                    controlItem,
+                    parentLayout,
+                    parentPath,
+                    true
+                );
+
+                foreach (var childControlItem in childLayout.controls)
+                {
+                    AddControl(childControlItem, controlPath, controlItem.layout);
+                }
+            }
 
             foreach (var layoutTreeString in layoutTreeStrings)
             {
                 var layout = InputSystem.LoadLayout(layoutTreeString);
+
                 foreach (var controlItem in layout.controls)
                 {
                     if (controlItem.isFirstDefinedInThisLayout)
                     {
-                        controls.Add(controlItem);
+                        AddControl(controlItem);
                     }
                 }
             }
 
-            return controls;
+            return controlsByPath.Values.ToList();
+        }
+    }
+
+    public struct ControlItemInfo
+    {
+        public string Layout;
+        public string? ParentLayout;
+        public bool HasChildren;
+        public string ControlPath;
+        public string? ParentPath;
+        public string DisplayName;
+        public ControlItem ControlItem;
+
+        public ControlItemInfo(string controlPath, ControlItem controlItem, string? parentLayout, string? parentPath, bool hasChildren)
+        {
+            ControlPath = controlPath;
+            DisplayName = controlItem.displayName;
+            Layout = controlItem.layout;
+            ParentPath = parentPath;
+            ParentLayout = parentLayout;
+            HasChildren = hasChildren;
+            ControlItem = controlItem;
+        }
+
+        public void ApplyOverride(ControlItem controlItem)
+        {
+            if (!string.IsNullOrEmpty(controlItem.displayName))
+            {
+                DisplayName = controlItem.displayName;
+            }
+
+            ControlItem = controlItem;
         }
     }
 }
