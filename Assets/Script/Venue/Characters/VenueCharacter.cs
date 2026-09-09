@@ -571,22 +571,6 @@ namespace YARG.Venue.Characters
                 SetHandAnimationForNote(gNote);
             }
 
-            if (e is Note<VocalNote> or LyricEvent)
-            {
-                if (VrmInstance != null)
-                {
-                    var expression = VrmInstance.Runtime.Expression;
-
-                    expression.SetWeight(ExpressionKey.Oh, 1.0f);
-
-                    DOTween.Sequence().AppendInterval((float) e.TimeLength).AppendCallback(() =>
-                    {
-                        expression.SetWeight(ExpressionKey.Oh, 0.0f);
-                        expression.SetWeight(ExpressionKey.Happy, 1.0f);
-                    }).SetAutoKill(true);
-                }
-            }
-
             if (e is Note<ProKeysNote>)
             {
 
