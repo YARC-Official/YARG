@@ -68,8 +68,8 @@ namespace YARG.Menu.ProfileList
             foreach (var control in _controls)
             {
                 if (
-                    control.Layout == LayoutStrings.BUTTON ||
-                    (control.Layout == LayoutStrings.AXIS && control.ParentPath is null) // e.g., tilt axis is OK, but d-pad X-axis is not
+                    control.Layout is LayoutStrings.BUTTON ||
+                    (control.Layout is LayoutStrings.AXIS && control.ParentPath is null) // e.g., tilt axis is OK, but d-pad X-axis is not
                 )
                 {
                     _controlDropdown.options.Add(new(DisambiguateDisplayName(control)));
@@ -77,6 +77,8 @@ namespace YARG.Menu.ProfileList
             }
         }
 
+        // Unsure if this is too hacky/hardcoded
+        // Also should really be localized
         private string DisambiguateDisplayName(ControlItemInfo item)
         {
             switch (item.ParentLayout)

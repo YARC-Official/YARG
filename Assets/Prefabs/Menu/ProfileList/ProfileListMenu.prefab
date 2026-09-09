@@ -672,7 +672,7 @@ MonoBehaviour:
   _bindsList: {fileID: 2495978932213244613}
   _name: {fileID: 8994554616790612947}
   _buttonGroupPrefab: {fileID: 2112290437380438965, guid: c80fa54dd0546cd45b62feb701421775, type: 3}
-  _axisGroupPrefab: {fileID: 3950604665545716148, guid: 0d6e57f58330d61429300b43cfbc01f4, type: 3}
+  _axisGroupPrefab: {fileID: 2066996443643632486, guid: 617b13d7ce511044480bb2e48739cd6a, type: 3}
   _integerGroupPrefab: {fileID: 777512555580489659, guid: 2c9b962f8dbdf8947b897c21e3b49819, type: 3}
 --- !u!1 &572975197060413157
 GameObject:

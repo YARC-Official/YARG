@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using UnityEditor.Experimental.GraphView;
+using YARG.Helpers;
 using YARG.Input.Serialization;
 
 namespace YARG.Input.Bindings
@@ -9,11 +11,14 @@ namespace YARG.Input.Bindings
     {
         public ReusableAxisBinding(InputActionInfo info) : base(info) { }
 
-        public ReusableAxisBinding(InputActionInfo info, List<string> controlNames) : base(info)
+        public ReusableAxisBinding(InputActionInfo info, ReusableSingleAxisBindingConfig control)
+            : this(info, new List<ReusableSingleAxisBindingConfig>() { control }) { }
+
+        public ReusableAxisBinding(InputActionInfo info, List<ReusableSingleAxisBindingConfig> controls) : base(info)
         {
-            foreach (var controlName in controlNames)
+            foreach (var controlConfig in controls)
             {
-                Bindings.Add(new(controlName));
+                Bindings.Add(new(controlConfig));
             }
         }
 
@@ -22,6 +27,32 @@ namespace YARG.Input.Bindings
             {
                 Bindings.Add(new(binding));
             }
+        }
+    }
+
+    public struct ReusableSingleAxisBindingConfig
+    {
+        public string ControlName;
+        public string DisplayName;
+        public bool? Inverted;
+        public float? Maximum;
+        public float? Minimum;
+        public float? LowerDeadzone;
+        public float? UpperDeadzone;
+
+        public ReusableSingleAxisBindingConfig(string controlName, string layout)
+        {
+            ControlName = controlName;
+            var baseLayout = LayoutHelper.GetMostGeneralLayoutForControl(layout, controlName);
+            DisplayName = LayoutHelper.GetDisplayNameOfControlInLayout(baseLayout, controlName) ?? ControlName;
+
+            // These would be more pleasant as struct field initializers, but those aren't in C# 9.0
+            Inverted = null;
+            Maximum = null;
+            Minimum = null;
+            LowerDeadzone = null;
+            UpperDeadzone = null;
+
         }
     }
 
@@ -41,7 +72,7 @@ namespace YARG.Input.Bindings
         public float LowerDeadzone { get; set; }
         public float UpperDeadzone { get; set; }
 
-        public ReusableSingleAxisBinding(string controlName) : base(controlName, controlName) { } // TODO-FRICK: DisplayName
+        public ReusableSingleAxisBinding(ReusableSingleAxisBindingConfig control) : base(control.ControlName, control.DisplayName) { }
 
         public ReusableSingleAxisBinding(SerializedSingleBinding serialized) : base(serialized)
         {
