@@ -40,6 +40,7 @@ namespace YARG.Input.Bindings
         {
             return mode switch {
                 GameMode.FiveFretGuitar => FIVE_FRET_GUITAR,
+                GameMode.SixFretGuitar => SIX_FRET_GUITAR,
                 GameMode.FourLaneDrums => FOUR_LANE_DRUMKIT,
                 _ => new()
             };
