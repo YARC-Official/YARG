@@ -15,6 +15,7 @@ using YARG.Integration;
 using YARG.Integration.RB3E;
 using YARG.Integration.Sacn;
 using YARG.Integration.StageKit;
+using YARG.YAQ;
 using YARG.Input.Bindings;
 using YARG.Menu.Filters;
 using YARG.Menu.History;
@@ -753,6 +754,7 @@ namespace YARG.Settings
 
             #region Experimental
 
+            public ToggleSetting YaqStreamEnabled { get; } = new(false, YaqStreamEnabledCallback);
             public ToggleSetting DataStreamEnable { get; } = new(false, DataStreamEnableCallback );
             public DropdownSetting<BandComboType> BandComboTypeSetting { get; } = new(BandComboType.Off)
             {
@@ -919,6 +921,18 @@ namespace YARG.Settings
                 {
                     MusicLibraryMenu.SetReload(MusicLibraryReloadState.Partial);
                 }
+            }
+
+            private static void YaqStreamEnabledCallback(bool value)
+            {
+                // Avoid double-start before settings finish loading
+                if (!IsInitialized)
+                {
+                    return;
+                }
+
+                // -yaq-event keeps the stream on regardless of the toggle
+                EventModeController.SetStreamEnabled(value || CommandLineArgs.YaqEvent);
             }
 
             private static void DataStreamEnableCallback(bool value)

@@ -20,7 +20,7 @@ namespace YARG.Menu.Main
         {
             _versionText.text = GlobalVariables.Instance.CurrentVersion;
 
-            if (EventMode.IsActive)
+            if (EventMode.IsActive && EventMode.Flags.skipMainMenu)
             {
                 // Event mode: YAQ drives song selection. Hide the normal main menu chrome.
                 gameObject.SetActive(false);

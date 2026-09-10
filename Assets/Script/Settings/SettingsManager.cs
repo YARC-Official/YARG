@@ -282,6 +282,7 @@ namespace YARG.Settings
             {
                 new HeaderMetadata("Other"),
                 nameof(Settings.BandComboTypeSetting),
+                nameof(Settings.YaqStreamEnabled),
                 nameof(Settings.DataStreamEnable),
                 nameof(Settings.SaveScoresWithBots),
                 nameof(Settings.ReverbImplementation),

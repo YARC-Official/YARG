@@ -1804,6 +1804,10 @@
                 "Name": "Apply Volume Settings to Music Player",
                 "Description": "Volume settings for specific instruments will be applied to the menu music as well. Takes effect on the next song."
             },
+            "YaqStreamEnabled": {
+                "Name": "YAQ stream",
+                "Description": "Connect to the local YAQ queue over WebSocket and run Event Mode (idle HUD, remote song launch). Use -yaq-url to override the default ws://127.0.0.1:3000/ws?role=yarg."
+            },
             "DataStreamEnable": {
                 "Name": "Enable UDP data stream",
                 "Description": "Enables sending of UDP information packets over the network, for software such as YALCY."

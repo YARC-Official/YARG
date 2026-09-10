@@ -35,11 +35,14 @@ namespace YARG
 
         /// <summary>
         /// Launch YARG in YAQ event mode (queue-driven, stripped menus).
+        /// Aliases: <c>-yaq-event</c>, <c>-event-mode</c>.
         /// </summary>
         private const string YAQ_EVENT_ARG = "-yaq-event";
+        private const string EVENT_MODE_ARG = "-event-mode";
 
         /// <summary>
         /// WebSocket URL for the YAQ bridge, e.g. ws://127.0.0.1:3000/ws?role=yarg
+        /// Providing this alone also enables event mode.
         /// </summary>
         private const string YAQ_URL_ARG = "-yaq-url";
 
@@ -74,6 +77,7 @@ namespace YARG
                         VerboseReplays = true;
                         break;
                     case YAQ_EVENT_ARG:
+                    case EVENT_MODE_ARG:
                         YaqEvent = true;
                         break;
                     case YAQ_URL_ARG:
@@ -81,6 +85,8 @@ namespace YARG
                         if (i < args.Length)
                         {
                             YaqUrl = args[i];
+                            // URL implies event mode so a single flag pair isn't required
+                            YaqEvent = true;
                         }
 
                         break;
