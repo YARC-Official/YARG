@@ -235,6 +235,10 @@ namespace YARG.Gameplay
             EngineManager.StarScoreThresholds = EngineManager.GetStarScoreCutoffs(_players.ConvertAll(p => p.BaseEngine.StarScoreThresholds));
             YargLogger.LogFormatDebug("Star score thresholds: {0}", string.Join(", ", EngineManager.StarScoreThresholds));
 
+            // Phones compile GPU pipeline states on first use, which stutters
+            // mid-song; create the recorded ones now, under the loading screen,
+            // once the venue's shaders are loaded so they are covered too
+            await Helpers.GraphicsStateWarmup.WarmUpAsync(BackgroundManager.VenueLoaded);
 
             // Set up the crowd stem so it can be restored after muting (if it exists)
             if (_stemStates.TryGetValue(SongStem.Crowd, out var state))
