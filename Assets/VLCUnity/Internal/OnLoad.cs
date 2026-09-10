@@ -57,11 +57,10 @@ namespace LibVLCSharp
             {
                 SetColorSpace(PlayerColorSpace);
             }
-            catch (DllNotFoundException e)
+            catch (DllNotFoundException)
             {
                 // The native plugin is not shipped on this platform or excluded in Editor;
                 // the VLC video backend simply stays disabled.
-                Debug.LogWarning("[VLC] Native plugin not available, VLC support disabled: " + e.Message);
                 return;
             }
 #if UNITY_ANDROID || UNITY_IOS || UNITY_STANDALONE_LINUX || UNITY_EDITOR_LINUX || UNITY_EMBEDDED_LINUX

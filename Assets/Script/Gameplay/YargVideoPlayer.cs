@@ -300,7 +300,7 @@ public class YargVideoPlayer : MonoBehaviour
         }
         catch (Exception ex)
         {
-            YargLogger.LogWarning("[YargVideoPlayer] VLC initialization failed, falling back to Unity VideoPlayer: " + ex.Message);
+            YargLogger.LogInfo("[YargVideoPlayer] VLC initialization failed, falling back to Unity VideoPlayer: " + ex.Message);
             _usingVLC = false;
             if (_vlcPlayer != null)
             {
