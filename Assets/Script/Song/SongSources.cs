@@ -118,6 +118,10 @@ namespace YARG.Song
         // The editor does not track the contents of folders that end in ~,
         // so use this to prevent Unity from stalling due to importing freshly-downloaded sources
         public static readonly string SourcesFolder = Path.Combine(PathHelper.StreamingAssetsPath, "sources~");
+#elif UNITY_IOS
+        // The app bundle is read-only on iOS, so the downloaded source index
+        // lives in the writable data folder instead of StreamingAssets
+        public static readonly string SourcesFolder = Path.Combine(PathHelper.PersistentDataPath, "sources");
 #else
         public static readonly string SourcesFolder = Path.Combine(PathHelper.StreamingAssetsPath, "sources");
 #endif
