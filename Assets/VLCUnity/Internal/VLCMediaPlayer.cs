@@ -94,8 +94,7 @@ namespace LibVLCSharp
             }
             catch (DllNotFoundException)
             {
-                // The native plugin is not shipped on this platform or excluded in Editor;
-                // stay inert so the game can fall back to its own video player.
+                // Disable VLC so the game falls back to Unity's video player.
                 enabled = false;
                 return;
             }

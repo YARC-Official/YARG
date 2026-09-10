@@ -59,8 +59,7 @@ namespace LibVLCSharp
             }
             catch (DllNotFoundException)
             {
-                // The native plugin is not shipped on this platform or excluded in Editor;
-                // the VLC video backend simply stays disabled.
+                // Leave VLC disabled if the native plugin is missing or excluded.
                 return;
             }
 #if UNITY_ANDROID || UNITY_IOS || UNITY_STANDALONE_LINUX || UNITY_EDITOR_LINUX || UNITY_EMBEDDED_LINUX

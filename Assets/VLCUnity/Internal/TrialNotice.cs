@@ -27,8 +27,7 @@ public static class TrialNotice
     [DllImport(UnityPlugin, CallingConvention = CallingConvention.Cdecl, EntryPoint = "libvlc_unity_is_trial")]
     static extern bool IsTrialNative();
 
-    // The native plugin is not shipped on every platform or may be excluded in Editor;
-    // treat a missing plugin as "not a trial" instead of throwing.
+    // Treat a missing native plugin as not a trial instead of throwing.
     static bool IsTrial()
     {
         try
