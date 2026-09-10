@@ -117,6 +117,7 @@ namespace YARG.Menu.ProfileList
             {
                 if (control.Layout is LayoutStrings.AXIS)
                 {
+                    _dropdownControls.Add(control);
                     _controlDropdown.options.Add(new(DisambiguateDisplayName(control)));
                 }
             }

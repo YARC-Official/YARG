@@ -59,8 +59,6 @@ namespace YARG.Menu.ProfileList
         private ProfileCenterPane _profileCenterPane;
         [SerializeField]
         private BindingSetsCenterPane _bindingSetsCenterPane;
-        [SerializeField]
-        private GameObject _bindingCenterPane;
 
         [Space]
         [SerializeField]
@@ -88,7 +86,7 @@ namespace YARG.Menu.ProfileList
             }, true));
 
             _profileCenterPane.gameObject.SetActive(true);
-            _bindingCenterPane.SetActive(false);
+            _bindingSetsCenterPane.gameObject.SetActive(false);
 
             _headerTabs.TabChanged += OnTabChanged;
 
@@ -401,7 +399,7 @@ namespace YARG.Menu.ProfileList
         private void OnTabChanged(string tabId)
         {
             _profileCenterPane.gameObject.SetActive(tabId == PROFILES_TAB);
-            _bindingCenterPane.SetActive(tabId == BINDINGS_TAB);
+            _bindingSetsCenterPane.gameObject.SetActive(tabId == BINDINGS_TAB);
             _bindingSetsFilter.gameObject.SetActive(tabId == BINDINGS_TAB);
 
             switch (tabId)
@@ -424,6 +422,7 @@ namespace YARG.Menu.ProfileList
             CurrentBindingSetFilter = family;
             _controls = LayoutHelper.GetAllControlsForControllerFamily(family);
             RefreshBindingSetList();
+            _bindingSetsCenterPane.HideContents();
         }
     }
 }

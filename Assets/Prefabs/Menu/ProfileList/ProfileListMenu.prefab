@@ -3081,7 +3081,6 @@ MonoBehaviour:
   _bindingSetsFilter: {fileID: 2015764702387435712}
   _profileCenterPane: {fileID: 7898968641357467819}
   _bindingSetsCenterPane: {fileID: 3697091531127064971}
-  _bindingCenterPane: {fileID: 513584373693852148}
   _headerTabs: {fileID: 5840206460443911386}
   _profileViewPrefab: {fileID: 1863348019200065187, guid: 7e9189d6a05c0ba4485c260aab1a1414, type: 3}
   _bindingSetViewPrefab: {fileID: 1863348019200065187, guid: ee819031ee8e8ca458308f7c6add7eed, type: 3}
@@ -15798,7 +15797,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4622602834413321867, guid: 5f7c905be0699a94b8dc56fc6105c02d, type: 3}
       propertyPath: m_Options.m_Options.Array.size
-      value: 7
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4622602834413321867, guid: 5f7c905be0699a94b8dc56fc6105c02d, type: 3}
       propertyPath: m_Options.m_Options.Array.data[0].m_Text
@@ -15906,7 +15905,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7421987709479303017, guid: 5f7c905be0699a94b8dc56fc6105c02d, type: 3}
       propertyPath: m_text
-      value: 5-Fret Guitars
+      value: 
       objectReference: {fileID: 0}
     - target: {fileID: 7665614177142481491, guid: 5f7c905be0699a94b8dc56fc6105c02d, type: 3}
       propertyPath: m_Pivot.x
