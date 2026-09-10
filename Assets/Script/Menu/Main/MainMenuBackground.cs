@@ -21,8 +21,15 @@ namespace YARG.Menu.Main
             _cameraContainer.transform.position = Vector3.Lerp(_cameraContainer.transform.position,
                 new Vector3(0, 0.5f, 0), Time.deltaTime * 1.5f);
 
+            // No mouse on touch-only platforms; skip the pointer parallax
+            var mouse = Mouse.current;
+            if (mouse == null)
+            {
+                return;
+            }
+
             // Get the mouse position
-            var mousePos = Mouse.current.position.ReadValue();
+            var mousePos = mouse.position.ReadValue();
             mousePos = _camera.ScreenToViewportPoint(mousePos);
 
             // Clamp
