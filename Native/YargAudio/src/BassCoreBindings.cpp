@@ -2,13 +2,23 @@
 
 #include <climits>
 
+#if defined(__APPLE__)
+#include <TargetConditionals.h>
+#endif
+
 namespace yarg::audio {
 namespace {
 
 #if defined(_WIN32)
 constexpr const char* BassModule = "bass.dll";
 #elif defined(__APPLE__)
+#if TARGET_OS_IPHONE
+// BASS ships as an embedded framework on iOS; it is linked into
+// UnityFramework at launch, so the RTLD_NOLOAD lookup resolves via rpath.
+constexpr const char* BassModule = "@rpath/bass.framework/bass";
+#else
 constexpr const char* BassModule = "libbass.dylib";
+#endif
 #else
 constexpr const char* BassModule = "libbass.so";
 #endif

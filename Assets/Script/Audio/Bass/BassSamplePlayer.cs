@@ -1,6 +1,8 @@
 #nullable enable
 using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
+using AOT;
 using ManagedBass;
 using ManagedBass.Mix;
 using YARG.Core.Audio;
@@ -29,12 +31,34 @@ namespace YARG.Audio.BASS
         private OutputChannel? _outputChannel;
         private double         _volume = 1;
 
+        // IL2CPP cannot marshal instance-method delegates to native code, so
+        // the voice-freed sync is a static callback that finds the player
+        // through the sync's user pointer.
+        private GCHandle _selfHandle;
+
         public BassSamplePlayer(BassAudioRouter router, int sampleHandle, string name, Action? playbackEnded = null)
         {
             _router = router;
             _sampleHandle = sampleHandle;
             _name = name;
             _playbackEnded = playbackEnded;
+            _selfHandle = GCHandle.Alloc(this, GCHandleType.Weak);
+        }
+
+        [MonoPInvokeCallback(typeof(SyncProcedure))]
+        private static void VoiceFreedCallback(int handle, int channel, int data, IntPtr user)
+        {
+            try
+            {
+                if (GCHandle.FromIntPtr(user).Target is BassSamplePlayer player)
+                {
+                    player.OnVoiceFreed(handle, channel, data, IntPtr.Zero);
+                }
+            }
+            catch
+            {
+                // Nothing sensible to do inside a native callback
+            }
         }
 
         public bool IsPlaying
@@ -99,6 +123,12 @@ namespace YARG.Audio.BASS
                 _voices.Clear();
                 _fadingVoices.Clear();
             }
+
+            // All voices are freed by SampleFree above, so no sync can fire now
+            if (_selfHandle.IsAllocated)
+            {
+                _selfHandle.Free();
+            }
         }
 
         public bool Play(bool loop = false, int fadeInMilliseconds = 0)
@@ -122,7 +152,8 @@ namespace YARG.Audio.BASS
                     return false;
                 }
 
-                if (Bass.ChannelSetSync(voice, SyncFlags.Free, 0, OnVoiceFreed) == 0)
+                if (Bass.ChannelSetSync(voice, SyncFlags.Free, 0, VoiceFreedCallback,
+                    GCHandle.ToIntPtr(_selfHandle)) == 0)
                 {
                     var error = Bass.LastError;
                     Bass.StreamFree(voice);
