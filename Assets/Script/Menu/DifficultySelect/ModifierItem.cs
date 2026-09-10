@@ -1,7 +1,6 @@
 ﻿using System;
 using TMPro;
 using UnityEngine;
-using UnityEngine.EventSystems;
 using YARG.Menu.Navigation;
 
 namespace YARG.Menu.DifficultySelect
@@ -34,9 +33,9 @@ namespace YARG.Menu.DifficultySelect
             Active = active;
         }
 
-        public override void OnPointerDown(PointerEventData eventData)
+        protected override void OnPress()
         {
-            base.OnPointerDown(eventData);
+            base.OnPress();
             Confirm();
         }
 

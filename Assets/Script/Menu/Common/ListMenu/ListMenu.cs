@@ -93,6 +93,14 @@ namespace YARG.Menu.ListMenu
                 _viewObjects.Add(view);
             }
 
+            // Touch scrolls the list by dragging it, a row per row height
+            if (Application.isMobilePlatform && _viewObjects.Count > 0 && _viewObjectParent.parent != null)
+            {
+                var scroller = _viewObjectParent.parent.gameObject.AddComponent<Helpers.UI.ListDragScroller>();
+                scroller.RowHeight = () => ((RectTransform) _viewObjects[0].transform).rect.height;
+                scroller.Step = step => SelectedIndex += step;
+            }
+
             RequestViewListUpdate();
         }
 
