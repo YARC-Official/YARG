@@ -171,6 +171,35 @@ namespace YARG.Gameplay.Player
         [field: SerializeField]
         public Camera TrackCamera { get; private set; }
 
+        /// <summary>
+        /// Where a world position on this player's highway lands on screen, as
+        /// a viewport coordinate of the composited highways output.
+        /// </summary>
+        public Vector2 WorldToViewport(Vector3 positionWs)
+        {
+            if (HighwayCameraRendering == null)
+            {
+                // The menu scene stays loaded with its own renderer for the
+                // settings preview; only the one in this player's scene
+                // carries these highways
+                foreach (var renderer in FindObjectsByType<HighwayCameraRendering>(FindObjectsSortMode.None))
+                {
+                    if (renderer.gameObject.scene == gameObject.scene)
+                    {
+                        HighwayCameraRendering = renderer;
+                        break;
+                    }
+                }
+
+                if (HighwayCameraRendering == null)
+                {
+                    return Vector2.zero;
+                }
+            }
+
+            return HighwayCameraRendering.WorldToViewport(positionWs, HighwayIndex);
+        }
+
         [SerializeField]
         protected CameraPositioner CameraPositioner;
         [SerializeField]

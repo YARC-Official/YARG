@@ -260,6 +260,10 @@ namespace YARG.Menu.ProfileList
                 if (!device.enabled) continue;
                 if (PlayerContainer.IsDeviceTaken(device)) continue;
 
+                // The raw touchscreen is a press and a position, not an
+                // instrument; phones play through the lane-aware Touch Controls
+                if (Application.isMobilePlatform && device is Touchscreen) continue;
+
                 inputDeviceCount++;
                 dialog.AddListButton(device.displayName, async () =>
                 {

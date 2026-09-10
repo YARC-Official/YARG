@@ -76,6 +76,15 @@ namespace YARG.Input
             IOSGameControllerBackend.Initialize();
 #endif
 
+            // Touchscreens can play too: the touch instrument's layout is
+            // always known (so saved bindings load anywhere), the device
+            // itself only exists on phones and tablets
+            TouchGuitarDevice.Register();
+            if (Application.isMobilePlatform)
+            {
+                TouchGuitarInput.Start();
+            }
+
             InputSystem.onEvent += OnEvent;
 
             InputSystem.onBeforeUpdate += OnBeforeUpdate;
