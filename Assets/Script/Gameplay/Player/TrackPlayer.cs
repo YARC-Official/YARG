@@ -53,7 +53,16 @@ namespace YARG.Gameplay.Player
             TrackView.ClosePlayerMenu();
         }
 
-        public void RefreshPlayerMenu() => TrackView.RefreshPlayerMenu();
+        public void RefreshPlayerMenu()
+        {
+            if (!CanOpenPlayerMenu)
+            {
+                ClosePlayerMenu();
+                return;
+            }
+
+            TrackView.RefreshPlayerMenu();
+        }
 
         private void OnStartTapped() => GameManager.TogglePause();
 
@@ -113,14 +122,18 @@ namespace YARG.Gameplay.Player
             GameManager.TogglePause();
         }
 
-        private bool CanOpenPlayerMenu => GameManager.ActivePlayerCount > 1 && !GameManager.IsReplay &&
-            !GameManager.IsPractice && !GameManager.PlayingAShow;
+        private bool CanDropOut => GameManager.ActivePlayerCount > 1 &&
+            !GameManager.IsReplay &&
+            !GameManager.IsPractice &&
+            !GameManager.PlayingAShow;
+
+        private bool CanOpenPlayerMenu => GetPlayerMenuItems().HasUsable();
 
         private bool IsStartBlocked => !IsActive || IsPlayerMenuOpen || !GameManager.CanPause;
 
         public void DropOut()
         {
-            if (GameManager.ActivePlayerCount <= 1)
+            if (!CanDropOut)
             {
                 return;
             }
@@ -139,14 +152,20 @@ namespace YARG.Gameplay.Player
 
         protected override bool IsMenuOpen => IsPlayerMenuOpen;
 
-        private IReadOnlyList<PlayerMenuItem> GetPlayerMenuItems() =>
-            new[]
+        private IReadOnlyList<PlayerMenuItem> GetPlayerMenuItems()
+        {
+            if (!CanDropOut)
+            {
+                return Array.Empty<PlayerMenuItem>();
+            }
+
+            return new[]
             {
                 new PlayerMenuItem(
                     label: Localize.Key("Menu.Pause.Generic.DropOut"),
-                    onConfirm: DropOut,
-                    isEnabled: () => GameManager.ActivePlayerCount > 1),
+                    onConfirm: DropOut),
             };
+        }
 
         [field: Header("Visuals")]
         [field: SerializeField]

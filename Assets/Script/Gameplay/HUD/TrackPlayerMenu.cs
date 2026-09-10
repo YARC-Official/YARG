@@ -122,6 +122,7 @@ namespace YARG.Gameplay.HUD
             }
 
             IsOpen = true;
+            _panel.localPosition = new Vector3(_panel.localPosition.x, _closedY, 0f);
             gameObject.SetActive(true);
             SlideTo(targetY: _openY, duration: OPEN_SECONDS, ease: Ease.OutCubic);
         }
@@ -175,6 +176,8 @@ namespace YARG.Gameplay.HUD
 
             var currentY = DOTween.IsTweening(_panel) ? _panel.localPosition.y : (IsOpen ? _openY : _closedY);
             _panel.localPosition = new Vector3(x: screenBottom.x, y: currentY, z: 0f);
+
+            LayoutHeading();
         }
 
         public void HideImmediate()
@@ -277,8 +280,11 @@ namespace YARG.Gameplay.HUD
 
         private void LayoutHeading()
         {
-            var iconWidth = _icon.rectTransform.sizeDelta.x;
-            var layoutGroup = _headingText.GetComponentInParent<HorizontalLayoutGroup>();
+            var iconLayout = _icon.GetComponent<LayoutElement>();
+            var iconWidth = iconLayout != null && iconLayout.preferredWidth > 0f
+                ? iconLayout.preferredWidth
+                : _icon.rectTransform.sizeDelta.x;
+            var layoutGroup = _headingText.GetComponentInParent<HorizontalLayoutGroup>(includeInactive: true);
             var spacing = layoutGroup != null ? layoutGroup.spacing : 0f;
             var maxTextWidth = _panel.sizeDelta.x - HEADER_MARGIN - iconWidth - spacing;
 
@@ -338,6 +344,19 @@ namespace YARG.Gameplay.HUD
         }
 
         public static bool IsUsable(this PlayerMenuItem item) => item.IsEnabled?.Invoke() ?? true;
+
+        public static bool HasUsable(this IReadOnlyList<PlayerMenuItem> items)
+        {
+            for (var i = 0; i < items.Count; i++)
+            {
+                if (items[i].IsUsable())
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
 
         public static int FirstUsableIndex(this IReadOnlyList<PlayerMenuItem> items)
         {

@@ -36,7 +36,7 @@ namespace YARG.Gameplay.HUD
 
         private TrackPlayerMenu _playerMenu;
 
-        public bool IsPlayerMenuOpen => _playerMenu != null && _playerMenu.IsOpen;
+        public bool IsPlayerMenuOpen => _playerMenu?.IsOpen == true;
 
 
         private HighwayCameraRendering _highwayRenderer;

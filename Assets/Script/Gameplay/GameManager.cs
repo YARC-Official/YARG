@@ -320,11 +320,6 @@ namespace YARG.Gameplay
             foreach (var player in _players)
             {
                 player.GameplayUpdate();
-                if (!player.IsActive)
-                {
-                    continue;
-                }
-
                 totalScore += player.Score;
                 totalScore += player.BandBonusScore;
             }
