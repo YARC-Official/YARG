@@ -93,7 +93,17 @@ namespace YARG
             YargLogger.LogFormatInfo("Saved {0} profiles", savedCount);
 
             SettingsManager.LoadStartupSettings();
-            GlobalAudioHandler.Initialize<BassAudioManager>();
+            try
+            {
+                GlobalAudioHandler.Initialize<BassAudioManager>();
+            }
+            catch (Exception ex)
+            {
+                // Platforms without BASS natives (currently iOS) boot with
+                // audio disabled instead of hanging on the load screen.
+                YargLogger.LogException(ex, "BASS unavailable; falling back to silent audio");
+                GlobalAudioHandler.Initialize<Audio.NullAudioManager>();
+            }
 
             Players = new List<YargPlayer>();
 

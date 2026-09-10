@@ -212,11 +212,13 @@ namespace YARG.Audio.BASS
 
         protected override void DisposeUnmanagedResources()
         {
-            _router.Dispose();
+            // Null-conditionals: when the constructor throws partway (e.g. BASS
+            // natives missing), the finalizer still runs with unassigned fields.
+            _router?.Dispose();
             _output?.Dispose();
             _output = null;
-            _outputFactory.Dispose();
-            _runtime.Dispose();
+            _outputFactory?.Dispose();
+            _runtime?.Dispose();
         }
 
         private void UpdatePlaybackLatency() => PlaybackLatency = _router.HeardLatencyMilliseconds;
