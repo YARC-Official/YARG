@@ -30,9 +30,12 @@ namespace YARG.Menu.ProfileList
 
         public void OnEnable()
         {
-            for (var i = 0; i < _controllerFamiliesByIndex.Count; i++)
+            if (_dropdown.options.Count is 0)
             {
-                _dropdown.options.Add(new(_controllerFamiliesByIndex[i].ToLocalizedName()));
+                for (var i = 0; i < _controllerFamiliesByIndex.Count; i++)
+                {
+                    _dropdown.options.Add(new(_controllerFamiliesByIndex[i].ToLocalizedName()));
+                }
             }
         }
 
