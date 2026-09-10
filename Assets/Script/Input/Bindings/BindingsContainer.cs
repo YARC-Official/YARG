@@ -50,6 +50,14 @@ namespace YARG.Input.Bindings
                     ReusableBindingSetDefaults.DefaultFourLaneDrumkit,
                 }
             },
+
+            {
+                ControllerFamily.FiveLaneDrumkit,
+                new()
+                {
+                    ReusableBindingSetDefaults.DefaultFiveLaneDrumkit,
+                }
+            },
         };
 
         private static readonly Dictionary<(GameMode mode, ControllerFamily controllerFamily), List<ReusableBindingSet>> _bindingCollectionsByContext = new();
