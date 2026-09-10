@@ -17,6 +17,11 @@ namespace YARG.Helpers
 
         public static void OpenChooseFolder(string startingDir, Action<string> callback)
         {
+#if UNITY_IOS && !UNITY_EDITOR
+            // Use the native document picker so folders from anywhere in the
+            // Files app work (iCloud Drive, SMB network shares, USB drives).
+            IOSFolderPicker.PickFolder(callback);
+#else
             if (_fileBrowser == null)
             {
                 _fileBrowser = Object.FindFirstObjectByType<FileBrowser>(FindObjectsInactive.Include);
@@ -55,6 +60,7 @@ namespace YARG.Helpers
                 inputBlocker?.Dispose();
                 throw;
             }
+#endif
         }
 
         public static void OpenChooseFile(string startingDir, string extension, Action<string> callback)
