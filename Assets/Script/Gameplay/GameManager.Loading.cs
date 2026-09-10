@@ -21,6 +21,7 @@ using YARG.Scores;
 using YARG.Settings;
 using YARG.Settings.Types;
 using YARG.Song;
+using YARG.YAQ;
 
 namespace YARG.Gameplay
 {
@@ -310,6 +311,10 @@ namespace YARG.Gameplay
             enabled = true;
             IsSongStarted = true;
             _songStarted?.Invoke();
+            if (EventMode.IsActive)
+            {
+                EventModeController.Instance?.NotifyPlaying();
+            }
         }
 
         private void ApplySampleNormalization()

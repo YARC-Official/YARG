@@ -28,11 +28,12 @@ using YARG.Menu.Navigation;
 using YARG.Menu.Persistent;
 using YARG.Scores;
 using YARG.Song;
+using YARG.Settings;
+using YARG.YAQ;
 using YARG.Playlists;
 using YARG.Helpers;
 using YARG.Helpers.Extensions;
 using YARG.Core.Engine;
-using YARG.Settings;
 
 
 namespace YARG.Menu.ScoreScreen
@@ -165,6 +166,11 @@ namespace YARG.Menu.ScoreScreen
 
             //set restarting state
             _restartingSong = false;
+
+            if (EventMode.IsActive)
+            {
+                EventModeController.Instance?.NotifySongEnded();
+            }
         }
 
         private void OnDisable()
@@ -468,6 +474,10 @@ namespace YARG.Menu.ScoreScreen
                             }
 
                             GlobalVariables.State.PlayingAShow = false;
+                            if (EventMode.IsActive)
+                            {
+                                EventModeController.Instance?.NotifyIdle();
+                            }
                             GlobalVariables.Instance.LoadScene(SceneIndex.Menu);
                         }
                     }

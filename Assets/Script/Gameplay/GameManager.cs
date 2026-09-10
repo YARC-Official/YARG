@@ -28,6 +28,7 @@ using YARG.Replays;
 using YARG.Scores;
 using YARG.Settings;
 using YARG.Settings.Types;
+using YARG.YAQ;
 using YARG.Venue.Characters;
 using YARG.Venue.VenueCamera;
 

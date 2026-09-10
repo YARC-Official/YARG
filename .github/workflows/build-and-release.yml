@@ -1,0 +1,141 @@
+# Build YARG Event Mode and publish zip(s) to GitHub Releases.
+#
+# Required repo secrets (Unity seat for CI):
+#   UNITY_EMAIL, UNITY_PASSWORD, UNITY_SERIAL
+# Optional per-platform overrides:
+#   LINUX_UNITY_EMAIL / LINUX_UNITY_PASSWORD / LINUX_UNITY_SERIAL
+#   WINDOWS_UNITY_EMAIL / WINDOWS_UNITY_PASSWORD / WINDOWS_UNITY_SERIAL
+#
+# Run from Actions → "Build and Release" → Run workflow,
+# or push a tag like event-v0.1.0.
+
+name: Build and Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      versionName:
+        description: "Release version / tag (e.g. event-v0.1.0)"
+        type: string
+        required: true
+      buildType:
+        description: "Build type"
+        required: true
+        default: development
+        type: choice
+        options:
+          - stable
+          - nightly
+          - development
+      buildLinux:
+        description: "Build Linux"
+        type: boolean
+        default: true
+      buildWindows:
+        description: "Build Windows"
+        type: boolean
+        default: true
+      prerelease:
+        description: "Mark GitHub Release as prerelease"
+        type: boolean
+        default: true
+
+  push:
+    tags:
+      - "event-v*"
+      - "event-*"
+
+run-name: Build and Release - ${{ inputs.versionName || github.ref_name }} by @${{ github.actor }}
+
+permissions:
+  contents: write
+
+jobs:
+  resolve:
+    name: Resolve version
+    runs-on: ubuntu-latest
+    outputs:
+      versionName: ${{ steps.version.outputs.versionName }}
+      buildType: ${{ steps.version.outputs.buildType }}
+      buildLinux: ${{ steps.version.outputs.buildLinux }}
+      buildWindows: ${{ steps.version.outputs.buildWindows }}
+      prerelease: ${{ steps.version.outputs.prerelease }}
+    steps:
+      - id: version
+        shell: bash
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "versionName=${{ inputs.versionName }}" >> "$GITHUB_OUTPUT"
+            echo "buildType=${{ inputs.buildType }}" >> "$GITHUB_OUTPUT"
+            echo "buildLinux=${{ inputs.buildLinux }}" >> "$GITHUB_OUTPUT"
+            echo "buildWindows=${{ inputs.buildWindows }}" >> "$GITHUB_OUTPUT"
+            echo "prerelease=${{ inputs.prerelease }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "versionName=${GITHUB_REF_NAME}" >> "$GITHUB_OUTPUT"
+            echo "buildType=development" >> "$GITHUB_OUTPUT"
+            echo "buildLinux=true" >> "$GITHUB_OUTPUT"
+            echo "buildWindows=true" >> "$GITHUB_OUTPUT"
+            echo "prerelease=true" >> "$GITHUB_OUTPUT"
+          fi
+
+  linux-builder:
+    name: Build - Linux
+    needs: resolve
+    if: needs.resolve.outputs.buildLinux == 'true'
+    uses: ./.github/workflows/build-linux-unity6.yml
+    secrets: inherit
+    with:
+      versionName: ${{ needs.resolve.outputs.versionName }}
+      buildType: ${{ needs.resolve.outputs.buildType }}
+
+  windows-builder:
+    name: Build - Windows
+    needs: resolve
+    if: needs.resolve.outputs.buildWindows == 'true'
+    uses: ./.github/workflows/build-windows-unity6.yml
+    secrets: inherit
+    with:
+      versionName: ${{ needs.resolve.outputs.versionName }}
+      buildType: ${{ needs.resolve.outputs.buildType }}
+
+  publish:
+    name: Publish Release
+    needs: [resolve, linux-builder, windows-builder]
+    if: |
+      always() &&
+      needs.resolve.result == 'success' &&
+      (needs.linux-builder.result == 'success' || needs.linux-builder.result == 'skipped') &&
+      (needs.windows-builder.result == 'success' || needs.windows-builder.result == 'skipped') &&
+      (needs.linux-builder.result == 'success' || needs.windows-builder.result == 'success')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          merge-multiple: true
+          path: builds
+          pattern: YARG-Event (*) - *
+
+      - name: List artifacts
+        run: find builds -type f | sort
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ needs.resolve.outputs.versionName }}
+          name: YARG Event Mode - ${{ needs.resolve.outputs.versionName }}
+          prerelease: ${{ needs.resolve.outputs.prerelease == 'true' }}
+          generate_release_notes: true
+          body: |
+            Event Mode build of YARG for use with [YAQ](https://github.com/binarygeek119).
+
+            Launch with:
+            ```bash
+            ./YARG -yaq-event -yaq-url "ws://127.0.0.1:3000/ws?role=yarg"
+            ```
+
+            Build type: `${{ needs.resolve.outputs.buildType }}`
+            Commit: `${{ github.sha }}`
+          files: builds/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

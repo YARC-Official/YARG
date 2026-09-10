@@ -1,0 +1,132 @@
+name: Build - Windows (Unity 6)
+
+on:
+  workflow_call:
+    inputs:
+      versionName:
+        description: "Version Name"
+        type: string
+        required: true
+      buildType:
+        description: "Build Type (stable | nightly | development)"
+        type: string
+        required: true
+        default: "development"
+
+    outputs:
+      artifactId:
+        description: "Artifact ID"
+        value: ${{ jobs.windowsBuilder.outputs.artifactId }}
+
+env:
+  platform: "Windows"
+  unityVersion: "6000.3.5f2"
+  unityVersionHash: "3fa8bc678cb0"
+  blenderMajorVersion: "4.3"
+  blenderVersion: "4.3.0"
+  versionName: ${{ inputs.versionName }}
+
+jobs:
+  windowsBuilder:
+    name: Build - Windows
+    runs-on: windows-2025
+    timeout-minutes: 90
+
+    steps:
+      - name: "[Install] Download Unity Editor + Windows IL2CPP builder"
+        run: |
+          mkdir ${{ runner.temp }}\UnityInstall
+          curl -L -o "${{ runner.temp }}\UnityInstall\UnitySetup64-${{ env.unityVersion }}.exe" https://download.unity3d.com/download_unity/${{ env.unityVersionHash }}/Windows64EditorInstaller/UnitySetup64-${{ env.unityVersion }}.exe
+          curl -L -o "${{ runner.temp }}\UnityInstall\UnitySetup-Windows-IL2CPP-Support-for-Editor-${{ env.unityVersion }}.exe" https://download.unity3d.com/download_unity/${{ env.unityVersionHash }}/TargetSupportInstaller/UnitySetup-Windows-IL2CPP-Support-for-Editor-${{ env.unityVersion }}.exe
+
+      - name: "[Install] Install Unity"
+        run: |
+          $UNITY_INSTALLARGUMENTS = "/S /D=${{ runner.temp }}\\Unity"
+          Start-Process "${{ runner.temp }}\UnityInstall\UnitySetup64-${{ env.unityVersion }}.exe" -ArgumentList $UNITY_INSTALLARGUMENTS -Wait -NoNewWindow
+          Start-Process "${{ runner.temp }}\UnityInstall\UnitySetup-Windows-IL2CPP-Support-for-Editor-${{ env.unityVersion }}.exe" -ArgumentList $UNITY_INSTALLARGUMENTS -Wait -NoNewWindow
+          Remove-Item -Recurse -Force -Path ${{ runner.temp }}\UnityInstall\*
+
+      - name: "[Pre-install] Pull project"
+        uses: nschloe/action-cached-lfs-checkout@v1.2.1
+        with:
+          submodules: recursive
+          fetch-depth: 0
+
+      - name: "[Pre-install] Pull latest submodules"
+        run: git submodule update --init --recursive
+
+      - name: "[Pre-install] Restore Library cache"
+        uses: actions/cache@v4
+        with:
+          path: Library
+          key: ${{ env.platform }}-YARG_Library-${{ hashFiles('ProjectSettings/ProjectVersion.txt', 'Packages/packages-lock.json') }}
+          restore-keys: |
+            ${{ env.platform }}-YARG_Library-
+
+      - if: ${{ inputs.buildType == 'nightly' }}
+        name: "[Pre-build] Define YARG_NIGHTLY_BUILD"
+        shell: bash
+        run: |
+          touch Assets/csc.rsp
+          echo "-define:YARG_NIGHTLY_BUILD" >> Assets/csc.rsp
+
+      - if: ${{ inputs.buildType == 'development' }}
+        name: "[Pre-build] Define YARG_TEST_BUILD"
+        shell: bash
+        run: |
+          touch Assets/csc.rsp
+          echo "-define:YARG_TEST_BUILD" >> Assets/csc.rsp
+
+      - name: "[Pre-install] Get Blender (${{ env.blenderVersion }}) from cache"
+        id: blender
+        uses: actions/cache@v4
+        with:
+          path: ${{ runner.temp }}/BlenderInstall
+          key: Windows_Blender-${{ env.blenderVersion }}
+
+      - if: ${{ steps.blender.outputs.cache-hit != 'true' }}
+        name: "[Pre-install] Download Blender (${{ env.blenderVersion }})"
+        run: mkdir ${{ runner.temp }}\BlenderInstall && curl -L -o "${{ runner.temp }}\BlenderInstall\blender.msi" https://download.blender.org/release/Blender${{ env.blenderMajorVersion }}/blender-${{ env.blenderVersion }}-windows-x64.msi
+
+      - name: "[Pre-install] Install Blender (${{ env.blenderVersion }})"
+        run: |
+          $BLENDERMSI = "${{ runner.temp }}\BlenderInstall\blender.msi"
+          $BLENDERARGS = "/I $BLENDERMSI ALLUSERS=1 /qn /norestart"
+          Start-Process "msiexec.exe" -ArgumentList $BLENDERARGS -Wait -NoNewWindow
+
+      - name: "[Pre-install] Install dotnet 8.x"
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: "[Pre-install] Restore NuGet packages"
+        run: dotnet tool install --global NuGetForUnity.Cli && nugetforunity restore
+
+      - name: "[Build] Run Builder"
+        run: |
+          & "${{ runner.temp }}/Unity/Editor/Unity.exe" -quit -batchmode -nographics -projectPath "${{ github.workspace }}" -buildTarget StandaloneWindows64 -buildWindows64Player "${{ github.workspace }}/build/YARG.exe" -username "${{ secrets.WINDOWS_UNITY_EMAIL || secrets.UNITY_EMAIL }}" -password "${{ secrets.WINDOWS_UNITY_PASSWORD || secrets.UNITY_PASSWORD }}" -serial "${{ secrets.WINDOWS_UNITY_SERIAL || secrets.UNITY_SERIAL }}" -logfile | Out-Host
+          Write-Output "Finished build, exit code $LastExitCode"
+          if (Test-Path "${{ github.workspace }}\build\YARG_BurstDebugInformation_DoNotShip") {
+            Remove-Item -Recurse -Force -Path "${{ github.workspace }}\build\YARG_BurstDebugInformation_DoNotShip"
+          }
+
+      - name: "[Post-build] Return license"
+        if: always()
+        continue-on-error: true
+        run: |
+          & "${{ runner.temp }}/Unity/Editor/Unity.exe" -quit -batchmode -nographics -returnlicense -projectPath "${{ github.workspace }}" -username "${{ secrets.WINDOWS_UNITY_EMAIL || secrets.UNITY_EMAIL }}" -password "${{ secrets.WINDOWS_UNITY_PASSWORD || secrets.UNITY_PASSWORD }}" -logfile | Out-Host
+
+      - name: "[Post-build] Compress for release"
+        run: |
+          mkdir Release
+          Compress-Archive -Path "${{ github.workspace }}/build/*" -DestinationPath "${{ github.workspace }}/Release/YARG-Event_${{ env.versionName }}-Windows-x64.zip"
+
+      - name: "[Post-build] Upload artifact"
+        id: artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: YARG-Event (${{ env.versionName }}) - ${{ env.platform }}
+          path: Release/*
+
+    outputs:
+      artifactId: ${{ steps.artifacts.outputs.artifact-id }}

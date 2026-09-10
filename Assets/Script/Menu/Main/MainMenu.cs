@@ -20,6 +20,13 @@ namespace YARG.Menu.Main
         {
             _versionText.text = GlobalVariables.Instance.CurrentVersion;
 
+            if (EventMode.IsActive)
+            {
+                // Event mode: YAQ drives song selection. Hide the normal main menu chrome.
+                gameObject.SetActive(false);
+                return;
+            }
+
             // Show the anti-piracy dialog if it hasn't been shown already
             // Also only show it once per game launch
             if (!_antiPiracyDialogShown && SettingsManager.Settings.ShowAntiPiracyDialog)

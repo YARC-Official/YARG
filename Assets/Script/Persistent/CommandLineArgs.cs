@@ -33,15 +33,28 @@ namespace YARG
         /// </summary>
         private const string DOWNLOAD_LOCATION_ARG = "-download-location";
 
+        /// <summary>
+        /// Launch YARG in YAQ event mode (queue-driven, stripped menus).
+        /// </summary>
+        private const string YAQ_EVENT_ARG = "-yaq-event";
+
+        /// <summary>
+        /// WebSocket URL for the YAQ bridge, e.g. ws://127.0.0.1:3000/ws?role=yarg
+        /// </summary>
+        private const string YAQ_URL_ARG = "-yaq-url";
+
         private const string PERSISTENT_DATA_PATH_ARG = "-persistent-data-path";
 
         public static bool Offline { get; private set; }
 
         public static bool VerboseReplays { get; private set; }
 
+        public static bool YaqEvent { get; private set; }
+
         public static string Language           { get; private set; }
         public static string DownloadLocation   { get; private set; }
         public static string PersistentDataPath { get; private set; }
+        public static string YaqUrl             { get; private set; }
 
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSplashScreen)]
@@ -59,6 +72,17 @@ namespace YARG
                         break;
                     case VERBOSE_REPLAYS:
                         VerboseReplays = true;
+                        break;
+                    case YAQ_EVENT_ARG:
+                        YaqEvent = true;
+                        break;
+                    case YAQ_URL_ARG:
+                        i++;
+                        if (i < args.Length)
+                        {
+                            YaqUrl = args[i];
+                        }
+
                         break;
                     case LANGUAGE_ARG:
                         i++;

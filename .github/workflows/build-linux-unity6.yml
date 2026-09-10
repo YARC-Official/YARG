@@ -1,0 +1,144 @@
+name: Build - Linux (Unity 6)
+
+on:
+  workflow_call:
+    inputs:
+      versionName:
+        description: "Version Name"
+        type: string
+        required: true
+      buildType:
+        description: "Build Type (stable | nightly | development)"
+        type: string
+        required: true
+        default: "development"
+
+    outputs:
+      artifactId:
+        description: "Artifact ID"
+        value: ${{ jobs.linuxBuilder.outputs.artifactId }}
+
+env:
+  platform: "Linux"
+  unityVersion: "6000.3.5f2"
+  unityVersionHash: "3fa8bc678cb0"
+  blenderMajorVersion: "4.3"
+  blenderVersion: "4.3.0"
+  versionName: ${{ inputs.versionName }}
+
+jobs:
+  linuxBuilder:
+    name: Build - Linux
+    runs-on: ubuntu-22.04
+    timeout-minutes: 90
+
+    steps:
+      - name: "[Install] Install dependencies"
+        run: |
+          sudo apt-get -q update &&
+          sudo apt-get -q install -y --no-install-recommends apt-utils &&
+          sudo apt-get -q install -y --no-install-recommends --allow-downgrades ca-certificates libasound2 libc6-dev libcap2 libgconf-2-4 libglu1 libgtk-3-0 libncurses5 libnotify4 libnss3 libxtst6 libxss1 cpio lsb-release xvfb xz-utils &&
+          sudo apt-get clean &&
+          sudo rm -rf /var/lib/apt/lists/* &&
+          sudo apt-get -q update &&
+          sudo apt-get -q install -y --no-install-recommends software-properties-common &&
+          sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test &&
+          sudo apt-get -q install -y --only-upgrade libstdc++6 &&
+          sudo add-apt-repository -y --remove ppa:ubuntu-toolchain-r/test &&
+          sudo apt-get -q remove -y --auto-remove software-properties-common &&
+          sudo apt-get clean &&
+          sudo rm -rf /var/lib/apt/lists/*
+
+      - name: "[Install] Download Unity Editor + Linux IL2CPP builder"
+        run: |
+          mkdir ${{ runner.temp }}/UnityInstall &&
+          curl -L -o "${{ runner.temp }}/UnityInstall/UnitySetup-Editor.tar.xz" https://download.unity3d.com/download_unity/${{ env.unityVersionHash }}/LinuxEditorInstaller/Unity-${{ env.unityVersion }}.tar.xz &&
+          curl -L -o "${{ runner.temp }}/UnityInstall/UnitySetup-Linux-IL2CPP-Support.tar.xz" https://download.unity3d.com/download_unity/${{ env.unityVersionHash }}/LinuxEditorTargetInstaller/UnitySetup-Linux-IL2CPP-Support-for-Editor-${{ env.unityVersion }}.tar.xz
+
+      - name: "[Install] Install Unity Editor + Linux IL2CPP builder"
+        run: |
+          mkdir "${{ runner.temp }}/Unity" &&
+          tar -xvf "${{ runner.temp }}/UnityInstall/UnitySetup-Editor.tar.xz" -C "${{ runner.temp }}/Unity" &&
+          tar -xvf "${{ runner.temp }}/UnityInstall/UnitySetup-Linux-IL2CPP-Support.tar.xz" -C "${{ runner.temp }}/Unity" &&
+          rm -rf "${{ runner.temp }}/UnityInstall"
+
+      - name: "[Pre-install] Pull project"
+        uses: nschloe/action-cached-lfs-checkout@v1.2.1
+        with:
+          submodules: recursive
+          fetch-depth: 0
+
+      - name: "[Pre-install] Pull latest submodules"
+        run: git submodule update --init --recursive
+
+      - name: "[Pre-install] Restore Library cache"
+        uses: actions/cache@v4
+        with:
+          path: Library
+          key: ${{ env.platform }}-YARG_Library-${{ hashFiles('ProjectSettings/ProjectVersion.txt', 'Packages/packages-lock.json') }}
+          restore-keys: |
+            ${{ env.platform }}-YARG_Library-
+
+      - if: ${{ inputs.buildType == 'nightly' }}
+        name: "[Pre-build] Define YARG_NIGHTLY_BUILD"
+        shell: bash
+        run: |
+          touch Assets/csc.rsp
+          echo "-define:YARG_NIGHTLY_BUILD" >> Assets/csc.rsp
+
+      - if: ${{ inputs.buildType == 'development' }}
+        name: "[Pre-build] Define YARG_TEST_BUILD"
+        shell: bash
+        run: |
+          touch Assets/csc.rsp
+          echo "-define:YARG_TEST_BUILD" >> Assets/csc.rsp
+
+      - name: "[Pre-install] Get Blender (${{ env.blenderVersion }}) from cache"
+        id: blender
+        uses: actions/cache@v4
+        with:
+          path: ${{ runner.temp }}/BlenderInstall
+          key: Linux_Blender-${{ env.blenderVersion }}
+
+      - if: ${{ steps.blender.outputs.cache-hit != 'true' }}
+        name: "[Pre-install] Download Blender (${{ env.blenderVersion }})"
+        run: mkdir ${{ runner.temp }}/BlenderInstall && curl -L -o "${{ runner.temp }}/BlenderInstall/blender.tar.xz" https://download.blender.org/release/Blender${{ env.blenderMajorVersion }}/blender-${{ env.blenderVersion }}-linux-x64.tar.xz
+
+      - name: "[Pre-install] Install Blender (${{ env.blenderVersion }})"
+        run: |
+          sudo tar xvf "${{ runner.temp }}/BlenderInstall/blender.tar.xz" -C /opt/
+          sudo mv /opt/blender*/ /opt/blender
+          sudo ln -sf /opt/blender/blender /usr/bin/blender
+
+      - name: "[Pre-install] Install dotnet 8.x"
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: "[Pre-install] Restore NuGet packages"
+        run: dotnet tool install --global NuGetForUnity.Cli && nugetforunity restore
+
+      - name: "[Build] Run Builder"
+        run: |
+          ${{ runner.temp }}/Unity/Editor/Unity -quit -batchmode -nographics -projectPath ${{ github.workspace }} -buildTarget StandaloneLinux64 -buildLinux64Player ${{ github.workspace }}/build/YARG -username "${{ secrets.LINUX_UNITY_EMAIL || secrets.UNITY_EMAIL }}" -password "${{ secrets.LINUX_UNITY_PASSWORD || secrets.UNITY_PASSWORD }}" -serial "${{ secrets.LINUX_UNITY_SERIAL || secrets.UNITY_SERIAL }}" -logfile -
+
+      - name: "[Post-build] Remove Burst debug folder"
+        run: (cd build && rm -rf YARG_BurstDebugInformation_DoNotShip)
+
+      - name: "[Post-build] Return license"
+        if: always()
+        continue-on-error: true
+        run: ${{ runner.temp }}/Unity/Editor/Unity -quit -batchmode -nographics -returnlicense -projectPath ${{ github.workspace }} -username "${{ secrets.LINUX_UNITY_EMAIL || secrets.UNITY_EMAIL }}" -password "${{ secrets.LINUX_UNITY_PASSWORD || secrets.UNITY_PASSWORD }}" -logfile -
+
+      - name: "[Post-build] Compress to a .zip"
+        run: mkdir Release && (cd build && zip -r ../Release/YARG-Event_${{ env.versionName }}-Linux-x64.zip .)
+
+      - name: "[Post-build] Upload artifact"
+        id: artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: YARG-Event (${{ env.versionName }}) - ${{ env.platform }}
+          path: Release/*
+
+    outputs:
+      artifactId: ${{ steps.artifacts.outputs.artifact-id }}
