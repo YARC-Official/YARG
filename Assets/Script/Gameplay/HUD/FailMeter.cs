@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using DG.Tweening;
 using UnityEngine;
@@ -195,6 +195,12 @@ namespace YARG.Gameplay.HUD
             bool anyPlayerInSp = false;
             for (var i = _players.Count - 1; i >= 0; i--)
             {
+                if (!_engineManager.IsRegistered(_players[i]))
+                {
+                    HidePlayerMeter(i);
+                    continue;
+                }
+
                 if (_players[i].BaseEngine.BaseStats.IsStarPowerActive)
                 {
                     anyPlayerInSp = true;
@@ -203,7 +209,7 @@ namespace YARG.Gameplay.HUD
                 // Check if we will overlap another icon
                 for (var j = i; j >= 0; j--)
                 {
-                    if (j == i)
+                    if (j == i || !_engineManager.IsRegistered(_players[j]))
                     {
                         // Ignore self
                         continue;
@@ -349,15 +355,25 @@ namespace YARG.Gameplay.HUD
             }
         }
 
-        private static MeterColor GetMeterColor(float happiness)
+        private void HidePlayerMeter(int index)
         {
-            return happiness switch
+            if (_playerSliders[index].gameObject.activeSelf)
+            {
+                _playerSliders[index].gameObject.SetActive(false);
+                _needleSliders[index].gameObject.SetActive(false);
+                _playerHappinessTweeners[index].Pause();
+                _needleHappinessTweeners[index].Pause();
+                _xposTweeners[index].Pause();
+            }
+        }
+
+        private static MeterColor GetMeterColor(float happiness) =>
+            happiness switch
             {
                 < 0.333f => MeterColor.Red,
                 < 0.666f => MeterColor.Yellow,
                 _        => MeterColor.Green
             };
-        }
 
         private enum MeterColor
         {
@@ -365,5 +381,11 @@ namespace YARG.Gameplay.HUD
             Yellow,
             Green
         }
+    }
+
+    internal static class FailMeterExtensions
+    {
+        public static bool IsRegistered(this EngineManager engineManager, EngineManager.EngineContainer player) =>
+            engineManager.Engines.Contains(player);
     }
 }

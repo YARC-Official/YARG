@@ -123,14 +123,18 @@ namespace YARG.Menu.ScoreScreen
             // Set text
             _songTitle.text = song.Name;
             _artistName.text = song.Artist;
-            if (!GlobalVariables.State.IsReplay && !ScoreContainer.IsBandScoreValid(PersistentState.Default.SongSpeed))
+
+            var isReplay = GlobalVariables.State.IsReplay;
+            var songSpeed = GlobalVariables.State.SongSpeed;
+            var players = scoreScreenStats.PlayerScores.Select(static card => card.Player);
+            if (!isReplay && !ScoreContainer.IsBandScoreValid(songSpeed, players))
             {
                 var text = Localize.Key("Menu.ScoreScreen.BandScoreNotSaved");
                 _scoreStatusPill.SetValues(text,
                     ColoredPillElement.ColoredPillPreset.HarderModifier);
                 _scoreStatusPill.gameObject.SetActive(true);
             }
-            else if (GlobalVariables.State.IsReplay && GlobalVariables.State.ScoreScreenStats is {ReplayWasConsistent: false})
+            else if (isReplay && GlobalVariables.State.ScoreScreenStats is {ReplayWasConsistent: false})
             {
                 var text = Localize.Key("Menu.ScoreScreen.InconsistentReplay");
                 _scoreStatusPill.SetValues(text,

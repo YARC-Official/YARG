@@ -292,6 +292,10 @@ namespace YARG.Gameplay.HUD
             {
                 ToggleHUD();
             }
+            else if (context.Action == MenuAction.Start)
+            {
+                GameManager.TogglePause();
+            }
         }
 
         private void ShowPauseNotification(double pauseLength)

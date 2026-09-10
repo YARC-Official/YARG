@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using PlasticBand.Haptics;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -118,6 +118,9 @@ namespace YARG.Gameplay.Player
 
         protected bool PlayerHasFailed;
 
+        public bool IsActive => Player.IsActive;
+        public bool IsBot    => Player.Profile.IsBot;
+
         protected override void GameplayAwake()
         {
             _replayInputs = new List<GameInput>();
@@ -160,6 +163,11 @@ namespace YARG.Gameplay.Player
 
             HighwayIndex = index;
             Player = player;
+
+            if (!Player.IsReplay)
+            {
+                Player.MenuInput += OnMenuInput;
+            }
 
             SyncTrack = chart.SyncTrack;
 
@@ -237,6 +245,7 @@ namespace YARG.Gameplay.Player
         {
             if (!Player.IsReplay)
             {
+                Player.MenuInput -= OnMenuInput;
                 UnsubscribeFromInputEvents();
             }
 
@@ -249,6 +258,11 @@ namespace YARG.Gameplay.Player
 
         protected virtual void UpdateInputs(double time)
         {
+            if (!IsActive)
+            {
+                return;
+            }
+
             // Apply input offset
             // Video offset is already accounted for
             time += InputCalibration;
@@ -323,11 +337,24 @@ namespace YARG.Gameplay.Player
             InputsToSendOnResume.Clear();
         }
 
+        protected virtual bool IsMenuOpen => false;
+
+        protected virtual void OnMenuInput(YargPlayer player, ref GameInput input)
+        {
+        }
+
         protected void OnGameInput(ref GameInput input)
         {
             // Ignore completely if the song hasn't started yet or player failed
-            if (!GameManager.Started || PlayerHasFailed)
+            if (!GameManager.Started || PlayerHasFailed || !IsActive)
+            {
                 return;
+            }
+
+            if (IsMenuOpen)
+            {
+                return;
+            }
 
             // Ignore while paused
             if (GameManager.Paused || GameManager.Rewinding)
