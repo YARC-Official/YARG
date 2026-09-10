@@ -6951,6 +6951,7 @@ RectTransform:
   - {fileID: 428528604}
   - {fileID: 1330928976}
   - {fileID: 397042284}
+  - {fileID: 1999720002}
   - {fileID: 1323155441}
   - {fileID: 922548497}
   m_Father: {fileID: 0}
@@ -10814,6 +10815,28 @@ PrefabInstance:
       insertIndex: -1
       addedObject: {fileID: 495155656}
   m_SourcePrefab: {fileID: 100100000, guid: c0100c6c933740d459735066581e3daf, type: 3}
+--- !u!1001 &1999720001
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 1212139298}
+    m_Modifications:
+    - target: {fileID: 4211550013370051201, guid: 2cc6165d212a4ba9b17e8716e43ebf98, type: 3}
+      propertyPath: m_Name
+      value: Touch Pause Button
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 2cc6165d212a4ba9b17e8716e43ebf98, type: 3}
+--- !u!224 &1999720002 stripped
+RectTransform:
+  m_CorrespondingSourceObject: {fileID: 4211550013370051202, guid: 2cc6165d212a4ba9b17e8716e43ebf98, type: 3}
+  m_PrefabInstance: {fileID: 1999720001}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
