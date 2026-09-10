@@ -61,6 +61,10 @@ namespace YARG.Integration
 
         public void CreateInstance()
         {
+#if !UNITY_IOS
+            // The Discord Game SDK ships no iOS natives; constructing the client
+            // only produces a DllNotFoundException, so leave rich presence off there.
+
             // Skip if loading screen hasn't finished loading localization (localization is required for rich presence to function normally)
             if (!_initialized)
             {
@@ -106,6 +110,7 @@ namespace YARG.Integration
 
             // Set default activity
             SetDefaultActivity();
+#endif
         }
 
         private void OnGameStateChange(GameStateFetcher.State state)
