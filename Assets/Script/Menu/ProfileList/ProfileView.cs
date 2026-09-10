@@ -246,6 +246,13 @@ namespace YARG.Menu.ProfileList
             bool selectedDevice = false;
             bool xinputDialogShowing = false;
             int inputDeviceCount = 0;
+#if UNITY_IOS && !UNITY_EDITOR
+            bool pairBluetoothRequested = false;
+
+            // BLE MIDI instruments must be paired through the system sheet
+            // before CoreMIDI (and thus the device list) can see them
+            dialog.AddListButton("Pair Bluetooth MIDI Device", () => pairBluetoothRequested = true);
+#endif
 
             // Add InputSystem devices immediately — fast, no probe
             foreach (var device in InputSystem.devices)
@@ -307,6 +314,20 @@ namespace YARG.Menu.ProfileList
             }).Forget();
 
             await dialog.WaitUntilClosed();
+
+#if UNITY_IOS && !UNITY_EDITOR
+            if (pairBluetoothRequested)
+            {
+                var dismissed = new UniTaskCompletionSource();
+                Helpers.IOSBluetoothMidi.ShowPairingDialog(() => dismissed.TrySetResult());
+                await dismissed.Task;
+                await UniTask.Yield();
+
+                // Newly paired devices surface through the MIDI port rescan;
+                // reopen the list so they can be selected right away
+                return await PromptAddDevice();
+            }
+#endif
 
             if (xinputDialogShowing)
             {
