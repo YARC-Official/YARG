@@ -383,6 +383,8 @@ namespace YARG.Gameplay
                 return;
             }
 
+            YargLogger.LogFormatInfo("Loaded yarground bundle {0}", bundle.name);
+
             AssetBundle shaderBundle = null;
 
             // KEEP THIS PATH LOWERCASE
