@@ -135,6 +135,8 @@ namespace YARG.Menu.MusicLibrary
         [SerializeField]
         private TextMeshProUGUI _subHeader;
         [SerializeField]
+        private RectTransform _subHeaderRoot;
+        [SerializeField]
         private Sidebar _sidebar;
         [SerializeField]
         private GameObject _noPlayerWarning;
@@ -173,6 +175,10 @@ namespace YARG.Menu.MusicLibrary
         protected override void Awake()
         {
             base.Awake();
+
+            // The sort subheader is a SongView visual without the script, so
+            // the list's row sweep never reaches it
+            Helpers.UI.SafeAreaContent.InsetLeftContent(_subHeaderRoot);
 
             // Initialize sidebar
             _sidebar.Initialize(this, _searchField);

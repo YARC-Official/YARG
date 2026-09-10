@@ -84,6 +84,10 @@ namespace YARG.Menu.ListMenu
             {
                 var gameObject = Instantiate(_viewObjectPrefab, _viewObjectParent);
 
+                // Keep row content clear of the notch on phones; row
+                // backgrounds still bleed to the screen edge
+                Helpers.UI.SafeAreaContent.InsetLeftContent(gameObject.transform);
+
                 // Add
                 var view = gameObject.GetComponent<TViewObject>();
                 _viewObjects.Add(view);

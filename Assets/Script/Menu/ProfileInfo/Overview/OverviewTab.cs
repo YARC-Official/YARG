@@ -26,6 +26,12 @@ namespace YARG.Menu.ProfileInfo.Overview
         [SerializeField]
         private TextMeshProUGUI _totalFcs;
 
+        private void Awake()
+        {
+            // The picture and name sit at the left edge of the profile band
+            Helpers.UI.SafeAreaContent.InsetLeftContent(_profileName.transform.parent);
+        }
+
         private void OnEnable()
         {
             var profile = _profileInfoMenu.CurrentProfile;

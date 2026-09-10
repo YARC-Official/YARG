@@ -78,6 +78,11 @@ namespace YARG.Menu.Persistent
         {
             base.SingletonAwake();
             EnsureTopmostCanvas();
+
+            // Toasts stack against the top-right edge; keep them clear of the
+            // notch/bezel on phones
+            Helpers.UI.SafeAreaContainer.TryAttach(
+                transform as RectTransform, right: true, top: true);
         }
 
         private void Update()

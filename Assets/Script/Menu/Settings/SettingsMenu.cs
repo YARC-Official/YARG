@@ -140,6 +140,12 @@ namespace YARG.Menu.Settings
             _settingName.fontSizeMin = 18f;
             _settingName.enableAutoSizing = true;
 
+            // The search block sits above the settings list, outside the
+            // per-row inset: the input box moves in whole, the header only
+            // its text (its band bleeds like the rows')
+            Helpers.UI.SafeAreaContainer.TryAttach(_searchBar.transform as RectTransform, left: true);
+            Helpers.UI.SafeAreaContent.InsetLeftContent(_searchHeaderText.transform.parent);
+
             var tabs = new List<HeaderTabs.TabInfo>();
 
             // Add the main tabs
@@ -348,6 +354,13 @@ namespace YARG.Menu.Settings
 
             // Build the settings tab
             CurrentTab?.BuildSettingTab(_settingsContainer, _settingsNavGroup);
+
+            // Keep each row's label/control clear of the notch on phones;
+            // the rows' backgrounds still bleed to the edge
+            foreach (Transform row in _settingsContainer)
+            {
+                Helpers.UI.SafeAreaContent.InsetLeftContent(row);
+            }
 
             if (resetScroll)
             {

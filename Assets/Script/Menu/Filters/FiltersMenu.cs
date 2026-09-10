@@ -304,6 +304,13 @@ namespace YARG.Menu.Filters
             _leftContainer.DestroyChildren();
             BuildLeftPanel(_leftContainer, _leftNavGroup);
 
+            // Keep each sidebar row's label clear of the notch on phones;
+            // the rows' backgrounds still bleed to the edge
+            foreach (Transform row in _leftContainer)
+            {
+                Helpers.UI.SafeAreaContent.InsetLeftContent(row);
+            }
+
             CacheLeftRows();
 
             RestoreSavedFilters();

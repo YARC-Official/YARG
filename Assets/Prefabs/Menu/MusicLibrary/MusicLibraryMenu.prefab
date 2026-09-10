@@ -3569,6 +3569,7 @@ MonoBehaviour:
   MenuState: 0
   _searchField: {fileID: 7263609878391083263}
   _subHeader: {fileID: 2557806454790739688}
+  _subHeaderRoot: {fileID: 4693950713318566299}
   _sidebar: {fileID: 5958352451011471034}
   _noPlayerWarning: {fileID: 3731235360306283306}
   _popupMenu: {fileID: 6261760643625431320}

@@ -69,11 +69,13 @@ namespace YARG.Menu.ProfileInfo
             // Spawn in a game mode view for the selected game mode
             var gameModeView = Instantiate(_gameModeViewPrefab, _gameModeList);
             gameModeView.GetComponent<GameModeView>().Init(_currentPlayer.Profile.GameMode, this);
+            Helpers.UI.SafeAreaContent.InsetLeftContent(gameModeView.transform);
             _gameModeNavGroup.AddNavigatable(gameModeView);
 
             // Spawn in a game mode view for the menu binds
             gameModeView = Instantiate(_gameModeViewPrefab, _gameModeList);
             gameModeView.GetComponent<GameModeView>().InitAsMenuBindings(this);
+            Helpers.UI.SafeAreaContent.InsetLeftContent(gameModeView.transform);
             _gameModeNavGroup.AddNavigatable(gameModeView);
 
             // Select first game mode

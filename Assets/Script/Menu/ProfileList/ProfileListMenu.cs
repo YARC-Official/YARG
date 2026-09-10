@@ -103,12 +103,14 @@ namespace YARG.Menu.ProfileList
 
             var headerGo = Instantiate(_profileListHeaderPrefab, _profileList);
             headerGo.GetComponentInChildren<TextMeshProUGUI>().text = header;
+            Helpers.UI.SafeAreaContent.InsetLeftContent(headerGo.transform);
             _navigationGroup.AddNavigatable(headerGo);
 
             // Spawn in a profile view for each player
             foreach (var profile in profiles)
             {
                 var go = Instantiate(_profileViewPrefab, _profileList);
+                Helpers.UI.SafeAreaContent.InsetLeftContent(go.transform);
                 go.GetComponent<ProfileView>().Init(this, profile, _profileSidebar);
                 _navigationGroup.AddNavigatable(go);
             }
@@ -123,11 +125,13 @@ namespace YARG.Menu.ProfileList
 
             var headerGo = Instantiate(_profileListHeaderPrefab, _profileList);
             headerGo.GetComponentInChildren<TextMeshProUGUI>().text = header;
+            Helpers.UI.SafeAreaContent.InsetLeftContent(headerGo.transform);
             _navigationGroup.AddNavigatable(headerGo);
 
             foreach (var record in PlayerContainer.UnloadedProfiles)
             {
                 var go = Instantiate(_profileViewPrefab, _profileList);
+                Helpers.UI.SafeAreaContent.InsetLeftContent(go.transform);
                 go.GetComponent<ProfileView>().InitUnloaded(this, record, _profileSidebar);
                 _navigationGroup.AddNavigatable(go);
             }

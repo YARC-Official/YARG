@@ -53,6 +53,10 @@ namespace YARG.Menu
         {
             _navigationGroup = GetComponent<NavigationGroup>();
             _navigationGroup.SelectionChanged += OnSelectionChanged;
+
+            // The header title is inset from the notch, so the tab strip
+            // that follows it moves in by the same amount
+            Helpers.UI.SafeAreaContainer.TryAttach(transform as RectTransform, left: true);
         }
 
         private void Start()
