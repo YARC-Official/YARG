@@ -70,6 +70,12 @@ namespace YARG.Input
         {
             InputSystem.pollingFrequency = SettingsManager.Settings.InputPollingFrequency.Value;
 
+#if UNITY_IOS && !UNITY_EDITOR
+            // Surface GameController-framework devices (instrument controllers)
+            // that Unity's built-in iOS backend does not expose
+            IOSGameControllerBackend.Initialize();
+#endif
+
             InputSystem.onEvent += OnEvent;
 
             InputSystem.onBeforeUpdate += OnBeforeUpdate;
