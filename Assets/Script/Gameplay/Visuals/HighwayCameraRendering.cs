@@ -105,7 +105,20 @@ namespace YARG.Gameplay.Visuals
                 HighwaysOutputTexture.DiscardContents();
             }
 
-            var descriptor = new RenderTextureDescriptor(Screen.width, Screen.height, RenderTextureFormat.DefaultHDR, 32, 0);
+            // The highway is composited over the venue through a RawImage,
+            // and the far-end fade is written as output alpha — both need an
+            // alpha channel in this texture. DefaultHDR resolves to ARGBHalf
+            // on desktop but to RGB111110Float (no alpha) on mobile Metal,
+            // which turns the transparent clear into an opaque black sheet
+            // that hides the venue and discards the fade.
+            var hdrFormat = RenderTextureFormat.DefaultHDR;
+            if (!UnityEngine.Experimental.Rendering.GraphicsFormatUtility.HasAlphaChannel(
+                    SystemInfo.GetGraphicsFormat(UnityEngine.Experimental.Rendering.DefaultFormat.HDR)))
+            {
+                hdrFormat = RenderTextureFormat.ARGBHalf;
+            }
+
+            var descriptor = new RenderTextureDescriptor(Screen.width, Screen.height, hdrFormat, 32, 0);
 
             HighwaysOutputTexture = new RenderTexture(descriptor);
             if (_highwaysOutput != null)
@@ -138,25 +151,17 @@ namespace YARG.Gameplay.Visuals
 
         private Vector2 CalculateFadeParams(int index, Vector3 trackPosition, float zeroFadePosition, float fadeSize)
         {
-            var worldZeroFadePosition = new Vector3(trackPosition.x, trackPosition.y, zeroFadePosition - fadeSize);
-            var worldFullFadePosition = new Vector3(trackPosition.x, trackPosition.y, zeroFadePosition);
-
-            // Use the individual highway camera instead of the main render camera
+            // The mask shader compares world-Z deltas from the camera
+            // (HighwaysAlphaMask: positionWS.z - camPos.z), so the band must
+            // be computed the same way. Measuring along the pitched camera
+            // forward instead shifted the band past the intended zero-fade
+            // position by camY*sin(pitch) and narrowed it, more so for
+            // higher/steeper camera presets.
             var highwayCamera = _cameras[index];
-            Plane farPlane = new Plane();
+            float cameraZ = highwayCamera.transform.position.z;
 
-            farPlane.SetNormalAndPosition(highwayCamera.transform.forward, worldZeroFadePosition);
-            var fadeEnd = Mathf.Abs(farPlane.GetDistanceToPoint(highwayCamera.transform.position));
-
-            farPlane.SetNormalAndPosition(highwayCamera.transform.forward, worldFullFadePosition);
-            var fadeStart = Mathf.Abs(farPlane.GetDistanceToPoint(highwayCamera.transform.position));
-
-            // Fix: fadeStart should be the smaller distance (closer to camera), fadeEnd should be larger
-            // Swap them if they're backwards
-            if (fadeStart > fadeEnd)
-            {
-                (fadeStart, fadeEnd) = (fadeEnd, fadeStart);
-            }
+            float fadeStart = zeroFadePosition - fadeSize - cameraZ;
+            float fadeEnd = zeroFadePosition - cameraZ;
 
             return new Vector2(fadeStart, fadeEnd);
         }
@@ -561,7 +566,16 @@ namespace YARG.Gameplay.Visuals
             {
                 _highwayCameraRendering = highCamRend;
                 renderPassEvent = RenderPassEvent.BeforeRendering;
-                _material = new Material(Shader.Find("HighwaysAlphaMask"));
+
+                var shader = Shader.Find("HighwaysAlphaMask");
+                if (shader == null)
+                {
+                    // A silent null here disables the far-end fade entirely —
+                    // notes then pop in at full alpha at the spawn point
+                    YARG.Core.Logging.YargLogger.LogError(
+                        "HighwaysAlphaMask shader missing from build; highway fade disabled");
+                }
+                _material = new Material(shader);
             }
 
             public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
