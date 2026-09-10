@@ -36,12 +36,20 @@ namespace YARG.Input.Bindings
             },
 
             {
+                ControllerFamily.SixFretGuitar,
+                new()
+                {
+                    ReusableBindingSetDefaults.DefaultSixFretGuitar,
+                }
+            },
+
+            {
                 ControllerFamily.FourLaneDrumkit,
                 new()
                 {
-                    ReusableBindingSetDefaults.DefaultFourLaneDrumkit
+                    ReusableBindingSetDefaults.DefaultFourLaneDrumkit,
                 }
-            }
+            },
         };
 
         private static readonly Dictionary<(GameMode mode, ControllerFamily controllerFamily), List<ReusableBindingSet>> _bindingCollectionsByContext = new();
