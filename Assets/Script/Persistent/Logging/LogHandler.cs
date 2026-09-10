@@ -74,6 +74,14 @@ namespace YARG.Logging
 
             Application.logMessageReceivedThreaded += OnLogMessageReceived;
 
+#if YARG_TEST_BUILD && UNITY_IOS && !UNITY_EDITOR
+            // Unity's built-in developer console pops over the whole screen
+            // on the first logged error and swallows every touch until its
+            // tiny Close button is hit — on a phone/simulator it just blocks
+            // the UI. Errors already land in the log file mirror above.
+            UnityEngine.Debug.developerConsoleEnabled = false;
+#endif
+
 #if UNITY_EDITOR
             AppDomain.CurrentDomain.DomainUnload += ShutdownLogHandler;
             UnityEditor.EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
@@ -116,6 +124,23 @@ namespace YARG.Logging
 
         private static void OnLogMessageReceived(string condition, string stacktrace, LogType type)
         {
+#if YARG_TEST_BUILD && UNITY_IOS && !UNITY_EDITOR
+            // On-device test builds have no attached console, so mirror
+            // Unity's own messages (scene-load errors, "Compiled shader ..."
+            // lines from GraphicsSettings' compilation logging) into the log
+            // file — they're the only window into the render pipeline there
+            if (type is LogType.Log or LogType.Warning)
+            {
+                using var unityBuilder = ZString.CreateStringBuilder();
+                var unityOutput = unityBuilder;
+
+                using var unityItem = FormatLogItem.MakeItem("[Unity] {0}", condition);
+                unityItem.FormatMessage(ref unityOutput);
+                _fileYargLogListener.WriteLogItem(ref unityOutput, unityItem);
+                return;
+            }
+#endif
+
             if (type is LogType.Assert or LogType.Error or LogType.Exception)
             {
                 // Exceptions that come from YargLogger.LogException have no stacktrace as they are passed through
