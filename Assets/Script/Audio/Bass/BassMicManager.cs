@@ -44,7 +44,11 @@ namespace YARG.Audio.BASS
             WarmChannelCounts(devices);
             SnapshotState(out var channelCounts, out var claimedChannels);
 
-            return BuildAvailableInputs(devices, channelCounts, claimedChannels);
+            var inputs = BuildAvailableInputs(devices, channelCounts, claimedChannels);
+            YargLogger.LogFormatInfo(
+                "Mic enumeration: {0} usable device(s), {1} channel count(s) warmed, {2} input row(s)",
+                devices.Count, channelCounts.Count, inputs.Count);
+            return inputs;
         }
 
         private MicDevice? TryCreateClaimedMic(InputDeviceInfo device, int channelCount)
@@ -255,12 +259,25 @@ namespace YARG.Audio.BASS
         {
             var list = new List<(int Id, DeviceInfo Info)>();
 
+            int enumerated = 0;
             for (int i = 0; Bass.RecordGetDeviceInfo(i, out var info); i++)
             {
+                enumerated++;
                 if (IsUsableDevice(info))
                 {
                     list.Add((i, info));
                 }
+                else
+                {
+                    YargLogger.LogFormatInfo("Skipping record device {0} `{1}` (enabled: {2}, loopback: {3})",
+                        i, info.Name, info.IsEnabled, info.IsLoopback);
+                }
+            }
+
+            if (list.Count == 0)
+            {
+                YargLogger.LogFormatInfo("No usable record devices ({0} enumerated, last error: {1})",
+                    enumerated, Bass.LastError);
             }
 
             return list;
@@ -278,7 +295,10 @@ namespace YARG.Audio.BASS
             {
                 return false;
             }
-#else
+#elif !UNITY_IOS
+            // The "Default" alias duplicates a real device on desktop; on iOS
+            // it is the only record device BASS enumerates (backed by the
+            // AVAudioSession built-in microphone input).
             if (info.Name == "Default")
             {
                 return false;
