@@ -52,8 +52,6 @@ namespace YARG.Gameplay.HUD
         private bool _defaultsInitialized;
         private int _highwayIndex;
 
-        private bool _menuPositionDirty = true;
-
         private bool _isSoloActive;
         private bool _isUnisonActive;
         private bool _isCodaActive;
@@ -194,11 +192,6 @@ namespace YARG.Gameplay.HUD
 
         private bool UpdatePlayerMenuPosition(int highwayIndex)
         {
-            if (!_menuPositionDirty && !ScreenSizeDetector.HasScreenSizeChanged)
-            {
-                return true;
-            }
-
             var bounds = _highwayRenderer.GetTrackBoundsScreenSpaceRaised(highwayIndex);
             var baseX = _highwayRenderer.GetTrackBottomScreenX(highwayIndex);
             if (!baseX.HasValue || bounds.width <= 0f)
@@ -207,22 +200,18 @@ namespace YARG.Gameplay.HUD
                 return false;
             }
 
-            _menuPositionDirty = false;
-
             _playerMenu.SetLayout(baseScreenX: baseX.Value, trackWidth: bounds.width);
             return true;
         }
 
         private void OnHighwayDraggablePositionChanged(Vector2 position)
         {
-            _menuPositionDirty = true;
             UpdateHudElements(0);
             UpdateTopDefaultPosition();
         }
 
         private void OnHighwayDraggableScaleChanged(float scale)
         {
-            _menuPositionDirty = true;
             _highwayRenderer.SetScaleMultiplier(scale);
             UpdateTopHud(0);
             UpdateCenterHud(0);
@@ -324,20 +313,13 @@ namespace YARG.Gameplay.HUD
 
         public void CreatePlayerMenu(YargPlayer player)
         {
-            if (_playerMenu != null)
-            {
-                return;
-            }
-
             _playerMenu = Instantiate(_playerMenuPrefab, transform);
             _playerMenu.Initialize(player);
             _playerMenu.HideImmediate();
         }
 
-        public void OpenPlayerMenu(IReadOnlyList<PlayerMenuItem> items, YargPlayer player)
+        public void OpenPlayerMenu(IReadOnlyList<PlayerMenuItem> items)
         {
-            CreatePlayerMenu(player);
-            _menuPositionDirty = true;
             if (!UpdatePlayerMenuPosition(_highwayIndex))
             {
                 return;

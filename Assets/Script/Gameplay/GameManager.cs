@@ -127,6 +127,10 @@ namespace YARG.Gameplay
         /// <inheritdoc cref="SongRunner.Paused"/>
         public bool Paused => _songRunner?.Paused ?? true;
 
+        public bool CanPause => !Paused && !PlayerHasFailed && !IsHudEditing &&
+            !DialogManager.Instance.IsDialogShowing &&
+            (!IsPractice || PracticeManager.HasSelectedSection);
+
         /// <summary>
         /// The current song's specific offset (in milliseconds), editable from the pause menu
         /// and by <see cref="Helpers.AutoCalibrator"/>. Backed by <see cref="Song.SongOffsetContainer"/>.

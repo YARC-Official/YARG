@@ -45,7 +45,7 @@ namespace YARG.Gameplay.Player
 
         public bool IsPlayerMenuOpen => TrackView.IsPlayerMenuOpen;
 
-        public void OpenPlayerMenu() => TrackView.OpenPlayerMenu(GetPlayerMenuItems(), Player);
+        public void OpenPlayerMenu() => TrackView.OpenPlayerMenu(GetPlayerMenuItems());
 
         public void ClosePlayerMenu()
         {
@@ -59,7 +59,7 @@ namespace YARG.Gameplay.Player
 
         protected void UpdateStartHold()
         {
-            if (IsTapBlocked)
+            if (IsStartBlocked)
             {
                 _startHold.Cancel();
                 return;
@@ -75,9 +75,19 @@ namespace YARG.Gameplay.Player
                 return;
             }
 
-            if (IsTapBlocked)
+            if (IsStartBlocked)
             {
                 _startHold.Cancel();
+                return;
+            }
+
+            if (!CanOpenPlayerMenu)
+            {
+                if (input.Button)
+                {
+                    GameManager.TogglePause();
+                }
+
                 return;
             }
 
@@ -94,11 +104,6 @@ namespace YARG.Gameplay.Player
 
         private void OnStartHeld()
         {
-            if (IsHoldBlocked)
-            {
-                return;
-            }
-
             if (CanOpenPlayerMenu)
             {
                 OpenPlayerMenu();
@@ -111,8 +116,7 @@ namespace YARG.Gameplay.Player
         private bool CanOpenPlayerMenu => GameManager.ActivePlayerCount > 1 && !GameManager.IsReplay &&
             !GameManager.IsPractice && !GameManager.PlayingAShow;
 
-        private bool IsTapBlocked => IsPlayerMenuOpen || IsPauseInputBlocked;
-        private bool IsHoldBlocked => !IsActive || IsTapBlocked;
+        private bool IsStartBlocked => !IsActive || IsPlayerMenuOpen || !GameManager.CanPause;
 
         public void DropOut()
         {

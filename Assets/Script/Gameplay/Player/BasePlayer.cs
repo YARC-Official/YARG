@@ -12,7 +12,6 @@ using YARG.Gameplay.HUD;
 using YARG.Helpers.Extensions;
 using YARG.Helpers.UI;
 using YARG.Input;
-using YARG.Menu.Persistent;
 using YARG.Player;
 using YARG.Settings;
 
@@ -121,10 +120,6 @@ namespace YARG.Gameplay.Player
 
         public bool IsActive => Player.IsActive;
         public bool IsBot    => Player.Profile.IsBot;
-
-        protected bool IsPauseInputBlocked => GameManager.Paused ||
-            GameManager.PlayerHasFailed || GameManager.IsHudEditing ||
-            DialogManager.Instance.IsDialogShowing;
 
         protected override void GameplayAwake()
         {

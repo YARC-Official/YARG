@@ -17,18 +17,22 @@ namespace YARG.Gameplay.HUD
         public Action     OnConfirm { get; }
         public Func<bool> IsEnabled { get; }
 
-        public PlayerMenuItem(string label, Action onConfirm, Func<bool> isEnabled = null) =>
-            (Label, OnConfirm, IsEnabled) = (label, onConfirm, isEnabled);
+        public PlayerMenuItem(string label, Action onConfirm, Func<bool> isEnabled = null)
+        {
+            Label = label;
+            OnConfirm = onConfirm;
+            IsEnabled = isEnabled;
+        }
     }
 
     public class TrackPlayerMenu : MonoBehaviour
     {
-        private const float OPEN_SECONDS         = 0.22f;
-        private const float CLOSE_SECONDS        = 0.22f;
-        private const float BOTTOM_OFFSCREEN     = 36f;
-        private const float HIDDEN_OFFSET        = 8f;
-        private const float DISABLED_ALPHA       = 0.35f;
-        private const float HEADER_MARGIN          = 40f;
+        private const float OPEN_SECONDS        = 0.22f;
+        private const float CLOSE_SECONDS       = 0.22f;
+        private const float OPEN_BOTTOM_OFFSET  = 36f;
+        private const float CLOSED_EXTRA_OFFSET = 8f;
+        private const float DISABLED_ALPHA      = 0.35f;
+        private const float HEADER_MARGIN       = 40f;
 
         [SerializeField]
         private TextMeshProUGUI _headingText;
@@ -47,39 +51,27 @@ namespace YARG.Gameplay.HUD
 
         private Canvas                        _canvas;
         private float                         _defaultWidth;
-        private LayoutElement                 _headingLayout;
-        private HorizontalLayoutGroup         _headingLayoutGroup;
-        private AsyncOperationHandle<Sprite>  _iconHandle;
-        private IReadOnlyList<PlayerMenuItem> _items = Array.Empty<PlayerMenuItem>();
+        private float                         _openY;
+        private float                         _closedY;
         private float                         _lastBaseX = -1f;
         private float                         _lastTrackWidth = -1f;
         private RectTransform                 _panel;
-        private RectTransform                 _parent;
         private YargPlayer                    _player;
-        private Vector2                       _screenBottom;
-        private int                           _scrollOffset;
+        private AsyncOperationHandle<Sprite>  _iconHandle;
+        private IReadOnlyList<PlayerMenuItem> _items = Array.Empty<PlayerMenuItem>();
         private int                           _selectedIndex;
+        private int                           _scrollOffset;
 
         public bool IsOpen { get; private set; }
 
-        private bool   HasItems        => _items.Count > 0;
-        private bool   CanInteract     => IsOpen && HasItems;
         private Camera CanvasCamera    => _canvas.renderMode == RenderMode.ScreenSpaceOverlay ? null : _canvas.worldCamera;
-        private int    SlotCount       => _slots.Length;
-        private float  TrackScale      => _lastTrackWidth > 0f ? Mathf.Min(1f, (_lastTrackWidth / _canvas.scaleFactor) / _defaultWidth) : 1f;
-        private float  PanelHalfHeight => (_panel.rect.height * TrackScale) * 0.5f;
-        private float  ClosedY         => _screenBottom.y - PanelHalfHeight - (HIDDEN_OFFSET * TrackScale);
-        private float  OpenY           => _screenBottom.y + PanelHalfHeight - (BOTTOM_OFFSCREEN * TrackScale);
-        private float  TargetY         => IsOpen ? OpenY : ClosedY;
+        private int    VisibleRowCount => _slots.Length;
 
         private void Awake()
         {
             _panel = (RectTransform) transform;
-            _parent = (RectTransform) transform.parent;
             _canvas = GetComponentInParent<Canvas>();
             _defaultWidth = _panel.sizeDelta.x;
-            _headingLayout = _headingText.GetComponent<LayoutElement>();
-            _headingLayoutGroup = _headingText.GetComponentInParent<HorizontalLayoutGroup>();
         }
 
         private void OnDisable()
@@ -124,9 +116,14 @@ namespace YARG.Gameplay.HUD
 
         public void Open()
         {
+            if (IsOpen)
+            {
+                return;
+            }
+
             IsOpen = true;
             gameObject.SetActive(true);
-            SlideTo(targetY: OpenY, duration: OPEN_SECONDS, ease: Ease.OutCubic);
+            SlideTo(targetY: _openY, duration: OPEN_SECONDS, ease: Ease.OutCubic);
         }
 
         public void Close()
@@ -137,7 +134,7 @@ namespace YARG.Gameplay.HUD
             }
 
             IsOpen = false;
-            SlideTo(targetY: ClosedY, duration: CLOSE_SECONDS, ease: Ease.InCubic)
+            SlideTo(targetY: _closedY, duration: CLOSE_SECONDS, ease: Ease.InCubic)
                 .OnComplete(() => gameObject.SetActive(false));
         }
 
@@ -159,18 +156,25 @@ namespace YARG.Gameplay.HUD
             _lastBaseX = baseScreenX;
             _lastTrackWidth = trackWidth;
 
+            var parent = (RectTransform) transform.parent;
             RectTransformUtility.ScreenPointToLocalPointInRectangle(
-                rect: _parent,
+                rect: parent,
                 screenPoint: new Vector2(baseScreenX, 0f),
                 cam: CanvasCamera,
-                localPoint: out _screenBottom);
+                localPoint: out var screenBottom);
+
+            var trackScale = Mathf.Min(1f, (trackWidth / _canvas.scaleFactor) / _defaultWidth);
+            var panelHalfHeight = (_panel.rect.height * trackScale) * 0.5f;
+
+            _closedY = screenBottom.y - panelHalfHeight - (CLOSED_EXTRA_OFFSET * trackScale);
+            _openY = screenBottom.y + panelHalfHeight - (OPEN_BOTTOM_OFFSET * trackScale);
 
             var width = trackWidth / _canvas.scaleFactor;
             _panel.sizeDelta = new Vector2(x: Mathf.Max(_defaultWidth, width), y: _panel.sizeDelta.y);
-            _panel.localScale = Vector3.one * TrackScale;
+            _panel.localScale = Vector3.one * trackScale;
 
-            var currentY = DOTween.IsTweening(_panel) ? _panel.localPosition.y : TargetY;
-            _panel.localPosition = new Vector3(x: _screenBottom.x, y: currentY, z: 0f);
+            var currentY = DOTween.IsTweening(_panel) ? _panel.localPosition.y : (IsOpen ? _openY : _closedY);
+            _panel.localPosition = new Vector3(x: screenBottom.x, y: currentY, z: 0f);
         }
 
         public void HideImmediate()
@@ -190,11 +194,6 @@ namespace YARG.Gameplay.HUD
 
         private void ConfirmSelection()
         {
-            if (!CanInteract)
-            {
-                return;
-            }
-
             var item = _items[_selectedIndex];
             if (item.IsUsable())
             {
@@ -208,11 +207,6 @@ namespace YARG.Gameplay.HUD
 
         private void MoveSelection(int direction)
         {
-            if (!CanInteract)
-            {
-                return;
-            }
-
             var nextIndex = _items.NextUsableIndex(_selectedIndex, direction);
             if (nextIndex.HasValue)
             {
@@ -250,38 +244,29 @@ namespace YARG.Gameplay.HUD
 
         private void EnsureSelectionVisible()
         {
-            if (!HasItems)
-            {
-                _scrollOffset = 0;
-                return;
-            }
-
             if (_selectedIndex < _scrollOffset)
             {
                 _scrollOffset = _selectedIndex;
             }
-            else if (_selectedIndex >= _scrollOffset + SlotCount)
+            else if (_selectedIndex >= _scrollOffset + VisibleRowCount)
             {
-                _scrollOffset = _selectedIndex - SlotCount + 1;
+                _scrollOffset = _selectedIndex - VisibleRowCount + 1;
             }
         }
 
         private void RefreshSelection()
         {
-            for (var i = 0; i < SlotCount; i++)
+            for (var i = 0; i < VisibleRowCount; i++)
             {
                 var itemIndex = _scrollOffset + i;
                 if (itemIndex < _items.Count)
                 {
                     var item = _items[itemIndex];
+                    var isSelected = itemIndex == _selectedIndex;
                     var isEnabled = item.IsUsable();
-                    _slots[i].Bind(
-                        item: item,
-                        isSelected: itemIndex == _selectedIndex,
-                        isEnabled: isEnabled,
-                        selectedColor: _selectedColor,
-                        normalColor: _normalColor,
-                        disabledAlpha: DISABLED_ALPHA);
+                    var color = isSelected ? _selectedColor : _normalColor;
+                    var alpha = isEnabled ? 1f : DISABLED_ALPHA;
+                    _slots[i].Bind(item.Label, color, alpha);
                 }
                 else
                 {
@@ -293,13 +278,19 @@ namespace YARG.Gameplay.HUD
         private void LayoutHeading()
         {
             var iconWidth = _icon.rectTransform.sizeDelta.x;
-            var maxTextWidth = _panel.sizeDelta.x - HEADER_MARGIN - iconWidth - _headingLayoutGroup.spacing;
+            var layoutGroup = _headingText.GetComponentInParent<HorizontalLayoutGroup>();
+            var spacing = layoutGroup != null ? layoutGroup.spacing : 0f;
+            var maxTextWidth = _panel.sizeDelta.x - HEADER_MARGIN - iconWidth - spacing;
 
             _headingText.enableAutoSizing = false;
             _headingText.fontSize = _headingText.fontSizeMax;
 
             var preferredWidth = _headingText.preferredWidth;
-            _headingLayout.preferredWidth = Mathf.Min(preferredWidth, maxTextWidth);
+            if (_headingText.TryGetComponent<LayoutElement>(out var layoutElement))
+            {
+                layoutElement.preferredWidth = Mathf.Min(preferredWidth, maxTextWidth);
+            }
+
             _headingText.enableAutoSizing = preferredWidth > maxTextWidth;
         }
 
@@ -315,17 +306,11 @@ namespace YARG.Gameplay.HUD
             [SerializeField]
             private TextMeshProUGUI _label;
 
-            public void Bind(
-                PlayerMenuItem item,
-                bool isSelected,
-                bool isEnabled,
-                Color selectedColor,
-                Color normalColor,
-                float disabledAlpha)
+            public void Bind(string label, Color backgroundColor, float textAlpha)
             {
-                _label.text = item.Label;
-                _label.alpha = isEnabled ? 1f : disabledAlpha;
-                _background.color = isSelected ? selectedColor : normalColor;
+                _label.text = label;
+                _label.alpha = textAlpha;
+                _background.color = backgroundColor;
                 _root.SetActive(true);
             }
 
@@ -344,9 +329,11 @@ namespace YARG.Gameplay.HUD
 
             return action switch
             {
-                MenuAction.Up   => MenuAction.Down,
-                MenuAction.Down => MenuAction.Up,
-                _               => action
+                MenuAction.Up    => MenuAction.Down,
+                MenuAction.Down  => MenuAction.Up,
+                MenuAction.Left  => MenuAction.Right,
+                MenuAction.Right => MenuAction.Left,
+                _                => action
             };
         }
 
