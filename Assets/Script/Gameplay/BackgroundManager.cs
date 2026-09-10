@@ -25,9 +25,10 @@ using YARG.Helpers;
 using YARG.Song;
 using Random = UnityEngine.Random;
 
+using UnityEngine.SceneManagement;
+
 #if UNITY_EDITOR
 using UnityEditor.SceneManagement;
-using UnityEngine.SceneManagement;
 #endif
 
 namespace YARG.Gameplay
@@ -82,10 +83,10 @@ namespace YARG.Gameplay
 
         private BundleBackgroundManager _bundleBackgroundManager;
 
+        private          bool             _usingSceneVenue;
+        private          Scene            _venueScene;
 #if UNITY_EDITOR
-        private          bool             _usingEditorVenue;
         private          string           _editorVenuePath;
-        private          Scene            _editorVenueScene;
 #endif
         [SuppressMessage("Type Safety", "UNT0006", Justification = "UniTaskVoid is a compatible return type.")]
         private async UniTaskVoid Start()
@@ -101,7 +102,7 @@ namespace YARG.Gameplay
                     var loadedScene = SceneManager.GetSceneByName(_editorVenuePath);
                     if (loadedScene.IsValid() && loadedScene.isLoaded)
                     {
-                        _editorVenueScene = loadedScene;
+                        _venueScene = loadedScene;
                     }
                     else
                     {
@@ -109,72 +110,17 @@ namespace YARG.Gameplay
                             _editorVenuePath, new LoadSceneParameters(LoadSceneMode.Additive));
 
                         await op;
-                        _editorVenueScene = SceneManager.GetSceneByPath(_editorVenuePath);
+                        _venueScene = SceneManager.GetSceneByPath(_editorVenuePath);
                     }
                 }
 
-                if (!_editorVenueScene.IsValid() || !_editorVenueScene.isLoaded)
+                if (!_venueScene.IsValid() || !_venueScene.isLoaded)
                 {
                     YargLogger.LogFormatError("Failed to load editor venue scene {0}", _editorVenuePath);
                     return;
                 }
 
-                BundleBackgroundManager editorBg = null;
-                foreach (var go in _editorVenueScene.GetRootGameObjects())
-                {
-                    editorBg = go.GetComponent<BundleBackgroundManager>();
-
-                    if (editorBg != null)
-                    {
-                        break;
-                    }
-                }
-
-                if (editorBg == null)
-                {
-                    YargLogger.LogFormatError("Scene {0} missing BundleBackgroundManager", _editorVenuePath);
-                    return;
-                }
-
-                _usingEditorVenue = true;
-
-                ShowVenue();
-
-                var editorRenderers = editorBg.GetComponentsInChildren<Renderer>(true);
-
-                // Song specific textures
-                var tm = GetComponent<TextureManager>();
-                var songBg = GameManager.Song.LoadBackground(true);
-
-                foreach (var renderer in editorRenderers)
-                {
-                    var materials = renderer.materials;
-
-                    for (int i = 0; i < materials.Length; i++)
-                    {
-                        tm.ProcessMaterial(materials[i], songBg?.Type);
-                    }
-
-                    renderer.materials = materials;
-                }
-
-                editorBg.SetupVenueCamera(editorBg.gameObject);
-                editorBg.LimitVenueLights(editorBg.gameObject);
-
-                if (_videoPlayer != null && _videoPlayer.targetCamera != null)
-                {
-                    Destroy(_videoPlayer.targetCamera.gameObject);
-                }
-
-                _type = BackgroundType.Yarground;
-
-                // Initialize CharacterManager, if it exists
-                var characterManager = editorBg.GetComponentInChildren<CharacterManager>();
-                if (characterManager != null)
-                {
-                    characterManager.Initialize();
-                }
-
+                SetupVenueScene(_venueScene);
                 return;
             }
 #endif
@@ -293,9 +239,150 @@ namespace YARG.Gameplay
             return true;
         }
 
+        /// <summary>
+        ///     Path of the venue scene compiled into mobile builds, where
+        ///     desktop-target yarground bundles cannot load (see
+        ///     HeadlessBuild's scene list).
+        /// </summary>
+        private const string BUILT_IN_VENUE_SCENE = "Assets/Authoring/Venue/VenueCreation.unity";
+
+        /// <summary>
+        ///     Treats an additively-loaded scene with a BundleBackgroundManager
+        ///     root as the venue — shared by the editor venue override and the
+        ///     mobile built-in venue fallback.
+        /// </summary>
+        private bool SetupVenueScene(Scene scene)
+        {
+            BundleBackgroundManager sceneBg = null;
+            foreach (var go in scene.GetRootGameObjects())
+            {
+                sceneBg = go.GetComponent<BundleBackgroundManager>();
+
+                if (sceneBg != null)
+                {
+                    break;
+                }
+            }
+
+            if (sceneBg == null)
+            {
+                YargLogger.LogFormatError("Scene {0} missing BundleBackgroundManager", scene.path);
+                return false;
+            }
+
+            _venueScene = scene;
+            _usingSceneVenue = true;
+
+            // A yarground bundle is one prefab, so BundleBackgroundManager.Awake
+            // moving its root by VenueOffset carries the whole venue. An
+            // authoring scene may keep content in sibling roots; move them by
+            // the same offset so nothing is left behind at the origin.
+            var bbmRoot = sceneBg.transform.root.gameObject;
+            foreach (var root in scene.GetRootGameObjects())
+            {
+                if (root != bbmRoot)
+                {
+                    root.transform.position += BundleBackgroundManager.VenueOffset;
+                }
+            }
+
+            // Guarded: this runs inside a swallowed async void, so a throw
+            // here would otherwise leave the venue silently invisible.
+            try
+            {
+                ShowVenue();
+
+                var sceneRenderers = sceneBg.GetComponentsInChildren<Renderer>(true);
+
+                // Song specific textures
+                var tm = GetComponent<TextureManager>();
+                var songBg = GameManager.Song.LoadBackground(true);
+
+                foreach (var renderer in sceneRenderers)
+                {
+                    var materials = renderer.materials;
+
+                    for (int i = 0; i < materials.Length; i++)
+                    {
+                        tm.ProcessMaterial(materials[i], songBg?.Type);
+                    }
+
+                    renderer.materials = materials;
+                }
+
+                sceneBg.SetupVenueCamera(sceneBg.gameObject);
+                sceneBg.LimitVenueLights(sceneBg.gameObject);
+
+                if (_videoPlayer != null && _videoPlayer.targetCamera != null)
+                {
+                    Destroy(_videoPlayer.targetCamera.gameObject);
+                }
+
+                _type = BackgroundType.Yarground;
+
+                // Initialize CharacterManager, if it exists
+                var characterManager = sceneBg.GetComponentInChildren<CharacterManager>();
+                if (characterManager != null)
+                {
+                    characterManager.Initialize();
+                }
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                YargLogger.LogException(ex, "Venue scene setup failed");
+                return false;
+            }
+        }
+
+        private async UniTask LoadBuiltInVenueScene()
+        {
+            // Load by scene name: the path forms (with or without the .unity
+            // extension) failed to resolve in the built player even though
+            // the scene is present in its scene list
+            string sceneName = System.IO.Path.GetFileNameWithoutExtension(BUILT_IN_VENUE_SCENE);
+
+            var op = SceneManager.LoadSceneAsync(sceneName, LoadSceneMode.Additive);
+            if (op == null)
+            {
+                YargLogger.LogWarning("Built-in venue scene is not in this build; no venue background");
+                for (int i = 0; i < SceneManager.sceneCountInBuildSettings; i++)
+                {
+                    YargLogger.LogFormatInfo<int, string>("Build scene {0}: {1}", i,
+                        SceneUtility.GetScenePathByBuildIndex(i));
+                }
+                return;
+            }
+
+            await op;
+
+            var scene = SceneManager.GetSceneByName(sceneName);
+            if (!scene.IsValid() || !scene.isLoaded)
+            {
+                YargLogger.LogWarning("Failed to load the built-in venue scene");
+                return;
+            }
+
+            YargLogger.LogFormatInfo("Built-in venue scene loaded ({0} root objects)",
+                scene.rootCount);
+            SetupVenueScene(scene);
+        }
+
         private async UniTask LoadYarground(BackgroundResult result)
         {
             var bundle = AssetBundle.LoadFromStream(result.Stream);
+            if (bundle == null)
+            {
+                // Yarground bundles are built for desktop targets, so this is
+                // the normal path on mobile — use the venue scene compiled
+                // into the build instead
+                YargLogger.LogWarning(
+                    "Failed to load yarground bundle (wrong build target?); using the built-in venue");
+                await LoadBuiltInVenueScene();
+                return;
+            }
+
             AssetBundle shaderBundle = null;
 
             // KEEP THIS PATH LOWERCASE
@@ -1268,12 +1355,11 @@ namespace YARG.Gameplay
                 _handles.Clear();
             }
 
-#if UNITY_EDITOR
-            if (_usingEditorVenue)
+            if (_usingSceneVenue)
             {
-                SceneManager.UnloadSceneAsync(_editorVenueScene);
+                SceneManager.UnloadSceneAsync(_venueScene);
+                _usingSceneVenue = false;
             }
-#endif
         }
 
         protected override void GameplayDestroy()

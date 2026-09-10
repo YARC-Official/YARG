@@ -12,6 +12,13 @@ namespace YARG.Venue
     {
         private const string VENUE_LAYER_NAME = "Venue";
 
+        // Awake shoves this object here so its effects don't collide with the
+        // tracks. In a yarground bundle everything is one prefab under this
+        // root, so it all moves together. A raw venue scene (used as the iOS
+        // fallback) has independent roots — the loader must re-align them by
+        // the same offset, hence this is public.
+        public static readonly Vector3 VenueOffset = Vector3.forward * 10_000f;
+
         private int _venueLayerNumber = -1;
 
         // DO NOT CHANGE the name of this! I *know* it doesn't follow naming conventions, but it will also break existing
@@ -32,7 +39,7 @@ namespace YARG.Venue
         private void Awake()
         {
             // Move object out of the way, so its effects don't collide with the tracks
-            transform.position += Vector3.forward * 10_000f;
+            transform.position += VenueOffset;
             _venueLayerNumber = LayerMask.NameToLayer(VENUE_LAYER_NAME);
         }
 
