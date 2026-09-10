@@ -25,7 +25,7 @@ namespace YARG.Menu.ProfileList
     public class ProfileView : NavigatableBehaviour
     {
         // Cache for gamepads that have been prompted for this session
-        private static readonly Dictionary<XInputController, GamepadBindingMode> _xinputGamepads = new();
+        private static readonly Dictionary<Gamepad, GamepadBindingMode> _promptedGamepads = new();
 
         [Space]
         [SerializeField]
@@ -266,17 +266,27 @@ namespace YARG.Menu.ProfileList
                     player.Bindings.AddDevice(device);
                     if (!player.Bindings.ContainsBindingsForDevice(device))
                     {
+                        // On Windows only XInput pads can be instruments in
+                        // disguise; on iOS every controller arrives as a plain
+                        // Gamepad (GameController framework), so ask for all
 #if UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN
-                        if (device is XInputController xinput)
+                        bool promptForMode = device is XInputController;
+#elif UNITY_IOS
+                        bool promptForMode = device is Gamepad;
+#else
+                        const bool promptForMode = false;
+#endif
+#if UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN || UNITY_IOS
+                        if (promptForMode && device is Gamepad gamepad)
                         {
                             xinputDialogShowing = true;
-                            var mode = await PromptGamepadMode(xinput);
-                            if (!mode.HasValue || !xinput.added)
+                            var mode = await PromptGamepadMode(gamepad);
+                            if (!mode.HasValue || !gamepad.added)
                             {
                                 return;
                             }
 
-                            player.Bindings.SetDefaultBinds(xinput, mode.Value);
+                            player.Bindings.SetDefaultBinds(gamepad, mode.Value);
                         }
                         else
 #endif
@@ -386,12 +396,12 @@ namespace YARG.Menu.ProfileList
             }
         }
 
-        private static async UniTask<GamepadBindingMode?> PromptGamepadMode(XInputController xinput)
+        private static async UniTask<GamepadBindingMode?> PromptGamepadMode(Gamepad gamepad)
         {
             await DialogManager.Instance.WaitUntilCurrentClosed();
 
             // Check if this gamepad has been prompted for already
-            if (_xinputGamepads.TryGetValue(xinput, out var existing))
+            if (_promptedGamepads.TryGetValue(gamepad, out var existing))
             {
                 return existing;
             }
@@ -415,7 +425,7 @@ namespace YARG.Menu.ProfileList
             if (mode.HasValue)
             {
                 // Cache so we only prompt once
-                _xinputGamepads[xinput] = mode.Value;
+                _promptedGamepads[gamepad] = mode.Value;
             }
 
             return mode;
@@ -444,10 +454,10 @@ namespace YARG.Menu.ProfileList
                     {
                         player.Bindings.ClearBindingsForDevice(device);
 
-                        // Remove cleared XInput devices from prompt cache
-                        if (device is XInputController xinput)
+                        // Remove cleared gamepads from the mode-prompt cache
+                        if (device is Gamepad clearedGamepad)
                         {
-                            _xinputGamepads.Remove(xinput);
+                            _promptedGamepads.Remove(clearedGamepad);
                         }
                     }
 
