@@ -326,6 +326,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::YARG.Menu.ProfileList.ControllerEntryView
   _name: {fileID: 5753369685925887171}
+  _bindingSetDropdown: {fileID: 3059539688524436382}
 --- !u!1 &7510208590659211929
 GameObject:
   m_ObjectHideFlags: 0
@@ -667,6 +668,14 @@ PrefabInstance:
       propertyPath: m_Name
       value: BindingSetDropdown
       objectReference: {fileID: 0}
+    - target: {fileID: 2188028800054685575, guid: 5f7c905be0699a94b8dc56fc6105c02d, type: 3}
+      propertyPath: m_fontSize
+      value: 22
+      objectReference: {fileID: 0}
+    - target: {fileID: 2188028800054685575, guid: 5f7c905be0699a94b8dc56fc6105c02d, type: 3}
+      propertyPath: m_fontSizeBase
+      value: 22
+      objectReference: {fileID: 0}
     - target: {fileID: 4622602834413321867, guid: 5f7c905be0699a94b8dc56fc6105c02d, type: 3}
       propertyPath: m_Options.m_Options.Array.data[0].m_Text
       value: Binding set #1
@@ -813,3 +822,14 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 7665614177142481491, guid: 5f7c905be0699a94b8dc56fc6105c02d, type: 3}
   m_PrefabInstance: {fileID: 7661577255216098581}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &3059539688524436382 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 4622602834413321867, guid: 5f7c905be0699a94b8dc56fc6105c02d, type: 3}
+  m_PrefabInstance: {fileID: 7661577255216098581}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7b743370ac3e4ec2a1668f5455a8ef8a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 

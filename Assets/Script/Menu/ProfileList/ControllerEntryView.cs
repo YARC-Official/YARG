@@ -5,6 +5,8 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using YARG.Core.Game;
+using YARG.Helpers;
+using YARG.Input.Bindings;
 using YARG.Player;
 
 namespace YARG.Menu.ProfileList
@@ -13,6 +15,8 @@ namespace YARG.Menu.ProfileList
     {
         [SerializeField]
         private TextMeshProUGUI _name;
+        [SerializeField]
+        private TMP_Dropdown _bindingSetDropdown;
 
         private YargProfile _profile;
         private ProfileView _profileView;
@@ -26,6 +30,7 @@ namespace YARG.Menu.ProfileList
             _profileView = profileView;
             _profileSidebar = profileSidebar;
             _controller = controller;
+            PopulateDropdownOptions();
         }
 
         public void Remove()
@@ -33,6 +38,21 @@ namespace YARG.Menu.ProfileList
             var player = PlayerContainer.GetPlayerFromProfile(_profile);
             player.DeviceInfo.RemoveController(_controller);
             _profileSidebar.UpdateCenterPane(_profile, _profileView);
+        }
+
+        private void PopulateDropdownOptions()
+        {
+            var _applicableBindingSets = BindingsContainer.GetBindingSetsForControllerInMode(
+                LayoutHelper.InputDeviceToControllerFamily(_controller),
+                _profile.GameMode
+            );
+
+            _bindingSetDropdown.options.Clear();
+
+            foreach (var bindingSet in _applicableBindingSets)
+            {
+                _bindingSetDropdown.options.Add(new(bindingSet.Name));
+            }
         }
     }
 }

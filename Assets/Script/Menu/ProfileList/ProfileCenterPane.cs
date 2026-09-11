@@ -9,6 +9,7 @@ using UnityEngine.UI;
 using YARG.Core;
 using YARG.Core.Game;
 using YARG.Helpers.Extensions;
+using YARG.Input.Bindings;
 using YARG.Localization;
 using YARG.Menu.Data;
 using YARG.Menu.Filters;

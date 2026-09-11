@@ -79,6 +79,24 @@ namespace YARG.Input.Bindings
             return _reusableBindingSetsByControllerFamily.GetValueOrDefault(controllerFamily, new());
         }
 
+        public static List<ReusableBindingSet> GetBindingSetsForControllerInMode(ControllerFamily controllerFamily, GameMode mode)
+        {
+            List<ReusableBindingSet> bindingSets = new();
+
+            var forFamily = GetBindingSetsForControllerFamily(controllerFamily);
+
+            foreach (var bindingSet in forFamily)
+            {
+                if (bindingSet.Mode == mode)
+                {
+                    bindingSets.Add(bindingSet);
+                }
+            }
+
+            return bindingSets;
+        }
+
+
         public static bool TryGetBindingCollectionById(Guid guid, out ReusableBindingSet bindingCollection)
         {
             if (_allBindingCollectionsByGuid.ContainsKey(guid))
