@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
@@ -819,7 +819,7 @@ namespace YARG.Gameplay
             return filteredLocations;
         }
 
-        private async UniTask<GameObject> GetCustomCharacterFromBundle(string characterPath)
+        private GameObject GetCustomCharacterFromBundle(string characterPath)
         {
             // string characterPath = SettingsManager.Settings.CustomVocalsCharacter.Value;
 
@@ -862,7 +862,7 @@ namespace YARG.Gameplay
 
                 if (characterInfo.Source == CustomCharacterSource.File)
                 {
-                    return await GetCustomCharacterFromBundle(characterInfo.Identifier);
+                    return GetCustomCharacterFromBundle(characterInfo.Identifier);
                 }
 
                 if (characterInfo.Source == CustomCharacterSource.Addressable)
@@ -876,6 +876,11 @@ namespace YARG.Gameplay
 
         private async UniTask<bool> LoadCharacter(GameObject venueRoot, string hint, VocalGender gender)
         {
+            if (!HasCharacter(venueRoot, VenueCharacter.CharacterType.Vocals))
+            {
+                return false;
+            }
+
             var character = await GetAddressableCharacter(hint);
 
             // Hint failed, try user's custom character
@@ -890,11 +895,25 @@ namespace YARG.Gameplay
                 character = await GetAddressableCharacter(gender);
             }
 
-            var usingCustomChar = await LoadCharacter(venueRoot, character);
+            var usingCustomChar = LoadCharacter(venueRoot, character);
             return usingCustomChar;
         }
 
-        private async UniTask<bool> LoadCharacter(GameObject venueRoot, GameObject character)
+        private static bool HasCharacter(GameObject venueRoot, VenueCharacter.CharacterType type)
+        {
+            var characters = venueRoot.GetComponentsInChildren<VenueCharacter>();
+            foreach (var character in characters)
+            {
+                if (character.Type == type)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private bool LoadCharacter(GameObject venueRoot, GameObject character)
         {
             if (character == null)
             {
@@ -921,7 +940,7 @@ namespace YARG.Gameplay
 
             if (existingCharacter == null)
             {
-                YargLogger.LogFormatError("Failed to find character of type {0} in venue root", venueCharacter.Type);
+                YargLogger.LogFormatDebug("Failed to find character of type {0} in venue root", venueCharacter.Type);
                 return false;
             }
 
@@ -935,7 +954,7 @@ namespace YARG.Gameplay
 
             if (venueCharacter is VRMCharacter vrmCharacter)
             {
-                _ = CopyLipsyncToNewCharacter(venueRoot, vrmCharacter);
+                CopyLipsyncToNewCharacter(venueRoot, vrmCharacter);
             }
 
             AddMicrophoneToCharacter(newCharacter);
@@ -947,7 +966,7 @@ namespace YARG.Gameplay
             return true;
         }
 
-        private static async UniTask CopyLipsyncToNewCharacter(GameObject venueRoot, VRMCharacter character)
+        private static void CopyLipsyncToNewCharacter(GameObject venueRoot, VRMCharacter character)
         {
             // Find CharacterManager
             var characterManager = venueRoot.GetComponentInChildren<CharacterManager>();

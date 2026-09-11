@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using TMPro;
@@ -418,6 +418,8 @@ namespace YARG.Menu.Filters
         {
             if (profile == null)
                 return Instrument.FiveFretGuitar;
+
+            profile.EnsureValidInstrument();
 
             return profile.GameMode == GameMode.EliteDrums
                 ? Instrument.EliteDrums
@@ -1686,6 +1688,12 @@ namespace YARG.Menu.Filters
                 }
 
                 instrument = preferredInstrument.Value;
+            }
+
+            if (!entry.HasInstrument(instrument))
+            {
+                intensity = default;
+                return false;
             }
 
             var part = entry[instrument];
