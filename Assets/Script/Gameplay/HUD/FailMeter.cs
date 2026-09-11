@@ -136,6 +136,7 @@ namespace YARG.Gameplay.HUD
                 .Append(_meterSpGlow.transform.DOScaleX(0.9f, 0.7f))
                 .SetEase(Ease.InOutSine)
                 .SetLoops(-1, LoopType.Yoyo)
+                .Pause()
                 .SetLink(_meterSpGlow.gameObject)
                 .SetAutoKill(false);
 
@@ -374,6 +375,52 @@ namespace YARG.Gameplay.HUD
                 < 0.666f => MeterColor.Yellow,
                 _        => MeterColor.Green
             };
+
+        private void OnDestroy()
+        {
+            _meterRedTweener?.Kill();
+            _meterYellowTweener?.Kill();
+            _meterGreenTweener?.Kill();
+            _bandFillTweener?.Kill();
+            _meterPositionTweener?.Kill();
+            _meterGlowFillTweener?.Kill();
+            _meterGlowPulseSequence?.Kill();
+
+            if (_xposTweeners != null)
+            {
+                foreach (var tween in _xposTweeners)
+                {
+                    tween?.Kill();
+                }
+            }
+
+            if (_needleSliders != null)
+            {
+                foreach (var slider in _needleSliders)
+                {
+                    if (slider != null)
+                    {
+                        slider.handleRect.DOKill();
+                    }
+                }
+            }
+
+            if (_playerHappinessTweeners != null)
+            {
+                foreach (var tween in _playerHappinessTweeners)
+                {
+                    tween?.Kill();
+                }
+            }
+
+            if (_needleHappinessTweeners != null)
+            {
+                foreach (var tween in _needleHappinessTweeners)
+                {
+                    tween?.Kill();
+                }
+            }
+        }
 
         private enum MeterColor
         {

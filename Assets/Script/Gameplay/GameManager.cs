@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Cysharp.Threading.Tasks;
+using DG.Tweening;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using YARG.Core.Audio;
@@ -263,6 +264,8 @@ namespace YARG.Gameplay
             {
                 GlobalAudioHandler.SetVolumeSetting(stem, state.Volume);
             }
+
+            _volumeTween?.Kill();
 
             DisposeDebug();
 

@@ -1,4 +1,4 @@
-﻿using DG.Tweening;
+using DG.Tweening;
 using UnityEngine;
 using UnityEngine.UI;
 using YARG.Helpers.Extensions;
@@ -184,6 +184,14 @@ namespace YARG.Gameplay.HUD
         private void DisableSunburst()
         {
             _sunburstEffect.transform.localScale = Vector3.zero;
+        }
+
+        private void OnDestroy()
+        {
+            _sunburstPulseTween?.Kill();
+            _grooveToSpSequence?.Kill();
+            _sunburstDisableSequence?.Kill();
+            _sunburstEnableSequence?.Kill();
         }
     }
 }
