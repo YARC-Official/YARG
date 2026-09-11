@@ -729,7 +729,8 @@
                 "Restart": "Restart",
                 "BackToLibrary": "Back To Library",
                 "Settings": "Settings",
-                "Practice": "Practice"
+                "Practice": "Practice",
+                "DropOut": "Drop Out"
             },
             "Fail": {
                 "EnableNoFailandResume": "Enable No Fail and Resume",
