@@ -74,11 +74,180 @@ namespace YARG.Input.Bindings
             },
         };
 
+        private static Dictionary<string, ReusableControlBinding> _fourLaneDrumkitMenuDefaults = new()
+        {
+            {
+                ControlStrings.MENU_START,
+                new ReusableButtonBinding(
+                    ReusableBindingSetTemplates.MENU[ControlStrings.MENU_START],
+                    new ReusableSingleButtonBindingConfig(ControllerFamily.FourLaneDrumkit, nameof(FourLaneDrumkit.startButton))
+                )
+            },
+            {
+                ControlStrings.MENU_SELECT,
+                new ReusableButtonBinding(
+                    ReusableBindingSetTemplates.MENU[ControlStrings.MENU_SELECT],
+                    new ReusableSingleButtonBindingConfig(ControllerFamily.FourLaneDrumkit, nameof(FourLaneDrumkit.selectButton))
+                )
+            },
+
+            {
+                ControlStrings.MENU_GREEN,
+                new ReusableButtonBinding(
+                    ReusableBindingSetTemplates.MENU[ControlStrings.MENU_GREEN],
+                    new List<ReusableSingleButtonBindingConfig>() {
+                        new (ControllerFamily.FourLaneDrumkit, nameof(FourLaneDrumkit.greenPad)),
+                        new (ControllerFamily.FourLaneDrumkit, nameof(FourLaneDrumkit.greenCymbal)),
+                        new (ControllerFamily.FourLaneDrumkit, nameof(FourLaneDrumkit.buttonSouth)),
+                    }
+                )
+            },
+            {
+                ControlStrings.MENU_RED,
+                new ReusableButtonBinding(
+                    ReusableBindingSetTemplates.MENU[ControlStrings.MENU_RED],
+                    new List<ReusableSingleButtonBindingConfig>() {
+                        new (ControllerFamily.FourLaneDrumkit, nameof(FourLaneDrumkit.redPad)),
+                        new (ControllerFamily.FourLaneDrumkit, nameof(FourLaneDrumkit.buttonEast)),
+                    }
+                )
+            },
+            {
+                ControlStrings.MENU_YELLOW,
+                new ReusableButtonBinding(
+                    ReusableBindingSetTemplates.MENU[ControlStrings.MENU_YELLOW],
+                    new List<ReusableSingleButtonBindingConfig>() {
+                        new (ControllerFamily.FourLaneDrumkit, nameof(FourLaneDrumkit.yellowCymbal)),
+                        new (ControllerFamily.FourLaneDrumkit, nameof(FourLaneDrumkit.buttonNorth)),
+                    }
+                )
+            },
+            {
+                ControlStrings.MENU_BLUE,
+                new ReusableButtonBinding(
+                    ReusableBindingSetTemplates.MENU[ControlStrings.MENU_BLUE],
+                    new List<ReusableSingleButtonBindingConfig>() {
+                        new (ControllerFamily.FourLaneDrumkit, nameof(FourLaneDrumkit.blueCymbal)),
+                        new (ControllerFamily.FourLaneDrumkit, nameof(FourLaneDrumkit.buttonWest)),
+                    }
+                )
+            },
+            {
+                ControlStrings.MENU_ORANGE,
+                new ReusableButtonBinding(
+                    ReusableBindingSetTemplates.MENU[ControlStrings.MENU_ORANGE],
+                    new List<ReusableSingleButtonBindingConfig>() {
+                        new (ControllerFamily.FourLaneDrumkit, nameof(FourLaneDrumkit.kick1)),
+                        new (ControllerFamily.FourLaneDrumkit, nameof(FourLaneDrumkit.kick2)),
+                    }
+                )
+            },
+
+            {
+                ControlStrings.MENU_UP,
+                new ReusableButtonBinding(
+                    ReusableBindingSetTemplates.MENU[ControlStrings.MENU_UP],
+                    new List<ReusableSingleButtonBindingConfig>() {
+                        new (ControllerFamily.FourLaneDrumkit, ControlStrings.DPAD_UP),
+                        new (ControllerFamily.FourLaneDrumkit, nameof(FourLaneDrumkit.yellowPad)),
+                    }
+                )
+            },
+            {
+                ControlStrings.MENU_DOWN,
+                new ReusableButtonBinding(
+                    ReusableBindingSetTemplates.MENU[ControlStrings.MENU_DOWN],
+                    new List<ReusableSingleButtonBindingConfig>() {
+                        new (ControllerFamily.FourLaneDrumkit, ControlStrings.DPAD_DOWN),
+                        new (ControllerFamily.FourLaneDrumkit, nameof(FourLaneDrumkit.bluePad)),
+                    }
+                )
+            },
+        };
+
+        private static Dictionary<string, ReusableControlBinding> _fourLaneDrumkitMenuManualOnly = new()
+        {
+            {
+                ControlStrings.MENU_START,
+                new ReusableButtonBinding(
+                    ReusableBindingSetTemplates.MENU[ControlStrings.MENU_START],
+                    new ReusableSingleButtonBindingConfig(ControllerFamily.FourLaneDrumkit, nameof(FourLaneDrumkit.startButton))
+                )
+            },
+            {
+                ControlStrings.MENU_SELECT,
+                new ReusableButtonBinding(
+                    ReusableBindingSetTemplates.MENU[ControlStrings.MENU_SELECT],
+                    new ReusableSingleButtonBindingConfig(ControllerFamily.FourLaneDrumkit, nameof(FourLaneDrumkit.selectButton))
+                )
+            },
+
+            {
+                ControlStrings.MENU_GREEN,
+                new ReusableButtonBinding(
+                    ReusableBindingSetTemplates.MENU[ControlStrings.MENU_GREEN],
+                    new ReusableSingleButtonBindingConfig(ControllerFamily.FourLaneDrumkit, nameof(FourLaneDrumkit.buttonSouth))
+                )
+            },
+            {
+                ControlStrings.MENU_RED,
+                new ReusableButtonBinding(
+                    ReusableBindingSetTemplates.MENU[ControlStrings.MENU_RED],
+                    new ReusableSingleButtonBindingConfig(ControllerFamily.FourLaneDrumkit, nameof(FourLaneDrumkit.buttonEast))
+                )
+            },
+            {
+                ControlStrings.MENU_YELLOW,
+                new ReusableButtonBinding(
+                    ReusableBindingSetTemplates.MENU[ControlStrings.MENU_YELLOW],
+                    new ReusableSingleButtonBindingConfig(ControllerFamily.FourLaneDrumkit, nameof(FourLaneDrumkit.buttonNorth))
+                )
+            },
+            {
+                ControlStrings.MENU_BLUE,
+                new ReusableButtonBinding(
+                    ReusableBindingSetTemplates.MENU[ControlStrings.MENU_BLUE],
+                    new ReusableSingleButtonBindingConfig(ControllerFamily.FourLaneDrumkit, nameof(FourLaneDrumkit.buttonWest))
+                )
+            },
+
+            {
+                ControlStrings.MENU_UP,
+                new ReusableButtonBinding(
+                    ReusableBindingSetTemplates.MENU[ControlStrings.MENU_UP],
+                    new ReusableSingleButtonBindingConfig(ControllerFamily.FourLaneDrumkit, ControlStrings.DPAD_UP)
+                )
+            },
+            {
+                ControlStrings.MENU_DOWN,
+                new ReusableButtonBinding(
+                    ReusableBindingSetTemplates.MENU[ControlStrings.MENU_DOWN],
+                    new ReusableSingleButtonBindingConfig(ControllerFamily.FourLaneDrumkit, ControlStrings.DPAD_DOWN)
+                )
+            },
+        };
+
         public static ReusableBindingSet DefaultFourLaneDrumkit = MakeHardcodedBindingSet(
-            "Default 4-Lane Drumkit",
+            "Default 4L Gameplay",
             GameMode.FourLaneDrums,
             ControllerFamily.FourLaneDrumkit,
             _fourLaneDrumkitDefaults,
+            ReusableBindingSetTemplates.FOUR_LANE_DRUMKIT
+        );
+
+        public static ReusableBindingSet DefaultFourLaneDrumkitMenu = MakeHardcodedBindingSet(
+            "Default 4L Menu",
+            null,
+            ControllerFamily.FourLaneDrumkit,
+            _fourLaneDrumkitMenuDefaults,
+            ReusableBindingSetTemplates.FOUR_LANE_DRUMKIT
+        );
+
+        public static ReusableBindingSet FourLaneDrumkitManualMenu = MakeHardcodedBindingSet(
+            "Manual",
+            null,
+            ControllerFamily.FourLaneDrumkit,
+            _fourLaneDrumkitMenuDefaults,
             ReusableBindingSetTemplates.FOUR_LANE_DRUMKIT
         );
     }

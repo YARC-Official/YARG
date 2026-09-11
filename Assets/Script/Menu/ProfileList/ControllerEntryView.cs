@@ -16,12 +16,17 @@ namespace YARG.Menu.ProfileList
         [SerializeField]
         private TextMeshProUGUI _name;
         [SerializeField]
-        private TMP_Dropdown _bindingSetDropdown;
+        private TMP_Dropdown _gameplayBindingSetDropdown;
+        [SerializeField]
+        private TMP_Dropdown _menuBindingSetDropdown;
 
         private YargProfile _profile;
         private ProfileView _profileView;
         private ProfileCenterPane _profileSidebar;
         private InputDevice _controller;
+
+        private List<ReusableBindingSet> _gameplayBindingSetsByIndex;
+        private List<ReusableBindingSet> _menuBindingSetsByIndex;
 
         public void Initialize(YargProfile profile, ProfileView profileView, ProfileCenterPane profileSidebar, InputDevice controller)
         {
@@ -42,16 +47,20 @@ namespace YARG.Menu.ProfileList
 
         private void PopulateDropdownOptions()
         {
-            var _applicableBindingSets = BindingsContainer.GetBindingSetsForControllerInMode(
-                LayoutHelper.InputDeviceToControllerFamily(_controller),
-                _profile.GameMode
-            );
+            var family = LayoutHelper.InputDeviceToControllerFamily(_controller);
 
-            _bindingSetDropdown.options.Clear();
-
-            foreach (var bindingSet in _applicableBindingSets)
+            _gameplayBindingSetsByIndex = BindingsContainer.GetBindingSetsForControllerInMode(family, _profile.GameMode);
+            _gameplayBindingSetDropdown.options.Clear();
+            foreach (var bindingSet in _gameplayBindingSetsByIndex)
             {
-                _bindingSetDropdown.options.Add(new(bindingSet.Name));
+                _gameplayBindingSetDropdown.options.Add(new(bindingSet.Name));
+            }
+
+            _menuBindingSetsByIndex = BindingsContainer.GetBindingSetsForControllerInMode(family, null);
+            _menuBindingSetDropdown.options.Clear();
+            foreach (var bindingSet in _menuBindingSetsByIndex)
+            {
+                _menuBindingSetDropdown.options.Add(new(bindingSet.Name));
             }
         }
     }

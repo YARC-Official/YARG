@@ -32,6 +32,9 @@ namespace YARG.Input.Bindings
                 new() {
                     ReusableBindingSetDefaults.DefaultFiveFretGuitar,
                     ReusableBindingSetDefaults.DefaultRiffmasterGuitar,
+
+                    // Menu
+                    ReusableBindingSetDefaults.DefaultFiveFretGuitarMenu,
                 }
             },
 
@@ -48,6 +51,10 @@ namespace YARG.Input.Bindings
                 new()
                 {
                     ReusableBindingSetDefaults.DefaultFourLaneDrumkit,
+
+                    // Menu
+                    ReusableBindingSetDefaults.DefaultFourLaneDrumkitMenu,
+                    ReusableBindingSetDefaults.FourLaneDrumkitManualMenu,
                 }
             },
 
@@ -79,7 +86,7 @@ namespace YARG.Input.Bindings
             return _reusableBindingSetsByControllerFamily.GetValueOrDefault(controllerFamily, new());
         }
 
-        public static List<ReusableBindingSet> GetBindingSetsForControllerInMode(ControllerFamily controllerFamily, GameMode mode)
+        public static List<ReusableBindingSet> GetBindingSetsForControllerInMode(ControllerFamily controllerFamily, GameMode? mode)
         {
             List<ReusableBindingSet> bindingSets = new();
 
