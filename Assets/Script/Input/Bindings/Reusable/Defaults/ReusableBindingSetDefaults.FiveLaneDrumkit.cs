@@ -63,11 +63,10 @@ namespace YARG.Input.Bindings
         };
 
         public static ReusableBindingSet DefaultFiveLaneDrumkit = MakeHardcodedBindingSet(
-            "Default 5-Lane Drumkit",
+            "Default",
             GameMode.FiveLaneDrums,
             ControllerFamily.FiveLaneDrumkit,
-            _fiveLaneDrumkitDefaults,
-            ReusableBindingSetTemplates.FIVE_LANE_DRUMKIT
+            _fiveLaneDrumkitDefaults
         );
     }
 }

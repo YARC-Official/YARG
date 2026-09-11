@@ -157,7 +157,7 @@ namespace YARG.Input.Serialization
             public SerializedBindingCollectionV4(SerializedReusableBindingSet serialized)
             {
                 Name = serialized.Name;
-                GameMode = serialized.GameMode.Value;
+                GameMode = serialized.GameMode;
 
                 foreach (var (id, serializedBindings) in serialized.Bindings)
                 {

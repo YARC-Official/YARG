@@ -12,6 +12,7 @@ using YARG.Core.Game;
 using YARG.Core.IO;
 using YARG.Helpers;
 using YARG.Helpers.Extensions;
+using YARG.Input.Bindings;
 using YARG.Localization;
 using YARG.Menu.Data;
 using YARG.Menu.Filters;

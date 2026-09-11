@@ -6,6 +6,20 @@ namespace YARG.Input.Bindings
 {
     public static class ControlStrings
     {
+        public const string MENU_START = "Menu.Start";
+        public const string MENU_SELECT = "Menu.Select";
+        public const string MENU_GREEN = "Menu.Green";
+        public const string MENU_RED = "Menu.Red";
+        public const string MENU_YELLOW = "Menu.Yellow";
+        public const string MENU_BLUE = "Menu.Blue";
+        public const string MENU_ORANGE = "Menu.Orange";
+        public const string MENU_UP = "Menu.Up";
+        public const string MENU_DOWN = "Menu.Down";
+        public const string MENU_LEFT = "Menu.Left";
+        public const string MENU_RIGHT = "Menu.Right";
+        public const string MENU_SEARCH = "Menu.Search";
+        public const string MENU_SELECT_ARTIST = "Menu.SelectArtist";
+
         public const string GUITAR_STRUM_UP = "Guitar.StrumUp";
         public const string GUITAR_STRUM_DOWN = "Guitar.StrumDown";
         public const string GUITAR_STAR_POWER = "Guitar.StarPower";
@@ -45,5 +59,16 @@ namespace YARG.Input.Bindings
         public const string FIVE_DRUMS_BLUE_PAD = "FiveDrums.BluePad";
         public const string FIVE_DRUMS_ORANGE_CYMBAL = "FiveDrums.OrangeCymbal";
         public const string FIVE_DRUMS_GREEN_PAD = "FiveDrums.GreenPad";
+
+
+        public const string DPAD_UP = "dpad/up";
+        public const string DPAD_DOWN = "dpad/down";
+        public const string DPAD_LEFT = "dpad/left";
+        public const string DPAD_RIGHT = "dpad/right";
+
+        public const string JOYSTICK_UP = "joystick/up";
+        public const string JOYSTICK_DOWN = "joystick/down";
+        public const string JOYSTICK_LEFT = "joystick/left";
+        public const string JOYSTICK_RIGHT = "joystick/right";
     }
 }

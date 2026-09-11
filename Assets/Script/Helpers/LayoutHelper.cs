@@ -38,18 +38,26 @@ namespace YARG.Helpers
             var layouts = GetLayoutsForFamily(family);
             return BuildControlInfoIndex(layouts).ControlsByPath.Values.ToList();
         }
+
+        public static ControllerFamily InputDeviceToControllerFamily(InputDevice device)
+        {
+            return LayoutStringToControllerFamily(device.layout);
+        }
+
         public static ControllerFamily LayoutStringToControllerFamily(string layout)
         {
-            return layout switch
+            switch (layout)
             {
-                LayoutStrings.FIVE_FRET_GUITAR => ControllerFamily.FiveFretGuitar,
-                LayoutStrings.SIX_FRET_GUITAR => ControllerFamily.SixFretGuitar,
-                LayoutStrings.FOUR_LANE_DRUMKIT => ControllerFamily.FourLaneDrumkit,
-                LayoutStrings.FIVE_LANE_DRUMKIT => ControllerFamily.FiveLaneDrumkit,
-                LayoutStrings.PRO_KEYBOARD => ControllerFamily.ProKeyboard,
-                LayoutStrings.PRO_GUITAR => ControllerFamily.ProGuitar,
-                _ => ControllerFamily.Generic
-            };
+                case LayoutStrings.FIVE_FRET_GUITAR: return ControllerFamily.FiveFretGuitar;
+                case LayoutStrings.SIX_FRET_GUITAR: return ControllerFamily.SixFretGuitar;
+                case LayoutStrings.FOUR_LANE_DRUMKIT: return ControllerFamily.FourLaneDrumkit;
+                case LayoutStrings.FIVE_LANE_DRUMKIT: return ControllerFamily.FiveLaneDrumkit;
+                case LayoutStrings.PRO_KEYBOARD: return ControllerFamily.ProKeyboard;
+                case LayoutStrings.PRO_GUITAR: return ControllerFamily.ProGuitar;
+                case LayoutStrings.INPUT_DEVICE: return ControllerFamily.Generic;
+            }
+
+            return LayoutStringToControllerFamily(InputSystem.GetNameOfBaseLayout(layout));
         }
 
         public static string ControllerFamilyToLayoutString(ControllerFamily controllerFamily)

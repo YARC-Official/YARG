@@ -12,21 +12,21 @@ namespace YARG.Input.Bindings
     public partial class ReusableBindingSet
     {
         public Guid Guid { get; private set; }
-        public GameMode? Mode { get; } // null means menu bindings
+        public GameMode Mode { get; }
         public ControllerFamily ControllerFamily { get; private set; }
         public string Name { get; private set; }
-        public bool IsDefault { get; private set; }
+        public bool IsHardcoded { get; private set; }
 
         // Key is binding name, like "FiveFret.Green" or "FourDrums.RedPad"
         // These names come from BindingCollection.Templates.cs; they are YARG's, not PlasticBand's
         public Dictionary<string, ReusableControlBinding> Bindings = new();
 
-        public ReusableBindingSet(string name, GameMode? mode, ControllerFamily controllerFamily, bool isDefault = false) {
+        public ReusableBindingSet(string name, GameMode mode, ControllerFamily controllerFamily, bool isHardcoded = false) {
             Name = name;
             Mode = mode;
             ControllerFamily = controllerFamily;
-            Guid = isDefault ? Guid.Empty : Guid.NewGuid();
-            IsDefault = isDefault;
+            Guid = isHardcoded ? Guid.Empty : Guid.NewGuid();
+            IsHardcoded = isHardcoded;
         }
 
         public ReusableBindingSet(SerializedReusableBindingSet serialized)

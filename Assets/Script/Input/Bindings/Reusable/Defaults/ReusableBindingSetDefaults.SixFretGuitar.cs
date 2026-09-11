@@ -59,14 +59,14 @@ namespace YARG.Input.Bindings
                 ControlStrings.GUITAR_STRUM_DOWN,
                 new ReusableButtonBinding(
                     ReusableBindingSetTemplates.SIX_FRET_GUITAR[ControlStrings.GUITAR_STRUM_DOWN],
-                    new ReusableSingleButtonBindingConfig(ControllerFamily.FiveFretGuitar, "dpad/down")
+                    new ReusableSingleButtonBindingConfig(ControllerFamily.FiveFretGuitar, ControlStrings.DPAD_DOWN)
                 )
             },
             {
                 ControlStrings.GUITAR_STRUM_UP,
                 new ReusableButtonBinding(
                     ReusableBindingSetTemplates.SIX_FRET_GUITAR[ControlStrings.GUITAR_STRUM_UP],
-                    new ReusableSingleButtonBindingConfig(ControllerFamily.FiveFretGuitar, "dpad/up")
+                    new ReusableSingleButtonBindingConfig(ControllerFamily.FiveFretGuitar, ControlStrings.DPAD_UP)
                 )
             },
 
@@ -90,11 +90,10 @@ namespace YARG.Input.Bindings
             },
         };
         public static ReusableBindingSet DefaultSixFretGuitar = MakeHardcodedBindingSet(
-            "Default 6-Fret Guitar",
+            "Default",
             GameMode.SixFretGuitar,
             ControllerFamily.SixFretGuitar,
-            _sixFretGuitarDefaults,
-            ReusableBindingSetTemplates.SIX_FRET_GUITAR
+            _sixFretGuitarDefaults
         );
     }
 }

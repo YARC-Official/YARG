@@ -13,19 +13,26 @@ namespace YARG.Input.Bindings
     {
         private static ReusableBindingSet MakeHardcodedBindingSet(
             string name,
-            GameMode? mode,
+            GameMode mode,
             ControllerFamily family,
-            Dictionary<string, ReusableControlBinding> bindings,
-            Dictionary<string, InputActionInfo> template,
-            bool isDefault = true
+            Dictionary<string, ReusableControlBinding> bindings
         )
         {
             var bindingSet = new ReusableBindingSet(
                 name,
                 mode,
                 family,
-                isDefault
+                true
             );
+
+            var template = mode switch {
+                GameMode.Menu => ReusableBindingSetTemplates.MENU,
+                GameMode.FiveFretGuitar => ReusableBindingSetTemplates.FIVE_FRET_GUITAR,
+                GameMode.SixFretGuitar => ReusableBindingSetTemplates.SIX_FRET_GUITAR,
+                GameMode.FourLaneDrums => ReusableBindingSetTemplates.FOUR_LANE_DRUMKIT,
+                GameMode.FiveLaneDrums => ReusableBindingSetTemplates.FIVE_LANE_DRUMKIT,
+                _ => throw new NotImplementedException()
+            };
 
             foreach (var (key, info) in template)
             {

@@ -39,6 +39,7 @@ namespace YARG.Input.Bindings
         public static Dictionary<string, InputActionInfo> GetTemplate(GameMode? mode)
         {
             return mode switch {
+                GameMode.Menu => MENU,
                 GameMode.FiveFretGuitar => FIVE_FRET_GUITAR,
                 GameMode.SixFretGuitar => SIX_FRET_GUITAR,
                 GameMode.FourLaneDrums => FOUR_LANE_DRUMKIT,

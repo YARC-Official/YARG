@@ -127,7 +127,11 @@ namespace YARG.Menu.ProfileList
 
             var relevantBindingSets = BindingsContainer.GetBindingSetsForControllerFamily(CurrentBindingSetFilter);
 
-            AddBindingSetListGroup(null, relevantBindingSets);
+            foreach (var (mode, bindingSets) in relevantBindingSets)
+            {
+                AddBindingSetListGroup(mode.ToString(), bindingSets);
+            }
+
         }
 
         public void RefreshProfileList(YargProfile selectedProfile = null)
@@ -178,16 +182,16 @@ namespace YARG.Menu.ProfileList
             }
         }
 
-        private void AddBindingSetListGroup(string? header, IEnumerable<ReusableBindingSet> bindingSets)
+        private void AddBindingSetListGroup(string headerKey, IEnumerable<ReusableBindingSet> bindingSets)
         {
             if (!bindingSets.Any())
             {
                 return;
             }
 
-            if (header is not null)
+            if (headerKey is not null)
             {
-                AddListHeader(header);
+                AddListHeader(headerKey);
             }
 
             // Spawn in a profile view for each player
