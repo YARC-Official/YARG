@@ -231,24 +231,21 @@ namespace YARG.Input.Bindings
             "Default 4L Gameplay",
             GameMode.FourLaneDrums,
             ControllerFamily.FourLaneDrumkit,
-            _fourLaneDrumkitDefaults,
-            ReusableBindingSetTemplates.FOUR_LANE_DRUMKIT
+            _fourLaneDrumkitDefaults
         );
 
         public static ReusableBindingSet DefaultFourLaneDrumkitMenu = MakeHardcodedBindingSet(
             "Default 4L Menu",
-            null,
+            GameMode.Menu,
             ControllerFamily.FourLaneDrumkit,
-            _fourLaneDrumkitMenuDefaults,
-            ReusableBindingSetTemplates.FOUR_LANE_DRUMKIT
+            _fourLaneDrumkitMenuDefaults
         );
 
         public static ReusableBindingSet FourLaneDrumkitManualMenu = MakeHardcodedBindingSet(
             "Manual",
-            null,
+            GameMode.Menu,
             ControllerFamily.FourLaneDrumkit,
-            _fourLaneDrumkitMenuDefaults,
-            ReusableBindingSetTemplates.FOUR_LANE_DRUMKIT
+            _fourLaneDrumkitMenuDefaults
         );
     }
 }

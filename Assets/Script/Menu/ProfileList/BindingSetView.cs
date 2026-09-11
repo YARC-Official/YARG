@@ -25,12 +25,12 @@ namespace YARG.Menu.ProfileList
         {
             _profileListMenu = menu;
             _centerPane = centerPane;
+            _bindingSet = bindingSet;
             UpdateDisplay(bindingSet);
         }
 
         public void UpdateDisplay(ReusableBindingSet bindingSet)
         {
-            _bindingSet = bindingSet;
             _bindingSetName.text = bindingSet.Name;
         }
 

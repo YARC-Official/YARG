@@ -329,32 +329,48 @@ namespace YARG.Input.Bindings
                 )
             },
 
-
+                        {
+                ControlStrings.MENU_LEFT,
+                new ReusableButtonBinding(
+                    ReusableBindingSetTemplates.MENU[ControlStrings.MENU_UP],
+                    new List<ReusableSingleButtonBindingConfig>() {
+                        new (ControllerFamily.FiveFretGuitar, ControlStrings.DPAD_LEFT),
+                        new (ControllerFamily.FiveFretGuitar, ControlStrings.JOYSTICK_LEFT)
+                    }
+                )
+            },
+            {
+                ControlStrings.MENU_RIGHT,
+                new ReusableButtonBinding(
+                    ReusableBindingSetTemplates.MENU[ControlStrings.MENU_DOWN],
+                    new List<ReusableSingleButtonBindingConfig>() {
+                        new (ControllerFamily.FiveFretGuitar, ControlStrings.DPAD_RIGHT),
+                        new (ControllerFamily.FiveFretGuitar, ControlStrings.JOYSTICK_RIGHT)
+                    }
+                )
+            },
         };
 
 
         public static ReusableBindingSet DefaultFiveFretGuitar = MakeHardcodedBindingSet(
-            "Default",
+            "Default 5F Gameplay",
             GameMode.FiveFretGuitar,
             ControllerFamily.FiveFretGuitar,
-            _fiveFretGuitarDefaults,
-            ReusableBindingSetTemplates.FIVE_FRET_GUITAR
+            _fiveFretGuitarDefaults
         );
 
         public static ReusableBindingSet DefaultRiffmasterGuitar = MakeHardcodedBindingSet(
             "Default Riffmaster",
             GameMode.FiveFretGuitar,
             ControllerFamily.FiveFretGuitar,
-            _riffmasterGuitarDefaults,
-            ReusableBindingSetTemplates.FIVE_FRET_GUITAR
+            _riffmasterGuitarDefaults
         );
 
         public static ReusableBindingSet DefaultFiveFretGuitarMenu = MakeHardcodedBindingSet(
-            "Default",
-            null,
+            "Default 5F Menu",
+            GameMode.Menu,
             ControllerFamily.FiveFretGuitar,
-            _fiveFretGuitarMenuDefaults,
-            ReusableBindingSetTemplates.FIVE_FRET_GUITAR
+            _fiveFretGuitarMenuDefaults
         );
     }
 }

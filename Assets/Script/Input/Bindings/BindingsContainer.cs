@@ -25,36 +25,42 @@ namespace YARG.Input.Bindings
 
         private static readonly Dictionary<Guid, ReusableBindingSet> _allBindingCollectionsByGuid = new();
 
-        private static readonly Dictionary<ControllerFamily, List<ReusableBindingSet>> _reusableBindingSetsByControllerFamily = new()
+        private static readonly Dictionary<ControllerFamily, Dictionary<GameMode, List<ReusableBindingSet>>> _reusableBindingSetsByControllerFamily = new()
         {
             {
                 ControllerFamily.FiveFretGuitar,
                 new() {
-                    ReusableBindingSetDefaults.DefaultFiveFretGuitar,
-                    ReusableBindingSetDefaults.DefaultRiffmasterGuitar,
+                    { GameMode.Menu, new() { // Menu
+                        ReusableBindingSetDefaults.DefaultFiveFretGuitarMenu
+                    }},
 
-                    // Menu
-                    ReusableBindingSetDefaults.DefaultFiveFretGuitarMenu,
+                    { GameMode.FiveFretGuitar, new() {
+                        ReusableBindingSetDefaults.DefaultFiveFretGuitar,
+                        ReusableBindingSetDefaults.DefaultRiffmasterGuitar
+                    }}
                 }
             },
 
             {
                 ControllerFamily.SixFretGuitar,
-                new()
-                {
-                    ReusableBindingSetDefaults.DefaultSixFretGuitar,
+                new() {
+                    { GameMode.SixFretGuitar, new() {
+                        ReusableBindingSetDefaults.DefaultSixFretGuitar
+                    }}
                 }
             },
 
             {
                 ControllerFamily.FourLaneDrumkit,
-                new()
-                {
-                    ReusableBindingSetDefaults.DefaultFourLaneDrumkit,
+                new() {
+                    { GameMode.Menu, new() { // Menu
+                        ReusableBindingSetDefaults.DefaultFourLaneDrumkitMenu,
+                        ReusableBindingSetDefaults.FourLaneDrumkitManualMenu,
+                    }},
 
-                    // Menu
-                    ReusableBindingSetDefaults.DefaultFourLaneDrumkitMenu,
-                    ReusableBindingSetDefaults.FourLaneDrumkitManualMenu,
+                    { GameMode.FourLaneDrums, new() {
+                        ReusableBindingSetDefaults.DefaultFourLaneDrumkit,
+                    }}
                 }
             },
 
@@ -62,7 +68,10 @@ namespace YARG.Input.Bindings
                 ControllerFamily.FiveLaneDrumkit,
                 new()
                 {
-                    ReusableBindingSetDefaults.DefaultFiveLaneDrumkit,
+                    { GameMode.FiveLaneDrums, new()
+                    {
+                        ReusableBindingSetDefaults.DefaultFiveLaneDrumkit,
+                    }}
                 }
             },
         };
@@ -81,26 +90,19 @@ namespace YARG.Input.Bindings
             return bindings;
         }
 
-        public static List<ReusableBindingSet> GetBindingSetsForControllerFamily(ControllerFamily controllerFamily)
+        public static Dictionary<GameMode, List<ReusableBindingSet>> GetBindingSetsForControllerFamily(ControllerFamily controllerFamily)
         {
             return _reusableBindingSetsByControllerFamily.GetValueOrDefault(controllerFamily, new());
         }
 
-        public static List<ReusableBindingSet> GetBindingSetsForControllerInMode(ControllerFamily controllerFamily, GameMode? mode)
+        public static List<ReusableBindingSet> GetBindingSetsForControllerInMode(ControllerFamily controllerFamily, GameMode mode)
         {
-            List<ReusableBindingSet> bindingSets = new();
-
-            var forFamily = GetBindingSetsForControllerFamily(controllerFamily);
-
-            foreach (var bindingSet in forFamily)
+            if (_reusableBindingSetsByControllerFamily.TryGetValue(controllerFamily, out var familySets))
             {
-                if (bindingSet.Mode == mode)
-                {
-                    bindingSets.Add(bindingSet);
-                }
+                return familySets.GetValueOrDefault(mode, new());
             }
 
-            return bindingSets;
+            return new();
         }
 
 
@@ -142,27 +144,41 @@ namespace YARG.Input.Bindings
 
             foreach (var (guid, serializedReusableBindingSet) in bindings.ReusableBindingSets)
             {
-                var bindingCollection = new ReusableBindingSet(serializedReusableBindingSet);
+                var bindingSet = new ReusableBindingSet(serializedReusableBindingSet);
 
-                _allBindingCollectionsByGuid.Add(guid, bindingCollection);
+                _allBindingCollectionsByGuid.Add(guid, bindingSet);
 
-                if (!_reusableBindingSetsByControllerFamily.ContainsKey(bindingCollection.ControllerFamily))
+                if (!_reusableBindingSetsByControllerFamily.ContainsKey(bindingSet.ControllerFamily))
                 {
-                    _reusableBindingSetsByControllerFamily[bindingCollection.ControllerFamily] = new() { bindingCollection };
+                    _reusableBindingSetsByControllerFamily[bindingSet.ControllerFamily] = new() {
+                        {
+                            bindingSet.Mode,
+                            new() { bindingSet }
+                        }
+                    };
                 }
                 else
                 {
-                    _reusableBindingSetsByControllerFamily[bindingCollection.ControllerFamily].Add(bindingCollection);
+                    var modeDict = _reusableBindingSetsByControllerFamily[bindingSet.ControllerFamily];
+
+                    if (!modeDict.ContainsKey(bindingSet.Mode))
+                    {
+                        modeDict[bindingSet.Mode] = new() { bindingSet };
+                    }
+                    else
+                    {
+                        modeDict[bindingSet.Mode].Add(bindingSet);
+                    }
                 }
 
-                var tupleKey = (bindingCollection.Mode.Value, bindingCollection.ControllerFamily);
+                var tupleKey = (bindingSet.Mode, bindingSet.ControllerFamily);
 
                 if (!_bindingCollectionsByContext.ContainsKey(tupleKey)) {
-                    _bindingCollectionsByContext[tupleKey] = new() { bindingCollection };
+                    _bindingCollectionsByContext[tupleKey] = new() { bindingSet };
                 }
                 else
                 {
-                    _bindingCollectionsByContext[tupleKey].Add(bindingCollection);
+                    _bindingCollectionsByContext[tupleKey].Add(bindingSet);
                 }
             }
 

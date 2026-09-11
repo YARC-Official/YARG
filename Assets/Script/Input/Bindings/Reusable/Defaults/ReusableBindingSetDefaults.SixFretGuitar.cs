@@ -93,8 +93,7 @@ namespace YARG.Input.Bindings
             "Default",
             GameMode.SixFretGuitar,
             ControllerFamily.SixFretGuitar,
-            _sixFretGuitarDefaults,
-            ReusableBindingSetTemplates.SIX_FRET_GUITAR
+            _sixFretGuitarDefaults
         );
     }
 }

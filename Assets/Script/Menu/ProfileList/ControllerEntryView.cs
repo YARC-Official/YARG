@@ -4,6 +4,7 @@ using System.Text;
 using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using YARG.Core;
 using YARG.Core.Game;
 using YARG.Helpers;
 using YARG.Input.Bindings;
@@ -56,7 +57,7 @@ namespace YARG.Menu.ProfileList
                 _gameplayBindingSetDropdown.options.Add(new(bindingSet.Name));
             }
 
-            _menuBindingSetsByIndex = BindingsContainer.GetBindingSetsForControllerInMode(family, null);
+            _menuBindingSetsByIndex = BindingsContainer.GetBindingSetsForControllerInMode(family, GameMode.Menu);
             _menuBindingSetDropdown.options.Clear();
             foreach (var bindingSet in _menuBindingSetsByIndex)
             {

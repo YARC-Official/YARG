@@ -64,7 +64,7 @@ namespace YARG.Input.Serialization
 
         public string Name;
         public Guid Guid;
-        public GameMode? GameMode;
+        public GameMode GameMode;
         public string BaseLayout;
 
         // Key is binding name, like "FiveFret.Green" or "FourDrums.RedPad"
