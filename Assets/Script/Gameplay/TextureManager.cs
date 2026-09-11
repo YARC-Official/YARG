@@ -423,10 +423,18 @@ namespace YARG.Gameplay
                 }
             }
 
-            Destroy(_soundTexture);
-            _soundTexture = null;
+            if (Application.isPlaying)
+            {
+                Destroy(_soundTexture);
+                Destroy(_gameStateTexture);
+            }
+            else
+            {
+                DestroyImmediate(_soundTexture);
+                DestroyImmediate(_gameStateTexture);
+            }
 
-            Destroy(_gameStateTexture);
+            _soundTexture = null;
             _gameStateTexture = null;
         }
     }

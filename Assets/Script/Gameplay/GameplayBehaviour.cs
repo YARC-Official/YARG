@@ -18,6 +18,8 @@ namespace YARG.Gameplay
     {
         protected GameManager GameManager { get; private set; }
 
+        protected virtual bool DisableUntilSongStarts => true;
+
         // Protected to warn when hidden by an inheriting class
         protected void Awake()
         {
@@ -33,7 +35,10 @@ namespace YARG.Gameplay
             // Disable until the song starts
             // (disable before registering, so that if it's already loaded
             // we're not stuck as disabled from it immediately executing the method)
-            enabled = GameManager.IsSongStarted;
+            if (DisableUntilSongStarts)
+            {
+                enabled = GameManager.IsSongStarted;
+            }
 
             GameplayAwake();
 
