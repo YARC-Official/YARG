@@ -205,6 +205,28 @@ namespace YARG.Gameplay.Player
             LaneElement.DefineLaneScale(Player.Profile.CurrentInstrument, WHITE_KEY_VISIBLE_COUNT);
         }
 
+        protected override void ResetDifficulty(double time)
+        {
+            Engine.ReplaceChart(NoteTrack);
+            base.ResetDifficulty(time);
+
+            _rangeShiftIndex = 0;
+            _shiftIndicatorIndex = 0;
+
+            if (_rangeShifts.Count > 0)
+            {
+                while (_rangeShiftIndex < _rangeShifts.Count && _rangeShifts[_rangeShiftIndex].Time < time)
+                {
+                    _rangeShiftIndex++;
+                }
+
+                var shift = _rangeShifts[_rangeShiftIndex];
+
+                RangeShiftTo(shift, 0);
+                _rangeShiftIndex++;
+            }
+        }
+
         public override void ResetPracticeSection()
         {
             base.ResetPracticeSection();

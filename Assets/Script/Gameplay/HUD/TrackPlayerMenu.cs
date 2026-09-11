@@ -8,6 +8,7 @@ using UnityEngine.ResourceManagement.AsyncOperations;
 using UnityEngine.UI;
 using YARG.Core.Input;
 using YARG.Player;
+using YARG.Settings;
 
 namespace YARG.Gameplay.HUD
 {
@@ -67,6 +68,9 @@ namespace YARG.Gameplay.HUD
         private Camera CanvasCamera    => _canvas.renderMode == RenderMode.ScreenSpaceOverlay ? null : _canvas.worldCamera;
         private int    VisibleRowCount => _slots.Length;
 
+        private GameManager _gameManager;
+        private static int openCount = 0;
+
         private void Awake()
         {
             _panel = (RectTransform) transform;
@@ -94,7 +98,7 @@ namespace YARG.Gameplay.HUD
             }
         }
 
-        public void Initialize(YargPlayer player)
+        public void Initialize(YargPlayer player, GameManager gameManager)
         {
             _player = player;
             _player.MenuInput += OnMenuInput;
@@ -102,6 +106,8 @@ namespace YARG.Gameplay.HUD
 
             _iconHandle = Addressables.LoadAssetAsync<Sprite>(player.GetInstrumentSprite());
             _icon.sprite = _iconHandle.WaitForCompletion();
+
+            _gameManager = gameManager;
         }
 
         public void SetItems(IReadOnlyList<PlayerMenuItem> items)
@@ -125,6 +131,12 @@ namespace YARG.Gameplay.HUD
             _panel.localPosition = new Vector3(_panel.localPosition.x, _closedY, 0f);
             gameObject.SetActive(true);
             SlideTo(targetY: _openY, duration: OPEN_SECONDS, ease: Ease.OutCubic);
+            openCount++;
+
+            if (SettingsManager.Settings.PauseOnMenuOpen.Value)
+            {
+                _gameManager.Pause(showMenu: false);
+            }
         }
 
         public void Close()
@@ -135,8 +147,17 @@ namespace YARG.Gameplay.HUD
             }
 
             IsOpen = false;
+            openCount--;
             SlideTo(targetY: _closedY, duration: CLOSE_SECONDS, ease: Ease.InCubic)
-                .OnComplete(() => gameObject.SetActive(false));
+                .OnComplete(() =>
+                {
+                    gameObject.SetActive(false);
+
+                    if (SettingsManager.Settings.PauseOnMenuOpen.Value && openCount == 0)
+                    {
+                        _gameManager.Resume();
+                    }
+                });
         }
 
         private Tweener SlideTo(float targetY, float duration, Ease ease)

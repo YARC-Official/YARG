@@ -674,7 +674,8 @@
                 "BackToLibrary": "Back To Library",
                 "Settings": "Settings",
                 "Practice": "Practice",
-                "DropOut": "Drop Out"
+                "DropOut": "Drop Out",
+                "ChangeDifficulty": "Change Difficulty"
             },
             "Fail": {
                 "EnableNoFailandResume": "Enable No Fail and Resume",
