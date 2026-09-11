@@ -9,6 +9,9 @@ namespace YARG.Gameplay.HUD
 {
     public class GenericPause : GameplayBehaviour
     {
+        protected bool HasNavigationScheme { get; set; }
+        protected override bool DisableUntilSongStarts => false;
+
         protected PauseMenuManager PauseMenuManager { get; private set; }
 
         protected override void GameplayAwake()
@@ -18,6 +21,11 @@ namespace YARG.Gameplay.HUD
 
         protected virtual void OnEnable()
         {
+            if (Navigator.Instance == null)
+            {
+                return;
+            }
+
             _ = Navigator.Instance.PushScheme(new NavigationScheme(new()
             {
                 NavigationScheme.Entry.NavigateSelect,
@@ -26,11 +34,20 @@ namespace YARG.Gameplay.HUD
                 NavigationScheme.Entry.NavigateUp,
                 NavigationScheme.Entry.NavigateDown,
             }, false));
+            HasNavigationScheme = true;
         }
 
         protected virtual void OnDisable()
         {
-            Navigator.Instance.PopScheme();
+            if (HasNavigationScheme)
+            {
+                if (Navigator.Instance != null)
+                {
+                    Navigator.Instance.PopScheme();
+                }
+
+                HasNavigationScheme = false;
+            }
         }
 
         public virtual void Back()

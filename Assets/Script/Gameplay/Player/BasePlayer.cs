@@ -320,7 +320,7 @@ namespace YARG.Gameplay.Player
                 SantrollerHaptics.Remove(haptics);
             }
 
-            if (!GameManager.Paused && SettingsManager.Settings.PauseOnDeviceDisconnect.Value)
+            if (GameManager != null && !GameManager.Paused && SettingsManager.Settings.PauseOnDeviceDisconnect.Value)
             {
                 GameManager.SetPaused(true);
             }
