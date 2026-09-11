@@ -398,7 +398,7 @@ namespace YARG.Gameplay.HUD
             {
                 foreach (var slider in _needleSliders)
                 {
-                    if (slider != null)
+                    if (slider != null && slider.handleRect != null)
                     {
                         slider.handleRect.DOKill();
                     }

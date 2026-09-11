@@ -259,13 +259,13 @@ namespace YARG.Gameplay
             _crowdClapScheduler?.Dispose();
             _songRunner?.Dispose();
 
+            _volumeTween?.Kill();
+
             // Restore stem volumes to their original state while the mixer is still valid.
             foreach (var (stem, state) in _stemStates)
             {
                 GlobalAudioHandler.SetVolumeSetting(stem, state.Volume);
             }
-
-            _volumeTween?.Kill();
 
             DisposeDebug();
 

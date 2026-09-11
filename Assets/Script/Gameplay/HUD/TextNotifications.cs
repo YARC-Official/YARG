@@ -68,7 +68,7 @@ namespace YARG.Gameplay.HUD
             TextNotificationType.StrongFinish
         };
 
-        private Sequence _animationSequence => DOTween.Sequence()
+        private Sequence _animationSequence => DOTween.Sequence(_containerRect)
                 .Append(DOTween.Sequence()
                     .Append(_containerRect
                         .DOScale(_animPeakScale, _animBaseToPeakInterval)
