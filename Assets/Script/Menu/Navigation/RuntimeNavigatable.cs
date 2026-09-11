@@ -23,6 +23,17 @@ namespace YARG.Menu.Navigation
         /// </summary>
         public static readonly Color SelectedTextColor = new(1f, 0.83137256f, 0.22745098f, 1f);
 
+        /// <summary>
+        /// Desaturated selection color for selected but inert controls.
+        /// </summary>
+        public static readonly Color DimmedSelectionGrey = Desaturated(SelectedTextColor * 0.7f);
+
+        private static Color Desaturated(Color color)
+        {
+            Color.RGBToHSV(color, out _, out _, out float v);
+            return Color.HSVToRGB(0f, 0f, v);
+        }
+
         private static Sprite _selectionGradient;
         private static Sprite _buttonOutline;
 

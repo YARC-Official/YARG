@@ -13,7 +13,6 @@ using UnityEngine.Animations;
 using UnityEngine.ResourceManagement.AsyncOperations;
 using UnityEngine.ResourceManagement.ResourceLocations;
 using UnityEngine.UI;
-using UnityEngine.Video;
 using YARG.Core.IO;
 using YARG.Core.Song;
 using YARG.Core.Venue;
@@ -23,6 +22,7 @@ using YARG.Venue;
 using YARG.Venue.Characters;
 using YARG.Core.Logging;
 using YARG.Helpers;
+using YARG.Song;
 using Random = UnityEngine.Random;
 
 #if UNITY_EDITOR
@@ -42,7 +42,7 @@ namespace YARG.Gameplay
         private string VIDEO_PATH;
 
         [SerializeField]
-        private VideoPlayer _videoPlayer;
+        private YargVideoPlayer _videoPlayer;
 
         [SerializeField]
         private RawImage _backgroundImage;
@@ -87,7 +87,6 @@ namespace YARG.Gameplay
         private          string           _editorVenuePath;
         private          Scene            _editorVenueScene;
 #endif
-        // "The Unity message 'Start' has an incorrect signature."
         [SuppressMessage("Type Safety", "UNT0006", Justification = "UniTaskVoid is a compatible return type.")]
         private async UniTaskVoid Start()
         {
@@ -358,14 +357,14 @@ namespace YARG.Gameplay
             }
 
             var hint = GameManager.Song.VocalCharacterHint;
-            await LoadCharacter(bgInstance, hint, gender);
+            var usingCustomChar = await LoadCharacter(bgInstance, hint, gender);
 
 
             // Initialize CharacterManager, if it exists
             var characterManager = bgInstance.GetComponentInChildren<CharacterManager>();
             if (characterManager != null)
             {
-                characterManager.Initialize();
+                characterManager.Initialize(usingCustomChar);
             }
         }
 
@@ -461,7 +460,6 @@ namespace YARG.Gameplay
                     //set venue source to song to enable video seeking/pausing features
                     _source = VenueSource.Song;
                     //set up videoPlayer to render to venue texture
-                    _videoPlayer.renderMode = VideoRenderMode.RenderTexture;
                     _videoPlayer.targetTexture = textureManager.GetVideoTexture(0, 0);
 
                     LoadVideoBackground(songBackGround);
@@ -497,6 +495,12 @@ namespace YARG.Gameplay
 
         private void LoadVideoBackground(BackgroundResult bg)
         {
+            var textureManager = GetComponent<TextureManager>();
+
+            var videoTexture = textureManager.GetVideoTexture(Screen.width, Screen.height);
+            textureManager.CreateVideoTexture();
+            _videoPlayer.targetTexture = videoTexture;
+
             switch (bg.Stream)
             {
                 case FileStream fs:
@@ -518,7 +522,7 @@ namespace YARG.Gameplay
                 }
             }
 
-            _videoPlayer.enabled = true;
+            _videoPlayer.playerEnabled = true;
             _videoPlayer.prepareCompleted += OnVideoPrepared;
             _videoPlayer.seekCompleted += OnVideoSeeked;
             _videoPlayer.Prepare();
@@ -561,14 +565,14 @@ namespace YARG.Gameplay
             if (time + _videoStartTime >= _videoEndTime)
             {
                 _videoPlayer.Stop();
-                _videoPlayer.enabled = false;
+                _videoPlayer.playerEnabled = false;
                 enabled = false;
             }
         }
 
         // Some video player properties don't work correctly until
         // it's finished preparing, such as the length
-        private void OnVideoPrepared(VideoPlayer player)
+        private void OnVideoPrepared(YargVideoPlayer player)
         {
             // Start time is considered set if it is greater than 25 ms in either direction
             // End time is only set if it is greater than 0
@@ -576,6 +580,8 @@ namespace YARG.Gameplay
             const double startTimeThreshold = 0.025;
             const double endTimeThreshold = 0;
             const double dontLoopThreshold = 0.85;
+
+            player.Stop();
 
             if (_source == VenueSource.Song && !GameManager.Song.VideoLoop)
             {
@@ -608,6 +614,14 @@ namespace YARG.Gameplay
                 _videoEndTime = double.NaN;
                 player.isLooping = true;
             }
+
+            GetComponent<TextureManager>().SetVideoTexture(_videoPlayer.targetTexture);
+            if (_type == BackgroundType.Video)
+            {
+                _venueOutput.texture = _videoPlayer.targetTexture;
+                _venueOutput.gameObject.SetActive(true);
+                _venueFadeOverlay.CrossFadeAlpha(0f, FADE_DURATION, true);
+            }
         }
 
         public void SetTime(double songTime, bool waitForSeek = true)
@@ -623,20 +637,20 @@ namespace YARG.Gameplay
                     if (videoTime < 0f) // Seeking before video start
                     {
                         enabled = true;
-                        _videoPlayer.enabled = true;
+                        _videoPlayer.playerEnabled = true;
                         _videoStarted = false;
                         _videoPlayer.Stop();
                     }
                     else if (videoTime >= _videoPlayer.length) // Seeking after video end
                     {
                         enabled = false;
-                        _videoPlayer.enabled = false;
+                        _videoPlayer.playerEnabled = false;
                         _videoPlayer.Stop();
                     }
                     else
                     {
                         enabled = false; // Temp disable
-                        _videoPlayer.enabled = true;
+                        _videoPlayer.playerEnabled = true;
 
                         // Hack to ensure the video stays synced to the audio
                         _videoSeeking = true; // Signaling flag; must come first
@@ -652,7 +666,7 @@ namespace YARG.Gameplay
             }
         }
 
-        private void OnVideoSeeked(VideoPlayer player)
+        private void OnVideoSeeked(YargVideoPlayer player)
         {
             if (!_videoSeeking)
                 return;
@@ -684,7 +698,7 @@ namespace YARG.Gameplay
         public void SetPaused(bool paused)
         {
             // Pause/unpause video
-            if (_videoPlayer.enabled && _videoStarted && !_videoSeeking)
+            if (_videoPlayer.playerEnabled && _videoStarted && !_videoSeeking)
             {
                 if (paused)
                 {
@@ -860,7 +874,7 @@ namespace YARG.Gameplay
             return null;
         }
 
-        private async UniTask LoadCharacter(GameObject venueRoot, string hint, VocalGender gender)
+        private async UniTask<bool> LoadCharacter(GameObject venueRoot, string hint, VocalGender gender)
         {
             var character = await GetAddressableCharacter(hint);
 
@@ -876,15 +890,16 @@ namespace YARG.Gameplay
                 character = await GetAddressableCharacter(gender);
             }
 
-            await LoadCharacter(venueRoot, character);
+            var usingCustomChar = await LoadCharacter(venueRoot, character);
+            return usingCustomChar;
         }
 
-        private async UniTask LoadCharacter(GameObject venueRoot, GameObject character)
+        private async UniTask<bool> LoadCharacter(GameObject venueRoot, GameObject character)
         {
             if (character == null)
             {
                 YargLogger.LogWarning("Failed to load custom character");
-                return;
+                return false;
             }
 
             // Load default animation controller and parameters if necessary
@@ -907,7 +922,7 @@ namespace YARG.Gameplay
             if (existingCharacter == null)
             {
                 YargLogger.LogFormatError("Failed to find character of type {0} in venue root", venueCharacter.Type);
-                return;
+                return false;
             }
 
             // Replace existingCharacter with the new character
@@ -928,6 +943,8 @@ namespace YARG.Gameplay
             // Lastly, make sure the new character and all its children are in the Venue layer
             var layerIndex = LayerMask.NameToLayer("Venue");
             SetLayer(newCharacter, layerIndex);
+
+            return true;
         }
 
         private static async UniTask CopyLipsyncToNewCharacter(GameObject venueRoot, VRMCharacter character)
@@ -1034,6 +1051,51 @@ namespace YARG.Gameplay
                     }
                 }
             }
+            else
+            {
+                SetCustomGenreSpecificAnimator(vrmCharacter);
+            }
+        }
+
+        /// <summary>
+        /// Checks the supplied VRMCharacter for genre-specific animator overrides
+        /// </summary>
+        /// <param name="character"></param>
+        /// <returns>
+        /// true: We found and replaced the character's animator<br />
+        /// false: We did not find a genre-specific animator override
+        /// </returns>
+        private bool SetCustomGenreSpecificAnimator(VRMCharacter character)
+        {
+            if (character == null)
+            {
+                return false;
+            }
+
+            var animator = character.GetComponent<Animator>();
+            if (animator == null)
+            {
+                return false;
+            }
+
+            var anims = character.GetGenreSpecificAnimations();
+
+            if (anims == null || anims.Keys.Count <= 0)
+            {
+                return false;
+            }
+
+            var genre = Genrelizer.GetBaseGenre(GameManager.Song.Genre);
+
+            if (!anims.ContainsKey(genre))
+            {
+                return false;
+            }
+
+            var controller = anims[genre];
+            animator.runtimeAnimatorController = controller;
+            animator.Rebind();
+            return true;
         }
 
 #pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously

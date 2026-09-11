@@ -6,14 +6,12 @@ using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using YARG.Assets.Script.Helpers;
 using YARG.Core;
 using YARG.Core.Game;
 using YARG.Helpers.Extensions;
 using YARG.Localization;
 using YARG.Menu.Data;
 using YARG.Menu.Filters;
-using YARG.Menu.Main;
 using YARG.Menu.Persistent;
 using YARG.Menu.ProfileInfo;
 using YARG.Player;
@@ -31,6 +29,7 @@ namespace YARG.Menu.ProfileList
         private static readonly GameMode[] _gameModes =
         {
             GameMode.FiveFretGuitar,
+            GameMode.SixFretGuitar,
             GameMode.EliteDrums,
             GameMode.FourLaneDrums,
             GameMode.FiveLaneDrums,
@@ -196,8 +195,8 @@ namespace YARG.Menu.ProfileList
                 RemoveDropdownOption(_engineDropdown, _enginePresetsByIndex, EnginePreset.SoloTaps.Id);
             }
 
-            // Casual only changes FiveFretGuitar and Vocals
-            if (profile.GameMode is not (GameMode.FiveFretGuitar or GameMode.Vocals))
+            // Casual only changes FiveFretGuitar, SixFretGuitar, and Vocals
+            if (profile.GameMode is not (GameMode.FiveFretGuitar or GameMode.Vocals or GameMode.SixFretGuitar))
             {
                 RemoveDropdownOption(_engineDropdown, _enginePresetsByIndex, EnginePreset.Casual.Id);
             }
@@ -305,9 +304,9 @@ namespace YARG.Menu.ProfileList
                 // Disable if the child's gameObject.name is not found in possibleSettings
                 var child = _sidebarContent.transform.GetChild(i);
 
-                #nullable enable
+#nullable enable
                 (string setting, string? overrideText)? settingInfo = null;
-                #nullable disable
+#nullable disable
 
                 foreach (var possibleSetting in possibleSettings)
                 {
@@ -321,7 +320,9 @@ namespace YARG.Menu.ProfileList
                 if (settingInfo is null)
                 {
                     child.gameObject.SetActive(false);
-                } else {
+                }
+                else
+                {
                     child.gameObject.SetActive(true);
                     if (settingInfo.Value.overrideText is not null)
                     {

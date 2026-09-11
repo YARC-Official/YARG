@@ -75,7 +75,7 @@
       "url": "https://package.openupm.com"
     },
     "com.thenathannator.plasticband": {
-      "version": "0.9.2",
+      "version": "0.10.0",
       "depth": 0,
       "source": "registry",
       "dependencies": {
@@ -220,7 +220,7 @@
       "url": "https://packages.unity.com"
     },
     "com.unity.pipeline": {
-      "version": "0.5.0-exp.1",
+      "version": "0.6.0-exp.1",
       "depth": 0,
       "source": "registry",
       "dependencies": {

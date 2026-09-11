@@ -82,7 +82,7 @@ namespace YARG.Menu.Settings.Visuals
             }
         }
 
-        public void SetEditable(bool editable)
+        public virtual void SetEditable(bool editable, bool dim = true)
         {
             IsEditable = editable;
             var canvasGroup = gameObject.GetComponent<CanvasGroup>();
@@ -90,7 +90,7 @@ namespace YARG.Menu.Settings.Visuals
             {
                 canvasGroup = gameObject.AddComponent<CanvasGroup>();
             }
-            canvasGroup.alpha = editable ? 1f : 0.5f;
+            canvasGroup.alpha = !editable && dim ? 0.5f : 1f;
             canvasGroup.interactable = editable;
             canvasGroup.blocksRaycasts = true;
 

@@ -708,9 +708,31 @@ namespace YARG.Gameplay.Visuals
         /// <param name="x">The normalized position across the track width (0.0 is leftmost track edge. 1.0 is rightmost track edge)</param>
         /// <param name="y">The normalized position up the track (0.0 is the strikeline, 1.0 is zero fade position)</param>
         /// <returns>A Vector2 in screen pixels, or Vector2.zero if unavailable.</returns>
-        public Vector2? GetTrackPositionScreenSpaceRaised(int trackIndex, float x, float y)
+        public Vector2? GetTrackPositionScreenSpaceRaised(int trackIndex, float x, float y) =>
+            GetTrackPositionScreenSpace(trackIndex, x, y, _raisedRotations[trackIndex]);
+
+        /// <summary>
+        /// Calculates the screen x position where the track center line meets the bottom of the screen.
+        /// Uses the top point to determine the track's angle, projecting the slanted center line from the strike line down to screen Y = 0.
+        /// </summary>
+        /// <param name="trackIndex">The index of the highway to get the position for. 0 is leftmost highway</param>
+        /// <returns>The x position in screen pixels, or null if the track cannot be projected.</returns>
+        public float? GetTrackBottomScreenX(int trackIndex)
         {
-            return GetTrackPositionScreenSpace(trackIndex, x, y, _raisedRotations[trackIndex]);
+            var bottom = GetTrackPositionScreenSpaceRaised(trackIndex, x: 0.5f, y: 0f);
+            var top = GetTrackPositionScreenSpaceRaised(trackIndex, x: 0.5f, y: 1f);
+            if (!bottom.HasValue || !top.HasValue)
+            {
+                return null;
+            }
+
+            var direction = top.Value - bottom.Value;
+            if (Mathf.Approximately(direction.y, 0f))
+            {
+                return bottom.Value.x;
+            }
+
+            return bottom.Value.x - (bottom.Value.y * direction.x / direction.y);
         }
 
         /// <summary>

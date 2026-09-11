@@ -49,7 +49,7 @@ namespace YARG.Venue
             _leadingFrames = leadingFrames;
         }
 
-        public void BuildCommands(SongChart chart, AnimatorCommandQueue queue)
+        public void BuildCommands(SongChart chart, AnimatorCommandQueue queue, Action callback = null)
         {
             var subjects = Enum.GetValues(typeof(CameraCutEvent.CameraCutSubject))
                 .Cast<CameraCutEvent.CameraCutSubject>()
@@ -102,12 +102,12 @@ namespace YARG.Venue
                 {
                     subject = GetRandomSubject(CameraCutEvent.CameraCutConstraint.None, subjects);
                     queue.Add(AnimatorCommand.Randomize(t, _animator));
-                    queue.Add(AnimatorCommand.Trigger(t, _animator, _hashes.CameraSubjectHashes[(int) subject]));
+                    queue.Add(AnimatorCommand.Trigger(t, _animator, callback, _hashes.CameraSubjectHashes[(int) subject]));
                 }
 
                 // Final switch
                 queue.Add(AnimatorCommand.Randomize(lastNote, _animator));
-                queue.Add(AnimatorCommand.Trigger(lastNote, _animator,
+                queue.Add(AnimatorCommand.Trigger(lastNote, _animator, callback,
                     _hashes.CameraSubjectHashes[(int) CameraCutEvent.CameraCutSubject.Stage]));
 
                 return;
@@ -136,11 +136,11 @@ namespace YARG.Venue
 
                 queue.Add(AnimatorCommand.Randomize(t, _animator));
                 int hash = _hashes.CameraSubjectHashes[(int) subject];
-                queue.Add(AnimatorCommand.Trigger(t, _animator, hash));
+                queue.Add(AnimatorCommand.Trigger(t, _animator, callback, hash));
             }
         }
 
-        private CameraCutEvent.CameraCutSubject GetRandomSubject(CameraCutEvent.CameraCutConstraint constraint,
+        private static CameraCutEvent.CameraCutSubject GetRandomSubject(CameraCutEvent.CameraCutConstraint constraint,
             List<CameraCutEvent.CameraCutSubject> subjects)
         {
             var filtered = subjects.AsEnumerable();

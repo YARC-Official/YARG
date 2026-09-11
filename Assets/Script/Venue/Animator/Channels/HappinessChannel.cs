@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 using YARG.Core.Chart;
 using YARG.Core.Engine;
 
@@ -14,6 +15,8 @@ namespace YARG.Venue
 
         private EngineManager _engineManager;
 
+        private Action _callback;
+
         public HappinessChannel(Animator animator, VenueHashLibrary hashes, EngineManager engineManager)
         {
             _animator = animator;
@@ -21,8 +24,9 @@ namespace YARG.Venue
             _engineManager = engineManager;
         }
 
-        public void BuildCommands(SongChart chart, AnimatorCommandQueue queue)
+        public void BuildCommands(SongChart chart, AnimatorCommandQueue queue, Action callback = null)
         {
+            _callback = callback;
         }
 
         public void Update(double visualTime)
@@ -45,6 +49,7 @@ namespace YARG.Venue
                 _animator.SafeSetBool(newHash, true);
                 if (_prevHappHash != 0) _animator.SafeSetBool(_prevHappHash, false);
                 _prevHappHash = newHash;
+                _callback?.Invoke();
             }
 
             _prevHappiness = happiness;

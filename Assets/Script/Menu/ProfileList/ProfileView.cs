@@ -11,11 +11,14 @@ using YARG.Core.Audio;
 using YARG.Core.Game;
 using YARG.Core.Logging;
 using YARG.Input;
+using YARG.Localization;
 using YARG.Menu;
+using YARG.Menu.Data;
 using YARG.Menu.Dialogs;
 using YARG.Menu.Navigation;
 using YARG.Menu.Persistent;
 using YARG.Player;
+using YARG.Settings.Metadata;
 
 namespace YARG.Menu.ProfileList
 {
@@ -50,6 +53,9 @@ namespace YARG.Menu.ProfileList
 
         public YargProfile Profile { get; private set; }
 
+        /// <summary>The set-aside record this view represents, or null for a normal profile row.</summary>
+        public PlayerContainer.UnloadedProfile UnloadedRecord { get; private set; }
+
         private ProfileListMenu _profileListMenu;
         private ProfileSidebar  _profileSidebar;
 
@@ -58,6 +64,35 @@ namespace YARG.Menu.ProfileList
             _profileListMenu = menu;
             _profileSidebar = sidebar;
             UpdateDisplay(profile);
+        }
+
+        /// <summary>
+        /// Shows a set-aside profile record that this version of the game could
+        /// not load. The row is inert except for its delete button.
+        /// </summary>
+        public void InitUnloaded(ProfileListMenu menu, PlayerContainer.UnloadedProfile record, ProfileSidebar sidebar)
+        {
+            _profileListMenu = menu;
+            _profileSidebar = sidebar;
+            UnloadedRecord = record;
+
+            _profileName.text = Localize.KeyFormat("Menu.ProfileList.UnloadedEntry", record.Name);
+
+            // No connecting, disconnecting, or reordering an unloaded record. The
+            // connect group starts inactive in the prefab and also contains the
+            // row's delete button, so activate it and hide only the connect button
+            _connectGroup.SetActive(true);
+            _disconnectGroup.SetActive(false);
+            var connectButton = _connectGroup.GetComponentInChildren<ColoredButton>();
+            if (connectButton != null)
+            {
+                connectButton.gameObject.SetActive(false);
+            }
+
+            _moveUpButton.interactable = false;
+            _moveDownButton.interactable = false;
+
+            _profilePicture.sprite = _profileGenericSprite;
         }
 
         public void UpdateDisplay(YargProfile profile)
@@ -108,33 +143,59 @@ namespace YARG.Menu.ProfileList
 
             if (selected)
             {
+                // Unloaded records have nothing to show in the sidebar
+                if (UnloadedRecord is not null)
+                {
+                    _profileSidebar.HideContents();
+                    return;
+                }
+
                 _profileSidebar.UpdateSidebar(Profile, this);
             }
         }
 
         public async void RemoveProfile()
         {
+            if (UnloadedRecord is not null)
+            {
+                RemoveUnloadedProfile();
+                return;
+            }
+
+            // Bots currently delete instantly; give them the delayed-confirmation
+            // dialog too so they can't be removed by an accidental click
+            if (Profile.IsBot)
+            {
+                PresetSubTab.ShowCompactConfirmation(
+                    Localize.KeyFormat("Menu.Dialog.ConfirmDelete.Title", Profile.Name),
+                    Localize.Key("Menu.ProfileList.BotDelete"),
+                    "Menu.Common.Delete", MenuData.Colors.CancelButton, () =>
+                    {
+                        DialogManager.Instance.ClearDialog();
+                        RemoveNow();
+                    },
+                    cancelColor: MenuData.Colors.BrightButton,
+                    armDelaySeconds: 2f);
+                return;
+            }
+
             bool remove = false;
 
-            // Confirm that the user wants to delete the profile first, UNLESS it's a bot
-            if (!Profile.IsBot)
-            {
-                var dialog = DialogManager.Instance.ShowConfirmDeleteDialog(
-                    "Deleting this profile is permanent and you will lose all stats and binds. Play history will " +
-                    "remain and can be accessed in the <b>History</b> tab.", () => { remove = true; }, Profile.Name);
+            // Confirm that the user wants to delete the profile first by typing its name
+            var dialog = DialogManager.Instance.ShowConfirmDeleteDialog(
+                "Deleting this profile is permanent and you will lose all stats and binds. Play history will " +
+                "remain and can be accessed in the <b>History</b> tab.", () => { remove = true; }, Profile.Name);
 
-                // Wait...
-                await dialog.WaitUntilClosed();
-            }
-            else
-            {
-                remove = true;
-            }
+            // Wait...
+            await dialog.WaitUntilClosed();
 
             if (!remove) return;
 
-            // Then remove
+            RemoveNow();
+        }
 
+        private void RemoveNow()
+        {
             if (Selected)
             {
                 _profileSidebar.HideContents();
@@ -142,8 +203,37 @@ namespace YARG.Menu.ProfileList
 
             if (PlayerContainer.RemoveProfile(Profile))
             {
-                Destroy(gameObject);
+                // Rebuild the list so emptied group headers disappear immediately
+                _profileListMenu.RefreshList();
             }
+        }
+
+        private void RemoveUnloadedProfile()
+        {
+            // Delayed-confirmation dialog (the button arms after a short delay);
+            // the section header and row description already explain why the
+            // profile couldn't load, so the message stays short
+            PresetSubTab.ShowCompactConfirmation(
+                Localize.Key("Menu.ProfileList.UnloadedDeleteTitle"),
+                Localize.Key("Menu.ProfileList.UnloadedDelete"),
+                "Menu.Common.Delete", MenuData.Colors.CancelButton, () =>
+                {
+                    DialogManager.Instance.ClearDialog();
+
+                    if (Selected)
+                    {
+                        _profileSidebar.HideContents();
+                    }
+
+                    if (PlayerContainer.DeleteUnloadedProfile(UnloadedRecord))
+                    {
+                        // Rebuild the list so an emptied "Couldn't Load" group's
+                        // header goes away immediately
+                        _profileListMenu.RefreshList();
+                    }
+                },
+                cancelColor: MenuData.Colors.BrightButton,
+                armDelaySeconds: 2f);
         }
 
         public async UniTask<bool> PromptAddDevice()

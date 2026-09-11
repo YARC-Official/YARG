@@ -18,8 +18,9 @@ namespace YARG.Gameplay.Player
             PoolUnavailable
         }
 
-        public const float LYRIC_SPACING = 0.25f;
-        public const float STATIC_PHRASE_SPACING = .5f;
+        public const float LYRIC_SPACING            = 0.25f;
+        public const float SMALL_GAP_PHRASE_SPACING = .5f;
+        public const float NO_GAP_PHRASE_SPACING    = .08f;
 
         [Header("Index 0 should be bottom, 2 should be top.")]
         [SerializeField]
@@ -70,7 +71,7 @@ namespace YARG.Gameplay.Player
         }
 
         public VocalScrollingLyricSyllableElement.PreparedLyric PrepareScrollingLyric(
-            LyricEvent lyric, VocalNote probableNote, int totalHarms, int harmIndex)
+            LyricEvent lyric, int totalHarms, int harmIndex)
         {
             var combineHarmonyLyrics = !SettingsManager.Settings.UseThreeLaneLyricsInHarmony.Value;
             bool allowHiding = harmIndex != 0 && combineHarmonyLyrics;
@@ -85,16 +86,16 @@ namespace YARG.Gameplay.Player
                 width = tester.GetPreferredValues().x;
             }
 
-            return new VocalScrollingLyricSyllableElement.PreparedLyric(lyric, probableNote, allowHiding, width);
+            return new VocalScrollingLyricSyllableElement.PreparedLyric(lyric, allowHiding, width);
         }
 
         public VocalStaticLyricPhraseElement.PreparedPhrase PrepareStaticLyricPhrase(
-            VocalPhrasePair phrasePair, List<VocalsPhrase> scoringPhrases, int totalHarms, int harmIndex)
+            VocalsPhrase phrase, List<VocalsPhrase> scoringPhrases, int totalHarms, int harmIndex)
         {
             var combineHarmonyLyrics = !SettingsManager.Settings.UseThreeLaneLyricsInHarmony.Value;
             bool allowHiding = harmIndex != 0 && combineHarmonyLyrics;
             var preparedPhrase = new VocalStaticLyricPhraseElement.PreparedPhrase(
-                phrasePair, scoringPhrases, allowHiding, 0f);
+                phrase, scoringPhrases, allowHiding, 0f);
 
             var tester = GetStaticWidthTester(GetLaneIndex(totalHarms, harmIndex));
             tester.fontStyle = FontStyles.Normal;
@@ -140,7 +141,7 @@ namespace YARG.Gameplay.Player
             // Spawn the vocal lyric
             bool allowHiding = harmIndex != 0 && combineHarmonyLyrics;
             var obj = (VocalScrollingLyricSyllableElement) _scrollingPools[laneIndex].TakeWithoutEnabling();
-            obj.Initialize(preparedLyric, _lastLyricEdgeTime[laneIndex], preparedLyric.NoteLength, isStarpower, harmIndex, allowHiding);
+            obj.Initialize(preparedLyric, _lastLyricEdgeTime[laneIndex], isStarpower, harmIndex, allowHiding);
             obj.EnableFromPool();
 
             // Set the edge time

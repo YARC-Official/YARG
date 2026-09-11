@@ -106,36 +106,18 @@ namespace YARG.Scores
             }
         }
 
-        public static bool IsBandScoreValid(float songSpeed)
+        public static bool IsBandScoreValid(float songSpeed, IEnumerable<YargPlayer> players)
         {
-            var activePlayers = PlayerContainer.Players.Where(p => !p.SittingOut).ToList();
-            var humans = activePlayers.Where(p => !p.Profile.IsBot).ToList();
-            var hasBots = activePlayers.Count > humans.Count;
-            var hasHumans = humans.Count > 0;
-            var allHumanScoresValid = hasHumans && humans.All(player => IsSoloScoreValid(songSpeed, player));
+            var activePlayers = players.Where(player => !player.SittingOut && player.IsActive).ToList();
+            var humanPlayers = activePlayers.Where(player => !player.Profile.IsBot).ToList();
 
-            if (!allHumanScoresValid)
-            {
-                return false;
-            }
-
-            if (!AllowScoresWithBots && hasBots)
-            {
-                return false;
-            }
-
-            return true;
+            return humanPlayers.Count > 0 &&
+                humanPlayers.All(player => IsSoloScoreValid(songSpeed, player)) &&
+                (AllowScoresWithBots || activePlayers.Count == humanPlayers.Count);
         }
 
-        public static bool IsSoloScoreValid(float songSpeed, YargPlayer player)
-        {
-            if (songSpeed < 1.0f || player.Profile.IsBot || !player.IsScoreValid)
-            {
-                return false;
-            }
-
-            return true;
-        }
+        public static bool IsSoloScoreValid(float songSpeed, YargPlayer player) =>
+            songSpeed >= 1.0f && !player.Profile.IsBot && player.IsScoreValid;
 
         public static void RecordScore(GameRecord gameRecord, List<PlayerScoreRecord> playerEntries)
         {
@@ -394,7 +376,8 @@ namespace YARG.Scores
                 foreach (var instrument in instruments)
                 {
                      var highScores = _db.QueryPlayerHighScores(
-                         playerId, instrument, HighestDifficultyOnly, CurrentDifficultyOnly, currentDifficulty);
+                          playerId, instrument, HighestDifficultyOnly, CurrentDifficultyOnly, currentDifficulty,
+                          SongContainer.SongsByHash.Keys, SongContainer.LibraryRevision);
                     foreach (var score in highScores)
                     {
                         if (!checksumByRecordId.TryGetValue(score.GameRecordId, out var checksum))
@@ -408,7 +391,8 @@ namespace YARG.Scores
                 foreach (var instrument in instruments)
                 {
                      var highPercentages = _db.QueryPlayerHighestPercentages(
-                         playerId, instrument, HighestDifficultyOnly, CurrentDifficultyOnly, currentDifficulty);
+                          playerId, instrument, HighestDifficultyOnly, CurrentDifficultyOnly, currentDifficulty,
+                          SongContainer.SongsByHash.Keys, SongContainer.LibraryRevision);
                     foreach (var score in highPercentages)
                     {
                         if (!checksumByRecordId.TryGetValue(score.GameRecordId, out var checksum))
@@ -567,8 +551,11 @@ namespace YARG.Scores
             {
                 List<PlayerScoreWithChecksum> records = profile.GameMode == GameMode.EliteDrums
                     ? _db.QueryPlayerBestStarsForInstruments(
-                        profile, MidiDrumkitHelper.Instruments, SettingsManager.Settings.HighScoreHistory.Value)
-                    : _db.QueryPlayerBestStars(profile, SettingsManager.Settings.HighScoreHistory.Value);
+                        profile, MidiDrumkitHelper.Instruments, SettingsManager.Settings.HighScoreHistory.Value,
+                        SongContainer.SongsByHash.Keys, SongContainer.LibraryRevision)
+                    : _db.QueryPlayerBestStars(
+                        profile, SettingsManager.Settings.HighScoreHistory.Value, SongContainer.SongsByHash.Keys,
+                        SongContainer.LibraryRevision);
                 Dictionary<HashWrapper, StarAmount> result = new Dictionary<HashWrapper, StarAmount>();
 
                 foreach (PlayerScoreWithChecksum record in records)

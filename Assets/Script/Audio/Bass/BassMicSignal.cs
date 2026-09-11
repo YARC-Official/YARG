@@ -148,8 +148,9 @@ namespace YARG.Audio.BASS
         private readonly string          _name;
         private readonly BassNoiseGateDsp _noiseGate;
         private readonly IBassReverbDsp   _reverb;
-        private readonly int             _sourceHandle;
-        private readonly int[]?          _channelMap;
+        private readonly int              _sourceChannels;
+        private readonly int              _sourceHandle;
+        private readonly int[]?           _channelMap;
         private readonly Dictionary<int, RecordingEffects> _recordingEffects = new();
 
         private readonly object       _streamLock = new();
@@ -157,12 +158,13 @@ namespace YARG.Audio.BASS
         private          BassMonitor? _monitor;
         private          int          _monitorHandle;
 
-        private BassMicSignal(string name, int sampleRate, int sourceHandle, int[]? channelMap, int monitorHandle,
-            int analysisHandle, BassNoiseGateDsp noiseGate, IBassReverbDsp reverb)
+        private BassMicSignal(string name, int sampleRate, int sourceHandle, int sourceChannels, int[]? channelMap,
+            int monitorHandle, int analysisHandle, BassNoiseGateDsp noiseGate, IBassReverbDsp reverb)
         {
             _name = name;
             SampleRate = sampleRate;
             _sourceHandle = sourceHandle;
+            _sourceChannels = sourceChannels;
             _channelMap = channelMap;
             _monitorHandle = monitorHandle;
             _analysisHandle = analysisHandle;
@@ -205,7 +207,13 @@ namespace YARG.Audio.BASS
         {
             lock (_streamLock)
             {
-                return _analysisHandle == 0 ? -1 : BassMix.SplitStreamGetAvailable(_analysisHandle);
+                if (_analysisHandle == 0)
+                {
+                    return -1;
+                }
+
+                int backlogBytes = BassMix.SplitStreamGetAvailable(_analysisHandle);
+                return backlogBytes < 0 ? -1 : backlogBytes / _sourceChannels;
             }
         }
 
@@ -386,8 +394,10 @@ namespace YARG.Audio.BASS
                     return null;
                 }
 
+                var info = Bass.ChannelGetInfo(sourceHandle);
+                int sourceChannels = info.Channels > 0 ? info.Channels : 1;
                 var mapCopy = channelMap == null ? null : (int[]) channelMap.Clone();
-                var signal = new BassMicSignal(name, sampleRate, sourceHandle, mapCopy,
+                var signal = new BassMicSignal(name, sampleRate, sourceHandle, sourceChannels, mapCopy,
                     monitorHandle, analysisHandle, noiseGate, reverb);
                 monitorHandle = 0;
                 analysisHandle = 0;

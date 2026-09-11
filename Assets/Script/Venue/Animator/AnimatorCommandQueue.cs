@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace YARG.Venue
@@ -21,8 +22,9 @@ namespace YARG.Venue
         public readonly int                 ParamHash;
         public readonly float               Value;      // Bool: 1=true/0=false, Float: the value, Blend: duration
         public readonly int                 BlendLayer; // only used for Blend
+        public readonly Action              Callback;
 
-        private AnimatorCommand(double time, Animator target, AnimatorCommandType type,
+        private AnimatorCommand(double time, Animator target, AnimatorCommandType type, Action callback = null,
             int hash = 0, float value = 0f, int blendLayer = 0)
         {
             Time = time;
@@ -31,26 +33,41 @@ namespace YARG.Venue
             ParamHash = hash;
             Value = value;
             BlendLayer = blendLayer;
+            Callback = callback;
         }
 
         public static AnimatorCommand Trigger(double time, Animator target, int hash) =>
-            new(time, target, AnimatorCommandType.Trigger, hash);
+            new(time, target, AnimatorCommandType.Trigger, null, hash);
+        public static AnimatorCommand Trigger(double time, Animator target, Action callback, int hash) =>
+            new(time, target, AnimatorCommandType.Trigger, callback, hash);
 
         public static AnimatorCommand BoolOn(double time, Animator target, int hash, float offAfterSeconds) =>
-            new(time, target, AnimatorCommandType.BoolOn, hash, offAfterSeconds);
+            new(time, target, AnimatorCommandType.BoolOn, null, hash, offAfterSeconds);
+        public static AnimatorCommand BoolOn(double time, Animator target, Action callback, int hash, float offAfterSeconds) =>
+            new(time, target, AnimatorCommandType.BoolOn, callback, hash, offAfterSeconds);
 
         public static AnimatorCommand BoolOff(double time, Animator target, int hash) =>
-            new(time, target, AnimatorCommandType.BoolOff, hash);
+            new(time, target, AnimatorCommandType.BoolOff, null, hash);
+        public static AnimatorCommand BoolOff(double time, Animator target, Action callback, int hash) =>
+            new(time, target, AnimatorCommandType.BoolOff, callback, hash);
 
         public static AnimatorCommand Float(double time, Animator target, int hash, float value) =>
-            new(time, target, AnimatorCommandType.Float, hash, value);
+            new(time, target, AnimatorCommandType.Float, null, hash, value);
+        public static AnimatorCommand Float(double time, Animator target, Action callback, int hash, float value) =>
+            new(time, target, AnimatorCommandType.Float, callback, hash, value);
 
         public static AnimatorCommand Blend(double time, Animator target, int hash,
             float duration, int layer) =>
-            new(time, target, AnimatorCommandType.Blend, hash, duration, layer);
+            new(time, target, AnimatorCommandType.Blend, null, hash, duration, layer);
+
+        public static AnimatorCommand Blend(double time, Animator target, Action callback, int hash,
+            float duration, int layer) =>
+            new(time, target, AnimatorCommandType.Blend, callback, hash, duration, layer);
 
         public static AnimatorCommand Randomize(double time, Animator target) =>
             new(time, target, AnimatorCommandType.Randomize);
+        public static AnimatorCommand Randomize(double time, Animator target, Action callback) =>
+            new(time, target, AnimatorCommandType.Randomize, callback);
     }
 
     /// <summary>
@@ -89,7 +106,7 @@ namespace YARG.Venue
                         cmd.Target.SafeSetBool(cmd.ParamHash, true);
                         if (cmd.Value > 0f) // Value holds the off-delay
                             pendingBoolOffs.Add(AnimatorCommand.BoolOff(
-                                cmd.Time + cmd.Value, cmd.Target, cmd.ParamHash));
+                                cmd.Time + cmd.Value, cmd.Target, cmd.Callback, cmd.ParamHash));
                         break;
                     case AnimatorCommandType.BoolOff:
                         cmd.Target.SafeSetBool(cmd.ParamHash, false);
@@ -105,6 +122,8 @@ namespace YARG.Venue
                         hashLib.Randomize(cmd.Target);
                         break;
                 }
+
+                cmd.Callback?.Invoke();
             }
         }
     }

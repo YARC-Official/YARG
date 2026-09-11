@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using YARG.Core.Input;
 using YARG.Core.Logging;
 using YARG.Menu.Navigation;
@@ -22,6 +22,7 @@ namespace YARG.Gameplay.HUD
             {
                 NavigationScheme.Entry.NavigateSelect,
                 new NavigationScheme.Entry(MenuAction.Red, "Menu.Common.Back", Back),
+                new NavigationScheme.Entry(MenuAction.Start, "Menu.Pause.Generic.Resume", Back, hide: true),
                 NavigationScheme.Entry.NavigateUp,
                 NavigationScheme.Entry.NavigateDown,
             }, false));

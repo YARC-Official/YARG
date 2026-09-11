@@ -47,10 +47,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _fiveFretNotes: {fileID: 6269854297387791962}
+  _sixFretNotes: {fileID: 6269854297387791962}
   _fourLaneNotes: {fileID: 0}
   _fiveLaneNotes: {fileID: 0}
   _proKeysNotes: {fileID: 0}
   _fiveFretFret: {fileID: 206202885069211527}
+  _sixFretFret: {fileID: 206202885069211527}
   _fourLaneFret: {fileID: 206202885069211527}
   _fiveLaneFret: {fileID: 206202885069211527}
   _whiteKey: {fileID: 0}

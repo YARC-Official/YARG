@@ -59,6 +59,12 @@ namespace YARG.Audio.BASS
                     return null;
                 }
 
+                if (!IsChannelInRange(device, capture.Channels))
+                {
+                    ReleaseMic(device.DeviceId, device.Channel, capture);
+                    return null;
+                }
+
                 if (!capture.TryClaimChannel(device.Channel))
                 {
                     YargLogger.LogFormatWarning("Mic '{0}' channel {1} is already claimed", device.Name,
@@ -174,7 +180,11 @@ namespace YARG.Audio.BASS
 
                 return BassMicrophoneCapture.WithSystemLock(() =>
                 {
+#if UNITY_EDITOR_LINUX || UNITY_STANDALONE_LINUX
+                    int detected = 2;
+#else
                     int detected = BassMicChannelProbe.DetectChannelCount(deviceId, name) ?? 1;
+#endif
                     _channelCountByDevice[key] = detected;
                     return detected;
                 });
@@ -263,10 +273,17 @@ namespace YARG.Audio.BASS
                 return false;
             }
 
+#if UNITY_EDITOR_LINUX || UNITY_STANDALONE_LINUX
+            if (!IsUsableLinuxDevice(info))
+            {
+                return false;
+            }
+#else
             if (info.Name == "Default")
             {
                 return false;
             }
+#endif
 
             if (info.Name.StartsWith("Loopback", StringComparison.OrdinalIgnoreCase))
             {
@@ -275,6 +292,36 @@ namespace YARG.Audio.BASS
 
             return true;
         }
+
+#if UNITY_EDITOR_LINUX || UNITY_STANDALONE_LINUX
+        private static bool IsLinuxSoundServerDevice(DeviceInfo info)
+        {
+            if (info.IsDefault || info.Name.Equals("Default", StringComparison.OrdinalIgnoreCase) ||
+                info.Name.Equals("Default Audio Device", StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+
+            string driver = info.Driver ?? string.Empty;
+            return IsAlsaDevice(driver, "default") || IsAlsaDevice(driver, "pulse") ||
+                IsAlsaDevice(driver, "pipewire");
+        }
+
+        private static bool IsUsableLinuxDevice(DeviceInfo info)
+        {
+            if (IsLinuxSoundServerDevice(info))
+            {
+                return true;
+            }
+
+            string driver = info.Driver ?? string.Empty;
+            return IsAlsaDevice(driver, "hw") || IsAlsaDevice(driver, "plughw");
+        }
+
+        private static bool IsAlsaDevice(string driver, string device) =>
+            driver.Equals(device, StringComparison.OrdinalIgnoreCase) ||
+            driver.StartsWith(device + ":", StringComparison.OrdinalIgnoreCase);
+#endif
 
         private static int FindDeviceIdByName(string name)
         {

@@ -277,6 +277,7 @@ namespace YARG.Settings.Metadata
         private static readonly (string SubSection, string Label, GameMode Mode)[] InstrumentModes =
         {
             (nameof(ColorProfile.FiveFretGuitar), "Five Fret Guitar", GameMode.FiveFretGuitar),
+            (nameof(ColorProfile.SixFretGuitar),  "Six Fret Guitar",  GameMode.SixFretGuitar),
             (nameof(ColorProfile.FourLaneDrums),  "Four Lane Drums",  GameMode.FourLaneDrums),
             (nameof(ColorProfile.FiveLaneDrums),  "Five Lane Drums",  GameMode.FiveLaneDrums),
             (nameof(ColorProfile.ProKeys),        "Pro Keys",         GameMode.ProKeys),
@@ -317,6 +318,24 @@ namespace YARG.Settings.Metadata
             }
 
             return null;
+        }
+
+        private string GetSubSectionForMode(GameMode mode)
+        {
+            if (typeof(T) == typeof(EnginePreset))
+            {
+                return mode switch
+                {
+                    GameMode.FiveFretGuitar => nameof(EnginePreset.FiveFretGuitar),
+                    GameMode.SixFretGuitar => nameof(EnginePreset.SixFretGuitar),
+                    GameMode.FourLaneDrums or GameMode.FiveLaneDrums => nameof(EnginePreset.Drums),
+                    GameMode.Vocals => nameof(EnginePreset.Vocals),
+                    GameMode.ProKeys => nameof(EnginePreset.ProKeys),
+                    _ => null,
+                };
+            }
+
+            return ModeToSubSection(mode);
         }
 
         #endregion
@@ -435,6 +454,16 @@ namespace YARG.Settings.Metadata
                 _subSection = null;
             }
 
+            // Sync engine fields to the selected preview instrument.
+            if (typeof(T) == typeof(EnginePreset))
+            {
+                string modeSubSection = GetSubSectionForMode(PreviewOptions.GameMode);
+                if (modeSubSection != null)
+                {
+                    _subSection = modeSubSection;
+                }
+            }
+
             _fieldIndex = 0;
 
             // Sync shared preview state to this tab's TrackPreviewBuilder
@@ -471,26 +500,28 @@ namespace YARG.Settings.Metadata
                 }
                 default:
                 {
-                    if (!HideFields)
+                    if (_subSection is not null
+                        && _presetRef is ColorProfile
+                        && ColorFieldGroups.TryGetValue(_subSection, out var groups))
                     {
-                        if (_subSection is not null
-                            && _presetRef is ColorProfile
-                            && ColorFieldGroups.TryGetValue(_subSection, out var groups))
+                        BuildGroupedFields(settingContainer, navGroup, _presetRef, groups);
+                    }
+                    else
+                    {
+                        foreach (var field in _fields)
                         {
-                            BuildGroupedFields(settingContainer, navGroup, _presetRef, groups);
-                        }
-                        else
-                        {
-                            foreach (var field in _fields)
+                            if (_subSection is not null && field.ParentField.Name != _subSection)
                             {
-                                if (_subSection is not null && field.ParentField.Name != _subSection)
-                                {
-                                    continue;
-                                }
-
-                                BuildField(field, settingContainer, navGroup, _presetRef);
+                                continue;
                             }
+
+                            BuildField(field, settingContainer, navGroup, _presetRef);
                         }
+                    }
+
+                    if (ReadOnlyFields)
+                    {
+                        MakeFieldsReadOnly(settingContainer);
                     }
 
                     break;
@@ -673,8 +704,6 @@ namespace YARG.Settings.Metadata
             }
 
             // --- Instrument selector dropdown ---
-            // On Color Profile, this switches the sub-section (which colors are edited).
-            // On other tabs, it only changes the preview instrument.
             string currentLabel = InstrumentModes[0].Label;
             foreach (var (_, label, mode) in InstrumentModes)
             {
@@ -700,9 +729,9 @@ namespace YARG.Settings.Metadata
                         PreviewOptions.GameMode = gameMode;
                         tpb.StartingGameMode = gameMode;
 
-                        if (typeof(T) == typeof(ColorProfile))
+                        if (typeof(T) == typeof(ColorProfile) || typeof(T) == typeof(EnginePreset))
                         {
-                            string newSub = ModeToSubSection(gameMode);
+                            string newSub = GetSubSectionForMode(gameMode);
                             if (newSub != null && newSub != _subSection)
                             {
                                 RefreshForSubSection(newSub);
@@ -711,7 +740,15 @@ namespace YARG.Settings.Metadata
                             }
                         }
 
-                        SettingsMenu.Instance.Refresh();
+                        if (typeof(T) == typeof(EnginePreset))
+                        {
+                            SettingsMenu.Instance.RefreshAndKeepPosition();
+                        }
+                        else
+                        {
+                            SettingsMenu.Instance.Refresh();
+                        }
+
                         ReselectInstrumentRow();
                         break;
                     }
@@ -899,9 +936,16 @@ namespace YARG.Settings.Metadata
         /// same as clicking the row's Color Picker button. Keeps the stock row
         /// highlight ("Selected Background").
         /// </summary>
-        private static void UseColorPickerNavigation(BaseSettingVisual visual, NavigationGroup navGroup)
+        private void UseColorPickerNavigation(BaseSettingVisual visual, NavigationGroup navGroup)
         {
             if (visual is not ColorSettingVisual colorVisual)
+            {
+                return;
+            }
+
+            // Keep read-only rows navigable for controller scrolling; confirm no-ops
+            // when IsEditable is false.
+            if (ReadOnlyFields)
             {
                 return;
             }
@@ -1258,6 +1302,11 @@ namespace YARG.Settings.Metadata
             FieldSubGroup fretSub, Dictionary<string, FieldSettingInfo> fieldLookup, T preset,
             NavigationGroup navGroup)
         {
+            // Copying would modify a read-only (default) preset.
+            if (ReadOnlyFields)
+            {
+                return;
+            }
             // The base note is the first color field of the Notes sub-group.
             if (group.SubGroups.Length == 0 || group.SubGroups[0].FieldNames.Length == 0)
             {
@@ -1481,8 +1530,32 @@ namespace YARG.Settings.Metadata
             return sprite;
         }
 
+        // Keep values opaque: CanvasGroup alpha would make colors and sliders
+        // translucent, so only input text is dimmed.
+        private static void MakeFieldsReadOnly(Transform container)
+        {
+            foreach (var visual in container.GetComponentsInChildren<BaseSettingVisual>(false))
+            {
+                visual.SetEditable(false, dim: false);
+
+                foreach (var input in visual.GetComponentsInChildren<TMP_InputField>(false))
+                {
+                    var text = input.textComponent;
+                    text.color = text.color.WithAlpha(0.7f);
+                }
+            }
+        }
+
         private void BuildField(FieldSettingInfo field, Transform container, NavigationGroup navGroup, T preset)
         {
+            // Six-fret guitar does not support solo taps.
+            if (typeof(T) == typeof(EnginePreset)
+                && _subSection == nameof(EnginePreset.SixFretGuitar)
+                && field.Field.Name == nameof(EnginePreset.FiveFretGuitarPreset.SoloTaps))
+            {
+                return;
+            }
+
             // These legacy key colors belong to the deferred five-lane-keys
             // editor. Pro Keys uses the White/BlackNote and Overlay fields instead.
             if (_subSection == nameof(ColorProfile.ProKeys)
@@ -1758,8 +1831,7 @@ namespace YARG.Settings.Metadata
                     ),
                     (
                         "HitWindow",
-                        // Since the hit window setting is a reference type, we don't need a callback
-                        new HitWindowSetting(hitWindow)
+                        new HitWindowSetting(hitWindow, _ => SettingsMenu.Instance?.RefreshPreview())
                     )
                 });
 
@@ -1846,7 +1918,8 @@ namespace YARG.Settings.Metadata
         private void RefreshForSubSection(string subSection)
         {
             _subSection = subSection;
-            if (TryGetModeForSubSection(subSection, out var subSectionMode))
+            if (typeof(T) == typeof(ColorProfile)
+                && TryGetModeForSubSection(subSection, out var subSectionMode))
             {
                 PreviewOptions.GameMode = subSectionMode;
             }

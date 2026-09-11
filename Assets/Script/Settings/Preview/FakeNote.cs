@@ -49,8 +49,8 @@ namespace YARG.Settings.Preview
             if (!NoteRef.CenterNote)
             {
                 // Set the position. If the game mode provides explicit X positions
-                // (e.g. piano-key spacing for pro keys), use those; otherwise fall
-                // back to the uniform lane formula.
+                // (e.g. piano-key spacing for pro keys, 3-lane layout for six-fret),
+                // use those; otherwise fall back to the uniform lane formula.
                 var info = FakeTrackPlayer.CurrentGameModeInfo;
                 float x;
                 if (info.NoteXPositions is { Length: > 0 } positions
@@ -192,10 +192,61 @@ namespace YARG.Settings.Preview
 
             _currentNoteGroup.SetColorWithEmission(color, color);
 
+            // Six-fret note models share materials with the barre models, so
+            // standard up/down notes need their secondary color set to the same
+            // color as the primary. A barre combines the black and white fret of
+            // a lane pair: primary black, secondary white. Lefty flip swaps rows.
+            if (FakeTrackPlayer.SelectedGameMode == GameMode.SixFretGuitar)
+            {
+                bool isBarre = NoteRef.NoteType is ThemeNoteType.SixFretBarre
+                    or ThemeNoteType.SixFretBarreTap or ThemeNoteType.SixFretBarreHOPO;
+                bool isUp = NoteRef.NoteType is ThemeNoteType.SixFretUp
+                    or ThemeNoteType.SixFretUpHOPO or ThemeNoteType.SixFretUpTap;
+                bool isDown = NoteRef.NoteType is ThemeNoteType.SixFretDown
+                    or ThemeNoteType.SixFretDownHOPO or ThemeNoteType.SixFretDownTap;
+
+                if (isUp || isDown || isBarre)
+                {
+                    if (FakeTrackPlayer.LeftyFlip)
+                    {
+                        (isUp, isDown) = (isDown, isUp);
+                    }
+
+                    bool isBlack = isUp || isBarre;
+                    var primary = (useStarPower
+                        ? isBlack
+                            ? colorProfile.SixFretGuitar.BlackNoteStarPower
+                            : colorProfile.SixFretGuitar.WhiteNoteStarPower
+                        : isBlack
+                            ? colorProfile.SixFretGuitar.BlackNote
+                            : colorProfile.SixFretGuitar.WhiteNote).ToUnityColor();
+                    var secondary = primary;
+                    if (isBarre)
+                    {
+                        secondary = (useStarPower
+                            ? isBlack
+                                ? colorProfile.SixFretGuitar.WhiteNoteStarPower
+                                : colorProfile.SixFretGuitar.BlackNoteStarPower
+                            : isBlack
+                                ? colorProfile.SixFretGuitar.WhiteNote
+                                : colorProfile.SixFretGuitar.BlackNote).ToUnityColor();
+                    }
+
+                    if (NoteRef.ForceMiss)
+                    {
+                        primary = color;
+                    }
+
+                    _currentNoteGroup.SetColorWithEmission(primary, primary);
+                    _currentNoteGroup.SetSecondaryColor(secondary, secondary);
+                }
+            }
+
             // Set metal color
             var metalColor = (FakeTrackPlayer.SelectedGameMode switch
             {
                 GameMode.FiveFretGuitar => colorProfile.FiveFretGuitar.GetMetalColor(useStarPower),
+                GameMode.SixFretGuitar => colorProfile.SixFretGuitar.GetMetalColor(useStarPower),
                 GameMode.FourLaneDrums  => colorProfile.FourLaneDrums.GetMetalColor(useStarPower),
                 GameMode.FiveLaneDrums  => colorProfile.FiveLaneDrums.GetMetalColor(useStarPower),
                 GameMode.ProKeys        => FakeTrackPlayer.UseFiveLaneKeys

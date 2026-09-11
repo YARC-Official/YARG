@@ -166,7 +166,7 @@ namespace YARG.Venue.Characters
         public int RngAtLastTransition;
         protected int  _rngHash;
 
-        public virtual void Initialize(CharacterManager characterManager)
+        public virtual void Initialize(CharacterManager characterManager, bool isCustom = false)
         {
             _characterManager = characterManager;
             _animator = GetComponent<Animator>();
@@ -571,22 +571,6 @@ namespace YARG.Venue.Characters
                 SetHandAnimationForNote(gNote);
             }
 
-            if (e is Note<VocalNote> or LyricEvent)
-            {
-                if (VrmInstance != null)
-                {
-                    var expression = VrmInstance.Runtime.Expression;
-
-                    expression.SetWeight(ExpressionKey.Oh, 1.0f);
-
-                    DOTween.Sequence().AppendInterval((float) e.TimeLength).AppendCallback(() =>
-                    {
-                        expression.SetWeight(ExpressionKey.Oh, 0.0f);
-                        expression.SetWeight(ExpressionKey.Happy, 1.0f);
-                    }).SetAutoKill(true);
-                }
-            }
-
             if (e is Note<ProKeysNote>)
             {
 
@@ -842,6 +826,11 @@ namespace YARG.Venue.Characters
         public bool IsAnimating()
         {
             return _isAnimating;
+        }
+
+        public void TriggerEnd()
+        {
+            SetTrigger(CharacterStateType.End);
         }
 
         public void UpdateTempo(double secondsPerBeat)

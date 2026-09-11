@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using JetBrains.Annotations;
 using UnityEngine;
-using UnityEngine.TextCore.Text;
 using YARG.Core;
 using YARG.Core.Chart;
 using YARG.Core.Chart.Events;
@@ -94,24 +92,25 @@ namespace YARG.Venue.Characters
 
         private bool _songHasDrumAnimations;
 
+        private double _chartEndTime;
+        private bool   _endTriggered;
+
         public double SongTime => GameManager.SongTime;
 
         protected override void OnChartLoaded(SongChart chart)
         {
-            // Get the expert notes for each track
+            // Get the expert notes for each track, falling back from 5-fret to 6-fret if needed
             // TODO: This should get the highest available difficulty, in case Expert doesn't exist
-            var guitarId = chart.FiveFretGuitar.GetDifficulty(Difficulty.Expert);
-            var bassId = chart.FiveFretBass.GetDifficulty(Difficulty.Expert);
-            var keysId = chart.Keys.GetDifficulty(Difficulty.Expert);
-            var proKeysId = chart.ProKeys.GetDifficulty(Difficulty.Expert);
-            var vocalsId = chart.Vocals.Parts[0].CloneAsInstrumentDifficulty();
-            var drumsId = chart.ProDrums.GetDifficulty(Difficulty.Expert);
+            var guitarTrack = TryGetFretTrack(chart, Instrument.FiveFretGuitar, Instrument.SixFretGuitar, out var guitarId);
+            var bassTrack   = TryGetFretTrack(chart, Instrument.FiveFretBass,   Instrument.SixFretBass,   out var bassId);
+            var keysId      = chart.Keys.GetDifficulty(Difficulty.Expert);
+            var proKeysId   = chart.ProKeys.GetDifficulty(Difficulty.Expert);
+            var vocalsId    = chart.Vocals.Parts[0].CloneAsInstrumentDifficulty();
+            var drumsId     = chart.ProDrums.GetDifficulty(Difficulty.Expert);
 
-            var guitarTrack = chart.GetFiveFretTrack(Instrument.FiveFretGuitar);
-            var bassTrack = chart.GetFiveFretTrack(Instrument.FiveFretBass);
-            var drumsTrack = chart.GetDrumsTrack(Instrument.ProDrums);
+            var drumsTrack  = chart.GetDrumsTrack(Instrument.ProDrums);
             var vocalsTrack = chart.GetVocalsTrack(Instrument.Vocals);
-            var keysTrack = chart.GetFiveFretTrack(Instrument.Keys);
+            var keysTrack   = chart.GetFiveFretTrack(Instrument.Keys);
             var proKeysTrack = chart.ProKeys;
 
             _guitarNotes = guitarId.Notes;
@@ -195,11 +194,21 @@ namespace YARG.Venue.Characters
                 _vocalMaps = GenerateMap(_vocalEvents);
             }
 
+            var (_, endEvent) = chart.GetMusicEvents();
+            if (endEvent != null)
+            {
+                _chartEndTime = endEvent.Time;
+            }
+            else
+            {
+                _chartEndTime = GameManager.LastNoteTime;
+            }
+
             // Register self with GameManager
             GameManager.SetVenueCharacterManager(this);
         }
 
-        public void Initialize()
+        public void Initialize(bool usingCustomChar = false)
         {
             // Find all the characters in the venue, done here because OnChartLoaded can get called before any
             // replacement characters are loaded.
@@ -212,7 +221,7 @@ namespace YARG.Venue.Characters
                 {
                     continue;
                 }
-                character.Initialize(this);
+                character.Initialize(this, usingCustomChar);
                 _characters.Add(character.Type, character);
             }
             InitializeLipsync();
@@ -396,6 +405,12 @@ namespace YARG.Venue.Characters
                 {
                     ((VRMCharacter) character).SetWind(_wind);
                 }
+
+                if (_chartEndTime > 0 && GameManager.VisualTime >= _chartEndTime && !_endTriggered)
+                {
+                    _endTriggered = true;
+                    character.TriggerEnd();
+                }
             }
 
             _lastKnownPausedState = GameManager.Paused;
@@ -421,6 +436,8 @@ namespace YARG.Venue.Characters
             _keysTriggerIndex = 0;
             _proKeysTriggerIndex = 0;
             _vocalTriggerIndex = 0;
+
+            _endTriggered = false;
 
             while (_guitarNoteIndex < _guitarNotes.Count && _guitarNotes[_guitarNoteIndex].Time < time)
             {
@@ -579,7 +596,7 @@ namespace YARG.Venue.Characters
                 character.OnAnimationEvent(mapEvent);
             }
 
-            while (_bassNotes.Count > 0 && _bassNoteIndex < _bassNotes.Count && _bassNotes[_bassNoteIndex].Time - character.TimeToFirstHit <= GameManager.SongTime)
+            while (_bassNotes.Count > 0 && _bassNoteIndex < _bassNotes.Count && _bassNotes[_bassNoteIndex].Time - character.TimeToFirstHit <= GameManager.SongTime + character.TimeToFirstHit)
             {
                 if (_bassNoteIndex >= _bassNotes.Count)
                 {
@@ -596,7 +613,7 @@ namespace YARG.Venue.Characters
                 }
 
                 // If next note is more than secondsPerBeat away, stop animating
-                if (note.NextNote == null || note.NextNote.Time > GameManager.SongTime + _currentTempo.SecondsPerBeat * 2)
+                if (note.NextNote == null || note.NextNote.Time - character.TimeToFirstHit > GameManager.SongTime + _currentTempo.SecondsPerBeat * 2)
                 {
                     character.StopAnimation();
                 }
@@ -655,6 +672,15 @@ namespace YARG.Venue.Characters
                 }
             }
 
+            while (_drumMaps.Count > 0 && _drumTriggerIndex < _drumMaps.Count &&
+                _drumMaps[_drumTriggerIndex].Time - character.TimeToFirstHit <= GameManager.SongTime)
+            {
+                var mapEvent = _drumMaps[_drumTriggerIndex];
+                _drumTriggerIndex++;
+
+                character.OnAnimationEvent(mapEvent);
+            }
+
             while (_drumNotes.Count > 0 && _drumNoteIndex < _drumNotes.Count &&
                 _drumNotes[_drumNoteIndex].Time - character.TimeToFirstHit <= GameManager.SongTime)
             {
@@ -700,6 +726,39 @@ namespace YARG.Venue.Characters
 
                 hasAnimationEvents = _drumAnimationIndex < _drumAnimationEvents.Count;
             }
+        }
+
+        /// <summary>
+        /// Tries to get a guitar/bass track with expert difficulty, falling back from 5-fret to 6-fret if the
+        /// 5-fret track is empty. Returns the track and its Expert difficulty.
+        /// </summary>
+        private static InstrumentTrack<GuitarNote> TryGetFretTrack(
+            SongChart chart,
+            Instrument fiveFretInstrument,
+            Instrument sixFretInstrument,
+            out InstrumentDifficulty<GuitarNote> difficulty)
+        {
+            // Try 5-fret first
+            if (chart.TryGetFiveFretDifficulty(fiveFretInstrument, Difficulty.Expert, out var fiveFretDiff)
+                && fiveFretDiff.Notes.Count > 0)
+            {
+                difficulty = fiveFretDiff;
+                return chart.GetFiveFretTrack(fiveFretInstrument);
+            }
+
+            // Fallback to 6-fret
+            if (chart.TryGetSixFretDifficulty(sixFretInstrument, Difficulty.Expert, out var sixFretDiff)
+                && sixFretDiff.Notes.Count > 0)
+            {
+                difficulty = sixFretDiff;
+                return chart.GetSixFretTrack(sixFretInstrument);
+            }
+
+            // No data at all — return the 5-fret track and whatever difficulty exists (possibly empty)
+            difficulty = chart.TryGetFiveFretDifficulty(fiveFretInstrument, Difficulty.Expert, out var fallbackDiff)
+                ? fallbackDiff
+                : new InstrumentDifficulty<GuitarNote>(fiveFretInstrument, Difficulty.Expert);
+            return chart.GetFiveFretTrack(fiveFretInstrument);
         }
 
         private void GenerateDrumsAnimations()

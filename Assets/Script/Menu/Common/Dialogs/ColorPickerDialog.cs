@@ -228,7 +228,6 @@ namespace YARG.Menu.Dialogs
         /// </summary>
         private class SliderRowVisual
         {
-            private const float SELECTED_BAR_DARKEN = 0.7f;
             private const float EDITING_YELLOW_DIM = 0.8f;
 
             private static readonly Color SELECTED_HANDLE_GREY = new(0.82f, 0.82f, 0.82f, 1f);
@@ -304,9 +303,7 @@ namespace YARG.Menu.Dialogs
                         // Desaturated grey at the same brightness as the
                         // previous dim yellow — the switch to saturated
                         // yellow on edit is much more noticeable this way
-                        var dim = RuntimeNavigatable.SelectedTextColor * SELECTED_BAR_DARKEN;
-                        Color.RGBToHSV(dim, out _, out _, out float v);
-                        color = Color.HSVToRGB(0f, 0f, v);
+                        color = RuntimeNavigatable.DimmedSelectionGrey;
                     }
                     else
                     {
