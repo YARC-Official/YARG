@@ -93,6 +93,12 @@ namespace YARG.Gameplay
         private bool _updatesAtSongStart;
         private bool _crowdPending;
 
+        // The venue bundle kept loaded between songs on phones (see LoadYarground)
+        private static string      _keptVenuePath;
+        private static FileStream  _keptVenueStream;
+        private static AssetBundle _keptVenueBundle;
+        private static GameObject  _keptVenuePrefab;
+
         private          bool             _usingSceneVenue;
         private          Scene            _venueScene;
 #if UNITY_EDITOR
@@ -458,29 +464,63 @@ namespace YARG.Gameplay
 
         private async UniTask LoadYarground(BackgroundResult result)
         {
-            var bundle = AssetBundle.LoadFromStream(result.Stream);
-            if (bundle == null)
+            // Phones compile a bundle's shaders again every time it is loaded,
+            // which stalls the first frames of every song, so on them the last
+            // venue bundle stays loaded between songs and is reused when the
+            // same one is picked again
+            bool keep = Application.isMobilePlatform && result.Stream is FileStream;
+            var file = result.Stream as FileStream;
+
+            AssetBundle bundle;
+            GameObject bg;
+            if (keep && TryReuseVenueBundle(file, out bundle, out bg))
             {
-                // Yarground bundles are built for desktop targets, so this is
-                // the normal path on mobile — use the venue scene compiled
-                // into the build instead
-                YargLogger.LogWarning(
-                    "Failed to load yarground bundle (wrong build target?); using the built-in venue");
-                await LoadBuiltInVenueScene();
-                return;
+                YargLogger.LogFormatInfo("Reusing loaded yarground bundle {0}", bundle.name);
+            }
+            else
+            {
+                var stream = result.Stream;
+                if (keep)
+                {
+                    ReleaseVenueBundle();
+
+                    // The stream has to outlive the bundle; the result's is
+                    // disposed with the result
+                    _keptVenuePath = file.Name;
+                    _keptVenueStream = File.OpenRead(_keptVenuePath);
+                    stream = _keptVenueStream;
+                }
+
+                bundle = AssetBundle.LoadFromStream(stream);
+                if (bundle == null)
+                {
+                    ReleaseVenueBundle();
+
+                    // Yarground bundles are built for desktop targets, so this is
+                    // the normal path on mobile — use the venue scene compiled
+                    // into the build instead
+                    YargLogger.LogWarning(
+                        "Failed to load yarground bundle (wrong build target?); using the built-in venue");
+                    await LoadBuiltInVenueScene();
+                    return;
+                }
+
+                YargLogger.LogFormatInfo("Loaded yarground bundle {0}", bundle.name);
+
+                // KEEP THIS PATH LOWERCASE
+                // Breaks things for other platforms, because Unity
+                bg = (GameObject) await bundle.LoadAssetAsync<GameObject>(
+                    BackgroundHelper.BACKGROUND_PREFAB_PATH.ToLowerInvariant());
+
+                if (keep)
+                {
+                    _keptVenueBundle = bundle;
+                    _keptVenuePrefab = bg;
+                }
             }
 
-            YargLogger.LogFormatInfo("Loaded yarground bundle {0}", bundle.name);
-
-            AssetBundle shaderBundle = null;
-
-            // KEEP THIS PATH LOWERCASE
-            // Breaks things for other platforms, because Unity
-            var bg = (GameObject) await bundle.LoadAssetAsync<GameObject>(
-                BackgroundHelper.BACKGROUND_PREFAB_PATH.ToLowerInvariant());
-
             // Load Metal shaders, if necessary
-            shaderBundle = BackgroundHelper.LoadMetalShaders(bundle, bg, BackgroundHelper.ExportType.Background);
+            var shaderBundle = BackgroundHelper.LoadMetalShaders(bundle, bg, BackgroundHelper.ExportType.Background);
 
             // Load custom audio
             await LoadCustomAudioAssets(bg, bundle);
@@ -488,9 +528,49 @@ namespace YARG.Gameplay
             var gender = GameManager.Song.VocalGender;
             await LoadYargroundPrefab(bg, gender, manager =>
             {
-                manager.Bundle = bundle;
+                // A kept bundle is unloaded when another venue replaces it,
+                // not with the song
+                if (!keep)
+                {
+                    manager.Bundle = bundle;
+                }
+
                 manager.ShaderBundles.Add(shaderBundle);
             });
+        }
+
+        private static bool TryReuseVenueBundle(FileStream file, out AssetBundle bundle, out GameObject prefab)
+        {
+            bundle = _keptVenueBundle;
+            prefab = _keptVenuePrefab;
+            return bundle != null && prefab != null && _keptVenuePath == file.Name;
+        }
+
+        private static void ReleaseVenueBundle()
+        {
+            if (_keptVenueBundle != null)
+            {
+                _keptVenueBundle.Unload(true);
+            }
+
+            _keptVenueStream?.Dispose();
+            _keptVenueBundle = null;
+            _keptVenuePrefab = null;
+            _keptVenueStream = null;
+            _keptVenuePath = null;
+        }
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
+        private static void ReleaseVenueBundleOnLowMemory()
+        {
+            Application.lowMemory += () =>
+            {
+                // Never mid-song: the venue on screen is built from these assets
+                if (SceneManager.GetActiveScene().buildIndex != (int) SceneIndex.Gameplay)
+                {
+                    ReleaseVenueBundle();
+                }
+            };
         }
 
         private async UniTask LoadYargroundPrefab(GameObject bg, VocalGender gender,
