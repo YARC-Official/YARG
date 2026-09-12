@@ -134,28 +134,28 @@ namespace YARG.Input.Bindings
                 ControlStrings.MENU_UP,
                 new ReusableButtonBinding(
                     ReusableBindingSetTemplates.MENU[ControlStrings.MENU_UP],
-                    new ReusableSingleButtonBindingConfig(ControllerFamily.FourLaneDrumkit, ControlStrings.DPAD_UP)
+                    new ReusableSingleButtonBindingConfig(ControllerFamily.FiveLaneDrumkit, ControlStrings.DPAD_UP)
                 )
             },
             {
                 ControlStrings.MENU_DOWN,
                 new ReusableButtonBinding(
                     ReusableBindingSetTemplates.MENU[ControlStrings.MENU_DOWN],
-                    new ReusableSingleButtonBindingConfig(ControllerFamily.FourLaneDrumkit, ControlStrings.DPAD_DOWN)
+                    new ReusableSingleButtonBindingConfig(ControllerFamily.FiveLaneDrumkit, ControlStrings.DPAD_DOWN)
                 )
             },
             {
                 ControlStrings.MENU_LEFT,
                 new ReusableButtonBinding(
                     ReusableBindingSetTemplates.MENU[ControlStrings.MENU_LEFT],
-                    new ReusableSingleButtonBindingConfig(ControllerFamily.FourLaneDrumkit, ControlStrings.DPAD_LEFT)
+                    new ReusableSingleButtonBindingConfig(ControllerFamily.FiveLaneDrumkit, ControlStrings.DPAD_LEFT)
                 )
             },
             {
                 ControlStrings.MENU_RIGHT,
                 new ReusableButtonBinding(
                     ReusableBindingSetTemplates.MENU[ControlStrings.MENU_RIGHT],
-                    new ReusableSingleButtonBindingConfig(ControllerFamily.FourLaneDrumkit, ControlStrings.DPAD_RIGHT)
+                    new ReusableSingleButtonBindingConfig(ControllerFamily.FiveLaneDrumkit, ControlStrings.DPAD_RIGHT)
                 )
             },
         };
