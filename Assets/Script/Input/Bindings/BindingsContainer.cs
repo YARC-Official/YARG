@@ -30,10 +30,7 @@ namespace YARG.Input.Bindings
             {
                 ControllerFamily.FiveFretGuitar,
                 new() {
-                    { GameMode.Menu, new() { // Menu
-                        ReusableBindingSetDefaults.DefaultFiveFretGuitarMenu
-                    }},
-
+                    { GameMode.Menu, new() { ReusableBindingSetDefaults.DefaultFiveFretGuitarMenu }},
                     { GameMode.FiveFretGuitar, new() {
                         ReusableBindingSetDefaults.DefaultFiveFretGuitar,
                         ReusableBindingSetDefaults.DefaultRiffmasterGuitar
@@ -44,16 +41,14 @@ namespace YARG.Input.Bindings
             {
                 ControllerFamily.SixFretGuitar,
                 new() {
-                    { GameMode.SixFretGuitar, new() {
-                        ReusableBindingSetDefaults.DefaultSixFretGuitar
-                    }}
+                    { GameMode.SixFretGuitar, new() { ReusableBindingSetDefaults.DefaultSixFretGuitar }}
                 }
             },
 
             {
                 ControllerFamily.FourLaneDrumkit,
                 new() {
-                    { GameMode.Menu, new() { // Menu
+                    { GameMode.Menu, new() {
                         ReusableBindingSetDefaults.DefaultFourLaneDrumkitMenu,
                         ReusableBindingSetDefaults.FourLaneDrumkitManualMenu,
                     }},
@@ -68,12 +63,18 @@ namespace YARG.Input.Bindings
                 ControllerFamily.FiveLaneDrumkit,
                 new()
                 {
-                    { GameMode.FiveLaneDrums, new()
-                    {
-                        ReusableBindingSetDefaults.DefaultFiveLaneDrumkit,
-                    }}
+                    { GameMode.FiveLaneDrums, new() { ReusableBindingSetDefaults.DefaultFiveLaneDrumkit }}
                 }
             },
+
+            {
+                ControllerFamily.ProKeyboard,
+                new()
+                {
+                    { GameMode.Menu, new() { ReusableBindingSetDefaults.DefaultProKeyboardMenu }},
+                    { GameMode.ProKeys, new() { ReusableBindingSetDefaults.DefaultProKeyboard }}
+                }
+            }
         };
 
         private static readonly Dictionary<(GameMode mode, ControllerFamily controllerFamily), List<ReusableBindingSet>> _bindingCollectionsByContext = new();
