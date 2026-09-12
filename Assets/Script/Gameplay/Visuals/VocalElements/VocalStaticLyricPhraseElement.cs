@@ -142,8 +142,8 @@ namespace YARG.Gameplay.Visuals
         }
 
         private static void MakeStaticLyricSyllable(List<StaticLyricSyllable> syllables,
-            List<VocalsPhrase> scoringPhrases, bool allowHiding, string text, double time, double timeEnd,
-            LyricSymbolFlags flags, bool isLastLyricOfPhrase)
+            List<VocalsPhrase> scoringPhrases, bool allowHiding, string text,
+            double time, double timeEnd, LyricSymbolFlags flags, bool isLastLyricOfPhrase)
         {
             if (allowHiding && ((flags & LyricSymbolFlags.HarmonyHidden) != 0))
             {

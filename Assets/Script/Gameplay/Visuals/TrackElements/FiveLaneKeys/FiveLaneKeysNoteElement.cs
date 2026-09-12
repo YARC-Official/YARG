@@ -53,7 +53,7 @@ namespace YARG.Gameplay.Visuals
         {
             base.InitializeElement();
 
-            var noteGroups = NoteRef.IsStarPower ? StarPowerNoteGroups : NoteGroups;
+            var noteGroups = IsStarPowerVisible ? StarPowerNoteGroups : NoteGroups;
 
             if (Player.IsNormalNote(NoteRef))
             {
@@ -170,7 +170,7 @@ namespace YARG.Gameplay.Visuals
 
         protected override bool CalcStarPowerVisible()
         {
-            if (!NoteRef.IsStarPower)
+            if (!Player.BaseParameters.StarPowerEnabled || !NoteRef.IsStarPower)
             {
                 return false;
             }
@@ -188,7 +188,7 @@ namespace YARG.Gameplay.Visuals
 
             // Get which note color to use
             var colorNoStarPower = colors.GetNoteColor(NoteRef.Fret);
-            var color = NoteRef.IsStarPower
+            var color = IsStarPowerVisible
                 ? colors.GetNoteStarPowerColor(NoteRef.Fret)
                 : colorNoStarPower;
 
@@ -203,7 +203,7 @@ namespace YARG.Gameplay.Visuals
                 NoteGroup.SetColorWithEmission(color.ToUnityColor(), colorNoStarPower.ToUnityColor());
 
                 // Set the metal color
-                NoteGroup.SetMetalColor(colors.GetMetalColor(NoteRef.IsStarPower).ToUnityColor());
+                NoteGroup.SetMetalColor(colors.GetMetalColor(IsStarPowerVisible).ToUnityColor());
             }
 
             // The rest of this method is for sustain only

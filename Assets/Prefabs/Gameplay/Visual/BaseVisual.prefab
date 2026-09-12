@@ -6152,6 +6152,7 @@ MonoBehaviour:
   _defaultPresetColor: {r: 0, g: 0.49803922, b: 0.6901961, a: 1}
   _customPresetColor: {r: 1, g: 0.2, b: 0.18431373, a: 1}
   _soloTapsPresetColor: {r: 0.5411765, g: 0.1686275, b: 0.8862746, a: 1}
+  _tournamentPresetColor: {r: 0, g: 0.53333336, b: 0.627451, a: 1}
 --- !u!1 &4375285852884754376
 GameObject:
   m_ObjectHideFlags: 0
@@ -6553,6 +6554,7 @@ MonoBehaviour:
   _rightContainer: {fileID: 7624731359144739755}
   _casual: {r: 0.9, g: 0.3, b: 0.9, a: 1}
   _precision: {r: 1, g: 0.9, b: 0, a: 1}
+  _tournament: {r: 0, g: 1, b: 1, a: 1}
   _custom: {r: 1, g: 0.25, b: 0.25, a: 1}
   _ghostingAllowedColor: {r: 1, g: 0.5, b: 0, a: 1}
   _infiniteFrontEndColor: {r: 0.3, g: 0.75, b: 0.3, a: 1}

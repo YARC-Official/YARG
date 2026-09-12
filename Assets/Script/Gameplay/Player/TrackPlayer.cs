@@ -475,7 +475,10 @@ namespace YARG.Gameplay.Player
                 }
             }
 
-            phrases.AddRange(EngineContainer.UnisonPhrases);
+            if (BaseParameters.StarPowerEnabled)
+            {
+                phrases.AddRange(EngineContainer.UnisonPhrases);
+            }
 
             var effects = TrackEffect.PhrasesToEffects(Notes, phrases);
             _trackEffects.AddRange(effects);
@@ -1312,6 +1315,11 @@ namespace YARG.Gameplay.Player
 
         protected virtual void OnStarPowerPhraseHit(TNote note)
         {
+            if (!BaseParameters.StarPowerEnabled)
+            {
+                return;
+            }
+
             if (SettingsManager.Settings.EnableTrackEffects.Value)
             {
                 StarPowerEffect.gameObject.SetActive(true);
