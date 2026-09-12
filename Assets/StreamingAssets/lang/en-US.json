@@ -120,6 +120,19 @@
 			"Never": "Never",
 			"Always": "Always",
 			"IfChartContainsOpens": "If chart contains open notes"
+		},
+		"ControllerFamily": {
+			"FiveFretGuitar": "5-Fret Guitars",
+			"SixFretGuitar": "6-Fret Guitars",
+			"FourLaneDrumkit": "4-Lane Drumkits",
+			"FiveLaneDrumkit": "5-Lane Drumkits",
+			"ProKeyboard": "Pro Keyboards",
+			"ProGuitar": "Pro Guitars",
+			"MidiDevice": "MIDI Devices",
+			"ComputerKeyboard": "Computer Keyboards",
+			"Mouse": "Computer Mice",
+			"Gamepad": "Gamepads",
+			"Generic": "Generic Input Devices"
 		}
     },
     "Menu": {
@@ -542,19 +555,65 @@
                 "FullCombos": "Full Combos"
             }
         },
-        "ProfileList": {
-            "Name": "Profiles",
-            "ActiveProfiles" : "Active Profiles",
-            "AddBot": "Add Bot",
-            "AddProfile": "Add Profile",
-            "Bots" : "Bots",
-            "Players" : "Players",
-            "CouldNotLoad": "Couldn't Load",
-            "UnloadedEntry": "{0} <alpha=#66>— could not be loaded by this version of YARG",
-            "UnloadedDeleteTitle": "Delete Profile?",
-            "UnloadedDelete": "Deleting it is permanent.",
-            "BotDelete": "Deleting this bot is permanent."
-        },
+      "ProfileList": {
+        "Name": "Profiles\n& Devices",
+        "ActiveProfiles": "Active Profiles",
+        "AddBot": "Add Bot",
+        "AddProfile": "Add Profile",
+        "Bots": "Bots",
+        "Players": "Players",
+        "CouldNotLoad": "Couldn't Load",
+        "UnloadedEntry": "{0} <alpha=#66>— could not be loaded by this version of YARG",
+        "UnloadedDeleteTitle": "Delete Profile?",
+        "UnloadedDelete": "Deleting it is permanent.",
+        "BotDelete": "Deleting this bot is permanent.",
+        "Tooltip": {
+          "InputMode": {
+            "Title": "Input Mode",
+            "Text": "Represents what type of device you'll be using to play songs. Determines which playable parts will be available to you, what engine you'll use to play them, and what gameplay bindings you can configure."
+          },
+          "Controllers": {
+            "Title": "Controllers",
+            "Text": "A controller is any device that provides button and/or axis inputs to <i>YARG</i>. Use controllers to play most game modes (excluding Vocals and Harmonies) and to navigate menus. If your primary controller does not provide every input you need for gameplay and menu navigation, you can set up multiple controllers with additional and/or redundant bindings."
+          },
+          "AttachController": {
+            "Title": "Attach Controller",
+            "Text": "Attach a new controller to this profile. If that controller is currently attached to another profile, it will be detached from there."
+          },
+          "DetachController": {
+            "Title": "Detach Controller",
+            "Text": "Detach this controller from this profile."
+          },
+          "Microphones": {
+            "Title": "Microphones",
+            "Text": "A microphone is any device that provides an audio signal to <i>YARG</i>. Use microphones to play Vocals and Harmonies. To navigate menus as a vocalist, set up a controller."
+          },
+          "AttachMicrophone": {
+            "Title": "Attach Microphone",
+            "Text": "Attach a new microphone to this profile. If that microphone is currently attached to another profile, it will be detached from there."
+          },
+          "DetachMicrophone": {
+            "Title": "Detach Microphone",
+            "Text": "Detach this microphone from this profile."
+          },
+          "NoteSpeed": {
+            "Title": "Note Speed",
+            "Text": "Adjust the scrolling speed of the highway. At faster speeds, the gems are visually further apart.\n\nDefault value is 5.0. Higher values produce higher speeds."
+          },
+          "HighwayLength": {
+            "Title": "Track Length",
+            "Text": "Adjust the length of the highway.\n\nDefault value is 1.0. Higher values produce longer highways."
+          },
+          "LeftyFlip": {
+            "Title": "Lefty Flip",
+            "Text": "Reorient guitar and drum charts for left-handed gameplay."
+          },
+		  "BindingSetFilter": {
+			  "Title": "Binding Sets Filter",
+			  "Text": "Pick a type of controller for which to show binding sets. Most controller types are associated with a specific input mode (for example, 5-fret guitar controllers are for 5-Fret Guitar mode) but generic controller types like gamepads and MIDI devices can be used for various modes."
+		  }
+        }
+      },
         "ScoreScreen" : {
             "BandScoreNotSaved" : "Score not saved",
             "InconsistentReplay": "Inconsistent Replay",
@@ -1052,7 +1111,17 @@
 			"OrangeKey": "Five-Lane Orange Key (Fifth)",
             "StarPower": "Star Power Activate",
             "TouchEffects": "Touch Effects"
-        }
+        },
+		"Headers": {
+			"Menu": "For Menu Navigation",
+			"FiveFretGuitar": "For 5-Fret Guitar Gameplay",
+			"SixFretGuitar": "For 6-Fret Guitar Gameplay",
+			"FourLaneDrums": "For 4-Lane Drums Gameplay",
+			"FiveLaneDrums": "For 5-Lane Drums Gameplay",
+			"EliteDrums": "For Drums Gameplay",
+			"ProKeys": "For Keys Gameplay",
+			"ProGuitar": "For Pro Guitar Gameplay",
+		}
     },
     "Settings": {
         "Tab": {

@@ -23,7 +23,7 @@ namespace YARG.Player
         public bool SittingOut;
 
         public bool InputsEnabled { get; private set; }
-        public ProfileBindings Bindings { get; private set; }
+        public PlayerDeviceInfo DeviceInfo { get; private set; }
 
         public EnginePreset    EnginePreset    { get; private set; }
         public ThemePreset     ThemePreset     { get; private set; }
@@ -52,20 +52,20 @@ namespace YARG.Player
         /// </summary>
         public BaseEngineParameters EngineParameterOverride { get; set; }
 
-        public bool IsMissingMicrophone => !IsReplay && Profile.GameMode == GameMode.Vocals && Bindings.Microphone == null && !Profile.IsBot;
-        public bool IsMissingInputDevice => !IsReplay && Profile.GameMode != GameMode.Vocals && !Bindings.HasDeviceAssigned && !Profile.IsBot;
+        public bool IsMissingMicrophone => !IsReplay && Profile.GameMode == GameMode.Vocals && DeviceInfo.Microphone == null && !Profile.IsBot;
+        public bool IsMissingInputDevice => !IsReplay && Profile.GameMode != GameMode.Vocals && !DeviceInfo.HasDeviceAssigned && !Profile.IsBot;
 
-        public YargPlayer(YargProfile profile, ProfileBindings bindings)
+        public YargPlayer(YargProfile profile, PlayerDeviceInfo bindings)
         {
             Profile = profile;
-            Bindings = bindings;
+            DeviceInfo = bindings;
             IsReplay = false;
         }
 
         public YargPlayer(ReplayFrame frame, ReplayData replay)
         {
             Profile = frame.Profile;
-            Bindings = null;
+            DeviceInfo = null;
             EngineParameterOverride = frame.EngineParameters;
             IsReplay = true;
 
@@ -88,21 +88,21 @@ namespace YARG.Player
                 ?? RockMeterPreset.Normal;
         }
 
-        public void SwapToProfile(YargProfile profile, ProfileBindings bindings, bool resolveDevices)
+        public void SwapToProfile(YargProfile profile, PlayerDeviceInfo bindings, bool resolveDevices)
         {
             // Force-disable inputs
             bool enabled = InputsEnabled;
             DisableInputs();
 
             // Swap to the new profile
-            Bindings?.Dispose();
+            DeviceInfo?.Dispose();
             Profile = profile;
-            Bindings = bindings;
+            DeviceInfo = bindings;
 
             // Resolve bindings
             if (resolveDevices)
             {
-                Bindings?.ResolveDevices();
+                DeviceInfo?.ResolveDevices();
             }
 
             // Re-enable inputs
@@ -137,13 +137,13 @@ namespace YARG.Player
 
         public void EnableInputs()
         {
-            if (InputsEnabled || Bindings == null)
+            if (InputsEnabled || DeviceInfo == null)
             {
                 return;
             }
 
-            Bindings.EnableInputs();
-            Bindings.MenuInputProcessed += OnMenuInput;
+            DeviceInfo.EnableInputs();
+            DeviceInfo.MenuInputProcessed += OnMenuInput;
             InputManager.RegisterPlayer(this);
 
             InputsEnabled = true;
@@ -151,13 +151,13 @@ namespace YARG.Player
 
         public void DisableInputs()
         {
-            if (!InputsEnabled || Bindings == null)
+            if (!InputsEnabled || DeviceInfo == null)
             {
                 return;
             }
 
-            Bindings.DisableInputs();
-            Bindings.MenuInputProcessed -= OnMenuInput;
+            DeviceInfo.DisableInputs();
+            DeviceInfo.MenuInputProcessed -= OnMenuInput;
             InputManager.UnregisterPlayer(this);
 
             InputsEnabled = false;
@@ -171,7 +171,7 @@ namespace YARG.Player
         public void Dispose()
         {
             DisableInputs();
-            Bindings?.Dispose();
+            DeviceInfo?.Dispose();
         }
     }
 }

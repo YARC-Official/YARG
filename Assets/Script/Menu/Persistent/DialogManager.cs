@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -111,14 +111,14 @@ namespace YARG.Menu.Persistent
                 return null;
             }
 
-            if (player.Bindings.InputDevices.Count != 1)
+            if (player.DeviceInfo.Controllers.Count != 1)
             {
                 ShowMessage("Not Supported",
                     "Quick binding is currently only supported for profiles with exactly one input device.");
                 return null;
             }
 
-            var device = player.Bindings.InputDevices[0];
+            var device = player.DeviceInfo.Controllers[0];
 
             var prefab = gameMode switch
             {

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using Cysharp.Text;
@@ -125,7 +125,7 @@ namespace YARG.Gameplay
                 }
 
                 var player = _players[_debugSelectedPlayer];
-                return player.Player.Bindings.ContainsDevice(device);
+                return player.Player.DeviceInfo.ContainsController(device);
             };
         }
 

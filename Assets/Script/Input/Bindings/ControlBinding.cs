@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine.InputSystem;
@@ -25,13 +25,13 @@ namespace YARG.Input
     /// </summary>
     public abstract class ControlBinding
     {
-        public static event Action<ControlBinding, InputControl> BindingAdded;
-        public static event Action<ControlBinding, InputControl> BindingRemoved;
+        public static event Action<ControlBinding, InputControl> BindingAdded; // TODO-FRICK: Delete; handled in Reusable
+        public static event Action<ControlBinding, InputControl> BindingRemoved; // TODO-FRICK: Delete; handled in Reusable
 
         /// <summary>
         /// Fired when a binding has been added or removed.
         /// </summary>
-        public event Action BindingsChanged;
+        public event Action BindingsChanged; // TODO-FRICK: Delete; handled in Reusable
 
         /// <summary>
         /// Fired when an input event has been processed by this binding.
@@ -41,27 +41,27 @@ namespace YARG.Input
         /// <summary>
         /// The unlocalized name for this binding.
         /// </summary>
-        public string Name { get; }
+        public string Name { get; } // TODO-FRICK: Delete; handled in Reusable
 
         /// <summary>
         /// The alternate unlocalized name for this binding, representing lefty-flip.
         /// </summary>
-        public string NameLefty { get; }
+        public string NameLefty { get; } // TODO-FRICK: Delete; handled in Reusable
 
         /// <summary>
         /// The key string for this binding.
         /// </summary>
-        public string Key { get; }
+        public string Key { get; } // TODO-FRICK: Delete; handled in Reusable
 
         /// <summary>
         /// The action enum value for this binding.
         /// </summary>
-        public int Action { get; }
+        public int Action { get; } // TODO-FRICK: Delete; handled in Reusable
 
         /// <summary>
         /// Whether or not this control is enabled.
         /// </summary>
-        public bool Enabled { get; protected set; } = false;
+        public bool Enabled { get; protected set; } = false; // TODO-FRICK: Delete?
 
         protected double _lastEventTime;
 
@@ -86,8 +86,8 @@ namespace YARG.Input
         }
 
 #nullable enable
-        public abstract SerializedControlBinding? Serialize();
-        public abstract void Deserialize(SerializedControlBinding serialized);
+        public abstract SerializedReusableControlBinding? Serialize();
+        public abstract void Deserialize(SerializedReusableControlBinding serialized);
 
 #nullable disable
 
@@ -99,8 +99,8 @@ namespace YARG.Input
         public abstract bool RemoveControl(InputControl control);
         public abstract bool ContainsControl(InputControl control);
 
-        public abstract bool ContainsBindingsForDevice(InputDevice device);
-        public abstract void ClearBindingsForDevice(InputDevice device);
+        // public abstract bool ContainsBindingsForDevice(InputDevice device); TODO: Delete?
+        // public abstract void ClearBindingsForDevice(InputDevice device); TODO: Delete?
         public abstract void ClearAllBindings();
 
         public virtual void Enable()
@@ -182,7 +182,7 @@ namespace YARG.Input
             Control = control;
         }
 
-        public SingleBinding(InputControl<TState> control, SerializedInputControl serialized)
+        public SingleBinding(InputControl<TState> control, SerializedSingleBinding serialized)
             : this(control)
         {
         }
@@ -204,14 +204,14 @@ namespace YARG.Input
             StateChanged?.Invoke(state);
         }
 
-        public virtual SerializedInputControl Serialize()
+        public virtual SerializedSingleBinding Serialize()
         {
             // InputControl.path uses the device name,
             // which is not guaranteed to be stable across different runs of the game
             // (e.g. XInputGuitarHeroGuitar1 in one session could be just XInputGuitarHeroGuitar in another)
             // Swap that out for the device layout instead, indicated by <angle brackets>
             string path = Control.path.Replace(Control.device.name, $"<{Control.device.layout}>");
-            return new(Control.device.Serialize(), path);
+            return new(path);
         }
     }
 
@@ -224,7 +224,7 @@ namespace YARG.Input
     {
         public event Action StateChanged;
 
-        private List<SerializedInputControl> _unresolvedBindings = new();
+        private List<SerializedSingleBinding> _unresolvedBindings = new();
 
         protected List<TBinding>          _bindings = new();
         public    IReadOnlyList<TBinding> Bindings => _bindings;
@@ -238,9 +238,9 @@ namespace YARG.Input
         }
 
 #nullable enable
-        public override SerializedControlBinding? Serialize()
+        public override SerializedReusableControlBinding? Serialize()
         {
-            var serialized = new SerializedControlBinding()
+            var serialized = new SerializedReusableControlBinding()
             {
                 Parameters = SerializeParameters()
             };
@@ -260,7 +260,7 @@ namespace YARG.Input
             return serialized;
         }
 
-        public override void Deserialize(SerializedControlBinding? serialized)
+        public override void Deserialize(SerializedReusableControlBinding? serialized)
         {
             if (serialized is null || serialized.Controls is null) return;
 
@@ -268,8 +268,7 @@ namespace YARG.Input
 
             foreach (var binding in serialized.Controls)
             {
-                if (binding is null || string.IsNullOrEmpty(binding.ControlPath) || binding.Device is null ||
-                    string.IsNullOrEmpty(binding.Device.Layout) || string.IsNullOrEmpty(binding.Device.Hash))
+                if (binding is null || string.IsNullOrEmpty(binding.ControlPath))
                 {
                     YargLogger.LogFormatWarning("Encountered invalid control for binding {0}!", Key);
                     return;
@@ -375,6 +374,7 @@ namespace YARG.Input
             return false;
         }
 
+        /* TODO: Delete?
         public override bool ContainsBindingsForDevice(InputDevice device)
         {
             foreach (var binding in _bindings)
@@ -406,6 +406,7 @@ namespace YARG.Input
                 }
             }
         }
+        */
 
         public override void ClearAllBindings()
         {
@@ -470,7 +471,7 @@ namespace YARG.Input
             for (int i = 0; i < _unresolvedBindings.Count; i++)
             {
                 var binding = _unresolvedBindings[i];
-                if (!binding.Device.MatchesDevice(device)) continue;
+                //if (!binding.Device.MatchesDevice(device)) continue;
 
                 // Remove regardless of if deserialization fails, no point keeping broken bindings around
                 _unresolvedBindings.RemoveAt(i);
@@ -551,12 +552,12 @@ namespace YARG.Input
         }
 
 #nullable enable
-        protected virtual SerializedInputControl? SerializeControl(TBinding binding)
+        protected virtual SerializedSingleBinding? SerializeControl(TBinding binding)
         {
             return binding.Serialize();
         }
 
-        private TBinding? DeserializeControl(InputDevice device, SerializedInputControl serialized)
+        private TBinding? DeserializeControl(InputDevice device, SerializedSingleBinding serialized)
         {
             var control = InputControlPath.TryFindControl(device, serialized.ControlPath);
             if (control == null)
@@ -592,6 +593,6 @@ namespace YARG.Input
             return DeserializeControl(tControl, serialized);
         }
 
-        protected abstract TBinding DeserializeControl(InputControl<TState> control, SerializedInputControl serialized);
+        protected abstract TBinding DeserializeControl(InputControl<TState> control, SerializedSingleBinding serialized);
     }
 }

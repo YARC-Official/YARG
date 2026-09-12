@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using YARG.Input.Serialization;
@@ -7,13 +7,13 @@ namespace YARG.Input
 {
     public class SingleAxisBinding : SingleBinding<float>
     {
-        private const bool INVERT_DEFAULT = false;
+        private const bool INVERT_DEFAULT = false; // TODO-FRICK: Delete?
 
-        private const float MINIMUM_DEFAULT = -1f;
-        private const float MAXIMUM_DEFAULT = 1f;
+        private const float MINIMUM_DEFAULT = -1f; // TODO-FRICK: Delete?
+        private const float MAXIMUM_DEFAULT = 1f; // TODO-FRICK: Delete?
 
-        private const float LOWER_DEADZONE_DEFAULT = 0f;
-        private const float UPPER_DEADZONE_DEFAULT = 0f;
+        private const float LOWER_DEADZONE_DEFAULT = 0f; // TODO-FRICK: Delete?
+        private const float UPPER_DEADZONE_DEFAULT = 0f; // TODO-FRICK: Delete?
 
         private float _invertSign = INVERT_DEFAULT ? -1 : 1;
         private float _minimum = MINIMUM_DEFAULT;
@@ -103,7 +103,7 @@ namespace YARG.Input
         {
         }
 
-        public SingleAxisBinding(InputControl<float> control, SerializedInputControl serialized)
+        public SingleAxisBinding(InputControl<float> control, SerializedSingleBinding serialized)
             : base(control, serialized)
         {
             if (!serialized.Parameters.TryGetValue(nameof(Inverted), out string invertedText) ||
@@ -137,7 +137,7 @@ namespace YARG.Input
             UpperDeadzone = upper;
         }
 
-        public override SerializedInputControl Serialize()
+        public override SerializedSingleBinding Serialize()
         {
             var serialized = base.Serialize();
             if (serialized is null)
@@ -243,7 +243,7 @@ namespace YARG.Input
             return new(control, settings);
         }
 
-        protected override SingleAxisBinding DeserializeControl(InputControl<float> control, SerializedInputControl serialized)
+        protected override SingleAxisBinding DeserializeControl(InputControl<float> control, SerializedSingleBinding serialized)
         {
             return new(control, serialized);
         }

@@ -137,6 +137,19 @@ namespace YARG.Player
             return _playersByProfile.ContainsKey(profile);
         }
 
+        public static bool IsControllerInUse(InputDevice controller)
+        {
+            foreach (var player in _players)
+            {
+                if (player.DeviceInfo.Controllers.Contains(controller))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         public static YargPlayer CreatePlayerFromProfile(YargProfile profile, bool resolveDevices)
         {
             if (!_profiles.Contains(profile))
@@ -243,7 +256,7 @@ namespace YARG.Player
                 }
 
                 var bindings = BindingsContainer.GetBindingsForProfile(profile);
-                if (bindings.MatchesDevice(device))
+                if (bindings.MatchesController(device))
                 {
                     candidateProfiles.Add(profile);
                 }
@@ -257,7 +270,7 @@ namespace YARG.Player
         {
             foreach (var player in _players)
             {
-                if (player.Bindings.ContainsDevice(device))
+                if (player.DeviceInfo.ContainsController(device))
                 {
                     return true;
                 }
@@ -270,7 +283,7 @@ namespace YARG.Player
         {
             foreach (var player in _players)
             {
-                player.Bindings.OnDeviceAdded(device);
+                player.DeviceInfo.OnControllerAdded(device);
             }
 
             if (!SettingsManager.Settings.AutoCreateProfiles.Value)
@@ -285,7 +298,7 @@ namespace YARG.Player
         {
             foreach (var player in _players)
             {
-                player.Bindings.OnDeviceRemoved(device);
+                player.DeviceInfo.OnControllerRemoved(device);
             }
         }
 
@@ -818,7 +831,7 @@ namespace YARG.Player
 
             foreach (var player in _players)
             {
-                if (player.InputsEnabled && player.Bindings.ContainsDevice(keyboard))
+                if (player.InputsEnabled && player.DeviceInfo.ContainsController(keyboard))
                 {
                     return true;
                 }
@@ -953,7 +966,7 @@ namespace YARG.Player
 
             var newProfile = new YargProfile
             {
-                Name = ProfileListMenu.GetUniqueProfileName(profileName),
+                Name = ProfilesMenu.GetUniqueProfileName(profileName),
                 NoteSpeed = 5,
                 HighwayLength = 1,
                 GameMode = gameMode
@@ -968,11 +981,11 @@ namespace YARG.Player
                 return false;
             }
 
-            player.Bindings.AddDevice(device);
+            player.DeviceInfo.AddController(device);
 
-            if (!player.Bindings.ContainsBindingsForDevice(device))
+            if (!player.DeviceInfo.ContainsBindingsForController(device))
             {
-                player.Bindings.SetDefaultBinds(device);
+                player.DeviceInfo.SetDefaultBinds(device);
             }
 
             var successMessage = Localize.KeyFormat("Menu.Toast.ProfileCreated", device.displayName);

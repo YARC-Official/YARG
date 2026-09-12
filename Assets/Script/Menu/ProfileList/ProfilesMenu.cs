@@ -1,15 +1,20 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.Layouts;
 using YARG.Core;
 using YARG.Core.Audio;
 using YARG.Core.Game;
 using YARG.Core.Input;
 using YARG.Gameplay.Visuals;
+using YARG.Helpers;
 using YARG.Helpers.Extensions;
 using YARG.Input;
+using YARG.Input.Bindings;
+using YARG.Input.Serialization;
 using YARG.Localization;
 using YARG.Menu.HighwayConfiguration;
 using YARG.Menu.MusicLibrary;
@@ -22,20 +27,46 @@ using static YARG.Menu.HighwayConfiguration.DrumsHighwayConfigurationMenu;
 
 namespace YARG.Menu.ProfileList
 {
-    public class ProfileListMenu : MonoBehaviour
+    public class ProfilesMenu : MonoBehaviour
     {
+        public const string NUMBER_FORMAT = "0.0###";
+
+        private const string PROFILES_TAB = "profiles";
+        private const string BINDINGS_TAB = "bindings";
+
+        private enum ProfileMenuTab
+        {
+            Profiles,
+            Bindings
+        }
+
+        private static ProfileMenuTab _currentTab = ProfileMenuTab.Profiles;
+
+        private const ControllerFamily DEFAULT_BINDING_SET_FILTER = ControllerFamily.FiveFretGuitar;
+        public ControllerFamily CurrentBindingSetFilter = DEFAULT_BINDING_SET_FILTER;
+        private List<ControlItemInfo> _controls;
+        public IReadOnlyList<ControlItemInfo> Controls => _controls;
+
         [SerializeField]
         private NavigationGroup _navigationGroup;
 
         [Space]
         [SerializeField]
-        private ProfileSidebar _profileSidebar;
+        private Transform _leftPaneList;
         [SerializeField]
-        private Transform _profileList;
+        private BindingSetsFilter _bindingSetsFilter;
+        [SerializeField]
+        private ProfileCenterPane _profileCenterPane;
+        [SerializeField]
+        private BindingSetsCenterPane _bindingSetsCenterPane;
 
         [Space]
         [SerializeField]
+        private HeaderTabs _headerTabs;
+        [SerializeField]
         private GameObject _profileViewPrefab;
+        [SerializeField]
+        private GameObject _bindingSetViewPrefab;
         [SerializeField]
         private GameObject _profileListHeaderPrefab;
 
@@ -45,14 +76,25 @@ namespace YARG.Menu.ProfileList
 
         private void OnEnable()
         {
-            RefreshList();
+            RefreshProfileList();
+
+            _controls = LayoutHelper.GetAllControlsForControllerFamily(CurrentBindingSetFilter);
 
             _ = Navigator.Instance.PushScheme(new NavigationScheme(new()
             {
                 new NavigationScheme.Entry(MenuAction.Red, "Menu.Common.Back", () => MenuManager.Instance.PopMenu(), hide: true),
             }, true));
 
+            _profileCenterPane.gameObject.SetActive(true);
+            _bindingSetsCenterPane.gameObject.SetActive(false);
+
+            _headerTabs.TabChanged += OnTabChanged;
+
             PlayerContainer.PlayerAdded += OnPlayerAdded;
+
+            var x = LayoutHelper.GetAllControlsForControllerFamily(ControllerFamily.FiveFretGuitar);
+
+            Console.WriteLine("xxx");
         }
 
         private void OnDisable()
@@ -69,21 +111,49 @@ namespace YARG.Menu.ProfileList
             PlayerContainer.PlayerAdded -= OnPlayerAdded;
         }
 
-        public void RefreshList(YargProfile selectedProfile = null)
+        public void RefreshBindingSetList()
         {
+            if (_currentTab is not ProfileMenuTab.Bindings)
+            {
+                return;
+            }
+
             // Deselect
-            _profileSidebar.HideContents();
+            _profileCenterPane.HideContents();
 
             // Remove old ones
-            _profileList.transform.DestroyChildren();
+            _leftPaneList.transform.DestroyChildren();
+            _navigationGroup.ClearNavigatables();
+
+            var relevantBindingSets = BindingsContainer.GetBindingSetsForControllerFamily(CurrentBindingSetFilter);
+
+            foreach (var (mode, bindingSets) in relevantBindingSets)
+            {
+                AddBindingSetListGroup(mode.ToString(), bindingSets);
+            }
+            
+        }
+
+        public void RefreshProfileList(YargProfile selectedProfile = null)
+        {
+            if (_currentTab is not ProfileMenuTab.Profiles)
+            {
+                return;
+            }
+
+            // Deselect
+            _profileCenterPane.HideContents();
+
+            // Remove old ones
+            _leftPaneList.transform.DestroyChildren();
             _navigationGroup.ClearNavigatables();
 
             var activeProfiles = PlayerContainer.Players.Select(e => e.Profile).ToArray();
             var otherProfiles = PlayerContainer.Profiles.Except(activeProfiles).OrderBy(e => e.Name).ToArray();
 
-            AddListGroup(Localize.Key("Menu.ProfileList.ActiveProfiles"), activeProfiles);
-            AddListGroup(Localize.Key("Menu.ProfileList.Players"), otherProfiles.Where(e => !e.IsBot));
-            AddListGroup(Localize.Key("Menu.ProfileList.Bots"), otherProfiles.Where(e => e.IsBot));
+            AddProfileListGroup(Localize.Key("Menu.ProfileList.ActiveProfiles"), activeProfiles);
+            AddProfileListGroup(Localize.Key("Menu.ProfileList.Players"), otherProfiles.Where(e => !e.IsBot));
+            AddProfileListGroup(Localize.Key("Menu.ProfileList.Bots"), otherProfiles.Where(e => e.IsBot));
             AddUnloadedGroup(Localize.Key("Menu.ProfileList.CouldNotLoad"));
 
             if (selectedProfile == null)
@@ -94,24 +164,50 @@ namespace YARG.Menu.ProfileList
             SetSelectedProfile(selectedProfile);
         }
 
-        private void AddListGroup(string header, IEnumerable<YargProfile> profiles)
+        private void AddProfileListGroup(string header, IEnumerable<YargProfile> profiles)
         {
             if (!profiles.Any())
             {
                 return;
             }
 
-            var headerGo = Instantiate(_profileListHeaderPrefab, _profileList);
-            headerGo.GetComponentInChildren<TextMeshProUGUI>().text = header;
-            _navigationGroup.AddNavigatable(headerGo);
+            AddListHeader(header);
 
             // Spawn in a profile view for each player
             foreach (var profile in profiles)
             {
-                var go = Instantiate(_profileViewPrefab, _profileList);
-                go.GetComponent<ProfileView>().Init(this, profile, _profileSidebar);
+                var go = Instantiate(_profileViewPrefab, _leftPaneList);
+                go.GetComponent<ProfileView>().Init(this, profile, _profileCenterPane);
                 _navigationGroup.AddNavigatable(go);
             }
+        }
+
+        private void AddBindingSetListGroup(string headerKey, IEnumerable<ReusableBindingSet> bindingSets)
+        {
+            if (!bindingSets.Any())
+            {
+                return;
+            }
+
+            if (headerKey is not null)
+            {
+                AddListHeader(headerKey);
+            }
+
+            // Spawn in a profile view for each player
+            foreach (var bindingSet in bindingSets)
+            {
+                var go = Instantiate(_bindingSetViewPrefab, _leftPaneList);
+                go.GetComponent<BindingSetView>().Init(this, bindingSet, _bindingSetsCenterPane);
+                _navigationGroup.AddNavigatable(go);
+            }
+        }
+
+        private void AddListHeader(string headerKey)
+        {
+            var headerGo = Instantiate(_profileListHeaderPrefab, _leftPaneList);
+            headerGo.GetComponentInChildren<TextMeshProUGUI>().text = Localize.Key("Bindings.Headers", headerKey);
+            _navigationGroup.AddNavigatable(headerGo);
         }
 
         private void AddUnloadedGroup(string header)
@@ -121,14 +217,14 @@ namespace YARG.Menu.ProfileList
                 return;
             }
 
-            var headerGo = Instantiate(_profileListHeaderPrefab, _profileList);
+            var headerGo = Instantiate(_profileListHeaderPrefab, _leftPaneList);
             headerGo.GetComponentInChildren<TextMeshProUGUI>().text = header;
             _navigationGroup.AddNavigatable(headerGo);
 
             foreach (var record in PlayerContainer.UnloadedProfiles)
             {
-                var go = Instantiate(_profileViewPrefab, _profileList);
-                go.GetComponent<ProfileView>().InitUnloaded(this, record, _profileSidebar);
+                var go = Instantiate(_profileViewPrefab, _leftPaneList);
+                go.GetComponent<ProfileView>().InitUnloaded(this, record, _profileCenterPane);
                 _navigationGroup.AddNavigatable(go);
             }
         }
@@ -164,7 +260,7 @@ namespace YARG.Menu.ProfileList
                 GameMode = GameMode.FiveFretGuitar
             });
 
-            RefreshList();
+            RefreshProfileList();
         }
 
         public void AddBotProfile()
@@ -178,26 +274,26 @@ namespace YARG.Menu.ProfileList
                 IsBot = true
             });
 
-            RefreshList();
+            RefreshProfileList();
         }
 
         public void MoveProfileUp(YargProfile profile)
         {
             PlayerContainer.MoveUp(PlayerContainer.GetPlayerFromProfile(profile));
-            RefreshList(profile);
+            RefreshProfileList(profile);
         }
 
         public void MoveProfileDown(YargProfile profile)
         {
             PlayerContainer.MoveDown(PlayerContainer.GetPlayerFromProfile(profile));
-            RefreshList(profile);
+            RefreshProfileList(profile);
         }
 
         #nullable enable
         private YargProfile? GetSelectedProfile()
         #nullable disable
         {
-            var profileView = _profileList.GetComponentsInChildren<ProfileView>()
+            var profileView = _leftPaneList.GetComponentsInChildren<ProfileView>()
                 .FirstOrDefault(e => e.Selected);
             if (profileView != null)
             {
@@ -210,7 +306,7 @@ namespace YARG.Menu.ProfileList
         public void SetSelectedProfile(YargProfile profile)
         {
             // Have to use LastOrDefault() here as this GetComponentsInChildren() call may include recently Destroyed objects.
-            var profileView = _profileList.GetComponentsInChildren<ProfileView>()
+            var profileView = _leftPaneList.GetComponentsInChildren<ProfileView>()
                 .LastOrDefault(e => e.Profile == profile);
             if (profileView != null)
             {
@@ -220,7 +316,7 @@ namespace YARG.Menu.ProfileList
 
         public void OnPlayerAdded(YargPlayer player)
         {
-            RefreshList(GetSelectedProfile());
+            RefreshProfileList(GetSelectedProfile());
         }
 
         private void OpenDrumsHighwayConfigurationMenu(
@@ -302,6 +398,35 @@ namespace YARG.Menu.ProfileList
                 Instrument.FiveLaneDrums,
                 profile
             );
+        }
+
+        private void OnTabChanged(string tabId)
+        {
+            _profileCenterPane.gameObject.SetActive(tabId == PROFILES_TAB);
+            _bindingSetsCenterPane.gameObject.SetActive(tabId == BINDINGS_TAB);
+            _bindingSetsFilter.gameObject.SetActive(tabId == BINDINGS_TAB);
+
+            switch (tabId)
+            {
+                case PROFILES_TAB:
+                    _currentTab = ProfileMenuTab.Profiles;
+                    RefreshProfileList();
+                    break;
+                case BINDINGS_TAB:
+                    _currentTab = ProfileMenuTab.Bindings;
+                    RefreshBindingSetList();
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException($"Unexpected tabId {tabId}");
+            };
+        }
+
+        public void SetCurrentBindingSetFilter(ControllerFamily family)
+        {
+            CurrentBindingSetFilter = family;
+            _controls = LayoutHelper.GetAllControlsForControllerFamily(family);
+            RefreshBindingSetList();
+            _bindingSetsCenterPane.HideContents();
         }
     }
 }

@@ -6,11 +6,12 @@ using Newtonsoft.Json.Linq;
 using YARG.Audio;
 using YARG.Core;
 using YARG.Core.Audio;
+using YARG.Input.Bindings;
 
 #nullable enable
 
 namespace YARG.Input.Serialization
-{
+{/*
     // Version 0: Initial version of the bindings format.
     // v0 instead of v1 for easier handling of the case where the version field isn't present,
     // which this version doesn't contain.
@@ -30,9 +31,9 @@ namespace YARG.Input.Serialization
         [JsonConstructor]
         public SerializedProfileBindingsV0() { }
 
-        public SerializedProfileBindingsV0(SerializedProfileBindings serialized)
+        public SerializedProfileBindingsV0(SerializedProfileDeviceInfo serialized)
         {
-            Devices.AddRange(serialized.Devices.Select((device) => new SerializedInputDeviceV0(device)));
+            Devices.AddRange(serialized.Controllers.Select((device) => new SerializedInputDeviceV0(device)));
 
             if (serialized.Microphone is not null)
                 Microphone = new SerializedMicV0(serialized.Microphone);
@@ -46,14 +47,14 @@ namespace YARG.Input.Serialization
                 MenuBindings = BindingSerialization.Serialize(serialized.MenuMappings);
         }
 
-        public SerializedProfileBindings Deserialize()
+        public SerializedProfileDeviceInfo Deserialize()
         {
-            var converted = new SerializedProfileBindings()
+            var converted = new SerializedProfileDeviceInfo()
             {
                 Microphone = Microphone?.Deserialize(),
             };
 
-            converted.Devices.AddRange(Devices.Select((device) => device.Deserialize()));
+            converted.Controllers.AddRange(Devices.Select((device) => device.Deserialize()));
 
             foreach (var (gameMode, bindings) in Bindings)
             {
@@ -66,7 +67,7 @@ namespace YARG.Input.Serialization
             return converted;
         }
     }
-
+    */
     public class SerializedInputDeviceV0
     {
         public string Layout;
@@ -85,9 +86,9 @@ namespace YARG.Input.Serialization
             Hash = serialized.Hash;
         }
 
-        public SerializedInputDevice Deserialize() => new(Layout, Hash);
+        public SerializedInputDevice Deserialize() => new(LayoutStrings.GetBaseLayout(Layout), Layout, Hash);
     }
-
+/*
     public class SerializedInputControlV0
     {
         public SerializedInputDeviceV0 Device;
@@ -205,5 +206,5 @@ namespace YARG.Input.Serialization
             control.Controls.AddRange(serialized.Select((bind) => bind.Deserialize()));
             return control;
         }
-    }
+    }*/
 }

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using Newtonsoft.Json;
@@ -16,7 +16,7 @@ namespace YARG.Input.Serialization
 
     // Unchanged data types
     using SerializedInputDeviceV3 = SerializedInputDeviceV0;
-
+/*
     public class SerializedBindingsV3
     {
         public const int VERSION = 3;
@@ -58,9 +58,9 @@ namespace YARG.Input.Serialization
         [JsonConstructor]
         public SerializedProfileBindingsV3() { }
 
-        public SerializedProfileBindingsV3(SerializedProfileBindings serialized)
+        public SerializedProfileBindingsV3(SerializedProfileDeviceInfo serialized)
         {
-            Devices.AddRange(serialized.Devices.Select((device) => new SerializedInputDeviceV3(device)));
+            Devices.AddRange(serialized.Controllers.Select((device) => new SerializedInputDeviceV3(device)));
 
             foreach (var mic in serialized.Microphones)
             {
@@ -79,9 +79,9 @@ namespace YARG.Input.Serialization
                 MenuMappings = new SerializedBindingCollectionV3(this, serialized.MenuMappings);
         }
 
-        public SerializedProfileBindings Deserialize()
+        public SerializedProfileDeviceInfo Deserialize()
         {
-            var deserialized = new SerializedProfileBindings();
+            var deserialized = new SerializedProfileDeviceInfo();
 
             foreach (var mic in Microphones)
             {
@@ -91,7 +91,7 @@ namespace YARG.Input.Serialization
                 }
             }
 
-            deserialized.Devices.AddRange(Devices.Select((device) => device.Deserialize()));
+            deserialized.Controllers.AddRange(Devices.Select((device) => device.Deserialize()));
 
             foreach (var (gameMode, bindings) in ModeMappings)
             {
@@ -112,7 +112,7 @@ namespace YARG.Input.Serialization
         [JsonConstructor]
         public SerializedBindingCollectionV3() { }
 
-        public SerializedBindingCollectionV3(SerializedProfileBindingsV3 binds, SerializedBindingCollection serialized)
+        public SerializedBindingCollectionV3(SerializedProfileBindingsV3 binds, SerializedReusableBindingSet serialized)
         {
             foreach (var (id, serializedBinds) in serialized.Bindings)
             {
@@ -120,9 +120,9 @@ namespace YARG.Input.Serialization
             }
         }
 
-        public SerializedBindingCollection Deserialize(SerializedProfileBindingsV3 binds)
+        public SerializedReusableBindingSet Deserialize(SerializedProfileBindingsV3 binds)
         {
-            var converted = new SerializedBindingCollection();
+            var converted = new SerializedReusableBindingSet();
             foreach (var (id, serializedBinds) in Bindings)
             {
                 converted.Bindings[id] = serializedBinds.Deserialize(binds);
@@ -229,7 +229,7 @@ namespace YARG.Input.Serialization
         public bool ShouldSerializeDeviceIndex() => DeviceIndex >= 0;
         public bool ShouldSerializeDevice() => !ShouldSerializeDeviceIndex();
         public bool ShouldSerializeParameters() => Parameters.Count > 0;
-    }
+    }*/
 
     public class SerializedMicV3
     {
@@ -275,7 +275,7 @@ namespace YARG.Input.Serialization
         public bool ShouldSerializeDisplayName() => string.IsNullOrEmpty(BaseName);
         public bool ShouldSerializeBaseName() => !string.IsNullOrEmpty(BaseName);
         public bool ShouldSerializeChannel() => !string.IsNullOrEmpty(BaseName);
-    }
+    }/*
 
     public static partial class BindingSerialization
     {
@@ -292,5 +292,5 @@ namespace YARG.Input.Serialization
 
             return serialized.Deserialize();
         }
-    }
+    }*/
 }

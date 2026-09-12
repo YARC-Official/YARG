@@ -1,4 +1,4 @@
-using PlasticBand.Devices;
+﻿using PlasticBand.Devices;
 using YARG.Core;
 using YARG.Core.Input;
 
