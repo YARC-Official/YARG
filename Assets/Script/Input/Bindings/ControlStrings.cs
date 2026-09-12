@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using UnityEngine.InputSystem;
+using YARG.Core.Input;
 
 namespace YARG.Input.Bindings
 {
@@ -61,7 +62,34 @@ namespace YARG.Input.Bindings
         public const string FIVE_DRUMS_ORANGE_CYMBAL = "FiveDrums.OrangeCymbal";
         public const string FIVE_DRUMS_GREEN_PAD = "FiveDrums.GreenPad";
 
-        
+
+        public const string ELITE_DRUMS_STOMP = "EliteDrums.Stomp";
+        public const string ELITE_DRUMS_SPLASH = "EliteDrums.Splash";
+        public const string ELITE_DRUMS_SNARE = "EliteDrums.Snare";
+        public const string ELITE_DRUMS_CLOSED_HI_HAT = "EliteDrums.ClosedHiHat";
+        public const string ELITE_DRUMS_SIZZLE_HI_HAT = "EliteDrums.SizzleHiHat";
+        public const string ELITE_DRUMS_OPEN_HI_HAT = "EliteDrums.OpenHiHat";
+        public const string ELITE_DRUMS_LEFT_CRASH = "EliteDrums.LeftCrash";
+        public const string ELITE_DRUMS_TOM_1 = "EliteDrums.Tom1";
+        public const string ELITE_DRUMS_TOM_2 = "EliteDrums.Tom2";
+        public const string ELITE_DRUMS_TOM_3 = "EliteDrums.Tom3";
+        public const string ELITE_DRUMS_RIDE = "EliteDrums.Ride";
+        public const string ELITE_DRUMS_RIGHT_CRASH = "EliteDrums.RightCrash";
+        public const string ELITE_DRUMS_4L_RED = "EliteDrums.FourLaneRedDrum";
+        public const string ELITE_DRUMS_4L_YTOM = "EliteDrums.FourLaneYellowDrum";
+        public const string ELITE_DRUMS_4L_BTOM = "EliteDrums.FourLaneBlueDrum";
+        public const string ELITE_DRUMS_4L_GTOM = "EliteDrums.FourLaneGreenDrum";
+        public const string ELITE_DRUMS_4L_YCYM = "EliteDrums.FourLaneYellowCymbal";
+        public const string ELITE_DRUMS_4L_BCYM = "EliteDrums.FourLaneBlueCymbal";
+        public const string ELITE_DRUMS_4L_GCYM = "EliteDrums.FourLaneGreenCymbal";
+        public const string ELITE_DRUMS_5L_RED = "EliteDrums.FiveLaneRedDrum";
+        public const string ELITE_DRUMS_5L_BLUE = "EliteDrums.FiveLaneBlueDrum";
+        public const string ELITE_DRUMS_5L_GREEN = "EliteDrums.FiveLaneGreenDrum";
+        public const string ELITE_DRUMS_5L_YELLOW = "EliteDrums.FiveLaneYellowCymbal";
+        public const string ELITE_DRUMS_5L_ORANGE = "EliteDrums.FiveLaneOrangeCymbal";
+
+
+
         public const string KEYS_PRO_KEY_1 = "ProKeys.Key1";
         public const string KEYS_PRO_KEY_2 = "ProKeys.Key2";
         public const string KEYS_PRO_KEY_3 = "ProKeys.Key3";
