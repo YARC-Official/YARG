@@ -89,11 +89,103 @@ namespace YARG.Input.Bindings
                 )
             },
         };
+
+        private static Dictionary<string, ReusableControlBinding> _sixFretGuitarMenuDefaults = new()
+        {
+            {
+                ControlStrings.MENU_START,
+                new ReusableButtonBinding(
+                    ReusableBindingSetTemplates.MENU[ControlStrings.MENU_START],
+                    new ReusableSingleButtonBindingConfig(ControllerFamily.SixFretGuitar, nameof(SixFretGuitar.startButton))
+                )
+            },
+            {
+                ControlStrings.MENU_SELECT,
+                new ReusableButtonBinding(
+                    ReusableBindingSetTemplates.MENU[ControlStrings.MENU_SELECT],
+                    new ReusableSingleButtonBindingConfig(ControllerFamily.SixFretGuitar, nameof(SixFretGuitar.selectButton))
+                )
+            },
+
+            {
+                ControlStrings.MENU_GREEN,
+                new ReusableButtonBinding(
+                    ReusableBindingSetTemplates.MENU[ControlStrings.MENU_GREEN],
+                    new ReusableSingleButtonBindingConfig(ControllerFamily.SixFretGuitar, nameof(SixFretGuitar.black1))
+                )
+            },
+            {
+                ControlStrings.MENU_RED,
+                new ReusableButtonBinding(
+                    ReusableBindingSetTemplates.MENU[ControlStrings.MENU_RED],
+                    new ReusableSingleButtonBindingConfig(ControllerFamily.SixFretGuitar, nameof(SixFretGuitar.black2))
+                )
+            },
+            {
+                ControlStrings.MENU_YELLOW,
+                new ReusableButtonBinding(
+                    ReusableBindingSetTemplates.MENU[ControlStrings.MENU_YELLOW],
+                    new ReusableSingleButtonBindingConfig(ControllerFamily.SixFretGuitar, nameof(SixFretGuitar.black3))
+                )
+            },
+            {
+                ControlStrings.MENU_BLUE,
+                new ReusableButtonBinding(
+                    ReusableBindingSetTemplates.MENU[ControlStrings.MENU_BLUE],
+                    new ReusableSingleButtonBindingConfig(ControllerFamily.SixFretGuitar, nameof(SixFretGuitar.white1))
+                )
+            },
+            {
+                ControlStrings.MENU_ORANGE,
+                new ReusableButtonBinding(
+                    ReusableBindingSetTemplates.MENU[ControlStrings.MENU_ORANGE],
+                    new ReusableSingleButtonBindingConfig(ControllerFamily.SixFretGuitar, nameof(SixFretGuitar.white2))
+                )
+            },
+
+            {
+                ControlStrings.MENU_UP,
+                new ReusableButtonBinding(
+                    ReusableBindingSetTemplates.MENU[ControlStrings.MENU_UP],
+                    new ReusableSingleButtonBindingConfig(ControllerFamily.SixFretGuitar, ControlStrings.DPAD_UP)
+                )
+            },
+            {
+                ControlStrings.MENU_DOWN,
+                new ReusableButtonBinding(
+                    ReusableBindingSetTemplates.MENU[ControlStrings.MENU_DOWN],
+                    new ReusableSingleButtonBindingConfig(ControllerFamily.SixFretGuitar, ControlStrings.DPAD_DOWN)
+                )
+            },
+
+                        {
+                ControlStrings.MENU_LEFT,
+                new ReusableButtonBinding(
+                    ReusableBindingSetTemplates.MENU[ControlStrings.MENU_UP],
+                    new ReusableSingleButtonBindingConfig(ControllerFamily.FiveFretGuitar, ControlStrings.DPAD_LEFT)
+                )
+            },
+            {
+                ControlStrings.MENU_RIGHT,
+                new ReusableButtonBinding(
+                    ReusableBindingSetTemplates.MENU[ControlStrings.MENU_DOWN],
+                    new ReusableSingleButtonBindingConfig(ControllerFamily.FiveFretGuitar, ControlStrings.DPAD_RIGHT)
+                )
+            },
+        };
+
         public static ReusableBindingSet DefaultSixFretGuitar = MakeHardcodedBindingSet(
-            "Default",
+            "Default 6F Guitar Gameplay",
             GameMode.SixFretGuitar,
             ControllerFamily.SixFretGuitar,
             _sixFretGuitarDefaults
+        );
+
+        public static ReusableBindingSet DefaultSixFretGuitarMenu = MakeHardcodedBindingSet(
+            "Default 6F Guitar Menu",
+            GameMode.Menu,
+            ControllerFamily.SixFretGuitar,
+            _sixFretGuitarMenuDefaults
         );
     }
 }

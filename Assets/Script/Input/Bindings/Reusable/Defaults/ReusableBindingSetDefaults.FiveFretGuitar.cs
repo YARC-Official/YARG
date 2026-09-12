@@ -353,21 +353,21 @@ namespace YARG.Input.Bindings
 
 
         public static ReusableBindingSet DefaultFiveFretGuitar = MakeHardcodedBindingSet(
-            "Default 5F Gameplay",
+            "Default 5F Guitar Gameplay",
             GameMode.FiveFretGuitar,
             ControllerFamily.FiveFretGuitar,
             _fiveFretGuitarDefaults
         );
 
         public static ReusableBindingSet DefaultRiffmasterGuitar = MakeHardcodedBindingSet(
-            "Default Riffmaster",
+            "Default Riffmaster Gameplay",
             GameMode.FiveFretGuitar,
             ControllerFamily.FiveFretGuitar,
             _riffmasterGuitarDefaults
         );
 
         public static ReusableBindingSet DefaultFiveFretGuitarMenu = MakeHardcodedBindingSet(
-            "Default 5F Menu",
+            "Default 5F Guitar Menu",
             GameMode.Menu,
             ControllerFamily.FiveFretGuitar,
             _fiveFretGuitarMenuDefaults

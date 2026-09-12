@@ -237,21 +237,21 @@ namespace YARG.Input.Bindings
         };
 
         public static ReusableBindingSet DefaultFiveLaneDrumkit = MakeHardcodedBindingSet(
-            "Default",
+            "Default 5L Drums Gameplay",
             GameMode.FiveLaneDrums,
             ControllerFamily.FiveLaneDrumkit,
             _fiveLaneDrumkitDefaults
         );
 
         public static ReusableBindingSet DefaultFiveLaneDrumkitMenu = MakeHardcodedBindingSet(
-            "Default",
+            "Default 5L Drums Menu",
             GameMode.Menu,
             ControllerFamily.FiveLaneDrumkit,
             _fiveLaneDrumkitMenuDefaults
         );
 
-        public static ReusableBindingSet FiveLaneDrumkitManualMenu = MakeHardcodedBindingSet(
-            "Manual",
+        public static ReusableBindingSet FiveLaneDrumkitControllerOnlyMenu = MakeHardcodedBindingSet(
+            "D-Pad and Face Buttons Only",
             GameMode.Menu,
             ControllerFamily.FiveLaneDrumkit,
             _fiveLaneDrumkitMenuManualOnly
