@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using Cinemachine;
@@ -66,6 +65,7 @@ namespace YARG.Gameplay
         private bool _videoWasPausedBeforeSeek = false;
 
         private const float FADE_DURATION = 0.5f;
+        private const int VENUE_PREWARM_FRAMES = 8;
 
         private float YARGROUND_OFFSET = 50f;
 
@@ -83,13 +83,100 @@ namespace YARG.Gameplay
 
         private BundleBackgroundManager _bundleBackgroundManager;
 
+        // Completes once the venue is in place, or its loading gave up, so
+        // work that needs its shaders loaded can wait for it
+        private readonly UniTaskCompletionSource _venueLoaded = new();
+        public UniTask VenueLoaded => _venueLoaded.Task;
+
+        private bool _loadStarted;
+        private bool _loadedEarly;
+        private bool _updatesAtSongStart;
+        private bool _crowdPending;
+
         private          bool             _usingSceneVenue;
         private          Scene            _venueScene;
 #if UNITY_EDITOR
         private          string           _editorVenuePath;
 #endif
-        [SuppressMessage("Type Safety", "UNT0006", Justification = "UniTaskVoid is a compatible return type.")]
-        private async UniTaskVoid Start()
+        private void Start()
+        {
+            BeginLoad();
+        }
+
+        // This behaviour is disabled until the song starts, so Start runs on
+        // the first gameplay frame and the venue's load and first draw land
+        // there. Phones feel that as a second-long stall, so on them the
+        // load begins under the loading screen instead, and GameManager
+        // waits for it (VenueLoaded) before starting the song
+        protected override void OnSongLoaded()
+        {
+            if (Application.isMobilePlatform)
+            {
+                _loadedEarly = true;
+                BeginLoad();
+            }
+        }
+
+        protected override void OnSongStarted()
+        {
+            if (!_loadedEarly)
+            {
+                return;
+            }
+
+            enabled = _updatesAtSongStart;
+            if (_crowdPending)
+            {
+                _crowdPending = false;
+                GameManager.CrowdEventHandler.Start();
+            }
+        }
+
+        private void BeginLoad()
+        {
+            if (_loadStarted)
+            {
+                return;
+            }
+
+            _loadStarted = true;
+            LoadVenueAndSignal().Forget();
+        }
+
+        private async UniTaskVoid LoadVenueAndSignal()
+        {
+            try
+            {
+                await LoadVenue();
+            }
+            finally
+            {
+                if (_loadedEarly && !GameManager.IsSongStarted)
+                {
+                    // Updates (video playback) wait for the song like the
+                    // rest of gameplay
+                    _updatesAtSongStart = enabled;
+                    enabled = false;
+                }
+
+                _venueLoaded.TrySetResult();
+            }
+        }
+
+        // The crowd opens with the venue, which on an early load means at
+        // the start of the song
+        private void StartCrowd()
+        {
+            if (_loadedEarly && !GameManager.IsSongStarted)
+            {
+                _crowdPending = true;
+                return;
+            }
+
+            GameManager.CrowdEventHandler.Start();
+        }
+
+        private async UniTask LoadVenue()
         {
             // We don't need to update unless we're using a video
             enabled = false;
@@ -147,7 +234,7 @@ namespace YARG.Gameplay
                     var loaded = await LoadAddressableYarground(hint, vocalGender);
                     if (loaded)
                     {
-                        GameManager.CrowdEventHandler.Start();
+                        StartCrowd();
                         return;
                     }
                 }
@@ -161,14 +248,14 @@ namespace YARG.Gameplay
             // TODO: Figure out how to decouple this
             if (_type != BackgroundType.Yarground)
             {
-                GameManager.CrowdEventHandler.Start();
+                StartCrowd();
             }
 
             switch (_type)
             {
                 case BackgroundType.Yarground:
                     await LoadYarground(result);
-                    GameManager.CrowdEventHandler.Start();
+                    StartCrowd();
                     break;
                 case BackgroundType.Video:
                     LoadVideoBackground(result);
@@ -455,6 +542,117 @@ namespace YARG.Gameplay
             {
                 characterManager.Initialize(usingCustomChar);
             }
+
+            if (_loadedEarly)
+            {
+                await PrewarmVenueRenderers(bgInstance);
+            }
+        }
+
+        // Renderers the venue switches on later (light cues) draw for the
+        // first time mid-song, and phones compile their shaders right then.
+        // While the loading screen is still up, draw every renderer once,
+        // tiny and in front of the venue camera, so the compiles happen here
+        private static async UniTask PrewarmVenueRenderers(GameObject venue)
+        {
+            var camera = venue.GetComponentInChildren<Camera>(true);
+            if (camera == null)
+            {
+                return;
+            }
+
+            var position = camera.transform.position + camera.transform.forward * 5f;
+            var matrix = Matrix4x4.TRS(position, Quaternion.identity, Vector3.one * 0.001f);
+            var bounds = new Bounds(position, Vector3.one);
+
+            // Everything that picks the shader variant is copied from the
+            // renderer, so the draw compiles exactly what it will use
+            var draws = new List<(RenderParams parameters, Mesh mesh, int subMesh)>();
+            var seen = new HashSet<(Mesh, int, Material)>();
+            foreach (var renderer in venue.GetComponentsInChildren<Renderer>(true))
+            {
+                var mesh = renderer switch
+                {
+                    SkinnedMeshRenderer skinned => skinned.sharedMesh,
+                    _                           => renderer.GetComponent<MeshFilter>()?.sharedMesh,
+                };
+                if (mesh == null)
+                {
+                    continue;
+                }
+
+                var materials = renderer.sharedMaterials;
+                for (int i = 0; i < mesh.subMeshCount && i < materials.Length; i++)
+                {
+                    if (materials[i] == null || !seen.Add((mesh, i, materials[i])))
+                    {
+                        continue;
+                    }
+
+                    draws.Add((new RenderParams(materials[i])
+                    {
+                        camera = camera,
+                        layer = renderer.gameObject.layer,
+                        renderingLayerMask = renderer.renderingLayerMask,
+                        rendererPriority = renderer.rendererPriority,
+                        worldBounds = bounds,
+                        shadowCastingMode = renderer.shadowCastingMode,
+                        receiveShadows = renderer.receiveShadows,
+                        lightProbeUsage = renderer.lightProbeUsage,
+                        reflectionProbeUsage = renderer.reflectionProbeUsage,
+                        motionVectorMode = renderer.motionVectorGenerationMode,
+                    }, mesh, i));
+                }
+            }
+
+            if (draws.Count == 0)
+            {
+                return;
+            }
+
+            // Shadow-casting lights switch URP's shadow keywords on for every
+            // draw of the frame, and the cues keep them dark until the song
+            // starts, so light them up for these frames or the draws would
+            // compile variants the song never uses
+            var shadowLights = new List<(Light light, float intensity, bool enabled)>();
+            foreach (var light in venue.GetComponentsInChildren<Light>(true))
+            {
+                if (light.shadows != LightShadows.None)
+                {
+                    shadowLights.Add((light, light.intensity, light.enabled));
+                }
+            }
+
+            // The venue camera renders on its own cadence, so draw for a few
+            // frames, each time after the venue's own Update has set the
+            // lights (VenueLight rewrites their intensity every frame)
+            for (int frame = 0; frame < VENUE_PREWARM_FRAMES; frame++)
+            {
+                await UniTask.NextFrame(PlayerLoopTiming.PreLateUpdate);
+
+                foreach (var (light, _, _) in shadowLights)
+                {
+                    light.intensity = Mathf.Max(light.intensity, 1f);
+                    light.enabled = true;
+                }
+
+                foreach (var (parameters, mesh, subMesh) in draws)
+                {
+                    Graphics.RenderMesh(parameters, mesh, subMesh, matrix);
+                }
+            }
+
+            foreach (var (light, intensity, enabled) in shadowLights)
+            {
+                if (light != null)
+                {
+                    light.intensity = intensity;
+                    light.enabled = enabled;
+                }
+            }
+
+            YargLogger.LogFormatInfo("Pre-drew {0} venue mesh/material pairs under the loading screen ({1} shadow light(s) lit)",
+                draws.Count, shadowLights.Count);
         }
 
         // Loads all audio assets from the given locations
