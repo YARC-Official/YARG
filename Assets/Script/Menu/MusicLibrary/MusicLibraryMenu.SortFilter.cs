@@ -112,7 +112,9 @@ namespace YARG.Menu.MusicLibrary
 
             if (SongContainer.Count > RecommendedSongs.RECOMMEND_SONGS_COUNT)
             {
-                _recommendedSongs = RecommendedSongs.GetRecommendedSongs();
+                var recommendations = RecommendedSongs.GetRecommendedSongs(
+                    YARG.Menu.Filters.FiltersMenu.ActiveFilterPredicate);
+                _recommendedSongs = recommendations.Length > 0 ? recommendations : null;
             }
             else
             {

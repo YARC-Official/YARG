@@ -393,6 +393,7 @@ namespace YARG.Menu.ProfileList
 
             _profileView.UpdateDisplay(_profile);
             FiltersMenu.ResetIntensityFiltersForProfile(_profile);
+            PlayerContainer.NotifyProfileChanged(_profile);
             // Update sidebar when game mode changes so the correct settings are displayed
             UpdateSidebar(_profile, _profileView);
         }

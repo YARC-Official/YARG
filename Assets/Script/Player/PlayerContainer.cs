@@ -206,6 +206,7 @@ namespace YARG.Player
         private static void ActiveProfilesChanged()
         {
             if (SettingsManager.Settings.OnlyShowPlayableSongs.Value ||
+                SettingsManager.Settings.ShowRecommendedSongs.Value ||
                 SettingsManager.Settings.LibrarySort == SortAttribute.Playcount)
             {
                 if (SettingsManager.Settings.OnlyShowPlayableSongs.Value)
@@ -217,6 +218,12 @@ namespace YARG.Player
             MusicLibraryMenu.NeedsReload();
 
             StatsManager.Instance?.UpdateActivePlayers();
+        }
+
+        public static void NotifyProfileChanged(YargProfile profile)
+        {
+            if (IsProfileTaken(profile))
+                ActiveProfilesChanged();
         }
 
         public static YargPlayer GetPlayerFromProfile(YargProfile profile)
