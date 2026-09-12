@@ -447,7 +447,14 @@ namespace YARG.Menu.ProfileList
 
         public void ChangeEngine()
         {
-            _profile.EnginePreset = _enginePresetsByIndex[_engineDropdown.value];
+            var enginePreset = _enginePresetsByIndex[_engineDropdown.value];
+            if (_profile.EnginePreset == enginePreset)
+            {
+                return;
+            }
+
+            _profile.EnginePreset = enginePreset;
+            ScoreContainer.InvalidateScoreCache();
         }
 
         public void ChangeOpenLaneDisplayType()
