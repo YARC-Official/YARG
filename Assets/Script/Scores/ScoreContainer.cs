@@ -515,6 +515,45 @@ namespace YARG.Scores
             }
         }
 
+        public static List<SongEntry> GetMostPlayedSongs(int maxCount, Func<SongEntry, bool> predicate)
+        {
+            try
+            {
+                var results = new List<SongEntry>();
+
+                // Filtering after a limited query could exclude eligible songs ranked below the limit.
+                // Query the full play-count ordering and stop once enough eligible songs are found.
+                var mostPlayed = _db.QueryMostPlayedSongs(int.MaxValue);
+                foreach (var record in mostPlayed)
+                {
+                    var hash = HashWrapper.Create(record.SongChecksum);
+                    if (!SongContainer.SongsByHash.TryGetValue(hash, out var songs))
+                    {
+                        continue;
+                    }
+
+                    var eligibleSongs = songs.Where(predicate).ToList();
+                    if (eligibleSongs.Count == 0)
+                    {
+                        continue;
+                    }
+
+                    results.Add(eligibleSongs.Pick());
+                    if (results.Count >= maxCount)
+                    {
+                        break;
+                    }
+                }
+
+                return results;
+            }
+            catch (Exception e)
+            {
+                YargLogger.LogException(e, "Failed to load most played songs from database.");
+                return new List<SongEntry>();
+            }
+        }
+
         // this is the same as GetMostPlayedSongs, but is limited to the one profile and returns the entire list
         public static Dictionary<SongEntry,int> GetPlayedSongsForUserByPlaycount(YargProfile profile, SortOrdering ordering)
         {
