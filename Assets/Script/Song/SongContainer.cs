@@ -337,35 +337,29 @@ namespace YARG.Song
             return _sortInstruments.ContainsKey(instrument);
         }
 
-        private static HashSet<Instrument> _instruments = null;
+        private static HashSet<GameMode> _playableGameModes = null;
         private static SongCategory[] GetPlayableSongs()
         {
-            HashSet<Instrument> instruments = new();
+            HashSet<GameMode> gameModes = new();
             foreach (var player in PlayerContainer.Players)
             {
-                instruments.Add(player.Profile.CurrentInstrument);
+                gameModes.Add(player.Profile.GameMode);
             }
 
-            if (_playables == null || !_instruments.SetEquals(instruments))
+            if (_playables == null || !_playableGameModes.SetEquals(gameModes))
             {
-                _instruments = instruments;
-                if (instruments.Count == 0)
+                _playableGameModes = gameModes;
+                if (gameModes.Count == 0)
                 {
                     _playables = _sortTitles;
                 }
                 else
                 {
-                    var gamemodes = new HashSet<GameMode>();
                     var queries = default(HashSet<SongEntry>);
-                    foreach (var player in PlayerContainer.Players)
+                    foreach (var gameMode in gameModes)
                     {
-                        if (!gamemodes.Add(player.Profile.GameMode))
-                        {
-                            continue;
-                        }
-
                         var set = new HashSet<SongEntry>();
-                        foreach (var ins in player.Profile.GameMode.PossibleInstruments())
+                        foreach (var ins in gameMode.PossibleInstruments())
                         {
                             if (HasInstrument(ins))
                             {
