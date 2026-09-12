@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using DG.Tweening;
 using TMPro;
 using UnityEngine;
@@ -68,7 +68,12 @@ namespace YARG.Gameplay.HUD
             yield return new WaitForSeconds(10f);
 
             // Then fade to 0 in a second
-            yield return _canvasGroup.DOFade(0f, 1f).WaitForCompletion();
+            yield return _canvasGroup.DOFade(0f, 1f).SetLink(gameObject).WaitForCompletion();
+        }
+
+        private void OnDisable()
+        {
+            _canvasGroup.DOKill();
         }
 
         private static string AddAlphaReset(string text, string alpha)

@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
@@ -157,6 +157,16 @@ namespace YARG.Gameplay.Player
         protected override void FinishDestruction()
         {
             _inputContext?.Stop();
+        }
+
+        protected override void OnMenuInput(YargPlayer _, ref GameInput input)
+        {
+            if (input.Action != (int) MenuAction.Start || !input.Button || !GameManager.CanPause)
+            {
+                return;
+            }
+
+            GameManager.TogglePause();
         }
 
         protected VocalsEngine CreateEngine()

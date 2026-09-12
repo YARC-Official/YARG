@@ -153,5 +153,12 @@ namespace YARG.Gameplay.HUD
                 }
             }
         }
+
+        private void OnDestroy()
+        {
+            _popNewSequence?.Kill();
+            _completedStarSequence?.Kill();
+            _completedGoldSequence?.Kill();
+        }
     }
 }

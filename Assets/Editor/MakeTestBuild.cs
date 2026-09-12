@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using UnityEditor;
 
@@ -28,8 +28,8 @@ namespace Editor
 
             // Get current defines
             // TODO: BuildTargetGroup is slated for deprecation, figure out how to do this with NamedBuildTarget instead
-            var buildGroup = EditorUserBuildSettings.selectedBuildTargetGroup;
-            PlayerSettings.GetScriptingDefineSymbolsForGroup(buildGroup, out var originalDefines);
+            var namedBuildTarget = UnityEditor.Build.NamedBuildTarget.FromBuildTargetGroup(EditorUserBuildSettings.selectedBuildTargetGroup);
+            PlayerSettings.GetScriptingDefineSymbols(namedBuildTarget, out var originalDefines);
             originalDefines ??= Array.Empty<string>();
 
             // Set test build define

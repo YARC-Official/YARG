@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
@@ -13,7 +13,6 @@ using UnityEngine.Animations;
 using UnityEngine.ResourceManagement.AsyncOperations;
 using UnityEngine.ResourceManagement.ResourceLocations;
 using UnityEngine.UI;
-using UnityEngine.Video;
 using YARG.Core.IO;
 using YARG.Core.Song;
 using YARG.Core.Venue;
@@ -43,7 +42,7 @@ namespace YARG.Gameplay
         private string VIDEO_PATH;
 
         [SerializeField]
-        private VideoPlayer _videoPlayer;
+        private YargVideoPlayer _videoPlayer;
 
         [SerializeField]
         private RawImage _backgroundImage;
@@ -88,7 +87,6 @@ namespace YARG.Gameplay
         private          string           _editorVenuePath;
         private          Scene            _editorVenueScene;
 #endif
-        // "The Unity message 'Start' has an incorrect signature."
         [SuppressMessage("Type Safety", "UNT0006", Justification = "UniTaskVoid is a compatible return type.")]
         private async UniTaskVoid Start()
         {
@@ -462,7 +460,6 @@ namespace YARG.Gameplay
                     //set venue source to song to enable video seeking/pausing features
                     _source = VenueSource.Song;
                     //set up videoPlayer to render to venue texture
-                    _videoPlayer.renderMode = VideoRenderMode.RenderTexture;
                     _videoPlayer.targetTexture = textureManager.GetVideoTexture(0, 0);
 
                     LoadVideoBackground(songBackGround);
@@ -498,6 +495,12 @@ namespace YARG.Gameplay
 
         private void LoadVideoBackground(BackgroundResult bg)
         {
+            var textureManager = GetComponent<TextureManager>();
+
+            var videoTexture = textureManager.GetVideoTexture(Screen.width, Screen.height);
+            textureManager.CreateVideoTexture();
+            _videoPlayer.targetTexture = videoTexture;
+
             switch (bg.Stream)
             {
                 case FileStream fs:
@@ -519,7 +522,7 @@ namespace YARG.Gameplay
                 }
             }
 
-            _videoPlayer.enabled = true;
+            _videoPlayer.playerEnabled = true;
             _videoPlayer.prepareCompleted += OnVideoPrepared;
             _videoPlayer.seekCompleted += OnVideoSeeked;
             _videoPlayer.Prepare();
@@ -562,14 +565,14 @@ namespace YARG.Gameplay
             if (time + _videoStartTime >= _videoEndTime)
             {
                 _videoPlayer.Stop();
-                _videoPlayer.enabled = false;
+                _videoPlayer.playerEnabled = false;
                 enabled = false;
             }
         }
 
         // Some video player properties don't work correctly until
         // it's finished preparing, such as the length
-        private void OnVideoPrepared(VideoPlayer player)
+        private void OnVideoPrepared(YargVideoPlayer player)
         {
             // Start time is considered set if it is greater than 25 ms in either direction
             // End time is only set if it is greater than 0
@@ -577,6 +580,8 @@ namespace YARG.Gameplay
             const double startTimeThreshold = 0.025;
             const double endTimeThreshold = 0;
             const double dontLoopThreshold = 0.85;
+
+            player.Stop();
 
             if (_source == VenueSource.Song && !GameManager.Song.VideoLoop)
             {
@@ -609,6 +614,14 @@ namespace YARG.Gameplay
                 _videoEndTime = double.NaN;
                 player.isLooping = true;
             }
+
+            GetComponent<TextureManager>().SetVideoTexture(_videoPlayer.targetTexture);
+            if (_type == BackgroundType.Video)
+            {
+                _venueOutput.texture = _videoPlayer.targetTexture;
+                _venueOutput.gameObject.SetActive(true);
+                _venueFadeOverlay.CrossFadeAlpha(0f, FADE_DURATION, true);
+            }
         }
 
         public void SetTime(double songTime, bool waitForSeek = true)
@@ -624,20 +637,20 @@ namespace YARG.Gameplay
                     if (videoTime < 0f) // Seeking before video start
                     {
                         enabled = true;
-                        _videoPlayer.enabled = true;
+                        _videoPlayer.playerEnabled = true;
                         _videoStarted = false;
                         _videoPlayer.Stop();
                     }
                     else if (videoTime >= _videoPlayer.length) // Seeking after video end
                     {
                         enabled = false;
-                        _videoPlayer.enabled = false;
+                        _videoPlayer.playerEnabled = false;
                         _videoPlayer.Stop();
                     }
                     else
                     {
                         enabled = false; // Temp disable
-                        _videoPlayer.enabled = true;
+                        _videoPlayer.playerEnabled = true;
 
                         // Hack to ensure the video stays synced to the audio
                         _videoSeeking = true; // Signaling flag; must come first
@@ -653,7 +666,7 @@ namespace YARG.Gameplay
             }
         }
 
-        private void OnVideoSeeked(VideoPlayer player)
+        private void OnVideoSeeked(YargVideoPlayer player)
         {
             if (!_videoSeeking)
                 return;
@@ -685,7 +698,7 @@ namespace YARG.Gameplay
         public void SetPaused(bool paused)
         {
             // Pause/unpause video
-            if (_videoPlayer.enabled && _videoStarted && !_videoSeeking)
+            if (_videoPlayer.playerEnabled && _videoStarted && !_videoSeeking)
             {
                 if (paused)
                 {
@@ -806,7 +819,7 @@ namespace YARG.Gameplay
             return filteredLocations;
         }
 
-        private async UniTask<GameObject> GetCustomCharacterFromBundle(string characterPath)
+        private GameObject GetCustomCharacterFromBundle(string characterPath)
         {
             // string characterPath = SettingsManager.Settings.CustomVocalsCharacter.Value;
 
@@ -849,7 +862,7 @@ namespace YARG.Gameplay
 
                 if (characterInfo.Source == CustomCharacterSource.File)
                 {
-                    return await GetCustomCharacterFromBundle(characterInfo.Identifier);
+                    return GetCustomCharacterFromBundle(characterInfo.Identifier);
                 }
 
                 if (characterInfo.Source == CustomCharacterSource.Addressable)
@@ -863,6 +876,11 @@ namespace YARG.Gameplay
 
         private async UniTask<bool> LoadCharacter(GameObject venueRoot, string hint, VocalGender gender)
         {
+            if (!HasCharacter(venueRoot, VenueCharacter.CharacterType.Vocals))
+            {
+                return false;
+            }
+
             var character = await GetAddressableCharacter(hint);
 
             // Hint failed, try user's custom character
@@ -877,11 +895,25 @@ namespace YARG.Gameplay
                 character = await GetAddressableCharacter(gender);
             }
 
-            var usingCustomChar = await LoadCharacter(venueRoot, character);
+            var usingCustomChar = LoadCharacter(venueRoot, character);
             return usingCustomChar;
         }
 
-        private async UniTask<bool> LoadCharacter(GameObject venueRoot, GameObject character)
+        private static bool HasCharacter(GameObject venueRoot, VenueCharacter.CharacterType type)
+        {
+            var characters = venueRoot.GetComponentsInChildren<VenueCharacter>();
+            foreach (var character in characters)
+            {
+                if (character.Type == type)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private bool LoadCharacter(GameObject venueRoot, GameObject character)
         {
             if (character == null)
             {
@@ -908,7 +940,7 @@ namespace YARG.Gameplay
 
             if (existingCharacter == null)
             {
-                YargLogger.LogFormatError("Failed to find character of type {0} in venue root", venueCharacter.Type);
+                YargLogger.LogFormatDebug("Failed to find character of type {0} in venue root", venueCharacter.Type);
                 return false;
             }
 
@@ -922,7 +954,7 @@ namespace YARG.Gameplay
 
             if (venueCharacter is VRMCharacter vrmCharacter)
             {
-                _ = CopyLipsyncToNewCharacter(venueRoot, vrmCharacter);
+                CopyLipsyncToNewCharacter(venueRoot, vrmCharacter);
             }
 
             AddMicrophoneToCharacter(newCharacter);
@@ -934,7 +966,7 @@ namespace YARG.Gameplay
             return true;
         }
 
-        private static async UniTask CopyLipsyncToNewCharacter(GameObject venueRoot, VRMCharacter character)
+        private static void CopyLipsyncToNewCharacter(GameObject venueRoot, VRMCharacter character)
         {
             // Find CharacterManager
             var characterManager = venueRoot.GetComponentInChildren<CharacterManager>();

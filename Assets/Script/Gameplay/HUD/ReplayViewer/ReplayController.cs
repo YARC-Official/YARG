@@ -81,7 +81,10 @@ namespace YARG.Gameplay.HUD
 
         protected override void GameplayDestroy()
         {
-            Navigator.Instance.NavigationEvent -= OnNavigationEvent;
+            if (Navigator.Instance != null)
+            {
+                Navigator.Instance.NavigationEvent -= OnNavigationEvent;
+            }
         }
 
         protected override void OnSongLoaded()
@@ -291,6 +294,10 @@ namespace YARG.Gameplay.HUD
             if (context.Action == MenuAction.Select)
             {
                 ToggleHUD();
+            }
+            else if (context.Action == MenuAction.Start)
+            {
+                GameManager.TogglePause();
             }
         }
 
