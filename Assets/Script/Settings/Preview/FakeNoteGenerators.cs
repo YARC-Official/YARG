@@ -392,8 +392,8 @@ namespace YARG.Settings.Preview
     {
         public FakeNoteData CreateNote(double time, IFakeNoteRandom random)
         {
-            // 0 = Open, 1-6 = 6 frets, 7 = Wildcard
-            int fret = random.Range(0, 8);
+            // 0 = Open, 1-6 = 6 frets (no wildcard in the six-fret preview)
+            int fret = random.Range(0, 7);
 
             // Open notes
             if (fret == 0)
@@ -404,18 +404,6 @@ namespace YARG.Settings.Preview
                     Fret = (int) SixFretGuitarFret.Open,
                     CenterNote = true,
                     NoteType = ThemeNoteType.Open
-                };
-            }
-
-            // Wildcard
-            if (fret == 7)
-            {
-                return new FakeNoteData
-                {
-                    Time = time,
-                    Fret = (int) SixFretGuitarFret.Wildcard,
-                    CenterNote = true,
-                    NoteType = ThemeNoteType.Wildcard
                 };
             }
 
@@ -461,14 +449,6 @@ namespace YARG.Settings.Preview
                     {
                         Time = time,
                         Fret = (int) SixFretGuitarFret.Open,
-                        CenterNote = true,
-                        NoteType = noteType
-                    };
-                case ThemeNoteType.Wildcard:
-                    return new FakeNoteData
-                    {
-                        Time = time,
-                        Fret = (int) SixFretGuitarFret.Wildcard,
                         CenterNote = true,
                         NoteType = noteType
                     };

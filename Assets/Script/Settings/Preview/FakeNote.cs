@@ -151,11 +151,19 @@ namespace YARG.Settings.Preview
             // Open HOPO notes use a dedicated color (the prefab's
             // EmissionAddition: 1 washes to white by default)
             if (NoteRef.NoteType == ThemeNoteType.OpenHOPO &&
-                FakeTrackPlayer.SelectedGameMode == GameMode.FiveFretGuitar)
+                (FakeTrackPlayer.SelectedGameMode == GameMode.FiveFretGuitar ||
+                 FakeTrackPlayer.SelectedGameMode == GameMode.SixFretGuitar))
             {
-                color = (useStarPower
-                    ? colorProfile.FiveFretGuitar.OpenHopoNoteStarPower
-                    : colorProfile.FiveFretGuitar.OpenHopoNote).ToUnityColor();
+                color = FakeTrackPlayer.SelectedGameMode switch
+                {
+                    GameMode.FiveFretGuitar => (useStarPower
+                        ? colorProfile.FiveFretGuitar.OpenHopoNoteStarPower
+                        : colorProfile.FiveFretGuitar.OpenHopoNote).ToUnityColor(),
+                    GameMode.SixFretGuitar => (useStarPower
+                        ? colorProfile.SixFretGuitar.OpenHopoNoteStarPower
+                        : colorProfile.SixFretGuitar.OpenHopoNote).ToUnityColor(),
+                    _ => color
+                };
             }
 
             // Miss is the highest-priority preview override.

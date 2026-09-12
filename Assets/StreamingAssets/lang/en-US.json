@@ -2383,11 +2383,8 @@
                 "BlackNoteStarPower": {
                     "Name": "Black Note Star Power"
                 },
-                "BlackFret": {
-                    "Name": "Black Fret"
-                },
-                "WhiteFret": {
-                    "Name": "White Fret"
+                "Fret": {
+                    "Name": "Fret"
                 },
                 "BlackFretInner": {
                     "Name": "Black Fret Inner"

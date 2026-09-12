@@ -246,6 +246,16 @@ namespace YARG.Gameplay.Visuals
             _frets[index].PlayHitParticles();
         }
 
+        /// <summary>
+        /// Plays the hit animation and particles with an explicit particle color
+        /// (six-fret colors the burst based on which note was hit).
+        /// </summary>
+        public void PlayHitAnimation(int index, Color particleColor)
+        {
+            _frets[index].PlayHitAnimation();
+            _frets[index].PlayHitParticles(particleColor);
+        }
+
         public void PlayCodaHitAnimation(int index)
         {
             if (!_frets.TryGetValue(index, out var fret))
