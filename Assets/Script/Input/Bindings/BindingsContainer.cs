@@ -85,7 +85,8 @@ namespace YARG.Input.Bindings
                 ControllerFamily.MidiDevice,
                 new()
                 {
-                    { GameMode.ProKeys, new() { ReusableBindingSetDefaults.DefaultMidiKeyboard }}
+                    { GameMode.ProKeys, new() { ReusableBindingSetDefaults.DefaultMidiKeyboard }},
+                    { GameMode.EliteDrums, new() { ReusableBindingSetDefaults.GeneralMidiDrumkit } }
                 }
             }
         };

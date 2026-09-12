@@ -1,8 +1,5 @@
-﻿using Minis;
-using PlasticBand.Devices;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Text;
 using YARG.Core;
 using YARG.Menu.ProfileList;
 
