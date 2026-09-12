@@ -44,6 +44,7 @@ namespace YARG.Input.Bindings
                 GameMode.SixFretGuitar => SIX_FRET_GUITAR,
                 GameMode.FourLaneDrums => FOUR_LANE_DRUMKIT,
                 GameMode.FiveLaneDrums => FIVE_LANE_DRUMKIT,
+                GameMode.ProKeys => KEYS,
                 _ => new()
             };
         }

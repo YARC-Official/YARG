@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using UnityEngine.InputSystem;
 
 namespace YARG.Input.Bindings
 {
@@ -60,8 +61,44 @@ namespace YARG.Input.Bindings
         public const string FIVE_DRUMS_ORANGE_CYMBAL = "FiveDrums.OrangeCymbal";
         public const string FIVE_DRUMS_GREEN_PAD = "FiveDrums.GreenPad";
 
+        
+        public const string KEYS_PRO_KEY_1 = "ProKeys.Key1";
+        public const string KEYS_PRO_KEY_2 = "ProKeys.Key2";
+        public const string KEYS_PRO_KEY_3 = "ProKeys.Key3";
+        public const string KEYS_PRO_KEY_4 = "ProKeys.Key4";
+        public const string KEYS_PRO_KEY_5 = "ProKeys.Key5";
+        public const string KEYS_PRO_KEY_6 = "ProKeys.Key6";
+        public const string KEYS_PRO_KEY_7 = "ProKeys.Key7";
+        public const string KEYS_PRO_KEY_8 = "ProKeys.Key8";
+        public const string KEYS_PRO_KEY_9 = "ProKeys.Key9";
+        public const string KEYS_PRO_KEY_10 = "ProKeys.Key10";
+        public const string KEYS_PRO_KEY_11 = "ProKeys.Key11";
+        public const string KEYS_PRO_KEY_12 = "ProKeys.Key12";
+        public const string KEYS_PRO_KEY_13 = "ProKeys.Key13";
+        public const string KEYS_PRO_KEY_14 = "ProKeys.Key14";
+        public const string KEYS_PRO_KEY_15 = "ProKeys.Key15";
+        public const string KEYS_PRO_KEY_16 = "ProKeys.Key16";
+        public const string KEYS_PRO_KEY_17 = "ProKeys.Key17";
+        public const string KEYS_PRO_KEY_18 = "ProKeys.Key18";
+        public const string KEYS_PRO_KEY_19 = "ProKeys.Key19";
+        public const string KEYS_PRO_KEY_20 = "ProKeys.Key20";
+        public const string KEYS_PRO_KEY_21 = "ProKeys.Key21";
+        public const string KEYS_PRO_KEY_22 = "ProKeys.Key22";
+        public const string KEYS_PRO_KEY_23 = "ProKeys.Key23";
+        public const string KEYS_PRO_KEY_24 = "ProKeys.Key24";
+        public const string KEYS_PRO_KEY_25 = "ProKeys.Key25";
+        public const string KEYS_FIVE_LANE_OPEN = "ProKeys.OpenNote";
+        public const string KEYS_FIVE_LANE_GREEN = "ProKeys.GreenKey";
+        public const string KEYS_FIVE_LANE_RED = "ProKeys.RedKey";
+        public const string KEYS_FIVE_LANE_YELLOW = "ProKeys.YellowKey";
+        public const string KEYS_FIVE_LANE_BLUE = "ProKeys.BlueKey";
+        public const string KEYS_FIVE_LANE_ORANGE = "ProKeys.OrangeKey";
+        public const string KEYS_STAR_POWER = "ProKeys.StarPower";
+        public const string KEYS_TOUCH_EFFECTS = "ProKeys.TouchEffects";
 
-        public const string DPAD_UP = "dpad/up";
+
+
+    public const string DPAD_UP = "dpad/up";
         public const string DPAD_DOWN = "dpad/down";
         public const string DPAD_LEFT = "dpad/left";
         public const string DPAD_RIGHT = "dpad/right";
