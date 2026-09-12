@@ -163,6 +163,20 @@ namespace YARG.Input.Bindings
                     }
                 )
             },
+            {
+                ControlStrings.MENU_LEFT,
+                new ReusableButtonBinding(
+                    ReusableBindingSetTemplates.MENU[ControlStrings.MENU_LEFT],
+                    new ReusableSingleButtonBindingConfig(ControllerFamily.FourLaneDrumkit, ControlStrings.DPAD_LEFT)
+                )
+            },
+            {
+                ControlStrings.MENU_RIGHT,
+                new ReusableButtonBinding(
+                    ReusableBindingSetTemplates.MENU[ControlStrings.MENU_RIGHT],
+                    new ReusableSingleButtonBindingConfig(ControllerFamily.FourLaneDrumkit, ControlStrings.DPAD_RIGHT)
+                )
+            },
         };
 
         private static Dictionary<string, ReusableControlBinding> _fourLaneDrumkitMenuManualOnly = new()
@@ -225,6 +239,20 @@ namespace YARG.Input.Bindings
                     new ReusableSingleButtonBindingConfig(ControllerFamily.FourLaneDrumkit, ControlStrings.DPAD_DOWN)
                 )
             },
+            {
+                ControlStrings.MENU_LEFT,
+                new ReusableButtonBinding(
+                    ReusableBindingSetTemplates.MENU[ControlStrings.MENU_LEFT],
+                    new ReusableSingleButtonBindingConfig(ControllerFamily.FourLaneDrumkit, ControlStrings.DPAD_LEFT)
+                )
+            },
+            {
+                ControlStrings.MENU_RIGHT,
+                new ReusableButtonBinding(
+                    ReusableBindingSetTemplates.MENU[ControlStrings.MENU_RIGHT],
+                    new ReusableSingleButtonBindingConfig(ControllerFamily.FourLaneDrumkit, ControlStrings.DPAD_RIGHT)
+                )
+            },
         };
 
         public static ReusableBindingSet DefaultFourLaneDrumkit = MakeHardcodedBindingSet(
@@ -245,7 +273,7 @@ namespace YARG.Input.Bindings
             "Manual",
             GameMode.Menu,
             ControllerFamily.FourLaneDrumkit,
-            _fourLaneDrumkitMenuDefaults
+            _fourLaneDrumkitMenuManualOnly
         );
     }
 }

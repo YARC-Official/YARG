@@ -25,14 +25,7 @@ namespace YARG.Input.Bindings
                 true
             );
 
-            var template = mode switch {
-                GameMode.Menu => ReusableBindingSetTemplates.MENU,
-                GameMode.FiveFretGuitar => ReusableBindingSetTemplates.FIVE_FRET_GUITAR,
-                GameMode.SixFretGuitar => ReusableBindingSetTemplates.SIX_FRET_GUITAR,
-                GameMode.FourLaneDrums => ReusableBindingSetTemplates.FOUR_LANE_DRUMKIT,
-                GameMode.FiveLaneDrums => ReusableBindingSetTemplates.FIVE_LANE_DRUMKIT,
-                _ => throw new NotImplementedException()
-            };
+            var template = ReusableBindingSetTemplates.GetTemplate(mode);
 
             foreach (var (key, info) in template)
             {
