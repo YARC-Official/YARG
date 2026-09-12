@@ -129,6 +129,9 @@
 			"ProKeyboard": "Pro Keyboards",
 			"ProGuitar": "Pro Guitars",
 			"MidiDevice": "MIDI Devices",
+			"ComputerKeyboard": "Computer Keyboards",
+			"Mouse": "Computer Mice",
+			"Gamepad": "Gamepads",
 			"Generic": "Generic Input Devices"
 		}
     },
