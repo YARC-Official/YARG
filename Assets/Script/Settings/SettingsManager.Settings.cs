@@ -209,6 +209,13 @@ namespace YARG.Settings
             public ToggleSetting WaitForSongVideo          { get; } = new(true);
             public ToggleSetting AllowRemoteContent        { get; } = new(true);
 
+            // Empty means "not set" -- VLCMediaPlayer falls back to its own default
+            // (Application.dataPath-based) resolution when this is empty.
+            public FolderPathSetting VlcLibraryPath { get; } = new(string.Empty, path =>
+            {
+                LibVLCSharp.VLCMediaPlayer.LibraryPathOverride = string.IsNullOrEmpty(path) ? null : path;
+            });
+
 
             public SliderSetting InputPollingFrequency { get; } = new(250f, 60f, 1000f,
                 (value) => InputSystem.pollingFrequency = value

@@ -570,6 +570,7 @@
             "ShowAdvanced": "Show Advanced",
             "HideAdvanced": "Hide Advanced",
             "NoFolder": "<i>No Folder</i>",
+            "UsingDefaultVlcPath": "<i>Auto (default)</i>",
             "SearchHeader": {
                 "AllCategories": "All Categories",
                 "Results": "Results"
@@ -1920,6 +1921,10 @@
             "AllowRemoteContent": {
                 "Name": "Allow Remote Content",
                 "Description": "Allows YARG to download and use content from remote sources. (Does not affect OpenSource and Genrelizer, requires restart to take effect)"
+            },
+            "VlcLibraryPath": {
+                "Name": "VLC / libVLC Path",
+                "Description": "Path to a VLC/libVLC (v4, not v3) install for your OS, for using VLC as the video decoder. Leave empty to use the default (bundled/system) location. If none is found, will gracefully fallback to the Unity video player. Setting likely requires a YARG restart to take effect."
             },
             "WrapAroundNavigation": {
                 "Name": "Wrap-Around Navigation",
