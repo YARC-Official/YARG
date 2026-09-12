@@ -2046,6 +2046,14 @@
                 "Rotation": {
                     "Name": "Camera Rotation",
                     "Description": "The track camera's rotational pitch (up and down)."
+                },
+                "Orthographic": {
+                    "Name": "Orthographic Camera",
+                    "Description": "Use an orthographic projection instead of perspective."
+                },
+                "OrthographicSize": {
+                    "Name": "Orthographic Size",
+                    "Description": "The orthographic view size (half the vertical view height in world units). Only used when Orthographic Camera is enabled."
                 }
             },
             "ColorProfile": {

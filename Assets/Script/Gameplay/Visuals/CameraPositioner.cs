@@ -69,8 +69,15 @@ namespace YARG.Gameplay.Visuals
         public void Initialize(CameraPreset preset)
         {
             var camera = GetComponent<Camera>();
-            // FOV
-            camera.fieldOfView = preset.FieldOfView;
+            camera.orthographic = preset.Orthographic;
+            if (preset.Orthographic)
+            {
+                camera.orthographicSize = preset.OrthographicSize;
+            }
+            else
+            {
+                camera.fieldOfView = preset.FieldOfView;
+            }
 
             // Position
             transform.localPosition = new Vector3(
