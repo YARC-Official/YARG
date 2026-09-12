@@ -92,6 +92,14 @@ namespace YARG.Input.Bindings
                         ReusableBindingSetDefaults.AlesisNitroDrumkit,
                     }}
                 }
+            },
+
+            {
+                ControllerFamily.Gamepad,
+                new()
+                {
+                    { GameMode.Menu, new() { ReusableBindingSetDefaults.DefaultGamepadMenu }},
+                }
             }
         };
 
