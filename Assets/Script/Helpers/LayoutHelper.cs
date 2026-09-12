@@ -74,6 +74,10 @@ namespace YARG.Helpers
                 ControllerFamily.FiveLaneDrumkit => LayoutStrings.FIVE_LANE_DRUMKIT,
                 ControllerFamily.ProKeyboard => LayoutStrings.PRO_KEYBOARD,
                 ControllerFamily.ProGuitar => LayoutStrings.PRO_GUITAR,
+                ControllerFamily.MidiDevice => LayoutStrings.MIDI_DEVICE,
+                ControllerFamily.Gamepad => LayoutStrings.GAMEPAD,
+                ControllerFamily.ComputerKeyboard => LayoutStrings.KEYBOARD,
+                ControllerFamily.Mouse => LayoutStrings.MOUSE,
                 _ => LayoutStrings.INPUT_DEVICE
             };
         }

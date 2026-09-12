@@ -115,7 +115,7 @@ namespace YARG.Menu.ProfileList
 
             foreach (var control in _allControls)
             {
-                if (control.Layout is LayoutStrings.AXIS)
+                if (control.Layout is LayoutStrings.AXIS or LayoutStrings.MIDI_VALUE or LayoutStrings.MIDI_PITCH)
                 {
                     _dropdownControls.Add(control);
                     _controlDropdown.options.Add(new(DisambiguateDisplayName(control)));

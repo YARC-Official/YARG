@@ -13,6 +13,9 @@ namespace YARG.Input.Bindings
         public const string AXIS = "Axis";
         public const string DPAD = "Dpad";
         public const string STICK = "Stick";
+        public const string MIDI_NOTE = "MidiNote";
+        public const string MIDI_VALUE = "MidiValue";
+        public const string MIDI_PITCH = "MidiPitch";
 
         public const string INPUT_DEVICE = nameof(InputDevice);
 

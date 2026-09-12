@@ -79,6 +79,14 @@ namespace YARG.Input.Bindings
                     { GameMode.Menu, new() { ReusableBindingSetDefaults.DefaultProKeyboardMenu }},
                     { GameMode.ProKeys, new() { ReusableBindingSetDefaults.DefaultProKeyboard }}
                 }
+            },
+
+            {
+                ControllerFamily.MidiDevice,
+                new()
+                {
+                    { GameMode.ProKeys, new() { ReusableBindingSetDefaults.DefaultMidiKeyboard }}
+                }
             }
         };
 
