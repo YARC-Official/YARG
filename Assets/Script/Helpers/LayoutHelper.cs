@@ -1,4 +1,5 @@
-﻿using PlasticBand.Devices;
+﻿using Minis;
+using PlasticBand.Devices;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -48,13 +49,16 @@ namespace YARG.Helpers
         {
             switch (layout)
             {
-                case LayoutStrings.FIVE_FRET_GUITAR: return ControllerFamily.FiveFretGuitar;
-                case LayoutStrings.SIX_FRET_GUITAR: return ControllerFamily.SixFretGuitar;
-                case LayoutStrings.FOUR_LANE_DRUMKIT: return ControllerFamily.FourLaneDrumkit;
-                case LayoutStrings.FIVE_LANE_DRUMKIT: return ControllerFamily.FiveLaneDrumkit;
-                case LayoutStrings.PRO_KEYBOARD: return ControllerFamily.ProKeyboard;
-                case LayoutStrings.PRO_GUITAR: return ControllerFamily.ProGuitar;
-                case LayoutStrings.INPUT_DEVICE: return ControllerFamily.Generic;
+                case LayoutStrings.FIVE_FRET_GUITAR:    return ControllerFamily.FiveFretGuitar;
+                case LayoutStrings.SIX_FRET_GUITAR:     return ControllerFamily.SixFretGuitar;
+                case LayoutStrings.FOUR_LANE_DRUMKIT:   return ControllerFamily.FourLaneDrumkit;
+                case LayoutStrings.FIVE_LANE_DRUMKIT:   return ControllerFamily.FiveLaneDrumkit;
+                case LayoutStrings.PRO_KEYBOARD:        return ControllerFamily.ProKeyboard;
+                case LayoutStrings.PRO_GUITAR:          return ControllerFamily.ProGuitar;
+                case LayoutStrings.KEYBOARD:            return ControllerFamily.ComputerKeyboard;
+                case LayoutStrings.MOUSE:               return ControllerFamily.Mouse;
+                case LayoutStrings.GAMEPAD:             return ControllerFamily.Gamepad;
+                case LayoutStrings.INPUT_DEVICE:        return ControllerFamily.Generic;
             }
 
             return LayoutStringToControllerFamily(InputSystem.GetNameOfBaseLayout(layout));
@@ -78,12 +82,17 @@ namespace YARG.Helpers
         {
             return family switch
             {
-                ControllerFamily.FiveFretGuitar => new() { nameof(FiveFretGuitar), nameof(RockBandGuitar), nameof(GuitarHeroGuitar), nameof(RiffmasterGuitar) },
-                ControllerFamily.SixFretGuitar => new() { nameof(SixFretGuitar) },
-                ControllerFamily.FourLaneDrumkit => new() { nameof(FourLaneDrumkit) },
-                ControllerFamily.FiveLaneDrumkit => new() { nameof(FiveLaneDrumkit) },
-                ControllerFamily.ProKeyboard => new() { nameof(ProKeyboard) },
-                ControllerFamily.ProGuitar => new() { nameof(ProGuitar) },
+                ControllerFamily.FiveFretGuitar => new() { LayoutStrings.FIVE_FRET_GUITAR, LayoutStrings.ROCK_BAND_GUITAR, LayoutStrings.GUITAR_HERO_GUITAR, LayoutStrings.RIFFMASTER_GUITAR },
+                ControllerFamily.SixFretGuitar => new() { LayoutStrings.SIX_FRET_GUITAR },
+                ControllerFamily.FourLaneDrumkit => new() { LayoutStrings.FOUR_LANE_DRUMKIT },
+                ControllerFamily.FiveLaneDrumkit => new() { LayoutStrings.FIVE_LANE_DRUMKIT },
+                ControllerFamily.ProKeyboard => new() { LayoutStrings.PRO_KEYBOARD },
+                ControllerFamily.ProGuitar => new() { LayoutStrings.PRO_GUITAR },
+                ControllerFamily.MidiDevice => new() { LayoutStrings.MIDI_DEVICE },
+                ControllerFamily.Gamepad => new() { LayoutStrings.GAMEPAD },
+                ControllerFamily.ComputerKeyboard => new() { LayoutStrings.KEYBOARD },
+                ControllerFamily.Mouse => new() { LayoutStrings.MOUSE },
+                ControllerFamily.Generic => new() { LayoutStrings.INPUT_DEVICE },
                 _ => throw new NotImplementedException() // TODO-FRICK
             };
         }
