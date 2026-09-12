@@ -22,6 +22,21 @@ namespace YARG.Helpers
         private const double STABLE_THRESHOLD_MS = 5.0;
 
         private readonly List<double> _accuracyList = new();
+
+        // Split of _accuracyList by the per-note filter flag passed to RecordAccuracy (e.g. strum
+        // vs HOPO/tap for guitar, kick vs pad for drums), used when _noteFilterSetting is set to
+        // OnlySelected or ExcludeSelected. A null flag (instruments with no such distinction, or no
+        // _noteFilterSetting at all) lands in neither list, which simply means GetReadySample's
+        // "zero matches" fallback to the full sample list kicks in on every window -- i.e. the
+        // setting has no effect for them, same as before.
+        private readonly List<double> _matchingAccuracyList = new();
+        private readonly List<double> _nonMatchingAccuracyList = new();
+
+        // Which per-instrument dropdown (if any) governs the OnlySelected/ExcludeSelected split
+        // above -- e.g. UseStrumOnlyOffsetForCalibration for guitar, UseKickOnlyOffsetForCalibration
+        // for drums. Null for instruments with no such setting (vocals, keys, etc.).
+        private readonly DropdownSetting<OffsetCalibrationFilter> _noteFilterSetting;
+
         private readonly GameManager _gameManager;
 
         private int _calibration;
@@ -54,10 +69,11 @@ namespace YARG.Helpers
             : AutoOffsetSetting.Value ? CalibrationType.OFFSET
                                        : CalibrationType.DISABLED;
 
-        public AutoCalibrator(GameManager gameManager)
+        public AutoCalibrator(GameManager gameManager, DropdownSetting<OffsetCalibrationFilter> noteFilterSetting = null)
         {
             _gameManager = gameManager;
             _songOffsetSetting = gameManager.SongOffsetOverride;
+            _noteFilterSetting = noteFilterSetting;
 
             AutoAudioSetting.OnChange += OnAutoCalibrateAudioChanged;
             AutoVideoSetting.OnChange += OnAutoCalibrateVideoChanged;
@@ -150,6 +166,8 @@ namespace YARG.Helpers
         private void Reset()
         {
             _accuracyList.Clear();
+            _matchingAccuracyList.Clear();
+            _nonMatchingAccuracyList.Clear();
             if (IsCalibratingAudio)
             {
                 _calibration = AudioCalibrationSetting.Value;
@@ -164,7 +182,12 @@ namespace YARG.Helpers
             }
         }
 
-        public void RecordAccuracy(double hitTime, double noteTime)
+        /// <param name="isFilteredNote">
+        /// Whether this hit note belongs to the category this player's _noteFilterSetting (if any)
+        /// filters by -- e.g. is a strum, or is a kick. Pass null for instruments with no such
+        /// distinction, or notes that don't fall cleanly into either side.
+        /// </param>
+        public void RecordAccuracy(double hitTime, double noteTime, bool? isFilteredNote = null)
         {
             if (CalibrationMode == CalibrationType.DISABLED || _gameManager.IsAudioSyncCorrectionActive)
             {
@@ -178,17 +201,26 @@ namespace YARG.Helpers
 
             double accuracy = (hitTime - noteTime) * 1000;
             _accuracyList.Add(accuracy);
+            if (isFilteredNote == true)
+            {
+                _matchingAccuracyList.Add(accuracy);
+            }
+            else if (isFilteredNote == false)
+            {
+                _nonMatchingAccuracyList.Add(accuracy);
+            }
 
-            if (_accuracyList.Count < SAMPLE_SIZE)
+            var sample = GetReadySample();
+            if (sample == null)
             {
                 return;
             }
 
-            var filtered = RemoveOutliers(_accuracyList);
-            double median = CalculateMedian(filtered);
-            int adjustment = (int) Math.Round(median * DAMPING);
+            var filtered = RemoveOutliers(sample);
+            double center = CalculateMedian(filtered);
+            int adjustment = (int) Math.Round(center * DAMPING);
 
-            if (Math.Abs(median) <= STABLE_THRESHOLD_MS)
+            if (Math.Abs(center) <= STABLE_THRESHOLD_MS)
             {
                 NotifyCalibrationStable();
             }
@@ -199,6 +231,39 @@ namespace YARG.Helpers
             }
 
             _accuracyList.Clear();
+            _matchingAccuracyList.Clear();
+            _nonMatchingAccuracyList.Clear();
+        }
+
+        // Picks which pooled sample list to calibrate from, or null if we should keep collecting.
+        // With OnlySelected/ExcludeSelected: wait for SAMPLE_SIZE notes on the relevant side,
+        // unless the whole window so far has had zero of them (e.g. an all-HOPO run for
+        // ExcludeSelected-strums, or an instrument with no filter distinction at all), in which
+        // case fall back to the full note sample once it reaches SAMPLE_SIZE -- same fallback rule
+        // used for the band-average filtered offset stat.
+        private List<double> GetReadySample()
+        {
+            var filterMode = _noteFilterSetting?.Value ?? OffsetCalibrationFilter.Everything;
+            if (filterMode == OffsetCalibrationFilter.Everything)
+            {
+                return _accuracyList.Count >= SAMPLE_SIZE ? _accuracyList : null;
+            }
+
+            var selectedList = filterMode == OffsetCalibrationFilter.OnlySelected
+                ? _matchingAccuracyList
+                : _nonMatchingAccuracyList;
+
+            if (selectedList.Count >= SAMPLE_SIZE)
+            {
+                return selectedList;
+            }
+
+            if (_accuracyList.Count >= SAMPLE_SIZE && selectedList.Count == 0)
+            {
+                return _accuracyList;
+            }
+
+            return null;
         }
 
         private void ApplyAdjustment(int adjustment)

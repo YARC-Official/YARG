@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
@@ -25,6 +26,35 @@ namespace YARG.Menu.ScoreScreen
         private const float OFFSET_HISTOGRAM_AXIS_LABEL_HEIGHT = 22f;
         private const float OFFSET_HISTOGRAM_AXIS_FONT_SIZE = 20f;
         private const float OFFSET_HISTOGRAM_HORIZONTAL_MARGIN = 54f;
+
+        // The filter-category notes (strums for guitar, kicks for drums) render below in white,
+        // the rest stack above in gray, so a skewed histogram can be attributed to real filter-
+        // category timing vs. the other category's infinite front end (HOPO/tap for guitar).
+        private static readonly Color OFFSET_HISTOGRAM_PRIMARY_COLOR   = new(1f, 1f, 1f, 0.85f);
+        private static readonly Color OFFSET_HISTOGRAM_SECONDARY_COLOR = new(1f, 1f, 1f, 0.30f);
+
+        /// <summary>
+        /// Label prefix used for the filter-category offset summary rows ("STRUM AVERAGE"/"STRUM
+        /// MEDIAN" by default). Overridden per instrument -- e.g. "KICK" for drums.
+        /// </summary>
+        protected virtual string CategoryLabel => "STRUM";
+
+        /// <summary>
+        /// Label for the *other* side of the filter category, used in place of
+        /// <see cref="CategoryLabel"/> when <see cref="FilterMode"/> is ExcludeSelected (e.g. "No
+        /// Strums") -- that's the side actually driving calibration in that mode.
+        /// </summary>
+        protected virtual string OppositeCategoryLabel => "HOPO/TAP";
+
+        /// <summary>
+        /// Which per-instrument calibration filter dropdown decides whether the filter-category
+        /// notes or the other side render as "primary" (white, and shown in the summary rows) --
+        /// e.g. UseStrumOnlyOffsetForCalibration for guitar, UseKickOnlyOffsetForCalibration for
+        /// drums. Read directly from settings rather than passed in through Initialize, since it
+        /// can be changed from the main Settings menu between score screens.
+        /// </summary>
+        protected virtual OffsetCalibrationFilter FilterMode =>
+            SettingsManager.Settings.UseStrumOnlyOffsetForCalibration.Value;
 
         [SerializeField]
         private ModifierIcon _modifierIconPrefab;
@@ -82,6 +112,12 @@ namespace YARG.Menu.ScoreScreen
         private TextMeshProUGUI _bandBonusScore;
         [SerializeField]
         protected TextMeshProUGUI _averageOffset;
+        /// <summary>
+        /// The static label to the left of <see cref="_averageOffset"/>. Optional -- if it is not
+        /// wired in the Inspector, the score card finds the other text element in the row.
+        /// </summary>
+        [SerializeField]
+        private TextMeshProUGUI _averageOffsetLabel;
         [SerializeField]
         private TextMeshProUGUI _starPowerActivations;
         [SerializeField]
@@ -118,6 +154,13 @@ namespace YARG.Menu.ScoreScreen
         protected T     Stats;
         protected bool  IsReplay;
 
+        /// <summary>
+        /// Aligned 1:1 with <see cref="Stats"/>'s offset samples: true for the filter-category note
+        /// (a strum for guitar, a kick for drums), false for the other side. Null if the instrument
+        /// has no such distinction.
+        /// </summary>
+        protected IReadOnlyList<bool> OffsetSampleFilterCategory;
+
         public YargPlayer Player { get; private set; }
 
         private void Awake()
@@ -125,12 +168,14 @@ namespace YARG.Menu.ScoreScreen
             _colorizer = GetComponent<ScoreCardColorizer>();
         }
 
-        public void Initialize(bool isHighScore, YargPlayer player, T stats, bool isReplay)
+        public void Initialize(bool isHighScore, YargPlayer player, T stats, bool isReplay,
+            IReadOnlyList<bool> offsetSampleFilterCategory = null)
         {
             IsHighScore = isHighScore;
             Player = player;
             Stats = stats;
             IsReplay  = isReplay;
+            OffsetSampleFilterCategory = offsetSampleFilterCategory;
         }
 
         public virtual void SetCardContents()
@@ -209,7 +254,7 @@ namespace YARG.Menu.ScoreScreen
                 $"{ColorizeSecondary(Stats.TotalStarPowerPhrases)}";
             _averageMultiplier.text = ColorizePrimary(Stats.AverageMultiplier.ToString("0.00"));
             _bandBonusScore.text = ColorizePrimary(Stats.BandBonusScore.ToString("N0"));
-            _averageOffset.text = $"{ColorizePrimary(Math.Round(Stats.GetAverageOffset() * 1000, MidpointRounding.AwayFromZero))} {ColorizeSecondary("ms")}";
+            BuildOffsetSummaryRows();
             _starPowerActivations.text = ColorizePrimary(Stats.StarPowerActivationCount);
             string timeInStarPower = TimeSpan.FromSeconds(Stats.TimeInStarPower).ToString(@"m\:ss");
             _timeInStarPower.text = ColorizePrimary(timeInStarPower);
@@ -267,6 +312,230 @@ namespace YARG.Menu.ScoreScreen
             _modifiersUsedSeparator.gameObject.SetActive(anyModifiersUsed);
         }
 
+        private const float OFFSET_STATS_MEDIAN_SPACING = 8f;
+
+        private readonly List<GameObject> _generatedOffsetRows = new();
+        private GameObject _offsetMedianSpacer;
+
+        /// <summary>
+        /// Displays offset statistics as separate left-label/right-value rows. The filter-category
+        /// statistics (<see cref="CategoryLabel"/>) are shown only when the song contains both
+        /// category and non-category hits; otherwise they would either be unavailable or identical
+        /// to the normal statistics. When <see cref="FilterMode"/> is set to exclude the filter
+        /// category (e.g. "No Strums"), the *other* side's statistics are shown instead, under
+        /// <see cref="OppositeCategoryLabel"/>, since that's the side actually driving calibration.
+        /// The one row whose value would actually be saved as the song's calibration offset renders
+        /// in white; the rest stay gray, so new players can tell at a glance which number this all
+        /// comes down to.
+        /// </summary>
+        private void BuildOffsetSummaryRows()
+        {
+            var samples = Stats.GetOffsetSamples();
+            bool primaryIsCategory = FilterMode != OffsetCalibrationFilter.ExcludeSelected;
+            var primarySamples = GetFilterCategorySamples(samples, primaryIsCategory);
+            var primaryLabel = primaryIsCategory ? CategoryLabel : OppositeCategoryLabel;
+
+            bool hasPrimary = primarySamples is { Count: > 0 };
+            bool hasOther = primarySamples != null && primarySamples.Count < samples.Count;
+            bool showCategoryRows = hasPrimary && hasOther;
+
+            // Mirrors ScoreScreenMenu.ToggleOffsetToJson: the filter-category value is what's
+            // actually saved whenever this instrument's calibration filter narrows things down
+            // *and* a filtered value is available (i.e. the category rows are shown); otherwise
+            // it's the plain offset. Median vs average is decided by UseMedianForEndOfSongCalibration.
+            bool useCategoryForCalibration = FilterMode != OffsetCalibrationFilter.Everything && showCategoryRows;
+            bool useMedianForCalibration = SettingsManager.Settings.UseMedianForEndOfSongCalibration.Value;
+
+            var rows = new List<(string Label, double Value, bool IsCalibrationRow)>
+            {
+                ("AVERAGE OFFSET", Stats.GetAverageOffset(), !useCategoryForCalibration && !useMedianForCalibration),
+                ("MEDIAN OFFSET", GetMedian(samples) ?? Stats.GetAverageOffset(), !useCategoryForCalibration && useMedianForCalibration)
+            };
+
+            if (showCategoryRows)
+            {
+                rows.Insert(1, ($"{primaryLabel} AVERAGE", primarySamples.Average(), useCategoryForCalibration && !useMedianForCalibration));
+                rows.Add(($"{primaryLabel} MEDIAN", GetMedian(primarySamples) ?? primarySamples.Average(), useCategoryForCalibration && useMedianForCalibration));
+            }
+
+            var templateRow = _averageOffset.transform.parent as RectTransform;
+            if (templateRow == null)
+            {
+                _averageOffset.text =
+                    $"{ColorizePrimary(ToMilliseconds(Stats.GetAverageOffset()))} {ColorizeSecondary("ms")}";
+                return;
+            }
+
+            ClearGeneratedOffsetRows();
+
+            var labelTransform = _averageOffsetLabel != null
+                ? _averageOffsetLabel.transform
+                : FindOffsetLabel(templateRow)?.transform;
+            string labelPath = GetRelativePath(templateRow, labelTransform);
+            string valuePath = GetRelativePath(templateRow, _averageOffset.transform);
+
+            SetOffsetRow(templateRow.gameObject, labelPath, valuePath, rows[0].Label, rows[0].Value,
+                rows[0].IsCalibrationRow);
+
+            int templateIndex = templateRow.GetSiblingIndex();
+            for (int i = 1; i < rows.Count; i++)
+            {
+                var clone = Instantiate(templateRow.gameObject, templateRow.parent);
+                clone.name = $"AverageOffsetRow_{i}";
+                clone.SetActive(true);
+                clone.transform.SetSiblingIndex(templateIndex + i);
+                SetOffsetRow(clone, labelPath, valuePath, rows[i].Label, rows[i].Value, rows[i].IsCalibrationRow);
+                _generatedOffsetRows.Add(clone);
+            }
+
+            // Keep the averages together and add a small gap before the median rows.
+            int medianStartIndex = showCategoryRows ? 2 : 1;
+            var spacer = new GameObject(
+                "AverageOffsetMedianSpacer",
+                typeof(RectTransform),
+                typeof(LayoutElement));
+            spacer.transform.SetParent(templateRow.parent, false);
+            spacer.transform.SetSiblingIndex(templateIndex + medianStartIndex);
+            var spacerLayout = spacer.GetComponent<LayoutElement>();
+            spacerLayout.minHeight = OFFSET_STATS_MEDIAN_SPACING;
+            spacerLayout.preferredHeight = OFFSET_STATS_MEDIAN_SPACING;
+            _offsetMedianSpacer = spacer;
+        }
+
+        private static string ToMilliseconds(double seconds)
+        {
+            return Math.Round(seconds * 1000, MidpointRounding.AwayFromZero).ToString();
+        }
+
+        /// <param name="isCalibrationRow">
+        /// Whether this row's value is the one actually saved as the song's calibration offset --
+        /// rendered in white (via <see cref="ColorizePrimary"/>) to flag it as the number that
+        /// matters; every other row renders muted gray (via <see cref="ColorizeSecondary"/>).
+        /// </param>
+        private void SetOffsetRow(GameObject rowObject, string labelPath, string valuePath, string labelText,
+            double valueSeconds, bool isCalibrationRow)
+        {
+            var row = rowObject.transform as RectTransform;
+            var label = labelPath != null
+                ? row.Find(labelPath)?.GetComponent<TextMeshProUGUI>()
+                : FindOffsetLabel(row, row.Find(valuePath))?.GetComponent<TextMeshProUGUI>();
+            var value = row.Find(valuePath)?.GetComponent<TextMeshProUGUI>();
+
+            if (label != null)
+            {
+                label.text = isCalibrationRow ? ColorizePrimary(labelText) : ColorizeSecondary(labelText);
+            }
+
+            if (value != null)
+            {
+                value.alignment = TextAlignmentOptions.MidlineRight;
+                var colorizedValue = isCalibrationRow
+                    ? ColorizePrimary(ToMilliseconds(valueSeconds))
+                    : ColorizeSecondary(ToMilliseconds(valueSeconds));
+                value.text = $"{colorizedValue} {ColorizeSecondary("ms")}";
+            }
+        }
+
+        private static TextMeshProUGUI FindOffsetLabel(RectTransform row, Transform valueTransform = null)
+        {
+            foreach (Transform child in row)
+            {
+                if (child == valueTransform)
+                {
+                    continue;
+                }
+
+                if (child.TryGetComponent(out TextMeshProUGUI text))
+                {
+                    return text;
+                }
+            }
+
+            return null;
+        }
+
+        private static string GetRelativePath(Transform root, Transform target)
+        {
+            if (target == null || !target.IsChildOf(root))
+            {
+                return null;
+            }
+
+            var parts = new Stack<string>();
+            var current = target;
+            while (current != root)
+            {
+                parts.Push(current.name);
+                current = current.parent;
+            }
+
+            return string.Join("/", parts);
+        }
+
+        private void ClearGeneratedOffsetRows()
+        {
+            foreach (var row in _generatedOffsetRows)
+            {
+                if (row != null)
+                {
+                    Destroy(row);
+                }
+            }
+
+            _generatedOffsetRows.Clear();
+
+            if (_offsetMedianSpacer != null)
+            {
+                Destroy(_offsetMedianSpacer);
+                _offsetMedianSpacer = null;
+            }
+        }
+
+        private static double? GetMedian(IReadOnlyList<double> samples)
+        {
+            if (samples.Count == 0)
+            {
+                return null;
+            }
+
+            var sorted = new double[samples.Count];
+            for (int i = 0; i < samples.Count; i++)
+            {
+                sorted[i] = samples[i];
+            }
+
+            Array.Sort(sorted);
+
+            int mid = sorted.Length / 2;
+            return sorted.Length % 2 == 0
+                ? (sorted[mid - 1] + sorted[mid]) / 2.0
+                : sorted[mid];
+        }
+
+        /// <summary>
+        /// Returns just the samples on the requested side of <see cref="OffsetSampleFilterCategory"/>
+        /// (true for the filter category itself -- a strum for guitar, a kick for drums -- false for
+        /// the other side), or null if it isn't available/aligned for this instrument.
+        /// </summary>
+        private List<double> GetFilterCategorySamples(IReadOnlyList<double> samples, bool wantCategory = true)
+        {
+            if (OffsetSampleFilterCategory == null || OffsetSampleFilterCategory.Count != samples.Count)
+            {
+                return null;
+            }
+
+            var result = new List<double>(samples.Count);
+            for (int i = 0; i < samples.Count; i++)
+            {
+                if (OffsetSampleFilterCategory[i] == wantCategory)
+                {
+                    result.Add(samples[i]);
+                }
+            }
+
+            return result;
+        }
+
         private void BuildOffsetHistogram()
         {
             if (!TryGetHistogramSection(out var sectionContainer, out int insertIndex))
@@ -284,7 +553,38 @@ namespace YARG.Menu.ScoreScreen
 
             float minOffsetMs = -OFFSET_HISTOGRAM_ABS_BOUND_MS;
             float maxOffsetMs = OFFSET_HISTOGRAM_ABS_BOUND_MS;
-            int[] bins = BuildHistogramBins(offsetSamples, minOffsetMs, maxOffsetMs, out int maxCount);
+
+            // OffsetSampleFilterCategory is read once, post-song, from the live chart's WasHit note
+            // flags (see FiveFretGuitarPlayer/DrumsPlayer.GetOffsetSampleFilterCategory) -- it's
+            // only meaningful when it lines up 1:1 with offsetSamples. If it's missing or
+            // mismatched (an instrument with no distinction, or an older replay/save), everything
+            // is treated as one category and the histogram renders as a single white bar per bin,
+            // same as before this feature.
+            IReadOnlyList<bool> filterCategory = OffsetSampleFilterCategory != null && OffsetSampleFilterCategory.Count == offsetSamples.Count
+                ? OffsetSampleFilterCategory
+                : null;
+
+            // When calibration is set to exclude the filter category (e.g. "No Strums"), the
+            // *other* side is what's actually driving calibration, so it renders as the primary
+            // (white, bottom-of-stack) bar instead -- otherwise the graph would spotlight the side
+            // being ignored rather than the one actually being calibrated against.
+            bool primaryIsCategory = FilterMode != OffsetCalibrationFilter.ExcludeSelected;
+
+            int[] categoryBins = BuildHistogramBins(offsetSamples, filterCategory, wantCategory: primaryIsCategory, minOffsetMs, maxOffsetMs);
+            int[] otherBins = filterCategory == null
+                ? new int[OFFSET_HISTOGRAM_BIN_COUNT]
+                : BuildHistogramBins(offsetSamples, filterCategory, wantCategory: !primaryIsCategory, minOffsetMs, maxOffsetMs);
+
+            int maxCount = 0;
+            for (int i = 0; i < OFFSET_HISTOGRAM_BIN_COUNT; i++)
+            {
+                int stackedCount = categoryBins[i] + otherBins[i];
+                if (stackedCount > maxCount)
+                {
+                    maxCount = stackedCount;
+                }
+            }
+
             if (maxCount <= 0)
             {
                 SetOffsetHistogramActive(false);
@@ -304,7 +604,7 @@ namespace YARG.Menu.ScoreScreen
 
             float zeroAxisPosition = Mathf.InverseLerp(minOffsetMs, maxOffsetMs, 0f);
             SetVerticalAxisLinePosition(_offsetHistogramZeroLineRect, zeroAxisPosition, 3f);
-            PopulateHistogramBars(bins, maxCount);
+            PopulateHistogramBars(categoryBins, otherBins, maxCount);
             SetHistogramAxisLabels(minOffsetMs, maxOffsetMs);
         }
 
@@ -403,11 +703,10 @@ namespace YARG.Menu.ScoreScreen
             labelRect.sizeDelta = new Vector2(0f, OFFSET_HISTOGRAM_AXIS_LABEL_HEIGHT);
         }
 
-        private void PopulateHistogramBars(IReadOnlyList<int> bins, int maxCount)
+        private void PopulateHistogramBars(IReadOnlyList<int> categoryBins, IReadOnlyList<int> otherBins, int maxCount)
         {
             float barMaxHeight = OFFSET_HISTOGRAM_GRAPH_HEIGHT - 2f;
-            var barColor = _colorizer.CurrentColor;
-            barColor.a = 0.85f;
+            int binCount = categoryBins.Count;
             int barPoolIndex = 0;
 
             Canvas.ForceUpdateCanvases();
@@ -420,22 +719,19 @@ namespace YARG.Menu.ScoreScreen
             float barBaseYPixels = Mathf.Round(1f * scaleFactor);
             float halfGapUnits = 1f / scaleFactor * 0.5f;
 
-            for (int i = 0; i < bins.Count; i++)
+            for (int i = 0; i < binCount; i++)
             {
-                int count = bins[i];
-                if (count <= 0)
+                int categoryCount = categoryBins[i];
+                int otherCount = otherBins[i];
+                if (categoryCount <= 0 && otherCount <= 0)
                 {
                     continue;
                 }
 
-                float normalizedHeight = (float) count / maxCount;
-                var barRect = GetOrCreateBar(barPoolIndex++);
-
                 if (canUsePixelSnapping)
                 {
-                    float barHeightPixels = Mathf.Max(1f, Mathf.Round(normalizedHeight * barMaxHeight * scaleFactor));
-                    float slotLeftPixels = Mathf.Round(i * graphWidthPixels / bins.Count);
-                    float slotRightPixels = Mathf.Round((i + 1f) * graphWidthPixels / bins.Count);
+                    float slotLeftPixels = Mathf.Round(i * graphWidthPixels / binCount);
+                    float slotRightPixels = Mathf.Round((i + 1f) * graphWidthPixels / binCount);
                     float barLeftPixels = slotLeftPixels;
                     float barRightPixels = slotRightPixels - 1f;
 
@@ -449,32 +745,81 @@ namespace YARG.Menu.ScoreScreen
                         continue;
                     }
 
-                    barRect.anchorMin = Vector2.zero;
-                    barRect.anchorMax = Vector2.zero;
-                    barRect.pivot = Vector2.zero;
-                    barRect.anchoredPosition = new Vector2(barLeftPixels / scaleFactor, barBaseYPixels / scaleFactor);
-                    barRect.sizeDelta = new Vector2((barRightPixels - barLeftPixels) / scaleFactor,
-                        barHeightPixels / scaleFactor);
+                    float stackYPixels = barBaseYPixels;
+
+                    if (categoryCount > 0)
+                    {
+                        float segmentHeightPixels =
+                            Mathf.Max(1f, Mathf.Round((float) categoryCount / maxCount * barMaxHeight * scaleFactor));
+                        PlaceBarSegmentPixels(GetOrCreateBar(barPoolIndex++), OFFSET_HISTOGRAM_PRIMARY_COLOR,
+                            barLeftPixels, barRightPixels, stackYPixels, segmentHeightPixels, scaleFactor);
+                        stackYPixels += segmentHeightPixels;
+                    }
+
+                    if (otherCount > 0)
+                    {
+                        float segmentHeightPixels =
+                            Mathf.Max(1f, Mathf.Round((float) otherCount / maxCount * barMaxHeight * scaleFactor));
+                        PlaceBarSegmentPixels(GetOrCreateBar(barPoolIndex++), OFFSET_HISTOGRAM_SECONDARY_COLOR,
+                            barLeftPixels, barRightPixels, stackYPixels, segmentHeightPixels, scaleFactor);
+                    }
                 }
                 else
                 {
-                    float height = Mathf.Max(1f, normalizedHeight * barMaxHeight);
-                    barRect.anchorMin = new Vector2(i / (float) bins.Count, 0f);
-                    barRect.anchorMax = new Vector2((i + 1f) / bins.Count, 0f);
-                    barRect.offsetMin = new Vector2(halfGapUnits, 1f);
-                    barRect.offsetMax = new Vector2(-halfGapUnits, 1f + height);
-                }
+                    float anchorMinX = i / (float) binCount;
+                    float anchorMaxX = (i + 1f) / binCount;
+                    float stackHeight = 0f;
 
-                var image = barRect.GetComponent<Image>();
-                image.color = barColor;
-                image.raycastTarget = false;
-                barRect.gameObject.SetActive(true);
+                    if (categoryCount > 0)
+                    {
+                        float segmentHeight = Mathf.Max(1f, (float) categoryCount / maxCount * barMaxHeight);
+                        PlaceBarSegmentUnits(GetOrCreateBar(barPoolIndex++), OFFSET_HISTOGRAM_PRIMARY_COLOR,
+                            anchorMinX, anchorMaxX, halfGapUnits, stackHeight, segmentHeight);
+                        stackHeight += segmentHeight;
+                    }
+
+                    if (otherCount > 0)
+                    {
+                        float segmentHeight = Mathf.Max(1f, (float) otherCount / maxCount * barMaxHeight);
+                        PlaceBarSegmentUnits(GetOrCreateBar(barPoolIndex++), OFFSET_HISTOGRAM_SECONDARY_COLOR,
+                            anchorMinX, anchorMaxX, halfGapUnits, stackHeight, segmentHeight);
+                    }
+                }
             }
 
             for (int i = barPoolIndex; i < _offsetHistogramBarPool.Count; i++)
             {
                 _offsetHistogramBarPool[i].gameObject.SetActive(false);
             }
+        }
+
+        private static void PlaceBarSegmentPixels(RectTransform barRect, Color color, float leftPixels,
+            float rightPixels, float bottomPixels, float heightPixels, float scaleFactor)
+        {
+            barRect.anchorMin = Vector2.zero;
+            barRect.anchorMax = Vector2.zero;
+            barRect.pivot = Vector2.zero;
+            barRect.anchoredPosition = new Vector2(leftPixels / scaleFactor, bottomPixels / scaleFactor);
+            barRect.sizeDelta = new Vector2((rightPixels - leftPixels) / scaleFactor, heightPixels / scaleFactor);
+
+            var image = barRect.GetComponent<Image>();
+            image.color = color;
+            image.raycastTarget = false;
+            barRect.gameObject.SetActive(true);
+        }
+
+        private static void PlaceBarSegmentUnits(RectTransform barRect, Color color, float anchorMinX,
+            float anchorMaxX, float halfGapUnits, float bottomOffset, float height)
+        {
+            barRect.anchorMin = new Vector2(anchorMinX, 0f);
+            barRect.anchorMax = new Vector2(anchorMaxX, 0f);
+            barRect.offsetMin = new Vector2(halfGapUnits, 1f + bottomOffset);
+            barRect.offsetMax = new Vector2(-halfGapUnits, 1f + bottomOffset + height);
+
+            var image = barRect.GetComponent<Image>();
+            image.color = color;
+            image.raycastTarget = false;
+            barRect.gameObject.SetActive(true);
         }
 
         private RectTransform GetOrCreateBar(int index)
@@ -505,25 +850,31 @@ namespace YARG.Menu.ScoreScreen
             }
         }
 
-        private static int[] BuildHistogramBins(IReadOnlyList<double> offsetSamples, float minOffsetMs,
-            float maxOffsetMs, out int maxCount)
+        /// <summary>
+        /// Bins offset samples into <see cref="OFFSET_HISTOGRAM_BIN_COUNT"/> buckets. When
+        /// <paramref name="filterCategory"/> is non-null, only samples matching
+        /// <paramref name="wantCategory"/> are counted, so callers can build the category and
+        /// non-category bins separately for stacking.
+        /// </summary>
+        private static int[] BuildHistogramBins(IReadOnlyList<double> offsetSamples, IReadOnlyList<bool> filterCategory,
+            bool wantCategory, float minOffsetMs, float maxOffsetMs)
         {
             var bins = new int[OFFSET_HISTOGRAM_BIN_COUNT];
             float totalRange = Mathf.Max(1f, maxOffsetMs - minOffsetMs);
-            maxCount = 0;
 
             for (int i = 0; i < offsetSamples.Count; i++)
             {
+                if (filterCategory != null && filterCategory[i] != wantCategory)
+                {
+                    continue;
+                }
+
                 float offsetMs = Mathf.Clamp((float) (offsetSamples[i] * 1000d), minOffsetMs, maxOffsetMs);
                 float normalized = (offsetMs - minOffsetMs) / totalRange;
                 int index = Mathf.Clamp(Mathf.FloorToInt(normalized * OFFSET_HISTOGRAM_BIN_COUNT), 0,
                     OFFSET_HISTOGRAM_BIN_COUNT - 1);
 
                 bins[index]++;
-                if (bins[index] > maxCount)
-                {
-                    maxCount = bins[index];
-                }
             }
 
             return bins;
