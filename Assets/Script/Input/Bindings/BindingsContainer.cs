@@ -86,7 +86,10 @@ namespace YARG.Input.Bindings
                 new()
                 {
                     { GameMode.ProKeys, new() { ReusableBindingSetDefaults.DefaultMidiKeyboard }},
-                    { GameMode.EliteDrums, new() { ReusableBindingSetDefaults.GeneralMidiDrumkit } }
+                    { GameMode.EliteDrums, new() {
+                        ReusableBindingSetDefaults.GeneralMidiDrumkit,
+                        ReusableBindingSetDefaults.AlesisNitroDrumkit,
+                    }}
                 }
             }
         };
