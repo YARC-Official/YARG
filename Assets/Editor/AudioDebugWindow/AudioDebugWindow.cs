@@ -17,13 +17,13 @@ using YARG.Input;
 using YARG.Playback;
 using YARG.Settings;
 using YARG.Song;
+using YARG.Editor.YargAudio;
 
 namespace YARG.Editor
 {
     public sealed partial class AudioDebugWindow : EditorWindow
     {
-        [MenuItem("Window/YARG/Audio Debug Player")]
-        [MenuItem("YARG/Debug/Audio Debug Player")]
+        [MenuItem("YARG/Audio/Audio Debug Player")]
         public static void Open()
         {
             var window = GetWindow<AudioDebugWindow>("Audio Debug");
@@ -42,6 +42,7 @@ namespace YARG.Editor
         {
             wantsMouseMove = true;
             EditorApplication.update += OnEditorUpdate;
+            YargAudioAutoBuilder.EnsureUpToDate(isExplicit: false);
             EnsureAudioInitialized();
             LoadRecentPaths();
             RefreshAvailableMicrophones();

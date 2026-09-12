@@ -34,8 +34,11 @@ namespace YARG.Audio.BASS
         private readonly BassSampleLoader  _sampleLoader;
         private          BassOutput?       _output;
 
+        public static bool HasActiveSession { get; private set; }
+
         public BassAudioManager()
         {
+            HasActiveSession = true;
             _runtime = new BassRuntime();
             _sampleLoader = new BassSampleLoader(_router, FORMATS);
             _outputFactory = new BassOutputFactory(_router);
@@ -217,6 +220,7 @@ namespace YARG.Audio.BASS
             _output = null;
             _outputFactory.Dispose();
             _runtime.Dispose();
+            HasActiveSession = false;
         }
 
         private void UpdatePlaybackLatency() => PlaybackLatency = _router.HeardLatencyMilliseconds;

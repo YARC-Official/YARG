@@ -10,7 +10,7 @@ namespace YARG.Audio.BASS.Effects
     {
         private const string EFFECT_NAME = "native noise gate DSP";
 
-        private BassNoiseGateDsp() : base()
+        private BassNoiseGateDsp()
         {
         }
 
@@ -27,14 +27,12 @@ namespace YARG.Audio.BASS.Effects
 
             return YargAudioNative.Attach(EFFECT_NAME, channelHandle,
                 (out BassNoiseGateDsp handle, out int bassError) =>
-                    Native.Attach(unchecked((uint) channelHandle), threshold, floorGain,
+                    YargAudioBindings.NoiseGateDspAttach(unchecked((uint) channelHandle), threshold, floorGain,
                         attackMs, holdMs, releaseMs, priority, out handle, out bassError));
         }
 
-        internal bool Reset()
-        {
-            return YargAudioNative.TryInvoke(this, handle => Native.Reset(handle));
-        }
+        internal bool Reset() =>
+            YargAudioNative.TryInvoke(this, handle => YargAudioBindings.NoiseGateDspReset(handle));
 
         [StructLayout(LayoutKind.Sequential)]
         public struct NoiseGateParams
@@ -57,10 +55,8 @@ namespace YARG.Audio.BASS.Effects
             }
         }
 
-        internal bool SetParams(float threshold, float floorGain, float attackMs, float holdMs, float releaseMs)
-        {
-            return SetParams(new NoiseGateParams(threshold, floorGain, attackMs, holdMs, releaseMs));
-        }
+        internal bool SetParams(float threshold, float floorGain, float attackMs, float holdMs, float releaseMs) =>
+            SetParams(new NoiseGateParams(threshold, floorGain, attackMs, holdMs, releaseMs));
 
         internal bool SetParams(in NoiseGateParams parms)
         {
@@ -71,35 +67,10 @@ namespace YARG.Audio.BASS.Effects
             }
 
             var parameters = parms;
-            return YargAudioNative.TryInvoke(this, handle => Native.SetParams(handle, in parameters));
+            return YargAudioNative.TryInvoke(this, handle => YargAudioBindings.NoiseGateDspSetParams(handle, in parameters));
         }
 
-        protected override void Destroy(IntPtr handle)
-        {
-            Native.Destroy(handle);
-        }
-
-        private static class Native
-        {
-            private const string LIBRARY = "yarg_audio";
-
-            [DllImport(LIBRARY, EntryPoint = "yarg_noise_gate_dsp_attach",
-                CallingConvention = CallingConvention.Cdecl)]
-            internal static extern int Attach(uint channel, float threshold, float floorGain,
-                float attackMs, float holdMs, float releaseMs, int priority,
-                out BassNoiseGateDsp dsp, out int bassError);
-
-            [DllImport(LIBRARY, EntryPoint = "yarg_noise_gate_dsp_reset",
-                CallingConvention = CallingConvention.Cdecl)]
-            internal static extern int Reset(BassNoiseGateDsp dsp);
-
-            [DllImport(LIBRARY, EntryPoint = "yarg_noise_gate_dsp_set_params",
-                CallingConvention = CallingConvention.Cdecl)]
-            internal static extern int SetParams(BassNoiseGateDsp dsp, in NoiseGateParams parms);
-
-            [DllImport(LIBRARY, EntryPoint = "yarg_noise_gate_dsp_destroy",
-                CallingConvention = CallingConvention.Cdecl)]
-            internal static extern void Destroy(IntPtr dsp);
-        }
+        protected override void Destroy(IntPtr handle) =>
+            YargAudioBindings.NoiseGateDspDestroy(handle);
     }
 }

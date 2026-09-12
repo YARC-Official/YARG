@@ -41,7 +41,7 @@ namespace YARG.Audio.BASS.Effects
 
             return YargAudioNative.Attach(EFFECT_NAME, streamHandle,
                 (out BassFreeverbDsp handle, out int bassError) =>
-                    Native.Attach(unchecked((uint) streamHandle), dryMix, wetMix,
+                    YargAudioBindings.FreeverbDspAttach(unchecked((uint) streamHandle), dryMix, wetMix,
                         roomSize, damp, width, priority, out handle, out bassError));
         }
 
@@ -66,25 +66,17 @@ namespace YARG.Audio.BASS.Effects
             }
         }
 
-        protected override void Destroy(System.IntPtr handle)
-        {
-            Native.Destroy(handle);
-        }
+        protected override void Destroy(System.IntPtr handle) =>
+            YargAudioBindings.FreeverbDspDestroy(handle);
 
-        protected override int NativeReset()
-        {
-            return Native.Reset(this);
-        }
+        protected override int NativeReset() =>
+            YargAudioBindings.FreeverbDspReset(this);
 
-        protected override int NativeSetParams(in FreeverbParams parms)
-        {
-            return Native.SetParams(this, in parms);
-        }
+        protected override int NativeSetParams(in FreeverbParams parms) =>
+            YargAudioBindings.FreeverbDspSetParams(this, in parms);
 
-        protected override FreeverbParams CreateParams(float dryMix, float wetMix, float roomSize, float damp, float width)
-        {
-            return new FreeverbParams(dryMix, wetMix, roomSize, damp, width);
-        }
+        protected override FreeverbParams CreateParams(float dryMix, float wetMix, float roomSize, float damp, float width) =>
+            new FreeverbParams(dryMix, wetMix, roomSize, damp, width);
 
         protected override bool AreFinite(in FreeverbParams parms)
         {
@@ -95,29 +87,6 @@ namespace YARG.Audio.BASS.Effects
             }
 
             return true;
-        }
-
-        private static class Native
-        {
-            private const string LIBRARY = "yarg_audio";
-
-            [DllImport(LIBRARY, EntryPoint = "yarg_freeverb_dsp_attach",
-                CallingConvention = CallingConvention.Cdecl)]
-            internal static extern int Attach(uint channel, float dryMix, float wetMix,
-                float roomSize, float damp, float width, int priority,
-                out BassFreeverbDsp dsp, out int bassError);
-
-            [DllImport(LIBRARY, EntryPoint = "yarg_freeverb_dsp_reset",
-                CallingConvention = CallingConvention.Cdecl)]
-            internal static extern int Reset(BassFreeverbDsp dsp);
-
-            [DllImport(LIBRARY, EntryPoint = "yarg_freeverb_dsp_set_params",
-                CallingConvention = CallingConvention.Cdecl)]
-            internal static extern int SetParams(BassFreeverbDsp dsp, in FreeverbParams parms);
-
-            [DllImport(LIBRARY, EntryPoint = "yarg_freeverb_dsp_destroy",
-                CallingConvention = CallingConvention.Cdecl)]
-            internal static extern void Destroy(System.IntPtr dsp);
         }
     }
 }
