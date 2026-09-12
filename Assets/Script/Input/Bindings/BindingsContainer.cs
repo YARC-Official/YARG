@@ -34,14 +34,15 @@ namespace YARG.Input.Bindings
                     { GameMode.FiveFretGuitar, new() {
                         ReusableBindingSetDefaults.DefaultFiveFretGuitar,
                         ReusableBindingSetDefaults.DefaultRiffmasterGuitar
-                    }}
+                    }},
                 }
             },
 
             {
                 ControllerFamily.SixFretGuitar,
                 new() {
-                    { GameMode.SixFretGuitar, new() { ReusableBindingSetDefaults.DefaultSixFretGuitar }}
+                    { GameMode.Menu, new() { ReusableBindingSetDefaults.DefaultSixFretGuitarMenu}},
+                    { GameMode.SixFretGuitar, new() { ReusableBindingSetDefaults.DefaultSixFretGuitar }},
                 }
             },
 
@@ -50,12 +51,12 @@ namespace YARG.Input.Bindings
                 new() {
                     { GameMode.Menu, new() {
                         ReusableBindingSetDefaults.DefaultFourLaneDrumkitMenu,
-                        ReusableBindingSetDefaults.FourLaneDrumkitManualMenu,
+                        ReusableBindingSetDefaults.FourLaneDrumkitControllerOnlyMenu,
                     }},
 
                     { GameMode.FourLaneDrums, new() {
                         ReusableBindingSetDefaults.DefaultFourLaneDrumkit,
-                    }}
+                    }},
                 }
             },
 
@@ -66,7 +67,7 @@ namespace YARG.Input.Bindings
                     { GameMode.Menu, new()
                     {
                         ReusableBindingSetDefaults.DefaultFiveLaneDrumkitMenu,
-                        ReusableBindingSetDefaults.FiveLaneDrumkitManualMenu,
+                        ReusableBindingSetDefaults.FiveLaneDrumkitControllerOnlyMenu,
                     }},
                     { GameMode.FiveLaneDrums, new() { ReusableBindingSetDefaults.DefaultFiveLaneDrumkit }}
                 }
