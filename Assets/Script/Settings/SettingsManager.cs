@@ -287,6 +287,7 @@ namespace YARG.Settings
                 nameof(Settings.ReverbImplementation),
                 new HeaderMetadata("Accessibility"),
                 nameof(Settings.FontScaling),
+                nameof(Settings.VocalFontScaling),
                 new HeaderMetadata("OutputConfiguration"),
                 new FieldMetadata(nameof(Settings.OutputMode), visibleWhen: IsWindows),
                 nameof(Settings.OutputDevice),

@@ -18,31 +18,34 @@ namespace YARG.Gameplay.Visuals
             public readonly List<StaticLyricSyllable> Syllables;
             public readonly string                                        FutureText;
             public readonly float                                         Width;
+            public readonly float                                         FontScale;
             public readonly double                                        Duration;
 
             public PreparedPhrase(VocalsPhrase phrase, List<VocalsPhrase> scoringPhrases,
-                bool allowHiding, float width)
+                bool allowHiding, float width, float fontScale = 1f)
             {
                 Phrase = phrase;
                 Duration = phrase.TimeLength;
                 Syllables = BuildSyllables(phrase, scoringPhrases, allowHiding);
                 FutureText = BuildFutureText(Syllables);
                 Width = width;
+                FontScale = fontScale;
             }
 
             private PreparedPhrase(VocalsPhrase phrase, double duration,
-                List<StaticLyricSyllable> syllables, string futureText, float width)
+                List<StaticLyricSyllable> syllables, string futureText, float width, float fontScale)
             {
                 Phrase = phrase;
                 Duration = duration;
                 Syllables = syllables;
                 FutureText = futureText;
                 Width = width;
+                FontScale = fontScale;
             }
 
-            public PreparedPhrase WithWidth(float width)
+            public PreparedPhrase WithLayout(float width, float fontScale)
             {
-                return new PreparedPhrase(Phrase, Duration, Syllables, FutureText, width);
+                return new PreparedPhrase(Phrase, Duration, Syllables, FutureText, width, fontScale);
             }
         }
 
@@ -57,9 +60,17 @@ namespace YARG.Gameplay.Visuals
         [SerializeField]
         private TextMeshPro _phraseText;
 
+        private Vector3 _defaultTextScale;
+
         public float Width => _preparedPhrase.Width;
 
         public double Duration => _preparedPhrase.Duration;
+
+        protected override void GameplayAwake()
+        {
+            base.GameplayAwake();
+            _defaultTextScale = _phraseText.transform.localScale;
+        }
 
         public void Initialize(PreparedPhrase preparedPhrase, float x)
         {
@@ -73,6 +84,7 @@ namespace YARG.Gameplay.Visuals
         {
             transform.localPosition = transform.localPosition.WithX(_x);
             _phraseText.text = _preparedPhrase.FutureText;
+            _phraseText.transform.localScale = _defaultTextScale * _preparedPhrase.FontScale;
             _lastRenderState = int.MinValue;
         }
 

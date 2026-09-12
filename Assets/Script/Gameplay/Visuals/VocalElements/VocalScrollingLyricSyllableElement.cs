@@ -13,15 +13,18 @@ namespace YARG.Gameplay.Visuals
             public readonly string DisplayText;
             public readonly FontStyles FontStyle;
             public readonly float Width;
+            public readonly float FontScale;
             public readonly bool IsHidden;
 
-            public PreparedLyric(LyricEvent lyric, bool allowHiding, float width)
+            public PreparedLyric(LyricEvent lyric, bool allowHiding, float width,
+                float fontScale)
             {
                 Lyric = lyric;
                 DisplayText = lyric.HarmonyHidden && allowHiding ? string.Empty : lyric.Text;
                 FontStyle = lyric.NonPitched ? FontStyles.Italic : FontStyles.Normal;
                 IsHidden = string.IsNullOrEmpty(DisplayText);
                 Width = IsHidden ? 0f : width;
+                FontScale = fontScale;
             }
         }
 
@@ -42,7 +45,15 @@ namespace YARG.Gameplay.Visuals
         [SerializeField]
         private TextMeshPro _lyricText;
 
+        private Vector3 _defaultTextScale;
+
         public float Width => _preparedLyric.Width;
+
+        protected override void GameplayAwake()
+        {
+            base.GameplayAwake();
+            _defaultTextScale = _lyricText.transform.localScale;
+        }
 
         public void Initialize(PreparedLyric preparedLyric, double minTime,
             bool isStarpower, int harmonyIndex, bool allowHiding)
@@ -61,6 +72,7 @@ namespace YARG.Gameplay.Visuals
         {
             _lyricText.text = _preparedLyric.DisplayText;
             _lyricText.fontStyle = _preparedLyric.FontStyle;
+            _lyricText.transform.localScale = _defaultTextScale * _preparedLyric.FontScale;
 
             // Disable automatically if the text is just nothing
             if (string.IsNullOrEmpty(_lyricText.text))
