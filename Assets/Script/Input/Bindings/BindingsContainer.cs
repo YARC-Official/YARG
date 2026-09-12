@@ -63,6 +63,11 @@ namespace YARG.Input.Bindings
                 ControllerFamily.FiveLaneDrumkit,
                 new()
                 {
+                    { GameMode.Menu, new()
+                    {
+                        ReusableBindingSetDefaults.DefaultFiveLaneDrumkitMenu,
+                        ReusableBindingSetDefaults.FiveLaneDrumkitManualMenu,
+                    }},
                     { GameMode.FiveLaneDrums, new() { ReusableBindingSetDefaults.DefaultFiveLaneDrumkit }}
                 }
             },
