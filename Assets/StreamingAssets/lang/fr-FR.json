@@ -935,7 +935,7 @@
             "Cache": "Cache",
             "Venues": "Scènes/Arrière-plans",
             "Calibration": "Calibration",
-            "OffsetCalibration": "Calibration automatique et de fin de musique",
+            "OffsetCalibration": "Calibration de fin de musique",
             "Input": "Saisie",
             "PresetSettings": "Paramètre du preset",
             "Debug": "Débug",
@@ -1515,7 +1515,7 @@
             },
             "UseStrumOnlyOffsetForCalibration": {
                 "Name": "Filtre de grattages pour la calibration",
-                "Description": "Lors de l'enregistrement du décalage moyen ou lors de la calibration automatique durant une chanson, restreint les notes de guitare/basse comptées dans la moyenne.",
+                "Description": "Lors de l'enregistrement du décalage moyen, restreint les notes de guitare/basse comptées dans la moyenne.",
                 "Dropdown": {
                     "Everything": "Toutes les notes",
                     "OnlySelected": "Grattages seulement",
@@ -1524,7 +1524,7 @@
             },
             "UseKickOnlyOffsetForCalibration": {
                 "Name": "Filtre de pédale pour la calibration",
-                "Description": "Lors de l'enregistrement du décalage moyen ou lors de la calibration automatique durant une chanson, restreint les notes de batterie comptées dans la moyenne.",
+                "Description": "Lors de l'enregistrement du décalage moyen, restreint les notes de batterie comptées dans la moyenne.",
                 "Dropdown": {
                     "Everything": "Toutes les notes",
                     "OnlySelected": "Pédale seulement",
