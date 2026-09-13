@@ -1741,7 +1741,7 @@
                 "Description": "This song's specific offset in milliseconds, on top of audio/video calibration. Saved per-song."
             },
             "ShowMeanSongOffsetCalibration": {
-                "Name": "End of Song Calibration",
+                "Name": "Show End of Song Calibration",
                 "Description": "Shows an option on the advanced stats screen to save average song offset.",
                 "Dropdown": {
                     "Off": "Off",
