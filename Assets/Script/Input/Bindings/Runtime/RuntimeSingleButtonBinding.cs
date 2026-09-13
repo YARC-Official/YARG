@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using UnityEditorInternal;
+using UnityEngine.InputSystem;
 using YARG.Input;
 using YARG.Input.Bindings;
 
@@ -14,7 +15,7 @@ namespace YARG.Input
 
         private DebounceTimer<float> _debounceTimer;
 
-        public RuntimeSingleButtonBinding(ReusableSingleButtonBinding reusableBinding) : base(reusableBinding)
+        public RuntimeSingleButtonBinding(InputControl<float> control, ReusableSingleButtonBinding reusableBinding) : base(control)
         {
             _debounceTimer = new()
             {

@@ -49,12 +49,11 @@ namespace YARG.Input.Bindings
         {
             YargLogger.LogWarning($"Found unrecognized single binding parameter {key} with value {val}; ignoring");
         }
-
-        public abstract RuntimeControlBinding GetRuntimeBinding(YargProfile profile, InputDevice controller);
     }
 
-    public abstract class ReusableControlBinding<TSingle> : ReusableControlBinding
-        where TSingle : ReusableSingleBinding
+    public abstract class ReusableControlBinding<TSingle, TSingleState> : ReusableControlBinding
+        where TSingle : ReusableSingleBinding<TSingleState>
+        where TSingleState : struct
     {
         public List<TSingle> Bindings = new();
 
@@ -83,7 +82,7 @@ namespace YARG.Input.Bindings
         }
     }
 
-    public abstract class ReusableSingleBinding
+    public abstract class ReusableSingleBinding<TState> where TState : struct
     {
         public string ControlPath { get; set; }
         public string DisplayName { get; set; }
@@ -118,5 +117,31 @@ namespace YARG.Input.Bindings
                 ReusableControlBinding.LogUnknownParameter(key, val);
             }
         }
+
+        public RuntimeSingleBinding<TState> MakeRuntime(InputDevice controller)
+        {
+            var control = InputControlPath.TryFindControl(controller, $"*/{ControlPath}");
+
+            if (control is null)
+            {
+                // TODO-FRICK: The old bindings fallback from ControlBinding::DeserializeControl? Are we sanitizing that away now?
+
+                YargLogger.LogWarning($"Could not find control {ControlPath} on controller {controller}!");
+                return null;
+            }
+
+            if (control is not InputControl<TState> tControl)
+            {
+                YargLogger.LogWarning(
+                    $"Found control {ControlPath}, but it was not of the right type!" +
+                    $"Expected a derivative of {typeof(InputControl<TState>)}, found {control.GetType()}"
+                );
+                return null;
+            }
+
+            return MakeRuntime(tControl);
+        }
+
+        protected abstract RuntimeSingleBinding<TState> MakeRuntime(InputControl<TState> control);
     }
 }

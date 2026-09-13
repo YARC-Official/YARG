@@ -555,7 +555,7 @@ namespace YARG.Input
                 }
                 else
                 {
-                    runtimeBindings = new(mode, family);
+                    runtimeBindings = new(controller, mode);
                 }
             }
 

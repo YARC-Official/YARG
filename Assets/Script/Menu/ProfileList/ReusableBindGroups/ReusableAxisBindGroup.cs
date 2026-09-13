@@ -9,7 +9,7 @@ using YARG.Menu.ProfileInfo;
 namespace YARG.Menu.ProfileList
 {
     public class ReusableAxisBindGroup
-        : ReusableBindGroup<ReusableSingleAxisBindView, ReusableAxisBinding, ReusableSingleAxisBinding>
+        : ReusableBindGroup<ReusableSingleAxisBindView, ReusableAxisBinding, ReusableSingleAxisBinding, float>
     {
         [Space]
         [SerializeField]

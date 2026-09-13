@@ -20,12 +20,22 @@ namespace YARG.Input
             get => _debounceTimer.TimeThreshold;
         }
 
-        public RuntimeButtonBinding(ReusableButtonBinding reusableBinding) : base(reusableBinding.Action, reusableBinding.Name)
+        public RuntimeButtonBinding(InputDevice controller, ReusableButtonBinding reusableBinding) : base(reusableBinding.Action, reusableBinding.Name)
         {
             _debounceTimer = new()
             {
                 TimeThreshold = reusableBinding.DebounceThreshold
             };
+
+            foreach (var singleBinding in reusableBinding.Bindings)
+            {
+                var singleRuntimeBinding = singleBinding.MakeRuntime(controller) as RuntimeSingleButtonBinding;
+
+                if (singleRuntimeBinding is not null)
+                {
+                    _bindings.Add(singleRuntimeBinding);
+                }
+            }
         }
 
         public override bool IsControlActuated(InputControl<float> control)

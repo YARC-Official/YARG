@@ -7,7 +7,7 @@ using YARG.Input.Serialization;
 
 namespace YARG.Input.Bindings
 {
-    public class ReusableIntegerBinding : ReusableControlBinding<ReusableSingleIntegerBinding>
+    public class ReusableIntegerBinding : ReusableControlBinding<ReusableSingleIntegerBinding, int>
     {
         public ReusableIntegerBinding(InputActionInfo info) : base(info) { }
 
@@ -26,19 +26,19 @@ namespace YARG.Input.Bindings
                 Bindings.Add(new(binding));
             }
         }
-
-        public override RuntimeControlBinding GetRuntimeBinding(YargProfile profile, InputDevice controller)
-        {
-            throw new NotImplementedException(); // TODO-FRICK
-        }
     }
 
-    public class ReusableSingleIntegerBinding : ReusableSingleBinding {
+    public class ReusableSingleIntegerBinding : ReusableSingleBinding<int> {
         public ReusableSingleIntegerBinding(string controlName, string displayName) : base(controlName, displayName) { }
 
         public ReusableSingleIntegerBinding(SerializedSingleBinding serialized) : base(serialized)
         {
             DeserializeParameters(serialized.Parameters);
+        }
+
+        protected override RuntimeSingleBinding<int> MakeRuntime(InputControl<int> control)
+        {
+            throw new NotImplementedException(); // TODO-FRICK
         }
     }
 }

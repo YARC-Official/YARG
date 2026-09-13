@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using UnityEngine.InputSystem;
+using YARG.Core.Logging;
 using YARG.Input.Bindings;
 
 namespace YARG.Input
@@ -12,9 +13,9 @@ namespace YARG.Input
         public event Action<TState> StateChanged;
         public InputControl<TState> Control { get; }
 
-        public RuntimeSingleBinding(ReusableSingleBinding reusableBinding)
+        public RuntimeSingleBinding(InputControl<TState> control)
         {
-            // TODO-FRICK: I think this is where the actual wiring up happens
+            Control = control;
         }
 
         public virtual void UpdateState(double time)

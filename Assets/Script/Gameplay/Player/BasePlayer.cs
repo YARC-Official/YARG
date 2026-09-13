@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using PlasticBand.Haptics;
 using UnityEngine;
 using UnityEngine.InputSystem;

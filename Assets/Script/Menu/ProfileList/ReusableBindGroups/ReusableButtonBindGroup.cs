@@ -13,7 +13,7 @@ using YARG.Player;
 namespace YARG.Menu.ProfileList
 {
     public class ReusableButtonBindGroup
-        : ReusableBindGroup<ReusableSingleButtonBindView, ReusableButtonBinding, ReusableSingleButtonBinding>
+        : ReusableBindGroup<ReusableSingleButtonBindView, ReusableButtonBinding, ReusableSingleButtonBinding, float>
     {
         [SerializeField]
         private SingleMidiNoteBindView _midiNoteViewPrefab;
@@ -57,7 +57,7 @@ namespace YARG.Menu.ProfileList
                 }
                 else
                 {*/
-                    _header.AddBinding<ReusableSingleButtonBindView, ReusableButtonBinding, ReusableSingleButtonBinding>(
+                    _header.AddBinding<ReusableSingleButtonBindView, ReusableButtonBinding, ReusableSingleButtonBinding, float>(
                         _viewPrefab, _binding, control, _controls);
                 //}
             }

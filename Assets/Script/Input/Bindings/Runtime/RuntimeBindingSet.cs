@@ -3,14 +3,19 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.XR;
 using YARG.Core;
+using YARG.Helpers;
+using YARG.Input.Bindings;
 using YARG.Menu.ProfileList;
+using static UnityEditor.AddressableAssets.Build.Layout.BuildLayout;
 
 namespace YARG.Input
 {
     public class RuntimeBindingSet : IEnumerable<RuntimeControlBinding>
     {
-        public ControllerFamily ControllerFamily { get; }
+        public InputDevice Controller { get; }
         public GameMode Mode { get; }
 
         private readonly List<RuntimeControlBinding> _bindings = new();
@@ -29,10 +34,29 @@ namespace YARG.Input
             }
         }
 
-        public RuntimeBindingSet(GameMode mode, ControllerFamily family)
+        public RuntimeBindingSet(InputDevice controller, GameMode mode)
         {
-            ControllerFamily = family;
+            Controller = controller;
             Mode = mode;
+        }
+
+        public RuntimeBindingSet(InputDevice controller, ReusableBindingSet reusableBindings) : this(controller, reusableBindings.Mode)
+        {
+            foreach (var binding in reusableBindings.Bindings.Values)
+            {
+                var newBind = binding switch
+                {
+                    ReusableButtonBinding button => new RuntimeButtonBinding(controller, button),
+                    ReusableAxisBinding axis => null, // TODO-FRICK
+                    ReusableIntegerBinding integer => throw new NotImplementedException(), // TODO-FRICK
+                    _ => throw new ArgumentOutOfRangeException("Unrecognized reusable binding type")
+                };
+
+                if (newBind is not null) // TODO: Workaround
+                {
+                    Add(newBind);
+                }
+            }
         }
 
         public void EnableInputs()

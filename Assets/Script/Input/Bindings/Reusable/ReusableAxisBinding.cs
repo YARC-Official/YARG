@@ -10,7 +10,7 @@ using YARG.Menu.ProfileList;
 
 namespace YARG.Input.Bindings
 {
-    public class ReusableAxisBinding : ReusableControlBinding<ReusableSingleAxisBinding>
+    public class ReusableAxisBinding : ReusableControlBinding<ReusableSingleAxisBinding, float>
     {
         public ReusableAxisBinding(InputActionInfo info) : base(info) { }
 
@@ -30,11 +30,6 @@ namespace YARG.Input.Bindings
             {
                 Bindings.Add(new(binding));
             }
-        }
-
-        public override RuntimeControlBinding GetRuntimeBinding(YargProfile profile, InputDevice controller)
-        {
-            throw new NotImplementedException(); // TODO-FRICK
         }
     }
 
@@ -65,7 +60,7 @@ namespace YARG.Input.Bindings
         }
     }
 
-    public class ReusableSingleAxisBinding : ReusableSingleBinding
+    public class ReusableSingleAxisBinding : ReusableSingleBinding<float>
     {
         private const bool INVERTED_DEFAULT = false;
 
@@ -186,6 +181,11 @@ namespace YARG.Input.Bindings
                         break;
                 }
             }
+        }
+
+        protected override RuntimeSingleBinding<float> MakeRuntime(InputControl<float> control)
+        {
+            throw new NotImplementedException(); // TODO-FRICK
         }
     }
 }

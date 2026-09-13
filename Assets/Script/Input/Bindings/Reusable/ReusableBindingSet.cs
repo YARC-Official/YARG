@@ -104,14 +104,7 @@ namespace YARG.Input.Bindings
                 throw new InvalidOperationException($"Tried to apply a(n) {ControllerFamily} reusable binding set to a(n) {providedControllerFamily} controller!");
             }
 
-            var runtimeBindings = new RuntimeBindingSet(Mode, ControllerFamily);
-
-            foreach (var binding in Bindings.Values)
-            {
-                runtimeBindings.Add(binding.GetRuntimeBinding(profile, controller));
-            }
-
-            return runtimeBindings;
+            return new(controller, this);
         }
     }
 }
