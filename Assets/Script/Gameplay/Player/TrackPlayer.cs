@@ -409,7 +409,7 @@ namespace YARG.Gameplay.Player
 
             SongLength = (float) chart.GetEndTime();
 
-            _autoCalibrator = new AutoCalibrator(GameManager, OffsetFilterCalibrationSetting);
+            _autoCalibrator = new AutoCalibrator(GameManager);
         }
 
         protected override void FinishDestruction()
