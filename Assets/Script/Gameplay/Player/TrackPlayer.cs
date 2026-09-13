@@ -409,7 +409,7 @@ namespace YARG.Gameplay.Player
 
             SongLength = (float) chart.GetEndTime();
 
-            _autoCalibrator = new AutoCalibrator(GameManager, OffsetFilterCalibrationSetting);
+            _autoCalibrator = new AutoCalibrator(GameManager);
         }
 
         protected override void FinishDestruction()
@@ -1194,7 +1194,7 @@ namespace YARG.Gameplay.Player
         {
             if (!Player.Profile.IsBot)
             {
-                _autoCalibrator.RecordAccuracy(Engine.CurrentTime, note.Time, IsNoteInOffsetFilterCategory(note));
+                _autoCalibrator.RecordAccuracy(Engine.CurrentTime, note.Time);
             }
 
             if (!GameManager.IsSeekingReplay)
