@@ -9,9 +9,10 @@ using YARG.Input.Bindings;
 
 namespace YARG.Menu.ProfileList
 {
-    public class ReusableSingleBindView<TBinding, TSingle> : MonoBehaviour
-        where TBinding : ReusableControlBinding<TSingle>
-        where TSingle : ReusableSingleBinding
+    public class ReusableSingleBindView<TBinding, TSingle, TSingleState> : MonoBehaviour
+        where TBinding : ReusableControlBinding<TSingle, TSingleState>
+        where TSingle : ReusableSingleBinding<TSingleState>
+        where TSingleState : struct
     {
         [Space]
         [SerializeField]

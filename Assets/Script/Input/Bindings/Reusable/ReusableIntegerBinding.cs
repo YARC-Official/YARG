@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using UnityEngine.InputSystem;
+using YARG.Core.Game;
 using YARG.Input.Serialization;
 
 namespace YARG.Input.Bindings
 {
-    public class ReusableIntegerBinding : ReusableControlBinding<ReusableSingleIntegerBinding>
+    public class ReusableIntegerBinding : ReusableControlBinding<ReusableSingleIntegerBinding, int>
     {
         public ReusableIntegerBinding(InputActionInfo info) : base(info) { }
 
@@ -26,12 +28,17 @@ namespace YARG.Input.Bindings
         }
     }
 
-    public class ReusableSingleIntegerBinding : ReusableSingleBinding {
+    public class ReusableSingleIntegerBinding : ReusableSingleBinding<int> {
         public ReusableSingleIntegerBinding(string controlName, string displayName) : base(controlName, displayName) { }
 
         public ReusableSingleIntegerBinding(SerializedSingleBinding serialized) : base(serialized)
         {
             DeserializeParameters(serialized.Parameters);
+        }
+
+        protected override RuntimeSingleBinding<int> MakeRuntime(InputControl<int> control)
+        {
+            throw new NotImplementedException(); // TODO-FRICK
         }
     }
 }

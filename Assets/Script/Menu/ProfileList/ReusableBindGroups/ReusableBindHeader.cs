@@ -108,15 +108,16 @@ namespace YARG.Menu.ProfileList
             _bindingList.ClearDrawer();
         }
 
-        public void AddBinding<TSingleView, TBinding, TSingle>(
+        public void AddBinding<TSingleView, TBinding, TSingle, TSingleState>(
             TSingleView viewPrefab,
             TBinding binding,
             TSingle control,
             List<ControlItemInfo> controls
         )
-            where TSingleView : ReusableSingleBindView<TBinding, TSingle>
-            where TBinding : ReusableControlBinding<TSingle>
-            where TSingle : ReusableSingleBinding
+            where TSingleView : ReusableSingleBindView<TBinding, TSingle, TSingleState>
+            where TBinding : ReusableControlBinding<TSingle, TSingleState>
+            where TSingle : ReusableSingleBinding<TSingleState>
+            where TSingleState : struct
         {
             var bindView = _bindingList.AddNewWithoutRebuild(viewPrefab);
             bindView.Init(binding, control, controls);

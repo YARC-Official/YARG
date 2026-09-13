@@ -9,7 +9,7 @@ using YARG.Menu.ProfileInfo;
 
 namespace YARG.Menu.ProfileList
 {
-    public class ReusableSingleAxisBindView : ReusableSingleBindView<ReusableAxisBinding, ReusableSingleAxisBinding>
+    public class ReusableSingleAxisBindView : ReusableSingleBindView<ReusableAxisBinding, ReusableSingleAxisBinding, float>
     {
         [SerializeField]
         private AxisDisplay _rawValueDisplay;

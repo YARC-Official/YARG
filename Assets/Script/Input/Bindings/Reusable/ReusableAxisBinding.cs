@@ -2,13 +2,15 @@
 using System.Collections.Generic;
 using System.Text;
 using UnityEditor.Experimental.GraphView;
+using UnityEngine.InputSystem;
+using YARG.Core.Game;
 using YARG.Helpers;
 using YARG.Input.Serialization;
 using YARG.Menu.ProfileList;
 
 namespace YARG.Input.Bindings
 {
-    public class ReusableAxisBinding : ReusableControlBinding<ReusableSingleAxisBinding>
+    public class ReusableAxisBinding : ReusableControlBinding<ReusableSingleAxisBinding, float>
     {
         public ReusableAxisBinding(InputActionInfo info) : base(info) { }
 
@@ -58,7 +60,7 @@ namespace YARG.Input.Bindings
         }
     }
 
-    public class ReusableSingleAxisBinding : ReusableSingleBinding
+    public class ReusableSingleAxisBinding : ReusableSingleBinding<float>
     {
         private const bool INVERTED_DEFAULT = false;
 
@@ -179,6 +181,11 @@ namespace YARG.Input.Bindings
                         break;
                 }
             }
+        }
+
+        protected override RuntimeSingleBinding<float> MakeRuntime(InputControl<float> control)
+        {
+            throw new NotImplementedException(); // TODO-FRICK
         }
     }
 }

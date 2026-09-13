@@ -9,7 +9,7 @@ using YARG.Input.Serialization;
 
 namespace YARG.Input
 {
-    public delegate void GameInputProcessed(ref GameInput input);
+    // public delegate void GameInputProcessed(ref GameInput input);
 
     public class ActuationSettings
     {

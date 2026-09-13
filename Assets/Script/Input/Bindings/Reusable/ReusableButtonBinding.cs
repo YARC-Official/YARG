@@ -1,13 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using UnityEngine.InputSystem;
+using YARG.Core.Game;
 using YARG.Helpers;
 using YARG.Input.Serialization;
 using YARG.Menu.ProfileList;
 
 namespace YARG.Input.Bindings
 {
-    public class ReusableButtonBinding : ReusableControlBinding<ReusableSingleButtonBinding>
+    public class ReusableButtonBinding : ReusableControlBinding<ReusableSingleButtonBinding, float>
     {
         private const long DEBOUNCE_THRESHOLD_DEFAULT = 5;
         public long DebounceThreshold { get; set; }
@@ -93,7 +95,7 @@ namespace YARG.Input.Bindings
         }
     }
 
-    public class ReusableSingleButtonBinding : ReusableSingleBinding
+    public class ReusableSingleButtonBinding : ReusableSingleBinding<float>
     {
         private const long DEBOUNCE_THRESHOLD_DEFAULT = 5;
         private const DebounceMode DEBOUNCE_MODE_DEFAULT = DebounceMode.Press;
@@ -199,6 +201,11 @@ namespace YARG.Input.Bindings
                         break;
                 }
             }
+        }
+
+        protected override RuntimeSingleBinding<float> MakeRuntime(InputControl<float> control)
+        {
+            return new RuntimeSingleButtonBinding(control, this);
         }
     }
 }

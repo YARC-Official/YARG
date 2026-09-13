@@ -6,10 +6,11 @@ using YARG.Input.Bindings;
 
 namespace YARG.Menu.ProfileList
 {
-    public abstract class ReusableBindGroup<TSingleView, TBinding, TSingle> : MonoBehaviour
-        where TSingleView: ReusableSingleBindView<TBinding, TSingle>
-        where TBinding : ReusableControlBinding<TSingle>
-        where TSingle : ReusableSingleBinding
+    public abstract class ReusableBindGroup<TSingleView, TBinding, TSingle, TSingleState> : MonoBehaviour
+        where TSingleView : ReusableSingleBindView<TBinding, TSingle, TSingleState>
+        where TBinding : ReusableControlBinding<TSingle, TSingleState>
+        where TSingle : ReusableSingleBinding<TSingleState>
+        where TSingleState : struct
     {
         [SerializeField]
         protected ReusableBindHeader _header;
@@ -41,7 +42,7 @@ namespace YARG.Menu.ProfileList
 
             foreach (var control in _binding.Bindings)
             {
-                _header.AddBinding<TSingleView, TBinding, TSingle>(_viewPrefab, _binding, control, _controls);
+                _header.AddBinding<TSingleView, TBinding, TSingle, TSingleState>(_viewPrefab, _binding, control, _controls);
             }
 
             _header.RebuildBindingsLayout();
