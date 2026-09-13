@@ -1080,7 +1080,7 @@
             "Cache": "Cache",
             "Venues": "Venues/Backgrounds",
             "Calibration": "Calibration",
-            "OffsetCalibration": "End of Song and Auto Calibration",
+            "OffsetCalibration": "End of Song Calibration",
             "Input": "Input",
             "PresetSettings": "Preset Settings",
             "Debug": "Debug",
@@ -1755,7 +1755,7 @@
             },
             "UseStrumOnlyOffsetForCalibration": {
                 "Name": "Strum Filter for Calibration",
-                "Description": "When saving average song offset or when auto calibrating during a song, restrict which guitar/bass notes count toward the average.",
+                "Description": "When saving average song offset, restrict which guitar/bass notes count toward the average.",
                 "Dropdown": {
                     "Everything": "Everything",
                     "OnlySelected": "Only Strums",
@@ -1764,7 +1764,7 @@
             },
             "UseKickOnlyOffsetForCalibration": {
                 "Name": "Kick Filter for Calibration",
-                "Description": "When saving average song offset or when auto calibrating during a song, restrict which drum notes count toward the average.",
+                "Description": "When saving average song offset, restrict which drum notes count toward the average.",
                 "Dropdown": {
                     "Everything": "Everything",
                     "OnlySelected": "Only Kicks",
