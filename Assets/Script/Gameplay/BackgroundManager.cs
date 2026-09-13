@@ -581,8 +581,6 @@ namespace YARG.Gameplay
             const double endTimeThreshold = 0;
             const double dontLoopThreshold = 0.85;
 
-            player.Stop();
-
             if (_source == VenueSource.Song && !GameManager.Song.VideoLoop)
             {
                 _videoStartTime = GameManager.Song.VideoStartTimeSeconds;
