@@ -15,11 +15,14 @@ using YARG.Input.Bindings;
 using UnityEngine.InputSystem.Utilities;
 using YARG.Menu.ProfileList;
 using YARG.Helpers;
+using FuzzySharp.Utils;
 
 namespace YARG.Input
 {
     public class PlayerDeviceInfo : IDisposable
     {
+        public YargProfile Profile { get; }
+
         private readonly List<SerializedMic> _unresolvedMics = new();
         private readonly List<MicDevice> _microphones = new();
 
@@ -37,8 +40,8 @@ namespace YARG.Input
 
         private readonly List<SerializedInputDevice> _unresolvedControllers = new();
         private readonly List<InputDevice> _controllers = new();
-        private readonly Dictionary<(InputDevice, GameMode), BindingCollection> _activeGameplayBindings = new();
-        private readonly Dictionary<InputDevice, BindingCollection> _activeMenuBindings = new();
+        private readonly Dictionary<(InputDevice, GameMode), RuntimeBindingSet> _activeGameplayBindings = new();
+        private readonly Dictionary<InputDevice, RuntimeBindingSet> _activeMenuBindings = new();
         private readonly Dictionary<(GameMode mode, ControllerFamily controllerFamily), ReusableBindingSet> _preferredBindsByContext = new();
         public readonly Dictionary<ControllerFamily, ReusableBindingSet> PreferredMenuBindingsByBaseLayout = new();
 
@@ -49,6 +52,12 @@ namespace YARG.Input
         public event Action<InputDevice> ControllerAdded;
         public event Action<InputDevice> ControllerRemoved;
 
+        /* TODO-FRICK: 
+         * Because we no longer edit runtime bindings directly, I don't think we need this to work like this.
+         * There will probably still be public event Action BindingsChanged, but I think it'll just reload from
+         * a now-updated ReusableBindingSet all over again. Or maybe that's inefficient and we do something smarter,
+         * but in any case I think this particular code is on its way out. Preserving for now
+         * 
         public event Action BindingsChanged
         {
             add
@@ -75,30 +84,36 @@ namespace YARG.Input
                     layoutMenuBinds.BindingsChanged -= value;
                 }
             }
-        }
+        }*/
 
+        /* TODO-FRICK: This happens in an individual RuntimeBindingSet for Menu "mode" now, right?
         public event GameInputProcessed MenuInputProcessed
         {
             add
             {
-                foreach (var layoutMenuBinds in _activeMenuBindings.Values)
+                foreach (var menuBinds in _activeMenuBindings.Values)
                 {
-                    layoutMenuBinds.InputProcessed += value;
+                    menuBinds.InputProcessed += value;
                 }
             }    
             remove
             {
-                foreach (var layoutMenuBinds in _activeMenuBindings.Values)
+                foreach (var menuBinds in _activeMenuBindings.Values)
                 {
-                    layoutMenuBinds.InputProcessed -= value;
+                    menuBinds.InputProcessed -= value;
                 }
             }
-        }
+        }*/
 
         public PlayerDeviceInfo() { }
 
+        public PlayerDeviceInfo(YargProfile profile)
+        {
+            Profile = profile;
+        }
+
 #nullable enable
-        public PlayerDeviceInfo(YargProfile profile, SerializedPlayerDeviceInfo? serialized)
+        public PlayerDeviceInfo(YargProfile profile, SerializedPlayerDeviceInfo? serialized) : this(profile)
         {
             if (serialized is null)
                 return;
@@ -493,34 +508,60 @@ namespace YARG.Input
 
         private void NotifyControllerAdded(InputDevice controller)
         {
-            foreach (var bindings in _activeGameplayBindings.Values)
-            {
-                bindings.OnDeviceAdded(controller);
-            }
-
-            foreach (var bindings in _activeMenuBindings.Values)
-            {
-                bindings.OnDeviceAdded(controller);
-            }
-
+            _activeGameplayBindings[(controller, Profile.GameMode)] = GetCollectionForController(controller, menu: false);
+            _activeMenuBindings[controller]                         = GetCollectionForController(controller, menu: true);            
             ControllerAdded?.Invoke(controller);
         }
 
         private void NotifyControllerRemoved(InputDevice controller)
         {
+            /* TODO-FRICK: Not worrying about removing devices quite yet
             foreach (var bindings in _activeGameplayBindings.Values)
             {
-                bindings.OnDeviceRemoved(controller);
+                bindings.OnDeviceRemoved(controller); // TODO-FRICK: Just clear the dictionary entry? Destruct/dispose the runtime set?
             }
 
             foreach (var bindings in _activeMenuBindings.Values)
             {
-                bindings.OnDeviceRemoved(controller);
+                bindings.OnDeviceRemoved(controller); // TODO-FRICK: Just clear the dictionary entry? Destruct/dispose the runtime set?
             }
 
             ControllerRemoved?.Invoke(controller);
+            */
         }
 
+        private RuntimeBindingSet GetCollectionForController(InputDevice controller, bool menu)
+        {
+            RuntimeBindingSet runtimeBindings;
+            var family = LayoutHelper.InputDeviceToControllerFamily(controller);
+            var mode = menu ? GameMode.Menu : Profile.GameMode;
+
+            // TODO-FRICK: Implement Profile-level device-specific overrides (keyed by name or hash, tbd) to
+            // check before general (profile,mode,family)-wide preferred bindings
+
+            if (_preferredBindsByContext.TryGetValue((mode, family), out var preferredBindingSet))
+            {
+                runtimeBindings = preferredBindingSet.GetRuntimeBindings(Profile, controller); // TODO-FRICK: Impl
+            }
+            else
+            {
+                var defaults = BindingsContainer.GetBindingSetsForControllerInMode(family, mode);
+                if (defaults.Count > 0)
+                {
+                    runtimeBindings = defaults.First().GetRuntimeBindings(Profile, controller); // TODO-FRICK: Impl WireUp
+
+                    // TODO-FRICK: Also look for better-match defaults beyond the first, like giving a Riffmaster the "Default Riffmaster
+                    // Gameplay" set instead of "Default 5F Guitar Gameplay"
+                }
+                else
+                {
+                    runtimeBindings = new(mode, family);
+                }
+            }
+
+            return runtimeBindings;
+        }
+        
         public void UpdateBindingsForFrame(double updateTime)
         {
             foreach (var bindings in _activeGameplayBindings.Values)

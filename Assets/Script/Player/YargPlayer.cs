@@ -143,7 +143,7 @@ namespace YARG.Player
             }
 
             DeviceInfo.EnableInputs();
-            DeviceInfo.MenuInputProcessed += OnMenuInput;
+            // DeviceInfo.MenuInputProcessed += OnMenuInput; TODO-FRICK: Remove? Don't think this is special-cased anymore
             InputManager.RegisterPlayer(this);
 
             InputsEnabled = true;
@@ -157,7 +157,7 @@ namespace YARG.Player
             }
 
             DeviceInfo.DisableInputs();
-            DeviceInfo.MenuInputProcessed -= OnMenuInput;
+            // DeviceInfo.MenuInputProcessed -= OnMenuInput; TODO-FRICK: Remove? Don't think this is special-cased anymore
             InputManager.UnregisterPlayer(this);
 
             InputsEnabled = false;

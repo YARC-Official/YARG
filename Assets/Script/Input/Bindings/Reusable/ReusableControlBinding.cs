@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using UnityEngine.InputSystem;
+using YARG.Core.Game;
 using YARG.Core.Logging;
 using YARG.Input.Serialization;
 using YARG.Localization;
@@ -47,6 +49,8 @@ namespace YARG.Input.Bindings
         {
             YargLogger.LogWarning($"Found unrecognized single binding parameter {key} with value {val}; ignoring");
         }
+
+        public abstract RuntimeControlBinding GetRuntimeBinding(YargProfile profile, InputDevice controller);
     }
 
     public abstract class ReusableControlBinding<TSingle> : ReusableControlBinding
@@ -113,6 +117,6 @@ namespace YARG.Input.Bindings
             {
                 ReusableControlBinding.LogUnknownParameter(key, val);
             }
-        }       
+        }
     }
 }

@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using UnityEngine.InputSystem;
+using YARG.Core.Game;
 using YARG.Input.Serialization;
 
 namespace YARG.Input.Bindings
@@ -23,6 +25,11 @@ namespace YARG.Input.Bindings
             {
                 Bindings.Add(new(binding));
             }
+        }
+
+        public override RuntimeControlBinding GetRuntimeBinding(YargProfile profile, InputDevice controller)
+        {
+            throw new NotImplementedException(); // TODO-FRICK
         }
     }
 

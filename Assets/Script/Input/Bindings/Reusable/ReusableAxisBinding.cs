@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Text;
 using UnityEditor.Experimental.GraphView;
+using UnityEngine.InputSystem;
+using YARG.Core.Game;
 using YARG.Helpers;
 using YARG.Input.Serialization;
 using YARG.Menu.ProfileList;
@@ -28,6 +30,11 @@ namespace YARG.Input.Bindings
             {
                 Bindings.Add(new(binding));
             }
+        }
+
+        public override RuntimeControlBinding GetRuntimeBinding(YargProfile profile, InputDevice controller)
+        {
+            throw new NotImplementedException(); // TODO-FRICK
         }
     }
 

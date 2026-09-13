@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using UnityEngine.InputSystem;
+using YARG.Core.Game;
 using YARG.Helpers;
 using YARG.Input.Serialization;
 using YARG.Menu.ProfileList;
@@ -66,6 +68,11 @@ namespace YARG.Input.Bindings
                         break;
                 }
             }
+        }
+
+        public override RuntimeControlBinding GetRuntimeBinding(YargProfile profile, InputDevice controller)
+        {
+            return new RuntimeButtonBinding(this);
         }
     }
 

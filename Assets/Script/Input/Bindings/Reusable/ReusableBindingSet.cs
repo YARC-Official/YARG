@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using UnityEngine.InputSystem;
 using YARG.Core;
+using YARG.Core.Game;
 using YARG.Core.Logging;
 using YARG.Helpers;
 using YARG.Input.Serialization;
@@ -92,6 +94,24 @@ namespace YARG.Input.Bindings
 
                 Bindings = serializedBindings
             };
+        }
+
+        public RuntimeBindingSet GetRuntimeBindings(YargProfile profile, InputDevice controller)
+        {
+            var providedControllerFamily = LayoutHelper.InputDeviceToControllerFamily(controller);
+            if (ControllerFamily != providedControllerFamily)
+            {
+                throw new InvalidOperationException($"Tried to apply a(n) {ControllerFamily} reusable binding set to a(n) {providedControllerFamily} controller!");
+            }
+
+            var runtimeBindings = new RuntimeBindingSet(Mode, ControllerFamily);
+
+            foreach (var binding in Bindings.Values)
+            {
+                runtimeBindings.Add(binding.GetRuntimeBinding(profile, controller));
+            }
+
+            return runtimeBindings;
         }
     }
 }
