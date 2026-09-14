@@ -43,10 +43,6 @@ namespace YARG.Editor.YargAudio
         public static void RebuildManual() =>
             EnsureUpToDate(isExplicit: true);
 
-        [MenuItem("YARG/Audio/Rebuild Native Audio (All Platforms - Slow)")]
-        public static void RebuildAllPlatformsManual() =>
-            YargAudioPackageBuilder.RebuildAllPlatforms();
-
         public static bool EnsureUpToDate(bool isExplicit = false)
         {
             var projectRoot = Path.GetFullPath(Path.Combine(Application.dataPath, ".."));
@@ -74,26 +70,21 @@ namespace YARG.Editor.YargAudio
         {
             try
             {
-                int configureExit = RunProcess("cmake", $"--preset {pluginInfo.ConfigurePreset}", nativeDir, out _, out string configError);
-                if (configureExit != 0)
+                var buildDir = Path.Combine(nativeDir, "build", pluginInfo.ConfigurePreset);
+                if (!TryRunBuild(nativeDir, pluginInfo, out var builtPath, out var buildError))
                 {
-                    Debug.LogError($"[YargAudio AutoBuilder] CMake configure failed (exit {configureExit}):\n{configError}");
-                    return false;
-                }
-
-                int buildExit = RunProcess("cmake", $"--build --preset {pluginInfo.BuildPreset} --parallel", nativeDir, out string buildOutput, out string buildError);
-                if (buildExit != 0)
-                {
-                    var errorMsg = string.IsNullOrWhiteSpace(buildError) ? buildOutput : buildError;
-                    Debug.LogError($"[YargAudio AutoBuilder] CMake build failed (exit {buildExit}):\n{errorMsg}");
-                    return false;
-                }
-
-                var builtPath = ResolveBuiltBinaryPath(nativeDir, pluginInfo);
-                if (!File.Exists(builtPath))
-                {
-                    Debug.LogError($"[YargAudio AutoBuilder] Built binary not found at: {builtPath}");
-                    return false;
+                    if (Directory.Exists(buildDir))
+                    {
+                        CleanBuildDirectory(buildDir);
+                        if (!TryRunBuild(nativeDir, pluginInfo, out builtPath, out buildError))
+                        {
+                            return HandleBuildFailure(buildError, pluginInfo, isExplicit);
+                        }
+                    }
+                    else
+                    {
+                        return HandleBuildFailure(buildError, pluginInfo, isExplicit);
+                    }
                 }
 
                 var destDir = Path.GetDirectoryName(pluginInfo.DestinationBinaryPath);
@@ -109,20 +100,81 @@ namespace YARG.Editor.YargAudio
             }
             catch (System.ComponentModel.Win32Exception)
             {
-                if (File.Exists(pluginInfo.DestinationBinaryPath))
-                {
-                    Debug.LogWarning("[YargAudio AutoBuilder] CMake executable not found in PATH; using existing pre-built binary.");
-                    return true;
-                }
-
-                Debug.LogError("[YargAudio AutoBuilder] CMake executable not found in PATH and no pre-built binary exists. Please install CMake 3.25+.");
-                return false;
+                return HandleBuildFailure("CMake executable not found in PATH; please install CMake 3.25+.", pluginInfo, isExplicit);
             }
             catch (Exception ex)
             {
-                Debug.LogError($"[YargAudio AutoBuilder] Unexpected error during build: {ex.Message}");
+                return HandleBuildFailure($"Unexpected error during build: {ex.Message}", pluginInfo, isExplicit);
+            }
+        }
+
+        private static bool TryRunBuild(string nativeDir, PluginInfo pluginInfo, out string builtPath, out string errorMessage)
+        {
+            builtPath = string.Empty;
+
+            int configureExit = RunProcess(
+                filename: "cmake",
+                arguments: $"--preset {pluginInfo.ConfigurePreset}",
+                workingDirectory: nativeDir,
+                stdout: out string configOutput,
+                stderr: out string configError);
+            if (configureExit != 0)
+            {
+                var errorMsg = string.IsNullOrWhiteSpace(configError) ? configOutput : configError;
+                errorMessage = $"CMake configure failed (exit {configureExit}):\n{errorMsg.Trim()}";
                 return false;
             }
+
+            int buildExit = RunProcess(
+                filename: "cmake",
+                arguments: $"--build --preset {pluginInfo.BuildPreset} --parallel",
+                workingDirectory: nativeDir,
+                stdout: out string buildOutput,
+                stderr: out string buildError);
+            if (buildExit != 0)
+            {
+                var errorMsg = string.IsNullOrWhiteSpace(buildError) ? buildOutput : buildError;
+                errorMessage = $"CMake build failed (exit {buildExit}):\n{errorMsg.Trim()}";
+                return false;
+            }
+
+            var resolvedPath = ResolveBuiltBinaryPath(nativeDir, pluginInfo);
+            if (!File.Exists(resolvedPath))
+            {
+                errorMessage = $"Built binary not found at: {resolvedPath}";
+                return false;
+            }
+
+            builtPath = resolvedPath;
+            errorMessage = string.Empty;
+            return true;
+        }
+
+        private static void CleanBuildDirectory(string buildDir)
+        {
+            try
+            {
+                if (Directory.Exists(buildDir))
+                {
+                    Directory.Delete(buildDir, recursive: true);
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.LogWarning($"[YargAudio AutoBuilder] Failed to delete stale build directory '{buildDir}': {ex.Message}");
+            }
+        }
+
+        private static bool HandleBuildFailure(string errorMessage, PluginInfo pluginInfo, bool isExplicit)
+        {
+            if (!isExplicit && File.Exists(pluginInfo.DestinationBinaryPath))
+            {
+                Debug.LogWarning($"[YargAudio AutoBuilder] {errorMessage}\nFalling back to existing pre-built binary.");
+                return true;
+            }
+
+            Debug.LogError($"[YargAudio AutoBuilder] {errorMessage}");
+            return false;
         }
 
         private static string ResolveBuiltBinaryPath(string nativeDir, PluginInfo info) =>
