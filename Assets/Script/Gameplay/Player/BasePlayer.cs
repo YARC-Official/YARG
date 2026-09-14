@@ -97,6 +97,8 @@ namespace YARG.Gameplay.Player
         private Dictionary<int, GameInput> LastInputs { get; } = new();
         private Dictionary<int, GameInput> InputsToSendOnResume { get; } = new();
 
+        protected SongChart Chart { get; private set; }
+
         protected SyncTrack SyncTrack { get; private set; }
 
         protected bool IsInitialized { get; private set; }
@@ -114,7 +116,7 @@ namespace YARG.Gameplay.Player
 
         private float _noteSpeedDifficultyScale;
 
-        protected EngineManager.EngineContainer EngineContainer;
+        public EngineManager.EngineContainer EngineContainer;
 
         protected bool PlayerHasFailed;
 
@@ -169,6 +171,7 @@ namespace YARG.Gameplay.Player
                 Player.MenuInput += OnMenuInput;
             }
 
+            Chart = chart;
             SyncTrack = chart.SyncTrack;
 
             LastHighScore = lastHighScore;
@@ -209,6 +212,11 @@ namespace YARG.Gameplay.Player
         protected abstract void ResetVisuals();
         public abstract void Rewind(double visualTime);
         public abstract void PostRewind(double visualTime);
+
+        protected virtual void ResetDifficulty(double time)
+        {
+            _noteSpeedDifficultyScale = Player.Profile.CurrentDifficulty.NoteSpeedScale();
+        }
 
         public virtual void ResetPracticeSection()
         {
@@ -348,10 +356,11 @@ namespace YARG.Gameplay.Player
             // Ignore completely if the song hasn't started yet or player failed
             if (!GameManager.Started || PlayerHasFailed || !IsActive)
             {
+                YargLogger.LogFormatDebug("Ignoring input: Started: {0} Failed: {1} IsActive: {2}", GameManager.Started, PlayerHasFailed, IsActive);
                 return;
             }
 
-            if (IsMenuOpen)
+            if (IsMenuOpen && !SettingsManager.Settings.PauseOnMenuOpen.Value)
             {
                 return;
             }

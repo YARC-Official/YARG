@@ -317,6 +317,8 @@ public class YargVideoPlayer : MonoBehaviour
             return;
         }
 
+        // OpenAsync() starts playing, so stop before handing over to the caller.
+        Stop();
 
         prepareCompleted?.Invoke(this);
     }

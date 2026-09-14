@@ -409,16 +409,22 @@ namespace YARG.Gameplay.Visuals
             {
                 var camera = _cameras[i];
 
-                if (camera.orthographic)
-                    continue;
-
-                float multiplayerXOffset = GetMultiplayerXOffset(highwayIndex, HighwayCount(),
-                    -1f * SettingsManager.Settings.HighwayTiltMultiplier.Value);
-                OffsetLocalPosition(camera.transform, multiplayerXOffset);
+                // The vocal track is an orthographic camera but must not receive the
+                // multiplayer tilt offset, and must not be counted in highwayIndex
+                // (which indexes players only, matching HighwayCount()). Otherwise
+                // vocals shift sideways and players after the vocal slot get an
+                // off-by-one world offset vs their NDC tile.
+                bool isVocal = _vocalTrack != null && camera == _vocalTrack.GetTrackCamera();
+                if (!isVocal)
+                {
+                    float multiplayerXOffset = GetMultiplayerXOffset(highwayIndex, HighwayCount(),
+                        -1f * SettingsManager.Settings.HighwayTiltMultiplier.Value);
+                    OffsetLocalPosition(camera.transform, multiplayerXOffset);
+                    highwayIndex++;
+                }
 
                 _camViewMatrices[i] = camera.worldToCameraMatrix;
                 _camInvViewMatrices[i] = camera.cameraToWorldMatrix;
-                highwayIndex++;
             }
 
             Shader.SetGlobalMatrixArray(YargHighwayCamViewMatricesID, _camViewMatrices);
@@ -460,7 +466,24 @@ namespace YARG.Gameplay.Visuals
                 }
                 else
                 {
-                    projMatrix = GetModifiedProjectionMatrix(camera.projectionMatrix,
+                    // For orthographic cameras, build the projection matrix explicitly
+                    // with Matrix4x4.Ortho instead of using camera.projectionMatrix.
+                    // The post-projection NDC tiling in GetModifiedProjectionMatrix
+                    // performs clip.xy = clip.xy * scale + offset * clip.w, which requires
+                    // clip.w == 1 for ortho. Building the matrix here guarantees that
+                    // regardless of the convention camera.projectionMatrix returns
+                    // internally (this project also runs the matrix through
+                    // GL.GetGPUProjectionMatrix afterwards, same as the perspective path).
+                    if (camera.orthographic)
+                    {
+                        float halfHeight = camera.orthographicSize;
+                        float halfWidth = halfHeight * Math.Max(Screen.width, 0.001f) /
+                                          Math.Max(Screen.height, 0.001f);
+                        projMatrix = Matrix4x4.Ortho(
+                            -halfWidth, halfWidth, -halfHeight, halfHeight,
+                            camera.nearClipPlane, camera.farClipPlane);
+                    }
+                    projMatrix = GetModifiedProjectionMatrix(projMatrix,
                         highwayIndex, HighwayCount(), _laneScales[i], horizontalOffsetNdc);
                     highwayIndex++;
                 }

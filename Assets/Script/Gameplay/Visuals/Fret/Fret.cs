@@ -304,6 +304,17 @@ namespace YARG.Gameplay.Visuals
             ThemeBind.HitEffect.Play();
         }
 
+        /// <summary>
+        /// Plays the hit particles with the given color. Used by six-fret so the
+        /// burst matches the note hit: black for black frets, white for white
+        /// frets, and a black/white mix for barres.
+        /// </summary>
+        public void PlayHitParticles(UnityEngine.Color color)
+        {
+            ThemeBind.HitEffect.SetColor(color);
+            ThemeBind.HitEffect.Play();
+        }
+
         public void PlayFullWidthHitParticles()
         {
             ThemeBind.OpenHitEffect.Play();

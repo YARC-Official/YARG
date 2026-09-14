@@ -227,6 +227,20 @@ namespace YARG.Assets.Script.Gameplay.Player
             GameManager.BeatEventHandler.Visual.Subscribe(_fretArray.PulseFretColors, BeatEventType.StrongBeat);
         }
 
+        protected override void ResetDifficulty(double time)
+        {
+            Engine.ReplaceChart(NoteTrack);
+
+            if (Player.Profile.RangeEnabled)
+            {
+                _allRangeShiftEvents = FiveFretRangeShift.GetRangeShiftEvents(NoteTrack);
+                ResetRangeShift(GameManager.VisualTime);
+            }
+
+            _fretArray.ResetAll();
+            base.ResetDifficulty(time);
+        }
+
         public override void ResetPracticeSection()
         {
             base.ResetPracticeSection();
