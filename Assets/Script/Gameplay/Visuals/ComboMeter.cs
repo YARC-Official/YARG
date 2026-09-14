@@ -26,6 +26,8 @@ namespace YARG.Gameplay.Visuals
 
         [Header("ComboNumber")]
         [SerializeField]
+        private MeshRenderer _comboWing;
+        [SerializeField]
         private TextMeshPro _comboText;
         [SerializeField]
         private Color _noFcColor;
@@ -66,13 +68,16 @@ namespace YARG.Gameplay.Visuals
                 color = _customPresetColor;
             }
 
+            // Set the combo text and wing visibility based on the StreakCounterEnabled setting
             if (StreakCounterEnabled)
             {
                 _comboText.enabled = true;
+                _comboWing.enabled = true;
             }
             else
             {
                 _comboText.enabled = false;
+                _comboWing.enabled = false;
             }
 
             _comboText.color = _FcColor;
