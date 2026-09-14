@@ -311,10 +311,10 @@ namespace YARG.Gameplay.HUD
 
         public void ShowPlayerName(YargPlayer player) => _playerNameDisplay.ShowPlayer(player);
 
-        public void CreatePlayerMenu(YargPlayer player)
+        public void CreatePlayerMenu(YargPlayer player, GameManager gameManager)
         {
             _playerMenu = Instantiate(_playerMenuPrefab, transform);
-            _playerMenu.Initialize(player);
+            _playerMenu.Initialize(player, gameManager);
             _playerMenu.HideImmediate();
         }
 
@@ -332,6 +332,8 @@ namespace YARG.Gameplay.HUD
         public void ClosePlayerMenu() => _playerMenu?.Close();
 
         public void RefreshPlayerMenu() => _playerMenu?.Refresh();
+
+        public void SetPlayerMenuItems(IReadOnlyList<PlayerMenuItem> items) => _playerMenu?.SetItems(items);
 
         public void ForceReset()
         {

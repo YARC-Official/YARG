@@ -674,7 +674,8 @@
                 "BackToLibrary": "Back To Library",
                 "Settings": "Settings",
                 "Practice": "Practice",
-                "DropOut": "Drop Out"
+                "DropOut": "Drop Out",
+                "ChangeDifficulty": "Change Difficulty"
             },
             "Fail": {
                 "EnableNoFailandResume": "Enable No Fail and Resume",
@@ -1797,6 +1798,10 @@
                 "Name": "Pause On Focus Loss",
                 "Description": "Pauses the game if it's tabbed out/loses focus in the middle of a song."
             },
+            "PauseOnMenuOpen": {
+                "Name": "Pause On Menu Open",
+                "Description": "Pauses the game when the track menu is opened."
+            },
             "MuteOnFocusLoss": {
                 "Name": "Mute On Focus Loss",
                 "Description": "Mutes all game audio if the game is tabbed out/loses focus, including menu music. Audio is restored when focus returns."
@@ -2387,11 +2392,8 @@
                 "BlackNoteStarPower": {
                     "Name": "Black Note Star Power"
                 },
-                "BlackFret": {
-                    "Name": "Black Fret"
-                },
-                "WhiteFret": {
-                    "Name": "White Fret"
+                "Fret": {
+                    "Name": "Fret"
                 },
                 "BlackFretInner": {
                     "Name": "Black Fret Inner"
