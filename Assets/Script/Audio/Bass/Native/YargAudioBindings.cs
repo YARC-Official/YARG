@@ -215,7 +215,8 @@ namespace YARG.Audio.BASS.Native
             EnsureLoaded();
             if (_libraryHandle == IntPtr.Zero)
             {
-                throw new DllNotFoundException($"Unable to load native library for {entryPoint}.");
+                throw new DllNotFoundException(
+                    $"Unable to load the YargAudio native library from '{GetLibraryPath()}' for {entryPoint}.");
             }
 
             delegateField = GetFunction<T>(_libraryHandle, entryPoint);
@@ -324,7 +325,7 @@ namespace YARG.Audio.BASS.Native
 #if UNITY_STANDALONE_OSX
             return Path.Combine(dataPath, "Plugins", "libyarg_audio.dylib");
 #elif UNITY_STANDALONE_LINUX
-            return Path.Combine(dataPath, "Plugins", "x86_64", "libyarg_audio.so");
+            return Path.Combine(dataPath, "Plugins", "libyarg_audio.so");
 #elif UNITY_STANDALONE_WIN
             return Path.Combine(dataPath, "Plugins", "x86_64", "yarg_audio.dll");
 #else
