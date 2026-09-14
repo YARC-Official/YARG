@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.LowLevel;
 using UnityEngine.InputSystem.XR;
 using YARG.Core;
 using YARG.Helpers;
@@ -52,9 +53,14 @@ namespace YARG.Input
                     _ => throw new ArgumentOutOfRangeException("Unrecognized reusable binding type")
                 };
 
-                if (newBind is not null) // TODO: Workaround
+                if (newBind is not null) // TODO-FRICK: null check is just a temporary workaround until axes and integers are also implemented
                 {
                     Add(newBind);
+
+                    for (var i = 0; i < newBind.Bindings.Count; i++)
+                    {
+                        InputState.AddChangeMonitor(newBind.Bindings[i].Control, newBind, i);
+                    }
                 }
             }
         }

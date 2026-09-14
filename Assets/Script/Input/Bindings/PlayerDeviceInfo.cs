@@ -508,8 +508,12 @@ namespace YARG.Input
 
         private void NotifyControllerAdded(InputDevice controller)
         {
-            _activeGameplayBindings[(controller, Profile.GameMode)] = GetCollectionForController(controller, menu: false);
-            _activeMenuBindings[controller]                         = GetCollectionForController(controller, menu: true);            
+            var newGameplayBindings = GetCollectionForController(controller, menu: false);
+            var newMenuBindings = GetCollectionForController(controller, menu: true);
+
+            _activeGameplayBindings[(controller, Profile.GameMode)] = newGameplayBindings;
+            _activeMenuBindings[controller] = newMenuBindings;
+
             ControllerAdded?.Invoke(controller);
         }
 

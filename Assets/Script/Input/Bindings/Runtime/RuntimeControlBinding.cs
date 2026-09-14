@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.LowLevel;
 using YARG.Core.Input;
 using YARG.Core.Logging;
 
@@ -79,7 +80,7 @@ namespace YARG.Input
         }
     }
 
-    public abstract class RuntimeControlBinding<TSingle, TSingleState> : RuntimeControlBinding
+    public abstract class RuntimeControlBinding<TSingle, TSingleState> : RuntimeControlBinding, IInputStateChangeMonitor
         where TSingle : RuntimeSingleBinding<TSingleState>
         where TSingleState : struct
     {
@@ -96,6 +97,43 @@ namespace YARG.Input
         protected void FireStateChanged()
         {
             StateChanged?.Invoke();
+        }
+
+        void IInputStateChangeMonitor.NotifyControlStateChanged(InputControl control, double time, InputEventPtr eventPtr, long monitorIndex)
+        {
+            if (InputManager.IsEditorUpdate)
+            {
+                return;
+            }
+
+            if (!eventPtr.valid)
+            {
+                YargLogger.LogFormatError("Invalid eventPtr received for control {0}!", control);
+                return;
+            }
+
+            if (monitorIndex >= _bindings.Count)
+            {
+                YargLogger.LogFormatError("Invalid state monitor index {0}!", monitorIndex);
+                return;
+            }
+
+            var binding = _bindings[(int) monitorIndex];
+            if (binding.Control != control)
+            {
+                YargLogger.LogError($"State monitor index {monitorIndex} does not match binding! Expected {binding.Control}, got {control}");
+                return;
+            }
+
+            double inputTime = InputManager.ClampInputTime(time);
+            binding.UpdateState(inputTime);
+            OnStateChanged(binding, inputTime);
+            FireStateChanged();
+        }
+
+        void IInputStateChangeMonitor.NotifyTimerExpired(InputControl control, double time, long monitorIndex,
+            int timerIndex)
+        {
         }
     }
 }
