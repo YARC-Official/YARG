@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using DG.Tweening;
@@ -80,7 +80,7 @@ namespace YARG.Menu.Dialogs
 
             }
 
-            _timerSequence = DOTween.Sequence(_countdownSlider).SetAutoKill(false);
+            _timerSequence = DOTween.Sequence(_countdownSlider).SetAutoKill(false).SetLink(gameObject);
             _timerSequence.Append(_countdownSlider.DOValue(1.0f, 0.01f)).
                 Join(_countdownSlider.DOValue(0.0f, SettingsManager.Settings.PlayAShowTimeout.Value)).
                 AppendCallback(TallyVotes);
@@ -284,6 +284,11 @@ namespace YARG.Menu.Dialogs
         {
             // We're living dangerously here, because we don't want to add any buttons to this dialog
             return null;
+        }
+
+        private void OnDestroy()
+        {
+            _timerSequence?.Kill();
         }
     }
 }

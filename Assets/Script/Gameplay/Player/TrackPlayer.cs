@@ -9,10 +9,14 @@ using YARG.Core;
 using YARG.Core.Audio;
 using YARG.Core.Chart;
 using YARG.Core.Engine;
+using YARG.Core.Extensions;
+using YARG.Core.Input;
 using YARG.Core.Logging;
 using YARG.Gameplay.HUD;
 using YARG.Gameplay.Visuals;
 using YARG.Helpers;
+using YARG.Localization;
+using YARG.Menu.Persistent;
 using YARG.Playback;
 using YARG.Player;
 using YARG.Settings;
@@ -30,9 +34,172 @@ namespace YARG.Gameplay.Player
 
         public static int HighwayCount = 1;
 
+        private const float START_HOLD_SECONDS = 0.5f;
+
         public double SpawnTimeOffset => (ZeroFadePosition + _spawnAheadDelay + -STRIKE_LINE_POS) / NoteSpeed;
 
         protected TrackView TrackView { get; private set; }
+
+        private readonly HoldTracker _startHold = new(
+            holdTime: START_HOLD_SECONDS,
+            cancelThreshold: START_HOLD_SECONDS);
+
+        public bool IsPlayerMenuOpen => TrackView.IsPlayerMenuOpen;
+
+        public void OpenPlayerMenu() => TrackView.OpenPlayerMenu(GetPlayerMenuItems());
+
+        public void ClosePlayerMenu()
+        {
+            _startHold.Cancel();
+            TrackView.ClosePlayerMenu();
+        }
+
+        public void RefreshPlayerMenu()
+        {
+            if (!CanOpenPlayerMenu)
+            {
+                ClosePlayerMenu();
+                return;
+            }
+
+            TrackView.RefreshPlayerMenu();
+        }
+
+        private void OnStartTapped() => GameManager.TogglePause();
+
+        protected void UpdateStartHold()
+        {
+            if (IsStartBlocked)
+            {
+                _startHold.Cancel();
+                return;
+            }
+
+            _startHold.Tick();
+        }
+
+        protected override void OnMenuInput(YargPlayer _, ref GameInput input)
+        {
+            if (input.Action != (int) MenuAction.Start)
+            {
+                return;
+            }
+
+            if (IsStartBlocked)
+            {
+                _startHold.Cancel();
+                return;
+            }
+
+            if (!CanOpenPlayerMenu)
+            {
+                if (input.Button)
+                {
+                    GameManager.TogglePause();
+                }
+
+                return;
+            }
+
+            if (input.Button)
+            {
+                _startHold.StartHolding();
+            }
+            else
+            {
+                _startHold.Tick();
+                _startHold.StopHolding();
+            }
+        }
+
+        private void OnStartHeld()
+        {
+            if (CanOpenPlayerMenu)
+            {
+                OpenPlayerMenu();
+                return;
+            }
+
+            GameManager.TogglePause();
+        }
+
+        private bool CanDropOut => GameManager.ActivePlayerCount > 1 &&
+            !GameManager.IsReplay &&
+            !GameManager.IsPractice &&
+            !GameManager.PlayingAShow;
+
+        private bool CanChangeDifficulty => !GameManager.IsReplay && !GameManager.IsPractice;
+
+        private bool CanOpenPlayerMenu => GetPlayerMenuItems().HasUsable();
+
+        private bool IsStartBlocked => !IsActive || IsPlayerMenuOpen || !GameManager.CanPause;
+
+        public void DropOut()
+        {
+            if (!CanDropOut)
+            {
+                return;
+            }
+
+            IsFc = false;
+
+            Player.IsScoreValid = false;
+            Player.DropOut();
+            GameManager.EngineManager.Unregister(EngineContainer);
+
+            SetStemMuteState(muted: false);
+            ClosePlayerMenu();
+
+            GameManager.RefreshAllPlayerMenus();
+        }
+
+        public void ShowDifficulties()
+        {
+            var difficultyItems = new List<PlayerMenuItem>();
+            var song = GameManager.Song;
+
+
+            var instrument = Player.Profile.CurrentInstrument;
+            var currentDifficulty = Player.Profile.CurrentDifficulty;
+            foreach (var difficulty in EnumExtensions<Difficulty>.Values)
+            {
+                if (difficulty != currentDifficulty && song.HasDifficultyForInstrument(instrument, difficulty))
+                {
+                    difficultyItems.Add(new PlayerMenuItem(
+                        label: difficulty.ToString(),
+                        onConfirm: () => ChangeDifficulty(difficulty)));
+                }
+            }
+
+            TrackView.SetPlayerMenuItems(difficultyItems);
+        }
+
+        public abstract void ChangeDifficulty(Difficulty difficulty);
+
+        protected override bool IsMenuOpen => IsPlayerMenuOpen;
+
+        private IReadOnlyList<PlayerMenuItem> GetPlayerMenuItems()
+        {
+            var playerMenuItems = new List<PlayerMenuItem>();
+
+            if (CanDropOut)
+            {
+                playerMenuItems.Add(new PlayerMenuItem(
+                    label: Localize.Key("Menu.Pause.Generic.DropOut"),
+                    onConfirm: DropOut)
+                );
+            }
+
+            if (CanChangeDifficulty)
+            {
+                playerMenuItems.Add(new PlayerMenuItem(
+                    label: Localize.Key("Menu.Pause.Generic.ChangeDifficulty"),
+                    onConfirm: ShowDifficulties)
+                );
+            }
+
+            return playerMenuItems;
+        }
 
         [field: Header("Visuals")]
         [field: SerializeField]
@@ -135,6 +302,14 @@ namespace YARG.Gameplay.Player
                 or Instrument.ProBass_22Fret;
 
             TrackView.ShowPlayerName(player);
+
+            if (!player.IsReplay)
+            {
+                TrackView.CreatePlayerMenu(player, GameManager);
+            }
+
+            _startHold.OnClick += OnStartTapped;
+            _startHold.OnHoldComplete += OnStartHeld;
         }
 
         protected override void ResetVisuals()
@@ -194,8 +369,6 @@ namespace YARG.Gameplay.Player
         private int                              _unisonStartIndex;
         private int                              _unisonEndIndex;
 
-        protected SongChart Chart;
-
         private AutoCalibrator _autoCalibrator;
 
         protected CodaSection CurrentCoda;
@@ -225,8 +398,6 @@ namespace YARG.Gameplay.Player
             base.Initialize(index, player, chart, trackView, mixer, currentHighScore);
 
             SetupTheme();
-
-            Chart = chart;
 
             OriginalNoteTrack = GetNotes(chart);
             player.Profile.ApplyModifiers(OriginalNoteTrack, chart.SyncTrack);
@@ -372,6 +543,65 @@ namespace YARG.Gameplay.Player
             GameManager.EngineManager.OnPlayerRevived += OnPlayerRevived;
         }
 
+        public override void ChangeDifficulty(Difficulty difficulty)
+        {
+            // Here we must reinitialize with a new InstrumentDifficulty, which means resetting OriginalNoteTrack,
+            // Notes, and the engine at the very least, then using Reset to get everything to the current time
+            // TODO: Calculate this properly rather than assuming a static window
+            var hitWindow = HitWindow.MaxWindow;
+            var spliceTime = GameManager.SongTime + hitWindow;
+
+            Player.Profile.CurrentDifficulty = difficulty;
+            var targetInstrumentDifficulty = GetNotes(Chart);
+
+            Player.Profile.ApplyModifiers(targetInstrumentDifficulty, SyncTrack);
+
+            var newInstrumentDifficulty = NoteTrack.Splice(targetInstrumentDifficulty, spliceTime);
+
+            // OriginalNoteTrack = newInstrumentDifficulty;
+            Player.Profile.ApplyModifiers(OriginalNoteTrack, SyncTrack);
+            NoteTrack = newInstrumentDifficulty;
+            Notes = NoteTrack.Notes;
+
+            Player.IsScoreValid = false;
+            GameManager.ReplaySaveInhibited = true;
+
+            EngineContainer.ResetHappiness();
+
+            ResetDifficulty(GameManager.VisualTime);
+
+            if (PlayerHasFailed)
+            {
+                // Unfail and raise highway
+                PlayerHasFailed = false;
+                CameraPositioner.Raise(false);
+            }
+
+            TrackView.ClosePlayerMenu();
+        }
+
+        protected override void ResetDifficulty(double time)
+        {
+            base.ResetDifficulty(time);
+
+            // Calling ResetVisuals has unwanted side effects, so we do things manually
+            NotePool.ReturnAllObjects();
+            LanePool.ReturnAllObjects();
+            BeatlinePool.ReturnAllObjects();
+
+            HitWindowDisplay.SetHitWindowSize();
+
+            BeatlineIndex = 0;
+            _breIndex = 0;
+            ResetNoteCounters();
+
+            ResetTrackEffectOverlay(time);
+
+            UpdateVisuals(GameManager.VisualTime);
+
+            GameManager.DifficultyChanged();
+        }
+
         protected void ResetNoteCounters()
         {
             NoteIndex = 0;
@@ -503,11 +733,11 @@ namespace YARG.Gameplay.Player
             }
 
             bool isSongEnd = visualTime > SongLength;
-            bool shouldLowerTrack = isSongEnd || GameManager.PlayerHasFailed;
+            bool shouldLowerTrack = isSongEnd || GameManager.PlayerHasFailed || !IsActive;
             if (!_didLowerTrack && shouldLowerTrack)
             {
                 _didLowerTrack = true;
-                CameraPositioner.Lower(isSongEnd);
+                CameraPositioner.Lower(isSongEnd || !IsActive);
             }
             else if (_didLowerTrack && !shouldLowerTrack)
             {
@@ -556,12 +786,6 @@ namespace YARG.Gameplay.Player
         {
             while (BeatlineIndex < Beatlines.Count && Beatlines[BeatlineIndex].Time <= time + SpawnTimeOffset)
             {
-                if (BeatlineIndex + 1 < Beatlines.Count && Beatlines[BeatlineIndex + 1].Time <= time + SpawnTimeOffset)
-                {
-                    BeatlineIndex++;
-                    continue;
-                }
-
                 var beatline = Beatlines[BeatlineIndex];
 
                 if (Notes.Count > 0 && beatline.Time > Notes[^1].TimeEnd)
@@ -1229,6 +1453,7 @@ namespace YARG.Gameplay.Player
         public override void GameplayUpdate()
         {
             base.GameplayUpdate();
+            UpdateStartHold();
 
             if (LastHighScore != null && !_newHighScoreShown && Score > LastHighScore)
             {

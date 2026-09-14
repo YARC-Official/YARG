@@ -260,6 +260,20 @@ namespace YARG.Gameplay.Player
             );
         }
 
+        protected override void ResetDifficulty(double time)
+        {
+            Engine.ReplaceChart(NoteTrack);
+
+            if (Player.Profile.RangeEnabled)
+            {
+                _allRangeShiftEvents = FiveFretRangeShift.GetRangeShiftEvents(NoteTrack);
+                ResetRangeShift(GameManager.VisualTime);
+            }
+
+            _fretArray.ResetAll();
+            base.ResetDifficulty(time);
+        }
+
         public override void ResetPracticeSection()
         {
             base.ResetPracticeSection();
@@ -462,6 +476,7 @@ namespace YARG.Gameplay.Player
         {
             base.ResetVisuals();
 
+            StrikelineAnimator.SetSustaining(false);
             _fretArray.ResetAll();
         }
 

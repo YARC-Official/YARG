@@ -250,7 +250,7 @@ namespace YARG.Gameplay.Visuals
             DOVirtual.DelayedCall(delay, () => {
                 _raise.Restart();
                 // Needs to obey timeScale or the delay will be wrong on start
-            }, false);
+            }, false).SetLink(gameObject);
         }
 
         private void LowerHighway(bool isGameplayEnd)
@@ -266,7 +266,7 @@ namespace YARG.Gameplay.Visuals
             DOVirtual.DelayedCall(delay, () => {
                 _lower.Restart();
                 // Obey timeScale to match the old behavior
-            }, false);
+            }, false).SetLink(gameObject);
         }
 
         private void PunchHighway()
@@ -286,6 +286,16 @@ namespace YARG.Gameplay.Visuals
         {
             // Very quick blast down, up and back to origin for SP activation
             _scoop.Restart();
+        }
+
+        private void OnDestroy()
+        {
+            _raise?.Kill();
+            _lower?.Kill();
+            _punchLeft?.Kill();
+            _punchRight?.Kill();
+            _scoop?.Kill();
+            _bounce?.Kill();
         }
     }
 }

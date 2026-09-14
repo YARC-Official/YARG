@@ -672,6 +672,15 @@ namespace YARG.Venue.Characters
                 }
             }
 
+            while (_drumMaps.Count > 0 && _drumTriggerIndex < _drumMaps.Count &&
+                _drumMaps[_drumTriggerIndex].Time - character.TimeToFirstHit <= GameManager.SongTime)
+            {
+                var mapEvent = _drumMaps[_drumTriggerIndex];
+                _drumTriggerIndex++;
+
+                character.OnAnimationEvent(mapEvent);
+            }
+
             while (_drumNotes.Count > 0 && _drumNoteIndex < _drumNotes.Count &&
                 _drumNotes[_drumNoteIndex].Time - character.TimeToFirstHit <= GameManager.SongTime)
             {

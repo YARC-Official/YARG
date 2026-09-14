@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using DG.Tweening;
 using TMPro;
 using UnityEngine;
@@ -65,7 +65,9 @@ namespace YARG.Gameplay.HUD
                 .Join(_multiplierTextContainer.transform.DOLocalMoveX(-30f, 0.15f))
                 .Append(_multiplierTextContainer.transform.DOScale(1f, 0.15f))
                 .Join(_multiplierTextContainer.transform.DOLocalMoveX(0f, 0.15f))
-                .SetAutoKill(false);
+                .SetAutoKill(false)
+                .Pause()
+                .SetLink(gameObject);
             _sunburstEffects.SetSunburstEffects(false, false, 1);
             _textCache = MultiplierTextHelper.CreateMultiplierTextCache(EnginePreset.DEFAULT_MAX_MULTIPLIER, _multiplierText, GameManager.Players.Count > 1);
 
@@ -243,6 +245,11 @@ namespace YARG.Gameplay.HUD
                 }
                 _fcRing.gameObject.SetActive(false);
             }
+        }
+
+        protected override void GameplayDestroy()
+        {
+            _multiplierIncreaseSequence?.Kill();
         }
     }
 }

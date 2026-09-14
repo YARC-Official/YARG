@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using YARG.Core;
 using YARG.Core.Engine;
 using YARG.Core.Logging;
@@ -23,9 +23,15 @@ namespace YARG.Gameplay.HUD
 
         private static string GetInstrumentSprite(Instrument instrument, int harmonyIndex, bool isMissingDevice)
         {
+            var resourceName = instrument.ToResourceName();
+            if (string.IsNullOrEmpty(resourceName))
+            {
+                return null;
+            }
+
             if (isMissingDevice)
             {
-                return $"NoInstrumentIcons[{instrument.ToResourceName()}]";
+                return $"NoInstrumentIcons[{resourceName}]";
             }
 
             if (instrument == Instrument.Harmony)
@@ -33,7 +39,7 @@ namespace YARG.Gameplay.HUD
                 return $"HarmonyVocalsIcons[{harmonyIndex + 1}]";
             }
 
-            return $"InstrumentIcons[{instrument.ToResourceName()}]";
+            return $"InstrumentIcons[{resourceName}]";
         }
 
         public static Color GetHarmonyColor(this YargPlayer player)

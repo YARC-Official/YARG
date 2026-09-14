@@ -281,7 +281,14 @@
             "Instrument": "Instrument",
             "Difficulty": "Difficulty",
             "Harmony": "Harmony",
+            "Adjustments": "Adjustments",
             "Modifiers": "Modifiers",
+            "Accessibility": "Accessibility",
+            "LeftyFlip": "Lefty Flip",
+            "NoRangeShifts": "No Range Shifts",
+            "DedicatedOpenLane": "Open Note Lane",
+            "OpenLaneAlways": "Open Lane Always",
+            "OpenLaneWhenCharted": "Open Lane When Charted",
             "Ready": "Ready",
             "SitOut": "Sit Out",
 			"Disconnect" : "Disconnect",
@@ -666,7 +673,9 @@
                 "Restart": "Restart",
                 "BackToLibrary": "Back To Library",
                 "Settings": "Settings",
-                "Practice": "Practice"
+                "Practice": "Practice",
+                "DropOut": "Drop Out",
+                "ChangeDifficulty": "Change Difficulty"
             },
             "Fail": {
                 "EnableNoFailandResume": "Enable No Fail and Resume",
@@ -1784,6 +1793,10 @@
             "PauseOnFocusLoss": {
                 "Name": "Pause On Focus Loss",
                 "Description": "Pauses the game if it's tabbed out/loses focus in the middle of a song."
+            },
+            "PauseOnMenuOpen": {
+                "Name": "Pause On Menu Open",
+                "Description": "Pauses the game when the track menu is opened."
             },
             "MuteOnFocusLoss": {
                 "Name": "Mute On Focus Loss",

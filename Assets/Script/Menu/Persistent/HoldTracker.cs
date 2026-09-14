@@ -79,6 +79,12 @@ namespace YARG.Menu.Persistent
             }
         }
 
+        public void Cancel()
+        {
+            IsPressed = false;
+            _holdCompleted = false;
+        }
+
         /// <summary>
         /// Must be called each frame by the owner
         /// </summary>
