@@ -1,10 +1,12 @@
 using System;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.InputSystem.UI;
 
 namespace YARG.Menu.Navigation
 {
-    public abstract class NavigatableBehaviour : MonoBehaviour, IPointerMoveHandler, IPointerDownHandler
+    public abstract class NavigatableBehaviour : MonoBehaviour, IPointerMoveHandler, IPointerDownHandler,
+        IPointerClickHandler
     {
         [SerializeField]
         private bool _selectOnHover;
@@ -60,12 +62,46 @@ namespace YARG.Menu.Navigation
             _selectedVisual.SetActive(selected);
         }
 
-        public virtual void OnPointerDown(PointerEventData eventData)
+        public void OnPointerDown(PointerEventData eventData)
+        {
+            // A finger going down is also how every scroll gesture starts, so
+            // touch acts on release instead: uGUI drops the click once a drag
+            // begins, and a finger that never dragged clicks what it pressed
+            if (!IsTouch(eventData))
+            {
+                OnPress();
+            }
+        }
+
+        public void OnPointerClick(PointerEventData eventData)
+        {
+            if (IsTouch(eventData))
+            {
+                OnPress();
+            }
+        }
+
+        /// <summary>
+        /// The pointer activated this navigatable: on press for a mouse, on
+        /// release for a touch.
+        /// </summary>
+        protected virtual void OnPress()
         {
             if (_selectOnClick)
             {
                 SetSelected(true, SelectionOrigin.Mouse);
             }
+        }
+
+        public static bool IsTouch(PointerEventData eventData)
+        {
+            if (eventData is ExtendedPointerEventData extended)
+            {
+                return extended.pointerType == UIPointerType.Touch;
+            }
+
+            // The legacy input module gives touches their finger id and mice negative ids
+            return eventData.pointerId >= 0;
         }
 
         public virtual void Confirm()

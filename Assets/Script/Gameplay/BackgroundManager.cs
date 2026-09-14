@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using Cinemachine;
@@ -25,9 +24,10 @@ using YARG.Helpers;
 using YARG.Song;
 using Random = UnityEngine.Random;
 
+using UnityEngine.SceneManagement;
+
 #if UNITY_EDITOR
 using UnityEditor.SceneManagement;
-using UnityEngine.SceneManagement;
 #endif
 
 namespace YARG.Gameplay
@@ -65,6 +65,7 @@ namespace YARG.Gameplay
         private bool _videoWasPausedBeforeSeek = false;
 
         private const float FADE_DURATION = 0.5f;
+        private const int VENUE_PREWARM_FRAMES = 8;
 
         private float YARGROUND_OFFSET = 50f;
 
@@ -82,13 +83,106 @@ namespace YARG.Gameplay
 
         private BundleBackgroundManager _bundleBackgroundManager;
 
+        // Completes once the venue is in place, or its loading gave up, so
+        // work that needs its shaders loaded can wait for it
+        private readonly UniTaskCompletionSource _venueLoaded = new();
+        public UniTask VenueLoaded => _venueLoaded.Task;
+
+        private bool _loadStarted;
+        private bool _loadedEarly;
+        private bool _updatesAtSongStart;
+        private bool _crowdPending;
+
+        // The venue bundle kept loaded between songs on phones (see LoadYarground)
+        private static string      _keptVenuePath;
+        private static FileStream  _keptVenueStream;
+        private static AssetBundle _keptVenueBundle;
+        private static GameObject  _keptVenuePrefab;
+
+        private          bool             _usingSceneVenue;
+        private          Scene            _venueScene;
 #if UNITY_EDITOR
-        private          bool             _usingEditorVenue;
         private          string           _editorVenuePath;
-        private          Scene            _editorVenueScene;
 #endif
-        [SuppressMessage("Type Safety", "UNT0006", Justification = "UniTaskVoid is a compatible return type.")]
-        private async UniTaskVoid Start()
+        private void Start()
+        {
+            BeginLoad();
+        }
+
+        // This behaviour is disabled until the song starts, so Start runs on
+        // the first gameplay frame and the venue's load and first draw land
+        // there. Phones feel that as a second-long stall, so on them the
+        // load begins under the loading screen instead, and GameManager
+        // waits for it (VenueLoaded) before starting the song
+        protected override void OnSongLoaded()
+        {
+            if (Application.isMobilePlatform)
+            {
+                _loadedEarly = true;
+                BeginLoad();
+            }
+        }
+
+        protected override void OnSongStarted()
+        {
+            if (!_loadedEarly)
+            {
+                return;
+            }
+
+            enabled = _updatesAtSongStart;
+            if (_crowdPending)
+            {
+                _crowdPending = false;
+                GameManager.CrowdEventHandler.Start();
+            }
+        }
+
+        private void BeginLoad()
+        {
+            if (_loadStarted)
+            {
+                return;
+            }
+
+            _loadStarted = true;
+            LoadVenueAndSignal().Forget();
+        }
+
+        private async UniTaskVoid LoadVenueAndSignal()
+        {
+            try
+            {
+                await LoadVenue();
+            }
+            finally
+            {
+                if (_loadedEarly && !GameManager.IsSongStarted)
+                {
+                    // Updates (video playback) wait for the song like the
+                    // rest of gameplay
+                    _updatesAtSongStart = enabled;
+                    enabled = false;
+                }
+
+                _venueLoaded.TrySetResult();
+            }
+        }
+
+        // The crowd opens with the venue, which on an early load means at
+        // the start of the song
+        private void StartCrowd()
+        {
+            if (_loadedEarly && !GameManager.IsSongStarted)
+            {
+                _crowdPending = true;
+                return;
+            }
+
+            GameManager.CrowdEventHandler.Start();
+        }
+
+        private async UniTask LoadVenue()
         {
             // We don't need to update unless we're using a video
             enabled = false;
@@ -101,7 +195,7 @@ namespace YARG.Gameplay
                     var loadedScene = SceneManager.GetSceneByName(_editorVenuePath);
                     if (loadedScene.IsValid() && loadedScene.isLoaded)
                     {
-                        _editorVenueScene = loadedScene;
+                        _venueScene = loadedScene;
                     }
                     else
                     {
@@ -109,72 +203,17 @@ namespace YARG.Gameplay
                             _editorVenuePath, new LoadSceneParameters(LoadSceneMode.Additive));
 
                         await op;
-                        _editorVenueScene = SceneManager.GetSceneByPath(_editorVenuePath);
+                        _venueScene = SceneManager.GetSceneByPath(_editorVenuePath);
                     }
                 }
 
-                if (!_editorVenueScene.IsValid() || !_editorVenueScene.isLoaded)
+                if (!_venueScene.IsValid() || !_venueScene.isLoaded)
                 {
                     YargLogger.LogFormatError("Failed to load editor venue scene {0}", _editorVenuePath);
                     return;
                 }
 
-                BundleBackgroundManager editorBg = null;
-                foreach (var go in _editorVenueScene.GetRootGameObjects())
-                {
-                    editorBg = go.GetComponent<BundleBackgroundManager>();
-
-                    if (editorBg != null)
-                    {
-                        break;
-                    }
-                }
-
-                if (editorBg == null)
-                {
-                    YargLogger.LogFormatError("Scene {0} missing BundleBackgroundManager", _editorVenuePath);
-                    return;
-                }
-
-                _usingEditorVenue = true;
-
-                ShowVenue();
-
-                var editorRenderers = editorBg.GetComponentsInChildren<Renderer>(true);
-
-                // Song specific textures
-                var tm = GetComponent<TextureManager>();
-                var songBg = GameManager.Song.LoadBackground(true);
-
-                foreach (var renderer in editorRenderers)
-                {
-                    var materials = renderer.materials;
-
-                    for (int i = 0; i < materials.Length; i++)
-                    {
-                        tm.ProcessMaterial(materials[i], songBg?.Type);
-                    }
-
-                    renderer.materials = materials;
-                }
-
-                editorBg.SetupVenueCamera(editorBg.gameObject);
-                editorBg.LimitVenueLights(editorBg.gameObject);
-
-                if (_videoPlayer != null && _videoPlayer.targetCamera != null)
-                {
-                    Destroy(_videoPlayer.targetCamera.gameObject);
-                }
-
-                _type = BackgroundType.Yarground;
-
-                // Initialize CharacterManager, if it exists
-                var characterManager = editorBg.GetComponentInChildren<CharacterManager>();
-                if (characterManager != null)
-                {
-                    characterManager.Initialize();
-                }
-
+                SetupVenueScene(_venueScene);
                 return;
             }
 #endif
@@ -201,7 +240,7 @@ namespace YARG.Gameplay
                     var loaded = await LoadAddressableYarground(hint, vocalGender);
                     if (loaded)
                     {
-                        GameManager.CrowdEventHandler.Start();
+                        StartCrowd();
                         return;
                     }
                 }
@@ -215,14 +254,14 @@ namespace YARG.Gameplay
             // TODO: Figure out how to decouple this
             if (_type != BackgroundType.Yarground)
             {
-                GameManager.CrowdEventHandler.Start();
+                StartCrowd();
             }
 
             switch (_type)
             {
                 case BackgroundType.Yarground:
                     await LoadYarground(result);
-                    GameManager.CrowdEventHandler.Start();
+                    StartCrowd();
                     break;
                 case BackgroundType.Video:
                     LoadVideoBackground(result);
@@ -293,18 +332,195 @@ namespace YARG.Gameplay
             return true;
         }
 
+        /// <summary>
+        ///     Path of the venue scene compiled into mobile builds, where
+        ///     desktop-target yarground bundles cannot load (see
+        ///     HeadlessBuild's scene list).
+        /// </summary>
+        private const string BUILT_IN_VENUE_SCENE = "Assets/Authoring/Venue/VenueCreation.unity";
+
+        /// <summary>
+        ///     Treats an additively-loaded scene with a BundleBackgroundManager
+        ///     root as the venue — shared by the editor venue override and the
+        ///     mobile built-in venue fallback.
+        /// </summary>
+        private bool SetupVenueScene(Scene scene)
+        {
+            BundleBackgroundManager sceneBg = null;
+            foreach (var go in scene.GetRootGameObjects())
+            {
+                sceneBg = go.GetComponent<BundleBackgroundManager>();
+
+                if (sceneBg != null)
+                {
+                    break;
+                }
+            }
+
+            if (sceneBg == null)
+            {
+                YargLogger.LogFormatError("Scene {0} missing BundleBackgroundManager", scene.path);
+                return false;
+            }
+
+            _venueScene = scene;
+            _usingSceneVenue = true;
+
+            // A yarground bundle is one prefab, so BundleBackgroundManager.Awake
+            // moving its root by VenueOffset carries the whole venue. An
+            // authoring scene may keep content in sibling roots; move them by
+            // the same offset so nothing is left behind at the origin.
+            var bbmRoot = sceneBg.transform.root.gameObject;
+            foreach (var root in scene.GetRootGameObjects())
+            {
+                if (root != bbmRoot)
+                {
+                    root.transform.position += BundleBackgroundManager.VenueOffset;
+                }
+            }
+
+            // Guarded: this runs inside a swallowed async void, so a throw
+            // here would otherwise leave the venue silently invisible.
+            try
+            {
+                ShowVenue();
+
+                var sceneRenderers = sceneBg.GetComponentsInChildren<Renderer>(true);
+
+                // Song specific textures
+                var tm = GetComponent<TextureManager>();
+                var songBg = GameManager.Song.LoadBackground(true);
+
+                foreach (var renderer in sceneRenderers)
+                {
+                    var materials = renderer.materials;
+
+                    for (int i = 0; i < materials.Length; i++)
+                    {
+                        tm.ProcessMaterial(materials[i], songBg?.Type);
+                    }
+
+                    renderer.materials = materials;
+                }
+
+                sceneBg.SetupVenueCamera(sceneBg.gameObject);
+                sceneBg.LimitVenueLights(sceneBg.gameObject);
+
+                if (_videoPlayer != null && _videoPlayer.targetCamera != null)
+                {
+                    Destroy(_videoPlayer.targetCamera.gameObject);
+                }
+
+                _type = BackgroundType.Yarground;
+
+                // Initialize CharacterManager, if it exists
+                var characterManager = sceneBg.GetComponentInChildren<CharacterManager>();
+                if (characterManager != null)
+                {
+                    characterManager.Initialize();
+                }
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                YargLogger.LogException(ex, "Venue scene setup failed");
+                return false;
+            }
+        }
+
+        private async UniTask LoadBuiltInVenueScene()
+        {
+            // Load by scene name: the path forms (with or without the .unity
+            // extension) failed to resolve in the built player even though
+            // the scene is present in its scene list
+            string sceneName = System.IO.Path.GetFileNameWithoutExtension(BUILT_IN_VENUE_SCENE);
+
+            var op = SceneManager.LoadSceneAsync(sceneName, LoadSceneMode.Additive);
+            if (op == null)
+            {
+                YargLogger.LogWarning("Built-in venue scene is not in this build; no venue background");
+                for (int i = 0; i < SceneManager.sceneCountInBuildSettings; i++)
+                {
+                    YargLogger.LogFormatInfo<int, string>("Build scene {0}: {1}", i,
+                        SceneUtility.GetScenePathByBuildIndex(i));
+                }
+                return;
+            }
+
+            await op;
+
+            var scene = SceneManager.GetSceneByName(sceneName);
+            if (!scene.IsValid() || !scene.isLoaded)
+            {
+                YargLogger.LogWarning("Failed to load the built-in venue scene");
+                return;
+            }
+
+            YargLogger.LogFormatInfo("Built-in venue scene loaded ({0} root objects)",
+                scene.rootCount);
+            SetupVenueScene(scene);
+        }
+
         private async UniTask LoadYarground(BackgroundResult result)
         {
-            var bundle = AssetBundle.LoadFromStream(result.Stream);
-            AssetBundle shaderBundle = null;
+            // Phones compile a bundle's shaders again every time it is loaded,
+            // which stalls the first frames of every song, so on them the last
+            // venue bundle stays loaded between songs and is reused when the
+            // same one is picked again
+            bool keep = Application.isMobilePlatform && result.Stream is FileStream;
+            var file = result.Stream as FileStream;
 
-            // KEEP THIS PATH LOWERCASE
-            // Breaks things for other platforms, because Unity
-            var bg = (GameObject) await bundle.LoadAssetAsync<GameObject>(
-                BackgroundHelper.BACKGROUND_PREFAB_PATH.ToLowerInvariant());
+            AssetBundle bundle;
+            GameObject bg;
+            if (keep && TryReuseVenueBundle(file, out bundle, out bg))
+            {
+                YargLogger.LogFormatInfo("Reusing loaded yarground bundle {0}", bundle.name);
+            }
+            else
+            {
+                var stream = result.Stream;
+                if (keep)
+                {
+                    ReleaseVenueBundle();
+
+                    // The stream has to outlive the bundle; the result's is
+                    // disposed with the result
+                    _keptVenuePath = file.Name;
+                    _keptVenueStream = File.OpenRead(_keptVenuePath);
+                    stream = _keptVenueStream;
+                }
+
+                bundle = AssetBundle.LoadFromStream(stream);
+                if (bundle == null)
+                {
+                    ReleaseVenueBundle();
+
+                    // Yarground bundles are built for desktop targets, so this is
+                    // the normal path on mobile — use the venue scene compiled
+                    // into the build instead
+                    YargLogger.LogWarning(
+                        "Failed to load yarground bundle (wrong build target?); using the built-in venue");
+                    await LoadBuiltInVenueScene();
+                    return;
+                }
+
+                YargLogger.LogFormatInfo("Loaded yarground bundle {0}", bundle.name);
+
+                // KEEP THIS PATH LOWERCASE
+                // Breaks things for other platforms, because Unity
+                bg = (GameObject) await bundle.LoadAssetAsync<GameObject>(
+                    BackgroundHelper.BACKGROUND_PREFAB_PATH.ToLowerInvariant());
+
+                if (keep)
+                {
+                    _keptVenueBundle = bundle;
+                    _keptVenuePrefab = bg;
+                }
+            }
 
             // Load Metal shaders, if necessary
-            shaderBundle = BackgroundHelper.LoadMetalShaders(bundle, bg, BackgroundHelper.ExportType.Background);
+            var shaderBundle = BackgroundHelper.LoadMetalShaders(bundle, bg, BackgroundHelper.ExportType.Background);
 
             // Load custom audio
             await LoadCustomAudioAssets(bg, bundle);
@@ -312,9 +528,49 @@ namespace YARG.Gameplay
             var gender = GameManager.Song.VocalGender;
             await LoadYargroundPrefab(bg, gender, manager =>
             {
-                manager.Bundle = bundle;
+                // A kept bundle is unloaded when another venue replaces it,
+                // not with the song
+                if (!keep)
+                {
+                    manager.Bundle = bundle;
+                }
+
                 manager.ShaderBundles.Add(shaderBundle);
             });
+        }
+
+        private static bool TryReuseVenueBundle(FileStream file, out AssetBundle bundle, out GameObject prefab)
+        {
+            bundle = _keptVenueBundle;
+            prefab = _keptVenuePrefab;
+            return bundle != null && prefab != null && _keptVenuePath == file.Name;
+        }
+
+        private static void ReleaseVenueBundle()
+        {
+            if (_keptVenueBundle != null)
+            {
+                _keptVenueBundle.Unload(true);
+            }
+
+            _keptVenueStream?.Dispose();
+            _keptVenueBundle = null;
+            _keptVenuePrefab = null;
+            _keptVenueStream = null;
+            _keptVenuePath = null;
+        }
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
+        private static void ReleaseVenueBundleOnLowMemory()
+        {
+            Application.lowMemory += () =>
+            {
+                // Never mid-song: the venue on screen is built from these assets
+                if (SceneManager.GetActiveScene().buildIndex != (int) SceneIndex.Gameplay)
+                {
+                    ReleaseVenueBundle();
+                }
+            };
         }
 
         private async UniTask LoadYargroundPrefab(GameObject bg, VocalGender gender,
@@ -366,6 +622,117 @@ namespace YARG.Gameplay
             {
                 characterManager.Initialize(usingCustomChar);
             }
+
+            if (_loadedEarly)
+            {
+                await PrewarmVenueRenderers(bgInstance);
+            }
+        }
+
+        // Renderers the venue switches on later (light cues) draw for the
+        // first time mid-song, and phones compile their shaders right then.
+        // While the loading screen is still up, draw every renderer once,
+        // tiny and in front of the venue camera, so the compiles happen here
+        private static async UniTask PrewarmVenueRenderers(GameObject venue)
+        {
+            var camera = venue.GetComponentInChildren<Camera>(true);
+            if (camera == null)
+            {
+                return;
+            }
+
+            var position = camera.transform.position + camera.transform.forward * 5f;
+            var matrix = Matrix4x4.TRS(position, Quaternion.identity, Vector3.one * 0.001f);
+            var bounds = new Bounds(position, Vector3.one);
+
+            // Everything that picks the shader variant is copied from the
+            // renderer, so the draw compiles exactly what it will use
+            var draws = new List<(RenderParams parameters, Mesh mesh, int subMesh)>();
+            var seen = new HashSet<(Mesh, int, Material)>();
+            foreach (var renderer in venue.GetComponentsInChildren<Renderer>(true))
+            {
+                var mesh = renderer switch
+                {
+                    SkinnedMeshRenderer skinned => skinned.sharedMesh,
+                    _                           => renderer.GetComponent<MeshFilter>()?.sharedMesh,
+                };
+                if (mesh == null)
+                {
+                    continue;
+                }
+
+                var materials = renderer.sharedMaterials;
+                for (int i = 0; i < mesh.subMeshCount && i < materials.Length; i++)
+                {
+                    if (materials[i] == null || !seen.Add((mesh, i, materials[i])))
+                    {
+                        continue;
+                    }
+
+                    draws.Add((new RenderParams(materials[i])
+                    {
+                        camera = camera,
+                        layer = renderer.gameObject.layer,
+                        renderingLayerMask = renderer.renderingLayerMask,
+                        rendererPriority = renderer.rendererPriority,
+                        worldBounds = bounds,
+                        shadowCastingMode = renderer.shadowCastingMode,
+                        receiveShadows = renderer.receiveShadows,
+                        lightProbeUsage = renderer.lightProbeUsage,
+                        reflectionProbeUsage = renderer.reflectionProbeUsage,
+                        motionVectorMode = renderer.motionVectorGenerationMode,
+                    }, mesh, i));
+                }
+            }
+
+            if (draws.Count == 0)
+            {
+                return;
+            }
+
+            // Shadow-casting lights switch URP's shadow keywords on for every
+            // draw of the frame, and the cues keep them dark until the song
+            // starts, so light them up for these frames or the draws would
+            // compile variants the song never uses
+            var shadowLights = new List<(Light light, float intensity, bool enabled)>();
+            foreach (var light in venue.GetComponentsInChildren<Light>(true))
+            {
+                if (light.shadows != LightShadows.None)
+                {
+                    shadowLights.Add((light, light.intensity, light.enabled));
+                }
+            }
+
+            // The venue camera renders on its own cadence, so draw for a few
+            // frames, each time after the venue's own Update has set the
+            // lights (VenueLight rewrites their intensity every frame)
+            for (int frame = 0; frame < VENUE_PREWARM_FRAMES; frame++)
+            {
+                await UniTask.NextFrame(PlayerLoopTiming.PreLateUpdate);
+
+                foreach (var (light, _, _) in shadowLights)
+                {
+                    light.intensity = Mathf.Max(light.intensity, 1f);
+                    light.enabled = true;
+                }
+
+                foreach (var (parameters, mesh, subMesh) in draws)
+                {
+                    Graphics.RenderMesh(parameters, mesh, subMesh, matrix);
+                }
+            }
+
+            foreach (var (light, intensity, enabled) in shadowLights)
+            {
+                if (light != null)
+                {
+                    light.intensity = intensity;
+                    light.enabled = enabled;
+                }
+            }
+
+            YargLogger.LogFormatInfo("Pre-drew {0} venue mesh/material pairs under the loading screen ({1} shadow light(s) lit)",
+                draws.Count, shadowLights.Count);
         }
 
         // Loads all audio assets from the given locations
@@ -1268,12 +1635,11 @@ namespace YARG.Gameplay
                 _handles.Clear();
             }
 
-#if UNITY_EDITOR
-            if (_usingEditorVenue)
+            if (_usingSceneVenue)
             {
-                SceneManager.UnloadSceneAsync(_editorVenueScene);
+                SceneManager.UnloadSceneAsync(_venueScene);
+                _usingSceneVenue = false;
             }
-#endif
         }
 
         protected override void GameplayDestroy()

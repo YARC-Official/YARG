@@ -3,6 +3,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
+using AOT;
 using ManagedBass;
 using ManagedBass.Mix;
 using UnityEngine;
@@ -93,6 +95,33 @@ namespace YARG.Audio.BASS
             remove => _songEnd -= value;
         }
 
+        // IL2CPP cannot marshal instance-method delegates to native code, so
+        // the end sync is a static callback that finds the song through the
+        // sync's user pointer.
+        private GCHandle _selfHandle;
+
+        [MonoPInvokeCallback(typeof(SyncProcedure))]
+        private static void SongEndCallback(int _, int __, int ___, IntPtr user)
+        {
+            try
+            {
+                if (GCHandle.FromIntPtr(user).Target is not BassSong song)
+                {
+                    return;
+                }
+
+                var end = song._songEnd;
+                if (end != null)
+                {
+                    UnityMainThreadCallback.QueueEvent(end.Invoke);
+                }
+            }
+            catch
+            {
+                // Nothing sensible to do inside a native callback
+            }
+        }
+
         private void EnsureSongEndSync()
         {
             if (_songEndHandle != 0)
@@ -100,16 +129,13 @@ namespace YARG.Audio.BASS
                 return;
             }
 
-            void sync(int _, int __, int ___, IntPtr _____)
+            if (!_selfHandle.IsAllocated)
             {
-                var end = _songEnd;
-                if (end != null)
-                {
-                    UnityMainThreadCallback.QueueEvent(end.Invoke);
-                }
+                _selfHandle = GCHandle.Alloc(this, GCHandleType.Weak);
             }
 
-            _songEndHandle = BassMix.ChannelSetSync(_longestHandle, SyncFlags.End, 0, sync);
+            _songEndHandle = BassMix.ChannelSetSync(_longestHandle, SyncFlags.End, 0, SongEndCallback,
+                GCHandle.ToIntPtr(_selfHandle));
         }
 
         internal bool TryAttachOutput(BassOutput output)
@@ -589,6 +615,13 @@ namespace YARG.Audio.BASS
 
             _toneChannels.Clear();
             _stemPipeline.Dispose();
+
+            // The mixer stream is freed with the pipeline, so the end sync
+            // cannot fire anymore
+            if (_selfHandle.IsAllocated)
+            {
+                _selfHandle.Free();
+            }
         }
 
 

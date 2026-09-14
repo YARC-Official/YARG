@@ -70,6 +70,21 @@ namespace YARG.Input
         {
             InputSystem.pollingFrequency = SettingsManager.Settings.InputPollingFrequency.Value;
 
+#if UNITY_IOS && !UNITY_EDITOR
+            // Surface GameController-framework devices (instrument controllers)
+            // that Unity's built-in iOS backend does not expose
+            IOSGameControllerBackend.Initialize();
+#endif
+
+            // Touchscreens can play too: the touch instrument's layout is
+            // always known (so saved bindings load anywhere), the device
+            // itself only exists on phones and tablets
+            TouchGuitarDevice.Register();
+            if (Application.isMobilePlatform)
+            {
+                TouchGuitarInput.Start();
+            }
+
             InputSystem.onEvent += OnEvent;
 
             InputSystem.onBeforeUpdate += OnBeforeUpdate;

@@ -1,0 +1,17 @@
+{
+    "name": "Minis.Editor",
+    "references": [
+        "GUID:3290356123b9eaf43b18df17cbfad07c"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

@@ -36,6 +36,31 @@ namespace YARG.Menu.Persistent
             }
         }
 
+        private void Start()
+        {
+            // The bar keeps its authored height flush with the physical
+            // screen bottom — the home indicator auto-dims over it
+            // (hideHomeButton in the iOS build). Only the bar's ends pull in
+            // from the notch and bezel corners; both re-apply on orientation
+            // changes.
+            if (Application.isMobilePlatform)
+            {
+                if (_buttonContainer != null)
+                {
+                    // Position shift, not offsets: a ContentSizeFitter drives
+                    // this rect's width
+                    _buttonContainer.gameObject.AddComponent<Helpers.UI.SafeAreaOffset>()
+                        .Configure(left: true);
+                }
+
+                if (MusicPlayer != null)
+                {
+                    MusicPlayer.gameObject.AddComponent<Helpers.UI.SafeAreaContainer>()
+                        .Configure(right: true);
+                }
+            }
+        }
+
         protected override void SingletonDestroy()
         {
             _buttonContainer.DestroyChildren();

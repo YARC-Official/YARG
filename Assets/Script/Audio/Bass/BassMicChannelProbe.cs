@@ -1,6 +1,8 @@
 #nullable enable
 using System;
+using System.Runtime.InteropServices;
 using System.Threading;
+using AOT;
 using ManagedBass;
 using YARG.Core.Logging;
 
@@ -35,53 +37,89 @@ namespace YARG.Audio.BASS
 
         public void Dispose() => _frameReceived.Dispose();
 
+        [MonoPInvokeCallback(typeof(RecordProcedure))]
+        private static bool ReceiveFrameCallback(int handle, IntPtr buffer, int length, IntPtr user)
+        {
+            try
+            {
+                if (GCHandle.FromIntPtr(user).Target is BassMicChannelProbe probe)
+                {
+                    return probe.ReceiveFrame(handle, buffer, length, IntPtr.Zero);
+                }
+            }
+            catch
+            {
+                // Nothing sensible to do inside a native callback
+            }
+
+            return false;
+        }
+
         public static int? DetectChannelCount(int deviceId, string name)
         {
+            YargLogger.LogInfo($"Probing record device [{deviceId}] '{name}'");
             bool initialized = Bass.RecordInit(deviceId);
             if (!initialized && Bass.LastError != Errors.Already)
             {
+                YargLogger.LogInfo($"RecordInit failed for [{deviceId}]: {Bass.LastError}");
                 return null;
             }
 
             Bass.CurrentRecordingDevice = deviceId;
             try
             {
-#if UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX
+#if UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX || UNITY_IOS
+                // On macOS the reported channel count is trustworthy; on iOS
+                // there is a single mono system mic, and the RecordStart probe
+                // loop below requires non-silent frames the simulator never
+                // routes, so it can only ever fail there.
                 return Bass.RecordGetInfo(out var recordInfo) ? Math.Max(recordInfo.Channels, 1) : null;
 #else
                 int devicePeriod = Bass.GetConfig(Configuration.DevicePeriod);
                 foreach ((int channels, int rate) in PROBE_CONFIGS)
                 {
                     using var probe = new BassMicChannelProbe(channels);
-                    int handle = Bass.RecordStart(rate, channels, BassFlags.Default, devicePeriod, probe.ReceiveFrame,
-                        IntPtr.Zero);
 
-                    if (handle == 0)
-                    {
-                        continue;
-                    }
-
-                    int detectedChannelCount;
+                    // IL2CPP cannot marshal instance-method delegates to native
+                    // code; the static callback finds the probe via the user
+                    // pointer.
+                    var probeHandle = GCHandle.Alloc(probe, GCHandleType.Weak);
                     try
                     {
-                        detectedChannelCount = probe.CountActiveChannels();
+                        int handle = Bass.RecordStart(rate, channels, BassFlags.Default, devicePeriod,
+                            ReceiveFrameCallback, GCHandle.ToIntPtr(probeHandle));
+
+                        if (handle == 0)
+                        {
+                            continue;
+                        }
+
+                        int detectedChannelCount;
+                        try
+                        {
+                            detectedChannelCount = probe.CountActiveChannels();
+                        }
+                        finally
+                        {
+                            Bass.ChannelStop(handle);
+                        }
+
+                        if (detectedChannelCount == 0)
+                        {
+                            continue;
+                        }
+
+                        if (channels == 8 && detectedChannelCount < 3)
+                        {
+                            continue;
+                        }
+
+                        return detectedChannelCount;
                     }
                     finally
                     {
-                        Bass.ChannelStop(handle);
+                        probeHandle.Free();
                     }
-
-                    if (detectedChannelCount == 0)
-                    {
-                        continue;
-                    }
-
-                    if (channels == 8 && detectedChannelCount < 3)
-                    {
-                        continue;
-                    }
-
-                    return detectedChannelCount;
                 }
 #endif
             }
@@ -93,7 +131,7 @@ namespace YARG.Audio.BASS
                 }
             }
 
-#if !UNITY_EDITOR_OSX && !UNITY_STANDALONE_OSX
+#if !UNITY_EDITOR_OSX && !UNITY_STANDALONE_OSX && !UNITY_IOS
             YargLogger.LogTrace($"Channel probe: no usable frame from [{deviceId}] '{name}'");
             return null;
 #endif

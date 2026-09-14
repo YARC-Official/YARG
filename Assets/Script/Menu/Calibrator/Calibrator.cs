@@ -4,6 +4,9 @@ using System.Collections.Generic;
 using System.IO;
 using TMPro;
 using UnityEngine;
+using UnityEngine.EventSystems;
+using UnityEngine.InputSystem;
+using UnityEngine.UI;
 using YARG.Audio;
 using YARG.Core.Audio;
 using YARG.Core.Input;
@@ -50,6 +53,12 @@ namespace YARG.Menu.Calibrator
 #nullable disable
 
         private bool _hasNavigationScheme;
+        private bool _inputEnabled;
+
+        // Calibration asks for a button press on every tick, and a touchscreen
+        // has no buttons, so a tap anywhere counts as one
+        private readonly List<RaycastResult> _tapRaycasts = new();
+        private PointerEventData _tapPointer;
 
         private void Start()
         {
@@ -85,17 +94,18 @@ namespace YARG.Menu.Calibrator
                     UpdateForState();
                     break;
                 case State.Audio:
-                    _audioCalibrateText.color = Color.green;
-                    _audioCalibrateText.text = Localize.Key("Menu.Calibrator.Detected");
-
-                    double inputAge = InputManager.CurrentInputTime - input.Time;
-                    _calibrationTimes.Add(_mixer.GetPosition() - inputAge);
+                    RecordCalibrationInput(InputManager.CurrentInputTime - input.Time);
                     break;
             }
         }
 
         private void Update()
         {
+            if (HasScreenTap())
+            {
+                OnScreenTap();
+            }
+
             switch (_state)
             {
                 case State.Audio:
@@ -107,10 +117,102 @@ namespace YARG.Menu.Calibrator
             }
         }
 
+        private void OnScreenTap()
+        {
+            switch (_state)
+            {
+                case State.Starting:
+                    StartAudioMode();
+                    break;
+                case State.AudioWaiting:
+                    if (!_inputEnabled)
+                    {
+                        break;
+                    }
+
+                    _state = State.Audio;
+                    UpdateForState();
+                    break;
+                case State.Audio:
+                    // iOS stamps touch events in a clock of its own that
+                    // cannot be compared with the input system's, so a tap
+                    // counts as happening now. Gameplay reads touches the
+                    // same way, frame by frame, which keeps a calibration
+                    // measured by tapping true to how a touch actually plays
+                    RecordCalibrationInput(0);
+                    break;
+            }
+        }
+
+        /// <summary>
+        ///     Records how far behind the audio an input was, which is the
+        ///     latency this screen exists to measure. Callers pass the age
+        ///     rather than a timestamp: button presses and touches are stamped
+        ///     on different clocks.
+        /// </summary>
+        private void RecordCalibrationInput(double inputAge)
+        {
+            _audioCalibrateText.color = Color.green;
+            _audioCalibrateText.text = Localize.Key("Menu.Calibrator.Detected");
+
+            _calibrationTimes.Add(_mixer.GetPosition() - inputAge);
+        }
+
+        /// <summary>
+        ///     True when a touch began this frame away from any control.
+        /// </summary>
+        private bool HasScreenTap()
+        {
+            var touchscreen = Touchscreen.current;
+            if (touchscreen == null)
+            {
+                return false;
+            }
+
+            foreach (var touch in touchscreen.touches)
+            {
+                // Taps on the help bar and on the start button belong to the
+                // UI, which handles them through its own events
+                if (!touch.press.wasPressedThisFrame || IsOverControl(touch.position.ReadValue()))
+                {
+                    continue;
+                }
+
+                return true;
+            }
+
+            return false;
+        }
+
+        private bool IsOverControl(Vector2 position)
+        {
+            var eventSystem = EventSystem.current;
+            if (eventSystem == null)
+            {
+                return false;
+            }
+
+            _tapPointer ??= new PointerEventData(eventSystem);
+            _tapPointer.position = position;
+            _tapRaycasts.Clear();
+            eventSystem.RaycastAll(_tapPointer, _tapRaycasts);
+
+            foreach (var result in _tapRaycasts)
+            {
+                if (result.gameObject.GetComponentInParent<Selectable>() != null)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         private void UpdateForState()
         {
             _mixer?.Dispose();
             _mixer = null;
+            _inputEnabled = false;
 
             StopAllCoroutines();
 
@@ -160,6 +262,7 @@ namespace YARG.Menu.Calibrator
         {
             yield return new WaitForSeconds(0.5f);
             InputManager.MenuInput += OnMenuInput;
+            _inputEnabled = true;
         }
 
         private void SetConfirmNavigation()

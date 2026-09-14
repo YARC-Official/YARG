@@ -21,8 +21,15 @@ namespace YARG.Audio.BASS
         internal BassRuntime()
         {
             YargLogger.LogInfo("Initializing BASS...");
+#if UNITY_IOS && !UNITY_EDITOR
+            // BASS ships dynamic frameworks on iOS; they are embedded into the
+            // app bundle's Frameworks directory, not the Data/Plugins layout.
+            string opusLibDirectory = Path.GetFullPath(
+                Path.Combine(Application.dataPath, "..", "Frameworks", "bassopus.framework", "bassopus"));
+#else
             string bassPath = GetBassDirectory();
             string opusLibDirectory = Path.Combine(bassPath, "bassopus");
+#endif
 
             int opusHandle = Bass.PluginLoad(opusLibDirectory);
             if (opusHandle == 0)

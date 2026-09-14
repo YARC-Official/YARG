@@ -142,14 +142,18 @@ namespace YARG.Audio.BASS
                     return capture;
                 }
 
+                // Capture the error before cleanup: FreeOwnedDevice calls
+                // RecordFree, which resets Bass.LastError to OK.
+                var lastError = Bass.LastError;
+
                 if (ownsDevice)
                 {
                     FreeOwnedDevice(deviceId);
                 }
 
                 YargLogger.LogFormatError(
-                    "Failed to create recording for device [{0}] at any supported sample rate",
-                    deviceId);
+                    "Failed to create recording for device [{0}] at any supported sample rate (last error: {1})",
+                    deviceId, lastError);
                 return null;
             });
         }
@@ -185,7 +189,11 @@ namespace YARG.Audio.BASS
                 devicePeriod, null, IntPtr.Zero);
             if (microphoneHandle == 0)
             {
-                YargLogger.LogFormatTrace("Failed to create recording at {0} Hz / {1} ch ({2}): {3}",
+                // Info rather than Trace: this is the per-rate detail behind a
+                // capture-claim failure (every rate failing points at a device
+                // or session-category problem rather than an unsupported
+                // format), and Trace is not captured in shipped logs.
+                YargLogger.LogFormatInfo("Failed to create recording at {0} Hz / {1} ch ({2}): {3}",
                     sampleRate, channels, isFloatCapture ? "float" : "native format",
                     Bass.LastError);
                 return null;

@@ -1,12 +1,20 @@
 #include "BassMixBindings.h"
 
+#if defined(__APPLE__)
+#include <TargetConditionals.h>
+#endif
+
 namespace yarg::audio {
 namespace {
 
 #if defined(_WIN32)
 constexpr const char* BassMixModule = "bassmix.dll";
 #elif defined(__APPLE__)
+#if TARGET_OS_IPHONE
+constexpr const char* BassMixModule = "@rpath/bassmix.framework/bassmix";
+#else
 constexpr const char* BassMixModule = "libbassmix.dylib";
+#endif
 #else
 constexpr const char* BassMixModule = "libbassmix.so";
 #endif

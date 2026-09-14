@@ -84,9 +84,21 @@ namespace YARG.Menu.ListMenu
             {
                 var gameObject = Instantiate(_viewObjectPrefab, _viewObjectParent);
 
+                // Keep row content clear of the notch on phones; row
+                // backgrounds still bleed to the screen edge
+                Helpers.UI.SafeAreaContent.InsetLeftContent(gameObject.transform);
+
                 // Add
                 var view = gameObject.GetComponent<TViewObject>();
                 _viewObjects.Add(view);
+            }
+
+            // Touch scrolls the list by dragging it, a row per row height
+            if (Application.isMobilePlatform && _viewObjects.Count > 0 && _viewObjectParent.parent != null)
+            {
+                var scroller = _viewObjectParent.parent.gameObject.AddComponent<Helpers.UI.ListDragScroller>();
+                scroller.RowHeight = () => ((RectTransform) _viewObjects[0].transform).rect.height;
+                scroller.Step = step => SelectedIndex += step;
             }
 
             RequestViewListUpdate();

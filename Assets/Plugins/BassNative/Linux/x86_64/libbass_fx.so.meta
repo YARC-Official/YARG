@@ -21,6 +21,7 @@ PluginImporter:
         Exclude OSXUniversal: 1
         Exclude Win: 0
         Exclude Win64: 0
+        Exclude iOS: 1
   - first:
       Any: 
     second:
@@ -58,6 +59,11 @@ PluginImporter:
       enabled: 1
       settings:
         CPU: x86_64
+  - first:
+      iPhone: iOS
+    second:
+      enabled: 0
+      settings: {}
   userData: 
   assetBundleName: 
   assetBundleVariant: 

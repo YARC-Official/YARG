@@ -22,6 +22,10 @@ namespace YARG.Menu.Persistent
         {
             ResetTimer();
             SetDimmed(0f);
+
+            // The dim is only visual: the input that wakes the screen must
+            // still reach the menu underneath
+            _dimmer.raycastTarget = false;
         }
 
         private void OnEnable()
@@ -60,7 +64,8 @@ namespace YARG.Menu.Persistent
         {
             bool hasKeyboardActivity = Keyboard.current != null && Keyboard.current.anyKey.wasPressedThisFrame;
             bool hasMouseActivity = HasMouseActivity();
-            return hasKeyboardActivity || hasMouseActivity;
+            bool hasTouchActivity = Touchscreen.current != null && Touchscreen.current.primaryTouch.press.isPressed;
+            return hasKeyboardActivity || hasMouseActivity || hasTouchActivity;
         }
 
         private static bool HasMouseActivity()

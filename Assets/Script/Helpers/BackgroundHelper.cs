@@ -1,9 +1,9 @@
-﻿using UnityEngine;
+﻿using System;
+using System.IO;
+using UnityEngine;
 using YARG.Venue.Characters;
 
 #if UNITY_EDITOR || UNITY_STANDALONE_OSX
-using System;
-using System.IO;
 using System.Linq;
 using UnityEditor;
 using YARG.Core.Logging;
@@ -26,11 +26,26 @@ namespace YARG.Helpers
         public const string CHARACTER_SHADER_BUNDLE_NAME = "_character_metal_shaders.bytes";
         public const string BACKGOUND_OSX_MATERIAL_PREFIX = "_metal_";
         public const string BUNDLE_OSX_SUFFIX = "_metal.bytes";
+        // Desktop bundles cannot be loaded on iOS at all, so venues export a second
+        // bundle with this suffix before the extension ("stage_ios.yarground")
+        public const string BUNDLE_IOS_SUFFIX = "_ios";
         public const string AUDIO_PATH = "__YARG_AudioBundle";
         public static readonly string[] AUDIO_FILE_EXTENSIONS =
         {
             ".ogg", ".mogg", ".wav", ".mp3", ".aiff", ".opus",
         };
+
+        public static bool IsIOSBundle(string path)
+        {
+            return Path.GetFileNameWithoutExtension(path)
+                .EndsWith(BUNDLE_IOS_SUFFIX, StringComparison.OrdinalIgnoreCase);
+        }
+
+        public static string GetIOSBundlePath(string path)
+        {
+            return Path.Combine(Path.GetDirectoryName(path) ?? string.Empty,
+                Path.GetFileNameWithoutExtension(path) + BUNDLE_IOS_SUFFIX + Path.GetExtension(path));
+        }
 
         public static AssetBundle LoadMetalShaders(AssetBundle bundle, GameObject bg, ExportType type)
         {
@@ -227,9 +242,10 @@ namespace YARG.Helpers
                     bundledAudioAssets = BundleAudioAssets(root);
                 }
 
+                var metalSideCarAssetPath = Path.Combine("Assets/", metalAssetBundleName);
                 var assetPaths = new[]
                 {
-                    Path.Combine("Assets/", metalAssetBundleName),
+                    metalSideCarAssetPath,
                     objectPath
                 }
                 .Concat(additionalAssets)
@@ -239,6 +255,21 @@ namespace YARG.Helpers
                 AssetBundleBuild assetBundleBuild = default;
                 assetBundleBuild.assetBundleName = fileName;
                 assetBundleBuild.assetNames = assetPaths;
+
+                // Every desktop player shares this bundle (with the Metal side-car for
+                // macOS); iOS cannot load it at all, so venues also get an iOS bundle,
+                // which needs no side-car as iOS compiles Metal natively
+                var targets = new List<(BuildTargetGroup group, BuildTarget target, AssetBundleBuild build, string outputPath)>
+                {
+                    (BuildTargetGroup.Standalone, BuildTarget.StandaloneWindows, assetBundleBuild, path),
+                };
+
+                if (type == BackgroundHelper.ExportType.Background)
+                {
+                    var iosBundleBuild = assetBundleBuild;
+                    iosBundleBuild.assetNames = assetPaths.Where(asset => asset != metalSideCarAssetPath).ToArray();
+                    targets.Add((BuildTargetGroup.iOS, BuildTarget.iOS, iosBundleBuild, GetIOSBundlePath(path)));
+                }
 
                 // We must examine anything that has the VenueCharacter component so we can deal with animations
                 // properly. First we find them, then check for an AnimatorController and extract the layers and
@@ -277,12 +308,25 @@ namespace YARG.Helpers
 
                 PrefabUtility.SaveAsPrefabAsset(clonedObject.gameObject, objectPath);
 
-                BuildPipeline.BuildAssetBundles(Application.temporaryCachePath,
-                    new[]
+                // A target whose build support module is missing is skipped so the
+                // others still export
+                var builtBundles = new List<(string tempPath, string outputPath)>();
+                foreach (var (group, target, build, outputPath) in targets)
+                {
+                    if (!BuildPipeline.IsBuildTargetSupported(group, target))
                     {
-                        assetBundleBuild
-                    }, BuildAssetBundleOptions.ForceRebuildAssetBundle,
-                    BuildTarget.StandaloneWindows);
+                        Debug.LogWarning($"{target} Build Support is not installed; skipping {Path.GetFileName(outputPath)}");
+                        continue;
+                    }
+
+                    var buildFolder = Path.Combine(Application.temporaryCachePath, target.ToString());
+                    Directory.CreateDirectory(buildFolder);
+                    BuildPipeline.BuildAssetBundles(buildFolder, new[] { build },
+                        BuildAssetBundleOptions.ForceRebuildAssetBundle, target);
+
+                    // Unity seems to save the file in lower case, which is a problem on Linux, as file systems are case sensitive there
+                    builtBundles.Add((Path.Combine(buildFolder, fileName.ToLowerInvariant()), outputPath));
+                }
 
                 foreach (var asset in assetPaths)
                 {
@@ -294,16 +338,25 @@ namespace YARG.Helpers
                     AssetDatabase.DeleteAsset("Assets/__YARG_AudioBundle");
                 }
 
-                // If the file exists, delete it (to replace it)
-                if (File.Exists(path))
+                if (builtBundles.Count == 0)
                 {
-                    File.Delete(path);
+                    EditorUtility.DisplayDialog("Export Unsuccessful", "No bundle could be built. See console for more info.", "OK");
+                    throw new InvalidOperationException("No build support module is installed for any bundle target");
                 }
 
-                // Unity seems to save the file in lower case, which is a problem on Linux, as file systems are case sensitive there
-                File.Move(Path.Combine(Application.temporaryCachePath, fileName.ToLowerInvariant()), path);
+                foreach (var (tempPath, outputPath) in builtBundles)
+                {
+                    // If the file exists, delete it (to replace it)
+                    if (File.Exists(outputPath))
+                    {
+                        File.Delete(outputPath);
+                    }
 
-                EditorUtility.DisplayDialog("Export Successful!", "Export Successful!", "OK");
+                    File.Move(tempPath, outputPath);
+                }
+
+                EditorUtility.DisplayDialog("Export Successful!",
+                    "Exported:\n" + string.Join("\n", builtBundles.Select(bundle => Path.GetFileName(bundle.outputPath))), "OK");
             }
             catch (Exception e)
             {

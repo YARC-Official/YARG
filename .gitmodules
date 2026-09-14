@@ -1,3 +1,4 @@
 [submodule "Assets/Plugins/YARG.Core"]
 	path = YARG.Core
-	url = https://github.com/YARC-Official/YARG.Core
+	url = https://github.com/daviditsygin/YARG.Core
+	branch = ios-port

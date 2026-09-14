@@ -18,6 +18,12 @@ namespace YARG.Venue
 
     public static class VenueLoader
     {
+#if UNITY_IOS
+        private const bool IOS_BUNDLES = true;
+#else
+        private const bool IOS_BUNDLES = false;
+#endif
+
         private static readonly string _venueFolder = Path.Combine(PathHelper.PersistentDataPath, "venue");
         private static readonly string _defaultVenue = Path.Combine(Application.streamingAssetsPath, "venue", "default.yarground");
         public static string VenueFolder
@@ -80,6 +86,11 @@ namespace YARG.Venue
                 filePaths.AddRange(Directory.EnumerateFiles(launcherVenueFolder, "*.yarground", PathHelper.SafeSearchOptions));
             }
 
+            // Yarground bundles are platform specific: iOS can only load its
+            // "_ios" exports, and no other platform can load those
+            filePaths.RemoveAll(file =>
+                Path.GetExtension(file) == ".yarground" && BackgroundHelper.IsIOSBundle(file) != IOS_BUNDLES);
+
             while (filePaths.Count > 0)
             {
                 int index = Random.Range(0, filePaths.Count);
@@ -113,13 +124,23 @@ namespace YARG.Venue
         private static BackgroundResult? LoadDefaultVenue()
 #nullable disable
         {
-            if (!File.Exists(_defaultVenue))
+            var defaultVenue = _defaultVenue;
+#if UNITY_IOS
+            // Shipped next to the desktop bundle when the build carries one
+            var iosVenue = BackgroundHelper.GetIOSBundlePath(_defaultVenue);
+            if (File.Exists(iosVenue))
+            {
+                defaultVenue = iosVenue;
+            }
+#endif
+
+            if (!File.Exists(defaultVenue))
             {
                 YargLogger.LogWarning("Default venue not found. Build error?");
                 return null;
             }
 
-            return new BackgroundResult(BackgroundType.Yarground, File.OpenRead(_defaultVenue));
+            return new BackgroundResult(BackgroundType.Yarground, File.OpenRead(defaultVenue));
         }
     }
 }

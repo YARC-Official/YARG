@@ -1,6 +1,5 @@
 ﻿using UnityEngine;
 using UnityEngine.Events;
-using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 namespace YARG.Menu.Navigation
@@ -10,9 +9,9 @@ namespace YARG.Menu.Navigation
         [SerializeField]
         private Button.ButtonClickedEvent _onClick = new();
 
-        public override void OnPointerDown(PointerEventData eventData)
+        protected override void OnPress()
         {
-            base.OnPointerDown(eventData);
+            base.OnPress();
             Confirm();
         }
 

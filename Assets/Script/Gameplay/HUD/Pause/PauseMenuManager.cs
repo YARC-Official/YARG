@@ -53,6 +53,13 @@ namespace YARG.Gameplay.HUD
             // Convert to dictionary with "Menu" as key
             var children = GetComponentsInChildren<PauseMenuObject>(true);
             _menus = children.ToDictionary(i => i.Menu, i => i);
+
+            // Keep the pause menus out of the notch on phones
+            foreach (var menu in _menus.Values)
+            {
+                Helpers.UI.SafeAreaContainer.TryAttach(
+                    menu.transform as RectTransform, left: true, right: true);
+            }
         }
 
         private void Start()

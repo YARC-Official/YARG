@@ -157,6 +157,48 @@ namespace YARG.Song
                 directories.Add(setlistPath);
             }
 
+#if UNITY_IOS && !UNITY_EDITOR
+            // Folders picked through the native document picker (iCloud, SMB
+            // shares, ...) are only readable via security-scoped bookmarks;
+            // re-establish access and follow any folders that moved.
+            foreach (var (oldPath, newPath) in Helpers.IOSFolderPicker.RestoreBookmarkedFolders())
+            {
+                int index = directories.IndexOf(oldPath);
+                if (index >= 0)
+                {
+                    directories[index] = newPath;
+                }
+
+                int settingsIndex = SettingsManager.Settings.SongFolders.IndexOf(oldPath);
+                if (settingsIndex >= 0)
+                {
+                    SettingsManager.Settings.SongFolders[settingsIndex] = newPath;
+                }
+            }
+
+            // Songs dropped into the app's Documents/Songs folder through the
+            // Files app (UIFileSharingEnabled) are always scanned.
+            string iosSongsPath = System.IO.Path.Combine(PathHelper.RealPersistentDataPath, "Songs");
+            System.IO.Directory.CreateDirectory(iosSongsPath);
+            if (!directories.Contains(iosSongsPath))
+            {
+                directories.Add(iosSongsPath);
+            }
+
+            // iOS app updates relocate the app's data container, which
+            // invalidates the absolute paths stored in the song cache; the
+            // quick scan trusts those paths and every stem load then fails.
+            // Force a full rescan whenever the container has moved.
+            string containerMarker = System.IO.Path.Combine(PathHelper.PersistentDataPath, "container-path.txt");
+            string containerPath = PathHelper.RealPersistentDataPath;
+            if (!System.IO.File.Exists(containerMarker) ||
+                System.IO.File.ReadAllText(containerMarker) != containerPath)
+            {
+                quick = false;
+                System.IO.File.WriteAllText(containerMarker, containerPath);
+            }
+#endif
+
             var stopwatch = System.Diagnostics.Stopwatch.StartNew();
             var previousSongCache = _songCache;
             SongCache refreshedSongCache = null;

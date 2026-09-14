@@ -212,7 +212,13 @@ namespace YARG.Gameplay.HUD
                 return;
             }
 
-            var delta = Mouse.current.scroll.ReadValue().y * Time.unscaledDeltaTime;
+            // No mouse on touch-only platforms
+            if (Mouse.current is not { } mouse)
+            {
+                return;
+            }
+
+            var delta = mouse.scroll.ReadValue().y * Time.unscaledDeltaTime;
 
             if (delta > 0f)
             {

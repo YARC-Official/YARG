@@ -148,7 +148,8 @@ namespace YARG.Menu.MusicLibrary
 
         private void Update()
         {
-            if (Keyboard.current.escapeKey.wasPressedThisFrame)
+            // No keyboard exists on touch-only platforms
+            if (Keyboard.current is { } keyboard && keyboard.escapeKey.wasPressedThisFrame)
             {
                 ClearFilterQueries();
             }

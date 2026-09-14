@@ -55,6 +55,16 @@ else()
             BUILD_WITH_INSTALL_RPATH YES
             INSTALL_NAME_DIR "@rpath"
         )
+        if(CMAKE_SYSTEM_NAME STREQUAL "iOS")
+            # iOS forbids bare dylibs in app bundles; ship a framework
+            # (embedded next to the BASS frameworks it binds against).
+            set_target_properties(yarg_audio PROPERTIES
+                FRAMEWORK TRUE
+                MACOSX_FRAMEWORK_IDENTIFIER org.yarc.yarg-audio
+                MACOSX_FRAMEWORK_BUNDLE_VERSION ${PROJECT_VERSION}
+                MACOSX_FRAMEWORK_SHORT_VERSION_STRING ${PROJECT_VERSION}
+            )
+        endif()
         # Ship the linker's natural ad-hoc signature (linker-signed, like the
         # shipped BASS dylibs). Do NOT re-sign with codesign or patch load
         # commands post-link: dyld on macOS 26.0-26.4 SIGKILLs codesign-made

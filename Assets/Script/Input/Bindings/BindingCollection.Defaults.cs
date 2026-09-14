@@ -24,6 +24,8 @@ namespace YARG.Input
                 ProGuitar guitar => SetDefaultBindings(guitar),
                 ProKeyboard keyboard => SetDefaultBindings(keyboard),
 
+                TouchGuitarDevice touch => SetDefaultBindings(touch),
+
                 // Turntable turntable => SetDefaultBindings(turntable),
 
                 _ => false

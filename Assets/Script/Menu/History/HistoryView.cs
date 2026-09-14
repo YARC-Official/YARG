@@ -31,6 +31,13 @@ namespace YARG.Menu.History
         [SerializeField]
         private TextMeshProUGUI _additionalInstrumentsText;
 
+        private void Awake()
+        {
+            // The row rule skips the full container (a zero-size layout child
+            // until the first layout pass), so classify its columns directly
+            Helpers.UI.SafeAreaContent.InsetLeftContent(_fullContainer.transform);
+        }
+
         public void OnClick()
         {
             ViewType.ViewClick();

@@ -1,7 +1,6 @@
 ﻿using TMPro;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
-using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using YARG.Helpers;
 using YARG.Localization;
@@ -32,9 +31,9 @@ namespace YARG.Menu.Settings.AllSettings
             _icon.sprite = sprite;
         }
 
-        public override void OnPointerDown(PointerEventData eventData)
+        protected override void OnPress()
         {
-            base.OnPointerDown(eventData);
+            base.OnPress();
             Confirm();
         }
 
