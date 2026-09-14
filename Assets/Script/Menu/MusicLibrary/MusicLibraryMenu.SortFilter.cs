@@ -272,6 +272,13 @@ namespace YARG.Menu.MusicLibrary
                 return;
             }
 
+            // Playlists and Recommended entries are not subject to song filters, so a selection
+            // sitting on one of them is never invalidated by a filter change.
+            if (CurrentSelection is ButtonViewType)
+            {
+                return;
+            }
+
             if (SelectedIndex < 0 || SelectedIndex >= ViewList.Count ||
                 CurrentSelection is not SongViewType)
             {
