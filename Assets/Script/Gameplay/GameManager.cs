@@ -1139,10 +1139,14 @@ namespace YARG.Gameplay
             _breBox.ForceReset();
         }
 
-        public void DifficultyChanged()
+        public void DifficultyChanged(BasePlayer player)
         {
             EngineManager.StarScoreThresholds = EngineManager.GetStarScoreCutoffs(_players.ConvertAll(p => p.BaseEngine.StarScoreThresholds));
             EngineManager.ResetStars();
+            if (_unisonDisplay.enabled)
+            {
+                _unisonDisplay.OnDifficultyChanged(player.EngineContainer.EngineId);
+            }
         }
     }
 }
