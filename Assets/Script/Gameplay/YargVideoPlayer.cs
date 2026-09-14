@@ -197,8 +197,10 @@ public class YargVideoPlayer : MonoBehaviour
         // after the first fire; seekCompleted stays attached for every seek.
         _unityVideoPlayer.prepareCompleted -= OnUnityVideoPrepared;
         _unityVideoPlayer.seekCompleted -= OnUnitySeekCompleted;
+        _unityVideoPlayer.errorReceived -= OnUnityVideoError;
         _unityVideoPlayer.prepareCompleted += OnUnityVideoPrepared;
         _unityVideoPlayer.seekCompleted += OnUnitySeekCompleted;
+        _unityVideoPlayer.errorReceived += OnUnityVideoError;
         _unityVideoPlayer.Prepare();
     }
 
@@ -341,5 +343,10 @@ public class YargVideoPlayer : MonoBehaviour
     private void OnUnitySeekCompleted(VideoPlayer vp)
     {
         seekCompleted?.Invoke(this);
+    }
+
+    private void OnUnityVideoError(VideoPlayer vp, string message)
+    {
+        YargLogger.LogError(message);
     }
 }
