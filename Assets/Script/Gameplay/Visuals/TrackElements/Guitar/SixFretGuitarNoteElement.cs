@@ -127,6 +127,15 @@ namespace YARG.Gameplay.Visuals
             NoteGroup.SetActive(true);
             NoteGroup.Initialize();
 
+            // Open HOPO/Tap notes have EmissionAddition: 1 in the prefab, which
+            // washes the note color to white. Reset it so the dedicated
+            // OpenHopoNote color field is visible.
+            if (NoteRef.Fret == (int) SixFretGuitarFret.Open &&
+                NoteRef.Type is GuitarNoteType.Hopo or GuitarNoteType.Tap)
+            {
+                NoteGroup.ResetEmissionAddition();
+            }
+
             if (NoteRef.IsSustain)
             {
                 _sustainLine.gameObject.SetActive(true);
@@ -209,10 +218,28 @@ namespace YARG.Gameplay.Visuals
             System.Drawing.Color primaryColor, primaryNoSp;
             System.Drawing.Color secondaryColor = default, secondaryNoSp = default;
 
-            if (NoteRef.Fret == (int) SixFretGuitarFret.Open || NoteRef.Fret == (int) SixFretGuitarFret.Wildcard)
+            if (NoteRef.Fret == (int) SixFretGuitarFret.Open &&
+                NoteRef.Type is GuitarNoteType.Hopo or GuitarNoteType.Tap)
+            {
+                // Open HOPO/Tap notes use a dedicated color (the prefab's
+                // EmissionAddition: 1 washes to white by default; ResetEmissionAddition
+                // in InitializeElement nullifies it so this color is visible).
+                primaryColor = isSp ? colors.OpenHopoNoteStarPower : colors.OpenHopoNote;
+                primaryNoSp = colors.OpenHopoNote;
+                // No real secondary for open notes; mirror primary so the
+                // sustain-line blend in SustainLine.SetState is a no-op.
+                secondaryColor = primaryColor;
+                secondaryNoSp = primaryNoSp;
+            }
+            else if (NoteRef.Fret == (int) SixFretGuitarFret.Open ||
+                     NoteRef.Fret == (int) SixFretGuitarFret.Wildcard)
             {
                 primaryColor = isSp ? colors.GetNoteStarPowerColor(NoteRef.Fret) : colors.GetNoteColor(NoteRef.Fret);
                 primaryNoSp = colors.GetNoteColor(NoteRef.Fret);
+                // No real secondary color for open/wildcard; mirror primary so the
+                // sustain-line blend in SustainLine.SetState is a no-op (same as Up/Down).
+                secondaryColor = primaryColor;
+                secondaryNoSp = primaryNoSp;
             }
             else
             {
@@ -275,8 +302,13 @@ namespace YARG.Gameplay.Visuals
 
             if (!NoteRef.IsSustain) return;
 
-            _sustainLine.SetState(SustainState, primaryColor.ToUnityColor());
+            // Set the secondary color before SetState, because SetState blends the
+            // stored secondary color into the sustain line color. Setting it after
+            // (as it was before) left the blend one update behind — null on the
+            // first call, so barre sustains rendered pure primary while Waiting and
+            // only showed the correct blend once activated (Hitting).
             _sustainLine.SetSecondaryColor(secondaryColor.ToUnityColor());
+            _sustainLine.SetState(SustainState, primaryColor.ToUnityColor());
         }
 
         protected override void HideElement()
