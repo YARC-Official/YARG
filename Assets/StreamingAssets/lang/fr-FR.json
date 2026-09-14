@@ -34,10 +34,10 @@
             "FiveFretRhythm": "Guitare Rythmique",
             "FiveFretCoopGuitar": "Guitare Rythmique",
             "Keys": "Clavier",
-            "SixFretGuitar": "Guitare",
-            "SixFretBass": "Basse",
-            "SixFretRhythm": "Guitare Rythmique",
-            "SixFretCoopGuitar": "Guitare Rythmique",
+            "SixFretGuitar": "Guitare (6 frettes)",
+            "SixFretBass": "Basse (6 frettes)",
+            "SixFretRhythm": "Guitare rythmique (6 frettes)",
+            "SixFretCoopGuitar": "Guitare Co-op (6 frettes)",
             "FourLaneDrums": "Batterie à 4 voies",
             "ProDrums": "Batterie Pro",
             "FiveLaneDrums": "Batterie à 5 voies",
@@ -79,6 +79,8 @@
             "Source": "Source",
             "Subgenre": "Sous-genres",
             "Stars": "Étoiles",
+            "Percentage": "Pourcentage",
+            "Score": "Score",
             "Unspecified": "Aucun",
             "Year": "Année",
             "DateAdded": "Date d'ajout",
@@ -96,6 +98,7 @@
             "ProDrums": "Batterie Pro",
             "FiveLaneDrums": "Batterie (5 voies)",
             "EliteDrums": "Batterie Élite",
+            "AggregateDrums": "Batterie agrégée",
             "ProGuitar_17": "Guitare Pro (17 frettes)",
             "ProGuitar_22": "Guitare Pro (22 frettes)",
             "ProBass_17": "Basse Pro (17 frettes)",
@@ -128,6 +131,7 @@
             "Apply": "Appliquer",
             "Back": "Retour",
             "Cancel": "Annuler",
+            "DontApply": "Ne pas appliquer",
             "Close": "Fermer",
             "Confirm": "Confirmer",
             "Continue": "Continuer",
@@ -211,10 +215,11 @@
         },
         "Toast": {
             "AutoCalibrationScore": "Sauvegarde du score désactivée : Calibration automatique active.",
-            "NoFailScore": "Sauvegarde du score désactivée : Le mode sans échec a dû réinitialiser le compteur d'échec.",
+            "NoFailScore": "Sauvegarde des scores désactivée : Sans échec activé.",
             "ResumeAfterFailInvalidate": "Sauvegarde des scores désactivée : Reprise après échec du score invalidé.",
             "ProfileCreated": "Profil crée pour un nouvel appareil : {0}\nIl est temps de YARGer !",
             "TooManyPauses": "Sauvegarde du score désactivée : Trop de pauses.",
+            "ProfileLoadWarning": "Le(s) profil(s) {0} n'a pas pu être chargé par cette version de YARG. Elles sont conservées et seront réessayées après une mise à jour, ou peuvent être supprimées de la liste de profil.",
             "UnsupportedDevice": "Création de profil automatique non prise en charge pour {0} !"
         },
         "Dialog": {
@@ -250,17 +255,17 @@
             },
             "ReplayMenu": {
                 "EngineInconsistency": {
-                    "Title": "Replays Are In Beta",
-                    "Description": "Currently, the replay system is in beta, <b>and <i>may</i> provide inconsistent scores/stats</b>, especially for guitar.\n\nThe end goal is for replays to be reliable and accurate, and we're working on fixing these problems!",
-                    "Confirm": "I Understand"
+                    "Title": "Les replays sont en bêta",
+                    "Description": "Actuellement le système de replay est en bêta, <b>et <i>pourrait</i> fournir des scores/stats erronées</b>, surtout à la guitare.\n\nL'objectif est de rendre les replays fiables et précis, et nous travaillons actuellement sur la résolution de ces problèmes !",
+                    "Confirm": "Je comprends"
                 },
                 "ReplayLoadFail": {
-                    "Title": "Failed to Load Replay",
-                    "Description": "The replay data could not be loaded. It may be corrupted or out of date."
+                    "Title": "Impossible de charger le replay",
+                    "Description": "Les données de relecture n'ont pas pu être chargées. Elles peuvent être corrompues ou obsolètes."
                 },
                 "UnavailableSong": {
-                    "Title": "Unavailable Song",
-                    "Description": "A song compatible with the selected play is not present in your library! Most likely deleted!"
+                    "Title": "Chanson indisponible",
+                    "Description": "Une chanson compatible avec la lecture sélectionnée n'est pas présente dans votre bibliothèque ! Il est très probable qu'elle soit supprimée !"
                 }
             }
         },
@@ -268,7 +273,14 @@
             "Instrument": "Instrument",
             "Difficulty": "Difficulté",
             "Harmony": "Harmonie",
+            "Adjustments": "Ajustements",
             "Modifiers": "Modificateurs",
+            "Accessibility": "Accessibilité",
+            "LeftyFlip": "Mode Gaucher",
+            "NoRangeShifts": "Sans Gamme",
+            "DedicatedOpenLane": "Note Ouverte",
+            "OpenLaneAlways": "Toutes Notes Ouvertes",
+            "OpenLaneWhenCharted": "Note Ouverte quand Chartée",
             "Ready": "Prêt",
             "SitOut": "Passer",
             "Disconnect": "Déconnecter",
@@ -288,7 +300,7 @@
                 "MoreThanYear": "Il y a plus d'un an"
             },
             "Analyze": "Analyser",
-            "ViewScoreCard": "View Results",
+            "ViewScoreCard": "Voir les résultats",
             "PlayWithReplay": "Jouer avec le replay"
         },
         "Main": {
@@ -317,6 +329,33 @@
             "RecommendedSongsHelp": "Rafraîchir la liste des titres recommandés",
             "PlayableSongs": "MUSIQUES JOUABLES",
             "RandomSong": "MUSIQUES ALÉATOIRE",
+            "Sort": {
+                "Intensity": "Intensité : {0}",
+                "Unplayed": "Chansons non jouées",
+                "NoPart": "Aucune partie",
+                "Percentage": {
+                    "100": "100%",
+                    "90": "90 - 99%",
+                    "80": "80 - 89%",
+                    "70": "70 - 79%",
+                    "60": "60 - 69%",
+                    "50": "50 - 59%",
+                    "Below50": "En dessous de 50%"
+                },
+                "Score": {
+                    "500000": "Plus de 500,000 points",
+                    "400000": "Plus de 400,000 points",
+                    "300000": "Plus de 300,000 points",
+                    "200000": "Plus de 200,000 points",
+                    "150000": "Plus de 150,000 points",
+                    "100000": "Plus de 100,000 points",
+                    "75000": "Plus de 75,000 points",
+                    "50000": "Plus de 50,000 points",
+                    "30000": "Plus de 30,000 points",
+                    "10000": "Plus de 10,000 points",
+                    "1": "Plus de 1 point"
+                }
+            },
             "Playlists": "GESTION DE LA PLAYLIST",
             "PlaylistsHelp": "Créer, afficher et modifier des playlists personnalisées",
             "Favorites": "Favoris",
@@ -339,6 +378,8 @@
                     "RemoveFromPlaylist": "Retirer de la playlist",
                     "RemoveFromSetlist": "Supprimer de la Setlist",
                     "CreateNewPlaylist": "Créer nouvelle...",
+                    "AddPlaylistToSetlist": "Ajouter une playlist à la Setlist",
+                    "SaveSetlistToPlaylist": "Sauvegarder une playlist à la Setlist",
                     "RenamePlaylist": "Renommer la Playlist",
                     "DeletePlaylist": "Supprimer la Playlist",
                     "DeleteSetlist": "Supprimer la setlist",
@@ -358,6 +399,8 @@
             "ExpandHeaderHoldStartSet": "<align=left>Ajouter à la Setlist<br><size=67%>(maintenue) Démarrer le Set</size></align>",
             "CollapseHeaderHoldStartSet": "<align=left>Réduire l'entête<br><size=67%>(maintenu) Démarrer le set</size></align>",
             "Search": "Rechercher",
+            "SelectArtist": "Sélectionner l'artiste actuel",
+            "ExitSearchHold": "(Attendre) Quitter la recherche",
             "SkipSection": "<align=left>Naviguer dans les sections</align>",
             "MoveInPlaylist": "Déplacer la musique",
             "CurrentSetlist": "Setlist actuelle",
@@ -496,16 +539,23 @@
             "AddBot": "Ajouter un Bot",
             "AddProfile": "Ajouter un profil",
             "Bots": "Bots",
-            "Players": "Joueurs"
+            "Players": "Joueurs",
+            "CouldNotLoad": "Impossible de charger",
+            "UnloadedEntry": "{0} <alpha=#66>— n'a pas pu être chargé par cette version de YARG",
+            "UnloadedDeleteTitle": "Supprimer le profil ?",
+            "UnloadedDelete": "La suppression est permanente.",
+            "BotDelete": "La suppression de ce bot est définitive."
         },
         "ScoreScreen": {
             "BandScoreNotSaved": "Score non sauvegardé",
-            "InconsistentReplay": "Inconsistent Replay",
+            "InconsistentReplay": "Replay incohérent",
             "RestartSong": "Recommencer",
             "ShowAdvanced": "Afficher Avancé",
             "HideAdvanced": "Cacher Avancé",
             "EndSetlistEarly": "Terminer la setlist",
-            "ViewReplay": "View Replay"
+            "AddSongOffset": "(Maintien) Enregistrer décalage de la chanson",
+            "RemoveSongOffset": "(Maintien) Sauvegarde de l'annulation de décalage",
+            "ViewReplay": "Voir le replay"
         },
         "Settings": {
             "ShowAdvanced": "Afficher Avancé",
@@ -540,6 +590,7 @@
             "ShowAnyOfHeader": "Afficher l'un des",
             "SortedBy": "Trié par",
             "ShowRecommendations": "Voir recommandations",
+            "OnlyShowPlayableSongs": "Afficher uniquement les chansons jouables",
             "ResetAllFilters": "(Maintien) Réinitialiser tous les filtres",
             "SelectAll": "Sélectionner tout",
             "DeselectAll": "Désélectionner tout",
@@ -613,7 +664,8 @@
                 "Restart": "Relancer",
                 "BackToLibrary": "Retour à la bibliothèque",
                 "Settings": "Réglages",
-                "Practice": "Entraînement"
+                "Practice": "Entraînement",
+                "DropOut": "Abandonner"
             },
             "Fail": {
                 "EnableNoFailandResume": "Activer sans échec et reprendre",
@@ -836,7 +888,9 @@
                 "LetterSection": "Section {0}",
                 "WithNumber": "{0} {1}",
                 "PercentageBased": "{0}% à {1}%"
-            }
+            },
+            "GuidePitch": "Guide du Pitch",
+            "GuidePitchToggle": "Basculer"
         },
         "UnisonDisplay": {
             "Header": "Phases d'unisson"
@@ -875,7 +929,9 @@
             "Left": "Gauche",
             "Right": "Droite",
             "Start": "Start (Pause)",
-            "Select": "Select"
+            "Select": "Select",
+            "Search": "Recherche",
+            "SelectArtist": "Sélectionner l'artiste actuel"
         },
         "FiveFret": {
             "Green": "Frette verte (Première)",
@@ -888,6 +944,14 @@
             "SoloYellow": "Frette solo jaune",
             "SoloBlue": "Frette solo bleue",
             "SoloOrange": "Frette solo orange"
+        },
+        "SixFret": {
+            "Black1": "Frette noire 1 (première)",
+            "Black2": "Frette noire 2 (deuxième)",
+            "Black3": "Frette noire 3 (troisième)",
+            "White1": "Frette Blanche 1 (quatrième)",
+            "White2": "Frette Blanche 2 (cinquième)",
+            "White3": "Frette Blanche 3 (sixième)"
         },
         "Guitar": {
             "StrumUp": "Gratte haut",
@@ -1007,6 +1071,7 @@
             "Cache": "Cache",
             "Venues": "Scènes/Arrière-plans",
             "Calibration": "Calibration",
+            "OffsetCalibration": "Calibration de décalage",
             "Input": "Saisie",
             "PresetSettings": "Paramètre du preset",
             "Debug": "Débug",
@@ -1028,6 +1093,7 @@
             "Experimental": "Expérimental",
             "HUD": "ATH",
             "Gameplay": "Jouabilité",
+            "CrowdFX": "FX du public",
             "OutputConfiguration": "Configuration de la sortie",
             "Accessibility": "Accessibilité"
         },
@@ -1044,7 +1110,8 @@
             "RefreshCache": "Scanner les musiques",
             "OpenExecutablePath": "Ouvrir le chemin d'exécution",
             "OpenPersistentDataPath": "Ouvrir le chemin des données persistantes",
-            "RemoveRemoteContent": "Supprimer le contenu mis en cache"
+            "RemoveRemoteContent": "Supprimer le contenu mis en cache",
+            "OpenAsioControlPanel": "Ouvrir le panneau de contrôle ASIO"
         },
         "Setting": {
             "AllowDuplicateSongs": {
@@ -1266,8 +1333,18 @@
                 "Dropdown": {
                     "HighestPercentageOverall": "Meilleur pourcentage parmi toutes les difficultés",
                     "HighestPercentageDifficulty": "Meilleur pourcentage sur la difficulté la plus haute",
+                    "HighestPercentageCurrentDifficulty": "Meilleur pourcentage sur la difficulté actuelle",
                     "HighestScoreOverall": "Meilleur score parmi toutes les difficultés",
-                    "HighestScoreDifficulty": "Meilleur score sur la difficulté la plus haute"
+                    "HighestScoreDifficulty": "Meilleur score sur la difficulté la plus haute",
+                    "HighestScoreCurrentDifficulty": "Meilleur score sur la difficulté actuelle"
+                }
+            },
+            "SongLengthLabels": {
+                "Name": "Étiquettes de durée de la musique",
+                "Description": "Choisissez comment les durées des chansons sont regroupées dans la bibliothèque musicale et dans le menu des filtres.",
+                "Dropdown": {
+                    "RangeLabels": "2:00, 5:00, 10:00, 15:00, 20:00",
+                    "LegacyLabels": "Court, moyen, long, épique"
                 }
             },
             "HighwayTiltMultiplier": {
@@ -1310,6 +1387,10 @@
                     "Transparent": "Arrière-plan transparent"
                 }
             },
+            "KeepLyricBar": {
+                "Name": "Garder la barre de paroles",
+                "Description": "Affiche la barre lyrique de karaoké en dessous de la piste vocale pendant que les chanteurs jouent."
+            },
             "MasterMusicVolume": {
                 "Name": "Volume général de la musique",
                 "PauseName": "Général",
@@ -1325,6 +1406,10 @@
                     "Sensitive_Content": "Contenu sensible",
                     "None": "Aucun"
                 }
+            },
+            "CensorMatureContent": {
+                "Name": "Contenu avec censure appliquée",
+                "Description": "Sur les chansons supportées, les censures sur les paroles, rétrogradent la note de la chanson à \"Supervision Recommandée\"."
             },
             "MetronomeVolume": {
                 "Name": "Volume du métronome",
@@ -1420,6 +1505,23 @@
                 "Mono": "{0}",
                 "Stereo": "{0} & {1}"
             },
+            "OutputMode": {
+                "Name": "Mode de Sortie",
+                "Description": "Sélectionnez le système audio standard, ASIO ou WASAPI Exclusif.",
+                "Dropdown": {
+                    "Shared": "Audio partagé",
+                    "Asio": "ASIO",
+                    "WasapiExclusive": "WASAPI Exclusif"
+                }
+            },
+            "AsioBufferSize": {
+                "Name": "Taille des tampons ASIO",
+                "Description": "Des tampons plus petits réduisent la latence de sortie mais nécessitent un traitement audio plus fiable.",
+                "DriverDefault": "Pilote par défaut",
+                "DriverDefaultWithSize": "Pilote par défaut ({0} samples)",
+                "DriverControlledWithSize": "Driver contrôlé ({0} samples)",
+                "Samples": "{0} samples"
+            },
             "OutputDevice": {
                 "Name": "Périphérique de sortie",
                 "Description": "L'interface à utiliser lors de la lecture des sons."
@@ -1448,6 +1550,14 @@
                 "Name": "Résolution",
                 "Description": "Définit la résolution de l'écran. \"Par défaut\" est recommandé.",
                 "Default": "<i>Par défaut ({0})</i>"
+            },
+            "ReverbImplementation": {
+                "Name": "Implémentation de réverbération",
+                "Description": "Sélectionne la compensation de la réverb. Les performances utilisent un Freeverb, la qualité utilise une plaque de Dattorro plus complète.",
+                "Dropdown": {
+                    "Performance": "Performance",
+                    "Quality": "Qualité"
+                }
             },
             "RhythmVolume": {
                 "Name": "Volume de la guitare rythmique",
@@ -1530,14 +1640,25 @@
                     "On": "On"
                 }
             },
-            "UseCrowdFx": {
-                "Name": "Sons du Public",
-                "Description": "Si activé, des bruitages de public seront joués.\nSi ce paramètre est réglé sur \"Claps du Star Power uniquement\", les bruitages du public ne seront joués que pendant le Star Power.",
-                "Dropdown": {
-                    "Disabled": "Désactivé",
-                    "StarpowerClapsOnly": "Claps du Star Power uniquement",
-                    "Enabled": "Activé"
-                }
+            "UseCrowdCheering": {
+                "Name": "Encouragement du public",
+                "Description": "Jouez les effets sonores du public au début, pendant Star Power, à la fin des chansons, et sur les écrans de score."
+            },
+            "UseCrowdIdle": {
+                "Name": "Public Inactif",
+                "Description": "Jouer le bruit de fond du public pendant la chanson."
+            },
+            "UseStarPowerClaps": {
+                "Name": "Applaudissement Star Power",
+                "Description": "Joue les applaudissements du public pendant que Star Power est actif."
+            },
+            "UsePerformanceClaps": {
+                "Name": "Applaudissements de performance",
+                "Description": "Joue des applaudissements au rythme des rythmes quand on se passe bien."
+            },
+            "UseVenueSfx": {
+                "Name": "Utiliser le SFX des lieux",
+                "Description": "Si activé, les lieux seront autorisés à jouer des effets sonores personnalisés."
             },
             "UseVenueSfx": {
                 "Name": "Utiliser le SFX des lieux",
@@ -1604,10 +1725,38 @@
                 "PauseName": "Calibrage automatique de la vidéo",
                 "Description": "Réglage du Placeholder. Actuellement sans effet."
             },
+            "AutoCalibrateOffset": {
+                "Name": "Calibrage automatique du décalage",
+                "PauseName": "Calibrage automatique du décalage",
+                "Description": "Ajuste automatiquement la calibration pendant le jeu en fonction de votre timing d'input."
+            },
+            "SongOffset": {
+                "Name": "Délai spécifique de chanson (ms)",
+                "PauseName": "Délai spécifique de chanson (ms)",
+                "Description": "Décalage spécifique de cette chanson en millisecondes, en plus du calibrage audio/vidéo. Enregistré par chanson."
+            },
+            "ShowMeanSongOffsetCalibration": {
+                "Name": "Afficher le décalage moyen de la chanson",
+                "Description": "Affiche une option sur l'écran de statistiques avancées pour enregistrer le décalage moyen de la chanson.",
+                "Dropdown": {
+                    "Off": "Désactivé",
+                    "OnlyOnePlayer": "Solo Uniquement",
+                    "Always": "Toujours"
+                }
+            },
+            "UseSongOffsetCalibration": {
+                "Name": "Afficher le décalage moyen de la chanson",
+                "Description": "Utilisez le décalage moyen de la chanson enregistrée pour régler le délai audio de la chanson."
+            },
             "VocalMonitoring": {
                 "Name": "Volume de monitoring vocal",
                 "PauseName": "Monitoring",
-                "Description": "Ajuste le retour audio entendu en chantant."
+                "Description": "Ajuste le feedback que vous entendez lorsque vous chantez. Les valeurs supérieures à 1 ajoutent un gain supplémentaire pour les microphones faibles."
+            },
+            "VocalReverb": {
+                "Name": "Réverbération vocale",
+                "PauseName": "Réverbération",
+                "Description": "Ajuste la quantité de réverbération appliquée à la surveillance vocale. 0 est sec, 1.0 est maximum."
             },
             "VocalStreakFrequency": {
                 "Name": "Fréquence de combos chant",
@@ -1707,9 +1856,13 @@
                 "Name": "Durée d'impulsion DMX (MS)",
                 "Description": "Combien de temps un canal DMX reste actif après avoir reçu un déclencheur, en millisecondes. Augmentez cette valeur si les lumières ne s'allument pas de manière fiable. Réglez sur 0 pour désactiver complètement l'étirement de l'impulsion."
             },
+            "AutomaticPlaybackBuffer": {
+                "Name": "Réglage automatique du tampon",
+                "Description": "Augmente automatiquement le tampon de lecture de 1 milliseconde pour chaque sous-exécution audio."
+            },
             "PlaybackBufferLength": {
                 "Name": "Durée du tampon de lecture",
-                "Description": "La taille du tampon de lecture, en millisecondes. Réglez sur 0 pour désactiver. Les buffers plus grands fournissent plus de stabilité, mais augmentent la latence des effets sonores."
+                "Description": "La taille du tampon de lecture du morceau, en millisecondes. Définissez à 0 pour utiliser la taille minimale. Les tampons plus grands fournissent plus de stabilité, mais augmentent la latence."
             },
             "ShowTime": {
                 "Name": "Afficher l'heure",
@@ -1734,6 +1887,10 @@
             "DMXUniverseChannel": {
                 "Name": "Univers de diffusion DMX",
                 "Description": "L'univers vers lequel YARG enverra le paquet concernant les éclairages et effets de scènes. La valeur par défaut est \"1\". Le maximum est \"65535\"."
+            },
+            "DMXLocalIP": {
+                "Name": "sACN IP locale",
+                "Description": "L'adresse IPv4 locale utilisée pour envoyer des paquets sACN. Laissez vide pour sélectionner automatiquement la première adresse Ethernet ou Wi-Fi disponible."
             },
             "ReconnectProfiles": {
                 "Name": "Reconnecter les profils",
@@ -1812,6 +1969,50 @@
             "RockMeterPresetContainer": "Presets du Rock-O-Mètre"
         },
         "PresetSetting": {
+            "PreviewVisuals": {
+                "Instrument": {
+                    "Name": "Instrument"
+                },
+                "Visuals": {
+                    "Name": "Options d'aperçu"
+                },
+                "StarPowerNotes": {
+                    "Name": "Notes en Star Power"
+                },
+                "StarPowerActive": {
+                    "Name": "Star Power Actif"
+                },
+                "Groove": {
+                    "Name": "Groove"
+                },
+                "LeftyFlip": {
+                    "Name": "Mode Gaucher"
+                }
+            },
+            "ColorGroups": {
+                "Green": "Vert",
+                "Red": "Rouge",
+                "Yellow": "Jaune",
+                "Blue": "Bleu",
+                "Orange": "Orange",
+                "Open": "Ouvert",
+                "Kick": "Kick",
+                "General": "Général",
+                "Notes": "Notes",
+                "Fret": "Frette",
+                "Lane": ""
+            },
+            "Dialog": {
+                "CopyFromNote": {
+                    "Button": "Copier depuis la note",
+                    "Title": "Copier depuis la note",
+                    "Message": "Appliquer la couleur de la note de base à tous les champs fret et particules ?"
+                },
+                "DeletePreset": {
+                    "Title": "Supprimer le préréglage",
+                    "Message": "Supprimer le préréglage « {0} » ?"
+                }
+            },
             "CameraPreset": {
                 "CurveFactor": {
                     "Name": "Facteur de courbe",
@@ -1847,10 +2048,14 @@
                     "Name": "Instrument",
                     "Dropdown": {
                         "FiveFretGuitar": "Guitare (5 frettes)",
+                        "SixFretGuitar": "Guitare (6 frettes)",
                         "FiveLaneDrums": "Batterie (5 voies)",
                         "FourLaneDrums": "Batterie (4 voies)",
                         "ProKeys": "Clavier Pro"
                     }
+                },
+                "FiveLaneKeys": {
+                    "Name": "Keytar 5 lignes"
                 },
                 "ActivationNote": {
                     "Name": "Note d'activation"
@@ -2172,6 +2377,38 @@
                 },
                 "BlackNoteStarPower": {
                     "Name": "Note noire - Star Power"
+                },
+                "BlackFret": {
+                    "Name": "Frette Noire"
+                },
+                "WhiteFret": {
+                    "Name": "Frette Blanche"
+                },
+                "BlackFretInner": {
+                    "Name": "Frette Noire Intérieure"
+                },
+                "WhiteFretInner": {
+                    "Name": "Frette Blanche Intérieure"
+                },
+                "BlackParticles": {
+                    "Name": "Particules Noires"
+                },
+                "WhiteParticles": {
+                    "Name": "Particules blanches"
+                },
+                "TapStripEmission": {
+                    "Name": "Émission de la bande de tap",
+                    "Description": "Contrôle la luminosité de la bande centrale sur les notes fantômes/grâce. À 0, la bande apparaît sombre; à 100, elle clignote avec la couleur de la note."
+                },
+                "GhostStripEmission": {
+                    "Name": "Émission de la bande de fantôme",
+                    "Description": "Contrôle la luminosité de la bande centrale sur les notes fantômes/grâce. À 0, la bande apparaît sombre; à 100, elle clignote avec la couleur de la note."
+                },
+                "OpenHopoNote": {
+                    "Name": "Note HOPO en Open"
+                },
+                "OpenHopoNoteStarPower": {
+                    "Name": "Notes Open HOPO en Star Power"
                 }
             },
             "EnginePreset": {
