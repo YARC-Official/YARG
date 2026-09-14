@@ -6106,7 +6106,7 @@ GameObject:
   - component: {fileID: 2773836708421957801}
   - component: {fileID: 8995657028899050386}
   - component: {fileID: 8306241581077542084}
-  m_Layer: 6
+  m_Layer: 5
   m_Name: Combo
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -6121,7 +6121,7 @@ RectTransform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4196820479500803790}
   m_LocalRotation: {x: -0.00000040607574, y: 0.84124863, z: 0.5406485, w: 0.00000026077032}
-  m_LocalPosition: {x: 0, y: 0, z: -0.69776416}
+  m_LocalPosition: {x: 0, y: 0, z: -0.689}
   m_LocalScale: {x: -0.13, y: 0.14249401, z: 0.14249401}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -6129,7 +6129,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: -114.544, y: 0, z: 180}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -0.20122446, y: 0.13619417}
+  m_AnchoredPosition: {x: -0.201, y: 0.14}
   m_SizeDelta: {x: 1.3, y: 1.3}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!23 &8995657028899050386
