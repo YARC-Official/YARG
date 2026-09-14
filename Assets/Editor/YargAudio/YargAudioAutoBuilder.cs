@@ -1,5 +1,6 @@
 #nullable enable
 using System;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using UnityEditor;
@@ -30,12 +31,14 @@ namespace YARG.Editor.YargAudio
 
         private static void OnPlayModeStateChanged(PlayModeStateChange state)
         {
-            if (state == PlayModeStateChange.ExitingEditMode)
+            if (state != PlayModeStateChange.ExitingEditMode)
             {
-                if (!EnsureUpToDate(isExplicit: false))
-                {
-                    EditorApplication.isPlaying = false;
-                }
+                return;
+            }
+
+            if (!EnsureUpToDate(isExplicit: false))
+            {
+                EditorApplication.isPlaying = false;
             }
         }
 
@@ -58,7 +61,7 @@ namespace YARG.Editor.YargAudio
                 return true;
             }
 
-            if (!isExplicit && !nativeDir.HasNewerSourcesThan(pluginInfo.Value.DestinationBinaryPath))
+            if (!isExplicit && !HasNewerSourcesThan(nativeDir, pluginInfo.Value.DestinationBinaryPath))
             {
                 return true;
             }
@@ -71,36 +74,30 @@ namespace YARG.Editor.YargAudio
             try
             {
                 var buildDir = Path.Combine(nativeDir, "build", pluginInfo.ConfigurePreset);
-                if (!TryRunBuild(nativeDir, pluginInfo, out var builtPath, out var buildError))
+                var outcome = TryRunBuild(nativeDir, pluginInfo, out string builtPath, out string buildError);
+                if (outcome == BuildOutcome.BuildFailed && Directory.Exists(buildDir))
                 {
-                    if (Directory.Exists(buildDir))
-                    {
-                        CleanBuildDirectory(buildDir);
-                        if (!TryRunBuild(nativeDir, pluginInfo, out builtPath, out buildError))
-                        {
-                            return HandleBuildFailure(buildError, pluginInfo, isExplicit);
-                        }
-                    }
-                    else
-                    {
-                        return HandleBuildFailure(buildError, pluginInfo, isExplicit);
-                    }
+                    CleanBuildDirectory(buildDir);
+                    outcome = TryRunBuild(nativeDir, pluginInfo, out builtPath, out buildError);
                 }
 
-                var destDir = Path.GetDirectoryName(pluginInfo.DestinationBinaryPath);
-                if (!string.IsNullOrEmpty(destDir))
+                if (outcome != BuildOutcome.Success)
                 {
-                    Directory.CreateDirectory(destDir);
+                    return HandleBuildFailure(buildError, pluginInfo, isExplicit);
                 }
 
+                Directory.CreateDirectory(pluginInfo.DestinationDirectory);
                 File.Copy(builtPath, pluginInfo.DestinationBinaryPath, overwrite: true);
-                YARG.Audio.BASS.Native.YargAudioBindings.Reload();
+
+                if (!YARG.Audio.BASS.Native.YargAudioBindings.Reload())
+                {
+                    Debug.LogError($"[YargAudio AutoBuilder] Rebuilt {pluginInfo.BinaryName}, " +
+                        "but the native library failed to load. Native audio is unavailable until it loads.");
+                    return false;
+                }
+
                 Debug.Log($"[YargAudio AutoBuilder] Successfully rebuilt and updated {pluginInfo.BinaryName}");
                 return true;
-            }
-            catch (System.ComponentModel.Win32Exception)
-            {
-                return HandleBuildFailure("CMake executable not found in PATH; please install CMake 3.25+.", pluginInfo, isExplicit);
             }
             catch (Exception ex)
             {
@@ -108,56 +105,63 @@ namespace YARG.Editor.YargAudio
             }
         }
 
-        private static bool TryRunBuild(string nativeDir, PluginInfo pluginInfo, out string builtPath, out string errorMessage)
+        private static BuildOutcome TryRunBuild(string nativeDir, PluginInfo pluginInfo, out string builtPath,
+            out string errorMessage)
         {
             builtPath = string.Empty;
 
-            int configureExit = RunProcess(
-                filename: "cmake",
-                arguments: $"--preset {pluginInfo.ConfigurePreset}",
-                workingDirectory: nativeDir,
-                stdout: out string configOutput,
-                stderr: out string configError);
-            if (configureExit != 0)
+            if (!TryRunCmake(nativeDir, $"--preset {pluginInfo.ConfigurePreset}", "configure", out errorMessage))
             {
-                var errorMsg = string.IsNullOrWhiteSpace(configError) ? configOutput : configError;
-                errorMessage = $"CMake configure failed (exit {configureExit}):\n{errorMsg.Trim()}";
-                return false;
+                return BuildOutcome.ConfigureFailed;
             }
 
-            int buildExit = RunProcess(
-                filename: "cmake",
-                arguments: $"--build --preset {pluginInfo.BuildPreset} --parallel",
-                workingDirectory: nativeDir,
-                stdout: out string buildOutput,
-                stderr: out string buildError);
-            if (buildExit != 0)
+            if (!TryRunCmake(nativeDir, $"--build --preset {pluginInfo.BuildPreset} --parallel", "build", out errorMessage))
             {
-                var errorMsg = string.IsNullOrWhiteSpace(buildError) ? buildOutput : buildError;
-                errorMessage = $"CMake build failed (exit {buildExit}):\n{errorMsg.Trim()}";
-                return false;
+                return BuildOutcome.BuildFailed;
             }
 
-            var resolvedPath = ResolveBuiltBinaryPath(nativeDir, pluginInfo);
-            if (!File.Exists(resolvedPath))
+            builtPath = ResolveBuiltBinaryPath(nativeDir, pluginInfo);
+            if (!File.Exists(builtPath))
             {
-                errorMessage = $"Built binary not found at: {resolvedPath}";
-                return false;
+                errorMessage = $"Built binary not found at: {builtPath}";
+                return BuildOutcome.BuildFailed;
             }
 
-            builtPath = resolvedPath;
             errorMessage = string.Empty;
-            return true;
+            return BuildOutcome.Success;
+        }
+
+        private static bool TryRunCmake(string nativeDir, string arguments, string step, out string errorMessage)
+        {
+            int exitCode;
+            string output;
+            string error;
+            try
+            {
+                exitCode = RunCmake(arguments, nativeDir, out output, out error);
+            }
+            catch (Win32Exception)
+            {
+                errorMessage = "CMake executable not found in PATH; please install CMake 3.25+.";
+                return false;
+            }
+
+            if (exitCode == 0)
+            {
+                errorMessage = string.Empty;
+                return true;
+            }
+
+            var details = string.IsNullOrWhiteSpace(error) ? output : error;
+            errorMessage = $"CMake {step} failed (exit {exitCode}):\n{details.Trim()}";
+            return false;
         }
 
         private static void CleanBuildDirectory(string buildDir)
         {
             try
             {
-                if (Directory.Exists(buildDir))
-                {
-                    Directory.Delete(buildDir, recursive: true);
-                }
+                Directory.Delete(buildDir, recursive: true);
             }
             catch (Exception ex)
             {
@@ -177,25 +181,17 @@ namespace YARG.Editor.YargAudio
             return false;
         }
 
-        private static string ResolveBuiltBinaryPath(string nativeDir, PluginInfo info) =>
-            Application.platform switch
-            {
-                RuntimePlatform.WindowsEditor => ResolveWindowsBuiltBinaryPath(nativeDir, info.BinaryName),
-                RuntimePlatform.LinuxEditor => Path.Combine(nativeDir, "build", "linux-x64", info.BinaryName),
-                RuntimePlatform.OSXEditor => Path.Combine(nativeDir, "build", "macos-universal", info.BinaryName),
-                _ => Path.Combine(nativeDir, "build", "windows-x64", "Release", info.BinaryName)
-            };
-
-        private static string ResolveWindowsBuiltBinaryPath(string nativeDir, string binaryName)
+        private static string ResolveBuiltBinaryPath(string nativeDir, PluginInfo info)
         {
-            var releasePath = Path.Combine(nativeDir, "build", "windows-x64", "Release", binaryName);
-            if (File.Exists(releasePath))
+            var presetDir = Path.Combine(nativeDir, "build", info.ConfigurePreset);
+            if (Application.platform != RuntimePlatform.WindowsEditor)
             {
-                return releasePath;
+                return Path.Combine(presetDir, info.BinaryName);
             }
 
-            var debugPath = Path.Combine(nativeDir, "build", "windows-x64", "Debug", binaryName);
-            if (File.Exists(debugPath))
+            var releasePath = Path.Combine(presetDir, "Release", info.BinaryName);
+            var debugPath = Path.Combine(presetDir, "Debug", info.BinaryName);
+            if (!File.Exists(releasePath) && File.Exists(debugPath))
             {
                 return debugPath;
             }
@@ -203,11 +199,11 @@ namespace YARG.Editor.YargAudio
             return releasePath;
         }
 
-        private static int RunProcess(string filename, string arguments, string workingDirectory, out string stdout, out string stderr)
+        private static int RunCmake(string arguments, string workingDirectory, out string stdout, out string stderr)
         {
             var startInfo = new ProcessStartInfo
             {
-                FileName = filename,
+                FileName = "cmake",
                 Arguments = arguments,
                 WorkingDirectory = workingDirectory,
                 RedirectStandardOutput = true,
@@ -218,9 +214,13 @@ namespace YARG.Editor.YargAudio
 
             using var process = new Process { StartInfo = startInfo };
             process.Start();
-            stdout = process.StandardOutput.ReadToEnd();
-            stderr = process.StandardError.ReadToEnd();
+
+            var stdoutRead = process.StandardOutput.ReadToEndAsync();
+            var stderrRead = process.StandardError.ReadToEndAsync();
             process.WaitForExit();
+
+            stdout = stdoutRead.GetAwaiter().GetResult();
+            stderr = stderrRead.GetAwaiter().GetResult();
             return process.ExitCode;
         }
 
@@ -231,43 +231,24 @@ namespace YARG.Editor.YargAudio
                     configurePreset: "windows-x64",
                     buildPreset: "windows-x64-release",
                     binaryName: "yarg_audio.dll",
-                    destinationBinaryPath: Path.Combine(projectRoot, "Assets", "Plugins", "YargAudio", "Windows", "x86_64", "yarg_audio.dll")
+                    destinationDirectory: Path.Combine(projectRoot, "Assets", "Plugins", "YargAudio", "Windows", "x86_64")
                 ),
                 RuntimePlatform.LinuxEditor => new PluginInfo(
                     configurePreset: "linux-x64",
                     buildPreset: "linux-x64-release",
                     binaryName: "libyarg_audio.so",
-                    destinationBinaryPath: Path.Combine(projectRoot, "Assets", "Plugins", "YargAudio", "Linux", "x86_64", "libyarg_audio.so")
+                    destinationDirectory: Path.Combine(projectRoot, "Assets", "Plugins", "YargAudio", "Linux", "x86_64")
                 ),
                 RuntimePlatform.OSXEditor => new PluginInfo(
                     configurePreset: "macos-universal",
                     buildPreset: "macos-universal-release",
                     binaryName: "libyarg_audio.dylib",
-                    destinationBinaryPath: Path.Combine(projectRoot, "Assets", "Plugins", "YargAudio", "Mac", "libyarg_audio.dylib")
+                    destinationDirectory: Path.Combine(projectRoot, "Assets", "Plugins", "YargAudio", "Mac")
                 ),
                 _ => null
             };
 
-        private readonly struct PluginInfo
-        {
-            public string ConfigurePreset { get; }
-            public string BuildPreset { get; }
-            public string BinaryName { get; }
-            public string DestinationBinaryPath { get; }
-
-            public PluginInfo(string configurePreset, string buildPreset, string binaryName, string destinationBinaryPath)
-            {
-                ConfigurePreset = configurePreset;
-                BuildPreset = buildPreset;
-                BinaryName = binaryName;
-                DestinationBinaryPath = destinationBinaryPath;
-            }
-        }
-    }
-
-    internal static class YargAudioAutoBuilderExtensions
-    {
-        internal static bool HasNewerSourcesThan(this string nativeDir, string destinationBinaryPath)
+        private static bool HasNewerSourcesThan(string nativeDir, string destinationBinaryPath)
         {
             if (!File.Exists(destinationBinaryPath))
             {
@@ -277,13 +258,13 @@ namespace YARG.Editor.YargAudio
             var destinationWriteTime = File.GetLastWriteTimeUtc(destinationBinaryPath);
 
             var srcDir = Path.Combine(nativeDir, "src");
-            if (Directory.Exists(srcDir) && srcDir.HasFilesNewerThan(destinationWriteTime))
+            if (Directory.Exists(srcDir) && HasFilesNewerThan(srcDir, destinationWriteTime))
             {
                 return true;
             }
 
             var includeDir = Path.Combine(nativeDir, "include");
-            if (Directory.Exists(includeDir) && includeDir.HasFilesNewerThan(destinationWriteTime))
+            if (Directory.Exists(includeDir) && HasFilesNewerThan(includeDir, destinationWriteTime))
             {
                 return true;
             }
@@ -295,15 +276,10 @@ namespace YARG.Editor.YargAudio
             }
 
             var cmakePresets = Path.Combine(nativeDir, "CMakePresets.json");
-            if (File.Exists(cmakePresets) && File.GetLastWriteTimeUtc(cmakePresets) > destinationWriteTime)
-            {
-                return true;
-            }
-
-            return false;
+            return File.Exists(cmakePresets) && File.GetLastWriteTimeUtc(cmakePresets) > destinationWriteTime;
         }
 
-        internal static bool HasFilesNewerThan(this string directory, DateTime referenceUtc)
+        private static bool HasFilesNewerThan(string directory, DateTime referenceUtc)
         {
             foreach (var filePath in Directory.EnumerateFiles(directory, "*", SearchOption.AllDirectories))
             {
@@ -314,6 +290,31 @@ namespace YARG.Editor.YargAudio
             }
 
             return false;
+        }
+
+        private enum BuildOutcome
+        {
+            Success,
+            ConfigureFailed,
+            BuildFailed,
+        }
+
+        private readonly struct PluginInfo
+        {
+            public string ConfigurePreset { get; }
+            public string BuildPreset { get; }
+            public string BinaryName { get; }
+            public string DestinationDirectory { get; }
+
+            public string DestinationBinaryPath => Path.Combine(DestinationDirectory, BinaryName);
+
+            public PluginInfo(string configurePreset, string buildPreset, string binaryName, string destinationDirectory)
+            {
+                ConfigurePreset = configurePreset;
+                BuildPreset = buildPreset;
+                BinaryName = binaryName;
+                DestinationDirectory = destinationDirectory;
+            }
         }
     }
 }

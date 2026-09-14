@@ -24,9 +24,10 @@ namespace YARG.Audio.BASS.Effects
         internal static BassNativeOneShotStream? Create(int sampleRate, int channels,
             float[] sample, double[] schedule, double leadTime)
         {
-            if (!sampleRate.IsValidSampleRate() || !channels.IsValidChannelCount() ||
-                !sample.IsValidSampleBuffer(channels) || schedule == null ||
-                !leadTime.IsValidLeadTime())
+            if (sampleRate <= 0 || channels <= 0 || sample == null || schedule == null ||
+                sample.Length == 0 ||
+                sample.Length % channels != 0 || double.IsNaN(leadTime) ||
+                double.IsInfinity(leadTime) || leadTime < 0)
             {
                 return null;
             }
@@ -207,13 +208,13 @@ namespace YARG.Audio.BASS.Effects
         {
             lock (_lifecycleLock)
             {
-                if (!volume.IsFinite())
+                if (double.IsNaN(volume) || double.IsInfinity(volume))
                 {
                     return false;
                 }
 
                 var value = (float) volume;
-                if (!value.IsFinite())
+                if (float.IsNaN(value) || float.IsInfinity(value))
                 {
                     return false;
                 }
@@ -280,24 +281,5 @@ namespace YARG.Audio.BASS.Effects
             internal uint Reserved;
             internal double LeadTime;
         }
-    }
-
-    internal static class BassNativeOneShotStreamExtensions
-    {
-        internal static bool IsValidSampleRate(this int sampleRate) => sampleRate > 0;
-
-        internal static bool IsValidChannelCount(this int channels) => channels > 0;
-
-        internal static bool IsValidSampleBuffer(this float[]? sample, int channels) =>
-            sample != null && sample.Length > 0 && sample.Length % channels == 0;
-
-        internal static bool IsValidLeadTime(this double leadTime) =>
-            !double.IsNaN(leadTime) && !double.IsInfinity(leadTime) && leadTime >= 0;
-
-        internal static bool IsFinite(this double value) =>
-            !double.IsNaN(value) && !double.IsInfinity(value);
-
-        internal static bool IsFinite(this float value) =>
-            !float.IsNaN(value) && !float.IsInfinity(value);
     }
 }

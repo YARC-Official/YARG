@@ -62,30 +62,32 @@ namespace YARG.Audio.BASS.Native
             EnsureLoaded();
         }
 
-        public static void Reload()
+        public static bool Reload()
         {
+            BindAll(IntPtr.Zero);
             _libraryHandle = IntPtr.Zero;
             _loadedPath = null;
-            EnsureLoaded();
+            return EnsureLoaded();
         }
 
-        public static void EnsureLoaded()
+        public static bool EnsureLoaded()
         {
             var libraryPath = GetLibraryPath();
             if (_libraryHandle != IntPtr.Zero && string.Equals(_loadedPath, libraryPath, StringComparison.OrdinalIgnoreCase))
             {
-                return;
+                return true;
             }
 
             var handle = LoadNativeLibrary(libraryPath);
             if (handle == IntPtr.Zero)
             {
-                return;
+                return false;
             }
 
             _libraryHandle = handle;
             _loadedPath = libraryPath;
             BindAll(handle);
+            return true;
         }
 
         internal static uint GetAbiVersion() =>
@@ -273,6 +275,11 @@ namespace YARG.Audio.BASS.Native
 
         private static T? GetFunction<T>(IntPtr handle, string name) where T : Delegate
         {
+            if (handle == IntPtr.Zero)
+            {
+                return null;
+            }
+
             var address = GetProcAddress(handle, name);
             if (address == IntPtr.Zero)
             {
@@ -321,7 +328,7 @@ namespace YARG.Audio.BASS.Native
 #else
         private static string GetLibraryPath()
         {
-            var dataPath = PathHelper.ApplicationDataPath ?? string.Empty;
+            var dataPath = PathHelper.ApplicationDataPath;
 #if UNITY_STANDALONE_OSX
             return Path.Combine(dataPath, "Plugins", "libyarg_audio.dylib");
 #elif UNITY_STANDALONE_LINUX
@@ -349,11 +356,6 @@ namespace YARG.Audio.BASS.Native
 
         private static IntPtr GetProcAddress(IntPtr handle, string symbol)
         {
-            if (handle == IntPtr.Zero)
-            {
-                return IntPtr.Zero;
-            }
-
 #if UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN
             return WindowsNative.GetProcAddress(handle, symbol);
 #elif UNITY_STANDALONE_LINUX || UNITY_EDITOR_LINUX

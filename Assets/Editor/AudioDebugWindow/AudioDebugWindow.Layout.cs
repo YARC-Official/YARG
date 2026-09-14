@@ -17,7 +17,6 @@ using YARG.Input;
 using YARG.Playback;
 using YARG.Settings;
 using YARG.Song;
-using YARG.Editor.YargAudio;
 
 namespace YARG.Editor
 {

@@ -19,12 +19,14 @@ namespace YARG.Editor
 
         private static void CleanupAudio()
         {
-            if (!BassAudioManager.HasActiveSession)
+            bool bassInitialized = Bass.CurrentDevice != -1;
+
+            GlobalAudioHandler.Close();
+
+            if (!bassInitialized)
             {
                 return;
             }
-
-            GlobalAudioHandler.Close();
 
 #if UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN
             int asioDeviceCount = 0;
