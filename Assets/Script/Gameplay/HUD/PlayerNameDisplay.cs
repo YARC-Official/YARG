@@ -1,4 +1,4 @@
-﻿using DG.Tweening;
+using DG.Tweening;
 using System;
 using System.Collections;
 using TMPro;
@@ -74,9 +74,14 @@ namespace YARG.Gameplay.HUD
         {
             _canvasGroup.alpha = 1f;
             yield return new WaitForSeconds(DisplayTime);
-            yield return _canvasGroup.DOFade(0f, FadeDuration).WaitForCompletion();
+            yield return _canvasGroup.DOFade(0f, FadeDuration).SetLink(gameObject).WaitForCompletion();
 
             gameObject.SetActive(false);
+        }
+
+        private void OnDisable()
+        {
+            _canvasGroup.DOKill();
         }
     }
 }

@@ -1,0 +1,9 @@
+# Provenance of the VLC assets committed to the repo (LibVLCSharp.dll,
+# libVLCUnityPlugin.{so,dylib} and the Assets/VLCUnity/ C# sources).
+# Managed by vlc/build.sh; committed together with the assets so we always
+# know which upstream commits the binaries were built from.
+libvlcsharp=333a98a54095c94c966c4fca117cd11cffeee919
+vlc-unity=f2bbedd5bc84f3e1e979a543f4341a9b9c370dff
+date=2026-09-01
+libvlc-macos-sdk=2b3db140
+libvlc-win64-sdk=2b3db140

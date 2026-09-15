@@ -11,6 +11,8 @@ namespace YARG.Gameplay.HUD
 {
     public class PracticeSectionMenu : GameplayBehaviour
     {
+        protected override bool DisableUntilSongStarts => false;
+
         private const int SECTION_VIEW_EXTRA = 10;
         private const float SCROLL_TIME = 1f / 60f;
 

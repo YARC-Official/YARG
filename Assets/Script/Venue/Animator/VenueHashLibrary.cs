@@ -180,8 +180,8 @@ namespace YARG.Venue
 
         public void Randomize(Animator animator)
         {
-            float value = UnityEngine.Random.Range(100f, 1f);
-            value = MathF.Round(value);
+            //end is max exclusive intended range is 1-100
+            float value = UnityEngine.Random.Range(1, 101);
             animator.SafeSetFloat(RNG, value);
         }
     }

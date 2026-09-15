@@ -303,6 +303,13 @@ namespace YARG.Gameplay.Player
             LaneElement.DefineLaneScale(Player.Profile.CurrentInstrument, _fiveLaneMode ? 5 : 4);
         }
 
+        protected override void ResetDifficulty(double time)
+        {
+            Engine.ReplaceChart(NoteTrack);
+            _fretArray.ResetAll();
+            base.ResetDifficulty(time);
+        }
+
         public override void ResetPracticeSection()
         {
             base.ResetPracticeSection();
@@ -447,6 +454,15 @@ namespace YARG.Gameplay.Player
             GameManager.ChangeStemReverbState(SongStem.Drums2, active);
             GameManager.ChangeStemReverbState(SongStem.Drums3, active);
             GameManager.ChangeStemReverbState(SongStem.Drums4, active);
+        }
+
+        public override void ChangeDifficulty(Difficulty difficulty)
+        {
+            base.ChangeDifficulty(difficulty);
+            NoteTrack.SetDrumActivationFlags(Player.Profile.StarPowerActivationType);
+            Notes = NoteTrack.Notes;
+
+            TrackView.ClosePlayerMenu();
         }
 
         protected override void ResetVisuals()
@@ -617,7 +633,7 @@ namespace YARG.Gameplay.Player
 
         protected override void ModifyLaneFromNote(LaneElement lane, DrumNote note)
         {
-            
+
             if (note.Pad == _wildcard)
             {
                 lane.ToggleFullWidth(true);

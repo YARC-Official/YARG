@@ -66,8 +66,16 @@ namespace YARG.Gameplay
 
         protected override void GameplayDestroy()
         {
-            Navigator.Instance.NavigationEvent -= OnNavigationEvent;
-            _practiceHud.GuidePitchToggleRequested -= OnGuidePitchToggleRequested;
+            if (Navigator.Instance != null)
+            {
+                Navigator.Instance.NavigationEvent -= OnNavigationEvent;
+            }
+
+            if (_practiceHud != null)
+            {
+                _practiceHud.GuidePitchToggleRequested -= OnGuidePitchToggleRequested;
+            }
+
             _guidePitchManager?.Dispose();
         }
 

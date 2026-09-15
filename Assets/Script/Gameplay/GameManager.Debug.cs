@@ -5,6 +5,7 @@ using Cysharp.Text;
 using UnityEngine;
 using UnityEngine.InputSystem.LowLevel;
 using YARG.Assets.Script.Gameplay.Player;
+using YARG.Core;
 using YARG.Core.Audio;
 using YARG.Core.Chart;
 using YARG.Core.Extensions;
@@ -94,6 +95,8 @@ namespace YARG.Gameplay
         private string[] _debugMenuTitles;
         private int _debugMenuIndex = -1;
 
+        private Dictionary<int, Difficulty> _debugPlayerDifficulties = new();
+
         // Needed because of non-static methods being used as delegates
         private void InitializeDebug()
         {
@@ -114,6 +117,7 @@ namespace YARG.Gameplay
             {
                 var player = _players[i];
                 debugPlayers.Add($"{i + 1}: {player.Player.Profile.Name}");
+                _debugPlayerDifficulties.Add(i, player.Player.Profile.CurrentDifficulty);
             }
             _debugPlayers = debugPlayers.ToArray();
 
@@ -268,6 +272,8 @@ namespace YARG.Gameplay
 
             var player = _players[_debugSelectedPlayer];
 
+            PlayerDifficultySwap();
+
             using (DebugScrollView.Begin("Base Engine", VerticalGroupStyle,
                 ref _debugBaseEngineScroll, GUILayout.Height(125 * _debugGuiScale)))
             {
@@ -285,7 +291,7 @@ namespace YARG.Gameplay
                     text.Append("- Last queued input time: None\n");
                 text.AppendLine();
                 text.AppendLine("Indexes:");
-                text.AppendFormat("- Note index: {0}\n", engine.NoteIndex);
+                text.AppendFormat("- Note index: {0}/{1}\n", engine.NoteIndex, engine.NoteCount);
                 text.AppendFormat("- Solo index: {0}\n", engine.CurrentSoloIndex);
                 text.AppendFormat("- Star index: {0}\n", engine.CurrentStarIndex);
                 text.AppendFormat("- Countdown index: {0}\n", engine.CurrentWaitCountdownIndex);
@@ -360,6 +366,7 @@ namespace YARG.Gameplay
 
             string playerType = player switch
             {
+                SixFretGuitarPlayer => "Six Fret Guitar",
                 FiveFretGuitarPlayer => "Five Fret Guitar",
                 FiveLaneKeysPlayer => "Five Lane Keys",
                 DrumsPlayer => "Drums",
@@ -519,6 +526,54 @@ namespace YARG.Gameplay
                         break;
                 }
             }
+        }
+
+        private bool PlayerDifficultySwap()
+        {
+            if (_debugSelectedPlayer < 0 || _debugSelectedPlayer >= _players.Count)
+            {
+                return false;
+            }
+
+            var player = _players[_debugSelectedPlayer];
+
+            if (player is not TrackPlayer tp)
+            {
+                return false;
+            }
+
+            var lastSelected = _debugPlayerDifficulties[_debugSelectedPlayer];
+
+            GUILayout.BeginVertical("Difficulty Swap", VerticalGroupStyle);
+
+            var instrument = player.Player.Profile.CurrentInstrument;
+
+            var difficulties = new List<string>();
+            foreach (var diff in EnumExtensions<Difficulty>.Values)
+            {
+                if (Song.HasDifficultyForInstrument(instrument, diff))
+                {
+                    difficulties.Add(diff.ToString());
+                }
+            }
+            int difficultyCount = difficulties.Count;
+            int buttonStride = 20 / (difficultyCount - 1);
+            for (int i = 0; i < difficultyCount; i++)
+            {
+                difficulties[i] = EnumExtensions<Difficulty>.Values[i].ToString();
+            }
+
+            _debugPlayerDifficulties[_debugSelectedPlayer] = (Difficulty) GUILayout.SelectionGrid((int) lastSelected, difficulties.ToArray(), difficultyCount);
+            GUILayout.EndVertical();
+
+            var changed = _debugPlayerDifficulties[_debugSelectedPlayer] != lastSelected;
+
+            if (changed)
+            {
+                tp.ChangeDifficulty(_debugPlayerDifficulties[_debugSelectedPlayer]);
+            }
+
+            return changed;
         }
 
         private Vector2 _debugCalibrationScroll;

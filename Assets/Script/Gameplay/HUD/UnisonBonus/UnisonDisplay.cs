@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using DG.Tweening;
@@ -442,6 +442,20 @@ namespace YARG.Gameplay.HUD
         {
             YargLogger.LogTrace("Unison phrase completed successfully");
             _backgroundImage.sprite = _successSprite;
+            foreach (var (participantId, _) in _phrases[_currentPhraseIndex].Event.ParticipantToPhrase)
+            {
+                if (!_unisonState.TryGetValue(participantId, out var unisonState) || unisonState.HasFailedCurrentPhrase)
+                {
+                    continue;
+                }
+                var notesHit = unisonState.NotesHitInCurrentPhrase;
+                var noteCount = _phrases[_currentPhraseIndex].Event.ParticipantToPhrase[participantId].NoteCount;
+                if (notesHit < noteCount)
+                {
+                    unisonState.NotesHitInCurrentPhrase = noteCount;
+                    SetProgress(participantId);
+                }
+            }
             _completeSequence.Restart();
         }
 
@@ -571,8 +585,25 @@ namespace YARG.Gameplay.HUD
             }
         }
 
+        public void OnDifficultyChanged(int engineId)
+        {
+            if (_currentPhraseIndex >= _phrases.Count)
+            {
+                return;
+            }
+
+            var currentEvent = _phrases[_currentPhraseIndex].Event;
+            if (!currentEvent.ParticipantToPhrase.TryGetValue(engineId, out var participant))
+            {
+                return;
+            }
+            _activeUnisonObject.SetTotalNotes(engineId, participant.NoteCount);
+        }
+
         protected override void GameplayDestroy()
         {
+            _completeSequence?.Kill();
+
             foreach (var unsubAction in _unsubscribeActions)
             {
                 unsubAction();

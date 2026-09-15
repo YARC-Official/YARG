@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using DG.Tweening;
 using UnityEngine;
@@ -136,6 +136,7 @@ namespace YARG.Gameplay.HUD
                 .Append(_meterSpGlow.transform.DOScaleX(0.9f, 0.7f))
                 .SetEase(Ease.InOutSine)
                 .SetLoops(-1, LoopType.Yoyo)
+                .Pause()
                 .SetLink(_meterSpGlow.gameObject)
                 .SetAutoKill(false);
 
@@ -195,6 +196,12 @@ namespace YARG.Gameplay.HUD
             bool anyPlayerInSp = false;
             for (var i = _players.Count - 1; i >= 0; i--)
             {
+                if (!_engineManager.IsRegistered(_players[i]))
+                {
+                    HidePlayerMeter(i);
+                    continue;
+                }
+
                 if (_players[i].BaseEngine.BaseStats.IsStarPowerActive)
                 {
                     anyPlayerInSp = true;
@@ -203,7 +210,7 @@ namespace YARG.Gameplay.HUD
                 // Check if we will overlap another icon
                 for (var j = i; j >= 0; j--)
                 {
-                    if (j == i)
+                    if (j == i || !_engineManager.IsRegistered(_players[j]))
                     {
                         // Ignore self
                         continue;
@@ -349,14 +356,70 @@ namespace YARG.Gameplay.HUD
             }
         }
 
-        private static MeterColor GetMeterColor(float happiness)
+        private void HidePlayerMeter(int index)
         {
-            return happiness switch
+            if (_playerSliders[index].gameObject.activeSelf)
+            {
+                _playerSliders[index].gameObject.SetActive(false);
+                _needleSliders[index].gameObject.SetActive(false);
+                _playerHappinessTweeners[index].Pause();
+                _needleHappinessTweeners[index].Pause();
+                _xposTweeners[index].Pause();
+            }
+        }
+
+        private static MeterColor GetMeterColor(float happiness) =>
+            happiness switch
             {
                 < 0.333f => MeterColor.Red,
                 < 0.666f => MeterColor.Yellow,
                 _        => MeterColor.Green
             };
+
+        private void OnDestroy()
+        {
+            _meterRedTweener?.Kill();
+            _meterYellowTweener?.Kill();
+            _meterGreenTweener?.Kill();
+            _bandFillTweener?.Kill();
+            _meterPositionTweener?.Kill();
+            _meterGlowFillTweener?.Kill();
+            _meterGlowPulseSequence?.Kill();
+
+            if (_xposTweeners != null)
+            {
+                foreach (var tween in _xposTweeners)
+                {
+                    tween?.Kill();
+                }
+            }
+
+            if (_needleSliders != null)
+            {
+                foreach (var slider in _needleSliders)
+                {
+                    if (slider != null && slider.handleRect != null)
+                    {
+                        slider.handleRect.DOKill();
+                    }
+                }
+            }
+
+            if (_playerHappinessTweeners != null)
+            {
+                foreach (var tween in _playerHappinessTweeners)
+                {
+                    tween?.Kill();
+                }
+            }
+
+            if (_needleHappinessTweeners != null)
+            {
+                foreach (var tween in _needleHappinessTweeners)
+                {
+                    tween?.Kill();
+                }
+            }
         }
 
         private enum MeterColor
@@ -365,5 +428,11 @@ namespace YARG.Gameplay.HUD
             Yellow,
             Green
         }
+    }
+
+    internal static class FailMeterExtensions
+    {
+        public static bool IsRegistered(this EngineManager engineManager, EngineManager.EngineContainer player) =>
+            engineManager.Engines.Contains(player);
     }
 }

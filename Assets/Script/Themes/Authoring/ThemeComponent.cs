@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using YARG.Helpers;
@@ -22,6 +22,8 @@ namespace YARG.Themes
         [SerializeField]
         private GameObject _fiveFretNotes;
         [SerializeField]
+        private GameObject _sixFretNotes;
+        [SerializeField]
         private GameObject _fourLaneNotes;
         [SerializeField]
         private GameObject _fiveLaneNotes;
@@ -31,6 +33,8 @@ namespace YARG.Themes
         [Space]
         [SerializeField]
         private GameObject _fiveFretFret;
+        [SerializeField]
+        private GameObject _sixFretFret;
         [SerializeField]
         private GameObject _fourLaneFret;
         [SerializeField]
@@ -53,10 +57,11 @@ namespace YARG.Themes
             var parent = style switch
             {
                 VisualStyle.FiveFretGuitar or
-                VisualStyle.FiveLaneKeys => _fiveFretNotes,
-                VisualStyle.FourLaneDrums => _fourLaneNotes,
-                VisualStyle.FiveLaneDrums => _fiveLaneNotes,
-                VisualStyle.ProKeys => _proKeysNotes,
+                VisualStyle.FiveLaneKeys   => _fiveFretNotes,
+                VisualStyle.SixFretGuitar  => _sixFretNotes,
+                VisualStyle.FourLaneDrums  => _fourLaneNotes,
+                VisualStyle.FiveLaneDrums  => _fiveLaneNotes,
+                VisualStyle.ProKeys        => _proKeysNotes,
                 _ => null // future VisualStyle values — caller falls back to default
             };
 
@@ -95,8 +100,9 @@ namespace YARG.Themes
             {
                 VisualStyle.FiveFretGuitar or
                 VisualStyle.FiveLaneKeys => _fiveFretFret,
-                VisualStyle.FourLaneDrums => _fourLaneFret,
-                VisualStyle.FiveLaneDrums => _fiveLaneFret,
+                VisualStyle.SixFretGuitar  => _sixFretFret,
+                VisualStyle.FourLaneDrums  => _fourLaneFret,
+                VisualStyle.FiveLaneDrums  => _fiveLaneFret,
                 _ => null // future VisualStyle values — caller falls back to default
             };
         }
@@ -124,6 +130,7 @@ namespace YARG.Themes
                 supportedStyles.Add(VisualStyle.FiveFretGuitar);
                 supportedStyles.Add(VisualStyle.FiveLaneKeys);
             }
+            if (_sixFretNotes != null) supportedStyles.Add(VisualStyle.SixFretGuitar);
             if (_fourLaneNotes != null) supportedStyles.Add(VisualStyle.FourLaneDrums);
             if (_fiveLaneNotes != null) supportedStyles.Add(VisualStyle.FiveLaneDrums);
             if (_proKeysNotes != null) supportedStyles.Add(VisualStyle.ProKeys);

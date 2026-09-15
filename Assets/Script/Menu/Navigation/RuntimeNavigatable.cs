@@ -345,7 +345,7 @@ namespace YARG.Menu.Navigation
 
             if (Navigator.Instance == null) return;
 
-            Navigator.Instance.PushScheme(new NavigationScheme(new()
+            _ = Navigator.Instance.PushScheme(new NavigationScheme(new()
             {
                 new NavigationScheme.Entry(MenuAction.Up, "Menu.Common.Previous", () =>
                 {
