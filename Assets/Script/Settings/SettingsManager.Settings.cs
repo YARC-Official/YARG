@@ -407,6 +407,7 @@ namespace YARG.Settings
             {
                 AutomaticPlaybackBuffer = new(true, AutomaticPlaybackBufferChanged);
                 PlaybackBufferLength.EditableWhen = () => !AutomaticPlaybackBuffer.Value;
+                MuteOnlyWhenAllPlayersMiss.EditableWhen = () => MuteOnMiss.Value != AudioFxMode.Off;
             }
 
             public SliderSetting MicrophoneSensitivity { get; } = new(2f, -50f, 50f);
@@ -417,6 +418,8 @@ namespace YARG.Settings
                 AudioFxMode.MultitrackOnly,
                 AudioFxMode.On
             };
+
+            public ToggleSetting MuteOnlyWhenAllPlayersMiss { get; } = new(false);
 
             public DropdownSetting<AudioFxMode> UseStarpowerFx { get; } = new(AudioFxMode.On)
             {
