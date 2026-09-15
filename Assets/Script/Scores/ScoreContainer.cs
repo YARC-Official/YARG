@@ -283,9 +283,10 @@ namespace YARG.Scores
             }
 
             var player = PlayerContainer.Players.First(entry => !entry.Profile.IsBot);
-            playerScoreRecord = player.Profile.GameMode == GameMode.EliteDrums
+            var drumInstruments = MidiDrumkitHelper.GetInstruments(player.Profile.GameMode);
+            playerScoreRecord = drumInstruments != null
                 ? GetPreferredHighScoreForInstruments(
-                    songChecksum, player.Profile.Id, MidiDrumkitHelper.Instruments)
+                    songChecksum, player.Profile.Id, drumInstruments)
                 : GetPreferredHighScore(
                     songChecksum, player.Profile.Id, player.Profile.CurrentInstrument);
         }
@@ -549,9 +550,10 @@ namespace YARG.Scores
         {
             try
             {
-                List<PlayerScoreWithChecksum> records = profile.GameMode == GameMode.EliteDrums
+                var drumInstruments = MidiDrumkitHelper.GetInstruments(profile.GameMode);
+                List<PlayerScoreWithChecksum> records = drumInstruments != null
                     ? _db.QueryPlayerBestStarsForInstruments(
-                        profile, MidiDrumkitHelper.Instruments, SettingsManager.Settings.HighScoreHistory.Value,
+                        profile, drumInstruments, SettingsManager.Settings.HighScoreHistory.Value,
                         SongContainer.SongsByHash.Keys, SongContainer.LibraryRevision)
                     : _db.QueryPlayerBestStars(
                         profile, SettingsManager.Settings.HighScoreHistory.Value, SongContainer.SongsByHash.Keys,
