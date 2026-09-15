@@ -2,6 +2,7 @@
 using System;
 using System.Runtime.InteropServices;
 using Microsoft.Win32.SafeHandles;
+using YARG.Audio.BASS.Native;
 using YARG.Core.Audio;
 using YARG.Core.Logging;
 
@@ -62,7 +63,7 @@ namespace YARG.Audio.BASS.Effects
 
             try
             {
-                uint nativeVersion = Native.GetAbiVersion();
+                var nativeVersion = YargAudioBindings.GetAbiVersion();
                 if (nativeVersion != BassHelpers.YARG_AUDIO_ABI_VERSION)
                 {
                     YargLogger.LogFormatError(
@@ -71,7 +72,7 @@ namespace YARG.Audio.BASS.Effects
                     return null;
                 }
 
-                int result = Native.Create(ref config, out var dsp);
+                int result = YargAudioBindings.SineSynthDspCreate(in config, out var dsp);
                 if (result == 0 && dsp != null && !dsp.IsInvalid)
                 {
                     return dsp;
@@ -103,7 +104,7 @@ namespace YARG.Audio.BASS.Effects
                     Detach_NoLock();
                 }
 
-                int result = Native.Attach(this, unchecked((uint) channelHandle), priority,
+                int result = YargAudioBindings.SineSynthDspAttach(this, unchecked((uint) channelHandle), priority,
                     out int bassError);
                 if (result != 0)
                 {
@@ -136,7 +137,7 @@ namespace YARG.Audio.BASS.Effects
             // Native tolerates the channel already being freed, which is the teardown case.
             // Anything else means the DSP is still installed on a live mixer, so keep the
             // handle: clearing it would let Reattach install a second DSP on the same mixer.
-            int result = Native.Detach(this, out int bassError);
+            int result = YargAudioBindings.SineSynthDspDetach(this, out int bassError);
             if (result != 0)
             {
                 YargLogger.LogFormatError("Failed to detach {0} from mixer {1}: result={2}, BASS={3}.",
@@ -169,7 +170,7 @@ namespace YARG.Audio.BASS.Effects
 
             fixed (NativeSegment* pointer = native)
             {
-                int result = Native.SetSchedule(this, (IntPtr) pointer, (ulong) segments.Length,
+                int result = YargAudioBindings.SineSynthDspSetSchedule(this, (IntPtr) pointer, (ulong) segments.Length,
                     out int bassError);
                 if (result == 0)
                 {
@@ -193,7 +194,7 @@ namespace YARG.Audio.BASS.Effects
                 return false;
             }
 
-            return Native.SetTiming(this, songTimeOffset, playbackSpeed) == 0;
+            return YargAudioBindings.SineSynthDspSetTiming(this, songTimeOffset, playbackSpeed) == 0;
         }
 
         /// <summary>
@@ -209,18 +210,14 @@ namespace YARG.Audio.BASS.Effects
                 return false;
             }
 
-            return Native.SetOutputChannel(this, outputChannel) == 0;
+            return YargAudioBindings.SineSynthDspSetOutputChannel(this, outputChannel) == 0;
         }
 
-        protected override bool ReleaseHandle()
-        {
-            return Native.Destroy(handle) == 0;
-        }
+        protected override bool ReleaseHandle() =>
+            YargAudioBindings.SineSynthDspDestroy(handle) == 0;
 
-        private static bool IsFinite(float value)
-        {
-            return !float.IsNaN(value) && !float.IsInfinity(value);
-        }
+        private static bool IsFinite(float value) =>
+            !float.IsNaN(value) && !float.IsInfinity(value);
 
         /// <summary>
         /// Mirrors yarg_tone_segment. Field order and types are fixed by the plugin ABI.
@@ -243,53 +240,13 @@ namespace YARG.Audio.BASS.Effects
         }
 
         [StructLayout(LayoutKind.Sequential)]
-        private struct NativeConfig
+        internal struct NativeConfig
         {
             public uint  Size;
             public uint  TempoStream;
             public float Volume;
             public float FadeSeconds;
             public uint  OutputChannel;
-        }
-
-        private static class Native
-        {
-            private const string LIBRARY = "yarg_audio";
-
-            [DllImport(LIBRARY, EntryPoint = "yarg_audio_get_abi_version",
-                CallingConvention = CallingConvention.Cdecl)]
-            internal static extern uint GetAbiVersion();
-
-            [DllImport(LIBRARY, EntryPoint = "yarg_sine_synth_dsp_create",
-                CallingConvention = CallingConvention.Cdecl)]
-            internal static extern int Create(ref NativeConfig config, out BassSineSynthDsp dsp);
-
-            [DllImport(LIBRARY, EntryPoint = "yarg_sine_synth_dsp_attach",
-                CallingConvention = CallingConvention.Cdecl)]
-            internal static extern int Attach(BassSineSynthDsp dsp, uint channel, int priority,
-                out int bassError);
-
-            [DllImport(LIBRARY, EntryPoint = "yarg_sine_synth_dsp_detach",
-                CallingConvention = CallingConvention.Cdecl)]
-            internal static extern int Detach(BassSineSynthDsp dsp, out int bassError);
-
-            [DllImport(LIBRARY, EntryPoint = "yarg_sine_synth_dsp_set_schedule",
-                CallingConvention = CallingConvention.Cdecl)]
-            internal static extern int SetSchedule(BassSineSynthDsp dsp, IntPtr segments, ulong segmentCount,
-                out int bassError);
-
-            [DllImport(LIBRARY, EntryPoint = "yarg_sine_synth_dsp_set_timing",
-                CallingConvention = CallingConvention.Cdecl)]
-            internal static extern int SetTiming(BassSineSynthDsp dsp, double songTimeOffset,
-                float playbackSpeed);
-
-            [DllImport(LIBRARY, EntryPoint = "yarg_sine_synth_dsp_set_output_channel",
-                CallingConvention = CallingConvention.Cdecl)]
-            internal static extern int SetOutputChannel(BassSineSynthDsp dsp, uint outputChannel);
-
-            [DllImport(LIBRARY, EntryPoint = "yarg_sine_synth_dsp_destroy",
-                CallingConvention = CallingConvention.Cdecl)]
-            internal static extern int Destroy(IntPtr dsp);
         }
     }
 }
