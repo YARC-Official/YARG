@@ -318,15 +318,15 @@ namespace YARG.Menu.DifficultySelect
             RefreshScrollbar();
         }
 
-        // Get the charter-rated tier values for an instrument. Harmony reads from
-        // HarmonyVocals, which is empty on solo-only songs (no harmony chart) —
-        // fall back to the lead vocals tier so the ring still shows meaningful
-        // data instead of the dimmed state.
+        // Get the charter-rated tier values for an instrument. Harmony and party
+        // vocals read from HarmonyVocals, which is empty on solo-only songs (no
+        // harmony chart) — fall back to the lead vocals tier so the ring still
+        // shows meaningful data instead of the dimmed state.
         private static PartValues GetTierValues(SongEntry song, Instrument instrument)
         {
             var tierValues = song[instrument];
 
-            if (instrument is Instrument.Harmony && !tierValues.IsActive())
+            if (instrument is Instrument.Harmony or Instrument.PartyVocals && !tierValues.IsActive())
             {
                 tierValues = song[Instrument.Vocals];
             }
@@ -336,14 +336,14 @@ namespace YARG.Menu.DifficultySelect
 
         // Resolve the bare Addressable icon name for the ring. Handles the 22-fret
         // pro-instrument gap (ToResourceName returns null for ProGuitar_22Fret /
-        // ProBass_22Fret) and selects the part-count mic icon for harmony based on
-        // the song's vocal part count.
+        // ProBass_22Fret) and selects the part-count mic icon for harmony and
+        // party vocals based on the song's vocal part count.
         private static string GetInstrumentRingAsset(Instrument instrument, int vocalPartCount)
             => instrument switch
         {
             Instrument.ProGuitar_22Fret => "realGuitar",
             Instrument.ProBass_22Fret   => "realBass",
-            Instrument.Harmony => vocalPartCount switch
+            Instrument.Harmony or Instrument.PartyVocals => vocalPartCount switch
             {
                 >= 3 => "harmVocals",
                 2    => "twoVocals",
