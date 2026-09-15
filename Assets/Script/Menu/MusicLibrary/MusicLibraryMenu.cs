@@ -1109,6 +1109,7 @@ namespace YARG.Menu.MusicLibrary
             public readonly string HeaderStableId;
             public readonly string HeaderFirstSongContentStableId;
             public readonly string HeaderPreviousSongContentStableId;
+            public readonly bool SelectionWasRecommended;
             public readonly bool PreserveIndexOnDynamicSort; // Sorted by Playcount or Stars
             public readonly ScoreContext ScoreContext;
 
@@ -1119,6 +1120,7 @@ namespace YARG.Menu.MusicLibrary
                 string headerStableId,
                 string headerFirstSongContentStableId,
                 string headerPreviousSongContentStableId,
+                bool selectionWasRecommended,
                 bool preserveIndexOnDynamicSort,
                 ScoreContext scoreContext)
             {
@@ -1128,6 +1130,7 @@ namespace YARG.Menu.MusicLibrary
                 HeaderStableId = headerStableId;
                 HeaderFirstSongContentStableId = headerFirstSongContentStableId;
                 HeaderPreviousSongContentStableId = headerPreviousSongContentStableId;
+                SelectionWasRecommended = selectionWasRecommended;
                 PreserveIndexOnDynamicSort = preserveIndexOnDynamicSort;
                 ScoreContext = scoreContext;
             }
@@ -1140,6 +1143,9 @@ namespace YARG.Menu.MusicLibrary
             string selectedSongContentStableId = (CurrentSelection as SongViewType)?.ContentStableId;
             bool selectedIsHeader = CurrentSelection is SortHeaderViewType or CategoryViewType;
             string selectedStableId = selectedIsHeader ? null : CurrentSelection?.StableId;
+            bool selectionWasRecommended = _recommendedHeaderIndex >= 0 &&
+                selectedIndex >= _recommendedHeaderIndex &&
+                selectedIndex <= _recommendedHeaderIndex + (_recommendedSongs?.Length ?? 0);
 
             // Header context
             string headerStableId = null;
@@ -1195,12 +1201,20 @@ namespace YARG.Menu.MusicLibrary
                 headerStableId,
                 headerFirstSongContentStableId,
                 headerPreviousSongContentStableId,
+                selectionWasRecommended,
                 preserveIndexOnDynamicSort,
                 ScoreContext.Capture());
         }
 
         private void RestoreSelectionSnapshot(SelectionSnapshot snapshot)
         {
+            if (snapshot.SelectionWasRecommended && _recommendedHeaderIndex >= 0)
+            {
+                int lastRecommendedIndex = _recommendedHeaderIndex + (_recommendedSongs?.Length ?? 0);
+                SelectedIndex = Mathf.Clamp(snapshot.SelectedIndex, _recommendedHeaderIndex, lastRecommendedIndex);
+                return;
+            }
+
             bool dynamicSortContextChanged =
                 IsDynamicScoreSort(SettingsManager.Settings.LibrarySort) &&
                 !snapshot.ScoreContext.Equals(ScoreContext.Capture());
