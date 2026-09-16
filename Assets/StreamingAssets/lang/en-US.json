@@ -1122,7 +1122,9 @@
 			"EliteDrums": "For Drums Gameplay",
 			"ProKeys": "For Keys Gameplay",
 			"ProGuitar": "For Pro Guitar Gameplay",
-		}
+			"Vocals": "For Vocal Gameplay"
+		},
+		"Hardcoded": "Built-In"
     },
     "Settings": {
         "Tab": {

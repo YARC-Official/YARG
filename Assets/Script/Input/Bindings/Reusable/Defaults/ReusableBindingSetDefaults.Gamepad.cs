@@ -105,11 +105,36 @@ namespace YARG.Input.Bindings
             },
         };
 
+        private static Dictionary<string, ReusableControlBinding> _gamepadVocalDefaults = new()
+        {
+            {
+                ControlStrings.VOCAL_HIT,
+                new ReusableButtonBinding(
+                    ReusableBindingSetTemplates.VOCALS[ControlStrings.VOCAL_HIT],
+                    new ReusableSingleButtonBindingConfig(ControllerFamily.Gamepad, nameof(Gamepad.buttonSouth))
+                )
+            },
+            {
+                ControlStrings.VOCAL_STAR_POWER,
+                new ReusableButtonBinding(
+                    ReusableBindingSetTemplates.VOCALS[ControlStrings.VOCAL_STAR_POWER],
+                    new ReusableSingleButtonBindingConfig(ControllerFamily.Gamepad, "select")
+                )
+            },
+        };
+
         public static ReusableBindingSet DefaultGamepadMenu = MakeHardcodedBindingSet(
             "Default Gamepad Menu",
             GameMode.Menu,
             ControllerFamily.Gamepad,
             _gamepadMenuDefaults
+        );
+
+        public static ReusableBindingSet DefaultGamepadVocalGameplay = MakeHardcodedBindingSet(
+            "Default Gamepad Vocals",
+            GameMode.Vocals,
+            ControllerFamily.Gamepad,
+            _gamepadVocalDefaults
         );
     }
 }

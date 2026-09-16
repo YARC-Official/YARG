@@ -6,6 +6,7 @@ using UnityEngine;
 using YARG.Core.Game;
 using YARG.Core.Logging;
 using YARG.Input.Bindings;
+using YARG.Localization;
 using YARG.Menu.Navigation;
 using static UnityEditor.AddressableAssets.Build.Layout.BuildLayout;
 
@@ -36,7 +37,11 @@ namespace YARG.Menu.ProfileList
 
         public void UpdateDisplay(ReusableBindingSet bindingSet)
         {
-            _bindingSetName.text = bindingSet.Name + (bindingSet.IsHardcoded ? " <i><sup>(Built-In)</sup></i>" : string.Empty);
+            _bindingSetName.text = bindingSet.Name +
+                (bindingSet.IsHardcoded ?
+                    $" <i><sup>({Localize.Key("Bindings.Hardcoded")})</sup></i>" :
+                    string.Empty
+                );
         }
 
         protected override void OnSelectionChanged(bool selected)

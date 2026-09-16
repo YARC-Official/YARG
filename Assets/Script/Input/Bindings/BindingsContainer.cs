@@ -99,6 +99,7 @@ namespace YARG.Input.Bindings
                 new()
                 {
                     { GameMode.Menu, new() { ReusableBindingSetDefaults.DefaultGamepadMenu }},
+                    { GameMode.Vocals, new() { ReusableBindingSetDefaults.DefaultGamepadVocalGameplay } }
                 }
             }
         };
