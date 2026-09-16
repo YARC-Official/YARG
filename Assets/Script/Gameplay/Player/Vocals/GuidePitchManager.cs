@@ -38,6 +38,7 @@ namespace YARG.Gameplay.Player
         private bool IsHarmony => _vocalsTrack.Instrument is Instrument.Harmony or Instrument.PartyVocals;
 
         private readonly ToneChannel           _toneChannel;
+        private readonly VocalTrack            _vocalTrack;
         private readonly VocalsTrack           _vocalsTrack;
         private readonly Action<string, Color> _statusChanged;
 
@@ -68,16 +69,17 @@ namespace YARG.Gameplay.Player
                 return null;
             }
 
-            var manager = new GuidePitchManager(toneChannel, vocalTrack.OriginalVocalsTrack,
+            var manager = new GuidePitchManager(toneChannel, vocalTrack, vocalTrack.OriginalVocalsTrack,
                 statusChanged);
             manager.NotifyStatusChanged();
             return manager;
         }
 
-        private GuidePitchManager(ToneChannel toneChannel, VocalsTrack vocalsTrack,
+        private GuidePitchManager(ToneChannel toneChannel, VocalTrack vocalTrack, VocalsTrack vocalsTrack,
             Action<string, Color> statusChanged)
         {
             _toneChannel = toneChannel;
+            _vocalTrack = vocalTrack;
             _vocalsTrack = vocalsTrack;
             _statusChanged = statusChanged;
         }
@@ -125,7 +127,16 @@ namespace YARG.Gameplay.Player
             NotifyStatusChanged();
         }
 
-        public void Dispose() => _toneChannel.Dispose();
+        public void Dispose()
+        {
+            // Reset the vocal track's guide-pitch state in case it outlives this manager.
+            if (_vocalTrack != null)
+            {
+                _vocalTrack.SetGuidePitchPart(-1);
+            }
+
+            _toneChannel.Dispose();
+        }
 
         /// <summary>
         /// Pushes the current part's schedule to the backend. A rejected schedule leaves the previous
@@ -144,7 +155,14 @@ namespace YARG.Gameplay.Player
             _toneChannel.SetSchedule(ReadOnlySpan<ToneSegment>.Empty);
         }
 
-        private void NotifyStatusChanged() => _statusChanged?.Invoke(GetStatusString(), GetStatusColor());
+        private void NotifyStatusChanged()
+        {
+            // Keep the vocal track's note visuals in sync: while guide pitch is on, note
+            // visuals of unselected harmony parts render desaturated.
+            _vocalTrack.SetGuidePitchPart(_enabledHarmonyIndex);
+
+            _statusChanged?.Invoke(GetStatusString(), GetStatusColor());
+        }
 
         private string GetStatusString()
         {
