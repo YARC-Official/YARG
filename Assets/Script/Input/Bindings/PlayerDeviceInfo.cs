@@ -86,7 +86,7 @@ namespace YARG.Input
             }
         }*/
 
-        /* TODO-FRICK: This happens in an individual RuntimeBindingSet for Menu "mode" now, right?
+        
         public event GameInputProcessed MenuInputProcessed
         {
             add
@@ -103,7 +103,7 @@ namespace YARG.Input
                     menuBinds.InputProcessed -= value;
                 }
             }
-        }*/
+        }
 
         public PlayerDeviceInfo() { }
 
@@ -552,7 +552,7 @@ namespace YARG.Input
                 var defaults = BindingsContainer.GetBindingSetsForControllerInMode(family, mode);
                 if (defaults.Count > 0)
                 {
-                    runtimeBindings = defaults.First().GetRuntimeBindings(Profile, controller); // TODO-FRICK: Impl WireUp
+                    runtimeBindings = defaults.First().GetRuntimeBindings(Profile, controller);
 
                     // TODO-FRICK: Also look for better-match defaults beyond the first, like giving a Riffmaster the "Default Riffmaster
                     // Gameplay" set instead of "Default 5F Guitar Gameplay"
