@@ -46,6 +46,7 @@ namespace YARG.Input.Bindings
                 GameMode.FiveLaneDrums =>   FIVE_LANE_DRUMKIT,
                 GameMode.ProKeys =>         KEYS,
                 GameMode.EliteDrums =>      ELITE_DRUMS,
+                GameMode.Vocals =>          VOCALS,
                 _ =>                        new()
             };
         }

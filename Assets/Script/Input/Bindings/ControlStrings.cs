@@ -126,7 +126,7 @@ namespace YARG.Input.Bindings
 
 
 
-    public const string DPAD_UP = "dpad/up";
+        public const string DPAD_UP = "dpad/up";
         public const string DPAD_DOWN = "dpad/down";
         public const string DPAD_LEFT = "dpad/left";
         public const string DPAD_RIGHT = "dpad/right";
@@ -135,5 +135,9 @@ namespace YARG.Input.Bindings
         public const string JOYSTICK_DOWN = "joystick/down";
         public const string JOYSTICK_LEFT = "joystick/left";
         public const string JOYSTICK_RIGHT = "joystick/right";
+
+
+        public const string VOCAL_HIT = "Vocals.Hit";
+        public const string VOCAL_STAR_POWER = "Vocals.StarPower";
     }
 }
