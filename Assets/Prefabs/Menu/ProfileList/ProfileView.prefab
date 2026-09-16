@@ -849,7 +849,7 @@ PrefabInstance:
       value: Disconnect
       objectReference: {fileID: 0}
     - target: {fileID: 5240628994194081110, guid: f6ac2a9c2f684f84792c7d7cd00ba18c, type: 3}
-      propertyPath: 'm_ActiveFontFeatures.Array.data[0]'
+      propertyPath: m_ActiveFontFeatures.Array.data[0]
       value: 1801810542
       objectReference: {fileID: 0}
     m_RemovedComponents: []

@@ -31,6 +31,21 @@ namespace YARG.Input.Bindings
             IsHardcoded = isHardcoded;
         }
 
+        // For making a copy
+        public ReusableBindingSet(ReusableBindingSet original) : this($"Copy of {original.Name}", original.Mode, original.ControllerFamily)
+        {
+            foreach (var (key, binding) in original.Bindings)
+            {
+                Bindings[key] = binding switch
+                {
+                    ReusableButtonBinding button => new ReusableButtonBinding(button),
+                    ReusableAxisBinding axis => new ReusableAxisBinding(axis),
+                    ReusableIntegerBinding integer => new ReusableIntegerBinding(integer),
+                    _ => throw new ArgumentOutOfRangeException("Unreachable."),
+                };
+            }
+        }
+
         public ReusableBindingSet(SerializedReusableBindingSet serialized)
         {
             Name = serialized.Name;

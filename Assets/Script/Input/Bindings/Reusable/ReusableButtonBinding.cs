@@ -19,6 +19,16 @@ namespace YARG.Input.Bindings
         public ReusableButtonBinding(InputActionInfo info, ReusableSingleButtonBindingConfig control)
             : this(info, new List<ReusableSingleButtonBindingConfig>() { control }) { }
 
+        public ReusableButtonBinding(ReusableButtonBinding original) : base(original)
+        {
+            DebounceThreshold = original.DebounceThreshold;
+
+            foreach (var binding in original.Bindings)
+            {
+                Bindings.Add(new(binding));
+            }
+        }
+
         public ReusableButtonBinding(InputActionInfo info, List<ReusableSingleButtonBindingConfig> controls) : base(info)
         {
             foreach (var controlConfig in controls)
@@ -112,6 +122,14 @@ namespace YARG.Input.Bindings
             DebounceMode = config.DebounceMode ?? DEBOUNCE_MODE_DEFAULT;
             PressPoint = config.PressPoint ?? PRESS_POINT_DEFAULT;
             Inverted = config.Inverted ?? INVERTED_DEFAULT;
+        }
+
+        public ReusableSingleButtonBinding(ReusableSingleButtonBinding original) : base(original)
+        {
+            DebounceThreshold = original.DebounceThreshold;
+            DebounceMode = original.DebounceMode;
+            PressPoint = original.PressPoint;
+            Inverted = original.Inverted;
         }
 
         public ReusableSingleButtonBinding(SerializedSingleBinding serialized) : base(serialized)

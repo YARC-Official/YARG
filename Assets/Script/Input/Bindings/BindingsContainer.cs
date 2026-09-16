@@ -21,9 +21,9 @@ namespace YARG.Input.Bindings
         private static string BindingsPath => Path.Combine(PlayerContainer.ProfilesDirectory, "bindings.json");
         private static string BindingsBackupPath => Path.Combine(PlayerContainer.ProfilesDirectory, "bindings.json.bak");
 
-        private static readonly Dictionary<Guid, PlayerDeviceInfo> _profileBindings = new();
+        private static readonly Dictionary<Guid, PlayerDeviceInfo> _profileBindings = new(); // GUID is YargProfile GUID
 
-        private static readonly Dictionary<Guid, ReusableBindingSet> _allBindingCollectionsByGuid = new();
+        private static readonly Dictionary<Guid, ReusableBindingSet> _allBindingCollectionsByGuid = new(); // GUID is ReusableButtonBinding GUID
 
         private static readonly Dictionary<ControllerFamily, Dictionary<GameMode, List<ReusableBindingSet>>> _reusableBindingSetsByControllerFamily = new()
         {
@@ -253,6 +253,30 @@ namespace YARG.Input.Bindings
 
             BindingSerialization.SerializeBindings(serialized, path);
             return _profileBindings.Count;
+        }
+
+        public static void AddBindingSet(ReusableBindingSet newSet)
+        {
+            _allBindingCollectionsByGuid[newSet.Guid] = newSet;
+
+            if (!_reusableBindingSetsByControllerFamily.ContainsKey(newSet.ControllerFamily))
+            {
+                _reusableBindingSetsByControllerFamily[newSet.ControllerFamily] = new();
+            }
+
+            if (!_reusableBindingSetsByControllerFamily[newSet.ControllerFamily].ContainsKey(newSet.Mode))
+            {
+                _reusableBindingSetsByControllerFamily[newSet.ControllerFamily][newSet.Mode] = new();
+            }
+
+            _reusableBindingSetsByControllerFamily[newSet.ControllerFamily][newSet.Mode].Add(newSet);
+        }
+
+        public static void DeleteBindingSet(ReusableBindingSet bindingSet)
+        {
+            _allBindingCollectionsByGuid.Remove(bindingSet.Guid);
+            _reusableBindingSetsByControllerFamily[bindingSet.ControllerFamily][bindingSet.Mode].Remove(bindingSet);
+            
         }
 
         public static void ReleaseMicrophones()
