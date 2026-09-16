@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using UnityEngine;
 using UnityEngine.UI;
@@ -113,13 +114,45 @@ namespace YARG.Menu.ProfileList
         {
             base.PopulateControlDropdown();
 
+            // Organize available controls by how likely they are to be relevant to an axis binding; we don't want to frontload
+            // a bunch of buttons when the player is more likely to want a pitchwheel, accelerometer, CC dial, etc.
+            var midiPitchControls = new List<ControlItemInfo>();
+            var axisControls = new List<ControlItemInfo>();
+            var midiValueControls = new List<ControlItemInfo>();
+            var integerControls = new List<ControlItemInfo>();
+            var buttonControls = new List<ControlItemInfo>();
+            var keyControls = new List<ControlItemInfo>();
+            var otherControls = new List<ControlItemInfo>();
+
+
             foreach (var control in _allControls)
             {
-                if (control.Layout is LayoutStrings.AXIS or LayoutStrings.MIDI_VALUE or LayoutStrings.MIDI_PITCH)
+                var relevantList = control.Layout switch
                 {
-                    _dropdownControls.Add(control);
-                    _controlDropdown.options.Add(new(DisambiguateDisplayName(control)));
-                }
+                    LayoutStrings.MIDI_PITCH => midiPitchControls,
+                    LayoutStrings.AXIS => axisControls,
+                    LayoutStrings.MIDI_VALUE => midiValueControls,
+                    LayoutStrings.INTEGER => integerControls,
+                    LayoutStrings.BUTTON => buttonControls,
+                    LayoutStrings.KEY => keyControls,
+                    _ => otherControls
+                };
+
+                relevantList.Add(control);
+            }
+
+            _dropdownControls = midiPitchControls
+                .Concat(axisControls)
+                .Concat(midiValueControls)
+                .Concat(integerControls)
+                .Concat(buttonControls)
+                .Concat(keyControls)
+                .Concat(otherControls)
+                .ToList();
+
+            foreach (var control in _dropdownControls)
+            {
+                _controlDropdown.options.Add(new(DisambiguateDisplayName(control)));
             }
         }
 

@@ -101,6 +101,20 @@ namespace YARG.Input.Bindings
                     { GameMode.Menu, new() { ReusableBindingSetDefaults.DefaultGamepadMenu }},
                     { GameMode.Vocals, new() { ReusableBindingSetDefaults.DefaultGamepadVocalGameplay } }
                 }
+            },
+
+            {
+                ControllerFamily.ComputerKeyboard,
+                new()
+                {
+                    { GameMode.Menu, new() {
+                        ReusableBindingSetDefaults.DefaultComputerKeyboardMenu,
+                        ReusableBindingSetDefaults.ComputerKeyboardMenuArrowKeysOnly,
+                        ReusableBindingSetDefaults.ComputerKeyboardMenuWASDOnly,
+                    } },
+                    { GameMode.ProKeys, new() { ReusableBindingSetDefaults.DefaultComputerKeyboardKeysGameplay } },
+                    { GameMode.FiveLaneDrums, new() { ReusableBindingSetDefaults.DefaultComputerKeyboardFiveLaneDrumsGameplay } },
+                }
             }
         };
 

@@ -68,7 +68,7 @@ namespace YARG.Menu.ProfileList
             foreach (var control in _allControls)
             {
                 if (
-                    (control.Layout is LayoutStrings.BUTTON or LayoutStrings.MIDI_NOTE) ||
+                    (control.Layout is LayoutStrings.BUTTON or LayoutStrings.MIDI_NOTE or LayoutStrings.KEY) ||
                     (control.Layout is LayoutStrings.AXIS && control.ParentPath is null) // *
                     // * e.g., D-pad X- and Y-axes are not okay, because they're just aggregates of buttons
                     //   but Tilt is okay, because it's an axis in its own right
