@@ -42,6 +42,7 @@ namespace YARG.Gameplay.Player
         // Cached particle systems for dynamic color updates (Free Harmonies)
         private ParticleSystem[] _cachedParticleSystems;
         private int _displayedHarmonyIndex = -1;
+        private int _outlineHarmonyIndex = -1;
 
         public override bool ShouldUpdateInputsOnResume => false;
 
@@ -378,6 +379,15 @@ namespace YARG.Gameplay.Player
             base.UpdateInputs(time);
         }
 
+        /// <summary>
+        /// The harmony part whose color this player's visuals should currently show.
+        /// For Free Harmonies, this is the part the coordinator is matching right now;
+        /// for solo/harmony, it is the profile's static harmony index.
+        /// </summary>
+        private int DisplayedHarmonyIndex => Engine is PartyVocalsCoordinatorEngine coordinator
+            ? coordinator.DisplayedHarmonyIndex
+            : Player.Profile.HarmonyIndex;
+
         private void UpdateParticleColor(int harmonyIndex)
         {
             if (_cachedParticleSystems == null) return;
@@ -497,15 +507,18 @@ namespace YARG.Gameplay.Player
 
         private void SetOutline(bool enableOutline)
         {
-            if (_outlineEnabled == enableOutline)
+            int harmonyIdx = DisplayedHarmonyIndex;
+            if (_outlineEnabled == enableOutline && harmonyIdx == _outlineHarmonyIndex)
             {
                 return;
             }
             MaterialPropertyInstance.Instance.SetFloat(OutlineWidthID, enableOutline ? OUTLINE_WIDTH : 0f);
             // Not sure if I need to set this every time, but it was being weird if I didn't
-            MaterialPropertyInstance.Instance.SetColor(OutlineColorID, VocalTrack.Colors[Player.Profile.HarmonyIndex]);
+            MaterialPropertyInstance.Instance.SetColor(OutlineColorID,
+                VocalTrack.Colors[Mathf.Clamp(harmonyIdx, 0, VocalTrack.Colors.Length - 1)]);
             _needleRenderer.SetPropertyBlock(MaterialPropertyInstance.Instance);
             _outlineEnabled = enableOutline;
+            _outlineHarmonyIndex = harmonyIdx;
         }
 
         private void UpdateSingNeedle()
@@ -558,9 +571,7 @@ namespace YARG.Gameplay.Player
                     // Update particle color to match the currently-sung harmony part.
                     // For Free Harmonies, the coordinator tracks which part the mic is
                     // matching; for solo/harmony, HarmonyIndex is static.
-                    int harmonyIdx = Engine is PartyVocalsCoordinatorEngine coordinator
-                        ? coordinator.DisplayedHarmonyIndex
-                        : Player.Profile.HarmonyIndex;
+                    int harmonyIdx = DisplayedHarmonyIndex;
                     if (harmonyIdx != _displayedHarmonyIndex)
                     {
                         _displayedHarmonyIndex = harmonyIdx;
