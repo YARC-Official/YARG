@@ -64,6 +64,8 @@ namespace YARG.Menu.ProfileList
         [SerializeField]
         private HeaderTabs _headerTabs;
         [SerializeField]
+        private GameObject _addProfileButtons;
+        [SerializeField]
         private GameObject _profileViewPrefab;
         [SerializeField]
         private GameObject _bindingSetViewPrefab;
@@ -85,8 +87,7 @@ namespace YARG.Menu.ProfileList
                 new NavigationScheme.Entry(MenuAction.Red, "Menu.Common.Back", () => MenuManager.Instance.PopMenu(), hide: true),
             }, true));
 
-            _profileCenterPane.gameObject.SetActive(true);
-            _bindingSetsCenterPane.gameObject.SetActive(false);
+            OnTabChanged(PROFILES_TAB);
 
             _headerTabs.TabChanged += OnTabChanged;
 
@@ -403,6 +404,7 @@ namespace YARG.Menu.ProfileList
         private void OnTabChanged(string tabId)
         {
             _profileCenterPane.gameObject.SetActive(tabId == PROFILES_TAB);
+            _addProfileButtons.gameObject.SetActive(tabId == PROFILES_TAB);
             _bindingSetsCenterPane.gameObject.SetActive(tabId == BINDINGS_TAB);
             _bindingSetsFilter.gameObject.SetActive(tabId == BINDINGS_TAB);
 
