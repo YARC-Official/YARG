@@ -113,6 +113,7 @@ namespace YARG.Input.Bindings
                         ReusableBindingSetDefaults.ComputerKeyboardMenuWASDOnly,
                     } },
                     { GameMode.ProKeys, new() { ReusableBindingSetDefaults.DefaultComputerKeyboardKeysGameplay } },
+                    { GameMode.FiveLaneDrums, new() { ReusableBindingSetDefaults.DefaultComputerKeyboardFiveLaneDrumsGameplay } },
                 }
             }
         };
