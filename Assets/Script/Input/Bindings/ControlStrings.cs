@@ -139,5 +139,66 @@ namespace YARG.Input.Bindings
 
         public const string VOCAL_HIT = "Vocals.Hit";
         public const string VOCAL_STAR_POWER = "Vocals.StarPower";
+
+
+        public const string COMPUTER_KEYBOARD_A = "a";
+        public const string COMPUTER_KEYBOARD_B = "b";
+        public const string COMPUTER_KEYBOARD_C = "c";
+        public const string COMPUTER_KEYBOARD_D = "d";
+        public const string COMPUTER_KEYBOARD_E = "e";
+        public const string COMPUTER_KEYBOARD_F = "f";
+        public const string COMPUTER_KEYBOARD_G = "g";
+        public const string COMPUTER_KEYBOARD_H = "h";
+        public const string COMPUTER_KEYBOARD_I = "i";
+        public const string COMPUTER_KEYBOARD_J = "j";
+        public const string COMPUTER_KEYBOARD_K = "k";
+        public const string COMPUTER_KEYBOARD_L = "l";
+        public const string COMPUTER_KEYBOARD_M = "m";
+        public const string COMPUTER_KEYBOARD_N = "n";
+        public const string COMPUTER_KEYBOARD_O = "o";
+        public const string COMPUTER_KEYBOARD_P = "p";
+        public const string COMPUTER_KEYBOARD_Q = "q";
+        public const string COMPUTER_KEYBOARD_R = "r";
+        public const string COMPUTER_KEYBOARD_S = "s";
+        public const string COMPUTER_KEYBOARD_T = "t";
+        public const string COMPUTER_KEYBOARD_U = "u";
+        public const string COMPUTER_KEYBOARD_V = "v";
+        public const string COMPUTER_KEYBOARD_W = "w";
+        public const string COMPUTER_KEYBOARD_X = "x";
+        public const string COMPUTER_KEYBOARD_Y = "y";
+        public const string COMPUTER_KEYBOARD_Z = "z";
+
+        public const string COMPUTER_KEYBOARD_DIGIT_0 = "0";
+        public const string COMPUTER_KEYBOARD_DIGIT_1 = "1";
+        public const string COMPUTER_KEYBOARD_DIGIT_2 = "2";
+        public const string COMPUTER_KEYBOARD_DIGIT_3 = "3";
+        public const string COMPUTER_KEYBOARD_DIGIT_4 = "4";
+        public const string COMPUTER_KEYBOARD_DIGIT_5 = "5";
+        public const string COMPUTER_KEYBOARD_DIGIT_6 = "6";
+        public const string COMPUTER_KEYBOARD_DIGIT_7 = "7";
+        public const string COMPUTER_KEYBOARD_DIGIT_8 = "8";
+        public const string COMPUTER_KEYBOARD_DIGIT_9 = "9";
+
+        public const string COMPUTER_KEYBOARD_SPACE = "space";
+        public const string COMPUTER_KEYBOARD_TAB = "tab";
+        public const string COMPUTER_KEYBOARD_PERIOD = "period";
+        public const string COMPUTER_KEYBOARD_COMMA = "comma";
+        public const string COMPUTER_KEYBOARD_SLASH = "slash";
+        public const string COMPUTER_KEYBOARD_MINUS = "minus";
+        public const string COMPUTER_KEYBOARD_SEMICOLON = "semicolon";
+        public const string COMPUTER_KEYBOARD_QUOTE = "quote";
+        public const string COMPUTER_KEYBOARD_BACK_QUOTE = "backQuote";
+        public const string COMPUTER_KEYBOARD_LEFT_BRACKET = "leftBracket";
+        public const string COMPUTER_KEYBOARD_RIGHT_BRACKET = "rightBracket";
+
+        public const string COMPUTER_KEYBOARD_ENTER = "enter";
+        public const string COMPUTER_KEYBOARD_BACKSPACE = "backspace";
+
+        public const string COMPUTER_KEYBOARD_UP_ARROW = "upArrow";
+        public const string COMPUTER_KEYBOARD_DOWN_ARROW = "downArrow";
+        public const string COMPUTER_KEYBOARD_LEFT_ARROW = "leftArrow";
+        public const string COMPUTER_KEYBOARD_RIGHT_ARROW = "rightArrow";
+
+        public const string COMPUTER_KEYBOARD_F1 = "f1";
     }
 }
