@@ -19,6 +19,13 @@ namespace YARG.Input.Bindings
             }
         }
 
+        public ReusableIntegerBinding(ReusableIntegerBinding original) : base(original) {
+            foreach (var binding in original.Bindings)
+            {
+                Bindings.Add(new(binding));
+            }
+        }
+
         public ReusableIntegerBinding(SerializedReusableControlBinding serialized, InputActionInfo info) : base(serialized, info)
         {
             foreach (var binding in serialized.Controls)
@@ -30,6 +37,8 @@ namespace YARG.Input.Bindings
 
     public class ReusableSingleIntegerBinding : ReusableSingleBinding<int> {
         public ReusableSingleIntegerBinding(string controlName, string displayName) : base(controlName, displayName) { }
+
+        public ReusableSingleIntegerBinding(ReusableSingleIntegerBinding original) : base(original) { }
 
         public ReusableSingleIntegerBinding(SerializedSingleBinding serialized) : base(serialized)
         {

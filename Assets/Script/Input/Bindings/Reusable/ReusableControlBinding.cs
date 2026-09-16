@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using UnityEngine.InputSystem;
+using YARG.Core.Extensions;
 using YARG.Core.Game;
 using YARG.Core.Logging;
 using YARG.Input.Serialization;
@@ -19,6 +20,13 @@ namespace YARG.Input.Bindings
             Name = Localize.Key("Bindings", info.LocalizationKey);
             NameLefty = Localize.Key("Bindings", info.LeftyLocalizationKey);
             Action = info.Action;
+        }
+
+        public ReusableControlBinding(ReusableControlBinding original)
+        {
+            Name = original.Name;
+            NameLefty = original.NameLefty;
+            Action = original.Action;
         }
 
         public abstract SerializedReusableControlBinding Serialize();
@@ -59,6 +67,8 @@ namespace YARG.Input.Bindings
 
         public ReusableControlBinding(InputActionInfo info) : base(info) { }
 
+        public ReusableControlBinding(ReusableControlBinding<TSingle, TSingleState> original) : base(original) {}
+
         public ReusableControlBinding(SerializedReusableControlBinding serialized, InputActionInfo info) : base(info)
         {
             DeserializeParameters(serialized.Parameters);
@@ -95,6 +105,8 @@ namespace YARG.Input.Bindings
 
         public ReusableSingleBinding(SerializedSingleBinding serialized)
             : this(serialized.ControlName, serialized.ControlName) { } // TODO-FRICK: DisplayName
+
+        public ReusableSingleBinding(ReusableSingleBinding<TState> original) : this(original.ControlPath, original.DisplayName) { }
 
         public SerializedSingleBinding Serialize()
         {

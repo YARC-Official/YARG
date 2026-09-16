@@ -17,6 +17,13 @@ namespace YARG.Input.Bindings
         public ReusableAxisBinding(InputActionInfo info, ReusableSingleAxisBindingConfig control)
             : this(info, new List<ReusableSingleAxisBindingConfig>() { control }) { }
 
+        public ReusableAxisBinding(ReusableAxisBinding original) : base(original) {
+            foreach (var binding in original.Bindings)
+            {
+                Bindings.Add(new(binding));
+            }
+        }
+
         public ReusableAxisBinding(InputActionInfo info, List<ReusableSingleAxisBindingConfig> controls) : base(info)
         {
             foreach (var controlConfig in controls)
@@ -81,6 +88,15 @@ namespace YARG.Input.Bindings
         public ReusableSingleAxisBinding(SerializedSingleBinding serialized) : base(serialized)
         {
             DeserializeParameters(serialized.Parameters);
+        }
+
+        public ReusableSingleAxisBinding(ReusableSingleAxisBinding original) : base(original)
+        {
+            Inverted = original.Inverted;
+            Maximum = original.Maximum;
+            Minimum = original.Minimum;
+            LowerDeadzone = original.LowerDeadzone;
+            UpperDeadzone = original.UpperDeadzone;
         }
 
         protected override Dictionary<string, string> SerializeParameters()
