@@ -12,6 +12,7 @@ using YARG.Core.Game;
 using YARG.Core.IO;
 using YARG.Helpers;
 using YARG.Helpers.Extensions;
+using YARG.Input;
 using YARG.Input.Bindings;
 using YARG.Localization;
 using YARG.Menu.Data;
@@ -440,6 +441,9 @@ namespace YARG.Menu.ProfileList
         {
             await _profileView.PromptAddController();
             UpdateCenterPane(_profile, _profileView);
+
+            var player = PlayerContainer.GetPlayerFromProfile(_profile);
+            player.EnableInputs();
         }
 
         public async void AddMicrophone()

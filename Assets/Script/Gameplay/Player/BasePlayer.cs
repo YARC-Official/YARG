@@ -299,7 +299,7 @@ namespace YARG.Gameplay.Player
 
         private void SubscribeToInputEvents()
         {
-            Player.DeviceInfo.SubscribeToGameplayInputs(Player.Profile.GameMode, OnGameInput);
+            Player.DeviceInfo.SubscribeToGameplayInputs(OnGameInput);
 
             Player.DeviceInfo.ControllerAdded += OnDeviceAdded;
             Player.DeviceInfo.ControllerRemoved += OnDeviceRemoved;
@@ -307,7 +307,7 @@ namespace YARG.Gameplay.Player
 
         private void UnsubscribeFromInputEvents()
         {
-            Player.DeviceInfo.UnsubscribeFromGameplayInputs(Player.Profile.GameMode, OnGameInput);
+            Player.DeviceInfo.UnsubscribeFromGameplayInputs(OnGameInput);
 
             Player.DeviceInfo.ControllerAdded -= OnDeviceAdded;
             Player.DeviceInfo.ControllerRemoved -= OnDeviceRemoved;

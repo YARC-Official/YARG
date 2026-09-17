@@ -37,10 +37,11 @@ namespace YARG.Input
         public List<MicDevice> Microphones => _microphones;
 
         public List<InputDevice> Controllers => _controllers;
+        private bool _inputsEnabled;
 
         private readonly List<SerializedInputDevice> _unresolvedControllers = new();
         private readonly List<InputDevice> _controllers = new();
-        private readonly Dictionary<(InputDevice, GameMode), RuntimeBindingSet> _activeGameplayBindings = new();
+        private readonly Dictionary<InputDevice, RuntimeBindingSet> _activeGameplayBindings = new();
         private readonly Dictionary<InputDevice, RuntimeBindingSet> _activeMenuBindings = new();
         private readonly Dictionary<(GameMode mode, ControllerFamily controllerFamily), ReusableBindingSet> _preferredBindsByContext = new();
         public readonly Dictionary<ControllerFamily, ReusableBindingSet> PreferredMenuBindingsByBaseLayout = new();
@@ -301,6 +302,8 @@ namespace YARG.Input
 
         public void EnableInputs()
         {
+            _inputsEnabled = true;
+
             foreach (var bindings in _activeGameplayBindings.Values)
             {
                 bindings.EnableInputs();
@@ -314,6 +317,8 @@ namespace YARG.Input
 
         public void DisableInputs()
         {
+            _inputsEnabled = false;
+
             foreach (var bindings in _activeGameplayBindings.Values)
             {
                 bindings.DisableInputs();
@@ -325,7 +330,7 @@ namespace YARG.Input
             }
         }
 
-        public void SubscribeToGameplayInputs(GameMode mode, GameInputProcessed onInputProcessed)
+        public void SubscribeToGameplayInputs(GameInputProcessed onInputProcessed)
         {
             foreach (var bindings in _activeGameplayBindings.Values)
             {
@@ -334,7 +339,7 @@ namespace YARG.Input
 
         }
 
-        public void UnsubscribeFromGameplayInputs(GameMode mode, GameInputProcessed onInputProcessed)
+        public void UnsubscribeFromGameplayInputs(GameInputProcessed onInputProcessed)
         {
             foreach (var bindings in _activeGameplayBindings.Values)
             {
@@ -504,7 +509,7 @@ namespace YARG.Input
             foreach (var controller in _controllers)
             {
                 var newGameplayBindings = GetCollectionForController(controller, menu: false);
-                _activeGameplayBindings[(controller, Profile.GameMode)] = newGameplayBindings;
+                _activeGameplayBindings[controller] = newGameplayBindings;
                 newGameplayBindings.EnableInputs();
             }
         }
@@ -514,16 +519,29 @@ namespace YARG.Input
             var newGameplayBindings = GetCollectionForController(controller, menu: false);
             var newMenuBindings = GetCollectionForController(controller, menu: true);
 
-            _activeGameplayBindings[(controller, Profile.GameMode)] = newGameplayBindings;
+            _activeGameplayBindings[controller] = newGameplayBindings;
             _activeMenuBindings[controller] = newMenuBindings;
+
+            if (_inputsEnabled)
+            {
+                newGameplayBindings.EnableInputs();
+                newMenuBindings.EnableInputs();
+            }
 
             ControllerAdded?.Invoke(controller);
         }
         
         private void NotifyControllerRemoved(InputDevice controller)
         {
-            _activeGameplayBindings.Remove((controller, Profile.GameMode));
-            _activeMenuBindings.Remove(controller);
+            if (_activeGameplayBindings.Remove(controller, out var gameplayBindings))
+            {
+                gameplayBindings.Dispose();
+            }
+
+            if (_activeMenuBindings.Remove(controller, out var menuBindings))
+            {
+                menuBindings.Dispose();
+            }
 
             ControllerRemoved?.Invoke(controller);
         }
