@@ -39,6 +39,15 @@ namespace YARG.Settings
         LegacyLabels,
     }
 
+    public enum SecondaryAlbumSortMode
+    {
+        AlbumsByTitleSongsByTitle,
+        AlbumsByTitleSongsByTrack,
+        AlbumsByYearSongsByTitle,
+        AlbumsByYearSongsByTrack,
+        Off,
+    }
+
     public enum ShowMeanSongOffsetCalibrationMode
     {
         Off,
@@ -283,6 +292,18 @@ namespace YARG.Settings
             public ToggleSetting UseFullDirectoryForPlaylists { get; } = new(false);
 
             public ToggleSetting ShowFavoriteButton { get; } = new(true);
+
+            public DropdownSetting<SecondaryAlbumSortMode> SecondaryAlbumSort { get; }
+                = new(SecondaryAlbumSortMode.AlbumsByTitleSongsByTitle,
+                    _ => MusicLibraryMenu.SetReload(MusicLibraryReloadState.Partial))
+                {
+                    SecondaryAlbumSortMode.AlbumsByTitleSongsByTitle,
+                    SecondaryAlbumSortMode.AlbumsByTitleSongsByTrack,
+                    SecondaryAlbumSortMode.AlbumsByYearSongsByTitle,
+                    SecondaryAlbumSortMode.AlbumsByYearSongsByTrack,
+                    SecondaryAlbumSortMode.Off,
+                };
+
             public ToggleSetting ShowRecommendedSongs { get; } = new(true, ShowRecommendedSongsCallback);
             public ToggleSetting OnlyShowPlayableSongs { get; } = new(false, RefreshLibraryFilterCallback);
 

@@ -40,6 +40,8 @@ namespace YARG.Menu.MusicLibrary
         private Sprite _favoriteUnfilled;
         [SerializeField]
         private Sprite _favouriteFilled;
+        [SerializeField]
+        private Sprite _secondaryHeaderIcon;
 
         [Space]
         [SerializeField]
@@ -60,6 +62,7 @@ namespace YARG.Menu.MusicLibrary
         private Image _trackGradient;
         [SerializeField]
         private Image _normalCategoryHeaderGradient;
+        private SecondaryHeaderGradientGraphic _secondaryHeaderBackground;
         [SerializeField]
         private GameObject _buttonHeaderBackground;
 
@@ -79,6 +82,11 @@ namespace YARG.Menu.MusicLibrary
         public override void Show(bool selected, ViewType viewType)
         {
             base.Show(selected, viewType);
+
+            if (viewType is SecondaryHeaderViewType)
+            {
+                SetIcon(_secondaryHeaderIcon);
+            }
 
             var scoreInfoMode = SettingsManager.Settings.HighScoreInfo.Value;
 
@@ -120,8 +128,8 @@ namespace YARG.Menu.MusicLibrary
             }
 
             // Set stars obtained view
-            _starsObtainedView.gameObject.SetActive(viewType is SortHeaderViewType);
-            if (viewType is SortHeaderViewType)
+            _starsObtainedView.gameObject.SetActive(viewType is SortHeaderViewType or SecondaryHeaderViewType);
+            if (viewType is SortHeaderViewType or SecondaryHeaderViewType)
             {
                 _starsObtainedText.text = viewType.GetSideText(selected);
             }
@@ -158,6 +166,10 @@ namespace YARG.Menu.MusicLibrary
             if (viewType is SortHeaderViewType)
             {
                 gameObject.GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, 60);
+            }
+            else if (viewType is SecondaryHeaderViewType)
+            {
+                gameObject.GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, 50);
             }
             else
             {
@@ -209,6 +221,13 @@ namespace YARG.Menu.MusicLibrary
         {
             _trackGradient.gameObject.SetActive(selected);
 
+            bool showSecondaryHeaderBackground = type == BaseViewType.BackgroundType.SecondaryHeader;
+            if (showSecondaryHeaderBackground)
+                EnsureSecondaryHeaderBackground();
+
+            if (_secondaryHeaderBackground != null)
+                _secondaryHeaderBackground.gameObject.SetActive(showSecondaryHeaderBackground);
+
             NormalBackground.SetActive(false);
             SelectedBackground.SetActive(false);
             CategoryBackground.SetActive(false);
@@ -226,6 +245,8 @@ namespace YARG.Menu.MusicLibrary
                         NormalBackground.SetActive(true);
                     }
 
+                    break;
+                case BaseViewType.BackgroundType.SecondaryHeader:
                     break;
                 case BaseViewType.BackgroundType.Category:
                     if (selected)
@@ -252,6 +273,23 @@ namespace YARG.Menu.MusicLibrary
                 default:
                     break;
             }
+        }
+
+        private void EnsureSecondaryHeaderBackground()
+        {
+            if (_secondaryHeaderBackground != null) return;
+
+            var overlayObject = new GameObject("Secondary Header Background", typeof(RectTransform),
+                typeof(CanvasRenderer), typeof(SecondaryHeaderGradientGraphic));
+            var overlayTransform = overlayObject.GetComponent<RectTransform>();
+            overlayTransform.SetParent(NormalBackground.transform.parent, false);
+            overlayTransform.anchorMin = Vector2.zero;
+            overlayTransform.anchorMax = Vector2.one;
+            overlayTransform.offsetMin = Vector2.zero;
+            overlayTransform.offsetMax = Vector2.zero;
+
+            _secondaryHeaderBackground = overlayObject.GetComponent<SecondaryHeaderGradientGraphic>();
+            _secondaryHeaderBackground.raycastTarget = false;
         }
 
         private void UpdateFavoriteSprite(ViewType.FavoriteInfo favoriteInfo)
@@ -288,6 +326,63 @@ namespace YARG.Menu.MusicLibrary
 
             // Update the sprite after in case the state changed
             UpdateFavoriteSprite(ViewType.GetFavoriteInfo());
+        }
+    }
+
+    internal sealed class SecondaryHeaderGradientGraphic : MaskableGraphic
+    {
+        private const int COLUMN_COUNT = 2;
+        private const int ROW_COUNT = 4;
+
+        // Opaque, luminance-equivalent grayscale values for the requested corners.
+        // Rows run bottom-to-top and columns run left-to-right.
+        private static readonly Color32[] Colors =
+        {
+            new(0x13, 0x13, 0x13, 0xFF), // Bottom edge left:  #091326
+            new(0x2F, 0x2F, 0x2F, 0xFF), // Bottom edge right: #1E2F4A
+            new(0x0B, 0x0B, 0x0B, 0xFF), // Bottom-left:  #060B17
+            new(0x1B, 0x1B, 0x1B, 0xFF), // Bottom-right: #111B2D
+            new(0x18, 0x18, 0x18, 0xFF), // Top-left:     #021930
+            new(0x18, 0x18, 0x18, 0xFF), // Top-right:    #09182C
+            new(0x2A, 0x2A, 0x2A, 0xFF), // Top edge left:     #042B50
+            new(0x2A, 0x2A, 0x2A, 0xFF), // Top edge right:    #0F2B49
+        };
+
+        protected override void OnPopulateMesh(VertexHelper vertexHelper)
+        {
+            vertexHelper.Clear();
+
+            Rect rect = GetPixelAdjustedRect();
+            float edgeHeight = Mathf.Min(1f, rect.height * 0.5f);
+            for (int row = 0; row < ROW_COUNT; row++)
+            {
+                float y = row switch
+                {
+                    0 => rect.yMin,
+                    1 => rect.yMin + edgeHeight,
+                    2 => rect.yMax - edgeHeight,
+                    _ => rect.yMax,
+                };
+                for (int column = 0; column < COLUMN_COUNT; column++)
+                {
+                    float x = Mathf.Lerp(rect.xMin, rect.xMax, (float) column / (COLUMN_COUNT - 1));
+                    AddVertex(vertexHelper, x, y, Colors[row * COLUMN_COUNT + column]);
+
+                    if (row == 0 || column == 0) continue;
+
+                    int topRight = row * COLUMN_COUNT + column;
+                    int topLeft = topRight - 1;
+                    int bottomRight = topRight - COLUMN_COUNT;
+                    int bottomLeft = bottomRight - 1;
+                    vertexHelper.AddTriangle(bottomLeft, topLeft, bottomRight);
+                    vertexHelper.AddTriangle(bottomRight, topLeft, topRight);
+                }
+            }
+        }
+
+        private static void AddVertex(VertexHelper vertexHelper, float x, float y, Color32 color)
+        {
+            vertexHelper.AddVert(new Vector3(x, y), color, Vector2.zero);
         }
     }
 }

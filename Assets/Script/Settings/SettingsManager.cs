@@ -104,6 +104,7 @@ namespace YARG.Settings
                 nameof(Settings.MaxSongRating),
                 nameof(Settings.CensorMatureContent),
                 nameof(Settings.ShowFavoriteButton),
+                nameof(Settings.SecondaryAlbumSort),
                 nameof(Settings.DifficultyRings),
                 nameof(Settings.HighScoreInfo),
                 new FieldMetadata(nameof(Settings.ShowPercentDecimals), isAdvanced: true),

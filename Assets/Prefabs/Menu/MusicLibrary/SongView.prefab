@@ -3552,6 +3552,7 @@ MonoBehaviour:
   - {fileID: 3312390955879711079}
   _favoriteUnfilled: {fileID: 289475173, guid: 81b6595c7cde06540b683feaa83291af, type: 3}
   _favouriteFilled: {fileID: 1390811379, guid: 81b6595c7cde06540b683feaa83291af, type: 3}
+  _secondaryHeaderIcon: {fileID: -939891392, guid: 0e3516b2ea3f0b349a4d58a762715896, type: 3}
   _categoryNameContainer: {fileID: 2200136566915400073}
   _categoryText: {fileID: 9056057400455014970}
   _starsObtainedView: {fileID: 4831385730584701946}

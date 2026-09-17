@@ -39,6 +39,7 @@ namespace YARG.Menu.ListMenu
             get => _selectedIndex;
             set
             {
+                int previousIndex = _selectedIndex;
                 if (_viewList.Count == 0)
                 {
                     _selectedIndex = 0;
@@ -65,6 +66,9 @@ namespace YARG.Menu.ListMenu
                     _selectedIndex = Mathf.Clamp(value, 0, _viewList.Count - 1);
                 }
 
+                int direction = value < previousIndex ? -1 : 1;
+                _selectedIndex = FindSelectableIndex(_selectedIndex, direction);
+
                 OnSelectedIndexChanged();
             }
         }
@@ -73,6 +77,31 @@ namespace YARG.Menu.ListMenu
 
         protected virtual bool CanScroll => true;
         private float _scrollTimer;
+
+        private int FindSelectableIndex(int startIndex, int direction)
+        {
+            if (_viewList.Count == 0 || _viewList[startIndex].IsSelectable)
+                return startIndex;
+
+            int candidate = startIndex;
+            for (int i = 0; i < _viewList.Count; i++)
+            {
+                candidate += direction;
+                if (_allowWrapAround)
+                {
+                    candidate = (candidate + _viewList.Count) % _viewList.Count;
+                }
+                else if (candidate < 0 || candidate >= _viewList.Count)
+                {
+                    break;
+                }
+
+                if (_viewList[candidate].IsSelectable)
+                    return candidate;
+            }
+
+            return startIndex;
+        }
 
         private float       _pendingScroll;
         private InputAction _scrollAction;
@@ -165,6 +194,11 @@ namespace YARG.Menu.ListMenu
             if (_viewList.Count > 0)
             {
                 _selectedIndex = Mathf.Clamp(_selectedIndex, 0, _viewList.Count - 1);
+                if (!_viewList[_selectedIndex].IsSelectable)
+                {
+                    SelectedIndex = _selectedIndex;
+                    return;
+                }
             }
             else
             {
