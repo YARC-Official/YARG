@@ -5,7 +5,7 @@ using UnityEngine.InputSystem;
 using YARG.Core.Logging;
 using YARG.Input.Bindings;
 
-namespace YARG.Input
+namespace YARG.Input.Bindings
 {
     public class RuntimeSingleBinding<TState> where TState: struct
     {

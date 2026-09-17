@@ -7,7 +7,7 @@ using UnityEngine.UIElements;
 using YARG.Core.Input;
 using YARG.Core.Logging;
 
-namespace YARG.Input
+namespace YARG.Input.Bindings
 {
     public delegate void GameInputProcessed(ref GameInput input);
 
@@ -90,6 +90,8 @@ namespace YARG.Input
         where TSingle : RuntimeSingleBinding<TSingleState>
         where TSingleState : struct
     {
+        protected const float AXIS_DELTA_THRESHOLD = 0.05f;
+
         public event Action StateChanged;
 
         protected List<TSingle> _bindings = new();
