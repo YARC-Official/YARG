@@ -131,7 +131,7 @@ namespace YARG.Input.Bindings
         );
 
         public static ReusableBindingSet DefaultGamepadVocalGameplay = MakeHardcodedBindingSet(
-            "Default Gamepad Vocals",
+            "Default Vocals with Gamepad",
             GameMode.Vocals,
             ControllerFamily.Gamepad,
             _gamepadVocalDefaults

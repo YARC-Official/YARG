@@ -256,14 +256,14 @@ namespace YARG.Input.Bindings
         };
 
         public static ReusableBindingSet DefaultFourLaneDrumkit = MakeHardcodedBindingSet(
-            "Default 4L Drums Gameplay",
+            "Default 4L Drums",
             GameMode.FourLaneDrums,
             ControllerFamily.FourLaneDrumkit,
             _fourLaneDrumkitDefaults
         );
 
         public static ReusableBindingSet DefaultFourLaneDrumkitMenu = MakeHardcodedBindingSet(
-            "Default 4L Drums Menu",
+            "Default 4L Drumkit Menu",
             GameMode.Menu,
             ControllerFamily.FourLaneDrumkit,
             _fourLaneDrumkitMenuDefaults
