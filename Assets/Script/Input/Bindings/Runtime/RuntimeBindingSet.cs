@@ -69,16 +69,14 @@ namespace YARG.Input.Bindings
                             InputState.AddChangeMonitor(axis.Bindings[i].Control, axis, i);
                         }
                         break;
-                    default:
-                        throw new NotImplementedException();
-
-                        /* TODO-FRICK
                     case RuntimeIntegerBinding integer:
                         for (var i = 0; i < integer.Bindings.Count; i++)
                         {
                             InputState.AddChangeMonitor(integer.Bindings[i].Control, integer, i);
                         }
-                        break;*/
+                        break;
+                    default:
+                        throw new NotImplementedException();
                 }
             }
         }

@@ -60,6 +60,13 @@ namespace YARG.Input.Bindings
                                 _newAxisStates[axis.Action] = axis.State;
                             }
                             break;
+                        case RuntimeIntegerBinding integer:
+                            if (!_newIntegerStates.TryGetValue(integer.Action, out var intState) ||
+                                    integer.State > intState)
+                            {
+                                _newIntegerStates[integer.Action] = integer.State;
+                            }
+                            break;
                     }
                 }
             }
@@ -89,6 +96,21 @@ namespace YARG.Input.Bindings
                 }
 
                 _axisStates[action] = newState;
+
+                var input = new GameInput(time, action, newState);
+                InputProcessed?.Invoke(ref input);
+            }
+
+            foreach (var (action, newState) in _newIntegerStates)
+            {
+                _integerStates.TryGetValue(action, out var oldState);
+
+                if (oldState == newState)
+                {
+                    continue;
+                }
+
+                _integerStates[action] = newState;
 
                 var input = new GameInput(time, action, newState);
                 InputProcessed?.Invoke(ref input);

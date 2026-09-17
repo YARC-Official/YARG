@@ -47,7 +47,7 @@ namespace YARG.Input.Bindings
 
         protected override RuntimeSingleBinding<int> MakeRuntime(InputControl<int> control)
         {
-            throw new NotImplementedException(); // TODO-FRICK
+            return new RuntimeSingleIntegerBinding(control, this);
         }
     }
 }
