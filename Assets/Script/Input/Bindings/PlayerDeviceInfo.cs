@@ -327,18 +327,18 @@ namespace YARG.Input
 
         public void SubscribeToGameplayInputs(GameMode mode, GameInputProcessed onInputProcessed)
         {
-            foreach (var controller in Controllers)
+            foreach (var bindings in _activeGameplayBindings.Values)
             {
-                _activeGameplayBindings[(controller, mode)].InputProcessed += onInputProcessed;
+                bindings.InputProcessed += onInputProcessed;
             }
 
         }
 
         public void UnsubscribeFromGameplayInputs(GameMode mode, GameInputProcessed onInputProcessed)
         {
-            foreach (var controller in Controllers)
+            foreach (var bindings in _activeGameplayBindings.Values)
             {
-                _activeGameplayBindings[(controller, mode)].InputProcessed -= onInputProcessed;
+                bindings.InputProcessed -= onInputProcessed;
             }
         }
 
@@ -421,19 +421,6 @@ namespace YARG.Input
         }
         */
 
-        public void ClearAllBindings()
-        {
-            foreach (var bindings in _preferredBindsByContext.Values)
-            {
-                //bindings.ClearAllBindings(); TODO
-            }
-
-            foreach (var bindings in PreferredMenuBindingsByBaseLayout.Values)
-            {
-                //bindings.ClearAllBindings(); TODO
-            }
-        }
-
         public bool SetDefaultBinds(InputDevice controller)
         {
             if (!ContainsController(controller))
@@ -506,6 +493,22 @@ namespace YARG.Input
             NotifyControllerRemoved(controller);
         }
 
+        public void RefreshGameMode()
+        {
+            foreach (var bindings in _activeGameplayBindings.Values)
+            {
+                bindings.Dispose();
+            }
+            _activeGameplayBindings.Clear();
+
+            foreach (var controller in _controllers)
+            {
+                var newGameplayBindings = GetCollectionForController(controller, menu: false);
+                _activeGameplayBindings[(controller, Profile.GameMode)] = newGameplayBindings;
+                newGameplayBindings.EnableInputs();
+            }
+        }
+
         private void NotifyControllerAdded(InputDevice controller)
         {
             var newGameplayBindings = GetCollectionForController(controller, menu: false);
@@ -516,22 +519,13 @@ namespace YARG.Input
 
             ControllerAdded?.Invoke(controller);
         }
-
+        
         private void NotifyControllerRemoved(InputDevice controller)
         {
-            /* TODO-FRICK: Not worrying about removing devices quite yet
-            foreach (var bindings in _activeGameplayBindings.Values)
-            {
-                bindings.OnDeviceRemoved(controller); // TODO-FRICK: Just clear the dictionary entry? Destruct/dispose the runtime set?
-            }
-
-            foreach (var bindings in _activeMenuBindings.Values)
-            {
-                bindings.OnDeviceRemoved(controller); // TODO-FRICK: Just clear the dictionary entry? Destruct/dispose the runtime set?
-            }
+            _activeGameplayBindings.Remove((controller, Profile.GameMode));
+            _activeMenuBindings.Remove(controller);
 
             ControllerRemoved?.Invoke(controller);
-            */
         }
 
         private RuntimeBindingSet GetCollectionForController(InputDevice controller, bool menu)
@@ -545,7 +539,7 @@ namespace YARG.Input
 
             if (_preferredBindsByContext.TryGetValue((mode, family), out var preferredBindingSet))
             {
-                runtimeBindings = preferredBindingSet.GetRuntimeBindings(Profile, controller); // TODO-FRICK: Impl
+                runtimeBindings = preferredBindingSet.GetRuntimeBindings(Profile, controller);
             }
             else
             {

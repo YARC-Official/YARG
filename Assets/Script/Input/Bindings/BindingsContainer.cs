@@ -35,13 +35,14 @@ namespace YARG.Input.Bindings
                         ReusableBindingSetDefaults.DefaultFiveFretGuitar,
                         ReusableBindingSetDefaults.DefaultRiffmasterGuitar
                     }},
+                    { GameMode.ProKeys, new() { ReusableBindingSetDefaults.DefaultFiveFretGuitarForKeys }},
                 }
             },
 
             {
                 ControllerFamily.SixFretGuitar,
                 new() {
-                    { GameMode.Menu, new() { ReusableBindingSetDefaults.DefaultSixFretGuitarMenu}},
+                    { GameMode.Menu, new() { ReusableBindingSetDefaults.DefaultSixFretGuitarMenu }},
                     { GameMode.SixFretGuitar, new() { ReusableBindingSetDefaults.DefaultSixFretGuitar }},
                 }
             },
@@ -124,8 +125,8 @@ namespace YARG.Input.Bindings
         {
             if (!_profileBindings.TryGetValue(profile.Id, out var bindings))
             {
-                // Bindings must always be provided
-                bindings = new();
+                // Nothing to deserialize; constructor will apply defaults
+                bindings = new(profile);
                 _profileBindings.Add(profile.Id, bindings);
             }
 
