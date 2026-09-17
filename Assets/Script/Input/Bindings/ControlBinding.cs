@@ -6,6 +6,7 @@ using UnityEngine.InputSystem.LowLevel;
 using YARG.Core.Input;
 using YARG.Core.Logging;
 using YARG.Input.Serialization;
+using YARG.Input.Bindings;
 
 namespace YARG.Input
 {

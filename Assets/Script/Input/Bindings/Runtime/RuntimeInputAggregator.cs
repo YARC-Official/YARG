@@ -36,23 +36,30 @@ namespace YARG.Input.Bindings
         public void UpdateForFrame(double time)
         {
             _newButtonStates.Clear();
+            _newAxisStates.Clear();
 
             foreach (var source in _sources)
             {
                 foreach (var binding in source)
                 {
-                    if (binding is not RuntimeButtonBinding button)
-                    {
-                        continue;
-                    }
-
-                    if (_newButtonStates.TryGetValue(button.Action, out var state))
-                    {
-                        _newButtonStates[button.Action] = state || button.State;
-                    }
-                    else
-                    {
-                        _newButtonStates[button.Action] = button.State;
+                    switch (binding) {
+                        case RuntimeButtonBinding button:
+                            if (_newButtonStates.TryGetValue(button.Action, out var buttonState))
+                            {
+                                _newButtonStates[button.Action] = buttonState || button.State;
+                            }
+                            else
+                            {
+                                _newButtonStates[button.Action] = button.State;
+                            }
+                            break;
+                        case RuntimeAxisBinding axis:
+                            if (!_newAxisStates.TryGetValue(axis.Action, out var axisState) ||
+                                    Math.Abs(axis.State) > Math.Abs(axisState))
+                            {
+                                _newAxisStates[axis.Action] = axis.State;
+                            }
+                            break;
                     }
                 }
             }
@@ -67,6 +74,21 @@ namespace YARG.Input.Bindings
                 }
 
                 _buttonStates[action] = newState;
+
+                var input = new GameInput(time, action, newState);
+                InputProcessed?.Invoke(ref input);
+            }
+
+            foreach (var (action, newState) in _newAxisStates)
+            {
+                _axisStates.TryGetValue(action, out var oldState);
+
+                if (oldState == newState)
+                {
+                    continue;
+                }
+
+                _axisStates[action] = newState;
 
                 var input = new GameInput(time, action, newState);
                 InputProcessed?.Invoke(ref input);

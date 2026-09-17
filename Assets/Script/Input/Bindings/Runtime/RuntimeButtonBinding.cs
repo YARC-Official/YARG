@@ -5,12 +5,10 @@ using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Controls;
 using YARG.Input.Bindings;
 
-namespace YARG.Input
+namespace YARG.Input.Bindings
 {
     public class RuntimeButtonBinding : RuntimeControlBinding<RuntimeSingleButtonBinding, float>
     {
-        private const float AXIS_DELTA_THRESHOLD = 0.05f;
-
         public bool State { get; protected set; }
 
         protected DebounceTimer<bool> _debounceTimer;
@@ -20,7 +18,8 @@ namespace YARG.Input
             get => _debounceTimer.TimeThreshold;
         }
 
-        public RuntimeButtonBinding(InputDevice controller, ReusableButtonBinding reusableBinding) : base(reusableBinding.Action, reusableBinding.Name)
+        public RuntimeButtonBinding(InputDevice controller, ReusableButtonBinding reusableBinding)
+            : base(reusableBinding.Action, reusableBinding.Name)
         {
             _debounceTimer = new()
             {

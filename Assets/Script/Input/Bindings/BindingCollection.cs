@@ -9,6 +9,7 @@ using YARG.Core;
 using YARG.Core.Extensions;
 using YARG.Helpers;
 using YARG.Input.Serialization;
+using YARG.Input.Bindings;
 using YARG.Menu.ProfileList;
 
 namespace YARG.Input

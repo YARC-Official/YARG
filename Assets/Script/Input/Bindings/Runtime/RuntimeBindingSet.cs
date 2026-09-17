@@ -12,7 +12,7 @@ using YARG.Input.Bindings;
 using YARG.Menu.ProfileList;
 using static UnityEditor.AddressableAssets.Build.Layout.BuildLayout;
 
-namespace YARG.Input
+namespace YARG.Input.Bindings
 {
     public class RuntimeBindingSet : IEnumerable<RuntimeControlBinding>, IDisposable
     {
@@ -45,22 +45,40 @@ namespace YARG.Input
         {
             foreach (var binding in reusableBindings.Bindings.Values)
             {
-                var newBind = binding switch
+                RuntimeControlBinding newBind = binding switch
                 {
                     ReusableButtonBinding button => new RuntimeButtonBinding(controller, button),
-                    ReusableAxisBinding axis => null, // TODO-FRICK
+                    ReusableAxisBinding axis => new RuntimeAxisBinding(controller, axis),
                     ReusableIntegerBinding integer => throw new NotImplementedException(), // TODO-FRICK
                     _ => throw new ArgumentOutOfRangeException("Unrecognized reusable binding type")
                 };
 
-                if (newBind is not null) // TODO-FRICK: null check is just a temporary workaround until axes and integers are also implemented
-                {
-                    Add(newBind);
+                Add(newBind);
 
-                    for (var i = 0; i < newBind.Bindings.Count; i++)
-                    {
-                        InputState.AddChangeMonitor(newBind.Bindings[i].Control, newBind, i);
-                    }
+                switch (newBind)
+                {
+                    case RuntimeButtonBinding button:
+                        for (var i = 0; i < button.Bindings.Count; i++)
+                        {
+                            InputState.AddChangeMonitor(button.Bindings[i].Control, button, i);
+                        }
+                        break;
+                    case RuntimeAxisBinding axis:
+                        for (var i = 0; i < axis.Bindings.Count; i++)
+                        {
+                            InputState.AddChangeMonitor(axis.Bindings[i].Control, axis, i);
+                        }
+                        break;
+                    default:
+                        throw new NotImplementedException();
+
+                        /* TODO-FRICK
+                    case RuntimeIntegerBinding integer:
+                        for (var i = 0; i < integer.Bindings.Count; i++)
+                        {
+                            InputState.AddChangeMonitor(integer.Bindings[i].Control, integer, i);
+                        }
+                        break;*/
                 }
             }
         }

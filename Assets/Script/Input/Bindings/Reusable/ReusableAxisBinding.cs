@@ -201,7 +201,7 @@ namespace YARG.Input.Bindings
 
         protected override RuntimeSingleBinding<float> MakeRuntime(InputControl<float> control)
         {
-            throw new NotImplementedException(); // TODO-FRICK
+            return new RuntimeSingleAxisBinding(control, this);
         }
     }
 }
