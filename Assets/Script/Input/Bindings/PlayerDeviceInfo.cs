@@ -40,7 +40,7 @@ namespace YARG.Input
 
         private readonly List<SerializedInputDevice> _unresolvedControllers = new();
         private readonly List<InputDevice> _controllers = new();
-        private readonly Dictionary<(InputDevice, GameMode), RuntimeBindingSet> _activeGameplayBindings = new();
+        private readonly Dictionary<InputDevice, RuntimeBindingSet> _activeGameplayBindings = new();
         private readonly Dictionary<InputDevice, RuntimeBindingSet> _activeMenuBindings = new();
         private readonly Dictionary<(GameMode mode, ControllerFamily controllerFamily), ReusableBindingSet> _preferredBindsByContext = new();
         public readonly Dictionary<ControllerFamily, ReusableBindingSet> PreferredMenuBindingsByBaseLayout = new();
@@ -325,7 +325,7 @@ namespace YARG.Input
             }
         }
 
-        public void SubscribeToGameplayInputs(GameMode mode, GameInputProcessed onInputProcessed)
+        public void SubscribeToGameplayInputs(GameInputProcessed onInputProcessed)
         {
             foreach (var bindings in _activeGameplayBindings.Values)
             {
@@ -334,7 +334,7 @@ namespace YARG.Input
 
         }
 
-        public void UnsubscribeFromGameplayInputs(GameMode mode, GameInputProcessed onInputProcessed)
+        public void UnsubscribeFromGameplayInputs(GameInputProcessed onInputProcessed)
         {
             foreach (var bindings in _activeGameplayBindings.Values)
             {
@@ -504,7 +504,7 @@ namespace YARG.Input
             foreach (var controller in _controllers)
             {
                 var newGameplayBindings = GetCollectionForController(controller, menu: false);
-                _activeGameplayBindings[(controller, Profile.GameMode)] = newGameplayBindings;
+                _activeGameplayBindings[controller] = newGameplayBindings;
                 newGameplayBindings.EnableInputs();
             }
         }
@@ -514,7 +514,7 @@ namespace YARG.Input
             var newGameplayBindings = GetCollectionForController(controller, menu: false);
             var newMenuBindings = GetCollectionForController(controller, menu: true);
 
-            _activeGameplayBindings[(controller, Profile.GameMode)] = newGameplayBindings;
+            _activeGameplayBindings[controller] = newGameplayBindings;
             _activeMenuBindings[controller] = newMenuBindings;
 
             ControllerAdded?.Invoke(controller);
@@ -522,7 +522,7 @@ namespace YARG.Input
         
         private void NotifyControllerRemoved(InputDevice controller)
         {
-            _activeGameplayBindings.Remove((controller, Profile.GameMode));
+            _activeGameplayBindings.Remove(controller);
             _activeMenuBindings.Remove(controller);
 
             ControllerRemoved?.Invoke(controller);
