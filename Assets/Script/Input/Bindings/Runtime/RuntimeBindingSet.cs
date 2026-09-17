@@ -14,7 +14,7 @@ using static UnityEditor.AddressableAssets.Build.Layout.BuildLayout;
 
 namespace YARG.Input
 {
-    public class RuntimeBindingSet : IEnumerable<RuntimeControlBinding>
+    public class RuntimeBindingSet : IEnumerable<RuntimeControlBinding>, IDisposable
     {
         public InputDevice Controller { get; }
         public GameMode Mode { get; }
@@ -79,6 +79,18 @@ namespace YARG.Input
             {
                 binding.Disable();
             }
+        }
+
+        public void Dispose()
+        {
+            DisableInputs();
+
+            foreach (var binding in _bindings)
+            {
+                binding.Dispose();
+            }
+
+            _bindings.Clear();
         }
 
         public void UpdateBindingsForFrame(double updateTime)

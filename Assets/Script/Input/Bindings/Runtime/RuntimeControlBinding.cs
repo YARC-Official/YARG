@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.LowLevel;
+using UnityEngine.UIElements;
 using YARG.Core.Input;
 using YARG.Core.Logging;
 
@@ -10,7 +11,7 @@ namespace YARG.Input
 {
     public delegate void GameInputProcessed(ref GameInput input);
 
-    public abstract class RuntimeControlBinding {
+    public abstract class RuntimeControlBinding : IDisposable {
         /// <summary>
         /// Fired when an input event has been processed by this binding.
         /// </summary>
@@ -46,6 +47,11 @@ namespace YARG.Input
         public void Disable()
         {
             Enabled = false;
+        }
+
+        public virtual void Dispose()
+        {
+            Disable();
         }
 
         public virtual void UpdateForFrame(double updateTime) { }
@@ -97,6 +103,18 @@ namespace YARG.Input
         protected void FireStateChanged()
         {
             StateChanged?.Invoke();
+        }
+
+        public override void Dispose()
+        {
+            base.Dispose();
+
+            for (var i = 0; i < _bindings.Count; i++)
+            {
+                InputState.RemoveChangeMonitor(_bindings[i].Control, this, i);
+            }
+
+            _bindings.Clear();
         }
 
         void IInputStateChangeMonitor.NotifyControlStateChanged(InputControl control, double time, InputEventPtr eventPtr, long monitorIndex)
