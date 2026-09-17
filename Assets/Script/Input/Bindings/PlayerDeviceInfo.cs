@@ -37,6 +37,7 @@ namespace YARG.Input
         public List<MicDevice> Microphones => _microphones;
 
         public List<InputDevice> Controllers => _controllers;
+        private bool _inputsEnabled;
 
         private readonly List<SerializedInputDevice> _unresolvedControllers = new();
         private readonly List<InputDevice> _controllers = new();
@@ -301,6 +302,8 @@ namespace YARG.Input
 
         public void EnableInputs()
         {
+            _inputsEnabled = true;
+
             foreach (var bindings in _activeGameplayBindings.Values)
             {
                 bindings.EnableInputs();
@@ -314,6 +317,8 @@ namespace YARG.Input
 
         public void DisableInputs()
         {
+            _inputsEnabled = false;
+
             foreach (var bindings in _activeGameplayBindings.Values)
             {
                 bindings.DisableInputs();
@@ -517,13 +522,26 @@ namespace YARG.Input
             _activeGameplayBindings[controller] = newGameplayBindings;
             _activeMenuBindings[controller] = newMenuBindings;
 
+            if (_inputsEnabled)
+            {
+                newGameplayBindings.EnableInputs();
+                newMenuBindings.EnableInputs();
+            }
+
             ControllerAdded?.Invoke(controller);
         }
         
         private void NotifyControllerRemoved(InputDevice controller)
         {
-            _activeGameplayBindings.Remove(controller);
-            _activeMenuBindings.Remove(controller);
+            if (_activeGameplayBindings.Remove(controller, out var gameplayBindings))
+            {
+                gameplayBindings.Dispose();
+            }
+
+            if (_activeMenuBindings.Remove(controller, out var menuBindings))
+            {
+                menuBindings.Dispose();
+            }
 
             ControllerRemoved?.Invoke(controller);
         }
