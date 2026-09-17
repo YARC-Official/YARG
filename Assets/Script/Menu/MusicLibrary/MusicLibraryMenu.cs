@@ -1077,12 +1077,19 @@ namespace YARG.Menu.MusicLibrary
 
         public void SelectRandomSong()
         {
-            if (!ViewList.Any(i => i is SongViewType)) return;
-
-            do
+            var songIndices = new List<int>();
+            for (int i = 0; i < ViewList.Count; i++)
             {
-                SelectedIndex = Random.Range(0, ViewList.Count);
-            } while (CurrentSelection is not SongViewType);
+                if (ViewList[i] is SongViewType)
+                {
+                    songIndices.Add(i);
+                }
+            }
+
+            if (songIndices.Count == 0)
+                return;
+
+            SelectedIndex = songIndices[Random.Range(0, songIndices.Count)];
         }
 
         public void ExpandAll()
