@@ -9,9 +9,11 @@ Shader "HighwaysAlphaMask"
             Tags { "LightMode"="UniversalForward" }
 
             ZWrite Off
+            ZTest LEqual
             Cull Off
+            ColorMask A
             Blend One One
-            BlendOp Max
+            BlendOp Min
 
             HLSLPROGRAM
             #pragma vertex vert
@@ -64,8 +66,8 @@ Shader "HighwaysAlphaMask"
                     alpha = 1.0 - smoothstep(0.0, 1.0, fadeValue);
                 }
 
-                // Only write into R channel, others zero
-                return half4(alpha, 0, 0, 0);
+                // Only the alpha channel is blended (ColorMask A + BlendOp Min)
+                return half4(0, 0, 0, alpha);
             }
             ENDHLSL
         }
