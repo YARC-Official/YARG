@@ -16,6 +16,7 @@ namespace YARG.Input.Bindings
                     ReusableBindingSetTemplates.FIVE_LANE_DRUMKIT[ControlStrings.DRUMS_KICK],
                     new List<ReusableSingleButtonBindingConfig>() {
                         new(ControllerFamily.ComputerKeyboard, ControlStrings.COMPUTER_KEYBOARD_SPACE),
+                        new(ControllerFamily.ComputerKeyboard, ControlStrings.COMPUTER_KEYBOARD_LEFT_ALT),
                     }
                 )
             },
@@ -62,7 +63,7 @@ namespace YARG.Input.Bindings
         };
 
         public static ReusableBindingSet DefaultComputerKeyboardFiveLaneDrumsGameplay = MakeHardcodedBindingSet(
-            "Default Computer Keyboard 5L Drums Gameplay",
+            "Default 5L Drums on Computer Keyboard",
             GameMode.FiveLaneDrums,
             ControllerFamily.ComputerKeyboard,
             _computerKeyboardFiveLaneDrumsGameplayDefaults

@@ -175,7 +175,7 @@ namespace YARG.Input.Bindings
         };
 
         public static ReusableBindingSet DefaultSixFretGuitar = MakeHardcodedBindingSet(
-            "Default 6F Guitar Gameplay",
+            "Default 6F Guitar",
             GameMode.SixFretGuitar,
             ControllerFamily.SixFretGuitar,
             _sixFretGuitarDefaults

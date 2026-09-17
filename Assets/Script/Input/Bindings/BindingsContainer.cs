@@ -35,7 +35,10 @@ namespace YARG.Input.Bindings
                         ReusableBindingSetDefaults.DefaultFiveFretGuitar,
                         ReusableBindingSetDefaults.DefaultRiffmasterGuitar
                     }},
-                    { GameMode.ProKeys, new() { ReusableBindingSetDefaults.DefaultFiveFretGuitarForKeys }},
+                    { GameMode.ProKeys, new() {
+                        ReusableBindingSetDefaults.DefaultFiveFretGuitarForKeys,
+                        ReusableBindingSetDefaults.DefaultRiffmasterForKeys,
+                    }},
                 }
             },
 
@@ -112,9 +115,20 @@ namespace YARG.Input.Bindings
                         ReusableBindingSetDefaults.DefaultComputerKeyboardMenu,
                         ReusableBindingSetDefaults.ComputerKeyboardMenuArrowKeysOnly,
                         ReusableBindingSetDefaults.ComputerKeyboardMenuWASDOnly,
-                    } },
-                    { GameMode.ProKeys, new() { ReusableBindingSetDefaults.DefaultComputerKeyboardKeysGameplay } },
+                    }},
+                    { GameMode.FiveFretGuitar, new() { ReusableBindingSetDefaults.DefaultComputerKeyboardFiveFretGuitarGameplay } },
+                    { GameMode.SixFretGuitar, new() { ReusableBindingSetDefaults.DefaultComputerKeyboardSixFretGuitarGameplay } },
+                    { GameMode.FourLaneDrums, new() { ReusableBindingSetDefaults.DefaultComputerKeyboardFourLaneDrumsGameplay } },
                     { GameMode.FiveLaneDrums, new() { ReusableBindingSetDefaults.DefaultComputerKeyboardFiveLaneDrumsGameplay } },
+                    { GameMode.ProKeys, new() { ReusableBindingSetDefaults.DefaultComputerKeyboardKeysGameplay } },
+                }
+            },
+
+            {
+                ControllerFamily.Mouse,
+                new()
+                {
+                    { GameMode.Vocals, new() { ReusableBindingSetDefaults.DefaultMouseVocalGameplay } },
                 }
             }
         };

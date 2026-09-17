@@ -198,7 +198,12 @@ namespace YARG.Input.Bindings
         public const string COMPUTER_KEYBOARD_DOWN_ARROW = "downArrow";
         public const string COMPUTER_KEYBOARD_LEFT_ARROW = "leftArrow";
         public const string COMPUTER_KEYBOARD_RIGHT_ARROW = "rightArrow";
-
+        public const string COMPUTER_KEYBOARD_RIGHT_SHIFT = "rightShift";
+        public const string COMPUTER_KEYBOARD_LEFT_ALT = "leftAlt";
         public const string COMPUTER_KEYBOARD_F1 = "f1";
+
+        public const string MOUSE_LEFT_CLICK = "leftButton";
+        public const string MOUSE_RIGHT_CLICK = "rightButton";
+
     }
 }

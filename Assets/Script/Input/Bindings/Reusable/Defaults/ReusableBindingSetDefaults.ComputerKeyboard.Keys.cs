@@ -287,7 +287,7 @@ namespace YARG.Input.Bindings
         };
 
         public static ReusableBindingSet DefaultComputerKeyboardKeysGameplay = MakeHardcodedBindingSet(
-            "Default Computer Keyboard Keys Gameplay",
+            "Default Keys on Computer Keyboard",
             GameMode.ProKeys,
             ControllerFamily.ComputerKeyboard,
             _computerKeyboardKeysGameplayDefaults
