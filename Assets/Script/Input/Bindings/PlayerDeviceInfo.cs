@@ -46,6 +46,8 @@ namespace YARG.Input
         private readonly Dictionary<(GameMode mode, ControllerFamily controllerFamily), ReusableBindingSet> _preferredBindsByContext = new();
         public readonly Dictionary<ControllerFamily, ReusableBindingSet> PreferredMenuBindingsByBaseLayout = new();
 
+        private readonly RuntimeInputAggregator _gameplayInputAggregator = new();
+
         public bool HasDeviceAssigned => _controllers.Count > 0;
         public bool HasMicrophoneAssigned => _microphones.Count == 0;
         public bool HasNoDevices => !HasDeviceAssigned && !HasMicrophoneAssigned;
@@ -332,19 +334,12 @@ namespace YARG.Input
 
         public void SubscribeToGameplayInputs(GameInputProcessed onInputProcessed)
         {
-            foreach (var bindings in _activeGameplayBindings.Values)
-            {
-                bindings.InputProcessed += onInputProcessed;
-            }
-
+            _gameplayInputAggregator.InputProcessed += onInputProcessed;
         }
 
         public void UnsubscribeFromGameplayInputs(GameInputProcessed onInputProcessed)
         {
-            foreach (var bindings in _activeGameplayBindings.Values)
-            {
-                bindings.InputProcessed -= onInputProcessed;
-            }
+            _gameplayInputAggregator.InputProcessed -= onInputProcessed;
         }
 
         public bool AddController(InputDevice controller)
@@ -502,6 +497,7 @@ namespace YARG.Input
         {
             foreach (var bindings in _activeGameplayBindings.Values)
             {
+                _gameplayInputAggregator.Remove(bindings);
                 bindings.Dispose();
             }
             _activeGameplayBindings.Clear();
@@ -510,6 +506,7 @@ namespace YARG.Input
             {
                 var newGameplayBindings = GetCollectionForController(controller, menu: false);
                 _activeGameplayBindings[controller] = newGameplayBindings;
+                _gameplayInputAggregator.Add(newGameplayBindings);
                 newGameplayBindings.EnableInputs();
             }
         }
@@ -521,6 +518,8 @@ namespace YARG.Input
 
             _activeGameplayBindings[controller] = newGameplayBindings;
             _activeMenuBindings[controller] = newMenuBindings;
+
+            _gameplayInputAggregator.Add(newGameplayBindings);
 
             if (_inputsEnabled)
             {
@@ -535,6 +534,7 @@ namespace YARG.Input
         {
             if (_activeGameplayBindings.Remove(controller, out var gameplayBindings))
             {
+                _gameplayInputAggregator.Remove(gameplayBindings);
                 gameplayBindings.Dispose();
             }
 
@@ -589,6 +589,8 @@ namespace YARG.Input
             {
                 bindings.UpdateBindingsForFrame(updateTime);
             }
+
+            _gameplayInputAggregator.UpdateForFrame(updateTime);
         }
 
         public void AddMicrophone(MicDevice microphone)
