@@ -35,10 +35,6 @@ namespace YARG.Input.Bindings
                         ReusableBindingSetDefaults.DefaultFiveFretGuitar,
                         ReusableBindingSetDefaults.DefaultRiffmasterGuitar
                     }},
-                    { GameMode.ProKeys, new() {
-                        ReusableBindingSetDefaults.DefaultFiveFretGuitarForKeys,
-                        ReusableBindingSetDefaults.DefaultRiffmasterForKeys,
-                    }},
                 }
             },
 
@@ -323,7 +319,6 @@ namespace YARG.Input.Bindings
         {
             _allBindingCollectionsByGuid.Remove(bindingSet.Guid);
             _reusableBindingSetsByControllerFamily[bindingSet.ControllerFamily][bindingSet.Mode].Remove(bindingSet);
-            
         }
 
         public static void ReleaseMicrophones()
