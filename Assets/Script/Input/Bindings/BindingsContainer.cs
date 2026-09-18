@@ -152,6 +152,23 @@ namespace YARG.Input.Bindings
             return _reusableBindingSetsByControllerFamily.GetValueOrDefault(controllerFamily, new());
         }
 
+        public static List<GameMode> GetTypicalGameModesForControllerFamily(ControllerFamily controllerFamily)
+        {
+            return controllerFamily switch {
+                ControllerFamily.FiveFretGuitar => new() { GameMode.FiveFretGuitar },
+                ControllerFamily.SixFretGuitar => new() { GameMode.SixFretGuitar },
+                ControllerFamily.FourLaneDrumkit => new() { GameMode.FourLaneDrums },
+                ControllerFamily.FiveLaneDrumkit => new() { GameMode.FiveLaneDrums },
+                ControllerFamily.ProKeyboard => new() { GameMode.ProKeys },
+                ControllerFamily.MidiDevice => new() { GameMode.ProKeys, GameMode.EliteDrums },
+                ControllerFamily.ProGuitar => new() { GameMode.ProGuitar },
+                ControllerFamily.Gamepad => new() { GameMode.Vocals },
+                ControllerFamily.ComputerKeyboard => new() { GameMode.FiveFretGuitar, GameMode.SixFretGuitar, GameMode.FourLaneDrums, GameMode.FiveLaneDrums, GameMode.EliteDrums, GameMode.ProKeys, GameMode.Vocals },
+                ControllerFamily.Mouse => new() { GameMode.Vocals },
+                _ => new() { }
+            };
+        }
+
         public static List<ReusableBindingSet> GetBindingSetsForControllerInMode(ControllerFamily controllerFamily, GameMode mode)
         {
             if (_reusableBindingSetsByControllerFamily.TryGetValue(controllerFamily, out var familySets))

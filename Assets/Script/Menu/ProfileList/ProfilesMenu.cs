@@ -129,10 +129,30 @@ namespace YARG.Menu.ProfileList
             _navigationGroup.ClearNavigatables();
 
             var relevantBindingSets = BindingsContainer.GetBindingSetsForControllerFamily(CurrentBindingSetFilter);
+            var typicalGameModes = BindingsContainer.GetTypicalGameModesForControllerFamily(CurrentBindingSetFilter);
 
+            // Always list menu binding sets first, if any exist
+            if (relevantBindingSets.TryGetValue(GameMode.Menu, out var menuBindingSets) && menuBindingSets.Count > 0)
+            {
+                AddBindingSetListGroup(GameMode.Menu, menuBindingSets);
+            }
+
+            // List the typical gameplay modes for this controller first, and do so even if they're empty
+            foreach (var mode in typicalGameModes)
+            {
+                AddBindingSetListGroup(mode, relevantBindingSets.GetValueOrDefault(mode, new()));
+            }
+
+            // Go through remaining (atypical) modes to display whichever ones are actually populated with oddball binding sets
             foreach (var (mode, bindingSets) in relevantBindingSets)
             {
-                AddBindingSetListGroup(mode, bindingSets);
+                if (typicalGameModes.Contains(mode) || mode is GameMode.Menu)
+                {
+                    // Menu navigation and typical gameplay modes have already been covered
+                    continue;
+                }
+
+                AddBindingSetListGroup(mode, bindingSets, typical: false);
             }
             
         }
@@ -185,14 +205,14 @@ namespace YARG.Menu.ProfileList
             }
         }
 
-        private void AddBindingSetListGroup(GameMode mode, List<ReusableBindingSet> bindingSets)
+        private void AddBindingSetListGroup(GameMode mode, List<ReusableBindingSet> bindingSets, bool typical = true)
         {
             if (bindingSets.Count is 0)
             {
                 return;
             }
 
-            AddBindingSetListHeader(mode);
+            AddBindingSetListHeader(mode, typical);
 
             // Spawn in a profile view for each player
             foreach (var bindingSet in bindingSets)
@@ -210,10 +230,10 @@ namespace YARG.Menu.ProfileList
             _navigationGroup.AddNavigatable(headerGo);
         }
 
-        private void AddBindingSetListHeader(GameMode mode)
+        private void AddBindingSetListHeader(GameMode mode, bool typical)
         {
             var headerGo = Instantiate(_bindingSetListHeaderPrefab, _leftPaneList);
-            headerGo.Init(CurrentBindingSetFilter, mode, this);
+            headerGo.Init(CurrentBindingSetFilter, mode, this, typical);
             _navigationGroup.AddNavigatable(headerGo.gameObject);
         }
 

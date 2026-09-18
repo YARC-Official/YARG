@@ -1149,7 +1149,8 @@
 			"EliteDrums": "For All Kinds of Drums Gameplay",
 			"ProKeys": "For Keys Gameplay",
 			"ProGuitar": "For Pro Guitar Gameplay",
-			"Vocals": "For Vocal Gameplay"
+			"Vocals": "For Vocal Gameplay",
+			"NotRecommended": "Not Recommended"
 		},
 		"Hardcoded": "Built-In",
 		"Custom": "Custom {0}",
