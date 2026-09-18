@@ -494,6 +494,7 @@ namespace YARG.Menu.MusicLibrary
         private List<ViewType> CreateNormalViewList()
         {
             var list = new List<ViewType>();
+            _totalSongCount = 0;
             _totalStarCount = 0;
 
             // If `_sortedSongs` is null, then this function is being called during very first initialization,
@@ -1330,6 +1331,9 @@ namespace YARG.Menu.MusicLibrary
             try
             {
                 await SongContainer.RunRefresh(false, context);
+                // Some filters cache SongEntry instances. A scan rebuilds those instances, so
+                // recreate the predicate before applying it to the refreshed song container.
+                FiltersMenu.RefreshActiveFilterPredicate();
                 RefreshAndReselect();
             }
             finally
