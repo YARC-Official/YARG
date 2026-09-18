@@ -64,6 +64,7 @@ namespace YARG.Settings
                 nameof(Settings.DisablePerSongBackgrounds),
                 new FieldMetadata(nameof(Settings.WaitForSongVideo), isAdvanced: true),
                 nameof(Settings.AllowRemoteContent),
+                new FieldMetadata(nameof(Settings.VlcLibraryPath), isAdvanced: true),
 
                 new HeaderMetadata("Gameplay"),
                 new FieldMetadata(nameof(Settings.InputPollingFrequency), isAdvanced: true),
