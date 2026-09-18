@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Text;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Controls;
+using YARG.Core.Input;
+using YARG.Core.Logging;
 using YARG.Input.Bindings;
 
 namespace YARG.Input.Bindings
@@ -115,6 +117,59 @@ namespace YARG.Input.Bindings
             State = state;
             FireInputEvent(updateTime, state);
             FireStateChanged();
+        }
+    }
+
+    // An impulse binding is like a button binding, but it reports only presses, and does so even
+    // if another one of its SingleBindings is being held.
+    //
+    // This honestly should probably be a sibling of RuntimeButtonBinding rather than a subclass of it,
+    // but this works for now.
+    public class RuntimeImpulseBinding : RuntimeButtonBinding
+    {
+        public event GameInputProcessed Pressed;
+
+        public RuntimeImpulseBinding(InputDevice controller, ReusableButtonBinding reusableBinding)
+            : base(controller, reusableBinding) { }
+
+        public override void UpdateForFrame(double updateTime)
+        {
+            // Do nothing; we only want to send Pressed events, not regular state transitions
+        }
+
+        protected override void OnStateChanged(RuntimeSingleButtonBinding singleBinding, double time)
+        {
+            if (!singleBinding.IsPressed || singleBinding.WasPreviouslyPressed)
+            {
+                return;
+            }
+
+            if (_debounceTimer.IsRunning && !_debounceTimer.HasElapsed(time))
+            {
+                return;
+            }
+
+            FirePressedEvent(time);
+            _debounceTimer.Start(time);
+        }
+
+        protected void FirePressedEvent(double time, float value = 1f)
+        {
+            var input = new GameInput(time, Action, value);
+
+            if (!Enabled)
+            {
+                return;
+            }
+
+            try
+            {
+                Pressed?.Invoke(ref input);
+            }
+            catch (Exception ex)
+            {
+                YargLogger.LogException(ex, $"Exception when firing input event for {Key}");
+            }
         }
     }
 }

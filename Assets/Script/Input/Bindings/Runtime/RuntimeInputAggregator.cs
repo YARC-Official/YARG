@@ -26,23 +26,43 @@ namespace YARG.Input.Bindings
             {
                 _sources.Add(source);
             }
+
+            foreach (var binding in source)
+            {
+                if (binding is RuntimeImpulseBinding impulse)
+                {
+                    impulse.Pressed += OnButtonPressed;
+                }
+            }
         }
 
         public void Remove(RuntimeBindingSet source)
         {
             _sources.Remove(source);
+
+            foreach (var binding in source)
+            {
+                if (binding is RuntimeImpulseBinding impulse)
+                {
+                    impulse.Pressed -= OnButtonPressed;
+                }
+            }
         }
 
         public void UpdateForFrame(double time)
         {
             _newButtonStates.Clear();
             _newAxisStates.Clear();
+            _newIntegerStates.Clear();
 
             foreach (var source in _sources)
             {
                 foreach (var binding in source)
                 {
                     switch (binding) {
+                        case RuntimeImpulseBinding impulse:
+                            // Impulses are forwarded rather than aggregated
+                            break;
                         case RuntimeButtonBinding button:
                             if (_newButtonStates.TryGetValue(button.Action, out var buttonState))
                             {
@@ -115,6 +135,11 @@ namespace YARG.Input.Bindings
                 var input = new GameInput(time, action, newState);
                 InputProcessed?.Invoke(ref input);
             }
+        }
+
+        private void OnButtonPressed(ref GameInput input)
+        {
+            InputProcessed?.Invoke(ref input);
         }
     }
 }

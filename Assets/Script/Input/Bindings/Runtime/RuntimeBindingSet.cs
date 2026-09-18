@@ -47,7 +47,10 @@ namespace YARG.Input.Bindings
             {
                 RuntimeControlBinding newBind = binding switch
                 {
-                    ReusableButtonBinding button => new RuntimeButtonBinding(controller, button),
+                    ReusableButtonBinding button => button.Subtype switch {
+                        ReusableButtonBindingSubtype.Impulse => new RuntimeImpulseBinding(controller, button),
+                        _ => new RuntimeButtonBinding(controller, button),
+                    },
                     ReusableAxisBinding axis => new RuntimeAxisBinding(controller, axis),
                     ReusableIntegerBinding integer => throw new NotImplementedException(), // TODO-FRICK
                     _ => throw new ArgumentOutOfRangeException("Unrecognized reusable binding type")
