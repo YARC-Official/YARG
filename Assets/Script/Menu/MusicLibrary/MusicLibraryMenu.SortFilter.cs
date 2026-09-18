@@ -112,7 +112,9 @@ namespace YARG.Menu.MusicLibrary
 
             if (SongContainer.Count > RecommendedSongs.RECOMMEND_SONGS_COUNT)
             {
-                _recommendedSongs = RecommendedSongs.GetRecommendedSongs();
+                var recommendations = RecommendedSongs.GetRecommendedSongs(
+                    YARG.Menu.Filters.FiltersMenu.ActiveFilterPredicate);
+                _recommendedSongs = recommendations.Length > 0 ? recommendations : null;
             }
             else
             {
@@ -267,6 +269,13 @@ namespace YARG.Menu.MusicLibrary
             if (ViewList.Count == 0)
             {
                 _currentSong = null;
+                return;
+            }
+
+            // Playlists and Recommended entries are not subject to song filters, so a selection
+            // sitting on one of them is never invalidated by a filter change.
+            if (CurrentSelection is ButtonViewType)
+            {
                 return;
             }
 
