@@ -14,7 +14,7 @@ namespace YARG.Audio.BASS.Effects
     {
         private const string EFFECT_NAME = "native Gain DSP";
 
-        private BassGainDsp() : base()
+        private BassGainDsp()
         {
         }
 
@@ -30,7 +30,7 @@ namespace YARG.Audio.BASS.Effects
 
             return YargAudioNative.Attach(EFFECT_NAME, channelHandle,
                 (out BassGainDsp handle, out int bassError) =>
-                    Native.Attach(unchecked((uint) channelHandle), initialGain, priority, out handle, out bassError));
+                    YargAudioBindings.GainDspAttach(unchecked((uint) channelHandle), initialGain, priority, out handle, out bassError));
         }
 
         internal bool SetGain(float gain)
@@ -42,30 +42,10 @@ namespace YARG.Audio.BASS.Effects
                 return false;
             }
 
-            return YargAudioNative.TryInvoke(this, handle => Native.SetGain(handle, gain));
+            return YargAudioNative.TryInvoke(this, handle => YargAudioBindings.GainDspSetGain(handle, gain));
         }
 
-        protected override void Destroy(IntPtr handle)
-        {
-            Native.Destroy(handle);
-        }
-
-        private static class Native
-        {
-            private const string LIBRARY = "yarg_audio";
-
-            [DllImport(LIBRARY, EntryPoint = "yarg_gain_dsp_attach",
-                CallingConvention = CallingConvention.Cdecl)]
-            internal static extern int Attach(uint channel, float gain, int priority,
-                out BassGainDsp dsp, out int bassError);
-
-            [DllImport(LIBRARY, EntryPoint = "yarg_gain_dsp_set_gain",
-                CallingConvention = CallingConvention.Cdecl)]
-            internal static extern int SetGain(BassGainDsp dsp, float gain);
-
-            [DllImport(LIBRARY, EntryPoint = "yarg_gain_dsp_destroy",
-                CallingConvention = CallingConvention.Cdecl)]
-            internal static extern void Destroy(IntPtr dsp);
-        }
+        protected override void Destroy(IntPtr handle) =>
+            YargAudioBindings.GainDspDestroy(handle);
     }
 }

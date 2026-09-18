@@ -545,11 +545,12 @@ namespace YARG.Scores
                     AND PlayerScores.PlayerId = ?
                     AND PlayerScores.IsReplay = 0";
 
-            bool useAggregateDrums = profile.GameMode == GameMode.EliteDrums;
+            var drumInstruments = MidiDrumkitHelper.GetInstruments(profile.GameMode);
+            bool useAggregateDrums = drumInstruments != null;
 
             if (useAggregateDrums)
             {
-                query += $" AND PlayerScores.Instrument {BuildInstrumentInClause(MidiDrumkitHelper.Instruments)} ";
+                query += $" AND PlayerScores.Instrument {BuildInstrumentInClause(drumInstruments)} ";
             }
             // If the profile instrument is bad, we can still return all scores for the profile
             else if (profile.HasValidInstrument)
@@ -564,7 +565,7 @@ namespace YARG.Scores
             if (useAggregateDrums)
             {
                 var parameters = new List<object> { profile.Id };
-                parameters.AddRange(BuildInstrumentParams(MidiDrumkitHelper.Instruments));
+                parameters.AddRange(BuildInstrumentParams(drumInstruments));
                 return _db.Query<PlayCountRecord>(query, parameters.ToArray());
             }
 
