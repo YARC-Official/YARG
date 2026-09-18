@@ -497,6 +497,7 @@ namespace YARG.Menu.MusicLibrary
             var list = new List<ViewType>();
             _totalSongCount = 0;
             _totalStarCount = 0;
+            _allVisibleSongsGold = true;
 
             // If `_sortedSongs` is null, then this function is being called during very first initialization,
             // which means the song list hasn't been constructed yet.
@@ -643,6 +644,8 @@ namespace YARG.Menu.MusicLibrary
                 }
 
                 int sectionTotalStars = 0;
+                bool sectionHasGoldStars = true;
+                bool sectionHasScoredSongs = false;
                 bool includeSongs = _sortedSongs.Length <= 1 || !_collapsedHeaders[SettingsManager.Settings.LibrarySort].Contains(section);
 
                 var displayedSongs = section.Songs
@@ -667,7 +670,15 @@ namespace YARG.Menu.MusicLibrary
                     if (starAmount is not null)
                     {
                         sectionTotalStars += starAmount.Value.GetStarCount();
+                        sectionHasScoredSongs = true;
+                        sectionHasGoldStars &= starAmount.Value == StarAmount.StarGold;
                     }
+                    else
+                    {
+                        sectionHasGoldStars = false;
+                    }
+
+                    _allVisibleSongsGold &= starAmount == StarAmount.StarGold;
                 }
 
                 var secondaryAlbumSort = SettingsManager.Settings.SecondaryAlbumSort.Value;
@@ -705,11 +716,14 @@ namespace YARG.Menu.MusicLibrary
                         var albumHeader = new SecondaryHeaderViewType(album.Key, albumSongs.Length);
                         list.Add(albumHeader);
                         int starsBeforeAlbum = sectionTotalStars;
+                        bool albumHasGoldStars = true;
                         foreach (var song in albumSongs)
                         {
                             AddSong(song);
+                            albumHasGoldStars &= SongViewType.GetStarAmountForSong(song) == StarAmount.StarGold;
                         }
                         albumHeader.TotalStarsCount = sectionTotalStars - starsBeforeAlbum;
+                        albumHeader.HasGoldStars = albumHasGoldStars;
                     }
                 }
                 else
@@ -724,6 +738,7 @@ namespace YARG.Menu.MusicLibrary
                 if (sortHeader != null)
                 {
                     sortHeader.TotalStarsCount = sectionTotalStars;
+                    sortHeader.HasGoldStars = sectionHasScoredSongs && sectionHasGoldStars;
                 }
             }
 

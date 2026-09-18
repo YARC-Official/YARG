@@ -3633,6 +3633,7 @@ MonoBehaviour:
   _categoryText: {fileID: 9056057400455014970}
   _starsObtainedView: {fileID: 4831385730584701946}
   _starsObtainedText: {fileID: 2944395680739921185}
+  _starsObtainedIcon: {fileID: 5447178295632907293}
   _scoreText: {fileID: 4367442649557956854}
   _buttonHelpText: {fileID: 4192639591168212386}
   _trackGradient: {fileID: 6944636780508236854}

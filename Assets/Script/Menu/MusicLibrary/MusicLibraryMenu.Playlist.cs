@@ -126,6 +126,7 @@ namespace YARG.Menu.MusicLibrary
             bool allowdupes = SettingsManager.Settings.AllowDuplicateSongs.Value;
             _totalSongCount = 0;
             _totalStarCount = 0;
+            _allVisibleSongsGold = true;
 
             // Add songs in the playlist
             foreach (var section in _sortedSongs)
@@ -140,6 +141,7 @@ namespace YARG.Menu.MusicLibrary
                         _totalSongCount++;
                         var starAmount = songView.GetStarAmount();
                         _totalStarCount += starAmount is null ? 0 : StarAmountHelper.GetStarCount(starAmount.Value);
+                        _allVisibleSongsGold &= starAmount == StarAmount.StarGold;
                     }
                 }
             }
@@ -277,6 +279,7 @@ namespace YARG.Menu.MusicLibrary
         {
             _totalSongCount = 0;
             _totalStarCount = 0;
+            _allVisibleSongsGold = true;
 
             var list = new List<ViewType>
             {
@@ -293,6 +296,7 @@ namespace YARG.Menu.MusicLibrary
                 _totalSongCount++;
                 var starAmount = songView.GetStarAmount();
                 _totalStarCount += starAmount is null ? 0 : StarAmountHelper.GetStarCount(starAmount.Value);
+                _allVisibleSongsGold &= starAmount == StarAmount.StarGold;
             }
 
             AddSetlistManagementButtons(list, DeleteShowSetlist);
