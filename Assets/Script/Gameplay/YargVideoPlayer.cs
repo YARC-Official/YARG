@@ -23,6 +23,8 @@ public class YargVideoPlayer : MonoBehaviour
 #if VLC_SUPPORTED
     [SerializeField] private LibVLCSharp.VLCMediaPlayer _vlcPlayer;
     private bool _usingVLC = false;
+    // Latches prepareCompleted to one fire per Prepare() -- see OnVLCTextureResized.
+    private bool _vlcPreparedFired = false;
 #endif
 
     private string _url = "";
@@ -58,7 +60,8 @@ public class YargVideoPlayer : MonoBehaviour
             }
 #endif
             // Always set on the built-in player too, so we can fall back to it.
-            YargLogger.LogFormatDebug("[YargVideoPlayer/UnityPlayer] targetTexture set to {0}", value);
+            // Log the name, not the RenderTexture -- YargLogger has no formatter for it and throws.
+            YargLogger.LogFormatDebug("[YargVideoPlayer/UnityPlayer] targetTexture set to {0}", value != null ? value.name : "null");
             _unityVideoPlayer.targetTexture = value;
         }
     }
@@ -185,6 +188,7 @@ public class YargVideoPlayer : MonoBehaviour
 #if VLC_SUPPORTED
         if (_usingVLC && _vlcPlayer != null)
         {
+            _vlcPreparedFired = false;
             _ = _vlcPlayer.OpenAsync(_url);
             return;
         }
@@ -342,6 +346,17 @@ public class YargVideoPlayer : MonoBehaviour
         {
             return;
         }
+
+        // Fire once per Prepare(), matching the Unity path's self-unregistering
+        // OnUnityVideoPrepared. OnTextureResized is raised on every decoded-size change, not
+        // just the first, so a mid-song resolution change re-enters the caller's prepare
+        // handler and re-runs the whole initial setup under the player.
+        if (_vlcPreparedFired)
+        {
+            return;
+        }
+
+        _vlcPreparedFired = true;
 
         // OpenAsync() starts playing, so stop before handing over to the caller.
         Stop();
