@@ -165,7 +165,7 @@ namespace YARG.Menu.ProfileList
             if (remainingGameModes.Count is not 0)
             {
                 var footerGo = Instantiate(_bindingSetListFooterPrefab, _leftPaneList);
-                footerGo.Init(remainingGameModes);
+                footerGo.Init(CurrentBindingSetFilter, remainingGameModes, this);
                 _navigationGroup.AddNavigatable(footerGo.gameObject);
             }
         }
