@@ -99,6 +99,11 @@ namespace YARG.Localization
             return Key("Enum.GameMode", gameMode);
         }
 
+        public static string ToLocalizedNameShort(this GameMode gameMode)
+        {
+            return Key("Enum.GameMode.Short", gameMode);
+        }
+
         public static string ToLocalizedName(this OpenLaneDisplayType openLaneDisplayType)
         {
             return Key("Enum.OpenLaneDisplayType", openLaneDisplayType);
@@ -109,9 +114,14 @@ namespace YARG.Localization
             return Key("Enum.StarPowerActivationType", starPowerActivationType);
         }
 
-        public static string ToLocalizedName(this ControllerFamily controllerFamily)
+        public static string ToLocalizedNameSingular(this ControllerFamily controllerFamily)
         {
-            return Key("Enum.ControllerFamily", controllerFamily);
+            return Key("Enum.ControllerFamily.Singular", controllerFamily);
+        }
+
+        public static string ToLocalizedNamePlural(this ControllerFamily controllerFamily)
+        {
+            return Key("Enum.ControllerFamily.Plural", controllerFamily);
         }
 
         public static string ToLocalizedName(this Instrument instrument)

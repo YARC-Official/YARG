@@ -25,8 +25,19 @@
             "FiveLaneDrums": "Drumkit (5-Lane)",
             "ProGuitar": "Pro Guitar (17-Fret, 22-Fret)",
             "ProKeys": "Keys (5-Lane, Pro)",
-            "Menu": "Menu",
-            "Vocals": "Vocals"
+            "Menu": "Menu Navigation",
+            "Vocals": "Vocals",
+			"Short": {
+				"FiveFretGuitar": "5F Guitar",
+				"SixFretGuitar": "6F Guitar",
+				"EliteDrums": "Drums",
+				"FourLaneDrums": "4L Drums",
+				"FiveLaneDrums": "5L Drums",
+				"ProGuitar": "Pro Guitar",
+				"ProKeys": "Keys",
+				"Menu": "Menu Navigation",
+				"Vocals": "Vocals",
+			}
         },
         "Instrument": {
             "FiveFretGuitar": "Guitar",
@@ -122,17 +133,32 @@
 			"IfChartContainsOpens": "If chart contains open notes"
 		},
 		"ControllerFamily": {
-			"FiveFretGuitar": "5-Fret Guitars",
-			"SixFretGuitar": "6-Fret Guitars",
-			"FourLaneDrumkit": "4-Lane Drumkits",
-			"FiveLaneDrumkit": "5-Lane Drumkits",
-			"ProKeyboard": "Pro Keyboards",
-			"ProGuitar": "Pro Guitars",
-			"MidiDevice": "MIDI Devices",
-			"ComputerKeyboard": "Computer Keyboards",
-			"Mouse": "Computer Mice",
-			"Gamepad": "Gamepads",
-			"Generic": "Generic Input Devices"
+			"Singular": { 
+				"FiveFretGuitar": "5F Guitar",
+				"SixFretGuitar": "6F Guitar",
+				"FourLaneDrumkit": "4F Drumkit",
+				"FiveLaneDrumkit": "5F Drumkit",
+				"ProKeyboard": "Pro Keyboard",
+				"ProGuitar": "Pro Guitar",
+				"MidiDevice": "MIDI Device",
+				"ComputerKeyboard": "Computer Keyboard",
+				"Mouse": "Computer Mouse",
+				"Gamepad": "Gamepad",
+				"Generic": "Generic Input Device"
+			},
+			"Plural": { 
+				"FiveFretGuitar": "5-Fret Guitars",
+				"SixFretGuitar": "6-Fret Guitars",
+				"FourLaneDrumkit": "4-Lane Drumkits",
+				"FiveLaneDrumkit": "5-Lane Drumkits",
+				"ProKeyboard": "Pro Keyboards",
+				"ProGuitar": "Pro Guitars",
+				"MidiDevice": "MIDI Devices",
+				"ComputerKeyboard": "Computer Keyboards",
+				"Mouse": "Computer Mice",
+				"Gamepad": "Gamepads",
+				"Generic": "Generic Input Devices"
+			}
 		}
     },
     "Menu": {
@@ -1125,7 +1151,13 @@
 			"ProGuitar": "For Pro Guitar Gameplay",
 			"Vocals": "For Vocal Gameplay"
 		},
-		"Hardcoded": "Built-In"
+		"Hardcoded": "Built-In",
+		"Custom": "Custom {0}",
+		"ModeOnController": "{0} on {1}",
+		"VocalsWithController": "{0) with (1)",
+		"MidiKeyboard": "MIDI Keyboard",
+		"MidiDrumkit": "MIDI Drumkit",
+		"GeneralDrums": "Drums"
     },
     "Settings": {
         "Tab": {

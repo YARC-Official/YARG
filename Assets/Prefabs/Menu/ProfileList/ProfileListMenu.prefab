@@ -3086,6 +3086,7 @@ MonoBehaviour:
   _profileViewPrefab: {fileID: 1863348019200065187, guid: 7e9189d6a05c0ba4485c260aab1a1414, type: 3}
   _bindingSetViewPrefab: {fileID: 1863348019200065187, guid: ee819031ee8e8ca458308f7c6add7eed, type: 3}
   _profileListHeaderPrefab: {fileID: 5753369685943773599, guid: a5a6c5d6c4076054fac9e3ab3c9c3373, type: 3}
+  _bindingSetListHeaderPrefab: {fileID: 7403803654580723561, guid: d57df6b2103b29a43b2b9b9db0e5e49a, type: 3}
 --- !u!114 &3507336066892297867
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -13765,7 +13766,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6232041351873830570, guid: 81863a63e0d96cf459c263ee0ea6f98e, type: 3}
       propertyPath: m_Value
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -16645,11 +16646,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6232041351873830570, guid: 81863a63e0d96cf459c263ee0ea6f98e, type: 3}
       propertyPath: m_Size
-      value: 0.45863178
+      value: 0.47776446
       objectReference: {fileID: 0}
     - target: {fileID: 6232041351873830570, guid: 81863a63e0d96cf459c263ee0ea6f98e, type: 3}
       propertyPath: m_Value
-      value: 1.0000001
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8647224329583555657, guid: 81863a63e0d96cf459c263ee0ea6f98e, type: 3}
       propertyPath: m_IsActive
