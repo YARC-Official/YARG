@@ -28,6 +28,8 @@ public class YargVideoPlayer : MonoBehaviour
     [SerializeField] private LibVLCSharp.VLCMediaPlayer _vlcPlayer;
     private IVlcPlayer _vlc;
     private bool _usingVLC = false;
+    // Latches prepareCompleted to one fire per Prepare() -- see OnVLCTextureResized.
+    private bool _vlcPreparedFired = false;
 
     // Through the component: VlcUnityPlayer is a plain object, but the VLCMediaPlayer it wraps can
     // already be destroyed.
@@ -198,6 +200,7 @@ public class YargVideoPlayer : MonoBehaviour
 #if VLC_SUPPORTED
         if (vlcActive)
         {
+            _vlcPreparedFired = false;
             PrepareVlc();
             return;
         }
@@ -412,6 +415,17 @@ public class YargVideoPlayer : MonoBehaviour
         {
             return;
         }
+
+        // Fire once per Prepare(), matching the Unity path's self-unregistering
+        // OnUnityVideoPrepared. OnTextureResized is raised on every decoded-size change, not
+        // just the first, so a mid-song resolution change re-enters the caller's prepare
+        // handler and re-runs the whole initial setup under the player.
+        if (_vlcPreparedFired)
+        {
+            return;
+        }
+
+        _vlcPreparedFired = true;
 
         // OpenAsync() starts playing, so stop before handing over to the caller.
         Stop();
