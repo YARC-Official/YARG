@@ -4,6 +4,6 @@ namespace YARG.Menu.Career
 {
     public class CareerView : ViewObject<ViewType>
     {
-
+        public void PrimaryButtonClick() => ViewType?.ViewClick();
     }
 }

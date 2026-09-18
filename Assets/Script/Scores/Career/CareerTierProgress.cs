@@ -15,13 +15,16 @@ namespace YARG.Scores
         [Indexed]
         public Guid TierId { get; set; }
 
+        public int TierIndex { get; set; }
+
         public DateTime? UnlockedAt { get; set; }
         public DateTime? CompletedAt { get; set; }
 
-        // TODO: These should be changed to actually query for relevant CareerSongCompletion records
         public bool IsUnlocked => UnlockedAt.HasValue;
         public bool IsCompleted => CompletedAt.HasValue;
 
+        // UI state: has the player seen the unlock for this tier (e.g. a "new tier unlocked" presentation)
+        public bool UnlockSeen { get; set; }
         public bool CompletionBonusSeen { get; set; }
     }
 }

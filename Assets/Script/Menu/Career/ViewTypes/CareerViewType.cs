@@ -1,4 +1,7 @@
-﻿using YARG.Career;
+using UnityEngine;
+using YARG.Career;
+using YARG.Menu.Persistent;
+using YARG.Song;
 
 namespace YARG.Menu.Career
 {
@@ -24,14 +27,28 @@ namespace YARG.Menu.Career
             return FormatAs(_career.Description ?? "", TextType.Secondary, selected);
         }
 
+        #nullable enable
+        public override Sprite? GetIcon()
+        #nullable restore
+        {
+            var source = string.IsNullOrEmpty(_career.Source) ? "unknown" : _career.Source;
+            return SongSources.SourceToIcon(source);
+        }
+
         public override void ViewClick()
         {
             var menu = MenuManager.Instance.PushMenu(MenuManager.Menu.Career, false);
             if (menu.TryGetComponent<CareerMenu>(out var careerMenu))
             {
-                careerMenu.Initialize(_career);
+                // The save and its progress are resolved once, here, and handed over for the menu to
+                // cache. Browsing the list afterwards never reads the database again.
+                careerMenu.Initialize(_career, CareerMenu.LoadProgress(_career));
+                menu.gameObject.SetActive(true);
             }
-            menu.gameObject.SetActive(true);
+            else
+            {
+                ToastManager.ToastError("Failed to initialize career.");
+            }
         }
     }
 }

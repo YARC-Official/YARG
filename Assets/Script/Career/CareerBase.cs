@@ -1,19 +1,22 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Serialization;
 using Newtonsoft.Json;
 using UnityEngine.UI;
 using YARG.Core.Game;
-using YARG.Core.IO;
+using YARG.Core.Logging;
+using YARG.Scores;
 
 namespace YARG.Career
 {
-    public class CareerBase : BasePreset
+    public partial class CareerBase : BasePreset
     {
         public Guid   CareerId;
         public string Title;
         public string Description;
         public string BackgroundImageName;
+        public string Source;
         public int    Version = 1;
 
         private readonly List<CareerTier>          _tiers;
@@ -29,7 +32,6 @@ namespace YARG.Career
             Description = description;
         }
 
-        [JsonConstructor]
         public CareerBase(Guid id, string name, string description, string bgImage, CareerTier[] tiers) : base(name, true)
         {
             Id = id;
@@ -44,6 +46,56 @@ namespace YARG.Career
             //     var image = YARGImage.Load(BackgroundImageName);
             //     BackgroundImage = image.LoadTexture();
             // }
+        }
+
+        [JsonConstructor]
+        public CareerBase(Guid id, string name, string description, string bgImage, string source,
+            CareerTier[] tiers) : base(name, true)
+        {
+            Id = id;
+            Name = name;
+            Description = description;
+            BackgroundImageName = bgImage;
+            Source = source;
+            _tiers = tiers.ToList();
+        }
+
+        [OnDeserialized]
+        private void OnDeserialized(StreamingContext context)
+        {
+            if (CareerId == Guid.Empty)
+            {
+                YargLogger.LogFormatError("CareerBase: missing stable CareerId in content for career '{0}'.", Name);
+            }
+        }
+
+        /// <summary>
+        /// Fire after a song completion has been committed for this career: re-evaluate progress from
+        /// the raw rows and apply tier unlock/completion changes. Scaffolding for now — the trigger
+        /// is a direct call from the score path; an event from GameManager can replace it later.
+        /// </summary>
+        public void SyncProgress(CareerDatabase careers, int careerSaveId)
+        {
+            if (careers is null || careerSaveId <= 0)
+            {
+                return;
+            }
+
+            var snapshot = careers.LoadProgressSnapshot(careerSaveId);
+            var evaluation = CareerEvaluation.Evaluate(this, snapshot);
+
+            foreach (var tier in evaluation.Tiers)
+            {
+                if (tier.Unlocked)
+                {
+                    careers.MarkTierUnlocked(careerSaveId, tier.TierId, tier.TierIndex);
+                }
+
+                if (tier.Completed)
+                {
+                    careers.MarkTierCompleted(careerSaveId, tier.TierId);
+                }
+            }
         }
 
         private void AddTier(CareerTier tier)

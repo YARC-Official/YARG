@@ -1,8 +1,10 @@
 ﻿using TMPro;
 using UnityEngine;
 using YARG.Core.Input;
+using YARG.Menu.Career;
 using YARG.Menu.MusicLibrary;
 using YARG.Menu.Navigation;
+using YARG.Menu.Persistent;
 
 namespace YARG.Menu
 {
@@ -30,7 +32,8 @@ namespace YARG.Menu
 
         public void CareerList()
         {
-            MenuManager.Instance.PushMenu(MenuManager.Menu.CareerList);
+            var menu = MenuManager.Instance.PushMenu(MenuManager.Menu.CareerList, false);
+            menu.gameObject.SetActive(true);
         }
 
         public void Practice()

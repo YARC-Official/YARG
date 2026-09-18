@@ -19,6 +19,9 @@ namespace YARG.Scores
         public DateTime? LastPlayedAt { get; set; }
         public DateTime? CompletedAt { get; set; }
 
+        // "New career" is a soft delete: progress history is preserved for comparison, the save just stops being active.
+        public bool IsDeleted { get; set; }
+
         public bool IsCompleted => CompletedAt.HasValue;
     }
 }

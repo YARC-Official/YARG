@@ -12,7 +12,7 @@ namespace YARG.Settings.Customization
         protected override string ContentDirectory => "careers";
         public override string PresetTypeStringName => "Career";
 
-        public override IReadOnlyList<CareerBase> DefaultPresets { get; } = new List<CareerBase>();
+        public override IReadOnlyList<CareerBase> DefaultPresets => CareerBase.Defaults;
 
         public override BasePreset CopyPreset(BasePreset source, BasePreset destination)
         {

@@ -1,4 +1,5 @@
-﻿using SQLite;
+﻿using System;
+using SQLite;
 
 namespace YARG.Scores
 {
@@ -13,6 +14,6 @@ namespace YARG.Scores
         public int CareerSaveId { get; set; }
 
         [Indexed]
-        public int ProfileId { get; set; }
+        public Guid ProfileId { get; set; }
     }
 }

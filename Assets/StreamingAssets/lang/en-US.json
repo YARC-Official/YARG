@@ -323,6 +323,23 @@
             "ViewScoreCard": "View Results",
             "PlayWithReplay": "Play With Replay"
         },
+        "Career": {
+            "StarProgress": "{0} / {1}",
+            "UnlockStars": "Earn {0} more stars to unlock",
+            "UnlockSongs": "Complete {0} more songs to unlock",
+            "Locked": "Locked",
+            "SongMissing": "Not Found In Library",
+            "SongArtistAlbum": "{0} - {1}",
+            "HeaderPlayers": "Players: {0}",
+            "HeaderTier": "Current tier: {0}",
+            "NoPlayers": "No players seated",
+            "Reset": "(Hold) Reset Progress",
+            "ResetDone": "Career progress has been reset.",
+            "NothingToReset": "This career has no progress to reset yet.",
+            "UnlockTitle": "Tier Unlocked",
+            "UnlockMessage": "New tier available: {0}",
+            "UnknownTier": "Unknown tier"
+        },
         "Main": {
             "MessageOfTheDay": "<align=center><size=32><b>Welcome to v0.15!</b></size></align>\n\nv0.15 is a major update that adds many highly requested and necessary gameplay features such as roll/trill lanes and Big \"YARG\" endings, as well as revamped user interface in the song selection and results screen, drum lane customization, automatic genre categorization, experimental custom vocalist characters in venues, and more.\n\n<b>If you have any feedback or find any bugs, please let us know on Discord or GitHub.</b>\n\nHappy YARGin'!",
             "Options": {

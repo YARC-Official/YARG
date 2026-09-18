@@ -10,6 +10,7 @@ using YARG.Helpers;
 using YARG.Helpers.Extensions;
 using YARG.Player;
 using YARG.Settings;
+using YARG.Settings.Customization;
 using YARG.Song;
 
 namespace YARG.Scores
@@ -156,11 +157,91 @@ namespace YARG.Scores
 
                 SongContainer.InvalidateStarsCache();
                 YargLogger.LogInfo("Recorded score for song.");
+
+                try
+                {
+                    CommitCareerCompletion(gameRecord, playerEntries);
+                }
+                catch (Exception ce)
+                {
+                    YargLogger.LogException(ce, "Failed to commit career completion.");
+                }
             }
             catch (Exception e)
             {
                 YargLogger.LogException(e, "Failed to add score into database.");
             }
+        }
+
+        /// <summary>
+        /// Link a freshly recorded score to the active career, if any: commit the song completion
+        /// (one row per player) and fire the progress sync. A score counts toward career only if it
+        /// is linked by this committed completion row.
+        /// </summary>
+        private static void CommitCareerCompletion(GameRecord gameRecord, List<PlayerScoreRecord> playerEntries)
+        {
+            var context = GlobalVariables.State.CurrentCareer;
+            if (context is null)
+            {
+                return;
+            }
+
+            // Careers cannot be played with replays or bots.
+            if (gameRecord.PlayedWithReplay || gameRecord.HasBots || playerEntries.Any(entry => entry.IsReplay))
+            {
+                YargLogger.LogInfo("Career: skipping completion, replay or bot play is not allowed for careers.");
+                return;
+            }
+
+            var participants = playerEntries.Select(entry => entry.PlayerId).Distinct().ToList();
+            if (participants.Count == 0 ||
+                participants.Any(id => PlayerContainer.GetProfileById(id)?.IsBot == true))
+            {
+                YargLogger.LogInfo("Career: skipping completion, no valid human players.");
+                return;
+            }
+
+            var career = CustomContentManager.Careers.DefaultPresets
+                .Concat(CustomContentManager.Careers.CustomPresets)
+                .FirstOrDefault(c => c.CareerId == context.CareerId);
+            if (career is null)
+            {
+                YargLogger.LogFormatError("Career: cannot find career content for ID {0}, skipping completion.", context.CareerId);
+                return;
+            }
+
+            // The save belongs to the set of players who actually played this song.
+            var saveId = Careers.GetOrCreateSave(career.CareerId, career.Version, participants);
+
+            var commit = new CareerSongCompletionCommit
+            {
+                CareerSaveId = saveId,
+                CareerId = career.CareerId,
+                TierId = context.TierId,
+                TierIndex = context.TierIndex,
+                CareerSongId = context.CareerSongId,
+                SongIndex = context.SongIndex,
+                SongChecksum = gameRecord.SongChecksum,
+                GameRecordId = gameRecord.Id,
+                BandStars = gameRecord.BandStars.GetStarCount(),
+                BandScore = gameRecord.BandScore,
+                CompletedAt = DateTime.Now,
+                Source = CareerCompletionSource.SingleSong,
+                PlayerScores = playerEntries.Select(entry => new CareerPlayerScoreCommit
+                {
+                    ProfileId = entry.PlayerId,
+                    PlayerScoreRecordId = entry.Id,
+                    Instrument = entry.Instrument,
+                    Difficulty = entry.Difficulty,
+                    Stars = entry.Stars,
+                    Score = entry.Score,
+                    Percent = entry.GetPercent(),
+                    IsFc = entry.IsFc,
+                }).ToList(),
+            };
+
+            Careers.CommitSongCompletion(commit);
+            career.SyncProgress(Careers, saveId);
         }
 
         private static void UpdateBandHighScore(HashWrapper songChecksum)

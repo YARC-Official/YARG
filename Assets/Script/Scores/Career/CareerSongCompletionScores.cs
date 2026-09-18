@@ -8,7 +8,7 @@ namespace YARG.Scores
     [Table("CareerSongCompletionScores")]
     public class CareerSongCompletionScores
     {
-        [Indexed][PrimaryKey]
+        [Indexed][PrimaryKey][AutoIncrement]
         public int Id { get; set; }
         [Indexed]
         public int CareerSongCompletionId { get; set; }

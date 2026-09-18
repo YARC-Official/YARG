@@ -1,9 +1,18 @@
 ﻿using System;
+using System.Runtime.Serialization;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
+using YARG.Core.Logging;
 
 namespace YARG.Career
 {
+    public enum CareerCompletionMode
+    {
+        SingleSong = 0,
+        FullTierPlaylist = 1,
+        FullCareerPlaylist = 2,
+    }
+
     public enum UnlockType
     {
         StarCount,
@@ -50,8 +59,24 @@ namespace YARG.Career
         public UnlockType          UnlockType;
         public int                 UnlockCriteria;
 
+        // How this tier's songs are completed. Playlist modes can be specified in content but are not
+        // yet honored by gameplay (single-song completion only for now).
+        [JsonConverter(typeof(StringEnumConverter))]
+        public CareerCompletionMode CompletionMode;
+
         // Bonus is not counted towards other tier unlocks
         public bool IsBonus;
+
+        [OnDeserialized]
+        private void OnDeserialized(StreamingContext context)
+        {
+            if (Id == Guid.Empty)
+            {
+                YargLogger.LogFormatError(
+                    "CareerTier: missing stable Id in content for tier '{0}'. Career progress will not be able to track this tier.",
+                    Name);
+            }
+        }
 
         public CareerTier()
         {

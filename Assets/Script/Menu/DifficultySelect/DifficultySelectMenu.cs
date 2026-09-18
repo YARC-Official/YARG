@@ -1029,6 +1029,27 @@ namespace YARG.Menu.DifficultySelect
             _playerIndex += add;
             _menuState = State.Main;
 
+            if (GlobalVariables.State.CurrentCareer is not null)
+            {
+                // A career run never includes bots - a game played with them cannot commit career
+                // progress at all - so they are forced to sit out and never get a selection screen.
+                while (_playerIndex >= 0 && _playerIndex < PlayerContainer.Players.Count &&
+                       PlayerContainer.Players[_playerIndex].Profile.IsBot)
+                {
+                    PlayerContainer.Players[_playerIndex].SittingOut = true;
+                    _playerIndex += add >= 0 ? 1 : -1;
+                }
+
+                if (_playerIndex < 0)
+                {
+                    // Everything before the first playable player is a bot, so there is nowhere to
+                    // step back to; leaving the menu is the only way out, same as on the first player.
+                    _playerIndex = 0;
+                    MenuManager.Instance.PopMenu();
+                    return;
+                }
+            }
+
             // When the user(s) have selected all of their difficulties, move on
             if (_playerIndex >= PlayerContainer.Players.Count)
             {
