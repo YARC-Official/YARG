@@ -637,6 +637,18 @@
 		  "BindingSetFilter": {
 			  "Title": "Binding Sets Filter",
 			  "Text": "Pick a type of controller for which to show binding sets. Most controller types are associated with a specific input mode (for example, 5-fret guitar controllers are for 5-Fret Guitar mode) but generic controller types like gamepads and MIDI devices can be used for various modes."
+		  },
+		  "AddOtherBindingSet": {
+			  "Title": "Add Other Binding Set",
+			  "Text": "Create a binding set for use with this controller type in a mode that isn't already listed here. <b><color=\"yellow\">Only use this if you know what you're doing!</color></b> This controller type wasn't designed for other modes."
+		  },
+		  "DuplicateBindingSet": {
+			  "Title": "Duplicate Binding Set",
+			  "Text": "Create a copy of this binding set."
+		  },
+		  "DeleteBindingSet": {
+			  "Title": "Delete Binding Set",
+			  "Text": "Permanently delete this binding set. <b><color=\"red\">If anyone is using this binding set, they'll revert to the default bindings!</color></b>"
 		  }
         }
       },
