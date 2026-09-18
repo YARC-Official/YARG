@@ -53,7 +53,6 @@ Shader "Artificial Artists/Universal Render Pipeline/AA_UberPost"
         TEXTURE2D(_UserLut);
         TEXTURE2D(_BlueNoise_Texture);
         TEXTURE2D_X(_OverlayUITexture);
-        TEXTURE2D(_YargHighwaysAlphaMask);
 
         float4 _BloomTexture_TexelSize;
         float4 _Lut_Params;
@@ -318,13 +317,12 @@ Shader "Artificial Artists/Universal Render Pipeline/AA_UberPost"
             }
             #endif
 
-            half alpha = SAMPLE_TEXTURE2D_X(_BlitTexture, sampler_LinearClamp, uvDistorted).w;
-
+            // Highways camera: pass the input alpha (highway coverage, later min-blended
+            // with the fade by the highway fade pass) through unconditionally. Without
+            // this, frames without _ENABLE_ALPHA_OUTPUT would clobber alpha with 1.0.
             if (_YargHighwaysN > 0)
             {
-                half alpha_mask = SAMPLE_TEXTURE2D(_YargHighwaysAlphaMask, sampler_LinearClamp, uvDistorted).r;
-
-                return half4(color, min(alpha, alpha_mask));
+                return half4(color, saturate(inputColor.a));
             }
 
             if (_YargIsVenue > 0)

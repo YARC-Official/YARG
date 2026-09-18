@@ -44,8 +44,6 @@ namespace YARG.Gameplay.Visuals
 
         public RenderTexture HighwaysOutputTexture { get; private set; }
         public event Action<RenderTexture> OnHighwaysTextureCreated;
-        private RenderTexture              _highwaysAlphaTexture;
-        private RTHandle                   _highwaysAlphaTextureHandle;
         private ScriptableRenderPass       _fadeCalcPass;
         private bool                       _allowTextureRecreation = true;
         private bool                       _needsInitialization    = true;
@@ -69,7 +67,6 @@ namespace YARG.Gameplay.Visuals
         public static readonly int YargHighwayCamProjMatricesID = Shader.PropertyToID("_YargCamProjMatrices");
         public static readonly int YargCurveFactorsID = Shader.PropertyToID("_YargCurveFactors");
         public static readonly int YargFadeParamsID = Shader.PropertyToID("_YargFadeParams");
-        public static readonly int YargHighwaysAlphaTextureID = Shader.PropertyToID("_YargHighwaysAlphaMask");
 
         private void OnEnable()
         {
@@ -117,7 +114,6 @@ namespace YARG.Gameplay.Visuals
             {
                 _renderCamera.targetTexture = HighwaysOutputTexture;
             }
-            ResetHighwayAlphaTexture();
             OnHighwaysTextureCreated?.Invoke(HighwaysOutputTexture);
         }
 
@@ -330,31 +326,6 @@ namespace YARG.Gameplay.Visuals
             UpdateCameraProjectionMatrices();
         }
 
-        private void ResetHighwayAlphaTexture()
-        {
-            if (_highwaysAlphaTextureHandle != null)
-            {
-                _highwaysAlphaTextureHandle.Release();
-                _highwaysAlphaTextureHandle = null;
-            }
-
-            if (_highwaysAlphaTexture != null)
-            {
-                _highwaysAlphaTexture.Release();
-            }
-
-            float scaling = 1.0f;
-            var descriptor = new RenderTextureDescriptor(
-                (int)(Screen.width * scaling), (int)(Screen.height * scaling),
-                RenderTextureFormat.RFloat)
-            {
-                mipCount = 0,
-            };
-            _highwaysAlphaTexture = new RenderTexture(descriptor);
-            _highwaysAlphaTextureHandle = RTHandles.Alloc(_highwaysAlphaTexture);
-            Shader.SetGlobalTexture(YargHighwaysAlphaTextureID, _highwaysAlphaTexture);
-        }
-
         private void OnDisable()
         {
             RenderPipelineManager.beginCameraRendering -= OnPreCameraRender;
@@ -365,13 +336,6 @@ namespace YARG.Gameplay.Visuals
                 HighwaysOutputTexture.Release();
                 HighwaysOutputTexture.DiscardContents();
                 HighwaysOutputTexture = null;
-            }
-            if (_highwaysAlphaTexture != null)
-            {
-                _highwaysAlphaTextureHandle?.Release();
-                _highwaysAlphaTextureHandle = null;
-                _highwaysAlphaTexture.Release();
-                _highwaysAlphaTexture = null;
             }
         }
 
@@ -570,11 +534,10 @@ namespace YARG.Gameplay.Visuals
             return postProj * camProj; // HLSL-style: mul(postProj, proj)
         }
 
-        // Calculate Alpha mask for the highways rt
+        // Writes the highway fade alpha directly into the highways output render texture
         private sealed class FadePass : ScriptableRenderPass
         {
             private readonly ProfilingSampler _profilingSampler = new ProfilingSampler("CalcFadeAlphaMask");
-            private readonly HighwayCameraRendering _highwayCameraRendering;
             private readonly Material               _material;
             private readonly ShaderTagId[]          _shaderTagIds = { new ShaderTagId("SRPDefaultUnlit"), new ShaderTagId("UniversalForward"), new ShaderTagId("UniversalForwardOnly") };
 
@@ -582,8 +545,11 @@ namespace YARG.Gameplay.Visuals
 
             public FadePass(HighwayCameraRendering highCamRend)
             {
-                _highwayCameraRendering = highCamRend;
-                renderPassEvent = RenderPassEvent.BeforeRendering;
+                // Runs after everything else (including post-processing) so that the fade
+                // alpha is the last thing written to the highways output texture's alpha.
+                // NOTE: relies on UberPost blitting directly into the camera target; if a
+                // final blit pass is ever scheduled after this one it must move later.
+                renderPassEvent = RenderPassEvent.AfterRendering;
                 _material = new Material(Shader.Find("HighwaysAlphaMask"));
             }
 
@@ -597,12 +563,12 @@ namespace YARG.Gameplay.Visuals
 
                     passData.material = _material;
 
-                    var alphaTextureHandle = renderGraph.ImportTexture(_highwayCameraRendering._highwaysAlphaTextureHandle);
-
-                    builder.SetRenderAttachment(alphaTextureHandle, 0, AccessFlags.WriteAll);
-                    // We could allocate a different depth texture, however at this point
-                    // We do not need to preserve depth from the camera as we'll calc this as a very first thing
-                    builder.SetRenderAttachmentDepth(resourceData.activeDepthTexture, AccessFlags.WriteAll);
+                    // Blend the fade straight into the alpha channel of the highways output
+                    // texture (shader uses ColorMask A + BlendOp Min), so no separate mask RT.
+                    builder.SetRenderAttachment(resourceData.activeColorTexture, 0, AccessFlags.ReadWrite);
+                    // Depth from the highway camera is used to reject occluded fragments, so a
+                    // fragment never fades a pixel that is covered by closer visible geometry.
+                    builder.SetRenderAttachmentDepth(resourceData.activeDepthTexture, AccessFlags.Read);
 
                     builder.AllowPassCulling(false);
 
@@ -628,8 +594,6 @@ namespace YARG.Gameplay.Visuals
 
                     builder.SetRenderFunc<PassData>((PassData data, RasterGraphContext context) =>
                     {
-                        // Clear both color and depth
-                        context.cmd.ClearRenderTarget(true, true, Color.clear);
                         context.cmd.DrawRendererList(data.transparentRendererList);
                         context.cmd.DrawRendererList(data.opaqueRendererList);
                     });
