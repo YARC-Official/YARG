@@ -26,6 +26,8 @@ namespace YARG.Gameplay.Player
 {
     public abstract class TrackPlayer : BasePlayer
     {
+        // Fading in shaders relies on this value so
+        // if ever changing need to keep in sync
         public const float STRIKE_LINE_POS       = -2f;
         public const float DEFAULT_ZERO_FADE_POS = 3f;
         public const float NOTE_SPAWN_OFFSET     = 5f;

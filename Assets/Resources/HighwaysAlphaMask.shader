@@ -43,6 +43,11 @@ Shader "HighwaysAlphaMask"
                 int index = WorldPosToIndex(IN.positionWS);
                 float fadeStartPos = _YargFadeParams[index * 2];
                 float fadeEndPos   = _YargFadeParams[index * 2 + 1];
+                // public const float STRIKE_LINE_POS       = -2f;
+                // the above in TrackPlayer needs to be kept in sync
+                // for the fade to stay the same
+                // ie the `dist` below relies on highways placed
+                // at z = -2 and aligned with Z axis
                 float dist = IN.positionWS.z - 2;
                 float alpha = 0.0;
 
