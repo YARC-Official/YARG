@@ -2085,7 +2085,8 @@
                         "SixFretGuitar": "Guitar (6-Fret)",
                         "FiveLaneDrums": "Drums (5-Lane)",
                         "FourLaneDrums": "Drums (4-Lane)",
-                        "ProKeys": "Pro Keys"
+                        "ProKeys": "Pro Keys",
+                        "Vocals": "Vocals"
                     }
                 },
                 "FiveLaneKeys": {
@@ -2440,6 +2441,18 @@
                 },
                 "OpenHopoNoteStarPower": {
                     "Name": "Open HOPO Note Star Power"
+                },
+                "LeadVocals": {
+                    "Name": "Lead Vocals"
+                },
+                "Harmony1": {
+                    "Name": "HARM1"
+                },
+                "Harmony2": {
+                    "Name": "HARM2"
+                },
+                "Harmony3": {
+                    "Name": "HARM3"
                 }
             },
             "EnginePreset": {

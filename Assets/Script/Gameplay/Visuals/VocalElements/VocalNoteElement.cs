@@ -37,7 +37,7 @@ namespace YARG.Gameplay.Visuals
 
         protected override void InitializeElement()
         {
-            var color = Player.VocalTrack.Colors[NoteRef.HarmonyPart];
+            var color = VocalTrack.Colors[NoteRef.HarmonyPart];
             MaterialPropertyInstance.Instance.Clear();
             MaterialPropertyInstance.Instance.SetColor(BaseColor, color);
 
@@ -55,7 +55,7 @@ namespace YARG.Gameplay.Visuals
 
         public void SetSpGlow(bool isSp)
         {
-            var color = Player.VocalTrack.Colors[NoteRef.HarmonyPart];
+            var color = VocalTrack.Colors[NoteRef.HarmonyPart];
             if (isSp)
             {
                 MaterialPropertyInstance.Instance.SetColor(GlowColor, Color.lightGoldenRod);
