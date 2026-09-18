@@ -1,4 +1,3 @@
-float _YargIsVenue;
 // Mirror params
 #pragma multi_compile_local YARG_MIRROR_LEFT YARG_MIRROR_RIGHT YARG_MIRROR_CLOCK_CCW YARG_MIRROR_NONE
 float  _YargMirrorStartTime;
