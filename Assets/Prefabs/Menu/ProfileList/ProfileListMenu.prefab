@@ -8826,7 +8826,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2827818133805211844}
   - component: {fileID: 7083720811732029281}
-  - component: {fileID: 2545972129149940874}
+  - component: {fileID: 1980709576491933857}
   m_Layer: 5
   m_Name: Instrument Select
   m_TagString: Untagged
@@ -8877,7 +8877,7 @@ MonoBehaviour:
   m_FlexibleWidth: -1
   m_FlexibleHeight: 0
   m_LayoutPriority: 1
---- !u!114 &2545972129149940874
+--- !u!114 &1980709576491933857
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -8886,10 +8886,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 5314611749567372433}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 381c91c2f794a164a9b57cd46fd814cf, type: 3}
+  m_Script: {fileID: 11500000, guid: 065eba9da2bc9044aaa6a634a38fe274, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::YARG.Menu.Tooltips.TooltipTrigger
+  m_EditorClassIdentifier: Assembly-CSharp::YARG.Menu.ProfileList.InputModeTooltipTrigger
   _localizationKey: InputMode
+  _centerPane: {fileID: 7898968641357467819}
 --- !u!1 &5360837810789146710
 GameObject:
   m_ObjectHideFlags: 0

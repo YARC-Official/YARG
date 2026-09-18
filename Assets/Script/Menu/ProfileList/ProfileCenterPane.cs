@@ -129,7 +129,7 @@ namespace YARG.Menu.ProfileList
         private TextMeshProUGUI _tooltipText;
 
         private ProfileView _profileView;
-        private YargProfile _profile;
+        public YargProfile Profile { get; private set; }
 
         private readonly List<GameMode> _gameModesByIndex = new();
         private readonly List<OpenLaneDisplayType> _openLaneDisplayTypesByIndex = new();
@@ -241,10 +241,10 @@ namespace YARG.Menu.ProfileList
 
         public void UpdateCenterPane(YargProfile profile, ProfileView profileView)
         {
-            _profile = profile;
+            Profile = profile;
             _profileView = profileView;
 
-            if (!PlayerContainer.IsProfileTaken(_profile))
+            if (!PlayerContainer.IsProfileTaken(Profile))
             {
                 HideContents();
                 return;
@@ -256,13 +256,13 @@ namespace YARG.Menu.ProfileList
             _contents.SetActive(true);
 
             // Display the profile's options
-            _profileName.text = _profile.Name;
+            _profileName.text = Profile.Name;
             _gameModeDropdown.value = _gameModesByIndex.IndexOf(profile.GameMode);
             _starPowerActivationTypeDropdown.value = _starPowerActivationTypesByIndex
                 .IndexOf(profile.StarPowerActivationType);
             _noteSpeedField.text = profile.NoteSpeed.ToString(ProfilesMenu.NUMBER_FORMAT, CultureInfo.CurrentCulture);
             _highwayLengthField.text = profile.HighwayLength.ToString(ProfilesMenu.NUMBER_FORMAT, CultureInfo.CurrentCulture);
-            _inputCalibrationField.text = _profile.InputCalibrationMilliseconds.ToString();
+            _inputCalibrationField.text = Profile.InputCalibrationMilliseconds.ToString();
             _leftyFlipToggle.isOn = profile.LeftyFlip;
             _rangeDisabledToggle.isOn = profile.RangeEnabled;
             _openLaneDisplayTypeDropdown.value = _openLaneDisplayTypesByIndex.IndexOf(profile.OpenLaneDisplayType);
@@ -303,7 +303,7 @@ namespace YARG.Menu.ProfileList
             _profilePicture.sprite = profile.IsBot ? _profileBotSprite : _profileGenericSprite;
 
             // Enable/disable the edit profile button
-            bool interactable = !_profile.IsBot && PlayerContainer.IsProfileTaken(_profile);
+            bool interactable = !Profile.IsBot && PlayerContainer.IsProfileTaken(Profile);
             foreach (var button in _profileActionButtons)
             {
                 button.interactable = interactable;
@@ -317,7 +317,7 @@ namespace YARG.Menu.ProfileList
             // The passed dictionary is empty because we don't currently have any conditionalized profile settings (we used to, but they've all been
             // superseded by the highway ordering interface). You can still populate this dictionary to conditionalize certain settings behind certain
             // values of other settings ("hide setting X if setting Y has value Z", etc.).
-            var possibleSettings = _profile.GameMode.PossibleProfileSettings(new());
+            var possibleSettings = Profile.GameMode.PossibleProfileSettings(new());
 
             for (var i = 0; i < _sidebarContent.transform.childCount; i++)
             {
@@ -364,149 +364,149 @@ namespace YARG.Menu.ProfileList
 
             if (editing)
             {
-                _nameInput.text = _profile.Name;
+                _nameInput.text = Profile.Name;
                 _nameInput.Select();
             }
             else
             {
                 // Set the name. Make sure to record the name change in the scores.
-                _profile.Name = _nameInput.text;
-                ScoreContainer.RecordPlayerInfo(_profile.Id, _profile.Name);
+                Profile.Name = _nameInput.text;
+                ScoreContainer.RecordPlayerInfo(Profile.Id, Profile.Name);
 
                 // Update the UI
-                _profileName.text = _profile.Name;
-                _profileView.UpdateDisplay(_profile);
+                _profileName.text = Profile.Name;
+                _profileView.UpdateDisplay(Profile);
             }
         }
 
         public void EditProfile()
         {
             // Only allow profile editing if it's taken
-            if (!PlayerContainer.IsProfileTaken(_profile))
+            if (!PlayerContainer.IsProfileTaken(Profile))
             {
                 return;
             }
 
             var menu = MenuManager.Instance.PushMenu(MenuManager.Menu.ProfileInfo, false);
 
-            menu.GetComponent<ProfileInfoMenu>().CurrentProfile = _profile;
+            menu.GetComponent<ProfileInfoMenu>().CurrentProfile = Profile;
             menu.gameObject.SetActive(true);
         }
 
         public async void AddController()
         {
             await _profileView.PromptAddController();
-            UpdateCenterPane(_profile, _profileView);
+            UpdateCenterPane(Profile, _profileView);
 
-            var player = PlayerContainer.GetPlayerFromProfile(_profile);
+            var player = PlayerContainer.GetPlayerFromProfile(Profile);
             player.EnableInputs();
         }
 
         public async void AddMicrophone()
         {
             await _profileView.PromptAddMicrophone();
-            UpdateCenterPane(_profile, _profileView);
+            UpdateCenterPane(Profile, _profileView);
         }
 
         public void RefreshControllers()
         {
-            var player = PlayerContainer.GetPlayerFromProfile(_profile);
+            var player = PlayerContainer.GetPlayerFromProfile(Profile);
             _controllersList.transform.DestroyChildren();
             foreach (var controller in player.DeviceInfo.Controllers)
             {
                 var entry = Instantiate(_controllerEntryViewPrefab, _controllersList.transform);
-                entry.Initialize(_profile, _profileView, this, controller);
+                entry.Initialize(Profile, _profileView, this, controller);
             }
         }
 
         public void RefreshMicrophones()
         {
-            var player = PlayerContainer.GetPlayerFromProfile(_profile);
+            var player = PlayerContainer.GetPlayerFromProfile(Profile);
             _microphonesList.transform.DestroyChildren();
             foreach (var microphone in player.DeviceInfo.Microphones)
             {
                 var entry = Instantiate(_microphoneEntryViewPrefab, _microphonesList.transform);
-                entry.Initialize(_profile, _profileView, this, microphone);
+                entry.Initialize(Profile, _profileView, this, microphone);
             }
         }
 
         public void ChangeGameMode()
         {
-            _profile.GameMode = _gameModesByIndex[_gameModeDropdown.value];
-            var player = PlayerContainer.GetPlayerFromProfile(_profile);
+            Profile.GameMode = _gameModesByIndex[_gameModeDropdown.value];
+            var player = PlayerContainer.GetPlayerFromProfile(Profile);
             player.DeviceInfo.RefreshGameMode();
 
             // Set the player's instrument to the foremost of their new game mode's possible instruments. This prevents scenarios like
             // a brand new Keys profile defaulting to 5L Lead Guitar instead of Pro Keys
-            _profile.CurrentInstrument = _profile.GameMode.PossibleInstruments()[0];
+            Profile.CurrentInstrument = Profile.GameMode.PossibleInstruments()[0];
 
-            _profileView.UpdateDisplay(_profile);
-            FiltersMenu.ResetIntensityFiltersForProfile(_profile);
+            _profileView.UpdateDisplay(Profile);
+            FiltersMenu.ResetIntensityFiltersForProfile(Profile);
             // Update sidebar when game mode changes so the correct settings are displayed
-            UpdateCenterPane(_profile, _profileView);
+            UpdateCenterPane(Profile, _profileView);
         }
 
         public void ChangeNoteSpeed()
         {
             if (float.TryParse(_noteSpeedField.text, out var speed))
             {
-                _profile.NoteSpeed = Mathf.Clamp(speed, 0f, 100f);
+                Profile.NoteSpeed = Mathf.Clamp(speed, 0f, 100f);
             }
 
             // Always format it after
-            _noteSpeedField.text = _profile.NoteSpeed.ToString(ProfilesMenu.NUMBER_FORMAT, CultureInfo.CurrentCulture);
+            _noteSpeedField.text = Profile.NoteSpeed.ToString(ProfilesMenu.NUMBER_FORMAT, CultureInfo.CurrentCulture);
         }
 
         public void ChangeHighwayLength()
         {
             if (float.TryParse(_highwayLengthField.text, out var speed))
             {
-                _profile.HighwayLength = Mathf.Clamp(speed, 0.001f, 10f);
+                Profile.HighwayLength = Mathf.Clamp(speed, 0.001f, 10f);
             }
 
             // Always format it after
-            _highwayLengthField.text = _profile.HighwayLength.ToString(ProfilesMenu.NUMBER_FORMAT, CultureInfo.CurrentCulture);
+            _highwayLengthField.text = Profile.HighwayLength.ToString(ProfilesMenu.NUMBER_FORMAT, CultureInfo.CurrentCulture);
         }
 
         public void ChangeInputCalibration()
         {
             if (long.TryParse(_inputCalibrationField.text, out long calibration))
             {
-                _profile.InputCalibrationMilliseconds = calibration;
+                Profile.InputCalibrationMilliseconds = calibration;
             }
 
             // Always format it after
-            _inputCalibrationField.text = _profile.InputCalibrationMilliseconds.ToString();
+            _inputCalibrationField.text = Profile.InputCalibrationMilliseconds.ToString();
         }
 
         public void ChangeLeftyFlip()
         {
-            _profile.LeftyFlip = _leftyFlipToggle.isOn;
+            Profile.LeftyFlip = _leftyFlipToggle.isOn;
         }
 
         public void ChangeRangeDisabled()
         {
-            _profile.RangeEnabled = _rangeDisabledToggle.isOn;
+            Profile.RangeEnabled = _rangeDisabledToggle.isOn;
         }
 
         public void ChangeUseCymbalModels()
         {
-            _profile.UseCymbalModels = _useCymbalModelsToggle.isOn;
+            Profile.UseCymbalModels = _useCymbalModelsToggle.isOn;
         }
 
         public void ChangeEngine()
         {
-            _profile.EnginePreset = _enginePresetsByIndex[_engineDropdown.value];
+            Profile.EnginePreset = _enginePresetsByIndex[_engineDropdown.value];
         }
 
         public void ChangeOpenLaneDisplayType()
         {
-            _profile.OpenLaneDisplayType = _openLaneDisplayTypesByIndex[_openLaneDisplayTypeDropdown.value];
+            Profile.OpenLaneDisplayType = _openLaneDisplayTypesByIndex[_openLaneDisplayTypeDropdown.value];
         }
 
         public void ChangeStarPowerActivationType()
         {
-            _profile.StarPowerActivationType = _starPowerActivationTypesByIndex[_starPowerActivationTypeDropdown.value];
+            Profile.StarPowerActivationType = _starPowerActivationTypesByIndex[_starPowerActivationTypeDropdown.value];
         }
 
         public void ChangeTheme()
@@ -514,9 +514,9 @@ namespace YARG.Menu.ProfileList
             var themeGuid = _themesByIndex[_themeDropdown.value];
 
             // Skip if there are no changes
-            if (themeGuid == _profile.ThemePreset) return;
+            if (themeGuid == Profile.ThemePreset) return;
 
-            _profile.ThemePreset = themeGuid;
+            Profile.ThemePreset = themeGuid;
 
             var themePreset = CustomContentManager.ThemePresets.GetPresetById(themeGuid);
 
@@ -555,10 +555,10 @@ namespace YARG.Menu.ProfileList
 
             dialog.AddDialogButton("Menu.Common.Apply", MenuData.Colors.ConfirmButton, () =>
             {
-                _profile.CameraPreset = cameraPreset?.Id ?? CameraPreset.Default.Id;
-                _profile.ColorProfile = colorProfile?.Id ?? ColorProfile.Default.Id;
+                Profile.CameraPreset = cameraPreset?.Id ?? CameraPreset.Default.Id;
+                Profile.ColorProfile = colorProfile?.Id ?? ColorProfile.Default.Id;
 
-                UpdateCenterPane(_profile, _profileView);
+                UpdateCenterPane(Profile, _profileView);
 
                 DialogManager.Instance.SubmitAndClearDialog();
             });
@@ -566,22 +566,22 @@ namespace YARG.Menu.ProfileList
 
         public void ChangeColorProfile()
         {
-            _profile.ColorProfile = _colorProfilesByIndex[_colorProfileDropdown.value];
+            Profile.ColorProfile = _colorProfilesByIndex[_colorProfileDropdown.value];
         }
 
         public void ChangeCameraPreset()
         {
-            _profile.CameraPreset = _cameraPresetsByIndex[_cameraPresetDropdown.value];
+            Profile.CameraPreset = _cameraPresetsByIndex[_cameraPresetDropdown.value];
         }
 
         public void ChangeHighwayPreset()
         {
-            _profile.HighwayPreset = _highwayPresetsByIndex[_highwayPresetDropdown.value];
+            Profile.HighwayPreset = _highwayPresetsByIndex[_highwayPresetDropdown.value];
         }
 
         public void ChangeRockMeterPreset()
         {
-            _profile.RockMeterPreset = _rockmeterPresetsByIndex[_rockMeterPresetDropdown.value];
+            Profile.RockMeterPreset = _rockmeterPresetsByIndex[_rockMeterPresetDropdown.value];
         }
     }
 }

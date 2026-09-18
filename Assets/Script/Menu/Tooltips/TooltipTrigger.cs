@@ -23,10 +23,17 @@ namespace YARG.Menu.Tooltips
 
         public void Show()
         {
-            var title = Localize.Key(LOCALIZATION_PATH, _localizationKey, "Title");
-            var text = Localize.Key(LOCALIZATION_PATH, _localizationKey, "Text");
+            var (titleParams, textParams) = GetParameters();
+
+            var title = Localize.KeyFormat((LOCALIZATION_PATH, _localizationKey, "Title"), titleParams);
+            var text = Localize.KeyFormat((LOCALIZATION_PATH, _localizationKey, "Text"), textParams);
 
             _coordinator.Show(title, text);
+        }
+
+        protected virtual (IReadOnlyList<string> titleParams, IReadOnlyList<string> textParams) GetParameters()
+        {
+            return (new List<string>(), new List<string>());
         }
 
         public void OnPointerEnter(PointerEventData eventData)
