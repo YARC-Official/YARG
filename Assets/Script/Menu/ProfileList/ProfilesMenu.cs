@@ -73,6 +73,8 @@ namespace YARG.Menu.ProfileList
         private GameObject _profileListHeaderPrefab;
         [SerializeField]
         private BindingSetListHeaderView _bindingSetListHeaderPrefab;
+        [SerializeField]
+        private BindingSetListFooterView _bindingSetListFooterPrefab;
 
         private readonly int _maxConnected = HighwayCameraRendering.MAX_MATRICES;
 
@@ -96,8 +98,6 @@ namespace YARG.Menu.ProfileList
             PlayerContainer.PlayerAdded += OnPlayerAdded;
 
             var x = LayoutHelper.GetAllControlsForControllerFamily(ControllerFamily.FiveFretGuitar);
-
-            Console.WriteLine("xxx");
         }
 
         private void OnDisable()
@@ -131,16 +131,22 @@ namespace YARG.Menu.ProfileList
             var relevantBindingSets = BindingsContainer.GetBindingSetsForControllerFamily(CurrentBindingSetFilter);
             var typicalGameModes = BindingsContainer.GetTypicalGameModesForControllerFamily(CurrentBindingSetFilter);
 
+            // Once we've created all the groups, we'll want to know what's leftover for a player to make
+            var remainingGameModes = new List<GameMode>((GameMode[])Enum.GetValues(typeof(GameMode)));
+
+
             // Always list menu binding sets first, if any exist
             if (relevantBindingSets.TryGetValue(GameMode.Menu, out var menuBindingSets) && menuBindingSets.Count > 0)
             {
                 AddBindingSetListGroup(GameMode.Menu, menuBindingSets);
+                remainingGameModes.Remove(GameMode.Menu);
             }
 
             // List the typical gameplay modes for this controller first, and do so even if they're empty
             foreach (var mode in typicalGameModes)
             {
                 AddBindingSetListGroup(mode, relevantBindingSets.GetValueOrDefault(mode, new()));
+                remainingGameModes.Remove(mode);
             }
 
             // Go through remaining (atypical) modes to display whichever ones are actually populated with oddball binding sets
@@ -153,8 +159,15 @@ namespace YARG.Menu.ProfileList
                 }
 
                 AddBindingSetListGroup(mode, bindingSets, typical: false);
+                remainingGameModes.Remove(mode);
             }
-            
+
+            if (remainingGameModes.Count is not 0)
+            {
+                var footerGo = Instantiate(_bindingSetListFooterPrefab, _leftPaneList);
+                footerGo.Init(remainingGameModes);
+                _navigationGroup.AddNavigatable(footerGo.gameObject);
+            }
         }
 
         public void RefreshProfileList(YargProfile selectedProfile = null)
