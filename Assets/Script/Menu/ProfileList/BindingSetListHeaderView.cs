@@ -23,13 +23,14 @@ namespace YARG.Menu.ProfileList
         private GameMode _mode { get; set; }
         private ProfilesMenu _profilesMenu { get; set; }
 
-        public void Init(ControllerFamily family, GameMode mode, ProfilesMenu profilesMenu)
+        public void Init(ControllerFamily family, GameMode mode, ProfilesMenu profilesMenu, bool typical)
         {
             _family = family;
             _mode = mode;
             _profilesMenu = profilesMenu;
 
-            _text.text = Localize.Key("Bindings.Headers", mode.ToString());
+            _text.text = Localize.Key("Bindings.Headers", mode.ToString()) +
+                (typical ? "" : $" <sup><i><color=\"yellow\">({Localize.Key("Bindings.Headers.NotRecommended")})</color></i></sup>");
         }
 
         public void AddBindingSet()
