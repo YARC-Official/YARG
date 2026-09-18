@@ -326,7 +326,10 @@ namespace LibVLCSharp
         public void Pause()
         {
             Log("VLCMediaPlayer Pause");
-            MediaPlayer.Pause();
+            // SetPause, never MediaPlayer.Pause(): the latter is libvlc_media_player_pause,
+            // which TOGGLES. Called on a player that has not reached Playing yet -- e.g. in
+            // the same frame as a Play() -- it starts playback instead of stopping it.
+            MediaPlayer.SetPause(true);
         }
 
         public void TogglePlayPause()
@@ -353,7 +356,18 @@ namespace LibVLCSharp
         public void SetTime(long time)
         {
             Log("VLCMediaPlayer SetTime " + time);
-            MediaPlayer.SeekTo(TimeSpan.FromMilliseconds(time));
+
+            // SeekTo returns false when there's no active input to seek within, e.g. after Stop().
+            // Note it returns true for a seek issued while merely paused, which is also dropped.
+            //
+            // fast: false is libvlc's b_fast=0, i.e. seek to the requested timestamp rather than
+            // to the preceding keyframe. It is SeekTo's default, but stated explicitly because
+            // landing accuracy is the whole point of this call -- a keyframe-snapped seek can be
+            // seconds out on a long-GOP video.
+            if (!MediaPlayer.SeekTo(TimeSpan.FromMilliseconds(time), fast: false))
+            {
+                Debug.LogWarning($"[VLCMediaPlayer] SetTime {time} failed (state={CurrentState})");
+            }
         }
 
         public void SetVolume(int volume = 100)
