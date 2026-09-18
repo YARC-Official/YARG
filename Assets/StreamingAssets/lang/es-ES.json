@@ -2073,6 +2073,7 @@
                     "DefaultEngine": "Motor predeterminado",
                     "CasualEngine": "Motor Casual",
                     "PrecisionEngine": "Motor Precisión",
+                    "TournamentEngine": "Tournament Engine",
                     "SoloTapsEngine": "Motor Solo Taps",
                     "CustomEnginePreset": "Ajuste de motor personalizado"
                 },
