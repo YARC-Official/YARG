@@ -292,6 +292,8 @@ namespace YARG.Settings.Preview
 
         public Info CurrentGameModeInfo { get; private set; }
 
+        private bool _previewModeSupported;
+
         private sealed class UnityFakeNoteRandom : IFakeNoteRandom
         {
             public int Range(int minInclusive, int maxExclusive) => Random.Range(minInclusive, maxExclusive);
@@ -301,7 +303,14 @@ namespace YARG.Settings.Preview
 
         private void Start()
         {
-            CurrentGameModeInfo = _gameModeInfos[SelectedGameMode];
+            _previewModeSupported = _gameModeInfos.TryGetValue(SelectedGameMode, out var gameModeInfo);
+            if (!_previewModeSupported)
+            {
+                // Vocals has no fret-lane preview yet; leave the highway blank.
+                return;
+            }
+
+            CurrentGameModeInfo = gameModeInfo;
 
             // 5-lane keys shares the guitar color section and lane models in-game
             // (FiveLaneKeysPlayer / FiveLaneKeysNoteElement read ColorProfile.FiveFretGuitar),
@@ -409,6 +418,11 @@ namespace YARG.Settings.Preview
 
         private void OnSettingChanged()
         {
+            if (!_previewModeSupported)
+            {
+                return;
+            }
+
             var cameraPreset = PresetsTab.GetLastSelectedPreset(CustomContentManager.CameraSettings);
             var colorProfile = PresetsTab.GetLastSelectedPreset(CustomContentManager.ColorProfiles);
             var enginePreset = PresetsTab.GetLastSelectedPreset(CustomContentManager.EnginePresets);
@@ -575,6 +589,11 @@ namespace YARG.Settings.Preview
 
         private void Update()
         {
+            if (!_previewModeSupported)
+            {
+                return;
+            }
+
             // Update the preview notes
             PreviewTime += Time.deltaTime;
 
@@ -641,7 +660,10 @@ namespace YARG.Settings.Preview
 
         private void OnDestroy()
         {
-            SettingsMenu.Instance.SettingChanged -= OnSettingChanged;
+            if (_previewModeSupported)
+            {
+                SettingsMenu.Instance.SettingChanged -= OnSettingChanged;
+            }
         }
 
         // --- Pro-keys highway overlay ---
