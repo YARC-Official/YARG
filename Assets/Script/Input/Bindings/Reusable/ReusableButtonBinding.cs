@@ -19,27 +19,24 @@ namespace YARG.Input.Bindings
 
     public class ReusableButtonBinding : ReusableControlBinding<ReusableSingleButtonBinding, float>
     {
-        public ReusableButtonBindingSubtype Subtype { get; }
+        public ReusableButtonBindingSubtype Subtype => Info.Type switch
+        {
+            BindingType.Button => ReusableButtonBindingSubtype.Regular,
+            BindingType.IndividualButton => ReusableButtonBindingSubtype.Impulse,
+            BindingType.DrumButton => ReusableButtonBindingSubtype.Drum,
+            _ => throw new ArgumentOutOfRangeException($"Unexpected button binding type {Info.Type}")
+        };
 
         private const long DEBOUNCE_THRESHOLD_DEFAULT = 5;
         public long DebounceThreshold { get; set; }
 
-        public ReusableButtonBinding(InputActionInfo info) : base(info) {
-            Subtype = info.Type switch
-            {
-                BindingType.Button => ReusableButtonBindingSubtype.Regular,
-                BindingType.IndividualButton => ReusableButtonBindingSubtype.Impulse,
-                BindingType.DrumButton => ReusableButtonBindingSubtype.Drum,
-                _ => throw new ArgumentOutOfRangeException($"Unexpected button binding type {info.Type}")
-            };
-        }
+        public ReusableButtonBinding(InputActionInfo info) : base(info) {}
 
         public ReusableButtonBinding(InputActionInfo info, ReusableSingleButtonBindingConfig control)
             : this(info, new List<ReusableSingleButtonBindingConfig>() { control }) { }
 
         public ReusableButtonBinding(ReusableButtonBinding original) : base(original)
         {
-            Subtype = original.Subtype;
             DebounceThreshold = original.DebounceThreshold;
 
             foreach (var binding in original.Bindings)
@@ -50,6 +47,8 @@ namespace YARG.Input.Bindings
 
         public ReusableButtonBinding(InputActionInfo info, List<ReusableSingleButtonBindingConfig> controls) : base(info)
         {
+
+
             foreach (var controlConfig in controls)
             {
                 Bindings.Add(new(controlConfig));

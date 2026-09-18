@@ -9,15 +9,15 @@ namespace YARG.Input.Bindings
         public float PressPoint { get; }
         private DebounceTimer<float> _debounceTimer;
         public bool IsPressed => State >= PressPoint;
-        public bool WasPreviouslyPressed => PreviousState >= PressPoint;
+        public bool JustPressed { get; private set; }
         public float PreviousState { get; private set; }
 
         private float _invertSign => Inverted ? -1 : 1;
 
-
-
-        public RuntimeSingleButtonBinding(InputControl<float> control, ReusableSingleButtonBinding reusableBinding)
-            : base(control)
+        public RuntimeSingleButtonBinding(
+        InputControl<float> control,
+        ReusableSingleButtonBinding reusableBinding)
+        : base(control)
         {
             _debounceTimer = new()
             {
@@ -34,23 +34,7 @@ namespace YARG.Input.Bindings
             if (!_debounceTimer.IsRunning || !_debounceTimer.HasElapsed(time))
                 return;
 
-            State = _debounceTimer.Stop();
-            InvokeStateChanged(State);
-            return;
-        }
-
-        public override void UpdateState(double time)
-        {
-            PreviousState = State;
-
-            // Read new state
-            _debounceTimer.UpdateValue(Control.value * _invertSign);
-
-            // Wait for debounce to end
-            if (!_debounceTimer.HasElapsed(time))
-                return;
-
-            State = _debounceTimer.Stop();
+            SetState(_debounceTimer.Stop());
 
             if (DebounceMode == DebounceMode.PressAndRelease ||
                 (IsPressed && DebounceMode == DebounceMode.Press) ||
@@ -58,6 +42,32 @@ namespace YARG.Input.Bindings
             {
                 _debounceTimer.Start(time);
             }
+        }
+
+        public override void UpdateState(double time)
+        {
+            _debounceTimer.UpdateValue(Control.value * _invertSign);
+
+            if (!_debounceTimer.HasElapsed(time))
+                return;
+
+            SetState(_debounceTimer.Stop());
+
+            if (DebounceMode == DebounceMode.PressAndRelease ||
+                (IsPressed && DebounceMode == DebounceMode.Press) ||
+                (!IsPressed && DebounceMode == DebounceMode.Release))
+            {
+                _debounceTimer.Start(time);
+            }
+        }
+
+        private void SetState(float newState)
+        {
+            bool wasPressed = IsPressed;
+
+            State = newState;
+
+            JustPressed = !wasPressed && IsPressed;
 
             InvokeStateChanged(State);
         }

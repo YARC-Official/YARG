@@ -15,11 +15,14 @@ namespace YARG.Input.Bindings
         public string NameLefty { get; set; }
         public int Action { get; }
 
+        protected InputActionInfo Info { get; }
+
         public ReusableControlBinding(InputActionInfo info)
         {
             Name = Localize.Key("Bindings", info.LocalizationKey);
             NameLefty = Localize.Key("Bindings", info.LeftyLocalizationKey);
             Action = info.Action;
+            Info = info;
         }
 
         public ReusableControlBinding(ReusableControlBinding original)
@@ -27,6 +30,7 @@ namespace YARG.Input.Bindings
             Name = original.Name;
             NameLefty = original.NameLefty;
             Action = original.Action;
+            Info = original.Info;
         }
 
         public abstract SerializedReusableControlBinding Serialize();

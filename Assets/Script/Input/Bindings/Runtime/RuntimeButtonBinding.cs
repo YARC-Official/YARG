@@ -129,6 +129,8 @@ namespace YARG.Input.Bindings
     {
         public event GameInputProcessed Pressed;
 
+        private double _lastPressTime = double.NegativeInfinity;
+
         public RuntimeImpulseBinding(InputDevice controller, ReusableButtonBinding reusableBinding)
             : base(controller, reusableBinding) { }
 
@@ -139,21 +141,21 @@ namespace YARG.Input.Bindings
 
         protected override void OnStateChanged(RuntimeSingleButtonBinding singleBinding, double time)
         {
-            if (!singleBinding.IsPressed || singleBinding.WasPreviouslyPressed)
+            if (!singleBinding.JustPressed)
             {
                 return;
             }
 
-            if (_debounceTimer.IsRunning && !_debounceTimer.HasElapsed(time))
+            if (time - _lastPressTime < DebounceThreshold)
             {
                 return;
             }
 
+            _lastPressTime = time;
             FirePressedEvent(time);
-            _debounceTimer.Start(time);
         }
 
-        protected void FirePressedEvent(double time, float value = 1f)
+        protected virtual void FirePressedEvent(double time, float value = 1f)
         {
             var input = new GameInput(time, Action, value);
 
@@ -170,6 +172,29 @@ namespace YARG.Input.Bindings
             {
                 YargLogger.LogException(ex, $"Exception when firing input event for {Key}");
             }
+        }
+    }
+
+    // A DrumPadBinding is like an ImpulseBinding, but it sends velocity information along with
+    // the Pressed event
+    //
+    // If we make Impulse a sibling of Button, this should probably stay as a child of Impulse
+    // rather than becoming yet another sibling
+    public class RuntimeDrumPadBinding : RuntimeImpulseBinding
+    {
+        public RuntimeDrumPadBinding(InputDevice controller, ReusableButtonBinding reusableBinding)
+            : base(controller, reusableBinding) { }
+
+        protected override void FirePressedEvent(double time, float value)
+        {
+            float velocity = 0f;
+
+            foreach (var binding in _bindings)
+            {
+                velocity = Math.Max(velocity, binding.Control.value);
+            }
+
+            base.FirePressedEvent(time, velocity);
         }
     }
 }

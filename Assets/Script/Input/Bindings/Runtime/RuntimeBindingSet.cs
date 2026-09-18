@@ -49,6 +49,7 @@ namespace YARG.Input.Bindings
                 {
                     ReusableButtonBinding button => button.Subtype switch {
                         ReusableButtonBindingSubtype.Impulse => new RuntimeImpulseBinding(controller, button),
+                        ReusableButtonBindingSubtype.Drum => new RuntimeDrumPadBinding(controller, button),
                         _ => new RuntimeButtonBinding(controller, button),
                     },
                     ReusableAxisBinding axis => new RuntimeAxisBinding(controller, axis),

@@ -26,7 +26,10 @@ namespace YARG.Input.Bindings
                 ControlStrings.FOUR_DRUMS_RED_PAD,
                 new ReusableButtonBinding(
                     ReusableBindingSetTemplates.FOUR_LANE_DRUMKIT[ControlStrings.FOUR_DRUMS_RED_PAD],
-                    new ReusableSingleButtonBindingConfig(ControllerFamily.ComputerKeyboard, ControlStrings.COMPUTER_KEYBOARD_Z)
+                    new List<ReusableSingleButtonBindingConfig>() {
+                        new(ControllerFamily.ComputerKeyboard, ControlStrings.COMPUTER_KEYBOARD_Z),
+                        new(ControllerFamily.ComputerKeyboard, ControlStrings.COMPUTER_KEYBOARD_M),
+                    }
                 )
             },
             {
