@@ -276,13 +276,14 @@ namespace YARG.Scores
             playerScoreRecord = null;
             bandScoreRecord = null;
 
-            if (UseBandHighScoresForCurrentPlayers)
+            var player = PlayerContainer.Players.First(entry => !entry.Profile.IsBot);
+            if (UseBandHighScoresForCurrentPlayers && player.Profile.CurrentInstrument != Instrument.PartyVocals)
             {
                 bandScoreRecord = GetBandHighScore(songChecksum);
                 return;
             }
 
-            var player = PlayerContainer.Players.First(entry => !entry.Profile.IsBot);
+
             playerScoreRecord = player.Profile.GameMode == GameMode.EliteDrums
                 ? GetPreferredHighScoreForInstruments(
                     songChecksum, player.Profile.Id, MidiDrumkitHelper.Instruments)
@@ -575,7 +576,9 @@ namespace YARG.Scores
 
         public static Dictionary<HashWrapper, StarAmount> GetBestStarsForCurrentPlayers(YargProfile profile)
         {
-            if (!UseBandHighScoresForCurrentPlayers)
+            // Free Harmony scores are individual PartyVocals records, never band records,
+            // even when multiple human players are active.
+            if (!UseBandHighScoresForCurrentPlayers || profile.CurrentInstrument == Instrument.PartyVocals)
             {
                 return GetBestStarsForSong(profile);
             }

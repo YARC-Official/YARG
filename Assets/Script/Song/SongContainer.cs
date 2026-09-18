@@ -64,7 +64,8 @@ namespace YARG.Song
         ProKeys,
         Vocals,
         Harmony,
-        Band
+        Band,
+        FreeHarmony
     }
 
     public readonly struct SongCategory
@@ -110,6 +111,7 @@ namespace YARG.Song
         private static SongCategory[] _sortDatesAdded = Array.Empty<SongCategory>();
         private static Dictionary<Instrument, SongCategory[]> _sortInstruments = new();
         private static SongCategory[] _sortAggregateDrums = Array.Empty<SongCategory>();
+        private static SongCategory[] _sortFreeHarmony = Array.Empty<SongCategory>();
 
         private static SongCategory[] _playables = null;
         private static SongCategory[] _sortStars = Array.Empty<SongCategory>();
@@ -312,6 +314,7 @@ namespace YARG.Song
                     SortAttribute.Vocals         => _sortInstruments[Instrument.Vocals],
                     SortAttribute.Harmony        => _sortInstruments[Instrument.Harmony],
                     SortAttribute.Band           => _sortInstruments[Instrument.Band],
+                    SortAttribute.FreeHarmony    => _sortFreeHarmony,
                     _                            => null
                 };
             }
@@ -592,7 +595,9 @@ namespace YARG.Song
             bool useAggregateDrums = profile.GameMode == GameMode.EliteDrums;
             IComparer<SongEntry> comparer = useAggregateDrums
                 ? new AggregateDrumsIntensityComparer()
-                : new IntensityComparer(instrument);
+                : instrument == Instrument.PartyVocals
+                    ? new FreeHarmonyIntensityComparer()
+                    : new IntensityComparer(instrument);
 
             // Use Dictionary instead of array due to complex enum values
             Dictionary<StarAmount, List<SongEntry>> grouped = new Dictionary<StarAmount, List<SongEntry>>();
@@ -646,6 +651,35 @@ namespace YARG.Song
             _starsCacheUsesBandScores = useBandScores;
             _starsCacheValid = true;
             return _sortStars;
+        }
+
+        private static SongCategory[] BuildFreeHarmonySort()
+        {
+            var groups = new SortedDictionary<int, List<SongEntry>>();
+            foreach (var song in _songs)
+            {
+                var part = song[Instrument.Harmony].IsActive()
+                    ? song[Instrument.Harmony]
+                    : song[Instrument.Vocals];
+                if (!part.IsActive())
+                {
+                    continue;
+                }
+
+                if (!groups.TryGetValue(part.Intensity, out var songs))
+                {
+                    groups.Add(part.Intensity, songs = new List<SongEntry>());
+                }
+                songs.Add(song);
+            }
+
+            return groups.Select(group => new SongCategory(
+                $"Free Harmony [{group.Key}]", group.Value
+                    .OrderBy(song => song.Name)
+                    .ThenBy(song => song.SortBasedLocation)
+                    .ToArray(),
+                $"Free Harmony [{group.Key}]"))
+                .ToArray();
         }
 
         private static SongCategory[] GetRandomSort()
@@ -961,6 +995,7 @@ namespace YARG.Song
             noAggregateDrumsPart.Sort(new AggregateDrumsIntensityComparer());
             _sortAggregateDrums = new SongCategory[
                 _sortedSongs.AggregateDrums.Count + (noAggregateDrumsPart.Count > 0 ? 1 : 0)];
+            _sortFreeHarmony = BuildFreeHarmonySort();
             {
                 int index = 0;
                 AddIntensityCategories(_sortAggregateDrums, ref index, _sortedSongs.AggregateDrums);
@@ -1250,6 +1285,37 @@ namespace YARG.Song
                 }
 
                 return intensityX.CompareTo(intensityY);
+            }
+        }
+
+        readonly struct FreeHarmonyIntensityComparer : IComparer<SongEntry>
+        {
+            public int Compare(SongEntry x, SongEntry y)
+            {
+                int intensityX = GetIntensity(x);
+                int intensityY = GetIntensity(y);
+
+                if (intensityX == intensityY)
+                {
+                    return SongEntrySorting.MetadataComparer.Instance.Compare(x, y);
+                }
+                if (intensityX == -1)
+                {
+                    return 1;
+                }
+                if (intensityY == -1)
+                {
+                    return -1;
+                }
+
+                return intensityX.CompareTo(intensityY);
+            }
+
+            private static int GetIntensity(SongEntry song)
+            {
+                return song[Instrument.Harmony].IsActive()
+                    ? song[Instrument.Harmony].Intensity
+                    : song[Instrument.Vocals].Intensity;
             }
         }
 
