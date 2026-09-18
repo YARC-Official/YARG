@@ -641,6 +641,54 @@
             "Title": "Lefty Flip",
             "Text": "Reorient guitar and drum charts for left-handed gameplay."
           },
+		  "EnginePreset": {
+			  "Title": "Engine Preset",
+			  "Text": "Select a set of parameters to control gameplay engine behavior. The available options depend on your Input Mode."
+		  },
+		  "NoteTheme": {
+			  "Title": "Note Theme",
+			  "Text": "Select a set of models to use for gems on the highway during gameplay. Don't eat any of them."
+		  },
+		  "ColorProfile": {
+			  "Title": "Color Profile",
+			  "Text": "Select a set of colors to apply to gems and other gameplay graphics."
+		  },
+		  "CameraPreset": {
+			  "Title": "Camera Preset",
+			  "Text": "Select a configuration for how your note highway is projected onto the screen."
+		  },
+		  "HighwayPreset": {
+			  "Title": "Highway Preset",
+			  "Text": "Select a visual texture for your note highway."
+		  },
+		  "RockMeterPreset": {
+			  "Title": "Rock Meter Preset",
+			  "Text": "Configure how harshly the crowd judges your musicianship."
+		  },
+		  "InputCalibration": {
+			  "Title": "Input Calibration",
+			  "Text": "Apply a global timing offset to all of your gameplay inputs. Higher values mean your inputs are treated as if they occurred earlier.\n\n<b><color=\"red\">Leave this at 0 unless you're sure you know what you're doing!</color></b> If you want to account for inherent latency in your audio/video setup, use the Calibration interface under <b>Settings</b>. If you want to account for the inherent latency of a specific device, do so up above under <b>Controllers</b> or <b>Microphones</b>."
+		  },
+		  "ConfigureFourLaneDrumsHighway": {
+			  "Title": "4-Lane Drums Highway Configuration",
+			  "Text": "Configure how the note highway is arranged when you play 4-Lane Drums (not Pro Drums). You can rearrange the order of the highway lanes and enable dedicated kick lanes."
+		  },
+		  "ConfigureProDrumsHighway": {
+			  "Title": "Pro Drums Highway Configuration",
+			  "Text": "Configure how the note highway is arranged when you play Pro Drums. You can rearrange the order of the highway lanes, split tom and cymbal lanes, and enable dedicated kick lanes."
+		  },
+		  "ConfigureFiveLaneDrumsHighway": {
+			  "Title": "5-Lane Drums Highway Configuration",
+			  "Text": "Configure how the note highway is arranged when you play 5-Lane Drums. You can rearrange the order of the highway lanes and enable dedicated kick lanes."
+		  },
+		  "DedicatedOpenNoteLane": {
+			  "Title": "Dedicated Open Note Lane",
+			  "Text": "Configure whether the note highway has a dedicated lane for open notes or if open notes appear as full-width bar gems."
+		  },
+		  "RangeDisable": {
+			  "Title": "Range Shift Markers",
+			  "Text": "Some Easy and Medium 5-Fret Guitar charts include visual annotations that tell you when to move your hand to a new position. Use this setting to disable those visuals.\n\nNote that this setting does not change the content of the chart; to disable the position shifts themselves, select the <b>No Range Shifts</b> gameplay modifier when starting a song."
+		  },
 		  "BindingSetFilter": {
 			  "Title": "Binding Sets Filter",
 			  "Text": "Pick a type of controller for which to show binding sets. Most controller types are associated with a specific input mode (for example, 5-fret guitar controllers are for 5-Fret Guitar mode) but generic controller types like gamepads and MIDI devices can be used for various modes."

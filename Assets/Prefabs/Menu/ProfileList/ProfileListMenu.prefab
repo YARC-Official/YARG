@@ -568,6 +568,7 @@ GameObject:
   m_Component:
   - component: {fileID: 8992015300448217994}
   - component: {fileID: 7153549114917861501}
+  - component: {fileID: 3012068863223499813}
   m_Layer: 5
   m_Name: Camera Preset
   m_TagString: Untagged
@@ -618,6 +619,19 @@ MonoBehaviour:
   m_FlexibleWidth: -1
   m_FlexibleHeight: 0
   m_LayoutPriority: 1
+--- !u!114 &3012068863223499813
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 441923880264621198}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 381c91c2f794a164a9b57cd46fd814cf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::YARG.Menu.Tooltips.TooltipTrigger
+  _localizationKey: CameraPreset
 --- !u!1 &513584373693852148
 GameObject:
   m_ObjectHideFlags: 0
@@ -1780,6 +1794,7 @@ GameObject:
   m_Component:
   - component: {fileID: 7021044526496176420}
   - component: {fileID: 8571173675429196198}
+  - component: {fileID: 7146327484628783100}
   m_Layer: 5
   m_Name: Color Profile Select
   m_TagString: Untagged
@@ -1830,6 +1845,19 @@ MonoBehaviour:
   m_FlexibleWidth: -1
   m_FlexibleHeight: 0
   m_LayoutPriority: 1
+--- !u!114 &7146327484628783100
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1178074853900410244}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 381c91c2f794a164a9b57cd46fd814cf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::YARG.Menu.Tooltips.TooltipTrigger
+  _localizationKey: ColorProfile
 --- !u!1 &1198103172099223644
 GameObject:
   m_ObjectHideFlags: 0
@@ -1840,6 +1868,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4152766284090734912}
   - component: {fileID: 6337682400703756691}
+  - component: {fileID: 3207657800099280564}
   m_Layer: 5
   m_Name: Highway Preset
   m_TagString: Untagged
@@ -1890,6 +1919,19 @@ MonoBehaviour:
   m_FlexibleWidth: -1
   m_FlexibleHeight: 0
   m_LayoutPriority: 1
+--- !u!114 &3207657800099280564
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1198103172099223644}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 381c91c2f794a164a9b57cd46fd814cf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::YARG.Menu.Tooltips.TooltipTrigger
+  _localizationKey: HighwayPreset
 --- !u!1 &1285783844371066432
 GameObject:
   m_ObjectHideFlags: 0
@@ -2431,6 +2473,7 @@ GameObject:
   m_Component:
   - component: {fileID: 7975477082957595204}
   - component: {fileID: 3991756943450051786}
+  - component: {fileID: 7628021986330652507}
   m_Layer: 5
   m_Name: Dedicated Open Note Lane
   m_TagString: Untagged
@@ -2481,6 +2524,19 @@ MonoBehaviour:
   m_FlexibleWidth: -1
   m_FlexibleHeight: 0
   m_LayoutPriority: 1
+--- !u!114 &7628021986330652507
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1588073712556580401}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 381c91c2f794a164a9b57cd46fd814cf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::YARG.Menu.Tooltips.TooltipTrigger
+  _localizationKey: DedicatedOpenNoteLane
 --- !u!1 &1590879796695218099
 GameObject:
   m_ObjectHideFlags: 0
@@ -5412,6 +5468,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2530602276488457993}
   - component: {fileID: 104463968045652066}
+  - component: {fileID: 7082998958506239801}
   m_Layer: 5
   m_Name: Engine Preset
   m_TagString: Untagged
@@ -5462,6 +5519,19 @@ MonoBehaviour:
   m_FlexibleWidth: -1
   m_FlexibleHeight: 0
   m_LayoutPriority: 1
+--- !u!114 &7082998958506239801
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2871700862125155814}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 381c91c2f794a164a9b57cd46fd814cf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::YARG.Menu.Tooltips.TooltipTrigger
+  _localizationKey: EnginePreset
 --- !u!1 &2901502984568389593
 GameObject:
   m_ObjectHideFlags: 0
@@ -5673,6 +5743,7 @@ GameObject:
   m_Component:
   - component: {fileID: 8320522151138306581}
   - component: {fileID: 165512712569350219}
+  - component: {fileID: 268933911951447339}
   m_Layer: 5
   m_Name: Rock Meter Preset
   m_TagString: Untagged
@@ -5723,6 +5794,19 @@ MonoBehaviour:
   m_FlexibleWidth: -1
   m_FlexibleHeight: 0
   m_LayoutPriority: 1
+--- !u!114 &268933911951447339
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2927637961517494834}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 381c91c2f794a164a9b57cd46fd814cf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::YARG.Menu.Tooltips.TooltipTrigger
+  _localizationKey: RockMeterPreset
 --- !u!1 &2944890191332945638
 GameObject:
   m_ObjectHideFlags: 0
@@ -6345,6 +6429,7 @@ GameObject:
   m_Component:
   - component: {fileID: 8615408842904902276}
   - component: {fileID: 4510427763199809587}
+  - component: {fileID: 4634316374388447412}
   m_Layer: 5
   m_Name: Configure 5-Lane Drums Highway
   m_TagString: Untagged
@@ -6396,6 +6481,19 @@ MonoBehaviour:
   m_FlexibleWidth: -1
   m_FlexibleHeight: 0
   m_LayoutPriority: 1
+--- !u!114 &4634316374388447412
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3470546410711705900}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 381c91c2f794a164a9b57cd46fd814cf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::YARG.Menu.Tooltips.TooltipTrigger
+  _localizationKey: ConfigureFiveLaneDrumsHighway
 --- !u!1 &3501717256450451707
 GameObject:
   m_ObjectHideFlags: 0
@@ -7214,6 +7312,7 @@ GameObject:
   m_Component:
   - component: {fileID: 3354602532099722795}
   - component: {fileID: 7013306619269026709}
+  - component: {fileID: 2829993862356742776}
   m_Layer: 5
   m_Name: Theme Select
   m_TagString: Untagged
@@ -7264,6 +7363,19 @@ MonoBehaviour:
   m_FlexibleWidth: -1
   m_FlexibleHeight: 0
   m_LayoutPriority: 1
+--- !u!114 &2829993862356742776
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4373093285528361130}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 381c91c2f794a164a9b57cd46fd814cf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::YARG.Menu.Tooltips.TooltipTrigger
+  _localizationKey: NoteTheme
 --- !u!1 &4394698359308714901
 GameObject:
   m_ObjectHideFlags: 0
@@ -7745,6 +7857,7 @@ GameObject:
   m_Component:
   - component: {fileID: 6414973728830812512}
   - component: {fileID: 5215112442436855595}
+  - component: {fileID: 8038500151017866592}
   m_Layer: 5
   m_Name: Configure Pro Drums Highway
   m_TagString: Untagged
@@ -7796,6 +7909,19 @@ MonoBehaviour:
   m_FlexibleWidth: -1
   m_FlexibleHeight: 0
   m_LayoutPriority: 1
+--- !u!114 &8038500151017866592
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4667240235256738715}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 381c91c2f794a164a9b57cd46fd814cf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::YARG.Menu.Tooltips.TooltipTrigger
+  _localizationKey: ConfigureProDrumsHighway
 --- !u!1 &4760484983025566137
 GameObject:
   m_ObjectHideFlags: 0
@@ -8092,6 +8218,7 @@ GameObject:
   m_Component:
   - component: {fileID: 6012127039740553619}
   - component: {fileID: 6853126344447719593}
+  - component: {fileID: 1830246227938476891}
   m_Layer: 5
   m_Name: Configure 4-Lane Drums Highway
   m_TagString: Untagged
@@ -8143,6 +8270,19 @@ MonoBehaviour:
   m_FlexibleWidth: -1
   m_FlexibleHeight: 0
   m_LayoutPriority: 1
+--- !u!114 &1830246227938476891
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4839666824420714536}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 381c91c2f794a164a9b57cd46fd814cf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::YARG.Menu.Tooltips.TooltipTrigger
+  _localizationKey: ConfigureFourLaneDrumsHighway
 --- !u!1 &4842587725615728863
 GameObject:
   m_ObjectHideFlags: 0
@@ -11422,6 +11562,7 @@ GameObject:
   m_Component:
   - component: {fileID: 8983409997777132036}
   - component: {fileID: 5282691326438544626}
+  - component: {fileID: 2262213282021737821}
   m_Layer: 5
   m_Name: Input Calibration
   m_TagString: Untagged
@@ -11472,6 +11613,19 @@ MonoBehaviour:
   m_FlexibleWidth: -1
   m_FlexibleHeight: 0
   m_LayoutPriority: 1
+--- !u!114 &2262213282021737821
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8248356516116400190}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 381c91c2f794a164a9b57cd46fd814cf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::YARG.Menu.Tooltips.TooltipTrigger
+  _localizationKey: InputCalibration
 --- !u!1 &8278147601341651097
 GameObject:
   m_ObjectHideFlags: 0
@@ -12369,6 +12523,7 @@ GameObject:
   m_Component:
   - component: {fileID: 8854712852043172760}
   - component: {fileID: 6129746364966423682}
+  - component: {fileID: 6976992448138254078}
   m_Layer: 5
   m_Name: Range Disable
   m_TagString: Untagged
@@ -12419,6 +12574,19 @@ MonoBehaviour:
   m_FlexibleWidth: -1
   m_FlexibleHeight: 0
   m_LayoutPriority: 1
+--- !u!114 &6976992448138254078
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9077654240349547227}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 381c91c2f794a164a9b57cd46fd814cf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::YARG.Menu.Tooltips.TooltipTrigger
+  _localizationKey: RangeDisable
 --- !u!1 &9090892100162229332
 GameObject:
   m_ObjectHideFlags: 0
