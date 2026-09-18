@@ -616,7 +616,7 @@ namespace YARG.Song
                         }
                     }
                 }
-                else if (song[instrument].IsActive() && !_runtimeStars.TryGetValue(song, out key))
+                else if (HasSortPart(song, instrument) && !_runtimeStars.TryGetValue(song, out key))
                 {
                     key = StarAmount.None;
                 }
@@ -704,7 +704,7 @@ namespace YARG.Song
 
             YargProfile profile = player.Profile;
             Instrument instrument = profile.CurrentInstrument;
-            IntensityComparer comparer = new(instrument);
+            IComparer<SongEntry> comparer = GetSortIntensityComparer(instrument);
             string[] bucketKeys =
             {
                 Localize.Key("Menu.MusicLibrary.Sort.Percentage.100"),
@@ -734,7 +734,7 @@ namespace YARG.Song
 
             foreach (SongEntry song in _songs)
             {
-                if (!song[instrument].IsActive())
+                if (!HasSortPart(song, instrument))
                 {
                     InsertSorted(buckets[^1], song, comparer);
                     continue;
@@ -800,7 +800,7 @@ namespace YARG.Song
 
             YargProfile profile = player.Profile;
             Instrument instrument = profile.CurrentInstrument;
-            IntensityComparer comparer = new(instrument);
+            IComparer<SongEntry> comparer = GetSortIntensityComparer(instrument);
             int[] thresholds = { 500000, 400000, 300000, 200000, 150000, 100000, 75000, 50000, 30000, 10000, 1 };
             var categorySongs = new List<SongEntry>[thresholds.Length];
             for (int i = 0; i < categorySongs.Length; i++)
@@ -820,7 +820,7 @@ namespace YARG.Song
 
             foreach (SongEntry song in _songs)
             {
-                if (!song[instrument].IsActive())
+                if (!HasSortPart(song, instrument))
                 {
                     InsertSorted(noPart, song, comparer);
                     continue;
@@ -901,7 +901,21 @@ namespace YARG.Song
             }
         }
 
-        private static void InsertSorted(List<SongEntry> songs, SongEntry song, IntensityComparer comparer)
+        private static bool HasSortPart(SongEntry song, Instrument instrument)
+        {
+            return instrument == Instrument.PartyVocals
+                ? song.HasInstrument(Instrument.PartyVocals)
+                : song[instrument].IsActive();
+        }
+
+        private static IComparer<SongEntry> GetSortIntensityComparer(Instrument instrument)
+        {
+            return instrument == Instrument.PartyVocals
+                ? new FreeHarmonyIntensityComparer()
+                : new IntensityComparer(instrument);
+        }
+
+        private static void InsertSorted(List<SongEntry> songs, SongEntry song, IComparer<SongEntry> comparer)
         {
             int index = songs.BinarySearch(song, comparer);
             songs.Insert(~index, song);
