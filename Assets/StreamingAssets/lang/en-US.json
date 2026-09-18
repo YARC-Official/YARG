@@ -1469,6 +1469,10 @@
                     "On": "On - Background limited to 50%"
                 }
             },
+            "MuteOnlyWhenAllPlayersMiss": {
+                "Name": "Mute Only When All Players Miss",
+                "Description": "When several players share an instrument, only mute its stem if all of them are missing. Otherwise the stem's volume is divided between them. Has no effect on songs without a separate stem for the instrument."
+            },
             "NoKicks": {
                 "Name": "No Kicks",
                 "Description": "Removes all kick notes (drums only)."
