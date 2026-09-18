@@ -7,6 +7,11 @@ using YARG.Localization;
 
 namespace YARG.Menu.Tooltips
 {
+    // If your tooltip doesn't need any parameterization ({0}, {1}, etc.), then add this as a component directly
+    // and just populate the localizationKey field.
+    //
+    // If you do need parameterization, make a subclass with SerializeFields for all the necessary information to
+    // derive the parameters and override GetParameters() to return them.
     public class TooltipTrigger : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
     {
         private const string LOCALIZATION_PATH = "Menu.ProfileList.Tooltip";
@@ -23,10 +28,17 @@ namespace YARG.Menu.Tooltips
 
         public void Show()
         {
-            var title = Localize.Key(LOCALIZATION_PATH, _localizationKey, "Title");
-            var text = Localize.Key(LOCALIZATION_PATH, _localizationKey, "Text");
+            var (titleParams, textParams) = GetParameters();
+
+            var title = Localize.KeyFormat((LOCALIZATION_PATH, _localizationKey, "Title"), titleParams);
+            var text = Localize.KeyFormat((LOCALIZATION_PATH, _localizationKey, "Text"), textParams);
 
             _coordinator.Show(title, text);
+        }
+
+        protected virtual (IReadOnlyList<string> titleParams, IReadOnlyList<string> textParams) GetParameters()
+        {
+            return (new List<string>(), new List<string>());
         }
 
         public void OnPointerEnter(PointerEventData eventData)
