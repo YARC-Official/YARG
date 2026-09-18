@@ -366,11 +366,11 @@ namespace YARG.Gameplay
                 {
                     if (i == mirrorEffect.wipeIndex.value)
                     {
-                        Shader.EnableKeyword(_mirrorKeywords[i]);
+                        _venuePPMaterial.EnableKeyword(_mirrorKeywords[i]);
                     }
                     else
                     {
-                        Shader.DisableKeyword(_mirrorKeywords[i]);
+                        _venuePPMaterial.DisableKeyword(_mirrorKeywords[i]);
                     }
                 }
                 YargLogger.LogFormatTrace("Venue PP: mirror, wipeStart: {0}", mirrorEffect.startTime.value);

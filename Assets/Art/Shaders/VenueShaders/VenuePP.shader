@@ -7,7 +7,8 @@ Shader "Hidden/YARG/VenuePP"
     HLSLINCLUDE
         #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
         #include "Packages/com.unity.render-pipelines.core/Runtime/Utilities/Blit.hlsl"
-        #include "Assets/Art/Shaders/VenueShaders/VenuePP.hlsl"
+        // Declares the YARG_MIRROR_* multi_compile_local variants via its embedded pragma.
+        #include_with_pragmas "Assets/Art/Shaders/VenueShaders/VenuePP.hlsl"
 
         half4 FragVenuePP(Varyings input) : SV_Target
         {
@@ -34,11 +35,6 @@ Shader "Hidden/YARG/VenuePP"
             ZWrite Off ZTest Always Blend Off Cull Off
 
             HLSLPROGRAM
-                // VenuePP.hlsl declares these with #pragma multi_compile_local, which is
-                // not processed via plain #include; declare them here instead. Controlled
-                // via global Shader.EnableKeyword from VenueCameraRenderer.
-                #pragma multi_compile_local _ YARG_MIRROR_LEFT YARG_MIRROR_RIGHT YARG_MIRROR_CLOCK_CCW YARG_MIRROR_NONE
-
                 #pragma vertex Vert
                 #pragma fragment FragVenuePP
             ENDHLSL
