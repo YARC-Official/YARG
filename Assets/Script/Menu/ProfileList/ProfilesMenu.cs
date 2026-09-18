@@ -71,6 +71,8 @@ namespace YARG.Menu.ProfileList
         private GameObject _bindingSetViewPrefab;
         [SerializeField]
         private GameObject _profileListHeaderPrefab;
+        [SerializeField]
+        private BindingSetListHeaderView _bindingSetListHeaderPrefab;
 
         private readonly int _maxConnected = HighwayCameraRendering.MAX_MATRICES;
 
@@ -130,7 +132,7 @@ namespace YARG.Menu.ProfileList
 
             foreach (var (mode, bindingSets) in relevantBindingSets)
             {
-                AddBindingSetListGroup(mode.ToString(), bindingSets);
+                AddBindingSetListGroup(mode, bindingSets);
             }
 
         }
@@ -172,7 +174,7 @@ namespace YARG.Menu.ProfileList
                 return;
             }
 
-            AddListHeader(header);
+            AddProfileListHeader(header);
 
             // Spawn in a profile view for each player
             foreach (var profile in profiles)
@@ -183,17 +185,14 @@ namespace YARG.Menu.ProfileList
             }
         }
 
-        private void AddBindingSetListGroup(string headerKey, IEnumerable<ReusableBindingSet> bindingSets)
+        private void AddBindingSetListGroup(GameMode mode, List<ReusableBindingSet> bindingSets)
         {
-            if (!bindingSets.Any())
+            if (bindingSets.Count is 0)
             {
                 return;
             }
 
-            if (headerKey is not null)
-            {
-                AddListHeader(headerKey);
-            }
+            AddBindingSetListHeader(mode);
 
             // Spawn in a profile view for each player
             foreach (var bindingSet in bindingSets)
@@ -202,6 +201,20 @@ namespace YARG.Menu.ProfileList
                 go.GetComponent<BindingSetView>().Init(this, bindingSet, _bindingSetsCenterPane);
                 _navigationGroup.AddNavigatable(go);
             }
+        }
+
+        private void AddProfileListHeader(string headerKey)
+        {
+            var headerGo = Instantiate(_profileListHeaderPrefab, _leftPaneList);
+            headerGo.GetComponentInChildren<TextMeshProUGUI>().text = Localize.Key("Bindings.Headers", headerKey);
+            _navigationGroup.AddNavigatable(headerGo);
+        }
+
+        private void AddBindingSetListHeader(GameMode mode)
+        {
+            var headerGo = Instantiate(_bindingSetListHeaderPrefab, _leftPaneList);
+            headerGo.Init(CurrentBindingSetFilter, mode, this);
+            _navigationGroup.AddNavigatable(headerGo.gameObject);
         }
 
         private void AddUnloadedGroup(string header)
@@ -221,13 +234,6 @@ namespace YARG.Menu.ProfileList
                 go.GetComponent<ProfileView>().InitUnloaded(this, record, _profileCenterPane);
                 _navigationGroup.AddNavigatable(go);
             }
-        }
-
-        private void AddListHeader(string header)
-        {
-            var headerGo = Instantiate(_profileListHeaderPrefab, _leftPaneList);
-            headerGo.GetComponentInChildren<TextMeshProUGUI>().text = header;
-            _navigationGroup.AddNavigatable(headerGo);
         }
 
         // TODO: Since we're using this outside of ProfileListMenu, we should probably find a better home for it

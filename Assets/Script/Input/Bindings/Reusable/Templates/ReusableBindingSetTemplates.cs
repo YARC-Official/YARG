@@ -50,5 +50,29 @@ namespace YARG.Input.Bindings
                 _ =>                        new()
             };
         }
+
+        public static ReusableBindingSet MakeBlankBindingSet(
+            string name,
+            GameMode mode,
+            ControllerFamily family
+        )
+        {
+            var bindingSet = new ReusableBindingSet(name, mode, family);
+
+            var template = GetTemplate(mode);
+
+            foreach (var (key, info) in template)
+            {
+                bindingSet.Bindings[key] = info.Type switch
+                {
+                    BindingType.Button or BindingType.IndividualButton or BindingType.DrumButton => new ReusableButtonBinding(info),
+                    BindingType.Axis => new ReusableAxisBinding(info),
+                    BindingType.Integer => new ReusableIntegerBinding(info),
+                    _ => throw new ArgumentOutOfRangeException("Unreachable")
+                };
+            }
+
+            return bindingSet;
+        }
     }
 }

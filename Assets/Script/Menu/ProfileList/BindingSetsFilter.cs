@@ -37,7 +37,7 @@ namespace YARG.Menu.ProfileList
             {
                 for (var i = 0; i < _controllerFamiliesByIndex.Count; i++)
                 {
-                    _dropdown.options.Add(new(_controllerFamiliesByIndex[i].ToLocalizedName()));
+                    _dropdown.options.Add(new(_controllerFamiliesByIndex[i].ToLocalizedNamePlural()));
                 }
             }
         }
