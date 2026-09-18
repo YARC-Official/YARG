@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -485,6 +485,9 @@ namespace YARG.Input
 
         public void Dispose()
         {
+            DeviceAdded = null;
+            DeviceRemoved = null;
+
             foreach (var device in InputSystem.devices)
             {
                 OnDeviceRemoved(device);

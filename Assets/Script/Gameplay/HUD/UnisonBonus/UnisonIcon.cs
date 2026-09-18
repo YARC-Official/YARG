@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Cysharp.Threading.Tasks;
 using DG.Tweening;
 using UnityEngine;
@@ -112,6 +112,12 @@ namespace YARG.Gameplay.HUD
             _fill.color = Color.white.WithAlpha(PROGRESS_FILL_ALPHA);
             _icon.color = _incompleteColor;
             gameObject.SetActive(false);
+        }
+
+        protected override void GameplayDestroy()
+        {
+            _completeSequence?.Kill();
+            _seekTween?.Kill();
         }
     }
 }

@@ -409,16 +409,22 @@ namespace YARG.Gameplay.Visuals
             {
                 var camera = _cameras[i];
 
-                if (camera.orthographic)
-                    continue;
-
-                float multiplayerXOffset = GetMultiplayerXOffset(highwayIndex, HighwayCount(),
-                    -1f * SettingsManager.Settings.HighwayTiltMultiplier.Value);
-                OffsetLocalPosition(camera.transform, multiplayerXOffset);
+                // The vocal track is an orthographic camera but must not receive the
+                // multiplayer tilt offset, and must not be counted in highwayIndex
+                // (which indexes players only, matching HighwayCount()). Otherwise
+                // vocals shift sideways and players after the vocal slot get an
+                // off-by-one world offset vs their NDC tile.
+                bool isVocal = _vocalTrack != null && camera == _vocalTrack.GetTrackCamera();
+                if (!isVocal)
+                {
+                    float multiplayerXOffset = GetMultiplayerXOffset(highwayIndex, HighwayCount(),
+                        -1f * SettingsManager.Settings.HighwayTiltMultiplier.Value);
+                    OffsetLocalPosition(camera.transform, multiplayerXOffset);
+                    highwayIndex++;
+                }
 
                 _camViewMatrices[i] = camera.worldToCameraMatrix;
                 _camInvViewMatrices[i] = camera.cameraToWorldMatrix;
-                highwayIndex++;
             }
 
             Shader.SetGlobalMatrixArray(YargHighwayCamViewMatricesID, _camViewMatrices);
@@ -460,7 +466,24 @@ namespace YARG.Gameplay.Visuals
                 }
                 else
                 {
-                    projMatrix = GetModifiedProjectionMatrix(camera.projectionMatrix,
+                    // For orthographic cameras, build the projection matrix explicitly
+                    // with Matrix4x4.Ortho instead of using camera.projectionMatrix.
+                    // The post-projection NDC tiling in GetModifiedProjectionMatrix
+                    // performs clip.xy = clip.xy * scale + offset * clip.w, which requires
+                    // clip.w == 1 for ortho. Building the matrix here guarantees that
+                    // regardless of the convention camera.projectionMatrix returns
+                    // internally (this project also runs the matrix through
+                    // GL.GetGPUProjectionMatrix afterwards, same as the perspective path).
+                    if (camera.orthographic)
+                    {
+                        float halfHeight = camera.orthographicSize;
+                        float halfWidth = halfHeight * Math.Max(Screen.width, 0.001f) /
+                                          Math.Max(Screen.height, 0.001f);
+                        projMatrix = Matrix4x4.Ortho(
+                            -halfWidth, halfWidth, -halfHeight, halfHeight,
+                            camera.nearClipPlane, camera.farClipPlane);
+                    }
+                    projMatrix = GetModifiedProjectionMatrix(projMatrix,
                         highwayIndex, HighwayCount(), _laneScales[i], horizontalOffsetNdc);
                     highwayIndex++;
                 }
@@ -708,9 +731,31 @@ namespace YARG.Gameplay.Visuals
         /// <param name="x">The normalized position across the track width (0.0 is leftmost track edge. 1.0 is rightmost track edge)</param>
         /// <param name="y">The normalized position up the track (0.0 is the strikeline, 1.0 is zero fade position)</param>
         /// <returns>A Vector2 in screen pixels, or Vector2.zero if unavailable.</returns>
-        public Vector2? GetTrackPositionScreenSpaceRaised(int trackIndex, float x, float y)
+        public Vector2? GetTrackPositionScreenSpaceRaised(int trackIndex, float x, float y) =>
+            GetTrackPositionScreenSpace(trackIndex, x, y, _raisedRotations[trackIndex]);
+
+        /// <summary>
+        /// Calculates the screen x position where the track center line meets the bottom of the screen.
+        /// Uses the top point to determine the track's angle, projecting the slanted center line from the strike line down to screen Y = 0.
+        /// </summary>
+        /// <param name="trackIndex">The index of the highway to get the position for. 0 is leftmost highway</param>
+        /// <returns>The x position in screen pixels, or null if the track cannot be projected.</returns>
+        public float? GetTrackBottomScreenX(int trackIndex)
         {
-            return GetTrackPositionScreenSpace(trackIndex, x, y, _raisedRotations[trackIndex]);
+            var bottom = GetTrackPositionScreenSpaceRaised(trackIndex, x: 0.5f, y: 0f);
+            var top = GetTrackPositionScreenSpaceRaised(trackIndex, x: 0.5f, y: 1f);
+            if (!bottom.HasValue || !top.HasValue)
+            {
+                return null;
+            }
+
+            var direction = top.Value - bottom.Value;
+            if (Mathf.Approximately(direction.y, 0f))
+            {
+                return bottom.Value.x;
+            }
+
+            return bottom.Value.x - (bottom.Value.y * direction.x / direction.y);
         }
 
         /// <summary>

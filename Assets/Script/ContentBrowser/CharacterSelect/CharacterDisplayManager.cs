@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
@@ -202,7 +202,8 @@ namespace YARG.ContentBrowser.CharacterSelect
                 0 => _leftLocation,
                 1 => _selectedLocation,
                 2 => _rightLocation,
-                3 => _hiddenLocation
+                3 => _hiddenLocation,
+                _ => throw new ArgumentOutOfRangeException(nameof(index), index, null)
             };
         }
 

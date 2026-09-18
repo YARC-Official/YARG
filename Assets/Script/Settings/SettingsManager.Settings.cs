@@ -234,6 +234,7 @@ namespace YARG.Settings
 
             public ToggleSetting PauseOnDeviceDisconnect { get; } = new(true);
             public ToggleSetting PauseOnFocusLoss { get; } = new(true);
+            public ToggleSetting PauseOnMenuOpen { get; } = new(true);
             public ToggleSetting MuteOnFocusLoss { get; } = new(false);
 
             public ToggleSetting WrapAroundNavigation { get; } = new(true);
@@ -254,6 +255,11 @@ namespace YARG.Settings
 
             private static void RefreshSongs()
             {
+                if (!IsInitialized)
+                {
+                    return;
+                }
+
                 SongContainer.RequestContainerRefresh();
                 MusicLibraryMenu.SetReload(MusicLibraryReloadState.Full);
                 HistoryMenu.ForceUpdate = true;
@@ -635,7 +641,7 @@ namespace YARG.Settings
                 FileExplorerHelper.OpenFolder(PathHelper.ExecutablePath);
             }
 
-            public async void RemoveRemoteContent()
+            public void RemoveRemoteContent()
             {
                 // Pop confirmation dialog
                 DialogManager.Instance.ShowConfirmDeleteDialog("Are you sure you want to remove all cached content?\n\nRemote content you access will be redownloaded, possibly causing loading delays.",
@@ -1332,7 +1338,7 @@ namespace YARG.Settings
             private static void CustomCharacterCallback(string file)
             {
                 // CharacterPreviewBuilder.CharacterFile = file;
-                _ = CharacterPreviewBuilder.ChangeCharacter(file);
+                CharacterPreviewBuilder.ChangeCharacter(file);
             }
             #endregion
         }

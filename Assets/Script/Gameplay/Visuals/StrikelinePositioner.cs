@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using DG.Tweening;
 using UnityEngine;
@@ -71,7 +71,8 @@ namespace YARG.Gameplay.Visuals
                     .SetEase(Ease.OutCirc))
                 .Append(transform
                     .DOMoveZ(_zOffset, ANIM_PEAK_TO_VALLEY_INTERVAL)
-                    .SetEase(Ease.InOutSine));
+                    .SetEase(Ease.InOutSine))
+                .SetLink(gameObject);
         }
 
         private void OnDestroy()
@@ -80,6 +81,8 @@ namespace YARG.Gameplay.Visuals
             {
                 StopCoroutine(_coroutine);
             }
+
+            transform.DOKill();
         }
     }
 }

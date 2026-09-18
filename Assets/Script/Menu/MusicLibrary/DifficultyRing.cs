@@ -32,6 +32,9 @@ namespace YARG.Menu.MusicLibrary
         [SerializeField]
         private TextMeshProUGUI _intensityNumber;
 
+        [SerializeField]
+        private Sprite _selectionBackdropSprite;
+
         [Space]
         [SerializeField]
         private Color _ringEmptyColor;
@@ -50,6 +53,7 @@ namespace YARG.Menu.MusicLibrary
         private Instrument _instrument;
         private int _intensity;
         private bool _active;
+        private Image _backdrop;
 
         private const float ACTIVE_OPACITY = 1f;
         private const float INACTIVE_OPACITY = 0.2f;
@@ -161,6 +165,67 @@ namespace YARG.Menu.MusicLibrary
             }
 
             UpdateIconColor();
+        }
+
+        /// <summary>
+        /// Tints the instrument icon (not the ring). Menus use this to dim or
+        /// highlight instruments. Call after <see cref="SetInfo"/>, which resets
+        /// the icon color.
+        /// </summary>
+        public void SetIconColor(Color color)
+        {
+            _instrumentIcon.color = color;
+        }
+
+        /// <summary>
+        /// Dims both ring arcs (not the icon). Menus use this to de-emphasize
+        /// non-selected instruments. Call after <see cref="SetInfo"/>, which
+        /// resets the ring opacity.
+        /// </summary>
+        public void SetRingOpacity(float alpha)
+        {
+            _ringSprite.color = _ringSprite.color.WithAlpha(alpha);
+            _ringBase.color = _ringBase.color.WithAlpha(alpha);
+        }
+
+        /// <summary>
+        /// Draws a backdrop circle behind the ring to mark the selected instrument.
+        /// </summary>
+        public void ShowSelectionBackdrop(Color color, float extraSize = 2f)
+        {
+            if (_selectionBackdropSprite == null)
+            {
+                return;
+            }
+
+            var backdrop = new GameObject("SelectionBackdrop", typeof(RectTransform), typeof(Image));
+            backdrop.layer = gameObject.layer;
+
+            var rt = (RectTransform) backdrop.transform;
+            rt.SetParent(transform, false);
+            // First sibling renders behind the ring, icon, and intensity number.
+            rt.SetAsFirstSibling();
+            rt.anchorMin = Vector2.zero;
+            rt.anchorMax = Vector2.one;
+            rt.sizeDelta = new Vector2(extraSize, extraSize);
+
+            var image = backdrop.GetComponent<Image>();
+            image.sprite = _selectionBackdropSprite;
+            image.color = color;
+            image.raycastTarget = false;
+
+            _backdrop = image;
+        }
+
+        /// <summary>
+        /// Shows or hides the backdrop created by <see cref="ShowSelectionBackdrop"/>.
+        /// </summary>
+        public void SetBackdropVisible(bool visible)
+        {
+            if (_backdrop != null)
+            {
+                _backdrop.gameObject.SetActive(visible);
+            }
         }
 
         private static Sprite GetIcon(string assetName)

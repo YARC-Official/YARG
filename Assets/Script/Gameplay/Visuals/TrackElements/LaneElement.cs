@@ -102,10 +102,17 @@ namespace YARG.Gameplay.Visuals
 
         public void SetEmissionColor(float normalizedTime)
         {
+            SetEmissionColor(_color, normalizedTime);
+        }
+
+        // Emission color independent of the lane's base color (e.g. 6-fret BRE lanes
+        // are black at rest but glow white when hit)
+        public void SetEmissionColor(Color emissionColor, float normalizedTime)
+        {
             // var strength = 1 - Mathf.Sin(Mathf.Pow(normalizedTime, 0.5f) * 1.6f);
             // var strength = Mathf.Atan(normalizedTime * 8) * -0.69f + 1;
             var strength = 1 - Mathf.Pow(normalizedTime, 0.2f);
-            var newColor = _color * strength;
+            var newColor = emissionColor * strength;
 
             _innerMaterial.SetColor(EmissionColor, newColor);
             _innerMaterial.DisableKeyword(EMISSION_DISABLED_KEYWORD);
@@ -256,10 +263,7 @@ namespace YARG.Gameplay.Visuals
 
         private void RenderScale()
         {
-            // Set scale
             _meshTransform.localScale = new Vector3(_scale, 1f, _scale);
-
-            // Recalculate length from new scale
             RenderLength();
         }
 

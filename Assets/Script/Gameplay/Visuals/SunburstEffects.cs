@@ -1,4 +1,4 @@
-﻿using DG.Tweening;
+using DG.Tweening;
 using UnityEngine;
 using YARG.Playback;
 using YARG.Settings;
@@ -58,7 +58,7 @@ namespace YARG.Gameplay.Visuals
 
             // Set up tweens for later use
             _sunburstPulseTween = _sunburstEffect.transform.DOScale(_originalScale * 0.85f, 0.25f).SetAutoKill(false)
-                .SetEase(Ease.OutSine).Pause();
+                .SetEase(Ease.OutSine).Pause().SetLink(_sunburstEffect);
 
             _multiplierIncreaseSequence = DOTween.Sequence(_sunburstEffect).SetAutoKill(false).Pause().SetLink(_sunburstEffect);
             _multiplierIncreaseSequence.Append(_sunburstEffect.transform.DOScale(0.045f, TRANSITION_DURATION).SetEase(Ease.InSine)).
@@ -264,6 +264,16 @@ namespace YARG.Gameplay.Visuals
         {
             _sunburstEffect.SetActive(false);
             _lightEffect.SetActive(false);
+        }
+
+        private void OnDestroy()
+        {
+            _sunburstPulseTween?.Kill();
+            _multiplierIncreaseSequence?.Kill();
+            _multiplierDecreaseSequence?.Kill();
+            _grooveStartSequence?.Kill();
+            _starpowerStartSequence?.Kill();
+            _sunburstDisableSequence?.Kill();
         }
     }
 }

@@ -1,4 +1,4 @@
-﻿using Cysharp.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using UnityEngine;
 using YARG.Menu.Navigation;
 using YARG.Settings;
@@ -17,13 +17,19 @@ namespace YARG.Gameplay.HUD
 
         private async void HandleNavigationScheme()
         {
-            await UniTask.WaitForSeconds(0.5f, true);
+            await UniTask.WaitForSeconds(0.5f, true, cancellationToken: this.GetCancellationTokenOnDestroy());
+            if (!isActiveAndEnabled || Navigator.Instance == null)
+            {
+                return;
+            }
+
             _ = Navigator.Instance.PushScheme(new NavigationScheme(new()
             {
                 NavigationScheme.Entry.NavigateSelect,
                 NavigationScheme.Entry.NavigateUp,
                 NavigationScheme.Entry.NavigateDown,
             }, false));
+            HasNavigationScheme = true;
         }
         public void EnableNoFail(bool resume)
         {

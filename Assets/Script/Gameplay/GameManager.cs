@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Cysharp.Threading.Tasks;
+using DG.Tweening;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using YARG.Core.Audio;
@@ -80,7 +81,8 @@ namespace YARG.Gameplay
 
         private List<BasePlayer> _players;
 
-        public int TotalPlayers => _players.Count;
+        public int TotalPlayers      => _players.Count;
+        public int ActivePlayerCount => _players.Count(player => player.IsActive);
 
         public bool IsSongStarted { get; private set; } = false;
 
@@ -126,6 +128,10 @@ namespace YARG.Gameplay
         /// <inheritdoc cref="SongRunner.Paused"/>
         public bool Paused => _songRunner?.Paused ?? true;
 
+        public bool CanPause => !Paused && !PlayerHasFailed && !IsHudEditing &&
+            !DialogManager.Instance.IsDialogShowing &&
+            (!IsPractice || PracticeManager.HasSelectedSection);
+
         /// <summary>
         /// The current song's specific offset (in milliseconds), editable from the pause menu
         /// and by <see cref="Helpers.AutoCalibrator"/>. Backed by <see cref="Song.SongOffsetContainer"/>.
@@ -165,9 +171,13 @@ namespace YARG.Gameplay
         public ReplayInfo ReplayInfo { get; private set; }
         public ReplayData ReplayData { get; private set; }
 
+        public bool ReplaySaveInhibited { get; set; }
+
         public List<PauseInfo> PauseInfo { get; } = new List<PauseInfo>();
 
         public IReadOnlyList<BasePlayer> Players => _players;
+
+        public bool IsHudEditing => _draggableHud.EditMode;
 
         public int StarPowerActivations { get; private set; } = 0;
 
@@ -193,7 +203,8 @@ namespace YARG.Gameplay
 
         private BandComboType _bandComboType;
 
-        private        bool HasBots            => _players.Any(p => !p.Player.SittingOut && p.Player.Profile.IsBot);
+        private IEnumerable<BasePlayer> ActivePlayers => _players.Where(player => player.IsActive);
+        private        bool HasBots            => ActivePlayers.Any(player => player.IsBot);
         private static bool SaveScoresWithBots => SettingsManager.Settings.SaveScoresWithBots.Value;
 
         private void Awake()
@@ -238,11 +249,6 @@ namespace YARG.Gameplay
         {
             YargLogger.LogInfo("Exiting song");
 
-            if (Navigator.Instance != null)
-            {
-                Navigator.Instance.NavigationEvent -= OnNavigationEvent;
-            }
-
             // Unsubscribe from other events
             SettingsManager.Settings.NoFail.OnChange -= OnNoFailModeChanged;
             EngineManager.OnSongFailed -= OnSongFailed;
@@ -254,6 +260,8 @@ namespace YARG.Gameplay
             _metronomeScheduler?.Dispose();
             _crowdClapScheduler?.Dispose();
             _songRunner?.Dispose();
+
+            _volumeTween?.Kill();
 
             // Restore stem volumes to their original state while the mixer is still valid.
             foreach (var (stem, state) in _stemStates)
@@ -290,17 +298,7 @@ namespace YARG.Gameplay
             // Pause/unpause
             if (Keyboard.current.escapeKey.wasPressedThisFrame)
             {
-                if (_draggableHud.EditMode)
-                {
-                    SetEditHUD(false);
-                }
-
-                if ((!IsPractice || PracticeManager.HasSelectedSection) &&
-                    !DialogManager.Instance.IsDialogShowing &&
-                    !PlayerHasFailed)
-                {
-                    SetPaused(!_pauseMenu.IsOpen);
-                }
+                TogglePause();
             }
 
             // Toggle debug text
@@ -327,7 +325,6 @@ namespace YARG.Gameplay
             foreach (var player in _players)
             {
                 player.GameplayUpdate();
-
                 totalScore += player.Score;
                 totalScore += player.BandBonusScore;
             }
@@ -430,10 +427,12 @@ namespace YARG.Gameplay
             PauseCore(showMenu);
         }
 
-        private void PauseCore(bool showMenu)
+        private void PauseCore(bool showMenu, bool overridePause = false)
         {
             if (showMenu)
             {
+                CloseAllPlayerMenus();
+
                 if (!GlobalVariables.State.PlayingWithReplay && ReplayInfo != null)
                 {
                     _pauseMenu.PushMenu(PauseMenuManager.Menu.ReplayPause);
@@ -463,7 +462,7 @@ namespace YARG.Gameplay
 
             // This uses the raw input update time because it keeps running during the pause
             // allowing us to accurately calculate the length of the pause later
-            if (!Rewinding && !IsReplay && showMenu)
+            if (!Rewinding && !IsReplay && !overridePause)
             {
                 // Save state about the pause
                 _pauseTime = InputManager.InputUpdateTime;
@@ -618,7 +617,7 @@ namespace YARG.Gameplay
         public void OverridePause()
         {
             _songRunner.OverridePause();
-            PauseCore(showMenu: false);
+            PauseCore(showMenu: false, overridePause: true);
         }
 
         public bool OverrideResume()
@@ -679,7 +678,7 @@ namespace YARG.Gameplay
             {
                 PlayerScores = _players.Select(player => new PlayerScoreCard
                 {
-                    IsHighScore = player.Score > player.LastHighScore,
+                    IsHighScore = player.IsActive && player.Score > player.LastHighScore,
                     Player = player.Player,
                     Stats = player.BaseStats,
                     IsReplay = player.Player.IsReplay
@@ -691,8 +690,8 @@ namespace YARG.Gameplay
                 // .Where(player => !player.Player.Profile.IsBot)
                 // to:
                 // .Where(player => !(player.Player.Profile.IsBot || player.Player.IsRemote))
-                MeanAverageOffset = _players
-                    .Where(player => !player.Player.Profile.IsBot)
+                MeanAverageOffset = ActivePlayers
+                    .Where(player => !player.IsBot)
                     .Select(player => player.BaseStats.GetAverageOffset())
                     .DefaultIfEmpty(0)
                     .Average(),
@@ -709,7 +708,7 @@ namespace YARG.Gameplay
 
         private void RecordScores(ReplayInfo replayInfo)
         {
-            if (!ScoreContainer.IsBandScoreValid(SongSpeed))
+            if (!ScoreContainer.IsBandScoreValid(SongSpeed, ActivePlayers.Select(player => player.Player)))
             {
                 return;
             }
@@ -717,7 +716,7 @@ namespace YARG.Gameplay
             // Get all of the individual player score entries
             var playerEntries = new List<PlayerScoreRecord>();
             var starScoreCutoffsList = new List<int[]>();
-            foreach (var player in _players)
+            foreach (var player in ActivePlayers)
             {
                 var profile = player.Player.Profile;
 
@@ -750,7 +749,7 @@ namespace YARG.Gameplay
                 starScoreCutoffsList.Add(player.BaseEngine.StarScoreThresholds);
             }
 
-            var validScoreCount = _players.Count(p => ScoreContainer.IsSoloScoreValid(SongSpeed, p.Player));
+            var validScoreCount = ActivePlayers.Count(player => ScoreContainer.IsSoloScoreValid(SongSpeed, player.Player));
             if (validScoreCount == 0)
             {
                 return;
@@ -790,7 +789,7 @@ namespace YARG.Gameplay
             else
             {
                 // No bots, use live scores directly
-                foreach (var player in _players)
+                foreach (var player in ActivePlayers)
                 {
                     humanBandScore += player.Score + player.BaseStats.BandBonusScore;
                 }
@@ -858,7 +857,7 @@ namespace YARG.Gameplay
         public ReplayInfo? SaveReplay(double length, string directory)
 #nullable disable
         {
-            if (_isReplaySaved)
+            if (_isReplaySaved || ReplaySaveInhibited)
             {
                 return null;
             }
@@ -871,10 +870,9 @@ namespace YARG.Gameplay
 
             int bandScore = 0;
             float bandStars = EngineManager.Stars;
-            for (int i = 0; i < _players.Count; i++)
+            foreach (var player in ActivePlayers)
             {
-                var player = _players[i];
-                if (player.Player.Profile.IsBot)
+                if (player.IsBot)
                 {
                     continue;
                 }
@@ -920,22 +918,34 @@ namespace YARG.Gameplay
             return replayInfo;
         }
 
-        private void OnNavigationEvent(NavigationContext context)
+        private void CloseAllPlayerMenus()
         {
-            switch (context.Action)
+            foreach (var player in _players.OfType<TrackPlayer>())
             {
-                // Pause
-                case MenuAction.Start:
-                    if (_draggableHud.EditMode)
-                    {
-                        SetEditHUD(false);
-                    }
+                player.ClosePlayerMenu();
+            }
+        }
 
-                    if ((!IsPractice || PracticeManager.HasSelectedSection) && !DialogManager.Instance.IsDialogShowing && !PlayerHasFailed)
-                    {
-                        SetPaused(!_songRunner.Paused);
-                    }
-                    break;
+        public void RefreshAllPlayerMenus()
+        {
+            foreach (var player in _players.OfType<TrackPlayer>())
+            {
+                player.RefreshPlayerMenu();
+            }
+        }
+
+        public void TogglePause()
+        {
+            if (IsHudEditing)
+            {
+                SetEditHUD(on: false);
+            }
+
+            if ((!IsPractice || PracticeManager.HasSelectedSection) &&
+                !DialogManager.Instance.IsDialogShowing &&
+                !PlayerHasFailed)
+            {
+                SetPaused(!_songRunner.Paused);
             }
         }
 
@@ -955,7 +965,7 @@ namespace YARG.Gameplay
                     BandCombo = 0;
                 break;
                 case BandComboType.Lenient:
-                    BandCombo = Players.Sum(e => e.Combo * e.BaseStats.BandComboUnits);
+                    BandCombo = ActivePlayers.Sum(e => e.Combo * e.BaseStats.BandComboUnits);
                 break;
             }
         }
@@ -1127,6 +1137,16 @@ namespace YARG.Gameplay
         public void ResetCoda()
         {
             _breBox.ForceReset();
+        }
+
+        public void DifficultyChanged(BasePlayer player)
+        {
+            EngineManager.StarScoreThresholds = EngineManager.GetStarScoreCutoffs(_players.ConvertAll(p => p.BaseEngine.StarScoreThresholds));
+            EngineManager.ResetStars();
+            if (_unisonDisplay.enabled)
+            {
+                _unisonDisplay.OnDifficultyChanged(player.EngineContainer.EngineId);
+            }
         }
     }
 }

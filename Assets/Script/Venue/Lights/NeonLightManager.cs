@@ -37,15 +37,30 @@ namespace YARG.Venue
             _lightManager = FindFirstObjectByType<LightManager>();
 
 			for (int i = 0; i < _neonMaterialsFullColor.Length; i++) {
+				if (_neonMaterialsFullColor[i].Material == null)
+				{
+					continue;
+				}
+
 				_neonMaterialsFullColor[i].InitialColor = (_neonMaterialsFullColor[i].Material.GetColor(_emissionColor));
 			}
         }
 
         private void Update()
         {
+            if (_lightManager == null)
+            {
+                return;
+            }
+
             // Update all of the materials
             foreach (var material in _neonMaterials)
             {
+				if (material == null)
+				{
+					continue;
+				}
+
 				var lightState = _lightManager.GenericLightState;
 				material.SetFloat(_emissionMultiplier, lightState.Intensity);
 
@@ -62,6 +77,11 @@ namespace YARG.Venue
             for (int i = 0; i < _neonMaterialsFullColor.Length; i++)
             {
 				var neon = _neonMaterialsFullColor[i];
+
+				if (neon.Material == null)
+				{
+					continue;
+				}
 
 				switch ((neon.Location, neon.SpotLocation))
 				{

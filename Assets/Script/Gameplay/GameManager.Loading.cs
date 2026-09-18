@@ -12,7 +12,6 @@ using YARG.Core.Replays;
 using YARG.Gameplay.HUD;
 using YARG.Gameplay.Player;
 using YARG.Menu;
-using YARG.Menu.Navigation;
 using YARG.Menu.Persistent;
 using YARG.Menu.Settings;
 using YARG.Playback;
@@ -252,9 +251,6 @@ namespace YARG.Gameplay
                 return;
             }
 
-            // Listen for menu inputs
-            Navigator.Instance.NavigationEvent += OnNavigationEvent;
-
             // Debug info
             InitializeDebug();
 #if UNITY_EDITOR
@@ -457,6 +453,7 @@ namespace YARG.Gameplay
                 foreach (var player in YargPlayers)
                 {
                     player.IsScoreValid = true;
+                    player.ResetParticipation();
 
                     if (!player.IsReplay)
                     {

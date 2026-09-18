@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -505,6 +505,8 @@ namespace YARG.Player
                 profile = null;
                 return false;
             }
+
+            profile.EnsureValidInstrument();
 
             if (_profilesById.ContainsKey(profile.Id))
             {

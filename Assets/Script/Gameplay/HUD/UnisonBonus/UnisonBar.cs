@@ -1,4 +1,4 @@
-﻿using DG.Tweening;
+using DG.Tweening;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -115,6 +115,11 @@ namespace YARG.Gameplay.HUD
             _fill.fillAmount = 0f;
             _successCounter.color = Color.white;
             _totalCounter.color = Color.white;
+        }
+
+        protected override void GameplayDestroy()
+        {
+            _seekTween?.Kill();
         }
     }
 }

@@ -34,10 +34,10 @@
             "FiveFretRhythm": "Rhythm",
             "FiveFretCoopGuitar": "Co-op",
             "Keys": "Keys",
-            "SixFretGuitar": "Guitar",
-            "SixFretBass": "Bass",
-            "SixFretRhythm": "Rhythm",
-            "SixFretCoopGuitar": "Co-op",
+            "SixFretGuitar": "Guitar (6-Fret)",
+            "SixFretBass": "Bass (6-Fret)",
+            "SixFretRhythm": "Rhythm (6-Fret)",
+            "SixFretCoopGuitar": "Co-op (6-Fret)",
             "FourLaneDrums": "4-Lane Drums",
             "ProDrums": "Pro Drums",
             "FiveLaneDrums": "5-Lane Drums",
@@ -281,7 +281,14 @@
             "Instrument": "Instrument",
             "Difficulty": "Difficulty",
             "Harmony": "Harmony",
+            "Adjustments": "Adjustments",
             "Modifiers": "Modifiers",
+            "Accessibility": "Accessibility",
+            "LeftyFlip": "Lefty Flip",
+            "NoRangeShifts": "No Range Shifts",
+            "DedicatedOpenLane": "Open Note Lane",
+            "OpenLaneAlways": "Open Lane Always",
+            "OpenLaneWhenCharted": "Open Lane When Charted",
             "Ready": "Ready",
             "SitOut": "Sit Out",
 			"Disconnect" : "Disconnect",
@@ -666,7 +673,9 @@
                 "Restart": "Restart",
                 "BackToLibrary": "Back To Library",
                 "Settings": "Settings",
-                "Practice": "Practice"
+                "Practice": "Practice",
+                "DropOut": "Drop Out",
+                "ChangeDifficulty": "Change Difficulty"
             },
             "Fail": {
                 "EnableNoFailandResume": "Enable No Fail and Resume",
@@ -945,6 +954,14 @@
             "SoloYellow": "Solo Yellow Fret",
             "SoloBlue": "Solo Blue Fret",
             "SoloOrange": "Solo Orange Fret"
+        },
+        "SixFret": {
+            "Black1": "Black Fret 1 (First)",
+            "Black2": "Black Fret 2 (Second)",
+            "Black3": "Black Fret 3 (Third)",
+            "White1": "White Fret 1 (Fourth)",
+            "White2": "White Fret 2 (Fifth)",
+            "White3": "White Fret 3 (Sixth)"
         },
         "Guitar": {
             "StrumUp": "Strum Up",
@@ -1777,6 +1794,10 @@
                 "Name": "Pause On Focus Loss",
                 "Description": "Pauses the game if it's tabbed out/loses focus in the middle of a song."
             },
+            "PauseOnMenuOpen": {
+                "Name": "Pause On Menu Open",
+                "Description": "Pauses the game when the track menu is opened."
+            },
             "MuteOnFocusLoss": {
                 "Name": "Mute On Focus Loss",
                 "Description": "Mutes all game audio if the game is tabbed out/loses focus, including menu music. Audio is restored when focus returns."
@@ -2030,6 +2051,14 @@
                 "Rotation": {
                     "Name": "Camera Rotation",
                     "Description": "The track camera's rotational pitch (up and down)."
+                },
+                "Orthographic": {
+                    "Name": "Orthographic Camera",
+                    "Description": "Use an orthographic projection instead of perspective."
+                },
+                "OrthographicSize": {
+                    "Name": "Orthographic Size",
+                    "Description": "The orthographic view size (half the vertical view height in world units). Only used when Orthographic Camera is enabled."
                 }
             },
             "ColorProfile": {
@@ -2037,6 +2066,7 @@
                     "Name": "Instrument",
                     "Dropdown": {
                         "FiveFretGuitar": "Guitar (5-Fret)",
+                        "SixFretGuitar": "Guitar (6-Fret)",
                         "FiveLaneDrums": "Drums (5-Lane)",
                         "FourLaneDrums": "Drums (4-Lane)",
                         "ProKeys": "Pro Keys",
@@ -2366,6 +2396,21 @@
                 },
                 "BlackNoteStarPower": {
                     "Name": "Black Note Star Power"
+                },
+                "Fret": {
+                    "Name": "Fret"
+                },
+                "BlackFretInner": {
+                    "Name": "Black Fret Inner"
+                },
+                "WhiteFretInner": {
+                    "Name": "White Fret Inner"
+                },
+                "BlackParticles": {
+                    "Name": "Black Particles"
+                },
+                "WhiteParticles": {
+                    "Name": "White Particles"
                 },
                 "TapStripEmission": {
                     "Name": "Tap Strip Emission",
