@@ -1,4 +1,4 @@
-using System;
+﻿/*using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -59,9 +59,9 @@ namespace YARG.Input.Serialization
         [JsonConstructor]
         public SerializedProfileBindingsV1() { }
 
-        public SerializedProfileBindingsV1(SerializedProfileBindings serialized)
+        public SerializedProfileBindingsV1(SerializedProfileDeviceInfo serialized)
         {
-            Devices.AddRange(serialized.Devices.Select((device) => new SerializedInputDeviceV1(device)));
+            Devices.AddRange(serialized.Controllers.Select((device) => new SerializedInputDeviceV1(device)));
 
             if (serialized.Microphone is not null)
                 Microphone = new SerializedMicV1(serialized.Microphone);
@@ -75,14 +75,14 @@ namespace YARG.Input.Serialization
                 MenuMappings = new SerializedBindingCollectionV1(this, serialized.MenuMappings);
         }
 
-        public SerializedProfileBindings Deserialize()
+        public SerializedProfileDeviceInfo Deserialize()
         {
-            var deserialized = new SerializedProfileBindings()
+            var deserialized = new SerializedProfileDeviceInfo()
             {
                 Microphone = Microphone?.Deserialize(),
             };
 
-            deserialized.Devices.AddRange(Devices.Select((device) => device.Deserialize()));
+            deserialized.Controllers.AddRange(Devices.Select((device) => device.Deserialize()));
 
             foreach (var (gameMode, bindings) in ModeMappings)
             {
@@ -224,4 +224,4 @@ namespace YARG.Input.Serialization
             return serialized.Deserialize();
         }
     }
-}
+}*/

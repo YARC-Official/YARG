@@ -12,6 +12,8 @@ using YARG.Audio;
 using YARG.Core;
 using YARG.Core.Logging;
 using YARG.Core.Audio;
+using UnityEngine.InputSystem.Utilities;
+using YARG.Input.Bindings;
 
 #nullable enable
 
@@ -31,45 +33,67 @@ namespace YARG.Input.Serialization
 
     public class SerializedBindings
     {
-        public Dictionary<Guid, SerializedProfileBindings> Profiles = new();
+        public Dictionary<Guid, SerializedPlayerDeviceInfo> Profiles = new();
+        public Dictionary<Guid, SerializedReusableBindingSet> ReusableBindingSets = new();
     }
 
-    public class SerializedProfileBindings
+    public class SerializedPlayerDeviceInfo
     {
-        public List<SerializedInputDevice> Devices = new();
+        public List<SerializedInputDevice> Controllers = new();
         public List<SerializedMic> Microphones = new();
 
         // Legacy single microphone, only filled when loading v0-v2 files
         public SerializedMic? Microphone;
 
-        public Dictionary<GameMode, SerializedBindingCollection> ModeMappings = new();
-        public SerializedBindingCollection? MenuMappings;
+        public Dictionary<GameMode, SerializedModeMappingCollection> ModeMappings = new();
+        public Dictionary<string, Guid> MenuMappings = new(); // Key is BaseLayout
     }
 
-    public class SerializedBindingCollection
+    public class SerializedModeMappingCollection
     {
-        public Dictionary<string, SerializedControlBinding> Bindings = new();
+        public Dictionary<string, Guid> MappingsByBaseLayout = new();
     }
 
-    public class SerializedControlBinding
+    public class SerializedReusableBindingSet
+    {
+        public SerializedReusableBindingSet(string name, string baseLayout)
+        {
+            Name = name;
+            BaseLayout = baseLayout;
+        }
+
+        public string Name;
+        public Guid Guid;
+        public GameMode GameMode;
+        public string BaseLayout;
+
+        // Key is binding name, like "FiveFret.Green" or "FourDrums.RedPad"
+        // These names come from BindingCollection.Templates.cs; they are YARG's, not PlasticBand's
+        public Dictionary<string, SerializedReusableControlBinding> Bindings = new();
+    }
+
+    public class SerializedReusableControlBinding
     {
         public Dictionary<string, string> Parameters = new();
-        public List<SerializedInputControl> Controls = new();
+        public List<SerializedSingleBinding> Controls = new();
     }
 
     public class SerializedInputDevice
     {
+        public string BaseLayout;
         public string Layout;
         public string Hash;
 
-        public SerializedInputDevice(string layout, string hash)
+        public SerializedInputDevice(string baseLayout, string layout, string hash)
         {
+            BaseLayout = baseLayout;
             Layout = layout;
             Hash = hash;
         }
 
         public SerializedInputDevice(InputDevice device)
         {
+            BaseLayout = LayoutStrings.GetBaseLayout(device.layout);
             Layout = device.layout;
             Hash = device.GetHash();
         }
@@ -80,16 +104,18 @@ namespace YARG.Input.Serialization
         }
     }
 
-    public class SerializedInputControl
+    public class SerializedSingleBinding
     {
-        public SerializedInputDevice Device;
-        public string ControlPath;
+        [Obsolete]
+        public string ControlPath = string.Empty;
+
+        public string ControlName;
+
         public Dictionary<string, string> Parameters = new();
 
-        public SerializedInputControl(SerializedInputDevice device, string path)
+        public SerializedSingleBinding(string controlName)
         {
-            Device = device;
-            ControlPath = path;
+            ControlName = controlName;
         }
     }
 
@@ -132,7 +158,7 @@ namespace YARG.Input.Serialization
         {
             try
             {
-                var serialized = SerializeBindingsV3(bindings);
+                var serialized = SerializeBindingsV4(bindings);
                 string bindingsJson = JsonConvert.SerializeObject(serialized, Formatting.Indented);
                 File.WriteAllText(bindingsPath, bindingsJson);
             }
@@ -161,10 +187,12 @@ namespace YARG.Input.Serialization
 
                 var bindings = version switch
                 {
-                    0 => DeserializeBindingsV0(jObject),
-                    1 => DeserializeBindingsV1(jObject),
-                    2 => DeserializeBindingsV2(jObject),
-                    3 => DeserializeBindingsV3(jObject),
+                    // TODO: Remember to generalize control path layouts when deserializing old versions
+                    //0 => DeserializeBindingsV0(jObject),
+                    //1 => DeserializeBindingsV1(jObject),
+                    //2 => DeserializeBindingsV2(jObject),
+                    //3 => DeserializeBindingsV3(jObject),
+                    4 => DeserializeBindingsV4(jObject),
                     _ => throw new NotImplementedException($"Unhandled bindings version {version}!")
                 };
 
