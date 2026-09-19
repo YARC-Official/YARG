@@ -40,14 +40,14 @@ namespace YARG.Menu.ProfileList
 
         public void OnDebounceValueChanged(float value)
         {
-            _binding.DebounceThreshold = (long) value;
+            Binding.DebounceThreshold = (long) value;
         }
 
         public override void RefreshBindings()
         {
             _header.ClearBindings();
 
-            foreach (var control in _binding.Bindings)
+            foreach (var control in Binding.Bindings)
             {
                 /* TODO-FRICK: MIDI stuff
                 if (control.Control is MidiNoteControl)
@@ -58,7 +58,7 @@ namespace YARG.Menu.ProfileList
                 else
                 {*/
                     _header.AddBinding<ReusableSingleButtonBindView, ReusableButtonBinding, ReusableSingleButtonBinding, float>(
-                        _viewPrefab, _binding, control, _controls);
+                        _viewPrefab, Binding, control, _controls);
                 //}
             }
 

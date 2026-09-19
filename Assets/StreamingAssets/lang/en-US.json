@@ -581,132 +581,151 @@
                 "FullCombos": "Full Combos"
             }
         },
-      "ProfileList": {
-        "Name": "Profiles\n& Devices",
-        "ActiveProfiles": "Active Profiles",
-        "AddBot": "Add Bot",
-        "AddProfile": "Add Profile",
-        "Bots": "Bots",
-        "Players": "Players",
-        "CouldNotLoad": "Couldn't Load",
-        "UnloadedEntry": "{0} <alpha=#66>— could not be loaded by this version of YARG",
-        "UnloadedDeleteTitle": "Delete Profile?",
-        "UnloadedDelete": "Deleting it is permanent.",
-        "BotDelete": "Deleting this bot is permanent.",
-        "Tooltip": {
-          "InputMode": {
-            "Title": "Input Mode",
-            "Text": "Represents what type of device you'll be using to play songs. Determines which playable parts will be available to you, what engine you'll use to play them, and what gameplay bindings you can configure.\n\nThis profile's input mode is set to {0}, {1}",
-			"FiveFretGuitar": "which is meant for guitar game controllers with fret buttons in a 1x5 arrangement.",
-			"SixFretGuitar": "which is meant for guitar game controllers with fret buttons in a 2x3 arrangement.",
-			"FourLaneDrums": "which is meant for drumkit game controllers with 4 drum pads, 1 or 2 kick pedals, and optionally up to 3 cymbal pads.",
-			"FiveLaneDrums": "which is meant for drumkit game controllers with 3 drum pads, 1 or 2 kick pedals, and 2 cymbal pads.",
-			"EliteDrums": "which is meant for MIDI drumkits with 4 drum pads, 1 or 2 kick pedals, a hi-hat pedal, and 3 or 4 cymbal pads. It's recommended that you also attach a gamepad or other controller to use for menu navigation.",
-			"ProKeys": "which is meant for keyboard game controllers and MIDI keyboards with at least 2 octaves of keys. If you're using a MIDI keyboard, it's recommended that you also attach a gamepad or other controller to use for menu navigation.",
-			"Vocals": "which is meant for 1 or more microphones. It's recommended that you also attach a gamepad or other controller to use for menu navigation."
-          },
-          "Controllers": {
-            "Title": "Controllers",
-            "Text": "A controller is any device that provides button and/or axis inputs to <i>YARG</i>. Use controllers to play most game modes (excluding Vocals and Harmonies) and to navigate menus. If your primary controller does not provide every input you need for gameplay and menu navigation, you can set up multiple controllers with additional and/or redundant bindings."
-          },
-          "AttachController": {
-            "Title": "Attach Controller",
-            "Text": "Attach a new controller to this profile. If that controller is currently attached to another profile, it will be detached from there."
-          },
-          "DetachController": {
-            "Title": "Detach Controller",
-            "Text": "Detach this controller from this profile."
-          },
-          "Microphones": {
-            "Title": "Microphones",
-            "Text": "A microphone is any device that provides an audio signal to <i>YARG</i>. Use microphones to play Vocals and Harmonies. To navigate menus as a vocalist, set up a controller."
-          },
-          "AttachMicrophone": {
-            "Title": "Attach Microphone",
-            "Text": "Attach a new microphone to this profile. If that microphone is currently attached to another profile, it will be detached from there."
-          },
-          "DetachMicrophone": {
-            "Title": "Detach Microphone",
-            "Text": "Detach this microphone from this profile."
-          },
-          "NoteSpeed": {
-            "Title": "Note Speed",
-            "Text": "Adjust the scrolling speed of the highway. At faster speeds, the gems are visually further apart.\n\nDefault value is 5.0. Higher values produce higher speeds."
-          },
-          "HighwayLength": {
-            "Title": "Track Length",
-            "Text": "Adjust the length of the highway.\n\nDefault value is 1.0. Higher values produce longer highways."
-          },
-          "LeftyFlip": {
-            "Title": "Lefty Flip",
-            "Text": "Reorient guitar and drum charts for left-handed gameplay."
-          },
-		  "EnginePreset": {
-			  "Title": "Engine Preset",
-			  "Text": "Select a set of parameters to control gameplay engine behavior. The available options depend on your Input Mode."
+        "ProfileList": {
+			"Name": "Profiles\n& Devices",
+			"ActiveProfiles": "Active Profiles",
+			"AddBot": "Add Bot",
+			"AddProfile": "Add Profile",
+			"Bots": "Bots",
+			"Players": "Players",
+			"CouldNotLoad": "Couldn't Load",
+			"UnloadedEntry": "{0} <alpha=#66>— could not be loaded by this version of YARG",
+			"UnloadedDeleteTitle": "Delete Profile?",
+			"UnloadedDelete": "Deleting it is permanent.",
+			"BotDelete": "Deleting this bot is permanent.",
+			"Tooltip": {
+			  "InputMode": {
+				"Title": "Input Mode",
+				"Text": "Represents what type of device you'll be using to play songs. Determines which playable parts will be available to you, what engine you'll use to play them, and what gameplay bindings you can configure.\n\nThis profile's input mode is set to {0}, {1}",
+				"FiveFretGuitar": "which is meant for guitar game controllers with fret buttons in a 1x5 arrangement.",
+				"SixFretGuitar": "which is meant for guitar game controllers with fret buttons in a 2x3 arrangement.",
+				"FourLaneDrums": "which is meant for drumkit game controllers with 4 drum pads, 1 or 2 kick pedals, and optionally up to 3 cymbal pads.",
+				"FiveLaneDrums": "which is meant for drumkit game controllers with 3 drum pads, 1 or 2 kick pedals, and 2 cymbal pads.",
+				"EliteDrums": "which is meant for MIDI drumkits with 4 drum pads, 1 or 2 kick pedals, a hi-hat pedal, and 3 or 4 cymbal pads. It's recommended that you also attach a gamepad or other controller to use for menu navigation.",
+				"ProKeys": "which is meant for keyboard game controllers and MIDI keyboards with at least 2 octaves of keys. If you're using a MIDI keyboard, it's recommended that you also attach a gamepad or other controller to use for menu navigation.",
+				"Vocals": "which is meant for 1 or more microphones. It's recommended that you also attach a gamepad or other controller to use for menu navigation."
+			  },
+			  "Controllers": {
+				"Title": "Controllers",
+				"Text": "A controller is any device that provides button and/or axis inputs to <i>YARG</i>. Use controllers to play most game modes (excluding Vocals and Harmonies) and to navigate menus. If your primary controller does not provide every input you need for gameplay and menu navigation, you can set up multiple controllers with additional and/or redundant bindings."
+			  },
+			  "AttachController": {
+				"Title": "Attach Controller",
+				"Text": "Attach a new controller to this profile. If that controller is currently attached to another profile, it will be detached from there."
+			  },
+			  "DetachController": {
+				"Title": "Detach Controller",
+				"Text": "Detach this controller from this profile."
+			  },
+			  "Microphones": {
+				"Title": "Microphones",
+				"Text": "A microphone is any device that provides an audio signal to <i>YARG</i>. Use microphones to play Vocals and Harmonies. To navigate menus as a vocalist, set up a controller."
+			  },
+			  "AttachMicrophone": {
+				"Title": "Attach Microphone",
+				"Text": "Attach a new microphone to this profile. If that microphone is currently attached to another profile, it will be detached from there."
+			  },
+			  "DetachMicrophone": {
+				"Title": "Detach Microphone",
+				"Text": "Detach this microphone from this profile."
+			  },
+			  "NoteSpeed": {
+				"Title": "Note Speed",
+				"Text": "Adjust the scrolling speed of the highway. At faster speeds, the gems are visually further apart.\n\nDefault value is 5.0. Higher values produce higher speeds."
+			  },
+			  "HighwayLength": {
+				"Title": "Track Length",
+				"Text": "Adjust the length of the highway.\n\nDefault value is 1.0. Higher values produce longer highways."
+			  },
+			  "LeftyFlip": {
+				"Title": "Lefty Flip",
+				"Text": "Reorient guitar and drum charts for left-handed gameplay."
+			  },
+			  "EnginePreset": {
+				  "Title": "Engine Preset",
+				  "Text": "Select a set of parameters to control gameplay engine behavior. The available options depend on your Input Mode."
+			  },
+			  "NoteTheme": {
+				  "Title": "Note Theme",
+				  "Text": "Select a set of models to use for gems on the highway during gameplay. Don't eat any of them."
+			  },
+			  "ColorProfile": {
+				  "Title": "Color Profile",
+				  "Text": "Select a set of colors to apply to gems and other gameplay graphics."
+			  },
+			  "CameraPreset": {
+				  "Title": "Camera Preset",
+				  "Text": "Select a configuration for how your note highway is projected onto the screen."
+			  },
+			  "HighwayPreset": {
+				  "Title": "Highway Preset",
+				  "Text": "Select a visual texture for your note highway."
+			  },
+			  "RockMeterPreset": {
+				  "Title": "Rock Meter Preset",
+				  "Text": "Configure how harshly the crowd judges your musicianship."
+			  },
+			  "InputCalibration": {
+				  "Title": "Input Calibration",
+				  "Text": "Apply a global timing offset to all of your gameplay inputs. Higher values mean your inputs are treated as if they occurred earlier.\n\n<b><color=\"red\">Leave this at 0 unless you're sure you know what you're doing!</color></b> If you want to account for inherent latency in your audio/video setup, use the Calibration interface under <b>Settings</b>. If you want to account for the inherent latency of a specific device, do so up above under <b>Controllers</b> or <b>Microphones</b>."
+			  },
+			  "ConfigureFourLaneDrumsHighway": {
+				  "Title": "4-Lane Drums Highway Configuration",
+				  "Text": "Configure how the note highway is arranged when you play 4-Lane Drums (not Pro Drums). You can rearrange the order of the highway lanes and enable dedicated kick lanes."
+			  },
+			  "ConfigureProDrumsHighway": {
+				  "Title": "Pro Drums Highway Configuration",
+				  "Text": "Configure how the note highway is arranged when you play Pro Drums. You can rearrange the order of the highway lanes, split tom and cymbal lanes, and enable dedicated kick lanes."
+			  },
+			  "ConfigureFiveLaneDrumsHighway": {
+				  "Title": "5-Lane Drums Highway Configuration",
+				  "Text": "Configure how the note highway is arranged when you play 5-Lane Drums. You can rearrange the order of the highway lanes and enable dedicated kick lanes."
+			  },
+			  "DedicatedOpenNoteLane": {
+				  "Title": "Dedicated Open Note Lane",
+				  "Text": "Configure whether the note highway has a dedicated lane for open notes or if open notes appear as full-width bar gems."
+			  },
+			  "RangeDisable": {
+				  "Title": "Range Shift Markers",
+				  "Text": "Some Easy and Medium 5-Fret Guitar charts include visual annotations that tell you when to move your hand to a new position. Use this setting to disable those visuals.\n\nNote that this setting does not change the content of the chart; to disable the position shifts themselves, select the <b>No Range Shifts</b> gameplay modifier when starting a song."
+			  },
+			  "BindingSetFilter": {
+				  "Title": "Binding Sets Filter",
+				  "Text": "Pick a type of controller for which to show binding sets. Most controller types are associated with a specific input mode (for example, 5-fret guitar controllers are for 5-Fret Guitar mode) but generic controller types like gamepads and MIDI devices can be used for various modes."
+			  },
+			  "AddOtherBindingSet": {
+				  "Title": "Add Other Binding Set",
+				  "Text": "Create a binding set for use with this controller type in a mode that isn't already listed here. <b><color=\"yellow\">Only use this if you know what you're doing!</color></b> This controller type wasn't designed for other modes."
+			  },
+			  "DuplicateBindingSet": {
+				  "Title": "Duplicate Binding Set",
+				  "Text": "Create a copy of this binding set."
+			  },
+			  "DeleteBindingSet": {
+				  "Title": "Delete Binding Set",
+				  "Text": "Permanently delete this binding set. <b><color=\"red\">If anyone is using this binding set, they'll revert to the default bindings!</color></b>"
+			  },
+			  "AddNewSingleBinding": {
+				  "Title": "Add New Binding",
+				  "Text": ""
+			  },
+			  "ButtonBindGroup": {
+				  "Title": "{0}",
+				  "Text": "{0}",
+				  "Regular": "This is a button action; its state is simply \"on\" or \"off\". Its state represents the logical OR of all the controls bound to it; that is, if at least one of them is on, then this action is considered on. Otherwise, it is off.",
+				  "Impulse": "This is an impulse action; it has no state, and only sends momentary \"pressed\" events. It sends a \"pressed\" event whenever you press any of the controls bound to it, even if another is still held. To prevent crosstalk among those controls, use the <b>Debounce Mode</b> parameter.",
+				  "Drum": "This is a drum pad action; it has no state, and only sends momentary \"hit\" events that carry velocity information. It sends a \"hit\" event whenever you press any of the controls bound to it, even if another is still held. To prevent crosstalk among those controls, use the <b>Debounce Mode</b> parameter."
+			  },
+			  "AxisBindGroup": {
+				  "Title": "{0}",
+				  "Text": "This is an axis action; its state ranges from -1.0 to 1.0 (inclusive). If you bind multiple controls, the effective value will reflect whichever control's value has the greatest magnitude. For example, if one control reports 0.2 and another reports -0.8, the effective value is -0.8 because its magnitude (0.8) is greater than the other control's magnitude (0.2)."
+			  },
+			  "IntegerBindGroup": {
+				  "Title": "{0}",
+				  "Text": "This is an integer action; its state can be any nonnegative integer. If you bind multiple controls, the effective value will reflect the highest value from among those controls."
+			  }
+			}
 		  },
-		  "NoteTheme": {
-			  "Title": "Note Theme",
-			  "Text": "Select a set of models to use for gems on the highway during gameplay. Don't eat any of them."
-		  },
-		  "ColorProfile": {
-			  "Title": "Color Profile",
-			  "Text": "Select a set of colors to apply to gems and other gameplay graphics."
-		  },
-		  "CameraPreset": {
-			  "Title": "Camera Preset",
-			  "Text": "Select a configuration for how your note highway is projected onto the screen."
-		  },
-		  "HighwayPreset": {
-			  "Title": "Highway Preset",
-			  "Text": "Select a visual texture for your note highway."
-		  },
-		  "RockMeterPreset": {
-			  "Title": "Rock Meter Preset",
-			  "Text": "Configure how harshly the crowd judges your musicianship."
-		  },
-		  "InputCalibration": {
-			  "Title": "Input Calibration",
-			  "Text": "Apply a global timing offset to all of your gameplay inputs. Higher values mean your inputs are treated as if they occurred earlier.\n\n<b><color=\"red\">Leave this at 0 unless you're sure you know what you're doing!</color></b> If you want to account for inherent latency in your audio/video setup, use the Calibration interface under <b>Settings</b>. If you want to account for the inherent latency of a specific device, do so up above under <b>Controllers</b> or <b>Microphones</b>."
-		  },
-		  "ConfigureFourLaneDrumsHighway": {
-			  "Title": "4-Lane Drums Highway Configuration",
-			  "Text": "Configure how the note highway is arranged when you play 4-Lane Drums (not Pro Drums). You can rearrange the order of the highway lanes and enable dedicated kick lanes."
-		  },
-		  "ConfigureProDrumsHighway": {
-			  "Title": "Pro Drums Highway Configuration",
-			  "Text": "Configure how the note highway is arranged when you play Pro Drums. You can rearrange the order of the highway lanes, split tom and cymbal lanes, and enable dedicated kick lanes."
-		  },
-		  "ConfigureFiveLaneDrumsHighway": {
-			  "Title": "5-Lane Drums Highway Configuration",
-			  "Text": "Configure how the note highway is arranged when you play 5-Lane Drums. You can rearrange the order of the highway lanes and enable dedicated kick lanes."
-		  },
-		  "DedicatedOpenNoteLane": {
-			  "Title": "Dedicated Open Note Lane",
-			  "Text": "Configure whether the note highway has a dedicated lane for open notes or if open notes appear as full-width bar gems."
-		  },
-		  "RangeDisable": {
-			  "Title": "Range Shift Markers",
-			  "Text": "Some Easy and Medium 5-Fret Guitar charts include visual annotations that tell you when to move your hand to a new position. Use this setting to disable those visuals.\n\nNote that this setting does not change the content of the chart; to disable the position shifts themselves, select the <b>No Range Shifts</b> gameplay modifier when starting a song."
-		  },
-		  "BindingSetFilter": {
-			  "Title": "Binding Sets Filter",
-			  "Text": "Pick a type of controller for which to show binding sets. Most controller types are associated with a specific input mode (for example, 5-fret guitar controllers are for 5-Fret Guitar mode) but generic controller types like gamepads and MIDI devices can be used for various modes."
-		  },
-		  "AddOtherBindingSet": {
-			  "Title": "Add Other Binding Set",
-			  "Text": "Create a binding set for use with this controller type in a mode that isn't already listed here. <b><color=\"yellow\">Only use this if you know what you're doing!</color></b> This controller type wasn't designed for other modes."
-		  },
-		  "DuplicateBindingSet": {
-			  "Title": "Duplicate Binding Set",
-			  "Text": "Create a copy of this binding set."
-		  },
-		  "DeleteBindingSet": {
-			  "Title": "Delete Binding Set",
-			  "Text": "Permanently delete this binding set. <b><color=\"red\">If anyone is using this binding set, they'll revert to the default bindings!</color></b>"
-		  }
-        }
-      },
         "ScoreScreen" : {
             "BandScoreNotSaved" : "Score not saved",
             "InconsistentReplay": "Inconsistent Replay",

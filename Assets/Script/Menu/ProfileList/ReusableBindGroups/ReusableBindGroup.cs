@@ -17,7 +17,7 @@ namespace YARG.Menu.ProfileList
         [SerializeField]
         protected TSingleView _viewPrefab;
 
-        protected TBinding _binding;
+        public TBinding Binding { get; protected set; }
 
         protected List<ControlItemInfo> _controls;
 
@@ -28,7 +28,7 @@ namespace YARG.Menu.ProfileList
             List<ControlItemInfo> controls
         )
         {
-            _binding = binding;
+            Binding = binding;
             _controls = controls;
 
             _header.Init(centerPane, bindingSet, binding);
@@ -40,9 +40,9 @@ namespace YARG.Menu.ProfileList
         {
             _header.ClearBindings();
 
-            foreach (var control in _binding.Bindings)
+            foreach (var control in Binding.Bindings)
             {
-                _header.AddBinding<TSingleView, TBinding, TSingle, TSingleState>(_viewPrefab, _binding, control, _controls);
+                _header.AddBinding<TSingleView, TBinding, TSingle, TSingleState>(_viewPrefab, Binding, control, _controls);
             }
 
             _header.RebuildBindingsLayout();

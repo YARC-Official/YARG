@@ -7,6 +7,11 @@ using YARG.Localization;
 
 namespace YARG.Menu.Tooltips
 {
+    // If your tooltip doesn't need any parameterization ({0}, {1}, etc.), then add this as a component directly
+    // and just populate the localizationKey field.
+    //
+    // If you do need parameterization, make a subclass with SerializeFields for all the necessary information to
+    // derive the parameters and override GetParameters() to return them.
     public class TooltipTrigger : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
     {
         private const string LOCALIZATION_PATH = "Menu.ProfileList.Tooltip";
