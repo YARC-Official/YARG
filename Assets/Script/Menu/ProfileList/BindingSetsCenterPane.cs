@@ -1,7 +1,11 @@
-﻿using TMPro;
+﻿using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
+using UnityEngine.InputSystem;
+using YARG.Core.Logging;
 using YARG.Helpers;
 using YARG.Helpers.Extensions;
+using YARG.Input;
 using YARG.Input.Bindings;
 using YARG.Menu.ProfileInfo;
 
@@ -26,8 +30,17 @@ namespace YARG.Menu.ProfileList
         [SerializeField]
         private IntegerBindGroup _integerGroupPrefab;
 
+        [Space]
+        [SerializeField]
+        private TMP_Dropdown _dummyControllerDropdown;
+
         private ReusableBindingSet _bindingSet;
-        private BindingSetView _bindingSetView;
+
+        [Space]
+        [SerializeField]
+        private Transform _settingsPanel;
+        private InputDevice _dummyController = null;
+        private List<InputDevice> _availableDummyControllers = new();
 
         public void HideContents()
         {
@@ -37,22 +50,44 @@ namespace YARG.Menu.ProfileList
         public void ShowContents()
         {
             _contents.SetActive(true);
+            RefreshDummyControllers();
         }
 
         public void OnEnable()
         {
             ClearBindingSet();
+            InputManager.DeviceAdded += OnControllerAdded;
+            InputManager.DeviceRemoved += OnControllerRemoved;
+        }
+
+        public void OnDisable()
+        {
+            InputManager.DeviceAdded -= OnControllerAdded;
+            InputManager.DeviceRemoved -= OnControllerRemoved;
+        }
+
+        private void OnControllerAdded(InputDevice controller)
+        {
+            RefreshDummyControllers();
+        }
+
+        private void OnControllerRemoved(InputDevice controller)
+        {
+            if (controller == _dummyController)
+            {
+                _dummyController = null;
+            }
+            RefreshDummyControllers();
         }
 
         public void ClearBindingSet()
         {
-            SelectBindingSet(null, null);
+            SelectBindingSet(null);
         }
 
-        public void SelectBindingSet(ReusableBindingSet? bindingSet, BindingSetView bindingSetView)
+        public void SelectBindingSet(ReusableBindingSet? bindingSet)
         {
             _bindingSet = bindingSet;
-            _bindingSetView = bindingSetView;
 
             if (_bindingSet is null)
             {
@@ -65,9 +100,25 @@ namespace YARG.Menu.ProfileList
             RefreshFromBindingSet(_bindingSet);
         }
 
+        public void SetDummyController()
+        {
+            _dummyController = _availableDummyControllers[_dummyControllerDropdown.value];
+        }
+
+        private void DestroyBindsList()
+        {
+            foreach (Transform t in _bindsList)
+            {
+                if (t != _settingsPanel)
+                {
+                    Destroy(t.gameObject);
+                }
+            }
+        }
+
         private void RefreshFromBindingSet(ReusableBindingSet bindingSet)
         {
-            _bindsList.DestroyChildren();
+            DestroyBindsList();
 
             var template = ReusableBindingSetTemplates.GetTemplate(bindingSet.Mode);
             var controls = LayoutHelper.GetAllControlsForControllerFamily(_profilesMenu.CurrentBindingSetFilter);
@@ -88,6 +139,38 @@ namespace YARG.Menu.ProfileList
             }
 
             _name.text = bindingSet.Name;
+        }
+
+        public void RefreshDummyControllers()
+        {
+            _dummyControllerDropdown.options.Clear();
+            _dummyControllerDropdown.options.Add(new("<i>None</i>"));
+
+            _availableDummyControllers.Clear();
+            _availableDummyControllers.Add(null);
+
+            var family = _profilesMenu.CurrentBindingSetFilter;
+
+            foreach (var controller in InputSystem.devices)
+            {
+                if (family == LayoutHelper.LayoutStringToControllerFamily(controller.layout))
+                {
+                    _availableDummyControllers.Add(controller);
+                    _dummyControllerDropdown.options.Add(new(controller.displayName));
+                }
+            }
+
+            var currentIdx = _availableDummyControllers.IndexOf(_dummyController);
+
+            if (currentIdx is -1)
+            {
+                _dummyController = null;
+                _dummyControllerDropdown.value = 0;
+            }
+            else
+            {
+                _dummyController = _availableDummyControllers[currentIdx];
+            }
         }
     }
 }

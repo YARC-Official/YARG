@@ -49,16 +49,17 @@ namespace YARG.Helpers
         {
             switch (layout)
             {
-                case LayoutStrings.FIVE_FRET_GUITAR:    return ControllerFamily.FiveFretGuitar;
-                case LayoutStrings.SIX_FRET_GUITAR:     return ControllerFamily.SixFretGuitar;
-                case LayoutStrings.FOUR_LANE_DRUMKIT:   return ControllerFamily.FourLaneDrumkit;
-                case LayoutStrings.FIVE_LANE_DRUMKIT:   return ControllerFamily.FiveLaneDrumkit;
-                case LayoutStrings.PRO_KEYBOARD:        return ControllerFamily.ProKeyboard;
-                case LayoutStrings.PRO_GUITAR:          return ControllerFamily.ProGuitar;
-                case LayoutStrings.KEYBOARD:            return ControllerFamily.ComputerKeyboard;
-                case LayoutStrings.MOUSE:               return ControllerFamily.Mouse;
-                case LayoutStrings.GAMEPAD:             return ControllerFamily.Gamepad;
-                case LayoutStrings.INPUT_DEVICE:        return ControllerFamily.Generic;
+                case LayoutStrings.FIVE_FRET_GUITAR:        return ControllerFamily.FiveFretGuitar;
+                case LayoutStrings.SIX_FRET_GUITAR:         return ControllerFamily.SixFretGuitar;
+                case LayoutStrings.FOUR_LANE_DRUMKIT:       return ControllerFamily.FourLaneDrumkit;
+                case LayoutStrings.FIVE_LANE_DRUMKIT:       return ControllerFamily.FiveLaneDrumkit;
+                case LayoutStrings.PRO_KEYBOARD:            return ControllerFamily.ProKeyboard;
+                case LayoutStrings.PRO_GUITAR:              return ControllerFamily.ProGuitar;
+                case LayoutStrings.KEYBOARD:                return ControllerFamily.ComputerKeyboard;
+                case LayoutStrings.MOUSE:                   return ControllerFamily.Mouse;
+                case LayoutStrings.GAMEPAD:                 return ControllerFamily.Gamepad;
+                case LayoutStrings.MIDI_DEVICE:             return ControllerFamily.MidiDevice;
+                case LayoutStrings.INPUT_DEVICE or null:    return ControllerFamily.Generic;
             }
 
             return LayoutStringToControllerFamily(InputSystem.GetNameOfBaseLayout(layout));

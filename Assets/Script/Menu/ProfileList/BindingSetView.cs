@@ -50,7 +50,7 @@ namespace YARG.Menu.ProfileList
 
             if (selected)
             {
-                _centerPane.SelectBindingSet(_bindingSet, this);
+                _centerPane.SelectBindingSet(_bindingSet);
             }
         }
 

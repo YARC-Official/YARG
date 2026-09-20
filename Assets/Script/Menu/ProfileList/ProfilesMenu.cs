@@ -467,6 +467,7 @@ namespace YARG.Menu.ProfileList
             CurrentBindingSetFilter = family;
             _controls = LayoutHelper.GetAllControlsForControllerFamily(family);
             RefreshBindingSetList();
+            _bindingSetsCenterPane.RefreshDummyControllers();
             _bindingSetsCenterPane.HideContents();
         }
     }
