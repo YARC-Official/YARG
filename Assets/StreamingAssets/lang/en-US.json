@@ -727,6 +727,10 @@
 			  "DummyController": {
 				  "Title": "Dummy Controller",
 				  "Text": "Select from all currently-attached {0}. You can use the selected controller to record binding controls and to test your binding parameters against live input data."
+			  },
+			  "ShowLeftyFlipNames": {
+				  "Title": "Show Lefty Flip Names",
+				  "Text": "Display action names as they relate to lefty-flipped gameplay."
 			  }
 			}
 		  },
