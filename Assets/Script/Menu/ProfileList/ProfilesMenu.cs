@@ -104,6 +104,7 @@ namespace YARG.Menu.ProfileList
         {
             PlayerContainer.EnsureValidInstruments();
             PlayerContainer.SaveProfiles();
+            BindingsContainer.SaveBindings();
 
             // Update player icons if a profile has changed its GameMode.
             // Persistent singletons may already be destroyed when Unity exits play mode.

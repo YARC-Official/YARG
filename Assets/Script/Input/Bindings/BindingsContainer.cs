@@ -21,7 +21,7 @@ namespace YARG.Input.Bindings
         private static string BindingsPath => Path.Combine(PlayerContainer.ProfilesDirectory, "bindings.json");
         private static string BindingsBackupPath => Path.Combine(PlayerContainer.ProfilesDirectory, "bindings.json.bak");
 
-        private static readonly Dictionary<Guid, PlayerDeviceInfo> _profileBindings = new(); // GUID is YargProfile GUID
+        private static readonly Dictionary<Guid, PlayerDeviceInfo> _profileDeviceInfo = new(); // GUID is YargProfile GUID
 
         private static readonly Dictionary<Guid, ReusableBindingSet> _allBindingCollectionsByGuid = new(); // GUID is ReusableButtonBinding GUID
 
@@ -133,11 +133,11 @@ namespace YARG.Input.Bindings
 
         public static PlayerDeviceInfo GetBindingsForProfile(YargProfile profile)
         {
-            if (!_profileBindings.TryGetValue(profile.Id, out var bindings))
+            if (!_profileDeviceInfo.TryGetValue(profile.Id, out var bindings))
             {
                 // Nothing to deserialize; constructor will apply defaults
                 bindings = new(profile);
-                _profileBindings.Add(profile.Id, bindings);
+                _profileDeviceInfo.Add(profile.Id, bindings);
             }
 
             return bindings;
@@ -192,7 +192,7 @@ namespace YARG.Input.Bindings
         {
             bool usedBackup = false;
 
-            _profileBindings.Clear();
+            _profileDeviceInfo.Clear();
 
             string bindingsPath = BindingsPath;
             if (!File.Exists(bindingsPath))
@@ -266,7 +266,7 @@ namespace YARG.Input.Bindings
                     continue;
 
                 var deserialized = PlayerDeviceInfo.Deserialize(profile, serialized);
-                _profileBindings.Add(id, deserialized);
+                _profileDeviceInfo.Add(id, deserialized);
             }
 
             // If we used the backup save the backup data to the main path, otherwise save main to backup
@@ -285,17 +285,22 @@ namespace YARG.Input.Bindings
             path ??= BindingsPath;
 
             var serialized = new SerializedBindings();
-            foreach (var (id, binds) in _profileBindings)
+            foreach (var (profileId, deviceInfo) in _profileDeviceInfo)
             {
-                var profile = PlayerContainer.GetProfileById(id);
-                if (profile is null || profile.IsBot) // Don't save bindings for bots
+                var profile = PlayerContainer.GetProfileById(profileId);
+                if (profile is null || profile.IsBot) // Don't save device info for bots
                     continue;
 
-                serialized.Profiles[id] = binds.Serialize();
+                serialized.Profiles[profileId] = deviceInfo.Serialize();
+            }
+
+            foreach (var bindingSet in _allBindingCollectionsByGuid.Values)
+            {
+                serialized.ReusableBindingSets[bindingSet.Guid] = bindingSet.Serialize();
             }
 
             BindingSerialization.SerializeBindings(serialized, path);
-            return _profileBindings.Count;
+            return _profileDeviceInfo.Count;
         }
 
         public static void AddBindingSet(ReusableBindingSet newSet)
