@@ -55,7 +55,6 @@ namespace YARG.Menu.ProfileList
 
         public void OnEnable()
         {
-            ClearBindingSet();
             InputManager.DeviceAdded += OnControllerAdded;
             InputManager.DeviceRemoved += OnControllerRemoved;
         }
@@ -102,7 +101,15 @@ namespace YARG.Menu.ProfileList
 
         public void SetDummyController()
         {
-            _dummyController = _availableDummyControllers[_dummyControllerDropdown.value];
+            var idx = _dummyControllerDropdown.value;
+
+            if (idx < 0 || idx >= _availableDummyControllers.Count)
+            {
+                _dummyController = null;
+                return;
+            }
+
+            _dummyController = _availableDummyControllers[idx];
         }
 
         private void DestroyBindsList()
@@ -165,12 +172,12 @@ namespace YARG.Menu.ProfileList
             if (currentIdx is -1)
             {
                 _dummyController = null;
-                _dummyControllerDropdown.value = 0;
+                currentIdx = 0;
             }
-            else
-            {
-                _dummyController = _availableDummyControllers[currentIdx];
-            }
+
+
+            _dummyControllerDropdown.SetValueWithoutNotify(currentIdx);
+            _dummyControllerDropdown.RefreshShownValue();
         }
     }
 }

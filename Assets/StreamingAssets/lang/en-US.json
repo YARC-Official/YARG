@@ -726,7 +726,7 @@
 			  },
 			  "DummyController": {
 				  "Title": "Dummy Controller",
-				  "Text": "Select from all currently-attached {0}. You can use the selected controller to record binding controls and to test your binding parameters against live input data."
+				  "Text": "Select from all currently-attached {0}. You can use the selected controller to record binding controls and to test your binding parameters against live input data. If this controller has menu bindings, they will be disabled until you leave this menu or unassign it from the dummy controller dropdown."
 			  },
 			  "ShowLeftyFlipNames": {
 				  "Title": "Show Lefty Flip Names",
