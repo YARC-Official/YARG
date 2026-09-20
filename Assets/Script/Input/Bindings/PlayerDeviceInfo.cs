@@ -402,6 +402,9 @@ namespace YARG.Input
             {
                 _selectedGameplayBindings[controller] = bindingSet;
             }
+
+
+            _preferredBindsByContext[(Profile.GameMode, LayoutHelper.LayoutStringToControllerFamily(controller.layout))] = bindingSet;
         }
 
         public ReusableBindingSet GetSelectedGameplayBindingsForController(InputDevice controller)
