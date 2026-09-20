@@ -68,7 +68,7 @@ namespace YARG.Menu.ProfileList
                 _gameplayBindingSetDropdown.options.Add(new(bindingSet.Name));
             }
 
-            _gameplayBindingSetDropdown.value = _gameplayBindingSetsByIndex.IndexOf(player.DeviceInfo.GetActiveGameplayBindingsForController(_controller));
+            _gameplayBindingSetDropdown.value = _gameplayBindingSetsByIndex.IndexOf(player.DeviceInfo.GetSelectedGameplayBindingsForController(_controller));
 
             _menuBindingSetsByIndex.Clear();
             _menuBindingSetsByIndex.Add(null); // Always start with the None option
@@ -91,7 +91,7 @@ namespace YARG.Menu.ProfileList
         public void ChangeGameplayBindingSet()
         {
             var player = PlayerContainer.GetPlayerFromProfile(_profile);
-            player.DeviceInfo.SetActiveGameplayBindingsForController(_controller, _gameplayBindingSetsByIndex[_gameplayBindingSetDropdown.value]);
+            player.DeviceInfo.SelectGameplayBindingsForController(_controller, _gameplayBindingSetsByIndex[_gameplayBindingSetDropdown.value]);
         }
 
         public void ChangeMenuBindingSet()
