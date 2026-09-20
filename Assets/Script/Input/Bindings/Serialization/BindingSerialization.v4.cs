@@ -44,7 +44,7 @@ namespace YARG.Input.Serialization
 
             foreach (var (guid, bind) in BindingCollections)
             {
-                deserialized.ReusableBindingSets[guid] = bind.Deserialize();
+                deserialized.ReusableBindingSets[guid] = bind.Deserialize(guid);
             }
 
             foreach (var (guid, profile) in Profiles)
@@ -158,6 +158,7 @@ namespace YARG.Input.Serialization
             {
                 Name = serialized.Name;
                 GameMode = serialized.GameMode;
+                BaseLayout = serialized.BaseLayout;
 
                 foreach (var (id, serializedBindings) in serialized.Bindings)
                 {
@@ -165,10 +166,11 @@ namespace YARG.Input.Serialization
                 }
             }
 
-            public SerializedReusableBindingSet Deserialize()
+            public SerializedReusableBindingSet Deserialize(Guid guid)
             {
                 var converted = new SerializedReusableBindingSet(Name, BaseLayout) {
-                    GameMode = GameMode
+                    GameMode = GameMode,
+                    Guid = guid
                 };
 
                 foreach (var (id, serializedBinds) in Bindings)
@@ -224,24 +226,24 @@ namespace YARG.Input.Serialization
 
         public class SerializedInputControlV4
         {
-            public string ControlPath;
+            public string ControlName;
             public Dictionary<string, string> Parameters = new();
 
             [JsonConstructor]
             public SerializedInputControlV4()
             {
-                ControlPath = string.Empty;
+                ControlName = string.Empty;
             }
 
             public SerializedInputControlV4(SerializedSingleBinding serialized)
             {
-                ControlPath = serialized.ControlPath;
+                ControlName = serialized.ControlName;
                 Parameters = serialized.Parameters;
             }
 
             public SerializedSingleBinding? Deserialize()
             {
-                return new(ControlPath)
+                return new(ControlName)
                 {
                     Parameters = Parameters,
                 };

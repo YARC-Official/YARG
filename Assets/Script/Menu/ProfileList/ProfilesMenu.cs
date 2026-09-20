@@ -104,6 +104,7 @@ namespace YARG.Menu.ProfileList
         {
             PlayerContainer.EnsureValidInstruments();
             PlayerContainer.SaveProfiles();
+            BindingsContainer.SaveBindings();
 
             // Update player icons if a profile has changed its GameMode.
             // Persistent singletons may already be destroyed when Unity exits play mode.
@@ -227,7 +228,6 @@ namespace YARG.Menu.ProfileList
 
             AddBindingSetListHeader(mode, typical);
 
-            // Spawn in a profile view for each player
             foreach (var bindingSet in bindingSets)
             {
                 var go = Instantiate(_bindingSetViewPrefab, _leftPaneList);

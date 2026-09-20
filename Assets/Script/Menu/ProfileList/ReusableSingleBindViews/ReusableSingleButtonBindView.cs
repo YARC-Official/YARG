@@ -82,7 +82,7 @@ namespace YARG.Menu.ProfileList
 
         // Unsure if this is too hacky/hardcoded
         // Also should really be localized
-        private string DisambiguateDisplayName(ControlItemInfo item)
+        protected override string DisambiguateDisplayName(ControlItemInfo item)
         {
             switch (item.ParentLayout)
             {

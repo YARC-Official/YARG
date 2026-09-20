@@ -31,7 +31,9 @@ namespace YARG.Menu.ProfileList
 
             PopulateControlDropdown();
 
-            var selectedIndex = _dropdownControls.FindIndex(i => string.Equals(i.ControlPath, singleBinding.ControlPath, StringComparison.OrdinalIgnoreCase));
+            var selectedIndex = _dropdownControls.FindIndex(i =>
+                string.Equals(i.ControlPath, singleBinding.ControlPath, StringComparison.OrdinalIgnoreCase)
+            );
 
             _controlDropdown.value = selectedIndex >= 0 ? selectedIndex + 1 : 0; // Account for the None option
         }
@@ -46,6 +48,18 @@ namespace YARG.Menu.ProfileList
             _controlDropdown.options.Clear();
             _dropdownControls.Clear();
             _controlDropdown.options.Add(new("<i>None</i>"));
+        }
+
+        public void OnControlDropdownChange()
+        {
+            // The -1 corrects for the presence of the None option
+            // TODO-FRICK: That's a kludge lol
+            SingleBinding.ControlPath = _dropdownControls[_controlDropdown.value - 1].ControlPath;
+        }
+
+        protected virtual string DisambiguateDisplayName(ControlItemInfo item)
+        {
+            return item.DisplayName;
         }
     }
 }

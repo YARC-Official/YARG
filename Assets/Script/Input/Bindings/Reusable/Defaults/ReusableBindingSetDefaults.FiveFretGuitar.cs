@@ -55,14 +55,14 @@ namespace YARG.Input.Bindings
                 ControlStrings.GUITAR_STRUM_DOWN,
                 new ReusableButtonBinding(
                     ReusableBindingSetTemplates.FIVE_FRET_GUITAR[ControlStrings.GUITAR_STRUM_DOWN],
-                    new ReusableSingleButtonBindingConfig(ControllerFamily.FiveFretGuitar, ControlStrings.DPAD_DOWN)
+                    new ReusableSingleButtonBindingConfig(ControllerFamily.FiveFretGuitar, nameof(FiveFretGuitar.strumDown))
                 )
             },
             {
                 ControlStrings.GUITAR_STRUM_UP,
                 new ReusableButtonBinding(
                     ReusableBindingSetTemplates.FIVE_FRET_GUITAR[ControlStrings.GUITAR_STRUM_UP],
-                    new ReusableSingleButtonBindingConfig(ControllerFamily.FiveFretGuitar, ControlStrings.DPAD_UP)
+                    new ReusableSingleButtonBindingConfig(ControllerFamily.FiveFretGuitar, nameof(FiveFretGuitar.strumUp))
                 )
             },
 

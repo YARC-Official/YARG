@@ -41,8 +41,9 @@ namespace YARG.Input
 
         private readonly List<SerializedInputDevice> _unresolvedControllers = new();
         private readonly List<InputDevice> _controllers = new();
-        private readonly Dictionary<InputDevice, RuntimeBindingSet> _activeGameplayBindings = new();
-        private readonly Dictionary<InputDevice, RuntimeBindingSet> _activeMenuBindings = new();
+        private readonly Dictionary<InputDevice, ReusableBindingSet> _selectedGameplayBindings = new();
+        private readonly Dictionary<InputDevice, RuntimeBindingSet> _activeGameplayRuntimeBindings = new();
+        private readonly Dictionary<InputDevice, RuntimeBindingSet> _activeMenuRuntimeBindings = new();
         private readonly Dictionary<(GameMode mode, ControllerFamily controllerFamily), ReusableBindingSet> _preferredBindsByContext = new();
         public readonly Dictionary<ControllerFamily, ReusableBindingSet> PreferredMenuBindingsByBaseLayout = new();
 
@@ -55,12 +56,12 @@ namespace YARG.Input
         public event Action<InputDevice> ControllerAdded;
         public event Action<InputDevice> ControllerRemoved;
 
-        /* TODO-FRICK: 
+        /* TODO-FRICK:
          * Because we no longer edit runtime bindings directly, I don't think we need this to work like this.
          * There will probably still be public event Action BindingsChanged, but I think it'll just reload from
          * a now-updated ReusableBindingSet all over again. Or maybe that's inefficient and we do something smarter,
          * but in any case I think this particular code is on its way out. Preserving for now
-         * 
+         *
         public event Action BindingsChanged
         {
             add
@@ -89,19 +90,19 @@ namespace YARG.Input
             }
         }*/
 
-        
+
         public event GameInputProcessed MenuInputProcessed
         {
             add
             {
-                foreach (var menuBinds in _activeMenuBindings.Values)
+                foreach (var menuBinds in _activeMenuRuntimeBindings.Values)
                 {
                     menuBinds.InputProcessed += value;
                 }
-            }    
+            }
             remove
             {
-                foreach (var menuBinds in _activeMenuBindings.Values)
+                foreach (var menuBinds in _activeMenuRuntimeBindings.Values)
                 {
                     menuBinds.InputProcessed -= value;
                 }
@@ -306,12 +307,12 @@ namespace YARG.Input
         {
             _inputsEnabled = true;
 
-            foreach (var bindings in _activeGameplayBindings.Values)
+            foreach (var bindings in _activeGameplayRuntimeBindings.Values)
             {
                 bindings.EnableInputs();
             }
 
-            foreach (var bindings in _activeMenuBindings.Values)
+            foreach (var bindings in _activeMenuRuntimeBindings.Values)
             {
                 bindings.EnableInputs();
             }
@@ -321,12 +322,12 @@ namespace YARG.Input
         {
             _inputsEnabled = false;
 
-            foreach (var bindings in _activeGameplayBindings.Values)
+            foreach (var bindings in _activeGameplayRuntimeBindings.Values)
             {
                 bindings.DisableInputs();
             }
 
-            foreach (var bindings in _activeMenuBindings.Values)
+            foreach (var bindings in _activeMenuRuntimeBindings.Values)
             {
                 bindings.DisableInputs();
             }
@@ -366,6 +367,8 @@ namespace YARG.Input
             if (!_controllers.Remove(controller))
                 return false;
 
+            _selectedGameplayBindings.Remove(controller);
+
             NotifyControllerRemoved(controller);
             return true;
         }
@@ -387,6 +390,79 @@ namespace YARG.Input
             }
 
             return interfaces;
+        }
+
+        public void SelectGameplayBindingsForController(InputDevice controller, ReusableBindingSet bindingSet)
+        {
+            if (bindingSet is null)
+            {
+                _selectedGameplayBindings.Remove(controller);
+            }
+            else
+            {
+                _selectedGameplayBindings[controller] = bindingSet;
+            }
+
+
+            _preferredBindsByContext[(Profile.GameMode, LayoutHelper.LayoutStringToControllerFamily(controller.layout))] = bindingSet;
+        }
+
+        public ReusableBindingSet GetSelectedGameplayBindingsForController(InputDevice controller)
+        {
+            return _selectedGameplayBindings.GetValueOrDefault(controller, null);
+        }
+
+        public void SetActiveMenuBindingsForController(InputDevice controller, ReusableBindingSet bindingSet)
+        {
+            if (_activeMenuRuntimeBindings.Remove(controller, out var oldRuntimeBindings))
+            {
+                oldRuntimeBindings.Dispose();
+            }
+
+            if (bindingSet is not null)
+            {
+                var newRuntimeBindings = bindingSet.GetRuntimeBindings(Profile, controller);
+                _activeMenuRuntimeBindings[controller] = newRuntimeBindings;
+
+                if (_inputsEnabled)
+                {
+                    newRuntimeBindings.EnableInputs();
+                }
+            }
+        }
+
+        public ReusableBindingSet GetActiveMenuBindingsForController(InputDevice controller)
+        {
+            return _activeMenuRuntimeBindings.GetValueOrDefault(controller, null)?.Source;
+        }
+
+        public void ActivateGameplayBindings()
+        {
+            foreach (var existingRuntimeBindings in _activeGameplayRuntimeBindings.Values)
+            {
+                _gameplayInputAggregator.Remove(existingRuntimeBindings);
+                existingRuntimeBindings.Dispose();
+            }
+
+            _activeGameplayRuntimeBindings.Clear();
+
+            foreach (var controller in _controllers)
+            {
+                if (!_selectedGameplayBindings.TryGetValue(controller, out var bindingSet))
+                {
+                    continue;
+                }
+
+                var runtimeBindings = bindingSet.GetRuntimeBindings(Profile, controller);
+
+                _activeGameplayRuntimeBindings[controller] = runtimeBindings;
+                _gameplayInputAggregator.Add(runtimeBindings);
+
+                if (_inputsEnabled)
+                {
+                    runtimeBindings.EnableInputs();
+                }
+            }
         }
 
         private int FindSerializedIndex(InputDevice controller)
@@ -495,50 +571,46 @@ namespace YARG.Input
 
         public void RefreshGameMode()
         {
-            foreach (var bindings in _activeGameplayBindings.Values)
-            {
-                _gameplayInputAggregator.Remove(bindings);
-                bindings.Dispose();
-            }
-            _activeGameplayBindings.Clear();
-
             foreach (var controller in _controllers)
             {
-                var newGameplayBindings = GetCollectionForController(controller, menu: false);
-                _activeGameplayBindings[controller] = newGameplayBindings;
-                _gameplayInputAggregator.Add(newGameplayBindings);
-                newGameplayBindings.EnableInputs();
+                var newGameplayBindings = GetBindingSetForController(controller, menu: false);
+
+                if (newGameplayBindings is null)
+                {
+                    _selectedGameplayBindings.Remove(controller);
+                }
+                else
+                {
+                    _selectedGameplayBindings[controller] = newGameplayBindings;
+                }
             }
         }
 
         private void NotifyControllerAdded(InputDevice controller)
         {
-            var newGameplayBindings = GetCollectionForController(controller, menu: false);
-            var newMenuBindings = GetCollectionForController(controller, menu: true);
-
-            _activeGameplayBindings[controller] = newGameplayBindings;
-            _activeMenuBindings[controller] = newMenuBindings;
-
-            _gameplayInputAggregator.Add(newGameplayBindings);
-
-            if (_inputsEnabled)
+            if (!_selectedGameplayBindings.ContainsKey(controller))
             {
-                newGameplayBindings.EnableInputs();
-                newMenuBindings.EnableInputs();
+                var selectedGameplayBindings = GetBindingSetForController(controller, menu: false);
+                if (selectedGameplayBindings is not null)
+                {
+                    _selectedGameplayBindings[controller] = selectedGameplayBindings;
+                }
             }
+
+            SetActiveMenuBindingsForController(controller, GetBindingSetForController(controller, menu: true));
 
             ControllerAdded?.Invoke(controller);
         }
-        
+
         private void NotifyControllerRemoved(InputDevice controller)
         {
-            if (_activeGameplayBindings.Remove(controller, out var gameplayBindings))
+            if (_activeGameplayRuntimeBindings.Remove(controller, out var gameplayBindings))
             {
                 _gameplayInputAggregator.Remove(gameplayBindings);
                 gameplayBindings.Dispose();
             }
 
-            if (_activeMenuBindings.Remove(controller, out var menuBindings))
+            if (_activeMenuRuntimeBindings.Remove(controller, out var menuBindings))
             {
                 menuBindings.Dispose();
             }
@@ -546,9 +618,23 @@ namespace YARG.Input
             ControllerRemoved?.Invoke(controller);
         }
 
-        private RuntimeBindingSet GetCollectionForController(InputDevice controller, bool menu)
+        private RuntimeBindingSet GetRuntimeBindingsForController(
+            InputDevice controller,
+            bool menu)
         {
-            RuntimeBindingSet runtimeBindings;
+            var bindingSet = GetBindingSetForController(controller, menu);
+
+            if (bindingSet is not null)
+            {
+                return bindingSet.GetRuntimeBindings(Profile, controller);
+            }
+
+            var mode = menu ? GameMode.Menu : Profile.GameMode;
+            return new RuntimeBindingSet(controller, mode);
+        }
+
+        private ReusableBindingSet GetBindingSetForController(InputDevice controller, bool menu)
+        {
             var family = LayoutHelper.InputDeviceToControllerFamily(controller);
             var mode = menu ? GameMode.Menu : Profile.GameMode;
 
@@ -557,35 +643,28 @@ namespace YARG.Input
 
             if (_preferredBindsByContext.TryGetValue((mode, family), out var preferredBindingSet))
             {
-                runtimeBindings = preferredBindingSet.GetRuntimeBindings(Profile, controller);
+                return preferredBindingSet;
             }
-            else
+
+            var defaults = BindingsContainer.GetBindingSetsForControllerInMode(family, mode);
+            if (defaults.Count > 0)
             {
-                var defaults = BindingsContainer.GetBindingSetsForControllerInMode(family, mode);
-                if (defaults.Count > 0)
-                {
-                    runtimeBindings = defaults.First().GetRuntimeBindings(Profile, controller);
+                return defaults.First();
 
-                    // TODO-FRICK: Also look for better-match defaults beyond the first, like giving a Riffmaster the "Default Riffmaster
-                    // Gameplay" set instead of "Default 5F Guitar Gameplay"
-                }
-                else
-                {
-                    runtimeBindings = new(controller, mode);
-                }
+                // TODO-FRICK: Also look for better-match defaults beyond the first, like giving a Riffmaster the "Default Riffmaster
+                // Gameplay" set instead of "Default 5F Guitar Gameplay"
             }
-
-            return runtimeBindings;
+            return null;
         }
-        
+
         public void UpdateBindingsForFrame(double updateTime)
         {
-            foreach (var bindings in _activeGameplayBindings.Values)
+            foreach (var bindings in _activeGameplayRuntimeBindings.Values)
             {
                 bindings.UpdateBindingsForFrame(updateTime);
             }
 
-            foreach (var bindings in _activeMenuBindings.Values)
+            foreach (var bindings in _activeMenuRuntimeBindings.Values)
             {
                 bindings.UpdateBindingsForFrame(updateTime);
             }
@@ -638,10 +717,18 @@ namespace YARG.Input
             ControllerAdded = null;
             ControllerRemoved = null;
 
-            foreach (var controller in InputSystem.devices)
+            foreach (var runtimeGameplayBindings in _activeGameplayRuntimeBindings.Values)
             {
-                OnControllerRemoved(controller);
+                _gameplayInputAggregator.Remove(runtimeGameplayBindings);
+                runtimeGameplayBindings.Dispose();
             }
+            _activeGameplayRuntimeBindings.Clear();
+
+            foreach (var runtimeMenuBindings in _activeMenuRuntimeBindings.Values)
+            {
+                runtimeMenuBindings.Dispose();
+            }
+            _activeMenuRuntimeBindings.Clear();
 
             ReleaseMicrophones();
         }
