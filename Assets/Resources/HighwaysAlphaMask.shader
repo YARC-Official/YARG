@@ -48,7 +48,7 @@ Shader "HighwaysAlphaMask"
                 // for the fade to stay the same
                 // ie the `dist` below relies on highways placed
                 // at z = -2 and aligned with Z axis
-                float dist = IN.positionWS.z - 2;
+                float dist = IN.positionWS.z;
                 float alpha = 0.0;
 
                 if (dist < fadeStartPos)
