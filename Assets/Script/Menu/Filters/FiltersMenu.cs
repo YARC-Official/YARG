@@ -81,15 +81,30 @@ namespace YARG.Menu.Filters
             public readonly string ProfileName;
             public readonly Instrument Instrument;
             public readonly GameMode? GameMode;
+            public readonly bool IsNoProfile;
 
             public IntensityFilterContext(Guid profileId, string profileName, Instrument instrument,
-                GameMode? gameMode = null)
+                GameMode? gameMode = null, bool isNoProfile = false)
             {
                 ProfileId = profileId;
                 ProfileName = profileName;
                 Instrument = instrument;
                 GameMode = gameMode;
+                IsNoProfile = isNoProfile;
             }
+        }
+
+        private static Guid GetNoProfileIntensityContextId(Instrument instrument)
+        {
+            // Keep these IDs stable so each instrument's filter state survives menu rebuilds.
+            var bytes = new byte[]
+            {
+                0x59, 0x41, 0x52, 0x47, 0x49, 0x4E, 0x54, 0x45,
+                0x4E, 0x53, 0x49, 0x54, 0x59, 0x00, 0x00, 0x00
+            };
+            var instrumentBytes = BitConverter.GetBytes((int) instrument);
+            Array.Copy(instrumentBytes, 0, bytes, 12, instrumentBytes.Length);
+            return new Guid(bytes);
         }
         [SerializeField]
         private ScrollRect _leftScrollRect;
@@ -380,12 +395,16 @@ namespace YARG.Menu.Filters
             AddGroup(container, navGroup, new FilterKey(FilterGroup.Charter), Localize.Key("Menu.Filters.Charters"))?.AssignIndex(rowIndex++);
 
             var intensityContexts = GetIntensityFilterContexts();
-            bool showIntensityContext = intensityContexts.Count > 1;
+            bool showIntensityContext = intensityContexts.Count > 1 ||
+                SettingsManager.Settings.ShowAllIntensityFilters.Value;
             foreach (var context in intensityContexts)
             {
                 var label = BuildIntensityGroupLabel(context, showIntensityContext);
-                AddGroup(container, navGroup, new FilterKey(FilterGroup.Intensity, context.ProfileId), label)
-                    ?.AssignIndex(rowIndex++);
+                var row = AddGroup(container, navGroup,
+                    new FilterKey(FilterGroup.Intensity, context.ProfileId), label);
+                row?.AssignIndex(rowIndex++);
+                if (context.IsNoProfile)
+                    row?.ShowAdvancedMarker();
             }
 
             AddGroup(container, navGroup, new FilterKey(FilterGroup.Length), Localize.Key("Menu.Filters.Length.Name"))?.AssignIndex(rowIndex++);
@@ -435,15 +454,14 @@ namespace YARG.Menu.Filters
         private static List<IntensityFilterContext> GetIntensityFilterContexts()
         {
             var players = PlayerContainer.Players.Where(player => !player.Profile.IsBot).ToList();
-            if (players.Count == 0)
+            var contexts = new List<IntensityFilterContext>(players.Count);
+            if (players.Count == 0 && !SettingsManager.Settings.ShowAllIntensityFilters.Value)
             {
-                return new List<IntensityFilterContext>
-                {
-                    new(Guid.Empty, string.Empty, Instrument.FiveFretGuitar)
-                };
+                contexts.Add(new IntensityFilterContext(
+                    Guid.Empty, string.Empty, Instrument.FiveFretGuitar));
+                return contexts;
             }
 
-            var contexts = new List<IntensityFilterContext>(players.Count);
             var seenInstruments = new HashSet<Instrument>();
             foreach (var player in players)
             {
@@ -456,6 +474,21 @@ namespace YARG.Menu.Filters
                     profile.Name,
                     instrument,
                     profile.GameMode));
+            }
+
+            if (SettingsManager.Settings.ShowAllIntensityFilters.Value)
+            {
+                foreach (Instrument instrument in Enum.GetValues(typeof(Instrument)))
+                {
+                    if (seenInstruments.Contains(instrument) || !SongContainer.HasInstrument(instrument))
+                        continue;
+
+                    contexts.Add(new IntensityFilterContext(
+                        GetNoProfileIntensityContextId(instrument),
+                        Localize.Key("Menu.Filters.Intensities.NoProfile"),
+                        instrument,
+                        isNoProfile: true));
+                }
             }
 
             return contexts;

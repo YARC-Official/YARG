@@ -631,6 +631,7 @@
                 "Nightmare": "Nightmare",
                 "Impossible": "Impossible",
                 "Unknown": "Unknown",
+                "NoProfile": "No Profile",
                 "NoPart": "No Part"
             },
             "Length": {
@@ -1093,6 +1094,8 @@
             "PathsAndFolders": "Paths and Folders",
             "CacheManagement": "Cache Management",
             "MusicLibrary": "Music Library",
+            "LibraryDisplay": "Library Display",
+            "SortingAndFiltering": "Sorting and Filtering",
             "PlayAShow": "Play A Show",
             "ScanningOptions": "Scanning Options",
             "RB3E": "RB3E Settings",
@@ -1591,6 +1594,10 @@
             "ShowAdvancedMusicLibraryOptions": {
                 "Name": "Show Advanced Music Library Options",
                 "Description": "Adds advanced settings to the \"More Options\" menu in the Music Library such as \"View Song Folder\" and \"Copy Song Checksum\"."
+            },
+            "ShowAllIntensityFilters": {
+                "Name": "Show All Intensity Filters",
+                "Description": "Shows an intensity filter for every instrument found in the song library, even when no profile or controller can play it."
             },
             "ShowCursorTimer": {
                 "Name": "Cursor Show Time",
