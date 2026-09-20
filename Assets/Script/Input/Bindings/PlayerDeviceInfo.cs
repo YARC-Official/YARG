@@ -389,6 +389,50 @@ namespace YARG.Input
             return interfaces;
         }
 
+        public void SetActiveGameplayBindingsForController(InputDevice controller, ReusableBindingSet bindingSet)
+        {
+            if (_activeGameplayBindings.Remove(controller, out var oldBindings))
+            {
+                _gameplayInputAggregator.Remove(oldBindings);
+                oldBindings.Dispose();
+            }
+
+            if (bindingSet is not null)
+            {
+                var newBindings = new RuntimeBindingSet(controller, bindingSet);
+                _activeGameplayBindings[controller] = newBindings;
+                _gameplayInputAggregator.Add(newBindings);
+
+                if (_inputsEnabled)
+                {
+                    newBindings.EnableInputs();
+                }
+            }
+        }
+
+        public ReusableBindingSet GetActiveGameplayBindingsForController(InputDevice controller)
+        {
+            return _activeGameplayBindings.GetValueOrDefault(controller, null)?.Source;
+        }
+
+        public void SetActiveMenuBindingsForController(InputDevice controller, ReusableBindingSet bindingSet)
+        {
+
+            if (bindingSet is null)
+            {
+                _activeMenuBindings.Remove(controller);
+            }
+            else
+            {
+                _activeMenuBindings[controller] = new(controller, bindingSet);
+            }
+        }
+
+        public ReusableBindingSet GetActiveMenuBindingsForController(InputDevice controller)
+        {
+            return _activeMenuBindings.GetValueOrDefault(controller, null)?.Source;
+        }
+
         private int FindSerializedIndex(InputDevice controller)
         {
             return _unresolvedControllers.FindIndex((dev) => dev.MatchesDevice(controller));

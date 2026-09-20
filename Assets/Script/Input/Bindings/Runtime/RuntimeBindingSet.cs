@@ -16,6 +16,7 @@ namespace YARG.Input.Bindings
 {
     public class RuntimeBindingSet : IEnumerable<RuntimeControlBinding>, IDisposable
     {
+        public ReusableBindingSet Source { get; }
         public InputDevice Controller { get; }
         public GameMode Mode { get; }
 
@@ -43,6 +44,8 @@ namespace YARG.Input.Bindings
 
         public RuntimeBindingSet(InputDevice controller, ReusableBindingSet reusableBindings) : this(controller, reusableBindings.Mode)
         {
+            Source = reusableBindings;
+
             foreach (var binding in reusableBindings.Bindings.Values)
             {
                 RuntimeControlBinding newBind = binding switch

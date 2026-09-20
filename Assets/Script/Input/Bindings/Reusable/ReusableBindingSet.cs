@@ -32,7 +32,7 @@ namespace YARG.Input.Bindings
         }
 
         // For making a copy
-        public ReusableBindingSet(ReusableBindingSet original) : this($"Copy of {original.Name}", original.Mode, original.ControllerFamily)
+        public ReusableBindingSet(ReusableBindingSet original) : this($"Copy of {original.Name}", original.Mode, original.ControllerFamily, isHardcoded: false)
         {
             foreach (var (key, binding) in original.Bindings)
             {

@@ -23,7 +23,7 @@ namespace YARG.Input.Bindings
 
         private static readonly Dictionary<Guid, PlayerDeviceInfo> _profileDeviceInfo = new(); // GUID is YargProfile GUID
 
-        private static readonly Dictionary<Guid, ReusableBindingSet> _allBindingCollectionsByGuid = new(); // GUID is ReusableButtonBinding GUID
+        private static readonly Dictionary<Guid, ReusableBindingSet> _allReusableBindingSetsByGuid = new(); // GUID is ReusableBindingSet GUID
 
         private static readonly Dictionary<ControllerFamily, Dictionary<GameMode, List<ReusableBindingSet>>> _reusableBindingSetsByControllerFamily = new()
         {
@@ -129,8 +129,6 @@ namespace YARG.Input.Bindings
             }
         };
 
-        private static readonly Dictionary<(GameMode mode, ControllerFamily controllerFamily), List<ReusableBindingSet>> _bindingCollectionsByContext = new();
-
         public static PlayerDeviceInfo GetBindingsForProfile(YargProfile profile)
         {
             if (!_profileDeviceInfo.TryGetValue(profile.Id, out var bindings))
@@ -178,9 +176,9 @@ namespace YARG.Input.Bindings
 
         public static bool TryGetBindingCollectionById(Guid guid, out ReusableBindingSet bindingCollection)
         {
-            if (_allBindingCollectionsByGuid.ContainsKey(guid))
+            if (_allReusableBindingSetsByGuid.ContainsKey(guid))
             {
-                bindingCollection = _allBindingCollectionsByGuid[guid];
+                bindingCollection = _allReusableBindingSetsByGuid[guid];
                 return true;
             }
 
@@ -215,41 +213,7 @@ namespace YARG.Input.Bindings
             foreach (var (guid, serializedReusableBindingSet) in bindings.ReusableBindingSets)
             {
                 var bindingSet = new ReusableBindingSet(serializedReusableBindingSet);
-
-                _allBindingCollectionsByGuid.Add(guid, bindingSet);
-
-                if (!_reusableBindingSetsByControllerFamily.ContainsKey(bindingSet.ControllerFamily))
-                {
-                    _reusableBindingSetsByControllerFamily[bindingSet.ControllerFamily] = new() {
-                        {
-                            bindingSet.Mode,
-                            new() { bindingSet }
-                        }
-                    };
-                }
-                else
-                {
-                    var modeDict = _reusableBindingSetsByControllerFamily[bindingSet.ControllerFamily];
-
-                    if (!modeDict.ContainsKey(bindingSet.Mode))
-                    {
-                        modeDict[bindingSet.Mode] = new() { bindingSet };
-                    }
-                    else
-                    {
-                        modeDict[bindingSet.Mode].Add(bindingSet);
-                    }
-                }
-
-                var tupleKey = (bindingSet.Mode, bindingSet.ControllerFamily);
-
-                if (!_bindingCollectionsByContext.ContainsKey(tupleKey)) {
-                    _bindingCollectionsByContext[tupleKey] = new() { bindingSet };
-                }
-                else
-                {
-                    _bindingCollectionsByContext[tupleKey].Add(bindingSet);
-                }
+                AddBindingSet(bindingSet);
             }
 
             foreach (var (id, serialized) in bindings.Profiles)
@@ -294,7 +258,7 @@ namespace YARG.Input.Bindings
                 serialized.Profiles[profileId] = deviceInfo.Serialize();
             }
 
-            foreach (var bindingSet in _allBindingCollectionsByGuid.Values)
+            foreach (var bindingSet in _allReusableBindingSetsByGuid.Values)
             {
                 serialized.ReusableBindingSets[bindingSet.Guid] = bindingSet.Serialize();
             }
@@ -305,7 +269,7 @@ namespace YARG.Input.Bindings
 
         public static void AddBindingSet(ReusableBindingSet newSet)
         {
-            _allBindingCollectionsByGuid[newSet.Guid] = newSet;
+            _allReusableBindingSetsByGuid[newSet.Guid] = newSet;
 
             if (!_reusableBindingSetsByControllerFamily.ContainsKey(newSet.ControllerFamily))
             {
@@ -322,8 +286,18 @@ namespace YARG.Input.Bindings
 
         public static void DeleteBindingSet(ReusableBindingSet bindingSet)
         {
-            _allBindingCollectionsByGuid.Remove(bindingSet.Guid);
+            _allReusableBindingSetsByGuid.Remove(bindingSet.Guid);
             _reusableBindingSetsByControllerFamily[bindingSet.ControllerFamily][bindingSet.Mode].Remove(bindingSet);
+
+            if (_reusableBindingSetsByControllerFamily[bindingSet.ControllerFamily][bindingSet.Mode].Count is 0)
+            {
+                _reusableBindingSetsByControllerFamily[bindingSet.ControllerFamily].Remove(bindingSet.Mode);
+
+                if (_reusableBindingSetsByControllerFamily[bindingSet.ControllerFamily].Count is 0)
+                {
+                    _reusableBindingSetsByControllerFamily.Remove(bindingSet.ControllerFamily);
+                }
+            }
         }
 
         public static void ReleaseMicrophones()

@@ -44,7 +44,7 @@ namespace YARG.Input.Serialization
 
             foreach (var (guid, bind) in BindingCollections)
             {
-                deserialized.ReusableBindingSets[guid] = bind.Deserialize();
+                deserialized.ReusableBindingSets[guid] = bind.Deserialize(guid);
             }
 
             foreach (var (guid, profile) in Profiles)
@@ -166,10 +166,11 @@ namespace YARG.Input.Serialization
                 }
             }
 
-            public SerializedReusableBindingSet Deserialize()
+            public SerializedReusableBindingSet Deserialize(Guid guid)
             {
                 var converted = new SerializedReusableBindingSet(Name, BaseLayout) {
-                    GameMode = GameMode
+                    GameMode = GameMode,
+                    Guid = guid
                 };
 
                 foreach (var (id, serializedBinds) in Bindings)

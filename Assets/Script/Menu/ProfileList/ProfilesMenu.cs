@@ -228,7 +228,6 @@ namespace YARG.Menu.ProfileList
 
             AddBindingSetListHeader(mode, typical);
 
-            // Spawn in a profile view for each player
             foreach (var bindingSet in bindingSets)
             {
                 var go = Instantiate(_bindingSetViewPrefab, _leftPaneList);
