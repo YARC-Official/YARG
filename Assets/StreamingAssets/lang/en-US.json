@@ -594,17 +594,17 @@
 			"UnloadedDelete": "Deleting it is permanent.",
 			"BotDelete": "Deleting this bot is permanent.",
 			"Tooltip": {
-			  "InputMode": {
-				"Title": "Input Mode",
-				"Text": "Represents what type of device you'll be using to play songs. Determines which playable parts will be available to you, what engine you'll use to play them, and what gameplay bindings you can configure.\n\nThis profile's input mode is set to {0}, {1}",
-				"FiveFretGuitar": "which is meant for guitar game controllers with fret buttons in a 1x5 arrangement.",
-				"SixFretGuitar": "which is meant for guitar game controllers with fret buttons in a 2x3 arrangement.",
-				"FourLaneDrums": "which is meant for drumkit game controllers with 4 drum pads, 1 or 2 kick pedals, and optionally up to 3 cymbal pads.",
-				"FiveLaneDrums": "which is meant for drumkit game controllers with 3 drum pads, 1 or 2 kick pedals, and 2 cymbal pads.",
-				"EliteDrums": "which is meant for MIDI drumkits with 4 drum pads, 1 or 2 kick pedals, a hi-hat pedal, and 3 or 4 cymbal pads. It's recommended that you also attach a gamepad or other controller to use for menu navigation.",
-				"ProKeys": "which is meant for keyboard game controllers and MIDI keyboards with at least 2 octaves of keys. If you're using a MIDI keyboard, it's recommended that you also attach a gamepad or other controller to use for menu navigation.",
-				"Vocals": "which is meant for 1 or more microphones. It's recommended that you also attach a gamepad or other controller to use for menu navigation."
-			  },
+			    "InputMode": {
+				    "Title": "Input Mode",
+				    "Text": "Represents what type of device you'll be using to play songs. Determines which playable parts will be available to you, what engine you'll use to play them, and what gameplay bindings you can configure.\n\nThis profile's input mode is set to {0}, {1}",
+				    "FiveFretGuitar": "which is meant for guitar game controllers with fret buttons in a 1x5 arrangement.",
+				    "SixFretGuitar": "which is meant for guitar game controllers with fret buttons in a 2x3 arrangement.",
+				    "FourLaneDrums": "which is meant for drumkit game controllers with 4 drum pads, 1 or 2 kick pedals, and optionally up to 3 cymbal pads.",
+				    "FiveLaneDrums": "which is meant for drumkit game controllers with 3 drum pads, 1 or 2 kick pedals, and 2 cymbal pads.",
+				    "EliteDrums": "which is meant for MIDI drumkits with 4 drum pads, 1 or 2 kick pedals, a hi-hat pedal, and 3 or 4 cymbal pads. It's recommended that you also attach a gamepad or other controller to use for menu navigation.",
+				    "ProKeys": "which is meant for keyboard game controllers and MIDI keyboards with at least 2 octaves of keys. If you're using a MIDI keyboard, it's recommended that you also attach a gamepad or other controller to use for menu navigation.",
+				    "Vocals": "which is meant for 1 or more microphones. It's recommended that you also attach a gamepad or other controller to use for menu navigation."
+			      },
 			  "Controllers": {
 				"Title": "Controllers",
 				"Text": "A controller is any device that provides button and/or axis inputs to <i>YARG</i>. Use controllers to play most game modes (excluding Vocals and Harmonies) and to navigate menus. If your primary controller does not provide every input you need for gameplay and menu navigation, you can set up multiple controllers with additional and/or redundant bindings."
@@ -723,6 +723,10 @@
 			  "IntegerBindGroup": {
 				  "Title": "{0}",
 				  "Text": "This is an integer action; its state can be any nonnegative integer. If you bind multiple controls, the effective value will reflect the highest value from among those controls."
+			  },
+			  "DummyController": {
+				  "Title": "Dummy Controller",
+				  "Text": "Select from all currently-attached {0}. You can use the selected controller to record binding controls and to test your binding parameters against live input data."
 			  }
 			}
 		  },

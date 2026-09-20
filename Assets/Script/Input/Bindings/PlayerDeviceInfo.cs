@@ -55,41 +55,6 @@ namespace YARG.Input
 
         public event Action<InputDevice> ControllerAdded;
         public event Action<InputDevice> ControllerRemoved;
-
-        /* TODO-FRICK: 
-         * Because we no longer edit runtime bindings directly, I don't think we need this to work like this.
-         * There will probably still be public event Action BindingsChanged, but I think it'll just reload from
-         * a now-updated ReusableBindingSet all over again. Or maybe that's inefficient and we do something smarter,
-         * but in any case I think this particular code is on its way out. Preserving for now
-         * 
-        public event Action BindingsChanged
-        {
-            add
-            {
-                foreach (var binds in _activeGameplayBindings.Values)
-                {
-                    binds.BindingsChanged += value;
-                }
-
-                foreach (var layoutMenuBinds in _activeMenuBindings.Values)
-                {
-                    layoutMenuBinds.BindingsChanged += value;
-                }
-            }
-            remove
-            {
-                foreach (var binds in _activeGameplayBindings.Values)
-                {
-                    binds.BindingsChanged -= value;
-                }
-
-                foreach (var layoutMenuBinds in _activeMenuBindings.Values)
-                {
-                    layoutMenuBinds.BindingsChanged -= value;
-                }
-            }
-        }*/
-
         
         public event GameInputProcessed MenuInputProcessed
         {
