@@ -26,10 +26,14 @@ namespace YARG.Gameplay
 
         private static RawImage _venueOutput;
         private static RenderTexture _venueTexture;
+        // Trails feedback ping-pong: the venue PP pass samples `_trailsTexture`
+        // (global `_YargPrevFrame`) and writes `_trailsTextureAlt`; the pair is
+        // swapped after each venue camera render so the pass never samples the
+        // texture it renders into.
         private static RenderTexture _trailsTexture;
         private static RTHandle _trailsTextureHandle;
-
-        private static readonly int _IsVenueId = Shader.PropertyToID("_YargIsVenue");
+        private static RenderTexture _trailsTextureAlt;
+        private static RTHandle _trailsTextureAltHandle;
         private static readonly int _trailsLengthId = Shader.PropertyToID("_YargTrailLength");
         private static readonly int _trailsTextureId = Shader.PropertyToID("_YargPrevFrame");
         private static readonly int _posterizeStepsId = Shader.PropertyToID("_YargPosterizeSteps");
@@ -43,7 +47,7 @@ namespace YARG.Gameplay
         private static readonly string[] _mirrorKeywords = { "YARG_MIRROR_LEFT", "YARG_MIRROR_RIGHT", "YARG_MIRROR_CLOCK_CCW", "YARG_MIRROR_NONE" };
 
         private VenuePostPostProcessingPass _pass;
-        private Material _alphaFixMaterial;
+        private Material _venuePPMaterial;
 
         public static float ActualFPS;
         public static float TargetFPS;
@@ -69,7 +73,7 @@ namespace YARG.Gameplay
 
         private void Awake()
         {
-            _alphaFixMaterial = CreateMaterial("Hidden/YARG/VenueAlphaFix");
+            _venuePPMaterial = CreateMaterial("Hidden/YARG/VenuePP");
             _pass = new VenuePostPostProcessingPass(this);
 
             Shader.SetGlobalColor(_scanlineColor, Color.black);
@@ -124,13 +128,7 @@ namespace YARG.Gameplay
 
             ScalableBufferManager.ResizeBuffers(renderScale, renderScale);
 
-            if (_trailsTexture != null)
-            {
-                _trailsTextureHandle?.Release();
-                _trailsTextureHandle = null;
-                _trailsTexture.Release();
-                _trailsTexture.DiscardContents();
-            }
+            ReleaseTrailsTextures(destroy: false);
 
             var descriptor = new RenderTextureDescriptor(outputWidth, outputHeight, RenderTextureFormat.DefaultHDR, 16, 0);
 
@@ -152,13 +150,49 @@ namespace YARG.Gameplay
             }
 
             descriptor.depthBufferBits = 0;
-            _trailsTexture = new RenderTexture(descriptor);
-            _trailsTexture.filterMode = FilterMode.Bilinear;
-            _trailsTexture.wrapMode = TextureWrapMode.Clamp;
-            _trailsTexture.Create();
+            _trailsTexture = CreateTrailsTexture(descriptor);
             _trailsTextureHandle = RTHandles.Alloc(_trailsTexture);
+            _trailsTextureAlt = CreateTrailsTexture(descriptor);
+            _trailsTextureAltHandle = RTHandles.Alloc(_trailsTextureAlt);
             Shader.SetGlobalTexture(_trailsTextureId, _trailsTexture);
-            Graphics.Blit(Texture2D.blackTexture, _trailsTexture);
+        }
+
+        private static RenderTexture CreateTrailsTexture(RenderTextureDescriptor descriptor)
+        {
+            var texture = new RenderTexture(descriptor);
+            texture.filterMode = FilterMode.Bilinear;
+            texture.wrapMode = TextureWrapMode.Clamp;
+            texture.Create();
+            Graphics.Blit(Texture2D.blackTexture, texture);
+            return texture;
+        }
+
+        private static void ReleaseTrailsTextures(bool destroy)
+        {
+            ReleaseTrailsTexture(ref _trailsTexture, ref _trailsTextureHandle, destroy);
+            ReleaseTrailsTexture(ref _trailsTextureAlt, ref _trailsTextureAltHandle, destroy);
+        }
+
+        private static void ReleaseTrailsTexture(ref RenderTexture texture, ref RTHandle handle, bool destroy)
+        {
+            handle?.Release();
+            handle = null;
+
+            if (texture == null)
+            {
+                return;
+            }
+
+            texture.Release();
+            if (destroy)
+            {
+                Destroy(texture);
+            }
+            else
+            {
+                texture.DiscardContents();
+            }
+            texture = null;
         }
 
         private static void ResetRenderState()
@@ -193,19 +227,12 @@ namespace YARG.Gameplay
                 _venueTexture = null;
             }
 
-            if (_trailsTexture != null)
-            {
-                _trailsTextureHandle?.Release();
-                _trailsTextureHandle = null;
-                _trailsTexture.Release();
-                Destroy(_trailsTexture);
-                _trailsTexture = null;
-            }
+            ReleaseTrailsTextures(destroy: true);
 
-            if (_alphaFixMaterial != null)
+            if (_venuePPMaterial != null)
             {
-                CoreUtils.Destroy(_alphaFixMaterial);
-                _alphaFixMaterial = null;
+                CoreUtils.Destroy(_venuePPMaterial);
+                _venuePPMaterial = null;
             }
 
             _venueOutput = null;
@@ -221,14 +248,7 @@ namespace YARG.Gameplay
                 _venueTexture = null;
             }
 
-            if (_trailsTexture != null)
-            {
-                _trailsTextureHandle?.Release();
-                _trailsTextureHandle = null;
-                _trailsTexture.Release();
-                Destroy(_trailsTexture);
-                _trailsTexture = null;
-            }
+            ReleaseTrailsTextures(destroy: true);
 
             _venueOutput = null;
         }
@@ -305,9 +325,13 @@ namespace YARG.Gameplay
 
             Shader.SetGlobalInteger(_posterizeStepsId, 0);
             Shader.SetGlobalFloat(_startTimeId, 0);
-            Shader.SetGlobalFloat(_IsVenueId, 0);
             Shader.SetGlobalInt(_scanlineSizeId, 0);
             Shader.SetGlobalFloat(_trailsLengthId, 0);
+
+            // Swap the trails ping-pong: the texture just written becomes next
+            // frame's `_YargPrevFrame` source.
+            (_trailsTexture, _trailsTextureAlt) = (_trailsTextureAlt, _trailsTexture);
+            (_trailsTextureHandle, _trailsTextureAltHandle) = (_trailsTextureAltHandle, _trailsTextureHandle);
         }
 
         private void OnPreCameraRender(ScriptableRenderContext ctx, Camera cam)
@@ -317,7 +341,8 @@ namespace YARG.Gameplay
                 return;
             }
 
-            Shader.SetGlobalFloat(_IsVenueId, 1);
+            // Point the trails feedback sample at the previous frame's texture.
+            Shader.SetGlobalTexture(_trailsTextureId, _trailsTexture);
 
             // URP replaces VolumeManager.instance.stack with either the global stack
             // or the camera's local volumeStack during rendering setup, depending on
@@ -341,11 +366,11 @@ namespace YARG.Gameplay
                 {
                     if (i == mirrorEffect.wipeIndex.value)
                     {
-                        Shader.EnableKeyword(_mirrorKeywords[i]);
+                        _venuePPMaterial.EnableKeyword(_mirrorKeywords[i]);
                     }
                     else
                     {
-                        Shader.DisableKeyword(_mirrorKeywords[i]);
+                        _venuePPMaterial.DisableKeyword(_mirrorKeywords[i]);
                     }
                 }
                 YargLogger.LogFormatTrace("Venue PP: mirror, wipeStart: {0}", mirrorEffect.startTime.value);
@@ -397,31 +422,37 @@ namespace YARG.Gameplay
             return CoreUtils.CreateEngineMaterial(shader);
         }
 
+        /// <summary>
+        /// Venue post pass: applies VenuePP (mirror wipe, posterize, scanlines, trails
+        /// feedback) after URP post-processing, forces alpha to 1.0, and writes the
+        /// result into the persistent trails texture so the next frame can sample it
+        /// as <c>_YargPrevFrame</c>. The patched UberPost shader is no longer needed
+        /// for venue effects.
+        /// </summary>
         private sealed class VenuePostPostProcessingPass : ScriptableRenderPass
         {
-            private readonly Material _alphaFixMaterial;
+            private readonly Material _venuePPMaterial;
 
             public VenuePostPostProcessingPass(VenueCameraRenderer vcr)
             {
                 renderPassEvent = RenderPassEvent.AfterRenderingPostProcessing;
-                _alphaFixMaterial = vcr._alphaFixMaterial;
+                _venuePPMaterial = vcr._venuePPMaterial;
             }
 
             public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
             {
-                UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
+                var resourceData = frameData.Get<UniversalResourceData>();
 
                 TextureHandle source = resourceData.activeColorTexture;
-                TextureHandle trailsTexture = renderGraph.ImportTexture(_trailsTextureHandle);
+                // Write the "alt" trails texture while the shader samples the other
+                // one as `_YargPrevFrame`, so no pass ever reads what it writes.
+                TextureHandle destination = renderGraph.ImportTexture(_trailsTextureAltHandle);
 
-                // Blit through alpha-fix shader to force alpha to 1.0, preventing transparency artifacts
-                // when the venue renders without post-processing (UberPP doesn't run to fix alpha).
+                var blitParams = new BlitMaterialParameters(source, destination, _venuePPMaterial, 0);
+                renderGraph.AddBlitPass(blitParams, passName: "Venue PP");
 
-                var blitParams = new BlitMaterialParameters(source, trailsTexture, _alphaFixMaterial, 0);
-                renderGraph.AddBlitPass(blitParams, passName: "Venue Alpha Fix / Trails Copy");
-
-                // Update cameraColor so the final blit uses the alpha-fixed texture.
-                resourceData.cameraColor = trailsTexture;
+                // Update cameraColor so the final blit uses the venue-processed, alpha-fixed texture.
+                resourceData.cameraColor = destination;
             }
         }
 
