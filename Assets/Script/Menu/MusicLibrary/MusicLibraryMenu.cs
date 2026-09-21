@@ -497,7 +497,7 @@ namespace YARG.Menu.MusicLibrary
             var list = new List<ViewType>();
             _totalSongCount = 0;
             _totalStarCount = 0;
-            _allVisibleSongsGold = true;
+            _allVisibleSongsGold = false;
 
             // If `_sortedSongs` is null, then this function is being called during very first initialization,
             // which means the song list hasn't been constructed yet.
@@ -514,6 +514,7 @@ namespace YARG.Menu.MusicLibrary
 
             bool allowdupes = SettingsManager.Settings.AllowDuplicateSongs.Value;
             int songCount = 0;
+            int goldStarSongCount = 0;
             foreach (var section in _sortedSongs)
             {
                 if (allowdupes)
@@ -644,8 +645,7 @@ namespace YARG.Menu.MusicLibrary
                 }
 
                 int sectionTotalStars = 0;
-                bool sectionHasGoldStars = true;
-                bool sectionHasScoredSongs = false;
+                int sectionGoldStarSongCount = 0;
                 bool includeSongs = _sortedSongs.Length <= 1 || !_collapsedHeaders[SettingsManager.Settings.LibrarySort].Contains(section);
 
                 var displayedSongs = section.Songs
@@ -670,15 +670,13 @@ namespace YARG.Menu.MusicLibrary
                     if (starAmount is not null)
                     {
                         sectionTotalStars += starAmount.Value.GetStarCount();
-                        sectionHasScoredSongs = true;
-                        sectionHasGoldStars &= starAmount.Value == StarAmount.StarGold;
-                    }
-                    else
-                    {
-                        sectionHasGoldStars = false;
                     }
 
-                    _allVisibleSongsGold &= starAmount == StarAmount.StarGold;
+                    if (starAmount == StarAmount.StarGold)
+                    {
+                        sectionGoldStarSongCount++;
+                        goldStarSongCount++;
+                    }
                 }
 
                 var secondaryAlbumSort = SettingsManager.Settings.SecondaryAlbumSort.Value;
@@ -716,14 +714,18 @@ namespace YARG.Menu.MusicLibrary
                         var albumHeader = new SecondaryHeaderViewType(album.Key, albumSongs.Length);
                         list.Add(albumHeader);
                         int starsBeforeAlbum = sectionTotalStars;
-                        bool albumHasGoldStars = true;
+                        int albumGoldStarSongCount = 0;
                         foreach (var song in albumSongs)
                         {
                             AddSong(song);
-                            albumHasGoldStars &= SongViewType.GetStarAmountForSong(song) == StarAmount.StarGold;
+                            if (SongViewType.GetStarAmountForSong(song) == StarAmount.StarGold)
+                            {
+                                albumGoldStarSongCount++;
+                            }
                         }
                         albumHeader.TotalStarsCount = sectionTotalStars - starsBeforeAlbum;
-                        albumHeader.HasGoldStars = albumHasGoldStars;
+                        albumHeader.HasGoldStars = albumSongs.Length > 0 &&
+                            albumGoldStarSongCount == albumSongs.Length;
                     }
                 }
                 else
@@ -738,11 +740,13 @@ namespace YARG.Menu.MusicLibrary
                 if (sortHeader != null)
                 {
                     sortHeader.TotalStarsCount = sectionTotalStars;
-                    sortHeader.HasGoldStars = sectionHasScoredSongs && sectionHasGoldStars;
+                    sortHeader.HasGoldStars = displayedSongs.Length > 0 &&
+                        sectionGoldStarSongCount == displayedSongs.Length;
                 }
             }
 
             _totalSongCount = songCount;
+            _allVisibleSongsGold = songCount > 0 && goldStarSongCount == songCount;
             CalculateCategoryHeaderIndices(list);
             return list;
         }

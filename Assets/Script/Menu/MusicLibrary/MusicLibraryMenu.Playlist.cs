@@ -99,6 +99,7 @@ namespace YARG.Menu.MusicLibrary
         {
             SetNavigationScheme(true);
             var list = new List<ViewType>{};
+            _allVisibleSongsGold = false;
 
             if (SelectedPlaylist.Ephemeral)
             {
@@ -126,7 +127,7 @@ namespace YARG.Menu.MusicLibrary
             bool allowdupes = SettingsManager.Settings.AllowDuplicateSongs.Value;
             _totalSongCount = 0;
             _totalStarCount = 0;
-            _allVisibleSongsGold = true;
+            int goldStarSongCount = 0;
 
             // Add songs in the playlist
             foreach (var section in _sortedSongs)
@@ -141,11 +142,15 @@ namespace YARG.Menu.MusicLibrary
                         _totalSongCount++;
                         var starAmount = songView.GetStarAmount();
                         _totalStarCount += starAmount is null ? 0 : StarAmountHelper.GetStarCount(starAmount.Value);
-                        _allVisibleSongsGold &= starAmount == StarAmount.StarGold;
+                        if (starAmount == StarAmount.StarGold)
+                        {
+                            goldStarSongCount++;
+                        }
                     }
                 }
             }
 
+            _allVisibleSongsGold = _totalSongCount > 0 && goldStarSongCount == _totalSongCount;
             AddPlaylistManagementButtons(list);
             return list;
         }
@@ -279,7 +284,8 @@ namespace YARG.Menu.MusicLibrary
         {
             _totalSongCount = 0;
             _totalStarCount = 0;
-            _allVisibleSongsGold = true;
+            _allVisibleSongsGold = false;
+            int goldStarSongCount = 0;
 
             var list = new List<ViewType>
             {
@@ -296,9 +302,13 @@ namespace YARG.Menu.MusicLibrary
                 _totalSongCount++;
                 var starAmount = songView.GetStarAmount();
                 _totalStarCount += starAmount is null ? 0 : StarAmountHelper.GetStarCount(starAmount.Value);
-                _allVisibleSongsGold &= starAmount == StarAmount.StarGold;
+                if (starAmount == StarAmount.StarGold)
+                {
+                    goldStarSongCount++;
+                }
             }
 
+            _allVisibleSongsGold = _totalSongCount > 0 && goldStarSongCount == _totalSongCount;
             AddSetlistManagementButtons(list, DeleteShowSetlist);
 
             return list;
