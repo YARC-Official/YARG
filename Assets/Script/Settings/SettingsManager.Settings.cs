@@ -306,10 +306,6 @@ namespace YARG.Settings
 
             public ToggleSetting ShowRecommendedSongs { get; } = new(true, ShowRecommendedSongsCallback);
             public ToggleSetting OnlyShowPlayableSongs { get; } = new(false, RefreshLibraryFilterCallback);
-            public ToggleSetting ShowAllIntensityFilters { get; } = new(false, _ =>
-            {
-                FiltersMenu.RefreshActiveFilterPredicate();
-            });
 
             public DropdownSetting<SongLengthLabelMode> SongLengthLabels { get; }
                 = new(SongLengthLabelMode.RangeLabels, _ => RefreshSongs())

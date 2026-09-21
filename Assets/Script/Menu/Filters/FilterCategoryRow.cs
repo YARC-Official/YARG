@@ -2,7 +2,6 @@
 using UnityEngine;
 using System;
 using YARG.Menu.Navigation;
-using UnityEngine.UI;
 
 namespace YARG.Menu.Filters
 {
@@ -65,26 +64,6 @@ namespace YARG.Menu.Filters
         public void AssignIndex(int index)
         {
             _backgroundVisual?.AssignIndex(index);
-        }
-
-        public void ShowAdvancedMarker()
-        {
-            var marker = new GameObject("Advanced Setting Marker", typeof(RectTransform), typeof(CanvasRenderer),
-                typeof(Image));
-            marker.layer = gameObject.layer;
-            marker.transform.SetParent(transform, false);
-            marker.transform.SetAsFirstSibling();
-
-            var rect = (RectTransform) marker.transform;
-            rect.anchorMin = new Vector2(0f, 0f);
-            rect.anchorMax = new Vector2(0f, 1f);
-            rect.anchoredPosition = new Vector2(0f, 1f);
-            rect.sizeDelta = new Vector2(10f, -2f);
-            rect.pivot = new Vector2(0f, 0.5f);
-
-            var image = marker.GetComponent<Image>();
-            image.color = new Color(0.29411766f, 0.7490196f, 0.8156863f, 0.11372549f);
-            image.raycastTarget = false;
         }
 
         public void SetSecondaryText(string text)
