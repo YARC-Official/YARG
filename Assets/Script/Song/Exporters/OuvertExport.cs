@@ -11,6 +11,9 @@ namespace YARG.Song.Exporters
     {
         private class OuvertSongData
         {
+            [JsonProperty("conID")]
+            public string conId;
+
             [JsonProperty("Name")]
             public string songName;
 
@@ -51,6 +54,9 @@ namespace YARG.Song.Exporters
             {
                 var data = new OuvertSongData
                 {
+                    conId = song is RBCONEntry conEntry && !string.IsNullOrEmpty(conEntry.SubName)
+                        ? conEntry.SubName
+                        : null,
                     songName = RichTextUtils.StripRichTextTags(song.Name),
                     artistName = RichTextUtils.StripRichTextTags(song.Artist),
                     album = RichTextUtils.StripRichTextTags(song.Album),
