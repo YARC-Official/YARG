@@ -638,7 +638,6 @@ namespace YARG.Menu.Filters
                 {
                     enabled[value] = toggleValue;
                     updateSummary?.Invoke();
-                    DisableRecommendationsIfFiltered();
                 };
             }
         }
@@ -1328,7 +1327,6 @@ namespace YARG.Menu.Filters
         {
             SetAll(dict, value);
             updateSummary?.Invoke();
-            DisableRecommendationsIfFiltered();
 
             if (_rightContainer == null) return;
 
@@ -1336,33 +1334,6 @@ namespace YARG.Menu.Filters
                 row.SetToggleIsOn(value);
         }
 
-        private void DisableRecommendationsIfFiltered()
-        {
-            if (!SettingsManager.Settings.ShowRecommendedSongs.Value)
-                return;
-
-            foreach (var def in GetFilterDefs())
-            {
-                if (def.Group == FilterGroup.Playlist)
-                    continue;
-
-                var values = def.GetValues();
-                if (values.Count == 0)
-                    continue;
-
-                EnsureDefaults(def.Enabled, values);
-
-                int total = values.Count;
-                int selected = def.Enabled.Count(kvp => kvp.Value);
-                if (selected != total)
-                {
-                    SettingsManager.Settings.ShowRecommendedSongs.Value = false;
-                    if (_showRecommendationsToggle != null)
-                        _showRecommendationsToggle.SetIsOnWithoutNotify(false);
-                    break;
-                }
-            }
-        }
 #endregion
 
 #region Genres
