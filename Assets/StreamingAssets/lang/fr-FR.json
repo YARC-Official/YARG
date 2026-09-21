@@ -2094,6 +2094,7 @@
                     "DefaultEngine": "Moteur par défaut",
                     "CasualEngine": "Moteur décontracté",
                     "PrecisionEngine": "Moteur de Précision",
+                    "TournamentEngine": "Tournament Engine",
                     "SoloTapsEngine": "Moteur mode Tapping",
                     "CustomEnginePreset": "Préréglage du moteur personnalisé"
                 },

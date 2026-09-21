@@ -187,7 +187,7 @@ namespace YARG.Gameplay.Visuals
 
         protected override bool CalcStarPowerVisible()
         {
-            if (!NoteRef.IsStarPower)
+            if (!Player.BaseParameters.StarPowerEnabled || !NoteRef.IsStarPower)
             {
                 return false;
             }
