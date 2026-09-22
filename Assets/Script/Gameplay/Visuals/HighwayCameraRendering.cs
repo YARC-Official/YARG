@@ -138,27 +138,10 @@ namespace YARG.Gameplay.Visuals
 
         private Vector2 CalculateFadeParams(int index, Vector3 trackPosition, float zeroFadePosition, float fadeSize)
         {
-            var worldZeroFadePosition = new Vector3(trackPosition.x, trackPosition.y, zeroFadePosition - fadeSize);
-            var worldFullFadePosition = new Vector3(trackPosition.x, trackPosition.y, zeroFadePosition);
-
-            // Use the individual highway camera instead of the main render camera
-            var highwayCamera = _cameras[index];
-            Plane farPlane = new Plane();
-
-            farPlane.SetNormalAndPosition(highwayCamera.transform.forward, worldZeroFadePosition);
-            var fadeEnd = Mathf.Abs(farPlane.GetDistanceToPoint(highwayCamera.transform.position));
-
-            farPlane.SetNormalAndPosition(highwayCamera.transform.forward, worldFullFadePosition);
-            var fadeStart = Mathf.Abs(farPlane.GetDistanceToPoint(highwayCamera.transform.position));
-
-            // Fix: fadeStart should be the smaller distance (closer to camera), fadeEnd should be larger
-            // Swap them if they're backwards
-            if (fadeStart > fadeEnd)
-            {
-                (fadeStart, fadeEnd) = (fadeEnd, fadeStart);
-            }
-
-            return new Vector2(fadeStart, fadeEnd);
+            // Tracks are always spawned at Z = 0, with Z increasing along the highway and
+            // we never rotate highways. Use fade parameters as simple threshold
+            // for elements' Z coordinate
+            return new Vector2(zeroFadePosition - fadeSize, zeroFadePosition);
         }
 
         private void RecalculateCameraBounds()

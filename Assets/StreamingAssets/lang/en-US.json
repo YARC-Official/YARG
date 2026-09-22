@@ -624,6 +624,7 @@
             "Charters": "Charters",
             "Intensities": {
                 "Name": "Intensities",
+                "FourLaneProDrums": "4-Lane/Pro Drums",
                 "WarmUp": "Warm Up",
                 "Apprentice": "Apprentice",
                 "Solid": "Solid",
@@ -1094,6 +1095,8 @@
             "PathsAndFolders": "Paths and Folders",
             "CacheManagement": "Cache Management",
             "MusicLibrary": "Music Library",
+            "LibraryDisplay": "Library Display",
+            "SortingAndFiltering": "Sorting and Filtering",
             "PlayAShow": "Play A Show",
             "ScanningOptions": "Scanning Options",
             "RB3E": "RB3E Settings",
@@ -1470,6 +1473,10 @@
                     "On": "On - Background limited to 50%"
                 }
             },
+            "MuteOnlyWhenAllPlayersMiss": {
+                "Name": "Mute Only When All Players Miss",
+                "Description": "When several players share an instrument, only mute its stem if all of them are missing. Otherwise the stem's volume is divided between them. Has no effect on songs without a separate stem for the instrument."
+            },
             "NoKicks": {
                 "Name": "No Kicks",
                 "Description": "Removes all kick notes (drums only)."
@@ -1596,6 +1603,17 @@
             "ShowFavoriteButton": {
                 "Name": "Show Favorite Button",
                 "Description": "Shows and hides the favorite button in the Music Library. Songs can still be favorited in the \"More Options\" menu when this button is hidden."
+            },
+            "SecondaryAlbumSort": {
+                "Name": "Secondary Artist Sort",
+                "Description": "Groups albums with at least three songs under secondary headers when sorting the Music Library by artist.",
+                "Dropdown": {
+                    "AlbumsByTitleSongsByTitle": "Albums by Title / Songs by Title",
+                    "AlbumsByTitleSongsByTrack": "Albums by Title / Songs by Track",
+                    "AlbumsByYearSongsByTitle": "Albums by Year / Songs by Title",
+                    "AlbumsByYearSongsByTrack": "Albums by Year / Songs by Track",
+                    "Off": "Off"
+                }
             },
             "ShowHitWindow": {
                 "Name": "Show Hit Window",

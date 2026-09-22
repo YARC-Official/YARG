@@ -52,8 +52,7 @@ namespace YARG.Menu.ListMenu
                 i.text = viewType.GetSecondaryText(selected);
             }
 
-            _icon.sprite = viewType.GetIcon();
-            _icon.gameObject.SetActive(_icon.sprite != null);
+            SetIcon(viewType.GetIcon());
         }
 
         public virtual void Hide()
@@ -93,6 +92,14 @@ namespace YARG.Menu.ListMenu
 
                     break;
             }
+        }
+
+#nullable enable
+        protected void SetIcon(Sprite? sprite)
+#nullable disable
+        {
+            _icon.sprite = sprite;
+            _icon.gameObject.SetActive(sprite != null);
         }
 
         public void IconClick()
