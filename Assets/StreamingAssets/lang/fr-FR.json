@@ -392,16 +392,16 @@
             "Back": "RETOUR",
             "NoPlayersConnected": "Aucune personne connectée ! Allez dans les profils pour connecter une personne.",
             "Play": "Jouer la musique",
-            "PlayHoldAddToSet": "<align=left>Jouer la chanson<br><size=67%>(maintenue) Ajouter à la liste</size></align>",
-            "AddHoldStartSet": "<align=left>Ajouter à la Setlist<br><size=67%>(maintenue) Démarrer le Set</size></align>",
+            "PlayHoldAddToSet": "<align=left>Jouer la chanson<br><size=67%>(Tenu) Ajouter à la liste</size></align>",
+            "AddHoldStartSet": "<align=left>Ajouter à la Setlist<br><size=67%>(Tenu) Démarrer le Set</size></align>",
             "ExpandHeaderHoldAddToSet": "<align=left>Développer l'entête</align>",
             "CollapseHeaderHoldAddToSet": "<align=left>Réduire l'entête</align>",
-            "ExpandHeaderHoldStartSet": "<align=left>Ajouter à la Setlist<br><size=67%>(maintenue) Démarrer le Set</size></align>",
-            "CollapseHeaderHoldStartSet": "<align=left>Réduire l'entête<br><size=67%>(maintenu) Démarrer le set</size></align>",
+            "ExpandHeaderHoldStartSet": "<align=left>Ajouter à la Setlist<br><size=67%>(Tenu) Démarrer le Set</size></align>",
+            "CollapseHeaderHoldStartSet": "<align=left>Réduire l'entête<br><size=67%>(Tenu) Démarrer le set</size></align>",
             "Search": "Rechercher",
             "SelectArtist": "Sélectionner l'artiste actuel",
             "ExitSearchHold": "(Attendre) Quitter la recherche",
-            "SkipSection": "<align=left>Naviguer dans les sections</align>",
+            "SkipSection": "<align=left>Naviguer par sections</align>",
             "MoveInPlaylist": "Déplacer la musique",
             "CurrentSetlist": "Setlist actuelle",
             "AddToSet": "Ajouter à la setlist",
@@ -409,14 +409,14 @@
             "PlaylistAddedToSet": "{0:N0} musiques de la playlist ajoutées à la setlist",
             "StartSet": "Commencer le set",
             "PlayShow": "Jouer un concert",
-            "HoldPlayShow": "(Maintenu) Jouer un Show",
+            "HoldPlayShow": "(Tenu) Jouer un Show",
             "Filters": "Filtres",
             "NoSongsInPlaylist": "Aucune musique dans la playlist",
             "CannotAddToSelf": "Non, je ne vais pas créer un ouroboros pour toi. Bien tenté, Jaden.",
             "AddToShow": "Ajouter au concert",
             "AddedToShow": "Ajoutée au concert",
             "StartShow": "Débuter le concert",
-            "MoreOptions": "<align=left><size=80%>Plus d'options<br>(maintenue) Naviguer dans les sections</size></align>",
+            "MoreOptions": "<align=left><size=80%>Plus d'options<br>(Tenu) Naviguer dans les sections</size></align>",
             "PlayAShow": {
                 "LongSong": "Une longue musique",
                 "RandomSong": "Une musique aléatoire",
@@ -613,6 +613,7 @@
             "Charters": "Charters",
             "Intensities": {
                 "Name": "Intensités",
+                "FourLaneProDrums": "Batterie Pro ou à 4 voies",
                 "WarmUp": "Échauffement",
                 "Apprentice": "Apprentissage",
                 "Solid": "Solide",
@@ -665,7 +666,8 @@
                 "BackToLibrary": "Retour à la bibliothèque",
                 "Settings": "Réglages",
                 "Practice": "Entraînement",
-                "DropOut": "Abandonner"
+                "DropOut": "Abandonner",
+                "ChangeDifficulty": "Changer la Difficulté"
             },
             "Fail": {
                 "EnableNoFailandResume": "Activer sans échec et reprendre",
@@ -1340,7 +1342,7 @@
                 }
             },
             "SongLengthLabels": {
-                "Name": "Étiquettes de durée de la musique",
+                "Name": "Tags de durée de la musique",
                 "Description": "Choisissez comment les durées des chansons sont regroupées dans la bibliothèque musicale et dans le menu des filtres.",
                 "Dropdown": {
                     "RangeLabels": "2:00, 5:00, 10:00, 15:00, 20:00",
@@ -1458,6 +1460,10 @@
                     "On": "On - arrière-plan limité à 50%"
                 }
             },
+            "MuteOnlyWhenAllPlayersMiss": {
+                "Name": "Couper le son uniquement lorsque tous les joueurs manquent",
+                "Description": "Lorsque plusieurs joueurs partagent un instrument, ne mute sa piste que si elle est manquante. Dans le cas contraire, le volume de la piste est divisé entre eux. Il n'a aucun effet sur les chansons sans piste séparée pour l'instrument."
+            },
             "NoKicks": {
                 "Name": "Sans kicks",
                 "Description": "Retire toutes les notes de kick (batterie uniquement)."
@@ -1485,7 +1491,7 @@
                 "Description": "Les (canaux) par défaut à utiliser pour les instruments et les sons."
             },
             "OutputChannelDrumSfx": {
-                "Name": "Effets sonores de la batterie",
+                "Name": "Effets sonores Batterie",
                 "Description": "Les (canaux) de sortie à utiliser pour les effets sonores de la batterie."
             },
             "OutputChannelMetronome": {
@@ -1552,7 +1558,7 @@
                 "Default": "<i>Par défaut ({0})</i>"
             },
             "ReverbImplementation": {
-                "Name": "Implémentation de réverbération",
+                "Name": "Qualité de réverbération",
                 "Description": "Sélectionne la compensation de la réverb. Les performances utilisent un Freeverb, la qualité utilise une plaque de Dattorro plus complète.",
                 "Dropdown": {
                     "Performance": "Performance",
@@ -1584,6 +1590,17 @@
             "ShowFavoriteButton": {
                 "Name": "Afficher le bouton de favoris",
                 "Description": "Affiche le bouton de favoris dans la bibliothèque de musique. Les titres peuvent toujours être mis en favoris depuis le menu \"Plus d'options\" lorsque le bouton est masqué."
+            },
+            "SecondaryAlbumSort": {
+                "Name": "Trier les artistes secondaires",
+                "Description": "Groupe les albums avec au moins trois chansons sous les en-têtes secondaires lors du tri de la bibliothèque de musique par artiste.",
+                "Dropdown": {
+                    "AlbumsByTitleSongsByTitle": "Albums par titre / chansons par titre",
+                    "AlbumsByTitleSongsByTrack": "Albums par titre / chansons par piste",
+                    "AlbumsByYearSongsByTitle": "Albums par Date / Chansons par Titre",
+                    "AlbumsByYearSongsByTrack": "Albums par Date / Chansons par piste",
+                    "Off": "Désactivé"
+                }
             },
             "ShowHitWindow": {
                 "Name": "Afficher la fenêtre de touche",
@@ -1655,10 +1672,6 @@
             "UsePerformanceClaps": {
                 "Name": "Applaudissements de performance",
                 "Description": "Joue des applaudissements au rythme des rythmes quand on se passe bien."
-            },
-            "UseVenueSfx": {
-                "Name": "Utiliser le SFX des lieux",
-                "Description": "Si activé, les lieux seront autorisés à jouer des effets sonores personnalisés."
             },
             "UseVenueSfx": {
                 "Name": "Utiliser le SFX des lieux",
@@ -1736,7 +1749,7 @@
                 "Description": "Décalage spécifique de cette chanson en millisecondes, en plus du calibrage audio/vidéo. Enregistré par chanson."
             },
             "ShowMeanSongOffsetCalibration": {
-                "Name": "Afficher le décalage moyen de la chanson",
+                "Name": "Afficher décalage moyen",
                 "Description": "Affiche une option sur l'écran de statistiques avancées pour enregistrer le décalage moyen de la chanson.",
                 "Dropdown": {
                     "Off": "Désactivé",
@@ -1787,6 +1800,10 @@
             "PauseOnFocusLoss": {
                 "Name": "Mettre en pause en cas de changement de fenêtre",
                 "Description": "Mettre en pause le jeu si le focus au milieu d'une chanson est perdu."
+            },
+            "PauseOnMenuOpen": {
+                "Name": "Pause à l'ouverture du menu",
+                "Description": "Met en pause le jeu lorsque le menu de la piste est ouvert."
             },
             "MuteOnFocusLoss": {
                 "Name": "Couper le volume en cas de perte de focus",
@@ -1929,7 +1946,7 @@
                 "Description": "Ajoute quelques guides de théorie musicale pour Clavier Pro afin d'aider à apprendre l'instrument."
             },
             "ShowPlayerNameWhenStartingSong": {
-                "Name": "Afficher les noms des joueur. euse. s au début d'une musique",
+                "Name": "Afficher les noms des personnes au début d'une musique",
                 "Description": "Si activé, le nom des joueur.euse.s et l'icône de leur instrument seront affichés au début d'un morceau."
             },
             "StaticVocalsMode": {
@@ -2041,6 +2058,14 @@
                 "Rotation": {
                     "Name": "Rotation de la caméra",
                     "Description": "Le pas de rotation de la caméra de la piste (haut et bas)."
+                },
+                "Orthographic": {
+                    "Name": "Caméra orthographique",
+                    "Description": "Utiliser une projection orthographique au lieu de la perspective."
+                },
+                "OrthographicSize": {
+                    "Name": "Taille de la perspective",
+                    "Description": "La taille de la vue orthographique (moitié de la hauteur de la vue verticale dans les unités du monde). Utilisée uniquement lorsque la caméra orthographique est activée."
                 }
             },
             "ColorProfile": {
@@ -2378,11 +2403,8 @@
                 "BlackNoteStarPower": {
                     "Name": "Note noire - Star Power"
                 },
-                "BlackFret": {
-                    "Name": "Frette Noire"
-                },
-                "WhiteFret": {
-                    "Name": "Frette Blanche"
+                "Fret": {
+                    "Name": "Frette"
                 },
                 "BlackFretInner": {
                     "Name": "Frette Noire Intérieure"

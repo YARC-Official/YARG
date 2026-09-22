@@ -613,6 +613,7 @@
             "Charters": "Charters",
             "Intensities": {
                 "Name": "Intensities",
+                "FourLaneProDrums": "4-Lane/Pro Drums",
                 "WarmUp": "Warm Up",
                 "Apprentice": "Apprentice",
                 "Solid": "Solid",
@@ -665,7 +666,8 @@
                 "BackToLibrary": "Back To Library",
                 "Settings": "Settings",
                 "Practice": "Practice",
-                "DropOut": "Drop Out"
+                "DropOut": "Drop Out",
+                "ChangeDifficulty": "Change Difficulty"
             },
             "Fail": {
                 "EnableNoFailandResume": "Enable No Fail and Resume",
@@ -1458,6 +1460,10 @@
                     "On": "Encendido - Fondo limitado a 50%"
                 }
             },
+            "MuteOnlyWhenAllPlayersMiss": {
+                "Name": "Mute Only When All Players Miss",
+                "Description": "When several players share an instrument, only mute its stem if all of them are missing. Otherwise the stem's volume is divided between them. Has no effect on songs without a separate stem for the instrument."
+            },
             "NoKicks": {
                 "Name": "Sin Bombos",
                 "Description": "Remueve todas las notas de bombo (solo para batería)."
@@ -1585,6 +1591,17 @@
                 "Name": "Mostrar Botón de Favoritos",
                 "Description": "Muestra y oculta el botón de favoritos en la Biblioteca de Música. Se pueden marcar canciones como favoritas en el menú \"Más Opciones\" cuando este botón está oculto."
             },
+            "SecondaryAlbumSort": {
+                "Name": "Secondary Artist Sort",
+                "Description": "Groups albums with at least three songs under secondary headers when sorting the Music Library by artist.",
+                "Dropdown": {
+                    "AlbumsByTitleSongsByTitle": "Albums by Title / Songs by Title",
+                    "AlbumsByTitleSongsByTrack": "Albums by Title / Songs by Track",
+                    "AlbumsByYearSongsByTitle": "Albums by Year / Songs by Title",
+                    "AlbumsByYearSongsByTrack": "Albums by Year / Songs by Track",
+                    "Off": "Off"
+                }
+            },
             "ShowHitWindow": {
                 "Name": "Mostrar Ventana de Golpe",
                 "Description": "Si se habilita, se mostrará una caja en tu pista que representa la \"ventana\" en la que puedes tocar notas."
@@ -1655,10 +1672,6 @@
             "UsePerformanceClaps": {
                 "Name": "Performance Claps",
                 "Description": "Play crowd claps along to the beat when performing well."
-            },
-            "UseVenueSfx": {
-                "Name": "Use Venue SFX",
-                "Description": "If enabled, venues will be allowed to play custom sound effects."
             },
             "UseVenueSfx": {
                 "Name": "Use Venue SFX",
@@ -1787,6 +1800,10 @@
             "PauseOnFocusLoss": {
                 "Name": "Pausar Al Perder Foco",
                 "Description": "Pauses the game if it's tabbed out/loses focus in the middle of a song."
+            },
+            "PauseOnMenuOpen": {
+                "Name": "Pause On Menu Open",
+                "Description": "Pauses the game when the track menu is opened."
             },
             "MuteOnFocusLoss": {
                 "Name": "Mute On Focus Loss",
@@ -2041,6 +2058,14 @@
                 "Rotation": {
                     "Name": "Rotación de la Cámara",
                     "Description": "La rotación de la cámara de la pista (arriba y abajo)."
+                },
+                "Orthographic": {
+                    "Name": "Orthographic Camera",
+                    "Description": "Use an orthographic projection instead of perspective."
+                },
+                "OrthographicSize": {
+                    "Name": "Orthographic Size",
+                    "Description": "The orthographic view size (half the vertical view height in world units). Only used when Orthographic Camera is enabled."
                 }
             },
             "ColorProfile": {
@@ -2378,11 +2403,8 @@
                 "BlackNoteStarPower": {
                     "Name": "Nota Negra con Energía Estrella"
                 },
-                "BlackFret": {
-                    "Name": "Black Fret"
-                },
-                "WhiteFret": {
-                    "Name": "White Fret"
+                "Fret": {
+                    "Name": "Fret"
                 },
                 "BlackFretInner": {
                     "Name": "Black Fret Inner"

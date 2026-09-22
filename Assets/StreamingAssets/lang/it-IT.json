@@ -613,6 +613,7 @@
             "Charters": "Creatori",
             "Intensities": {
                 "Name": "Intensità",
+                "FourLaneProDrums": "4-Lane/Pro Drums",
                 "WarmUp": "Riscaldamento",
                 "Apprentice": "Apprendista",
                 "Solid": "Solido",
@@ -665,7 +666,8 @@
                 "BackToLibrary": "Torna alla Libreria",
                 "Settings": "Impostazioni",
                 "Practice": "Pratica",
-                "DropOut": "Abbandona"
+                "DropOut": "Abbandona",
+                "ChangeDifficulty": "Change Difficulty"
             },
             "Fail": {
                 "EnableNoFailandResume": "Abilita Nessun Fallimento e riprendi",
@@ -1458,6 +1460,10 @@
                     "On": "Attivato - Limitato al 50%"
                 }
             },
+            "MuteOnlyWhenAllPlayersMiss": {
+                "Name": "Mute Only When All Players Miss",
+                "Description": "When several players share an instrument, only mute its stem if all of them are missing. Otherwise the stem's volume is divided between them. Has no effect on songs without a separate stem for the instrument."
+            },
             "NoKicks": {
                 "Name": "Nessun Pedale",
                 "Description": "Rimuovi tutte le note del pedale (solo batteria)"
@@ -1585,6 +1591,17 @@
                 "Name": "Mostra il Pulsante dei Preferiti",
                 "Description": "Mostra o nascondi il tasto dei preferiti nella libreria musicale. Puoi comunque mettere le canzoni tra i preferiti nel menù \"Più Opzioni\"  quando questo tasto è nascoto."
             },
+            "SecondaryAlbumSort": {
+                "Name": "Secondary Artist Sort",
+                "Description": "Groups albums with at least three songs under secondary headers when sorting the Music Library by artist.",
+                "Dropdown": {
+                    "AlbumsByTitleSongsByTitle": "Albums by Title / Songs by Title",
+                    "AlbumsByTitleSongsByTrack": "Albums by Title / Songs by Track",
+                    "AlbumsByYearSongsByTitle": "Albums by Year / Songs by Title",
+                    "AlbumsByYearSongsByTrack": "Albums by Year / Songs by Track",
+                    "Off": "Off"
+                }
+            },
             "ShowHitWindow": {
                 "Name": "Visualizza Riquadro di Precisione",
                 "Description": "Se abilitato, verrà visualizzato un riquadro durante la canzone, che rappresenta l'intervallo in cui puoi suonare la nota."
@@ -1655,10 +1672,6 @@
             "UsePerformanceClaps": {
                 "Name": "Battiti Prestazione",
                 "Description": "Riproduci battiti di mani della folla a tempo quando stai facendo una buona prestazione."
-            },
-            "UseVenueSfx": {
-                "Name": "Usa Sfx Location",
-                "Description": "Se abilitato, le location potranno riprodurre effetti sonori personalizzati."
             },
             "UseVenueSfx": {
                 "Name": "Usa Sfx Location",
@@ -1787,6 +1800,10 @@
             "PauseOnFocusLoss": {
                 "Name": "Pausa se in secondo piano",
                 "Description": "Mette in pausa il gioco se viene ridotto a icona / passa in secondo piano nel mezzo di una canzone."
+            },
+            "PauseOnMenuOpen": {
+                "Name": "Pause On Menu Open",
+                "Description": "Pauses the game when the track menu is opened."
             },
             "MuteOnFocusLoss": {
                 "Name": "Muto se in secondo piano",
@@ -2041,6 +2058,14 @@
                 "Rotation": {
                     "Name": "Rotazione Telecamera",
                     "Description": "L'inclinazione rotazionale della telecamera sulla pista (alto e basso)."
+                },
+                "Orthographic": {
+                    "Name": "Orthographic Camera",
+                    "Description": "Use an orthographic projection instead of perspective."
+                },
+                "OrthographicSize": {
+                    "Name": "Orthographic Size",
+                    "Description": "The orthographic view size (half the vertical view height in world units). Only used when Orthographic Camera is enabled."
                 }
             },
             "ColorProfile": {
@@ -2378,11 +2403,8 @@
                 "BlackNoteStarPower": {
                     "Name": "Nota Nera Star Power"
                 },
-                "BlackFret": {
-                    "Name": "Tasto Nero"
-                },
-                "WhiteFret": {
-                    "Name": "Tasto Bianco"
+                "Fret": {
+                    "Name": "Fret"
                 },
                 "BlackFretInner": {
                     "Name": "Tasto Nero Interno"

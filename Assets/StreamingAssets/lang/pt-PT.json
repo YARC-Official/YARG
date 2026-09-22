@@ -613,6 +613,7 @@
             "Charters": "Charters",
             "Intensities": {
                 "Name": "Intensities",
+                "FourLaneProDrums": "4-Lane/Pro Drums",
                 "WarmUp": "Warm Up",
                 "Apprentice": "Apprentice",
                 "Solid": "Solid",
@@ -665,7 +666,8 @@
                 "BackToLibrary": "Back To Library",
                 "Settings": "Settings",
                 "Practice": "Practice",
-                "DropOut": "Drop Out"
+                "DropOut": "Drop Out",
+                "ChangeDifficulty": "Change Difficulty"
             },
             "Fail": {
                 "EnableNoFailandResume": "Enable No Fail and Resume",
@@ -1458,6 +1460,10 @@
                     "On": "On - Background limited to 50%"
                 }
             },
+            "MuteOnlyWhenAllPlayersMiss": {
+                "Name": "Mute Only When All Players Miss",
+                "Description": "When several players share an instrument, only mute its stem if all of them are missing. Otherwise the stem's volume is divided between them. Has no effect on songs without a separate stem for the instrument."
+            },
             "NoKicks": {
                 "Name": "No Kicks",
                 "Description": "Removes all kick notes (drums only)."
@@ -1585,6 +1591,17 @@
                 "Name": "Show Favorite Button",
                 "Description": "Shows and hides the favorite button in the Music Library. Songs can still be favorited in the \"More Options\" menu when this button is hidden."
             },
+            "SecondaryAlbumSort": {
+                "Name": "Secondary Artist Sort",
+                "Description": "Groups albums with at least three songs under secondary headers when sorting the Music Library by artist.",
+                "Dropdown": {
+                    "AlbumsByTitleSongsByTitle": "Albums by Title / Songs by Title",
+                    "AlbumsByTitleSongsByTrack": "Albums by Title / Songs by Track",
+                    "AlbumsByYearSongsByTitle": "Albums by Year / Songs by Title",
+                    "AlbumsByYearSongsByTrack": "Albums by Year / Songs by Track",
+                    "Off": "Off"
+                }
+            },
             "ShowHitWindow": {
                 "Name": "Show Hit Window",
                 "Description": "If enabled, a box will be shown on your track that represents the \"window\" in which notes can be hit."
@@ -1655,10 +1672,6 @@
             "UsePerformanceClaps": {
                 "Name": "Performance Claps",
                 "Description": "Play crowd claps along to the beat when performing well."
-            },
-            "UseVenueSfx": {
-                "Name": "Use Venue SFX",
-                "Description": "If enabled, venues will be allowed to play custom sound effects."
             },
             "UseVenueSfx": {
                 "Name": "Use Venue SFX",
@@ -1787,6 +1800,10 @@
             "PauseOnFocusLoss": {
                 "Name": "Pause On Focus Loss",
                 "Description": "Pauses the game if it's tabbed out/loses focus in the middle of a song."
+            },
+            "PauseOnMenuOpen": {
+                "Name": "Pause On Menu Open",
+                "Description": "Pauses the game when the track menu is opened."
             },
             "MuteOnFocusLoss": {
                 "Name": "Mute On Focus Loss",
@@ -2041,6 +2058,14 @@
                 "Rotation": {
                     "Name": "Camera Rotation",
                     "Description": "The track camera's rotational pitch (up and down)."
+                },
+                "Orthographic": {
+                    "Name": "Orthographic Camera",
+                    "Description": "Use an orthographic projection instead of perspective."
+                },
+                "OrthographicSize": {
+                    "Name": "Orthographic Size",
+                    "Description": "The orthographic view size (half the vertical view height in world units). Only used when Orthographic Camera is enabled."
                 }
             },
             "ColorProfile": {
@@ -2378,11 +2403,8 @@
                 "BlackNoteStarPower": {
                     "Name": "Black Note Star Power"
                 },
-                "BlackFret": {
-                    "Name": "Black Fret"
-                },
-                "WhiteFret": {
-                    "Name": "White Fret"
+                "Fret": {
+                    "Name": "Fret"
                 },
                 "BlackFretInner": {
                     "Name": "Black Fret Inner"
