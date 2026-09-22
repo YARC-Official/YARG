@@ -1,4 +1,4 @@
-{
+﻿{
     "Language": {
         "Name": "English",
         "Region": "United States",
@@ -1305,15 +1305,15 @@
                     "Windowed": "Windowed"
                 }
             },
-			"Genrelizer": {
-				"Name": "Standardize Genre Metadata",
-				"Description": "Categorizes genre metadata into standard sets of genres, using data from the Genrelizer GitHub repository. <color=white>Rescan required if changed!</color>",
-				"Dropdown": {
-				    "Genrelize": "Full",
-					"Overgenrelize": "Simplified",
-					"Off": "None"
-				}
-			},
+            "Genrelizer": {
+                "Name": "Standardize Genre Metadata",
+                "Description": "Categorizes genre metadata into standard sets of genres, using data from the Genrelizer GitHub repository. <color=white>Rescan required if changed!</color>",
+                "Dropdown": {
+                    "Genrelize": "Full",
+                    "Overgenrelize": "Simplified",
+                    "Off": "None"
+                }
+            },
             "GraphicalProgressOnScoreBox": {
                 "Name": "Graphical Progress On Score Box",
                 "Description": "Enables and disables the graphical blue outline on the score box that displays the song's progress."
@@ -1585,6 +1585,10 @@
                 "Name": "Save Scores with Bots",
                 "Description": "Allows score saving when playing with bots. Only human scores are recorded. Bot scores are excluded."
             },
+            "StreakCounter": {
+                "Name": "Enable Streak Counter",
+                "Description": "Displays the current streak count during gameplay."
+            },
             "SfxVolume": {
                 "Name": "SFX Volume",
                 "PauseName": "SFX",
@@ -1782,7 +1786,7 @@
                 "PauseName": "Reverb",
                 "Description": "Adjusts the amount of reverb applied to vocal monitoring. 0 is dry, 1.0 is maximum."
             },
-			"VocalStreakFrequency": {
+            "VocalStreakFrequency": {
                 "Name": "Vocal Streak Frequency",
                 "Description": "Sets the frequency of phrase streak notifications for vocalists.",
                 "Dropdown": {
@@ -1960,10 +1964,10 @@
                 "Name": "Show Player Name When Starting Song",
                 "Description": "If enabled, the player name and instrument icon will appear when the song starts."
             },
-			"StaticVocalsMode": {
-				"Name": "Static Vocals Mode",
-				"Description": "When enabled, lyrics stay stationary on the left side of the vocal highway. When disabled, lyrics scroll across the vocal highway."
-			},
+            "StaticVocalsMode": {
+                "Name": "Static Vocals Mode",
+                "Description": "When enabled, lyrics stay stationary on the left side of the vocal highway. When disabled, lyrics scroll across the vocal highway."
+            },
             "UseThreeLaneLyricsInHarmony": {
                 "Name": "Use Three Lyric Lanes In Harmony",
                 "Description": "If enabled, the game will display three lyric lanes in harmony mode (one for each harmony). When disabled, the game will combine the lyrics of harmonies 2 and 3 into one lane at the top."
