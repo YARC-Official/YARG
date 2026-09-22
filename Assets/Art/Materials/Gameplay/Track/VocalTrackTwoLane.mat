@@ -8,7 +8,7 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: VocalTrackTwoLane
-  m_Shader: {fileID: -6465566751694194690, guid: ada1ac8da2af84a8896045535d56658c, type: 3}
+  m_Shader: {fileID: 4800000, guid: e2dce5cc60f544409c678d3ae8f4325d, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords:

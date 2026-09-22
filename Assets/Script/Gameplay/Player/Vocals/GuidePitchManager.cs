@@ -37,6 +37,7 @@ namespace YARG.Gameplay.Player
 
         private readonly ToneChannel           _toneChannel;
         private readonly VocalsTrack           _vocalsTrack;
+        private readonly Color[]                _colors;
         private readonly Action<string, Color> _statusChanged;
 
         /// <summary>
@@ -67,16 +68,17 @@ namespace YARG.Gameplay.Player
             }
 
             var manager = new GuidePitchManager(toneChannel, vocalTrack.OriginalVocalsTrack,
-                statusChanged);
+                vocalTrack.Colors, statusChanged);
             manager.NotifyStatusChanged();
             return manager;
         }
 
-        private GuidePitchManager(ToneChannel toneChannel, VocalsTrack vocalsTrack,
+        private GuidePitchManager(ToneChannel toneChannel, VocalsTrack vocalsTrack, Color[] colors,
             Action<string, Color> statusChanged)
         {
             _toneChannel = toneChannel;
             _vocalsTrack = vocalsTrack;
+            _colors = colors;
             _statusChanged = statusChanged;
         }
 
@@ -168,12 +170,12 @@ namespace YARG.Gameplay.Player
             }
 
             int index = _enabledHarmonyIndex;
-            if (index < 0 || index >= VocalTrack.Colors.Length)
+            if (index < 0 || index >= _colors.Length)
             {
                 return Color.white;
             }
 
-            return VocalTrack.Colors[index];
+            return _colors[index];
         }
 
         private VocalsPart GetEnabledPart()
