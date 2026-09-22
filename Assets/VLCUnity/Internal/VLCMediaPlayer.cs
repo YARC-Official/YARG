@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using UnityEngine;
 
@@ -24,6 +26,24 @@ namespace LibVLCSharp
         private const float BufferingPercentageScale = 100f;
 
         public static LibVLC LibVLC { get; private set; }
+
+        /// <summary>
+        /// Optional override for the base directory passed to <see cref="Core.Initialize"/> on
+        /// Windows/Mac, in place of <see cref="Application.dataPath"/>. Set by non-vendored game
+        /// code (see YARG.Settings.SettingsManager.Settings.cs) before any VLCMediaPlayer.Awake()
+        /// runs. Null/empty means "use the default". Has no effect on Linux (InitializeUnity is a
+        /// no-op there).
+        /// </summary>
+        public static string LibraryPathOverride { get; set; }
+
+        // The base path LibVLC was actually initialized with, so Awake() can detect a
+        // LibraryPathOverride change and re-initialize instead of silently keeping the old
+        // (static, process-lifetime) LibVLC instance.
+        private static string _lastInitializedBasePath;
+
+        private static string GetEffectiveBasePath() =>
+            string.IsNullOrEmpty(LibraryPathOverride) ? Application.dataPath : LibraryPathOverride;
+
         public MediaPlayer MediaPlayer { get; private set;  }
         public override RenderTexture OutputTexture { get; protected set; }
 
@@ -90,11 +110,23 @@ namespace LibVLCSharp
             try
             {
                 if (LibVLC == null)
+                {
                     CreateLibVLC();
+                }
+                else if (_lastInitializedBasePath != GetEffectiveBasePath())
+                {
+                    // LibraryPathOverride changed since LibVLC was last built -- re-run
+                    // CreateLibVLC() so the new path actually gets tried instead of silently
+                    // reusing the old (static, process-lifetime) instance.
+                    Debug.Log($"[VLCMediaPlayer] Configured VLC path changed from '{_lastInitializedBasePath}' to '{GetEffectiveBasePath()}', re-initializing. " +
+                        "If playback still reflects the old install, a full Editor/app restart may be required.");
+                    CreateLibVLC();
+                }
             }
-            catch (DllNotFoundException)
+            catch (Exception ex)
             {
                 // Disable VLC so the game falls back to Unity's video player.
+                Debug.LogWarning($"[VLCMediaPlayer] Failed to initialize libvlc, falling back to Unity's video player: {ex}");
                 enabled = false;
                 return;
             }
@@ -391,10 +423,56 @@ namespace LibVLCSharp
                 LibVLC = null;
             }
 
+// load a non-default VLC library, if a path has been selected
 #if UNITY_STANDALONE_LINUX || UNITY_EDITOR_LINUX || UNITY_EMBEDDED_LINUX
             Core.Initialize(OnLoad.LibVLCDirectory); // Load bundled Linux libvlc.
 #else
-            Core.Initialize(Application.dataPath); // Load VLC dlls
+            string basePath = GetEffectiveBasePath();
+
+#if UNITY_STANDALONE_OSX || UNITY_EDITOR_OSX
+            // InitializeUnity's own Mac path math builds paths with backslashes, which aren't
+            // separators on macOS, so its directory lookup never finds anything real here.
+            // Pre-load the real libvlc/libvlccore/plugins ourselves instead, and use success/
+            // failure here as a pre-check for whether it's even safe to call Core.Initialize
+            // below -- see TryPreloadMac.
+            bool macLibvlcLoaded = TryPreloadMac(basePath, out string macPluginsDir);
+            if (!macLibvlcLoaded && basePath != Application.dataPath)
+            {
+                Debug.LogWarning($"[VLCMediaPlayer] No usable libvlc under configured path '{basePath}'. Trying default location.");
+                basePath = Application.dataPath;
+                macLibvlcLoaded = TryPreloadMac(basePath, out macPluginsDir);
+            }
+
+            if (!macLibvlcLoaded)
+            {
+                Debug.LogWarning("[VLCMediaPlayer] No usable libvlc found -- skipping native init to avoid poisoning it for later attempts this session.");
+                return;
+            }
+#endif
+
+            Debug.Log($"[VLCMediaPlayer] Initializing libvlc with base path '{basePath}' (override: {!string.IsNullOrEmpty(LibraryPathOverride)}).");
+            try
+            {
+                Core.Initialize(basePath);
+            }
+            catch (Exception ex) when (basePath != Application.dataPath)
+            {
+                // User-configured VLC library path didn't yield a working libvlc; soft-fall back
+                // to the default location rather than hard-failing VLC init entirely.
+                Debug.LogWarning($"[VLCMediaPlayer] Failed to initialize libvlc from configured path '{basePath}': {ex.Message}. Falling back to default.");
+                Core.Initialize(Application.dataPath);
+            }
+
+#if UNITY_STANDALONE_OSX || UNITY_EDITOR_OSX
+            // Core.Initialize (above) unconditionally overwrites VLC_PLUGIN_PATH with its own
+            // (backslash-broken) guess. Re-apply ours after it, before LibVLC is constructed
+            // and actually reads the variable.
+            if (macPluginsDir != null)
+            {
+                Environment.SetEnvironmentVariable("VLC_PLUGIN_PATH", macPluginsDir);
+                Debug.Log($"[VLCMediaPlayer] Re-applied VLC_PLUGIN_PATH='{macPluginsDir}' after Core.Initialize (which overwrites it with its own, incompatible guess).");
+            }
+#endif
 #endif
 
             var args = new List<string>();
@@ -409,7 +487,116 @@ namespace LibVLCSharp
             Application.SetStackTraceLogType(LogType.Log, StackTraceLogType.None);
 
             VLCUnityLogger.HookLibVLC(LibVLC);
+
+            _lastInitializedBasePath = GetEffectiveBasePath();
         }
+
+#if UNITY_STANDALONE_OSX || UNITY_EDITOR_OSX
+        // Resolves a user-configured VLC install to its libvlc/libvlccore/plugins and
+        // dlopen-preloads them directly, bypassing Core.Initialize's own directory lookup
+        // (broken on Mac, see above). RTLD_GLOBAL makes later bare-name DllImport resolution
+        // (used throughout LibVLCSharp.dll) find the preloaded image instead.
+        // NativeLibrary isn't available under this project's scripting API compatibility
+        // level, hence the raw dlopen P/Invoke rather than that.
+        [DllImport("libSystem.dylib", EntryPoint = "dlopen")]
+        private static extern IntPtr Dlopen(string path, int mode);
+
+        private const int RTLD_NOW_GLOBAL = 0x2 | 0x8;
+
+        // Last path a preload was attempted from. Native libraries aren't unloaded between
+        // Play sessions within one Editor process, so dlopen-ing a different libvlc later
+        // doesn't replace the first one -- used only to warn when a stale library from an
+        // earlier session may be shadowing the current attempt.
+        private static string _macPreloadedFrom;
+
+        // Finds and dlopen-preloads the real libvlc/libvlccore/plugins under basePath, trying
+        // known VLC install layouts. Returns false if none are found or preloading fails --
+        // callers must not call Core.Initialize in that case: a failed [DllImport] into
+        // LibVLCSharp.dll is cached by the runtime and never retried for the rest of the
+        // process, so calling it against a path known not to work breaks every later attempt
+        // this session too, including a subsequently-corrected LibraryPathOverride. On success,
+        // pluginsDir is the resolved plugins folder, or null if libvlc loaded but no plugins
+        // folder was found nearby (the caller must re-apply it as VLC_PLUGIN_PATH after
+        // Core.Initialize runs -- see call site).
+        private static bool TryPreloadMac(string basePath, out string pluginsDir)
+        {
+            pluginsDir = null;
+
+            const string libvlcName = "libvlc.dylib";
+            const string libvlccoreName = "libvlccore.dylib";
+
+            // Known VLC install layouts: the path itself (already pointing at the folder
+            // containing the libraries), a VLC 3.x app bundle's Contents/MacOS/lib, or a VLC
+            // 4.x app bundle's Contents/Frameworks. Add new ones here rather than replacing
+            // existing ones -- real installs in the wild use all of these.
+            string[] candidates =
+            {
+                basePath,
+                Path.Combine(basePath, "Contents", "MacOS", "lib"),
+                Path.Combine(basePath, "Contents", "Frameworks"),
+            };
+
+            string libDir = null;
+            foreach (var candidate in candidates)
+            {
+                if (File.Exists(Path.Combine(candidate, libvlcName)) &&
+                    File.Exists(Path.Combine(candidate, libvlccoreName)))
+                {
+                    libDir = candidate;
+                    break;
+                }
+            }
+
+            if (libDir == null)
+            {
+                Debug.LogWarning($"[VLCMediaPlayer] Could not find {libvlcName}/{libvlccoreName} under '{basePath}' (checked: {string.Join(", ", candidates)}).");
+                return false;
+            }
+
+            string libvlcPath = Path.Combine(libDir, libvlcName);
+            string libvlccorePath = Path.Combine(libDir, libvlccoreName);
+
+            if (_macPreloadedFrom != null && _macPreloadedFrom != libDir)
+            {
+                Debug.LogWarning($"[VLCMediaPlayer] A different libvlc was already loaded earlier in this Editor session, from '{_macPreloadedFrom}'. " +
+                    "Native libraries aren't unloaded between Play sessions -- restart the Editor to get a clean test of the newly-configured path.");
+            }
+            _macPreloadedFrom = libDir;
+
+            // libvlc depends on libvlccore -- load it first.
+            if (Dlopen(libvlccorePath, RTLD_NOW_GLOBAL) == IntPtr.Zero ||
+                Dlopen(libvlcPath, RTLD_NOW_GLOBAL) == IntPtr.Zero)
+            {
+                Debug.LogWarning($"[VLCMediaPlayer] Failed to pre-load libvlc from '{libDir}'.");
+                return false;
+            }
+
+            // Plugins folder candidates: alongside the libraries directly (also covers a VLC
+            // 4.x app bundle, where this is Contents/Frameworks/plugins); a sibling of libDir
+            // (a VLC 3.x app bundle's Contents/MacOS/plugins next to Contents/MacOS/lib); or
+            // nested under "vlc" alongside the libraries (a standalone SDK build's lib/vlc/plugins).
+            string[] pluginCandidates =
+            {
+                Path.Combine(libDir, "plugins"),
+                Path.Combine(Path.GetDirectoryName(libDir) ?? string.Empty, "plugins"),
+                Path.Combine(libDir, "vlc", "plugins"),
+            };
+
+            pluginsDir = pluginCandidates.FirstOrDefault(Directory.Exists);
+
+            if (pluginsDir != null)
+            {
+                Environment.SetEnvironmentVariable("VLC_PLUGIN_PATH", pluginsDir);
+                Debug.Log($"[VLCMediaPlayer] Pre-loaded libvlc from '{libDir}', plugins from '{pluginsDir}'.");
+            }
+            else
+            {
+                Debug.LogWarning($"[VLCMediaPlayer] Pre-loaded libvlc from '{libDir}' but couldn't find a plugins folder (checked: {string.Join(", ", pluginCandidates)}).");
+            }
+
+            return true;
+        }
+#endif
 
         private void CreateMediaPlayer()
         {
