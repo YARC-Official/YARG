@@ -82,6 +82,10 @@ namespace YARG.Menu.ProfileList
 
         private void OnEnable()
         {
+            _headerTabs.TabChanged += OnTabChanged;
+            _currentTab = ProfileMenuTab.Profiles;
+            _headerTabs.SelectTabById(PROFILES_TAB);
+
             RefreshProfileList();
 
             _controls = LayoutHelper.GetAllControlsForControllerFamily(CurrentBindingSetFilter);
@@ -91,13 +95,7 @@ namespace YARG.Menu.ProfileList
                 new NavigationScheme.Entry(MenuAction.Red, "Menu.Common.Back", () => MenuManager.Instance.PopMenu(), hide: true),
             }, true));
 
-            OnTabChanged(PROFILES_TAB);
-
-            _headerTabs.TabChanged += OnTabChanged;
-
             PlayerContainer.PlayerAdded += OnPlayerAdded;
-
-            var x = LayoutHelper.GetAllControlsForControllerFamily(ControllerFamily.FiveFretGuitar);
         }
 
         private void OnDisable()
@@ -113,6 +111,7 @@ namespace YARG.Menu.ProfileList
             Navigator.Instance?.PopScheme();
 
             PlayerContainer.PlayerAdded -= OnPlayerAdded;
+            _headerTabs.TabChanged -= OnTabChanged;
         }
 
         public void RefreshBindingSetList()
