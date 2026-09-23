@@ -45,24 +45,24 @@ namespace YARG.Menu.ProfileList
 
         public override void RefreshBindings()
         {
-            _header.ClearBindings();
+            _bindingList.ClearDrawer();
 
             foreach (var control in Binding.Bindings)
             {
                 /* TODO-FRICK: MIDI stuff
                 if (control.Control is MidiNoteControl)
                 {
-                    _header.AddBinding<ReusableSingleMidiNoteBindView, ReusableButtonBinding, ReusableSingleButtonBinding>(
-                        _midiNoteViewPrefab, _binding, control);
+                    var bindView = _bindingList.AddNewWithoutRebuild(_midiNoteViewPrefab);
+                    bindView.Init(Binding, control, _controls);
                 }
                 else
                 {*/
-                    _header.AddBinding<ReusableSingleButtonBindView, ReusableButtonBinding, ReusableSingleButtonBinding, float>(
-                        _viewPrefab, Binding, control, _controls);
+                    var bindView = _bindingList.AddNewWithoutRebuild(_viewPrefab);
+                    bindView.Init(Binding, control, _controls);
                 //}
             }
 
-            _header.RebuildBindingsLayout();
+            _bindingList.RebuildLayout();
         }
 
         public override void AddNewBinding()
