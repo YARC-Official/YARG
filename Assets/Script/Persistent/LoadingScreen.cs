@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 using YARG.Core.Logging;
 using YARG.Helpers;
 using YARG.Input.Bindings;
@@ -22,6 +23,16 @@ namespace YARG
         public TextMeshProUGUI SubPhrase;
 
         public static bool IsActive => Instance.gameObject.activeSelf;
+
+        protected override void SingletonAwake()
+        {
+            // This object owns an override-sorting canvas, so the raycaster on the
+            // parent canvas cannot use its full-screen image as an input blocker.
+            if (GetComponent<GraphicRaycaster>() == null)
+            {
+                gameObject.AddComponent<GraphicRaycaster>();
+            }
+        }
 
         private async void Start()
         {
@@ -151,7 +162,10 @@ namespace YARG
 
     public sealed class LoadingContext : IDisposable
     {
+        private static int _activeContextCount;
+
         private bool _disposed;
+        private readonly IDisposable _inputBlocker;
 
         private struct QueuedTask
         {
@@ -164,8 +178,10 @@ namespace YARG
 
         public LoadingContext()
         {
+            _inputBlocker = Navigator.Instance.PushInputBlocker();
+
+            _activeContextCount++;
             LoadingScreen.Instance.gameObject.SetActive(true);
-            Navigator.Instance.DisableMenuInputs = true;
         }
 
         public void SetLoadingText(string phrase, string sub = null)
@@ -213,14 +229,26 @@ namespace YARG
 
         public async void Dispose()
         {
-            if (!_disposed)
+            if (_disposed) return;
+
+            _disposed = true;
+
+            try
             {
                 await Wait();
-                LoadingScreen.Instance.gameObject.SetActive(false);
-                Navigator.Instance.DisableMenuInputs = false;
-                _disposed = true;
             }
-            GC.SuppressFinalize(this);
+            finally
+            {
+                _inputBlocker.Dispose();
+
+                _activeContextCount = Math.Max(0, _activeContextCount - 1);
+                if (_activeContextCount == 0)
+                {
+                    LoadingScreen.Instance.gameObject.SetActive(false);
+                }
+
+                GC.SuppressFinalize(this);
+            }
         }
 
         ~LoadingContext()
