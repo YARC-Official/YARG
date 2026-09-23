@@ -99,6 +99,7 @@ namespace YARG.Menu.MusicLibrary
         private const int BACK_ID = 2;
         private const int RECOMMENDED_SONGS_ID = 3;
         private const int CREATE_NEW_PLAYLIST_ID = 4;
+        private const int MINIMUM_ALBUM_GROUP_SIZE = 3;
 
         public static MusicLibraryMode LibraryMode;
 
@@ -644,10 +645,12 @@ namespace YARG.Menu.MusicLibrary
                 int sectionTotalStars = 0;
                 bool includeSongs = _sortedSongs.Length <= 1 || !_collapsedHeaders[SettingsManager.Settings.LibrarySort].Contains(section);
 
-                foreach (var song in section.Songs)
-                {
-                    if (!allowdupes && song.IsDuplicate) continue;
+                var displayedSongs = section.Songs
+                    .Where(song => allowdupes || !song.IsDuplicate)
+                    .ToArray();
 
+                void AddSong(SongEntry song)
+                {
                     StarAmount? starAmount;
 
                     if (includeSongs)
@@ -664,6 +667,56 @@ namespace YARG.Menu.MusicLibrary
                     if (starAmount is not null)
                     {
                         sectionTotalStars += starAmount.Value.GetStarCount();
+                    }
+                }
+
+                var secondaryAlbumSort = SettingsManager.Settings.SecondaryAlbumSort.Value;
+                if (includeSongs && SettingsManager.Settings.LibrarySort == SortAttribute.Artist &&
+                    secondaryAlbumSort != SecondaryAlbumSortMode.Off)
+                {
+                    IEnumerable<IGrouping<SortString, SongEntry>> albumGroups = displayedSongs
+                        .GroupBy(song => song.Album)
+                        .Where(group => group.Key.Length > 0 && group.Count() >= MINIMUM_ALBUM_GROUP_SIZE);
+
+                    albumGroups = secondaryAlbumSort is
+                        SecondaryAlbumSortMode.AlbumsByYearSongsByTitle or
+                        SecondaryAlbumSortMode.AlbumsByYearSongsByTrack
+                        ? albumGroups.OrderBy(group => group.Min(song => song.YearAsNumber))
+                            .ThenBy(group => group.Key)
+                        : albumGroups.OrderBy(group => group.Key);
+
+                    var groupedAlbums = albumGroups.ToArray();
+                    var groupedSongs = new HashSet<SongEntry>(groupedAlbums.SelectMany(group => group));
+
+                    // Songs without enough same-album companions retain their existing title order
+                    // immediately below the artist header.
+                    foreach (var song in displayedSongs.Where(song => !groupedSongs.Contains(song)))
+                    {
+                        AddSong(song);
+                    }
+
+                    foreach (var album in groupedAlbums)
+                    {
+                        var albumSongs = secondaryAlbumSort is
+                            SecondaryAlbumSortMode.AlbumsByTitleSongsByTrack or
+                            SecondaryAlbumSortMode.AlbumsByYearSongsByTrack
+                            ? album.OrderBy(song => song.AlbumTrack).ThenBy(song => song.Name).ToArray()
+                            : album.OrderBy(song => song.Name).ToArray();
+                        var albumHeader = new SecondaryHeaderViewType(album.Key, albumSongs.Length);
+                        list.Add(albumHeader);
+                        int starsBeforeAlbum = sectionTotalStars;
+                        foreach (var song in albumSongs)
+                        {
+                            AddSong(song);
+                        }
+                        albumHeader.TotalStarsCount = sectionTotalStars - starsBeforeAlbum;
+                    }
+                }
+                else
+                {
+                    foreach (var song in displayedSongs)
+                    {
+                        AddSong(song);
                     }
                 }
                 _totalStarCount += sectionTotalStars;
@@ -1024,12 +1077,19 @@ namespace YARG.Menu.MusicLibrary
 
         public void SelectRandomSong()
         {
-            if (!ViewList.Any(i => i is SongViewType)) return;
-
-            do
+            var songIndices = new List<int>();
+            for (int i = 0; i < ViewList.Count; i++)
             {
-                SelectedIndex = Random.Range(0, ViewList.Count);
-            } while (CurrentSelection is not SongViewType);
+                if (ViewList[i] is SongViewType)
+                {
+                    songIndices.Add(i);
+                }
+            }
+
+            if (songIndices.Count == 0)
+                return;
+
+            SelectedIndex = songIndices[Random.Range(0, songIndices.Count)];
         }
 
         public void ExpandAll()
