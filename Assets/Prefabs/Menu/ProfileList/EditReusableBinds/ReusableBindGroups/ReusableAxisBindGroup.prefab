@@ -561,6 +561,14 @@ PrefabInstance:
     - target: {fileID: 8048610000492137352, guid: 6e2667896228a7e44bf8acf6a019f0a3, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
       value: 
+      objectReference: {fileID: 2066996443643632486}
+    - target: {fileID: 8048610000492137352, guid: 6e2667896228a7e44bf8acf6a019f0a3, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
+      value: AddNewBinding
+      objectReference: {fileID: 0}
+    - target: {fileID: 8048610000492137352, guid: 6e2667896228a7e44bf8acf6a019f0a3, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
+      value: YARG.Menu.ProfileList.ReusableAxisBindGroup, Assembly-CSharp
       objectReference: {fileID: 0}
     m_RemovedComponents:
     - {fileID: 5150806421374574871, guid: 6e2667896228a7e44bf8acf6a019f0a3, type: 3}

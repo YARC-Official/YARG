@@ -171,6 +171,14 @@ namespace YARG.Input.Bindings
         public float PressPoint { get; set; } = PRESS_POINT_DEFAULT;
         public bool Inverted { get; set; } = INVERTED_DEFAULT;
 
+        public ReusableSingleButtonBinding() : base(null, null)
+        {
+            DebounceThreshold = DEBOUNCE_THRESHOLD_DEFAULT;
+            DebounceMode = DEBOUNCE_MODE_DEFAULT;
+            PressPoint = PRESS_POINT_DEFAULT;
+            Inverted = INVERTED_DEFAULT;
+        }
+
         public ReusableSingleButtonBinding(ReusableSingleButtonBindingConfig config) : base(config.ControlPath, config.DisplayName) {
             DebounceThreshold = config.DebounceThreshold ?? DEBOUNCE_THRESHOLD_DEFAULT;
             DebounceMode = config.DebounceMode ?? DEBOUNCE_MODE_DEFAULT;

@@ -47,5 +47,7 @@ namespace YARG.Menu.ProfileList
 
             _header.RebuildBindingsLayout();
         }
+
+        public abstract void AddNewBinding();
     }
 }

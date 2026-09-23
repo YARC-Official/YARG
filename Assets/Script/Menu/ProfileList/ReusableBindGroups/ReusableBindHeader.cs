@@ -127,10 +127,5 @@ namespace YARG.Menu.ProfileList
         {
             _bindingList.RebuildLayout();
         }
-
-        public async void AddNewBind()
-        {
-            // await _centerPane.ShowControlDialog(_bindingSet, _binding); TODO-FRICK
-        }
     }
 }
