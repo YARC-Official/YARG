@@ -230,19 +230,23 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7665292889178861594, guid: dbdf67b69820732439f61d5a3cd2b4fd, type: 3}
       propertyPath: ValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_Mode
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 7665292889178861594, guid: dbdf67b69820732439f61d5a3cd2b4fd, type: 3}
+      propertyPath: ValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_Target
+      value: 
+      objectReference: {fileID: 1420292965105626666}
     - target: {fileID: 7665292889178861594, guid: dbdf67b69820732439f61d5a3cd2b4fd, type: 3}
       propertyPath: ValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_CallState
       value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 7665292889178861594, guid: dbdf67b69820732439f61d5a3cd2b4fd, type: 3}
       propertyPath: ValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
-      value: OnMinValueChanged
+      value: OnMaxValueChanged
       objectReference: {fileID: 0}
     - target: {fileID: 7665292889178861594, guid: dbdf67b69820732439f61d5a3cd2b4fd, type: 3}
       propertyPath: ValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
-      value: YARG.Menu.Profiles.AxisBindView, Assembly-CSharp
+      value: YARG.Menu.ProfileList.ReusableSingleAxisBindView, Assembly-CSharp
       objectReference: {fileID: 0}
     - target: {fileID: 7665292889178861594, guid: dbdf67b69820732439f61d5a3cd2b4fd, type: 3}
       propertyPath: ValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_ObjectArgumentAssemblyTypeName
@@ -985,8 +989,12 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7665292889178861594, guid: dbdf67b69820732439f61d5a3cd2b4fd, type: 3}
       propertyPath: ValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_Mode
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 7665292889178861594, guid: dbdf67b69820732439f61d5a3cd2b4fd, type: 3}
+      propertyPath: ValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_Target
+      value: 
+      objectReference: {fileID: 1420292965105626666}
     - target: {fileID: 7665292889178861594, guid: dbdf67b69820732439f61d5a3cd2b4fd, type: 3}
       propertyPath: ValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_CallState
       value: 2
@@ -997,7 +1005,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7665292889178861594, guid: dbdf67b69820732439f61d5a3cd2b4fd, type: 3}
       propertyPath: ValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
-      value: YARG.Menu.Profiles.AxisBindView, Assembly-CSharp
+      value: YARG.Menu.ProfileList.ReusableSingleAxisBindView, Assembly-CSharp
       objectReference: {fileID: 0}
     - target: {fileID: 7665292889178861594, guid: dbdf67b69820732439f61d5a3cd2b4fd, type: 3}
       propertyPath: ValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_ObjectArgumentAssemblyTypeName
@@ -1790,8 +1798,12 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7147442041986558330, guid: aed667cd79204fe4aad4f297b650e848, type: 3}
       propertyPath: onValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_Mode
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 7147442041986558330, guid: aed667cd79204fe4aad4f297b650e848, type: 3}
+      propertyPath: onValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_Target
+      value: 
+      objectReference: {fileID: 1420292965105626666}
     - target: {fileID: 7147442041986558330, guid: aed667cd79204fe4aad4f297b650e848, type: 3}
       propertyPath: onValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_CallState
       value: 2
@@ -1802,7 +1814,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7147442041986558330, guid: aed667cd79204fe4aad4f297b650e848, type: 3}
       propertyPath: onValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
-      value: YARG.Menu.Profiles.AxisBindView, Assembly-CSharp
+      value: YARG.Menu.ProfileList.ReusableSingleAxisBindView, Assembly-CSharp
       objectReference: {fileID: 0}
     - target: {fileID: 7147442041986558330, guid: aed667cd79204fe4aad4f297b650e848, type: 3}
       propertyPath: onValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_ObjectArgumentAssemblyTypeName
@@ -1975,8 +1987,12 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7665292889178861594, guid: dbdf67b69820732439f61d5a3cd2b4fd, type: 3}
       propertyPath: ValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_Mode
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 7665292889178861594, guid: dbdf67b69820732439f61d5a3cd2b4fd, type: 3}
+      propertyPath: ValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_Target
+      value: 
+      objectReference: {fileID: 1420292965105626666}
     - target: {fileID: 7665292889178861594, guid: dbdf67b69820732439f61d5a3cd2b4fd, type: 3}
       propertyPath: ValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_CallState
       value: 2
@@ -1987,7 +2003,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7665292889178861594, guid: dbdf67b69820732439f61d5a3cd2b4fd, type: 3}
       propertyPath: ValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
-      value: YARG.Menu.Profiles.AxisBindView, Assembly-CSharp
+      value: YARG.Menu.ProfileList.ReusableSingleAxisBindView, Assembly-CSharp
       objectReference: {fileID: 0}
     - target: {fileID: 7665292889178861594, guid: dbdf67b69820732439f61d5a3cd2b4fd, type: 3}
       propertyPath: ValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_ObjectArgumentAssemblyTypeName
@@ -2773,19 +2789,23 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7665292889178861594, guid: dbdf67b69820732439f61d5a3cd2b4fd, type: 3}
       propertyPath: ValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_Mode
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 7665292889178861594, guid: dbdf67b69820732439f61d5a3cd2b4fd, type: 3}
+      propertyPath: ValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_Target
+      value: 
+      objectReference: {fileID: 1420292965105626666}
     - target: {fileID: 7665292889178861594, guid: dbdf67b69820732439f61d5a3cd2b4fd, type: 3}
       propertyPath: ValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_CallState
       value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 7665292889178861594, guid: dbdf67b69820732439f61d5a3cd2b4fd, type: 3}
       propertyPath: ValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
-      value: OnMaxValueChanged
+      value: OnMinValueChanged
       objectReference: {fileID: 0}
     - target: {fileID: 7665292889178861594, guid: dbdf67b69820732439f61d5a3cd2b4fd, type: 3}
       propertyPath: ValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
-      value: YARG.Menu.Profiles.AxisBindView, Assembly-CSharp
+      value: YARG.Menu.ProfileList.ReusableSingleAxisBindView, Assembly-CSharp
       objectReference: {fileID: 0}
     - target: {fileID: 7665292889178861594, guid: dbdf67b69820732439f61d5a3cd2b4fd, type: 3}
       propertyPath: ValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_ObjectArgumentAssemblyTypeName
