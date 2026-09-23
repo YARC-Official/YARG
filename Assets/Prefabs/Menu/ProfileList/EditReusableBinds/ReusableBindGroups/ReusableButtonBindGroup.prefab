@@ -503,10 +503,6 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7665292889178861594, guid: dbdf67b69820732439f61d5a3cd2b4fd, type: 3}
-      propertyPath: ValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_Target
-      value: 
-      objectReference: {fileID: 2533602271579289954}
-    - target: {fileID: 7665292889178861594, guid: dbdf67b69820732439f61d5a3cd2b4fd, type: 3}
       propertyPath: ValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_CallState
       value: 2
       objectReference: {fileID: 0}
@@ -682,6 +678,14 @@ PrefabInstance:
     - target: {fileID: 2363189801400046139, guid: 6e2667896228a7e44bf8acf6a019f0a3, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
       value: 
+      objectReference: {fileID: 1232114195069324725}
+    - target: {fileID: 2363189801400046139, guid: 6e2667896228a7e44bf8acf6a019f0a3, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
+      value: OnSettingsClicked
+      objectReference: {fileID: 0}
+    - target: {fileID: 2363189801400046139, guid: 6e2667896228a7e44bf8acf6a019f0a3, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
+      value: YARG.Menu.ProfileList.ReusableBindHeader, Assembly-CSharp
       objectReference: {fileID: 0}
     - target: {fileID: 2546877883645274844, guid: 6e2667896228a7e44bf8acf6a019f0a3, type: 3}
       propertyPath: m_AnchorMax.y
@@ -762,6 +766,14 @@ PrefabInstance:
     - target: {fileID: 7941692760580847090, guid: 6e2667896228a7e44bf8acf6a019f0a3, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
       value: 
+      objectReference: {fileID: 1232114195069324725}
+    - target: {fileID: 7941692760580847090, guid: 6e2667896228a7e44bf8acf6a019f0a3, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
+      value: OnBindingsClicked
+      objectReference: {fileID: 0}
+    - target: {fileID: 7941692760580847090, guid: 6e2667896228a7e44bf8acf6a019f0a3, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
+      value: YARG.Menu.ProfileList.ReusableBindHeader, Assembly-CSharp
       objectReference: {fileID: 0}
     - target: {fileID: 8034333684539100291, guid: 6e2667896228a7e44bf8acf6a019f0a3, type: 3}
       propertyPath: m_AnchorMax.y
@@ -806,9 +818,6 @@ PrefabInstance:
       insertIndex: -1
       addedObject: {fileID: 2997255873940866472}
     m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 6405274621086164392, guid: 6e2667896228a7e44bf8acf6a019f0a3, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 2533602271579289954}
     - targetCorrespondingSourceObject: {fileID: 6405274621086164392, guid: 6e2667896228a7e44bf8acf6a019f0a3, type: 3}
       insertIndex: -1
       addedObject: {fileID: 2112290437380438965}
@@ -857,23 +866,6 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 6405274621086164392, guid: 6e2667896228a7e44bf8acf6a019f0a3, type: 3}
   m_PrefabInstance: {fileID: 1876753336989516910}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &2533602271579289954
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4823225886442545606}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f0683b96682877544b516070913ad4c6, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _header: {fileID: 0}
-  _viewPrefab: {fileID: 5745454451089538340, guid: de3185df8a569dc469035ef221298a7f, type: 3}
-  _midiNoteViewPrefab: {fileID: 4088131391707082840, guid: 31b7f5b27b042d440999b5fb06fa6af6, type: 3}
-  _pressedIndicator: {fileID: 5002444971698875199}
-  _debounceSlider: {fileID: 9112754373932611760}
 --- !u!114 &2112290437380438965
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -887,6 +879,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::YARG.Menu.ProfileList.ReusableButtonBindGroup
   _header: {fileID: 1232114195069324725}
+  _bindingList: {fileID: 4164197597448753174}
+  _settingsList: {fileID: 7063464458672938135}
   _viewPrefab: {fileID: 5555743838135242851, guid: cee282a0c2e90574598fd47a30b36645, type: 3}
   _midiNoteViewPrefab: {fileID: 0}
   _pressedIndicator: {fileID: 5002444971698875199}
@@ -910,8 +904,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::YARG.Menu.ProfileList.ReusableBindHeader
   _bindingNameText: {fileID: 3420573901841749374}
   _bindingIcon: {fileID: 6996481642397031445}
-  _bindingList: {fileID: 4164197597448753174}
-  _settingsList: {fileID: 7063464458672938135}
   _settingsButton: {fileID: 4233433874657220181}
   _dropdownArrow: {fileID: 8237310077940385931}
 --- !u!114 &8458547228302754618

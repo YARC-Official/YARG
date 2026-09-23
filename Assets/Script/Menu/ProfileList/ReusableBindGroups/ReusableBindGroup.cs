@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.InputSystem.Layouts;
 using YARG.Helpers;
 using YARG.Input.Bindings;
+using YARG.Menu.Settings;
 
 namespace YARG.Menu.ProfileList
 {
@@ -14,6 +15,10 @@ namespace YARG.Menu.ProfileList
     {
         [SerializeField]
         protected ReusableBindHeader _header;
+        [SerializeField]
+        protected DropdownDrawer _bindingList;
+        [SerializeField]
+        private DropdownDrawer _settingsList;
         [SerializeField]
         protected TSingleView _viewPrefab;
 
@@ -32,22 +37,64 @@ namespace YARG.Menu.ProfileList
             _controls = controls;
 
             _header.Init(binding);
+            _header.BindingsClicked += ToggleBindingsDrawer;
+            _header.SettingsClicked += ToggleSettingsDrawer;
+
+            _bindingList.SetDrawerWithoutRebuild(true);
+            _settingsList.SetDrawerWithoutRebuild(false);
+            _header.SetSettingsButtonActive(false);
+            _header.SetArrowOpen(true);
 
             RefreshBindings();
         }
 
         public virtual void RefreshBindings()
         {
-            _header.ClearBindings();
+            _bindingList.ClearDrawer();
 
             foreach (var control in Binding.Bindings)
             {
-                _header.AddBinding<TSingleView, TBinding, TSingle, TSingleState>(_viewPrefab, Binding, control, _controls);
+                var bindView = _bindingList.AddNewWithoutRebuild(_viewPrefab);
+                bindView.Init(Binding, control, _controls);
             }
 
-            _header.RebuildBindingsLayout();
+            _bindingList.RebuildLayout();
         }
 
         public abstract void AddNewBinding();
+
+        public void ToggleBindingsDrawer()
+        {
+            // Close settings drawer if it's opened instead of opening bindings drawer
+            if (!_bindingList.DrawerOpened && _settingsList.DrawerOpened)
+            {
+                SetSettingsDrawer(false);
+                return;
+            }
+
+            SetBindingsDrawer(!_bindingList.DrawerOpened);
+        }
+
+        public void SetBindingsDrawer(bool open)
+        {
+            _bindingList.DrawerOpened = open;
+
+            if (!open)
+                SetSettingsDrawer(false);
+
+            _header.SetArrowOpen(_bindingList.DrawerOpened || _settingsList.DrawerOpened);
+        }
+
+        public void SetSettingsDrawer(bool open)
+        {
+            _settingsList.DrawerOpened = open;
+            _header.SetSettingsButtonActive(open);
+
+            _header.SetArrowOpen(
+                _bindingList.DrawerOpened || _settingsList.DrawerOpened
+            );
+        }
+
+        public void ToggleSettingsDrawer() => SetSettingsDrawer(!_settingsList.DrawerOpened);
     }
 }

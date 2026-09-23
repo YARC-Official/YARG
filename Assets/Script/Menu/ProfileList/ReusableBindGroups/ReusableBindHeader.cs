@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem.Layouts;
@@ -18,15 +19,12 @@ namespace YARG.Menu.ProfileList
 
         [Space]
         [SerializeField]
-        private DropdownDrawer _bindingList;
-        [SerializeField]
-        private DropdownDrawer _settingsList;
-
-        [Space]
-        [SerializeField]
         private Button _settingsButton;
         [SerializeField]
         private GameObject _dropdownArrow;
+
+        public event Action BindingsClicked;
+        public event Action SettingsClicked;
 
         public void Init(ReusableControlBinding binding)
         {
@@ -49,75 +47,30 @@ namespace YARG.Menu.ProfileList
                 // Don't for anything else
             */  _bindingIcon.gameObject.SetActive(false);
             //}
-
-            _bindingList.SetDrawerWithoutRebuild(true);
-            FlipArrow();
         }
 
-        public void ToggleBindingsDrawer()
+        public void SetArrowOpen(bool open)
         {
-            // Close settings drawer if it's opened instead of opening bindings drawer
-            if (!_bindingList.DrawerOpened && _settingsList.DrawerOpened)
-            {
-                SetSettingsDrawer(false);
-                return;
-            }
-
-            SetBindingsDrawer(!_bindingList.DrawerOpened);
+            float arrowScale = open ? -1f : 1f;
+            _dropdownArrow.transform.localScale =
+                _dropdownArrow.transform.localScale.WithY(arrowScale);
         }
 
-        public void SetBindingsDrawer(bool open)
-        {
-            _bindingList.DrawerOpened = open;
-
-            if (!open)
-                SetSettingsDrawer(open);
-
-            FlipArrow();
-        }
-
-        public void ToggleSettingsDrawer() => SetSettingsDrawer(!_settingsList.DrawerOpened);
-
-        public void SetSettingsDrawer(bool open)
+        public void SetSettingsButtonActive(bool active)
         {
             var colors = _settingsButton.colors;
-            colors.colorMultiplier = open ? 0.75f : 1f;
+            colors.colorMultiplier = active ? 0.75f : 1f;
             _settingsButton.colors = colors;
-
-            _settingsList.DrawerOpened = open;
-
-            FlipArrow();
         }
 
-        private void FlipArrow()
+        public void OnBindingsClicked()
         {
-            float arrowScale = _bindingList.DrawerOpened || _settingsList.DrawerOpened ? -1f : 1f;
-            _dropdownArrow.transform.localScale = _dropdownArrow.transform.localScale.WithY(arrowScale);
+            BindingsClicked?.Invoke();
         }
 
-        public void ClearBindings()
+        public void OnSettingsClicked()
         {
-            _bindingList.ClearDrawer();
-        }
-
-        public void AddBinding<TSingleView, TBinding, TSingle, TSingleState>(
-            TSingleView viewPrefab,
-            TBinding binding,
-            TSingle control,
-            List<ControlItemInfo> controls
-        )
-            where TSingleView : ReusableSingleBindView<TBinding, TSingle, TSingleState>
-            where TBinding : ReusableControlBinding<TSingle, TSingleState>
-            where TSingle : ReusableSingleBinding<TSingleState>
-            where TSingleState : struct
-        {
-            var bindView = _bindingList.AddNewWithoutRebuild(viewPrefab);
-            bindView.Init(binding, control, controls);
-        }
-
-        public void RebuildBindingsLayout()
-        {
-            _bindingList.RebuildLayout();
+            SettingsClicked?.Invoke();
         }
     }
 }
