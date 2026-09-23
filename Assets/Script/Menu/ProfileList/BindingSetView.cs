@@ -1,14 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using TMPro;
+﻿using TMPro;
 using UnityEngine;
-using YARG.Core.Game;
-using YARG.Core.Logging;
 using YARG.Input.Bindings;
 using YARG.Localization;
 using YARG.Menu.Navigation;
-using static UnityEditor.AddressableAssets.Build.Layout.BuildLayout;
 
 namespace YARG.Menu.ProfileList
 {
@@ -59,15 +53,25 @@ namespace YARG.Menu.ProfileList
             var copy = new ReusableBindingSet(BindingSet);
 
             BindingsContainer.AddBindingSet(copy);
-            _profileListMenu.RefreshBindingSetList();
-            _profileListMenu.SetSelectedBindingSet(copy);
+            _profileListMenu.RefreshBindingSetList(copy);
         }
 
         public void DeleteBindingSet()
         {
+            var selectedBindingSet = _profileListMenu.GetSelectedBindingSet();
+            var wasSelected = Selected;
+
             BindingsContainer.DeleteBindingSet(BindingSet);
-            _profileListMenu.RefreshBindingSetList();
-            _centerPane.HideContents();
+
+            if (wasSelected)
+            {
+                _centerPane.ClearBindingSet();
+                _profileListMenu.RefreshBindingSetList();
+            }
+            else
+            {
+                _profileListMenu.RefreshBindingSetList(selectedBindingSet);
+            }
         }
     }
 }
