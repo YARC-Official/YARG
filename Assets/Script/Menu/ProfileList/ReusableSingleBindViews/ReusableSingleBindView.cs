@@ -38,11 +38,6 @@ namespace YARG.Menu.ProfileList
             _controlDropdown.value = selectedIndex >= 0 ? selectedIndex + 1 : 0; // Account for the None option
         }
 
-        public void DeleteBinding()
-        {
-            // Binding.RemoveBinding(SingleBinding); TODO-FRICK
-        }
-
         protected virtual void PopulateControlDropdown()
         {
             _controlDropdown.options.Clear();
@@ -52,9 +47,15 @@ namespace YARG.Menu.ProfileList
 
         public void OnControlDropdownChange()
         {
-            // The -1 corrects for the presence of the None option
-            // TODO-FRICK: That's a kludge lol
-            SingleBinding.ControlPath = _dropdownControls[_controlDropdown.value - 1].ControlPath;
+            if (_controlDropdown.value <= 0)
+            {
+                SingleBinding.ControlPath = null;
+            }
+            else
+            {
+                // The -1 corrects for the presence of the None option
+                SingleBinding.ControlPath = _dropdownControls[_controlDropdown.value - 1].ControlPath;
+            }
         }
 
         protected virtual string DisambiguateDisplayName(ControlItemInfo item)

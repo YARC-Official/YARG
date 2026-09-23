@@ -64,5 +64,11 @@ namespace YARG.Menu.ProfileList
 
             _header.RebuildBindingsLayout();
         }
+
+        public override void AddNewBinding()
+        {
+            Binding.Bindings.Add(new());
+            RefreshBindings();
+        }
     }
 }

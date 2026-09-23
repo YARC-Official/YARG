@@ -70,10 +70,8 @@ namespace YARG.Input.Bindings
     public class ReusableSingleAxisBinding : ReusableSingleBinding<float>
     {
         private const bool INVERTED_DEFAULT = false;
-
         private const float MINIMUM_DEFAULT = -1f;
         private const float MAXIMUM_DEFAULT = 1f;
-
         private const float LOWER_DEADZONE_DEFAULT = 0f;
         private const float UPPER_DEADZONE_DEFAULT = 0f;
 
@@ -82,6 +80,15 @@ namespace YARG.Input.Bindings
         public float Minimum { get; set; }
         public float LowerDeadzone { get; set; }
         public float UpperDeadzone { get; set; }
+
+        public ReusableSingleAxisBinding() : base(null, null)
+        {
+            Inverted = INVERTED_DEFAULT;
+            Maximum = MINIMUM_DEFAULT;
+            Minimum = MAXIMUM_DEFAULT;
+            LowerDeadzone = LOWER_DEADZONE_DEFAULT;
+            UpperDeadzone = UPPER_DEADZONE_DEFAULT;
+        }
 
         public ReusableSingleAxisBinding(ReusableSingleAxisBindingConfig control) : base(control.ControlPath, control.DisplayName) { }
 

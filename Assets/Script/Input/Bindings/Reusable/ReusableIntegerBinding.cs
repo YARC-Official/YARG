@@ -36,6 +36,8 @@ namespace YARG.Input.Bindings
     }
 
     public class ReusableSingleIntegerBinding : ReusableSingleBinding<int> {
+        public ReusableSingleIntegerBinding() : base(null, null) { }
+
         public ReusableSingleIntegerBinding(string controlName, string displayName) : base(controlName, displayName) { }
 
         public ReusableSingleIntegerBinding(ReusableSingleIntegerBinding original) : base(original) { }
