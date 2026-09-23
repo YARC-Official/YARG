@@ -347,9 +347,33 @@ namespace YARG.Menu.ProfileList
             // Have to use LastOrDefault() here as this GetComponentsInChildren() call may include recently Destroyed objects.
             var profileView = _leftPaneList.GetComponentsInChildren<ProfileView>()
                 .LastOrDefault(e => e.Profile == profile);
-            if (profileView != null)
+            if (profileView is not null)
             {
                 profileView.SetSelected(true, SelectionOrigin.Programmatically);
+            }
+        }
+
+        #nullable enable
+        public ReusableBindingSet? GetSelectedBindingSet()
+        #nullable disable
+        {
+            var bindingSetView = _leftPaneList.GetComponentsInChildren<BindingSetView>()
+                .FirstOrDefault(e => e.Selected);
+            if (bindingSetView != null)
+            {
+                return bindingSetView.BindingSet;
+            }
+
+            return null;
+        }
+
+        public void SetSelectedBindingSet(ReusableBindingSet bindingSet)
+        {
+            var bindingSetView = _leftPaneList.GetComponentsInChildren<BindingSetView>()
+                .LastOrDefault(e => e.BindingSet == bindingSet);
+            if (bindingSet is not null)
+            {
+                bindingSetView.SetSelected(true, SelectionOrigin.Programmatically);
             }
         }
 
