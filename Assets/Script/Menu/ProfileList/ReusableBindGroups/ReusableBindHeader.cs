@@ -28,16 +28,8 @@ namespace YARG.Menu.ProfileList
         [SerializeField]
         private GameObject _dropdownArrow;
 
-        private BindingSetsCenterPane _centerPane;
-        private ReusableBindingSet _bindingSet;
-        private ReusableControlBinding _binding;
-
-        public void Init(BindingSetsCenterPane centerPane, ReusableBindingSet bindingSet, ReusableControlBinding binding)
+        public void Init(ReusableControlBinding binding)
         {
-            _centerPane = centerPane;
-            _bindingSet = bindingSet;
-            _binding = binding;
-
             _bindingNameText.text = Localize.Key(/*player.Profile.LeftyFlip TODO-FRICK: Lefty toggle
                 ? binding.NameLefty
                 :*/ binding.Name);

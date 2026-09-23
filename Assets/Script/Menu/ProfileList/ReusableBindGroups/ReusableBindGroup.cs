@@ -31,7 +31,7 @@ namespace YARG.Menu.ProfileList
             Binding = binding;
             _controls = controls;
 
-            _header.Init(centerPane, bindingSet, binding);
+            _header.Init(binding);
 
             RefreshBindings();
         }
