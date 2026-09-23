@@ -85,7 +85,8 @@ namespace YARG.Menu.Filters
         Playlist,
         Charter,
         Intensity,
-        Length
+        Length,
+        VocalistGender
     }
 }
 
