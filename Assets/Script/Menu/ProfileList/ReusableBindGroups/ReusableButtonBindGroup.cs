@@ -43,28 +43,21 @@ namespace YARG.Menu.ProfileList
             Binding.DebounceThreshold = (long) value;
         }
 
-        public override void RefreshBindings()
+        protected override void AddBindingView(ReusableSingleButtonBinding control)
         {
-            _bindingList.ClearDrawer();
-
-            foreach (var control in Binding.Bindings)
+            if (false) // TODO-FRICK: MIDI note special case
             {
-                /* TODO-FRICK: MIDI stuff
-                if (control.Control is MidiNoteControl)
-                {
-                    var bindView = _bindingList.AddNewWithoutRebuild(_midiNoteViewPrefab);
-                    bindView.Init(Binding, control, _controls);
-                }
-                else
-                {*/
-                    var bindView = _bindingList.AddNewWithoutRebuild(_viewPrefab);
-                    bindView.Init(Binding, control, _controls);
-                //}
-
-                bindView.DeleteRequested += DeleteBinding;
+                // Create ReusableSingleMidiNoteBindView
             }
+            else
+            {
+                base.AddBindingView(control);
+            }
+        }
 
-            _bindingList.RebuildLayout();
+        protected override ReusableSingleButtonBindView GetViewPrefab(ReusableSingleButtonBinding control)
+        {
+            return base.GetViewPrefab(control);
         }
 
         public override void AddNewBinding()

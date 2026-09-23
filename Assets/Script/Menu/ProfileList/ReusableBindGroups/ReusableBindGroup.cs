@@ -55,10 +55,7 @@ namespace YARG.Menu.ProfileList
 
             foreach (var control in Binding.Bindings)
             {
-                var bindView = _bindingList.AddNewWithoutRebuild(_viewPrefab);
-                bindView.Init(Binding, control, _controls);
-
-                bindView.DeleteRequested += DeleteBinding;
+                AddBindingView(control);
             }
 
             _bindingList.RebuildLayout();
@@ -66,10 +63,23 @@ namespace YARG.Menu.ProfileList
 
         public abstract void AddNewBinding();
 
-        protected void DeleteBinding(TSingle control)
+        protected virtual void AddBindingView(TSingle control)
+        {
+            var bindView = _bindingList.AddNewWithoutRebuild(_viewPrefab);
+            bindView.Init(Binding, control, _controls);
+
+            bindView.DeleteRequested += DeleteBinding;
+        }
+
+        protected virtual void DeleteBinding(TSingle control)
         {
             Binding.Bindings.Remove(control);
             RefreshBindings();
+        }
+
+        protected virtual TSingleView GetViewPrefab(TSingle control)
+        {
+            return _viewPrefab;
         }
 
         public void ToggleBindingsDrawer()
