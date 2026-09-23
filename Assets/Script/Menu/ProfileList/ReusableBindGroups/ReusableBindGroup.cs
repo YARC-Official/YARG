@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem.Layouts;
+using YARG.Core.Logging;
 using YARG.Helpers;
 using YARG.Input.Bindings;
 using YARG.Menu.Settings;
@@ -18,7 +19,7 @@ namespace YARG.Menu.ProfileList
         [SerializeField]
         protected DropdownDrawer _bindingList;
         [SerializeField]
-        private DropdownDrawer _settingsList;
+        protected DropdownDrawer _settingsList;
         [SerializeField]
         protected TSingleView _viewPrefab;
 
@@ -56,12 +57,20 @@ namespace YARG.Menu.ProfileList
             {
                 var bindView = _bindingList.AddNewWithoutRebuild(_viewPrefab);
                 bindView.Init(Binding, control, _controls);
+
+                bindView.DeleteRequested += DeleteBinding;
             }
 
             _bindingList.RebuildLayout();
         }
 
         public abstract void AddNewBinding();
+
+        protected void DeleteBinding(TSingle control)
+        {
+            Binding.Bindings.Remove(control);
+            RefreshBindings();
+        }
 
         public void ToggleBindingsDrawer()
         {
