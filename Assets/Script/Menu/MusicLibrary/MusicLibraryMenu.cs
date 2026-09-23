@@ -514,7 +514,7 @@ namespace YARG.Menu.MusicLibrary
 
             bool allowdupes = SettingsManager.Settings.AllowDuplicateSongs.Value;
             int songCount = 0;
-            int goldStarSongCount = 0;
+            bool hasNonGoldSong = false;
             foreach (var section in _sortedSongs)
             {
                 if (allowdupes)
@@ -645,7 +645,7 @@ namespace YARG.Menu.MusicLibrary
                 }
 
                 int sectionTotalStars = 0;
-                int sectionGoldStarSongCount = 0;
+                bool sectionHasNonGoldSong = false;
                 bool includeSongs = _sortedSongs.Length <= 1 || !_collapsedHeaders[SettingsManager.Settings.LibrarySort].Contains(section);
 
                 var displayedSongs = section.Songs
@@ -672,11 +672,9 @@ namespace YARG.Menu.MusicLibrary
                         sectionTotalStars += starAmount.Value.GetStarCount();
                     }
 
-                    if (starAmount == StarAmount.StarGold)
-                    {
-                        sectionGoldStarSongCount++;
-                        goldStarSongCount++;
-                    }
+                    bool isNotGold = starAmount != StarAmount.StarGold;
+                    sectionHasNonGoldSong |= isNotGold;
+                    hasNonGoldSong |= isNotGold;
                 }
 
                 var secondaryAlbumSort = SettingsManager.Settings.SecondaryAlbumSort.Value;
@@ -714,18 +712,15 @@ namespace YARG.Menu.MusicLibrary
                         var albumHeader = new SecondaryHeaderViewType(album.Key, albumSongs.Length);
                         list.Add(albumHeader);
                         int starsBeforeAlbum = sectionTotalStars;
-                        int albumGoldStarSongCount = 0;
+                        bool albumHasNonGoldSong = false;
                         foreach (var song in albumSongs)
                         {
                             AddSong(song);
-                            if (SongViewType.GetStarAmountForSong(song) == StarAmount.StarGold)
-                            {
-                                albumGoldStarSongCount++;
-                            }
+                            albumHasNonGoldSong |=
+                                SongViewType.GetStarAmountForSong(song) != StarAmount.StarGold;
                         }
                         albumHeader.TotalStarsCount = sectionTotalStars - starsBeforeAlbum;
-                        albumHeader.HasGoldStars = albumSongs.Length > 0 &&
-                            albumGoldStarSongCount == albumSongs.Length;
+                        albumHeader.HasGoldStars = !albumHasNonGoldSong;
                     }
                 }
                 else
@@ -740,13 +735,12 @@ namespace YARG.Menu.MusicLibrary
                 if (sortHeader != null)
                 {
                     sortHeader.TotalStarsCount = sectionTotalStars;
-                    sortHeader.HasGoldStars = displayedSongs.Length > 0 &&
-                        sectionGoldStarSongCount == displayedSongs.Length;
+                    sortHeader.HasGoldStars = !sectionHasNonGoldSong;
                 }
             }
 
             _totalSongCount = songCount;
-            _allVisibleSongsGold = songCount > 0 && goldStarSongCount == songCount;
+            _allVisibleSongsGold = songCount > 0 && !hasNonGoldSong;
             CalculateCategoryHeaderIndices(list);
             return list;
         }
