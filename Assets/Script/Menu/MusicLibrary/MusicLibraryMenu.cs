@@ -1382,12 +1382,15 @@ namespace YARG.Menu.MusicLibrary
 
         public async void RefreshSongs()
         {
+            // Block all menu and pointer input before awaiting preview shutdown. Otherwise,
+            // repeated input can start another scan before the loading screen is active.
+            using var context = new LoadingContext();
+
             // Stop any library preview audio so the loading screen doesn't inherit it
             await StopPreviewAsync();
 
             SetSidebarDifficultiesVisible(false);
             _sidebar.gameObject.SetActive(false);
-            using var context = new LoadingContext();
             try
             {
                 await SongContainer.RunRefresh(false, context);

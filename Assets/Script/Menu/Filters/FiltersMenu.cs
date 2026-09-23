@@ -198,6 +198,17 @@ namespace YARG.Menu.Filters
         {
             LoadRememberedFilters();
 
+            // Consume pointer events in empty areas of this overlay so they cannot
+            // reach Music Library controls (notably the search field) behind it.
+            var raycastBlocker = gameObject.GetComponent<Image>();
+            if (raycastBlocker == null)
+            {
+                raycastBlocker = gameObject.AddComponent<Image>();
+            }
+
+            raycastBlocker.color = Color.clear;
+            raycastBlocker.raycastTarget = true;
+
             // Match SettingsMenu behavior: initialized at startup, then hidden.
             gameObject.SetActive(false);
             _ready = true;
