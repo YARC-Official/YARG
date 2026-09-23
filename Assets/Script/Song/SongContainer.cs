@@ -656,31 +656,55 @@ namespace YARG.Song
 
         private static SongCategory[] BuildFreeHarmonySort()
         {
-            var groups = new SortedDictionary<int, List<SongEntry>>();
+            // Free Harmony (party vocals) plays harmony parts when available and
+            // falls back to lead vocals otherwise; songs with neither go into a
+            // localized "No Part" category. See HasSortPart / FreeHarmonyIntensityComparer.
+            var intensities = new SortedDictionary<int, List<SongEntry>>();
+            var noPart = new List<SongEntry>();
             foreach (var song in _songs)
             {
-                var part = song[Instrument.Harmony].IsActive()
-                    ? song[Instrument.Harmony]
-                    : song[Instrument.Vocals];
-                if (!part.IsActive())
+                if (!HasSortPart(song, Instrument.PartyVocals))
                 {
+                    noPart.Add(song);
                     continue;
                 }
 
-                if (!groups.TryGetValue(part.Intensity, out var songs))
+                var part = song[Instrument.Harmony].IsActive()
+                    ? song[Instrument.Harmony]
+                    : song[Instrument.Vocals];
+                if (!intensities.TryGetValue(part.Intensity, out var songs))
                 {
-                    groups.Add(part.Intensity, songs = new List<SongEntry>());
+                    intensities.Add(part.Intensity, songs = new List<SongEntry>());
                 }
                 songs.Add(song);
             }
 
-            return groups.Select(group => new SongCategory(
-                $"Free Harmony [{group.Key}]", group.Value
-                    .OrderBy(song => song.Name)
-                    .ThenBy(song => song.SortBasedLocation)
-                    .ToArray(),
-                $"Free Harmony [{group.Key}]"))
-                .ToArray();
+            noPart.Sort(new FreeHarmonyIntensityComparer());
+
+            var categories = new SongCategory[intensities.Count + (noPart.Count > 0 ? 1 : 0)];
+            int index = 0;
+            for (int intensity = 0; intensity <= 6; intensity++)
+            {
+                if (!intensities.TryGetValue(intensity, out var songs))
+                    continue;
+
+                string label = YARG.Menu.Filters.FiltersMenu.GetIntensityLabel(intensity);
+                categories[index++] = new SongCategory(label, songs.ToArray(), label);
+            }
+
+            foreach (var intensity in intensities.Where(pair => pair.Key < 0 || pair.Key > 6))
+            {
+                string label = YARG.Menu.Filters.FiltersMenu.GetIntensityLabel(intensity.Key);
+                categories[index++] = new SongCategory(label, intensity.Value.ToArray(), label);
+            }
+
+            if (noPart.Count > 0)
+            {
+                string label = Localize.Key("Menu.MusicLibrary.Sort.NoPart");
+                categories[index++] = new SongCategory(label, noPart.ToArray(), label);
+            }
+
+            return categories;
         }
 
         private static SongCategory[] GetRandomSort()

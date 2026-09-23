@@ -70,6 +70,8 @@ namespace YARG.Gameplay.Visuals
 
         private void ApplyGlowColor(Color color)
         {
+            _glowLineRenderer.GetPropertyBlock(MaterialPropertyInstance.Instance);
+
             if (_isSpGlow)
             {
                 MaterialPropertyInstance.Instance.SetColor(GlowColor, Color.lightGoldenRod);

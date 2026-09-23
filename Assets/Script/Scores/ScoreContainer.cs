@@ -276,8 +276,8 @@ namespace YARG.Scores
             playerScoreRecord = null;
             bandScoreRecord = null;
 
-            var player = PlayerContainer.Players.First(entry => !entry.Profile.IsBot);
-            if (UseBandHighScoresForCurrentPlayers && player.Profile.CurrentInstrument != Instrument.PartyVocals)
+            var player = PlayerContainer.Players.FirstOrDefault(entry => !entry.Profile.IsBot);
+            if (player is null || UseBandHighScoresForCurrentPlayers)
             {
                 bandScoreRecord = GetBandHighScore(songChecksum);
                 return;
@@ -577,9 +577,7 @@ namespace YARG.Scores
 
         public static Dictionary<HashWrapper, StarAmount> GetBestStarsForCurrentPlayers(YargProfile profile)
         {
-            // Free Harmony scores are individual PartyVocals records, never band records,
-            // even when multiple human players are active.
-            if (!UseBandHighScoresForCurrentPlayers || profile.CurrentInstrument == Instrument.PartyVocals)
+            if (!UseBandHighScoresForCurrentPlayers)
             {
                 return GetBestStarsForSong(profile);
             }
