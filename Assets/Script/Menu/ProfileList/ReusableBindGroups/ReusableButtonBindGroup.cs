@@ -60,6 +60,8 @@ namespace YARG.Menu.ProfileList
                     var bindView = _bindingList.AddNewWithoutRebuild(_viewPrefab);
                     bindView.Init(Binding, control, _controls);
                 //}
+
+                bindView.DeleteRequested += DeleteBinding;
             }
 
             _bindingList.RebuildLayout();

@@ -4,6 +4,7 @@ using System.Text;
 using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem.Layouts;
+using YARG.Core.Logging;
 using YARG.Helpers;
 using YARG.Input.Bindings;
 
@@ -17,6 +18,8 @@ namespace YARG.Menu.ProfileList
         [Space]
         [SerializeField]
         protected TMP_Dropdown _controlDropdown;
+
+        public event Action<TSingle> DeleteRequested;
 
         protected TBinding Binding;
         protected TSingle SingleBinding;
@@ -56,6 +59,11 @@ namespace YARG.Menu.ProfileList
                 // The -1 corrects for the presence of the None option
                 SingleBinding.ControlPath = _dropdownControls[_controlDropdown.value - 1].ControlPath;
             }
+        }
+
+        public void OnDelete()
+        {
+            DeleteRequested?.Invoke(SingleBinding);
         }
 
         protected virtual string DisambiguateDisplayName(ControlItemInfo item)
