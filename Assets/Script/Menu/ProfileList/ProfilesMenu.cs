@@ -114,15 +114,12 @@ namespace YARG.Menu.ProfileList
             _headerTabs.TabChanged -= OnTabChanged;
         }
 
-        public void RefreshBindingSetList()
+        public void RefreshBindingSetList(ReusableBindingSet selected = null)
         {
             if (_currentTab is not ProfileMenuTab.Bindings)
             {
                 return;
             }
-
-            // Deselect
-            _profileCenterPane.HideContents();
 
             // Remove old ones
             _leftPaneList.transform.DestroyChildren();
@@ -167,6 +164,11 @@ namespace YARG.Menu.ProfileList
                 var footerGo = Instantiate(_bindingSetListFooterPrefab, _leftPaneList);
                 footerGo.Init(CurrentBindingSetFilter, remainingGameModes, this);
                 _navigationGroup.AddNavigatable(footerGo.gameObject);
+            }
+
+            if (selected is not null)
+            {
+                SetSelectedBindingSet(selected);
             }
         }
 
@@ -371,7 +373,7 @@ namespace YARG.Menu.ProfileList
         {
             var bindingSetView = _leftPaneList.GetComponentsInChildren<BindingSetView>()
                 .LastOrDefault(e => e.BindingSet == bindingSet);
-            if (bindingSet is not null)
+            if (bindingSetView is not null)
             {
                 bindingSetView.SetSelected(true, SelectionOrigin.Programmatically);
             }
