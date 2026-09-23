@@ -171,6 +171,107 @@ public class YargVideoPlayer : MonoBehaviour
 
     public Camera targetCamera => _unityVideoPlayer?.targetCamera;
 
+    /// <summary>
+    /// Native pixel width of the opened video, or 0 if it is not known yet.
+    /// </summary>
+    public uint width
+    {
+        get
+        {
+#if VLC_SUPPORTED
+            if (_usingVLC && _vlcPlayer != null)
+            {
+                if (_vlcPlayer.OutputTexture != null)
+                {
+                    return (uint) _vlcPlayer.OutputTexture.width;
+                }
+
+                uint videoWidth = 0;
+                uint videoHeight = 0;
+                _vlcPlayer.MediaPlayer?.Size(0, ref videoWidth, ref videoHeight);
+                return videoWidth;
+            }
+#endif
+            return _unityVideoPlayer != null ? _unityVideoPlayer.width : 0;
+        }
+    }
+
+    /// <summary>
+    /// Native pixel height of the opened video, or 0 if it is not known yet.
+    /// </summary>
+    public uint height
+    {
+        get
+        {
+#if VLC_SUPPORTED
+            if (_usingVLC && _vlcPlayer != null)
+            {
+                if (_vlcPlayer.OutputTexture != null)
+                {
+                    return (uint) _vlcPlayer.OutputTexture.height;
+                }
+
+                uint videoWidth = 0;
+                uint videoHeight = 0;
+                _vlcPlayer.MediaPlayer?.Size(0, ref videoWidth, ref videoHeight);
+                return videoHeight;
+            }
+#endif
+            return _unityVideoPlayer != null ? _unityVideoPlayer.height : 0;
+        }
+    }
+
+    /// <summary>
+    /// Makes the Unity VideoPlayer render into a texture that matches the video's
+    /// native resolution so the output can be letterboxed by the UI instead of cropped.
+    /// VLC already outputs at native size.
+    /// </summary>
+    public void MatchRenderTextureToVideoSize()
+    {
+#if VLC_SUPPORTED
+        if (_usingVLC)
+        {
+            return;
+        }
+#endif
+        if (_unityVideoPlayer == null)
+        {
+            return;
+        }
+
+        uint videoWidth = _unityVideoPlayer.width;
+        uint videoHeight = _unityVideoPlayer.height;
+        if (videoWidth == 0 || videoHeight == 0)
+        {
+            return;
+        }
+
+        // Fill the matching-size target; letterboxing happens on the RawImage.
+        _unityVideoPlayer.aspectRatio = VideoAspectRatio.Stretch;
+
+        var renderTexture = _unityVideoPlayer.targetTexture;
+        if (renderTexture == null)
+        {
+            return;
+        }
+
+        int width = (int) videoWidth;
+        int height = (int) videoHeight;
+        if (renderTexture.width == width && renderTexture.height == height)
+        {
+            return;
+        }
+
+        if (renderTexture.IsCreated())
+        {
+            renderTexture.Release();
+        }
+
+        renderTexture.width = width;
+        renderTexture.height = height;
+        renderTexture.Create();
+    }
+
     // ─── Events ───
 
     public event Action<YargVideoPlayer> prepareCompleted;
@@ -192,6 +293,9 @@ public class YargVideoPlayer : MonoBehaviour
         // SwitchToVideoPlayerFallback (which also set renderMode) is VLC-only.
         _unityVideoPlayer.url = _url;
         _unityVideoPlayer.renderMode = VideoRenderMode.RenderTexture;
+        // Avoid cropping into a screen-sized target; MatchRenderTextureToVideoSize then
+        // switches to Stretch once the texture matches the video's native resolution.
+        _unityVideoPlayer.aspectRatio = VideoAspectRatio.FitInside;
         // (Re)wire native events idempotently so per-song Prepare() calls on a persisted
         // player don't stack seekCompleted handlers. OnUnityVideoPrepared self-unregisters
         // after the first fire; seekCompleted stays attached for every seek.
