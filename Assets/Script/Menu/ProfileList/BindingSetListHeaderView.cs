@@ -38,6 +38,7 @@ namespace YARG.Menu.ProfileList
             var bindingSet = ReusableBindingSetTemplates.MakeBlankBindingSet(_mode, _family);
             BindingsContainer.AddBindingSet(bindingSet);
             _profilesMenu.RefreshBindingSetList();
+            _profilesMenu.SetSelectedBindingSet(bindingSet);
         }
     }
 }

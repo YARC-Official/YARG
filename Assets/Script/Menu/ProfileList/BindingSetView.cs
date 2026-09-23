@@ -22,14 +22,14 @@ namespace YARG.Menu.ProfileList
         [SerializeField]
         private GameObject _deleteButton;
 
-        private ReusableBindingSet _bindingSet;
+        public ReusableBindingSet BindingSet { get; private set; }
         private ProfilesMenu _profileListMenu;
 
         public void Init(ProfilesMenu menu, ReusableBindingSet bindingSet, BindingSetsCenterPane centerPane)
         {
             _profileListMenu = menu;
             _centerPane = centerPane;
-            _bindingSet = bindingSet;
+            BindingSet = bindingSet;
             UpdateDisplay(bindingSet);
 
             _deleteButton.SetActive(!bindingSet.IsHardcoded);
@@ -50,22 +50,24 @@ namespace YARG.Menu.ProfileList
 
             if (selected)
             {
-                _centerPane.SelectBindingSet(_bindingSet);
+                _centerPane.SelectBindingSet(BindingSet);
             }
         }
 
         public void CopyBindingSet()
         {
-            var copy = new ReusableBindingSet(_bindingSet);
+            var copy = new ReusableBindingSet(BindingSet);
 
             BindingsContainer.AddBindingSet(copy);
             _profileListMenu.RefreshBindingSetList();
+            _profileListMenu.SetSelectedBindingSet(copy);
         }
 
         public void DeleteBindingSet()
         {
-            BindingsContainer.DeleteBindingSet(_bindingSet);
+            BindingsContainer.DeleteBindingSet(BindingSet);
             _profileListMenu.RefreshBindingSetList();
+            _centerPane.HideContents();
         }
     }
 }
