@@ -55,11 +55,6 @@ namespace YARG.Menu.ProfileList
             }
         }
 
-        protected override ReusableSingleButtonBindView GetViewPrefab(ReusableSingleButtonBinding control)
-        {
-            return base.GetViewPrefab(control);
-        }
-
         public override void AddNewBinding()
         {
             Binding.Bindings.Add(new());

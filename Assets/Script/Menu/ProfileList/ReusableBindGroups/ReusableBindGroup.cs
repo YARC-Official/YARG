@@ -77,11 +77,6 @@ namespace YARG.Menu.ProfileList
             RefreshBindings();
         }
 
-        protected virtual TSingleView GetViewPrefab(TSingle control)
-        {
-            return _viewPrefab;
-        }
-
         public void ToggleBindingsDrawer()
         {
             // Close settings drawer if it's opened instead of opening bindings drawer
