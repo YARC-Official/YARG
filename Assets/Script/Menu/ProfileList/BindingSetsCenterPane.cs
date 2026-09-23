@@ -63,6 +63,7 @@ namespace YARG.Menu.ProfileList
         {
             InputManager.DeviceAdded -= OnControllerAdded;
             InputManager.DeviceRemoved -= OnControllerRemoved;
+            HideContents();
         }
 
         private void OnControllerAdded(InputDevice controller)
