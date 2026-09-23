@@ -1147,8 +1147,12 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7147442041986558330, guid: aed667cd79204fe4aad4f297b650e848, type: 3}
       propertyPath: onValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_Mode
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 7147442041986558330, guid: aed667cd79204fe4aad4f297b650e848, type: 3}
+      propertyPath: onValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_Target
+      value: 
+      objectReference: {fileID: 5555743838135242851}
     - target: {fileID: 7147442041986558330, guid: aed667cd79204fe4aad4f297b650e848, type: 3}
       propertyPath: onValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_CallState
       value: 2
@@ -1159,7 +1163,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7147442041986558330, guid: aed667cd79204fe4aad4f297b650e848, type: 3}
       propertyPath: onValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
-      value: YARG.Menu.Profiles.ButtonBindView, Assembly-CSharp
+      value: YARG.Menu.ProfileList.ReusableSingleButtonBindView, Assembly-CSharp
       objectReference: {fileID: 0}
     - target: {fileID: 7147442041986558330, guid: aed667cd79204fe4aad4f297b650e848, type: 3}
       propertyPath: onValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_ObjectArgumentAssemblyTypeName
@@ -1332,8 +1336,12 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7665292889178861594, guid: dbdf67b69820732439f61d5a3cd2b4fd, type: 3}
       propertyPath: ValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_Mode
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 7665292889178861594, guid: dbdf67b69820732439f61d5a3cd2b4fd, type: 3}
+      propertyPath: ValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_Target
+      value: 
+      objectReference: {fileID: 5555743838135242851}
     - target: {fileID: 7665292889178861594, guid: dbdf67b69820732439f61d5a3cd2b4fd, type: 3}
       propertyPath: ValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_CallState
       value: 2
@@ -1344,7 +1352,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7665292889178861594, guid: dbdf67b69820732439f61d5a3cd2b4fd, type: 3}
       propertyPath: ValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
-      value: YARG.Menu.Profiles.ButtonBindView, Assembly-CSharp
+      value: YARG.Menu.ProfileList.ReusableSingleButtonBindView, Assembly-CSharp
       objectReference: {fileID: 0}
     - target: {fileID: 7665292889178861594, guid: dbdf67b69820732439f61d5a3cd2b4fd, type: 3}
       propertyPath: ValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_ObjectArgumentAssemblyTypeName
@@ -1739,15 +1747,19 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4622602834413321867, guid: 5f7c905be0699a94b8dc56fc6105c02d, type: 3}
       propertyPath: m_OnValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_Mode
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 4622602834413321867, guid: 5f7c905be0699a94b8dc56fc6105c02d, type: 3}
+      propertyPath: m_OnValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_Target
+      value: 
+      objectReference: {fileID: 5555743838135242851}
     - target: {fileID: 4622602834413321867, guid: 5f7c905be0699a94b8dc56fc6105c02d, type: 3}
       propertyPath: m_OnValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
       value: OnDebounceModeChanged
       objectReference: {fileID: 0}
     - target: {fileID: 4622602834413321867, guid: 5f7c905be0699a94b8dc56fc6105c02d, type: 3}
       propertyPath: m_OnValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
-      value: YARG.Menu.ProfileInfo.SingleButtonBindView, Assembly-CSharp
+      value: YARG.Menu.ProfileList.ReusableSingleButtonBindView, Assembly-CSharp
       objectReference: {fileID: 0}
     - target: {fileID: 7421987709479303017, guid: 5f7c905be0699a94b8dc56fc6105c02d, type: 3}
       propertyPath: m_text
@@ -2594,8 +2606,12 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7665292889178861594, guid: dbdf67b69820732439f61d5a3cd2b4fd, type: 3}
       propertyPath: ValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_Mode
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 7665292889178861594, guid: dbdf67b69820732439f61d5a3cd2b4fd, type: 3}
+      propertyPath: ValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_Target
+      value: 
+      objectReference: {fileID: 5555743838135242851}
     - target: {fileID: 7665292889178861594, guid: dbdf67b69820732439f61d5a3cd2b4fd, type: 3}
       propertyPath: ValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_CallState
       value: 2
@@ -2606,7 +2622,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7665292889178861594, guid: dbdf67b69820732439f61d5a3cd2b4fd, type: 3}
       propertyPath: ValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
-      value: YARG.Menu.Profiles.ButtonBindView, Assembly-CSharp
+      value: YARG.Menu.ProfileList.ReusableSingleButtonBindView, Assembly-CSharp
       objectReference: {fileID: 0}
     - target: {fileID: 7665292889178861594, guid: dbdf67b69820732439f61d5a3cd2b4fd, type: 3}
       propertyPath: ValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_ObjectArgumentAssemblyTypeName

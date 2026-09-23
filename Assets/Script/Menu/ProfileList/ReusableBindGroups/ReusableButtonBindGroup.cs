@@ -38,9 +38,9 @@ namespace YARG.Menu.ProfileList
             _debounceSlider.SetValueWithoutNotify(binding.DebounceThreshold);
         }
 
-        public void OnDebounceValueChanged(float value)
+        public void OnDebounceValueChanged()
         {
-            Binding.DebounceThreshold = (long) value;
+            Binding.DebounceThreshold = (long)_debounceSlider.Value;
         }
 
         protected override void AddBindingView(ReusableSingleButtonBinding control)

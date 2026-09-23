@@ -40,25 +40,26 @@ namespace YARG.Menu.ProfileList
             _debounceSlider.Value = singleBinding.DebounceThreshold;
         }
 
-        public void OnInvertChanged(bool value)
+        public void OnInvertChanged()
         {
-            SingleBinding.Inverted = value;
+            SingleBinding.Inverted = _invertToggle.isOn;
         }
 
-        public void OnPressPointChanged(float value)
+        public void OnPressPointChanged()
         {
+            var value = _pressPointSlider.Value;
             SingleBinding.PressPoint = value;
             _valueDisplay.PressPoint = value;
         }
 
-        public void OnDebounceModeChanged(int value)
+        public void OnDebounceModeChanged()
         {
-            SingleBinding.DebounceMode = (DebounceMode) value;
+            SingleBinding.DebounceMode = (DebounceMode) _debounceModeDropdown.value;
         }
 
-        public void OnDebounceValueChanged(float value)
+        public void OnDebounceValueChanged()
         {
-            SingleBinding.DebounceThreshold = (long) value;
+            SingleBinding.DebounceThreshold = (long) _debounceSlider.Value;
         }
 
         protected override void PopulateControlDropdown()

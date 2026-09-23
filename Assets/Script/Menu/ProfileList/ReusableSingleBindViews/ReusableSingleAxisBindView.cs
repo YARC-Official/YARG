@@ -41,13 +41,15 @@ namespace YARG.Menu.ProfileList
             _lowerDeadzoneSlider.Value = singleBinding.LowerDeadzone;
         }
 
-        public void OnInvertChanged(bool value)
+        public void OnInvertChanged()
         {
-            SingleBinding.Inverted = value;
+            SingleBinding.Inverted = _invertToggle.isOn;
         }
 
-        public void OnMaxValueChanged(float value)
+        public void OnMaxValueChanged()
         {
+            var value = _maxValueSlider.Value;
+
             SingleBinding.Maximum = value;
             _rawValueDisplay.Maximum = value;
             _calibratedValueDisplay.Maximum = value;
@@ -62,8 +64,10 @@ namespace YARG.Menu.ProfileList
                 _lowerDeadzoneSlider.Value = value;
         }
 
-        public void OnMinValueChanged(float value)
+        public void OnMinValueChanged()
         {
+            var value = _minValueSlider.Value;
+
             SingleBinding.Minimum = value;
             _rawValueDisplay.Minimum = value;
             _calibratedValueDisplay.Minimum = value;
@@ -78,8 +82,10 @@ namespace YARG.Menu.ProfileList
                 _upperDeadzoneSlider.Value = value;
         }
 
-        public void OnUpperDeadzoneChanged(float value)
+        public void OnUpperDeadzoneChanged()
         {
+            var value = _upperDeadzoneSlider.Value;
+
             SingleBinding.UpperDeadzone = value;
             _rawValueDisplay.UpperDeadzone = value;
             _calibratedValueDisplay.UpperDeadzone = value;
@@ -94,8 +100,10 @@ namespace YARG.Menu.ProfileList
                 _lowerDeadzoneSlider.Value = value;
         }
 
-        public void OnLowerDeadzoneChanged(float value)
+        public void OnLowerDeadzoneChanged()
         {
+            var value = _lowerDeadzoneSlider.Value;
+
             SingleBinding.LowerDeadzone = value;
             _rawValueDisplay.LowerDeadzone = value;
             _calibratedValueDisplay.LowerDeadzone = value;
