@@ -196,9 +196,87 @@ namespace YARG.Menu.Filters
 
         protected override void SingletonAwake()
         {
+            LoadRememberedFilters();
+
             // Match SettingsMenu behavior: initialized at startup, then hidden.
             gameObject.SetActive(false);
             _ready = true;
+        }
+
+        private static string SerializeFilterKey(FilterKey key)
+        {
+            return key.ContextId == Guid.Empty
+                ? key.Group.ToString()
+                : $"{key.Group}:{key.ContextId:D}";
+        }
+
+        private static bool TryDeserializeFilterKey(string value, out FilterKey key)
+        {
+            key = default;
+            if (string.IsNullOrWhiteSpace(value))
+                return false;
+
+            int separator = value.IndexOf(':');
+            string groupValue = separator < 0 ? value : value[..separator];
+            if (!Enum.TryParse(groupValue, ignoreCase: true, out FilterGroup group))
+                return false;
+
+            Guid contextId = Guid.Empty;
+            if (separator >= 0 && !Guid.TryParse(value[(separator + 1)..], out contextId))
+                return false;
+
+            key = new FilterKey(group, contextId);
+            return true;
+        }
+
+        private static void LoadRememberedFilters()
+        {
+            if (SettingsManager.Settings?.RememberFilters.Value != true)
+                return;
+
+            var remembered = SettingsManager.Settings.RememberedFilters;
+            if (remembered == null || remembered.Count == 0)
+                return;
+
+            _savedFilters.Clear();
+            foreach (var entry in remembered)
+            {
+                if (!TryDeserializeFilterKey(entry.Key, out var key) || entry.Value == null)
+                    continue;
+
+                _savedFilters[key] = new Dictionary<string, bool>(
+                    entry.Value,
+                    StringComparer.OrdinalIgnoreCase);
+            }
+
+            _hasSavedFilters = _savedFilters.Count > 0;
+        }
+
+        private static void StoreRememberedFilters()
+        {
+            if (SettingsManager.Settings?.RememberFilters.Value != true)
+                return;
+
+            var remembered = SettingsManager.Settings.RememberedFilters ??= new();
+            remembered.Clear();
+            foreach (var entry in _savedFilters)
+            {
+                remembered[SerializeFilterKey(entry.Key)] = new Dictionary<string, bool>(
+                    entry.Value,
+                    StringComparer.OrdinalIgnoreCase);
+            }
+        }
+
+        public static void PrepareForSettingsSave()
+        {
+            if (SettingsManager.Settings?.RememberFilters.Value != true)
+                return;
+
+            var menu = GetMenuInstance();
+            if (menu != null && menu._ready && menu.gameObject.activeInHierarchy)
+                menu.SaveFilters();
+            else
+                StoreRememberedFilters();
         }
 
         private void OnEnable()
@@ -1022,6 +1100,9 @@ namespace YARG.Menu.Filters
         private void RestoreSavedFilters()
         {
             if (!_hasSavedFilters)
+                LoadRememberedFilters();
+
+            if (!_hasSavedFilters)
                 return;
 
             foreach (var def in GetFilterDefs())
@@ -1046,6 +1127,7 @@ namespace YARG.Menu.Filters
             }
 
             _hasSavedFilters = true;
+            StoreRememberedFilters();
         }
 
         private void UpdateAllSummaries()
