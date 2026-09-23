@@ -34,9 +34,14 @@ namespace YARG.Menu.MusicLibrary
         private TextMeshProUGUI _sortInfoHeaderStarCountText;
         [SerializeField]
         private Image _sortInfoHeaderStarIcon;
+        [SerializeField]
+        private Sprite _starGoldSprite;
+        [SerializeField]
+        private Sprite _starWhiteSprite;
         private int _totalSongCount = 0;
         private int _totalSongCountUnfiltered = 0;
         private int _totalStarCount = 0;
+        private bool _allVisibleSongsGold = false;
         private int _numPlaylists = 0;
 
         public bool HasSortHeaders { get; private set; }
@@ -424,6 +429,9 @@ namespace YARG.Menu.MusicLibrary
                     600);
 
                 _sortInfoHeaderStarCountText.text = ZString.Concat(obtainedStars, totalStars);
+                _sortInfoHeaderStarIcon.sprite = _allVisibleSongsGold && _totalSongCount > 0
+                    ? _starGoldSprite
+                    : _starWhiteSprite;
                 _sortInfoHeaderStarIcon.color = _sortInfoHeaderStarIcon.color.WithAlpha(1);
             }
             else if (MenuState == MenuState.PlaylistSelect)
@@ -473,6 +481,9 @@ namespace YARG.Menu.MusicLibrary
                     MenuData.Colors.HeaderTertiary,
                     600);
                 _sortInfoHeaderStarCountText.text = ZString.Concat(obtainedStars, totalStars);
+                _sortInfoHeaderStarIcon.sprite = _allVisibleSongsGold && _totalSongCount > 0
+                    ? _starGoldSprite
+                    : _starWhiteSprite;
                 _sortInfoHeaderStarIcon.color = _sortInfoHeaderStarIcon.color.WithAlpha(1);
             }
         }
