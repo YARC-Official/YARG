@@ -130,6 +130,8 @@ namespace YARG.Menu.Filters
             new(StringComparer.OrdinalIgnoreCase);
         private readonly Dictionary<string, bool> _vocalPartsEnabled =
             new(StringComparer.OrdinalIgnoreCase);
+        private readonly Dictionary<string, bool> _vocalistGenderEnabled =
+            new(StringComparer.OrdinalIgnoreCase);
         private readonly Dictionary<string, bool> _sourceEnabled =
             new(StringComparer.OrdinalIgnoreCase);
         private readonly Dictionary<string, bool> _playlistEnabled =
@@ -145,6 +147,7 @@ namespace YARG.Menu.Filters
         private static IReadOnlyList<string> _cachedSubgenres;
         private static IReadOnlyList<string> _cachedDecades;
         private static IReadOnlyList<string> _cachedVocalParts;
+        private static IReadOnlyList<string> _cachedVocalistGenders;
         private static IReadOnlyList<string> _cachedSources;
         private static IReadOnlyList<string> _cachedPlaylists;
         private static Dictionary<string, int> _cachedPlaylistCounts;
@@ -156,6 +159,7 @@ namespace YARG.Menu.Filters
         private static int _cachedSubgenreSongCount = -1;
         private static int _cachedDecadeSongCount = -1;
         private static int _cachedVocalPartsSongCount = -1;
+        private static int _cachedVocalistGenderSongCount = -1;
         private static int _cachedSourceSongCount = -1;
         private static int _cachedPlaylistSignature = -1;
         private static int _cachedPlaylistCountsSignature = -1;
@@ -389,6 +393,7 @@ namespace YARG.Menu.Filters
             }
 
             AddGroup(container, navGroup, new FilterKey(FilterGroup.Length), Localize.Key("Menu.Filters.Length.Name"))?.AssignIndex(rowIndex++);
+            AddGroup(container, navGroup, new FilterKey(FilterGroup.VocalistGender), Localize.Key("Menu.Filters.VocalistGender.Name"))?.AssignIndex(rowIndex++);
 
             AddHeader(container, Localize.Key("Menu.Filters.ShowAnyOfHeader"));
             rowIndex = 0;
@@ -599,6 +604,7 @@ namespace YARG.Menu.Filters
         }
 
         private void BuildOptions(
+            FilterKey key,
             IReadOnlyList<string> values,
             Dictionary<string, bool> enabled,
             Dictionary<string, int> counts,
@@ -613,8 +619,8 @@ namespace YARG.Menu.Filters
 
             if (values.Count > 0)
                 AddSelectDeselectButtons(
-                    () => ApplyRightToggleState(enabled, true, updateSummary),
-                    () => ApplyRightToggleState(enabled, false, updateSummary));
+                    () => ApplyRightToggleState(key, enabled, true, updateSummary),
+                    () => ApplyRightToggleState(key, enabled, false, updateSummary));
 
             int rowIndex = 0;
             foreach (string value in values)
@@ -637,7 +643,9 @@ namespace YARG.Menu.Filters
                 row.ToggleChanged += toggleValue =>
                 {
                     enabled[value] = toggleValue;
+                    SyncInstrumentalFilters(key, value, toggleValue);
                     updateSummary?.Invoke();
+                    UpdateSyncedInstrumentalSummary(key);
                     DisableRecommendationsIfFiltered();
                 };
             }
@@ -951,6 +959,12 @@ namespace YARG.Menu.Filters
                 _vocalPartsEnabled);
 
             yield return new FilterDef(
+                new FilterKey(FilterGroup.VocalistGender),
+                GetAllVocalistGendersCached,
+                GetVocalistGenderCounts,
+                _vocalistGenderEnabled);
+
+            yield return new FilterDef(
                 new FilterKey(FilterGroup.Source),
                 GetAllSourcesCached,
                 () => GetCountsFromCollections(
@@ -1033,6 +1047,12 @@ namespace YARG.Menu.Filters
                 foreach (var kvp in saved)
                     def.Enabled[kvp.Key] = kvp.Value;
             }
+
+            // Vocal Parts predates Vocalist Gender, so it is authoritative when
+            // migrating remembered filters that may not contain the new group.
+            var instrumental = GetInstrumentalLabel();
+            if (_vocalPartsEnabled.TryGetValue(instrumental, out bool instrumentalEnabled))
+                _vocalistGenderEnabled[instrumental] = instrumentalEnabled;
         }
 
         private void SaveFilters()
@@ -1064,6 +1084,7 @@ namespace YARG.Menu.Filters
             if (!useDefaults)
                 EnsureDefaults(def.Enabled, values, defaultValue: false);
             BuildOptions(
+                def.Key,
                 values,
                 def.Enabled,
                 counts,
@@ -1247,6 +1268,13 @@ namespace YARG.Menu.Filters
                     return label != null && vocalParts.Contains(NormalizeFilterKey(label));
                 });
 
+            if (TryGetSelectedSet(_vocalistGenderEnabled, GetAllVocalistGendersCached(), NormalizeFilterKey, out var vocalistGenders))
+                predicates.Add(entry =>
+                {
+                    var label = GetVocalistGenderLabel(entry);
+                    return label != null && vocalistGenders.Contains(NormalizeFilterKey(label));
+                });
+
             if (TryGetSelectedSet(_lengthEnabled, GetAllLengthsCached(), NormalizeFilterKey, out var lengths))
                 predicates.Add(entry =>
                 {
@@ -1324,16 +1352,45 @@ namespace YARG.Menu.Filters
             return group == FilterGroup.Playlist;
         }
 
-        private void ApplyRightToggleState(Dictionary<string, bool> dict, bool value, Action updateSummary)
+        private void ApplyRightToggleState(FilterKey key, Dictionary<string, bool> dict, bool value, Action updateSummary)
         {
             SetAll(dict, value);
+            SyncInstrumentalFilters(key, GetInstrumentalLabel(), value);
             updateSummary?.Invoke();
+            UpdateSyncedInstrumentalSummary(key);
             DisableRecommendationsIfFiltered();
 
             if (_rightContainer == null) return;
 
             foreach (var row in _rightContainer.GetComponentsInChildren<FilterEntryRow>(true))
                 row.SetToggleIsOn(value);
+        }
+
+        private static string GetInstrumentalLabel() =>
+            Localize.Key("Menu.Filters.VocalParts.Instrumental");
+
+        private void SyncInstrumentalFilters(FilterKey sourceKey, string value, bool enabled)
+        {
+            if (!string.Equals(value, GetInstrumentalLabel(), StringComparison.OrdinalIgnoreCase))
+                return;
+
+            var target = sourceKey.Group switch
+            {
+                FilterGroup.VocalParts => _vocalistGenderEnabled,
+                FilterGroup.VocalistGender => _vocalPartsEnabled,
+                _ => null
+            };
+
+            if (target != null)
+                target[GetInstrumentalLabel()] = enabled;
+        }
+
+        private void UpdateSyncedInstrumentalSummary(FilterKey sourceKey)
+        {
+            if (sourceKey.Group == FilterGroup.VocalParts)
+                UpdateSummary(new FilterKey(FilterGroup.VocalistGender), _vocalistGenderEnabled, GetAllVocalistGendersCached());
+            else if (sourceKey.Group == FilterGroup.VocalistGender)
+                UpdateSummary(new FilterKey(FilterGroup.VocalParts), _vocalPartsEnabled, GetAllVocalPartsCached());
         }
 
         private void DisableRecommendationsIfFiltered()
@@ -1481,6 +1538,61 @@ namespace YARG.Menu.Filters
                 2 => Localize.Key("Menu.Filters.VocalParts.Duet"),
                 1 => Localize.Key("Menu.Filters.VocalParts.Solo"),
                 0 => Localize.Key("Menu.Filters.VocalParts.Instrumental"),
+                _ => null
+            };
+        }
+#endregion
+
+#region Vocalist Gender
+        private static IReadOnlyList<string> GetAllVocalistGendersCached()
+        {
+            return GetAllCached(ref _cachedVocalistGenders, ref _cachedVocalistGenderSongCount, () =>
+            {
+                var counts = GetVocalistGenderCounts();
+                return VocalistGenderLabels
+                    .Where(label => counts.TryGetValue(label, out int count) && count > 0)
+                    .ToArray();
+            });
+        }
+
+        private static Dictionary<string, int> GetVocalistGenderCounts()
+        {
+            var dict = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+            foreach (var song in SongContainer.Songs)
+            {
+                var label = GetVocalistGenderLabel(song);
+                if (label == null)
+                    continue;
+
+                dict.TryGetValue(label, out int count);
+                dict[label] = count + 1;
+            }
+
+            return dict;
+        }
+
+        private static IReadOnlyList<string> VocalistGenderLabels => new[]
+        {
+            Localize.Key("Menu.Filters.VocalistGender.Woman"),
+            Localize.Key("Menu.Filters.VocalistGender.Man"),
+            Localize.Key("Menu.Filters.VocalistGender.NonBinary"),
+            Localize.Key("Menu.Filters.VocalistGender.Other"),
+            Localize.Key("Menu.Filters.VocalistGender.Unspecified"),
+            GetInstrumentalLabel(),
+        };
+
+        private static string GetVocalistGenderLabel(SongEntry song)
+        {
+            if (song.VocalsCount == 0)
+                return GetInstrumentalLabel();
+
+            return song.VocalGender switch
+            {
+                VocalGender.Female => Localize.Key("Menu.Filters.VocalistGender.Woman"),
+                VocalGender.Male => Localize.Key("Menu.Filters.VocalistGender.Man"),
+                VocalGender.Nonbinary => Localize.Key("Menu.Filters.VocalistGender.NonBinary"),
+                VocalGender.Other => Localize.Key("Menu.Filters.VocalistGender.Other"),
+                VocalGender.Unspecified => Localize.Key("Menu.Filters.VocalistGender.Unspecified"),
                 _ => null
             };
         }
