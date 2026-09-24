@@ -731,6 +731,10 @@
 			  "ShowLeftyFlipNames": {
 				  "Title": "Show Lefty Flip Names",
 				  "Text": "Display action names as they relate to lefty-flipped gameplay."
+			  },
+			  "RecordBinding": {
+				  "Title": "Record Binding",
+				  "Text": "Opens a dialog where you can capture an input on your dummy controller and assign it to this binding. You must have a dummy controller selected in order to do so."
 			  }
 			}
 		  },
