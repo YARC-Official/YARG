@@ -1,0 +1,94 @@
+diff --git a/Assets/VLCUnity/Internal/OnLoad.cs b/Assets/VLCUnity/Internal/OnLoad.cs
+--- a/Assets/VLCUnity/Internal/OnLoad.cs
++++ b/Assets/VLCUnity/Internal/OnLoad.cs
+@@ -56,7 +56,15 @@ namespace LibVLCSharp
+             Debug.Log("[VLC] Set VLC_PLUGIN_PATH to " + pluginPath);
+ #endif
+           //  Debug.Log("UnityEngine.QualitySettings.activeColorSpace: " + PlayerColorSpace);
+-            SetColorSpace(PlayerColorSpace);
++            try
++            {
++                SetColorSpace(PlayerColorSpace);
++            }
++            catch (DllNotFoundException)
++            {
++                // Leave VLC disabled if the native plugin is missing or excluded.
++                return;
++            }
+ #if UNITY_ANDROID || UNITY_IOS || UNITY_STANDALONE_LINUX || UNITY_EDITOR_LINUX || UNITY_EMBEDDED_LINUX
+             GL.IssuePluginEvent(GetRenderEventFunc(), 1);
+ #endif
+diff --git a/Assets/VLCUnity/Internal/TextureHelper.cs b/Assets/VLCUnity/Internal/TextureHelper.cs
+--- a/Assets/VLCUnity/Internal/TextureHelper.cs
++++ b/Assets/VLCUnity/Internal/TextureHelper.cs
+@@ -52,7 +52,16 @@ namespace LibVLCSharp
+ 
+         internal static bool HasRetiredRenderers()
+         {
+-            return HasRetiredRenderersNative();
++            try
++            {
++                return HasRetiredRenderersNative();
++            }
++            catch (Exception exception) when (
++                exception is DllNotFoundException ||
++                exception is EntryPointNotFoundException)
++            {
++                return false;
++            }
+         }
+ 
+         internal static void QueueRendererCleanupEvent()
+diff --git a/Assets/VLCUnity/Internal/TrialNotice.cs b/Assets/VLCUnity/Internal/TrialNotice.cs
+--- a/Assets/VLCUnity/Internal/TrialNotice.cs
++++ b/Assets/VLCUnity/Internal/TrialNotice.cs
+@@ -1,3 +1,4 @@
++using System;
+ using System.Runtime.InteropServices;
+ using UnityEngine;
+ #if UNITY_EDITOR
+@@ -26,7 +27,20 @@ public static class TrialNotice
+ 
+     [DllImport(UnityPlugin, CallingConvention = CallingConvention.Cdecl, EntryPoint = "libvlc_unity_is_trial")]
+     [return: MarshalAs(UnmanagedType.I1)]
+-    static extern bool IsTrial();
++    static extern bool IsTrialNative();
++
++    // Treat a missing native plugin as not a trial instead of throwing.
++    static bool IsTrial()
++    {
++        try
++        {
++            return IsTrialNative();
++        }
++        catch (DllNotFoundException)
++        {
++            return false;
++        }
++    }
+ 
+     private const string STORE_URL = "https://videolabs.io/store/unity/";
+ 
+diff --git a/Assets/VLCUnity/Internal/VLCMediaPlayer.cs b/Assets/VLCUnity/Internal/VLCMediaPlayer.cs
+--- a/Assets/VLCUnity/Internal/VLCMediaPlayer.cs
++++ b/Assets/VLCUnity/Internal/VLCMediaPlayer.cs
+@@ -91,8 +91,17 @@ namespace LibVLCSharp
+         #region unity
+         private void Awake()
+         {
+-            if (LibVLC == null)
+-                CreateLibVLC();
++            try
++            {
++                if (LibVLC == null)
++                    CreateLibVLC();
++            }
++            catch (DllNotFoundException)
++            {
++                // Disable VLC so the game falls back to Unity's video player.
++                enabled = false;
++                return;
++            }
+ 
+             if (useUnityAudio)
+             {
