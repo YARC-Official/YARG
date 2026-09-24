@@ -135,6 +135,19 @@ namespace YARG.Audio.BASS
             return song;
         }
 
+        public override PushStream CreatePushStream(int sampleRate, int channelCount)
+        {
+            var stream = BassPushStream.Create(sampleRate, channelCount);
+            if (stream == null)
+            {
+                throw new InvalidOperationException(
+                    $"Failed to create BASS push stream: {Bass.LastError}");
+            }
+
+            _router.AddPushStream(stream, null);
+            return stream;
+        }
+
         protected override List<InputDeviceInfo> GetAllInputDevices() =>
             _output == null ? new List<InputDeviceInfo>() : new List<InputDeviceInfo>(_output.GetInputs());
 

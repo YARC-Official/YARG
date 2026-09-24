@@ -8,6 +8,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Video;
+using YARG.Audio;
 using YARG.Career;
 using YARG.Core.IO;
 using YARG.Core.Input;
@@ -23,30 +24,17 @@ using YARG.Scores;
 
 namespace YARG.Menu.Career
 {
-    /// <summary>
-    /// The tier and song list of a single career run.
-    ///
-    /// Progress is evaluated from the database once per change and cached here (see
-    /// <see cref="Initialize"/> and <see cref="LoadProgress"/>): scrolling the list or rebuilding it
-    /// never queries the database.
-    /// </summary>
     public class CareerMenu : ListMenu<ViewType, SongView>
     {
         protected override int ExtraListViewPadding => 10;
 
-        // The long press is the only guard on a reset - there is no confirmation dialog.
         private const float RESET_HOLD_SECONDS = 1f;
 
         private CareerBase _career;
         private CareerEvaluation _evaluation;
         private int _careerSaveId;
 
-        // The menu scene is reloaded after a run, and MenuManager brings the career menu back without
-        // going through the career list again, so the career being browsed has to outlive the instance.
         private static CareerBase _sessionCareer;
-
-        // Progress can only change by completing a song, so the cached evaluation is reloaded when
-        // that has happened, not on every enable.
         private bool _progressDirty;
 
         private CancellationTokenSource _backgroundCts;
@@ -61,9 +49,11 @@ namespace YARG.Menu.Career
         private RawImage _videoTexture;
 
         private VideoPlayer   _videoPlayer;
+        private VideoPlayerSampleConsumer _videoPlayerConsumer;
         private RenderTexture _renderTex;
 
         private bool _videoPlaying;
+        private bool _videoPreparePending;
 
         protected override void OnEnable()
         {
@@ -95,8 +85,6 @@ namespace YARG.Menu.Career
             {
                 if (_sessionCareer != null)
                 {
-                    // Fresh instance after a run: re-adopt the career of the session and re-read what
-                    // that run changed. This is also the point where an unlock becomes "seen".
                     Initialize(_sessionCareer, LoadProgress(_sessionCareer));
                 }
 
@@ -122,8 +110,6 @@ namespace YARG.Menu.Career
 
             Navigator.Instance.PopScheme();
 
-            // Stop caring about an in-flight decode; it frees the image itself and the texture it
-            // produced gets destroyed instead of assigned.
             _backgroundCts?.Cancel();
             _backgroundCts?.Dispose();
             _backgroundCts = null;
@@ -139,30 +125,25 @@ namespace YARG.Menu.Career
                 return viewList;
             }
 
-            _evaluation ??= EvaluateFor(_career, _careerSaveId);
+            _evaluation ??= Evaluate(_career, _careerSaveId);
 
-            // The run summary sits above the tiers and is not clickable.
             // viewList.Add(new CareerHeaderViewType(_career, _evaluation));
 
             for (var tierIndex = 0; tierIndex < _career.Tiers.Count; tierIndex++)
             {
                 var tier = _career.Tiers[tierIndex];
                 var result = _evaluation.Tiers[tierIndex];
-
-                // Every tier reached so far stays in the list, completed ones included: replaying an
-                // earlier song to raise its best stars is a legitimate way to meet an unlock.
                 viewList.Add(new TierViewType(tier, result));
 
                 if (!result.Unlocked)
                 {
-                    // Only the next locked tier is shown - as a summary header - and nothing beyond it.
                     break;
                 }
 
                 for (var songIndex = 0; songIndex < tier.Songs.Length; songIndex++)
                 {
                     viewList.Add(new SongViewType(
-                        tier.Songs[songIndex], _career.CareerId, tier.Id, tierIndex, songIndex,
+                        tier.Songs[songIndex], _career.Id, tier.Id, tierIndex, songIndex,
                         songIndex < result.Songs.Count ? result.Songs[songIndex] : null,
                         OnSongPlayed));
                 }
@@ -171,10 +152,6 @@ namespace YARG.Menu.Career
             return viewList;
         }
 
-        /// <summary>
-        /// Enter a career with progress that has already been evaluated. The evaluation carries the
-        /// save it was built from, so both are injected together and then cached.
-        /// </summary>
         public void Initialize(CareerBase career, CareerEvaluation evaluation)
         {
             _career = career;
@@ -191,20 +168,12 @@ namespace YARG.Menu.Career
             CheckUnlocks();
         }
 
-        /// <summary>
-        /// Resolve the save for the players who are seated right now and evaluate its progress. This
-        /// is the career menu's only database read for progress.
-        /// </summary>
         public static CareerEvaluation LoadProgress(CareerBase career)
         {
-            return EvaluateFor(career, FindSaveIdForPlayers(career));
+            return Evaluate(career, FindSaveId(career));
         }
 
-        /// <summary>
-        /// The active save for (career, seated human players), or 0 when there is none yet. No save is
-        /// created here - starting a run stays free until something is completed.
-        /// </summary>
-        public static int FindSaveIdForPlayers(CareerBase career)
+        public static int FindSaveId(CareerBase career)
         {
             if (ScoreContainer.Careers is null)
             {
@@ -222,15 +191,11 @@ namespace YARG.Menu.Career
                 return 0;
             }
 
-            var save = ScoreContainer.Careers.FindActiveSaveForProfiles(career.CareerId, profiles);
+            var save = ScoreContainer.Careers.FindActiveSaveForProfiles(career.Id, profiles);
             return save?.Id ?? 0;
         }
 
-        /// <summary>
-        /// Evaluate a career against its save's rows. A save id of 0 means "no progress yet", which is
-        /// answered without touching the database.
-        /// </summary>
-        public static CareerEvaluation EvaluateFor(CareerBase career, int careerSaveId)
+        public static CareerEvaluation Evaluate(CareerBase career, int careerSaveId)
         {
             var snapshot = careerSaveId > 0 && ScoreContainer.Careers is not null
                 ? ScoreContainer.Careers.LoadProgressSnapshot(careerSaveId)
@@ -251,10 +216,6 @@ namespace YARG.Menu.Career
             _progressDirty = true;
         }
 
-        /// <summary>
-        /// Discard the current run. History rows are kept (see CareerDatabase.SoftDeleteSave), so the
-        /// next run starts from scratch and the old one stays comparable.
-        /// </summary>
         private void ResetCareer()
         {
             if (_career is null)
@@ -270,16 +231,12 @@ namespace YARG.Menu.Career
 
             ScoreContainer.Careers?.SoftDeleteSave(_careerSaveId);
 
-            ApplyProgress(EvaluateFor(_career, 0));
+            ApplyProgress(Evaluate(_career, 0));
             RequestViewListUpdate();
 
             ToastManager.ToastSuccess(Localize.Key("Menu.Career.ResetDone"));
         }
 
-        /// <summary>
-        /// Present tiers that unlocked since the player last looked, and mark them seen while doing
-        /// so - until this menu shows them the unlock has not been seen.
-        /// </summary>
         private void CheckUnlocks()
         {
             if (_career is null || _careerSaveId <= 0)
@@ -312,20 +269,7 @@ namespace YARG.Menu.Career
                 careers.MarkUnlockSeen(_careerSaveId, progress.TierId);
             }
 
-            if (tier?.CompletionBonus == CompletionBonusType.Video)
-            {
-                // TODO: Handle custom career path
-                var file = Path.Combine(PathHelper.StreamingAssetsPath, "career", _career.Id.ToString(), tier.MediaFilename);
-                if (File.Exists(file))
-                {
-                    PlayVideo(file);
-                    return;
-                }
-            }
-
-            var text = tier?.CustomUnlockText ?? Localize.KeyFormat("Menu.Career.UnlockMessage", Localize.List(names));
-
-            DialogManager.Instance.ShowMessage(Localize.Key("Menu.Career.UnlockTitle"), text);
+            _ = HandleUnlockDisplay(names, tier);
         }
 
         private string TierName(Guid tierId)
@@ -334,11 +278,25 @@ namespace YARG.Menu.Career
             return tier?.Name ?? Localize.Key("Menu.Career.UnknownTier");
         }
 
-        /// <summary>
-        /// Show the image named by the career's <c>bgImage</c> field, which the preset importer
-        /// extracts next to the career JSON. Missing or unloadable art leaves the menu without a
-        /// background.
-        /// </summary>
+        private async UniTaskVoid HandleUnlockDisplay(List<string> names, CareerTier tier)
+        {
+            if (tier?.CompletionBonus == CompletionBonusType.Video)
+            {
+                // TODO: Handle custom career path
+                var file = Path.Combine(PathHelper.StreamingAssetsPath, "career", _career.Id.ToString(), tier.MediaFilename);
+                if (File.Exists(file))
+                {
+                    // TODO: Just awaiting here doesn't help since the loopPointReached event doesn't fire when the
+                    //  video player is stopped before the end of the video
+                    await PlayVideo(file);
+                }
+            }
+
+            var text = tier?.CustomUnlockText ?? Localize.KeyFormat("Menu.Career.UnlockMessage", Localize.List(names));
+
+            DialogManager.Instance.ShowMessage(Localize.Key("Menu.Career.UnlockTitle"), text);
+        }
+
         private void StartBackgroundLoad(CareerBase career)
         {
             _backgroundCts?.Cancel();
@@ -375,7 +333,7 @@ namespace YARG.Menu.Career
                 return;
             }
 
-            LoadBackground(career.CareerId, file, _backgroundCts.Token).Forget();
+            LoadBackground(career.Id, file, _backgroundCts.Token).Forget();
         }
 
         private async UniTask LoadBackground(Guid careerId, string file, CancellationToken token)
@@ -401,7 +359,7 @@ namespace YARG.Menu.Career
             }
 
             // The rows, the career, or the whole menu may have changed while this was decoding.
-            if (token.IsCancellationRequested || _career == null || _career.CareerId != careerId)
+            if (token.IsCancellationRequested || _career == null || _career.Id != careerId)
             {
                 Destroy(texture);
                 return;
@@ -439,7 +397,7 @@ namespace YARG.Menu.Career
             _bgImage.gameObject.SetActive(texture != null);
         }
 
-        private void PlayVideo(string path)
+        private UniTask PlayVideo(string path)
         {
             if (_videoPlayer == null)
             {
@@ -454,21 +412,40 @@ namespace YARG.Menu.Career
             if (!_videoPlaying)
             {
                 _videoPlayer.url = path;
+                _videoPreparePending = true;
                 _videoPlayer.Prepare();
                 _videoTexture.gameObject.SetActive(true);
-                _videoPlayer.Play();
                 _videoPlaying = true;
             }
+
+            var tcs = new UniTaskCompletionSource();
+
+            _videoPlayer.loopPointReached += (VideoPlayer vp) => tcs.TrySetResult();
+
+            return tcs.Task;
         }
 
         private void OnVideoPrepared(VideoPlayer player)
         {
+            if (!_videoPreparePending)
+            {
+                return;
+            }
+
+            _videoPreparePending = false;
+
             if (_renderTex == null)
             {
                 _renderTex = new RenderTexture((int) player.width, (int) player.height, 0, RenderTextureFormat.ARGB32);
                 _videoPlayer.targetTexture = _renderTex;
                 _videoTexture.texture = _renderTex;
             }
+
+            _videoPlayerConsumer?.Dispose();
+            _videoPlayerConsumer = new VideoPlayerSampleConsumer(player);
+            _videoPlayerConsumer.Initialize();
+
+            _videoPlayer.Play();
         }
 
         private void OnVideoEnd(VideoPlayer player)
@@ -478,6 +455,10 @@ namespace YARG.Menu.Career
 
         private void StopVideo()
         {
+            _videoPreparePending = false;
+            _videoPlayerConsumer?.Dispose();
+            _videoPlayerConsumer = null;
+
             if (_videoPlayer != null)
             {
                 _videoPlayer.Stop();

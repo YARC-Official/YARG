@@ -203,7 +203,7 @@ namespace YARG.Scores
 
             var career = CustomContentManager.Careers.DefaultPresets
                 .Concat(CustomContentManager.Careers.CustomPresets)
-                .FirstOrDefault(c => c.CareerId == context.CareerId);
+                .FirstOrDefault(c => c.Id == context.CareerId);
             if (career is null)
             {
                 YargLogger.LogFormatError("Career: cannot find career content for ID {0}, skipping completion.", context.CareerId);
@@ -211,12 +211,12 @@ namespace YARG.Scores
             }
 
             // The save belongs to the set of players who actually played this song.
-            var saveId = Careers.GetOrCreateSave(career.CareerId, career.Version, participants);
+            var saveId = Careers.GetOrCreateSave(career.Id, career.Version, participants);
 
             var commit = new CareerSongCompletionCommit
             {
                 CareerSaveId = saveId,
-                CareerId = career.CareerId,
+                CareerId = career.Id,
                 TierId = context.TierId,
                 TierIndex = context.TierIndex,
                 CareerSongId = context.CareerSongId,

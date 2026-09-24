@@ -1,18 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.Serialization;
 using Newtonsoft.Json;
-using UnityEngine.UI;
 using YARG.Core.Game;
-using YARG.Core.Logging;
 using YARG.Scores;
 
 namespace YARG.Career
 {
     public partial class CareerBase : BasePreset
     {
-        public Guid   CareerId;
         public string Title;
         public string Description;
         public string BackgroundImageName;
@@ -21,9 +17,6 @@ namespace YARG.Career
 
         private readonly List<CareerTier>          _tiers;
         public           IReadOnlyList<CareerTier> Tiers => _tiers;
-
-        [NonSerialized]
-        public RawImage BackgroundImage;
 
         public CareerBase(Guid id, string title, string description) : base(title, true)
         {
@@ -40,12 +33,6 @@ namespace YARG.Career
             _tiers = tiers.ToList();
 
             BackgroundImageName = bgImage;
-            // Find the background image and load it
-            // if (BackgroundImageName != null)
-            // {
-            //     var image = YARGImage.Load(BackgroundImageName);
-            //     BackgroundImage = image.LoadTexture();
-            // }
         }
 
         [JsonConstructor]
@@ -58,15 +45,6 @@ namespace YARG.Career
             BackgroundImageName = bgImage;
             Source = source;
             _tiers = tiers.ToList();
-        }
-
-        [OnDeserialized]
-        private void OnDeserialized(StreamingContext context)
-        {
-            if (CareerId == Guid.Empty)
-            {
-                YargLogger.LogFormatError("CareerBase: missing stable CareerId in content for career '{0}'.", Name);
-            }
         }
 
         /// <summary>
