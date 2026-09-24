@@ -1726,6 +1726,14 @@ namespace YARG.Menu.Filters
                 instrument = preferredInstrument.Value;
             }
 
+            if (instrument == Instrument.PartyVocals)
+            {
+                // Free Harmony uses harmony first and falls back to lead vocals for solo-only songs.
+                instrument = entry[Instrument.Harmony].IsActive()
+                    ? Instrument.Harmony
+                    : Instrument.Vocals;
+            }
+
             if (!entry.HasInstrument(instrument))
             {
                 intensity = default;
