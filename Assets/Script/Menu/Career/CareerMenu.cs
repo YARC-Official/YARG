@@ -7,6 +7,7 @@ using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.Video;
 using YARG.Career;
 using YARG.Core.IO;
 using YARG.Core.Input;
@@ -56,6 +57,13 @@ namespace YARG.Menu.Career
         private TextMeshProUGUI _careerDescriptionText;
         [SerializeField]
         private RawImage _bgImage;
+        [SerializeField]
+        private RawImage _videoTexture;
+
+        private VideoPlayer   _videoPlayer;
+        private RenderTexture _renderTex;
+
+        private bool _videoPlaying;
 
         protected override void OnEnable()
         {
@@ -109,6 +117,8 @@ namespace YARG.Menu.Career
         protected override void OnDisable()
         {
             base.OnDisable();
+
+            StopVideo();
 
             Navigator.Instance.PopScheme();
 
@@ -302,6 +312,17 @@ namespace YARG.Menu.Career
                 careers.MarkUnlockSeen(_careerSaveId, progress.TierId);
             }
 
+            if (tier?.CompletionBonus == CompletionBonusType.Video)
+            {
+                // TODO: Handle custom career path
+                var file = Path.Combine(PathHelper.StreamingAssetsPath, "career", _career.Id.ToString(), tier.MediaFilename);
+                if (File.Exists(file))
+                {
+                    PlayVideo(file);
+                    return;
+                }
+            }
+
             var text = tier?.CustomUnlockText ?? Localize.KeyFormat("Menu.Career.UnlockMessage", Localize.List(names));
 
             DialogManager.Instance.ShowMessage(Localize.Key("Menu.Career.UnlockTitle"), text);
@@ -418,6 +439,60 @@ namespace YARG.Menu.Career
             _bgImage.gameObject.SetActive(texture != null);
         }
 
+        private void PlayVideo(string path)
+        {
+            if (_videoPlayer == null)
+            {
+                _videoPlayer = gameObject.AddComponent<VideoPlayer>();
+                _videoPlayer.renderMode = VideoRenderMode.RenderTexture;
+                _videoPlayer.targetTexture = _videoTexture.texture as RenderTexture;
+                _videoPlayer.audioOutputMode = VideoAudioOutputMode.APIOnly;
+                _videoPlayer.prepareCompleted += OnVideoPrepared;
+                _videoPlayer.loopPointReached += OnVideoEnd;
+            }
+
+            if (!_videoPlaying)
+            {
+                _videoPlayer.url = path;
+                _videoPlayer.Prepare();
+                _videoTexture.gameObject.SetActive(true);
+                _videoPlayer.Play();
+                _videoPlaying = true;
+            }
+        }
+
+        private void OnVideoPrepared(VideoPlayer player)
+        {
+            if (_renderTex == null)
+            {
+                _renderTex = new RenderTexture((int) player.width, (int) player.height, 0, RenderTextureFormat.ARGB32);
+                _videoPlayer.targetTexture = _renderTex;
+                _videoTexture.texture = _renderTex;
+            }
+        }
+
+        private void OnVideoEnd(VideoPlayer player)
+        {
+            StopVideo();
+        }
+
+        private void StopVideo()
+        {
+            if (_videoPlayer != null)
+            {
+                _videoPlayer.Stop();
+                _videoTexture.gameObject.SetActive(false);
+                _videoPlaying = false;
+            }
+
+            if (_renderTex != null)
+            {
+                _renderTex.Release();
+                _renderTex = null;
+                _videoTexture.texture = null;
+            }
+        }
+
         private static void SetText(TextMeshProUGUI target, string text)
         {
             if (target != null)
@@ -428,6 +503,12 @@ namespace YARG.Menu.Career
 
         private void Back()
         {
+            if (_videoPlaying)
+            {
+                StopVideo();
+                return;
+            }
+
             MenuManager.Instance.PopMenu();
         }
     }

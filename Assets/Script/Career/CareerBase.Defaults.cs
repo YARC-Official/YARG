@@ -19,12 +19,12 @@ namespace YARG.Career
         {
             CareerSong[] tierOne = new[]
             {
-                new CareerSong(Guid.Parse("94f4125f-c30a-4807-a69f-4f6b507026c8")) // Oh, Krissy Baby
+                new CareerSong(HashWrapper.FromString("867E35D2D30F4A32E3AC924F5B90A8F97EA94A75")), // A children's keys song
             };
 
             CareerSong[] tierTwo = new[]
             {
-                new CareerSong(HashWrapper.FromString("867E35D2D30F4A32E3AC924F5B90A8F97EA94A75")), // A children's keys song
+                new CareerSong(Guid.Parse("94f4125f-c30a-4807-a69f-4f6b507026c8")), // Oh, Krissy Baby
                 new CareerSong(HashWrapper.FromString("7C6C6597270D3096E9F12401F3CD35475C99DDD9")), // Another children's keys song
             };
 
@@ -60,7 +60,9 @@ namespace YARG.Career
                     UnlockType = UnlockType.StarCount,
                     UnlockCriteria = 5,
                     Songs = tierTwo,
-                    CustomUnlockText = "You're moving on up...to the east side. To a dee-luxe apartment in the sky."
+                    CustomUnlockText = "You're moving on up...to the east side. To a dee-luxe apartment in the sky.",
+                    CompletionBonus = CompletionBonusType.Video,
+                    MediaFilename = "rick.webm",
                 },
                 new ()
                 {
