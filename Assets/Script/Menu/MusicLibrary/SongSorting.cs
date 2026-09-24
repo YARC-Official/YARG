@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.IO;
 using System.Threading.Tasks;
 using YARG.Core;
 using YARG.Core.Extensions;
@@ -184,7 +185,7 @@ namespace YARG.Menu.MusicLibrary
         {
             &SortByTitle,       &SortByArtist,   &SortByAlbum,  &SortByGenre,       &SortBySubgenre,   &SortByYear,
             &SortByCharter,     &SortByPlaylist, &SortBySource, &SortByArtistAlbum, &SortByLength,     &SortByDateAdded,
-            &SortByInstruments, &SortByAggregateDrums
+            &SortByInstruments, &SortByAggregateDrums, &SortByFolder
         };
 
         internal static unsafe void SortEntries(SongCache cache, SortedSongs sorted)
@@ -380,6 +381,39 @@ namespace YARG.Menu.MusicLibrary
                     }
 
                     int index = category.BinarySearch(entry, PlaylistComparer.Instance);
+                    category.SafeInsert(~index, entry);
+                }
+            }
+        }
+
+        /// <summary>
+        /// The name of the directory containing the song (its folder, or its .sng/.con file).
+        /// </summary>
+        public static string GetFolderName(SongEntry entry)
+        {
+            string directory = Path.GetDirectoryName(entry.ActualLocation) ?? string.Empty;
+            string name = Path.GetFileName(directory);
+            return string.IsNullOrEmpty(name) ? directory : name;
+        }
+
+        private static void SortByFolder(SongCache cache, SortedSongs sorted)
+        {
+            foreach (var list in cache.Entries)
+            {
+                foreach (var entry in list.Value)
+                {
+                    if (DisallowedByRating(entry.GetSongRating(SettingsManager.Settings.CensorMatureContent.Value)))
+                    {
+                        continue;
+                    }
+
+                    var folder = new SortString(GetFolderName(entry));
+                    if (!sorted.Folders.TryGetValue(folder, out var category))
+                    {
+                        sorted.Folders.Add(folder, category = new List<SongEntry>());
+                    }
+
+                    int index = category.BinarySearch(entry, MetadataComparer.Instance);
                     category.SafeInsert(~index, entry);
                 }
             }

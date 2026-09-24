@@ -74,6 +74,7 @@
             "Charter": "Charter",
             "Genre": "Genre",
             "Name": "Song",
+            "Playlist": "Playlist",
             "Folder": "Folder",
             "SongLength": "Duration",
             "Source": "Source",
