@@ -82,6 +82,11 @@ namespace YARG.Gameplay
         [Tooltip("Minimise delay through demux, packetisation and decode.")]
         private bool _decoderLowDelay = true;
 
+        // Pictures the decoder must deliver after the song-start seek before the curtain lifts.
+        private const long REVEAL_MIN_FRAMES = 3;
+        private bool _videoRevealed;
+        private long _revealFrameBaseline;
+
         private float YARGROUND_OFFSET = 50f;
 
         private readonly List<AsyncOperationHandle<GameObject>> _handles = new();
@@ -566,16 +571,33 @@ namespace YARG.Gameplay
                     return;
 
                 _videoStarted = true;
-                _videoPlayer.Play();
+                SetVideoPlaying(true);
+
+                if (_source == VenueSource.Song)
+                {
+                    // Unconditional, even when the player already sits on the target: resuming a
+                    // cold pause leaves a large stream spinning up at partial rate for seconds, and
+                    // a seek flushes and refills the decoder. Must follow the Play above, because a
+                    // seek issued while paused is dropped.
+                    double startTarget = time + _videoStartTime;
+                    _videoPlayer.time = startTarget;
+                }
+
+                _revealFrameBaseline = _videoPlayer.framesDelivered;
 
                 // Disable after starting the video if it's not from the song folder
                 // or if video end time is not specified
                 if (_source != VenueSource.Song || double.IsNaN(_videoEndTime))
                 {
+                    // Update stops here, so there is no later chance to reveal.
+                    RevealVideoWhenPlaying(force: true);
+
                     enabled = false;
                     return;
                 }
             }
+
+            RevealVideoWhenPlaying(force: false);
 
             // End video when reaching the specified end time
             if (time + _videoStartTime >= _videoEndTime)
@@ -602,7 +624,9 @@ namespace YARG.Gameplay
                 _videoStartTime = GameManager.Song.VideoStartTimeSeconds;
                 _videoEndTime = GameManager.Song.VideoEndTimeSeconds;
 
-                player.time = _videoStartTime;
+                // Clamped: a negative start time delays when the video starts; it does not name a
+                // position before the file begins.
+                player.time = Math.Max(_videoStartTime, 0.0);
                 player.playbackSpeed = GameManager.SongSpeed;
 
                 // Only loop the video if it's not around the same length as the song
@@ -629,12 +653,17 @@ namespace YARG.Gameplay
                 player.isLooping = true;
             }
 
+            // The player arrives here still playing, and the start-position seek above only lands
+            // because of that -- a seek issued while paused is dropped. Pause now, after the seek,
+            // or the video runs ahead of its mark until Update()'s start block.
+            SetVideoPlaying(false);
+
             GetComponent<TextureManager>().SetVideoTexture(_videoPlayer.targetTexture);
             if (_type == BackgroundType.Video)
             {
+                // Bound and live, but behind the curtain until RevealVideoWhenPlaying.
                 _venueOutput.texture = _videoPlayer.targetTexture;
                 _venueOutput.gameObject.SetActive(true);
-                _venueFadeOverlay.CrossFadeAlpha(0f, FADE_DURATION, true);
             }
         }
 
@@ -690,7 +719,7 @@ namespace YARG.Gameplay
                 GameManager.OverrideResume())
             {
                 if (!_videoWasPausedBeforeSeek)
-                    player.Play();
+                    SetVideoPlaying(true);
             }
 
             enabled = !double.IsNaN(_videoEndTime);
@@ -721,6 +750,39 @@ namespace YARG.Gameplay
             return options.ToArray();
         }
 
+        // Lifts the curtain once the decoder has delivered pictures, so a slow spin-up is hidden
+        // rather than shown. Latched.
+        private void RevealVideoWhenPlaying(bool force)
+        {
+            if (_videoRevealed)
+                return;
+
+            if (!force && _videoPlayer.framesDelivered - _revealFrameBaseline < REVEAL_MIN_FRAMES)
+                return;
+
+            _videoRevealed = true;
+
+            // Plain-video backgrounds only: a yarground's embedded screen shares this manager but
+            // gets its reveal from ShowVenue().
+            if (_type == BackgroundType.Video)
+                _venueFadeOverlay.CrossFadeAlpha(0f, FADE_DURATION, true);
+        }
+
+        // Every play/pause goes through here. Several independent paths drive the player, and
+        // Play/Pause are applied asynchronously in issue order, so the last one issued wins rather
+        // than the last intended.
+        private void SetVideoPlaying(bool playing)
+        {
+            if (playing)
+            {
+                _videoPlayer.Play();
+            }
+            else
+            {
+                _videoPlayer.Pause();
+            }
+        }
+
         public void SetSpeed(float speed)
         {
             switch (_type)
@@ -736,14 +798,7 @@ namespace YARG.Gameplay
             // Pause/unpause video
             if (_videoPlayer.playerEnabled && _videoStarted && !_videoSeeking)
             {
-                if (paused)
-                {
-                    _videoPlayer.Pause();
-                }
-                else
-                {
-                    _videoPlayer.Play();
-                }
+                SetVideoPlaying(!paused);
             }
 
             // The venue is dealt with in the GameManager via Time.timeScale
