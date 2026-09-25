@@ -542,9 +542,10 @@ public class YargVideoPlayer : MonoBehaviour
 
         _vlcPreparedFired = true;
 
-        // OpenAsync() starts playing, so stop before handing over to the caller.
-        Stop();
-
+        // Deliberately left playing. OpenAsync() starts playback, and the caller's prepare
+        // handler seeks to the video's start position -- a seek issued while stopped or paused
+        // is silently dropped, and Stop() releases libVLC's input entirely with nothing here
+        // to reopen it. The handler pauses once its seek is away.
         prepareCompleted?.Invoke(this);
     }
 
