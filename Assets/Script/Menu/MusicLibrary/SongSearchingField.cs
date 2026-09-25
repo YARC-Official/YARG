@@ -117,7 +117,7 @@ namespace YARG.Menu.MusicLibrary
 
             return attribute is SortAttribute.Name or SortAttribute.Artist or SortAttribute.Source or
                 SortAttribute.Album or SortAttribute.Charter or SortAttribute.Year or SortAttribute.Genre or
-                SortAttribute.Subgenre or SortAttribute.Playlist or SortAttribute.Folder or
+                SortAttribute.Subgenre or SortAttribute.Pack or SortAttribute.Folder or
                 SortAttribute.AggregateDrums ||
                 attribute >= SortAttribute.FiveFretGuitar;
         }

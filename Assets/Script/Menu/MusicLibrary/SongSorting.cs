@@ -388,10 +388,17 @@ namespace YARG.Menu.MusicLibrary
 
         /// <summary>
         /// The name of the directory containing the song (its folder, or its .sng/.con file).
+        /// Unpacked CON/PKG songs live in "parent/songs/song", where "songs" is the container,
+        /// so the name of its parent is used instead, like for a packed .con file.
         /// </summary>
         public static string GetFolderName(SongEntry entry)
         {
             string directory = Path.GetDirectoryName(entry.ActualLocation) ?? string.Empty;
+            if (entry.SubType == EntryType.ExCON && directory.Length > 0)
+            {
+                directory = Path.GetDirectoryName(directory) ?? string.Empty;
+            }
+
             string name = Path.GetFileName(directory);
             return string.IsNullOrEmpty(name) ? directory : name;
         }

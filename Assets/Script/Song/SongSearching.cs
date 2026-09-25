@@ -214,10 +214,10 @@ namespace YARG.Song
                     attribute = SortAttribute.Subgenre;
                     argument = argument[9..];
                 }
-                else if (argument.StartsWith("playlist:"))
+                else if (argument.StartsWith("pack:"))
                 {
-                    attribute = SortAttribute.Playlist;
-                    argument = argument[9..];
+                    attribute = SortAttribute.Pack;
+                    argument = argument[5..];
                 }
                 else if (argument.StartsWith("folder:"))
                 {
@@ -329,7 +329,7 @@ namespace YARG.Song
                     SortAttribute.Subgenre => entry => IsAboveFuzzyThreshold(entry.Subgenre.SearchStr, filter.Argument),
                     SortAttribute.Year => entry => entry.UnmodifiedYear.Contains(filter.Argument),
                     SortAttribute.Charter => entry => IsAboveFuzzyThreshold(entry.Charter.SearchStr, filter.Argument),
-                    SortAttribute.Playlist => entry => MatchesAnyPlaylist(entry, filter.Argument, true),
+                    SortAttribute.Pack => entry => MatchesAnyPlaylist(entry, filter.Argument, true),
                     SortAttribute.Folder => entry => IsAboveFuzzyThreshold(new SortString(SongSorting.GetFolderName(entry)).SearchStr, filter.Argument),
                     SortAttribute.Source => entry => IsAboveFuzzyThreshold(entry.Source.SearchStr, filter.Argument),
                     _ => throw new Exception("Unhandled seacrh filter")
@@ -343,7 +343,7 @@ namespace YARG.Song
                     SortAttribute.Subgenre => entry => entry.Subgenre.SearchStr == filter.Argument,
                     SortAttribute.Year => entry => entry.ParsedYear == filter.Argument || entry.UnmodifiedYear == filter.Argument,
                     SortAttribute.Charter => entry => entry.Charter.SearchStr == filter.Argument,
-                    SortAttribute.Playlist => entry => MatchesAnyPlaylist(entry, filter.Argument, false),
+                    SortAttribute.Pack => entry => MatchesAnyPlaylist(entry, filter.Argument, false),
                     SortAttribute.Folder => entry => new SortString(SongSorting.GetFolderName(entry)).SearchStr == filter.Argument,
                     SortAttribute.Source => entry => entry.Source.SearchStr == filter.Argument,
                     _ => throw new Exception("Unhandled seacrh filter")
