@@ -66,6 +66,22 @@ namespace YARG.Gameplay
 
         private const float FADE_DURATION = 0.5f;
 
+        // Load-bearing for video sync, not a tuning knob. libavcodec's frame threading delays
+        // decoder output by thread_count - 1 frames by design and hardware decoders buffer more on
+        // top; at 24-30fps that delay is the whole of the offset the video would otherwise sit at,
+        // and no seek or resume timing shifts it. Per-media because LibVLC is process-wide and
+        // built once; serialized so single-threaded decode can be turned off on a machine it
+        // starves.
+        [Header("Video decoder latency")]
+        [SerializeField]
+        [Tooltip("Single-threaded decode. Removes libavcodec's frame-threading output delay of " +
+                 "thread_count - 1 frames, at the cost of decode throughput.")]
+        private bool _decoderSingleThreaded = true;
+
+        [SerializeField]
+        [Tooltip("Minimise delay through demux, packetisation and decode.")]
+        private bool _decoderLowDelay = true;
+
         private float YARGROUND_OFFSET = 50f;
 
         private readonly List<AsyncOperationHandle<GameObject>> _handles = new();
@@ -525,7 +541,7 @@ namespace YARG.Gameplay
             _videoPlayer.playerEnabled = true;
             _videoPlayer.prepareCompleted += OnVideoPrepared;
             _videoPlayer.seekCompleted += OnVideoSeeked;
-            _videoPlayer.Prepare();
+            _videoPlayer.Prepare(BuildMediaOptions());
             enabled = true;
         }
 
@@ -681,6 +697,28 @@ namespace YARG.Gameplay
             _videoSeeking = false;
             _videoSeekWaitForPause = false;
             _videoWasPausedBeforeSeek = false;
+        }
+
+        private string[] BuildMediaOptions()
+        {
+            var options = new List<string>();
+
+            if (_decoderSingleThreaded)
+                options.Add(":avcodec-threads=1");
+
+            if (_decoderLowDelay)
+                options.Add(":low-delay");
+
+            // Insurance, not a tuning knob: background videos are silent, and a badly muxed one
+            // must not reach the speakers. It is not a sync lever -- VLC only makes the audio
+            // output its master clock when a track exists, and these have none.
+            options.Add(":no-audio");
+
+            // Never ":start-time=". It decouples the player's reported time from the picture it
+            // is showing, so the video runs seconds out while every sync metric here -- all of
+            // which derive from MediaPlayer.Time -- still reads correct.
+
+            return options.ToArray();
         }
 
         public void SetSpeed(float speed)

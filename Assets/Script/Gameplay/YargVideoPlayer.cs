@@ -183,13 +183,18 @@ public class YargVideoPlayer : MonoBehaviour
 
     // ─── Methods ───
 
-    public void Prepare()
+    /// <param name="mediaOptions">
+    /// Per-media libVLC options (the ":option=value" form). Ignored on the Unity path, which has
+    /// no equivalent. Per-media rather than instance-level so they can differ between songs
+    /// without recreating LibVLC, which is process-wide and built once.
+    /// </param>
+    public void Prepare(params string[] mediaOptions)
     {
 #if VLC_SUPPORTED
         if (_usingVLC && _vlcPlayer != null)
         {
             _vlcPreparedFired = false;
-            _ = _vlcPlayer.OpenAsync(_url);
+            _ = _vlcPlayer.OpenAsync(_url, mediaOptions ?? Array.Empty<string>());
             return;
         }
 #endif
