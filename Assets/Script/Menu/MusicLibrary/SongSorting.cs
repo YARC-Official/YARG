@@ -420,7 +420,7 @@ namespace YARG.Menu.MusicLibrary
                         sorted.Folders.Add(folder, category = new List<SongEntry>());
                     }
 
-                    int index = category.BinarySearch(entry, MetadataComparer.Instance);
+                    int index = category.BinarySearch(entry, PlaylistComparer.Instance);
                     category.SafeInsert(~index, entry);
                 }
             }
