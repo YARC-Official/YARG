@@ -31,6 +31,7 @@ namespace YARG.Song
         Subgenre,
         Year,
         Charter,
+        Pack,
         Folder,
         Source,
         SongLength,
@@ -104,6 +105,7 @@ namespace YARG.Song
         private static SongCategory[] _sortYears = Array.Empty<SongCategory>();
         private static SongCategory[] _sortCharters = Array.Empty<SongCategory>();
         private static SongCategory[] _sortPlaylists = Array.Empty<SongCategory>();
+        private static SongCategory[] _sortFolders = Array.Empty<SongCategory>();
         private static SongCategory[] _sortSources = Array.Empty<SongCategory>();
         private static SongCategory[] _sortArtistAlbums = Array.Empty<SongCategory>();
         private static SongCategory[] _sortSongLengths = Array.Empty<SongCategory>();
@@ -278,7 +280,8 @@ namespace YARG.Song
                     SortAttribute.Subgenre     => _sortSubgenres,
                     SortAttribute.Year         => _sortYears,
                     SortAttribute.Charter      => _sortCharters,
-                    SortAttribute.Folder       => _sortPlaylists,
+                    SortAttribute.Pack         => _sortPlaylists,
+                    SortAttribute.Folder       => _sortFolders,
                     SortAttribute.Source       => _sortSources,
                     SortAttribute.Artist_Album => _sortArtistAlbums,
                     SortAttribute.SongLength   => _sortSongLengths,
@@ -947,6 +950,7 @@ namespace YARG.Song
             _sortSubgenres    = Convert(_sortedSongs.Subgenres, SongAttribute.Subgenre);
             _sortCharters     = Convert(_sortedSongs.Charters, SongAttribute.Charter);
             _sortPlaylists    = Convert(_sortedSongs.Playlists, SongAttribute.Playlist);
+            _sortFolders      = ConvertFolders(_sortedSongs.Folders);
             _sortSources      = Convert(_sortedSongs.Sources, SongAttribute.Source);
             _sortArtistAlbums = Combine(_sortedSongs.ArtistAlbums);
 
@@ -1143,6 +1147,17 @@ namespace YARG.Song
                         _ => key,
                     };
                     sections[index++] = new SongCategory(key, node.Value.ToArray(), categoryGroupName);
+                }
+                return sections;
+            }
+
+            static SongCategory[] ConvertFolders(SortedDictionary<SortString, List<SongEntry>> list)
+            {
+                var sections = new SongCategory[list.Count];
+                int index = 0;
+                foreach (var (key, songs) in list)
+                {
+                    sections[index++] = new SongCategory(key.Original, songs.ToArray(), key.Original);
                 }
                 return sections;
             }
