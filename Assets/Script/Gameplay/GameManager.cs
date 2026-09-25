@@ -354,7 +354,7 @@ namespace YARG.Gameplay
             ApplySongSpeed();
 
             BeatEventHandler.Reset();
-            BackgroundManager.SetTime(_songRunner.GetAudioPlaybackTime(_songRunner.SongTime));
+            BackgroundManager.SetTime(GetVideoPlaybackTime());
             VenueCameraManager?.ResetTime(time);
             VenueCharacterManager?.ResetTime(time);
             if (_lyricBar.gameObject.activeSelf)
@@ -637,6 +637,23 @@ namespace YARG.Gameplay
         /// <inheritdoc cref="SongRunner.GetAudioPlaybackTime"/>
         public double GetAudioPlaybackTime(double songTime)
             => _songRunner.GetAudioPlaybackTime(songTime);
+
+        /// <summary>
+        /// Converts a gameplay visual time to a position in the background video file.
+        /// </summary>
+        /// <remarks>
+        /// VisualTime, not SongTime: the background video is watched, so it belongs on the same
+        /// clock as the highway. SongTime carries AudioCalibration, which absorbs device output
+        /// latency when AccountForHardwareLatency is on -- driving the video off it offsets the
+        /// video from the rest of the screen and leaves VideoCalibration with no effect on it.
+        /// The file-position conversion is a plain SongOffset shift, identical either way.
+        /// </remarks>
+        public double GetVideoPlaybackTime(double visualTime)
+            => _songRunner.GetAudioPlaybackTime(visualTime);
+
+        /// <inheritdoc cref="GetVideoPlaybackTime(double)"/>
+        public double GetVideoPlaybackTime()
+            => _songRunner.GetAudioPlaybackTime(_songRunner.VisualTime);
 
         private bool EndSong()
         {
