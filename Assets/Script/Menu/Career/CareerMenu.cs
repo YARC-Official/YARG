@@ -435,7 +435,6 @@ namespace YARG.Menu.Career
                 _videoPlayer.url = path;
                 _videoPreparePending = true;
                 _videoPlayer.Prepare();
-                _videoTexture.gameObject.SetActive(true);
                 _videoPlaying = true;
             }
 
@@ -469,6 +468,7 @@ namespace YARG.Menu.Career
             _videoPlayerConsumer.Initialize();
 
             _videoPlayer.Play();
+            _videoTexture.gameObject.SetActive(true);
         }
 
         private void OnVideoEnd(VideoPlayer player)
