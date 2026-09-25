@@ -49,6 +49,11 @@ public class YargVideoPlayer : MonoBehaviour
     private bool _isLooping = false;
     private bool _playerEnabled = true;
 
+    // The externally-owned texture every consumer reads back through targetTexture. Both
+    // backends fit themselves into it rather than rendering at their own native size --
+    // VLC via the blit in LateUpdate, the built-in player via VideoAspectRatio.FitInside.
+    private RenderTexture _targetTexture;
+
     // ─── Properties matching VideoPlayer API ───
 
     public string url
@@ -61,6 +66,10 @@ public class YargVideoPlayer : MonoBehaviour
     {
         get
         {
+            if (_targetTexture != null)
+            {
+                return _targetTexture;
+            }
 #if VLC_SUPPORTED
             if (_usingVLC && _vlcPlayer != null)
             {
@@ -71,12 +80,7 @@ public class YargVideoPlayer : MonoBehaviour
         }
         set
         {
-#if VLC_SUPPORTED
-            if (_usingVLC && _vlcPlayer != null && value != null)
-            {
-                YargLogger.LogInfo("[YargVideoPlayer] Ignoring external output texture in vlc mode");
-            }
-#endif
+            _targetTexture = value;
             // Always set on the built-in player too, so we can fall back to it.
             // Log the name, not the RenderTexture -- YargLogger has no formatter for it and throws.
             YargLogger.LogFormatDebug("[YargVideoPlayer/UnityPlayer] targetTexture set to {0}", value != null ? value.name : "null");
@@ -235,6 +239,9 @@ public class YargVideoPlayer : MonoBehaviour
         // SwitchToVideoPlayerFallback (which also set renderMode) is VLC-only.
         _unityVideoPlayer.url = _url;
         _unityVideoPlayer.renderMode = VideoRenderMode.RenderTexture;
+        // Letterbox rather than stretch into targetTexture, matching the VLC path's blit. The
+        // built-in player does this at decode time, so it needs no blit.
+        _unityVideoPlayer.aspectRatio = VideoAspectRatio.FitInside;
         // (Re)wire native events idempotently so per-song Prepare() calls on a persisted
         // player don't stack seekCompleted handlers. OnUnityVideoPrepared self-unregisters
         // after the first fire; seekCompleted stays attached for every seek.
@@ -315,6 +322,14 @@ public class YargVideoPlayer : MonoBehaviour
         UpdateSeekWatch();
     }
 
+    // LateUpdate, not Update: VLCMediaPlayer fetches libVLC's newest picture in its own
+    // Update, and the two have no defined order. Blitting in Update ran first every frame, so
+    // the venue always showed the previous frame's picture.
+    private void LateUpdate()
+    {
+        BlitToTargetTexture();
+    }
+
     private unsafe void StartTimeWatch()
     {
         var player = _vlcPlayer != null ? _vlcPlayer.MediaPlayer : null;
@@ -378,6 +393,61 @@ public class YargVideoPlayer : MonoBehaviour
         _onTimeSeek = null;
     }
 
+    private void BlitToTargetTexture()
+    {
+        if (!_usingVLC || _vlcPlayer == null || _targetTexture == null)
+        {
+            return;
+        }
+
+        // Re-read each frame: VLC replaces the instance on a resize (ResizeOutputTextures
+        // destroys the old one) and drops it on Stop(), so it must never be cached.
+        var source = _vlcPlayer.OutputTexture;
+        if (source == null || source.width == 0 || source.height == 0)
+        {
+            return;
+        }
+
+        BlitContained(source, _targetTexture);
+    }
+
+    // Centers source inside dest at source's own aspect ratio, filling the remainder with
+    // black bars. VLC decodes at the video's native resolution, and every consumer of
+    // targetTexture -- the venue RawImage, the yarground screen material -- maps the whole
+    // texture onto a fixed rect, so without this the video is stretched to that rect.
+    private static void BlitContained(Texture source, RenderTexture dest)
+    {
+        float sourceAspect = (float) source.width / source.height;
+
+        float width = dest.width;
+        float height = dest.height;
+        if (sourceAspect > (float) dest.width / dest.height)
+        {
+            height = Mathf.Round(dest.width / sourceAspect);
+        }
+        else
+        {
+            width = Mathf.Round(dest.height * sourceAspect);
+        }
+
+        // Whole pixels, or the edges shimmer as the fitted rect lands on half-pixels.
+        var fitted = new Rect(Mathf.Round((dest.width - width) / 2f),
+            Mathf.Round((dest.height - height) / 2f), width, height);
+
+        var previous = RenderTexture.active;
+        Graphics.SetRenderTarget(dest);
+        // The bars themselves. Without this they keep whatever the texture last held.
+        GL.Clear(false, true, Color.black);
+        GL.PushMatrix();
+        // y-down (bottom > top), which is what keeps this stage orientation-neutral:
+        // Graphics.DrawTexture maps v=0 to the rect's top edge, so a y-up matrix flips the
+        // image. The pipeline's real flip convention lives elsewhere -- _vlcPlayer's
+        // flipTextureX/Y and the yarground image blit's (1, -1).
+        GL.LoadPixelMatrix(0, dest.width, dest.height, 0);
+        Graphics.DrawTexture(fitted, source);
+        GL.PopMatrix();
+        RenderTexture.active = previous;
+    }
 #endif
 
     private void OnEnable()
@@ -555,6 +625,7 @@ public class YargVideoPlayer : MonoBehaviour
         _unityVideoPlayer.enabled = true;
         _unityVideoPlayer.url = _url;
         _unityVideoPlayer.renderMode = VideoRenderMode.RenderTexture;
+        _unityVideoPlayer.aspectRatio = VideoAspectRatio.FitInside;
         // prepareCompleted/seekCompleted are wired in Prepare() instead, so the Unity
         // path stays identical whether we got here via fallback or via a VLC-less build.
     }
