@@ -55,31 +55,13 @@ namespace YARG.Menu.Career
         private bool _videoPlaying;
         private bool _videoPreparePending;
 
+        private UniTaskCompletionSource<bool> _videoStopped;
+
         protected override void OnEnable()
         {
             base.OnEnable();
 
-            _ = Navigator.Instance.PushScheme(new NavigationScheme(new ()
-                {
-                    new NavigationScheme.Entry(MenuAction.Up, "Menu.Common.Up",
-                        ctx => {
-                            SetWrapAroundState(!ctx.IsRepeat);
-                            SelectedIndex--;
-                        }),
-                    new NavigationScheme.Entry(MenuAction.Down, "Menu.Common.Down",
-                        ctx => {
-                            SetWrapAroundState(!ctx.IsRepeat);
-                            SelectedIndex++;
-                        }),
-                    new NavigationScheme.Entry(MenuAction.Green, "Menu.Common.Confirm",
-                        () => CurrentSelection?.ViewClick()),
-                    new NavigationScheme.Entry(MenuAction.Yellow, "Menu.Career.Reset",
-                        () => { }, // a tap does nothing, only holding resets
-                        holdSeconds: RESET_HOLD_SECONDS,
-                        onHoldHandler: ResetCareer),
-                    new NavigationScheme.Entry(MenuAction.Red, "Menu.Common.Back",
-                        Back, hide: true),
-                    }, false));
+            SetMenuNavigation();
 
             if (_career is null)
             {
@@ -113,6 +95,45 @@ namespace YARG.Menu.Career
             _backgroundCts?.Cancel();
             _backgroundCts?.Dispose();
             _backgroundCts = null;
+        }
+
+        private void SetMenuNavigation(bool pop = false)
+        {
+            if (pop)
+            {
+                Navigator.Instance.PopScheme();
+            }
+
+            _ = Navigator.Instance.PushScheme(new NavigationScheme(new ()
+            {
+                new NavigationScheme.Entry(MenuAction.Up, "Menu.Common.Up",
+                    ctx => {
+                        SetWrapAroundState(!ctx.IsRepeat);
+                        SelectedIndex--;
+                    }),
+                new NavigationScheme.Entry(MenuAction.Down, "Menu.Common.Down",
+                    ctx => {
+                        SetWrapAroundState(!ctx.IsRepeat);
+                        SelectedIndex++;
+                    }),
+                new NavigationScheme.Entry(MenuAction.Green, "Menu.Common.Confirm",
+                    () => CurrentSelection?.ViewClick()),
+                new NavigationScheme.Entry(MenuAction.Yellow, "Menu.Career.Reset",
+                    () => { }, // a tap does nothing, only holding resets
+                    holdSeconds: RESET_HOLD_SECONDS,
+                    onHoldHandler: ResetCareer),
+                new NavigationScheme.Entry(MenuAction.Red, "Menu.Common.Back",
+                    Back, hide: true),
+            }, false));
+        }
+
+        private void SetVideoNavigation()
+        {
+            Navigator.Instance.PopScheme();
+            _ = Navigator.Instance.PushScheme(new NavigationScheme(new()
+            {
+                new NavigationScheme.Entry(MenuAction.Green, "Menu.Common.Skip", StopVideo)
+            }, false));
         }
 
         protected override List<ViewType> CreateViewList()
@@ -286,8 +307,6 @@ namespace YARG.Menu.Career
                 var file = Path.Combine(PathHelper.StreamingAssetsPath, "career", _career.Id.ToString(), tier.MediaFilename);
                 if (File.Exists(file))
                 {
-                    // TODO: Just awaiting here doesn't help since the loopPointReached event doesn't fire when the
-                    //  video player is stopped before the end of the video
                     await PlayVideo(file);
                 }
             }
@@ -397,8 +416,10 @@ namespace YARG.Menu.Career
             _bgImage.gameObject.SetActive(texture != null);
         }
 
-        private UniTask PlayVideo(string path)
+        private UniTask<bool> PlayVideo(string path)
         {
+            // TODO: This also needs to reset the navigation scheme such that the only button is green, labeled skip
+
             if (_videoPlayer == null)
             {
                 _videoPlayer = gameObject.AddComponent<VideoPlayer>();
@@ -418,11 +439,13 @@ namespace YARG.Menu.Career
                 _videoPlaying = true;
             }
 
-            var tcs = new UniTaskCompletionSource();
+            _videoStopped = new UniTaskCompletionSource<bool>();
 
-            _videoPlayer.loopPointReached += (VideoPlayer vp) => tcs.TrySetResult();
+            _videoPlayer.loopPointReached += (VideoPlayer vp) => _videoStopped.TrySetResult(true);
 
-            return tcs.Task;
+            SetVideoNavigation();
+
+            return _videoStopped.Task;
         }
 
         private void OnVideoPrepared(VideoPlayer player)
@@ -472,6 +495,9 @@ namespace YARG.Menu.Career
                 _renderTex = null;
                 _videoTexture.texture = null;
             }
+
+            SetMenuNavigation(true);
+            _videoStopped?.TrySetResult(false);
         }
 
         private static void SetText(TextMeshProUGUI target, string text)
