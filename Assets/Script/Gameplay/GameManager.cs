@@ -681,7 +681,8 @@ namespace YARG.Gameplay
                     IsHighScore = player.IsActive && player.Score > player.LastHighScore,
                     Player = player.Player,
                     Stats = player.BaseStats,
-                    IsReplay = player.Player.IsReplay
+                    IsReplay = player.Player.IsReplay,
+                    OffsetSampleFilterCategory = player.GetOffsetSampleFilterCategory()
                 }).ToArray(),
                 BandScore = BandScore,
                 BandStars = (int) BandStars,
@@ -690,11 +691,21 @@ namespace YARG.Gameplay
                 // .Where(player => !player.Player.Profile.IsBot)
                 // to:
                 // .Where(player => !(player.Player.Profile.IsBot || player.Player.IsRemote))
-                MeanAverageOffset = ActivePlayers
-                    .Where(player => !player.IsBot)
-                    .Select(player => player.BaseStats.GetAverageOffset())
-                    .DefaultIfEmpty(0)
-                    .Average(),
+                //
+                // Both fields below are weighted by note count: every hit note's offset is pooled
+                // into one flat list and reduced to a single value, rather than reducing each
+                // player's own samples first. Otherwise a player who hit 30 notes would count
+                // exactly as much as one who hit 3000, which skews the band number toward whoever
+                // played the least. That single value is the mean, unless
+                // UseMedianForEndOfSongCalibration is set to true, in
+                // which case it's the median, see GetWeightedOffset.
+                MeanAverageOffset = GetWeightedOffset(_players
+                    .Where(player => !player.Player.Profile.IsBot)
+                    .SelectMany(player => player.BaseStats.GetOffsetSamples())
+                    .ToList()) ?? 0,
+
+                MeanAverageOffsetFilterCategoryOnly = GetWeightedOffset(GetWeightedFilterCategorySamples(_players
+                    .Where(player => !player.Player.Profile.IsBot))),
 
                 ReplayInfo = replayInfo,
             };
@@ -704,6 +715,85 @@ namespace YARG.Gameplay
             // Go to the score screen
             GlobalVariables.Instance.LoadScene(SceneIndex.Score);
             return true;
+        }
+
+        /// <summary>
+        /// Band-wide pooled note-hit offset samples, filtered per player according to their own
+        /// <see cref="BasePlayer.OffsetSampleFilterMode"/> (Everything/OnlySelected/ExcludeSelected
+        /// -- e.g. UseStrumOnlyOffsetForCalibration for guitar, UseKickOnlyOffsetForCalibration for
+        /// drums), against the per-note category from
+        /// <see cref="BasePlayer.GetOffsetSampleFilterCategory"/>. Players set to Everything, or on
+        /// an instrument with no filter-category distinction at all (keys, vocals, etc.), still
+        /// contribute their full set of offset samples, so they're never silently dropped from the
+        /// band average.
+        /// </summary>
+        private static List<double> GetWeightedFilterCategorySamples(IEnumerable<BasePlayer> players)
+        {
+            var pooledSamples = new List<double>();
+            foreach (var player in players)
+            {
+                var filterCategory = player.GetOffsetSampleFilterCategory();
+                var offsetSamples = player.BaseStats.GetOffsetSamples();
+                var filterMode = player.OffsetSampleFilterMode;
+
+                if (filterCategory == null || filterCategory.Count != offsetSamples.Count
+                    || filterMode == OffsetCalibrationFilter.Everything)
+                {
+                    // No filter-category distinction (or a data mismatch, or this player's own
+                    // setting is Everything) -- fall back to this player's full sample set instead
+                    // of excluding or filtering them.
+                    pooledSamples.AddRange(offsetSamples);
+                    continue;
+                }
+
+                // ExcludeSelected (e.g. "No Strums"/"No Kicks") wants the *other* side of the
+                // category -- OnlySelected wants the category side itself.
+                bool wantCategory = filterMode == OffsetCalibrationFilter.OnlySelected;
+
+                int matchingCount = 0;
+                for (int i = 0; i < offsetSamples.Count; i++)
+                {
+                    if (filterCategory[i] == wantCategory)
+                    {
+                        pooledSamples.Add(offsetSamples[i]);
+                        matchingCount++;
+                    }
+                }
+
+                if (matchingCount == 0)
+                {
+                    // This player's selected side had zero matching notes this song (e.g. an
+                    // all-HOPO run while set to Only Strums) -- fall back to their full sample
+                    // set instead of contributing nothing.
+                    pooledSamples.AddRange(offsetSamples);
+                }
+            }
+
+            return pooledSamples;
+        }
+
+        /// <summary>
+        /// Reduces a pooled sample list to a single band-wide offset value: the mean, unless
+        /// <see cref="SettingsManager.Settings.UseMedianForEndOfSongCalibration"/> is set to true,
+        /// in which case the median. Null for an empty sample list.
+        /// </summary>
+        private static double? GetWeightedOffset(List<double> samples)
+        {
+            if (samples.Count == 0)
+            {
+                return null;
+            }
+
+            bool useMedian = SettingsManager.Settings.UseMedianForEndOfSongCalibration.Value;
+            return useMedian ? CalculateMedian(samples) : samples.Average();
+        }
+
+        private static double CalculateMedian(List<double> values)
+        {
+            var sorted = values.OrderBy(x => x).ToList();
+            int count = sorted.Count;
+            int middle = count / 2;
+            return count % 2 == 0 ? (sorted[middle - 1] + sorted[middle]) / 2.0 : sorted[middle];
         }
 
         private void RecordScores(ReplayInfo replayInfo)

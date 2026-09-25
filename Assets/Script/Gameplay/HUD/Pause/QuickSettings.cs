@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using Cysharp.Threading.Tasks.Triggers;
 using DG.Tweening;
@@ -136,7 +136,7 @@ namespace YARG.Gameplay.HUD
                 : "Enable Venue Post Processing";
         }
 
-        private void OpenSubSettings(List<string> settings, IntSetting extraIntSetting = null)
+        private void OpenSubSettings(List<string> settings, IntSetting songOffsetSetting = null)
         {
             // Destroy all of the options (except for the back button)
             foreach (Transform child in _subSettingsContainer)
@@ -155,7 +155,7 @@ namespace YARG.Gameplay.HUD
             foreach (var settingName in settings)
             {
                 var setting = SettingsManager.GetSettingByName(settingName);
-            
+
                 switch (setting)
                 {
                     case VolumeSetting volumeSetting:
@@ -190,10 +190,15 @@ namespace YARG.Gameplay.HUD
                 // Per-song settings (e.g. the specific song offset) aren't registered with
                 // SettingsManager, so they can't be looked up by name like the rest of the list.
                 // Instead, we just add it manually right after VideoCalibration.
-                if (settingName == nameof(SettingsManager.Settings.VideoCalibration) && extraIntSetting != null)
+                //
+                // Note: the strum/kick calibration filter dropdowns (UseStrumOnlyOffsetForCalibration,
+                // UseKickOnlyOffsetForCalibration) are intentionally not offered here, they're only in
+                // the main Settings menu, since this pause quick-settings menu doesn't have a dropdown
+                // prefab wired up yet.
+                if (settingName == nameof(SettingsManager.Settings.VideoCalibration) && songOffsetSetting != null)
                 {
                     var songOffset = Instantiate(_intPauseSettingPrefab, _subSettingsContainer);
-                    songOffset.Initialize("SongOffset", extraIntSetting);
+                    songOffset.Initialize("SongOffset", songOffsetSetting);
                     _subSettingsNavGroup.AddNavigatable(songOffset.gameObject);
                 }
             }

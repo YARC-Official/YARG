@@ -20,6 +20,7 @@ using YARG.Menu.Persistent;
 using YARG.Playback;
 using YARG.Player;
 using YARG.Settings;
+using YARG.Settings.Types;
 using YARG.Themes;
 
 namespace YARG.Gameplay.Player
@@ -1260,6 +1261,25 @@ namespace YARG.Gameplay.Player
         protected virtual void ModifyLaneFromNote(LaneElement lane, TNote note) {}
 
         protected abstract void RescaleLanesForBRE();
+
+        /// <summary>
+        /// Which per-instrument dropdown, if any, governs <see cref="IsNoteInOffsetFilterCategory"/>
+        /// for this instrument's calibration -- e.g. UseStrumOnlyOffsetForCalibration for guitar,
+        /// UseKickOnlyOffsetForCalibration for drums. Null for instruments with no such setting.
+        /// </summary>
+        protected virtual DropdownSetting<OffsetCalibrationFilter> OffsetFilterCalibrationSetting => null;
+
+        /// <inheritdoc/>
+        public override OffsetCalibrationFilter OffsetSampleFilterMode =>
+            OffsetFilterCalibrationSetting?.Value ?? OffsetCalibrationFilter.Everything;
+
+        /// <summary>
+        /// Whether the given hit note falls on the "selected" side of
+        /// <see cref="OffsetFilterCalibrationSetting"/> (e.g. is a strum, or is a kick). Null for
+        /// instruments with no such distinction, in which case every hit note counts, same as when
+        /// the setting is set to Everything.
+        /// </summary>
+        protected virtual bool? IsNoteInOffsetFilterCategory(TNote note) => null;
 
         protected virtual void OnNoteHit(int index, TNote note)
         {
