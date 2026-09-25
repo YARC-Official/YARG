@@ -127,12 +127,12 @@ public sealed class VlcCpuMediaPlayer : MonoBehaviour, IVlcPlayer
     }
 
     /// <summary>Opens and parses the media, then plays it, as VLCMediaPlayer.OpenAsync does.</summary>
-    public async Task OpenAsync(string path)
+    public async Task OpenAsync(string path, params string[] options)
     {
         MediaPlayer.Media?.Dispose();
 
         var uri = new Uri(path.Trim('"'));
-        var media = new Media(uri);
+        var media = new Media(uri, options ?? Array.Empty<string>());
         try
         {
             await media.ParseAsync(VLCMediaPlayer.LibVLC,
