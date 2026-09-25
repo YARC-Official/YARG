@@ -17,7 +17,7 @@ public interface IVlcPlayer
     event Action<RenderTexture> OnTextureResized;
     long Time { get; }
     long Duration { get; }
-    Task OpenAsync(string path);
+    Task OpenAsync(string path, params string[] options);
     void Play();
     void Pause();
     void Stop();
@@ -50,7 +50,7 @@ public sealed class VlcUnityPlayer : IVlcPlayer
 
     public long Time => _player.Time;
     public long Duration => _player.Duration;
-    public Task OpenAsync(string path) => _player.OpenAsync(path);
+    public Task OpenAsync(string path, params string[] options) => _player.OpenAsync(path, options);
     public void Play() => _player.Play();
     public void Pause() => _player.Pause();
     public void Stop() => _player.Stop();
