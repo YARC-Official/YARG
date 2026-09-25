@@ -539,7 +539,7 @@ namespace YARG.Gameplay
             if (_videoSeeking)
                 return;
 
-            double time = GameManager.GetAudioPlaybackTime(GameManager.SongTime);
+            double time = GameManager.GetVideoPlaybackTime();
             // Start video
             if (!_videoStarted)
             {
