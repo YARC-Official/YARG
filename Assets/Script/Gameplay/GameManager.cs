@@ -713,10 +713,12 @@ namespace YARG.Gameplay
         }
 
         /// <summary>
-        /// Band-wide pooled note-hit offset samples, counting only each player's filter-category
-        /// notes for instruments that distinguish one (strums for guitar, kicks for drums; read
-        /// from <see cref="BasePlayer.GetOffsetSampleFilterCategory"/> -- see that method for
-        /// details). Players on an instrument with no such distinction (keys, vocals, etc.) still
+        /// Band-wide pooled note-hit offset samples, filtered per player according to their own
+        /// <see cref="BasePlayer.OffsetSampleFilterMode"/> (Everything/OnlySelected/ExcludeSelected
+        /// -- e.g. UseStrumOnlyOffsetForCalibration for guitar, UseKickOnlyOffsetForCalibration for
+        /// drums), against the per-note category from
+        /// <see cref="BasePlayer.GetOffsetSampleFilterCategory"/>. Players set to Everything, or on
+        /// an instrument with no filter-category distinction at all (keys, vocals, etc.), still
         /// contribute their full set of offset samples, so they're never silently dropped from the
         /// band average.
         /// </summary>
@@ -727,18 +729,26 @@ namespace YARG.Gameplay
             {
                 var filterCategory = player.GetOffsetSampleFilterCategory();
                 var offsetSamples = player.BaseStats.GetOffsetSamples();
-                if (filterCategory == null || filterCategory.Count != offsetSamples.Count)
+                var filterMode = player.OffsetSampleFilterMode;
+
+                if (filterCategory == null || filterCategory.Count != offsetSamples.Count
+                    || filterMode == OffsetCalibrationFilter.Everything)
                 {
-                    // No filter-category distinction (or a data mismatch) -- fall back to this
-                    // player's full sample set instead of excluding them from the band average.
+                    // No filter-category distinction (or a data mismatch, or this player's own
+                    // setting is Everything) -- fall back to this player's full sample set instead
+                    // of excluding or filtering them.
                     pooledSamples.AddRange(offsetSamples);
                     continue;
                 }
 
+                // ExcludeSelected (e.g. "No Strums"/"No Kicks") wants the *other* side of the
+                // category -- OnlySelected wants the category side itself.
+                bool wantCategory = filterMode == OffsetCalibrationFilter.OnlySelected;
+
                 int matchingCount = 0;
                 for (int i = 0; i < offsetSamples.Count; i++)
                 {
-                    if (filterCategory[i])
+                    if (filterCategory[i] == wantCategory)
                     {
                         pooledSamples.Add(offsetSamples[i]);
                         matchingCount++;
@@ -747,10 +757,9 @@ namespace YARG.Gameplay
 
                 if (matchingCount == 0)
                 {
-                    // This player has the filter-category distinction but hit zero matching notes
-                    // this song (e.g. an all-HOPO run, or a kickless song) -- fall back to their
-                    // full sample set instead of contributing nothing, same as instruments with no
-                    // distinction at all.
+                    // This player's selected side had zero matching notes this song (e.g. an
+                    // all-HOPO run while set to Only Strums) -- fall back to their full sample
+                    // set instead of contributing nothing.
                     pooledSamples.AddRange(offsetSamples);
                 }
             }

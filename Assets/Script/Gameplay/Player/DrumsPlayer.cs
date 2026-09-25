@@ -42,6 +42,10 @@ namespace YARG.Gameplay.Player
         private int _kick;
         private int _wildcard;
 
+        // Built live in OnNoteHit, in the exact order the engine records into
+        // Engine.BaseStats.GetOffsetSamples -- see the remarks on GetOffsetSampleFilterCategory.
+        private readonly List<bool> _liveOffsetSampleFilterCategory = new();
+
         private bool _yellowCymbalHasLane = false;
         private bool _blueCymbalHasLane = false;
         private bool _greenCymbalHasLane = false;
@@ -184,37 +188,23 @@ namespace YARG.Gameplay.Player
 
         /// <inheritdoc/>
         /// <remarks>
-        /// Same approach as <see cref="FiveFretGuitarPlayer.GetOffsetSampleFilterCategory"/>, but
-        /// keyed on kick vs. pad instead of strum vs. HOPO/tap -- with one crucial difference: this
-        /// walks each chord's <see cref="Note{TNote}.AllNotes"/> (itself plus everything chorded
-        /// with it, e.g. a kick landing on the same tick as a cymbal) rather than just
-        /// <see cref="Notes"/>' top-level entries. A guitar strum hits every fret in a chord with
-        /// one motion, so the engine records one offset sample per chord -- but each pad in a drum
-        /// "chord" is a separate physical hit, judged and timed independently (confirmed in
-        /// YargDrumsEngine.HitNote, which calls IncrementNotesHit once per pad, not once per chord).
-        /// Iterating only the top-level notes here undercounts against
-        /// <see cref="Engine.BaseStats.GetOffsetSamples"/> (one sample per pad) and permanently
-        /// mismatches its count -- which is what was silently forcing the single-color histogram
-        /// fallback even after chorded kicks were correctly detected.
+        /// Unlike <see cref="FiveFretGuitarPlayer.GetOffsetSampleFilterCategory"/>, this can't be
+        /// reconstructed from chart order after the song ends. A guitar strum hits every fret in a
+        /// chord with one motion, so the engine records one offset sample per chord -- but each pad
+        /// in a drum "chord" is a separate physical hit, judged and timed independently (confirmed
+        /// in YargDrumsEngine.HitNote, which calls IncrementNotesHit once per pad, not once per
+        /// chord). Reconstructing categories afterward by walking each chord's
+        /// <see cref="Note{TNote}.AllNotes"/> in chart order previously undercounted against
+        /// <see cref="Engine.BaseStats.GetOffsetSamples"/> (one sample per pad) -- and even once
+        /// fixed to walk every pad, chart order still isn't guaranteed to match the order those pads
+        /// were actually hit in: if a drummer hits, say, a snare a few milliseconds before the kick
+        /// in the same chord, the engine records the snare's offset first but a chart-order
+        /// reconstruction would still label the first sample as the kick, silently swapping the two.
+        /// <see cref="_liveOffsetSampleFilterCategory"/> is instead built in <see cref="OnNoteHit"/>,
+        /// which fires once per pad from the same engine event that records each offset sample, so
+        /// it always lines up 1:1 regardless of hit order.
         /// </remarks>
-        public override IReadOnlyList<bool> GetOffsetSampleFilterCategory()
-        {
-            var result = new List<bool>(BaseStats.GetOffsetSamples().Count);
-            foreach (var note in Notes)
-            {
-                foreach (var chordNote in note.AllNotes)
-                {
-                    if (chordNote.IsAnyLane || chordNote.IsBigRockEnding || !chordNote.WasHit)
-                    {
-                        continue;
-                    }
-
-                    result.Add(chordNote.Pad == _kick);
-                }
-            }
-
-            return result;
-        }
+        public override IReadOnlyList<bool> GetOffsetSampleFilterCategory() => _liveOffsetSampleFilterCategory;
 
         private static SongStem GetLastAvailableDrumStem(StemMixer mixer)
         {
@@ -355,6 +345,7 @@ namespace YARG.Gameplay.Player
         {
             base.ResetPracticeSection();
             _fretArray.ResetAll();
+            _liveOffsetSampleFilterCategory.Clear();
         }
 
         protected override void ResetLastHitTimes()
@@ -690,6 +681,11 @@ namespace YARG.Gameplay.Player
         {
             base.OnNoteHit(index, note);
             OnNoteHitOrMissed(note);
+
+            if (!note.IsAnyLane && !note.IsBigRockEnding)
+            {
+                _liveOffsetSampleFilterCategory.Add(note.Pad == _kick);
+            }
 
             // Remember that drums treat each note separately
 

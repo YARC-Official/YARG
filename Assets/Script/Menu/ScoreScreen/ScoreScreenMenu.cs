@@ -603,16 +603,11 @@ namespace YARG.Menu.ScoreScreen
         private void ToggleOffsetToJson()
         {
             var scoreScreenStats = GlobalVariables.State.ScoreScreenStats.Value;
-            // Prefer the filter-category mean (strums/kicks-only, or the exclusion of either) if
-            // either instrument's calibration filter is actively narrowing things down, and we
-            // actually have a filtered value to use.
-            var useFilterCategoryOffset =
-                (SettingsManager.Settings.UseStrumOnlyOffsetForCalibration.Value != OffsetCalibrationFilter.Everything
-                    || SettingsManager.Settings.UseKickOnlyOffsetForCalibration.Value != OffsetCalibrationFilter.Everything)
-                && scoreScreenStats.MeanAverageOffsetFilterCategoryOnly.HasValue;
-            var offset = useFilterCategoryOffset
-                ? scoreScreenStats.MeanAverageOffsetFilterCategoryOnly.Value
-                : scoreScreenStats.MeanAverageOffset;
+            // MeanAverageOffsetFilterCategoryOnly is already resolved per player against their own
+            // instrument's calibration filter (falling back to a player's unfiltered samples when
+            // their own setting is Everything), so once it has a value it's always the right number
+            // to save -- no need to re-check the two global dropdowns here.
+            var offset = scoreScreenStats.MeanAverageOffsetFilterCategoryOnly ?? scoreScreenStats.MeanAverageOffset;
 
             var offsetMs = (long)Math.Round(offset * 1000);
 

@@ -1182,6 +1182,10 @@ namespace YARG.Gameplay.Player
         /// </summary>
         protected virtual DropdownSetting<OffsetCalibrationFilter> OffsetFilterCalibrationSetting => null;
 
+        /// <inheritdoc/>
+        public override OffsetCalibrationFilter OffsetSampleFilterMode =>
+            OffsetFilterCalibrationSetting?.Value ?? OffsetCalibrationFilter.Everything;
+
         /// <summary>
         /// Whether the given hit note falls on the "selected" side of
         /// <see cref="OffsetFilterCalibrationSetting"/> (e.g. is a strum, or is a kick). Null for

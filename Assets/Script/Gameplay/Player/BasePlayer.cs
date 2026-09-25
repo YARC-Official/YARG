@@ -97,6 +97,16 @@ namespace YARG.Gameplay.Player
         /// </summary>
         public virtual IReadOnlyList<bool> GetOffsetSampleFilterCategory() => null;
 
+        /// <summary>
+        /// Which <see cref="OffsetCalibrationFilter"/> mode this instrument's own calibration
+        /// filter dropdown is currently set to (e.g. UseStrumOnlyOffsetForCalibration for guitar,
+        /// UseKickOnlyOffsetForCalibration for drums) -- read by <c>GameManager</c> when pooling
+        /// band-wide offset samples, so each player is filtered according to their own setting
+        /// rather than a single hardcoded direction. Everything for instruments with no such
+        /// distinction.
+        /// </summary>
+        public virtual OffsetCalibrationFilter OffsetSampleFilterMode => OffsetCalibrationFilter.Everything;
+
         public bool IsFc { get; protected set; }
 
         public int? LastHighScore { get; private set; }
