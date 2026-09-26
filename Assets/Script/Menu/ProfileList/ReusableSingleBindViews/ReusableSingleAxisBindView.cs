@@ -29,9 +29,15 @@ namespace YARG.Menu.ProfileList
         [SerializeField]
         private ValueSlider _lowerDeadzoneSlider;
 
-        public override void Init(ReusableAxisBinding binding, ReusableSingleAxisBinding singleBinding, List<ControlItemInfo> controls, ProfilesMenu profilesMenu)
+        public override void Init(
+            ReusableAxisBinding binding,
+            ReusableSingleAxisBinding singleBinding,
+            List<ControlItemInfo> controls,
+            ProfilesMenu profilesMenu,
+            bool interactable
+        )
         {
-            base.Init(binding, singleBinding, controls, profilesMenu);
+            base.Init(binding, singleBinding, controls, profilesMenu, interactable);
 
             // Set with notify for value corrections and propogation to other components
             _invertToggle.isOn = singleBinding.Inverted;
@@ -39,6 +45,12 @@ namespace YARG.Menu.ProfileList
             _minValueSlider.Value = singleBinding.Minimum;
             _upperDeadzoneSlider.Value = singleBinding.UpperDeadzone;
             _lowerDeadzoneSlider.Value = singleBinding.LowerDeadzone;
+
+            _invertToggle.interactable = interactable;
+            _minValueSlider.SetInteractable(interactable);
+            _maxValueSlider.SetInteractable(interactable);
+            _upperDeadzoneSlider.SetInteractable(interactable);
+            _lowerDeadzoneSlider.SetInteractable(interactable);
         }
 
         public void OnInvertChanged()

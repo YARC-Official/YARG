@@ -28,6 +28,7 @@ namespace YARG.Menu.ProfileList
         protected List<ControlItemInfo> _controls;
 
         protected ProfilesMenu _profilesMenu;
+        protected bool _interactable;
 
         public virtual void Init(
             ProfilesMenu profilesMenu,
@@ -37,11 +38,12 @@ namespace YARG.Menu.ProfileList
         )
         {
             _profilesMenu = profilesMenu;
+            _interactable = !bindingSet.IsHardcoded;
 
             Binding = binding;
             _controls = controls;
 
-            _header.Init(binding, bindingSet.IsHardcoded);
+            _header.Init(binding, _interactable);
             _header.BindingsClicked += ToggleBindingsDrawer;
             _header.SettingsClicked += ToggleSettingsDrawer;
 
@@ -70,7 +72,7 @@ namespace YARG.Menu.ProfileList
         protected void AddBindingView(TSingle control)
         {
             var bindView = _bindingList.AddNewWithoutRebuild(_viewPrefab);
-            bindView.Init(Binding, control, _controls, _profilesMenu);
+            bindView.Init(Binding, control, _controls, _profilesMenu, _interactable);
 
             bindView.DeleteRequested += DeleteBinding;
         }

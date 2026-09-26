@@ -128,9 +128,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::YARG.Menu.ProfileList.ReusableSingleButtonBindView
   _controlDropdown: {fileID: 522636281668003198}
+  _deleteButton: {fileID: 8454702047729420363}
+  _recordButton: {fileID: 6561592593876507976}
   _valueDisplay: {fileID: 485002518087635996}
   _pressedIndicator: {fileID: 8996014112265697094}
-  _velocityText: {fileID: 0}
   _invertGroup: {fileID: 753634474901675897}
   _invertToggle: {fileID: 5013802465717734712}
   _pressPointText: {fileID: 6552411959447376734}
@@ -2719,6 +2720,17 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 3252069457828798820, guid: 1559ee81882cd0045b6d33a64692e938, type: 3}
   m_PrefabInstance: {fileID: 7214611932043466788}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &8454702047729420363 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 1245898288579793007, guid: 1559ee81882cd0045b6d33a64692e938, type: 3}
+  m_PrefabInstance: {fileID: 7214611932043466788}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1001 &7300108765677544337
 PrefabInstance:
   m_ObjectHideFlags: 0

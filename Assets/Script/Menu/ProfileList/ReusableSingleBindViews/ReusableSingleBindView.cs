@@ -4,6 +4,7 @@ using System.Text;
 using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem.Layouts;
+using UnityEngine.UI;
 using YARG.Core.Logging;
 using YARG.Helpers;
 using YARG.Input.Bindings;
@@ -18,6 +19,10 @@ namespace YARG.Menu.ProfileList
         [Space]
         [SerializeField]
         protected TMP_Dropdown _controlDropdown;
+        [SerializeField]
+        private Button _deleteButton;
+        [SerializeField]
+        private Button _recordButton;
 
         public event Action<TSingle> DeleteRequested;
 
@@ -29,7 +34,7 @@ namespace YARG.Menu.ProfileList
         protected ControlItemInfo? _current;
         protected ProfilesMenu _profilesMenu;
 
-        public virtual void Init(TBinding binding, TSingle singleBinding, List<ControlItemInfo> controls, ProfilesMenu profilesMenu)
+        public virtual void Init(TBinding binding, TSingle singleBinding, List<ControlItemInfo> controls, ProfilesMenu profilesMenu, bool interactable)
         {
             _profilesMenu = profilesMenu;
             Binding = binding;
@@ -44,6 +49,10 @@ namespace YARG.Menu.ProfileList
 
             _controlDropdown.value = selectedIndex >= 0 ? selectedIndex + 1 : 0; // Account for the None option
             OnControlDropdownChange();
+            _controlDropdown.interactable = interactable;
+            _deleteButton.interactable = interactable;
+            _recordButton.interactable = interactable;
+            
         }
 
         protected virtual void PopulateControlDropdown()

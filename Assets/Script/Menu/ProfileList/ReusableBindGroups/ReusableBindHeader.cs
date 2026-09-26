@@ -29,7 +29,7 @@ namespace YARG.Menu.ProfileList
         public event Action BindingsClicked;
         public event Action SettingsClicked;
 
-        public void Init(ReusableControlBinding binding, bool isHardcoded)
+        public void Init(ReusableControlBinding binding, bool interactable)
         {
             _bindingNameText.text = Localize.Key(/*player.Profile.LeftyFlip TODO-FRICK: Lefty toggle
                 ? binding.NameLefty
@@ -51,7 +51,7 @@ namespace YARG.Menu.ProfileList
             */  _bindingIcon.gameObject.SetActive(false);
             //}
 
-            _addNewButton.interactable = !isHardcoded;
+            _addNewButton.interactable = interactable;
         }
 
         public void SetArrowOpen(bool open)

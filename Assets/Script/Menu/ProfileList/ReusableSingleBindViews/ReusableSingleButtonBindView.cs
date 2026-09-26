@@ -34,15 +34,27 @@ namespace YARG.Menu.ProfileList
         [SerializeField]
         private ValueSlider _debounceSlider;
 
-        public override void Init(ReusableButtonBinding binding, ReusableSingleButtonBinding singleBinding, List<ControlItemInfo> controls, ProfilesMenu profilesMenu)
+        public override void Init(
+            ReusableButtonBinding binding,
+            ReusableSingleButtonBinding singleBinding,
+            List<ControlItemInfo> controls,
+            ProfilesMenu profilesMenu,
+            bool interactable
+        )
         {
-            base.Init(binding, singleBinding, controls, profilesMenu);
+            base.Init(binding, singleBinding, controls, profilesMenu, interactable);
 
             // Set with notify for propogation to other components
             _invertToggle.isOn = singleBinding.Inverted;
             _pressPointSlider.Value = singleBinding.PressPoint;
             _debounceModeDropdown.value = (int) singleBinding.DebounceMode;
             _debounceSlider.Value = singleBinding.DebounceThreshold;
+
+            _invertToggle.interactable = interactable;
+            _pressPointSlider.SetInteractable(interactable);
+            _debounceSlider.SetInteractable(interactable);
+            _debounceModeDropdown.interactable = interactable;
+
         }
 
         public void OnInvertChanged()
