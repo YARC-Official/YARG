@@ -47,6 +47,14 @@ namespace YARG.Input.Bindings
             DeserializeParameters(serialized.Parameters);
         }
 
+        protected override bool IsControlActuated(InputControl<int> control)
+        {
+            float previousValue = control.ReadValueFromPreviousFrame();
+            float value = control.ReadValue();
+
+            return Math.Abs(value - previousValue) >= RuntimeIntegerBinding.INTEGER_DELTA_THRESHOLD;
+        }
+
         protected override RuntimeSingleBinding<int> MakeRuntime(InputControl<int> control)
         {
             return new RuntimeSingleIntegerBinding(control, this);

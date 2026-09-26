@@ -8,6 +8,7 @@ using UnityEngine.UI;
 using YARG.Core.Logging;
 using YARG.Helpers;
 using YARG.Input.Bindings;
+using YARG.Menu.ProfileInfo;
 
 namespace YARG.Menu.ProfileList
 {
@@ -33,10 +34,22 @@ namespace YARG.Menu.ProfileList
 
         protected ControlItemInfo? _current;
         protected ProfilesMenu _profilesMenu;
+        protected BindingSetsCenterPane _centerPane;
+        protected DummyControllerQuickBindDialogMenu _quickBindDialog;
 
-        public virtual void Init(TBinding binding, TSingle singleBinding, List<ControlItemInfo> controls, ProfilesMenu profilesMenu, bool interactable)
+        public virtual void Init(
+            TBinding binding,
+            TSingle singleBinding,
+            List<ControlItemInfo> controls,
+            ProfilesMenu profilesMenu,
+            BindingSetsCenterPane centerPane,
+            DummyControllerQuickBindDialogMenu quickBindDialog,
+            bool interactable
+        )
         {
             _profilesMenu = profilesMenu;
+            _centerPane = centerPane;
+            _quickBindDialog = quickBindDialog;
             Binding = binding;
             SingleBinding = singleBinding;
             _allControls = controls;
@@ -80,6 +93,18 @@ namespace YARG.Menu.ProfileList
         public void OnDelete()
         {
             DeleteRequested?.Invoke(SingleBinding);
+        }
+
+        public async void OnRecord()
+        {
+            if (_centerPane.DummyController is not null) {
+                if(await _quickBindDialog.Show(_centerPane.DummyController, SingleBinding))
+                {
+                    var idx = _dropdownControls.FindIndex(c => c.ControlPath == SingleBinding.ControlPath);
+
+                    _controlDropdown.value = idx < 0 ? 0 : idx + 1;
+                }
+            }
         }
 
         protected virtual string DisambiguateDisplayName(ControlItemInfo item)

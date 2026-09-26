@@ -16,6 +16,8 @@ namespace YARG.Menu.ProfileList
         [SerializeField]
         private ProfilesMenu _profilesMenu;
         [SerializeField]
+        private DummyControllerQuickBindDialogMenu _quickBindDialog;
+        [SerializeField]
         private GameObject _contents;
         [SerializeField]
         private Transform _bindsList;
@@ -39,7 +41,7 @@ namespace YARG.Menu.ProfileList
         [Space]
         [SerializeField]
         private Transform _settingsPanel;
-        private InputDevice _dummyController = null;
+        public InputDevice DummyController { get; private set; } = null;
         private List<InputDevice> _availableDummyControllers = new();
 
         public void HideContents()
@@ -73,9 +75,9 @@ namespace YARG.Menu.ProfileList
 
         private void OnControllerRemoved(InputDevice controller)
         {
-            if (controller == _dummyController)
+            if (controller == DummyController)
             {
-                _dummyController = null;
+                DummyController = null;
             }
             RefreshDummyControllers();
         }
@@ -106,11 +108,11 @@ namespace YARG.Menu.ProfileList
 
             if (idx < 0 || idx >= _availableDummyControllers.Count)
             {
-                _dummyController = null;
+                DummyController = null;
                 return;
             }
 
-            _dummyController = _availableDummyControllers[idx];
+            DummyController = _availableDummyControllers[idx];
         }
 
         private void DestroyBindsList()
@@ -137,12 +139,27 @@ namespace YARG.Menu.ProfileList
                 {
                     case BindingType.Button or BindingType.IndividualButton or BindingType.DrumButton:
                         var buttonGroup = Instantiate(_buttonGroupPrefab, _bindsList);
-                        buttonGroup.Init(_profilesMenu, bindingSet, bindingSet.Bindings[action] as ReusableButtonBinding, controls);
+                        buttonGroup.Init(
+                            _profilesMenu,
+                            this,
+                            _quickBindDialog,
+                            bindingSet,
+                            bindingSet.Bindings[action] as ReusableButtonBinding,
+                            controls
+                        );
                         break;
                     case BindingType.Axis:
                         var axisGroup = Instantiate(_axisGroupPrefab, _bindsList);
-                        axisGroup.Init(_profilesMenu, bindingSet, bindingSet.Bindings[action] as ReusableAxisBinding, controls);
+                        axisGroup.Init(
+                            _profilesMenu,
+                            this,
+                            _quickBindDialog,
+                            bindingSet,
+                            bindingSet.Bindings[action] as ReusableAxisBinding,
+                            controls
+                        );
                         break;
+                    // TODO-FRICK: Integer
                 }
             }
 
@@ -168,11 +185,11 @@ namespace YARG.Menu.ProfileList
                 }
             }
 
-            var currentIdx = _availableDummyControllers.IndexOf(_dummyController);
+            var currentIdx = _availableDummyControllers.IndexOf(DummyController);
 
             if (currentIdx is -1)
             {
-                _dummyController = null;
+                DummyController = null;
                 currentIdx = 0;
             }
 

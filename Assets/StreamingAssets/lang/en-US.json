@@ -1255,7 +1255,7 @@
 		"Hardcoded": "Built-In",
 		"Custom": "Custom {0}",
 		"ModeOnController": "{0} on {1}",
-		"VocalsWithController": "{0) with (1)",
+		"VocalsWithController": "{0} with {1}",
 		"MidiKeyboard": "MIDI Keyboard",
 		"MidiDrumkit": "MIDI Drumkit",
 		"GeneralDrums": "Drums"
