@@ -77,6 +77,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::YARG.Menu.ProfileList.ReusableSingleAxisBindView
   _controlDropdown: {fileID: 1886140878664517221}
+  _deleteButton: {fileID: 8454702047729420363}
+  _recordButton: {fileID: 9077998638550589047}
   _rawValueDisplay: {fileID: 2721685063578358016}
   _calibratedValueDisplay: {fileID: 6385905275375087862}
   _invertToggle: {fileID: 6292120617798965381}
@@ -2911,6 +2913,17 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 3252069457828798820, guid: 1559ee81882cd0045b6d33a64692e938, type: 3}
   m_PrefabInstance: {fileID: 7214611932043466788}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &8454702047729420363 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 1245898288579793007, guid: 1559ee81882cd0045b6d33a64692e938, type: 3}
+  m_PrefabInstance: {fileID: 7214611932043466788}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1001 &7530256208207400959
 PrefabInstance:
   m_ObjectHideFlags: 0

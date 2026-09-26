@@ -588,6 +588,17 @@ PrefabInstance:
       insertIndex: -1
       addedObject: {fileID: 7820494006832012319}
   m_SourcePrefab: {fileID: 100100000, guid: 6e2667896228a7e44bf8acf6a019f0a3, type: 3}
+--- !u!114 &752042820505493538 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 8048610000492137352, guid: 6e2667896228a7e44bf8acf6a019f0a3, type: 3}
+  m_PrefabInstance: {fileID: 7340201995256556458}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!224 &766189420826715945 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 8034333684539100291, guid: 6e2667896228a7e44bf8acf6a019f0a3, type: 3}
@@ -641,6 +652,7 @@ MonoBehaviour:
   _bindingIcon: {fileID: 2219796433563202513}
   _settingsButton: {fileID: 4978199739463367057}
   _dropdownArrow: {fileID: 974745899144750927}
+  _addNewButton: {fileID: 752042820505493538}
 --- !u!114 &7820494006832012319
 MonoBehaviour:
   m_ObjectHideFlags: 0

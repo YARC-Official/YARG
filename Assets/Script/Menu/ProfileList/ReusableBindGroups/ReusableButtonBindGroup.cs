@@ -36,6 +36,7 @@ namespace YARG.Menu.ProfileList
             base.Init(profilesMenu, bindingSet, binding, controls);
 
             _debounceSlider.SetValueWithoutNotify(binding.DebounceThreshold);
+            _debounceSlider.SetInteractable(!bindingSet.IsHardcoded);
         }
 
         public void OnDebounceValueChanged()
