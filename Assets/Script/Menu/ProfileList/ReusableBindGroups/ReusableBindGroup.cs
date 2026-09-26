@@ -27,13 +27,17 @@ namespace YARG.Menu.ProfileList
 
         protected List<ControlItemInfo> _controls;
 
+        protected ProfilesMenu _profilesMenu;
+
         public virtual void Init(
-            BindingSetsCenterPane centerPane,
+            ProfilesMenu profilesMenu,
             ReusableBindingSet bindingSet,
             TBinding binding,
             List<ControlItemInfo> controls
         )
         {
+            _profilesMenu = profilesMenu;
+
             Binding = binding;
             _controls = controls;
 
@@ -63,10 +67,10 @@ namespace YARG.Menu.ProfileList
 
         public abstract void AddNewBinding();
 
-        protected virtual void AddBindingView(TSingle control)
+        protected void AddBindingView(TSingle control)
         {
             var bindView = _bindingList.AddNewWithoutRebuild(_viewPrefab);
-            bindView.Init(Binding, control, _controls);
+            bindView.Init(Binding, control, _controls, _profilesMenu);
 
             bindView.DeleteRequested += DeleteBinding;
         }

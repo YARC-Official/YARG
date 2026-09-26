@@ -137,11 +137,11 @@ namespace YARG.Menu.ProfileList
                 {
                     case BindingType.Button or BindingType.IndividualButton or BindingType.DrumButton:
                         var buttonGroup = Instantiate(_buttonGroupPrefab, _bindsList);
-                        buttonGroup.Init(this, bindingSet, bindingSet.Bindings[action] as ReusableButtonBinding, controls);
+                        buttonGroup.Init(_profilesMenu, bindingSet, bindingSet.Bindings[action] as ReusableButtonBinding, controls);
                         break;
                     case BindingType.Axis:
                         var axisGroup = Instantiate(_axisGroupPrefab, _bindsList);
-                        axisGroup.Init(this, bindingSet, bindingSet.Bindings[action] as ReusableAxisBinding, controls);
+                        axisGroup.Init(_profilesMenu, bindingSet, bindingSet.Bindings[action] as ReusableAxisBinding, controls);
                         break;
                 }
             }

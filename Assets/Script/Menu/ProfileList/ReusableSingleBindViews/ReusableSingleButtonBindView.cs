@@ -34,9 +34,9 @@ namespace YARG.Menu.ProfileList
         [SerializeField]
         private ValueSlider _debounceSlider;
 
-        public override void Init(ReusableButtonBinding binding, ReusableSingleButtonBinding singleBinding, List<ControlItemInfo> controls)
+        public override void Init(ReusableButtonBinding binding, ReusableSingleButtonBinding singleBinding, List<ControlItemInfo> controls, ProfilesMenu profilesMenu)
         {
-            base.Init(binding, singleBinding, controls);
+            base.Init(binding, singleBinding, controls, profilesMenu);
 
             // Set with notify for propogation to other components
             _invertToggle.isOn = singleBinding.Inverted;
@@ -90,7 +90,10 @@ namespace YARG.Menu.ProfileList
         {
             base.OnControlDropdownChange();
 
-            if (_current is not null && _current.Value.Layout is LayoutStrings.MIDI_NOTE)
+            if (
+                (_current is null && _profilesMenu.CurrentBindingSetFilter is ControllerFamily.MidiDevice) ||
+                (_current is not null && _current.Value.Layout is LayoutStrings.MIDI_NOTE)
+            )
             {
                 SingleBinding.Inverted = false;
                 _invertToggle.isOn = false;

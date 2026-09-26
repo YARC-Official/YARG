@@ -27,13 +27,13 @@ namespace YARG.Menu.ProfileList
         private ValueSlider _debounceSlider;
 
         public override void Init(
-            BindingSetsCenterPane centerPane,
+            ProfilesMenu profilesMenu,
             ReusableBindingSet bindingSet,
             ReusableButtonBinding binding,
             List<ControlItemInfo> controls
         )
         {
-            base.Init(centerPane, bindingSet, binding, controls);
+            base.Init(profilesMenu, bindingSet, binding, controls);
 
             _debounceSlider.SetValueWithoutNotify(binding.DebounceThreshold);
         }
@@ -41,18 +41,6 @@ namespace YARG.Menu.ProfileList
         public void OnDebounceValueChanged()
         {
             Binding.DebounceThreshold = (long)_debounceSlider.Value;
-        }
-
-        protected override void AddBindingView(ReusableSingleButtonBinding control)
-        {
-            if (false) // TODO-FRICK: MIDI note special case
-            {
-                // Create ReusableSingleMidiNoteBindView
-            }
-            else
-            {
-                base.AddBindingView(control);
-            }
         }
 
         public override void AddNewBinding()

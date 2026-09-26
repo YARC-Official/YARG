@@ -27,9 +27,11 @@ namespace YARG.Menu.ProfileList
         protected List<ControlItemInfo> _dropdownControls = new();
 
         protected ControlItemInfo? _current;
+        protected ProfilesMenu _profilesMenu;
 
-        public virtual void Init(TBinding binding, TSingle singleBinding, List<ControlItemInfo> controls)
+        public virtual void Init(TBinding binding, TSingle singleBinding, List<ControlItemInfo> controls, ProfilesMenu profilesMenu)
         {
+            _profilesMenu = profilesMenu;
             Binding = binding;
             SingleBinding = singleBinding;
             _allControls = controls;
