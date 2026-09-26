@@ -39,10 +39,12 @@ namespace YARG.Menu.ProfileList
             ReusableSingleButtonBinding singleBinding,
             List<ControlItemInfo> controls,
             ProfilesMenu profilesMenu,
+            BindingSetsCenterPane centerPane,
+            DummyControllerQuickBindDialogMenu quickBindDialog,
             bool interactable
         )
         {
-            base.Init(binding, singleBinding, controls, profilesMenu, interactable);
+            base.Init(binding, singleBinding, controls, profilesMenu, centerPane, quickBindDialog, interactable);
 
             // Set with notify for propogation to other components
             _invertToggle.isOn = singleBinding.Inverted;

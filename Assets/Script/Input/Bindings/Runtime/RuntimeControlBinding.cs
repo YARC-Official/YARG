@@ -12,6 +12,8 @@ namespace YARG.Input.Bindings
     public delegate void GameInputProcessed(ref GameInput input);
 
     public abstract class RuntimeControlBinding : IDisposable {
+        public const float AXIS_DELTA_THRESHOLD = 0.05f;
+
         /// <summary>
         /// Fired when an input event has been processed by this binding.
         /// </summary>
@@ -90,8 +92,6 @@ namespace YARG.Input.Bindings
         where TSingle : RuntimeSingleBinding<TSingleState>
         where TSingleState : struct
     {
-        protected const float AXIS_DELTA_THRESHOLD = 0.05f;
-
         public event Action StateChanged;
 
         protected List<TSingle> _bindings = new();

@@ -4,6 +4,7 @@ using UnityEngine.InputSystem.Layouts;
 using YARG.Core.Logging;
 using YARG.Helpers;
 using YARG.Input.Bindings;
+using YARG.Menu.ProfileInfo;
 using YARG.Menu.Settings;
 
 namespace YARG.Menu.ProfileList
@@ -28,16 +29,22 @@ namespace YARG.Menu.ProfileList
         protected List<ControlItemInfo> _controls;
 
         protected ProfilesMenu _profilesMenu;
+        protected BindingSetsCenterPane _centerPane;
+        protected DummyControllerQuickBindDialogMenu _quickBindDialog;
         protected bool _interactable;
 
         public virtual void Init(
             ProfilesMenu profilesMenu,
+            BindingSetsCenterPane centerPane,
+            DummyControllerQuickBindDialogMenu quickBindDialog,
             ReusableBindingSet bindingSet,
             TBinding binding,
             List<ControlItemInfo> controls
         )
         {
             _profilesMenu = profilesMenu;
+            _centerPane = centerPane;
+            _quickBindDialog = quickBindDialog;
             _interactable = !bindingSet.IsHardcoded;
 
             Binding = binding;
@@ -72,7 +79,7 @@ namespace YARG.Menu.ProfileList
         protected void AddBindingView(TSingle control)
         {
             var bindView = _bindingList.AddNewWithoutRebuild(_viewPrefab);
-            bindView.Init(Binding, control, _controls, _profilesMenu, _interactable);
+            bindView.Init(Binding, control, _controls, _profilesMenu, _centerPane, _quickBindDialog, _interactable);
 
             bindView.DeleteRequested += DeleteBinding;
         }

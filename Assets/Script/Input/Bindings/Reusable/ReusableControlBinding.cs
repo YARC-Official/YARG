@@ -96,8 +96,7 @@ namespace YARG.Input.Bindings
         }
     }
 
-    public abstract class ReusableSingleBinding<TState> where TState : struct
-    {
+    public abstract class ReusableSingleBinding {
         public string ControlPath { get; set; }
         public string DisplayName { get; set; }
 
@@ -109,8 +108,6 @@ namespace YARG.Input.Bindings
 
         public ReusableSingleBinding(SerializedSingleBinding serialized)
             : this(serialized.ControlName, serialized.ControlName) { } // TODO-FRICK: DisplayName
-
-        public ReusableSingleBinding(ReusableSingleBinding<TState> original) : this(original.ControlPath, original.DisplayName) { }
 
         public SerializedSingleBinding Serialize()
         {
@@ -133,6 +130,16 @@ namespace YARG.Input.Bindings
                 ReusableControlBinding.LogUnknownParameter(key, val);
             }
         }
+
+        public abstract bool IsControlBeingQuickBound(InputControl control);
+    }
+
+    public abstract class ReusableSingleBinding<TState> : ReusableSingleBinding
+        where TState : struct
+    {
+        public ReusableSingleBinding(ReusableSingleBinding<TState> original) : base(original.ControlPath, original.DisplayName) { }
+        public ReusableSingleBinding(string controlPath, string displayName) : base(controlPath, displayName) { }
+        public ReusableSingleBinding(SerializedSingleBinding serialized) : base(serialized) { }
 
         public RuntimeSingleBinding<TState> MakeRuntime(InputDevice controller)
         {
@@ -159,5 +166,24 @@ namespace YARG.Input.Bindings
         }
 
         protected abstract RuntimeSingleBinding<TState> MakeRuntime(InputControl<TState> control);
+
+        public override bool IsControlBeingQuickBound(InputControl control)
+        {
+            return IsControlCompatible(control, out var typedControl) && IsControlActuated(typedControl);
+        }
+
+        protected virtual bool IsControlCompatible(InputControl control, out InputControl<TState> typedControl)
+        {
+            if (control is InputControl<TState> tControl)
+            {
+                typedControl = tControl;
+                return true;
+            }
+
+            typedControl = null;
+            return false;
+        }
+
+        protected abstract bool IsControlActuated(InputControl<TState> typedControl);
     }
 }

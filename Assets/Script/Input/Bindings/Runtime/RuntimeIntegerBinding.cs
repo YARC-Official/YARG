@@ -7,7 +7,7 @@ namespace YARG.Input.Bindings
 {
     public class RuntimeIntegerBinding : RuntimeControlBinding<RuntimeSingleIntegerBinding, int>
     {
-        private const int INTEGER_DELTA_THRESHOLD = 1;
+        public const int INTEGER_DELTA_THRESHOLD = 1;
 
         public int State { get; protected set; }
 
