@@ -1,6 +1,7 @@
-using UnityEngine.InputSystem;
+﻿using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Controls;
 using YARG.Input;
+using YARG.Input.Bindings;
 
 namespace YARG.Helpers.Extensions
 {

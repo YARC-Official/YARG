@@ -7,6 +7,7 @@ using Cysharp.Text;
 using YARG.Core;
 using YARG.Core.Game;
 using YARG.Core.Logging;
+using YARG.Menu.ProfileList;
 using YARG.Song;
 
 namespace YARG.Localization
@@ -98,6 +99,11 @@ namespace YARG.Localization
             return Key("Enum.GameMode", gameMode);
         }
 
+        public static string ToLocalizedNameShort(this GameMode gameMode)
+        {
+            return Key("Enum.GameMode.Short", gameMode);
+        }
+
         public static string ToLocalizedName(this OpenLaneDisplayType openLaneDisplayType)
         {
             return Key("Enum.OpenLaneDisplayType", openLaneDisplayType);
@@ -106,6 +112,16 @@ namespace YARG.Localization
         public static string ToLocalizedName(this StarPowerActivationType starPowerActivationType)
         {
             return Key("Enum.StarPowerActivationType", starPowerActivationType);
+        }
+
+        public static string ToLocalizedNameSingular(this ControllerFamily controllerFamily)
+        {
+            return Key("Enum.ControllerFamily.Singular", controllerFamily);
+        }
+
+        public static string ToLocalizedNamePlural(this ControllerFamily controllerFamily)
+        {
+            return Key("Enum.ControllerFamily.Plural", controllerFamily);
         }
 
         public static string ToLocalizedName(this Instrument instrument)
