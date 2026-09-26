@@ -23,10 +23,13 @@ namespace YARG.Menu.ProfileList
         [SerializeField]
         private GameObject _dropdownArrow;
 
+        [SerializeField]
+        private Button _addNewButton;
+
         public event Action BindingsClicked;
         public event Action SettingsClicked;
 
-        public void Init(ReusableControlBinding binding)
+        public void Init(ReusableControlBinding binding, bool isHardcoded)
         {
             _bindingNameText.text = Localize.Key(/*player.Profile.LeftyFlip TODO-FRICK: Lefty toggle
                 ? binding.NameLefty
@@ -47,6 +50,8 @@ namespace YARG.Menu.ProfileList
                 // Don't for anything else
             */  _bindingIcon.gameObject.SetActive(false);
             //}
+
+            _addNewButton.interactable = !isHardcoded;
         }
 
         public void SetArrowOpen(bool open)

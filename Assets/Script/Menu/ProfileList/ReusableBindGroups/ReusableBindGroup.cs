@@ -41,7 +41,7 @@ namespace YARG.Menu.ProfileList
             Binding = binding;
             _controls = controls;
 
-            _header.Init(binding);
+            _header.Init(binding, bindingSet.IsHardcoded);
             _header.BindingsClicked += ToggleBindingsDrawer;
             _header.SettingsClicked += ToggleSettingsDrawer;
 
@@ -53,7 +53,7 @@ namespace YARG.Menu.ProfileList
             RefreshBindings();
         }
 
-        public virtual void RefreshBindings()
+        public void RefreshBindings()
         {
             _bindingList.ClearDrawer();
 
