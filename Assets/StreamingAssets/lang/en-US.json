@@ -593,6 +593,8 @@
 			"UnloadedDeleteTitle": "Delete Profile?",
 			"UnloadedDelete": "Deleting it is permanent.",
 			"BotDelete": "Deleting this bot is permanent.",
+			"PressPoint": "Press Point",
+			"VelocityThreshold": "Velocity Threshold",
 			"Tooltip": {
 			    "InputMode": {
 				    "Title": "Input Mode",

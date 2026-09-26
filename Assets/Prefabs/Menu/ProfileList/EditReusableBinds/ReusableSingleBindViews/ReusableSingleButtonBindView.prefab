@@ -130,7 +130,10 @@ MonoBehaviour:
   _controlDropdown: {fileID: 522636281668003198}
   _valueDisplay: {fileID: 485002518087635996}
   _pressedIndicator: {fileID: 8996014112265697094}
+  _velocityText: {fileID: 0}
+  _invertGroup: {fileID: 753634474901675897}
   _invertToggle: {fileID: 5013802465717734712}
+  _pressPointText: {fileID: 6552411959447376734}
   _pressPointSlider: {fileID: 6875644580646702166}
   _debounceModeDropdown: {fileID: 9113488286207912111}
   _debounceSlider: {fileID: 1094275184476132235}
@@ -212,7 +215,7 @@ MonoBehaviour:
     m_SelectedTrigger: Selected
     m_DisabledTrigger: Disabled
   m_Interactable: 1
-  m_TargetGraphic: {fileID: 0}
+  m_TargetGraphic: {fileID: 2399924577760485371}
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
@@ -1970,6 +1973,17 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 3252069457828798820, guid: fbe8e8d998d3de540abf324a8c5e65d3, type: 3}
   m_PrefabInstance: {fileID: 4174640431115934154}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &6552411959447376734 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 7134153350828247700, guid: fbe8e8d998d3de540abf324a8c5e65d3, type: 3}
+  m_PrefabInstance: {fileID: 4174640431115934154}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1001 &4494404990759097892
 PrefabInstance:
   m_ObjectHideFlags: 0

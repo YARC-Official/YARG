@@ -26,6 +26,8 @@ namespace YARG.Menu.ProfileList
         protected List<ControlItemInfo> _allControls;
         protected List<ControlItemInfo> _dropdownControls = new();
 
+        protected ControlItemInfo? _current;
+
         public virtual void Init(TBinding binding, TSingle singleBinding, List<ControlItemInfo> controls)
         {
             Binding = binding;
@@ -39,6 +41,7 @@ namespace YARG.Menu.ProfileList
             );
 
             _controlDropdown.value = selectedIndex >= 0 ? selectedIndex + 1 : 0; // Account for the None option
+            OnControlDropdownChange();
         }
 
         protected virtual void PopulateControlDropdown()
@@ -48,16 +51,18 @@ namespace YARG.Menu.ProfileList
             _controlDropdown.options.Add(new("<i>None</i>"));
         }
 
-        public void OnControlDropdownChange()
+        public virtual void OnControlDropdownChange()
         {
             if (_controlDropdown.value <= 0)
             {
                 SingleBinding.ControlPath = null;
+                _current = null;
             }
             else
             {
                 // The -1 corrects for the presence of the None option
-                SingleBinding.ControlPath = _dropdownControls[_controlDropdown.value - 1].ControlPath;
+                _current = _dropdownControls[_controlDropdown.value - 1];
+                SingleBinding.ControlPath = _current.Value.ControlPath;
             }
         }
 
