@@ -8,6 +8,7 @@ using UnityEngine.UI;
 using YARG.Helpers;
 using YARG.Input;
 using YARG.Input.Bindings;
+using YARG.Localization;
 using YARG.Menu.ProfileInfo;
 
 namespace YARG.Menu.ProfileList
@@ -21,7 +22,11 @@ namespace YARG.Menu.ProfileList
 
         [Space]
         [SerializeField]
+        private GameObject _invertGroup;
+        [SerializeField]
         private Toggle _invertToggle;
+        [SerializeField]
+        private TextMeshProUGUI _pressPointText;
         [SerializeField]
         private ValueSlider _pressPointSlider;
         [SerializeField]
@@ -29,9 +34,9 @@ namespace YARG.Menu.ProfileList
         [SerializeField]
         private ValueSlider _debounceSlider;
 
-        public override void Init(ReusableButtonBinding binding, ReusableSingleButtonBinding singleBinding, List<ControlItemInfo> controls)
+        public override void Init(ReusableButtonBinding binding, ReusableSingleButtonBinding singleBinding, List<ControlItemInfo> controls, ProfilesMenu profilesMenu)
         {
-            base.Init(binding, singleBinding, controls);
+            base.Init(binding, singleBinding, controls, profilesMenu);
 
             // Set with notify for propogation to other components
             _invertToggle.isOn = singleBinding.Inverted;
@@ -78,6 +83,27 @@ namespace YARG.Menu.ProfileList
                     _dropdownControls.Add(control);
                     _controlDropdown.options.Add(new(DisambiguateDisplayName(control)));
                 }
+            }
+        }
+
+        public override void OnControlDropdownChange()
+        {
+            base.OnControlDropdownChange();
+
+            if (
+                (_current is null && _profilesMenu.CurrentBindingSetFilter is ControllerFamily.MidiDevice) ||
+                (_current is not null && _current.Value.Layout is LayoutStrings.MIDI_NOTE)
+            )
+            {
+                SingleBinding.Inverted = false;
+                _invertToggle.isOn = false;
+                _invertGroup.SetActive(false);
+                _pressPointText.text = Localize.Key("Menu.ProfileList.VelocityThreshold");
+            }
+            else
+            {
+                _invertGroup.SetActive(true);
+                _pressPointText.text = Localize.Key("Menu.ProfileList.PressPoint");
             }
         }
 
