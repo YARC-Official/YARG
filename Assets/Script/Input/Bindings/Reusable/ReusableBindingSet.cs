@@ -21,7 +21,14 @@ namespace YARG.Input.Bindings
 
         // Key is binding name, like "FiveFret.Green" or "FourDrums.RedPad"
         // These names come from BindingCollection.Templates.cs; they are YARG's, not PlasticBand's
-        public Dictionary<string, ReusableControlBinding> Bindings = new();
+        private Dictionary<string, ReusableControlBinding> _bindings = new();
+        public IReadOnlyDictionary<string, ReusableControlBinding> Bindings => _bindings;
+
+        public event Action<ReusableBindingSet> Changed;
+        protected void NotifyChanged()
+        {
+            Changed?.Invoke(this);
+        }
 
         public ReusableBindingSet(string name, GameMode mode, ControllerFamily controllerFamily, bool isHardcoded = false) {
             Name = name;
@@ -36,13 +43,13 @@ namespace YARG.Input.Bindings
         {
             foreach (var (key, binding) in original.Bindings)
             {
-                Bindings[key] = binding switch
+                AddBinding(key, binding switch
                 {
                     ReusableButtonBinding button => new ReusableButtonBinding(button),
                     ReusableAxisBinding axis => new ReusableAxisBinding(axis),
                     ReusableIntegerBinding integer => new ReusableIntegerBinding(integer),
                     _ => throw new ArgumentOutOfRangeException("Unreachable."),
-                };
+                });
             }
         }
 
@@ -71,7 +78,7 @@ namespace YARG.Input.Bindings
 
                     if (newBinding is not null)
                     {
-                        Bindings.Add(key, newBinding);
+                        AddBinding(key, newBinding);
                     }
                     else
                     {
@@ -120,6 +127,18 @@ namespace YARG.Input.Bindings
             }
 
             return new(controller, this);
+        }
+
+        public void AddBinding(string key, ReusableControlBinding binding)
+        {
+            binding.Changed += NotifyChanged;
+            _bindings[key] = binding;
+        }
+
+        public void RemoveBinding(string key)
+        {
+            _bindings[key].Changed -= NotifyChanged;
+            _bindings.Remove(key);
         }
     }
 }

@@ -1,12 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEngine;
 using UnityEngine.InputSystem;
-using YARG.Audio;
 using YARG.Core;
 using YARG.Core.Audio;
-using YARG.Core.Extensions;
 using YARG.Core.Game;
 using YARG.Core.Logging;
 using YARG.Input.Serialization;
@@ -15,7 +12,6 @@ using YARG.Input.Bindings;
 using UnityEngine.InputSystem.Utilities;
 using YARG.Menu.ProfileList;
 using YARG.Helpers;
-using FuzzySharp.Utils;
 
 namespace YARG.Input
 {
@@ -362,14 +358,13 @@ namespace YARG.Input
             if (bindingSet is null)
             {
                 _selectedGameplayBindings.Remove(controller);
+                _preferredBindsByContext.Remove((Profile.GameMode, LayoutHelper.LayoutStringToControllerFamily(controller.layout)));
             }
             else
             {
                 _selectedGameplayBindings[controller] = bindingSet;
-            }
-
-
-            _preferredBindsByContext[(Profile.GameMode, LayoutHelper.LayoutStringToControllerFamily(controller.layout))] = bindingSet;
+                _preferredBindsByContext[(Profile.GameMode, LayoutHelper.LayoutStringToControllerFamily(controller.layout))] = bindingSet;
+            }            
         }
 
         public ReusableBindingSet GetSelectedGameplayBindingsForController(InputDevice controller)
@@ -381,20 +376,26 @@ namespace YARG.Input
         {
             if (_activeMenuRuntimeBindings.Remove(controller, out var oldRuntimeBindings))
             {
+                oldRuntimeBindings.Source.Changed -= OnMenuBindingSetChanged;
                 _menuInputAggregator.Remove(oldRuntimeBindings);
                 oldRuntimeBindings.Dispose();
             }
 
-            if (bindingSet is not null)
+            if (bindingSet is null)
             {
-                var newRuntimeBindings = bindingSet.GetRuntimeBindings(Profile, controller);
-                _activeMenuRuntimeBindings[controller] = newRuntimeBindings;
-                _menuInputAggregator.Add(newRuntimeBindings);
+                return;
+            }
 
-                if (_inputsEnabled)
-                {
-                    newRuntimeBindings.EnableInputs();
-                }
+            bindingSet.Changed += OnMenuBindingSetChanged;
+
+            var newRuntimeBindings = bindingSet.GetRuntimeBindings(Profile, controller);
+
+            _activeMenuRuntimeBindings[controller] = newRuntimeBindings;
+            _menuInputAggregator.Add(newRuntimeBindings);
+
+            if (_inputsEnabled)
+            {
+                newRuntimeBindings.EnableInputs();
             }
         }
 
@@ -677,6 +678,7 @@ namespace YARG.Input
 
             foreach (var runtimeMenuBindings in _activeMenuRuntimeBindings.Values)
             {
+                runtimeMenuBindings.Source.Changed -= OnMenuBindingSetChanged;
                 _menuInputAggregator.Remove(runtimeMenuBindings);
                 runtimeMenuBindings.Dispose();
             }
@@ -689,6 +691,19 @@ namespace YARG.Input
         public ReusableBindingSet? GetPreferredBindingSet(GameMode mode, ControllerFamily controllerFamily)
         {
             return _preferredBindsByContext.GetValueOrDefault((mode, controllerFamily), null);
+        }
+
+        private void OnMenuBindingSetChanged(ReusableBindingSet bindingSet)
+        {
+            foreach (var (controller, runtimeBindings) in _activeMenuRuntimeBindings.ToList())
+            {
+                if (runtimeBindings.Source != bindingSet)
+                {
+                    continue;
+                }
+
+                SetActiveMenuBindingsForController(controller, bindingSet);
+            }
         }
     }
 }

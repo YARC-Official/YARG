@@ -86,7 +86,7 @@ namespace YARG.Menu.ProfileList
 
         protected virtual void DeleteBinding(TSingle control)
         {
-            Binding.Bindings.Remove(control);
+            Binding.RemoveBinding(control);
             RefreshBindings();
         }
 

@@ -62,13 +62,13 @@ namespace YARG.Input.Bindings
 
             foreach (var (key, info) in template)
             {
-                bindingSet.Bindings[key] = info.Type switch
+                bindingSet.AddBinding(key, info.Type switch
                 {
                     BindingType.Button or BindingType.IndividualButton or BindingType.DrumButton => new ReusableButtonBinding(info),
                     BindingType.Axis => new ReusableAxisBinding(info),
                     BindingType.Integer => new ReusableIntegerBinding(info),
                     _ => throw new ArgumentOutOfRangeException("Unreachable")
-                };
+                });
             }
 
             return bindingSet;
