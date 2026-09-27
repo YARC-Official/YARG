@@ -6,6 +6,7 @@ using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using YARG.Assets.Script.Helpers;
 using YARG.Core;
 using YARG.Core.Game;
 using YARG.Helpers.Extensions;
@@ -72,6 +73,11 @@ namespace YARG.Menu.ProfileList
         private TMP_InputField _highwayLengthField;
         [SerializeField]
         private TMP_InputField _inputCalibrationField;
+
+        // Not a [SerializeField]: built at runtime in Awake() by cloning the Input
+        // Calibration row, so this new setting doesn't require a manual prefab edit.
+        private TMP_InputField _videoOffsetField;
+
         [SerializeField]
         private Toggle _leftyFlipToggle;
         [SerializeField]
@@ -136,6 +142,36 @@ namespace YARG.Menu.ProfileList
                 // Create the dropdown option
                 _gameModeDropdown.options.Add(new(gameMode.ToLocalizedName()));
             }
+
+            CreateVideoOffsetRow();
+        }
+
+        /// <summary>
+        /// Builds the "Video Offset" settings row by cloning the existing "Input Calibration"
+        /// row, instead of requiring a hand-authored duplicate row in the sidebar prefab. Keeps
+        /// it visually identical to every other row, and keeps
+        /// <see cref="GameModeExtensions.PossibleProfileSettings"/>'s name-based show/hide logic
+        /// working unmodified, since the clone is a real sibling under <see cref="_sidebarContent"/>
+        /// with the expected name and child layout.
+        /// </summary>
+        private void CreateVideoOffsetRow()
+        {
+            var inputCalibrationRow = _inputCalibrationField.transform.parent;
+
+            var videoOffsetRow = Instantiate(inputCalibrationRow.gameObject, inputCalibrationRow.parent);
+            videoOffsetRow.name = ProfileSettingStrings.VIDEO_OFFSET;
+            videoOffsetRow.transform.SetSiblingIndex(inputCalibrationRow.GetSiblingIndex() + 1);
+
+            var label = videoOffsetRow.transform.Find("Option Name").GetComponent<TextMeshProUGUI>();
+            label.text = "VIDEO OFFSET (MS)";
+
+            _videoOffsetField = videoOffsetRow.GetComponentInChildren<TMP_InputField>();
+            _videoOffsetField.text = string.Empty;
+
+            // The cloned field's listener still points at ChangeInputCalibration (copied
+            // verbatim from the source row) — replace it with our own.
+            _videoOffsetField.onEndEdit.RemoveAllListeners();
+            _videoOffsetField.onEndEdit.AddListener(_ => ChangeVideoOffset());
         }
 
         private void OnEnable()
@@ -246,6 +282,7 @@ namespace YARG.Menu.ProfileList
             _noteSpeedField.text = profile.NoteSpeed.ToString(NUMBER_FORMAT, CultureInfo.CurrentCulture);
             _highwayLengthField.text = profile.HighwayLength.ToString(NUMBER_FORMAT, CultureInfo.CurrentCulture);
             _inputCalibrationField.text = _profile.InputCalibrationMilliseconds.ToString();
+            _videoOffsetField.text = VideoOffsetContainer.GetOffsetMilliseconds(_profile).ToString();
             _leftyFlipToggle.isOn = profile.LeftyFlip;
             _rangeDisabledToggle.isOn = profile.RangeEnabled;
             _openLaneDisplayTypeDropdown.value = _openLaneDisplayTypesByIndex.IndexOf(profile.OpenLaneDisplayType);
@@ -428,6 +465,17 @@ namespace YARG.Menu.ProfileList
 
             // Always format it after
             _inputCalibrationField.text = _profile.InputCalibrationMilliseconds.ToString();
+        }
+
+        public void ChangeVideoOffset()
+        {
+            if (long.TryParse(_videoOffsetField.text, out long offset))
+            {
+                VideoOffsetContainer.SetOffsetMilliseconds(_profile, offset);
+            }
+
+            // Always format it after
+            _videoOffsetField.text = VideoOffsetContainer.GetOffsetMilliseconds(_profile).ToString();
         }
 
         public void ChangeLeftyFlip()

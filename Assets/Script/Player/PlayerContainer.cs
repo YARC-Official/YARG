@@ -425,6 +425,7 @@ namespace YARG.Player
             // Bindings loading handles orphaned records itself, so it is safe (and intended)
             // even when the valid profile count is zero
             BindingsContainer.LoadBindings();
+            VideoOffsetContainer.LoadOffsets();
 
             // Initialization must hold after every non-throwing recovery path, or no
             // profile could ever be saved again
@@ -750,6 +751,7 @@ namespace YARG.Player
             File.Move(tempPath, ProfilesPath);
 
             BindingsContainer.SaveBindings();
+            VideoOffsetContainer.SaveOffsets();
 
             return _profiles.Count;
         }
