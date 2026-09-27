@@ -4,6 +4,7 @@ using UnityEngine.InputSystem;
 using YARG.Core.Extensions;
 using YARG.Core.Game;
 using YARG.Core.Logging;
+using YARG.Helpers;
 using YARG.Input.Serialization;
 using YARG.Localization;
 
@@ -108,8 +109,11 @@ namespace YARG.Input.Bindings
             SourceLayout = sourceLayout;
         }
 
-        public ReusableSingleBinding(SerializedSingleBinding serialized)
-            : this(serialized.ControlName, serialized.ControlName, serialized.SourceLayout) { } // TODO-FRICK: DisplayName
+        public ReusableSingleBinding(SerializedSingleBinding serialized) : this(
+            serialized.ControlName,
+            LayoutHelper.GetControlDisplayName(serialized.SourceLayout, serialized.ControlName),
+            serialized.SourceLayout
+        ) { }
 
         public SerializedSingleBinding Serialize()
         {

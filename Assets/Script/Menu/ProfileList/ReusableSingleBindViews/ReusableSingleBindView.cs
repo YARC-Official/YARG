@@ -63,7 +63,26 @@ namespace YARG.Menu.ProfileList
                 string.Equals(i.ControlPath, singleBinding.ControlPath, StringComparison.OrdinalIgnoreCase)
             );
 
-            _controlDropdown.value = selectedIndex >= 0 ? selectedIndex + 1 : 0; // Account for the None option
+            if (selectedIndex >= 0) {
+                // Known control for this controller family; set the dropdown, accounting for the None option
+                _controlDropdown.value = selectedIndex + 1;
+            }
+            else if (!string.IsNullOrEmpty(SingleBinding.ControlPath))
+            {
+                // Unexpected control for this controller family; create an ad hoc option and select it
+                _adHocControl = new(SingleBinding.ControlPath, SingleBinding.DisplayName, SingleBinding.SourceLayout);
+                _dropdownControls.Add(_adHocControl);
+                _controlDropdown.options.Add(new(_adHocControl.DisplayName));
+
+                _controlDropdown.SetValueWithoutNotify(_controlDropdown.options.Count - 1);
+                _controlDropdown.RefreshShownValue();
+            }
+            else
+            {
+                // Nothing; select None
+                _controlDropdown.value = 0;
+            }
+
             OnControlDropdownChange();
 
 

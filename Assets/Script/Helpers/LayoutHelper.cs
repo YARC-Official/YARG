@@ -34,6 +34,31 @@ namespace YARG.Helpers
             throw new ArgumentOutOfRangeException($"Controller family {family} does not contain control {controlName}!");
         }
 
+        public static string GetControlDisplayName(string layout, string controlPath)
+        {
+            // Temporarily create virtual device so we can inspect its actual controls
+            var device = InputSystem.AddDevice(layout);
+
+            try
+            {
+                var path = controlPath.TrimStart('/');
+
+                var control = device.allControls.FirstOrDefault(c =>
+                    string.Equals(
+                        c.path[(device.path.Length)..].TrimStart('/'),
+                        path,
+                        StringComparison.OrdinalIgnoreCase
+                    )
+                );
+
+                return control?.displayName ?? controlPath;
+            }
+            finally
+            {
+                InputSystem.RemoveDevice(device);
+            }
+        }
+
         public static List<ControlItemInfo> GetAllControlsForControllerFamily(ControllerFamily family) {
 
             var layouts = GetLayoutsForFamily(family);
@@ -56,7 +81,7 @@ namespace YARG.Helpers
                 case LayoutStrings.PRO_KEYBOARD:            return ControllerFamily.ProKeyboard;
                 case LayoutStrings.PRO_GUITAR:              return ControllerFamily.ProGuitar;
                 case LayoutStrings.KEYBOARD:                return ControllerFamily.ComputerKeyboard;
-                case LayoutStrings.MOUSE:                   return ControllerFamily.Mouse;
+                //case LayoutStrings.MOUSE:                   return ControllerFamily.Mouse;
                 case LayoutStrings.GAMEPAD:                 return ControllerFamily.Gamepad;
                 case LayoutStrings.MIDI_DEVICE:             return ControllerFamily.MidiDevice;
                 case LayoutStrings.INPUT_DEVICE or null:    return ControllerFamily.Other;
