@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -290,8 +290,6 @@ namespace YARG.Player
             {
                 return;
             }
-
-            _ = TryCreateProfile(device);
         }
 
         private static void OnDeviceRemoved(InputDevice device)
@@ -300,24 +298,6 @@ namespace YARG.Player
             {
                 player.DeviceInfo.OnControllerRemoved(device);
             }
-        }
-
-        private static async UniTask<bool> TryCreateProfile(InputDevice device)
-        {
-            // Some devices don't appear in their final form immediately, so we have to wait a bit
-            await UniTask.Delay(2500, true);
-
-            if (IsDeviceTaken(device))
-            {
-                return false;
-            }
-
-            if (GetProfileForDevice(device) is not null)
-            {
-                return false;
-            }
-
-            return CreateProfileFromDevice(device);
         }
 
         public static bool TryConnectProfile(InputDevice device)
@@ -917,80 +897,6 @@ namespace YARG.Player
             {
                 CreatePlayerFromProfile(profile, true);
             }
-        }
-
-        private static bool CreateProfileFromDevice(InputDevice device)
-        {
-            if (IsDeviceTaken(device))
-            {
-                return false;
-            }
-
-            GameMode gameMode = default;
-            string profileName = string.Empty;
-
-            if (device is FiveFretGuitar)
-            {
-                gameMode = GameMode.FiveFretGuitar;
-                profileName = "New Guitar Profile";
-            }
-            else if (device is FourLaneDrumkit)
-            {
-                gameMode = GameMode.FourLaneDrums;
-                profileName = "New Drums Profile";
-            }
-            else if (device is FiveLaneDrumkit)
-            {
-                gameMode = GameMode.FiveLaneDrums;
-                profileName = "New Drums Profile";
-            }
-            else if (device is ProKeyboard)
-            {
-                gameMode = GameMode.ProKeys;
-                profileName = "New Keys Profile";
-            }
-            else
-            {
-                // Filter out keyboard and mouse devices for the purposes of this message, otherwise we're just
-                // making noise about nothing for most players
-                if (device is Keyboard or Mouse or Pen)
-                {
-                    return false;
-                }
-
-                // TODO: Figure out why this triggers for non-input devices like stage kits so we can enable this
-                // var failMessage = Localize.KeyFormat("Menu.Toast.UnsupportedDevice", device.displayName);
-                // ToastManager.ToastWarning(failMessage);
-                return false;
-            }
-
-            var newProfile = new YargProfile
-            {
-                Name = ProfilesMenu.GetUniqueProfileName(profileName),
-                NoteSpeed = 5,
-                HighwayLength = 1,
-                GameMode = gameMode
-            };
-
-            AddProfile(newProfile);
-
-            var player = CreatePlayerFromProfile(newProfile, false);
-            if (player is null)
-            {
-                YargLogger.LogFormatError("Failed to connect profile {0}!", newProfile.Name);
-                return false;
-            }
-
-            player.DeviceInfo.AddController(device);
-
-            if (!player.DeviceInfo.ContainsBindingsForController(device))
-            {
-                player.DeviceInfo.SetDefaultBinds(device);
-            }
-
-            var successMessage = Localize.KeyFormat("Menu.Toast.ProfileCreated", device.displayName);
-            ToastManager.ToastSuccess(successMessage);
-            return true;
         }
     }
 }
