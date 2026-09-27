@@ -20,7 +20,6 @@ using YARG.Playlists;
 using YARG.Scores;
 using YARG.Settings;
 using YARG.Song;
-using static YARG.Menu.Navigation.Navigator;
 using Random = UnityEngine.Random;
 
 namespace YARG.Menu.MusicLibrary
@@ -149,14 +148,28 @@ namespace YARG.Menu.MusicLibrary
 
         public IReadOnlyList<SongCategory> SortedSongs => _sortedSongs;
 
+        public int CurrentShortcutIndex
+        {
+            get
+            {
+                int shortcutIndex = 0;
+                for (int i = 1; i < Shortcuts.Count; i++)
+                {
+                    if (Shortcuts[i].Item2 > SelectedIndex) break;
+
+                    shortcutIndex = i;
+                }
+
+                return shortcutIndex;
+            }
+        }
+
         private CancellationTokenSource _previewCanceller;
         private PreviewContext _previewContext;
         private double _previewDelay;
 
         private SongEntry _currentSong;
         public List<(string, int)> Shortcuts { get; private set; } = new();
-
-        private List<HoldContext> _heldInputs = new();
 
         // Doesn't go through PlaylistContainer because it is ephemeral
 
@@ -201,8 +214,6 @@ namespace YARG.Menu.MusicLibrary
                     : previousSort;
             }
             SetSidebarDifficultiesVisible(true);
-
-            _heldInputs.Clear();
 
             // Hack to ensure that crowd samples are stopped no matter what
             GlobalAudioHandler.StopAllSfxChannels();
@@ -377,13 +388,30 @@ namespace YARG.Menu.MusicLibrary
                     );
             }
 
+            NavigationScheme.Entry blueEntry = isSelectingPlaylist
+                ? new NavigationScheme.Entry(MenuAction.Blue, "Menu.MusicLibrary.HoldFilters",
+                    () => { }, holdSeconds: MENU_HOLD_SECONDS,
+                    onHoldHandler: OpenFilters)
+                : new NavigationScheme.Entry(MenuAction.Blue, "Menu.MusicLibrary.SortAndFilter",
+                    OpenSortSelect, holdSeconds: MENU_HOLD_SECONDS,
+                    onHoldHandler: OpenFilters);
+
+            NavigationScheme.Entry orangeEntry = MenuState == MenuState.Library
+                ? new NavigationScheme.Entry(MenuAction.Orange, "Menu.MusicLibrary.MoreOptions",
+                    () => _popupMenu.gameObject.SetActive(true), holdSeconds: MENU_HOLD_SECONDS,
+                    onHoldHandler: OpenGoToSection)
+                : new NavigationScheme.Entry(MenuAction.Orange, "Menu.MusicLibrary.MoreOptionsOnly",
+                    () => _popupMenu.gameObject.SetActive(true));
+
             var entries = new List<NavigationScheme.Entry>
             {
                 new NavigationScheme.Entry(MenuAction.Up, "Menu.Common.Up",
                     ctx =>
                     {
-                        if (IsButtonHeldByPlayer(ctx.Player, MenuAction.Orange))
+                        if (MenuState == MenuState.Library &&
+                            IsButtonHeldByPlayer(ctx.Player, MenuAction.Orange))
                         {
+                            Navigator.Instance.CancelHold(ctx.Player, MenuAction.Orange);
                             GoToPreviousSection();
                         }
                         else
@@ -395,8 +423,10 @@ namespace YARG.Menu.MusicLibrary
                 new NavigationScheme.Entry(MenuAction.Down, "Menu.Common.Down",
                     ctx =>
                     {
-                        if (IsButtonHeldByPlayer(ctx.Player, MenuAction.Orange))
+                        if (MenuState == MenuState.Library &&
+                            IsButtonHeldByPlayer(ctx.Player, MenuAction.Orange))
                         {
+                            Navigator.Instance.CancelHold(ctx.Player, MenuAction.Orange);
                             GoToNextSection();
                         }
                         else
@@ -426,9 +456,8 @@ namespace YARG.Menu.MusicLibrary
                     ),
                 new NavigationScheme.Entry(MenuAction.Red, "Menu.Common.Back", Back, hide: true),
                 yellowEntry,
-                new NavigationScheme.Entry(MenuAction.Blue, "Menu.MusicLibrary.Filters", OpenFilters),
-                new NavigationScheme.Entry(MenuAction.Orange, "Menu.MusicLibrary.MoreOptions",
-                    OnOrangeHit, OnOrangeRelease),
+                blueEntry,
+                orangeEntry,
                 new NavigationScheme.Entry(MenuAction.Search, "Menu.MusicLibrary.Search",
                     _searchField.Focus, hide: true),
                 new NavigationScheme.Entry(MenuAction.SelectArtist, "Menu.MusicLibrary.SelectArtist",
@@ -854,9 +883,6 @@ namespace YARG.Menu.MusicLibrary
 
         protected void Update()
         {
-            foreach (var heldInput in _heldInputs)
-                heldInput.Timer -= Time.unscaledDeltaTime;
-
             if (_needsNavigationSchemeRefresh && !IsNavigationSchemeBlocked())
             {
                 _needsNavigationSchemeRefresh = false;
@@ -908,7 +934,6 @@ namespace YARG.Menu.MusicLibrary
         {
             base.OnDisable();
             SetSidebarDifficultiesVisible(false);
-            _heldInputs.Clear();
 
             if (Navigator.Instance == null) return;
 
@@ -980,10 +1005,11 @@ namespace YARG.Menu.MusicLibrary
 
         private bool IsButtonHeldByPlayer(YargPlayer player, MenuAction button)
         {
-            return _heldInputs.Any(i => i.Context.Player == player && i.Context.Action == button);
+            return Navigator.Instance.IsActionHeld(player, button);
         }
 
         private const float GREEN_HOLD_SECONDS = 1f;
+        private const float MENU_HOLD_SECONDS = 1f;
 
         private void OnGreenTap(NavigationContext _)
         {
@@ -1034,25 +1060,16 @@ namespace YARG.Menu.MusicLibrary
             }
         }
 
-        public string GetGreenHoldActionLabel()
+        private void OpenSortSelect()
         {
-            bool setListNotEmpty = ShowPlaylist.Count > 0;
-            return Localize.Key(setListNotEmpty ? "Menu.MusicLibrary.StartSet" : "Menu.MusicLibrary.AddToSet");
+            if (MenuState != MenuState.PlaylistSelect)
+                _popupMenu.OpenSortSelect();
         }
 
-        private void OnOrangeHit(NavigationContext ctx)
+        private void OpenGoToSection()
         {
-            _heldInputs.Add(new HoldContext(ctx));
-        }
-
-        private void OnOrangeRelease(NavigationContext ctx)
-        {
-            var holdContext = _heldInputs.FirstOrDefault(i => i.Context.IsSameAs(ctx));
-
-            if (ctx.Action == MenuAction.Orange && (holdContext?.Timer > 0 || ctx.Player is null))
-                _popupMenu.gameObject.SetActive(true);
-
-            _heldInputs.RemoveAll(i => i.Context.IsSameAs(ctx));
+            if (MenuState == MenuState.Library && HasSortHeaders)
+                _popupMenu.OpenGoToSection();
         }
 
         private void GoToNextSection()

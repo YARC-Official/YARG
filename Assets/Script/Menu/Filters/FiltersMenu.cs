@@ -2021,7 +2021,10 @@ namespace YARG.Menu.Filters
             _leftNavGroup.SelectionChanged -= OnSelectionChanged;
             _rightNavGroup.SelectionChanged -= OnRightSelectionChanged;
 
-            MenuManager.Instance.ReactivateCurrentMenu();
+            // Filters is an overlay, so the underlying menu normally remains active.
+            // Avoid toggling it off and back on, which exposes the shared background
+            // for a frame while this overlay is closing.
+            MenuManager.Instance.ReactivateCurrentMenu(false);
         }
 
         private bool HaveFiltersChanged()

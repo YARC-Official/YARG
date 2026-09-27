@@ -312,28 +312,14 @@ namespace YARG.Menu.MusicLibrary
                 new NavigationScheme.Entry(MenuAction.Up, "Menu.Common.Up",
                     ctx =>
                     {
-                        if (IsButtonHeldByPlayer(ctx.Player, MenuAction.Orange))
-                        {
-                            GoToPreviousSection();
-                        }
-                        else
-                        {
-                            SetWrapAroundState(!ctx.IsRepeat);
-                            SelectedIndex--;
-                        }
+                        SetWrapAroundState(!ctx.IsRepeat);
+                        SelectedIndex--;
                     }),
                 new NavigationScheme.Entry(MenuAction.Down, "Menu.Common.Down",
                     ctx =>
                     {
-                        if (IsButtonHeldByPlayer(ctx.Player, MenuAction.Orange))
-                        {
-                            GoToNextSection();
-                        }
-                        else
-                        {
-                            SetWrapAroundState(!ctx.IsRepeat);
-                            SelectedIndex++;
-                        }
+                        SetWrapAroundState(!ctx.IsRepeat);
+                        SelectedIndex++;
                     }),
                 new NavigationScheme.Entry(MenuAction.Left, "Menu.MusicLibrary.MoveInPlaylist",
                     MovePlaylistEntryUp),
@@ -353,9 +339,11 @@ namespace YARG.Menu.MusicLibrary
                     () => { },
                     holdSeconds: GREEN_HOLD_SECONDS,
                     onHoldHandler: OpenShowPicker),
-                new NavigationScheme.Entry(MenuAction.Blue, "Menu.MusicLibrary.Filters", OpenFilters),
-                new NavigationScheme.Entry(MenuAction.Orange, "Menu.MusicLibrary.MoreOptions",
-                    OnOrangeHit, OnOrangeRelease),
+                new NavigationScheme.Entry(MenuAction.Blue, "Menu.MusicLibrary.SortAndFilter",
+                    OpenSortSelect, holdSeconds: MENU_HOLD_SECONDS,
+                    onHoldHandler: OpenFilters),
+                new NavigationScheme.Entry(MenuAction.Orange, "Menu.MusicLibrary.MoreOptionsOnly",
+                    () => _popupMenu.gameObject.SetActive(true)),
             }, false));
         }
 
@@ -378,7 +366,7 @@ namespace YARG.Menu.MusicLibrary
             _sidebar.UpdateSidebar(true);
         }
 
-        private void EnterShowMode()
+        public void EnterShowMode()
         {
             // Save the current selected index if we're in the main library
             if (MenuState == MenuState.Library)
@@ -399,7 +387,7 @@ namespace YARG.Menu.MusicLibrary
             OpenShowPicker();
         }
 
-        private void OpenShowPicker()
+        public void OpenShowPicker()
         {
             SelectedIndex = 0;
             DialogManager.Instance.ShowSongPickerDialog("Pick Your Poison", this);
