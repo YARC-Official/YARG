@@ -48,6 +48,7 @@ namespace YARG.Input
         public readonly Dictionary<ControllerFamily, ReusableBindingSet> PreferredMenuBindingsByBaseLayout = new();
 
         private readonly RuntimeInputAggregator _gameplayInputAggregator = new();
+        private readonly RuntimeInputAggregator _menuInputAggregator = new();
 
         public bool HasDeviceAssigned => _controllers.Count > 0;
         public bool HasMicrophoneAssigned => _microphones.Count == 0;
@@ -55,24 +56,7 @@ namespace YARG.Input
 
         public event Action<InputDevice> ControllerAdded;
         public event Action<InputDevice> ControllerRemoved;
-        
-        public event GameInputProcessed MenuInputProcessed
-        {
-            add
-            {
-                foreach (var menuBinds in _activeMenuRuntimeBindings.Values)
-                {
-                    menuBinds.InputProcessed += value;
-                }
-            }    
-            remove
-            {
-                foreach (var menuBinds in _activeMenuRuntimeBindings.Values)
-                {
-                    menuBinds.InputProcessed -= value;
-                }
-            }
-        }
+       
 
         public PlayerDeviceInfo() { }
 
@@ -153,6 +137,8 @@ namespace YARG.Input
 
             if (serialized.MenuMappings is not null)
             {
+                var menuMappingsToRemove = new List<string>();
+
                 foreach (var (baseLayout, bindingSetGuid) in serialized.MenuMappings)
                 {
                     var controllerFamily = LayoutHelper.LayoutStringToControllerFamily(baseLayout);
@@ -163,11 +149,15 @@ namespace YARG.Input
                     }
                     else
                     {
-                        YargLogger.LogWarning($"Referenced nonexistent binding collection GUID {bindingSetGuid}; removing it");
-                        serialized.MenuMappings.Remove(baseLayout);
+                        YargLogger.LogWarning($"Referenced nonexistent binding collection GUID {bindingSetGuid}; it will be removed");
+                        menuMappingsToRemove.Add(baseLayout);
                     }
                 }
 
+                foreach (var baseLayout in menuMappingsToRemove)
+                {
+                    serialized.MenuMappings.Remove(baseLayout);
+                }
             }
         }
 
@@ -308,6 +298,16 @@ namespace YARG.Input
             _gameplayInputAggregator.InputProcessed -= onInputProcessed;
         }
 
+        public void SubscribeToMenuInputs(GameInputProcessed onInputProcessed)
+        {
+            _menuInputAggregator.InputProcessed += onInputProcessed;
+        }
+
+        public void UnsubscribeFromMenuInputs(GameInputProcessed onInputProcessed)
+        {
+            _menuInputAggregator.InputProcessed -= onInputProcessed;
+        }
+
         public bool AddController(InputDevice controller)
         {
             // Ignore already-added devices
@@ -381,6 +381,7 @@ namespace YARG.Input
         {
             if (_activeMenuRuntimeBindings.Remove(controller, out var oldRuntimeBindings))
             {
+                _menuInputAggregator.Remove(oldRuntimeBindings);
                 oldRuntimeBindings.Dispose();
             }
 
@@ -388,6 +389,7 @@ namespace YARG.Input
             {
                 var newRuntimeBindings = bindingSet.GetRuntimeBindings(Profile, controller);
                 _activeMenuRuntimeBindings[controller] = newRuntimeBindings;
+                _menuInputAggregator.Add(newRuntimeBindings);
 
                 if (_inputsEnabled)
                 {
@@ -577,25 +579,11 @@ namespace YARG.Input
 
             if (_activeMenuRuntimeBindings.Remove(controller, out var menuBindings))
             {
+                _menuInputAggregator.Remove(menuBindings);
                 menuBindings.Dispose();
             }
 
             ControllerRemoved?.Invoke(controller);
-        }
-
-        private RuntimeBindingSet GetRuntimeBindingsForController(
-            InputDevice controller,
-            bool menu)
-        {
-            var bindingSet = GetBindingSetForController(controller, menu);
-
-            if (bindingSet is not null)
-            {
-                return bindingSet.GetRuntimeBindings(Profile, controller);
-            }
-
-            var mode = menu ? GameMode.Menu : Profile.GameMode;
-            return new RuntimeBindingSet(controller, mode);
         }
 
         private ReusableBindingSet GetBindingSetForController(InputDevice controller, bool menu)
@@ -635,6 +623,7 @@ namespace YARG.Input
             }
 
             _gameplayInputAggregator.UpdateForFrame(updateTime);
+            _menuInputAggregator.UpdateForFrame(updateTime);
         }
 
         public void AddMicrophone(MicDevice microphone)
@@ -688,6 +677,7 @@ namespace YARG.Input
 
             foreach (var runtimeMenuBindings in _activeMenuRuntimeBindings.Values)
             {
+                _menuInputAggregator.Remove(runtimeMenuBindings);
                 runtimeMenuBindings.Dispose();
             }
             _activeMenuRuntimeBindings.Clear();

@@ -143,7 +143,7 @@ namespace YARG.Player
             }
 
             DeviceInfo.EnableInputs();
-            DeviceInfo.MenuInputProcessed += OnMenuInput;
+            DeviceInfo.SubscribeToMenuInputs(OnMenuInput);
             InputManager.RegisterPlayer(this);
 
             InputsEnabled = true;
@@ -157,7 +157,7 @@ namespace YARG.Player
             }
 
             DeviceInfo.DisableInputs();
-            DeviceInfo.MenuInputProcessed -= OnMenuInput;
+            DeviceInfo.UnsubscribeFromMenuInputs(OnMenuInput);
             InputManager.UnregisterPlayer(this);
 
             InputsEnabled = false;
