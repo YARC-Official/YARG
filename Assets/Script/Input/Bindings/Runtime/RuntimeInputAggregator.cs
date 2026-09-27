@@ -22,10 +22,12 @@ namespace YARG.Input.Bindings
 
         public void Add(RuntimeBindingSet source)
         {
-            if (!_sources.Contains(source))
+            if (_sources.Contains(source))
             {
-                _sources.Add(source);
+                return;
             }
+
+            _sources.Add(source);
 
             foreach (var binding in source)
             {
@@ -90,6 +92,61 @@ namespace YARG.Input.Bindings
                     }
                 }
             }
+
+            // Automatically release button actions that were pressed last frame but no longer have
+            // any active source reporting them
+            var releasedButtons = new List<int>();
+            foreach (var (action, oldState) in _buttonStates)
+            {
+                if (oldState && !_newButtonStates.ContainsKey(action))
+                {
+                    releasedButtons.Add(action);
+                }
+            }
+            foreach (var action in releasedButtons)
+            {
+                _buttonStates[action] = false;
+
+                var input = new GameInput(time, action, false);
+                InputProcessed?.Invoke(ref input);
+            }
+
+            // Automatically zero-out axis actions that were nonzero last frame but no longer have
+            // any active source reporting them
+            var releasedAxes = new List<int>();
+            foreach (var (action, oldState) in _axisStates)
+            {
+                if (oldState is not 0 && !_newAxisStates.ContainsKey(action))
+                {
+                    releasedAxes.Add(action);
+                }
+            }
+            foreach (var action in releasedAxes)
+            {
+                _axisStates[action] = 0;
+
+                var input = new GameInput(time, action, 0f);
+                InputProcessed?.Invoke(ref input);
+            }
+
+            // Automatically zero-out integer actions that were nonzero last frame but no longer have
+            // any active source reporting them
+            var releasedIntegers = new List<int>();
+            foreach (var (action, oldState) in _integerStates)
+            {
+                if (oldState is not 0 && !_newIntegerStates.ContainsKey(action))
+                {
+                    releasedIntegers.Add(action);
+                }
+            }
+            foreach (var action in releasedIntegers)
+            {
+                _integerStates[action] = 0;
+
+                var input = new GameInput(time, action, 0);
+                InputProcessed?.Invoke(ref input);
+            }
+
 
             foreach (var (action, newState) in _newButtonStates)
             {
