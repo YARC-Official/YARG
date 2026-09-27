@@ -45,7 +45,7 @@ namespace YARG.Gameplay.Visuals
             // critical areas such as the game manager and players
             float z =
                 TrackPlayer.STRIKE_LINE_POS                      // Shift origin to the strike line
-                + (float) (ElementTime - GameManager.VisualTime) // Get time of note relative to now
+                + (float) (ElementTime - Player.VisualTime) // Get time of note relative to now
                 * Player.NoteSpeed;                              // Adjust speed (units/s)
 
             var cacheTransform = transform;
