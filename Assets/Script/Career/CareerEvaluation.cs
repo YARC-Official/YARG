@@ -28,10 +28,6 @@ namespace YARG.Career
             public float Stars;
             // Sum of the tier's songs' best stars (used for StarCount unlocks)
             public int StarSum;
-            // How much more the previous *regular* tier still needs in order to reach this tier's
-            // unlock criteria, measured in this tier's UnlockType metric. 0 once unlocked.
-            // Content that cannot be reached at all (no regular tier before it) reports its full
-            // criteria here.
             public int RemainingToUnlock;
             public List<SongResult> Songs = new();
         }
@@ -47,8 +43,6 @@ namespace YARG.Career
             };
 
             // Best stars per song: max BandStars across all committed completions for that song.
-            // Replays insert extra completion rows; taking the best means replays can improve a song
-            // but never farm progress.
             var bestStarsBySong = new Dictionary<Guid, int>();
             foreach (var completion in snapshot.Completions)
             {
@@ -60,6 +54,8 @@ namespace YARG.Career
             }
 
             TierResult previousRegularTier = null;
+            var completedCount = 0;
+            var starSum = 0;
 
             for (var tierIndex = 0; tierIndex < career.Tiers.Count; tierIndex++)
             {
@@ -99,16 +95,16 @@ namespace YARG.Career
                     {
                         case UnlockType.CompletionCount:
                         {
+                            result.Unlocked = completedCount >= tier.UnlockCriteria;
+
                             var completed = previousRegularTier.Songs.Count(song => song.Completed);
-                            result.Unlocked = completed >= tier.UnlockCriteria;
-                            result.RemainingToUnlock = Math.Max(0, tier.UnlockCriteria - completed);
+                            result.RemainingToUnlock = Math.Max(0, tier.UnlockCriteria - completedCount + completed);
                             break;
                         }
                         case UnlockType.StarCount:
                         {
-                            result.Unlocked = previousRegularTier.StarSum >= tier.UnlockCriteria;
-                            result.RemainingToUnlock =
-                                Math.Max(0, tier.UnlockCriteria - previousRegularTier.StarSum);
+                            result.Unlocked = starSum >= tier.UnlockCriteria;
+                            result.RemainingToUnlock = Math.Max(0, tier.UnlockCriteria - starSum);
                             break;
                         }
                     }
@@ -123,6 +119,8 @@ namespace YARG.Career
 
                 if (!tier.IsBonus)
                 {
+                    completedCount += result.Songs.Count(song => song.Completed);
+                    starSum += result.StarSum;
                     previousRegularTier = result;
                 }
 
