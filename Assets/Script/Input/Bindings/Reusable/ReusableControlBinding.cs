@@ -99,19 +99,21 @@ namespace YARG.Input.Bindings
     public abstract class ReusableSingleBinding {
         public string ControlPath { get; set; }
         public string DisplayName { get; set; }
+        public string SourceLayout { get; set; }
 
-        public ReusableSingleBinding(string controlPath, string displayName)
+        public ReusableSingleBinding(string controlPath, string displayName, string sourceLayout)
         {
             ControlPath = controlPath;
             DisplayName = displayName;
+            SourceLayout = sourceLayout;
         }
 
         public ReusableSingleBinding(SerializedSingleBinding serialized)
-            : this(serialized.ControlName, serialized.ControlName) { } // TODO-FRICK: DisplayName
+            : this(serialized.ControlName, serialized.ControlName, serialized.SourceLayout) { } // TODO-FRICK: DisplayName
 
         public SerializedSingleBinding Serialize()
         {
-            return new SerializedSingleBinding(ControlPath)
+            return new SerializedSingleBinding(ControlPath, SourceLayout)
             {
                 Parameters = SerializeParameters()
             };
@@ -137,8 +139,8 @@ namespace YARG.Input.Bindings
     public abstract class ReusableSingleBinding<TState> : ReusableSingleBinding
         where TState : struct
     {
-        public ReusableSingleBinding(ReusableSingleBinding<TState> original) : base(original.ControlPath, original.DisplayName) { }
-        public ReusableSingleBinding(string controlPath, string displayName) : base(controlPath, displayName) { }
+        public ReusableSingleBinding(ReusableSingleBinding<TState> original) : base(original.ControlPath, original.DisplayName, original.SourceLayout) { }
+        public ReusableSingleBinding(string controlPath, string displayName, string sourceLayout) : base(controlPath, displayName, sourceLayout) { }
         public ReusableSingleBinding(SerializedSingleBinding serialized) : base(serialized) { }
 
         public RuntimeSingleBinding<TState> MakeRuntime(InputDevice controller)

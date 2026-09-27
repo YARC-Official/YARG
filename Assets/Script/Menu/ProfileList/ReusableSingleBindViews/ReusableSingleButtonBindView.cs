@@ -94,7 +94,7 @@ namespace YARG.Menu.ProfileList
                     //   but Tilt is okay, because it's an axis in its own right
                 )
                 {
-                    _dropdownControls.Add(control);
+                    _dropdownControls.Add(new(control));
                     _controlDropdown.options.Add(new(DisambiguateDisplayName(control)));
                 }
             }

@@ -30,7 +30,8 @@ namespace YARG.Menu.ProfileList
         protected TBinding Binding;
         protected TSingle SingleBinding;
         protected List<ControlItemInfo> _allControls;
-        protected List<ControlItemInfo> _dropdownControls = new();
+        protected List<DropdownControl> _dropdownControls = new();
+        private DropdownControl _adHocControl;
 
         protected ControlItemInfo? _current;
         protected ProfilesMenu _profilesMenu;
@@ -91,13 +92,38 @@ namespace YARG.Menu.ProfileList
             {
                 SingleBinding.ControlPath = null;
                 _current = null;
+                RemoveAdHocControl();
             }
             else
             {
                 // The -1 corrects for the presence of the None option
-                _current = _dropdownControls[_controlDropdown.value - 1];
-                SingleBinding.ControlPath = _current.Value.ControlPath;
+                var selected = _dropdownControls[_controlDropdown.value - 1];
+                SingleBinding.ControlPath = selected.ControlPath;
+                _current = selected.KnownControl;
+
+                if (selected != _adHocControl)
+                {
+                    RemoveAdHocControl();
+                }
             }
+        }
+
+        private void RemoveAdHocControl()
+        {
+            if (_adHocControl is null)
+            {
+                return;
+            }
+
+            var adHocIndex = _dropdownControls.IndexOf(_adHocControl);
+
+            if (adHocIndex >= 0)
+            {
+                _dropdownControls.RemoveAt(adHocIndex);
+                _controlDropdown.options.RemoveAt(adHocIndex + 1);
+            }
+
+            _adHocControl = null;
         }
 
         private void OnDummyControllerChanged()
@@ -112,12 +138,34 @@ namespace YARG.Menu.ProfileList
 
         public async void OnRecord()
         {
-            if (_centerPane.DummyController is not null) {
-                if(await _quickBindDialog.Show(_centerPane.DummyController, SingleBinding))
+            if (_centerPane.DummyController is not null)
+            {
+                if (await _quickBindDialog.Show(_centerPane.DummyController, SingleBinding))
                 {
-                    var idx = _dropdownControls.FindIndex(c => c.ControlPath == SingleBinding.ControlPath);
+                    var idx = _dropdownControls.FindIndex(c =>
+                        string.Equals(
+                            c.ControlPath,
+                            SingleBinding.ControlPath,
+                            StringComparison.OrdinalIgnoreCase
+                        )
+                    );
 
-                    _controlDropdown.value = idx < 0 ? 0 : idx + 1;
+                    if (idx >= 0)
+                    {
+                        _controlDropdown.value = idx + 1;
+                    }
+                    else
+                    {
+                        RemoveAdHocControl();
+                        _adHocControl = new(SingleBinding.ControlPath, SingleBinding.DisplayName, SingleBinding.SourceLayout);
+
+                        _dropdownControls.Add(_adHocControl);
+                        _controlDropdown.options.Add(
+                            new(_adHocControl.DisplayName));
+
+                        _controlDropdown.value = _controlDropdown.options.Count - 1;
+                        _controlDropdown.RefreshShownValue();
+                    }
                 }
             }
         }
@@ -126,5 +174,30 @@ namespace YARG.Menu.ProfileList
         {
             return item.DisplayName;
         }
+
+        protected class DropdownControl
+        {
+            public string ControlPath { get; }
+            public string DisplayName { get; }
+            public string SourceLayout { get; }
+            public ControlItemInfo? KnownControl { get; }
+
+            public DropdownControl(ControlItemInfo control)
+            {
+                ControlPath = control.ControlPath;
+                DisplayName = control.DisplayName;
+                SourceLayout = control.SourceLayout;
+                KnownControl = control;
+            }
+
+            public DropdownControl(string controlPath, string displayName, string sourceLayout)
+            {
+                ControlPath = controlPath;
+                DisplayName = displayName;
+                SourceLayout = sourceLayout;
+                KnownControl = null;
+            }
+        }
     }
+
 }

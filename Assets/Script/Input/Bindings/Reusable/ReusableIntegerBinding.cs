@@ -11,14 +11,6 @@ namespace YARG.Input.Bindings
     {
         public ReusableIntegerBinding(InputActionInfo info) : base(info) { }
 
-        public ReusableIntegerBinding(InputActionInfo info, List<string> controlNames) : base(info)
-        {
-            foreach (var controlName in controlNames)
-            {
-                Bindings.Add(new(controlName, controlName)); // TODO-FRICK: DisplayName
-            }
-        }
-
         public ReusableIntegerBinding(ReusableIntegerBinding original) : base(original) {
             foreach (var binding in original.Bindings)
             {
@@ -36,9 +28,9 @@ namespace YARG.Input.Bindings
     }
 
     public class ReusableSingleIntegerBinding : ReusableSingleBinding<int> {
-        public ReusableSingleIntegerBinding() : base(null, null) { }
+        public ReusableSingleIntegerBinding() : base(null, null, null) { }
 
-        public ReusableSingleIntegerBinding(string controlName, string displayName) : base(controlName, displayName) { }
+        public ReusableSingleIntegerBinding(string controlName, string displayName, string sourceLayout) : base(controlName, displayName, sourceLayout) { }
 
         public ReusableSingleIntegerBinding(ReusableSingleIntegerBinding original) : base(original) { }
 

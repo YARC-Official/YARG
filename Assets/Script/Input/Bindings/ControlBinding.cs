@@ -212,7 +212,7 @@ namespace YARG.Input
             // (e.g. XInputGuitarHeroGuitar1 in one session could be just XInputGuitarHeroGuitar in another)
             // Swap that out for the device layout instead, indicated by <angle brackets>
             string path = Control.path.Replace(Control.device.name, $"<{Control.device.layout}>");
-            return new(path);
+            return new(path, null); // TODO-FRICK: Going away anyway
         }
     }
 

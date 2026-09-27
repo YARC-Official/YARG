@@ -109,13 +109,16 @@ namespace YARG.Input.Serialization
         [Obsolete]
         public string ControlPath = string.Empty;
 
+        public string SourceLayout;
+
         public string ControlName;
 
         public Dictionary<string, string> Parameters = new();
 
-        public SerializedSingleBinding(string controlName)
+        public SerializedSingleBinding(string controlName, string sourceLayout)
         {
             ControlName = controlName;
+            SourceLayout = sourceLayout;
         }
     }
 

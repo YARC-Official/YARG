@@ -138,13 +138,13 @@ namespace YARG.Menu.ProfileList
 
             // Organize available controls by how likely they are to be relevant to an axis binding; we don't want to frontload
             // a bunch of buttons when the player is more likely to want a pitchwheel, accelerometer, CC dial, etc.
-            var midiPitchControls = new List<ControlItemInfo>();
-            var axisControls = new List<ControlItemInfo>();
-            var midiValueControls = new List<ControlItemInfo>();
-            var integerControls = new List<ControlItemInfo>();
-            var buttonControls = new List<ControlItemInfo>();
-            var keyControls = new List<ControlItemInfo>();
-            var otherControls = new List<ControlItemInfo>();
+            var midiPitchControls = new List<DropdownControl>();
+            var axisControls = new List<DropdownControl>();
+            var midiValueControls = new List<DropdownControl>();
+            var integerControls = new List<DropdownControl>();
+            var buttonControls = new List<DropdownControl>();
+            var keyControls = new List<DropdownControl>();
+            var otherControls = new List<DropdownControl>();
 
 
             foreach (var control in _allControls)
@@ -160,7 +160,7 @@ namespace YARG.Menu.ProfileList
                     _ => otherControls
                 };
 
-                relevantList.Add(control);
+                relevantList.Add(new(control));
             }
 
             _dropdownControls = midiPitchControls
@@ -174,7 +174,10 @@ namespace YARG.Menu.ProfileList
 
             foreach (var control in _dropdownControls)
             {
-                _controlDropdown.options.Add(new(DisambiguateDisplayName(control)));
+                _controlDropdown.options.Add(new(control.KnownControl is null ?
+                    control.DisplayName :
+                    DisambiguateDisplayName(control.KnownControl.Value)
+                ));
             }
         }
 

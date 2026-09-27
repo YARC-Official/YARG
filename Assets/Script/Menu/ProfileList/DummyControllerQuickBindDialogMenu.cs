@@ -80,6 +80,8 @@ namespace YARG.Menu.ProfileInfo
 
                 // Add the binding
                 single.ControlPath = _grabbedControl.name;
+                single.DisplayName = _grabbedControl.displayName;
+                single.SourceLayout = controller.layout;
                 return true;
             }
             catch (OperationCanceledException)
