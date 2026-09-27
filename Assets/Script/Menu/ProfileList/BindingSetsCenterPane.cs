@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -43,6 +44,8 @@ namespace YARG.Menu.ProfileList
         private Transform _settingsPanel;
         public InputDevice DummyController { get; private set; } = null;
         private List<InputDevice> _availableDummyControllers = new();
+
+        public event Action DummyControllerChanged;
 
         public void HideContents()
         {
@@ -113,6 +116,8 @@ namespace YARG.Menu.ProfileList
             }
 
             DummyController = _availableDummyControllers[idx];
+
+            DummyControllerChanged?.Invoke();
         }
 
         private void DestroyBindsList()

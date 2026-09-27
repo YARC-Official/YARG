@@ -36,6 +36,7 @@ namespace YARG.Menu.ProfileList
         protected ProfilesMenu _profilesMenu;
         protected BindingSetsCenterPane _centerPane;
         protected DummyControllerQuickBindDialogMenu _quickBindDialog;
+        private bool _interactable { get; set; }
 
         public virtual void Init(
             TBinding binding,
@@ -53,6 +54,7 @@ namespace YARG.Menu.ProfileList
             Binding = binding;
             SingleBinding = singleBinding;
             _allControls = controls;
+            _interactable = interactable;
 
             PopulateControlDropdown();
 
@@ -62,10 +64,18 @@ namespace YARG.Menu.ProfileList
 
             _controlDropdown.value = selectedIndex >= 0 ? selectedIndex + 1 : 0; // Account for the None option
             OnControlDropdownChange();
-            _controlDropdown.interactable = interactable;
-            _deleteButton.interactable = interactable;
-            _recordButton.interactable = interactable;
-            
+
+
+            _controlDropdown.interactable = _interactable;
+            _deleteButton.interactable = _interactable;
+            _recordButton.interactable = _interactable && _centerPane.DummyController is not null;
+
+            _centerPane.DummyControllerChanged += OnDummyControllerChanged;
+        }
+
+        private void OnDisable()
+        {
+            _centerPane.DummyControllerChanged -= OnDummyControllerChanged;
         }
 
         protected virtual void PopulateControlDropdown()
@@ -88,6 +98,11 @@ namespace YARG.Menu.ProfileList
                 _current = _dropdownControls[_controlDropdown.value - 1];
                 SingleBinding.ControlPath = _current.Value.ControlPath;
             }
+        }
+
+        private void OnDummyControllerChanged()
+        {
+            _recordButton.interactable = _interactable && _centerPane.DummyController is not null;
         }
 
         public void OnDelete()
