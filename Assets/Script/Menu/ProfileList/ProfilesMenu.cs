@@ -125,6 +125,8 @@ namespace YARG.Menu.ProfileList
             _leftPaneList.transform.DestroyChildren();
             _navigationGroup.ClearNavigatables();
 
+            var someExist = false;
+
             var relevantBindingSets = BindingsContainer.GetBindingSetsForControllerFamily(CurrentBindingSetFilter);
             var typicalGameModes = BindingsContainer.GetTypicalGameModesForControllerFamily(CurrentBindingSetFilter);
 
@@ -137,6 +139,7 @@ namespace YARG.Menu.ProfileList
             {
                 AddBindingSetListGroup(GameMode.Menu, menuBindingSets);
                 remainingGameModes.Remove(GameMode.Menu);
+                someExist = true;
             }
 
             // List the typical gameplay modes for this controller first, and do so even if they're empty
@@ -144,6 +147,7 @@ namespace YARG.Menu.ProfileList
             {
                 AddBindingSetListGroup(mode, relevantBindingSets.GetValueOrDefault(mode, new()));
                 remainingGameModes.Remove(mode);
+                someExist = true;
             }
 
             // Go through remaining (atypical) modes to display whichever ones are actually populated with oddball binding sets
@@ -155,14 +159,16 @@ namespace YARG.Menu.ProfileList
                     continue;
                 }
 
-                AddBindingSetListGroup(mode, bindingSets, typical: false);
+                // Make no assumptions about misc. controllers; the player is welcome to bind whatever they want
+                AddBindingSetListGroup(mode, bindingSets, typical: CurrentBindingSetFilter is ControllerFamily.Other);
                 remainingGameModes.Remove(mode);
+                someExist = true;
             }
 
             if (remainingGameModes.Count is not 0)
             {
                 var footerGo = Instantiate(_bindingSetListFooterPrefab, _leftPaneList);
-                footerGo.Init(CurrentBindingSetFilter, remainingGameModes, this);
+                footerGo.Init(CurrentBindingSetFilter, remainingGameModes, this, someExist);
                 _navigationGroup.AddNavigatable(footerGo.gameObject);
             }
 

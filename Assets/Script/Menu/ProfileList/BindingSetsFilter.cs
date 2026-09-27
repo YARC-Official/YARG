@@ -28,7 +28,7 @@ namespace YARG.Menu.ProfileList
             ControllerFamily.Gamepad,
             ControllerFamily.ComputerKeyboard,
             ControllerFamily.Mouse,
-            ControllerFamily.Generic
+            ControllerFamily.Other
         };
 
         public void OnEnable()
@@ -61,6 +61,6 @@ namespace YARG.Menu.ProfileList
         Gamepad,
         ComputerKeyboard,
         Mouse,
-        Generic
+        Other
     }
 }

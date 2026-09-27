@@ -144,7 +144,7 @@
 				"ComputerKeyboard": "Computer Keyboard",
 				"Mouse": "Computer Mouse",
 				"Gamepad": "Gamepad",
-				"Generic": "Generic Input Device"
+				"Other": "Misc. Input Device"
 			},
 			"Plural": { 
 				"FiveFretGuitar": "5-Fret Guitar Controllers",
@@ -157,7 +157,7 @@
 				"ComputerKeyboard": "Computer Keyboards",
 				"Mouse": "Computer Mice",
 				"Gamepad": "Gamepads",
-				"Generic": "Generic Input Devices"
+				"Other": "Other Input Devices"
 			}
 		}
     },
@@ -595,6 +595,9 @@
 			"BotDelete": "Deleting this bot is permanent.",
 			"PressPoint": "Press Point",
 			"VelocityThreshold": "Velocity Threshold",
+			"AddBindingSet": "ADD",
+			"AddOtherBindingSet": "ADD OTHER",
+			"AddOtherBindingSetNotRecommended": "ADD OTHER (<i>Not Recommended</i>)",
 			"Tooltip": {
 			    "InputMode": {
 				    "Title": "Input Mode",
