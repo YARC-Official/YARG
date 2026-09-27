@@ -193,11 +193,14 @@ namespace YARG.Helpers
             {
                 var layout = InputSystem.LoadLayout(layoutTreeString);
 
-                foreach (var controlItem in layout.controls)
+                if (layout is not null)
                 {
-                    if (controlItem.isFirstDefinedInThisLayout)
+                    foreach (var controlItem in layout.controls)
                     {
-                        AddControl(controlItem, layoutTreeString);
+                        if (controlItem.isFirstDefinedInThisLayout)
+                        {
+                            AddControl(controlItem, layoutTreeString);
+                        }
                     }
                 }
             }
