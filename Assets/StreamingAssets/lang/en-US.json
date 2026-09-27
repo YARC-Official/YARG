@@ -431,8 +431,8 @@
             "AddToShow": "Add To Show",
             "AddedToShow": "Added To Show",
             "StartShow": "Start The Show",
-            "MoreOptions": "<align=left><size=80%>More Options<br>(Hold) Go to Section...</size></align>",
-            "MoreOptionsOnly": "More Options",
+            "MoreOptionsAndGoToSection": "<align=left><size=80%>More Options<br>(Hold) Go to Section...</size></align>",
+            "MoreOptions": "More Options",
             "PlayAShow": {
                 "LongSong": "A Long Song",
                 "RandomSong": "A Random Song",

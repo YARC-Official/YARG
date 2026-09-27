@@ -397,10 +397,10 @@ namespace YARG.Menu.MusicLibrary
                     onHoldHandler: OpenFilters);
 
             NavigationScheme.Entry orangeEntry = MenuState == MenuState.Library
-                ? new NavigationScheme.Entry(MenuAction.Orange, "Menu.MusicLibrary.MoreOptions",
+                ? new NavigationScheme.Entry(MenuAction.Orange, "Menu.MusicLibrary.MoreOptionsAndGoToSection",
                     () => _popupMenu.gameObject.SetActive(true), holdSeconds: MENU_HOLD_SECONDS,
                     onHoldHandler: OpenGoToSection)
-                : new NavigationScheme.Entry(MenuAction.Orange, "Menu.MusicLibrary.MoreOptionsOnly",
+                : new NavigationScheme.Entry(MenuAction.Orange, "Menu.MusicLibrary.MoreOptions",
                     () => _popupMenu.gameObject.SetActive(true));
 
             var entries = new List<NavigationScheme.Entry>
