@@ -44,6 +44,7 @@ namespace YARG.Input.Bindings
     {
         public string ControlPath;
         public string DisplayName;
+        public string SourceLayout;
         public bool? Inverted;
         public float? Maximum;
         public float? Minimum;
@@ -56,6 +57,7 @@ namespace YARG.Input.Bindings
 
             ControlPath = control.ControlPath;
             DisplayName = control.DisplayName;
+            SourceLayout = LayoutHelper.ControllerFamilyToLayoutString(family);
 
             // These would be more pleasant as struct field initializers, but those aren't in C# 9.0
             Inverted = null;
@@ -81,7 +83,7 @@ namespace YARG.Input.Bindings
         public float LowerDeadzone { get; set; }
         public float UpperDeadzone { get; set; }
 
-        public ReusableSingleAxisBinding() : base(null, null)
+        public ReusableSingleAxisBinding() : base(null, null, null)
         {
             Inverted = INVERTED_DEFAULT;
             Maximum = MINIMUM_DEFAULT;
@@ -90,7 +92,7 @@ namespace YARG.Input.Bindings
             UpperDeadzone = UPPER_DEADZONE_DEFAULT;
         }
 
-        public ReusableSingleAxisBinding(ReusableSingleAxisBindingConfig control) : base(control.ControlPath, control.DisplayName) { }
+        public ReusableSingleAxisBinding(ReusableSingleAxisBindingConfig control) : base(control.ControlPath, control.DisplayName, control.SourceLayout) { }
 
         public ReusableSingleAxisBinding(SerializedSingleBinding serialized) : base(serialized)
         {

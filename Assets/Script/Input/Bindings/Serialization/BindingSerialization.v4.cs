@@ -227,23 +227,26 @@ namespace YARG.Input.Serialization
         public class SerializedInputControlV4
         {
             public string ControlName;
+            public string SourceLayout;
             public Dictionary<string, string> Parameters = new();
 
             [JsonConstructor]
             public SerializedInputControlV4()
             {
                 ControlName = string.Empty;
+                SourceLayout = string.Empty;
             }
 
             public SerializedInputControlV4(SerializedSingleBinding serialized)
             {
                 ControlName = serialized.ControlName;
+                SourceLayout = serialized.SourceLayout;
                 Parameters = serialized.Parameters;
             }
 
             public SerializedSingleBinding? Deserialize()
             {
-                return new(ControlName)
+                return new(ControlName, SourceLayout)
                 {
                     Parameters = Parameters,
                 };

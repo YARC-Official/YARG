@@ -140,6 +140,7 @@ namespace YARG.Input.Bindings
     {
         public string ControlPath;
         public string DisplayName;
+        public string SourceLayout;
         public long? DebounceThreshold;
         public DebounceMode? DebounceMode;
         public float? PressPoint;
@@ -151,6 +152,7 @@ namespace YARG.Input.Bindings
 
             ControlPath = control.ControlPath;
             DisplayName = control.DisplayName;
+            SourceLayout = LayoutHelper.ControllerFamilyToLayoutString(family);
 
             // These would be more pleasant as struct field initializers, but those aren't in C# 9.0
             DebounceThreshold = null;
@@ -172,7 +174,7 @@ namespace YARG.Input.Bindings
         public float PressPoint { get; set; } = PRESS_POINT_DEFAULT;
         public bool Inverted { get; set; } = INVERTED_DEFAULT;
 
-        public ReusableSingleButtonBinding() : base(null, null)
+        public ReusableSingleButtonBinding() : base(null, null, null)
         {
             DebounceThreshold = DEBOUNCE_THRESHOLD_DEFAULT;
             DebounceMode = DEBOUNCE_MODE_DEFAULT;
@@ -180,7 +182,7 @@ namespace YARG.Input.Bindings
             Inverted = INVERTED_DEFAULT;
         }
 
-        public ReusableSingleButtonBinding(ReusableSingleButtonBindingConfig config) : base(config.ControlPath, config.DisplayName) {
+        public ReusableSingleButtonBinding(ReusableSingleButtonBindingConfig config) : base(config.ControlPath, config.DisplayName, config.SourceLayout) {
             DebounceThreshold = config.DebounceThreshold ?? DEBOUNCE_THRESHOLD_DEFAULT;
             DebounceMode = config.DebounceMode ?? DEBOUNCE_MODE_DEFAULT;
             PressPoint = config.PressPoint ?? PRESS_POINT_DEFAULT;
