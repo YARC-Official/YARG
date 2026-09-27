@@ -6,7 +6,6 @@ using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using YARG.Assets.Script.Helpers;
 using YARG.Core;
 using YARG.Core.Game;
 using YARG.Helpers.Extensions;
@@ -140,44 +139,6 @@ namespace YARG.Menu.ProfileList
                 // Create the dropdown option
                 _gameModeDropdown.options.Add(new(gameMode.ToLocalizedName()));
             }
-
-            CreateVideoOffsetRow();
-        }
-
-        /// <summary>
-        /// Builds the "Video Offset" settings row by cloning the existing "Input Calibration"
-        /// row, instead of requiring a hand-authored duplicate row in the sidebar prefab. Keeps
-        /// it visually identical to every other row, and keeps
-        /// <see cref="GameModeExtensions.PossibleProfileSettings"/>'s name-based show/hide logic
-        /// working unmodified, since the clone is a real sibling under <see cref="_sidebarContent"/>
-        /// with the expected name and child layout.
-        /// </summary>
-        private void CreateVideoOffsetRow()
-        {
-            // Idempotent: may be called both from Awake() and defensively from
-            // UpdateSidebar(), in case this sidebar receives an update before Unity
-            // has activated/awoken it (e.g. the very first profile connected in a session).
-            if (_videoOffsetField != null)
-            {
-                return;
-            }
-
-            var inputCalibrationRow = _inputCalibrationField.transform.parent;
-
-            var videoOffsetRow = Instantiate(inputCalibrationRow.gameObject, inputCalibrationRow.parent);
-            videoOffsetRow.name = ProfileSettingStrings.VIDEO_OFFSET;
-            videoOffsetRow.transform.SetSiblingIndex(inputCalibrationRow.GetSiblingIndex() + 1);
-
-            var label = videoOffsetRow.transform.Find("Option Name").GetComponent<TextMeshProUGUI>();
-            label.text = "VIDEO OFFSET (MS)";
-
-            _videoOffsetField = videoOffsetRow.GetComponentInChildren<TMP_InputField>();
-            _videoOffsetField.text = string.Empty;
-
-            // The cloned field's listener still points at ChangeInputCalibration (copied
-            // verbatim from the source row) — replace it with our own.
-            _videoOffsetField.onEndEdit.RemoveAllListeners();
-            _videoOffsetField.onEndEdit.AddListener(_ => ChangeVideoOffset());
         }
 
         private void OnEnable()
@@ -266,11 +227,6 @@ namespace YARG.Menu.ProfileList
 
         public void UpdateSidebar(YargProfile profile, ProfileView profileView)
         {
-            // Defensive: Awake() should always have created this row already, but if this
-            // sidebar is updated before Unity has activated/awoken it, build it now instead
-            // of leaving _videoOffsetField null.
-            CreateVideoOffsetRow();
-
             _profile = profile;
             _profileView = profileView;
 
