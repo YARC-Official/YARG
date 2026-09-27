@@ -73,9 +73,7 @@ namespace YARG.Menu.ProfileList
         private TMP_InputField _highwayLengthField;
         [SerializeField]
         private TMP_InputField _inputCalibrationField;
-
-        // Not a [SerializeField]: built at runtime in Awake() by cloning the Input
-        // Calibration row, so this new setting doesn't require a manual prefab edit.
+        [SerializeField]
         private TMP_InputField _videoOffsetField;
 
         [SerializeField]
