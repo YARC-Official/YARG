@@ -31,17 +31,17 @@ namespace YARG.Input.Bindings
             {
                 if (bindings.ContainsKey(key))
                 {
-                    bindingSet.Bindings[key] = bindings[key];
+                    bindingSet.AddBinding(key, bindings[key]);
                 }
                 else
                 {
-                    bindingSet.Bindings[key] = info.Type switch
+                    bindingSet.AddBinding(key, info.Type switch
                     {
                         BindingType.Button or BindingType.IndividualButton or BindingType.DrumButton => new ReusableButtonBinding(info),
                         BindingType.Axis => new ReusableAxisBinding(info),
                         BindingType.Integer => new ReusableIntegerBinding(info),
                         _ => throw new ArgumentOutOfRangeException("Unreachable")
-                    };
+                    });
                 }
             }
 

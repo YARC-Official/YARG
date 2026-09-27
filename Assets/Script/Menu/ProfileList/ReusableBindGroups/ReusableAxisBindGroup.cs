@@ -17,7 +17,7 @@ namespace YARG.Menu.ProfileList
 
         public override void AddNewBinding()
         {
-            Binding.Bindings.Add(new());
+            Binding.AddBinding(new());
             RefreshBindings();
         }
     }

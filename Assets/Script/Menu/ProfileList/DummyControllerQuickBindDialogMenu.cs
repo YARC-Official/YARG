@@ -79,14 +79,11 @@ namespace YARG.Menu.ProfileInfo
                     return false;
                 }
 
-                YargLogger.LogError($"Recorded control: Name={_grabbedControl.name}, Path={_grabbedControl.path}, DisplayName={_grabbedControl.displayName}");
-
                 // Add the binding
                 single.ControlPath = _grabbedControl.path[(controller.path.Length)..].TrimStart('/'); // Omit the controller name
                 single.DisplayName = _grabbedControl.displayName;
                 single.SourceLayout = controller.layout;
 
-                YargLogger.LogError($"Single.ControlPath={single.ControlPath}, Single.DisplayName={single.DisplayName}, Single.SourceLayout={single.SourceLayout}");
                 return true;
             }
             catch (OperationCanceledException)
