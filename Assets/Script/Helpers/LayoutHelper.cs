@@ -59,7 +59,7 @@ namespace YARG.Helpers
                 case LayoutStrings.MOUSE:                   return ControllerFamily.Mouse;
                 case LayoutStrings.GAMEPAD:                 return ControllerFamily.Gamepad;
                 case LayoutStrings.MIDI_DEVICE:             return ControllerFamily.MidiDevice;
-                case LayoutStrings.INPUT_DEVICE or null:    return ControllerFamily.Generic;
+                case LayoutStrings.INPUT_DEVICE or null:    return ControllerFamily.Other;
             }
 
             return LayoutStringToControllerFamily(InputSystem.GetNameOfBaseLayout(layout));
@@ -97,8 +97,7 @@ namespace YARG.Helpers
                 ControllerFamily.Gamepad => new() { LayoutStrings.GAMEPAD },
                 ControllerFamily.ComputerKeyboard => new() { LayoutStrings.KEYBOARD },
                 ControllerFamily.Mouse => new() { LayoutStrings.MOUSE },
-                ControllerFamily.Generic => new() { LayoutStrings.INPUT_DEVICE },
-                _ => throw new NotImplementedException() // TODO-FRICK
+                _ => new() { }
             };
         }
 
@@ -193,11 +192,14 @@ namespace YARG.Helpers
             {
                 var layout = InputSystem.LoadLayout(layoutTreeString);
 
-                foreach (var controlItem in layout.controls)
+                if (layout is not null)
                 {
-                    if (controlItem.isFirstDefinedInThisLayout)
+                    foreach (var controlItem in layout.controls)
                     {
-                        AddControl(controlItem, layoutTreeString);
+                        if (controlItem.isFirstDefinedInThisLayout)
+                        {
+                            AddControl(controlItem, layoutTreeString);
+                        }
                     }
                 }
             }
