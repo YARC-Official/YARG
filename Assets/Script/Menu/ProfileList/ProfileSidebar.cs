@@ -156,6 +156,14 @@ namespace YARG.Menu.ProfileList
         /// </summary>
         private void CreateVideoOffsetRow()
         {
+            // Idempotent: may be called both from Awake() and defensively from
+            // UpdateSidebar(), in case this sidebar receives an update before Unity
+            // has activated/awoken it (e.g. the very first profile connected in a session).
+            if (_videoOffsetField != null)
+            {
+                return;
+            }
+
             var inputCalibrationRow = _inputCalibrationField.transform.parent;
 
             var videoOffsetRow = Instantiate(inputCalibrationRow.gameObject, inputCalibrationRow.parent);
@@ -260,6 +268,11 @@ namespace YARG.Menu.ProfileList
 
         public void UpdateSidebar(YargProfile profile, ProfileView profileView)
         {
+            // Defensive: Awake() should always have created this row already, but if this
+            // sidebar is updated before Unity has activated/awoken it, build it now instead
+            // of leaving _videoOffsetField null.
+            CreateVideoOffsetRow();
+
             _profile = profile;
             _profileView = profileView;
 
