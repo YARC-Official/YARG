@@ -783,11 +783,13 @@ namespace YARG.Menu.MusicLibrary
             return selected;
         }
 
-        public void Refresh()
+        public void Refresh(bool refreshNavigationScheme = true)
         {
             SetRecommendedSongs();
             _searchField.Reset();
             UpdateSearch(true);
+            if (!refreshNavigationScheme) return;
+
             if (IsNavigationSchemeBlocked())
             {
                 _needsNavigationSchemeRefresh = true;
@@ -1146,11 +1148,12 @@ namespace YARG.Menu.MusicLibrary
             return (headerIndex, offset);
         }
 
-        public void RefreshAndReselect(bool selectTopOfList = false, bool preserveSelectedIndex = false)
+        public void RefreshAndReselect(bool selectTopOfList = false, bool preserveSelectedIndex = false,
+            bool refreshNavigationScheme = true)
         {
             int preservedIndex = SelectedIndex;
             var snapshot = CaptureSelectionSnapshot();
-            Refresh();
+            Refresh(refreshNavigationScheme);
 
             if (preserveSelectedIndex)
             {
@@ -1169,6 +1172,21 @@ namespace YARG.Menu.MusicLibrary
             }
 
             RestoreSelectionSnapshot(snapshot);
+        }
+
+        public void RestoreAfterFilters(bool refresh)
+        {
+            SetSidebarDifficultiesVisible(true);
+            if (refresh)
+            {
+                // The existing library scheme is exposed again when Filters pops its scheme.
+                // Refresh the list without pushing a duplicate scheme above it.
+                RefreshAndReselect(refreshNavigationScheme: false);
+            }
+
+            // Opening Filters stops the preview, but the library itself remains active, so
+            // OnEnable will not run to restart it when the overlay closes.
+            OnSelectedIndexChanged();
         }
 
         public void RefreshAndSelectPlaylist(Playlist playlist)

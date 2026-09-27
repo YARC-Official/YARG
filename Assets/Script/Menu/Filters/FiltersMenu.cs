@@ -2007,17 +2007,18 @@ namespace YARG.Menu.Filters
             SaveFilters();
             ActiveFilterPredicate = BuildFilterPredicate();
 
+            // Remove the Filters scheme before refreshing the library. Refreshing first can
+            // push a library scheme above this one, causing this pop to remove the wrong scheme
+            // and leave controller input bound to the now-hidden Filters menu.
+            Navigator.Instance.PopScheme();
+
             var library = FindFirstObjectByType<MusicLibrary.MusicLibraryMenu>();
             if (library != null)
             {
-                library.SetSidebarDifficultiesVisible(true);
-                if (filtersChanged || showRecommendationsChanged || onlyShowPlayableChanged)
-                {
-                    library.RefreshAndReselect();
-                }
+                bool refreshLibrary = filtersChanged || showRecommendationsChanged || onlyShowPlayableChanged;
+                library.RestoreAfterFilters(refreshLibrary);
             }
 
-            Navigator.Instance.PopScheme();
             _leftNavGroup.SelectionChanged -= OnSelectionChanged;
             _rightNavGroup.SelectionChanged -= OnRightSelectionChanged;
 
