@@ -164,34 +164,31 @@ namespace YARG.Menu.ProfileList
 
         public async void OnRecord()
         {
-            if (_centerPane.DummyController is not null)
+            if (await SingleBinding.QuickBind(_centerPane.DummyController, _quickBindDialog))
             {
-                if (await _quickBindDialog.Show(_centerPane.DummyController, SingleBinding))
+                var idx = _dropdownControls.FindIndex(c =>
+                            string.Equals(
+                                c.ControlPath,
+                                SingleBinding.ControlPath,
+                                StringComparison.OrdinalIgnoreCase
+                            )
+                        );
+
+                if (idx >= 0)
                 {
-                    var idx = _dropdownControls.FindIndex(c =>
-                        string.Equals(
-                            c.ControlPath,
-                            SingleBinding.ControlPath,
-                            StringComparison.OrdinalIgnoreCase
-                        )
-                    );
+                    _controlDropdown.value = idx + 1;
+                }
+                else
+                {
+                    RemoveAdHocControl();
+                    _adHocControl = new(SingleBinding.ControlPath, SingleBinding.DisplayName, SingleBinding.SourceLayout);
 
-                    if (idx >= 0)
-                    {
-                        _controlDropdown.value = idx + 1;
-                    }
-                    else
-                    {
-                        RemoveAdHocControl();
-                        _adHocControl = new(SingleBinding.ControlPath, SingleBinding.DisplayName, SingleBinding.SourceLayout);
+                    _dropdownControls.Add(_adHocControl);
+                    _controlDropdown.options.Add(
+                        new(_adHocControl.DisplayName));
 
-                        _dropdownControls.Add(_adHocControl);
-                        _controlDropdown.options.Add(
-                            new(_adHocControl.DisplayName));
-
-                        _controlDropdown.value = _controlDropdown.options.Count - 1;
-                        _controlDropdown.RefreshShownValue();
-                    }
+                    _controlDropdown.value = _controlDropdown.options.Count - 1;
+                    _controlDropdown.RefreshShownValue();
                 }
             }
         }

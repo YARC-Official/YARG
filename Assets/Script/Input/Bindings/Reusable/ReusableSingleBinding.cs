@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading.Tasks;
 using UnityEngine.InputSystem;
 using YARG.Core.Logging;
 using YARG.Helpers;
 using YARG.Input.Serialization;
+using YARG.Menu.ProfileInfo;
 
 namespace YARG.Input.Bindings
 {
@@ -126,6 +128,11 @@ namespace YARG.Input.Bindings
         }
 
         protected abstract RuntimeSingleBinding<TState> MakeRuntime(InputControl<TState> control);
+
+        public async Task<bool> QuickBind(InputDevice dummyController, DummyControllerQuickBindDialogMenu quickBindDialog)
+        {
+            return dummyController is not null && await quickBindDialog.Show(dummyController, this);
+        }
 
         public override bool IsControlBeingQuickBound(InputControl control)
         {

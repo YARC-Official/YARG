@@ -14,11 +14,5 @@ namespace YARG.Menu.ProfileList
         [Space]
         [SerializeField]
         private AxisDisplay _valueDisplay;
-
-        public override void AddNewBinding()
-        {
-            Binding.AddBinding(new());
-            RefreshBindings();
-        }
     }
 }

@@ -15,11 +15,5 @@ namespace YARG.Menu.ProfileList
         [Space]
         [SerializeField]
         private TMP_InputField _valueText;
-
-        public override void AddNewBinding()
-        {
-            Binding.AddBinding(new());
-            RefreshBindings();
-        }
     }
 }

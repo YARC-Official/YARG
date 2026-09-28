@@ -194,6 +194,8 @@ MonoBehaviour:
   _controlContainer: {fileID: 9056154627509474241}
   _controlChooseContainer: {fileID: 8180400553013474209}
   _waitingContainer: {fileID: 5338596524730169197}
+  _waitingText: {fileID: 4622098461169612557}
+  _selectText: {fileID: 4919672518943997676}
   _controlEntryPrefab: {fileID: 5120297286938500162, guid: 5ab9188772ed3304391888e30fd5e15e, type: 3}
 --- !u!1 &3672239862667774711
 GameObject:
@@ -287,7 +289,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &859268935459080376
 RectTransform:
   m_ObjectHideFlags: 0
