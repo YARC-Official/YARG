@@ -597,6 +597,10 @@
 			"AddBindingSet": "ADD",
 			"AddOtherBindingSet": "ADD OTHER",
 			"AddOtherBindingSetNotRecommended": "ADD OTHER (<i>Not Recommended</i>)",
+			"QuickBind": {
+				"Waiting": "Waiting for Input\n<color=#2A5B87><size=24>Press any button on</color> <color=#5A8BB7>{0}</color></size>",
+				"Select": "Select Input"
+			},
 			"Tooltip": {
 			    "InputMode": {
 				    "Title": "Input Mode",

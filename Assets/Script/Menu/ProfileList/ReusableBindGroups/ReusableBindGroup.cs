@@ -12,7 +12,7 @@ namespace YARG.Menu.ProfileList
     public abstract class ReusableBindGroup<TSingleView, TBinding, TSingle, TSingleState> : MonoBehaviour
         where TSingleView : ReusableSingleBindView<TBinding, TSingle, TSingleState>
         where TBinding : ReusableControlBinding<TSingle, TSingleState>
-        where TSingle : ReusableSingleBinding<TSingleState>
+        where TSingle : ReusableSingleBinding<TSingleState>, new()
         where TSingleState : struct
     {
         [SerializeField]
@@ -74,7 +74,13 @@ namespace YARG.Menu.ProfileList
             _bindingList.RebuildLayout();
         }
 
-        public abstract void AddNewBinding();
+        public async void AddNewBinding()
+        {
+            TSingle newBinding = new();
+            await newBinding.QuickBind(_centerPane.DummyController, _quickBindDialog); // Will return immediately if no dummy controller
+            Binding.AddBinding(newBinding);
+            RefreshBindings();
+        }
 
         protected void AddBindingView(TSingle control)
         {

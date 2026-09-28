@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
+using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using YARG.Core.Logging;
@@ -9,6 +10,7 @@ using YARG.Helpers;
 using YARG.Helpers.Extensions;
 using YARG.Input;
 using YARG.Input.Bindings;
+using YARG.Localization;
 using YARG.Player;
 
 namespace YARG.Menu.ProfileInfo
@@ -29,6 +31,10 @@ namespace YARG.Menu.ProfileInfo
         private GameObject _controlChooseContainer;
         [SerializeField]
         private GameObject _waitingContainer;
+        [SerializeField]
+        private TextMeshProUGUI _waitingText;
+        [SerializeField]
+        private TextMeshProUGUI _selectText;
 
         [Space]
         [SerializeField]
@@ -37,6 +43,9 @@ namespace YARG.Menu.ProfileInfo
         public async UniTask<bool> Show<TSingleState>(InputDevice controller, ReusableSingleBinding<TSingleState> single)
             where TSingleState : struct
         {
+            _waitingText.text = Localize.KeyFormat("Menu.ProfileList.QuickBind.Waiting", controller.displayName);
+            _selectText.text = Localize.Key("Menu.ProfileList.QuickBind.Select");
+
             _grabbedControl = null;
             _possibleControls.Clear();
 

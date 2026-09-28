@@ -45,11 +45,5 @@ namespace YARG.Menu.ProfileList
         {
             Binding.DebounceThreshold = (long)_debounceSlider.Value;
         }
-
-        public override void AddNewBinding()
-        {
-            Binding.AddBinding(new());
-            RefreshBindings();
-        }
     }
 }
