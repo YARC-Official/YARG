@@ -36,6 +36,11 @@ namespace YARG.Helpers
 
         public static string GetControlDisplayName(string layout, string controlPath)
         {
+            if (layout is null)
+            {
+                return controlPath;
+            }
+
             // Temporarily create virtual device so we can inspect its actual controls
             var device = InputSystem.AddDevice(layout);
 

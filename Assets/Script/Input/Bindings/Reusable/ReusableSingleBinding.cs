@@ -67,6 +67,16 @@ namespace YARG.Input.Bindings
             };
         }
 
+        public InputControl FindControl(InputDevice controller)
+        {
+            if (controller is null || string.IsNullOrEmpty(ControlPath))
+            {
+                return null;
+            }
+
+            return InputControlPath.TryFindControl(controller, $"*/{ControlPath}");
+        }
+
         protected virtual Dictionary<string, string> SerializeParameters()
         {
             return new();
