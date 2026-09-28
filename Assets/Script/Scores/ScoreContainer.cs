@@ -458,6 +458,9 @@ namespace YARG.Scores
             if (candidatePercent != currentPercent)
                 return candidatePercent > currentPercent;
 
+            if (candidate.Score != current.Score)
+                return candidate.Score > current.Score;
+
             return candidate.IsFc && !current.IsFc;
         }
 
