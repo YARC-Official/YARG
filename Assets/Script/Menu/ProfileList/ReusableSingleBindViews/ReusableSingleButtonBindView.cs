@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using TMPro;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Layouts;
 using UnityEngine.UI;
 using YARG.Helpers;
@@ -139,6 +140,11 @@ namespace YARG.Menu.ProfileList
             }
 
             return item.DisplayName;
+        }
+
+        protected override void UpdateDummyInputVisuals(InputControl<float> dummyControl)
+        {
+            _valueDisplay.Value = dummyControl.value;
         }
     }
 }

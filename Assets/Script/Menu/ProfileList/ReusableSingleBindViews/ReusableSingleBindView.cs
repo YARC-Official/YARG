@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using TMPro;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Layouts;
 using UnityEngine.UI;
 using YARG.Core.Logging;
@@ -12,7 +13,7 @@ using YARG.Menu.ProfileInfo;
 
 namespace YARG.Menu.ProfileList
 {
-    public class ReusableSingleBindView<TBinding, TSingle, TSingleState> : MonoBehaviour
+    public abstract class ReusableSingleBindView<TBinding, TSingle, TSingleState> : MonoBehaviour
         where TBinding : ReusableControlBinding<TSingle, TSingleState>
         where TSingle : ReusableSingleBinding<TSingleState>
         where TSingleState : struct
@@ -39,6 +40,8 @@ namespace YARG.Menu.ProfileList
         protected DummyControllerQuickBindDialogMenu _quickBindDialog;
         private bool _interactable { get; set; }
 
+        protected InputControl _dummyInputControl;
+
         public virtual void Init(
             TBinding binding,
             TSingle singleBinding,
@@ -57,6 +60,7 @@ namespace YARG.Menu.ProfileList
             _allControls = controls;
             _interactable = interactable;
 
+            UpdateDummyInputControl();
             PopulateControlDropdown();
 
             var selectedIndex = _dropdownControls.FindIndex(i =>
@@ -125,6 +129,8 @@ namespace YARG.Menu.ProfileList
                     RemoveAdHocControl();
                 }
             }
+
+            UpdateDummyInputControl();
         }
 
         private void RemoveAdHocControl()
@@ -148,6 +154,7 @@ namespace YARG.Menu.ProfileList
         private void OnDummyControllerChanged()
         {
             _recordButton.interactable = _interactable && _centerPane.DummyController is not null;
+            UpdateDummyInputControl();
         }
 
         public void OnDelete()
@@ -189,9 +196,24 @@ namespace YARG.Menu.ProfileList
             }
         }
 
+        private void Update()
+        {
+            if (_dummyInputControl is not null)
+            {
+                UpdateDummyInputVisuals(_dummyInputControl as InputControl<TSingleState>);
+            }
+        }
+
+        protected virtual void UpdateDummyInputVisuals(InputControl<TSingleState> dummyInput) { }
+
         protected virtual string DisambiguateDisplayName(ControlItemInfo item)
         {
             return item.DisplayName;
+        }
+
+        private void UpdateDummyInputControl()
+        {
+            _dummyInputControl = SingleBinding?.FindControl(_centerPane.DummyController);
         }
 
         protected class DropdownControl
