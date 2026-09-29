@@ -109,5 +109,13 @@ namespace YARG.Career
         {
             return $"CareerTier: {Name}";
         }
+
+        public void RefreshSongEntries()
+        {
+            foreach (var song in Songs)
+            {
+                song.RefreshSongEntry();
+            }
+        }
     }
 }

@@ -54,6 +54,11 @@ namespace YARG.Career
         public SongEntry SongEntry;
         [NonSerialized]
         public CareerTier Parent;
+        // Should be set when song can no longer improve unlock criteria
+        // e.g. if next tier criteria is completion, when song has been finished, or if next tier criteria is
+        // stars, when player has achieved 5 stars on this song
+        [NonSerialized]
+        public bool IsCompleted;
 
         public CareerSong()
         {
@@ -98,11 +103,21 @@ namespace YARG.Career
         [OnDeserialized]
         private void OnDeserialized(StreamingContext context)
         {
+            if (SongContainer.Count == 0)
+            {
+                // Either SongContainer has not yet been initialized or has no songs, so don't bother trying
+                return;
+            }
             if (Id == Guid.Empty)
             {
                 YargLogger.LogError("CareerSong: missing stable Id in content. Career progress will not be able to link this song.");
             }
 
+            RefreshSongEntry();
+        }
+
+        public void RefreshSongEntry()
+        {
             SongEntry = GetSongEntry();
         }
 
@@ -120,10 +135,6 @@ namespace YARG.Career
                         {
                             entry = idEntries[0];
                         }
-                        else
-                        {
-                            YargLogger.LogFormatError("CareerSong: Unable to find song with ID {0}", SongId.Value);
-                        }
                     }
                     else
                     {
@@ -138,10 +149,6 @@ namespace YARG.Career
                             // Arbitrarily choose the first song with this hash
                             entry = hashEntries[0];
                         }
-                        else
-                        {
-                            YargLogger.LogFormatError("CareerSong: Unable to find song with hash {0}", SongHash.Value);
-                        }
                     }
                     else
                     {
@@ -153,10 +160,6 @@ namespace YARG.Career
                     break;
                 case CareerSongIdentifier.SongTuple:
                     entry = FindSongByTuple(SongTuple);
-                    if (entry == null)
-                    {
-                        YargLogger.LogFormatError("CareerSong: Unable to find song with tuple {0}", SongTuple);
-                    }
                     break;
             }
 

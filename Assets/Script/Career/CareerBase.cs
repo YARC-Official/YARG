@@ -18,14 +18,14 @@ namespace YARG.Career
         private readonly List<CareerTier>          _tiers;
         public           IReadOnlyList<CareerTier> Tiers => _tiers;
 
-        public CareerBase(Guid id, string title, string description) : base(title, true)
+        public CareerBase(Guid id, string title, string description, bool defaultPreset) : base(title, defaultPreset)
         {
             Id = id;
             Title = title;
             Description = description;
         }
 
-        public CareerBase(Guid id, string name, string description, string bgImage, CareerTier[] tiers) : base(name, true)
+        public CareerBase(Guid id, string name, string description, string bgImage, bool defaultPreset, CareerTier[] tiers) : base(name, defaultPreset)
         {
             Id = id;
             Name = name;
@@ -36,8 +36,8 @@ namespace YARG.Career
         }
 
         [JsonConstructor]
-        public CareerBase(Guid id, string name, string description, string bgImage, string source,
-            CareerTier[] tiers) : base(name, true)
+        public CareerBase(Guid id, string name, string description, string bgImage, string source, bool defaultPreset,
+            CareerTier[] tiers) : base(name, defaultPreset)
         {
             Id = id;
             Name = name;
@@ -81,6 +81,14 @@ namespace YARG.Career
             _tiers.Add(tier);
         }
 
+        public void RefreshSongEntries()
+        {
+            foreach (var tier in _tiers)
+            {
+                tier.RefreshSongEntries();
+            }
+        }
+
         public override BasePreset CopyWithNewName(string name)
         {
             var tiers = new CareerTier[_tiers.Count];
@@ -90,7 +98,7 @@ namespace YARG.Career
                 tiers[i] = new CareerTier(_tiers[i], this);
             }
 
-            return new CareerBase(Guid.NewGuid(), name, Description, BackgroundImageName, tiers);
+            return new CareerBase(Guid.NewGuid(), name, Description, BackgroundImageName, Source, DefaultPreset, tiers);
         }
 
         public override string ToString()

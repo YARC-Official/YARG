@@ -9,8 +9,8 @@ namespace YARG.Settings.Customization
 {
     public class CareerContainer : CustomContent<CareerBase>
     {
-        protected override string ContentDirectory => "careers";
-        public override string PresetTypeStringName => "Career";
+        protected override string ContentDirectory     => "careers";
+        public override    string PresetTypeStringName => "Career";
 
         public override IReadOnlyList<CareerBase> DefaultPresets => CareerBase.Defaults;
 
@@ -78,7 +78,9 @@ namespace YARG.Settings.Customization
             extraContentFolder = career.GetExtraContentFolder();
             if (extraContentFolder == null)
             {
-                YargLogger.LogFormatError("Failed to get extra content folder after renaming preset. Files were left in: {0}", tempExtraContentFolder);
+                YargLogger.LogFormatError(
+                    "Failed to get extra content folder after renaming preset. Files were left in: {0}",
+                    tempExtraContentFolder);
                 return;
             }
 
@@ -143,5 +145,18 @@ namespace YARG.Settings.Customization
                 entry?.ExtractToFile(Path.Combine(contentFolder, tier.MediaFilename), true);
             }
         }
-    }
+
+        public void RefreshSongEntries()
+        {
+            foreach (var defaults in DefaultPresets)
+            {
+                defaults.RefreshSongEntries();
+            }
+
+            foreach (var customs in CustomPresets)
+            {
+                customs.RefreshSongEntries();
+            }
+        }
+}
 }

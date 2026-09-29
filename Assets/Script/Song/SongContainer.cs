@@ -17,6 +17,7 @@ using YARG.Player;
 using YARG.Playlists;
 using YARG.Scores;
 using YARG.Settings;
+using YARG.Settings.Customization;
 
 namespace YARG.Song
 {
@@ -206,8 +207,11 @@ namespace YARG.Song
             stopwatch.Stop();
 
             YargLogger.LogFormatInfo("Scan time: {0}s", stopwatch.Elapsed.TotalSeconds);
+
+            // TODO: These should really be event-driven, not called directly from here
             MusicLibraryMenu.SetReload(MusicLibraryReloadState.Full);
             SongSources.LoadSprites(context);
+            CustomContentManager.Careers.RefreshSongEntries();
         }
 
         private static Dictionary<HashWrapper, HashWrapper> FindUpdatedSongHashes(

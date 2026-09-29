@@ -1,4 +1,5 @@
 using System;
+using Cysharp.Text;
 using YARG.Career;
 using YARG.Core.Logging;
 using YARG.Core.Song;
@@ -56,13 +57,23 @@ namespace YARG.Menu.Career
 
         public override string GetPrimaryText(bool selected)
         {
-            return FormatAs(_songEntry?.Name ?? Localize.Key("Menu.Career.SongMissing"),
-                TextType.Primary, selected);
+            return AddStrikethrough(FormatAs(_songEntry?.Name ?? Localize.Key("Menu.Career.SongMissing"),
+                TextType.Primary, selected));
         }
 
         public override string GetSecondaryText(bool selected)
         {
-            return FormatAs(DetailLine(), TextType.Secondary, selected);
+            return AddStrikethrough(FormatAs(DetailLine(), TextType.Secondary, selected));
+        }
+
+        private string AddStrikethrough(string text)
+        {
+            if (_song.IsCompleted)
+            {
+                return ZString.Format("<color=white><s>{0}</s></color>", text);
+            }
+
+            return text;
         }
 
         /// <summary>
@@ -79,9 +90,12 @@ namespace YARG.Menu.Career
             var artist = _songEntry.Artist.ToString();
             var album = _songEntry.Album.ToString();
 
-            return string.IsNullOrEmpty(album)
-                ? artist
-                : Localize.KeyFormat("Menu.Career.SongArtistAlbum", artist, album);
+            return artist;
+
+            //
+            // return string.IsNullOrEmpty(album)
+            //     ? artist
+            //     : Localize.KeyFormat("Menu.Career.SongArtistAlbum", artist, album);
         }
 
         // Start the song in career mode: carry the career context through to gameplay so the score

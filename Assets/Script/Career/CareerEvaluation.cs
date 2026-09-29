@@ -70,13 +70,21 @@ namespace YARG.Career
                 for (var songIndex = 0; songIndex < tier.Songs.Length; songIndex++)
                 {
                     var song = tier.Songs[songIndex];
-                    result.Songs.Add(new SongResult
+                    var songResult = new SongResult
                     {
                         CareerSongId = song.Id,
                         SongIndex = songIndex,
                         Completed = bestStarsBySong.ContainsKey(song.Id),
                         BestStars = bestStarsBySong.GetValueOrDefault(song.Id),
-                    });
+                    };
+
+                    result.Songs.Add(songResult);
+
+                    if (tier.UnlockType == UnlockType.CompletionCount && songResult.Completed
+                        || tier.UnlockType == UnlockType.StarCount && songResult.BestStars >= 5)
+                    {
+                        song.IsCompleted = true;
+                    }
                 }
 
                 result.Completed = result.Songs.Count > 0 && result.Songs.All(song => song.Completed);
