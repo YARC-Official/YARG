@@ -64,6 +64,18 @@ namespace YARG.Career
         {
         }
 
+        public CareerSong(CareerSong other)
+        {
+            Id = Guid.NewGuid();
+            Identifier = other.Identifier;
+            SongId = other.SongId;
+            SongHash = other.SongHash;
+            ShortName = other.ShortName;
+            SongTuple = other.SongTuple;
+            Description = other.Description;
+            SongEntry = other.SongEntry;
+        }
+
         public CareerSong(Guid songId)
         {
             Id = songId;
@@ -119,6 +131,108 @@ namespace YARG.Career
         public void RefreshSongEntry()
         {
             SongEntry = GetSongEntry();
+        }
+
+        public static CareerSong FromSongEntry(SongEntry song, CareerSongIdentifier identifier = CareerSongIdentifier.SongId)
+        {
+            if (song == null) return null;
+
+            switch (identifier)
+            {
+                case CareerSongIdentifier.SongHash:
+                    return new CareerSong(song.Hash);
+                case CareerSongIdentifier.ShortName:
+                    return new CareerSong(song.Name);
+                case CareerSongIdentifier.SongTuple:
+                    return new CareerSong(new SongTuple
+                    {
+                        Artist = song.Artist.Original,
+                        Title = song.Name.Original,
+                        Source = song.Source.Original,
+                        Charter = song.Charter.Original
+                    });
+                case CareerSongIdentifier.SongId:
+                default:
+                    Guid guid = Guid.Empty;
+                    foreach (var pair in SongContainer.SongsByGuid)
+                    {
+                        if (pair.Value != null && pair.Value.Contains(song))
+                        {
+                            guid = pair.Key;
+                            break;
+                        }
+                    }
+                    if (guid == Guid.Empty)
+                    {
+                        using var md5 = MD5.Create();
+                        guid = new Guid(md5.ComputeHash(song.Hash.HashBytes));
+                    }
+                    var careerSong = new CareerSong(guid);
+                    careerSong.SongEntry = song;
+                    return careerSong;
+            }
+        }
+
+        public void UpdateIdentifier(CareerSongIdentifier newIdentifier, SongEntry entry = null)
+        {
+            var song = entry ?? SongEntry;
+            Identifier = newIdentifier;
+            if (song == null) return;
+
+            SongId = null;
+            SongHash = null;
+            ShortName = null;
+            SongTuple = null;
+
+            switch (newIdentifier)
+            {
+                case CareerSongIdentifier.SongId:
+                    Guid guid = Guid.Empty;
+                    foreach (var pair in SongContainer.SongsByGuid)
+                    {
+                        if (pair.Value != null && pair.Value.Contains(song))
+                        {
+                            guid = pair.Key;
+                            break;
+                        }
+                    }
+                    if (guid == Guid.Empty)
+                    {
+                        using var md5 = MD5.Create();
+                        guid = new Guid(md5.ComputeHash(song.Hash.HashBytes));
+                    }
+                    SongId = guid;
+                    Id = guid;
+                    break;
+                case CareerSongIdentifier.SongHash:
+                    SongHash = song.Hash;
+                    using (var md5 = MD5.Create())
+                    {
+                        Id = new Guid(md5.ComputeHash(song.Hash.HashBytes));
+                    }
+                    break;
+                case CareerSongIdentifier.ShortName:
+                    ShortName = song.Name;
+                    using (var md5 = MD5.Create())
+                    {
+                        Id = new Guid(md5.ComputeHash(Encoding.UTF8.GetBytes(song.Name)));
+                    }
+                    break;
+                case CareerSongIdentifier.SongTuple:
+                    SongTuple = new SongTuple
+                    {
+                        Artist = song.Artist.Original,
+                        Title = song.Name.Original,
+                        Source = song.Source.Original,
+                        Charter = song.Charter.Original
+                    };
+                    using (var md5 = MD5.Create())
+                    {
+                        Id = new Guid(md5.ComputeHash(Encoding.UTF8.GetBytes(SongTuple.Value.ToString())));
+                    }
+                    break;
+            }
+            SongEntry = song;
         }
 
         private SongEntry GetSongEntry()

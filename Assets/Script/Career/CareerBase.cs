@@ -29,6 +29,7 @@ namespace YARG.Career
             Id = id;
             Title = title;
             Description = description;
+            _tiers = new List<CareerTier>();
         }
 
         public CareerBase(Guid id, string name, string description, string bgImage, bool defaultPreset, CareerTier[] tiers) : base(name, defaultPreset)
@@ -36,7 +37,7 @@ namespace YARG.Career
             Id = id;
             Name = name;
             Description = description;
-            _tiers = tiers.ToList();
+            _tiers = tiers?.ToList() ?? new List<CareerTier>();
 
             BackgroundImageName = bgImage;
         }
@@ -50,7 +51,7 @@ namespace YARG.Career
             Description = description;
             BackgroundImageName = bgImage;
             Source = source;
-            _tiers = tiers.ToList();
+            _tiers = tiers?.ToList() ?? new List<CareerTier>();
         }
 
         /// <summary>
@@ -82,9 +83,57 @@ namespace YARG.Career
             }
         }
 
-        private void AddTier(CareerTier tier)
+        public void AddTier(CareerTier tier)
         {
+            if (tier == null)
+            {
+                return;
+            }
+
             _tiers.Add(tier);
+        }
+
+        public void InsertTier(int index, CareerTier tier)
+        {
+            if (tier == null)
+            {
+                return;
+            }
+
+            if (index < 0)
+            {
+                index = 0;
+            }
+
+            if (index > _tiers.Count)
+            {
+                index = _tiers.Count;
+            }
+
+            _tiers.Insert(index, tier);
+        }
+
+        public bool RemoveTier(CareerTier tier)
+        {
+            return _tiers.Remove(tier);
+        }
+
+        public void RemoveTierAt(int index)
+        {
+            if (index >= 0 && index < _tiers.Count)
+            {
+                _tiers.RemoveAt(index);
+            }
+        }
+
+        public void MoveTier(int fromIndex, int toIndex)
+        {
+            if (fromIndex < 0 || fromIndex >= _tiers.Count || toIndex < 0 || toIndex >= _tiers.Count || fromIndex == toIndex)
+                return;
+
+            var tier = _tiers[fromIndex];
+            _tiers.RemoveAt(fromIndex);
+            _tiers.Insert(toIndex, tier);
         }
 
         public void RefreshSongEntries()
@@ -101,7 +150,7 @@ namespace YARG.Career
 
             for (var i = 0; i < _tiers.Count; i++)
             {
-                tiers[i] = new CareerTier(_tiers[i], this);
+                tiers[i] = new CareerTier(_tiers[i]);
             }
 
             // TODO: Create extra content folder and copy content from source preset

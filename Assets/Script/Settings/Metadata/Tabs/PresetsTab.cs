@@ -53,7 +53,7 @@ namespace YARG.Settings.Metadata
                 new TrackPreviewBuilder(),
                 true),
 
-            new PresetSubTab<CareerBase>(
+            new CareerPresetSubTab(
                 CustomContentManager.Careers,
                 new TrackPreviewBuilder(), // TODO: Make a different kind of preview for these
                 true)

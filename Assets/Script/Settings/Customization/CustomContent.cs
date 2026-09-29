@@ -259,7 +259,7 @@ namespace YARG.Settings.Customization
             }
         }
 
-        private string SavePresetFile(T preset)
+        public string SavePresetFile(T preset)
         {
             preset.Type = PresetTypeStringName;
             var text = JsonConvert.SerializeObject(preset, JsonSettings);

@@ -53,7 +53,7 @@ namespace YARG.Settings.Metadata
         private static GameObject _headerPrefab;
         private static GameObject _smallRoundButtonPrefab;
 
-        protected static GameObject GetSmallRoundButtonPrefab()
+        public static GameObject GetSmallRoundButtonPrefab()
         {
             if (_smallRoundButtonPrefab == null)
             {
@@ -64,7 +64,7 @@ namespace YARG.Settings.Metadata
             return _smallRoundButtonPrefab;
         }
 
-        protected static GameObject GetHeaderPrefab()
+        public static GameObject GetHeaderPrefab()
         {
             if (_headerPrefab == null)
             {
@@ -84,17 +84,18 @@ namespace YARG.Settings.Metadata
 
         public abstract void SetPresetReference(object preset);
 
-        protected static void SpawnHeader(Transform container, string unlocalizedText)
+        protected static GameObject SpawnHeader(Transform container, string unlocalizedText)
         {
-            SpawnRawHeader(container, Localize.Key("Settings.Header", unlocalizedText));
+            return SpawnRawHeader(container, Localize.Key("Settings.Header", unlocalizedText));
         }
 
         // Like SpawnHeader but sets the text directly without localization key lookup.
         // Used for group/sub-group labels in the color profile editor.
-        protected static void SpawnRawHeader(Transform container, string text)
+        public static GameObject SpawnRawHeader(Transform container, string text)
         {
             var go = Object.Instantiate(GetHeaderPrefab(), container);
             go.GetComponentInChildren<TextMeshProUGUI>().text = text;
+            return go;
         }
 
         /// <summary>
@@ -238,7 +239,7 @@ namespace YARG.Settings.Metadata
         // Smaller, dimmer header for sub-sections (Notes, Fret, etc.) within an
         // expanded group. Uses the same prefab but reduces font size, height,
         // and background opacity to visually distinguish from top-level headers.
-        protected static void SpawnSubHeader(Transform container, string text)
+        public static GameObject SpawnSubHeader(Transform container, string text)
         {
             var go = Object.Instantiate(GetHeaderPrefab(), container);
 
@@ -259,6 +260,8 @@ namespace YARG.Settings.Metadata
                 var c = image.color;
                 image.color = new Color(c.r, c.g, c.b, c.a * 0.5f);
             }
+
+            return go;
         }
     }
 }

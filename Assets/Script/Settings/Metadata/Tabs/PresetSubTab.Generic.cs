@@ -32,7 +32,7 @@ namespace YARG.Settings.Metadata
 {
     public class PresetSubTab<T> : PresetSubTab where T : BasePreset
     {
-        private int _fieldIndex;
+        protected int _fieldIndex;
 
         private struct FieldSettingInfo
         {
@@ -87,12 +87,12 @@ namespace YARG.Settings.Metadata
         // These are used in (almost) every engine preset and are a special setting type
         private static readonly List<FieldSettingInfo> _hitWindowFields = new();
 
-        private readonly CustomContent<T> _customContent;
+        protected readonly CustomContent<T> _customContent;
         public override CustomContent CustomContent => _customContent;
 
-        private readonly bool _hasDescriptions;
+        protected readonly bool _hasDescriptions;
 
-        private T _presetRef;
+        protected T _presetRef;
 
         private readonly List<FieldSettingInfo> _fields = new();
         private readonly List<string> _subSections = new();
@@ -951,7 +951,7 @@ namespace YARG.Settings.Metadata
         /// Tints a setting row's label yellow while the row is selected
         /// (main-menu selection color), in addition to the row's own highlight.
         /// </summary>
-        private static void AddRowLabelHighlight(NavigatableBehaviour nav, TextMeshProUGUI label)
+        protected static void AddRowLabelHighlight(NavigatableBehaviour nav, TextMeshProUGUI label)
         {
             if (nav == null || label == null)
             {
@@ -1939,7 +1939,7 @@ namespace YARG.Settings.Metadata
             }
         }
 
-        private BaseSettingVisual CreateField(Transform container, NavigationGroup navGroup, string presetName, string name,
+        protected BaseSettingVisual CreateField(Transform container, NavigationGroup navGroup, string presetName, string name,
             ISettingType settingType, bool hasDescription)
         {
             var visual = SpawnSettingVisual(settingType, container);
@@ -1951,13 +1951,13 @@ namespace YARG.Settings.Metadata
             return visual;
         }
 
-        private void CreateField(Transform container, NavigationGroup navGroup, string presetName, string name,
+        protected void CreateField(Transform container, NavigationGroup navGroup, string presetName, string name,
             ISettingType settingType)
         {
             CreateField(container, navGroup, presetName, name, settingType, _hasDescriptions);
         }
 
-        private void CreateFields(Transform container, NavigationGroup navGroup, string presetName,
+        protected void CreateFields(Transform container, NavigationGroup navGroup, string presetName,
             List<(string Name, ISettingType SettingType)> settings)
         {
             foreach (var (name, setting) in settings)

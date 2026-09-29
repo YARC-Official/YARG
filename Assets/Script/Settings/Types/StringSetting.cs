@@ -9,7 +9,7 @@ namespace YARG.Settings.Types
 
         public StringSetting(string value, Action<string> onChange = null) : base(onChange)
         {
-            Value = value;
+            _value = value;
         }
 
         public override bool ValueEquals(string other) => Value == other;

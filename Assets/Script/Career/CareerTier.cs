@@ -42,7 +42,6 @@ namespace YARG.Career
     {
         public string       Name;
         public Guid         Id;
-        public CareerBase   Parent;
         public string       Description;
         public CareerSong[] Songs;
         public string       CustomUnlockText;
@@ -82,16 +81,24 @@ namespace YARG.Career
         {
         }
 
-        public CareerTier(CareerTier other, CareerBase parent)
+        public CareerTier(CareerTier other)
         {
             Name = other.Name;
             Id = Guid.NewGuid();
-            Parent = parent;
             Description = other.Description;
 
-            // TODO: This part is probably wrong
-            Songs = new CareerSong[other.Songs.Length];
-            Array.Copy(other.Songs, Songs, other.Songs.Length);
+            if (other.Songs != null)
+            {
+                Songs = new CareerSong[other.Songs.Length];
+                for (int i = 0; i < other.Songs.Length; i++)
+                {
+                    Songs[i] = new CareerSong(other.Songs[i]) { Parent = this };
+                }
+            }
+            else
+            {
+                Songs = Array.Empty<CareerSong>();
+            }
 
             BackgroundImage = other.BackgroundImage;
             CustomUnlockText = other.CustomUnlockText;
@@ -102,7 +109,60 @@ namespace YARG.Career
             VenueHint = other.VenueHint;
             UnlockType = other.UnlockType;
             UnlockCriteria = other.UnlockCriteria;
+            CompletionMode = other.CompletionMode;
             IsBonus = other.IsBonus;
+        }
+
+        public void AddSong(CareerSong song)
+        {
+            if (song == null) return;
+            song.Parent = this;
+            var list = Songs != null ? new System.Collections.Generic.List<CareerSong>(Songs) : new System.Collections.Generic.List<CareerSong>();
+            list.Add(song);
+            Songs = list.ToArray();
+        }
+
+        public void InsertSong(int index, CareerSong song)
+        {
+            if (song == null) return;
+            song.Parent = this;
+            var list = Songs != null ? new System.Collections.Generic.List<CareerSong>(Songs) : new System.Collections.Generic.List<CareerSong>();
+            if (index < 0) index = 0;
+            if (index > list.Count) index = list.Count;
+            list.Insert(index, song);
+            Songs = list.ToArray();
+        }
+
+        public bool RemoveSong(CareerSong song)
+        {
+            if (Songs == null) return false;
+            var list = new System.Collections.Generic.List<CareerSong>(Songs);
+            bool removed = list.Remove(song);
+            if (removed)
+            {
+                Songs = list.ToArray();
+            }
+            return removed;
+        }
+
+        public void RemoveSongAt(int index)
+        {
+            if (Songs == null || index < 0 || index >= Songs.Length) return;
+            var list = new System.Collections.Generic.List<CareerSong>(Songs);
+            list.RemoveAt(index);
+            Songs = list.ToArray();
+        }
+
+        public void MoveSong(int fromIndex, int toIndex)
+        {
+            if (Songs == null || fromIndex < 0 || fromIndex >= Songs.Length || toIndex < 0 || toIndex >= Songs.Length || fromIndex == toIndex)
+                return;
+
+            var list = new System.Collections.Generic.List<CareerSong>(Songs);
+            var song = list[fromIndex];
+            list.RemoveAt(fromIndex);
+            list.Insert(toIndex, song);
+            Songs = list.ToArray();
         }
 
         public override string ToString()
