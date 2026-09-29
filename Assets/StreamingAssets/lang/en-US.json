@@ -2026,7 +2026,8 @@
             "ColorProfileContainer": "Color Profiles",
             "EnginePresetContainer": "Engine Presets",
             "HighwayPresetContainer" : "Highway Presets",
-			"RockMeterPresetContainer" : "Rock Meter Presets"
+			"RockMeterPresetContainer" : "Rock Meter Presets",
+            "CareerContainer": "Careers"
         },
         "PresetSetting": {
             "PreviewVisuals": {
@@ -2109,6 +2110,20 @@
                 "OrthographicSize": {
                     "Name": "Orthographic Size",
                     "Description": "The orthographic view size (half the vertical view height in world units). Only used when Orthographic Camera is enabled."
+                }
+            },
+            "CareerBase": {
+                "Description": {
+                    "Name": "Description",
+                    "Description": "The long text description of the career."
+                },
+                "BackgroundImageName": {
+                    "Name": "Background Image",
+                    "Description": "The filename of the background image for this career."
+                },
+                "Source": {
+                    "Name": "Source",
+                    "Description": "The source of the career, in the same format as an ini source tag"
                 }
             },
             "ColorProfile": {

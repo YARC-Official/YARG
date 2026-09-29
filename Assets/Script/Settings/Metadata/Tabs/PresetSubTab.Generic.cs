@@ -5,18 +5,17 @@ using System.Reflection;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using YARG.Career;
 using YARG.Core;
 using YARG.Core.Chart;
 using YARG.Core.Game;
 using YARG.Core.Game.Settings;
-using YARG.Core.Input;
 using YARG.Core.Logging;
 using YARG.Helpers.Extensions;
 using YARG.Helpers.UI;
 using YARG.Localization;
 using YARG.Menu;
 using YARG.Menu.Data;
-using YARG.Menu.Dialogs;
 using YARG.Menu.Navigation;
 using YARG.Menu.Persistent;
 using YARG.Menu.Settings;
@@ -1656,6 +1655,14 @@ namespace YARG.Settings.Metadata
                     });
                     break;
                 }
+                case SettingType.String:
+                {
+                    setting = new StringSetting(field.GetValue<string>(preset), (value) =>
+                    {
+                        field.SetValue(preset, value);
+                    });
+                    break;
+                }
             }
 
             if (setting is not null)
@@ -1925,6 +1932,10 @@ namespace YARG.Settings.Metadata
 
                     CreateField(container, navGroup, typeof(T).Name, windowField.Field.Name, setting);
                 }
+            }
+            else if (field.Field.FieldType == typeof(CareerTier))
+            {
+
             }
         }
 

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Newtonsoft.Json;
 using YARG.Core.Game;
+using YARG.Core.Game.Settings;
 using YARG.Scores;
 
 namespace YARG.Career
@@ -10,8 +11,13 @@ namespace YARG.Career
     public partial class CareerBase : BasePreset
     {
         public string Title;
+        [SettingType(SettingType.String)]
         public string Description;
+        // TODO: Change this to be a FileInfo
+        // [SettingType(SettingType.FileInfo)]
+        [SettingType(SettingType.String)]
         public string BackgroundImageName;
+        [SettingType(SettingType.String)]
         public string Source;
         public int    Version = 1;
 
@@ -98,7 +104,9 @@ namespace YARG.Career
                 tiers[i] = new CareerTier(_tiers[i], this);
             }
 
-            return new CareerBase(Guid.NewGuid(), name, Description, BackgroundImageName, Source, DefaultPreset, tiers);
+            // TODO: Create extra content folder and copy content from source preset
+
+            return new CareerBase(Guid.NewGuid(), name, Description, BackgroundImageName, Source, false, tiers);
         }
 
         public override string ToString()

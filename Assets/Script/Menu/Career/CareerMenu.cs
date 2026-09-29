@@ -207,7 +207,7 @@ namespace YARG.Menu.Career
                                                  .ToList();
             if (profiles.Count == 0)
             {
-                YargLogger.LogFormatError("Career: no seated players to attribute the career save to for career '{0}'.",
+                YargLogger.LogFormatError("Career: No active players for career '{0}'.",
                     career?.Name);
                 return 0;
             }

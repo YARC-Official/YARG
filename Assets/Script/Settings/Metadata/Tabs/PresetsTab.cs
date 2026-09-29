@@ -6,6 +6,7 @@ using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
+using YARG.Career;
 using YARG.Core.Game;
 using YARG.Core.Logging;
 using YARG.Menu;
@@ -52,6 +53,10 @@ namespace YARG.Settings.Metadata
                 new TrackPreviewBuilder(),
                 true),
 
+            new PresetSubTab<CareerBase>(
+                CustomContentManager.Careers,
+                new TrackPreviewBuilder(), // TODO: Make a different kind of preview for these
+                true)
         };
 
         private static readonly Dictionary<Type, BasePreset> _lastSelectedPresetOfType = new();
