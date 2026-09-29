@@ -117,6 +117,7 @@ namespace YARG.Settings
                 nameof(Settings.SecondarySourceSort),
                 nameof(Settings.SecondaryIntensitySort),
                 nameof(Settings.SongLengthLabels),
+                new FieldMetadata(nameof(Settings.DateAddedSort), isAdvanced: true),
                 new HeaderMetadata("PlayAShow"),
                 nameof(Settings.EnablePlayAShow),
                 nameof(Settings.PlayAShowTimeout),
