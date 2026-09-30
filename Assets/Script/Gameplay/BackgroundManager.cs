@@ -96,6 +96,10 @@ namespace YARG.Gameplay
         // A negative start time will delay when the video starts, a positive one will set the video position
         // to that value when starting playback at the start of a song.
         private double _videoStartTime;
+
+        // Wall-clock seconds the video is aimed ahead of the song; see VideoLeadFor.
+        private double _videoLeadSeconds;
+
         // End time cannot be negative; a negative value means it is not set.
         private double _videoEndTime;
 
@@ -556,6 +560,7 @@ namespace YARG.Gameplay
                 return;
 
             double time = GameManager.GetVideoPlaybackTime();
+
             // Start video
             if (!_videoStarted)
             {
@@ -564,7 +569,7 @@ namespace YARG.Gameplay
                     return;
 
                 // Delay until the start time is reached
-                if (_source == VenueSource.Song && time < -_videoStartTime)
+                if (_source == VenueSource.Song && VideoTargetFor(time) < 0.0)
                     return;
 
                 if (_videoEndTime == 0)
@@ -579,7 +584,7 @@ namespace YARG.Gameplay
                     // cold pause leaves a large stream spinning up at partial rate for seconds, and
                     // a seek flushes and refills the decoder. Must follow the Play above, because a
                     // seek issued while paused is dropped.
-                    double startTarget = time + _videoStartTime;
+                    double startTarget = VideoTargetFor(time);
                     _videoPlayer.time = startTarget;
                 }
 
@@ -623,10 +628,11 @@ namespace YARG.Gameplay
             {
                 _videoStartTime = GameManager.Song.VideoStartTimeSeconds;
                 _videoEndTime = GameManager.Song.VideoEndTimeSeconds;
+                _videoLeadSeconds = VideoLeadFor(player);
 
                 // Clamped: a negative start time delays when the video starts; it does not name a
                 // position before the file begins.
-                player.time = Math.Max(_videoStartTime, 0.0);
+                player.time = Math.Max(VideoTargetFor(0.0), 0.0);
                 player.playbackSpeed = GameManager.SongSpeed;
 
                 // Only loop the video if it's not around the same length as the song
@@ -676,7 +682,7 @@ namespace YARG.Gameplay
                     if (_source != VenueSource.Song)
                         return;
 
-                    double videoTime = songTime + _videoStartTime;
+                    double videoTime = VideoTargetFor(songTime);
                     if (videoTime < 0f) // Seeking before video start
                     {
                         enabled = true;
@@ -748,6 +754,27 @@ namespace YARG.Gameplay
             // which derive from MediaPlayer.Time -- still reads correct.
 
             return options.ToArray();
+        }
+
+        // VLC's pictures reach the screen a fixed interval after libVLC presents them, so a video
+        // aimed exactly at the song shows late; Unity's player has no such lag. About two 24fps
+        // frames on macOS, one elsewhere. Not derived from the video's frame rate: libVLC reports
+        // 0 fps for fragmented MP4s (which is fairly common), whose headers carry no sample count.
+        private static double VideoLeadFor(YargVideoPlayer player)
+        {
+            if (!player.usingVlc)
+                return 0.0;
+
+            return Application.platform is RuntimePlatform.OSXPlayer or RuntimePlatform.OSXEditor
+                ? 0.08
+                : 0.04;
+        }
+
+        // The video position to aim at for a song time. The lead is wall-clock, so it scales with
+        // song speed when expressed in video time.
+        private double VideoTargetFor(double songTime)
+        {
+            return songTime + _videoStartTime + _videoLeadSeconds * GameManager.SongSpeed;
         }
 
         // Lifts the curtain once the decoder has delivered pictures, so a slow spin-up is hidden

@@ -196,6 +196,15 @@ public class YargVideoPlayer : MonoBehaviour
 #endif
     }
 
+    /// <summary>Which backend actually took the video. A VLC init failure falls back to Unity's
+    /// player silently, and the two do not behave alike.</summary>
+    public bool usingVlc =>
+#if VLC_SUPPORTED
+        _usingVLC && _vlcPlayer != null;
+#else
+        false;
+#endif
+
     /// <summary>
     /// Pictures presented so far: on VLC, counted from libVLC's own per-picture timing updates;
     /// on Unity, its frame index. The direct evidence that the decoder is producing pictures --
