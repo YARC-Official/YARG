@@ -1951,7 +1951,7 @@
             },
             "VlcLibraryPath": {
                 "Name": "VLC / libVLC Path",
-                "Description": "Path to a VLC/libVLC (v4, not v3) install for your OS, for using VLC as the video decoder. Leave empty to use the default (bundled/system) location. If none is found, will gracefully fallback to the Unity video player. Setting likely requires a YARG restart to take effect."
+                "Description": "Path to a VLC/libVLC (v4 only) install for your OS, for using VLC as the video decoder. Leave empty to use the default (bundled/system) location. If none is found, will gracefully fallback to the Unity video player. Changes require a YARG restart to take effect."
             },
             "WrapAroundNavigation": {
                 "Name": "Wrap-Around Navigation",
