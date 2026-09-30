@@ -130,9 +130,16 @@ public class YargVideoPlayer : MonoBehaviour
             if (_usingVLC && _vlcPlayer != null)
             {
                 // Armed before the seek is issued: on_seek arrives on a libVLC thread and can beat
-                // the return from SetTime.
+                // the return from SeekTo.
                 BeginVlcSeekWatch(value);
-                _vlcPlayer.SetTime((long)(value * 1000));
+
+                // fast: false seeks to the requested timestamp rather than the preceding keyframe,
+                // which can be seconds out on a long-GOP video. SeekTo returns false when there's
+                // no input to seek within (e.g. after Stop()); it returns true for a seek issued
+                // while paused, which is dropped all the same.
+                if (!_vlcPlayer.MediaPlayer.SeekTo(TimeSpan.FromSeconds(value), fast: false))
+                    YargLogger.LogFormatWarning("[YargVideoPlayer] Seek to {0:F4} failed (state={1})",
+                        value, _vlcPlayer.CurrentState);
                 return;
             }
 #endif
@@ -300,7 +307,9 @@ public class YargVideoPlayer : MonoBehaviour
 #if VLC_SUPPORTED
         if (_usingVLC && _vlcPlayer != null)
         {
-            _vlcPlayer.Pause();
+            // SetPause, never Pause(): VLCMediaPlayer.Pause() is libvlc_media_player_pause, which
+            // toggles -- on a player that hasn't reached Playing yet it starts playback instead.
+            _vlcPlayer.MediaPlayer.SetPause(true);
             return;
         }
 #endif
