@@ -28,6 +28,10 @@ namespace YARG.Menu.ProfileList
         private Transform _arrow;
         [SerializeField]
         private LayoutElement _layoutElement;
+        [SerializeField]
+        private BindingsIndicator _gameplayIndicator;
+        [SerializeField]
+        private BindingsIndicator _menuIndicator;
 
         private YargProfile _profile;
         private ProfileView _profileView;
@@ -80,6 +84,7 @@ namespace YARG.Menu.ProfileList
             }
 
             _gameplayBindingSetDropdown.value = _gameplayBindingSetsByIndex.IndexOf(player.DeviceInfo.GetSelectedGameplayBindingsForController(_controller));
+            UpdateGameplayIndicator();
 
             _menuBindingSetsByIndex.Clear();
             _menuBindingSetsByIndex.Add(null); // Always start with the None option
@@ -97,18 +102,31 @@ namespace YARG.Menu.ProfileList
             }
 
             _menuBindingSetDropdown.value = _menuBindingSetsByIndex.IndexOf(player.DeviceInfo.GetActiveMenuBindingsForController(_controller));
+            UpdateMenuIndicator();
         }
 
         public void ChangeGameplayBindingSet()
         {
             var player = PlayerContainer.GetPlayerFromProfile(_profile);
             player.DeviceInfo.SelectGameplayBindingsForController(_controller, _gameplayBindingSetsByIndex[_gameplayBindingSetDropdown.value]);
+            UpdateGameplayIndicator();
         }
 
         public void ChangeMenuBindingSet()
         {
             var player = PlayerContainer.GetPlayerFromProfile(_profile);
             player.DeviceInfo.SetActiveMenuBindingsForController(_controller, _menuBindingSetsByIndex[_menuBindingSetDropdown.value]);
+            UpdateMenuIndicator();
+        }
+
+        private void UpdateGameplayIndicator()
+        {
+            _gameplayIndicator.SetLit(_gameplayBindingSetDropdown.value is not 0);
+        }
+
+        private void UpdateMenuIndicator()
+        {
+            _menuIndicator.SetLit(_menuBindingSetDropdown.value is not 0);
         }
 
         public void ToggleDrawer()

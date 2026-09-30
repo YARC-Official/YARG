@@ -17,7 +17,7 @@ namespace YARG.Menu.Tooltips
         private const string LOCALIZATION_PATH = "Menu.ProfileList.Tooltip";
 
         [SerializeField]
-        private string _localizationKey;
+        protected string _localizationKey;
         
         private TooltipCoordinator _coordinator;
 
