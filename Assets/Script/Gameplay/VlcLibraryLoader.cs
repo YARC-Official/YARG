@@ -172,13 +172,14 @@ public static class VlcLibraryLoader
         const string libvlccoreName = "libvlccore.dylib";
 
         // Known install layouts: the folder itself, a VLC 3.x app bundle's Contents/MacOS/lib, a
-        // VLC 4.x app bundle's Contents/Frameworks. Add new layouts rather than replacing these --
-        // real installs use all of them.
+        // VLC 4.x app bundle's Contents/Frameworks, a standalone libVLC SDK's lib. Add new layouts
+        // rather than replacing these -- real installs use all of them.
         string[] candidates =
         {
             basePath,
             Path.Combine(basePath, "Contents", "MacOS", "lib"),
             Path.Combine(basePath, "Contents", "Frameworks"),
+            Path.Combine(basePath, "lib"),
         };
 
         string libDir = candidates.FirstOrDefault(candidate =>
