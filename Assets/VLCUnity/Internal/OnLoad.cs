@@ -53,15 +53,7 @@ namespace LibVLCSharp
             Debug.Log("[VLC] Set VLC_PLUGIN_PATH to " + pluginPath);
 #endif
           //  Debug.Log("UnityEngine.QualitySettings.activeColorSpace: " + PlayerColorSpace);
-            try
-            {
-                SetColorSpace(PlayerColorSpace);
-            }
-            catch (DllNotFoundException)
-            {
-                // Leave VLC disabled if the native plugin is missing or excluded.
-                return;
-            }
+            SetColorSpace(PlayerColorSpace);
 #if UNITY_ANDROID || UNITY_IOS || UNITY_STANDALONE_LINUX || UNITY_EDITOR_LINUX || UNITY_EMBEDDED_LINUX
             GL.IssuePluginEvent(GetRenderEventFunc(), 1);
 #endif
