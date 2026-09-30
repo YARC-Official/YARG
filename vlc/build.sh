@@ -400,15 +400,6 @@ cp "$VLC_UNITY_DIR/Assets/VLCUnity/VLCUnity.asmdef" "$ROOT/Assets/VLCUnity/"
 cp "$VLC_UNITY_DIR/Assets/VLCUnity/VLCUnity.asmdef.meta" "$ROOT/Assets/VLCUnity/"
 cp "$VLC_UNITY_DIR/Assets/VLCUnity/Internal.meta" "$ROOT/Assets/VLCUnity/"
 
-# Re-apply YARG fixes after the upstream import. Patches are against the
-# imported tree (Assets/VLCUnity/...), not the gitignored checkout.
-if compgen -G "$VLC_DIR/patches/*.patch" > /dev/null; then
-    log "Applying vlc/patches"
-    for patch in "$VLC_DIR"/patches/*.patch; do
-        git -C "$ROOT" apply --whitespace=nowarn "$patch"
-    done
-fi
-
 rm -rf "$OUT"
 
 # ---------------------------------------------------------------------------
@@ -436,7 +427,7 @@ rm -rf "$OUT"
 } > "$PROVENANCE"
 
 cd "$ROOT"
-git add Assets/VLCUnity Assets/Plugins/vlc vlc/BUILT_WITH vlc/build.sh vlc/BUILDING.md vlc/patches
+git add Assets/VLCUnity Assets/Plugins/vlc vlc/BUILT_WITH vlc/build.sh vlc/BUILDING.md
 
 if $NO_COMMIT; then
     log "--no-commit: changes staged, not committed"

@@ -173,13 +173,11 @@ Everything above is automated by `vlc/build.sh`, which:
    `vlc/sdk/` as needed.
 3. Copies the binaries to `Assets/Plugins/vlc/` and mirrors
    `vlc-unity/Assets/VLCUnity/Internal` (+ asmdef) into `Assets/VLCUnity/`
-4. Re-applies `vlc/patches/*.patch` onto the imported C# sources. Those
-   patches are the YARG fixes (tolerate a missing native plugin, and a
-   missing `libvlc_unity_has_retired_renderers` export) and must be kept
-   when upstream moves.
-5. Writes the used commits to `vlc/BUILT_WITH` (including
+   unchanged. YARG changes belong in YARG code (`VlcLibraryLoader`,
+   `YargVideoPlayer`), never in the imported files.
+4. Writes the used commits to `vlc/BUILT_WITH` (including
    `libvlc-macos-sdk=` / `libvlc-win64-sdk=` when those plugins were built)
-6. Stages and commits everything as `Updating vlc assets`, with the exact
+5. Stages and commits everything as `Updating vlc assets`, with the exact
    hashes and a changelog against the previously built commits
    (obtained by comparing against `vlc/BUILT_WITH`)
 
