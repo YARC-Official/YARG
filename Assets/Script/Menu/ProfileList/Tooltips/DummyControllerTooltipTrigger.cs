@@ -17,7 +17,7 @@ namespace YARG.Menu.ProfileList
         {
             return (
                 new List<string>() { },
-                new List<string>() { Localize.Key(_profilesMenu.CurrentBindingSetFilter.ToLocalizedNamePlural()) }
+                new List<string>() { Localize.Key(_profilesMenu.CurrentBindingSetFilter.ToLocalizedNamePluralSentence()) }
             );
         }
     }

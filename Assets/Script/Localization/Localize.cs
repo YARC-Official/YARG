@@ -114,14 +114,24 @@ namespace YARG.Localization
             return Key("Enum.StarPowerActivationType", starPowerActivationType);
         }
 
-        public static string ToLocalizedNameSingular(this ControllerFamily controllerFamily)
+        public static string ToLocalizedNameSingularTitle(this ControllerFamily controllerFamily)
         {
-            return Key("Enum.ControllerFamily.Singular", controllerFamily);
+            return Key("Enum.ControllerFamily.SingularTitle", controllerFamily);
         }
 
-        public static string ToLocalizedNamePlural(this ControllerFamily controllerFamily)
+        public static string ToLocalizedNameSingularSentence(this ControllerFamily controllerFamily)
         {
-            return Key("Enum.ControllerFamily.Plural", controllerFamily);
+            return Key("Enum.ControllerFamily.SingularSentence", controllerFamily);
+        }
+
+        public static string ToLocalizedNamePluralTitle(this ControllerFamily controllerFamily)
+        {
+            return Key("Enum.ControllerFamily.PluralTitle", controllerFamily);
+        }
+
+        public static string ToLocalizedNamePluralSentence(this ControllerFamily controllerFamily)
+        {
+            return Key("Enum.ControllerFamily.PluralSentence", controllerFamily);
         }
 
         public static string ToLocalizedName(this Instrument instrument)
