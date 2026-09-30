@@ -4,8 +4,10 @@ using System.Text;
 using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.UI;
 using YARG.Core;
 using YARG.Core.Game;
+using YARG.Core.Logging;
 using YARG.Helpers;
 using YARG.Input.Bindings;
 using YARG.Player;
@@ -20,6 +22,12 @@ namespace YARG.Menu.ProfileList
         private TMP_Dropdown _gameplayBindingSetDropdown;
         [SerializeField]
         private TMP_Dropdown _menuBindingSetDropdown;
+        [SerializeField]
+        private GameObject _drawer;
+        [SerializeField]
+        private Transform _arrow;
+        [SerializeField]
+        private LayoutElement _layoutElement;
 
         private YargProfile _profile;
         private ProfileView _profileView;
@@ -29,7 +37,9 @@ namespace YARG.Menu.ProfileList
         private List<ReusableBindingSet> _gameplayBindingSetsByIndex = new();
         private List<ReusableBindingSet> _menuBindingSetsByIndex = new();
 
-        public void Initialize(YargProfile profile, ProfileView profileView, ProfileCenterPane profileSidebar, InputDevice controller)
+        private bool _open;
+
+        public void Init(YargProfile profile, ProfileView profileView, ProfileCenterPane profileSidebar, InputDevice controller)
         {
             _name.text = controller.displayName;
             _profile = profile;
@@ -37,6 +47,7 @@ namespace YARG.Menu.ProfileList
             _profileSidebar = profileSidebar;
             _controller = controller;
             PopulateDropdownOptions();
+            SetDrawerOpen(false);
         }
 
         public void Remove()
@@ -98,6 +109,19 @@ namespace YARG.Menu.ProfileList
         {
             var player = PlayerContainer.GetPlayerFromProfile(_profile);
             player.DeviceInfo.SetActiveMenuBindingsForController(_controller, _menuBindingSetsByIndex[_menuBindingSetDropdown.value]);
+        }
+
+        public void ToggleDrawer()
+        {
+            SetDrawerOpen(!_open);
+        }
+
+        private void SetDrawerOpen(bool open)
+        {
+            _open = open;
+            _drawer.SetActive(_open);
+            _arrow.localScale = _arrow.localScale.WithY(_open ? 1f : -1f);
+            _layoutElement.preferredHeight = _open ? 180 : 60;
         }
     }
 }
