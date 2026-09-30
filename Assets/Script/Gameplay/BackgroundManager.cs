@@ -81,6 +81,15 @@ namespace YARG.Gameplay
         [Tooltip("Minimise delay through demux, packetisation and decode.")]
         private bool _decoderLowDelay = true;
 
+        // libVLC maps its first picture after a seek to "now + input caching" in wall time while
+        // the stream advances at the song's rate, so at rate r the video settles about
+        // caching x (r - 1) off: -0.21s at 120% with the default 1000ms. Local files need little.
+        [SerializeField]
+        [Tooltip("libVLC input caching for the video file, in ms (:file-caching). The video " +
+                 "settles about this x (speed - 1) off at non-100% speeds; 0 leaves libVLC's " +
+                 "default (1000ms).")]
+        private int _fileCachingMs = 100;
+
         // Pictures the decoder must deliver after the song-start seek before the curtain lifts.
         private const long REVEAL_MIN_FRAMES = 3;
         private bool _videoRevealed;
@@ -841,6 +850,9 @@ namespace YARG.Gameplay
 
             if (_decoderLowDelay)
                 options.Add(":low-delay");
+
+            if (_fileCachingMs > 0)
+                options.Add($":file-caching={_fileCachingMs}");
 
             // Insurance, not a tuning knob: background videos are silent, and a badly muxed one
             // must not reach the speakers. It is not a sync lever -- VLC only makes the audio
