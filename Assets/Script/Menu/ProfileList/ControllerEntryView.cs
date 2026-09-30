@@ -33,9 +33,9 @@ namespace YARG.Menu.ProfileList
         [SerializeField]
         private BindingsIndicator _menuIndicator;
 
-        private YargProfile _profile;
+        public YargProfile Profile { get; private set; }
         private ProfileView _profileView;
-        private ProfileCenterPane _profileSidebar;
+        private ProfileCenterPane _centerPane;
         public InputDevice Controller { get; private set; }
 
         private List<ReusableBindingSet> _gameplayBindingSetsByIndex = new();
@@ -46,9 +46,9 @@ namespace YARG.Menu.ProfileList
         public void Init(YargProfile profile, ProfileView profileView, ProfileCenterPane profileSidebar, InputDevice controller)
         {
             _name.text = controller.displayName;
-            _profile = profile;
+            Profile = profile;
             _profileView = profileView;
-            _profileSidebar = profileSidebar;
+            _centerPane = profileSidebar;
             Controller = controller;
             PopulateDropdownOptions();
             SetDrawerOpen(false);
@@ -56,20 +56,20 @@ namespace YARG.Menu.ProfileList
 
         public void Remove()
         {
-            var player = PlayerContainer.GetPlayerFromProfile(_profile);
+            var player = PlayerContainer.GetPlayerFromProfile(Profile);
             player.DeviceInfo.RemoveController(Controller);
-            _profileSidebar.UpdateCenterPane(_profile, _profileView);
+            _centerPane.UpdateCenterPane(Profile, _profileView);
         }
 
         private void PopulateDropdownOptions()
         {
-            var player = PlayerContainer.GetPlayerFromProfile(_profile);
+            var player = PlayerContainer.GetPlayerFromProfile(Profile);
 
             var family = LayoutHelper.InputDeviceToControllerFamily(Controller);
 
             _gameplayBindingSetsByIndex.Clear();
             _gameplayBindingSetsByIndex.Add(null); // Always start with the None option
-            _gameplayBindingSetsByIndex.AddRange(BindingsContainer.GetBindingSetsForControllerInMode(family, _profile.GameMode));
+            _gameplayBindingSetsByIndex.AddRange(BindingsContainer.GetBindingSetsForControllerInMode(family, Profile.GameMode));
             _gameplayBindingSetDropdown.options.Clear();
 
             foreach (var bindingSet in _gameplayBindingSetsByIndex)
@@ -107,14 +107,14 @@ namespace YARG.Menu.ProfileList
 
         public void ChangeGameplayBindingSet()
         {
-            var player = PlayerContainer.GetPlayerFromProfile(_profile);
+            var player = PlayerContainer.GetPlayerFromProfile(Profile);
             player.DeviceInfo.SelectGameplayBindingsForController(Controller, _gameplayBindingSetsByIndex[_gameplayBindingSetDropdown.value]);
             UpdateGameplayIndicator();
         }
 
         public void ChangeMenuBindingSet()
         {
-            var player = PlayerContainer.GetPlayerFromProfile(_profile);
+            var player = PlayerContainer.GetPlayerFromProfile(Profile);
             player.DeviceInfo.SetActiveMenuBindingsForController(Controller, _menuBindingSetsByIndex[_menuBindingSetDropdown.value]);
             UpdateMenuIndicator();
         }

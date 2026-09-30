@@ -683,6 +683,14 @@
 				  "Lit": "This controller is configured with menu navigation bindings. To change them, expand the controller listing and use the <b>Menu Bindings</b> dropdown.",
 				  "Unlit": "This controller is not configured with menu navigation bindings. To assign a binding set, expand the controller listing and use the <b>Menu Bindings</b> dropdown.",
 			  },
+			  "GameplayBindings": {
+				  "Title": "Gameplay Bindings",
+				  "Text": "Select from all binding sets for {0} gameplay {1} {2}."
+			  },
+			  "MenuBindings": {
+				  "Title": "Menu Bindings",
+				  "Text": "Select from all binding sets for menu navigation on {0}."
+			  },
 			  "NoteSpeed": {
 				"Title": "Note Speed",
 				"Text": "Adjust the scrolling speed of the highway. At faster speeds, the gems are visually further apart.\n\nDefault value is 5.0. Higher values produce higher speeds."
