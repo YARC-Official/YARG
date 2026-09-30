@@ -29,6 +29,7 @@ namespace YARG.Menu.MusicLibrary
         private string _currentSearchText = string.Empty;
         private bool _searchNavigationActive;
 
+        public bool IsTextInputFocused => _searchField != null && _searchField.isFocused;
         public bool IsSearching => !string.IsNullOrEmpty(_fullSearchQuery);
         public bool IsCurrentSearchInField => _fullSearchQuery == _searchField.text;
         public bool IsUnspecified => _searchContext.IsUnspecified();

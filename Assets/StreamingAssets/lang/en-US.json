@@ -227,7 +227,13 @@
             "ProfileCreated": "Profile created for new device: {0}\nTime to do some YARGin!",
             "TooManyPauses": "Score saving disabled: Too many pauses.",
             "ProfileLoadWarning": "{0} profile(s) could not be loaded by this version of YARG. They are kept and will be retried after an update, or can be removed from the profile list.",
-            "UnsupportedDevice": "Automatic profile creation is not supported for {0}!"
+            "UnsupportedDevice": "Automatic profile creation is not supported for {0}!",
+            "StemsGenerated": "stems generated",
+            "StemsGenerating": "Generating stems for {0}...",
+            "StemsFailed": "Could not generate stems. {0}",
+            "StemsAlreadyPresent": "This song already has vocals, bass, and drums.",
+            "StemsBusy": "Stem generation is already running.",
+            "StemsChecking": "Checking songs for missing stems..."
         },
         "Dialog": {
             "DontShowAgain": "Don't Show Again",
@@ -331,6 +337,8 @@
             "NoSongsMatchCriteria": "NO SONGS MATCH CRITERIA",
             "SearchResults": "SEARCH RESULTS",
             "AllSongs": "ALL SONGS",
+            "NoStems": "(no stems)",
+            "DemucsStems": "(demucs stems)",
             "RecommendedSongs": {
                 "Singular": "RECOMMENDED SONG",
                 "Plural": "RECOMMENDED SONGS"

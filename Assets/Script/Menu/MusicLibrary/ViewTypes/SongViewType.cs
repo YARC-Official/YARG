@@ -3,6 +3,7 @@ using UnityEngine;
 using YARG.Core.Game;
 using YARG.Core.Song;
 using YARG.Helpers;
+using YARG.Localization;
 using YARG.Player;
 using YARG.Playlists;
 using YARG.Scores;
@@ -46,7 +47,18 @@ namespace YARG.Menu.MusicLibrary
 
         public override string GetPrimaryText(bool selected)
         {
-            return FormatAs(SongEntry.Name, TextType.Primary, selected);
+            string name = SongEntry.Name;
+            switch (SongEntry.GetStemSeparation())
+            {
+                case StemSeparation.Missing:
+                    name = ZString.Concat(name, " ", Localize.Key("Menu.MusicLibrary.NoStems"));
+                    break;
+                case StemSeparation.Demucs:
+                    name = ZString.Concat(name, " ", Localize.Key("Menu.MusicLibrary.DemucsStems"));
+                    break;
+            }
+
+            return FormatAs(name, TextType.Primary, selected);
         }
 
         public override string GetSecondaryText(bool selected)
