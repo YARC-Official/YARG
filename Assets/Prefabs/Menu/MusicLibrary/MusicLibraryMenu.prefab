@@ -3576,6 +3576,8 @@ MonoBehaviour:
   _sortInfoHeaderSongCountText: {fileID: 3509007690705291402}
   _sortInfoHeaderStarCountText: {fileID: 3962095324017665022}
   _sortInfoHeaderStarIcon: {fileID: 6176945539076547266}
+  _starGoldSprite: {fileID: 21300000, guid: aca38790aaa530d4badafd0b372e56f3, type: 3}
+  _starWhiteSprite: {fileID: 21300000, guid: 96bc245f161ec1642b7168cd0794499e, type: 3}
 --- !u!1 &4030813025972567529
 GameObject:
   m_ObjectHideFlags: 0

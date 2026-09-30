@@ -99,6 +99,7 @@ namespace YARG.Menu.MusicLibrary
         {
             SetNavigationScheme(true);
             var list = new List<ViewType>{};
+            _allVisibleSongsGold = false;
 
             if (SelectedPlaylist.Ephemeral)
             {
@@ -126,6 +127,7 @@ namespace YARG.Menu.MusicLibrary
             bool allowdupes = SettingsManager.Settings.AllowDuplicateSongs.Value;
             _totalSongCount = 0;
             _totalStarCount = 0;
+            bool hasNonGoldSong = false;
 
             // Add songs in the playlist
             foreach (var section in _sortedSongs)
@@ -140,10 +142,12 @@ namespace YARG.Menu.MusicLibrary
                         _totalSongCount++;
                         var starAmount = songView.GetStarAmount();
                         _totalStarCount += starAmount is null ? 0 : StarAmountHelper.GetStarCount(starAmount.Value);
+                        hasNonGoldSong |= starAmount != StarAmount.StarGold;
                     }
                 }
             }
 
+            _allVisibleSongsGold = _totalSongCount > 0 && !hasNonGoldSong;
             AddPlaylistManagementButtons(list);
             return list;
         }
@@ -277,6 +281,8 @@ namespace YARG.Menu.MusicLibrary
         {
             _totalSongCount = 0;
             _totalStarCount = 0;
+            _allVisibleSongsGold = false;
+            bool hasNonGoldSong = false;
 
             var list = new List<ViewType>
             {
@@ -293,8 +299,10 @@ namespace YARG.Menu.MusicLibrary
                 _totalSongCount++;
                 var starAmount = songView.GetStarAmount();
                 _totalStarCount += starAmount is null ? 0 : StarAmountHelper.GetStarCount(starAmount.Value);
+                hasNonGoldSong |= starAmount != StarAmount.StarGold;
             }
 
+            _allVisibleSongsGold = _totalSongCount > 0 && !hasNonGoldSong;
             AddSetlistManagementButtons(list, DeleteShowSetlist);
 
             return list;
