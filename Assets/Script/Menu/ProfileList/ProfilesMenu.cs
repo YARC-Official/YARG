@@ -246,7 +246,7 @@ namespace YARG.Menu.ProfileList
         private void AddProfileListHeader(string headerKey)
         {
             var headerGo = Instantiate(_profileListHeaderPrefab, _leftPaneList);
-            headerGo.GetComponentInChildren<TextMeshProUGUI>().text = Localize.Key("Bindings.Headers", headerKey);
+            headerGo.GetComponentInChildren<TextMeshProUGUI>().text = Localize.Key("Menu.ProfileList", headerKey);
             _navigationGroup.AddNavigatable(headerGo);
         }
 
