@@ -601,6 +601,10 @@
 				"Waiting": "Waiting for Input\n<color=#2A5B87><size=24>Press any button on</color> <color=#5A8BB7>{0}</color></size>",
 				"Select": "Select Input"
 			},
+			"BindingsIndicator": {
+				"Gameplay": "G",
+				"Menu": "M"
+			},
 			"Tooltip": {
 			    "InputMode": {
 				    "Title": "Input Mode",
@@ -636,6 +640,18 @@
 			  "DetachMicrophone": {
 				"Title": "Detach Microphone",
 				"Text": "Detach this microphone from this profile."
+			  },
+			  "GameplayBindingsIndicator": {
+				  "Title": "Gameplay Bindings",
+				  "Text": "{0}",
+				  "Lit": "This controller is configured with gameplay bindings for your current Input Mode. To change them, expand the controller listing and use the <b>Gameplay Bindings</b> dropdown.",
+				  "Unlit": "This controller is not configured with gameplay bindings. To assign a binding set, expand the controller listing and use the <b>Gameplay Bindings</b> dropdown.",
+			  },
+			  "MenuBindingsIndicator": {
+				  "Title": "Menu Bindings",
+				  "Text": "{0}",
+				  "Lit": "This controller is configured with menu navigation bindings. To change them, expand the controller listing and use the <b>Menu Bindings</b> dropdown.",
+				  "Unlit": "This controller is not configured with menu navigation bindings. To assign a binding set, expand the controller listing and use the <b>Menu Bindings</b> dropdown.",
 			  },
 			  "NoteSpeed": {
 				"Title": "Note Speed",
