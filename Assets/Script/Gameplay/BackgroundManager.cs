@@ -100,6 +100,16 @@ namespace YARG.Gameplay
         // Wall-clock seconds the video is aimed ahead of the song; see VideoLeadFor.
         private double _videoLeadSeconds;
 
+        // Pausing parks the video on the frame the resume will rewind to, so resuming is a Play
+        // rather than a seek: a seek from a running song lands late by however long the decoder
+        // takes to reach the target from its keyframe. See TryParkForResume.
+        //
+        // Seeking: the park seek is in flight, video still playing. Parked: landed and paused.
+        // Releasing: the song has resumed; Play once it reaches the parked frame.
+        private enum ParkState { None, Seeking, Parked, Releasing }
+        private ParkState _parkState;
+        private double _parkedAt;
+
         // End time cannot be negative; a negative value means it is not set.
         private double _videoEndTime;
 
@@ -561,6 +571,9 @@ namespace YARG.Gameplay
 
             double time = GameManager.GetVideoPlaybackTime();
 
+            if (_parkState == ParkState.Releasing)
+                ReleaseParkedVideo(time);
+
             // Start video
             if (!_videoStarted)
             {
@@ -682,6 +695,8 @@ namespace YARG.Gameplay
                     if (_source != VenueSource.Song)
                         return;
 
+                    _parkState = ParkState.None;
+
                     double videoTime = VideoTargetFor(songTime);
                     if (videoTime < 0f) // Seeking before video start
                     {
@@ -717,6 +732,13 @@ namespace YARG.Gameplay
 
         private void OnVideoSeeked(YargVideoPlayer player)
         {
+            if (_parkState == ParkState.Seeking)
+            {
+                _parkState = ParkState.Parked;
+                SetVideoPlaying(false);
+                return;
+            }
+
             if (!_videoSeeking)
                 return;
 
@@ -810,6 +832,77 @@ namespace YARG.Gameplay
             }
         }
 
+        // Called as the song resumes from a pause's rewind. A parked video plays once the song
+        // reaches its frame; otherwise this falls back to the song-start block's Play-then-seek,
+        // which lands late by the decode time from the target's keyframe.
+        public void ResyncVideoToSong()
+        {
+            if (_type != BackgroundType.Video || _source != VenueSource.Song ||
+                !_videoStarted || _videoSeeking || !_videoPlayer.playerEnabled)
+            {
+                return;
+            }
+
+            double time = GameManager.GetVideoPlaybackTime();
+            double target = VideoTargetFor(time);
+
+            // Outside the video's own span, the start block and end check already own it.
+            if (target < 0 || target >= _videoPlayer.length)
+                return;
+
+            // A landed park already holds (about) this frame: play it when the song gets there.
+            // Measured from the picture on screen, which is what playback resumes from; the paused
+            // player's reported time runs ahead of it.
+            double parkedAt = _videoPlayer.presentedPictureTime;
+            if (double.IsNaN(parkedAt))
+                parkedAt = _videoPlayer.time;
+
+            if (_parkState == ParkState.Parked && Math.Abs(parkedAt - target) < PARK_MAX_MISMATCH_SECONDS)
+            {
+                _parkedAt = parkedAt;
+                _parkState = ParkState.Releasing;
+                return;
+            }
+
+            _parkState = ParkState.None;
+
+            SetVideoPlaying(true);
+            _videoPlayer.time = target;
+        }
+
+        // A park more than this far from the resume target is from a different rewind.
+        private const double PARK_MAX_MISMATCH_SECONDS = 0.25;
+
+        // Seeks while still playing -- a seek issued while paused is dropped -- and pauses once it
+        // lands, in OnVideoSeeked. Where it stops needn't be exact: the release reads back the
+        // picture actually parked on and waits for the song to reach it.
+        private bool TryParkForResume(double playbackTime)
+        {
+            if (_type != BackgroundType.Video || _source != VenueSource.Song ||
+                !_videoStarted || _videoSeeking || !_videoPlayer.playerEnabled || !_videoPlayer.usingVlc)
+            {
+                return false;
+            }
+
+            double target = VideoTargetFor(playbackTime);
+            if (target < 0 || target >= _videoPlayer.length)
+                return false;
+
+            _parkState = ParkState.Seeking;
+            SetVideoPlaying(true);
+            _videoPlayer.time = target;
+            return true;
+        }
+
+        private void ReleaseParkedVideo(double time)
+        {
+            if (GameManager.Paused || VideoTargetFor(time) < _parkedAt)
+                return;
+
+            _parkState = ParkState.None;
+            SetVideoPlaying(true);
+        }
+
         public void SetSpeed(float speed)
         {
             switch (_type)
@@ -820,8 +913,21 @@ namespace YARG.Gameplay
             }
         }
 
-        public void SetPaused(bool paused)
+        /// <param name="parkAtPlaybackTime">
+        /// On pause, the video playback time the resume will rewind to, when it will rewind.
+        /// </param>
+        public void SetPaused(bool paused, double? parkAtPlaybackTime = null)
         {
+            if (paused && parkAtPlaybackTime.HasValue && TryParkForResume(parkAtPlaybackTime.Value))
+                return;
+
+            // The park release owns the Play: it waits for the song to reach the parked frame.
+            if (!paused && _parkState == ParkState.Releasing)
+                return;
+
+            if (paused)
+                _parkState = ParkState.None;
+
             // Pause/unpause video
             if (_videoPlayer.playerEnabled && _videoStarted && !_videoSeeking)
             {

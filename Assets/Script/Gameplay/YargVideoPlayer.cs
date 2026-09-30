@@ -41,6 +41,7 @@ public class YargVideoPlayer : MonoBehaviour
     private LibVLCSharp.MediaPlayer.WatchTimeOnUpdate _onTimeUpdate;
     private LibVLCSharp.MediaPlayer.WatchTimeOnSeek _onTimeSeek;
     private long _picturesPresented;
+    private long _presentedPictureTs = long.MinValue;
     private int _vlcSeekFinished;
     private long _vlcSeekFinishedAtPicture;
 #endif
@@ -219,6 +220,24 @@ public class YargVideoPlayer : MonoBehaviour
 #endif
     }
 
+    /// <summary>
+    /// Stream time, in seconds, of the last picture libVLC presented; NaN when there is none or
+    /// not using VLC. While paused this is what playback resumes from -- the paused player's
+    /// reported <see cref="time"/> runs ahead of it.
+    /// </summary>
+    public double presentedPictureTime
+    {
+        get
+        {
+#if VLC_SUPPORTED
+            long ts = Interlocked.Read(ref _presentedPictureTs);
+            if (_usingVLC && ts != long.MinValue)
+                return ts / 1_000_000.0;
+#endif
+            return double.NaN;
+        }
+    }
+
     public Camera targetCamera => _unityVideoPlayer?.targetCamera;
 
     // ─── Events ───
@@ -347,12 +366,17 @@ public class YargVideoPlayer : MonoBehaviour
 
         StopTimeWatch();
 
+        Interlocked.Exchange(ref _presentedPictureTs, long.MinValue);
+
         // Both run on libVLC threads: record and hand off, never call into the player.
         _onTimeUpdate = (point, _) =>
         {
             // INT64_MAX system date is a paused-clock update, not a presented picture.
             if (point.SystemDate != long.MaxValue)
+            {
+                Interlocked.Exchange(ref _presentedPictureTs, point.Time);
                 Interlocked.Increment(ref _picturesPresented);
+            }
         };
         _onTimeSeek = (point, _) =>
         {
