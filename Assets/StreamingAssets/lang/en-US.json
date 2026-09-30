@@ -618,6 +618,14 @@
                 "Trio": "Trio / 3-Part Harmony",
                 "Instrumental": "Instrumental"
             },
+            "VocalistGender": {
+                "Name": "Vocalist Gender",
+                "Woman": "Woman",
+                "Man": "Man",
+                "NonBinary": "Non-Binary",
+                "Other": "Other",
+                "Unspecified": "Unspecified"
+            },
             "Sources": "Song Sources",
             "Charters": "Charters",
             "Intensities": {
