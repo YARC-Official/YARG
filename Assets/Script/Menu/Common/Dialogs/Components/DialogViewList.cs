@@ -6,7 +6,7 @@ namespace YARG.Menu.Dialogs.Components
 {
     public class DialogViewList : ListMenu<SongViewType,SongView>
     {
-        protected override int ExtraListViewPadding => 0;
+        protected override int ExtraListViewPadding => 2;
 
         private SongCategory[] _songCategories;
 

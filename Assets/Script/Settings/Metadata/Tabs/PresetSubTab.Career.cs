@@ -114,7 +114,7 @@ namespace YARG.Settings.Metadata
                     float xPos = -10f;
 
                     // Delete button [✖]
-                    var delBtn = AttachHeaderButton(tierHeaderGo, "✖", MenuData.Colors.CancelButton, xPos, 34f, () =>
+                    var delBtn = AttachHeaderButton(tierHeaderGo, "<sprite='AssortedIcons' index=6>", MenuData.Colors.CancelButton, xPos, 34f, () =>
                     {
                         ShowCompactConfirmation("Delete Tier", $"Are you sure you want to delete '{tier.Name}'?", "Menu.Common.Delete",
                             MenuData.Colors.CancelButton, () =>
