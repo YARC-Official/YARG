@@ -41,9 +41,13 @@ namespace YARG.Menu.MusicLibrary
             _searchField.onSelect.AddListener(OnSearchFieldSelected);
             _searchField.onDeselect.AddListener(OnSearchFieldDeselected);
             _searchField.onSubmit.AddListener(_ => ClearSearchFocus());
+            _searchField.onValueChanged.AddListener(OnSearchFieldValueChanged);
 
             _focusBorder.SetActive(_searchField.isFocused);
-            _focusBackground.enabled = _searchField.isFocused;
+            if (_focusBackground != null)
+            {
+                _focusBackground.enabled = _searchField.isFocused;
+            }
         }
 
         public void Focus()
@@ -160,6 +164,11 @@ namespace YARG.Menu.MusicLibrary
             _searchField.onDeselect.RemoveListener(OnSearchFieldDeselected);
             _searchField.onSubmit.RemoveListener(_ => ClearSearchFocus());
             DisableSearchNavigation();
+        }
+
+        private void OnSearchFieldValueChanged(string _)
+        {
+            OnSearchQueryUpdated?.Invoke(false);
         }
 
         private void OnSearchFieldSelected(string _)

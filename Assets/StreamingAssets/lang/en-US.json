@@ -1136,7 +1136,10 @@
             "Gameplay": "Gameplay",
             "CrowdFX": "Crowd FX",
             "OutputConfiguration": "Output Configuration",
-            "Accessibility": "Accessibility"
+            "Accessibility": "Accessibility",
+            "CareerInformation": "Career Information",
+            "CareerTiers": "Career Tiers",
+            "NoTiers": "  (No tiers created. Click '+ Add Tier' above)"
         },
         "Button": {
             "CopyCurrentSongJsonFilePath": "Copy Current Song Json File Path",

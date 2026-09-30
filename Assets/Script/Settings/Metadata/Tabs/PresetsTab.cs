@@ -50,12 +50,12 @@ namespace YARG.Settings.Metadata
 
             new PresetSubTab<RockMeterPreset>(
                 CustomContentManager.RockMeterPresets,
-                new TrackPreviewBuilder(),
+                null,
                 true),
 
             new CareerPresetSubTab(
                 CustomContentManager.Careers,
-                new TrackPreviewBuilder(), // TODO: Make a different kind of preview for these
+                null, // TODO: Make a different kind of preview for these
                 true)
         };
 

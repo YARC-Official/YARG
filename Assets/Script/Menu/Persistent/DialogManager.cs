@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using YARG.Core;
 using YARG.Core.Game;
+using YARG.Core.Song;
 using YARG.Localization;
 using YARG.Menu.Data;
 using YARG.Menu.Dialogs;
@@ -44,6 +45,8 @@ namespace YARG.Menu.Persistent
         private FriendlyBindingDialog _friendlyMidiDrumsBindingDialog;
         [SerializeField]
         private SongPickerListDialog _playAShowDialog;
+        [SerializeField]
+        private LibrarySearchDialog _librarySearchDialog;
 
         private Dialog _currentDialog;
 
@@ -235,6 +238,15 @@ namespace YARG.Menu.Persistent
         {
             var dialog = ShowDialog(_playAShowDialog);
             dialog.Initialize(menu);
+
+            return dialog;
+        }
+
+        public LibrarySearchDialog ShowLibrarySearchDialog(string title, Action<SongEntry> selectAction)
+        {
+            var dialog = ShowDialog(_librarySearchDialog);
+            dialog.Title.text = title;
+            dialog.SelectAction = selectAction;
 
             return dialog;
         }

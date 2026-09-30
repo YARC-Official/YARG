@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Runtime.Serialization;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
@@ -117,7 +118,7 @@ namespace YARG.Career
         {
             if (song == null) return;
             song.Parent = this;
-            var list = Songs != null ? new System.Collections.Generic.List<CareerSong>(Songs) : new System.Collections.Generic.List<CareerSong>();
+            var list = Songs != null ? new List<CareerSong>(Songs) : new List<CareerSong>();
             list.Add(song);
             Songs = list.ToArray();
         }
@@ -126,7 +127,7 @@ namespace YARG.Career
         {
             if (song == null) return;
             song.Parent = this;
-            var list = Songs != null ? new System.Collections.Generic.List<CareerSong>(Songs) : new System.Collections.Generic.List<CareerSong>();
+            var list = Songs != null ? new List<CareerSong>(Songs) : new List<CareerSong>();
             if (index < 0) index = 0;
             if (index > list.Count) index = list.Count;
             list.Insert(index, song);
@@ -136,7 +137,7 @@ namespace YARG.Career
         public bool RemoveSong(CareerSong song)
         {
             if (Songs == null) return false;
-            var list = new System.Collections.Generic.List<CareerSong>(Songs);
+            var list = new List<CareerSong>(Songs);
             bool removed = list.Remove(song);
             if (removed)
             {
@@ -148,7 +149,7 @@ namespace YARG.Career
         public void RemoveSongAt(int index)
         {
             if (Songs == null || index < 0 || index >= Songs.Length) return;
-            var list = new System.Collections.Generic.List<CareerSong>(Songs);
+            var list = new List<CareerSong>(Songs);
             list.RemoveAt(index);
             Songs = list.ToArray();
         }
@@ -158,7 +159,7 @@ namespace YARG.Career
             if (Songs == null || fromIndex < 0 || fromIndex >= Songs.Length || toIndex < 0 || toIndex >= Songs.Length || fromIndex == toIndex)
                 return;
 
-            var list = new System.Collections.Generic.List<CareerSong>(Songs);
+            var list = new List<CareerSong>(Songs);
             var song = list[fromIndex];
             list.RemoveAt(fromIndex);
             list.Insert(toIndex, song);

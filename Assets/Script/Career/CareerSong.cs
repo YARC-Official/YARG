@@ -135,14 +135,17 @@ namespace YARG.Career
 
         public static CareerSong FromSongEntry(SongEntry song, CareerSongIdentifier identifier = CareerSongIdentifier.SongId)
         {
-            if (song == null) return null;
+            if (song == null)
+            {
+                return null;
+            }
 
             switch (identifier)
             {
                 case CareerSongIdentifier.SongHash:
                     return new CareerSong(song.Hash);
                 case CareerSongIdentifier.ShortName:
-                    return new CareerSong(song.Name);
+                    return new CareerSong(song.Name); // TODO: Not correct
                 case CareerSongIdentifier.SongTuple:
                     return new CareerSong(new SongTuple
                     {

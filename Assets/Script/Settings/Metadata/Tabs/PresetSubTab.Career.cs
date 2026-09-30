@@ -36,7 +36,7 @@ namespace YARG.Settings.Metadata
             _fieldIndex = 0;
 
             // Header: Career Information
-            var careerInfoGo = SpawnRawHeader(container, Localize.Key("Settings.Header.CareerInformation", "Career Information"));
+            var careerInfoGo = SpawnRawHeader(container, Localize.Key("Settings.Header.CareerInformation"));
             _fieldIndex++;
 
             // Editable CareerBase metadata fields
@@ -62,7 +62,7 @@ namespace YARG.Settings.Metadata
                 }));
 
             // Header: Career Tiers
-            var tiersHeaderGo = SpawnRawHeader(container, Localize.Key("Settings.Header.CareerTiers", "Career Tiers"));
+            var tiersHeaderGo = SpawnRawHeader(container, Localize.Key("Settings.Header.CareerTiers"));
             _fieldIndex++;
 
             if (!ReadOnlyFields)
@@ -93,7 +93,7 @@ namespace YARG.Settings.Metadata
             var tiers = _presetRef.Tiers;
             if (tiers == null || tiers.Count == 0)
             {
-                var emptyTierGo = SpawnSubHeader(container, Localize.Key("Settings.Header.NoTiers", "  (No tiers created. Click '+ Add Tier' above)"));
+                var emptyTierGo = SpawnSubHeader(container, Localize.Key("Settings.Header.NoTiers"));
                 _fieldIndex++;
                 return;
             }
@@ -255,7 +255,7 @@ namespace YARG.Settings.Metadata
         private void SaveAndRefresh()
         {
             Save();
-            SettingsMenu.Instance?.RefreshAndKeepPosition();
+            SettingsMenu.Instance?.RefreshSettingsKeepPosition();
         }
 
         private void ShowEditTierDialog(CareerTier tier)
@@ -393,86 +393,53 @@ namespace YARG.Settings.Metadata
             });
         }
 
-        private void ShowSongPickerDialog(CareerTier tier, string filterQuery = null)
+        private async void ShowSongPickerDialog(CareerTier tier, string filterQuery = null)
         {
-            var dialog = DialogManager.Instance.ShowList("Select a Song to Add");
-
-            dialog.AddListButton(string.IsNullOrEmpty(filterQuery) ? "🔍 [Search / Filter Songs]" : $"🔍 Filter: '{filterQuery}' (Click to change)", () =>
+            if (SongContainer.Count == 0)
             {
-                DialogManager.Instance.ShowRenameDialog(filterQuery ?? string.Empty, query =>
-                {
-                    ShowSongPickerDialog(tier, query?.Trim());
-                });
+                ToastManager.ToastError("No Songs in Library!");
+                return;
+            }
+
+            SongEntry selected = null;
+            var pickerDialog = DialogManager.Instance.ShowLibrarySearchDialog("Select a Song to Add", songEntry =>
+            {
+                selected = songEntry;
             });
 
-            if (filterQuery != null)
-            {
-                dialog.AddListButton("✖ [Clear Filter]", () =>
-                {
-                    ShowSongPickerDialog(tier, null);
-                });
-            }
+            await pickerDialog.WaitUntilClosed();
 
-            var allSongs = SongContainer.Songs;
-            if (allSongs == null || allSongs.Length == 0)
+            if (selected == null)
             {
-                dialog.AddListButton("(No songs found in SongContainer)", null);
+                ToastManager.ToastInformation("No Song Selected");
                 return;
             }
 
-            IEnumerable<SongEntry> querySongs = allSongs;
-            if (!string.IsNullOrEmpty(filterQuery))
-            {
-                querySongs = allSongs.Where(s =>
-                    (s.Name.Original != null && s.Name.Original.IndexOf(filterQuery, StringComparison.OrdinalIgnoreCase) >= 0) ||
-                    (s.Artist.Original != null && s.Artist.Original.IndexOf(filterQuery, StringComparison.OrdinalIgnoreCase) >= 0) ||
-                    (s.Charter.Original != null && s.Charter.Original.IndexOf(filterQuery, StringComparison.OrdinalIgnoreCase) >= 0) ||
-                    (s.Source.Original != null && s.Source.Original.IndexOf(filterQuery, StringComparison.OrdinalIgnoreCase) >= 0));
-            }
-
-            var matchingSongs = querySongs.Take(100).ToList();
-            if (matchingSongs.Count == 0)
-            {
-                dialog.AddListButton("(No songs match query)", null);
-                return;
-            }
-
-            foreach (var song in matchingSongs)
-            {
-                var entry = song;
-                string label = $"{entry.Artist.Original} - {entry.Name.Original} ({entry.Charter.Original})";
-                dialog.AddListButton(label, () =>
-                {
-                    ShowIdentifierChoiceDialog(tier, entry);
-                });
-            }
+            ShowIdentifierChoiceDialog(tier, selected);
         }
 
         private void ShowIdentifierChoiceDialog(CareerTier tier, SongEntry song)
         {
             var dialog = DialogManager.Instance.ShowList($"Add: {song.Artist.Original} - {song.Name.Original}");
 
-            dialog.AddListButton("1. Song ID (GUID - recommended for unique charts)", () =>
+            if (!string.IsNullOrEmpty(song.YargGuid))
             {
-                tier.AddSong(CareerSong.FromSongEntry(song, CareerSongIdentifier.SongId));
-                SaveAndRefresh();
-            });
+                dialog.AddListButton("Song ID (Use for YARG songs)", () =>
+                {
+                    tier.AddSong(CareerSong.FromSongEntry(song, CareerSongIdentifier.SongId));
+                    SaveAndRefresh();
+                });
+            }
 
-            dialog.AddListButton("2. Song Hash (MD5 hash match)", () =>
+            dialog.AddListButton("Song Hash", () =>
             {
                 tier.AddSong(CareerSong.FromSongEntry(song, CareerSongIdentifier.SongHash));
                 SaveAndRefresh();
             });
 
-            dialog.AddListButton("3. Song Tuple (Artist, Title, Source, Charter)", () =>
+            dialog.AddListButton("Song Tuple (Artist, Title, Source, Charter)", () =>
             {
                 tier.AddSong(CareerSong.FromSongEntry(song, CareerSongIdentifier.SongTuple));
-                SaveAndRefresh();
-            });
-
-            dialog.AddListButton("4. Short Name (Song name match)", () =>
-            {
-                tier.AddSong(CareerSong.FromSongEntry(song, CareerSongIdentifier.ShortName));
                 SaveAndRefresh();
             });
         }
