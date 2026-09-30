@@ -412,7 +412,6 @@ namespace YARG.Menu.ProfileList
             UpdateCenterPane(Profile, _profileView);
         }
 
-
         public void RefreshControllers()
         {
             var player = PlayerContainer.GetPlayerFromProfile(Profile);
@@ -436,7 +435,7 @@ namespace YARG.Menu.ProfileList
                 entry.Initialize(Profile, _profileView, this, microphone);
             }
 
-            _noMicrophonesText.gameObject.SetActive(player.DeviceInfo.Microphones.Count is 0);
+            _noMicrophonesText.gameObject.SetActive(player.DeviceInfo.Controllers.Count is 0);
         }
 
         public void ChangeGameMode()

@@ -434,6 +434,7 @@ GameObject:
   - component: {fileID: 5753369685925887170}
   - component: {fileID: 5753369685925887168}
   - component: {fileID: 5753369685925887171}
+  - component: {fileID: 5191214378365485428}
   m_Layer: 5
   m_Name: Name
   m_TagString: Untagged
@@ -560,6 +561,20 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &5191214378365485428
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5753369685925887173}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4bd6ea9f68e26d144b73b6e2e9069aa9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::YARG.Menu.ProfileList.ControllerNameTooltipTrigger
+  _localizationKey: ControllerName
+  _entry: {fileID: 3692162781744761990}
 --- !u!1 &5753369685943773599
 GameObject:
   m_ObjectHideFlags: 0
@@ -874,6 +889,7 @@ GameObject:
   - component: {fileID: 6266837339817144304}
   - component: {fileID: 2331196529234900474}
   - component: {fileID: 2735551219711044607}
+  - component: {fileID: 2551401381036217498}
   m_Layer: 5
   m_Name: Remove
   m_TagString: Untagged
@@ -995,6 +1011,20 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!114 &2551401381036217498
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7853887391745661570}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0a2a9dce37ed17f42898726faad779ee, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::YARG.Menu.ProfileList.DetachControllerTooltipTrigger
+  _localizationKey: DetachController
+  _entry: {fileID: 3692162781744761990}
 --- !u!1 &8280036969726439909
 GameObject:
   m_ObjectHideFlags: 0

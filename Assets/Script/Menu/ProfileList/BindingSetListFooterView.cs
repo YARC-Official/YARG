@@ -59,9 +59,9 @@ namespace YARG.Menu.ProfileList
             }
             else
             {
-                dialog = DialogManager.Instance.ShowList($"Add Other {_family.ToLocalizedNameSingular()} Binding Set\n" +
+                dialog = DialogManager.Instance.ShowList($"Add Other {_family.ToLocalizedNameSingularTitle()} Binding Set\n" +
                     "<alpha=#44><size=65%>\n<b><color=\"yellow\">Are you sure you know what you're doing?</color></b> " +
-                    $"{_family.ToLocalizedNamePlural()} weren't designed with these modes in mind.</size>"
+                    $"{_family.ToLocalizedNamePluralSentence()} weren't designed with these modes in mind.</size>"
                 );
             }
 

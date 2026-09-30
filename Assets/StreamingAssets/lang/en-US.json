@@ -133,7 +133,7 @@
 			"IfChartContainsOpens": "If chart contains open notes"
 		},
 		"ControllerFamily": {
-			"Singular": { 
+			"SingularTitle": {
 				"FiveFretGuitar": "5F Guitar",
 				"SixFretGuitar": "6F Guitar",
 				"FourLaneDrumkit": "4L Drumkit",
@@ -146,7 +146,20 @@
 				"Gamepad": "Gamepad",
 				"Other": "Misc. Input Device"
 			},
-			"Plural": { 
+			"SingularSentence": {
+				"FiveFretGuitar": "5F guitar",
+				"SixFretGuitar": "6F guitar",
+				"FourLaneDrumkit": "4L drumkit",
+				"FiveLaneDrumkit": "5L drumkit",
+				"ProKeyboard": "pro keyboard",
+				"ProGuitar": "pro guitar",
+				"MidiDevice": "MIDI device",
+				"ComputerKeyboard": "computer keyboard",
+				"Mouse": "computer mouse",
+				"Gamepad": "gamepad",
+				"Other": "misc. input device"
+			},
+			"PluralTitle": {
 				"FiveFretGuitar": "5-Fret Guitar Controllers",
 				"SixFretGuitar": "6-Fret Guitar Controllers",
 				"FourLaneDrumkit": "Stock 4-Lane Drumkit Controllers",
@@ -158,6 +171,19 @@
 				"Mouse": "Computer Mice",
 				"Gamepad": "Gamepads",
 				"Other": "Other Input Devices"
+			},
+			"PluralSentence": {
+				"FiveFretGuitar": "5-fret guitar controllers",
+				"SixFretGuitar": "6-fret guitar controllers",
+				"FourLaneDrumkit": "stock 4-Lane drumkit controllers",
+				"FiveLaneDrumkit": "stock 5-lane drumkit controllers",
+				"ProKeyboard": "pro keyboard controllers",
+				"ProGuitar": "pro guitar controllers",
+				"MidiDevice": "MIDI devices",
+				"ComputerKeyboard": "computer keyboards",
+				"Mouse": "computer mice",
+				"Gamepad": "gamepads",
+				"Other": "other input devices"
 			}
 		}
     },
@@ -627,7 +653,11 @@
 			  },
 			  "DetachController": {
 				"Title": "Detach Controller",
-				"Text": "Detach this controller from this profile."
+				"Text": "Detach {0} from this profile."
+			  },
+			  "ControllerName": {
+				  "Title": "{0}",
+				  "Text": "This is a {0} that is connected to your setup."
 			  },
 			  "Microphones": {
 				"Title": "Microphones",

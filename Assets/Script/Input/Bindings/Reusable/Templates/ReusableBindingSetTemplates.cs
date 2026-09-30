@@ -104,9 +104,9 @@ namespace YARG.Input.Bindings
                     GameMode.FourLaneDrums or
                     GameMode.FiveLaneDrums or
                     GameMode.EliteDrums => Localize.Key("Bindings.MidiDrumkit"),
-                    _ => family.ToLocalizedNameSingular()
+                    _ => family.ToLocalizedNameSingularTitle()
                 },
-                _ => family.ToLocalizedNameSingular()
+                _ => family.ToLocalizedNameSingularTitle()
             };
 
             // Vocals bindings are rendered as "Vocals with [family]" instead of "Vocals on [family]", to
