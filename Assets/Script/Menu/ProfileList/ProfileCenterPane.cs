@@ -456,6 +456,7 @@ namespace YARG.Menu.ProfileList
             UpdateCenterPane(Profile, _profileView);
         }
 
+
         public void RefreshControllers()
         {
             var player = PlayerContainer.GetPlayerFromProfile(Profile);
