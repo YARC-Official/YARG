@@ -62,7 +62,6 @@ namespace YARG.Gameplay
         private bool _videoStarted = false;
         private bool _videoSeeking = false;
         private bool _videoSeekWaitForPause = false;
-        private bool _videoWasPausedBeforeSeek = false;
 
         private const float FADE_DURATION = 0.5f;
 
@@ -719,10 +718,15 @@ namespace YARG.Gameplay
                         // Hack to ensure the video stays synced to the audio
                         _videoSeeking = true; // Signaling flag; must come first
                         _videoSeekWaitForPause = waitForSeek;
-                        _videoWasPausedBeforeSeek = _videoPlayer.isPaused;
+                        bool videoWasPaused = _videoPlayer.isPaused;
 
                         if (waitForSeek && SettingsManager.Settings.WaitForSongVideo.Value)
                             GameManager.OverridePause();
+
+                        // A seek issued while paused is dropped, so play across it; OnVideoSeeked
+                        // settles the video back into the song's state once it lands.
+                        if (videoWasPaused)
+                            SetVideoPlaying(true);
 
                         _videoPlayer.time = videoTime;
                     }
@@ -742,18 +746,17 @@ namespace YARG.Gameplay
             if (!_videoSeeking)
                 return;
 
-            if (!_videoSeekWaitForPause ||
-                !SettingsManager.Settings.WaitForSongVideo.Value ||
-                GameManager.OverrideResume())
-            {
-                if (!_videoWasPausedBeforeSeek)
-                    SetVideoPlaying(true);
-            }
+            if (_videoSeekWaitForPause && SettingsManager.Settings.WaitForSongVideo.Value)
+                GameManager.OverrideResume();
+
+            // Follow the song, not the video's state before the seek: a resume issued while the
+            // seek was in flight skipped the video (SetPaused ignores it mid-seek), and a pause
+            // could have landed meanwhile too.
+            SetVideoPlaying(!GameManager.Paused);
 
             enabled = !double.IsNaN(_videoEndTime);
             _videoSeeking = false;
             _videoSeekWaitForPause = false;
-            _videoWasPausedBeforeSeek = false;
         }
 
         private string[] BuildMediaOptions()
