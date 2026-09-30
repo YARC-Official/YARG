@@ -109,6 +109,16 @@ namespace YARG.Gameplay
         private ParkState _parkState;
         private double _parkedAt;
 
+        // Seeks are issued at rate 1 (see SeekVideo); a seek on a running video takes the song's
+        // rate back once it lands.
+        private bool _applyRateOnSeekLanded;
+
+        // A speed step on a playing video re-parks it once the steps settle (see SetSpeed).
+        private float _reparkAtUnscaledTime = float.NaN;
+        private bool _releaseParkOnLanding;
+        private const float SPEED_STEP_SETTLE_SECONDS = 0.3f;
+        private const double REPARK_MARGIN_SECONDS = 0.4;
+
         // End time cannot be negative; a negative value means it is not set.
         private double _videoEndTime;
 
@@ -573,6 +583,12 @@ namespace YARG.Gameplay
             if (_parkState == ParkState.Releasing)
                 ReleaseParkedVideo(time);
 
+            if (!float.IsNaN(_reparkAtUnscaledTime) && Time.unscaledTime >= _reparkAtUnscaledTime)
+            {
+                _reparkAtUnscaledTime = float.NaN;
+                ReparkForSpeed(time);
+            }
+
             // Start video
             if (!_videoStarted)
             {
@@ -588,16 +604,34 @@ namespace YARG.Gameplay
                     return;
 
                 _videoStarted = true;
-                SetVideoPlaying(true);
 
-                if (_source == VenueSource.Song)
+                // At a non-100% speed a held load-time seek (practice entry) has parked the video
+                // on this frame; releasing it takes the rate while paused. A running re-seek would
+                // have to change the rate on a playing video instead.
+                bool releaseLoadPark = _source == VenueSource.Song && _videoPlayer.usingVlc &&
+                    !Mathf.Approximately(GameManager.SongSpeed, 1f) &&
+                    _parkState is ParkState.Parked or ParkState.Releasing;
+
+                if (releaseLoadPark)
                 {
-                    // Unconditional, even when the player already sits on the target: resuming a
-                    // cold pause leaves a large stream spinning up at partial rate for seconds, and
-                    // a seek flushes and refills the decoder. Must follow the Play above, because a
-                    // seek issued while paused is dropped.
+                    if (_parkState == ParkState.Parked)
+                        ArmParkRelease();
+                }
+                else
+                {
+                    _parkState = ParkState.None;
+                    SetVideoPlaying(true);
+                }
+
+                if (_source == VenueSource.Song && !releaseLoadPark)
+                {
+                    // Re-seek even when the player already sits on the target: at 100% a parked
+                    // start (played rather than re-seeked) settles 20-40ms later on videos that
+                    // start on a keyframe. Must follow the Play above, because a seek issued while
+                    // paused is dropped.
                     double startTarget = VideoTargetFor(time);
-                    _videoPlayer.time = startTarget;
+                    SeekVideo(startTarget);
+                    _applyRateOnSeekLanded = true;
                 }
 
                 _revealFrameBaseline = _videoPlayer.framesDelivered;
@@ -644,8 +678,9 @@ namespace YARG.Gameplay
 
                 // Clamped: a negative start time delays when the video starts; it does not name a
                 // position before the file begins.
-                player.time = Math.Max(VideoTargetFor(0.0), 0.0);
-                player.playbackSpeed = GameManager.SongSpeed;
+                SeekVideo(Math.Max(VideoTargetFor(0.0), 0.0));
+                if (!player.usingVlc)
+                    player.playbackSpeed = GameManager.SongSpeed;
 
                 // Only loop the video if it's not around the same length as the song
                 if (Math.Abs(_videoStartTime) < startTimeThreshold &&
@@ -695,6 +730,8 @@ namespace YARG.Gameplay
                         return;
 
                     _parkState = ParkState.None;
+                    _reparkAtUnscaledTime = float.NaN;
+                    _releaseParkOnLanding = false;
 
                     double videoTime = VideoTargetFor(songTime);
                     if (videoTime < 0f) // Seeking before video start
@@ -728,7 +765,8 @@ namespace YARG.Gameplay
                         if (videoWasPaused)
                             SetVideoPlaying(true);
 
-                        _videoPlayer.time = videoTime;
+                        SeekVideo(videoTime);
+                        _applyRateOnSeekLanded = true;
                     }
                     break;
             }
@@ -740,7 +778,30 @@ namespace YARG.Gameplay
             {
                 _parkState = ParkState.Parked;
                 SetVideoPlaying(false);
+
+                // A speed re-park releases on its own; a pause's park waits for the resume.
+                if (_releaseParkOnLanding)
+                {
+                    _releaseParkOnLanding = false;
+                    ArmParkRelease();
+                }
+
                 return;
+            }
+
+            // A held seek (SetTime) at a non-100% speed parks instead of taking the rate while
+            // playing: changing the rate of a playing video jumps it by (time since its new clock
+            // context began) x delta-rate, which measured 50-100ms even right after landing.
+            bool parkHeldSeek = _videoSeeking && _source == VenueSource.Song && _videoPlayer.usingVlc &&
+                !Mathf.Approximately(GameManager.SongSpeed, 1f);
+
+            // Otherwise its first picture has only just started libVLC's new clock context, so the
+            // rate change costs little.
+            if (_applyRateOnSeekLanded)
+            {
+                _applyRateOnSeekLanded = false;
+                if (!parkHeldSeek)
+                    ApplyVideoRate();
             }
 
             if (!_videoSeeking)
@@ -749,10 +810,22 @@ namespace YARG.Gameplay
             if (_videoSeekWaitForPause && SettingsManager.Settings.WaitForSongVideo.Value)
                 GameManager.OverrideResume();
 
-            // Follow the song, not the video's state before the seek: a resume issued while the
-            // seek was in flight skipped the video (SetPaused ignores it mid-seek), and a pause
-            // could have landed meanwhile too.
-            SetVideoPlaying(!GameManager.Paused);
+            if (parkHeldSeek)
+            {
+                // Released by ReleaseParkedVideo, which applies the rate while paused, once the song
+                // reaches the picture; if the song is still paused, the resume arms it instead.
+                SetVideoPlaying(false);
+                _parkState = ParkState.Parked;
+                if (!GameManager.Paused)
+                    ArmParkRelease();
+            }
+            else
+            {
+                // Follow the song, not the video's state before the seek: a resume issued while the
+                // seek was in flight skipped the video (SetPaused ignores it mid-seek), and a pause
+                // could have landed meanwhile too.
+                SetVideoPlaying(!GameManager.Paused);
+            }
 
             enabled = !double.IsNaN(_videoEndTime);
             _videoSeeking = false;
@@ -870,7 +943,8 @@ namespace YARG.Gameplay
             _parkState = ParkState.None;
 
             SetVideoPlaying(true);
-            _videoPlayer.time = target;
+            SeekVideo(target);
+            _applyRateOnSeekLanded = true;
         }
 
         // A park more than this far from the resume target is from a different rewind.
@@ -893,17 +967,72 @@ namespace YARG.Gameplay
 
             _parkState = ParkState.Seeking;
             SetVideoPlaying(true);
-            _videoPlayer.time = target;
+            SeekVideo(target);
             return true;
+        }
+
+        private void ArmParkRelease()
+        {
+            _parkedAt = _videoPlayer.presentedPictureTime;
+            _parkState = ParkState.Releasing;
         }
 
         private void ReleaseParkedVideo(double time)
         {
+            // The picture the paused video will resume from; it can still advance a frame or two
+            // after the pause is issued.
+            double picture = _videoPlayer.presentedPictureTime;
+            if (!double.IsNaN(picture))
+                _parkedAt = picture;
+
             if (GameManager.Paused || VideoTargetFor(time) < _parkedAt)
                 return;
 
             _parkState = ParkState.None;
+
+            // Paused, with the next picture starting a new clock context: the one moment a rate
+            // change costs nothing.
+            ApplyVideoRate();
             SetVideoPlaying(true);
+        }
+
+        // A seek lands on target only when issued at rate 1; at rate r it lands off by about
+        // target x (r - 1). So every VLC seek drops to 1, and ApplyVideoRate restores the song's
+        // rate once the seek has landed or the parked video is released.
+        private void SeekVideo(double target)
+        {
+            if (_videoPlayer.usingVlc)
+                _videoPlayer.playbackSpeed = 1f;
+
+            _videoPlayer.time = target;
+        }
+
+        private void ApplyVideoRate()
+        {
+            float speed = GameManager.SongSpeed;
+            if (Mathf.Approximately(_videoPlayer.playbackSpeed, speed))
+                return;
+
+            _videoPlayer.playbackSpeed = speed;
+        }
+
+        // Seeks a little ahead at rate 1, parks there, and releases at the new rate when the song
+        // arrives. The video holds that frame for about the margin.
+        private void ReparkForSpeed(double time)
+        {
+            if (GameManager.Paused || !_videoStarted || _videoSeeking || _parkState != ParkState.None ||
+                _videoPlayer.isPaused)
+            {
+                return;
+            }
+
+            double target = VideoTargetFor(time + REPARK_MARGIN_SECONDS * GameManager.SongSpeed);
+            if (target < 0 || target >= _videoPlayer.length)
+                return;
+
+            _parkState = ParkState.Seeking;
+            _releaseParkOnLanding = true;
+            SeekVideo(target);
         }
 
         public void SetSpeed(float speed)
@@ -911,7 +1040,18 @@ namespace YARG.Gameplay
             switch (_type)
             {
                 case BackgroundType.Video:
-                    _videoPlayer.playbackSpeed = speed;
+                    if (_source != VenueSource.Song || !_videoPlayer.usingVlc)
+                    {
+                        _videoPlayer.playbackSpeed = speed;
+                        break;
+                    }
+
+                    // Never on a playing VLC video: its rate change jumps the picture by (time since
+                    // the last seek) x delta-rate, seconds late in a section. A paused, parked or
+                    // seeking video takes the new rate at its release or landing; a playing one is
+                    // re-parked once the 0.05 steps stop coming.
+                    if (_videoStarted && !_videoPlayer.isPaused && _parkState == ParkState.None && !_videoSeeking)
+                        _reparkAtUnscaledTime = Time.unscaledTime + SPEED_STEP_SETTLE_SECONDS;
                     break;
             }
         }
@@ -928,13 +1068,33 @@ namespace YARG.Gameplay
             if (!paused && _parkState == ParkState.Releasing)
                 return;
 
+            // A held seek that landed while the song was paused (e.g. a section change from the
+            // menu): release it rather than play it, so it takes the rate while still paused.
+            if (!paused && _parkState == ParkState.Parked && _videoStarted && !_videoSeeking)
+            {
+                ArmParkRelease();
+                return;
+            }
+
             if (paused)
+            {
                 _parkState = ParkState.None;
+                _reparkAtUnscaledTime = float.NaN;
+                _releaseParkOnLanding = false;
+            }
 
             // Pause/unpause video
             if (_videoPlayer.playerEnabled && _videoStarted && !_videoSeeking)
             {
                 SetVideoPlaying(!paused);
+
+                // The speed changed while paused: re-align at the new rate rather than change it
+                // on the playing video.
+                if (!paused && _source == VenueSource.Song && _videoPlayer.usingVlc &&
+                    !Mathf.Approximately(_videoPlayer.playbackSpeed, GameManager.SongSpeed))
+                {
+                    _reparkAtUnscaledTime = Time.unscaledTime;
+                }
             }
 
             // The venue is dealt with in the GameManager via Time.timeScale
