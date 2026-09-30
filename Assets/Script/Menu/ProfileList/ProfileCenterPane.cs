@@ -70,7 +70,11 @@ namespace YARG.Menu.ProfileList
         [SerializeField]
         private GameObject _controllersList;
         [SerializeField]
+        private TextMeshProUGUI _noControllersText;
+        [SerializeField]
         private GameObject _microphonesList;
+        [SerializeField]
+        private TextMeshProUGUI _noMicrophonesText;
         [SerializeField]
         private TMP_InputField _noteSpeedField;
         [SerializeField]
@@ -415,8 +419,10 @@ namespace YARG.Menu.ProfileList
             foreach (var controller in player.DeviceInfo.Controllers)
             {
                 var entry = Instantiate(_controllerEntryViewPrefab, _controllersList.transform);
-                entry.Initialize(Profile, _profileView, this, controller);
+                entry.Init(Profile, _profileView, this, controller);
             }
+
+            _noControllersText.gameObject.SetActive(player.DeviceInfo.Controllers.Count is 0);
         }
 
         public void RefreshMicrophones()
@@ -428,6 +434,8 @@ namespace YARG.Menu.ProfileList
                 var entry = Instantiate(_microphoneEntryViewPrefab, _microphonesList.transform);
                 entry.Initialize(Profile, _profileView, this, microphone);
             }
+
+            _noMicrophonesText.gameObject.SetActive(player.DeviceInfo.Microphones.Count is 0);
         }
 
         public void ChangeGameMode()
