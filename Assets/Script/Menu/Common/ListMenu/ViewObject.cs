@@ -25,9 +25,9 @@ namespace YARG.Menu.ListMenu
         [SerializeField]
         private Image _icon;
         [SerializeField]
-        private List<TextMeshProUGUI> _primaryText;
+        protected List<TextMeshProUGUI> _primaryText;
         [SerializeField]
-        private List<TextMeshProUGUI> _secondaryText;
+        protected List<TextMeshProUGUI> _secondaryText;
 
         protected bool Showing { get; private set; }
 

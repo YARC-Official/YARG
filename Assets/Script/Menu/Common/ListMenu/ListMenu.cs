@@ -17,6 +17,12 @@ namespace YARG.Menu.ListMenu
 
         protected abstract int ExtraListViewPadding { get; }
 
+        /// <summary>
+        /// Prevents the beginning or end of the list from being scrolled into the
+        /// middle of the viewport when the selection approaches either boundary.
+        /// </summary>
+        protected virtual bool ClampListToViewport => false;
+
         [SerializeField]
         private TViewObject _viewObjectPrefab;
 
@@ -28,6 +34,7 @@ namespace YARG.Menu.ListMenu
 
         private List<TViewType> _viewList;
         private readonly List<TViewObject> _viewObjects = new();
+        private bool _realignBeforeRender;
 
         private bool _allowWrapAround;
 
@@ -127,6 +134,7 @@ namespace YARG.Menu.ListMenu
 
         protected virtual void OnDisable()
         {
+            CancelRealignBeforeRender();
         }
 
         protected virtual void OnSelectedIndexChanged()
@@ -228,10 +236,52 @@ namespace YARG.Menu.ListMenu
             }
 
             RealignParentViewObject();
+
+            if (ClampListToViewport && !_realignBeforeRender)
+            {
+                _realignBeforeRender = true;
+                Canvas.willRenderCanvases += RealignParentViewObjectBeforeRender;
+            }
         }
 
-        private void RealignParentViewObject()
+        private void RealignParentViewObjectBeforeRender()
         {
+            CancelRealignBeforeRender();
+
+            if (isActiveAndEnabled)
+            {
+                RealignParentViewObject(false);
+            }
+        }
+
+        private void CancelRealignBeforeRender()
+        {
+            if (!_realignBeforeRender)
+            {
+                return;
+            }
+
+            Canvas.willRenderCanvases -= RealignParentViewObjectBeforeRender;
+            _realignBeforeRender = false;
+        }
+
+        private void RealignParentViewObject(bool updateCanvas = true)
+        {
+            var parentRect = _viewObjectParent.GetComponent<RectTransform>();
+
+            // On the first refresh, the viewport may still have its prefab dimensions because
+            // Unity has not performed the canvas layout pass for this frame yet. The clamp below
+            // must measure the final viewport, otherwise it is corrected only after the first
+            // scroll triggers another refresh.
+            if (ClampListToViewport && updateCanvas)
+            {
+                Canvas.ForceUpdateCanvases();
+            }
+
+            // Show() can change a row's height. Resolve the vertical layout before
+            // using those heights to center or clamp the pooled rows.
+            LayoutRebuilder.ForceRebuildLayoutImmediate(parentRect);
+
             float topHeight = 0;
             float bottomHeight = 0;
             for (int i = 0; i < _viewObjects.Count; i++)
@@ -246,7 +296,38 @@ namespace YARG.Menu.ListMenu
                 }
             }
 
-            _viewObjectParent.GetComponent<RectTransform>().anchoredPosition = new Vector2(0, (topHeight - bottomHeight) / 2);
+            parentRect.anchoredPosition = new Vector2(0, (topHeight - bottomHeight) / 2);
+
+            if (!ClampListToViewport || _viewList.Count == 0 || parentRect.parent is not RectTransform viewportRect)
+            {
+                return;
+            }
+
+            // The pool keeps invisible rows on either side of the selected row so
+            // it normally remains centered. At a real list boundary, offset that
+            // pool just enough to keep the first/last row against the viewport.
+            if (SelectedIndex < ExtraListViewPadding)
+            {
+                int firstVisibleObject = ExtraListViewPadding - SelectedIndex;
+                var firstRect = _viewObjects[firstVisibleObject].GetComponent<RectTransform>();
+                var bounds = RectTransformUtility.CalculateRelativeRectTransformBounds(viewportRect, firstRect);
+                float offset = viewportRect.rect.yMax - bounds.max.y;
+                if (offset > 0f)
+                {
+                    parentRect.anchoredPosition += Vector2.up * offset;
+                }
+            }
+            else if (_viewList.Count - 1 - SelectedIndex < ExtraListViewPadding)
+            {
+                int lastVisibleObject = ExtraListViewPadding + (_viewList.Count - 1 - SelectedIndex);
+                var lastRect = _viewObjects[lastVisibleObject].GetComponent<RectTransform>();
+                var bounds = RectTransformUtility.CalculateRelativeRectTransformBounds(viewportRect, lastRect);
+                float offset = viewportRect.rect.yMin - bounds.min.y;
+                if (offset < 0f)
+                {
+                    parentRect.anchoredPosition += Vector2.up * offset;
+                }
+            }
         }
 
         public void OnScroll(PointerEventData eventData)
