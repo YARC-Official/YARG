@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.IO;
 using UnityEngine;
 using YARG.Gameplay;
 using YARG.Helpers;
@@ -26,6 +27,8 @@ namespace YARG.Venue
         private VenueCharacter _replaceableVocalist;
 
         public AssetBundle       Bundle        { get; set; }
+        // AssetBundle.LoadFromStream reads from this lazily, so it must stay open until Bundle is unloaded.
+        public Stream            BundleStream  { get; set; }
         public List<AssetBundle> ShaderBundles { get; set; } = new();
         public List<AssetBundle> CharacterBundles { get; set; } = new();
 
@@ -68,6 +71,9 @@ namespace YARG.Venue
             {
                 Bundle.Unload(true);
             }
+
+            BundleStream?.Dispose();
+            BundleStream = null;
 
             if (ShaderBundles.Count > 0)
             {
